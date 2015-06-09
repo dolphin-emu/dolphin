@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BDB6578B-0691-4E80-A46C-DF21639FD3B8}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\Source\VSProps\Base.props" />
+    <Import Project="..\..\..\Source\VSProps\ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="..\library\aes.c" />
+    <ClCompile Include="..\library\aesni.c" />
+    <ClCompile Include="..\library\arc4.c" />
+    <ClCompile Include="..\library\asn1parse.c" />
+    <ClCompile Include="..\library\asn1write.c" />
+    <ClCompile Include="..\library\base64.c" />
+    <ClCompile Include="..\library\bignum.c" />
+    <ClCompile Include="..\library\blowfish.c" />
+    <ClCompile Include="..\library\camellia.c" />
+    <ClCompile Include="..\library\ccm.c" />
+    <ClCompile Include="..\library\certs.c" />
+    <ClCompile Include="..\library\cipher.c" />
+    <ClCompile Include="..\library\cipher_wrap.c" />
+    <ClCompile Include="..\library\ctr_drbg.c" />
+    <ClCompile Include="..\library\debug.c" />
+    <ClCompile Include="..\library\des.c" />
+    <ClCompile Include="..\library\dhm.c" />
+    <ClCompile Include="..\library\ecdh.c" />
+    <ClCompile Include="..\library\ecdsa.c" />
+    <ClCompile Include="..\library\ecp.c" />
+    <ClCompile Include="..\library\ecp_curves.c" />
+    <ClCompile Include="..\library\entropy.c" />
+    <ClCompile Include="..\library\entropy_poll.c" />
+    <ClCompile Include="..\library\error.c" />
+    <ClCompile Include="..\library\gcm.c" />
+    <ClCompile Include="..\library\havege.c" />
+    <ClCompile Include="..\library\hmac_drbg.c" />
+    <ClCompile Include="..\library\md.c" />
+    <ClCompile Include="..\library\md2.c" />
+    <ClCompile Include="..\library\md4.c" />
+    <ClCompile Include="..\library\md5.c" />
+    <ClCompile Include="..\library\md_wrap.c" />
+    <ClCompile Include="..\library\memory_buffer_alloc.c" />
+    <ClCompile Include="..\library\net.c" />
+    <ClCompile Include="..\library\oid.c" />
+    <ClCompile Include="..\library\padlock.c" />
+    <ClCompile Include="..\library\pbkdf2.c" />
+    <ClCompile Include="..\library\pem.c" />
+    <ClCompile Include="..\library\pk.c" />
+    <ClCompile Include="..\library\pk_wrap.c" />
+    <ClCompile Include="..\library\pkcs11.c" />
+    <ClCompile Include="..\library\pkcs12.c" />
+    <ClCompile Include="..\library\pkcs5.c" />
+    <ClCompile Include="..\library\pkparse.c" />
+    <ClCompile Include="..\library\pkwrite.c" />
+    <ClCompile Include="..\library\platform.c" />
+    <ClCompile Include="..\library\ripemd160.c" />
+    <ClCompile Include="..\library\rsa.c" />
+    <ClCompile Include="..\library\sha1.c" />
+    <ClCompile Include="..\library\sha256.c" />
+    <ClCompile Include="..\library\sha512.c" />
+    <ClCompile Include="..\library\ssl_cache.c" />
+    <ClCompile Include="..\library\ssl_ciphersuites.c" />
+    <ClCompile Include="..\library\ssl_cli.c" />
+    <ClCompile Include="..\library\ssl_srv.c" />
+    <ClCompile Include="..\library\ssl_tls.c" />
+    <ClCompile Include="..\library\threading.c" />
+    <ClCompile Include="..\library\timing.c" />
+    <ClCompile Include="..\library\version.c" />
+    <ClCompile Include="..\library\version_features.c" />
+    <ClCompile Include="..\library\x509.c" />
+    <ClCompile Include="..\library\x509_create.c" />
+    <ClCompile Include="..\library\x509_crl.c" />
+    <ClCompile Include="..\library\x509_crt.c" />
+    <ClCompile Include="..\library\x509_csr.c" />
+    <ClCompile Include="..\library\x509write_crt.c" />
+    <ClCompile Include="..\library\x509write_csr.c" />
+    <ClCompile Include="..\library\xtea.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\library\CMakeLists.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

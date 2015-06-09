@@ -3,7 +3,6 @@
 // Purpose:     wxNativeWindow implementation
 // Author:      Vadim Zeitlin
 // Created:     2008-03-05
-// RCS-ID:      $Id: nativewin.cpp 62783 2009-12-05 17:31:07Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,6 @@
 // Author:      Marcin Malich
 // Modified by:
 // Created:     2009-09-22
-// RCS-ID:      $Id: ownerdrw.h 63220 2010-01-23 13:21:12Z VZ $
 // Copyright:   (c) 2009 Marcin Malich <me@malcom.pl>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

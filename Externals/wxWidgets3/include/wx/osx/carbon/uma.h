@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     03/02/99
-// RCS-ID:      $Id: uma.h 64943 2010-07-13 13:29:58Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

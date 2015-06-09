@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: xtixml.h 70397 2012-01-19 09:45:49Z SC $
 // Copyright:   (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

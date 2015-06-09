@@ -1,7 +1,7 @@
 /*
  *  Blowfish implementation
  *
- *  Copyright (C) 2012-2013, Brainspark B.V.
+ *  Copyright (C) 2012-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -29,13 +29,22 @@
  *
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_BLOWFISH_C)
 
 #include "polarssl/blowfish.h"
 
 #if !defined(POLARSSL_BLOWFISH_ALT)
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -71,7 +80,7 @@ static const uint32_t P[BLOWFISH_ROUNDS + 2] = {
 /* declarations of data at the end of this file */
 static const uint32_t S[4][256];
 
-static uint32_t F(blowfish_context *ctx, uint32_t x) 
+static uint32_t F( blowfish_context *ctx, uint32_t x )
 {
    unsigned short a, b, c, d;
    uint32_t  y;
@@ -87,10 +96,10 @@ static uint32_t F(blowfish_context *ctx, uint32_t x)
    y = y ^ ctx->S[2][c];
    y = y + ctx->S[3][d];
 
-   return y;
+   return( y );
 }
 
-static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr) 
+static void blowfish_enc( blowfish_context *ctx, uint32_t *xl, uint32_t *xr )
 {
     uint32_t  Xl, Xr, temp;
     short i;
@@ -98,10 +107,10 @@ static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
     Xl = *xl;
     Xr = *xr;
 
-    for (i = 0; i < BLOWFISH_ROUNDS; ++i) 
+    for( i = 0; i < BLOWFISH_ROUNDS; ++i )
     {
         Xl = Xl ^ ctx->P[i];
-        Xr = F(ctx, Xl) ^ Xr;
+        Xr = F( ctx, Xl ) ^ Xr;
 
         temp = Xl;
         Xl = Xr;
@@ -119,7 +128,7 @@ static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
     *xr = Xr;
 }
 
-static void blowfish_dec(blowfish_context *ctx, uint32_t *xl, uint32_t *xr) 
+static void blowfish_dec( blowfish_context *ctx, uint32_t *xl, uint32_t *xr )
 {
     uint32_t  Xl, Xr, temp;
     short i;
@@ -127,10 +136,10 @@ static void blowfish_dec(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
     Xl = *xl;
     Xr = *xr;
 
-    for (i = BLOWFISH_ROUNDS + 1; i > 1; --i) 
+    for( i = BLOWFISH_ROUNDS + 1; i > 1; --i )
     {
         Xl = Xl ^ ctx->P[i];
-        Xr = F(ctx, Xl) ^ Xr;
+        Xr = F( ctx, Xl ) ^ Xr;
 
         temp = Xl;
         Xl = Xr;
@@ -148,23 +157,37 @@ static void blowfish_dec(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
     *xr = Xr;
 }
 
+void blowfish_init( blowfish_context *ctx )
+{
+    memset( ctx, 0, sizeof( blowfish_context ) );
+}
+
+void blowfish_free( blowfish_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( blowfish_context ) );
+}
+
 /*
  * Blowfish key schedule
  */
-int blowfish_setkey( blowfish_context *ctx, const unsigned char *key, unsigned int keysize )
+int blowfish_setkey( blowfish_context *ctx, const unsigned char *key,
+                     unsigned int keysize )
 {
     unsigned int i, j, k;
     uint32_t data, datal, datar;
 
     if( keysize < BLOWFISH_MIN_KEY || keysize > BLOWFISH_MAX_KEY ||
-        ( keysize % 8 ) ) 
+        ( keysize % 8 ) )
     {
-        return POLARSSL_ERR_BLOWFISH_INVALID_KEY_LENGTH;
+        return( POLARSSL_ERR_BLOWFISH_INVALID_KEY_LENGTH );
     }
 
     keysize >>= 3;
 
-    for( i = 0; i < 4; i++ ) 
+    for( i = 0; i < 4; i++ )
     {
         for( j = 0; j < 256; j++ )
             ctx->S[i][j] = S[i][j];
@@ -215,16 +238,16 @@ int blowfish_crypt_ecb( blowfish_context *ctx,
 {
     uint32_t X0, X1;
 
-    GET_UINT32_BE( X0, input,  0 ); 
-    GET_UINT32_BE( X1, input,  4 ); 
+    GET_UINT32_BE( X0, input,  0 );
+    GET_UINT32_BE( X1, input,  4 );
 
     if( mode == BLOWFISH_DECRYPT )
     {
-        blowfish_dec(ctx, &X0, &X1);
+        blowfish_dec( ctx, &X0, &X1 );
     }
     else /* BLOWFISH_ENCRYPT */
     {
-        blowfish_enc(ctx, &X0, &X1);
+        blowfish_enc( ctx, &X0, &X1 );
     }
 
     PUT_UINT32_BE( X0, output,  0 );
@@ -233,6 +256,7 @@ int blowfish_crypt_ecb( blowfish_context *ctx,
     return( 0 );
 }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /*
  * Blowfish-CBC buffer encryption/decryption
  */
@@ -284,6 +308,7 @@ int blowfish_crypt_cbc( blowfish_context *ctx,
 
     return( 0 );
 }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 /*
@@ -311,7 +336,7 @@ int blowfish_crypt_cfb64( blowfish_context *ctx,
             *output++ = (unsigned char)( c ^ iv[n] );
             iv[n] = (unsigned char) c;
 
-            n = (n + 1) % BLOWFISH_BLOCKSIZE;
+            n = ( n + 1 ) % BLOWFISH_BLOCKSIZE;
         }
     }
     else
@@ -323,7 +348,7 @@ int blowfish_crypt_cfb64( blowfish_context *ctx,
 
             iv[n] = *output++ = (unsigned char)( iv[n] ^ *input++ );
 
-            n = (n + 1) % BLOWFISH_BLOCKSIZE;
+            n = ( n + 1 ) % BLOWFISH_BLOCKSIZE;
         }
     }
 
@@ -351,7 +376,8 @@ int blowfish_crypt_ctr( blowfish_context *ctx,
     while( length-- )
     {
         if( n == 0 ) {
-            blowfish_crypt_ecb( ctx, BLOWFISH_ENCRYPT, nonce_counter, stream_block );
+            blowfish_crypt_ecb( ctx, BLOWFISH_ENCRYPT, nonce_counter,
+                                stream_block );
 
             for( i = BLOWFISH_BLOCKSIZE; i > 0; i-- )
                 if( ++nonce_counter[i - 1] != 0 )
@@ -360,7 +386,7 @@ int blowfish_crypt_ctr( blowfish_context *ctx,
         c = *input++;
         *output++ = (unsigned char)( c ^ stream_block[n] );
 
-        n = (n + 1) % BLOWFISH_BLOCKSIZE;
+        n = ( n + 1 ) % BLOWFISH_BLOCKSIZE;
     }
 
     *nc_off = n;

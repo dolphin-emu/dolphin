@@ -3,7 +3,6 @@
 // Purpose:     implementation of wxNotificationMessage for Windows
 // Author:      Vadim Zeitlin
 // Created:     2007-12-01
-// RCS-ID:      $Id: notifmsg.cpp 69379 2011-10-11 17:08:02Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -92,9 +91,10 @@ private:
 class wxBalloonNotifMsgImpl : public wxNotifMsgImpl
 {
 public:
-    // ctor sets up m_icon (using the icon of the top level parent of the given
-    // window) which can be used to show an attached balloon later by the
-    // derived classes
+    // Ctor creates the associated taskbar icon (using the icon of the top
+    // level parent of the given window) unless UseTaskBarIcon() had been
+    // previously called  which can be used to show an attached balloon later
+    // by the derived classes.
     wxBalloonNotifMsgImpl(wxWindow *win) { SetUpIcon(win); }
 
     // implementation of wxNotificationMessage method with the same name
@@ -105,20 +105,53 @@ public:
                         int timeout,
                         int flags);
 
+
+    // Returns true if we're using our own icon or false if we're hitching a
+    // ride on the application icon provided to us via UseTaskBarIcon().
+    static bool IsUsingOwnIcon()
+    {
+        return ms_refCountIcon != -1;
+    }
+
+    // Indicates that the taskbar icon we're using has been hidden and can be
+    // deleted.
+    //
+    // This is only called by wxNotificationIconEvtHandler and should only be
+    // called when using our own icon (as opposed to the one passed to us via
+    // UseTaskBarIcon()).
+    static void ReleaseIcon()
+    {
+        wxASSERT_MSG( ms_refCountIcon != -1,
+                      wxS("Must not be called when not using own icon") );
+
+        if ( !--ms_refCountIcon )
+        {
+            delete ms_icon;
+            ms_icon = NULL;
+        }
+    }
+
 protected:
-    // sets up m_icon (doesn't do anything with the old value, caller beware)
+    // Creates a new icon if necessary, see the comment below.
     void SetUpIcon(wxWindow *win);
 
 
-    static wxTaskBarIcon *ms_iconToUse;
-
-    // the icon we attach our notification to, either ms_iconToUse or a
-    // temporary one which we will destroy when done
-    wxTaskBarIcon *m_icon;
-
-    // should be only used if m_icon != NULL and indicates whether we should
-    // delete it
-    bool m_ownsIcon;
+    // We need an icon to show the notification in a balloon attached to it.
+    // It may happen that the main application already shows an icon in the
+    // taskbar notification area in which case it should call our
+    // UseTaskBarIcon() and we just use this icon without ever allocating nor
+    // deleting it and ms_refCountIcon is -1 and never changes. Otherwise, we
+    // create the icon when we need it the first time but reuse it if we need
+    // to show subsequent notifications while this icon is still alive. This is
+    // needed in order to avoid 2 or 3 or even more identical icons if a couple
+    // of notifications are shown in a row (which happens quite easily in
+    // practice because Windows helpfully buffers all the notifications that
+    // were generated while the user was away -- i.e. the screensaver was
+    // active -- and then shows them all at once when the user comes back). In
+    // this case, ms_refCountIcon is used as a normal reference counter, i.e.
+    // the icon is only destroyed when it reaches 0.
+    static wxTaskBarIcon *ms_icon;
+    static int ms_refCountIcon;
 };
 
 // implementation for automatically hidden notifications
@@ -212,7 +245,7 @@ wxNotificationIconEvtHandler::wxNotificationIconEvtHandler(wxTaskBarIcon *icon)
 
 void wxNotificationIconEvtHandler::OnIconHidden()
 {
-    delete m_icon;
+    wxBalloonNotifMsgImpl::ReleaseIcon();
 
     delete this;
 }
@@ -234,29 +267,36 @@ void wxNotificationIconEvtHandler::OnClick(wxTaskBarIconEvent& WXUNUSED(event))
 // wxBalloonNotifMsgImpl
 // ----------------------------------------------------------------------------
 
-wxTaskBarIcon *wxBalloonNotifMsgImpl::ms_iconToUse = NULL;
+wxTaskBarIcon *wxBalloonNotifMsgImpl::ms_icon = NULL;
+int wxBalloonNotifMsgImpl::ms_refCountIcon = 0;
 
 /* static */
 wxTaskBarIcon *wxBalloonNotifMsgImpl::UseTaskBarIcon(wxTaskBarIcon *icon)
 {
-    wxTaskBarIcon * const iconOld = ms_iconToUse;
-    ms_iconToUse = icon;
+    wxTaskBarIcon * const iconOld = ms_icon;
+    ms_icon = icon;
+
+    // Don't use reference counting for the provided icon, we don't own it.
+    ms_refCountIcon = icon ? -1 : 0;
+
     return iconOld;
 }
 
 void wxBalloonNotifMsgImpl::SetUpIcon(wxWindow *win)
 {
-    if ( ms_iconToUse )
+    if ( ms_icon )
     {
-        // use an existing icon
-        m_ownsIcon = false;
-        m_icon = ms_iconToUse;
+        // Increment the reference count if we manage the icon on our own.
+        if ( ms_refCountIcon != -1 )
+            ms_refCountIcon++;
     }
-    else // no user-specified icon to attach to
+    else // Create a new icon.
     {
-        // create our own one
-        m_ownsIcon = true;
-        m_icon = new wxTaskBarIcon;
+        wxASSERT_MSG( ms_refCountIcon == 0,
+                      wxS("Shouldn't reference not existent icon") );
+
+        ms_icon = new wxTaskBarIcon;
+        ms_refCountIcon = 1;
 
         // use the icon of the associated (or main, if none) frame
         wxIcon icon;
@@ -278,7 +318,7 @@ void wxBalloonNotifMsgImpl::SetUpIcon(wxWindow *win)
             icon = wxIcon(wxT("wxICON_AAA"));
         }
 
-        m_icon->SetIcon(icon);
+        ms_icon->SetIcon(icon);
     }
 }
 
@@ -288,9 +328,26 @@ wxBalloonNotifMsgImpl::DoShow(const wxString& title,
                               int timeout,
                               int flags)
 {
+    if ( !ms_icon->IsIconInstalled() )
+    {
+        // If we failed to install the icon (which does happen sometimes,
+        // although only in unusual circumstances, e.g. it happens regularly,
+        // albeit not constantly, if we're used soon after resume from suspend
+        // under Windows 7), we should not call ShowBalloon() because it would
+        // just assert and return and we must delete the icon ourselves because
+        // otherwise its associated wxTaskBarIconWindow would remain alive
+        // forever because we're not going to receive a notification about icon
+        // disappearance from the system if we failed to install it in the
+        // first place.
+        delete ms_icon;
+        ms_icon = NULL;
+
+        return false;
+    }
+
     timeout *= 1000; // Windows expresses timeout in milliseconds
 
-    return m_icon->ShowBalloon(title, message, timeout, flags);
+    return ms_icon->ShowBalloon(title, message, timeout, flags);
 }
 
 // ----------------------------------------------------------------------------
@@ -305,7 +362,7 @@ wxManualNotifMsgImpl::wxManualNotifMsgImpl(wxWindow *win)
 
 wxManualNotifMsgImpl::~wxManualNotifMsgImpl()
 {
-    if ( m_icon )
+    if ( ms_icon )
         DoClose();
 }
 
@@ -320,7 +377,7 @@ wxManualNotifMsgImpl::DoShow(const wxString& title,
 
     // base class creates the icon for us initially but we could have destroyed
     // it in DoClose(), recreate it if this was the case
-    if ( !m_icon )
+    if ( !ms_icon )
         SetUpIcon(m_win);
 
     // use maximal (in current Windows versions) timeout (but it will still
@@ -330,18 +387,16 @@ wxManualNotifMsgImpl::DoShow(const wxString& title,
 
 bool wxManualNotifMsgImpl::DoClose()
 {
-    if ( m_ownsIcon )
+    if ( IsUsingOwnIcon() )
     {
         // we don't need the icon any more
-        delete m_icon;
+        ReleaseIcon();
     }
     else // using an existing icon
     {
         // just hide the balloon
-        m_icon->ShowBalloon("", "");
+        ms_icon->ShowBalloon("", "");
     }
-
-    m_icon = NULL;
 
     return true;
 }
@@ -353,11 +408,11 @@ bool wxManualNotifMsgImpl::DoClose()
 wxAutoNotifMsgImpl::wxAutoNotifMsgImpl(wxWindow *win)
                   : wxBalloonNotifMsgImpl(win)
 {
-    if ( m_ownsIcon )
+    if ( ms_refCountIcon != -1 )
     {
-        // This object will self-destruct and also delete the icon when the
-        // notification is hidden.
-        new wxNotificationIconEvtHandler(m_icon);
+        // This object will self-destruct and decrease the ref count of the
+        // icon when the notification is hidden.
+        new wxNotificationIconEvtHandler(ms_icon);
     }
 }
 

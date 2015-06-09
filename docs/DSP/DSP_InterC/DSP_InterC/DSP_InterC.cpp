@@ -35,7 +35,7 @@ void Decode(uint16 startAddress, uint16 endAddress)
 int _tmain(int argc, _TCHAR* argv[])
 {
 	FILE* pFile = fopen("c:\\_\\dsp_rom.bin", "rb");
-	if (pFile == NULL)
+	if (pFile == nullptr)
 		return -1;
 
 	fread(g_IMemory, 0x1000, 1, pFile);

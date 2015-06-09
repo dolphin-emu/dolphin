@@ -4,7 +4,6 @@
 // Author:      AUTHOR
 // Modified by: JS Lair (99/11/15) adding the cyclic group notion for radiobox
 // Created:     ??/??/98
-// RCS-ID:      $Id: radiobut_osx.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) AUTHOR
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -127,7 +126,7 @@ bool wxRadioButton::OSXHandleClicked( double WXUNUSED(timestampsec) )
 
     SetValue( true );
 
-    wxCommandEvent event2( wxEVT_COMMAND_RADIOBUTTON_SELECTED, m_windowId );
+    wxCommandEvent event2( wxEVT_RADIOBUTTON, m_windowId );
     event2.SetEventObject( this );
     event2.SetInt( true );
     ProcessCommand( event2 );

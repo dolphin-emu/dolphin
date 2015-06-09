@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by: Ryan Norton (UTF8 UNICODE)
 // Created:     2004-09-19
-// RCS-ID:      $Id: sstream.cpp 67968 2011-06-16 16:22:15Z VZ $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-17
-// RCS-ID:      $Id: debugrpt.cpp 65101 2010-07-25 11:26:04Z FM $
 // Copyright:   (c) 2005 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,8 +32,12 @@
 #if wxUSE_DEBUGREPORT && wxUSE_XML
 
 #include "wx/debugrpt.h"
+#if wxUSE_FFILE
+    #include "wx/ffile.h"
+#elif wxUSE_FILE
+    #include "wx/file.h"
+#endif
 
-#include "wx/ffile.h"
 #include "wx/filename.h"
 #include "wx/dir.h"
 #include "wx/dynlib.h"
@@ -188,16 +191,14 @@ wxDebugReport::wxDebugReport()
     // directory, so do our best to create a unique name ourselves
     //
     // of course, this doesn't protect us against malicious users...
-    wxFileName fn;
-    fn.AssignTempFileName(appname);
 #if wxUSE_DATETIME
     m_dir.Printf(wxT("%s%c%s_dbgrpt-%lu-%s"),
-                 fn.GetPath().c_str(), wxFILE_SEP_PATH, appname.c_str(),
+                 wxFileName::GetTempDir(), wxFILE_SEP_PATH, appname,
                  wxGetProcessId(),
-                 wxDateTime::Now().Format(wxT("%Y%m%dT%H%M%S")).c_str());
+                 wxDateTime::Now().Format(wxT("%Y%m%dT%H%M%S")));
 #else
     m_dir.Printf(wxT("%s%c%s_dbgrpt-%lu"),
-                 fn.GetPath().c_str(), wxFILE_SEP_PATH, appname.c_str(),
+                 wxFileName::GetTempDir(), wxFILE_SEP_PATH, appname,
                  wxGetProcessId());
 #endif
 
@@ -290,17 +291,25 @@ wxDebugReport::AddText(const wxString& filename,
                        const wxString& text,
                        const wxString& description)
 {
+#if wxUSE_FFILE || wxUSE_FILE
     wxASSERT_MSG( !wxFileName(filename).IsAbsolute(),
                   wxT("filename should be relative to debug report directory") );
 
-    wxFileName fn(GetDirectory(), filename);
-    wxFFile file(fn.GetFullPath(), wxT("w"));
-    if ( !file.IsOpened() || !file.Write(text) )
+    const wxString fullPath = wxFileName(GetDirectory(), filename).GetFullPath();
+#if wxUSE_FFILE
+    wxFFile file(fullPath, wxT("w"));
+#elif wxUSE_FILE
+    wxFile file(fullPath, wxFile::write);
+#endif
+    if ( !file.IsOpened() || !file.Write(text, wxConvAuto()) )
         return false;
 
     AddFile(filename, description);
 
     return true;
+#else // !wxUSE_FFILE && !wxUSE_FILE
+    return false;
+#endif
 }
 
 void wxDebugReport::RemoveFile(const wxString& name)
@@ -616,6 +625,8 @@ void wxDebugReportCompress::SetCompressedFileBaseName(const wxString& name)
 
 bool wxDebugReportCompress::DoProcess()
 {
+#define HAS_FILE_STREAMS (wxUSE_STREAMS && (wxUSE_FILE || wxUSE_FFILE))
+#if HAS_FILE_STREAMS
     const size_t count = GetFilesCount();
     if ( !count )
         return false;
@@ -632,7 +643,14 @@ bool wxDebugReportCompress::DoProcess()
     fn.SetExt("zip");
 
     // create the streams
-    wxFFileOutputStream os(fn.GetFullPath(), wxT("wb"));
+    const wxString ofullPath = fn.GetFullPath();
+#if wxUSE_FFILE
+    wxFFileOutputStream os(ofullPath, wxT("wb"));
+#elif wxUSE_FILE
+    wxFileOutputStream os(ofullPath);
+#endif
+    if ( !os.IsOk() )
+        return false;
     wxZipOutputStream zos(os, 9);
 
     // add all files to the ZIP one
@@ -647,8 +665,12 @@ bool wxDebugReportCompress::DoProcess()
         if ( !zos.PutNextEntry(ze) )
             return false;
 
-        const wxFileName filename(GetDirectory(), name);
-        wxFFileInputStream is(filename.GetFullPath());
+        const wxString ifullPath = wxFileName(GetDirectory(), name).GetFullPath();
+#if wxUSE_FFILE
+        wxFFileInputStream is(ifullPath);
+#elif wxUSE_FILE
+        wxFileInputStream is(ifullPath);
+#endif
         if ( !is.IsOk() || !zos.Write(is).IsOk() )
             return false;
     }
@@ -656,9 +678,12 @@ bool wxDebugReportCompress::DoProcess()
     if ( !zos.Close() )
         return false;
 
-    m_zipfile = fn.GetFullPath();
+    m_zipfile = ofullPath;
 
     return true;
+#else
+    return false;
+#endif // HAS_FILE_STREAMS
 }
 
 // ----------------------------------------------------------------------------
@@ -687,7 +712,7 @@ bool wxDebugReportUpload::DoProcess()
     wxArrayString output, errors;
     int rc = wxExecute(wxString::Format
                        (
-                            wxT("%s -F %s=@\"%s\" %s"),
+                            wxT("%s -F \"%s=@%s\" %s"),
                             m_curlCmd.c_str(),
                             m_inputField.c_str(),
                             GetCompressedFileName().c_str(),

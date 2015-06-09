@@ -5,7 +5,6 @@
 // Author:      Julian Smart
 // Modified by: Vaclav Slavik
 // Created:     24/3/98
-// RCS-ID:      $Id: taskbar.h 50586 2007-12-08 20:51:21Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -21,7 +20,7 @@ class WXDLLIMPEXP_FWD_ADV wxTaskBarIconWindow;
 class WXDLLIMPEXP_ADV wxTaskBarIcon : public wxTaskBarIconBase
 {
 public:
-    wxTaskBarIcon();
+    wxTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE);
     virtual ~wxTaskBarIcon();
 
     // Accessors

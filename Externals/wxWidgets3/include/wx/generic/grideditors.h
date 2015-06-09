@@ -4,7 +4,6 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Santiago Palacios
 // Created:     1/08/1999
-// RCS-ID:      $Id: grideditors.h 70693 2012-02-25 23:49:55Z VZ $
 // Copyright:   (c) Michael Bedward
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,6 +14,8 @@
 #include "wx/defs.h"
 
 #if wxUSE_GRID
+
+#include "wx/scopedptr.h"
 
 class wxGridCellEditorEvtHandler : public wxEvtHandler
 {
@@ -52,14 +53,16 @@ private:
 class WXDLLIMPEXP_ADV wxGridCellTextEditor : public wxGridCellEditor
 {
 public:
-    wxGridCellTextEditor();
+    wxEXPLICIT wxGridCellTextEditor(size_t maxChars = 0);
 
     virtual void Create(wxWindow* parent,
                         wxWindowID id,
                         wxEvtHandler* evtHandler);
     virtual void SetSize(const wxRect& rect);
 
-    virtual void PaintBackground(const wxRect& rectCell, wxGridCellAttr *attr);
+    virtual void PaintBackground(wxDC& dc,
+                                 const wxRect& rectCell,
+                                 const wxGridCellAttr& attr);
 
     virtual bool IsAcceptedKey(wxKeyEvent& event);
     virtual void BeginEdit(int row, int col, wxGrid* grid);
@@ -73,9 +76,9 @@ public:
 
     // parameters string format is "max_width"
     virtual void SetParameters(const wxString& params);
+    virtual void SetValidator(const wxValidator& validator);
 
-    virtual wxGridCellEditor *Clone() const
-        { return new wxGridCellTextEditor; }
+    virtual wxGridCellEditor *Clone() const;
 
     // added GetValue so we can get the value which is in the control
     virtual wxString GetValue() const;
@@ -90,8 +93,9 @@ protected:
     void DoReset(const wxString& startValue);
 
 private:
-    size_t   m_maxChars;        // max number of chars allowed
-    wxString m_value;
+    size_t                   m_maxChars;        // max number of chars allowed
+    wxScopedPtr<wxValidator> m_validator;
+    wxString                 m_value;
 
     wxDECLARE_NO_COPY_CLASS(wxGridCellTextEditor);
 };
@@ -297,7 +301,9 @@ public:
 
     virtual void SetSize(const wxRect& rect);
 
-    virtual void PaintBackground(const wxRect& rectCell, wxGridCellAttr *attr);
+    virtual void PaintBackground(wxDC& dc,
+                                 const wxRect& rectCell,
+                                 const wxGridCellAttr& attr);
 
     virtual void BeginEdit(int row, int col, wxGrid* grid);
     virtual bool EndEdit(int row, int col, const wxGrid* grid,

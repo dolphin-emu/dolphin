@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.02.98
-// RCS-ID:      $Id: oleutils.cpp 70093 2011-12-22 19:08:43Z SJL $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,6 +47,7 @@
 #endif
 
 #include  "wx/msw/ole/oleutils.h"
+#include "wx/msw/ole/safearray.h"
 
 #if defined(__VISUALC__) && (__VISUALC__ > 1000)
     #include  <docobj.h>
@@ -131,6 +131,155 @@ wxBasicString::~wxBasicString()
 
 #if wxUSE_VARIANT
 
+// ----------------------------------------------------------------------------
+// wxVariantDataCurrency
+// ----------------------------------------------------------------------------
+
+
+#if wxUSE_ANY
+
+bool wxVariantDataCurrency::GetAsAny(wxAny* any) const
+{
+    *any = m_value;
+    return true;
+}
+
+wxVariantData* wxVariantDataCurrency::VariantDataFactory(const wxAny& any)
+{
+    return new wxVariantDataCurrency(wxANY_AS(any, CURRENCY));
+}
+
+REGISTER_WXANY_CONVERSION(CURRENCY, wxVariantDataCurrency)
+
+#endif // wxUSE_ANY
+
+bool wxVariantDataCurrency::Eq(wxVariantData& data) const
+{
+    wxASSERT_MSG( (data.GetType() == wxS("currency")),
+                  "wxVariantDataCurrency::Eq: argument mismatch" );
+
+    wxVariantDataCurrency& otherData = (wxVariantDataCurrency&) data;
+
+    return otherData.m_value.int64 == m_value.int64;
+}
+
+#if wxUSE_STD_IOSTREAM
+bool wxVariantDataCurrency::Write(wxSTD ostream& str) const
+{
+    wxString s;
+    Write(s);
+    str << s;
+    return true;
+}
+#endif
+
+bool wxVariantDataCurrency::Write(wxString& str) const
+{
+    BSTR bStr = NULL;
+    if ( SUCCEEDED(VarBstrFromCy(m_value, LOCALE_USER_DEFAULT, 0, &bStr)) )
+    {
+        str = wxConvertStringFromOle(bStr);
+        SysFreeString(bStr);
+        return true;
+    }
+    return false;
+}
+
+// ----------------------------------------------------------------------------
+// wxVariantDataErrorCode
+// ----------------------------------------------------------------------------
+
+#if wxUSE_ANY
+
+bool wxVariantDataErrorCode::GetAsAny(wxAny* any) const
+{
+    *any = m_value;
+    return true;
+}
+
+wxVariantData* wxVariantDataErrorCode::VariantDataFactory(const wxAny& any)
+{
+    return new wxVariantDataErrorCode(wxANY_AS(any, SCODE));
+}
+
+REGISTER_WXANY_CONVERSION(SCODE, wxVariantDataErrorCode)
+
+#endif // wxUSE_ANY
+
+bool wxVariantDataErrorCode::Eq(wxVariantData& data) const
+{
+    wxASSERT_MSG( (data.GetType() == wxS("errorcode")),
+                  "wxVariantDataErrorCode::Eq: argument mismatch" );
+
+    wxVariantDataErrorCode& otherData = (wxVariantDataErrorCode&) data;
+
+    return otherData.m_value == m_value;
+}
+
+#if wxUSE_STD_IOSTREAM
+bool wxVariantDataErrorCode::Write(wxSTD ostream& str) const
+{
+    wxString s;
+    Write(s);
+    str << s;
+    return true;
+}
+#endif
+
+bool wxVariantDataErrorCode::Write(wxString& str) const
+{
+    str << m_value;
+    return true;
+}
+
+
+// ----------------------------------------------------------------------------
+// wxVariantDataSafeArray
+// ----------------------------------------------------------------------------
+
+#if wxUSE_ANY
+
+bool wxVariantDataSafeArray::GetAsAny(wxAny* any) const
+{
+    *any = m_value;
+    return true;
+}
+
+wxVariantData* wxVariantDataSafeArray::VariantDataFactory(const wxAny& any)
+{
+    return new wxVariantDataSafeArray(wxANY_AS(any, SAFEARRAY*));
+}
+
+REGISTER_WXANY_CONVERSION(SAFEARRAY*, wxVariantDataSafeArray)
+
+#endif // wxUSE_ANY
+
+bool wxVariantDataSafeArray::Eq(wxVariantData& data) const
+{
+    wxASSERT_MSG( (data.GetType() == wxS("safearray")),
+                  "wxVariantDataSafeArray::Eq: argument mismatch" );
+
+    wxVariantDataSafeArray& otherData = (wxVariantDataSafeArray&) data;
+
+    return otherData.m_value == m_value;
+}
+
+#if wxUSE_STD_IOSTREAM
+bool wxVariantDataSafeArray::Write(wxSTD ostream& str) const
+{
+    wxString s;
+    Write(s);
+    str << s;
+    return true;
+}
+#endif
+
+bool wxVariantDataSafeArray::Write(wxString& str) const
+{
+    str.Printf(wxS("SAFEARRAY: %p"), (void*)m_value);
+    return true;
+}
+
 WXDLLEXPORT bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& oleVariant)
 {
     VariantInit(&oleVariant);
@@ -142,12 +291,59 @@ WXDLLEXPORT bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& ole
 
     wxString type(variant.GetType());
 
+    if (type == wxT("errorcode"))
+    {
+        wxVariantDataErrorCode* const
+            ec = wxStaticCastVariantData(variant.GetData(),
+                                         wxVariantDataErrorCode);
+        oleVariant.vt = VT_ERROR;
+        oleVariant.scode = ec->GetValue();
+    }
+    else if (type == wxT("currency"))
+    {
+        wxVariantDataCurrency* const
+            c = wxStaticCastVariantData(variant.GetData(),
+                                        wxVariantDataCurrency);
+        oleVariant.vt = VT_CY;
+        oleVariant.cyVal = c->GetValue();
+    }
+    else if (type == wxT("safearray"))
+    {
+        wxVariantDataSafeArray* const
+            vsa = wxStaticCastVariantData(variant.GetData(),
+                                          wxVariantDataSafeArray);
+        SAFEARRAY* psa = vsa->GetValue();
+        VARTYPE vt;
 
-    if (type == wxT("long"))
+        wxCHECK(psa, false);
+        HRESULT hr = SafeArrayGetVartype(psa, &vt);
+        if ( FAILED(hr) )
+        {
+            wxLogApiError(wxS("SafeArrayGetVartype()"), hr);
+            SafeArrayDestroy(psa);
+            return false;
+        }
+        oleVariant.vt = vt | VT_ARRAY;
+        oleVariant.parray = psa;
+    }
+    else if (type == wxT("long"))
     {
         oleVariant.vt = VT_I4;
         oleVariant.lVal = variant.GetLong() ;
     }
+    // Original VC6 came with SDK too old to contain VARIANT::llVal declaration
+    // and there doesn't seem to be any way to test for it as Microsoft simply
+    // added it to the later version of oaidl.h without changing anything else.
+    // So assume it's not present for VC6, even though it might be if an
+    // updated SDK is used. In this case the user would need to disable this
+    // check himself.
+#if wxUSE_LONGLONG && !defined(__VISUALC6__)
+    else if (type == wxT("longlong"))
+    {
+        oleVariant.vt = VT_I8;
+        oleVariant.llVal = variant.GetLongLong().GetValue();
+    }
+#endif
     else if (type == wxT("char"))
     {
         oleVariant.vt=VT_I1;            // Signed Char
@@ -186,51 +382,24 @@ WXDLLEXPORT bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& ole
         oleVariant.vt = VT_DISPATCH;
         oleVariant.pdispVal = (IDispatch*) variant.GetVoidPtr();
     }
-    else if (type == wxT("list") || type == wxT("stringlist"))
+    else if (type == wxT("list"))
     {
-        oleVariant.vt = VT_VARIANT | VT_ARRAY;
-
-        SAFEARRAY *psa;
-        SAFEARRAYBOUND saBound;
-        VARIANTARG *pvargBase;
-        VARIANTARG *pvarg;
-        int i, j;
-
-        int iCount = variant.GetCount();
-
-        saBound.lLbound = 0;
-        saBound.cElements = iCount;
-
-        psa = SafeArrayCreate(VT_VARIANT, 1, &saBound);
-        if (psa == NULL)
+        wxSafeArray<VT_VARIANT> safeArray;
+        if (!safeArray.CreateFromListVariant(variant))
             return false;
 
-        SafeArrayAccessData(psa, (void**)&pvargBase);
+        oleVariant.vt = VT_VARIANT | VT_ARRAY;
+        oleVariant.parray = safeArray.Detach();
+    }
+    else if (type == wxT("arrstring"))
+    {
+        wxSafeArray<VT_BSTR> safeArray;
 
-        pvarg = pvargBase;
-        for (i = 0; i < iCount; i++)
-        {
-            // copy each string in the list of strings
-            wxVariant eachVariant(variant[i]);
-            if (!wxConvertVariantToOle(eachVariant, * pvarg))
-            {
-                // memory failure:  back out and free strings alloc'ed up to
-                // now, and then the array itself.
-                pvarg = pvargBase;
-                for (j = 0; j < i; j++)
-                {
-                    SysFreeString(pvarg->bstrVal);
-                    pvarg++;
-                }
-                SafeArrayDestroy(psa);
-                return false;
-            }
-            pvarg++;
-        }
+        if (!safeArray.CreateFromArrayString(variant.GetArrayString()))
+            return false;
 
-        SafeArrayUnaccessData(psa);
-
-        oleVariant.parray = psa;
+        oleVariant.vt = VT_BSTR | VT_ARRAY;
+        oleVariant.parray = safeArray.Detach();
     }
     else
     {
@@ -245,68 +414,54 @@ WXDLLEXPORT bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& ole
 #endif
 
 WXDLLEXPORT bool
-wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant)
+wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant, long flags)
 {
     bool ok = true;
     if ( oleVariant.vt & VT_ARRAY )
     {
-
-        // Compute the total number of elements in all array dimensions
-        int cElements = 1;
-        for ( int cDims = 0; cDims < oleVariant.parray->cDims; cDims++ )
-            cElements *= oleVariant.parray->rgsabound[cDims].cElements;
-
-        // Get a pointer to the data
-        void* pvdata;
-        HRESULT hr = SafeArrayAccessData(oleVariant.parray, &pvdata);
-        if ( FAILED(hr) )
-            return false;
-
-        switch (oleVariant.vt & VT_TYPEMASK)
+        if ( flags & wxOleConvertVariant_ReturnSafeArrays  )
         {
-            case VT_VARIANT:
-                {
-                    variant.ClearList();
-                    VARIANTARG *variant_data=(VARIANTARG*)pvdata;
-                    for ( int i = 0; i < cElements; i++ )
+            variant.SetData(new wxVariantDataSafeArray(oleVariant.parray));
+        }
+        else
+        {
+            switch (oleVariant.vt & VT_TYPEMASK)
+            {
+                case VT_I2:
+                    ok = wxSafeArray<VT_I2>::ConvertToVariant(oleVariant.parray, variant);
+                    break;
+                case VT_I4:
+                    ok = wxSafeArray<VT_I4>::ConvertToVariant(oleVariant.parray, variant);
+                    break;
+                case VT_R4:
+                    ok = wxSafeArray<VT_R4>::ConvertToVariant(oleVariant.parray, variant);
+                    break;
+                case VT_R8:
+                    ok = wxSafeArray<VT_R8>::ConvertToVariant(oleVariant.parray, variant);
+                    break;
+                case VT_VARIANT:
+                    ok = wxSafeArray<VT_VARIANT>::ConvertToVariant(oleVariant.parray, variant);
+                    break;
+                case VT_BSTR:
                     {
-                        VARIANTARG& oleElement = variant_data[i];
-                        wxVariant vElement;
-                        if ( !wxConvertOleToVariant(oleElement, vElement) )
-                        {
+                        wxArrayString strings;
+                        if ( wxSafeArray<VT_BSTR>::ConvertToArrayString(oleVariant.parray, strings) )
+                            variant = strings;
+                        else
                             ok = false;
-                            variant.ClearList();
-                            break;
-                        }
-
-                        variant.Append(vElement);
                     }
-                }
-                break;
-
-            case VT_BSTR:
-                {
-                    wxArrayString strings;
-                    BSTR *string_val=(BSTR*)pvdata;
-                    for ( int i = 0; i < cElements; ++i )
-                    {
-                        wxString str=wxConvertStringFromOle(*string_val);
-                        strings.Add(str);
-                        ++string_val;
-                    }
-                    variant=strings;
-                }
-                break;
-
-            default:
+                    break;
+                default:
+                    ok = false;
+                    break;
+            }
+            if ( !ok )
+            {
                 wxLogDebug(wxT("unhandled VT_ARRAY type %x in wxConvertOleToVariant"),
                            oleVariant.vt & VT_TYPEMASK);
                 variant = wxVariant();
-                ok = false;
-                break;
+            }
         }
-
-        SafeArrayUnaccessData(oleVariant.parray);
     }
     else if ( oleVariant.vt & VT_BYREF )
     {
@@ -330,6 +485,14 @@ wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant)
     {
         switch ( oleVariant.vt & VT_TYPEMASK )
         {
+            case VT_ERROR:
+                variant.SetData(new wxVariantDataErrorCode(oleVariant.scode));
+                break;
+
+            case VT_CY:
+                variant.SetData(new wxVariantDataCurrency(oleVariant.cyVal));
+                break;
+
             case VT_BSTR:
                 {
                     wxString str(wxConvertStringFromOle(oleVariant.bstrVal));
@@ -349,6 +512,13 @@ wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant)
                 }
 #endif // wxUSE_DATETIME
                 break;
+
+                // See the comment before the __VISUALC6__ test above.
+#if wxUSE_LONGLONG && !defined(__VISUALC6__)
+            case VT_I8:
+                variant = wxLongLong(oleVariant.llVal);
+                break;
+#endif // wxUSE_LONGLONG
 
             case VT_I4:
                 variant = (long) oleVariant.lVal;
@@ -400,7 +570,7 @@ wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant)
 
 #if wxUSE_DATAOBJ
 
-#if wxDEBUG_LEVEL && ( ( defined(__VISUALC__) && (__VISUALC__ > 1000) ) || defined(__MWERKS__) )
+#if wxDEBUG_LEVEL && (( defined(__VISUALC__) && (__VISUALC__ > 1000) ))
 static wxString GetIidName(REFIID riid)
 {
   // an association between symbolic name and numeric value of an IID
@@ -417,7 +587,7 @@ static wxString GetIidName(REFIID riid)
     ADD_KNOWN_IID(AdviseSink2),
     ADD_KNOWN_IID(BindCtx),
     ADD_KNOWN_IID(ClassFactory),
-#if ( !defined( __VISUALC__) || (__VISUALC__!=1010) ) && !defined(__MWERKS__)
+#if ( !defined( __VISUALC__) || (__VISUALC__!=1010) )
     ADD_KNOWN_IID(ContinueCallback),
     ADD_KNOWN_IID(EnumOleDocumentViews),
     ADD_KNOWN_IID(OleCommandTarget),

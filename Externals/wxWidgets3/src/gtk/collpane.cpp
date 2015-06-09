@@ -4,7 +4,6 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     8/10/2006
-// Id:          $Id: collpane.cpp 70756 2012-02-29 18:29:31Z PC $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,14 +23,16 @@
 #include "wx/sizer.h"
 #include "wx/panel.h"
 
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
+#include "wx/gtk/private/gtk2-compat.h"
 
 // the lines below duplicate the same definitions in collpaneg.cpp, if we have
 // another implementation of this class we should extract them to a common file
 
 const char wxCollapsiblePaneNameStr[] = "collapsiblePane";
 
-wxDEFINE_EVENT( wxEVT_COMMAND_COLLPANE_CHANGED, wxCollapsiblePaneEvent );
+wxDEFINE_EVENT( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEvent );
 
 IMPLEMENT_DYNAMIC_CLASS(wxCollapsiblePaneEvent, wxCommandEvent)
 
@@ -220,10 +221,11 @@ wxSize wxCollapsiblePane::DoGetBestSize() const
     wxASSERT_MSG( m_widget, wxT("DoGetBestSize called before creation") );
 
     GtkRequisition req;
-    req.width = 2;
-    req.height = 2;
-    (* GTK_WIDGET_CLASS( GTK_OBJECT_GET_CLASS(m_widget) )->size_request )
-            (m_widget, &req );
+#ifdef __WXGTK3__
+    gtk_widget_get_preferred_size(m_widget, NULL, &req);
+#else
+    GTK_WIDGET_GET_CLASS(m_widget)->size_request(m_widget, &req);
+#endif
 
     // notice that we do not cache our best size here as it changes
     // all times the user expands/hide our pane

@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{47411FDB-1BF2-48D0-AB4E-C7C41160F898}</ProjectGuid>
+    <ProjectName>Dolphin</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <Link>
+      <BaseAddress>0x00400000</BaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <FixedBaseAddress>true</FixedBaseAddress>
+      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AboutDolphin.cpp" />
+    <ClCompile Include="ARCodeAddEdit.cpp" />
+    <ClCompile Include="Cheats\CheatSearchTab.cpp" />
+    <ClCompile Include="Cheats\CheatsWindow.cpp" />
+    <ClCompile Include="Cheats\CreateCodeDialog.cpp" />
+    <ClCompile Include="Cheats\GeckoCodeDiag.cpp" />
+    <ClCompile Include="Config\AdvancedConfigPane.cpp" />
+    <ClCompile Include="Config\AudioConfigPane.cpp" />
+    <ClCompile Include="Config\ConfigMain.cpp" />
+    <ClCompile Include="Config\GameCubeConfigPane.cpp" />
+    <ClCompile Include="Config\GeneralConfigPane.cpp" />
+    <ClCompile Include="Config\InterfaceConfigPane.cpp" />
+    <ClCompile Include="Config\PathConfigPane.cpp" />
+    <ClCompile Include="Config\WiiConfigPane.cpp" />
+    <ClCompile Include="Debugger\BreakpointDlg.cpp" />
+    <ClCompile Include="Debugger\BreakpointView.cpp" />
+    <ClCompile Include="Debugger\BreakpointWindow.cpp" />
+    <ClCompile Include="Debugger\CodeView.cpp" />
+    <ClCompile Include="Debugger\CodeWindow.cpp" />
+    <ClCompile Include="Debugger\CodeWindowFunctions.cpp" />
+    <ClCompile Include="Debugger\DebuggerPanel.cpp" />
+    <ClCompile Include="Debugger\DebuggerUIUtil.cpp" />
+    <ClCompile Include="Debugger\DSPDebugWindow.cpp" />
+    <ClCompile Include="Debugger\DSPRegisterView.cpp" />
+    <ClCompile Include="Debugger\JitWindow.cpp" />
+    <ClCompile Include="Debugger\MemoryCheckDlg.cpp" />
+    <ClCompile Include="Debugger\MemoryView.cpp" />
+    <ClCompile Include="Debugger\MemoryWindow.cpp" />
+    <ClCompile Include="Debugger\RegisterView.cpp" />
+    <ClCompile Include="Debugger\RegisterWindow.cpp" />
+    <ClCompile Include="Debugger\WatchView.cpp" />
+    <ClCompile Include="Debugger\WatchWindow.cpp" />
+    <ClCompile Include="NetPlay\ChangeGameDialog.cpp" />
+    <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp" />
+    <ClCompile Include="NetPlay\NetWindow.cpp" />
+    <ClCompile Include="FifoPlayerDlg.cpp" />
+    <ClCompile Include="Frame.cpp" />
+    <ClCompile Include="FrameAui.cpp" />
+    <ClCompile Include="FrameTools.cpp" />
+    <ClCompile Include="GameListCtrl.cpp" />
+    <ClCompile Include="InputConfigDiag.cpp" />
+    <ClCompile Include="InputConfigDiagBitmaps.cpp" />
+    <ClCompile Include="ISOFile.cpp" />
+    <ClCompile Include="ISOProperties.cpp" />
+    <ClCompile Include="LogConfigWindow.cpp" />
+    <ClCompile Include="LogWindow.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MainNoGUI.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="MemcardManager.cpp" />
+    <ClCompile Include="NetPlay\PadMapDialog.cpp" />
+    <ClCompile Include="PatchAddEdit.cpp" />
+    <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
+    <ClCompile Include="TASInputDlg.cpp" />
+    <ClCompile Include="VideoConfigDiag.cpp" />
+    <ClCompile Include="PostProcessingConfigDiag.cpp" />
+    <ClCompile Include="ControllerConfigDiag.cpp" />
+    <ClCompile Include="WXInputBase.cpp" />
+    <ClCompile Include="WxUtils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Config\AdvancedConfigPane.h" />
+    <ClInclude Include="Config\AudioConfigPane.h" />
+    <ClInclude Include="Config\GameCubeConfigPane.h" />
+    <ClInclude Include="Config\GeneralConfigPane.h" />
+    <ClInclude Include="Config\InterfaceConfigPane.h" />
+    <ClInclude Include="Config\PathConfigPane.h" />
+    <ClInclude Include="Config\WiiConfigPane.h" />
+    <ClInclude Include="NetPlay\ChangeGameDialog.h" />
+    <ClInclude Include="NetPlay\NetPlaySetupFrame.h" />
+    <ClInclude Include="NetPlay\PadMapDialog.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="AboutDolphin.h" />
+    <ClInclude Include="ARCodeAddEdit.h" />
+    <ClInclude Include="Cheats\CheatSearchTab.h" />
+    <ClInclude Include="Cheats\CheatsWindow.h" />
+    <ClInclude Include="Cheats\CreateCodeDialog.h" />
+    <ClInclude Include="Cheats\GeckoCodeDiag.h" />
+    <ClInclude Include="Config\ConfigMain.h" />
+    <ClInclude Include="Debugger\BreakpointDlg.h" />
+    <ClInclude Include="Debugger\BreakpointView.h" />
+    <ClInclude Include="Debugger\BreakpointWindow.h" />
+    <ClInclude Include="Debugger\CodeView.h" />
+    <ClInclude Include="Debugger\CodeWindow.h" />
+    <ClInclude Include="Debugger\DebuggerPanel.h" />
+    <ClInclude Include="Debugger\DebuggerUIUtil.h" />
+    <ClInclude Include="Debugger\DSPDebugWindow.h" />
+    <ClInclude Include="Debugger\DSPRegisterView.h" />
+    <ClInclude Include="Debugger\JitWindow.h" />
+    <ClInclude Include="Debugger\MemoryCheckDlg.h" />
+    <ClInclude Include="Debugger\MemoryView.h" />
+    <ClInclude Include="Debugger\MemoryWindow.h" />
+    <ClInclude Include="Debugger\RegisterView.h" />
+    <ClInclude Include="Debugger\RegisterWindow.h" />
+    <ClInclude Include="Debugger\WatchView.h" />
+    <ClInclude Include="Debugger\WatchWindow.h" />
+    <ClInclude Include="NetPlay\NetWindow.h" />
+    <ClInclude Include="FifoPlayerDlg.h" />
+    <ClInclude Include="Frame.h" />
+    <ClInclude Include="GameListCtrl.h" />
+    <ClInclude Include="Globals.h" />
+    <ClInclude Include="InputConfigDiag.h" />
+    <ClInclude Include="ISOFile.h" />
+    <ClInclude Include="ISOProperties.h" />
+    <ClInclude Include="LogConfigWindow.h" />
+    <ClInclude Include="LogWindow.h" />
+    <ClInclude Include="Main.h" />
+    <ClInclude Include="MemcardManager.h" />
+    <ClInclude Include="PatchAddEdit.h" />
+    <ClInclude Include="SoftwareVideoConfigDialog.h" />
+    <ClInclude Include="TASInputDlg.h" />
+    <ClInclude Include="VideoConfigDiag.h" />
+    <ClInclude Include="PostProcessingConfigDiag.h" />
+    <ClInclude Include="ControllerConfigDiag.h" />
+    <ClInclude Include="WXInputBase.h" />
+    <ClInclude Include="WxUtils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DolphinWX.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="$(CoreDir)..\..\Installer\Dolphin.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)Bochs_disasm\Bochs_disasm.vcxproj">
+      <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)LZO\LZO.vcxproj">
+      <Project>{ab993f38-c31d-4897-b139-a620c42bc565}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)SFML\build\vc2010\SFML_Network.vcxproj">
+      <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)wxWidgets3\build\msw\wx_base.vcxproj">
+      <Project>{1c8436c9-dbaf-42be-83bc-cf3ec9175abe}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)AudioCommon\AudioCommon.vcxproj">
+      <Project>{54aa7840-5beb-4a0c-9452-74ba4cc7fd44}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
+      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Common\SCMRevGen.vcxproj">
+      <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
+      <Project>{e54cf649-140e-4255-81a5-30a673c1fb36}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)DiscIO\DiscIO.vcxproj">
+      <Project>{160bdc25-5626-4b0d-bdd8-2953d9777fb5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)InputCommon\InputCommon.vcxproj">
+      <Project>{6bbd47cf-91fd-4077-b676-8b76980178a9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
+      <Project>{604C8368-F34A-4D55-82C8-CC92A0C13254}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\D3D\D3D.vcxproj">
+      <Project>{96020103-4ba5-4fd2-b4aa-5b6d24492d4e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\OGL\OGL.vcxproj">
+      <Project>{ec1a314c-5588-4506-9c1e-2e58e5817f75}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\Software\Software.vcxproj">
+      <Project>{a4c423aa-f57c-46c7-a172-d1a777017d29}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
+      <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
+  <ItemGroup>
+    <DataDirFiles Include="$(DolphinRootDir)Data\**\*.*" />
+    <ExternalDlls Include="$(ExternalsDir)OpenAL\$(PlatformName)\*.dll;$(ExternalsDir)msvcrt\$(PlatformName)\*.dll" />
+    <BinaryFiles Include="$(TargetPath)" />
+    <AllInputFiles Include="@(DataDirFiles);@(ExternalDlls);@(BinaryFiles)" />
+  </ItemGroup>
+  <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
+    <Message Text="Copying Data directory..." Importance="High" />
+    <Copy SourceFiles="@(DataDirFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)').Ticks)" />
+    <Message Text="Copying External .dlls" Importance="High" />
+    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(BinaryOutputDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)').Ticks)" />
+    <Message Text="Copy: @(BinaryFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
+    <Copy SourceFiles="@(BinaryFiles)" DestinationFolder="$(BinaryOutputDir)" />
+  </Target>
+</Project>

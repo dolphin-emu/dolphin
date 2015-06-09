@@ -3,7 +3,6 @@
 // Purpose:     define wxSpinCtrl event types
 // Author:      Peter Most
 // Created:     01.11.08
-// RCS-ID:      $Id: spinctrlcmn.cpp 66630 2011-01-07 17:49:18Z SC $
 // Copyright:   (c) 2008-2009 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,8 +27,8 @@
 
 #if wxUSE_SPINCTRL
 
-wxDEFINE_EVENT(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEvent);
-wxDEFINE_EVENT(wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEvent);
+wxDEFINE_EVENT(wxEVT_SPINCTRL, wxSpinEvent);
+wxDEFINE_EVENT(wxEVT_SPINCTRLDOUBLE, wxSpinDoubleEvent);
 
 // ----------------------------------------------------------------------------
 // XTI
@@ -75,9 +74,9 @@ wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxSpinCtrl, wxControl, "wx/spinctrl.h")
 wxBEGIN_PROPERTIES_TABLE(wxSpinCtrl)
 wxEVENT_RANGE_PROPERTY( Spin, wxEVT_SCROLL_TOP, wxEVT_SCROLL_CHANGED, wxSpinEvent )
 
-wxEVENT_PROPERTY( Updated, wxEVT_COMMAND_SPINCTRL_UPDATED, wxCommandEvent )
-wxEVENT_PROPERTY( TextUpdated, wxEVT_COMMAND_TEXT_UPDATED, wxCommandEvent )
-wxEVENT_PROPERTY( TextEnter, wxEVT_COMMAND_TEXT_ENTER, wxCommandEvent )
+wxEVENT_PROPERTY( Updated, wxEVT_SPINCTRL, wxCommandEvent )
+wxEVENT_PROPERTY( TextUpdated, wxEVT_TEXT, wxCommandEvent )
+wxEVENT_PROPERTY( TextEnter, wxEVT_TEXT_ENTER, wxCommandEvent )
 
 wxPROPERTY( ValueString, wxString, SetValue, GetValue, \
            wxEMPTY_PARAMETER_VALUE, 0 /*flags*/, wxT("Helpstring"), wxT("group")) ;
@@ -102,5 +101,18 @@ wxCONSTRUCTOR_6( wxSpinCtrl, wxWindow*, Parent, wxWindowID, Id, \
                 wxString, ValueString, wxPoint, Position, \
                 wxSize, Size, long, WindowStyle )
 
+
+wxString wxPrivate::wxSpinCtrlFormatAsHex(long val, long maxVal)
+{
+    // We format the value like this is for compatibility with (native
+    // behaviour of) wxMSW
+    wxString text;
+    if ( maxVal < 0x10000 )
+        text.Printf(wxS("0x%04lx"), val);
+    else
+        text.Printf(wxS("0x%08lx"), val);
+
+    return text;
+}
 
 #endif // wxUSE_SPINCTRL

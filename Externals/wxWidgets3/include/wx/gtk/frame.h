@@ -2,7 +2,6 @@
 // Name:        wx/gtk/frame.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: frame.h 66648 2011-01-08 06:42:41Z PC $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,9 +63,6 @@ public:
     virtual bool SendIdleEvents(wxIdleEvent& event);
 
 protected:
-    // common part of all ctors
-    void Init();
-
     // override wxWindow methods to take into account tool/menu/statusbars
     virtual void DoGetClientSize( int *width, int *height ) const;
 
@@ -76,6 +72,8 @@ protected:
 #endif // wxUSE_MENUS_NATIVE
 
 private:
+    void Init();
+
     long m_fsSaveFlag;
 
     DECLARE_DYNAMIC_CLASS(wxFrame)

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: glcanvas.cpp 67412 2011-04-07 12:55:36Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -263,24 +262,7 @@ bool wxGLContext::SetCurrent(const wxGLCanvas& win) const
 
     const_cast<wxGLCanvas&>(win).SetViewport();
 
-    
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-    if ( UMAGetSystemVersion() >= 0x1050 )
-    {
-        aglSetWindowRef(m_glContext, win.MacGetTopLevelWindowRef());
-    }
-    else
-#endif
-    {
-        AGLDrawable drawable = (AGLDrawable)GetWindowPort(
-                                                      MAC_WXHWND(win.MacGetTopLevelWindowRef()));
-    
-        if ( !aglSetDrawable(m_glContext, drawable) )
-        {
-            wxLogAGLError("aglSetDrawable");
-            return false;
-        }
-    }
+    aglSetWindowRef(m_glContext, win.MacGetTopLevelWindowRef());
 
     return WXGLSetCurrentContext(m_glContext);
 }
@@ -355,17 +337,7 @@ bool wxGLCanvas::Create(wxWindow *parent,
     m_bufferName = gCurrentBufferName++;
     aglSetInteger (m_dummyContext, AGL_BUFFER_NAME, &m_bufferName);
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-    if ( UMAGetSystemVersion() >= 0x1050 )
-    {
-        aglSetWindowRef(m_dummyContext, MacGetTopLevelWindowRef());
-    }
-    else
-#endif
-    {
-        AGLDrawable drawable = (AGLDrawable)GetWindowPort(MAC_WXHWND(MacGetTopLevelWindowRef()));
-        aglSetDrawable(m_dummyContext, drawable);
-    }
+    aglSetWindowRef(m_dummyContext, MacGetTopLevelWindowRef());
 
     m_macCanvasIsShown = true;
 

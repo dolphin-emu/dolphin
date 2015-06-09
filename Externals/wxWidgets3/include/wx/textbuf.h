@@ -20,7 +20,7 @@
 // constants
 // ----------------------------------------------------------------------------
 
-// the line termination type (kept wxTextFileType name for compability)
+// the line termination type (kept wxTextFileType name for compatibility)
 enum wxTextFileType
 {
     wxTextFileType_None,  // incomplete (the last line of the file only)

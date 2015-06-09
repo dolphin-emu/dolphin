@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Setup Headers">
@@ -678,10 +678,16 @@
     <ClInclude Include="..\..\include\wx\metafile.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\wx\meta\removeref.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\wx\mimetype.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\minifram.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\modalhook.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\module.h">
@@ -766,6 +772,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\power.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\preferences.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\print.h">
@@ -876,6 +885,9 @@
     <ClInclude Include="..\..\include\wx\sharedptr.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\wx\simplebook.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\wx\sizer.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -970,6 +982,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\tbarbase.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\testing.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\textbuf.h">
@@ -1128,6 +1143,9 @@
     <ClInclude Include="..\..\include\wx\webviewarchivehandler.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\wx\webviewfshandler.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\wx\wfstream.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -1135,6 +1153,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\windowid.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\windowptr.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\withimages.h">
@@ -1380,6 +1401,9 @@
     <ClInclude Include="..\..\include\wx\msw\evtloop.h">
       <Filter>Headers\MSW</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\wx\msw\evtloopconsole.h">
+      <Filter>Headers\MSW</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\fdrepdlg.h">
       <Filter>Headers\MSW</Filter>
     </ClInclude>
@@ -1435,6 +1459,9 @@
       <Filter>Headers\MSW</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\iniconf.h">
+      <Filter>Headers\MSW</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\msw\init.h">
       <Filter>Headers\MSW</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\joystick.h">
@@ -1653,6 +1680,9 @@
     <ClInclude Include="..\..\include\wx\msw\button.h">
       <Filter>Headers\MSW\private</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\wx\msw\private\comptr.h">
+      <Filter>Headers\MSW</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\private\datecontrols.h">
       <Filter>Headers\MSW\private</Filter>
     </ClInclude>
@@ -1674,8 +1704,14 @@
     <ClInclude Include="..\..\include\wx\msw\private\msgdlg.h">
       <Filter>Headers\MSW\private</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\wx\msw\private\pipestream.h">
+      <Filter>Headers\MSW</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\private\sockmsw.h">
       <Filter>Headers\MSW\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\msw\private\textmeasure.h">
+      <Filter>Headers\MSW</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\private\timer.h">
       <Filter>Headers\MSW\private</Filter>
@@ -1684,6 +1720,9 @@
       <Filter>Headers\MSW</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\fswatcher.h">
+      <Filter>Headers\MSW</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\msw\webview_missing.h">
       <Filter>Headers\MSW</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\dc.h">
@@ -1953,6 +1992,9 @@
       <Filter>AUI</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\aui\framemanager.cpp">
+      <Filter>AUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\aui\tabart.cpp">
       <Filter>AUI</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\aui\tabmdi.cpp">
@@ -2390,6 +2432,9 @@
     <ClCompile Include="..\..\src\common\mimecmn.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\common\modalhook.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\module.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -2439,6 +2484,9 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\common\powercmn.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\preferencescmn.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\common\prntbase.cpp">
@@ -2648,6 +2696,9 @@
     <ClCompile Include="..\..\src\common\webview.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\common\webviewfshandler.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\webviewarchivehandler.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -2693,9 +2744,6 @@
     <ClCompile Include="..\..\src\generic\aboutdlgg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\accel.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\generic\animateg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
@@ -2714,9 +2762,6 @@
     <ClCompile Include="..\..\src\generic\calctrlg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\caret.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\generic\choicbkg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
@@ -2727,9 +2772,6 @@
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\collpaneg.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\colour.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\colrdlgg.cpp">
@@ -2763,9 +2805,6 @@
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\editlbox.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\fdrepdlg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\filectrlg.cpp">
@@ -2813,12 +2852,6 @@
     <ClCompile Include="..\..\src\generic\hyperlinkg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\icon.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\imaglist.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\generic\infobar.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
@@ -2826,9 +2859,6 @@
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\listbkg.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\listctrl.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\logg.cpp">
@@ -2844,9 +2874,6 @@
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\msgdlgg.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\notebook.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\notifmsgg.cpp">
@@ -2909,9 +2936,6 @@
     <ClCompile Include="..\..\src\generic\statbmpg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\statline.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\generic\stattextg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
@@ -2925,9 +2949,6 @@
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\timectrlg.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\timer.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\tipdlg.cpp">
@@ -3093,6 +3114,9 @@
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\evtloop.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\msw\evtloopconsole.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\fdrepdlg.cpp">
@@ -3332,6 +3356,9 @@
     <ClCompile Include="..\..\src\msw\textentry.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\msw\textmeasure.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\tglbtn.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
@@ -3369,6 +3396,9 @@
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\utilsgui.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\msw\utilswin.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\uxtheme.cpp">
@@ -3410,6 +3440,9 @@
     <ClCompile Include="..\..\src\msw\ole\uuid.cpp">
       <Filter>MSW\ole</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\common\textmeasurecmn.cpp" />
+    <ClCompile Include="..\..\src\common\threadinfo.cpp" />
+    <ClCompile Include="..\..\src\msw\ole\safearray.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\common\unictabl.inc">

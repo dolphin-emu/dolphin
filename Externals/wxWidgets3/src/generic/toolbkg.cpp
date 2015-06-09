@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2006-01-29
-// RCS-ID:      $Id: toolbkg.cpp 65931 2010-10-27 16:54:36Z VZ $
 // Copyright:   (c) 2006 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,8 +44,8 @@
 
 IMPLEMENT_DYNAMIC_CLASS(wxToolbook, wxBookCtrlBase)
 
-wxDEFINE_EVENT( wxEVT_COMMAND_TOOLBOOK_PAGE_CHANGING, wxBookCtrlEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_TOOLBOOK_PAGE_CHANGED,  wxBookCtrlEvent );
+wxDEFINE_EVENT( wxEVT_TOOLBOOK_PAGE_CHANGING, wxBookCtrlEvent );
+wxDEFINE_EVENT( wxEVT_TOOLBOOK_PAGE_CHANGED,  wxBookCtrlEvent );
 
 BEGIN_EVENT_TABLE(wxToolbook, wxBookCtrlBase)
     EVT_SIZE(wxToolbook::OnSize)
@@ -202,12 +201,12 @@ void wxToolbook::SetImageList(wxImageList *imageList)
 
 wxBookCtrlEvent* wxToolbook::CreatePageChangingEvent() const
 {
-    return new wxBookCtrlEvent(wxEVT_COMMAND_TOOLBOOK_PAGE_CHANGING, m_windowId);
+    return new wxBookCtrlEvent(wxEVT_TOOLBOOK_PAGE_CHANGING, m_windowId);
 }
 
 void wxToolbook::MakeChangedEvent(wxBookCtrlEvent &event)
 {
-    event.SetEventType(wxEVT_COMMAND_TOOLBOOK_PAGE_CHANGED);
+    event.SetEventType(wxEVT_TOOLBOOK_PAGE_CHANGED);
 }
 
 void wxToolbook::UpdateSelectedPage(size_t newsel)
@@ -333,28 +332,13 @@ bool wxToolbook::InsertPage(size_t n,
 
 wxWindow *wxToolbook::DoRemovePage(size_t page)
 {
-    const size_t page_count = GetPageCount();
     wxWindow *win = wxBookCtrlBase::DoRemovePage(page);
 
     if ( win )
     {
         GetToolBar()->DeleteTool(page + 1);
 
-        if (m_selection >= (int)page)
-        {
-            // force new sel valid if possible
-            int sel = m_selection - 1;
-            if (page_count == 1)
-                sel = wxNOT_FOUND;
-            else if ((page_count == 2) || (sel == wxNOT_FOUND))
-                sel = 0;
-
-            // force sel invalid if deleting current page - don't try to hide it
-            m_selection = (m_selection == (int)page) ? wxNOT_FOUND : m_selection - 1;
-
-            if ((sel != wxNOT_FOUND) && (sel != m_selection))
-                SetSelection(sel);
-        }
+        DoSetSelectionAfterRemoval(page);
     }
 
     return win;

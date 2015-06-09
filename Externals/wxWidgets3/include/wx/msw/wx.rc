@@ -6,15 +6,10 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: wx.rc 46316 2007-06-04 09:01:37Z VS $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
-#if defined(__MWERKS__)
-#include <winresrc.h>
-#else
 #include <windows.h>
-#endif
 
 #if defined(_WIN32_WCE)
     #include "wx/msw/wince/wince.rc"
@@ -54,7 +49,6 @@ WXCURSOR_PBRUSH         CURSOR  DISCARDABLE     "wx/msw/pbrush.cur"
 WXCURSOR_PLEFT          CURSOR  DISCARDABLE     "wx/msw/pntleft.cur"
 WXCURSOR_PRIGHT         CURSOR  DISCARDABLE     "wx/msw/pntright.cur"
 WXCURSOR_BLANK          CURSOR  DISCARDABLE     "wx/msw/blank.cur"
-WXCURSOR_RIGHT_ARROW    CURSOR  DISCARDABLE     "wx/msw/rightarr.cur"
 WXCURSOR_CROSS          CURSOR  DISCARDABLE     "wx/msw/cross.cur"
 
 
@@ -94,14 +88,15 @@ wxBITMAP_STD_COLOURS    BITMAP "wx/msw/colours.bmp"
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// Manifest file for Windows XP
+// Include manifest file for common controls library v6 required to use themes.
+//
+// Predefining wxUSE_NO_MANIFEST as 1 always disables the use of the manifest.
+// Otherwise we include it only if wxUSE_RC_MANIFEST is defined as 1.
 //
 
 #if !defined(wxUSE_NO_MANIFEST) || (wxUSE_NO_MANIFEST == 0)
 
-// Visual Studio 2005 generates the manifest automatically and so we
-// shouldn't include it in the resources manually: 
-#if !defined(WX_MSC_FULL_VER) || WX_MSC_FULL_VER < 140040130
+#if defined(wxUSE_RC_MANIFEST) && wxUSE_RC_MANIFEST
 
 // see "about isolated applications" topic in MSDN
 #ifdef ISOLATION_AWARE_ENABLED
@@ -116,8 +111,16 @@ wxMANIFEST_ID 24 "wx/msw/amd64.manifest"
 wxMANIFEST_ID 24 "wx/msw/ia64.manifest"
 #elif defined(WX_CPU_X86)
 wxMANIFEST_ID 24 "wx/msw/wx.manifest"
+#else
+// Notice that if the manifest is included, WX_CPU_XXX constant corresponding
+// to the architecture we're compiling for must be defined. This can be done
+// either manually in your make/project file or by configuring the resource
+// compiler paths to search in $(WXWIN)/lib/$(COMPILER_PREFIX)_lib/mswu[d]
+// directory for its include files, as wx/msw/rcdefs.h file in this directory
+// is generated during wxWidgets build and contains the correct definition.
+#error "One of WX_CPU_XXX constants must be defined. See comment above."
 #endif
 
-#endif // !defined(WX_MSC_FULL_VER) || WX_MSC_FULL_VER < 140040130
+#endif // wxUSE_RC_MANIFEST
 
 #endif // !defined(wxUSE_NO_MANIFEST) || (wxUSE_NO_MANIFEST == 0)

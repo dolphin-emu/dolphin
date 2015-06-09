@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: colrdlgg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -200,14 +199,8 @@ void wxGenericColourDialog::OnMouseEvent(wxMouseEvent& event)
       event.Skip();
 }
 
-void wxGenericColourDialog::OnPaint(wxPaintEvent& event)
+void wxGenericColourDialog::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
-#if !defined(__WXMOTIF__) && !defined(__WXPM__) && !defined(__WXCOCOA__) && !defined(__WXOSX__)
-    wxDialog::OnPaint(event);
-#else
-    wxUnusedVar(event);
-#endif
-
     wxPaintDC dc(this);
 
     PaintBasicColours(dc);

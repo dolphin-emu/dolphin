@@ -4,7 +4,6 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     09/25/2004
-// RCS-ID:      $Id: taskbar.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2004 Ryan Norton
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,7 +59,7 @@ public:
         : wxTopLevelWindow(NULL, wxID_ANY, wxEmptyString), m_impl(impl)
     {
         Connect(
-            -1, wxEVT_COMMAND_MENU_SELECTED,
+            -1, wxEVT_MENU,
             wxCommandEventHandler(wxTaskBarIconWindow::OnMenuEvent) );
     }
 
@@ -241,7 +240,7 @@ wxDockEventHandler(EventHandlerCallRef WXUNUSED(inHandlerCallRef),
 // Performs a top-to-bottom copy of the input menu and all of its
 // submenus.
 //
-// This is mostly needed for 2.4 compatability. However wxPython and others
+// This is mostly needed for 2.4 compatibility. However wxPython and others
 // still use this way of setting the taskbarmenu.
 //-----------------------------------------------------------------------------
 wxMenu * wxDeepCopyMenu( wxMenu *menu )
@@ -463,14 +462,14 @@ IMPLEMENT_DYNAMIC_CLASS(wxTaskBarIcon, wxEvtHandler)
 //
 // Note that we only support DOCK currently as others require cocoa and
 // also some require hacks and other such things. (MenuExtras are
-// actually seperate programs that also require a special undocumented id
+// actually separate programs that also require a special undocumented id
 // hack and other such fun stuff).
 //-----------------------------------------------------------------------------
 wxTaskBarIcon::wxTaskBarIcon(wxTaskBarIconType WXUNUSED_UNLESS_DEBUG(nType))
 {
     wxASSERT_MSG(
-        nType == DOCK,
-        wxT("Only the DOCK implementation of wxTaskBarIcon on Mac-Carbon is currently supported!") );
+        nType == wxTBI_DOCK,
+        wxT("Only the wxTBI_DOCK implementation of wxTaskBarIcon on Mac-Carbon is currently supported!") );
 
     m_impl = new wxDockTaskBarIcon(this);
 }

@@ -3,7 +3,6 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h 69844 2011-11-27 19:50:53Z VZ $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -77,11 +76,17 @@
     #ifndef WM_MOUSEWHEEL
         #define WM_MOUSEWHEEL           0x020A
     #endif
+    #ifndef WM_MOUSEHWHEEL
+        #define WM_MOUSEHWHEEL          0x020E
+    #endif
     #ifndef WHEEL_DELTA
         #define WHEEL_DELTA             120
     #endif
     #ifndef SPI_GETWHEELSCROLLLINES
         #define SPI_GETWHEELSCROLLLINES 104
+    #endif
+    #ifndef SPI_GETWHEELSCROLLCHARS
+        #define SPI_GETWHEELSCROLLCHARS 108
     #endif
 #endif // wxUSE_MOUSEWHEEL
 
@@ -648,6 +653,10 @@ typedef struct
 #define INET_E_CODE_INSTALL_SUPPRESSED 0x800C0400L
 #endif
 
+#ifndef MUI_LANGUAGE_NAME
+#define MUI_LANGUAGE_NAME 0x8
+#endif
+
 //We need to check if we are using MinGW or mingw-w64 as their
 //definitions are different
 
@@ -655,7 +664,7 @@ typedef struct
 #include <_mingw.h>
 #endif
 
-#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+#ifdef __MINGW32_TOOLCHAIN__
 typedef enum CommandStateChangeConstants {
     CSC_UPDATECOMMANDS = (int) 0xFFFFFFFF,
     CSC_NAVIGATEFORWARD = 0x1,

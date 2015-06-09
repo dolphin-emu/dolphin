@@ -2,7 +2,6 @@
 // Name:        wx/private/fileback.h
 // Purpose:     Back an input stream with memory or a file
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: fileback.h 64943 2010-07-13 13:29:58Z VZ $
 // Copyright:   (c) 2006 Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

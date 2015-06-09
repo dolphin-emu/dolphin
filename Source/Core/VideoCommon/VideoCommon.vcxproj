@@ -1,25 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="DebugFast|Win32">
-      <Configuration>DebugFast</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugFast|x64">
-      <Configuration>DebugFast</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -27,280 +11,152 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{3E5C4E02-1BA9-4776-BDBE-E3F91FFA34CF}</ProjectGuid>
-    <RootNamespace>VideoCommon</RootNamespace>
+    <ProjectGuid>{3DE9EE35-3E91-4F27-A014-2866AD8C3FE3}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Release.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Release.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <OpenMPSupport>false</OpenMPSupport>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <OpenMPSupport>false</OpenMPSupport>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <OpenMPSupport>false</OpenMPSupport>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <OpenMPSupport>true</OpenMPSupport>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib />
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Src\AVIDump.cpp" />
-    <ClCompile Include="Src\BPFunctions.cpp" />
-    <ClCompile Include="Src\BPMemory.cpp" />
-    <ClCompile Include="Src\BPStructs.cpp" />
-    <ClCompile Include="Src\CommandProcessor.cpp" />
-    <ClCompile Include="Src\CPMemory.cpp" />
-    <ClCompile Include="Src\Debugger.cpp" />
-    <ClCompile Include="Src\DriverDetails.cpp" />
-    <ClCompile Include="Src\EmuWindow.cpp" />
-    <ClCompile Include="Src\Fifo.cpp" />
-    <ClCompile Include="Src\FPSCounter.cpp" />
-    <ClCompile Include="Src\FramebufferManagerBase.cpp" />
-    <ClCompile Include="Src\HiresTextures.cpp" />
-    <ClCompile Include="Src\ImageWrite.cpp" />
-    <ClCompile Include="Src\IndexGenerator.cpp" />
-    <ClCompile Include="Src\MainBase.cpp" />
-    <ClCompile Include="Src\memcpy_amd.cpp" />
-    <ClCompile Include="Src\OnScreenDisplay.cpp" />
-    <ClCompile Include="Src\OpcodeDecoding.cpp" />
-    <ClCompile Include="Src\OpenCL.cpp" />
-    <ClCompile Include="Src\OpenCL\OCLTextureDecoder.cpp" />
-    <ClCompile Include="Src\PerfQueryBase.cpp" />
-    <ClCompile Include="Src\PixelEngine.cpp" />
-    <ClCompile Include="Src\PixelShaderGen.cpp" />
-    <ClCompile Include="Src\PixelShaderManager.cpp" />
-    <ClCompile Include="Src\RenderBase.cpp" />
-    <ClCompile Include="Src\Statistics.cpp" />
-    <ClCompile Include="Src\TextureCacheBase.cpp" />
-    <ClCompile Include="Src\TextureConversionShader.cpp" />
-    <ClCompile Include="Src\VertexLoader.cpp" />
-    <ClCompile Include="Src\VertexLoaderManager.cpp" />
-    <ClCompile Include="Src\VertexLoader_Color.cpp" />
-    <ClCompile Include="Src\VertexLoader_Normal.cpp" />
-    <ClCompile Include="Src\VertexLoader_Position.cpp" />
-    <ClCompile Include="Src\VertexLoader_TextCoord.cpp" />
-    <ClCompile Include="Src\VertexManagerBase.cpp" />
-    <ClCompile Include="Src\VertexShaderGen.cpp" />
-    <ClCompile Include="Src\VertexShaderManager.cpp" />
-    <ClCompile Include="Src\VideoBackendBase.cpp" />
-    <ClCompile Include="Src\VideoConfig.cpp" />
-    <ClCompile Include="Src\VideoState.cpp" />
-    <ClCompile Include="Src\x64DLCache.cpp" />
-    <ClCompile Include="Src\x64TextureDecoder.cpp" />
-    <ClCompile Include="Src\XFMemory.cpp" />
-    <ClCompile Include="Src\XFStructs.cpp" />
+    <ClCompile Include="AsyncRequests.cpp" />
+    <ClCompile Include="AVIDump.cpp" />
+    <ClCompile Include="BoundingBox.cpp" />
+    <ClCompile Include="BPFunctions.cpp" />
+    <ClCompile Include="BPMemory.cpp" />
+    <ClCompile Include="BPStructs.cpp" />
+    <ClCompile Include="CommandProcessor.cpp" />
+    <ClCompile Include="CPMemory.cpp" />
+    <ClCompile Include="Debugger.cpp" />
+    <ClCompile Include="DriverDetails.cpp" />
+    <ClCompile Include="Fifo.cpp" />
+    <ClCompile Include="FPSCounter.cpp" />
+    <ClCompile Include="FramebufferManagerBase.cpp" />
+    <ClCompile Include="HiresTextures.cpp" />
+    <ClCompile Include="ImageWrite.cpp" />
+    <ClCompile Include="IndexGenerator.cpp" />
+    <ClCompile Include="MainBase.cpp" />
+    <ClCompile Include="OnScreenDisplay.cpp" />
+    <ClCompile Include="OpcodeDecoding.cpp" />
+    <ClCompile Include="PerfQueryBase.cpp" />
+    <ClCompile Include="PixelEngine.cpp" />
+    <ClCompile Include="PixelShaderGen.cpp" />
+    <ClCompile Include="PixelShaderManager.cpp" />
+    <ClCompile Include="PostProcessing.cpp" />
+    <ClCompile Include="RenderBase.cpp" />
+    <ClCompile Include="Statistics.cpp" />
+    <ClCompile Include="GeometryShaderGen.cpp" />
+    <ClCompile Include="GeometryShaderManager.cpp" />
+    <ClCompile Include="TextureCacheBase.cpp" />
+    <ClCompile Include="TextureConversionShader.cpp" />
+    <ClCompile Include="VertexLoader.cpp" />
+    <ClCompile Include="VertexLoaderBase.cpp" />
+    <ClCompile Include="VertexLoaderX64.cpp" />
+    <ClCompile Include="VertexLoaderManager.cpp" />
+    <ClCompile Include="VertexLoader_Color.cpp" />
+    <ClCompile Include="VertexLoader_Normal.cpp" />
+    <ClCompile Include="VertexLoader_Position.cpp" />
+    <ClCompile Include="VertexLoader_TextCoord.cpp" />
+    <ClCompile Include="VertexManagerBase.cpp" />
+    <ClCompile Include="VertexShaderGen.cpp" />
+    <ClCompile Include="VertexShaderManager.cpp" />
+    <ClCompile Include="VideoBackendBase.cpp" />
+    <ClCompile Include="VideoConfig.cpp" />
+    <ClCompile Include="VideoState.cpp" />
+    <ClCompile Include="TextureDecoder_Common.cpp" />
+    <ClCompile Include="TextureDecoder_x64.cpp" />
+    <ClCompile Include="XFMemory.cpp" />
+    <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\AVIDump.h" />
-    <ClInclude Include="Src\BPFunctions.h" />
-    <ClInclude Include="Src\BPMemory.h" />
-    <ClInclude Include="Src\BPStructs.h" />
-    <ClInclude Include="Src\CommandProcessor.h" />
-    <ClInclude Include="Src\CPMemory.h" />
-    <ClInclude Include="Src\DataReader.h" />
-    <ClInclude Include="Src\Debugger.h" />
-    <ClInclude Include="Src\DriverDetails.h" />
-    <ClInclude Include="Src\DLCache.h" />
-    <ClInclude Include="Src\EmuWindow.h" />
-    <ClInclude Include="Src\Fifo.h" />
-    <ClInclude Include="Src\FPSCounter.h" />
-    <ClInclude Include="Src\FramebufferManagerBase.h" />
-    <ClInclude Include="Src\HiresTextures.h" />
-    <ClInclude Include="Src\ImageWrite.h" />
-    <ClInclude Include="Src\IndexGenerator.h" />
-    <ClInclude Include="Src\LightingShaderGen.h" />
-    <ClInclude Include="Src\LookUpTables.h" />
-    <ClInclude Include="Src\MainBase.h" />
-    <ClInclude Include="Src\NativeVertexFormat.h" />
-    <ClInclude Include="Src\OnScreenDisplay.h" />
-    <ClInclude Include="Src\OpcodeDecoding.h" />
-    <ClInclude Include="Src\OpenCL.h" />
-    <ClInclude Include="Src\OpenCL\OCLTextureDecoder.h" />
-    <ClInclude Include="Src\PerfQueryBase.h" />
-    <ClInclude Include="Src\PixelEngine.h" />
-    <ClInclude Include="Src\PixelShaderGen.h" />
-    <ClInclude Include="Src\PixelShaderManager.h" />
-    <ClInclude Include="Src\RenderBase.h" />
-    <ClInclude Include="Src\ShaderGenCommon.h" />
-    <ClInclude Include="Src\Statistics.h" />
-    <ClInclude Include="Src\TextureCacheBase.h" />
-    <ClInclude Include="Src\TextureConversionShader.h" />
-    <ClInclude Include="Src\TextureDecoder.h" />
-    <ClInclude Include="Src\VertexLoader.h" />
-    <ClInclude Include="Src\VertexLoaderManager.h" />
-    <ClInclude Include="Src\VertexLoader_Color.h" />
-    <ClInclude Include="Src\VertexLoader_Normal.h" />
-    <ClInclude Include="Src\VertexLoader_Position.h" />
-    <ClInclude Include="Src\VertexLoader_TextCoord.h" />
-    <ClInclude Include="Src\VertexManagerBase.h" />
-    <ClInclude Include="Src\VertexShaderGen.h" />
-    <ClInclude Include="Src\VertexShaderManager.h" />
-    <ClInclude Include="Src\VideoCommon.h" />
-    <ClInclude Include="Src\VideoBackendBase.h" />
-    <ClInclude Include="Src\VideoConfig.h" />
-    <ClInclude Include="Src\VideoState.h" />
-    <ClInclude Include="Src\XFMemory.h" />
-    <ClInclude Include="Src\XFStructs.h" />
+    <ClInclude Include="AsyncRequests.h" />
+    <ClInclude Include="AVIDump.h" />
+    <ClInclude Include="BoundingBox.h" />
+    <ClInclude Include="BPFunctions.h" />
+    <ClInclude Include="BPMemory.h" />
+    <ClInclude Include="BPStructs.h" />
+    <ClInclude Include="CommandProcessor.h" />
+    <ClInclude Include="CPMemory.h" />
+    <ClInclude Include="DataReader.h" />
+    <ClInclude Include="Debugger.h" />
+    <ClInclude Include="DriverDetails.h" />
+    <ClInclude Include="Fifo.h" />
+    <ClInclude Include="FPSCounter.h" />
+    <ClInclude Include="FramebufferManagerBase.h" />
+    <ClInclude Include="HiresTextures.h" />
+    <ClInclude Include="ImageWrite.h" />
+    <ClInclude Include="IndexGenerator.h" />
+    <ClInclude Include="LightingShaderGen.h" />
+    <ClInclude Include="LookUpTables.h" />
+    <ClInclude Include="MainBase.h" />
+    <ClInclude Include="NativeVertexFormat.h" />
+    <ClInclude Include="OnScreenDisplay.h" />
+    <ClInclude Include="OpcodeDecoding.h" />
+    <ClInclude Include="PerfQueryBase.h" />
+    <ClInclude Include="PixelEngine.h" />
+    <ClInclude Include="PixelShaderGen.h" />
+    <ClInclude Include="PixelShaderManager.h" />
+    <ClInclude Include="PostProcessing.h" />
+    <ClInclude Include="RenderBase.h" />
+    <ClInclude Include="ShaderGenCommon.h" />
+    <ClInclude Include="Statistics.h" />
+    <ClInclude Include="GeometryShaderGen.h" />
+    <ClInclude Include="GeometryShaderManager.h" />
+    <ClInclude Include="TextureCacheBase.h" />
+    <ClInclude Include="TextureConversionShader.h" />
+    <ClInclude Include="TextureDecoder.h" />
+    <ClInclude Include="VertexLoader.h" />
+    <ClInclude Include="VertexLoaderBase.h" />
+    <ClInclude Include="VertexLoaderManager.h" />
+    <ClInclude Include="VertexLoaderUtils.h" />
+    <ClInclude Include="VertexLoader_Color.h" />
+    <ClInclude Include="VertexLoader_Normal.h" />
+    <ClInclude Include="VertexLoader_Position.h" />
+    <ClInclude Include="VertexLoader_TextCoord.h" />
+    <ClInclude Include="VertexManagerBase.h" />
+    <ClInclude Include="VertexShaderGen.h" />
+    <ClInclude Include="VertexShaderManager.h" />
+    <ClInclude Include="VideoBackendBase.h" />
+    <ClInclude Include="VideoCommon.h" />
+    <ClInclude Include="VideoConfig.h" />
+    <ClInclude Include="VideoState.h" />
+    <ClInclude Include="XFMemory.h" />
+    <ClInclude Include="XFStructs.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\Data\User\OpenCL\TextureDecoder.cl" />
-    <None Include="CMakeLists.txt" />
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Externals\CLRun\clrun\CLRun.vcxproj">
-      <Project>{aa862e5e-a993-497a-b6a0-0e8e94b10050}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\SOIL\SOIL.vcxproj">
-      <Project>{8544f1ff-f2a5-42d8-a568-c56b5d3b4181}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    <ProjectReference Include="$(ExternalsDir)SOIL\SOIL.vcxproj">
+      <Project>{b441cc62-877e-4b3f-93e0-0de80544f705}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Common\Common.vcxproj">
-      <Project>{c87a4178-44f6-49b2-b7aa-c79af1b8c534}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    <ProjectReference Include="$(ExternalsDir)xxhash\xxhash.vcxproj">
+      <Project>{677EA016-1182-440C-9345-DC88D1E98C0C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
+      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

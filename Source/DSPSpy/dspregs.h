@@ -1,22 +1,8 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-#ifndef _DSPREGS_H
-#define _DSPREGS_H
+#pragma once
 
 #define DSP_REG_AR0		0x00 // address registers
 #define DSP_REG_AR1		0x01
@@ -60,5 +46,3 @@
 #define DSP_REG_ACM1	0x1f
 #define DSP_REG_ACH0	0x10 // Sign extended 8 bit register 0
 #define DSP_REG_ACH1	0x11 // Sign extended 8 bit register 1
-
-#endif

@@ -4,7 +4,6 @@
 // Author:      Ryan Norton,
 //              Vadim Zeitlin (UTF-8 URI support, many other changes)
 // Created:     10/26/04
-// RCS-ID:      $Id: uri.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2004 Ryan Norton,
 //                  2008 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -817,7 +816,7 @@ bool wxURI::ParseH16(const char*& uri)
 //
 // Parses a certain version of an IP address and moves the input string past
 // it.  Returns true if the input  string contains the proper version of an ip
-// address.  It is the caller's responsability to move the input string back
+// address.  It is the caller's responsibility to move the input string back
 // to its original position on failure.
 // ---------------------------------------------------------------------------
 

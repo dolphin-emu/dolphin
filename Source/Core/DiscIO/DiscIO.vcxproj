@@ -1,25 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="DebugFast|Win32">
-      <Configuration>DebugFast</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugFast|x64">
-      <Configuration>DebugFast</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -27,207 +11,82 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B6398059-EBB6-4C34-B547-95F365B71FF4}</ProjectGuid>
-    <RootNamespace>DiscIO</RootNamespace>
+    <ProjectGuid>{160BDC25-5626-4B0D-BDD8-2953D9777FB5}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Release.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Release.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\..\..\Externals\zlib;..\..\..\Externals\polarssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\..\..\Externals\zlib;..\..\..\Externals\polarssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\..\..\Externals\zlib;..\..\..\Externals\polarssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\..\..\Externals\zlib;..\..\..\Externals\polarssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\..\..\Externals\zlib;..\..\..\Externals\polarssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\..\..\Externals\zlib;..\..\..\Externals\polarssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Src\BannerLoader.h" />
-    <ClInclude Include="Src\BannerLoaderGC.h" />
-    <ClInclude Include="Src\BannerLoaderWii.h" />
-    <ClInclude Include="Src\Blob.h" />
-    <ClInclude Include="Src\CISOBlob.h" />
-    <ClInclude Include="Src\WbfsBlob.h" />
-    <ClInclude Include="Src\CompressedBlob.h" />
-    <ClInclude Include="Src\DiscScrubber.h" />
-    <ClInclude Include="Src\DriveBlob.h" />
-    <ClInclude Include="Src\FileBlob.h" />
-    <ClInclude Include="Src\FileHandlerARC.h" />
-    <ClInclude Include="Src\FileMonitor.h" />
-    <ClInclude Include="Src\Filesystem.h" />
-    <ClInclude Include="Src\FileSystemGCWii.h" />
-    <ClInclude Include="Src\NANDContentLoader.h" />
-    <ClInclude Include="Src\stdafx.h" />
-    <ClInclude Include="Src\Volume.h" />
-    <ClInclude Include="Src\VolumeCreator.h" />
-    <ClInclude Include="Src\VolumeDirectory.h" />
-    <ClInclude Include="Src\VolumeGC.h" />
-    <ClInclude Include="Src\VolumeWad.h" />
-    <ClInclude Include="Src\VolumeWiiCrypted.h" />
-    <ClInclude Include="Src\WiiWad.h" />
+    <ClCompile Include="Blob.cpp" />
+    <ClCompile Include="CISOBlob.cpp" />
+    <ClCompile Include="CompressedBlob.cpp" />
+    <ClCompile Include="DiscScrubber.cpp" />
+    <ClCompile Include="DriveBlob.cpp" />
+    <ClCompile Include="FileBlob.cpp" />
+    <ClCompile Include="FileMonitor.cpp" />
+    <ClCompile Include="Filesystem.cpp" />
+    <ClCompile Include="FileSystemGCWii.cpp" />
+    <ClCompile Include="NANDContentLoader.cpp" />
+    <ClCompile Include="VolumeCommon.cpp" />
+    <ClCompile Include="VolumeCreator.cpp" />
+    <ClCompile Include="VolumeDirectory.cpp" />
+    <ClCompile Include="VolumeGC.cpp" />
+    <ClCompile Include="VolumeWad.cpp" />
+    <ClCompile Include="VolumeWiiCrypted.cpp" />
+    <ClCompile Include="WbfsBlob.cpp" />
+    <ClCompile Include="WiiWad.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\BannerLoader.cpp" />
-    <ClCompile Include="Src\BannerLoaderGC.cpp" />
-    <ClCompile Include="Src\BannerLoaderWii.cpp" />
-    <ClCompile Include="Src\Blob.cpp" />
-    <ClCompile Include="Src\CISOBlob.cpp" />
-    <ClCompile Include="Src\WbfsBlob.cpp" />
-    <ClCompile Include="Src\CompressedBlob.cpp" />
-    <ClCompile Include="Src\DiscScrubber.cpp" />
-    <ClCompile Include="Src\DriveBlob.cpp" />
-    <ClCompile Include="Src\FileBlob.cpp" />
-    <ClCompile Include="Src\FileHandlerARC.cpp" />
-    <ClCompile Include="Src\FileMonitor.cpp" />
-    <ClCompile Include="Src\Filesystem.cpp" />
-    <ClCompile Include="Src\FileSystemGCWii.cpp" />
-    <ClCompile Include="Src\NANDContentLoader.cpp" />
-    <ClCompile Include="Src\stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Src\VolumeCommon.cpp" />
-    <ClCompile Include="Src\VolumeCreator.cpp" />
-    <ClCompile Include="Src\VolumeDirectory.cpp" />
-    <ClCompile Include="Src\VolumeGC.cpp" />
-    <ClCompile Include="Src\VolumeWad.cpp" />
-    <ClCompile Include="Src\VolumeWiiCrypted.cpp" />
-    <ClCompile Include="Src\WiiWad.cpp" />
+    <ClInclude Include="Blob.h" />
+    <ClInclude Include="CISOBlob.h" />
+    <ClInclude Include="CompressedBlob.h" />
+    <ClInclude Include="DiscScrubber.h" />
+    <ClInclude Include="DriveBlob.h" />
+    <ClInclude Include="FileBlob.h" />
+    <ClInclude Include="FileMonitor.h" />
+    <ClInclude Include="Filesystem.h" />
+    <ClInclude Include="FileSystemGCWii.h" />
+    <ClInclude Include="NANDContentLoader.h" />
+    <ClInclude Include="Volume.h" />
+    <ClInclude Include="VolumeCreator.h" />
+    <ClInclude Include="VolumeDirectory.h" />
+    <ClInclude Include="VolumeGC.h" />
+    <ClInclude Include="VolumeWad.h" />
+    <ClInclude Include="VolumeWiiCrypted.h" />
+    <ClInclude Include="WbfsBlob.h" />
+    <ClInclude Include="WiiWad.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CMakeLists.txt" />
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)polarssl\visualc\PolarSSL.vcxproj">
+      <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
+      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

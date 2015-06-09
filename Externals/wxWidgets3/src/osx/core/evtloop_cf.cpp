@@ -3,8 +3,8 @@
 // Purpose:     wxEventLoop implementation common to both Carbon and Cocoa
 // Author:      Vadim Zeitlin
 // Created:     2009-10-18
-// RCS-ID:      $Id: evtloop_cf.cpp 70504 2012-02-03 17:27:17Z VZ $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
+//              (c) 2013 Rob Bresalier
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -25,8 +25,6 @@
 
 #include "wx/evtloop.h"
 
-#if wxUSE_EVENTLOOP_SOURCE
-
 #ifndef WX_PRECOMP
     #include "wx/log.h"
     #include "wx/app.h"
@@ -44,123 +42,43 @@
     #include "wx/nonownedwnd.h"
 #endif
 
+#include <CoreFoundation/CFSocket.h>
+
 // ============================================================================
 // wxCFEventLoopSource and wxCFEventLoop implementation
 // ============================================================================
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-namespace
+#if wxUSE_EVENTLOOP_SOURCE
+
+void wxCFEventLoopSource::InitSourceSocket(CFSocketRef cfSocket)
 {
+    wxASSERT_MSG( !m_cfSocket, "shouldn't be called more than once" );
 
-void EnableDescriptorCallBacks(CFFileDescriptorRef cffd, int flags)
-{
-    if ( flags & wxEVENT_SOURCE_INPUT )
-        CFFileDescriptorEnableCallBacks(cffd, kCFFileDescriptorReadCallBack);
-    if ( flags & wxEVENT_SOURCE_OUTPUT )
-        CFFileDescriptorEnableCallBacks(cffd, kCFFileDescriptorWriteCallBack);
-}
-
-void
-wx_cffiledescriptor_callback(CFFileDescriptorRef cffd,
-                             CFOptionFlags flags,
-                             void *ctxData)
-{
-    wxLogTrace(wxTRACE_EVT_SOURCE,
-               "CFFileDescriptor callback, flags=%d", flags);
-
-    wxCFEventLoopSource * const
-        source = static_cast<wxCFEventLoopSource *>(ctxData);
-
-    wxEventLoopSourceHandler * const
-        handler = source->GetHandler();
-    if ( flags & kCFFileDescriptorReadCallBack )
-        handler->OnReadWaiting();
-    if ( flags & kCFFileDescriptorWriteCallBack )
-        handler->OnWriteWaiting();
-
-    // we need to re-enable callbacks to be called again
-    EnableDescriptorCallBacks(cffd, source->GetFlags());
-}
-
-} // anonymous namespace
-
-wxEventLoopSource *
-wxCFEventLoop::AddSourceForFD(int fd,
-                              wxEventLoopSourceHandler *handler,
-                              int flags)
-{
-    wxCHECK_MSG( fd != -1, NULL, "can't monitor invalid fd" );
-
-    wxScopedPtr<wxCFEventLoopSource>
-        source(new wxCFEventLoopSource(handler, flags));
-
-    CFFileDescriptorContext ctx = { 0, source.get(), NULL, NULL, NULL };
-    wxCFRef<CFFileDescriptorRef>
-        cffd(CFFileDescriptorCreate
-             (
-                  kCFAllocatorDefault,
-                  fd,
-                  true,   // close on invalidate
-                  wx_cffiledescriptor_callback,
-                  &ctx
-             ));
-    if ( !cffd )
-        return NULL;
-
-    wxCFRef<CFRunLoopSourceRef>
-        cfsrc(CFFileDescriptorCreateRunLoopSource(kCFAllocatorDefault, cffd, 0));
-    if ( !cfsrc )
-        return NULL;
-
-    CFRunLoopRef cfloop = CFGetCurrentRunLoop();
-    CFRunLoopAddSource(cfloop, cfsrc, kCFRunLoopDefaultMode);
-
-    // Enable the callbacks initially.
-    EnableDescriptorCallBacks(cffd, source->GetFlags());
-
-    source->SetFileDescriptor(cffd.release());
-
-    return source.release();
-}
-
-void wxCFEventLoopSource::SetFileDescriptor(CFFileDescriptorRef cffd)
-{
-    wxASSERT_MSG( !m_cffd, "shouldn't be called more than once" );
-
-    m_cffd = cffd;
+    m_cfSocket = cfSocket;
 }
 
 wxCFEventLoopSource::~wxCFEventLoopSource()
 {
-    if ( m_cffd )
-        CFRelease(m_cffd);
+    if ( m_cfSocket )
+    {
+        CFSocketInvalidate(m_cfSocket);
+        CFRelease(m_cfSocket);
+    }
 }
-
-#else // OS X < 10.5
-
-wxEventLoopSource *
-wxCFEventLoop::AddSourceForFD(int WXUNUSED(fd),
-                              wxEventLoopSourceHandler * WXUNUSED(handler),
-                              int WXUNUSED(flags))
-{
-    return NULL;
-}
-
-#endif // MAC_OS_X_VERSION_MAX_ALLOWED
 
 #endif // wxUSE_EVENTLOOP_SOURCE
 
 void wxCFEventLoop::OSXCommonModeObserverCallBack(CFRunLoopObserverRef observer, int activity, void *info)
 {
     wxCFEventLoop * eventloop = static_cast<wxCFEventLoop *>(info);
-    if ( eventloop )
+    if ( eventloop && eventloop->IsRunning() )
         eventloop->CommonModeObserverCallBack(observer, activity);
 }
 
 void wxCFEventLoop::OSXDefaultModeObserverCallBack(CFRunLoopObserverRef observer, int activity, void *info)
 {
     wxCFEventLoop * eventloop = static_cast<wxCFEventLoop *>(info);
-    if ( eventloop )
+    if ( eventloop && eventloop->IsRunning() )
         eventloop->DefaultModeObserverCallBack(observer, activity);
 }
 
@@ -176,13 +94,13 @@ void wxCFEventLoop::CommonModeObserverCallBack(CFRunLoopObserverRef WXUNUSED(obs
         // and this input is only removed from it when pending event handlers are
         // executed)
 
-        if ( wxTheApp )
+        if ( wxTheApp && ShouldProcessIdleEvents() )
             wxTheApp->ProcessPendingEvents();
     }
 
     if ( activity & kCFRunLoopBeforeWaiting )
     {
-        if ( ProcessIdle() )
+        if ( ShouldProcessIdleEvents() && ProcessIdle() )
         {
             WakeUp();
         }
@@ -214,7 +132,12 @@ wxCFEventLoop::DefaultModeObserverCallBack(CFRunLoopObserverRef WXUNUSED(observe
 wxCFEventLoop::wxCFEventLoop()
 {
     m_shouldExit = false;
+    m_processIdleEvents = true;
 
+#if wxUSE_UIACTIONSIMULATOR
+    m_shouldWaitForEvent = false;
+#endif
+    
     m_runLoop = CFGetCurrentRunLoop();
 
     CFRunLoopObserverContext ctxt;
@@ -223,18 +146,19 @@ wxCFEventLoop::wxCFEventLoop()
     m_commonModeRunLoopObserver = CFRunLoopObserverCreate( kCFAllocatorDefault, kCFRunLoopBeforeTimers | kCFRunLoopBeforeWaiting , true /* repeats */, 0,
                                                           (CFRunLoopObserverCallBack) wxCFEventLoop::OSXCommonModeObserverCallBack, &ctxt );
     CFRunLoopAddObserver(m_runLoop, m_commonModeRunLoopObserver, kCFRunLoopCommonModes);
-    CFRelease(m_commonModeRunLoopObserver);
 
     m_defaultModeRunLoopObserver = CFRunLoopObserverCreate( kCFAllocatorDefault, kCFRunLoopBeforeTimers | kCFRunLoopBeforeWaiting , true /* repeats */, 0,
                                                            (CFRunLoopObserverCallBack) wxCFEventLoop::OSXDefaultModeObserverCallBack, &ctxt );
     CFRunLoopAddObserver(m_runLoop, m_defaultModeRunLoopObserver, kCFRunLoopDefaultMode);
-    CFRelease(m_defaultModeRunLoopObserver);
 }
 
 wxCFEventLoop::~wxCFEventLoop()
 {
     CFRunLoopRemoveObserver(m_runLoop, m_commonModeRunLoopObserver, kCFRunLoopCommonModes);
     CFRunLoopRemoveObserver(m_runLoop, m_defaultModeRunLoopObserver, kCFRunLoopDefaultMode);
+
+    CFRelease(m_defaultModeRunLoopObserver);
+    CFRelease(m_commonModeRunLoopObserver);
 }
 
 
@@ -309,7 +233,17 @@ bool wxCFEventLoop::Pending() const
 
 int wxCFEventLoop::DoProcessEvents()
 {
-    return DispatchTimeout( 0 );
+#if wxUSE_UIACTIONSIMULATOR
+    if ( m_shouldWaitForEvent )
+    {
+        int  handled = DispatchTimeout( 1000 );
+        wxASSERT_MSG( handled == 1, "No Event Available");
+        m_shouldWaitForEvent = false;
+        return handled;
+    }
+    else
+#endif
+        return DispatchTimeout( 0 );
 }
 
 bool wxCFEventLoop::Dispatch()
@@ -361,7 +295,7 @@ int wxCFEventLoop::DoDispatchTimeout(unsigned long timeout)
     return 1;
 }
 
-void wxCFEventLoop::DoRun()
+void wxCFEventLoop::OSXDoRun()
 {
     for ( ;; )
     {
@@ -382,23 +316,15 @@ void wxCFEventLoop::DoRun()
     }
 }
 
-void wxCFEventLoop::DoStop()
+void wxCFEventLoop::OSXDoStop()
 {
     CFRunLoopStop(CFGetCurrentRunLoop());
 }
 
 // enters a loop calling OnNextIteration(), Pending() and Dispatch() and
 // terminating when Exit() is called
-int wxCFEventLoop::Run()
+int wxCFEventLoop::DoRun()
 {
-    // event loops are not recursive, you need to create another loop!
-    wxCHECK_MSG( !IsRunning(), -1, wxT("can't reenter a message loop") );
-
-    // ProcessIdle() and ProcessEvents() below may throw so the code here should
-    // be exception-safe, hence we must use local objects for all actions we
-    // should undo
-    wxEventLoopActivator activate(this);
-
     // we must ensure that OnExit() is called even if an exception is thrown
     // from inside ProcessEvents() but we must call it from Exit() in normal
     // situations because it is supposed to be called synchronously,
@@ -411,7 +337,7 @@ int wxCFEventLoop::Run()
         {
 #endif // wxUSE_EXCEPTIONS
 
-            DoRun();
+            OSXDoRun();
 
 #if wxUSE_EXCEPTIONS
             // exit the outer loop as well
@@ -445,11 +371,30 @@ int wxCFEventLoop::Run()
 
 // sets the "should exit" flag and wakes up the loop so that it terminates
 // soon
-void wxCFEventLoop::Exit(int rc)
+void wxCFEventLoop::ScheduleExit(int rc)
 {
     m_exitcode = rc;
     m_shouldExit = true;
-    DoStop();
+    OSXDoStop();
+}
+
+wxCFEventLoopPauseIdleEvents::wxCFEventLoopPauseIdleEvents()
+{
+    wxCFEventLoop* cfl = dynamic_cast<wxCFEventLoop*>(wxEventLoopBase::GetActive());
+    if ( cfl )
+    {
+        m_formerState = cfl->ShouldProcessIdleEvents();
+        cfl->SetProcessIdleEvents(false);
+    }
+    else
+        m_formerState = true;
+}
+
+wxCFEventLoopPauseIdleEvents::~wxCFEventLoopPauseIdleEvents()
+{
+    wxCFEventLoop* cfl = dynamic_cast<wxCFEventLoop*>(wxEventLoopBase::GetActive());
+    if ( cfl )
+        cfl->SetProcessIdleEvents(m_formerState);
 }
 
 // TODO Move to thread_osx.cpp

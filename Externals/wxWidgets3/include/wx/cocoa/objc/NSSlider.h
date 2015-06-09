@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2007/08/10 (move from NSSlider.mm)
-// RCS-ID:      $Id: NSSlider.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2007 Software 2000 Ltd.
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

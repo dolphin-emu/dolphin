@@ -3,7 +3,6 @@
 // Purpose:     native implementation of wxInfoBar for GTK+ 2.18 and later
 // Author:      Vadim Zeitlin
 // Created:     2009-09-26
-// RCS-ID:      $Id: infobar.h 64213 2010-05-05 12:20:08Z VZ $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,7 +53,6 @@ public:
     void GTKResponse(int btnid);
 
 protected:
-    virtual bool GTKShouldConnectSizeRequest() const { return false; }
     virtual void DoApplyWidgetStyle(GtkRcStyle *style);
 
 private:

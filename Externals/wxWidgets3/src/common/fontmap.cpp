@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.11.99
-// RCS-ID:      $Id: fontmap.cpp 66615 2011-01-07 05:26:57Z PC $
 // Copyright:   (c) 1999-2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -99,6 +98,8 @@ wxENUM_MEMBER( wxFONTENCODING_CP1254 )
 wxENUM_MEMBER( wxFONTENCODING_CP1255 )
 wxENUM_MEMBER( wxFONTENCODING_CP1256 )
 wxENUM_MEMBER( wxFONTENCODING_CP1257 )
+wxENUM_MEMBER( wxFONTENCODING_CP1258 )
+wxENUM_MEMBER( wxFONTENCODING_CP1361 )
 wxENUM_MEMBER( wxFONTENCODING_CP12_MAX )
 wxENUM_MEMBER( wxFONTENCODING_UTF7 )
 wxENUM_MEMBER( wxFONTENCODING_UTF8 )
@@ -517,11 +518,5 @@ bool wxFontMapper::IsEncodingAvailable(wxFontEncoding encoding,
     info.facename = facename;
     return wxTestFontEncoding(info);
 }
-
-#if wxUSE_FONTDLG
-wxFontDialogBase::~wxFontDialogBase()
-{
-}
-#endif
 
 #endif // wxUSE_FONTMAP

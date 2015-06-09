@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.11.99
-// RCS-ID:      $Id: fontutil.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -249,6 +248,14 @@ wxFontEncoding wxGetFontEncFromCharSet(int cs)
 
         case CHINESEBIG5_CHARSET:
             fontEncoding = wxFONTENCODING_CP950;
+            break;
+
+        case VIETNAMESE_CHARSET:
+            fontEncoding = wxFONTENCODING_CP1258;
+            break;
+
+        case JOHAB_CHARSET:
+            fontEncoding = wxFONTENCODING_CP1361;
             break;
 
 #endif // Win32

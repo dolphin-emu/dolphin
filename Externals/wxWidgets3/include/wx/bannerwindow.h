@@ -3,7 +3,6 @@
 // Purpose:     wxBannerWindow class declaration
 // Author:      Vadim Zeitlin
 // Created:     2011-08-16
-// RCS-ID:      $Id: bannerwindow.h 69859 2011-11-28 18:58:52Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

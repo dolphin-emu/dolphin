@@ -3,7 +3,6 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     1998-05-20 (extracted from button.cpp)
-// Id:          $Id: anybutton.cpp 67931 2011-06-14 13:00:42Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +18,8 @@
 
 #include "wx/stockitem.h"
 
-#include "wx/gtk/private.h"
+#include <gtk/gtk.h>
+#include "wx/gtk/private/gtk2-compat.h"
 
 // ----------------------------------------------------------------------------
 // GTK callbacks
@@ -87,14 +87,14 @@ bool wxAnyButton::Enable( bool enable )
 
 GdkWindow *wxAnyButton::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
 {
-    return GTK_BUTTON(m_widget)->event_window;
+    return gtk_button_get_event_window(GTK_BUTTON(m_widget));
 }
 
 // static
 wxVisualAttributes
 wxAnyButton::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-    return GetDefaultAttributesFromGTKWidget(gtk_button_new);
+    return GetDefaultAttributesFromGTKWidget(gtk_button_new());
 }
 
 // ----------------------------------------------------------------------------
@@ -177,23 +177,7 @@ void wxAnyButton::GTKDoShowBitmap(const wxBitmap& bitmap)
     }
     else // have both label and bitmap
     {
-#ifdef __WXGTK26__
-        if ( !gtk_check_version(2,6,0) )
-        {
-            image = gtk_button_get_image(GTK_BUTTON(m_widget));
-        }
-        else
-#endif // __WXGTK26__
-        {
-            // buttons with both label and bitmap are only supported with GTK+
-            // 2.6 so far
-            //
-            // it shouldn't be difficult to implement them ourselves for the
-            // previous GTK+ versions by stuffing a container with a label and
-            // an image inside GtkButton but there doesn't seem to be much
-            // point in doing this for ancient GTK+ versions
-            return;
-        }
+        image = gtk_button_get_image(GTK_BUTTON(m_widget));
     }
 
     wxCHECK_RET( image && GTK_IS_IMAGE(image), "must have image widget" );
@@ -218,10 +202,9 @@ void wxAnyButton::DoSetBitmap(const wxBitmap& bitmap, State which)
                 // its size) changes
                 InvalidateBestSize();
             }
-#ifdef __WXGTK26__
             // normal image is special: setting it enables images for the button and
             // resetting it to nothing disables all of them
-            else if ( !gtk_check_version(2,6,0) )
+            else
             {
                 GtkWidget *image = gtk_button_get_image(GTK_BUTTON(m_widget));
                 if ( image && !bitmap.IsOk() )
@@ -241,7 +224,6 @@ void wxAnyButton::DoSetBitmap(const wxBitmap& bitmap, State which)
 
                 InvalidateBestSize();
             }
-#endif // GTK+ 2.6+
             break;
 
         case State_Pressed:

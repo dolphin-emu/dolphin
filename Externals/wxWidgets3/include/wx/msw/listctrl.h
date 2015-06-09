@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: Agron Selimaj
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h 70282 2012-01-07 15:09:43Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -384,6 +383,14 @@ protected:
     // common part of all ctors
     void Init();
 
+    // Implement constrained best size calculation.
+    virtual int DoGetBestClientHeight(int width) const
+        { return MSWGetBestViewRect(width, -1).y; }
+    virtual int DoGetBestClientWidth(int height) const
+        { return MSWGetBestViewRect(-1, height).x; }
+
+    wxSize MSWGetBestViewRect(int x, int y) const;
+
     // Implement base class pure virtual methods.
     long DoInsertColumn(long col, const wxListItem& info);
 
@@ -430,9 +437,6 @@ protected:
 
     // return the icon for the given item and column.
     virtual int OnGetItemColumnImage(long item, long column) const;
-
-    // return the attribute for the item (may return NULL if none)
-    virtual wxListItemAttr *OnGetItemAttr(long item) const;
 
     // return the attribute for the given item and column (may return NULL if none)
     virtual wxListItemAttr *OnGetItemColumnAttr(long item, long WXUNUSED(column)) const

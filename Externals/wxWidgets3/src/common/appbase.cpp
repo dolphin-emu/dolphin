@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.06.2003 (extracted from common/appcmn.cpp)
-// RCS-ID:      $Id: appbase.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -47,10 +46,15 @@
 #include "wx/tokenzr.h"
 #include "wx/thread.h"
 
-#if wxUSE_EXCEPTIONS && wxUSE_STL
-    #include <exception>
-    #include <typeinfo>
-#endif
+#if wxUSE_STL
+    #if wxUSE_EXCEPTIONS
+        #include <exception>
+        #include <typeinfo>
+    #endif
+    #if wxUSE_INTL
+        #include <locale>
+    #endif
+#endif // wxUSE_STL
 
 #if !defined(__WINDOWS__) || defined(__WXMICROWIN__)
   #include  <signal.h>      // for SIGTRAP used by wxTrap()
@@ -169,9 +173,9 @@ wxAppConsoleBase::~wxAppConsoleBase()
 
 bool wxAppConsoleBase::Initialize(int& WXUNUSED(argc), wxChar **WXUNUSED(argv))
 {
-#if wxUSE_INTL
-    GetTraits()->SetLocale();
-#endif // wxUSE_INTL
+#if defined(__WINDOWS__) && !defined(__WXWINCE__)
+    SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOOPENFILEERRORBOX);
+#endif
 
     return true;
 }
@@ -255,6 +259,10 @@ int wxAppConsoleBase::OnRun()
     return MainLoop();
 }
 
+void wxAppConsoleBase::OnLaunched()
+{    
+}
+
 int wxAppConsoleBase::OnExit()
 {
 #if wxUSE_CONFIG
@@ -303,6 +311,15 @@ wxAppTraits *wxAppConsoleBase::GetTraitsIfExists()
     return app ? app->GetTraits() : NULL;
 }
 
+/* static */
+wxAppTraits& wxAppConsoleBase::GetValidTraits()
+{
+    static wxConsoleAppTraits s_traitsConsole;
+    wxAppTraits* const traits = wxTheApp ? wxTheApp->GetTraits() : NULL;
+
+    return traits ? *traits : s_traitsConsole;
+}
+
 // ----------------------------------------------------------------------------
 // wxEventLoop redirection
 // ----------------------------------------------------------------------------
@@ -311,6 +328,9 @@ int wxAppConsoleBase::MainLoop()
 {
     wxEventLoopBaseTiedPtr mainLoop(&m_mainLoop, CreateMainLoop());
 
+    if (wxTheApp)
+        wxTheApp->OnLaunched();
+    
     return m_mainLoop ? m_mainLoop->Run() : -1;
 }
 
@@ -779,6 +799,18 @@ void wxAppConsoleBase::OnAssert(const wxChar *file,
     OnAssertFailure(file, line, NULL, cond, msg);
 }
 
+// ----------------------------------------------------------------------------
+// Miscellaneous other methods
+// ----------------------------------------------------------------------------
+
+void wxAppConsoleBase::SetCLocale()
+{
+    // We want to use the user locale by default in GUI applications in order
+    // to show the numbers, dates &c in the familiar format -- and also accept
+    // this format on input (especially important for decimal comma/dot).
+    wxSetlocale(LC_ALL, "");
+}
+
 // ============================================================================
 // other classes implementations
 // ============================================================================
@@ -830,14 +862,6 @@ bool wxConsoleAppTraitsBase::HasStderr()
 // ----------------------------------------------------------------------------
 // wxAppTraits
 // ----------------------------------------------------------------------------
-
-#if wxUSE_INTL
-void wxAppTraitsBase::SetLocale()
-{
-    wxSetlocale(LC_ALL, "");
-    wxUpdateLocaleIsUtf8();
-}
-#endif
 
 #if wxUSE_THREADS
 void wxMutexGuiEnterImpl();
@@ -953,7 +977,7 @@ wxString wxAppTraitsBase::GetAssertStackTrace()
     static const int maxLines = 20;
 
     StackDump dump;
-    dump.Walk(2, maxLines); // don't show OnAssert() call itself
+    dump.Walk(8, maxLines); // 8 is chosen to hide all OnAssert() calls
     stackTrace = dump.GetStackTrace();
 
     const int count = stackTrace.Freq(wxT('\n'));
@@ -1014,6 +1038,8 @@ void wxAbort()
 #if wxDEBUG_LEVEL
 
 // break into the debugger
+#ifndef wxTrap
+
 void wxTrap()
 {
 #if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
@@ -1026,6 +1052,8 @@ void wxTrap()
     // TODO
 #endif // Win/Unix
 }
+
+#endif // wxTrap already defined as a macro
 
 // default assert handler
 static void
@@ -1176,6 +1204,8 @@ static void LINKAGEMODE SetTraceMasks()
 
 #if wxDEBUG_LEVEL
 
+bool wxTrapInAssert = false;
+
 static
 bool DoShowAssertDialog(const wxString& msg)
 {
@@ -1190,11 +1220,18 @@ bool DoShowAssertDialog(const wxString& msg)
               wxT("You can also choose [Cancel] to suppress ")
               wxT("further warnings.");
 
-    switch ( ::MessageBox(NULL, msgDlg.wx_str(), wxT("wxWidgets Debug Alert"),
+    switch ( ::MessageBox(NULL, msgDlg.t_str(), wxT("wxWidgets Debug Alert"),
                           MB_YESNOCANCEL | MB_ICONSTOP ) )
     {
         case IDYES:
-            wxTrap();
+            // If we called wxTrap() directly from here, the programmer would
+            // see this function and a few more calls between his own code and
+            // it in the stack trace which would be perfectly useless and often
+            // confusing. So instead just set the flag here and let the macros
+            // defined in wx/debug.h call wxTrap() themselves, this ensures
+            // that the debugger will show the line in the user code containing
+            // the failing assert.
+            wxTrapInAssert = true;
             break;
 
         case IDCANCEL:

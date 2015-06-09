@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2002/12/08
-// RCS-ID:      $Id: toplevel.h 52834 2008-03-26 15:06:00Z FM $
 // Copyright:   (c) 2002 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

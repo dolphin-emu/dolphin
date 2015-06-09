@@ -3,7 +3,6 @@
 // Purpose:     Implementation of wxDateTimePickerCtrl for MSW.
 // Author:      Vadim Zeitlin
 // Created:     2011-09-22 (extracted from src/msw/datectrl.cpp)
-// RCS-ID:      $Id: datetimectrl.cpp 69293 2011-10-02 17:39:21Z VZ $
 // Copyright:   (c) 2005-2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -111,8 +110,12 @@ wxSize wxDateTimePickerCtrl::DoGetBestSize() const
 {
     wxClientDC dc(const_cast<wxDateTimePickerCtrl *>(this));
 
-    // Use the same native format as this as the underlying native control.
+    // Use the same native format as the underlying native control.
+#if wxUSE_INTL
     wxString s = wxDateTime::Now().Format(wxLocale::GetInfo(MSWGetFormat()));
+#else // !wxUSE_INTL
+    wxString s("XXX-YYY-ZZZZ");
+#endif // wxUSE_INTL/!wxUSE_INTL
 
     // the best size for the control is bigger than just the string
     // representation of the current value because the control must accommodate

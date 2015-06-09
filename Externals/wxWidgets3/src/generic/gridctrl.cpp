@@ -4,7 +4,6 @@
 // Author:      Paul Gammans, Roger Gammans
 // Modified by:
 // Created:     11/04/2001
-// RCS-ID:      $Id: gridctrl.cpp 69856 2011-11-28 13:23:33Z VZ $
 // Copyright:   (c) The Computer Surgery (paul@compsurg.co.uk)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -295,57 +294,141 @@ wxGridCellAutoWrapStringRenderer::GetTextLines(wxGrid& grid,
                                                const wxRect& rect,
                                                int row, int col)
 {
-    wxString  data = grid.GetCellValue(row, col);
-
-    wxArrayString lines;
     dc.SetFont(attr.GetFont());
+    const wxCoord maxWidth = rect.GetWidth();
 
-    //Taken from wxGrid again!
-    wxCoord x = 0, y = 0, curr_x = 0;
-    wxCoord max_x = rect.GetWidth();
+    // Transform logical lines into physical ones, wrapping the longer ones.
+    const wxArrayString
+        logicalLines = wxSplit(grid.GetCellValue(row, col), '\n', '\0');
 
-    dc.SetFont(attr.GetFont());
-    wxStringTokenizer tk(data , wxT(" \n\t\r"));
-    wxString thisline = wxEmptyString;
+    // Trying to do anything if the column is hidden anyhow doesn't make sense
+    // and we run into problems in BreakLine() in this case.
+    if ( maxWidth <= 0 )
+        return logicalLines;
 
-    while ( tk.HasMoreTokens() )
+    wxArrayString physicalLines;
+    for ( wxArrayString::const_iterator it = logicalLines.begin();
+          it != logicalLines.end();
+          ++it )
     {
-        wxString tok = tk.GetNextToken();
-        //FIXME: this causes us to print an extra unnecessary
-        //       space at the end of the line. But it
-        //       is invisible , simplifies the size calculation
-        //       and ensures tokens are separated in the display
-        tok += wxT(" ");
+        const wxString& line = *it;
 
-        dc.GetTextExtent(tok, &x, &y);
-        if ( curr_x + x > max_x)
+        if ( dc.GetTextExtent(line).x > maxWidth )
         {
-            if ( curr_x == 0 )
-            {
-                // this means that a single token is wider than the maximal
-                // width -- still use it as is as we need to show at least the
-                // part of it which fits
-                lines.Add(tok);
-            }
-            else
-            {
-                lines.Add(thisline);
-                thisline = tok;
-                curr_x = x;
-            }
+            // Line does not fit, break it up.
+            BreakLine(dc, line, maxWidth, physicalLines);
+        }
+        else // The entire line fits as is
+        {
+            physicalLines.push_back(line);
+        }
+    }
+
+    return physicalLines;
+}
+
+void
+wxGridCellAutoWrapStringRenderer::BreakLine(wxDC& dc,
+                                            const wxString& logicalLine,
+                                            wxCoord maxWidth,
+                                            wxArrayString& lines)
+{
+    wxCoord lineWidth = 0;
+    wxString line;
+
+    // For each word
+    wxStringTokenizer wordTokenizer(logicalLine, wxS(" \t"), wxTOKEN_RET_DELIMS);
+    while ( wordTokenizer.HasMoreTokens() )
+    {
+        const wxString word = wordTokenizer.GetNextToken();
+        const wxCoord wordWidth = dc.GetTextExtent(word).x;
+        if ( lineWidth + wordWidth < maxWidth )
+        {
+            // Word fits, just add it to this line.
+            line += word;
+            lineWidth += wordWidth;
         }
         else
         {
-            thisline+= tok;
-            curr_x += x;
+            // Word does not fit, check whether the word is itself wider that
+            // available width
+            if ( wordWidth < maxWidth )
+            {
+                // Word can fit in a new line, put it at the beginning
+                // of the new line.
+                lines.push_back(line);
+                line = word;
+                lineWidth = wordWidth;
+            }
+            else // Word cannot fit in available width at all.
+            {
+                if ( !line.empty() )
+                {
+                    lines.push_back(line);
+                    line.clear();
+                    lineWidth = 0;
+                }
+
+                // Break it up in several lines.
+                lineWidth = BreakWord(dc, word, maxWidth, lines, line);
+            }
         }
     }
-    //Add last line
-    lines.Add( wxString(thisline) );
 
-    return lines;
+    if ( !line.empty() )
+        lines.push_back(line);
 }
 
+
+wxCoord
+wxGridCellAutoWrapStringRenderer::BreakWord(wxDC& dc,
+                                            const wxString& word,
+                                            wxCoord maxWidth,
+                                            wxArrayString& lines,
+                                            wxString& line)
+{
+    wxArrayInt widths;
+    dc.GetPartialTextExtents(word, widths);
+
+    // TODO: Use binary search to find the first element > maxWidth.
+    const unsigned count = widths.size();
+    unsigned n;
+    for ( n = 0; n < count; n++ )
+    {
+        if ( widths[n] > maxWidth )
+            break;
+    }
+
+    if ( n == 0 )
+    {
+        // This is a degenerate case: the first character of the word is
+        // already wider than the available space, so we just can't show it
+        // completely and have to put the first character in this line.
+        n = 1;
+    }
+
+    lines.push_back(word.substr(0, n));
+
+    // Check if the remainder of the string fits in one line.
+    //
+    // Unfortunately we can't use the existing partial text extents as the
+    // extent of the remainder may be different when it's rendered in a
+    // separate line instead of as part of the same one, so we have to
+    // recompute it.
+    const wxString rest = word.substr(n);
+    const wxCoord restWidth = dc.GetTextExtent(rest).x;
+    if ( restWidth <= maxWidth )
+    {
+        line = rest;
+        return restWidth;
+    }
+
+    // Break the rest of the word into lines.
+    //
+    // TODO: Perhaps avoid recursion? The code is simpler like this but using a
+    // loop in this function would probably be more efficient.
+    return BreakWord(dc, rest, maxWidth, lines, line);
+}
 
 wxSize
 wxGridCellAutoWrapStringRenderer::GetBestSize(wxGrid& grid,
@@ -353,30 +436,21 @@ wxGridCellAutoWrapStringRenderer::GetBestSize(wxGrid& grid,
                                               wxDC& dc,
                                               int row, int col)
 {
-    wxCoord x,y, height , width = grid.GetColSize(col) -20;
-    // for width, subtract 20 because ColSize includes a magin of 10 pixels
-    // that we do not want here and because we always start with an increment
-    // by 10 in the loop below.
-    int count = 250; //Limit iterations..
+    const int lineHeight = dc.GetCharHeight();
 
-    wxRect rect(0,0,width,10);
-
-    // M is a nice large character 'y' gives descender!.
-    dc.GetTextExtent(wxT("My"), &x, &y);
-
-    do
-    {
-        width+=10;
-        rect.SetWidth(width);
-        height = y * (wx_truncate_cast(wxCoord, GetTextLines(grid,dc,attr,rect,row,col).GetCount()));
-        count--;
     // Search for a shape no taller than the golden ratio.
-    } while (count && (width  < (height*1.68)) );
+    wxSize size;
+    for ( size.x = 10; ; size.x += 10 )
+    {
+        const size_t
+            numLines = GetTextLines(grid, dc, attr, size, row, col).size();
+        size.y = numLines * lineHeight;
+        if ( size.x >= size.y*1.68 )
+            break;
+    }
 
-
-    return wxSize(width,height);
+    return size;
 }
-
 
 // ----------------------------------------------------------------------------
 // wxGridCellStringRenderer

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: Francesco Montorsi
 // Created:
-// RCS-ID:      $Id: colour.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -167,6 +166,7 @@ public:
     static void          ChangeLightness(unsigned char* r, unsigned char* g, unsigned char* b, int ialpha);
 
     wxColour ChangeLightness(int ialpha) const;
+    wxColour& MakeDisabled(unsigned char brightness = 255);
 
     // old, deprecated
     // ---------------

@@ -3,7 +3,6 @@
 // Purpose:     Generic implementation of wxTimePickerCtrl.
 // Author:      Paul Breen, Vadim Zeitlin
 // Created:     2011-09-22
-// RCS-ID:      $Id: timectrl.h 69489 2011-10-20 16:45:48Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

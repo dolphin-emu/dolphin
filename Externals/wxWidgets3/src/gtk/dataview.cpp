@@ -2,7 +2,6 @@
 // Name:        src/gtk/dataview.cpp
 // Purpose:     wxDataViewCtrl GTK+2 implementation
 // Author:      Robert Roebling
-// Id:          $Id: dataview.cpp 70457 2012-01-25 00:05:03Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,16 +27,26 @@
 #include "wx/popupwin.h"
 #include "wx/listimpl.cpp"
 
-#include "wx/gtk/private.h"
 #include "wx/gtk/dc.h"
+#ifndef __WXGTK3__
 #include "wx/gtk/dcclient.h"
+#endif
 
-#include "wx/gtk/private/gdkconv.h"
-#include "wx/gtk/private/list.h"
+#include <gtk/gtk.h>
+#include "wx/gtk/private.h"
 #include "wx/gtk/private/event.h"
+#include "wx/gtk/private/gdkconv.h"
+#include "wx/gtk/private/gtk2-compat.h"
+#include "wx/gtk/private/list.h"
 using namespace wxGTKImpl;
 
 class wxGtkDataViewModelNotifier;
+
+#ifdef __WXGTK3__
+    #define wxConstGdkRect const GdkRectangle
+#else
+    #define wxConstGdkRect GdkRectangle
+#endif
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -137,7 +146,8 @@ public:
 // any given moment. It's just simpler like this and we don't need anything
 // more for now.
 
-extern "C"
+extern "C" {
+static
 gboolean wxdataview_selection_func(GtkTreeSelection * WXUNUSED(selection),
                                    GtkTreeModel * WXUNUSED(model),
                                    GtkTreePath * WXUNUSED(path),
@@ -145,6 +155,7 @@ gboolean wxdataview_selection_func(GtkTreeSelection * WXUNUSED(selection),
                                    gpointer data)
 {
     return data == NULL;
+}
 }
 
 class wxGtkTreeSelectionLock
@@ -185,8 +196,10 @@ private:
         // We can only use gtk_tree_selection_get_select_function() with 2.14+
         // so check for its availability both during compile- and run-time.
 #if GTK_CHECK_VERSION(2, 14, 0)
+#ifndef __WXGTK3__
         if ( gtk_check_version(2, 14, 0) != NULL )
             return;
+#endif
 
         // If this assert is triggered, it means the code elsewhere has called
         // gtk_tree_selection_set_select_function() but currently doing this
@@ -268,7 +281,15 @@ public:
     void SetDataViewSortColumn( wxDataViewColumn *column ) { m_dataview_sort_column = column; }
     wxDataViewColumn *GetDataViewSortColumn()   { return m_dataview_sort_column; }
 
-    bool IsSorted()                             { return (m_sort_column >= 0); }
+    bool IsSorted() const                       { return m_sort_column >= 0; }
+
+    // Should we be sorted either because we have a configured sort column or
+    // because we have a default sort order?
+    bool ShouldBeSorted() const
+    {
+        return IsSorted() || GetDataViewModel()->HasDefaultCompare();
+    }
+
 
     // accessors
     wxDataViewModel* GetDataViewModel() { return m_wx_model; }
@@ -360,7 +381,7 @@ public:
 
             m_children.Add( id );
 
-            if (m_internal->IsSorted() || m_internal->GetDataViewModel()->HasDefaultCompare())
+            if (m_internal->ShouldBeSorted())
             {
                 gs_internal = m_internal;
                 m_children.Sort( &wxGtkTreeModelChildCmp );
@@ -369,7 +390,7 @@ public:
 
     void InsertNode( wxGtkTreeModelNode* child, unsigned pos )
         {
-            if (m_internal->IsSorted() || m_internal->GetDataViewModel()->HasDefaultCompare())
+            if (m_internal->ShouldBeSorted())
             {
                 AddNode(child);
                 return;
@@ -407,7 +428,7 @@ public:
         {
             m_children.Insert( id, pos );
 
-            if (m_internal->IsSorted() || m_internal->GetDataViewModel()->HasDefaultCompare())
+            if (m_internal->ShouldBeSorted())
             {
                 gs_internal = m_internal;
                 m_children.Sort( &wxGtkTreeModelChildCmp );
@@ -587,6 +608,7 @@ gtk_wx_tree_model_get_type (void)
             sizeof (GtkWxTreeModel),
             0,
             wxgtk_tree_model_init,
+            NULL
         };
 
         static const GInterfaceInfo tree_model_iface_info =
@@ -993,7 +1015,7 @@ wxgtk_tree_model_set_sort_column_id (GtkTreeSortable *sortable,
     if (gs_lastLeftClickHeader)
     {
         wxDataViewCtrl *dv = tree_model->internal->GetOwner();
-        wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_COLUMN_SORTED, dv->GetId() );
+        wxDataViewEvent event( wxEVT_DATAVIEW_COLUMN_SORTED, dv->GetId() );
         event.SetDataViewColumn( gs_lastLeftClickHeader );
         event.SetModel( dv->GetModel() );
         dv->HandleWindowEvent( event );
@@ -1066,8 +1088,8 @@ static GtkCellEditable *gtk_wx_cell_renderer_text_start_editing(
                         GdkEvent                *event,
                         GtkWidget               *widget,
                         const gchar             *path,
-                        GdkRectangle            *background_area,
-                        GdkRectangle            *cell_area,
+                        wxConstGdkRect          *background_area,
+                        wxConstGdkRect          *cell_area,
                         GtkCellRendererState     flags );
 
 
@@ -1093,6 +1115,7 @@ gtk_wx_cell_renderer_text_get_type (void)
             sizeof (GtkWxCellRendererText),
             0,          /* n_preallocs */
             gtk_wx_cell_renderer_text_init,
+            NULL
         };
 
         cell_wx_type = g_type_register_static( GTK_TYPE_CELL_RENDERER_TEXT,
@@ -1130,8 +1153,8 @@ static GtkCellEditable *gtk_wx_cell_renderer_text_start_editing(
                         GdkEvent                *gdk_event,
                         GtkWidget               *widget,
                         const gchar             *path,
-                        GdkRectangle            *background_area,
-                        GdkRectangle            *cell_area,
+                        wxConstGdkRect          *background_area,
+                        wxConstGdkRect          *cell_area,
                         GtkCellRendererState     flags )
 {
     GtkWxCellRendererText *wxgtk_renderer = (GtkWxCellRendererText *) gtk_renderer;
@@ -1142,7 +1165,7 @@ static GtkCellEditable *gtk_wx_cell_renderer_text_start_editing(
         item(column->GetOwner()->GTKPathToItem(wxGtkTreePath(path)));
 
     wxDataViewCtrl *dv = column->GetOwner();
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_START_EDITING, dv->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_START_EDITING, dv->GetId() );
     event.SetDataViewColumn( column );
     event.SetModel( dv->GetModel() );
     event.SetColumn( column->GetModelColumn() );
@@ -1187,34 +1210,40 @@ static void gtk_wx_cell_renderer_class_init(
 static void gtk_wx_cell_renderer_get_size (
                         GtkCellRenderer         *cell,
                         GtkWidget               *widget,
-                        GdkRectangle            *rectangle,
+                        wxConstGdkRect          *rectangle,
                         gint                    *x_offset,
                         gint                    *y_offset,
                         gint                    *width,
                         gint                    *height );
 static void gtk_wx_cell_renderer_render (
                         GtkCellRenderer         *cell,
+#ifdef __WXGTK3__
+                        cairo_t* cr,
+#else
                         GdkWindow               *window,
+#endif
                         GtkWidget               *widget,
-                        GdkRectangle            *background_area,
-                        GdkRectangle            *cell_area,
+                        wxConstGdkRect          *background_area,
+                        wxConstGdkRect          *cell_area,
+#ifndef __WXGTK3__
                         GdkRectangle            *expose_area,
+#endif
                         GtkCellRendererState     flags );
 static gboolean gtk_wx_cell_renderer_activate(
                         GtkCellRenderer         *cell,
                         GdkEvent                *event,
                         GtkWidget               *widget,
                         const gchar             *path,
-                        GdkRectangle            *background_area,
-                        GdkRectangle            *cell_area,
+                        wxConstGdkRect          *background_area,
+                        wxConstGdkRect          *cell_area,
                         GtkCellRendererState     flags );
 static GtkCellEditable *gtk_wx_cell_renderer_start_editing(
                         GtkCellRenderer         *cell,
                         GdkEvent                *event,
                         GtkWidget               *widget,
                         const gchar             *path,
-                        GdkRectangle            *background_area,
-                        GdkRectangle            *cell_area,
+                        wxConstGdkRect          *background_area,
+                        wxConstGdkRect          *cell_area,
                         GtkCellRendererState     flags );
 
 }  // extern "C"
@@ -1237,6 +1266,7 @@ gtk_wx_cell_renderer_get_type (void)
             sizeof (GtkWxCellRenderer),
             0,          /* n_preallocs */
             gtk_wx_cell_renderer_init,
+            NULL
         };
 
         cell_wx_type = g_type_register_static( GTK_TYPE_CELL_RENDERER,
@@ -1275,8 +1305,8 @@ static GtkCellEditable *gtk_wx_cell_renderer_start_editing(
                         GdkEvent                *WXUNUSED(event),
                         GtkWidget               *widget,
                         const gchar             *path,
-                        GdkRectangle            *WXUNUSED(background_area),
-                        GdkRectangle            *cell_area,
+                        wxConstGdkRect          *WXUNUSED(background_area),
+                        wxConstGdkRect          *cell_area,
                         GtkCellRendererState     WXUNUSED(flags) )
 {
     GtkWxCellRenderer *wxrenderer = (GtkWxCellRenderer *) renderer;
@@ -1316,7 +1346,7 @@ static GtkCellEditable *gtk_wx_cell_renderer_start_editing(
 static void
 gtk_wx_cell_renderer_get_size (GtkCellRenderer *renderer,
                                GtkWidget       *WXUNUSED(widget),
-                               GdkRectangle    *cell_area,
+                               wxConstGdkRect  *cell_area,
                                gint            *x_offset,
                                gint            *y_offset,
                                gint            *width,
@@ -1373,20 +1403,30 @@ gtk_wx_cell_renderer_get_size (GtkCellRenderer *renderer,
 
 struct wxDataViewCustomRenderer::GTKRenderParams
 {
+#ifdef __WXGTK3__
+    cairo_t* cr;
+#else
     GdkWindow* window;
     GdkRectangle* expose_area;
+#endif
     GtkWidget* widget;
-    GdkRectangle* background_area;
+    wxConstGdkRect* background_area;
     int flags;
 };
 
 static void
 gtk_wx_cell_renderer_render (GtkCellRenderer      *renderer,
+#ifdef __WXGTK3__
+                             cairo_t* cr,
+#else
                              GdkWindow            *window,
+#endif
                              GtkWidget            *widget,
-                             GdkRectangle         *background_area,
-                             GdkRectangle         *cell_area,
+                             wxConstGdkRect       *background_area,
+                             wxConstGdkRect       *cell_area,
+#ifndef __WXGTK3__
                              GdkRectangle         *expose_area,
+#endif
                              GtkCellRendererState  flags)
 
 {
@@ -1394,8 +1434,12 @@ gtk_wx_cell_renderer_render (GtkCellRenderer      *renderer,
     wxDataViewCustomRenderer *cell = wxrenderer->cell;
 
     wxDataViewCustomRenderer::GTKRenderParams renderParams;
+#ifdef __WXGTK3__
+    renderParams.cr = cr;
+#else
     renderParams.window = window;
     renderParams.expose_area = expose_area;
+#endif
     renderParams.widget = widget;
     renderParams.background_area = background_area;
     renderParams.flags = flags;
@@ -1406,7 +1450,18 @@ gtk_wx_cell_renderer_render (GtkCellRenderer      *renderer,
     gtk_cell_renderer_get_padding(renderer, &xpad, &ypad);
     rect = rect.Deflate(xpad, ypad);
 
-    wxWindowDC* dc = (wxWindowDC*) cell->GetDC();
+    wxDC* dc = cell->GetDC();
+#ifdef __WXGTK3__
+    wxGraphicsContext* context = dc->GetGraphicsContext();
+    void* nativeContext = NULL;
+    if (context)
+        nativeContext = context->GetNativeContext();
+    if (cr != nativeContext)
+    {
+        cairo_reference(cr);
+        dc->SetGraphicsContext(wxGraphicsContext::CreateFromNative(cr));
+    }
+#else
     wxWindowDCImpl *impl = (wxWindowDCImpl *) dc->GetImpl();
 
     // Reinitialize wxWindowDC's GDK window if drawing occurs into a different
@@ -1417,6 +1472,7 @@ gtk_wx_cell_renderer_render (GtkCellRenderer      *renderer,
         impl->m_gdkwindow = window;
         impl->SetUpDC();
     }
+#endif
 
     int state = 0;
     if (flags & GTK_CELL_RENDERER_SELECTED)
@@ -1432,6 +1488,9 @@ gtk_wx_cell_renderer_render (GtkCellRenderer      *renderer,
     cell->WXCallRender( rect, dc, state );
 
     cell->GTKSetRenderParams(NULL);
+#ifdef __WXGTK3__
+    dc->SetGraphicsContext(NULL);
+#endif
 }
 
 static gboolean
@@ -1440,8 +1499,8 @@ gtk_wx_cell_renderer_activate(
                         GdkEvent                *event,
                         GtkWidget               *widget,
                         const gchar             *path,
-                        GdkRectangle            *WXUNUSED(background_area),
-                        GdkRectangle            *cell_area,
+                        wxConstGdkRect          *WXUNUSED(background_area),
+                        wxConstGdkRect          *cell_area,
                         GtkCellRendererState     WXUNUSED(flags) )
 {
     GtkWxCellRenderer *wxrenderer = (GtkWxCellRenderer *) renderer;
@@ -1648,12 +1707,17 @@ bool wxGtkDataViewModelNotifier::ValueChanged( const wxDataViewItem &item, unsig
                     GTK_TREE_MODEL(wxgtk_model), &iter ));
                 GdkRectangle cell_area;
                 gtk_tree_view_get_cell_area( widget, path, gcolumn, &cell_area );
-
+#ifdef __WXGTK3__
+                GtkAdjustment* hadjust = gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(widget));
+#else
                 GtkAdjustment* hadjust = gtk_tree_view_get_hadjustment( widget );
+#endif
                 double d = gtk_adjustment_get_value( hadjust );
                 int xdiff = (int) d;
 
-                int ydiff = gcolumn->button->allocation.height;
+                GtkAllocation a;
+                gtk_widget_get_allocation(GTK_WIDGET(gtk_tree_view_column_get_button(gcolumn)), &a);
+                int ydiff = a.height;
                 // Redraw
                 gtk_widget_queue_draw_area( GTK_WIDGET(widget),
                     cell_area.x - xdiff, ydiff + cell_area.y, cell_area.width, cell_area.height );
@@ -1723,7 +1787,7 @@ wxgtk_cell_editable_editing_done( GtkCellEditable *WXUNUSED(editable),
 {
     wxDataViewColumn *column = wxrenderer->GetOwner();
     wxDataViewCtrl *dv = column->GetOwner();
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_EDITING_DONE, dv->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_EDITING_DONE, dv->GetId() );
     event.SetDataViewColumn( column );
     event.SetModel( dv->GetModel() );
     wxDataViewItem item( s_user_data );
@@ -1740,7 +1804,7 @@ wxgtk_renderer_editing_started( GtkCellRenderer *WXUNUSED(cell), GtkCellEditable
 
     wxDataViewColumn *column = wxrenderer->GetOwner();
     wxDataViewCtrl *dv = column->GetOwner();
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_EDITING_STARTED, dv->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_EDITING_STARTED, dv->GetId() );
     event.SetDataViewColumn( column );
     event.SetModel( dv->GetModel() );
     wxDataViewItem item(dv->GTKPathToItem(wxGtkTreePath(path)));
@@ -1751,7 +1815,7 @@ wxgtk_renderer_editing_started( GtkCellRenderer *WXUNUSED(cell), GtkCellEditable
     {
         s_user_data = item.GetID();
 
-        g_signal_connect (GTK_CELL_EDITABLE (editable), "editing_done",
+        g_signal_connect (editable, "editing_done",
             G_CALLBACK (wxgtk_cell_editable_editing_done),
             (gpointer) wxrenderer );
 
@@ -1782,9 +1846,8 @@ void wxDataViewRenderer::GtkPackIntoColumn(GtkTreeViewColumn *column)
 
 void wxDataViewRenderer::GtkInitHandlers()
 {
-    if (!gtk_check_version(2,6,0))
     {
-        g_signal_connect (GTK_CELL_RENDERER(m_renderer), "editing_started",
+        g_signal_connect (m_renderer, "editing_started",
             G_CALLBACK (wxgtk_renderer_editing_started),
             this);
     }
@@ -1815,7 +1878,7 @@ void wxDataViewRenderer::SetMode( wxDataViewCellMode mode )
     m_mode = mode;
     
     // This value is most often ignored in GtkTreeView
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, gtk_cell_renderer_mode_get_type() );
     g_value_set_enum( &gvalue, gtkMode );
     g_object_set_property( G_OBJECT(m_renderer), "mode", &gvalue );
@@ -1876,7 +1939,7 @@ void wxDataViewRenderer::GtkApplyAlignment(GtkCellRenderer *renderer)
     else if (align & wxALIGN_CENTER_HORIZONTAL)
         xalign = 0.5;
 
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, G_TYPE_FLOAT );
     g_value_set_float( &gvalue, xalign );
     g_object_set_property( G_OBJECT(renderer), "xalign", &gvalue );
@@ -1890,7 +1953,7 @@ void wxDataViewRenderer::GtkApplyAlignment(GtkCellRenderer *renderer)
     else if (align & wxALIGN_CENTER_VERTICAL)
         yalign = 0.5;
 
-    GValue gvalue2 = { 0, };
+    GValue gvalue2 = G_VALUE_INIT;
     g_value_init( &gvalue2, G_TYPE_FLOAT );
     g_value_set_float( &gvalue2, yalign );
     g_object_set_property( G_OBJECT(renderer), "yalign", &gvalue2 );
@@ -1910,37 +1973,26 @@ int wxDataViewRenderer::GetAlignment() const
 
 void wxDataViewRenderer::EnableEllipsize(wxEllipsizeMode mode)
 {
-#ifdef __WXGTK26__
-    if ( gtk_check_version(2, 6, 0) != NULL )
-        return;
-
     GtkCellRendererText * const rend = GtkGetTextRenderer();
     if ( !rend )
         return;
 
     // we use the same values in wxEllipsizeMode as PangoEllipsizeMode so we
     // can just cast between them
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, PANGO_TYPE_ELLIPSIZE_MODE );
     g_value_set_enum( &gvalue, static_cast<PangoEllipsizeMode>(mode) );
     g_object_set_property( G_OBJECT(rend), "ellipsize", &gvalue );
     g_value_unset( &gvalue );
-#else // GTK < 2.6
-    wxUnusedVar(mode);
-#endif // GTK 2.6/before
 }
 
 wxEllipsizeMode wxDataViewRenderer::GetEllipsizeMode() const
 {
-#ifdef __WXGTK26__
-    if ( gtk_check_version(2, 6, 0) != NULL )
-        return wxELLIPSIZE_NONE;
-
     GtkCellRendererText * const rend = GtkGetTextRenderer();
     if ( !rend )
         return wxELLIPSIZE_NONE;
 
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, PANGO_TYPE_ELLIPSIZE_MODE );
     g_object_get_property( G_OBJECT(rend), "ellipsize", &gvalue );
     wxEllipsizeMode
@@ -1948,9 +2000,6 @@ wxEllipsizeMode wxDataViewRenderer::GetEllipsizeMode() const
     g_value_unset( &gvalue );
 
     return mode;
-#else // GTK < 2.6
-    return wxELLIPSIZE_NONE;
-#endif // GTK 2.6/before
 }
 
 void
@@ -2006,7 +2055,7 @@ bool GtkApplyAttr(GtkCellRendererText *renderer, const wxDataViewItemAttr& attr)
     {
         const GdkColor * const gcol = attr.GetColour().GetColor();
 
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, GDK_TYPE_COLOR );
         g_value_set_boxed( &gvalue, gcol );
         g_object_set_property( G_OBJECT(renderer), "foreground_gdk", &gvalue );
@@ -2016,7 +2065,7 @@ bool GtkApplyAttr(GtkCellRendererText *renderer, const wxDataViewItemAttr& attr)
     }
     else
     {
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, G_TYPE_BOOLEAN );
         g_value_set_boolean( &gvalue, FALSE );
         g_object_set_property( G_OBJECT(renderer), "foreground-set", &gvalue );
@@ -2025,7 +2074,7 @@ bool GtkApplyAttr(GtkCellRendererText *renderer, const wxDataViewItemAttr& attr)
 
     if (attr.GetItalic())
     {
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, PANGO_TYPE_STYLE );
         g_value_set_enum( &gvalue, PANGO_STYLE_ITALIC );
         g_object_set_property( G_OBJECT(renderer), "style", &gvalue );
@@ -2035,7 +2084,7 @@ bool GtkApplyAttr(GtkCellRendererText *renderer, const wxDataViewItemAttr& attr)
     }
     else
     {
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, G_TYPE_BOOLEAN );
         g_value_set_boolean( &gvalue, FALSE );
         g_object_set_property( G_OBJECT(renderer), "style-set", &gvalue );
@@ -2045,7 +2094,7 @@ bool GtkApplyAttr(GtkCellRendererText *renderer, const wxDataViewItemAttr& attr)
 
     if (attr.GetBold())
     {
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, PANGO_TYPE_WEIGHT );
         g_value_set_enum( &gvalue, PANGO_WEIGHT_BOLD );
         g_object_set_property( G_OBJECT(renderer), "weight", &gvalue );
@@ -2055,7 +2104,7 @@ bool GtkApplyAttr(GtkCellRendererText *renderer, const wxDataViewItemAttr& attr)
     }
     else
     {
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, G_TYPE_BOOLEAN );
         g_value_set_boolean( &gvalue, FALSE );
         g_object_set_property( G_OBJECT(renderer), "weight-set", &gvalue );
@@ -2068,7 +2117,7 @@ bool GtkApplyAttr(GtkCellRendererText *renderer, const wxDataViewItemAttr& attr)
         wxColour colour = attr.GetBackgroundColour();
         const GdkColor * const gcol = colour.GetColor();
 
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, GDK_TYPE_COLOR );
         g_value_set_boxed( &gvalue, gcol );
         g_object_set_property( G_OBJECT(renderer), "cell-background_gdk", &gvalue );
@@ -2076,7 +2125,7 @@ bool GtkApplyAttr(GtkCellRendererText *renderer, const wxDataViewItemAttr& attr)
     }
     else
     {
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, G_TYPE_BOOLEAN );
         g_value_set_boolean( &gvalue, FALSE );
         g_object_set_property( G_OBJECT(renderer), "cell-background-set", &gvalue );
@@ -2101,7 +2150,7 @@ wxDataViewTextRenderer::wxDataViewTextRenderer( const wxString &varianttype, wxD
 
     if (mode & wxDATAVIEW_CELL_EDITABLE)
     {
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, G_TYPE_BOOLEAN );
         g_value_set_boolean( &gvalue, true );
         g_object_set_property( G_OBJECT(m_renderer), "editable", &gvalue );
@@ -2118,7 +2167,7 @@ wxDataViewTextRenderer::wxDataViewTextRenderer( const wxString &varianttype, wxD
 
 bool wxDataViewTextRenderer::SetTextValue(const wxString& str)
 {
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, G_TYPE_STRING );
     g_value_set_string( &gvalue, wxGTK_CONV_FONT( str, GetOwner()->GetOwner()->GetFont() ) );
     g_object_set_property( G_OBJECT(m_renderer), "text", &gvalue );
@@ -2129,7 +2178,7 @@ bool wxDataViewTextRenderer::SetTextValue(const wxString& str)
 
 bool wxDataViewTextRenderer::GetTextValue(wxString& str) const
 {
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, G_TYPE_STRING );
     g_object_get_property( G_OBJECT(m_renderer), "text", &gvalue );
     str = wxGTK_CONV_BACK_FONT( g_value_get_string( &gvalue ), const_cast<wxDataViewTextRenderer*>(this)->GetOwner()->GetOwner()->GetFont() );
@@ -2142,8 +2191,10 @@ void wxDataViewTextRenderer::SetAlignment( int align )
 {
     wxDataViewRenderer::SetAlignment(align);
 
+#ifndef __WXGTK3__
     if (gtk_check_version(2,10,0))
         return;
+#endif
 
     // horizontal alignment:
     PangoAlignment pangoAlign = PANGO_ALIGN_LEFT;
@@ -2152,7 +2203,7 @@ void wxDataViewTextRenderer::SetAlignment( int align )
     else if (align & wxALIGN_CENTER_HORIZONTAL)
         pangoAlign = PANGO_ALIGN_CENTER;
 
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, gtk_cell_renderer_mode_get_type() );
     g_value_set_enum( &gvalue, pangoAlign );
     g_object_set_property( G_OBJECT(m_renderer), "alignment", &gvalue );
@@ -2179,7 +2230,7 @@ namespace
 // set "pixbuf" property on the given renderer
 void SetPixbufProp(GtkCellRenderer *renderer, GdkPixbuf *pixbuf)
 {
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, G_TYPE_OBJECT );
     g_value_set_object( &gvalue, pixbuf );
     g_object_set_property( G_OBJECT(renderer), "pixbuf", &gvalue );
@@ -2246,15 +2297,13 @@ static void wxGtkToggleRendererToggledCallback( GtkCellRendererToggle *renderer,
     wxDataViewToggleRenderer *cell = (wxDataViewToggleRenderer*) user_data;
 
     // get old value
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, G_TYPE_BOOLEAN );
     g_object_get_property( G_OBJECT(renderer), "active", &gvalue );
-    bool tmp = g_value_get_boolean( &gvalue );
-    g_value_unset( &gvalue );
     // invert it
-    tmp = !tmp;
+    wxVariant value = !g_value_get_boolean( &gvalue );
+    g_value_unset( &gvalue );
 
-    wxVariant value = tmp;
     if (!cell->Validate( value ))
         return;
 
@@ -2283,7 +2332,7 @@ wxDataViewToggleRenderer::wxDataViewToggleRenderer( const wxString &varianttype,
     }
     else
     {
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, G_TYPE_BOOLEAN );
         g_value_set_boolean( &gvalue, false );
         g_object_set_property( G_OBJECT(m_renderer), "activatable", &gvalue );
@@ -2298,7 +2347,7 @@ bool wxDataViewToggleRenderer::SetValue( const wxVariant &value )
 {
     bool tmp = value;
 
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, G_TYPE_BOOLEAN );
     g_value_set_boolean( &gvalue, tmp );
     g_object_set_property( G_OBJECT(m_renderer), "active", &gvalue );
@@ -2309,13 +2358,11 @@ bool wxDataViewToggleRenderer::SetValue( const wxVariant &value )
 
 bool wxDataViewToggleRenderer::GetValue( wxVariant &value ) const
 {
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, G_TYPE_BOOLEAN );
     g_object_get_property( G_OBJECT(m_renderer), "active", &gvalue );
-    bool tmp = g_value_get_boolean( &gvalue );
+    value = g_value_get_boolean( &gvalue ) != 0;
     g_value_unset( &gvalue );
-
-    value = tmp;
 
     return true;
 }
@@ -2324,6 +2371,7 @@ bool wxDataViewToggleRenderer::GetValue( wxVariant &value ) const
 // wxDataViewCustomRenderer
 // ---------------------------------------------------------
 
+#ifndef __WXGTK3__
 class wxDataViewCtrlDCImpl: public wxWindowDCImpl
 {
 public:
@@ -2354,7 +2402,7 @@ public:
         wxWindowDC( new wxDataViewCtrlDCImpl( this, window ) )
         { }
 };
-
+#endif
 
 // ---------------------------------------------------------
 // wxDataViewCustomRenderer
@@ -2406,7 +2454,7 @@ void wxDataViewCustomRenderer::RenderText( const wxString &text,
 
     GtkCellRendererText * const textRenderer = GtkGetTextRenderer();
 
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, G_TYPE_STRING );
     g_value_set_string( &gvalue, wxGTK_CONV_FONT( text, GetOwner()->GetOwner()->GetFont() ) );
     g_object_set_property( G_OBJECT(textRenderer), "text", &gvalue );
@@ -2420,11 +2468,17 @@ void wxDataViewCustomRenderer::RenderText( const wxString &text,
     cell_area.width -= xoffset;
 
     gtk_cell_renderer_render( GTK_CELL_RENDERER(textRenderer),
+#ifdef __WXGTK3__
+        m_renderParams->cr,
+#else
         m_renderParams->window,
+#endif
         m_renderParams->widget,
         m_renderParams->background_area,
         &cell_area,
+#ifndef __WXGTK3__
         m_renderParams->expose_area,
+#endif
         GtkCellRendererState(m_renderParams->flags));
 }
 
@@ -2456,11 +2510,18 @@ wxDC *wxDataViewCustomRenderer::GetDC()
 {
     if (m_dc == NULL)
     {
+#ifdef __WXGTK3__
+        wxASSERT(m_renderParams);
+        cairo_t* cr = m_renderParams->cr;
+        wxASSERT(cr && cairo_status(cr) == 0);
+        m_dc = new wxGTKCairoDC(cr);
+#else
         if (GetOwner() == NULL)
             return NULL;
         if (GetOwner()->GetOwner() == NULL)
             return NULL;
         m_dc = new wxDataViewCtrlDC( GetOwner()->GetOwner() );
+#endif
     }
 
     return m_dc;
@@ -2478,32 +2539,23 @@ wxDataViewProgressRenderer::wxDataViewProgressRenderer( const wxString &label,
 {
     m_label = label;
     m_value = 0;
+    m_renderer = (GtkCellRenderer*) gtk_cell_renderer_progress_new();
 
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
-    {
-        m_renderer = (GtkCellRenderer*) gtk_cell_renderer_progress_new();
-
-        SetMode(mode);
-        SetAlignment(align);
+    SetMode(mode);
+    SetAlignment(align);
 
 #if !wxUSE_UNICODE
-        // We can't initialize the renderer just yet because we don't have the
-        // pointer to the column that uses this renderer yet and so attempt to
-        // dereference GetOwner() to get the font that is used as a source of
-        // encoding in multibyte-to-Unicode conversion in GTKSetLabel() in
-        // non-Unicode builds would crash. So simply remember to do it later.
-        if ( !m_label.empty() )
-            m_needsToSetLabel = true;
-        else
-#endif // !wxUSE_UNICODE
-            GTKSetLabel();
-    }
+    // We can't initialize the renderer just yet because we don't have the
+    // pointer to the column that uses this renderer yet and so attempt to
+    // dereference GetOwner() to get the font that is used as a source of
+    // encoding in multibyte-to-Unicode conversion in GTKSetLabel() in
+    // non-Unicode builds would crash. So simply remember to do it later.
+    if ( !m_label.empty() )
+        m_needsToSetLabel = true;
     else
-#endif
+#endif // !wxUSE_UNICODE
     {
-        // Use custom cell code
-        wxDataViewCustomRenderer::Init(mode, align);
+        GTKSetLabel();
     }
 }
 
@@ -2513,7 +2565,7 @@ wxDataViewProgressRenderer::~wxDataViewProgressRenderer()
 
 void wxDataViewProgressRenderer::GTKSetLabel()
 {
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, G_TYPE_STRING );
 
     // Take care to not use GetOwner() here if the label is empty, we can be
@@ -2535,29 +2587,17 @@ void wxDataViewProgressRenderer::GTKSetLabel()
 
 bool wxDataViewProgressRenderer::SetValue( const wxVariant &value )
 {
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
-    {
 #if !wxUSE_UNICODE
-        if ( m_needsToSetLabel )
-            GTKSetLabel();
+    if ( m_needsToSetLabel )
+        GTKSetLabel();
 #endif // !wxUSE_UNICODE
 
-        gint tmp = (long) value;
-        GValue gvalue = { 0, };
-        g_value_init( &gvalue, G_TYPE_INT );
-        g_value_set_int( &gvalue, tmp );
-        g_object_set_property( G_OBJECT(m_renderer), "value", &gvalue );
-        g_value_unset( &gvalue );
-    }
-    else
-#endif
-    {
-        m_value = (long) value;
-
-        if (m_value < 0) m_value = 0;
-        if (m_value > 100) m_value = 100;
-    }
+    gint tmp = (long) value;
+    GValue gvalue = G_VALUE_INIT;
+    g_value_init( &gvalue, G_TYPE_INT );
+    g_value_set_int( &gvalue, tmp );
+    g_object_set_property( G_OBJECT(m_renderer), "value", &gvalue );
+    g_value_unset( &gvalue );
 
     return true;
 }
@@ -2596,42 +2636,30 @@ wxDataViewChoiceRenderer::wxDataViewChoiceRenderer( const wxArrayString &choices
                             wxDataViewCellMode mode, int alignment  ) :
     wxDataViewCustomRenderer( "string", mode, alignment, true )
 {
-   m_choices = choices;
-
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
+    m_choices = choices;
+    m_renderer = (GtkCellRenderer*) gtk_cell_renderer_combo_new();
+    GtkListStore *store = gtk_list_store_new( 1, G_TYPE_STRING );
+    for (size_t n = 0; n < m_choices.GetCount(); n++)
     {
-        m_renderer = (GtkCellRenderer*) gtk_cell_renderer_combo_new();
-
-        GtkListStore *store = gtk_list_store_new( 1, G_TYPE_STRING );
-        for (size_t n = 0; n < m_choices.GetCount(); n++)
-        {
-            gtk_list_store_insert_with_values(
-                store, NULL, n, 0,
-                static_cast<const char *>(m_choices[n].utf8_str()), -1 );
-        }
-
-        g_object_set (m_renderer,
-                "model", store,
-                "text-column", 0,
-                "has-entry", FALSE,
-                NULL);
-
-        bool editable = (mode & wxDATAVIEW_CELL_EDITABLE);
-        g_object_set (m_renderer, "editable", editable, NULL);
-
-        SetAlignment(alignment);
-
-        g_signal_connect_after( m_renderer, "edited", G_CALLBACK(wxGtkTextRendererEditedCallback), this );
-
-        GtkInitHandlers();
+        gtk_list_store_insert_with_values(
+            store, NULL, n, 0,
+            static_cast<const char *>(m_choices[n].utf8_str()), -1 );
     }
-    else
-#endif
-    {
-        // Use custom cell code
-        wxDataViewCustomRenderer::Init(mode, alignment);
-    }
+
+    g_object_set (m_renderer,
+            "model", store,
+            "text-column", 0,
+            "has-entry", FALSE,
+            NULL);
+
+    bool editable = (mode & wxDATAVIEW_CELL_EDITABLE) != 0;
+    g_object_set (m_renderer, "editable", editable, NULL);
+
+    SetAlignment(alignment);
+
+    g_signal_connect_after( m_renderer, "edited", G_CALLBACK(wxGtkTextRendererEditedCallback), this );
+
+    GtkInitHandlers();
 }
 
 bool wxDataViewChoiceRenderer::Render( wxRect rect, wxDC *dc, int state )
@@ -2647,44 +2675,26 @@ wxSize wxDataViewChoiceRenderer::GetSize() const
 
 bool wxDataViewChoiceRenderer::SetValue( const wxVariant &value )
 {
-
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
-    {
-        GValue gvalue = { 0, };
-        g_value_init( &gvalue, G_TYPE_STRING );
-        g_value_set_string(&gvalue,
-                           wxGTK_CONV_FONT(value.GetString(),
-                                           GetOwner()->GetOwner()->GetFont()));
-        g_object_set_property( G_OBJECT(m_renderer), "text", &gvalue );
-        g_value_unset( &gvalue );
-    }
-    else
-#endif
-        m_data = value.GetString();
+    GValue gvalue = G_VALUE_INIT;
+    g_value_init( &gvalue, G_TYPE_STRING );
+    g_value_set_string(&gvalue,
+                       wxGTK_CONV_FONT(value.GetString(),
+                                       GetOwner()->GetOwner()->GetFont()));
+    g_object_set_property( G_OBJECT(m_renderer), "text", &gvalue );
+    g_value_unset( &gvalue );
 
     return true;
 }
 
 bool wxDataViewChoiceRenderer::GetValue( wxVariant &value ) const
 {
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
-    {
-        GValue gvalue = { 0, };
-        g_value_init( &gvalue, G_TYPE_STRING );
-        g_object_get_property( G_OBJECT(m_renderer), "text", &gvalue );
-        wxString temp = wxGTK_CONV_BACK_FONT(g_value_get_string(&gvalue),
-                                             GetOwner()->GetOwner()->GetFont());
-        g_value_unset( &gvalue );
-        value = temp;
-
-        //wxPrintf( "temp %s\n", temp );
-        // TODO: remove this code
-    }
-    else
-#endif
-        value = m_data;
+    GValue gvalue = G_VALUE_INIT;
+    g_value_init( &gvalue, G_TYPE_STRING );
+    g_object_get_property( G_OBJECT(m_renderer), "text", &gvalue );
+    wxString temp = wxGTK_CONV_BACK_FONT(g_value_get_string(&gvalue),
+                                         GetOwner()->GetOwner()->GetFont());
+    g_value_unset( &gvalue );
+    value = temp;
 
     return true;
 }
@@ -2693,8 +2703,10 @@ void wxDataViewChoiceRenderer::SetAlignment( int align )
 {
     wxDataViewCustomRenderer::SetAlignment(align);
 
+#ifndef __WXGTK3__
     if (gtk_check_version(2,10,0))
         return;
+#endif
 
     // horizontal alignment:
     PangoAlignment pangoAlign = PANGO_ALIGN_LEFT;
@@ -2703,7 +2715,7 @@ void wxDataViewChoiceRenderer::SetAlignment( int align )
     else if (align & wxALIGN_CENTER_HORIZONTAL)
         pangoAlign = PANGO_ALIGN_CENTER;
 
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, gtk_cell_renderer_mode_get_type() );
     g_value_set_enum( &gvalue, pangoAlign );
     g_object_set_property( G_OBJECT(m_renderer), "alignment", &gvalue );
@@ -2784,7 +2796,9 @@ bool wxDataViewIconTextRenderer::SetValue( const wxVariant &value )
     m_value << value;
 
     SetTextValue(m_value.GetText());
-    SetPixbufProp(m_rendererIcon, m_value.GetIcon().GetPixbuf());
+
+    const wxIcon& icon = m_value.GetIcon();
+    SetPixbufProp(m_rendererIcon, icon.IsOk() ? icon.GetPixbuf() : NULL);
 
     return true;
 }
@@ -2832,7 +2846,7 @@ gtk_dataview_header_button_press_callback( GtkWidget *WXUNUSED(widget),
         gs_lastLeftClickHeader = column;
 
         wxDataViewCtrl *dv = column->GetOwner();
-        wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_COLUMN_HEADER_CLICK, dv->GetId() );
+        wxDataViewEvent event( wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, dv->GetId() );
         event.SetDataViewColumn( column );
         event.SetModel( dv->GetModel() );
         if (dv->HandleWindowEvent( event ))
@@ -2842,7 +2856,7 @@ gtk_dataview_header_button_press_callback( GtkWidget *WXUNUSED(widget),
     if (gdk_event->button == 3)
     {
         wxDataViewCtrl *dv = column->GetOwner();
-        wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_COLUMN_HEADER_RIGHT_CLICK, dv->GetId() );
+        wxDataViewEvent event( wxEVT_DATAVIEW_COLUMN_HEADER_RIGHT_CLICK, dv->GetId() );
         event.SetDataViewColumn( column );
         event.SetModel( dv->GetModel() );
         if (dv->HandleWindowEvent( event ))
@@ -2883,7 +2897,7 @@ static void wxGtkTreeCellDataFunc( GtkTreeViewColumn *WXUNUSED(column),
             visible = true;
         }
 
-        GValue gvalue = { 0, };
+        GValue gvalue = G_VALUE_INIT;
         g_value_init( &gvalue, G_TYPE_BOOLEAN );
         g_value_set_boolean( &gvalue, visible );
         g_object_set_property( G_OBJECT(renderer), "visible", &gvalue );
@@ -2909,7 +2923,7 @@ static void wxGtkTreeCellDataFunc( GtkTreeViewColumn *WXUNUSED(column),
     bool enabled = wx_model->IsEnabled( item, cell->GetOwner()->GetModelColumn() );
 
     // a) this sets the appearance to disabled grey    
-    GValue gvalue = { 0, };
+    GValue gvalue = G_VALUE_INIT;
     g_value_init( &gvalue, G_TYPE_BOOLEAN );
     g_value_set_boolean( &gvalue, enabled );
     g_object_set_property( G_OBJECT(renderer), "sensitive", &gvalue );
@@ -2978,7 +2992,7 @@ void wxDataViewColumn::Init(wxAlignment align, int flags, int width)
     SetWidth( width );
 
     // Create container for icon and label
-    GtkWidget *box = gtk_hbox_new( FALSE, 1 );
+    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
     gtk_widget_show( box );
     // gtk_container_set_border_width((GtkContainer*)box, 2);
     m_image = gtk_image_new();
@@ -3004,9 +3018,10 @@ void wxDataViewColumn::OnInternalIdle()
     if (gtk_widget_get_realized(GetOwner()->m_treeview))
     {
         GtkTreeViewColumn *column = GTK_TREE_VIEW_COLUMN(m_column);
-        if (column->button)
+        GtkWidget* button = gtk_tree_view_column_get_button(column);
+        if (button)
         {
-            g_signal_connect(column->button, "button_press_event",
+            g_signal_connect(button, "button_press_event",
                       G_CALLBACK (gtk_dataview_header_button_press_callback), this);
 
             // otherwise the event will be blocked by GTK+
@@ -3053,20 +3068,7 @@ void wxDataViewColumn::SetBitmap( const wxBitmap &bitmap )
     {
         GtkImage *gtk_image = GTK_IMAGE(m_image);
 
-        GdkBitmap *mask = NULL;
-        if (bitmap.GetMask())
-            mask = bitmap.GetMask()->GetBitmap();
-
-        if (bitmap.HasPixbuf())
-        {
-            gtk_image_set_from_pixbuf(GTK_IMAGE(gtk_image),
-                                      bitmap.GetPixbuf());
-        }
-        else
-        {
-            gtk_image_set_from_pixmap(GTK_IMAGE(gtk_image),
-                                      bitmap.GetPixmap(), mask);
-        }
+        gtk_image_set_from_pixbuf(GTK_IMAGE(gtk_image), bitmap.GetPixbuf());
         gtk_widget_show( m_image );
     }
     else
@@ -3133,19 +3135,19 @@ void wxDataViewColumn::SetSortable( bool sortable )
 bool wxDataViewColumn::IsSortable() const
 {
     GtkTreeViewColumn *column = GTK_TREE_VIEW_COLUMN(m_column);
-    return gtk_tree_view_column_get_clickable( column );
+    return gtk_tree_view_column_get_clickable( column ) != 0;
 }
 
 bool wxDataViewColumn::IsSortKey() const
 {
     GtkTreeViewColumn *column = GTK_TREE_VIEW_COLUMN(m_column);
-    return gtk_tree_view_column_get_sort_indicator( column );
+    return gtk_tree_view_column_get_sort_indicator( column ) != 0;
 }
 
 bool wxDataViewColumn::IsResizeable() const
 {
     GtkTreeViewColumn *column = GTK_TREE_VIEW_COLUMN(m_column);
-    return gtk_tree_view_column_get_resizable( column );
+    return gtk_tree_view_column_get_resizable( column ) != 0;
 }
 
 bool wxDataViewColumn::IsHidden() const
@@ -3215,7 +3217,7 @@ void wxDataViewColumn::SetReorderable( bool reorderable )
 
 bool wxDataViewColumn::IsReorderable() const
 {
-    return gtk_tree_view_column_get_reorderable( GTK_TREE_VIEW_COLUMN(m_column) );
+    return gtk_tree_view_column_get_reorderable( GTK_TREE_VIEW_COLUMN(m_column) ) != 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -3369,7 +3371,6 @@ wxDataViewCtrlInternal::wxDataViewCtrlInternal( wxDataViewCtrl *owner, wxDataVie
     m_owner = owner;
     m_wx_model = wx_model;
 
-    m_gtk_model = NULL;
     m_root = NULL;
     m_sort_order = GTK_SORT_ASCENDING;
     m_sort_column = -1;
@@ -3495,7 +3496,7 @@ gboolean wxDataViewCtrlInternal::row_draggable( GtkTreeDragSource *WXUNUSED(drag
     if ( !item )
         return FALSE;
 
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_BEGIN_DRAG, m_owner->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_BEGIN_DRAG, m_owner->GetId() );
     event.SetEventObject( m_owner );
     event.SetItem( item );
     event.SetModel( m_wx_model );
@@ -3564,7 +3565,7 @@ wxDataViewCtrlInternal::drag_data_received(GtkTreeDragDest *WXUNUSED(drag_dest),
     if ( !item )
         return FALSE;
 
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_DROP, m_owner->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_DROP, m_owner->GetId() );
     event.SetEventObject( m_owner );
     event.SetItem( item );
     event.SetModel( m_wx_model );
@@ -3589,11 +3590,12 @@ wxDataViewCtrlInternal::row_drop_possible(GtkTreeDragDest *WXUNUSED(drag_dest),
     if ( !item )
         return FALSE;
 
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_DROP_POSSIBLE, m_owner->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, m_owner->GetId() );
     event.SetEventObject( m_owner );
     event.SetItem( item );
     event.SetModel( m_wx_model );
     event.SetDataFormat(gtk_selection_data_get_target(selection_data));
+    event.SetDataSize(gtk_selection_data_get_length(selection_data));
     if (!m_owner->HandleWindowEvent( event ))
         return FALSE;
 
@@ -3711,7 +3713,7 @@ bool wxDataViewCtrlInternal::ItemDeleted( const wxDataViewItem &parent, const wx
 
 bool wxDataViewCtrlInternal::ItemChanged( const wxDataViewItem &item )
 {
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_VALUE_CHANGED, m_owner->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, m_owner->GetId() );
     event.SetEventObject( m_owner );
     event.SetModel( m_owner->GetModel() );
     event.SetItem( item );
@@ -3722,7 +3724,7 @@ bool wxDataViewCtrlInternal::ItemChanged( const wxDataViewItem &item )
 
 bool wxDataViewCtrlInternal::ValueChanged( const wxDataViewItem &item, unsigned int view_column )
 {
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_VALUE_CHANGED, m_owner->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, m_owner->GetId() );
     event.SetEventObject( m_owner );
     event.SetModel( m_owner->GetModel() );
     event.SetColumn( view_column );
@@ -4260,7 +4262,8 @@ wxdataview_selection_changed_callback( GtkTreeSelection* WXUNUSED(selection), wx
     if (!gtk_widget_get_realized(dv->m_widget))
         return;
 
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, dv->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_SELECTION_CHANGED, dv->GetId() );
+    event.SetEventObject( dv );
     event.SetItem( dv->GetSelection() );
     event.SetModel( dv->GetModel() );
     dv->HandleWindowEvent( event );
@@ -4270,7 +4273,7 @@ static void
 wxdataview_row_activated_callback( GtkTreeView* WXUNUSED(treeview), GtkTreePath *path,
                                    GtkTreeViewColumn *WXUNUSED(column), wxDataViewCtrl *dv )
 {
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, dv->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_ACTIVATED, dv->GetId() );
 
     wxDataViewItem item(dv->GTKPathToItem(path));
     event.SetItem( item );
@@ -4282,7 +4285,7 @@ static gboolean
 wxdataview_test_expand_row_callback( GtkTreeView* WXUNUSED(treeview), GtkTreeIter* iter,
                                      GtkTreePath *WXUNUSED(path), wxDataViewCtrl *dv )
 {
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDING, dv->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_EXPANDING, dv->GetId() );
 
     wxDataViewItem item( (void*) iter->user_data );;
     event.SetItem( item );
@@ -4296,7 +4299,7 @@ static void
 wxdataview_row_expanded_callback( GtkTreeView* WXUNUSED(treeview), GtkTreeIter* iter,
                                   GtkTreePath *WXUNUSED(path), wxDataViewCtrl *dv )
 {
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDED, dv->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_EXPANDED, dv->GetId() );
 
     wxDataViewItem item( (void*) iter->user_data );;
     event.SetItem( item );
@@ -4308,7 +4311,7 @@ static gboolean
 wxdataview_test_collapse_row_callback( GtkTreeView* WXUNUSED(treeview), GtkTreeIter* iter,
                                        GtkTreePath *WXUNUSED(path), wxDataViewCtrl *dv )
 {
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_COLLAPSING, dv->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_COLLAPSING, dv->GetId() );
 
     wxDataViewItem item( (void*) iter->user_data );;
     event.SetItem( item );
@@ -4322,7 +4325,7 @@ static void
 wxdataview_row_collapsed_callback( GtkTreeView* WXUNUSED(treeview), GtkTreeIter* iter,
                                    GtkTreePath *WXUNUSED(path), wxDataViewCtrl *dv )
 {
-    wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_COLLAPSED, dv->GetId() );
+    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_COLLAPSED, dv->GetId() );
 
     wxDataViewItem item( (void*) iter->user_data );;
     event.SetItem( item );
@@ -4356,7 +4359,7 @@ void gtk_dataviewctrl_size_callback( GtkWidget *WXUNUSED(widget),
         wxWindow *child = node->GetData();
 
         GtkRequisition req;
-        gtk_widget_size_request( child->m_widget, &req );
+        gtk_widget_get_preferred_size(child->m_widget, NULL, &req);
 
         GtkAllocation alloc;
         alloc.x = child->m_x;
@@ -4379,14 +4382,15 @@ gtk_dataview_motion_notify_callback( GtkWidget *WXUNUSED(widget),
                                      GdkEventMotion *gdk_event,
                                      wxDataViewCtrl *dv )
 {
+    int x = gdk_event->x;
+    int y = gdk_event->y;
     if (gdk_event->is_hint)
     {
-        int x = 0;
-        int y = 0;
-        GdkModifierType state;
-        gdk_window_get_pointer(gdk_event->window, &x, &y, &state);
-        gdk_event->x = x;
-        gdk_event->y = y;
+#ifdef __WXGTK3__
+        gdk_window_get_device_position(gdk_event->window, gdk_event->device, &x, &y, NULL);
+#else
+        gdk_window_get_pointer(gdk_event->window, &x, &y, NULL);
+#endif
     }
 
     wxGtkTreePath path;
@@ -4395,7 +4399,7 @@ gtk_dataview_motion_notify_callback( GtkWidget *WXUNUSED(widget),
     gint cell_y = 0;
     if (gtk_tree_view_get_path_at_pos(
         GTK_TREE_VIEW(dv->GtkGetTreeView()),
-        (int) gdk_event->x, (int) gdk_event->y,
+        x, y,
         path.ByRef(),
         &column,
         &cell_x,
@@ -4437,7 +4441,17 @@ gtk_dataview_button_press_callback( GtkWidget *WXUNUSED(widget),
             &cell_y
         );
 
-        wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU, dv->GetId() );
+        // If the right click is on an item that isn't selected, select it, as is
+        // commonly done. Do not do it if the item under mouse is already selected,
+        // because it could be a part of multi-item selection.
+        GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(dv->GtkGetTreeView()));
+        if ( !gtk_tree_selection_path_is_selected(selection, path) )
+        {
+            gtk_tree_selection_unselect_all(selection);
+            gtk_tree_selection_select_path(selection, path);
+        }
+
+        wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, dv->GetId() );
         if (path)
             event.SetItem(dv->GTKPathToItem(path));
         event.SetModel( dv->GetModel() );
@@ -4465,6 +4479,11 @@ wxDataViewCtrl::~wxDataViewCtrl()
             // This won't do anything if we're not editing it
             wxcol->GetRenderer()->CancelEditing();
         }
+
+        GTKDisconnect(m_treeview);
+        GtkTreeSelection* selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(m_treeview));
+        if (selection)
+            GTKDisconnect(selection);
     }
 
     m_cols.Clear();
@@ -4474,6 +4493,7 @@ wxDataViewCtrl::~wxDataViewCtrl()
 
 void wxDataViewCtrl::Init()
 {
+    m_treeview = NULL;
     m_internal = NULL;
 
     m_cols.DeleteContents( true );
@@ -4509,13 +4529,8 @@ bool wxDataViewCtrl::Create(wxWindow *parent,
     g_signal_connect (m_treeview, "size_allocate",
                      G_CALLBACK (gtk_dataviewctrl_size_callback), this);
 
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
-    {
-        bool fixed = (style & wxDV_VARIABLE_LINE_HEIGHT) == 0;
-        gtk_tree_view_set_fixed_height_mode( GTK_TREE_VIEW(m_treeview), fixed );
-    }
-#endif
+    bool fixed = (style & wxDV_VARIABLE_LINE_HEIGHT) == 0;
+    gtk_tree_view_set_fixed_height_mode( GTK_TREE_VIEW(m_treeview), fixed );
 
     if (style & wxDV_MULTIPLE)
     {
@@ -4526,7 +4541,9 @@ bool wxDataViewCtrl::Create(wxWindow *parent,
     gtk_tree_view_set_headers_visible( GTK_TREE_VIEW(m_treeview), (style & wxDV_NO_HEADER) == 0 );
 
 #ifdef __WXGTK210__
+#ifndef __WXGTK3__
     if (!gtk_check_version(2,10,0))
+#endif
     {
         GtkTreeViewGridLines grid = GTK_TREE_VIEW_GRID_LINES_NONE;
 
@@ -4591,6 +4608,9 @@ void wxDataViewCtrl::OnInternalIdle()
 {
     wxWindow::OnInternalIdle();
 
+    if ( !m_internal )
+        return;
+
     m_internal->OnInternalIdle();
 
     unsigned int cols = GetColumnCount();
@@ -4619,26 +4639,24 @@ bool wxDataViewCtrl::AssociateModel( wxDataViewModel *model )
     if (!wxDataViewCtrlBase::AssociateModel( model ))
         return false;
 
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
-    {
-        bool fixed = (((GetWindowStyle() & wxDV_VARIABLE_LINE_HEIGHT) == 0) || (model->IsVirtualListModel()));
-        gtk_tree_view_set_fixed_height_mode( GTK_TREE_VIEW(m_treeview), fixed );
-    }
-#endif
+    bool fixed = (((GetWindowStyle() & wxDV_VARIABLE_LINE_HEIGHT) == 0) || (model->IsVirtualListModel()));
+    gtk_tree_view_set_fixed_height_mode( GTK_TREE_VIEW(m_treeview), fixed );
 
-    m_internal = new wxDataViewCtrlInternal( this, model );
+    if ( model )
+        m_internal = new wxDataViewCtrlInternal( this, model );
 
     return true;
 }
 
 bool wxDataViewCtrl::EnableDragSource( const wxDataFormat &format )
 {
+    wxCHECK_MSG( m_internal, false, "model must be associated before calling EnableDragSource" );
     return m_internal->EnableDragSource( format );
 }
 
 bool wxDataViewCtrl::EnableDropTarget( const wxDataFormat &format )
 {
+    wxCHECK_MSG( m_internal, false, "model must be associated before calling EnableDragTarget" );
     return m_internal->EnableDropTarget( format );
 }
 
@@ -4649,14 +4667,11 @@ bool wxDataViewCtrl::AppendColumn( wxDataViewColumn *col )
 
     m_cols.Append( col );
 
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
+    if (gtk_tree_view_column_get_sizing( GTK_TREE_VIEW_COLUMN(col->GetGtkHandle()) ) !=
+           GTK_TREE_VIEW_COLUMN_FIXED)
     {
-        if (gtk_tree_view_column_get_sizing( GTK_TREE_VIEW_COLUMN(col->GetGtkHandle()) ) !=
-               GTK_TREE_VIEW_COLUMN_FIXED)
-           gtk_tree_view_set_fixed_height_mode( GTK_TREE_VIEW(m_treeview), FALSE );
+        gtk_tree_view_set_fixed_height_mode( GTK_TREE_VIEW(m_treeview), FALSE );
     }
-#endif
 
     gtk_tree_view_append_column( GTK_TREE_VIEW(m_treeview),
                                  GTK_TREE_VIEW_COLUMN(col->GetGtkHandle()) );
@@ -4671,14 +4686,11 @@ bool wxDataViewCtrl::PrependColumn( wxDataViewColumn *col )
 
     m_cols.Insert( col );
 
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
+    if (gtk_tree_view_column_get_sizing( GTK_TREE_VIEW_COLUMN(col->GetGtkHandle()) ) !=
+           GTK_TREE_VIEW_COLUMN_FIXED)
     {
-        if (gtk_tree_view_column_get_sizing( GTK_TREE_VIEW_COLUMN(col->GetGtkHandle()) ) !=
-               GTK_TREE_VIEW_COLUMN_FIXED)
-           gtk_tree_view_set_fixed_height_mode( GTK_TREE_VIEW(m_treeview), FALSE );
+        gtk_tree_view_set_fixed_height_mode( GTK_TREE_VIEW(m_treeview), FALSE );
     }
-#endif
 
     gtk_tree_view_insert_column( GTK_TREE_VIEW(m_treeview),
                                  GTK_TREE_VIEW_COLUMN(col->GetGtkHandle()), 0 );
@@ -4693,14 +4705,11 @@ bool wxDataViewCtrl::InsertColumn( unsigned int pos, wxDataViewColumn *col )
 
     m_cols.Insert( pos, col );
 
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
+    if (gtk_tree_view_column_get_sizing( GTK_TREE_VIEW_COLUMN(col->GetGtkHandle()) ) !=
+           GTK_TREE_VIEW_COLUMN_FIXED)
     {
-        if (gtk_tree_view_column_get_sizing( GTK_TREE_VIEW_COLUMN(col->GetGtkHandle()) ) !=
-               GTK_TREE_VIEW_COLUMN_FIXED)
-           gtk_tree_view_set_fixed_height_mode( GTK_TREE_VIEW(m_treeview), FALSE );
+        gtk_tree_view_set_fixed_height_mode( GTK_TREE_VIEW(m_treeview), FALSE );
     }
-#endif
 
     gtk_tree_view_insert_column( GTK_TREE_VIEW(m_treeview),
                                  GTK_TREE_VIEW_COLUMN(col->GetGtkHandle()), pos );
@@ -4776,6 +4785,7 @@ int wxDataViewCtrl::GetColumnPosition( const wxDataViewColumn *column ) const
 
 wxDataViewColumn *wxDataViewCtrl::GetSortingColumn() const
 {
+    wxCHECK_MSG( m_internal, NULL, "model must be associated before calling GetSortingColumn" );
     return m_internal->GetDataViewSortColumn();
 }
 
@@ -4789,6 +4799,8 @@ void wxDataViewCtrl::Expand( const wxDataViewItem & item )
 
 void wxDataViewCtrl::Collapse( const wxDataViewItem & item )
 {
+    wxCHECK_RET( m_internal, "model must be associated before calling Collapse" );
+
     GtkTreeIter iter;
     iter.user_data = item.GetID();
     wxGtkTreePath path(m_internal->get_path( &iter ));
@@ -4797,10 +4809,12 @@ void wxDataViewCtrl::Collapse( const wxDataViewItem & item )
 
 bool wxDataViewCtrl::IsExpanded( const wxDataViewItem & item ) const
 {
+    wxCHECK_MSG( m_internal, false, "model must be associated before calling IsExpanded" );
+
     GtkTreeIter iter;
     iter.user_data = item.GetID();
     wxGtkTreePath path(m_internal->get_path( &iter ));
-    return gtk_tree_view_row_expanded( GTK_TREE_VIEW(m_treeview), path );
+    return gtk_tree_view_row_expanded( GTK_TREE_VIEW(m_treeview), path ) != 0;
 }
 
 wxDataViewItem wxDataViewCtrl::DoGetCurrentItem() const
@@ -4808,7 +4822,7 @@ wxDataViewItem wxDataViewCtrl::DoGetCurrentItem() const
     // The tree doesn't have any current item if it hadn't been created yet but
     // it's arguably not an error to call this function in this case so just
     // return an invalid item without asserting.
-    if ( !m_treeview )
+    if ( !m_treeview || !m_internal )
         return wxDataViewItem();
 
     wxGtkTreePath path;
@@ -4821,6 +4835,7 @@ void wxDataViewCtrl::DoSetCurrentItem(const wxDataViewItem& item)
 {
     wxCHECK_RET( m_treeview,
                  "Current item can't be set before creating the control." );
+    wxCHECK_RET( m_internal, "model must be associated before setting current item" );
 
     // We need to make sure the model knows about this item or the path would
     // be invalid and gtk_tree_view_set_cursor() would silently do nothing.
@@ -4856,7 +4871,8 @@ wxDataViewColumn *wxDataViewCtrl::GetCurrentColumn() const
 void wxDataViewCtrl::EditItem(const wxDataViewItem& item, const wxDataViewColumn *column)
 {
     wxCHECK_RET( m_treeview,
-                 "Current item can't be set before creating the control." );
+                 "item can't be edited before creating the control." );
+    wxCHECK_RET( m_internal, "model must be associated before editing an item" );
     wxCHECK_RET( item.IsOk(), "invalid item" );
     wxCHECK_RET( column, "no column provided" );
 
@@ -4889,6 +4905,8 @@ int wxDataViewCtrl::GetSelectedItemsCount() const
 
 int wxDataViewCtrl::GetSelections( wxDataViewItemArray & sel ) const
 {
+    wxCHECK_MSG( m_internal, 0, "model must be associated before calling GetSelections" );
+
     sel.Clear();
 
     GtkTreeSelection *selection = gtk_tree_view_get_selection( GTK_TREE_VIEW(m_treeview) );
@@ -4918,6 +4936,8 @@ int wxDataViewCtrl::GetSelections( wxDataViewItemArray & sel ) const
 
 void wxDataViewCtrl::SetSelections( const wxDataViewItemArray & sel )
 {
+    wxCHECK_RET( m_internal, "model must be associated before calling SetSelections" );
+
     GtkDisableSelectionEvents();
 
     GtkTreeSelection *selection = gtk_tree_view_get_selection( GTK_TREE_VIEW(m_treeview) );
@@ -4949,6 +4969,8 @@ void wxDataViewCtrl::SetSelections( const wxDataViewItemArray & sel )
 
 void wxDataViewCtrl::Select( const wxDataViewItem & item )
 {
+    wxCHECK_RET( m_internal, "model must be associated before calling Select" );
+
     ExpandAncestors(item);
 
     GtkDisableSelectionEvents();
@@ -4965,6 +4987,8 @@ void wxDataViewCtrl::Select( const wxDataViewItem & item )
 
 void wxDataViewCtrl::Unselect( const wxDataViewItem & item )
 {
+    wxCHECK_RET( m_internal, "model must be associated before calling Unselect" );
+
     GtkDisableSelectionEvents();
 
     GtkTreeSelection *selection = gtk_tree_view_get_selection( GTK_TREE_VIEW(m_treeview) );
@@ -4979,13 +5003,15 @@ void wxDataViewCtrl::Unselect( const wxDataViewItem & item )
 
 bool wxDataViewCtrl::IsSelected( const wxDataViewItem & item ) const
 {
+    wxCHECK_MSG( m_internal, false, "model must be associated before calling IsSelected" );
+
     GtkTreeSelection *selection = gtk_tree_view_get_selection( GTK_TREE_VIEW(m_treeview) );
 
     GtkTreeIter iter;
     iter.stamp = m_internal->GetGtkModel()->stamp;
     iter.user_data = (gpointer) item.GetID();
 
-    return gtk_tree_selection_iter_is_selected( selection, &iter );
+    return gtk_tree_selection_iter_is_selected( selection, &iter ) != 0;
 }
 
 void wxDataViewCtrl::SelectAll()
@@ -5013,6 +5039,8 @@ void wxDataViewCtrl::UnselectAll()
 void wxDataViewCtrl::EnsureVisible(const wxDataViewItem& item,
                                    const wxDataViewColumn *WXUNUSED(column))
 {
+    wxCHECK_RET( m_internal, "model must be associated before calling EnsureVisible" );
+
     m_ensureVisibleDefered = item;
     ExpandAncestors(item);
 
@@ -5026,6 +5054,8 @@ void wxDataViewCtrl::HitTest(const wxPoint& point,
                              wxDataViewItem& item,
                              wxDataViewColumn *& column) const
 {
+    wxCHECK_RET( m_internal, "model must be associated before calling HitTest" );
+
     // gtk_tree_view_get_dest_row_at_pos() is the right one. But it does not tell the column.
     // gtk_tree_view_get_path_at_pos() is the wrong function. It doesn't mind the header but returns column.
     // See http://mail.gnome.org/archives/gtkmm-list/2005-January/msg00080.html
@@ -5118,13 +5148,13 @@ void wxDataViewCtrl::GtkEnableSelectionEvents()
 wxVisualAttributes
 wxDataViewCtrl::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-    return GetDefaultAttributesFromGTKWidget(gtk_tree_view_new);
+    return GetDefaultAttributesFromGTKWidget(gtk_tree_view_new());
 }
 
 void wxDataViewCtrl::DoApplyWidgetStyle(GtkRcStyle *style)
 {
     wxDataViewCtrlBase::DoApplyWidgetStyle(style);
-    gtk_widget_modify_style(m_treeview, style);
+    GTKApplyStyle(m_treeview, style);
 }
 
 #endif // !wxUSE_GENERICDATAVIEWCTRL

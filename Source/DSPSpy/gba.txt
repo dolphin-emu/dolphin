@@ -35,12 +35,12 @@ clr15
 ;step 1: context setup
 call		send_back_40
 
-call        0x807e			; loop until dsp->cpu mailbox is empty
+call        0x807e			; loop until DSP->CPU mailbox is empty
 si          @DMBH, #0xdcd1
 si          @DMBL, #0x0000	; sendmail 0xdcd10000
 si          @DIRQ, #0x0001
 
-; wait for cpu mail == 0xabbaxxxx
+; wait for CPU mail == 0xabbaxxxx
 wait_cpu_init:
 call        0x8078
 lrs         $AC0.L, @CMBL
@@ -53,28 +53,28 @@ call        0x8078
 lrs         $AX0.L, @CMBL
 andi        $AC0.M, #0x0fff
 mrr         $AX0.H, $AC0.M
-lri         $AX1.H, #0x0000	; DSP-dram addr
+lri         $AX1.H, #0x0000	; DSP-DRAM addr
 lri         $AX1.L, #0x0020	; length (32 bytes = 16 words, word 9 and 10 are addr where result should DMA'd to in main mem)
 lri         $IX3, #0x0000	; there will be no ucode/iram upload
-lri         $AR0, #do_main	; return addr after dram upload
+lri         $AR0, #do_main	; return addr after DRAM upload
 jmp         0x80bc			; DRAM upload !!
 ; $AX0.H-$AX0.L - CPU(PPC) addr = mail & 0x0fffffff
-; upload data from mainmem to dsp dram and jump to 0x41 after that
+; upload data from mainmem to DSP DRAM and jump to 0x41 after that
 
 ; ucode addr 0x0041
 do_main:
-;step 2: got data from cpu, before going into BigCrazyFunction
+;step 2: got data from CPU, before going into BigCrazyFunction
 call		send_back
 
 call        BigCrazyFunction		; <<------------- main crap is here!!!!!!!!!
-call        0x807e					; loop until dsp->cpu mailbox is empty
+call        0x807e					; loop until DSP->CPU mailbox is empty
 
 si          @DMBH, #0xdcd1
 si          @DMBL, #0x0003			; sendmail 0xdcd10003 (aka... calc is over, result is in main mem now)
 si          @DIRQ, #0x0001
 set40       
 
-; wait for cpu to tell us what to do after calc'ing
+; wait for CPU to tell us what to do after calc'ing
 wait_cpu_end:
 call        0x8078
 cmpi        $AC0.M, #0xcdd1
@@ -82,16 +82,16 @@ jnz         wait_cpu_end
 
 lrs         $AC0.M, @CMBL
 cmpi        $AC0.M, #0x0001
-jz          PrepareBootUcode		; if cpu->dsp mail was 0xcdd10001 -> 005e_PrepareBootUcode()
+jz          PrepareBootUcode		; if CPU->DSP mail was 0xcdd10001 -> 005e_PrepareBootUcode()
 
 cmpi        $AC0.M, #0x0002
-jz          0x8000					; if cpu->dsp mail was 0xcdd10002 -> dsp reset ( jmp to irom(0x8000))
+jz          0x8000					; if CPU->DSP mail was 0xcdd10002 -> DSP reset ( jmp to irom(0x8000))
 
 ; THIS IS CUSTOM CODE
 cmpi        $AC0.M, #0xbabe
-jz          end_of_test				; wait for dsp to be reset by cpu
+jz          end_of_test				; wait for DSP to be reset by CPU
 
-jmp         wait_cpu_end			; wait for next mail from cpu
+jmp         wait_cpu_end			; wait for next mail from CPU
 halt        
 
 
@@ -127,7 +127,7 @@ jmp         0x80b5		; BootUcode()
 halt     
 
 
-; does some crazy stuff with data at dram @0x3/0x5/0x6/0x7 with help of some values from drom :)
+; does some crazy stuff with data at DRAM @0x3/0x5/0x6/0x7 with help of some values from drom :)
 ; result is @0x22,@0x23 and written back to main memory to dmem-0x08:dmem-0x09
 BigCrazyFunction:
 ; {
@@ -574,21 +574,21 @@ call		send_back
 
 Unk_01a5:
 ; this is where result is written to main memory
-; dsp mem 0x20-0x23 (8 bytes) are written back (DMA limitation),
+; DSP mem 0x20-0x23 (8 bytes) are written back (DMA limitation),
 ; but only values @22 and @23 were modified (result is 32bit)
 sr          @0x0023, $AC0.M
 call		send_back
-lr          $AX0.H, @0x0008	; cpu addr high
+lr          $AX0.H, @0x0008	; CPU addr high
 call		send_back
-lr          $AX0.L, @0x0009	; cpu addr low
+lr          $AX0.L, @0x0009	; CPU addr low
 call		send_back
-lri         $AX1.H, #0x0020	; dsp addr
+lri         $AX1.H, #0x0020	; DSP addr
 call		send_back
 lri         $AX1.L, #0x0008	; length
 call		send_back
-lri         $IX3, #0x0000	; there will be no iram dma
+lri         $IX3, #0x0000	; there will be no iram DMA
 call		send_back
-call        0x808b			; dram->cpu <<<--- important!!
+call        0x808b			; DRAM->CPU <<<--- important!!
 call		send_back
 ret         
 ; }

@@ -4,7 +4,6 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2003/02/28
-// RCS-ID:      $Id: msgdlg.cpp 68537 2011-08-04 22:53:42Z VZ $
 // Copyright:   (c) Vaclav Slavik, 2003
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,10 +23,13 @@
     #include "wx/intl.h"
 #endif
 
+#include "wx/modalhook.h"
+
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 #include "wx/gtk/private/messagetype.h"
 #include "wx/gtk/private/mnemonics.h"
-#include <gtk/gtk.h>
+#include "wx/gtk/private/dialogcount.h"
 
 #if wxUSE_LIBHILDON
     #include <hildon-widgets/hildon-note.h>
@@ -166,15 +168,13 @@ void wxMessageDialog::GTKCreateMsgDialog()
     }
 
     wxString message;
-#if GTK_CHECK_VERSION(2, 6, 0)
     bool needsExtMessage = false;
-    if ( gtk_check_version(2, 6, 0) == NULL && !m_extendedMessage.empty() )
+    if (!m_extendedMessage.empty())
     {
         message = m_message;
         needsExtMessage = true;
     }
-    else // extended message not needed or not supported
-#endif // GTK+ 2.6+
+    else // extended message not needed
     {
         message = GetFullMessage();
     }
@@ -186,7 +186,6 @@ void wxMessageDialog::GTKCreateMsgDialog()
                                       "%s",
                                       (const char*)wxGTK_CONV(message));
 
-#if GTK_CHECK_VERSION(2, 6, 0)
     if ( needsExtMessage )
     {
         gtk_message_dialog_format_secondary_text
@@ -196,7 +195,6 @@ void wxMessageDialog::GTKCreateMsgDialog()
             (const char *)wxGTK_CONV(m_extendedMessage)
         );
     }
-#endif // GTK+ 2.6+
 #endif // wxUSE_LIBHILDON || wxUSE_LIBHILDON2/!wxUSE_LIBHILDON && !wxUSE_LIBHILDON2
 
     g_object_ref(m_widget);
@@ -277,6 +275,8 @@ void wxMessageDialog::GTKCreateMsgDialog()
 
 int wxMessageDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     // break the mouse capture as it would interfere with modal dialog (see
     // wxDialog::ShowModal)
     wxWindow * const win = wxWindow::GetCapture();
@@ -295,7 +295,10 @@ int wxMessageDialog::ShowModal()
     if (m_parent)
         gtk_window_present( GTK_WINDOW(m_parent->m_widget) );
 
+    wxOpenModalDialogLocker modalLocker;
+
     gint result = gtk_dialog_run(GTK_DIALOG(m_widget));
+    GTKDisconnect(m_widget);
     gtk_widget_destroy(m_widget);
     g_object_unref(m_widget);
     m_widget = NULL;

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -26,25 +26,23 @@
 // Headers
 ////////////////////////////////////////////////////////////
 #include <SFML/Network/Packet.hpp>
-#include <SFML/Network/SocketHelper.hpp>
-#include <string.h>
+#include <SFML/Network/SocketImpl.hpp>
+#include <SFML/System/String.hpp>
+#include <cstring>
+#include <cwchar>
 
 
 namespace sf
 {
 ////////////////////////////////////////////////////////////
-/// Default constructor
-////////////////////////////////////////////////////////////
 Packet::Packet() :
-myReadPos(0),
-myIsValid(true)
+m_readPos(0),
+m_isValid(true)
 {
 
 }
 
 
-////////////////////////////////////////////////////////////
-/// Virtual destructor
 ////////////////////////////////////////////////////////////
 Packet::~Packet()
 {
@@ -53,230 +51,250 @@ Packet::~Packet()
 
 
 ////////////////////////////////////////////////////////////
-/// Append data to the end of the packet
-////////////////////////////////////////////////////////////
-void Packet::Append(const void* Data, std::size_t SizeInBytes)
+void Packet::append(const void* data, std::size_t sizeInBytes)
 {
-    if (Data && (SizeInBytes > 0))
+    if (data && (sizeInBytes > 0))
     {
-        std::size_t Start = myData.size();
-        myData.resize(Start + SizeInBytes);
-        memcpy(&myData[Start], Data, SizeInBytes);
+        std::size_t start = m_data.size();
+        m_data.resize(start + sizeInBytes);
+        std::memcpy(&m_data[start], data, sizeInBytes);
     }
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Clear the packet data
-////////////////////////////////////////////////////////////
-void Packet::Clear()
+void Packet::clear()
 {
-    myData.clear();
-    myReadPos = 0;
-    myIsValid = true;
+    m_data.clear();
+    m_readPos = 0;
+    m_isValid = true;
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Get a pointer to the data contained in the packet
-/// Warning : the returned pointer may be invalid after you
-/// append data to the packet
-////////////////////////////////////////////////////////////
-const char* Packet::GetData() const
+const void* Packet::getData() const
 {
-    return !myData.empty() ? &myData[0] : NULL;
+    return !m_data.empty() ? &m_data[0] : NULL;
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Get the size of the data contained in the packet
-////////////////////////////////////////////////////////////
-std::size_t Packet::GetDataSize() const
+std::size_t Packet::getDataSize() const
 {
-    return myData.size();
+    return m_data.size();
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Tell if the reading position has reached the end of the packet
-////////////////////////////////////////////////////////////
-bool Packet::EndOfPacket() const
+bool Packet::endOfPacket() const
 {
-    return myReadPos >= myData.size();
+    return m_readPos >= m_data.size();
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Tell if the packet is valid for reading
-////////////////////////////////////////////////////////////
-Packet::operator bool() const
+Packet::operator BoolType() const
 {
-    return myIsValid;
+    return m_isValid ? &Packet::checkSize : NULL;
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Operator >> overloads to extract data from the packet
-////////////////////////////////////////////////////////////
-Packet& Packet::operator >>(bool& Data)
+Packet& Packet::operator >>(bool& data)
 {
-    Uint8 Value;
-    if (*this >> Value)
-        Data = (Value != 0);
+    Uint8 value;
+    if (*this >> value)
+        data = (value != 0);
 
     return *this;
 }
-Packet& Packet::operator >>(Int8& Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(Int8& data)
 {
-    if (CheckSize(sizeof(Data)))
+    if (checkSize(sizeof(data)))
     {
-        Data = *reinterpret_cast<const Int8*>(GetData() + myReadPos);
-        myReadPos += sizeof(Data);
+        data = *reinterpret_cast<const Int8*>(&m_data[m_readPos]);
+        m_readPos += sizeof(data);
     }
 
     return *this;
 }
-Packet& Packet::operator >>(Uint8& Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(Uint8& data)
 {
-    if (CheckSize(sizeof(Data)))
+    if (checkSize(sizeof(data)))
     {
-        Data = *reinterpret_cast<const Uint8*>(GetData() + myReadPos);
-        myReadPos += sizeof(Data);
+        data = *reinterpret_cast<const Uint8*>(&m_data[m_readPos]);
+        m_readPos += sizeof(data);
     }
 
     return *this;
 }
-Packet& Packet::operator >>(Int16& Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(Int16& data)
 {
-    if (CheckSize(sizeof(Data)))
+    if (checkSize(sizeof(data)))
     {
-        Data = ntohs(*reinterpret_cast<const Int16*>(GetData() + myReadPos));
-        myReadPos += sizeof(Data);
+        data = ntohs(*reinterpret_cast<const Int16*>(&m_data[m_readPos]));
+        m_readPos += sizeof(data);
     }
 
     return *this;
 }
-Packet& Packet::operator >>(Uint16& Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(Uint16& data)
 {
-    if (CheckSize(sizeof(Data)))
+    if (checkSize(sizeof(data)))
     {
-        Data = ntohs(*reinterpret_cast<const Uint16*>(GetData() + myReadPos));
-        myReadPos += sizeof(Data);
+        data = ntohs(*reinterpret_cast<const Uint16*>(&m_data[m_readPos]));
+        m_readPos += sizeof(data);
     }
 
     return *this;
 }
-Packet& Packet::operator >>(Int32& Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(Int32& data)
 {
-    if (CheckSize(sizeof(Data)))
+    if (checkSize(sizeof(data)))
     {
-        Data = ntohl(*reinterpret_cast<const Int32*>(GetData() + myReadPos));
-        myReadPos += sizeof(Data);
+        data = ntohl(*reinterpret_cast<const Int32*>(&m_data[m_readPos]));
+        m_readPos += sizeof(data);
     }
 
     return *this;
 }
-Packet& Packet::operator >>(Uint32& Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(Uint32& data)
 {
-    if (CheckSize(sizeof(Data)))
+    if (checkSize(sizeof(data)))
     {
-        Data = ntohl(*reinterpret_cast<const Uint32*>(GetData() + myReadPos));
-        myReadPos += sizeof(Data);
+        data = ntohl(*reinterpret_cast<const Uint32*>(&m_data[m_readPos]));
+        m_readPos += sizeof(data);
     }
 
     return *this;
 }
-Packet& Packet::operator >>(float& Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(float& data)
 {
-    if (CheckSize(sizeof(Data)))
+    if (checkSize(sizeof(data)))
     {
-        Data = *reinterpret_cast<const float*>(GetData() + myReadPos);
-        myReadPos += sizeof(Data);
+        data = *reinterpret_cast<const float*>(&m_data[m_readPos]);
+        m_readPos += sizeof(data);
     }
 
     return *this;
 }
-Packet& Packet::operator >>(double& Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(double& data)
 {
-    if (CheckSize(sizeof(Data)))
+    if (checkSize(sizeof(data)))
     {
-        Data = *reinterpret_cast<const double*>(GetData() + myReadPos);
-        myReadPos += sizeof(Data);
+        data = *reinterpret_cast<const double*>(&m_data[m_readPos]);
+        m_readPos += sizeof(data);
     }
 
     return *this;
 }
-Packet& Packet::operator >>(char* Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(char* data)
 {
     // First extract string length
-    Uint32 Length = 0;
-    *this >> Length;
+    Uint32 length = 0;
+    *this >> length;
 
-    if ((Length > 0) && CheckSize(Length))
+    if ((length > 0) && checkSize(length))
     {
         // Then extract characters
-        memcpy(Data, GetData() + myReadPos, Length);
-        Data[Length] = '\0';
+        std::memcpy(data, &m_data[m_readPos], length);
+        data[length] = '\0';
 
         // Update reading position
-        myReadPos += Length;
+        m_readPos += length;
     }
 
     return *this;
 }
-Packet& Packet::operator >>(std::string& Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(std::string& data)
 {
     // First extract string length
-    Uint32 Length = 0;
-    *this >> Length;
+    Uint32 length = 0;
+    *this >> length;
 
-    Data.clear();
-    if ((Length > 0) && CheckSize(Length))
+    data.clear();
+    if ((length > 0) && checkSize(length))
     {
         // Then extract characters
-        Data.assign(GetData() + myReadPos, Length);
+        data.assign(&m_data[m_readPos], length);
 
         // Update reading position
-        myReadPos += Length;
+        m_readPos += length;
     }
 
     return *this;
 }
-Packet& Packet::operator >>(wchar_t* Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(wchar_t* data)
 {
     // First extract string length
-    Uint32 Length = 0;
-    *this >> Length;
+    Uint32 length = 0;
+    *this >> length;
 
-    if ((Length > 0) && CheckSize(Length * sizeof(Int32)))
+    if ((length > 0) && checkSize(length * sizeof(Uint32)))
     {
         // Then extract characters
-        for (Uint32 i = 0; i < Length; ++i)
+        for (Uint32 i = 0; i < length; ++i)
         {
-            Uint32 c = 0;
-            *this >> c;
-            Data[i] = static_cast<wchar_t>(c);
+            Uint32 character = 0;
+            *this >> character;
+            data[i] = static_cast<wchar_t>(character);
         }
-        Data[Length] = L'\0';
+        data[length] = L'\0';
     }
 
     return *this;
 }
-Packet& Packet::operator >>(std::wstring& Data)
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator >>(std::wstring& data)
 {
     // First extract string length
-    Uint32 Length = 0;
-    *this >> Length;
+    Uint32 length = 0;
+    *this >> length;
 
-    Data.clear();
-    if ((Length > 0) && CheckSize(Length * sizeof(Int32)))
+    data.clear();
+    if ((length > 0) && checkSize(length * sizeof(Uint32)))
     {
         // Then extract characters
-        for (Uint32 i = 0; i < Length; ++i)
+        for (Uint32 i = 0; i < length; ++i)
         {
-            Uint32 c = 0;
-            *this >> c;
-            Data += static_cast<wchar_t>(c);
+            Uint32 character = 0;
+            *this >> character;
+            data += static_cast<wchar_t>(character);
         }
     }
 
@@ -285,109 +303,22 @@ Packet& Packet::operator >>(std::wstring& Data)
 
 
 ////////////////////////////////////////////////////////////
-/// Operator << overloads to put data into the packet
-////////////////////////////////////////////////////////////
-Packet& Packet::operator <<(bool Data)
+Packet& Packet::operator >>(String& data)
 {
-    *this << static_cast<Uint8>(Data);
-    return *this;
-}
-Packet& Packet::operator <<(Int8 Data)
-{
-    Append(&Data, sizeof(Data));
-    return *this;
-}
-Packet& Packet::operator <<(Uint8 Data)
-{
-    Append(&Data, sizeof(Data));
-    return *this;
-}
-Packet& Packet::operator <<(Int16 Data)
-{
-    Int16 ToWrite = htons(Data);
-    Append(&ToWrite, sizeof(ToWrite));
-    return *this;
-}
-Packet& Packet::operator <<(Uint16 Data)
-{
-    Uint16 ToWrite = htons(Data);
-    Append(&ToWrite, sizeof(ToWrite));
-    return *this;
-}
-Packet& Packet::operator <<(Int32 Data)
-{
-    Int32 ToWrite = htonl(Data);
-    Append(&ToWrite, sizeof(ToWrite));
-    return *this;
-}
-Packet& Packet::operator <<(Uint32 Data)
-{
-    Uint32 ToWrite = htonl(Data);
-    Append(&ToWrite, sizeof(ToWrite));
-    return *this;
-}
-Packet& Packet::operator <<(float Data)
-{
-    Append(&Data, sizeof(Data));
-    return *this;
-}
-Packet& Packet::operator <<(double Data)
-{
-    Append(&Data, sizeof(Data));
-    return *this;
-}
-Packet& Packet::operator <<(const char* Data)
-{
-    // First insert string length
-    Uint32 Length = 0;
-    for (const char* c = Data; *c != '\0'; ++c)
-        ++Length;
-    *this << Length;
+    // First extract the string length
+    Uint32 length = 0;
+    *this >> length;
 
-    // Then insert characters
-    Append(Data, Length * sizeof(char));
-
-    return *this;
-}
-Packet& Packet::operator <<(const std::string& Data)
-{
-    // First insert string length
-    Uint32 Length = static_cast<Uint32>(Data.size());
-    *this << Length;
-
-    // Then insert characters
-    if (Length > 0)
+    data.clear();
+    if ((length > 0) && checkSize(length * sizeof(Uint32)))
     {
-        Append(Data.c_str(), Length * sizeof(std::string::value_type));
-    }
-
-    return *this;
-}
-Packet& Packet::operator <<(const wchar_t* Data)
-{
-    // First insert string length
-    Uint32 Length = 0;
-    for (const wchar_t* c = Data; *c != L'\0'; ++c)
-        ++Length;
-    *this << Length;
-
-    // Then insert characters
-    for (const wchar_t* c = Data; *c != L'\0'; ++c)
-        *this << static_cast<Int32>(*c);
-
-    return *this;
-}
-Packet& Packet::operator <<(const std::wstring& Data)
-{
-    // First insert string length
-    Uint32 Length = static_cast<Uint32>(Data.size());
-    *this << Length;
-
-    // Then insert characters
-    if (Length > 0)
-    {
-        for (std::wstring::const_iterator c = Data.begin(); c != Data.end(); ++c)
-            *this << static_cast<Int32>(*c);
+        // Then extract characters
+        for (Uint32 i = 0; i < length; ++i)
+        {
+            Uint32 character = 0;
+            *this >> character;
+            data += character;
+        }
     }
 
     return *this;
@@ -395,32 +326,182 @@ Packet& Packet::operator <<(const std::wstring& Data)
 
 
 ////////////////////////////////////////////////////////////
-/// Check if the packet can extract a given size of bytes
-////////////////////////////////////////////////////////////
-bool Packet::CheckSize(std::size_t Size)
+Packet& Packet::operator <<(bool data)
 {
-    myIsValid = myIsValid && (myReadPos + Size <= myData.size());
-
-    return myIsValid;
+    *this << static_cast<Uint8>(data);
+    return *this;
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Called before the packet is sent to the network
-////////////////////////////////////////////////////////////
-const char* Packet::OnSend(std::size_t& DataSize)
+Packet& Packet::operator <<(Int8 data)
 {
-    DataSize = GetDataSize();
-    return GetData();
+    append(&data, sizeof(data));
+    return *this;
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Called after the packet has been received from the network
-////////////////////////////////////////////////////////////
-void Packet::OnReceive(const char* Data, std::size_t DataSize)
+Packet& Packet::operator <<(Uint8 data)
 {
-    Append(Data, DataSize);
+    append(&data, sizeof(data));
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(Int16 data)
+{
+    Int16 toWrite = htons(data);
+    append(&toWrite, sizeof(toWrite));
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(Uint16 data)
+{
+    Uint16 toWrite = htons(data);
+    append(&toWrite, sizeof(toWrite));
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(Int32 data)
+{
+    Int32 toWrite = htonl(data);
+    append(&toWrite, sizeof(toWrite));
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(Uint32 data)
+{
+    Uint32 toWrite = htonl(data);
+    append(&toWrite, sizeof(toWrite));
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(float data)
+{
+    append(&data, sizeof(data));
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(double data)
+{
+    append(&data, sizeof(data));
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(const char* data)
+{
+    // First insert string length
+    Uint32 length = std::strlen(data);
+    *this << length;
+
+    // Then insert characters
+    append(data, length * sizeof(char));
+
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(const std::string& data)
+{
+    // First insert string length
+    Uint32 length = static_cast<Uint32>(data.size());
+    *this << length;
+
+    // Then insert characters
+    if (length > 0)
+        append(data.c_str(), length * sizeof(std::string::value_type));
+
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(const wchar_t* data)
+{
+    // First insert string length
+    Uint32 length = std::wcslen(data);
+    *this << length;
+
+    // Then insert characters
+    for (const wchar_t* c = data; *c != L'\0'; ++c)
+        *this << static_cast<Uint32>(*c);
+
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(const std::wstring& data)
+{
+    // First insert string length
+    Uint32 length = static_cast<Uint32>(data.size());
+    *this << length;
+
+    // Then insert characters
+    if (length > 0)
+    {
+        for (std::wstring::const_iterator c = data.begin(); c != data.end(); ++c)
+            *this << static_cast<Uint32>(*c);
+    }
+
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+Packet& Packet::operator <<(const String& data)
+{
+    // First insert the string length
+    Uint32 length = static_cast<Uint32>(data.getSize());
+    *this << length;
+
+    // Then insert characters
+    if (length > 0)
+    {
+        for (String::ConstIterator c = data.begin(); c != data.end(); ++c)
+            *this << *c;
+    }
+
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+bool Packet::checkSize(std::size_t size)
+{
+    m_isValid = m_isValid && (m_readPos + size <= m_data.size());
+
+    return m_isValid;
+}
+
+
+////////////////////////////////////////////////////////////
+const void* Packet::onSend(std::size_t& size)
+{
+    size = getDataSize();
+    return getData();
+}
+
+
+////////////////////////////////////////////////////////////
+void Packet::onReceive(const void* data, std::size_t size)
+{
+    append(data, size);
 }
 
 } // namespace sf

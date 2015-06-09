@@ -1,11 +1,11 @@
 /**
  * \file cipher_wrap.h
- * 
+ *
  * \brief Cipher wrappers.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -29,76 +29,26 @@
 #ifndef POLARSSL_CIPHER_WRAP_H
 #define POLARSSL_CIPHER_WRAP_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 #include "cipher.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(POLARSSL_AES_C)
+typedef struct
+{
+    cipher_type_t type;
+    const cipher_info_t *info;
+} cipher_definition_t;
 
-extern const cipher_info_t aes_128_cbc_info;
-extern const cipher_info_t aes_192_cbc_info;
-extern const cipher_info_t aes_256_cbc_info;
+extern const cipher_definition_t cipher_definitions[];
 
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-extern const cipher_info_t aes_128_cfb128_info;
-extern const cipher_info_t aes_192_cfb128_info;
-extern const cipher_info_t aes_256_cfb128_info;
-#endif /* POLARSSL_CIPHER_MODE_CFB */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-extern const cipher_info_t aes_128_ctr_info;
-extern const cipher_info_t aes_192_ctr_info;
-extern const cipher_info_t aes_256_ctr_info;
-#endif /* POLARSSL_CIPHER_MODE_CTR */
-
-#endif /* defined(POLARSSL_AES_C) */
-
-#if defined(POLARSSL_CAMELLIA_C)
-
-extern const cipher_info_t camellia_128_cbc_info;
-extern const cipher_info_t camellia_192_cbc_info;
-extern const cipher_info_t camellia_256_cbc_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-extern const cipher_info_t camellia_128_cfb128_info;
-extern const cipher_info_t camellia_192_cfb128_info;
-extern const cipher_info_t camellia_256_cfb128_info;
-#endif /* POLARSSL_CIPHER_MODE_CFB */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-extern const cipher_info_t camellia_128_ctr_info;
-extern const cipher_info_t camellia_192_ctr_info;
-extern const cipher_info_t camellia_256_ctr_info;
-#endif /* POLARSSL_CIPHER_MODE_CTR */
-
-#endif /* defined(POLARSSL_CAMELLIA_C) */
-
-#if defined(POLARSSL_DES_C)
-
-extern const cipher_info_t des_cbc_info;
-extern const cipher_info_t des_ede_cbc_info;
-extern const cipher_info_t des_ede3_cbc_info;
-
-#endif /* defined(POLARSSL_DES_C) */
-
-#if defined(POLARSSL_BLOWFISH_C)
-extern const cipher_info_t blowfish_cbc_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-extern const cipher_info_t blowfish_cfb64_info;
-#endif /* POLARSSL_CIPHER_MODE_CFB */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-extern const cipher_info_t blowfish_ctr_info;
-#endif /* POLARSSL_CIPHER_MODE_CTR */
-#endif /* defined(POLARSSL_BLOWFISH_C) */
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-extern const cipher_info_t null_cipher_info;
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
+extern int supported_ciphers[];
 
 #ifdef __cplusplus
 }

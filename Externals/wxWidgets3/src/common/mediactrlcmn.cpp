@@ -4,7 +4,6 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrlcmn.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -248,8 +247,8 @@ const wxClassInfo* wxMediaCtrl::NextBackend(wxClassInfo::const_iterator* it)
           *it != end; ++(*it) )
     {
         const wxClassInfo* classInfo = **it;
-        if ( classInfo->IsKindOf(CLASSINFO(wxMediaBackend)) &&
-             classInfo != CLASSINFO(wxMediaBackend) )
+        if ( classInfo->IsKindOf(wxCLASSINFO(wxMediaBackend))  &&
+             classInfo != wxCLASSINFO(wxMediaBackend) )
         {
             ++(*it);
             return classInfo;
@@ -544,10 +543,10 @@ void wxMediaBackendCommonBase::QueueStopEvent()
 //
 #include "wx/html/forcelnk.h"
 
-#ifdef __WXMSW__ // MSW has huge backends so we do it seperately
+#ifdef __WXMSW__ // MSW has huge backends so we do it separately
 FORCE_LINK(wxmediabackend_am)
 FORCE_LINK(wxmediabackend_wmp10)
-#elif !defined(__WXOSX_COCOA__)
+#else
 FORCE_LINK(basewxmediabackends)
 #endif
 

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.01.99
-// RCS-ID:      $Id: tooltip.cpp 66169 2010-11-16 22:38:13Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -374,17 +373,17 @@ void wxToolTip::Remove()
     DoForAllWindows(&wxToolTip::DoRemove);
 }
 
-void wxToolTip::Add(WXHWND hWnd)
+void wxToolTip::AddOtherWindow(WXHWND hWnd)
 {
     if ( !m_others )
         m_others = new wxToolTipOtherWindows;
 
     m_others->push_back(hWnd);
 
-    DoAddOtherWindow(hWnd);
+    DoAddHWND(hWnd);
 }
 
-void wxToolTip::DoAddOtherWindow(WXHWND hWnd)
+void wxToolTip::DoAddHWND(WXHWND hWnd)
 {
     HWND hwnd = (HWND)hWnd;
 
@@ -397,7 +396,7 @@ void wxToolTip::DoAddOtherWindow(WXHWND hWnd)
     // NMTTDISPINFO struct -- and setting the tooltip here we can have tooltips
     // of any length
     ti.hwnd = hwnd;
-    ti.lpszText = const_cast<wxChar *>(m_text.wx_str());
+    ti.lpszText = wxMSW_CONV_LPTSTR(m_text);
 
     if ( !SendTooltipMessage(GetToolTipCtrl(), TTM_ADDTOOL, &ti) )
     {
@@ -442,7 +441,7 @@ void wxToolTip::DoAddOtherWindow(WXHWND hWnd)
             const wxString token = tokenizer.GetNextToken();
 
             SIZE sz;
-            if ( !::GetTextExtentPoint32(hdc, token.wx_str(),
+            if ( !::GetTextExtentPoint32(hdc, token.t_str(),
                                          token.length(), &sz) )
             {
                 wxLogLastError(wxT("GetTextExtentPoint32"));
@@ -484,7 +483,7 @@ void wxToolTip::DoAddOtherWindow(WXHWND hWnd)
         // replace the '\n's with spaces because otherwise they appear as
         // unprintable characters in the tooltip string
         m_text.Replace(wxT("\n"), wxT(" "));
-        ti.lpszText = const_cast<wxChar *>(m_text.wx_str());
+        ti.lpszText = wxMSW_CONV_LPTSTR(m_text);
 
         if ( !SendTooltipMessage(GetToolTipCtrl(), TTM_ADDTOOL, &ti) )
         {
@@ -502,7 +501,7 @@ void wxToolTip::SetWindow(wxWindow *win)
     // add the window itself
     if ( m_window )
     {
-        Add(m_window->GetHWND());
+        DoAddHWND(m_window->GetHWND());
     }
 #if !defined(__WXUNIVERSAL__)
     // and all of its subcontrols (e.g. radio buttons in a radiobox) as well
@@ -526,7 +525,7 @@ void wxToolTip::SetWindow(wxWindow *win)
             // must have it by now!
             wxASSERT_MSG( hwnd, wxT("no hwnd for subcontrol?") );
 
-            Add((WXHWND)hwnd);
+            AddOtherWindow((WXHWND)hwnd);
         }
     }
 #endif // !defined(__WXUNIVERSAL__)
@@ -561,7 +560,7 @@ void wxToolTip::DoSetTip(WXHWND hWnd)
     ti.lpszText = const_cast<wxChar *>(wxT(""));
     (void)SendTooltipMessage(GetToolTipCtrl(), TTM_UPDATETIPTEXT, &ti);
 
-    ti.lpszText = const_cast<wxChar *>(m_text.wx_str());
+    ti.lpszText = wxMSW_CONV_LPTSTR(m_text);
     (void)SendTooltipMessage(GetToolTipCtrl(), TTM_UPDATETIPTEXT, &ti);
 }
 

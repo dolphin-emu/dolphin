@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: treectrl.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -236,20 +235,20 @@ protected:
 };
 
 /*
- wxEVT_COMMAND_TREE_BEGIN_DRAG,
- wxEVT_COMMAND_TREE_BEGIN_RDRAG,
- wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT,
- wxEVT_COMMAND_TREE_END_LABEL_EDIT,
- wxEVT_COMMAND_TREE_DELETE_ITEM,
- wxEVT_COMMAND_TREE_GET_INFO,
- wxEVT_COMMAND_TREE_SET_INFO,
- wxEVT_COMMAND_TREE_ITEM_EXPANDED,
- wxEVT_COMMAND_TREE_ITEM_EXPANDING,
- wxEVT_COMMAND_TREE_ITEM_COLLAPSED,
- wxEVT_COMMAND_TREE_ITEM_COLLAPSING,
- wxEVT_COMMAND_TREE_SEL_CHANGED,
- wxEVT_COMMAND_TREE_SEL_CHANGING,
- wxEVT_COMMAND_TREE_KEY_DOWN
+ wxEVT_TREE_BEGIN_DRAG,
+ wxEVT_TREE_BEGIN_RDRAG,
+ wxEVT_TREE_BEGIN_LABEL_EDIT,
+ wxEVT_TREE_END_LABEL_EDIT,
+ wxEVT_TREE_DELETE_ITEM,
+ wxEVT_TREE_GET_INFO,
+ wxEVT_TREE_SET_INFO,
+ wxEVT_TREE_ITEM_EXPANDED,
+ wxEVT_TREE_ITEM_EXPANDING,
+ wxEVT_TREE_ITEM_COLLAPSED,
+ wxEVT_TREE_ITEM_COLLAPSING,
+ wxEVT_TREE_SEL_CHANGED,
+ wxEVT_TREE_SEL_CHANGING,
+ wxEVT_TREE_KEY_DOWN
 */
 
 class WXDLLIMPEXP_CORE wxTreeEvent: public wxCommandEvent
@@ -272,20 +271,36 @@ public:
 
 typedef void (wxEvtHandler::*wxTreeEventFunction)(wxTreeEvent&);
 
-#define EVT_TREE_BEGIN_DRAG(id, fn) { wxEVT_COMMAND_TREE_BEGIN_DRAG, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_BEGIN_RDRAG(id, fn) { wxEVT_COMMAND_TREE_BEGIN_RDRAG, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_BEGIN_LABEL_EDIT(id, fn) { wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_END_LABEL_EDIT(id, fn) { wxEVT_COMMAND_TREE_END_LABEL_EDIT, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_DELETE_ITEM(id, fn) { wxEVT_COMMAND_TREE_DELETE_ITEM, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_GET_INFO(id, fn) { wxEVT_COMMAND_TREE_GET_INFO, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_SET_INFO(id, fn) { wxEVT_COMMAND_TREE_SET_INFO, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_ITEM_EXPANDED(id, fn) { wxEVT_COMMAND_TREE_ITEM_EXPANDED, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_ITEM_EXPANDING(id, fn) { wxEVT_COMMAND_TREE_ITEM_EXPANDING, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_ITEM_COLLAPSED(id, fn) { wxEVT_COMMAND_TREE_ITEM_COLLAPSED, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_ITEM_COLLAPSING(id, fn) { wxEVT_COMMAND_TREE_ITEM_COLLAPSING, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_SEL_CHANGED(id, fn) { wxEVT_COMMAND_TREE_SEL_CHANGED, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_SEL_CHANGING(id, fn) { wxEVT_COMMAND_TREE_SEL_CHANGING, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
-#define EVT_TREE_KEY_DOWN(id, fn) { wxEVT_COMMAND_TREE_KEY_DOWN, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_BEGIN_DRAG(id, fn) { wxEVT_TREE_BEGIN_DRAG, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_BEGIN_RDRAG(id, fn) { wxEVT_TREE_BEGIN_RDRAG, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_BEGIN_LABEL_EDIT(id, fn) { wxEVT_TREE_BEGIN_LABEL_EDIT, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_END_LABEL_EDIT(id, fn) { wxEVT_TREE_END_LABEL_EDIT, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_DELETE_ITEM(id, fn) { wxEVT_TREE_DELETE_ITEM, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_GET_INFO(id, fn) { wxEVT_TREE_GET_INFO, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_SET_INFO(id, fn) { wxEVT_TREE_SET_INFO, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_ITEM_EXPANDED(id, fn) { wxEVT_TREE_ITEM_EXPANDED, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_ITEM_EXPANDING(id, fn) { wxEVT_TREE_ITEM_EXPANDING, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_ITEM_COLLAPSED(id, fn) { wxEVT_TREE_ITEM_COLLAPSED, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_ITEM_COLLAPSING(id, fn) { wxEVT_TREE_ITEM_COLLAPSING, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_SEL_CHANGED(id, fn) { wxEVT_TREE_SEL_CHANGED, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_SEL_CHANGING(id, fn) { wxEVT_TREE_SEL_CHANGING, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+#define EVT_TREE_KEY_DOWN(id, fn) { wxEVT_TREE_KEY_DOWN, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxTreeEventFunction) & fn, NULL },
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_TREE_BEGIN_DRAG         wxEVT_TREE_BEGIN_DRAG
+#define wxEVT_COMMAND_TREE_BEGIN_RDRAG        wxEVT_TREE_BEGIN_RDRAG
+#define wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT   wxEVT_TREE_BEGIN_LABEL_EDIT
+#define wxEVT_COMMAND_TREE_END_LABEL_EDIT     wxEVT_TREE_END_LABEL_EDIT
+#define wxEVT_COMMAND_TREE_DELETE_ITEM        wxEVT_TREE_DELETE_ITEM
+#define wxEVT_COMMAND_TREE_GET_INFO           wxEVT_TREE_GET_INFO
+#define wxEVT_COMMAND_TREE_SET_INFO           wxEVT_TREE_SET_INFO
+#define wxEVT_COMMAND_TREE_ITEM_EXPANDED      wxEVT_TREE_ITEM_EXPANDED
+#define wxEVT_COMMAND_TREE_ITEM_EXPANDING     wxEVT_TREE_ITEM_EXPANDING
+#define wxEVT_COMMAND_TREE_ITEM_COLLAPSED     wxEVT_TREE_ITEM_COLLAPSED
+#define wxEVT_COMMAND_TREE_ITEM_COLLAPSING    wxEVT_TREE_ITEM_COLLAPSING
+#define wxEVT_COMMAND_TREE_SEL_CHANGED        wxEVT_TREE_SEL_CHANGED
+#define wxEVT_COMMAND_TREE_SEL_CHANGING       wxEVT_TREE_SEL_CHANGING
+#define wxEVT_COMMAND_TREE_KEY_DOWN           wxEVT_TREE_KEY_DOWN
 
 #endif
     // _WX_TREECTRL_H_

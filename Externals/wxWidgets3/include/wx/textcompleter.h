@@ -3,7 +3,6 @@
 // Purpose:     Declaration of wxTextCompleter class.
 // Author:      Vadim Zeitlin
 // Created:     2011-04-13
-// RCS-ID:      $Id: textcompleter.h 67525 2011-04-17 23:14:11Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

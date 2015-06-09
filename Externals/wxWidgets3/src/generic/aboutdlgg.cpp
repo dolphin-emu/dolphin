@@ -3,7 +3,6 @@
 // Purpose:     implements wxGenericAboutBox() function
 // Author:      Vadim Zeitlin
 // Created:     2006-10-08
-// RCS-ID:      $Id: aboutdlgg.cpp 70671 2012-02-22 17:35:21Z JS $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -223,7 +222,7 @@ bool wxGenericAboutDialog::Create(const wxAboutDialogInfo& info, wxWindow* paren
 #if !wxUSE_MODAL_ABOUT_DIALOG
     Connect(wxEVT_CLOSE_WINDOW,
             wxCloseEventHandler(wxGenericAboutDialog::OnCloseWindow));
-    Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED,
+    Connect(wxID_OK, wxEVT_BUTTON,
             wxCommandEventHandler(wxGenericAboutDialog::OnOK));
 #endif // !wxUSE_MODAL_ABOUT_DIALOG
 
@@ -278,16 +277,24 @@ void wxGenericAboutDialog::AddCollapsiblePane(const wxString& title,
 
 void wxGenericAboutDialog::OnCloseWindow(wxCloseEvent& event)
 {
-    Destroy();
+    // safeguards in case the window is still shown using ShowModal
+    if ( !IsModal() )
+        Destroy();
 
     event.Skip();
 }
 
-void wxGenericAboutDialog::OnOK(wxCommandEvent& WXUNUSED(event))
+void wxGenericAboutDialog::OnOK(wxCommandEvent& event)
 {
-    // By default a modeless dialog would be just hidden, destroy this one
-    // instead.
-    Destroy();
+    // safeguards in case the window is still shown using ShowModal
+    if ( !IsModal() )
+    {
+        // By default a modeless dialog would be just hidden, destroy this one
+        // instead.
+        Destroy();
+    }
+    else
+        event.Skip();
 }
 
 #endif // !wxUSE_MODAL_ABOUT_DIALOG
@@ -309,7 +316,8 @@ void wxGenericAboutBox(const wxAboutDialogInfo& info, wxWindow* parent)
 
 // currently wxAboutBox is implemented natively only under these platforms, for
 // the others we provide a generic fallback here
-#if !defined(__WXMSW__) && !defined(__WXMAC__) && !defined(__WXGTK26__)
+#if !defined(__WXMSW__) && !defined(__WXMAC__) && \
+        (!defined(__WXGTK20__) || defined(__WXUNIVERSAL__))
 
 void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* parent)
 {

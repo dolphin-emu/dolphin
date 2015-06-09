@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.12.00
-// RCS-ID:      $Id: combobox.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) 1996-2000 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,6 +14,10 @@
 #include "wx/defs.h"
 
 #if wxUSE_COMBOBOX
+
+// For compatibility with 2.8 include this header to allow using wxTE_XXX
+// styles with wxComboBox without explicitly including it in the user code.
+#include "wx/textctrl.h"
 
 extern WXDLLIMPEXP_DATA_CORE(const char) wxComboBoxNameStr[];
 

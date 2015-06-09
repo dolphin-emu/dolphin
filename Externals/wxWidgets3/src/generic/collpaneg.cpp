@@ -4,7 +4,6 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     8/10/2006
-// Id:          $Id: collpaneg.cpp 68366 2011-07-24 22:19:33Z VZ $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -50,7 +49,7 @@ const char wxCollapsiblePaneNameStr[] = "collapsiblePane";
 // wxGenericCollapsiblePane
 //-----------------------------------------------------------------------------
 
-wxDEFINE_EVENT( wxEVT_COMMAND_COLLPANE_CHANGED, wxCollapsiblePaneEvent );
+wxDEFINE_EVENT( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEvent );
 IMPLEMENT_DYNAMIC_CLASS(wxGenericCollapsiblePane, wxControl)
 IMPLEMENT_DYNAMIC_CLASS(wxCollapsiblePaneEvent, wxCommandEvent)
 
@@ -189,6 +188,8 @@ void wxGenericCollapsiblePane::Collapse(bool collapse)
     // optimization
     if ( IsCollapsed() == collapse )
         return;
+
+    InvalidateBestSize();
 
     // update our state
     m_pPane->Show(!collapse);

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: metafile.cpp 70710 2012-02-27 15:37:24Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

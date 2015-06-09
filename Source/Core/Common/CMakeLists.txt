@@ -1,56 +1,62 @@
-set(SRCS	Src/BreakPoints.cpp
-			Src/CDUtils.cpp
-			Src/ColorUtil.cpp
-			Src/ConsoleListener.cpp
-			Src/FileSearch.cpp
-			Src/FileUtil.cpp
-			Src/Hash.cpp
-			Src/IniFile.cpp
-			Src/LogManager.cpp
-			Src/MathUtil.cpp
-			Src/MemArena.cpp
-			Src/MemoryUtil.cpp
-			Src/Misc.cpp
-			Src/MsgHandler.cpp
-			Src/NandPaths.cpp
-			Src/SettingsHandler.cpp
-			Src/SDCardUtil.cpp
-			Src/StringUtil.cpp
-			Src/SymbolDB.cpp
-			Src/SysConf.cpp
-			Src/Thread.cpp
-			Src/Timer.cpp
-			Src/Version.cpp
-			Src/x64ABI.cpp
-			Src/x64Analyzer.cpp
-			Src/x64Emitter.cpp
-			Src/Crypto/aes_cbc.cpp
-			Src/Crypto/aes_core.cpp
-			Src/Crypto/bn.cpp
-			Src/Crypto/ec.cpp)
+set(SRCS BreakPoints.cpp
+         CDUtils.cpp
+         ColorUtil.cpp
+         ENetUtil.cpp
+         FileSearch.cpp
+         FileUtil.cpp
+         GekkoDisassembler.cpp
+         Hash.cpp
+         IniFile.cpp
+         JitRegister.cpp
+         MathUtil.cpp
+         MemArena.cpp
+         MemoryUtil.cpp
+         Misc.cpp
+         MsgHandler.cpp
+         NandPaths.cpp
+         Network.cpp
+         PcapFile.cpp
+         PerformanceCounter.cpp
+         Profiler.cpp
+         SettingsHandler.cpp
+         SDCardUtil.cpp
+         StringUtil.cpp
+         SymbolDB.cpp
+         SysConf.cpp
+         Thread.cpp
+         Timer.cpp
+         TraversalClient.cpp
+         Version.cpp
+         x64ABI.cpp
+         x64Analyzer.cpp
+         x64Emitter.cpp
+         Crypto/bn.cpp
+         Crypto/ec.cpp
+         Logging/ConsoleListenerNix.cpp
+         Logging/LogManager.cpp)
 
-if(_M_ARM) #ARM
-	set(SRCS	${SRCS}
-				Src/ArmCPUDetect.cpp
-				Src/ArmEmitter.cpp)
+set(LIBS enet)
+if(_M_ARM_64)
+	set(SRCS ${SRCS}
+	         Arm64Emitter.cpp
+	         ArmCPUDetect.cpp
+	         GenericFPURoundMode.cpp)
 else()
-	if(NOT _M_GENERIC) #X86
-		set(SRCS	${SRCS}
-					Src/x64FPURoundMode.cpp
-					Src/x64Thunk.cpp
-					)
+	if(_M_X86) #X86
+		set(SRCS ${SRCS}
+		         x64FPURoundMode.cpp
+		         x64CPUDetect.cpp)
+	else() # Generic
+		set(SRCS ${SRCS}
+		         GenericFPURoundMode.cpp
+		         GenericCPUDetect.cpp)
 	endif()
-	set(SRCS ${SRCS} Src/x64CPUDetect.cpp)
 endif()
-if(_M_GENERIC) #Generic
-	set(SRCS	${SRCS}
-				Src/GenericFPURoundMode.cpp)
+
+set(LIBS "${CMAKE_THREAD_LIBS_INIT}" ${VTUNE_LIBRARIES})
+if(NOT APPLE AND NOT ANDROID)
+	set(LIBS ${LIBS} rt)
 endif()
-if(WIN32)
-	set(SRCS ${SRCS} Src/ExtendedTrace.cpp)
-endif(WIN32)
 
-enable_precompiled_headers(Src/stdafx.h Src/stdafx.cpp SRCS)
-
-add_library(common STATIC ${SRCS})
-target_link_libraries(common ${CMAKE_THREAD_LIBS_INIT})
+add_dolphin_library(common "${SRCS}" "${LIBS}")
+add_executable(traversal_server TraversalServer.cpp)

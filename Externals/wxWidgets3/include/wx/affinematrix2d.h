@@ -36,7 +36,7 @@ public:
     virtual bool IsEqual(const wxAffineMatrix2DBase& t) const;
     virtual void Translate(wxDouble dx, wxDouble dy);
     virtual void Scale(wxDouble xScale, wxDouble yScale);
-    virtual void Rotate(wxDouble ccRadians);
+    virtual void Rotate(wxDouble cRadians);
 
 protected:
     virtual wxPoint2DDouble DoTransformPoint(const wxPoint2DDouble& p) const;

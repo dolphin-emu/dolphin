@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: checkbox.cpp 70015 2011-12-16 11:03:15Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -104,7 +103,18 @@ bool wxCheckBox::Create(wxWindow *parent,
     if ( !CreateControl(parent, id, pos, size, style, validator, name) )
         return false;
 
-    long msStyle = WS_TABSTOP;
+    WXDWORD exstyle;
+    WXDWORD msStyle = MSWGetStyle(style, &exstyle);
+
+    msStyle |= wxMSWButton::GetMultilineStyle(label);
+
+    return MSWCreateControl(wxT("BUTTON"), msStyle, pos, size, label, exstyle);
+}
+
+WXDWORD wxCheckBox::MSWGetStyle(long style, WXDWORD *exstyle) const
+{
+    // buttons never have an external border, they draw their own one
+    WXDWORD msStyle = wxControl::MSWGetStyle(style, exstyle);
 
     if ( style & wxCHK_3STATE )
         msStyle |= BS_3STATE;
@@ -116,16 +126,14 @@ bool wxCheckBox::Create(wxWindow *parent,
         msStyle |= BS_LEFTTEXT | BS_RIGHT;
     }
 
-    msStyle |= wxMSWButton::GetMultilineStyle(label);
-
-    return MSWCreateControl(wxT("BUTTON"), msStyle, pos, size, label, 0);
+    return msStyle;
 }
 
 // ----------------------------------------------------------------------------
 // wxCheckBox geometry
 // ----------------------------------------------------------------------------
 
-wxSize wxCheckBox::DoGetBestSize() const
+wxSize wxCheckBox::DoGetBestClientSize() const
 {
     static int s_checkSize = 0;
 
@@ -252,7 +260,7 @@ bool wxCheckBox::MSWCommand(WXUINT cmd, WXWORD WXUNUSED(id))
 
 
     // generate the event
-    wxCommandEvent event(wxEVT_COMMAND_CHECKBOX_CLICKED, m_windowId);
+    wxCommandEvent event(wxEVT_CHECKBOX, m_windowId);
 
     event.SetInt(state);
     event.SetEventObject(this);
@@ -273,7 +281,7 @@ bool wxCheckBox::SetForegroundColour(const wxColour& colour)
     // the only way to change the checkbox foreground colour under Windows XP
     // is to owner draw it
     if ( wxUxThemeEngine::GetIfActive() )
-        MakeOwnerDrawn(colour.IsOk());
+        MSWMakeOwnerDrawn(colour.IsOk());
 
     return true;
 }
@@ -284,7 +292,7 @@ bool wxCheckBox::IsOwnerDrawn() const
         (::GetWindowLong(GetHwnd(), GWL_STYLE) & BS_OWNERDRAW) == BS_OWNERDRAW;
 }
 
-void wxCheckBox::MakeOwnerDrawn(bool ownerDrawn)
+void wxCheckBox::MSWMakeOwnerDrawn(bool ownerDrawn)
 {
     long style = ::GetWindowLong(GetHwnd(), GWL_STYLE);
 
@@ -369,32 +377,35 @@ bool wxCheckBox::MSWOnDraw(WXDRAWITEMSTRUCT *item)
     RECT& rect = dis->rcItem;
     RECT rectCheck,
          rectLabel;
-    rectCheck.top =
-    rectLabel.top = rect.top;
-    rectCheck.bottom =
-    rectLabel.bottom = rect.bottom;
-    const int checkSize = GetBestSize().y;
+    rectLabel.top = rect.top + (rect.bottom - rect.top - GetBestSize().y) / 2;
+    rectLabel.bottom = rectLabel.top + GetBestSize().y;
     const int MARGIN = 3;
+    const int CXMENUCHECK = ::GetSystemMetrics(SM_CXMENUCHECK);
+    // the space between the checkbox and the label is included in the
+    // check-mark bitmap
+    const int checkSize = wxMin(CXMENUCHECK - MARGIN, GetSize().y);
+    rectCheck.top = rect.top + (rect.bottom - rect.top - checkSize) / 2;
+    rectCheck.bottom = rectCheck.top + checkSize;
 
     const bool isRightAligned = HasFlag(wxALIGN_RIGHT);
     if ( isRightAligned )
     {
-        rectCheck.right = rect.right;
-        rectCheck.left = rectCheck.right - checkSize;
-
-        rectLabel.right = rectCheck.left - MARGIN;
+        rectLabel.right = rect.right - CXMENUCHECK;
         rectLabel.left = rect.left;
+
+        rectCheck.left = rectLabel.right + ( CXMENUCHECK + MARGIN - checkSize ) / 2;
+        rectCheck.right = rectCheck.left + checkSize;
     }
     else // normal, left-aligned checkbox
     {
-        rectCheck.left = rect.left;
+        rectCheck.left = rect.left + ( CXMENUCHECK - MARGIN - checkSize ) / 2;
         rectCheck.right = rectCheck.left + checkSize;
 
-        rectLabel.left = rectCheck.right + MARGIN;
+        rectLabel.left = rect.left + CXMENUCHECK;
         rectLabel.right = rect.right;
     }
 
-    // show we draw a focus rect?
+    // shall we draw a focus rect?
     const bool isFocused = m_isPressed || FindFocus() == this;
 
 
@@ -447,10 +458,20 @@ bool wxCheckBox::MSWOnDraw(WXDRAWITEMSTRUCT *item)
     // around it
     if ( isFocused )
     {
-        if ( !::DrawText(hdc, label.wx_str(), label.length(), &rectLabel,
+        RECT oldLabelRect = rectLabel; // needed if right aligned
+
+        if ( !::DrawText(hdc, label.t_str(), label.length(), &rectLabel,
                          fmt | DT_CALCRECT) )
         {
             wxLogLastError(wxT("DrawText(DT_CALCRECT)"));
+        }
+
+        if ( isRightAligned )
+        {
+            // move the label rect to the right
+            const int labelWidth = rectLabel.right - rectLabel.left;
+            rectLabel.right = oldLabelRect.right;
+            rectLabel.left = rectLabel.right - labelWidth;
         }
     }
 
@@ -459,7 +480,7 @@ bool wxCheckBox::MSWOnDraw(WXDRAWITEMSTRUCT *item)
         ::SetTextColor(hdc, ::GetSysColor(COLOR_GRAYTEXT));
     }
 
-    if ( !::DrawText(hdc, label.wx_str(), label.length(), &rectLabel, fmt) )
+    if ( !::DrawText(hdc, label.t_str(), label.length(), &rectLabel, fmt) )
     {
         wxLogLastError(wxT("DrawText()"));
     }

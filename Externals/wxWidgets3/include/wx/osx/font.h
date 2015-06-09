@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.h 70445 2012-01-23 11:28:21Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -36,6 +35,20 @@ class WXDLLIMPEXP_CORE wxFont : public wxFontBase
 public:
     // ctors and such
     wxFont() { }
+
+    wxFont(const wxFontInfo& info)
+    {
+        Create(info.GetPointSize(),
+               info.GetFamily(),
+               info.GetStyle(),
+               info.GetWeight(),
+               info.IsUnderlined(),
+               info.GetFaceName(),
+               info.GetEncoding());
+
+        if ( info.IsUsingSizeInPixels() )
+            SetPixelSize(info.GetPixelSize());
+    }
 
     wxFont( wxOSXSystemFont systemFont );
 
@@ -79,19 +92,6 @@ public:
         SetPixelSize(pixelSize);
     }
 
-    wxFont(int pointSize,
-           wxFontFamily family,
-           int flags = wxFONTFLAG_DEFAULT,
-           const wxString& face = wxEmptyString,
-           wxFontEncoding encoding = wxFONTENCODING_DEFAULT)
-    {
-        Create(pointSize, family,
-               GetStyleFromFlags(flags),
-               GetWeightFromFlags(flags),
-               GetUnderlinedFromFlags(flags),
-               face, encoding);
-    }
-
     bool Create(int size,
                 wxFontFamily family,
                 wxFontStyle style,
@@ -120,6 +120,8 @@ public:
     virtual wxString GetFaceName() const;
     virtual wxFontEncoding GetEncoding() const;
     virtual const wxNativeFontInfo *GetNativeFontInfo() const;
+
+    virtual bool IsFixedWidth() const;
 
     virtual void SetPointSize(int pointSize);
     virtual void SetFamily(wxFontFamily family);
@@ -150,9 +152,7 @@ public:
     CGFontRef OSXGetCGFont() const;
 #endif
 
-#if wxOSX_USE_CORE_TEXT
     CTFontRef OSXGetCTFont() const;
-#endif
 
 #if wxOSX_USE_ATSU_TEXT
     // Returns an ATSUStyle not ATSUStyle*

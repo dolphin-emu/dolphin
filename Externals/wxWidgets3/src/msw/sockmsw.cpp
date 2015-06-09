@@ -6,7 +6,6 @@
 // Copyright:  (C) 1999-1997, Guilhem Lavaux
 //             (C) 1999-2000, Guillermo Rodriguez Garcia
 //             (C) 2008 Vadim Zeitlin
-// RCS_ID:     $Id: sockmsw.cpp 69170 2011-09-21 15:07:32Z VZ $
 // Licence:    wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -120,7 +119,7 @@ typedef struct thread_data{
 #ifdef __WXWINCE__
 /* This thread handles socket events on WinCE using WSAEventSelect() as
  * WSAAsyncSelect is not supported. When an event occurs for the socket, it is
- * checked what kind of event happend and the correct message gets posted so
+ * checked what kind of event happened and the correct message gets posted so
  * that the hidden window can handle it as it would in other MSW builds.
 */
 DWORD WINAPI SocketThread(LPVOID data)
@@ -192,7 +191,7 @@ wxDynamicLibrary wxSocketMSWManager::gs_wsock32dll;
 
 bool wxSocketMSWManager::OnInit()
 {
-  static LPCTSTR pclassname = NULL;
+  LPCTSTR pclassname = NULL;
   int i;
 
   /* Create internal window for event notifications */

@@ -4,7 +4,6 @@
 //              platform-specific wxFileCtrl's
 // Author:      Diaa M. Sami
 // Created:     2007-07-07
-// RCS-ID:      $Id: filectrlcmn.cpp 64429 2010-05-29 10:35:47Z VZ $
 // Copyright:   (c) Diaa M. Sami
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

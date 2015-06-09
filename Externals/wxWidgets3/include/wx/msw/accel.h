@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     31/7/98
-// RCS-ID:      $Id: accel.h 52834 2008-03-26 15:06:00Z FM $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,6 @@
 // Author:      Brian Victor, Vadim Zeitlin
 // Modified by:
 // Created:     12/05/02
-// RCS-ID:      $Id: displayx11.cpp 64388 2010-05-23 16:31:33Z PC $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -232,14 +231,14 @@ wxDisplayImpl *wxDisplayFactoryX11::CreateDisplay(unsigned n)
 // Correct res rate from GLFW
 #define wxCRR2(v,dc) (int) (((1000.0f * (float) dc) /*PIXELS PER SECOND */) / ((float) v.htotal * v.vtotal /*PIXELS PER FRAME*/) + 0.5f)
 #define wxCRR(v) wxCRR2(v,v.dotclock)
-#define wxCVM2(v, dc) wxVideoMode(v.hdisplay, v.vdisplay, DefaultDepth((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay())), wxCRR2(v,dc))
-#define wxCVM(v) wxCVM2(v, v.dotclock)
+#define wxCVM2(v, dc, display, nScreen) wxVideoMode(v.hdisplay, v.vdisplay, DefaultDepth(display, nScreen), wxCRR2(v,dc))
+#define wxCVM(v, display, nScreen) wxCVM2(v, v.dotclock, display, nScreen)
 
 wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& mode) const
 {
     //Convenience...
-    Display* pDisplay = (Display*) wxGetDisplay(); //default display
-    int nScreen = DefaultScreen(pDisplay); //default screen of (default) display...
+    Display* display = (Display*) wxGetDisplay(); //default display
+    int nScreen = DefaultScreen(display); //default screen of (default) display...
 
     //Some variables..
     XF86VidModeModeInfo** ppXModes; //Enumerated Modes (Don't forget XFree() :))
@@ -247,16 +246,17 @@ wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& mode) const
 
     wxArrayVideoModes Modes; //modes to return...
 
-    if (XF86VidModeGetAllModeLines(pDisplay, nScreen, &nNumModes, &ppXModes) == TRUE)
+    if (XF86VidModeGetAllModeLines(display, nScreen, &nNumModes, &ppXModes))
     {
         for (int i = 0; i < nNumModes; ++i)
         {
-            if (mode == wxDefaultVideoMode || //According to display.h All modes valid if dafault mode...
-                mode.Matches(wxCVM((*ppXModes[i]))) ) //...?
+            XF86VidModeModeInfo& info = *ppXModes[i];
+            const wxVideoMode vm = wxCVM(info, display, nScreen);
+            if (vm.Matches(mode))
             {
-                Modes.Add(wxCVM((*ppXModes[i])));
+                Modes.Add(vm);
             }
-            wxClearXVM((*ppXModes[i]));
+            wxClearXVM(info);
         //  XFree(ppXModes[i]); //supposed to free?
         }
         XFree(ppXModes);
@@ -271,20 +271,23 @@ wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& mode) const
 
 wxVideoMode wxDisplayImplX11::GetCurrentMode() const
 {
+  Display* display = static_cast<Display*>(wxGetDisplay());
+  int nScreen = DefaultScreen(display);
   XF86VidModeModeLine VM;
   int nDotClock;
-  XF86VidModeGetModeLine((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay()),
-                         &nDotClock, &VM);
+  XF86VidModeGetModeLine(display, nScreen, &nDotClock, &VM);
   wxClearXVM(VM);
-  return wxCVM2(VM, nDotClock);
+  return wxCVM2(VM, nDotClock, display, nScreen);
 }
 
 bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
 {
+    Display* display = static_cast<Display*>(wxGetDisplay());
+    int nScreen = DefaultScreen(display);
     XF86VidModeModeInfo** ppXModes; //Enumerated Modes (Don't forget XFree() :))
     int nNumModes; //Number of modes enumerated....
 
-    if( !XF86VidModeGetAllModeLines((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay()), &nNumModes, &ppXModes) )
+    if(!XF86VidModeGetAllModeLines(display, nScreen, &nNumModes, &ppXModes))
     {
         wxLogSysError(_("Failed to change video mode"));
         return false;
@@ -293,8 +296,7 @@ bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
     bool bRet = false;
     if (mode == wxDefaultVideoMode)
     {
-        bRet = XF86VidModeSwitchToMode((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay()),
-                     ppXModes[0]) == TRUE;
+        bRet = XF86VidModeSwitchToMode(display, nScreen, ppXModes[0]) != 0;
 
         for (int i = 0; i < nNumModes; ++i)
         {
@@ -312,8 +314,7 @@ bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
                 wxCRR((*ppXModes[i])) == mode.GetRefresh())
             {
                 //switch!
-                bRet = XF86VidModeSwitchToMode((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay()),
-                         ppXModes[i]) == TRUE;
+                bRet = XF86VidModeSwitchToMode(display, nScreen, ppXModes[i]) != 0;
             }
             wxClearXVM((*ppXModes[i]));
         //  XFree(ppXModes[i]); //supposed to free?
@@ -324,7 +325,6 @@ bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
 
     return bRet;
 }
-
 
 #else // !HAVE_X11_EXTENSIONS_XF86VMODE_H
 
@@ -340,7 +340,7 @@ wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& modeMatch) const
             wxVideoMode mode(m_rect.GetWidth(), m_rect.GetHeight(), depths[x]);
             if ( mode.Matches(modeMatch) )
             {
-                modes.Add(modeMatch);
+                modes.Add(mode);
             }
         }
 
@@ -382,7 +382,7 @@ bool wxDisplayImplX11::ChangeMode(const wxVideoMode& WXUNUSED(mode))
 
 #include "wx/utils.h"
 
-#if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
+#if wxUSE_LIBHILDON || wxUSE_LIBHILDON2 || !defined(GDK_WINDOWING_X11)
 
 void wxClientDisplayRect(int *x, int *y, int *width, int *height)
 {
@@ -424,6 +424,8 @@ void wxClientDisplayRect(int *x, int *y, int *width, int *height)
     Display * const dpy = wxGetX11Display();
     wxCHECK_RET( dpy, wxT("can't be called before initializing the GUI") );
 
+    wxRect rectClient;
+
     const Atom atomWorkArea = XInternAtom(dpy, "_NET_WORKAREA", True);
     if ( atomWorkArea )
     {
@@ -459,29 +461,46 @@ void wxClientDisplayRect(int *x, int *y, int *width, int *height)
                         numItems != 4 )
             {
                 wxLogDebug(wxT("XGetWindowProperty(\"_NET_WORKAREA\") failed"));
-                return;
             }
-
-            if ( x )
-                *x = workareas[0];
-            if ( y )
-                *y = workareas[1];
-            if ( width )
-                *width = workareas[2];
-            if ( height )
-                *height = workareas[3];
-
-            return;
+            else
+            {
+                rectClient = wxRect(workareas[0], workareas[1],
+                                    workareas[2], workareas[3]);
+            }
         }
     }
 
-    // if we get here, _NET_WORKAREA is not supported so return the entire
-    // screen size as fall back
-    if (x)
-        *x = 0;
-    if (y)
-        *y = 0;
-    wxDisplaySize(width, height);
+    // Although _NET_WORKAREA is supposed to return the client size of the
+    // screen, not all implementations are conforming, apparently, see #14419,
+    // so make sure we return a subset of the primary display.
+    wxRect rectFull;
+#if wxUSE_DISPLAY
+    ScreensInfo screens;
+    const ScreenInfo& info = screens[0];
+    rectFull = wxRect(info.x_org, info.y_org, info.width, info.height);
+#else
+    wxDisplaySize(&rectFull.width, &rectFull.height);
+#endif
+
+    if ( !rectClient.width || !rectClient.height )
+    {
+        // _NET_WORKAREA not available or didn't work, fall back to the total
+        // display size.
+        rectClient = rectFull;
+    }
+    else
+    {
+        rectClient = rectClient.Intersect(rectFull);
+    }
+
+    if ( x )
+        *x = rectClient.x;
+    if ( y )
+        *y = rectClient.y;
+    if ( width )
+        *width = rectClient.width;
+    if ( height )
+        *height = rectClient.height;
 }
 
 #endif // wxUSE_LIBHILDON/!wxUSE_LIBHILDON

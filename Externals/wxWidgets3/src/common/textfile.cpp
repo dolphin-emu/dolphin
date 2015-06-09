@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.04.98
-// RCS-ID:      $Id: textfile.cpp 61508 2009-07-23 20:30:22Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,8 +208,8 @@ bool wxTextFile::OnRead(const wxMBConv& conv)
 
     // now break the buffer in lines
 
-    // last processed character, we need to know if it was a CR or not
-    wxChar chLast = '\0';
+    // was the last processed character a CR?
+    bool lastWasCR = false;
 
     // the beginning of the current line, changes inside the loop
     wxString::const_iterator lineStart = str.begin();
@@ -222,7 +221,7 @@ bool wxTextFile::OnRead(const wxMBConv& conv)
         {
             case '\n':
                 // could be a DOS or Unix EOL
-                if ( chLast == '\r' )
+                if ( lastWasCR )
                 {
                     if ( p - 1 >= lineStart )
                     {
@@ -240,10 +239,11 @@ bool wxTextFile::OnRead(const wxMBConv& conv)
                 }
 
                 lineStart = p + 1;
+                lastWasCR = false;
                 break;
 
             case '\r':
-                if ( chLast == '\r' )
+                if ( lastWasCR )
                 {
                     // Mac empty line
                     AddLine(wxEmptyString, wxTextFileType_Mac);
@@ -251,10 +251,12 @@ bool wxTextFile::OnRead(const wxMBConv& conv)
                 }
                 //else: we don't know what this is yet -- could be a Mac EOL or
                 //      start of DOS EOL so wait for next char
+
+                lastWasCR = true;
                 break;
 
             default:
-                if ( chLast == '\r' )
+                if ( lastWasCR )
                 {
                     // Mac line termination
                     if ( p - 1 >= lineStart )
@@ -268,16 +270,31 @@ bool wxTextFile::OnRead(const wxMBConv& conv)
                     }
                     lineStart = p;
                 }
+                lastWasCR = false;
         }
-
-        chLast = ch;
     }
 
     // anything in the last line?
     if ( lineStart != end )
     {
-        // add unterminated last line
-        AddLine(wxString(lineStart, end), wxTextFileType_None);
+        // add the last line, notice that it may have been terminated with CR
+        // as we don't end the line immediately when we see a CR, as it could
+        // be followed by a LF.
+        wxString lastLine(lineStart, end);
+        wxTextFileType lastType;
+        if ( lastWasCR )
+        {
+            // last line had Mac EOL, exclude it from the string
+            lastLine.RemoveLast();
+            lastType = wxTextFileType_Mac;
+        }
+        else
+        {
+            // last line wasn't terminated at all
+            lastType = wxTextFileType_None;
+        }
+
+        AddLine(lastLine, lastType);
     }
 
     return true;

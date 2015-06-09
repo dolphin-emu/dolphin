@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: msgdlg.cpp 70409 2012-01-20 12:30:08Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,9 +41,10 @@
 #include "wx/msw/private/button.h"
 #include "wx/msw/private/metrics.h"
 #include "wx/msw/private/msgdlg.h"
+#include "wx/modalhook.h"
+#include "wx/fontutil.h"
 
 #if wxUSE_MSGBOX_HOOK
-    #include "wx/fontutil.h"
     #include "wx/textbuf.h"
     #include "wx/display.h"
 #endif
@@ -271,7 +271,7 @@ void wxMessageDialog::ReplaceStaticWithEdit()
     HWND hwndEdit = ::CreateWindow
                       (
                         wxT("EDIT"),
-                        wxTextBuffer::Translate(text).wx_str(),
+                        wxTextBuffer::Translate(text).t_str(),
                         WS_CHILD | WS_VSCROLL | WS_VISIBLE |
                         ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,
                         rc.left, rc.top,
@@ -373,7 +373,7 @@ void wxMessageDialog::AdjustButtonLabels()
         if ( widthNeeded > wBtnNew )
             wBtnNew = widthNeeded;
 
-        ::SetWindowText(hwndBtn, label.wx_str());
+        ::SetWindowText(hwndBtn, label.t_str());
     }
 
     if ( wBtnNew <= wBtnOld )
@@ -584,13 +584,15 @@ int wxMessageDialog::ShowMessageBox()
 #endif // wxUSE_MSGBOX_HOOK
 
     // do show the dialog
-    int msAns = MessageBox(hWnd, message.wx_str(), m_caption.wx_str(), msStyle);
+    int msAns = MessageBox(hWnd, message.t_str(), m_caption.t_str(), msStyle);
 
     return MSWTranslateReturnCode(msAns);
 }
 
 int wxMessageDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
 #ifdef wxHAS_MSW_TASKDIALOG
     if ( HasNativeTaskDialog() )
     {
@@ -624,6 +626,18 @@ int wxMessageDialog::ShowModal()
 #endif // wxHAS_MSW_TASKDIALOG
 
     return ShowMessageBox();
+}
+
+long wxMessageDialog::GetEffectiveIcon() const
+{
+    // only use the auth needed icon if available, otherwise fallback to the default logic
+    if ( (m_dialogStyle & wxICON_AUTH_NEEDED) &&
+        wxMSWMessageDialog::HasNativeTaskDialog() )
+    {
+        return wxICON_AUTH_NEEDED;
+    }
+
+    return wxMessageDialogBase::GetEffectiveIcon();
 }
 
 void wxMessageDialog::DoCentre(int dir)
@@ -696,7 +710,7 @@ void wxMSWTaskDialogConfig::MSWCommonTaskDialogInit(TASKDIALOGCONFIG &tdc)
                   TDF_POSITION_RELATIVE_TO_WINDOW |
                   TDF_SIZE_TO_CONTENT;
     tdc.hInstance = wxGetInstance();
-    tdc.pszWindowTitle = caption.wx_str();
+    tdc.pszWindowTitle = caption.t_str();
 
     // use the top level window as parent if none specified
     tdc.hwndParent = parent ? GetHwndOf(parent) : NULL;
@@ -713,12 +727,12 @@ void wxMSWTaskDialogConfig::MSWCommonTaskDialogInit(TASKDIALOGCONFIG &tdc)
     // message in our ctor, see comment there.
     if ( !extendedMessage.empty() )
     {
-        tdc.pszMainInstruction = message.wx_str();
-        tdc.pszContent = extendedMessage.wx_str();
+        tdc.pszMainInstruction = message.t_str();
+        tdc.pszContent = extendedMessage.t_str();
     }
     else
     {
-        tdc.pszContent = message.wx_str();
+        tdc.pszContent = message.t_str();
     }
 
     // set an icon to be used, if possible
@@ -734,6 +748,10 @@ void wxMSWTaskDialogConfig::MSWCommonTaskDialogInit(TASKDIALOGCONFIG &tdc)
 
         case wxICON_INFORMATION:
             tdc.pszMainIcon = TD_INFORMATION_ICON;
+            break;
+
+        case wxICON_AUTH_NEEDED:
+            tdc.pszMainIcon = TD_SHIELD_ICON;
             break;
     }
 
@@ -802,7 +820,7 @@ void wxMSWTaskDialogConfig::AddTaskDialogButton(TASKDIALOGCONFIG &tdc,
         TASKDIALOG_BUTTON &tdBtn = buttons[tdc.cButtons];
 
         tdBtn.nButtonID = btnCustomId;
-        tdBtn.pszButtonText = customLabel.wx_str();
+        tdBtn.pszButtonText = customLabel.t_str();
         tdc.cButtons++;
 
         // We should never have more than 4 buttons currently as this is the

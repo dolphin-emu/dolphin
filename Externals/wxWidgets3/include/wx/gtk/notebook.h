@@ -3,7 +3,6 @@
 // Purpose:     wxNotebook class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: notebook.h 70112 2011-12-24 18:19:26Z VZ $
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -107,9 +106,6 @@ public:
     bool DoPhase(int phase);
 #endif
 
-    // common part of all ctors
-    void Init();
-
     // Called by GTK event handler when the current page is definitely changed.
     void GTKOnPageChanged();
 
@@ -138,6 +134,7 @@ private:
     // the padding set by SetPadding()
     int m_padding;
 
+    void Init();
     virtual void AddChildGTK(wxWindowGTK* child);
 
     DECLARE_DYNAMIC_CLASS(wxNotebook)

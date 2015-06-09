@@ -3,7 +3,6 @@
 // Purpose:     Generic wxMarkupText class for managing text with markup.
 // Author:      Vadim Zeitlin
 // Created:     2011-02-21
-// RCS-ID:      $Id: markuptext.h 67064 2011-02-27 12:48:21Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

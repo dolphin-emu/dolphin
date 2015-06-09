@@ -3,7 +3,7 @@
  *
  * \brief RFC 1521 base64 encoding/decoding
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -57,7 +57,7 @@ int base64_encode( unsigned char *dst, size_t *dlen,
 /**
  * \brief          Decode a base64-formatted buffer
  *
- * \param dst      destination buffer
+ * \param dst      destination buffer (can be NULL for checking size)
  * \param dlen     size of the buffer
  * \param src      source buffer
  * \param slen     amount of data to be decoded
@@ -67,8 +67,8 @@ int base64_encode( unsigned char *dst, size_t *dlen,
  *                 not correct. *dlen is always updated to reflect the amount
  *                 of data that has (or would have) been written.
  *
- * \note           Call this function with *dlen = 0 to obtain the
- *                 required buffer size in *dlen
+ * \note           Call this function with *dst = NULL or *dlen = 0 to obtain
+ *                 the required buffer size in *dlen
  */
 int base64_decode( unsigned char *dst, size_t *dlen,
                    const unsigned char *src, size_t slen );

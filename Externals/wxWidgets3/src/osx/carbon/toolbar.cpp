@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.cpp 67230 2011-03-18 14:20:12Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -114,14 +113,6 @@ public:
         if ( m_toolbarItemRef )
         {
             CFIndex count = CFGetRetainCount( m_toolbarItemRef ) ;
-            // different behaviour under Leopard
-            if ( UMAGetSystemVersion() < 0x1050 )
-            {
-                if ( count != 1 )
-                {
-                    wxFAIL_MSG("Reference count of native tool was not 1 in wxToolBarTool destructor");
-                }
-            }
             wxTheApp->MacAddToAutorelease(m_toolbarItemRef);
             CFRelease(m_toolbarItemRef);
             m_toolbarItemRef = NULL;
@@ -932,15 +923,16 @@ wxToolBar::~wxToolBar()
     if ( !m_macToolbar )
         return;
 
-    CFIndex count = CFGetRetainCount( m_macToolbar ) ;
-    // Leopard seems to have one refcount more, so we cannot check reliably at the moment
-    if ( UMAGetSystemVersion() < 0x1050 )
+    // it might already have been uninstalled due to a previous call to Destroy, but in case
+    // wasn't, do so now, otherwise redraw events may occur for deleted objects
+    bool ownToolbarInstalled = false;
+    MacTopLevelHasNativeToolbar( &ownToolbarInstalled );
+    if (ownToolbarInstalled)
     {
-        if ( count != 1 )
-        {
-            wxFAIL_MSG("Reference count of native control was not 1 in wxToolBar destructor");
-        }
+        MacUninstallNativeToolbar();
     }
+
+    CFIndex count = CFGetRetainCount( m_macToolbar ) ;
     CFRelease( (HIToolbarRef)m_macToolbar );
     m_macToolbar = NULL;
 #endif // wxOSX_USE_NATIVE_TOOLBAR
@@ -1111,7 +1103,7 @@ bool wxToolBar::MacInstallNativeToolbar(bool usesNative)
             // which we don't want in this case
             wxSize sz = GetParent()->GetSize();
             ShowHideWindowToolbar( tlw, true, false );
-            // Restore the orginal size
+            // Restore the original size
             GetParent()->SetSize( sz );
 
             ChangeWindowAttributes( tlw, kWindowToolbarButtonAttribute, 0 );
@@ -1608,26 +1600,12 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
         case wxTOOL_STYLE_BUTTON:
             {
                 wxASSERT( tool->GetControlHandle() == NULL );
-                ControlButtonContentInfo info;
-                wxMacCreateBitmapButton( &info, tool->GetNormalBitmap() );
 
-                if ( UMAGetSystemVersion() >= 0x1000)
-                {
-                    // contrary to the docs this control only works with iconrefs
-                    ControlButtonContentInfo info;
-                    wxMacCreateBitmapButton( &info, tool->GetNormalBitmap(), kControlContentIconRef );
-                    CreateIconControl( window, &toolrect, &info, false, &controlHandle );
-                    wxMacReleaseBitmapButton( &info );
-                }
-                else
-                {
-                    SInt16 behaviour = kControlBehaviorOffsetContents;
-                    if ( tool->CanBeToggled() )
-                        behaviour |= kControlBehaviorToggles;
-                    err = CreateBevelButtonControl( window,
-                        &toolrect, CFSTR(""), kControlBevelButtonNormalBevel,
-                        behaviour, &info, 0, 0, 0, &controlHandle );
-                }
+                // contrary to the docs this control only works with iconrefs
+                ControlButtonContentInfo info;
+                wxMacCreateBitmapButton( &info, tool->GetNormalBitmap(), kControlContentIconRef );
+                CreateIconControl( window, &toolrect, &info, false, &controlHandle );
+                wxMacReleaseBitmapButton( &info );
 
 #if wxOSX_USE_NATIVE_TOOLBAR
                 if (m_macToolbar != NULL)

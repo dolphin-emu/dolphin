@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dialog.cpp 70511 2012-02-05 14:18:22Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,6 +24,7 @@
 #endif
 
 #include "wx/dialog.h"
+#include "wx/modalhook.h"
 
 #ifndef WX_PRECOMP
     #include "wx/msw/wrapcdlg.h"
@@ -197,6 +197,8 @@ bool wxDialog::Show(bool show)
 // show dialog modally
 int wxDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     wxASSERT_MSG( !IsModal(), wxT("ShowModal() can't be called twice") );
 
     Show();
@@ -333,7 +335,7 @@ bool wxDialog::DoOK()
     if ( EmulateButtonClickIfPresent(idOk) )
         return true;
 
-    wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, GetAffirmativeId());
+    wxCommandEvent event(wxEVT_BUTTON, GetAffirmativeId());
     event.SetEventObject(this);
 
     return HandleWindowEvent(event);
@@ -459,7 +461,7 @@ WXLRESULT wxDialog::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPar
     }
 
     if ( !processed )
-        rc = wxWindow::MSWWindowProc(message, wParam, lParam);
+        rc = wxDialogBase::MSWWindowProc(message, wParam, lParam);
 
     return rc;
 }

@@ -4,7 +4,6 @@
  * Author:      Julian Smart
  * Modified by:
  * Created:     01/02/97
- * RCS-ID:      $Id: chkconf.h 61926 2009-09-14 13:07:23Z SC $
  * Copyright:   (c) Julian Smart
  * Licence:     wxWindows licence
  */
@@ -31,22 +30,7 @@
  * text rendering system
  */
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
-
-    #define wxOSX_USE_CORE_TEXT 1
-    // MLTE-TextControl uses ATSU
-    #define wxOSX_USE_ATSU_TEXT 1
-
-#else // platform < 10.5
-
-    #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-        #define wxOSX_USE_CORE_TEXT 1
-    #else
-        #define wxOSX_USE_CORE_TEXT 0
-    #endif
-    #define wxOSX_USE_ATSU_TEXT 1
-
-#endif
+#define wxOSX_USE_ATSU_TEXT 1
 
 /*
  * Audio System

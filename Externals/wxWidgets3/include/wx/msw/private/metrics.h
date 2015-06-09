@@ -3,7 +3,6 @@
 // Purpose:     various helper functions to retrieve system metrics
 // Author:      Vadim Zeitlin
 // Created:     2008-09-05
-// RCS-ID:      $Id: metrics.h 61508 2009-07-23 20:30:22Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

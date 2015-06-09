@@ -2,7 +2,6 @@
 // Name:        wx/gtk/filedlg.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: filedlg.h 70898 2012-03-14 12:32:27Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,7 +42,6 @@ public:
 
     virtual wxString GetPath() const;
     virtual void GetPaths(wxArrayString& paths) const;
-    virtual wxString GetDirectory() const;
     virtual wxString GetFilename() const;
     virtual void GetFilenames(wxArrayString& files) const;
     virtual int GetFilterIndex() const;
@@ -58,6 +56,9 @@ public:
     virtual int ShowModal();
 
     virtual bool SupportsExtraControl() const { return true; }
+
+    // Implementation only.
+    void GTKSelectionChanged(const wxString& filename);
 
 
 protected:

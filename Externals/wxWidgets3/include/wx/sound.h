@@ -4,7 +4,6 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004/02/01
-// RCS-ID:      $Id: sound.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2004, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

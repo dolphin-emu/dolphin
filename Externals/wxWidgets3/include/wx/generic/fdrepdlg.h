@@ -4,7 +4,6 @@
 // Author:      Markus Greither
 // Modified by:
 // Created:     25/05/2001
-// RCS-ID:      $Id: fdrepdlg.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

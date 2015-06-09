@@ -3,7 +3,6 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: combobox.h 70880 2012-03-11 23:55:19Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,6 +55,7 @@ public:
         Init();
         Create(parent, id, value, pos, size, choices, style, validator, name);
     }
+    ~wxComboBox();
 
     bool Create(wxWindow *parent, wxWindowID id,
                 const wxString& value = wxEmptyString,
@@ -143,6 +143,8 @@ protected:
     // Override in derived classes to create combo box widgets with
     // custom list stores.
     virtual void GTKCreateComboBoxWidget();
+
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const;
 
     virtual GtkEntry *GetEntry() const
         { return m_entry; }

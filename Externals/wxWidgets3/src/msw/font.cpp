@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.cpp 70446 2012-01-23 11:28:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -804,18 +803,18 @@ wxFont::wxFont(const wxString& fontdesc)
         (void)Create(info);
 }
 
-wxFont::wxFont(int pointSize,
-               wxFontFamily family,
-               int flags,
-               const wxString& face,
-               wxFontEncoding encoding)
+wxFont::wxFont(const wxFontInfo& info)
 {
-    m_refData = new wxFontRefData(pointSize, wxDefaultSize, false,
-                                  family,
-                                  GetStyleFromFlags(flags),
-                                  GetWeightFromFlags(flags),
-                                  GetUnderlinedFromFlags(flags),
-                                  false, face, encoding);
+    m_refData = new wxFontRefData(info.GetPointSize(),
+                                  info.GetPixelSize(),
+                                  info.IsUsingSizeInPixels(),
+                                  info.GetFamily(),
+                                  info.GetStyle(),
+                                  info.GetWeight(),
+                                  info.IsUnderlined(),
+                                  info.IsStrikethrough(),
+                                  info.GetFaceName(),
+                                  info.GetEncoding());
 }
 
 bool wxFont::Create(const wxNativeFontInfo& info, WXHFONT hFont)
@@ -841,7 +840,7 @@ bool wxFont::DoCreate(int pointSize,
 
     // wxDEFAULT is a valid value for the font size too so we must treat it
     // specially here (otherwise the size would be 70 == wxDEFAULT value)
-    if ( pointSize == wxDEFAULT )
+    if ( pointSize == wxDEFAULT || pointSize == -1 )
     {
         pointSize = wxNORMAL_FONT->GetPointSize();
     }

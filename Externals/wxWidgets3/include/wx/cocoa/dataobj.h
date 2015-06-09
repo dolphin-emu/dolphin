@@ -4,7 +4,6 @@
 // Author:      David Elliott <dfe@cox.net>
 // Modified by:
 // Created:     2003/07/23
-// RCS-ID:      $Id: dataobj.h 48095 2007-08-15 13:05:35Z VS $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

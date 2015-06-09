@@ -1,7 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        src/common/fontdata.cpp
 // Author:      Julian Smart
-// RCS-ID:      $Id: fontdata.cpp 66615 2011-01-07 05:26:57Z PC $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -67,3 +66,29 @@ wxFontData& wxFontData::operator=(const wxFontData& data)
     return *this;
 }
 #endif // wxUSE_FONTDLG || wxUSE_FONTPICKERCTRL
+
+#if wxUSE_FONTDLG
+
+#include "wx/fontdlg.h"
+
+wxFont wxGetFontFromUser(wxWindow *parent, const wxFont& fontInit, const wxString& caption)
+{
+    wxFontData data;
+    if ( fontInit.IsOk() )
+    {
+        data.SetInitialFont(fontInit);
+    }
+
+    wxFont fontRet;
+    wxFontDialog dialog(parent, data);
+    if (!caption.empty())
+        dialog.SetTitle(caption);
+    if ( dialog.ShowModal() == wxID_OK )
+    {
+        fontRet = dialog.GetFontData().GetChosenFont();
+    }
+    //else: leave it invalid
+
+    return fontRet;
+}
+#endif // wxUSE_FONTDLG

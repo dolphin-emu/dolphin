@@ -3,7 +3,6 @@
 // Purpose:     wxDateTimePickerCtrl for Windows.
 // Author:      Vadim Zeitlin
 // Created:     2011-09-22 (extracted from wx/msw/datectrl.h).
-// RCS-ID:      $Id: datetimectrl.h 69489 2011-10-20 16:45:48Z VZ $
 // Copyright:   (c) 2005-2011 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,12 +55,14 @@ protected:
     // override these methods anyhow, it does work -- but is definitely ugly
     // and need to be changed (but how?) in the future.
 
+#if wxUSE_INTL
     // Override to return the date/time format used by this control.
     virtual wxLocaleInfo MSWGetFormat() const /* = 0 */
     {
         wxFAIL_MSG( "Unreachable" );
         return wxLOCALE_TIME_FMT;
     }
+#endif // wxUSE_INTL
 
     // Override to indicate whether we can have no date at all.
     virtual bool MSWAllowsNone() const /* = 0 */

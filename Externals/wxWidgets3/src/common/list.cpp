@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     04/01/98
-// RCS-ID:      $Id: list.cpp 67769 2011-05-20 14:29:07Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ////////////////////////////////////////////////////////////////////////////////
@@ -762,6 +761,6 @@ void _WX_LIST_HELPER_wxStringListBase::DeleteFunction( wxString WXUNUSED(X) )
 {
 }
 
-wxStringListBase::BaseListType wxStringListBase::EmptyList;
+_WX_LIST_HELPER_wxStringListBase::BaseListType _WX_LIST_HELPER_wxStringListBase::EmptyList;
 
 #endif // !wxUSE_STD_CONTAINERS

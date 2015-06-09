@@ -3,7 +3,6 @@
 // Purpose:     private stuff for working with file descriptors
 // Author:      Vadim Zeitlin
 // Created:     2008-11-23 (moved from wx/unix/private.h)
-// RCS-ID:      $Id: fd.h 62790 2009-12-06 02:29:42Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

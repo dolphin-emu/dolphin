@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by: Kevin Ollivier
 // Created:     1998-01-01
-// RCS-ID:      $Id: textentry.h 67526 2011-04-17 23:14:15Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,6 +79,12 @@ public:
     virtual void SetSelection(long from, long to);
     virtual void SetEditable(bool editable);
 
+    virtual bool SendMaxLenEvent();
+
+    // set the grayed out hint text
+    virtual bool SetHint(const wxString& hint);
+    virtual wxString GetHint() const;
+
     // Implementation
     // --------------
 
@@ -101,6 +106,8 @@ protected:
   // need to make this public because of the current implementation via callbacks
     unsigned long  m_maxLength;
 
+private:
+    wxString m_hintString;
 };
 
 #endif // _WX_OSX_TEXTENTRY_H_

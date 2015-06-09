@@ -4,7 +4,6 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2006-12-24
-// RCS-ID:      $Id: nonownedwnd.h 70813 2012-03-05 13:00:57Z VZ $
 // Copyright:   (c) 2006 TT-Solutions
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

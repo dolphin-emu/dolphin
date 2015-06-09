@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: notebook.cpp 66643 2011-01-07 22:31:26Z SC $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -709,7 +708,7 @@ void wxNotebookTabView::OnTabActivate(int activateId, int deactivateId)
   if (!m_notebook)
     return;
 
-  wxBookCtrlEvent event(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, m_notebook->GetId());
+  wxBookCtrlEvent event(wxEVT_NOTEBOOK_PAGE_CHANGED, m_notebook->GetId());
 
   // Translate from wxTabView's ids (which aren't position-dependent)
   // to wxNotebook's (which are).
@@ -732,7 +731,7 @@ bool wxNotebookTabView::OnTabPreActivate(int activateId, int deactivateId)
 
   if (m_notebook)
   {
-    wxBookCtrlEvent event(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING, m_notebook->GetId());
+    wxBookCtrlEvent event(wxEVT_NOTEBOOK_PAGE_CHANGING, m_notebook->GetId());
 
     // Translate from wxTabView's ids (which aren't position-dependent)
     // to wxNotebook's (which are).

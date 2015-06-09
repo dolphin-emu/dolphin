@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin, Ryan Norton
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: stringimpl.cpp 70150 2011-12-28 13:51:13Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              (c) 2004 Ryan Norton <wxprojects@comcast.net>
 // Licence:     wxWindows licence

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: 2005-07-29: Vadim Zeitlin: redesign
 // Created:     04/01/98
-// RCS-ID:      $Id: sound.cpp 69178 2011-09-21 15:08:02Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

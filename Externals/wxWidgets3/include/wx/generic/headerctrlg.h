@@ -3,7 +3,6 @@
 // Purpose:     Generic wxHeaderCtrl implementation
 // Author:      Vadim Zeitlin
 // Created:     2008-12-01
-// RCS-ID:      $Id: headerctrlg.h 61024 2009-06-12 16:15:35Z RR $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,6 +47,10 @@ public:
 
     virtual ~wxHeaderCtrl();
 
+protected:
+    virtual wxSize DoGetBestSize() const;
+
+    
 private:
     // implement base class pure virtuals
     virtual void DoSetCount(unsigned int count);
@@ -58,9 +61,6 @@ private:
 
     virtual void DoSetColumnsOrder(const wxArrayInt& order);
     virtual wxArrayInt DoGetColumnsOrder() const;
-
-    // override wxWindow methods which must be implemented by a new control
-    virtual wxSize DoGetBestSize() const;
 
     // common part of all ctors
     void Init();
@@ -116,7 +116,7 @@ private:
 
     // start (if m_colBeingResized is -1) or continue resizing the column
     //
-    // this generates wxEVT_COMMAND_HEADER_BEGIN_RESIZE/RESIZING events and can
+    // this generates wxEVT_HEADER_BEGIN_RESIZE/RESIZING events and can
     // cancel the operation if the user handler decides so
     void StartOrContinueResizing(unsigned int col, int xPhysical);
 

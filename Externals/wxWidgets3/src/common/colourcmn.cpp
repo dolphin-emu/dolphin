@@ -4,7 +4,6 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     20/4/2006
-// RCS-ID:      $Id: colourcmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -271,6 +270,16 @@ void wxColourBase::MakeDisabled(unsigned char* r, unsigned char* g, unsigned cha
     *r = AlphaBlend(*r, brightness, 0.4);
     *g = AlphaBlend(*g, brightness, 0.4);
     *b = AlphaBlend(*b, brightness, 0.4);
+}
+
+wxColour& wxColourBase::MakeDisabled(unsigned char brightness)
+{
+    unsigned char r = Red(),
+                  g = Green(),
+                  b = Blue();
+    MakeDisabled(&r, &g, &b, brightness);
+    Set(r, g, b, Alpha());
+    return static_cast<wxColour&>(*this);
 }
 
 // AlphaBlend is used by ChangeLightness and MakeDisabled

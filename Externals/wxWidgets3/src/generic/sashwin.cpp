@@ -6,7 +6,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: sashwin.cpp 58718 2009-02-07 18:59:25Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -115,8 +114,8 @@ void wxSashWindow::OnMouseEvent(wxMouseEvent& event)
             // the area to draw on.
             wxWindow* parent = this;
 
-            while (parent && !parent->IsKindOf(CLASSINFO(wxDialog)) &&
-                             !parent->IsKindOf(CLASSINFO(wxFrame)))
+            while (parent && !wxDynamicCast(parent, wxDialog) &&
+                             !wxDynamicCast(parent, wxFrame))
               parent = parent->GetParent();
 
             wxScreenDC::StartDrawingOnTop(parent);

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05/25/99
-// RCS-ID:      $Id: dcbase.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,13 +37,17 @@
     #include "wx/window.h"
 #endif
 
+#include "wx/private/textmeasure.h"
+
 #ifdef __WXMSW__
     #include "wx/msw/dcclient.h"
     #include "wx/msw/dcmemory.h"
     #include "wx/msw/dcscreen.h"
 #endif
 
-#ifdef __WXGTK20__
+#ifdef __WXGTK3__
+    #include "wx/gtk/dc.h"
+#elif defined __WXGTK20__
     #include "wx/gtk/dcclient.h"
     #include "wx/gtk/dcmemory.h"
     #include "wx/gtk/dcscreen.h"
@@ -334,6 +337,7 @@ wxDCImpl::wxDCImpl( wxDC *owner )
         , m_userScaleX(1.0), m_userScaleY(1.0)
         , m_scaleX(1.0), m_scaleY(1.0)
         , m_signX(1), m_signY(1)
+        , m_contentScaleFactor(1)
         , m_minX(0), m_minY(0), m_maxX(0), m_maxY(0)
         , m_clipX1(0), m_clipY1(0), m_clipX2(0), m_clipY2(0)
         , m_logicalFunction(wxCOPY)
@@ -363,6 +367,30 @@ wxDCImpl::wxDCImpl( wxDC *owner )
 
 wxDCImpl::~wxDCImpl()
 {
+}
+
+// ----------------------------------------------------------------------------
+// clipping
+// ----------------------------------------------------------------------------
+
+void wxDCImpl::DoSetClippingRegion(wxCoord x, wxCoord y, wxCoord w, wxCoord h)
+{
+    if ( m_clipping )
+    {
+        m_clipX1 = wxMax( m_clipX1, x );
+        m_clipY1 = wxMax( m_clipY1, y );
+        m_clipX2 = wxMin( m_clipX2, (x + w) );
+        m_clipY2 = wxMin( m_clipY2, (y + h) );
+    }
+    else
+    {
+        m_clipping = true;
+
+        m_clipX1 = x;
+        m_clipY1 = y;
+        m_clipX2 = x + w;
+        m_clipY2 = y + h;
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -485,78 +513,10 @@ void wxDCImpl::SetAxisOrientation( bool xLeftRight, bool yBottomUp )
     ComputeScaleAndOrigin();
 }
 
-
-// Each element of the widths array will be the width of the string up to and
-// including the corresponding character in text.  This is the generic
-// implementation, the port-specific classes should do this with native APIs
-// if available and if faster.  Note: pango_layout_index_to_pos is much slower
-// than calling GetTextExtent!!
-
-#define FWC_SIZE 256
-
-class FontWidthCache
-{
-public:
-    FontWidthCache() : m_scaleX(1), m_widths(NULL) { }
-    ~FontWidthCache() { delete []m_widths; }
-
-    void Reset()
-    {
-        if (!m_widths)
-            m_widths = new int[FWC_SIZE];
-
-        memset(m_widths, 0, sizeof(int)*FWC_SIZE);
-    }
-
-    wxFont m_font;
-    double m_scaleX;
-    int *m_widths;
-};
-
-static FontWidthCache s_fontWidthCache;
-
 bool wxDCImpl::DoGetPartialTextExtents(const wxString& text, wxArrayInt& widths) const
 {
-    int totalWidth = 0;
-
-    const size_t len = text.length();
-    widths.Empty();
-    widths.Add(0, len);
-
-    // reset the cache if font or horizontal scale have changed
-    if ( !s_fontWidthCache.m_widths ||
-         !wxIsSameDouble(s_fontWidthCache.m_scaleX, m_scaleX) ||
-         (s_fontWidthCache.m_font != GetFont()) )
-    {
-        s_fontWidthCache.Reset();
-        s_fontWidthCache.m_font = GetFont();
-        s_fontWidthCache.m_scaleX = m_scaleX;
-    }
-
-    // Calculate the position of each character based on the widths of
-    // the previous characters
-    int w, h;
-    for ( size_t i = 0; i < len; i++ )
-    {
-        const wxChar c = text[i];
-        unsigned int c_int = (unsigned int)c;
-
-        if ((c_int < FWC_SIZE) && (s_fontWidthCache.m_widths[c_int] != 0))
-        {
-            w = s_fontWidthCache.m_widths[c_int];
-        }
-        else
-        {
-            DoGetTextExtent(c, &w, &h);
-            if (c_int < FWC_SIZE)
-                s_fontWidthCache.m_widths[c_int] = w;
-        }
-
-        totalWidth += w;
-        widths[i] = totalWidth;
-    }
-
-    return true;
+    wxTextMeasure tm(GetOwner(), &m_font);
+    return tm.GetPartialTextExtents(text, widths, m_scaleX);
 }
 
 void wxDCImpl::GetMultiLineTextExtent(const wxString& text,
@@ -565,64 +525,8 @@ void wxDCImpl::GetMultiLineTextExtent(const wxString& text,
                                       wxCoord *h,
                                       const wxFont *font) const
 {
-    wxCoord widthTextMax = 0, widthLine,
-            heightTextTotal = 0, heightLineDefault = 0, heightLine = 0;
-
-    wxString curLine;
-    for ( wxString::const_iterator pc = text.begin(); ; ++pc )
-    {
-        if ( pc == text.end() || *pc == wxT('\n') )
-        {
-            if ( curLine.empty() )
-            {
-                // we can't use GetTextExtent - it will return 0 for both width
-                // and height and an empty line should count in height
-                // calculation
-
-                // assume that this line has the same height as the previous
-                // one
-                if ( !heightLineDefault )
-                    heightLineDefault = heightLine;
-
-                if ( !heightLineDefault )
-                {
-                    // but we don't know it yet - choose something reasonable
-                    DoGetTextExtent(wxT("W"), NULL, &heightLineDefault,
-                                  NULL, NULL, font);
-                }
-
-                heightTextTotal += heightLineDefault;
-            }
-            else
-            {
-                DoGetTextExtent(curLine, &widthLine, &heightLine,
-                              NULL, NULL, font);
-                if ( widthLine > widthTextMax )
-                    widthTextMax = widthLine;
-                heightTextTotal += heightLine;
-            }
-
-            if ( pc == text.end() )
-            {
-               break;
-            }
-            else // '\n'
-            {
-               curLine.clear();
-            }
-        }
-        else
-        {
-            curLine += *pc;
-        }
-    }
-
-    if ( x )
-        *x = widthTextMax;
-    if ( y )
-        *y = heightTextTotal;
-    if ( h )
-        *h = heightLine;
+    wxTextMeasure tm(GetOwner(), font && font->IsOk() ? font : &m_font);
+    tm.GetMultiLineTextExtent(text, x, y, h);
 }
 
 void wxDCImpl::DoDrawCheckMark(wxCoord x1, wxCoord y1,
@@ -718,8 +622,8 @@ void wxDCImpl::DrawPolygon(const wxPointList *list,
 
 void
 wxDCImpl::DoDrawPolyPolygon(int n,
-                            int count[],
-                            wxPoint points[],
+                            const int count[],
+                            const wxPoint points[],
                             wxCoord xoffset, wxCoord yoffset,
                             wxPolygonFillMode fillStyle)
 {
@@ -769,11 +673,11 @@ void wxDCImpl::DrawSpline(wxCoord x1, wxCoord y1,
     DrawSpline(WXSIZEOF(points), points);
 }
 
-void wxDCImpl::DrawSpline(int n, wxPoint points[])
+void wxDCImpl::DrawSpline(int n, const wxPoint points[])
 {
     wxPointList list;
     for ( int i = 0; i < n; i++ )
-        list.Append(&points[i]);
+        list.Append(const_cast<wxPoint*>(&points[i]));
 
     DrawSpline(&list);
 }
@@ -895,7 +799,7 @@ void wxDCImpl::DoDrawSpline( const wxPointList *points )
 {
     wxCHECK_RET( IsOk(), wxT("invalid window dc") );
 
-    wxPoint *p;
+    const wxPoint *p;
     double           cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4;
     double           x1, y1, x2, y2;
 
@@ -904,7 +808,7 @@ void wxDCImpl::DoDrawSpline( const wxPointList *points )
         // empty list
         return;
 
-    p = (wxPoint *)node->GetData();
+    p = node->GetData();
 
     x1 = p->x;
     y1 = p->y;
@@ -1292,7 +1196,7 @@ void wxDC::DrawLabel(const wxString& text,
         {
             if ( pc - text.begin() == indexAccel )
             {
-                // remeber to draw underscore here
+                // remember to draw underscore here
                 GetTextExtent(curLine, &startUnderscore, NULL);
                 curLine += *pc;
                 GetTextExtent(curLine, &endUnderscore, NULL);

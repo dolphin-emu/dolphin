@@ -1,28 +1,154 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <DolphinRelease Condition="'$(DolphinRelease)'!='true' or '$(Configuration)'!='Release'">false</DolphinRelease>
+    <TargetSuffix>
+    </TargetSuffix>
+    <TargetSuffix Condition="'$(Configuration)'=='Debug'">D</TargetSuffix>
+    <DolphinRootDir>$(SolutionDir)..\</DolphinRootDir>
+    <BuildRootDir>$(DolphinRootDir)Build\</BuildRootDir>
+    <BinaryRootDir>$(DolphinRootDir)Binary\</BinaryRootDir>
+    <BinaryOutputDir>$(BinaryRootDir)$(Platform)\</BinaryOutputDir>
+    <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
+    <CoreDir>$(SolutionDir)Core\</CoreDir>
+  </PropertyGroup>
   <PropertyGroup>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <!--
+    Opt-in to x64 compiler and tools.
+    Unfortunately we can't set this property here, as it'll be overridden later. Instead, set it
+    from commandline if you're interested in using x64 toolset
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    -->
+    <IntDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(IntDir)bin\</OutDir>
+    <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
+    <!--ClCompile Base-->
     <ClCompile>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;USE_UPNP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--
+      Coagulate all the needed include directories.
+      Order matters! (first hit, first use).
+        Note: Directory containing source file being compiled is always searched first.
+      -->
+      <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)enet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)GL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)libusb\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)LZO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)polarssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)portaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)SOIL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_UPNP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PSAPI_VERSION=1;_M_X86=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_ARCH_64=1;_M_X86_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--
+      Make sure we include a clean version of windows.h.
+      -->
+      <PreprocessorDefinitions Condition="'$(ProjectName)'!='portaudio' And '$(ProjectName)'!='wxWidgets'">WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--
+      This numeral indicates the "minimum system required" to run the resulting
+      program. Dolphin targets Vista+, so it should be 0x0600. However in practice,
+      _WIN32_WINNT just removes up-level API declarations from headers. This is a
+      problem for XAudio2 and XInput, where Dolphin expects to compile against the
+      Win8+ versions of their headers. So while we really need Vista+ level of
+      support, we declare Win8+ here globally. If this becomes a problem, the
+      higher declaration can be contained to just the XAudio2/XInput related code.
+      -->
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0602;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <!--Enforce some behaviors as standards-conformant when they don't default as such-->
+      <AdditionalOptions>/Zc:inline /Zc:rvalueCast /volatile:iso %(AdditionalOptions)</AdditionalOptions>
+      <!--Enable detailed debug info-->
+      <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <!--
+      This is for GetVersionEx being marked as depreciated - which is idiotic and there's
+      not much else we can do since many externals use it. The bad part is that there doesn't
+      seem to be a way to only ignore the specific instance we don't care about...
+      -->
+      <DisableSpecificWarnings>4996;4351</DisableSpecificWarnings>
     </ClCompile>
+    <!--ClCompile Debug-->
+    <ClCompile Condition="'$(Configuration)'=='Debug'">
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PreprocessorDefinitions>_DEBUG;_SECURE_SCL=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <!--ClCompile Release-->
+    <ClCompile Condition="'$(Configuration)'=='Release'">
+      <WholeProgramOptimization Condition="'$(DolphinRelease)'=='true'">true</WholeProgramOptimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--This option is not supported in debug mode (for VS2013)-->
+      <AdditionalOptions>/Zc:strictStrings %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <!--Link Base-->
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <BaseAddress>0x00400000</BaseAddress>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
-    <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
+    <!--Link Release-->
+    <Link Condition="'$(Configuration)'=='Release'">
+      <LinkTimeCodeGeneration Condition="'$(DolphinRelease)'=='true'">UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+    <!--Link Base:Application-->
+    <Link Condition="'$(ConfigurationType)'=='Application'">
+      <!--See Common/EnableXSaveWorkaround.cpp-->
+      <ForceSymbolReferences>XSaveWorkaround</ForceSymbolReferences>
+    </Link>
+    <Lib>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
+      <LinkTimeCodeGeneration Condition="'$(DolphinRelease)'=='true'">true</LinkTimeCodeGeneration>
+    </Lib>
+    <!--
+    Prefer VTune 2015 over 2013 but support both since there is no non-commercial license for 2015 :(
+    -->
+    <ItemDefinitionGroup Condition="Exists('$(VTUNE_AMPLIFIER_XE_2015_DIR)')">
+      <ClCompile>
+        <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);"$(VTUNE_AMPLIFIER_XE_2015_DIR)\include"</AdditionalIncludeDirectories>
+      </ClCompile>
+      <Link>
+        <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);"$(VTUNE_AMPLIFIER_XE_2015_DIR)\lib64"</AdditionalLibraryDirectories>
+      </Link>
+    </ItemDefinitionGroup>
+    <ItemDefinitionGroup Condition="Exists('$(VTUNE_AMPLIFIER_XE_2013_DIR)') And !Exists('$(VTUNE_AMPLIFIER_XE_2015_DIR)')">
+      <ClCompile>
+        <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);"$(VTUNE_AMPLIFIER_XE_2013_DIR)\include"</AdditionalIncludeDirectories>
+      </ClCompile>
+      <Link>
+        <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);"$(VTUNE_AMPLIFIER_XE_2013_DIR)\lib64"</AdditionalLibraryDirectories>
+      </Link>
+    </ItemDefinitionGroup>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

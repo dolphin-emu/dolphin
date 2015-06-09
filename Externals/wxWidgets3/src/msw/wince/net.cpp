@@ -4,7 +4,6 @@
 // Author:
 // Modified by:
 // Created:
-// RCS-ID:      $Id: net.cpp 41054 2006-09-07 19:01:45Z ABX $
 // Copyright:   Copyright 1998, Ben Goetter.  All rights reserved.
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

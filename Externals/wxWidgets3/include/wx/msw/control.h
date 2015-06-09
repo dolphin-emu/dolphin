@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: control.h 62151 2009-09-26 16:43:06Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -121,6 +120,9 @@ protected:
     // appropriate background colour (meaning ours or our parents) or a fixed
     // one
     virtual WXHBRUSH DoMSWControlColor(WXHDC pDC, wxColour colBg, WXHWND hWnd);
+
+    // Look in our GetSubcontrols() for the windows with the given ID.
+    virtual wxWindow *MSWFindItem(long id, WXHWND hWnd) const;
 
     // for controls like radiobuttons which are really composite this array
     // holds the ids (not HWNDs!) of the sub controls

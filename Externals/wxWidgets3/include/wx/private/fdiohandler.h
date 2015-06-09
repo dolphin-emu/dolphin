@@ -3,7 +3,6 @@
 // Purpose:     declares wxFDIOHandler class
 // Author:      Vadim Zeitlin
 // Created:     2009-08-17
-// RCS-ID:      $Id: fdiohandler.h 64140 2010-04-25 21:33:16Z FM $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

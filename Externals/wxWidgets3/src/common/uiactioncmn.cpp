@@ -4,7 +4,6 @@
 // Author:      Kevin Ollivier, Steven Lamerton, Vadim Zeitlin
 // Modified by:
 // Created:     2010-03-06
-// RCS-ID:      $Id: uiactioncmn.cpp 69960 2011-12-08 15:55:40Z VZ $
 // Copyright:   (c) Kevin Ollivier
 //              (c) 2010 Steven Lamerton
 //              (c) 2010 Vadim Zeitlin
@@ -25,6 +24,8 @@ bool wxUIActionSimulator::MouseClick(int button)
     return true;
 }
 
+#ifndef __WXOSX__
+
 bool wxUIActionSimulator::MouseDblClick(int button)
 {
     MouseDown(button);
@@ -35,17 +36,18 @@ bool wxUIActionSimulator::MouseDblClick(int button)
     return true;
 }
 
-bool
-wxUIActionSimulator::MouseDragDrop(long x1, long y1, long x2, long y2,
+bool wxUIActionSimulator::MouseDragDrop(long x1, long y1, long x2, long y2,
                                    int button)
 {
     MouseMove(x1, y1);
     MouseDown(button);
     MouseMove(x2, y2);
     MouseUp(button);
-
+    
     return true;
 }
+
+#endif
 
 bool
 wxUIActionSimulator::Key(int keycode, int modifiers, bool isDown)

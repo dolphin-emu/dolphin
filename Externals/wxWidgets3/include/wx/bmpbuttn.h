@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: bmpbuttn.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,6 +23,8 @@
 #if (defined(__WXMSW__) || defined(__WXGTK20__) || defined(__WXOSX__)) && !defined(__WXUNIVERSAL__)
     #define wxHAS_BUTTON_BITMAP
 #endif
+
+class WXDLLIMPEXP_FWD_CORE wxBitmapButton;
 
 // ----------------------------------------------------------------------------
 // wxBitmapButton: a button which shows bitmaps instead of the usual string.
@@ -63,6 +64,12 @@ public:
                                 style | wxBU_NOTEXT | wxBU_EXACTFIT,
                                 validator, name);
     }
+
+    // Special creation function for a standard "Close" bitmap. It allows to
+    // simply create a close button with the image appropriate for the common
+    // platform.
+    static wxBitmapButton* NewCloseButton(wxWindow* parent, wxWindowID winid);
+
 
     // set/get the margins around the button
     virtual void SetMargins(int x, int y)

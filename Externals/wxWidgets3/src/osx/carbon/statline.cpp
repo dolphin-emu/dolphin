@@ -3,7 +3,6 @@
 // Purpose:     wxStaticLine class
 // Author:      Vadim Zeitlin
 // Created:     28.06.99
-// Version:     $Id: statline.cpp 66555 2011-01-04 08:31:53Z SC $
 // Copyright:   (c) 1998 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

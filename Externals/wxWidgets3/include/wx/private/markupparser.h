@@ -3,7 +3,6 @@
 // Purpose:     Classes for parsing simple markup.
 // Author:      Vadim Zeitlin
 // Created:     2011-02-16
-// RCS-ID:      $Id: markupparser.h 67076 2011-02-27 18:36:52Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

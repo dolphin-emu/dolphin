@@ -1,111 +1,71 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <msgfmt Include="po\ar.po" />
+    <msgfmt Include="po\ca.po" />
+    <msgfmt Include="po\cs.po" />
+    <msgfmt Include="po\de.po" />
+    <msgfmt Include="po\el.po" />
+    <msgfmt Include="po\en.po" />
+    <msgfmt Include="po\es.po" />
+    <msgfmt Include="po\fa.po" />
+    <msgfmt Include="po\fr.po" />
+    <msgfmt Include="po\he.po" />
+    <msgfmt Include="po\hu.po" />
+    <msgfmt Include="po\it.po" />
+    <msgfmt Include="po\ja.po" />
+    <msgfmt Include="po\ko.po" />
+    <msgfmt Include="po\nb.po" />
+    <msgfmt Include="po\nl.po" />
+    <msgfmt Include="po\pl.po" />
+    <msgfmt Include="po\pt.po" />
+    <msgfmt Include="po\pt_BR.po" />
+    <msgfmt Include="po\ru.po" />
+    <msgfmt Include="po\sr.po" />
+    <msgfmt Include="po\sv.po" />
+    <msgfmt Include="po\tr.po" />
+    <msgfmt Include="po\zh_CN.po" />
+    <msgfmt Include="po\zh_TW.po" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}</ProjectGuid>
-    <RootNamespace>Languages</RootNamespace>
+    <ProjectGuid>{0E033BE3-2E08-428E-9AE9-BC673EFA12B5}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
-    <CharacterSet>NotSet</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Utility</ConfigurationType>
-    <CharacterSet>NotSet</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
-    <CharacterSet>NotSet</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Utility</ConfigurationType>
-    <CharacterSet>NotSet</CharacterSet>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
     <Import Project="po.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\Source\VSProps\Base.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\Source\VSProps\Base.props" />
-  </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <!--Output directly to binary directory...-->
   <PropertyGroup>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Binary\$(Platform)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\Binary\$(Platform)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Binary\$(Platform)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\Binary\$(Platform)\</OutDir>
+    <OutDir>$(BinaryOutputDir)</OutDir>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-  </ItemDefinitionGroup>
-  <ItemGroup>
-    <msgfmt Include="po/ar.po" />
-    <msgfmt Include="po/cs.po" />
-    <msgfmt Include="po/de.po" />
-    <msgfmt Include="po/el.po" />
-    <msgfmt Include="po/en.po" />
-    <msgfmt Include="po/es.po" />
-    <msgfmt Include="po/fr.po" />
-    <msgfmt Include="po/he.po" />
-    <msgfmt Include="po/hu.po" />
-    <msgfmt Include="po/it.po" />
-    <msgfmt Include="po/ja.po" />
-    <msgfmt Include="po/ko.po" />
-    <msgfmt Include="po/nb.po" />
-    <msgfmt Include="po/nl.po" />
-    <msgfmt Include="po/pl.po" />
-    <msgfmt Include="po/pt_BR.po" />
-    <msgfmt Include="po/pt.po" />
-    <msgfmt Include="po/ru.po" />
-    <msgfmt Include="po/sr.po" />
-    <msgfmt Include="po/sv.po" />
-    <msgfmt Include="po/tr.po" />
-    <msgfmt Include="po/zh_CN.po" />
-    <msgfmt Include="po/zh_TW.po" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="po/ar.po" />
-    <None Include="po/cs.po" />
-    <None Include="po/de.po" />
-    <None Include="po/el.po" />
-    <CustomBuild Include="po/en.po">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <None Include="po/es.po" />
-    <None Include="po/fr.po" />
-    <None Include="po/he.po" />
-    <None Include="po/hu.po" />
-    <None Include="po/it.po" />
-    <None Include="po/ja.po" />
-    <None Include="po/ko.po" />
-    <None Include="po/nb.po" />
-    <None Include="po/nl.po" />
-    <None Include="po/pl.po" />
-    <None Include="po/pt_BR.po" />
-    <None Include="po/pt.po" />
-    <None Include="po/ru.po" />
-    <None Include="po/sr.po" />
-    <None Include="po/sv.po" />
-    <None Include="po/tr.po" />
-    <None Include="po/zh_CN.po" />
-    <None Include="po/zh_TW.po" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="po.targets" />

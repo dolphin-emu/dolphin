@@ -4,13 +4,14 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to derive from wxChoiceBase
 // Created:     01/02/97
-// RCS-ID:      $Id: choice.h 62960 2009-12-21 15:20:37Z JMS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CHOICE_H_
 #define _WX_CHOICE_H_
+
+struct tagCOMBOBOXINFO;
 
 // ----------------------------------------------------------------------------
 // Choice item
@@ -66,6 +67,8 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxChoiceNameStr);
 
+    virtual bool Show(bool show = true);
+
     virtual void SetLabel(const wxString& label);
 
     virtual unsigned int GetCount() const;
@@ -102,7 +105,8 @@ protected:
     // common part of all ctors
     void Init()
     {
-        m_lastAcceptedSelection = wxID_NONE;
+        m_lastAcceptedSelection =
+        m_pendingSelection = wxID_NONE;
         m_heightOwn = wxDefaultCoord;
     }
 
@@ -123,6 +127,10 @@ protected:
     virtual void DoSetSize(int x, int y,
                            int width, int height,
                            int sizeFlags = wxSIZE_AUTO);
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const;
+
+    // Show or hide the popup part of the control.
+    void MSWDoPopupOrDismiss(bool show);
 
     // update the height of the drop down list to fit the number of items we
     // have (without changing the visible height)
@@ -130,6 +138,10 @@ protected:
 
     // set the height of the visible part of the control to m_heightOwn
     void MSWUpdateVisibleHeight();
+
+    // Call GetComboBoxInfo() and return false if it's not supported by this
+    // system. Notice that the caller must initialize info.cbSize.
+    bool MSWGetComboBoxInfo(tagCOMBOBOXINFO* info) const;
 
     // create and initialize the control
     bool CreateAndInit(wxWindow *parent, wxWindowID id,
@@ -150,10 +162,13 @@ protected:
     virtual void MSWEndDeferWindowPos();
 #endif // wxUSE_DEFERRED_SIZING
 
-    // last "completed" selection, i.e. not the transient one while the user is
-    // browsing the popup list: this is only used when != wxID_NONE which is
-    // the case while the drop down is opened
-    int m_lastAcceptedSelection;
+    // These variables are only used while the drop down is opened.
+    //
+    // The first one contains the item that had been originally selected before
+    // the drop down was opened and the second one the item we should select
+    // when the drop down is closed again.
+    int m_lastAcceptedSelection,
+        m_pendingSelection;
 
     // the height of the control itself if it was set explicitly or
     // wxDefaultCoord if it hadn't

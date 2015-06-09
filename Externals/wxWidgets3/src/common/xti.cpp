@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: xti.cpp 70306 2012-01-09 18:48:39Z VZ $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
@@ -393,7 +392,7 @@ void wxTypeInfo::Unregister()
         ms_typeTable->erase(m_name);
 }
 
-// removing header dependancy on string tokenizer
+// removing header dependency on string tokenizer
 
 void wxSetStringToArray( const wxString &s, wxArrayString &array )
 {

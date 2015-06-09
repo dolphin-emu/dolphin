@@ -1,7 +1,7 @@
 /*
  *  Version information
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_VERSION_C)
 
@@ -34,17 +38,19 @@ const char version[] = POLARSSL_VERSION_STRING;
 
 unsigned int version_get_number()
 {
-    return POLARSSL_VERSION_NUMBER;
+    return( POLARSSL_VERSION_NUMBER );
 }
 
 void version_get_string( char *string )
 {
-    memcpy( string, POLARSSL_VERSION_STRING, sizeof( POLARSSL_VERSION_STRING ) );
+    memcpy( string, POLARSSL_VERSION_STRING,
+            sizeof( POLARSSL_VERSION_STRING ) );
 }
 
 void version_get_string_full( char *string )
 {
-    memcpy( string, POLARSSL_VERSION_STRING_FULL, sizeof( POLARSSL_VERSION_STRING_FULL ) );
+    memcpy( string, POLARSSL_VERSION_STRING_FULL,
+            sizeof( POLARSSL_VERSION_STRING_FULL ) );
 }
 
 #endif /* POLARSSL_VERSION_C */

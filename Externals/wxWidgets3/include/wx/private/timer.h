@@ -3,7 +3,6 @@
 // Purpose:     Base class for wxTimer implementations
 // Author:      Lukasz Michalski <lmichalski@sf.net>
 // Created:     31.10.2006
-// RCS-ID:      $Id: timer.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2006-2007 wxWidgets dev team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

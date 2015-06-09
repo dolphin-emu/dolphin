@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     08.12.99
-// RCS-ID:      $Id: dir.h 65680 2010-09-30 11:44:45Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,14 +21,17 @@ class WXDLLIMPEXP_FWD_BASE wxArrayString;
 // constants
 // ----------------------------------------------------------------------------
 
-// these flags define what kind of filenames is included in the list of files
-// enumerated by GetFirst/GetNext
+// These flags affect the behaviour of GetFirst/GetNext() and Traverse().
+// They define what types are included in the list of items they produce.
+// Note that wxDIR_NO_FOLLOW is relevant only on Unix and ignored under systems
+// not supporting symbolic links.
 enum wxDirFlags
 {
     wxDIR_FILES     = 0x0001,       // include files
     wxDIR_DIRS      = 0x0002,       // include directories
     wxDIR_HIDDEN    = 0x0004,       // include hidden files
     wxDIR_DOTDOT    = 0x0008,       // include '.' and '..'
+    wxDIR_NO_FOLLOW = 0x0010,       // don't dereference any symlink
 
     // by default, enumerate everything except '.' and '..'
     wxDIR_DEFAULT   = wxDIR_FILES | wxDIR_DIRS | wxDIR_HIDDEN
@@ -94,17 +96,24 @@ public:
     // opens the directory for enumeration, use IsOpened() to test success
     wxDir(const wxString& dir);
 
-    // dtor cleans up the associated resources
-    ~wxDir();
+    // dtor calls Close() automatically
+    ~wxDir() { Close(); }
 
     // open the directory for enumerating
     bool Open(const wxString& dir);
+
+    // close the directory, Open() can be called again later
+    void Close();
 
     // returns true if the directory was successfully opened
     bool IsOpened() const;
 
     // get the full name of the directory (without '/' at the end)
     wxString GetName() const;
+
+    // Same as GetName() but does include the trailing separator, unless the
+    // string is empty (only for invalid directories).
+    wxString GetNameWithSep() const;
 
 
     // file enumeration routines

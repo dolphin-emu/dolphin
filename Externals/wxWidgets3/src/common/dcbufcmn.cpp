@@ -4,7 +4,6 @@
 // Author:      Ron Lee, Jaakko Salli
 // Modified by:
 // Created:     Sep-20-2006
-// RCS-ID:      $Id: dcbufcmn.cpp 67659 2011-05-01 15:47:46Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -114,7 +113,10 @@ void wxBufferedDC::UseBuffer(wxCoord w, wxCoord h)
 
         m_buffer = wxSharedDCBufferManager::GetBuffer(w, h);
         m_style |= wxBUFFER_USES_SHARED_BUFFER;
+        m_area.Set(w,h);
     }
+    else
+        m_area = m_buffer->GetSize();
 
     SelectObject(*m_buffer);
 
@@ -138,21 +140,25 @@ void wxBufferedDC::UnMask()
     if ( m_style & wxBUFFER_CLIENT_AREA )
         GetDeviceOrigin(&x, &y);
 
-    // avoid blitting too much: if we were created for a bigger bitmap (and
-    // reused for a smaller one later) we should only blit the real bitmap area
-    // and not the full allocated back buffer
-    int widthDC,
-        heightDC;
+    // It's possible that the buffer may be bigger than the area that needs to
+    // be drawn (the client size of the window is smaller than the bitmap, or
+    // a shared bitmap has been reused for a smaller area, etc.) so avoid
+    // blitting too much if possible, but only use the real DC size if the
+    // wxBUFFER_VIRTUAL_AREA style is not set.
+    int width = m_area.GetWidth(),
+        height = m_area.GetHeight();
 
-    m_dc->GetSize(&widthDC, &heightDC);
+    if (!(m_style & wxBUFFER_VIRTUAL_AREA))
+    {
+        int widthDC,
+            heightDC;
+        m_dc->GetSize(&widthDC, &heightDC);
+        width = wxMin(width, widthDC);
+        height = wxMin(height, heightDC);
+    }
 
-    int widthBuf = m_buffer->GetWidth(),
-        heightBuf = m_buffer->GetHeight();
-
-    m_dc->Blit(0, 0,
-               wxMin(widthDC, widthBuf), wxMin(heightDC, heightBuf),
-               this,
-               -x, -y);
+    const wxPoint origin = GetLogicalOrigin();
+    m_dc->Blit(-origin.x, -origin.y, width, height, this, -x, -y);
     m_dc = NULL;
 
     if ( m_style & wxBUFFER_USES_SHARED_BUFFER )

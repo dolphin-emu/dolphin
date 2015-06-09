@@ -2,6 +2,8 @@
 <!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
 <plist version="0.9">
 <dict>
+	<key>NSPrincipalClass</key>
+	<string>wxNSApplication</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleIdentifier</key>
@@ -30,11 +32,11 @@
 	<key>CFBundleShortVersionString</key>
 	<string>VERSION</string>
 	<key>CFBundleGetInfoString</key>
-	<string>EXECUTABLE version VERSION, (c) 2002-2008 wxWidgets</string>
+	<string>EXECUTABLE version VERSION, (c) 2002-2012 wxWidgets</string>
 	<key>CFBundleLongVersionString</key>
-	<string>VERSION, (c) 2002-2008 wxWidgets</string>
+	<string>VERSION, (c) 2002-2012 wxWidgets</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright 2002-2008 wxWidgets</string>
+	<string>Copyright 2002-2012 wxWidgets</string>
 	<key>LSRequiresCarbon</key>
 	<true/>
 	<key>CSResourcesFileMapped</key>

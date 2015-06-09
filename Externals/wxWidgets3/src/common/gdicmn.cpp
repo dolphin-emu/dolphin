@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdicmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -334,7 +333,7 @@ void wxColourDatabase::Initialize()
         {wxT("LIGHT GREY"), 192, 192, 192},
         {wxT("LIGHT STEEL BLUE"), 143, 143, 188},
         {wxT("LIME GREEN"), 50, 204, 50},
-        {wxT("LIGHT MAGENTA"), 255, 0, 255},
+        {wxT("LIGHT MAGENTA"), 255, 119, 255},
         {wxT("MAGENTA"), 255, 0, 255},
         {wxT("MAROON"), 142, 35, 107},
         {wxT("MEDIUM AQUAMARINE"), 50, 204, 153},
@@ -819,6 +818,17 @@ wxFont *wxFontList::FindOrCreateFont(int pointSize,
                                      const wxString& facename,
                                      wxFontEncoding encoding)
 {
+    // In all ports but wxOSX, the effective family of a font created using
+    // wxFONTFAMILY_DEFAULT is wxFONTFAMILY_SWISS so this is what we need to
+    // use for comparison.
+    //
+    // In wxOSX the original wxFONTFAMILY_DEFAULT seems to be kept and it uses
+    // a different font than wxFONTFAMILY_SWISS anyhow so we just preserve it.
+#ifndef __WXOSX__
+    if ( family == wxFONTFAMILY_DEFAULT )
+        family = wxFONTFAMILY_SWISS;
+#endif // !__WXOSX__
+
     wxFont *font;
     wxList::compatibility_iterator node;
     for (node = list.GetFirst(); node; node = node->GetNext())
@@ -830,18 +840,7 @@ wxFont *wxFontList::FindOrCreateFont(int pointSize,
              font->GetWeight () == weight &&
              font->GetUnderlined () == underline )
         {
-            wxFontFamily fontFamily = (wxFontFamily)font->GetFamily();
-
-#if defined(__WXGTK__)
-            // under GTK the default family is wxSWISS, so looking for a font
-            // with wxDEFAULT family should return a wxSWISS one instead of
-            // creating a new one
-            bool same = (fontFamily == family) ||
-                        (fontFamily == wxFONTFAMILY_SWISS && family == wxFONTFAMILY_DEFAULT);
-#else // !GTK
-            // VZ: but why elsewhere do we require an exact match? mystery...
-            bool same = fontFamily == family;
-#endif // GTK/!GTK
+            bool same = font->GetFamily() == family;
 
             // empty facename matches anything at all: this is bad because
             // depending on which fonts are already created, we might get back

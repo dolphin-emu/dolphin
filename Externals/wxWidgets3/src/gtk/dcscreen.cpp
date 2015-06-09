@@ -2,7 +2,6 @@
 // Name:        src/gtk/dcscreen.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: dcscreen.cpp 70809 2012-03-04 23:50:35Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

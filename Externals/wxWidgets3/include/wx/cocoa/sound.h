@@ -5,7 +5,6 @@
 // Authors:     David Elliott, Ryan Norton
 // Modified by:
 // Created:     2004-10-02
-// RCS-ID:      $Id: sound.h 69178 2011-09-21 15:08:02Z VZ $
 // Copyright:   (c) 2004 David Elliott, Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

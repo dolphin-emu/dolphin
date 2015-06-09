@@ -5,7 +5,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.01.1999
-// RCS-ID:      $Id: msvcrt.h 59725 2009-03-22 12:53:48Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,7 +37,12 @@
     #endif
 
     #include <stdlib.h>
-    #ifndef _CRTBLD
+
+    // Defining _CRTBLD should never be necessary at all, but keep it for now
+    // as there is no time to retest all the compilers before 3.0 release.
+    // Definitely do not use it with MSVS 2013 as defining it results in errors
+    // if the standard <assert.h> is included afterwards.
+    #if !defined(_CRTBLD) && !wxCHECK_VISUALC_VERSION(12)
         // Needed when building with pure MS SDK
         #define _CRTBLD
     #endif

@@ -1,25 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="DebugFast|Win32">
-      <Configuration>DebugFast</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugFast|x64">
-      <Configuration>DebugFast</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -28,167 +12,70 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{93D73454-2512-424E-9CDA-4BB357FE13DD}</ProjectGuid>
-    <RootNamespace>SFML_Network</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\..\Source\VSProps\Base.props" />
-    <Import Project="..\..\..\..\Source\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\Source\VSProps\Base.props" />
-    <Import Project="..\..\..\..\Source\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\Source\VSProps\Base.props" />
-    <Import Project="..\..\..\..\Source\VSProps\CodeGen_Release.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\Source\VSProps\Base.props" />
-    <Import Project="..\..\..\..\Source\VSProps\CodeGen_Release.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\Source\VSProps\Base.props" />
-    <Import Project="..\..\..\..\Source\VSProps\CodeGen_DebugFast.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\Source\VSProps\Base.props" />
-    <Import Project="..\..\..\..\Source\VSProps\CodeGen_DebugFast.props" />
+    <Import Project="..\..\..\..\Source\VSProps\ClDisableAllWarnings.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\SFML\Network\Ftp.cpp" />
     <ClCompile Include="..\..\src\SFML\Network\Http.cpp" />
     <ClCompile Include="..\..\src\SFML\Network\IPAddress.cpp" />
     <ClCompile Include="..\..\src\SFML\Network\Packet.cpp" />
-    <ClCompile Include="..\..\src\SFML\Network\SelectorBase.cpp" />
-    <ClCompile Include="..\..\src\SFML\Network\SocketTCP.cpp" />
-    <ClCompile Include="..\..\src\SFML\Network\SocketUDP.cpp" />
-    <ClCompile Include="..\..\src\SFML\Network\Win32\SocketHelper.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\Socket.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\SocketSelector.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\TcpListener.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\TcpSocket.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\UdpSocket.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\Win32\SocketImpl.cpp" />
+    <ClCompile Include="..\..\src\SFML\System\Err.cpp" />
+    <ClCompile Include="..\..\src\SFML\System\String.cpp" />
+    <ClCompile Include="..\..\src\SFML\System\Time.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\SFML\Network\Ftp.hpp" />
+    <ClInclude Include="..\..\include\SFML\Config.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\Export.hpp" />
     <ClInclude Include="..\..\include\SFML\Network\Http.hpp" />
     <ClInclude Include="..\..\include\SFML\Network\IPAddress.hpp" />
     <ClInclude Include="..\..\include\SFML\Network\Packet.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\Selector.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\SelectorBase.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\SocketHelper.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\Sockets.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\SocketTCP.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\SocketUDP.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\Win32\SocketHelper.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\include\SFML\Network\Selector.inl" />
+    <ClInclude Include="..\..\include\SFML\Network\Socket.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\SocketHandle.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\SocketSelector.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\TcpListener.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\TcpSocket.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\UdpSocket.hpp" />
+    <ClInclude Include="..\..\include\SFML\System.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\Err.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\Export.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\NonCopyable.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\String.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\Time.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\Utf.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\Utf.inl" />
+    <ClInclude Include="..\..\src\SFML\Network\SocketImpl.hpp" />
+    <ClInclude Include="..\..\src\SFML\Network\Win32\SocketImpl.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

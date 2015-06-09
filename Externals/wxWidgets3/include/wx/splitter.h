@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: splitter.h 58718 2009-02-07 18:59:25Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,10 +36,10 @@
 
 class WXDLLIMPEXP_FWD_CORE wxSplitterEvent;
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, wxSplitterEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGING, wxSplitterEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_SPLITTER_DOUBLECLICKED, wxSplitterEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_SPLITTER_UNSPLIT, wxSplitterEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_SPLITTER_SASH_POS_CHANGED, wxSplitterEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_SPLITTER_SASH_POS_CHANGING, wxSplitterEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_SPLITTER_DOUBLECLICKED, wxSplitterEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_SPLITTER_UNSPLIT, wxSplitterEvent );
 
 #include "wx/generic/splitter.h"
 

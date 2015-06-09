@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.mm 70851 2012-03-09 12:49:59Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -255,7 +254,6 @@ public:
 #endif // wxOSX_USE_NATIVE_TOOLBAR
 
 private:
-#if wxOSX_USE_NATIVE_TOOLBAR
     wxFontEncoding GetToolBarFontEncoding() const
     {
         wxFont f;
@@ -263,7 +261,6 @@ private:
             f = GetToolBar()->GetFont();
         return f.IsOk() ? f.GetEncoding() : wxFont::GetDefaultEncoding();
     }
-#endif // wxOSX_USE_NATIVE_TOOLBAR
 
     void Init()
     {
@@ -305,7 +302,10 @@ private:
 
 @interface wxNSToolbarDelegate : NSObject wxOSX_10_6_AND_LATER(<NSToolbarDelegate>)
 {
+    bool m_isSelectable;
 }
+
+- (void)setSelectable:(bool) value;
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag;
 
@@ -363,6 +363,17 @@ private:
 
 @implementation wxNSToolbarDelegate
 
+- (id)init
+{
+    m_isSelectable = false;
+    return [super init];
+}
+
+- (void)setSelectable:(bool) value
+{
+    m_isSelectable = true;
+}
+
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar
 {
     wxUnusedVar(toolbar);
@@ -377,8 +388,10 @@ private:
 
 - (NSArray *)toolbarSelectableItemIdentifiers:(NSToolbar *)toolbar
 {
-    wxUnusedVar(toolbar);
-    return nil;
+  if ( m_isSelectable )
+      return [[toolbar items] valueForKey:@"itemIdentifier"];
+  else
+      return nil;
 }
 
 - (NSToolbarItem*) toolbar:(NSToolbar*) toolbar itemForItemIdentifier:(NSString*) itemIdentifier willBeInsertedIntoToolbar:(BOOL) flag
@@ -674,9 +687,11 @@ wxToolBar::~wxToolBar()
         frame->SetToolBar(NULL);
     }
     
+#if wxOSX_USE_NATIVE_TOOLBAR
     [(NSToolbar*)m_macToolbar setDelegate:nil];
     [(NSToolbar*)m_macToolbar release];
     m_macToolbar = NULL;
+#endif // wxOSX_USE_NATIVE_TOOLBAR
 }
 
 bool wxToolBar::Show( bool show )
@@ -1228,9 +1243,6 @@ bool wxToolBar::Realize()
     SetInitialSize( wxSize(m_minWidth, m_minHeight));
 
     SendSizeEventToParent();
-    wxWindow * const parent = GetParent();
-    if ( parent && !parent->IsBeingDeleted() )
-        parent->MacOnInternalSize();
     
     return true;
 }
@@ -1428,7 +1440,9 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
 
                 wxNSToolBarButton* v = [[wxNSToolBarButton alloc] initWithFrame:toolrect];
 
-                [v setBezelStyle:NSRegularSquareBezelStyle];
+                [v setBezelStyle:NSSmallSquareBezelStyle];
+                [[v cell] setControlSize:NSSmallControlSize];
+                [v setFont:[NSFont fontWithName:[[v font] fontName] size:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
                 [v setBordered:NO];
                 [v setButtonType: ( tool->CanBeToggled() ? NSToggleButton : NSMomentaryPushInButton )];
                 [v setImplementation:tool];
@@ -1447,7 +1461,8 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
 
 #endif // wxOSX_USE_NATIVE_TOOLBAR
                 tool->SetControlHandle( controlHandle );
-                tool->UpdateImages();
+                if ( !(style & wxTB_NOICONS) )
+                    tool->UpdateImages();
                 tool->UpdateLabel();
 
                 if ( style & wxTB_NOICONS )
@@ -1589,45 +1604,41 @@ void wxToolBar::OnPaint(wxPaintEvent& event)
         int w, h;
         GetSize( &w, &h );
 
-        bool drawMetalTheme = MacGetTopLevelWindow()->GetExtraStyle() & wxFRAME_EX_METAL;
-
-        if ( UMAGetSystemVersion() < 0x1050 )
-        {
-            if ( !drawMetalTheme )
-            {
-                HIThemePlacardDrawInfo info;
-                memset( &info, 0, sizeof(info) );
-                info.version = 0;
-                info.state = IsEnabled() ? kThemeStateActive : kThemeStateInactive;
-
-                CGContextRef cgContext = (CGContextRef) MacGetCGContextRef();
-                HIRect rect = CGRectMake( 0, 0, w, h );
-                HIThemeDrawPlacard( &rect, &info, cgContext, kHIThemeOrientationNormal );
-            }
-            else
-            {
-                // leave the background as it is (striped or metal)
-            }
-        }
-        else
-        {
-            wxPaintDC dc(this);
-            
-            wxRect rect(0,0,w,h);
-            
-            dc.GradientFillLinear( rect , wxColour( 0xCC,0xCC,0xCC ), wxColour( 0xA8,0xA8,0xA8 ) , wxSOUTH );
-            dc.SetPen( wxPen( wxColour( 0x51,0x51,0x51 ) ) );
-            if ( HasFlag(wxTB_LEFT) )
-                dc.DrawLine(w-1, 0, w-1, h);
-            else if ( HasFlag(wxTB_RIGHT) )
-                dc.DrawLine(0, 0, 0, h);
-            else if ( HasFlag(wxTB_BOTTOM) )
-                dc.DrawLine(0, 0, w, 0);
-            else if ( HasFlag(wxTB_TOP) )
-                dc.DrawLine(0, h-1, w, h-1);
-        }
+        wxPaintDC dc(this);
+        
+        wxRect rect(0,0,w,h);
+        
+        dc.GradientFillLinear( rect , wxColour( 0xCC,0xCC,0xCC ), wxColour( 0xA8,0xA8,0xA8 ) , wxSOUTH );
+        dc.SetPen( wxPen( wxColour( 0x51,0x51,0x51 ) ) );
+        if ( HasFlag(wxTB_LEFT) )
+            dc.DrawLine(w-1, 0, w-1, h);
+        else if ( HasFlag(wxTB_RIGHT) )
+            dc.DrawLine(0, 0, 0, h);
+        else if ( HasFlag(wxTB_BOTTOM) )
+            dc.DrawLine(0, 0, w, 0);
+        else if ( HasFlag(wxTB_TOP) )
+            dc.DrawLine(0, h-1, w, h-1);
     }
     event.Skip();
 }
+
+#if wxOSX_USE_NATIVE_TOOLBAR
+void wxToolBar::OSXSetSelectableTools(bool set)
+{
+    wxCHECK_RET( m_macToolbar, "toolbar must be non-NULL" );
+    [(wxNSToolbarDelegate*)[(NSToolbar*)m_macToolbar delegate] setSelectable:set];
+}
+
+void wxToolBar::OSXSelectTool(int toolId)
+{
+    wxToolBarToolBase *tool = FindById(toolId);
+    wxCHECK_RET( tool, "invalid tool ID" );
+    wxCHECK_RET( m_macToolbar, "toolbar must be non-NULL" );
+
+    wxString identifier = wxString::Format(wxT("%ld"), (long)tool);
+    wxCFStringRef cfidentifier(identifier, wxFont::GetDefaultEncoding());
+    [(NSToolbar*)m_macToolbar setSelectedItemIdentifier:cfidentifier.AsNSString()];
+}
+#endif // wxOSX_USE_NATIVE_TOOLBAR
 
 #endif // wxUSE_TOOLBAR

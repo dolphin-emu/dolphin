@@ -4,7 +4,6 @@
 // Author:      Ove Kaven
 // Modified by: Ron Lee, Francesco Montorsi
 // Created:     09/04/99
-// RCS-ID:      $Id: wxprintf.cpp 60120 2009-04-12 23:37:28Z VZ $
 // Copyright:   (c) wxWidgets copyright
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

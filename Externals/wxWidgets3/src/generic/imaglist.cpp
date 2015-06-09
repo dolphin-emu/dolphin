@@ -2,7 +2,6 @@
 // Name:        src/generic/imaglist.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: imaglist.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,7 +67,7 @@ int wxGenericImageList::Add( const wxBitmap &bitmap )
 
     const int index = int(m_images.GetCount());
 
-    if (bitmap.IsKindOf(CLASSINFO(wxIcon)))
+    if (bitmap.IsKindOf(wxCLASSINFO(wxIcon)))
     {
         m_images.Append( new wxIcon( (const wxIcon&) bitmap ) );
     }
@@ -155,7 +154,7 @@ bool wxGenericImageList::Replace( int index, const wxBitmap &bitmap )
 
     wxCHECK_MSG( node, false, wxT("wrong index in image list") );
 
-    wxBitmap* newBitmap = (bitmap.IsKindOf(CLASSINFO(wxIcon))) ?
+    wxBitmap* newBitmap = (bitmap.IsKindOf(wxCLASSINFO(wxIcon))) ?
                              #if defined(__VISAGECPP__)
                                //just can't do this in VisualAge now, with all this new Bitmap-Icon stuff
                                //so construct it from a bitmap object until I can figure this nonsense out. (DW)
@@ -188,7 +187,7 @@ bool wxGenericImageList::Replace( int index, const wxBitmap &bitmap, const wxBit
 
     wxCHECK_MSG( node, false, wxT("wrong index in image list") );
 
-    wxBitmap* newBitmap = (bitmap.IsKindOf(CLASSINFO(wxIcon))) ?
+    wxBitmap* newBitmap = (bitmap.IsKindOf(wxCLASSINFO(wxIcon))) ?
                              #if defined(__VISAGECPP__)
                                //just can't do this in VisualAge now, with all this new Bitmap-Icon stuff
                                //so construct it from a bitmap object until I can figure this nonsense out. (DW)
@@ -263,7 +262,7 @@ bool wxGenericImageList::Draw( int index, wxDC &dc, int x, int y,
 
     wxBitmap *bm = (wxBitmap*)node->GetData();
 
-    if (bm->IsKindOf(CLASSINFO(wxIcon)))
+    if (bm->IsKindOf(wxCLASSINFO(wxIcon)))
         dc.DrawIcon( * ((wxIcon*) bm), x, y);
     else
         dc.DrawBitmap( *bm, x, y, (flags & wxIMAGELIST_DRAW_TRANSPARENT) > 0 );

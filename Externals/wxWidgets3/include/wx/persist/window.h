@@ -3,7 +3,6 @@
 // Purpose:     wxPersistentWindow declaration
 // Author:      Vadim Zeitlin
 // Created:     2009-01-23
-// RCS-ID:      $Id: window.h 59262 2009-03-02 12:10:40Z VZ $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin (wxMenuItem is now in separate file)
 // Created:     01/02/97
-// RCS-ID:      $Id: menu.h 70350 2012-01-15 13:41:17Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

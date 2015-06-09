@@ -3,7 +3,6 @@
 // Purpose:     scoped smart pointer class
 // Author:      Jesse Lovelace <jllovela@eos.ncsu.edu>
 // Created:     06/01/02
-// RCS-ID:      $Id: scopedptr.h 64222 2010-05-06 05:43:01Z VS $
 // Copyright:   (c) Jesse Lovelace and original Boost authors (see below)
 //              (c) 2009 Vadim Zeitlin
 // Licence:     wxWindows licence

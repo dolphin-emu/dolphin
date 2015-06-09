@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.06.98
-// RCS-ID:      $Id: notebook.cpp 69793 2011-11-22 13:18:45Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -254,6 +253,13 @@ bool wxNotebook::Create(wxWindow *parent,
     if ( !MSWCreateControl(className, wxEmptyString, pos, size) )
         return false;
 
+    // Inherit parent attributes and, unlike the default, also inherit the
+    // parent background colour in order to blend in with its background if
+    // it's set to a non-default value.
+    InheritAttributes();
+    if ( parent->InheritsBackgroundColour() && !UseBgCol() )
+        SetBackgroundColour(parent->GetBackgroundColour());
+
 #if wxUSE_UXTHEME
     if ( HasFlag(wxNB_NOPAGETHEME) ||
             wxSystemOptions::IsFalse(wxT("msw.notebook.themed-background")) )
@@ -375,17 +381,22 @@ void wxNotebook::UpdateSelection(int selNew)
     {
         wxNotebookPage *pPage = m_pages[selNew];
         pPage->Show(true);
+
+        // In addition to showing the page, we also want to give focus to it to
+        // make it possible to work with it from keyboard easily. However there
+        // are two exceptions: first, don't touch the focus at all if the
+        // notebook itself is not currently shown.
+        if ( ::IsWindowVisible(GetHwnd()) )
+        {
+            // And second, don't give focus away if the tab control itself has
+            // it, as this is how the native property sheets behave: if you
+            // explicitly click on the tab label giving it focus, it will
+            // remain after switching to another page. But if the focus was
+            // inside the notebook page, it switches to the new page.
+            if ( !HasFocus() )
+                pPage->SetFocus();
+        }
     }
-
-    // Changing the page should give the focus to it but, as per bug report
-    // http://sf.net/tracker/index.php?func=detail&aid=1150659&group_id=9863&atid=109863,
-    // we should not set the focus to it directly since it erroneously
-    // selects radio buttons and breaks keyboard handling for a notebook's
-    // scroll buttons. So give focus to the notebook and not the page.
-
-    // but don't do this is the notebook is hidden
-    if ( ::IsWindowVisible(GetHwnd()) )
-        SetFocus();
 
     m_selection = selNew;
 }
@@ -412,7 +423,7 @@ bool wxNotebook::SetPageText(size_t nPage, const wxString& strText)
 
     TC_ITEM tcItem;
     tcItem.mask = TCIF_TEXT;
-    tcItem.pszText = (wxChar *)strText.wx_str();
+    tcItem.pszText = wxMSW_CONV_LPTSTR(strText);
 
     if ( !HasFlag(wxNB_MULTILINE) )
         return TabCtrl_SetItem(GetHwnd(), nPage, &tcItem) != 0;
@@ -686,7 +697,7 @@ bool wxNotebook::InsertPage(size_t nPage,
     if ( !strText.empty() )
     {
         tcItem.mask |= TCIF_TEXT;
-        tcItem.pszText = const_cast<wxChar *>(strText.wx_str());
+        tcItem.pszText = wxMSW_CONV_LPTSTR(strText);
     }
 
     // hide the page: unless it is selected, it shouldn't be shown (and if it
@@ -731,6 +742,14 @@ bool wxNotebook::InsertPage(size_t nPage,
     if ( m_pages.GetCount() == 1 || HasFlag(wxNB_MULTILINE) )
     {
         AdjustPageSize(pPage);
+
+        // Additionally, force the layout of the notebook itself by posting a
+        // size event to it. If we don't do it, notebooks with pages on the
+        // left or the right side may fail to account for the fact that they
+        // are now big enough to fit all all of their pages on one row and
+        // still reserve space for the second row of tabs, see #1792.
+        const wxSize s = GetSize();
+        ::PostMessage(GetHwnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM(s.x, s.y));
     }
 
     // now deal with the selection
@@ -822,24 +841,73 @@ void wxNotebook::OnPaint(wxPaintEvent& WXUNUSED(event))
     const wxLayoutDirection dir = dc.GetLayoutDirection();
     memdc.SetLayoutDirection(dir);
 
-    // if there is no special brush just use the solid background colour
-#if wxUSE_UXTHEME
-    HBRUSH hbr = (HBRUSH)m_hbrBackground;
-#else
-    HBRUSH hbr = 0;
-#endif
-    wxBrush brush;
-    if ( !hbr )
+    const HDC hdc = GetHdcOf(memdc);
+
+    // The drawing logic of the native tab control is absolutely impenetrable
+    // but observation shows that in the current Windows versions (XP and 7),
+    // the tab control always erases its entire background in its window proc
+    // when the tabs are top-aligned but does not do it when the tabs are in
+    // any other position.
+    //
+    // This means that we can't rely on our background colour being used for
+    // the blank area in the tab row because this doesn't work in the default
+    // top-aligned case, hence the hack with ExtFloodFill() below. But it also
+    // means that we still do need to erase the DC to account for the other
+    // cases.
+    //
+    // Moreover, just in case some very old or very new (or even future,
+    // although it seems unlikely that this is ever going to change by now)
+    // version of Windows didn't do it like this, do both things in all cases
+    // instead of optimizing away the one of them which doesn't do anything for
+    // the effectively used tab orientation -- better safe than fast.
+
+    // Notice that we use our own background here, not the background used for
+    // the pages, because the tab row background must blend with the parent and
+    // so the background colour inherited from it (if any) must be used.
+    AutoHBRUSH hbr(wxColourToRGB(GetBackgroundColour()));
+
+    ::FillRect(hdc, &rc, hbr);
+
+    MSWDefWindowProc(WM_PAINT, (WPARAM)hdc, 0);
+
+    // At least for the top-aligned tabs, our background colour was overwritten
+    // and so we now replace the default background with our colour. This is
+    // horribly inefficient, of course, but seems to be the only way to do it.
+    if ( UseBgCol() )
     {
-        brush = wxBrush(GetBackgroundColour());
-        hbr = GetHbrushOf(brush);
+        SelectInHDC selectBrush(hdc, hbr);
+
+        // Find the point which must contain the default background colour:
+        // this is a hack, of course, but using this point "close" to the
+        // corner seems to work fine in practice.
+        int x = 0,
+            y = 0;
+
+        switch ( GetWindowStyle() & wxBK_ALIGN_MASK )
+        {
+            case wxBK_TOP:
+                x = rc.right - 2;
+                y = 2;
+                break;
+
+            case wxBK_BOTTOM:
+                x = rc.right - 2;
+                y = rc.bottom - 2;
+                break;
+
+            case wxBK_LEFT:
+                x = 2;
+                y = rc.bottom - 2;
+                break;
+
+            case wxBK_RIGHT:
+                x = 2;
+                y = rc.bottom - 2;
+                break;
+        }
+
+        ::ExtFloodFill(hdc, x, y, ::GetSysColor(COLOR_BTNFACE), FLOODFILLSURFACE);
     }
-
-    wxMSWDCImpl *impl = (wxMSWDCImpl*) memdc.GetImpl();
-
-    ::FillRect(GetHdcOf(*impl), &rc, hbr);
-
-    MSWDefWindowProc(WM_PAINT, (WPARAM)(impl->GetHDC()), 0);
 
     // For some reason in RTL mode, source offset has to be -1, otherwise the
     // right border (physical) remains unpainted.
@@ -1312,11 +1380,11 @@ bool wxNotebook::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM* result)
   NMHDR* hdr = (NMHDR *)lParam;
   switch ( hdr->code ) {
     case TCN_SELCHANGE:
-      event.SetEventType(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED);
+      event.SetEventType(wxEVT_NOTEBOOK_PAGE_CHANGED);
       break;
 
     case TCN_SELCHANGING:
-      event.SetEventType(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING);
+      event.SetEventType(wxEVT_NOTEBOOK_PAGE_CHANGING);
       break;
 
     default:

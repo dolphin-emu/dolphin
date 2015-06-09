@@ -3,7 +3,6 @@
 // Purpose:     wxMSW native wxHeaderCtrl
 // Author:      Vadim Zeitlin
 // Created:     2008-12-01
-// RCS-ID:      $Id: headerctrl.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -46,7 +45,14 @@ public:
 
     virtual ~wxHeaderCtrl();
 
-
+    
+protected:
+    // override wxWindow methods which must be implemented by a new control
+    virtual wxSize DoGetBestSize() const;
+    virtual void DoSetSize(int x, int y,
+                           int width, int height,
+                           int sizeFlags = wxSIZE_AUTO);
+    
 private:
     // implement base class pure virtuals
     virtual void DoSetCount(unsigned int count);
@@ -57,12 +63,6 @@ private:
 
     virtual void DoSetColumnsOrder(const wxArrayInt& order);
     virtual wxArrayInt DoGetColumnsOrder() const;
-
-    // override wxWindow methods which must be implemented by a new control
-    virtual wxSize DoGetBestSize() const;
-    virtual void DoSetSize(int x, int y,
-                           int width, int height,
-                           int sizeFlags = wxSIZE_AUTO);
 
     // override MSW-specific methods needed for new control
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
@@ -125,6 +125,9 @@ private:
 
     // the offset of the window used to emulate scrolling it
     int m_scrollOffset;
+
+    // actual column we are dragging or -1 if not dragging anything
+    int m_colBeingDragged;
 
     wxDECLARE_NO_COPY_CLASS(wxHeaderCtrl);
 };

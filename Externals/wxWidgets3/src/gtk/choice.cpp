@@ -2,7 +2,6 @@
 // Name:        src/gtk/choice.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,8 +16,9 @@
     #include "wx/arrstr.h"
 #endif
 
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
-
+#include "wx/gtk/private/gtk2-compat.h"
 
 // ----------------------------------------------------------------------------
 // GTK callbacks
@@ -29,7 +29,7 @@ extern "C" {
 static void
 gtk_choice_changed_callback( GtkWidget *WXUNUSED(widget), wxChoice *choice )
 {
-    choice->SendSelectionChangedEvent(wxEVT_COMMAND_CHOICE_SELECTED);
+    choice->SendSelectionChangedEvent(wxEVT_CHOICE);
 }
 
 }
@@ -76,7 +76,11 @@ bool wxChoice::Create( wxWindow *parent, wxWindowID id,
         m_strings = new wxGtkCollatedArrayString;
     }
 
+#ifdef __WXGTK3__
+    m_widget = gtk_combo_box_text_new();
+#else
     m_widget = gtk_combo_box_new_text();
+#endif
     g_object_ref(m_widget);
 
     Append(n, choices);
@@ -96,28 +100,13 @@ wxChoice::~wxChoice()
     delete m_strings;
 }
 
-void wxChoice::SendSelectionChangedEvent(wxEventType evt_type)
-{
-    if (!m_hasVMT)
-        return;
-
-    if (GetSelection() == -1)
-        return;
-
-    wxCommandEvent event( evt_type, GetId() );
-
-    int n = GetSelection();
-    event.SetInt( n );
-    event.SetString( GetStringSelection() );
-    event.SetEventObject( this );
-    InitCommandEventWithItems( event, n );
-
-    HandleWindowEvent( event );
-}
-
 void wxChoice::GTKInsertComboBoxTextItem( unsigned int n, const wxString& text )
 {
+#ifdef __WXGTK3__
+    gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(m_widget), n, wxGTK_CONV(text));
+#else
     gtk_combo_box_insert_text( GTK_COMBO_BOX( m_widget ), n, wxGTK_CONV( text ) );
+#endif
 }
 
 int wxChoice::DoInsertItems(const wxArrayStringsAdapter & items,
@@ -191,8 +180,12 @@ void wxChoice::DoDeleteOneItem(unsigned int n)
     GtkTreeModel* model = gtk_combo_box_get_model( combobox );
     GtkListStore* store = GTK_LIST_STORE(model);
     GtkTreeIter iter;
-    gtk_tree_model_iter_nth_child( model, &iter,
-                                   NULL, (gint) n );
+    if ( !gtk_tree_model_iter_nth_child(model, &iter, NULL, n) )
+    {
+        // This is really not supposed to happen for a valid index.
+        wxFAIL_MSG(wxS("Item unexpectedly not found."));
+        return;
+    }
     gtk_list_store_remove( store, &iter );
 
     m_clientData.RemoveAt( n );
@@ -215,7 +208,7 @@ int wxChoice::FindString( const wxString &item, bool bCase ) const
     int count = 0;
     do
     {
-        GValue value = { 0, };
+        GValue value = G_VALUE_INIT;
         gtk_tree_model_get_value( model, &iter, m_stringCellIndex, &value );
         wxString str = wxGTK_CONV_BACK( g_value_get_string( &value ) );
         g_value_unset( &value );
@@ -246,7 +239,7 @@ void wxChoice::SetString(unsigned int n, const wxString &text)
     GtkTreeIter iter;
     if (gtk_tree_model_iter_nth_child (model, &iter, NULL, n))
     {
-        GValue value = { 0, };
+        GValue value = G_VALUE_INIT;
         g_value_init( &value, G_TYPE_STRING );
         g_value_set_string( &value, wxGTK_CONV( text ) );
         gtk_list_store_set_value( GTK_LIST_STORE(model), &iter, m_stringCellIndex, &value );
@@ -267,7 +260,7 @@ wxString wxChoice::GetString(unsigned int n) const
     GtkTreeIter iter;
     if (gtk_tree_model_iter_nth_child (model, &iter, NULL, n))
     {
-        GValue value = { 0, };
+        GValue value = G_VALUE_INIT;
         gtk_tree_model_get_value( model, &iter, m_stringCellIndex, &value );
         wxString tmp = wxGTK_CONV_BACK( g_value_get_string( &value ) );
         g_value_unset( &value );
@@ -312,12 +305,8 @@ void wxChoice::SetColumns(int n)
 
 int wxChoice::GetColumns() const
 {
-    // gtk_combo_box_get_wrap_width() was added in gtk 2.6
-    gint intval;
-    g_object_get(G_OBJECT(m_widget), "wrap-width", &intval, NULL);
-    return intval;
+    return gtk_combo_box_get_wrap_width(GTK_COMBO_BOX(m_widget));
 }
-
 
 void wxChoice::GTKDisableEvents()
 {
@@ -331,56 +320,61 @@ void wxChoice::GTKEnableEvents()
                                 (gpointer) gtk_choice_changed_callback, this);
 }
 
-
 GdkWindow *wxChoice::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
 {
     return gtk_widget_get_window(m_widget);
 }
 
-// Notice that this method shouldn't be necessary, because GTK calculates
-// properly size of the combobox but for unknown reasons it doesn't work
-// correctly in wx without this.
 wxSize wxChoice::DoGetBestSize() const
 {
-    // strangely, this returns a width of 188 pixels from GTK+ (?)
-    wxSize ret( wxControl::DoGetBestSize() );
+    // Get the height of the control from GTK+ itself, but use our own version
+    // to compute the width large enough to show all our strings as GTK+
+    // doesn't seem to take the control contents into account.
+    return GetSizeFromTextSize(wxChoiceBase::DoGetBestSize().x);
+}
 
-    // we know better our horizontal extent: it depends on the longest string
-    // in the combobox
-    if ( m_widget )
-    {
-        ret.x = GetCount() > 0 ? 0 : 60;  // start with something "sensible"
-        int width;
-        unsigned int count = GetCount();
-        for ( unsigned int n = 0; n < count; n++ )
-        {
-            GetTextExtent(GetString(n), &width, NULL, NULL, NULL );
-            if ( width + 40 > ret.x ) // 40 for drop down arrow and space around text
-                ret.x = width + 40;
-        }
-    }
+wxSize wxChoice::DoGetSizeFromTextSize(int xlen, int ylen) const
+{
+    wxASSERT_MSG( m_widget, wxS("GetSizeFromTextSize called before creation") );
 
-    // empty combobox should have some reasonable default size too
-    if ((GetCount() == 0) && (ret.x < 80))
-        ret.x = 80;
+    // a GtkEntry for wxComboBox and a GtkCellView for wxChoice
+    GtkWidget* childPart = gtk_bin_get_child(GTK_BIN(m_widget));
 
-    CacheBestSize(ret);
-    return ret;
+    // Set a as small as possible size for the control, so preferred sizes
+    // return "natural" sizes, not taking into account the previous ones (which
+    // seems to be GTK+3 behaviour)
+    gtk_widget_set_size_request(m_widget, 0, 0);
+
+    // We are interested in the difference of sizes between the whole contol
+    // and its child part. I.e. arrow, separators, etc.
+    GtkRequisition req;
+    gtk_widget_get_preferred_size(childPart, NULL, &req);
+    wxSize totalS = GTKGetPreferredSize(m_widget);
+
+    wxSize tsize(xlen + totalS.x - req.width, totalS.y);
+
+    // For a wxChoice, not for wxComboBox, add some margins
+    if ( !GTK_IS_ENTRY(childPart) )
+        tsize.IncBy(5, 0);
+
+    // Perhaps the user wants something different from CharHeight
+    if ( ylen > 0 )
+        tsize.IncBy(0, ylen - GetCharHeight());
+
+    return tsize;
 }
 
 void wxChoice::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    gtk_widget_modify_style(m_widget, style);
-    gtk_widget_modify_style(gtk_bin_get_child(GTK_BIN(m_widget)), style);
+    GTKApplyStyle(m_widget, style);
+    GTKApplyStyle(gtk_bin_get_child(GTK_BIN(m_widget)), style);
 }
-
 
 // static
 wxVisualAttributes
 wxChoice::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-    return GetDefaultAttributesFromGTKWidget(gtk_combo_box_new);
+    return GetDefaultAttributesFromGTKWidget(gtk_combo_box_new());
 }
-
 
 #endif // wxUSE_CHOICE || wxUSE_COMBOBOX

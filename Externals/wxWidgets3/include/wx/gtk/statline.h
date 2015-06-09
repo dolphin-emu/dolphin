@@ -2,7 +2,6 @@
 // Name:        wx/gtk/statline.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statline.h 43874 2006-12-09 14:52:59Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

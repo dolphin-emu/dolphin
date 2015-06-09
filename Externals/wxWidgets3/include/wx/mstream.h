@@ -4,7 +4,6 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     11/07/98
-// RCS-ID:      $Id: mstream.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

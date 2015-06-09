@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: Francesco Montorsi
 // Created:     04/01/98
-// RCS-ID:      $Id: valtext.cpp 66385 2010-12-16 17:21:49Z JMS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -114,21 +113,21 @@ bool wxTextValidator::Copy(const wxTextValidator& val)
 wxTextEntry *wxTextValidator::GetTextEntry()
 {
 #if wxUSE_TEXTCTRL
-    if (m_validatorWindow->IsKindOf(CLASSINFO(wxTextCtrl)))
+    if (wxDynamicCast(m_validatorWindow, wxTextCtrl))
     {
         return (wxTextCtrl*)m_validatorWindow;
     }
 #endif
 
 #if wxUSE_COMBOBOX
-    if (m_validatorWindow->IsKindOf(CLASSINFO(wxComboBox)))
+    if (wxDynamicCast(m_validatorWindow, wxComboBox))
     {
         return (wxComboBox*)m_validatorWindow;
     }
 #endif
 
 #if wxUSE_COMBOCTRL
-    if (m_validatorWindow->IsKindOf(CLASSINFO(wxComboCtrl)))
+    if (wxDynamicCast(m_validatorWindow, wxComboCtrl))
     {
         return (wxComboCtrl*)m_validatorWindow;
     }

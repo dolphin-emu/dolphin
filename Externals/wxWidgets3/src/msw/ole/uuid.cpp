@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.96
-// RCS-ID:      $Id: uuid.cpp 59725 2009-03-22 12:53:48Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,7 +85,7 @@ bool Uuid::operator==(const Uuid& uuid) const
 {
     // IsEqualGUID() returns BOOL and not bool so use an explicit comparison to
     // avoid MSVC warnings about int->bool conversion
-    return IsEqualGUID(m_uuid, uuid.m_uuid) == TRUE;
+    return IsEqualGUID(m_uuid, uuid.m_uuid) != 0;
 }
 
 // dtor

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -213,7 +212,7 @@ OSStatus wxMacListBoxItem::GetSetData(wxMacDataItemBrowserControl *owner ,
             m_isChecked = newVal;
             err = noErr;
 
-            wxCommandEvent event( wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, checklist->GetId() );
+            wxCommandEvent event( wxEVT_CHECKLISTBOX, checklist->GetId() );
             event.SetInt( owner->GetLineFromItem( this ) );
             event.SetEventObject( checklist );
             checklist->HandleWindowEvent( event );
@@ -362,7 +361,7 @@ void wxMacDataBrowserListControl::ItemNotification(
 
     if ((message == kDataBrowserSelectionSetChanged) && (!list->MacGetBlockEvents()))
     {
-        wxCommandEvent event( wxEVT_COMMAND_LISTBOX_SELECTED, list->GetId() );
+        wxCommandEvent event( wxEVT_LISTBOX, list->GetId() );
 
         int sel = list->GetSelection();
         if ((sel < 0) || (sel > (int) list->GetCount()))  // OS X can select an item below the last item (why?)

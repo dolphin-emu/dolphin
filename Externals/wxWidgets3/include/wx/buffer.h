@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.04.99
-// RCS-ID:      $Id: buffer.h 70417 2012-01-20 22:11:51Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -230,7 +229,8 @@ protected:
     static CharType *StrCopy(const CharType *src, size_t len)
     {
         CharType *dst = (CharType*)malloc(sizeof(CharType) * (len + 1));
-        memcpy(dst, src, sizeof(CharType) * (len + 1));
+        if ( dst )
+            memcpy(dst, src, sizeof(CharType) * (len + 1));
         return dst;
     }
 
@@ -268,9 +268,22 @@ public:
 
     wxCharTypeBuffer(size_t len)
     {
-        this->m_data =
-            new Data((CharType *)malloc((len + 1)*sizeof(CharType)), len);
-        this->m_data->Get()[len] = (CharType)0;
+        CharType* const str = (CharType *)malloc((len + 1)*sizeof(CharType));
+        if ( str )
+        {
+            str[len] = (CharType)0;
+
+            // There is a potential memory leak here if new throws because it
+            // fails to allocate Data, we ought to use new(nothrow) here, but
+            // this might fail to compile under some platforms so until this
+            // can be fully tested, just live with this (rather unlikely, as
+            // Data is a small object) potential leak.
+            this->m_data = new Data(str, len);
+        }
+        else
+        {
+            this->m_data = this->GetNullData();
+        }
     }
 
     wxCharTypeBuffer(const wxCharTypeBuffer& src)
@@ -438,7 +451,7 @@ public:
 
     friend class wxMemoryBuffer;
 
-    // everyting is private as it can only be used by wxMemoryBuffer
+    // everything is private as it can only be used by wxMemoryBuffer
 private:
     wxMemoryBufferData(size_t size = wxMemoryBufferData::DefBufSize)
         : m_data(size ? malloc(size) : NULL), m_size(size), m_len(0), m_ref(0)

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2008-06-20
-// RCS-ID:      $Id: window.mm 69754 2011-11-14 07:52:33Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -561,10 +560,22 @@ void wxWidgetIPhoneImpl::GetBestRect( wxRect *r ) const
 
 bool wxWidgetIPhoneImpl::IsEnabled() const
 {
+    UIView* targetView = m_osxView;
+    // TODO add support for documentViews
+
+    if ( [targetView respondsToSelector:@selector(isEnabled) ] )
+        return [targetView isEnabled];
+    
+    return true;
 }
 
 void wxWidgetIPhoneImpl::Enable( bool enable )
 {
+    UIView* targetView = m_osxView;
+    // TODO add support for documentViews
+
+    if ( [targetView respondsToSelector:@selector(setEnabled:) ] )
+        [targetView setEnabled:enable];
 }
 
 void wxWidgetIPhoneImpl::SetMinimum( wxInt32 v )
@@ -577,10 +588,12 @@ void wxWidgetIPhoneImpl::SetMaximum( wxInt32 v )
 
 wxInt32 wxWidgetIPhoneImpl::GetMinimum() const
 {
+    return 0;
 }
 
 wxInt32 wxWidgetIPhoneImpl::GetMaximum() const
 {
+    return 0;
 }
 
 void wxWidgetIPhoneImpl::PulseGauge()
@@ -595,7 +608,7 @@ void wxWidgetIPhoneImpl::SetControlSize( wxWindowVariant variant )
 {
 }
 
-float wxWidgetIPhoneImpl::GetContentScaleFactor() const 
+double wxWidgetIPhoneImpl::GetContentScaleFactor() const 
 {
     if ( [m_osxView respondsToSelector:@selector(contentScaleFactor) ])
         return [m_osxView contentScaleFactor];
@@ -779,7 +792,7 @@ void wxWidgetIPhoneImpl::controlTextDidChange()
     wxTextCtrl* wxpeer = wxDynamicCast((wxWindow*)GetWXPeer(),wxTextCtrl);
     if ( wxpeer ) 
     {
-        wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, wxpeer->GetId());
+        wxCommandEvent event(wxEVT_TEXT, wxpeer->GetId());
         event.SetEventObject( wxpeer );
         event.SetString( wxpeer->GetValue() );
         wxpeer->HandleWindowEvent( event );

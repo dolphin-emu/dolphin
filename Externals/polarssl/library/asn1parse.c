@@ -1,7 +1,7 @@
 /*
  *  Generic ASN.1 parsing
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ASN1_PARSE_C)
 
@@ -33,9 +37,15 @@
 #include "polarssl/bignum.h"
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
 
 /*
  * ASN.1 DER decoding routines
@@ -81,7 +91,8 @@ int asn1_get_len( unsigned char **p,
             if( ( end - *p ) < 5 )
                 return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-            *len = ( (*p)[1] << 24 ) | ( (*p)[2] << 16 ) | ( (*p)[3] << 8 ) | (*p)[4];
+            *len = ( (*p)[1] << 24 ) | ( (*p)[2] << 16 ) | ( (*p)[3] << 8 ) |
+                   (*p)[4];
             (*p) += 5;
             break;
 
@@ -183,7 +194,7 @@ int asn1_get_bitstring( unsigned char **p, const unsigned char *end,
         return( ret );
 
     /* Check length, subtract one for actual bit string length */
-    if ( bs->len < 1 )
+    if( bs->len < 1 )
         return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
     bs->len -= 1;
 
@@ -200,8 +211,26 @@ int asn1_get_bitstring( unsigned char **p, const unsigned char *end,
     if( *p != end )
         return( POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-    return 0;
+    return( 0 );
 }
+
+/*
+ * Get a bit string without unused bits
+ */
+int asn1_get_bitstring_null( unsigned char **p, const unsigned char *end,
+                             size_t *len )
+{
+    int ret;
+
+    if( ( ret = asn1_get_tag( p, end, len, ASN1_BIT_STRING ) ) != 0 )
+        return( ret );
+
+    if( (*len)-- < 2 || *(*p)++ != 0 )
+        return( POLARSSL_ERR_ASN1_INVALID_DATA );
+
+    return( 0 );
+}
+
 
 
 /*
@@ -236,9 +265,9 @@ int asn1_get_sequence_of( unsigned char **p,
         *p += buf->len;
 
         /* Allocate and assign next pointer */
-        if (*p < end)
+        if( *p < end )
         {
-            cur->next = (asn1_sequence *) malloc(
+            cur->next = (asn1_sequence *) polarssl_malloc(
                  sizeof( asn1_sequence ) );
 
             if( cur->next == NULL )
@@ -257,4 +286,106 @@ int asn1_get_sequence_of( unsigned char **p,
     return( 0 );
 }
 
-#endif
+int asn1_get_alg( unsigned char **p,
+                  const unsigned char *end,
+                  asn1_buf *alg, asn1_buf *params )
+{
+    int ret;
+    size_t len;
+
+    if( ( ret = asn1_get_tag( p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+        return( ret );
+
+    if( ( end - *p ) < 1 )
+        return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
+    alg->tag = **p;
+    end = *p + len;
+
+    if( ( ret = asn1_get_tag( p, end, &alg->len, ASN1_OID ) ) != 0 )
+        return( ret );
+
+    alg->p = *p;
+    *p += alg->len;
+
+    if( *p == end )
+    {
+        memset( params, 0, sizeof(asn1_buf) );
+        return( 0 );
+    }
+
+    params->tag = **p;
+    (*p)++;
+
+    if( ( ret = asn1_get_len( p, end, &params->len ) ) != 0 )
+        return( ret );
+
+    params->p = *p;
+    *p += params->len;
+
+    if( *p != end )
+        return( POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
+int asn1_get_alg_null( unsigned char **p,
+                       const unsigned char *end,
+                       asn1_buf *alg )
+{
+    int ret;
+    asn1_buf params;
+
+    memset( &params, 0, sizeof(asn1_buf) );
+
+    if( ( ret = asn1_get_alg( p, end, alg, &params ) ) != 0 )
+        return( ret );
+
+    if( ( params.tag != ASN1_NULL && params.tag != 0 ) || params.len != 0 )
+        return( POLARSSL_ERR_ASN1_INVALID_DATA );
+
+    return( 0 );
+}
+
+void asn1_free_named_data( asn1_named_data *cur )
+{
+    if( cur == NULL )
+        return;
+
+    polarssl_free( cur->oid.p );
+    polarssl_free( cur->val.p );
+
+    memset( cur, 0, sizeof( asn1_named_data ) );
+}
+
+void asn1_free_named_data_list( asn1_named_data **head )
+{
+    asn1_named_data *cur;
+
+    while( ( cur = *head ) != NULL )
+    {
+        *head = cur->next;
+        asn1_free_named_data( cur );
+        polarssl_free( cur );
+    }
+}
+
+asn1_named_data *asn1_find_named_data( asn1_named_data *list,
+                                       const char *oid, size_t len )
+{
+    while( list != NULL )
+    {
+        if( list->oid.len == len &&
+            memcmp( list->oid.p, oid, len ) == 0 )
+        {
+            break;
+        }
+
+        list = list->next;
+    }
+
+    return( list );
+}
+
+#endif /* POLARSSL_ASN1_PARSE_C */

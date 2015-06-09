@@ -4,7 +4,6 @@
 // Authors:     Lukasz Michalski and Vadim Zeitlin
 // Created:     December 2006
 // Copyright:   (c) Lukasz Michalski
-// RCS-ID:      $Id: selectdispatcher.h 63716 2010-03-20 12:45:28Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

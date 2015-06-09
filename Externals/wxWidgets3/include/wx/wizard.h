@@ -9,7 +9,6 @@
 //              Added wxWIZARD_HELP event
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.h 70630 2012-02-20 11:38:52Z JS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -114,7 +113,7 @@ private:
 // wxWizardPageSimple just returns the pointers given to the ctor and is useful
 // to create a simple wizard where the order of pages never changes.
 //
-// OTOH, it is also possible to dynamicly decide which page to return (i.e.
+// OTOH, it is also possible to dynamically decide which page to return (i.e.
 // depending on the user's choices) as the wizard sample shows - in order to do
 // this, you must derive from wxWizardPage directly.
 // ----------------------------------------------------------------------------
@@ -147,7 +146,15 @@ public:
     void SetPrev(wxWizardPage *prev) { m_prev = prev; }
     void SetNext(wxWizardPage *next) { m_next = next; }
 
-    // a convenience function to make the pages follow each other
+    // Convenience functions to make the pages follow each other without having
+    // to call their SetPrev() or SetNext() explicitly.
+    wxWizardPageSimple& Chain(wxWizardPageSimple* next)
+    {
+        SetNext(next);
+        next->SetPrev(this);
+        return *next;
+    }
+
     static void Chain(wxWizardPageSimple *first, wxWizardPageSimple *second)
     {
         wxCHECK_RET( first && second,

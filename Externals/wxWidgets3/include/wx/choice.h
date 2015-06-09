@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.07.99
-// RCS-ID:      $Id: choice.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -57,6 +56,13 @@ public:
 
     // override wxItemContainer::IsSorted
     virtual bool IsSorted() const { return HasFlag(wxCB_SORT); }
+
+protected:
+    // The generic implementation doesn't determine the height correctly and
+    // doesn't account for the width of the arrow but does take into account
+    // the string widths, so the derived classes should override it and set the
+    // height and add the arrow width to the size returned by this version.
+    virtual wxSize DoGetBestSize() const;
 
 private:
     wxDECLARE_NO_COPY_CLASS(wxChoiceBase);

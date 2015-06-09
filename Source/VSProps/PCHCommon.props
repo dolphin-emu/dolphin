@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!--
+        Creator and ALL users of PCH must have exact same compiler settings!
+        In dolphin we accomplish this by sharing settings between targets with
+        Base.props.
+        -->
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <!--
+        This file will be included by other projects, so we have to manually set
+        the output path.
+        -->
+      <PrecompiledHeaderOutputFile>$(BuildRootDir)$(Platform)\$(Configuration)\pch\pch.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>

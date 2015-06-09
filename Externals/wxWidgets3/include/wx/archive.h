@@ -2,7 +2,6 @@
 // Name:        wx/archive.h
 // Purpose:     Streams for archive formats
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: archive.h 66780 2011-01-27 11:00:26Z SC $
 // Copyright:   (c) 2004 Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

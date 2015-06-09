@@ -4,7 +4,6 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     18/03/2002
-// RCS-ID:      $Id: artstd.cpp 70893 2012-03-13 17:23:58Z JS $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

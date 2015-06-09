@@ -3,7 +3,6 @@
 // Purpose:     Implementation of wxDateTimePickerCtrl for OS X.
 // Author:      Vadim Zeitlin
 // Created:     2011-12-18
-// RCS-ID:      $Id: datetimectrl_osx.cpp 70071 2011-12-20 21:27:14Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,6 +27,7 @@
 #ifndef WX_PRECOMP
 #endif // WX_PRECOMP
 
+#include "wx/datectrl.h"
 #include "wx/datetimectrl.h"
 
 #include "wx/osx/core/private/datetimectrl.h"
@@ -43,7 +43,19 @@ wxDateTimeWidgetImpl* wxDateTimePickerCtrl::GetDateTimePeer() const
 
 void wxDateTimePickerCtrl::SetValue(const wxDateTime& dt)
 {
-    GetDateTimePeer()->SetDateTime(dt);
+    if ( dt.IsValid() )
+    {
+        GetDateTimePeer()->SetDateTime(dt);
+    }
+    else // invalid date
+    {
+        wxASSERT_MSG( HasFlag(wxDP_ALLOWNONE),
+                     wxT("this control must have a valid date") );
+
+        // TODO setting to an invalid date is not natively supported
+        // so we must implement a UI for that ourselves
+        GetDateTimePeer()->SetDateTime(dt);
+    }
 }
 
 wxDateTime wxDateTimePickerCtrl::GetValue() const

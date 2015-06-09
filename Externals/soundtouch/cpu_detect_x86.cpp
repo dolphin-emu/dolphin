@@ -11,10 +11,10 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2012-11-08 18:44:37 +0000 (Thu, 08 Nov 2012) $
+// Last changed  : $Date: 2014-01-08 05:24:28 +1100 (Wed, 08 Jan 2014) $
 // File revision : $Revision: 4 $
 //
-// $Id: cpu_detect_x86.cpp 159 2012-11-08 18:44:37Z oparviai $
+// $Id: cpu_detect_x86.cpp 183 2014-01-07 18:24:28Z oparviai $
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -42,19 +42,20 @@
 #include "cpu_detect.h"
 #include "STTypes.h"
 
+
 #if defined(SOUNDTOUCH_ALLOW_X86_OPTIMIZATIONS)
 
-    #if defined(__GNUC__) && defined(__i386__)
-        // gcc
-        #include "cpuid.h"
-    #elif defined(_M_IX86)
-        // windows non-gcc
-        #include <intrin.h>
-        #define bit_MMX     (1 << 23)
-        #define bit_SSE     (1 << 25)
-        #define bit_SSE2    (1 << 26)
-    #endif
+   #if defined(__GNUC__) && defined(__i386__)
+       // gcc
+       #include "cpuid.h"
+   #elif defined(_M_IX86)
+       // windows non-gcc
+       #include <intrin.h>
+   #endif
 
+   #define bit_MMX     (1 << 23)
+   #define bit_SSE     (1 << 25)
+   #define bit_SSE2    (1 << 26)
 #endif
 
 

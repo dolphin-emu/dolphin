@@ -4,7 +4,6 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2002/02/17
-// RCS-ID:      $Id: mslu.cpp 60355 2009-04-25 15:53:45Z VZ $
 // Copyright:   (c) 2002 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -198,6 +197,14 @@ WXDLLIMPEXP_BASE int wxMSLU__waccess(const wchar_t *name, int mode)
         return wxCRT_AccessA(wxConvFile.cWX2MB(name), mode);
     else
         return wxCRT_AccessW(name, mode);
+}
+
+WXDLLIMPEXP_BASE int wxMSLU__wchmod(const wchar_t *name, int mode)
+{
+    if ( wxUsingUnicowsDll() )
+        return wxCRT_ChmodA(wxConvFile.cWX2MB(name), mode);
+    else
+        return wxCRT_ChmodW(name, mode);
 }
 
 WXDLLIMPEXP_BASE int wxMSLU__wmkdir(const wchar_t *name)

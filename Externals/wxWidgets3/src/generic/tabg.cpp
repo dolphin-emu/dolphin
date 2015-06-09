@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: tabg.cpp 58227 2009-01-19 13:55:27Z VZ $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1225,9 +1224,9 @@ wxPanelTabView::wxPanelTabView(wxPanel *pan, long style)
   m_panel = pan;
   m_currentWindow = NULL;
 
-  if (m_panel->IsKindOf(CLASSINFO(wxTabbedDialog)))
+  if (m_panel->IsKindOf(wxCLASSINFO(wxTabbedDialog)))
     ((wxTabbedDialog *)m_panel)->SetTabView(this);
-  else if (m_panel->IsKindOf(CLASSINFO(wxTabbedPanel)))
+  else if (m_panel->IsKindOf(wxCLASSINFO(wxTabbedPanel)))
     ((wxTabbedPanel *)m_panel)->SetTabView(this);
 
   SetWindow(m_panel);

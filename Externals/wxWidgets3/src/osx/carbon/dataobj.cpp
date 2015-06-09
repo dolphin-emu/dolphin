@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     10/21/99
-// RCS-ID:      $Id: dataobj.cpp 67890 2011-06-08 23:00:36Z SC $
 // Copyright:   (c) 1999 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,13 +25,13 @@
 #include "wx/mstream.h"
 #include "wx/metafile.h"
 #include "wx/tokenzr.h"
+#include "wx/filename.h"
 
 #include "wx/osx/private.h"
 
 #if wxOSX_USE_COCOA_OR_CARBON
     #include <QuickTime/QuickTime.h>
 #endif
-
 
 // ----------------------------------------------------------------------------
 // wxDataFormat
@@ -121,22 +120,26 @@ void wxDataFormat::SetType( wxDataFormatId dataType )
     switch (m_type)
     {
     case wxDF_TEXT:
-        m_format = (long) CFStringCreateCopy( NULL, CFSTR("public.plain-text") );
+        m_format = (long) CFStringCreateCopy( NULL, kUTTypePlainText );
         break;
 
     case wxDF_UNICODETEXT:
-        m_format = (long) CFStringCreateCopy( NULL, CFSTR("public.utf16-plain-text") );
+        m_format = (long) CFStringCreateCopy( NULL, kUTTypeUTF16PlainText );
+        break;
+
+    case wxDF_HTML:
+        m_format = (long) CFStringCreateCopy( NULL, kUTTypeHTML );
         break;
 
     case wxDF_BITMAP:
-        m_format = (long) CFStringCreateCopy( NULL, CFSTR("public.tiff") );
+        m_format = (long) CFStringCreateCopy( NULL, kUTTypeTIFF );
         break;
     case wxDF_METAFILE:
-        m_format = (long) CFStringCreateCopy( NULL, CFSTR("com.adobe.pdf") );
+        m_format = (long) CFStringCreateCopy( NULL, kUTTypePDF );
         break;
 
     case wxDF_FILENAME:
-        m_format = (long) CFStringCreateCopy( NULL, CFSTR("public.file-url") );
+        m_format = (long) CFStringCreateCopy( NULL, kUTTypeFileURL );
         break;
 
     default:
@@ -158,27 +161,36 @@ void wxDataFormat::SetId( NativeFormat format )
         m_format = 0;
     }
     m_format = (NativeFormat) CFStringCreateCopy(NULL, (CFStringRef)format);
-    if (  UTTypeConformsTo( (CFStringRef)format, CFSTR("public.utf16-plain-text") )  )
+    if ( UTTypeConformsTo( (CFStringRef)format, kUTTypeHTML ) )
+    {
+        m_type = wxDF_HTML;
+    }
+    if (  UTTypeConformsTo( (CFStringRef)format, kUTTypeUTF16PlainText ) )
     {
         m_type = wxDF_UNICODETEXT;
     }
-    else if (  UTTypeConformsTo( (CFStringRef)format, CFSTR("public.utf16-external-plain-text") )  )
+    else if (  UTTypeConformsTo( (CFStringRef)format,kUTTypeUTF16ExternalPlainText ) )
     {
         m_type = wxDF_UNICODETEXT;
     }
-    else if ( UTTypeConformsTo( (CFStringRef)format, CFSTR("public.plain-text") ) )
+    else if (  UTTypeConformsTo( (CFStringRef)format,kUTTypeUTF8PlainText ) )
+    {
+        m_type = wxDF_UNICODETEXT;
+    }
+    else if ( UTTypeConformsTo( (CFStringRef)format, kUTTypePlainText ) )
     {
         m_type = wxDF_TEXT;
     }
-    else if (  UTTypeConformsTo( (CFStringRef)format, CFSTR("public.tiff") )  )
+    else if (  UTTypeConformsTo( (CFStringRef)format, kUTTypeImage ) )
     {
         m_type = wxDF_BITMAP;
     }
-    else if (  UTTypeConformsTo( (CFStringRef)format, CFSTR("com.adobe.pdf") )  )
+    else if (  UTTypeConformsTo( (CFStringRef)format, kUTTypePDF ) )
     {
         m_type = wxDF_METAFILE;
     }
-    else if (  UTTypeConformsTo( (CFStringRef)format, CFSTR("public.file-url") )  )
+    else if (  UTTypeConformsTo( (CFStringRef)format, kUTTypeFileURL ) ||
+             UTTypeConformsTo( (CFStringRef)format, kPasteboardTypeFileURLPromise))
     {
         m_type = wxDF_FILENAME;
     }
@@ -247,7 +259,7 @@ bool wxDataObject::IsSupportedFormat( const wxDataFormat& rFormat, Direction vDi
     return found;
 }
 
-void wxDataObject::AddToPasteboard( void * pb, int itemID )
+void wxDataObject::AddToPasteboard( void * pb, wxIntPtr itemID )
 {
     PasteboardRef pasteboard = (PasteboardRef) pb;
    // get formats from wxDataObjects
@@ -263,15 +275,33 @@ void wxDataObject::AddToPasteboard( void * pb, int itemID )
         // string including trailing zero
 
         size_t datasize = GetDataSize( thisFormat );
+        if ( datasize == wxCONV_FAILED && thisFormat.GetType() == wxDF_TEXT)
+        {
+            // conversion to local text failed, so we must use unicode
+            // if wxDF_UNICODETEXT is already on the 'todo' list, skip this iteration
+            // otherwise force it
+            size_t j = 0;
+            for (j = 0; j < GetFormatCount(); j++)
+            {
+                if ( array[j].GetType() == wxDF_UNICODETEXT )
+                    break;
+            }
+            if ( j < GetFormatCount() )
+                continue;
+            
+            thisFormat.SetType(wxDF_UNICODETEXT);
+            datasize = GetDataSize( thisFormat );
+        }
+            
         size_t sz = datasize + 4;
         void* buf = malloc( sz );
         if ( buf != NULL )
         {
             // empty the buffer because in some case GetDataHere does not fill buf
             memset( buf, 0, sz );
-            if ( GetDataHere( array[ i ], buf ) )
+            if ( GetDataHere( thisFormat, buf ) )
             {
-                int counter = 1 ;
+                wxIntPtr counter = 1 ;
                 if ( thisFormat.GetType() == wxDF_FILENAME )
                 {
                     // the data is D-normalized UTF8 strings of filenames delimited with \n
@@ -363,13 +393,15 @@ bool wxDataObject::IsFormatInPasteboard( void * pb, const wxDataFormat &dataForm
 bool wxDataObject::GetFromPasteboard( void * pb )
 {
     PasteboardRef pasteboard = (PasteboardRef) pb;
-    size_t formatcount = GetFormatCount() + 1;
+
+    size_t formatcount = GetFormatCount(wxDataObject::Set);
     wxDataFormat *array = new wxDataFormat[ formatcount ];
-    array[0] = GetPreferredFormat();
-    GetAllFormats( &array[1] );
+    GetAllFormats(array, wxDataObject::Set);
+    
     ItemCount itemCount = 0;
     wxString filenamesPassed;
     bool transferred = false;
+    bool pastelocationset = false;
 
     // we synchronize here once again, so we don't mind which flags get returned
     PasteboardSynchronize( pasteboard );
@@ -407,22 +439,38 @@ bool wxDataObject::GetFromPasteboard( void * pb )
                     flavorType = (CFStringRef)CFArrayGetValueAtIndex( flavorTypeArray,
                                                                          flavorIndex );
 
-                    // avoid utf8 being treated closer to plain-text than unicode by forcing a conversion
-                    if ( UTTypeConformsTo(flavorType, CFSTR("public.utf8-plain-text") ) )
-                    {
-                        flavorType = CFSTR("public.utf16-plain-text");
-                    }
                     wxDataFormat flavorFormat( (wxDataFormat::NativeFormat) flavorType );
 
                     if ( dataFormat == flavorFormat )
                     {
+                        if ( UTTypeConformsTo( (CFStringRef)flavorType, kPasteboardTypeFileURLPromise) )
+                        {
+                            if ( !pastelocationset )
+                            {
+                                wxString tempdir = wxFileName::GetTempDir() + wxFILE_SEP_PATH + "wxtemp.XXXXXX";
+                                char* result = mkdtemp((char*)tempdir.fn_str().data());
+                                
+                                if (!result)
+                                    continue;
+                                
+                                wxCFRef<CFURLRef> dest(CFURLCreateFromFileSystemRepresentation(NULL,(const UInt8*)result,strlen(result),true));
+                                PasteboardSetPasteLocation(pasteboard, dest);
+                                pastelocationset = true;
+                           }
+                        }
+                        else if ( flavorFormat.GetType() != wxDF_PRIVATE )
+                        {
+                            // indicate the expected format for the type, benefiting from native conversions eg utf8 -> utf16
+                            flavorType = (CFStringRef) wxDataFormat( flavorFormat.GetType()).GetFormatId();
+                        }
+                        
                         err = PasteboardCopyItemFlavorData( pasteboard, itemID, flavorType , &flavorData );
                         if ( err == noErr )
                         {
                             flavorDataSize = CFDataGetLength( flavorData );
                             if (dataFormat.GetType() == wxDF_FILENAME )
                             {
-                                // revert the translation and decomposition to arrive at a proper utf8 string again
+                                 // revert the translation and decomposition to arrive at a proper utf8 string again
                                 CFURLRef url = CFURLCreateWithBytes( kCFAllocatorDefault, CFDataGetBytePtr( flavorData ), flavorDataSize, kCFStringEncodingUTF8, NULL );
                                 CFStringRef cfString = CFURLCopyFileSystemPath( url, kCFURLPOSIXPathStyle );
                                 CFRelease( url );
@@ -490,10 +538,9 @@ bool wxDataObject::GetFromPasteboard( void * pb )
 bool wxDataObject::HasDataInPasteboard( void * pb )
 {
     PasteboardRef pasteboard = (PasteboardRef) pb;
-    size_t formatcount = GetFormatCount() + 1;
+    size_t formatcount = GetFormatCount(wxDataObject::Set);
     wxDataFormat *array = new wxDataFormat[ formatcount ];
-    array[0] = GetPreferredFormat();
-    GetAllFormats( &array[1] );
+    GetAllFormats(array, wxDataObject::Set);
     ItemCount itemCount = 0;
     bool hasData = false;
 
@@ -546,6 +593,51 @@ bool wxDataObject::HasDataInPasteboard( void * pb )
     return hasData;
 }
 
+#if wxOSX_USE_COCOA
+
+void wxDataObject::AddSupportedTypes( void* cfarray)
+{
+    size_t nFormats = GetFormatCount(wxDataObject::Set);
+    wxDataFormat *array = new wxDataFormat[nFormats];
+    GetAllFormats(array, wxDataObject::Set);
+    
+    for (size_t i = 0; i < nFormats; i++)
+    {
+        wxDataFormat dataFormat = array[ i ];
+        
+        if ( dataFormat.GetType() == wxDF_UNICODETEXT || dataFormat.GetType() == wxDF_TEXT )
+        {
+            CFArrayAppendValue((CFMutableArrayRef)cfarray, kUTTypeUTF16PlainText);
+            CFArrayAppendValue((CFMutableArrayRef)cfarray, kUTTypePlainText);
+        }
+        else if ( dataFormat.GetType() == wxDF_FILENAME )
+        {
+            CFArrayAppendValue((CFMutableArrayRef)cfarray, kUTTypeFileURL);
+            CFArrayAppendValue((CFMutableArrayRef)cfarray, kPasteboardTypeFileURLPromise);
+        }
+        else if ( dataFormat.GetType() == wxDF_HTML )
+        {
+            CFArrayAppendValue((CFMutableArrayRef)cfarray, kUTTypeHTML);
+        }
+        else if ( dataFormat.GetType() == wxDF_BITMAP )
+        {
+            CFArrayAppendValue((CFMutableArrayRef)cfarray, kUTTypeTIFF);
+            CFArrayAppendValue((CFMutableArrayRef)cfarray, kUTTypePICT);
+        }
+        else if ( dataFormat.GetType() == wxDF_METAFILE )
+        {
+            CFArrayAppendValue((CFMutableArrayRef)cfarray, kUTTypePDF);
+        }
+        else if ( dataFormat.GetType() == wxDF_PRIVATE )
+        {
+            CFArrayAppendValue((CFMutableArrayRef)cfarray, (CFStringRef) dataFormat.GetFormatId());
+        }
+    }
+    delete[] array;
+}
+
+#endif
+
 // ----------------------------------------------------------------------------
 // wxTextDataObject
 // ----------------------------------------------------------------------------
@@ -554,8 +646,8 @@ bool wxDataObject::HasDataInPasteboard( void * pb )
 void wxTextDataObject::GetAllFormats(wxDataFormat *formats,
                                      wxDataObjectBase::Direction WXUNUSED(dir)) const
 {
-    *formats++ = wxDataFormat( wxDF_TEXT );
-    *formats = wxDataFormat( wxDF_UNICODETEXT );
+    *formats++ = wxDataFormat(wxDF_UNICODETEXT);
+    *formats = wxDataFormat(wxDF_TEXT);
 }
 #endif
 

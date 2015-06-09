@@ -5,7 +5,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn_osx.cpp 67949 2011-06-16 00:43:22Z RD $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,7 +30,7 @@
 // ----------------------------------------------------------------------------
 
 IMPLEMENT_DYNAMIC_CLASS(wxToggleButton, wxControl)
-wxDEFINE_EVENT( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_TOGGLEBUTTON, wxCommandEvent );
 
 // ============================================================================
 // implementation
@@ -94,7 +93,7 @@ void wxToggleButton::Command(wxCommandEvent & event)
 
 bool wxToggleButton::OSXHandleClicked( double WXUNUSED(timestampsec) )
 {
-    wxCommandEvent event(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, m_windowId);
+    wxCommandEvent event(wxEVT_TOGGLEBUTTON, m_windowId);
     event.SetInt(GetValue());
     event.SetEventObject(this);
     ProcessCommand(event);

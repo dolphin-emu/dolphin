@@ -4,7 +4,6 @@
 // Author:      Stefan Neis
 // Modified by:
 // Created:     20/02/1999
-// RCS-ID:      $Id: gridsel.cpp 70177 2011-12-29 22:05:23Z VZ $
 // Copyright:   (c) Stefan Neis (Stefan.Neis@t-online.de)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

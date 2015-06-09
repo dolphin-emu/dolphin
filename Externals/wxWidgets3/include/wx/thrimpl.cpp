@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.06.02 (extracted from src/*/thread.cpp files)
-// RCS-ID:      $Id: thrimpl.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) Vadim Zeitlin (2002)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -343,8 +342,16 @@ wxSemaError wxSemaphore::Post()
 // ----------------------------------------------------------------------------
 
 #include "wx/utils.h"
+#include "wx/private/threadinfo.h"
+#include "wx/scopeguard.h"
 
 void wxThread::Sleep(unsigned long milliseconds)
 {
     wxMilliSleep(milliseconds);
+}
+
+void *wxThread::CallEntry()
+{
+    wxON_BLOCK_EXIT0(wxThreadSpecificInfo::ThreadCleanUp);
+    return Entry();
 }

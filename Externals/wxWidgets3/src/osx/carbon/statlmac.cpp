@@ -3,7 +3,6 @@
 // Purpose:     a generic wxStaticLine class
 // Author:      Vadim Zeitlin
 // Created:     28.06.99
-// Version:     $Id: statlmac.cpp 61724 2009-08-21 10:41:26Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

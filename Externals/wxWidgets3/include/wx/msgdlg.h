@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: msgdlg.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -125,8 +124,12 @@ public:
         wxASSERT_MSG( !(style & wxYES) || !(style & wxOK),
                       "wxOK and wxYES/wxNO can't be used together" );
 
-        wxASSERT_MSG( (style & wxYES) || (style & wxOK),
-                      "one of wxOK and wxYES/wxNO must be used" );
+        // It is common to specify just the icon, without wxOK, in the existing
+        // code, especially one written by Windows programmers as MB_OK is 0
+        // and so they're used to omitting wxOK. Don't complain about it but
+        // just add wxOK implicitly for compatibility.
+        if ( !(style & wxYES) && !(style & wxOK) )
+            style |= wxOK;
 
         wxASSERT_MSG( (style & wxID_OK) != wxID_OK,
                       "wxMessageBox: Did you mean wxOK (and not wxID_OK)?" );
@@ -205,8 +208,9 @@ public:
         { return m_help.empty() ? GetDefaultHelpLabel() : m_help; }
 
     // based on message dialog style, returns exactly one of: wxICON_NONE,
-    // wxICON_ERROR, wxICON_WARNING, wxICON_QUESTION, wxICON_INFORMATION
-    long GetEffectiveIcon() const
+    // wxICON_ERROR, wxICON_WARNING, wxICON_QUESTION, wxICON_INFORMATION,
+    // wxICON_AUTH_NEEDED
+    virtual long GetEffectiveIcon() const
     {
         if ( m_dialogStyle & wxICON_NONE )
             return wxICON_NONE;

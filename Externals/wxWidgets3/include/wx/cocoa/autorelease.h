@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/07/11
-// RCS-ID:      $Id: autorelease.h 61724 2009-08-21 10:41:26Z VZ $
 // Copyright:   (c) 2003 David Elliott <dfe@cox.net>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

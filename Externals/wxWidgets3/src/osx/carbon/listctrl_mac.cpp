@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: Agron Selimaj
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl_mac.cpp 70294 2012-01-08 10:54:28Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -63,7 +62,7 @@ static pascal OSStatus wxMacListCtrlEventHandler( EventHandlerCallRef handler , 
     cEvent.GetParameter( kEventParamDirectObject , &controlRef ) ;
 
     wxListCtrl *window = (wxListCtrl*) data ;
-    wxListEvent le( wxEVT_COMMAND_LIST_COL_CLICK, window->GetId() );
+    wxListEvent le( wxEVT_LIST_COL_CLICK, window->GetId() );
     le.SetEventObject( window );
 
     switch ( GetEventKind( event ) )
@@ -558,14 +557,14 @@ void wxListCtrl::OnDblClick(wxMouseEvent& event)
 void wxListCtrl::OnRightDown(wxMouseEvent& event)
 {
     if (m_dbImpl)
-        FireMouseEvent(wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK, event.GetPosition());
+        FireMouseEvent(wxEVT_LIST_ITEM_RIGHT_CLICK, event.GetPosition());
     event.Skip();
 }
 
 void wxListCtrl::OnMiddleDown(wxMouseEvent& event)
 {
     if (m_dbImpl)
-        FireMouseEvent(wxEVT_COMMAND_LIST_ITEM_MIDDLE_CLICK, event.GetPosition());
+        FireMouseEvent(wxEVT_LIST_ITEM_MIDDLE_CLICK, event.GetPosition());
     event.Skip();
 }
 
@@ -593,7 +592,7 @@ void wxListCtrl::OnChar(wxKeyEvent& event)
 
     if (m_dbImpl)
     {
-        wxListEvent le( wxEVT_COMMAND_LIST_KEY_DOWN, GetId() );
+        wxListEvent le( wxEVT_LIST_KEY_DOWN, GetId() );
         le.SetEventObject(this);
         le.m_code = event.GetKeyCode();
         le.m_itemIndex = -1;
@@ -685,7 +684,7 @@ bool wxListCtrl::Create(wxWindow *parent,
             (EventHandlerRef *)&m_macListCtrlEventHandler);
 
         m_renameTimer = new wxListCtrlRenameTimer( this );
-        
+
         Connect( wxID_ANY, wxEVT_CHAR, wxCharEventHandler(wxListCtrl::OnChar), NULL, this );
         Connect( wxID_ANY, wxEVT_LEFT_DOWN, wxMouseEventHandler(wxListCtrl::OnLeftDown), NULL, this );
         Connect( wxID_ANY, wxEVT_LEFT_DCLICK, wxMouseEventHandler(wxListCtrl::OnDblClick), NULL, this );
@@ -803,8 +802,7 @@ void wxListCtrl::DoSetSize( int x, int y, int width, int height, int sizeFlags )
 
 bool wxListCtrl::SetFont(const wxFont& font)
 {
-    bool rv = true;
-    rv = wxListCtrlBase::SetFont(font);
+    bool rv = wxListCtrlBase::SetFont(font);
     if (m_genericImpl)
         rv = m_genericImpl->SetFont(font);
     return rv;
@@ -1739,7 +1737,7 @@ bool wxListCtrl::DeleteItem(long item)
     if (m_dbImpl)
     {
         m_dbImpl->MacDelete(item);
-        wxListEvent event( wxEVT_COMMAND_LIST_DELETE_ITEM, GetId() );
+        wxListEvent event( wxEVT_LIST_DELETE_ITEM, GetId() );
         event.SetEventObject( this );
         event.m_itemIndex = item;
         HandleWindowEvent( event );
@@ -1758,7 +1756,7 @@ bool wxListCtrl::DeleteAllItems()
     if (m_dbImpl)
     {
         m_dbImpl->MacClear();
-        wxListEvent event( wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS, GetId() );
+        wxListEvent event( wxEVT_LIST_DELETE_ALL_ITEMS, GetId() );
         event.SetEventObject( this );
         HandleWindowEvent( event );
     }
@@ -1828,7 +1826,7 @@ wxTextCtrl* wxListCtrl::EditLabel(long item, wxClassInfo* textControlClass)
         wxASSERT_MSG( textControlClass->IsKindOf(CLASSINFO(wxTextCtrl)),
                      wxT("EditLabel() needs a text control") );
 
-        wxListEvent le( wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT, GetParent()->GetId() );
+        wxListEvent le( wxEVT_LIST_BEGIN_LABEL_EDIT, GetParent()->GetId() );
         le.SetEventObject( this );
         le.m_itemIndex = item;
         le.m_col = 0;
@@ -2107,7 +2105,7 @@ long wxListCtrl::InsertItem(wxListItem& info)
 
         m_dbImpl->MacInsertItem(info.m_itemId, &info );
 
-        wxListEvent event( wxEVT_COMMAND_LIST_INSERT_ITEM, GetId() );
+        wxListEvent event( wxEVT_LIST_INSERT_ITEM, GetId() );
         event.SetEventObject( this );
         event.m_itemIndex = info.m_itemId;
         HandleWindowEvent( event );
@@ -2255,7 +2253,7 @@ void wxListCtrl::OnRenameTimer()
 
 bool wxListCtrl::OnRenameAccept(long itemEdit, const wxString& value)
 {
-    wxListEvent le( wxEVT_COMMAND_LIST_END_LABEL_EDIT, GetId() );
+    wxListEvent le( wxEVT_LIST_END_LABEL_EDIT, GetId() );
     le.SetEventObject( this );
     le.m_itemIndex = itemEdit;
 
@@ -2268,7 +2266,7 @@ bool wxListCtrl::OnRenameAccept(long itemEdit, const wxString& value)
 void wxListCtrl::OnRenameCancelled(long itemEdit)
 {
     // let owner know that the edit was cancelled
-    wxListEvent le( wxEVT_COMMAND_LIST_END_LABEL_EDIT, GetParent()->GetId() );
+    wxListEvent le( wxEVT_LIST_END_LABEL_EDIT, GetParent()->GetId() );
 
     le.SetEditCanceled(true);
 
@@ -2306,15 +2304,6 @@ int wxListCtrl::OnGetItemColumnImage(long item, long column) const
         return OnGetItemImage(item);
 
     return -1;
-}
-
-wxListItemAttr *wxListCtrl::OnGetItemAttr(long WXUNUSED_UNLESS_DEBUG(item)) const
-{
-    wxASSERT_MSG( item >= 0 && item < GetItemCount(),
-                  wxT("invalid item index in OnGetItemAttr()") );
-
-    // no attributes by default
-    return NULL;
 }
 
 void wxListCtrl::SetItemCount(long count)
@@ -2487,7 +2476,7 @@ void wxMacListCtrlItem::Notification(wxMacDataItemBrowserControl *owner ,
     {
         bool trigger = false;
 
-        wxListEvent event( wxEVT_COMMAND_LIST_ITEM_SELECTED, list->GetId() );
+        wxListEvent event( wxEVT_LIST_ITEM_SELECTED, list->GetId() );
         bool isSingle = (list->GetWindowStyle() & wxLC_SINGLE_SEL) != 0;
 
         event.SetEventObject( list );
@@ -2498,7 +2487,7 @@ void wxMacListCtrlItem::Notification(wxMacDataItemBrowserControl *owner ,
         switch (message)
         {
             case kDataBrowserItemDeselected:
-                event.SetEventType(wxEVT_COMMAND_LIST_ITEM_DESELECTED);
+                event.SetEventType(wxEVT_LIST_ITEM_DESELECTED);
                 if ( !isSingle )
                     trigger = !lb->IsSelectionSuppressed();
                 break;
@@ -2508,20 +2497,20 @@ void wxMacListCtrlItem::Notification(wxMacDataItemBrowserControl *owner ,
                 break;
 
             case kDataBrowserItemDoubleClicked:
-                event.SetEventType( wxEVT_COMMAND_LIST_ITEM_ACTIVATED );
+                event.SetEventType( wxEVT_LIST_ITEM_ACTIVATED );
                 trigger = true;
                 break;
 
             case kDataBrowserEditStarted :
                 // TODO : how to veto ?
-                event.SetEventType( wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT ) ;
+                event.SetEventType( wxEVT_LIST_BEGIN_LABEL_EDIT ) ;
                 trigger = true ;
                 break ;
 
             case kDataBrowserEditStopped :
                 // TODO probably trigger only upon the value store callback, because
                 // here IIRC we cannot veto
-                event.SetEventType( wxEVT_COMMAND_LIST_END_LABEL_EDIT ) ;
+                event.SetEventType( wxEVT_LIST_END_LABEL_EDIT ) ;
                 trigger = true ;
                 break ;
 
@@ -2670,11 +2659,10 @@ enum
 static void calculateCGDrawingBounds(CGRect inItemRect, CGRect *outIconRect, CGRect *outTextRect, bool hasIcon = false)
 {
   float textBottom;
-  float iconH, iconW = 0;
+  float iconW = 0;
   float padding = kItemPadding;
   if (hasIcon)
   {
-    iconH = kIconHeight;
     iconW = kIconWidth;
     padding = padding*2;
   }
@@ -2865,35 +2853,14 @@ void wxMacDataBrowserListCtrlControl::DrawItem(
 
     HIThemeTextHorizontalFlush hFlush = kHIThemeTextHorizontalFlushLeft;
     HIThemeTextInfo info;
-    bool setup = false;
-#if wxOSX_USE_CORE_TEXT
-    if ( UMAGetSystemVersion() >= 0x1050 )
-    {
-        info.version = kHIThemeTextInfoVersionOne;
-        info.fontID = kThemeViewsFont;
-        if (font.IsOk())
-        {
-            info.fontID = kThemeSpecifiedFont;
-            info.font = (CTFontRef) font.OSXGetCTFont();
-            setup = true;
-        }
-    }
-#endif
-#if wxOSX_USE_ATSU_TEXT
-    if ( !setup )
-    {
-        info.version = kHIThemeTextInfoVersionZero;
-        info.fontID = kThemeViewsFont;
 
-        if (font.IsOk())
-        {
-            info.fontID = font.MacGetThemeFontID();
-
-            ::TextSize( (short)(font.GetPointSize()) ) ;
-            ::TextFace( font.MacGetFontStyle() ) ;
-        }
+    info.version = kHIThemeTextInfoVersionOne;
+    info.fontID = kThemeViewsFont;
+    if (font.IsOk())
+    {
+        info.fontID = kThemeSpecifiedFont;
+        info.font = (CTFontRef) font.OSXGetCTFont();
     }
-#endif
 
     wxListItem item;
     list->GetColumn(listColumn, item);
@@ -3069,7 +3036,7 @@ void wxMacDataBrowserListCtrlControl::ItemNotification(DataBrowserItemID itemID,
     {
         bool trigger = false;
 
-        wxListEvent event( wxEVT_COMMAND_LIST_ITEM_SELECTED, list->GetId() );
+        wxListEvent event( wxEVT_LIST_ITEM_SELECTED, list->GetId() );
 
         event.SetEventObject( list );
         if ( !list->IsVirtual() )
@@ -3088,7 +3055,7 @@ void wxMacDataBrowserListCtrlControl::ItemNotification(DataBrowserItemID itemID,
         switch (message)
         {
             case kDataBrowserItemDeselected:
-                event.SetEventType(wxEVT_COMMAND_LIST_ITEM_DESELECTED);
+                event.SetEventType(wxEVT_LIST_ITEM_DESELECTED);
                 // as the generic implementation is also triggering this
                 // event for single selection, we do the same (different than listbox)
                 trigger = !IsSelectionSuppressed();
@@ -3100,20 +3067,20 @@ void wxMacDataBrowserListCtrlControl::ItemNotification(DataBrowserItemID itemID,
                 break;
 
             case kDataBrowserItemDoubleClicked:
-                event.SetEventType( wxEVT_COMMAND_LIST_ITEM_ACTIVATED );
+                event.SetEventType( wxEVT_LIST_ITEM_ACTIVATED );
                 trigger = true;
                 break;
 
             case kDataBrowserEditStarted :
                 // TODO : how to veto ?
-                event.SetEventType( wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT ) ;
+                event.SetEventType( wxEVT_LIST_BEGIN_LABEL_EDIT ) ;
                 trigger = true ;
                 break ;
 
             case kDataBrowserEditStopped :
                 // TODO probably trigger only upon the value store callback, because
                 // here IIRC we cannot veto
-                event.SetEventType( wxEVT_COMMAND_LIST_END_LABEL_EDIT ) ;
+                event.SetEventType( wxEVT_LIST_END_LABEL_EDIT ) ;
                 trigger = true ;
                 break ;
 

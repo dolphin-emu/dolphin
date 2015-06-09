@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: region.h 69459 2011-10-18 21:56:40Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,6 +54,7 @@ protected:
 
     virtual bool DoOffset(wxCoord x, wxCoord y);
     virtual bool DoCombine(const wxRegion& region, wxRegionOp op);
+    virtual bool DoUnionWithRect(const wxRect& rect);
 
 private:
     DECLARE_DYNAMIC_CLASS(wxRegion)
@@ -86,7 +86,7 @@ public:
     long GetWidth() const { return GetW(); }
     long GetH() const;
     long GetHeight() const { return GetH(); }
-    wxRect GetRect() const { return wxRect(GetX(), GetY(), GetWidth(), GetHeight()); }
+    wxRect GetRect() const { return wxRect((int)GetX(), (int)GetY(), (int)GetWidth(), (int)GetHeight()); }
 
 private:
     void SetRects(long numRects, wxRect *rects);

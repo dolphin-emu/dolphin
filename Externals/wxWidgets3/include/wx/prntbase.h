@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: prntbase.h 68026 2011-06-22 22:58:07Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,6 +39,8 @@ class WXDLLIMPEXP_FWD_CORE wxPreviewFrame;
 class WXDLLIMPEXP_FWD_CORE wxPrintFactory;
 class WXDLLIMPEXP_FWD_CORE wxPrintNativeDataBase;
 class WXDLLIMPEXP_FWD_CORE wxPrintPreview;
+class WXDLLIMPEXP_FWD_CORE wxPrintAbortDialog;
+class WXDLLIMPEXP_FWD_CORE wxStaticText;
 class wxPrintPageMaxCtrl;
 class wxPrintPageTextCtrl;
 
@@ -188,7 +189,7 @@ public:
     wxPrinterBase(wxPrintDialogData *data = NULL);
     virtual ~wxPrinterBase();
 
-    virtual wxWindow *CreateAbortWindow(wxWindow *parent, wxPrintout *printout);
+    virtual wxPrintAbortDialog *CreateAbortWindow(wxWindow *parent, wxPrintout *printout);
     virtual void ReportError(wxWindow *parent, wxPrintout *printout, const wxString& message);
 
     virtual wxPrintDialogData& GetPrintDialogData() const;
@@ -228,7 +229,7 @@ public:
     wxPrinter(wxPrintDialogData *data = NULL);
     virtual ~wxPrinter();
 
-    virtual wxWindow *CreateAbortWindow(wxWindow *parent, wxPrintout *printout);
+    virtual wxPrintAbortDialog *CreateAbortWindow(wxWindow *parent, wxPrintout *printout);
     virtual void ReportError(wxWindow *parent, wxPrintout *printout, const wxString& message);
 
     virtual bool Setup(wxWindow *parent);
@@ -259,7 +260,7 @@ private:
 class WXDLLIMPEXP_CORE wxPrintout: public wxObject
 {
 public:
-    wxPrintout(const wxString& title = _("Printout"));
+    wxPrintout(const wxString& title = wxGetTranslation("Printout"));
     virtual ~wxPrintout();
 
     virtual bool OnBeginDocument(int startPage, int endPage);
@@ -391,7 +392,7 @@ class WXDLLIMPEXP_CORE wxPreviewFrame: public wxFrame
 public:
     wxPreviewFrame(wxPrintPreviewBase *preview,
                    wxWindow *parent,
-                   const wxString& title = _("Print Preview"),
+                   const wxString& title = wxGetTranslation("Print Preview"),
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = wxDefaultSize,
                    long style = wxDEFAULT_FRAME_STYLE | wxFRAME_FLOAT_ON_PARENT,
@@ -733,18 +734,20 @@ class WXDLLIMPEXP_CORE wxPrintAbortDialog: public wxDialog
 {
 public:
     wxPrintAbortDialog(wxWindow *parent,
-                       const wxString& title,
+                       const wxString& documentTitle,
                        const wxPoint& pos = wxDefaultPosition,
                        const wxSize& size = wxDefaultSize,
-                       long style = 0,
-                       const wxString& name = wxT("dialog"))
-        : wxDialog(parent, wxID_ANY, title, pos, size, style, name)
-        {
-        }
+                       long style = wxDEFAULT_DIALOG_STYLE,
+                       const wxString& name = wxT("dialog"));
+
+    void SetProgress(int currentPage, int totalPages,
+                     int currentCopy, int totalCopies);
 
     void OnCancel(wxCommandEvent& event);
 
 private:
+    wxStaticText *m_progress;
+
     DECLARE_EVENT_TABLE()
     wxDECLARE_NO_COPY_CLASS(wxPrintAbortDialog);
 };

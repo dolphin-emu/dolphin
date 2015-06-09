@@ -2,7 +2,6 @@
 // Name:        src/osx/carbon/dataview.cpp
 // Purpose:     wxDataViewCtrl native carbon implementation
 // Author:
-// Id:          $Id: dataview.cpp 58317 2009-01-23
 // Copyright:   (c) 2009
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -99,7 +98,7 @@ static pascal OSStatus DataBrowserCtrlEventHandler(EventHandlerCallRef handler, 
         unsigned long         columnIndex;
         wxDataViewColumn*     column;
         OSStatus              status;
-        wxDataViewEvent       DataViewEvent(wxEVT_COMMAND_DATAVIEW_COLUMN_HEADER_CLICK,DataViewCtrlPtr->GetId());
+        wxDataViewEvent       DataViewEvent(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK,DataViewCtrlPtr->GetId());
 
         CarbonEvent.GetParameter(kEventParamDirectObject,&controlReference);
        // determine the column that triggered the event (this is the column that is responsible for sorting the data view):
@@ -156,9 +155,7 @@ static bool InitializeColumnDescription(DataBrowserListViewColumnDesc& columnDes
       (columnDescription.propertyDesc.propertyType == kDataBrowserIconAndTextType) ||
       (columnDescription.propertyDesc.propertyType == kDataBrowserTextType))
     columnDescription.propertyDesc.propertyFlags |= kDataBrowserListViewTypeSelectColumn; // enables generally the possibility to have user input for the mentioned types
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
   columnDescription.propertyDesc.propertyFlags |= kDataBrowserListViewNoGapForIconInHeaderButton;
-#endif
  // set header's properties:
   columnDescription.headerBtnDesc.version            = kDataBrowserListViewLatestHeaderDesc;
   columnDescription.headerBtnDesc.titleOffset        = 0;
@@ -1259,7 +1256,7 @@ void wxMacDataViewDataBrowserListViewControl::OnSize()
     SetHasScrollBars(true,true);
 }
 
-void wxMacDataViewDataBrowserListViewControl::StartEditor( const wxDataViewItem & item, unsigned int column )
+void wxMacDataViewDataBrowserListViewControl::StartEditor( const wxDataViewItem & WXUNUSED(item), unsigned int WXUNUSED(column) )
 {
     // implement me
 }
@@ -1294,7 +1291,7 @@ Boolean wxMacDataViewDataBrowserListViewControl::DataBrowserCompareProc(DataBrow
 }
 
 void wxMacDataViewDataBrowserListViewControl::DataBrowserGetContextualMenuProc(MenuRef* menu, UInt32* helpType, CFStringRef* helpItemString, AEDesc* WXUNUSED(selection))
- // In this method we do not supply a contextual menu handler at all but only send a wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU.
+ // In this method we do not supply a contextual menu handler at all but only send a wxEVT_DATAVIEW_ITEM_CONTEXT_MENU.
 {
   wxArrayDataBrowserItemID itemIDs;
 
@@ -1307,7 +1304,7 @@ void wxMacDataViewDataBrowserListViewControl::DataBrowserGetContextualMenuProc(M
   *helpType       = kCMHelpItemNoHelp;
   *helpItemString = NULL;
  // create information for a context menu event:
-  wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU,dataViewCtrlPtr->GetId());
+  wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU,dataViewCtrlPtr->GetId());
 
   dataViewEvent.SetEventObject(dataViewCtrlPtr);
   dataViewEvent.SetModel(dataViewCtrlPtr->GetModel());
@@ -1443,7 +1440,7 @@ OSStatus wxMacDataViewDataBrowserListViewControl::DataBrowserGetSetItemDataProc(
 
             wxCHECK_MSG(dataViewCtrlPtr != NULL,errDataBrowserNotConfigured,_("Pointer to data view control not set correctly."));
            // initialize wxWidget event:
-            wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_COLLAPSING,dataViewCtrlPtr->GetId()); // variable definition
+            wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_COLLAPSING,dataViewCtrlPtr->GetId()); // variable definition
 
             dataViewEvent.SetEventObject(dataViewCtrlPtr);
             dataViewEvent.SetItem       (wxDataViewItem(reinterpret_cast<void*>(itemID)));
@@ -1460,7 +1457,7 @@ OSStatus wxMacDataViewDataBrowserListViewControl::DataBrowserGetSetItemDataProc(
 
             wxCHECK_MSG(dataViewCtrlPtr != NULL,errDataBrowserNotConfigured,_("Pointer to data view control not set correctly."));
            // initialize wxWidget event:
-            wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDING,dataViewCtrlPtr->GetId()); // variable definition
+            wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_EXPANDING,dataViewCtrlPtr->GetId()); // variable definition
 
             dataViewEvent.SetEventObject(dataViewCtrlPtr);
             dataViewEvent.SetItem       (wxDataViewItem(reinterpret_cast<void*>(itemID)));
@@ -1500,7 +1497,7 @@ void wxMacDataViewDataBrowserListViewControl::DataBrowserItemNotificationProc(Da
         dataViewCtrlPtr->FinishCustomItemEditing(); // stop editing of a custom item first (if necessary)
         {
          // initialize wxWidget event:
-          wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_COLLAPSED,dataViewCtrlPtr->GetId()); // variable definition
+          wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_COLLAPSED,dataViewCtrlPtr->GetId()); // variable definition
 
           dataViewEvent.SetEventObject(dataViewCtrlPtr);
           dataViewEvent.SetItem(wxDataViewItem(reinterpret_cast<void*>(itemID)));
@@ -1512,7 +1509,7 @@ void wxMacDataViewDataBrowserListViewControl::DataBrowserItemNotificationProc(Da
         dataViewCtrlPtr->FinishCustomItemEditing(); // stop editing of a custom item first (if necessary)
         {
          // initialize wxWidget event:
-          wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDED,dataViewCtrlPtr->GetId()); // variable definition
+          wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_EXPANDED,dataViewCtrlPtr->GetId()); // variable definition
 
           dataViewEvent.SetEventObject(dataViewCtrlPtr);
           dataViewEvent.SetItem(wxDataViewItem(reinterpret_cast<void*>(itemID)));
@@ -1527,7 +1524,7 @@ void wxMacDataViewDataBrowserListViewControl::DataBrowserItemNotificationProc(Da
         {
          // initialize wxWidget event:
           DataBrowserPropertyID propertyID;
-          wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_EDITING_STARTED,dataViewCtrlPtr->GetId()); // variable definition
+          wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_EDITING_STARTED,dataViewCtrlPtr->GetId()); // variable definition
 
           dataViewEvent.SetEventObject(dataViewCtrlPtr);
           dataViewEvent.SetItem(wxDataViewItem(reinterpret_cast<void*>(itemID)));
@@ -1548,7 +1545,7 @@ void wxMacDataViewDataBrowserListViewControl::DataBrowserItemNotificationProc(Da
         {
          // initialize wxWidget event:
           DataBrowserPropertyID propertyID;
-          wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_EDITING_DONE,dataViewCtrlPtr->GetId()); // variable definition
+          wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_EDITING_DONE,dataViewCtrlPtr->GetId()); // variable definition
 
           dataViewEvent.SetEventObject(dataViewCtrlPtr);
           dataViewEvent.SetItem(wxDataViewItem(reinterpret_cast<void*>(itemID)));
@@ -1574,7 +1571,7 @@ void wxMacDataViewDataBrowserListViewControl::DataBrowserItemNotificationProc(Da
       case kDataBrowserItemDoubleClicked:
         {
          // initialize wxWidget event:
-          wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED,dataViewCtrlPtr->GetId()); // variable definition
+          wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_ACTIVATED,dataViewCtrlPtr->GetId()); // variable definition
 
           dataViewEvent.SetEventObject(dataViewCtrlPtr);
           dataViewEvent.SetItem(wxDataViewItem(reinterpret_cast<void*>(itemID)));
@@ -1590,7 +1587,7 @@ void wxMacDataViewDataBrowserListViewControl::DataBrowserItemNotificationProc(Da
       case kDataBrowserSelectionSetChanged:
         {
          // initialize wxWidget event:
-          wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED,dataViewCtrlPtr->GetId()); // variable definition
+          wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_SELECTION_CHANGED,dataViewCtrlPtr->GetId()); // variable definition
 
           dataViewEvent.SetEventObject(dataViewCtrlPtr);
           dataViewEvent.SetModel      (dataViewCtrlPtr->GetModel());
@@ -1634,7 +1631,7 @@ void wxMacDataViewDataBrowserListViewControl::DataBrowserItemNotificationProc(Da
               {
                 columnPtr->SetSortOrder(!(columnPtr->IsSortOrderAscending()));
                // initialize wxWidget event:
-                wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_COLUMN_SORTED,dataViewCtrlPtr->GetId()); // variable defintion
+                wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_COLUMN_SORTED,dataViewCtrlPtr->GetId()); // variable definition
 
                 dataViewEvent.SetEventObject(dataViewCtrlPtr);
                 dataViewEvent.SetColumn(columnIndex);
@@ -1834,7 +1831,7 @@ Boolean wxMacDataViewDataBrowserListViewControl::DataBrowserAcceptDragProc(DragR
     ::GetDragItemReferenceNumber(dragRef,indexDraggedItem,&itemRef); // the index begins with 1!
     dataObjects = GetDnDDataObjects(dragRef,itemRef);
    // create wxWidget's event:
-    wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_DROP_POSSIBLE,dataViewCtrlPtr->GetId());
+    wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE,dataViewCtrlPtr->GetId());
 
     dataViewEvent.SetEventObject(dataViewCtrlPtr);
 
@@ -1878,7 +1875,7 @@ Boolean wxMacDataViewDataBrowserListViewControl::DataBrowserAddDragItemProc(Drag
   wxCHECK_MSG(dataViewItem.IsOk(),false,_("Invalid data view item"));
 
  // send a begin drag event and proceed with dragging unless the event is vetoed:
-  wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_BEGIN_DRAG,dataViewCtrlPtr->GetId());
+  wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,dataViewCtrlPtr->GetId());
 
   dataViewEvent.SetEventObject(dataViewCtrlPtr);
   dataViewEvent.SetItem(dataViewItem);
@@ -2011,7 +2008,7 @@ Boolean wxMacDataViewDataBrowserListViewControl::DataBrowserReceiveDragProc(Drag
     ::GetDragItemReferenceNumber(dragRef,indexDraggedItem,&itemRef); // the index begins with 1!
     dataObjects = GetDnDDataObjects(dragRef,itemRef);
   // create wxWidget's event:
-    wxDataViewEvent dataViewEvent(wxEVT_COMMAND_DATAVIEW_ITEM_DROP,dataViewCtrlPtr->GetId());
+    wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_DROP,dataViewCtrlPtr->GetId());
 
     dataViewEvent.SetEventObject(dataViewCtrlPtr);
 

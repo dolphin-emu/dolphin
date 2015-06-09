@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils_osx.cpp 69543 2011-10-26 05:38:24Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,20 +34,12 @@
 
 // #include "MoreFilesX.h"
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-    #include <AudioToolbox/AudioServices.h>
-#endif
+#include <AudioToolbox/AudioServices.h>
 
 #include "wx/osx/private.h"
 #include "wx/osx/private/timer.h"
 
 #include "wx/evtloop.h"
-
-#if defined(__MWERKS__) && wxUSE_UNICODE
-#if __MWERKS__ < 0x4100
-    #include <wtime.h>
-#endif
-#endif
 
 // Check whether this window wants to process messages, e.g. Stop button
 // in long calculations.
@@ -96,6 +87,7 @@ int wxDisplayDepth()
             theDepth = 32; // some reasonable default
 
         CFRelease(encoding);
+        CGDisplayModeRelease(currentMode);
     }
     else
 #endif
@@ -253,9 +245,26 @@ CGColorSpaceRef wxMacGetGenericRGBColorSpace()
 
 CGColorRef wxMacCreateCGColorFromHITheme( ThemeBrush brush )
 {
-    CGColorRef color ;
-    HIThemeBrushCreateCGColor( brush, &color );
-    return color;
+    const int maxcachedbrush = 58+5; // negative indices are for metabrushes, cache down to -5)
+    int brushindex = brush+5;
+    if ( brushindex < 0 || brushindex > maxcachedbrush )
+    {
+        CGColorRef color ;
+        HIThemeBrushCreateCGColor( brush, &color );
+        return color;
+    }
+    else
+    {
+        static bool inited = false;
+        static CGColorRef themecolors[maxcachedbrush+1];
+        if ( !inited )
+        {
+            for ( int i = 0 ; i <= maxcachedbrush ; ++i )
+                HIThemeBrushCreateCGColor( i-5, &themecolors[i] );
+            inited = true;
+        }
+        return CGColorRetain(themecolors[brushindex ]);
+    }
 }
 
 //---------------------------------------------------------------------------

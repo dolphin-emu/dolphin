@@ -3,7 +3,6 @@
 // Purpose:     wxHeaderCtrlBase class: interface of wxHeaderCtrl
 // Author:      Vadim Zeitlin
 // Created:     2008-12-01
-// RCS-ID:      $Id: headerctrl.h 70338 2012-01-14 16:51:57Z VS $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -210,6 +209,10 @@ protected:
     // indices after the number of columns changed
     void DoResizeColumnIndices(wxArrayInt& colIndices, unsigned int count);
 
+protected:
+    // this window doesn't look nice with the border so don't use it by default
+    virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
+
 private:
     // methods implementing our public API and defined in platform-specific
     // implementations
@@ -222,8 +225,6 @@ private:
     virtual void DoSetColumnsOrder(const wxArrayInt& order) = 0;
     virtual wxArrayInt DoGetColumnsOrder() const = 0;
 
-    // this window doesn't look nice with the border so don't use it by default
-    virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
 
     // event handlers
     void OnSeparatorDClick(wxHeaderCtrlEvent& event);
@@ -352,7 +353,10 @@ private:
     void Init();
 
     // bring the column count in sync with the number of columns we store
-    void UpdateColumnCount() { SetColumnCount(m_cols.size()); }
+    void UpdateColumnCount()
+    {
+        SetColumnCount(static_cast<int>(m_cols.size()));
+    }
 
 
     // all our current columns
@@ -418,24 +422,24 @@ private:
 };
 
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_CLICK, wxHeaderCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_RIGHT_CLICK, wxHeaderCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_MIDDLE_CLICK, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_CLICK, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_RIGHT_CLICK, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_MIDDLE_CLICK, wxHeaderCtrlEvent );
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_DCLICK, wxHeaderCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_RIGHT_DCLICK, wxHeaderCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_MIDDLE_DCLICK, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_DCLICK, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_RIGHT_DCLICK, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_MIDDLE_DCLICK, wxHeaderCtrlEvent );
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_SEPARATOR_DCLICK, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_SEPARATOR_DCLICK, wxHeaderCtrlEvent );
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_BEGIN_RESIZE, wxHeaderCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_RESIZING, wxHeaderCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_END_RESIZE, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_BEGIN_RESIZE, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_RESIZING, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_END_RESIZE, wxHeaderCtrlEvent );
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_BEGIN_REORDER, wxHeaderCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_END_REORDER, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_BEGIN_REORDER, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_END_REORDER, wxHeaderCtrlEvent );
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_HEADER_DRAGGING_CANCELLED, wxHeaderCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_HEADER_DRAGGING_CANCELLED, wxHeaderCtrlEvent );
 
 typedef void (wxEvtHandler::*wxHeaderCtrlEventFunction)(wxHeaderCtrlEvent&);
 
@@ -443,7 +447,7 @@ typedef void (wxEvtHandler::*wxHeaderCtrlEventFunction)(wxHeaderCtrlEvent&);
     wxEVENT_HANDLER_CAST(wxHeaderCtrlEventFunction, func)
 
 #define wx__DECLARE_HEADER_EVT(evt, id, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_HEADER_ ## evt, id, wxHeaderCtrlEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_HEADER_ ## evt, id, wxHeaderCtrlEventHandler(fn))
 
 #define EVT_HEADER_CLICK(id, fn) wx__DECLARE_HEADER_EVT(CLICK, id, fn)
 #define EVT_HEADER_RIGHT_CLICK(id, fn) wx__DECLARE_HEADER_EVT(RIGHT_CLICK, id, fn)
@@ -463,6 +467,21 @@ typedef void (wxEvtHandler::*wxHeaderCtrlEventFunction)(wxHeaderCtrlEvent&);
 #define EVT_HEADER_END_REORDER(id, fn) wx__DECLARE_HEADER_EVT(END_REORDER, id, fn)
 
 #define EVT_HEADER_DRAGGING_CANCELLED(id, fn) wx__DECLARE_HEADER_EVT(DRAGGING_CANCELLED, id, fn)
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_HEADER_CLICK                wxEVT_HEADER_CLICK
+#define wxEVT_COMMAND_HEADER_RIGHT_CLICK          wxEVT_HEADER_RIGHT_CLICK
+#define wxEVT_COMMAND_HEADER_MIDDLE_CLICK         wxEVT_HEADER_MIDDLE_CLICK
+#define wxEVT_COMMAND_HEADER_DCLICK               wxEVT_HEADER_DCLICK
+#define wxEVT_COMMAND_HEADER_RIGHT_DCLICK         wxEVT_HEADER_RIGHT_DCLICK
+#define wxEVT_COMMAND_HEADER_MIDDLE_DCLICK        wxEVT_HEADER_MIDDLE_DCLICK
+#define wxEVT_COMMAND_HEADER_SEPARATOR_DCLICK     wxEVT_HEADER_SEPARATOR_DCLICK
+#define wxEVT_COMMAND_HEADER_BEGIN_RESIZE         wxEVT_HEADER_BEGIN_RESIZE
+#define wxEVT_COMMAND_HEADER_RESIZING             wxEVT_HEADER_RESIZING
+#define wxEVT_COMMAND_HEADER_END_RESIZE           wxEVT_HEADER_END_RESIZE
+#define wxEVT_COMMAND_HEADER_BEGIN_REORDER        wxEVT_HEADER_BEGIN_REORDER
+#define wxEVT_COMMAND_HEADER_END_REORDER          wxEVT_HEADER_END_REORDER
+#define wxEVT_COMMAND_HEADER_DRAGGING_CANCELLED   wxEVT_HEADER_DRAGGING_CANCELLED
 
 #endif // wxUSE_HEADERCTRL
 

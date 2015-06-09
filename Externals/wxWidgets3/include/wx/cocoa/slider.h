@@ -5,7 +5,6 @@
 //              Mark Oxenham
 // Modified by:
 // Created:     2003/06/19
-// RCS-ID:      $Id: slider.h 66844 2011-02-05 16:36:30Z VZ $
 // Copyright:   (c) 2003 David Elliott
 //              (c) 2007 Software 2000 Ltd.
 // Licence:     wxWindows licence

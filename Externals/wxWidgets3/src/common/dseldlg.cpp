@@ -4,7 +4,6 @@
 // Author:      Paul Thiessen
 // Modified by:
 // Created:     20.02.01
-// RCS-ID:      $Id: dseldlg.cpp 64940 2010-07-13 13:29:13Z VZ $
 // Copyright:   (c) 2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

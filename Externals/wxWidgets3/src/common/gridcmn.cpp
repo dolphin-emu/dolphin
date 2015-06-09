@@ -4,7 +4,6 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin, Santiago Palacios
 // Created:     1/08/1999
-// RCS-ID:      $Id: gridcmn.cpp 66584 2011-01-05 06:56:36Z PC $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

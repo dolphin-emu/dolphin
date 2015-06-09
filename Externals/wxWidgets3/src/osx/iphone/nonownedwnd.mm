@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2008-06-20
-// RCS-ID:      $Id: nonownedwnd.mm 69526 2011-10-25 11:52:02Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -352,7 +351,15 @@ wxWidgetImpl* wxWidgetImpl::CreateContentView( wxNonOwnedWindow* now )
     
     wxWidgetIPhoneImpl* impl = new wxWidgetIPhoneImpl( now, contentview, true );
     impl->InstallEventHandler();
-    [toplevelwindow addSubview:contentview];
+    
+    if ([toplevelwindow respondsToSelector:@selector(setRootViewController:)])
+    {
+        toplevelwindow.rootViewController = controller;
+    }
+    else
+    {
+        [toplevelwindow addSubview:contentview];
+    }
     return impl;
 }
 
@@ -395,6 +402,21 @@ wxWidgetImpl* wxWidgetImpl::CreateContentView( wxNonOwnedWindow* now )
     
     return YES;
 }
+
+// iOS 6 support, right now unconditionally supporting all orientations, TODO use a orientation mask
+
+-(BOOL)shouldAutorotate
+{
+    return YES;
+}
+
+ - (NSUInteger)supportedInterfaceOrientations
+{
+     return UIInterfaceOrientationMaskAll;
+}
+ 
+ 
+
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
 {
@@ -454,6 +476,7 @@ wxWidgetImpl* wxWidgetImpl::CreateContentView( wxNonOwnedWindow* now )
             footerView = frame->GetToolBar()->GetHandle();
         }
     }
+    return footerView;
 }
 
 @end

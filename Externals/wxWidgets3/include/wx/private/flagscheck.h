@@ -3,7 +3,6 @@
 // Purpose:     helpers for checking that (bit)flags don't overlap
 // Author:      Vaclav Slavik
 // Created:     2008-02-21
-// RCS-ID:      $Id: flagscheck.h 59016 2009-02-19 05:34:25Z PC $
 // Copyright:   (c) 2008 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

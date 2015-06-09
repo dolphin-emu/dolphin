@@ -4,7 +4,6 @@
 // Author:      Kevin Ollivier, Steven Lamerton, Vadim Zeitlin
 // Modified by:
 // Created:     2010-03-06
-// RCS-ID:      $Id: uiaction.cpp 70811 2012-03-05 13:00:51Z VZ $
 // Copyright:   (c) Kevin Ollivier
 //              (c) 2010 Steven Lamerton
 //              (c) 2010 Vadim Zeitlin
@@ -65,8 +64,10 @@ bool wxUIActionSimulator::MouseMove(long x, long y)
     int displayx, displayy;
     wxDisplaySize(&displayx, &displayy);
 
-    int scaledx = ceil((float)x * 65535.0 / (displayx-1));
-    int scaledy = ceil((float)y * 65535.0 / (displayy-1));
+    // Casts are safe because x and y are supposed to be less than the display
+    // size, so there is no danger of overflow.
+    DWORD scaledx = static_cast<DWORD>(ceil(x * 65535.0 / (displayx-1)));
+    DWORD scaledy = static_cast<DWORD>(ceil(y * 65535.0 / (displayy-1)));
     mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, scaledx, scaledy, 0, 0);
 
     return true;

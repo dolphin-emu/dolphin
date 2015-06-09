@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/2/2000
-// RCS-ID:      $Id: dragimgg.cpp 70749 2012-02-29 13:58:55Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -324,7 +323,7 @@ bool wxGenericDragImage::BeginDrag(const wxPoint& hotspot, wxWindow* window, wxW
 
     wxSize sz = fullScreenRect->GetSize();
 
-    if (fullScreenRect->GetParent() && !fullScreenRect->IsKindOf(CLASSINFO(wxFrame)))
+    if (fullScreenRect->GetParent() && !wxDynamicCast(fullScreenRect, wxFrame))
         fullScreenRect->GetParent()->ClientToScreen(& x, & y);
 
     rect.x = x; rect.y = y;

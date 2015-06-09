@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcmemory.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,8 +75,9 @@ void wxMemoryDCImpl::DoSelect( const wxBitmap& bitmap )
         if ( m_selected.GetDepth() != 1 )
             m_selected.UseAlpha() ;
         m_selected.BeginRawAccess() ;
-        m_width = bitmap.GetWidth();
-        m_height = bitmap.GetHeight();
+        m_width = bitmap.GetScaledWidth();
+        m_height = bitmap.GetScaledHeight();
+        m_contentScaleFactor = bitmap.GetScaleFactor();
         CGColorSpaceRef genericColorSpace  = wxMacGetGenericRGBColorSpace();
         CGContextRef bmCtx = (CGContextRef) m_selected.GetHBITMAP();
 
@@ -100,9 +100,9 @@ void wxMemoryDCImpl::DoGetSize( int *width, int *height ) const
     if (m_selected.IsOk())
     {
         if (width)
-            (*width) = m_selected.GetWidth();
+            (*width) = m_selected.GetScaledWidth();
         if (height)
-            (*height) = m_selected.GetHeight();
+            (*height) = m_selected.GetScaledHeight();
     }
     else
     {

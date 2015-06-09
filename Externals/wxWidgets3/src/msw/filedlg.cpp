@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: filedlg.cpp 69908 2011-12-02 10:15:16Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,6 +46,7 @@
 #include "wx/filename.h"
 #include "wx/scopeguard.h"
 #include "wx/tokenzr.h"
+#include "wx/modalhook.h"
 
 // ----------------------------------------------------------------------------
 // constants
@@ -172,13 +172,23 @@ wxFileDialogHookFunction(HWND      hDlg,
 
         case WM_NOTIFY:
             {
-                OFNOTIFY *pNotifyCode = reinterpret_cast<OFNOTIFY *>(lParam);
-                if ( pNotifyCode->hdr.code == CDN_INITDONE )
+                OFNOTIFY* const
+                    pNotifyCode = reinterpret_cast<OFNOTIFY *>(lParam);
+                wxFileDialog* const
+                    dialog = reinterpret_cast<wxFileDialog *>(
+                                    pNotifyCode->lpOFN->lCustData
+                                );
+
+                switch ( pNotifyCode->hdr.code )
                 {
-                    reinterpret_cast<wxFileDialog *>(
-                                        pNotifyCode->lpOFN->lCustData)
-                        ->MSWOnInitDone((WXHWND)hDlg);
-                 }
+                    case CDN_INITDONE:
+                        dialog->MSWOnInitDone((WXHWND)hDlg);
+                        break;
+
+                    case CDN_SELCHANGE:
+                        dialog->MSWOnSelChange((WXHWND)hDlg);
+                        break;
+                }
             }
             break;
 
@@ -322,8 +332,27 @@ void wxFileDialog::MSWOnInitDone(WXHWND hDlg)
         SetPosition(gs_rectDialog.GetPosition());
     }
 
+    // Call selection change handler so that update handler will be
+    // called once with no selection.
+    MSWOnSelChange(hDlg);
+
     // we shouldn't destroy this HWND
     SetHWND(NULL);
+}
+
+void wxFileDialog::MSWOnSelChange(WXHWND hDlg)
+{
+    TCHAR buf[MAX_PATH];
+    LRESULT len = SendMessage(::GetParent(hDlg), CDM_GETFILEPATH,
+                              MAX_PATH, reinterpret_cast<LPARAM>(buf));
+
+    if ( len > 0 )
+        m_currentlySelectedFilename = buf;
+    else
+        m_currentlySelectedFilename.clear();
+
+    if ( m_extraControl )
+        m_extraControl->UpdateWindowUI(wxUPDATE_UI_RECURSE);
 }
 
 // helper used below in ShowCommFileDialog(): style is used to determine
@@ -449,6 +478,8 @@ void wxFileDialog::MSWOnInitDialogHook(WXHWND hwnd)
 
 int wxFileDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     HWND hWnd = 0;
     if (m_parent) hWnd = (HWND) m_parent->GetHWND();
     if (!hWnd && wxTheApp->GetTopWindow())
@@ -507,7 +538,7 @@ int wxFileDialog::ShowModal()
 
     of.lStructSize       = gs_ofStructSize;
     of.hwndOwner         = hWnd;
-    of.lpstrTitle        = m_message.wx_str();
+    of.lpstrTitle        = m_message.t_str();
     of.lpstrFileTitle    = titleBuffer;
     of.nMaxFileTitle     = wxMAXFILE + 1 + wxMAXEXT;
 
@@ -609,7 +640,7 @@ int wxFileDialog::ShowModal()
         }
     }
 
-    of.lpstrFilter  = (LPTSTR)filterBuffer.wx_str();
+    of.lpstrFilter  = filterBuffer.t_str();
     of.nFilterIndex = m_filterIndex + 1;
 
     //=== Setting defaultFileName >>=========================================
@@ -626,7 +657,7 @@ int wxFileDialog::ShowModal()
     wxString defextBuffer; // we need it to be alive until GetSaveFileName()!
     if (HasFdFlag(wxFD_SAVE))
     {
-        const wxChar* extension = filterBuffer.wx_str();
+        const wxChar* extension = filterBuffer.t_str();
         int maxFilter = (int)(of.nFilterIndex*2L) - 1;
 
         for( int i = 0; i < maxFilter; i++ )           // get extension
@@ -708,7 +739,7 @@ int wxFileDialog::ShowModal()
              (of.nFileExtension && fileNameBuffer[of.nFileExtension] == wxT('\0')) )
         {
             // User has typed a filename without an extension:
-            const wxChar* extension = filterBuffer.wx_str();
+            const wxChar* extension = filterBuffer.t_str();
             int   maxFilter = (int)(of.nFilterIndex*2L) - 1;
 
             for( int i = 0; i < maxFilter; i++ )           // get extension

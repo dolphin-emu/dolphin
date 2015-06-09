@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A4C423AA-F57C-46C7-A172-D1A777017D29}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VSProps\Base.props" />
+    <Import Project="..\..\..\VSProps\PCHUse.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="BPMemLoader.cpp" />
+    <ClCompile Include="Clipper.cpp" />
+    <ClCompile Include="CPMemLoader.cpp" />
+    <ClCompile Include="DebugUtil.cpp" />
+    <ClCompile Include="EfbCopy.cpp" />
+    <ClCompile Include="EfbInterface.cpp" />
+    <ClCompile Include="HwRasterizer.cpp" />
+    <ClCompile Include="OpcodeDecoder.cpp" />
+    <ClCompile Include="RasterFont.cpp" />
+    <ClCompile Include="Rasterizer.cpp" />
+    <ClCompile Include="SetupUnit.cpp" />
+    <ClCompile Include="SWCommandProcessor.cpp" />
+    <ClCompile Include="SWmain.cpp" />
+    <ClCompile Include="SWRenderer.cpp" />
+    <ClCompile Include="SWStatistics.cpp" />
+    <ClCompile Include="SWVertexLoader.cpp" />
+    <ClCompile Include="SWVideoConfig.cpp" />
+    <ClCompile Include="Tev.cpp" />
+    <ClCompile Include="TextureEncoder.cpp" />
+    <ClCompile Include="TextureSampler.cpp" />
+    <ClCompile Include="TransformUnit.cpp" />
+    <ClCompile Include="XFMemLoader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BPMemLoader.h" />
+    <ClInclude Include="Clipper.h" />
+    <ClInclude Include="CPMemLoader.h" />
+    <ClInclude Include="DebugUtil.h" />
+    <ClInclude Include="EfbCopy.h" />
+    <ClInclude Include="EfbInterface.h" />
+    <ClInclude Include="HwRasterizer.h" />
+    <ClInclude Include="NativeVertexFormat.h" />
+    <ClInclude Include="OpcodeDecoder.h" />
+    <ClInclude Include="RasterFont.h" />
+    <ClInclude Include="Rasterizer.h" />
+    <ClInclude Include="SetupUnit.h" />
+    <ClInclude Include="SWCommandProcessor.h" />
+    <ClInclude Include="SWRenderer.h" />
+    <ClInclude Include="SWStatistics.h" />
+    <ClInclude Include="SWVertexLoader.h" />
+    <ClInclude Include="SWVideoConfig.h" />
+    <ClInclude Include="Tev.h" />
+    <ClInclude Include="TextureEncoder.h" />
+    <ClInclude Include="TextureSampler.h" />
+    <ClInclude Include="TransformUnit.h" />
+    <ClInclude Include="Vec3.h" />
+    <ClInclude Include="VideoBackend.h" />
+    <ClInclude Include="XFMemLoader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
+      <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

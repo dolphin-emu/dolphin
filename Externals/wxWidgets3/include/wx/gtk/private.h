@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.03.02
-// RCS-ID:      $Id: private.h 70475 2012-01-29 08:00:15Z PC $
 // Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,6 +16,11 @@
 #include "wx/gtk/private/string.h"
 #include "wx/gtk/private/gtk2-compat.h"
 
+#ifndef G_VALUE_INIT
+    // introduced in GLib 2.30
+    #define G_VALUE_INIT { 0, { { 0 } } }
+#endif
+
 // pango_version_check symbol is quite recent ATM (4/2007)... so we
 // use our own wrapper which implements a smart trick.
 // Use this function as you'd use pango_version_check:
@@ -28,7 +32,7 @@
 extern const gchar *wx_pango_version_check(int major, int minor, int micro);
 
 #if wxUSE_UNICODE
-    #define wxGTK_CONV(s) s.utf8_str()
+    #define wxGTK_CONV(s) (s).utf8_str()
     #define wxGTK_CONV_ENC(s, enc) wxGTK_CONV((s))
     #define wxGTK_CONV_FONT(s, font) wxGTK_CONV((s))
     #define wxGTK_CONV_SYS(s) wxGTK_CONV((s))
@@ -87,6 +91,17 @@ extern const gchar *wx_pango_version_check(int major, int minor, int micro);
     #define wxGTK_CONV_BACK_SYS(s) wxConvertFromGTK((s))
 #endif
 
+// Define a macro for converting wxString to char* in appropriate encoding for
+// the file names.
+#ifdef G_OS_WIN32
+    // Under MSW, UTF-8 file name encodings are always used.
+    #define wxGTK_CONV_FN(s) (s).utf8_str()
+#else
+    // Under Unix use GLib file name encoding (which is also UTF-8 by default
+    // but may be different from it).
+    #define wxGTK_CONV_FN(s) (s).fn_str()
+#endif
+
 // ----------------------------------------------------------------------------
 // various private helper functions
 // ----------------------------------------------------------------------------
@@ -99,17 +114,18 @@ namespace wxGTKPrivate
 //
 // the returned widgets shouldn't be destroyed, this is done automatically on
 // shutdown
-GtkWidget *GetButtonWidget();
-GtkWidget *GetCheckButtonWidget();
-GtkWidget *GetComboBoxWidget();
-GtkWidget *GetEntryWidget();
-GtkWidget *GetHeaderButtonWidgetFirst();
-GtkWidget *GetHeaderButtonWidgetLast();
-GtkWidget *GetHeaderButtonWidget();
-GtkWidget *GetRadioButtonWidget();
-GtkWidget *GetSplitterWidget();
-GtkWidget *GetTextEntryWidget();
-GtkWidget *GetTreeWidget();
+WXDLLIMPEXP_CORE GtkWidget *GetButtonWidget();
+WXDLLIMPEXP_CORE GtkWidget *GetCheckButtonWidget();
+WXDLLIMPEXP_CORE GtkWidget *GetComboBoxWidget();
+WXDLLIMPEXP_CORE GtkWidget *GetEntryWidget();
+WXDLLIMPEXP_CORE GtkWidget *GetHeaderButtonWidgetFirst();
+WXDLLIMPEXP_CORE GtkWidget *GetHeaderButtonWidgetLast();
+WXDLLIMPEXP_CORE GtkWidget *GetHeaderButtonWidget();
+WXDLLIMPEXP_CORE GtkWidget *GetNotebookWidget();
+WXDLLIMPEXP_CORE GtkWidget *GetRadioButtonWidget();
+WXDLLIMPEXP_CORE GtkWidget *GetSplitterWidget(wxOrientation orient = wxHORIZONTAL);
+WXDLLIMPEXP_CORE GtkWidget *GetTextEntryWidget();
+WXDLLIMPEXP_CORE GtkWidget *GetTreeWidget();
 
 } // wxGTKPrivate
 

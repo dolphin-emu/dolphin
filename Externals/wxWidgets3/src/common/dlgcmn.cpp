@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.06.99
-// RCS-ID:      $Id: dlgcmn.cpp 69458 2011-10-18 21:56:36Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,6 +42,7 @@
 #include "wx/bookctrl.h"
 #include "wx/scrolwin.h"
 #include "wx/textwrapper.h"
+#include "wx/modalhook.h"
 
 #if wxUSE_DISPLAY
 #include "wx/display.h"
@@ -125,7 +125,7 @@ END_EVENT_TABLE()
 wxDialogLayoutAdapter* wxDialogBase::sm_layoutAdapter = NULL;
 bool wxDialogBase::sm_layoutAdaptation = false;
 
-void wxDialogBase::Init()
+wxDialogBase::wxDialogBase()
 {
     m_returnCode = 0;
     m_affirmativeId = wxID_OK;
@@ -422,7 +422,7 @@ bool wxDialogBase::EmulateButtonClickIfPresent(int id)
     if ( !btn || !btn->IsEnabled() || !btn->IsShown() )
         return false;
 
-    wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, id);
+    wxCommandEvent event(wxEVT_BUTTON, id);
     event.SetEventObject(btn);
     btn->GetEventHandler()->ProcessEvent(event);
 
@@ -461,14 +461,16 @@ bool wxDialogBase::SendCloseButtonClickEvent()
 
 bool wxDialogBase::IsEscapeKey(const wxKeyEvent& event)
 {
-    // for most platforms, Esc key is used to close the dialogs
-    return event.GetKeyCode() == WXK_ESCAPE &&
-                event.GetModifiers() == wxMOD_NONE;
+    // For most platforms, Esc key is used to close the dialogs.
+    //
+    // Notice that we intentionally don't check for modifiers here, Shift-Esc,
+    // Alt-Esc and so on still close the dialog, typically.
+    return event.GetKeyCode() == WXK_ESCAPE;
 }
 
 void wxDialogBase::OnCharHook(wxKeyEvent& event)
 {
-    if ( event.GetKeyCode() == WXK_ESCAPE )
+    if ( IsEscapeKey(event) )
     {
         if ( SendCloseButtonClickEvent() )
         {
@@ -515,7 +517,13 @@ IMPLEMENT_DYNAMIC_CLASS(wxWindowModalDialogEvent, wxCommandEvent)
 
 void wxDialogBase::ShowWindowModal ()
 {
-    ShowModal();
+    int retval = ShowModal();
+    // wxWindowModalDialogEvent relies on GetReturnCode() returning correct
+    // code. Rather than doing it manually in all ShowModal() overrides for
+    // native dialogs (and getting accidentally broken again), set it here.
+    // The worst that can happen is that it will be set twice to the same
+    // value.
+    SetReturnCode(retval);
     SendWindowModalDialogEvent ( wxEVT_WINDOW_MODAL_DIALOG_CLOSED  );
 }
 

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox_osx.cpp 69948 2011-12-07 23:41:06Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -131,11 +130,13 @@ unsigned int wxComboBox::GetCount() const
 
 void wxComboBox::DoDeleteOneItem(unsigned int n)
 {
+    m_datas.RemoveAt(n);
     GetComboPeer()->RemoveItem(n);
 }
 
 void wxComboBox::DoClear()
 {
+    m_datas.Clear();
     GetComboPeer()->Clear();
 }
 
@@ -187,10 +188,21 @@ wxString wxComboBox::GetStringSelection() const
     return sel == wxNOT_FOUND ? wxString() : GetString(sel);
 }
 
+void wxComboBox::SetValue(const wxString& value)
+{
+    if ( HasFlag(wxCB_READONLY) )
+        SetStringSelection( value ) ;
+    else
+        wxTextEntry::SetValue( value );
+}
+
 void wxComboBox::SetString(unsigned int n, const wxString& s)
 {
-    Delete(n);
-    Insert(s, n);
+    // Notice that we shouldn't delete and insert the item in this control
+    // itself as this would also affect the client data which we need to
+    // preserve here.
+    GetComboPeer()->RemoveItem(n);
+    GetComboPeer()->InsertItem(n, s);
     SetValue(s); // changing the item in the list won't update the display item
 }
 
@@ -202,7 +214,7 @@ void wxComboBox::EnableTextChangedEvents(bool WXUNUSED(enable))
 
 bool wxComboBox::OSXHandleClicked( double WXUNUSED(timestampsec) )
 {
-    wxCommandEvent event(wxEVT_COMMAND_COMBOBOX_SELECTED, m_windowId );
+    wxCommandEvent event(wxEVT_COMBOBOX, m_windowId );
     event.SetInt(GetSelection());
     event.SetEventObject(this);
     event.SetString(GetStringSelection());

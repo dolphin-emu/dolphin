@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,10 +41,6 @@
 #  include <limits.h>
 #  include <stdlib.h>
 #endif
-
-#ifdef HAVE_STRCASECMP_IN_STRINGS_H
-    #include <strings.h>    // for strcasecmp()
-#endif // HAVE_STRCASECMP_IN_STRINGS_H
 
 #include "wx/wxcrtbase.h"   // for wxChar, wxStrlen() etc.
 #include "wx/strvararg.h"
@@ -134,69 +129,18 @@ namespace wxPrivate
 // backwards compatibility only.
 
 // checks whether the passed in pointer is NULL and if the string is empty
-wxDEPRECATED( inline bool IsEmpty(const char *p) );
+wxDEPRECATED_MSG("use wxIsEmpty() instead")
 inline bool IsEmpty(const char *p) { return (!p || !*p); }
 
 // safe version of strlen() (returns 0 if passed NULL pointer)
-wxDEPRECATED( inline size_t Strlen(const char *psz) );
+wxDEPRECATED_MSG("use wxStrlen() instead")
 inline size_t Strlen(const char *psz)
   { return psz ? strlen(psz) : 0; }
 
 // portable strcasecmp/_stricmp
-wxDEPRECATED( inline int Stricmp(const char *psz1, const char *psz2) );
+wxDEPRECATED_MSG("use wxStricmp() instead")
 inline int Stricmp(const char *psz1, const char *psz2)
-{
-#if defined(__VISUALC__) && defined(__WXWINCE__)
-  register char c1, c2;
-  do {
-    c1 = tolower(*psz1++);
-    c2 = tolower(*psz2++);
-  } while ( c1 && (c1 == c2) );
-
-  return c1 - c2;
-#elif defined(__VISUALC__) || ( defined(__MWERKS__) && defined(__INTEL__) )
-  return _stricmp(psz1, psz2);
-#elif defined(__SC__)
-  return _stricmp(psz1, psz2);
-#elif defined(__BORLANDC__)
-  return stricmp(psz1, psz2);
-#elif defined(__WATCOMC__)
-  return stricmp(psz1, psz2);
-#elif defined(__DJGPP__)
-  return stricmp(psz1, psz2);
-#elif defined(__EMX__)
-  return stricmp(psz1, psz2);
-#elif defined(__WXPM__)
-  return stricmp(psz1, psz2);
-#elif defined(HAVE_STRCASECMP_IN_STRING_H) || \
-      defined(HAVE_STRCASECMP_IN_STRINGS_H) || \
-      defined(__GNUWIN32__)
-  return strcasecmp(psz1, psz2);
-#elif defined(__MWERKS__) && !defined(__INTEL__)
-  register char c1, c2;
-  do {
-    c1 = tolower(*psz1++);
-    c2 = tolower(*psz2++);
-  } while ( c1 && (c1 == c2) );
-
-  return c1 - c2;
-#else
-  // almost all compilers/libraries provide this function (unfortunately under
-  // different names), that's why we don't implement our own which will surely
-  // be more efficient than this code (uncomment to use):
-  /*
-    register char c1, c2;
-    do {
-      c1 = tolower(*psz1++);
-      c2 = tolower(*psz2++);
-    } while ( c1 && (c1 == c2) );
-
-    return c1 - c2;
-  */
-
-  #error  "Please define string case-insensitive compare for your OS/compiler"
-#endif  // OS/compiler
-}
+    { return wxCRT_StricmpA(psz1, psz2); }
 
 #endif // WXWIN_COMPATIBILITY_2_8
 
@@ -897,7 +841,7 @@ public:
       public:                                                               \
           WX_DEFINE_ITERATOR_CATEGORY(WX_STR_ITERATOR_TAG)                  \
           typedef wxUniChar value_type;                                     \
-          typedef int difference_type;                                      \
+          typedef ptrdiff_t difference_type;                                \
           typedef reference_type reference;                                 \
           typedef pointer_type pointer;                                     \
                                                                             \
@@ -1149,6 +1093,25 @@ public:
 
   #undef WX_STR_ITERATOR_TAG
   #undef WX_STR_ITERATOR_IMPL
+
+  // This method is mostly used by wxWidgets itself and return the offset of
+  // the given iterator in bytes relative to the start of the buffer
+  // representing the current string contents in the current locale encoding.
+  //
+  // It is inefficient as it involves converting part of the string to this
+  // encoding (and also unsafe as it simply returns 0 if the conversion fails)
+  // and so should be avoided if possible, wx itself only uses it to implement
+  // backwards-compatible API.
+  ptrdiff_t IterOffsetInMBStr(const const_iterator& i) const
+  {
+      const wxString str(begin(), i);
+
+      // This is logically equivalent to strlen(str.mb_str()) but avoids
+      // actually converting the string to multibyte and just computes the
+      // length that it would have after conversion.
+      size_t ofs = wxConvLibc.FromWChar(NULL, 0, str.wc_str(), str.length());
+      return ofs == wxCONV_FAILED ? 0 : static_cast<ptrdiff_t>(ofs);
+  }
 
   friend class iterator;
   friend class const_iterator;
@@ -2613,9 +2576,21 @@ public:
       return *this;
   }
 
+    // This is a non-standard-compliant overload taking the first "len"
+    // characters of the source string.
   wxString& assign(const wxString& str, size_t len)
   {
+#if wxUSE_STRING_POS_CACHE
+      // It is legal to pass len > str.length() to wxStringImpl::assign() but
+      // by restricting it here we save some work for that function so it's not
+      // really less efficient and, at the same time, ensure that we don't
+      // cache invalid length.
+      const size_t lenSrc = str.length();
+      if ( len > lenSrc )
+          len = lenSrc;
+
       wxSTRING_SET_CACHED_LENGTH(len);
+#endif // wxUSE_STRING_POS_CACHE
 
       m_impl.assign(str.m_impl, 0, str.LenToImpl(len));
 
@@ -2657,7 +2632,7 @@ public:
 
   wxString& assign(const char *sz, size_t n)
   {
-      wxSTRING_SET_CACHED_LENGTH(n);
+      wxSTRING_INVALIDATE_CACHE();
 
       SubstrBufFromMB str(ImplStr(sz, n));
       m_impl.assign(str.data, str.len);
@@ -3473,7 +3448,7 @@ private:
 
   void DoUngetWriteBuf(size_t nLen)
   {
-      wxSTRING_SET_CACHED_LENGTH(nLen);
+      wxSTRING_INVALIDATE_CACHE();
 
       m_impl.DoUngetWriteBuf(nLen);
   }

@@ -4,7 +4,6 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     11/08/2003
-// RCS-ID:      $Id: hashset.h 69568 2011-10-27 22:26:10Z VZ $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -46,7 +45,7 @@
 
 // we need to define the class declared by _WX_DECLARE_HASH_SET as a class and
 // not a typedef to allow forward declaring it
-#define _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, PTROP, CLASSNAME, CLASSEXP )  \
+#define _WX_DECLARE_HASH_SET_IMPL( KEY_T, HASH_T, KEY_EQ_T, PTROP, CLASSNAME, CLASSEXP )  \
 CLASSEXP CLASSNAME                                                            \
     : public WX_HASH_SET_BASE_TEMPLATE< KEY_T, HASH_T, KEY_EQ_T >             \
 {                                                                             \
@@ -68,6 +67,31 @@ public:                                                                       \
         : WX_HASH_SET_BASE_TEMPLATE< KEY_T, HASH_T, KEY_EQ_T >(s)             \
     {}                                                                        \
 }
+
+// In some standard library implementations (in particular, the libstdc++ that
+// ships with g++ 4.7), std::unordered_set inherits privately from its hasher
+// and comparator template arguments for purposes of empty base optimization.
+// As a result, in the declaration of a class deriving from std::unordered_set
+// the names of the hasher and comparator classes are interpreted as naming
+// the base class which is inaccessible.
+// The workaround is to prefix the class names with 'struct'; however, don't
+// do this on MSVC because it causes a warning there if the class was
+// declared as a 'class' rather than a 'struct' (and MSVC's std::unordered_set
+// implementation does not suffer from the access problem).
+#ifdef _MSC_VER
+#define WX_MAYBE_PREFIX_WITH_STRUCT(STRUCTNAME) STRUCTNAME
+#else
+#define WX_MAYBE_PREFIX_WITH_STRUCT(STRUCTNAME) struct STRUCTNAME
+#endif
+
+#define _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, PTROP, CLASSNAME, CLASSEXP )   \
+    _WX_DECLARE_HASH_SET_IMPL(                                                \
+        KEY_T,                                                                \
+        WX_MAYBE_PREFIX_WITH_STRUCT(HASH_T),                                  \
+        WX_MAYBE_PREFIX_WITH_STRUCT(KEY_EQ_T),                                \
+        PTROP,                                                                \
+        CLASSNAME,                                                            \
+        CLASSEXP)
 
 #else // no appropriate STL class, use our own implementation
 

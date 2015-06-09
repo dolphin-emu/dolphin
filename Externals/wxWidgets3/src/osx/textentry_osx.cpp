@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by: Kevin Ollivier
 // Created:     1998-01-01
-// RCS-ID:      $Id: textentry_osx.cpp 70379 2012-01-17 21:54:02Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -224,6 +223,23 @@ bool wxTextEntry::IsEditable() const
     return m_editable ;
 }
 
+bool wxTextEntry::SendMaxLenEvent()
+{
+    wxWindow *win = GetEditableWindow();
+    wxCHECK_MSG( win, false, "can't send an event without a window" );
+    
+    wxCommandEvent event(wxEVT_TEXT_MAXLEN, win->GetId());
+    
+    // do not do this as it could be very inefficient if the text control
+    // contains a lot of text and we're not using ref-counted wxString
+    // implementation -- instead, event.GetString() will query the control for
+    // its current text if needed
+    //event.SetString(win->GetValue());
+    
+    event.SetEventObject(win);
+    return win->HandleWindowEvent(event);
+}
+
 // ----------------------------------------------------------------------------
 // Undo/redo
 // ----------------------------------------------------------------------------
@@ -270,6 +286,18 @@ wxTextWidgetImpl * wxTextEntry::GetTextPeer() const
 
     return win ? dynamic_cast<wxTextWidgetImpl *>(win->GetPeer()) : NULL;
 }
+
+bool wxTextEntry::SetHint(const wxString& hint)
+{
+    m_hintString = hint;
+    return GetTextPeer() && GetTextPeer()->SetHint(hint);
+}
+
+wxString wxTextEntry::GetHint() const
+{
+    return m_hintString;
+}
+
 
 // ----------------------------------------------------------------------------
 // Auto-completion

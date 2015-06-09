@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.11.99
-// RCS-ID:      $Id: fontutil.cpp 70740 2012-02-28 18:06:22Z PC $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,12 +28,12 @@
 #ifndef WX_PRECOMP
     #include "wx/app.h"
     #include "wx/font.h" // wxFont enums
-    #include "wx/encinfo.h"
     #include "wx/hash.h"
     #include "wx/utils.h"       // for wxGetDisplay()
     #include "wx/module.h"
 #endif // PCH
 
+#include "wx/encinfo.h"
 #include "wx/fontmap.h"
 #include "wx/tokenzr.h"
 #include "wx/fontenum.h"
@@ -64,14 +63,24 @@
 void wxNativeFontInfo::Init()
 {
     description = NULL;
+    m_underlined = false;
+    m_strikethrough = false;
 }
 
 void wxNativeFontInfo::Init(const wxNativeFontInfo& info)
 {
     if (info.description)
+    {
         description = pango_font_description_copy(info.description);
+        m_underlined = info.GetUnderlined();
+        m_strikethrough = info.GetStrikethrough();
+    }
     else
+    {
         description = NULL;
+        m_underlined = false;
+        m_strikethrough = false;
+    }
 }
 
 void wxNativeFontInfo::Free()
@@ -130,12 +139,12 @@ wxFontWeight wxNativeFontInfo::GetWeight() const
 
 bool wxNativeFontInfo::GetUnderlined() const
 {
-    return false;
+    return m_underlined;
 }
 
 bool wxNativeFontInfo::GetStrikethrough() const
 {
-    return false;
+    return m_strikethrough;
 }
 
 wxString wxNativeFontInfo::GetFaceName() const
@@ -262,16 +271,18 @@ void wxNativeFontInfo::SetWeight(wxFontWeight weight)
     }
 }
 
-void wxNativeFontInfo::SetUnderlined(bool WXUNUSED(underlined))
+void wxNativeFontInfo::SetUnderlined(bool underlined)
 {
-    // wxWindowDCImpl::DoDrawText will take care of rendering font with
-    // the underline attribute!
-    wxFAIL_MSG( "not implemented" );
+    // Pango doesn't have the underlined attribute so we store it separately
+    // (and handle it specially in wxWindowDCImpl::DoDrawText()).
+    m_underlined = underlined;
 }
 
-void wxNativeFontInfo::SetStrikethrough(bool WXUNUSED(strikethrough))
+void wxNativeFontInfo::SetStrikethrough(bool strikethrough)
 {
-    wxFAIL_MSG( "not implemented" );
+    // As with the underlined attribute above, we handle this one separately as
+    // Pango doesn't support it as part of the font description.
+    m_strikethrough = strikethrough;
 }
 
 bool wxNativeFontInfo::SetFaceName(const wxString& facename)
@@ -306,25 +317,34 @@ void wxNativeFontInfo::SetFamily(wxFontFamily family)
 
         case wxFONTFAMILY_ROMAN:
             // corresponds to the serif font family in the page linked above
+            facename.Add(wxS("Serif"));
+            facename.Add(wxS("DejaVu Serif"));
+            facename.Add(wxS("DejaVu LGC Serif"));
+            facename.Add(wxS("Bitstream Vera Serif"));
+            facename.Add(wxS("Liberation Serif"));
+            facename.Add(wxS("FreeSerif"));
+            facename.Add(wxS("Luxi Serif"));
+            facename.Add(wxS("Times New Roman"));
             facename.Add(wxS("Century Schoolbook L"));
             facename.Add(wxS("URW Bookman L"));
             facename.Add(wxS("URW Palladio L"));
-            facename.Add(wxS("DejaVu Serif"));
-            facename.Add(wxS("FreeSerif"));
-            facename.Add(wxS("Times New Roman"));
             facename.Add(wxS("Times"));
             break;
 
         case wxFONTFAMILY_TELETYPE:
         case wxFONTFAMILY_MODERN:
             // corresponds to the monospace font family in the page linked above
+            facename.Add(wxS("Monospace"));
             facename.Add(wxS("DejaVu Sans Mono"));
-            facename.Add(wxS("Nimbus Mono L"));
+            facename.Add(wxS("DejaVu LGC Sans Mono"));
             facename.Add(wxS("Bitstream Vera Sans Mono"));
-            facename.Add(wxS("Andale Mono"));
-            facename.Add(wxS("Lucida Sans Typewriter"));
+            facename.Add(wxS("Liberation Mono"));
             facename.Add(wxS("FreeMono"));
+            facename.Add(wxS("Luxi Mono"));
             facename.Add(wxS("Courier New"));
+            facename.Add(wxS("Lucida Sans Typewriter"));
+            facename.Add(wxS("Nimbus Mono L"));
+            facename.Add(wxS("Andale Mono"));
             facename.Add(wxS("Courier"));
             break;
 
@@ -332,13 +352,17 @@ void wxNativeFontInfo::SetFamily(wxFontFamily family)
         case wxFONTFAMILY_DEFAULT:
         default:
             // corresponds to the sans-serif font family in the page linked above
+            facename.Add(wxS("Sans"));
             facename.Add(wxS("DejaVu Sans"));
-            facename.Add(wxS("URW Gothic L"));
-            facename.Add(wxS("Nimbus Sans L"));
+            facename.Add(wxS("DejaVu LGC Sans"));
             facename.Add(wxS("Bitstream Vera Sans"));
-            facename.Add(wxS("Lucida Sans"));
-            facename.Add(wxS("Arial"));
+            facename.Add(wxS("Liberation Sans"));
             facename.Add(wxS("FreeSans"));
+            facename.Add(wxS("Luxi Sans"));
+            facename.Add(wxS("Arial"));
+            facename.Add(wxS("Lucida Sans"));
+            facename.Add(wxS("Nimbus Sans L"));
+            facename.Add(wxS("URW Gothic L"));
             break;
     }
 
@@ -352,6 +376,14 @@ void wxNativeFontInfo::SetEncoding(wxFontEncoding WXUNUSED(encoding))
 
 bool wxNativeFontInfo::FromString(const wxString& s)
 {
+    wxString str(s);
+
+    // Pango font description doesn't have 'underlined' or 'strikethrough'
+    // attributes, so we handle them specially by extracting them from the
+    // string before passing it to Pango.
+    m_underlined = str.StartsWith(wxS("underlined "), &str);
+    m_strikethrough = str.StartsWith(wxS("strikethrough "), &str);
+
     if (description)
         pango_font_description_free( description );
 
@@ -362,7 +394,6 @@ bool wxNativeFontInfo::FromString(const wxString& s)
     // we do the check on the size here using same (arbitrary) limits used by
     // pango > 1.13. Note that the segfault could happen also for pointsize
     // smaller than this limit !!
-    wxString str(s);
     const size_t pos = str.find_last_of(wxS(" "));
     double size;
     if ( pos != wxString::npos && wxString(str, pos + 1).ToDouble(&size) )
@@ -394,8 +425,18 @@ bool wxNativeFontInfo::FromString(const wxString& s)
 wxString wxNativeFontInfo::ToString() const
 {
     wxGtkString str(pango_font_description_to_string( description ));
+    wxString desc = wxPANGO_CONV_BACK(str);
 
-    return wxPANGO_CONV_BACK(str);
+    // Augment the string with the attributes not handled by Pango.
+    //
+    // Notice that we must add them in the same order they are extracted in
+    // FromString() above.
+    if (m_strikethrough)
+        desc.insert(0, wxS("strikethrough "));
+    if (m_underlined)
+        desc.insert(0, wxS("underlined "));
+
+    return desc;
 }
 
 bool wxNativeFontInfo::FromUserString(const wxString& s)
@@ -947,9 +988,9 @@ bool wxTestFontEncoding(const wxNativeEncodingInfo& info)
 {
     wxString fontspec;
     fontspec.Printf(wxT("-*-%s-*-*-*-*-*-*-*-*-*-*-%s-%s"),
-                    !info.facename ? wxT("*") : info.facename.c_str(),
-                    info.xregistry.c_str(),
-                    info.xencoding.c_str());
+                    info.facename.empty() ? wxString("*") : info.facename,
+                    info.xregistry,
+                    info.xencoding);
 
     return wxTestFontSpec(fontspec);
 }

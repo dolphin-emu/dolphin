@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -122,7 +121,7 @@ wxString wxStandardPaths::GetExecutablePath() const
     wxString exeStr;
 
     char buf[4096];
-    int result = readlink("/proc/self/exe", buf, WXSIZEOF(buf) - sizeof(char));
+    int result = readlink("/proc/self/exe", buf, WXSIZEOF(buf) - 1);
     if ( result != -1 )
     {
         buf[result] = '\0'; // readlink() doesn't NUL-terminate the buffer

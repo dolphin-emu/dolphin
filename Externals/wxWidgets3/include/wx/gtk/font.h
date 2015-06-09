@@ -2,7 +2,6 @@
 // Name:        wx/gtk/font.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: font.h 70476 2012-01-29 08:14:34Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +18,8 @@ class WXDLLIMPEXP_CORE wxFont : public wxFontBase
 public:
     wxFont() { }
 
-    // wxGTK-specific
+    wxFont(const wxFontInfo& info);
+
     wxFont(const wxString& nativeFontInfoString)
     {
         Create(nativeFontInfoString);
@@ -62,12 +62,6 @@ public:
         Create(10, family, style, weight, underlined, face, encoding);
         SetPixelSize(pixelSize);
     }
-
-    wxFont(int pointSize,
-           wxFontFamily family,
-           int flags = wxFONTFLAG_DEFAULT,
-           const wxString& face = wxEmptyString,
-           wxFontEncoding encoding = wxFONTENCODING_DEFAULT);
 
     bool Create(int size,
                 wxFontFamily family,
@@ -119,15 +113,14 @@ public:
 protected:
     virtual void DoSetNativeFontInfo( const wxNativeFontInfo& info );
 
-    // common part of all ctors
-    void Init();
-
     virtual wxGDIRefData* CreateGDIRefData() const;
     virtual wxGDIRefData* CloneGDIRefData(const wxGDIRefData* data) const;
 
     virtual wxFontFamily DoGetFamily() const;
 
 private:
+    void Init();
+
     DECLARE_DYNAMIC_CLASS(wxFont)
 };
 

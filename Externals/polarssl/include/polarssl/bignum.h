@@ -3,7 +3,7 @@
  *
  * \brief  Multi-precision integer library
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -30,9 +30,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
 #if (_MSC_VER <= 1200)
 typedef   signed short  int16_t;
@@ -47,7 +51,7 @@ typedef UINT32 uint32_t;
 typedef UINT64 uint64_t;
 #else
 #include <inttypes.h>
-#endif
+#endif /* _MSC_VER && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002  /**< An error occurred while reading from or writing to a file. */
 #define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004  /**< Bad input parameters to function. */
@@ -58,14 +62,14 @@ typedef UINT64 uint64_t;
 #define POLARSSL_ERR_MPI_NOT_ACCEPTABLE                    -0x000E  /**< The input arguments are not acceptable. */
 #define POLARSSL_ERR_MPI_MALLOC_FAILED                     -0x0010  /**< Memory allocation failed. */
 
-#define MPI_CHK(f) if( ( ret = f ) != 0 ) goto cleanup
+#define MPI_CHK(f) do { if( ( ret = f ) != 0 ) goto cleanup; } while( 0 )
 
 /*
  * Maximum size MPIs are allowed to grow to in number of limbs.
  */
 #define POLARSSL_MPI_MAX_LIMBS                             10000
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+#if !defined(POLARSSL_MPI_WINDOW_SIZE)
 /*
  * Maximum window size used for modular exponentiation. Default: 6
  * Minimum value: 1. Maximum value: 6.
@@ -76,7 +80,9 @@ typedef UINT64 uint64_t;
  * Reduction in size, reduces speed.
  */
 #define POLARSSL_MPI_WINDOW_SIZE                           6        /**< Maximum windows size used. */
+#endif /* !POLARSSL_MPI_WINDOW_SIZE */
 
+#if !defined(POLARSSL_MPI_MAX_SIZE)
 /*
  * Maximum size of MPIs allowed in bits and bytes for user-MPIs.
  * ( Default: 512 bytes => 4096 bits, Maximum tested: 2048 bytes => 16384 bits )
@@ -85,8 +91,7 @@ typedef UINT64 uint64_t;
  * of limbs required (POLARSSL_MPI_MAX_LIMBS) is higher.
  */
 #define POLARSSL_MPI_MAX_SIZE                              512      /**< Maximum number of bytes for usable MPIs. */
-
-#endif /* !POLARSSL_CONFIG_OPTIONS */
+#endif /* !POLARSSL_MPI_MAX_SIZE */
 
 #define POLARSSL_MPI_MAX_BITS                              ( 8 * POLARSSL_MPI_MAX_SIZE )    /**< Maximum number of bits for usable MPIs. */
 
@@ -127,21 +132,30 @@ typedef uint16_t t_uint;
 typedef uint32_t t_udbl;
 #define POLARSSL_HAVE_UDBL
 #else
-  #if ( defined(_MSC_VER) && defined(_M_AMD64) )
+  /*
+   * 32-bit integers can be forced on 64-bit arches (eg. for testing purposes)
+   * by defining POLARSSL_HAVE_INT32 and undefining POLARSSL_HAVE_ASM
+   */
+  #if ( ! defined(POLARSSL_HAVE_INT32) && \
+          defined(_MSC_VER) && defined(_M_AMD64) )
+    #define POLARSSL_HAVE_INT64
     typedef  int64_t t_sint;
     typedef uint64_t t_uint;
   #else
-    #if ( defined(__GNUC__) && (                          \
+    #if ( ! defined(POLARSSL_HAVE_INT32) &&               \
+          defined(__GNUC__) && (                          \
           defined(__amd64__) || defined(__x86_64__)    || \
           defined(__ppc64__) || defined(__powerpc64__) || \
           defined(__ia64__)  || defined(__alpha__)     || \
           (defined(__sparc__) && defined(__arch64__))  || \
           defined(__s390x__) ) )
+       #define POLARSSL_HAVE_INT64
        typedef  int64_t t_sint;
        typedef uint64_t t_uint;
        typedef unsigned int t_udbl __attribute__((mode(TI)));
        #define POLARSSL_HAVE_UDBL
     #else
+       #define POLARSSL_HAVE_INT32
        typedef  int32_t t_sint;
        typedef uint32_t t_uint;
        #if ( defined(_MSC_VER) && defined(_M_IX86) )
@@ -153,10 +167,14 @@ typedef uint32_t t_udbl;
            #define POLARSSL_HAVE_UDBL
          #endif
        #endif
-    #endif
-  #endif
+    #endif /* !POLARSSL_HAVE_INT32 && __GNUC__ && 64-bit platform */
+  #endif /* !POLARSSL_HAVE_INT32 && _MSC_VER && _M_AMD64 */
 #endif /* POLARSSL_HAVE_INT16 */
 #endif /* POLARSSL_HAVE_INT8  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          MPI structure
@@ -168,10 +186,6 @@ typedef struct
     t_uint *p;          /*!<  pointer to limbs  */
 }
 mpi;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief           Initialize one MPI
@@ -199,6 +213,17 @@ void mpi_free( mpi *X );
 int mpi_grow( mpi *X, size_t nblimbs );
 
 /**
+ * \brief          Resize down, keeping at least the specified number of limbs
+ *
+ * \param X        MPI to shrink
+ * \param nblimbs  The minimum number of limbs to keep
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ */
+int mpi_shrink( mpi *X, size_t nblimbs );
+
+/**
  * \brief          Copy the contents of Y into X
  *
  * \param X        Destination MPI
@@ -216,6 +241,44 @@ int mpi_copy( mpi *X, const mpi *Y );
  * \param Y        Second MPI value
  */
 void mpi_swap( mpi *X, mpi *Y );
+
+/**
+ * \brief          Safe conditional assignement X = Y if assign is 1
+ *
+ * \param X        MPI to conditionally assign to
+ * \param Y        Value to be assigned
+ * \param assign   1: perform the assignment, 0: keep X's original value
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *
+ * \note           This function is equivalent to
+ *                      if( assign ) mpi_copy( X, Y );
+ *                 except that it avoids leaking any information about whether
+ *                 the assignment was done or not (the above code may leak
+ *                 information through branch prediction and/or memory access
+ *                 patterns analysis).
+ */
+int mpi_safe_cond_assign( mpi *X, const mpi *Y, unsigned char assign );
+
+/**
+ * \brief          Safe conditional swap X <-> Y if swap is 1
+ *
+ * \param X        First mpi value
+ * \param Y        Second mpi value
+ * \param assign   1: perform the swap, 0: keep X and Y's original values
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *
+ * \note           This function is equivalent to
+ *                      if( assign ) mpi_swap( X, Y );
+ *                 except that it avoids leaking any information about whether
+ *                 the assignment was done or not (the above code may leak
+ *                 information through branch prediction and/or memory access
+ *                 patterns analysis).
+ */
+int mpi_safe_cond_swap( mpi *X, mpi *Y, unsigned char assign );
 
 /**
  * \brief          Set value from integer
@@ -351,7 +414,9 @@ int mpi_write_file( const char *p, const mpi *X, int radix, FILE *fout );
 int mpi_read_binary( mpi *X, const unsigned char *buf, size_t buflen );
 
 /**
- * \brief          Export X into unsigned binary data, big endian
+ * \brief          Export X into unsigned binary data, big endian.
+ *                 Always fills the whole buffer, which will start with zeros
+ *                 if the number is smaller.
  *
  * \param X        Source MPI
  * \param buf      Output buffer
@@ -433,7 +498,7 @@ int mpi_cmp_int( const mpi *X, t_sint z );
 int mpi_add_abs( mpi *X, const mpi *A, const mpi *B );
 
 /**
- * \brief          Unsigned substraction: X = |A| - |B|
+ * \brief          Unsigned subtraction: X = |A| - |B|
  *
  * \param X        Destination MPI
  * \param A        Left-hand MPI
@@ -457,7 +522,7 @@ int mpi_sub_abs( mpi *X, const mpi *A, const mpi *B );
 int mpi_add_mpi( mpi *X, const mpi *A, const mpi *B );
 
 /**
- * \brief          Signed substraction: X = A - B
+ * \brief          Signed subtraction: X = A - B
  *
  * \param X        Destination MPI
  * \param A        Left-hand MPI
@@ -481,7 +546,7 @@ int mpi_sub_mpi( mpi *X, const mpi *A, const mpi *B );
 int mpi_add_int( mpi *X, const mpi *A, t_sint b );
 
 /**
- * \brief          Signed substraction: X = A - b
+ * \brief          Signed subtraction: X = A - b
  *
  * \param X        Destination MPI
  * \param A        Left-hand MPI
@@ -506,8 +571,9 @@ int mpi_mul_mpi( mpi *X, const mpi *A, const mpi *B );
 
 /**
  * \brief          Baseline multiplication: X = A * b
- *                 Note: b is an unsigned integer type, thus
- *                 Negative values of b are ignored.
+ *                 Note: despite the functon signature, b is treated as a
+ *                 t_uint.  Negative values of b are treated as large positive
+ *                 values.
  *
  * \param X        Destination MPI
  * \param A        Left-hand MPI
@@ -581,7 +647,7 @@ int mpi_mod_int( t_uint *r, const mpi *A, t_sint b );
 /**
  * \brief          Sliding-window exponentiation: X = A^E mod N
  *
- * \param X        Destination MPI 
+ * \param X        Destination MPI
  * \param A        Left-hand MPI
  * \param E        Exponent MPI
  * \param N        Modular MPI
@@ -589,8 +655,8 @@ int mpi_mod_int( t_uint *r, const mpi *A, t_sint b );
  *
  * \return         0 if successful,
  *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
- *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even or if
- *                 E is negative
+ *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even or
+ *                 if E is negative
  *
  * \note           _RR is used to avoid re-computing R*R mod N across
  *                 multiple calls, which speeds up things a bit. It can
@@ -658,7 +724,8 @@ int mpi_is_prime( mpi *X,
  * \brief          Prime number generation
  *
  * \param X        Destination MPI
- * \param nbits    Required size of X in bits ( 3 <= nbits <= POLARSSL_MPI_MAX_BITS )
+ * \param nbits    Required size of X in bits
+ *                 ( 3 <= nbits <= POLARSSL_MPI_MAX_BITS )
  * \param dh_flag  If 1, then (X-1)/2 will be prime too
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: checklst_osx.cpp 67243 2011-03-19 08:36:23Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -116,7 +115,7 @@ void wxCheckListBox::SetValueCallback( unsigned int n, wxListWidgetColumn* col ,
     {
         Check( n, value.IsChecked() );
 
-        wxCommandEvent event( wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, GetId() );
+        wxCommandEvent event( wxEVT_CHECKLISTBOX, GetId() );
         event.SetInt( n );
         event.SetString( GetString( n ) );
         event.SetEventObject( this );

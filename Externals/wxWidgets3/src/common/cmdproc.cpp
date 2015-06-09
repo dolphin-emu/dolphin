@@ -4,7 +4,6 @@
 // Author:      Julian Smart (extracted from docview.h by VZ)
 // Modified by:
 // Created:     05.11.00
-// RCS-ID:      $Id: cmdproc.cpp 70460 2012-01-25 00:05:12Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -330,16 +329,11 @@ void wxCommandProcessor::ClearCommands()
 
 bool wxCommandProcessor::IsDirty() const
 {
-    if ( m_commands.empty() )
-    {
-        // If we have never been modified, we can't be dirty.
-        return false;
-    }
-
     if ( !m_lastSavedCommand )
     {
-        // If we have been modified but have never been saved, we're dirty.
-        return true;
+        // We have never been saved, so we are dirty if and only if we have any
+        // commands at all.
+        return !!m_currentCommand;
     }
 
     if ( !m_currentCommand )

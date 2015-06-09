@@ -4,7 +4,6 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: combog.cpp 70773 2012-03-02 12:43:39Z JS $
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -259,7 +258,7 @@ void wxGenericComboCtrl::OnPaintEvent( wxPaintEvent& WXUNUSED(event) )
         wxPen pen1( wxColour(133,133,133),
                     customBorder,
                     wxSOLID );
-#else        
+#else
         wxPen pen1( wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT),
                     customBorder,
                     wxPENSTYLE_SOLID);

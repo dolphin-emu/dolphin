@@ -1,6 +1,6 @@
 omments: 1
 
-A Compendium of Gamecube Action Replay Code Types
+A Compendium of GameCube Action Replay Code Types
 
 Note: This is note a Complete code type list.
 
@@ -12,7 +12,7 @@ Kenobi's documentation is recommended reading as it is very complete, precise, a
 
 It should be noted that every decrypted AR code has a basic two-part format that is universal to every code. The first half contains the code type and address to be written to. The second half contains the value to be written.
 
-The Gamecube has a memory range of 80000000 - 817FFFFF (cached), or C0000000 - C17FFFFF (uncached). However for the sake of simplicity, the AR uses an offset number in the range of 00000000 - 017FFFFF. The code type identifier is an 8-bit value that is applied to the first two digits of the offset. For example, if your offset is 00012345, and you wish to perform a 32-bit write (04), you simply add (04000000) + (00012345) = 04012345.
+The GameCube has a memory range of 80000000 - 817FFFFF (cached), or C0000000 - C17FFFFF (uncached). However for the sake of simplicity, the AR uses an offset number in the range of 00000000 - 017FFFFF. The code type identifier is an 8-bit value that is applied to the first two digits of the offset. For example, if your offset is 00012345, and you wish to perform a 32-bit write (04), you simply add (04000000) + (00012345) = 04012345.
 
 In order to conserve space and simplicity, only the 8-bit code type identifier and particulars of the second half of the code will be explained below, as the method for procuring the first half has already been described above ;)
 

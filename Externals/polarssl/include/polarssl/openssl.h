@@ -62,6 +62,10 @@
 #define AES_cbc_encrypt( INPUT, OUTPUT, LEN, CTX, IV, MODE ) \
         aes_crypt_cbc( (CTX), (MODE), (LEN), (IV), (INPUT), (OUTPUT) )
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * RSA stuff follows. TODO: needs cleanup
  */
@@ -76,7 +80,7 @@ inline rsa_context* d2i_RSA_PUBKEY( void *ignore, unsigned char **bufptr,
 {
     unsigned char *buffer = *(unsigned char **) bufptr;
     rsa_context *rsa;
-    
+
     /*
      * Not a general-purpose parser: only parses public key from *exactly*
      *   openssl genrsa -out privkey.pem 512 (or 1024)
@@ -94,7 +98,7 @@ inline rsa_context* d2i_RSA_PUBKEY( void *ignore, unsigned char **bufptr,
 
     memset( rsa, 0, sizeof( rsa_context ) );
 
-    if( ( len ==  94 && 
+    if( ( len ==  94 &&
           mpi_read_binary( &rsa->N, &buffer[ 25],  64 ) == 0 &&
           mpi_read_binary( &rsa->E, &buffer[ 91],   3 ) == 0 ) ||
         ( len == 162 &&

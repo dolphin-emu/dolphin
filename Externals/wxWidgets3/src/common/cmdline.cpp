@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.01.00
-// RCS-ID:      $Id: cmdline.cpp 68316 2011-07-21 13:49:55Z VZ $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -682,7 +681,15 @@ int wxCmdLineParser::Parse(bool showUsage)
 
             continue;
         }
-
+#ifdef __WXOSX__
+        if ( arg == wxT("-ApplePersistenceIgnoreState") )
+        {
+            maybeOption = false;
+            
+            continue;
+        }
+#endif
+        
         // empty argument or just '-' is not an option but a parameter
         if ( maybeOption && arg.length() > 1 &&
                 // FIXME-UTF8: use wc_str() after removing ANSI build
@@ -969,8 +976,8 @@ int wxCmdLineParser::Parse(bool showUsage)
                         case wxCMD_LINE_VAL_DATE:
                             {
                                 wxDateTime dt;
-                                wxString::const_iterator end;
-                                if ( !dt.ParseDate(value, &end) || end != value.end() )
+                                wxString::const_iterator endDate;
+                                if ( !dt.ParseDate(value, &endDate) || endDate != value.end() )
                                 {
                                     errorMsg << wxString::Format(_("Option '%s': '%s' cannot be converted to a date."),
                                                                  name.c_str(), value.c_str())
@@ -1377,6 +1384,23 @@ static wxString GetLongOptionName(wxString::const_iterator p,
    Windows conventions for the command line handling, not Unix ones. For
    instance, backslash is not special except when it precedes double quote when
    it does quote it.
+
+   TODO: Rewrite this to follow the even more complicated rule used by Windows
+         CommandLineToArgv():
+
+    * A string of backslashes not followed by a quotation mark has no special
+      meaning.
+    * An even number of backslashes followed by a quotation mark is treated as
+      pairs of protected backslashes, followed by a word terminator.
+    * An odd number of backslashes followed by a quotation mark is treated as
+      pairs of protected backslashes, followed by a protected quotation mark.
+
+    See http://blogs.msdn.com/b/oldnewthing/archive/2010/09/17/10063629.aspx
+
+    It could also be useful to provide a converse function which is also
+    non-trivial, see
+
+    http://blogs.msdn.com/b/twistylittlepassagesallalike/archive/2011/04/23/everyone-quotes-arguments-the-wrong-way.aspx
  */
 
 /* static */

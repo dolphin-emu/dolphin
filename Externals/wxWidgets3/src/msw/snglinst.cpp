@@ -5,7 +5,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     08.06.01
-// RCS-ID:      $Id: snglinst.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

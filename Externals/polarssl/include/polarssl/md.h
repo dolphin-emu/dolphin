@@ -1,11 +1,11 @@
 /**
  * \file md.h
- * 
+ *
  * \brief Generic message digest wrapper
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -44,6 +44,10 @@
 #define POLARSSL_ERR_MD_ALLOC_FAILED                       -0x5180  /**< Failed to allocate memory. */
 #define POLARSSL_ERR_MD_FILE_IO_ERROR                      -0x5200  /**< Opening or reading of file failed. */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
     POLARSSL_MD_NONE=0,
     POLARSSL_MD_MD2,
@@ -54,9 +58,14 @@ typedef enum {
     POLARSSL_MD_SHA256,
     POLARSSL_MD_SHA384,
     POLARSSL_MD_SHA512,
+    POLARSSL_MD_RIPEMD160,
 } md_type_t;
 
+#if defined(POLARSSL_SHA512_C)
 #define POLARSSL_MD_MAX_SIZE         64  /* longest known is SHA512 */
+#else
+#define POLARSSL_MD_MAX_SIZE         32  /* longest known is SHA256 or less */
+#endif
 
 /**
  * Message digest information. Allows message digest functions to be called
@@ -83,16 +92,18 @@ typedef struct {
 
     /** Generic digest function */
     void (*digest_func)( const unsigned char *input, size_t ilen,
-                            unsigned char *output );
+                         unsigned char *output );
 
     /** Generic file digest function */
     int (*file_func)( const char *path, unsigned char *output );
 
     /** HMAC Initialisation function */
-    void (*hmac_starts_func)( void *ctx, const unsigned char *key, size_t keylen );
+    void (*hmac_starts_func)( void *ctx, const unsigned char *key,
+                              size_t keylen );
 
     /** HMAC update function */
-    void (*hmac_update_func)( void *ctx, const unsigned char *input, size_t ilen );
+    void (*hmac_update_func)( void *ctx, const unsigned char *input,
+                              size_t ilen );
 
     /** HMAC finalisation function */
     void (*hmac_finish_func)( void *ctx, unsigned char *output);
@@ -102,8 +113,8 @@ typedef struct {
 
     /** Generic HMAC function */
     void (*hmac_func)( const unsigned char *key, size_t keylen,
-                    const unsigned char *input, size_t ilen,
-                    unsigned char *output );
+                       const unsigned char *input, size_t ilen,
+                       unsigned char *output );
 
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
@@ -111,6 +122,8 @@ typedef struct {
     /** Free the given context */
     void (*ctx_free_func)( void *ctx );
 
+    /** Internal use only */
+    void (*process_func)( void *ctx, const unsigned char *input );
 } md_info_t;
 
 /**
@@ -128,10 +141,6 @@ typedef struct {
     NULL, /* md_info */ \
     NULL, /* md_ctx */ \
 }
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief Returns the list of digests supported by the generic digest module.
@@ -164,8 +173,24 @@ const md_info_t *md_info_from_string( const char *md_name );
 const md_info_t *md_info_from_type( md_type_t md_type );
 
 /**
- * \brief          Initialises and fills the message digest context structure with
- *                 the appropriate values.
+ * \brief               Initialize a md_context (as NONE)
+ */
+void md_init( md_context_t *ctx );
+
+/**
+ * \brief               Free and clear the message-specific context of ctx.
+ *                      Freeing ctx itself remains the responsibility of the
+ *                      caller.
+ */
+void md_free( md_context_t *ctx );
+
+/**
+ * \brief          Initialises and fills the message digest context structure
+ *                 with the appropriate values.
+ *
+ * \note           Currently also clears structure. In future versions you
+ *                 will be required to call md_init() on the structure
+ *                 first.
  *
  * \param ctx      context to initialise. May not be NULL. The
  *                 digest-specific context (ctx->md_ctx) must be NULL. It will
@@ -182,10 +207,11 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
  * \brief          Free the message-specific context of ctx. Freeing ctx itself
  *                 remains the responsibility of the caller.
  *
+ * \note           Deprecated: Redirects to md_free()
+ *
  * \param ctx      Free the message-specific context
  *
- * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
- *                 verification fails.
+ * \returns        0
  */
 int md_free_ctx( md_context_t *ctx );
 
@@ -292,7 +318,8 @@ int md( const md_info_t *md_info, const unsigned char *input, size_t ilen,
  *                 failed, POLARSSL_ERR_MD_FILE_READ_FAILED if fread failed,
  *                 POLARSSL_ERR_MD_BAD_INPUT_DATA if md_info was NULL.
  */
-int md_file( const md_info_t *md_info, const char *path, unsigned char *output );
+int md_file( const md_info_t *md_info, const char *path,
+             unsigned char *output );
 
 /**
  * \brief          Generic HMAC context setup
@@ -304,7 +331,8 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
  * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
  *                 verification fails.
  */
-int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen );
+int md_hmac_starts( md_context_t *ctx, const unsigned char *key,
+                    size_t keylen );
 
 /**
  * \brief          Generic HMAC process buffer
@@ -316,7 +344,8 @@ int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )
  * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
  *                 verification fails.
  */
-int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen );
+int md_hmac_update( md_context_t *ctx, const unsigned char *input,
+                    size_t ilen );
 
 /**
  * \brief          Generic HMAC final digest
@@ -355,6 +384,9 @@ int md_hmac_reset( md_context_t *ctx );
 int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
                 const unsigned char *input, size_t ilen,
                 unsigned char *output );
+
+/* Internal use */
+int md_process( md_context_t *ctx, const unsigned char *data );
 
 #ifdef __cplusplus
 }

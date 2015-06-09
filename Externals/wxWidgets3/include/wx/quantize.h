@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     22/6/2000
-// RCS-ID:      $Id: quantize.h 52834 2008-03-26 15:06:00Z FM $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////

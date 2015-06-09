@@ -3,7 +3,6 @@
 // Purpose:     implementation of wxNotificationMessage for Windows
 // Author:      Vadim Zeitlin
 // Created:     2007-12-01
-// RCS-ID:      $Id: notifmsg.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,8 +22,9 @@ public:
     wxNotificationMessage() { Init(); }
     wxNotificationMessage(const wxString& title,
                           const wxString& message = wxString(),
-                          wxWindow *parent = NULL)
-        : wxNotificationMessageBase(title, message, parent)
+                          wxWindow *parent = NULL,
+                          int flags = wxICON_INFORMATION)
+        : wxNotificationMessageBase(title, message, parent, flags)
     {
         Init();
     }

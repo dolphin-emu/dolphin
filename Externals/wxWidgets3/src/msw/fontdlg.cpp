@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: fontdlg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,6 +26,7 @@
 #if wxUSE_FONTDLG
 
 #include "wx/fontdlg.h"
+#include "wx/modalhook.h"
 
 #ifndef WX_PRECOMP
     #include "wx/msw/wrapcdlg.h"
@@ -55,6 +55,8 @@ IMPLEMENT_DYNAMIC_CLASS(wxFontDialog, wxDialog)
 
 int wxFontDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     // It should be OK to always use GDI simulations
     DWORD flags = CF_SCREENFONTS /* | CF_NOSIMULATIONS */ ;
 

@@ -4,7 +4,6 @@
 // Author:      Guilhem Lavaux
 // Modified by: Vadim Zeitlin to switch to wxSockAddressImpl implementation
 // Created:     26/04/1997
-// RCS-ID:      $Id: sckaddr.h 59099 2009-02-22 23:38:52Z VZ $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 //              (c) 2008, 2009 Vadim Zeitlin
 // Licence:     wxWindows licence

@@ -28,7 +28,6 @@ inline void wxVectorSort(wxVector<T>& v)
 
 #else // !wxUSE_STD_CONTAINERS
 
-#include "wx/utils.h"
 #include "wx/scopeguard.h"
 #include "wx/meta/movable.h"
 #include "wx/meta/if.h"
@@ -36,6 +35,15 @@ inline void wxVectorSort(wxVector<T>& v)
 #include "wx/beforestd.h"
 #include <new> // for placement new
 #include "wx/afterstd.h"
+
+// wxQsort is declared in wx/utils.h, but can't include that file here,
+// it indirectly includes this file. Just lovely...
+typedef int (*wxSortCallback)(const void* pItem1,
+                              const void* pItem2,
+                              const void* user_data);
+WXDLLIMPEXP_BASE void wxQsort(void* pbase, size_t total_elems,
+                              size_t size, wxSortCallback cmp,
+                              const void* user_data);
 
 namespace wxPrivate
 {
@@ -131,9 +139,11 @@ public:
     typedef size_t difference_type;
     typedef T value_type;
     typedef value_type* pointer;
+    typedef const value_type* const_pointer;
     typedef value_type* iterator;
     typedef const value_type* const_iterator;
     typedef value_type& reference;
+    typedef const value_type& const_reference;
 
     class reverse_iterator
     {
@@ -175,6 +185,51 @@ public:
 
     private:
         value_type *m_ptr;
+
+        friend class const_reverse_iterator;
+    };
+
+    class const_reverse_iterator
+    {
+    public:
+        const_reverse_iterator() : m_ptr(NULL) { }
+        wxEXPLICIT const_reverse_iterator(const_iterator it) : m_ptr(it) { }
+        const_reverse_iterator(const reverse_iterator& it) : m_ptr(it.m_ptr) { }
+        const_reverse_iterator(const const_reverse_iterator& it) : m_ptr(it.m_ptr) { }
+
+        const_reference operator*() const { return *m_ptr; }
+        const_pointer operator->() const { return m_ptr; }
+
+        const_iterator base() const { return m_ptr; }
+
+        const_reverse_iterator& operator++()
+            { --m_ptr; return *this; }
+        const_reverse_iterator operator++(int)
+            { const_reverse_iterator tmp = *this; --m_ptr; return tmp; }
+        const_reverse_iterator& operator--()
+            { ++m_ptr; return *this; }
+        const_reverse_iterator operator--(int)
+            { const_reverse_iterator tmp = *this; ++m_ptr; return tmp; }
+
+        const_reverse_iterator operator+(difference_type n) const
+            { return const_reverse_iterator(m_ptr - n); }
+        const_reverse_iterator& operator+=(difference_type n)
+            { m_ptr -= n; return *this; }
+        const_reverse_iterator operator-(difference_type n) const
+            { return const_reverse_iterator(m_ptr + n); }
+        const_reverse_iterator& operator-=(difference_type n)
+            { m_ptr += n; return *this; }
+
+        const_reference operator[](difference_type n) const
+            { return *(*this + n); }
+
+        bool operator ==(const const_reverse_iterator& it) const
+            { return m_ptr == it.m_ptr; }
+        bool operator !=(const const_reverse_iterator& it) const
+            { return m_ptr != it.m_ptr; }
+
+    protected:
+        const value_type *m_ptr;
     };
 
     wxVector() : m_size(0), m_capacity(0), m_values(NULL) {}
@@ -200,9 +255,37 @@ public:
         Copy(c);
     }
 
+    template <class InputIterator>
+    wxVector(InputIterator first, InputIterator last)
+        : m_size(0), m_capacity(0), m_values(NULL)
+    {
+        assign(first, last);
+    }
+
     ~wxVector()
     {
         clear();
+    }
+
+    void assign(size_type p_size, const value_type& v)
+    {
+        clear();
+        reserve(p_size);
+        for ( size_t n = 0; n < p_size; n++ )
+            push_back(v);
+    }
+
+    template <class InputIterator>
+    void assign(InputIterator first, InputIterator last)
+    {
+        clear();
+
+        // Notice that it would be nice to call reserve() here but we can't do
+        // it for arbitrary input iterators, we should have a dispatch on
+        // iterator type and call it if possible.
+
+        for ( InputIterator it = first; it != last; ++it )
+            push_back(*it);
     }
 
     void swap(wxVector& v)
@@ -234,15 +317,17 @@ public:
         // increase the size twice, unless we're already too big or unless
         // more is requested
         //
-        // NB: casts to size_type are needed to suppress mingw32 warnings about
-        //     mixing enums and ints in the same expression
+        // NB: casts to size_type are needed to suppress warnings about
+        //     mixing enumeral and non-enumeral type in conditional expression
         const size_type increment = m_size > 0
-                                     ? wxMin(m_size, (size_type)ALLOC_MAX_SIZE)
+                                     ? m_size < ALLOC_MAX_SIZE
+                                        ? m_size
+                                        : (size_type)ALLOC_MAX_SIZE
                                      : (size_type)ALLOC_INITIAL_SIZE;
         if ( m_capacity + increment > n )
             n = m_capacity + increment;
 
-        m_values = Ops::Realloc(m_values, n * sizeof(value_type), m_size);
+        m_values = Ops::Realloc(m_values, n, m_size);
         m_capacity = n;
     }
 
@@ -334,6 +419,9 @@ public:
 
     reverse_iterator rbegin() { return reverse_iterator(end() - 1); }
     reverse_iterator rend() { return reverse_iterator(begin() - 1); }
+
+    const_reverse_iterator rbegin() const { return const_reverse_iterator(end() - 1); }
+    const_reverse_iterator rend() const { return const_reverse_iterator(begin() - 1); }
 
     iterator insert(iterator it, const value_type& v = value_type())
     {

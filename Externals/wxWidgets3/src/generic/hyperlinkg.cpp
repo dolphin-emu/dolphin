@@ -4,7 +4,6 @@
 // Author:      David Norris <danorris@gmail.com>, Otto Wyss
 // Modified by: Ryan Norton, Francesco Montorsi
 // Created:     04/02/2005
-// RCS-ID:      $Id: hyperlinkg.cpp 67948 2011-06-15 21:56:23Z VZ $
 // Copyright:   (c) 2005 David Norris
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -120,7 +119,7 @@ void wxGenericHyperlinkCtrl::ConnectMenuHandlers()
 {
     // Connect the event handlers for the context menu.
     Connect( wxEVT_RIGHT_UP, wxMouseEventHandler(wxGenericHyperlinkCtrl::OnRightUp) );
-    Connect( wxHYPERLINK_POPUP_COPY_ID, wxEVT_COMMAND_MENU_SELECTED,
+    Connect( wxHYPERLINK_POPUP_COPY_ID, wxEVT_MENU,
              wxCommandEventHandler(wxGenericHyperlinkCtrl::OnPopUpCopy) );
 }
 

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: filedlg.h 62722 2009-11-26 16:17:00Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,6 +42,9 @@ public:
 
     // called from the hook procedure on CDN_INITDONE reception
     virtual void MSWOnInitDone(WXHWND hDlg);
+
+    // called from the hook procedure on CDN_SELCHANGE.
+    void MSWOnSelChange(WXHWND hDlg);
 
 protected:
 

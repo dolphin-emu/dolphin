@@ -4,7 +4,6 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     29/01/2002
-// RCS-ID:      $Id: hashmap.h 69568 2011-10-27 22:26:10Z VZ $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -467,7 +466,7 @@ inline bool never_grow( size_t, size_t ) { return false; }
 inline bool never_shrink( size_t, size_t ) { return false; }
 inline bool grow_lf70( size_t buckets, size_t items )
 {
-    return float(items)/float(buckets) >= 0.85;
+    return float(items)/float(buckets) >= 0.85f;
 }
 
 #endif // various hash map implementations
@@ -483,8 +482,9 @@ inline bool grow_lf70( size_t buckets, size_t items )
 #ifndef wxNEEDS_WX_HASH_MAP
 
 // integer types
-class WXDLLIMPEXP_BASE wxIntegerHash
+struct WXDLLIMPEXP_BASE wxIntegerHash
 {
+private:
     WX_HASH_MAP_NAMESPACE::hash<long> longHash;
     WX_HASH_MAP_NAMESPACE::hash<unsigned long> ulongHash;
     WX_HASH_MAP_NAMESPACE::hash<int> intHash;
@@ -527,9 +527,8 @@ public:
 #else // wxNEEDS_WX_HASH_MAP
 
 // integer types
-class WXDLLIMPEXP_BASE wxIntegerHash
+struct WXDLLIMPEXP_BASE wxIntegerHash
 {
-public:
     wxIntegerHash() { }
     unsigned long operator()( long x ) const { return (unsigned long)x; }
     unsigned long operator()( unsigned long x ) const { return x; }
@@ -547,9 +546,8 @@ public:
 
 #endif // !wxNEEDS_WX_HASH_MAP/wxNEEDS_WX_HASH_MAP
 
-class WXDLLIMPEXP_BASE wxIntegerEqual
+struct WXDLLIMPEXP_BASE wxIntegerEqual
 {
-public:
     wxIntegerEqual() { }
     bool operator()( long a, long b ) const { return a == b; }
     bool operator()( unsigned long a, unsigned long b ) const { return a == b; }
@@ -566,9 +564,8 @@ public:
 };
 
 // pointers
-class WXDLLIMPEXP_BASE wxPointerHash
+struct WXDLLIMPEXP_BASE wxPointerHash
 {
-public:
     wxPointerHash() { }
 
 #ifdef wxNEEDS_WX_HASH_MAP
@@ -580,9 +577,8 @@ public:
     wxPointerHash& operator=(const wxPointerHash&) { return *this; }
 };
 
-class WXDLLIMPEXP_BASE wxPointerEqual
+struct WXDLLIMPEXP_BASE wxPointerEqual
 {
-public:
     wxPointerEqual() { }
     bool operator()( const void* a, const void* b ) const { return a == b; }
 
@@ -590,9 +586,8 @@ public:
 };
 
 // wxString, char*, wchar_t*
-class WXDLLIMPEXP_BASE wxStringHash
+struct WXDLLIMPEXP_BASE wxStringHash
 {
-public:
     wxStringHash() {}
     unsigned long operator()( const wxString& x ) const
         { return stringHash( x.wx_str() ); }
@@ -616,9 +611,8 @@ public:
     wxStringHash& operator=(const wxStringHash&) { return *this; }
 };
 
-class WXDLLIMPEXP_BASE wxStringEqual
+struct WXDLLIMPEXP_BASE wxStringEqual
 {
-public:
     wxStringEqual() {}
     bool operator()( const wxString& a, const wxString& b ) const
         { return a == b; }
@@ -689,8 +683,7 @@ public: \
     /* count() == 0 | 1 */ \
     size_type count( const const_key_type& key ) \
     { \
-        /* explicit cast needed to suppress CodeWarrior warnings */ \
-        return (size_type)(GetNode( key ) ? 1 : 0); \
+        return GetNode( key ) ? 1u : 0u; \
     } \
 }
 

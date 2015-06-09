@@ -26,14 +26,14 @@ BUILD		:=	build
 SOURCES		:=	. emu
 RESOURCES	:=	../resources
 DATA		:=	data
-INCLUDES	:=	include ../Core/Common/Src .
+INCLUDES	:=	include ../Core/Common .
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
 
 CFLAGS	= -save-temps -O2 -Wall --no-strict-aliasing $(MACHDEP) $(INCLUDE)
-CXXFLAGS	=	$(CFLAGS)
+CXXFLAGS	=	-std=c++0x $(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 

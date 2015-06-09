@@ -4,7 +4,6 @@
 // Author:      Julian Smart and Guillermo Rodriguez Garcia
 // Modified by: Francesco Montorsi
 // Created:     13/8/99
-// RCS-ID:      $Id: animate.h 53629 2008-05-17 22:51:52Z VZ $
 // Copyright:   (c) Julian Smart and Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

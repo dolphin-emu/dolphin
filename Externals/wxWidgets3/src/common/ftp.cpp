@@ -9,7 +9,6 @@
 //              robust Abort(), support for arbitrary FTP commands, ...)
 //              Randall Fox (support for active mode)
 // Created:     07/07/1997
-// RCS-ID:      $Id: ftp.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 //              (c) 1998-2004 wxWidgets team
 // Licence:     wxWindows licence
@@ -48,9 +47,7 @@
 #include "wx/protocol/protocol.h"
 #include "wx/protocol/ftp.h"
 
-#ifndef __MWERKS__
-    #include <memory.h>
-#endif
+#include <memory.h>
 
 // ----------------------------------------------------------------------------
 // constants
@@ -686,7 +683,7 @@ public:
 
         // when checking the result, the stream will
         // almost always show an error, even if the file was
-        // properly transfered, thus, let's just grab the result
+        // properly transferred, thus, let's just grab the result
 
         // we are looking for "226 transfer completed"
         char code = m_ftp->GetResult();
@@ -902,7 +899,7 @@ int wxFTP::GetFileSize(const wxString& fileName)
 
     int filesize = -1;
 
-    // Check for existance of file via wxFTP::FileExists(...)
+    // Check for existence of file via wxFTP::FileExists(...)
     if ( FileExists(fileName) )
     {
         wxString command;
@@ -939,7 +936,7 @@ int wxFTP::GetFileSize(const wxString& fileName)
         }
 
         // Set transfermode back to the original. Only the "SIZE"-command
-        // is dependant on transfermode
+        // is dependent on transfermode
         if ( oldTransfermode != NONE )
         {
             SetTransferMode(oldTransfermode);

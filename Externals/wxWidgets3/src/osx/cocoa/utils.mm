@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils.mm 68958 2011-08-30 09:02:11Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,7 +36,7 @@
 
 #if wxOSX_USE_COCOA
 
-#if wxUSE_BASE
+#if wxUSE_GUI
 
 // Emit a beeeeeep
 void wxBell()
@@ -45,13 +44,10 @@ void wxBell()
     NSBeep();
 }
 
-#endif // wxUSE_BASE
-
-#if wxUSE_GUI
-
 @implementation wxNSAppController
 
-- (void)applicationWillFinishLaunching:(NSNotification *)application {	
+- (void)applicationWillFinishLaunching:(NSNotification *)application
+{
     wxUnusedVar(application);
     
     // we must install our handlers later than setting the app delegate, because otherwise our handlers
@@ -65,6 +61,12 @@ void wxBell()
     [appleEventManager setEventHandler:self andSelector:@selector(handleOpenAppEvent:withReplyEvent:)
                          forEventClass:kCoreEventClass andEventID:kAEOpenApplication];
     
+    wxTheApp->OSXOnWillFinishLaunching();
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notification
+{
+    wxTheApp->OSXOnDidFinishLaunching();
 }
 
 - (void)application:(NSApplication *)sender openFiles:(NSArray *)fileNames
@@ -75,18 +77,32 @@ void wxBell()
     const size_t count = [fileNames count];
     for (i = 0; i < count; i++)
     {
-        fileList.Add( wxCFStringRef::AsString([fileNames objectAtIndex:i]) );
+        fileList.Add( wxCFStringRef::AsStringWithNormalizationFormC([fileNames objectAtIndex:i]) );
     }
 
-    wxTheApp->MacOpenFiles(fileList);
+    if ( wxTheApp->OSXInitWasCalled() )
+        wxTheApp->MacOpenFiles(fileList);
+    else
+        wxTheApp->OSXStoreOpenFiles(fileList);
 }
 
-- (BOOL)application:(NSApplication *)sender printFile:(NSString *)filename
+- (NSApplicationPrintReply)application:(NSApplication *)sender printFiles:(NSArray *)fileNames withSettings:(NSDictionary *)printSettings showPrintPanels:(BOOL)showPrintPanels
 {
     wxUnusedVar(sender);
-    wxCFStringRef cf(wxCFRetain(filename));
-    wxTheApp->MacPrintFile(cf.AsString()) ;
-    return YES;
+    wxArrayString fileList;
+    size_t i;
+    const size_t count = [fileNames count];
+    for (i = 0; i < count; i++)
+    {
+        fileList.Add( wxCFStringRef::AsStringWithNormalizationFormC([fileNames objectAtIndex:i]) );
+    }
+    
+    if ( wxTheApp->OSXInitWasCalled() )
+        wxTheApp->MacPrintFiles(fileList);
+    else
+        wxTheApp->OSXStorePrintFiles(fileList);
+    
+    return NSPrintingSuccess;
 }
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag
@@ -103,14 +119,16 @@ void wxBell()
     wxUnusedVar(replyEvent);
     NSString* url = [[event descriptorAtIndex:1] stringValue];
     wxCFStringRef cf(wxCFRetain(url));
-    wxTheApp->MacOpenURL(cf.AsString()) ;
+    if ( wxTheApp->OSXInitWasCalled() )
+        wxTheApp->MacOpenURL(cf.AsString()) ;
+    else
+        wxTheApp->OSXStoreOpenURL(cf.AsString());
 }
 
 - (void)handleOpenAppEvent:(NSAppleEventDescriptor *)event
            withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 {
     wxUnusedVar(replyEvent);
-    wxTheApp->MacNewFile() ;
 }
 
 /*
@@ -123,9 +141,7 @@ void wxBell()
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
     wxUnusedVar(sender);
-    wxCloseEvent event;
-    wxTheApp->OnQueryEndSession(event);
-    if ( event.GetVeto() )
+    if ( !wxTheApp->OSXOnShouldTerminate() )
         return NSTerminateCancel;
     
     return NSTerminateNow;
@@ -133,9 +149,7 @@ void wxBell()
 
 - (void)applicationWillTerminate:(NSNotification *)application {
     wxUnusedVar(application);
-    wxCloseEvent event;
-    event.SetCanVeto(false);
-    wxTheApp->OnEndSession(event);
+    wxTheApp->OSXOnWillTerminate();
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender
@@ -241,15 +255,144 @@ void wxBell()
 }
 @end
 
+
+// more on bringing non-bundled apps to the foreground
+// https://devforums.apple.com/thread/203753
+
+#if 0 
+
+// one possible solution is also quoted here
+// from http://stackoverflow.com/questions/7596643/when-calling-transformprocesstype-the-app-menu-doesnt-show-up
+
+@interface wxNSNonBundledAppHelper : NSObject {
+    
+}
+
++ (void)transformToForegroundApplication;
+
+@end
+
+@implementation wxNSNonBundledAppHelper
+
++ (void)transformToForegroundApplication {
+    for (NSRunningApplication * app in [NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.apple.finder"]) {
+        [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+        break;
+    }
+    [self performSelector:@selector(transformStep2) withObject:nil afterDelay:0.1];
+}
+
++ (void)transformStep2
+{
+    ProcessSerialNumber psn = { 0, kCurrentProcess };
+    (void) TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+    
+    [self performSelector:@selector(transformStep3) withObject:nil afterDelay:0.1];
+}
+
++ (void)transformStep3
+{
+    [[NSRunningApplication currentApplication] activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+}
+
+@end
+
+#endif
+
+// here we subclass NSApplication, for the purpose of being able to override sendEvent.
+@interface wxNSApplication : NSApplication
+{
+    BOOL firstPass;
+}
+
+- (id)init;
+
+- (void)sendEvent:(NSEvent *)anEvent;
+
+@end
+
+@implementation wxNSApplication
+
+- (id)init
+{
+    self = [super init];
+    firstPass = YES;
+    return self;
+}
+
+- (void) transformToForegroundApplication {
+    ProcessSerialNumber psn = { 0, kCurrentProcess };
+    TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+    
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+    if ( UMAGetSystemVersion() >= 0x1090 )
+    {
+        [[NSRunningApplication currentApplication] activateWithOptions:
+         (NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
+    }
+    else
+#endif
+    {
+        [self deactivate];
+        [self activateIgnoringOtherApps:YES];
+    }
+}
+
+
+
+/* This is needed because otherwise we don't receive any key-up events for command-key
+ combinations (an AppKit bug, apparently)			*/
+- (void)sendEvent:(NSEvent *)anEvent
+{
+    if ([anEvent type] == NSKeyUp && ([anEvent modifierFlags] & NSCommandKeyMask))
+        [[self keyWindow] sendEvent:anEvent];
+    else
+        [super sendEvent:anEvent];
+    
+    if ( firstPass )
+    {
+        [NSApp stop:nil];
+        firstPass = NO;
+        return;
+    }
+}
+
+@end
+
+WX_NSObject appcontroller = nil;
+
+NSLayoutManager* gNSLayoutManager = nil;
+
+WX_NSObject wxApp::OSXCreateAppController()
+{
+    return [[wxNSAppController alloc] init];
+}
+
 bool wxApp::DoInitGui()
 {
     wxMacAutoreleasePool pool;
-    [NSApplication sharedApplication];
 
     if (!sm_isEmbedded)
     {
-        wxNSAppController* controller = [[wxNSAppController alloc] init];
-        [NSApp setDelegate:controller];
+        [wxNSApplication sharedApplication];
+        
+        if ( OSXIsGUIApplication() )
+        {
+            CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle() ) ;
+            CFStringRef path = CFURLCopyFileSystemPath ( url , kCFURLPOSIXPathStyle ) ;
+            CFRelease( url ) ;
+            wxString app = wxCFStringRef(path).AsString(wxLocale::GetSystemEncoding());
+            
+            // workaround is only needed for non-bundled apps
+            if ( !app.EndsWith(".app") )
+            {
+                [(wxNSApplication*) [wxNSApplication sharedApplication] transformToForegroundApplication];
+            }
+        }
+
+        appcontroller = OSXCreateAppController();
+        [NSApp setDelegate:appcontroller];
+        [NSColor setIgnoresAlpha:NO];
 
         // calling finishLaunching so early before running the loop seems to trigger some 'MenuManager compatibility' which leads
         // to the duplication of menus under 10.5 and a warning under 10.6
@@ -257,11 +400,60 @@ bool wxApp::DoInitGui()
         [NSApp finishLaunching];
 #endif
     }
+    gNSLayoutManager = [[NSLayoutManager alloc] init];
+    
     return true;
+}
+
+bool wxApp::CallOnInit()
+{
+    wxMacAutoreleasePool autoreleasepool;
+    m_onInitResult = false;
+    m_inited = false;
+
+    // Feed the upcoming event loop with a dummy event. Without this,
+    // [NSApp run] below wouldn't return, as we expect it to, if the
+    // application was launched without being activated and would block
+    // until the dock icon was clicked - delaying OnInit() call too.
+    NSEvent *event = [NSEvent otherEventWithType:NSApplicationDefined
+                                    location:NSMakePoint(0.0, 0.0)
+                               modifierFlags:0
+                                   timestamp:0
+                                windowNumber:0
+                                     context:nil
+                                     subtype:0 data1:0 data2:0];
+    [NSApp postEvent:event atStart:FALSE];
+    [NSApp run];
+
+    m_onInitResult = OnInit();
+    m_inited = true;
+    if ( m_onInitResult )
+    {
+        if ( m_openFiles.GetCount() > 0 )
+            MacOpenFiles(m_openFiles);
+        else if ( m_printFiles.GetCount() > 0 )
+            MacPrintFiles(m_printFiles);
+        else if ( m_getURL.Len() > 0 )
+            MacOpenURL(m_getURL);
+        else
+            MacNewFile();
+    }
+    return m_onInitResult;
 }
 
 void wxApp::DoCleanUp()
 {
+    if ( appcontroller != nil )
+    {
+        [NSApp setDelegate:nil];
+        [appcontroller release];
+        appcontroller = nil;
+    }
+    if ( gNSLayoutManager != nil )
+    {
+        [gNSLayoutManager release];
+        gNSLayoutManager = nil;
+    }
 }
 
 void wxClientDisplayRect(int *x, int *y, int *width, int *height)

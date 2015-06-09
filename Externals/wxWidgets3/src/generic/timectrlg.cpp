@@ -3,7 +3,6 @@
 // Purpose:     Generic implementation of wxTimePickerCtrl.
 // Author:      Paul Breen, Vadim Zeitlin
 // Created:     2011-09-22
-// RCS-ID:      $Id: timectrlg.cpp 69991 2011-12-12 14:01:23Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,6 +129,17 @@ public:
     void SetValue(const wxDateTime& time)
     {
         m_time = time.IsValid() ? time : wxDateTime::Now();
+
+        // Ensure that the date part doesn't correspond to a DST change date as
+        // time is discontinuous then resulting in many problems, e.g. it's
+        // impossible to even enter 2:00:00 at the beginning of summer time
+        // date as this time doesn't exist. By using Jan 1, on which nobody
+        // changes DST, we avoid all such problems.
+        wxDateTime::Tm tm = m_time.GetTm();
+        tm.mday =
+        tm.yday = 1;
+        tm.mon = wxDateTime::Jan;
+        m_time.Set(tm);
 
         UpdateTextWithoutEvent();
     }
@@ -259,7 +269,7 @@ private:
 
     void OnTextClick(wxMouseEvent& event)
     {
-        Field field wxDUMMY_INITIALIZE(Field_Max);
+        Field field = Field_Max; // Initialize just to suppress warnings.
         long pos;
         switch ( m_text->HitTest(event.GetPosition(), &pos) )
         {
@@ -446,8 +456,8 @@ private:
             // The first digit simply replaces the existing field contents,
             // but the second one should be combined with the previous one,
             // otherwise entering 2-digit numbers would be impossible.
-            int currentValue wxDUMMY_INITIALIZE(0),
-                maxValue wxDUMMY_INITIALIZE(0);
+            int currentValue = 0,
+                maxValue  = 0;
 
             switch ( m_currentField )
             {
@@ -469,6 +479,7 @@ private:
                 case Field_AMPM:
                 case Field_Max:
                     wxFAIL_MSG( "Invalid field" );
+                    return;
             }
 
             // Check if the new value is acceptable. If not, we just handle

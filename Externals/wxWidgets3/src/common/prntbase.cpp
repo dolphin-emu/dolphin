@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: prntbase.cpp 68026 2011-06-22 22:58:07Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -321,21 +320,9 @@ wxPrinterBase::~wxPrinterBase()
 {
 }
 
-wxWindow *wxPrinterBase::CreateAbortWindow(wxWindow *parent, wxPrintout * printout)
+wxPrintAbortDialog *wxPrinterBase::CreateAbortWindow(wxWindow *parent, wxPrintout * printout)
 {
-    wxPrintAbortDialog *dialog = new wxPrintAbortDialog(parent, _("Printing ") , wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE);
-
-    wxBoxSizer *button_sizer = new wxBoxSizer( wxVERTICAL );
-    button_sizer->Add( new wxStaticText(dialog, wxID_ANY, _("Please wait while printing\n") + printout->GetTitle() ), 0, wxALL, 10 );
-    button_sizer->Add( new wxButton( dialog, wxID_CANCEL, wxT("Cancel") ), 0, wxALL | wxALIGN_CENTER, 10 );
-
-    dialog->SetAutoLayout( true );
-    dialog->SetSizer( button_sizer );
-
-    button_sizer->Fit(dialog);
-    button_sizer->SetSizeHints (dialog) ;
-
-    return dialog;
+    return new wxPrintAbortDialog(parent, printout->GetTitle());
 }
 
 void wxPrinterBase::ReportError(wxWindow *parent, wxPrintout *WXUNUSED(printout), const wxString& message)
@@ -364,7 +351,7 @@ wxPrinter::~wxPrinter()
     delete m_pimpl;
 }
 
-wxWindow *wxPrinter::CreateAbortWindow(wxWindow *parent, wxPrintout *printout)
+wxPrintAbortDialog *wxPrinter::CreateAbortWindow(wxWindow *parent, wxPrintout *printout)
 {
     return m_pimpl->CreateAbortWindow( parent, printout );
 }
@@ -522,11 +509,49 @@ BEGIN_EVENT_TABLE(wxPrintAbortDialog, wxDialog)
     EVT_BUTTON(wxID_CANCEL, wxPrintAbortDialog::OnCancel)
 END_EVENT_TABLE()
 
+wxPrintAbortDialog::wxPrintAbortDialog(wxWindow *parent,
+                                       const wxString& documentTitle,
+                                       const wxPoint& pos,
+                                       const wxSize& size,
+                                       long style,
+                                       const wxString& name)
+    : wxDialog(parent, wxID_ANY, _("Printing"), pos, size, style, name)
+{
+    wxBoxSizer *mainSizer = new wxBoxSizer(wxVERTICAL);
+    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Please wait while printing...")),
+                   wxSizerFlags().Expand().DoubleBorder());
+
+    wxFlexGridSizer *gridSizer = new wxFlexGridSizer(2, wxSize(20, 0));
+    gridSizer->Add(new wxStaticText(this, wxID_ANY, _("Document:")));
+    gridSizer->AddGrowableCol(1);
+    gridSizer->Add(new wxStaticText(this, wxID_ANY, documentTitle));
+    gridSizer->Add(new wxStaticText(this, wxID_ANY, _("Progress:")));
+    m_progress = new wxStaticText(this, wxID_ANY, _("Preparing"));
+    m_progress->SetMinSize(wxSize(250, -1));
+    gridSizer->Add(m_progress);
+    mainSizer->Add(gridSizer, wxSizerFlags().Expand().DoubleBorder(wxLEFT | wxRIGHT));
+
+    mainSizer->Add(CreateStdDialogButtonSizer(wxCANCEL),
+                   wxSizerFlags().Expand().DoubleBorder());
+
+    SetSizerAndFit(mainSizer);
+}
+
+void wxPrintAbortDialog::SetProgress(int currentPage, int totalPages,
+                                     int currentCopy, int totalCopies)
+{
+  wxString text;
+  text.Printf(_("Printing page %d of %d"), currentPage, totalPages);
+  if ( totalCopies > 1 )
+      text += wxString::Format(_(" (copy %d of %d)"), currentCopy, totalCopies);
+  m_progress->SetLabel(text);
+}
+
 void wxPrintAbortDialog::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
+    wxCHECK_RET( wxPrinterBase::sm_abortWindow != NULL, "OnCancel called twice" );
+
     wxPrinterBase::sm_abortIt = true;
-    wxPrinterBase::sm_abortWindow->Show(false);
-    wxPrinterBase::sm_abortWindow->Close(true);
     wxPrinterBase::sm_abortWindow->Destroy();
     wxPrinterBase::sm_abortWindow = NULL;
 }
@@ -1086,7 +1111,7 @@ public:
 
         Connect(wxEVT_KILL_FOCUS,
                 wxFocusEventHandler(wxPrintPageTextCtrl::OnKillFocus));
-        Connect(wxEVT_COMMAND_TEXT_ENTER,
+        Connect(wxEVT_TEXT_ENTER,
                 wxCommandEventHandler(wxPrintPageTextCtrl::OnTextEnter));
     }
 
@@ -1705,6 +1730,13 @@ void wxPreviewFrame::InitializeWithModality(wxPreviewFrameModalityKind kind)
             break;
     }
 
+    if ( m_modalityKind != wxPreviewFrame_NonModal )
+    {
+        // Behave like modal dialogs, don't show in taskbar. This implies
+        // removing the minimize box, because minimizing windows without
+        // taskbar entry is confusing.
+        SetWindowStyle((GetWindowStyle() & ~wxMINIMIZE_BOX) | wxFRAME_NO_TASKBAR);
+    }
 
     Layout();
 

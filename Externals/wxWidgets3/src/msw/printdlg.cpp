@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: printdlg.cpp 70516 2012-02-05 15:45:03Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,6 +38,7 @@
 #include "wx/msw/printdlg.h"
 #include "wx/msw/dcprint.h"
 #include "wx/paper.h"
+#include "wx/modalhook.h"
 
 #include <stdlib.h>
 
@@ -65,7 +65,7 @@ public:
     BOOL Open( const wxString& printerName, LPPRINTER_DEFAULTS pDefault=(LPPRINTER_DEFAULTS)NULL )
     {
         Close();
-        return OpenPrinter( (LPTSTR)printerName.wx_str(), &m_hPrinter, pDefault );
+        return OpenPrinter( wxMSW_CONV_LPTSTR(printerName), &m_hPrinter, pDefault );
     }
 
     BOOL Close()
@@ -391,11 +391,11 @@ void wxWindowsPrintNativeData::InitializeDevMode(const wxString& printerName, Wi
     if (m_devMode)
         return;
 
-    LPTSTR szPrinterName = (LPTSTR)printerName.wx_str();
+    LPTSTR szPrinterName = wxMSW_CONV_LPTSTR(printerName);
 
     // From MSDN: How To Modify Printer Settings with the DocumentProperties() Function
     // The purpose of this is to fill the DEVMODE with privdata from printer driver.
-    // If we have a printer name and OpenPrinter sucessfully returns
+    // If we have a printer name and OpenPrinter successfully returns
     // this replaces the PrintDlg function which creates the DEVMODE filled only with data from default printer.
     if ( !m_devMode && !printerName.IsEmpty() )
     {
@@ -494,7 +494,7 @@ void wxWindowsPrintNativeData::InitializeDevMode(const wxString& printerName, Wi
 bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
 {
     WinPrinter printer;
-    LPTSTR szPrinterName = (LPTSTR)data.GetPrinterName().wx_str();
+    LPTSTR szPrinterName = wxMSW_CONV_LPTSTR(data.GetPrinterName());
 
     if (!m_devMode)
         InitializeDevMode(data.GetPrinterName(), &printer);
@@ -524,7 +524,7 @@ bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
             // NB: the cast is needed in the ANSI build, strangely enough
             //     dmDeviceName is BYTE[] and not char[] there
             wxStrlcpy(reinterpret_cast<wxChar *>(devMode->dmDeviceName),
-                      name.wx_str(),
+                      name.t_str(),
                       WXSIZEOF(devMode->dmDeviceName));
         }
 
@@ -738,6 +738,8 @@ wxWindowsPrintDialog::~wxWindowsPrintDialog()
 
 int wxWindowsPrintDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     ConvertToNative( m_printDialogData );
 
     PRINTDLG *pd = (PRINTDLG*) m_printDlg;
@@ -957,6 +959,8 @@ wxWindowsPageSetupDialog::~wxWindowsPageSetupDialog()
 
 int wxWindowsPageSetupDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     ConvertToNative( m_pageSetupData );
 
     PAGESETUPDLG *pd = (PAGESETUPDLG *) m_pageDlg;

@@ -2,7 +2,6 @@
 // Name:        wx/gtk/dirdlg.h
 // Purpose:     wxDirDialog
 // Author:      Francesco Montorsi
-// Id:          $Id: dirdlg.h 70898 2012-03-14 12:32:27Z VZ $
 // Copyright:   (c) 2006 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,6 +41,11 @@ public:     // overrides from wxGenericDirDialog
     void SetPath(const wxString& path);
 
 
+    // Implementation only.
+
+    void GTKOnAccept();
+    void GTKOnCancel();
+
 protected:
     // override this from wxTLW since the native
     // form doesn't have any m_wxwindow
@@ -51,10 +55,9 @@ protected:
 
 
 private:
-    void OnFakeOk( wxCommandEvent &event );
+    wxString m_selectedDirectory;
 
     DECLARE_DYNAMIC_CLASS(wxDirDialog)
-    DECLARE_EVENT_TABLE()
 };
 
 #endif // __GTKDIRDLGH__

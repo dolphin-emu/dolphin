@@ -3,7 +3,6 @@
 // Purpose:     wxSpinCtrl class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: spinctrl.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -73,13 +72,15 @@ protected:
     void GtkEnableEvents() const;
 
     virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const;
     virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
 
     // Widgets that use the style->base colour for the BG colour should
     // override this and return true.
     virtual bool UseGTKStyleBase() const { return true; }
 
-    DECLARE_DYNAMIC_CLASS(wxSpinCtrlGTKBase)
+    friend class wxSpinCtrlEventDisabler;
+
     DECLARE_EVENT_TABLE()
 };
 
@@ -90,7 +91,7 @@ protected:
 class WXDLLIMPEXP_CORE wxSpinCtrl : public wxSpinCtrlGTKBase
 {
 public:
-    wxSpinCtrl() {}
+    wxSpinCtrl() { Init(); }
     wxSpinCtrl(wxWindow *parent,
                wxWindowID id = wxID_ANY,
                const wxString& value = wxEmptyString,
@@ -100,6 +101,8 @@ public:
                int min = 0, int max = 100, int initial = 0,
                const wxString& name = wxS("wxSpinCtrl"))
     {
+        Init();
+
         Create(parent, id, value, pos, size, style, min, max, initial, name);
     }
 
@@ -127,6 +130,18 @@ public:
     void SetValue( int value )              { DoSetValue(value); }
     void SetRange( int minVal, int maxVal ) { DoSetRange(minVal, maxVal); }
     void SetIncrement(int inc) { DoSetIncrement(inc); }
+
+    virtual int GetBase() const { return m_base; }
+    virtual bool SetBase(int base);
+
+private:
+    // Common part of all ctors.
+    void Init()
+    {
+        m_base = 10;
+    }
+
+    int m_base;
 
     DECLARE_DYNAMIC_CLASS(wxSpinCtrl)
 };
@@ -180,6 +195,9 @@ public:
     void SetRange(double minVal, double maxVal) { DoSetRange(minVal, maxVal); }
     void SetIncrement(double inc)               { DoSetIncrement(inc); }
     void SetDigits(unsigned digits);
+
+    virtual int GetBase() const { return 10; }
+    virtual bool SetBase(int WXUNUSED(base)) { return false; }
 
     DECLARE_DYNAMIC_CLASS(wxSpinCtrlDouble)
 };

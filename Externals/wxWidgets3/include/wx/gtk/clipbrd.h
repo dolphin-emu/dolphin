@@ -2,7 +2,6 @@
 // Name:        wx/gtk/clipbrd.h
 // Purpose:     wxClipboard for wxGTK
 // Author:      Robert Roebling, Vadim Zeitlin
-// Id:          $Id: clipbrd.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 //              (c) 2007 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -117,6 +116,9 @@ private:
 
     GtkWidget *m_clipboardWidget;  // for getting and offering data
     GtkWidget *m_targetsWidget;    // for getting list of supported formats
+
+    // ID of the connection to "selection_get" signal, initially 0.
+    unsigned long m_idSelectionGetHandler;
 
     bool m_open;
     bool m_formatSupported;

@@ -4,7 +4,6 @@
 // Author:      Hans Van Leemputten
 // Modified by: Benjamin I. Williams / Kirix Corporation
 // Created:     29/07/2002
-// RCS-ID:      $Id: tabmdi.h 70909 2012-03-15 13:49:54Z VZ $
 // Copyright:   (c) Hans Van Leemputten
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,7 +84,6 @@ public:
 
 protected:
     wxAuiMDIClientWindow*   m_pClientWindow;
-    wxAuiMDIChildFrame*     m_pActiveChild;
     wxEvent*                m_pLastEvt;
 
 #if wxUSE_MENUS
@@ -250,6 +248,11 @@ public:
                               long style = wxVSCROLL | wxHSCROLL);
 
     virtual int SetSelection(size_t page);
+    virtual wxAuiMDIChildFrame* GetActiveChild();
+    virtual void SetActiveChild(wxAuiMDIChildFrame* pChildFrame)
+    {
+        SetSelection(GetPageIndex(pChildFrame));
+    }
 
 protected:
 

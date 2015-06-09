@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,16 +18,8 @@
 #include "wx/dc.h"
 #include "wx/msw/dc.h"
 #include "wx/dcclient.h"
-#include "wx/dynarray.h"
 
-// ----------------------------------------------------------------------------
-// array types
-// ----------------------------------------------------------------------------
-
-// this one if used by wxPaintDC only
-struct WXDLLIMPEXP_FWD_CORE wxPaintDCInfo;
-
-WX_DECLARE_EXPORTED_OBJARRAY(wxPaintDCInfo, wxArrayDCInfo);
+class wxPaintDCInfo;
 
 // ----------------------------------------------------------------------------
 // DC classes
@@ -86,11 +77,13 @@ public:
     // find the entry for this DC in the cache (keyed by the window)
     static WXHDC FindDCInCache(wxWindow* win);
 
-protected:
-    static wxArrayDCInfo ms_cache;
+    // This must be called by the code handling WM_PAINT to remove the DC
+    // cached for this window for the duration of this message processing.
+    static void EndPaint(wxWindow *win);
 
-    // find the entry for this DC in the cache (keyed by the window)
-    wxPaintDCInfo *FindInCache(size_t *index = NULL) const;
+protected:
+    // Find the DC for this window in the cache, return NULL if not found.
+    static wxPaintDCInfo *FindInCache(wxWindow* win);
 
     DECLARE_CLASS(wxPaintDCImpl)
     wxDECLARE_NO_COPY_CLASS(wxPaintDCImpl);

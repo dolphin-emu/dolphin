@@ -5,7 +5,6 @@
 // Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Vadim Zeitlin, Francesco Montorsi
-// RCS-ID:      $Id: clrpicker.h 58718 2009-02-07 18:59:25Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -98,7 +97,7 @@ protected:
 class WXDLLIMPEXP_CORE wxColourPickerCtrl : public wxPickerBase
 {
 public:
-    wxColourPickerCtrl() : m_bIgnoreNextTextCtrlUpdate(false) {}
+    wxColourPickerCtrl() {}
     virtual ~wxColourPickerCtrl() {}
 
 
@@ -107,7 +106,6 @@ public:
         const wxSize& size = wxDefaultSize, long style = wxCLRP_DEFAULT_STYLE,
         const wxValidator& validator = wxDefaultValidator,
         const wxString& name = wxColourPickerCtrlNameStr)
-        : m_bIgnoreNextTextCtrlUpdate(false)
         { Create(parent, id, col, pos, size, style, validator, name); }
 
     bool Create(wxWindow *parent, wxWindowID id,
@@ -148,9 +146,6 @@ protected:
     virtual long GetPickerStyle(long style) const
         { return (style & wxCLRP_SHOW_LABEL); }
 
-    // true if the next UpdateTextCtrl() call is to ignore
-    bool m_bIgnoreNextTextCtrlUpdate;
-
 private:
     DECLARE_DYNAMIC_CLASS(wxColourPickerCtrl)
 };
@@ -160,14 +155,14 @@ private:
 // wxColourPickerEvent: used by wxColourPickerCtrl only
 // ----------------------------------------------------------------------------
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_COLOURPICKER_CHANGED, wxColourPickerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COLOURPICKER_CHANGED, wxColourPickerEvent );
 
 class WXDLLIMPEXP_CORE wxColourPickerEvent : public wxCommandEvent
 {
 public:
     wxColourPickerEvent() {}
     wxColourPickerEvent(wxObject *generator, int id, const wxColour &col)
-        : wxCommandEvent(wxEVT_COMMAND_COLOURPICKER_CHANGED, id),
+        : wxCommandEvent(wxEVT_COLOURPICKER_CHANGED, id),
           m_colour(col)
     {
         SetEventObject(generator);
@@ -196,8 +191,11 @@ typedef void (wxEvtHandler::*wxColourPickerEventFunction)(wxColourPickerEvent&);
     wxEVENT_HANDLER_CAST(wxColourPickerEventFunction, func)
 
 #define EVT_COLOURPICKER_CHANGED(id, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_COLOURPICKER_CHANGED, id, wxColourPickerEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_COLOURPICKER_CHANGED, id, wxColourPickerEventHandler(fn))
 
+
+// old wxEVT_COMMAND_* constant
+#define wxEVT_COMMAND_COLOURPICKER_CHANGED   wxEVT_COLOURPICKER_CHANGED
 
 #endif // wxUSE_COLOURPICKERCTRL
 

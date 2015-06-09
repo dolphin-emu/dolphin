@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: icon.h 56644 2008-11-02 02:39:52Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,6 +63,8 @@ public:
     virtual bool LoadFile(const wxString& name,
                           wxBitmapType type = wxICON_DEFAULT_TYPE,
                           int desiredWidth = -1, int desiredHeight = -1);
+
+    bool CreateFromHICON(WXHICON icon);
 
     // implementation only from now on
     wxIconRefData *GetIconData() const { return (wxIconRefData *)m_refData; }

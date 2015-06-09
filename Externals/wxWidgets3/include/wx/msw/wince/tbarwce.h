@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-07-12
-// RCS-ID:      $Id: tbarwce.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,7 +28,7 @@ public:
                 wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
-                long style = wxNO_BORDER | wxTB_HORIZONTAL,
+                long style = wxTB_HORIZONTAL,
                 const wxString& name = wxToolBarNameStr)
     {
         Create(parent, id, pos, size, style, name);
@@ -39,7 +38,7 @@ public:
                 wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
-                long style = wxNO_BORDER | wxTB_HORIZONTAL,
+                long style = wxTB_HORIZONTAL,
                 const wxString& name = wxToolBarNameStr);
 
     // override/implement base class virtuals
@@ -88,7 +87,7 @@ public:
                 wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
-                long style = wxNO_BORDER | wxTB_HORIZONTAL,
+                long style = wxTB_HORIZONTAL,
                 const wxString& name = wxToolBarNameStr,
                 wxMenuBar* menuBar = NULL)
     {
@@ -101,7 +100,7 @@ public:
                 wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
-                long style = wxNO_BORDER | wxTB_HORIZONTAL,
+                long style = wxTB_HORIZONTAL,
                 const wxString& name = wxToolBarNameStr,
                 wxMenuBar* menuBar = NULL);
 

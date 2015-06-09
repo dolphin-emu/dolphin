@@ -6,7 +6,6 @@
 //
 // Author:      Robin Dunn
 // Created:     03-Nov-2003
-// RCS-ID:      $Id: gbsizer.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Robin Dunn
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -312,27 +311,24 @@ bool wxGridBagSizer::SetItemPosition(size_t index, const wxGBPosition& pos)
 
 wxGBSpan wxGridBagSizer::GetItemSpan(wxWindow *window)
 {
-    wxGBSpan badspan(-1,-1);
     wxGBSizerItem* item = FindItem(window);
-    wxCHECK_MSG( item, badspan, wxT("Failed to find item.") );
+    wxCHECK_MSG( item, wxGBSpan::Invalid(), wxT("Failed to find item.") );
     return item->GetSpan();
 }
 
 
 wxGBSpan wxGridBagSizer::GetItemSpan(wxSizer *sizer)
 {
-    wxGBSpan badspan(-1,-1);
     wxGBSizerItem* item = FindItem(sizer);
-    wxCHECK_MSG( item, badspan, wxT("Failed to find item.") );
+    wxCHECK_MSG( item, wxGBSpan::Invalid(), wxT("Failed to find item.") );
     return item->GetSpan();
 }
 
 
 wxGBSpan wxGridBagSizer::GetItemSpan(size_t index)
 {
-    wxGBSpan badspan(-1,-1);
     wxSizerItemList::compatibility_iterator node = m_children.Item( index );
-    wxCHECK_MSG( node, badspan, wxT("Failed to find item.") );
+    wxCHECK_MSG( node, wxGBSpan::Invalid(), wxT("Failed to find item.") );
     wxGBSizerItem* item = (wxGBSizerItem*)node->GetData();
     return item->GetSpan();
 }
@@ -471,7 +467,7 @@ wxSize wxGridBagSizer::CalcMin()
             item->GetPos(row, col);
             item->GetEndPos(endrow, endcol);
 
-            // fill heights and widths upto this item if needed
+            // fill heights and widths up to this item if needed
             while ( (int)m_rowHeights.GetCount() <= endrow )
                 m_rowHeights.Add(m_emptyCellSize.GetHeight());
             while ( (int)m_colWidths.GetCount() <= endcol )
@@ -509,7 +505,11 @@ wxSize wxGridBagSizer::CalcMin()
 
 void wxGridBagSizer::RecalcSizes()
 {
-    if (m_children.GetCount() == 0)
+    // We can't lay out our elements if we don't have at least a single row and
+    // a single column. Notice that this may happen even if we have some
+    // children but all of them are hidden, so checking for m_children being
+    // non-empty is not enough, see #15475.
+    if ( m_rowHeights.empty() || m_colWidths.empty() )
         return;
 
     wxPoint pt( GetPosition() );

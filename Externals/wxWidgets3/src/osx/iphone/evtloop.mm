@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin, Stefan Csomor
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloop.mm 69525 2011-10-25 11:51:36Z SC $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,10 +54,8 @@ static int CalculateUIEventMaskFromEventCategory(wxEventCategory cat)
 	NSMouseEnteredMask		= 1 << NSMouseEntered,
 	NSMouseExitedMask		= 1 << NSMouseExited,
         NSScrollWheelMask		= 1 << NSScrollWheel,
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
 	NSTabletPointMask		= 1 << NSTabletPoint,
 	NSTabletProximityMask		= 1 << NSTabletProximity,
-#endif
 	NSOtherMouseDownMask		= 1 << NSOtherMouseDown,
 	NSOtherMouseUpMask		= 1 << NSOtherMouseUp,
 	NSOtherMouseDraggedMask		= 1 << NSOtherMouseDragged,
@@ -83,7 +80,7 @@ wxGUIEventLoop::wxGUIEventLoop()
 {
 }
 
-void wxGUIEventLoop::DoRun()
+void wxGUIEventLoop::OSXDoRun()
 {
     if ( IsMain() )
     {
@@ -93,7 +90,7 @@ void wxGUIEventLoop::DoRun()
     }
     else 
     {
-        wxCFEventLoop::DoRun();
+        wxCFEventLoop::OSXDoRun();
     }
 }
 
@@ -102,9 +99,9 @@ int wxGUIEventLoop::DoDispatchTimeout(unsigned long timeout)
     return wxCFEventLoop::DoDispatchTimeout(timeout);
 }
 
-void wxGUIEventLoop::DoStop()
+void wxGUIEventLoop::OSXDoStop()
 {
-    return wxCFEventLoop::DoStop();
+    return wxCFEventLoop::OSXDoStop();
 }
 
 CFRunLoopRef wxGUIEventLoop::CFGetCurrentRunLoop() const
@@ -136,12 +133,12 @@ wxModalEventLoop::wxModalEventLoop(WXWindow modalNativeWindow)
 // END move into a evtloop_osx.cpp
 
 
-void wxModalEventLoop::DoRun()
+void wxModalEventLoop::OSXDoRun()
 {
     // presentModalViewController:animated:
 }
 
-void wxModalEventLoop::DoStop()
+void wxModalEventLoop::OSXDoStop()
 {
     // (void)dismissModalViewControllerAnimated:(BOOL)animated
 }

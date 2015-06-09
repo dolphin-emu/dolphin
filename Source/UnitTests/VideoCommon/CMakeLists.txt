@@ -1,0 +1,1 @@
+add_dolphin_test(VertexLoaderTest VertexLoaderTest.cpp)

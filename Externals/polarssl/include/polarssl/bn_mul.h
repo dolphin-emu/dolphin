@@ -48,102 +48,95 @@
 #if defined(__GNUC__)
 #if defined(__i386__)
 
-#define MULADDC_INIT                \
-    asm( "                          \
-        movl   %%ebx, %0;           \
-        movl   %5, %%esi;           \
-        movl   %6, %%edi;           \
-        movl   %7, %%ecx;           \
-        movl   %8, %%ebx;           \
-        "
+#define MULADDC_INIT                        \
+    asm(                                    \
+        "movl   %%ebx, %0           \n\t"   \
+        "movl   %5, %%esi           \n\t"   \
+        "movl   %6, %%edi           \n\t"   \
+        "movl   %7, %%ecx           \n\t"   \
+        "movl   %8, %%ebx           \n\t"
 
-#define MULADDC_CORE                \
-        "                           \
-        lodsl;                      \
-        mull   %%ebx;               \
-        addl   %%ecx,   %%eax;      \
-        adcl   $0,      %%edx;      \
-        addl   (%%edi), %%eax;      \
-        adcl   $0,      %%edx;      \
-        movl   %%edx,   %%ecx;      \
-        stosl;                      \
-        "
+#define MULADDC_CORE                        \
+        "lodsl                      \n\t"   \
+        "mull   %%ebx               \n\t"   \
+        "addl   %%ecx,   %%eax      \n\t"   \
+        "adcl   $0,      %%edx      \n\t"   \
+        "addl   (%%edi), %%eax      \n\t"   \
+        "adcl   $0,      %%edx      \n\t"   \
+        "movl   %%edx,   %%ecx      \n\t"   \
+        "stosl                      \n\t"
 
 #if defined(POLARSSL_HAVE_SSE2)
 
-#define MULADDC_HUIT                    \
-        "                               \
-        movd     %%ecx,     %%mm1;      \
-        movd     %%ebx,     %%mm0;      \
-        movd     (%%edi),   %%mm3;      \
-        paddq    %%mm3,     %%mm1;      \
-        movd     (%%esi),   %%mm2;      \
-        pmuludq  %%mm0,     %%mm2;      \
-        movd     4(%%esi),  %%mm4;      \
-        pmuludq  %%mm0,     %%mm4;      \
-        movd     8(%%esi),  %%mm6;      \
-        pmuludq  %%mm0,     %%mm6;      \
-        movd     12(%%esi), %%mm7;      \
-        pmuludq  %%mm0,     %%mm7;      \
-        paddq    %%mm2,     %%mm1;      \
-        movd     4(%%edi),  %%mm3;      \
-        paddq    %%mm4,     %%mm3;      \
-        movd     8(%%edi),  %%mm5;      \
-        paddq    %%mm6,     %%mm5;      \
-        movd     12(%%edi), %%mm4;      \
-        paddq    %%mm4,     %%mm7;      \
-        movd     %%mm1,     (%%edi);    \
-        movd     16(%%esi), %%mm2;      \
-        pmuludq  %%mm0,     %%mm2;      \
-        psrlq    $32,       %%mm1;      \
-        movd     20(%%esi), %%mm4;      \
-        pmuludq  %%mm0,     %%mm4;      \
-        paddq    %%mm3,     %%mm1;      \
-        movd     24(%%esi), %%mm6;      \
-        pmuludq  %%mm0,     %%mm6;      \
-        movd     %%mm1,     4(%%edi);   \
-        psrlq    $32,       %%mm1;      \
-        movd     28(%%esi), %%mm3;      \
-        pmuludq  %%mm0,     %%mm3;      \
-        paddq    %%mm5,     %%mm1;      \
-        movd     16(%%edi), %%mm5;      \
-        paddq    %%mm5,     %%mm2;      \
-        movd     %%mm1,     8(%%edi);   \
-        psrlq    $32,       %%mm1;      \
-        paddq    %%mm7,     %%mm1;      \
-        movd     20(%%edi), %%mm5;      \
-        paddq    %%mm5,     %%mm4;      \
-        movd     %%mm1,     12(%%edi);  \
-        psrlq    $32,       %%mm1;      \
-        paddq    %%mm2,     %%mm1;      \
-        movd     24(%%edi), %%mm5;      \
-        paddq    %%mm5,     %%mm6;      \
-        movd     %%mm1,     16(%%edi);  \
-        psrlq    $32,       %%mm1;      \
-        paddq    %%mm4,     %%mm1;      \
-        movd     28(%%edi), %%mm5;      \
-        paddq    %%mm5,     %%mm3;      \
-        movd     %%mm1,     20(%%edi);  \
-        psrlq    $32,       %%mm1;      \
-        paddq    %%mm6,     %%mm1;      \
-        movd     %%mm1,     24(%%edi);  \
-        psrlq    $32,       %%mm1;      \
-        paddq    %%mm3,     %%mm1;      \
-        movd     %%mm1,     28(%%edi);  \
-        addl     $32,       %%edi;      \
-        addl     $32,       %%esi;      \
-        psrlq    $32,       %%mm1;      \
-        movd     %%mm1,     %%ecx;      \
-        "
+#define MULADDC_HUIT                            \
+        "movd     %%ecx,     %%mm1      \n\t"   \
+        "movd     %%ebx,     %%mm0      \n\t"   \
+        "movd     (%%edi),   %%mm3      \n\t"   \
+        "paddq    %%mm3,     %%mm1      \n\t"   \
+        "movd     (%%esi),   %%mm2      \n\t"   \
+        "pmuludq  %%mm0,     %%mm2      \n\t"   \
+        "movd     4(%%esi),  %%mm4      \n\t"   \
+        "pmuludq  %%mm0,     %%mm4      \n\t"   \
+        "movd     8(%%esi),  %%mm6      \n\t"   \
+        "pmuludq  %%mm0,     %%mm6      \n\t"   \
+        "movd     12(%%esi), %%mm7      \n\t"   \
+        "pmuludq  %%mm0,     %%mm7      \n\t"   \
+        "paddq    %%mm2,     %%mm1      \n\t"   \
+        "movd     4(%%edi),  %%mm3      \n\t"   \
+        "paddq    %%mm4,     %%mm3      \n\t"   \
+        "movd     8(%%edi),  %%mm5      \n\t"   \
+        "paddq    %%mm6,     %%mm5      \n\t"   \
+        "movd     12(%%edi), %%mm4      \n\t"   \
+        "paddq    %%mm4,     %%mm7      \n\t"   \
+        "movd     %%mm1,     (%%edi)    \n\t"   \
+        "movd     16(%%esi), %%mm2      \n\t"   \
+        "pmuludq  %%mm0,     %%mm2      \n\t"   \
+        "psrlq    $32,       %%mm1      \n\t"   \
+        "movd     20(%%esi), %%mm4      \n\t"   \
+        "pmuludq  %%mm0,     %%mm4      \n\t"   \
+        "paddq    %%mm3,     %%mm1      \n\t"   \
+        "movd     24(%%esi), %%mm6      \n\t"   \
+        "pmuludq  %%mm0,     %%mm6      \n\t"   \
+        "movd     %%mm1,     4(%%edi)   \n\t"   \
+        "psrlq    $32,       %%mm1      \n\t"   \
+        "movd     28(%%esi), %%mm3      \n\t"   \
+        "pmuludq  %%mm0,     %%mm3      \n\t"   \
+        "paddq    %%mm5,     %%mm1      \n\t"   \
+        "movd     16(%%edi), %%mm5      \n\t"   \
+        "paddq    %%mm5,     %%mm2      \n\t"   \
+        "movd     %%mm1,     8(%%edi)   \n\t"   \
+        "psrlq    $32,       %%mm1      \n\t"   \
+        "paddq    %%mm7,     %%mm1      \n\t"   \
+        "movd     20(%%edi), %%mm5      \n\t"   \
+        "paddq    %%mm5,     %%mm4      \n\t"   \
+        "movd     %%mm1,     12(%%edi)  \n\t"   \
+        "psrlq    $32,       %%mm1      \n\t"   \
+        "paddq    %%mm2,     %%mm1      \n\t"   \
+        "movd     24(%%edi), %%mm5      \n\t"   \
+        "paddq    %%mm5,     %%mm6      \n\t"   \
+        "movd     %%mm1,     16(%%edi)  \n\t"   \
+        "psrlq    $32,       %%mm1      \n\t"   \
+        "paddq    %%mm4,     %%mm1      \n\t"   \
+        "movd     28(%%edi), %%mm5      \n\t"   \
+        "paddq    %%mm5,     %%mm3      \n\t"   \
+        "movd     %%mm1,     20(%%edi)  \n\t"   \
+        "psrlq    $32,       %%mm1      \n\t"   \
+        "paddq    %%mm6,     %%mm1      \n\t"   \
+        "movd     %%mm1,     24(%%edi)  \n\t"   \
+        "psrlq    $32,       %%mm1      \n\t"   \
+        "paddq    %%mm3,     %%mm1      \n\t"   \
+        "movd     %%mm1,     28(%%edi)  \n\t"   \
+        "addl     $32,       %%edi      \n\t"   \
+        "addl     $32,       %%esi      \n\t"   \
+        "psrlq    $32,       %%mm1      \n\t"   \
+        "movd     %%mm1,     %%ecx      \n\t"
 
-#define MULADDC_STOP            \
-        "                       \
-        emms;                   \
-        movl   %4, %%ebx;       \
-        movl   %%ecx, %1;       \
-        movl   %%edi, %2;       \
-        movl   %%esi, %3;       \
-        "                       \
+#define MULADDC_STOP                    \
+        "emms                   \n\t"   \
+        "movl   %4, %%ebx       \n\t"   \
+        "movl   %%ecx, %1       \n\t"   \
+        "movl   %%edi, %2       \n\t"   \
+        "movl   %%esi, %3       \n\t"   \
         : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
         : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
         : "eax", "ecx", "edx", "esi", "edi"             \
@@ -151,13 +144,11 @@
 
 #else
 
-#define MULADDC_STOP            \
-        "                       \
-        movl   %4, %%ebx;       \
-        movl   %%ecx, %1;       \
-        movl   %%edi, %2;       \
-        movl   %%esi, %3;       \
-        "                       \
+#define MULADDC_STOP                    \
+        "movl   %4, %%ebx       \n\t"   \
+        "movl   %%ecx, %1       \n\t"   \
+        "movl   %%edi, %2       \n\t"   \
+        "movl   %%esi, %3       \n\t"   \
         : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
         : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
         : "eax", "ecx", "edx", "esi", "edi"             \
@@ -167,266 +158,287 @@
 
 #if defined(__amd64__) || defined (__x86_64__)
 
-#define MULADDC_INIT                            \
-    asm( "movq   %0, %%rsi      " :: "m" (s));  \
-    asm( "movq   %0, %%rdi      " :: "m" (d));  \
-    asm( "movq   %0, %%rcx      " :: "m" (c));  \
-    asm( "movq   %0, %%rbx      " :: "m" (b));  \
-    asm( "xorq   %r8, %r8       " );
+#define MULADDC_INIT                        \
+    asm(                                    \
+        "movq   %3, %%rsi           \n\t"   \
+        "movq   %4, %%rdi           \n\t"   \
+        "movq   %5, %%rcx           \n\t"   \
+        "movq   %6, %%rbx           \n\t"   \
+        "xorq   %%r8, %%r8          \n\t"
 
-#define MULADDC_CORE                            \
-    asm( "movq  (%rsi),%rax     " );            \
-    asm( "mulq   %rbx           " );            \
-    asm( "addq   $8,   %rsi     " );            \
-    asm( "addq   %rcx, %rax     " );            \
-    asm( "movq   %r8,  %rcx     " );            \
-    asm( "adcq   $0,   %rdx     " );            \
-    asm( "nop                   " );            \
-    asm( "addq   %rax, (%rdi)   " );            \
-    asm( "adcq   %rdx, %rcx     " );            \
-    asm( "addq   $8,   %rdi     " );
+#define MULADDC_CORE                        \
+        "movq   (%%rsi), %%rax      \n\t"   \
+        "mulq   %%rbx               \n\t"   \
+        "addq   $8,      %%rsi      \n\t"   \
+        "addq   %%rcx,   %%rax      \n\t"   \
+        "movq   %%r8,    %%rcx      \n\t"   \
+        "adcq   $0,      %%rdx      \n\t"   \
+        "nop                        \n\t"   \
+        "addq   %%rax,   (%%rdi)    \n\t"   \
+        "adcq   %%rdx,   %%rcx      \n\t"   \
+        "addq   $8,      %%rdi      \n\t"
 
-#define MULADDC_STOP                            \
-    asm( "movq   %%rcx, %0      " : "=m" (c));  \
-    asm( "movq   %%rdi, %0      " : "=m" (d));  \
-    asm( "movq   %%rsi, %0      " : "=m" (s) :: \
-    "rax", "rcx", "rdx", "rbx", "rsi", "rdi", "r8" );
+#define MULADDC_STOP                        \
+        "movq   %%rcx, %0           \n\t"   \
+        "movq   %%rdi, %1           \n\t"   \
+        "movq   %%rsi, %2           \n\t"   \
+        : "=m" (c), "=m" (d), "=m" (s)                      \
+        : "m" (s), "m" (d), "m" (c), "m" (b)                \
+        : "rax", "rcx", "rdx", "rbx", "rsi", "rdi", "r8"    \
+    );
 
 #endif /* AMD64 */
 
 #if defined(__mc68020__) || defined(__mcpu32__)
 
-#define MULADDC_INIT                            \
-    asm( "movl   %0, %%a2       " :: "m" (s));  \
-    asm( "movl   %0, %%a3       " :: "m" (d));  \
-    asm( "movl   %0, %%d3       " :: "m" (c));  \
-    asm( "movl   %0, %%d2       " :: "m" (b));  \
-    asm( "moveq  #0, %d0        " );
+#define MULADDC_INIT                    \
+    asm(                                \
+        "movl   %3, %%a2        \n\t"   \
+        "movl   %4, %%a3        \n\t"   \
+        "movl   %5, %%d3        \n\t"   \
+        "movl   %6, %%d2        \n\t"   \
+        "moveq  #0, %%d0        \n\t"
 
-#define MULADDC_CORE                            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d4:%d1   " );            \
-    asm( "addl   %d3, %d1       " );            \
-    asm( "addxl  %d0, %d4       " );            \
-    asm( "moveq  #0,  %d3       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "addxl  %d4, %d3       " );
+#define MULADDC_CORE                    \
+        "movel  %%a2@+, %%d1    \n\t"   \
+        "mulul  %%d2, %%d4:%%d1 \n\t"   \
+        "addl   %%d3, %%d1      \n\t"   \
+        "addxl  %%d0, %%d4      \n\t"   \
+        "moveq  #0,   %%d3      \n\t"   \
+        "addl   %%d1, %%a3@+    \n\t"   \
+        "addxl  %%d4, %%d3      \n\t"
 
-#define MULADDC_STOP                            \
-    asm( "movl   %%d3, %0       " : "=m" (c));  \
-    asm( "movl   %%a3, %0       " : "=m" (d));  \
-    asm( "movl   %%a2, %0       " : "=m" (s) :: \
-    "d0", "d1", "d2", "d3", "d4", "a2", "a3" );
+#define MULADDC_STOP                    \
+        "movl   %%d3, %0        \n\t"   \
+        "movl   %%a3, %1        \n\t"   \
+        "movl   %%a2, %2        \n\t"   \
+        : "=m" (c), "=m" (d), "=m" (s)              \
+        : "m" (s), "m" (d), "m" (c), "m" (b)        \
+        : "d0", "d1", "d2", "d3", "d4", "a2", "a3"  \
+    );
 
-#define MULADDC_HUIT                            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d4:%d1   " );            \
-    asm( "addxl  %d3, %d1       " );            \
-    asm( "addxl  %d0, %d4       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d3:%d1   " );            \
-    asm( "addxl  %d4, %d1       " );            \
-    asm( "addxl  %d0, %d3       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d4:%d1   " );            \
-    asm( "addxl  %d3, %d1       " );            \
-    asm( "addxl  %d0, %d4       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d3:%d1   " );            \
-    asm( "addxl  %d4, %d1       " );            \
-    asm( "addxl  %d0, %d3       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d4:%d1   " );            \
-    asm( "addxl  %d3, %d1       " );            \
-    asm( "addxl  %d0, %d4       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d3:%d1   " );            \
-    asm( "addxl  %d4, %d1       " );            \
-    asm( "addxl  %d0, %d3       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d4:%d1   " );            \
-    asm( "addxl  %d3, %d1       " );            \
-    asm( "addxl  %d0, %d4       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d3:%d1   " );            \
-    asm( "addxl  %d4, %d1       " );            \
-    asm( "addxl  %d0, %d3       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "addxl  %d0, %d3       " );
+#define MULADDC_HUIT                        \
+        "movel  %%a2@+,  %%d1       \n\t"   \
+        "mulul  %%d2,    %%d4:%%d1  \n\t"   \
+        "addxl  %%d3,    %%d1       \n\t"   \
+        "addxl  %%d0,    %%d4       \n\t"   \
+        "addl   %%d1,    %%a3@+     \n\t"   \
+        "movel  %%a2@+,  %%d1       \n\t"   \
+        "mulul  %%d2,    %%d3:%%d1  \n\t"   \
+        "addxl  %%d4,    %%d1       \n\t"   \
+        "addxl  %%d0,    %%d3       \n\t"   \
+        "addl   %%d1,    %%a3@+     \n\t"   \
+        "movel  %%a2@+,  %%d1       \n\t"   \
+        "mulul  %%d2,    %%d4:%%d1  \n\t"   \
+        "addxl  %%d3,    %%d1       \n\t"   \
+        "addxl  %%d0,    %%d4       \n\t"   \
+        "addl   %%d1,    %%a3@+     \n\t"   \
+        "movel  %%a2@+,  %%d1       \n\t"   \
+        "mulul  %%d2,    %%d3:%%d1  \n\t"   \
+        "addxl  %%d4,    %%d1       \n\t"   \
+        "addxl  %%d0,    %%d3       \n\t"   \
+        "addl   %%d1,    %%a3@+     \n\t"   \
+        "movel  %%a2@+,  %%d1       \n\t"   \
+        "mulul  %%d2,    %%d4:%%d1  \n\t"   \
+        "addxl  %%d3,    %%d1       \n\t"   \
+        "addxl  %%d0,    %%d4       \n\t"   \
+        "addl   %%d1,    %%a3@+     \n\t"   \
+        "movel  %%a2@+,  %%d1       \n\t"   \
+        "mulul  %%d2,    %%d3:%%d1  \n\t"   \
+        "addxl  %%d4,    %%d1       \n\t"   \
+        "addxl  %%d0,    %%d3       \n\t"   \
+        "addl   %%d1,    %%a3@+     \n\t"   \
+        "movel  %%a2@+,  %%d1       \n\t"   \
+        "mulul  %%d2,    %%d4:%%d1  \n\t"   \
+        "addxl  %%d3,    %%d1       \n\t"   \
+        "addxl  %%d0,    %%d4       \n\t"   \
+        "addl   %%d1,    %%a3@+     \n\t"   \
+        "movel  %%a2@+,  %%d1       \n\t"   \
+        "mulul  %%d2,    %%d3:%%d1  \n\t"   \
+        "addxl  %%d4,    %%d1       \n\t"   \
+        "addxl  %%d0,    %%d3       \n\t"   \
+        "addl   %%d1,    %%a3@+     \n\t"   \
+        "addxl  %%d0,    %%d3       \n\t"
 
 #endif /* MC68000 */
 
-#if defined(__powerpc__)   || defined(__ppc__)
 #if defined(__powerpc64__) || defined(__ppc64__)
 
 #if defined(__MACH__) && defined(__APPLE__)
 
-#define MULADDC_INIT                            \
-    asm( "ld     r3, %0         " :: "m" (s));  \
-    asm( "ld     r4, %0         " :: "m" (d));  \
-    asm( "ld     r5, %0         " :: "m" (c));  \
-    asm( "ld     r6, %0         " :: "m" (b));  \
-    asm( "addi   r3, r3, -8     " );            \
-    asm( "addi   r4, r4, -8     " );            \
-    asm( "addic  r5, r5,  0     " );
+#define MULADDC_INIT                        \
+    asm(                                    \
+        "ld     r3, %3              \n\t"   \
+        "ld     r4, %4              \n\t"   \
+        "ld     r5, %5              \n\t"   \
+        "ld     r6, %6              \n\t"   \
+        "addi   r3, r3, -8          \n\t"   \
+        "addi   r4, r4, -8          \n\t"   \
+        "addic  r5, r5,  0          \n\t"
 
-#define MULADDC_CORE                            \
-    asm( "ldu    r7, 8(r3)      " );            \
-    asm( "mulld  r8, r7, r6     " );            \
-    asm( "mulhdu r9, r7, r6     " );            \
-    asm( "adde   r8, r8, r5     " );            \
-    asm( "ld     r7, 8(r4)      " );            \
-    asm( "addze  r5, r9         " );            \
-    asm( "addc   r8, r8, r7     " );            \
-    asm( "stdu   r8, 8(r4)      " );
+#define MULADDC_CORE                        \
+        "ldu    r7, 8(r3)           \n\t"   \
+        "mulld  r8, r7, r6          \n\t"   \
+        "mulhdu r9, r7, r6          \n\t"   \
+        "adde   r8, r8, r5          \n\t"   \
+        "ld     r7, 8(r4)           \n\t"   \
+        "addze  r5, r9              \n\t"   \
+        "addc   r8, r8, r7          \n\t"   \
+        "stdu   r8, 8(r4)           \n\t"
 
-#define MULADDC_STOP                            \
-    asm( "addze  r5, r5         " );            \
-    asm( "addi   r4, r4, 8      " );            \
-    asm( "addi   r3, r3, 8      " );            \
-    asm( "std    r5, %0         " : "=m" (c));  \
-    asm( "std    r4, %0         " : "=m" (d));  \
-    asm( "std    r3, %0         " : "=m" (s) :: \
-    "r3", "r4", "r5", "r6", "r7", "r8", "r9" );
+#define MULADDC_STOP                        \
+        "addze  r5, r5              \n\t"   \
+        "addi   r4, r4, 8           \n\t"   \
+        "addi   r3, r3, 8           \n\t"   \
+        "std    r5, %0              \n\t"   \
+        "std    r4, %1              \n\t"   \
+        "std    r3, %2              \n\t"   \
+        : "=m" (c), "=m" (d), "=m" (s)              \
+        : "m" (s), "m" (d), "m" (c), "m" (b)        \
+        : "r3", "r4", "r5", "r6", "r7", "r8", "r9"  \
+    );
 
-#else
 
-#define MULADDC_INIT                            \
-    asm( "ld     %%r3, %0       " :: "m" (s));  \
-    asm( "ld     %%r4, %0       " :: "m" (d));  \
-    asm( "ld     %%r5, %0       " :: "m" (c));  \
-    asm( "ld     %%r6, %0       " :: "m" (b));  \
-    asm( "addi   %r3, %r3, -8   " );            \
-    asm( "addi   %r4, %r4, -8   " );            \
-    asm( "addic  %r5, %r5,  0   " );
+#else /* __MACH__ && __APPLE__ */
 
-#define MULADDC_CORE                            \
-    asm( "ldu    %r7, 8(%r3)    " );            \
-    asm( "mulld  %r8, %r7, %r6  " );            \
-    asm( "mulhdu %r9, %r7, %r6  " );            \
-    asm( "adde   %r8, %r8, %r5  " );            \
-    asm( "ld     %r7, 8(%r4)    " );            \
-    asm( "addze  %r5, %r9       " );            \
-    asm( "addc   %r8, %r8, %r7  " );            \
-    asm( "stdu   %r8, 8(%r4)    " );
+#define MULADDC_INIT                        \
+    asm(                                    \
+        "ld     %%r3, %3            \n\t"   \
+        "ld     %%r4, %4            \n\t"   \
+        "ld     %%r5, %5            \n\t"   \
+        "ld     %%r6, %6            \n\t"   \
+        "addi   %%r3, %%r3, -8      \n\t"   \
+        "addi   %%r4, %%r4, -8      \n\t"   \
+        "addic  %%r5, %%r5,  0      \n\t"
 
-#define MULADDC_STOP                            \
-    asm( "addze  %r5, %r5       " );            \
-    asm( "addi   %r4, %r4, 8    " );            \
-    asm( "addi   %r3, %r3, 8    " );            \
-    asm( "std    %%r5, %0       " : "=m" (c));  \
-    asm( "std    %%r4, %0       " : "=m" (d));  \
-    asm( "std    %%r3, %0       " : "=m" (s) :: \
-    "r3", "r4", "r5", "r6", "r7", "r8", "r9" );
+#define MULADDC_CORE                        \
+        "ldu    %%r7, 8(%%r3)       \n\t"   \
+        "mulld  %%r8, %%r7, %%r6    \n\t"   \
+        "mulhdu %%r9, %%r7, %%r6    \n\t"   \
+        "adde   %%r8, %%r8, %%r5    \n\t"   \
+        "ld     %%r7, 8(%%r4)       \n\t"   \
+        "addze  %%r5, %%r9          \n\t"   \
+        "addc   %%r8, %%r8, %%r7    \n\t"   \
+        "stdu   %%r8, 8(%%r4)       \n\t"
 
-#endif
+#define MULADDC_STOP                        \
+        "addze  %%r5, %%r5          \n\t"   \
+        "addi   %%r4, %%r4, 8       \n\t"   \
+        "addi   %%r3, %%r3, 8       \n\t"   \
+        "std    %%r5, %0            \n\t"   \
+        "std    %%r4, %1            \n\t"   \
+        "std    %%r3, %2            \n\t"   \
+        : "=m" (c), "=m" (d), "=m" (s)              \
+        : "m" (s), "m" (d), "m" (c), "m" (b)        \
+        : "r3", "r4", "r5", "r6", "r7", "r8", "r9"  \
+    );
 
-#else /* PPC32 */
+#endif /* __MACH__ && __APPLE__ */
+
+#elif defined(__powerpc__) || defined(__ppc__) /* end PPC64/begin PPC32  */
 
 #if defined(__MACH__) && defined(__APPLE__)
 
-#define MULADDC_INIT                            \
-    asm( "lwz    r3, %0         " :: "m" (s));  \
-    asm( "lwz    r4, %0         " :: "m" (d));  \
-    asm( "lwz    r5, %0         " :: "m" (c));  \
-    asm( "lwz    r6, %0         " :: "m" (b));  \
-    asm( "addi   r3, r3, -4     " );            \
-    asm( "addi   r4, r4, -4     " );            \
-    asm( "addic  r5, r5,  0     " );
+#define MULADDC_INIT                    \
+    asm(                                \
+        "lwz    r3, %3          \n\t"   \
+        "lwz    r4, %4          \n\t"   \
+        "lwz    r5, %5          \n\t"   \
+        "lwz    r6, %6          \n\t"   \
+        "addi   r3, r3, -4      \n\t"   \
+        "addi   r4, r4, -4      \n\t"   \
+        "addic  r5, r5,  0      \n\t"
 
-#define MULADDC_CORE                            \
-    asm( "lwzu   r7, 4(r3)      " );            \
-    asm( "mullw  r8, r7, r6     " );            \
-    asm( "mulhwu r9, r7, r6     " );            \
-    asm( "adde   r8, r8, r5     " );            \
-    asm( "lwz    r7, 4(r4)      " );            \
-    asm( "addze  r5, r9         " );            \
-    asm( "addc   r8, r8, r7     " );            \
-    asm( "stwu   r8, 4(r4)      " );
+#define MULADDC_CORE                    \
+        "lwzu   r7, 4(r3)       \n\t"   \
+        "mullw  r8, r7, r6      \n\t"   \
+        "mulhwu r9, r7, r6      \n\t"   \
+        "adde   r8, r8, r5      \n\t"   \
+        "lwz    r7, 4(r4)       \n\t"   \
+        "addze  r5, r9          \n\t"   \
+        "addc   r8, r8, r7      \n\t"   \
+        "stwu   r8, 4(r4)       \n\t"
 
-#define MULADDC_STOP                            \
-    asm( "addze  r5, r5         " );            \
-    asm( "addi   r4, r4, 4      " );            \
-    asm( "addi   r3, r3, 4      " );            \
-    asm( "stw    r5, %0         " : "=m" (c));  \
-    asm( "stw    r4, %0         " : "=m" (d));  \
-    asm( "stw    r3, %0         " : "=m" (s) :: \
-    "r3", "r4", "r5", "r6", "r7", "r8", "r9" );
+#define MULADDC_STOP                    \
+        "addze  r5, r5          \n\t"   \
+        "addi   r4, r4, 4       \n\t"   \
+        "addi   r3, r3, 4       \n\t"   \
+        "stw    r5, %0          \n\t"   \
+        "stw    r4, %1          \n\t"   \
+        "stw    r3, %2          \n\t"   \
+        : "=m" (c), "=m" (d), "=m" (s)              \
+        : "m" (s), "m" (d), "m" (c), "m" (b)        \
+        : "r3", "r4", "r5", "r6", "r7", "r8", "r9"  \
+    );
 
-#else
+#else /* __MACH__ && __APPLE__ */
 
-#define MULADDC_INIT                            \
-    asm( "lwz    %%r3, %0       " :: "m" (s));  \
-    asm( "lwz    %%r4, %0       " :: "m" (d));  \
-    asm( "lwz    %%r5, %0       " :: "m" (c));  \
-    asm( "lwz    %%r6, %0       " :: "m" (b));  \
-    asm( "addi   %r3, %r3, -4   " );            \
-    asm( "addi   %r4, %r4, -4   " );            \
-    asm( "addic  %r5, %r5,  0   " );
+#define MULADDC_INIT                        \
+    asm(                                    \
+        "lwz    %%r3, %3            \n\t"   \
+        "lwz    %%r4, %4            \n\t"   \
+        "lwz    %%r5, %5            \n\t"   \
+        "lwz    %%r6, %6            \n\t"   \
+        "addi   %%r3, %%r3, -4      \n\t"   \
+        "addi   %%r4, %%r4, -4      \n\t"   \
+        "addic  %%r5, %%r5,  0      \n\t"
 
-#define MULADDC_CORE                            \
-    asm( "lwzu   %r7, 4(%r3)    " );            \
-    asm( "mullw  %r8, %r7, %r6  " );            \
-    asm( "mulhwu %r9, %r7, %r6  " );            \
-    asm( "adde   %r8, %r8, %r5  " );            \
-    asm( "lwz    %r7, 4(%r4)    " );            \
-    asm( "addze  %r5, %r9       " );            \
-    asm( "addc   %r8, %r8, %r7  " );            \
-    asm( "stwu   %r8, 4(%r4)    " );
+#define MULADDC_CORE                        \
+        "lwzu   %%r7, 4(%%r3)       \n\t"   \
+        "mullw  %%r8, %%r7, %%r6    \n\t"   \
+        "mulhwu %%r9, %%r7, %%r6    \n\t"   \
+        "adde   %%r8, %%r8, %%r5    \n\t"   \
+        "lwz    %%r7, 4(%%r4)       \n\t"   \
+        "addze  %%r5, %%r9          \n\t"   \
+        "addc   %%r8, %%r8, %%r7    \n\t"   \
+        "stwu   %%r8, 4(%%r4)       \n\t"
 
-#define MULADDC_STOP                            \
-    asm( "addze  %r5, %r5       " );            \
-    asm( "addi   %r4, %r4, 4    " );            \
-    asm( "addi   %r3, %r3, 4    " );            \
-    asm( "stw    %%r5, %0       " : "=m" (c));  \
-    asm( "stw    %%r4, %0       " : "=m" (d));  \
-    asm( "stw    %%r3, %0       " : "=m" (s) :: \
-    "r3", "r4", "r5", "r6", "r7", "r8", "r9" );
+#define MULADDC_STOP                        \
+        "addze  %%r5, %%r5          \n\t"   \
+        "addi   %%r4, %%r4, 4       \n\t"   \
+        "addi   %%r3, %%r3, 4       \n\t"   \
+        "stw    %%r5, %0            \n\t"   \
+        "stw    %%r4, %1            \n\t"   \
+        "stw    %%r3, %2            \n\t"   \
+        : "=m" (c), "=m" (d), "=m" (s)              \
+        : "m" (s), "m" (d), "m" (c), "m" (b)        \
+        : "r3", "r4", "r5", "r6", "r7", "r8", "r9"  \
+    );
 
-#endif
+#endif /* __MACH__ && __APPLE__ */
 
 #endif /* PPC32 */
-#endif /* PPC64 */
 
-#if defined(__sparc__) && defined(__sparc64__)
+/*
+ * The Sparc64 assembly is reported to be broken.
+ * Disable it for now, until we're able to fix it.
+ */
+#if 0 && defined(__sparc__) && defined(__sparc64__)
 
-#define MULADDC_INIT                            \
-    asm(                                        \
-         "                                      \
-                ldx     %3, %%o0;               \
-                ldx     %4, %%o1;               \
-                ld      %5, %%o2;               \
-                ld      %6, %%o3;               \
-         "
+#define MULADDC_INIT                                    \
+    asm(                                                \
+                "ldx     %3, %%o0               \n\t"   \
+                "ldx     %4, %%o1               \n\t"   \
+                "ld      %5, %%o2               \n\t"   \
+                "ld      %6, %%o3               \n\t"
 
-#define MULADDC_CORE                            \
-         "                                      \
-                ld      [%%o0], %%o4;           \
-                inc     4, %%o0;                \
-                ld      [%%o1], %%o5;           \
-                umul    %%o3, %%o4, %%o4;       \
-                addcc   %%o4, %%o2, %%o4;       \
-                rd      %%y, %%g1;              \
-                addx    %%g1, 0, %%g1;          \
-                addcc   %%o4, %%o5, %%o4;       \
-                st      %%o4, [%%o1];           \
-                addx    %%g1, 0, %%o2;          \
-                inc     4, %%o1;                \
-        "
+#define MULADDC_CORE                                    \
+                "ld      [%%o0], %%o4           \n\t"   \
+                "inc     4, %%o0                \n\t"   \
+                "ld      [%%o1], %%o5           \n\t"   \
+                "umul    %%o3, %%o4, %%o4       \n\t"   \
+                "addcc   %%o4, %%o2, %%o4       \n\t"   \
+                "rd      %%y, %%g1              \n\t"   \
+                "addx    %%g1, 0, %%g1          \n\t"   \
+                "addcc   %%o4, %%o5, %%o4       \n\t"   \
+                "st      %%o4, [%%o1]           \n\t"   \
+                "addx    %%g1, 0, %%o2          \n\t"   \
+                "inc     4, %%o1                \n\t"
 
-#define MULADDC_STOP                            \
-        "                                       \
-                st      %%o2, %0;               \
-                stx     %%o1, %1;               \
-                stx     %%o0, %2;               \
-        "                                       \
+        #define MULADDC_STOP                            \
+                "st      %%o2, %0               \n\t"   \
+                "stx     %%o1, %1               \n\t"   \
+                "stx     %%o0, %2               \n\t"   \
         : "=m" (c), "=m" (d), "=m" (s)          \
         : "m" (s), "m" (d), "m" (c), "m" (b)    \
         : "g1", "o0", "o1", "o2", "o3", "o4",   \
@@ -436,36 +448,30 @@
 
 #if defined(__sparc__) && !defined(__sparc64__)
 
-#define MULADDC_INIT                            \
-    asm(                                        \
-         "                                      \
-                ld      %3, %%o0;               \
-                ld      %4, %%o1;               \
-                ld      %5, %%o2;               \
-                ld      %6, %%o3;               \
-         "
+#define MULADDC_INIT                                    \
+    asm(                                                \
+                "ld      %3, %%o0               \n\t"   \
+                "ld      %4, %%o1               \n\t"   \
+                "ld      %5, %%o2               \n\t"   \
+                "ld      %6, %%o3               \n\t"
 
-#define MULADDC_CORE                            \
-         "                                      \
-                ld      [%%o0], %%o4;           \
-                inc     4, %%o0;                \
-                ld      [%%o1], %%o5;           \
-                umul    %%o3, %%o4, %%o4;       \
-                addcc   %%o4, %%o2, %%o4;       \
-                rd      %%y, %%g1;              \
-                addx    %%g1, 0, %%g1;          \
-                addcc   %%o4, %%o5, %%o4;       \
-                st      %%o4, [%%o1];           \
-                addx    %%g1, 0, %%o2;          \
-                inc     4, %%o1;                \
-        "
+#define MULADDC_CORE                                    \
+                "ld      [%%o0], %%o4           \n\t"   \
+                "inc     4, %%o0                \n\t"   \
+                "ld      [%%o1], %%o5           \n\t"   \
+                "umul    %%o3, %%o4, %%o4       \n\t"   \
+                "addcc   %%o4, %%o2, %%o4       \n\t"   \
+                "rd      %%y, %%g1              \n\t"   \
+                "addx    %%g1, 0, %%g1          \n\t"   \
+                "addcc   %%o4, %%o5, %%o4       \n\t"   \
+                "st      %%o4, [%%o1]           \n\t"   \
+                "addx    %%g1, 0, %%o2          \n\t"   \
+                "inc     4, %%o1                \n\t"
 
-#define MULADDC_STOP                            \
-        "                                       \
-                st      %%o2, %0;               \
-                st      %%o1, %1;               \
-                st      %%o0, %2;               \
-        "                                       \
+#define MULADDC_STOP                                    \
+                "st      %%o2, %0               \n\t"   \
+                "st      %%o1, %1               \n\t"   \
+                "st      %%o0, %2               \n\t"   \
         : "=m" (c), "=m" (d), "=m" (s)          \
         : "m" (s), "m" (d), "m" (c), "m" (b)    \
         : "g1", "o0", "o1", "o2", "o3", "o4",   \
@@ -476,73 +482,81 @@
 
 #if defined(__microblaze__) || defined(microblaze)
 
-#define MULADDC_INIT                            \
-    asm( "lwi   r3,   %0        " :: "m" (s));  \
-    asm( "lwi   r4,   %0        " :: "m" (d));  \
-    asm( "lwi   r5,   %0        " :: "m" (c));  \
-    asm( "lwi   r6,   %0        " :: "m" (b));  \
-    asm( "andi  r7,   r6, 0xffff" );            \
-    asm( "bsrli r6,   r6, 16    " );
+#define MULADDC_INIT                    \
+    asm(                                \
+        "lwi   r3,   %3         \n\t"   \
+        "lwi   r4,   %4         \n\t"   \
+        "lwi   r5,   %5         \n\t"   \
+        "lwi   r6,   %6         \n\t"   \
+        "andi  r7,   r6, 0xffff \n\t"   \
+        "bsrli r6,   r6, 16     \n\t"
 
-#define MULADDC_CORE                            \
-    asm( "lhui  r8,   r3,   0   " );            \
-    asm( "addi  r3,   r3,   2   " );            \
-    asm( "lhui  r9,   r3,   0   " );            \
-    asm( "addi  r3,   r3,   2   " );            \
-    asm( "mul   r10,  r9,  r6   " );            \
-    asm( "mul   r11,  r8,  r7   " );            \
-    asm( "mul   r12,  r9,  r7   " );            \
-    asm( "mul   r13,  r8,  r6   " );            \
-    asm( "bsrli  r8, r10,  16   " );            \
-    asm( "bsrli  r9, r11,  16   " );            \
-    asm( "add   r13, r13,  r8   " );            \
-    asm( "add   r13, r13,  r9   " );            \
-    asm( "bslli r10, r10,  16   " );            \
-    asm( "bslli r11, r11,  16   " );            \
-    asm( "add   r12, r12, r10   " );            \
-    asm( "addc  r13, r13,  r0   " );            \
-    asm( "add   r12, r12, r11   " );            \
-    asm( "addc  r13, r13,  r0   " );            \
-    asm( "lwi   r10,  r4,   0   " );            \
-    asm( "add   r12, r12, r10   " );            \
-    asm( "addc  r13, r13,  r0   " );            \
-    asm( "add   r12, r12,  r5   " );            \
-    asm( "addc   r5, r13,  r0   " );            \
-    asm( "swi   r12,  r4,   0   " );            \
-    asm( "addi   r4,  r4,   4   " );
+#define MULADDC_CORE                    \
+        "lhui  r8,   r3,   0    \n\t"   \
+        "addi  r3,   r3,   2    \n\t"   \
+        "lhui  r9,   r3,   0    \n\t"   \
+        "addi  r3,   r3,   2    \n\t"   \
+        "mul   r10,  r9,  r6    \n\t"   \
+        "mul   r11,  r8,  r7    \n\t"   \
+        "mul   r12,  r9,  r7    \n\t"   \
+        "mul   r13,  r8,  r6    \n\t"   \
+        "bsrli  r8, r10,  16    \n\t"   \
+        "bsrli  r9, r11,  16    \n\t"   \
+        "add   r13, r13,  r8    \n\t"   \
+        "add   r13, r13,  r9    \n\t"   \
+        "bslli r10, r10,  16    \n\t"   \
+        "bslli r11, r11,  16    \n\t"   \
+        "add   r12, r12, r10    \n\t"   \
+        "addc  r13, r13,  r0    \n\t"   \
+        "add   r12, r12, r11    \n\t"   \
+        "addc  r13, r13,  r0    \n\t"   \
+        "lwi   r10,  r4,   0    \n\t"   \
+        "add   r12, r12, r10    \n\t"   \
+        "addc  r13, r13,  r0    \n\t"   \
+        "add   r12, r12,  r5    \n\t"   \
+        "addc   r5, r13,  r0    \n\t"   \
+        "swi   r12,  r4,   0    \n\t"   \
+        "addi   r4,  r4,   4    \n\t"
 
-#define MULADDC_STOP                            \
-    asm( "swi   r5,   %0        " : "=m" (c));  \
-    asm( "swi   r4,   %0        " : "=m" (d));  \
-    asm( "swi   r3,   %0        " : "=m" (s) :: \
-     "r3", "r4" , "r5" , "r6" , "r7" , "r8" ,   \
-     "r9", "r10", "r11", "r12", "r13" );
+#define MULADDC_STOP                    \
+        "swi   r5,   %0         \n\t"   \
+        "swi   r4,   %1         \n\t"   \
+        "swi   r3,   %2         \n\t"   \
+        : "=m" (c), "=m" (d), "=m" (s)              \
+        : "m" (s), "m" (d), "m" (c), "m" (b)        \
+        : "r3", "r4"  "r5", "r6", "r7", "r8",       \
+          "r9", "r10", "r11", "r12", "r13"          \
+    );
 
 #endif /* MicroBlaze */
 
 #if defined(__tricore__)
 
 #define MULADDC_INIT                            \
-    asm( "ld.a   %%a2, %0       " :: "m" (s));  \
-    asm( "ld.a   %%a3, %0       " :: "m" (d));  \
-    asm( "ld.w   %%d4, %0       " :: "m" (c));  \
-    asm( "ld.w   %%d1, %0       " :: "m" (b));  \
-    asm( "xor    %d5, %d5       " );
+    asm(                                        \
+        "ld.a   %%a2, %3                \n\t"   \
+        "ld.a   %%a3, %4                \n\t"   \
+        "ld.w   %%d4, %5                \n\t"   \
+        "ld.w   %%d1, %6                \n\t"   \
+        "xor    %%d5, %%d5              \n\t"
 
 #define MULADDC_CORE                            \
-    asm( "ld.w   %d0,   [%a2+]      " );        \
-    asm( "madd.u %e2, %e4, %d0, %d1 " );        \
-    asm( "ld.w   %d0,   [%a3]       " );        \
-    asm( "addx   %d2,    %d2,  %d0  " );        \
-    asm( "addc   %d3,    %d3,    0  " );        \
-    asm( "mov    %d4,    %d3        " );        \
-    asm( "st.w  [%a3+],  %d2        " );
+        "ld.w   %%d0,   [%%a2+]         \n\t"   \
+        "madd.u %%e2, %%e4, %%d0, %%d1  \n\t"   \
+        "ld.w   %%d0,   [%%a3]          \n\t"   \
+        "addx   %%d2,    %%d2,  %%d0    \n\t"   \
+        "addc   %%d3,    %%d3,    0     \n\t"   \
+        "mov    %%d4,    %%d3           \n\t"   \
+        "st.w  [%%a3+],  %%d2           \n\t"
 
 #define MULADDC_STOP                            \
-    asm( "st.w   %0, %%d4       " : "=m" (c));  \
-    asm( "st.a   %0, %%a3       " : "=m" (d));  \
-    asm( "st.a   %0, %%a2       " : "=m" (s) :: \
-    "d0", "d1", "e2", "d4", "a2", "a3" );
+        "st.w   %0, %%d4                \n\t"   \
+        "st.a   %1, %%a3                \n\t"   \
+        "st.a   %2, %%a2                \n\t"   \
+        : "=m" (c), "=m" (d), "=m" (s)          \
+        : "m" (s), "m" (d), "m" (c), "m" (b)    \
+        : "d0", "d1", "e2", "d4", "a2", "a3"    \
+    );
 
 #endif /* TriCore */
 
@@ -550,59 +564,53 @@
 
 #if defined(__thumb__) && !defined(__thumb2__)
 
-#define MULADDC_INIT                            \
-    asm(                                        \
-         "                                      \
-            ldr    r0, %3;                      \
-            ldr    r1, %4;                      \
-            ldr    r2, %5;                      \
-            ldr    r3, %6;                      \
-            lsr    r7, r3, #16;                 \
-            mov    r9, r7;                      \
-            lsl    r7, r3, #16;                 \
-            lsr    r7, r7, #16;                 \
-            mov    r8, r7;                      \
-         "
+#define MULADDC_INIT                                    \
+    asm(                                                \
+            "ldr    r0, %3                      \n\t"   \
+            "ldr    r1, %4                      \n\t"   \
+            "ldr    r2, %5                      \n\t"   \
+            "ldr    r3, %6                      \n\t"   \
+            "lsr    r7, r3, #16                 \n\t"   \
+            "mov    r9, r7                      \n\t"   \
+            "lsl    r7, r3, #16                 \n\t"   \
+            "lsr    r7, r7, #16                 \n\t"   \
+            "mov    r8, r7                      \n\t"
 
-#define MULADDC_CORE                            \
-         "                                      \
-            ldmia  r0!, {r6};                   \
-            lsr    r7, r6, #16;                 \
-            lsl    r6, r6, #16;                 \
-            lsr    r6, r6, #16;                 \
-            mov    r4, r8;                      \
-            mul    r4, r6;                      \
-            mov    r3, r9;                      \
-            mul    r6, r3;                      \
-            mov    r5, r9;                      \
-            mul    r5, r7;                      \
-            mov    r3, r8;                      \
-            mul    r7, r3;                      \
-            lsr    r3, r6, #16;                 \
-            add    r5, r5, r3;                  \
-            lsr    r3, r7, #16;                 \
-            add    r5, r5, r3;                  \
-            add    r4, r4, r2;                  \
-            mov    r2, #0;                      \
-            adc    r5, r2;                      \
-            lsl    r3, r6, #16;                 \
-            add    r4, r4, r3;                  \
-            adc    r5, r2;                      \
-            lsl    r3, r7, #16;                 \
-            add    r4, r4, r3;                  \
-            adc    r5, r2;                      \
-            ldr    r3, [r1];                    \
-            add    r4, r4, r3;                  \
-            adc    r2, r5;                      \
-            stmia  r1!, {r4};                   \
-         "
+#define MULADDC_CORE                                    \
+            "ldmia  r0!, {r6}                   \n\t"   \
+            "lsr    r7, r6, #16                 \n\t"   \
+            "lsl    r6, r6, #16                 \n\t"   \
+            "lsr    r6, r6, #16                 \n\t"   \
+            "mov    r4, r8                      \n\t"   \
+            "mul    r4, r6                      \n\t"   \
+            "mov    r3, r9                      \n\t"   \
+            "mul    r6, r3                      \n\t"   \
+            "mov    r5, r9                      \n\t"   \
+            "mul    r5, r7                      \n\t"   \
+            "mov    r3, r8                      \n\t"   \
+            "mul    r7, r3                      \n\t"   \
+            "lsr    r3, r6, #16                 \n\t"   \
+            "add    r5, r5, r3                  \n\t"   \
+            "lsr    r3, r7, #16                 \n\t"   \
+            "add    r5, r5, r3                  \n\t"   \
+            "add    r4, r4, r2                  \n\t"   \
+            "mov    r2, #0                      \n\t"   \
+            "adc    r5, r2                      \n\t"   \
+            "lsl    r3, r6, #16                 \n\t"   \
+            "add    r4, r4, r3                  \n\t"   \
+            "adc    r5, r2                      \n\t"   \
+            "lsl    r3, r7, #16                 \n\t"   \
+            "add    r4, r4, r3                  \n\t"   \
+            "adc    r5, r2                      \n\t"   \
+            "ldr    r3, [r1]                    \n\t"   \
+            "add    r4, r4, r3                  \n\t"   \
+            "adc    r2, r5                      \n\t"   \
+            "stmia  r1!, {r4}                   \n\t"
 
-#define MULADDC_STOP                            \
-         "                                      \
-            str    r2, %0;                      \
-            str    r1, %1;                      \
-            str    r0, %2;                      \
-         "                                      \
+#define MULADDC_STOP                                    \
+            "str    r2, %0                      \n\t"   \
+            "str    r1, %1                      \n\t"   \
+            "str    r0, %2                      \n\t"   \
          : "=m" (c),  "=m" (d), "=m" (s)        \
          : "m" (s), "m" (d), "m" (c), "m" (b)   \
          : "r0", "r1", "r2", "r3", "r4", "r5",  \
@@ -611,32 +619,26 @@
 
 #else
 
-#define MULADDC_INIT                            \
-    asm(                                        \
-         "                                     \
-            ldr    r0, %3;                      \
-            ldr    r1, %4;                      \
-            ldr    r2, %5;                      \
-            ldr    r3, %6;                      \
-         "
+#define MULADDC_INIT                                    \
+    asm(                                                \
+            "ldr    r0, %3                      \n\t"   \
+            "ldr    r1, %4                      \n\t"   \
+            "ldr    r2, %5                      \n\t"   \
+            "ldr    r3, %6                      \n\t"
 
-#define MULADDC_CORE                            \
-         "                                      \
-            ldr    r4, [r0], #4;                \
-            mov    r5, #0;                      \
-            ldr    r6, [r1];                    \
-            umlal  r2, r5, r3, r4;              \
-            adds   r7, r6, r2;                  \
-            adc    r2, r5, #0;                  \
-            str    r7, [r1], #4;                \
-         "
+#define MULADDC_CORE                                    \
+            "ldr    r4, [r0], #4                \n\t"   \
+            "mov    r5, #0                      \n\t"   \
+            "ldr    r6, [r1]                    \n\t"   \
+            "umlal  r2, r5, r3, r4              \n\t"   \
+            "adds   r7, r6, r2                  \n\t"   \
+            "adc    r2, r5, #0                  \n\t"   \
+            "str    r7, [r1], #4                \n\t"
 
-#define MULADDC_STOP                            \
-         "                                      \
-            str    r2, %0;                      \
-            str    r1, %1;                      \
-            str    r0, %2;                      \
-         "                                      \
+#define MULADDC_STOP                                    \
+            "str    r2, %0                      \n\t"   \
+            "str    r1, %1                      \n\t"   \
+            "str    r0, %2                      \n\t"   \
          : "=m" (c),  "=m" (d), "=m" (s)        \
          : "m" (s), "m" (d), "m" (c), "m" (b)   \
          : "r0", "r1", "r2", "r3", "r4", "r5",  \
@@ -649,64 +651,71 @@
 
 #if defined(__alpha__)
 
-#define MULADDC_INIT                            \
-    asm( "ldq    $1, %0         " :: "m" (s));  \
-    asm( "ldq    $2, %0         " :: "m" (d));  \
-    asm( "ldq    $3, %0         " :: "m" (c));  \
-    asm( "ldq    $4, %0         " :: "m" (b));
+#define MULADDC_INIT                    \
+    asm(                                \
+        "ldq    $1, %3          \n\t"   \
+        "ldq    $2, %4          \n\t"   \
+        "ldq    $3, %5          \n\t"   \
+        "ldq    $4, %6          \n\t"
 
-#define MULADDC_CORE                            \
-    asm( "ldq    $6,  0($1)     " );            \
-    asm( "addq   $1,  8, $1     " );            \
-    asm( "mulq   $6, $4, $7     " );            \
-    asm( "umulh  $6, $4, $6     " );            \
-    asm( "addq   $7, $3, $7     " );            \
-    asm( "cmpult $7, $3, $3     " );            \
-    asm( "ldq    $5,  0($2)     " );            \
-    asm( "addq   $7, $5, $7     " );            \
-    asm( "cmpult $7, $5, $5     " );            \
-    asm( "stq    $7,  0($2)     " );            \
-    asm( "addq   $2,  8, $2     " );            \
-    asm( "addq   $6, $3, $3     " );            \
-    asm( "addq   $5, $3, $3     " );
+#define MULADDC_CORE                    \
+        "ldq    $6,  0($1)      \n\t"   \
+        "addq   $1,  8, $1      \n\t"   \
+        "mulq   $6, $4, $7      \n\t"   \
+        "umulh  $6, $4, $6      \n\t"   \
+        "addq   $7, $3, $7      \n\t"   \
+        "cmpult $7, $3, $3      \n\t"   \
+        "ldq    $5,  0($2)      \n\t"   \
+        "addq   $7, $5, $7      \n\t"   \
+        "cmpult $7, $5, $5      \n\t"   \
+        "stq    $7,  0($2)      \n\t"   \
+        "addq   $2,  8, $2      \n\t"   \
+        "addq   $6, $3, $3      \n\t"   \
+        "addq   $5, $3, $3      \n\t"
 
-#define MULADDC_STOP                            \
-    asm( "stq    $3, %0         " : "=m" (c));  \
-    asm( "stq    $2, %0         " : "=m" (d));  \
-    asm( "stq    $1, %0         " : "=m" (s) :: \
-    "$1", "$2", "$3", "$4", "$5", "$6", "$7" );
-
+#define MULADDC_STOP                                    \
+        "stq    $3, %0          \n\t"   \
+        "stq    $2, %1          \n\t"   \
+        "stq    $1, %2          \n\t"   \
+        : "=m" (c), "=m" (d), "=m" (s)              \
+        : "m" (s), "m" (d), "m" (c), "m" (b)        \
+        : "$1", "$2", "$3", "$4", "$5", "$6", "$7"  \
+    );
 #endif /* Alpha */
 
-#if defined(__mips__)
+#if defined(__mips__) && !defined(__mips64__)
 
-#define MULADDC_INIT                            \
-    asm( "lw     $10, %0        " :: "m" (s));  \
-    asm( "lw     $11, %0        " :: "m" (d));  \
-    asm( "lw     $12, %0        " :: "m" (c));  \
-    asm( "lw     $13, %0        " :: "m" (b));
+#define MULADDC_INIT                    \
+    asm(                                \
+        "lw     $10, %3         \n\t"   \
+        "lw     $11, %4         \n\t"   \
+        "lw     $12, %5         \n\t"   \
+        "lw     $13, %6         \n\t"
 
-#define MULADDC_CORE                            \
-    asm( "lw     $14, 0($10)    " );            \
-    asm( "multu  $13, $14       " );            \
-    asm( "addi   $10, $10, 4    " );            \
-    asm( "mflo   $14            " );            \
-    asm( "mfhi   $9             " );            \
-    asm( "addu   $14, $12, $14  " );            \
-    asm( "lw     $15, 0($11)    " );            \
-    asm( "sltu   $12, $14, $12  " );            \
-    asm( "addu   $15, $14, $15  " );            \
-    asm( "sltu   $14, $15, $14  " );            \
-    asm( "addu   $12, $12, $9   " );            \
-    asm( "sw     $15, 0($11)    " );            \
-    asm( "addu   $12, $12, $14  " );            \
-    asm( "addi   $11, $11, 4    " );
+#define MULADDC_CORE                    \
+        "lw     $14, 0($10)     \n\t"   \
+        "multu  $13, $14        \n\t"   \
+        "addi   $10, $10, 4     \n\t"   \
+        "mflo   $14             \n\t"   \
+        "mfhi   $9              \n\t"   \
+        "addu   $14, $12, $14   \n\t"   \
+        "lw     $15, 0($11)     \n\t"   \
+        "sltu   $12, $14, $12   \n\t"   \
+        "addu   $15, $14, $15   \n\t"   \
+        "sltu   $14, $15, $14   \n\t"   \
+        "addu   $12, $12, $9    \n\t"   \
+        "sw     $15, 0($11)     \n\t"   \
+        "addu   $12, $12, $14   \n\t"   \
+        "addi   $11, $11, 4     \n\t"
 
-#define MULADDC_STOP                            \
-    asm( "sw     $12, %0        " : "=m" (c));  \
-    asm( "sw     $11, %0        " : "=m" (d));  \
-    asm( "sw     $10, %0        " : "=m" (s) :: \
-    "$9", "$10", "$11", "$12", "$13", "$14", "$15" );
+#define MULADDC_STOP                    \
+        "sw     $12, %0         \n\t"   \
+        "sw     $11, %1         \n\t"   \
+        "sw     $10, %2         \n\t"   \
+        : "=m" (c), "=m" (d), "=m" (s)                      \
+        : "m" (s), "m" (d), "m" (c), "m" (b)                \
+        : "$9", "$10", "$11", "$12", "$13", "$14", "$15"    \
+    );
 
 #endif /* MIPS */
 #endif /* GNUC */

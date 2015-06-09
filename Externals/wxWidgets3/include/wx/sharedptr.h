@@ -3,7 +3,6 @@
 // Purpose:     Shared pointer based on the counted_ptr<> template, which
 //              is in the public domain
 // Author:      Robert Roebling, Yonat Sharon
-// RCS-ID:      $Id: sharedptr.h 67232 2011-03-18 15:10:15Z DS $
 // Copyright:   Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,6 +28,14 @@ public:
     {
         if (ptr)
             m_ref = new reftype(ptr);
+    }
+
+    template<typename Deleter>
+    wxEXPLICIT wxSharedPtr(T* ptr, Deleter d)
+        : m_ref(NULL)
+    {
+        if (ptr)
+            m_ref = new reftype_with_deleter<Deleter>(ptr, d);
     }
 
     ~wxSharedPtr()                           { Release(); }
@@ -92,6 +99,14 @@ public:
             m_ref = new reftype(ptr);
     }
 
+    template<typename Deleter>
+    void reset(T* ptr, Deleter d)
+    {
+        Release();
+        if (ptr)
+            m_ref = new reftype_with_deleter<Deleter>(ptr, d);
+    }
+
     bool unique()   const    { return (m_ref ? m_ref->m_count == 1 : true); }
     long use_count() const   { return (m_ref ? (long)m_ref->m_count : 0); }
 
@@ -99,10 +114,24 @@ private:
 
     struct reftype
     {
-        reftype( T* ptr = NULL, unsigned count = 1 ) : m_ptr(ptr), m_count(count) {}
+        reftype(T* ptr) : m_ptr(ptr), m_count(1) {}
+        virtual ~reftype() {}
+        virtual void delete_ptr() { delete m_ptr; }
+
         T*          m_ptr;
         wxAtomicInt m_count;
-    }* m_ref;
+    };
+
+    template<typename Deleter>
+    struct reftype_with_deleter : public reftype
+    {
+        reftype_with_deleter(T* ptr, Deleter d) : reftype(ptr), m_deleter(d) {}
+        virtual void delete_ptr() { m_deleter(this->m_ptr); }
+
+        Deleter m_deleter;
+    };
+
+    reftype* m_ref;
 
     void Acquire(reftype* ref)
     {
@@ -115,10 +144,9 @@ private:
     {
         if (m_ref)
         {
-            wxAtomicDec( m_ref->m_count );
-            if (m_ref->m_count == 0)
+            if (!wxAtomicDec( m_ref->m_count ))
             {
-                delete m_ref->m_ptr;
+                m_ref->delete_ptr();
                 delete m_ref;
             }
             m_ref = NULL;

@@ -2,7 +2,6 @@
 // Name:        src/gtk/control.cpp
 // Purpose:     wxControl implementation for wxGTK
 // Author:      Robert Roebling
-// Id:          $Id: control.cpp 70714 2012-02-27 17:49:33Z PC $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart and Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,10 +19,11 @@
 #endif
 
 #include "wx/fontutil.h"
-#include "wx/gtk/private.h"
 #include "wx/utils.h"
 #include "wx/sysopt.h"
 
+#include <gtk/gtk.h>
+#include "wx/gtk/private.h"
 #include "wx/gtk/private/mnemonics.h"
 
 // ============================================================================
@@ -57,6 +57,21 @@ bool wxControl::Create( wxWindow *parent,
     return ret;
 }
 
+#ifdef __WXGTK3__
+bool wxControl::SetFont(const wxFont& font)
+{
+    const bool changed = base_type::SetFont(font);
+    if (changed && !gtk_widget_get_realized(m_widget))
+    {
+        // GTK defers sending "style-updated" until widget is realized, but
+        // GetBestSize() won't compute correct result until the signal is sent,
+        // so we have to do it now
+        g_signal_emit_by_name(m_widget, "style-updated");
+    }
+    return changed;
+}
+#endif
+
 wxSize wxControl::DoGetBestSize() const
 {
     // Do not return any arbitrary default value...
@@ -70,11 +85,9 @@ wxSize wxControl::DoGetBestSize() const
     }
     else
     {
-        GtkRequisition req;
-        GTK_WIDGET_GET_CLASS(m_widget)->size_request(m_widget, &req);
-        best.Set(req.width, req.height);
+        best = GTKGetPreferredSize(m_widget);
     }
-    CacheBestSize(best);
+
     return best;
 }
 
@@ -82,14 +95,15 @@ void wxControl::PostCreation(const wxSize& size)
 {
     wxWindow::PostCreation();
 
+#ifndef __WXGTK3__
     // NB: GetBestSize needs to know the style, otherwise it will assume
     //     default font and if the user uses a different font, determined
     //     best size will be different (typically, smaller) than the desired
     //     size. This call ensure that a style is available at the time
     //     GetBestSize is called.
     gtk_widget_ensure_style(m_widget);
+#endif
 
-    GTKApplyWidgetStyle();
     SetInitialSize(size);
 }
 
@@ -99,22 +113,22 @@ void wxControl::PostCreation(const wxSize& size)
 // ----------------------------------------------------------------------------
 
 // Fix sensitivity due to bug in GTK+ < 2.14
-void wxControl::GTKFixSensitivity(bool onlyIfUnderMouse)
+void wxControl::GTKFixSensitivity(bool WXUNUSED_IN_GTK3(onlyIfUnderMouse))
 {
+#ifndef __WXGTK3__
     if (gtk_check_version(2,14,0)
 #if wxUSE_SYSTEM_OPTIONS
         && (wxSystemOptions::GetOptionInt(wxT("gtk.control.disable-sensitivity-fix")) != 1)
 #endif
         )
     {
-        wxPoint pt = wxGetMousePosition();
-        wxRect rect(ClientToScreen(wxPoint(0, 0)), GetSize());
-        if (!onlyIfUnderMouse || rect.Contains(pt))
+        if (!onlyIfUnderMouse || GetScreenRect().Contains(wxGetMousePosition()))
         {
             Hide();
             Show();
         }
     }
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -168,8 +182,8 @@ void wxControl::GTKSetLabelForFrame(GtkFrame *w, const wxString& label)
 
 void wxControl::GTKFrameApplyWidgetStyle(GtkFrame* w, GtkRcStyle* style)
 {
-    gtk_widget_modify_style(GTK_WIDGET(w), style);
-    gtk_widget_modify_style(gtk_frame_get_label_widget (w), style);
+    GTKApplyStyle(GTK_WIDGET(w), style);
+    GTKApplyStyle(gtk_frame_get_label_widget(w), style);
 }
 
 void wxControl::GTKFrameSetMnemonicWidget(GtkFrame* w, GtkWidget* widget)
@@ -214,39 +228,67 @@ wxVisualAttributes wxControl::GetDefaultAttributes() const
 // static
 wxVisualAttributes
 wxControl::GetDefaultAttributesFromGTKWidget(GtkWidget* widget,
-                                             bool useBase,
+                                             bool WXUNUSED_IN_GTK3(useBase),
                                              int state)
 {
-    GtkStyle* style;
     wxVisualAttributes attr;
+
+    GtkWidget* tlw = NULL;
+    if (gtk_widget_get_parent(widget) == NULL)
+    {
+        tlw = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        gtk_container_add(GTK_CONTAINER(tlw), widget);
+    }
+
+#ifdef __WXGTK3__
+    GtkStateFlags stateFlag = GTK_STATE_FLAG_NORMAL;
+    if (state)
+    {
+        wxASSERT(state == GTK_STATE_ACTIVE);
+        stateFlag = GTK_STATE_FLAG_ACTIVE;
+    }
+    GtkStyleContext* sc = gtk_widget_get_style_context(widget);
+    GdkRGBA c;
+    gtk_style_context_get_color(sc, stateFlag, &c);
+    attr.colFg = wxColour(c);
+    gtk_style_context_get_background_color(sc, stateFlag, &c);
+    attr.colBg = wxColour(c);
+    wxNativeFontInfo info;
+    gtk_style_context_get(
+        sc, stateFlag, GTK_STYLE_PROPERTY_FONT, &info.description, NULL);
+    attr.font = wxFont(info);
+#else
+    GtkStyle* style;
 
     style = gtk_rc_get_style(widget);
     if (!style)
         style = gtk_widget_get_default_style();
 
-    if (!style)
+    if (style)
     {
-        return wxWindow::GetClassDefaultAttributes(wxWINDOW_VARIANT_NORMAL);
-    }
+        // get the style's colours
+        attr.colFg = wxColour(style->fg[state]);
+        if (useBase)
+            attr.colBg = wxColour(style->base[state]);
+        else
+            attr.colBg = wxColour(style->bg[state]);
 
-    // get the style's colours
-    attr.colFg = wxColour(style->fg[state]);
-    if (useBase)
-        attr.colBg = wxColour(style->base[state]);
-    else
-        attr.colBg = wxColour(style->bg[state]);
-
-    // get the style's font
-    if ( !style->font_desc )
-        style = gtk_widget_get_default_style();
-    if ( style && style->font_desc )
-    {
-        wxNativeFontInfo info;
-        info.description = style->font_desc;
-        attr.font = wxFont(info);
-        info.description = NULL;
+        // get the style's font
+        if (!style->font_desc)
+            style = gtk_widget_get_default_style();
+        if (style && style->font_desc)
+        {
+            wxNativeFontInfo info;
+            info.description = style->font_desc;
+            attr.font = wxFont(info);
+            info.description = NULL;
+        }
     }
     else
+        attr = wxWindow::GetClassDefaultAttributes(wxWINDOW_VARIANT_NORMAL);
+#endif
+
+    if (!attr.font.IsOk())
     {
         GtkSettings *settings = gtk_settings_get_default();
         gchar *font_name = NULL;
@@ -261,57 +303,55 @@ wxControl::GetDefaultAttributesFromGTKWidget(GtkWidget* widget,
         g_free (font_name);
     }
 
+    if (tlw)
+        gtk_widget_destroy(tlw);
+
     return attr;
 }
 
-
-//static
-wxVisualAttributes
-wxControl::GetDefaultAttributesFromGTKWidget(wxGtkWidgetNew_t widget_new,
-                                             bool useBase,
-                                             int state)
+// This is not the same as GetBestSize() because that size may have
+// been recalculated and cached by us. We want GTK+ information.
+wxSize wxControl::GTKGetPreferredSize(GtkWidget* widget) const
 {
-    wxVisualAttributes attr;
-    // NB: we need toplevel window so that GTK+ can find the right style
-    GtkWidget *wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    GtkWidget* widget = widget_new();
-    gtk_container_add(GTK_CONTAINER(wnd), widget);
-    attr = GetDefaultAttributesFromGTKWidget(widget, useBase, state);
-    gtk_widget_destroy(wnd);
-    return attr;
+    GtkRequisition req;
+#ifdef __WXGTK3__
+    gtk_widget_get_preferred_size(widget, NULL, &req);
+#else
+    GTK_WIDGET_GET_CLASS(widget)->size_request(widget, &req);
+#endif
+
+    return wxSize(req.width, req.height);
 }
 
-//static
-wxVisualAttributes
-wxControl::GetDefaultAttributesFromGTKWidget(wxGtkWidgetNewFromStr_t widget_new,
-                                             bool useBase,
-                                             int state)
+wxPoint wxControl::GTKGetEntryMargins(GtkEntry* entry) const
 {
-    wxVisualAttributes attr;
-    // NB: we need toplevel window so that GTK+ can find the right style
-    GtkWidget *wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    GtkWidget* widget = widget_new("");
-    gtk_container_add(GTK_CONTAINER(wnd), widget);
-    attr = GetDefaultAttributesFromGTKWidget(widget, useBase, state);
-    gtk_widget_destroy(wnd);
-    return attr;
+    wxPoint marg(0, 0);
+
+#ifndef __WXGTK3__
+#if GTK_CHECK_VERSION(2,10,0)
+    // The margins we have previously set
+    const GtkBorder* border = gtk_entry_get_inner_border(entry);
+    if ( border )
+    {
+        marg.x = border->left + border->right;
+        marg.y = border->top + border->bottom;
+    }
+#endif // GTK+ 2.10+
+#else // GTK+ 3
+    // Gtk3 does not use inner border, but StyleContext and CSS
+    // TODO: implement it, starting with wxTextEntry::DoSetMargins()
+#endif // GTK+ 2/3
+
+    int x, y;
+    gtk_entry_get_layout_offsets(entry, &x, &y);
+    // inner borders are included. Substract them so we can get other margins
+    x -= marg.x;
+    y -= marg.y;
+    marg.x += 2 * x + 2;
+    marg.y += 2 * y + 2;
+
+    return marg;
 }
 
-
-//static
-wxVisualAttributes
-wxControl::GetDefaultAttributesFromGTKWidget(wxGtkWidgetNewFromAdj_t widget_new,
-                                             bool useBase,
-                                             int state)
-{
-    wxVisualAttributes attr;
-    // NB: we need toplevel window so that GTK+ can find the right style
-    GtkWidget *wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    GtkWidget* widget = widget_new(NULL);
-    gtk_container_add(GTK_CONTAINER(wnd), widget);
-    attr = GetDefaultAttributesFromGTKWidget(widget, useBase, state);
-    gtk_widget_destroy(wnd);
-    return attr;
-}
 
 #endif // wxUSE_CONTROLS

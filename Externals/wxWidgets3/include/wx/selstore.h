@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     08.06.03 (extracted from src/generic/listctrl.cpp)
-// RCS-ID:      $Id: selstore.h 61508 2009-07-23 20:30:22Z VZ $
 // Copyright:   (c) 2000-2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -81,7 +80,7 @@ public:
 
 private:
     // (re)init
-    void Init() { m_defaultState = false; }
+    void Init() { m_count = 0; m_defaultState = false; }
 
     // the total number of items we handle
     unsigned m_count;

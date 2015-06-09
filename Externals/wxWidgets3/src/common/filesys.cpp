@@ -3,7 +3,6 @@
 // Purpose:     wxFileSystem class - interface for opening files
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
-// CVS-ID:      $Id: filesys.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -262,7 +261,7 @@ wxFSFile* wxLocalFSHandler::OpenFile(wxFileSystem& WXUNUSED(fs), const wxString&
     }
 
     return new wxFSFile(is,
-                        right,
+                        location,
                         wxEmptyString,
                         GetAnchor(location)
 #if wxUSE_DATETIME
@@ -755,6 +754,30 @@ class wxFileSystemModule : public wxModule
 };
 
 IMPLEMENT_DYNAMIC_CLASS(wxFileSystemModule, wxModule)
+
+//// wxFSInputStream
+
+wxFSInputStream::wxFSInputStream(const wxString& filename, int flags)
+{
+    wxFileSystem fs;
+    m_file = fs.OpenFile(filename, flags | wxFS_READ);
+
+    if ( m_file )
+    {
+        wxInputStream* const stream = m_file->GetStream();
+        if ( stream )
+        {
+            // Notice that we pass the stream by reference: it shouldn't be
+            // deleted by us as it's owned by m_file already.
+            InitParentStream(*stream);
+        }
+    }
+}
+
+wxFSInputStream::~wxFSInputStream()
+{
+    delete m_file;
+}
 
 #endif
   // wxUSE_FILESYSTEM

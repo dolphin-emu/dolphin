@@ -2,7 +2,6 @@
 // Name:        src/gtk/calctrl.cpp
 // Purpose:     implementation of the wxGtkCalendarCtrl
 // Author:      Marcin Wojdyr
-// RCS-ID:      $Id: calctrl.cpp 70755 2012-02-29 18:13:06Z PC $
 // Copyright:   (c) 2008 Marcin Wojdyr
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

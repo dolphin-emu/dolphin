@@ -4,7 +4,6 @@
 // Author:      David Norris <danorris@gmail.com>, Otto Wyss
 // Modified by: Ryan Norton, Francesco Montorsi
 // Created:     04/02/2005
-// RCS-ID:      $Id: hyperlnkcmn.cpp 66644 2011-01-07 22:37:43Z SC $
 // Copyright:   (c) 2005 David Norris
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,7 +79,7 @@ wxEND_FLAGS( wxHyperlinkStyle )
 wxIMPLEMENT_DYNAMIC_CLASS_XTI( wxHyperlinkCtrl, wxControl, "wx/hyperlink.h")
 
 IMPLEMENT_DYNAMIC_CLASS(wxHyperlinkEvent, wxCommandEvent)
-wxDEFINE_EVENT( wxEVT_COMMAND_HYPERLINK, wxHyperlinkEvent );
+wxDEFINE_EVENT( wxEVT_HYPERLINK, wxHyperlinkEvent );
 
 wxBEGIN_PROPERTIES_TABLE(wxHyperlinkCtrl)
 wxPROPERTY( Label, wxString, SetLabel, GetLabel, wxString(), \

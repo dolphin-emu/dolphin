@@ -5,7 +5,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -1130,10 +1129,37 @@ wxDateTime& wxDateTime::Set(const struct tm& tm)
 
         return *this;
     }
-    else
+
+    // mktime() only adjusts tm_wday, tm_yday and tm_isdst fields normally, if
+    // it changed anything else, it must have performed the DST adjustment. But
+    // the trouble with this is that different implementations do it
+    // differently, e.g. GNU libc moves the time forward if the specified time
+    // is invalid in the local time zone, while MSVC CRT moves it backwards
+    // which is especially pernicious as it can change the date if the DST
+    // starts at midnight, as it does in some time zones (see #15419), and this
+    // is completely unexpected for the code working with dates only.
+    //
+    // So standardize on moving the time forwards to have consistent behaviour
+    // under all platforms and to avoid the problem above.
+    if ( tm2.tm_hour != tm.tm_hour )
     {
-        return Set(timet);
+        tm2 = tm;
+        tm2.tm_hour++;
+        if ( tm2.tm_hour == 24 )
+        {
+            // This shouldn't normally happen as the DST never starts at 23:00
+            // but if it does, we have a problem as we need to adjust the day
+            // as well. However we stop here, i.e. we don't adjust the month
+            // (or the year) because mktime() is supposed to take care of this
+            // for us.
+            tm2.tm_hour = 0;
+            tm2.tm_mday++;
+        }
+
+        timet = mktime(&tm2);
     }
+
+    return Set(timet);
 }
 
 wxDateTime& wxDateTime::Set(wxDateTime_t hour,
@@ -1602,6 +1628,56 @@ wxDateTime& wxDateTime::Add(const wxDateSpan& diff)
     return *this;
 }
 
+wxDateSpan wxDateTime::DiffAsDateSpan(const wxDateTime& dt) const
+{
+    wxASSERT_MSG( IsValid() && dt.IsValid(), wxT("invalid wxDateTime"));
+
+    // If dt is larger than this, calculations below needs to be inverted.
+    int inv = 1;
+    if ( dt > *this )
+        inv = -1;
+
+    int y = GetYear() - dt.GetYear();
+    int m = GetMonth() - dt.GetMonth();
+    int d = GetDay() - dt.GetDay();
+
+    // If month diff is negative, dt is the year before, so decrease year
+    // and set month diff to its inverse, e.g. January - December should be 1,
+    // not -11.
+    if ( m * inv < 0 || (m == 0 && d * inv < 0))
+    {
+        m += inv * MONTHS_IN_YEAR;
+        y -= inv;
+    }
+
+    // Same logic for days as for months above.
+    if ( d * inv < 0 )
+    {
+        // Use number of days in month from the month which end date we're
+        // crossing. That is month before this for positive diff, and this
+        // month for negative diff.
+        // If we're on january and using previous month, we get december
+        // previous year, but don't care, december has same amount of days
+        // every year.
+        wxDateTime::Month monthfordays = GetMonth();
+        if (inv > 0 && monthfordays == wxDateTime::Jan)
+            monthfordays = wxDateTime::Dec;
+        else if (inv > 0)
+            monthfordays = static_cast<wxDateTime::Month>(monthfordays - 1);
+
+        d += inv * wxDateTime::GetNumberOfDays(monthfordays, GetYear());
+        m -= inv;
+    }
+
+    int w =  d / DAYS_PER_WEEK;
+
+    // Remove weeks from d, since wxDateSpan only keep days as the ones
+    // not in complete weeks
+    d -= w * DAYS_PER_WEEK;
+
+    return wxDateSpan(y, m, w, d);
+}
+
 // ----------------------------------------------------------------------------
 // Weekday and monthday stuff
 // ----------------------------------------------------------------------------
@@ -1871,7 +1947,6 @@ wxDateTime::GetWeekOfYear(wxDateTime::WeekFlags flags, const TimeZone& tz) const
     {
         // adjust the weekdays to non-US style.
         wdYearStart = ConvertWeekDayToMondayBase(wdYearStart);
-        wdTarget = ConvertWeekDayToMondayBase(wdTarget);
 
         // quoting from http://www.cl.cam.ac.uk/~mgk25/iso-time.html:
         //
@@ -1887,22 +1962,24 @@ wxDateTime::GetWeekOfYear(wxDateTime::WeekFlags flags, const TimeZone& tz) const
         //
 
         // if Jan 1 is Thursday or less, it is in the first week of this year
-        if ( wdYearStart < 4 )
-        {
-            // count the number of entire weeks between Jan 1 and this date
-            week = (nDayInYear + wdYearStart + 6 - wdTarget)/7;
+        int dayCountFix = wdYearStart < 4 ? 6 : -1;
 
-            // be careful to check for overflow in the next year
-            if ( week == 53 && tm.mday - wdTarget > 28 )
-                    week = 1;
-        }
-        else // Jan 1 is in the last week of the previous year
+        // count the number of week
+        week = (nDayInYear + wdYearStart + dayCountFix) / DAYS_PER_WEEK;
+
+        // check if we happen to be at the last week of previous year:
+        if ( week == 0 )
         {
-            // check if we happen to be at the last week of previous year:
-            if ( tm.mon == Jan && tm.mday < 8 - wdYearStart )
-                week = wxDateTime(31, Dec, GetYear()-1).GetWeekOfYear();
-            else
-                week = (nDayInYear + wdYearStart - 1 - wdTarget)/7;
+            week = wxDateTime(31, Dec, GetYear() - 1).GetWeekOfYear();
+        }
+        else if ( week == 53 )
+        {
+            int wdYearEnd = (wdYearStart + 364 + IsLeapYear(GetYear()))
+                                % DAYS_PER_WEEK;
+
+            // Week 53 only if last day of year is Thursday or later.
+            if ( wdYearEnd < 3 )
+                week = 1;
         }
     }
 

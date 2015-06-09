@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin, Ryan Norton
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              (c) 2004 Ryan Norton <wxprojects@comcast.net>
 // Licence:     wxWindows licence
@@ -1169,12 +1168,6 @@ int wxString::CmpNoCase(const wxString& s) const
 
 #if wxUSE_UNICODE
 
-#ifdef __MWERKS__
-#ifndef __SCHAR_MAX__
-#define __SCHAR_MAX__ 127
-#endif
-#endif
-
 wxString wxString::FromAscii(const char *ascii, size_t len)
 {
     if (!ascii || len == 0)
@@ -1442,7 +1435,7 @@ size_t wxString::Replace(const wxString& strOld,
     }
     else if ( !bReplaceAll)
     {
-        size_t pos = m_impl.find(strOld, 0);
+        size_t pos = m_impl.find(strOld.m_impl, 0);
         if ( pos != npos )
         {
             m_impl.replace(pos, strOld.m_impl.length(), strNew.m_impl);

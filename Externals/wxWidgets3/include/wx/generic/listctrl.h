@@ -3,7 +3,6 @@
 // Purpose:     Generic list control
 // Author:      Robert Roebling
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h 70282 2012-01-07 15:09:43Z VZ $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -11,6 +10,7 @@
 #ifndef _WX_GENERIC_LISTCTRL_H_
 #define _WX_GENERIC_LISTCTRL_H_
 
+#include "wx/containr.h"
 #include "wx/scrolwin.h"
 #include "wx/textctrl.h"
 
@@ -29,7 +29,7 @@ class WXDLLIMPEXP_FWD_CORE wxListMainWindow;
 // wxListCtrl
 //-----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_CORE wxGenericListCtrl: public wxListCtrlBase,
+class WXDLLIMPEXP_CORE wxGenericListCtrl: public wxNavigationEnabled<wxListCtrlBase>,
                                           public wxScrollHelper
 {
 public:
@@ -143,6 +143,8 @@ public:
     void RefreshItem(long item);
     void RefreshItems(long itemFrom, long itemTo);
 
+    virtual void EnableBellOnNoMatch(bool on = true);
+
 #if WXWIN_COMPATIBILITY_2_6
     // obsolete, don't use
     wxDEPRECATED( int GetItemSpacing( bool isSmall ) const );
@@ -188,7 +190,6 @@ public:
 #endif
 
     virtual bool ShouldInheritColours() const { return false; }
-    virtual void SetFocus();
 
     // implementation
     // --------------
@@ -209,11 +210,6 @@ protected:
 
     virtual bool DoPopupMenu( wxMenu *menu, int x, int y );
 
-    // take into account the coordinates difference between the container
-    // window and the list control window itself here
-    virtual void DoClientToScreen( int *x, int *y ) const;
-    virtual void DoScreenToClient( int *x, int *y ) const;
-
     virtual wxSize DoGetBestClientSize() const;
 
     // return the text for the given column of the given item
@@ -226,9 +222,6 @@ protected:
 
     // return the icon for the given item and column.
     virtual int OnGetItemColumnImage(long item, long column) const;
-
-    // return the attribute for the item (may return NULL if none)
-    virtual wxListItemAttr *OnGetItemAttr(long item) const;
 
     // it calls our OnGetXXX() functions
     friend class WXDLLIMPEXP_FWD_CORE wxListMainWindow;

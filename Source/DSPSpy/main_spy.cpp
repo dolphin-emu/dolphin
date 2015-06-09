@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 // This is a test program for running code on the Wii DSP, with full control over input
 // and automatic compare with output. VERY useful for figuring out what those little
@@ -21,18 +8,18 @@
 // It's very unpolished though
 // Use Dolphin's dsptool to generate a new dsp_code.h.
 // Originally written by duddie and modified by FIRES. Then further modified by ector.
- 
+
+#include <debug.h>
+#include <fat.h>
+#include <fcntl.h>
 #include <gccore.h>
 #include <malloc.h>
+#include <network.h>
+#include <ogcsys.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <network.h>
-#include <ogcsys.h>
 #include <time.h>
-#include <fat.h>
-#include <fcntl.h>
-#include <debug.h>
 
 #include <unistd.h>
 #include <ogc/color.h>
@@ -64,7 +51,7 @@
 // Used for communications with the DSP, such as dumping registers etc.
 u16 dspbuffer[16 * 1024] __attribute__ ((aligned (0x4000)));
 
-static void *xfb = NULL;
+static void *xfb = nullptr;
 void (*reboot)() = (void(*)())0x80001800;
 GXRModeObj *rmode;
 
@@ -75,7 +62,7 @@ u16 *dspbufC;
 u32 *dspbufU;
 
 u16 dspreg_in[32] = {
-	0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0a10, 0x0b10, 
+	0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0a10, 0x0b10,
 	0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x0855, 0x0966, 0x0a77, 0x0b88,
 	0x0014, 0xfff5, 0x00ff, 0x2200, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0003, 0x0004, 0x8000, 0x000C, 0x0007, 0x0008, 0x0009, 0x000a,
@@ -84,22 +71,22 @@ u16 dspreg_in[32] = {
 /* ttt ?
 
 u16 dspreg_in[32] = {
-0x0e4c, 0x03c0, 0x0bd9, 0x06a3, 0x0c06, 0x0240, 0x0010, 0x0ecc, 
+0x0e4c, 0x03c0, 0x0bd9, 0x06a3, 0x0c06, 0x0240, 0x0010, 0x0ecc,
 0x0000, 0x0000, 0x0000, 0x0000, 0x0322, 0x0000, 0x0000, 0x0000,
 0x0000, 0x0000, 0x00ff, 0x1b41, 0x0000, 0x0040, 0x00ff, 0x0000,
 0x1000, 0x96cc, 0x0000, 0x0000, 0x3fc0, 0x96cc, 0x0000, 0x0000,
 }; */
 
-// if i set bit 0x4000 of SR my tests crashes :(               
+// if i set bit 0x4000 of SR my tests crashes :(
 
 /*
 // zelda 0x00da
 u16 dspreg_in[32] = {
-0x0a50, 0x0ca2, 0x04f8, 0x0ab0, 0x8039, 0x0000, 0x0000, 0x0000, 
+0x0a50, 0x0ca2, 0x04f8, 0x0ab0, 0x8039, 0x0000, 0x0000, 0x0000,
 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x03d1, 0x0000, 0x0418, 0x0002,     // r08 must have a value ... no idea why (ector: it's the looped addressing regs)
 0x0000, 0x0000, 0x00ff, 0x1804, 0xdb70, 0x4ddb, 0x0000, 0x0000,
 0x0000, 0x0000, 0x0000, 0xde6d, 0x0000, 0x0000, 0x0000, 0x004e,
-};*/ 
+};*/
 
 u16 dspreg_out[1000][32];
 
@@ -237,19 +224,23 @@ void DumpDSP_ROMs(const u16* rom, const u16* coef)
 	FILE *fROM = fopen(filename, "wb");
 	sprintf(filename, "sd:/dsp_coef.bin");
 	FILE *fCOEF = fopen(filename, "wb");
+
 	if (fROM && fCOEF)
 	{
 		fwrite(MEM_PHYSICAL_TO_K0(rom), 0x2000, 1, fROM);
-		fclose(fROM);
+		fwrite(MEM_PHYSICAL_TO_K0(coef), 0x1000, 1, fCOEF);
 
- 		fwrite(MEM_PHYSICAL_TO_K0(coef), 0x1000, 1, fCOEF);
- 		fclose(fCOEF);
 		UpdateLastMessage("DSP ROMs dumped to SD");
 	}
 	else
 	{
 		UpdateLastMessage("SD Write Error");
 	}
+
+	if (fROM)
+		fclose(fROM);
+	if (fCOEF)
+		fclose(fCOEF);
 #else
 	// Allow to connect to gdb (dump ram... :s)
 	_break();
@@ -362,7 +353,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0x8888dead)
 		{
-			// Send memory dump (dsp dram from someone's cube?)
+			// Send memory dump (DSP DRAM from someone's GameCube?)
 			// not really sure why this is important - I guess just to try to keep tests predictable
 			u16* tmpBuf = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
 
@@ -372,7 +363,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0x8888beef)
 		{
-			// Provide register base to dsp (if using dsp_base.inc, it will dma them to the correct place)
+			// Provide register base to DSP (if using dsp_base.inc, it will DMA them to the correct place)
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)dspbufP);
 			while (real_dsp.CheckMailTo());
@@ -394,14 +385,14 @@ void handle_dsp_mail(void)
 		// ROM dumping mails
 		else if (mail == 0x8888c0de)
 		{
-			// DSP has copied irom to its dram...send address so it can dma it back
+			// DSP has copied irom to its DRAM...send address so it can dma it back
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)dspbufP);
 			while (real_dsp.CheckMailTo());
 		}
 		else if (mail == 0x8888da7a)
 		{
-			// DSP has copied coef to its dram...send address so it can dma it back
+			// DSP has copied coef to its DRAM...send address so it can DMA it back
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)&dspbufP[0x1000]);
 			while (real_dsp.CheckMailTo());
@@ -424,7 +415,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0xdcd10003) // DSP_DONE
 		{
-			real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell dsp to halt (calls end_of_test)
+			real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell DSP to halt (calls end_of_test)
 			while (real_dsp.CheckMailTo());
 
 			DCInvalidateRange(SecParams_out, sizeof(SecParams_out));
@@ -470,16 +461,16 @@ void dump_all_ucodes(bool fastmode)
 		sprintf(filename, "sd:/dsp_dump_all.bin");
 		FILE *f2 = fopen(filename, "ab");
 
-		if (fastmode == false) 
+		if (fastmode == false)
 		{
 			// Then write microcode dump to file
 			sprintf(filename, "sd:/dsp_dump%d.bin", UCodeToDump);
 			FILE *f = fopen(filename, "wb");
-			if (f)  
+			if (f)
 			{
 				// First write initial regs
 				written = fwrite(dspreg_in, 1, 32 * 2, f);
-				
+
 				// Then write all the dumps.
 				written += fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f);
 				fclose(f);
@@ -534,8 +525,8 @@ void InitGeneral()
 #endif
 
 	// Obtain the preferred video mode from the system
-	// This will correspond to the settings in the Wii menu
-	rmode = VIDEO_GetPreferredMode(NULL);
+	// This will correspond to the settings in the Wii Menu
+	rmode = VIDEO_GetPreferredMode(nullptr);
 
 	// Allocate memory for the display in the uncached region
 	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
@@ -695,7 +686,7 @@ int main()
 #endif
 		{
 			curUcode++;
-			if(curUcode == NUM_UCODES)
+			if (curUcode == NUM_UCODES)
 				curUcode = 0;
 
 			// Reset step counters since we're in a new ucode.

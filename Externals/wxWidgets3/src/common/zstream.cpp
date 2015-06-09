@@ -4,7 +4,6 @@
 // Author:      Guilhem Lavaux
 // Modified by: Mike Wetherell
 // Created:     11/07/98
-// RCS-ID:      $Id: zstream.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,10 +46,18 @@ enum {
 
 wxVersionInfo wxGetZlibVersionInfo()
 {
-    return wxVersionInfo("zlib",
-                         ZLIB_VERNUM >> 12,
-                         (ZLIB_VERNUM >> 8) & 0x0F,
-                         (ZLIB_VERNUM & 0xFF) / 0x10);
+    int major,
+        minor,
+        build;
+
+    if ( sscanf(zlibVersion(), "%d.%d.%d", &major, &minor, &build) != 3 )
+    {
+        major =
+        minor =
+        build = 0;
+    }
+
+    return wxVersionInfo("zlib", major, minor, build);
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -3,7 +3,6 @@
 // Purpose:     miscellaneous private things for Unix wx ports
 // Author:      Vadim Zeitlin
 // Created:     2005-09-25
-// RCS-ID:      $Id: private.h 56927 2008-11-23 01:52:20Z VZ $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

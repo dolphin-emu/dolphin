@@ -3,7 +3,6 @@
 // Purpose:     wxFileSystemWatcherBase
 // Author:      Bartosz Bekier
 // Created:     2009-05-23
-// RCS-ID:      $Id: fswatcher.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2009 Bartosz Bekier <bartosz.bekier@gmail.com>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -44,15 +43,18 @@ enum
     wxFSW_EVENT_RENAME = 0x04,
     wxFSW_EVENT_MODIFY = 0x08,
     wxFSW_EVENT_ACCESS = 0x10,
+    wxFSW_EVENT_ATTRIB = 0x20, // Currently this is wxGTK-only
 
     // error events
-    wxFSW_EVENT_WARNING = 0x20,
-    wxFSW_EVENT_ERROR = 0x40,
-
+    wxFSW_EVENT_WARNING = 0x40,
+    wxFSW_EVENT_ERROR = 0x80,
     wxFSW_EVENT_ALL = wxFSW_EVENT_CREATE | wxFSW_EVENT_DELETE |
                          wxFSW_EVENT_RENAME | wxFSW_EVENT_MODIFY |
-                         wxFSW_EVENT_ACCESS |
+                         wxFSW_EVENT_ACCESS | wxFSW_EVENT_ATTRIB |
                          wxFSW_EVENT_WARNING | wxFSW_EVENT_ERROR
+#ifdef wxHAS_INOTIFY
+    ,wxFSW_EVENT_UNMOUNT = 0x2000
+#endif
 };
 
 // Type of the path watched, used only internally for now.
@@ -64,6 +66,13 @@ enum wxFSWPathType
     wxFSWPath_Tree      // Watch a directory and all its children recursively.
 };
 
+// Type of the warning for the events notifying about them.
+enum wxFSWWarningType
+{
+    wxFSW_WARNING_NONE,
+    wxFSW_WARNING_GENERAL,
+    wxFSW_WARNING_OVERFLOW
+};
 
 /**
  * Event containing information about file system change.
@@ -75,24 +84,36 @@ wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_BASE, wxEVT_FSWATCHER,
 class WXDLLIMPEXP_BASE wxFileSystemWatcherEvent: public wxEvent
 {
 public:
-    wxFileSystemWatcherEvent(int changeType, int watchid = wxID_ANY) :
+    // Constructor for any kind of events, also used as default ctor.
+    wxFileSystemWatcherEvent(int changeType = 0, int watchid = wxID_ANY) :
         wxEvent(watchid, wxEVT_FSWATCHER),
-        m_changeType(changeType)
+        m_changeType(changeType),
+        m_warningType(wxFSW_WARNING_NONE)
     {
     }
 
-    wxFileSystemWatcherEvent(int changeType, const wxString& errorMsg,
+    // Constructor for the error or warning events.
+    wxFileSystemWatcherEvent(int changeType,
+                             wxFSWWarningType warningType,
+                             const wxString& errorMsg = wxString(),
                              int watchid = wxID_ANY) :
         wxEvent(watchid, wxEVT_FSWATCHER),
-        m_changeType(changeType), m_errorMsg(errorMsg)
+        m_changeType(changeType),
+        m_warningType(warningType),
+        m_errorMsg(errorMsg)
     {
     }
 
+    // Constructor for the normal events carrying information about the changes.
     wxFileSystemWatcherEvent(int changeType,
                              const wxFileName& path, const wxFileName& newPath,
                              int watchid = wxID_ANY) :
          wxEvent(watchid, wxEVT_FSWATCHER),
-         m_changeType(changeType), m_path(path), m_newPath(newPath)
+         m_changeType(changeType),
+         m_warningType(wxFSW_WARNING_NONE),
+         m_path(path),
+         m_newPath(newPath)
+
     {
     }
 
@@ -144,12 +165,13 @@ public:
         evt->m_errorMsg = m_errorMsg.Clone();
         evt->m_path = wxFileName(m_path.GetFullPath().Clone());
         evt->m_newPath = wxFileName(m_newPath.GetFullPath().Clone());
+        evt->m_warningType = m_warningType;
         return evt;
     }
 
     virtual wxEventCategory GetEventCategory() const
     {
-        // TODO this has to be merged with "similiar" categories and changed
+        // TODO this has to be merged with "similar" categories and changed
         return wxEVT_CATEGORY_UNKNOWN;
     }
 
@@ -166,6 +188,11 @@ public:
         return m_errorMsg;
     }
 
+    wxFSWWarningType GetWarningType() const
+    {
+        return m_warningType;
+    }
+
     /**
      * Returns a wxString describing an event useful for debugging or testing
      */
@@ -173,9 +200,12 @@ public:
 
 protected:
     int m_changeType;
+    wxFSWWarningType m_warningType;
     wxFileName m_path;
     wxFileName m_newPath;
     wxString m_errorMsg;
+private:
+    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFileSystemWatcherEvent)
 };
 
 typedef void (wxEvtHandler::*wxFileSystemWatcherEventFunction)
@@ -196,12 +226,16 @@ class wxFSWatchInfo
 {
 public:
     wxFSWatchInfo() :
-        m_events(-1), m_type(wxFSWPath_None)
+        m_events(-1), m_type(wxFSWPath_None), m_refcount(-1)
     {
     }
 
-    wxFSWatchInfo(const wxString& path, int events, wxFSWPathType type) :
-        m_path(path), m_events(events), m_type(type)
+    wxFSWatchInfo(const wxString& path,
+                  int events,
+                  wxFSWPathType type,
+                  const wxString& filespec = wxString()) :
+        m_path(path), m_filespec(filespec), m_events(events), m_type(type),
+        m_refcount(1)
     {
     }
 
@@ -209,6 +243,8 @@ public:
     {
         return m_path;
     }
+
+    const wxString& GetFilespec() const { return m_filespec; }
 
     int GetFlags() const
     {
@@ -220,10 +256,27 @@ public:
         return m_type;
     }
 
+    // Reference counting of watch entries is used to avoid watching the same
+    // file system path multiple times (this can happen even accidentally, e.g.
+    // when you have a recursive watch and then decide to watch some file or
+    // directory under it separately).
+    int IncRef()
+    {
+        return ++m_refcount;
+    }
+
+    int DecRef()
+    {
+        wxASSERT_MSG( m_refcount > 0, wxS("Trying to decrement a zero count") );
+        return --m_refcount;
+    }
+
 protected:
     wxString m_path;
+    wxString m_filespec;      // For tree watches, holds any filespec to apply
     int m_events;
     wxFSWPathType m_type;
+    int m_refcount;
 };
 
 WX_DECLARE_STRING_HASH_MAP(wxFSWatchInfo, wxFSWatchInfoMap);
@@ -260,7 +313,7 @@ public:
      * of particular type.
      */
     virtual bool AddTree(const wxFileName& path, int events = wxFSW_EVENT_ALL,
-                         const wxString& filter = wxEmptyString);
+                         const wxString& filespec = wxEmptyString);
 
     /**
      * Removes path from the list of watched paths.
@@ -305,6 +358,14 @@ public:
             m_owner = handler;
     }
 
+
+    // This is a semi-private function used by wxWidgets itself only.
+    //
+    // Delegates the real work of adding the path to wxFSWatcherImpl::Add() and
+    // updates m_watches if the new path was successfully added.
+    bool AddAny(const wxFileName& path, int events, wxFSWPathType type,
+                const wxString& filespec = wxString());
+
 protected:
 
     static wxString GetCanonicalPath(const wxFileName& path)
@@ -319,10 +380,6 @@ protected:
 
         return path_copy.GetFullPath();
     }
-
-    // Delegates the real work of adding the path to wxFSWatcherImpl::Add() and
-    // updates m_watches if the new path was successfully added.
-    bool DoAdd(const wxFileName& path, int events, wxFSWPathType type);
 
 
     wxFSWatchInfoMap m_watches;        // path=>wxFSWatchInfo map

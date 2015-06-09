@@ -3,7 +3,6 @@
 // Purpose:     Declaration of wxDateTimePickerCtrl class.
 // Author:      Vadim Zeitlin
 // Created:     2011-09-22
-// RCS-ID:      $Id: datetimectrl.h 70071 2011-12-20 21:27:14Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

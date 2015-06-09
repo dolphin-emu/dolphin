@@ -1,20 +1,19 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup>
-    <IntDir>$(ProjectName)$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <ForcedIncludeFiles>
-      </ForcedIncludeFiles>
+      <!--Created in the vcxproj-->
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>wx/wxprec.h</PrecompiledHeaderFile>
       <ExceptionHandling>Async</ExceptionHandling>
-      <DisableSpecificWarnings>4267</DisableSpecificWarnings>
-      <PreprocessorDefinitions>_LIB;__WXMSW__;WXBUILDING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\;..\..\include;..\..\..\zlib;..\..\..\libpng</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>__WXMSW__;WXBUILDING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\;..\..\include;..\..\..\xxhash;..\..\..\zlib;..\..\..\libpng</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalOptions>"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\" %(AdditionalOptions)</AdditionalOptions>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

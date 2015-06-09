@@ -3,7 +3,6 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified by: Mart Raudsepp (GetMetric)
-// Id:          $Id: settings.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,32 +38,44 @@ static GtkContainer* ContainerWidget()
     {
         s_widget = GTK_CONTAINER(gtk_fixed_new());
         GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+#ifdef __WXGTK3__
+        // need this to initialize style for window
+        gtk_widget_get_style_context(GTK_WIDGET(window));
+#endif
         gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(s_widget));
     }
     return s_widget;
 }
 
 extern "C" {
+#ifdef __WXGTK3__
+static void style_updated(GtkWidget*, void*)
+#else
 static void style_set(GtkWidget*, GtkStyle*, void*)
+#endif
 {
     gs_fontSystem = wxNullFont;
 }
 }
 
-static const GtkStyle* ButtonStyle()
+static GtkWidget* ButtonWidget()
 {
     static GtkWidget* s_widget;
     if (s_widget == NULL)
     {
         s_widget = gtk_button_new();
         gtk_container_add(ContainerWidget(), s_widget);
+#ifdef __WXGTK3__
+        g_signal_connect(s_widget, "style_updated", G_CALLBACK(style_updated), NULL);
+#else
         gtk_widget_ensure_style(s_widget);
         g_signal_connect(s_widget, "style_set", G_CALLBACK(style_set), NULL);
+#endif
     }
-    return gtk_widget_get_style(s_widget);
+    return s_widget;
 }
 
-static const GtkStyle* ListStyle()
+static GtkWidget* ListWidget()
 {
     static GtkWidget* s_widget;
     if (s_widget == NULL)
@@ -72,60 +83,213 @@ static const GtkStyle* ListStyle()
         s_widget = gtk_tree_view_new_with_model(
             GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_INT)));
         gtk_container_add(ContainerWidget(), s_widget);
+#ifndef __WXGTK3__
         gtk_widget_ensure_style(s_widget);
+#endif
     }
-    return gtk_widget_get_style(s_widget);
+    return s_widget;
 }
 
-static const GtkStyle* TextCtrlStyle()
+static GtkWidget* TextCtrlWidget()
 {
     static GtkWidget* s_widget;
     if (s_widget == NULL)
     {
         s_widget = gtk_text_view_new();
         gtk_container_add(ContainerWidget(), s_widget);
+#ifndef __WXGTK3__
         gtk_widget_ensure_style(s_widget);
+#endif
     }
-    return gtk_widget_get_style(s_widget);
+    return s_widget;
 }
 
-static const GtkStyle* MenuItemStyle()
+static GtkWidget* MenuItemWidget()
 {
     static GtkWidget* s_widget;
     if (s_widget == NULL)
     {
         s_widget = gtk_menu_item_new();
         gtk_container_add(ContainerWidget(), s_widget);
+#ifndef __WXGTK3__
         gtk_widget_ensure_style(s_widget);
+#endif
     }
-    return gtk_widget_get_style(s_widget);
+    return s_widget;
 }
 
-static const GtkStyle* MenuBarStyle()
+static GtkWidget* MenuBarWidget()
 {
     static GtkWidget* s_widget;
     if (s_widget == NULL)
     {
         s_widget = gtk_menu_bar_new();
         gtk_container_add(ContainerWidget(), s_widget);
+#ifndef __WXGTK3__
         gtk_widget_ensure_style(s_widget);
+#endif
     }
-    return gtk_widget_get_style(s_widget);
+    return s_widget;
 }
 
-static const GtkStyle* ToolTipStyle()
+static GtkWidget* ToolTipWidget()
 {
     static GtkWidget* s_widget;
     if (s_widget == NULL)
     {
         s_widget = gtk_window_new(GTK_WINDOW_POPUP);
         const char* name = "gtk-tooltip";
+#ifndef __WXGTK3__
         if (gtk_check_version(2, 11, 0))
             name = "gtk-tooltips";
+#endif
         gtk_widget_set_name(s_widget, name);
+#ifndef __WXGTK3__
         gtk_widget_ensure_style(s_widget);
+#endif
     }
-    return gtk_widget_get_style(s_widget);
+    return s_widget;
+}
+
+#ifdef __WXGTK3__
+static void bg(GtkWidget* widget, GtkStateFlags state, GdkRGBA& gdkRGBA)
+{
+    GtkStyleContext* sc = gtk_widget_get_style_context(widget);
+    gtk_style_context_get_background_color(sc, state, &gdkRGBA);
+}
+static void fg(GtkWidget* widget, GtkStateFlags state, GdkRGBA& gdkRGBA)
+{
+    GtkStyleContext* sc = gtk_widget_get_style_context(widget);
+    gtk_style_context_get_color(sc, state, &gdkRGBA);
+}
+static void border(GtkWidget* widget, GtkStateFlags state, GdkRGBA& gdkRGBA)
+{
+    GtkStyleContext* sc = gtk_widget_get_style_context(widget);
+    gtk_style_context_get_border_color(sc, state, &gdkRGBA);
+}
+
+wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
+{
+    GdkRGBA gdkRGBA = { 0, 0, 0, 1 };
+    switch (index)
+    {
+    case wxSYS_COLOUR_3DLIGHT:
+    case wxSYS_COLOUR_ACTIVEBORDER:
+    case wxSYS_COLOUR_BTNFACE:
+    case wxSYS_COLOUR_DESKTOP:
+    case wxSYS_COLOUR_INACTIVEBORDER:
+    case wxSYS_COLOUR_INACTIVECAPTION:
+    case wxSYS_COLOUR_SCROLLBAR:
+    case wxSYS_COLOUR_WINDOWFRAME:
+        bg(ButtonWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_BTNHIGHLIGHT:
+    case wxSYS_COLOUR_HIGHLIGHT:
+        bg(ButtonWidget(), GTK_STATE_FLAG_SELECTED, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_BTNSHADOW:
+        border(ButtonWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_BTNTEXT:
+    case wxSYS_COLOUR_WINDOWTEXT:
+        fg(ButtonWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_GRAYTEXT:
+    case wxSYS_COLOUR_INACTIVECAPTIONTEXT:
+        fg(ButtonWidget(), GTK_STATE_FLAG_INSENSITIVE, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_HIGHLIGHTTEXT:
+        fg(ButtonWidget(), GTK_STATE_FLAG_SELECTED, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_HOTLIGHT:
+        {
+            static GtkWidget* s_widget;
+            if (s_widget == NULL)
+            {
+                s_widget = gtk_link_button_new("");
+                gtk_container_add(ContainerWidget(), s_widget);
+            }
+            fg(s_widget, GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        }
+        break;
+    case wxSYS_COLOUR_INFOBK:
+        bg(ToolTipWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_INFOTEXT:
+        fg(ToolTipWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_LISTBOX:
+        bg(ListWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_LISTBOXHIGHLIGHTTEXT:
+        fg(ListWidget(), GTK_STATE_FLAG_SELECTED, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_LISTBOXTEXT:
+        fg(ListWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_MENU:
+        bg(MenuItemWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_MENUBAR:
+        bg(MenuBarWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_ACTIVECAPTION:
+    case wxSYS_COLOUR_MENUHILIGHT:
+        bg(MenuItemWidget(), GTK_STATE_FLAG_SELECTED, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_MENUTEXT:
+        fg(MenuItemWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_APPWORKSPACE:
+    case wxSYS_COLOUR_WINDOW:
+        bg(TextCtrlWidget(), GTK_STATE_FLAG_NORMAL, gdkRGBA);
+        break;
+    case wxSYS_COLOUR_CAPTIONTEXT:
+        {
+            GdkRGBA c = { 1, 1, 1, 1 };
+            gdkRGBA = c;
+        }
+        break;
+    default:
+        wxFAIL_MSG("unknown system colour index");
+        // fallthrough
+    case wxSYS_COLOUR_3DDKSHADOW:
+    case wxSYS_COLOUR_GRADIENTACTIVECAPTION:
+    case wxSYS_COLOUR_GRADIENTINACTIVECAPTION:
+        // black
+        break;
+    }
+    return wxColour(gdkRGBA);
+}
+#else
+static const GtkStyle* ButtonStyle()
+{
+    return gtk_widget_get_style(ButtonWidget());
+}
+
+static const GtkStyle* ListStyle()
+{
+    return gtk_widget_get_style(ListWidget());
+}
+
+static const GtkStyle* TextCtrlStyle()
+{
+    return gtk_widget_get_style(TextCtrlWidget());
+}
+
+static const GtkStyle* MenuItemStyle()
+{
+    return gtk_widget_get_style(MenuItemWidget());
+}
+
+static const GtkStyle* MenuBarStyle()
+{
+    return gtk_widget_get_style(MenuBarWidget());
+}
+
+static const GtkStyle* ToolTipStyle()
+{
+    return gtk_widget_get_style(ToolTipWidget());
 }
 
 wxColour wxSystemSettingsNative::GetColour( wxSystemColour index )
@@ -242,6 +406,7 @@ wxColour wxSystemSettingsNative::GetColour( wxSystemColour index )
     wxASSERT(color.IsOk());
     return color;
 }
+#endif
 
 wxFont wxSystemSettingsNative::GetFont( wxSystemFont index )
 {
@@ -261,7 +426,13 @@ wxFont wxSystemSettingsNative::GetFont( wxSystemFont index )
             if (!gs_fontSystem.IsOk())
             {
                 wxNativeFontInfo info;
+#ifdef __WXGTK3__
+                GtkStyleContext* sc = gtk_widget_get_style_context(ButtonWidget());
+                gtk_style_context_get(sc, GTK_STATE_FLAG_NORMAL,
+                    GTK_STYLE_PROPERTY_FONT, &info.description, NULL);
+#else
                 info.description = ButtonStyle()->font_desc;
+#endif
                 gs_fontSystem = wxFont(info);
 
 #if wxUSE_FONTENUM
@@ -269,10 +440,14 @@ wxFont wxSystemSettingsNative::GetFont( wxSystemFont index )
                 // it's "Sans Serif" but the real font is called "Sans"):
                 if (!wxFontEnumerator::IsValidFacename(gs_fontSystem.GetFaceName()) &&
                     gs_fontSystem.GetFaceName() == "Sans Serif")
+                {
                     gs_fontSystem.SetFaceName("Sans");
+                }
 #endif // wxUSE_FONTENUM
 
+#ifndef __WXGTK3__
                 info.description = NULL;
+#endif
             }
             font = gs_fontSystem;
             break;
@@ -290,7 +465,7 @@ wxFont wxSystemSettingsNative::GetFont( wxSystemFont index )
 // on or for the default screen if window is NULL
 static GtkSettings *GetSettingsForWindowScreen(GdkWindow *window)
 {
-    return window ? gtk_settings_get_for_screen(gdk_drawable_get_screen(window))
+    return window ? gtk_settings_get_for_screen(gdk_window_get_screen(window))
                   : gtk_settings_get_default();
 }
 
@@ -299,16 +474,16 @@ static int GetBorderWidth(wxSystemMetric index, wxWindow* win)
     if (win->m_wxwindow)
     {
         wxPizza* pizza = WX_PIZZA(win->m_wxwindow);
-        int x, y;
-        pizza->get_border_widths(x, y);
+        GtkBorder border;
+        pizza->get_border(border);
         switch (index)
         {
             case wxSYS_BORDER_X:
             case wxSYS_EDGE_X:
             case wxSYS_FRAMESIZE_X:
-                return x;
+                return border.left;
             default:
-                return y;
+                return border.top;
         }
     }
     return -1;
@@ -359,7 +534,7 @@ int wxSystemSettingsNative::GetMetric( wxSystemMetric index, wxWindow* win )
         case wxSYS_CURSOR_X:
         case wxSYS_CURSOR_Y:
                 return gdk_display_get_default_cursor_size(
-                            window ? gdk_drawable_get_display(window)
+                            window ? gdk_window_get_display(window)
                                    : gdk_display_get_default());
 
         case wxSYS_DCLICK_X:
@@ -396,13 +571,13 @@ int wxSystemSettingsNative::GetMetric( wxSystemMetric index, wxWindow* win )
 
         case wxSYS_SCREEN_X:
             if (window)
-                return gdk_screen_get_width(gdk_drawable_get_screen(window));
+                return gdk_screen_get_width(gdk_window_get_screen(window));
             else
                 return gdk_screen_width();
 
         case wxSYS_SCREEN_Y:
             if (window)
-                return gdk_screen_get_height(gdk_drawable_get_screen(window));
+                return gdk_screen_get_height(gdk_window_get_screen(window));
             else
                 return gdk_screen_height();
 

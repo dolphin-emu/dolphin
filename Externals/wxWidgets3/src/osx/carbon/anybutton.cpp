@@ -3,7 +3,6 @@
 // Purpose:     wxAnyButton
 // Author:      Stefan Csomor
 // Created:     1998-01-01 (extracted from button.cpp)
-// RCS-ID:      $Id: anybutton.cpp 67931 2011-06-14 13:00:42Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -53,7 +52,17 @@ wxSize wxAnyButton::DoGetBestSize() const
     GetPeer()->GetBestRect( &bestsize ) ;
 
     int wBtn;
-    if ( EmptyRect( &bestsize ) || ( GetWindowStyle() & wxBU_EXACTFIT) )
+    if ( GetBitmapLabel().IsOk() )
+    {
+        sz.x = bestsize.right - bestsize.left ;
+        sz.y = bestsize.bottom - bestsize.top ;
+        sz.x  = sz.x  + MacGetLeftBorderSize() +
+        MacGetRightBorderSize();
+        sz.y = sz.y + MacGetTopBorderSize() +
+        MacGetBottomBorderSize();
+        wBtn = sz.x;
+    }
+    else if ( EmptyRect( &bestsize ) || ( GetWindowStyle() & wxBU_EXACTFIT) )
     {
         Point bounds;
 

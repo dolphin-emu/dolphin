@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menu.mm 70401 2012-01-19 14:59:35Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -67,8 +66,8 @@
 - (void)menuNeedsUpdate:(NSMenu*)smenu;
 #else
 - (void)menuWillOpen:(NSMenu *)menu;
-- (void)menuDidClose:(NSMenu *)menu;
 #endif
+- (void)menuDidClose:(NSMenu *)menu;
 - (void)menu:(NSMenu *)menu willHighlightItem:(NSMenuItem *)item;
 
 @end
@@ -105,6 +104,7 @@
             wxpeer->HandleMenuOpened();
     }
 }
+#endif
 
 - (void)menuDidClose:(NSMenu *)smenu
 {
@@ -117,7 +117,6 @@
             wxpeer->HandleMenuClosed();
     }
 }
-#endif
 
 - (void)menu:(NSMenu *)smenu willHighlightItem:(NSMenuItem *)item
 {
@@ -141,6 +140,9 @@
 
 @interface NSApplication(MissingAppleMenuCall)
 - (void)setAppleMenu:(NSMenu *)menu;
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
+- (void)setHelpMenu:(NSMenu* )menu;
+#endif
 @end
 
 class wxMenuCocoaImpl : public wxMenuImpl
@@ -155,7 +157,6 @@ public :
         }
         [menu setDelegate:controller];
         [m_osxMenu setImplementation:this];
-        [menu setAutoenablesItems:NO];
         // gc aware
         if ( m_osxMenu )
             CFRetain(m_osxMenu);
@@ -167,7 +168,7 @@ public :
     virtual void InsertOrAppend(wxMenuItem *pItem, size_t pos)
     {
         NSMenuItem* nsmenuitem = (NSMenuItem*) pItem->GetPeer()->GetHMenuItem();
-        // make sure a call of SetSubMenu is also reflected (occuring after Create)
+        // make sure a call of SetSubMenu is also reflected (occurring after Create)
         // update the native menu item accordingly
         
         if ( pItem->IsSubMenu() )
@@ -194,8 +195,35 @@ public :
 
     virtual void MakeRoot()
     {
+        wxMenu* peer = GetWXPeer();
+        
         [NSApp setMainMenu:m_osxMenu];
         [NSApp setAppleMenu:[[m_osxMenu itemAtIndex:0] submenu]];
+
+        wxMenuItem *services = peer->FindItem(wxID_OSX_SERVICES);
+        if ( services )
+            [NSApp setServicesMenu:services->GetSubMenu()->GetHMenu()];
+#if 0
+        // should we reset this just to be sure we don't leave a dangling ref ?
+        else
+            [NSApp setServicesMenu:nil];
+#endif
+        
+        NSMenu* helpMenu = nil;
+        int helpid = peer->FindItem(wxApp::s_macHelpMenuTitleName);
+        if ( helpid == wxNOT_FOUND )
+            helpid = peer->FindItem(_("&Help"));
+        
+        if ( helpid != wxNOT_FOUND )
+        {
+            wxMenuItem* helpMenuItem = peer->FindItem(helpid);
+            
+            if ( helpMenuItem->IsSubMenu() )
+                helpMenu = helpMenuItem->GetSubMenu()->GetHMenu();
+        }
+        if ( [NSApp respondsToSelector:@selector(setHelpMenu:)])
+            [NSApp setHelpMenu:helpMenu];
+        
     }
 
     virtual void Enable( bool WXUNUSED(enable) )

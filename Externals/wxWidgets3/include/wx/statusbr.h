@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.02.00
-// RCS-ID:      $Id: statusbr.h 70808 2012-03-04 20:31:42Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,6 +44,7 @@ extern WXDLLIMPEXP_DATA_CORE(const char) wxStatusBarNameStr[];
 #define wxSB_NORMAL    0x0000
 #define wxSB_FLAT      0x0001
 #define wxSB_RAISED    0x0002
+#define wxSB_SUNKEN    0x0003
 
 // ----------------------------------------------------------------------------
 // wxStatusBarPane: an helper for wxStatusBar
@@ -53,7 +53,7 @@ extern WXDLLIMPEXP_DATA_CORE(const char) wxStatusBarNameStr[];
 class WXDLLIMPEXP_CORE wxStatusBarPane
 {
 public:
-    wxStatusBarPane(int style = wxSB_NORMAL, size_t width = 0)
+    wxStatusBarPane(int style = wxSB_NORMAL, int width = 0)
         : m_nStyle(style), m_nWidth(width)
         { m_bEllipsized = false; }
 
@@ -119,7 +119,7 @@ public:
     // set the number of fields and call SetStatusWidths(widths) if widths are
     // given
     virtual void SetFieldsCount(int number = 1, const int *widths = NULL);
-    int GetFieldsCount() const { return m_panes.GetCount(); }
+    int GetFieldsCount() const { return (int)m_panes.GetCount(); }
 
     // field text
     // ----------
@@ -150,10 +150,7 @@ public:
     // field styles
     // ------------
 
-    // Set the field style. Use either wxSB_NORMAL (default) for a standard 3D
-    // border around a field, wxSB_FLAT for no border around a field, so that it
-    // appears flat or wxSB_POPOUT to make the field appear raised.
-    // Setting field styles only works on wxMSW
+    // Set the field border style to one of wxSB_XXX values.
     virtual void SetStatusStyles(int n, const int styles[]);
 
     int GetStatusStyle(int n) const

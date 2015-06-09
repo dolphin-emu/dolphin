@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -25,6 +25,14 @@
 #ifndef SFML_CONFIG_HPP
 #define SFML_CONFIG_HPP
 
+
+////////////////////////////////////////////////////////////
+// Define the SFML version
+////////////////////////////////////////////////////////////
+#define SFML_VERSION_MAJOR 2
+#define SFML_VERSION_MINOR 1
+
+
 ////////////////////////////////////////////////////////////
 // Identify the operating system
 ////////////////////////////////////////////////////////////
@@ -32,9 +40,6 @@
 
     // Windows
     #define SFML_SYSTEM_WINDOWS
-    #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN
-    #endif
     #ifndef NOMINMAX
         #define NOMINMAX
     #endif
@@ -49,8 +54,7 @@
     // MacOS
     #define SFML_SYSTEM_MACOS
 
-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || \
-      defined(__NetBSD__) || defined(__OpenBSD__)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 
     // FreeBSD
     #define SFML_SYSTEM_FREEBSD
@@ -74,45 +78,47 @@
 
 
 ////////////////////////////////////////////////////////////
-// Define portable import / export macros
+// Define helpers to create portable import / export macros for each module
 ////////////////////////////////////////////////////////////
-#if defined(SFML_SYSTEM_WINDOWS)
+#if !defined(SFML_STATIC)
 
-    #ifdef SFML_DYNAMIC
+    #if defined(SFML_SYSTEM_WINDOWS)
 
-        // Windows platforms
-        #ifdef SFML_EXPORTS
+        // Windows compilers need specific (and different) keywords for export and import
+        #define SFML_API_EXPORT __declspec(dllexport)
+        #define SFML_API_IMPORT __declspec(dllimport)
 
-            // From DLL side, we must export
-            #define SFML_API __declspec(dllexport)
-
-        #else
-
-            // From client application side, we must import
-            #define SFML_API __declspec(dllimport)
-
-        #endif
-
-        // For Visual C++ compilers, we also need to turn off this annoying C4251 warning.
-        // You can read lots ot different things about it, but the point is the code will
-        // just work fine, and so the simplest way to get rid of this warning is to disable it
+        // For Visual C++ compilers, we also need to turn off this annoying C4251 warning
         #ifdef _MSC_VER
 
             #pragma warning(disable : 4251)
 
         #endif
 
-    #else
+    #else // Linux, FreeBSD, Mac OS X
 
-        // No specific directive needed for static build
-        #define SFML_API
+        #if __GNUC__ >= 4
+
+            // GCC 4 has special keywords for showing/hidding symbols,
+            // the same keyword is used for both importing and exporting
+            #define SFML_API_EXPORT __attribute__ ((__visibility__ ("default")))
+            #define SFML_API_IMPORT __attribute__ ((__visibility__ ("default")))
+
+        #else
+
+            // GCC < 4 has no mechanism to explicitely hide symbols, everything's exported
+            #define SFML_API_EXPORT
+            #define SFML_API_IMPORT
+
+        #endif
 
     #endif
 
 #else
 
-    // Other platforms don't need to define anything
-    #define SFML_API
+    // Static build doesn't need import/export macros
+    #define SFML_API_EXPORT
+    #define SFML_API_IMPORT
 
 #endif
 
@@ -120,44 +126,31 @@
 ////////////////////////////////////////////////////////////
 // Define portable fixed-size types
 ////////////////////////////////////////////////////////////
-#include <climits>
-
 namespace sf
 {
+    // All "common" platforms use the same size for char, short and int
+    // (basically there are 3 types for 3 sizes, so no other match is possible),
+    // we can use them without doing any kind of check
+
     // 8 bits integer types
-    #if UCHAR_MAX == 0xFF
-        typedef signed   char Int8;
-        typedef unsigned char Uint8;
-    #else
-        #error No 8 bits integer type for this platform
-    #endif
+    typedef signed   char Int8;
+    typedef unsigned char Uint8;
 
     // 16 bits integer types
-    #if USHRT_MAX == 0xFFFF
-        typedef signed   short Int16;
-        typedef unsigned short Uint16;
-    #elif UINT_MAX == 0xFFFF
-        typedef signed   int Int16;
-        typedef unsigned int Uint16;
-    #elif ULONG_MAX == 0xFFFF
-        typedef signed   long Int16;
-        typedef unsigned long Uint16;
-    #else
-        #error No 16 bits integer type for this platform
-    #endif
+    typedef signed   short Int16;
+    typedef unsigned short Uint16;
 
     // 32 bits integer types
-    #if USHRT_MAX == 0xFFFFFFFF
-        typedef signed   short Int32;
-        typedef unsigned short Uint32;
-    #elif UINT_MAX == 0xFFFFFFFF
-        typedef signed   int Int32;
-        typedef unsigned int Uint32;
-    #elif ULONG_MAX == 0xFFFFFFFF
-        typedef signed   long Int32;
-        typedef unsigned long Uint32;
+    typedef signed   int Int32;
+    typedef unsigned int Uint32;
+
+    // 64 bits integer types
+    #if defined(_MSC_VER)
+        typedef signed   __int64 Int64;
+        typedef unsigned __int64 Uint64;
     #else
-        #error No 32 bits integer type for this platform
+        typedef signed   long long Int64;
+        typedef unsigned long long Uint64;
     #endif
 
 } // namespace sf

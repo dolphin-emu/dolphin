@@ -3,7 +3,6 @@
 // Purpose:     Implementation of wxMarkupParser.
 // Author:      Vadim Zeitlin
 // Created:     2011-02-16
-// RCS-ID:      $Id: markupparser.cpp 67072 2011-02-27 13:17:41Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -172,7 +171,6 @@ wxMarkupParser::ParseAttrs(wxString attrs, TagAndAttrs& tagAndAttrs)
             else // Must be a CSS-like size specification
             {
                 int cssSize = 1;
-                wxString rest;
                 if ( value.StartsWith("xx-", &rest) )
                     cssSize = 3;
                 else if ( value.StartsWith("x-", &rest) )
@@ -280,10 +278,15 @@ bool wxMarkupParser::Parse(const wxString& text)
                         current.clear();
                     }
 
+                    // This variable is used only in the debugging messages
+                    // and doesn't need to be defined if they're not compiled
+                    // at all (it actually would result in unused variable
+                    // messages in this case).
+#if wxUSE_LOG_DEBUG || !defined(HAVE_VARIADIC_MACROS)
                     // Remember the tag starting position for the error
                     // messages.
                     const size_t pos = it - text.begin();
-
+#endif
                     bool start = true;
                     if ( ++it != end && *it == '/' )
                     {

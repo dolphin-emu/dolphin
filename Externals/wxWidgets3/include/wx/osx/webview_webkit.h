@@ -5,7 +5,6 @@
 // Author:      Jethro Grassie / Kevin Ollivier / Marianne Gagnon
 // Modified by:
 // Created:     2004-4-16
-// RCS-ID:      $Id: webview_webkit.h 69074 2011-09-12 18:35:39Z SJL $
 // Copyright:   (c) Jethro Grassie / Kevin Ollivier / Marianne Gagnon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,6 +19,8 @@
 
 #include "wx/control.h"
 #include "wx/webview.h"
+
+#include "wx/osx/core/objcid.h"
 
 // ----------------------------------------------------------------------------
 // Web Kit Control
@@ -52,14 +53,10 @@ public:
     virtual bool CanGoForward() const;
     virtual void GoBack();
     virtual void GoForward();
-    virtual void Reload(wxWebViewReloadFlags flags = wxWEB_VIEW_RELOAD_DEFAULT);
+    virtual void Reload(wxWebViewReloadFlags flags = wxWEBVIEW_RELOAD_DEFAULT);
     virtual void Stop();
     virtual wxString GetPageSource() const;
     virtual wxString GetPageText() const;
-
-    //We do not want to hide the other overloads
-    using wxWebView::SetPage;
-    virtual void SetPage(const wxString& html, const wxString& baseUrl);
 
     virtual void Print();
 
@@ -74,19 +71,27 @@ public:
     virtual bool CanSetZoomType(wxWebViewZoomType type) const;
 
     virtual bool IsBusy() const { return m_busy; }
-    
+
     //History functions
     virtual void ClearHistory();
     virtual void EnableHistory(bool enable = true);
     virtual wxVector<wxSharedPtr<wxWebViewHistoryItem> > GetBackwardHistory();
     virtual wxVector<wxSharedPtr<wxWebViewHistoryItem> > GetForwardHistory();
     virtual void LoadHistoryItem(wxSharedPtr<wxWebViewHistoryItem> item);
-    
+
     //Undo / redo functionality
     virtual bool CanUndo() const;
     virtual bool CanRedo() const;
     virtual void Undo();
     virtual void Redo();
+
+    //Find function
+    virtual long Find(const wxString& text, int flags = wxWEBVIEW_FIND_DEFAULT) 
+    { 
+        wxUnusedVar(text);
+        wxUnusedVar(flags);
+        return wxNOT_FOUND; 
+    }
 
     //Clipboard functions
     virtual bool CanCut() const { return true; }
@@ -95,11 +100,11 @@ public:
     virtual void Cut();
     virtual void Copy();
     virtual void Paste();
-    
+
     //Editing functions
     virtual void SetEditable(bool enable = true);
     virtual bool IsEditable() const;
-    
+
     //Selection
     virtual void DeleteSelection();
     virtual bool HasSelection() const;
@@ -107,11 +112,13 @@ public:
     virtual wxString GetSelectedText() const;
     virtual wxString GetSelectedSource() const;
     virtual void ClearSelection();
-    
+
     void RunScript(const wxString& javascript);
-    
+
     //Virtual Filesystem Support
     virtual void RegisterHandler(wxSharedPtr<wxWebViewHandler> handler);
+
+    virtual void* GetNativeBackend() const { return m_webView; }
 
     // ---- methods not from the parent (common) interface
     bool  CanGetPageSource() const;
@@ -141,6 +148,8 @@ public:
     bool m_busy;
 
 protected:
+    virtual void DoSetPage(const wxString& html, const wxString& baseUrl);
+
     DECLARE_EVENT_TABLE()
     void MacVisibilityChanged();
 
@@ -149,7 +158,7 @@ private:
     wxWindowID m_windowID;
     wxString m_pageTitle;
 
-    struct objc_object *m_webView;
+    wxObjCID m_webView;
 
     // we may use this later to setup our own mouse events,
     // so leave it in for now.
@@ -158,6 +167,20 @@ private:
     //TODO: look into using DECLARE_WXCOCOA_OBJC_CLASS rather than this.
 };
 
-#endif // wxUSE_WEBVIEW && wxUSE_WEBVIEW_WEBKIT 
+class WXDLLIMPEXP_WEBVIEW wxWebViewFactoryWebKit : public wxWebViewFactory
+{
+public:
+    virtual wxWebView* Create() { return new wxWebViewWebKit; }
+    virtual wxWebView* Create(wxWindow* parent,
+                              wxWindowID id,
+                              const wxString& url = wxWebViewDefaultURLStr,
+                              const wxPoint& pos = wxDefaultPosition,
+                              const wxSize& size = wxDefaultSize,
+                              long style = 0,
+                              const wxString& name = wxWebViewNameStr)
+    { return new wxWebViewWebKit(parent, id, url, pos, size, style, name); }
+};
+
+#endif // wxUSE_WEBVIEW && wxUSE_WEBVIEW_WEBKIT
 
 #endif // _WX_WEBKIT_H_

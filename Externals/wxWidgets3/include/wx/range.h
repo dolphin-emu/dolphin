@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2011-01-07
-// RCS-ID:      $Id: range.h 66625 2011-01-07 17:42:39Z SC $
 // Copyright:   (c) 2011 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

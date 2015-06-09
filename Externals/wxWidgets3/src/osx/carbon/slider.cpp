@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: slider.cpp 67416 2011-04-08 15:09:38Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -48,7 +47,7 @@ wxWidgetImplType* wxWidgetImpl::CreateSlider( wxWindowMac* wxpeer,
     if ( style & wxSL_AUTOTICKS )
         tickMarks = (maximum - minimum) + 1; // +1 for the 0 value
 
-    // keep the number of tickmarks from becoming unwieldly, therefore below it is ok to cast
+    // keep the number of tickmarks from becoming unwieldy, therefore below it is ok to cast
     // it to a UInt16
     while (tickMarks > 20)
         tickMarks /= 5;

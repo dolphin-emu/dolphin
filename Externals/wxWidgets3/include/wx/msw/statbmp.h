@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statbmp.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -58,7 +57,7 @@ public:
     virtual bool CanApplyThemeBorder() const { return false; }
 
 protected:
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestClientSize() const;
 
     // ctor/dtor helpers
     void Init() { m_isIcon = true; m_image = NULL; m_currentHandle = 0; }
@@ -76,6 +75,7 @@ protected:
     void DoPaintManually(wxPaintEvent& event);
 #endif // !__WXWINCE__
 
+    void WXHandleSize(wxSizeEvent& event);
 
     // we can have either an icon or a bitmap
     bool m_isIcon;
@@ -86,6 +86,7 @@ protected:
 
 private:
     DECLARE_DYNAMIC_CLASS(wxStaticBitmap)
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxStaticBitmap);
 };
 

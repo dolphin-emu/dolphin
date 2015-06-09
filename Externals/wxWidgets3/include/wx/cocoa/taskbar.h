@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/01/24
-// RCS-ID:      $Id: taskbar.h 50646 2007-12-12 01:35:53Z VZ $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////

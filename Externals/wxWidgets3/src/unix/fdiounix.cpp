@@ -3,7 +3,6 @@
 // Purpose:     wxFDIOManager implementation for console Unix applications
 // Author:      Vadim Zeitlin
 // Created:     2009-08-17
-// RCS-ID:      $Id: fdiounix.cpp 62187 2009-09-28 15:35:48Z PC $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,7 @@
 /*
  *  RFC 1521 base64 encoding/decoding
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,17 +23,27 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_BASE64_C)
 
 #include "polarssl/base64.h"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
 typedef UINT32 uint32_t;
 #else
 #include <inttypes.h>
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
 #endif
 
 static const unsigned char base64_enc_map[64] =
@@ -77,9 +87,9 @@ int base64_encode( unsigned char *dst, size_t *dlen,
     if( slen == 0 )
         return( 0 );
 
-    n = (slen << 3) / 6;
+    n = ( slen << 3 ) / 6;
 
-    switch( (slen << 3) - (n * 6) )
+    switch( ( slen << 3 ) - ( n * 6 ) )
     {
         case  2: n += 3; break;
         case  4: n += 2; break;
@@ -92,7 +102,7 @@ int base64_encode( unsigned char *dst, size_t *dlen,
         return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
     }
 
-    n = (slen / 3) * 3;
+    n = ( slen / 3 ) * 3;
 
     for( i = 0, p = dst; i < n; i += 3 )
     {
@@ -109,12 +119,12 @@ int base64_encode( unsigned char *dst, size_t *dlen,
     if( i < slen )
     {
         C1 = *src++;
-        C2 = ((i + 1) < slen) ? *src++ : 0;
+        C2 = ( ( i + 1 ) < slen ) ? *src++ : 0;
 
         *p++ = base64_enc_map[(C1 >> 2) & 0x3F];
         *p++ = base64_enc_map[(((C1 & 3) << 4) + (C2 >> 4)) & 0x3F];
 
-        if( (i + 1) < slen )
+        if( ( i + 1 ) < slen )
              *p++ = base64_enc_map[((C2 & 15) << 2) & 0x3F];
         else *p++ = '=';
 
@@ -137,7 +147,7 @@ int base64_decode( unsigned char *dst, size_t *dlen,
     uint32_t j, x;
     unsigned char *p;
 
-    for( i = j = n = 0; i < slen; i++ )
+    for( i = n = j = 0; i < slen; i++ )
     {
         if( ( slen - i ) >= 2 &&
             src[i] == '\r' && src[i + 1] == '\n' )
@@ -161,9 +171,10 @@ int base64_decode( unsigned char *dst, size_t *dlen,
     if( n == 0 )
         return( 0 );
 
-    n = ((n * 6) + 7) >> 3;
+    n = ( ( n * 6 ) + 7 ) >> 3;
+    n -= j;
 
-    if( *dlen < n )
+    if( dst == NULL || *dlen < n )
     {
         *dlen = n;
         return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
@@ -175,7 +186,7 @@ int base64_decode( unsigned char *dst, size_t *dlen,
             continue;
 
         j -= ( base64_dec_map[*src] == 64 );
-        x  = (x << 6) | ( base64_dec_map[*src] & 0x3F );
+        x  = ( x << 6 ) | ( base64_dec_map[*src] & 0x3F );
 
         if( ++n == 4 )
         {
@@ -222,7 +233,7 @@ int base64_self_test( int verbose )
     unsigned char buffer[128];
 
     if( verbose != 0 )
-        printf( "  Base64 encoding test: " );
+        polarssl_printf( "  Base64 encoding test: " );
 
     len = sizeof( buffer );
     src = base64_test_dec;
@@ -231,13 +242,13 @@ int base64_self_test( int verbose )
          memcmp( base64_test_enc, buffer, 88 ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        printf( "passed\n  Base64 decoding test: " );
+        polarssl_printf( "passed\n  Base64 decoding test: " );
 
     len = sizeof( buffer );
     src = base64_test_enc;
@@ -246,17 +257,17 @@ int base64_self_test( int verbose )
          memcmp( base64_test_dec, buffer, 64 ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        printf( "passed\n\n" );
+        polarssl_printf( "passed\n\n" );
 
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_BASE64_C */

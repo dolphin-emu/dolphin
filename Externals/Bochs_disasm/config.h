@@ -38,4 +38,8 @@ typedef Bit64u bx_address;
 
 #endif
 
+#define BX_CONST64(x)  (x##LL)
+#define GET32L(val64) ((Bit32u)(((Bit64u)(val64)) & 0xFFFFFFFF))
+#define GET32H(val64) ((Bit32u)(((Bit64u)(val64)) >> 32))
+
 #endif

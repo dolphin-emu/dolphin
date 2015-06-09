@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by: Francesco Montorsi
 // Created:     27/07/03
-// RCS-ID:      $Id: xtihandler.h 66651 2011-01-08 10:22:30Z SC $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
@@ -94,7 +93,7 @@ private:
 #define wxHANDLER(name,eventClassType)                                               \
     static wxHandlerInfo _handlerInfo##name( first, class_t::GetClassInfoStatic(),   \
                     wxT(#name), (wxObjectEventFunction) (wxEventFunction) &name,     \
-                    CLASSINFO( eventClassType ) );
+                    wxCLASSINFO( eventClassType ) );
 
 #define wxBEGIN_HANDLERS_TABLE(theClass)          \
     wxHandlerInfo *theClass::GetHandlersStatic()  \

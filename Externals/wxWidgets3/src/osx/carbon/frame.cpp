@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: frame.cpp 70765 2012-03-01 15:04:42Z JS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -225,8 +224,10 @@ void wxFrame::AttachMenuBar( wxMenuBar *menuBar )
 {
 #if wxOSX_USE_CARBON
     wxFrame* tlf = wxDynamicCast( wxNonOwnedWindow::GetFromWXWindow( (WXWindow) FrontNonFloatingWindow() ) , wxFrame );
+#elif wxOSX_USE_COCOA
+    wxFrame* tlf = wxDynamicCast( wxNonOwnedWindow::GetFromWXWindow( wxOSXGetMainWindow() ) , wxFrame );
 #else
-    wxFrame* tlf = (wxFrame*) wxTheApp->GetTopWindow();
+    wxFrame* tlf = wxDynamicCast( wxTheApp->GetTopWindow(), wxFrame );
 #endif
     bool makeCurrent = false;
 

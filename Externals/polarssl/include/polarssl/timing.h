@@ -3,7 +3,7 @@
  *
  * \brief Portable interface to the CPU cycle counter
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,6 +27,20 @@
 #ifndef POLARSSL_TIMING_H
 #define POLARSSL_TIMING_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
+#include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
+
+#if !defined(POLARSSL_TIMING_ALT)
+// Regular implementation
+//
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          timer structure
  */
@@ -34,10 +48,6 @@ struct hr_time
 {
     unsigned char opaque[32];
 };
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 extern volatile int alarmed;
 
@@ -68,8 +78,21 @@ void set_alarm( int seconds );
  */
 void m_sleep( int milliseconds );
 
+#if defined(POLARSSL_SELF_TEST)
+/**
+ * \brief          Checkup routine
+ *
+ * \return         0 if successful, or 1 if a test failed
+ */
+int timing_self_test( int verbose );
+#endif
+
 #ifdef __cplusplus
 }
 #endif
+
+#else  /* POLARSSL_TIMING_ALT */
+#include "timing_alt.h"
+#endif /* POLARSSL_TIMING_ALT */
 
 #endif /* timing.h */

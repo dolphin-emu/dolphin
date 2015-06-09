@@ -5,7 +5,6 @@
  * Author:      Joel Farley, Ove Kaaven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxcrtbase.h 70345 2012-01-15 01:05:28Z VZ $
  * Copyright:   (c) 1998-2006 wxWidgets dev team
  * Licence:     wxWindows licence
  */
@@ -63,7 +62,7 @@
    define it ourselves for them
  */
 #ifndef isascii
-    #if defined(__MWERKS__) || defined(__WX_STRICT_ANSI_GCC__)
+    #if defined(__WX_STRICT_ANSI_GCC__)
         #define wxNEED_ISASCII
     #elif defined(_WIN32_WCE)
         #if _WIN32_WCE <= 211
@@ -84,9 +83,7 @@
 
 /* string.h functions */
 #ifndef strdup
-    #if defined(__MWERKS__) && !defined(__MACH__) && (__MSL__ < 0x00008000)
-        #define wxNEED_STRDUP
-    #elif defined(__WXWINCE__)
+    #if defined(__WXWINCE__)
         #if _WIN32_WCE <= 211
             #define wxNEED_STRDUP
         #endif
@@ -103,21 +100,6 @@
 WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
 #endif
 #endif /* _WIN32_WCE */
-
-
-#if defined(__MWERKS__)
-    /* Metrowerks only has wide char support for OS X >= 10.3 */
-    #if !defined(__DARWIN__) || \
-         (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3)
-        #define wxHAVE_MWERKS_UNICODE
-    #endif
-
-    #ifdef wxHAVE_MWERKS_UNICODE
-        #define HAVE_WPRINTF   1
-        #define HAVE_WCSRTOMBS 1
-        #define HAVE_VSWPRINTF 1
-    #endif
-#endif /* __MWERKS__ */
 
 
 /* -------------------------------------------------------------------------
@@ -181,17 +163,15 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
     #define wxCRT_StrxfrmW   wcsxfrm
 #endif /* __WXWINCE__ */
 
-/* Almost all compiler have strdup(), but not quite all: CodeWarrior under
-   Mac and VC++ for Windows CE don't provide it. Another special case is gcc in
-   strict ANSI mode: normally it doesn't provide strdup() but MinGW does
-   provide it under MSVC-compatible name so test for it before checking
-   __WX_STRICT_ANSI_GCC__. */
-#if (defined(__VISUALC__) && __VISUALC__ >= 1400) || \
-    defined(__MINGW32__)
+/* Almost all compilers have strdup(), but VC++ and MinGW call it _strdup().
+   And it's not available in MinGW strict ANSI mode nor under Windows CE. */
+#if (defined(__VISUALC__) && __VISUALC__ >= 1400)
     #define wxCRT_StrdupA _strdup
-#elif !((defined(__MWERKS__) && defined(__WXMAC__)) || \
-        defined(__WXWINCE__) || \
-        defined(__WX_STRICT_ANSI_GCC__))
+#elif defined(__MINGW32__)
+    #ifndef __WX_STRICT_ANSI_GCC__
+        #define wxCRT_StrdupA _strdup
+    #endif
+#elif !defined(__WXWINCE__)
     #define wxCRT_StrdupA strdup
 #endif
 
@@ -268,8 +248,7 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
         defined(__EMX__) || defined(__DJGPP__)
     #define wxCRT_StricmpA stricmp
     #define wxCRT_StrnicmpA strnicmp
-#elif defined(__SYMANTEC__) || defined(__VISUALC__) || \
-        (defined(__MWERKS__) && defined(__INTEL__))
+#elif defined(__SYMANTEC__) || (defined(__VISUALC__) && !defined(__WXWINCE__))
     #define wxCRT_StricmpA _stricmp
     #define wxCRT_StrnicmpA _strnicmp
 #elif defined(__UNIX__) || (defined(__GNUWIN32__) && !defined(__WX_STRICT_ANSI_GCC__))
@@ -574,14 +553,7 @@ WXDLLIMPEXP_BASE wchar_t * wxCRT_GetenvW(const wchar_t *name);
 #define wxCRT_AtoiA                 atoi
 #define wxCRT_AtolA                 atol
 
-#if defined(__MWERKS__)
-    #if defined(__MSL__)
-        #define wxCRT_AtofW         watof
-        #define wxCRT_AtoiW         watoi
-        #define wxCRT_AtolW         watol
-    /* else: use ANSI versions */
-    #endif
-#elif defined(wxHAVE_TCHAR_SUPPORT) && !defined(__WX_STRICT_ANSI_GCC__)
+#if defined(wxHAVE_TCHAR_SUPPORT) && !defined(__WX_STRICT_ANSI_GCC__)
     #define  wxCRT_AtoiW           _wtoi
     #define  wxCRT_AtolW           _wtol
     /* _wtof doesn't exist */
@@ -592,39 +564,6 @@ WXDLLIMPEXP_BASE wchar_t * wxCRT_GetenvW(const wchar_t *name);
     #define wxCRT_AtolW(s)         wcstol(s, NULL, 10)
     /* wcstoi doesn't exist */
 #endif
-
-/*
-    There are 2 unrelated problems with these functions under Mac:
-        a) Metrowerks MSL CRT implements them strictly in C99 sense and
-           doesn't support (very common) extension of allowing to call
-           mbstowcs(NULL, ...) which makes it pretty useless as you can't
-           know the size of the needed buffer
-        b) OS X <= 10.2 declares and even defined these functions but
-           doesn't really implement them -- they always return an error
-
-    So use our own replacements in both cases.
- */
-#if defined(__MWERKS__) && defined(__MSL__)
-    #define wxNEED_WX_MBSTOWCS
-#endif
-
-#ifdef __DARWIN__
-    #if !defined(__WXOSX_IPHONE__) && MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_2
-        #define wxNEED_WX_MBSTOWCS
-    #endif
-#endif
-
-#ifdef wxNEED_WX_MBSTOWCS
-    /* even though they are defined and "implemented", they are bad and just
-       stubs so we need our own - we need these even in ANSI builds!! */
-    WXDLLIMPEXP_BASE size_t wxMbstowcs(wchar_t *, const char *, size_t);
-    WXDLLIMPEXP_BASE size_t wxWcstombs(char *, const wchar_t *, size_t);
-#else
-    #define wxMbstowcs mbstowcs
-    #define wxWcstombs wcstombs
-#endif
-
-
 
 /* -------------------------------------------------------------------------
                                 time.h

@@ -1,35 +1,49 @@
-set(SRCS	Src/ControllerEmu.cpp
-			Src/InputConfig.cpp
-			Src/UDPWiimote.cpp
-			Src/UDPWrapper.cpp
-			Src/ControllerInterface/ControllerInterface.cpp
-			Src/ControllerInterface/Device.cpp
-			Src/ControllerInterface/ExpressionParser.cpp)
+set(SRCS	ControllerEmu.cpp
+			InputConfig.cpp
+			ControllerInterface/ControllerInterface.cpp
+			ControllerInterface/Device.cpp
+			ControllerInterface/ExpressionParser.cpp)
+
+
+set(LIBS	common)
 
 if(WIN32)
 	set(SRCS	${SRCS}
-				Src/ControllerInterface/DInput/DInput.cpp
-				Src/ControllerInterface/DInput/DInputJoystick.cpp
-				Src/ControllerInterface/DInput/DInputKeyboardMouse.cpp
-				Src/ControllerInterface/SDL/SDL.cpp
-				Src/ControllerInterface/XInput/XInput.cpp)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+				ControllerInterface/DInput/DInput.cpp
+				ControllerInterface/DInput/DInputJoystick.cpp
+				ControllerInterface/DInput/DInputKeyboardMouse.cpp
+				ControllerInterface/XInput/XInput.cpp
+				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
+elseif(APPLE)
+	find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+	find_library(CARBON_LIBRARY Carbon)
+	find_library(COCOA_LIBRARY Cocoa)
 	set(SRCS	${SRCS}
-				Src/ControllerInterface/OSX/OSX.mm
-				Src/ControllerInterface/OSX/OSXKeyboard.mm
-				Src/ControllerInterface/OSX/OSXJoystick.mm
-				Src/ControllerInterface/SDL/SDL.cpp)
+				ControllerInterface/OSX/OSX.mm
+				ControllerInterface/OSX/OSXKeyboard.mm
+				ControllerInterface/OSX/OSXJoystick.mm
+				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
+	set(LIBS ${LIBS} ${COREFOUNDATION_LIBRARY} ${CARBON_LIBRARY} ${COCOA_LIBRARY})
 elseif(X11_FOUND)
 	set(SRCS	${SRCS}
-				Src/ControllerInterface/SDL/SDL.cpp
-				Src/ControllerInterface/Xlib/Xlib.cpp)
+				ControllerInterface/Xlib/Xlib.cpp)
 	if(XINPUT2_FOUND)
 		set(SRCS	${SRCS}
-					Src/ControllerInterface/Xlib/XInput2.cpp)
+					ControllerInterface/Xlib/XInput2.cpp)
 	endif()
+	set(LIBS ${LIBS} ${X11_LIBRARIES} ${XINPUT2_LIBRARIES})
 elseif(ANDROID)
 	set(SRCS	${SRCS}
-				Src/ControllerInterface/Android/Android.cpp)
+				ControllerInterface/Android/Android.cpp)
 endif()
 
-add_library(inputcommon ${SRCS})
+if(SDL_FOUND OR SDL2_FOUND)
+	set(SRCS ${SRCS} ControllerInterface/SDL/SDL.cpp)
+	if (SDL2_FOUND)
+		set(LIBS ${LIBS} ${SDL2_LIBRARY})
+	elseif(SDL_FOUND)
+		set(LIBS ${LIBS} ${SDL_LIBRARY})
+	endif()
+endif()
+
+add_dolphin_library(inputcommon "${SRCS}" "${LIBS}")

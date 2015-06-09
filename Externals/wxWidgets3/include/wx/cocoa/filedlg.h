@@ -4,7 +4,6 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-10-02
-// RCS-ID:      $Id: filedlg.h 61724 2009-08-21 10:41:26Z VZ $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

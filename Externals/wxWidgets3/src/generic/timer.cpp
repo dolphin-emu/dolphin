@@ -2,7 +2,6 @@
 // Name:        src/generic/timer.cpp
 // Purpose:     wxTimer implementation
 // Author:      Vaclav Slavik
-// Id:          $Id: timer.cpp 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

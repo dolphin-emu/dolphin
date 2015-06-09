@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: stattext.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -111,24 +110,20 @@ wxSize wxStaticText::DoGetBestClientSize() const
         widthTextMax += 2;
 #endif // __WXWINCE__
 
-    // It looks like the static control needs "slightly" more vertical space
-    // than the character height and while the text isn't actually truncated if
-    // we use just the minimal height, it is positioned differently than when
-    // the control has enough space and this result in the text in edit and
-    // static controls not being aligned when the controls themselves are. As
-    // this is something you really should be able to count on, increase the
-    // space allocated for the control so that the base lines do align
-    // correctly. Notice that while the above is true at least for the single
-    // line controls, there doesn't seem to do any harm to allocate two extra
-    // pixels in multi-line case neither so do it always for consistency.
+    // This extra pixel is a hack we use to ensure that a wxStaticText
+    // vertically centered around the same position as a wxTextCtrl shows its
+    // text on exactly the same baseline. It is not clear why is this needed
+    // nor even whether this works in all cases, but it does work, at least
+    // with the default fonts, under Windows XP, 7 and 8, so just use it for
+    // now.
     //
-    // I still have no idea why exactly is this needed nor why should we use 2
-    // and not something else. This seems to work in all the configurations
-    // though (small/large fonts, different OS versions, ...) so just hard code
-    // it for now. If we need something better later it might be worth looking
-    // at the height of the text control returned by ::GetComboBoxInfo() as it
-    // seems to be the "minimal acceptable" height.
-    heightTextTotal += 2;
+    // In the future we really ought to provide a way for each of the controls
+    // to provide information about the position of the baseline for the text
+    // it shows and use this information in the sizer code when centering the
+    // controls vertically, otherwise we simply can't ensure that the text is
+    // always on the same line, e.g. even with this hack wxComboBox text is
+    // still not aligned to the same position.
+    heightTextTotal += 1;
 
     return wxSize(widthTextMax, heightTextTotal);
 }

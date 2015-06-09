@@ -4,7 +4,6 @@
  * Author:      Vadim Zeitlin
  * Modified by:
  * Created:     09.08.00
- * RCS-ID:      $Id: chkconf.h 70703 2012-02-26 20:24:25Z VZ $
  * Copyright:   (c) 2000 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */
@@ -91,6 +90,14 @@
 #       define wxUSE_ANY 0
 #   endif
 #endif /* wxUSE_ANY */
+
+#ifndef wxUSE_COMPILER_TLS
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_COMPILER_TLS must be defined, please read comment near the top of this file."
+#   else
+#       define wxUSE_COMPILER_TLS 0
+#   endif
+#endif /* !defined(wxUSE_COMPILER_TLS) */
 
 #ifndef wxUSE_CONSOLE_EVENTLOOP
 #   ifdef wxABORT_ON_CONFIG_ERROR
@@ -928,6 +935,14 @@
 #   endif
 #endif /* !defined(wxUSE_POPUPWIN) */
 
+#ifndef wxUSE_PREFERENCES_EDITOR
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_PREFERENCES_EDITOR must be defined, please read comment near the top of this file."
+#   else
+#       define wxUSE_PREFERENCES_EDITOR 0
+#   endif
+#endif /* !defined(wxUSE_PREFERENCES_EDITOR) */
+
 #ifndef wxUSE_PRINTING_ARCHITECTURE
 #   ifdef wxABORT_ON_CONFIG_ERROR
 #       error "wxUSE_PRINTING_ARCHITECTURE must be defined, please read comment near the top of this file."
@@ -1203,8 +1218,11 @@
 
 #if defined(__WXWINCE__)
 #  include "wx/msw/wince/chkconf.h"
-#elif defined(__WXMSW__)
+#elif defined(__WINDOWS__)
 #  include "wx/msw/chkconf.h"
+#  if defined(__WXGTK__)
+#      include "wx/gtk/chkconf.h"
+#  endif
 #elif defined(__WXGTK__)
 #  include "wx/gtk/chkconf.h"
 #elif defined(__WXCOCOA__)
@@ -1225,9 +1243,9 @@
 
 /*
     __UNIX__ is also defined under Cygwin but we shouldn't perform these checks
-    there if we're building wxMSW.
+    there if we're building Windows ports.
  */
-#if defined(__UNIX__) && !defined(__WXMSW__)
+#if defined(__UNIX__) && !defined(__WINDOWS__)
 #   include "wx/unix/chkconf.h"
 #endif
 
@@ -1451,7 +1469,7 @@
  */
 #if wxUSE_GUI
 
-#if wxUSE_ACCESSIBILITY && !defined(__WXMSW__) && !defined(__GCCXML__)
+#if wxUSE_ACCESSIBILITY && !defined(__WXMSW__)
 #   ifdef wxABORT_ON_CONFIG_ERROR
 #       error "wxUSE_ACCESSIBILITY is currently only supported under wxMSW"
 #   else
@@ -2180,6 +2198,33 @@
 #       define wxUSE_WEBVIEW 0
 #   endif
 #endif /* wxUSE_WEBVIEW && !any web view backend */
+
+#if wxUSE_PREFERENCES_EDITOR
+    /*
+        We can use either a generic implementation, using wxNotebook, or a
+        native one under wxOSX/Cocoa but then we must be using the native
+        toolbar.
+    */
+#   if !wxUSE_NOTEBOOK
+#       ifdef __WXOSX_COCOA__
+#           if !wxUSE_TOOLBAR || !wxOSX_USE_NATIVE_TOOLBAR
+#               ifdef wxABORT_ON_CONFIG_ERROR
+#                   error "wxUSE_PREFERENCES_EDITOR requires native toolbar in wxOSX"
+#               else
+#                   undef wxUSE_PREFERENCES_EDITOR
+#                   define wxUSE_PREFERENCES_EDITOR 0
+#               endif
+#           endif
+#       else
+#           ifdef wxABORT_ON_CONFIG_ERROR
+#               error "wxUSE_PREFERENCES_EDITOR requires wxNotebook"
+#           else
+#               undef wxUSE_PREFERENCES_EDITOR
+#               define wxUSE_PREFERENCES_EDITOR 0
+#           endif
+#       endif
+#   endif
+#endif /* wxUSE_PREFERENCES_EDITOR */
 
 #endif /* wxUSE_GUI */
 

@@ -3,7 +3,6 @@
 // Purpose:     Implementation of thread local storage
 // Author:      Vadim Zeitlin
 // Created:     2008-08-08
-// RCS-ID:      $Id: tls.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,10 +21,13 @@
 #if !wxUSE_THREADS
     #define wxHAS_COMPILER_TLS
     #define wxTHREAD_SPECIFIC_DECL
+// otherwise try to find the compiler-specific way to handle TLS unless
+// explicitly disabled by setting wxUSE_COMPILER_TLS to 0 (it is 1 by default).
+#elif wxUSE_COMPILER_TLS
 // __thread keyword is not supported correctly by MinGW, at least in some
 // configurations, see http://sourceforge.net/support/tracker.php?aid=2837047
 // and when in doubt we prefer to not use it at all.
-#elif defined(HAVE___THREAD_KEYWORD) && !defined(__MINGW32__)
+#if defined(HAVE___THREAD_KEYWORD) && !defined(__MINGW32__)
     #define wxHAS_COMPILER_TLS
     #define wxTHREAD_SPECIFIC_DECL __thread
 // MSVC has its own version which might be supported by some other Windows
@@ -33,7 +35,8 @@
 #elif wxCHECK_VISUALC_VERSION(7)
     #define wxHAS_COMPILER_TLS
     #define wxTHREAD_SPECIFIC_DECL __declspec(thread)
-#endif
+#endif // compilers
+#endif // wxUSE_COMPILER_TLS
 
 // ----------------------------------------------------------------------------
 // define wxTLS_TYPE()

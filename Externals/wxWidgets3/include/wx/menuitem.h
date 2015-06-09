@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.10.99
-// RCS-ID:      $Id: menuitem.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,7 +81,13 @@ public:
     void SetKind(wxItemKind kind) { m_kind = kind; }
     bool IsSeparator() const { return m_kind == wxITEM_SEPARATOR; }
 
-    virtual void SetCheckable(bool checkable) { m_kind = checkable ? wxITEM_CHECK : wxITEM_NORMAL; }
+    bool IsCheck() const { return m_kind == wxITEM_CHECK; }
+    bool IsRadio() const { return m_kind == wxITEM_RADIO; }
+
+    virtual void SetCheckable(bool checkable)
+        { m_kind = checkable ? wxITEM_CHECK : wxITEM_NORMAL; }
+
+    // Notice that this doesn't quite match SetCheckable().
     bool IsCheckable() const
         { return m_kind == wxITEM_CHECK || m_kind == wxITEM_RADIO; }
 

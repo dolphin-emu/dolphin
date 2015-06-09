@@ -2,7 +2,6 @@
 // Name:        wx/gtk/calctrl.h
 // Purpose:     wxGtkCalendarCtrl control
 // Author:      Marcin Wojdyr
-// RCS-ID:      $Id: calctrl.h 67987 2011-06-19 22:46:36Z VZ $
 // Copyright:   (C) 2008 Marcin Wojdyr
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

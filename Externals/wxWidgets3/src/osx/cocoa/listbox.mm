@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.mm 67888 2011-06-08 22:50:28Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -303,8 +302,6 @@ protected:
         wxListBox *list = static_cast<wxListBox*> ( impl->GetWXPeer());
         wxCHECK_RET( list != NULL , wxT("Listbox expected"));
         
-        wxCommandEvent event( wxEVT_COMMAND_LISTBOX_SELECTED, list->GetId() );
-        
         if ((row < 0) || (row > (int) list->GetCount()))  // OS X can select an item below the last item
             return;
         
@@ -313,6 +310,24 @@ protected:
     }
     
 } 
+
+- (void)setFont:(NSFont *)aFont
+{
+    NSArray *tableColumns = [self tableColumns];
+    unsigned int columnIndex = [tableColumns count];
+    while (columnIndex--)
+        [[(NSTableColumn *)[tableColumns objectAtIndex:columnIndex] dataCell] setFont:aFont];
+
+    [self setRowHeight:[gNSLayoutManager defaultLineHeightForFont:aFont]+2];
+}
+
+- (void) setControlSize:(NSControlSize) size
+{
+    NSArray *tableColumns = [self tableColumns];
+    unsigned int columnIndex = [tableColumns count];
+    while (columnIndex--)
+        [[(NSTableColumn *)[tableColumns objectAtIndex:columnIndex] dataCell] setControlSize:size];
+}
 
 @end
 
@@ -369,6 +384,11 @@ wxListWidgetColumn* wxListWidgetCocoaImpl::InsertTextColumn( unsigned pos, const
         [col1 setWidth:1000];
     }
     [col1 setResizingMask: NSTableColumnAutoresizingMask];
+    
+    wxListBox *list = static_cast<wxListBox*> ( GetWXPeer());
+    if ( list != NULL )
+        [[col1 dataCell] setFont:list->GetFont().OSXGetNSFont()];
+    
     wxCocoaTableColumn* wxcol = new wxCocoaTableColumn( col1, editable );
     [col1 setColumn:wxcol];
 
@@ -388,6 +408,39 @@ wxListWidgetColumn* wxListWidgetCocoaImpl::InsertCheckColumn( unsigned pos , con
     [checkbox setTitle:@""];
     [checkbox setButtonType:NSSwitchButton];
     [col1 setDataCell:checkbox] ;
+    
+    wxListBox *list = static_cast<wxListBox*> ( GetWXPeer());
+    if ( list != NULL )
+    {
+        NSControlSize size = NSRegularControlSize;
+        
+        switch ( list->GetWindowVariant() )
+        {
+            case wxWINDOW_VARIANT_NORMAL :
+                size = NSRegularControlSize;
+                break ;
+                
+            case wxWINDOW_VARIANT_SMALL :
+                size = NSSmallControlSize;
+                break ;
+                
+            case wxWINDOW_VARIANT_MINI :
+                size = NSMiniControlSize;
+                break ;
+                
+            case wxWINDOW_VARIANT_LARGE :
+                size = NSRegularControlSize;
+                break ;
+                
+            default:
+                break ;
+        }
+
+        [[col1 dataCell] setControlSize:size];
+        // although there is no text, it may help to get the correct vertical layout
+        [[col1 dataCell] setFont:list->GetFont().OSXGetNSFont()];        
+    }
+
     [checkbox release];
 
     unsigned formerColCount = [m_tableView numberOfColumns];
@@ -555,8 +608,8 @@ wxWidgetImplType* wxWidgetImpl::CreateListBox( wxWindowMac* wxpeer,
     wxListWidgetCocoaImpl* c = new wxListWidgetCocoaImpl( wxpeer, scrollview, tableview, ds );
 
     // temporary hook for dnd
-    [tableview registerForDraggedTypes:[NSArray arrayWithObjects:
-        NSStringPboardType, NSFilenamesPboardType, NSTIFFPboardType, NSPICTPboardType, NSPDFPboardType, nil]];
+ //   [tableview registerForDraggedTypes:[NSArray arrayWithObjects:
+ //       NSStringPboardType, NSFilenamesPboardType, (NSString*) kPasteboardTypeFileURLPromise, NSTIFFPboardType, NSPICTPboardType, NSPDFPboardType, nil]];
 
     [ds setImplementation:c];
     return c;

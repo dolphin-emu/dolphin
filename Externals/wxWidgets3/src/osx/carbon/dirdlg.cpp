@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dirdlg.cpp 66615 2011-01-07 05:26:57Z PC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,6 +20,7 @@
 #endif // WX_PRECOMP
 
 #include "wx/filename.h"
+#include "wx/modalhook.h"
 
 #include "wx/osx/private.h"
 
@@ -54,7 +54,11 @@ static pascal void NavEventProc(
     }
 }
 
-wxDirDialog::wxDirDialog(wxWindow *parent,
+void wxDirDialog::Init()
+{
+}
+
+void wxDirDialog::Create(wxWindow *parent,
                          const wxString& message,
                          const wxString& defaultPath,
                          long style,
@@ -72,6 +76,8 @@ wxDirDialog::wxDirDialog(wxWindow *parent,
 
 int wxDirDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     NavDialogRef dialog = NULL;
     NavDialogCreationOptions options;
     NavReplyRecord reply ;

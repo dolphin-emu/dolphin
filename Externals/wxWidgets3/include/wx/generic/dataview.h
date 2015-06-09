@@ -3,7 +3,6 @@
 // Purpose:     wxDataViewCtrl generic implementation header
 // Author:      Robert Roebling
 // Modified By: Bo Yang
-// Id:          $Id: dataview.h 70717 2012-02-27 18:54:02Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -70,7 +69,7 @@ public:
 
     virtual bool IsSortKey() const { return m_sort; }
 
-    virtual void UnsetAsSortKey() { m_sort = false; UpdateDisplay(); }
+    virtual void UnsetAsSortKey();
 
     virtual void SetSortOrder(bool ascending);
 
@@ -182,6 +181,8 @@ public:
 
     virtual void SetFocus();
 
+    virtual bool SetFont(const wxFont & font);
+
 #if wxUSE_DRAG_AND_DROP
     virtual bool EnableDragSource( const wxDataFormat &format );
     virtual bool EnableDropTarget( const wxDataFormat &format );
@@ -226,6 +227,9 @@ public:     // utility functions not part of the API
     // return the index of the given column in m_cols
     int GetColumnIndex(const wxDataViewColumn *column) const;
 
+    // Return the index of the column having the given model index.
+    int GetModelColumnIndex(unsigned int model_column) const;
+
     // return the column displayed at the given position in the control
     wxDataViewColumn *GetColumnAt(unsigned int pos) const;
 
@@ -242,10 +246,18 @@ private:
     void UpdateColWidths();
 
     wxDataViewColumnList      m_cols;
-    // cached column best widths or 0 if not computed, values are for
+    // cached column best widths information, values are for
     // respective columns from m_cols and the arrays have same size
-    wxVector<int>             m_colsBestWidths;
-    // m_colsBestWidths partially invalid, needs recomputing
+    struct CachedColWidthInfo
+    {
+        CachedColWidthInfo() : width(0), dirty(true) {}
+        int width;  // cached width or 0 if not computed
+        bool dirty; // column was invalidated, header needs updating
+    };
+    wxVector<CachedColWidthInfo> m_colsBestWidths;
+    // This indicates that at least one entry in m_colsBestWidths has 'dirty'
+    // flag set. It's cheaper to check one flag in OnInternalIdle() than to
+    // iterate over m_colsBestWidths to check if anything needs to be done.
     bool                      m_colsDirty;
 
     wxDataViewModelNotifier  *m_notifier;

@@ -2,7 +2,6 @@
 // Name:        wx/gtk/app.h
 // Purpose:     wxApp definition for wxGTK
 // Author:      Robert Roebling
-// Id:          $Id: app.h 69020 2011-09-07 16:56:50Z PC $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,6 +54,13 @@ public:
     //
     // must return XVisualInfo pointer (it is not freed by caller)
     virtual void *GetXVisualInfo() { return NULL; }
+
+    // Check if we're using a global menu. Currently this is only true when
+    // running under Ubuntu Unity and global menu is not disabled.
+    //
+    // This is mostly used in the implementation in order to work around
+    // various bugs arising due to this.
+    static bool GTKIsUsingGlobalMenu();
 
 #if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
     // Maemo-specific method: get the main program object

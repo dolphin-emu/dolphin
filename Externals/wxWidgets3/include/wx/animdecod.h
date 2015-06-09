@@ -2,7 +2,6 @@
 // Name:        wx/animdecod.h
 // Purpose:     wxAnimationDecoder
 // Author:      Francesco Montorsi
-// CVS-ID:      $Id: animdecod.h 62789 2009-12-05 19:57:58Z PC $
 // Copyright:   (c) 2006 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

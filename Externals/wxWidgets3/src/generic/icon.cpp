@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: icon.cpp 51211 2008-01-14 18:16:37Z PC $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

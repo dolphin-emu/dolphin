@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: combobox.cpp 66555 2011-01-04 08:31:53Z SC $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,14 +31,13 @@
     #include "wx/msw/wrapcctl.h" // include <commctrl.h> "properly"
     #include "wx/settings.h"
     #include "wx/log.h"
-    // for wxEVT_COMMAND_TEXT_ENTER
+    // for wxEVT_TEXT_ENTER
     #include "wx/textctrl.h"
     #include "wx/app.h"
     #include "wx/brush.h"
 #endif
 
 #include "wx/clipbrd.h"
-#include "wx/dynlib.h"
 #include "wx/wupdlock.h"
 #include "wx/msw/private.h"
 
@@ -93,6 +91,36 @@ static WNDPROC gs_wndprocEdit = (WNDPROC)NULL;
 // implementation
 // ============================================================================
 
+namespace
+{
+
+// Check if the given message should be forwarded from the edit control which
+// is part of the combobox to wxComboBox itself. All messages generating the
+// events that the code using wxComboBox could be interested in must be
+// forwarded.
+bool ShouldForwardFromEditToCombo(UINT message)
+{
+    switch ( message )
+    {
+        case WM_KEYUP:
+        case WM_KEYDOWN:
+        case WM_CHAR:
+        case WM_SYSCHAR:
+        case WM_SYSKEYDOWN:
+        case WM_SYSKEYUP:
+        case WM_SETFOCUS:
+        case WM_KILLFOCUS:
+        case WM_CUT:
+        case WM_COPY:
+        case WM_PASTE:
+            return true;
+    }
+
+    return false;
+}
+
+} // anonymous namespace
+
 // ----------------------------------------------------------------------------
 // wnd proc for subclassed edit control
 // ----------------------------------------------------------------------------
@@ -105,49 +133,34 @@ LRESULT APIENTRY _EXPORT wxComboEditWndProc(HWND hWnd,
     HWND hwndCombo = ::GetParent(hWnd);
     wxWindow *win = wxFindWinFromHandle((WXHWND)hwndCombo);
 
-    switch ( message )
+    if ( ShouldForwardFromEditToCombo(message) )
     {
-        // forward some messages to the combobox to generate the appropriate
-        // wxEvents from them
-        case WM_KEYUP:
-        case WM_KEYDOWN:
-        case WM_CHAR:
-        case WM_SYSCHAR:
-        case WM_SYSKEYDOWN:
-        case WM_SYSKEYUP:
-        case WM_SETFOCUS:
-        case WM_KILLFOCUS:
+        wxComboBox *combo = wxDynamicCast(win, wxComboBox);
+        if ( !combo )
+        {
+            // we can get WM_KILLFOCUS while our parent is already half
+            // destroyed and hence doesn't look like a combobx any
+            // longer, check for it to avoid bogus assert failures
+            if ( !win->IsBeingDeleted() )
             {
-                wxComboBox *combo = wxDynamicCast(win, wxComboBox);
-                if ( !combo )
-                {
-                    // we can get WM_KILLFOCUS while our parent is already half
-                    // destroyed and hence doesn't look like a combobx any
-                    // longer, check for it to avoid bogus assert failures
-                    if ( !win->IsBeingDeleted() )
-                    {
-                        wxFAIL_MSG( wxT("should have combo as parent") );
-                    }
-                }
-                else if ( combo->MSWProcessEditMsg(message, wParam, lParam) )
-                {
-                    // handled by parent
-                    return 0;
-                }
+                wxFAIL_MSG( wxT("should have combo as parent") );
             }
-            break;
+        }
+        else if ( combo->MSWProcessEditMsg(message, wParam, lParam) )
+        {
+            // handled by parent
+            return 0;
+        }
+    }
+    else if ( message == WM_GETDLGCODE )
+    {
+        wxCHECK_MSG( win, 0, wxT("should have a parent") );
 
-        case WM_GETDLGCODE:
-            {
-                wxCHECK_MSG( win, 0, wxT("should have a parent") );
-
-                if ( win->GetWindowStyle() & wxTE_PROCESS_ENTER )
-                {
-                    // need to return a custom dlg code or we'll never get it
-                    return DLGC_WANTMESSAGE;
-                }
-            }
-            break;
+        if ( win->GetWindowStyle() & wxTE_PROCESS_ENTER )
+        {
+            // need to return a custom dlg code or we'll never get it
+            return DLGC_WANTMESSAGE;
+        }
     }
 
     return ::CallWindowProc(CASTWNDPROC gs_wndprocEdit, hWnd, message, wParam, lParam);
@@ -215,49 +228,55 @@ bool wxComboBox::MSWProcessEditMsg(WXUINT msg, WXWPARAM wParam, WXLPARAM lParam)
         case WM_CHAR:
             // for compatibility with wxTextCtrl, generate a special message
             // when Enter is pressed
-            if ( wParam == VK_RETURN )
+            switch ( wParam )
             {
-                if (SendMessage(GetHwnd(), CB_GETDROPPEDSTATE, 0, 0))
-                    return false;
+                case VK_RETURN:
+                    {
+                        if (SendMessage(GetHwnd(), CB_GETDROPPEDSTATE, 0, 0))
+                            return false;
 
-                wxCommandEvent event(wxEVT_COMMAND_TEXT_ENTER, m_windowId);
+                        wxCommandEvent event(wxEVT_TEXT_ENTER, m_windowId);
 
-                const int sel = GetSelection();
-                event.SetInt(sel);
-                event.SetString(GetValue());
-                InitCommandEventWithItems(event, sel);
+                        const int sel = GetSelection();
+                        event.SetInt(sel);
+                        event.SetString(GetValue());
+                        InitCommandEventWithItems(event, sel);
 
-                if ( ProcessCommand(event) )
-                {
-                    // don't let the event through to the native control
-                    // because it doesn't need it and may generate an annoying
-                    // beep if it gets it
-                    return true;
-                }
+                        if ( ProcessCommand(event) )
+                        {
+                            // don't let the event through to the native control
+                            // because it doesn't need it and may generate an annoying
+                            // beep if it gets it
+                            return true;
+                        }
+                    }
+                    break;
+
+                case VK_TAB:
+                    // If we have wxTE_PROCESS_ENTER style, we get all char
+                    // events, including those for TAB which are usually used
+                    // for keyboard navigation, but we should not process them
+                    // unless we also have wxTE_PROCESS_TAB style.
+                    if ( !HasFlag(wxTE_PROCESS_TAB) )
+                    {
+                        int flags = 0;
+                        if ( !wxIsShiftDown() )
+                            flags |= wxNavigationKeyEvent::IsForward;
+                        if ( wxIsCtrlDown() )
+                            flags |= wxNavigationKeyEvent::WinChange;
+                        if ( Navigate(flags) )
+                            return true;
+                    }
+                    break;
             }
-            // fall through
+    }
 
-        case WM_SYSCHAR:
-            return HandleChar(wParam, lParam);
-
-        case WM_SYSKEYDOWN:
-        case WM_KEYDOWN:
-            return HandleKeyDown(wParam, lParam);
-
-        case WM_SYSKEYUP:
-        case WM_KEYUP:
-            return HandleKeyUp(wParam, lParam);
-
-        case WM_SETFOCUS:
-            return HandleSetFocus((WXHWND)wParam);
-
-        case WM_KILLFOCUS:
-            return HandleKillFocus((WXHWND)wParam);
-
-        case WM_CUT:
-        case WM_COPY:
-        case WM_PASTE:
-            return HandleClipboardEvent(msg);
+    if ( ShouldForwardFromEditToCombo(msg) )
+    {
+        // For all the messages forward from the edit control the
+        // result is not used.
+        WXLRESULT result;
+        return MSWHandleMessage(&result, msg, wParam, lParam);
     }
 
     return false;
@@ -273,26 +292,27 @@ bool wxComboBox::MSWCommand(WXUINT param, WXWORD id)
         case CBN_DROPDOWN:
             // remember the last selection, just as wxChoice does
             m_lastAcceptedSelection = GetCurrentSelection();
-            if ( m_lastAcceptedSelection == -1 )
             {
-                // but unlike with wxChoice we may have no selection but still
-                // have some text and we should avoid erasing it if the drop
-                // down is cancelled (see #8474)
-                m_lastAcceptedSelection = wxID_NONE;
-            }
-            {
-                wxCommandEvent event(wxEVT_COMMAND_COMBOBOX_DROPDOWN, GetId());
+                wxCommandEvent event(wxEVT_COMBOBOX_DROPDOWN, GetId());
                 event.SetEventObject(this);
                 ProcessCommand(event);
             }
             break;
+
         case CBN_CLOSEUP:
+            // Do the same thing as in wxChoice but using different event type.
+            if ( m_pendingSelection != wxID_NONE )
             {
-                wxCommandEvent event(wxEVT_COMMAND_COMBOBOX_CLOSEUP, GetId());
+                SendSelectionChangedEvent(wxEVT_COMBOBOX);
+                m_pendingSelection = wxID_NONE;
+            }
+            {
+                wxCommandEvent event(wxEVT_COMBOBOX_CLOSEUP, GetId());
                 event.SetEventObject(this);
                 ProcessCommand(event);
             }
             break;
+
         case CBN_SELENDOK:
 #ifndef __SMARTPHONE__
             // we need to reset this to prevent the selection from being undone
@@ -308,25 +328,18 @@ bool wxComboBox::MSWCommand(WXUINT param, WXWORD id)
             // this string is going to become the new combobox value soon but
             // we need it to be done right now, otherwise the event handler
             // could get a wrong value when it calls our GetValue()
-            ::SetWindowText(GetHwnd(), value.wx_str());
+            ::SetWindowText(GetHwnd(), value.t_str());
 
-            {
-                wxCommandEvent event(wxEVT_COMMAND_COMBOBOX_SELECTED, GetId());
-                event.SetInt(sel);
-                event.SetString(value);
-                InitCommandEventWithItems(event, sel);
+            SendSelectionChangedEvent(wxEVT_COMBOBOX);
 
-                ProcessCommand(event);
-            }
-
-            // fall through: for compability with wxGTK, also send the text
+            // fall through: for compatibility with wxGTK, also send the text
             // update event when the selection changes (this also seems more
             // logical as the text does change)
 
         case CBN_EDITCHANGE:
             if ( m_allowTextEvents )
             {
-                wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, GetId());
+                wxCommandEvent event(wxEVT_TEXT, GetId());
 
                 // if sel != -1, value was already initialized above
                 if ( sel == -1 )
@@ -376,26 +389,13 @@ bool wxComboBox::MSWShouldPreProcessMessage(WXMSG *pMsg)
 
 WXHWND wxComboBox::GetEditHWNDIfAvailable() const
 {
-#if wxUSE_DYNLIB_CLASS
+    // FIXME-VC6: Only VC6 needs this guard, see WINVER definition in
+    //            include/wx/msw/wrapwin.h
 #if defined(WINVER) && WINVER >= 0x0500
-    typedef BOOL (WINAPI *GetComboBoxInfo_t)(HWND, COMBOBOXINFO*);
-    static GetComboBoxInfo_t s_pfnGetComboBoxInfo = NULL;
-    static bool s_triedToLoad = false;
-    if ( !s_triedToLoad )
-    {
-        s_triedToLoad = true;
-        wxLoadedDLL dllUser32("user32.dll");
-        wxDL_INIT_FUNC(s_pfn, GetComboBoxInfo, dllUser32);
-    }
-
-    if ( s_pfnGetComboBoxInfo )
-    {
-        WinStruct<COMBOBOXINFO> info;
-        (*s_pfnGetComboBoxInfo)(GetHwnd(), &info);
+    WinStruct<COMBOBOXINFO> info;
+    if ( MSWGetComboBoxInfo(&info) )
         return info.hwndItem;
-    }
 #endif // WINVER >= 0x0500
-#endif // wxUSE_DYNLIB_CLASS
 
     if (HasFlag(wxCB_SIMPLE))
     {
@@ -548,6 +548,11 @@ void wxComboBox::Clear()
         wxTextEntry::Clear();
 }
 
+bool wxComboBox::ContainsHWND(WXHWND hWnd) const
+{
+    return hWnd == GetEditHWNDIfAvailable();
+}
+
 void wxComboBox::GetSelection(long *from, long *to) const
 {
     if ( !HasFlag(wxCB_READONLY) )
@@ -642,22 +647,6 @@ void wxComboBox::OnUpdateSelectAll(wxUpdateUIEvent& event)
     event.Enable(IsEditable() && !wxTextEntry::IsEmpty());
 }
 
-void wxComboBox::MSWDoPopupOrDismiss(bool show)
-{
-    wxASSERT_MSG( !HasFlag(wxCB_SIMPLE),
-                  wxT("can't popup/dismiss the list for simple combo box") );
-
-    // we *must* set focus to the combobox before showing or hiding the drop
-    // down as without this we get WM_LBUTTONDOWN messages with invalid HWND
-    // when hiding it (whether programmatically or manually) resulting in a
-    // crash when we pass them to IsDialogMessage()
-    //
-    // this can be seen in the combo page of the widgets sample under Windows 7
-    SetFocus();
-
-    ::SendMessage(GetHwnd(), CB_SHOWDROPDOWN, show, 0);
-}
-
 #if wxUSE_TOOLTIPS
 
 void wxComboBox::DoSetToolTip(wxToolTip *tip)
@@ -665,7 +654,7 @@ void wxComboBox::DoSetToolTip(wxToolTip *tip)
     wxChoice::DoSetToolTip(tip);
 
     if ( tip && !HasFlag(wxCB_READONLY) )
-        tip->Add(GetEditHWND());
+        tip->AddOtherWindow(GetEditHWND());
 }
 
 #endif // wxUSE_TOOLTIPS
@@ -687,5 +676,39 @@ bool wxComboBox::SetHint(const wxString& hintOrig)
 }
 
 #endif // wxUSE_UXTHEME
+
+wxSize wxComboBox::DoGetSizeFromTextSize(int xlen, int ylen) const
+{
+    wxSize tsize( wxChoice::DoGetSizeFromTextSize(xlen, ylen) );
+
+    if ( !HasFlag(wxCB_READONLY) )
+    {
+        // Add the margins we have previously set
+        wxPoint marg( GetMargins() );
+        marg.x = wxMax(0, marg.x);
+        marg.y = wxMax(0, marg.y);
+        tsize.IncBy( marg );
+    }
+
+    return tsize;
+}
+
+wxWindow *wxComboBox::MSWFindItem(long id, WXHWND hWnd) const
+{
+    // The base class version considers that any window with the same ID as
+    // this one must be this window itself, but this is not the case for the
+    // comboboxes where the native control seems to always use the ID of 1000
+    // for the popup listbox that it creates -- and this ID may be the same as
+    // our own one. So we must explicitly check the HWND value too here and
+    // avoid eating the events from the listbox as otherwise it is rendered
+    // inoperative, see #15647.
+    if ( id == GetId() && hWnd && hWnd != GetHWND() )
+    {
+        // Must be the case described above.
+        return NULL;
+    }
+
+    return wxChoice::MSWFindItem(id, hWnd);
+}
 
 #endif // wxUSE_COMBOBOX

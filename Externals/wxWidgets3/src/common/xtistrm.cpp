@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: xtistrm.cpp 70306 2012-01-09 18:48:39Z VZ $
 // Copyright:   (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -478,7 +477,7 @@ struct wxObjectRuntimeReaderCallback::wxObjectRuntimeReaderCallbackInternal
             return NULL;
         if ( m_objects.find(objectID) == m_objects.end() )
         {
-            wxLogError( _("Passing an unkown object to GetObject") );
+            wxLogError( _("Passing an unknown object to GetObject") );
             return NULL;
         }
 

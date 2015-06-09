@@ -2,7 +2,6 @@
 // Name:        src/gtk/stattext.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: stattext.cpp 70446 2012-01-23 11:28:28Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,6 +12,8 @@
 #if wxUSE_STATTEXT
 
 #include "wx/stattext.h"
+
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 
 //-----------------------------------------------------------------------------
@@ -70,21 +71,16 @@ bool wxStaticText::Create(wxWindow *parent,
 
     gtk_label_set_justify(GTK_LABEL(m_widget), justify);
 
-#ifdef __WXGTK26__
-    if (!gtk_check_version(2,6,0))
-    {
-        // set ellipsize mode
-        PangoEllipsizeMode ellipsizeMode = PANGO_ELLIPSIZE_NONE;
-        if ( style & wxST_ELLIPSIZE_START )
-            ellipsizeMode = PANGO_ELLIPSIZE_START;
-        else if ( style & wxST_ELLIPSIZE_MIDDLE )
-            ellipsizeMode = PANGO_ELLIPSIZE_MIDDLE;
-        else if ( style & wxST_ELLIPSIZE_END )
-            ellipsizeMode = PANGO_ELLIPSIZE_END;
+    // set ellipsize mode
+    PangoEllipsizeMode ellipsizeMode = PANGO_ELLIPSIZE_NONE;
+    if ( style & wxST_ELLIPSIZE_START )
+        ellipsizeMode = PANGO_ELLIPSIZE_START;
+    else if ( style & wxST_ELLIPSIZE_MIDDLE )
+        ellipsizeMode = PANGO_ELLIPSIZE_MIDDLE;
+    else if ( style & wxST_ELLIPSIZE_END )
+        ellipsizeMode = PANGO_ELLIPSIZE_END;
 
-        gtk_label_set_ellipsize( GTK_LABEL(m_widget), ellipsizeMode );
-    }
-#endif // __WXGTK26__
+    gtk_label_set_ellipsize( GTK_LABEL(m_widget), ellipsizeMode );
 
     // GTK_JUSTIFY_LEFT is 0, RIGHT 1 and CENTER 2
     static const float labelAlignments[] = { 0.0, 1.0, 0.5 };
@@ -107,18 +103,7 @@ void wxStaticText::GTKDoSetLabel(GTKLabelSetter setter, const wxString& label)
 
     InvalidateBestSize();
 
-    if (gtk_check_version(2,6,0) && IsEllipsized())
-    {
-        // GTK+ < 2.6 does not support ellipsization so we need to do it
-        // manually and as our ellipsization code doesn't deal with markup, we
-        // have no choice but to ignore it in this case and always use plain
-        // text.
-        GTKSetLabelForLabel(GTK_LABEL(m_widget), GetEllipsizedLabel());
-    }
-    else // Ellipsization not needed or supported by GTK+.
-    {
-        (this->*setter)(GTK_LABEL(m_widget), label);
-    }
+    (this->*setter)(GTK_LABEL(m_widget), label);
 
     // adjust the label size to the new label unless disabled
     if ( !HasFlag(wxST_NO_AUTORESIZE) &&
@@ -205,20 +190,6 @@ bool wxStaticText::SetFont( const wxFont &font )
     return ret;
 }
 
-void wxStaticText::DoSetSize(int x, int y,
-                             int width, int height,
-                             int sizeFlags )
-{
-    wxStaticTextBase::DoSetSize(x, y, width, height, sizeFlags);
-
-    if (gtk_check_version(2,6,0))
-    {
-        // GTK+ < 2.6 does not support ellipsization - we need to run our
-        // generic code (actually it will be run only if IsEllipsized() == true)
-        UpdateLabel();
-    }
-}
-
 wxSize wxStaticText::DoGetBestSize() const
 {
     // Do not return any arbitrary default value...
@@ -228,11 +199,19 @@ wxSize wxStaticText::DoGetBestSize() const
     // gtk_label_set_line_wrap() from here is a bad idea as it queues another
     // size request by calling gtk_widget_queue_resize() and we end up in
     // infinite loop sometimes (notably when the control is in a toolbar)
+    // With GTK3 however, there is no simple alternative, and the sizing loop
+    // no longer seems to occur.
+#ifdef __WXGTK3__
+    gtk_label_set_line_wrap(GTK_LABEL(m_widget), false);
+#else
     GTK_LABEL(m_widget)->wrap = FALSE;
-
+#endif
     wxSize size = wxStaticTextBase::DoGetBestSize();
-
+#ifdef __WXGTK3__
+    gtk_label_set_line_wrap(GTK_LABEL(m_widget), true);
+#else
     GTK_LABEL(m_widget)->wrap = TRUE; // restore old value
+#endif
 
     // Adding 1 to width to workaround GTK sometimes wrapping the text needlessly
     size.x++;
@@ -268,7 +247,7 @@ void wxStaticText::DoSetLabel(const wxString& str)
 wxVisualAttributes
 wxStaticText::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-    return GetDefaultAttributesFromGTKWidget(gtk_label_new);
+    return GetDefaultAttributesFromGTKWidget(gtk_label_new(""));
 }
 
 #endif // wxUSE_STATTEXT

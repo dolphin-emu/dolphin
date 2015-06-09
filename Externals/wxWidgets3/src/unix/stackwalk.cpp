@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-18
-// RCS-ID:      $Id: stackwalk.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -130,10 +129,12 @@ void wxStackFrame::OnGetName()
 
         m_module.assign(syminfo, posOpen);
     }
+#ifndef __WXOSX__
     else // not in "module(funcname+offset)" format
     {
         m_module = syminfo;
     }
+#endif // !__WXOSX__
 }
 
 
@@ -180,17 +181,18 @@ void wxStackWalker::ProcessFrames(size_t skip)
     if (!ms_symbols || !m_depth)
         return;
 
-    // we have 3 more "intermediate" frames which the calling code doesn't know
-    // about, account for them
-    skip += 3;
+    // we are another level down from Walk(), so adjust the number of stack
+    // frames to skip accordingly
+    skip += 1;
 
     // call addr2line only once since this call may be very slow
     // (it has to load in memory the entire EXE of this app which may be quite
     //  big, especially if it contains debug info and is compiled statically!)
-    int towalk = InitFrames(frames, m_depth - skip, &ms_addresses[skip], &ms_symbols[skip]);
+    int numFrames = InitFrames(frames, m_depth - skip,
+                               &ms_addresses[skip], &ms_symbols[skip]);
 
     // now do user-defined operations on each frame
-    for ( int n = 0; n < towalk - (int)skip; n++ )
+    for ( int n = 0; n < numFrames; n++ )
         OnStackFrame(frames[n]);
 }
 
@@ -203,6 +205,28 @@ void wxStackWalker::FreeStack()
     ms_symbols = NULL;
     m_depth = 0;
 }
+
+namespace
+{
+
+// Helper function to read a line from the file and return it without the
+// trailing newline. Line number is only used for error reporting.
+bool ReadLine(FILE* fp, unsigned long num, wxString* line)
+{
+    if ( !fgets(g_buf, WXSIZEOF(g_buf), fp) )
+    {
+        wxLogDebug(wxS("cannot read address information for stack frame #%lu"),
+                   num);
+        return false;
+    }
+
+    *line = wxString::FromAscii(g_buf);
+    line->RemoveLast();
+
+    return true;
+}
+
+} // anonymous namespace
 
 int wxStackWalker::InitFrames(wxStackFrame *arr, size_t n, void **addresses, char **syminfo)
 {
@@ -220,9 +244,13 @@ int wxStackWalker::InitFrames(wxStackFrame *arr, size_t n, void **addresses, cha
         }
     }
 
-    // build the (long) command line for executing addr2line in an optimized way
-    // (e.g. use always chars, even in Unicode build: popen() always takes chars)
+    // build the command line for executing addr2line or atos under OS X using
+    // char* directly to avoid the conversions from Unicode
+#ifdef __WXOSX__
+    int len = snprintf(g_buf, BUFSIZE, "atos -p %d", (int)getpid());
+#else
     int len = snprintf(g_buf, BUFSIZE, "addr2line -C -f -e \"%s\"", (const char*) exepath.mb_str());
+#endif
     len = (len <= 0) ? strlen(g_buf) : len;     // in case snprintf() is broken
     for (size_t i=0; i<n; i++)
     {
@@ -236,54 +264,79 @@ int wxStackWalker::InitFrames(wxStackFrame *arr, size_t n, void **addresses, cha
     if ( !fp )
         return 0;
 
-    // parse addr2line output (should be exactly 2 lines for each address)
-    // reusing the g_buf used for building the command line above
+    // parse the output reusing the same buffer to avoid any big memory
+    // allocations which could fail if our program is in a bad state
     wxString name, filename;
     unsigned long line = 0,
                   curr = 0;
     for  ( size_t i = 0; i < n; i++ )
     {
-        // 1st line has function name
-        if ( fgets(g_buf, WXSIZEOF(g_buf), fp) )
-        {
-            name = wxString::FromAscii(g_buf);
-            name.RemoveLast(); // trailing newline
+#ifdef __WXOSX__
+        wxString buffer;
+        if ( !ReadLine(fp, i, &buffer) )
+            return false;
 
-            if ( name == wxT("??") )
-                name.clear();
+        line = 0;
+        filename.clear();
+
+        // We can get back either the string in the following format:
+        //
+        //      func(args) (in module) (file:line)
+        //
+        // or just the same address back if it couldn't be resolved.
+        const size_t posIn = buffer.find("(in ");
+        if ( posIn != wxString::npos )
+        {
+            name.assign(buffer, 0, posIn);
+
+            size_t posAt = buffer.find(") (", posIn + 3);
+            if ( posAt != wxString::npos )
+            {
+                posAt += 3; // Skip ") ("
+
+                // Discard the two last characters which are ")\n"
+                wxString location(buffer, posAt, buffer.length() - posAt - 2);
+
+                wxString linenum;
+                filename = location.BeforeFirst(':', &linenum);
+                if ( !linenum.empty() )
+                    linenum.ToULong(&line);
+            }
+        }
+#else // !__WXOSX__
+        // 1st line has function name
+        if ( !ReadLine(fp, i, &name) )
+            return false;
+
+        name = wxString::FromAscii(g_buf);
+        name.RemoveLast(); // trailing newline
+
+        if ( name == wxT("??") )
+            name.clear();
+
+        // 2nd one -- the file/line info
+        if ( !ReadLine(fp, i, &filename) )
+            return false;
+
+        const size_t posColon = filename.find(wxT(':'));
+        if ( posColon != wxString::npos )
+        {
+            // parse line number (it's ok if it fails, this will just leave
+            // line at its current, invalid, 0 value)
+            wxString(filename, posColon + 1, wxString::npos).ToULong(&line);
+
+            // remove line number from 'filename'
+            filename.erase(posColon);
+            if ( filename == wxT("??") )
+                filename.clear();
         }
         else
         {
-            wxLogDebug(wxT("cannot read addr2line output for stack frame #%lu"),
-                       (unsigned long)i);
-            return false;
+            wxLogDebug(wxT("Unexpected addr2line format: \"%s\" - ")
+                       wxT("the semicolon is missing"),
+                       filename.c_str());
         }
-
-        // 2nd one -- the file/line info
-        if ( fgets(g_buf, WXSIZEOF(g_buf), fp) )
-        {
-            filename = wxString::FromAscii(g_buf);
-            filename.RemoveLast();
-
-            const size_t posColon = filename.find(wxT(':'));
-            if ( posColon != wxString::npos )
-            {
-                // parse line number (it's ok if it fails, this will just leave
-                // line at its current, invalid, 0 value)
-                wxString(filename, posColon + 1, wxString::npos).ToULong(&line);
-
-                // remove line number from 'filename'
-                filename.erase(posColon);
-                if ( filename == wxT("??") )
-                    filename.clear();
-            }
-            else
-            {
-                wxLogDebug(wxT("Unexpected addr2line format: \"%s\" - ")
-                           wxT("the semicolon is missing"),
-                           filename.c_str());
-            }
-        }
+#endif // __WXOSX__/!__WXOSX__
 
         // now we've got enough info to initialize curr-th stack frame
         // (at worst, only addresses[i] and syminfo[i] have been initialized,

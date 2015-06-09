@@ -4,7 +4,6 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     08/09/2000
-// RCS-ID:      $Id: cshelp.h 61508 2009-07-23 20:30:22Z VZ $
 // Copyright:   (c) 2000 Julian Smart, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

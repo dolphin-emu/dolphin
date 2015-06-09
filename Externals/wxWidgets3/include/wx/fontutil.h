@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.11.99
-// RCS-ID:      $Id: fontutil.h 70446 2012-01-23 11:28:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -71,6 +70,11 @@ class WXDLLIMPEXP_CORE wxNativeFontInfo
 public:
 #if wxUSE_PANGO
     PangoFontDescription *description;
+
+    // Pango font description doesn't have these attributes, so we store them
+    // separately and handle them ourselves in {To,From}String() methods.
+    bool m_underlined;
+    bool m_strikethrough;
 #elif defined(_WX_X_FONTLIKE)
     // the members can't be accessed directly as we only parse the
     // xFontName on demand
@@ -138,9 +142,7 @@ public:
         return *this;
     }
 
-#if wxOSX_USE_CORE_TEXT
     void Init(CTFontDescriptorRef descr);
-#endif
     void Init(const wxNativeFontInfo& info);
     void Init(int size,
                   wxFontFamily family,

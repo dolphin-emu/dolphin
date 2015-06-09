@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: glcanvas.mm 67243 2011-03-19 08:36:23Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,7 +38,9 @@ WXGLContext WXGLCreateContext( WXGLPixelFormat pixelFormat, WXGLContext shareCon
 {
     WXGLContext context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext: shareContext];
     if ( !context )
+    {
         wxFAIL_MSG("NSOpenGLContext creation failed");
+    }
     return context ;
 }
 
@@ -87,6 +88,7 @@ WXGLPixelFormat WXGLChoosePixelFormat(const int *attribList)
         NSOpenGLPFAColorSize,(NSOpenGLPixelFormatAttribute)8,
         NSOpenGLPFAAlphaSize,(NSOpenGLPixelFormatAttribute)0,
         NSOpenGLPFADepthSize,(NSOpenGLPixelFormatAttribute)8,
+        NSOpenGLPFAAccelerated, // use hardware accelerated context
         (NSOpenGLPixelFormatAttribute)nil
     };
 
@@ -99,6 +101,7 @@ WXGLPixelFormat WXGLChoosePixelFormat(const int *attribList)
     {
         unsigned p = 0;
         data[p++] = NSOpenGLPFAMinimumPolicy; // make _SIZE tags behave more like GLX
+        data[p++] = NSOpenGLPFAAccelerated; // use hardware accelerated context
 
         for ( unsigned arg = 0; attribList[arg] !=0 && p < WXSIZEOF(data); )
         {

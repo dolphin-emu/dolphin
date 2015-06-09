@@ -4,7 +4,6 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     01/29/05
-// RCS-ID:      $Id: mediactrl_am.cpp 68152 2011-07-04 16:43:37Z VZ $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1540,14 +1539,14 @@ wxString wxAMMediaBackend::GetErrorString(HRESULT hrdsv)
     {
         return wxString::Format(wxT("DirectShow error \"%s\" \n")
                                      wxT("(numeric %X)\n")
-                                     wxT("occured"),
+                                     wxT("occurred"),
                                      szError, (int)hrdsv);
     }
     else
     {
         return wxString::Format(wxT("Unknown error \n")
                                      wxT("(numeric %X)\n")
-                                     wxT("occured"),
+                                     wxT("occurred"),
                                      (int)hrdsv);
     }
 }

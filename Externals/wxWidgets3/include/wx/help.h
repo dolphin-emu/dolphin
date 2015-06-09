@@ -5,7 +5,6 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: help.h 70345 2012-01-15 01:05:28Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

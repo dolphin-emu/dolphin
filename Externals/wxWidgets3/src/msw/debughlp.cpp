@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-08 (extracted from crashrpt.cpp)
-// RCS-ID:      $Id: debughlp.cpp 69845 2011-11-27 19:52:13Z VZ $
 // Copyright:   (c) 2003-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -146,7 +145,7 @@ const wxString& wxDbgHelpDLL::GetErrorMessage()
 void wxDbgHelpDLL::LogError(const wxChar *func)
 {
     ::OutputDebugString(wxString::Format(wxT("dbghelp: %s() failed: %s\r\n"),
-                        func, wxSysErrorMsg(::GetLastError())).wx_str());
+                        func, wxSysErrorMsg(::GetLastError())).t_str());
 }
 
 // ----------------------------------------------------------------------------

@@ -2,7 +2,6 @@
 // Name:        src/common/fileback.cpp
 // Purpose:     Back an input stream with memory or a file
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: fileback.cpp 64656 2010-06-20 18:18:23Z VZ $
 // Copyright:   (c) 2006 Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

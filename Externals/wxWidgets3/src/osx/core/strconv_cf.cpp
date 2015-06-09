@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2007-07-06
-// RCS-ID:      $Id: strconv_cf.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2007 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

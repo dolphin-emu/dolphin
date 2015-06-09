@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EC1A314C-5588-4506-9C1E-2E58E5817F75}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VSProps\Base.props" />
+    <Import Project="..\..\..\VSProps\PCHUse.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="BoundingBox.cpp" />
+    <ClCompile Include="FramebufferManager.cpp" />
+    <ClCompile Include="GLExtensions\GLExtensions.cpp" />
+    <ClCompile Include="GLInterface\GLInterface.cpp" />
+    <ClCompile Include="GLInterface\WGL.cpp" />
+    <ClCompile Include="GLUtil.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="NativeVertexFormat.cpp" />
+    <ClCompile Include="PerfQuery.cpp" />
+    <ClCompile Include="PostProcessing.cpp" />
+    <ClCompile Include="ProgramShaderCache.cpp" />
+    <ClCompile Include="RasterFont.cpp" />
+    <ClCompile Include="Render.cpp" />
+    <ClCompile Include="SamplerCache.cpp" />
+    <ClCompile Include="StreamBuffer.cpp" />
+    <ClCompile Include="TextureCache.cpp" />
+    <ClCompile Include="TextureConverter.cpp" />
+    <ClCompile Include="VertexManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BoundingBox.h" />
+    <ClInclude Include="FramebufferManager.h" />
+    <ClInclude Include="GLExtensions\ARB_blend_func_extended.h" />
+    <ClInclude Include="GLExtensions\ARB_buffer_storage.h" />
+    <ClInclude Include="GLExtensions\ARB_clip_control.h" />
+    <ClInclude Include="GLExtensions\ARB_debug_output.h" />
+    <ClInclude Include="GLExtensions\ARB_draw_elements_base_vertex.h" />
+    <ClInclude Include="GLExtensions\ARB_ES2_compatibility.h" />
+    <ClInclude Include="GLExtensions\ARB_framebuffer_object.h" />
+    <ClInclude Include="GLExtensions\ARB_get_program_binary.h" />
+    <ClInclude Include="GLExtensions\ARB_map_buffer_range.h" />
+    <ClInclude Include="GLExtensions\ARB_sampler_objects.h" />
+    <ClInclude Include="GLExtensions\ARB_sample_shading.h" />
+    <ClInclude Include="GLExtensions\ARB_sync.h" />
+    <ClInclude Include="GLExtensions\ARB_uniform_buffer_object.h" />
+    <ClInclude Include="GLExtensions\ARB_vertex_array_object.h" />
+    <ClInclude Include="GLExtensions\ARB_viewport_array.h" />
+    <ClInclude Include="GLExtensions\GLExtensions.h" />
+    <ClInclude Include="GLExtensions\gl_1_1.h" />
+    <ClInclude Include="GLExtensions\gl_1_2.h" />
+    <ClInclude Include="GLExtensions\gl_1_3.h" />
+    <ClInclude Include="GLExtensions\gl_1_4.h" />
+    <ClInclude Include="GLExtensions\gl_1_5.h" />
+    <ClInclude Include="GLExtensions\gl_2_0.h" />
+    <ClInclude Include="GLExtensions\gl_3_0.h" />
+    <ClInclude Include="GLExtensions\gl_3_1.h" />
+    <ClInclude Include="GLExtensions\gl_3_2.h" />
+    <ClInclude Include="GLExtensions\gl_common.h" />
+    <ClInclude Include="GLExtensions\KHR_debug.h" />
+    <ClInclude Include="GLExtensions\NV_occlusion_query_samples.h" />
+    <ClInclude Include="GLExtensions\NV_primitive_restart.h" />
+    <ClInclude Include="GLInterface\WGL.h" />
+    <ClInclude Include="GLUtil.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="PerfQuery.h" />
+    <ClInclude Include="PostProcessing.h" />
+    <ClInclude Include="ProgramShaderCache.h" />
+    <ClInclude Include="RasterFont.h" />
+    <ClInclude Include="Render.h" />
+    <ClInclude Include="SamplerCache.h" />
+    <ClInclude Include="StreamBuffer.h" />
+    <ClInclude Include="TextureCache.h" />
+    <ClInclude Include="TextureConverter.h" />
+    <ClInclude Include="VertexManager.h" />
+    <ClInclude Include="VideoBackend.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
+      <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

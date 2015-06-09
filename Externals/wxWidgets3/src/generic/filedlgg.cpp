@@ -4,7 +4,6 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: filedlgg.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,6 +48,7 @@
 #include "wx/filectrl.h"
 #include "wx/generic/filedlgg.h"
 #include "wx/debug.h"
+#include "wx/modalhook.h"
 
 #if wxUSE_TOOLTIPS
     #include "wx/tooltip.h"
@@ -308,6 +308,8 @@ wxBitmapButton* wxGenericFileDialog::AddBitmapButton( wxWindowID winId,
 
 int wxGenericFileDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     if (CreateExtraControl())
     {
         wxSizer *sizer = GetSizer();

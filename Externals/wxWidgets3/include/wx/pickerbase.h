@@ -5,7 +5,6 @@
 // Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Vadim Zeitlin, Francesco Montorsi
-// RCS-ID:      $Id: pickerbase.h 68921 2011-08-27 14:11:25Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -105,6 +104,11 @@ public:     // public API
         { return m_text; }
     wxControl *GetPickerCtrl()
         { return m_picker; }
+
+    void SetTextCtrl(wxTextCtrl* text)
+        { m_text = text; }
+    void SetPickerCtrl(wxControl* picker)
+        { m_picker = picker; }
 
     // methods that derived class must/may override
     virtual void UpdatePickerFromTextCtrl() = 0;

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.mm 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -249,6 +248,7 @@ bool wxToolBar::Create(
 
     SetPeer(new wxWidgetIPhoneImpl( this, toolbar ));    
     MacPostControlCreate(pos, size) ;
+    return true;
 }
 
 wxToolBar::~wxToolBar()

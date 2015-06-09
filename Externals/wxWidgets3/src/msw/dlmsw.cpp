@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-10 (partly extracted from common/dynlib.cpp)
-// RCS-ID:      $Id: dlmsw.cpp 68962 2011-08-30 15:20:05Z DS $
 // Copyright:   (c) 1998-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,8 +27,6 @@
 #include "wx/msw/private.h"
 #include "wx/msw/debughlp.h"
 #include "wx/filename.h"
-
-const wxString wxDynamicLibrary::ms_dllext(wxT(".dll"));
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -185,13 +182,16 @@ wxDynamicLibraryDetailsCreator::EnumModulesProc(PCSTR name,
     wxDynamicLibraryDetails *details = new wxDynamicLibraryDetails;
 
     // fill in simple properties
-    details->m_name = wxString::FromAscii(name);
+    details->m_name = name;
     details->m_address = wxUIntToPtr(base);
     details->m_length = size;
 
     // to get the version, we first need the full path
-    const HMODULE
-        hmod = wxDynamicLibrary::MSWGetModuleHandle(name, details->m_address);
+    const HMODULE hmod = wxDynamicLibrary::MSWGetModuleHandle
+                         (
+                            details->m_name,
+                            details->m_address
+                         );
     if ( hmod )
     {
         wxString fullname = wxGetFullModuleName(hmod);
@@ -236,51 +236,7 @@ wxDynamicLibrary::RawLoad(const wxString& libname, int flags)
     if (flags & wxDL_GET_LOADED)
         return ::GetModuleHandle(libname.t_str());
 
-    // Explicitly look in the same path as where the main wx HINSTANCE module
-    // is located (usually the executable or the DLL that uses wx).  Normally
-    // this is automatically part of the default search path but in some cases
-    // it may not be, such as when the wxPython extension modules need to load
-    // a DLL, but the intperpreter executable is located elsewhere.  Doing
-    // this allows us to always be able to dynamically load a DLL that is
-    // located at the same place as the wx modules.
-    wxString modpath, path;
-    ::GetModuleFileName(wxGetInstance(),
-                        wxStringBuffer(modpath, MAX_PATH+1),
-                        MAX_PATH);
-    
-    wxFileName::SplitPath(modpath, &path, NULL, NULL);
-
-    typedef BOOL (WINAPI *SetDllDirectory_t)(LPCTSTR lpPathName);
-
-    static SetDllDirectory_t s_pfnSetDllDirectory = (SetDllDirectory_t) -1;
-
-    if ( s_pfnSetDllDirectory == (SetDllDirectory_t) -1 )
-    {
-        /*
-        Should wxLoadedDLL ever not be used here (or rather, the
-        wxDL_GET_LOADED flag isn't used), infinite recursion will take
-        place (unless s_pfnSetDllDirectory is set to NULL here right
-        before loading the DLL).
-        */
-        wxLoadedDLL dllKernel("kernel32.dll");
-
-        wxDL_INIT_FUNC_AW(s_pfn, SetDllDirectory, dllKernel);
-    }
-
-    if (s_pfnSetDllDirectory)
-    {
-        s_pfnSetDllDirectory(path.t_str());
-    }
-
-    wxDllType handle = ::LoadLibrary(libname.t_str());
-
-    // reset the search path
-    if (s_pfnSetDllDirectory)
-    {
-        s_pfnSetDllDirectory(NULL);
-    }
-
-    return handle;
+    return ::LoadLibrary(libname.t_str());
 }
 
 /* static */
@@ -294,7 +250,7 @@ void *wxDynamicLibrary::RawGetSymbol(wxDllType handle, const wxString& name)
 {
     return (void *)::GetProcAddress(handle,
 #ifdef __WXWINCE__
-                                            name.c_str()
+                                            name.t_str()
 #else
                                             name.ToAscii()
 #endif // __WXWINCE__
@@ -342,7 +298,7 @@ wxDynamicLibraryDetailsArray wxDynamicLibrary::ListLoaded()
 }
 
 /* static */
-WXHMODULE wxDynamicLibrary::MSWGetModuleHandle(const char *name, void *addr)
+WXHMODULE wxDynamicLibrary::MSWGetModuleHandle(const wxString& name, void *addr)
 {
     // we want to use GetModuleHandleEx() instead of usual GetModuleHandle()
     // because the former works correctly for comctl32.dll while the latter
@@ -350,7 +306,7 @@ WXHMODULE wxDynamicLibrary::MSWGetModuleHandle(const char *name, void *addr)
     // GetModuleHandleEx() is only available under XP and later, coincidence?)
 
     // check if we can use GetModuleHandleEx
-    typedef BOOL (WINAPI *GetModuleHandleEx_t)(DWORD, LPCSTR, HMODULE *);
+    typedef BOOL (WINAPI *GetModuleHandleEx_t)(DWORD, LPCTSTR, HMODULE *);
 
     static const GetModuleHandleEx_t INVALID_FUNC_PTR = (GetModuleHandleEx_t)-1;
 
@@ -359,7 +315,7 @@ WXHMODULE wxDynamicLibrary::MSWGetModuleHandle(const char *name, void *addr)
     {
         wxDynamicLibrary dll(wxT("kernel32.dll"), wxDL_VERBATIM);
         s_pfnGetModuleHandleEx =
-            (GetModuleHandleEx_t)dll.RawGetSymbol(wxT("GetModuleHandleExA"));
+            (GetModuleHandleEx_t)dll.GetSymbolAorW(wxT("GetModuleHandleEx"));
 
         // dll object can be destroyed, kernel32.dll won't be unloaded anyhow
     }
@@ -370,17 +326,11 @@ WXHMODULE wxDynamicLibrary::MSWGetModuleHandle(const char *name, void *addr)
         // flags are GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
         //           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
         HMODULE hmod;
-        if ( s_pfnGetModuleHandleEx(6, (char *)addr, &hmod) && hmod )
+        if ( s_pfnGetModuleHandleEx(6, (LPCTSTR)addr, &hmod) && hmod )
             return hmod;
     }
 
-    // Windows CE only has Unicode API, so even we have an ANSI string here, we
-    // still need to use GetModuleHandleW() there
-#ifdef __WXWINCE__
-    return ::GetModuleHandleW(wxConvLibc.cMB2WC(name).data());
-#else
-    return ::GetModuleHandleA((char *)name);
-#endif
+    return ::GetModuleHandle(name.t_str());
 }
 
 #endif // wxUSE_DYNLIB_CLASS

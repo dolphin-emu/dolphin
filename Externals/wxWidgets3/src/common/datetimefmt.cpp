@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetimefmt.cpp 70847 2012-03-09 01:09:25Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -291,8 +290,14 @@ ParseFormatAt(wxString::const_iterator& p,
     const wxString str(p, end);
     wxString::const_iterator endParse;
     wxDateTime dt;
-    if ( dt.ParseFormat(str, fmt, &endParse) ||
-            (!fmtAlt.empty() && dt.ParseFormat(str, fmtAlt, &endParse)) )
+
+    // Use a default date outside of the DST period to avoid problems with
+    // parsing the time differently depending on the today's date (which is used
+    // as the fall back date if none is explicitly specified).
+    static const wxDateTime dtDef(1, wxDateTime::Jan, 2012);
+
+    if ( dt.ParseFormat(str, fmt, dtDef, &endParse) ||
+            (!fmtAlt.empty() && dt.ParseFormat(str, fmtAlt, dtDef, &endParse)) )
     {
         p += endParse - str.begin();
     }
@@ -508,7 +513,7 @@ wxString wxDateTime::Format(const wxString& formatp, const TimeZone& tz) const
                         // (indirectly) set the year correctly
                         while ( (nLostWeekDays % 7) != 0 )
                         {
-                            nLostWeekDays += year++ % 4 ? 1 : 2;
+                            nLostWeekDays += (year++ % 4) ? 1 : 2;
                         }
 
                         // finally move the year below 2000 so that the 2-digit
@@ -649,6 +654,18 @@ wxString wxDateTime::Format(const wxString& formatp, const TimeZone& tz) const
                 case wxT('z'):       // time zone as [-+]HHMM
                     {
                         int ofs = tz.GetOffset();
+
+                        // The time zone offset does not include the DST, but
+                        // we do need to take it into account when showing the
+                        // time in the local time zone to the user.
+                        if ( ofs == -wxGetTimeZone() && IsDST() == 1 )
+                        {
+                            // FIXME: As elsewhere in wxDateTime, we assume
+                            // that the DST is always 1 hour, but this is not
+                            // true in general.
+                            ofs += 3600;
+                        }
+
                         if ( ofs < 0 )
                         {
                             res += '-';
@@ -927,6 +944,26 @@ wxDateTime::ParseRfc822Date(const wxString& date, wxString::const_iterator *end)
         *end = p;
 
     return true;
+}
+
+const char* wxDateTime::ParseRfc822Date(const char* date)
+{
+    wxString::const_iterator end;
+    wxString dateStr(date);
+    if ( !ParseRfc822Date(dateStr, &end) )
+        return NULL;
+
+    return date + dateStr.IterOffsetInMBStr(end);
+}
+
+const wchar_t* wxDateTime::ParseRfc822Date(const wchar_t* date)
+{
+    wxString::const_iterator end;
+    wxString dateStr(date);
+    if ( !ParseRfc822Date(dateStr, &end) )
+        return NULL;
+
+    return date + (end - dateStr.begin());
 }
 
 bool
@@ -1563,6 +1600,32 @@ wxDateTime::ParseFormat(const wxString& date,
     return true;
 }
 
+const char*
+wxDateTime::ParseFormat(const char* date,
+                        const wxString& format,
+                        const wxDateTime& dateDef)
+{
+    wxString::const_iterator end;
+    wxString dateStr(date);
+    if ( !ParseFormat(dateStr, format, dateDef, &end) )
+        return NULL;
+
+    return date + dateStr.IterOffsetInMBStr(end);
+}
+
+const wchar_t*
+wxDateTime::ParseFormat(const wchar_t* date,
+                        const wxString& format,
+                        const wxDateTime& dateDef)
+{
+    wxString::const_iterator end;
+    wxString dateStr(date);
+    if ( !ParseFormat(dateStr, format, dateDef, &end) )
+        return NULL;
+
+    return date + (end - dateStr.begin());
+}
+
 bool
 wxDateTime::ParseDateTime(const wxString& date, wxString::const_iterator *end)
 {
@@ -1616,6 +1679,26 @@ wxDateTime::ParseDateTime(const wxString& date, wxString::const_iterator *end)
     return true;
 }
 
+const char* wxDateTime::ParseDateTime(const char* date)
+{
+    wxString::const_iterator end;
+    wxString dateStr(date);
+    if ( !ParseDateTime(dateStr, &end) )
+        return NULL;
+
+    return date + dateStr.IterOffsetInMBStr(end);
+}
+
+const wchar_t* wxDateTime::ParseDateTime(const wchar_t* date)
+{
+    wxString::const_iterator end;
+    wxString dateStr(date);
+    if ( !ParseDateTime(dateStr, &end) )
+        return NULL;
+
+    return date + (end - dateStr.begin());
+}
+
 bool
 wxDateTime::ParseDate(const wxString& date, wxString::const_iterator *end)
 {
@@ -1653,12 +1736,12 @@ wxDateTime::ParseDate(const wxString& date, wxString::const_iterator *end)
         if ( len > lenRest )
             continue;
 
-        const wxString::const_iterator pEnd = p + len;
-        if ( wxString(p, pEnd).CmpNoCase(dateStr) == 0 )
+        const wxString::const_iterator pEndStr = p + len;
+        if ( wxString(p, pEndStr).CmpNoCase(dateStr) == 0 )
         {
             // nothing can follow this, so stop here
 
-            p = pEnd;
+            p = pEndStr;
 
             int dayDiffFromToday = literalDates[n].dayDiffFromToday;
             *this = Today();
@@ -1667,7 +1750,7 @@ wxDateTime::ParseDate(const wxString& date, wxString::const_iterator *end)
                 *this += wxDateSpan::Days(dayDiffFromToday);
             }
 
-            *end = pEnd;
+            *end = pEndStr;
 
             return true;
         }
@@ -1973,6 +2056,26 @@ wxDateTime::ParseDate(const wxString& date, wxString::const_iterator *end)
     return true;
 }
 
+const char* wxDateTime::ParseDate(const char* date)
+{
+    wxString::const_iterator end;
+    wxString dateStr(date);
+    if ( !ParseDate(dateStr, &end) )
+        return NULL;
+
+    return date + dateStr.IterOffsetInMBStr(end);
+}
+
+const wchar_t* wxDateTime::ParseDate(const wchar_t* date)
+{
+    wxString::const_iterator end;
+    wxString dateStr(date);
+    if ( !ParseDate(dateStr, &end) )
+        return NULL;
+
+    return date + (end - dateStr.begin());
+}
+
 bool
 wxDateTime::ParseTime(const wxString& time, wxString::const_iterator *end)
 {
@@ -2013,6 +2116,8 @@ wxDateTime::ParseTime(const wxString& time, wxString::const_iterator *end)
         "%H:%M:%S",     // could be the same or 24 hour one so try it too
         "%I:%M %p",     // 12hour with AM/PM but without seconds
         "%H:%M",        // and a possibly 24 hour version without seconds
+        "%I %p",        // just hour with AM/AM
+        "%H",           // just hour in 24 hour version
         "%X",           // possibly something from above or maybe something
                         // completely different -- try it last
 
@@ -2026,6 +2131,26 @@ wxDateTime::ParseTime(const wxString& time, wxString::const_iterator *end)
     }
 
     return false;
+}
+
+const char* wxDateTime::ParseTime(const char* date)
+{
+    wxString::const_iterator end;
+    wxString dateStr(date);
+    if ( !ParseTime(dateStr, &end) )
+        return NULL;
+
+    return date + dateStr.IterOffsetInMBStr(end);
+}
+
+const wchar_t* wxDateTime::ParseTime(const wchar_t* date)
+{
+    wxString::const_iterator end;
+    wxString dateStr(date);
+    if ( !ParseTime(dateStr, &end) )
+        return NULL;
+
+    return date + (end - dateStr.begin());
 }
 
 // ----------------------------------------------------------------------------

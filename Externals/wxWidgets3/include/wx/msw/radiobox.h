@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: radiobox.h 70498 2012-02-02 14:26:06Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -97,6 +96,7 @@ public:
     // override some base class methods
     virtual bool Show(bool show = true);
     virtual bool Enable(bool enable = true);
+    virtual bool CanBeFocused() const;
     virtual void SetFocus();
     virtual bool SetFont(const wxFont& font);
     virtual bool ContainsHWND(WXHWND hWnd) const;
@@ -112,10 +112,6 @@ public:
 #endif // wxUSE_HELP
 
     virtual bool Reparent(wxWindowBase *newParent);
-
-    // we inherit a version always returning false from wxStaticBox, override
-    // it to behave normally
-    virtual bool AcceptsFocus() const { return wxControl::AcceptsFocus(); }
 
     // returns true if the platform should explicitly apply a theme border
     virtual bool CanApplyThemeBorder() const { return false; }

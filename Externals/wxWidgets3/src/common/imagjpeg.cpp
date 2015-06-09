@@ -2,7 +2,6 @@
 // Name:        src/common/imagjpeg.cpp
 // Purpose:     wxImage JPEG handler
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: imagjpeg.cpp 69759 2011-11-14 13:35:48Z VZ $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

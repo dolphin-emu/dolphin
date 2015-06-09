@@ -1,13 +1,12 @@
 '''
 This script will delete dependences from *.vcp files.
 After using this script, next time when you will try to save project,
-you will have wait untill 'Visual Tools' will rebuild all dependencies
+you will have wait until 'Visual Tools' will rebuild all dependencies
 and this process might take HUGE amount of time
 
 Author : Viktor Voroshylo
-$Id: clean_vcp.py 24713 2003-12-04 08:59:16Z JS $
 '''
-__version__='$Revision: 24713 $'[11:-2]
+__version__='$Revision: 74602 $'[11:-2]
 
 import sys
 

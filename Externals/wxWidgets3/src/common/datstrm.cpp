@@ -4,7 +4,6 @@
 // Author:      Guilhem Lavaux
 // Modified by: Mickael Gilabert
 // Created:     28/06/98
-// RCS-ID:      $Id: datstrm.cpp 61764 2009-08-26 20:44:01Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,34 +23,69 @@
     #include "wx/math.h"
 #endif //WX_PRECOMP
 
-// ---------------------------------------------------------------------------
-// wxDataInputStream
-// ---------------------------------------------------------------------------
-
-#if wxUSE_UNICODE
-wxDataInputStream::wxDataInputStream(wxInputStream& s, const wxMBConv& conv)
-  : m_input(&s), m_be_order(false), m_conv(conv.Clone())
-#else
-wxDataInputStream::wxDataInputStream(wxInputStream& s)
-  : m_input(&s), m_be_order(false)
-#endif
+namespace
 {
+
+// helper unions used to swap bytes of floats and doubles
+union Float32Data
+{
+    wxFloat32 f;
+    wxUint32 i;
+};
+
+union Float64Data
+{
+    wxFloat64 f;
+    wxUint32 i[2];
+};
+
+} // anonymous namespace
+
+// ----------------------------------------------------------------------------
+// wxDataStreamBase
+// ----------------------------------------------------------------------------
+
+wxDataStreamBase::wxDataStreamBase(const wxMBConv& conv)
+#if wxUSE_UNICODE
+    : m_conv(conv.Clone())
+#endif // wxUSE_UNICODE
+{
+    // It is unused in non-Unicode build, so suppress a warning there.
+    wxUnusedVar(conv);
+
+    m_be_order = false;
+
+    // For compatibility with the existing data files, we use extended
+    // precision if it is available, i.e. if wxUSE_APPLE_IEEE is on.
+#if wxUSE_APPLE_IEEE
+    m_useExtendedPrecision = true;
+#endif // wxUSE_APPLE_IEEE
 }
 
-wxDataInputStream::~wxDataInputStream()
+#if wxUSE_UNICODE
+void wxDataStreamBase::SetConv( const wxMBConv &conv )
+{
+    delete m_conv;
+    m_conv = conv.Clone();
+}
+#endif
+
+wxDataStreamBase::~wxDataStreamBase()
 {
 #if wxUSE_UNICODE
     delete m_conv;
 #endif // wxUSE_UNICODE
 }
 
-#if wxUSE_UNICODE
-void wxDataInputStream::SetConv( const wxMBConv &conv )
+// ---------------------------------------------------------------------------
+// wxDataInputStream
+// ---------------------------------------------------------------------------
+
+wxDataInputStream::wxDataInputStream(wxInputStream& s, const wxMBConv& conv)
+  : wxDataStreamBase(conv),
+    m_input(&s)
 {
-    delete m_conv;
-    m_conv = conv.Clone();
 }
-#endif
 
 #if wxHAS_INT64
 wxUint64 wxDataInputStream::Read64()
@@ -97,13 +131,48 @@ wxUint8 wxDataInputStream::Read8()
 double wxDataInputStream::ReadDouble()
 {
 #if wxUSE_APPLE_IEEE
-  char buf[10];
+    if ( m_useExtendedPrecision )
+    {
+        char buf[10];
 
-  m_input->Read(buf, 10);
-  return wxConvertFromIeeeExtended((const wxInt8 *)buf);
-#else
-  return 0.0;
-#endif
+        m_input->Read(buf, 10);
+        return wxConvertFromIeeeExtended((const wxInt8 *)buf);
+    }
+    else
+#endif // wxUSE_APPLE_IEEE
+    {
+        Float64Data floatData;
+
+        if ( m_be_order == (wxBYTE_ORDER == wxBIG_ENDIAN) )
+        {
+            floatData.i[0] = Read32();
+            floatData.i[1] = Read32();
+        }
+        else
+        {
+            floatData.i[1] = Read32();
+            floatData.i[0] = Read32();
+        }
+
+        return static_cast<double>(floatData.f);
+    }
+}
+
+float wxDataInputStream::ReadFloat()
+{
+#if wxUSE_APPLE_IEEE
+    if ( m_useExtendedPrecision )
+    {
+        return (float)ReadDouble();
+    }
+    else
+#endif // wxUSE_APPLE_IEEE
+    {
+        Float32Data floatData;
+
+        floatData.i = Read32();
+        return static_cast<float>(floatData.f);
+    }
 }
 
 wxString wxDataInputStream::ReadString()
@@ -114,11 +183,10 @@ wxString wxDataInputStream::ReadString()
     if ( len > 0 )
     {
 #if wxUSE_UNICODE
-        wxCharBuffer tmp(len + 1);
+        wxCharBuffer tmp(len);
         if ( tmp )
         {
             m_input->Read(tmp.data(), len);
-            tmp.data()[len] = '\0';
             ret = m_conv->cMB2WX(tmp.data());
         }
 #else
@@ -378,6 +446,14 @@ void wxDataInputStream::ReadDouble(double *buffer, size_t size)
   }
 }
 
+void wxDataInputStream::ReadFloat(float *buffer, size_t size)
+{
+  for (wxUint32 i=0; i<size; i++)
+  {
+    *(buffer++) = ReadFloat();
+  }
+}
+
 wxDataInputStream& wxDataInputStream::operator>>(wxString& s)
 {
   s = ReadString();
@@ -448,15 +524,15 @@ wxDataInputStream& wxDataInputStream::operator>>(wxLongLong& i)
 }
 #endif // wxLongLong_t
 
-wxDataInputStream& wxDataInputStream::operator>>(double& i)
+wxDataInputStream& wxDataInputStream::operator>>(double& d)
 {
-  i = ReadDouble();
+  d = ReadDouble();
   return *this;
 }
 
 wxDataInputStream& wxDataInputStream::operator>>(float& f)
 {
-  f = (float)ReadDouble();
+  f = ReadFloat();
   return *this;
 }
 
@@ -464,30 +540,11 @@ wxDataInputStream& wxDataInputStream::operator>>(float& f)
 // wxDataOutputStream
 // ---------------------------------------------------------------------------
 
-#if wxUSE_UNICODE
 wxDataOutputStream::wxDataOutputStream(wxOutputStream& s, const wxMBConv& conv)
-  : m_output(&s), m_be_order(false), m_conv(conv.Clone())
-#else
-wxDataOutputStream::wxDataOutputStream(wxOutputStream& s)
-  : m_output(&s), m_be_order(false)
-#endif
+  : wxDataStreamBase(conv),
+    m_output(&s)
 {
 }
-
-wxDataOutputStream::~wxDataOutputStream()
-{
-#if wxUSE_UNICODE
-    delete m_conv;
-#endif // wxUSE_UNICODE
-}
-
-#if wxUSE_UNICODE
-void wxDataOutputStream::SetConv( const wxMBConv &conv )
-{
-    delete m_conv;
-    m_conv = conv.Clone();
-}
-#endif
 
 #if wxHAS_INT64
 void wxDataOutputStream::Write64(wxUint64 i)
@@ -544,22 +601,49 @@ void wxDataOutputStream::WriteString(const wxString& string)
 
 void wxDataOutputStream::WriteDouble(double d)
 {
-  char buf[10];
-
 #if wxUSE_APPLE_IEEE
-  wxConvertToIeeeExtended(d, (wxInt8 *)buf);
-#else
-  wxUnusedVar(d);
-#if !defined(__VMS__) && !defined(__GNUG__)
-#ifdef _MSC_VER
-# pragma message("wxDataOutputStream::WriteDouble() not using IeeeExtended - will not work!")
-#else
-# pragma warning "wxDataOutputStream::WriteDouble() not using IeeeExtended - will not work!"
-#endif
-#endif
-   buf[0] = '\0';
-#endif
-  m_output->Write(buf, 10);
+    if ( m_useExtendedPrecision )
+    {
+        char buf[10];
+
+        wxConvertToIeeeExtended(d, (wxInt8 *)buf);
+        m_output->Write(buf, 10);
+    }
+    else
+#endif // wxUSE_APPLE_IEEE
+    {
+        Float64Data floatData;
+
+        floatData.f = (wxFloat64)d;
+
+        if ( m_be_order == (wxBYTE_ORDER == wxBIG_ENDIAN) )
+        {
+            Write32(floatData.i[0]);
+            Write32(floatData.i[1]);
+        }
+        else
+        {
+            Write32(floatData.i[1]);
+            Write32(floatData.i[0]);
+        }
+    }
+}
+
+void wxDataOutputStream::WriteFloat(float f)
+{
+#if wxUSE_APPLE_IEEE
+    if ( m_useExtendedPrecision )
+    {
+        WriteDouble((double)f);
+    }
+    else
+#endif // wxUSE_APPLE_IEEE
+    {
+        Float32Data floatData;
+
+        floatData.f = (wxFloat32)f;
+        Write32(floatData.i);
+    }
 }
 
 #if wxHAS_INT64
@@ -673,6 +757,14 @@ void wxDataOutputStream::WriteDouble(const double *buffer, size_t size)
   }
 }
 
+void wxDataOutputStream::WriteFloat(const float *buffer, size_t size)
+{
+  for (wxUint32 i=0; i<size; i++)
+  {
+    WriteFloat(*(buffer++));
+  }
+}
+
 wxDataOutputStream& wxDataOutputStream::operator<<(const wxString& string)
 {
   WriteString(string);
@@ -743,15 +835,15 @@ wxDataOutputStream& wxDataOutputStream::operator<<(const wxLongLong &i)
 }
 #endif // wxLongLong_t
 
-wxDataOutputStream& wxDataOutputStream::operator<<(double f)
+wxDataOutputStream& wxDataOutputStream::operator<<(double d)
 {
-  WriteDouble(f);
+  WriteDouble(d);
   return *this;
 }
 
 wxDataOutputStream& wxDataOutputStream::operator<<(float f)
 {
-  WriteDouble((double)f);
+  WriteFloat(f);
   return *this;
 }
 

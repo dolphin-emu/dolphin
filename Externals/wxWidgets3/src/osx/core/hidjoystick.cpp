@@ -4,7 +4,6 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2/13/2005
-// RCS-ID:      $Id: hidjoystick.cpp 70404 2012-01-19 15:06:22Z SC $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -566,7 +565,7 @@ void wxHIDJoystick::BuildCookies(CFArrayRef Array)
 
     //
     // I wasted two hours of my life on this line :(
-    // accidently removed it during some source cleaning...
+    // accidentally removed it during some source cleaning...
     //
     MakeCookies(Array);
 
@@ -782,7 +781,7 @@ void* wxJoystickThread::Entry()
 //
 // This is where the REAL dirty work gets done.
 //
-// 1) Loops through each event the queue has recieved
+// 1) Loops through each event the queue has received
 // 2) First, checks if the thread that is running the loop for
 //    the polling has ended - if so it breaks out
 // 3) Next, it checks if there was an error getting this event from

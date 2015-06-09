@@ -3,7 +3,6 @@
 // Purpose:     implements dispatcher for epoll_wait() call
 // Author:      Lukasz Michalski
 // Created:     April 2007
-// RCS-ID:      $Id: epolldispatcher.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2007 Lukasz Michalski
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

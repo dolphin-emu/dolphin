@@ -3,7 +3,6 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:
-// Id:          $Id: dialog.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:           wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,17 +38,14 @@ public:
     virtual int ShowModal();
     virtual void EndModal( int retCode );
     virtual bool IsModal() const;
-    void SetModal( bool modal );
-
-    // implementation
-    // --------------
-
-    bool       m_modalShowing;
 
 private:
     // common part of all ctors
     void Init();
+
+    bool m_modalShowing;
     wxGUIEventLoop *m_modalLoop;
+
     DECLARE_DYNAMIC_CLASS(wxDialog)
 };
 

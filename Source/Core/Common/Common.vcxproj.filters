@@ -1,125 +1,130 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Src\BreakPoints.cpp" />
-    <ClCompile Include="Src\CDUtils.cpp" />
-    <ClCompile Include="Src\ColorUtil.cpp" />
-    <ClCompile Include="Src\ExtendedTrace.cpp" />
-    <ClCompile Include="Src\FileSearch.cpp" />
-    <ClCompile Include="Src\FileUtil.cpp" />
-    <ClCompile Include="Src\Hash.cpp" />
-    <ClCompile Include="Src\IniFile.cpp" />
-    <ClCompile Include="Src\MathUtil.cpp" />
-    <ClCompile Include="Src\MemArena.cpp" />
-    <ClCompile Include="Src\MemoryUtil.cpp" />
-    <ClCompile Include="Src\Misc.cpp" />
-    <ClCompile Include="Src\MsgHandler.cpp" />
-    <ClCompile Include="Src\NandPaths.cpp" />
-    <ClCompile Include="Src\SDCardUtil.cpp" />
-    <ClCompile Include="Src\stdafx.cpp" />
-    <ClCompile Include="Src\StringUtil.cpp" />
-    <ClCompile Include="Src\SymbolDB.cpp" />
-    <ClCompile Include="Src\SysConf.cpp" />
-    <ClCompile Include="Src\Thread.cpp" />
-    <ClCompile Include="Src\Timer.cpp" />
-    <ClCompile Include="Src\Version.cpp" />
-    <ClCompile Include="Src\x64Analyzer.cpp" />
-    <ClCompile Include="Src\x64Emitter.cpp" />
-    <ClCompile Include="Src\LogManager.cpp">
-      <Filter>Logging</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\ConsoleListener.cpp">
-      <Filter>Logging</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Crypto\aes_cbc.cpp">
-      <Filter>Crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Crypto\aes_core.cpp">
-      <Filter>Crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Crypto\bn.cpp">
-      <Filter>Crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Crypto\ec.cpp">
-      <Filter>Crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\SettingsHandler.cpp" />
-    <ClCompile Include="Src\x64ABI.cpp" />
-    <ClCompile Include="Src\x64CPUDetect.cpp" />
-    <ClCompile Include="Src\x64FPURoundMode.cpp" />
-    <ClCompile Include="Src\x64Thunk.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Src\Atomic.h" />
-    <ClInclude Include="Src\Atomic_GCC.h" />
-    <ClInclude Include="Src\Atomic_Win32.h" />
-    <ClInclude Include="Src\BreakPoints.h" />
-    <ClInclude Include="Src\CDUtils.h" />
-    <ClInclude Include="Src\ChunkFile.h" />
-    <ClInclude Include="Src\ColorUtil.h" />
-    <ClInclude Include="Src\Common.h" />
-    <ClInclude Include="Src\CommonFuncs.h" />
-    <ClInclude Include="Src\CommonPaths.h" />
-    <ClInclude Include="Src\CommonTypes.h" />
-    <ClInclude Include="Src\CPUDetect.h" />
-    <ClInclude Include="Src\DebugInterface.h" />
-    <ClInclude Include="Src\ExtendedTrace.h" />
-    <ClInclude Include="Src\FifoQueue.h" />
-    <ClInclude Include="Src\FileSearch.h" />
-    <ClInclude Include="Src\FileUtil.h" />
-    <ClInclude Include="Src\FixedSizeQueue.h" />
-    <ClInclude Include="Src\Hash.h" />
-    <ClInclude Include="Src\IniFile.h" />
-    <ClInclude Include="Src\LinearDiskCache.h" />
-    <ClInclude Include="Src\MathUtil.h" />
-    <ClInclude Include="Src\MemArena.h" />
-    <ClInclude Include="Src\MemoryUtil.h" />
-    <ClInclude Include="Src\MsgHandler.h" />
-    <ClInclude Include="Src\NandPaths.h" />
-    <ClInclude Include="Src\SDCardUtil.h" />
-    <ClInclude Include="Src\Setup.h" />
-    <ClInclude Include="Src\stdafx.h" />
-    <ClInclude Include="Src\StdThread.h" />
-    <ClInclude Include="Src\StringUtil.h" />
-    <ClInclude Include="Src\SymbolDB.h" />
-    <ClInclude Include="Src\SysConf.h" />
-    <ClInclude Include="Src\Thread.h" />
-    <ClInclude Include="Src\Thunk.h" />
-    <ClInclude Include="Src\Timer.h" />
-    <ClInclude Include="Src\x64Analyzer.h" />
-    <ClInclude Include="Src\x64Emitter.h" />
-    <ClInclude Include="Src\Log.h">
-      <Filter>Logging</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\LogManager.h">
-      <Filter>Logging</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\ConsoleListener.h">
-      <Filter>Logging</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Crypto\aes.h">
-      <Filter>Crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Crypto\aes_locl.h">
-      <Filter>Crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Crypto\tools.h">
-      <Filter>Crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\StdMutex.h" />
-    <ClInclude Include="Src\StdConditionVariable.h" />
-    <ClInclude Include="Src\SettingsHandler.h" />
-    <ClInclude Include="Src\x64ABI.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="Crypto">
-      <UniqueIdentifier>{21b7df68-af69-45f4-9741-590a6a7f1ed1}</UniqueIdentifier>
+      <UniqueIdentifier>{0336df21-7c3f-48a9-b767-9cf11d8958a6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Logging">
-      <UniqueIdentifier>{f078f36e-a0ff-4cd0-95f8-476100d68e68}</UniqueIdentifier>
+      <UniqueIdentifier>{c54973ce-5723-491c-ac23-41cea3565b05}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Atomic.h" />
+    <ClInclude Include="Atomic_GCC.h" />
+    <ClInclude Include="Atomic_Win32.h" />
+    <ClInclude Include="BitField.h" />
+    <ClInclude Include="BitSet.h" />
+    <ClInclude Include="BlockingLoop.h" />
+    <ClInclude Include="BreakPoints.h" />
+    <ClInclude Include="CDUtils.h" />
+    <ClInclude Include="ChunkFile.h" />
+    <ClInclude Include="CodeBlock.h" />
+    <ClInclude Include="ColorUtil.h" />
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="CommonFuncs.h" />
+    <ClInclude Include="CommonPaths.h" />
+    <ClInclude Include="CommonTypes.h" />
+    <ClInclude Include="CPUDetect.h" />
+    <ClInclude Include="DebugInterface.h" />
+    <ClInclude Include="ENetUtil.h" />
+    <ClInclude Include="FifoQueue.h" />
+    <ClInclude Include="FileSearch.h" />
+    <ClInclude Include="FileUtil.h" />
+    <ClInclude Include="FixedSizeQueue.h" />
+    <ClInclude Include="Flag.h" />
+    <ClInclude Include="FPURoundMode.h" />
+    <ClInclude Include="Hash.h" />
+    <ClInclude Include="IniFile.h" />
+    <ClInclude Include="LinearDiskCache.h" />
+    <ClInclude Include="MathUtil.h" />
+    <ClInclude Include="MemArena.h" />
+    <ClInclude Include="MemoryUtil.h" />
+    <ClInclude Include="MsgHandler.h" />
+    <ClInclude Include="NandPaths.h" />
+    <ClInclude Include="Network.h" />
+    <ClInclude Include="PcapFile.h" />
+    <ClInclude Include="Profiler.h" />
+    <ClInclude Include="SDCardUtil.h" />
+    <ClInclude Include="SettingsHandler.h" />
+    <ClInclude Include="StdMakeUnique.h" />
+    <ClInclude Include="StringUtil.h" />
+    <ClInclude Include="SymbolDB.h" />
+    <ClInclude Include="SysConf.h" />
+    <ClInclude Include="Thread.h" />
+    <ClInclude Include="Timer.h" />
+    <ClInclude Include="x64ABI.h" />
+    <ClInclude Include="x64Analyzer.h" />
+    <ClInclude Include="x64Emitter.h" />
+    <ClInclude Include="Logging\ConsoleListener.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\Log.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\LogManager.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Crypto\ec.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="Crypto\bn.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="GekkoDisassembler.h" />
+    <ClInclude Include="Event.h" />
+    <ClInclude Include="JitRegister.h" />
+    <ClInclude Include="TraversalClient.h" />
+    <ClInclude Include="TraversalProto.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BreakPoints.cpp" />
+    <ClCompile Include="CDUtils.cpp" />
+    <ClCompile Include="ColorUtil.cpp" />
+    <ClCompile Include="ENetUtil.cpp" />
+    <ClCompile Include="FileSearch.cpp" />
+    <ClCompile Include="FileUtil.cpp" />
+    <ClCompile Include="Hash.cpp" />
+    <ClCompile Include="IniFile.cpp" />
+    <ClCompile Include="MathUtil.cpp" />
+    <ClCompile Include="MemArena.cpp" />
+    <ClCompile Include="MemoryUtil.cpp" />
+    <ClCompile Include="Misc.cpp" />
+    <ClCompile Include="MsgHandler.cpp" />
+    <ClCompile Include="NandPaths.cpp" />
+    <ClCompile Include="Network.cpp" />
+    <ClCompile Include="PcapFile.cpp" />
+    <ClCompile Include="Profiler.cpp" />
+    <ClCompile Include="SDCardUtil.cpp" />
+    <ClCompile Include="SettingsHandler.cpp" />
+    <ClCompile Include="StringUtil.cpp" />
+    <ClCompile Include="SymbolDB.cpp" />
+    <ClCompile Include="SysConf.cpp" />
+    <ClCompile Include="Thread.cpp" />
+    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Version.cpp" />
+    <ClCompile Include="x64ABI.cpp" />
+    <ClCompile Include="x64Analyzer.cpp" />
+    <ClCompile Include="x64CPUDetect.cpp" />
+    <ClCompile Include="x64Emitter.cpp" />
+    <ClCompile Include="x64FPURoundMode.cpp" />
+    <ClCompile Include="Crypto\bn.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="Crypto\ec.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\LogManager.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="XSaveWorkaround.cpp" />
+    <ClCompile Include="GekkoDisassembler.cpp" />
+    <ClCompile Include="JitRegister.cpp" />
+    <ClCompile Include="TraversalClient.cpp" />
+    <ClCompile Include="Logging\ConsoleListenerWin.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
 </Project>

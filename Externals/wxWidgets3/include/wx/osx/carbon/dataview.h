@@ -2,7 +2,6 @@
 // Name:        wx/osx/carbon/dataview.h
 // Purpose:     wxDataViewCtrl native implementation header for carbon
 // Author:
-// Id:          $Id: dataview.h 57374 2009-01-27
 // Copyright:   (c) 2009
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -156,9 +155,7 @@ public:
 
   OSStatus EnableCellSizeModification(bool enableHeight=true, bool enableWidth=true); // enables or disables the column width and row height modification (default: false)
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
   OSStatus GetAttributes        (OptionBits* attributes);
-#endif
   OSStatus GetColumnWidth       (DataBrowserPropertyID column, UInt16 *width ) const; // returns the column width in pixels
   OSStatus GetDefaultColumnWidth(UInt16 *width ) const; // returns the default column width in pixels
   OSStatus GetDefaultRowHeight  (UInt16 * height ) const;
@@ -167,9 +164,7 @@ public:
   OSStatus GetRowHeight         (DataBrowserItemID item , UInt16 *height) const;
   OSStatus GetScrollPosition    (UInt32* top, UInt32 *left) const;
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
   OSStatus SetAttributes (OptionBits attributes);
-#endif
   OSStatus SetColumnWidth(DataBrowserPropertyID column, UInt16 width); // sets the column width in pixels
   OSStatus SetDefaultColumnWidth( UInt16 width );
   OSStatus SetDefaultRowHeight( UInt16 height );

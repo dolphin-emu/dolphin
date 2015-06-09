@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by: Stefan Csomor
 // Created:     2009-01-01
-// RCS-ID:      $Id: sound.cpp 69178 2011-09-21 15:08:02Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

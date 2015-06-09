@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.h 61662 2009-08-14 00:05:56Z VZ $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -19,10 +18,6 @@
 class WXDLLIMPEXP_BASE wxStandardPaths : public wxStandardPathsBase
 {
 public:
-    // ctor calls IgnoreAppBuildSubDirs() and also sets up the object to use
-    // both vendor and application name by default
-    wxStandardPaths();
-
     // implement base class pure virtuals
     virtual wxString GetExecutablePath() const;
     virtual wxString GetConfigDir() const;
@@ -67,6 +62,13 @@ public:
     static wxString MSWGetShellDir(int csidl);
 
 protected:
+    // Ctor is protected, use wxStandardPaths::Get() instead of instantiating
+    // objects of this class directly.
+    //
+    // It calls IgnoreAppBuildSubDirs() and also sets up the object to use
+    // both vendor and application name by default.
+    wxStandardPaths();
+
     // get the path corresponding to the given standard CSIDL_XXX constant
     static wxString DoGetDirectory(int csidl);
 

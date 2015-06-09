@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.06.99
-// RCS-ID:      $Id: tipdlg.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

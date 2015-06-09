@@ -1,0 +1,64 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Enable/Disabe Input Overlay -->
+    <item
+        android:id="@+id/enableInputOverlay"
+        android:showAsAction="ifRoom"
+        android:title="@string/disable_input_overlay"/>
+
+    <!-- Save State Slots -->
+    <item
+        android:id="@+id/takeScreenshot"
+        android:showAsAction="ifRoom"
+        android:title="@string/overlay_screenshot"/>
+    <item
+        android:id="@+id/saveStateRoot"
+        android:showAsAction="never"
+        android:title="@string/overlay_savestate">
+        <menu>
+            <item android:id="@+id/saveSlot1"
+                  android:title="@string/overlay_slot1"/>
+
+            <item android:id="@+id/saveSlot2"
+                  android:title="@string/overlay_slot2"/>
+
+            <item android:id="@+id/saveSlot3"
+                  android:title="@string/overlay_slot3"/>
+
+            <item android:id="@+id/saveSlot4"
+                  android:title="@string/overlay_slot4"/>
+
+            <item android:id="@+id/saveSlot5"
+                  android:title="@string/overlay_slot5"/>
+        </menu>
+    </item>
+
+    <!-- Load State Slots -->
+    <item
+        android:id="@+id/loadStateRoot"
+        android:showAsAction="never"
+        android:title="@string/overlay_loadstate">
+        <menu>
+            <item android:id="@+id/loadSlot1"
+                  android:title="@string/overlay_slot1"/>
+
+            <item android:id="@+id/loadSlot2"
+                  android:title="@string/overlay_slot2"/>
+
+            <item android:id="@+id/loadSlot3"
+                  android:title="@string/overlay_slot3"/>
+
+            <item android:id="@+id/loadSlot4"
+                  android:title="@string/overlay_slot4"/>
+
+            <item android:id="@+id/loadSlot5"
+                  android:title="@string/overlay_slot5"/>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/exitEmulation"
+        android:showAsAction="ifRoom"
+        android:title="@string/overlay_exit_emulation">
+    </item>
+</menu>

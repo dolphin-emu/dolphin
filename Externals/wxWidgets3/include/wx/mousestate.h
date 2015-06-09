@@ -3,7 +3,6 @@
 // Purpose:     Declaration of wxMouseState class
 // Author:      Vadim Zeitlin
 // Created:     2008-09-19 (extracted from wx/utils.h)
-// RCS-ID:      $Id: mousestate.h 70098 2011-12-23 05:59:59Z PC $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,13 +99,11 @@ public:
 
             case wxMOUSE_BTN_NONE:
             case wxMOUSE_BTN_MAX:
-                wxFAIL_MSG(wxS("invalid parameter"));
-                return false;
-
-            default:
-                wxFAIL_MSG(wxS("unknown parameter"));
-                return false;
+                break;
         }
+
+        wxFAIL_MSG(wxS("invalid parameter"));
+        return false;
     }
 
 

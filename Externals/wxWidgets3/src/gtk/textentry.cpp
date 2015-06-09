@@ -3,7 +3,6 @@
 // Purpose:     wxTextEntry implementation for wxGTK
 // Author:      Vadim Zeitlin
 // Created:     2007-09-24
-// RCS-ID:      $Id: textentry.cpp 67509 2011-04-16 17:27:04Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,51 +25,112 @@
 #if wxUSE_TEXTCTRL || wxUSE_COMBOBOX
 
 #ifndef WX_PRECOMP
+    #include "wx/textentry.h"
     #include "wx/window.h"
     #include "wx/textctrl.h"
 #endif //WX_PRECOMP
 
-#include "wx/textentry.h"
-
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
+#include "wx/gtk/private/gtk2-compat.h"
 
 // ============================================================================
 // signal handlers implementation
 // ============================================================================
 
-extern "C"
-{
-
 // "insert_text" handler for GtkEntry
-static void
+extern "C"
+void
 wx_gtk_insert_text_callback(GtkEditable *editable,
-                            const gchar * WXUNUSED(new_text),
+                            const gchar * new_text,
                             gint WXUNUSED(new_text_length),
                             gint * WXUNUSED(position),
                             wxTextEntry *text)
 {
-    // we should only be called if we have a max len limit at all
     GtkEntry *entry = GTK_ENTRY (editable);
 
-    const int text_length = gtk_entry_get_text_length(entry);
 #if GTK_CHECK_VERSION(3,0,0) || defined(GSEAL_ENABLE)
     const int text_max_length = gtk_entry_buffer_get_max_length(gtk_entry_get_buffer(entry));
 #else
     const int text_max_length = entry->text_max_length;
 #endif
-    wxCHECK_RET(text_max_length, "shouldn't be called");
 
-    // check that we don't overflow the max length limit
-    //
-    // FIXME: this doesn't work when we paste a string which is going to be
-    //        truncated
-    if (text_length == text_max_length)
+    bool handled = false;
+
+    // check that we don't overflow the max length limit if we have it
+    if ( text_max_length )
     {
-        // we don't need to run the base class version at all
-        g_signal_stop_emission_by_name (editable, "insert_text");
+        const int text_length = gtk_entry_get_text_length(entry);
 
-        text->SendMaxLenEvent();
+        // We can't use new_text_length as it is in bytes while we want to count
+        // characters (in first approximation, anyhow...).
+        if ( text_length + g_utf8_strlen(new_text, -1) > text_max_length )
+        {
+            // Prevent the new text from being inserted.
+            handled = true;
+
+            // Currently we don't insert anything at all, but it would be better to
+            // insert as many characters as would fit into the text control and
+            // only discard the rest.
+
+            // Notify the user code about overflow.
+            text->SendMaxLenEvent();
+        }
     }
+
+    if ( !handled && text->GTKEntryOnInsertText(new_text) )
+    {
+        // If we already handled the new text insertion, don't do it again.
+        handled = true;
+    }
+
+    if ( handled )
+        g_signal_stop_emission_by_name (editable, "insert_text");
+}
+
+//-----------------------------------------------------------------------------
+//  clipboard events: "copy-clipboard", "cut-clipboard", "paste-clipboard"
+//-----------------------------------------------------------------------------
+
+// common part of the event handlers below
+static void
+DoHandleClipboardCallback( GtkWidget *widget,
+                           wxWindow *win,
+                           wxEventType eventType,
+                           const gchar* signal_name)
+{
+    wxClipboardTextEvent event( eventType, win->GetId() );
+    event.SetEventObject( win );
+    if ( win->HandleWindowEvent( event ) )
+    {
+        // don't let the default processing to take place if we did something
+        // ourselves in the event handler
+        g_signal_stop_emission_by_name (widget, signal_name);
+    }
+}
+
+extern "C"
+{
+
+static void
+wx_gtk_copy_clipboard_callback( GtkWidget *widget, wxWindow *win )
+{
+    DoHandleClipboardCallback(
+        widget, win, wxEVT_TEXT_COPY, "copy-clipboard" );
+}
+
+static void
+wx_gtk_cut_clipboard_callback( GtkWidget *widget, wxWindow *win )
+{
+    DoHandleClipboardCallback(
+        widget, win, wxEVT_TEXT_CUT, "cut-clipboard" );
+}
+
+static void
+wx_gtk_paste_clipboard_callback( GtkWidget *widget, wxWindow *win )
+{
+    DoHandleClipboardCallback(
+        widget, win, wxEVT_TEXT_PASTE, "paste-clipboard" );
 }
 
 } // extern "C"
@@ -109,6 +169,26 @@ void wxTextEntry::WriteText(const wxString& value)
     gtk_editable_set_position(edit, len);
 }
 
+void wxTextEntry::DoSetValue(const wxString& value, int flags)
+{
+    if (value != DoGetValue())
+    {
+        // use Remove() rather than SelectAll() to avoid unnecessary clipboard
+        // operations, and prevent triggering an apparent bug in GTK which
+        // causes the the subsequent WriteText() to append rather than overwrite
+        {
+            EventsSuppressor noevents(this);
+            Remove(0, -1);
+        }
+        EventsSuppressor noeventsIf(this, !(flags & SetValue_SendEvent));
+        WriteText(value);
+    }
+    else if (flags & SetValue_SendEvent)
+        SendTextUpdatedEvent(GetEditableWindow());
+
+    SetInsertionPoint(0);
+}
+
 wxString wxTextEntry::DoGetValue() const
 {
     const wxGtkString value(gtk_editable_get_chars(GetEditable(), 0, -1));
@@ -125,6 +205,19 @@ void wxTextEntry::Remove(long from, long to)
 // ----------------------------------------------------------------------------
 // clipboard operations
 // ----------------------------------------------------------------------------
+
+void wxTextEntry::GTKConnectClipboardSignals(GtkWidget* entry)
+{
+    g_signal_connect(entry, "copy-clipboard",
+                     G_CALLBACK (wx_gtk_copy_clipboard_callback),
+                     GetEditableWindow());
+    g_signal_connect(entry, "cut-clipboard",
+                     G_CALLBACK (wx_gtk_cut_clipboard_callback),
+                     GetEditableWindow());
+    g_signal_connect(entry, "paste-clipboard",
+                     G_CALLBACK (wx_gtk_paste_clipboard_callback),
+                     GetEditableWindow());
+}
 
 void wxTextEntry::Copy()
 {
@@ -183,9 +276,12 @@ long wxTextEntry::GetLastPosition() const
 {
     // this can't be implemented for arbitrary GtkEditable so only do it for
     // GtkEntries
-    GtkEntry * const entry = GTK_ENTRY(GetEditable());
+    long pos = -1;
+    GtkEntry* entry = (GtkEntry*)GetEditable();
+    if (GTK_IS_ENTRY(entry))
+        pos = gtk_entry_get_text_length(entry);
 
-    return entry ? gtk_entry_get_text_length(entry) : -1;
+    return pos;
 }
 
 // ----------------------------------------------------------------------------
@@ -204,6 +300,18 @@ void wxTextEntry::SetSelection(long from, long to)
     // insertion point is set to the start of the selection and not its end as
     // GTK+ does by default
     gtk_editable_select_region(GetEditable(), to, from);
+
+#ifndef __WXGTK3__
+    // avoid reported problem with RHEL 5 GTK+ 2.10 where selection is reset by
+    // a clipboard callback, see #13277
+    if (gtk_check_version(2,12,0))
+    {
+        GtkEntry* entry = GTK_ENTRY(GetEditable());
+        if (to < 0)
+            to = entry->text_length;
+        entry->selection_bound = to;
+    }
+#endif
 }
 
 void wxTextEntry::GetSelection(long *from, long *to) const
@@ -239,8 +347,8 @@ void wxTextEntry::GetSelection(long *from, long *to) const
 
 bool wxTextEntry::DoAutoCompleteStrings(const wxArrayString& choices)
 {
-    GtkEntry * const entry = GTK_ENTRY(GetEditable());
-    wxCHECK_MSG(entry, false, "auto completion doesn't work with this control");
+    GtkEntry* const entry = (GtkEntry*)GetEditable();
+    wxCHECK_MSG(GTK_IS_ENTRY(entry), false, "auto completion doesn't work with this control");
 
     GtkListStore * const store = gtk_list_store_new(1, G_TYPE_STRING);
     GtkTreeIter iter;
@@ -269,7 +377,7 @@ bool wxTextEntry::DoAutoCompleteStrings(const wxArrayString& choices)
 
 bool wxTextEntry::IsEditable() const
 {
-    return gtk_editable_get_editable(GetEditable());
+    return gtk_editable_get_editable(GetEditable()) != 0;
 }
 
 void wxTextEntry::SetEditable(bool editable)
@@ -283,53 +391,51 @@ void wxTextEntry::SetEditable(bool editable)
 
 void wxTextEntry::SetMaxLength(unsigned long len)
 {
-    GtkEntry * const entry = GTK_ENTRY(GetEditable());
-    if ( !entry )
+    GtkEntry* const entry = (GtkEntry*)GetEditable();
+    if (!GTK_IS_ENTRY(entry))
         return;
 
     gtk_entry_set_max_length(entry, len);
-
-    // there is a bug in GTK+ 1.2.x: "changed" signal is emitted even if we had
-    // tried to enter more text than allowed by max text length and the text
-    // wasn't really changed
-    //
-    // to detect this and generate TEXT_MAXLEN event instead of TEXT_CHANGED
-    // one in this case we also catch "insert_text" signal
-    //
-    // when max len is set to 0 we disconnect our handler as it means that we
-    // shouldn't check anything any more
-    if ( len )
-    {
-        g_signal_connect
-        (
-            entry,
-            "insert_text",
-            G_CALLBACK(wx_gtk_insert_text_callback),
-            this
-        );
-    }
-    else // no max length
-    {
-        g_signal_handlers_disconnect_by_func
-        (
-            entry,
-            (gpointer)wx_gtk_insert_text_callback,
-            this
-        );
-    }
 }
 
 void wxTextEntry::SendMaxLenEvent()
 {
     // remember that the next changed signal is to be ignored to avoid
-    // generating a dummy wxEVT_COMMAND_TEXT_UPDATED event
+    // generating a dummy wxEVT_TEXT event
     //IgnoreNextTextUpdate();
 
     wxWindow * const win = GetEditableWindow();
-    wxCommandEvent event(wxEVT_COMMAND_TEXT_MAXLEN, win->GetId());
+    wxCommandEvent event(wxEVT_TEXT_MAXLEN, win->GetId());
     event.SetEventObject(win);
     event.SetString(GetValue());
     win->HandleWindowEvent(event);
+}
+
+// ----------------------------------------------------------------------------
+// IM handling
+// ----------------------------------------------------------------------------
+
+int wxTextEntry::GTKIMFilterKeypress(GdkEventKey* event) const
+{
+#if GTK_CHECK_VERSION(2, 22, 0)
+    if ( gtk_check_version(2, 12, 0) == 0 )
+        return gtk_entry_im_context_filter_keypress(GetEntry(), event);
+#else // GTK+ < 2.22
+    wxUnusedVar(event);
+#endif // GTK+ 2.22+
+
+    return FALSE;
+}
+
+void wxTextEntry::GTKConnectInsertTextSignal(GtkEntry* entry)
+{
+    g_signal_connect(entry, "insert_text",
+                     G_CALLBACK(wx_gtk_insert_text_callback), this);
+}
+
+bool wxTextEntry::GTKEntryOnInsertText(const char* text)
+{
+    return GetEditableWindow()->GTKOnInsertText(text);
 }
 
 // ----------------------------------------------------------------------------
@@ -407,5 +513,32 @@ wxPoint wxTextEntry::DoGetMargins() const
     return wxPoint(-1, -1);
 #endif
 }
+
+#ifdef __WXGTK3__
+bool wxTextEntry::SetHint(const wxString& hint)
+{
+#if GTK_CHECK_VERSION(3,2,0)
+    GtkEntry *entry = GetEntry();
+    if ( entry )
+    {
+        gtk_entry_set_placeholder_text(entry, wxGTK_CONV(hint));
+        return true;
+    }
+    else
+#endif
+        return wxTextEntryBase::SetHint(hint);
+}
+
+wxString wxTextEntry::GetHint() const
+{
+#if GTK_CHECK_VERSION(3,2,0)
+    GtkEntry *entry = GetEntry();
+    if ( entry )
+        return wxGTK_CONV_BACK(gtk_entry_get_placeholder_text(entry));
+    else
+#endif
+        return wxTextEntryBase::GetHint();
+}
+#endif // __WXGTK3__
 
 #endif // wxUSE_TEXTCTRL || wxUSE_COMBOBOX

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.02.01
-// RCS-ID:      $Id: notebook.h 66555 2011-01-04 08:31:53Z SC $
 // Copyright:   (c) 1996-2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -132,7 +131,7 @@ public:
     virtual wxColour GetThemeBackgroundColour() const { return wxNullColour; }
 
 
-    // send wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING/ED events
+    // send wxEVT_NOTEBOOK_PAGE_CHANGING/ED events
 
     // returns false if the change to nPage is vetoed by the program
     bool SendPageChangingEvent(int nPage);
@@ -169,14 +168,14 @@ protected:
 typedef wxBookCtrlEventFunction wxNotebookEventFunction;
 #define wxNotebookEventHandler(func) wxBookCtrlEventHandler(func)
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, wxBookCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING, wxBookCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_NOTEBOOK_PAGE_CHANGED, wxBookCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_NOTEBOOK_PAGE_CHANGING, wxBookCtrlEvent );
 
 #define EVT_NOTEBOOK_PAGE_CHANGED(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, winid, wxBookCtrlEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_NOTEBOOK_PAGE_CHANGED, winid, wxBookCtrlEventHandler(fn))
 
 #define EVT_NOTEBOOK_PAGE_CHANGING(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING, winid, wxBookCtrlEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_NOTEBOOK_PAGE_CHANGING, winid, wxBookCtrlEventHandler(fn))
 
 // ----------------------------------------------------------------------------
 // wxNotebook class itself
@@ -199,6 +198,10 @@ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING
 #elif defined(__WXPM__)
     #include  "wx/os2/notebook.h"
 #endif
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED    wxEVT_NOTEBOOK_PAGE_CHANGED
+#define wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING   wxEVT_NOTEBOOK_PAGE_CHANGING
 
 #endif // wxUSE_NOTEBOOK
 

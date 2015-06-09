@@ -27,11 +27,15 @@
 #ifndef POLARSSL_MD5_H
 #define POLARSSL_MD5_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <string.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
 typedef UINT32 uint32_t;
 #else
@@ -43,6 +47,10 @@ typedef UINT32 uint32_t;
 #if !defined(POLARSSL_MD5_ALT)
 // Regular implementation
 //
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          MD5 context structure
@@ -58,9 +66,19 @@ typedef struct
 }
 md5_context;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/**
+ * \brief          Initialize MD5 context
+ *
+ * \param ctx      MD5 context to be initialized
+ */
+void md5_init( md5_context *ctx );
+
+/**
+ * \brief          Clear MD5 context
+ *
+ * \param ctx      MD5 context to be cleared
+ */
+void md5_free( md5_context *ctx );
 
 /**
  * \brief          MD5 context setup

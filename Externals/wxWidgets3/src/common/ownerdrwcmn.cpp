@@ -4,7 +4,6 @@
 // Author:      Marcin Malich
 // Modified by:
 // Created:     2009-09-22
-// RCS-ID:      $Id: ownerdrwcmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2009 Marcin Malich <me@malcom.pl>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

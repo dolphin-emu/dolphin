@@ -4,7 +4,6 @@
 // Author:      Julian Smart and Guillermo Rodriguez Garcia
 // Modified by: Francesco Montorsi
 // Created:     13/8/99
-// RCS-ID:      $Id: animateg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart and Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

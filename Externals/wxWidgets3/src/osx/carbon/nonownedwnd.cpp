@@ -3,7 +3,6 @@
 // Purpose:     implementation of wxNonOwnedWindow
 // Author:      Stefan Csomor
 // Created:     2008-03-24
-// RCS-ID:      $Id: nonownedwnd.cpp 69440 2011-10-16 15:59:31Z SJL $
 // Copyright:   (c) Stefan Csomor 2008
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -306,7 +305,6 @@ static pascal OSStatus KeyboardEventHandler( EventHandlerCallRef handler , Event
 
     UInt32 keyCode ;
     UInt32 modifiers ;
-    Point point ;
     UInt32 when = EventTimeToTicks( GetEventTime( event ) ) ;
 
 #if wxUSE_UNICODE
@@ -331,10 +329,9 @@ static pascal OSStatus KeyboardEventHandler( EventHandlerCallRef handler , Event
     }
 #endif // wxUSE_UNICODE
 
-    GetEventParameter( event, kEventParamKeyMacCharCodes, typeChar, NULL, sizeof(char), NULL, &charCode );
+    GetEventParameter( event, kEventParamKeyMacCharCodes, typeChar, NULL, 1, NULL, &charCode );
     GetEventParameter( event, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode );
     GetEventParameter( event, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers );
-    GetEventParameter( event, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Point), NULL, &point );
 
     UInt32 message = (keyCode << 8) + charCode;
     switch ( GetEventKind( event ) )
@@ -346,7 +343,7 @@ static pascal OSStatus KeyboardEventHandler( EventHandlerCallRef handler , Event
                 WXEVENTHANDLERCALLREF formerHandler = wxTheApp->MacGetCurrentEventHandlerCallRef() ;
                 wxTheApp->MacSetCurrentEvent( event , handler ) ;
                 if ( /* focus && */ wxTheApp->MacSendKeyDownEvent(
-                    focus , message , modifiers , when , point.h , point.v , uniChar[0] ) )
+                    focus , message , modifiers , when , uniChar[0] ) )
                 {
                     result = noErr ;
                 }
@@ -356,7 +353,7 @@ static pascal OSStatus KeyboardEventHandler( EventHandlerCallRef handler , Event
 
         case kEventRawKeyUp :
             if ( /* focus && */ wxTheApp->MacSendKeyUpEvent(
-                focus , message , modifiers , when , point.h , point.v , uniChar[0] ) )
+                focus , message , modifiers , when , uniChar[0] ) )
             {
                 result = noErr ;
             }
@@ -367,11 +364,9 @@ static pascal OSStatus KeyboardEventHandler( EventHandlerCallRef handler , Event
                 wxKeyEvent event(wxEVT_KEY_DOWN);
 
                 event.m_shiftDown = modifiers & shiftKey;
-                event.m_controlDown = modifiers & controlKey;
+                event.m_rawControlDown = modifiers & controlKey;
                 event.m_altDown = modifiers & optionKey;
-                event.m_metaDown = modifiers & cmdKey;
-                event.m_x = point.h;
-                event.m_y = point.v;
+                event.m_controlDown = event.m_metaDown = modifiers & cmdKey;
 
 #if wxUSE_UNICODE
                 event.m_uniChar = uniChar[0] ;
@@ -382,7 +377,7 @@ static pascal OSStatus KeyboardEventHandler( EventHandlerCallRef handler , Event
 
                 if ( /* focus && */ (modifiers ^ wxApp::s_lastModifiers ) & controlKey )
                 {
-                    event.m_keyCode = WXK_CONTROL ;
+                    event.m_keyCode = WXK_RAW_CONTROL  ;
                     event.SetEventType( ( modifiers & controlKey ) ? wxEVT_KEY_DOWN : wxEVT_KEY_UP ) ;
                     focus->HandleWindowEvent( event ) ;
                 }
@@ -400,7 +395,7 @@ static pascal OSStatus KeyboardEventHandler( EventHandlerCallRef handler , Event
                 }
                 if ( /* focus && */ (modifiers ^ wxApp::s_lastModifiers ) & cmdKey )
                 {
-                    event.m_keyCode = WXK_COMMAND ;
+                    event.m_keyCode = WXK_CONTROL;
                     event.SetEventType( ( modifiers & cmdKey ) ? wxEVT_KEY_DOWN : wxEVT_KEY_UP ) ;
                     focus->HandleWindowEvent( event ) ;
                 }
@@ -443,9 +438,9 @@ WXDLLEXPORT void SetupMouseEvent( wxMouseEvent &wxevent , wxMacCarbonEvent &cEve
     wxevent.m_x = screenMouseLocation.h;
     wxevent.m_y = screenMouseLocation.v;
     wxevent.m_shiftDown = modifiers & shiftKey;
-    wxevent.m_controlDown = modifiers & controlKey;
+    wxevent.m_rawControlDown = modifiers & controlKey;
     wxevent.m_altDown = modifiers & optionKey;
-    wxevent.m_metaDown = modifiers & cmdKey;
+    wxevent.m_controlDown = wxevent.m_metaDown = modifiers & cmdKey;
     wxevent.m_clickCount = clickCount;
     wxevent.SetTimestamp( cEvent.GetTicks() ) ;
 
@@ -546,8 +541,9 @@ WXDLLEXPORT void SetupMouseEvent( wxMouseEvent &wxevent , wxMacCarbonEvent &cEve
             wxevent.m_wheelRotation = delta;
             wxevent.m_wheelDelta = 1;
             wxevent.m_linesPerAction = 1;
+            wxevent.m_columnsPerAction = 1;
             if ( axis == kEventMouseWheelAxisX )
-                wxevent.m_wheelAxis = 1;
+                wxevent.m_wheelAxis = wxMOUSE_WHEEL_HORIZONTAL;
         }
         break ;
 
@@ -1526,18 +1522,11 @@ void wxNonOwnedWindowCarbonImpl::Maximize(bool maximize)
     Point idealSize = { 0 , 0 } ;
     if ( maximize )
     {
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
         HIRect bounds ;
         HIWindowGetAvailablePositioningBounds(kCGNullDirectDisplay,kHICoordSpace72DPIGlobal,
             &bounds);
         idealSize.h = bounds.size.width;
         idealSize.v = bounds.size.height;
-#else
-        Rect rect ;
-        GetAvailableWindowPositioningBounds(GetMainDevice(),&rect) ;
-        idealSize.h = rect.right - rect.left ;
-        idealSize.v = rect.bottom - rect.top ;
-#endif
     }
     ZoomWindowIdeal( (WindowRef)GetWXWindow() , maximize ? inZoomOut : inZoomIn , &idealSize ) ;
 }

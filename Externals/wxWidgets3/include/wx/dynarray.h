@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.97
-// RCS-ID:      $Id: dynarray.h 69688 2011-11-05 15:20:32Z VS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,6 +127,8 @@ public:                                                             \
   name() : std::vector<T>() { }                                     \
   name(size_type n) : std::vector<T>(n) { }                         \
   name(size_type n, const_reference v) : std::vector<T>(n, v) { }   \
+  template <class InputIterator>                                    \
+  name(InputIterator first, InputIterator last) : std::vector<T>(first, last) { } \
                                                                     \
   void Empty() { clear(); }                                         \
   void Clear() { clear(); }                                         \
@@ -249,7 +250,7 @@ protected:                                                          \
   typedef const value_type* const_iterator;                         \
   typedef value_type& reference;                                    \
   typedef const value_type& const_reference;                        \
-  typedef int difference_type;                                      \
+  typedef ptrdiff_t difference_type;                                \
   typedef size_t size_type;                                         \
                                                                     \
   void assign(const_iterator first, const_iterator last);           \
@@ -274,8 +275,13 @@ protected:                                                          \
   void pop_back() { RemoveAt(size() - 1); }                         \
   void push_back(const value_type& v) { Add(v); }                   \
   void reserve(size_type n) { Alloc(n); }                           \
-  void resize(size_type n, value_type v = value_type())             \
-    { SetCount(n, v); }                                             \
+  void resize(size_type count, value_type defval = value_type())    \
+  {                                                                 \
+    if ( count < m_nCount )                                         \
+      m_nCount = count;                                             \
+    else                                                            \
+      SetCount(count, defval);                                      \
+  }                                                                 \
                                                                     \
   iterator begin() { return m_pItems; }                             \
   iterator end() { return m_pItems + m_nCount; }                    \

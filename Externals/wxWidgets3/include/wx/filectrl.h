@@ -5,7 +5,6 @@
 // Author:      Diaa M. Sami
 // Modified by:
 // Created:     Jul-07-2007
-// RCS-ID:      $Id: filectrl.h 64429 2010-05-29 10:35:47Z VZ $
 // Copyright:   (c) Diaa M. Sami
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

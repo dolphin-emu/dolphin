@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: 03.11.00: VZ to add wxArrayString and multiple sel functions
 // Created:     01/02/97
-// RCS-ID:      $Id: choicdgg.h 70642 2012-02-20 21:56:18Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

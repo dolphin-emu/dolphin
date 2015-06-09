@@ -3,7 +3,6 @@
 // Purpose:     wxProgressDialog
 // Author:      Rickard Westerlund
 // Created:     2010-07-22
-// RCS-ID:      $Id: progdlg.cpp 70512 2012-02-05 14:18:25Z VZ $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -170,7 +169,7 @@ BOOL CALLBACK DisplayCloseButton(HWND hwnd, LPARAM lParam)
     {
         sharedData->m_labelCancel = _("Close");
         SendMessage( hwnd, WM_SETTEXT, 0,
-                     (LPARAM) sharedData->m_labelCancel.wx_str() );
+                     wxMSW_CONV_LPARAM(sharedData->m_labelCancel) );
 
         return FALSE;
     }
@@ -212,7 +211,7 @@ void PerformNotificationUpdates(HWND hwnd,
     }
 
     if ( sharedData->m_notifications & wxSPDD_TITLE_CHANGED )
-        ::SetWindowText( hwnd, sharedData->m_title.wx_str() );
+        ::SetWindowText( hwnd, sharedData->m_title.t_str() );
 
     if ( sharedData->m_notifications & wxSPDD_MESSAGE_CHANGED )
     {
@@ -245,12 +244,12 @@ void PerformNotificationUpdates(HWND hwnd,
         ::SendMessage( hwnd,
                        TDM_SET_ELEMENT_TEXT,
                        TDE_MAIN_INSTRUCTION,
-                       (LPARAM) title.wx_str() );
+                       wxMSW_CONV_LPARAM(title) );
 
         ::SendMessage( hwnd,
                        TDM_SET_ELEMENT_TEXT,
                        TDE_CONTENT,
-                       (LPARAM) body.wx_str() );
+                       wxMSW_CONV_LPARAM(body) );
     }
 
     if ( sharedData->m_notifications & wxSPDD_EXPINFO_CHANGED )
@@ -262,7 +261,7 @@ void PerformNotificationUpdates(HWND hwnd,
             ::SendMessage( hwnd,
                            TDM_SET_ELEMENT_TEXT,
                            TDE_EXPANDED_INFORMATION,
-                           (LPARAM) expandedInformation.wx_str() );
+                           wxMSW_CONV_LPARAM(expandedInformation) );
         }
     }
 
@@ -806,7 +805,7 @@ void* wxProgressDialogTaskRunner::Entry()
         if ( !m_sharedData.m_expandedInformation.empty() )
         {
             tdc.pszExpandedInformation =
-                m_sharedData.m_expandedInformation.wx_str();
+                m_sharedData.m_expandedInformation.t_str();
         }
     }
 

@@ -1,146 +1,83 @@
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
+set(GUI_SRCS
+	ARCodeAddEdit.cpp
+	AboutDolphin.cpp
+	ControllerConfigDiag.cpp
+	Cheats/CheatSearchTab.cpp
+	Cheats/CheatsWindow.cpp
+	Cheats/CreateCodeDialog.cpp
+	Cheats/GeckoCodeDiag.cpp
+	Config/AdvancedConfigPane.cpp
+	Config/AudioConfigPane.cpp
+	Config/ConfigMain.cpp
+	Config/GameCubeConfigPane.cpp
+	Config/GeneralConfigPane.cpp
+	Config/InterfaceConfigPane.cpp
+	Config/PathConfigPane.cpp
+	Config/WiiConfigPane.cpp
+	Debugger/BreakpointDlg.cpp
+	Debugger/BreakpointView.cpp
+	Debugger/BreakpointWindow.cpp
+	Debugger/CodeView.cpp
+	Debugger/CodeWindow.cpp
+	Debugger/CodeWindowFunctions.cpp
+	Debugger/DSPDebugWindow.cpp
+	Debugger/DSPRegisterView.cpp
+	Debugger/DebuggerPanel.cpp
+	Debugger/DebuggerUIUtil.cpp
+	Debugger/JitWindow.cpp
+	Debugger/MemoryCheckDlg.cpp
+	Debugger/MemoryView.cpp
+	Debugger/MemoryWindow.cpp
+	Debugger/RegisterView.cpp
+	Debugger/RegisterWindow.cpp
+	Debugger/WatchView.cpp
+	Debugger/WatchWindow.cpp
+	NetPlay/ChangeGameDialog.cpp
+	NetPlay/NetPlaySetupFrame.cpp
+	NetPlay/NetWindow.cpp
+	NetPlay/PadMapDialog.cpp
+	FifoPlayerDlg.cpp
+	Frame.cpp
+	FrameAui.cpp
+	FrameTools.cpp
+	GameListCtrl.cpp
+	ISOFile.cpp
+	ISOProperties.cpp
+	InputConfigDiag.cpp
+	InputConfigDiagBitmaps.cpp
+	LogConfigWindow.cpp
+	LogWindow.cpp
+	Main.cpp
+	MemcardManager.cpp
+	PatchAddEdit.cpp
+	PostProcessingConfigDiag.cpp
+	SoftwareVideoConfigDialog.cpp
+	TASInputDlg.cpp
+	VideoConfigDiag.cpp
+	WXInputBase.cpp
+	WxUtils.cpp)
+
+set(NOGUI_SRCS MainNoGUI.cpp)
+
+if(USE_X11)
+	set(GUI_SRCS ${GUI_SRCS} X11Utils.cpp)
+	set(NOGUI_SRCS ${NOGUI_SRCS} X11Utils.cpp)
 endif()
 
-set(LIBS	core
-			${LZO}
-			discio
-			bdisasm
-			inputcommon
-			common
-			audiocommon
-			z
-			sfml-network
-			${GTK2_LIBRARIES})
+set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 
-if(NOT ANDROID)
-	if(USE_X11)
-	  set(LIBS  ${LIBS} ${X11_LIBRARIES}
-              ${XINPUT2_LIBRARIES}
-	      ${XRANDR_LIBRARIES})
-	endif()
-	if(USE_WAYLAND)
-	  set(LIBS  ${LIBS} ${WAYLAND_LIBRARIES}
-		${XKBCOMMON_LIBRARIES})
-	endif()
+list(APPEND LIBS core uicommon)
 
-	link_directories(${CMAKE_PREFIX_PATH}/lib)
-
-	if(SDL2_FOUND)
-		# Using shared SDL2
-		set(LIBS	${LIBS} ${SDL2_LIBRARY})
-	else(SDL2_FOUND)
-		if(SDL_FOUND)
-			# Using shared SDL
-			set(LIBS	${LIBS} ${SDL_LIBRARY})
-		else(SDL_FOUND)
-			# Using static SDL from Externals
-			set(LIBS	${LIBS} SDL)
-		endif()
-	endif()
-else()
-	set(LIBS ${LIBS} png iconv)
+if(ANDROID)
+	list(APPEND LIBS png)
 endif()
 
-if(LIBAV_FOUND)
-	set(LIBS	${LIBS} ${LIBAV_LIBRARIES})
-endif()
+set(ANDROID_SRCS Android/ButtonManager.cpp
+	 MainAndroid.cpp)
 
-if(wxWidgets_FOUND)
-	set(SRCS 
-				Src/ARCodeAddEdit.cpp
-				Src/AboutDolphin.cpp
-				Src/CheatsWindow.cpp
-				Src/ConfigMain.cpp
-				Src/Debugger/BreakpointDlg.cpp
-				Src/Debugger/BreakpointView.cpp
-				Src/Debugger/BreakpointWindow.cpp
-				Src/Debugger/CodeView.cpp
-				Src/Debugger/CodeWindow.cpp
-				Src/Debugger/CodeWindowFunctions.cpp
-				Src/Debugger/DSPDebugWindow.cpp
-				Src/Debugger/DSPRegisterView.cpp
-				Src/Debugger/DebuggerPanel.cpp
-				Src/Debugger/DebuggerUIUtil.cpp
-				Src/Debugger/JitWindow.cpp
-				Src/Debugger/MemoryCheckDlg.cpp
-				Src/Debugger/MemoryView.cpp
-				Src/Debugger/MemoryWindow.cpp
-				Src/Debugger/RegisterView.cpp
-				Src/Debugger/RegisterWindow.cpp
-				Src/FifoPlayerDlg.cpp
-				Src/Frame.cpp
-				Src/FrameAui.cpp
-				Src/FrameTools.cpp
-				Src/GameListCtrl.cpp
-				Src/GeckoCodeDiag.cpp
-				Src/HotkeyDlg.cpp
-				Src/ISOFile.cpp
-				Src/ISOProperties.cpp
-				Src/InputConfigDiag.cpp
-				Src/InputConfigDiagBitmaps.cpp
-				Src/LogConfigWindow.cpp
-				Src/LogWindow.cpp
-				Src/Main.cpp
-				Src/MemcardManager.cpp
-				Src/MemoryCards/WiiSaveCrypted.cpp
-				Src/NetWindow.cpp
-				Src/PHackSettings.cpp
-				Src/PatchAddEdit.cpp
-				Src/TASInputDlg.cpp
-				Src/UDPConfigDiag.cpp
-				Src/VideoConfigDiag.cpp
-				Src/WXInputBase.cpp
-				Src/WiimoteConfigDiag.cpp
-				Src/WxUtils.cpp)
-
-	set(WXLIBS ${wxWidgets_LIBRARIES})
-else()
-	if(ANDROID)
-		set(SRCS Src/Android/TextureLoader.cpp
-			 Src/Android/ButtonManager.cpp
-			 Src/MainAndroid.cpp)
-	else()
-		set(SRCS Src/MainNoGUI.cpp)
-	endif()
-endif()
-
-if(USE_EGL)
-	set(SRCS ${SRCS} Src/GLInterface/Platform.cpp
-		Src/GLInterface/EGL.cpp)	
-	if(USE_WAYLAND)
-		set(SRCS ${SRCS} Src/GLInterface/Wayland_Util.cpp)
-	endif()
-	if(USE_X11)
-		set(SRCS ${SRCS} Src/GLInterface/X11_Util.cpp)
-	endif()
-else()
-	if(WIN32)
-		set(SRCS ${SRCS} Src/GLInterface/WGL.cpp)
-	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set(SRCS ${SRCS} Src/GLInterface/AGL.cpp)
-	else()
-		set(SRCS ${SRCS} Src/GLInterface/GLX.cpp
-			Src/GLInterface/X11_Util.cpp)
-
-	endif()
-endif()
-
-if(WIN32)
-	set(SRCS ${SRCS} Src/stdafx.cpp)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	# Link against OS X system frameworks.
-	list(APPEND LIBS
-		${APPKIT_LIBRARY}
-		${AU_LIBRARY}
-		${COREAUDIO_LIBRARY}
-		${COREFUND_LIBRARY}
-		${CORESERV_LIBRARY}
-		${IOB_LIBRARY}
-		${IOK_LIBRARY}
-		)
+if(APPLE)
 	if(wxWidgets_FOUND)
-		list(APPEND LIBS
+		list(APPEND WXLIBS
 			${APPSERV_LIBRARY}
 			${COCOA_LIBRARY}
 			)
@@ -150,29 +87,15 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	list(APPEND SRCS ${RESOURCES})
 	set_source_files_properties(${RESOURCES} PROPERTIES
 		MACOSX_PACKAGE_LOCATION Resources)
-elseif(USE_X11)
-	set(SRCS ${SRCS} Src/X11Utils.cpp)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
-        ${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
-	set(LIBS ${LIBS} usbhid)
-endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	set(DOLPHIN_EXE_BASE Dolphin)
 else()
 	set(DOLPHIN_EXE_BASE dolphin-emu)
 endif()
-if(wxWidgets_FOUND)
-	set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE})
-else()
-	set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE}-nogui)
-endif()
 
-if(USE_UPNP)
-  set(LIBS  ${LIBS} miniupnpc)
-endif()
+set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE})
 
 include(FindGettext)
 if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
@@ -183,39 +106,36 @@ endif()
 
 if(ANDROID)
 	set(DOLPHIN_EXE main)
-	add_library(${DOLPHIN_EXE} SHARED ${SRCS})
-	target_link_libraries(${DOLPHIN_EXE} 
+	add_library(${DOLPHIN_EXE} SHARED ${SRCS} ${ANDROID_SRCS})
+	target_link_libraries(${DOLPHIN_EXE}
 	log
 	android
+	"-Wl,--no-warn-mismatch"
 	"-Wl,--whole-archive"
 	${LIBS}
 	"-Wl,--no-whole-archive"
 	)
-	if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "mips")
-		set (SO_TARGET "mips")
-	endif()
-	if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7-a")
-		set (SO_TARGET "armeabi-v7a")
-	endif()
-	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv5te")
-		set (SO_TARGET "armeabi")
-	endif()
-	if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "i686")
-		set (SO_TARGET "x86")
-	endif()
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/libs/${SO_TARGET}
+		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/jniLibs/${ANDROID_NDK_ABI_NAME}
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/libs/${SO_TARGET}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/libs/${SO_TARGET}/
+		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/
+		COMMAND cp ARGS ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/jniLibs/${ANDROID_NDK_ABI_NAME}/
 	)
-else()
-	add_executable(${DOLPHIN_EXE} ${SRCS})
+	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
+		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/
+	)
+	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
+		COMMAND cp ARGS -r ${CMAKE_SOURCE_DIR}/Data/Sys/Shaders ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/
+	)
+
+	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
+elseif(wxWidgets_FOUND)
+	add_executable(${DOLPHIN_EXE} ${SRCS} ${GUI_SRCS})
 	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	if(APPLE)
 		include(BundleUtilities)
 		set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
 
@@ -225,6 +145,8 @@ else()
 			MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 			)
 
+		# get rid of any old copies
+		file (REMOVE_RECURSE ${BUNDLE_PATH}/Contents/Resources/Sys)
 		if(NOT SKIP_POSTPROCESS_BUNDLE)
 			# Fix up the bundle after it is finished.
 			# There does not seem to be an easy way to run CMake commands post-build,
@@ -235,28 +157,23 @@ else()
 				message(\"(Note: This is only necessary to produce a redistributable binary.\")
 				message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
 				set(BU_CHMOD_BUNDLE_ITEMS ON)
-				fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
+				execute_process(COMMAND ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py \"${BUNDLE_PATH}\")
+				file(INSTALL \"${CMAKE_SOURCE_DIR}/Data/Sys\"
+					DESTINATION \"${BUNDLE_PATH}/Contents/Resources\"
+					)
 				")
 			add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 				COMMAND ${CMAKE_COMMAND} -P postprocess_bundle.cmake
 				)
-		endif()
-
-		# Copy data files into application bundle.
-		file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/copy_data_into_bundle.cmake "
-			file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys
-				DESTINATION ${BUNDLE_PATH}/Contents/Resources
+		else()
+			add_custom_command(OUTPUT ${BUNDLE_PATH}/Contents/Resources/Sys
+				COMMAND ln -nfs ${CMAKE_SOURCE_DIR}/Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
+				VERBATIM
 				)
-			file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle \"\")
-			")
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle
-			COMMAND ${CMAKE_COMMAND} -P copy_data_into_bundle.cmake
-			DEPENDS ${CMAKE_SOURCE_DIR}/Data/Sys
-			VERBATIM
-			)
-		add_custom_target(CopyDataIntoBundle ALL
-			DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle
-			)
+			add_custom_target(CopyDataIntoBundleWx ALL
+				DEPENDS ${BUNDLE_PATH}/Contents/Resources/Sys
+				)
+		endif()
 
 		if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
 			file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/copy_translations_into_bundle.cmake "
@@ -291,7 +208,7 @@ else()
 				${CMAKE_SOURCE_DIR}/Data/Sys
 				VERBATIM
 				)
-			add_custom_target(CopyTranslationsIntoBundle ALL
+			add_custom_target(CopyTranslationsIntoBundleWx ALL
 				DEPENDS ${BUNDLE_PATH}/Contents/Resources/en.lproj
 				)
 		endif()
@@ -303,6 +220,14 @@ else()
 	else()
 		install(TARGETS ${DOLPHIN_EXE} RUNTIME DESTINATION ${bindir})
 	endif()
+
+	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
 endif()
 
-set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
+if(USE_X11)
+	set(DOLPHIN_NOGUI_EXE ${DOLPHIN_EXE_BASE}-nogui)
+	add_executable(${DOLPHIN_NOGUI_EXE} ${SRCS} ${NOGUI_SRCS})
+	target_link_libraries(${DOLPHIN_NOGUI_EXE} ${LIBS})
+	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_NOGUI_EXE})
+	install(TARGETS ${DOLPHIN_NOGUI_EXE} RUNTIME DESTINATION ${bindir})
+endif()

@@ -4,7 +4,6 @@
 // Author:      Julian Smart, after Robert Roebling, Vadim Zeitlin, SciTech
 // Modified by:
 // Created:     2006-04-13
-// Id:          $Id: buttonbar.cpp 70450 2012-01-23 14:42:53Z VZ $
 // Copyright:   (c) Julian Smart, Robert Roebling, Vadim Zeitlin,
 //              SciTech Software, Inc.
 // Licence:     wxWindows licence
@@ -550,7 +549,7 @@ void wxButtonToolBar::OnLeftUp(wxMouseEvent& event)
         wxButtonToolBarTool* tool = (wxButtonToolBarTool*) FindToolForPosition(event.GetX(), event.GetY());
         if (tool && tool->GetButton() && (event.GetY() > (tool->m_y + tool->GetButton()->GetSize().y)))
         {
-            wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, tool->GetId());
+            wxCommandEvent event(wxEVT_BUTTON, tool->GetId());
             event.SetEventObject(tool->GetButton());
             if (!GetEventHandler()->ProcessEvent(event))
                 event.Skip();

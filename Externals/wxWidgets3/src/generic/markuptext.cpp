@@ -3,7 +3,6 @@
 // Purpose:     wxMarkupText implementation
 // Author:      Vadim Zeitlin
 // Created:     2011-02-21
-// RCS-ID:      $Id: markuptext.cpp 67075 2011-02-27 18:36:48Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

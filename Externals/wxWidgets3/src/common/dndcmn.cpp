@@ -3,7 +3,6 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     19.10.99
-// RCS-ID:      $Id: dndcmn.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

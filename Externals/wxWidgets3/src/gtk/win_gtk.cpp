@@ -2,14 +2,19 @@
 // Name:        src/gtk/win_gtk.cpp
 // Purpose:     native GTK+ widget for wxWindow
 // Author:      Paul Cornett
-// Id:          $Id: win_gtk.cpp 70482 2012-01-31 07:30:11Z PC $
 // Copyright:   (c) 2007 Paul Cornett
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "wx/wxprec.h"
+
 #include "wx/defs.h"
-#include "wx/gtk/private.h"
+
+#include <gtk/gtk.h>
 #include "wx/gtk/private/win_gtk.h"
+
+#include "wx/gtk/private.h"
+#include "wx/gtk/private/gtk2-compat.h"
 
 /*
 wxPizza is a custom GTK+ widget derived from GtkFixed.  A custom widget
@@ -27,30 +32,48 @@ drawn on wxPizza's parent GdkWindow.
 For RTL, child widget positions are mirrored in size_allocate.
 */
 
+struct wxPizzaChild
+{
+    GtkWidget* widget;
+    int x, y, width, height;
+};
+
 static GtkWidgetClass* parent_class;
+
+#ifdef __WXGTK3__
+enum {
+    PROP_0,
+    PROP_HADJUSTMENT,
+    PROP_VADJUSTMENT,
+    PROP_HSCROLL_POLICY,
+    PROP_VSCROLL_POLICY
+};
+#endif
 
 extern "C" {
 
 struct wxPizzaClass
 {
     GtkFixedClass parent;
+#ifndef __WXGTK3__
     void (*set_scroll_adjustments)(GtkWidget*, GtkAdjustment*, GtkAdjustment*);
+#endif
 };
 
-static void size_allocate(GtkWidget* widget, GtkAllocation* alloc)
+static void pizza_size_allocate(GtkWidget* widget, GtkAllocation* alloc)
 {
     wxPizza* pizza = WX_PIZZA(widget);
-    int border_x, border_y;
-    pizza->get_border_widths(border_x, border_y);
-    int w = alloc->width - 2 * border_x;
+    GtkBorder border;
+    pizza->get_border(border);
+    int w = alloc->width - border.left - border.right;
     if (w < 0) w = 0;
 
     if (gtk_widget_get_realized(widget))
     {
-        int h = alloc->height - 2 * border_y;
+        int h = alloc->height - border.top - border.bottom;
         if (h < 0) h = 0;
-        const int x = alloc->x + border_x;
-        const int y = alloc->y + border_y;
+        const int x = alloc->x + border.left;
+        const int y = alloc->y + border.top;
 
         GdkWindow* window = gtk_widget_get_window(widget);
         int old_x, old_y;
@@ -61,23 +84,25 @@ static void size_allocate(GtkWidget* widget, GtkAllocation* alloc)
         {
             gdk_window_move_resize(window, x, y, w, h);
 
-            if (border_x + border_y)
+            if (border.left + border.right + border.top + border.bottom)
             {
                 // old and new border areas need to be invalidated,
                 // otherwise they will not be erased/redrawn properly
+                GtkAllocation old_alloc;
+                gtk_widget_get_allocation(widget, &old_alloc);
                 GdkWindow* parent = gtk_widget_get_parent_window(widget);
-                gdk_window_invalidate_rect(parent, &widget->allocation, false);
+                gdk_window_invalidate_rect(parent, &old_alloc, false);
                 gdk_window_invalidate_rect(parent, alloc, false);
             }
         }
     }
 
-    widget->allocation = *alloc;
+    gtk_widget_set_allocation(widget, alloc);
 
     // adjust child positions
-    for (const GList* list = pizza->m_fixed.children; list; list = list->next)
+    for (const GList* p = pizza->m_children; p; p = p->next)
     {
-        const GtkFixedChild* child = static_cast<GtkFixedChild*>(list->data);
+        const wxPizzaChild* child = static_cast<wxPizzaChild*>(p->data);
         if (gtk_widget_get_visible(child->widget))
         {
             GtkAllocation child_alloc;
@@ -86,10 +111,8 @@ static void size_allocate(GtkWidget* widget, GtkAllocation* alloc)
             // which has already been adjusted
             child_alloc.x = child->x - pizza->m_scroll_x;
             child_alloc.y = child->y - pizza->m_scroll_y;
-            GtkRequisition req;
-            gtk_widget_get_child_requisition(child->widget, &req);
-            child_alloc.width  = req.width;
-            child_alloc.height = req.height;
+            child_alloc.width  = child->width;
+            child_alloc.height = child->height;
             if (gtk_widget_get_direction(widget) == GTK_TEXT_DIR_RTL)
                 child_alloc.x = w - child_alloc.x - child_alloc.width;
             gtk_widget_size_allocate(child->widget, &child_alloc);
@@ -97,51 +120,106 @@ static void size_allocate(GtkWidget* widget, GtkAllocation* alloc)
     }
 }
 
-static void realize(GtkWidget* widget)
+static void pizza_realize(GtkWidget* widget)
 {
     parent_class->realize(widget);
 
     wxPizza* pizza = WX_PIZZA(widget);
-    if (pizza->m_border_style)
+    if (pizza->m_windowStyle & wxPizza::BORDER_STYLES)
     {
-        int border_x, border_y;
-        pizza->get_border_widths(border_x, border_y);
-        int x = widget->allocation.x + border_x;
-        int y = widget->allocation.y + border_y;
-        int w = widget->allocation.width  - 2 * border_x;
-        int h = widget->allocation.height - 2 * border_y;
+        GtkBorder border;
+        pizza->get_border(border);
+        GtkAllocation a;
+        gtk_widget_get_allocation(widget, &a);
+        int x = a.x + border.left;
+        int y = a.y + border.top;
+        int w = a.width - border.left - border.right;
+        int h = a.height - border.top - border.bottom;
         if (w < 0) w = 0;
         if (h < 0) h = 0;
-        gdk_window_move_resize(widget->window, x, y, w, h);
+        gdk_window_move_resize(gtk_widget_get_window(widget), x, y, w, h);
     }
 }
 
-static void show(GtkWidget* widget)
+static void pizza_show(GtkWidget* widget)
 {
-    if (widget->parent && WX_PIZZA(widget)->m_border_style)
+    GtkWidget* parent = gtk_widget_get_parent(widget);
+    if (parent && (WX_PIZZA(widget)->m_windowStyle & wxPizza::BORDER_STYLES))
     {
         // invalidate whole allocation so borders will be drawn properly
-        const GtkAllocation& a = widget->allocation;
-        gtk_widget_queue_draw_area(widget->parent, a.x, a.y, a.width, a.height);
+        GtkAllocation a;
+        gtk_widget_get_allocation(widget, &a);
+        gtk_widget_queue_draw_area(parent, a.x, a.y, a.width, a.height);
     }
 
     parent_class->show(widget);
 }
 
-static void hide(GtkWidget* widget)
+static void pizza_hide(GtkWidget* widget)
 {
-    if (widget->parent && WX_PIZZA(widget)->m_border_style)
+    GtkWidget* parent = gtk_widget_get_parent(widget);
+    if (parent && (WX_PIZZA(widget)->m_windowStyle & wxPizza::BORDER_STYLES))
     {
         // invalidate whole allocation so borders will be erased properly
-        const GtkAllocation& a = widget->allocation;
-        gtk_widget_queue_draw_area(widget->parent, a.x, a.y, a.width, a.height);
+        GtkAllocation a;
+        gtk_widget_get_allocation(widget, &a);
+        gtk_widget_queue_draw_area(parent, a.x, a.y, a.width, a.height);
     }
 
     parent_class->hide(widget);
 }
 
+static void pizza_add(GtkContainer* container, GtkWidget* widget)
+{
+    WX_PIZZA(container)->put(widget, 0, 0, 1, 1);
+}
+
+static void pizza_remove(GtkContainer* container, GtkWidget* widget)
+{
+    GTK_CONTAINER_CLASS(parent_class)->remove(container, widget);
+
+    wxPizza* pizza = WX_PIZZA(container);
+    for (GList* p = pizza->m_children; p; p = p->next)
+    {
+        wxPizzaChild* child = static_cast<wxPizzaChild*>(p->data);
+        if (child->widget == widget)
+        {
+            pizza->m_children = g_list_delete_link(pizza->m_children, p);
+            delete child;
+            break;
+        }
+    }
+}
+
+#ifdef __WXGTK3__
+static void pizza_get_preferred_width(GtkWidget* widget, int* minimum, int* natural)
+{
+    *minimum = 0;
+    gtk_widget_get_size_request(widget, natural, NULL);
+    if (*natural < 0)
+        *natural = 0;
+}
+
+static void pizza_get_preferred_height(GtkWidget* widget, int* minimum, int* natural)
+{
+    *minimum = 0;
+    gtk_widget_get_size_request(widget, NULL, natural);
+    if (*natural < 0)
+        *natural = 0;
+}
+
+// Needed to implement GtkScrollable interface, but we don't care about the
+// properties. wxWindowGTK handles the adjustments and scroll policy.
+static void pizza_get_property(GObject*, guint, GValue*, GParamSpec*)
+{
+}
+
+static void pizza_set_property(GObject*, guint, const GValue*, GParamSpec*)
+{
+}
+#else
 // not used, but needs to exist so gtk_widget_set_scroll_adjustments will work
-static void set_scroll_adjustments(GtkWidget*, GtkAdjustment*, GtkAdjustment*)
+static void pizza_set_scroll_adjustments(GtkWidget*, GtkAdjustment*, GtkAdjustment*)
 {
 }
 
@@ -183,18 +261,33 @@ g_cclosure_user_marshal_VOID__OBJECT_OBJECT (GClosure     *closure,
             g_marshal_value_peek_object (param_values + 2),
             data2);
 }
+#endif
 
 static void class_init(void* g_class, void*)
 {
     GtkWidgetClass* widget_class = (GtkWidgetClass*)g_class;
-    widget_class->size_allocate = size_allocate;
-    widget_class->realize = realize;
-    widget_class->show = show;
-    widget_class->hide = hide;
-    wxPizzaClass* klass = (wxPizzaClass*)g_class;
+    widget_class->size_allocate = pizza_size_allocate;
+    widget_class->realize = pizza_realize;
+    widget_class->show = pizza_show;
+    widget_class->hide = pizza_hide;
+    GtkContainerClass* container_class = (GtkContainerClass*)g_class;
+    container_class->add = pizza_add;
+    container_class->remove = pizza_remove;
 
+#ifdef __WXGTK3__
+    widget_class->get_preferred_width = pizza_get_preferred_width;
+    widget_class->get_preferred_height = pizza_get_preferred_height;
+    GObjectClass *gobject_class = G_OBJECT_CLASS(g_class);
+    gobject_class->set_property = pizza_set_property;
+    gobject_class->get_property = pizza_get_property;
+    g_object_class_override_property(gobject_class, PROP_HADJUSTMENT, "hadjustment");
+    g_object_class_override_property(gobject_class, PROP_VADJUSTMENT, "vadjustment");
+    g_object_class_override_property(gobject_class, PROP_HSCROLL_POLICY, "hscroll-policy");
+    g_object_class_override_property(gobject_class, PROP_VSCROLL_POLICY, "vscroll-policy");
+#else
+    wxPizzaClass* klass = static_cast<wxPizzaClass*>(g_class);
     // needed to make widget appear scrollable to GTK+
-    klass->set_scroll_adjustments = set_scroll_adjustments;
+    klass->set_scroll_adjustments = pizza_set_scroll_adjustments;
     widget_class->set_scroll_adjustments_signal =
         g_signal_new(
             "set_scroll_adjustments",
@@ -204,7 +297,7 @@ static void class_init(void* g_class, void*)
             NULL, NULL,
             g_cclosure_user_marshal_VOID__OBJECT_OBJECT,
             G_TYPE_NONE, 2, GTK_TYPE_ADJUSTMENT, GTK_TYPE_ADJUSTMENT);
-
+#endif
     parent_class = GTK_WIDGET_CLASS(g_type_class_peek_parent(g_class));
 }
 
@@ -212,7 +305,7 @@ static void class_init(void* g_class, void*)
 
 GType wxPizza::type()
 {
-    static GtkType type;
+    static GType type;
     if (type == 0)
     {
         const GTypeInfo info = {
@@ -225,6 +318,10 @@ GType wxPizza::type()
         };
         type = g_type_register_static(
             GTK_TYPE_FIXED, "wxPizza", &info, GTypeFlags(0));
+#ifdef __WXGTK3__
+        const GInterfaceInfo interface_info = { NULL, NULL, NULL };
+        g_type_add_interface_static(type, GTK_TYPE_SCROLLABLE, &interface_info);
+#endif
     }
     return type;
 }
@@ -233,12 +330,11 @@ GtkWidget* wxPizza::New(long windowStyle)
 {
     GtkWidget* widget = GTK_WIDGET(g_object_new(type(), NULL));
     wxPizza* pizza = WX_PIZZA(widget);
+    pizza->m_children = NULL;
     pizza->m_scroll_x = 0;
     pizza->m_scroll_y = 0;
-    pizza->m_is_scrollable = (windowStyle & (wxHSCROLL | wxVSCROLL)) != 0;
-    // mask off border styles not useable with wxPizza
-    pizza->m_border_style = int(windowStyle & BORDER_STYLES);
-#if GTK_CHECK_VERSION(3,0,0) || defined(GTK_DISABLE_DEPRECATED)
+    pizza->m_windowStyle = windowStyle;
+#ifdef __WXGTK3__
     gtk_widget_set_has_window(widget, true);
 #else
     gtk_fixed_set_has_window(GTK_FIXED(widget), true);
@@ -262,26 +358,42 @@ GtkWidget* wxPizza::New(long windowStyle)
     return widget;
 }
 
-// gtk_fixed_move does not check for a change before issuing a queue_resize,
-// we need to avoid that to prevent endless sizing loops, so check first
-void wxPizza::move(GtkWidget* widget, int x, int y)
+void wxPizza::move(GtkWidget* widget, int x, int y, int width, int height)
 {
-    GtkFixed* fixed = &m_fixed;
-    for (const GList* list = fixed->children; list; list = list->next)
+    for (const GList* p = m_children; p; p = p->next)
     {
-        const GtkFixedChild* child = static_cast<GtkFixedChild*>(list->data);
+        wxPizzaChild* child = static_cast<wxPizzaChild*>(p->data);
         if (child->widget == widget)
         {
-            if (child->x != x || child->y != y)
-                gtk_fixed_move(fixed, widget, x, y);
+            child->x = x;
+            child->y = y;
+            child->width = width;
+            child->height = height;
+            // normally a queue-resize would be needed here, but we know
+            // wxWindowGTK::DoMoveWindow() will take care of it
             break;
         }
     }
 }
 
-void wxPizza::put(GtkWidget* widget, int x, int y)
+void wxPizza::put(GtkWidget* widget, int x, int y, int width, int height)
 {
-    gtk_fixed_put(&m_fixed, widget, x, y);
+    // Re-parenting a TLW under a child window is possible at wx level but
+    // using a TLW as child at GTK+ level results in problems, so don't do it.
+#if GTK_CHECK_VERSION(2,19,3)
+    if (!gtk_widget_is_toplevel(GTK_WIDGET(widget)))
+#else
+    if (!GTK_WIDGET_TOPLEVEL(GTK_WIDGET(widget)))
+#endif
+        gtk_fixed_put(GTK_FIXED(this), widget, 0, 0);
+
+    wxPizzaChild* child = new wxPizzaChild;
+    child->widget = widget;
+    child->x = x;
+    child->y = y;
+    child->width = width;
+    child->height = height;
+    m_children = g_list_append(m_children, child);
 }
 
 struct AdjustData {
@@ -294,10 +406,13 @@ extern "C" {
 static void scroll_adjust(GtkWidget* widget, void* data)
 {
     const AdjustData* p = static_cast<AdjustData*>(data);
-    widget->allocation.x += p->dx;
-    widget->allocation.y += p->dy;
+    GtkAllocation a;
+    gtk_widget_get_allocation(widget, &a);
+    a.x += p->dx;
+    a.y += p->dy;
+    gtk_widget_set_allocation(widget, &a);
 
-    if (widget->window == p->window)
+    if (gtk_widget_get_window(widget) == p->window)
     {
         // GtkFrame requires a queue_resize, otherwise parts of
         // the frame newly exposed by the scroll are not drawn.
@@ -316,44 +431,46 @@ void wxPizza::scroll(int dx, int dy)
         dx = -dx;
     m_scroll_x -= dx;
     m_scroll_y -= dy;
-    if (widget->window)
+    GdkWindow* window = gtk_widget_get_window(widget);
+    if (window)
     {
-        gdk_window_scroll(widget->window, dx, dy);
+        gdk_window_scroll(window, dx, dy);
         // Adjust child allocations. Doing a queue_resize on the children is not
         // enough, sometimes they redraw in the wrong place during fast scrolling.
-        AdjustData data = { widget->window, dx, dy };
+        AdjustData data = { window, dx, dy };
         gtk_container_forall(GTK_CONTAINER(widget), scroll_adjust, &data);
     }
 }
 
-void wxPizza::get_border_widths(int& x, int& y)
+void wxPizza::get_border(GtkBorder& border)
 {
-    x = y = 0;
-    if (m_border_style == 0)
-        return;
-
 #ifndef __WXUNIVERSAL__
-    if (m_border_style & wxBORDER_SIMPLE)
-        x = y = 1;
-    else if (m_is_scrollable /* || (m_border_style & wxBORDER_THEME) */)
+    if (m_windowStyle & wxBORDER_SIMPLE)
+        border.left = border.right = border.top = border.bottom = 1;
+    else if (m_windowStyle & (wxBORDER_RAISED | wxBORDER_SUNKEN | wxBORDER_THEME))
     {
-        GtkWidget *style_widget = wxGTKPrivate::GetTreeWidget();
+#ifdef __WXGTK3__
+        GtkStyleContext* sc;
+        if (m_windowStyle & (wxHSCROLL | wxVSCROLL))
+            sc = gtk_widget_get_style_context(wxGTKPrivate::GetTreeWidget());
+        else
+            sc = gtk_widget_get_style_context(wxGTKPrivate::GetEntryWidget());
 
-        if (style_widget->style)
-        {
-            x = style_widget->style->xthickness;
-            y = style_widget->style->ythickness;
-        }
+        gtk_style_context_get_border(sc, GTK_STATE_FLAG_NORMAL, &border);
+#else // !__WXGTK3__
+        GtkStyle* style;
+        if (m_windowStyle & (wxHSCROLL | wxVSCROLL))
+            style = gtk_widget_get_style(wxGTKPrivate::GetTreeWidget());
+        else
+            style = gtk_widget_get_style(wxGTKPrivate::GetEntryWidget());
+
+        border.left = border.right = style->xthickness;
+        border.top = border.bottom = style->ythickness;
+#endif // !__WXGTK3__
     }
     else
+#endif // !__WXUNIVERSAL__
     {
-        GtkWidget *style_widget = wxGTKPrivate::GetEntryWidget();
-
-        if (style_widget->style)
-        {
-            x = style_widget->style->xthickness;
-            y = style_widget->style->ythickness;
-        }
+        border.left = border.right = border.top = border.bottom = 0;
     }
-#endif
 }

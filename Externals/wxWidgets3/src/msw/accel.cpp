@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: accel.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -89,7 +88,7 @@ wxAcceleratorTable::wxAcceleratorTable(const wxString& resource)
 {
     m_refData = new wxAcceleratorRefData;
 
-    HACCEL hAccel = ::LoadAccelerators(wxGetInstance(), resource.wx_str());
+    HACCEL hAccel = ::LoadAccelerators(wxGetInstance(), resource.t_str());
     M_ACCELDATA->m_hAccel = hAccel;
     M_ACCELDATA->m_ok = hAccel != 0;
 }

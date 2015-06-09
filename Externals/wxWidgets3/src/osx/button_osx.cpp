@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: button_osx.cpp 67936 2011-06-14 22:19:09Z RD $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -51,22 +50,22 @@ bool wxButton::Create(wxWindow *parent,
     const wxValidator& validator,
     const wxString& name)
 {
-    DontCreatePeer();
-    
-    m_marginX =
-    m_marginY = 0;
-
     // FIXME: this hack is needed because we're called from
     //        wxBitmapButton::Create() with this style and we currently use a
     //        different wxWidgetImpl method (CreateBitmapButton() rather than
     //        CreateButton()) for creating bitmap buttons, but we really ought
     //        to unify the creation of buttons of all kinds and then remove
     //        this check
-    if ( style & wxBU_NOTEXT )
+    if ( style & wxBU_NOTEXT && !ShouldCreatePeer() )
     {
         return wxControl::Create(parent, id, pos, size, style,
                                  validator, name);
     }
+
+    DontCreatePeer();
+
+    m_marginX =
+    m_marginY = 0;
 
     wxString label;
 
@@ -101,6 +100,9 @@ void wxButton::SetLabel(const wxString& label)
     }
 
     wxAnyButton::SetLabel(label);
+#if wxOSX_USE_COCOA
+    OSXUpdateAfterLabelChange(label);
+#endif
 }
 
 wxWindow *wxButton::SetDefault()
@@ -125,7 +127,7 @@ void wxButton::Command (wxCommandEvent & WXUNUSED(event))
 
 bool wxButton::OSXHandleClicked( double WXUNUSED(timestampsec) )
 {
-    wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, m_windowId);
+    wxCommandEvent event(wxEVT_BUTTON, m_windowId);
     event.SetEventObject(this);
     ProcessCommand(event);
     return true;
@@ -170,7 +172,7 @@ bool wxDisclosureTriangle::IsOpen() const
 bool wxDisclosureTriangle::OSXHandleClicked( double WXUNUSED(timestampsec) )
 {
     // Just emit button event for now
-    wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, m_windowId);
+    wxCommandEvent event(wxEVT_BUTTON, m_windowId);
     event.SetEventObject(this);
     ProcessCommand(event);
 

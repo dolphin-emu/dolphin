@@ -2,7 +2,6 @@
 // Name:        wx/osx/dataview.h
 // Purpose:     wxDataViewCtrl native implementation header for OSX
 // Author:
-// Id:          $Id: dataview.h 70496 2012-02-02 14:19:30Z VZ $
 // Copyright:   (c) 2009
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -299,6 +298,8 @@ private:
   wxDataViewItem m_CustomRendererItem; // currently edited item by the customrenderer; it is invalid while not editing a custom item
 
   wxDataViewColumnPtrArrayType m_ColumnPtrs; // all column pointers are stored in an array
+
+  wxDataViewModelNotifier* m_ModelNotifier; // stores the model notifier for the control (does not own the notifier)
 
  // wxWidget internal stuff:
   DECLARE_DYNAMIC_CLASS(wxDataViewCtrl)

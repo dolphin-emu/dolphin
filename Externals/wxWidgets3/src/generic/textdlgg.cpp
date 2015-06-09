@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: textdlgg.cpp 64019 2010-04-18 00:05:37Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -65,17 +64,21 @@ END_EVENT_TABLE()
 
 IMPLEMENT_CLASS(wxTextEntryDialog, wxDialog)
 
-wxTextEntryDialog::wxTextEntryDialog(wxWindow *parent,
+bool wxTextEntryDialog::Create(wxWindow *parent,
                                      const wxString& message,
                                      const wxString& caption,
                                      const wxString& value,
                                      long style,
                                      const wxPoint& pos)
-                 : wxDialog(GetParentForModalDialog(parent, style),
-                            wxID_ANY, caption, pos, wxDefaultSize,
-                            wxDEFAULT_DIALOG_STYLE),
-                   m_value(value)
 {
+    if ( !wxDialog::Create(GetParentForModalDialog(parent, style),
+                           wxID_ANY, caption,
+                           pos, wxDefaultSize,
+                           wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) )
+    {
+        return false;
+    }
+
     m_dialogStyle = style;
     m_value = value;
 
@@ -101,11 +104,6 @@ wxTextEntryDialog::wxTextEntryDialog(wxWindow *parent,
                     Expand().
                     TripleBorder(wxLEFT | wxRIGHT));
 
-#if wxUSE_VALIDATORS
-    wxTextValidator validator( wxFILTER_NONE, &m_value );
-    m_textctrl->SetValidator( validator );
-#endif // wxUSE_VALIDATORS
-
     // 3) buttons if any
     wxSizer *buttonSizer = CreateSeparatedButtonSizer(style & (wxOK | wxCANCEL));
     if ( buttonSizer )
@@ -122,25 +120,39 @@ wxTextEntryDialog::wxTextEntryDialog(wxWindow *parent,
     if ( style & wxCENTRE )
         Centre( wxBOTH );
 
-    m_textctrl->SetSelection(-1, -1);
+    m_textctrl->SelectAll();
     m_textctrl->SetFocus();
 
     wxEndBusyCursor();
+
+    return true;
+}
+
+bool wxTextEntryDialog::TransferDataToWindow()
+{
+    m_textctrl->SetValue(m_value);
+
+    return wxDialog::TransferDataToWindow();
+}
+
+bool wxTextEntryDialog::TransferDataFromWindow()
+{
+    m_value = m_textctrl->GetValue();
+
+    return wxDialog::TransferDataFromWindow();
 }
 
 void wxTextEntryDialog::OnOK(wxCommandEvent& WXUNUSED(event) )
 {
-#if wxUSE_VALIDATORS
-    if( Validate() && TransferDataFromWindow() )
+    if ( Validate() && TransferDataFromWindow() )
     {
         EndModal( wxID_OK );
     }
-#else
-    m_value = m_textctrl->GetValue();
+}
 
-    EndModal(wxID_OK);
-#endif
-  // wxUSE_VALIDATORS
+void wxTextEntryDialog::SetMaxLength(unsigned long len)
+{
+    m_textctrl->SetMaxLength(len);
 }
 
 void wxTextEntryDialog::SetValue(const wxString& val)
@@ -161,8 +173,7 @@ void wxTextEntryDialog::SetTextValidator( long style )
 
 void wxTextEntryDialog::SetTextValidator( wxTextValidatorStyle style )
 {
-    wxTextValidator validator( style, &m_value );
-    m_textctrl->SetValidator( validator );
+    SetTextValidator(wxTextValidator(style));
 }
 
 void wxTextEntryDialog::SetTextValidator( const wxTextValidator& validator )
@@ -170,8 +181,7 @@ void wxTextEntryDialog::SetTextValidator( const wxTextValidator& validator )
     m_textctrl->SetValidator( validator );
 }
 
-#endif
-  // wxUSE_VALIDATORS
+#endif // wxUSE_VALIDATORS
 
 // ----------------------------------------------------------------------------
 // wxPasswordEntryDialog

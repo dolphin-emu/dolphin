@@ -2,7 +2,6 @@
 // Name:        src/gtk/brush.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: brush.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

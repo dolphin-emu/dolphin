@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10/10/98
 // Created:     01/02/97
-// RCS-ID:      $Id: treectrl.h 64532 2010-06-09 13:55:48Z FM $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -212,6 +211,14 @@ public:
     virtual bool CanApplyThemeBorder() const { return false; }
 
 protected:
+    // Implement "update locking" in a custom way for this control.
+    virtual void DoFreeze();
+    virtual void DoThaw();
+
+    virtual void DoSetSize(int x, int y,
+                           int width, int height,
+                           int sizeFlags = wxSIZE_AUTO);
+
     // SetImageList helper
     void SetAnyImageList(wxImageList *imageList, int which);
 
@@ -297,6 +304,9 @@ private:
     // item visually spans the entire breadth of the window then
     bool MSWIsOnItem(unsigned flags) const;
 
+    // Delete the given item from the native control.
+    bool MSWDeleteItem(const wxTreeItemId& item);
+
 
     // the hash storing the items attributes (indexed by item ids)
     wxMapTreeAttr m_attrs;
@@ -331,6 +341,9 @@ private:
 
     // whether we need to deselect other items on mouse up
     bool m_mouseUpDeselect;
+
+    // The size to restore the control to when it is thawed, see DoThaw().
+    wxSize m_thawnSize;
 
     friend class wxTreeItemIndirectData;
     friend class wxTreeSortHelper;

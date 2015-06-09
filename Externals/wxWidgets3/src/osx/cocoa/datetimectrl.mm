@@ -3,7 +3,6 @@
 // Purpose:     Implementation of wxDateTimePickerCtrl for Cocoa.
 // Author:      Vadim Zeitlin
 // Created:     2011-12-18
-// Version:     $Id$
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -78,7 +77,12 @@ public:
 
     virtual void SetDateTime(const wxDateTime& dt)
     {
-        [View() setDateValue: NSDateFromWX(dt)];
+        wxDateTime dtFrom, dtTo;
+        
+        if ( GetDateRange(&dtFrom,&dtTo) == false ||
+            ( (!dtFrom.IsValid() || dtFrom <= dt) &&
+             (!dtTo.IsValid() || dt <= dtTo ) ) )
+            [View() setDateValue: NSDateFromWX(dt)];
     }
 
     virtual wxDateTime GetDateTime() const
@@ -172,7 +176,9 @@ wxDateTimeWidgetImpl::CreateDateTimePicker(wxDateTimePickerCtrl* wxpeer,
     }
 
     wxDateTimeWidgetImpl* c = new wxDateTimeWidgetCocoaImpl(wxpeer, v);
+#if !wxOSX_USE_NATIVE_FLIPPED
     c->SetFlipped(false);
+#endif
     return c;
 }
 

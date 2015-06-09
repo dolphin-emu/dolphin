@@ -2,7 +2,6 @@
 // Name:        src/common/imagpng.cpp
 // Purpose:     wxImage PNG handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagpng.cpp 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -160,7 +159,7 @@ static void PNGLINKAGEMODE wx_PNG_stream_writer( png_structp png_ptr, png_bytep 
 }
 
 static void
-PNGLINKAGEMODE wx_png_warning(png_structp png_ptr, png_const_charp message)
+PNGLINKAGEMODE wx_PNG_warning(png_structp png_ptr, png_const_charp message)
 {
     wxPNGInfoStruct *info = png_ptr ? WX_PNG_INFO(png_ptr) : NULL;
     if ( !info || info->verbose )
@@ -172,9 +171,9 @@ PNGLINKAGEMODE wx_png_warning(png_structp png_ptr, png_const_charp message)
 // from pngerror.c
 // so that the libpng doesn't send anything on stderr
 static void
-PNGLINKAGEMODE wx_png_error(png_structp png_ptr, png_const_charp message)
+PNGLINKAGEMODE wx_PNG_error(png_structp png_ptr, png_const_charp message)
 {
-    wx_png_warning(NULL, message);
+    wx_PNG_warning(NULL, message);
 
     // we're not using libpng built-in jump buffer (see comment before
     // wxPNGInfoStruct above) so we have to return ourselves, otherwise libpng
@@ -521,8 +520,8 @@ wxPNGHandler::LoadFile(wxImage *image,
                           (
                             PNG_LIBPNG_VER_STRING,
                             NULL,
-                            wx_png_error,
-                            wx_png_warning
+                            wx_PNG_error,
+                            wx_PNG_warning
                           );
     if (!png_ptr)
         goto error;
@@ -567,7 +566,7 @@ wxPNGHandler::LoadFile(wxImage *image,
 
     for (i = 0; i < height; i++)
     {
-        if ((lines[i] = (unsigned char *)malloc( (size_t)(width * (sizeof(unsigned char) * 4)))) == NULL)
+        if ((lines[i] = (unsigned char *)malloc( (size_t)(width * 4))) == NULL)
             goto error;
     }
 
@@ -737,8 +736,8 @@ bool wxPNGHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbos
                           (
                             PNG_LIBPNG_VER_STRING,
                             NULL,
-                            wx_png_error,
-                            wx_png_warning
+                            wx_PNG_error,
+                            wx_PNG_warning
                           );
     if (!png_ptr)
     {

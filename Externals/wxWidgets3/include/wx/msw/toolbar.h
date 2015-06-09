@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: toolbar.h 70854 2012-03-10 00:01:09Z RD $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,7 +26,7 @@ public:
                 wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
-                long style = wxNO_BORDER | wxTB_HORIZONTAL,
+                long style = wxTB_HORIZONTAL,
                 const wxString& name = wxToolBarNameStr)
     {
         Init();
@@ -39,7 +38,7 @@ public:
                 wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
-                long style = wxNO_BORDER | wxTB_HORIZONTAL,
+                long style = wxTB_HORIZONTAL,
                 const wxString& name = wxToolBarNameStr);
 
     virtual ~wxToolBar();
@@ -67,6 +66,7 @@ public:
 
     void OnMouseEvent(wxMouseEvent& event);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
+    void OnEraseBackground(wxEraseEvent& event);
 
     void SetFocus() {}
 

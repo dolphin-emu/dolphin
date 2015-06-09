@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.11.97
-// RCS-ID:      $Id: menuitem.cpp 67720 2011-05-10 08:50:38Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -681,15 +680,6 @@ void wxMenuItem::SetItemLabel(const wxString& txt)
     if ( !hMenu || ::GetMenuState(hMenu, id, MF_BYCOMMAND) == (UINT)-1 )
         return;
 
-#if wxUSE_OWNER_DRAWN
-    if ( IsOwnerDrawn() )
-    {
-        // we don't need to do anything for owner drawn items, they will redraw
-        // themselves using the new text the next time they're displayed
-        return;
-    }
-#endif // owner drawn
-
     // update the text of the native menu item
     WinStruct<MENUITEMINFO> info;
 
@@ -712,11 +702,26 @@ void wxMenuItem::SetItemLabel(const wxString& txt)
         return;
     }
 
-    if ( isLaterThanWin95 )
-        info.fMask |= MIIM_STRING;
-    //else: MIIM_TYPE already specified
-    info.dwTypeData = (LPTSTR)m_text.wx_str();
-    info.cch = m_text.length();
+#if wxUSE_OWNER_DRAWN
+    // Don't set the text for the owner drawn items, they don't use it and even
+    // though setting it doesn't seem to actually do any harm under Windows 7,
+    // avoid doing this relatively nonsensical operation just in case it does
+    // break something on other, past or future, Windows versions.
+    //
+    // Notice that we do need to call SetMenuItemInfo() even for the ownerdrawn
+    // items however as otherwise their size wouldn't be recalculated as
+    // WM_MEASUREITEM wouldn't be sent and this could result in display
+    // problems if the length of the menu item changed significantly.
+    if ( !IsOwnerDrawn() )
+#endif // wxUSE_OWNER_DRAWN
+    {
+        if ( isLaterThanWin95 )
+            info.fMask |= MIIM_STRING;
+        //else: MIIM_TYPE already specified
+        info.dwTypeData = wxMSW_CONV_LPTSTR(m_text);
+        info.cch = m_text.length();
+    }
+
     if ( !::SetMenuItemInfo(hMenu, id, FALSE, &info) )
     {
         wxLogLastError(wxT("SetMenuItemInfo"));
@@ -975,7 +980,7 @@ bool wxMenuItem::OnDrawItem(wxDC& dc, const wxRect& rc,
         int x = rcText.left;
         int y = rcText.top + (rcText.bottom - rcText.top - textSize.cy) / 2;
 
-        ::DrawState(hdc, NULL, NULL, (LPARAM)text.wx_str(),
+        ::DrawState(hdc, NULL, NULL, wxMSW_CONV_LPARAM(text),
                     text.length(), x, y, 0, 0, flags);
 
         // ::SetTextAlign(hdc, TA_RIGHT) doesn't work with DSS_DISABLED or DSS_MONO
@@ -1005,7 +1010,7 @@ bool wxMenuItem::OnDrawItem(wxDC& dc, const wxRect& rc,
 
             int y = rcText.top + (rcText.bottom - rcText.top - accelSize.cy) / 2;
 
-            ::DrawState(hdc, NULL, NULL, (LPARAM)accel.wx_str(),
+            ::DrawState(hdc, NULL, NULL, wxMSW_CONV_LPARAM(accel),
                         accel.length(), x, y, 0, 0, flags);
         }
     }
@@ -1071,9 +1076,6 @@ bool wxMenuItem::OnDrawItem(wxDC& dc, const wxRect& rc,
             // center bitmap
             int nBmpWidth  = bmp.GetWidth(),
                 nBmpHeight = bmp.GetHeight();
-
-            // there should be enough space!
-            wxASSERT( nBmpWidth <= imgWidth && nBmpHeight <= (rcImg.bottom - rcImg.top) );
 
             int x = rcImg.left + (imgWidth - nBmpWidth) / 2;
             int y = rcImg.top  + (rcImg.bottom - rcImg.top - nBmpHeight) / 2;

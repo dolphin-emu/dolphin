@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: app.cpp 67288 2011-03-22 17:15:56Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -172,12 +171,12 @@ void *wxGUIAppTraits::BeforeChildWaitLoop()
        focus/activation entirely when the child process terminates which would
        happen if we simply disabled everything using wxWindowDisabler. Indeed,
        remember that Windows will never activate a disabled window and when the
-       last childs window is closed and Windows looks for a window to activate
+       last child's window is closed and Windows looks for a window to activate
        all our windows are still disabled. There is no way to enable them in
-       time because we don't know when the childs windows are going to be
-       closed, so the solution we use here is to keep one special tiny frame
+       time because we don't know when the child's windows are going to be
+       closed, so the solution we use here is to keep one special tiny dialog
        enabled all the time. Then when the child terminates it will get
-       activated and when we close it below -- after reenabling all the other
+       activated and when we close it below -- after re-enabling all the other
        windows! -- the previously active window becomes activated again and
        everything is ok.
      */
@@ -186,16 +185,16 @@ void *wxGUIAppTraits::BeforeChildWaitLoop()
     // first disable all existing windows
     wxWindowDisabler *wd = new wxWindowDisabler;
 
-    // then create an "invisible" frame: it has minimal size, is positioned
-    // (hopefully) outside the screen and doesn't appear on the taskbar
-    wxWindow *winActive = new wxFrame
+    // then create an "invisible" dialog: it has minimal size, is positioned
+    // (hopefully) outside the screen and doesn't appear in the Alt-TAB list
+    // (unlike the frames, which is why we use a dialog here)
+    wxWindow *winActive = new wxDialog
                     (
                         wxTheApp->GetTopWindow(),
                         wxID_ANY,
                         wxEmptyString,
                         wxPoint(32600, 32600),
-                        wxSize(1, 1),
-                        wxDEFAULT_FRAME_STYLE | wxFRAME_NO_TASKBAR
+                        wxSize(1, 1)
                     );
     winActive->Show();
 
@@ -210,9 +209,9 @@ void wxGUIAppTraits::AfterChildWaitLoop(void *dataOrig)
 
     delete data->wd;
 
-    // finally delete the dummy frame and, as wd has been already destroyed and
-    // the other windows reenabled, the activation is going to return to the
-    // window which had had it before
+    // finally delete the dummy dialog and, as wd has been already destroyed
+    // and the other windows reenabled, the activation is going to return to
+    // the window which had had it before
     data->winActive->Destroy();
 
     // also delete the temporary data object itself
@@ -557,7 +556,7 @@ bool wxConsoleStderr::Write(const wxString& text)
         return false;
     }
 
-    if ( !::WriteConsole(m_hStderr, text.wx_str(), text.length(), &ret, NULL) )
+    if ( !::WriteConsole(m_hStderr, text.t_str(), text.length(), &ret, NULL) )
     {
         wxLogLastError(wxT("WriteConsole"));
         return false;
@@ -647,12 +646,6 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
     SHInitExtraControls();
 #endif
 
-#ifndef __WXWINCE__
-    // Don't show a message box if a function such as SHGetFileInfo
-    // fails to find a device.
-    SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOOPENFILEERRORBOX);
-#endif
-
     wxOleInitialize();
 
 #if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
@@ -692,7 +685,7 @@ const wxChar *wxApp::GetRegisteredClassName(const wxChar *name,
 
 
     ClassRegInfo regClass(name);
-    wndclass.lpszClassName = regClass.regname.wx_str();
+    wndclass.lpszClassName = regClass.regname.t_str();
     if ( !::RegisterClass(&wndclass) )
     {
         wxLogLastError(wxString::Format(wxT("RegisterClass(%s)"),
@@ -701,7 +694,7 @@ const wxChar *wxApp::GetRegisteredClassName(const wxChar *name,
     }
 
     wndclass.style &= ~(CS_HREDRAW | CS_VREDRAW);
-    wndclass.lpszClassName = regClass.regnameNR.wx_str();
+    wndclass.lpszClassName = regClass.regnameNR.t_str();
     if ( !::RegisterClass(&wndclass) )
     {
         wxLogLastError(wxString::Format(wxT("RegisterClass(%s)"),
@@ -716,7 +709,7 @@ const wxChar *wxApp::GetRegisteredClassName(const wxChar *name,
     // function returns (it could be invalidated later if new elements are
     // added to the vector and it's reallocated but this shouldn't matter as
     // this pointer should be used right now, not stored)
-    return gs_regClassesInfo.back().regname.wx_str();
+    return gs_regClassesInfo.back().regname.t_str();
 }
 
 bool wxApp::IsRegisteredClassName(const wxString& name)

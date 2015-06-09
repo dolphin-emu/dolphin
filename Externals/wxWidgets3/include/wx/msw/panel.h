@@ -3,7 +3,6 @@
 // Purpose:     wxMSW-specific wxPanel class.
 // Author:      Vadim Zeitlin
 // Created:     2011-03-18
-// RCS-ID:      $Id: panel.h 70098 2011-12-23 05:59:59Z PC $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

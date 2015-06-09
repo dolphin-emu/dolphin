@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: spinbutt.cpp 66555 2011-01-04 08:31:53Z SC $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -232,7 +231,7 @@ void wxSpinButton::SetRange(int minVal, int maxVal)
 }
 
 bool wxSpinButton::MSWOnScroll(int WXUNUSED(orientation), WXWORD wParam,
-                               WXWORD pos, WXHWND control)
+                               WXWORD WXUNUSED(pos), WXHWND control)
 {
     wxCHECK_MSG( control, false, wxT("scrolling what?") );
 
@@ -243,7 +242,9 @@ bool wxSpinButton::MSWOnScroll(int WXUNUSED(orientation), WXWORD wParam,
     }
 
     wxSpinEvent event(wxEVT_SCROLL_THUMBTRACK, m_windowId);
-    event.SetPosition((short)pos);    // cast is important for negative values!
+    // We can't use 16 bit position provided in this message for spin buttons
+    // using 32 bit range.
+    event.SetPosition(GetValue());
     event.SetEventObject(this);
 
     return HandleWindowEvent(event);

@@ -3,7 +3,6 @@
 // Purpose:     wxSpinButton class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: spinbutt.h 62785 2009-12-05 19:25:04Z PC $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -48,8 +47,6 @@ public:
     virtual bool Enable( bool enable = true );
 
     // implementation
-    void OnSize( wxSizeEvent &event );
-
     int m_pos;
 
 protected:
@@ -62,9 +59,7 @@ protected:
 private:
     typedef wxSpinButtonBase base_type;
 
-    DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS(wxSpinButton)
 };
 
-#endif
-    // _WX_GTK_SPINBUTT_H_
+#endif // _WX_GTK_SPINBUTT_H_

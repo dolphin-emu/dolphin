@@ -3,7 +3,7 @@
  *
  * \brief The ARCFOUR stream cipher
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,13 +27,21 @@
 #ifndef POLARSSL_ARC4_H
 #define POLARSSL_ARC4_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <string.h>
 
 #if !defined(POLARSSL_ARC4_ALT)
 // Regular implementation
 //
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          ARC4 context structure
@@ -46,18 +54,29 @@ typedef struct
 }
 arc4_context;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/**
+ * \brief          Initialize ARC4 context
+ *
+ * \param ctx      ARC4 context to be initialized
+ */
+void arc4_init( arc4_context *ctx );
+
+/**
+ * \brief          Clear ARC4 context
+ *
+ * \param ctx      ARC4 context to be cleared
+ */
+void arc4_free( arc4_context *ctx );
 
 /**
  * \brief          ARC4 key schedule
  *
- * \param ctx      ARC4 context to be initialized
+ * \param ctx      ARC4 context to be setup
  * \param key      the secret key
- * \param keylen   length of the key
+ * \param keylen   length of the key, in bytes
  */
-void arc4_setup( arc4_context *ctx, const unsigned char *key, unsigned int keylen );
+void arc4_setup( arc4_context *ctx, const unsigned char *key,
+                 unsigned int keylen );
 
 /**
  * \brief          ARC4 cipher function

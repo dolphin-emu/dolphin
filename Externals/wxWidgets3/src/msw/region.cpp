@@ -4,7 +4,6 @@
 // Author:    Vadim Zeitlin
 // Modified by:
 // Created:   Fri Oct 24 10:46:34 MET 1997
-// RCS-ID:    $Id: region.cpp 70017 2011-12-16 19:47:55Z VZ $
 // Copyright: (c) 1997-2002 wxWidgets team
 // Licence:   wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -165,8 +164,7 @@ void wxRegion::Clear()
 
 bool wxRegion::DoOffset(wxCoord x, wxCoord y)
 {
-    const HRGN hrgn = GetHrgn();
-    wxCHECK_MSG( hrgn, false, wxT("invalid wxRegion") );
+    wxCHECK_MSG( GetHrgn(), false, wxT("invalid wxRegion") );
 
     if ( !x && !y )
     {
@@ -176,7 +174,7 @@ bool wxRegion::DoOffset(wxCoord x, wxCoord y)
 
     AllocExclusive();
 
-    if ( ::OffsetRgn(hrgn, x, y) == ERROR )
+    if ( ::OffsetRgn(GetHrgn(), x, y) == ERROR )
     {
         wxLogLastError(wxT("OffsetRgn"));
 

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dcscreen.cpp 65680 2010-09-30 11:44:45Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -89,7 +88,18 @@ wxBitmap wxScreenDCImpl::DoGetAsBitmap(const wxRect *subrect) const
     if ( subrect )
         srcRect = CGRectOffset( srcRect, -subrect->x, -subrect->y ) ;
 
-    CGImageRef image = grabViaOpenGL(kCGNullDirectDisplay, srcRect);
+    CGImageRef image = NULL;
+    
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+    if ( UMAGetSystemVersion() >= 0x1060)
+    {
+        image = CGDisplayCreateImage(kCGDirectMainDisplay);
+    }
+    else
+#endif
+    {
+        image = grabViaOpenGL(kCGNullDirectDisplay, srcRect);
+    }
 
     wxASSERT_MSG(image, wxT("wxScreenDC::GetAsBitmap - unable to get screenshot."));
 

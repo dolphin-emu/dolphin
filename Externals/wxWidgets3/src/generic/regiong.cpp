@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/04/12
-// RCS-ID:      $Id: regiong.cpp 70625 2012-02-19 14:49:37Z SN $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

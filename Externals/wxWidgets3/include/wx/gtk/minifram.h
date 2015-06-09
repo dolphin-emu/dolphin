@@ -2,7 +2,6 @@
 // Name:        wx/gtk/minifram.h
 // Purpose:     wxMiniFrame class
 // Author:      Robert Roebling
-// RCS-ID:      $Id: minifram.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -33,6 +32,7 @@ public:
     {
         Create(parent, id, title, pos, size, style, name);
     }
+    ~wxMiniFrame();
 
     bool Create(wxWindow *parent,
             wxWindowID id,

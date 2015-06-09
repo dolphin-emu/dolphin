@@ -2,7 +2,6 @@
 // Name:        wx/gtk/dataobj.h
 // Purpose:     declaration of the wxDataObject
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dataobj.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 1998, 1999 Vadim Zeitlin, Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,7 @@
 /*
  *  CTR_DRBG implementation based on AES-256 (NIST SP 800-90)
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -28,7 +28,11 @@
  *  http://csrc.nist.gov/publications/nistpubs/800-90/SP800-90revised_March2007.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_CTR_DRBG_C)
 
@@ -37,6 +41,17 @@
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
 #endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
+#endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 /*
  * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
@@ -55,6 +70,8 @@ int ctr_drbg_init_entropy_len(
 
     memset( ctx, 0, sizeof(ctr_drbg_context) );
     memset( key, 0, CTR_DRBG_KEYSIZE );
+
+    aes_init( &ctx->aes_ctx );
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
@@ -83,6 +100,15 @@ int ctr_drbg_init( ctr_drbg_context *ctx,
                                        CTR_DRBG_ENTROPY_LEN ) );
 }
 
+void ctr_drbg_free( ctr_drbg_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    aes_free( &ctx->aes_ctx );
+    polarssl_zeroize( ctx, sizeof( ctr_drbg_context ) );
+}
+
 void ctr_drbg_set_prediction_resistance( ctr_drbg_context *ctx, int resistance )
 {
     ctx->prediction_resistance = resistance;
@@ -92,25 +118,27 @@ void ctr_drbg_set_entropy_len( ctr_drbg_context *ctx, size_t len )
 {
     ctx->entropy_len = len;
 }
-    
+
 void ctr_drbg_set_reseed_interval( ctr_drbg_context *ctx, int interval )
 {
     ctx->reseed_interval = interval;
 }
-    
-int block_cipher_df( unsigned char *output,
-                     const unsigned char *data, size_t data_len )
+
+static int block_cipher_df( unsigned char *output,
+                            const unsigned char *data, size_t data_len )
 {
     unsigned char buf[CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16];
     unsigned char tmp[CTR_DRBG_SEEDLEN];
     unsigned char key[CTR_DRBG_KEYSIZE];
     unsigned char chain[CTR_DRBG_BLOCKSIZE];
-    unsigned char *p = buf, *iv;
+    unsigned char *p, *iv;
     aes_context aes_ctx;
 
-    int i, j, buf_len, use_len;
+    int i, j;
+    size_t buf_len, use_len;
 
     memset( buf, 0, CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16 );
+    aes_init( &aes_ctx );
 
     /*
      * Construct IV (16 bytes) and S in buffer
@@ -150,11 +178,12 @@ int block_cipher_df( unsigned char *output,
             for( i = 0; i < CTR_DRBG_BLOCKSIZE; i++ )
                 chain[i] ^= p[i];
             p += CTR_DRBG_BLOCKSIZE;
-            use_len -= CTR_DRBG_BLOCKSIZE;
+            use_len -= ( use_len >= CTR_DRBG_BLOCKSIZE ) ?
+                       CTR_DRBG_BLOCKSIZE : use_len;
 
             aes_crypt_ecb( &aes_ctx, AES_ENCRYPT, chain, chain );
         }
-        
+
         memcpy( tmp + j, chain, CTR_DRBG_BLOCKSIZE );
 
         /*
@@ -177,10 +206,12 @@ int block_cipher_df( unsigned char *output,
         p += CTR_DRBG_BLOCKSIZE;
     }
 
+    aes_free( &aes_ctx );
+
     return( 0 );
 }
 
-int ctr_drbg_update_internal( ctr_drbg_context *ctx,
+static int ctr_drbg_update_internal( ctr_drbg_context *ctx,
                               const unsigned char data[CTR_DRBG_SEEDLEN] )
 {
     unsigned char tmp[CTR_DRBG_SEEDLEN];
@@ -242,7 +273,7 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
     memset( seed, 0, CTR_DRBG_MAX_SEED_INPUT );
 
     /*
-     * Gather enropy_len bytes of entropy to seed state
+     * Gather entropy_len bytes of entropy to seed state
      */
     if( 0 != ctx->f_entropy( ctx->p_entropy, seed,
                              ctx->entropy_len ) )
@@ -274,7 +305,7 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
 
     return( 0 );
 }
-    
+
 int ctr_drbg_random_with_add( void *p_rng,
                               unsigned char *output, size_t output_len,
                               const unsigned char *additional, size_t add_len )
@@ -324,7 +355,8 @@ int ctr_drbg_random_with_add( void *p_rng,
          */
         aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->counter, tmp );
 
-        use_len = (output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE : output_len;
+        use_len = ( output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE :
+                                                       output_len;
         /*
          * Copy random block to destination
          */
@@ -348,7 +380,7 @@ int ctr_drbg_random( void *p_rng, unsigned char *output, size_t output_len )
 #if defined(POLARSSL_FS_IO)
 int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path )
 {
-    int ret;
+    int ret = POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR;
     FILE *f;
     unsigned char buf[ CTR_DRBG_MAX_INPUT ];
 
@@ -356,16 +388,19 @@ int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path )
         return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
 
     if( ( ret = ctr_drbg_random( ctx, buf, CTR_DRBG_MAX_INPUT ) ) != 0 )
-        return( ret );
+        goto exit;
 
     if( fwrite( buf, 1, CTR_DRBG_MAX_INPUT, f ) != CTR_DRBG_MAX_INPUT )
     {
-        fclose( f );
-        return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
+        ret = POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR;
+        goto exit;
     }
 
+    ret = 0;
+
+exit:
     fclose( f );
-    return( 0 );
+    return( ret );
 }
 
 int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
@@ -382,7 +417,10 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
     fseek( f, 0, SEEK_SET );
 
     if( n > CTR_DRBG_MAX_INPUT )
+    {
+        fclose( f );
         return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
+    }
 
     if( fread( buf, 1, n, f ) != n )
     {
@@ -390,10 +428,10 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
         return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
     }
 
-    ctr_drbg_update( ctx, buf, n );
-    
     fclose( f );
-    
+
+    ctr_drbg_update( ctx, buf, n );
+
     return( ctr_drbg_write_seed_file( ctx, path ) );
 }
 #endif /* POLARSSL_FS_IO */
@@ -402,7 +440,7 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
 
 #include <stdio.h>
 
-unsigned char entropy_source_pr[96] =
+static unsigned char entropy_source_pr[96] =
     { 0xc1, 0x80, 0x81, 0xa6, 0x5d, 0x44, 0x02, 0x16,
       0x19, 0xb3, 0xf1, 0x80, 0xb1, 0xc9, 0x20, 0x02,
       0x6a, 0x54, 0x6f, 0x0c, 0x70, 0x81, 0x49, 0x8b,
@@ -416,7 +454,7 @@ unsigned char entropy_source_pr[96] =
       0x93, 0x92, 0xcf, 0xc5, 0x23, 0x12, 0xd5, 0x56,
       0x2c, 0x4a, 0x6e, 0xff, 0xdc, 0x10, 0xd0, 0x68 };
 
-unsigned char entropy_source_nopr[64] =
+static unsigned char entropy_source_nopr[64] =
     { 0x5a, 0x19, 0x4d, 0x5e, 0x2b, 0x31, 0x58, 0x14,
       0x54, 0xde, 0xf6, 0x75, 0xfb, 0x79, 0x58, 0xfe,
       0xc7, 0xdb, 0x87, 0x3e, 0x56, 0x89, 0xfc, 0x9d,
@@ -426,30 +464,38 @@ unsigned char entropy_source_nopr[64] =
       0xf5, 0x98, 0x3d, 0x77, 0x1c, 0x1b, 0x13, 0x7e,
       0x4e, 0x0f, 0x9d, 0x8e, 0xf4, 0x09, 0xf9, 0x2e };
 
-unsigned char nonce_pers_pr[16] =
+static const unsigned char nonce_pers_pr[16] =
     { 0xd2, 0x54, 0xfc, 0xff, 0x02, 0x1e, 0x69, 0xd2,
       0x29, 0xc9, 0xcf, 0xad, 0x85, 0xfa, 0x48, 0x6c };
 
-unsigned char nonce_pers_nopr[16] =
+static const unsigned char nonce_pers_nopr[16] =
     { 0x1b, 0x54, 0xb8, 0xff, 0x06, 0x42, 0xbf, 0xf5,
       0x21, 0xf1, 0x5c, 0x1c, 0x0b, 0x66, 0x5f, 0x3f };
 
-unsigned char result_pr[16] =
+static const unsigned char result_pr[16] =
     { 0x34, 0x01, 0x16, 0x56, 0xb4, 0x29, 0x00, 0x8f,
       0x35, 0x63, 0xec, 0xb5, 0xf2, 0x59, 0x07, 0x23 };
 
-unsigned char result_nopr[16] =
+static const unsigned char result_nopr[16] =
     { 0xa0, 0x54, 0x30, 0x3d, 0x8a, 0x7e, 0xa9, 0x88,
       0x9d, 0x90, 0x3e, 0x07, 0x7c, 0x6f, 0x21, 0x8f };
 
-int test_offset;
-int ctr_drbg_self_test_entropy( void *data, unsigned char *buf, size_t len )
+static size_t test_offset;
+static int ctr_drbg_self_test_entropy( void *data, unsigned char *buf,
+                                       size_t len )
 {
-    unsigned char *p = data;
+    const unsigned char *p = data;
     memcpy( buf, p + test_offset, len );
-    test_offset += 32;
+    test_offset += len;
     return( 0 );
 }
+
+#define CHK( c )    if( (c) != 0 )                          \
+                    {                                       \
+                        if( verbose != 0 )                  \
+                            polarssl_printf( "failed\n" );  \
+                        return( 1 );                        \
+                    }
 
 /*
  * Checkup routine
@@ -463,100 +509,41 @@ int ctr_drbg_self_test( int verbose )
      * Based on a NIST CTR_DRBG test vector (PR = True)
      */
     if( verbose != 0 )
-        printf( "  CTR_DRBG (PR = TRUE) : " );
+        polarssl_printf( "  CTR_DRBG (PR = TRUE) : " );
 
     test_offset = 0;
-    if( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy, entropy_source_pr, nonce_pers_pr, 16, 32 ) != 0 )
-    {
-        if( verbose != 0 )
-            printf( "failed\n" );
-
-        return( 1 );
-    }
+    CHK( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy,
+                                entropy_source_pr, nonce_pers_pr, 16, 32 ) );
     ctr_drbg_set_prediction_resistance( &ctx, CTR_DRBG_PR_ON );
+    CHK( ctr_drbg_random( &ctx, buf, CTR_DRBG_BLOCKSIZE ) );
+    CHK( ctr_drbg_random( &ctx, buf, CTR_DRBG_BLOCKSIZE ) );
+    CHK( memcmp( buf, result_pr, CTR_DRBG_BLOCKSIZE ) );
 
-    if( ctr_drbg_random( &ctx, buf, CTR_DRBG_BLOCKSIZE ) != 0 )
-    {
-        if( verbose != 0 )
-            printf( "failed\n" );
-
-        return( 1 );
-    }
-
-    if( ctr_drbg_random( &ctx, buf, CTR_DRBG_BLOCKSIZE ) != 0 )
-    {
-        if( verbose != 0 )
-            printf( "failed\n" );
-
-        return( 1 );
-    }
-
-    if( memcmp( buf, result_pr, CTR_DRBG_BLOCKSIZE ) != 0 )
-    {
-        if( verbose != 0 )
-            printf( "failed\n" );
-
-        return( 1 );
-    }
-    
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     /*
      * Based on a NIST CTR_DRBG test vector (PR = FALSE)
      */
     if( verbose != 0 )
-        printf( "  CTR_DRBG (PR = FALSE): " );
+        polarssl_printf( "  CTR_DRBG (PR = FALSE): " );
 
     test_offset = 0;
-    if( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy, entropy_source_nopr, nonce_pers_nopr, 16, 32 ) != 0 )
-    {
-        if( verbose != 0 )
-            printf( "failed\n" );
-
-        return( 1 );
-    }
-
-    if( ctr_drbg_random( &ctx, buf, 16 ) != 0 )
-    {
-        if( verbose != 0 )
-            printf( "failed\n" );
-
-        return( 1 );
-    }
-
-    if( ctr_drbg_reseed( &ctx, NULL, 0 ) != 0 )
-    {
-        if( verbose != 0 )
-            printf( "failed\n" );
-
-        return( 1 );
-    }
-
-    if( ctr_drbg_random( &ctx, buf, 16 ) != 0 )
-    {
-        if( verbose != 0 )
-            printf( "failed\n" );
-
-        return( 1 );
-    }
-
-    if( memcmp( buf, result_nopr, 16 ) != 0 )
-    {
-        if( verbose != 0 )
-            printf( "failed\n" );
-
-        return( 1 );
-    }
-    
-    if( verbose != 0 )
-        printf( "passed\n" );
+    CHK( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy,
+                            entropy_source_nopr, nonce_pers_nopr, 16, 32 ) );
+    CHK( ctr_drbg_random( &ctx, buf, 16 ) );
+    CHK( ctr_drbg_reseed( &ctx, NULL, 0 ) );
+    CHK( ctr_drbg_random( &ctx, buf, 16 ) );
+    CHK( memcmp( buf, result_nopr, 16 ) );
 
     if( verbose != 0 )
-            printf( "\n" );
+        polarssl_printf( "passed\n" );
+
+    if( verbose != 0 )
+            polarssl_printf( "\n" );
 
     return( 0 );
 }
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_CTR_DRBG_C */

@@ -5,7 +5,6 @@
 //              Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     2010-04-23
-// RCS-ID:      $Id: translation.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -48,10 +47,18 @@
 #include "wx/tokenzr.h"
 #include "wx/fontmap.h"
 #include "wx/stdpaths.h"
-#include "wx/hashset.h"
+#include "wx/private/threadinfo.h"
 
 #ifdef __WINDOWS__
+    #include "wx/dynlib.h"
+    #include "wx/scopedarray.h"
     #include "wx/msw/wrapwin.h"
+    #include "wx/msw/missing.h"
+#endif
+#ifdef __WXOSX__
+    #include "wx/osx/core/cfstring.h"
+    #include <CoreFoundation/CFBundle.h>
+    #include <CoreFoundation/CFLocale.h>
 #endif
 
 // ----------------------------------------------------------------------------
@@ -82,6 +89,155 @@ namespace
 // of making the public wxMsgCatalog and wxTranslationsLoader APIs ugly, we
 // store them in this global map.
 wxStringToStringHashMap gs_msgIdCharset;
+#endif
+
+// ----------------------------------------------------------------------------
+// Platform specific helpers
+// ----------------------------------------------------------------------------
+
+void LogTraceArray(const char *prefix, const wxArrayString& arr)
+{
+    wxLogTrace(TRACE_I18N, "%s: [%s]", prefix, wxJoin(arr, ','));
+}
+
+void LogTraceLargeArray(const wxString& prefix, const wxArrayString& arr)
+{
+    wxLogTrace(TRACE_I18N, "%s:", prefix);
+    for ( wxArrayString::const_iterator i = arr.begin(); i != arr.end(); ++i )
+        wxLogTrace(TRACE_I18N, "    %s", *i);
+}
+
+// Use locale-based detection as a fallback
+wxString GetPreferredUILanguageFallback(const wxArrayString& WXUNUSED(available))
+{
+    const wxString lang = wxLocale::GetLanguageCanonicalName(wxLocale::GetSystemLanguage());
+    wxLogTrace(TRACE_I18N, " - obtained best language from locale: %s", lang);
+    return lang;
+}
+
+#ifdef __WINDOWS__
+
+wxString GetPreferredUILanguage(const wxArrayString& available)
+{
+    typedef BOOL (WINAPI *GetUserPreferredUILanguages_t)(DWORD, PULONG, PWSTR, PULONG);
+    static GetUserPreferredUILanguages_t s_pfnGetUserPreferredUILanguages = NULL;
+    static bool s_initDone = false;
+    if ( !s_initDone )
+    {
+        wxLoadedDLL dllKernel32("kernel32.dll");
+        wxDL_INIT_FUNC(s_pfn, GetUserPreferredUILanguages, dllKernel32);
+        s_initDone = true;
+    }
+
+    if ( s_pfnGetUserPreferredUILanguages )
+    {
+        ULONG numLangs;
+        ULONG bufferSize = 0;
+        if ( (*s_pfnGetUserPreferredUILanguages)(MUI_LANGUAGE_NAME,
+                                                 &numLangs,
+                                                 NULL,
+                                                 &bufferSize) )
+        {
+            wxScopedArray<WCHAR> langs(new WCHAR[bufferSize]);
+            if ( (*s_pfnGetUserPreferredUILanguages)(MUI_LANGUAGE_NAME,
+                                                     &numLangs,
+                                                     langs.get(),
+                                                     &bufferSize) )
+            {
+                wxArrayString preferred;
+
+                WCHAR *buf = langs.get();
+                for ( unsigned i = 0; i < numLangs; i++ )
+                {
+                    const wxString lang(buf);
+                    preferred.push_back(lang);
+                    buf += lang.length() + 1;
+                }
+                LogTraceArray(" - system preferred languages", preferred);
+
+                for ( wxArrayString::const_iterator j = preferred.begin();
+                      j != preferred.end();
+                      ++j )
+                {
+                    wxString lang(*j);
+                    lang.Replace("-", "_");
+                    if ( available.Index(lang, /*bCase=*/false) != wxNOT_FOUND )
+                        return lang;
+                    size_t pos = lang.find('_');
+                    if ( pos != wxString::npos )
+                    {
+                        lang = lang.substr(0, pos);
+                        if ( available.Index(lang, /*bCase=*/false) != wxNOT_FOUND )
+                            return lang;
+                    }
+                }
+            }
+        }
+    }
+
+    return GetPreferredUILanguageFallback(available);
+}
+
+#elif defined(__WXOSX__)
+
+void LogTraceArray(const char *prefix, CFArrayRef arr)
+{
+    wxString s;
+    const unsigned count = CFArrayGetCount(arr);
+    if ( count )
+    {
+        s += wxCFStringRef::AsString((CFStringRef)CFArrayGetValueAtIndex(arr, 0));
+        for ( unsigned i = 1 ; i < count; i++ )
+            s += "," + wxCFStringRef::AsString((CFStringRef)CFArrayGetValueAtIndex(arr, i));
+    }
+    wxLogTrace(TRACE_I18N, "%s: [%s]", prefix, s);
+}
+
+wxString GetPreferredUILanguage(const wxArrayString& available)
+{
+    wxStringToStringHashMap availableNormalized;
+    wxCFRef<CFMutableArrayRef> availableArr(
+        CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks));
+
+    for ( wxArrayString::const_iterator i = available.begin();
+          i != available.end();
+          ++i )
+    {
+        wxString lang(*i);
+        wxCFStringRef code_wx(*i);
+        wxCFStringRef code_norm(
+            CFLocaleCreateCanonicalLanguageIdentifierFromString(kCFAllocatorDefault, code_wx));
+        CFArrayAppendValue(availableArr, code_norm);
+        availableNormalized[code_norm.AsString()] = *i;
+    }
+    LogTraceArray(" - normalized available list", availableArr);
+
+    wxCFRef<CFArrayRef> prefArr(
+        CFBundleCopyLocalizationsForPreferences(availableArr, NULL));
+    LogTraceArray(" - system preferred languages", prefArr);
+
+    unsigned prefArrLength = CFArrayGetCount(prefArr);
+    if ( prefArrLength > 0 )
+    {
+        // Lookup the name in 'available' by index -- we need to get the
+        // original value corresponding to the normalized one chosen.
+        wxString lang(wxCFStringRef::AsString((CFStringRef)CFArrayGetValueAtIndex(prefArr, 0)));
+        wxStringToStringHashMap::const_iterator i = availableNormalized.find(lang);
+        if ( i == availableNormalized.end() )
+            return lang;
+        else
+            return i->second;
+    }
+
+    return GetPreferredUILanguageFallback(available);
+}
+
+#else
+
+// On Unix, there's just one language=locale setting, so we should always
+// use that.
+#define GetPreferredUILanguage GetPreferredUILanguageFallback
+
 #endif
 
 } // anonymous namespace
@@ -139,7 +295,7 @@ public:
         T_LEFT_BRACKET, T_RIGHT_BRACKET
     };
     Type type() const { return m_type; }
-    void setType(Type type) { m_type = type; }
+    void setType(Type t) { m_type = t; }
     // for T_NUMBER only
     typedef int Number;
     Number number() const { return m_number; }
@@ -316,7 +472,7 @@ private:
 class wxPluralFormsNode
 {
 public:
-    wxPluralFormsNode(const wxPluralFormsToken& token) : m_token(token) {}
+    wxPluralFormsNode(const wxPluralFormsToken& t) : m_token(t) {}
     const wxPluralFormsToken& token() const { return m_token; }
     const wxPluralFormsNode* node(unsigned i) const
         { return m_nodes[i].get(); }
@@ -885,7 +1041,7 @@ private:
 };
 
 // ----------------------------------------------------------------------------
-// wxMsgCatalogFile clas
+// wxMsgCatalogFile class
 // ----------------------------------------------------------------------------
 
 wxMsgCatalogFile::wxMsgCatalogFile()
@@ -1336,7 +1492,7 @@ bool wxTranslations::AddCatalog(const wxString& domain,
                                 wxLanguage msgIdLanguage)
 {
     const wxString msgIdLang = wxLocale::GetLanguageCanonicalName(msgIdLanguage);
-    const wxString domain_lang = ChooseLanguageForDomain(domain, msgIdLang);
+    const wxString domain_lang = GetBestTranslation(domain, msgIdLang);
 
     if ( domain_lang.empty() )
     {
@@ -1350,19 +1506,12 @@ bool wxTranslations::AddCatalog(const wxString& domain,
                 wxS("adding '%s' translation for domain '%s' (msgid language '%s')"),
                 domain_lang, domain, msgIdLang);
 
-    // It is OK to not load catalog if the msgid language and m_language match,
-    // in which case we can directly display the texts embedded in program's
-    // source code:
-    if ( msgIdLang == domain_lang )
-        return true;
-
-    return LoadCatalog(domain, domain_lang);
+    return LoadCatalog(domain, domain_lang, msgIdLang);
 }
 
 
-bool wxTranslations::LoadCatalog(const wxString& domain, const wxString& lang)
+bool wxTranslations::LoadCatalog(const wxString& domain, const wxString& lang, const wxString& msgIdLang)
 {
-    m_loader->GetAvailableTranslations(domain);
     wxCHECK_MSG( m_loader, false, "loader can't be NULL" );
 
     wxMsgCatalog *cat = NULL;
@@ -1398,6 +1547,15 @@ bool wxTranslations::LoadCatalog(const wxString& domain, const wxString& lang)
             cat = m_loader->LoadCatalog(domain, baselang);
     }
 
+    if ( !cat )
+    {
+        // It is OK to not load catalog if the msgid language and m_language match,
+        // in which case we can directly display the texts embedded in program's
+        // source code:
+        if ( msgIdLang == lang )
+            return true;
+    }
+
     if ( cat )
     {
         // add it to the head of the list so that in GetString it will
@@ -1423,53 +1581,58 @@ bool wxTranslations::IsLoaded(const wxString& domain) const
     return FindCatalog(domain) != NULL;
 }
 
+wxString wxTranslations::GetBestTranslation(const wxString& domain,
+                                            wxLanguage msgIdLanguage)
+{
+    const wxString lang = wxLocale::GetLanguageCanonicalName(msgIdLanguage);
+    return GetBestTranslation(domain, lang);
+}
 
-wxString wxTranslations::ChooseLanguageForDomain(const wxString& WXUNUSED(domain),
-                                                 const wxString& WXUNUSED(msgIdLang))
+wxString wxTranslations::GetBestTranslation(const wxString& domain,
+                                            const wxString& msgIdLanguage)
 {
     // explicitly set language should always be respected
     if ( !m_lang.empty() )
         return m_lang;
 
-    // TODO: if the default language is used, pick the best (by comparing
-    //       available languages with user's preferences), instead of blindly
-    //       trusting availability of system language translation
-    return wxLocale::GetLanguageCanonicalName(wxLocale::GetSystemLanguage());
+    wxArrayString available(GetAvailableTranslations(domain));
+    // it's OK to have duplicates, so just add msgid language
+    available.push_back(msgIdLanguage);
+    available.push_back(msgIdLanguage.BeforeFirst('_'));
+
+    wxLogTrace(TRACE_I18N, "choosing best language for domain '%s'", domain);
+    LogTraceArray(" - available translations", available);
+    const wxString lang = GetPreferredUILanguage(available);
+    wxLogTrace(TRACE_I18N, " => using language '%s'", lang);
+    return lang;
 }
 
-
-namespace
-{
-WX_DECLARE_HASH_SET(wxString, ::wxStringHash, ::wxStringEqual,
-                    wxLocaleUntranslatedStrings);
-}
 
 /* static */
 const wxString& wxTranslations::GetUntranslatedString(const wxString& str)
 {
-    static wxLocaleUntranslatedStrings s_strings;
+    wxLocaleUntranslatedStrings& strings = wxThreadInfo.untranslatedStrings;
 
-    wxLocaleUntranslatedStrings::iterator i = s_strings.find(str);
-    if ( i == s_strings.end() )
-        return *s_strings.insert(str).first;
+    wxLocaleUntranslatedStrings::iterator i = strings.find(str);
+    if ( i == strings.end() )
+        return *strings.insert(str).first;
 
     return *i;
 }
 
 
-const wxString& wxTranslations::GetString(const wxString& origString,
-                                          const wxString& domain) const
+const wxString *wxTranslations::GetTranslatedString(const wxString& origString,
+                                                    const wxString& domain) const
 {
-    return GetString(origString, origString, UINT_MAX, domain);
+    return GetTranslatedString(origString, UINT_MAX, domain);
 }
 
-const wxString& wxTranslations::GetString(const wxString& origString,
-                                          const wxString& origString2,
-                                          unsigned n,
-                                          const wxString& domain) const
+const wxString *wxTranslations::GetTranslatedString(const wxString& origString,
+                                                    unsigned n,
+                                                    const wxString& domain) const
 {
     if ( origString.empty() )
-        return GetUntranslatedString(origString);
+        return NULL;
 
     const wxString *trans = NULL;
     wxMsgCatalog *pMsgCat;
@@ -1504,14 +1667,9 @@ const wxString& wxTranslations::GetString(const wxString& origString,
             (!domain.empty() ? wxString::Format("domain '%s' ", domain) : wxString()),
             m_lang
         );
-
-        if (n == UINT_MAX)
-            return GetUntranslatedString(origString);
-        else
-            return GetUntranslatedString(n == 1 ? origString : origString2);
     }
 
-    return *trans;
+    return trans;
 }
 
 
@@ -1593,7 +1751,7 @@ wxArrayString gs_searchPrefixes;
 wxString GetMsgCatalogSubdirs(const wxString& prefix, const wxString& lang)
 {
     // Search first in Unix-standard prefix/lang/LC_MESSAGES, then in
-    // prefix/lang and finally in just prefix.
+    // prefix/lang.
     //
     // Note that we use LC_MESSAGES on all platforms and not just Unix, because
     // it doesn't cost much to look into one more directory and doing it this
@@ -1603,13 +1761,19 @@ wxString GetMsgCatalogSubdirs(const wxString& prefix, const wxString& lang)
     //    breaking apps after they are recompiled against the latest wx
     // b) it makes it possible to package app's support files in the same
     //    way on all target platforms
-    const wxString pathPrefix = wxFileName(prefix, lang).GetFullPath();
+    const wxString prefixAndLang = wxFileName(prefix, lang).GetFullPath();
 
     wxString searchPath;
-    searchPath.reserve(4*pathPrefix.length());
-    searchPath << pathPrefix << wxFILE_SEP_PATH << "LC_MESSAGES" << wxPATH_SEP
-            << prefix << wxFILE_SEP_PATH << wxPATH_SEP
-            << pathPrefix;
+    searchPath.reserve(4*prefixAndLang.length());
+
+    searchPath
+#ifdef __WXOSX__
+               << prefixAndLang << ".lproj/LC_MESSAGES" << wxPATH_SEP
+               << prefixAndLang << ".lproj" << wxPATH_SEP
+#endif
+               << prefixAndLang << wxFILE_SEP_PATH << "LC_MESSAGES" << wxPATH_SEP
+               << prefixAndLang << wxPATH_SEP
+               ;
 
     return searchPath;
 }
@@ -1622,7 +1786,7 @@ bool HasMsgCatalogInDir(const wxString& dir, const wxString& domain)
 
 // get prefixes to locale directories; if lang is empty, don't point to
 // OSX's .lproj bundles
-wxArrayString GetSearchPrefixes(const wxString& lang = wxString())
+wxArrayString GetSearchPrefixes()
 {
     wxArrayString paths;
 
@@ -1632,15 +1796,7 @@ wxArrayString GetSearchPrefixes(const wxString& lang = wxString())
 #if wxUSE_STDPATHS
     // then look in the standard location
     wxString stdp;
-    if ( lang.empty() )
-    {
-        stdp = wxStandardPaths::Get().GetResourcesDir();
-    }
-    else
-    {
-        stdp = wxStandardPaths::Get().
-            GetLocalizedResourcesDir(lang, wxStandardPaths::ResourceCat_Messages);
-    }
+    stdp = wxStandardPaths::Get().GetResourcesDir();
     if ( paths.Index(stdp) == wxNOT_FOUND )
         paths.Add(stdp);
 #endif // wxUSE_STDPATHS
@@ -1676,7 +1832,7 @@ wxString GetFullSearchPath(const wxString& lang)
     wxString searchPath;
     searchPath.reserve(500);
 
-    const wxArrayString prefixes = GetSearchPrefixes(lang);
+    const wxArrayString prefixes = GetSearchPrefixes();
 
     for ( wxArrayString::const_iterator i = prefixes.begin();
           i != prefixes.end();
@@ -1710,8 +1866,11 @@ wxMsgCatalog *wxFileTranslationsLoader::LoadCatalog(const wxString& domain,
 {
     wxString searchPath = GetFullSearchPath(lang);
 
-    wxLogTrace(TRACE_I18N, wxS("Looking for \"%s.mo\" in search path \"%s\""),
-                domain, searchPath);
+    LogTraceLargeArray
+    (
+        wxString::Format("looking for \"%s.mo\" in search path", domain),
+        wxSplit(searchPath, wxPATH_SEP[0])
+    );
 
     wxFileName fn(domain);
     fn.SetExt(wxS("mo"));
@@ -1733,9 +1892,11 @@ wxArrayString wxFileTranslationsLoader::GetAvailableTranslations(const wxString&
     wxArrayString langs;
     const wxArrayString prefixes = GetSearchPrefixes();
 
-    wxLogTrace(TRACE_I18N,
-               "looking for available translations of \"%s\" in search path \"%s\"",
-               domain, wxJoin(prefixes, wxPATH_SEP[0]));
+    LogTraceLargeArray
+    (
+        wxString::Format("looking for available translations of \"%s\" in search path", domain),
+        prefixes
+    );
 
     for ( wxArrayString::const_iterator i = prefixes.begin();
           i != prefixes.end();
@@ -1762,7 +1923,8 @@ wxArrayString wxFileTranslationsLoader::GetAvailableTranslations(const wxString&
 #endif // __WXOSX__
 
                 wxLogTrace(TRACE_I18N,
-                           "found %s translation of \"%s\"", lang, domain);
+                           "found %s translation of \"%s\" in %s",
+                           lang, domain, langdir);
                 langs.push_back(lang);
             }
         }
@@ -1788,7 +1950,7 @@ wxMsgCatalog *wxResourceTranslationsLoader::LoadCatalog(const wxString& domain,
 
     if ( !wxLoadUserResource(&mo_data, &mo_size,
                              resname,
-                             GetResourceType(),
+                             GetResourceType().t_str(),
                              GetModule()) )
         return NULL;
 

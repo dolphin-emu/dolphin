@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpbase.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,7 +35,21 @@
 // module globals
 // ----------------------------------------------------------------------------
 
-static wxStandardPaths gs_stdPaths;
+namespace
+{
+
+// Derive a class just to be able to create it: wxStandardPaths ctor is
+// protected to prevent its misuse, but it also means we can't create an object
+// of this class directly.
+class wxStandardPathsDefault : public wxStandardPaths
+{
+public:
+    wxStandardPathsDefault() { }
+};
+
+static wxStandardPathsDefault gs_stdPaths;
+
+} // anonymous namespace
 
 // ============================================================================
 // implementation

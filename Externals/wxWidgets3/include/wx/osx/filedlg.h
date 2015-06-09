@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: filedlg.h 67896 2011-06-09 00:28:28Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,7 +30,23 @@ protected:
     wxArrayString m_paths;
 
 public:
+    wxFileDialog() { Init(); }
     wxFileDialog(wxWindow *parent,
+                 const wxString& message = wxFileSelectorPromptStr,
+                 const wxString& defaultDir = wxEmptyString,
+                 const wxString& defaultFile = wxEmptyString,
+                 const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                 long style = wxFD_DEFAULT_STYLE,
+                 const wxPoint& pos = wxDefaultPosition,
+                 const wxSize& sz = wxDefaultSize,
+                 const wxString& name = wxFileDialogNameStr)
+    {
+        Init();
+
+        Create(parent,message,defaultDir,defaultFile,wildCard,style,pos,sz,name);
+    }
+
+    void Create(wxWindow *parent,
                  const wxString& message = wxFileSelectorPromptStr,
                  const wxString& defaultDir = wxEmptyString,
                  const wxString& defaultFile = wxEmptyString,
@@ -87,6 +102,10 @@ protected:
     WX_NSObject m_delegate;
     WX_NSObject m_sheetDelegate;
 #endif
+
+private:
+    // Common part of all ctors.
+    void Init();
 };
 
 #endif // _WX_FILEDLG_H_

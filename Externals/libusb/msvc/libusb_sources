@@ -1,0 +1,38 @@
+#TARGETTYPE is not defined, to allow selection between static lib or DLL with ddk_build
+TARGETNAME=libusb-1.0
+DLLDEF=..\libusb-1.0.def
+
+!IFNDEF MSC_WARNING_LEVEL
+MSC_WARNING_LEVEL=/W3
+!ENDIF
+
+!IFDEF STATIC_LIBC
+USE_LIBCMT=1
+!ELSE
+USE_MSVCRT=1
+!ENDIF
+
+INCLUDES=..;..\..\msvc;$(DDK_INC_PATH)
+C_DEFINES= $(C_DEFINES) $(LIBUSB_DEFINES) /DDDKBUILD
+
+# http://jpassing.com/2009/10/21/ltcg-issues-with-the-win7amd64-environment-of-wdk-7600/
+# prevents the following error when using the 64 bit static lib with Visual Studio 2010:
+# "fatal error C1001: An internal error has occurred in the compiler.
+# (compiler file 'f:\dd\vctools\compiler\utc\src\p2\p2symtab.c', line 1823)"
+# and the following with Visual Studio 2010:
+# "fatal error C1047: The object or library file 'libusb-1.0.lib' was created with
+#  an older compiler than other objects; rebuild old objects and libraries"
+USER_C_FLAGS=/GL-
+
+TARGETLIBS=$(SDK_LIB_PATH)\kernel32.lib
+
+SOURCES=..\core.c \
+	..\descriptor.c \
+	..\io.c \
+	..\strerror.c \
+	..\sync.c \
+	..\hotplug.c \
+	threads_windows.c \
+	poll_windows.c \
+	windows_usb.c \
+	..\libusb-1.0.rc

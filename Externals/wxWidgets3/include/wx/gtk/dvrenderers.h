@@ -3,7 +3,6 @@
 // Purpose:     All GTK wxDataViewCtrl renderer classes
 // Author:      Robert Roebling, Vadim Zeitlin
 // Created:     2009-11-07 (extracted from wx/gtk/dataview.h)
-// RCS-ID:      $Id: dvrenderers.h 70300 2012-01-09 06:31:07Z PC $
 // Copyright:   (c) 2006 Robert Roebling
 //              (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -12,7 +11,12 @@
 #ifndef _WX_GTK_DVRENDERERS_H_
 #define _WX_GTK_DVRENDERERS_H_
 
-typedef struct _GdkRectangle GdkRectangle;
+#ifdef __WXGTK3__
+    typedef struct _cairo_rectangle_int cairo_rectangle_int_t;
+    typedef cairo_rectangle_int_t GdkRectangle;
+#else
+    typedef struct _GdkRectangle GdkRectangle;
+#endif
 
 // ---------------------------------------------------------
 // wxDataViewTextRenderer
@@ -137,10 +141,9 @@ public:
 
     virtual GtkCellRendererText *GtkGetTextRenderer() const;
 
-protected:
+private:
     bool Init(wxDataViewCellMode mode, int align);
 
-private:
     // Called from GtkGetTextRenderer() to really create the renderer if
     // necessary.
     void GtkInitTextRenderer();

@@ -2,7 +2,6 @@
 // Name:        src/gtk/dcmemory.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcmemory.cpp 70809 2012-03-04 23:50:35Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -164,3 +163,8 @@ wxBitmap& wxMemoryDCImpl::GetSelectedBitmap()
     return m_selected;
 }
 
+void* wxMemoryDCImpl::GetHandle() const
+{
+    const wxBitmap& bmp = GetSelectedBitmap();
+    return bmp.GetPixmap();
+}

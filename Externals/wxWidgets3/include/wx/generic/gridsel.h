@@ -4,7 +4,6 @@
 // Author:      Stefan Neis
 // Modified by:
 // Created:     20/02/2000
-// RCS-ID:      $Id: gridsel.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) Stefan Neis
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

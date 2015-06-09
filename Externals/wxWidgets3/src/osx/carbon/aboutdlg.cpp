@@ -3,7 +3,6 @@
 // Purpose:     native wxAboutBox() implementation for wxMac
 // Author:      Vadim Zeitlin
 // Created:     2006-10-08
-// RCS-ID:      $Id: aboutdlg.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -3,7 +3,6 @@
 // Purpose:     Declaration of wxOSX-specific wxTimePickerCtrl class.
 // Author:      Vadim Zeitlin
 // Created:     2011-12-18
-// RCS-ID:      $Id: timectrl.h 70071 2011-12-20 21:27:14Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

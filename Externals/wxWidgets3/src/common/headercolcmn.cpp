@@ -3,7 +3,6 @@
 // Purpose:     wxHeaderColumn implementation
 // Author:      Vadim Zeitlin
 // Created:     2008-12-02
-// RCS-ID:      $Id: headercolcmn.cpp 58009 2009-01-11 00:57:08Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

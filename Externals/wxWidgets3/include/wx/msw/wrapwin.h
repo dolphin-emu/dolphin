@@ -3,7 +3,6 @@
 // Purpose:     Wrapper around <windows.h>, to be included instead of it
 // Author:      Vaclav Slavik
 // Created:     2003/07/22
-// RCS-ID:      $Id: wrapwin.h 69784 2011-11-17 16:43:34Z VZ $
 // Copyright:   (c) 2003 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -72,7 +71,7 @@
 // #undef the macros defined in winsows.h which conflict with code elsewhere
 #include "wx/msw/winundef.h"
 
-// Types DWORD_PTR, ULONG_PTR and so on are used for 64-bit compatability
+// Types DWORD_PTR, ULONG_PTR and so on are used for 64-bit compatibility
 // in the WINAPI SDK (they are an integral type that is the size of a
 // pointer) on MSVC 7 and later. However, they are not available in older
 // Platform SDKs, and since they are typedefs and not #defines we simply

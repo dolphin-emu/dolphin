@@ -4,7 +4,6 @@
 // Author:      Julian Smart et al
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: treebase.h 68812 2011-08-21 14:08:56Z VZ $
 // Copyright:   (c) 1997,1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -257,21 +256,21 @@ public:
 
     // accessors
         // get the item on which the operation was performed or the newly
-        // selected item for wxEVT_COMMAND_TREE_SEL_CHANGED/ING events
+        // selected item for wxEVT_TREE_SEL_CHANGED/ING events
     wxTreeItemId GetItem() const { return m_item; }
     void SetItem(const wxTreeItemId& item) { m_item = item; }
 
-        // for wxEVT_COMMAND_TREE_SEL_CHANGED/ING events, get the previously
+        // for wxEVT_TREE_SEL_CHANGED/ING events, get the previously
         // selected item
     wxTreeItemId GetOldItem() const { return m_itemOld; }
     void SetOldItem(const wxTreeItemId& item) { m_itemOld = item; }
 
         // the point where the mouse was when the drag operation started (for
-        // wxEVT_COMMAND_TREE_BEGIN_(R)DRAG events only) or click position
+        // wxEVT_TREE_BEGIN_(R)DRAG events only) or click position
     wxPoint GetPoint() const { return m_pointDrag; }
     void SetPoint(const wxPoint& pt) { m_pointDrag = pt; }
 
-        // keyboard data (for wxEVT_COMMAND_TREE_KEY_DOWN only)
+        // keyboard data (for wxEVT_TREE_KEY_DOWN only)
     const wxKeyEvent& GetKeyEvent() const { return m_evtKey; }
     int GetKeyCode() const { return m_evtKey.GetKeyCode(); }
     void SetKeyEvent(const wxKeyEvent& evt) { m_evtKey = evt; }
@@ -309,33 +308,33 @@ typedef void (wxEvtHandler::*wxTreeEventFunction)(wxTreeEvent&);
 // tree control events and macros for handling them
 // ----------------------------------------------------------------------------
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_BEGIN_DRAG, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_BEGIN_RDRAG, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_END_LABEL_EDIT, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_DELETE_ITEM, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_GET_INFO, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_SET_INFO, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_ITEM_EXPANDED, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_ITEM_EXPANDING, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_ITEM_COLLAPSED, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_ITEM_COLLAPSING, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_SEL_CHANGING, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_KEY_DOWN, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_ITEM_RIGHT_CLICK, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_ITEM_MIDDLE_CLICK, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_END_DRAG, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_STATE_IMAGE_CLICK, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_ITEM_GETTOOLTIP, wxTreeEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_ITEM_MENU, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_BEGIN_DRAG, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_BEGIN_RDRAG, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_BEGIN_LABEL_EDIT, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_END_LABEL_EDIT, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_DELETE_ITEM, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_GET_INFO, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_SET_INFO, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_ITEM_EXPANDED, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_ITEM_EXPANDING, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_ITEM_COLLAPSED, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_ITEM_COLLAPSING, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_SEL_CHANGED, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_SEL_CHANGING, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_KEY_DOWN, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_ITEM_ACTIVATED, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_ITEM_RIGHT_CLICK, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_ITEM_MIDDLE_CLICK, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_END_DRAG, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_STATE_IMAGE_CLICK, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_ITEM_GETTOOLTIP, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREE_ITEM_MENU, wxTreeEvent );
 
 #define wxTreeEventHandler(func) \
     wxEVENT_HANDLER_CAST(wxTreeEventFunction, func)
 
 #define wx__DECLARE_TREEEVT(evt, id, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_TREE_ ## evt, id, wxTreeEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_TREE_ ## evt, id, wxTreeEventHandler(fn))
 
 // GetItem() returns the item being dragged, GetPoint() the mouse coords
 //
@@ -395,6 +394,29 @@ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREE_ITEM_MENU, wxTree
 
 // GetItem() is the item for which the tooltip is being requested
 #define EVT_TREE_ITEM_GETTOOLTIP(id, fn) wx__DECLARE_TREEEVT(ITEM_GETTOOLTIP, id, fn)
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_TREE_BEGIN_DRAG          wxEVT_TREE_BEGIN_DRAG
+#define wxEVT_COMMAND_TREE_BEGIN_RDRAG         wxEVT_TREE_BEGIN_RDRAG
+#define wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT    wxEVT_TREE_BEGIN_LABEL_EDIT
+#define wxEVT_COMMAND_TREE_END_LABEL_EDIT      wxEVT_TREE_END_LABEL_EDIT
+#define wxEVT_COMMAND_TREE_DELETE_ITEM         wxEVT_TREE_DELETE_ITEM
+#define wxEVT_COMMAND_TREE_GET_INFO            wxEVT_TREE_GET_INFO
+#define wxEVT_COMMAND_TREE_SET_INFO            wxEVT_TREE_SET_INFO
+#define wxEVT_COMMAND_TREE_ITEM_EXPANDED       wxEVT_TREE_ITEM_EXPANDED
+#define wxEVT_COMMAND_TREE_ITEM_EXPANDING      wxEVT_TREE_ITEM_EXPANDING
+#define wxEVT_COMMAND_TREE_ITEM_COLLAPSED      wxEVT_TREE_ITEM_COLLAPSED
+#define wxEVT_COMMAND_TREE_ITEM_COLLAPSING     wxEVT_TREE_ITEM_COLLAPSING
+#define wxEVT_COMMAND_TREE_SEL_CHANGED         wxEVT_TREE_SEL_CHANGED
+#define wxEVT_COMMAND_TREE_SEL_CHANGING        wxEVT_TREE_SEL_CHANGING
+#define wxEVT_COMMAND_TREE_KEY_DOWN            wxEVT_TREE_KEY_DOWN
+#define wxEVT_COMMAND_TREE_ITEM_ACTIVATED      wxEVT_TREE_ITEM_ACTIVATED
+#define wxEVT_COMMAND_TREE_ITEM_RIGHT_CLICK    wxEVT_TREE_ITEM_RIGHT_CLICK
+#define wxEVT_COMMAND_TREE_ITEM_MIDDLE_CLICK   wxEVT_TREE_ITEM_MIDDLE_CLICK
+#define wxEVT_COMMAND_TREE_END_DRAG            wxEVT_TREE_END_DRAG
+#define wxEVT_COMMAND_TREE_STATE_IMAGE_CLICK   wxEVT_TREE_STATE_IMAGE_CLICK
+#define wxEVT_COMMAND_TREE_ITEM_GETTOOLTIP     wxEVT_TREE_ITEM_GETTOOLTIP
+#define wxEVT_COMMAND_TREE_ITEM_MENU           wxEVT_TREE_ITEM_MENU
 
 #endif // wxUSE_TREECTRL
 

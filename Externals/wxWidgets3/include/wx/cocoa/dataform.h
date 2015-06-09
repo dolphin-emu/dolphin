@@ -4,7 +4,6 @@
 // Author:      David Elliott <dfe@cox.net>
 // Modified by:
 // Created:     2003/07/23
-// RCS-ID:      $Id: dataform.h 46254 2007-05-30 22:02:19Z VS $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

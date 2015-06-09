@@ -5,7 +5,6 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.cpp 69830 2011-11-27 19:49:54Z VZ $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,6 +20,7 @@
     #include "wx/button.h"
 #endif
 
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 
 extern bool      g_blockEventsOnDrag;
@@ -28,18 +28,18 @@ extern bool      g_blockEventsOnDrag;
 extern "C" {
 static void gtk_togglebutton_clicked_callback(GtkWidget *WXUNUSED(widget), wxToggleButton *cb)
 {
-    if (!cb->m_hasVMT || g_blockEventsOnDrag)
+    if (g_blockEventsOnDrag)
         return;
 
     // Generate a wx event.
-    wxCommandEvent event(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, cb->GetId());
+    wxCommandEvent event(wxEVT_TOGGLEBUTTON, cb->GetId());
     event.SetInt(cb->GetValue());
     event.SetEventObject(cb);
     cb->HandleWindowEvent(event);
 }
 }
 
-wxDEFINE_EVENT( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_TOGGLEBUTTON, wxCommandEvent );
 
 // ------------------------------------------------------------------------
 // wxBitmapToggleButton
@@ -212,8 +212,8 @@ GtkLabel *wxToggleButton::GTKGetLabel() const
 
 void wxToggleButton::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    gtk_widget_modify_style(m_widget, style);
-    gtk_widget_modify_style(gtk_bin_get_child(GTK_BIN(m_widget)), style);
+    GTKApplyStyle(m_widget, style);
+    GTKApplyStyle(gtk_bin_get_child(GTK_BIN(m_widget)), style);
 }
 
 // Get the "best" size for this control.
@@ -234,7 +234,7 @@ wxSize wxToggleButton::DoGetBestSize() const
 wxVisualAttributes
 wxToggleButton::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-    return GetDefaultAttributesFromGTKWidget(gtk_toggle_button_new);
+    return GetDefaultAttributesFromGTKWidget(gtk_toggle_button_new());
 }
 
 #endif // wxUSE_TOGGLEBTN

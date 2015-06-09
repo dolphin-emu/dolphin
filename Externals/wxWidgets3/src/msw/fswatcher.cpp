@@ -3,7 +3,6 @@
 // Purpose:     wxMSWFileSystemWatcher
 // Author:      Bartosz Bekier
 // Created:     2009-05-26
-// RCS-ID:      $Id: fswatcher.cpp 67693 2011-05-03 23:31:39Z VZ $
 // Copyright:   (c) 2009 Bartosz Bekier <bartosz.bekier@gmail.com>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -136,7 +135,7 @@ void wxFSWatcherImplMSW::SendEvent(wxFileSystemWatcherEvent& evt)
 
 bool wxFSWatcherImplMSW::DoSetUpWatch(wxFSWatchEntryMSW& watch)
 {
-    BOOL bWatchSubtree wxDUMMY_INITIALIZE(FALSE);
+    BOOL bWatchSubtree = FALSE;
 
     switch ( watch.GetType() )
     {
@@ -232,6 +231,29 @@ bool wxIOCPThread::ReadEvents()
     if (!count && !watch && !overlapped)
         return false;
 
+    // if the thread got woken up but we got an empty packet it means that
+    // there was an overflow, too many events and not all could fit in
+    // the watch buffer.  In this case, ReadDirectoryChangesW dumps the
+    // buffer.
+    if (!count && watch)
+    {
+         wxLogTrace(wxTRACE_FSWATCHER, "[iocp] Event queue overflowed: path=\"%s\"",
+                    watch->GetPath());
+
+        if (watch->GetFlags() & wxFSW_EVENT_WARNING)
+        {
+            wxFileSystemWatcherEvent
+                overflowEvent(wxFSW_EVENT_WARNING, wxFSW_WARNING_OVERFLOW);
+            overflowEvent.SetPath(watch->GetPath());
+            SendEvent(overflowEvent);
+        }
+
+        // overflow is not a fatal error, we still want to get future events
+        // reissue the watch
+        (void) m_service->SetUpWatch(*watch);
+        return true;
+    }
+
     // in case of spurious wakeup
     if (!count || !watch)
         return true;
@@ -284,9 +306,10 @@ void wxIOCPThread::ProcessNativeEvents(wxVector<wxEventProcessingData>& events)
         int flags = Native2WatcherFlags(nativeFlags);
         if (flags & wxFSW_EVENT_WARNING || flags & wxFSW_EVENT_ERROR)
         {
-            // TODO think about this...do we ever have any errors to report?
-            wxString errMsg = "Error occurred";
-            wxFileSystemWatcherEvent event(flags, errMsg);
+            wxFileSystemWatcherEvent
+                event(flags,
+                      flags & wxFSW_EVENT_ERROR ? wxFSW_WARNING_NONE
+                                                : wxFSW_WARNING_GENERAL);
             SendEvent(event);
         }
         // filter out ignored events and those not asked for.
@@ -316,8 +339,12 @@ void wxIOCPThread::ProcessNativeEvents(wxVector<wxEventProcessingData>& events)
             // CHECK I heard that returned path can be either in short on long
             // form...need to account for that!
             wxFileName path = GetEventPath(*watch, e);
-            wxFileSystemWatcherEvent event(flags, path, path);
-            SendEvent(event);
+            // For files, check that it matches any filespec
+            if ( m_service->MatchesFilespec(path, watch->GetFilespec()) )
+            {
+                wxFileSystemWatcherEvent event(flags, path, path);
+                SendEvent(event);
+            }
         }
     }
 }
@@ -431,7 +458,7 @@ wxMSWFileSystemWatcher::AddTree(const wxFileName& path,
         return false;
     }
 
-    return DoAdd(path, events, wxFSWPath_Tree);
+    return AddAny(path, events, wxFSWPath_Tree);
 }
 
 #endif // wxUSE_FSWATCHER

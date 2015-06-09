@@ -5,7 +5,6 @@
 // Modified by: Vadim Zeitlin (modifications partly inspired by omnithreads
 //              package from Olivetti & Oracle Research Laboratory)
 // Created:     04/13/98
-// RCS-ID:      $Id: thread.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -86,12 +85,12 @@ enum wxThreadWait
 #endif
 };
 
-// defines the interval of priority
+// Obsolete synonyms for wxPRIORITY_XXX for backwards compatibility-only
 enum
 {
-    WXTHREAD_MIN_PRIORITY      = 0u,
-    WXTHREAD_DEFAULT_PRIORITY  = 50u,
-    WXTHREAD_MAX_PRIORITY      = 100u
+    WXTHREAD_MIN_PRIORITY      = wxPRIORITY_MIN,
+    WXTHREAD_DEFAULT_PRIORITY  = wxPRIORITY_DEFAULT,
+    WXTHREAD_MAX_PRIORITY      = wxPRIORITY_MAX
 };
 
 // There are 2 types of mutexes: normal mutexes and recursive ones. The attempt
@@ -266,10 +265,6 @@ private:
     //
     // if CRITICAL_SECTION size changes in Windows, you'll get an assert from
     // thread.cpp and will need to increase the buffer size
-    //
-    // finally, we need this typedef instead of declaring m_buffer directly
-    // because otherwise the assert mentioned above wouldn't compile with some
-    // compilers (notably CodeWarrior 8)
 #ifdef __WIN64__
     typedef char wxCritSectBuffer[40];
 #else // __WIN32__
@@ -349,10 +344,23 @@ public:
     // the lock on the associated mutex object, before returning.
     wxCondError Wait();
 
+    // std::condition_variable-like variant that evaluates the associated condition
+    template<typename Functor>
+    wxCondError Wait(const Functor& predicate)
+    {
+        while ( !predicate() )
+        {
+            wxCondError e = Wait();
+            if ( e != wxCOND_NO_ERROR )
+                return e;
+        }
+        return wxCOND_NO_ERROR;
+    }
+
     // exactly as Wait() except that it may also return if the specified
     // timeout elapses even if the condition hasn't been signalled: in this
-    // case, the return value is false, otherwise (i.e. in case of a normal
-    // return) it is true
+    // case, the return value is wxCOND_TIMEOUT, otherwise (i.e. in case of a
+    // normal return) it is wxCOND_NO_ERROR.
     //
     // the timeout parameter specifies an interval that needs to be waited for
     // in milliseconds
@@ -562,7 +570,8 @@ public:
     wxThreadError Resume();
 
     // priority
-        // Sets the priority to "prio": see WXTHREAD_XXX_PRIORITY constants
+        // Sets the priority to "prio" which must be in 0..100 range (see
+        // also wxPRIORITY_XXX constants).
         //
         // NB: the priority can only be set before the thread is created
     void SetPriority(unsigned int prio);
@@ -605,6 +614,8 @@ protected:
     // of this thread.
     virtual void *Entry() = 0;
 
+    // use this to call the Entry() virtual method
+    void *CallEntry();
 
     // Callbacks which may be overridden by the derived class to perform some
     // specific actions when the thread is deleted or killed. By default they
@@ -844,7 +855,7 @@ public:
 
 #if wxUSE_THREADS
 
-#if defined(__WINDOWS__) || defined(__OS2__) || defined(__EMX__) || defined(__WXOSX__)
+#if defined(__WINDOWS__) || defined(__OS2__) || defined(__EMX__) || defined(__DARWIN__)
     // unlock GUI if there are threads waiting for and lock it back when
     // there are no more of them - should be called periodically by the main
     // thread
@@ -856,7 +867,7 @@ public:
     // wakes up the main thread if it's sleeping inside ::GetMessage()
     extern void WXDLLIMPEXP_BASE wxWakeUpMainThread();
 
-#ifndef __WXOSX__
+#ifndef __DARWIN__
     // return true if the main thread is waiting for some other to terminate:
     // wxApp then should block all "dangerous" messages
     extern bool WXDLLIMPEXP_BASE wxIsWaitingForThread();

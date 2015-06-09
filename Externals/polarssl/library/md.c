@@ -1,11 +1,11 @@
 /**
  * \file md.c
- * 
+ *
  * \brief Generic message digest wrapper for PolarSSL
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,7 +27,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_MD_C)
 
@@ -36,50 +40,60 @@
 
 #include <stdlib.h>
 
-#if defined _MSC_VER && !defined strcasecmp
-#define strcasecmp _stricmp
+#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
+    !defined(EFI32)
+#define strcasecmp  _stricmp
 #endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 static const int supported_digests[] = {
 
-#if defined(POLARSSL_MD2_C)
-        POLARSSL_MD_MD2,
+#if defined(POLARSSL_SHA512_C)
+        POLARSSL_MD_SHA384,
+        POLARSSL_MD_SHA512,
 #endif
 
-#if defined(POLARSSL_MD4_C)
-        POLARSSL_MD_MD4,
-#endif
-
-#if defined(POLARSSL_MD5_C)
-        POLARSSL_MD_MD5,
+#if defined(POLARSSL_SHA256_C)
+        POLARSSL_MD_SHA224,
+        POLARSSL_MD_SHA256,
 #endif
 
 #if defined(POLARSSL_SHA1_C)
         POLARSSL_MD_SHA1,
 #endif
 
-#if defined(POLARSSL_SHA2_C)
-        POLARSSL_MD_SHA224,
-        POLARSSL_MD_SHA256,
+#if defined(POLARSSL_RIPEMD160_C)
+        POLARSSL_MD_RIPEMD160,
 #endif
 
-#if defined(POLARSSL_SHA4_C)
-        POLARSSL_MD_SHA384,
-        POLARSSL_MD_SHA512,
+#if defined(POLARSSL_MD5_C)
+        POLARSSL_MD_MD5,
 #endif
 
-        0
+#if defined(POLARSSL_MD4_C)
+        POLARSSL_MD_MD4,
+#endif
+
+#if defined(POLARSSL_MD2_C)
+        POLARSSL_MD_MD2,
+#endif
+
+        POLARSSL_MD_NONE
 };
 
 const int *md_list( void )
 {
-    return supported_digests;
+    return( supported_digests );
 }
 
 const md_info_t *md_info_from_string( const char *md_name )
 {
     if( NULL == md_name )
-        return NULL;
+        return( NULL );
 
     /* Get the appropriate digest information */
 #if defined(POLARSSL_MD2_C)
@@ -94,23 +108,27 @@ const md_info_t *md_info_from_string( const char *md_name )
     if( !strcasecmp( "MD5", md_name ) )
         return md_info_from_type( POLARSSL_MD_MD5 );
 #endif
+#if defined(POLARSSL_RIPEMD160_C)
+    if( !strcasecmp( "RIPEMD160", md_name ) )
+        return md_info_from_type( POLARSSL_MD_RIPEMD160 );
+#endif
 #if defined(POLARSSL_SHA1_C)
     if( !strcasecmp( "SHA1", md_name ) || !strcasecmp( "SHA", md_name ) )
         return md_info_from_type( POLARSSL_MD_SHA1 );
 #endif
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
     if( !strcasecmp( "SHA224", md_name ) )
         return md_info_from_type( POLARSSL_MD_SHA224 );
     if( !strcasecmp( "SHA256", md_name ) )
         return md_info_from_type( POLARSSL_MD_SHA256 );
 #endif
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
     if( !strcasecmp( "SHA384", md_name ) )
         return md_info_from_type( POLARSSL_MD_SHA384 );
     if( !strcasecmp( "SHA512", md_name ) )
         return md_info_from_type( POLARSSL_MD_SHA512 );
 #endif
-    return NULL;
+    return( NULL );
 }
 
 const md_info_t *md_info_from_type( md_type_t md_type )
@@ -119,104 +137,120 @@ const md_info_t *md_info_from_type( md_type_t md_type )
     {
 #if defined(POLARSSL_MD2_C)
         case POLARSSL_MD_MD2:
-            return &md2_info;
+            return( &md2_info );
 #endif
 #if defined(POLARSSL_MD4_C)
         case POLARSSL_MD_MD4:
-            return &md4_info;
+            return( &md4_info );
 #endif
 #if defined(POLARSSL_MD5_C)
         case POLARSSL_MD_MD5:
-            return &md5_info;
+            return( &md5_info );
+#endif
+#if defined(POLARSSL_RIPEMD160_C)
+        case POLARSSL_MD_RIPEMD160:
+            return( &ripemd160_info );
 #endif
 #if defined(POLARSSL_SHA1_C)
         case POLARSSL_MD_SHA1:
-            return &sha1_info;
+            return( &sha1_info );
 #endif
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
         case POLARSSL_MD_SHA224:
-            return &sha224_info;
+            return( &sha224_info );
         case POLARSSL_MD_SHA256:
-            return &sha256_info;
+            return( &sha256_info );
 #endif
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
         case POLARSSL_MD_SHA384:
-            return &sha384_info;
+            return( &sha384_info );
         case POLARSSL_MD_SHA512:
-            return &sha512_info;
+            return( &sha512_info );
 #endif
         default:
-            return NULL;
+            return( NULL );
     }
+}
+
+void md_init( md_context_t *ctx )
+{
+    memset( ctx, 0, sizeof( md_context_t ) );
+}
+
+void md_free( md_context_t *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    if( ctx->md_ctx )
+        ctx->md_info->ctx_free_func( ctx->md_ctx );
+
+    polarssl_zeroize( ctx, sizeof( md_context_t ) );
 }
 
 int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
 {
     if( md_info == NULL || ctx == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     memset( ctx, 0, sizeof( md_context_t ) );
 
     if( ( ctx->md_ctx = md_info->ctx_alloc_func() ) == NULL )
-        return POLARSSL_ERR_MD_ALLOC_FAILED;
+        return( POLARSSL_ERR_MD_ALLOC_FAILED );
 
     ctx->md_info = md_info;
 
     md_info->starts_func( ctx->md_ctx );
 
-    return 0;
+    return( 0 );
 }
 
 int md_free_ctx( md_context_t *ctx )
 {
-    if( ctx == NULL || ctx->md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+    md_free( ctx );
 
-    ctx->md_info->ctx_free_func( ctx->md_ctx );
-    ctx->md_ctx = NULL;
-
-    return 0;
+    return( 0 );
 }
 
 int md_starts( md_context_t *ctx )
 {
     if( ctx == NULL || ctx->md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     ctx->md_info->starts_func( ctx->md_ctx );
 
-    return 0;
+    return( 0 );
 }
 
 int md_update( md_context_t *ctx, const unsigned char *input, size_t ilen )
 {
     if( ctx == NULL || ctx->md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     ctx->md_info->update_func( ctx->md_ctx, input, ilen );
 
-    return 0;
+    return( 0 );
 }
 
 int md_finish( md_context_t *ctx, unsigned char *output )
 {
     if( ctx == NULL || ctx->md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     ctx->md_info->finish_func( ctx->md_ctx, output );
 
-    return 0;
+    return( 0 );
 }
 
 int md( const md_info_t *md_info, const unsigned char *input, size_t ilen,
             unsigned char *output )
 {
-    if ( md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+    if( md_info == NULL )
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     md_info->digest_func( input, ilen, output );
 
-    return 0;
+    return( 0 );
 }
 
 int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
@@ -226,7 +260,7 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
 #endif
 
     if( md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
 #if defined(POLARSSL_FS_IO)
     ret = md_info->file_func( path, output );
@@ -238,48 +272,48 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
     ((void) path);
     ((void) output);
 
-    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
-#endif
+    return( POLARSSL_ERR_MD_FEATURE_UNAVAILABLE );
+#endif /* POLARSSL_FS_IO */
 }
 
 int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )
 {
     if( ctx == NULL || ctx->md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    ctx->md_info->hmac_starts_func( ctx->md_ctx, key, keylen);
+    ctx->md_info->hmac_starts_func( ctx->md_ctx, key, keylen );
 
-    return 0;
+    return( 0 );
 }
 
 int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen )
 {
     if( ctx == NULL || ctx->md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     ctx->md_info->hmac_update_func( ctx->md_ctx, input, ilen );
 
-    return 0;
+    return( 0 );
 }
 
-int md_hmac_finish( md_context_t *ctx, unsigned char *output)
+int md_hmac_finish( md_context_t *ctx, unsigned char *output )
 {
     if( ctx == NULL || ctx->md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    ctx->md_info->hmac_finish_func( ctx->md_ctx, output);
+    ctx->md_info->hmac_finish_func( ctx->md_ctx, output );
 
-    return 0;
+    return( 0 );
 }
 
 int md_hmac_reset( md_context_t *ctx )
 {
     if( ctx == NULL || ctx->md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    ctx->md_info->hmac_reset_func( ctx->md_ctx);
+    ctx->md_info->hmac_reset_func( ctx->md_ctx );
 
-    return 0;
+    return( 0 );
 }
 
 int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
@@ -287,11 +321,21 @@ int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
                 unsigned char *output )
 {
     if( md_info == NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     md_info->hmac_func( key, keylen, input, ilen, output );
 
-    return 0;
+    return( 0 );
 }
 
-#endif
+int md_process( md_context_t *ctx, const unsigned char *data )
+{
+    if( ctx == NULL || ctx->md_info == NULL )
+        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    ctx->md_info->process_func( ctx->md_ctx, data );
+
+    return( 0 );
+}
+
+#endif /* POLARSSL_MD_C */

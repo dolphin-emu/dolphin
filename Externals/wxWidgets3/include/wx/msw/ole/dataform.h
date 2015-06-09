@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.10.99 (extracted from msw/ole/dataobj.h)
-// RCS-ID:      $Id: dataform.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -40,14 +39,10 @@ public:
     // default copy ctor/assignment operators ok
 
     // comparison (must have both versions)
-    bool operator==(wxDataFormatId format) const
-        { return m_format == (NativeFormat)format; }
-    bool operator!=(wxDataFormatId format) const
-        { return m_format != (NativeFormat)format; }
-    bool operator==(const wxDataFormat& format) const
-        { return m_format == format.m_format; }
-    bool operator!=(const wxDataFormat& format) const
-        { return m_format != format.m_format; }
+    bool operator==(wxDataFormatId format) const;
+    bool operator!=(wxDataFormatId format) const;
+    bool operator==(const wxDataFormat& format) const;
+    bool operator!=(const wxDataFormat& format) const;
 
     // explicit and implicit conversions to NativeFormat which is one of
     // standard data types (implicit conversion is useful for preserving the

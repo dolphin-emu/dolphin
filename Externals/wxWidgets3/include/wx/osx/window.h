@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.h 70765 2012-03-01 15:04:42Z JS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,6 +54,8 @@ public:
                 long style = 0,
                 const wxString& name = wxPanelNameStr );
 
+    virtual void SendSizeEvent(int flags = 0);
+    
     // implement base class pure virtuals
     virtual void SetLabel( const wxString& label );
     virtual wxString GetLabel() const;
@@ -95,7 +96,7 @@ public:
 
     virtual int GetCharHeight() const;
     virtual int GetCharWidth() const;
-
+    
 public:
     virtual void SetScrollbar( int orient, int pos, int thumbVisible,
                                int range, bool refresh = true );
@@ -259,7 +260,10 @@ public:
     // optimization to avoid creating a user pane in wxWindow::Create if we already know
     // we will replace it with our own peer
     void                DontCreatePeer();
-    
+
+    // return true unless DontCreatePeer() had been called
+    bool                ShouldCreatePeer() const;
+
     // sets the native implementation wrapper, can replace an existing peer, use peer = NULL to 
     // release existing peer
     void                SetPeer(wxOSXWidgetImpl* peer);
@@ -273,7 +277,7 @@ public:
     //
     // this is useful for a few Cocoa function which can work with either views
     // or windows indiscriminately, e.g. for setting NSViewAnimationTargetKey
-    virtual void *OSXGetViewOrWindow() const { return GetHandle(); }
+    virtual void *OSXGetViewOrWindow() const;
 #endif // Cocoa
 
     void *              MacGetCGContextRef() { return m_cgContextRef ; }
@@ -283,10 +287,11 @@ public:
 
     virtual bool        OSXHandleClicked( double timestampsec );
     virtual bool        OSXHandleKeyEvent( wxKeyEvent& event );
+    virtual void        OSXSimulateFocusEvents();
 
     bool                IsNativeWindowWrapper() const { return m_isNativeWindowWrapper; }
     
-    float               GetContentScaleFactor() const ;
+    double              GetContentScaleFactor() const ;
     
     // internal response to size events
     virtual void MacOnInternalSize() {}

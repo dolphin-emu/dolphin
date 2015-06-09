@@ -4,7 +4,6 @@
 * Author:      John Labenski and others
 * Modified by:
 * Created:     02/02/03
-* RCS-ID:      $Id: math.h 70796 2012-03-04 00:29:31Z VZ $
 * Copyright:   (c) John Labenski
 * Licence:     wxWindows licence
 */
@@ -52,20 +51,29 @@
 #endif
 
 
-/* unknown __VISAGECC__, __SYMANTECCC__ */
+#ifdef __cplusplus
 
-#if defined(__VISUALC__) || defined(__BORLANDC__) || defined(__WATCOMC__)
+/* Any C++11 compiler should provide isfinite() */
+#if __cplusplus >= 201103
+    #include <cmath>
+    #define wxFinite(x) std::isfinite(x)
+#elif defined(__VISUALC__) || defined(__BORLANDC__) || defined(__WATCOMC__)
     #include <float.h>
     #define wxFinite(x) _finite(x)
-#elif defined(__MINGW64__)
+#elif defined(__MINGW64_TOOLCHAIN__) || defined(__clang__)
     /*
         add more compilers with C99 support here: using C99 isfinite() is
         preferable to using BSD-ish finite()
      */
-    #define wxFinite(x) isfinite(x)
+    #if defined(_GLIBCXX_CMATH) || defined(_LIBCPP_CMATH)
+        // these <cmath> headers #undef isfinite
+        #define wxFinite(x) std::isfinite(x)
+    #else
+        #define wxFinite(x) isfinite(x)
+    #endif
 #elif ( defined(__GNUG__)||defined(__GNUWIN32__)||defined(__DJGPP__)|| \
       defined(__SGI_CC__)||defined(__SUNCC__)||defined(__XLC__)|| \
-      defined(__HPUX__)||defined(__MWERKS__) ) && ( !defined(wxOSX_USE_IPHONE) || wxOSX_USE_IPHONE == 0 )
+      defined(__HPUX__) ) && ( !defined(wxOSX_USE_IPHONE) || wxOSX_USE_IPHONE == 0 )
 #ifdef __SOLARIS__
 #include <ieeefp.h>
 #endif
@@ -79,52 +87,52 @@
     #define wxIsNaN(x) _isnan(x)
 #elif defined(__GNUG__)||defined(__GNUWIN32__)||defined(__DJGPP__)|| \
       defined(__SGI_CC__)||defined(__SUNCC__)||defined(__XLC__)|| \
-      defined(__HPUX__)||defined(__MWERKS__)
+      defined(__HPUX__)
     #define wxIsNaN(x) isnan(x)
 #else
     #define wxIsNaN(x) ((x) != (x))
 #endif
 
-#ifdef __cplusplus
+#ifdef __INTELC__
 
-    #ifdef __INTELC__
-
-        inline bool wxIsSameDouble(double x, double y)
-        {
-            // VZ: this warning, given for operators==() and !=() is not wrong, as ==
-            //     shouldn't be used with doubles, but we get too many of them and
-            //     removing these operators is probably not a good idea
-            //
-            //     Maybe we should always compare doubles up to some "epsilon" precision
-            #pragma warning(push)
-
-            // floating-point equality and inequality comparisons are unreliable
-            #pragma warning(disable: 1572)
-
-            return x == y;
-
-            #pragma warning(pop)
-        }
-
-    #else /* !__INTELC__ */
-
-        inline bool wxIsSameDouble(double x, double y) { return x == y; }
-
-    #endif /* __INTELC__/!__INTELC__ */
-
-    inline bool wxIsNullDouble(double x) { return wxIsSameDouble(x, 0.); }
-
-    inline int wxRound(double x)
+    inline bool wxIsSameDouble(double x, double y)
     {
-        wxASSERT_MSG( x > INT_MIN - 0.5 && x < INT_MAX + 0.5,
-                      wxT("argument out of supported range") );
+        // VZ: this warning, given for operators==() and !=() is not wrong, as ==
+        //     shouldn't be used with doubles, but we get too many of them and
+        //     removing these operators is probably not a good idea
+        //
+        //     Maybe we should always compare doubles up to some "epsilon" precision
+        #pragma warning(push)
 
-        #if defined(HAVE_ROUND)
-            return int(round(x));
-        #else
-            return (int)(x < 0 ? x - 0.5 : x + 0.5);
-        #endif
+        // floating-point equality and inequality comparisons are unreliable
+        #pragma warning(disable: 1572)
+
+        return x == y;
+
+        #pragma warning(pop)
     }
+
+#else /* !__INTELC__ */
+    wxGCC_WARNING_SUPPRESS(float-equal)
+    inline bool wxIsSameDouble(double x, double y) { return x == y; }
+    wxGCC_WARNING_RESTORE(float-equal)
+
+#endif /* __INTELC__/!__INTELC__ */
+
+inline bool wxIsNullDouble(double x) { return wxIsSameDouble(x, 0.); }
+
+inline int wxRound(double x)
+{
+    wxASSERT_MSG( x > INT_MIN - 0.5 && x < INT_MAX + 0.5,
+                  wxT("argument out of supported range") );
+
+    #if defined(HAVE_ROUND)
+        return int(round(x));
+    #else
+        return (int)(x < 0 ? x - 0.5 : x + 0.5);
+    #endif
+}
+
 #endif /* __cplusplus */
 
 

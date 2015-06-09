@@ -3,7 +3,6 @@
 // Purpose:     declaration of wxVersionInfo class
 // Author:      Troels K
 // Created:     2010-11-22
-// RCS-ID:      $Id: versioninfo.h 66474 2010-12-27 20:47:12Z RD $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

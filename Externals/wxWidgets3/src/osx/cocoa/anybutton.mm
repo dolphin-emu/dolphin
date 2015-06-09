@@ -3,7 +3,6 @@
 // Purpose:     wxAnyButton
 // Author:      Stefan Csomor
 // Created:     1998-01-01 (extracted from button.mm)
-// RCS-ID:      $Id: anybutton.mm 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

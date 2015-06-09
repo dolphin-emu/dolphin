@@ -1,7 +1,7 @@
 /*
  *  Platform-specific and custom entropy polling functions
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ENTROPY_C)
 
@@ -38,7 +42,7 @@
 #endif
 
 #if !defined(POLARSSL_NO_PLATFORM_ENTROPY)
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
 #if !defined(_WIN32_WINNT)
 #define _WIN32_WINNT 0x0400
@@ -56,18 +60,18 @@ int platform_entropy_poll( void *data, unsigned char *output, size_t len,
     if( CryptAcquireContext( &provider, NULL, NULL,
                               PROV_RSA_FULL, CRYPT_VERIFYCONTEXT ) == FALSE )
     {
-        return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
     }
 
-    if( CryptGenRandom( provider, len, output ) == FALSE )
-        return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
+    if( CryptGenRandom( provider, (DWORD) len, output ) == FALSE )
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
 
     CryptReleaseContext( provider, 0 );
     *olen = len;
 
     return( 0 );
 }
-#else
+#else /* _WIN32 && !EFIX64 && !EFI32 */
 
 #include <stdio.h>
 
@@ -82,13 +86,13 @@ int platform_entropy_poll( void *data,
 
     file = fopen( "/dev/urandom", "rb" );
     if( file == NULL )
-        return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
-    
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+
     ret = fread( output, 1, len, file );
     if( ret != len )
     {
         fclose( file );
-        return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
     }
 
     fclose( file );
@@ -96,8 +100,8 @@ int platform_entropy_poll( void *data,
 
     return( 0 );
 }
-#endif
-#endif
+#endif /* _WIN32 && !EFIX64 && !EFI32 */
+#endif /* !POLARSSL_NO_PLATFORM_ENTROPY */
 
 #if defined(POLARSSL_TIMING_C)
 int hardclock_poll( void *data,
@@ -115,7 +119,7 @@ int hardclock_poll( void *data,
 
     return( 0 );
 }
-#endif
+#endif /* POLARSSL_TIMING_C */
 
 #if defined(POLARSSL_HAVEGE_C)
 int havege_poll( void *data,
@@ -125,12 +129,12 @@ int havege_poll( void *data,
     *olen = 0;
 
     if( havege_random( hs, output, len ) != 0 )
-        return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
 
     *olen = len;
 
     return( 0 );
 }
-#endif
+#endif /* POLARSSL_HAVEGE_C */
 
 #endif /* POLARSSL_ENTROPY_C */

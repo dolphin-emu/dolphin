@@ -2,7 +2,6 @@
 // Name:        src/gtk/font.cpp
 // Purpose:     wxFont for wxGTK
 // Author:      Robert Roebling
-// Id:          $Id: font.cpp 70476 2012-01-29 08:14:34Z PC $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -92,9 +91,8 @@ protected:
     void InitFromNative();
 
 private:
-    bool            m_underlined;
-    bool            m_strikethrough;
-    // The native font info: basically a PangoFontDescription
+    // The native font info: basically a PangoFontDescription, plus
+    // 'underlined' and 'strikethrough' attributes not supported by Pango.
     wxNativeFontInfo m_nativeFontInfo;
 
     friend class wxFont;
@@ -118,9 +116,6 @@ void wxFontRefData::Init(int pointSize,
     if (family == wxFONTFAMILY_DEFAULT)
         family = wxFONTFAMILY_SWISS;
 
-    m_underlined = underlined;
-    m_strikethrough = strikethrough;
-
     // Create native font info
     m_nativeFontInfo.description = pango_font_description_new();
 
@@ -140,6 +135,8 @@ void wxFontRefData::Init(int pointSize,
                     ? wxDEFAULT_FONT_SIZE
                     : pointSize );
     SetWeight( weight == wxDEFAULT ? wxFONTWEIGHT_NORMAL : weight );
+    SetUnderlined( underlined );
+    SetStrikethrough( strikethrough );
 }
 
 void wxFontRefData::InitFromNative()
@@ -151,18 +148,11 @@ void wxFontRefData::InitFromNative()
     int pango_size = pango_font_description_get_size( desc );
     if (pango_size == 0)
         m_nativeFontInfo.SetPointSize(wxDEFAULT_FONT_SIZE);
-
-    // Pango description are never underlined
-    m_underlined = false;
-    m_strikethrough = false;
 }
 
 wxFontRefData::wxFontRefData( const wxFontRefData& data )
              : wxGDIRefData()
 {
-    m_underlined = data.m_underlined;
-    m_strikethrough = data.m_strikethrough;
-
     // Forces a copy of the internal data.  wxNativeFontInfo should probably
     // have a copy ctor and assignment operator to fix this properly but that
     // would break binary compatibility...
@@ -243,17 +233,12 @@ void wxFontRefData::SetWeight(wxFontWeight weight)
 
 void wxFontRefData::SetUnderlined(bool underlined)
 {
-    m_underlined = underlined;
-
-    // the Pango font descriptor does not have an underlined attribute
-    // (and wxNativeFontInfo::SetUnderlined asserts); rather it's
-    // wxWindowDCImpl::DoDrawText that handles underlined fonts, so we
-    // here we just need to save the underlined attribute
+    m_nativeFontInfo.SetUnderlined(underlined);
 }
 
 void wxFontRefData::SetStrikethrough(bool strikethrough)
 {
-    m_strikethrough = strikethrough;
+    m_nativeFontInfo.SetStrikethrough(strikethrough);
 }
 
 bool wxFontRefData::SetFaceName(const wxString& facename)
@@ -287,19 +272,25 @@ wxFont::wxFont(const wxNativeFontInfo& info)
             info.GetUnderlined(),
             info.GetFaceName(),
             info.GetEncoding() );
+
+    if ( info.GetStrikethrough() )
+        SetStrikethrough(true);
 }
 
-wxFont::wxFont(int pointSize,
-               wxFontFamily family,
-               int flags,
-               const wxString& face,
-               wxFontEncoding encoding)
+wxFont::wxFont(const wxFontInfo& info)
 {
-    m_refData = new wxFontRefData(pointSize, family,
-                                  GetStyleFromFlags(flags),
-                                  GetWeightFromFlags(flags),
-                                  GetUnderlinedFromFlags(flags),
-                                  false, face, encoding);
+    m_refData = new wxFontRefData(info.GetPointSize(),
+                                  info.GetFamily(),
+                                  info.GetStyle(),
+                                  info.GetWeight(),
+                                  info.IsUnderlined(),
+                                  info.IsStrikethrough(),
+                                  info.GetFaceName(),
+                                  info.GetEncoding());
+
+    wxSize pixelSize = info.GetPixelSize();
+    if ( pixelSize != wxDefaultSize )
+        SetPixelSize(pixelSize);
 }
 
 bool wxFont::Create( int pointSize,
@@ -378,14 +369,14 @@ bool wxFont::GetUnderlined() const
 {
     wxCHECK_MSG( IsOk(), false, wxT("invalid font") );
 
-    return M_FONTDATA->m_underlined;
+    return M_FONTDATA->m_nativeFontInfo.GetUnderlined();
 }
 
 bool wxFont::GetStrikethrough() const
 {
     wxCHECK_MSG( IsOk(), false, wxT("invalid font") );
 
-    return M_FONTDATA->m_strikethrough;
+    return M_FONTDATA->m_nativeFontInfo.GetStrikethrough();
 }
 
 wxFontEncoding wxFont::GetEncoding() const
@@ -496,6 +487,7 @@ bool wxFont::GTKSetPangoAttrs(PangoLayout* layout) const
     PangoAttrList* attrs = pango_attr_list_new();
     PangoAttribute* a;
 
+#ifndef __WXGTK3__
     if (wx_pango_version_check(1,16,0))
     {
         // a PangoLayout which has leading/trailing spaces with underlined font
@@ -534,6 +526,8 @@ bool wxFont::GTKSetPangoAttrs(PangoLayout* layout) const
             pango_attr_list_insert(attrs, a);
         }
     }
+#endif // !__WXGTK3__
+
     if (GetUnderlined())
     {
         a = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);

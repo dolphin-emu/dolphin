@@ -2,13 +2,16 @@
 // Name:        wx/gtk/colour.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: colour.h 50897 2007-12-22 15:03:58Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GTK_COLOUR_H_
 #define _WX_GTK_COLOUR_H_
+
+#ifdef __WXGTK3__
+typedef struct _GdkRGBA GdkRGBA;
+#endif
 
 //-----------------------------------------------------------------------------
 // wxColour
@@ -21,6 +24,9 @@ public:
     // ------------
     DEFINE_STD_WXCOLOUR_CONSTRUCTORS
     wxColour(const GdkColor& gdkColor);
+#ifdef __WXGTK3__
+    wxColour(const GdkRGBA& gdkRGBA);
+#endif
 
     virtual ~wxColour();
 
@@ -33,8 +39,12 @@ public:
     unsigned char Alpha() const;
 
     // Implementation part
+#ifdef __WXGTK3__
+    operator const GdkRGBA*() const;
+#else
     void CalcPixel( GdkColormap *cmap );
     int GetPixel() const;
+#endif
     const GdkColor *GetColor() const;
 
 protected:
@@ -43,7 +53,6 @@ protected:
 
     virtual bool FromString(const wxString& str);
 
-private:
     DECLARE_DYNAMIC_CLASS(wxColour)
 };
 

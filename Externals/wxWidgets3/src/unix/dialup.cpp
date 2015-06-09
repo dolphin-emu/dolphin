@@ -4,7 +4,6 @@
 // Author:      Karsten Ballüder
 // Modified by:
 // Created:     03.10.99
-// RCS-ID:      $Id: dialup.cpp 69910 2011-12-02 12:04:42Z VZ $
 // Copyright:   (c) Karsten Ballüder
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,7 +35,6 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
-#define __STRICT_ANSI__
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>

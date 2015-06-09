@@ -1,56 +1,67 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Src\aldlist.cpp" />
-    <ClCompile Include="Src\AudioCommon.cpp" />
-    <ClCompile Include="Src\Mixer.cpp" />
-    <ClCompile Include="Src\WaveFile.cpp" />
-    <ClCompile Include="Src\AOSoundStream.cpp">
-      <Filter>SoundStreams</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSoundStream.cpp">
-      <Filter>SoundStreams</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\OpenALStream.cpp">
-      <Filter>SoundStreams</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\XAudio2Stream.cpp">
-      <Filter>SoundStreams</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\NullSoundStream.cpp">
-      <Filter>SoundStreams</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DPL2Decoder.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Src\aldlist.h" />
-    <ClInclude Include="Src\AudioCommon.h" />
-    <ClInclude Include="Src\Mixer.h" />
-    <ClInclude Include="Src\SoundStream.h" />
-    <ClInclude Include="Src\WaveFile.h" />
-    <ClInclude Include="Src\AOSoundStream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSoundStream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\NullSoundStream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\OpenALStream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\XAudio2Stream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DPL2Decoder.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="SoundStreams">
-      <UniqueIdentifier>{efb9f5b5-ab0c-455d-b78b-26df725386af}</UniqueIdentifier>
+      <UniqueIdentifier>{25ec8f16-fc60-4a63-bc3e-ad0272fd5942}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="aldlist.cpp" />
+    <ClCompile Include="AudioCommon.cpp" />
+    <ClCompile Include="DPL2Decoder.cpp" />
+    <ClCompile Include="Mixer.cpp" />
+    <ClCompile Include="WaveFile.cpp" />
+    <ClCompile Include="NullSoundStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenALStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="XAudio2Stream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="XAudio2_7Stream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="aldlist.h" />
+    <ClInclude Include="AudioCommon.h" />
+    <ClInclude Include="DPL2Decoder.h" />
+    <ClInclude Include="Mixer.h" />
+    <ClInclude Include="WaveFile.h" />
+    <ClInclude Include="AOSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="NullSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenALStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="XAudio2Stream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="XAudio2_7Stream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="PulseAudioStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenSLESStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreAudioSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="AlsaSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
 </Project>

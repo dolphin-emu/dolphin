@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utils.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -54,7 +53,7 @@ class WXDLLIMPEXP_FWD_BASE wxArrayInt;
 class WXDLLIMPEXP_FWD_BASE wxProcess;
 class WXDLLIMPEXP_FWD_CORE wxFrame;
 class WXDLLIMPEXP_FWD_CORE wxWindow;
-class WXDLLIMPEXP_FWD_CORE wxWindowList;
+class wxWindowList;
 class WXDLLIMPEXP_FWD_CORE wxEventLoop;
 
 // ----------------------------------------------------------------------------
@@ -130,12 +129,7 @@ wxDEPRECATED_INLINE(inline bool wxStringEq(const wchar_t *s1, const wchar_t *s2)
 // ----------------------------------------------------------------------------
 
 // Sound the bell
-#if !defined __EMX__ && \
-    (defined __WXMOTIF__ || defined __WXGTK__ || defined __WXX11__)
 WXDLLIMPEXP_CORE void wxBell();
-#else
-WXDLLIMPEXP_BASE void wxBell();
-#endif
 
 #if wxUSE_MSGDLG
 // Show wxWidgets information
@@ -278,13 +272,13 @@ inline bool wxPlatformIs(int platform) { return wxPlatform::Is(platform); }
 // ----------------------------------------------------------------------------
 
 // Ensure subsequent IDs don't clash with this one
-WXDLLIMPEXP_BASE void wxRegisterId(long id);
+WXDLLIMPEXP_BASE void wxRegisterId(int id);
 
 // Return the current ID
-WXDLLIMPEXP_BASE long wxGetCurrentId();
+WXDLLIMPEXP_BASE int wxGetCurrentId();
 
 // Generate a unique ID
-WXDLLIMPEXP_BASE long wxNewId();
+WXDLLIMPEXP_BASE int wxNewId();
 
 // ----------------------------------------------------------------------------
 // Various conversions
@@ -823,6 +817,10 @@ WXDLLIMPEXP_CORE bool wxYieldIfNeeded();
     // Return the pointer to the resource data. This pointer is read-only, use
     // the overload below if you need to modify the data.
     //
+    // Notice that the resource type can be either a real string or an integer
+    // produced by MAKEINTRESOURCE(). In particular, any standard resource type,
+    // i.e any RT_XXX constant, could be passed here.
+    //
     // Returns true on success, false on failure. Doesn't log an error message
     // if the resource is not found (because this could be expected) but does
     // log one if any other error occurs.
@@ -830,7 +828,7 @@ WXDLLIMPEXP_CORE bool wxYieldIfNeeded();
     wxLoadUserResource(const void **outData,
                        size_t *outLen,
                        const wxString& resourceName,
-                       const wxString& resourceType = wxUserResourceStr,
+                       const wxChar* resourceType = wxUserResourceStr,
                        WXHINSTANCE module = 0);
 
     // This function allocates a new buffer and makes a copy of the resource
@@ -840,7 +838,7 @@ WXDLLIMPEXP_CORE bool wxYieldIfNeeded();
     // Returns NULL on failure.
     WXDLLIMPEXP_BASE char*
     wxLoadUserResource(const wxString& resourceName,
-                       const wxString& resourceType = wxUserResourceStr,
+                       const wxChar* resourceType = wxUserResourceStr,
                        int* pLen = NULL,
                        WXHINSTANCE module = 0);
 #endif // __WINDOWS__

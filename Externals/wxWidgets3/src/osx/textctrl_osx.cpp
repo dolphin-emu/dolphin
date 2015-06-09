@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl_osx.cpp 70355 2012-01-15 15:54:53Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -285,7 +284,7 @@ void wxTextCtrl::Copy()
 {
     if (CanCopy())
     {
-        wxClipboardTextEvent evt(wxEVT_COMMAND_TEXT_COPY, GetId());
+        wxClipboardTextEvent evt(wxEVT_TEXT_COPY, GetId());
         evt.SetEventObject(this);
         if (!GetEventHandler()->ProcessEvent(evt))
         {
@@ -298,7 +297,7 @@ void wxTextCtrl::Cut()
 {
     if (CanCut())
     {
-        wxClipboardTextEvent evt(wxEVT_COMMAND_TEXT_CUT, GetId());
+        wxClipboardTextEvent evt(wxEVT_TEXT_CUT, GetId());
         evt.SetEventObject(this);
         if (!GetEventHandler()->ProcessEvent(evt))
         {
@@ -313,7 +312,7 @@ void wxTextCtrl::Paste()
 {
     if (CanPaste())
     {
-        wxClipboardTextEvent evt(wxEVT_COMMAND_TEXT_PASTE, GetId());
+        wxClipboardTextEvent evt(wxEVT_TEXT_PASTE, GetId());
         evt.SetEventObject(this);
         if (!GetEventHandler()->ProcessEvent(evt))
         {
@@ -401,7 +400,7 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
         case WXK_RETURN:
             if (m_windowStyle & wxTE_PROCESS_ENTER)
             {
-                wxCommandEvent event(wxEVT_COMMAND_TEXT_ENTER, m_windowId);
+                wxCommandEvent event(wxEVT_TEXT_ENTER, m_windowId);
                 event.SetEventObject( this );
                 event.SetString( GetValue() );
                 if ( HandleWindowEvent(event) )
@@ -416,7 +415,7 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
                     wxButton *def = wxDynamicCast(tlw->GetDefaultItem(), wxButton);
                     if ( def && def->IsEnabled() )
                     {
-                        wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, def->GetId() );
+                        wxCommandEvent event(wxEVT_BUTTON, def->GetId() );
                         event.SetEventObject(def);
                         def->Command(event);
 
@@ -469,7 +468,7 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
          key == WXK_DELETE ||
          key == WXK_BACK)
     {
-        wxCommandEvent event1(wxEVT_COMMAND_TEXT_UPDATED, m_windowId);
+        wxCommandEvent event1(wxEVT_TEXT, m_windowId);
         event1.SetEventObject( this );
         wxPostEvent( GetEventHandler(), event1 );
     }
@@ -598,21 +597,6 @@ bool wxTextCtrl::MacSetupCursor( const wxPoint& pt )
         return wxWindow::MacSetupCursor( pt ) ;
     else
         return true ;
-}
-
-bool wxTextCtrl::SetHint(const wxString& hint)
-{
-    m_hintString = hint;
-    
-    if ( GetTextPeer() && GetTextPeer()->SetHint(hint) )
-        return true;
-    
-    return false;
-}
-
-wxString wxTextCtrl::GetHint() const
-{
-    return m_hintString;
 }
 
 // ----------------------------------------------------------------------------

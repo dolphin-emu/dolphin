@@ -5,7 +5,6 @@
 *  Author:      Vadim Zeitlin
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     18.03.02
-*  RCS-ID:      $Id: features.h 69961 2011-12-08 15:58:45Z VZ $
 *  Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 *  Licence:     wxWindows licence
 */
@@ -117,7 +116,8 @@
  */
 #if wxCHECK_GCC_VERSION(3, 2) || wxCHECK_VISUALC_VERSION(7) \
         || (defined(__SUNCC__) && __SUNCC__ >= 0x5100) \
-        || (defined(__xlC__) && __xlC__ >= 0x700)
+        || (defined(__xlC__) && __xlC__ >= 0x700) \
+        || defined(__INTELC__)
     #define wxHAS_EVENT_BIND
 #endif
 

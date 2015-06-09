@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by: Marcin Malich
 // Created:     11.11.97
-// RCS-ID:      $Id: ownerdrw.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

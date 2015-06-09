@@ -1,7 +1,7 @@
 /*
  *  RFC 1115/1319 compliant MD2 implementation
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -29,7 +29,11 @@
  *  http://www.ietf.org/rfc/rfc1319.txt
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_MD2_C)
 
@@ -38,6 +42,17 @@
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
 #endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
+#endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 #if !defined(POLARSSL_MD2_ALT)
 
@@ -71,6 +86,19 @@ static const unsigned char PI_SUBST[256] =
     0x8D, 0x33, 0x9F, 0x11, 0x83, 0x14
 };
 
+void md2_init( md2_context *ctx )
+{
+    memset( ctx, 0, sizeof( md2_context ) );
+}
+
+void md2_free( md2_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( md2_context ) );
+}
+
 /*
  * MD2 context setup
  */
@@ -82,7 +110,7 @@ void md2_starts( md2_context *ctx )
     ctx->left = 0;
 }
 
-static void md2_process( md2_context *ctx )
+void md2_process( md2_context *ctx )
 {
     int i, j;
     unsigned char t = 0;
@@ -174,11 +202,11 @@ void md2( const unsigned char *input, size_t ilen, unsigned char output[16] )
 {
     md2_context ctx;
 
+    md2_init( &ctx );
     md2_starts( &ctx );
     md2_update( &ctx, input, ilen );
     md2_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( md2_context ) );
+    md2_free( &ctx );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -195,14 +223,14 @@ int md2_file( const char *path, unsigned char output[16] )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( POLARSSL_ERR_MD2_FILE_IO_ERROR );
 
+    md2_init( &ctx );
     md2_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         md2_update( &ctx, buf, n );
 
     md2_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( md2_context ) );
+    md2_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
@@ -218,7 +246,8 @@ int md2_file( const char *path, unsigned char output[16] )
 /*
  * MD2 HMAC context setup
  */
-void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen )
+void md2_hmac_starts( md2_context *ctx, const unsigned char *key,
+                      size_t keylen )
 {
     size_t i;
     unsigned char sum[16];
@@ -242,13 +271,14 @@ void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen 
     md2_starts( ctx );
     md2_update( ctx, ctx->ipad, 16 );
 
-    memset( sum, 0, sizeof( sum ) );
+    polarssl_zeroize( sum, sizeof( sum ) );
 }
 
 /*
  * MD2 HMAC process buffer
  */
-void md2_hmac_update( md2_context *ctx, const unsigned char *input, size_t ilen )
+void md2_hmac_update( md2_context *ctx, const unsigned char *input,
+                      size_t ilen )
 {
     md2_update( ctx, input, ilen );
 }
@@ -266,7 +296,7 @@ void md2_hmac_finish( md2_context *ctx, unsigned char output[16] )
     md2_update( ctx, tmpbuf, 16 );
     md2_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    polarssl_zeroize( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*
@@ -287,11 +317,11 @@ void md2_hmac( const unsigned char *key, size_t keylen,
 {
     md2_context ctx;
 
+    md2_init( &ctx );
     md2_hmac_starts( &ctx, key, keylen );
     md2_hmac_update( &ctx, input, ilen );
     md2_hmac_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( md2_context ) );
+    md2_free( &ctx );
 }
 
 #if defined(POLARSSL_SELF_TEST)
@@ -340,7 +370,7 @@ int md2_self_test( int verbose )
     for( i = 0; i < 7; i++ )
     {
         if( verbose != 0 )
-            printf( "  MD2 test #%d: ", i + 1 );
+            polarssl_printf( "  MD2 test #%d: ", i + 1 );
 
         md2( (unsigned char *) md2_test_str[i],
              strlen( md2_test_str[i] ), md2sum );
@@ -348,21 +378,21 @@ int md2_self_test( int verbose )
         if( memcmp( md2sum, md2_test_sum[i], 16 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_MD2_C */

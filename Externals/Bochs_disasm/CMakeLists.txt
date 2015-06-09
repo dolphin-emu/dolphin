@@ -1,11 +1,10 @@
-set(SRCS	dis_decode.cpp
-			dis_groups.cpp
-			resolve.cpp
-			syntax.cpp
-			PowerPCDisasm.cpp)
+set(SRCS dis_decode.cc
+         dis_groups.cc
+         resolve.cc
+         syntax.cc)
 
 if(WIN32)
-	set(SRCS ${SRCS} stdafx.cpp)
+    set(SRCS ${SRCS} stdafx.cpp)
 endif(WIN32)
 
 add_library(bdisasm STATIC ${SRCS})

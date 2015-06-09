@@ -1,25 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="DebugFast|Win32">
-      <Configuration>DebugFast</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugFast|x64">
-      <Configuration>DebugFast</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -27,210 +11,68 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{37D007BD-D66C-4EAF-B56C-BD1AAC340A05}</ProjectGuid>
-    <RootNamespace>AudioCommon</RootNamespace>
+    <ProjectGuid>{54AA7840-5BEB-4A0C-9452-74BA4CC7FD44}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Release.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Release.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>SoundTouchD.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;..\..\..\Externals\SoundTouch\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>SoundTouchD.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;..\..\..\Externals\SoundTouch\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>SoundTouch.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;..\..\..\Externals\SoundTouch\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>SoundTouch.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;..\..\..\Externals\SoundTouch\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>SoundTouch.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;..\..\..\Externals\SoundTouch\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>SoundTouch.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;..\..\..\Externals\SoundTouch\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Src\aldlist.cpp" />
-    <ClCompile Include="Src\AOSoundStream.cpp" />
-    <ClCompile Include="Src\AudioCommon.cpp" />
-    <ClCompile Include="Src\DPL2Decoder.cpp" />
-    <ClCompile Include="Src\DSoundStream.cpp" />
-    <ClCompile Include="Src\Mixer.cpp" />
-    <ClCompile Include="Src\NullSoundStream.cpp" />
-    <ClCompile Include="Src\OpenALStream.cpp" />
-    <ClCompile Include="Src\WaveFile.cpp" />
-    <ClCompile Include="Src\XAudio2Stream.cpp" />
+    <ClCompile Include="aldlist.cpp" />
+    <ClCompile Include="AudioCommon.cpp" />
+    <ClCompile Include="DPL2Decoder.cpp" />
+    <ClCompile Include="Mixer.cpp" />
+    <ClCompile Include="NullSoundStream.cpp" />
+    <ClCompile Include="OpenALStream.cpp" />
+    <ClCompile Include="WaveFile.cpp" />
+    <ClCompile Include="XAudio2Stream.cpp" />
+    <ClCompile Include="XAudio2_7Stream.cpp">
+      <AdditionalIncludeDirectories>$(ExternalsDir)XAudio2_7;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\aldlist.h" />
-    <ClInclude Include="Src\AOSoundStream.h" />
-    <ClInclude Include="Src\AudioCommon.h" />
-    <ClInclude Include="Src\DPL2Decoder.h" />
-    <ClInclude Include="Src\DSoundStream.h" />
-    <ClInclude Include="Src\Mixer.h" />
-    <ClInclude Include="Src\NullSoundStream.h" />
-    <ClInclude Include="Src\OpenALStream.h" />
-    <ClInclude Include="Src\SoundStream.h" />
-    <ClInclude Include="Src\WaveFile.h" />
-    <ClInclude Include="Src\XAudio2Stream.h" />
+    <ClInclude Include="aldlist.h" />
+    <ClInclude Include="AlsaSoundStream.h" />
+    <ClInclude Include="AOSoundStream.h" />
+    <ClInclude Include="AudioCommon.h" />
+    <ClInclude Include="CoreAudioSoundStream.h" />
+    <ClInclude Include="DPL2Decoder.h" />
+    <ClInclude Include="Mixer.h" />
+    <ClInclude Include="NullSoundStream.h" />
+    <ClInclude Include="OpenALStream.h" />
+    <ClInclude Include="OpenSLESStream.h" />
+    <ClInclude Include="PulseAudioStream.h" />
+    <ClInclude Include="SoundStream.h" />
+    <ClInclude Include="WaveFile.h" />
+    <ClInclude Include="XAudio2Stream.h" />
+    <ClInclude Include="XAudio2_7Stream.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CMakeLists.txt" />
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Externals\SoundTouch\SoundTouch.vcxproj">
-      <Project>{68a5dd20-7057-448b-8fe0-b6ac8d205509}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    <ProjectReference Include="$(ExternalsDir)soundtouch\SoundTouch.vcxproj">
+      <Project>{ec082900-b4d8-42e9-9663-77f02f6936ae}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Common\Common.vcxproj">
-      <Project>{c87a4178-44f6-49b2-b7aa-c79af1b8c534}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
+      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

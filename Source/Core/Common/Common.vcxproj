@@ -1,25 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="DebugFast|Win32">
-      <Configuration>DebugFast</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugFast|x64">
-      <Configuration>DebugFast</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -27,250 +11,140 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{C87A4178-44F6-49B2-B7AA-C79AF1B8C534}</ProjectGuid>
-    <RootNamespace>Common</RootNamespace>
+    <ProjectGuid>{2E6C348C-C75C-4D94-8D1E-9C1FCBF3EFE4}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Release.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Release.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile />
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib />
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile />
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib />
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile />
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib />
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
-    <ClCompile />
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib />
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile />
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib />
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
-    <ClCompile />
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib />
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Src\BreakPoints.cpp" />
-    <ClCompile Include="Src\CDUtils.cpp" />
-    <ClCompile Include="Src\ColorUtil.cpp" />
-    <ClCompile Include="Src\ConsoleListener.cpp" />
-    <ClCompile Include="Src\Crypto\aes_cbc.cpp" />
-    <ClCompile Include="Src\Crypto\aes_core.cpp" />
-    <ClCompile Include="Src\Crypto\bn.cpp" />
-    <ClCompile Include="Src\Crypto\ec.cpp" />
-    <ClCompile Include="Src\ExtendedTrace.cpp" />
-    <ClCompile Include="Src\FileSearch.cpp" />
-    <ClCompile Include="Src\FileUtil.cpp" />
-    <ClCompile Include="Src\Hash.cpp" />
-    <ClCompile Include="Src\IniFile.cpp" />
-    <ClCompile Include="Src\LogManager.cpp" />
-    <ClCompile Include="Src\MathUtil.cpp" />
-    <ClCompile Include="Src\MemArena.cpp" />
-    <ClCompile Include="Src\MemoryUtil.cpp" />
-    <ClCompile Include="Src\Misc.cpp" />
-    <ClCompile Include="Src\MsgHandler.cpp" />
-    <ClCompile Include="Src\NandPaths.cpp" />
-    <ClCompile Include="Src\SDCardUtil.cpp" />
-    <ClCompile Include="Src\SettingsHandler.cpp" />
-    <ClCompile Include="Src\stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Src\StringUtil.cpp" />
-    <ClCompile Include="Src\SymbolDB.cpp" />
-    <ClCompile Include="Src\SysConf.cpp" />
-    <ClCompile Include="Src\Thread.cpp" />
-    <ClCompile Include="Src\Timer.cpp" />
-    <ClCompile Include="Src\Version.cpp" />
-    <ClCompile Include="Src\x64ABI.cpp" />
-    <ClCompile Include="Src\x64Analyzer.cpp" />
-    <ClCompile Include="Src\x64CPUDetect.cpp" />
-    <ClCompile Include="Src\x64Emitter.cpp" />
-    <ClCompile Include="Src\x64FPURoundMode.cpp" />
-    <ClCompile Include="Src\x64Thunk.cpp" />
+    <ClInclude Include="Atomic.h" />
+    <ClInclude Include="Atomic_GCC.h" />
+    <ClInclude Include="Atomic_Win32.h" />
+    <ClInclude Include="BitField.h" />
+    <ClInclude Include="BitSet.h" />
+    <ClInclude Include="BlockingLoop.h" />
+    <ClInclude Include="BreakPoints.h" />
+    <ClInclude Include="CDUtils.h" />
+    <ClInclude Include="ChunkFile.h" />
+    <ClInclude Include="CodeBlock.h" />
+    <ClInclude Include="ColorUtil.h" />
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="CommonFuncs.h" />
+    <ClInclude Include="CommonPaths.h" />
+    <ClInclude Include="CommonTypes.h" />
+    <ClInclude Include="CPUDetect.h" />
+    <ClInclude Include="DebugInterface.h" />
+    <ClInclude Include="ENetUtil.h" />
+    <ClInclude Include="Event.h" />
+    <ClInclude Include="FifoQueue.h" />
+    <ClInclude Include="FileSearch.h" />
+    <ClInclude Include="FileUtil.h" />
+    <ClInclude Include="FixedSizeQueue.h" />
+    <ClInclude Include="Flag.h" />
+    <ClInclude Include="FPURoundMode.h" />
+    <ClInclude Include="GekkoDisassembler.h" />
+    <ClInclude Include="Hash.h" />
+    <ClInclude Include="IniFile.h" />
+    <ClInclude Include="JitRegister.h" />
+    <ClInclude Include="LinearDiskCache.h" />
+    <ClInclude Include="MathUtil.h" />
+    <ClInclude Include="MemArena.h" />
+    <ClInclude Include="MemoryUtil.h" />
+    <ClInclude Include="MsgHandler.h" />
+    <ClInclude Include="NandPaths.h" />
+    <ClInclude Include="Network.h" />
+    <ClInclude Include="PcapFile.h" />
+    <ClInclude Include="Profiler.h" />
+    <ClInclude Include="SDCardUtil.h" />
+    <ClInclude Include="SettingsHandler.h" />
+    <ClInclude Include="StdMakeUnique.h" />
+    <ClInclude Include="StringUtil.h" />
+    <ClInclude Include="SymbolDB.h" />
+    <ClInclude Include="SysConf.h" />
+    <ClInclude Include="Thread.h" />
+    <ClInclude Include="Timer.h" />
+    <ClInclude Include="TraversalClient.h" />
+    <ClInclude Include="TraversalProto.h" />
+    <ClInclude Include="x64ABI.h" />
+    <ClInclude Include="x64Analyzer.h" />
+    <ClInclude Include="x64Emitter.h" />
+    <ClInclude Include="Crypto\bn.h" />
+    <ClInclude Include="Crypto\ec.h" />
+    <ClInclude Include="Logging\ConsoleListener.h" />
+    <ClInclude Include="Logging\Log.h" />
+    <ClInclude Include="Logging\LogManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\Atomic.h" />
-    <ClInclude Include="Src\Atomic_GCC.h" />
-    <ClInclude Include="Src\Atomic_Win32.h" />
-    <ClInclude Include="Src\BreakPoints.h" />
-    <ClInclude Include="Src\CDUtils.h" />
-    <ClInclude Include="Src\ChunkFile.h" />
-    <ClInclude Include="Src\ColorUtil.h" />
-    <ClInclude Include="Src\Common.h" />
-    <ClInclude Include="Src\CommonFuncs.h" />
-    <ClInclude Include="Src\CommonPaths.h" />
-    <ClInclude Include="Src\CommonTypes.h" />
-    <ClInclude Include="Src\ConsoleListener.h" />
-    <ClInclude Include="Src\CPUDetect.h" />
-    <ClInclude Include="Src\Crypto\aes.h" />
-    <ClInclude Include="Src\Crypto\aes_locl.h" />
-    <ClInclude Include="Src\Crypto\tools.h" />
-    <ClInclude Include="Src\DebugInterface.h" />
-    <ClInclude Include="Src\ExtendedTrace.h" />
-    <ClInclude Include="Src\FifoQueue.h" />
-    <ClInclude Include="Src\FileSearch.h" />
-    <ClInclude Include="Src\FileUtil.h" />
-    <ClInclude Include="Src\FixedSizeQueue.h" />
-    <ClInclude Include="Src\Hash.h" />
-    <ClInclude Include="Src\IniFile.h" />
-    <ClInclude Include="Src\LinearDiskCache.h" />
-    <ClInclude Include="Src\Log.h" />
-    <ClInclude Include="Src\LogManager.h" />
-    <ClInclude Include="Src\MathUtil.h" />
-    <ClInclude Include="Src\MemArena.h" />
-    <ClInclude Include="Src\MemoryUtil.h" />
-    <ClInclude Include="Src\MsgHandler.h" />
-    <ClInclude Include="Src\NandPaths.h" />
-    <ClInclude Include="Src\SDCardUtil.h" />
-    <ClInclude Include="Src\SettingsHandler.h" />
-    <ClInclude Include="Src\Setup.h" />
-    <ClInclude Include="Src\stdafx.h" />
-    <ClInclude Include="Src\StdConditionVariable.h" />
-    <ClInclude Include="Src\StdMutex.h" />
-    <ClInclude Include="Src\StdThread.h" />
-    <ClInclude Include="Src\StringUtil.h" />
-    <ClInclude Include="Src\SymbolDB.h" />
-    <ClInclude Include="Src\SysConf.h" />
-    <ClInclude Include="Src\Thread.h" />
-    <ClInclude Include="Src\Thunk.h" />
-    <ClInclude Include="Src\Timer.h" />
-    <ClInclude Include="Src\x64ABI.h" />
-    <ClInclude Include="Src\x64Analyzer.h" />
-    <ClInclude Include="Src\x64Emitter.h" />
+    <ClCompile Include="BreakPoints.cpp" />
+    <ClCompile Include="CDUtils.cpp" />
+    <ClCompile Include="ColorUtil.cpp" />
+    <ClCompile Include="ENetUtil.cpp" />
+    <ClCompile Include="FileSearch.cpp" />
+    <ClCompile Include="FileUtil.cpp" />
+    <ClCompile Include="GekkoDisassembler.cpp" />
+    <ClCompile Include="Hash.cpp" />
+    <ClCompile Include="IniFile.cpp" />
+    <ClCompile Include="JitRegister.cpp" />
+    <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
+    <ClCompile Include="MathUtil.cpp" />
+    <ClCompile Include="MemArena.cpp" />
+    <ClCompile Include="MemoryUtil.cpp" />
+    <ClCompile Include="Misc.cpp" />
+    <ClCompile Include="MsgHandler.cpp" />
+    <ClCompile Include="NandPaths.cpp" />
+    <ClCompile Include="Network.cpp" />
+    <ClCompile Include="PcapFile.cpp" />
+    <ClCompile Include="Profiler.cpp" />
+    <ClCompile Include="SDCardUtil.cpp" />
+    <ClCompile Include="SettingsHandler.cpp" />
+    <ClCompile Include="StringUtil.cpp" />
+    <ClCompile Include="SymbolDB.cpp" />
+    <ClCompile Include="SysConf.cpp" />
+    <ClCompile Include="Thread.cpp" />
+    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="TraversalClient.cpp" />
+    <ClCompile Include="Version.cpp" />
+    <ClCompile Include="x64ABI.cpp" />
+    <ClCompile Include="x64Analyzer.cpp" />
+    <ClCompile Include="x64CPUDetect.cpp" />
+    <ClCompile Include="x64Emitter.cpp" />
+    <ClCompile Include="x64FPURoundMode.cpp" />
+    <ClCompile Include="XSaveWorkaround.cpp" />
+    <ClCompile Include="Crypto\bn.cpp" />
+    <ClCompile Include="Crypto\ec.cpp" />
+    <ClCompile Include="Logging\LogManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CMakeLists.txt" />
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
+      <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)polarssl\visualc\PolarSSL.vcxproj">
+      <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="SCMRevGen.vcxproj">
+      <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

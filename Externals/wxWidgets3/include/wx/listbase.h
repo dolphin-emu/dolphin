@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.12.99
-// RCS-ID:      $Id: listbase.h 70286 2012-01-07 16:11:10Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -415,7 +414,7 @@ public:
     //
     // Returns the index of the newly inserted column or -1 on error.
     long AppendColumn(const wxString& heading,
-                      int format = wxLIST_FORMAT_LEFT,
+                      wxListColumnFormat format = wxLIST_FORMAT_LEFT,
                       int width = -1);
 
     // Add a new column to the control at the position "col".
@@ -446,6 +445,8 @@ public:
     virtual int GetColumnWidth(int col) const = 0;
     virtual bool SetColumnWidth(int col, int width) = 0;
 
+    // return the attribute for the item (may return NULL if none)
+    virtual wxListItemAttr *OnGetItemAttr(long item) const;
 
     // Other miscellaneous accessors.
     // ------------------------------
@@ -454,12 +455,23 @@ public:
     bool InReportView() const { return HasFlag(wxLC_REPORT); }
     bool IsVirtual() const { return HasFlag(wxLC_VIRTUAL); }
 
+    // Enable or disable beep when incremental match doesn't find any item.
+    // Only implemented in the generic version currently.
+    virtual void EnableBellOnNoMatch(bool WXUNUSED(on) = true) { }
+
+    void EnableAlternateRowColours(bool enable = true);
+    void SetAlternateRowColour(const wxColour& colour);
+
 protected:
     // Real implementations methods to which our public forwards.
     virtual long DoInsertColumn(long col, const wxListItem& info) = 0;
 
     // Overridden methods of the base class.
     virtual wxSize DoGetBestClientSize() const;
+
+private:
+    // user defined color to draw row lines, may be invalid
+    wxListItemAttr m_alternateRowColour;
 };
 
 // ----------------------------------------------------------------------------
@@ -498,15 +510,15 @@ public:
     const wxString& GetLabel() const { return m_item.m_text; }
     const wxString& GetText() const { return m_item.m_text; }
     int GetImage() const { return m_item.m_image; }
-    long GetData() const { return static_cast<long>(m_item.m_data); }
+    wxUIntPtr GetData() const { return m_item.m_data; }
     long GetMask() const { return m_item.m_mask; }
     const wxListItem& GetItem() const { return m_item; }
 
-    // for wxEVT_COMMAND_LIST_CACHE_HINT only
+    // for wxEVT_LIST_CACHE_HINT only
     long GetCacheFrom() const { return m_oldItemIndex; }
     long GetCacheTo() const { return m_itemIndex; }
 
-    // was label editing canceled? (for wxEVT_COMMAND_LIST_END_LABEL_EDIT only)
+    // was label editing canceled? (for wxEVT_LIST_END_LABEL_EDIT only)
     bool IsEditCancelled() const { return m_editCancelled; }
     void SetEditCanceled(bool editCancelled) { m_editCancelled = editCancelled; }
 
@@ -514,7 +526,7 @@ public:
 
 //protected: -- not for backwards compatibility
     int           m_code;
-    long          m_oldItemIndex; // only for wxEVT_COMMAND_LIST_CACHE_HINT
+    long          m_oldItemIndex; // only for wxEVT_LIST_CACHE_HINT
     long          m_itemIndex;
     int           m_col;
     wxPoint       m_pointDrag;
@@ -532,27 +544,27 @@ private:
 // wxListCtrl event macros
 // ----------------------------------------------------------------------------
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_BEGIN_DRAG, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_BEGIN_RDRAG, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_END_LABEL_EDIT, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_DELETE_ITEM, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_BEGIN_DRAG, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_BEGIN_RDRAG, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_BEGIN_LABEL_EDIT, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_END_LABEL_EDIT, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_DELETE_ITEM, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_DELETE_ALL_ITEMS, wxListEvent );
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_ITEM_DESELECTED, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_KEY_DOWN, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_INSERT_ITEM, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_COL_CLICK, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_ITEM_MIDDLE_CLICK, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_CACHE_HINT, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_COL_RIGHT_CLICK, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_COL_BEGIN_DRAG, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_COL_DRAGGING, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_COL_END_DRAG, wxListEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_LIST_ITEM_FOCUSED, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_ITEM_SELECTED, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_ITEM_DESELECTED, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_KEY_DOWN, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_INSERT_ITEM, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_COL_CLICK, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_ITEM_RIGHT_CLICK, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_ITEM_MIDDLE_CLICK, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_ITEM_ACTIVATED, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_CACHE_HINT, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_COL_RIGHT_CLICK, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_COL_BEGIN_DRAG, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_COL_DRAGGING, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_COL_END_DRAG, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_ITEM_FOCUSED, wxListEvent );
 
 typedef void (wxEvtHandler::*wxListEventFunction)(wxListEvent&);
 
@@ -560,7 +572,7 @@ typedef void (wxEvtHandler::*wxListEventFunction)(wxListEvent&);
     wxEVENT_HANDLER_CAST(wxListEventFunction, func)
 
 #define wx__DECLARE_LISTEVT(evt, id, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_LIST_ ## evt, id, wxListEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_LIST_ ## evt, id, wxListEventHandler(fn))
 
 #define EVT_LIST_BEGIN_DRAG(id, fn) wx__DECLARE_LISTEVT(BEGIN_DRAG, id, fn)
 #define EVT_LIST_BEGIN_RDRAG(id, fn) wx__DECLARE_LISTEVT(BEGIN_RDRAG, id, fn)
@@ -585,6 +597,28 @@ typedef void (wxEvtHandler::*wxListEventFunction)(wxListEvent&);
 #define EVT_LIST_ITEM_FOCUSED(id, fn) wx__DECLARE_LISTEVT(ITEM_FOCUSED, id, fn)
 
 #define EVT_LIST_CACHE_HINT(id, fn) wx__DECLARE_LISTEVT(CACHE_HINT, id, fn)
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_LIST_BEGIN_DRAG          wxEVT_LIST_BEGIN_DRAG
+#define wxEVT_COMMAND_LIST_BEGIN_RDRAG         wxEVT_LIST_BEGIN_RDRAG
+#define wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT    wxEVT_LIST_BEGIN_LABEL_EDIT
+#define wxEVT_COMMAND_LIST_END_LABEL_EDIT      wxEVT_LIST_END_LABEL_EDIT
+#define wxEVT_COMMAND_LIST_DELETE_ITEM         wxEVT_LIST_DELETE_ITEM
+#define wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS    wxEVT_LIST_DELETE_ALL_ITEMS
+#define wxEVT_COMMAND_LIST_ITEM_SELECTED       wxEVT_LIST_ITEM_SELECTED
+#define wxEVT_COMMAND_LIST_ITEM_DESELECTED     wxEVT_LIST_ITEM_DESELECTED
+#define wxEVT_COMMAND_LIST_KEY_DOWN            wxEVT_LIST_KEY_DOWN
+#define wxEVT_COMMAND_LIST_INSERT_ITEM         wxEVT_LIST_INSERT_ITEM
+#define wxEVT_COMMAND_LIST_COL_CLICK           wxEVT_LIST_COL_CLICK
+#define wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK    wxEVT_LIST_ITEM_RIGHT_CLICK
+#define wxEVT_COMMAND_LIST_ITEM_MIDDLE_CLICK   wxEVT_LIST_ITEM_MIDDLE_CLICK
+#define wxEVT_COMMAND_LIST_ITEM_ACTIVATED      wxEVT_LIST_ITEM_ACTIVATED
+#define wxEVT_COMMAND_LIST_CACHE_HINT          wxEVT_LIST_CACHE_HINT
+#define wxEVT_COMMAND_LIST_COL_RIGHT_CLICK     wxEVT_LIST_COL_RIGHT_CLICK
+#define wxEVT_COMMAND_LIST_COL_BEGIN_DRAG      wxEVT_LIST_COL_BEGIN_DRAG
+#define wxEVT_COMMAND_LIST_COL_DRAGGING        wxEVT_LIST_COL_DRAGGING
+#define wxEVT_COMMAND_LIST_COL_END_DRAG        wxEVT_LIST_COL_END_DRAG
+#define wxEVT_COMMAND_LIST_ITEM_FOCUSED        wxEVT_LIST_ITEM_FOCUSED
 
 
 #endif

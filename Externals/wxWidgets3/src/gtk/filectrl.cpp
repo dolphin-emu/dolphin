@@ -3,7 +3,6 @@
 // Purpose:     wxGtkFileCtrl Implementation
 // Author:      Diaa M. Sami
 // Created:     2007-08-10
-// RCS-ID:      $Id: filectrl.cpp 64429 2010-05-29 10:35:47Z VZ $
 // Copyright:   (c) Diaa M. Sami
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -14,17 +13,11 @@
 #pragma hdrstop
 #endif
 
-#include "wx/filectrl.h"
-
 #if wxUSE_FILECTRL && !defined(__WXUNIVERSAL__)
 
-#ifndef WX_PRECOMP
-#    include "wx/sizer.h"
-#    include "wx/debug.h"
-#endif
+#include "wx/filectrl.h"
 
 #include "wx/gtk/private.h"
-#include "wx/filedlg.h"
 #include "wx/filename.h"
 #include "wx/scopeguard.h"
 #include "wx/tokenzr.h"
@@ -47,7 +40,7 @@ wxString wxGtkFileChooser::GetPath() const
     wxGtkString str( gtk_file_chooser_get_filename( m_widget ) );
 
     wxString string;
-    if (str.c_str() != NULL)
+    if (str)
         string = wxString::FromUTF8(str);
     return string;
 }
@@ -88,7 +81,32 @@ bool wxGtkFileChooser::SetPath( const wxString& path )
     if ( path.empty() )
         return true;
 
-    return gtk_file_chooser_set_filename( m_widget, path.utf8_str() );
+    switch ( gtk_file_chooser_get_action( m_widget ) )
+    {
+        case GTK_FILE_CHOOSER_ACTION_SAVE:
+            {
+                wxFileName fn(path);
+
+                const wxString fname = fn.GetFullName();
+                gtk_file_chooser_set_current_name( m_widget, fname.utf8_str() );
+
+                // set the initial file name and/or directory
+                const wxString dir = fn.GetPath();
+                return gtk_file_chooser_set_current_folder( m_widget,
+                                                            dir.utf8_str() ) != 0;
+            }
+
+        case GTK_FILE_CHOOSER_ACTION_OPEN:
+            return gtk_file_chooser_set_filename( m_widget, path.utf8_str() ) != 0;
+
+        case GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER:
+        case GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER:
+            break;
+    }
+
+    wxFAIL_MSG( "Unexpected file chooser type" );
+
+    return false;
 }
 
 bool wxGtkFileChooser::SetDirectory( const wxString& dir )
@@ -285,6 +303,12 @@ extern "C"
 
 IMPLEMENT_DYNAMIC_CLASS( wxGtkFileCtrl, wxControl )
 
+wxGtkFileCtrl::~wxGtkFileCtrl()
+{
+    if (m_fcWidget)
+        GTKDisconnect(m_fcWidget);
+}
+
 void wxGtkFileCtrl::Init()
 {
     m_checkNextSelEvent = false;
@@ -362,7 +386,7 @@ bool wxGtkFileCtrl::Create( wxWindow *parent,
     if ( !dir.empty() )
     {
         gtk_file_chooser_set_current_folder( m_fcWidget,
-                                             dir.fn_str() );
+                                             wxGTK_CONV_FN(dir) );
     }
 
     const wxString fname = fn.GetFullName();
@@ -371,7 +395,7 @@ bool wxGtkFileCtrl::Create( wxWindow *parent,
         if ( !fname.empty() )
         {
             gtk_file_chooser_set_current_name( m_fcWidget,
-                                               fname.fn_str() );
+                                               wxGTK_CONV_FN(fname) );
         }
     }
     else // wxFC_OPEN
@@ -379,7 +403,7 @@ bool wxGtkFileCtrl::Create( wxWindow *parent,
         if ( !fname.empty() )
         {
             gtk_file_chooser_set_filename( m_fcWidget,
-                                           fn.GetFullPath().fn_str() );
+                                           wxGTK_CONV_FN(fn.GetFullPath()) );
         }
     }
 
@@ -450,8 +474,7 @@ void wxGtkFileCtrl::GetFilenames( wxArrayString& files ) const
 
 void wxGtkFileCtrl::ShowHidden(bool show)
 {
-    // gtk_file_chooser_set_show_hidden() is new in 2.6
-    g_object_set (G_OBJECT (m_fcWidget), "show-hidden", show, NULL);
+    gtk_file_chooser_set_show_hidden(m_fcWidget, show);
 }
 
 #endif // wxUSE_FILECTRL

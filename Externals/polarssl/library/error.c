@@ -1,7 +1,7 @@
 /*
  *  Error message information
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,11 +23,17 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
+
+#if defined(POLARSSL_ERROR_C) || defined(POLARSSL_ERROR_STRERROR_DUMMY)
+#include "polarssl/error.h"
+#endif
 
 #if defined(POLARSSL_ERROR_C)
-
-#include "polarssl/error.h"
 
 #if defined(POLARSSL_AES_C)
 #include "polarssl/aes.h"
@@ -49,6 +55,10 @@
 #include "polarssl/camellia.h"
 #endif
 
+#if defined(POLARSSL_CCM_C)
+#include "polarssl/ccm.h"
+#endif
+
 #if defined(POLARSSL_CIPHER_C)
 #include "polarssl/cipher.h"
 #endif
@@ -65,12 +75,20 @@
 #include "polarssl/dhm.h"
 #endif
 
+#if defined(POLARSSL_ECP_C)
+#include "polarssl/ecp.h"
+#endif
+
 #if defined(POLARSSL_ENTROPY_C)
 #include "polarssl/entropy.h"
 #endif
 
 #if defined(POLARSSL_GCM_C)
 #include "polarssl/gcm.h"
+#endif
+
+#if defined(POLARSSL_HMAC_DRBG_C)
+#include "polarssl/hmac_drbg.h"
 #endif
 
 #if defined(POLARSSL_MD_C)
@@ -93,6 +111,10 @@
 #include "polarssl/net.h"
 #endif
 
+#if defined(POLARSSL_OID_C)
+#include "polarssl/oid.h"
+#endif
+
 #if defined(POLARSSL_PADLOCK_C)
 #include "polarssl/padlock.h"
 #endif
@@ -101,8 +123,12 @@
 #include "polarssl/pbkdf2.h"
 #endif
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
+#endif
+
+#if defined(POLARSSL_PK_C)
+#include "polarssl/pk.h"
 #endif
 
 #if defined(POLARSSL_PKCS12_C)
@@ -113,6 +139,10 @@
 #include "polarssl/pkcs5.h"
 #endif
 
+#if defined(POLARSSL_RIPEMD160_C)
+#include "polarssl/ripemd160.h"
+#endif
+
 #if defined(POLARSSL_RSA_C)
 #include "polarssl/rsa.h"
 #endif
@@ -121,19 +151,23 @@
 #include "polarssl/sha1.h"
 #endif
 
-#if defined(POLARSSL_SHA2_C)
-#include "polarssl/sha2.h"
+#if defined(POLARSSL_SHA256_C)
+#include "polarssl/sha256.h"
 #endif
 
-#if defined(POLARSSL_SHA4_C)
-#include "polarssl/sha4.h"
+#if defined(POLARSSL_SHA512_C)
+#include "polarssl/sha512.h"
 #endif
 
 #if defined(POLARSSL_SSL_TLS_C)
 #include "polarssl/ssl.h"
 #endif
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_THREADING_C)
+#include "polarssl/threading.h"
+#endif
+
+#if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
 #include "polarssl/x509.h"
 #endif
 
@@ -144,17 +178,23 @@
 
 #include <string.h>
 
-#if defined _MSC_VER && !defined  snprintf
+#if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
+    !defined(EFI32)
 #define  snprintf  _snprintf
 #endif
 
-void error_strerror( int ret, char *buf, size_t buflen )
+void polarssl_strerror( int ret, char *buf, size_t buflen )
 {
     size_t len;
     int use_ret;
 
+    if( buflen == 0 )
+        return;
+
     memset( buf, 0x00, buflen );
-     
+    /* Reduce buflen to make sure MSVC _snprintf() ends with \0 as well */
+    buflen -= 1;
+
     if( ret < 0 )
         ret = -ret;
 
@@ -164,6 +204,7 @@ void error_strerror( int ret, char *buf, size_t buflen )
 
         // High level error codes
         //
+        // BEGIN generated code
 #if defined(POLARSSL_CIPHER_C)
         if( use_ret == -(POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "CIPHER - The selected feature is not available" );
@@ -175,6 +216,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "CIPHER - Input data contains invalid padding and is rejected" );
         if( use_ret == -(POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED) )
             snprintf( buf, buflen, "CIPHER - Decryption of block requires a full block" );
+        if( use_ret == -(POLARSSL_ERR_CIPHER_AUTH_FAILED) )
+            snprintf( buf, buflen, "CIPHER - Authentication failed (for AEAD modes)" );
 #endif /* POLARSSL_CIPHER_C */
 
 #if defined(POLARSSL_DHM_C)
@@ -190,7 +233,32 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "DHM - Making of the public value failed" );
         if( use_ret == -(POLARSSL_ERR_DHM_CALC_SECRET_FAILED) )
             snprintf( buf, buflen, "DHM - Calculation of the DHM secret failed" );
+        if( use_ret == -(POLARSSL_ERR_DHM_INVALID_FORMAT) )
+            snprintf( buf, buflen, "DHM - The ASN.1 data is not formatted correctly" );
+        if( use_ret == -(POLARSSL_ERR_DHM_MALLOC_FAILED) )
+            snprintf( buf, buflen, "DHM - Allocation of memory failed" );
+        if( use_ret == -(POLARSSL_ERR_DHM_FILE_IO_ERROR) )
+            snprintf( buf, buflen, "DHM - Read/write of file failed" );
 #endif /* POLARSSL_DHM_C */
+
+#if defined(POLARSSL_ECP_C)
+        if( use_ret == -(POLARSSL_ERR_ECP_BAD_INPUT_DATA) )
+            snprintf( buf, buflen, "ECP - Bad input parameters to function" );
+        if( use_ret == -(POLARSSL_ERR_ECP_BUFFER_TOO_SMALL) )
+            snprintf( buf, buflen, "ECP - The buffer is too small to write to" );
+        if( use_ret == -(POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE) )
+            snprintf( buf, buflen, "ECP - Requested curve not available" );
+        if( use_ret == -(POLARSSL_ERR_ECP_VERIFY_FAILED) )
+            snprintf( buf, buflen, "ECP - The signature is not valid" );
+        if( use_ret == -(POLARSSL_ERR_ECP_MALLOC_FAILED) )
+            snprintf( buf, buflen, "ECP - Memory allocation failed" );
+        if( use_ret == -(POLARSSL_ERR_ECP_RANDOM_FAILED) )
+            snprintf( buf, buflen, "ECP - Generation of random value, such as (ephemeral) key, failed" );
+        if( use_ret == -(POLARSSL_ERR_ECP_INVALID_KEY) )
+            snprintf( buf, buflen, "ECP - Invalid private or public key" );
+        if( use_ret == -(POLARSSL_ERR_ECP_SIG_LEN_MISMATCH) )
+            snprintf( buf, buflen, "ECP - Signature is valid but shorter than the user-supplied length" );
+#endif /* POLARSSL_ECP_C */
 
 #if defined(POLARSSL_MD_C)
         if( use_ret == -(POLARSSL_ERR_MD_FEATURE_UNAVAILABLE) )
@@ -203,7 +271,7 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "MD - Opening or reading of file failed" );
 #endif /* POLARSSL_MD_C */
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
         if( use_ret == -(POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT) )
             snprintf( buf, buflen, "PEM - No PEM header or footer found" );
         if( use_ret == -(POLARSSL_ERR_PEM_INVALID_DATA) )
@@ -222,7 +290,38 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "PEM - Unavailable feature, e.g. hashing/encryption combination" );
         if( use_ret == -(POLARSSL_ERR_PEM_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "PEM - Bad input parameters to function" );
-#endif /* POLARSSL_PEM_C */
+#endif /* POLARSSL_PEM_PARSE_C || POLARSSL_PEM_WRITE_C */
+
+#if defined(POLARSSL_PK_C)
+        if( use_ret == -(POLARSSL_ERR_PK_MALLOC_FAILED) )
+            snprintf( buf, buflen, "PK - Memory alloation failed" );
+        if( use_ret == -(POLARSSL_ERR_PK_TYPE_MISMATCH) )
+            snprintf( buf, buflen, "PK - Type mismatch, eg attempt to encrypt with an ECDSA key" );
+        if( use_ret == -(POLARSSL_ERR_PK_BAD_INPUT_DATA) )
+            snprintf( buf, buflen, "PK - Bad input parameters to function" );
+        if( use_ret == -(POLARSSL_ERR_PK_FILE_IO_ERROR) )
+            snprintf( buf, buflen, "PK - Read/write of file failed" );
+        if( use_ret == -(POLARSSL_ERR_PK_KEY_INVALID_VERSION) )
+            snprintf( buf, buflen, "PK - Unsupported key version" );
+        if( use_ret == -(POLARSSL_ERR_PK_KEY_INVALID_FORMAT) )
+            snprintf( buf, buflen, "PK - Invalid key tag or value" );
+        if( use_ret == -(POLARSSL_ERR_PK_UNKNOWN_PK_ALG) )
+            snprintf( buf, buflen, "PK - Key algorithm is unsupported (only RSA and EC are supported)" );
+        if( use_ret == -(POLARSSL_ERR_PK_PASSWORD_REQUIRED) )
+            snprintf( buf, buflen, "PK - Private key password can't be empty" );
+        if( use_ret == -(POLARSSL_ERR_PK_PASSWORD_MISMATCH) )
+            snprintf( buf, buflen, "PK - Given private key password does not allow for correct decryption" );
+        if( use_ret == -(POLARSSL_ERR_PK_INVALID_PUBKEY) )
+            snprintf( buf, buflen, "PK - The pubkey tag or value is invalid (only RSA and EC are supported)" );
+        if( use_ret == -(POLARSSL_ERR_PK_INVALID_ALG) )
+            snprintf( buf, buflen, "PK - The algorithm tag or value is invalid" );
+        if( use_ret == -(POLARSSL_ERR_PK_UNKNOWN_NAMED_CURVE) )
+            snprintf( buf, buflen, "PK - Elliptic curve is unsupported (only NIST curves are supported)" );
+        if( use_ret == -(POLARSSL_ERR_PK_FEATURE_UNAVAILABLE) )
+            snprintf( buf, buflen, "PK - Unavailable feature, e.g. RSA disabled for RSA key" );
+        if( use_ret == -(POLARSSL_ERR_PK_SIG_LEN_MISMATCH) )
+            snprintf( buf, buflen, "PK - The signature is valid but its length is less than expected" );
+#endif /* POLARSSL_PK_C */
 
 #if defined(POLARSSL_PKCS12_C)
         if( use_ret == -(POLARSSL_ERR_PKCS12_BAD_INPUT_DATA) )
@@ -282,8 +381,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - An unknown cipher was received" );
         if( use_ret == -(POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN) )
             snprintf( buf, buflen, "SSL - The server has no ciphersuites in common with the client" );
-        if( use_ret == -(POLARSSL_ERR_SSL_NO_SESSION_FOUND) )
-            snprintf( buf, buflen, "SSL - No session to recover was found" );
+        if( use_ret == -(POLARSSL_ERR_SSL_NO_RNG) )
+            snprintf( buf, buflen, "SSL - No RNG was provided to the SSL module" );
         if( use_ret == -(POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE) )
             snprintf( buf, buflen, "SSL - No client certification received from the client, but required by the authentication mode" );
         if( use_ret == -(POLARSSL_ERR_SSL_CERTIFICATE_TOO_LARGE) )
@@ -291,7 +390,7 @@ void error_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_SSL_CERTIFICATE_REQUIRED) )
             snprintf( buf, buflen, "SSL - The own certificate is not set, but needed by the server" );
         if( use_ret == -(POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED) )
-            snprintf( buf, buflen, "SSL - The own private key is not set, but needed" );
+            snprintf( buf, buflen, "SSL - The own private key or pre-shared key is not set, but needed" );
         if( use_ret == -(POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED) )
             snprintf( buf, buflen, "SSL - No CA Chain is set, but required to operate" );
         if( use_ret == -(POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE) )
@@ -319,10 +418,10 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Processing of the ServerHelloDone handshake message failed" );
         if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE) )
             snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed" );
-        if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_RP) )
-            snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed in DHM Read Public" );
-        if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_CS) )
-            snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed in DHM Calculate Secret" );
+        if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP) )
+            snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Read Public" );
+        if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS) )
+            snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Calculate Secret" );
         if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY) )
             snprintf( buf, buflen, "SSL - Processing of the CertificateVerify handshake message failed" );
         if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC) )
@@ -339,58 +438,59 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Processing of the compression / decompression failed" );
         if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION) )
             snprintf( buf, buflen, "SSL - Handshake protocol not within min/max boundaries" );
+        if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_NEW_SESSION_TICKET) )
+            snprintf( buf, buflen, "SSL - Processing of the NewSessionTicket handshake message failed" );
+        if( use_ret == -(POLARSSL_ERR_SSL_SESSION_TICKET_EXPIRED) )
+            snprintf( buf, buflen, "SSL - Session ticket has expired" );
+        if( use_ret == -(POLARSSL_ERR_SSL_PK_TYPE_MISMATCH) )
+            snprintf( buf, buflen, "SSL - Public key type mismatch (eg, asked for RSA key exchange and presented EC key)" );
+        if( use_ret == -(POLARSSL_ERR_SSL_UNKNOWN_IDENTITY) )
+            snprintf( buf, buflen, "SSL - Unknown identity received (eg, PSK identity)" );
+        if( use_ret == -(POLARSSL_ERR_SSL_INTERNAL_ERROR) )
+            snprintf( buf, buflen, "SSL - Internal error (eg, unexpected failure in lower-level module)" );
+        if( use_ret == -(POLARSSL_ERR_SSL_COUNTER_WRAPPING) )
+            snprintf( buf, buflen, "SSL - A counter would wrap (eg, too many messages exchanged)" );
 #endif /* POLARSSL_SSL_TLS_C */
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
         if( use_ret == -(POLARSSL_ERR_X509_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "X509 - Unavailable feature, e.g. RSA hashing/encryption combination" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_PEM) )
-            snprintf( buf, buflen, "X509 - The PEM-encoded certificate contains invalid elements, e.g. invalid character" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_FORMAT) )
-            snprintf( buf, buflen, "X509 - The certificate format is invalid, e.g. different type expected" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_VERSION) )
-            snprintf( buf, buflen, "X509 - The certificate version element is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_SERIAL) )
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_OID) )
+            snprintf( buf, buflen, "X509 - Requested OID is unknown" );
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_FORMAT) )
+            snprintf( buf, buflen, "X509 - The CRT/CRL/CSR format is invalid, e.g. different type expected" );
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_VERSION) )
+            snprintf( buf, buflen, "X509 - The CRT/CRL/CSR version element is invalid" );
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_SERIAL) )
             snprintf( buf, buflen, "X509 - The serial tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_ALG) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_ALG) )
             snprintf( buf, buflen, "X509 - The algorithm tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_NAME) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_NAME) )
             snprintf( buf, buflen, "X509 - The name tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_DATE) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_DATE) )
             snprintf( buf, buflen, "X509 - The date tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_PUBKEY) )
-            snprintf( buf, buflen, "X509 - The pubkey tag or value is invalid (only RSA is supported)" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_SIGNATURE) )
             snprintf( buf, buflen, "X509 - The signature tag or value invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_EXTENSIONS) )
             snprintf( buf, buflen, "X509 - The extension tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION) )
-            snprintf( buf, buflen, "X509 - Certificate or CRL has an unsupported version number" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG) )
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_VERSION) )
+            snprintf( buf, buflen, "X509 - CRT/CRL/CSR has an unsupported version number" );
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_SIG_ALG) )
             snprintf( buf, buflen, "X509 - Signature algorithm (oid) is unsupported" );
-        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_PK_ALG) )
-            snprintf( buf, buflen, "X509 - Key algorithm is unsupported (only RSA is supported)" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_SIG_MISMATCH) )
-            snprintf( buf, buflen, "X509 - Certificate signature algorithms do not match. (see \\c ::x509_cert sig_oid)" );
+        if( use_ret == -(POLARSSL_ERR_X509_SIG_MISMATCH) )
+            snprintf( buf, buflen, "X509 - Signature algorithms do not match. (see \\c ::x509_crt sig_oid)" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_VERIFY_FAILED) )
             snprintf( buf, buflen, "X509 - Certificate verification failed, e.g. CRL, CA or signature check failed" );
-        if( use_ret == -(POLARSSL_ERR_X509_KEY_INVALID_VERSION) )
-            snprintf( buf, buflen, "X509 - Unsupported RSA key version" );
-        if( use_ret == -(POLARSSL_ERR_X509_KEY_INVALID_FORMAT) )
-            snprintf( buf, buflen, "X509 - Invalid RSA key tag or value" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT) )
             snprintf( buf, buflen, "X509 - Format not recognized as DER or PEM" );
-        if( use_ret == -(POLARSSL_ERR_X509_INVALID_INPUT) )
+        if( use_ret == -(POLARSSL_ERR_X509_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "X509 - Input invalid" );
         if( use_ret == -(POLARSSL_ERR_X509_MALLOC_FAILED) )
             snprintf( buf, buflen, "X509 - Allocation of memory failed" );
         if( use_ret == -(POLARSSL_ERR_X509_FILE_IO_ERROR) )
             snprintf( buf, buflen, "X509 - Read/write of file failed" );
-        if( use_ret == -(POLARSSL_ERR_X509_PASSWORD_REQUIRED) )
-            snprintf( buf, buflen, "X509 - Private key password can't be empty" );
-        if( use_ret == -(POLARSSL_ERR_X509_PASSWORD_MISMATCH) )
-            snprintf( buf, buflen, "X509 - Given private key password does not allow for correct decryption" );
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_USE,X509_CREATE_C */
+        // END generated code
 
         if( strlen( buf ) == 0 )
             snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
@@ -419,6 +519,7 @@ void error_strerror( int ret, char *buf, size_t buflen )
 
     // Low level error codes
     //
+    // BEGIN generated code
 #if defined(POLARSSL_AES_C)
     if( use_ret == -(POLARSSL_ERR_AES_INVALID_KEY_LENGTH) )
         snprintf( buf, buflen, "AES - Invalid key length" );
@@ -483,6 +584,13 @@ void error_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "CAMELLIA - Invalid data input length" );
 #endif /* POLARSSL_CAMELLIA_C */
 
+#if defined(POLARSSL_CCM_C)
+    if( use_ret == -(POLARSSL_ERR_CCM_BAD_INPUT) )
+        snprintf( buf, buflen, "CCM - Bad input parameters to function" );
+    if( use_ret == -(POLARSSL_ERR_CCM_AUTH_FAILED) )
+        snprintf( buf, buflen, "CCM - Authenticated decryption failed" );
+#endif /* POLARSSL_CCM_C */
+
 #if defined(POLARSSL_CTR_DRBG_C)
     if( use_ret == -(POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED) )
         snprintf( buf, buflen, "CTR_DRBG - The entropy source failed" );
@@ -506,6 +614,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "ENTROPY - No more sources can be added" );
     if( use_ret == -(POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED) )
         snprintf( buf, buflen, "ENTROPY - No sources have been added to poll" );
+    if( use_ret == -(POLARSSL_ERR_ENTROPY_FILE_IO_ERROR) )
+        snprintf( buf, buflen, "ENTROPY - Read/write error in file" );
 #endif /* POLARSSL_ENTROPY_C */
 
 #if defined(POLARSSL_GCM_C)
@@ -514,6 +624,17 @@ void error_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_GCM_BAD_INPUT) )
         snprintf( buf, buflen, "GCM - Bad input parameters to function" );
 #endif /* POLARSSL_GCM_C */
+
+#if defined(POLARSSL_HMAC_DRBG_C)
+    if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG) )
+        snprintf( buf, buflen, "HMAC_DRBG - Too many random requested in single call" );
+    if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG) )
+        snprintf( buf, buflen, "HMAC_DRBG - Input too large (Entropy + additional)" );
+    if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR) )
+        snprintf( buf, buflen, "HMAC_DRBG - Read/write error in file" );
+    if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED) )
+        snprintf( buf, buflen, "HMAC_DRBG - The entropy source failed" );
+#endif /* POLARSSL_HMAC_DRBG_C */
 
 #if defined(POLARSSL_MD2_C)
     if( use_ret == -(POLARSSL_ERR_MD2_FILE_IO_ERROR) )
@@ -555,6 +676,13 @@ void error_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "NET - Connection requires a write call" );
 #endif /* POLARSSL_NET_C */
 
+#if defined(POLARSSL_OID_C)
+    if( use_ret == -(POLARSSL_ERR_OID_NOT_FOUND) )
+        snprintf( buf, buflen, "OID - OID is not found" );
+    if( use_ret == -(POLARSSL_ERR_OID_BUF_TOO_SMALL) )
+        snprintf( buf, buflen, "OID - output buffer is too small" );
+#endif /* POLARSSL_OID_C */
+
 #if defined(POLARSSL_PADLOCK_C)
     if( use_ret == -(POLARSSL_ERR_PADLOCK_DATA_MISALIGNED) )
         snprintf( buf, buflen, "PADLOCK - Input data should be aligned" );
@@ -565,31 +693,53 @@ void error_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "PBKDF2 - Bad input parameters to function" );
 #endif /* POLARSSL_PBKDF2_C */
 
+#if defined(POLARSSL_RIPEMD160_C)
+    if( use_ret == -(POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR) )
+        snprintf( buf, buflen, "RIPEMD160 - Read/write error in file" );
+#endif /* POLARSSL_RIPEMD160_C */
+
 #if defined(POLARSSL_SHA1_C)
     if( use_ret == -(POLARSSL_ERR_SHA1_FILE_IO_ERROR) )
         snprintf( buf, buflen, "SHA1 - Read/write error in file" );
 #endif /* POLARSSL_SHA1_C */
 
-#if defined(POLARSSL_SHA2_C)
-    if( use_ret == -(POLARSSL_ERR_SHA2_FILE_IO_ERROR) )
-        snprintf( buf, buflen, "SHA2 - Read/write error in file" );
-#endif /* POLARSSL_SHA2_C */
+#if defined(POLARSSL_SHA256_C)
+    if( use_ret == -(POLARSSL_ERR_SHA256_FILE_IO_ERROR) )
+        snprintf( buf, buflen, "SHA256 - Read/write error in file" );
+#endif /* POLARSSL_SHA256_C */
 
-#if defined(POLARSSL_SHA4_C)
-    if( use_ret == -(POLARSSL_ERR_SHA4_FILE_IO_ERROR) )
-        snprintf( buf, buflen, "SHA4 - Read/write error in file" );
-#endif /* POLARSSL_SHA4_C */
+#if defined(POLARSSL_SHA512_C)
+    if( use_ret == -(POLARSSL_ERR_SHA512_FILE_IO_ERROR) )
+        snprintf( buf, buflen, "SHA512 - Read/write error in file" );
+#endif /* POLARSSL_SHA512_C */
+
+#if defined(POLARSSL_THREADING_C)
+    if( use_ret == -(POLARSSL_ERR_THREADING_FEATURE_UNAVAILABLE) )
+        snprintf( buf, buflen, "THREADING - The selected feature is not available" );
+    if( use_ret == -(POLARSSL_ERR_THREADING_BAD_INPUT_DATA) )
+        snprintf( buf, buflen, "THREADING - Bad input parameters to function" );
+    if( use_ret == -(POLARSSL_ERR_THREADING_MUTEX_ERROR) )
+        snprintf( buf, buflen, "THREADING - Locking / unlocking / free failed with error code" );
+#endif /* POLARSSL_THREADING_C */
 
 #if defined(POLARSSL_XTEA_C)
     if( use_ret == -(POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH) )
         snprintf( buf, buflen, "XTEA - The data input has an invalid length" );
 #endif /* POLARSSL_XTEA_C */
+    // END generated code
 
     if( strlen( buf ) != 0 )
         return;
 
     snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
 }
+
+#if defined(POLARSSL_ERROR_STRERROR_BC)
+void error_strerror( int ret, char *buf, size_t buflen )
+{
+    polarssl_strerror( ret, buf, buflen );
+}
+#endif /* POLARSSL_ERROR_STRERROR_BC */
 
 #else /* POLARSSL_ERROR_C */
 
@@ -600,7 +750,7 @@ void error_strerror( int ret, char *buf, size_t buflen )
 /*
  * Provide an non-function in case POLARSSL_ERROR_C is not defined
  */
-void error_strerror( int ret, char *buf, size_t buflen )
+void polarssl_strerror( int ret, char *buf, size_t buflen )
 {
     ((void) ret);
 
@@ -608,5 +758,12 @@ void error_strerror( int ret, char *buf, size_t buflen )
         buf[0] = '\0';
 }
 
+#if defined(POLARSSL_ERROR_STRERROR_BC)
+void error_strerror( int ret, char *buf, size_t buflen )
+{
+    polarssl_strerror( ret, buf, buflen );
+}
+#endif /* POLARSSL_ERROR_STRERROR_BC */
 #endif /* POLARSSL_ERROR_STRERROR_DUMMY */
+
 #endif /* POLARSSL_ERROR_C */

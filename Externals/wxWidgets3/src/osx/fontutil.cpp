@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin, Stefan Csomor
 // Modified by:
 // Created:     05.11.99
-// RCS-ID:      $Id: fontutil.cpp 54962 2008-08-03 17:34:59Z SC $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

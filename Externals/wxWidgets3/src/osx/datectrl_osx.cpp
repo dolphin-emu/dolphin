@@ -3,7 +3,6 @@
 // Purpose:     Implementation of wxDatePickerCtrl for OS X.
 // Author:      Vadim Zeitlin
 // Created:     2011-12-18
-// RCS-ID:      $Id: datectrl_osx.cpp 70071 2011-12-20 21:27:14Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

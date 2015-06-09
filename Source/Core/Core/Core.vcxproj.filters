@@ -1,1212 +1,1253 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Src\ConfigManager.cpp" />
-    <ClCompile Include="Src\Console.cpp" />
-    <ClCompile Include="Src\Core.cpp" />
-    <ClCompile Include="Src\CoreParameter.cpp" />
-    <ClCompile Include="Src\CoreTiming.cpp" />
-    <ClCompile Include="Src\x64MemTools.cpp" />
-    <ClCompile Include="Src\PatchEngine.cpp" />
-    <ClCompile Include="Src\DSPEmulator.cpp" />
-    <ClCompile Include="Src\State.cpp" />
-    <ClCompile Include="Src\stdafx.cpp" />
-    <ClCompile Include="Src\Tracer.cpp" />
-    <ClCompile Include="Src\VolumeHandler.cpp" />
-    <ClCompile Include="Src\ActionReplay.cpp">
-      <Filter>ActionReplay</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\ARDecrypt.cpp">
-      <Filter>ActionReplay</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Boot\Boot.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Boot\Boot_BS2Emu.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Boot\Boot_DOL.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Boot\Boot_ELF.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Boot\Boot_WiiWAD.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Boot\ElfReader.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Debugger\Debugger_SymbolMap.cpp">
-      <Filter>Debugger</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Debugger\Dump.cpp">
-      <Filter>Debugger</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Debugger\PPCDebugInterface.cpp">
-      <Filter>Debugger</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\Jit\DSPJitArithmetic.cpp">
-      <Filter>DSPCore\JIT</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\Jit\DSPJitBranch.cpp">
-      <Filter>DSPCore\JIT</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\Jit\DSPJitCCUtil.cpp">
-      <Filter>DSPCore\JIT</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\Jit\DSPJitExtOps.cpp">
-      <Filter>DSPCore\JIT</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\Jit\DSPJitLoadStore.cpp">
-      <Filter>DSPCore\JIT</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\Jit\DSPJitMisc.cpp">
-      <Filter>DSPCore\JIT</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\Jit\DSPJitMultiplier.cpp">
-      <Filter>DSPCore\JIT</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\Jit\DSPJitRegCache.cpp">
-      <Filter>DSPCore\JIT</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\Jit\DSPJitUtil.cpp">
-      <Filter>DSPCore\JIT</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPEmitter.cpp">
-      <Filter>DSPCore\JIT</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\assemble.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\disassemble.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPAccelerator.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPAnalyzer.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPCodeUtil.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPCore.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPHWInterface.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPInterpreter.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPMemoryMap.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPStacks.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPTables.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\LabelMap.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\GeckoCode.cpp">
-      <Filter>GeckoCode</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\GeckoCodeConfig.cpp">
-      <Filter>GeckoCode</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HLE\HLE.cpp">
-      <Filter>HLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HLE\HLE_Misc.cpp">
-      <Filter>HLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HLE\HLE_OS.cpp">
-      <Filter>HLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DspIntArithmetic.cpp">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DspIntBranch.cpp">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPIntCCUtil.cpp">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DSPIntExtOps.cpp">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DspIntLoadStore.cpp">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DspIntMisc.cpp">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DSP\DspIntMultiplier.cpp">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\GCPad.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\GCPadEmu.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\EXI.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\EXI_Channel.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\EXI_Device.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\EXI_DeviceAD16.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\EXI_DeviceAMBaseboard.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\EXI_DeviceEthernet.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\EXI_DeviceGecko.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\EXI_DeviceIPL.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\EXI_DeviceMemoryCard.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\EXI_DeviceMic.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\BBA-TAP\TAP_Win32.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\Sram.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_AX.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_AXWii.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_CARD.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_GBA.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_InitAudioSystem.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_ROM.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_Zelda.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_ADPCM.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_Synth.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_Voice.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCodes.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\DSPHLE.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\HLEMixer.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPHLE\MailHandler.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSP.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPLLE\DSPDebugInterface.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPLLE\DSPHost.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPLLE\DSPLLE.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPLLE\DSPLLEGlobals.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPLLE\DSPLLETools.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DSPLLE\DSPSymbols.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\GPFifo.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\GP - Gather Pipe Fifo</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\MemoryInterface.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\MI - Memory Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\ProcessorInterface.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\PI - Processor Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\AudioInterface.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\StreamADPCM.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\DVDInterface.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\SI.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\SI_Device.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\SI_DeviceAMBaseboard.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\SI_DeviceGBA.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\SI_DeviceGCController.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\SI_DeviceGCSteeringWheel.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\SI_DeviceDanceMat.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\VideoInterface.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter.cpp">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Branch.cpp">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_FloatingPoint.cpp">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Integer.cpp">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_LoadStore.cpp">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_LoadStorePaired.cpp">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Paired.cpp">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_SystemRegisters.cpp">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Tables.cpp">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\JitCommon\Jit_Util.cpp">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\JitCommon\JitAsmCommon.cpp">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\JitCommon\JitBackpatch.cpp">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\JitCommon\JitBase.cpp">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\JitCommon\JitCache.cpp">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\Jit.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\Jit64_Tables.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\Jit_Branch.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\Jit_FloatingPoint.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\Jit_Integer.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\Jit_LoadStore.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\Jit_LoadStoreFloating.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\Jit_LoadStorePaired.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\Jit_Paired.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\Jit_SystemRegisters.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\JitAsm.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64\JitRegCache.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\IR.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\IR_X86.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Branch.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_FloatingPoint.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Integer.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStore.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStoreFloating.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStorePaired.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Paired.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_SystemRegisters.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Tables.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitILAsm.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\HW.cpp">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\CPU.cpp">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\Memmap.cpp">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\MemmapFunctions.cpp">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\SystemTimers.cpp">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\LUT_frsqrtex.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\PowerPC.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\PPCAnalyst.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\PPCCache.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\PPCSymbolDB.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\PPCTables.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Profiler.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\SignatureDB.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_DI.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\DI - Drive Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_es.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_fs.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Keyboard</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_net.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\SDIO - SD Card</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WII_IPC.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wii IPC</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WiiMote_HID_Attr.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WII_IOB.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wii IO Bridge</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Attachment.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Classic.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Drums.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Guitar.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Nunchuk.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Turntable.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteEmu\EmuSubroutines.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteEmu\Encryption.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteEmu\Speaker.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteEmu\WiimoteEmu.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteReal\WiimoteReal.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\WiimoteReal\IOWin.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HW\Wiimote.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\BootManager.cpp" />
-    <ClCompile Include="Src\FifoPlayer\FifoDataFile.cpp">
-      <Filter>FifoPlayer</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\FifoPlayer\FifoPlayer.cpp">
-      <Filter>FifoPlayer</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\FifoPlayer\FifoRecorder.cpp">
-      <Filter>FifoPlayer</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\FifoPlayer\FifoPlaybackAnalyzer.cpp">
-      <Filter>FifoPlayer</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\FifoPlayer\FifoRecordAnalyzer.cpp">
-      <Filter>FifoPlayer</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\FifoPlayer\FifoAnalyzer.cpp">
-      <Filter>FifoPlayer</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Movie.cpp" />
-    <ClCompile Include="Src\HW\GCMemcard.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\JitInterface.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\NetPlayClient.cpp" />
-    <ClCompile Include="Src\NetPlayServer.cpp" />
-    <ClCompile Include="Src\IPC_HLE\ICMPWin.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_hid.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\ec_wii.cpp" />
-    <ClCompile Include="Src\IPC_HLE\WII_Socket.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Src\ConfigManager.h" />
-    <ClInclude Include="Src\Console.h" />
-    <ClInclude Include="Src\Core.h" />
-    <ClInclude Include="Src\CoreParameter.h" />
-    <ClInclude Include="Src\CoreTiming.h" />
-    <ClInclude Include="Src\Host.h" />
-    <ClInclude Include="Src\MemTools.h" />
-    <ClInclude Include="Src\PatchEngine.h" />
-    <ClInclude Include="Src\DSPEmulator.h" />
-    <ClInclude Include="Src\State.h" />
-    <ClInclude Include="Src\stdafx.h" />
-    <ClInclude Include="Src\Tracer.h" />
-    <ClInclude Include="Src\VolumeHandler.h" />
-    <ClInclude Include="Src\ARDecrypt.h">
-      <Filter>ActionReplay</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\ActionReplay.h">
-      <Filter>ActionReplay</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Boot\Boot.h">
-      <Filter>Boot</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Boot\Boot_DOL.h">
-      <Filter>Boot</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Boot\Boot_ELF.h">
-      <Filter>Boot</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Boot\ElfTypes.h">
-      <Filter>Boot</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Boot\ElfReader.h">
-      <Filter>Boot</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Debugger\Debugger_SymbolMap.h">
-      <Filter>Debugger</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Debugger\Dump.h">
-      <Filter>Debugger</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Debugger\GCELF.h">
-      <Filter>Debugger</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Debugger\PPCDebugInterface.h">
-      <Filter>Debugger</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\Jit\DSPJitUtil.h">
-      <Filter>DSPCore\JIT</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\Jit\DSPJitRegCache.h">
-      <Filter>DSPCore\JIT</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPEmitter.h">
-      <Filter>DSPCore\JIT</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\assemble.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\disassemble.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPCore.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPAccelerator.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPAnalyzer.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPBreakpoints.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPCodeUtil.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPCommon.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPHWInterface.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPInterpreter.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPMemoryMap.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPStacks.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPTables.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\LabelMap.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\GeckoCodeConfig.h">
-      <Filter>GeckoCode</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\GeckoCode.h">
-      <Filter>GeckoCode</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HLE\HLE_OS.h">
-      <Filter>HLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HLE\HLE.h">
-      <Filter>HLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HLE\HLE_Misc.h">
-      <Filter>HLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPIntUtil.h">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPIntCCUtil.h">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPIntExtOps.h">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\GCPadEmu.h">
-      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\GCPad.h">
-      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\EXI_DeviceMic.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\EXI.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\EXI_Channel.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\EXI_Device.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\EXI_DeviceAD16.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\EXI_DeviceAMBaseboard.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\EXI_DeviceEthernet.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\EXI_DeviceGecko.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\EXI_DeviceIPL.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\EXI_DeviceMemoryCard.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\BBA-TAP\TAP_Win32.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\Sram.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCodes.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_Voice.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXStructs.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXWii.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_CARD.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_GBA.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_InitAudioSystem.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_ROM.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_Zelda.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\DSPHLE.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\HLEMixer.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\MailHandler.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSP.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\DSP\DSPHost.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPLLE\DSPDebugInterface.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPLLE\DSPLLE.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPLLE\DSPLLEGlobals.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPLLE\DSPLLETools.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DSPLLE\DSPSymbols.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\GPFifo.h">
-      <Filter>HW %28Flipper/Hollywood%29\GP - Gather Pipe Fifo</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\MemoryInterface.h">
-      <Filter>HW %28Flipper/Hollywood%29\MI - Memory Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\ProcessorInterface.h">
-      <Filter>HW %28Flipper/Hollywood%29\PI - Processor Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\AudioInterface.h">
-      <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\StreamADPCM.h">
-      <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\DVDInterface.h">
-      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\SI_DeviceGCController.h">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\SI_DeviceGCSteeringWheel.h">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\SI_DeviceDanceMat.h">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\SI.h">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\SI_Device.h">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\SI_DeviceAMBaseboard.h">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\SI_DeviceGBA.h">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\VideoInterface.h">
-      <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Interpreter\Interpreter_Tables.h">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Interpreter\Interpreter.h">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Interpreter\Interpreter_FPUtils.h">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\JitCommon\Jit_Util.h">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\JitCommon\JitAsmCommon.h">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\JitCommon\JitBackpatch.h">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\JitCommon\JitBase.h">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\JitCommon\JitCache.h">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Jit64\Jit.h">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Jit64\Jit64_Tables.h">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Jit64\JitAsm.h">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Jit64\JitRegCache.h">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Jit64IL\JitILAsm.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Jit64IL\IR.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Jit64IL\JitIL.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Jit64IL\JitIL_Tables.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\HW.h">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\CPU.h">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\Memmap.h">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\SystemTimers.h">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Gekko.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\LUT_frsqrtex.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\SignatureDB.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\PowerPC.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\PPCAnalyst.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\PPCCache.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\PPCSymbolDB.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\PPCTables.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\Profiler.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE.h">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device.h">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_stm.h">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_DI.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\DI - Drive Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_es.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_fs.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Keyboard</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_net.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\SDIO - SD Card</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WII_IPC.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wii IPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WiiMote_HID_Attr.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\hci.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\l2cap.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WII_IOB.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wii IO Bridge</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Classic.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Attachment.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Drums.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Guitar.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Nunchuk.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Turntable.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\Encryption.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\MatrixMath.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\UDPTLayer.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\WiimoteEmu.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteEmu\WiimoteHid.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteReal\WiimoteRealBase.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\WiimoteReal\WiimoteReal.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HW\Wiimote.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\CPUCoreBase.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\BootManager.h" />
-    <ClInclude Include="Src\FifoPlayer\FifoDataFile.h">
-      <Filter>FifoPlayer</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\FifoPlayer\FifoFileStruct.h">
-      <Filter>FifoPlayer</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\FifoPlayer\FifoPlayer.h">
-      <Filter>FifoPlayer</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\FifoPlayer\FifoRecorder.h">
-      <Filter>FifoPlayer</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\FifoPlayer\FifoPlaybackAnalyzer.h">
-      <Filter>FifoPlayer</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\FifoPlayer\FifoRecordAnalyzer.h">
-      <Filter>FifoPlayer</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\FifoPlayer\FifoAnalyzer.h">
-      <Filter>FifoPlayer</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Movie.h" />
-    <ClInclude Include="Src\HW\GCMemcard.h">
-      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\PowerPC\JitInterface.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\NetPlayClient.h" />
-    <ClInclude Include="Src\NetPlayProto.h" />
-    <ClInclude Include="Src\NetPlayServer.h" />
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_net_ssl.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\fakepoll.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\ICMP.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_hid.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\ec_wii.h" />
-    <ClInclude Include="Src\IPC_HLE\WII_Socket.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="CMakeLists.txt" />
-    <None Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_Obsolete.txt">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="ActionReplay">
-      <UniqueIdentifier>{c871a264-a881-44f2-88b1-406b282cd9fe}</UniqueIdentifier>
+      <UniqueIdentifier>{e0d231ab-7a66-45ce-a8e4-c0225308f763}</UniqueIdentifier>
     </Filter>
     <Filter Include="Boot">
-      <UniqueIdentifier>{0fe14029-e862-44b4-9358-d1cd44e42454}</UniqueIdentifier>
+      <UniqueIdentifier>{2472fb36-5473-4d49-ad2d-3699b78ab6e2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Debugger">
-      <UniqueIdentifier>{fba97574-484f-4330-9674-69c0aeffd22f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GeckoCode">
-      <UniqueIdentifier>{684ba5fe-ccca-4d1b-94fa-3a2119353257}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HLE">
-      <UniqueIdentifier>{67aea903-7a27-4b1e-a4af-60f58818ba58}</UniqueIdentifier>
+      <UniqueIdentifier>{ed683a12-55f0-49cb-918b-c7edbcf57268}</UniqueIdentifier>
     </Filter>
     <Filter Include="DSPCore">
-      <UniqueIdentifier>{81d2e0cb-4bea-47ed-9bc3-fdc461ea4148}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="DSPCore\JIT">
-      <UniqueIdentifier>{6aa99e27-bf15-43dc-8f14-c80383037a99}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="DSPCore\Interpreter">
-      <UniqueIdentifier>{45a9bf0a-e022-4ace-a99f-df675a0b251d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PowerPC">
-      <UniqueIdentifier>{1905e5c1-a593-454d-b0a0-68bf6cdbec12}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PowerPC\Interpreter">
-      <UniqueIdentifier>{57e4ab87-a563-40c5-9a3d-6b5443750a96}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PowerPC\JitCommon">
-      <UniqueIdentifier>{1f8821ba-2dde-4b1a-9125-5f74006b1053}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PowerPC\Jit64">
-      <UniqueIdentifier>{02777c32-ac14-4a06-9006-8ffc370bc231}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PowerPC\JitIL">
-      <UniqueIdentifier>{0201c158-1162-48d8-b6d4-239d8202d200}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29">
-      <UniqueIdentifier>{21df1345-8145-4179-8cf5-a26b6887de5d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\AI - Audio Interface">
-      <UniqueIdentifier>{b34c5e25-c21d-401b-9b21-990f1a7908e1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\DI - Drive Interface">
-      <UniqueIdentifier>{b948ee86-1471-42b2-ab6f-ca0ce1c9e4d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\DSP Interface + HLE">
-      <UniqueIdentifier>{a25bdd3e-b989-4c5b-b56c-2f37ab4972c7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE">
-      <UniqueIdentifier>{1966cfa5-57f3-4fdb-8d32-d34f033903af}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes">
-      <UniqueIdentifier>{43f6de5c-946b-426d-9735-b774c3365ae4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE">
-      <UniqueIdentifier>{9f00a3b5-c0f3-4a3f-a756-25435ea996e1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\EXI - Expansion Interface">
-      <UniqueIdentifier>{decdd68e-4e41-4589-bc13-5318705e2f94}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\GCPad">
-      <UniqueIdentifier>{e88d682e-a0c2-438d-9283-ab1ec250d3ae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\GP - Gather Pipe Fifo">
-      <UniqueIdentifier>{36465b2e-d5c4-402c-abff-ed04c84a1566}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\PI - Processor Interface">
-      <UniqueIdentifier>{b7771463-73bf-457b-891f-9dcaa04076ea}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\SI - Serial Interface">
-      <UniqueIdentifier>{e34c8a58-7799-4afe-b0f9-1c5ff759639b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\MI - Memory Interface">
-      <UniqueIdentifier>{2ee04eb4-0d32-4e15-bd0e-811d408de20c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\VI - Video Interface">
-      <UniqueIdentifier>{808c3dc1-5fec-4565-8c2e-fa7e1232a31c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\Wii IPC">
-      <UniqueIdentifier>{ef5b78c3-47ec-4bd6-9809-f9e7da6e0861}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\Wii IO Bridge">
-      <UniqueIdentifier>{49635c9b-0874-4e71-9165-edaae632ab1c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29">
-      <UniqueIdentifier>{e2711d6f-b5f5-4c74-97c2-66f9620a2d86}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\DI - Drive Interface">
-      <UniqueIdentifier>{1be114bb-c572-4cdb-9650-4d24d282d4bb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\ES">
-      <UniqueIdentifier>{ff0e9f64-a636-4998-8cae-fe122c8da934}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\FS">
-      <UniqueIdentifier>{30eda257-4d78-4db7-873e-c408db52d772}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\Keyboard">
-      <UniqueIdentifier>{ed6f41bf-4f52-402b-ab1d-d5bf9e71c538}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\Net">
-      <UniqueIdentifier>{362606ce-fa05-4829-831f-bf9e0acf9909}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\SDIO - SD Card">
-      <UniqueIdentifier>{ebe09d6a-7cd0-4909-83e9-abafd3e8571f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote">
-      <UniqueIdentifier>{e7c723c0-693a-4cf8-973a-b349537adcc7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote">
-      <UniqueIdentifier>{0ab9fa49-fd0b-4eba-aa9f-2b774baa8e63}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Emu">
-      <UniqueIdentifier>{c53079fe-d19c-4492-b37e-bf8bd4f55fa8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment">
-      <UniqueIdentifier>{565ae8e7-ae6e-42f9-ae13-90c1aa017856}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Real">
-      <UniqueIdentifier>{1c21a3e1-b791-4a23-b0d5-ed2b2c34007f}</UniqueIdentifier>
+      <UniqueIdentifier>{35594696-15a6-44cb-b811-04e3195eecf5}</UniqueIdentifier>
     </Filter>
     <Filter Include="FifoPlayer">
-      <UniqueIdentifier>{ca7d56f7-4e84-4d15-9aea-7ae6fa7d6586}</UniqueIdentifier>
+      <UniqueIdentifier>{659f0a99-77cf-46a0-a7a3-95afdd99be72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GeckoCode">
+      <UniqueIdentifier>{c1c76a12-b4f3-4a46-84e6-e11980b2e997}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLE">
+      <UniqueIdentifier>{256586c3-3a1b-4d7b-9f4a-2f7ffac9d23e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29">
+      <UniqueIdentifier>{d060b137-c211-44eb-9cad-fc12dedbea73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29">
+      <UniqueIdentifier>{becbad5b-2531-410c-b032-2da2f078b178}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC">
+      <UniqueIdentifier>{ebd24590-dfdc-433e-a411-21723e4b7cb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\Interpreter">
+      <UniqueIdentifier>{523f8d77-4aa6-4762-8f27-96f02b5070b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\Jit64">
+      <UniqueIdentifier>{c67be826-2935-4d25-a213-e132fa2e63ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\JitCommon">
+      <UniqueIdentifier>{c88ec388-371f-4401-851c-a32dcdc0b88b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\JitIL">
+      <UniqueIdentifier>{f26d3866-92d1-4623-9445-caf9a065ed74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DSPCore\Interpreter">
+      <UniqueIdentifier>{6204f663-bbd0-4eb5-bc15-e3778d8b6091}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DSPCore\Jit">
+      <UniqueIdentifier>{7042fb6f-9284-4469-bc7c-9302e0d984aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\AI - Audio Interface">
+      <UniqueIdentifier>{d657188a-426d-46c8-af0a-caa148c6ed1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\DI - Drive Interface">
+      <UniqueIdentifier>{2832269e-5c7d-47f8-b212-afcd9145e427}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\DSP Interface + HLE">
+      <UniqueIdentifier>{9a10faaa-40c3-446c-81b6-5fc7a79d5329}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE">
+      <UniqueIdentifier>{7a29a81c-1fee-4e5b-bfe1-5f941837bdc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes">
+      <UniqueIdentifier>{0eecffe7-f680-4d21-a05f-2f12c8244833}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE">
+      <UniqueIdentifier>{9fcd7c03-c4be-477b-9c15-5f096ab9d0f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote">
+      <UniqueIdentifier>{69d8dcb1-f22b-47af-b1e4-f700b1a42e77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Emu">
+      <UniqueIdentifier>{079f3720-45c8-4c54-8589-b7d00a8bc1ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Real">
+      <UniqueIdentifier>{bc3e845a-3d01-4713-aa32-f27110838d0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment">
+      <UniqueIdentifier>{cdbd65da-541f-47d2-8fdc-e99e73e98e69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\EXI - Expansion Interface">
+      <UniqueIdentifier>{d19f1218-0e28-4f24-a4b3-33fac750a899}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\GCKeyboard">
+      <UniqueIdentifier>{15452851-6ca5-4520-bbf1-d4b810317be3}</UniqueIdentifier>
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\GCMemcard">
-      <UniqueIdentifier>{3e9e6e83-c1bf-45f9-aeff-231f98f60d29}</UniqueIdentifier>
+      <UniqueIdentifier>{d7b3050d-3dd9-4284-969c-c5ad3b3662d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\GCPad">
+      <UniqueIdentifier>{15452851-6ca5-4520-bbf1-d4b810317be2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\GP - Gather Pipe Fifo">
+      <UniqueIdentifier>{2ef543bc-8125-4b96-9627-6d8c15a5b36a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\MI - Memory Interface">
+      <UniqueIdentifier>{dea96a0c-0274-4c9f-915e-97472e7f4578}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\PI - Processor Interface">
+      <UniqueIdentifier>{9fbdb5b5-9179-4488-b0bf-75c1ccdb3a61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\SI - Serial Interface">
+      <UniqueIdentifier>{11385524-b10b-419b-8390-710791c53550}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\VI - Video Interface">
+      <UniqueIdentifier>{fa27e799-34c8-440a-9de3-6720df6022e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\Wii IPC">
+      <UniqueIdentifier>{2b41ab45-ba8c-45dc-92cc-9107c1fa3e36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\DI">
+      <UniqueIdentifier>{9370a21f-a7bf-4973-8258-290253617653}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\ES">
+      <UniqueIdentifier>{3f85582a-e612-4582-b0fa-ecc27ba3658c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\FS">
+      <UniqueIdentifier>{1f5662c1-885f-4ed4-9f10-cc8e98eaa35d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\Keyboard">
+      <UniqueIdentifier>{1fb00563-01ba-42c4-82de-2c66371e614a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\Net">
+      <UniqueIdentifier>{4620ba8f-5638-4d56-941e-69fc4a4dfc07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\SDIO - SD Card">
+      <UniqueIdentifier>{83c278e5-6b06-4cd0-96fb-2e3c88eb32d7}</UniqueIdentifier>
     </Filter>
     <Filter Include="IPC HLE %28IOS/Starlet%29\USB">
-      <UniqueIdentifier>{321a9af5-9b3d-4620-888c-fe9d02e9559e}</UniqueIdentifier>
+      <UniqueIdentifier>{4a090016-76d5-43dd-95a4-abedfc11ef31}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote">
+      <UniqueIdentifier>{8352be4d-d37d-4f55-adec-b940a9712802}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\JitILCommon">
+      <UniqueIdentifier>{827afa93-1a80-4835-93ae-b5516d95867f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\Jit64Common">
+      <UniqueIdentifier>{81956f71-d9fe-454f-96a6-855195d611c4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BootManager.cpp" />
+    <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="Core.cpp" />
+    <ClCompile Include="CoreParameter.cpp" />
+    <ClCompile Include="CoreTiming.cpp" />
+    <ClCompile Include="ec_wii.cpp" />
+    <ClCompile Include="HotkeyManager.cpp" />
+    <ClCompile Include="MemTools.cpp" />
+    <ClCompile Include="Movie.cpp" />
+    <ClCompile Include="NetPlayClient.cpp" />
+    <ClCompile Include="NetPlayServer.cpp" />
+    <ClCompile Include="PatchEngine.cpp" />
+    <ClCompile Include="State.cpp" />
+    <ClCompile Include="ActionReplay.cpp">
+      <Filter>ActionReplay</Filter>
+    </ClCompile>
+    <ClCompile Include="ARDecrypt.cpp">
+      <Filter>ActionReplay</Filter>
+    </ClCompile>
+    <ClCompile Include="Boot\Boot.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="Boot\Boot_BS2Emu.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="Boot\Boot_DOL.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="Boot\Boot_ELF.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="Boot\Boot_WiiWAD.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="Boot\ElfReader.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugger\Debugger_SymbolMap.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugger\Dump.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugger\PPCDebugInterface.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPIntArithmetic.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPIntBranch.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPIntCCUtil.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPInterpreter.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPIntExtOps.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPIntLoadStore.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPIntMisc.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPIntMultiplier.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPJitArithmetic.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPJitBranch.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPJitCCUtil.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPJitExtOps.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPJitLoadStore.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPJitMisc.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPJitMultiplier.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPJitRegCache.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPJitUtil.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPEmitter.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
+    <ClCompile Include="FifoPlayer\FifoAnalyzer.cpp">
+      <Filter>FifoPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="FifoPlayer\FifoDataFile.cpp">
+      <Filter>FifoPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="FifoPlayer\FifoPlaybackAnalyzer.cpp">
+      <Filter>FifoPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="FifoPlayer\FifoPlayer.cpp">
+      <Filter>FifoPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="FifoPlayer\FifoRecordAnalyzer.cpp">
+      <Filter>FifoPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="FifoPlayer\FifoRecorder.cpp">
+      <Filter>FifoPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="GeckoCode.cpp">
+      <Filter>GeckoCode</Filter>
+    </ClCompile>
+    <ClCompile Include="GeckoCodeConfig.cpp">
+      <Filter>GeckoCode</Filter>
+    </ClCompile>
+    <ClCompile Include="HLE\HLE.cpp">
+      <Filter>HLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HLE\HLE_Misc.cpp">
+      <Filter>HLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HLE\HLE_OS.cpp">
+      <Filter>HLE</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Interpreter\Interpreter.cpp">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Interpreter\Interpreter_Branch.cpp">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Interpreter\Interpreter_FloatingPoint.cpp">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Interpreter\Interpreter_Integer.cpp">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Interpreter\Interpreter_LoadStore.cpp">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Interpreter\Interpreter_LoadStorePaired.cpp">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Interpreter\Interpreter_Paired.cpp">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Interpreter\Interpreter_SystemRegisters.cpp">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Interpreter\Interpreter_Tables.cpp">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit64_Tables.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\AudioInterface.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\StreamADPCM.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DVDInterface.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\AX.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\AXWii.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\CARD.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\GBA.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\INIT.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\ROM.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\Zelda.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaADPCM.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaSynth.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaVoice.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\UCodes.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\DSPHLE.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPHLE\MailHandler.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPLLE\DSPDebugInterface.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPLLE\DSPHost.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPLLE\DSPLLE.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPLLE\DSPLLEGlobals.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPLLE\DSPLLETools.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSPLLE\DSPSymbols.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DSP.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI_Channel.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI_Device.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI_DeviceAD16.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI_DeviceAGP.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI_DeviceAMBaseboard.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI_DeviceEthernet.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI_DeviceGecko.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI_DeviceIPL.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI_DeviceMemoryCard.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI_DeviceMic.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\BBA-TAP\TAP_Win32.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\Sram.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCMemcard.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCMemcardDirectory.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCMemcardRaw.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCPad.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCPadEmu.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GPFifo.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GP - Gather Pipe Fifo</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\MemoryInterface.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\MI - Memory Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\ProcessorInterface.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\PI - Processor Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_Device.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_DeviceAMBaseboard.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_DeviceDanceMat.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_DeviceGBA.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_DeviceGCController.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_DeviceGCSteeringWheel.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_DeviceKeyboard.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\VideoInterface.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Attachment\Attachment.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Attachment\Classic.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Attachment\Drums.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Attachment\Guitar.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Attachment\Nunchuk.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Attachment\Turntable.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\EmuSubroutines.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Encryption.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Speaker.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\WiimoteEmu.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteReal\IOWin.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WII_IPC.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wii IPC</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\CPU.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\HW.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\Memmap.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\MMIO.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SystemTimers.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiiSaveCrypted.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPAssembler.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPAccelerator.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPAnalyzer.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPCaptureLogger.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPCodeUtil.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPCore.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPDisassembler.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSPEmulator.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPHWInterface.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPMemoryMap.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPStacks.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPTables.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\LabelMap.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_DI.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\DI</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_es.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_fs.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Keyboard</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\ICMPWin.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_Socket.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\SDIO - SD Card</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_hid.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WiiMote_HID_Attr.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\Wiimote.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitInterface.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\PowerPC.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\PPCAnalyst.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\PPCCache.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\PPCSymbolDB.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\PPCTables.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Profiler.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\SignatureDB.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitCommon\JitBase.cpp">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitCommon\JitCache.cpp">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitCommon\TrampolineCache.cpp">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64IL\IR_X86.cpp">
+      <Filter>PowerPC\JitIL</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64IL\JitIL.cpp">
+      <Filter>PowerPC\JitIL</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64IL\JitIL_Tables.cpp">
+      <Filter>PowerPC\JitIL</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_SystemRegisters.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_FloatingPoint.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_Integer.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_LoadStore.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_LoadStoreFloating.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_LoadStorePaired.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_Paired.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\JitAsm.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\JitRegCache.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Branch.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitILCommon\JitILBase_FloatingPoint.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Integer.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStore.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStoreFloating.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStorePaired.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Paired.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitILCommon\JitILBase_SystemRegisters.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitILCommon\IR.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCKeyboardEmu.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCKeyboard.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\MMU.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_GCAdapter.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BootManager.h" />
+    <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="Core.h" />
+    <ClInclude Include="CoreParameter.h" />
+    <ClInclude Include="CoreTiming.h" />
+    <ClInclude Include="ec_wii.h" />
+    <ClInclude Include="Host.h" />
+    <ClInclude Include="HotkeyManager.h" />
+    <ClInclude Include="MemTools.h" />
+    <ClInclude Include="Movie.h" />
+    <ClInclude Include="NetPlayClient.h" />
+    <ClInclude Include="NetPlayProto.h" />
+    <ClInclude Include="NetPlayServer.h" />
+    <ClInclude Include="PatchEngine.h" />
+    <ClInclude Include="State.h" />
+    <ClInclude Include="ActionReplay.h">
+      <Filter>ActionReplay</Filter>
+    </ClInclude>
+    <ClInclude Include="ARDecrypt.h">
+      <Filter>ActionReplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Boot\Boot.h">
+      <Filter>Boot</Filter>
+    </ClInclude>
+    <ClInclude Include="Boot\Boot_DOL.h">
+      <Filter>Boot</Filter>
+    </ClInclude>
+    <ClInclude Include="Boot\ElfReader.h">
+      <Filter>Boot</Filter>
+    </ClInclude>
+    <ClInclude Include="Boot\ElfTypes.h">
+      <Filter>Boot</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\Debugger_SymbolMap.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\Dump.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\GCELF.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\PPCDebugInterface.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPIntCCUtil.h">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPInterpreter.h">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPIntExtOps.h">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPIntUtil.h">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\Jit\DSPJitRegCache.h">
+      <Filter>DSPCore\Jit</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPEmitter.h">
+      <Filter>DSPCore\Jit</Filter>
+    </ClInclude>
+    <ClInclude Include="FifoPlayer\FifoAnalyzer.h">
+      <Filter>FifoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="FifoPlayer\FifoDataFile.h">
+      <Filter>FifoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="FifoPlayer\FifoFileStruct.h">
+      <Filter>FifoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="FifoPlayer\FifoPlaybackAnalyzer.h">
+      <Filter>FifoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="FifoPlayer\FifoPlayer.h">
+      <Filter>FifoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="FifoPlayer\FifoRecordAnalyzer.h">
+      <Filter>FifoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="FifoPlayer\FifoRecorder.h">
+      <Filter>FifoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="GeckoCode.h">
+      <Filter>GeckoCode</Filter>
+    </ClInclude>
+    <ClInclude Include="GeckoCodeConfig.h">
+      <Filter>GeckoCode</Filter>
+    </ClInclude>
+    <ClInclude Include="HLE\HLE.h">
+      <Filter>HLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HLE\HLE_Misc.h">
+      <Filter>HLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HLE\HLE_OS.h">
+      <Filter>HLE</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Interpreter\Interpreter.h">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Interpreter\Interpreter_FPUtils.h">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Interpreter\Interpreter_Tables.h">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\Jit.h">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\Jit64_Tables.h">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\AudioInterface.h">
+      <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\StreamADPCM.h">
+      <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DVDInterface.h">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\AX.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\AXVoice.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\AXStructs.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\AXWii.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\CARD.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\GBA.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\INIT.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\ROM.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\Zelda.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\UCodes.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\DSPHLE.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\MailHandler.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPLLE\DSPDebugInterface.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPHost.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPLLE\DSPLLE.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPLLE\DSPLLEGlobals.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPLLE\DSPLLETools.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPLLE\DSPSymbols.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSP.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI_Channel.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI_Device.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI_DeviceAD16.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI_DeviceAGP.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI_DeviceAMBaseboard.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI_DeviceEthernet.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI_DeviceGecko.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI_DeviceIPL.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI_DeviceMemoryCard.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\EXI_DeviceMic.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\BBA-TAP\TAP_Win32.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\Sram.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCMemcard.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCMemcardDirectory.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCMemcardRaw.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCPadEmu.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCPad.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GPFifo.h">
+      <Filter>HW %28Flipper/Hollywood%29\GP - Gather Pipe Fifo</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\MemoryInterface.h">
+      <Filter>HW %28Flipper/Hollywood%29\MI - Memory Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\ProcessorInterface.h">
+      <Filter>HW %28Flipper/Hollywood%29\PI - Processor Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_Device.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_DeviceAMBaseboard.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_DeviceDanceMat.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_DeviceGBA.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_DeviceGCController.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_DeviceGCSteeringWheel.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_DeviceKeyboard.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\VideoInterface.h">
+      <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Attachment\Attachment.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Attachment\Classic.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Attachment\Drums.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Attachment\Guitar.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Attachment\Nunchuk.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Attachment\Turntable.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Encryption.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\MatrixMath.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\WiimoteHid.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteReal\WiimoteReal.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WII_IPC.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wii IPC</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\CPU.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\HW.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\Memmap.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\MMIO.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\MMIOHandlers.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SystemTimers.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiiSaveCrypted.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPAssembler.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPAccelerator.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPAnalyzer.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPBreakpoints.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPCaptureLogger.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPCodeUtil.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPCommon.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPCore.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPDisassembler.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSPEmulator.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPHWInterface.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPMemoryMap.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPStacks.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPTables.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\LabelMap.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE.h">
+      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device.h">
+      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stm.h">
+      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_DI.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\DI</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_es.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_FileIO.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_fs.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Keyboard</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\ICMP.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_net.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_Socket.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\SDIO - SD Card</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_hid.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_WiiMote.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\hci.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\l2cap.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WiiMote_HID_Attr.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\Wiimote.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\CPUCoreBase.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Gekko.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitInterface.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\PowerPC.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\PPCAnalyst.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\PPCCache.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\PPCSymbolDB.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\PPCTables.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Profiler.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitCommon\Jit_Util.h">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitCommon\JitAsmCommon.h">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitCommon\JitBase.h">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitCommon\JitCache.h">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitCommon\TrampolineCache.h">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64IL\JitIL.h">
+      <Filter>PowerPC\JitIL</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64IL\JitIL_Tables.h">
+      <Filter>PowerPC\JitIL</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\JitRegCache.h">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\JitAsm.h">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitILCommon\JitILBase.h">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitILCommon\IR.h">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="MachineContext.h" />
+    <ClInclude Include="HW\GCKeyboardEmu.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCKeyboard.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_GCAdapter.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
 </Project>

@@ -3,7 +3,6 @@
 // Purpose:     generic wxInfoBar class declaration
 // Author:      Vadim Zeitlin
 // Created:     2009-07-28
-// RCS-ID:      $Id: infobar.h 64213 2010-05-05 12:20:08Z VZ $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,6 +78,9 @@ public:
     // setting the font of this window sets it for the text control inside it
     // (default font is a larger and bold version of the normal one)
     virtual bool SetFont(const wxFont& font);
+
+    // same thing with the colour: this affects the text colour
+    virtual bool SetForegroundColour(const wxColor& colour);
 
 protected:
     // info bar shouldn't have any border by default, the colour difference

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     16.05.99
-// RCS-ID:      $Id: winundef.h 63658 2010-03-09 11:08:52Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -248,26 +247,20 @@
 #endif
 
 
-/*
-  When this file is included, sometimes the wxCHECK_W32API_VERSION macro
-  is undefined. With for example CodeWarrior this gives problems with
-  the following code:
-  #if 0 && wxCHECK_W32API_VERSION( 0, 5 )
-  Because CodeWarrior does macro expansion before test evaluation.
-  We define wxCHECK_W32API_VERSION here if it's undefined.
-*/
-#if !defined(__GNUG__) && !defined(wxCHECK_W32API_VERSION)
-    #define wxCHECK_W32API_VERSION(maj, min) (0)
-#endif
-
 // StartDoc
 
 #ifdef StartDoc
    #undef StartDoc
-   #if defined( __GNUG__ ) && !wxCHECK_W32API_VERSION( 0, 5 )
-      #define DOCINFOW DOCINFO
-      #define DOCINFOA DOCINFO
+
+   // Work around a bug in very old MinGW headers that didn't define DOCINFOW
+   // and DOCINFOA but only DOCINFO in both ANSI and Unicode.
+   #if defined( __GNUG__ )
+      #if !wxCHECK_W32API_VERSION( 0, 5 )
+        #define DOCINFOW DOCINFO
+        #define DOCINFOA DOCINFO
+      #endif
    #endif
+
    #ifdef _UNICODE
    inline int StartDoc(HDC h, CONST DOCINFOW* info)
    {

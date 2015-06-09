@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.10.99
-// RCS-ID:      $Id: clipbrd.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

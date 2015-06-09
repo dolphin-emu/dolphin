@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2004-10-29 (from code in wx/mac/carbon/private.h)
-// RCS-ID:      $Id: cfstring.h 64943 2010-07-13 13:29:58Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 // Usage:       Darwin (base library)
@@ -71,8 +70,10 @@ public:
     wxString AsString( wxFontEncoding encoding = wxFONTENCODING_DEFAULT ) const;
 
     static wxString AsString( CFStringRef ref, wxFontEncoding encoding = wxFONTENCODING_DEFAULT ) ;
+    static wxString AsStringWithNormalizationFormC( CFStringRef ref, wxFontEncoding encoding = wxFONTENCODING_DEFAULT ) ;
 #if wxOSX_USE_COCOA_OR_IPHONE
     static wxString AsString( NSString* ref, wxFontEncoding encoding = wxFONTENCODING_DEFAULT ) ;
+    static wxString AsStringWithNormalizationFormC( NSString* ref, wxFontEncoding encoding = wxFONTENCODING_DEFAULT ) ;
 #endif
 
 #if wxOSX_USE_COCOA_OR_IPHONE

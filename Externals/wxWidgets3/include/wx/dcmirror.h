@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     21.07.2003
-// RCS-ID:      $Id: dcmirror.h 61724 2009-08-21 10:41:26Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,6 +65,9 @@ public:
     virtual void SetLogicalFunction(wxRasterOperationMode function)
         { m_dc.SetLogicalFunction(function); }
 
+    virtual void* GetHandle() const
+        { return m_dc.GetHandle(); }
+
 protected:
     // returns x and y if not mirroring or y and x if mirroring
     wxCoord GetX(wxCoord x, wxCoord y) const { return m_mirror ? y : x; }
@@ -79,26 +81,22 @@ protected:
     wxCoord *GetX(wxCoord *x, wxCoord *y) const { return m_mirror ? y : x; }
     wxCoord *GetY(wxCoord *x, wxCoord *y) const { return m_mirror ? x : y; }
 
-    // exchange x and y unconditionally
-    static void Swap(wxCoord& x, wxCoord& y)
-    {
-        wxCoord t = x;
-        x = y;
-        y = t;
-    }
-
     // exchange x and y components of all points in the array if necessary
-    void Mirror(int n, wxPoint points[]) const
+    wxPoint* Mirror(int n, const wxPoint*& points) const
     {
+        wxPoint* points_alloc = NULL;
         if ( m_mirror )
         {
+            points_alloc = new wxPoint[n];
             for ( int i = 0; i < n; i++ )
             {
-                Swap(points[i].x, points[i].y);
+                points_alloc[i].x = points[i].y;
+                points_alloc[i].y = points[i].x;
             }
+            points = points_alloc;
         }
+        return points_alloc;
     }
-
 
     // wxDCBase functions
     virtual bool DoFloodFill(wxCoord x, wxCoord y, const wxColour& col,
@@ -223,28 +221,28 @@ protected:
         m_dc.DoGetSizeMM(GetX(w, h), GetY(w, h));
     }
 
-    virtual void DoDrawLines(int n, wxPoint points[],
+    virtual void DoDrawLines(int n, const wxPoint points[],
                              wxCoord xoffset, wxCoord yoffset)
     {
-        Mirror(n, points);
+        wxPoint* points_alloc = Mirror(n, points);
 
         m_dc.DoDrawLines(n, points,
                          GetX(xoffset, yoffset), GetY(xoffset, yoffset));
 
-        Mirror(n, points);
+        delete[] points_alloc;
     }
 
-    virtual void DoDrawPolygon(int n, wxPoint points[],
+    virtual void DoDrawPolygon(int n, const wxPoint points[],
                                wxCoord xoffset, wxCoord yoffset,
                                wxPolygonFillMode fillStyle = wxODDEVEN_RULE)
     {
-        Mirror(n, points);
+        wxPoint* points_alloc = Mirror(n, points);
 
         m_dc.DoDrawPolygon(n, points,
                            GetX(xoffset, yoffset), GetY(xoffset, yoffset),
                            fillStyle);
 
-        Mirror(n, points);
+        delete[] points_alloc;
     }
 
     virtual void DoSetDeviceClippingRegion(const wxRegion& WXUNUSED(region))

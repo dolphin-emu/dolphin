@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     08.05.02
-// RCS-ID:      $Id: popupwin.cpp 64940 2010-07-13 13:29:13Z VZ $
 // Copyright:   (c) 2002 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -88,6 +87,15 @@ WXHWND wxPopupWindow::MSWGetParent() const
 #else
     return (WXHWND)::GetDesktopWindow();
 #endif
+}
+
+void wxPopupWindow::SetFocus()
+{
+    // Focusing on a popup window does not work on MSW unless WS_POPUP style is
+    // set (which is never the case currently, see the note in MSWGetParent()).
+    // We do not even want to try to set the focus, as it returns an error from
+    // SetFocus() on recent Windows versions (since Vista) and the resulting
+    // debug message is annoying.
 }
 
 bool wxPopupWindow::Show(bool show)

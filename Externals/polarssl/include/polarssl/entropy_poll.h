@@ -29,7 +29,11 @@
 
 #include <string.h>
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -3,7 +3,6 @@
 // Purpose:     wxAnyStrPtr class declaration
 // Author:      Vadim Zeitlin
 // Created:     2009-03-23
-// RCS-ID:      $Id: anystr.h 59829 2009-03-25 09:54:10Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

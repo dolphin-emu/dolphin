@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: glcanvas.mm 67243 2011-03-19 08:36:23Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -142,15 +141,13 @@
 - (void) setContext:(EAGLContext*) ctx {
     context = ctx;
     [EAGLContext setCurrentContext:ctx];
-#if 0
-    CGRect newRect = [self frame];
-    if ( /* (CGRectEqualToRect(newRect, oldRect) == NO && ![self isHidden] && newRect.size.width > 0 && newRect.size.height > 0 ) 
-        || */ viewFramebuffer == 0 )
+
+    if ( viewFramebuffer == 0 )
     {
         [self destroyFramebuffer];
         [self createFramebuffer];        
     }
-#endif
+
     glBindFramebufferOES(GL_FRAMEBUFFER_OES, viewFramebuffer);
 }
  

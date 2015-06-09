@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-07-12
-// RCS-ID:      $Id: helpwce.cpp 57873 2009-01-07 01:47:47Z FM $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

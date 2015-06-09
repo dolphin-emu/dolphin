@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: 20.11.99 (VZ): don't derive from wxBitmap any more
 // Created:     04/01/98
-// RCS-ID:      $Id: icon.cpp 61508 2009-07-23 20:30:22Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -155,4 +154,15 @@ bool wxIcon::LoadFile(const wxString& filename,
     }
 
     return handler->Load(this, filename, type, desiredWidth, desiredHeight);
+}
+
+bool wxIcon::CreateFromHICON(WXHICON icon)
+{
+    SetHICON(icon);
+    if ( !IsOk() )
+        return false;
+
+    SetSize(wxGetHiconSize(icon));
+
+    return true;
 }

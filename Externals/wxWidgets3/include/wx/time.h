@@ -3,7 +3,6 @@
 // Purpose:     Miscellaneous time-related functions.
 // Author:      Vadim Zeitlin
 // Created:     2011-11-26
-// RCS-ID:      $Id: time.h 69846 2011-11-27 20:28:43Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

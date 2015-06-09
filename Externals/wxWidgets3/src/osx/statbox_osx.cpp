@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: statbox_osx.cpp 67243 2011-03-19 08:36:23Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,29 +39,18 @@ bool wxStaticBox::Create( wxWindow *parent,
 
 void wxStaticBox::GetBordersForSizer(int *borderTop, int *borderOther) const
 {
-    static int extraTop = -1; // Uninitted
-    static int other = 5;
-
-    if ( extraTop == -1 )
-    {
-        // The minimal border used for the top.
-        // Later on, the staticbox's font height is added to this.
-        extraTop = 0;
-
-        // As indicated by the HIG, Panther needs an extra border of 11
-        // pixels (otherwise overlapping occurs at the top). The "other"
-        // border has to be 11.
-        extraTop = 11;
-#if wxOSX_USE_COCOA
-        other = 17;
-#else
-        other = 11;
-#endif
-    }
+    static int extraTop = 11; 
+    static int other = 11;
 
     *borderTop = extraTop;
     if ( !m_label.empty() )
+    {
+#if wxOSX_USE_COCOA
+        *borderTop += 11;
+#else
         *borderTop += GetCharHeight();
+#endif
+    }
 
     *borderOther = other;
 }

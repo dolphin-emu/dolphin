@@ -3,7 +3,6 @@
 // Purpose:     Win32 implementation of wxTlsValue<>
 // Author:      Vadim Zeitlin
 // Created:     2008-08-08
-// RCS-ID:      $Id: tls.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

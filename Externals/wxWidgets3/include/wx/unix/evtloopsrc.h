@@ -3,7 +3,6 @@
 // Purpose:     wxUnixEventLoopSource class
 // Author:      Vadim Zeitlin
 // Created:     2009-10-21
-// RCS-ID:      $Id: evtloopsrc.h 64140 2010-04-25 21:33:16Z FM $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

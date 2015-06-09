@@ -4,7 +4,6 @@
 // Author:      Royce Mitchell III, Vadim Zeitlin
 // Modified by: Ryan Norton (IsPrimary override)
 // Created:     06/21/02
-// RCS-ID:      $Id: display.cpp 69171 2011-09-21 15:07:35Z VZ $
 // Copyright:   (c) wxWidgets team
 // Copyright:   (c) 2002-2006 wxWidgets team
 // Licence:     wxWindows licence
@@ -35,7 +34,7 @@
     #include "wx/frame.h"
 #endif
 
-#include "wx/dynload.h"
+#include "wx/dynlib.h"
 #include "wx/sysopt.h"
 
 #include "wx/display_impl.h"
@@ -431,7 +430,7 @@ bool wxDisplayMSW::ChangeMode(const wxVideoMode& mode)
     // do change the mode
     switch ( pfnChangeDisplaySettingsEx
              (
-                GetName().wx_str(), // display name
+                GetName().t_str(),  // display name
                 pDevMode,           // dev mode or NULL to reset
                 NULL,               // reserved
                 flags,
@@ -608,8 +607,34 @@ int wxDisplayFactoryMSW::GetFromPoint(const wxPoint& pt)
 
 int wxDisplayFactoryMSW::GetFromWindow(const wxWindow *window)
 {
+#ifdef __WXMSW__
     return FindDisplayFromHMONITOR(gs_MonitorFromWindow(GetHwndOf(window),
                                                         MONITOR_DEFAULTTONULL));
+#else
+    const wxSize halfsize = window->GetSize() / 2;
+    wxPoint pt = window->GetScreenPosition();
+    pt.x += halfsize.x;
+    pt.y += halfsize.y;
+    return GetFromPoint(pt);
+#endif
 }
 
 #endif // wxUSE_DISPLAY
+
+void wxClientDisplayRect(int *x, int *y, int *width, int *height)
+{
+#if defined(__WXMICROWIN__)
+    *x = 0; *y = 0;
+    wxDisplaySize(width, height);
+#else
+    // Determine the desktop dimensions minus the taskbar and any other
+    // special decorations...
+    RECT r;
+
+    SystemParametersInfo(SPI_GETWORKAREA, 0, &r, 0);
+    if (x)      *x = r.left;
+    if (y)      *y = r.top;
+    if (width)  *width = r.right - r.left;
+    if (height) *height = r.bottom - r.top;
+#endif
+}

@@ -3,7 +3,6 @@
 // Purpose:     wxGenericFileCtrl Implementation
 // Author:      Diaa M. Sami
 // Created:     2007-07-07
-// RCS-ID:      $Id: filectrlg.cpp 70808 2012-03-04 20:31:42Z VZ $
 // Copyright:   (c) Diaa M. Sami
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -223,32 +222,39 @@ void wxFileData::ReadData()
     wxStructStat buff;
 
 #if defined(__UNIX__) && (!defined( __OS2__ ) && !defined(__VMS))
-    lstat( m_filePath.fn_str(), &buff );
-    m_type |= S_ISLNK(buff.st_mode) ? is_link : 0;
+    const bool hasStat = lstat( m_filePath.fn_str(), &buff ) == 0;
+    if ( hasStat )
+        m_type |= S_ISLNK(buff.st_mode) ? is_link : 0;
 #else // no lstat()
-    wxStat( m_filePath, &buff );
+    const bool hasStat = wxStat( m_filePath, &buff ) == 0;
 #endif
 
-    m_type |= (buff.st_mode & S_IFDIR) != 0 ? is_dir : 0;
-    m_type |= (buff.st_mode & wxS_IXUSR) != 0 ? is_exe : 0;
+    if ( hasStat )
+    {
+        m_type |= (buff.st_mode & S_IFDIR) != 0 ? is_dir : 0;
+        m_type |= (buff.st_mode & wxS_IXUSR) != 0 ? is_exe : 0;
 
-    m_size = buff.st_size;
+        m_size = buff.st_size;
 
-    m_dateTime = buff.st_mtime;
+        m_dateTime = buff.st_mtime;
+    }
 #endif
     // __WXWINCE__
 
 #if defined(__UNIX__)
-    m_permissions.Printf(wxT("%c%c%c%c%c%c%c%c%c"),
-                         buff.st_mode & wxS_IRUSR ? wxT('r') : wxT('-'),
-                         buff.st_mode & wxS_IWUSR ? wxT('w') : wxT('-'),
-                         buff.st_mode & wxS_IXUSR ? wxT('x') : wxT('-'),
-                         buff.st_mode & wxS_IRGRP ? wxT('r') : wxT('-'),
-                         buff.st_mode & wxS_IWGRP ? wxT('w') : wxT('-'),
-                         buff.st_mode & wxS_IXGRP ? wxT('x') : wxT('-'),
-                         buff.st_mode & wxS_IROTH ? wxT('r') : wxT('-'),
-                         buff.st_mode & wxS_IWOTH ? wxT('w') : wxT('-'),
-                         buff.st_mode & wxS_IXOTH ? wxT('x') : wxT('-'));
+    if ( hasStat )
+    {
+        m_permissions.Printf(wxT("%c%c%c%c%c%c%c%c%c"),
+                             buff.st_mode & wxS_IRUSR ? wxT('r') : wxT('-'),
+                             buff.st_mode & wxS_IWUSR ? wxT('w') : wxT('-'),
+                             buff.st_mode & wxS_IXUSR ? wxT('x') : wxT('-'),
+                             buff.st_mode & wxS_IRGRP ? wxT('r') : wxT('-'),
+                             buff.st_mode & wxS_IWGRP ? wxT('w') : wxT('-'),
+                             buff.st_mode & wxS_IXGRP ? wxT('x') : wxT('-'),
+                             buff.st_mode & wxS_IROTH ? wxT('r') : wxT('-'),
+                             buff.st_mode & wxS_IWOTH ? wxT('w') : wxT('-'),
+                             buff.st_mode & wxS_IXOTH ? wxT('x') : wxT('-'));
+    }
 #elif defined(__WIN32__)
     DWORD attribs = ::GetFileAttributes(m_filePath.c_str());
     if (attribs != (DWORD)-1)
@@ -883,9 +889,9 @@ wxFileListCtrl::~wxFileListCtrl()
 // wxGenericFileCtrl implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-IMPLEMENT_DYNAMIC_CLASS( wxGenericFileCtrl, wxPanel )
+IMPLEMENT_DYNAMIC_CLASS( wxGenericFileCtrl, wxNavigationEnabled<wxControl> )
 
-BEGIN_EVENT_TABLE( wxGenericFileCtrl, wxPanel )
+BEGIN_EVENT_TABLE( wxGenericFileCtrl, wxNavigationEnabled<wxControl> )
     EVT_LIST_ITEM_SELECTED( ID_FILELIST_CTRL, wxGenericFileCtrl::OnSelected )
     EVT_LIST_ITEM_ACTIVATED( ID_FILELIST_CTRL, wxGenericFileCtrl::OnActivated )
     EVT_CHOICE( ID_CHOICE, wxGenericFileCtrl::OnChoiceFilter )
@@ -916,7 +922,11 @@ bool wxGenericFileCtrl::Create( wxWindow *parent,
     wxASSERT_MSG( !( ( m_style & wxFC_SAVE ) && ( m_style & wxFC_MULTIPLE ) ),
                   wxT( "wxFC_MULTIPLE can't be used with wxFC_SAVE" ) );
 
-    wxPanel::Create( parent, id, pos, size, wxTAB_TRAVERSAL, name );
+    wxNavigationEnabled<wxControl>::Create( parent, id,
+                                            pos, size,
+                                            wxTAB_TRAVERSAL,
+                                            wxDefaultValidator,
+                                            name );
 
     m_dir = defaultDirectory;
 

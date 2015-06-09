@@ -2,12 +2,14 @@
 // Name:        src/gtk/assertdlg_gtk.cpp
 // Purpose:     GtkAssertDialog
 // Author:      Francesco Montorsi
-// Id:          $Id: assertdlg_gtk.cpp 69697 2011-11-08 11:02:02Z VZ $
 // Copyright:   (c) 2006 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////// */
 
-#include "wx/platform.h"
+#include "wx/wxprec.h"
+
+#if wxDEBUG_LEVEL
+
 #include <gtk/gtk.h>
 #include "wx/gtk/assertdlg_gtk.h"
 #include "wx/gtk/private/gtk2-compat.h"
@@ -23,18 +25,15 @@
        in gtk_assert_dialog_create_backtrace_list_model() function
  */
 #define STACKFRAME_LEVEL_COLIDX        0
-#define FUNCTION_NAME_COLIDX           1
+#define FUNCTION_PROTOTYPE_COLIDX      1
 #define SOURCE_FILE_COLIDX             2
 #define LINE_NUMBER_COLIDX             3
-#define FUNCTION_ARGS_COLIDX           4
-
-
-
 
 /* ----------------------------------------------------------------------------
    GtkAssertDialog helpers
  ---------------------------------------------------------------------------- */
 
+static
 GtkWidget *gtk_assert_dialog_add_button_to (GtkBox *box, const gchar *label,
                                             const gchar *stock)
 {
@@ -44,9 +43,7 @@ GtkWidget *gtk_assert_dialog_add_button_to (GtkBox *box, const gchar *label,
 
     /* add a stock icon inside it */
     GtkWidget *image = gtk_image_new_from_stock (stock, GTK_ICON_SIZE_BUTTON);
-#if GTK_CHECK_VERSION(2,6,0)
     gtk_button_set_image (GTK_BUTTON (button), image);
-#endif
 
     /* add to the given (container) widget */
     if (box)
@@ -55,6 +52,7 @@ GtkWidget *gtk_assert_dialog_add_button_to (GtkBox *box, const gchar *label,
     return button;
 }
 
+static
 GtkWidget *gtk_assert_dialog_add_button (GtkAssertDialog *dlg, const gchar *label,
                                          const gchar *stock, gint response_id)
 {
@@ -67,6 +65,9 @@ GtkWidget *gtk_assert_dialog_add_button (GtkAssertDialog *dlg, const gchar *labe
     return button;
 }
 
+#if wxUSE_STACKWALKER
+
+static
 void gtk_assert_dialog_append_text_column (GtkWidget *treeview, const gchar *name, int index)
 {
     GtkCellRenderer *renderer;
@@ -80,18 +81,18 @@ void gtk_assert_dialog_append_text_column (GtkWidget *treeview, const gchar *nam
     gtk_tree_view_column_set_reorderable (column, TRUE);
 }
 
+static
 GtkWidget *gtk_assert_dialog_create_backtrace_list_model ()
 {
     GtkListStore *store;
     GtkWidget *treeview;
 
     /* create list store */
-    store = gtk_list_store_new (5,
+    store = gtk_list_store_new (4,
                                 G_TYPE_UINT,        /* stack frame number */
-                                G_TYPE_STRING,      /* function name      */
+                                G_TYPE_STRING,      /* function prototype */
                                 G_TYPE_STRING,      /* source file name   */
-                                G_TYPE_STRING,      /* line number        */
-                                G_TYPE_STRING);     /* function arguments */
+                                G_TYPE_STRING);     /* line number        */
 
     /* create the tree view */
     treeview = gtk_tree_view_new_with_model (GTK_TREE_MODEL(store));
@@ -100,14 +101,14 @@ GtkWidget *gtk_assert_dialog_create_backtrace_list_model ()
 
     /* append columns */
     gtk_assert_dialog_append_text_column(treeview, "#", STACKFRAME_LEVEL_COLIDX);
-    gtk_assert_dialog_append_text_column(treeview, "Function name", FUNCTION_NAME_COLIDX);
-    gtk_assert_dialog_append_text_column(treeview, "Function args", FUNCTION_ARGS_COLIDX);
+    gtk_assert_dialog_append_text_column(treeview, "Function Prototype", FUNCTION_PROTOTYPE_COLIDX);
     gtk_assert_dialog_append_text_column(treeview, "Source file", SOURCE_FILE_COLIDX);
     gtk_assert_dialog_append_text_column(treeview, "Line #", LINE_NUMBER_COLIDX);
 
     return treeview;
 }
 
+static
 void gtk_assert_dialog_process_backtrace (GtkAssertDialog *dlg)
 {
     /* set busy cursor */
@@ -120,10 +121,12 @@ void gtk_assert_dialog_process_backtrace (GtkAssertDialog *dlg)
 
     /* toggle busy cursor */
     gdk_window_set_cursor (parent, NULL);
+#ifdef __WXGTK3__
+    g_object_unref(cur);
+#else
     gdk_cursor_unref (cur);
+#endif
 }
-
-
 
 extern "C" {
 /* ----------------------------------------------------------------------------
@@ -208,7 +211,11 @@ static void gtk_assert_dialog_copy_callback(GtkWidget*, GtkAssertDialog* dlg)
     g_free (backtrace);
     g_string_free (str, TRUE);
 }
+} // extern "C"
 
+#endif // wxUSE_STACKWALKER
+
+extern "C" {
 static void gtk_assert_dialog_continue_callback(GtkWidget*, GtkAssertDialog* dlg)
 {
     gint response =
@@ -223,9 +230,9 @@ static void gtk_assert_dialog_continue_callback(GtkWidget*, GtkAssertDialog* dlg
    GtkAssertDialogClass implementation
  ---------------------------------------------------------------------------- */
 
-static void     gtk_assert_dialog_init              (GtkAssertDialog        *self);
-static void     gtk_assert_dialog_class_init        (GtkAssertDialogClass *klass);
-
+extern "C" {
+static void gtk_assert_dialog_init(GTypeInstance* instance, void*);
+}
 
 GType gtk_assert_dialog_get_type()
 {
@@ -238,12 +245,12 @@ GType gtk_assert_dialog_get_type()
             sizeof (GtkAssertDialogClass),
             NULL,           /* base_init */
             NULL,           /* base_finalize */
-            (GClassInitFunc) gtk_assert_dialog_class_init,
+            NULL,
             NULL,           /* class_finalize */
             NULL,           /* class_data */
             sizeof (GtkAssertDialog),
             16,             /* n_preallocs */
-            (GInstanceInitFunc) gtk_assert_dialog_init,
+            gtk_assert_dialog_init,
             NULL
         };
         assert_dialog_type = g_type_register_static (GTK_TYPE_DIALOG, "GtkAssertDialog", &assert_dialog_info, (GTypeFlags)0);
@@ -252,13 +259,10 @@ GType gtk_assert_dialog_get_type()
     return assert_dialog_type;
 }
 
-static void gtk_assert_dialog_class_init(GtkAssertDialogClass*)
+extern "C" {
+static void gtk_assert_dialog_init(GTypeInstance* instance, void*)
 {
-    /* no special initializations required */
-}
-
-static void gtk_assert_dialog_init(GtkAssertDialog* dlg)
-{
+    GtkAssertDialog* dlg = GTK_ASSERT_DIALOG(instance);
     GtkWidget *continuebtn;
 
     {
@@ -266,13 +270,13 @@ static void gtk_assert_dialog_init(GtkAssertDialog* dlg)
 
         /* start the main vbox */
         gtk_widget_push_composite_child ();
-        vbox = gtk_vbox_new (FALSE, 8);
+        vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
         gtk_container_set_border_width (GTK_CONTAINER(vbox), 8);
         gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dlg))), vbox, true, true, 5);
 
 
         /* add the icon+message hbox */
-        hbox = gtk_hbox_new (FALSE, 0);
+        hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
         gtk_box_pack_start (GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
         /* icon */
@@ -283,7 +287,7 @@ static void gtk_assert_dialog_init(GtkAssertDialog* dlg)
             GtkWidget *vbox2, *info;
 
             /* message */
-            vbox2 = gtk_vbox_new (FALSE, 0);
+            vbox2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
             gtk_box_pack_start (GTK_BOX (hbox), vbox2, TRUE, TRUE, 0);
             info = gtk_label_new ("An assertion failed!");
             gtk_box_pack_start (GTK_BOX(vbox2), info, TRUE, TRUE, 8);
@@ -298,18 +302,20 @@ static void gtk_assert_dialog_init(GtkAssertDialog* dlg)
             gtk_box_pack_end (GTK_BOX(vbox2), GTK_WIDGET(dlg->message), TRUE, TRUE, 8);
         }
 
+#if wxUSE_STACKWALKER
         /* add the expander */
         dlg->expander = gtk_expander_new_with_mnemonic ("Back_trace:");
         gtk_box_pack_start (GTK_BOX(vbox), dlg->expander, TRUE, TRUE, 0);
-        g_signal_connect (GTK_EXPANDER(dlg->expander), "activate",
+        g_signal_connect (dlg->expander, "activate",
                             G_CALLBACK(gtk_assert_dialog_expander_callback), dlg);
+#endif // wxUSE_STACKWALKER
     }
-
+#if wxUSE_STACKWALKER
     {
         GtkWidget *hbox, *vbox, *button, *sw;
 
         /* create expander's vbox */
-        vbox = gtk_vbox_new (FALSE, 0);
+        vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
         gtk_container_add (GTK_CONTAINER (dlg->expander), vbox);
 
         /* add a scrollable window under the expander */
@@ -325,7 +331,7 @@ static void gtk_assert_dialog_init(GtkAssertDialog* dlg)
         gtk_container_add (GTK_CONTAINER (sw), dlg->treeview);
 
         /* create button's hbox */
-        hbox = gtk_hbutton_box_new ();
+        hbox = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
         gtk_box_pack_end (GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
         gtk_button_box_set_layout (GTK_BUTTON_BOX(hbox), GTK_BUTTONBOX_END);
 
@@ -339,6 +345,7 @@ static void gtk_assert_dialog_init(GtkAssertDialog* dlg)
                                                   GTK_STOCK_COPY);
         g_signal_connect (button, "clicked", G_CALLBACK(gtk_assert_dialog_copy_callback), dlg);
     }
+#endif // wxUSE_STACKWALKER
 
     /* add the checkbutton */
     dlg->shownexttime = gtk_check_button_new_with_mnemonic("Show this _dialog the next time");
@@ -363,8 +370,7 @@ static void gtk_assert_dialog_init(GtkAssertDialog* dlg)
     gtk_widget_pop_composite_child ();
     gtk_widget_show_all (GTK_WIDGET(dlg));
 }
-
-
+}
 
 /* ----------------------------------------------------------------------------
    GtkAssertDialog public API
@@ -379,9 +385,11 @@ gchar *gtk_assert_dialog_get_message (GtkAssertDialog *dlg)
     return g_strdup (gtk_label_get_text (GTK_LABEL(dlg->message)));
 }
 
+#if wxUSE_STACKWALKER
+
 gchar *gtk_assert_dialog_get_backtrace (GtkAssertDialog *dlg)
 {
-    gchar *function, *arguments, *sourcefile, *linenum;
+    gchar *function, *sourcefile, *linenum;
     guint count;
 
     GtkTreeModel *model;
@@ -399,16 +407,15 @@ gchar *gtk_assert_dialog_get_backtrace (GtkAssertDialog *dlg)
     do
     {
         /* append this stack frame's info to the string */
-        gtk_tree_model_get (model, &iter,
+        gtk_tree_model_get(model, &iter,
                             STACKFRAME_LEVEL_COLIDX, &count,
-                            FUNCTION_NAME_COLIDX, &function,
-                            FUNCTION_ARGS_COLIDX, &arguments,
+                            FUNCTION_PROTOTYPE_COLIDX, &function,
                             SOURCE_FILE_COLIDX, &sourcefile,
                             LINE_NUMBER_COLIDX, &linenum,
                             -1);
 
-        g_string_append_printf (string, "[%u] %s(%s)",
-                                count, function, arguments);
+        g_string_append_printf(string, "[%u] %s",
+                                count, function);
         if (sourcefile[0] != '\0')
             g_string_append_printf (string, " %s", sourcefile);
         if (linenum[0] != '\0')
@@ -416,7 +423,6 @@ gchar *gtk_assert_dialog_get_backtrace (GtkAssertDialog *dlg)
         g_string_append (string, "\n");
 
         g_free (function);
-        g_free (arguments);
         g_free (sourcefile);
         g_free (linenum);
 
@@ -425,6 +431,8 @@ gchar *gtk_assert_dialog_get_backtrace (GtkAssertDialog *dlg)
     /* returned string must g_free()d */
     return g_string_free (string, FALSE);
 }
+
+#endif // wxUSE_STACKWALKER
 
 void gtk_assert_dialog_set_message(GtkAssertDialog *dlg, const gchar *msg)
 {
@@ -441,6 +449,8 @@ void gtk_assert_dialog_set_message(GtkAssertDialog *dlg, const gchar *msg)
     g_free (escaped_msg);
 }
 
+#if wxUSE_STACKWALKER
+
 void gtk_assert_dialog_set_backtrace_callback(GtkAssertDialog *assertdlg,
                                               GtkAssertDialogStackFrameCallback callback,
                                               void *userdata)
@@ -451,7 +461,6 @@ void gtk_assert_dialog_set_backtrace_callback(GtkAssertDialog *assertdlg,
 
 void gtk_assert_dialog_append_stack_frame(GtkAssertDialog *dlg,
                                           const gchar *function,
-                                          const gchar *arguments,
                                           const gchar *sourcefile,
                                           guint line_number)
 {
@@ -474,8 +483,7 @@ void gtk_assert_dialog_append_stack_frame(GtkAssertDialog *dlg,
     gtk_list_store_append (GTK_LIST_STORE(model), &iter);
     gtk_list_store_set (GTK_LIST_STORE(model), &iter,
                         STACKFRAME_LEVEL_COLIDX, count+1,     /* start from 1 and not from 0 */
-                        FUNCTION_NAME_COLIDX, function,
-                        FUNCTION_ARGS_COLIDX, arguments,
+                        FUNCTION_PROTOTYPE_COLIDX, function,
                         SOURCE_FILE_COLIDX, sourcefile,
                         LINE_NUMBER_COLIDX, linenum->str,
                         -1);
@@ -483,9 +491,13 @@ void gtk_assert_dialog_append_stack_frame(GtkAssertDialog *dlg,
     g_string_free (linenum, TRUE);
 }
 
+#endif // wxUSE_STACKWALKER
+
 GtkWidget *gtk_assert_dialog_new(void)
 {
     void* dialog = g_object_new(GTK_TYPE_ASSERT_DIALOG, NULL);
 
     return GTK_WIDGET (dialog);
 }
+
+#endif // wxDEBUG_LEVEL

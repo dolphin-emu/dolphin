@@ -4,7 +4,6 @@
 // Author:      Ove Kaven
 // Modified by: Ron Lee, Francesco Montorsi
 // Created:     09/04/99
-// RCS-ID:      $Id: wxprintf.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) wxWidgets copyright
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,11 +20,6 @@
 #include "wx/utils.h"
 
 #include <string.h>
-
-#if defined(__MWERKS__) && __MSL__ >= 0x6000
-namespace std {}
-using namespace std ;
-#endif
 
 // prefer snprintf over sprintf
 #if defined(__VISUALC__) || \

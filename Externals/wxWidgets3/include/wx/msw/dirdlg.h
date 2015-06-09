@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dirdlg.h 52834 2008-03-26 15:06:00Z FM $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,6 +27,11 @@ public:
     virtual int ShowModal();
 
 private:
+    // The real implementations of ShowModal(), used for Windows versions
+    // before and since Vista.
+    int ShowSHBrowseForFolder(WXHWND owner);
+    int ShowIFileDialog(WXHWND owner);
+
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxDirDialog)
 };
 

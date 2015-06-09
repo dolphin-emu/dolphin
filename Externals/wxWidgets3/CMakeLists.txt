@@ -1,4 +1,4 @@
-# gtk, msw, osx and shared files as of r70933
+# gtk, msw, osx and shared files as of r75363
 
 set(SRCS_AUI
 	"src/aui/auibar.cpp"
@@ -6,6 +6,7 @@ set(SRCS_AUI
 	"src/aui/dockart.cpp"
 	"src/aui/floatpane.cpp"
 	"src/aui/framemanager.cpp"
+	"src/aui/tabart.cpp"
 	"src/aui/tabmdi.cpp")
 
 set(SRCS_COMMON
@@ -151,6 +152,7 @@ set(SRCS_COMMON
 	#"src/common/memory.cpp"
 	"src/common/menucmn.cpp"
 	"src/common/mimecmn.cpp"
+	"src/common/modalhook.cpp"
 	"src/common/module.cpp"
 	"src/common/mousemanager.cpp"
 	"src/common/msgout.cpp"
@@ -168,6 +170,7 @@ set(SRCS_COMMON
 	"src/common/platinfo.cpp"
 	"src/common/popupcmn.cpp"
 	"src/common/powercmn.cpp"
+	"src/common/preferencescmn.cpp"
 	"src/common/prntbase.cpp"
 	"src/common/process.cpp"
 	"src/common/protocol.cpp"
@@ -216,6 +219,8 @@ set(SRCS_COMMON
 	"src/common/textcmn.cpp"
 	"src/common/textentrycmn.cpp"
 	"src/common/textfile.cpp"
+	"src/common/textmeasurecmn.cpp"
+	"src/common/threadinfo.cpp"
 	"src/common/time.cpp"
 	"src/common/timercmn.cpp"
 	"src/common/timerimpl.cpp"
@@ -236,6 +241,7 @@ set(SRCS_COMMON
 	"src/common/valtext.cpp"
 	"src/common/variant.cpp"
 	#"src/common/webview.cpp"
+	#"src/common/webviewfshandler.cpp"
 	"src/common/wfstream.cpp"
 	"src/common/wincmn.cpp"
 	"src/common/windowid.cpp"
@@ -317,6 +323,7 @@ set(SRCS_GENERIC
 	"src/generic/statusbr.cpp"
 	"src/generic/tabg.cpp"
 	"src/generic/textdlgg.cpp"
+	"src/generic/textmeasure.cpp"
 	"src/generic/timectrlg.cpp"
 	#"src/generic/timer.cpp"
 	"src/generic/tipdlg.cpp"
@@ -333,7 +340,8 @@ set(SRCS_GENERICGTK
 	"src/generic/accel.cpp"
 	"src/generic/icon.cpp"
 	"src/generic/imaglist.cpp"
-	"src/generic/paletteg.cpp")
+	"src/generic/paletteg.cpp"
+	"src/generic/preferencesg.cpp")
 
 set(SRCS_GENERICOSX
 	"src/generic/animateg.cpp"
@@ -345,6 +353,7 @@ set(SRCS_GENERICOSX
 	"src/generic/fontpickerg.cpp")
 
 set(SRCS_GTK
+	"src/aui/tabartgtk.cpp"
 	"src/gtk/aboutdlg.cpp"
 	"src/gtk/animate.cpp"
 	"src/gtk/anybutton.cpp"
@@ -403,6 +412,7 @@ set(SRCS_GTK
 	"src/gtk/nativewin.cpp"
 	"src/gtk/nonownedwnd.cpp"
 	"src/gtk/notebook.cpp"
+	"src/gtk/notifmsg.cpp"
 	"src/gtk/pen.cpp"
 	"src/gtk/popupwin.cpp"
 	#"src/gtk/print.cpp"
@@ -425,6 +435,7 @@ set(SRCS_GTK
 	"src/gtk/taskbar.cpp"
 	"src/gtk/textctrl.cpp"
 	"src/gtk/textentry.cpp"
+	"src/gtk/textmeasure.cpp"
 	"src/gtk/tglbtn.cpp"
 	"src/gtk/timer.cpp"
 	"src/gtk/toolbar.cpp"
@@ -483,6 +494,7 @@ set(SRCS_MSW
 	"src/msw/dragimag.cpp"
 	"src/msw/enhmeta.cpp"
 	"src/msw/evtloop.cpp"
+	#"src/msw/evtloopconsole.cpp"
 	"src/msw/fdrepdlg.cpp"
 	"src/msw/filedlg.cpp"
 	"src/msw/font.cpp"
@@ -533,6 +545,7 @@ set(SRCS_MSW
 	"src/msw/ole/dropsrc.cpp"
 	"src/msw/ole/droptgt.cpp"
 	"src/msw/ole/oleutils.cpp"
+	"src/msw/ole/safearray.cpp"
 	"src/msw/ole/uuid.cpp"
 	"src/msw/ownerdrw.cpp"
 	"src/msw/palette.cpp"
@@ -559,7 +572,7 @@ set(SRCS_MSW
 	"src/msw/sound.cpp"
 	"src/msw/spinbutt.cpp"
 	"src/msw/spinctrl.cpp"
-	#"src/msw/stackwalk.cpp"
+	"src/msw/stackwalk.cpp"
 	"src/msw/statbmp.cpp"
 	"src/msw/statbox.cpp"
 	"src/msw/statline.cpp"
@@ -569,6 +582,7 @@ set(SRCS_MSW
 	"src/msw/taskbar.cpp"
 	"src/msw/textctrl.cpp"
 	"src/msw/textentry.cpp"
+	"src/msw/textmeasure.cpp"
 	"src/msw/tglbtn.cpp"
 	"src/msw/thread.cpp"
 	"src/msw/timectrl.cpp"
@@ -582,6 +596,7 @@ set(SRCS_MSW
 	"src/msw/utils.cpp"
 	"src/msw/utilsexc.cpp"
 	"src/msw/utilsgui.cpp"
+	"src/msw/utilswin.cpp"
 	"src/msw/uxtheme.cpp"
 	"src/msw/version.rc"
 	"src/msw/volume.cpp"
@@ -635,7 +650,6 @@ set(SRCS_OSX
 	"src/osx/slider_osx.cpp"
 	"src/osx/sound_osx.cpp"
 	"src/osx/spinbutt_osx.cpp"
-	"src/osx/spinctrl_osx.cpp"
 	"src/osx/srchctrl_osx.cpp"
 	"src/osx/statbox_osx.cpp"
 	"src/osx/statline_osx.cpp"
@@ -816,11 +830,12 @@ set(SRCS_UNIX
 	#"src/unix/net.cpp"
 	"src/unix/snglinst.cpp"
 	"src/unix/sockunix.cpp"
-	#"src/unix/stackwalk.cpp"
+	"src/unix/stackwalk.cpp"
 	"src/unix/stdpaths.cpp"
 	"src/unix/threadpsx.cpp"
 	"src/unix/timerunx.cpp"
-	"src/unix/utilsunx.cpp")
+	"src/unix/utilsunx.cpp"
+	"src/unix/wakeuppipe.cpp")
 
 set(SRCS_UNIXGTK
 	"src/unix/dialup.cpp"
@@ -846,15 +861,14 @@ set(SRCS
 	${SRCS_COMMON}
 	${SRCS_GENERIC})
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98")
 	add_definitions(-D__WXOSX_COCOA__)
 	set(SRCS
 		${SRCS}
 		${SRCS_GENERICOSX}
 		${SRCS_OSX}
 		${SRCS_UNIX})
-	include_directories(../libpng)
-	add_subdirectory(../libpng ../libpng)
 	set(LIBS
 		png
 		iconv
@@ -866,8 +880,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		${COREFUND_LIBRARY}
 		${CORESERV_LIBRARY}
 		${IOK_LIBRARY}
+		${OPENGL_LIBRARY}
 		${QUICKTIME_LIBRARY})
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 	add_definitions(-D__WXGTK__)
 	set(SRCS
 		${SRCS}
@@ -888,8 +904,8 @@ else()
 endif()
 
 add_definitions(-DWXBUILDING)
-add_definitions(-Wno-deprecated-declarations)
-add_definitions(-Wno-shadow)
+# wxWidgets warnings are not our problem.
+add_definitions(-w)
 
 enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
 add_library(wx STATIC ${PNG_SRCS} ${SRCS})

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin, Robert Roebling
 // Modified by:
 // Created:     19.10.99
-// RCS-ID:      $Id: dobjcmn.cpp 70908 2012-03-15 13:49:49Z VZ $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,6 +22,8 @@
 #ifndef WX_PRECOMP
     #include "wx/app.h"
 #endif
+
+#include "wx/textbuf.h"
 
 // ----------------------------------------------------------------------------
 // lists
@@ -299,13 +300,14 @@ bool wxTextDataObject::SetData(const wxDataFormat& format,
 
 size_t wxTextDataObject::GetDataSize(const wxDataFormat& format) const
 {
+    const wxString& text = GetText();
     if ( format == wxDF_UNICODETEXT || wxLocaleIsUtf8 )
     {
-        return m_text.utf8_length();
+        return text.utf8_length();
     }
     else // wxDF_TEXT
     {
-        const wxCharBuffer buf(wxConvLocal.cWC2MB(m_text.wc_str()));
+        const wxCharBuffer buf(wxConvLocal.cWC2MB(text.wc_str()));
         return buf ? strlen(buf) : 0;
     }
 }
@@ -315,13 +317,14 @@ bool wxTextDataObject::GetDataHere(const wxDataFormat& format, void *buf) const
     if ( !buf )
         return false;
 
+    const wxString& text = GetText();
     if ( format == wxDF_UNICODETEXT || wxLocaleIsUtf8 )
     {
-        memcpy(buf, m_text.utf8_str(), m_text.utf8_length());
+        memcpy(buf, text.utf8_str(), text.utf8_length());
     }
     else // wxDF_TEXT
     {
-        const wxCharBuffer bufLocal(wxConvLocal.cWC2MB(m_text.wc_str()));
+        const wxCharBuffer bufLocal(wxConvLocal.cWC2MB(text.wc_str()));
         if ( !bufLocal )
             return false;
 
@@ -346,11 +349,11 @@ bool wxTextDataObject::SetData(const wxDataFormat& format,
         // is not in UTF-8 so do an extra check for tranquility, it shouldn't
         // matter much if we lose a bit of performance when pasting from
         // clipboard
-        m_text = wxString::FromUTF8(buf, len);
+        SetText(wxString::FromUTF8(buf, len));
     }
     else // wxDF_TEXT, convert from current (non-UTF8) locale
     {
-        m_text = wxConvLocal.cMB2WC(buf, len, NULL);
+        SetText(wxConvLocal.cMB2WC(buf, len, NULL));
     }
 
     return true;
@@ -404,28 +407,152 @@ bool wxTextDataObject::SetData(const wxDataFormat& format,
 
 #else // !wxNEEDS_UTF{8,16}_FOR_TEXT_DATAOBJ
 
+// NB: This branch, using native wxChar for the clipboard, is only used under
+//     Windows currently. It's just a coincidence, but Windows is also the only
+//     platform where we need to convert the text to the native EOL format, so
+//     wxTextBuffer::Translate() is only used here and not in the code above.
+
 size_t wxTextDataObject::GetDataSize() const
 {
-    return GetTextLength() * sizeof(wxChar);
+    return (wxTextBuffer::Translate(GetText()).length() + 1)*sizeof(wxChar);
 }
 
 bool wxTextDataObject::GetDataHere(void *buf) const
 {
+    const wxString textNative = wxTextBuffer::Translate(GetText());
+
     // NOTE: use wxTmemcpy() instead of wxStrncpy() to allow
     //       retrieval of strings with embedded NULLs
-    wxTmemcpy( (wxChar*)buf, GetText().c_str(), GetTextLength() );
+    wxTmemcpy(static_cast<wxChar*>(buf),
+              textNative.t_str(),
+              textNative.length() + 1);
 
     return true;
 }
 
 bool wxTextDataObject::SetData(size_t len, const void *buf)
 {
-    SetText( wxString((const wxChar*)buf, len/sizeof(wxChar)) );
+    const wxString
+        text = wxString(static_cast<const wxChar*>(buf), len/sizeof(wxChar));
+    SetText(wxTextBuffer::Translate(text, wxTextFileType_Unix));
 
     return true;
 }
 
 #endif // different wxTextDataObject implementations
+
+// ----------------------------------------------------------------------------
+// wxHTMLDataObject
+// ----------------------------------------------------------------------------
+
+size_t wxHTMLDataObject::GetDataSize() const
+{
+    // Ensure that the temporary string returned by GetHTML() is kept alive for
+    // as long as we need it here.
+    const wxString& htmlStr = GetHTML();
+    const wxScopedCharBuffer buffer(htmlStr.utf8_str());
+
+    size_t size = buffer.length();
+
+#ifdef __WXMSW__
+    // On Windows we need to add some stuff to the string to satisfy
+    // its clipboard format requirements.
+    size += 400;
+#endif
+
+    return size;
+}
+
+bool wxHTMLDataObject::GetDataHere(void *buf) const
+{
+    if ( !buf )
+        return false;
+
+    // Windows and Mac always use UTF-8, and docs suggest GTK does as well.
+    const wxString& htmlStr = GetHTML();
+    const wxScopedCharBuffer html(htmlStr.utf8_str());
+    if ( !html )
+        return false;
+
+    char* const buffer = static_cast<char*>(buf);
+
+#ifdef __WXMSW__
+    // add the extra info that the MSW clipboard format requires.
+
+        // Create a template string for the HTML header...
+    strcpy(buffer,
+        "Version:0.9\r\n"
+        "StartHTML:00000000\r\n"
+        "EndHTML:00000000\r\n"
+        "StartFragment:00000000\r\n"
+        "EndFragment:00000000\r\n"
+        "<html><body>\r\n"
+        "<!--StartFragment -->\r\n");
+
+    // Append the HTML...
+    strcat(buffer, html);
+    strcat(buffer, "\r\n");
+    // Finish up the HTML format...
+    strcat(buffer,
+        "<!--EndFragment-->\r\n"
+        "</body>\r\n"
+        "</html>");
+
+    // Now go back, calculate all the lengths, and write out the
+    // necessary header information. Note, wsprintf() truncates the
+    // string when you overwrite it so you follow up with code to replace
+    // the 0 appended at the end with a '\r'...
+    char *ptr = strstr(buffer, "StartHTML");
+    sprintf(ptr+10, "%08u", (unsigned)(strstr(buffer, "<html>") - buffer));
+    *(ptr+10+8) = '\r';
+
+    ptr = strstr(buffer, "EndHTML");
+    sprintf(ptr+8, "%08u", (unsigned)strlen(buffer));
+    *(ptr+8+8) = '\r';
+
+    ptr = strstr(buffer, "StartFragment");
+    sprintf(ptr+14, "%08u", (unsigned)(strstr(buffer, "<!--StartFrag") - buffer));
+    *(ptr+14+8) = '\r';
+
+    ptr = strstr(buffer, "EndFragment");
+    sprintf(ptr+12, "%08u", (unsigned)(strstr(buffer, "<!--EndFrag") - buffer));
+    *(ptr+12+8) = '\r';
+#else
+    strcpy(buffer, html);
+#endif // __WXMSW__
+
+    return true;
+}
+
+bool wxHTMLDataObject::SetData(size_t WXUNUSED(len), const void *buf)
+{
+    if ( buf == NULL )
+        return false;
+
+    // Windows and Mac always use UTF-8, and docs suggest GTK does as well.
+    wxString html = wxString::FromUTF8(static_cast<const char*>(buf));
+
+#ifdef __WXMSW__
+    // To be consistent with other platforms, we only add the Fragment part
+    // of the Windows HTML clipboard format to the data object.
+    int fragmentStart = html.rfind("StartFragment");
+    int fragmentEnd = html.rfind("EndFragment");
+
+    if (fragmentStart != wxNOT_FOUND && fragmentEnd != wxNOT_FOUND)
+    {
+        int startCommentEnd = html.find("-->", fragmentStart) + 3;
+        int endCommentStart = html.rfind("<!--", fragmentEnd);
+
+        if (startCommentEnd != wxNOT_FOUND && endCommentStart != wxNOT_FOUND)
+            html = html.Mid(startCommentEnd, endCommentStart - startCommentEnd);
+    }
+#endif // __WXMSW__
+
+    SetHTML( html );
+
+    return true;
+}
+
 
 // ----------------------------------------------------------------------------
 // wxCustomDataObject

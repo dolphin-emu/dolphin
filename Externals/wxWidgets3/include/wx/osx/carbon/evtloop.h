@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloop.h 68302 2011-07-19 17:56:57Z SC $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,9 +24,8 @@ public:
 protected:
     virtual int DoDispatchTimeout(unsigned long timeout);
 
-    virtual void DoRun();
-
-    virtual void DoStop();
+    virtual void OSXDoRun();
+    virtual void OSXDoStop();
 
     virtual CFRunLoopRef CFGetCurrentRunLoop() const;
 };

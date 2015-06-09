@@ -5,7 +5,6 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Stefan Csomor
-// RCS-ID:      $Id: graphics.h 67232 2011-03-18 15:10:15Z DS $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -26,6 +25,18 @@ class WXDLLIMPEXP_CORE wxGraphicsObjectRefData : public wxObjectRefData
 
     protected :
     wxGraphicsRenderer* m_renderer;
+} ;
+
+class WXDLLIMPEXP_CORE wxGraphicsBitmapData : public wxGraphicsObjectRefData
+{
+public :
+    wxGraphicsBitmapData( wxGraphicsRenderer* renderer) :
+       wxGraphicsObjectRefData(renderer) {}
+
+       virtual ~wxGraphicsBitmapData() {}
+
+       // returns the native representation
+       virtual void * GetNativeBitmap() const = 0;
 } ;
 
 class WXDLLIMPEXP_CORE wxGraphicsMatrixData : public wxGraphicsObjectRefData

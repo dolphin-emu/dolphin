@@ -3,7 +3,6 @@
 // Purpose:     wxBitmapComboBox
 // Author:      Jaakko Salli
 // Created:     2008-04-09
-// RCS-ID:      $Id: bmpcboxcmn.cpp 66728 2011-01-22 14:38:36Z DS $
 // Copyright:   (c) 2008 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

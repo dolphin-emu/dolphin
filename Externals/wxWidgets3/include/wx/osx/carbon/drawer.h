@@ -7,7 +7,6 @@
 // Author:      Jason Bagley
 // Modified by:
 // Created:     2004-30-01
-// RCS-ID:      $Id: drawer.h 64943 2010-07-13 13:29:58Z VZ $
 // Copyright:   (c) Jason Bagley; Art & Logic, Inc.
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,8 +21,6 @@
 // it is stable, but the API is not and will change in the
 // near future
 //
-
-#if ( MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_2 )
 
 class WXDLLIMPEXP_ADV wxDrawerWindow : public wxTopLevelWindow
 {
@@ -65,7 +62,4 @@ public:
     wxDirection GetCurrentEdge() const; // not necessarily the preferred, due to screen constraints
 };
 
-#endif // defined( __WXMAC__ ) && TARGET_API_MAC_OSX && ( MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_2 )
-
-#endif
-    // _WX_DRAWERWINDOW_H_
+#endif // _WX_DRAWERWINDOW_H_

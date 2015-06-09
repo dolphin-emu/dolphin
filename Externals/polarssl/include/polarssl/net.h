@@ -82,9 +82,10 @@ int net_bind( int *fd, const char *bind_ip, int port );
  * \param bind_fd   Relevant socket
  * \param client_fd Will contain the connected client socket
  * \param client_ip Will contain the client IP address
+ *                  Must be at least 4 bytes, or 16 if IPv6 is supported
  *
  * \return          0 if successful, POLARSSL_ERR_NET_ACCEPT_FAILED, or
- *                  POLARSSL_ERR_NET_WOULD_BLOCK is bind_fd was set to
+ *                  POLARSSL_ERR_NET_WANT_READ is bind_fd was set to
  *                  non-blocking and accept() is blocking.
  */
 int net_accept( int bind_fd, int *client_fd, void *client_ip );

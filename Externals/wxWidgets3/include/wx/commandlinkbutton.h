@@ -3,7 +3,6 @@
 // Purpose:     wxCommandLinkButtonBase and wxGenericCommandLinkButton classes
 // Author:      Rickard Westerlund
 // Created:     2010-06-11
-// RCS-ID:      $Id: commandlinkbutton.h 65350 2010-08-18 22:48:48Z VZ $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

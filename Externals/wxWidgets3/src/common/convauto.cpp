@@ -3,7 +3,6 @@
 // Purpose:     implementation of wxConvAuto
 // Author:      Vadim Zeitlin
 // Created:     2006-04-04
-// RCS-ID:      $Id: convauto.cpp 69675 2011-11-05 11:23:41Z VZ $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

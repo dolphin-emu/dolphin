@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:key="preferences_cpu"
+        android:title="@string/preferences_cpu">
+
+        <!-- CPU Settings -->
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="dualCorePref"
+            android:summary="@string/dual_core_descrip"
+            android:title="@string/dual_core"/>
+
+        <ListPreference
+            android:key="cpuCorePref"
+            android:summary="@string/cpu_core_desc"
+            android:title="@string/cpu_core"
+            android:entries="@array/string_emu_cores"
+            android:entryValues="@array/int_emu_cores"/>
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="fastmemPref"
+            android:summary="@string/fastmem_desc"
+            android:title="@string/fastmem"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="preferences_input"
+        android:title="@string/preferences_input">
+
+        <PreferenceScreen
+            android:key="input_overlay"
+            android:summary="@string/input_overlay_desc"
+            android:title="@string/input_overlay">
+
+            <Preference
+                android:key="inputOverlayConfigPref"
+                android:summary="@string/input_overlay_layout_desc"
+                android:title="@string/input_overlay_layout">
+
+                <intent
+                    android:targetClass="org.dolphinemu.dolphinemu.settings.input.overlayconfig.OverlayConfigActivity"
+                    android:targetPackage="org.dolphinemu.dolphinemu.debug"/>
+
+            </Preference>
+
+            <SeekBarPreference
+                android:defaultValue="25"
+                android:key="controls_size"
+                android:max="75"
+                android:title="@string/controls_size"/>
+
+        </PreferenceScreen>
+
+        <!-- GameCube controller bindings -->
+        <PreferenceScreen
+            android:key="gamecube_bindings"
+            android:title="@string/gamecube_bindings">
+            <PreferenceScreen
+                android:key="gamecube_bindings_control_0"
+                android:title="@string/controller_0">
+                <CheckBoxPreference
+                    android:key="enableController1"
+                    android:title="@string/enable_controller"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="InputA_0"
+                    android:summary="%s"
+                    android:title="@string/button_a"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="InputB_0"
+                    android:summary="%s"
+                    android:title="@string/button_b"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="InputX_0"
+                    android:summary="%s"
+                    android:title="@string/button_x"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="InputY_0"
+                    android:summary="%s"
+                    android:title="@string/button_y"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="InputZ_0"
+                    android:summary="%s"
+                    android:title="@string/button_z"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="InputStart_0"
+                    android:summary="%s"
+                    android:title="@string/button_start"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="DPadUp_0"
+                    android:summary="%s"
+                    android:title="@string/dpad_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="DPadDown_0"
+                    android:summary="%s"
+                    android:title="@string/dpad_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="DPadLeft_0"
+                    android:summary="%s"
+                    android:title="@string/dpad_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="DPadRight_0"
+                    android:summary="%s"
+                    android:title="@string/dpad_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="MainUp_0"
+                    android:summary="%s"
+                    android:title="@string/main_stick_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="MainDown_0"
+                    android:summary="%s"
+                    android:title="@string/main_stick_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="MainLeft_0"
+                    android:summary="%s"
+                    android:title="@string/main_stick_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="MainRight_0"
+                    android:summary="%s"
+                    android:title="@string/main_stick_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="CStickUp_0"
+                    android:summary="%s"
+                    android:title="@string/c_stick_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="CStickDown_0"
+                    android:summary="%s"
+                    android:title="@string/c_stick_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="CStickLeft_0"
+                    android:summary="%s"
+                    android:title="@string/c_stick_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="CStickRight_0"
+                    android:summary="%s"
+                    android:title="@string/c_stick_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="InputL_0"
+                    android:summary="%s"
+                    android:title="@string/trigger_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController1"
+                    android:key="InputR_0"
+                    android:summary="%s"
+                    android:title="@string/trigger_right"/>
+            </PreferenceScreen>
+            <PreferenceScreen
+                android:key="gamecube_bindings_control_1"
+                android:title="@string/controller_1">
+                <CheckBoxPreference
+                    android:key="enableController2"
+                    android:title="@string/enable_controller"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="InputA_1"
+                    android:summary="%s"
+                    android:title="@string/button_a"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="InputB_1"
+                    android:summary="%s"
+                    android:title="@string/button_b"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="InputX_1"
+                    android:summary="%s"
+                    android:title="@string/button_x"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="InputY_1"
+                    android:summary="%s"
+                    android:title="@string/button_y"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="InputZ_1"
+                    android:summary="%s"
+                    android:title="@string/button_z"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="InputStart_1"
+                    android:summary="%s"
+                    android:title="@string/button_start"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="DPadUp_1"
+                    android:summary="%s"
+                    android:title="@string/dpad_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="DPadDown_1"
+                    android:summary="%s"
+                    android:title="@string/dpad_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="DPadLeft_1"
+                    android:summary="%s"
+                    android:title="@string/dpad_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="DPadRight_1"
+                    android:summary="%s"
+                    android:title="@string/dpad_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="MainUp_1"
+                    android:summary="%s"
+                    android:title="@string/main_stick_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="MainDown_1"
+                    android:summary="%s"
+                    android:title="@string/main_stick_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="MainLeft_1"
+                    android:summary="%s"
+                    android:title="@string/main_stick_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="MainRight_1"
+                    android:summary="%s"
+                    android:title="@string/main_stick_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="CStickUp_1"
+                    android:summary="%s"
+                    android:title="@string/c_stick_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="CStickDown_1"
+                    android:summary="%s"
+                    android:title="@string/c_stick_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="CStickLeft_1"
+                    android:summary="%s"
+                    android:title="@string/c_stick_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="CStickRight_1"
+                    android:summary="%s"
+                    android:title="@string/c_stick_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="InputL_1"
+                    android:summary="%s"
+                    android:title="@string/trigger_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController2"
+                    android:key="InputR_1"
+                    android:summary="%s"
+                    android:title="@string/trigger_right"/>
+            </PreferenceScreen>
+            <PreferenceScreen
+                android:key="gamecube_bindings_control_2"
+                android:title="@string/controller_2">
+                <CheckBoxPreference
+                    android:key="enableController3"
+                    android:title="@string/enable_controller"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="InputA_2"
+                    android:summary="%s"
+                    android:title="@string/button_a"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="InputB_2"
+                    android:summary="%s"
+                    android:title="@string/button_b"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="InputX_2"
+                    android:summary="%s"
+                    android:title="@string/button_x"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="InputY_2"
+                    android:summary="%s"
+                    android:title="@string/button_y"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="InputZ_2"
+                    android:summary="%s"
+                    android:title="@string/button_z"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="InputStart_2"
+                    android:summary="%s"
+                    android:title="@string/button_start"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="DPadUp_2"
+                    android:summary="%s"
+                    android:title="@string/dpad_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="DPadDown_2"
+                    android:summary="%s"
+                    android:title="@string/dpad_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="DPadLeft_2"
+                    android:summary="%s"
+                    android:title="@string/dpad_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="DPadRight_2"
+                    android:summary="%s"
+                    android:title="@string/dpad_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="MainUp_2"
+                    android:summary="%s"
+                    android:title="@string/main_stick_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="MainDown_2"
+                    android:summary="%s"
+                    android:title="@string/main_stick_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="MainLeft_2"
+                    android:summary="%s"
+                    android:title="@string/main_stick_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="MainRight_2"
+                    android:summary="%s"
+                    android:title="@string/main_stick_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="CStickUp_2"
+                    android:summary="%s"
+                    android:title="@string/c_stick_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="CStickDown_2"
+                    android:summary="%s"
+                    android:title="@string/c_stick_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="CStickLeft_2"
+                    android:summary="%s"
+                    android:title="@string/c_stick_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="CStickRight_2"
+                    android:summary="%s"
+                    android:title="@string/c_stick_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="InputL_2"
+                    android:summary="%s"
+                    android:title="@string/trigger_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController3"
+                    android:key="InputR_2"
+                    android:summary="%s"
+                    android:title="@string/trigger_right"/>
+            </PreferenceScreen>
+            <PreferenceScreen
+                android:key="gamecube_bindings_control_3"
+                android:title="@string/controller_3">
+                <CheckBoxPreference
+                    android:key="enableController4"
+                    android:title="@string/enable_controller"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="InputA_3"
+                    android:summary="%s"
+                    android:title="@string/button_a"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="InputB_3"
+                    android:summary="%s"
+                    android:title="@string/button_b"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="InputX_3"
+                    android:summary="%s"
+                    android:title="@string/button_x"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="InputY_3"
+                    android:summary="%s"
+                    android:title="@string/button_y"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="InputZ_3"
+                    android:summary="%s"
+                    android:title="@string/button_z"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="InputStart_3"
+                    android:summary="%s"
+                    android:title="@string/button_start"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="DPadUp_3"
+                    android:summary="%s"
+                    android:title="@string/dpad_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="DPadDown_3"
+                    android:summary="%s"
+                    android:title="@string/dpad_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="DPadLeft_3"
+                    android:summary="%s"
+                    android:title="@string/dpad_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="DPadRight_3"
+                    android:summary="%s"
+                    android:title="@string/dpad_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="MainUp_3"
+                    android:summary="%s"
+                    android:title="@string/main_stick_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="MainDown_3"
+                    android:summary="%s"
+                    android:title="@string/main_stick_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="MainLeft_3"
+                    android:summary="%s"
+                    android:title="@string/main_stick_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="MainRight_3"
+                    android:summary="%s"
+                    android:title="@string/main_stick_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="CStickUp_3"
+                    android:summary="%s"
+                    android:title="@string/c_stick_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="CStickDown_3"
+                    android:summary="%s"
+                    android:title="@string/c_stick_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="CStickLeft_3"
+                    android:summary="%s"
+                    android:title="@string/c_stick_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="CStickRight_3"
+                    android:summary="%s"
+                    android:title="@string/c_stick_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="InputL_3"
+                    android:summary="%s"
+                    android:title="@string/trigger_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableController4"
+                    android:key="InputR_3"
+                    android:summary="%s"
+                    android:title="@string/trigger_right"/>
+            </PreferenceScreen>
+        </PreferenceScreen>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="preferences_video"
+        android:title="@string/preferences_video"><!-- Video Settings -->
+
+
+        <!-- Video Enhancements -->
+        <PreferenceScreen
+            android:title="@string/enhancements"
+            android:key="enhancements">
+
+            <ListPreference
+                android:entries="@array/internalResolutionEntries"
+                android:entryValues="@array/internalResolutionValues"
+                android:key="internalResolution"
+                android:summary="@string/internal_resolution_descrip"
+                android:title="@string/internal_resolution"/>
+
+            <ListPreference
+                android:entries="@array/FSAAEntries"
+                android:entryValues="@array/FSAAValues"
+                android:key="FSAA"
+                android:summary="@string/FSAA_descrip"
+                android:title="@string/FSAA"/>
+
+            <ListPreference
+                android:entries="@array/anisotropicFilteringEntries"
+                android:entryValues="@array/anisotropicFilteringValues"
+                android:key="anisotropicFiltering"
+                android:summary="@string/anisotropic_filtering_descrip"
+                android:title="@string/anisotropic_filtering"/>
+
+            <ListPreference
+                android:key="postProcessingShader"
+                android:summary="@string/postprocessing_shader_descrip"
+                android:title="@string/postprocessing_shader"/>
+
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="scaledEFBCopy"
+                android:summary="@string/scaled_efb_copy_descrip"
+                android:title="@string/scaled_efb_copy"/>
+
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:key="perPixelLighting"
+                android:summary="@string/per_pixel_lighting_descrip"
+                android:title="@string/per_pixel_lighting"/>
+
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:key="forceTextureFiltering"
+                android:summary="@string/force_texture_filtering_descrip"
+                android:title="@string/force_texture_filtering"/>
+
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:key="disableFog"
+                android:summary="@string/disable_fog_descrip"
+                android:title="@string/disable_fog"/>
+
+            <PreferenceScreen
+                android:key="StereoscopyScreen"
+                android:summary="@string/stereoscopy_descrip"
+                android:title="@string/stereoscopy">
+
+                <ListPreference
+                    android:entries="@array/stereoscopyEntries"
+                    android:entryValues="@array/stereoscopyValues"
+                    android:key="stereoscopyMode"
+                    android:summary="@string/stereoscopy_mode_descrip"
+                    android:title="@string/stereoscopy_mode"/>
+
+                <org.dolphinemu.dolphinemu.utils.SliderPreference
+                    android:defaultValue="20"
+                    android:key="stereoDepth"
+                    android:max="100"
+                    android:summary="@string/sterescopy_depth_descrip"
+                    android:title="@string/sterescopy_depth"/>
+
+                <org.dolphinemu.dolphinemu.utils.SliderPreference
+                    android:defaultValue="20"
+                    android:key="stereoConvergence"
+                    android:max="500"
+                    android:summary="@string/convergence_descrip"
+                    android:title="@string/convergence"/>
+
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="stereoSwapEyes"
+                    android:summary="@string/swap_eyes_descrip"
+                    android:title="@string/swap_eyes"/>
+            </PreferenceScreen>
+        </PreferenceScreen>
+
+        <!-- Video Hacks -->
+        <PreferenceScreen
+            android:title="@string/hacks"
+            android:key="hacks">
+            <PreferenceCategory android:title="@string/embedded_frame_buffer">
+
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="skipEFBAccess"
+                    android:summary="@string/skip_efb_access_descrip"
+                    android:title="@string/skip_efb_access"/>
+
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:key="ignoreFormatChanges"
+                    android:summary="@string/ignore_format_changes_descrip"
+                    android:title="@string/ignore_format_changes"/>
+
+                <ListPreference
+                    android:defaultValue="Texture"
+                    android:entries="@array/efbCopyMethodEntries"
+                    android:entryValues="@array/efbCopyMethodValues"
+                    android:key="efbCopyMethod"
+                    android:summary="@string/efb_copy_method_descrip"
+                    android:title="@string/efb_copy_method"/>
+
+            </PreferenceCategory>
+
+            <!-- Texture Cache -->
+            <PreferenceCategory android:title="@string/texture_cache">
+                <ListPreference
+                    android:defaultValue="Low"
+                    android:entries="@array/textureCacheAccuracyEntries"
+                    android:entryValues="@array/textureCacheAccuracyValues"
+                    android:key="textureCacheAccuracy"
+                    android:summary="@string/texture_cache_accuracy_descrip"
+                    android:title="@string/texture_cache_accuracy"/>
+            </PreferenceCategory>
+
+            <!-- External Frame Buffer -->
+            <PreferenceCategory android:title="@string/external_frame_buffer">
+                <ListPreference
+                    android:defaultValue="Disabled"
+                    android:entries="@array/externalFrameBufferEntries"
+                    android:entryValues="@array/externalFrameBufferValues"
+                    android:key="externalFrameBuffer"
+                    android:summary="@string/external_frame_buffer_descrip"
+                    android:title="@string/external_frame_buffer"/>
+            </PreferenceCategory>
+
+
+            <!-- Other Hacks -->
+            <PreferenceCategory android:title="@string/other">
+
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="disableDestinationAlpha"
+                    android:summary="@string/disable_destination_alpha_descrip"
+                    android:title="@string/disable_destination_alpha"/>
+
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:key="fastDepthCalculation"
+                    android:summary="@string/fast_depth_calculation_descrip"
+                    android:title="@string/fast_depth_calculation"/>
+
+                <ListPreference
+                    android:defaultValue="0"
+                    android:entries="@array/aspectRatioEntries"
+                    android:entryValues="@array/aspectRatioValues"
+                    android:key="aspectRatio"
+                    android:summary="@string/aspect_ratio_descrip"
+                    android:title="@string/aspect_ratio"/>
+
+            </PreferenceCategory>
+        </PreferenceScreen>
+
+        <ListPreference
+            android:key="gpuPref"
+            android:summary="@string/video_backend_desc"
+            android:title="@string/video_backend"/>
+
+        <CheckBoxPreference
+            android:key="showFPS"
+            android:summary="@string/show_fps_descrip"
+            android:title="@string/show_fps"/>
+
+    </PreferenceCategory>
+
+    <!-- TODO Add the About information here too. -->
+</PreferenceScreen>

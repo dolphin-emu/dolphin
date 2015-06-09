@@ -3,7 +3,6 @@
 // Purpose:     wxFilter file system handler
 // Author:      Mike Wetherell
 // Copyright:   (c) 2006 Mike Wetherell
-// CVS-ID:      $Id: fs_filter.cpp 58634 2009-02-03 12:01:46Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

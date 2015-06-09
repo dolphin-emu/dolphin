@@ -2,7 +2,6 @@
 // Name:        wx/msw/calctrl.h
 // Purpose:     wxCalendarCtrl control implementation for MSW
 // Author:      Vadim Zeitlin
-// RCS-ID:      $Id: calctrl.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (C) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

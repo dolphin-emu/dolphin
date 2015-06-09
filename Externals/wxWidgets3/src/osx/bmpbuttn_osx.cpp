@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bmpbuttn_osx.cpp 67243 2011-03-19 08:36:23Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -67,7 +66,7 @@ wxSize wxBitmapButton::DoGetBestSize() const
 
     if ( GetBitmapLabel().IsOk() )
     {
-        best += GetBitmapLabel().GetSize();
+        best += GetBitmapLabel().GetScaledSize();
     }
 
     return best;

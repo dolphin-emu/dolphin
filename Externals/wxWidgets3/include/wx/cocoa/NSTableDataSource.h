@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/08/05
-// RCS-ID:      $Id: NSTableDataSource.h 48106 2007-08-15 16:10:19Z DE $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

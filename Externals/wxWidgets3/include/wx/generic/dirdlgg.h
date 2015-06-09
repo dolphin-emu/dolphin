@@ -7,7 +7,6 @@
 // Author:      Robert Roebling, Harm van der Heijden, Julian Smart et al
 // Modified by:
 // Created:     21/3/2000
-// RCS-ID:      $Id: dirdlgg.h 52834 2008-03-26 15:06:00Z FM $
 // Copyright:   (c) Robert Roebling, Harm van der Heijden, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

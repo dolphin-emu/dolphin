@@ -3,7 +3,6 @@
 // Purpose:     common (for all platforms) wxTopLevelWindow functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Created:     01/02/97
-// Id:          $Id: toplvcmn.cpp 68366 2011-07-24 22:19:33Z VZ $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -77,7 +76,7 @@ wxTopLevelWindowBase::~wxTopLevelWindowBase()
           )
     {
         wxWindow * const win = wxDynamicCast(*i, wxWindow);
-        if ( win && win->GetParent() == this )
+        if ( win && wxGetTopLevelParent(win->GetParent()) == this )
         {
             wxPendingDelete.erase(i);
 
@@ -361,6 +360,14 @@ void wxTopLevelWindowBase::SetIcon(const wxIcon& icon)
 // whole client area
 void wxTopLevelWindowBase::DoLayout()
 {
+    // We are called during the window destruction several times, e.g. as
+    // wxFrame tries to adjust to its tool/status bars disappearing. But
+    // actually doing the layout is pretty useless in this case as the window
+    // will disappear anyhow -- so just don't bother.
+    if ( IsBeingDeleted() )
+        return;
+
+
     // if we're using constraints or sizers - do use them
     if ( GetAutoLayout() )
     {

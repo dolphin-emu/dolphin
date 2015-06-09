@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-09
-// RCS-ID:      $Id: datectrl.h 69222 2011-09-29 13:43:02Z VZ $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,7 +54,9 @@ public:
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
 protected:
+#if wxUSE_INTL
     virtual wxLocaleInfo MSWGetFormat() const;
+#endif // wxUSE_INTL
     virtual bool MSWAllowsNone() const { return HasFlag(wxDP_ALLOWNONE); }
     virtual bool MSWOnDateTimeChange(const tagNMDATETIMECHANGE& dtch);
 

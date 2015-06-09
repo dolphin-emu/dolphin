@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/02/15
-// RCS-ID:      $Id: stattext.h 52834 2008-03-26 15:06:00Z FM $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

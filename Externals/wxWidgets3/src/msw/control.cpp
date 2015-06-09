@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: control.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -132,7 +131,7 @@ bool wxControl::MSWCreateControl(const wxChar *classname,
                        (
                         exstyle,            // extended style
                         classname,          // the kind of control to create
-                        label.wx_str(),     // the window name
+                        label.t_str(),      // the window name
                         style,              // the window style
                         x, y, w, h,         // the window position and size
                         GetHwndOf(GetParent()),         // parent
@@ -163,7 +162,7 @@ bool wxControl::MSWCreateControl(const wxChar *classname,
     // Notice that 0xffff is not a valid Unicode character so the problem
     // doesn't arise in Unicode build.
     if ( !label.empty() && label[0] == -1 )
-        ::SetWindowText(GetHwnd(), label.wx_str());
+        ::SetWindowText(GetHwnd(), label.t_str());
 #endif // !wxUSE_UNICODE
 
     // saving the label in m_labelOrig to return it verbatim
@@ -367,7 +366,23 @@ WXHBRUSH wxControl::DoMSWControlColor(WXHDC pDC, wxColour colBg, WXHWND hWnd)
     WXHBRUSH hbr = 0;
     if ( !colBg.IsOk() )
     {
-        if ( wxWindow *win = wxFindWinFromHandle(hWnd) )
+        wxWindow *win = wxFindWinFromHandle( hWnd );
+        if ( !win )
+        {
+            // If this HWND doesn't correspond to a wxWindow, it still might be
+            // one of its children for which we need to set the background
+            // brush, e.g. this is the case for the EDIT control that is part
+            // of wxComboBox. Check for this by asking the parent if it has it:
+            HWND parent = ::GetParent(hWnd);
+            if ( parent )
+            {
+                wxWindow *winParent = wxFindWinFromHandle( parent );
+                if( winParent && winParent->ContainsHWND( hWnd ) )
+                    win = winParent;
+             }
+        }
+
+        if ( win )
             hbr = win->MSWGetBgBrush(pDC);
 
         // if the control doesn't have any bg colour, foreground colour will be
@@ -427,6 +442,15 @@ WXHBRUSH wxControl::MSWControlColorDisabled(WXHDC pDC)
                              GetHWND());
 }
 
+wxWindow* wxControl::MSWFindItem(long id, WXHWND hWnd) const
+{
+    // is it us or one of our "internal" children?
+    if ( id == GetId() || (GetSubcontrols().Index(id) != wxNOT_FOUND) )
+        return const_cast<wxControl *>(this);
+
+    return wxControlBase::MSWFindItem(id, hWnd);
+}
+
 // ----------------------------------------------------------------------------
 // wxControlWithItems
 // ----------------------------------------------------------------------------
@@ -453,7 +477,7 @@ int wxControlWithItems::MSWInsertOrAppendItem(unsigned pos,
                                               unsigned wm)
 {
     LRESULT n = SendMessage((HWND)MSWGetItemsHWND(), wm, pos,
-                            (LPARAM)item.wx_str());
+                            wxMSW_CONV_LPARAM(item));
     if ( n == CB_ERR || n == CB_ERRSPACE )
     {
         wxLogLastError(wxT("SendMessage(XX_ADD/INSERTSTRING)"));

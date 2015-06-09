@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2004-10-29 (from code in src/osx/carbon/utils.cpp)
-// RCS-ID:      $Id: cfstring.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 // Usage:       Darwin (base library)
@@ -632,6 +631,18 @@ wxCFStringRef::wxCFStringRef( const wxString &st , wxFontEncoding WXUNUSED_IN_UN
     }
 }
 
+wxString wxCFStringRef::AsStringWithNormalizationFormC( CFStringRef ref, wxFontEncoding encoding )
+{
+    if ( !ref )
+        return wxEmptyString ;
+
+    CFMutableStringRef cfMutableString = CFStringCreateMutableCopy(NULL, 0, ref);
+    CFStringNormalize(cfMutableString,kCFStringNormalizationFormC);
+    wxString str = wxCFStringRef::AsString(ref,encoding);
+    CFRelease(cfMutableString);
+    return str;
+}
+
 wxString wxCFStringRef::AsString( CFStringRef ref, wxFontEncoding WXUNUSED_IN_UNICODE(encoding) )
 {
     if ( !ref )
@@ -687,7 +698,12 @@ wxString wxCFStringRef::AsString( NSString* ref, wxFontEncoding encoding )
 {
     return AsString( (CFStringRef) ref, encoding );
 }
-#endif
+
+wxString wxCFStringRef::AsStringWithNormalizationFormC( NSString* ref, wxFontEncoding encoding )
+{
+    return AsStringWithNormalizationFormC( (CFStringRef) ref, encoding );
+}
+#endif // wxOSX_USE_COCOA_OR_IPHONE
 
 
 //

@@ -3,7 +3,6 @@
 // Purpose:     declaration of wxHeaderColumn class
 // Author:      Vadim Zeitlin
 // Created:     2008-12-02
-// RCS-ID:      $Id: headercol.h 69174 2011-09-21 15:07:46Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

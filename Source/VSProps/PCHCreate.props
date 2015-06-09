@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets">
+    <Import Project="PCHCommon.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <!--
+    Hacks preventing PCH creators from spending time generating .lib files.
+    It is just an optimization to save some time since only .obj outputs are
+    really needed by PCH users.
+    -->
+  <ItemDefinitionGroup>
+    <Lib>
+      <!--
+        Clear the output path so projects referencing this one don't try to drag
+        in a nonexistant .lib file.
+        -->
+      <OutputFile />
+    </Lib>
+  </ItemDefinitionGroup>
+  <!--This prevents the _Lib target from being executed-->
+  <PropertyGroup>
+    <BuildLibTargets>$(BuildLibTargets);ClearLibCompiled</BuildLibTargets>
+  </PropertyGroup>
+  <Target Name="ClearLibCompiled">
+    <PropertyGroup>
+      <LibCompiled>false</LibCompiled>
+    </PropertyGroup>
+  </Target>
+  <!--End .lib hacks-->
+</Project>

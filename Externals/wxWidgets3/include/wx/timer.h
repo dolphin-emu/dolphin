@@ -5,7 +5,6 @@
 // Modified by: Vadim Zeitlin (wxTimerBase)
 //              Guillermo Rodriguez (global clean up)
 // Created:     04/01/98
-// RCS-ID:      $Id: timer.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,6 +79,10 @@ public:
     // it is now valid to call Start() multiple times: this just restarts the
     // timer if it is already running
     virtual bool Start(int milliseconds = -1, bool oneShot = false);
+
+    // start the timer for one iteration only, this is just a simple wrapper
+    // for Start()
+    bool StartOnce(int milliseconds = -1) { return Start(milliseconds, true); }
 
     // stop the timer, does nothing if the timer is not running
     virtual void Stop();

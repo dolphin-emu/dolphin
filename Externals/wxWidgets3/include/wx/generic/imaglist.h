@@ -3,7 +3,6 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: imaglist.h 62789 2009-12-05 19:57:58Z PC $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

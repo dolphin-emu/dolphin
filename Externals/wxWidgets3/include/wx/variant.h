@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     10/09/98
-// RCS-ID:      $Id: variant.h 66608 2011-01-06 11:06:12Z SC $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -570,7 +569,11 @@ bool classname##VariantData::Eq(wxVariantData& data) const \
                   var.GetWxObjectPtr() : NULL));
 
 // Replacement for using wxDynamicCast on a wxVariantData object
-#define wxDynamicCastVariantData(data, classname) dynamic_cast<classname*>(data)
+#ifndef wxNO_RTTI
+    #define wxDynamicCastVariantData(data, classname) dynamic_cast<classname*>(data)
+#endif
+
+#define wxStaticCastVariantData(data, classname) static_cast<classname*>(data)
 
 extern wxVariant WXDLLIMPEXP_BASE wxNullVariant;
 

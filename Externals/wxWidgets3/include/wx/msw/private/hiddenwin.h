@@ -3,7 +3,6 @@
 // Purpose:     Helper for creating a hidden window used by wxMSW internally.
 // Author:      Vadim Zeitlin
 // Created:     2011-09-16
-// RCS-ID:      $Id: hiddenwin.h 69170 2011-09-21 15:07:32Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

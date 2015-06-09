@@ -5,7 +5,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: file.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +18,7 @@
 
 #include  "wx/string.h"
 #include  "wx/filefn.h"
-#include  "wx/strconv.h"
+#include  "wx/convauto.h"
 
 // ----------------------------------------------------------------------------
 // class wxFile: raw file IO
@@ -66,16 +65,18 @@ public:
 
   // assign an existing file descriptor and get it back from wxFile object
   void Attach(int lfd) { Close(); m_fd = lfd; m_lasterror = 0; }
-  void Detach()       { m_fd = fd_invalid;  }
+  int  Detach() { int fdOld = m_fd; m_fd = fd_invalid; return fdOld; }
   int  fd() const { return m_fd; }
 
   // read/write (unbuffered)
+    // read all data from the file into a string (useful for text files)
+  bool ReadAll(wxString *str, const wxMBConv& conv = wxConvAuto());
     // returns number of bytes read or wxInvalidOffset on error
   ssize_t Read(void *pBuf, size_t nCount);
     // returns the number of bytes written
   size_t Write(const void *pBuf, size_t nCount);
     // returns true on success
-  bool Write(const wxString& s, const wxMBConv& conv = wxMBConvUTF8());
+  bool Write(const wxString& s, const wxMBConv& conv = wxConvAuto());
     // flush data not yet written
   bool Flush();
 

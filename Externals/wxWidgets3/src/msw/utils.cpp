@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: utils.cpp 69170 2011-09-21 15:07:32Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -60,9 +59,7 @@
 #if !defined(__GNUWIN32__) && !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
     #include <direct.h>
 
-    #ifndef __MWERKS__
-        #include <dos.h>
-    #endif
+    #include <dos.h>
 #endif  //GNUWIN32
 
 #if defined(__CYGWIN__)
@@ -143,7 +140,7 @@ bool wxGetHostName(wxChar *buf, int maxSize)
             !regKey.QueryValue(wxT("Name"), hostName) )
         return false;
 
-    wxStrlcpy(buf, hostName.wx_str(), maxSize);
+    wxStrlcpy(buf, hostName.t_str(), maxSize);
 #else // !__WXWINCE__
     DWORD nSize = maxSize;
     if ( !::GetComputerName(buf, &nSize) )
@@ -638,7 +635,8 @@ bool wxDoSetEnv(const wxString& var, const wxChar *value)
     envstr += '=';
     if ( value )
         envstr += value;
-    _tputenv(envstr.t_str());
+    if ( _tputenv(envstr.t_str()) != 0 )
+        return false;
 #else // other compiler
     if ( !::SetEnvironmentVariable(var.t_str(), value) )
     {
@@ -1078,12 +1076,6 @@ unsigned long wxGetProcessId()
     return ::GetCurrentProcessId();
 }
 
-// Emit a beeeeeep
-void wxBell()
-{
-    ::MessageBeep((UINT)-1);        // default sound
-}
-
 bool wxIsDebuggerRunning()
 {
 #if wxUSE_DYNLIB_CLASS
@@ -1111,14 +1103,14 @@ bool
 wxLoadUserResource(const void **outData,
                    size_t *outLen,
                    const wxString& resourceName,
-                   const wxString& resourceType,
+                   const wxChar* resourceType,
                    WXHINSTANCE instance)
 {
     wxCHECK_MSG( outData && outLen, false, "output pointers can't be NULL" );
 
     HRSRC hResource = ::FindResource(instance,
-                                     resourceName.wx_str(),
-                                     resourceType.wx_str());
+                                     resourceName.t_str(),
+                                     resourceType);
     if ( !hResource )
         return false;
 
@@ -1147,7 +1139,7 @@ wxLoadUserResource(const void **outData,
 
 char *
 wxLoadUserResource(const wxString& resourceName,
-                   const wxString& resourceType,
+                   const wxChar* resourceType,
                    int* pLen,
                    WXHINSTANCE instance)
 {
@@ -1308,6 +1300,18 @@ wxString wxGetOsDescription()
                                 str = wxIsWindowsServer() == 1
                                         ? _("Windows Server 2008 R2")
                                         : _("Windows 7");
+                                break;
+
+                            case 2:
+                                str = wxIsWindowsServer() == 1
+                                        ? _("Windows Server 2012")
+                                        : _("Windows 8");
+                                break;
+
+                            case 3:
+                                str = wxIsWindowsServer() == 1
+                                        ? _("Windows Server 2012 R2")
+                                        : _("Windows 8.1");
                                 break;
                         }
                         break;

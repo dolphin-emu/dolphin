@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.11.99
-// RCS-ID:      $Id: toolbar.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -60,7 +59,9 @@ enum
     wxTB_BOTTOM       = 0x2000,
 
     // lay out toolbar at the right edge of the window
-    wxTB_RIGHT        = 0x4000
+    wxTB_RIGHT        = 0x4000,
+
+    wxTB_DEFAULT_STYLE = wxTB_HORIZONTAL | wxTB_FLAT
 };
 
 #if wxUSE_TOOLBAR

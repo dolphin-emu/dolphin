@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.10.99
-// RCS-ID:      $Id: ctrlsub.cpp 66664 2011-01-10 12:00:54Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -290,6 +289,21 @@ wxControlWithItemsBase::InitCommandEventWithItems(wxCommandEvent& event, int n)
         else if ( HasClientUntypedData() )
             event.SetClientData(GetClientData(n));
     }
+}
+
+void wxControlWithItemsBase::SendSelectionChangedEvent(wxEventType eventType)
+{
+    const int n = GetSelection();
+    if ( n == wxNOT_FOUND )
+        return;
+
+    wxCommandEvent event(eventType, m_windowId);
+    event.SetInt(n);
+    event.SetEventObject(this);
+    event.SetString(GetStringSelection());
+    InitCommandEventWithItems(event, n);
+
+    HandleWindowEvent(event);
 }
 
 #endif // wxUSE_CONTROLS

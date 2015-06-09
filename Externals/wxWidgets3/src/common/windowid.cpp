@@ -3,7 +3,6 @@
 // Purpose:     wxWindowID class - a class for managing window ids
 // Author:      Brian Vanderburg II
 // Created:     2007-09-21
-// RCS-ID:      $Id: windowid.cpp 69682 2011-11-05 11:24:04Z VZ $
 // Copyright:   (c) 2007 Brian Vanderburg II
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

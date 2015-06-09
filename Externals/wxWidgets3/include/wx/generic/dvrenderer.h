@@ -3,7 +3,6 @@
 // Purpose:     wxDataViewRenderer for generic wxDataViewCtrl implementation
 // Author:      Robert Roebling, Vadim Zeitlin
 // Created:     2009-11-07 (extracted from wx/generic/dataview.h)
-// RCS-ID:      $Id: dvrenderer.h 69473 2011-10-19 16:20:17Z VS $
 // Copyright:   (c) 2006 Robert Roebling
 //              (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence

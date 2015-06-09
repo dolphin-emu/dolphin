@@ -4,7 +4,6 @@
 // Author:      Karsten Ballueder
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: helpext.cpp 67214 2011-03-16 07:22:56Z SC $
 // Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

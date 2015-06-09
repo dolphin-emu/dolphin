@@ -4,7 +4,6 @@
 // Author:      Harm van der Heijden, Robert Roebling, Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirctrlcmn.cpp 66592 2011-01-05 18:27:58Z PC $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

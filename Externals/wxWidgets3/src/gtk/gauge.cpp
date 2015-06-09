@@ -2,7 +2,6 @@
 // Name:        src/gtk/gauge.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: gauge.cpp 66555 2011-01-04 08:31:53Z SC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,8 +41,13 @@ bool wxGauge::Create( wxWindow *parent,
     g_object_ref(m_widget);
     if ( style & wxGA_VERTICAL )
     {
+#ifdef __WXGTK3__
+        gtk_orientable_set_orientation(GTK_ORIENTABLE(m_widget), GTK_ORIENTATION_VERTICAL);
+        gtk_progress_bar_set_inverted(GTK_PROGRESS_BAR(m_widget), true);
+#else
         gtk_progress_bar_set_orientation( GTK_PROGRESS_BAR(m_widget),
                                           GTK_PROGRESS_BOTTOM_TO_TOP );
+#endif
     }
 
     // when using the gauge in indeterminate mode, we need this:
@@ -123,7 +127,7 @@ wxVisualAttributes wxGauge::GetDefaultAttributes() const
 wxVisualAttributes
 wxGauge::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-    return GetDefaultAttributesFromGTKWidget(gtk_progress_bar_new,
+    return GetDefaultAttributesFromGTKWidget(gtk_progress_bar_new(),
                                              false, GTK_STATE_ACTIVE);
 }
 

@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -30,10 +30,19 @@
 #include "polarssl/pkcs11.h"
 
 #if defined(POLARSSL_PKCS11_C)
+#include "polarssl/md.h"
+#include "polarssl/oid.h"
+#include "polarssl/x509_crt.h"
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
 #include <stdlib.h>
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
 
-int pkcs11_x509_cert_init( x509_cert *cert, pkcs11h_certificate_t pkcs11_cert )
+int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
 {
     int ret = 1;
     unsigned char *cert_blob = NULL;
@@ -45,26 +54,28 @@ int pkcs11_x509_cert_init( x509_cert *cert, pkcs11h_certificate_t pkcs11_cert )
         goto cleanup;
     }
 
-    if( pkcs11h_certificate_getCertificateBlob( pkcs11_cert, NULL, &cert_blob_size ) != CKR_OK )
+    if( pkcs11h_certificate_getCertificateBlob( pkcs11_cert, NULL,
+                                                &cert_blob_size ) != CKR_OK )
     {
         ret = 3;
         goto cleanup;
     }
 
-    cert_blob = malloc( cert_blob_size );
+    cert_blob = polarssl_malloc( cert_blob_size );
     if( NULL == cert_blob )
     {
         ret = 4;
         goto cleanup;
     }
 
-    if( pkcs11h_certificate_getCertificateBlob( pkcs11_cert, cert_blob, &cert_blob_size ) != CKR_OK )
+    if( pkcs11h_certificate_getCertificateBlob( pkcs11_cert, cert_blob,
+                                                &cert_blob_size ) != CKR_OK )
     {
         ret = 5;
         goto cleanup;
     }
 
-    if( 0 != x509parse_crt(cert, cert_blob, cert_blob_size ) )
+    if( 0 != x509_crt_parse( cert, cert_blob, cert_blob_size ) )
     {
         ret = 6;
         goto cleanup;
@@ -74,9 +85,9 @@ int pkcs11_x509_cert_init( x509_cert *cert, pkcs11h_certificate_t pkcs11_cert )
 
 cleanup:
     if( NULL != cert_blob )
-        free( cert_blob );
+        polarssl_free( cert_blob );
 
-    return ret;
+    return( ret );
 }
 
 
@@ -84,9 +95,9 @@ int pkcs11_priv_key_init( pkcs11_context *priv_key,
         pkcs11h_certificate_t pkcs11_cert )
 {
     int ret = 1;
-    x509_cert cert;
+    x509_crt cert;
 
-    memset( &cert, 0, sizeof( cert ) );
+    x509_crt_init( &cert );
 
     if( priv_key == NULL )
         goto cleanup;
@@ -94,15 +105,15 @@ int pkcs11_priv_key_init( pkcs11_context *priv_key,
     if( 0 != pkcs11_x509_cert_init( &cert, pkcs11_cert ) )
         goto cleanup;
 
-    priv_key->len = cert.rsa.len;
+    priv_key->len = pk_get_len( &cert.pk );
     priv_key->pkcs11h_cert = pkcs11_cert;
 
     ret = 0;
 
 cleanup:
-    x509_free( &cert );
+    x509_crt_free( &cert );
 
-    return ret;
+    return( ret );
 }
 
 void pkcs11_priv_key_free( pkcs11_context *priv_key )
@@ -122,7 +133,7 @@ int pkcs11_decrypt( pkcs11_context *ctx,
     if( NULL == ctx )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    if( RSA_PUBLIC == mode )
+    if( RSA_PRIVATE != mode )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     output_len = input_len = ctx->len;
@@ -151,83 +162,70 @@ int pkcs11_decrypt( pkcs11_context *ctx,
 
 int pkcs11_sign( pkcs11_context *ctx,
                     int mode,
-                    int hash_id,
+                    md_type_t md_alg,
                     unsigned int hashlen,
                     const unsigned char *hash,
                     unsigned char *sig )
 {
-    size_t olen, asn_len;
+    size_t sig_len = 0, asn_len = 0, oid_size = 0;
     unsigned char *p = sig;
+    const char *oid;
 
     if( NULL == ctx )
-        return POLARSSL_ERR_RSA_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    if( RSA_PUBLIC == mode )
-        return POLARSSL_ERR_RSA_BAD_INPUT_DATA;
+    if( RSA_PRIVATE != mode )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    olen = ctx->len;
-
-    switch( hash_id )
+    if( md_alg != POLARSSL_MD_NONE )
     {
-        case SIG_RSA_RAW:
-            asn_len = 0;
-            memcpy( p, hash, hashlen );
-            break;
-
-        case SIG_RSA_MD2:
-            asn_len = OID_SIZE(ASN1_HASH_MDX);
-            memcpy( p, ASN1_HASH_MDX, asn_len );
-            memcpy( p + asn_len, hash, hashlen );
-            p[13] = 2; break;
-
-        case SIG_RSA_MD4:
-            asn_len = OID_SIZE(ASN1_HASH_MDX);
-            memcpy( p, ASN1_HASH_MDX, asn_len );
-            memcpy( p + asn_len, hash, hashlen );
-            p[13] = 4; break;
-
-        case SIG_RSA_MD5:
-            asn_len = OID_SIZE(ASN1_HASH_MDX);
-            memcpy( p, ASN1_HASH_MDX, asn_len );
-            memcpy( p + asn_len, hash, hashlen );
-            p[13] = 5; break;
-
-        case SIG_RSA_SHA1:
-            asn_len = OID_SIZE(ASN1_HASH_SHA1);
-            memcpy( p, ASN1_HASH_SHA1, asn_len );
-            memcpy( p + 15, hash, hashlen );
-            break;
-
-        case SIG_RSA_SHA224:
-            asn_len = OID_SIZE(ASN1_HASH_SHA2X);
-            memcpy( p, ASN1_HASH_SHA2X, asn_len );
-            memcpy( p + asn_len, hash, hashlen );
-            p[1] += hashlen; p[14] = 4; p[18] += hashlen; break;
-
-        case SIG_RSA_SHA256:
-            asn_len = OID_SIZE(ASN1_HASH_SHA2X);
-            memcpy( p, ASN1_HASH_SHA2X, asn_len );
-            memcpy( p + asn_len, hash, hashlen );
-            p[1] += hashlen; p[14] = 1; p[18] += hashlen; break;
-
-        case SIG_RSA_SHA384:
-            asn_len = OID_SIZE(ASN1_HASH_SHA2X);
-            memcpy( p, ASN1_HASH_SHA2X, asn_len );
-            memcpy( p + asn_len, hash, hashlen );
-            p[1] += hashlen; p[14] = 2; p[18] += hashlen; break;
-
-        case SIG_RSA_SHA512:
-            asn_len = OID_SIZE(ASN1_HASH_SHA2X);
-            memcpy( p, ASN1_HASH_SHA2X, asn_len );
-            memcpy( p + asn_len, hash, hashlen );
-            p[1] += hashlen; p[14] = 3; p[18] += hashlen; break;
-
-        default:
+        const md_info_t *md_info = md_info_from_type( md_alg );
+        if( md_info == NULL )
             return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
+        if( oid_get_oid_by_md( md_alg, &oid, &oid_size ) != 0 )
+            return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
+        hashlen = md_get_size( md_info );
+        asn_len = 10 + oid_size;
     }
 
+    sig_len = ctx->len;
+    if( hashlen > sig_len || asn_len > sig_len ||
+        hashlen + asn_len > sig_len )
+    {
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+    }
+
+    if( md_alg != POLARSSL_MD_NONE )
+    {
+        /*
+         * DigestInfo ::= SEQUENCE {
+         *   digestAlgorithm DigestAlgorithmIdentifier,
+         *   digest Digest }
+         *
+         * DigestAlgorithmIdentifier ::= AlgorithmIdentifier
+         *
+         * Digest ::= OCTET STRING
+         */
+        *p++ = ASN1_SEQUENCE | ASN1_CONSTRUCTED;
+        *p++ = (unsigned char) ( 0x08 + oid_size + hashlen );
+        *p++ = ASN1_SEQUENCE | ASN1_CONSTRUCTED;
+        *p++ = (unsigned char) ( 0x04 + oid_size );
+        *p++ = ASN1_OID;
+        *p++ = oid_size & 0xFF;
+        memcpy( p, oid, oid_size );
+        p += oid_size;
+        *p++ = ASN1_NULL;
+        *p++ = 0x00;
+        *p++ = ASN1_OCTET_STRING;
+        *p++ = hashlen;
+    }
+
+    memcpy( p, hash, hashlen );
+
     if( pkcs11h_certificate_signAny( ctx->pkcs11h_cert, CKM_RSA_PKCS, sig,
-            asn_len + hashlen, sig, &olen ) != CKR_OK )
+            asn_len + hashlen, sig, &sig_len ) != CKR_OK )
     {
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }

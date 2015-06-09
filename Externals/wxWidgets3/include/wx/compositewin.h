@@ -3,7 +3,6 @@
 // Purpose:     wxCompositeWindow<> declaration
 // Author:      Vadim Zeitlin
 // Created:     2011-01-02
-// RCS-ID:      $Id: compositewin.h 69470 2011-10-19 16:20:01Z VS $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

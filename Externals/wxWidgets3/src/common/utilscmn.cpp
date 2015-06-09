@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utilscmn.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -70,8 +69,6 @@
 #endif
 
 #if wxUSE_GUI
-    #include "wx/colordlg.h"
-    #include "wx/fontdlg.h"
     #include "wx/notebook.h"
     #include "wx/statusbr.h"
 #endif // wxUSE_GUI
@@ -86,7 +83,7 @@
     #include "wx/osx/private.h"
 #endif
 
-#if !defined(__MWERKS__) && !defined(__WXWINCE__)
+#if !defined(__WXWINCE__)
     #include <sys/types.h>
     #include <sys/stat.h>
 #endif
@@ -551,12 +548,17 @@ bool wxGetEnvMap(wxEnvVariableHashMap *map)
     wxCHECK_MSG( map, false, wxS("output pointer can't be NULL") );
 
 #if defined(__VISUALC__)
+    // This variable only exists to force the CRT to fill the wide char array,
+    // it might only have it in narrow char version until now as we use main()
+    // (and not _wmain()) as our entry point.
+    static wxChar* s_dummyEnvVar = _tgetenv(wxT("TEMP"));
+
     wxChar **env = _tenviron;
 #elif defined(__VMS)
    // Now this routine wil give false for OpenVMS
    // TODO : should we do something with logicals?
     char **env=NULL;
-#elif defined(__WXOSX__)
+#elif defined(__DARWIN__)
 #if wxOSX_USE_COCOA_OR_CARBON
     // Under Mac shared libraries don't have access to the global environ
     // variable so use this Mac-specific function instead as advised by
@@ -615,18 +617,27 @@ bool wxGetEnvMap(wxEnvVariableHashMap *map)
 // wxExecute
 // ----------------------------------------------------------------------------
 
-// wxDoExecuteWithCapture() helper: reads an entire stream into one array
+// wxDoExecuteWithCapture() helper: reads an entire stream into one array if
+// the stream is non-NULL (it doesn't do anything if it's NULL).
 //
 // returns true if ok, false if error
 #if wxUSE_STREAMS
 static bool ReadAll(wxInputStream *is, wxArrayString& output)
 {
-    wxCHECK_MSG( is, false, wxT("NULL stream in wxExecute()?") );
+    if ( !is )
+        return true;
 
     // the stream could be already at EOF or in wxSTREAM_BROKEN_PIPE state
     is->Reset();
 
-    wxTextInputStream tis(*is);
+    // Notice that wxTextInputStream doesn't work correctly with wxConvAuto
+    // currently, see #14720, so use the current locale conversion explicitly
+    // under assumption that any external program should be using it too.
+    wxTextInputStream tis(*is, " \t"
+#if wxUSE_UNICODE
+                                    , wxConvLibc
+#endif
+                                                );
 
     for ( ;; )
     {
@@ -668,17 +679,16 @@ static long wxDoExecuteWithCapture(const wxString& command,
     long rc = wxExecute(command, wxEXEC_SYNC | flags, process, env);
 
 #if wxUSE_STREAMS
-    if ( rc != -1 )
+    // Notice that while -1 indicates an error exit code for us, a program
+    // exiting with this code could still have written something to its stdout
+    // and, especially, stderr, so we still need to read from them.
+    if ( !ReadAll(process->GetInputStream(), output) )
+        rc = -1;
+
+    if ( error )
     {
-        if ( !ReadAll(process->GetInputStream(), output) )
+        if ( !ReadAll(process->GetErrorStream(), *error) )
             rc = -1;
-
-        if ( error )
-        {
-            if ( !ReadAll(process->GetErrorStream(), *error) )
-                rc = -1;
-        }
-
     }
 #else
     wxUnusedVar(output);
@@ -710,9 +720,9 @@ long wxExecute(const wxString& command,
 // ----------------------------------------------------------------------------
 
 // Id generation
-static long wxCurrentId = 100;
+static int wxCurrentId = 100;
 
-long wxNewId()
+int wxNewId()
 {
     // skip the part of IDs space that contains hard-coded values:
     if (wxCurrentId == wxID_LOWEST)
@@ -721,11 +731,11 @@ long wxNewId()
     return wxCurrentId++;
 }
 
-long
+int
 wxGetCurrentId(void) { return wxCurrentId; }
 
 void
-wxRegisterId (long id)
+wxRegisterId (int id)
 {
   if (id >= wxCurrentId)
     wxCurrentId = id + 1;
@@ -1184,22 +1194,23 @@ wxString wxStripMenuCodes(const wxString& in, int flags)
     size_t len = in.length();
     out.reserve(len);
 
-    for ( size_t n = 0; n < len; n++ )
+    for ( wxString::const_iterator it = in.begin(); it != in.end(); ++it )
     {
-        wxChar ch = in[n];
+        wxChar ch = *it;
         if ( (flags & wxStrip_Mnemonics) && ch == wxT('&') )
         {
             // skip it, it is used to introduce the accel char (or to quote
             // itself in which case it should still be skipped): note that it
             // can't be the last character of the string
-            if ( ++n == len )
+            if ( ++it == in.end() )
             {
                 wxLogDebug(wxT("Invalid menu string '%s'"), in.c_str());
+                break;
             }
             else
             {
                 // use the next char instead
-                ch = in[n];
+                ch = *it;
             }
         }
         else if ( (flags & wxStrip_Accel) && ch == wxT('\t') )
@@ -1275,7 +1286,7 @@ wxWindow* wxFindWindowAtPoint(wxWindow* win, const wxPoint& pt)
     // Hack for wxNotebook case: at least in wxGTK, all pages
     // claim to be shown, so we must only deal with the selected one.
 #if wxUSE_NOTEBOOK
-    if (win->IsKindOf(CLASSINFO(wxNotebook)))
+    if (wxDynamicCast(win, wxNotebook))
     {
       wxNotebook* nb = (wxNotebook*) win;
       int sel = nb->GetSelection();
@@ -1411,7 +1422,7 @@ wxVersionInfo wxGetLibraryVersionInfo()
                          wxMINOR_VERSION,
                          wxRELEASE_NUMBER,
                          msg,
-                         wxS("Copyright (c) 1995-2011 wxWidgets team"));
+                         wxS("Copyright (c) 1995-2013 wxWidgets team"));
 }
 
 void wxInfoMessageBox(wxWindow* parent)
@@ -1477,89 +1488,6 @@ wxString wxGetPasswordFromUser(const wxString& message,
 }
 
 #endif // wxUSE_TEXTDLG
-
-#if wxUSE_COLOURDLG
-
-wxColour wxGetColourFromUser(wxWindow *parent,
-                             const wxColour& colInit,
-                             const wxString& caption,
-                             wxColourData *ptrData)
-{
-    // contains serialized representation of wxColourData used the last time
-    // the dialog was shown: we want to reuse it the next time in order to show
-    // the same custom colours to the user (and we can't just have static
-    // wxColourData itself because it's a GUI object and so should be destroyed
-    // before GUI shutdown and doing it during static cleanup is too late)
-    static wxString s_strColourData;
-
-    wxColourData data;
-    if ( !ptrData )
-    {
-        ptrData = &data;
-        if ( !s_strColourData.empty() )
-        {
-            if ( !data.FromString(s_strColourData) )
-            {
-                wxFAIL_MSG( "bug in wxColourData::FromString()?" );
-            }
-
-#ifdef __WXMSW__
-            // we don't get back the "choose full" flag value from the native
-            // dialog and so we can't preserve it between runs, so we decide to
-            // always use it as it seems better than not using it (user can
-            // just ignore the extra controls in the dialog but having to click
-            // a button each time to show them would be very annoying
-            data.SetChooseFull(true);
-#endif // __WXMSW__
-        }
-    }
-
-    if ( colInit.IsOk() )
-    {
-        ptrData->SetColour(colInit);
-    }
-
-    wxColour colRet;
-    wxColourDialog dialog(parent, ptrData);
-    if (!caption.empty())
-        dialog.SetTitle(caption);
-    if ( dialog.ShowModal() == wxID_OK )
-    {
-        *ptrData = dialog.GetColourData();
-        colRet = ptrData->GetColour();
-        s_strColourData = ptrData->ToString();
-    }
-    //else: leave colRet invalid
-
-    return colRet;
-}
-
-#endif // wxUSE_COLOURDLG
-
-#if wxUSE_FONTDLG
-
-wxFont wxGetFontFromUser(wxWindow *parent, const wxFont& fontInit, const wxString& caption)
-{
-    wxFontData data;
-    if ( fontInit.IsOk() )
-    {
-        data.SetInitialFont(fontInit);
-    }
-
-    wxFont fontRet;
-    wxFontDialog dialog(parent, data);
-    if (!caption.empty())
-        dialog.SetTitle(caption);
-    if ( dialog.ShowModal() == wxID_OK )
-    {
-        fontRet = dialog.GetFontData().GetChosenFont();
-    }
-    //else: leave it invalid
-
-    return fontRet;
-}
-
-#endif // wxUSE_FONTDLG
 
 // ----------------------------------------------------------------------------
 // wxSafeYield and supporting functions

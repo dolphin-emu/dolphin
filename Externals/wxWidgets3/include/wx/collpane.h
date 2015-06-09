@@ -4,7 +4,6 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     8/10/2006
-// RCS-ID:      $Id: collpane.h 58718 2009-02-07 18:59:25Z VZ $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -53,14 +52,14 @@ public:
 
 class WXDLLIMPEXP_FWD_CORE wxCollapsiblePaneEvent;
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_COLLPANE_CHANGED, wxCollapsiblePaneEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEvent );
 
 class WXDLLIMPEXP_CORE wxCollapsiblePaneEvent : public wxCommandEvent
 {
 public:
     wxCollapsiblePaneEvent() {}
     wxCollapsiblePaneEvent(wxObject *generator, int id, bool collapsed)
-        : wxCommandEvent(wxEVT_COMMAND_COLLPANE_CHANGED, id),
+        : wxCommandEvent(wxEVT_COLLAPSIBLEPANE_CHANGED, id),
         m_bCollapsed(collapsed)
     {
         SetEventObject(generator);
@@ -89,7 +88,7 @@ typedef void (wxEvtHandler::*wxCollapsiblePaneEventFunction)(wxCollapsiblePaneEv
     wxEVENT_HANDLER_CAST(wxCollapsiblePaneEventFunction, func)
 
 #define EVT_COLLAPSIBLEPANE_CHANGED(id, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_COLLPANE_CHANGED, id, wxCollapsiblePaneEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_COLLAPSIBLEPANE_CHANGED, id, wxCollapsiblePaneEventHandler(fn))
 
 
 #if defined(__WXGTK20__) && !defined(__WXUNIVERSAL__)
@@ -100,6 +99,9 @@ typedef void (wxEvtHandler::*wxCollapsiblePaneEventFunction)(wxCollapsiblePaneEv
     // use #define and not a typedef to allow forward declaring the class
     #define wxCollapsiblePane wxGenericCollapsiblePane
 #endif
+
+// old wxEVT_COMMAND_* constant
+#define wxEVT_COMMAND_COLLPANE_CHANGED   wxEVT_COLLAPSIBLEPANE_CHANGED
 
 #endif // wxUSE_COLLPANE
 

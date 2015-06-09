@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: panel.h 69378 2011-10-11 17:07:43Z VZ $
 // Copyright:   (c) Julian Smart
 //              (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows Licence

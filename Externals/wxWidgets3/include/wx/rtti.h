@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: rtti.h 67879 2011-06-07 13:06:17Z VZ $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2001 Ron Lee <ron@debian.org>
 // Licence:     wxWindows licence

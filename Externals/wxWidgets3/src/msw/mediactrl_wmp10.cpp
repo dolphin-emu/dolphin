@@ -4,7 +4,6 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrl_wmp10.cpp 67182 2011-03-14 10:27:01Z JS $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,7 +27,7 @@
 // is about to be played - and if the user didn't change the state of the
 // media (m_bWasStateChanged), when set it back to the stop state.
 //
-// The ActiveX control itself is particularily stubborn, calling
+// The ActiveX control itself is particularly stubborn, calling
 // IOleInPlaceSite::OnPosRectChange every file change trying to set itself
 // to something different then what we told it to before.
 //
@@ -861,7 +860,7 @@ bool wxWMP10MediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     IWMPPlayer2* pWMPPlayer2; // Only 2 has windowless video and stretchtofit
     if(m_pWMPPlayer->QueryInterface(IID_IWMPPlayer2, (void**)&pWMPPlayer2) == 0)
     {
-        // We don't check errors here as these arn't particularily important
+        // We don't check errors here as these arn't particularly important
         // and may not be implemented (i.e. stretchToFit on CE)
         pWMPPlayer2->put_windowlessVideo(VARIANT_TRUE);
         pWMPPlayer2->put_stretchToFit(VARIANT_TRUE);
@@ -1472,7 +1471,7 @@ wxFORCE_LINK_THIS_MODULE(wxmediabackend_wmp10)
 // you playing a file through WMP.
 //
 // Here are those hacks. They do indeed "work" as expected - just call
-// SendMessage with one of those myterious values layed out in
+// SendMessage with one of those myterious values laid out in
 // Peter Foot's Friday, May 21, 2004 Blog Post on the issue.
 // (He says they are in a registery section entitled "Pendant Bus")
 //

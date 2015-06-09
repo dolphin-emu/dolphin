@@ -3,7 +3,6 @@
 // Purpose:     Class adding support for custom window backgrounds.
 // Author:      Vadim Zeitlin
 // Created:     2011-10-10
-// RCS-ID:      $Id: custombgwin.h 69930 2011-12-04 23:57:36Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

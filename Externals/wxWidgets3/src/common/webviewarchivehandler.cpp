@@ -2,7 +2,6 @@
 // Name:        webviewfilehandler.cpp
 // Purpose:     Custom webview handler to allow archive browsing
 // Author:      Steven Lamerton
-// Id:          $Id: webviewarchivehandler.cpp 69317 2011-10-06 10:01:17Z SJL $
 // Copyright:   (c) 2011 Steven Lamerton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -6,18 +6,12 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h 67233 2011-03-18 15:45:51Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_PRIVATE_H_
 #define _WX_PRIVATE_H_
-
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
-typedef UInt32 URefCon;
-typedef SInt32 SRefCon;
-#endif
 
 #if wxUSE_GUI
 
@@ -29,10 +23,6 @@ typedef SInt32 SRefCon;
 #include "wx/osx/dcmemory.h"
 
 // app.h
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-bool wxMacConvertEventToRecord( EventRef event , EventRecord *rec);
-#endif
 
 #endif // wxUSE_GUI
 
@@ -270,12 +260,6 @@ ControlActionUPP GetwxMacLiveScrollbarActionProc();
 
 // additional optional event defines
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
-enum {
-    kEventControlFocusPartChanged = 164
-};
-#endif
-
 class WXDLLIMPEXP_CORE wxMacControl : public wxWidgetImpl
 {
 public :
@@ -332,7 +316,6 @@ public :
     wxBitmap            GetBitmap() const;
     void                SetBitmap( const wxBitmap& bitmap );
     void                SetBitmapPosition( wxDirection dir );
-    void                SetupTabs( const wxNotebook &notebook );
 
     void                GetBestRect( wxRect *r ) const;
     bool                IsEnabled() const;

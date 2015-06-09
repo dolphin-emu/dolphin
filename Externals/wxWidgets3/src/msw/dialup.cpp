@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.07.99
-// RCS-ID:      $Id: dialup.cpp 70751 2012-02-29 13:59:01Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1284,7 +1283,7 @@ static DWORD wxRasMonitorThread(wxRasThreadData *data)
     }
 
     // we don't need it any more now and if this thread ran, it is our
-    // responsability to free the data
+    // responsibility to free the data
     delete data;
 
     return 0;

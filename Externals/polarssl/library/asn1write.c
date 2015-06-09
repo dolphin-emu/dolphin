@@ -1,7 +1,7 @@
 /*
  * ASN.1 buffer writing functionality
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,11 +23,23 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ASN1_WRITE_C)
 
 #include "polarssl/asn1write.h"
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#include <stdlib.h>
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
 
 int asn1_write_len( unsigned char **p, unsigned char *start, size_t len )
 {
@@ -36,7 +48,7 @@ int asn1_write_len( unsigned char **p, unsigned char *start, size_t len )
         if( *p - start < 1 )
             return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
-        *--(*p) = len;
+        *--(*p) = (unsigned char) len;
         return( 1 );
     }
 
@@ -45,7 +57,7 @@ int asn1_write_len( unsigned char **p, unsigned char *start, size_t len )
         if( *p - start < 2 )
             return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
-        *--(*p) = len;
+        *--(*p) = (unsigned char) len;
         *--(*p) = 0x81;
         return( 2 );
     }
@@ -72,6 +84,22 @@ int asn1_write_tag( unsigned char **p, unsigned char *start, unsigned char tag )
     return( 1 );
 }
 
+int asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
+                           const unsigned char *buf, size_t size )
+{
+    size_t len = 0;
+
+    if( *p - start < (int) size )
+        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
+
+    len = size;
+    (*p) -= len;
+    memcpy( *p, buf, len );
+
+    return( (int) len );
+}
+
+#if defined(POLARSSL_BIGNUM_C)
 int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
 {
     int ret;
@@ -85,12 +113,12 @@ int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     (*p) -= len;
-    mpi_write_binary( X, *p, len );
+    MPI_CHK( mpi_write_binary( X, *p, len ) );
 
     // DER format assumes 2s complement for numbers, so the leftmost bit
     // should be 0 for positive numbers and 1 for negative numbers.
     //
-    if ( X->s ==1 && **p & 0x80 )
+    if( X->s ==1 && **p & 0x80 )
     {
         if( *p - start < 1 )
             return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
@@ -102,9 +130,13 @@ int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_INTEGER ) );
 
-    return( len );
+    ret = (int) len;
+
+cleanup:
+    return( ret );
 }
-    
+#endif /* POLARSSL_BIGNUM_C */
+
 int asn1_write_null( unsigned char **p, unsigned char *start )
 {
     int ret;
@@ -115,52 +147,59 @@ int asn1_write_null( unsigned char **p, unsigned char *start )
     ASN1_CHK_ADD( len, asn1_write_len( p, start, 0) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_NULL ) );
 
-    return( len );
+    return( (int) len );
 }
 
-int asn1_write_oid( unsigned char **p, unsigned char *start, char *oid )
+int asn1_write_oid( unsigned char **p, unsigned char *start,
+                    const char *oid, size_t oid_len )
 {
     int ret;
     size_t len = 0;
 
-    // Write OID
-    //
-    len = strlen( oid );
-
-    if( *p - start < (int) len )
-        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-
-    (*p) -= len;
-    memcpy( *p, oid, len );
-
+    ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
+                                  (const unsigned char *) oid, oid_len ) );
     ASN1_CHK_ADD( len , asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len , asn1_write_tag( p, start, ASN1_OID ) );
 
-    return( len );
+    return( (int) len );
 }
 
 int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
-                                     char *algorithm_oid )
+                                     const char *oid, size_t oid_len,
+                                     size_t par_len )
 {
     int ret;
-    size_t null_len = 0;
-    size_t oid_len = 0;
     size_t len = 0;
 
-    // Write NULL
-    //
-    ASN1_CHK_ADD( null_len, asn1_write_null( p, start ) );
+    if( par_len == 0 )
+        ASN1_CHK_ADD( len, asn1_write_null( p, start ) );
+    else
+        len += par_len;
 
-    // Write OID
-    //
-    ASN1_CHK_ADD( oid_len, asn1_write_oid( p, start, algorithm_oid ) );
+    ASN1_CHK_ADD( len, asn1_write_oid( p, start, oid, oid_len ) );
 
-    len = oid_len + null_len;
-    ASN1_CHK_ADD( len, asn1_write_len( p, start, oid_len + null_len ) );
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start,
                                        ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
-    return( len );
+    return( (int) len );
+}
+
+int asn1_write_bool( unsigned char **p, unsigned char *start, int boolean )
+{
+    int ret;
+    size_t len = 0;
+
+    if( *p - start < 1 )
+        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
+
+    *--(*p) = (boolean) ? 1 : 0;
+    len++;
+
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_BOOLEAN ) );
+
+    return( (int) len );
 }
 
 int asn1_write_int( unsigned char **p, unsigned char *start, int val )
@@ -178,7 +217,7 @@ int asn1_write_int( unsigned char **p, unsigned char *start, int val )
     len += 1;
     *--(*p) = val;
 
-    if ( val > 0 && **p & 0x80 )
+    if( val > 0 && **p & 0x80 )
     {
         if( *p - start < 1 )
             return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
@@ -190,52 +229,138 @@ int asn1_write_int( unsigned char **p, unsigned char *start, int val )
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_INTEGER ) );
 
-    return( len );
+    return( (int) len );
 }
 
 int asn1_write_printable_string( unsigned char **p, unsigned char *start,
-                                 char *text )
+                                 const char *text, size_t text_len )
 {
     int ret;
     size_t len = 0;
 
-    // Write string
-    //
-    len = strlen( text );
-
-    if( *p - start < (int) len )
-        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-
-    (*p) -= len;
-    memcpy( *p, text, len );
+    ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
+                  (const unsigned char *) text, text_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_PRINTABLE_STRING ) );
 
-    return( len );
+    return( (int) len );
 }
-    
+
 int asn1_write_ia5_string( unsigned char **p, unsigned char *start,
-                          char *text )
+                           const char *text, size_t text_len )
 {
     int ret;
     size_t len = 0;
 
-    // Write string
-    //
-    len = strlen( text );
-
-    if( *p - start < (int) len )
-        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-
-    (*p) -= len;
-    memcpy( *p, text, len );
+    ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
+                  (const unsigned char *) text, text_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_IA5_STRING ) );
 
-    return( len );
+    return( (int) len );
 }
-    
 
-#endif
+int asn1_write_bitstring( unsigned char **p, unsigned char *start,
+                          const unsigned char *buf, size_t bits )
+{
+    int ret;
+    size_t len = 0, size;
+
+    size = ( bits / 8 ) + ( ( bits % 8 ) ? 1 : 0 );
+
+    // Calculate byte length
+    //
+    if( *p - start < (int) size + 1 )
+        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
+
+    len = size + 1;
+    (*p) -= size;
+    memcpy( *p, buf, size );
+
+    // Write unused bits
+    //
+    *--(*p) = (unsigned char) (size * 8 - bits);
+
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_BIT_STRING ) );
+
+    return( (int) len );
+}
+
+int asn1_write_octet_string( unsigned char **p, unsigned char *start,
+                             const unsigned char *buf, size_t size )
+{
+    int ret;
+    size_t len = 0;
+
+    ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start, buf, size ) );
+
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_OCTET_STRING ) );
+
+    return( (int) len );
+}
+
+asn1_named_data *asn1_store_named_data( asn1_named_data **head,
+                                        const char *oid, size_t oid_len,
+                                        const unsigned char *val,
+                                        size_t val_len )
+{
+    asn1_named_data *cur;
+
+    if( ( cur = asn1_find_named_data( *head, oid, oid_len ) ) == NULL )
+    {
+        // Add new entry if not present yet based on OID
+        //
+        if( ( cur = polarssl_malloc( sizeof(asn1_named_data) ) ) == NULL )
+            return( NULL );
+
+        memset( cur, 0, sizeof(asn1_named_data) );
+
+        cur->oid.len = oid_len;
+        cur->oid.p = polarssl_malloc( oid_len );
+        if( cur->oid.p == NULL )
+        {
+            polarssl_free( cur );
+            return( NULL );
+        }
+
+        cur->val.len = val_len;
+        cur->val.p = polarssl_malloc( val_len );
+        if( cur->val.p == NULL )
+        {
+            polarssl_free( cur->oid.p );
+            polarssl_free( cur );
+            return( NULL );
+        }
+
+        memcpy( cur->oid.p, oid, oid_len );
+
+        cur->next = *head;
+        *head = cur;
+    }
+    else if( cur->val.len < val_len )
+    {
+        // Enlarge existing value buffer if needed
+        //
+        polarssl_free( cur->val.p );
+        cur->val.p = NULL;
+
+        cur->val.len = val_len;
+        cur->val.p = polarssl_malloc( val_len );
+        if( cur->val.p == NULL )
+        {
+            polarssl_free( cur->oid.p );
+            polarssl_free( cur );
+            return( NULL );
+        }
+    }
+
+    if( val != NULL )
+        memcpy( cur->val.p, val, val_len );
+
+    return( cur );
+}
+#endif /* POLARSSL_ASN1_WRITE_C */

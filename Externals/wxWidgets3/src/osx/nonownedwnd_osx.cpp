@@ -3,7 +3,6 @@
 // Purpose:     implementation of wxNonOwnedWindow
 // Author:      Stefan Csomor
 // Created:     2008-03-24
-// RCS-ID:      $Id: nonownedwnd_osx.cpp 70765 2012-03-01 15:04:42Z JS $
 // Copyright:   (c) Stefan Csomor 2008
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -249,10 +248,7 @@ bool wxNonOwnedWindow::OSXShowWithEffect(bool show,
     {
         // as apps expect a size event to occur when the window is shown,
         // generate one when it is shown with effect too
-        MacOnInternalSize();
-        wxSizeEvent event(GetSize(), m_windowId);
-        event.SetEventObject(this);
-        HandleWindowEvent(event);
+        SendSizeEvent();
     }
 
     return true;
@@ -310,13 +306,9 @@ void wxNonOwnedWindow::HandleActivated( double timestampsec, bool didActivate )
     HandleWindowEvent(wxevent);
 }
 
-void wxNonOwnedWindow::HandleResized( double timestampsec )
+void wxNonOwnedWindow::HandleResized( double WXUNUSED(timestampsec) )
 {
-    MacOnInternalSize();
-    wxSizeEvent wxevent( GetSize() , GetId());
-    wxevent.SetTimestamp( (int) (timestampsec * 1000) );
-    wxevent.SetEventObject( this );
-    HandleWindowEvent(wxevent);
+    SendSizeEvent();
     // we have to inform some controls that have to reset things
     // relative to the toplevel window (e.g. OpenGL buffers)
     wxWindowMac::MacSuperChangedPosition() ; // like this only children will be notified
@@ -387,10 +379,7 @@ bool wxNonOwnedWindow::Show(bool show)
     if ( show )
     {
         // because apps expect a size event to occur at this moment
-        MacOnInternalSize();
-        wxSizeEvent event(GetSize() , m_windowId);
-        event.SetEventObject(this);
-        HandleWindowEvent(event);
+        SendSizeEvent();
     }
 
     return true ;
@@ -506,6 +495,13 @@ WXWindow wxNonOwnedWindow::GetWXWindow() const
 {
     return m_nowpeer ? m_nowpeer->GetWXWindow() : NULL;
 }
+
+#if wxOSX_USE_COCOA_OR_IPHONE
+void *wxNonOwnedWindow::OSXGetViewOrWindow() const
+{
+    return GetWXWindow();
+}
+#endif
 
 // ---------------------------------------------------------------------------
 // Shape implementation

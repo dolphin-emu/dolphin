@@ -3,7 +3,6 @@
 // Purpose:     wxBitmapComboBox
 // Author:      Jaakko Salli
 // Created:     2008-05-19
-// RCS-ID:      $Id: bmpcbox.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) 2008 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,6 +29,7 @@
     #include "wx/log.h"
 #endif
 
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 
 // ============================================================================
@@ -101,9 +101,9 @@ bool wxBitmapComboBox::Create(wxWindow *parent,
     // Select 'value' in entry-less mode
     if ( !GetEntry() )
     {
-        int n = FindString(value);
-        if ( n != wxNOT_FOUND )
-            SetSelection(n);
+        int i = FindString(value);
+        if (i != wxNOT_FOUND)
+            SetSelection(i);
     }
 
     return true;
@@ -121,7 +121,12 @@ void wxBitmapComboBox::GTKCreateComboBoxWidget()
     }
     else
     {
+#ifdef __WXGTK3__
+        m_widget = gtk_combo_box_new_with_model_and_entry(GTK_TREE_MODEL(store));
+        gtk_combo_box_set_entry_text_column(GTK_COMBO_BOX(m_widget), m_stringCellIndex);
+#else
         m_widget = gtk_combo_box_entry_new_with_model( GTK_TREE_MODEL(store), m_stringCellIndex );
+#endif
         m_entry = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(m_widget)));
         gtk_editable_set_editable(GTK_EDITABLE(m_entry), true);
     }
@@ -197,7 +202,7 @@ void wxBitmapComboBox::SetItemBitmap(unsigned int n, const wxBitmap& bitmap)
 
         if ( gtk_tree_model_iter_nth_child( model, &iter, NULL, n ) )
         {
-            GValue value0 = { 0, };
+            GValue value0 = G_VALUE_INIT;
             g_value_init( &value0, G_TYPE_OBJECT );
             g_value_set_object( &value0, bitmap.GetPixbuf() );
             gtk_list_store_set_value( GTK_LIST_STORE(model), &iter,
@@ -217,14 +222,14 @@ wxBitmap wxBitmapComboBox::GetItemBitmap(unsigned int n) const
 
     if (gtk_tree_model_iter_nth_child (model, &iter, NULL, n))
     {
-        GValue value = { 0, };
+        GValue value = G_VALUE_INIT;
         gtk_tree_model_get_value( model, &iter,
                                   m_bitmapCellIndex, &value );
         GdkPixbuf* pixbuf = (GdkPixbuf*) g_value_get_object( &value );
         if ( pixbuf )
         {
             g_object_ref( pixbuf );
-            bitmap.SetPixbuf( pixbuf );
+            bitmap = wxBitmap(pixbuf);
         }
         g_value_unset( &value );
     }
@@ -295,7 +300,7 @@ void wxBitmapComboBox::GTKInsertComboBoxTextItem( unsigned int n, const wxString
 
     gtk_list_store_insert( store, &iter, n );
 
-    GValue value = { 0, };
+    GValue value = G_VALUE_INIT;
     g_value_init( &value, G_TYPE_STRING );
     g_value_set_string( &value, wxGTK_CONV( text ) );
     gtk_list_store_set_value( store, &iter, m_stringCellIndex, &value );

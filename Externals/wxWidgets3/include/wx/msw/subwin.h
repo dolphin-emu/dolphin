@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-12-11
-// RCS-ID:      $Id: subwin.h 61508 2009-07-23 20:30:22Z VZ $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

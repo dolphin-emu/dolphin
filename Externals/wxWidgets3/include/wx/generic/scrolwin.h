@@ -3,7 +3,6 @@
 // Purpose:     generic wxScrollHelper
 // Author:      Vadim Zeitlin
 // Created:     2008-12-24 (replacing old file with the same name)
-// RCS-ID:      $Id: scrolwin.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,6 +21,7 @@ public:
 
     // implement base class pure virtuals
     virtual void AdjustScrollbars();
+    virtual bool IsScrollbarShown(int orient) const;
 
 protected:
     virtual void DoScroll(int x, int y);

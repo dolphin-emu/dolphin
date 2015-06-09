@@ -3,7 +3,6 @@
 // Purpose:     Implementation of time-related functions.
 // Author:      Vadim Zeitlin
 // Created:     2011-11-26
-// RCS-ID:      $Id: time.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,11 +47,6 @@
 #  endif
 #endif
 
-#if defined(__MWERKS__) && defined(__WINDOWS__)
-#   undef HAVE_FTIME
-#   undef HAVE_GETTIMEOFDAY
-#endif
-
 #ifndef __WXWINCE__
 #include <time.h>
 #else
@@ -70,10 +64,6 @@
     #include <unistd.h>
 #elif defined(HAVE_FTIME)
     #include <sys/timeb.h>
-#endif
-
-#if defined(__MWERKS__) && wxUSE_UNICODE
-    #include <wtime.h>
 #endif
 
 #if defined(__DJGPP__) || defined(__WINE__)
@@ -223,10 +213,6 @@ int wxGetTimeZone()
         return WX_TIMEZONE;
     #elif defined(__BORLANDC__) || defined(__MINGW32__) || defined(__VISAGECPP__)
         return _timezone;
-    #elif defined(__MWERKS__)
-        // This is just plain wrong but apparently MetroWerks runtime didn't have
-        // any way to get the time zone.
-        return 28800;
     #else // unknown platform -- assume it has timezone
         return timezone;
     #endif // different time zone variables
@@ -305,8 +291,6 @@ wxLongLong wxGetUTCTimeUSec()
 // Get local time as milliseconds since 00:00:00, Jan 1st 1970
 wxLongLong wxGetUTCTimeMillis()
 {
-    wxLongLong val = MILLISECONDS_PER_SECOND;
-
     // If possible, use a function which avoids conversions from
     // broken-up time structures to milliseconds
 #if defined(__WINDOWS__)
@@ -319,7 +303,10 @@ wxLongLong wxGetUTCTimeMillis()
     t /= 10000;
     t -= wxLL(11644473600000); // Unix - Windows epochs difference in ms.
     return t;
-#elif defined(HAVE_GETTIMEOFDAY)
+#else // !__WINDOWS__
+    wxLongLong val = MILLISECONDS_PER_SECOND;
+
+#if defined(HAVE_GETTIMEOFDAY)
     struct timeval tp;
     if ( wxGetTimeOfDay(&tp) != -1 )
     {
@@ -355,6 +342,8 @@ wxLongLong wxGetUTCTimeMillis()
     val *= wxGetUTCTime();
     return val;
 #endif // time functions
+
+#endif // __WINDOWS__/!__WINDOWS__
 }
 
 wxLongLong wxGetLocalTimeMillis()

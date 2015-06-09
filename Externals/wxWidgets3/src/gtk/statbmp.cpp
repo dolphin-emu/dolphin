@@ -2,7 +2,6 @@
 // Name:        src/gtk/statbmp.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statbmp.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:           wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -75,8 +74,7 @@ void wxStaticBitmap::SetBitmap( const wxBitmap &bitmap )
 wxVisualAttributes
 wxStaticBitmap::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-    // TODO: overload to allow using gtk_pixmap_new?
-    return GetDefaultAttributesFromGTKWidget(gtk_label_new);
+    return GetDefaultAttributesFromGTKWidget(gtk_image_new());
 }
 
 #endif // wxUSE_STATBMP

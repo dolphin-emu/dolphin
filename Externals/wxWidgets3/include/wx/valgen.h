@@ -3,7 +3,6 @@
 // Purpose:     wxGenericValidator class
 // Author:      Kevin Smith
 // Created:     Jan 22 1999
-// RCS-ID:      $Id: valgen.h 68217 2011-07-09 23:37:28Z VZ $
 // Copyright:   (c) 1999 Julian Smart (assigned from Kevin)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

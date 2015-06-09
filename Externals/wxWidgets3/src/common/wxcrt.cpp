@@ -4,7 +4,6 @@
 // Author:      Ove Kaven
 // Modified by: Ron Lee, Francesco Montorsi
 // Created:     09/04/99
-// RCS-ID:      $Id: wxcrt.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) wxWidgets copyright
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -67,11 +66,6 @@
     #define wxSET_ERRNO(value) errno = value
 #endif
 
-#if defined(__MWERKS__) && __MSL__ >= 0x6000
-namespace std {}
-using namespace std ;
-#endif
-
 #if defined(__DARWIN__)
     #include "wx/osx/core/cfref.h"
     #include <CoreFoundation/CFLocale.h>
@@ -95,20 +89,20 @@ WXDLLIMPEXP_BASE size_t wxMB2WC(wchar_t *buf, const char *psz, size_t n)
 #ifdef HAVE_WCSRTOMBS
     return mbsrtowcs(buf, &psz, n, &mbstate);
 #else
-    return wxMbstowcs(buf, psz, n);
+    return mbstowcs(buf, psz, n);
 #endif
   }
 
-  // note that we rely on common (and required by Unix98 but unfortunately not
+  // Note that we rely on common (and required by Unix98 but unfortunately not
   // C99) extension which allows to call mbs(r)towcs() with NULL output pointer
   // to just get the size of the needed buffer -- this is needed as otherwise
-  // we have no idea about how much space we need and if the CRT doesn't
-  // support it (the only currently known example being Metrowerks, see
-  // wx/crt.h) we don't use its mbstowcs() at all
+  // we have no idea about how much space we need. Currently all supported
+  // compilers do provide it and if they don't, HAVE_WCSRTOMBS shouldn't be
+  // defined at all.
 #ifdef HAVE_WCSRTOMBS
   return mbsrtowcs(NULL, &psz, 0, &mbstate);
 #else
-  return wxMbstowcs(NULL, psz, 0);
+  return mbstowcs(NULL, psz, 0);
 #endif
 }
 
@@ -128,14 +122,14 @@ WXDLLIMPEXP_BASE size_t wxWC2MB(char *buf, const wchar_t *pwz, size_t n)
 #ifdef HAVE_WCSRTOMBS
     return wcsrtombs(buf, &pwz, n, &mbstate);
 #else
-    return wxWcstombs(buf, pwz, n);
+    return wcstombs(buf, pwz, n);
 #endif
   }
 
 #ifdef HAVE_WCSRTOMBS
   return wcsrtombs(NULL, &pwz, 0, &mbstate);
 #else
-  return wxWcstombs(NULL, pwz, 0);
+  return wcstombs(NULL, pwz, 0);
 #endif
 }
 
@@ -589,11 +583,11 @@ int ConvertStringToBuf(const wxString& s, char *out, size_t outsize)
     const size_t len = buf.length();
     if ( outsize > len )
     {
-        memcpy(out, buf, (len+1) * sizeof(char));
+        memcpy(out, buf, len+1);
     }
     else // not enough space
     {
-        memcpy(out, buf, (outsize-1) * sizeof(char));
+        memcpy(out, buf, outsize-1);
         out[outsize-1] = '\0';
     }
 
@@ -743,54 +737,6 @@ int wxVsnprintf(wchar_t *str, size_t size, const wxString& format, va_list argpt
 // ctype.h stuff (currently unused)
 // ----------------------------------------------------------------------------
 
-#ifdef wxNEED_WX_MBSTOWCS
-
-WXDLLIMPEXP_BASE size_t wxMbstowcs (wchar_t * out, const char * in, size_t outlen)
-{
-    if (!out)
-    {
-        size_t outsize = 0;
-        while(*in++)
-            outsize++;
-        return outsize;
-    }
-
-    const char* origin = in;
-
-    while (outlen-- && *in)
-    {
-        *out++ = (wchar_t) *in++;
-    }
-
-    *out = '\0';
-
-    return in - origin;
-}
-
-WXDLLIMPEXP_BASE size_t wxWcstombs (char * out, const wchar_t * in, size_t outlen)
-{
-    if (!out)
-    {
-        size_t outsize = 0;
-        while(*in++)
-            outsize++;
-        return outsize;
-    }
-
-    const wchar_t* origin = in;
-
-    while (outlen-- && *in)
-    {
-        *out++ = (char) *in++;
-    }
-
-    *out = '\0';
-
-    return in - origin;
-}
-
-#endif // wxNEED_WX_MBSTOWCS
-
 #ifndef wxCRT_StrdupA
 WXDLLIMPEXP_BASE char *wxCRT_StrdupA(const char *s)
 {
@@ -839,7 +785,8 @@ wxChar32* wxStrdup(const wxChar32* s)
 {
   size_t size = (wxStrlen(s) + 1) * sizeof(wxChar32);
   wxChar32 *ret = (wxChar32*) malloc(size);
-  memcpy(ret, s, size);
+  if ( ret )
+      memcpy(ret, s, size);
   return ret;
 }
 #endif
@@ -980,23 +927,35 @@ wxCRT_StrtoullBase(const T* nptr, T** endptr, int base, T* sign)
         }
     }
 
-    // Starts with 0x?
+    // Starts with octal or hexadecimal prefix?
     if ( i != end && *i == wxT('0') )
     {
         ++i;
         if ( i != end )
         {
-            if ( *i == wxT('x') && (base == 16 || base == 0) )
+            if ( (*i == wxT('x')) || (*i == wxT('X')) )
             {
-                base = 16;
-                ++i;
+                // Hexadecimal prefix: use base 16 if auto-detecting.
+                if ( base == 0 )
+                    base = 16;
+
+                // If we do use base 16, just skip "x" as well.
+                if ( base == 16 )
+                {
+                    ++i;
+                }
+                else // Not using base 16
+                {
+                    // Then it's an error.
+                    if ( endptr )
+                        *endptr = (T*) nptr;
+                    wxSET_ERRNO(EINVAL);
+                    return sum;
+                }
             }
-            else
+            else if ( base == 0 )
             {
-                if ( endptr )
-                    *endptr = (T*) nptr;
-                wxSET_ERRNO(EINVAL);
-                return sum;
+                base = 8;
             }
         }
         else

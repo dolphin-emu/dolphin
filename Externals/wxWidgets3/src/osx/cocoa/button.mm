@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: button.mm 70402 2012-01-19 15:01:01Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,6 +15,8 @@
 #endif
 
 #include "wx/button.h"
+#include "wx/toplevel.h"
+#include "wx/tglbtn.h"
 
 #include "wx/osx/private.h"
 
@@ -81,136 +82,216 @@
 - (NSControlSize)controlSize;
 @end
 
-namespace
+wxButtonCocoaImpl::wxButtonCocoaImpl(wxWindowMac *wxpeer, wxNSButton *v)
+: wxWidgetCocoaImpl(wxpeer, v)
 {
+    SetNeedsFrame(false);
+}
 
-class wxButtonCocoaImpl : public wxWidgetCocoaImpl, public wxButtonImpl
+void wxButtonCocoaImpl::SetBitmap(const wxBitmap& bitmap)
 {
-public:
-    wxButtonCocoaImpl(wxWindowMac *wxpeer, wxNSButton *v)
-        : wxWidgetCocoaImpl(wxpeer, v)
+    // switch bezel style for plain pushbuttons
+    if ( bitmap.IsOk() )
     {
-        SetNeedsFrame(false);
+        if ([GetNSButton() bezelStyle] == NSRoundedBezelStyle)
+            [GetNSButton() setBezelStyle:NSRegularSquareBezelStyle];
     }
-
-    virtual void SetBitmap(const wxBitmap& bitmap)
+    else
     {
-        // switch bezel style for plain pushbuttons
-        if ( bitmap.IsOk() )
-        {
-            if ([GetNSButton() bezelStyle] == NSRoundedBezelStyle)
-                [GetNSButton() setBezelStyle:NSRegularSquareBezelStyle];
-        }
-        else
-        {
-            [GetNSButton() setBezelStyle:NSRoundedBezelStyle];
-        }
-        
-        wxWidgetCocoaImpl::SetBitmap(bitmap);
+        [GetNSButton() setBezelStyle:NSRoundedBezelStyle];
     }
+    
+    wxWidgetCocoaImpl::SetBitmap(bitmap);
+}
 
 #if wxUSE_MARKUP
-    virtual void SetLabelMarkup(const wxString& markup)
-    {
-        wxMarkupToAttrString toAttr(GetWXPeer(), markup);
-        NSMutableAttributedString *attrString = toAttr.GetNSAttributedString();
-
-        // Button text is always centered.
-        NSMutableParagraphStyle *
-            paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-        [paragraphStyle setAlignment: NSCenterTextAlignment];
-        [attrString addAttribute:NSParagraphStyleAttributeName
-                    value:paragraphStyle
-                    range:NSMakeRange(0, [attrString length])];
-        [paragraphStyle release];
-
-        [GetNSButton() setAttributedTitle:attrString];
-    }
+void wxButtonCocoaImpl::SetLabelMarkup(const wxString& markup)
+{
+    wxMarkupToAttrString toAttr(GetWXPeer(), markup);
+    NSMutableAttributedString *attrString = toAttr.GetNSAttributedString();
+    
+    // Button text is always centered.
+    NSMutableParagraphStyle *
+    paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+    [paragraphStyle setAlignment: NSCenterTextAlignment];
+    [attrString addAttribute:NSParagraphStyleAttributeName
+                       value:paragraphStyle
+                       range:NSMakeRange(0, [attrString length])];
+    [paragraphStyle release];
+    
+    [GetNSButton() setAttributedTitle:attrString];
+}
 #endif // wxUSE_MARKUP
 
-    void SetPressedBitmap( const wxBitmap& bitmap )
+void wxButtonCocoaImpl::SetPressedBitmap( const wxBitmap& bitmap )
+{
+    NSButton* button = GetNSButton();
+    [button setAlternateImage: bitmap.GetNSImage()];
+    if ( GetWXPeer()->IsKindOf(wxCLASSINFO(wxToggleButton)) )
     {
-        NSButton* button = GetNSButton();
-        [button setAlternateImage: bitmap.GetNSImage()];
+        [button setButtonType:NSToggleButton];
+    }
+    else
+    {
         [button setButtonType:NSMomentaryChangeButton];
     }
+}
 
-    void GetLayoutInset(int &left , int &top , int &right, int &bottom) const
-    {
-        left = top = right = bottom = 0;
-        NSControlSize size = NSRegularControlSize;
-        if ( [m_osxView respondsToSelector:@selector(controlSize)] )
-            size = [m_osxView controlSize];
-        else if ([m_osxView respondsToSelector:@selector(cell)])
-        {
-            id cell = [(id)m_osxView cell];
-            if ([cell respondsToSelector:@selector(controlSize)])
-                size = [cell controlSize];
-        }
-        
-        if ( [GetNSButton() bezelStyle] == NSRoundedBezelStyle )
-        {
-            switch( size )
-            {
-                case NSRegularControlSize:
-                    left = right = 6;
-                    top = 4;
-                    bottom = 8;
-                    break;
-                case NSSmallControlSize:
-                    left = right = 5;
-                    top = 4;
-                    bottom = 7;
-                    break;
-                case NSMiniControlSize:
-                    left = right = 1;
-                    top = 0;
-                    bottom = 2;
-                    break;
-            }
-        }
-    }
-    
-    
-private:
-    NSButton *GetNSButton() const
-    {
-        wxASSERT( [m_osxView isKindOfClass:[NSButton class]] );
-
-        return static_cast<NSButton *>(m_osxView);
-    }
-};
-
-} // anonymous namespace
-
-extern "C" void SetBezelStyleFromBorderFlags(NSButton *v, long style);
-    
-// set bezel style depending on the wxBORDER_XXX flags specified by the style
-void SetBezelStyleFromBorderFlags(NSButton *v, long style)
+void wxButtonCocoaImpl::GetLayoutInset(int &left , int &top , int &right, int &bottom) const
 {
-    if ( style & wxBORDER_NONE )
+    left = top = right = bottom = 0;
+    NSControlSize size = NSRegularControlSize;
+    if ( [m_osxView respondsToSelector:@selector(controlSize)] )
+        size = [m_osxView controlSize];
+    else if ([m_osxView respondsToSelector:@selector(cell)])
     {
-        [v setBezelStyle:NSShadowlessSquareBezelStyle];
-        [v setBordered:NO];
+        id cell = [(id)m_osxView cell];
+        if ([cell respondsToSelector:@selector(controlSize)])
+            size = [cell controlSize];
     }
-    else // we do have a border
+    
+    if ( [GetNSButton() bezelStyle] == NSRoundedBezelStyle )
     {
-        // see trac #11128 for a thorough discussion
-        if ( (style & wxBORDER_MASK) == wxBORDER_RAISED )
-            [v setBezelStyle:NSRegularSquareBezelStyle];
-        else if ( (style & wxBORDER_MASK) == wxBORDER_SUNKEN )
-            [v setBezelStyle:NSSmallSquareBezelStyle];
-        else if ( (style & wxBORDER_MASK) == wxBORDER_SIMPLE )
-            [v setBezelStyle:NSShadowlessSquareBezelStyle];
-        else
-            [v setBezelStyle:NSRegularSquareBezelStyle];
+        switch( size )
+        {
+            case NSRegularControlSize:
+                left = right = 6;
+                top = 4;
+                bottom = 8;
+                break;
+            case NSSmallControlSize:
+                left = right = 5;
+                top = 4;
+                bottom = 7;
+                break;
+            case NSMiniControlSize:
+                left = right = 1;
+                top = 0;
+                bottom = 2;
+                break;
+        }
     }
+}
+
+void wxButtonCocoaImpl::SetAcceleratorFromLabel(const wxString& label)
+{
+    const int accelPos = wxControl::FindAccelIndex(label);
+    if ( accelPos != wxNOT_FOUND )
+    {
+        wxString accelstring(label[accelPos + 1]); // Skip '&' itself
+        accelstring.MakeLower();
+        wxCFStringRef cfText(accelstring);
+        [GetNSButton() setKeyEquivalent:cfText.AsNSString()];
+        [GetNSButton() setKeyEquivalentModifierMask:NSCommandKeyMask];
+    }
+    else
+    {
+        [GetNSButton() setKeyEquivalent:@""];
+    }
+}
+
+NSButton *wxButtonCocoaImpl::GetNSButton() const
+{
+    wxASSERT( [m_osxView isKindOfClass:[NSButton class]] );
+    
+    return static_cast<NSButton *>(m_osxView);
+}
+
+// Set bezel style depending on the wxBORDER_XXX flags specified by the style
+// and also accounting for the label (bezels are different for multiline
+// buttons and normal ones) and the ID (special bezel is used for help button).
+//
+// This is extern because it's also used in src/osx/cocoa/tglbtn.mm.
+extern "C"
+void
+SetBezelStyleFromBorderFlags(NSButton *v,
+                             long style,
+                             wxWindowID winid,
+                             const wxString& label = wxString(),
+                             const wxBitmap& bitmap = wxBitmap())
+{
+    // We can't display a custom label inside a button with help bezel style so
+    // we only use it if we are using the default label. wxButton itself checks
+    // if the label is just "Help" in which case it discards it and passes us
+    // an empty string.
+    if ( winid == wxID_HELP && label.empty() )
+    {
+        [v setBezelStyle:NSHelpButtonBezelStyle];
+    }
+    else
+    {
+        // We can't use rounded bezel styles neither for multiline buttons nor
+        // for buttons containing (big) icons as they are only meant to be used
+        // at certain sizes, so the style used depends on whether the label is
+        // single or multi line.
+        const bool
+            isSimpleText = (label.find_first_of("\n\r") == wxString::npos)
+                                && (!bitmap.IsOk() || bitmap.GetHeight() < 20);
+
+        NSBezelStyle bezel;
+        switch ( style & wxBORDER_MASK )
+        {
+            case wxBORDER_NONE:
+                bezel = NSShadowlessSquareBezelStyle;
+                [v setBordered:NO];
+                break;
+
+            case wxBORDER_SIMPLE:
+                bezel = NSShadowlessSquareBezelStyle;
+                break;
+
+            case wxBORDER_SUNKEN:
+                bezel = isSimpleText ? NSTexturedRoundedBezelStyle
+                                     : NSSmallSquareBezelStyle;
+                break;
+
+            default:
+                wxFAIL_MSG( "Unknown border style" );
+                // fall through
+
+            case 0:
+            case wxBORDER_STATIC:
+            case wxBORDER_RAISED:
+            case wxBORDER_THEME:
+                bezel = isSimpleText ? NSRoundedBezelStyle
+                                     : NSRegularSquareBezelStyle;
+                break;
+        }
+
+        [v setBezelStyle:bezel];
+    }
+}
+
+// Set the keyboard accelerator key from the label (e.g. "Click &Me")
+void wxButton::OSXUpdateAfterLabelChange(const wxString& label)
+{
+    wxButtonCocoaImpl *impl = static_cast<wxButtonCocoaImpl*>(GetPeer());
+
+    // Update the bezel style as may be necessary if our new label is multi
+    // line while the old one wasn't (or vice versa).
+    SetBezelStyleFromBorderFlags(impl->GetNSButton(),
+                                 GetWindowStyle(),
+                                 GetId(),
+                                 label);
+
+
+    // Skip setting the accelerator for the default buttons as this would
+    // overwrite the default "Enter" which should be preserved.
+    wxTopLevelWindow * const
+        tlw = wxDynamicCast(wxGetTopLevelParent(this), wxTopLevelWindow);
+    if ( tlw )
+    {
+        if ( tlw->GetDefaultItem() == this )
+            return;
+    }
+
+    impl->SetAcceleratorFromLabel(label);
 }
 
 
 wxWidgetImplType* wxWidgetImpl::CreateButton( wxWindowMac* wxpeer,
                                     wxWindowMac* WXUNUSED(parent),
-                                    wxWindowID id,
+                                    wxWindowID winid,
                                     const wxString& label,
                                     const wxPoint& pos,
                                     const wxSize& size,
@@ -220,53 +301,12 @@ wxWidgetImplType* wxWidgetImpl::CreateButton( wxWindowMac* wxpeer,
     NSRect r = wxOSXGetFrameForControl( wxpeer, pos , size ) ;
     wxNSButton* v = [[wxNSButton alloc] initWithFrame:r];
 
-    // We can't display a custom label inside a button with help bezel style so
-    // we only use it if we are using the default label. wxButton itself checks
-    // if the label is just "Help" in which case it discards it and passes us
-    // an empty string.
-    if ( id == wxID_HELP && label.empty() )
-    {
-        [v setBezelStyle:NSHelpButtonBezelStyle];
-    }
-    else
-    {
-        if ( style & wxBORDER_NONE )
-        {
-            [v setBezelStyle:NSShadowlessSquareBezelStyle];
-            [v setBordered:NO];
-        }
-        else 
-        {
-            // the following styles only exist for certain sizes, so avoid them for
-            // multi-line
-            if ( label.Find('\n' ) == wxNOT_FOUND && label.Find('\r' ) == wxNOT_FOUND)
-            {
-                if ( (style & wxBORDER_MASK) == wxBORDER_RAISED )
-                    [v setBezelStyle:NSRoundedBezelStyle];
-                else if ( (style & wxBORDER_MASK) == wxBORDER_SUNKEN )
-                    [v setBezelStyle:NSTexturedRoundedBezelStyle];
-                else if ( (style & wxBORDER_MASK) == wxBORDER_SIMPLE )
-                    [v setBezelStyle:NSShadowlessSquareBezelStyle];
-                else
-                    [v setBezelStyle:NSRoundedBezelStyle];
-            }
-            else 
-            {
-                if ( (style & wxBORDER_MASK) == wxBORDER_RAISED )
-                    [v setBezelStyle:NSRegularSquareBezelStyle];
-                else if ( (style & wxBORDER_MASK) == wxBORDER_SUNKEN )
-                    [v setBezelStyle:NSSmallSquareBezelStyle];
-                else if ( (style & wxBORDER_MASK) == wxBORDER_SIMPLE )
-                    [v setBezelStyle:NSShadowlessSquareBezelStyle];
-                else
-                    [v setBezelStyle:NSRegularSquareBezelStyle];
-            }
+    SetBezelStyleFromBorderFlags(v, style, winid, label);
 
-        }
-    }
-    
     [v setButtonType:NSMomentaryPushInButton];
-    return new wxButtonCocoaImpl( wxpeer, v );
+    wxButtonCocoaImpl* const impl = new wxButtonCocoaImpl( wxpeer, v );
+    impl->SetAcceleratorFromLabel(label);
+    return impl;
 }
 
 void wxWidgetCocoaImpl::SetDefaultButton( bool isDefault )
@@ -274,7 +314,10 @@ void wxWidgetCocoaImpl::SetDefaultButton( bool isDefault )
     if ( [m_osxView isKindOfClass:[NSButton class]] )
     {
         if ( isDefault )
+        {
             [(NSButton*)m_osxView setKeyEquivalent: @"\r" ];
+            [(NSButton*)m_osxView setKeyEquivalentModifierMask: 0];
+        }
         else
             [(NSButton*)m_osxView setKeyEquivalent: @"" ];
     }
@@ -290,7 +333,7 @@ void wxWidgetCocoaImpl::PerformClick()
 
 wxWidgetImplType* wxWidgetImpl::CreateBitmapButton( wxWindowMac* wxpeer,
                                                    wxWindowMac* WXUNUSED(parent),
-                                                   wxWindowID WXUNUSED(id),
+                                                   wxWindowID winid,
                                                    const wxBitmap& bitmap,
                                                    const wxPoint& pos,
                                                    const wxSize& size,
@@ -300,7 +343,7 @@ wxWidgetImplType* wxWidgetImpl::CreateBitmapButton( wxWindowMac* wxpeer,
     NSRect r = wxOSXGetFrameForControl( wxpeer, pos , size ) ;
     wxNSButton* v = [[wxNSButton alloc] initWithFrame:r];
 
-    SetBezelStyleFromBorderFlags(v, style);
+    SetBezelStyleFromBorderFlags(v, style, winid, wxString(), bitmap);
 
     if (bitmap.IsOk())
         [v setImage:bitmap.GetNSImage() ];
@@ -447,7 +490,7 @@ public :
 
 wxWidgetImplType* wxWidgetImpl::CreateDisclosureTriangle( wxWindowMac* wxpeer,
                                     wxWindowMac* WXUNUSED(parent),
-                                    wxWindowID WXUNUSED(winid),
+                                    wxWindowID winid,
                                     const wxString& label,
                                     const wxPoint& pos,
                                     const wxSize& size,
@@ -459,7 +502,7 @@ wxWidgetImplType* wxWidgetImpl::CreateDisclosureTriangle( wxWindowMac* wxpeer,
     if ( !label.empty() )
         [v setTitle:wxCFStringRef(label).AsNSString()];
 
-    SetBezelStyleFromBorderFlags(v, style);
+    SetBezelStyleFromBorderFlags(v, style, winid, label);
 
     return new wxDisclosureTriangleCocoaImpl( wxpeer, v );
 }
