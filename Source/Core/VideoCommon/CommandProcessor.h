@@ -121,9 +121,6 @@ union UCPClearReg
 	UCPClearReg(u16 _hex) {Hex = _hex; }
 };
 
-// Can be any number, low enough to not be below the number of clocks executed by the GPU per CP_PERIOD
-const static u32 m_cpClockOrigin = 200000;
-
 // Init
 void Init();
 void Shutdown();
@@ -145,11 +142,5 @@ void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
 void ProcessFifoEvents();
-
-void Update();
-
-u32 GetVITicks();
-void SetVITicks(u32 ticks);
-void DecrementVITicks(u32 ticks);
 
 } // namespace CommandProcessor

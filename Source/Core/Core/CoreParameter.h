@@ -184,8 +184,12 @@ struct SCoreStartupParameter
 	bool bMMU;
 	bool bDCBZOFF;
 	int iBBDumpPort;
-	bool bSyncGPU;
 	bool bFastDiscSpeed;
+
+	bool bSyncGPU;
+	int iSyncGpuMaxDistance;
+	int iSyncGpuMinDistance;
+	float fSyncGpuOverclock;
 
 	int SelectedLanguage;
 

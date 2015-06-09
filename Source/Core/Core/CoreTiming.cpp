@@ -482,13 +482,13 @@ void Idle()
 {
 	//DEBUG_LOG(POWERPC, "Idle");
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack && !SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack)
 	{
 		//When the FIFO is processing data we must not advance because in this way
 		//the VI will be desynchronized. So, We are waiting until the FIFO finish and
 		//while we process only the events required by the FIFO.
 		ProcessFifoWaitEvents();
-		g_video_backend->Video_Sync();
+		g_video_backend->Video_Sync(0);
 	}
 
 	idledCycles += DowncountToCycles(PowerPC::ppcState.downcount);

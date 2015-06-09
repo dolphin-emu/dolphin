@@ -50,3 +50,4 @@ void EmulatorState(bool running);
 bool AtBreakpoint();
 void ResetVideoBuffer();
 void Fifo_SetRendering(bool bEnabled);
+int Fifo_Update(int ticks);

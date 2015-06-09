@@ -182,6 +182,10 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("DSPHLE", m_LocalCoreStartupParameter.bDSPHLE);
 	core->Set("SkipIdle", m_LocalCoreStartupParameter.bSkipIdle);
 	core->Set("SyncOnSkipIdle", m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack);
+	core->Set("SyncGPU", m_LocalCoreStartupParameter.bSyncGPU);
+	core->Set("SyncGpuMaxDistance", m_LocalCoreStartupParameter.iSyncGpuMaxDistance);
+	core->Set("SyncGpuMinDistance", m_LocalCoreStartupParameter.iSyncGpuMinDistance);
+	core->Set("SyncGpuOverclock", m_LocalCoreStartupParameter.fSyncGpuOverclock);
 	core->Set("DefaultISO", m_LocalCoreStartupParameter.m_strDefaultISO);
 	core->Set("DVDRoot", m_LocalCoreStartupParameter.m_strDVDRoot);
 	core->Set("Apploader", m_LocalCoreStartupParameter.m_strApploader);
@@ -458,6 +462,9 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("MMU",                       &m_LocalCoreStartupParameter.bMMU,              false);
 	core->Get("BBDumpPort",                &m_LocalCoreStartupParameter.iBBDumpPort,       -1);
 	core->Get("SyncGPU",                   &m_LocalCoreStartupParameter.bSyncGPU,          false);
+	core->Get("SyncGpuMaxDistance",        &m_LocalCoreStartupParameter.iSyncGpuMaxDistance,  200000);
+	core->Get("SyncGpuMinDistance",        &m_LocalCoreStartupParameter.iSyncGpuMinDistance, -200000);
+	core->Get("SyncGpuOverclock",          &m_LocalCoreStartupParameter.fSyncGpuOverclock, 1.0);
 	core->Get("FastDiscSpeed",             &m_LocalCoreStartupParameter.bFastDiscSpeed,    false);
 	core->Get("DCBZ",                      &m_LocalCoreStartupParameter.bDCBZOFF,          false);
 	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default

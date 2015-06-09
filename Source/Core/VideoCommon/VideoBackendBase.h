@@ -56,9 +56,6 @@ struct SCPFifoStruct
 
 	volatile u32 bFF_LoWatermark;
 	volatile u32 bFF_HiWatermark;
-
-	// for GP watchdog hack
-	volatile u32 isGpuReadingData;
 };
 
 class VideoBackend
@@ -99,7 +96,7 @@ public:
 
 	virtual void Video_GatherPipeBursted() = 0;
 
-	virtual void Video_Sync() = 0;
+	virtual int Video_Sync(int ticks) = 0;
 
 	// Registers MMIO handlers for the CommandProcessor registers.
 	virtual void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) = 0;
@@ -148,7 +145,7 @@ class VideoBackendHardware : public VideoBackend
 
 	void Video_GatherPipeBursted() override;
 
-	void Video_Sync() override;
+	int Video_Sync(int ticks) override;
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 
