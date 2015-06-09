@@ -60,6 +60,8 @@ public:
 		// used to delete textures which haven't been used for TEXTURE_KILL_THRESHOLD frames
 		int frameCount;
 
+		// Keep an iterator to the entry in textures_by_hash, so it does not need to be searched when removing the cache entry
+		std::multimap<u64, TCacheEntryBase*>::iterator textures_by_hash_iter;
 
 		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format)
 		{
@@ -131,18 +133,20 @@ protected:
 	static size_t temp_size;
 
 private:
+	typedef std::multimap<u64, TCacheEntryBase*> TexCache;
+	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
+
 	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
 	static void CheckTempSize(size_t required_size);
 
 	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
+	static TexCache::iterator RemoveTextureFromCache(TexCache::iterator t_iter);
 	static void FreeTexture(TCacheEntryBase* entry);
 
 	static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
 
-	typedef std::multimap<u32, TCacheEntryBase*> TexCache;
-	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
-
-	static TexCache textures;
+	static TexCache textures_by_address;
+	static TexCache textures_by_hash;
 	static TexPool texture_pool;
 	static TCacheEntryBase* bound_textures[8];
 
