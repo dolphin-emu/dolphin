@@ -52,7 +52,6 @@ if (APPLE)
 	endif()
 endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
-set(DOLPHIN_IS_STABLE FALSE)
 # Libraries to link
 set(LIBS)
 
@@ -126,7 +125,7 @@ endif()
 # version number
 set(DOLPHIN_VERSION_MAJOR "4")
 set(DOLPHIN_VERSION_MINOR "0")
-if(DOLPHIN_IS_STABLE)
+if(DOLPHIN_WC_BRANCH STREQUAL "stable")
 	set(DOLPHIN_VERSION_PATCH "0")
 else()
 	set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_REVISION})
