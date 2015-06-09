@@ -233,6 +233,12 @@ namespace DriverDetails
 		//		ab.z <<= cd.z;
 		//		ab.w <<= cd.w;
 		BUG_BROKENIVECSHIFTS,
+
+		// Bug: Intel crashes on Windows on loading some shaders.
+		// Affected devices: all Intel GPUs on Windows
+		// Started Version: -1
+		// Ended Version: -1
+		BUG_BROKENSHADERCACHE,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
