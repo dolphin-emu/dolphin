@@ -186,6 +186,7 @@ void SConfig::SaveSettings()
 	SaveDSPSettings(ini);
 	SaveInputSettings(ini);
 	SaveFifoPlayerSettings(ini);
+	SaveNetworkSettings(ini);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
@@ -399,6 +400,13 @@ void SConfig::SaveFifoPlayerSettings(IniFile& ini)
 	fifoplayer->Set("LoopReplay", m_LocalCoreStartupParameter.bLoopFifoReplay);
 }
 
+void SConfig::SaveNetworkSettings(IniFile& ini)
+{
+	IniFile::Section* network = ini.GetOrCreateSection("Network");
+
+	network->Set("SSLVerifyCert", m_SSLVerifyCert);
+}
+
 void SConfig::LoadSettings()
 {
 	INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
@@ -415,6 +423,7 @@ void SConfig::LoadSettings()
 	LoadDSPSettings(ini);
 	LoadInputSettings(ini);
 	LoadFifoPlayerSettings(ini);
+	LoadNetworkSettings(ini);
 
 	m_SYSCONF = new SysConf();
 }
@@ -678,4 +687,11 @@ void SConfig::LoadFifoPlayerSettings(IniFile& ini)
 	IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
 
 	fifoplayer->Get("LoopReplay", &m_LocalCoreStartupParameter.bLoopFifoReplay, true);
+}
+
+void SConfig::LoadNetworkSettings(IniFile& ini)
+{
+	IniFile::Section* network = ini.GetOrCreateSection("Network");
+
+	network->Get("SSLVerifyCert", &m_SSLVerifyCert, false);
 }
