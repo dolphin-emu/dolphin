@@ -98,6 +98,7 @@ public final class GameProvider extends ContentProvider
 		{
 			if (table.equals(REFRESH_LIBRARY))
 			{
+				Log.i("DolphinEmu", "URI specified table REFRESH_LIBRARY. No insertion necessary; refreshing library contents...");
 				mDbHelper.scanLibrary(database);
 				return uri;
 			}
