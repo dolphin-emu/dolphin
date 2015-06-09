@@ -47,7 +47,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& globs, con
 		regex_str += std::regex_replace(std::regex_replace(str, std::regex("\\."), "\\."), std::regex("\\*"), ".*");
 	}
 	regex_str += ")$";
-	std::regex regex(regex_str);
+	std::regex regex(regex_str, std::regex_constants::icase);
 	return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
 		return std::regex_match(entry.virtualName, regex);
 	});
