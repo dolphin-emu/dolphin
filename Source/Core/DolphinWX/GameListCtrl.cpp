@@ -780,19 +780,19 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 			// Get item Coords
 			GetItemRect(item, Rect);
 			int mx = Rect.GetWidth();
-			int my = Rect.GetY();
+			int my_ = Rect.GetY();
 #ifndef __WXMSW__
 			// For some reason the y position does not account for the header
 			// row, so subtract the y position of the first visible item.
 			GetItemRect(GetTopItem(), Rect);
-			my -= Rect.GetY();
+			my_ -= Rect.GetY();
 #endif
 			// Convert to screen coordinates
-			ClientToScreen(&mx, &my);
+			ClientToScreen(&mx, &my_);
 			toolTip->SetBoundingRect(wxRect(mx - GetColumnWidth(COLUMN_EMULATION_STATE),
-						my, GetColumnWidth(COLUMN_EMULATION_STATE), Rect.GetHeight()));
+						my_, GetColumnWidth(COLUMN_EMULATION_STATE), Rect.GetHeight()));
 			toolTip->SetPosition(wxPoint(mx - GetColumnWidth(COLUMN_EMULATION_STATE),
-						my - 5 + Rect.GetHeight()));
+						my_ - 5 + Rect.GetHeight()));
 			lastItem = item;
 		}
 	}
