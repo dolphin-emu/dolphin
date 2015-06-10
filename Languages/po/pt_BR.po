@@ -9,6 +9,7 @@
 # Felipefpl, 2015
 # Felipefpl, 2015
 # Runo <i.am.runo@gmail.com>, 2013
+# igorruckert <igorruckert@yahoo.com.br>, 2015
 # Charles Fernando da Silva <eu.charles@hotmail.com>, 2013
 # Mateus B. Cassiano <jhonn.copperfield@gmail.com>, 2013-2015
 # Mateus B. Cassiano <jhonn.copperfield@gmail.com>, 2013
@@ -19,7 +20,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-10 07:28+0000\n"
-"PO-Revision-Date: 2015-06-07 10:44+0000\n"
+"PO-Revision-Date: 2015-06-10 07:28+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/projects/p/"
 "dolphin-emu/language/pt_BR/)\n"
@@ -386,7 +387,7 @@ msgstr "&Visualizar"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:282
 msgid "&Watch"
-msgstr ""
+msgstr "A&ssistir"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:379
 msgid "&Website"
@@ -507,7 +508,6 @@ msgstr ""
 "Você deve conectar seus Wiimotes manualmente."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:118
-#, fuzzy
 msgid ""
 "ALERT:\n"
 "\n"
@@ -522,21 +522,6 @@ msgid ""
 "If connecting directly, the host must have the chosen UDP port open/"
 "forwarded!\n"
 msgstr ""
-"ATENÇÃO:\n"
-"\n"
-"O Netplay só funcionará corretamente com as seguintes configurações:\n"
-" - A Engine de Emulação DSP precisa ser a mesma em todos os computadores!\n"
-" - DSP em Thread Dedicado [DESLIGADO]\n"
-" - Defina manualmente as extensões para cada Wiimote\n"
-"\n"
-"Todos os jogadores devem usar a mesma versão do Dolphin e as mesmas "
-"configurações.\n"
-"Todos os Memory Cards precisam ser idênticos entre os jogadores ou "
-"desativados.\n"
-"O suporte à Wiimotes é bem precário. Não utilize.\n"
-"\n"
-"Se estiver se conectando diretamente a porta UDP escolhida pelo host precisa "
-"estar aberta/encaminhada!\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:54
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
@@ -717,7 +702,7 @@ msgstr "Todos os arquivos ISO do GC/Wii comprimidos (gcz)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Anaglyph"
-msgstr ""
+msgstr "Anáglifo"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:265
 msgid "Analyze"
@@ -1854,7 +1839,7 @@ msgstr "Configuração do Dolphin"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:44
 msgid "Dolphin Controller Configuration"
-msgstr ""
+msgstr "Configuração de Controle do Dolphin"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:425
 msgid "Dolphin Emulated Wiimote Configuration"
@@ -1866,15 +1851,15 @@ msgstr "Dolphin FIFO"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1338
 msgid "Dolphin Hotkeys"
-msgstr ""
+msgstr "Teclas de Atalho do Dolphin"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:90
 msgid "Dolphin NetPlay"
-msgstr ""
+msgstr "NetPlay do Dolphin"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:42
 msgid "Dolphin NetPlay Setup"
-msgstr ""
+msgstr "Configuração NetPlay do Dolphin"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:816
 #: Source/Core/DolphinWX/FrameTools.cpp:1270
@@ -2945,11 +2930,11 @@ msgstr "Adaptador de GameCube"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:556
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:561
 msgid "GameCube Controller Configuration"
-msgstr ""
+msgstr "Configuração de Controle do GameCube"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:78
 msgid "GameCube Controllers"
-msgstr ""
+msgstr "Controles do GameCube"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:303
 #: Source/Core/DolphinWX/MemcardManager.cpp:223
@@ -4164,7 +4149,7 @@ msgstr "Eixo do nunchuk"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Nvidia 3D Vision"
-msgstr ""
+msgstr "3D Vision da Nvidia"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:894
 msgid "Object"
@@ -4405,7 +4390,7 @@ msgstr "Porta:"
 
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:25
 msgid "Post Processing Shader Configuration"
-msgstr ""
+msgstr "Configuração de Pós-processamento do Shader"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:402
 msgid "Post-Processing Effect:"
@@ -5277,7 +5262,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Side-by-Side"
-msgstr ""
+msgstr "Lado-a-Lado"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
 msgid "Sideways Wiimote"
@@ -5655,6 +5640,8 @@ msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
 msgstr ""
+"A alteração do disco para \"%s\" não pôde ser salva no arquivo .dtm.\n"
+"O nome da imagem de disco não pode conter mais do que 40 caracteres."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:110
 #, c-format
@@ -5926,7 +5913,7 @@ msgstr "Frente"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Top-and-Bottom"
-msgstr ""
+msgstr "Superior-e-Inferior"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6555,10 +6542,3 @@ msgstr "O wxExecute retornou -1 ao rodar o aplicativo!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OU"
-
-#~ msgid "Arm JIT (experimental)"
-#~ msgstr "Arm JIT (experimental)"
-
-#~ msgid "Exception handler - access below memory space. 0x%08x"
-#~ msgstr ""
-#~ "Gerenciador de exceções - acesso abaixo do espaço de memória. 0x%08x"

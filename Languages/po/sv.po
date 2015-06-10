@@ -13,7 +13,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-10 07:28+0000\n"
-"PO-Revision-Date: 2015-06-07 10:44+0000\n"
+"PO-Revision-Date: 2015-06-10 07:28+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Swedish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/sv/)\n"
@@ -242,7 +242,7 @@ msgstr "&Ljudinställningar"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:133
 msgid "&Boot from DVD Backup..."
-msgstr ""
+msgstr "&Starta från DVD-kopia..."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:283
 msgid "&Breakpoints"
@@ -286,7 +286,7 @@ msgstr "&Helskärm"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:381
 msgid "&GitHub Repository"
-msgstr ""
+msgstr "Källkoden på &GitHub"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:229
 msgid "&Graphics Settings"
@@ -693,7 +693,7 @@ msgstr "Alla komprimerade ISO-filer för GC/Wii (gcz)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Anaglyph"
-msgstr ""
+msgstr "Anaglyf"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:265
 msgid "Analyze"
@@ -807,7 +807,7 @@ msgstr "Australien"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:61
 msgid "Authors"
-msgstr ""
+msgstr "Författare"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:42
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:153
@@ -929,7 +929,7 @@ msgstr "Blå höger"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:594
 msgid "Borderless Fullscreen"
-msgstr ""
+msgstr "Kantlös fullskärm"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:338
 msgid "Bottom"
@@ -1453,7 +1453,7 @@ msgstr "Kunde inte skapa klient"
 
 #: Source/Core/Core/NetPlayClient.cpp:100
 msgid "Couldn't create peer."
-msgstr ""
+msgstr "Kunde inte skapa peer."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:1202
 msgid "Couldn't find open command for extension 'ini'!"
@@ -1762,6 +1762,13 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Inaktiverar emulering av en hårdvarufunktion som heter destination alpha, "
+"som används i många spel för olika grafikeffekter.\n"
+"Detta påverkar inte prestandan i Direct3D och PC-OpenGL, men på OpenGL ES "
+"renderas detta i två steg, vilket påverkar prestandan på ett litet men "
+"märkbart sätt.\n"
+"\n"
+"Om du är osäker kan du lämna detta omarkerat."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:617
 msgid "Disc"
@@ -1777,7 +1784,7 @@ msgstr "Inte ansluten"
 
 #: Source/Core/Common/TraversalClient.cpp:225
 msgid "Disconnected from traversal server"
-msgstr ""
+msgstr "Frånkopplad från traverseringsservern"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:326
 msgid "Display"
@@ -1834,7 +1841,7 @@ msgstr "Dolphin FIFO"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1338
 msgid "Dolphin Hotkeys"
-msgstr ""
+msgstr "Dolphin - Kortkommandon"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:90
 msgid "Dolphin NetPlay"
@@ -1867,7 +1874,7 @@ msgstr ""
 
 #: Source/Core/Common/TraversalClient.cpp:222
 msgid "Dolphin too old for traversal server"
-msgstr ""
+msgstr "Dolphin är för gammal för traverseringsservrar"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1141
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1228
@@ -1890,7 +1897,7 @@ msgstr "Laddade ned %lu koder. (Lade till %lu)"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:118
 msgid "Drawn Object Range"
-msgstr ""
+msgstr "Räckvidd för ritade objekt"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:174
 msgid "Driver Not Detected"
@@ -1922,7 +1929,7 @@ msgstr "Dumpa objekt"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:112
 msgid "Dump TEV Stages"
-msgstr ""
+msgstr "Dumpa TEV-stadier"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:113
 msgid "Dump Texture Fetches"
@@ -2775,43 +2782,43 @@ msgstr "Fri vy"
 
 #: Source/Core/Core/HotkeyManager.cpp:52
 msgid "Freelook Decrease Speed"
-msgstr ""
+msgstr "Fri kamera - Sänk hastighet"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Freelook Increase Speed"
-msgstr ""
+msgstr "Fri kamera - Öka hastighet"
 
 #: Source/Core/Core/HotkeyManager.cpp:56
 msgid "Freelook Move Down"
-msgstr ""
+msgstr "Fri kamera - Flytta nedåt"
 
 #: Source/Core/Core/HotkeyManager.cpp:57
 msgid "Freelook Move Left"
-msgstr ""
+msgstr "Fri kamera - Flytta till vänster"
 
 #: Source/Core/Core/HotkeyManager.cpp:58
 msgid "Freelook Move Right"
-msgstr ""
+msgstr "Fri kamera - Flytta till höger"
 
 #: Source/Core/Core/HotkeyManager.cpp:55
 msgid "Freelook Move Up"
-msgstr ""
+msgstr "Fri kamera - Flytta uppåt"
 
 #: Source/Core/Core/HotkeyManager.cpp:61
 msgid "Freelook Reset"
-msgstr ""
+msgstr "Fri kamera - Återställ"
 
 #: Source/Core/Core/HotkeyManager.cpp:54
 msgid "Freelook Reset Speed"
-msgstr ""
+msgstr "Fri kamera - Återställ hastighet"
 
 #: Source/Core/Core/HotkeyManager.cpp:59
 msgid "Freelook Zoom In"
-msgstr ""
+msgstr "Fri kamera - zooma in"
 
 #: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Freelook Zoom Out"
-msgstr ""
+msgstr "Fri kamera - Zooma ut"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:49
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:34
@@ -2891,6 +2898,8 @@ msgstr "Spelet hittades inte!"
 #, c-format
 msgid "Game overwrote with another games save, data corruption ahead %x, %x "
 msgstr ""
+"Spelet skrev över med ett annat spels sparfil. Data kommer antagligen bli "
+"korrupt %x, %x"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:417
 msgid "Game-Specific Settings"
@@ -2978,6 +2987,13 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Höjer kraftigt kvalitén på texturer som genereras med "
+"texturrenderingseffenter.\n"
+"Att höja den interna upplösningen kommer att förbättra effekten av den här "
+"inställningen.\n"
+"Sänker prestandan en aning och leder till relativt få problem.\n"
+"\n"
+"Om du är osäker kan du lämna detta markerat."
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:26
 msgid "Green"
@@ -3043,6 +3059,14 @@ msgid ""
 "cause glitches. Do so at your own risk. Please do not report bugs that occur "
 "with a non-default clock. "
 msgstr ""
+"Högre värden kan låta spel med olåst bildfrekvens att köras med högre "
+"bildfrekvens på bekostnad av processorkraft. Lägre värden kan få spel med "
+"olåst bildfrekvens att köras på en lägre bildfrekvens och spara på "
+"processorkraft.\n"
+"\n"
+"VARNING: Risken att spel blir ospelbara och buggar uppstår är stor om detta "
+"ändras från standardvärdet (100 %). Använd på egen risk. Skicka inte "
+"buggrapporter med en klockning som inte är inställd på standard."
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:46
 msgid "Home"
@@ -3177,6 +3201,15 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Implementerar fullskärmsläget med ett kantlöst fönster som täcker hela "
+"skärmen istället för att använda exklusivt fullskärmsläge.\n"
+"Detta gör det snabbare att växla mellan fullskärm och fönster, men det ökar "
+"latensen för knapptryckningar lite, gör rörelser mindre mjuka och sänker "
+"prestandan lite.\n"
+"Exklusivt fullskärmsläge krävs för att Nvidia 3D Vision ska fungera med "
+"Direct3D.\n"
+"\n"
+"Om du är osäker kan du lämna detta omarkerat."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:813
 msgid "Import Save"
@@ -3389,7 +3422,7 @@ msgstr "Italien"
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:302
 #: Source/Core/Core/HW/GCPadEmu.cpp:86
 msgid "Iterative Input"
-msgstr ""
+msgstr "Iterativ inmatning"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:27
 msgid "JIT Recompiler (recommended)"
@@ -3659,7 +3692,7 @@ msgstr "Loggkonfiguration"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:314
 msgid "Log Render Time to File"
-msgstr ""
+msgstr "Logga renderingstid till fil"
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:75
 msgid "Log Types"
@@ -3672,6 +3705,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Logga renderingstiden för varje bildruta i User/Logs/render_time.txt. Använd "
+"denna funktion när du vill mäta Dolphins prestanda.\n"
+"\n"
+"Om du är osäker kan du lämna detta omarkerat."
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:70
 msgid "Logger Outputs"
@@ -4088,7 +4125,7 @@ msgstr "Nunchuk"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:167
 msgid "Nunchuk orientation"
-msgstr ""
+msgstr "Orientering för nunchuk"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:162
 msgid "Nunchuk stick"
@@ -4096,7 +4133,7 @@ msgstr "Nunchuk-spak"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Nvidia 3D Vision"
-msgstr ""
+msgstr "Nvidia 3D Vision"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:894
 msgid "Object"
@@ -4190,7 +4227,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:120
 msgid "Orientation"
-msgstr ""
+msgstr "Orientering"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:330
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:524
@@ -4202,6 +4239,8 @@ msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "must manually stop the game."
 msgstr ""
+"En annan klient bröt anslutningen under tiden spelet kördes! Nätspel är "
+"inaktiverat. Du måste stoppa spelet manuellt."
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:560
 msgid "Output"
@@ -4209,7 +4248,7 @@ msgstr "Utdata"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:88
 msgid "Overlay Information"
-msgstr ""
+msgstr "Pålagd informationstext"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:425
 msgid "P&lay Input Recording..."
@@ -4334,7 +4373,7 @@ msgstr "Port:"
 
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:25
 msgid "Post Processing Shader Configuration"
-msgstr ""
+msgstr "Efterbehandlingsshaderkonfiguration"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:402
 msgid "Post-Processing Effect:"
@@ -4481,6 +4520,11 @@ msgid ""
 "\n"
 "If unsure, select None."
 msgstr ""
+"Reducerar ojämnheten som orsakas av rasterad 3D-grafik.\n"
+"Detta jämnar ut hackiga kanter på objekt.\n"
+"Höjer processoranvändningen kraftigt och kan ibland orsaka grafikfel.\n"
+"\n"
+"Om du är osäker kan du välja Ingen."
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:995
@@ -4537,7 +4581,7 @@ msgstr "Återställ"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:73
 msgid "Reset Traversal Settings"
-msgstr ""
+msgstr "Återställ traverseringsinställningar"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:60
 msgid "Results"
@@ -4890,6 +4934,13 @@ msgid ""
 "\n"
 "If unsure, select Off."
 msgstr ""
+"Väljer stereoskopiskt 3D-läge. Stereoskopi låter dig få bättre djupkänsla om "
+"du har den nödvändiga hårdvaran.\n"
+"Sida-vid-sida och Topp-och-botten används av de flesta 3DTV-apparaterna.\n"
+"Anaglyf används för röd-turkos-färgade glasögon.\n"
+"Sänker emuleringshastigheten kraftigt och kan ibland orsaka fel.\n"
+"\n"
+"Om du är osäker kan du välja Av."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:95
 msgid ""
@@ -4945,7 +4996,7 @@ msgstr "Serieport 1 - Detta är porten som enheter såsom nätadaptern använder
 
 #: Source/Core/Core/NetPlayClient.cpp:784
 msgid "Server rejected traversal attempt"
-msgstr ""
+msgstr "Servern avvisade traverseringsförsök"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:851
 msgid "Set as &default ISO"
@@ -4985,6 +5036,8 @@ msgid ""
 "Sets the latency (in ms). Higher values may reduce audio crackling. OpenAL "
 "backend only."
 msgstr ""
+"Anger latensen (i millisekunder). Högre värden kan minska ljudknaster. "
+"Endast för OpenAL-backend."
 
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:229
 msgid "SetupWiiMemory: Cant create setting.txt file"
@@ -5186,7 +5239,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Side-by-Side"
-msgstr ""
+msgstr "Sida-vid-sida"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
 msgid "Sideways Wiimote"
@@ -5260,7 +5313,7 @@ msgstr "Ögonblicksbild"
 
 #: Source/Core/Common/TraversalClient.cpp:228
 msgid "Socket error sending to traversal server"
-msgstr ""
+msgstr "Socketfel skickas till traverseringsservern"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.h:94
 msgid ""
@@ -5310,7 +5363,7 @@ msgstr "Spanska"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
 msgid "Speaker Pan"
-msgstr ""
+msgstr "Högtalarpanorering"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:352
 msgid "Speaker Volume:"
@@ -5433,7 +5486,7 @@ msgstr "Exporterade %u sparningar till %s"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:62
 msgid "Support"
-msgstr ""
+msgstr "Support"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:452
 msgid "Swap Eyes"
@@ -5446,6 +5499,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Byter plats på vänster och höger öga. Mest användbart om du vill titta på "
+"läget Sida-vid-sida vindögt.\n"
+"\n"
+"Om du är osäker kan du lämna detta omarkerat."
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:266
 msgid "Swing"
@@ -5534,6 +5591,11 @@ msgid ""
 "\n"
 "If unsure, use the rightmost value."
 msgstr ""
+"Inställningen \"Säker\" eliminerar risken att GPU:n missar "
+"texturuppdateringar från RAM.\n"
+"Lägre precision kan skapa problem med text i vissa spel.\n"
+"\n"
+"Om du är osäker kan du välja värdet längst till höger."
 
 #: Source/Core/Core/CoreParameter.cpp:241
 msgid "The WAD has been installed successfully"
@@ -5557,6 +5619,8 @@ msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
 msgstr ""
+"Skivbytet till \"%s\" kunde inte sparas i .dtm-filen.\n"
+"Filnamnet för den nya skivan kan inte vara längre än 40 tecken."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:110
 #, c-format
@@ -5700,6 +5764,15 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Denna funktion låter sig ändra spelets kamera.\n"
+"Flytta musen medan du håller ned den högra musknappen för att panorera och "
+"håll ned mittenknappen för att flytta.\n"
+"Håll ned SHIFT och använd tangenterna WASD för att flytta kameran ett visst "
+"avstånd (SHIFT+2 för att flytta snabbare och SHIFT+1 för att flytta "
+"långsammare). Tryck SHIFT+R för att återställa kameran och SHIFT+F för att "
+"återställa hastigheten.\n"
+"\n"
+"Om du är osäker kan du lämna detta omarkerat."
 
 #: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:96
 #, c-format
@@ -5767,7 +5840,7 @@ msgstr "Lutning"
 
 #: Source/Core/Common/TraversalClient.cpp:231
 msgid "Timeout connecting to traversal server"
-msgstr ""
+msgstr "Timeout vid anslutning till traverseringsserver"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:269
 #: Source/Core/DolphinWX/MemcardManager.cpp:645
@@ -5797,7 +5870,7 @@ msgstr "Slå på/av dimma"
 
 #: Source/Core/Core/HotkeyManager.cpp:48
 msgid "Toggle Frame limit"
-msgstr ""
+msgstr "Slå på/av bildrutegräns"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:549
 #: Source/Core/Core/HotkeyManager.cpp:27
@@ -5810,7 +5883,7 @@ msgstr "Slå på/av IR"
 
 #: Source/Core/Core/HotkeyManager.cpp:17
 msgid "Toggle Pause"
-msgstr ""
+msgstr "Slå på/av paus"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:338
 msgid "Top"
@@ -5818,7 +5891,7 @@ msgstr "Ovan"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Top-and-Bottom"
-msgstr ""
+msgstr "Topp-och-botten"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -5827,16 +5900,16 @@ msgstr "Traditionell kinesiska"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:57
 msgid "Traversal"
-msgstr ""
+msgstr "Traversering"
 
 #: Source/Core/Core/NetPlayClient.cpp:781
 msgid "Traversal server timed out connecting to the host"
-msgstr ""
+msgstr "Traverseringsserver gjorde en timeout vid anslutning till värden"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:90
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:366
 msgid "Traversal: "
-msgstr ""
+msgstr "Traversering:"
 
 #: Source/Core/DiscIO/VolumeGC.cpp:34
 #: Source/Core/DiscIO/VolumeDirectory.cpp:79
@@ -6445,9 +6518,3 @@ msgstr "wxExecute returnerade -1 i applikationkörningen!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| ELLER"
-
-#~ msgid "Arm JIT (experimental)"
-#~ msgstr "Arm JIT (experimentell)"
-
-#~ msgid "Exception handler - access below memory space. 0x%08x"
-#~ msgstr "Undantagshanterare - åtkomst under minnesutrymme. 0x%08x"

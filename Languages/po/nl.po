@@ -3,6 +3,7 @@
 # This file is distributed under the same license as the dolphin-emu package.
 #
 # Translators:
+# Sintendo <bram.speeckaert@gmail.com>, 2015
 # Garteal <garteal@gmail.com>, 2013-2014
 # MADCreations <http://www.dpro.freehosting.org>, 2011
 # Marinus Schot <marinus@live.com>, 2013
@@ -15,7 +16,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-10 07:28+0000\n"
-"PO-Revision-Date: 2015-06-07 10:44+0000\n"
+"PO-Revision-Date: 2015-06-10 07:28+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Dutch (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/nl/)\n"
@@ -33,7 +34,7 @@ msgid ""
 "This software should not be used to play games you do not legally own.\n"
 msgstr ""
 "\n"
-"Dolphin is en vrij beschikbare en open-source GameCube en Wii emulator.\n"
+"Dolphin is een vrij beschikbare en open-source GameCube en Wii emulator.\n"
 "\n"
 "Gebruik deze software niet om games te spelen die je niet legaal hebt "
 "gekregen.\n"
@@ -746,7 +747,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:30
 msgid "Arm64 JIT (experimental)"
-msgstr ""
+msgstr "Arm64 JIT (experimenteel)"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:65
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:296
@@ -6227,6 +6228,3 @@ msgstr "wxExecute retourneerde -1 bij het draaien van de applicatie!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OF"
-
-#~ msgid "Arm JIT (experimental)"
-#~ msgstr "Arm JIT (Experimenteel)"
