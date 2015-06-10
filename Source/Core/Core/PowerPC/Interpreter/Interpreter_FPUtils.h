@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <limits>
 
 #include "Common/CPUDetect.h"
@@ -83,11 +84,11 @@ inline double Force25Bit(double d)
 
 inline double NI_mul(double a, double b)
 {
-	if (a != a) return a;
-	if (b != b) return b;
 	double t = a * b;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return a;
+		if (std::isnan(b)) return b;
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
@@ -96,11 +97,11 @@ inline double NI_mul(double a, double b)
 
 inline double NI_add(double a, double b)
 {
-	if (a != a) return a;
-	if (b != b) return b;
 	double t = a + b;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return a;
+		if (std::isnan(b)) return b;
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
@@ -109,31 +110,35 @@ inline double NI_add(double a, double b)
 
 inline double NI_sub(double a, double b)
 {
-	if (a != a) return a;
-	if (b != b) return b;
 	double t = a - b;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return a;
+		if (std::isnan(b)) return b;
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
 	return t;
 }
 
+// FMA instructions on PowerPC are weird:
+// They calculate (a * c) + b, but the order in which
+// inputs are checked for NaN is still a, b, c.
 inline double NI_madd(double a, double c, double b, bool negate = false)
 {
-	if (a != a) return a;
-	if (b != b) return b;
-	if (c != c) return c;
 	double t = a * c;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return a;
+		if (std::isnan(b)) return b; // !
+		if (std::isnan(c)) return c;
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
-	t = t + b;
-	if (t != t)
+	t += b;
+	if (std::isnan(t))
 	{
+		if (std::isnan(b)) return b;
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
@@ -142,19 +147,20 @@ inline double NI_madd(double a, double c, double b, bool negate = false)
 
 inline double NI_msub(double a, double c, double b, bool negate = false)
 {
-	if (a != a) return a;
-	if (b != b) return b;
-	if (c != c) return c;
 	double t = a * c;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return a;
+		if (std::isnan(b)) return b; // !
+		if (std::isnan(c)) return c;
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
 
-	t = t - b;
-	if (t != t)
+	t -= b;
+	if (std::isnan(t))
 	{
+		if (std::isnan(b)) return b;
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
