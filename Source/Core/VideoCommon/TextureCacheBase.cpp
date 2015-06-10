@@ -154,7 +154,7 @@ void TextureCache::Cleanup(int _frameCount)
 		    // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
 		    !iter->second->IsEfbCopy())
 		{
-			iter = RemoveTextureFromCache(iter);
+			iter = FreeTexture(iter);
 		}
 		else
 		{
@@ -191,7 +191,7 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 	{
 		if (iter->second->OverlapsMemoryRange(start_address, size))
 		{
-			iter = RemoveTextureFromCache(iter);
+			iter = FreeTexture(iter);
 		}
 		else
 		{
@@ -388,8 +388,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 				// never be useful again.  It's theoretically possible for a game to do
 				// something weird where the copy could become useful in the future, but in
 				// practice it doesn't happen.
-				FreeTexture(entry);
-				iter = textures_by_address.erase(iter);
+				iter = FreeTexture(iter);
 				continue;
 			}
 		}
@@ -461,7 +460,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	if (temp_frameCount != 0x7fffffff)
 	{
 		// pool this texture and make a new one later
-		RemoveTextureFromCache(oldest_entry);
+		FreeTexture(oldest_entry);
 	}
 
 	std::shared_ptr<HiresTexture> hires_tex;
@@ -885,7 +884,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	TexCache::iterator iter = iter_range.first;
 	while (iter != iter_range.second)
 	{
-		iter = RemoveTextureFromCache(iter);
+		iter = FreeTexture(iter);
 	}
 
 	// create the texture
@@ -937,20 +936,18 @@ TextureCache::TCacheEntryBase* TextureCache::AllocateTexture(const TCacheEntryCo
 	return entry;
 }
 
-TextureCache::TexCache::iterator TextureCache::RemoveTextureFromCache(TexCache::iterator iter)
+TextureCache::TexCache::iterator TextureCache::FreeTexture(TexCache::iterator iter)
 {
-	if (iter->second->textures_by_hash_iter != textures_by_address.end())
+	TCacheEntryBase* entry = iter->second;
+
+	if (entry->textures_by_hash_iter != textures_by_address.end())
 	{
-		textures_by_hash.erase(iter->second->textures_by_hash_iter);
-		iter->second->textures_by_hash_iter = textures_by_address.end();
+		textures_by_hash.erase(entry->textures_by_hash_iter);
+		entry->textures_by_hash_iter = textures_by_address.end();
 	}
 
-	FreeTexture(iter->second);
-	return textures_by_address.erase(iter);
-}
-
-void TextureCache::FreeTexture(TCacheEntryBase* entry)
-{
 	entry->frameCount = FRAMECOUNT_INVALID;
 	texture_pool.insert(TexPool::value_type(entry->config, entry));
+
+	return textures_by_address.erase(iter);
 }

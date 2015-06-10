@@ -140,8 +140,7 @@ private:
 	static void CheckTempSize(size_t required_size);
 
 	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
-	static TexCache::iterator RemoveTextureFromCache(TexCache::iterator t_iter);
-	static void FreeTexture(TCacheEntryBase* entry);
+	static TexCache::iterator FreeTexture(TexCache::iterator t_iter);
 
 	static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
 
