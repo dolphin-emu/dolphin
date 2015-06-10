@@ -678,15 +678,15 @@ void VertexShaderManager::RotateView(float x, float y)
 	s_fViewRotation[1] += y;
 
 	Matrix33 mx;
-	Matrix33 my;
+	Matrix33 my_;
 	Matrix33::RotateX(mx, s_fViewRotation[1]);
-	Matrix33::RotateY(my, s_fViewRotation[0]);
-	Matrix33::Multiply(mx, my, s_viewRotationMatrix);
+	Matrix33::RotateY(my_, s_fViewRotation[0]);
+	Matrix33::Multiply(mx, my_, s_viewRotationMatrix);
 
 	// reverse rotation
 	Matrix33::RotateX(mx, -s_fViewRotation[1]);
-	Matrix33::RotateY(my, -s_fViewRotation[0]);
-	Matrix33::Multiply(my, mx, s_viewInvRotationMatrix);
+	Matrix33::RotateY(my_, -s_fViewRotation[0]);
+	Matrix33::Multiply(my_, mx, s_viewInvRotationMatrix);
 
 	bProjectionChanged = true;
 }

@@ -5,6 +5,7 @@
 #include <cstring>
 #include <string>
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
@@ -66,7 +67,7 @@ void CPUInfo::Detect()
 	Mode64bit = true;
 	OS64bit = true;
 #endif
-	num_cores = 1;
+	my num_cores = 1;
 
 	// Set obvious defaults, for extra safety
 	if (Mode64bit)
