@@ -83,7 +83,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		"\tint4 " I_TEXOFFSET";\n"
 		"};\n");
 
-	uid_data->numTexGens = (is_custom ? 1 : static_cast<int>(bpmem.genMode.numtexgens));
+	uid_data->numTexGens = (is_custom ? 1 : static_cast<int>(xfmem.numTexGen.numTexGens));
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
 	out.Write("struct VS_OUTPUT {\n");
