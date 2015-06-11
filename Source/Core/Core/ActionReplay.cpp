@@ -32,6 +32,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/JitInterface.h"
 
 namespace ActionReplay
 {
@@ -303,6 +304,24 @@ bool IsSelfLogging()
 	return logSelf;
 }
 
+static void HostWrite_U8(const u8 var, const u32 address)
+{
+	PowerPC::HostWrite_U8(var, address);
+	JitInterface::InvalidateICache(address, 1, false);
+}
+
+static void HostWrite_U16(const u16 var, const u32 address)
+{
+	PowerPC::HostWrite_U16(var, address);
+	JitInterface::InvalidateICache(address, 2, false);
+}
+
+static void HostWrite_U32(const u32 var, const u32 address)
+{
+	PowerPC::HostWrite_U32(var, address);
+	JitInterface::InvalidateICache(address, 4, false);
+}
+
 // ----------------------
 // Code Functions
 static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
@@ -321,7 +340,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
 		u32 repeat = data >> 8;
 		for (u32 i = 0; i <= repeat; ++i)
 		{
-			PowerPC::HostWrite_U8(data & 0xFF, new_addr + i);
+			HostWrite_U8(data & 0xFF, new_addr + i);
 			LogInfo("Wrote %08x to address %08x", data & 0xFF, new_addr + i);
 		}
 		LogInfo("--------");
@@ -335,7 +354,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
 		u32 repeat = data >> 16;
 		for (u32 i = 0; i <= repeat; ++i)
 		{
-			PowerPC::HostWrite_U16(data & 0xFFFF, new_addr + i * 2);
+			HostWrite_U16(data & 0xFFFF, new_addr + i * 2);
 			LogInfo("Wrote %08x to address %08x", data & 0xFFFF, new_addr + i * 2);
 		}
 		LogInfo("--------");
@@ -346,7 +365,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
 	case DATATYPE_32BIT: // Dword write
 		LogInfo("32-bit Write");
 		LogInfo("--------");
-		PowerPC::HostWrite_U32(data, new_addr);
+		HostWrite_U32(data, new_addr);
 		LogInfo("Wrote %08x to address %08x", data, new_addr);
 		LogInfo("--------");
 		break;
@@ -381,7 +400,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
 		LogInfo("Pointer: %08x", ptr);
 		LogInfo("Byte: %08x", thebyte);
 		LogInfo("Offset: %08x", offset);
-		PowerPC::HostWrite_U8(thebyte, ptr + offset);
+		HostWrite_U8(thebyte, ptr + offset);
 		LogInfo("Wrote %08x to address %08x", thebyte, ptr + offset);
 		LogInfo("--------");
 		break;
@@ -396,7 +415,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
 		LogInfo("Pointer: %08x", ptr);
 		LogInfo("Byte: %08x", theshort);
 		LogInfo("Offset: %08x", offset);
-		PowerPC::HostWrite_U16(theshort, ptr + offset);
+		HostWrite_U16(theshort, ptr + offset);
 		LogInfo("Wrote %08x to address %08x", theshort, ptr + offset);
 		LogInfo("--------");
 		break;
@@ -406,7 +425,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
 	case DATATYPE_32BIT:
 		LogInfo("Write 32-bit to pointer");
 		LogInfo("--------");
-		PowerPC::HostWrite_U32(data, ptr);
+		HostWrite_U32(data, ptr);
 		LogInfo("Wrote %08x to address %08x", data, ptr);
 		LogInfo("--------");
 		break;
@@ -434,7 +453,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 	case DATATYPE_8BIT:
 		LogInfo("8-bit Add");
 		LogInfo("--------");
-		PowerPC::HostWrite_U8(PowerPC::HostRead_U8(new_addr) + data, new_addr);
+		HostWrite_U8(PowerPC::HostRead_U8(new_addr) + data, new_addr);
 		LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U8(new_addr) + (data & 0xFF), new_addr);
 		LogInfo("--------");
 		break;
@@ -442,7 +461,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 	case DATATYPE_16BIT:
 		LogInfo("16-bit Add");
 		LogInfo("--------");
-		PowerPC::HostWrite_U16(PowerPC::HostRead_U16(new_addr) + data, new_addr);
+		HostWrite_U16(PowerPC::HostRead_U16(new_addr) + data, new_addr);
 		LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U16(new_addr) + (data & 0xFFFF), new_addr);
 		LogInfo("--------");
 		break;
@@ -450,7 +469,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 	case DATATYPE_32BIT:
 		LogInfo("32-bit Add");
 		LogInfo("--------");
-		PowerPC::HostWrite_U32(PowerPC::HostRead_U32(new_addr) + data, new_addr);
+		HostWrite_U32(PowerPC::HostRead_U32(new_addr) + data, new_addr);
 		LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U32(new_addr) + data, new_addr);
 		LogInfo("--------");
 		break;
@@ -463,7 +482,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 		const u32 read = PowerPC::HostRead_U32(new_addr);
 		const float fread = *((float*)&read) + (float)data; // data contains an integer value
 		const u32 newval = *((u32*)&fread);
-		PowerPC::HostWrite_U32(newval, new_addr);
+		HostWrite_U32(newval, new_addr);
 		LogInfo("Old Value %08x", read);
 		LogInfo("Increment %08x", data);
 		LogInfo("New value %08x", newval);
@@ -518,7 +537,7 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
 		LogInfo("--------");
 		for (int i = 0; i < write_num; ++i)
 		{
-			PowerPC::HostWrite_U8(val & 0xFF, curr_addr);
+			HostWrite_U8(val & 0xFF, curr_addr);
 			curr_addr += addr_incr;
 			val += val_incr;
 			LogInfo("Write %08x to address %08x", val & 0xFF, curr_addr);
@@ -534,7 +553,7 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
 		LogInfo("--------");
 		for (int i=0; i < write_num; ++i)
 		{
-			PowerPC::HostWrite_U16(val & 0xFFFF, curr_addr);
+			HostWrite_U16(val & 0xFFFF, curr_addr);
 			LogInfo("Write %08x to address %08x", val & 0xFFFF, curr_addr);
 			curr_addr += addr_incr * 2;
 			val += val_incr;
@@ -549,7 +568,7 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
 		LogInfo("--------");
 		for (int i = 0; i < write_num; ++i)
 		{
-			PowerPC::HostWrite_U32(val, curr_addr);
+			HostWrite_U32(val, curr_addr);
 			LogInfo("Write %08x to address %08x", val, curr_addr);
 			curr_addr += addr_incr * 4;
 			val += val_incr;
@@ -587,7 +606,7 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
 			LogInfo("--------");
 			for (int i = 0; i < 138; ++i)
 			{
-				PowerPC::HostWrite_U8(PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
+				HostWrite_U8(PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
 				LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
 			}
 			LogInfo("--------");
@@ -598,7 +617,7 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
 			LogInfo("--------");
 			for (int i=0; i < num_bytes; ++i)
 			{
-				PowerPC::HostWrite_U8(PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
+				HostWrite_U8(PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
 				LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
 			}
 			LogInfo("--------");
