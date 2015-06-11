@@ -31,8 +31,8 @@
 #include "Core/ARDecrypt.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace ActionReplay
 {
