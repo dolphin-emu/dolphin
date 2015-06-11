@@ -64,7 +64,11 @@ if(USE_X11)
 	set(NOGUI_SRCS ${NOGUI_SRCS} X11Utils.cpp)
 endif()
 
-set(WXLIBS ${wxWidgets_LIBRARIES} dl)
+set(WXLIBS ${wxWidgets_LIBRARIES})
+
+if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD)
+	set(WXLIBS ${WXLIBS} dl)
+endif()
 
 list(APPEND LIBS core uicommon)
 

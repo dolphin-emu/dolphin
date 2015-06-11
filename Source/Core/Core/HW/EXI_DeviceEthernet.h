@@ -327,7 +327,7 @@ public:
 	DWORD mMtu;
 	OVERLAPPED mReadOverlapped;
 	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
-#elif defined(__linux__) || defined(__APPLE__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 	int fd;
 	std::thread readThread;
 	std::atomic<bool> readEnabled;
