@@ -1366,7 +1366,7 @@ void CFrame::ParseHotkeys()
 	{
 		OSDChoice = 1;
 		// Toggle native resolution
-		if (++g_Config.iEFBScale > SCALE_4X)
+		if (++g_Config.iEFBScale > 11) // 8X Internal Resolution
 			g_Config.iEFBScale = SCALE_AUTO;
 	}
 	if (IsHotkey(HK_INCREASE_IR))
