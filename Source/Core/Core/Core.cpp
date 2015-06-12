@@ -23,7 +23,6 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
@@ -190,8 +189,7 @@ bool IsCPUThread()
 
 bool IsGPUThread()
 {
-	const SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& _CoreParameter = SConfig::GetInstance();
 	if (_CoreParameter.bCPUThread)
 	{
 		return (s_emu_thread.joinable() && (s_emu_thread.get_id() == std::this_thread::get_id()));
@@ -206,8 +204,7 @@ bool IsGPUThread()
 // BootManager.cpp
 bool Init()
 {
-	const SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (s_emu_thread.joinable())
 	{
@@ -252,8 +249,7 @@ void Stop()  // - Hammertime!
 	if (GetState() == CORE_STOPPING)
 		return;
 
-	const SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	s_is_stopping = true;
 
@@ -310,8 +306,7 @@ static void CpuThread()
 {
 	DeclareAsCPUThread();
 
-	const SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -365,7 +360,7 @@ static void CpuThread()
 
 static void FifoPlayerThread()
 {
-	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -401,8 +396,7 @@ static void FifoPlayerThread()
 // See the BootManager.cpp file description for a complete call schedule.
 void EmuThread()
 {
-	const SCoreStartupParameter& core_parameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& core_parameter = SConfig::GetInstance();
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
 
@@ -429,9 +423,9 @@ void EmuThread()
 	OSD::AddMessage("Dolphin " + g_video_backend->GetName() + " Video Backend.", 5000);
 
 	if (cpu_info.HTT)
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = cpu_info.num_cores > 4;
+		SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 4;
 	else
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = cpu_info.num_cores > 2;
+		SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 2;
 
 	if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
 	{
@@ -504,7 +498,7 @@ void EmuThread()
 
 	// Determine the CPU thread function
 	void (*cpuThreadFunc)(void);
-	if (core_parameter.m_BootType == SCoreStartupParameter::BOOT_DFF)
+	if (core_parameter.m_BootType == SConfig::BOOT_DFF)
 		cpuThreadFunc = FifoPlayerThread;
 	else
 		cpuThreadFunc = CpuThread;
@@ -644,7 +638,7 @@ EState GetState()
 
 static std::string GenerateScreenshotName()
 {
-	const std::string& gameId = SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
+	const std::string& gameId = SConfig::GetInstance().GetUniqueID();
 	std::string path = File::GetUserPath(D_SCREENSHOTS_IDX) + gameId + DIR_SEP_CHR;
 
 	if (!File::CreateFullPath(path))
@@ -751,7 +745,7 @@ void UpdateTitle()
 {
 	u32 ElapseTime = (u32)s_timer.GetTimeDifference();
 	s_request_refresh_info = false;
-	SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (ElapseTime == 0)
 		ElapseTime = 1;

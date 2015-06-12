@@ -22,7 +22,6 @@
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Host.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/Debugger/PPCDebugInterface.h"
@@ -51,7 +50,7 @@ extern "C"  // Bitmaps
 	#include "DolphinWX/resources/toolbar_add_breakpoint.c" // NOLINT
 }
 
-CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *parent,
+CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame *parent,
 	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, position, size, style, name)
 	, Parent(parent)
@@ -428,7 +427,7 @@ void CCodeWindow::UpdateCallstack()
 }
 
 // Create CPU Mode menus
-void CCodeWindow::CreateMenu(const SCoreStartupParameter& core_startup_parameter, wxMenuBar *pMenuBar)
+void CCodeWindow::CreateMenu(const SConfig& core_startup_parameter, wxMenuBar *pMenuBar)
 {
 	// CPU Mode
 	wxMenu* pCoreMenu = new wxMenu;
@@ -552,37 +551,37 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 			bAutomaticStart = !bAutomaticStart;
 			return;
 		case IDM_JIT_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITOff = event.IsChecked();
+			SConfig::GetInstance().bJITOff = event.IsChecked();
 			break;
 		case IDM_JIT_LS_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStoreOff = event.IsChecked();
+			SConfig::GetInstance().bJITLoadStoreOff = event.IsChecked();
 			break;
 		case IDM_JIT_LSLXZ_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelXzOff = event.IsChecked();
+			SConfig::GetInstance().bJITLoadStorelXzOff = event.IsChecked();
 			break;
 		case IDM_JIT_LSLWZ_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelwzOff = event.IsChecked();
+			SConfig::GetInstance().bJITLoadStorelwzOff = event.IsChecked();
 			break;
 		case IDM_JIT_LSLBZX_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelbzxOff = event.IsChecked();
+			SConfig::GetInstance().bJITLoadStorelbzxOff = event.IsChecked();
 			break;
 		case IDM_JIT_LSF_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStoreFloatingOff = event.IsChecked();
+			SConfig::GetInstance().bJITLoadStoreFloatingOff = event.IsChecked();
 			break;
 		case IDM_JIT_LSP_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorePairedOff = event.IsChecked();
+			SConfig::GetInstance().bJITLoadStorePairedOff = event.IsChecked();
 			break;
 		case IDM_JIT_FP_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITFloatingPointOff = event.IsChecked();
+			SConfig::GetInstance().bJITFloatingPointOff = event.IsChecked();
 			break;
 		case IDM_JIT_I_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITIntegerOff = event.IsChecked();
+			SConfig::GetInstance().bJITIntegerOff = event.IsChecked();
 			break;
 		case IDM_JIT_P_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITPairedOff = event.IsChecked();
+			SConfig::GetInstance().bJITPairedOff = event.IsChecked();
 			break;
 		case IDM_JIT_SR_OFF:
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITSystemRegistersOff = event.IsChecked();
+			SConfig::GetInstance().bJITSystemRegistersOff = event.IsChecked();
 			break;
 	}
 

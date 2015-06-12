@@ -235,7 +235,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 		wiimote_configure_bt[i]->Bind(wxEVT_BUTTON, &ControllerConfigDiag::ConfigEmulatedWiimote, this);
 
 		// Disable controller type selection for certain circumstances.
-		bool wii_game_started = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii || Core::GetState() == Core::CORE_UNINITIALIZED;
+		bool wii_game_started = SConfig::GetInstance().bWii || Core::GetState() == Core::CORE_UNINITIALIZED;
 		if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || !wii_game_started)
 			wiimote_source_ch[i]->Disable();
 

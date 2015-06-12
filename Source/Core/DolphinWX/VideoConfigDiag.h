@@ -21,7 +21,6 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "DolphinWX/PostProcessingConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/PostProcessing.h"
@@ -103,7 +102,7 @@ protected:
 				Close();
 
 				g_video_backend = new_backend;
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = g_video_backend->GetName();
+				SConfig::GetInstance().m_strVideoBackend = g_video_backend->GetName();
 
 				g_video_backend->ShowConfig(GetParent());
 			}
@@ -123,7 +122,7 @@ protected:
 	void Event_ProgressiveScan(wxCommandEvent &ev)
 	{
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", ev.GetInt());
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive = ev.IsChecked();
+		SConfig::GetInstance().bProgressive = ev.IsChecked();
 
 		ev.Skip();
 	}

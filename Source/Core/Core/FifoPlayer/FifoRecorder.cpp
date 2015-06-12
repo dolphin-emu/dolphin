@@ -44,7 +44,7 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 	std::fill(m_Ram.begin(), m_Ram.end(), 0);
 	std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
 
-	m_File->SetIsWii(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
+	m_File->SetIsWii(SConfig::GetInstance().bWii);
 
 	if (!m_IsRecording)
 	{

@@ -155,7 +155,7 @@ void GeometryShaderCache::Init()
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 	std::string cache_filename = StringFromFormat("%sdx11-%s-gs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+			SConfig::GetInstance().m_strUniqueID.c_str());
 	GeometryShaderCacheInserter inserter;
 	g_gs_disk_cache.OpenAndRead(cache_filename, inserter);
 

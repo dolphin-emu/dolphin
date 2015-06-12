@@ -21,9 +21,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	// Skip disabled JIT instructions
-	FALLBACK_IF(SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87));
-	FALLBACK_IF(SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
-	FALLBACK_IF(SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelwzOff && (inst.OPCD == 32));
+	FALLBACK_IF(SConfig::GetInstance().bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87));
+	FALLBACK_IF(SConfig::GetInstance().bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
+	FALLBACK_IF(SConfig::GetInstance().bJITLoadStorelwzOff && (inst.OPCD == 32));
 
 	// Determine memory access size and sign extend
 	int accessSize = 0;
@@ -110,13 +110,13 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// ... maybe the throttle one already do that :p
 	// TODO: We shouldn't use a debug read here.  It should be possible to get
 	// the following instructions out of the JIT state.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+	if (SConfig::GetInstance().bSkipIdle &&
 	    PowerPC::GetState() != PowerPC::CPU_STEPPING &&
 	    inst.OPCD == 32 &&
 	    MergeAllowedNextInstructions(2) &&
 	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
 	    (js.op[1].inst.hex == 0x28000000 ||
-	    (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && js.op[1].inst.hex == 0x2C000000)) &&
+	    (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&
 	    js.op[2].inst.hex == 0x4182fff8)
 	{
 		// TODO(LinesPrower):
@@ -315,7 +315,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDCBZOFF)
+	if (SConfig::GetInstance().bDCBZOFF)
 		return;
 
 	int a = inst.RA;
@@ -347,7 +347,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 
 	// Mask out the address so we don't write to MEM1 out of bounds
 	// FIXME: Work out why the AGP disc writes out of bounds
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (!SConfig::GetInstance().bWii)
 		AND(32, R(RSCRATCH), Imm32(Memory::RAM_MASK));
 	PXOR(XMM0, R(XMM0));
 	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);

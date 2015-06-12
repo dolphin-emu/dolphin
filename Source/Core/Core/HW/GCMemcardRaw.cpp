@@ -63,7 +63,7 @@ MemoryCard::~MemoryCard()
 
 void MemoryCard::FlushThread()
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableMemcardSaving)
+	if (!SConfig::GetInstance().bEnableMemcardSaving)
 	{
 		return;
 	}

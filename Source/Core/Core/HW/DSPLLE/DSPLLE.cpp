@@ -324,7 +324,7 @@ void DSPLLE::DSP_Update(int cycles)
 			DSP_StopSoundStream();
 			m_bDSPThread = false;
 			requestDisableThread = false;
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = false;
+			SConfig::GetInstance().bDSPThread = false;
 		}
 	}
 

@@ -74,7 +74,7 @@ void GetTlutLoadData(u32 &tlutAddr, u32 &memAddr, u32 &tlutXferCount, BPMemory &
 	tlutXferCount = (bpMem.tmem_config.tlut_dest & 0x1FFC00) >> 5;
 
 	// TODO - figure out a cleaner way.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 		memAddr = bpMem.tmem_config.tlut_src << 5;
 	else
 		memAddr = (bpMem.tmem_config.tlut_src & 0xFFFFF) << 5;

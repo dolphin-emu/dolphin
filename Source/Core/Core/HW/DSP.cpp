@@ -226,7 +226,7 @@ void Init(bool hle)
 	dsp_emulator = CreateDSPEmulator(hle);
 	dsp_is_lle = dsp_emulator->IsLLE();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 	{
 		g_ARAM.wii_mode = true;
 		g_ARAM.size = Memory::EXRAM_SIZE;

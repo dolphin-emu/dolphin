@@ -100,7 +100,7 @@ void Fifo_Init()
 	// Padded so that SIMD overreads in the vertex loader are safe
 	s_video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE + 4);
 	ResetVideoBuffer();
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+	if (SConfig::GetInstance().bCPUThread)
 		s_gpu_mainloop.Prepare();
 	s_sync_ticks.store(0);
 }
@@ -285,7 +285,7 @@ void RunGpuLoop()
 
 	s_gpu_mainloop.Run(
 	[] {
-		const SCoreStartupParameter& param = SConfig::GetInstance().m_LocalCoreStartupParameter;
+		const SConfig& param = SConfig::GetInstance();
 
 		g_video_backend->PeekMessages();
 
@@ -318,7 +318,7 @@ void RunGpuLoop()
 			// check if we are able to run this buffer
 			while (!CommandProcessor::IsInterruptWaiting() && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 			{
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && s_sync_ticks.load() < param.iSyncGpuMinDistance)
+				if (param.bSyncGPU && s_sync_ticks.load() < param.iSyncGpuMinDistance)
 					break;
 
 				u32 cyclesExecuted = 0;
@@ -343,7 +343,7 @@ void RunGpuLoop()
 
 				CommandProcessor::SetCPStatusFromGPU();
 
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
+				if (param.bSyncGPU)
 				{
 					cyclesExecuted = (int)(cyclesExecuted / param.fSyncGpuOverclock);
 					int old = s_sync_ticks.fetch_sub(cyclesExecuted);
@@ -377,7 +377,7 @@ void RunGpuLoop()
 
 void FlushGpu()
 {
-	const SCoreStartupParameter& param = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& param = SConfig::GetInstance();
 
 	if (!param.bCPUThread || g_use_deterministic_gpu_thread)
 		return;
@@ -399,7 +399,7 @@ bool AtBreakpoint()
 void RunGpu()
 {
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	const SCoreStartupParameter& param = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& param = SConfig::GetInstance();
 
 	// execute GPU
 	if (!param.bCPUThread || g_use_deterministic_gpu_thread)
@@ -452,7 +452,7 @@ void Fifo_UpdateWantDeterminism(bool want)
 {
 	// We are paused (or not running at all yet), so
 	// it should be safe to change this.
-	const SCoreStartupParameter& param = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& param = SConfig::GetInstance();
 	bool gpu_thread = false;
 	switch (param.m_GPUDeterminismMode)
 	{
@@ -492,7 +492,7 @@ void Fifo_UpdateWantDeterminism(bool want)
 
 int Fifo_Update(int ticks)
 {
-	const SCoreStartupParameter& param = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& param = SConfig::GetInstance();
 
 	if (ticks == 0)
 	{

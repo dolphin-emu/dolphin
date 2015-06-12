@@ -144,7 +144,7 @@ void VideoConfig::GameIniLoad()
 		} \
 	} while (0)
 
-	IniFile iniFile = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
+	IniFile iniFile = SConfig::GetInstance().LoadGameIni();
 
 	CHECK_SETTING("Video_Hardware", "VSync", bVSync);
 

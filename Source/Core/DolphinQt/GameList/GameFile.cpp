@@ -132,7 +132,7 @@ GameFile::GameFile(const QString& fileName)
 
 	if (m_valid)
 	{
-		IniFile ini = SCoreStartupParameter::LoadGameIni(m_unique_id.toStdString(), m_revision);
+		IniFile ini = SConfig::LoadGameIni(m_unique_id.toStdString(), m_revision);
 		std::string issues_temp;
 		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
 		ini.GetIfExists("EmuState", "EmulationIssues", &issues_temp);
@@ -260,7 +260,7 @@ QString GameFile::GetDescription(DiscIO::IVolume::ELanguage language) const
 QString GameFile::GetDescription() const
 {
 	bool wii = m_platform != DiscIO::IVolume::GAMECUBE_DISC;
-	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
+	return GetDescription(SConfig::GetInstance().GetCurrentLanguage(wii));
 }
 
 QString GameFile::GetName(bool prefer_long, DiscIO::IVolume::ELanguage language) const
@@ -271,7 +271,7 @@ QString GameFile::GetName(bool prefer_long, DiscIO::IVolume::ELanguage language)
 QString GameFile::GetName(bool prefer_long) const
 {
 	bool wii = m_platform != DiscIO::IVolume::GAMECUBE_DISC;
-	QString name = GetName(prefer_long, SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
+	QString name = GetName(prefer_long, SConfig::GetInstance().GetCurrentLanguage(wii));
 	if (name.isEmpty())
 	{
 		// No usable name, return filename (better than nothing)

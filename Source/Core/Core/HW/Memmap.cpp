@@ -167,8 +167,8 @@ static const int num_views = sizeof(views) / sizeof(MemoryView);
 
 void Init()
 {
-	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	bool bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	bool wii = SConfig::GetInstance().bWii;
+	bool bMMU = SConfig::GetInstance().bMMU;
 #ifndef _ARCH_32
 	// If MMU is turned off in GameCube mode, turn on fake VMEM hack.
 	// The fake VMEM hack's address space is above the memory space that we
@@ -197,7 +197,7 @@ void Init()
 
 void DoState(PointerWrap &p)
 {
-	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	bool wii = SConfig::GetInstance().bWii;
 	p.DoArray(m_pRAM, RAM_SIZE);
 	p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
 	p.DoMarker("Memory RAM");
@@ -213,7 +213,7 @@ void Shutdown()
 {
 	m_IsInitialized = false;
 	u32 flags = 0;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) flags |= MV_WII_ONLY;
+	if (SConfig::GetInstance().bWii) flags |= MV_WII_ONLY;
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSHMSegment();
@@ -229,7 +229,7 @@ void Clear()
 		memset(m_pRAM, 0, RAM_SIZE);
 	if (m_pL1Cache)
 		memset(m_pL1Cache, 0, L1_CACHE_SIZE);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && m_pEXRAM)
+	if (SConfig::GetInstance().bWii && m_pEXRAM)
 		memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
 
@@ -303,7 +303,7 @@ u8* GetPointer(u32 address)
 	if (address < REALRAM_SIZE)
 		return m_pRAM + address;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 	{
 		if ((address >> 28) == 0x1 && (address & 0x0fffffff) < EXRAM_SIZE)
 			return m_pEXRAM + (address & EXRAM_MASK);

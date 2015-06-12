@@ -260,7 +260,7 @@ void JitIL::Init()
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	if (SConfig::GetInstance().bJITILTimeProfiling)
 	{
 		JitILProfiler::Init();
 	}
@@ -275,7 +275,7 @@ void JitIL::ClearCache()
 
 void JitIL::Shutdown()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	if (SConfig::GetInstance().bJITILTimeProfiling)
 	{
 		JitILProfiler::Shutdown();
 	}
@@ -363,7 +363,7 @@ void JitIL::Cleanup()
 void JitIL::WriteExit(u32 destination)
 {
 	Cleanup();
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	if (SConfig::GetInstance().bJITILTimeProfiling)
 	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
@@ -396,7 +396,7 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 {
 	MOV(32, PPCSTATE(pc), arg);
 	Cleanup();
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	if (SConfig::GetInstance().bJITILTimeProfiling)
 	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
@@ -409,7 +409,7 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 	MOV(32, PPCSTATE(pc), arg);
 	MOV(32, PPCSTATE(npc), arg);
 	Cleanup();
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	if (SConfig::GetInstance().bJITILTimeProfiling)
 	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
@@ -421,7 +421,7 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 void JitIL::WriteExceptionExit()
 {
 	Cleanup();
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	if (SConfig::GetInstance().bJITILTimeProfiling)
 	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
@@ -474,14 +474,14 @@ void JitIL::Trace()
 void JitIL::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 || farcode.GetSpaceLeft() < 0x10000 || blocks.IsFull() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
+		SConfig::GetInstance().bJITNoBlockCache)
 	{
 		ClearCache();
 	}
 
 	int blockSize = code_buffer.GetSize();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().bEnableDebugging)
 	{
 		// We can link blocks as long as we are not single stepping and there are no breakpoints here
 		EnableBlockLink();
@@ -564,8 +564,8 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.rewriteStart = (u8*)GetCodePtr();
 
 	u64 codeHash = -1;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling ||
-	    SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILOutputIR)
+	if (SConfig::GetInstance().bJITILTimeProfiling ||
+	    SConfig::GetInstance().bJITILOutputIR)
 	{
 		// For profiling and IR Writer
 		for (u32 i = 0; i < code_block.m_num_instructions; i++)
@@ -576,7 +576,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 	}
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	if (SConfig::GetInstance().bJITILTimeProfiling)
 	{
 		JitILProfiler::Block& block = JitILProfiler::Add(codeHash);
 		ABI_CallFunctionC((void *)JitILProfiler::Begin, block.index);
@@ -587,7 +587,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	ibuild.Reset();
 
 	js.downcountAmount = 0;
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (!SConfig::GetInstance().bEnableDebugging)
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
 	// Translate instructions
@@ -635,7 +635,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
 
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			if (SConfig::GetInstance().bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
 			{
 				// Turn off block linking if there are breakpoints so that the Step Over command does not link this block.
 				jo.enableBlocklink = false;
@@ -668,7 +668,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	LogGeneratedX86(code_block.m_num_instructions, code_buf, normalEntry, b);
 #endif
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILOutputIR)
+	if (SConfig::GetInstance().bJITILOutputIR)
 	{
 		ibuild.WriteToFile(codeHash);
 	}
@@ -679,6 +679,6 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 void JitIL::EnableBlockLink()
 {
 	jo.enableBlocklink = true;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking)
+	if (SConfig::GetInstance().bJITNoBlockLinking)
 		jo.enableBlocklink = false;
 }

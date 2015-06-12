@@ -214,7 +214,7 @@ bool TextureCache::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u32 r
 void TextureCache::DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level)
 {
 	std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
+		SConfig::GetInstance().m_strUniqueID;
 
 	// make sure that the directory exists
 	if (!File::Exists(szDir) || !File::IsDirectory(szDir))

@@ -516,7 +516,7 @@ void ZeldaUCode::ExecuteList()
 
 u32 ZeldaUCode::GetUpdateMs()
 {
-	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
+	return SConfig::GetInstance().bWii ? 3 : 5;
 }
 
 void ZeldaUCode::DoState(PointerWrap &p)

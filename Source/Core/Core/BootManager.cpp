@@ -77,12 +77,12 @@ static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 // Boot the ISO or file
 bool BootCore(const std::string& _rFilename)
 {
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& StartUp = SConfig::GetInstance();
 
 	// Use custom settings for debugging mode
 	Host_SetStartupDebuggingParameters();
 
-	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
+	StartUp.m_BootType = SConfig::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
 	SConfig::GetInstance().m_LastFilename = _rFilename;
 	SConfig::GetInstance().SaveSettings();
@@ -93,7 +93,7 @@ bool BootCore(const std::string& _rFilename)
 	config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
 
 	// If for example the ISO file is bad we return here
-	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT))
+	if (!StartUp.AutoSetup(SConfig::BOOT_DEFAULT))
 		return false;
 
 	// Load game specific settings
@@ -272,7 +272,7 @@ void Stop()
 {
 	Core::Stop();
 
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& StartUp = SConfig::GetInstance();
 
 	StartUp.m_strUniqueID = "00000000";
 	if (config_cache.valid)

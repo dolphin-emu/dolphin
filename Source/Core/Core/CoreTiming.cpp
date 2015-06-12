@@ -482,7 +482,7 @@ void Idle()
 {
 	//DEBUG_LOG(POWERPC, "Idle");
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack)
+	if (SConfig::GetInstance().bSyncGPUOnSkipIdleHack)
 	{
 		//When the FIFO is processing data we must not advance because in this way
 		//the VI will be desynchronized. So, We are waiting until the FIFO finish and

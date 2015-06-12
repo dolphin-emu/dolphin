@@ -36,7 +36,6 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Movie.h"
 #include "Core/Boot/Boot.h"
 #include "Core/HW/DVDInterface.h"
@@ -85,8 +84,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 		sortData = -sortData;
 	}
 
-	DiscIO::IVolume::ELanguage languageOne = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso1->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC);
-	DiscIO::IVolume::ELanguage languageOther = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso2->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC);
+	DiscIO::IVolume::ELanguage languageOne = SConfig::GetInstance().GetCurrentLanguage(iso1->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC);
+	DiscIO::IVolume::ELanguage languageOther = SConfig::GetInstance().GetCurrentLanguage(iso2->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC);
 
 	switch (sortData)
 	{
@@ -411,7 +410,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	}
 
 	std::string title;
-	IniFile gameini = SCoreStartupParameter::LoadGameIni(rISOFile.GetUniqueID(), rISOFile.GetRevision());
+	IniFile gameini = SConfig::LoadGameIni(rISOFile.GetUniqueID(), rISOFile.GetRevision());
 	if (gameini.GetIfExists("EmuState", "Title", &title))
 		name = title;
 
@@ -851,8 +850,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			popupMenu.AppendCheckItem(IDM_SET_DEFAULT_ISO, _("Set as &default ISO"));
 
 			// First we have to decide a starting value when we append it
-			if (selected_iso->GetFileName() == SConfig::GetInstance().
-				m_LocalCoreStartupParameter.m_strDefaultISO)
+			if (selected_iso->GetFileName() == SConfig::GetInstance().m_strDefaultISO)
 				popupMenu.FindItem(IDM_SET_DEFAULT_ISO)->Check();
 
 			popupMenu.AppendSeparator();
@@ -967,14 +965,14 @@ void CGameListCtrl::OnSetDefaultISO(wxCommandEvent& event)
 	if (event.IsChecked())
 	{
 		// Write the new default value and save it the ini file
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO =
+		SConfig::GetInstance().m_strDefaultISO =
 			iso->GetFileName();
 		SConfig::GetInstance().SaveSettings();
 	}
 	else
 	{
 		// Otherwise blank the value and save it
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO = "";
+		SConfig::GetInstance().m_strDefaultISO = "";
 		SConfig::GetInstance().SaveSettings();
 	}
 }

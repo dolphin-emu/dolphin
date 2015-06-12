@@ -3,7 +3,6 @@ set(SRCS	ActionReplay.cpp
 			BootManager.cpp
 			ConfigManager.cpp
 			Core.cpp
-			CoreParameter.cpp
 			CoreTiming.cpp
 			DSPEmulator.cpp
 			ec_wii.cpp

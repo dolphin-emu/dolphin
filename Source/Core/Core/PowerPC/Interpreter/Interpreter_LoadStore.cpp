@@ -376,7 +376,7 @@ void Interpreter::dcbtst(UGeckoInstruction _inst)
 void Interpreter::dcbz(UGeckoInstruction _inst)
 {
 	// HACK but works... we think
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bDCBZOFF)
+	if (!SConfig::GetInstance().bDCBZOFF)
 		PowerPC::ClearCacheLine(Helper_Get_EA_X(_inst) & (~31));
 	if (!JitInterface::GetCore())
 		PowerPC::CheckExceptions();

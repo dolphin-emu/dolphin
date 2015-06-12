@@ -693,7 +693,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 
 	UpdateDevices();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 	{
 		for (unsigned int i = 0; i < 4; ++i)
 			WiimoteReal::ChangeWiimoteSource(i, m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);

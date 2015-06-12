@@ -888,7 +888,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	const bool windowResized = CheckForResize();
 	const bool fullscreen = g_ActiveConfig.bFullscreen && !g_ActiveConfig.bBorderlessFullscreen &&
-		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain;
+		!SConfig::GetInstance().bRenderToMain;
 
 	bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
