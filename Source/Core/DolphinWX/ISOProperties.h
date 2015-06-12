@@ -78,6 +78,7 @@ private:
 	// Core
 	wxCheckBox *CPUThread, *SkipIdle, *MMU, *DCBZOFF, *FPRF;
 	wxCheckBox *SyncGPU, *FastDiscSpeed, *DSPHLE;
+	wxCheckBox *ProgressiveScan, *PAL60;
 
 	wxArrayString arrayStringFor_GPUDeterminism;
 	wxChoice* GPUDeterminism;
@@ -144,6 +145,7 @@ private:
 		ID_AUDIO_DSP_HLE,
 		ID_USE_BBOX,
 		ID_ENABLEPROGRESSIVESCAN,
+		ID_ENABLEPAL60,
 		ID_ENABLEWIDESCREEN,
 		ID_EDITCONFIG,
 		ID_SHOWDEFAULTCONFIG,

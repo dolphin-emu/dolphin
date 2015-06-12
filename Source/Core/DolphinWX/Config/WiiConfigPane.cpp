@@ -5,6 +5,7 @@
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/gbsizer.h>
+#include <wx/radiobox.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
@@ -39,29 +40,33 @@ void WiiConfigPane::InitializeGUI()
 	m_system_language_strings.Add(_("Traditional Chinese"));
 	m_system_language_strings.Add(_("Korean"));
 
+	m_video_mode_strings.Add(_("576i (50Hz)"));
+	m_video_mode_strings.Add(_("480i (60Hz)"));
+	m_video_mode_strings.Add(_("480p (60Hz)"));
+
+	m_video_mode_radiobox = new wxRadioBox(this, wxID_ANY, _("Video Mode"), wxDefaultPosition, wxDefaultSize, m_video_mode_strings, 0, wxRA_SPECIFY_COLS);
 	m_screensaver_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Screen Saver"));
-	m_pal60_mode_checkbox = new wxCheckBox(this, wxID_ANY, _("Use PAL60 Mode (EuRGB60)"));
 	m_aspect_ratio_choice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_aspect_ratio_strings);
 	m_system_language_choice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_system_language_strings);
 	m_sd_card_checkbox = new wxCheckBox(this, wxID_ANY, _("Insert SD Card"));
 	m_connect_keyboard_checkbox = new wxCheckBox(this, wxID_ANY, _("Connect USB Keyboard"));
 
+	m_video_mode_radiobox->Bind(wxEVT_RADIOBOX, &WiiConfigPane::OnVideoModeChanged, this);
 	m_screensaver_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnScreenSaverCheckBoxChanged, this);
-	m_pal60_mode_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnPAL60CheckBoxChanged, this);
 	m_aspect_ratio_choice->Bind(wxEVT_CHOICE, &WiiConfigPane::OnAspectRatioChoiceChanged, this);
 	m_system_language_choice->Bind(wxEVT_CHOICE, &WiiConfigPane::OnSystemLanguageChoiceChanged, this);
 	m_sd_card_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnSDCardCheckBoxChanged, this);
 	m_connect_keyboard_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnConnectKeyboardCheckBoxChanged, this);
 
+	m_video_mode_radiobox->SetToolTip(_("Sets the Wii video output format. If the selected mode is not supported by a game, the next best one will be used instead."));
 	m_screensaver_checkbox->SetToolTip(_("Dims the screen after five minutes of inactivity."));
-	m_pal60_mode_checkbox->SetToolTip(_("Sets the Wii display mode to 60Hz (480i) instead of 50Hz (576i) for PAL games.\nMay not work for all games."));
 	m_system_language_choice->SetToolTip(_("Sets the Wii system language."));
 	m_sd_card_checkbox->SetToolTip(_("Saved to /Wii/sd.raw (default size is 128mb)"));
 	m_connect_keyboard_checkbox->SetToolTip(_("May cause slow down in Wii Menu and some games."));
 
 	wxGridBagSizer* const misc_settings_grid_sizer = new wxGridBagSizer();
-	misc_settings_grid_sizer->Add(m_screensaver_checkbox, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
-	misc_settings_grid_sizer->Add(m_pal60_mode_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	misc_settings_grid_sizer->Add(m_video_mode_radiobox, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	misc_settings_grid_sizer->Add(m_screensaver_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	misc_settings_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Aspect Ratio:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	misc_settings_grid_sizer->Add(m_aspect_ratio_choice, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
 	misc_settings_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("System Language:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -83,8 +88,14 @@ void WiiConfigPane::InitializeGUI()
 
 void WiiConfigPane::LoadGUIValues()
 {
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive)
+		m_video_mode_radiobox->SetSelection(2);
+	else if (SConfig::GetInstance().m_LocalCoreStartupParameter.bPAL60)
+		m_video_mode_radiobox->SetSelection(1);
+	else
+		m_video_mode_radiobox->SetSelection(0);
+
 	m_screensaver_checkbox->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.SSV"));
-	m_pal60_mode_checkbox->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60"));
 	m_aspect_ratio_choice->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	m_system_language_choice->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
 
@@ -96,21 +107,27 @@ void WiiConfigPane::RefreshGUI()
 {
 	if (Core::IsRunning())
 	{
+		m_video_mode_radiobox->Disable();
 		m_screensaver_checkbox->Disable();
-		m_pal60_mode_checkbox->Disable();
 		m_aspect_ratio_choice->Disable();
 		m_system_language_choice->Disable();
 	}
 }
 
+void WiiConfigPane::OnVideoModeChanged(wxCommandEvent& event)
+{
+	const bool bProgressive = m_video_mode_radiobox->GetSelection() == 2;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive = bProgressive;
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", bProgressive);
+
+	const bool bPAL60 = m_video_mode_radiobox->GetSelection() != 0;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bPAL60 = bPAL60;
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", bPAL60);
+}
+
 void WiiConfigPane::OnScreenSaverCheckBoxChanged(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.SSV", m_screensaver_checkbox->IsChecked());
-}
-
-void WiiConfigPane::OnPAL60CheckBoxChanged(wxCommandEvent& event)
-{
-	SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", m_pal60_mode_checkbox->IsChecked());
 }
 
 void WiiConfigPane::OnSDCardCheckBoxChanged(wxCommandEvent& event)

@@ -48,7 +48,7 @@ namespace BootManager
 struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bSyncGPUOnSkipIdleHack, bFPRF, bAccurateNaNs, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
-	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive;
+	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive, bPAL60;
 	int iSelectedLanguage;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
@@ -121,6 +121,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
 		config_cache.frameSkip = SConfig::GetInstance().m_FrameSkip;
 		config_cache.bProgressive = StartUp.bProgressive;
+		config_cache.bPAL60 = StartUp.bPAL60;
 		config_cache.iSelectedLanguage = StartUp.SelectedLanguage;
 		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		{
@@ -159,6 +160,7 @@ bool BootCore(const std::string& _rFilename)
 		core_section->Get("CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
 		core_section->Get("HLE_BS2",          &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
 		core_section->Get("ProgressiveScan",  &StartUp.bProgressive, StartUp.bProgressive);
+		core_section->Get("PAL60",            &StartUp.bPAL60, StartUp.bPAL60);
 		if (core_section->Get("FrameLimit",   &SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
 			config_cache.bSetFramelimit = true;
 		if (core_section->Get("FrameSkip",    &SConfig::GetInstance().m_FrameSkip))
@@ -194,6 +196,12 @@ bool BootCore(const std::string& _rFilename)
 		// Wii settings
 		if (StartUp.bWii)
 		{
+			// Some NTSC Wii games such as Doc Louis's Punch-Out!! and 1942 (Virtual Console) crash if the PAL60 option is enabled
+			if (StartUp.bNTSC)
+			{
+				StartUp.bPAL60 = false;
+			}
+			
 			// Flush possible changes to SYSCONF to file
 			SConfig::GetInstance().m_SYSCONF->Save();
 
@@ -227,6 +235,7 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bSkipIdle = Movie::IsSkipIdle();
 		StartUp.bDSPHLE = Movie::IsDSPHLE();
 		StartUp.bProgressive = Movie::IsProgressive();
+		StartUp.bPAL60 = Movie::IsPAL60();
 		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
 		StartUp.iCPUCore = Movie::GetCPUMode();
 		StartUp.bSyncGPU = Movie::IsSyncGPU();
@@ -256,6 +265,7 @@ bool BootCore(const std::string& _rFilename)
 	}
 
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", StartUp.bPAL60);
 
 	// Run the game
 	// Init the core
@@ -298,6 +308,8 @@ void Stop()
 		StartUp.bProgressive = config_cache.bProgressive;
 		StartUp.SelectedLanguage = config_cache.iSelectedLanguage;
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", config_cache.bProgressive);
+		StartUp.bPAL60 = config_cache.bPAL60;
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", config_cache.bPAL60);
 
 		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
 		if (config_cache.bSetFramelimit)
