@@ -99,6 +99,14 @@ void JitArm64AsmRoutineManager::Generate()
 	FlushIcache();
 }
 
+static float s_quantize_ranges[] =
+{
+	0.0f, 255.0f,        // U8
+	-128.0, 127.0f,      // S8
+	0.0f, 65535.0f,      // U16
+	-32768.0f, 32767.0f, // S16
+};
+
 void JitArm64AsmRoutineManager::GenerateCommon()
 {
 	// X0 is the scale
@@ -291,6 +299,13 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1, 0);
+
+			// Have to clamp the result
+			MOVI2R(X2, (u64)&s_quantize_ranges[0]);
+			float_emit.LD2R(32, D1, X2);
+			float_emit.FMIN(32, D0, D0, D2);
+			float_emit.FMAX(32, D0, D0, D1);
+
 			float_emit.FCVTZU(32, D0, D0);
 			float_emit.XTN(16, D0, D0);
 			float_emit.XTN(8, D0, D0);
@@ -318,6 +333,13 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1, 0);
+
+			// Have to clamp the result
+			MOVI2R(X2, (u64)&s_quantize_ranges[1]);
+			float_emit.LD2R(32, D1, X2);
+			float_emit.FMIN(32, D0, D0, D2);
+			float_emit.FMAX(32, D0, D0, D1);
+
 			float_emit.FCVTZS(32, D0, D0);
 			float_emit.XTN(16, D0, D0);
 			float_emit.XTN(8, D0, D0);
@@ -346,6 +368,13 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1, 0);
+
+			// Have to clamp the result
+			MOVI2R(X2, (u64)&s_quantize_ranges[2]);
+			float_emit.LD2R(32, D1, X2);
+			float_emit.FMIN(32, D0, D0, D2);
+			float_emit.FMAX(32, D0, D0, D1);
+
 			float_emit.FCVTZU(32, D0, D0);
 			float_emit.XTN(16, D0, D0);
 			float_emit.REV16(8, D0, D0);
@@ -373,6 +402,14 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1, 0);
+
+			// Have to clamp the result
+			MOVI2R(X2, (u64)&s_quantize_ranges[3]);
+			float_emit.LD2R(32, D1, X2);
+			float_emit.FMIN(32, D0, D0, D2);
+			float_emit.FMAX(32, D0, D0, D1);
+
+
 			float_emit.FCVTZS(32, D0, D0);
 			float_emit.XTN(16, D0, D0);
 			float_emit.REV16(8, D0, D0);
@@ -415,6 +452,14 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1);
+
+			// Have to clamp the result
+			MOVI2R(X2, (u64)&s_quantize_ranges[0]);
+			float_emit.LDR(32, INDEX_UNSIGNED, S1, X2, 0);
+			float_emit.LDR(32, INDEX_UNSIGNED, S2, X2, 4);
+			float_emit.FMIN(S0, S0, S2);
+			float_emit.FMAX(S0, S0, S1);
+
 			float_emit.FCVTZU(32, D0, D0);
 			float_emit.XTN(16, D0, D0);
 			float_emit.XTN(8, D0, D0);
@@ -441,6 +486,14 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1);
+
+			// Have to clamp the result
+			MOVI2R(X2, (u64)&s_quantize_ranges[1]);
+			float_emit.LDR(32, INDEX_UNSIGNED, S1, X2, 0);
+			float_emit.LDR(32, INDEX_UNSIGNED, S2, X2, 4);
+			float_emit.FMIN(S0, S0, S2);
+			float_emit.FMAX(S0, S0, S1);
+
 			float_emit.FCVTZS(32, D0, D0);
 			float_emit.XTN(16, D0, D0);
 			float_emit.XTN(8, D0, D0);
@@ -467,6 +520,14 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1);
+
+			// Have to clamp the result
+			MOVI2R(X2, (u64)&s_quantize_ranges[2]);
+			float_emit.LDR(32, INDEX_UNSIGNED, S1, X2, 0);
+			float_emit.LDR(32, INDEX_UNSIGNED, S2, X2, 4);
+			float_emit.FMIN(S0, S0, S2);
+			float_emit.FMAX(S0, S0, S1);
+
 			float_emit.FCVTZU(32, D0, D0);
 			float_emit.XTN(16, D0, D0);
 		};
@@ -493,6 +554,14 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1);
+
+			// Have to clamp the result
+			MOVI2R(X2, (u64)&s_quantize_ranges[3]);
+			float_emit.LDR(32, INDEX_UNSIGNED, S1, X2, 0);
+			float_emit.LDR(32, INDEX_UNSIGNED, S2, X2, 4);
+			float_emit.FMIN(S0, S0, S2);
+			float_emit.FMAX(S0, S0, S1);
+
 			float_emit.FCVTZS(32, D0, D0);
 			float_emit.XTN(16, D0, D0);
 		};

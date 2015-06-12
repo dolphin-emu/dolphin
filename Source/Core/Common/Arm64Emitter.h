@@ -750,6 +750,9 @@ public:
 	void LD1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn);
 	void LD1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn, ARM64Reg Rm);
 	void LD1R(u8 size, ARM64Reg Rt, ARM64Reg Rn);
+	void LD2R(u8 size, ARM64Reg Rt, ARM64Reg Rn);
+	void LD1R(u8 size, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm);
+	void LD2R(u8 size, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm);
 	void ST1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn);
 	void ST1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn, ARM64Reg Rm);
 
@@ -799,8 +802,10 @@ public:
 	void DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index);
 	void FABS(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void FADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void FMAX(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void FMLA(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void FMLS(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void FMIN(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void FCVTL(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void FCVTL2(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void FCVTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
