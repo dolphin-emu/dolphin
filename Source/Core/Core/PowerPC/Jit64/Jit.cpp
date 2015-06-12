@@ -190,7 +190,7 @@ void Jit64::Init()
 
 	// BLR optimization has the same consequences as block linking, as well as
 	// depending on the fault handler to be safe in the event of excessive BL.
-	m_enable_blr_optimization = jo.enableBlocklink && SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging;
+	m_enable_blr_optimization = jo.enableBlocklink && SConfig::GetInstance().bFastmem && !SConfig::GetInstance().bEnableDebugging;
 	m_clear_cache_asap = false;
 
 	m_stack = nullptr;
@@ -494,7 +494,7 @@ void Jit64::Jit(u32 em_address)
 	    farcode.GetSpaceLeft() < 0x10000 ||
 	    trampolines.GetSpaceLeft() < 0x10000 ||
 	    blocks.IsFull() ||
-	    SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache ||
+	    SConfig::GetInstance().bJITNoBlockCache ||
 	    m_clear_cache_asap)
 	{
 		ClearCache();
@@ -502,7 +502,7 @@ void Jit64::Jit(u32 em_address)
 
 	int blockSize = code_buffer.GetSize();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().bEnableDebugging)
 	{
 		// We can link blocks as long as we are not single stepping and there are no breakpoints here
 		EnableBlockLink();
@@ -599,7 +599,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	fpr.Start();
 
 	js.downcountAmount = 0;
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (!SConfig::GetInstance().bEnableDebugging)
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
 	js.skipInstructions = 0;
@@ -750,7 +750,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				js.firstFPInstructionFound = true;
 			}
 
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			if (SConfig::GetInstance().bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
 			{
 				// Turn off block linking if there are breakpoints so that the Step Over command does not link this block.
 				jo.enableBlocklink = false;
@@ -889,7 +889,7 @@ BitSet32 Jit64::CallerSavedRegistersInUse()
 void Jit64::EnableBlockLink()
 {
 	jo.enableBlocklink = true;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking)
+	if (SConfig::GetInstance().bJITNoBlockLinking)
 		jo.enableBlocklink = false;
 }
 

@@ -187,7 +187,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
 
 void GCMemcardDirectory::FlushThread()
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableMemcardSaving)
+	if (!SConfig::GetInstance().bEnableMemcardSaving)
 	{
 		return;
 	}

@@ -141,7 +141,7 @@ void InterfaceConfigPane::InitializeGUI()
 
 void InterfaceConfigPane::LoadGUIValues()
 {
-	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& startup_params = SConfig::GetInstance();
 
 	m_confirm_stop_checkbox->SetValue(startup_params.bConfirmStop);
 	m_panic_handlers_checkbox->SetValue(startup_params.bUsePanicHandlers);
@@ -177,23 +177,23 @@ void InterfaceConfigPane::LoadThemes()
 			m_theme_choice->Append(wxname);
 	}
 
-	m_theme_choice->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
+	m_theme_choice->SetStringSelection(StrToWxStr(SConfig::GetInstance().theme_name));
 }
 
 void InterfaceConfigPane::OnConfirmStopCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop = m_confirm_stop_checkbox->IsChecked();
+	SConfig::GetInstance().bConfirmStop = m_confirm_stop_checkbox->IsChecked();
 }
 
 void InterfaceConfigPane::OnPanicHandlersCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers = m_panic_handlers_checkbox->IsChecked();
+	SConfig::GetInstance().bUsePanicHandlers = m_panic_handlers_checkbox->IsChecked();
 	SetEnableAlert(m_panic_handlers_checkbox->IsChecked());
 }
 
 void InterfaceConfigPane::OnOSDMessagesCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages = m_osd_messages_checkbox->IsChecked();
+	SConfig::GetInstance().bOnScreenDisplayMessages = m_osd_messages_checkbox->IsChecked();
 }
 
 void InterfaceConfigPane::OnInterfaceLanguageChoiceChanged(wxCommandEvent& event)
@@ -211,7 +211,7 @@ void InterfaceConfigPane::OnPauseOnFocusLostCheckBoxChanged(wxCommandEvent& even
 
 void InterfaceConfigPane::OnThemeSelected(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = WxStrToStr(m_theme_choice->GetStringSelection());
+	SConfig::GetInstance().theme_name = WxStrToStr(m_theme_choice->GetStringSelection());
 
 	main_frame->InitBitmaps();
 	main_frame->UpdateGameList();

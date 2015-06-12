@@ -137,10 +137,10 @@ void Preset(bool _bNTSC)
 	m_VBeamPos = 0; // RG4JC0 checks for a zero VBeamPos
 
 	// 54MHz, capable of progressive scan
-	m_Clock = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+	m_Clock = SConfig::GetInstance().bProgressive;
 
 	// Say component cable is plugged
-	m_DTVStatus.component_plugged = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+	m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
 
 	UpdateParameters();
 }
@@ -172,7 +172,7 @@ void Init()
 
 	fields = 1;
 
-	m_DTVStatus.ntsc_j = SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ;
+	m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ;
 
 	for (UVIInterruptRegister& reg : m_InterruptRegister)
 	{
@@ -400,7 +400,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void SetRegionReg(char region)
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ)
+	if (!SConfig::GetInstance().bForceNTSCJ)
 		m_DTVStatus.ntsc_j = region == 'J';
 }
 

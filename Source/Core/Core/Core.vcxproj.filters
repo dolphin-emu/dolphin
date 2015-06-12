@@ -144,7 +144,6 @@
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="Core.cpp" />
-    <ClCompile Include="CoreParameter.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
     <ClCompile Include="ec_wii.cpp" />
     <ClCompile Include="HotkeyManager.cpp" />
@@ -738,7 +737,6 @@
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Core.h" />
-    <ClInclude Include="CoreParameter.h" />
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="ec_wii.h" />
     <ClInclude Include="Host.h" />

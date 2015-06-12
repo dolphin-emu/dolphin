@@ -22,7 +22,6 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/VideoConfigDiag.h"
@@ -282,7 +281,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
 		choice_display_resolution->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_DisplayResolution, this);
 
-		choice_display_resolution->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution));
+		choice_display_resolution->SetStringSelection(StrToWxStr(SConfig::GetInstance().strFullscreenResolution));
 
 		szr_display->Add(label_display_resolution, 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_display->Add(choice_display_resolution);
@@ -302,7 +301,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// various other display options
 	{
 	szr_display->Add(CreateCheckBox(page_general, _("V-Sync"), wxGetTranslation(vsync_desc), vconfig.bVSync));
-	szr_display->Add(CreateCheckBox(page_general, _("Use Fullscreen"), wxGetTranslation(use_fullscreen_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen));
+	szr_display->Add(CreateCheckBox(page_general, _("Use Fullscreen"), wxGetTranslation(use_fullscreen_desc), SConfig::GetInstance().bFullscreen));
 	}
 	}
 
@@ -312,10 +311,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	szr_other->Add(CreateCheckBox(page_general, _("Show FPS"), wxGetTranslation(show_fps_desc), vconfig.bShowFPS));
 	szr_other->Add(CreateCheckBox(page_general, _("Log Render Time to File"), wxGetTranslation(log_render_time_to_file_desc), vconfig.bLogRenderTimeToFile));
-	szr_other->Add(CreateCheckBox(page_general, _("Auto adjust Window Size"), wxGetTranslation(auto_window_size_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize));
-	szr_other->Add(CreateCheckBox(page_general, _("Keep Window on Top"), wxGetTranslation(keep_window_on_top_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop));
-	szr_other->Add(CreateCheckBox(page_general, _("Hide Mouse Cursor"), wxGetTranslation(hide_mouse_cursor_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor));
-	szr_other->Add(render_to_main_checkbox = CreateCheckBox(page_general, _("Render to Main Window"), wxGetTranslation(render_to_main_win_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain));
+	szr_other->Add(CreateCheckBox(page_general, _("Auto adjust Window Size"), wxGetTranslation(auto_window_size_desc), SConfig::GetInstance().bRenderWindowAutoSize));
+	szr_other->Add(CreateCheckBox(page_general, _("Keep Window on Top"), wxGetTranslation(keep_window_on_top_desc), SConfig::GetInstance().bKeepWindowOnTop));
+	szr_other->Add(CreateCheckBox(page_general, _("Hide Mouse Cursor"), wxGetTranslation(hide_mouse_cursor_desc), SConfig::GetInstance().bHideCursor));
+	szr_other->Add(render_to_main_checkbox = CreateCheckBox(page_general, _("Render to Main Window"), wxGetTranslation(render_to_main_win_desc), SConfig::GetInstance().bRenderToMain));
 	}
 
 
@@ -583,9 +582,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	RegisterControl(progressive_scan_checkbox, wxGetTranslation(prog_scan_desc));
 	progressive_scan_checkbox->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_ProgressiveScan, this);
 
-	progressive_scan_checkbox->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive);
+	progressive_scan_checkbox->SetValue(SConfig::GetInstance().bProgressive);
 	// A bit strange behavior, but this needs to stay in sync with the main progressive boolean; TODO: Is this still necessary?
-	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive);
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", SConfig::GetInstance().bProgressive);
 
 	szr_misc->Add(progressive_scan_checkbox);
 	}
@@ -624,7 +623,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent &ev)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+	SConfig::GetInstance().strFullscreenResolution =
 		WxStrToStr(choice_display_resolution->GetStringSelection());
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->Update();

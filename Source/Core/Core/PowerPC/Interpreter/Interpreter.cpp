@@ -195,7 +195,7 @@ void Interpreter::Run()
 	while (!PowerPC::GetState())
 	{
 		//we have to check exceptions at branches apparently (or maybe just rfi?)
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+		if (SConfig::GetInstance().bEnableDebugging)
 		{
 			#ifdef SHOW_HISTORY
 				PCBlockVec.push_back(PC);

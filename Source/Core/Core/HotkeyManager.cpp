@@ -109,6 +109,8 @@ const std::string hotkey_labels[] =
 	_trans("Load State Last 6"),
 	_trans("Load State Last 7"),
 	_trans("Load State Last 8"),
+	_trans("Load State Last 9"),
+	_trans("Load State Last 10"),
 
 	_trans("Save Oldest State"),
 	_trans("Undo Load State"),
@@ -116,13 +118,12 @@ const std::string hotkey_labels[] =
 	_trans("Save State"),
 	_trans("Load State"),
 };
-
-const int num_hotkeys = (sizeof(hotkey_labels) / sizeof(hotkey_labels[0]));
+static_assert(NUM_HOTKEYS == sizeof(hotkey_labels) / sizeof(hotkey_labels[0]), "Wrong count of hotkey_labels");
 
 namespace HotkeyManagerEmu
 {
 
-static u32 s_hotkeyDown[3];
+static u32 s_hotkeyDown[(NUM_HOTKEYS + 31) / 32];
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
@@ -182,8 +183,8 @@ void Initialize(void* const hwnd)
 	// load the saved controller config
 	s_config.LoadConfig(true);
 
-	for (unsigned int i = 0; i < 3; ++i)
-		s_hotkeyDown[i] = 0;
+	for (u32& key : s_hotkeyDown)
+		key = 0;
 
 	s_enabled = true;
 }
@@ -209,19 +210,14 @@ void Shutdown()
 
 HotkeyManager::HotkeyManager()
 {
-	for (int set = 0; set < 3; set++)
+	for (int key = 0; key < NUM_HOTKEYS; key++)
 	{
-		// buttons
-		if ((set * 32) < num_hotkeys)
+		int set = key / 32;
+
+		if (key % 32 == 0)
 			groups.emplace_back(m_keys[set] = new Buttons(_trans("Keys")));
 
-		for (int key = 0; key < 32; key++)
-		{
-			if ((set * 32 + key) < num_hotkeys && hotkey_labels[set * 32 + key].length() != 0)
-			{
-				m_keys[set]->controls.emplace_back(new ControlGroup::Input(hotkey_labels[set * 32 + key]));
-			}
-		}
+		m_keys[set]->controls.emplace_back(new ControlGroup::Input(hotkey_labels[key]));
 	}
 
 	groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
@@ -240,20 +236,14 @@ std::string HotkeyManager::GetName() const
 
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
-	for (int set = 0; set < 3; set++)
+	for (int set = 0; set < (NUM_HOTKEYS + 31) / 32; set++)
 	{
 		std::vector<u32> bitmasks;
-		for (int key = 0; key < 32; key++)
-		{
-			if ((set * 32 + key) < num_hotkeys && hotkey_labels[set * 32 + key].length() != 0)
-				bitmasks.push_back(1 << key);
-		}
+		for (int key = 0; key < std::min(32, NUM_HOTKEYS - set * 32); key++)
+			bitmasks.push_back(1 << key);
 
-		if ((set * 32) < num_hotkeys)
-		{
-			kb->button[set] = 0;
-			m_keys[set]->GetState(&kb->button[set], bitmasks.data());
-		}
+		kb->button[set] = 0;
+		m_keys[set]->GetState(&kb->button[set], bitmasks.data());
 	}
 }
 

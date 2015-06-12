@@ -13,7 +13,7 @@ class PointerWrap;
 
 extern bool g_bSkipCurrentFrame;
 
-// This could be in SCoreStartupParameter, but it depends on multiple settings
+// This could be in SConfig, but it depends on multiple settings
 // and can change at runtime.
 extern bool g_use_deterministic_gpu_thread;
 extern std::atomic<u8*> g_video_buffer_write_ptr_xthread;

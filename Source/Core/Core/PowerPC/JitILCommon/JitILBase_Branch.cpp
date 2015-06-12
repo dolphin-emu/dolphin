@@ -143,11 +143,11 @@ void JitILBase::bcx(UGeckoInstruction inst)
 	// If idle skipping is enabled, then this branch will only be reached when the branch is not
 	// taken.
 	// TODO: We shouldn't use debug reads here.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+	if (SConfig::GetInstance().bSkipIdle &&
 		inst.hex == 0x4182fff8 &&
 		(PowerPC::HostRead_U32(js.compilerPC - 8) & 0xFFFF0000) == 0x800D0000 &&
 		(PowerPC::HostRead_U32(js.compilerPC - 4) == 0x28000000 ||
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && PowerPC::HostRead_U32(js.compilerPC - 4) == 0x2C000000))
+		(SConfig::GetInstance().bWii && PowerPC::HostRead_U32(js.compilerPC - 4) == 0x2C000000))
 		)
 	{
 		// Uh, Do nothing.

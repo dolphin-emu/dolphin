@@ -129,7 +129,7 @@ void GameCubeConfigPane::InitializeGUI()
 
 void GameCubeConfigPane::LoadGUIValues()
 {
-	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& startup_params = SConfig::GetInstance();
 
 	m_system_lang_choice->SetSelection(startup_params.SelectedLanguage);
 	m_skip_bios_checkbox->SetValue(startup_params.bHLE_BS2);
@@ -212,21 +212,21 @@ void GameCubeConfigPane::RefreshGUI()
 
 void GameCubeConfigPane::OnSystemLanguageChange(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = m_system_lang_choice->GetSelection();
+	SConfig::GetInstance().SelectedLanguage = m_system_lang_choice->GetSelection();
 
 	AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
 }
 
 void GameCubeConfigPane::OnOverrideLanguageCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bOverrideGCLanguage = m_override_lang_checkbox->IsChecked();
+	SConfig::GetInstance().bOverrideGCLanguage = m_override_lang_checkbox->IsChecked();
 
 	AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
 }
 
 void GameCubeConfigPane::OnSkipBiosCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2 = m_skip_bios_checkbox->IsChecked();
+	SConfig::GetInstance().bHLE_BS2 = m_skip_bios_checkbox->IsChecked();
 }
 
 void GameCubeConfigPane::OnSlotAChanged(wxCommandEvent& event)

@@ -250,7 +250,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
 	// assuming they'll never do an invalid memory access.
 	// The slightly more complex check needed for Wii games using the space just above MEM1 isn't
 	// implemented here yet, since there are no known working Wii MMU games to test it with.
-	if (jit->jo.memcheck && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (jit->jo.memcheck && !SConfig::GetInstance().bWii)
 	{
 		if (scratch == reg_addr)
 			PUSH(scratch);

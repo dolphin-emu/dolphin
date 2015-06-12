@@ -105,7 +105,7 @@ struct ARAddr
 void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats &&
+	if (!SConfig::GetInstance().bEnableCheats &&
 		!forceLoad)
 		return;
 
@@ -276,8 +276,8 @@ void SetARCode_IsActive(bool active, size_t index)
 
 void UpdateActiveList()
 {
-	bool old_value = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = false;
+	bool old_value = SConfig::GetInstance().bEnableCheats;
+	SConfig::GetInstance().bEnableCheats = false;
 	b_RanOnce = false;
 	activeCodes.clear();
 	for (auto& arCode : arCodes)
@@ -285,7 +285,7 @@ void UpdateActiveList()
 		if (arCode.active)
 			activeCodes.push_back(arCode);
 	}
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = old_value;
+	SConfig::GetInstance().bEnableCheats = old_value;
 }
 
 void EnableSelfLogging(bool enable)
@@ -760,7 +760,7 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 
 void RunAllActive()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	if (SConfig::GetInstance().bEnableCheats)
 	{
 		for (auto& activeCode : activeCodes)
 		{

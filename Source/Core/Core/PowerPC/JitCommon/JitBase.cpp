@@ -67,7 +67,7 @@ bool JitBase::MergeAllowedNextInstructions(int count)
 	// Be careful: a breakpoint kills flags in between instructions
 	for (int i = 1; i <= count; i++)
 	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging &&
+		if (SConfig::GetInstance().bEnableDebugging &&
 			PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
 			return false;
 		if (js.op[i].isBranchTarget)
@@ -79,9 +79,9 @@ bool JitBase::MergeAllowedNextInstructions(int count)
 void JitBase::UpdateMemoryOptions()
 {
 	bool any_watchpoints = PowerPC::memchecks.HasAny();
-	jo.fastmem = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
+	jo.fastmem = SConfig::GetInstance().bFastmem &&
 	             !any_watchpoints;
-	jo.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU ||
+	jo.memcheck = SConfig::GetInstance().bMMU ||
 	              any_watchpoints;
 	jo.alwaysUseMemFuncs = any_watchpoints;
 

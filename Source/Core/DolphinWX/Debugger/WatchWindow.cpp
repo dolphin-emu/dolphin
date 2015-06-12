@@ -91,9 +91,9 @@ void CWatchWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
 void CWatchWindow::SaveAll()
 {
 	IniFile ini;
-	ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false);
+	ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini", false);
 	ini.SetLines("Watches", PowerPC::watches.GetStrings());
-	ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
+	ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini");
 }
 
 void CWatchWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
@@ -106,7 +106,7 @@ void CWatchWindow::LoadAll()
 	IniFile ini;
 	Watches::TWatchesStr watches;
 
-	if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false))
+	if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini", false))
 	{
 		return;
 	}

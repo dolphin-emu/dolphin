@@ -31,7 +31,7 @@ public:
 			Close();
 
 			g_video_backend = new_backend;
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = g_video_backend->GetName();
+			SConfig::GetInstance().m_strVideoBackend = g_video_backend->GetName();
 
 			g_video_backend->ShowConfig(GetParent());
 		}

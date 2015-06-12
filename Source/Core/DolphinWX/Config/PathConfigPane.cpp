@@ -92,7 +92,7 @@ void PathConfigPane::InitializeGUI()
 
 void PathConfigPane::LoadGUIValues()
 {
-	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& startup_params = SConfig::GetInstance();
 
 	m_recursive_iso_paths_checkbox->SetValue(SConfig::GetInstance().m_RecursiveISOFolder);
 	m_default_iso_filepicker->SetPath(StrToWxStr(startup_params.m_strDefaultISO));
@@ -159,17 +159,17 @@ void PathConfigPane::OnRemoveISOPath(wxCommandEvent& event)
 
 void PathConfigPane::OnDefaultISOChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO = WxStrToStr(m_default_iso_filepicker->GetPath());
+	SConfig::GetInstance().m_strDefaultISO = WxStrToStr(m_default_iso_filepicker->GetPath());
 }
 
 void PathConfigPane::OnDVDRootChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = WxStrToStr(m_dvd_root_dirpicker->GetPath());
+	SConfig::GetInstance().m_strDVDRoot = WxStrToStr(m_dvd_root_dirpicker->GetPath());
 }
 
 void PathConfigPane::OnApploaderPathChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader = WxStrToStr(m_apploader_path_filepicker->GetPath());
+	SConfig::GetInstance().m_strApploader = WxStrToStr(m_apploader_path_filepicker->GetPath());
 }
 
 void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)

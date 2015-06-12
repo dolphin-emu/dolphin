@@ -15,7 +15,7 @@ bool InputConfig::LoadConfig(bool isGC)
 	std::string profile[MAX_BBMOTES];
 	std::string path;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() != "00000000")
+	if (SConfig::GetInstance().GetUniqueID() != "00000000")
 	{
 		std::string type;
 		if (isGC)
@@ -29,7 +29,7 @@ bool InputConfig::LoadConfig(bool isGC)
 			path = "Profiles/Wiimote/";
 		}
 
-		IniFile game_ini = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
+		IniFile game_ini = SConfig::GetInstance().LoadGameIni();
 		IniFile::Section* control_section = game_ini.GetOrCreateSection("Controls");
 
 		for (int i = 0; i < 4; i++)

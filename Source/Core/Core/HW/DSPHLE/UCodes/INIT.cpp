@@ -31,7 +31,7 @@ void INITUCode::Update()
 
 u32 INITUCode::GetUpdateMs()
 {
-	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
+	return SConfig::GetInstance().bWii ? 3 : 5;
 }
 
 void INITUCode::HandleMail(u32 mail)

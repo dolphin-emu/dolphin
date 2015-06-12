@@ -80,7 +80,7 @@ void HiresTexture::Update()
 	}
 
 	std::vector<std::string> Directories;
-	const std::string& gameCode = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
+	const std::string& gameCode = SConfig::GetInstance().m_strUniqueID;
 
 	std::string szDir = StringFromFormat("%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode.c_str());
 
@@ -206,7 +206,7 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
 		// try to load the old format first
 		u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 		u64 tlut_hash = tlut_size ? GetHashHiresTexture(tlut, (int)tlut_size, g_ActiveConfig.iSafeTextureCache_ColorSamples) : 0;
-		name = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32)(tex_hash ^ tlut_hash), (u16)format);
+		name = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_strUniqueID.c_str(), (u32)(tex_hash ^ tlut_hash), (u16)format);
 		if (s_textureMap.find(name) != s_textureMap.end())
 		{
 			if (g_ActiveConfig.bConvertHiresTextures)

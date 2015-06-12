@@ -9,7 +9,6 @@
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "DolphinWX/X11Utils.h"
 
 extern char **environ;
@@ -112,7 +111,7 @@ XRRConfiguration::~XRRConfiguration()
 
 void XRRConfiguration::Update()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution == "Auto")
+	if (SConfig::GetInstance().strFullscreenResolution == "Auto")
 		return;
 
 	if (!bValid)
@@ -134,7 +133,7 @@ void XRRConfiguration::Update()
 	unsigned int fullWidth, fullHeight;
 	char *output_name = nullptr;
 	char auxFlag = '\0';
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.find(':') ==
+	if (SConfig::GetInstance().strFullscreenResolution.find(':') ==
 			std::string::npos)
 	{
 		fullWidth = fb_width;
@@ -142,7 +141,7 @@ void XRRConfiguration::Update()
 	}
 	else
 	{
-		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
+		sscanf(SConfig::GetInstance().strFullscreenResolution.c_str(),
 				"%m[^:]: %ux%u%c", &output_name, &fullWidth, &fullHeight, &auxFlag);
 	}
 	bool want_interlaced = ('i' == auxFlag);
@@ -161,7 +160,7 @@ void XRRConfiguration::Update()
 					if (!output_name)
 					{
 						output_name = strdup(output_info->name);
-						SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+						SConfig::GetInstance().strFullscreenResolution =
 							StringFromFormat("%s: %ux%u", output_info->name, fullWidth, fullHeight);
 					}
 					outputInfo = output_info;

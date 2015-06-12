@@ -24,7 +24,6 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "Core/Boot/Boot.h"
 
 #include "DiscIO/CompressedBlob.h"
@@ -124,7 +123,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 	if (IsValid())
 	{
-		IniFile ini = SCoreStartupParameter::LoadGameIni(m_UniqueID, m_Revision);
+		IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
 		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
 		ini.GetIfExists("EmuState", "EmulationIssues", &m_issues);
 	}
@@ -145,7 +144,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	else
 	{
 		// default banner
-		m_Bitmap.LoadFile(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
+		m_Bitmap.LoadFile(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 
@@ -215,7 +214,7 @@ std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) co
 std::string GameListItem::GetDescription() const
 {
 	bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
-	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
+	return GetDescription(SConfig::GetInstance().GetCurrentLanguage(wii));
 }
 
 std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
@@ -226,7 +225,7 @@ std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
 std::string GameListItem::GetName() const
 {
 	bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
-	std::string name = GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
+	std::string name = GetName(SConfig::GetInstance().GetCurrentLanguage(wii));
 	if (name.empty())
 	{
 		// No usable name, return filename (better than nothing)

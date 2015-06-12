@@ -195,14 +195,14 @@ bool Wiimote::Read()
 
 	if (result > 0 && m_channel > 0)
 	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 &&
+		if (SConfig::GetInstance().iBBDumpPort > 0 &&
 		    m_index == WIIMOTE_BALANCE_BOARD)
 		{
 			static sf::UdpSocket Socket;
 			Socket.send((char*)rpt.data(),
 			            rpt.size(),
 			            sf::IpAddress::LocalHost,
-		                SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
+		                SConfig::GetInstance().iBBDumpPort);
 		}
 
 		// Add it to queue
@@ -229,10 +229,10 @@ bool Wiimote::Write()
 
 		if (!is_speaker_data || m_last_audio_report.GetTimeDifference() > 5)
 		{
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+			if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
 			{
 				static sf::UdpSocket Socket;
-				Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
+				Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, SConfig::GetInstance().iBBDumpPort);
 			}
 			IOWrite(rpt.data(), rpt.size());
 

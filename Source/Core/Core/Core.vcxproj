@@ -46,7 +46,6 @@
     <ClCompile Include="Boot\ElfReader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="Core.cpp" />
-    <ClCompile Include="CoreParameter.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
     <ClCompile Include="Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Debugger\Dump.cpp" />
@@ -264,7 +263,6 @@
     <ClInclude Include="Boot\ElfTypes.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Core.h" />
-    <ClInclude Include="CoreParameter.h" />
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="Debugger\Debugger_SymbolMap.h" />
     <ClInclude Include="Debugger\Dump.h" />

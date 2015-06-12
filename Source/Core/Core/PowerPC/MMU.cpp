@@ -386,7 +386,7 @@ TryReadInstResult TryReadInstruction(u32 address)
 	if (UReg_MSR(MSR).IR)
 	{
 		// TODO: Use real translation.
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & Memory::ADDR_MASK_MEM1))
+		if (SConfig::GetInstance().bMMU && (address & Memory::ADDR_MASK_MEM1))
 		{
 			u32 tlb_addr = TranslateAddress<FLAG_OPCODE>(address);
 			if (tlb_addr == 0)
@@ -886,7 +886,7 @@ union UPTE2
 static void GenerateDSIException(u32 effectiveAddress, bool write)
 {
 	// DSI exceptions are only supported in MMU mode.
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	if (!SConfig::GetInstance().bMMU)
 	{
 		PanicAlert("Invalid %s to 0x%08x, PC = 0x%08x ", write ? "Write to" : "Read from", effectiveAddress, PC);
 		return;

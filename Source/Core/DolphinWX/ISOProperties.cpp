@@ -54,7 +54,6 @@
 #include "Common/SysConf.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
 #include "Core/Boot/Boot.h"
@@ -119,8 +118,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// Load game INIs
 	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
-	GameIniDefault = SCoreStartupParameter::LoadDefaultGameIni(game_id, OpenISO->GetRevision());
-	GameIniLocal = SCoreStartupParameter::LoadLocalGameIni(game_id, OpenISO->GetRevision());
+	GameIniDefault = SConfig::LoadDefaultGameIni(game_id, OpenISO->GetRevision());
+	GameIniLocal = SConfig::LoadLocalGameIni(game_id, OpenISO->GetRevision());
 
 	// Setup GUI
 	OpenGameListItem = new GameListItem(fileName);
@@ -190,7 +189,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// Here we set all the info to be shown + we set the window title
 	bool wii = OpenISO->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-	ChangeBannerDetails(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
+	ChangeBannerDetails(SConfig::GetInstance().GetCurrentLanguage(wii));
 
 	m_Banner->SetBitmap(OpenGameListItem->GetBitmap());
 	m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
@@ -490,7 +489,7 @@ void CISOProperties::CreateGUIControls()
 	wxStaticText* const m_LangText = new wxStaticText(m_Information, wxID_ANY, _("Show Language:"));
 
 	bool wii = OpenISO->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-	DiscIO::IVolume::ELanguage preferred_language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii);
+	DiscIO::IVolume::ELanguage preferred_language = SConfig::GetInstance().GetCurrentLanguage(wii);
 
 	std::vector<DiscIO::IVolume::ELanguage> languages = OpenGameListItem->GetLanguages();
 	int preferred_language_index = 0;
@@ -628,7 +627,7 @@ void CISOProperties::CreateGUIControls()
 
 	// If there is no default gameini, disable the button.
 	bool game_ini_exists = false;
-	for (const std::string& ini_filename : SCoreStartupParameter::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
+	for (const std::string& ini_filename : SConfig::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
 	{
 		if (File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + ini_filename))
 		{
@@ -1283,7 +1282,7 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 // they will all be opened, but there is usually only one
 void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED (event))
 {
-	for (const std::string& filename : SCoreStartupParameter::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
+	for (const std::string& filename : SConfig::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
 	{
 		std::string path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename;
 		if (File::Exists(path))

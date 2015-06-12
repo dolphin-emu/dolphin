@@ -15,7 +15,6 @@
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Host.h"
 #include "Core/State.h"
 #include "Core/HW/Wiimote.h"
@@ -77,7 +76,7 @@ void Host_RequestFullscreen(bool enable_fullscreen) {}
 
 void Host_SetStartupDebuggingParameters()
 {
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& StartUp = SConfig::GetInstance();
 	StartUp.bEnableDebugging = false;
 	StartUp.bBootToPause = false;
 }
@@ -99,7 +98,7 @@ bool Host_RendererIsFullscreen()
 
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
-	if (Core::IsRunning() && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (Core::IsRunning() && SConfig::GetInstance().bWii)
 	{
 		bool was_unpaused = Core::PauseAndLock(true);
 		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
@@ -136,10 +135,10 @@ class PlatformX11 : public Platform
 		}
 
 		win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy),
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					  SConfig::GetInstance().iRenderWindowXPos,
+					  SConfig::GetInstance().iRenderWindowYPos,
+					  SConfig::GetInstance().iRenderWindowWidth,
+					  SConfig::GetInstance().iRenderWindowHeight,
 					  0, 0, BlackPixel(dpy, 0));
 		XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
 		Atom wmProtocols[1];
@@ -149,14 +148,14 @@ class PlatformX11 : public Platform
 		XFlush(dpy);
 		s_window_handle = (void*)win;
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+		if (SConfig::GetInstance().bDisableScreenSaver)
 			X11Utils::InhibitScreensaver(dpy, win, true);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 		XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
 #endif
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		if (SConfig::GetInstance().bHideCursor)
 		{
 			// make a blank cursor
 			Pixmap Blank;
@@ -176,7 +175,7 @@ class PlatformX11 : public Platform
 
 	void MainLoop() override
 	{
-		bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
+		bool fullscreen = SConfig::GetInstance().bFullscreen;
 
 		if (fullscreen)
 		{
@@ -202,13 +201,13 @@ class PlatformX11 : public Platform
 					{
 						if (Core::GetState() == Core::CORE_RUN)
 						{
-							if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							if (SConfig::GetInstance().bHideCursor)
 								XUndefineCursor(dpy, win);
 							Core::SetState(Core::CORE_PAUSE);
 						}
 						else
 						{
-							if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							if (SConfig::GetInstance().bHideCursor)
 								XDefineCursor(dpy, win, blankCursor);
 							Core::SetState(Core::CORE_RUN);
 						}
@@ -243,13 +242,13 @@ class PlatformX11 : public Platform
 					break;
 				case FocusIn:
 					rendererHasFocus = true;
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+					if (SConfig::GetInstance().bHideCursor &&
 					    Core::GetState() != Core::CORE_PAUSE)
 						XDefineCursor(dpy, win, blankCursor);
 					break;
 				case FocusOut:
 					rendererHasFocus = false;
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					if (SConfig::GetInstance().bHideCursor)
 						XUndefineCursor(dpy, win);
 					break;
 				case ClientMessage:
@@ -263,10 +262,10 @@ class PlatformX11 : public Platform
 				Window winDummy;
 				unsigned int borderDummy, depthDummy;
 				XGetGeometry(dpy, win, &winDummy,
-					     &SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-					     &SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
-					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					     &SConfig::GetInstance().iRenderWindowXPos,
+					     &SConfig::GetInstance().iRenderWindowYPos,
+					     (unsigned int *)&SConfig::GetInstance().iRenderWindowWidth,
+					     (unsigned int *)&SConfig::GetInstance().iRenderWindowHeight,
 					     &borderDummy, &depthDummy);
 				rendererIsFullscreen = false;
 			}
@@ -280,7 +279,7 @@ class PlatformX11 : public Platform
 		delete XRRConfig;
 #endif
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		if (SConfig::GetInstance().bHideCursor)
 			XFreeCursor(dpy, blankCursor);
 
 		XCloseDisplay(dpy);

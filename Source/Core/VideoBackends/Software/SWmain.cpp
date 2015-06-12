@@ -242,7 +242,7 @@ void VideoSoftware::Video_EndField()
 		DebugUtil::OnFrameEnd(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 
 		// If we are in dual core mode, notify the GPU thread about the new color texture.
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		if (SConfig::GetInstance().bCPUThread)
 			s_swapRequested.store(true);
 		else
 			SWRenderer::Swap(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);

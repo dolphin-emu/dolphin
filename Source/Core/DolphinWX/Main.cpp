@@ -30,7 +30,6 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/HW/Wiimote.h"
@@ -210,31 +209,31 @@ bool DolphinApp::OnInit()
 
 	if (selectPerfDir)
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_perfDir =
+		SConfig::GetInstance().m_perfDir =
 			WxStrToStr(perfDir);
 	}
 
 	if (selectVideoBackend && videoBackendName != wxEmptyString)
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
+		SConfig::GetInstance().m_strVideoBackend =
 			WxStrToStr(videoBackendName);
 
 	if (selectAudioEmulation)
 	{
 		if (audioEmulationName == "HLE")
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = true;
+			SConfig::GetInstance().bDSPHLE = true;
 		else if (audioEmulationName == "LLE")
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = false;
+			SConfig::GetInstance().bDSPHLE = false;
 	}
 
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
+	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);
 
-	int x = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX;
-	int y = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY;
-	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
-	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
+	int x = SConfig::GetInstance().iPosX;
+	int y = SConfig::GetInstance().iPosY;
+	int w = SConfig::GetInstance().iWidth;
+	int h = SConfig::GetInstance().iHeight;
 
 	if (File::Exists("www.dolphin-emulator.com.txt"))
 	{
@@ -479,7 +478,7 @@ void Host_RequestFullscreen(bool enable_fullscreen)
 
 void Host_SetStartupDebuggingParameters()
 {
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& StartUp = SConfig::GetInstance();
 	if (main_frame->g_pCodeWindow)
 	{
 		StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();

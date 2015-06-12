@@ -176,15 +176,15 @@ void Init()
 	s_bFrameStep = false;
 	s_bFrameStop = false;
 	s_bSaveConfig = false;
-	s_iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+	s_iCPUCore = SConfig::GetInstance().iCPUCore;
 	if (IsPlayingInput())
 	{
 		ReadHeader();
 		std::thread md5thread(CheckMD5);
 		md5thread.detach();
-		if (strncmp((char *)tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6))
+		if (strncmp((char *)tmpHeader.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6))
 		{
-			PanicAlertT("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str());
+			PanicAlertT("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, SConfig::GetInstance().GetUniqueID().c_str());
 			EndPlayInput(false);
 		}
 	}
@@ -481,7 +481,7 @@ bool BeginRecordingInput(int controllers)
 
 		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
 		// TODO: find a way to GetTitleDataPath() from Movie::Init()
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		if (SConfig::GetInstance().bWii)
 		{
 			if (File::Exists(Common::GetTitleDataPath(g_titleID) + "banner.bin"))
 				Movie::g_bClearSave = false;
@@ -907,7 +907,7 @@ void LoadInput(const std::string& filename)
 	}
 
 	ChangePads(true);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 		ChangeWiiPads(true);
 
 	u64 totalSavedBytes = t_record.GetSize() - 256;
@@ -1196,9 +1196,9 @@ void SaveRecording(const std::string& filename)
 	memset(&header, 0, sizeof(DTMHeader));
 
 	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
-	strncpy((char *)header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
-	header.bWii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	header.numControllers = s_numPads & (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 0xFF : 0x0F);
+	strncpy((char *)header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
+	header.bWii = SConfig::GetInstance().bWii;
+	header.numControllers = s_numPads & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
 
 	header.bFromSaveState = s_bRecordingFromSaveState;
 	header.frameCount = g_totalFrames;
@@ -1287,16 +1287,16 @@ void SetGraphicsConfig()
 void GetSettings()
 {
 	s_bSaveConfig = true;
-	s_bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
-	s_bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
-	s_bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
-	s_bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
-	s_bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
+	s_bSkipIdle = SConfig::GetInstance().bSkipIdle;
+	s_bDualCore = SConfig::GetInstance().bCPUThread;
+	s_bProgressive = SConfig::GetInstance().bProgressive;
+	s_bDSPHLE = SConfig::GetInstance().bDSPHLE;
+	s_bFastDiscSpeed = SConfig::GetInstance().bFastDiscSpeed;
 	s_videoBackend = g_video_backend->GetName();
-	s_bSyncGPU = SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU;
-	s_iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+	s_bSyncGPU = SConfig::GetInstance().bSyncGPU;
+	s_iCPUCore = SConfig::GetInstance().iCPUCore;
 	s_bNetPlay = NetPlay::IsNetPlayRunning();
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (!SConfig::GetInstance().bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
@@ -1353,7 +1353,7 @@ void CheckMD5()
 	Core::DisplayMessage("Verifying checksum...", 2000);
 
 	unsigned char gameMD5[16];
-	md5_file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(), gameMD5);
+	md5_file(SConfig::GetInstance().m_strFilename.c_str(), gameMD5);
 
 	if (memcmp(gameMD5,s_MD5,16) == 0)
 		Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
@@ -1365,7 +1365,7 @@ void GetMD5()
 {
 	Core::DisplayMessage("Calculating checksum of game file...", 2000);
 	memset(s_MD5, 0, sizeof(s_MD5));
-	md5_file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(), s_MD5);
+	md5_file(SConfig::GetInstance().m_strFilename.c_str(), s_MD5);
 	Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 

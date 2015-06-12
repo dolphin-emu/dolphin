@@ -226,7 +226,7 @@ static std::string GetTitle(std::string filename)
 
 		/*
 		bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(is_wii_title);
+		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
 
 		auto it = titles.find(language);
 		if (it != end)
@@ -267,7 +267,7 @@ static std::string GetDescription(std::string filename)
 
 		/*
 		bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(is_wii_title);
+		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
 
 		auto it = descriptions.find(language);
 		if (it != end)
