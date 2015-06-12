@@ -49,6 +49,7 @@ struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bSyncGPUOnSkipIdleHack, bFPRF, bAccurateNaNs, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
 	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive;
+	int iSelectedLanguage;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
 	SIDevices Pads[MAX_SI_CHANNELS];
@@ -120,6 +121,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
 		config_cache.frameSkip = SConfig::GetInstance().m_FrameSkip;
 		config_cache.bProgressive = StartUp.bProgressive;
+		config_cache.iSelectedLanguage = StartUp.SelectedLanguage;
 		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		{
 			config_cache.iWiimoteSource[i] = g_wiimote_sources[i];
@@ -181,6 +183,12 @@ bool BootCore(const std::string& _rFilename)
 				SConfig::GetInstance().m_SIDevice[i] = (SIDevices) source;
 				config_cache.bSetPads[i] = true;
 			}
+		}
+
+		// Some NTSC GameCube games such as Baten Kaitos react strangely to language settings that would be invalid on an NTSC system
+		if (!StartUp.bOverrideGCLanguage && StartUp.bNTSC)
+		{
+			StartUp.SelectedLanguage = 0;
 		}
 
 		// Wii settings
@@ -288,6 +296,7 @@ void Stop()
 		SConfig::GetInstance().sBackend = config_cache.sBackend;
 		SConfig::GetInstance().m_DSPEnableJIT = config_cache.m_EnableJIT;
 		StartUp.bProgressive = config_cache.bProgressive;
+		StartUp.SelectedLanguage = config_cache.iSelectedLanguage;
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", config_cache.bProgressive);
 
 		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.

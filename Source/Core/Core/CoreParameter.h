@@ -193,6 +193,7 @@ struct SCoreStartupParameter
 	float fSyncGpuOverclock;
 
 	int SelectedLanguage;
+	bool bOverrideGCLanguage;
 
 	bool bWii;
 

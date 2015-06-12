@@ -23,6 +23,7 @@ private:
 	void RefreshGUI();
 
 	void OnSystemLanguageChange(wxCommandEvent&);
+	void OnOverrideLanguageCheckBoxChanged(wxCommandEvent&);
 	void OnSkipBiosCheckBoxChanged(wxCommandEvent&);
 	void OnSlotAChanged(wxCommandEvent&);
 	void OnSlotBChanged(wxCommandEvent&);
@@ -36,6 +37,7 @@ private:
 	wxArrayString m_ipl_language_strings;
 
 	wxChoice* m_system_lang_choice;
+	wxCheckBox* m_override_lang_checkbox;
 	wxCheckBox* m_skip_bios_checkbox;
 	wxChoice* m_exi_devices[3];
 	wxButton* m_memcard_path[2];

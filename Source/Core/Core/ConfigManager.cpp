@@ -191,6 +191,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("Apploader", m_LocalCoreStartupParameter.m_strApploader);
 	core->Set("EnableCheats", m_LocalCoreStartupParameter.bEnableCheats);
 	core->Set("SelectedLanguage", m_LocalCoreStartupParameter.SelectedLanguage);
+	core->Set("OverrideGCLang", m_LocalCoreStartupParameter.bOverrideGCLanguage);
 	core->Set("DPL2Decoder", m_LocalCoreStartupParameter.bDPL2Decoder);
 	core->Set("Latency", m_LocalCoreStartupParameter.iLatency);
 	core->Set("MemcardAPath", m_strMemoryCardA);
@@ -437,6 +438,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("Apploader",         &m_LocalCoreStartupParameter.m_strApploader);
 	core->Get("EnableCheats",      &m_LocalCoreStartupParameter.bEnableCheats, false);
 	core->Get("SelectedLanguage",  &m_LocalCoreStartupParameter.SelectedLanguage, 0);
+	core->Get("OverrideGCLang",    &m_LocalCoreStartupParameter.bOverrideGCLanguage, false);
 	core->Get("DPL2Decoder",       &m_LocalCoreStartupParameter.bDPL2Decoder, false);
 	core->Get("Latency",           &m_LocalCoreStartupParameter.iLatency, 2);
 	core->Get("MemcardAPath",      &m_strMemoryCardA);
