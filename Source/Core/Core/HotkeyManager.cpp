@@ -109,6 +109,8 @@ const std::string hotkey_labels[] =
 	_trans("Load State Last 6"),
 	_trans("Load State Last 7"),
 	_trans("Load State Last 8"),
+	_trans("Load State Last 9"),
+	_trans("Load State Last 10"),
 
 	_trans("Save Oldest State"),
 	_trans("Undo Load State"),
