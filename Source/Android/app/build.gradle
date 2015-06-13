@@ -101,13 +101,13 @@ task setupCMake(type: Exec) {
         mkdir('build/' + abi)
         workingDir 'build/' + abi
 
-        executable 'cmake'
+        executable getExecutablePath("cmake")
 
         args "-DANDROID=true",
                 "-DANDROID_NATIVE_API_LEVEL=android-18",
                 "-DCMAKE_TOOLCHAIN_FILE=../../../android.toolchain.cmake",
                 "../../../../..",
-                "-DGIT_EXECUTABLE=" + getGitPath(),
+                "-DGIT_EXECUTABLE=" + getExecutablePath("git"),
                 "-DANDROID_NDK=" + getNdkPath(),
                 "-DANDROID_TOOLCHAIN_NAME=" + getToolchainName(),
                 "-DANDROID_ABI=" + abi
@@ -140,46 +140,63 @@ task compileNative(type: Exec, dependsOn: 'setupCMake') {
     }
 }
 
-String getGitPath() {
-    try {
-        def stdout = new ByteArrayOutputStream()
-
-        exec {
-            commandLine 'which', 'git'
-            standardOutput = stdout
-        }
-
-        def gitPath = stdout.toString().trim()
-        project.logger.quiet("Gradle: Found git executuable:" + gitPath)
-
-        return gitPath
-    } catch (ignored) {
-        // Shouldn't happen. How did the user get this file without git?
-        project.logger.error("Gradle error: Couldn't find git executable.")
-        return null;
+String getExecutablePath(String command) {
+    def propsFile = rootProject.file("build.properties")
+    def path = null
+    if (propsFile.canRead()) {
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+        println buildProperties
+        path = buildProperties[command + "Path"]
     }
+    if (path == null) {
+        try {
+            def stdout = new ByteArrayOutputStream()
+
+            exec {
+                commandLine 'which', command
+                standardOutput = stdout
+            }
+
+            path = stdout.toString().trim()
+        } catch (ignored) {
+            project.logger.error("Gradle error: Couldn't find " + command + " executable.")
+        }
+    }
+    if (path != null) {
+        project.logger.quiet("Gradle: Found " + command + " executuable:" + path)
+    }
+    return path
 }
 
 String getNdkPath() {
-    try {
-        def stdout = new ByteArrayOutputStream()
-
-        exec {
-            // ndk-build.cmd is a file unique to the root directory of android-ndk-r10e.
-            commandLine 'locate', 'ndk-build.cmd'
-            standardOutput = stdout
-        }
-
-        def ndkCmdPath = stdout.toString()
-        def ndkPath = ndkCmdPath.substring(0, ndkCmdPath.lastIndexOf('/'))
-
-        project.logger.quiet("Gradle: Found Android NDK:" + ndkPath)
-
-        return ndkPath
-    } catch (ignored) {
-        project.logger.error("Gradle error: Couldn't find NDK.")
-        return null;
+    def propsFile = rootProject.file("build.properties")
+    def ndkPath = null
+    if (propsFile.canRead()) {
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+        ndkPath = buildProperties.ndkPath
     }
+    if (ndkPath == null) {
+        try {
+            def stdout = new ByteArrayOutputStream()
+
+            exec {
+                // ndk-build.cmd is a file unique to the root directory of android-ndk-r10e.
+                commandLine 'locate', 'ndk-build.cmd'
+                standardOutput = stdout
+            }
+
+            def ndkCmdPath = stdout.toString()
+            ndkPath = ndkCmdPath.substring(0, ndkCmdPath.lastIndexOf('/'))
+        } catch (ignored) {
+            project.logger.error("Gradle error: Couldn't find NDK.")
+        }
+    }
+    if (ndkPath != null) {
+        project.logger.quiet("Gradle: Found Android NDK: " + ndkPath)
+    }
+    return ndkPath
 }
 
 String getAbi() {
