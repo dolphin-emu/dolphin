@@ -469,6 +469,10 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsGeometryShaders = GLExtensions::Version() >= 320;
 	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object");
 	g_Config.backend_info.bSupportsClipControl = GLExtensions::Supports("GL_ARB_clip_control");
+	g_Config.backend_info.bSupportsCopySubImage = GLExtensions::Supports("GL_ARB_copy_image") ||
+	                                              GLExtensions::Supports("GL_NV_copy_image") ||
+	                                              GLExtensions::Supports("GL_EXT_copy_image") ||
+	                                              GLExtensions::Supports("GL_OES_copy_image");
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -598,7 +602,8 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA ",
 			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
-			g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl "
+			g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
+			g_ActiveConfig.backend_info.bSupportsCopySubImage ? "" : "CopyImageSubData "
 			);
 
 	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;

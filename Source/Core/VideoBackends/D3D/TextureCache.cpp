@@ -77,6 +77,13 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	return saved_png;
 }
 
+void TextureCache::TCacheEntry::DoPartialTextureUpdate(TCacheEntryBase* entry_, u32 x, u32 y)
+{
+	TCacheEntry* entry = (TCacheEntry*)entry_;
+
+	D3D::context->CopySubresourceRegion(texture->GetTex(), 0, x , y , 0, entry->texture->GetTex(), 0, NULL);
+}
+
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {
