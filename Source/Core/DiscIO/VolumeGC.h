@@ -28,24 +28,25 @@ class CVolumeGC : public IVolume
 public:
   CVolumeGC(std::unique_ptr<IBlobReader> reader);
   ~CVolumeGC();
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
-  std::string GetGameID() const override;
-  std::string GetMakerID() const override;
-  u16 GetRevision() const override;
-  std::string GetInternalName() const override;
+  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer,
+            const Partition& partition = PARTITION_NONE) const override;
+  std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
+  u16 GetRevision(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
   std::map<Language, std::string> GetShortNames() const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::map<Language, std::string> GetShortMakers() const override;
   std::map<Language, std::string> GetLongMakers() const override;
   std::map<Language, std::string> GetDescriptions() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
-  u64 GetFSTSize() const override;
-  std::string GetApploaderDate() const override;
-  u8 GetDiscNumber() const override;
+  u64 GetFSTSize(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override;
+  u8 GetDiscNumber(const Partition& partition = PARTITION_NONE) const override;
 
   Platform GetVolumeType() const override;
   Region GetRegion() const override;
-  Country GetCountry() const override;
+  Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
   u64 GetRawSize() const override;

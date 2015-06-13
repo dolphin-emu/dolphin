@@ -4,13 +4,11 @@
 
 #pragma once
 
-#include <memory>
-
 #include "Common/CommonTypes.h"
 
 namespace DiscIO
 {
-class IFileSystem;
+struct Partition;
 class IVolume;
 }
 
@@ -20,5 +18,5 @@ namespace FileMonitor
 // with nullptr, the volume must remain valid until the next SetFileSystem call.
 void SetFileSystem(const DiscIO::IVolume* volume);
 // Logs access to files in the file system set by SetFileSystem
-void Log(u64 offset, bool decrypt);
+void Log(u64 offset, const DiscIO::Partition& partition);
 }

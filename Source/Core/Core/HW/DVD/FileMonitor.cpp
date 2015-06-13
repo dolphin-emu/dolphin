@@ -21,9 +21,10 @@
 
 namespace FileMonitor
 {
-static const DiscIO::IVolume* s_volume = nullptr;
-static bool s_wii_disc;
+static const DiscIO::IVolume* s_volume;
+static bool s_new_volume = false;
 static std::unique_ptr<DiscIO::IFileSystem> s_filesystem;
+static DiscIO::Partition s_partition;
 static std::string s_previous_file;
 
 // Filtered files
@@ -57,33 +58,30 @@ void SetFileSystem(const DiscIO::IVolume* volume)
   // Instead of creating the file system object right away, we will let Log
   // create it later once we know that it actually will get used
   s_volume = volume;
-
-  // If the volume that was passed in was nullptr, Log won't try to create a
-  // file system object later, so we have to set s_filesystem to nullptr right away
-  s_filesystem = nullptr;
+  s_new_volume = true;
 }
 
 // Logs access to files in the file system set by SetFileSystem
-void Log(u64 offset, bool decrypt)
+void Log(u64 offset, const DiscIO::Partition& partition)
 {
   // Do nothing if the log isn't selected
   if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
     return;
 
-  // If a new volume has been set, use the file system of that volume
-  if (s_volume)
+  // If the volume or partition changed, load the filesystem of the new partition
+  if (s_new_volume || s_partition != partition)
   {
-    s_wii_disc = s_volume->GetVolumeType() == DiscIO::Platform::WII_DISC;
-    if (decrypt != s_wii_disc)
+    // Wii discs don't have PARTITION_NONE filesystems, so let's not waste time trying to read one
+    const bool reading_from_partition = partition != DiscIO::PARTITION_NONE;
+    const bool is_wii_disc = s_volume->GetVolumeType() == DiscIO::Platform::WII_DISC;
+    if (reading_from_partition != is_wii_disc)
       return;
-    s_filesystem = DiscIO::CreateFileSystem(s_volume);
-    s_volume = nullptr;
+
+    s_new_volume = false;
+    s_filesystem = DiscIO::CreateFileSystem(s_volume, partition);
+    s_partition = partition;
     s_previous_file.clear();
   }
-
-  // For Wii discs, FileSystemGCWii will only load file systems from encrypted partitions
-  if (decrypt != s_wii_disc)
-    return;
 
   // Do nothing if there is no valid file system
   if (!s_filesystem)

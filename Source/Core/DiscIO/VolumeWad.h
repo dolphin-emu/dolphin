@@ -31,20 +31,27 @@ class CVolumeWAD : public IVolume
 public:
   CVolumeWAD(std::unique_ptr<IBlobReader> reader);
   ~CVolumeWAD();
-  bool Read(u64 offset, u64 length, u8* buffer, bool decrypt = false) const override;
-  bool GetTitleID(u64* buffer) const override;
-  IOS::ES::TMDReader GetTMD() const override;
-  std::string GetGameID() const override;
-  std::string GetMakerID() const override;
-  u16 GetRevision() const override;
-  std::string GetInternalName() const override { return ""; }
+  bool Read(u64 offset, u64 length, u8* buffer,
+            const Partition& partition = PARTITION_NONE) const override;
+  bool GetTitleID(u64* buffer, const Partition& partition = PARTITION_NONE) const override;
+  IOS::ES::TMDReader GetTMD(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
+  u16 GetRevision(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override
+  {
+    return "";
+  }
   std::map<Language, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
-  u64 GetFSTSize() const override { return 0; }
-  std::string GetApploaderDate() const override { return ""; }
+  u64 GetFSTSize(const Partition& partition = PARTITION_NONE) const override { return 0; }
+  std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override
+  {
+    return "";
+  }
   Platform GetVolumeType() const override;
   Region GetRegion() const override;
-  Country GetCountry() const override;
+  Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
 
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
