@@ -22,7 +22,6 @@
 #include "DiscIO/Filesystem.h"
 
 #include "DolphinQt/GameList/GameFile.h"
-#include "DolphinQt/Utils/Resources.h"
 #include "DolphinQt/Utils/Utils.h"
 
 static const u32 CACHE_REVISION = 0x00A;
@@ -72,12 +71,9 @@ static QString GetLanguageString(DiscIO::IVolume::ELanguage language, QMap<DiscI
 GameFile::GameFile(const QString& fileName)
     : m_file_name(fileName)
 {
-	bool hasBanner = false;
-
 	if (LoadFromCache())
 	{
 		m_valid = true;
-		hasBanner = true;
 	}
 	else
 	{
@@ -115,15 +111,13 @@ GameFile::GameFile(const QString& fileName)
 						        (buffer[i] & 0x0000FF) >>  0));
 			}
 
+			m_valid = true;
+
 			if (!banner.isNull())
 			{
-				hasBanner = true;
 				m_banner = QPixmap::fromImage(banner);
-			}
-
-			m_valid = true;
-			if (hasBanner)
 				SaveToCache();
+			}
 		}
 	}
 
@@ -138,9 +132,6 @@ GameFile::GameFile(const QString& fileName)
 		ini.GetIfExists("EmuState", "EmulationIssues", &issues_temp);
 		m_issues = QString::fromStdString(issues_temp);
 	}
-
-	if (!hasBanner)
-		m_banner = Resources::GetPixmap(Resources::BANNER_MISSING);
 }
 
 bool GameFile::LoadFromCache()
