@@ -92,7 +92,7 @@ void PathConfigPane::InitializeGUI()
 
 void PathConfigPane::LoadGUIValues()
 {
-	const SConfig& startup_params = SConfig::GetInstance();
+	SConfig& startup_params = SConfig::GetInstance();
 
 	m_recursive_iso_paths_checkbox->SetValue(SConfig::GetInstance().m_RecursiveISOFolder);
 	m_default_iso_filepicker->SetPath(StrToWxStr(startup_params.m_strDefaultISO));
@@ -174,9 +174,8 @@ void PathConfigPane::OnApploaderPathChanged(wxCommandEvent& event)
 
 void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
 {
-	std::string nand_path =
-		SConfig::GetInstance().m_NANDPath =
-		WxStrToStr(m_nand_root_dirpicker->GetPath());
+	std::string nand_path = WxStrToStr(m_nand_root_dirpicker->GetPath());
+	SConfig::GetInstance().m_NANDPath = nand_path;
 
 	File::SetUserPath(D_WIIROOT_IDX, nand_path);
 	m_nand_root_dirpicker->SetPath(StrToWxStr(nand_path));

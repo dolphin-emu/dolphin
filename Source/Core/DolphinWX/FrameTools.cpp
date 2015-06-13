@@ -629,14 +629,14 @@ void CFrame::BootGame(const std::string& filename)
 			if (m_GameListCtrl->GetSelectedISO()->IsValid())
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
-		else if (!StartUp.m_strDefaultISO.empty() &&
+		else if (!StartUp.m_strDefaultISO.Get().empty() &&
 		         File::Exists(StartUp.m_strDefaultISO))
 		{
 			bootfile = StartUp.m_strDefaultISO;
 		}
 		else
 		{
-			if (!SConfig::GetInstance().m_LastFilename.empty() &&
+			if (!SConfig::GetInstance().m_LastFilename.Get().empty() &&
 			    File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				bootfile = SConfig::GetInstance().m_LastFilename;
@@ -934,7 +934,7 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 		ChangeDisplaySettings(nullptr, CDS_FULLSCREEN);
 	}
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
-	if (SConfig::GetInstance().strFullscreenResolution != "Auto")
+	if (SConfig::GetInstance().strFullscreenResolution.Get() != "Auto")
 		m_XRRConfig->ToggleDisplayMode(bFullscreen);
 #endif
 }
@@ -1797,7 +1797,7 @@ void CFrame::UpdateGUI()
 		if (m_GameListCtrl->IsEnabled())
 		{
 			// Prepare to load Default ISO, enable play button
-			if (!SConfig::GetInstance().m_strDefaultISO.empty())
+			if (!SConfig::GetInstance().m_strDefaultISO.Get().empty())
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
@@ -1806,7 +1806,7 @@ void CFrame::UpdateGUI()
 				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
 			}
 			// Prepare to load last selected file, enable play button
-			else if (!SConfig::GetInstance().m_LastFilename.empty() &&
+			else if (!SConfig::GetInstance().m_LastFilename.Get().empty() &&
 			         File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				if (m_ToolBar)

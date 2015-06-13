@@ -89,7 +89,7 @@ void GeneralConfigPane::InitializeGUI()
 
 void GeneralConfigPane::LoadGUIValues()
 {
-	const SConfig& startup_params = SConfig::GetInstance();
+	SConfig& startup_params = SConfig::GetInstance();
 
 	m_dual_core_checkbox->SetValue(startup_params.bCPUThread);
 	m_idle_skip_checkbox->SetValue(startup_params.bSkipIdle);

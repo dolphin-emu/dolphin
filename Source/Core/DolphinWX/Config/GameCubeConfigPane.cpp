@@ -129,7 +129,7 @@ void GameCubeConfigPane::InitializeGUI()
 
 void GameCubeConfigPane::LoadGUIValues()
 {
-	const SConfig& startup_params = SConfig::GetInstance();
+	SConfig& startup_params = SConfig::GetInstance();
 
 	m_system_lang_choice->SetSelection(startup_params.SelectedLanguage);
 	m_skip_bios_checkbox->SetValue(startup_params.bHLE_BS2);

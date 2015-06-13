@@ -317,15 +317,15 @@ bool CBoot::BootUp()
 			BS2Success = EmulatedBS2(dolWii);
 		}
 		else if ((!DVDInterface::VolumeIsValid() || DVDInterface::GetVolume().GetVolumeType() != DiscIO::IVolume::WII_DISC) &&
-		         !_StartupPara.m_strDefaultISO.empty())
+		         !_StartupPara.m_strDefaultISO.Get().empty())
 		{
 			DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
 			BS2Success = EmulatedBS2(dolWii);
 		}
 
-		if (!_StartupPara.m_strDVDRoot.empty())
+		if (!_StartupPara.m_strDVDRoot.Get().empty())
 		{
-			NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
+			NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.Get().c_str());
 			DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, dolWii, _StartupPara.m_strApploader, _StartupPara.m_strFilename);
 			BS2Success = EmulatedBS2(dolWii);
 		}
@@ -367,14 +367,14 @@ bool CBoot::BootUp()
 	case SConfig::BOOT_ELF:
 	{
 		// load image or create virtual drive from directory
-		if (!_StartupPara.m_strDVDRoot.empty())
+		if (!_StartupPara.m_strDVDRoot.Get().empty())
 		{
-			NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
+			NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.Get().c_str());
 			DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, _StartupPara.bWii);
 		}
-		else if (!_StartupPara.m_strDefaultISO.empty())
+		else if (!_StartupPara.m_strDefaultISO.Get().empty())
 		{
-			NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
+			NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.Get().c_str());
 			DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
 		}
 		else
@@ -407,9 +407,9 @@ bool CBoot::BootUp()
 			HLE::PatchFunctions();
 
 		// load default image or create virtual drive from directory
-		if (!_StartupPara.m_strDVDRoot.empty())
+		if (!_StartupPara.m_strDVDRoot.Get().empty())
 			DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, true);
-		else if (!_StartupPara.m_strDefaultISO.empty())
+		else if (!_StartupPara.m_strDefaultISO.Get().empty())
 			DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
 
 		DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
