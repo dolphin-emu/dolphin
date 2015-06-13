@@ -8,6 +8,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
@@ -20,6 +21,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <unistd.h>
 #ifdef __APPLE__
 #include <sys/sysctl.h>
 #else
@@ -32,6 +34,8 @@ void* AllocateExecutableMemory(size_t size, void* map_hint)
 #if defined(_WIN32)
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
+	static uintptr_t page_mask = ~(sysconf(_SC_PAGE_SIZE) - 1);
+	map_hint = (void*)((uintptr_t)map_hint & page_mask);
 	void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 	                 MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif /* defined(_WIN32) */
@@ -45,12 +49,6 @@ void* AllocateExecutableMemory(size_t size, void* map_hint)
 		ptr = nullptr;
 		PanicAlert("Failed to allocate executable memory.");
 	}
-
-#ifdef _X86_64
-	ptrdiff_t ofs = (u8*)ptr - (u8*)map_hint;
-	if (ofs < -0x80000000ll || ofs + size > 0x80000000ll)
-		PanicAlert("Executable range can't be used for RIP-relative addressing.");
-#endif
 
 	return ptr;
 }
@@ -186,5 +184,37 @@ size_t MemPhysical()
 	struct sysinfo memInfo;
 	sysinfo (&memInfo);
 	return (size_t)memInfo.totalram * memInfo.mem_unit;
+#endif
+}
+
+void CheckRIPRelative(const void* addr, size_t size)
+{
+#if defined(_M_X86_64) && defined(__linux__)
+	static u8* low = nullptr;
+	static u8* high = nullptr;
+	if (!low)
+	{
+		char* exe_name = realpath("/proc/self/exe", nullptr);
+		std::ifstream maps("/proc/self/maps");
+		std::string line;
+		while (std::getline(maps, line))
+		{
+			if (line.rfind(exe_name) != std::string::npos)
+			{
+				uintptr_t start, end;
+				sscanf(line.c_str(), "%16lx-%16lx", &start, &end);
+				if (!low)
+					low = (u8*)start;
+				else
+					high = (u8*)end;
+			}
+		}
+		free(exe_name);
+		_assert_(low && high);
+	}
+	if ((u8*)addr + size - 0x80000000ll > low || (u8*)addr + 0x80000000ll < high)
+		PanicAlert("%p can't be used for RIP-relative addressing. "
+		           "For GDB: \"set disable-randomization off\" "
+		           "(you can add this to ~/.gdbinit).", addr);
 #endif
 }

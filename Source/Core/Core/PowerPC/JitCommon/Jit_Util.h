@@ -8,6 +8,7 @@
 
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
+#include "Common/MemoryUtil.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -31,7 +32,7 @@ private:
 	bool m_enabled = false;
 public:
 	bool Enabled() { return m_enabled; }
-	void Init(int size) { AllocCodeSpace(size, PPCSTATE_BASE); m_enabled = true; }
+	void Init(int size) { AllocCodeSpace(size, PPCSTATE_BASE); CheckRIPRelative(region, size); m_enabled = true; }
 	void Shutdown() { FreeCodeSpace(); m_enabled = false; }
 };
 
