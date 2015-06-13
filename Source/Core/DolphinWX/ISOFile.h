@@ -81,4 +81,6 @@ private:
 	void SaveToCache();
 
 	std::string CreateCacheFilename();
+
+	void ReadBanner(const DiscIO::IVolume& volume);
 };

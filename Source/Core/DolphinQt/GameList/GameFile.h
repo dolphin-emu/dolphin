@@ -79,4 +79,6 @@ private:
 	void SaveToCache();
 
 	QString CreateCacheFilename();
+
+	void ReadBanner(const DiscIO::IVolume& volume);
 };

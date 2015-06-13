@@ -34,7 +34,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x124;
+static const u32 CACHE_REVISION = 0x125; // Last changed in PR 2598
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -74,6 +74,20 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	if (LoadFromCache())
 	{
 		m_Valid = true;
+
+		// Wii banners can only be read if there is a savefile,
+		// so sometimes caches don't contain banners. Let's check
+		// if a banner has become available after the cache was made.
+		if (m_pImage.empty())
+		{
+			std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
+			if (volume != nullptr)
+			{
+				ReadBanner(*volume);
+				if (!m_pImage.empty())
+					SaveToCache();
+			}
+		}
 	}
 	else
 	{
@@ -96,25 +110,12 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_disc_number = pVolume->GetDiscNumber();
 			m_Revision = pVolume->GetRevision();
 
-			std::vector<u32> Buffer = pVolume->GetBanner(&m_ImageWidth, &m_ImageHeight);
-			u32* pData = Buffer.data();
-			m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
-
-			for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
-			{
-				m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
-				m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >> 8;
-				m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >> 0;
-			}
+			ReadBanner(*pVolume);
 
 			delete pVolume;
 
 			m_Valid = true;
-
-			// Create a cache file only if we have an image.
-			// Wii ISOs create their images after you have generated the first savegame
-			if (!m_pImage.empty())
-				SaveToCache();
+			SaveToCache();
 		}
 	}
 
@@ -199,6 +200,20 @@ std::string GameListItem::CreateCacheFilename()
 	std::string fullname(File::GetUserPath(D_CACHE_IDX));
 	fullname += Filename;
 	return fullname;
+}
+
+void GameListItem::ReadBanner(const DiscIO::IVolume& volume)
+{
+	std::vector<u32> Buffer = volume.GetBanner(&m_ImageWidth, &m_ImageHeight);
+	u32* pData = Buffer.data();
+	m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
+
+	for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
+	{
+		m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
+		m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >> 8;
+		m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >> 0;
+	}
 }
 
 std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) const
