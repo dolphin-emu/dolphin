@@ -2445,7 +2445,6 @@ void ARM64FloatEmitter::EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64
 
 	u32 encoded_size = 0;
 	u32 encoded_op = 0;
-	bool shift = false;
 
 	if (size == 8)
 	{
