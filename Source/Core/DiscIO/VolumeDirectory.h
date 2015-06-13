@@ -39,26 +39,28 @@ public:
 
   static bool IsValidDirectory(const std::string& directory);
 
-  bool Read(u64 offset, u64 length, u8* buffer, bool decrypt) const override;
+  bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const override;
+  std::vector<Partition> GetPartitions() const override;
+  Partition GetGamePartition() const override;
 
-  std::string GetGameID() const override;
+  std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   void SetGameID(const std::string& id);
 
-  std::string GetMakerID() const override;
+  std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
 
-  u16 GetRevision() const override { return 0; }
-  std::string GetInternalName() const override;
+  u16 GetRevision(const Partition& partition = PARTITION_NONE) const override { return 0; }
+  std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
   void SetName(const std::string&);
 
-  u64 GetFSTSize() const override;
+  u64 GetFSTSize(const Partition& partition = PARTITION_NONE) const override;
 
-  std::string GetApploaderDate() const override;
+  std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override;
   Platform GetVolumeType() const override;
 
   Region GetRegion() const override;
-  Country GetCountry() const override;
+  Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
 
   BlobType GetBlobType() const override;
   u64 GetSize() const override;

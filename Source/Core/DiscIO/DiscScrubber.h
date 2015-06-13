@@ -26,6 +26,7 @@ class IOFile;
 namespace DiscIO
 {
 class IVolume;
+struct Partition;
 
 class DiscScrubber final
 {
@@ -57,33 +58,15 @@ private:
     u32 apploader_trailer_size;
   };
 
-  struct Partition final
-  {
-    u32 group_number;
-    u32 number;
-    u64 offset;
-    u32 type;
-    PartitionHeader header;
-  };
-
-  struct PartitionGroup final
-  {
-    u32 num_partitions;
-    u64 partitions_offset;
-    std::vector<Partition> partitions;
-  };
-
   void MarkAsUsed(u64 offset, u64 size);
   void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size);
-  bool ReadFromVolume(u64 offset, u32& buffer, bool decrypt);
-  bool ReadFromVolume(u64 offset, u64& buffer, bool decrypt);
+  bool ReadFromVolume(u64 offset, u32& buffer, const Partition& partition);
+  bool ReadFromVolume(u64 offset, u64& buffer, const Partition& partition);
   bool ParseDisc();
-  bool ParsePartitionData(Partition& partition);
+  bool ParsePartitionData(const Partition& partition, PartitionHeader* header);
 
   std::string m_filename;
   std::unique_ptr<IVolume> m_disc;
-
-  std::array<PartitionGroup, 4> m_partition_group{};
 
   std::vector<u8> m_free_table;
   u64 m_file_size = 0;
