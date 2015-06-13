@@ -56,22 +56,6 @@ struct CPUInfo
 	bool bLongMode;
 	bool bAtom;
 
-	// ARM specific CPUInfo
-	bool bSwp;
-	bool bHalf;
-	bool bThumb;
-	bool bFastMult;
-	bool bVFP;
-	bool bEDSP;
-	bool bThumbEE;
-	bool bNEON;
-	bool bVFPv3;
-	bool bTLS;
-	bool bVFPv4;
-	bool bIDIVa;
-	bool bIDIVt;
-	bool bArmV7;  // enable MOVT, MOVW etc
-
 	// ARMv8 specific
 	bool bFP;
 	bool bASIMD;
