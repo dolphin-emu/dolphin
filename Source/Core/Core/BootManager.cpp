@@ -48,7 +48,7 @@ namespace BootManager
 struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bSyncGPUOnSkipIdleHack, bFPRF, bAccurateNaNs, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
-	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive;
+	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive, bPAL60;
 	int iSelectedLanguage;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
@@ -121,6 +121,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
 		config_cache.frameSkip = SConfig::GetInstance().m_FrameSkip;
 		config_cache.bProgressive = StartUp.bProgressive;
+		config_cache.bPAL60 = StartUp.bPAL60;
 		config_cache.iSelectedLanguage = StartUp.SelectedLanguage;
 		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		{
@@ -256,6 +257,7 @@ bool BootCore(const std::string& _rFilename)
 	}
 
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", StartUp.bPAL60);
 
 	// Run the game
 	// Init the core
@@ -298,6 +300,8 @@ void Stop()
 		StartUp.bProgressive = config_cache.bProgressive;
 		StartUp.SelectedLanguage = config_cache.iSelectedLanguage;
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", config_cache.bProgressive);
+		StartUp.bPAL60 = config_cache.bPAL60;
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", config_cache.bPAL60);
 
 		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
 		if (config_cache.bSetFramelimit)

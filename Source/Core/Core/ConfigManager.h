@@ -120,7 +120,8 @@ struct SConfig : NonCopyable
 	int iRenderWindowWidth, iRenderWindowHeight;
 	bool bRenderWindowAutoSize, bKeepWindowOnTop;
 	bool bFullscreen, bRenderToMain;
-	bool bProgressive, bDisableScreenSaver;
+	bool bProgressive, bPAL60;
+	bool bDisableScreenSaver;
 
 	int iPosX, iPosY, iWidth, iHeight;
 
