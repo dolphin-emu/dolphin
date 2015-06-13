@@ -7,9 +7,12 @@
 #include <cstdlib>
 #include <string>
 
+#include "Common/CommonTypes.h"
+
 namespace DiscIO
 {
 enum class Country;
+struct Partition;
 }
 
 struct CountrySetting
@@ -42,7 +45,8 @@ public:
                           std::string* title_id = nullptr);
 
 private:
-  static bool DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt);
+  static bool DVDRead(u64 dvd_offset, u32 output_address, u32 length,
+                      const DiscIO::Partition& partition);
   static void RunFunction(u32 _iAddr);
 
   static void UpdateDebugger_MapLoaded();

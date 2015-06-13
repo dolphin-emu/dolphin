@@ -59,8 +59,11 @@ bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
   return File::IsDirectory(ExtractDirectoryName(_rDirectory));
 }
 
-bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
+bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer,
+                            const Partition& partition) const
 {
+  bool decrypt = partition != PARTITION_NONE;
+
   if (!decrypt && (_Offset + _Length >= 0x400) && m_is_wii)
   {
     // Fully supporting this would require re-encrypting every file that's read.
@@ -72,7 +75,7 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
   }
 
   if (decrypt && !m_is_wii)
-    PanicAlertT("Tried to decrypt data from a non-Wii volume");
+    return false;
 
   // header
   if (_Offset < DISKHEADERINFO_ADDRESS)
@@ -154,6 +157,16 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
   return true;
 }
 
+std::vector<Partition> CVolumeDirectory::GetPartitions() const
+{
+  return m_is_wii ? std::vector<Partition>{GetGamePartition()} : std::vector<Partition>();
+}
+
+Partition CVolumeDirectory::GetGamePartition() const
+{
+  return m_is_wii ? Partition(0x50000) : PARTITION_NONE;
+}
+
 std::string CVolumeDirectory::GetUniqueID() const
 {
   return std::string(m_diskHeader.begin(), m_diskHeader.begin() + MAX_ID_LENGTH);
@@ -178,7 +191,7 @@ std::string CVolumeDirectory::GetMakerID() const
 std::string CVolumeDirectory::GetInternalName() const
 {
   char name[0x60];
-  if (Read(0x20, 0x60, (u8*)name, false))
+  if (Read(0x20, 0x60, (u8*)name, PARTITION_NONE))
     return DecodeString(name);
   else
     return "";

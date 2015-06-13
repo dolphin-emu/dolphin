@@ -70,14 +70,14 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 55;
+static const u32 STATE_VERSION = 56;  // Last changed in PR 2353
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
 // beacuse they save the exact Dolphin version to savestates.
 static const std::map<u32, std::pair<std::string, std::string>> s_old_versions = {
     // The 16 -> 17 change modified the size of StateHeader,
-    // so version older than that can't even be decompressed anymore
+    // so versions older than that can't even be decompressed anymore
     {17, {"3.5-1311", "3.5-1364"}}, {18, {"3.5-1366", "3.5-1371"}}, {19, {"3.5-1372", "3.5-1408"}},
     {20, {"3.5-1409", "4.0-704"}},  {21, {"4.0-705", "4.0-889"}},   {22, {"4.0-905", "4.0-1871"}},
     {23, {"4.0-1873", "4.0-1900"}}, {24, {"4.0-1902", "4.0-1919"}}, {25, {"4.0-1921", "4.0-1936"}},

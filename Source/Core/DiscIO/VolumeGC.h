@@ -26,7 +26,8 @@ class CVolumeGC : public IVolume
 public:
   CVolumeGC(std::unique_ptr<IBlobReader> reader);
   ~CVolumeGC();
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
+  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer,
+            const Partition& partition = PARTITION_NONE) const override;
   std::string GetUniqueID() const override;
   std::string GetMakerID() const override;
   u16 GetRevision() const override;

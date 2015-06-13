@@ -44,14 +44,12 @@ class CodeConfigPanel;
 class WiiPartition final : public wxTreeItemData
 {
 public:
-  WiiPartition(std::unique_ptr<DiscIO::IVolume> partition,
-               std::unique_ptr<DiscIO::IFileSystem> file_system)
-      : Partition(std::move(partition)), FileSystem(std::move(file_system))
+  WiiPartition(std::unique_ptr<DiscIO::IFileSystem> filesystem)
+      : m_filesystem(std::move(filesystem))
   {
   }
 
-  std::unique_ptr<DiscIO::IVolume> Partition;
-  std::unique_ptr<DiscIO::IFileSystem> FileSystem;
+  const std::unique_ptr<DiscIO::IFileSystem> m_filesystem;
 };
 
 struct PHackData

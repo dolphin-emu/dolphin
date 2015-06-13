@@ -18,25 +18,40 @@ namespace DiscIO
 {
 enum class BlobType;
 
+struct Partition final
+{
+  Partition() : offset(-1) {}
+  explicit Partition(u64 offset_) : offset(offset_) {}
+  bool operator==(const Partition& other) const { return offset == other.offset; }
+  bool operator!=(const Partition& other) const { return !(*this == other); }
+  bool operator<(const Partition& other) const { return offset < other.offset; }
+  bool operator>(const Partition& other) const { return other < *this; }
+  bool operator<=(const Partition& other) const { return !(*this < other); }
+  bool operator>=(const Partition& other) const { return !(*this > other); }
+  u64 offset;
+};
+
+const Partition PARTITION_NONE(-2);
+
 class IVolume
 {
 public:
   IVolume() {}
   virtual ~IVolume() {}
-  // decrypt parameter must be false if not reading a Wii disc
-  virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const = 0;
+  virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const = 0;
   template <typename T>
-  bool ReadSwapped(u64 offset, T* buffer, bool decrypt) const
+  bool ReadSwapped(u64 offset, T* buffer, const Partition& partition) const
   {
     T temp;
-    if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp), decrypt))
+    if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp), partition))
       return false;
     *buffer = Common::FromBigEndian(temp);
     return true;
   }
-
+  virtual std::vector<Partition> GetPartitions() const { return {{}}; }
+  virtual Partition GetGamePartition() const { return PARTITION_NONE; }
   virtual bool GetTitleID(u64*) const { return false; }
-  virtual std::vector<u8> GetTMD() const { return {}; }
+  virtual std::vector<u8> GetTMD(const Partition& partition) const { return {}; }
   virtual std::string GetUniqueID() const = 0;
   virtual std::string GetMakerID() const = 0;
   virtual u16 GetRevision() const = 0;
@@ -53,8 +68,7 @@ public:
   virtual u8 GetDiscNumber() const { return 0; }
   virtual Platform GetVolumeType() const = 0;
   virtual bool SupportsIntegrityCheck() const { return false; }
-  virtual bool CheckIntegrity() const { return false; }
-  virtual bool ChangePartition(u64 offset) { return false; }
+  virtual bool CheckIntegrity(const Partition& partition) const { return false; }
   virtual Country GetCountry() const = 0;
   virtual BlobType GetBlobType() const = 0;
   // Size of virtual disc (not always accurate)

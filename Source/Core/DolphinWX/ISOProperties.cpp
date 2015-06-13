@@ -189,45 +189,29 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
   {
     if (m_open_iso->GetVolumeType() == DiscIO::Platform::WII_DISC)
     {
-      int partition_count = 0;
-      for (int group = 0; group < 4; group++)
+      std::vector<DiscIO::Partition> partitions = m_open_iso->GetPartitions();
+      for (int i = 0; i < partitions.size(); ++i)
       {
-        for (u32 i = 0; i < 0xFFFFFFFF;
-             i++)  // yes, technically there can be OVER NINE THOUSAND partitions...
+        std::unique_ptr<DiscIO::IFileSystem> file_system(
+            DiscIO::CreateFileSystem(m_open_iso.get(), partitions[i]));
+        if (file_system != nullptr)
         {
-          std::unique_ptr<DiscIO::IVolume> volume(
-              DiscIO::CreateVolumeFromFilename(OpenGameListItem.GetFileName(), group, i));
-          if (volume != nullptr)
-          {
-            std::unique_ptr<DiscIO::IFileSystem> file_system(
-                DiscIO::CreateFileSystem(volume.get()));
-            if (file_system != nullptr)
-            {
-              WiiPartition* const partition =
-                  new WiiPartition(std::move(volume), std::move(file_system));
+          wxTreeItemId PartitionRoot =
+              m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), i), 0, 0);
 
-              wxTreeItemId PartitionRoot = m_Treectrl->AppendItem(
-                  RootId, wxString::Format(_("Partition %i"), partition_count), 0, 0);
+          WiiPartition* const partition = new WiiPartition(std::move(file_system));
 
-              m_Treectrl->SetItemData(PartitionRoot, partition);
-              CreateDirectoryTree(PartitionRoot, partition->FileSystem->GetFileList());
+          m_Treectrl->SetItemData(PartitionRoot, partition);
+          CreateDirectoryTree(PartitionRoot, partition->m_filesystem->GetFileList());
 
-              if (partition_count == 1)
-                m_Treectrl->Expand(PartitionRoot);
-
-              partition_count++;
-            }
-          }
-          else
-          {
-            break;
-          }
+          if (i == 1)
+            m_Treectrl->Expand(PartitionRoot);
         }
       }
     }
     else
     {
-      m_filesystem = DiscIO::CreateFileSystem(m_open_iso.get());
+      m_filesystem = DiscIO::CreateFileSystem(m_open_iso.get(), DiscIO::PARTITION_NONE);
       if (m_filesystem)
         CreateDirectoryTree(RootId, m_filesystem->GetFileList());
     }
@@ -805,8 +789,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED(event))
     WiiPartition* partition =
         reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(tree_selection));
     File.erase(0, m_Treectrl->GetItemText(tree_selection).length() + 1);  // Remove "Partition x/"
-
-    partition->FileSystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
+    partition->m_filesystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
   }
   else
   {
@@ -818,7 +801,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
                                const WiiPartition* partition)
 {
   bool is_wii = m_open_iso->GetVolumeType() == DiscIO::Platform::WII_DISC;
-  DiscIO::IFileSystem* const fs = is_wii ? partition->FileSystem.get() : m_filesystem.get();
+  DiscIO::IFileSystem* const fs = is_wii ? partition->m_filesystem.get() : m_filesystem.get();
 
   const std::vector<DiscIO::SFileInfo>& fst = fs->GetFileList();
 
@@ -972,7 +955,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
   {
     WiiPartition* partition =
         reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
-    FS = partition->FileSystem.get();
+    FS = partition->m_filesystem.get();
   }
   else
   {
@@ -997,15 +980,16 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 class IntegrityCheckThread : public wxThread
 {
 public:
-  IntegrityCheckThread(const WiiPartition& Partition)
-      : wxThread(wxTHREAD_JOINABLE), m_Partition(Partition)
+  IntegrityCheckThread(const DiscIO::IVolume* volume, DiscIO::Partition partition)
+      : wxThread(wxTHREAD_JOINABLE), m_volume(volume), m_partition(partition)
   {
     Create();
   }
 
-  ExitCode Entry() override { return (ExitCode)m_Partition.Partition->CheckIntegrity(); }
+  ExitCode Entry() override { return (ExitCode)m_volume->CheckIntegrity(m_partition); }
 private:
-  const WiiPartition& m_Partition;
+  const DiscIO::Partition m_partition;
+  const DiscIO::IVolume* const m_volume;
 };
 
 void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
@@ -1020,7 +1004,7 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 
   WiiPartition* partition =
       reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
-  IntegrityCheckThread thread(*partition);
+  IntegrityCheckThread thread(m_open_iso.get(), partition->m_filesystem->GetPartition());
   thread.Run();
 
   while (thread.IsAlive())

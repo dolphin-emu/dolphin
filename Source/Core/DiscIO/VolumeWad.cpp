@@ -44,10 +44,10 @@ CVolumeWAD::~CVolumeWAD()
 {
 }
 
-bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
+bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const
 {
-  if (decrypt)
-    PanicAlertT("Tried to decrypt data from a non-Wii volume");
+  if (partition != PARTITION_NONE)
+    return false;
 
   if (m_pReader == nullptr)
     return false;

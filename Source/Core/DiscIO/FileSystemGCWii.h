@@ -14,11 +14,12 @@
 namespace DiscIO
 {
 class IVolume;
+struct Partition;
 
 class CFileSystemGCWii : public IFileSystem
 {
 public:
-  CFileSystemGCWii(const IVolume* _rVolume);
+  CFileSystemGCWii(const IVolume* _rVolume, const Partition& partition);
   virtual ~CFileSystemGCWii();
 
   bool IsValid() const override { return m_Valid; }

@@ -143,14 +143,15 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
     _dbg_assert_msg_(WII_IPC_DVD, CommandBuffer.InBuffer[2].m_Address == 0,
                      "DVDLowOpenPartition with cert chain");
 
-    u64 const partition_offset =
+    const u64 partition_offset =
         ((u64)Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address + 4) << 2);
-    DVDInterface::ChangePartition(partition_offset);
+    const DiscIO::Partition partition(partition_offset);
+    DVDInterface::ChangePartition(partition);
 
     INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
     // Read TMD to the buffer
-    std::vector<u8> tmd_buffer = DVDInterface::GetVolume().GetTMD();
+    std::vector<u8> tmd_buffer = DVDInterface::GetVolume().GetTMD(partition);
     Memory::CopyToEmu(CommandBuffer.PayloadBuffer[0].m_Address, tmd_buffer.data(),
                       tmd_buffer.size());
     WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);

@@ -31,15 +31,15 @@ CVolumeGC::~CVolumeGC()
 {
 }
 
-bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
+bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const
 {
-  if (decrypt)
-    PanicAlertT("Tried to decrypt data from a non-Wii volume");
+  if (partition != PARTITION_NONE)
+    return false;
 
   if (m_pReader == nullptr)
     return false;
 
-  FileMon::FindFilename(_Offset);
+  FileMon::FindFilename(_Offset, PARTITION_NONE);
 
   return m_pReader->Read(_Offset, _Length, _pBuffer);
 }
@@ -207,7 +207,7 @@ void CVolumeGC::LoadBannerFile() const
     return;
 
   GCBanner banner_file;
-  std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
+  std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this, PARTITION_NONE));
   size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
 
   constexpr int BNR1_MAGIC = 0x31524e42;

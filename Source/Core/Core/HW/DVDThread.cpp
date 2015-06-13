@@ -44,7 +44,7 @@ static bool s_dvd_success;
 static u64 s_dvd_offset;
 static u32 s_output_address;
 static u32 s_length;
-static bool s_decrypt;
+static DiscIO::Partition s_partition;
 
 // This determines which function will be used as a callback.
 // We can't have a function pointer here, because they can't be in savestates.
@@ -87,7 +87,7 @@ void DoState(PointerWrap& p)
   p.Do(s_dvd_offset);
   p.Do(s_output_address);
   p.Do(s_length);
-  p.Do(s_decrypt);
+  p.Do(s_partition);
   p.Do(s_reply_to_ios);
 
   // s_realtime_started_us and s_realtime_done_us aren't savestated
@@ -107,8 +107,8 @@ void WaitUntilIdle()
   s_dvd_thread_done_working.Set();
 }
 
-void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt, bool reply_to_ios,
-               int ticks_until_completion)
+void StartRead(u64 dvd_offset, u32 output_address, u32 length, const DiscIO::Partition& partition,
+               bool reply_to_ios, int ticks_until_completion)
 {
   _assert_(Core::IsCPUThread());
 
@@ -117,7 +117,7 @@ void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt, boo
   s_dvd_offset = dvd_offset;
   s_output_address = output_address;
   s_length = length;
-  s_decrypt = decrypt;
+  s_partition = partition;
   s_reply_to_ios = reply_to_ios;
 
   s_time_read_started = CoreTiming::GetTicks();
@@ -171,7 +171,7 @@ static void DVDThread()
     s_dvd_buffer.resize(s_length);
 
     s_dvd_success =
-        DVDInterface::GetVolume().Read(s_dvd_offset, s_length, s_dvd_buffer.data(), s_decrypt);
+        DVDInterface::GetVolume().Read(s_dvd_offset, s_length, s_dvd_buffer.data(), s_partition);
 
     s_realtime_done_us = Common::Timer::GetTimeUs();
   }

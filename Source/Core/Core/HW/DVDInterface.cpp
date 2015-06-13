@@ -236,6 +236,7 @@ static u32 s_next_length;
 
 static u32 s_error_code = 0;
 static bool s_disc_inside = false;
+static DiscIO::Partition s_current_partition;
 static bool s_stream = false;
 static bool s_stop_at_track_end = false;
 static int s_finish_executing_command = 0;
@@ -260,9 +261,9 @@ void UpdateInterrupts();
 void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
 
 void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios);
-bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length,
-                        bool decrypt, bool reply_to_ios, DIInterruptType* interrupt_type,
-                        u64* ticks_until_completion);
+bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 output_length,
+                        DiscIO::Partition partition, bool reply_to_ios,
+                        DIInterruptType* interrupt_type, u64* ticks_until_completion);
 
 u64 SimulateDiscReadTime(u64 offset, u32 length);
 s64 CalculateRawDiscReadTime(u64 offset, s64 length);
@@ -284,6 +285,7 @@ void DoState(PointerWrap& p)
 
   p.Do(s_error_code);
   p.Do(s_disc_inside);
+  p.Do(s_current_partition);
   p.Do(s_stream);
 
   p.Do(s_current_start);
@@ -328,7 +330,7 @@ static u32 ProcessDTKSamples(short* tempPCM, u32 num_samples)
 
     u8 tempADPCM[StreamADPCM::ONE_BLOCK_SIZE];
     // TODO: What if we can't read from s_audio_position?
-    s_inserted_volume->Read(s_audio_position, sizeof(tempADPCM), tempADPCM, false);
+    s_inserted_volume->Read(s_audio_position, sizeof(tempADPCM), tempADPCM, DiscIO::PARTITION_NONE);
     s_audio_position += sizeof(tempADPCM);
     StreamADPCM::DecodeBlock(tempPCM + samples_processed * 2, tempADPCM);
     samples_processed += StreamADPCM::SAMPLES_PER_BLOCK;
@@ -417,16 +419,32 @@ bool SetVolumeName(const std::string& disc_path)
 {
   DVDThread::WaitUntilIdle();
   s_inserted_volume = DiscIO::CreateVolumeFromFilename(disc_path);
-  return VolumeIsValid();
+  if (s_inserted_volume == nullptr)
+  {
+    return false;
+  }
+  else
+  {
+    s_current_partition = s_inserted_volume->GetGamePartition();
+    return true;
+  }
 }
 
 bool SetVolumeDirectory(const std::string& full_path, bool is_wii,
-                        const std::string& apploader_path, const std::string& DOL_path)
+                        const std::string& apploader_path, const std::string& dol_path)
 {
   DVDThread::WaitUntilIdle();
   s_inserted_volume =
-      DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, DOL_path);
-  return VolumeIsValid();
+      DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, dol_path);
+  if (s_inserted_volume == nullptr)
+  {
+    return false;
+  }
+  else
+  {
+    s_current_partition = s_inserted_volume->GetGamePartition();
+    return true;
+  }
 }
 
 bool VolumeIsValid()
@@ -511,10 +529,9 @@ void SetLidOpen(bool open)
   GenerateDIInterrupt(INT_CVRINT);
 }
 
-bool ChangePartition(u64 offset)
+void ChangePartition(const DiscIO::Partition& partition)
 {
-  DVDThread::WaitUntilIdle();
-  return s_inserted_volume->ChangePartition(offset);
+  s_current_partition = partition;
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -634,9 +651,9 @@ void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios)
 }
 
 // Iff false is returned, ScheduleEvent must be used to finish executing the command
-bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length,
-                        bool decrypt, bool reply_to_ios, DIInterruptType* interrupt_type,
-                        u64* ticks_until_completion)
+bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 output_length,
+                        DiscIO::Partition partition, bool reply_to_ios,
+                        DIInterruptType* interrupt_type, u64* ticks_until_completion)
 {
   if (!s_disc_inside)
   {
@@ -651,12 +668,12 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
     *interrupt_type = INT_TCINT;
   }
 
-  if (DVD_length > output_length)
+  if (dvd_length > output_length)
   {
     WARN_LOG(
         DVDINTERFACE,
         "Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
-    DVD_length = output_length;
+    dvd_length = output_length;
   }
 
   if (SConfig::GetInstance().bFastDiscSpeed)
@@ -664,9 +681,9 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
     *ticks_until_completion =
         output_length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
   else
-    *ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
+    *ticks_until_completion = SimulateDiscReadTime(dvd_offset, dvd_length);
 
-  DVDThread::StartRead(DVD_offset, output_address, DVD_length, decrypt, reply_to_ios,
+  DVDThread::StartRead(dvd_offset, output_address, dvd_length, partition, reply_to_ios,
                        (int)*ticks_until_completion);
   return true;
 }
@@ -725,17 +742,17 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   case DVDLowReadDiskID:
     INFO_LOG(DVDINTERFACE, "DVDLowReadDiskID");
     command_handled_by_thread =
-        ExecuteReadCommand(0, output_address, 0x20, output_length, false, reply_to_ios,
-                           &interrupt_type, &ticks_until_completion);
+        ExecuteReadCommand(0, output_address, 0x20, output_length, DiscIO::PARTITION_NONE,
+                           reply_to_ios, &interrupt_type, &ticks_until_completion);
     break;
 
   // Only used from WII_IPC. This is the only read command that decrypts data
   case DVDLowRead:
     INFO_LOG(DVDINTERFACE, "DVDLowRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x", (u64)command_2 << 2,
              command_1);
-    command_handled_by_thread =
-        ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, true,
-                           reply_to_ios, &interrupt_type, &ticks_until_completion);
+    command_handled_by_thread = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1,
+                                                   output_length, s_current_partition, reply_to_ios,
+                                                   &interrupt_type, &ticks_until_completion);
     break;
 
   // Probably only used by Wii
@@ -815,9 +832,9 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
          (command_2 > 0x7ed40000 && command_2 < 0x7ed40008) ||
          (((command_2 + command_1) > 0x7ed40000) && (command_2 + command_1) < 0x7ed40008)))
     {
-      command_handled_by_thread =
-          ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, false,
-                             reply_to_ios, &interrupt_type, &ticks_until_completion);
+      command_handled_by_thread = ExecuteReadCommand(
+          (u64)command_2 << 2, output_address, command_1, output_length, DiscIO::PARTITION_NONE,
+          reply_to_ios, &interrupt_type, &ticks_until_completion);
     }
     else
     {
@@ -915,17 +932,17 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
         }
       }
 
-      command_handled_by_thread =
-          ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length, false,
-                             reply_to_ios, &interrupt_type, &ticks_until_completion);
+      command_handled_by_thread = ExecuteReadCommand(
+          iDVDOffset, output_address, command_2, output_length, DiscIO::PARTITION_NONE,
+          reply_to_ios, &interrupt_type, &ticks_until_completion);
     }
     break;
 
     case 0x40:  // Read DiscID
       INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
       command_handled_by_thread =
-          ExecuteReadCommand(0, output_address, 0x20, output_length, false, reply_to_ios,
-                             &interrupt_type, &ticks_until_completion);
+          ExecuteReadCommand(0, output_address, 0x20, output_length, DiscIO::PARTITION_NONE,
+                             reply_to_ios, &interrupt_type, &ticks_until_completion);
       break;
 
     default:

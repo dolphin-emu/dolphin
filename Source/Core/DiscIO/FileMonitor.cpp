@@ -28,6 +28,7 @@ namespace FileMon
 {
 static std::unique_ptr<DiscIO::IVolume> s_open_iso;
 static std::unique_ptr<DiscIO::IFileSystem> s_filesystem;
+static DiscIO::Partition s_partition;
 static std::string ISOFile = "", CurrentFile = "";
 static bool FileAccess = true;
 
@@ -58,7 +59,7 @@ bool IsSoundFile(const std::string& filename)
 }
 
 // Read the file system
-void ReadFileSystem(const std::string& filename)
+void ReadFileSystem(const std::string& filename, const DiscIO::Partition& partition)
 {
   // Should have an actual Shutdown procedure or something
   s_open_iso.reset();
@@ -70,7 +71,7 @@ void ReadFileSystem(const std::string& filename)
 
   if (s_open_iso->GetVolumeType() != DiscIO::Platform::WII_WAD)
   {
-    s_filesystem = DiscIO::CreateFileSystem(s_open_iso.get());
+    s_filesystem = DiscIO::CreateFileSystem(s_open_iso.get(), partition);
 
     if (!s_filesystem)
       return;
@@ -107,7 +108,7 @@ void CheckFile(const std::string& file, u64 size)
 }
 
 // Find the filename
-void FindFilename(u64 offset)
+void FindFilename(u64 offset, const DiscIO::Partition& partition)
 {
   // Don't do anything if a game is not running
   if (Core::GetState() != Core::CORE_RUN)
@@ -121,10 +122,11 @@ void FindFilename(u64 offset)
   if (!FileAccess)
     return;
 
-  if (!s_filesystem || ISOFile != SConfig::GetInstance().m_LastFilename)
+  if (!s_filesystem || s_partition != partition || ISOFile != SConfig::GetInstance().m_LastFilename)
   {
     FileAccess = false;
-    ReadFileSystem(SConfig::GetInstance().m_LastFilename);
+    ReadFileSystem(SConfig::GetInstance().m_LastFilename, partition);
+    s_partition = partition;
     ISOFile = SConfig::GetInstance().m_LastFilename;
     INFO_LOG(FILEMON, "Opening '%s'", ISOFile.c_str());
     return;

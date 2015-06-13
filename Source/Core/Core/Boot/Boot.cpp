@@ -36,10 +36,11 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
-bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt)
+bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length,
+                    const DiscIO::Partition& partition)
 {
   std::vector<u8> buffer(length);
-  if (!DVDInterface::GetVolume().Read(dvd_offset, length, buffer.data(), decrypt))
+  if (!DVDInterface::GetVolume().Read(dvd_offset, length, buffer.data(), partition))
     return false;
   Memory::CopyToEmu(output_address, buffer.data(), length);
   return true;
@@ -51,9 +52,10 @@ void CBoot::Load_FST(bool _bIsWii)
     return;
 
   const DiscIO::IVolume& volume = DVDInterface::GetVolume();
+  DiscIO::Partition partition = volume.GetGamePartition();
 
   // copy first 20 bytes of disc to start of Mem 1
-  DVDRead(/*offset*/ 0, /*address*/ 0, /*length*/ 0x20, false);
+  DVDRead(/*offset*/ 0, /*address*/ 0, /*length*/ 0x20, partition);
 
   // copy of game id
   Memory::Write_U32(Memory::Read_U32(0x0000), 0x3180);
@@ -66,15 +68,15 @@ void CBoot::Load_FST(bool _bIsWii)
   u32 fst_size = 0;
   u32 max_fst_size = 0;
 
-  volume.ReadSwapped(0x0424, &fst_offset, _bIsWii);
-  volume.ReadSwapped(0x0428, &fst_size, _bIsWii);
-  volume.ReadSwapped(0x042c, &max_fst_size, _bIsWii);
+  volume.ReadSwapped(0x0424, &fst_offset, partition);
+  volume.ReadSwapped(0x0428, &fst_size, partition);
+  volume.ReadSwapped(0x042c, &max_fst_size, partition);
 
   u32 arena_high = ROUND_DOWN(0x817FFFFF - (max_fst_size << shift), 0x20);
   Memory::Write_U32(arena_high, 0x00000034);
 
   // load FST
-  DVDRead(fst_offset << shift, arena_high, fst_size << shift, _bIsWii);
+  DVDRead(fst_offset << shift, arena_high, fst_size << shift, partition);
   Memory::Write_U32(arena_high, 0x00000038);
   Memory::Write_U32(max_fst_size << shift, 0x0000003c);
 }
@@ -274,7 +276,7 @@ bool CBoot::BootUp()
     if (unique_id.size() >= 4)
       VideoInterface::SetRegionReg(unique_id.at(3));
 
-    std::vector<u8> tmd_buffer = pVolume.GetTMD();
+    std::vector<u8> tmd_buffer = pVolume.GetTMD(pVolume.GetGamePartition());
     if (!tmd_buffer.empty())
     {
       WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);

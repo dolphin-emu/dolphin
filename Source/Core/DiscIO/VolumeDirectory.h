@@ -38,7 +38,9 @@ public:
 
   static bool IsValidDirectory(const std::string& _rDirectory);
 
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
+  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const override;
+  std::vector<Partition> GetPartitions() const override;
+  Partition GetGamePartition() const override;
 
   std::string GetUniqueID() const override;
   void SetUniqueID(const std::string& _ID);

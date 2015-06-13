@@ -12,6 +12,7 @@ class PointerWrap;
 namespace DiscIO
 {
 class IVolume;
+struct Partition;
 }
 namespace MMIO
 {
@@ -102,7 +103,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 const DiscIO::IVolume& GetVolume();
 bool SetVolumeName(const std::string& disc_path);
 bool SetVolumeDirectory(const std::string& disc_path, bool is_wii,
-                        const std::string& apploader_path = "", const std::string& DOL_path = "");
+                        const std::string& apploader_path = "", const std::string& dol_path = "");
 bool VolumeIsValid();
 
 // Disc detection and swapping
@@ -112,7 +113,7 @@ void ChangeDiscAsHost(const std::string& path);  // Can only be called by the ho
 void ChangeDiscAsCPU(const std::string& path);   // Can only be called by the CPU thread
 
 // DVD Access Functions
-bool ChangePartition(u64 offset);
+void ChangePartition(const DiscIO::Partition& partition);
 void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address,
                     u32 output_length, bool reply_to_ios);
 void FinishExecutingCommand(bool reply_to_ios, DIInterruptType interrupt_type);
