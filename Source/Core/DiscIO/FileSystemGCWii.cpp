@@ -21,7 +21,7 @@
 namespace DiscIO
 {
 CFileSystemGCWii::CFileSystemGCWii(const IVolume* _rVolume, const Partition& partition)
-    : IFileSystem(_rVolume, partition), m_Initialized(false), m_Valid(false), m_Wii(false)
+    : IFileSystem(_rVolume, partition), m_Initialized(false), m_Valid(false), m_offset_shift(0)
 {
   m_Valid = DetectFileSystem();
 }
@@ -156,7 +156,7 @@ u64 CFileSystemGCWii::GetBootDOLOffset() const
 {
   u32 offset = 0;
   m_rVolume->ReadSwapped(0x420, &offset, m_partition);
-  return static_cast<u64>(offset) << GetOffsetShift();
+  return static_cast<u64>(offset) << m_offset_shift;
 }
 
 u32 CFileSystemGCWii::GetBootDOLSize(u64 dol_offset) const
@@ -253,12 +253,12 @@ bool CFileSystemGCWii::DetectFileSystem()
   u32 magic_bytes;
   if (m_rVolume->ReadSwapped(0x18, &magic_bytes, m_partition) && magic_bytes == 0x5D1C9EA3)
   {
-    m_Wii = true;
+    m_offset_shift = 2;  // Wii file system
     return true;
   }
   else if (m_rVolume->ReadSwapped(0x1c, &magic_bytes, m_partition) && magic_bytes == 0xC2339F3D)
   {
-    m_Wii = false;
+    m_offset_shift = 0;  // GameCube file system
     return true;
   }
 
@@ -268,13 +268,12 @@ bool CFileSystemGCWii::DetectFileSystem()
 void CFileSystemGCWii::InitFileSystem()
 {
   m_Initialized = true;
-  u32 const shift = GetOffsetShift();
 
   // read the whole FST
   u32 fst_offset_unshifted;
   if (!m_rVolume->ReadSwapped(0x424, &fst_offset_unshifted, m_partition))
     return;
-  u64 FSTOffset = static_cast<u64>(fst_offset_unshifted) << shift;
+  u64 FSTOffset = static_cast<u64>(fst_offset_unshifted) << m_offset_shift;
 
   // read all fileinfos
   u32 name_offset, offset, size;
@@ -282,7 +281,7 @@ void CFileSystemGCWii::InitFileSystem()
       !m_rVolume->ReadSwapped(FSTOffset + 0x4, &offset, m_partition) ||
       !m_rVolume->ReadSwapped(FSTOffset + 0x8, &size, m_partition))
     return;
-  SFileInfo root = {name_offset, static_cast<u64>(offset) << shift, size};
+  SFileInfo root = {name_offset, static_cast<u64>(offset) << m_offset_shift, size};
 
   if (!root.IsDirectory())
     return;
@@ -313,7 +312,7 @@ void CFileSystemGCWii::InitFileSystem()
     m_rVolume->ReadSwapped(read_offset + 0x4, &offset, m_partition);
     size = 0;
     m_rVolume->ReadSwapped(read_offset + 0x8, &size, m_partition);
-    m_FileInfoVector.emplace_back(name_offset, static_cast<u64>(offset) << shift, size);
+    m_FileInfoVector.emplace_back(name_offset, static_cast<u64>(offset) << m_offset_shift, size);
     NameTableOffset += 0xC;
   }
 
@@ -349,11 +348,6 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
   }
 
   return CurrentIndex;
-}
-
-u32 CFileSystemGCWii::GetOffsetShift() const
-{
-  return m_Wii ? 2 : 0;
 }
 
 }  // namespace
