@@ -65,7 +65,7 @@ u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0; // just stats
 static u64 s_recordingStartTime; // seconds since 1970 that recording started
 static bool s_bSaveConfig = false, s_bSkipIdle = false, s_bDualCore = false;
-static bool s_bProgressive = false, s_bPAL60 = false;
+static bool s_bProgressive = false, s_bPAL60 = false, s_bComponentCable = false;
 static bool s_bDSPHLE = false, s_bFastDiscSpeed = false;
 static bool s_bSyncGPU = false, s_bNetPlay = false;
 static std::string s_videoBackend = "unknown";
@@ -367,6 +367,11 @@ bool IsProgressive()
 bool IsPAL60()
 {
 	return s_bPAL60;
+}
+
+bool IsComponentCable()
+{
+	return s_bComponentCable;
 }
 
 bool IsSkipIdle()
@@ -798,6 +803,7 @@ void ReadHeader()
 		s_bDualCore = tmpHeader.bDualCore;
 		s_bProgressive = tmpHeader.bProgressive;
 		s_bPAL60 = tmpHeader.bPAL60;
+		s_bComponentCable = tmpHeader.bComponentCable;
 		s_bDSPHLE = tmpHeader.bDSPHLE;
 		s_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
 		s_iCPUCore = tmpHeader.CPUCore;
@@ -1221,6 +1227,7 @@ void SaveRecording(const std::string& filename)
 	header.bDualCore = s_bDualCore;
 	header.bProgressive = s_bProgressive;
 	header.bPAL60 = s_bPAL60;
+	header.bComponentCable = s_bComponentCable;
 	header.bDSPHLE = s_bDSPHLE;
 	header.bFastDiscSpeed = s_bFastDiscSpeed;
 	strncpy((char *)header.videoBackend, s_videoBackend.c_str(),ArraySize(header.videoBackend));
@@ -1301,6 +1308,7 @@ void GetSettings()
 	s_bDualCore = SConfig::GetInstance().bCPUThread;
 	s_bProgressive = SConfig::GetInstance().bProgressive;
 	s_bPAL60 = SConfig::GetInstance().bPAL60;
+	s_bComponentCable = SConfig::GetInstance().bComponentCable;
 	s_bDSPHLE = SConfig::GetInstance().bDSPHLE;
 	s_bFastDiscSpeed = SConfig::GetInstance().bFastDiscSpeed;
 	s_videoBackend = g_video_backend->GetName();

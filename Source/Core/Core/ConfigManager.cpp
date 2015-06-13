@@ -52,7 +52,7 @@ SConfig::SConfig()
   iRenderWindowWidth(640), iRenderWindowHeight(480),
   bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
   bFullscreen(false), bRenderToMain(false),
-  bProgressive(false), bPAL60(false),
+  bProgressive(false), bPAL60(false), bComponentCable(false),
   bDisableScreenSaver(false),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600),
   bLoopFifoReplay(true)
@@ -182,6 +182,7 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 	display->Set("KeepWindowOnTop", bKeepWindowOnTop);
 	display->Set("ProgressiveScan", bProgressive);
 	display->Set("PAL60", bPAL60);
+	display->Set("ComponentCable", bComponentCable);
 	display->Set("DisableScreenSaver", bDisableScreenSaver);
 	display->Set("ForceNTSCJ", bForceNTSCJ);
 }
@@ -432,6 +433,7 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
 	display->Get("KeepWindowOnTop",      &bKeepWindowOnTop,        false);
 	display->Get("ProgressiveScan",      &bProgressive,            false);
 	display->Get("PAL60",                &bPAL60,                  true);
+	display->Get("ComponentCable",       &bComponentCable,         false);
 	display->Get("DisableScreenSaver",   &bDisableScreenSaver,     true);
 	display->Get("ForceNTSCJ",           &bForceNTSCJ,             false);
 }

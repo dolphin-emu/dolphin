@@ -59,7 +59,7 @@ public:
 
 private:
 	bool valid, bCPUThread, bSkipIdle, bSyncGPUOnSkipIdleHack, bFPRF, bAccurateNaNs, bMMU, bDCBZOFF, m_EnableJIT,
-	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive, bPAL60;
+	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive, bPAL60, bComponentCable;
 	int iSelectedLanguage;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
@@ -88,6 +88,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
 	bHLE_BS2 = config.bHLE_BS2;
 	bProgressive = config.bProgressive;
 	bPAL60 = config.bPAL60;
+	bComponentCable = config.bComponentCable;
 	iSelectedLanguage = config.SelectedLanguage;
 	iCPUCore = config.iCPUCore;
 	Volume = config.m_Volume;
@@ -145,6 +146,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
 	config->m_SYSCONF->SetData("IPL.PGS", bProgressive);
 	config->bPAL60 = bPAL60;
 	config->m_SYSCONF->SetData("IPL.E60", bPAL60);
+	config->bComponentCable = bComponentCable;
 	config->SelectedLanguage = iSelectedLanguage;
 	config->iCPUCore = iCPUCore;
 
@@ -314,6 +316,7 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bDSPHLE = Movie::IsDSPHLE();
 		StartUp.bProgressive = Movie::IsProgressive();
 		StartUp.bPAL60 = Movie::IsPAL60();
+		StartUp.bComponentCable = Movie::IsComponentCable();
 		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
 		StartUp.iCPUCore = Movie::GetCPUMode();
 		StartUp.bSyncGPU = Movie::IsSyncGPU();
@@ -361,6 +364,12 @@ bool BootCore(const std::string& _rFilename)
 	if (StartUp.bWii && StartUp.bNTSC)
 	{
 		StartUp.bPAL60 = false;
+	}
+
+	// Component cable must be used in 480p
+	if (StartUp.bWii && StartUp.bProgressive)
+	{
+		StartUp.bComponentCable = true;
 	}
 
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);

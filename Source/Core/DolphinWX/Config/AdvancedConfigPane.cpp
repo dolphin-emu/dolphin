@@ -10,6 +10,7 @@
 #include <wx/stattext.h>
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DolphinWX/Config/AdvancedConfigPane.h"
 
 AdvancedConfigPane::AdvancedConfigPane(wxWindow* parent, wxWindowID id)
@@ -17,6 +18,7 @@ AdvancedConfigPane::AdvancedConfigPane(wxWindow* parent, wxWindowID id)
 {
 	InitializeGUI();
 	LoadGUIValues();
+	RefreshGUI();
 }
 
 void AdvancedConfigPane::InitializeGUI()
@@ -24,9 +26,13 @@ void AdvancedConfigPane::InitializeGUI()
 	m_clock_override_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable CPU Clock Override"));
 	m_clock_override_slider = new wxSlider(this, wxID_ANY, 100, 0, 150, wxDefaultPosition, wxSize(200,-1));
 	m_clock_override_text = new wxStaticText(this, wxID_ANY, "");
+	m_component_cable_checkbox = new wxCheckBox(this, wxID_ANY, _("Emulate Component Cable"));
 
 	m_clock_override_checkbox->Bind(wxEVT_CHECKBOX, &AdvancedConfigPane::OnClockOverrideCheckBoxChanged, this);
 	m_clock_override_slider->Bind(wxEVT_SLIDER, &AdvancedConfigPane::OnClockOverrideSliderChanged, this);
+	m_component_cable_checkbox->Bind(wxEVT_CHECKBOX, &AdvancedConfigPane::OnComponentCableCheckBoxChanged, this);
+
+	m_component_cable_checkbox->SetToolTip(_("Sets the type of video output hardware that is being emulated."));
 
 	wxStaticText* const clock_override_description = new wxStaticText(this, wxID_ANY,
 	  _("Higher values can make variable-framerate games "
@@ -54,8 +60,12 @@ void AdvancedConfigPane::InitializeGUI()
 	cpu_options_sizer->Add(clock_override_slider_sizer);
 	cpu_options_sizer->Add(clock_override_description_sizer);
 
+	wxStaticBoxSizer* const misc_settings_static_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Output"));
+	misc_settings_static_sizer->Add(m_component_cable_checkbox, 0, wxALL, 5);
+
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(cpu_options_sizer , 0, wxEXPAND | wxALL, 5);
+	main_sizer->Add(misc_settings_static_sizer, 0, wxEXPAND | wxALL, 5);
 
 	SetSizer(main_sizer);
 }
@@ -68,6 +78,15 @@ void AdvancedConfigPane::LoadGUIValues()
 	m_clock_override_slider ->SetValue(ocFactor);
 	m_clock_override_slider->Enable(oc_enabled);
 	UpdateCPUClock();
+	m_component_cable_checkbox->SetValue(SConfig::GetInstance().bComponentCable);
+}
+
+void AdvancedConfigPane::RefreshGUI()
+{
+	if (Core::IsRunning())
+	{
+		m_component_cable_checkbox->Disable();
+	}
 }
 
 void AdvancedConfigPane::OnClockOverrideCheckBoxChanged(wxCommandEvent& event)
@@ -91,4 +110,9 @@ void AdvancedConfigPane::UpdateCPUClock()
 	int clock = (int)(std::roundf(SConfig::GetInstance().m_OCFactor * (wii ? 729.f : 486.f)));
 
 	m_clock_override_text->SetLabel(SConfig::GetInstance().m_OCEnable ? wxString::Format("%d %% (%d mhz)", percent, clock) : "");
+}
+
+void AdvancedConfigPane::OnComponentCableCheckBoxChanged(wxCommandEvent& event)
+{
+	SConfig::GetInstance().bComponentCable = m_component_cable_checkbox->IsChecked();
 }
