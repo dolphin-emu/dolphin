@@ -79,21 +79,24 @@ void CBoot::SetupBAT(bool is_wii)
 
 bool CBoot::RunApploader(bool is_wii, const DiscIO::IVolume& volume)
 {
+  const DiscIO::Partition partition = volume.GetGamePartition();
+
   // Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
   // but the size can differ between discs. Compare with YAGCD chap 13.
   const u32 apploader_offset = 0x2440;
   u32 apploader_entry = 0;
   u32 apploader_size = 0;
   u32 apploader_trailer = 0;
-  if (!volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, is_wii) ||
-      !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, is_wii) ||
-      !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, is_wii) ||
+  if (!volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, partition) ||
+      !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, partition) ||
+      !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, partition) ||
       apploader_entry == (u32)-1 || apploader_size + apploader_trailer == (u32)-1)
   {
     INFO_LOG(BOOT, "Invalid apploader. Your disc image is probably corrupted.");
     return false;
   }
-  DVDRead(volume, apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer, is_wii);
+  DVDRead(volume, apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer,
+          partition);
 
   // TODO - Make Apploader(or just RunFunction()) debuggable!!!
 
@@ -132,7 +135,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::IVolume& volume)
 
     INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset,
              iRamAddress, iLength);
-    DVDRead(volume, iDVDOffset, iRamAddress, iLength, is_wii);
+    DVDRead(volume, iDVDOffset, iRamAddress, iLength, partition);
 
   } while (PowerPC::ppcState.gpr[3] != 0x00);
 
@@ -163,7 +166,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::IVolume* volume, bool skip_app_loader)
 
   // It's possible to boot DOL and ELF files without a disc inserted
   if (volume)
-    DVDRead(*volume, /*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, false);
+    DVDRead(*volume, /*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, DiscIO::PARTITION_NONE);
 
   // Booted from bootrom. 0xE5207C22 = booted from jtag
   PowerPC::HostWrite_U32(0x0D15EA5E, 0x80000020);
@@ -280,7 +283,7 @@ bool CBoot::SetupWiiMemory(const DiscIO::IVolume* volume, u64 ios_title_id)
 
   // When booting a WAD or the system menu, there will probably not be a disc inserted
   if (volume)
-    DVDRead(*volume, 0x00000000, 0x00000000, 0x20, false);  // Game Code
+    DVDRead(*volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code
 
   Memory::Write_U32(0x0D15EA5E, 0x00000020);            // Another magic word
   Memory::Write_U32(0x00000001, 0x00000024);            // Unknown
@@ -335,7 +338,8 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::IVolume* volume)
   if (volume->GetVolumeType() != DiscIO::Platform::WII_DISC)
     return false;
 
-  const IOS::ES::TMDReader tmd = volume->GetTMD();
+  const DiscIO::Partition partition = volume->GetGamePartition();
+  const IOS::ES::TMDReader tmd = volume->GetTMD(partition);
 
   if (!SetupWiiMemory(volume, tmd.GetIOSId()))
     return false;
@@ -344,7 +348,7 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::IVolume* volume)
   // values as the game boots. This location keeps the 4 byte ID for as long
   // as the game is running. The 6 byte ID at 0x00 is overwritten sometime
   // after this check during booting.
-  DVDRead(*volume, 0, 0x3180, 4, true);
+  DVDRead(*volume, 0, 0x3180, 4, partition);
 
   SetupBAT(/*is_wii*/ true);
 
@@ -359,7 +363,7 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::IVolume* volume)
 
   // Warning: This call will set incorrect running game metadata if our volume parameter
   // doesn't point to the same disc as the one that's inserted in the emulated disc drive!
-  IOS::HLE::Device::ES::DIVerify(tmd, volume->GetTicket());
+  IOS::HLE::Device::ES::DIVerify(tmd, volume->GetTicket(partition));
 
   return true;
 }

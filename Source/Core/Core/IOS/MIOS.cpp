@@ -19,7 +19,6 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/ES/Formats.h"
@@ -170,7 +169,7 @@ bool Load()
   Memory::Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   NOTICE_LOG(IOS, "IPL ready.");
   SConfig::GetInstance().m_BootType = SConfig::BOOT_MIOS;
-  DVDThread::UpdateRunningGameMetadata();
+  DVDInterface::UpdateRunningGameMetadata();
   return true;
 }
 }  // namespace MIOS
