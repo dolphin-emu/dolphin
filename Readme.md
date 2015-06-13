@@ -63,11 +63,13 @@ following inside:
 makeArgs=<make-args>
 ```
 
-Replace `<make-args>` with any arguments you want to pass to `make`, and then execute the
-`assembleDebug` or `installDebug` task corresponding to the hardware platform you are targeting.
-For example, to deploy to a Nexus 9, which runs the AArch64 architecture, execute `installArm_64Debug`.
-A list of available tasks can be found in Android Studio in the Gradle tray, located at the top-right
-corner of the IDE by default.
+Replace `<make-args>` with any arguments you want to pass to `make`. If you need to use a specific
+version of git, cmake, or the NDK, you can also add `gitPath=<path>`, `cmakePath=<path>` or
+`ndkPath=<path>`, replacing `<path>` with the actual paths. Otherwise, these will be found
+automatically. Then execute the `assembleDebug` or `installDebug` task corresponding to the
+hardware platform you are targeting. For example, to deploy to a Nexus 9, which runs the AArch64
+architecture, execute `installArm_64Debug`. A list of available tasks can be found in Android
+Studio in the Gradle tray, located at the top-right corner of the IDE by default.
 
 The native libraries will be compiled, and copied into `./Source/Android/app/libs`. Android Studio
 and Gradle will include any libraries in that folder into the APK at build time.
