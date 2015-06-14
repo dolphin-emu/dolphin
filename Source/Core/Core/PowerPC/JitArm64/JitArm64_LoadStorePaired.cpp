@@ -21,7 +21,6 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff);
 	FALLBACK_IF(jo.memcheck || !jo.fastmem);
-	FALLBACK_IF(true);
 
 	// X30 is LR
 	// X0 contains the scale
