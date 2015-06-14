@@ -30,7 +30,7 @@ public:
 	std::string GetDescription(DiscIO::IVolume::ELanguage language) const;
 	std::string GetDescription() const;
 	std::vector<DiscIO::IVolume::ELanguage> GetLanguages() const;
-	std::string GetCompany() const;
+	std::string GetCompany() const { return m_company; }
 	u16 GetRevision() const { return m_Revision; }
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;

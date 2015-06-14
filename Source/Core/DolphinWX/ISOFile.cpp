@@ -201,11 +201,6 @@ std::string GameListItem::CreateCacheFilename()
 	return fullname;
 }
 
-std::string GameListItem::GetCompany() const
-{
-	return m_company;
-}
-
 std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) const
 {
 	return GetLanguageString(language, m_descriptions);

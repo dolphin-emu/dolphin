@@ -247,11 +247,6 @@ QString GameFile::CreateCacheFilename()
 	return fullname;
 }
 
-QString GameFile::GetCompany() const
-{
-	return m_company;
-}
-
 QString GameFile::GetDescription(DiscIO::IVolume::ELanguage language) const
 {
 	return GetLanguageString(language, m_descriptions);

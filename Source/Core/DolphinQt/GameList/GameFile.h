@@ -26,7 +26,7 @@ public:
 	QString GetName(bool prefer_long) const;
 	QString GetDescription(DiscIO::IVolume::ELanguage language) const;
 	QString GetDescription() const;
-	QString GetCompany() const;
+	QString GetCompany() const { return m_company; }
 	u16 GetRevision() const { return m_revision; }
 	const QString GetUniqueID() const { return m_unique_id; }
 	const QString GetWiiFSPath() const;
