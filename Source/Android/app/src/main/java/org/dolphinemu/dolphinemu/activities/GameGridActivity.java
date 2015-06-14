@@ -83,6 +83,8 @@ public final class GameGridActivity extends Activity implements LoaderManager.Lo
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
 		{
+			NativeLibrary.SetUserDirectory(""); // Auto-Detect
+
 			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 			boolean assetsCopied = preferences.getBoolean("assetsCopied", false);
 
