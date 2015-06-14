@@ -45,7 +45,7 @@ void Jit64::GenerateOverflow()
 	//rare).
 	static const u8 ovtable[4] = {0, 0, XER_SO_MASK, XER_SO_MASK};
 	MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
-	MOV(8, R(RSCRATCH), MPIC(ovtable, RSCRATCH));
+	MOV(8, R(RSCRATCH), MDisp(RSCRATCH, (u32)(u64)ovtable));
 	MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
 	SetJumpTarget(exit);
 }
