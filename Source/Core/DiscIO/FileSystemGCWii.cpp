@@ -11,6 +11,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include "DiscIO/Filesystem.h"
@@ -269,6 +270,18 @@ void CFileSystemGCWii::InitFileSystem()
 
 	if (!Root.IsDirectory())
 		return;
+
+	if (Root.m_FileSize > 2 * 1024 * 1024)
+	{
+		// Without this check, Dolphin may crash by trying to allocate too much memory
+		// when loading the filesystems of certain corrupt disc images. 12 bytes
+		// (the size of a file entry) times 2 * 1024 * 1024 is equal to the size of
+		// main GC/Wii RAM (24 MiB), and no file system should use anywhere near
+		// that much, so this check should not be a problem for valid file systems.
+
+		ERROR_LOG(DISCIO, "File system is abnormally large! Aborting loading");
+		return;
+	}
 
 	if (m_FileInfoVector.size())
 		PanicAlert("Wtf?");
