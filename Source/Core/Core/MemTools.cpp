@@ -18,6 +18,9 @@
 #ifndef _M_GENERIC
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #endif
+#ifdef __FreeBSD__
+#include <signal.h>
+#endif
 
 namespace EMM
 {
@@ -256,7 +259,11 @@ static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 void InstallExceptionHandler()
 {
 	stack_t signal_stack;
+#ifdef __FreeBSD__
+	signal_stack.ss_sp = (char*)malloc(SIGSTKSZ);
+#else
 	signal_stack.ss_sp = malloc(SIGSTKSZ);
+#endif
 	signal_stack.ss_size = SIGSTKSZ;
 	signal_stack.ss_flags = 0;
 	if (sigaltstack(&signal_stack, nullptr))

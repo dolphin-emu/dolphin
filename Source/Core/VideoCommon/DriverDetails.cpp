@@ -30,6 +30,8 @@ namespace DriverDetails
 	const u32 m_os = OS_ALL | OS_OSX;
 #elif __linux__
 	const u32 m_os = OS_ALL | OS_LINUX;
+#elif __FreeBSD__
+	const u32 m_os = OS_ALL | OS_FREEBSD;
 #endif
 
 	static Vendor m_vendor = VENDOR_UNKNOWN;
