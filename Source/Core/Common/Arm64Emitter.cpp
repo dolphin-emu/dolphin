@@ -3131,10 +3131,29 @@ void ARM64FloatEmitter::UCVTF(u8 size, ARM64Reg Rd, ARM64Reg Rn, int scale)
 	int imm = size * 2 - scale;
 	EmitShiftImm(IsQuad(Rd), 1, imm >> 3, imm & 7, 0x1C, Rd, Rn);
 }
-
+void ARM64FloatEmitter::SQXTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
+{
+	Emit2RegMisc(false, 0, dest_size >> 4, 0b10100, Rd, Rn);
+}
+void ARM64FloatEmitter::SQXTN2(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
+{
+	Emit2RegMisc(true, 0, dest_size >> 4, 0b10100, Rd, Rn);
+}
+void ARM64FloatEmitter::UQXTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
+{
+	Emit2RegMisc(false, 1, dest_size >> 4, 0b10100, Rd, Rn);
+}
+void ARM64FloatEmitter::UQXTN2(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
+{
+	Emit2RegMisc(true, 1, dest_size >> 4, 0b10100, Rd, Rn);
+}
 void ARM64FloatEmitter::XTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
 {
-	Emit2RegMisc(IsQuad(Rd), 0, dest_size >> 4, 0x12, Rd, Rn);
+	Emit2RegMisc(false, 0, dest_size >> 4, 0b10010, Rd, Rn);
+}
+void ARM64FloatEmitter::XTN2(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
+{
+	Emit2RegMisc(true, 0, dest_size >> 4, 0b10010, Rd, Rn);
 }
 
 // Move

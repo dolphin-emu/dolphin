@@ -829,7 +829,12 @@ public:
 	void UCVTF(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void SCVTF(u8 size, ARM64Reg Rd, ARM64Reg Rn, int scale);
 	void UCVTF(u8 size, ARM64Reg Rd, ARM64Reg Rn, int scale);
+	void SQXTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
+	void SQXTN2(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
+	void UQXTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
+	void UQXTN2(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
 	void XTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
+	void XTN2(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
 
 	// Move
 	void DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn);
