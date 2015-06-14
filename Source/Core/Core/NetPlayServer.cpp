@@ -5,12 +5,15 @@
 #include <string>
 #include <vector>
 #include "Common/ENetUtil.h"
+#include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "Core/NetPlayClient.h" //for NetPlayUI
 #include "Core/NetPlayServer.h"
 #include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/Sram.h"
 #include "InputCommon/GCPadStatus.h"
 #if !defined(_WIN32)
 #include <sys/types.h>
@@ -301,6 +304,21 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	spac.clear();
 	spac << (MessageId)NP_MSG_PAD_BUFFER;
 	spac << (u32)m_target_buffer_size;
+	Send(player.socket, spac);
+
+	// sync GC SRAM with new client
+	if (!g_SRAM_netplay_initialized)
+	{
+		SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+		InitSRAM();
+		g_SRAM_netplay_initialized = true;
+	}
+	spac.clear();
+	spac << (MessageId)NP_MSG_SYNC_GC_SRAM;
+	for (int i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+	{
+		spac << g_SRAM.p_SRAM[i];
+	}
 	Send(player.socket, spac);
 
 	// sync values with new client
@@ -697,6 +715,8 @@ bool NetPlayServer::StartGame()
 	*spac << m_current_game;
 	*spac << m_settings.m_CPUthread;
 	*spac << m_settings.m_CPUcore;
+	*spac << m_settings.m_SelectedLanguage;
+	*spac << m_settings.m_OverrideGCLanguage;
 	*spac << m_settings.m_DSPEnableJIT;
 	*spac << m_settings.m_DSPHLE;
 	*spac << m_settings.m_WriteToMemcard;

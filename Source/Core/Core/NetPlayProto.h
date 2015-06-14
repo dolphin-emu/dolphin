@@ -12,6 +12,8 @@ struct NetSettings
 {
 	bool m_CPUthread;
 	int m_CPUcore;
+	int m_SelectedLanguage;
+	bool m_OverrideGCLanguage;
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
 	bool m_WriteToMemcard;
@@ -29,7 +31,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<u8> NetWiimote;
 
-#define NETPLAY_VERSION  "Dolphin NetPlay 2015-03-10"
+#define NETPLAY_VERSION  "Dolphin NetPlay 2015-06-14"
 
 extern u64 g_netplay_initial_gctime;
 
@@ -62,6 +64,8 @@ enum
 	NP_MSG_PING = 0xE0,
 	NP_MSG_PONG = 0xE1,
 	NP_MSG_PLAYER_PING_DATA = 0xE2,
+
+	NP_MSG_SYNC_GC_SRAM = 0xF0,
 };
 
 typedef u8  MessageId;
