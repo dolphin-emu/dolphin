@@ -186,12 +186,6 @@ bool BootCore(const std::string& _rFilename)
 			}
 		}
 
-		// Some NTSC GameCube games such as Baten Kaitos react strangely to language settings that would be invalid on an NTSC system
-		if (!StartUp.bOverrideGCLanguage && StartUp.bNTSC)
-		{
-			StartUp.SelectedLanguage = 0;
-		}
-
 		// Wii settings
 		if (StartUp.bWii)
 		{
@@ -260,6 +254,13 @@ bool BootCore(const std::string& _rFilename)
 	else
 	{
 		g_SRAM_netplay_initialized = false;
+	}
+
+	// Apply overrides
+	// Some NTSC GameCube games such as Baten Kaitos react strangely to language settings that would be invalid on an NTSC system
+	if (!StartUp.bOverrideGCLanguage && StartUp.bNTSC)
+	{
+		StartUp.SelectedLanguage = 0;
 	}
 
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
