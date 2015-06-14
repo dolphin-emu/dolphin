@@ -275,13 +275,13 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			copyMipMapStrideChannels * 32);
 
 		u8* dst = Memory::GetPointer(dstAddr);
-		u64 const new_hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		u64 const new_hash = GetHash64(dst, encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 		size_in_bytes = (u32)encoded_size;
 
 		TextureCache::MakeRangeDynamic(dstAddr, encoded_size);
 
-		hash = new_hash;
+		SetHashes(new_hash, new_hash);
 	}
 
 	FramebufferManager::SetFramebuffer(0);

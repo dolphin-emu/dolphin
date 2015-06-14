@@ -244,7 +244,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		TextureCache::MakeRangeDynamic(dstAddr, (u32)encoded_size);
 
-		this->hash = GetHash64(dst, (int)encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		u64 const new_hash = GetHash64(dst, (u32)encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		SetHashes(new_hash, new_hash);
 	}
 }
 
