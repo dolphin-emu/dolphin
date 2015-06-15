@@ -87,25 +87,25 @@ static float PHackValue(std::string sValue)
 	return f;
 }
 
-void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
+void UpdateProjectionHack()
 {
 	float fhackvalue1 = 0, fhackvalue2 = 0;
 	float fhacksign1 = 1.0, fhacksign2 = 1.0;
 	const char *sTemp[2];
 
-	if (iPhackvalue[0] == 1)
+	if (g_ActiveConfig.bPhackvalue0)
 	{
 		NOTICE_LOG(VIDEO, "\t\t--- Orthographic Projection Hack ON ---");
 
-		fhacksign1 *= (iPhackvalue[1] == 1) ? -1.0f : fhacksign1;
-		sTemp[0] = (iPhackvalue[1] == 1) ? " * (-1)" : "";
-		fhacksign2 *= (iPhackvalue[2] == 1) ? -1.0f : fhacksign2;
-		sTemp[1] = (iPhackvalue[2] == 1) ? " * (-1)" : "";
+		fhacksign1 *= g_ActiveConfig.bPhackvalue1 ? -1.0f : fhacksign1;
+		sTemp[0] = g_ActiveConfig.bPhackvalue1 ? " * (-1)" : "";
+		fhacksign2 *= g_ActiveConfig.bPhackvalue2 ? -1.0f : fhacksign2;
+		sTemp[1] = g_ActiveConfig.bPhackvalue2 ? " * (-1)" : "";
 
-		fhackvalue1 = PHackValue(sPhackvalue[0]);
+		fhackvalue1 = PHackValue(g_ActiveConfig.sPhackvalue0);
 		NOTICE_LOG(VIDEO, "- zNear Correction = (%f + zNear)%s", fhackvalue1, sTemp[0]);
 
-		fhackvalue2 = PHackValue(sPhackvalue[1]);
+		fhackvalue2 = PHackValue(g_ActiveConfig.sPhackvalue1);
 		NOTICE_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", fhackvalue2, sTemp[1]);
 
 	}

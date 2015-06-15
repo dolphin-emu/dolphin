@@ -59,7 +59,7 @@ public:
 
 	void Update() override;
 	void NotifyMapLoaded();
-	void CreateMenu(const SConfig& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
+	void CreateMenu(SConfig& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
 	void CreateMenuOptions(wxMenu *pMenu);
 	void CreateMenuSymbols(wxMenuBar *pMenuBar);
 	void RecreateToolbar(wxToolBar*);

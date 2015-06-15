@@ -141,16 +141,16 @@ void InterfaceConfigPane::InitializeGUI()
 
 void InterfaceConfigPane::LoadGUIValues()
 {
-	const SConfig& startup_params = SConfig::GetInstance();
+	SConfig& startup_params = SConfig::GetInstance();
 
 	m_confirm_stop_checkbox->SetValue(startup_params.bConfirmStop);
 	m_panic_handlers_checkbox->SetValue(startup_params.bUsePanicHandlers);
 	m_osd_messages_checkbox->SetValue(startup_params.bOnScreenDisplayMessages);
-	m_pause_focus_lost_checkbox->SetValue(SConfig::GetInstance().m_PauseOnFocusLost);
+	m_pause_focus_lost_checkbox->SetValue(startup_params.m_PauseOnFocusLost);
 
 	for (size_t i = 0; i < sizeof(language_ids) / sizeof(wxLanguage); i++)
 	{
-		if (language_ids [i] == SConfig::GetInstance().m_InterfaceLanguage)
+		if (language_ids [i] == startup_params.m_InterfaceLanguage)
 		{
 			m_interface_lang_choice->SetSelection(i);
 			break;

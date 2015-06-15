@@ -160,9 +160,9 @@ bool VideoBackend::Initialize(void *window_handle)
 
 	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_dx11.ini");
 	g_Config.GameIniLoad();
-	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();
+	UpdateProjectionHack();
 
 	m_window_handle = window_handle;
 

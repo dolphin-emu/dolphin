@@ -189,8 +189,7 @@ bool IsCPUThread()
 
 bool IsGPUThread()
 {
-	const SConfig& _CoreParameter = SConfig::GetInstance();
-	if (_CoreParameter.bCPUThread)
+	if (SConfig::GetInstance().bCPUThread)
 	{
 		return (s_emu_thread.joinable() && (s_emu_thread.get_id() == std::this_thread::get_id()));
 	}
@@ -204,7 +203,7 @@ bool IsGPUThread()
 // BootManager.cpp
 bool Init()
 {
-	const SConfig& _CoreParameter = SConfig::GetInstance();
+	SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (s_emu_thread.joinable())
 	{
@@ -249,8 +248,6 @@ void Stop()  // - Hammertime!
 	if (GetState() == CORE_STOPPING)
 		return;
 
-	const SConfig& _CoreParameter = SConfig::GetInstance();
-
 	s_is_stopping = true;
 
 	g_video_backend->EmuStateChange(EMUSTATE_CHANGE_STOP);
@@ -264,7 +261,7 @@ void Stop()  // - Hammertime!
 	// Kick it if it's waiting (code stepping wait loop)
 	CCPU::StepOpcode();
 
-	if (_CoreParameter.bCPUThread)
+	if (SConfig::GetInstance().bCPUThread)
 	{
 		// Video_EnterLoop() should now exit so that EmuThread()
 		// will continue concurrently with the rest of the commands
@@ -306,7 +303,7 @@ static void CpuThread()
 {
 	DeclareAsCPUThread();
 
-	const SConfig& _CoreParameter = SConfig::GetInstance();
+	SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -360,7 +357,7 @@ static void CpuThread()
 
 static void FifoPlayerThread()
 {
-	const SConfig& _CoreParameter = SConfig::GetInstance();
+	SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -396,7 +393,7 @@ static void FifoPlayerThread()
 // See the BootManager.cpp file description for a complete call schedule.
 void EmuThread()
 {
-	const SConfig& core_parameter = SConfig::GetInstance();
+	SConfig& core_parameter = SConfig::GetInstance();
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
 

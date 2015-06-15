@@ -130,7 +130,7 @@ void FindFilename(u64 offset)
 	if (!FileAccess)
 		return;
 
-	if (!pFileSystem || ISOFile != SConfig::GetInstance().m_LastFilename)
+	if (!pFileSystem || ISOFile != SConfig::GetInstance().m_LastFilename.Get())
 	{
 		FileAccess = false;
 		ReadFileSystem(SConfig::GetInstance().m_LastFilename);

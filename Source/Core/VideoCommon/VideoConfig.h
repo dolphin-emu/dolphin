@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/IniFile.h"
 #include "VideoCommon/VideoCommon.h"
 
 // Log in two categories, and save three other options in the same byte
@@ -59,82 +60,78 @@ struct VideoConfig final
 	void GameIniLoad();
 	void VerifyValidity();
 	void Save(const std::string& ini_file);
-	void UpdateProjectionHack();
 	bool IsVSync();
 
+	OptionGroup  m_hardware_group{"Hardware"};
+	OptionGroup  m_settings_group{"Settings"};
+	OptionGroup  m_enhancements_group{"Enhancements"};
+	OptionGroup  m_hacks_group{"Hacks"};
+	OptionGroup  m_stereoscopy_group{"Stereoscopy"};
+
+	Option<bool> bVSync {m_hardware_group, "VSync", false};
+	Option<int>  iAdapter {m_hardware_group, "Adapter", 0};
+
+	Option<bool> bWidescreenHack {m_settings_group, "wideScreenHack", false};
+	Option<int>  iAspectRatio {m_settings_group, "AspectRatio", (int)ASPECT_AUTO};
+	Option<bool> bCrop {m_settings_group, "Crop", false};
+	Option<bool> bUseXFB {m_settings_group, "UseXFB", 0};
+	Option<bool> bUseRealXFB {m_settings_group, "UseRealXFB", 0};
+	Option<int>  iSafeTextureCache_ColorSamples {m_settings_group, "SafeTextureCacheColorSamples", 128};
+	Option<bool> bShowFPS {m_settings_group, "ShowFPS", false};
+	Option<bool> bLogRenderTimeToFile {m_settings_group, "LogRenderTimeToFile", false};
+	Option<bool> bOverlayStats {m_settings_group, "OverlayStats", false};
+	Option<bool> bOverlayProjStats {m_settings_group, "OverlayProjStats", false};
+	Option<bool> bShowEFBCopyRegions {m_settings_group, "ShowEFBCopyRegions", false};
+	Option<bool> bDumpTextures {m_settings_group, "DumpTextures", false};
+	Option<bool> bHiresTextures {m_settings_group, "HiresTextures", false};
+	Option<bool> bConvertHiresTextures {m_settings_group, "ConvertHiresTextures", false};
+	Option<bool> bCacheHiresTextures {m_settings_group, "CacheHiresTextures", false};
+	Option<bool> bDumpEFBTarget {m_settings_group, "DumpEFBTarget", false};
+	Option<bool> bFreeLook {m_settings_group, "FreeLook", false};
+	Option<bool> bUseFFV1 {m_settings_group, "UseFFV1", false};
+	Option<bool> bEnablePixelLighting {m_settings_group, "EnablePixelLighting", false};
+	Option<bool> bFastDepthCalc {m_settings_group, "FastDepthCalc", true};
+	Option<int>  iMultisampleMode {m_settings_group, "MSAA", 0};
+	Option<int>  iEFBScale {m_settings_group, "EFBScale", (int)SCALE_1X};
+	Option<bool> bDstAlphaPass {m_settings_group, "DstAlphaPass", false};
+	Option<bool> bTexFmtOverlayEnable {m_settings_group, "TexFmtOverlayEnable", false};
+	Option<bool> bTexFmtOverlayCenter {m_settings_group, "TexFmtOverlayCenter", false};
+	Option<bool> bWireFrame {m_settings_group, "WireFrame", false};
+	Option<bool> bDisableFog {m_settings_group, "DisableFog", false};
+	Option<bool> bEnableShaderDebugging {m_settings_group, "EnableShaderDebugging", false};
+	Option<bool> bBorderlessFullscreen {m_settings_group, "BorderlessFullscreen", false};
+
+	Option<bool> bForceFiltering {m_enhancements_group, "ForceFiltering", false};
+	Option<int>  iMaxAnisotropy {m_enhancements_group, "MaxAnisotropy", 0};
+	Option<int>  iStereoMode {m_enhancements_group, "StereoMode", 0};
+	Option<int>  iStereoDepth {m_enhancements_group, "StereoDepth", 20};
+	Option<int>  iStereoConvergence {m_enhancements_group, "StereoConvergence", 20};
+	Option<bool> bStereoSwapEyes {m_enhancements_group, "StereoSwapEyes", false};
+	Option<std::string> sPostProcessingShader {m_enhancements_group, "PostProcessingShader", ""};
+
+	Option<bool> bEFBAccessEnable {m_hacks_group, "EFBAccessEnable", true};
+	Option<bool> bBBoxEnable {m_hacks_group, "BBoxEnable", false};
+	Option<bool> bSkipEFBCopyToRam {m_hacks_group, "EFBToTextureEnable", true};
+	Option<bool> bCopyEFBScaled {m_hacks_group, "EFBScaledCopy", true};
+	Option<bool> bEFBEmulateFormatChanges {m_hacks_group, "EFBEmulateFormatChanges", false};
+	Option<bool> bPerfQueriesEnable {m_hacks_group, "PerfQueriesEnable", false};
+	Option<bool> bPhackvalue0 {m_hacks_group, "ProjectionHack", false};
+	Option<bool> bPhackvalue1 {m_hacks_group, "PH_SZNear", false};
+	Option<bool> bPhackvalue2 {m_hacks_group, "PH_SZFar", false};
+	Option<std::string> sPhackvalue0 {m_hacks_group, "PH_ZNear", ""};
+	Option<std::string> sPhackvalue1 {m_hacks_group, "PH_ZFar", ""};
+
+	Option<bool> bStereoEFBMonoDepth {m_stereoscopy_group, "StereoEFBMonoDepth", false};
+	Option<int>  iStereoDepthPercentage {m_stereoscopy_group, "StereoDepthPercentage", 100};
+	Option<int>  iStereoConvergenceMinimum {m_stereoscopy_group, "StereoConvergenceMinimum", 0};
+
 	// General
-	bool bVSync;
 	bool bFullscreen;
 	bool bExclusiveMode;
-	bool bRunning;
-	bool bWidescreenHack;
-	int iAspectRatio;
-	bool bCrop;   // Aspect ratio controls.
-	bool bUseXFB;
-	bool bUseRealXFB;
 
-	// Enhancements
-	int iMultisampleMode;
-	int iEFBScale;
-	bool bForceFiltering;
-	int iMaxAnisotropy;
-	std::string sPostProcessingShader;
-	int iStereoMode;
-	int iStereoDepth;
-	int iStereoConvergence;
-	bool bStereoSwapEyes;
-
-	// Information
-	bool bShowFPS;
-	bool bOverlayStats;
-	bool bOverlayProjStats;
-	bool bTexFmtOverlayEnable;
-	bool bTexFmtOverlayCenter;
-	bool bShowEFBCopyRegions;
-	bool bLogRenderTimeToFile;
-
-	// Render
-	bool bWireFrame;
-	bool bDstAlphaPass;
-	bool bDisableFog;
-
-	// Utility
-	bool bDumpTextures;
-	bool bHiresTextures;
-	bool bConvertHiresTextures;
-	bool bCacheHiresTextures;
-	bool bDumpEFBTarget;
-	bool bUseFFV1;
-	bool bFreeLook;
-	bool bBorderlessFullscreen;
-
-	// Hacks
-	bool bEFBAccessEnable;
-	bool bPerfQueriesEnable;
-	bool bBBoxEnable;
-
-	bool bEFBEmulateFormatChanges;
-	bool bSkipEFBCopyToRam;
-	bool bCopyEFBScaled;
-	int iSafeTextureCache_ColorSamples;
-	int iPhackvalue[3];
-	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
-	bool bEnablePixelLighting;
-	bool bFastDepthCalc;
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
-
-	// Stereoscopy
-	bool bStereoEFBMonoDepth;
-	int iStereoDepthPercentage;
-	int iStereoConvergenceMinimum;
-
-	// D3D only config, mostly to be merged into the above
-	int iAdapter;
-
-	// Debugging
-	bool bEnableShaderDebugging;
 
 	// Static config per API
 	// TODO: Move this out of VideoConfig
@@ -163,9 +160,9 @@ struct VideoConfig final
 	} backend_info;
 
 	// Utility
-	bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
-	bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
-	bool ExclusiveFullscreenEnabled() const { return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen; }
+	bool RealXFBEnabled() { return bUseXFB && bUseRealXFB; }
+	bool VirtualXFBEnabled() { return bUseXFB && !bUseRealXFB; }
+	bool ExclusiveFullscreenEnabled() { return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen; }
 };
 
 extern VideoConfig g_Config;

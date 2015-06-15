@@ -164,6 +164,13 @@ bool IniFile::Section::Get(const std::string& key, double* value, double default
 	return false;
 }
 
+bool IniFile::Section::Get(const OptionGroup::_OptionBase& option)
+{
+	std::string temp;
+	bool retval = Get(option.GetKey(), &temp);
+	return retval && option.Set(temp);
+}
+
 bool IniFile::Section::Exists(const std::string& key) const
 {
 	return values.find(key) != values.end();

@@ -86,7 +86,7 @@ void AudioConfigPane::LoadGUIValues()
 {
 	PopulateBackendChoiceBox();
 
-	const SConfig& startup_params = SConfig::GetInstance();
+	SConfig& startup_params = SConfig::GetInstance();
 
 	// Audio DSP Engine
 	if (startup_params.bDSPHLE)
@@ -97,7 +97,7 @@ void AudioConfigPane::LoadGUIValues()
 	m_volume_slider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
 	m_volume_slider->SetValue(SConfig::GetInstance().m_Volume);
 
-	m_volume_text->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume));
+	m_volume_text->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume.Get()));
 
 	m_dpl2_decoder_checkbox->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL
 		|| std::string(SConfig::GetInstance().sBackend) == BACKEND_PULSEAUDIO);

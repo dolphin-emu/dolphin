@@ -111,7 +111,7 @@ XRRConfiguration::~XRRConfiguration()
 
 void XRRConfiguration::Update()
 {
-	if (SConfig::GetInstance().strFullscreenResolution == "Auto")
+	if (SConfig::GetInstance().strFullscreenResolution.Get() == "Auto")
 		return;
 
 	if (!bValid)
@@ -133,7 +133,7 @@ void XRRConfiguration::Update()
 	unsigned int fullWidth, fullHeight;
 	char *output_name = nullptr;
 	char auxFlag = '\0';
-	if (SConfig::GetInstance().strFullscreenResolution.find(':') ==
+	if (SConfig::GetInstance().strFullscreenResolution.Get().find(':') ==
 			std::string::npos)
 	{
 		fullWidth = fb_width;
@@ -141,7 +141,7 @@ void XRRConfiguration::Update()
 	}
 	else
 	{
-		sscanf(SConfig::GetInstance().strFullscreenResolution.c_str(),
+		sscanf(SConfig::GetInstance().strFullscreenResolution.Get().c_str(),
 				"%m[^:]: %ux%u%c", &output_name, &fullWidth, &fullHeight, &auxFlag);
 	}
 	bool want_interlaced = ('i' == auxFlag);

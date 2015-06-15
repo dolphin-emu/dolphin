@@ -262,10 +262,10 @@ class PlatformX11 : public Platform
 				Window winDummy;
 				unsigned int borderDummy, depthDummy;
 				XGetGeometry(dpy, win, &winDummy,
-					     &SConfig::GetInstance().iRenderWindowXPos,
-					     &SConfig::GetInstance().iRenderWindowYPos,
-					     (unsigned int *)&SConfig::GetInstance().iRenderWindowWidth,
-					     (unsigned int *)&SConfig::GetInstance().iRenderWindowHeight,
+					     &SConfig::GetInstance().iRenderWindowXPos.Get(),
+					     &SConfig::GetInstance().iRenderWindowYPos.Get(),
+					     (unsigned int *)&SConfig::GetInstance().iRenderWindowWidth.Get(),
+					     (unsigned int *)&SConfig::GetInstance().iRenderWindowHeight.Get(),
 					     &borderDummy, &depthDummy);
 				rendererIsFullscreen = false;
 			}

@@ -427,7 +427,7 @@ void CCodeWindow::UpdateCallstack()
 }
 
 // Create CPU Mode menus
-void CCodeWindow::CreateMenu(const SConfig& core_startup_parameter, wxMenuBar *pMenuBar)
+void CCodeWindow::CreateMenu(SConfig& core_startup_parameter, wxMenuBar *pMenuBar)
 {
 	// CPU Mode
 	wxMenu* pCoreMenu = new wxMenu;

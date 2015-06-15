@@ -7,11 +7,120 @@
 #include <cstring>
 #include <list>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+
+template<typename T, typename T2 = T> class Option;
+
+class OptionGroup
+{
+public:
+	class _OptionBase
+	{
+	public:
+		virtual ~_OptionBase() {}
+		virtual bool Set(const std::string& value) const = 0;
+		virtual std::string Get() const = 0;
+		virtual const std::string& GetKey() const = 0;
+		virtual bool SetDefault() const = 0;
+	};
+
+	template<typename T, typename T2> class _Option : public _OptionBase
+	{
+	public:
+		_Option(Option<T, T2>* option, const std::string& key, const T& defaultValue)
+		: m_option(option), m_key(key), m_defaultValue(defaultValue) {}
+
+		bool Set(const std::string& value) const override
+		{
+			T2 tmp;
+			if (TryParse<T2>(value, &tmp) && m_option->Get() != (T)tmp)
+			{
+				*m_option = (T)tmp;
+				return true;
+			}
+			return false;
+		}
+
+		std::string Get() const override
+		{
+			return ToString<T2>((T2)m_option->Get());
+		}
+
+		const std::string& GetKey() const override
+		{
+			return m_key;
+		}
+
+		bool SetDefault() const override
+		{
+			if (m_option->Get() != m_defaultValue)
+			{
+				*m_option = m_defaultValue;
+				return true;
+			}
+			return false;
+		}
+
+	private:
+		Option<T, T2>* const m_option;
+		const std::string m_key;
+		const T m_defaultValue;
+	};
+
+	OptionGroup(const char* name) : m_name(name) {}
+
+	const OptionGroup& operator=(const OptionGroup& group)
+	{
+		return *this;
+	}
+
+	template<typename T, typename T2> void AddOption(Option<T, T2>* option, const std::string& key, const T& defaultValue)
+	{
+		m_options.emplace_back(new _Option<T, T2>(option, key, defaultValue));
+	}
+
+	const char* m_name;
+	std::vector<std::unique_ptr<_OptionBase>> m_options;
+};
+
+template<typename T, typename T2> class Option
+{
+public:
+	Option(OptionGroup& group, const std::string& key, const T& defaultValue)
+	: m_value(defaultValue)
+	{
+		group.AddOption<T, T2>(this, key, defaultValue);
+	}
+
+	operator T&()
+	{
+		return m_value;
+	}
+
+	T& Get()
+	{
+		return m_value;
+	}
+
+	void Set(const T& value)
+	{
+		m_value = value;
+	}
+
+	const Option<T, T2>& operator=(const T& value)
+	{
+		m_value = value;
+		return *this;
+	}
+
+private:
+	T m_value;
+};
 
 struct CaseInsensitiveStringCompare
 {
@@ -38,31 +147,34 @@ public:
 		void Set(const std::string& key, const std::string& newValue);
 		void Set(const std::string& key, const std::string& newValue, const std::string& defaultValue);
 
-		bool Get(const std::string& key, std::string* value, const std::string& defaultValue = NULL_STRING);
-
 		void Set(const std::string& key, u32 newValue)
 		{
-			Set(key, StringFromFormat("0x%08x", newValue));
+			Set(key, ToString(newValue));
 		}
 
 		void Set(const std::string& key, float newValue)
 		{
-			Set(key, StringFromFormat("%f", newValue));
+			Set(key, ToString(newValue));
 		}
 
 		void Set(const std::string& key, double newValue)
 		{
-			Set(key, StringFromFormat("%f", newValue));
+			Set(key, ToString(newValue));
 		}
 
 		void Set(const std::string& key, int newValue)
 		{
-			Set(key, StringFromInt(newValue));
+			Set(key, ToString(newValue));
 		}
 
 		void Set(const std::string& key, bool newValue)
 		{
-			Set(key, StringFromBool(newValue));
+			Set(key, ToString(newValue));
+		}
+
+		void Set(const OptionGroup::_OptionBase& option)
+		{
+			Set(option.GetKey(), option.Get());
 		}
 
 		template<typename T>
@@ -81,7 +193,19 @@ public:
 		bool Get(const std::string& key, bool* value, bool defaultValue = false);
 		bool Get(const std::string& key, float* value, float defaultValue = false);
 		bool Get(const std::string& key, double* value, double defaultValue = false);
+		bool Get(const std::string& key, std::string* value, const std::string& defaultValue = NULL_STRING);
 		bool Get(const std::string& key, std::vector<std::string>* values);
+
+		template<typename T> bool Get(const std::string& key, Option<T>* value, Option<T> defaultValue)
+		{
+			return Get(key, &(T&)(*value), (T)defaultValue);
+		}
+		template<typename T> bool Get(const std::string& key, Option<T>* value)
+		{
+			return Get(key, &(T&)(*value));
+		}
+
+		bool Get(const OptionGroup::_OptionBase& option);
 
 		bool operator < (const Section& other) const
 		{

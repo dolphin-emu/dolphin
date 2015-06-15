@@ -285,7 +285,7 @@ void RunGpuLoop()
 
 	s_gpu_mainloop.Run(
 	[] {
-		const SConfig& param = SConfig::GetInstance();
+		SConfig& param = SConfig::GetInstance();
 
 		g_video_backend->PeekMessages();
 
@@ -377,9 +377,7 @@ void RunGpuLoop()
 
 void FlushGpu()
 {
-	const SConfig& param = SConfig::GetInstance();
-
-	if (!param.bCPUThread || g_use_deterministic_gpu_thread)
+	if (!SConfig::GetInstance().bCPUThread || g_use_deterministic_gpu_thread)
 		return;
 
 	s_gpu_mainloop.Wait();
@@ -399,10 +397,9 @@ bool AtBreakpoint()
 void RunGpu()
 {
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	const SConfig& param = SConfig::GetInstance();
 
 	// execute GPU
-	if (!param.bCPUThread || g_use_deterministic_gpu_thread)
+	if (!SConfig::GetInstance().bCPUThread || g_use_deterministic_gpu_thread)
 	{
 		bool reset_simd_state = false;
 		while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
@@ -442,7 +439,7 @@ void RunGpu()
 	}
 
 	// wake up GPU thread
-	if (param.bCPUThread)
+	if (SConfig::GetInstance().bCPUThread)
 	{
 		s_gpu_mainloop.Wakeup();
 	}
@@ -452,9 +449,8 @@ void Fifo_UpdateWantDeterminism(bool want)
 {
 	// We are paused (or not running at all yet), so
 	// it should be safe to change this.
-	const SConfig& param = SConfig::GetInstance();
 	bool gpu_thread = false;
-	switch (param.m_GPUDeterminismMode)
+	switch (SConfig::GetInstance().m_GPUDeterminismMode)
 	{
 		case GPU_DETERMINISM_AUTO:
 			gpu_thread = want;
@@ -475,7 +471,7 @@ void Fifo_UpdateWantDeterminism(bool want)
 			break;
 	}
 
-	gpu_thread = gpu_thread && param.bCPUThread;
+	gpu_thread = gpu_thread && SConfig::GetInstance().bCPUThread;
 
 	if (g_use_deterministic_gpu_thread != gpu_thread)
 	{
@@ -492,7 +488,7 @@ void Fifo_UpdateWantDeterminism(bool want)
 
 int Fifo_Update(int ticks)
 {
-	const SConfig& param = SConfig::GetInstance();
+	SConfig& param = SConfig::GetInstance();
 
 	if (ticks == 0)
 	{

@@ -850,7 +850,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			popupMenu.AppendCheckItem(IDM_SET_DEFAULT_ISO, _("Set as &default ISO"));
 
 			// First we have to decide a starting value when we append it
-			if (selected_iso->GetFileName() == SConfig::GetInstance().m_strDefaultISO)
+			if (selected_iso->GetFileName() == SConfig::GetInstance().m_strDefaultISO.Get())
 				popupMenu.FindItem(IDM_SET_DEFAULT_ISO)->Check();
 
 			popupMenu.AppendSeparator();
