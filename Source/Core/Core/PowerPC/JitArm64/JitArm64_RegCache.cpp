@@ -261,22 +261,11 @@ void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
 	for (int i = 0; i < 32; ++i)
 	{
-		bool flush = true;
-		if (mode == FLUSH_INTERPRETER)
-		{
-			if (!(op->regsOut[i] || op->regsIn[i]))
-			{
-				// This interpreted instruction doesn't use this register
-				flush = false;
-			}
-		}
-
 		if (m_guest_registers[i].GetType() == REG_REG)
 		{
-			// Has to be flushed if it isn't in a callee saved register
-			ARM64Reg host_reg = m_guest_registers[i].GetReg();
-			if (flush || !IsCalleeSaved(host_reg))
-				FlushRegister(i, mode == FLUSH_MAINTAIN_STATE);
+			// XXX: Determine if we can keep a register in the lower 64bits
+			// Which will allow it to be callee saved.
+			FlushRegister(i, mode == FLUSH_MAINTAIN_STATE);
 		}
 	}
 }
@@ -342,7 +331,16 @@ void Arm64FPRCache::GetAllocationOrder()
 
 void Arm64FPRCache::FlushByHost(ARM64Reg host_reg)
 {
-	// XXX: Scan guest registers and flush if found
+	for (int i = 0; i < 32; ++i)
+	{
+		OpArg& reg = m_guest_registers[i];
+		if (reg.GetType() == REG_REG && reg.GetReg() == host_reg)
+		{
+			FlushRegister(i, false);
+			return;
+		}
+	}
+
 }
 
 bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg)
@@ -351,7 +349,7 @@ bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg)
 	{
 		Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15, INVALID_REG,
 	};
-	return std::find(callee_regs.begin(), callee_regs.end(), EncodeRegTo64(reg)) != callee_regs.end();
+	return std::find(callee_regs.begin(), callee_regs.end(), reg) != callee_regs.end();
 }
 
 void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
@@ -377,6 +375,6 @@ BitSet32 Arm64FPRCache::GetCallerSavedUsed()
 	BitSet32 registers(0);
 	for (auto& it : m_host_registers)
 		if (it.IsLocked())
-			registers[Q0 - it.GetReg()] = 1;
+			registers[it.GetReg() - Q0] = 1;
 	return registers;
 }
