@@ -84,7 +84,7 @@ void WiiConfigPane::InitializeGUI()
 void WiiConfigPane::LoadGUIValues()
 {
 	m_screensaver_checkbox->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.SSV"));
-	m_pal60_mode_checkbox->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60"));
+	m_pal60_mode_checkbox->SetValue(SConfig::GetInstance().bPAL60);
 	m_aspect_ratio_choice->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	m_system_language_choice->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
 
@@ -110,6 +110,7 @@ void WiiConfigPane::OnScreenSaverCheckBoxChanged(wxCommandEvent& event)
 
 void WiiConfigPane::OnPAL60CheckBoxChanged(wxCommandEvent& event)
 {
+	SConfig::GetInstance().bPAL60 = m_pal60_mode_checkbox->IsChecked();
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", m_pal60_mode_checkbox->IsChecked());
 }
 
