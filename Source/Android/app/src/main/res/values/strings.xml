@@ -240,4 +240,7 @@
     <string name="emulation_title">Emulation Activity</string>
 
     <string name="emulation_toggle_input">Toggle Input Overlay</string>
+
+    <!-- Package Names-->
+    <string name="application_id">org.dolphinemu.dolphinemu</string>
 </resources>

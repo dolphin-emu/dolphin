@@ -11,6 +11,7 @@ android {
     }
 
     defaultConfig {
+        // TODO If this is ever modified, change application_id in strings.xml
         applicationId "org.dolphinemu.dolphinemu"
         minSdkVersion 21
         targetSdkVersion 21
@@ -43,6 +44,7 @@ android {
         // Signed by debug key disallowing distribution on Play Store.
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
+            // TODO If this is ever modified, change application_id in debug/strings.xml
             applicationIdSuffix ".debug"
             versionNameSuffix '-debug'
             jniDebuggable true
