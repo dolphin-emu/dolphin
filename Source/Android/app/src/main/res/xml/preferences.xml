@@ -43,7 +43,7 @@
 
                 <intent
                     android:targetClass="org.dolphinemu.dolphinemu.activities.OverlayConfigActivity"
-                    android:targetPackage="org.dolphinemu.dolphinemu.debug"/>
+                    android:targetPackage="@string/application_id"/>
 
             </Preference>
 
