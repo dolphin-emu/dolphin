@@ -263,6 +263,10 @@ struct SConfig : NonCopyable
 	bool m_GameCubeAdapter;
 	bool m_AdapterRumble;
 
+	// Network settings
+	bool m_SSLDumpRead;
+	bool m_SSLDumpWrite;
+
 	SysConf* m_SYSCONF;
 
 	// Save settings
@@ -290,6 +294,7 @@ private:
 	void SaveInputSettings(IniFile& ini);
 	void SaveMovieSettings(IniFile& ini);
 	void SaveFifoPlayerSettings(IniFile& ini);
+	void SaveNetworkSettings(IniFile& ini);
 
 	void LoadGeneralSettings(IniFile& ini);
 	void LoadInterfaceSettings(IniFile& ini);
@@ -300,6 +305,7 @@ private:
 	void LoadInputSettings(IniFile& ini);
 	void LoadMovieSettings(IniFile& ini);
 	void LoadFifoPlayerSettings(IniFile& ini);
+	void LoadNetworkSettings(IniFile& ini);
 
 	static SConfig* m_Instance;
 };
