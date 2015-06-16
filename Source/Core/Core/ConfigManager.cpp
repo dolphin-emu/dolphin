@@ -82,6 +82,7 @@ void SConfig::SaveSettings()
   SaveInputSettings(ini);
   SaveFifoPlayerSettings(ini);
   SaveAnalyticsSettings(ini);
+  SaveNetworkSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   m_SYSCONF->Save();
@@ -312,6 +313,14 @@ void SConfig::SaveFifoPlayerSettings(IniFile& ini)
   fifoplayer->Set("LoopReplay", bLoopFifoReplay);
 }
 
+void SConfig::SaveNetworkSettings(IniFile& ini)
+{
+  IniFile::Section* network = ini.GetOrCreateSection("Network");
+
+  network->Set("SSLDumpRead", m_SSLDumpRead);
+  network->Set("SSLDumpWrite", m_SSLDumpWrite);
+}
+
 void SConfig::SaveAnalyticsSettings(IniFile& ini)
 {
   IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
@@ -336,6 +345,7 @@ void SConfig::LoadSettings()
   LoadDSPSettings(ini);
   LoadInputSettings(ini);
   LoadFifoPlayerSettings(ini);
+  LoadNetworkSettings(ini);
   LoadAnalyticsSettings(ini);
 
   m_SYSCONF = new SysConf();
@@ -600,6 +610,14 @@ void SConfig::LoadFifoPlayerSettings(IniFile& ini)
   IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
 
   fifoplayer->Get("LoopReplay", &bLoopFifoReplay, true);
+}
+
+void SConfig::LoadNetworkSettings(IniFile& ini)
+{
+  IniFile::Section* network = ini.GetOrCreateSection("Network");
+
+  network->Get("SSLDumpRead", &m_SSLDumpRead, false);
+  network->Get("SSLDumpWrite", &m_SSLDumpWrite, false);
 }
 
 void SConfig::LoadAnalyticsSettings(IniFile& ini)

@@ -273,6 +273,10 @@ struct SConfig : NonCopyable
   bool m_AdapterRumble[4];
   bool m_AdapterKonga[4];
 
+  // Network settings
+  bool m_SSLDumpRead;
+  bool m_SSLDumpWrite;
+
   SysConf* m_SYSCONF;
 
   // Save settings
@@ -299,6 +303,7 @@ private:
   void SaveInputSettings(IniFile& ini);
   void SaveMovieSettings(IniFile& ini);
   void SaveFifoPlayerSettings(IniFile& ini);
+  void SaveNetworkSettings(IniFile& ini);
   void SaveAnalyticsSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
@@ -310,6 +315,7 @@ private:
   void LoadInputSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);
+  void LoadNetworkSettings(IniFile& ini);
   void LoadAnalyticsSettings(IniFile& ini);
 
   static SConfig* m_Instance;
