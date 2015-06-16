@@ -42,7 +42,7 @@
                 android:title="@string/input_overlay_layout">
 
                 <intent
-                    android:targetClass="org.dolphinemu.dolphinemu.settings.input.overlayconfig.OverlayConfigActivity"
+                    android:targetClass="org.dolphinemu.dolphinemu.activities.OverlayConfigActivity"
                     android:targetPackage="org.dolphinemu.dolphinemu.debug"/>
 
             </Preference>
