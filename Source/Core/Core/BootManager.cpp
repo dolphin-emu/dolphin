@@ -96,6 +96,8 @@ bool BootCore(const std::string& _rFilename)
 	if (!StartUp.AutoSetup(SConfig::BOOT_DEFAULT))
 		return false;
 
+	config_cache.bPAL60 = StartUp.bPAL60;
+
 	// Load game specific settings
 	if (StartUp.GetUniqueID().size() == 6)
 	{
@@ -121,7 +123,6 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
 		config_cache.frameSkip = SConfig::GetInstance().m_FrameSkip;
 		config_cache.bProgressive = StartUp.bProgressive;
-		config_cache.bPAL60 = StartUp.bPAL60;
 		config_cache.iSelectedLanguage = StartUp.SelectedLanguage;
 		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		{
@@ -284,6 +285,9 @@ void Stop()
 
 	SConfig& StartUp = SConfig::GetInstance();
 
+	StartUp.bPAL60 = config_cache.bPAL60;
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", config_cache.bPAL60);
+
 	StartUp.m_strUniqueID = "00000000";
 	if (config_cache.valid)
 	{
@@ -308,8 +312,6 @@ void Stop()
 		StartUp.bProgressive = config_cache.bProgressive;
 		StartUp.SelectedLanguage = config_cache.iSelectedLanguage;
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", config_cache.bProgressive);
-		StartUp.bPAL60 = config_cache.bPAL60;
-		SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", config_cache.bPAL60);
 
 		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
 		if (config_cache.bSetFramelimit)
