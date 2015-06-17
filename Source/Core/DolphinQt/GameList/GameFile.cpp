@@ -22,10 +22,9 @@
 #include "DiscIO/Filesystem.h"
 
 #include "DolphinQt/GameList/GameFile.h"
-#include "DolphinQt/Utils/Resources.h"
 #include "DolphinQt/Utils/Utils.h"
 
-static const u32 CACHE_REVISION = 0x00A;
+static const u32 CACHE_REVISION = 0x00B; // Last changed in PR 2598
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
 
 static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<DiscIO::IVolume::ELanguage, std::string> strings)
@@ -72,12 +71,23 @@ static QString GetLanguageString(DiscIO::IVolume::ELanguage language, QMap<DiscI
 GameFile::GameFile(const QString& fileName)
     : m_file_name(fileName)
 {
-	bool hasBanner = false;
-
 	if (LoadFromCache())
 	{
 		m_valid = true;
-		hasBanner = true;
+
+		// Wii banners can only be read if there is a savefile,
+		// so sometimes caches don't contain banners. Let's check
+		// if a banner has become available after the cache was made.
+		if (m_banner.isNull())
+		{
+			std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(fileName.toStdString()));
+			if (volume != nullptr)
+			{
+				ReadBanner(*volume);
+				if (!m_banner.isNull())
+					SaveToCache();
+			}
+		}
 	}
 	else
 	{
@@ -104,26 +114,10 @@ GameFile::GameFile(const QString& fileName)
 			QFileInfo info(m_file_name);
 			m_folder_name = info.absoluteDir().dirName();
 
-			int width, height;
-			std::vector<u32> buffer = volume->GetBanner(&width, &height);
-			QImage banner(width, height, QImage::Format_RGB888);
-			for (int i = 0; i < width * height; i++)
-			{
-				int x = i % width, y = i / width;
-				banner.setPixel(x, y, qRgb((buffer[i] & 0xFF0000) >> 16,
-						        (buffer[i] & 0x00FF00) >>  8,
-						        (buffer[i] & 0x0000FF) >>  0));
-			}
-
-			if (!banner.isNull())
-			{
-				hasBanner = true;
-				m_banner = QPixmap::fromImage(banner);
-			}
+			ReadBanner(*volume);
 
 			m_valid = true;
-			if (hasBanner)
-				SaveToCache();
+			SaveToCache();
 		}
 	}
 
@@ -138,9 +132,6 @@ GameFile::GameFile(const QString& fileName)
 		ini.GetIfExists("EmuState", "EmulationIssues", &issues_temp);
 		m_issues = QString::fromStdString(issues_temp);
 	}
-
-	if (!hasBanner)
-		m_banner = Resources::GetPixmap(Resources::BANNER_MISSING);
 }
 
 bool GameFile::LoadFromCache()
@@ -245,6 +236,23 @@ QString GameFile::CreateCacheFilename()
 	QString fullname = QString::fromStdString(File::GetUserPath(D_CACHE_IDX));
 	fullname += QString::fromStdString(filename);
 	return fullname;
+}
+
+void GameFile::ReadBanner(const DiscIO::IVolume& volume)
+{
+	int width, height;
+	std::vector<u32> buffer = volume.GetBanner(&width, &height);
+	QImage banner(width, height, QImage::Format_RGB888);
+	for (int i = 0; i < width * height; i++)
+	{
+		int x = i % width, y = i / width;
+		banner.setPixel(x, y, qRgb((buffer[i] & 0xFF0000) >> 16,
+		                           (buffer[i] & 0x00FF00) >> 8,
+		                           (buffer[i] & 0x0000FF) >> 0));
+	}
+
+	if (!banner.isNull())
+		m_banner = QPixmap::fromImage(banner);
 }
 
 QString GameFile::GetDescription(DiscIO::IVolume::ELanguage language) const
