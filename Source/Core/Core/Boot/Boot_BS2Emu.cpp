@@ -166,21 +166,24 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 {
 	static const CountrySetting SETTING_EUROPE = {"EUR", "PAL",  "EU", "LE"};
+	static const CountrySetting SETTING_USA    = {"USA", "NTSC", "US", "LU"};
+	static const CountrySetting SETTING_JAPAN  = {"JPN", "NTSC", "JP", "LJ"};
+	static const CountrySetting SETTING_KOREA  = {"KOR", "NTSC", "KR", "LKH"};
 	static const std::map<DiscIO::IVolume::ECountry, const CountrySetting> country_settings = {
 		{DiscIO::IVolume::COUNTRY_EUROPE, SETTING_EUROPE},
-		{DiscIO::IVolume::COUNTRY_USA,    {"USA", "NTSC", "US", "LU"}},
-		{DiscIO::IVolume::COUNTRY_JAPAN,  {"JPN", "NTSC", "JP", "LJ"}},
-		{DiscIO::IVolume::COUNTRY_KOREA,  {"KOR", "NTSC", "KR", "LKH"}},
+		{DiscIO::IVolume::COUNTRY_USA,    SETTING_USA},
+		{DiscIO::IVolume::COUNTRY_JAPAN,  SETTING_JAPAN},
+		{DiscIO::IVolume::COUNTRY_KOREA,  SETTING_KOREA},
 		//TODO: Determine if Taiwan have their own specific settings.
 		//      Also determine if there are other specific settings
 		//      for other countries.
-		{DiscIO::IVolume::COUNTRY_TAIWAN, {"JPN", "NTSC", "JP", "LJ"}}
+		{DiscIO::IVolume::COUNTRY_TAIWAN, SETTING_JAPAN}
 	};
 	auto entryPos = country_settings.find(country);
 	const CountrySetting& country_setting =
 		(entryPos != country_settings.end()) ?
 		  entryPos->second :
-		  SETTING_EUROPE; //Default to EUROPE
+		  (SConfig::GetInstance().bNTSC ? SETTING_USA : SETTING_EUROPE); // default to USA or EUR depending on game's video mode
 
 	SettingsHandler gen;
 	std::string serno;
