@@ -27,12 +27,15 @@ void AdvancedConfigPane::InitializeGUI()
 	m_clock_override_slider = new wxSlider(this, wxID_ANY, 100, 0, 150, wxDefaultPosition, wxSize(200,-1));
 	m_clock_override_text = new wxStaticText(this, wxID_ANY, "");
 	m_component_cable_checkbox = new wxCheckBox(this, wxID_ANY, _("Emulate Component Cable"));
+	m_progressive_scan_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Progressive Scan"));
 
 	m_clock_override_checkbox->Bind(wxEVT_CHECKBOX, &AdvancedConfigPane::OnClockOverrideCheckBoxChanged, this);
 	m_clock_override_slider->Bind(wxEVT_SLIDER, &AdvancedConfigPane::OnClockOverrideSliderChanged, this);
 	m_component_cable_checkbox->Bind(wxEVT_CHECKBOX, &AdvancedConfigPane::OnComponentCableCheckBoxChanged, this);
+	m_progressive_scan_checkbox->Bind(wxEVT_CHECKBOX, &AdvancedConfigPane::OnProgressiveScanCheckBoxChanged, this);
 
 	m_component_cable_checkbox->SetToolTip(_("Sets the type of video output hardware that is being emulated."));
+	m_progressive_scan_checkbox->SetToolTip(_("Enables Progressive Scan if supported by the emulated software."));
 
 	wxStaticText* const clock_override_description = new wxStaticText(this, wxID_ANY,
 	  _("Higher values can make variable-framerate games "
@@ -62,6 +65,7 @@ void AdvancedConfigPane::InitializeGUI()
 
 	wxStaticBoxSizer* const misc_settings_static_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Output"));
 	misc_settings_static_sizer->Add(m_component_cable_checkbox, 0, wxALL, 5);
+	misc_settings_static_sizer->Add(m_progressive_scan_checkbox, 0, wxALL, 5);
 
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(cpu_options_sizer , 0, wxEXPAND | wxALL, 5);
@@ -79,13 +83,18 @@ void AdvancedConfigPane::LoadGUIValues()
 	m_clock_override_slider->Enable(oc_enabled);
 	UpdateCPUClock();
 	m_component_cable_checkbox->SetValue(SConfig::GetInstance().bComponentCable);
+	m_progressive_scan_checkbox->SetValue(SConfig::GetInstance().bProgressive);
 }
 
 void AdvancedConfigPane::RefreshGUI()
 {
+	// Progressive Scan only works with a Component Cable
+	m_progressive_scan_checkbox->Enable(m_component_cable_checkbox->IsChecked());
+
 	if (Core::IsRunning())
 	{
 		m_component_cable_checkbox->Disable();
+		m_progressive_scan_checkbox->Disable();
 	}
 }
 
@@ -114,5 +123,19 @@ void AdvancedConfigPane::UpdateCPUClock()
 
 void AdvancedConfigPane::OnComponentCableCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().bComponentCable = m_component_cable_checkbox->IsChecked();
+	const bool bComponentCable = m_component_cable_checkbox->IsChecked();
+	SConfig::GetInstance().bComponentCable = bComponentCable;
+	if (!bComponentCable)
+	{
+		SConfig::GetInstance().bProgressive = false;
+		m_progressive_scan_checkbox->SetValue(false);
+	}
+	RefreshGUI();
+}
+
+void AdvancedConfigPane::OnProgressiveScanCheckBoxChanged(wxCommandEvent& event)
+{
+	const bool bProgressive = m_progressive_scan_checkbox->IsChecked();
+	SConfig::GetInstance().bProgressive = bProgressive;
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", bProgressive);
 }

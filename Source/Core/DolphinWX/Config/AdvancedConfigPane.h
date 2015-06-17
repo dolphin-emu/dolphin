@@ -26,10 +26,12 @@ private:
 	void UpdateCPUClock();
 
 	void OnComponentCableCheckBoxChanged(wxCommandEvent&);
+	void OnProgressiveScanCheckBoxChanged(wxCommandEvent&);
 
 	wxCheckBox* m_clock_override_checkbox;
 	wxSlider* m_clock_override_slider;
 	wxStaticText* m_clock_override_text;
 
 	wxCheckBox* m_component_cable_checkbox;
+	wxCheckBox* m_progressive_scan_checkbox;
 };
