@@ -144,14 +144,12 @@ std::string CVolumeWiiCrypted::GetUniqueID() const
 	if (m_pReader == nullptr)
 		return std::string();
 
-	char ID[7];
+	char ID[6];
 
 	if (!Read(0, 6, (u8*)ID, false))
 		return std::string();
 
-	ID[6] = '\0';
-
-	return ID;
+	return DecodeString(ID);
 }
 
 
@@ -171,14 +169,12 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 	if (m_pReader == nullptr)
 		return std::string();
 
-	char makerID[3];
+	char makerID[2];
 
 	if (!Read(0x4, 0x2, (u8*)&makerID, false))
 		return std::string();
 
-	makerID[2] = '\0';
-
-	return makerID;
+	return DecodeString(makerID);
 }
 
 u16 CVolumeWiiCrypted::GetRevision() const
@@ -233,9 +229,7 @@ std::string CVolumeWiiCrypted::GetApploaderDate() const
 	if (!Read(0x2440, 0x10, (u8*)&date, true))
 		return std::string();
 
-	date[10] = '\0';
-
-	return date;
+	return DecodeString(date);
 }
 
 IVolume::EPlatform CVolumeWiiCrypted::GetVolumeType() const

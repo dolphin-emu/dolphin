@@ -47,7 +47,7 @@ std::string CVolumeGC::GetUniqueID() const
 	if (m_pReader == nullptr)
 		return NO_UID;
 
-	char ID[7];
+	char ID[6];
 
 	if (!Read(0, sizeof(ID), reinterpret_cast<u8*>(ID)))
 	{
@@ -55,9 +55,7 @@ std::string CVolumeGC::GetUniqueID() const
 		return NO_UID;
 	}
 
-	ID[6] = '\0';
-
-	return ID;
+	return DecodeString(ID);
 }
 
 IVolume::ECountry CVolumeGC::GetCountry() const
@@ -76,12 +74,11 @@ std::string CVolumeGC::GetMakerID() const
 	if (m_pReader == nullptr)
 		return std::string();
 
-	char makerID[3];
+	char makerID[2];
 	if (!Read(0x4, 0x2, (u8*)&makerID))
 		return std::string();
-	makerID[2] = '\0';
 
-	return makerID;
+	return DecodeString(makerID);
 }
 
 u16 CVolumeGC::GetRevision() const
@@ -166,10 +163,8 @@ std::string CVolumeGC::GetApploaderDate() const
 	char date[16];
 	if (!Read(0x2440, 0x10, (u8*)&date))
 		return std::string();
-	// Should be 0 already, but just in case
-	date[10] = '\0';
 
-	return date;
+	return DecodeString(date);
 }
 
 u64 CVolumeGC::GetSize() const
