@@ -128,13 +128,6 @@ public final class MainActivity extends AppCompatActivity implements LoaderManag
 	}
 
 	@Override
-	protected void onResume()
-	{
-		super.onResume();
-		mAdapter.notifyDataSetChanged();
-	}
-
-	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		MenuInflater inflater = getMenuInflater();
