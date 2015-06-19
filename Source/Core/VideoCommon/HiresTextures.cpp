@@ -79,7 +79,6 @@ void HiresTexture::Update()
 		s_textureCache.clear();
 	}
 
-	std::vector<std::string> Directories;
 	const std::string& gameCode = SConfig::GetInstance().m_strUniqueID;
 
 	std::string szDir = StringFromFormat("%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode.c_str());
