@@ -137,7 +137,7 @@ X64Reg RegCache::GetFreeXReg()
 		X64Reg xr = (X64Reg)aOrder[i];
 		if (!xregs[xr].locked && xregs[xr].free)
 		{
-			return (X64Reg)xr;
+			return xr;
 		}
 	}
 
