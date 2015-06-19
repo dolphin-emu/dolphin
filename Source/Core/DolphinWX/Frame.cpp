@@ -207,7 +207,7 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 		// Some backends don't support exclusive fullscreen, so we
 		// can't tell exactly when exclusive mode is activated.
 		if (!g_Config.backend_info.bSupportsExclusiveFullscreen)
-			OSD::AddMessage("Enabled exclusive fullscreen.");
+			OSD::AddMessage("Entered exclusive fullscreen.");
 	}
 #endif
 
