@@ -1510,6 +1510,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		// Reset settings
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;
+		s_screenshotCompleted.Set();
 	}
 
 	// Frame dumps are handled a little differently in Windows

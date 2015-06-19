@@ -671,6 +671,22 @@ void SaveScreenShot()
 		SetState(CORE_RUN);
 }
 
+void SaveScreenShot(std::string name)
+{
+	const bool bPaused = (GetState() == CORE_PAUSE);
+
+	SetState(CORE_PAUSE);
+
+	const std::string& gameId = SConfig::GetInstance().GetUniqueID();
+    std::string path = File::GetUserPath(D_SCREENSHOTS_IDX) + gameId + DIR_SEP_CHR;
+
+	name = StringFromFormat("%s%s.png", path.c_str(), name.c_str());
+	g_video_backend->Video_Screenshot(name);
+
+	if (!bPaused)
+	 	SetState(CORE_RUN);
+}
+
 void RequestRefreshInfo()
 {
 	s_request_refresh_info = true;

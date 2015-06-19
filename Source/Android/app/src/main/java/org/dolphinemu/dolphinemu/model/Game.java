@@ -113,21 +113,7 @@ public final class Game
 	{
 		ContentValues values = new ContentValues();
 
-		// TODO Come up with a way of finding the most recent screenshot that doesn't involve counting files
-		String screenshotFolderPath = PATH_SCREENSHOT_FOLDER + gameId + "/";
-
-		// Count how many screenshots are available, so we can use the most recent one.
-		File screenshotFolder = new File(screenshotFolderPath.substring(screenshotFolderPath.indexOf('s') - 1));
-		int screenCount = 0;
-
-		if (screenshotFolder.isDirectory())
-		{
-			screenCount = screenshotFolder.list().length;
-		}
-
-		String screenPath = screenshotFolderPath
-				+ gameId + "-"
-				+ screenCount + ".png";
+		String screenPath = PATH_SCREENSHOT_FOLDER + gameId + "/thumb.png";
 
 		values.put(GameDatabase.KEY_GAME_PLATFORM, platform);
 		values.put(GameDatabase.KEY_GAME_TITLE, title);
