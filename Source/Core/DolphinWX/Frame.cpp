@@ -1347,13 +1347,6 @@ void CFrame::ParseHotkeys()
 		OnConnectWiimote(evt);
 	}
 
-	if (IsHotkey(HK_TOGGLE_IR))
-	{
-		OSDChoice = 1;
-		// Toggle native resolution
-		if (++g_Config.iEFBScale > 11) // 8X Internal Resolution
-			g_Config.iEFBScale = SCALE_AUTO;
-	}
 	if (IsHotkey(HK_INCREASE_IR))
 	{
 		OSDChoice = 1;
@@ -1362,8 +1355,8 @@ void CFrame::ParseHotkeys()
 	if (IsHotkey(HK_DECREASE_IR))
 	{
 		OSDChoice = 1;
-		if (--g_Config.iEFBScale < SCALE_1X)
-			g_Config.iEFBScale = SCALE_1X;
+		if (--g_Config.iEFBScale < SCALE_AUTO)
+			g_Config.iEFBScale = SCALE_AUTO;
 	}
 	if (IsHotkey(HK_TOGGLE_AR))
 	{
