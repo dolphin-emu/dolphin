@@ -28,7 +28,7 @@ __forceinline void LOG_TEX<2>()
 	// PRIM_LOG("tex: %f %f, ", ((float*)g_vertex_manager_write_ptr)[-2], ((float*)g_vertex_manager_write_ptr)[-1]);
 }
 
-static void LOADERDECL TexCoord_Read_Dummy(VertexLoader* loader)
+static void TexCoord_Read_Dummy(VertexLoader* loader)
 {
 	loader->m_tcIndex++;
 }
@@ -46,7 +46,7 @@ float TCScale(float val, float scale)
 }
 
 template <typename T, int N>
-void LOADERDECL TexCoord_ReadDirect(VertexLoader* loader)
+void TexCoord_ReadDirect(VertexLoader* loader)
 {
 	auto const scale = loader->m_tcScale[loader->m_tcIndex];
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
@@ -63,7 +63,7 @@ void LOADERDECL TexCoord_ReadDirect(VertexLoader* loader)
 }
 
 template <typename I, typename T, int N>
-void LOADERDECL TexCoord_ReadIndex(VertexLoader* loader)
+void TexCoord_ReadIndex(VertexLoader* loader)
 {
 	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 

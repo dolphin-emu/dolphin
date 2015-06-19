@@ -18,14 +18,9 @@
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderUtils.h"
 
-#ifdef WIN32
-#define LOADERDECL __cdecl
-#else
-#define LOADERDECL
-#endif
 
 class VertexLoader;
-typedef void (LOADERDECL *TPipelineFunction)(VertexLoader* loader);
+typedef void (*TPipelineFunction)(VertexLoader* loader);
 
 class VertexLoader : public VertexLoaderBase
 {
