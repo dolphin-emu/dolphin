@@ -51,6 +51,14 @@ void LoadConfig()
 	s_config.LoadConfig(true);
 }
 
+GCPad* InitLibDolphinVirt() {
+	s_config.controllers.erase(s_config.controllers.begin() + 3);
+
+	GCPad pad(4);
+
+	s_config.controllers.insert(s_config.controllers.begin() + 3, (ControllerEmu*)&pad);
+	return (GCPad*)(s_config.controllers.at(3));
+}
 
 void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 {
