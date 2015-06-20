@@ -91,33 +91,44 @@ std::string GCPad::GetName() const
 	return std::string("GCPad") + char('1'+m_index);
 }
 
+void GCPad::SetEmulatedInput(GCPadStatus const pad) {
+	emu_input = pad;
+	emu_set = true;
+}
+
 void GCPad::GetInput(GCPadStatus* const pad)
 {
-	ControlState x, y, triggers[2];
+	if (emu_set) {
+		*pad = emu_input;
+		emu_set = false;
+	}
+	else {
+		ControlState x, y, triggers[2];
 
-	// buttons
-	m_buttons->GetState(&pad->button, button_bitmasks);
+		// buttons
+		m_buttons->GetState(&pad->button, button_bitmasks);
 
-	// set analog A/B analog to full or w/e, prolly not needed
-	if (pad->button & PAD_BUTTON_A) pad->analogA = 0xFF;
-	if (pad->button & PAD_BUTTON_B) pad->analogB = 0xFF;
+		// set analog A/B analog to full or w/e, prolly not needed
+		if (pad->button & PAD_BUTTON_A) pad->analogA = 0xFF;
+		if (pad->button & PAD_BUTTON_B) pad->analogB = 0xFF;
 
-	// dpad
-	m_dpad->GetState(&pad->button, dpad_bitmasks);
+		// dpad
+		m_dpad->GetState(&pad->button, dpad_bitmasks);
 
-	// sticks
-	m_main_stick->GetState(&x, &y);
-	pad->stickX = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X + (x * GCPadStatus::MAIN_STICK_RADIUS));
-	pad->stickY = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y + (y * GCPadStatus::MAIN_STICK_RADIUS));
+		// sticks
+		m_main_stick->GetState(&x, &y);
+		pad->stickX = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X + (x * GCPadStatus::MAIN_STICK_RADIUS));
+		pad->stickY = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y + (y * GCPadStatus::MAIN_STICK_RADIUS));
 
-	m_c_stick->GetState(&x, &y);
-	pad->substickX = static_cast<u8>(GCPadStatus::C_STICK_CENTER_X + (x * GCPadStatus::C_STICK_RADIUS));
-	pad->substickY = static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y + (y * GCPadStatus::C_STICK_RADIUS));
+		m_c_stick->GetState(&x, &y);
+		pad->substickX = static_cast<u8>(GCPadStatus::C_STICK_CENTER_X + (x * GCPadStatus::C_STICK_RADIUS));
+		pad->substickY = static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y + (y * GCPadStatus::C_STICK_RADIUS));
 
-	// triggers
-	m_triggers->GetState(&pad->button, trigger_bitmasks, triggers);
-	pad->triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
-	pad->triggerRight = static_cast<u8>(triggers[1] * 0xFF);
+		// triggers
+		m_triggers->GetState(&pad->button, trigger_bitmasks, triggers);
+		pad->triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
+		pad->triggerRight = static_cast<u8>(triggers[1] * 0xFF);
+	}
 }
 
 void GCPad::SetOutput(const ControlState strength)

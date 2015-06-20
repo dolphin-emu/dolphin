@@ -1,0 +1,39 @@
+﻿Build started 6/20/2015 2:46:58 PM.
+     1>Project "C:\Users\Nicholas\Documents\GitHub\dolphin\Source\libDolphin\libDolphin.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Windows Kits\8.1\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5" /Zi /clr /nologo /W3 /WX- /O2 /Oy- /D WIN32 /D NDEBUG /D _UNICODE /D UNICODE /EHa /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"Release\libDolphin.pch" /Fo"Release\\" /Fd"Release\vc120.pdb" /TP /FUC:\WINDOWS\Microsoft.Net\assembly\GAC_32\System.Data\v4.0_4.0.0.0__b77a5c561934e089\System.Data.dll /FUC:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System\v4.0_4.0.0.0__b77a5c561934e089\System.dll /FUC:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Xml\v4.0_4.0.0.0__b77a5c561934e089\System.Xml.dll /analyze- /errorReport:prompt /clr:nostdlib Stdafx.cpp
+         Stdafx.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Windows Kits\8.1\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5" /Zi /clr /nologo /W3 /WX- /O2 /Oy- /D WIN32 /D NDEBUG /D _UNICODE /D UNICODE /EHa /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Release\libDolphin.pch" /Fo"Release\\" /Fd"Release\vc120.pdb" /TP /FUC:\WINDOWS\Microsoft.Net\assembly\GAC_32\System.Data\v4.0_4.0.0.0__b77a5c561934e089\System.Data.dll /FUC:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System\v4.0_4.0.0.0__b77a5c561934e089\System.dll /FUC:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Xml\v4.0_4.0.0.0__b77a5c561934e089\System.Xml.dll /analyze- /errorReport:prompt /clr:nostdlib AssemblyInfo.cpp libDolphin.cpp
+         AssemblyInfo.cpp
+         libDolphin.cpp
+     1>libDolphin.cpp(286): warning C4293: '<<' : shift count negative or too big, undefined behavior
+         Generating Code...
+     1>c:\users\nicholas\documents\github\dolphin\source\libdolphin\libdolphin.cpp(147): warning C4700: uninitialized local variable 'input' used
+     1>c:\users\nicholas\documents\github\dolphin\source\libdolphin\libdolphin.cpp(159): warning C4700: uninitialized local variable 'buffer' used
+     1>c:\users\nicholas\documents\github\dolphin\source\libdolphin\libdolphin.cpp(192): warning C4700: uninitialized local variable 'buffer' used
+     1>c:\users\nicholas\documents\github\dolphin\source\libdolphin\libdolphin.cpp(225): warning C4700: uninitialized local variable 'buffer' used
+     1>c:\users\nicholas\documents\github\dolphin\source\libdolphin\libdolphin.cpp(258): warning C4700: uninitialized local variable 'buffer' used
+     1>c:\users\nicholas\documents\github\dolphin\source\libdolphin\libdolphin.cpp(291): warning C4700: uninitialized local variable 'buffer' used
+     1>c:\users\nicholas\documents\github\dolphin\source\libdolphin\libdolphin.cpp(327): warning C4700: uninitialized local variable 'buffer' used
+     1>c:\users\nicholas\documents\github\dolphin\source\libdolphin\libdolphin.cpp(363): warning C4700: uninitialized local variable 'buffer' used
+     1>c:\users\nicholas\documents\github\dolphin\source\libdolphin\libdolphin.cpp(399): warning C4700: uninitialized local variable 'buffer' used
+     1>c:\users\nicholas\documents\github\dolphin\source\libdolphin\libdolphin.cpp(80): warning C4700: uninitialized local variable 'buffer' used
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5" /Zi /clr /nologo /W3 /WX- /O2 /Oy- /D WIN32 /D NDEBUG /D _UNICODE /D UNICODE /EHa /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /TP /analyze- /errorReport:prompt "C:\Users\Nicholas\AppData\Local\Temp\.NETFramework,Version=v4.5.AssemblyAttributes.cpp"
+         .NETFramework,Version=v4.5.AssemblyAttributes.cpp
+       ResourceCompile:
+         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\rc.exe /D _UNICODE /D UNICODE /l"0x0409" /nologo /fo"Release\app.res" app.rc 
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"C:\Users\Nicholas\Documents\GitHub\dolphin\Source\Release\libDolphin.lib" /NOLOGO Release\app.res
+         Release\AssemblyInfo.obj
+         Release\libDolphin.obj
+         Release\Stdafx.obj
+         "Release\.NETFramework,Version=v4.5.AssemblyAttributes.obj"
+     1>LINK : warning LNK4068: /MACHINE not specified; defaulting to X86
+     1>.NETFramework,Version=v4.5.AssemblyAttributes.obj : warning LNK4221: This object file does not define any previously undefined public symbols, so it will not be used by any link operation that consumes this library
+     1>AssemblyInfo.obj : warning LNK4221: This object file does not define any previously undefined public symbols, so it will not be used by any link operation that consumes this library
+         libDolphin.vcxproj -> C:\Users\Nicholas\Documents\GitHub\dolphin\Source\Release\libDolphin.lib
+     1>Done Building Project "C:\Users\Nicholas\Documents\GitHub\dolphin\Source\libDolphin\libDolphin.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:59.06

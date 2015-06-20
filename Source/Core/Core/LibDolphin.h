@@ -1,0 +1,13 @@
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+// Interface to communicate with libDolphin.
+
+#define PIPE_NAME "\\\\.\\pipe\\DolphinIPC"
+
+namespace LibDolphin {
+	void Init();
+	void RunConnection();
+	void AcceptConnections(bool);
+}

@@ -26,6 +26,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
+#include "Core/LibDolphin.h"
 #include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
@@ -133,6 +134,8 @@ void FrameUpdateOnCPUThread()
 {
 	if (NetPlay::IsNetPlayRunning())
 		NetPlayClient::SendTimeBase();
+
+	LibDolphin::RunConnection();
 }
 
 // Display messages and return values
@@ -217,6 +220,9 @@ bool Init()
 		// The Emu Thread was stopped, synchronize with it.
 		s_emu_thread.join();
 	}
+
+	// Start the libDolphin interface.
+	LibDolphin::Init();
 
 	Core::UpdateWantDeterminism(/*initial*/ true);
 

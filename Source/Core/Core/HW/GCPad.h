@@ -6,6 +6,7 @@
 
 #include "Common/CommonTypes.h"
 #include "InputCommon/ControllerInterface/Device.h"
+#include "GCPadEmu.h"
 
 class InputConfig;
 struct GCPadStatus;
@@ -19,6 +20,7 @@ void LoadConfig();
 
 InputConfig* GetConfig();
 
+GCPad* InitLibDolphinVirt();
 void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus);
 void Rumble(u8 _numPAD, const ControlState strength);
 
