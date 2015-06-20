@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -26,17 +27,18 @@
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
             android:layout_marginRight="@dimen/activity_horizontal_margin"/>
 
-        <ImageButton
+        <android.support.design.widget.FloatingActionButton
             android:id="@+id/button_add_directory"
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_alignBottom="@+id/image_game_screen"
             android:layout_alignEnd="@+id/text_game_title"
             android:layout_marginBottom="28dp"
-            android:background="@drawable/oval_ripple_accent"
             android:src="@drawable/ic_add"
-            android:stateListAnimator="@anim/button_elevation"
-            android:elevation="4dp"
+            app:borderWidth="0dp"
+            app:rippleColor="?android:colorPrimaryDark"
+            app:elevation="6dp"
+            app:pressedTranslationZ="12dp"
             android:layout_gravity="bottom|right"
             android:layout_marginRight="@dimen/activity_horizontal_margin"/>
     </FrameLayout>

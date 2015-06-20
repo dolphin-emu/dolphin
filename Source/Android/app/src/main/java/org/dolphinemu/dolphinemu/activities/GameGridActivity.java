@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -9,6 +8,8 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -16,7 +17,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.Toolbar;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -30,7 +30,7 @@ import org.dolphinemu.dolphinemu.services.AssetCopyService;
  * The main Activity of the Lollipop style UI. Shows a grid of games on tablets & landscape phones,
  * shows a list of games on portrait phones.
  */
-public final class GameGridActivity extends Activity implements LoaderManager.LoaderCallbacks<Cursor>
+public final class GameGridActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
 {
 	private static final int REQUEST_ADD_DIRECTORY = 1;
 
@@ -48,7 +48,7 @@ public final class GameGridActivity extends Activity implements LoaderManager.Lo
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_game_list);
 		setActionBar(toolbar);
 
-		ImageButton buttonAddDirectory = (ImageButton) findViewById(R.id.button_add_directory);
+		FloatingActionButton buttonAddDirectory = (FloatingActionButton) findViewById(R.id.button_add_directory);
 		RecyclerView recyclerView = (RecyclerView) findViewById(R.id.grid_games);
 
 		// TODO Rather than calling into native code, this should use the commented line below.

@@ -1,10 +1,13 @@
 package org.dolphinemu.dolphinemu.activities;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -19,7 +22,7 @@ import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 
 import java.util.List;
 
-public final class EmulationActivity extends Activity
+public final class EmulationActivity extends AppCompatActivity
 {
 	private View mDecorView;
 
