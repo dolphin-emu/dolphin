@@ -717,17 +717,21 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
 			else if (!strcasecmp(Extension.c_str(), ".elf"))
 			{
 				bWii = CBoot::IsElfWii(m_strFilename);
-				set_region_dir = USA_DIR;
+				// TODO: Right now GC homebrew boots in NTSC and Wii homebrew in PAL.
+				// This is intentional so that Wii homebrew can boot in both 50Hz and 60Hz, without forcing all GC homebrew to 50Hz.
+				// In the future, it probably makes sense to add a Region setting for homebrew somewhere in the emulator config.
+				bNTSC = bWii ? false : true;
+				set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
 				m_BootType = BOOT_ELF;
-				bNTSC = true;
 			}
 			else if (!strcasecmp(Extension.c_str(), ".dol"))
 			{
 				CDolLoader dolfile(m_strFilename);
 				bWii = dolfile.IsWii();
-				set_region_dir = USA_DIR;
+				// TODO: See the ELF code above.
+				bNTSC = bWii ? false : true;
+				set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
 				m_BootType = BOOT_DOL;
-				bNTSC = true;
 			}
 			else if (!strcasecmp(Extension.c_str(), ".dff"))
 			{
