@@ -239,7 +239,10 @@
     <string name="preferences_video">Video Settings</string>
     <string name="emulation_title">Emulation Activity</string>
 
-    <string name="emulation_toggle_input">Toggle Input Overlay</string>
+    <!-- Emulation Menu -->
+    <string name="emulation_toggle_input">Toggle Touch Controls</string>
+    <string name="emulation_quicksave">Quick Save</string>
+    <string name="emulation_quickload">Quick Load</string>
 
     <!-- Package Names-->
     <string name="application_id">org.dolphinemu.dolphinemu</string>
