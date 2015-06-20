@@ -288,7 +288,6 @@ void Renderer::DrawDebugText()
 
 	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
 	{
-		std::string fps = "";
 		if (g_ActiveConfig.bShowFPS)
 			final_cyan += StringFromFormat("FPS: %d", g_renderer->m_fps_counter.m_fps);
 
