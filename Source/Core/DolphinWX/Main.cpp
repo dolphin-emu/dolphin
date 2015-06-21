@@ -276,12 +276,14 @@ bool DolphinApp::OnInit()
 	return true;
 }
 
+#ifdef __APPLE__
 void DolphinApp::MacOpenFile(const wxString &fileName)
 {
 	FileToLoad = fileName;
 	LoadFile = true;
 	main_frame->BootGame(WxStrToStr(FileToLoad));
 }
+#endif
 
 void DolphinApp::AfterInit()
 {

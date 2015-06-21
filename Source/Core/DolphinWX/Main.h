@@ -23,7 +23,9 @@ private:
 	void OnFatalException() override;
 	bool Initialize(int& c, wxChar **v) override;
 	void InitLanguageSupport();
-	void MacOpenFile(const wxString &fileName);
+#ifdef __APPLE__
+	void MacOpenFile(const wxString &fileName) override;
+#endif
 
 	bool BatchMode;
 	bool LoadFile;

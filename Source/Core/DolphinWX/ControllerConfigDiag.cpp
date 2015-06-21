@@ -43,7 +43,7 @@ wxDEFINE_EVENT(wxEVT_ADAPTER_UPDATE, wxCommandEvent);
 ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 	: wxDialog(parent, wxID_ANY, _("Dolphin Controller Configuration"))
 {
-	m_gc_pad_type_strs = {
+	m_gc_pad_type_strs = {{
 		_("None"),
 		_("Standard Controller"),
 		_("Steering Wheel"),
@@ -52,7 +52,7 @@ ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 		_("GBA"),
 		_("Keyboard"),
 		_("AM-Baseboard")
-	};
+	}};
 
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 
