@@ -95,8 +95,8 @@ protected:
 	MixerFifo m_wiimote_speaker_mixer;
 	unsigned int m_sampleRate;
 
-	WaveFileWriter g_wave_writer_dtk;
-	WaveFileWriter g_wave_writer_dsp;
+	WaveFileWriter m_wave_writer_dtk;
+	WaveFileWriter m_wave_writer_dsp;
 
 	bool m_log_dtk_audio;
 	bool m_log_dsp_audio;
