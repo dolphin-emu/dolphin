@@ -338,7 +338,7 @@ void DolphinApp::InitLanguageSupport()
 #elif defined(__LINUX__)
 		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(DATA_DIR "../locale"));
 #elif defined(__APPLE__)
-		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(GetBundleDirectory() + "Contents/Resources"));
+		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetBundleDirectory() + "Contents/Resources"));
 #endif
 
 		m_locale->AddCatalog("dolphin-emu");
