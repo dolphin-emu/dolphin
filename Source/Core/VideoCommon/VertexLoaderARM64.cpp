@@ -288,7 +288,7 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
 			else if (offset & 3) // Not aligned - unscaled
 				LDUR(scratch2_reg, src_reg, offset);
 			else
-				LDR(INDEX_UNSIGNED, scratch3_reg, src_reg, m_src_ofs);
+				LDR(INDEX_UNSIGNED, scratch3_reg, src_reg, offset);
 
 			REV32(scratch3_reg, scratch3_reg);
 

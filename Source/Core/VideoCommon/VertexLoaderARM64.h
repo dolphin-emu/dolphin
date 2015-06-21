@@ -13,7 +13,7 @@ public:
 
 protected:
 	std::string GetName() const override { return "VertexLoaderARM64"; }
-	bool IsInitialized() override { return true; }
+	bool IsInitialized() override { return m_VtxAttr.color[0].Comp != FORMAT_24B_6666 && m_VtxAttr.color[1].Comp != FORMAT_24B_6666 ; }
 	int RunVertices(DataReader src, DataReader dst, int count) override;
 
 private:
