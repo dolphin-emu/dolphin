@@ -12,12 +12,12 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toolbar;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -27,10 +27,10 @@ import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.services.AssetCopyService;
 
 /**
- * The main Activity of the Lollipop style UI. Shows a grid of games on tablets & landscape phones,
- * shows a list of games on portrait phones.
+ * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
+ * individually display a grid of available games for each Fragment, in a tabbed layout.
  */
-public final class GameGridActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
+public final class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
 {
 	private static final int REQUEST_ADD_DIRECTORY = 1;
 
@@ -43,10 +43,10 @@ public final class GameGridActivity extends AppCompatActivity implements LoaderM
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_game_grid);
+		setContentView(R.layout.activity_main);
 
-		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_game_list);
-		setActionBar(toolbar);
+		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+		setSupportActionBar(toolbar);
 
 		FloatingActionButton buttonAddDirectory = (FloatingActionButton) findViewById(R.id.button_add_directory);
 		RecyclerView recyclerView = (RecyclerView) findViewById(R.id.grid_games);
@@ -73,7 +73,7 @@ public final class GameGridActivity extends AppCompatActivity implements LoaderM
 			@Override
 			public void onClick(View view)
 			{
-				Intent fileChooser = new Intent(GameGridActivity.this, AddDirectoryActivity.class);
+				Intent fileChooser = new Intent(MainActivity.this, AddDirectoryActivity.class);
 
 				// The second argument to this method is read below in onActivityResult().
 				startActivityForResult(fileChooser, REQUEST_ADD_DIRECTORY);
