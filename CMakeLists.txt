@@ -781,7 +781,7 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 			message(FATAL_ERROR "wxWidgets in Externals is not compatible with your platform")
 		endif()
 
-		include_directories(
+		include_directories(SYSTEM
 			Externals/wxWidgets3
 			Externals/wxWidgets3/include)
 		add_subdirectory(Externals/wxWidgets3)
