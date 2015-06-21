@@ -187,7 +187,7 @@ bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 
 	SettingsHandler gen;
 	std::string serno;
-	std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
+	std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
 	if (File::Exists(settings_Filename))
 	{
 		File::IOFile settingsFileHandle(settings_Filename, "rb");

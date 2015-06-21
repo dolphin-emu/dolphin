@@ -144,7 +144,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 	u32 CurrentGameId = 0;
 	if (strUniqueID == TITLEID_SYSMENU_STRING)
 	{
-		const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, false);
+		const DiscIO::CNANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT);
 		if (SysMenu_Loader.IsValid())
 		{
 			country_code = DiscIO::CountrySwitch(SysMenu_Loader.GetCountryChar());

@@ -750,7 +750,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
 			else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
 			{
 				std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(m_strFilename));
-				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
+				const DiscIO::CNANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
 
 				if (ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex()) == nullptr)
 				{

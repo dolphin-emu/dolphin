@@ -14,7 +14,7 @@
 class PointerWrap;
 namespace DiscIO
 {
-	class INANDContentLoader;
+	class CNANDContentLoader;
 	struct SNANDContent;
 }
 
@@ -133,10 +133,10 @@ private:
 	typedef std::map<u32, SContentAccess> CContentAccessMap;
 	CContentAccessMap m_ContentAccessMap;
 
-	typedef std::map<u64, const DiscIO::INANDContentLoader*> CTitleToContentMap;
+	typedef std::map<u64, const DiscIO::CNANDContentLoader*> CTitleToContentMap;
 	CTitleToContentMap m_NANDContent;
 
-	const DiscIO::INANDContentLoader* m_pContentLoader;
+	const DiscIO::CNANDContentLoader* m_pContentLoader;
 
 	std::vector<u64> m_TitleIDs;
 	u64 m_TitleID;
@@ -146,7 +146,7 @@ private:
 
 	u64 GetCurrentTitleID() const;
 
-	const DiscIO::INANDContentLoader& AccessContentDevice(u64 _TitleID);
+	const DiscIO::CNANDContentLoader& AccessContentDevice(u64 _TitleID);
 	u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 
 	bool IsValid(u64 _TitleID) const;
