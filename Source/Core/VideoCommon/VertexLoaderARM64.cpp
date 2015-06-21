@@ -217,7 +217,7 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
 			if (offset == -1)
 				LDRH(INDEX_UNSIGNED, scratch3_reg, EncodeRegTo64(scratch1_reg), 0);
 			else if (offset & 1) // Not aligned - unscaled
-				LDURH(scratch2_reg, src_reg, offset);
+				LDURH(scratch3_reg, src_reg, offset);
 			else
 				LDRH(INDEX_UNSIGNED, scratch3_reg, src_reg, offset);
 
@@ -254,7 +254,7 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
 			if (offset == -1)
 				LDRH(INDEX_UNSIGNED, scratch3_reg, EncodeRegTo64(scratch1_reg), 0);
 			else if (offset & 1) // Not aligned - unscaled
-				LDURH(scratch2_reg, src_reg, offset);
+				LDURH(scratch3_reg, src_reg, offset);
 			else
 				LDRH(INDEX_UNSIGNED, scratch3_reg, src_reg, offset);
 
@@ -284,16 +284,22 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
 			//          RRRRRRGG GGGGBBBB BBAAAAAA
 			// AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
 			if (offset == -1)
-				LDR(INDEX_UNSIGNED, scratch3_reg, EncodeRegTo64(scratch1_reg), 0);
-			else if (offset & 3) // Not aligned - unscaled
-				LDUR(scratch2_reg, src_reg, offset);
+			{
+				LDUR(scratch3_reg, EncodeRegTo64(scratch1_reg), -1);
+			}
 			else
-				LDR(INDEX_UNSIGNED, scratch3_reg, src_reg, m_src_ofs);
+			{
+				offset -= 1;
+				if (offset & 3) // Not aligned - unscaled
+					LDUR(scratch3_reg, src_reg, offset);
+				else
+					LDR(INDEX_UNSIGNED, scratch3_reg, src_reg, offset);
+			}
 
 			REV32(scratch3_reg, scratch3_reg);
 
 			// A
-			AND(scratch2_reg, scratch3_reg, 32, 5);
+			UBFM(scratch2_reg, scratch3_reg, 0, 5);
 			ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 2));
 			ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 6));
 			ORR(scratch1_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 24));
@@ -316,6 +322,7 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
 			ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 4));
 
 			STR(INDEX_UNSIGNED, scratch1_reg, dst_reg, m_dst_ofs);
+
 			load_bytes = 3;
 			break;
 	}
