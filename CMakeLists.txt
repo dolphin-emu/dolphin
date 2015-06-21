@@ -469,7 +469,7 @@ if(NOT ANDROID)
 	if(ENCODE_FRAMEDUMPS)
 		check_libav()
 		if(LIBAV_FOUND)
-			LIST(APPEND LIBS ${LIBAV_LIBRARIES})
+			LIST(APPEND LIBS ${LIBAV_LDFLAGS})
 		endif()
 
 	endif()
