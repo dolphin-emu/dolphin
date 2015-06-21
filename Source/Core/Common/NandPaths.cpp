@@ -56,34 +56,40 @@ void ShutdownWiiRoot()
 	}
 }
 
-std::string GetTicketFileName(u64 _titleID)
+static std::string RootUserPath(FromWhichRoot from)
+{
+	int idx = from == FROM_CONFIGURED_ROOT ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
+	return File::GetUserPath(idx);
+}
+
+std::string GetTicketFileName(u64 _titleID, FromWhichRoot from)
 {
 	return StringFromFormat("%s/ticket/%08x/%08x.tik",
-			File::GetUserPath(D_SESSION_WIIROOT_IDX).c_str(),
+			RootUserPath(from).c_str(),
 			(u32)(_titleID >> 32), (u32)_titleID);
 }
 
-std::string GetTitleDataPath(u64 _titleID)
+std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from)
 {
 	return StringFromFormat("%s/title/%08x/%08x/data/",
-			File::GetUserPath(D_SESSION_WIIROOT_IDX).c_str(),
+			RootUserPath(from).c_str(),
 			(u32)(_titleID >> 32), (u32)_titleID);
 }
 
-std::string GetTMDFileName(u64 _titleID)
+std::string GetTMDFileName(u64 _titleID, FromWhichRoot from)
 {
-	return GetTitleContentPath(_titleID) + "title.tmd";
+	return GetTitleContentPath(_titleID, from) + "title.tmd";
 }
-std::string GetTitleContentPath(u64 _titleID)
+std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from)
 {
 	return StringFromFormat("%s/title/%08x/%08x/content/",
-			File::GetUserPath(D_SESSION_WIIROOT_IDX).c_str(),
+			RootUserPath(from).c_str(),
 			(u32)(_titleID >> 32), (u32)_titleID);
 }
 
-bool CheckTitleTMD(u64 _titleID)
+bool CheckTitleTMD(u64 _titleID, FromWhichRoot from)
 {
-	const std::string TitlePath = GetTMDFileName(_titleID);
+	const std::string TitlePath = GetTMDFileName(_titleID, from);
 	if (File::Exists(TitlePath))
 	{
 		File::IOFile pTMDFile(TitlePath, "rb");
@@ -96,9 +102,9 @@ bool CheckTitleTMD(u64 _titleID)
 	return false;
 }
 
-bool CheckTitleTIK(u64 _titleID)
+bool CheckTitleTIK(u64 _titleID, FromWhichRoot from)
 {
-	const std::string ticketFileName = Common::GetTicketFileName(_titleID);
+	const std::string ticketFileName = Common::GetTicketFileName(_titleID, from);
 	if (File::Exists(ticketFileName))
 	{
 		File::IOFile pTIKFile(ticketFileName, "rb");

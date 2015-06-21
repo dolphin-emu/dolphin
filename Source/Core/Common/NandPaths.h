@@ -21,11 +21,17 @@ namespace Common
 	void InitializeWiiRoot(bool use_temporary);
 	void ShutdownWiiRoot();
 
-	std::string GetTicketFileName(u64 _titleID);
-	std::string GetTMDFileName(u64 _titleID);
-	std::string GetTitleDataPath(u64 _titleID);
-	std::string GetTitleContentPath(u64 _titleID);
-	bool CheckTitleTMD(u64 _titleID);
-	bool CheckTitleTIK(u64 _titleID);
+	enum FromWhichRoot
+	{
+		FROM_CONFIGURED_ROOT, // not related to currently running game - use D_WIIROOT_IDX
+		FROM_SESSION_ROOT, // request from currently running game - use D_SESSION_WIIROOT_IDX
+	};
+
+	std::string GetTicketFileName(u64 _titleID, FromWhichRoot from);
+	std::string GetTMDFileName(u64 _titleID, FromWhichRoot from);
+	std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from);
+	std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from);
+	bool CheckTitleTMD(u64 _titleID, FromWhichRoot from);
+	bool CheckTitleTIK(u64 _titleID, FromWhichRoot from);
 	void ReadReplacements(replace_v& replacements);
 }
