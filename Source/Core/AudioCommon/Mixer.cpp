@@ -203,6 +203,64 @@ void CMixer::SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume)
 	m_wiimote_speaker_mixer.SetVolume(lvolume, rvolume);
 }
 
+void CMixer::StartLogDTKAudio(const std::string& filename)
+{
+	if (!m_log_dtk_audio)
+	{
+		m_log_dtk_audio = true;
+		g_wave_writer_dtk.Start(filename, 48000);
+		g_wave_writer_dtk.SetSkipSilence(false);
+		NOTICE_LOG(DSPHLE, "Starting DTK Audio logging");
+	}
+	else
+	{
+		WARN_LOG(DSPHLE, "DTK Audio logging has already been started");
+	}
+}
+
+void CMixer::StopLogDTKAudio()
+{
+	if (m_log_dtk_audio)
+	{
+		m_log_dtk_audio = false;
+		g_wave_writer_dtk.Stop();
+		NOTICE_LOG(DSPHLE, "Stopping DTK Audio logging");
+	}
+	else
+	{
+		WARN_LOG(DSPHLE, "DTK Audio logging has already been stopped");
+	}
+}
+
+void CMixer::StartLogDSPAudio(const std::string& filename)
+{
+	if (!m_log_dsp_audio)
+	{
+		m_log_dsp_audio = true;
+		g_wave_writer_dsp.Start(filename, 32000);
+		g_wave_writer_dsp.SetSkipSilence(false);
+		NOTICE_LOG(DSPHLE, "Starting DSP Audio logging");
+	}
+	else
+	{
+		WARN_LOG(DSPHLE, "DSP Audio logging has already been started");
+	}
+}
+
+void CMixer::StopLogDSPAudio()
+{
+	if (m_log_dsp_audio)
+	{
+		m_log_dsp_audio = false;
+		g_wave_writer_dsp.Stop();
+		NOTICE_LOG(DSPHLE, "Stopping DSP Audio logging");
+	}
+	else
+	{
+		WARN_LOG(DSPHLE, "DSP Audio logging has already been stopped");
+	}
+}
+
 void CMixer::MixerFifo::SetInputSampleRate(unsigned int rate)
 {
 	m_input_sample_rate = rate;
