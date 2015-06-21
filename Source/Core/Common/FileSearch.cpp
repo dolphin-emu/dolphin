@@ -28,7 +28,8 @@ static std::vector<std::string> FileSearchWithTest(const std::vector<std::string
 			for (auto& child : entry.children)
 				DoEntry(child);
 		};
-		DoEntry(top);
+		for (auto& child : top.children)
+			DoEntry(child);
 	}
 	// remove duplicates
 	std::sort(result.begin(), result.end());
@@ -53,6 +54,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& globs, con
 	});
 }
 
+// Result includes the passed directories themselves as well as their subdirectories.
 std::vector<std::string> FindSubdirectories(const std::vector<std::string>& directories, bool recursive)
 {
 	return FileSearchWithTest(directories, true, [&](const File::FSTEntry& entry) {
