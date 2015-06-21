@@ -56,7 +56,7 @@ __forceinline void ReadIndirect(const T* data)
 template <typename T, int N>
 struct Normal_Direct
 {
-	static void LOADERDECL function(VertexLoader* loader)
+	static void function(VertexLoader* loader)
 	{
 		auto const source = reinterpret_cast<const T*>(DataGetPosition());
 		ReadIndirect<T, N * 3>(source);
@@ -80,7 +80,7 @@ __forceinline void Normal_Index_Offset()
 template <typename I, typename T, int N>
 struct Normal_Index
 {
-	static void LOADERDECL function(VertexLoader* loader)
+	static void function(VertexLoader* loader)
 	{
 		Normal_Index_Offset<I, T, N, 0>();
 	}
@@ -91,7 +91,7 @@ struct Normal_Index
 template <typename I, typename T>
 struct Normal_Index_Indices3
 {
-	static void LOADERDECL function(VertexLoader* loader)
+	static void function(VertexLoader* loader)
 	{
 		Normal_Index_Offset<I, T, 1, 0>();
 		Normal_Index_Offset<I, T, 1, 1>();
