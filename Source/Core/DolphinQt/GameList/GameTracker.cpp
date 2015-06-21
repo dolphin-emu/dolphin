@@ -80,14 +80,11 @@ void DGameTracker::ScanForGames()
 
 	delete m_watcher;
 	m_watcher = new QFileSystemWatcher(this);
+	for (std::string dir : SConfig::GetInstance().m_ISOFolder)
+		m_watcher->addPath(QString::fromStdString(dir));
 	if (SConfig::GetInstance().m_RecursiveISOFolder)
 	{
 		for (std::string dir : FindSubdirectories(SConfig::GetInstance().m_ISOFolder, /*recursive*/ true))
-			m_watcher->addPath(QString::fromStdString(dir));
-	}
-	else
-	{
-		for (std::string dir : SConfig::GetInstance().m_ISOFolder)
 			m_watcher->addPath(QString::fromStdString(dir));
 	}
 
