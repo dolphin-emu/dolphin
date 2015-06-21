@@ -80,4 +80,11 @@
     <style name="DolphinEmulationWiiware" parent="DolphinEmulationBase">
         <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
+
+
+    <!-- Hax to make Tablayout render icons -->
+    <style name="MyCustomTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="textAllCaps">false</item>
+    </style>
+
 </resources>
