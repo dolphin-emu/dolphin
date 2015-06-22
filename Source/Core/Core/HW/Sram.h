@@ -84,3 +84,4 @@ void FixSRAMChecksums();
 
 extern SRAM sram_dump;
 extern SRAM g_SRAM;
+extern bool g_SRAM_netplay_initialized;

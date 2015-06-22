@@ -252,6 +252,8 @@ void NetPlayDialog::GetNetSettings(NetSettings &settings)
 	SConfig &instance = SConfig::GetInstance();
 	settings.m_CPUthread = instance.bCPUThread;
 	settings.m_CPUcore = instance.iCPUCore;
+	settings.m_SelectedLanguage = instance.SelectedLanguage;
+	settings.m_OverrideGCLanguage = instance.bOverrideGCLanguage;
 	settings.m_DSPHLE = instance.bDSPHLE;
 	settings.m_DSPEnableJIT = instance.m_DSPEnableJIT;
 	settings.m_WriteToMemcard = m_memcard_write->GetValue();

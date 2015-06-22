@@ -13,6 +13,7 @@
 #include "Core/HW/SI_DeviceDanceMat.h"
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/SI_DeviceGCSteeringWheel.h"
+#include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
@@ -378,6 +379,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> m_current_game;
 			packet >> g_NetPlaySettings.m_CPUthread;
 			packet >> g_NetPlaySettings.m_CPUcore;
+			packet >> g_NetPlaySettings.m_SelectedLanguage;
+			packet >> g_NetPlaySettings.m_OverrideGCLanguage;
 			packet >> g_NetPlaySettings.m_DSPEnableJIT;
 			packet >> g_NetPlaySettings.m_DSPHLE;
 			packet >> g_NetPlaySettings.m_WriteToMemcard;
@@ -459,6 +462,22 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		}
 
 		m_dialog->AppendChat(StringFromFormat("/!\\ Possible desync detected%s%s on frame %u", blame_str, blame_name, frame));
+	}
+	break;
+
+	case NP_MSG_SYNC_GC_SRAM:
+	{
+		u8 sram[sizeof(g_SRAM.p_SRAM)];
+		for (int i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+		{
+			packet >> sram[i];
+		}
+
+		{
+			std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+			memcpy(g_SRAM.p_SRAM, sram, sizeof(g_SRAM.p_SRAM));
+			g_SRAM_netplay_initialized = true;
+		}
 	}
 	break;
 

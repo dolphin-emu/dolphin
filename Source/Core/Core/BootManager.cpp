@@ -35,6 +35,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/HW/EXI.h"
 #include "Core/HW/SI.h"
+#include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -187,12 +188,6 @@ bool BootCore(const std::string& _rFilename)
 			}
 		}
 
-		// Some NTSC GameCube games such as Baten Kaitos react strangely to language settings that would be invalid on an NTSC system
-		if (!StartUp.bOverrideGCLanguage && StartUp.bNTSC)
-		{
-			StartUp.SelectedLanguage = 0;
-		}
-
 		// Wii settings
 		if (StartUp.bWii)
 		{
@@ -249,6 +244,8 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
 		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
 		StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
+		StartUp.SelectedLanguage = g_NetPlaySettings.m_SelectedLanguage;
+		StartUp.bOverrideGCLanguage = g_NetPlaySettings.m_OverrideGCLanguage;
 		SConfig::GetInstance().m_DSPEnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
 		SConfig::GetInstance().m_OCEnable = g_NetPlaySettings.m_OCEnable;
 		SConfig::GetInstance().m_OCFactor = g_NetPlaySettings.m_OCFactor;
@@ -256,6 +253,17 @@ bool BootCore(const std::string& _rFilename)
 		SConfig::GetInstance().m_EXIDevice[1] = g_NetPlaySettings.m_EXIDevice[1];
 		config_cache.bSetEXIDevice[0] = true;
 		config_cache.bSetEXIDevice[1] = true;
+	}
+	else
+	{
+		g_SRAM_netplay_initialized = false;
+	}
+
+	// Apply overrides
+	// Some NTSC GameCube games such as Baten Kaitos react strangely to language settings that would be invalid on an NTSC system
+	if (!StartUp.bOverrideGCLanguage && StartUp.bNTSC)
+	{
+		StartUp.SelectedLanguage = 0;
 	}
 
 	// Some NTSC Wii games such as Doc Louis's Punch-Out!! and 1942 (Virtual Console) crash if the PAL60 option is enabled
