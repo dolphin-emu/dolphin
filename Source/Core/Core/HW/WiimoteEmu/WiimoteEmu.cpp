@@ -677,7 +677,7 @@ void Wiimote::Update()
 		{
 			using namespace WiimoteReal;
 
-			std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+			std::lock_guard<std::recursive_timed_mutex> lk(g_refresh_lock);
 			if (g_wiimotes[m_index])
 			{
 				const Report& rpt = g_wiimotes[m_index]->ProcessReadQueue();
