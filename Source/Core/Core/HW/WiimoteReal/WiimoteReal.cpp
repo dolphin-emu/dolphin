@@ -814,7 +814,7 @@ void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u3
 {
 	// Try to get a lock and return without doing anything if we fail
 	// This avoids deadlocks when adding a Wiimote during continuous scan
-	if(!g_refresh_lock.try_lock_for(Ms(200)))
+	if (!g_refresh_lock.try_lock_for(Ms(200)))
 		return;
 
 	if (g_wiimotes[_WiimoteNumber])
@@ -826,7 +826,7 @@ void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 
 {
 	// Try to get a lock and return without doing anything if we fail
 	// This avoids deadlocks when adding a Wiimote during continuous scan
-	if(!g_refresh_lock.try_lock_for(Ms(200)))
+	if (!g_refresh_lock.try_lock_for(Ms(200)))
 		return;
 
 	if (g_wiimotes[_WiimoteNumber])
@@ -840,7 +840,7 @@ void Update(int _WiimoteNumber)
 {
 	// Try to get a lock and return without doing anything if we fail
 	// This avoids deadlocks when adding a Wiimote during continuous scan
-	if(!g_refresh_lock.try_lock_for(Ms(200)))
+	if (!g_refresh_lock.try_lock_for(Ms(200)))
 		return;
 
 	if (g_wiimotes[_WiimoteNumber])
