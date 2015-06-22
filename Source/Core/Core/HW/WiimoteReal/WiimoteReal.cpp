@@ -32,7 +32,8 @@ void DoneWithWiimote(int index);
 
 static bool g_real_wiimotes_initialized = false;
 
-std::recursive_mutex g_refresh_lock;
+std::recursive_timed_mutex g_refresh_lock;
+using Ms = std::chrono::milliseconds;
 
 Wiimote* g_wiimotes[MAX_BBMOTES];
 WiimoteScanner g_wiimote_scanner;
@@ -435,7 +436,7 @@ void WiimoteScanner::StopScanning()
 
 static void CheckForDisconnectedWiimotes()
 {
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_timed_mutex> lk(g_refresh_lock);
 
 	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		if (g_wiimotes[i] && !g_wiimotes[i]->IsConnected())
@@ -591,7 +592,7 @@ void Initialize(bool wait)
 	else
 		g_wiimote_scanner.StopScanning();
 
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_timed_mutex> lk(g_refresh_lock);
 
 	g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
 	g_wiimote_scanner.WantBB(0 != CalculateWantedBB());
@@ -634,7 +635,7 @@ void Shutdown()
 {
 	g_wiimote_scanner.StopScanning();
 
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_timed_mutex> lk(g_refresh_lock);
 
 	if (!g_real_wiimotes_initialized)
 		return;
@@ -664,7 +665,7 @@ void Pause()
 void ChangeWiimoteSource(unsigned int index, int source)
 {
 	{
-		std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+		std::lock_guard<std::recursive_timed_mutex> lk(g_refresh_lock);
 		g_wiimote_sources[index] = source;
 		g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
 		g_wiimote_scanner.WantBB(0 != CalculateWantedBB());
@@ -696,7 +697,7 @@ static bool TryToConnectWiimoteN(Wiimote* wm, unsigned int i)
 
 void TryToConnectWiimote(Wiimote* wm)
 {
-	std::unique_lock<std::recursive_mutex> lk(g_refresh_lock);
+	std::unique_lock<std::recursive_timed_mutex> lk(g_refresh_lock);
 
 	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
 	{
@@ -716,7 +717,7 @@ void TryToConnectWiimote(Wiimote* wm)
 
 void TryToConnectBalanceBoard(Wiimote* wm)
 {
-	std::unique_lock<std::recursive_mutex> lk(g_refresh_lock);
+	std::unique_lock<std::recursive_timed_mutex> lk(g_refresh_lock);
 
 	if (TryToConnectWiimoteN(wm, WIIMOTE_BALANCE_BOARD))
 	{
@@ -732,7 +733,7 @@ void TryToConnectBalanceBoard(Wiimote* wm)
 
 void DoneWithWiimote(int index)
 {
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_timed_mutex> lk(g_refresh_lock);
 
 	Wiimote* wm = g_wiimotes[index];
 
@@ -752,7 +753,7 @@ void HandleWiimoteDisconnect(int index)
 	Wiimote* wm = nullptr;
 
 	{
-		std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+		std::lock_guard<std::recursive_timed_mutex> lk(g_refresh_lock);
 
 		std::swap(wm, g_wiimotes[index]);
 		g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
@@ -777,7 +778,7 @@ void Refresh()
 	g_wiimote_scanner.StopScanning();
 
 	{
-		std::unique_lock<std::recursive_mutex> lk(g_refresh_lock);
+		std::unique_lock<std::recursive_timed_mutex> lk(g_refresh_lock);
 		std::vector<Wiimote*> found_wiimotes;
 		Wiimote* found_board = nullptr;
 
@@ -811,17 +812,26 @@ void Refresh()
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	// Try to get a lock and return without doing anything if we fail
+	// This avoids deadlocks when adding a Wiimote during continuous scan
+	if (!g_refresh_lock.try_lock_for(Ms(200)))
+		return;
+
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->InterruptChannel(_channelID, _pData, _Size);
+	g_refresh_lock.unlock();
 }
 
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	// Try to get a lock and return without doing anything if we fail
+	// This avoids deadlocks when adding a Wiimote during continuous scan
+	if (!g_refresh_lock.try_lock_for(Ms(200)))
+		return;
 
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->ControlChannel(_channelID, _pData, _Size);
+	g_refresh_lock.unlock();
 }
 
 
@@ -830,7 +840,7 @@ void Update(int _WiimoteNumber)
 {
 	// Try to get a lock and return without doing anything if we fail
 	// This avoids deadlocks when adding a Wiimote during continuous scan
-	if(!g_refresh_lock.try_lock())
+	if (!g_refresh_lock.try_lock_for(Ms(200)))
 		return;
 
 	if (g_wiimotes[_WiimoteNumber])
