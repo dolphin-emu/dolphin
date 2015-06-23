@@ -403,20 +403,20 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 // called from ---GUI--- thread
 void NetPlayServer::GetPadMapping(PadMapping map[4])
 {
-	for (int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < 4; ++i)
 		map[i] = m_pad_map[i];
 }
 
 void NetPlayServer::GetWiimoteMapping(PadMapping map[4])
 {
-	for (int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < 4; ++i)
 		map[i] = m_wiimote_map[i];
 }
 
 // called from ---GUI--- thread
 void NetPlayServer::SetPadMapping(const PadMapping map[4])
 {
-	for (int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < 4; ++i)
 		m_pad_map[i] = map[i];
 	UpdatePadMapping();
 }
@@ -424,7 +424,7 @@ void NetPlayServer::SetPadMapping(const PadMapping map[4])
 // called from ---GUI--- thread
 void NetPlayServer::SetWiimoteMapping(const PadMapping map[4])
 {
-	for (int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < 4; ++i)
 		m_wiimote_map[i] = map[i];
 	UpdateWiimoteMapping();
 }
@@ -864,9 +864,8 @@ void NetPlayServer::mapPortThread(const u16 port)
 	enet_address_get_host(&adr, cIP, 20);
 	std::string ourIP(cIP);
 
-	if (!m_upnp_inited)
-		if (!initUPnP())
-			goto fail;
+	if (!m_upnp_inited && !initUPnP())
+		goto fail;
 
 	if (!UPnPMapPort(ourIP, port))
 		goto fail;

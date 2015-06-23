@@ -306,12 +306,15 @@ bool IsRecordingInputFromSaveState()
 
 bool IsJustStartingRecordingInputFromSaveState()
 {
-	return IsRecordingInputFromSaveState() && g_currentFrame == 0;
+	return IsRecordingInputFromSaveState() &&
+	       g_currentFrame == 0;
 }
 
 bool IsJustStartingPlayingInputFromSaveState()
 {
-	return IsRecordingInputFromSaveState() && g_currentFrame == 1 && IsPlayingInput();
+	return IsRecordingInputFromSaveState() &&
+	       g_currentFrame == 1 &&
+	       IsPlayingInput();
 }
 
 bool IsPlayingInput()
@@ -525,24 +528,15 @@ static std::string Analog2DToString(u8 x, u8 y, const std::string& prefix, u8 ra
 			{
 				return StringFromFormat("%s:%s,%s", prefix.c_str(), x < center ? "LEFT" : "RIGHT", y < center ? "DOWN" : "UP");
 			}
-			else if (x != center)
+			if (x != center)
 			{
 				return StringFromFormat("%s:%s", prefix.c_str(), x < center ? "LEFT" : "RIGHT");
 			}
-			else
-			{
-				return StringFromFormat("%s:%s", prefix.c_str(), y < center ? "DOWN" : "UP");
-			}
+			return StringFromFormat("%s:%s", prefix.c_str(), y < center ? "DOWN" : "UP");
 		}
-		else
-		{
-			return "";
-		}
+		return "";
 	}
-	else
-	{
-		return StringFromFormat("%s:%d,%d", prefix.c_str(), x, y);
-	}
+	return StringFromFormat("%s:%u,%u", prefix.c_str(), x, y);
 }
 
 static std::string Analog1DToString(u8 v, const std::string& prefix, u8 range = 255)
@@ -553,15 +547,9 @@ static std::string Analog1DToString(u8 v, const std::string& prefix, u8 range = 
 		{
 			return prefix;
 		}
-		else
-		{
-			return StringFromFormat("%s:%d", prefix.c_str(), v);
-		}
+		return StringFromFormat("%s:%d", prefix.c_str(), v);
 	}
-	else
-	{
-		return "";
-	}
+	return "";
 }
 
 static void SetInputDisplayString(ControllerState padState, int controllerID)

@@ -355,7 +355,7 @@ static bool getbitstring(u32 *ctrl, u32 *out, u8 len)
 static bool batchdecrypt(u32 *codes, u16 size)
 {
 	u32 tmp,*ptr=codes;
-	u32 tmparray[4] = { 0 },tmparray2[8] = { 0 };
+	u32 tmparray[4] = { 0 }, tmparray2[8] = { 0 };
 
 	// Not required
 	//if (size & 1) return 0;
@@ -365,7 +365,7 @@ static bool batchdecrypt(u32 *codes, u16 size)
 	while (tmp--)
 	{
 		decryptcode(genseeds,ptr);
-		ptr+=2;
+		ptr += 2;
 	}
 
 	tmparray[0] = *codes;
@@ -425,7 +425,7 @@ static int alphatobin(u32 *dst, const std::vector<std::string>& alpha, int size)
 	for (; size; --size)
 	{
 		bin[0] = 0;
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 6; ++i)
 		{
 			bin[0] |= (GetVal(filter,alpha[j>>1][i]) << (((5-i)*5)+2));
 		}
@@ -433,7 +433,7 @@ static int alphatobin(u32 *dst, const std::vector<std::string>& alpha, int size)
 		dst[j++] = bin[0];
 
 		bin[1] = 0;
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 6; ++i)
 		{
 			bin[1] |= (GetVal(filter,alpha[j>>1][i+6]) << (((5-i)*5)+4));
 		}
@@ -443,7 +443,7 @@ static int alphatobin(u32 *dst, const std::vector<std::string>& alpha, int size)
 		//verify parity bit
 		int k = 0;
 		parity = 0;
-		for (int i = 0; i < 64; i++)
+		for (int i = 0; i < 64; ++i)
 		{
 			if (i == 32)
 			{

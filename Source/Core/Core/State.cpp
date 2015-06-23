@@ -79,8 +79,8 @@ static const std::map<u32, std::pair<std::string, std::string>> s_old_versions =
 	{ 18, { "3.5-1366", "3.5-1371" } },
 	{ 19, { "3.5-1372", "3.5-1408" } },
 	{ 20, { "3.5-1409", "4.0-704" } },
-	{ 21, { "4.0-705", "4.0-889" } },
-	{ 22, { "4.0-905", "4.0-1871" } },
+	{ 21, { "4.0-705",  "4.0-889" } },
+	{ 22, { "4.0-905",  "4.0-1871" } },
 	{ 23, { "4.0-1873", "4.0-1900" } },
 	{ 24, { "4.0-1902", "4.0-1919" } },
 	{ 25, { "4.0-1921", "4.0-1936" } },
@@ -225,7 +225,7 @@ void VerifyBuffer(std::vector<u8>& buffer)
 // return state number not in map
 static int GetEmptySlot(std::map<double, int> m)
 {
-	for (int i = 1; i <= (int)NUM_STATES; i++)
+	for (int i = 1; i <= NUM_STATES; ++i)
 	{
 		bool found = false;
 		for (auto& p : m)
@@ -249,7 +249,7 @@ static std::map<double, int> GetSavedStates()
 {
 	StateHeader header;
 	std::map<double, int> m;
-	for (int i = 1; i <= (int)NUM_STATES; i++)
+	for (unsigned int i = 1; i <= NUM_STATES; ++i)
 	{
 		std::string filename = MakeStateFilename(i);
 		if (File::Exists(filename))
@@ -258,7 +258,10 @@ static std::map<double, int> GetSavedStates()
 			{
 				double d = Common::Timer::GetDoubleTime() - header.time;
 				// increase time until unique value is obtained
-				while (m.find(d) != m.end()) d += .001;
+				while (m.find(d) != m.end())
+				{
+					d += .001;
+				}
 				m.insert(std::pair<double,int>(d, i));
 			}
 		}
