@@ -84,8 +84,10 @@ void EmulateShake(AccelData* const accel
 	// < 9 no shake detection in "Wario Land: Shake It"
 	auto const shake_step_max = 15;
 
-	// peak G-force
-	auto const shake_intensity = 3.0;
+	// peak G-force.
+	// 3.0 does not work for Boom Blox. 4.0 does not work for Jett Rocket, 3.5 works for both.
+	// Boom Blox seems to support hard shakes and light shakes, something not currently emulated.
+	auto const shake_intensity = 3.5;
 
 	// shake is a bitfield of X,Y,Z shake button states
 	static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
