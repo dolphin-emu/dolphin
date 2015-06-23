@@ -75,5 +75,5 @@ private:
 	u32 m_SeekPos;
 
 	std::string m_filepath;
-	File::IOFile m_file;
+	std::shared_ptr<File::IOFile> m_file;
 };
