@@ -42,9 +42,9 @@ namespace FPURoundMode
 		static const u32 simd_rounding_table[] =
 		{
 			(0 << 13) | EXCEPTION_MASK, // nearest
-			(3 << 13) | EXCEPTION_MASK, // -inf
+			(3 << 13) | EXCEPTION_MASK, // zero
 			(2 << 13) | EXCEPTION_MASK, // +inf
-			(1 << 13) | EXCEPTION_MASK, // zero
+			(1 << 13) | EXCEPTION_MASK, // -inf
 		};
 		u32 csr = simd_rounding_table[rounding_mode];
 
