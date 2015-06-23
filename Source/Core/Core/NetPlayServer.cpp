@@ -315,7 +315,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	}
 	spac.clear();
 	spac << (MessageId)NP_MSG_SYNC_GC_SRAM;
-	for (int i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+	for (unsigned int i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
 	{
 		spac << g_SRAM.p_SRAM[i];
 	}
