@@ -73,6 +73,7 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std:
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false) // not a real hardware
 	, m_Mode(0)
 	, m_SeekPos(0)
+	, m_file()
 {
 	Common::ReadReplacements(replacements);
 }
@@ -85,6 +86,8 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bF
 {
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_Name.c_str(), m_DeviceID);
 	m_Mode = 0;
+
+	m_file.Close();
 
 	// Close always return 0 for success
 	if (_CommandAddress && !_bForce)
@@ -121,13 +124,15 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode
 		ReturnValue = FS_FILE_NOT_EXIST;
 	}
 
+	OpenFile();
+
 	if (_CommandAddress)
 		Memory::Write_U32(ReturnValue, _CommandAddress+4);
 	m_Active = true;
 	return IPC_DEFAULT_REPLY;
 }
 
-File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
+void CWII_IPC_HLE_Device_FileIO::OpenFile()
 {
 	const char* open_mode = "";
 
@@ -147,7 +152,7 @@ File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
 		break;
 	}
 
-	return File::IOFile(m_filepath, open_mode);
+	m_file = File::IOFile(m_filepath, open_mode);
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
@@ -156,11 +161,11 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	const s32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
 	const s32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
 
-	if (auto file = OpenFile())
+	if (m_file)
 	{
 		ReturnValue = FS_RESULT_FATAL;
 
-		const s32 fileSize = (s32) file.GetSize();
+		const s32 fileSize = (s32) m_file.GetSize();
 		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), fileSize);
 
 		switch (Mode)
@@ -204,6 +209,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 				break;
 			}
 		}
+		m_file.Seek(m_SeekPos, SEEK_SET);
 	}
 	else
 	{
@@ -221,7 +227,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 	const u32 Size    = Memory::Read_U32(_CommandAddress + 0x10);
 
 
-	if (auto file = OpenFile())
+	if (m_file)
 	{
 		if (m_Mode == ISFS_OPEN_WRITE)
 		{
@@ -230,9 +236,8 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 		else
 		{
 			INFO_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address, m_Name.c_str());
-			file.Seek(m_SeekPos, SEEK_SET);
-			ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, file.GetHandle());
-			if (ReturnValue != Size && ferror(file.GetHandle()))
+			ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, m_file.GetHandle());
+			if (ReturnValue != Size && ferror(m_file.GetHandle()))
 			{
 				ReturnValue = FS_EACCESS;
 			}
@@ -259,7 +264,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 	const u32 Address = Memory::Read_U32(_CommandAddress + 0xC); // Write data from this memory address
 	const u32 Size    = Memory::Read_U32(_CommandAddress + 0x10);
 
-	if (auto file = OpenFile())
+	if (m_file)
 	{
 		if (m_Mode == ISFS_OPEN_READ)
 		{
@@ -268,8 +273,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 		else
 		{
 			INFO_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", Size, Address, m_Name.c_str());
-			file.Seek(m_SeekPos, SEEK_SET);
-			if (file.WriteBytes(Memory::GetPointer(Address), Size))
+			if (m_file.WriteBytes(Memory::GetPointer(Address), Size))
 			{
 				ReturnValue = Size;
 				m_SeekPos += Size;
@@ -299,9 +303,9 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 	{
 	case ISFS_IOCTL_GETFILESTATS:
 		{
-			if (auto file = OpenFile())
+			if (m_file)
 			{
-				u32 m_FileLength = (u32)file.GetSize();
+				u32 m_FileLength = (u32)m_file.GetSize();
 
 				const u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 				INFO_LOG(WII_IPC_FILEIO, "  File: %s, Length: %i, Pos: %i", m_Name.c_str(), m_FileLength, m_SeekPos);
@@ -337,4 +341,10 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 	p.Do(m_SeekPos);
 
 	m_filepath = HLE_IPC_BuildFilename(m_Name);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		OpenFile();
+		m_file.Seek(m_SeekPos, SEEK_SET);
+	}
 }
