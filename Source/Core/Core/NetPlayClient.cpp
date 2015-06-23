@@ -468,7 +468,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	case NP_MSG_SYNC_GC_SRAM:
 	{
 		u8 sram[sizeof(g_SRAM.p_SRAM)];
-		for (int i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+		for (size_t i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
 		{
 			packet >> sram[i];
 		}
