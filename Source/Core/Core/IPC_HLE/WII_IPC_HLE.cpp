@@ -102,42 +102,54 @@ static void EnqueueEvent(u64 userdata, int cycles_late = 0)
 	Update();
 }
 
+static u32 num_devices;
+
+template <typename T>
+std::shared_ptr<T> AddDevice(const char* deviceName)
+{
+	auto device = std::make_shared<T>(num_devices, deviceName);
+	g_DeviceMap[num_devices] = device;
+	num_devices++;
+	return device;
+}
+
 void Init()
 {
 	_dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isn't empty on init");
 	CWII_IPC_HLE_Device_es::m_ContentFile = "";
 
-	u32 i = 0;
+	num_devices = 0;
+
 	// Build hardware devices
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_usb_oh1_57e_305>(i, "/dev/usb/oh1/57e/305"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_stm_immediate>(i, "/dev/stm/immediate"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_stm_eventhook>(i, "/dev/stm/eventhook"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_fs>(i, "/dev/fs"); i++;
+	AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305>("/dev/usb/oh1/57e/305");
+	AddDevice<CWII_IPC_HLE_Device_stm_immediate>("/dev/stm/immediate");
+	AddDevice<CWII_IPC_HLE_Device_stm_eventhook>("/dev/stm/eventhook");
+	AddDevice<CWII_IPC_HLE_Device_fs>("/dev/fs");
 
 	// IOS allows two ES devices at a time
 	for (u32 j=0; j<ES_MAX_COUNT; j++)
 	{
-		g_DeviceMap[i] = es_handles[j] = std::make_shared<CWII_IPC_HLE_Device_es>(i, "/dev/es"); i++;
+		es_handles[j] = AddDevice<CWII_IPC_HLE_Device_es>("/dev/es");
 		es_inuse[j] = false;
 	}
 
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_di>(i, std::string("/dev/di")); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_net_kd_request>(i, "/dev/net/kd/request"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_net_kd_time>(i, "/dev/net/kd/time"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_net_ncd_manage>(i, "/dev/net/ncd/manage"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_net_wd_command>(i, "/dev/net/wd/command"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_net_ip_top>(i, "/dev/net/ip/top"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_net_ssl>(i, "/dev/net/ssl"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_usb_kbd>(i, "/dev/usb/kbd"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_sdio_slot0>(i, "/dev/sdio/slot0"); i++;
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_stub>(i, "/dev/sdio/slot1"); i++;
+	AddDevice<CWII_IPC_HLE_Device_di>("/dev/di");
+	AddDevice<CWII_IPC_HLE_Device_net_kd_request>("/dev/net/kd/request");
+	AddDevice<CWII_IPC_HLE_Device_net_kd_time>("/dev/net/kd/time");
+	AddDevice<CWII_IPC_HLE_Device_net_ncd_manage>("/dev/net/ncd/manage");
+	AddDevice<CWII_IPC_HLE_Device_net_wd_command>("/dev/net/wd/command");
+	AddDevice<CWII_IPC_HLE_Device_net_ip_top>("/dev/net/ip/top");
+	AddDevice<CWII_IPC_HLE_Device_net_ssl>("/dev/net/ssl");
+	AddDevice<CWII_IPC_HLE_Device_usb_kbd>("/dev/usb/kbd");
+	AddDevice<CWII_IPC_HLE_Device_sdio_slot0>("/dev/sdio/slot0");
+	AddDevice<CWII_IPC_HLE_Device_stub>("/dev/sdio/slot1");
 	#if defined(__LIBUSB__) || defined(_WIN32)
-		g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_hid>(i, "/dev/usb/hid"); i++;
+		AddDevice<CWII_IPC_HLE_Device_hid>("/dev/usb/hid");
 	#else
-		g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_stub>(i, "/dev/usb/hid"); i++;
+		AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/hid");
 	#endif
-	g_DeviceMap[i] = std::make_shared<CWII_IPC_HLE_Device_stub>(i, "/dev/usb/oh1"); i++;
-	g_DeviceMap[i] = std::make_shared<IWII_IPC_HLE_Device>(i, "_Unimplemented_Device_"); i++;
+	AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/oh1");
+	AddDevice<IWII_IPC_HLE_Device>("_Unimplemented_Device_");
 
 	event_enqueue = CoreTiming::RegisterEvent("IPCEvent", EnqueueEvent);
 }
