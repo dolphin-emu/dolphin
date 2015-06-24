@@ -29,7 +29,6 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 	;
 void SetEnableAlert(bool enable);
 
-#ifndef GEKKO
 #ifdef _WIN32
 	#define SuccessAlert(format, ...) MsgAlert(false, INFORMATION, format, __VA_ARGS__)
 	#define PanicAlert(format, ...) MsgAlert(false, WARNING, format, __VA_ARGS__)
@@ -54,17 +53,4 @@ void SetEnableAlert(bool enable);
 	#define PanicYesNoT(format, ...) MsgAlert(true, WARNING, format, ##__VA_ARGS__)
 	#define AskYesNoT(format, ...) MsgAlert(true, QUESTION, format, ##__VA_ARGS__)
 	#define CriticalAlertT(format, ...) MsgAlert(false, CRITICAL, format, ##__VA_ARGS__)
-#endif
-#else
-// GEKKO
-	#define SuccessAlert(format, ...) ;
-	#define PanicAlert(format, ...) ;
-	#define PanicYesNo(format, ...) ;
-	#define AskYesNo(format, ...) ;
-	#define CriticalAlert(format, ...) ;
-	#define SuccessAlertT(format, ...) ;
-	#define PanicAlertT(format, ...) ;
-	#define PanicYesNoT(format, ...) ;
-	#define AskYesNoT(format, ...) ;
-	#define CriticalAlertT(format, ...) ;
 #endif

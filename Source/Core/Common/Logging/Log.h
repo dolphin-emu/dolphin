@@ -87,15 +87,11 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 #endif // loglevel
 #endif // logging
 
-#ifdef GEKKO
-#define GENERIC_LOG(t, v, ...)
-#else
 // Let the compiler optimize this out
 #define GENERIC_LOG(t, v, ...) { \
 	if (v <= MAX_LOGLEVEL) \
 		GenericLog(v, t, __FILE__, __LINE__, __VA_ARGS__); \
 	}
-#endif
 
 #define ERROR_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__) } while (0)
 #define WARN_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__) } while (0)
@@ -130,7 +126,6 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 
 #define _assert_(_a_) _dbg_assert_(MASTER_LOG, _a_)
 
-#ifndef GEKKO
 #ifdef _WIN32
 #define _assert_msg_(_t_, _a_, _fmt_, ...) \
 	if (!(_a_)) {\
@@ -144,6 +139,3 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 			Crash(); \
 	}
 #endif // WIN32
-#else // GEKKO
-#define _assert_msg_(_t_, _a_, _fmt_, ...)
-#endif

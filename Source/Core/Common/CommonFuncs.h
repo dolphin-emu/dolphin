@@ -45,9 +45,7 @@ struct ArraySizeImpl : public std::extent<T>
 #endif
 
 // go to debugger mode
-	#ifdef GEKKO
-		#define Crash()
-	#elif defined _M_X86
+	#ifdef _M_X86
 		#define Crash() {asm ("int $3");}
 	#else
 		#define Crash() { exit(1); }
