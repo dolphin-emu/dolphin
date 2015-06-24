@@ -33,6 +33,8 @@ private:
 		TCacheEntry(const TCacheEntryConfig& config);
 		~TCacheEntry();
 
+		void DoPartialTextureUpdate(TCacheEntryBase* entry, u32 x, u32 y) override;
+
 		void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) override;
 

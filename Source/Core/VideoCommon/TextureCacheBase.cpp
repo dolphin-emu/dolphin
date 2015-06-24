@@ -211,6 +211,48 @@ bool TextureCache::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u32 r
 	return true;
 }
 
+void TextureCache::TCacheEntryBase::DoPartialTextureUpdates()
+{
+	const bool isPaletteTexture = (format== GX_TF_C4 || format == GX_TF_C8 || format == GX_TF_C14X2 || format >= 0x10000);
+
+	// Efb copies and paletted textures are excluded from these updates, until there's an example where a game would
+	// benefit from this. Both would require more work to be done.
+	// TODO: Implement upscaling support for normal textures, and then remove the efb to ram and the scaled efb restrictions
+	if (!g_ActiveConfig.backend_info.bSupportsCopySubImage || !g_ActiveConfig.bSkipEFBCopyToRam || IsEfbCopy()
+		|| isPaletteTexture || (g_ActiveConfig.bCopyEFBScaled && g_ActiveConfig.iEFBScale != SCALE_1X))
+		return;
+
+	u32 block_width = TexDecoder_GetBlockWidthInTexels(format);
+	u32 block_height = TexDecoder_GetBlockHeightInTexels(format);
+	u32 block_size = block_width * block_height * TexDecoder_GetTexelSizeInNibbles(format) / 2;
+
+	u32 numBlocksX = (native_width + block_width - 1) / block_width;
+
+	TexCache::iterator iter = textures_by_address.lower_bound(addr);
+	TexCache::iterator iterend = textures_by_address.upper_bound(addr + size_in_bytes);
+
+	while (iter != iterend)
+	{
+		TCacheEntryBase* entry = iter->second;
+		if (entry->IsEfbCopy() && addr <= entry->addr && entry->addr + entry->size_in_bytes <= addr + size_in_bytes
+			&& entry->frameCount == FRAMECOUNT_INVALID && entry->copyMipMapStrideChannels * 32 == numBlocksX * block_size)
+		{
+			u32 block_offset = (entry->addr - addr) / block_size;
+			u32 block_x = block_offset % numBlocksX;
+			u32 block_y = block_offset / numBlocksX;
+
+			u32 x = block_x * block_width;
+			u32 y = block_y * block_height;
+
+			DoPartialTextureUpdate(entry, x, y);
+
+			// Mark the texture update as used, so it isn't applied more than once
+			entry->frameCount = frameCount;
+		}
+		++iter;
+	}
+}
+
 void TextureCache::DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level)
 {
 	std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
@@ -398,6 +440,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			if (entry->hash == full_hash && entry->format == full_format && entry->native_levels >= tex_levels &&
 				entry->native_width == nativeW && entry->native_height == nativeH)
 			{
+				entry->DoPartialTextureUpdates();
+
 				return ReturnEntry(stage, entry);
 			}
 		}
@@ -450,6 +494,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			if (entry->format == full_format && entry->native_levels >= tex_levels &&
 				entry->native_width == nativeW && entry->native_height == nativeH)
 			{
+				entry->DoPartialTextureUpdates();
+
 				return ReturnEntry(stage, entry);
 			}
 			++iter;
@@ -589,6 +635,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 
 	INCSTAT(stats.numTexturesUploaded);
 	SETSTAT(stats.numTexturesAlive, textures_by_address.size());
+
+	entry->DoPartialTextureUpdates();
 
 	return ReturnEntry(stage, entry);
 }
@@ -904,6 +952,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	entry->frameCount = FRAMECOUNT_INVALID;
 	entry->is_efb_copy = true;
 	entry->is_custom_tex = false;
+	entry->copyMipMapStrideChannels = bpmem.copyMipMapStrideChannels;
 
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 

@@ -137,6 +137,14 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConf
 	return entry;
 }
 
+void TextureCache::TCacheEntry::DoPartialTextureUpdate(TCacheEntryBase* entry_, u32 x, u32 y)
+{
+
+	TCacheEntry* entry = (TCacheEntry*)entry_;
+
+	glCopyImageSubData(entry->texture, GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, texture, GL_TEXTURE_2D_ARRAY, 0, x, y, 0, entry->native_width, entry->native_height, 1);
+}
+
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {

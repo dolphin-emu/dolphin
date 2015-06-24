@@ -53,6 +53,7 @@ public:
 		u32 format;
 		bool is_efb_copy;
 		bool is_custom_tex;
+		u32 copyMipMapStrideChannels;
 
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int native_levels;
@@ -88,6 +89,8 @@ public:
 		virtual void Bind(unsigned int stage) = 0;
 		virtual bool Save(const std::string& filename, unsigned int level) = 0;
 
+		virtual void DoPartialTextureUpdate(TCacheEntryBase* entry, u32 x, u32 y) = 0;
+
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
 		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
@@ -96,6 +99,8 @@ public:
 			const float *colmat) = 0;
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
+
+		void DoPartialTextureUpdates();
 
 		bool IsEfbCopy() const { return is_efb_copy; }
 	};
