@@ -214,8 +214,10 @@ void Interpreter::ps_nmsub(UGeckoInstruction _inst)
 {
 	double c0 = Force25Bit(rPS0(_inst.FC));
 	double c1 = Force25Bit(rPS1(_inst.FC));
-	rPS0(_inst.FD) = ForceSingle(NI_msub(rPS0(_inst.FA), c0, rPS0(_inst.FB), true));
-	rPS1(_inst.FD) = ForceSingle(NI_msub(rPS1(_inst.FA), c1, rPS1(_inst.FB), true));
+	double result0 = ForceSingle(NI_msub(rPS0(_inst.FA), c0, rPS0(_inst.FB)));
+	double result1 = ForceSingle(NI_msub(rPS1(_inst.FA), c1, rPS1(_inst.FB)));
+	rPS0(_inst.FD) = std::isnan(result0) ? result0 : -result0;
+	rPS1(_inst.FD) = std::isnan(result1) ? result1 : -result1;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -226,8 +228,10 @@ void Interpreter::ps_nmadd(UGeckoInstruction _inst)
 {
 	double c0 = Force25Bit(rPS0(_inst.FC));
 	double c1 = Force25Bit(rPS1(_inst.FC));
-	rPS0(_inst.FD) = ForceSingle(NI_madd(rPS0(_inst.FA), c0, rPS0(_inst.FB), true));
-	rPS1(_inst.FD) = ForceSingle(NI_madd(rPS1(_inst.FA), c1, rPS1(_inst.FB), true));
+	double result0 = ForceSingle(NI_madd(rPS0(_inst.FA), c0, rPS0(_inst.FB)));
+	double result1 = ForceSingle(NI_madd(rPS1(_inst.FA), c1, rPS1(_inst.FB)));
+	rPS0(_inst.FD) = std::isnan(result0) ? result0 : -result0;
+	rPS1(_inst.FD) = std::isnan(result1) ? result1 : -result1;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
