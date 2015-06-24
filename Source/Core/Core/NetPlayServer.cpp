@@ -717,6 +717,8 @@ bool NetPlayServer::StartGame()
 	*spac << m_settings.m_CPUcore;
 	*spac << m_settings.m_SelectedLanguage;
 	*spac << m_settings.m_OverrideGCLanguage;
+	*spac << m_settings.m_ProgressiveScan;
+	*spac << m_settings.m_PAL60;
 	*spac << m_settings.m_DSPEnableJIT;
 	*spac << m_settings.m_DSPHLE;
 	*spac << m_settings.m_WriteToMemcard;

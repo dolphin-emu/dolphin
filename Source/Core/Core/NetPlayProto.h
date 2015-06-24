@@ -14,6 +14,8 @@ struct NetSettings
 	int m_CPUcore;
 	int m_SelectedLanguage;
 	bool m_OverrideGCLanguage;
+	bool m_ProgressiveScan;
+	bool m_PAL60;
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
 	bool m_WriteToMemcard;
@@ -31,7 +33,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<u8> NetWiimote;
 
-#define NETPLAY_VERSION  "Dolphin NetPlay 2015-06-14"
+#define NETPLAY_VERSION  "Dolphin NetPlay 2015-06-24"
 
 extern u64 g_netplay_initial_gctime;
 
