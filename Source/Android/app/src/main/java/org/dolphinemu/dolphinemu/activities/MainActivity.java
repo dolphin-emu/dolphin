@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -9,71 +8,79 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
-import android.widget.Toolbar;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.adapters.GameAdapter;
+import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
+import org.dolphinemu.dolphinemu.fragments.PlatformGamesFragment;
+import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.services.AssetCopyService;
 
 /**
- * The main Activity of the Lollipop style UI. Shows a grid of games on tablets & landscape phones,
- * shows a list of games on portrait phones.
+ * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
+ * individually display a grid of available games for each Fragment, in a tabbed layout.
  */
-public final class GameGridActivity extends Activity implements LoaderManager.LoaderCallbacks<Cursor>
+public final class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
 {
 	private static final int REQUEST_ADD_DIRECTORY = 1;
 
-	private static final int LOADER_ID_GAMES = 1;
-	// TODO When each platform has its own tab, there should be a LOADER_ID for each platform.
+	/**
+	 * It is important to keep track of loader ID separately from platform ID (see Game.java)
+	 * because we could potentially have Loaders that load things other than Games.
+	 */
+	public static final int LOADER_ID_ALL = 100; // TODO
+	public static final int LOADER_ID_GAMECUBE = 0;
+	public static final int LOADER_ID_WII = 1;
+	public static final int LOADER_ID_WIIWARE = 2;
 
-	private GameAdapter mAdapter;
+	private ViewPager mViewPager;
+	private PlatformPagerAdapter mPlatformPagerAdapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_game_grid);
+		setContentView(R.layout.activity_main);
 
-		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_game_list);
-		setActionBar(toolbar);
-
-		ImageButton buttonAddDirectory = (ImageButton) findViewById(R.id.button_add_directory);
-		RecyclerView recyclerView = (RecyclerView) findViewById(R.id.grid_games);
+		// Set up the Toolbar.
+		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+		setSupportActionBar(toolbar);
 
 		// TODO Rather than calling into native code, this should use the commented line below.
 		// String versionName = BuildConfig.VERSION_NAME;
 		String versionName = NativeLibrary.GetVersionString();
 		toolbar.setSubtitle(versionName);
 
-		// Specifying the LayoutManager determines how the RecyclerView arranges views.
-		RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this,
-				getResources().getInteger(R.integer.game_grid_columns));
-		recyclerView.setLayoutManager(layoutManager);
+		// Set up the Tab bar.
+		mViewPager = (ViewPager) findViewById(R.id.pager_platforms);
 
-		recyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
+		mPlatformPagerAdapter = new PlatformPagerAdapter(getFragmentManager(), this);
+		mViewPager.setAdapter(mPlatformPagerAdapter);
 
-		// Create an adapter that will relate the dataset to the views on-screen.
-		getLoaderManager().initLoader(LOADER_ID_GAMES, null, this);
-		mAdapter = new GameAdapter();
-		recyclerView.setAdapter(mAdapter);
+		TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs_platforms);
+		tabLayout.setupWithViewPager(mViewPager);
 
+		// Set up the FAB.
+		FloatingActionButton buttonAddDirectory = (FloatingActionButton) findViewById(R.id.button_add_directory);
 		buttonAddDirectory.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
 			public void onClick(View view)
 			{
-				Intent fileChooser = new Intent(GameGridActivity.this, AddDirectoryActivity.class);
+				Intent fileChooser = new Intent(MainActivity.this, AddDirectoryActivity.class);
 
 				// The second argument to this method is read below in onActivityResult().
 				startActivityForResult(fileChooser, REQUEST_ADD_DIRECTORY);
@@ -115,7 +122,7 @@ public final class GameGridActivity extends Activity implements LoaderManager.Lo
 			// other activities might use this callback in the future (don't forget to change Javadoc!)
 			if (requestCode == REQUEST_ADD_DIRECTORY)
 			{
-				getLoaderManager().restartLoader(LOADER_ID_GAMES, null, this);
+				refreshFragment();
 			}
 		}
 	}
@@ -147,12 +154,21 @@ public final class GameGridActivity extends Activity implements LoaderManager.Lo
 
 			case R.id.menu_refresh:
 				getContentResolver().insert(GameProvider.URI_REFRESH, null);
-				getLoaderManager().restartLoader(LOADER_ID_GAMES, null, this);
+				refreshFragment();
 
 				return true;
 		}
 
 		return false;
+	}
+
+	public void refreshFragment()
+	{
+		PlatformGamesFragment fragment = getPlatformFragment(mViewPager.getCurrentItem());
+		if (fragment != null)
+		{
+			fragment.refresh();
+		}
 	}
 
 
@@ -173,16 +189,30 @@ public final class GameGridActivity extends Activity implements LoaderManager.Lo
 		// Take action based on the ID of the Loader that's being created.
 		switch (id)
 		{
-			case LOADER_ID_GAMES:
+			case LOADER_ID_ALL:
 				// TODO Play some sort of load-starting animation; maybe fade the list out.
 
 				return new CursorLoader(
-						this,                           // Parent activity context
-						GameProvider.URI_GAME,          // URI of table to query
-						null,                           // Return all columns
-						null,                           // No selection clause
-						null,                           // No selection arguments
-						GameDatabase.KEY_GAME_TITLE + " asc"   // Sort by game name, ascending order
+						this,                                    // Parent activity context
+						GameProvider.URI_GAME,                    // URI of table to query
+						null,                                    // Return all columns
+						null,                                    // No selection clause
+						null,                                    // No selection arguments
+						GameDatabase.KEY_GAME_TITLE + " asc"    // Sort by game name, ascending order
+				);
+
+			case LOADER_ID_GAMECUBE:
+			case LOADER_ID_WII:
+			case LOADER_ID_WIIWARE:
+				// TODO Play some sort of load-starting animation; maybe fade the list out.
+
+				return new CursorLoader(
+						this,                                        // Parent activity context
+						GameProvider.URI_GAME,                        // URI of table to query
+						null,                                        // Return all columns
+						GameDatabase.KEY_GAME_PLATFORM + " = ?",    // Select by platform
+						new String[]{Integer.toString(id)},    // Platform id is Loader id minus 1
+						GameDatabase.KEY_GAME_TITLE + " asc"        // Sort by game name, ascending order
 				);
 
 			default:
@@ -205,25 +235,73 @@ public final class GameGridActivity extends Activity implements LoaderManager.Lo
 		int id = loader.getId();
 		Log.d("DolphinEmu", "Loader finished with id: " + id);
 
-		// TODO When each platform has its own tab, this should just call into those tabs instead.
+		PlatformGamesFragment fragment = null;
 		switch (id)
 		{
-			case LOADER_ID_GAMES:
-				mAdapter.swapCursor(data);
-				// TODO Play some sort of load-finished animation; maybe fade the list in.
+			case LOADER_ID_GAMECUBE:
+				fragment = getPlatformFragment(Game.PLATFORM_GC);
 				break;
+
+			case LOADER_ID_WII:
+				fragment = getPlatformFragment(Game.PLATFORM_WII);
+				break;
+
+			case LOADER_ID_WIIWARE:
+				fragment = getPlatformFragment(Game.PLATFORM_WII_WARE);
+				break;
+
+			// TODO case LOADER_ID_ALL:
 
 			default:
 				Log.e("DolphinEmu", "Bad ID passed in.");
+				break;
 		}
 
+		if (fragment != null)
+		{
+			fragment.onLoadFinished(loader, data);
+		}
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader)
 	{
-		Log.d("DolphinEmu", "Loader resetting.");
+		int id = loader.getId();
+		Log.e("DolphinEmu", "Loader resetting with id: " + id);
 
-		// TODO ¯\_(ツ)_/¯
+		PlatformGamesFragment fragment = null;
+		switch (id)
+		{
+			case LOADER_ID_GAMECUBE:
+				fragment = getPlatformFragment(Game.PLATFORM_GC);
+				break;
+
+			case LOADER_ID_WII:
+				fragment = getPlatformFragment(Game.PLATFORM_WII);
+				break;
+
+			case LOADER_ID_WIIWARE:
+				fragment = getPlatformFragment(Game.PLATFORM_WII_WARE);
+				break;
+
+			// TODO case LOADER_ID_ALL:
+
+			default:
+				Log.e("DolphinEmu", "Bad ID passed in.");
+				break;
+		}
+
+		if (fragment != null)
+		{
+			fragment.onLoaderReset();
+		}
+	}
+
+	@Nullable
+	public PlatformGamesFragment getPlatformFragment(int platform)
+	{
+		String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform;
+
+		return (PlatformGamesFragment) getFragmentManager().findFragmentByTag(fragmentTag);
 	}
 }

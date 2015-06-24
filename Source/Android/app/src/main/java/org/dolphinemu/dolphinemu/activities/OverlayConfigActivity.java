@@ -8,6 +8,7 @@ package org.dolphinemu.dolphinemu.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.RelativeLayout;
 
 import org.dolphinemu.dolphinemu.R;
@@ -16,7 +17,7 @@ import org.dolphinemu.dolphinemu.overlay.OverlayConfigButton;
 /**
  * {@link Activity} used for configuring the input overlay.
  */
-public final class OverlayConfigActivity extends Activity
+public final class OverlayConfigActivity extends AppCompatActivity
 {
 	@Override
 	public void onCreate(Bundle savedInstanceState)

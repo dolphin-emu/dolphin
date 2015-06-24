@@ -1,83 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- inherit from the material theme -->
-    <style name="DolphinBase" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="DolphinBase" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Main theme colors -->
         <!--   your app branding color for the app bar -->
-        <item name="android:colorPrimary">@color/dolphin_blue</item>
+        <item name="colorPrimary">@color/dolphin_blue</item>
         <!--   darker variant for the status bar and contextual app bars -->
-        <item name="android:colorPrimaryDark">@color/dolphin_blue_dark</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
     </style>
 
     <!-- Same as above, but use default action bar, and mandate margins. -->
-    <style name="DolphinSettingsBase" parent="android:Theme.Material.Light.DarkActionBar">
-        <item name="android:colorPrimary">@color/dolphin_blue</item>
-        <item name="android:colorPrimaryDark">@color/dolphin_blue_dark</item>
+    <style name="DolphinSettingsBase" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/dolphin_blue</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
     </style>
 
     <!-- Inherit from the Base Dolphin Theme-->
     <style name="DolphinWii" parent="DolphinBase">
         <!--   theme UI controls like checkboxes and text fields -->
-        <item name="android:colorAccent">@color/dolphin_accent_wii</item>
+        <item name="colorAccent">@color/dolphin_accent_wii</item>
     </style>
 
     <style name="DolphinGamecube" parent="DolphinBase">
-        <item name="android:colorAccent">@color/dolphin_accent_gamecube</item>
+        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
     </style>
 
     <style name="DolphinWiiware" parent="DolphinBase">
-        <item name="android:colorAccent">@color/dolphin_accent_wiiware</item>
+        <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
     <!-- Inherit from the Base Dolphin Settings Theme-->
     <style name="DolphinSettingsWii" parent="DolphinSettingsBase">
-        <item name="android:colorAccent">@color/dolphin_accent_wii</item>
+        <item name="colorAccent">@color/dolphin_accent_wii</item>
     </style>
 
     <style name="DolphinSettingsGamecube" parent="DolphinSettingsBase">
-        <item name="android:colorAccent">@color/dolphin_accent_gamecube</item>
+        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
     </style>
 
     <style name="DolphinSettingsWiiware" parent="DolphinSettingsBase">
         <!--   theme UI controls like checkboxes and text fields -->
-        <item name="android:colorAccent">@color/dolphin_accent_wiiware</item>
+        <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
     <!-- Themes for Dialogs -->
-    <style name="DolphinDialogBase" parent="android:Theme.Material.Light.Dialog">
-        <item name="android:colorPrimary">@color/dolphin_blue</item>
-        <item name="android:colorPrimaryDark">@color/dolphin_blue_dark</item>
+    <style name="DolphinDialogBase" parent="Theme.AppCompat.Light.Dialog">
+        <item name="colorPrimary">@color/dolphin_blue</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
     </style>
 
     <!-- Inherit from the Base Dolphin Dialog Theme-->
     <style name="DolphinDialogWii" parent="DolphinDialogBase">
-        <item name="android:colorAccent">@color/dolphin_accent_wii</item>
+        <item name="colorAccent">@color/dolphin_accent_wii</item>
     </style>
 
     <style name="DolphinDialogGamecube" parent="DolphinDialogBase">
-        <item name="android:colorAccent">@color/dolphin_accent_gamecube</item>
+        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
     </style>
 
     <style name="DolphinDialogWiiware" parent="DolphinDialogBase">
-        <item name="android:colorAccent">@color/dolphin_accent_wiiware</item>
+        <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
-    <style name="DolphinEmulationBase" parent="android:Theme.Material.Light.DarkActionBar">
-        <item name="android:colorPrimary">@color/dolphin_blue</item>
-        <item name="android:colorPrimaryDark">@color/dolphin_blue_dark</item>
+    <style name="DolphinEmulationBase" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/dolphin_blue</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="android:windowTranslucentNavigation">true</item>
     </style>
 
     <!-- Inherit from the Base Dolphin Emulation Theme-->
     <style name="DolphinEmulationWii" parent="DolphinEmulationBase">
-        <item name="android:colorAccent">@color/dolphin_accent_wii</item>
+        <item name="colorAccent">@color/dolphin_accent_wii</item>
     </style>
 
     <style name="DolphinEmulationGamecube" parent="DolphinEmulationBase">
-        <item name="android:colorAccent">@color/dolphin_accent_gamecube</item>
+        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
     </style>
 
     <style name="DolphinEmulationWiiware" parent="DolphinEmulationBase">
-        <item name="android:colorAccent">@color/dolphin_accent_wiiware</item>
+        <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
+
+
+    <!-- Hax to make Tablayout render icons -->
+    <style name="MyCustomTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="textAllCaps">false</item>
+    </style>
+
 </resources>

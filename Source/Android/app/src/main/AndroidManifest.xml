@@ -26,7 +26,7 @@
         android:banner="@drawable/banner_tv">
 
         <activity
-            android:name=".activities.GameGridActivity"
+            android:name=".activities.MainActivity"
             android:theme="@style/DolphinGamecube">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
@@ -54,7 +54,7 @@
 
         <activity
             android:name=".activities.OverlayConfigActivity"
-            android:theme="@style/DolphinEmulationGamecube"/>
+            android:theme="@style/DolphinSettingsGamecube"/>
 
 
         <service android:name=".services.AssetCopyService"/>

@@ -196,7 +196,14 @@ public final class GameDatabase extends SQLiteOpenHelper
 									gameId = filePath.substring(filePath.lastIndexOf("/") + 1, filePath.lastIndexOf("."));
 								}
 
-								ContentValues game = Game.asContentValues(NativeLibrary.GetPlatform(filePath),
+								// If the game's platform field is empty, file under Wiiware. // TODO Something less dum
+								int platform = NativeLibrary.GetPlatform(filePath);
+								if (platform == -1)
+								{
+									platform = Game.PLATFORM_WII_WARE;
+								}
+
+								ContentValues game = Game.asContentValues(platform,
 										name,
 										NativeLibrary.GetDescription(filePath).replace("\n", " "),
 										NativeLibrary.GetCountry(filePath),
