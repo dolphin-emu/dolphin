@@ -1,8 +1,6 @@
 package org.dolphinemu.dolphinemu.activities;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -167,7 +165,7 @@ public final class EmulationActivity extends Activity
 		switch (item.getItemId())
 		{
 			// Enable/Disable input overlay.
-			case R.id.enableInputOverlay:
+			case R.id.menu_emulation_input_overlay:
 			{
 				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
 						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
@@ -178,69 +176,60 @@ public final class EmulationActivity extends Activity
 			}
 
 			// Screenshot capturing
-			case R.id.takeScreenshot:
+			case R.id.menu_emulation_screenshot:
 				NativeLibrary.SaveScreenShot();
 				return true;
 
+			// Quicksave / Load
+			case R.id.menu_quicksave:
+				NativeLibrary.SaveState(9);
+				return true;
+
+			case R.id.menu_quickload:
+				NativeLibrary.LoadState(9);
+				return true;
+
 			// Save state slots
-			case R.id.saveSlot1:
+			case R.id.menu_emulation_save_1:
 				NativeLibrary.SaveState(0);
 				return true;
 
-			case R.id.saveSlot2:
+			case R.id.menu_emulation_save_2:
 				NativeLibrary.SaveState(1);
 				return true;
 
-			case R.id.saveSlot3:
+			case R.id.menu_emulation_save_3:
 				NativeLibrary.SaveState(2);
 				return true;
 
-			case R.id.saveSlot4:
+			case R.id.menu_emulation_save_4:
 				NativeLibrary.SaveState(3);
 				return true;
 
-			case R.id.saveSlot5:
+			case R.id.menu_emulation_save_5:
 				NativeLibrary.SaveState(4);
 				return true;
 
 			// Load state slots
-			case R.id.loadSlot1:
+			case R.id.menu_emulation_load_1:
 				NativeLibrary.LoadState(0);
 				return true;
 
-			case R.id.loadSlot2:
+			case R.id.menu_emulation_load_2:
 				NativeLibrary.LoadState(1);
 				return true;
 
-			case R.id.loadSlot3:
+			case R.id.menu_emulation_load_3:
 				NativeLibrary.LoadState(2);
 				return true;
 
-			case R.id.loadSlot4:
+			case R.id.menu_emulation_load_4:
 				NativeLibrary.LoadState(3);
 				return true;
 
-			case R.id.loadSlot5:
+			case R.id.menu_emulation_load_5:
 				NativeLibrary.LoadState(4);
 				return true;
-
-			case R.id.exitEmulation:
-			{
-				// Create a confirmation method for quitting the current emulation instance.
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle(R.string.overlay_exit_emulation);
-				builder.setMessage(R.string.overlay_exit_emulation_confirm);
-				builder.setNegativeButton(R.string.no, null);
-				builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
-				{
-					public void onClick(DialogInterface dialog, int which)
-					{
-						onDestroy();
-					}
-				});
-				builder.show();
-				return true;
-			}
 
 			default:
 				return super.onOptionsItemSelected(item);
