@@ -55,7 +55,7 @@ void Jit64::SetFPRFIfNeeded(X64Reg xmm)
 		SetFPRF(xmm);
 }
 
-void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm)
+void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Reg clobber)
 {
 	//                      | PowerPC  | x86
 	// ---------------------+----------+---------
@@ -72,7 +72,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm)
 		return;
 	}
 
-	_assert_(xmm != XMM0);
+	_assert_(xmm != clobber);
 
 	std::vector<u32> inputs;
 	u32 a = inst.FA, b = inst.FB, c = inst.FC;
@@ -110,15 +110,16 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm)
 		std::reverse(inputs.begin(), inputs.end());
 		if (cpu_info.bSSE4_1)
 		{
-			avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, XMM0, R(xmm), R(xmm), CMP_UNORD);
-			PTEST(XMM0, R(XMM0));
+			avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, R(xmm), R(xmm), CMP_UNORD);
+			PTEST(clobber, R(clobber));
 			FixupBranch handle_nan = J_CC(CC_NZ, true);
 			SwitchToFarCode();
 				SetJumpTarget(handle_nan);
+				_assert_msg_(DYNA_REC, clobber == XMM0, "BLENDVPD implicitly uses XMM0");
 				BLENDVPD(xmm, M(psGeneratedQNaN));
 				for (u32 x : inputs)
 				{
-					avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, XMM0, fpr.R(x), fpr.R(x), CMP_UNORD);
+					avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, fpr.R(x), fpr.R(x), CMP_UNORD);
 					BLENDVPD(xmm, fpr.R(x));
 				}
 				FixupBranch done = J(true);
@@ -130,26 +131,26 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm)
 			// SSE2 fallback
 			X64Reg tmp = fpr.GetFreeXReg();
 			fpr.FlushLockX(tmp);
-			MOVAPD(XMM0, R(xmm));
-			CMPPD(XMM0, R(XMM0), CMP_UNORD);
-			MOVMSKPD(RSCRATCH, R(XMM0));
+			MOVAPD(clobber, R(xmm));
+			CMPPD(clobber, R(clobber), CMP_UNORD);
+			MOVMSKPD(RSCRATCH, R(clobber));
 			TEST(32, R(RSCRATCH), R(RSCRATCH));
 			FixupBranch handle_nan = J_CC(CC_NZ, true);
 			SwitchToFarCode();
 				SetJumpTarget(handle_nan);
-				MOVAPD(tmp, R(XMM0));
-				PANDN(XMM0, R(xmm));
+				MOVAPD(tmp, R(clobber));
+				PANDN(clobber, R(xmm));
 				PAND(tmp, M(psGeneratedQNaN));
-				POR(tmp, R(XMM0));
+				POR(tmp, R(clobber));
 				MOVAPD(xmm, R(tmp));
 				for (u32 x : inputs)
 				{
-					MOVAPD(XMM0, fpr.R(x));
-					CMPPD(XMM0, R(XMM0), CMP_ORD);
-					MOVAPD(tmp, R(XMM0));
-					PANDN(XMM0, fpr.R(x));
+					MOVAPD(clobber, fpr.R(x));
+					CMPPD(clobber, R(clobber), CMP_ORD);
+					MOVAPD(tmp, R(clobber));
+					PANDN(clobber, fpr.R(x));
 					PAND(xmm, R(tmp));
-					POR(xmm, R(XMM0));
+					POR(xmm, R(clobber));
 				}
 				FixupBranch done = J(true);
 			SwitchToNearCode();
