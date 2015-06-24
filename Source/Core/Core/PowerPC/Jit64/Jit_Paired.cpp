@@ -68,7 +68,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 	default:
 		PanicAlert("ps_sum WTF!!!");
 	}
-	HandleNaNs(inst, fpr.RX(d), tmp);
+	HandleNaNs(inst, fpr.RX(d), tmp, tmp == XMM1 ? XMM0 : XMM1);
 	ForceSinglePrecision(fpr.RX(d), fpr.R(d));
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();

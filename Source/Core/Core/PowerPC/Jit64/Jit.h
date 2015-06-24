@@ -135,7 +135,8 @@ public:
 	Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
 	void SetFPRFIfNeeded(Gen::X64Reg xmm);
 
-	void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in);
+	void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
+	                Gen::X64Reg clobber = Gen::XMM0);
 
 	void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
