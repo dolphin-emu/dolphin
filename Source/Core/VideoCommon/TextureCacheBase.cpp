@@ -940,16 +940,16 @@ TextureCache::TCacheEntryBase* TextureCache::AllocateTexture(const TCacheEntryCo
 		INCSTAT(stats.numTexturesCreated);
 	}
 
-	entry->textures_by_hash_iter = textures_by_address.end();
+	entry->textures_by_hash_iter = textures_by_hash.end();
 	return entry;
 }
 
 TextureCache::TexCache::iterator TextureCache::RemoveTextureFromCache(TexCache::iterator iter)
 {
-	if (iter->second->textures_by_hash_iter != textures_by_address.end())
+	if (iter->second->textures_by_hash_iter != textures_by_hash.end())
 	{
 		textures_by_hash.erase(iter->second->textures_by_hash_iter);
-		iter->second->textures_by_hash_iter = textures_by_address.end();
+		iter->second->textures_by_hash_iter = textures_by_hash.end();
 	}
 
 	FreeTexture(iter->second);
