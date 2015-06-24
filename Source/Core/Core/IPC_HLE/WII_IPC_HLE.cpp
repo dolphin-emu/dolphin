@@ -57,6 +57,9 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 
 #include "Core/PowerPC/PowerPC.h"
 
+const u32 IPC_DEFAULT_DELAY = SystemTimers::GetTicksPerSecond() / 4000;	// 250 us
+const IPCCommandResult IPC_NO_REPLY = { false, 0 };
+const IPCCommandResult IPC_DEFAULT_REPLY = { true, IPC_DEFAULT_DELAY };
 
 namespace WII_IPC_HLE_Interface
 {
