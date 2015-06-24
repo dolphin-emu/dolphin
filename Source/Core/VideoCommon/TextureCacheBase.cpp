@@ -981,7 +981,7 @@ TextureCache::TCacheEntryBase* TextureCache::AllocateTexture(const TCacheEntryCo
 		INCSTAT(stats.numTexturesCreated);
 	}
 
-	entry->textures_by_hash_iter = textures_by_address.end();
+	entry->textures_by_hash_iter = textures_by_hash.end();
 	return entry;
 }
 
@@ -989,10 +989,10 @@ TextureCache::TexCache::iterator TextureCache::FreeTexture(TexCache::iterator it
 {
 	TCacheEntryBase* entry = iter->second;
 
-	if (entry->textures_by_hash_iter != textures_by_address.end())
+	if (entry->textures_by_hash_iter != textures_by_hash.end())
 	{
 		textures_by_hash.erase(entry->textures_by_hash_iter);
-		entry->textures_by_hash_iter = textures_by_address.end();
+		entry->textures_by_hash_iter = textures_by_hash.end();
 	}
 
 	entry->frameCount = FRAMECOUNT_INVALID;
