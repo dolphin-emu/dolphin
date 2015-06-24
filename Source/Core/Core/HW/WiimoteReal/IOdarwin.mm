@@ -45,6 +45,31 @@ private:
 	IOPMAssertionID m_pm_assertion;
 };
 
+class WiimoteDarwinHid final : public Wiimote
+{
+public:
+	WiimoteDarwinHid(IOHIDDeviceRef device);
+	~WiimoteDarwinHid() override;
+
+protected:
+	bool ConnectInternal() override;
+	void DisconnectInternal() override;
+	bool IsConnected() const override;
+	void IOWakeup() override;
+	int IORead(u8* buf) override;
+	int IOWrite(u8 const* buf, size_t len) override;
+
+private:
+	static void ReportCallback(void* context, IOReturn result, void* sender, IOHIDReportType type, u32 reportID, u8* report, CFIndex reportLength);
+	static void RemoveCallback(void* context, IOReturn result, void* sender);
+	void QueueBufferReport(int length);
+	IOHIDDeviceRef m_device;
+	bool m_connected;
+	std::atomic<bool> m_interrupted;
+	Report m_report_buffer;
+	Common::FifoQueue<Report> m_buffered_reports;
+};
+
 WiimoteScanner::WiimoteScanner()
 	: m_run_thread()
 	, m_want_wiimotes()
@@ -61,65 +86,109 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	// TODO: find the device in the constructor and save it for later
 	IOBluetoothHostController *bth;
 	IOBluetoothDeviceInquiry *bti;
+	IOHIDManagerRef hid;
 	SearchBT *sbt;
 	NSEnumerator *en;
 	found_board = nullptr;
 
+	bool btFailed = false;
+	bool hidFailed = false;
+
 	bth = [[IOBluetoothHostController alloc] init];
-	if ([bth addressAsString] == nil)
-	{
+	btFailed = [bth addressAsString] == nil;
+	if (btFailed)
 		WARN_LOG(WIIMOTE, "No Bluetooth host controller");
+
+	hid = IOHIDManagerCreate(NULL, kIOHIDOptionsTypeNone);
+	hidFailed = CFGetTypeID(hid) != IOHIDManagerGetTypeID();
+	if (hidFailed)
+		WARN_LOG(WIIMOTE, "No HID manager");
+
+	if (hidFailed && btFailed)
+	{
+		CFRelease(hid);
 		[bth release];
 		return;
 	}
 
-	sbt = [[SearchBT alloc] init];
-	sbt->maxDevices = 32;
-	bti = [[IOBluetoothDeviceInquiry alloc] init];
-	[bti setDelegate: sbt];
-	[bti setInquiryLength: 2];
-
-	if ([bti start] != kIOReturnSuccess)
+	if (!btFailed)
 	{
-		ERROR_LOG(WIIMOTE, "Unable to do Bluetooth discovery");
+		sbt = [[SearchBT alloc] init];
+		sbt->maxDevices = 32;
+		bti = [[IOBluetoothDeviceInquiry alloc] init];
+		[bti setDelegate: sbt];
+		[bti setInquiryLength: 2];
+
+		if ([bti start] != kIOReturnSuccess)
+		{
+			ERROR_LOG(WIIMOTE, "Unable to do Bluetooth discovery");
+			[bth release];
+			[sbt release];
+			btFailed = true;
+		}
+
+		do
+		{
+			CFRunLoopRun();
+		}
+		while (!sbt->done);
+
+		int found_devices = [[bti foundDevices] count];
+
+		if (found_devices)
+			NOTICE_LOG(WIIMOTE, "Found %i Bluetooth devices", found_devices);
+
+		en = [[bti foundDevices] objectEnumerator];
+		for (int i = 0; i < found_devices; i++)
+		{
+			IOBluetoothDevice *dev = [en nextObject];
+			if (!IsValidBluetoothName([[dev name] UTF8String]))
+				continue;
+
+			Wiimote* wm = new WiimoteDarwin([dev retain]);
+
+			if (IsBalanceBoardName([[dev name] UTF8String]))
+			{
+				found_board = wm;
+			}
+			else
+			{
+				found_wiimotes.push_back(wm);
+			}
+		}
+
 		[bth release];
+		[bti release];
 		[sbt release];
-		return;
 	}
 
-	do
+	if (!hidFailed)
 	{
+		NSArray *criteria = @[
+			@{ @kIOHIDVendorIDKey: @0x057e, @kIOHIDProductIDKey: @0x0306 },
+			@{ @kIOHIDVendorIDKey: @0x057e, @kIOHIDProductIDKey: @0x0330 },
+		];
+		IOHIDManagerSetDeviceMatchingMultiple(hid, (CFArrayRef)criteria);
 		CFRunLoopRun();
-	}
-	while (!sbt->done);
-
-	int found_devices = [[bti foundDevices] count];
-
-	if (found_devices)
-		NOTICE_LOG(WIIMOTE, "Found %i Bluetooth devices", found_devices);
-
-	en = [[bti foundDevices] objectEnumerator];
-	for (int i = 0; i < found_devices; i++)
-	{
-		IOBluetoothDevice *dev = [en nextObject];
-		if (!IsValidBluetoothName([[dev name] UTF8String]))
-			continue;
-
-		Wiimote* wm = new WiimoteDarwin([dev retain]);
-		
-		if (IsBalanceBoardName([[dev name] UTF8String]))
+		CFSetRef devices = IOHIDManagerCopyDevices(hid);
+		if (devices)
 		{
-			found_board = wm;
-		}
-		else
-		{
-			found_wiimotes.push_back(wm);
-		}
-	}
+			int found_devices = CFSetGetCount(devices);
+			if (found_devices)
+			{
+				NOTICE_LOG(WIIMOTE, "Found %i HID devices", found_devices);
 
-	[bth release];
-	[bti release];
-	[sbt release];
+				IOHIDDeviceRef values[found_devices];
+				CFSetGetValues(devices, reinterpret_cast<const void**>(&values));
+				for (int i = 0; i < found_devices; i++)
+				{
+					Wiimote* wm = new  WiimoteDarwinHid(values[i]);
+					found_wiimotes.push_back(wm);
+				}
+			}
+		}
+		CFRelease(hid);
+	}
 }
 
 bool WiimoteScanner::IsReady() const
@@ -285,6 +354,118 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 		if (IOReturn ret = IOPMAssertionRelease(m_pm_assertion))
 			ERROR_LOG(WIIMOTE, "Could not release power management assertion: %08x", ret);
 	}
+}
+
+WiimoteDarwinHid::WiimoteDarwinHid(IOHIDDeviceRef device) : m_device(device)
+{
+	CFRetain(m_device);
+	m_connected = false;
+	m_report_buffer = Report(MAX_PAYLOAD);
+}
+
+WiimoteDarwinHid::~WiimoteDarwinHid()
+{
+	Shutdown();
+	CFRelease(m_device);
+}
+
+bool WiimoteDarwinHid::ConnectInternal()
+{
+	IOReturn ret = IOHIDDeviceOpen(m_device, kIOHIDOptionsTypeNone);
+	m_connected = ret == kIOReturnSuccess;
+	if (m_connected)
+	{
+		IOHIDDeviceScheduleWithRunLoop(m_device, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+		IOHIDDeviceRegisterInputReportCallback(m_device,
+		                                       m_report_buffer.data() + 1,
+		                                       MAX_PAYLOAD - 1,
+		                                       &WiimoteDarwinHid::ReportCallback,
+		                                       this);
+		IOHIDDeviceRegisterRemovalCallback(m_device, &WiimoteDarwinHid::RemoveCallback, this);
+		NOTICE_LOG(WIIMOTE, "Connected to Wiimote %i", m_index + 1);
+	}
+	else
+	{
+		ERROR_LOG(WIIMOTE, "Could not open IOHID Wiimote: %08x", ret);
+	}
+
+	return m_connected;
+}
+
+void WiimoteDarwinHid::DisconnectInternal()
+{
+	IOHIDDeviceUnscheduleFromRunLoop(m_device, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+	IOWakeup();
+	IOReturn ret = IOHIDDeviceClose(m_device, kIOHIDOptionsTypeNone);
+	if (ret != kIOReturnSuccess)
+		ERROR_LOG(WIIMOTE, "Error closing IOHID Wiimote: %08x", ret);
+
+	if (!IsConnected())
+		return;
+
+	NOTICE_LOG(WIIMOTE, "Disconnecting Wiimote %i", m_index + 1);
+
+	m_buffered_reports.Clear();
+
+	m_connected = false;
+}
+
+bool WiimoteDarwinHid::IsConnected() const
+{
+	return m_connected;
+}
+
+void WiimoteDarwinHid::IOWakeup()
+{
+	m_interrupted.store(true);
+	CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+int WiimoteDarwinHid::IORead(u8* buf)
+{
+	Report rpt;
+	m_interrupted.store(false);
+	while (m_buffered_reports.Empty() && !m_interrupted.load())
+		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+
+	if (m_buffered_reports.Pop(rpt))
+	{
+		memcpy(buf, rpt.data(), rpt.size());
+		return rpt.size();
+	}
+	return -1;
+}
+
+int WiimoteDarwinHid::IOWrite(u8 const* buf, size_t len)
+{
+	IOReturn ret = IOHIDDeviceSetReport(m_device, kIOHIDReportTypeOutput, buf[1], buf + 1, len - 1);
+	if (ret != kIOReturnSuccess)
+	{
+		ERROR_LOG(WIIMOTE, "Error writing to Wiimote: %08x", ret);
+		return 0;
+	}
+	return len;
+}
+
+void WiimoteDarwinHid::QueueBufferReport(int length)
+{
+	Report rpt(m_report_buffer);
+	rpt[0] = 0xa1;
+	rpt.resize(length + 1);
+	m_buffered_reports.Push(std::move(rpt));
+}
+
+void WiimoteDarwinHid::ReportCallback(void* context, IOReturn result, void*, IOHIDReportType type, u32 report_id, u8* report, CFIndex report_length)
+{
+	WiimoteDarwinHid* wm = static_cast<WiimoteDarwinHid*>(context);
+	report[0] = report_id;
+	wm->QueueBufferReport(report_length);
+}
+
+void WiimoteDarwinHid::RemoveCallback(void* context, IOReturn result, void*)
+{
+	WiimoteDarwinHid* wm = static_cast<WiimoteDarwinHid*>(context);
+	wm->DisconnectInternal();
 }
 
 } // namespace
