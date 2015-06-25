@@ -12,9 +12,6 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#define MIN_SINGLE 0xc7efffffe0000000ull
-#define MAX_SINGLE 0x47efffffe0000000ull
-
 const u64 PPC_NAN_U64 = 0x7ff8000000000000ull;
 const double PPC_NAN  = *(double* const)&PPC_NAN_U64;
 
