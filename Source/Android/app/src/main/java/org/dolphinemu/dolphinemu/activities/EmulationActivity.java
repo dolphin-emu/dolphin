@@ -150,7 +150,11 @@ public final class EmulationActivity extends AppCompatActivity
 		else
 		{
 			// Let the system handle it; i.e. quit the activity TODO or show "are you sure?" dialog.
-			super.onBackPressed();
+			EmulationFragment fragment = (EmulationFragment) getFragmentManager()
+					.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+			fragment.notifyEmulationStopped();
+
+			NativeLibrary.StopEmulation();
 		}
 	}
 

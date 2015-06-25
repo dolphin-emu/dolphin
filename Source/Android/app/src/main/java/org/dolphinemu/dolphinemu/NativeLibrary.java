@@ -274,6 +274,12 @@ public final class NativeLibrary
 		});
 	}
 
+	public static void endEmulationActivity()
+	{
+		Log.v("DolphinEmu", "Ending EmulationActivity.");
+		mEmulationActivity.finish();
+	}
+
 	public static void setEmulationActivity(EmulationActivity emulationActivity)
 	{
 		Log.v("DolphinEmu", "Registering EmulationActivity.");

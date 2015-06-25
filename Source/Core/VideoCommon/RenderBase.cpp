@@ -17,6 +17,7 @@
 #include <string>
 
 #include "Common/Atomic.h"
+#include "Common/Event.h"
 #include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
@@ -52,6 +53,8 @@ Renderer *g_renderer = nullptr;
 
 std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;
+
+Common::Event Renderer::s_screenshotCompleted;
 
 volatile bool Renderer::s_bScreenshot;
 

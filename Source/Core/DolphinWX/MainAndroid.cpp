@@ -31,6 +31,7 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 ANativeWindow* surf;
@@ -40,6 +41,7 @@ std::string g_set_userpath = "";
 JavaVM* g_java_vm;
 jclass g_jni_class;
 jmethodID g_jni_method_alert;
+jmethodID g_jni_method_end;
 
 #define DOLPHIN_TAG "DolphinEmuNative"
 
@@ -394,6 +396,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulati
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv *env, jobject obj)
 {
+	Core::SaveScreenShot("thumb");
+	Renderer::s_screenshotCompleted.Wait();
 	Core::Stop();
 	updateMainFrameEvent.Set(); // Kick the waiting event
 }
@@ -591,6 +595,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClasses
 
 	// Method signature taken from javap -s Source/Android/app/build/intermediates/classes/arm/debug/org/dolphinemu/dolphinemu/NativeLibrary.class
 	g_jni_method_alert = env->GetStaticMethodID(g_jni_class, "displayAlertMsg", "(Ljava/lang/String;)V");
+	g_jni_method_end = env->GetStaticMethodID(g_jni_class, "endEmulationActivity", "()V");
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)
@@ -624,6 +629,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 
 	UICommon::Shutdown();
 	ANativeWindow_release(surf);
+
+	// Execute the Java method.
+	env->CallStaticVoidMethod(g_jni_class, g_jni_method_end);
 }
 
 

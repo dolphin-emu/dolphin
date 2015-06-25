@@ -119,7 +119,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	public void onDestroyView()
 	{
 		super.onDestroyView();
-		if (getActivity().isFinishing())
+		if (getActivity().isFinishing() && mEmulationStarted)
 		{
 			NativeLibrary.StopEmulation();
 		}
@@ -192,6 +192,16 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		Log.d("DolphinEmu", "Pausing emulation.");
 
 		NativeLibrary.PauseEmulation();
+		mEmulationRunning = false;
+	}
+
+	/**
+	 * Called by containing activity to tell the Fragment emulation is already stopping,
+	 * so it doesn't try to stop emulation on its way to the garbage collector.
+	 */
+	public void notifyEmulationStopped()
+	{
+		mEmulationStarted = false;
 		mEmulationRunning = false;
 	}
 

@@ -79,9 +79,13 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		{
 			if (mCursor.moveToPosition(position))
 			{
+				String screenPath = mCursor.getString(GameDatabase.GAME_COLUMN_SCREENSHOT_PATH);
+				Picasso.with(holder.imageScreenshot.getContext())
+						.invalidate(screenPath);
+
 				// Fill in the view contents.
 				Picasso.with(holder.imageScreenshot.getContext())
-						.load(mCursor.getString(GameDatabase.GAME_COLUMN_SCREENSHOT_PATH))
+						.load(screenPath)
 						.fit()
 						.centerCrop()
 						.error(R.drawable.no_banner)

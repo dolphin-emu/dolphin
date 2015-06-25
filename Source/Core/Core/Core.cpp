@@ -636,7 +636,7 @@ EState GetState()
 	return CORE_UNINITIALIZED;
 }
 
-static std::string GenerateScreenshotName()
+static std::string GenerateScreenshotFolderPath()
 {
 	const std::string& gameId = SConfig::GetInstance().GetUniqueID();
 	std::string path = File::GetUserPath(D_SCREENSHOTS_IDX) + gameId + DIR_SEP_CHR;
@@ -647,8 +647,15 @@ static std::string GenerateScreenshotName()
 		path = File::GetUserPath(D_SCREENSHOTS_IDX);
 	}
 
+	return path;
+}
+
+static std::string GenerateScreenshotName()
+{
+	std::string path = GenerateScreenshotFolderPath();
+
 	//append gameId, path only contains the folder here.
-	path += gameId;
+	path += SConfig::GetInstance().GetUniqueID();
 
 	std::string name;
 	for (int i = 1; File::Exists(name = StringFromFormat("%s-%d.png", path.c_str(), i)); ++i)
@@ -669,6 +676,20 @@ void SaveScreenShot()
 
 	if (!bPaused)
 		SetState(CORE_RUN);
+}
+
+void SaveScreenShot(const std::string name)
+{
+	const bool bPaused = (GetState() == CORE_PAUSE);
+
+	SetState(CORE_PAUSE);
+
+	std::string filePath = GenerateScreenshotFolderPath() + name + ".png";
+
+	g_video_backend->Video_Screenshot(filePath);
+
+	if (!bPaused)
+	 	SetState(CORE_RUN);
 }
 
 void RequestRefreshInfo()
