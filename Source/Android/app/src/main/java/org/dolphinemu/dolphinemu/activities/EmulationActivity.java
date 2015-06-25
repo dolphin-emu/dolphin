@@ -1,8 +1,5 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -69,12 +66,12 @@ public final class EmulationActivity extends AppCompatActivity
 
 						if (mSystemUiVisible)
 						{
-							getActionBar().show();
+							getSupportActionBar().show();
 							hideSystemUiAfterDelay();
 						}
 						else
 						{
-							getActionBar().hide();
+							getSupportActionBar().hide();
 						}
 					}
 				}
