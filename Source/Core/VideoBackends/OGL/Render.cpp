@@ -1959,7 +1959,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		SaveScreenshot(s_sScreenshotName, flipped_trc);
+
+		if (SaveScreenshot(s_sScreenshotName, flipped_trc))
+			OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
+
 		// Reset settings
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;
