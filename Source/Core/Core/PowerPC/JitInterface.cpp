@@ -203,6 +203,12 @@ namespace JitInterface
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx)
 	{
+		// Prevent nullptr dereference on a crash with no JIT present
+		if (!jit)
+		{
+			return false;
+		}
+
 		return jit->HandleFault(access_address, ctx);
 	}
 
