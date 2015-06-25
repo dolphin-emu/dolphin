@@ -383,10 +383,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	{
 		out.Write("o.pos.z = -o.pos.z;\n");
 	}
-	else if (api_type == API_D3D)
-	{
-		out.Write("o.pos.z = -o.pos.z;\n");
-	}
 	else // OGL
 	{
 		// this results in a scale from -1..0 to -1..1 after perspective
