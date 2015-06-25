@@ -76,6 +76,13 @@ inline double Force25Bit(double d)
 	return x.d;
 }
 
+inline double MakeQuiet(double d)
+{
+	MathUtil::IntDouble x(d);
+	x.i |= MathUtil::DOUBLE_QBIT;
+	return x.d;
+}
+
 // these functions allow globally modify operations behaviour
 // also, these may be used to set flags like FR, FI, OX, UX
 
@@ -84,8 +91,8 @@ inline double NI_mul(double a, double b)
 	double t = a * b;
 	if (std::isnan(t))
 	{
-		if (std::isnan(a)) return a;
-		if (std::isnan(b)) return b;
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
@@ -97,8 +104,8 @@ inline double NI_div(double a, double b)
 	double t = a / b;
 	if (std::isnan(t))
 	{
-		if (std::isnan(a)) return a;
-		if (std::isnan(b)) return b;
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
 		if (b == 0.0)
 		{
 			SetFPException(FPSCR_ZX);
@@ -119,8 +126,8 @@ inline double NI_add(double a, double b)
 	double t = a + b;
 	if (std::isnan(t))
 	{
-		if (std::isnan(a)) return a;
-		if (std::isnan(b)) return b;
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
@@ -132,8 +139,8 @@ inline double NI_sub(double a, double b)
 	double t = a - b;
 	if (std::isnan(t))
 	{
-		if (std::isnan(a)) return a;
-		if (std::isnan(b)) return b;
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
@@ -148,16 +155,16 @@ inline double NI_madd(double a, double c, double b, bool negate = false)
 	double t = a * c;
 	if (std::isnan(t))
 	{
-		if (std::isnan(a)) return a;
-		if (std::isnan(b)) return b; // !
-		if (std::isnan(c)) return c;
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b); // !
+		if (std::isnan(c)) return MakeQuiet(c);
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
 	t += b;
 	if (std::isnan(t))
 	{
-		if (std::isnan(b)) return b;
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
@@ -169,9 +176,9 @@ inline double NI_msub(double a, double c, double b, bool negate = false)
 	double t = a * c;
 	if (std::isnan(t))
 	{
-		if (std::isnan(a)) return a;
-		if (std::isnan(b)) return b; // !
-		if (std::isnan(c)) return c;
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b); // !
+		if (std::isnan(c)) return MakeQuiet(c);
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
@@ -179,7 +186,7 @@ inline double NI_msub(double a, double c, double b, bool negate = false)
 	t -= b;
 	if (std::isnan(t))
 	{
-		if (std::isnan(b)) return b;
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
