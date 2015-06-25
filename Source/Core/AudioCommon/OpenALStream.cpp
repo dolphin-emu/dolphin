@@ -295,7 +295,7 @@ void OpenALStream::SoundLoop()
 					// Convert the samples from float to short
 					short stereo[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
 					for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
-						stereo[i] = (short)((float)sampleBuffer[i] * (1 << 16));
+						stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
 
 					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * FRAME_STEREO_SHORT, ulFrequency);
 				}
