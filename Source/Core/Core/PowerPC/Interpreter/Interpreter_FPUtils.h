@@ -95,6 +95,28 @@ inline double NI_mul(double a, double b)
 	return t;
 }
 
+inline double NI_div(double a, double b)
+{
+	double t = a / b;
+	if (std::isnan(t))
+	{
+		if (std::isnan(a)) return a;
+		if (std::isnan(b)) return b;
+		if (b == 0.0)
+		{
+			SetFPException(FPSCR_ZX);
+			if (a == 0.0)
+				SetFPException(FPSCR_VXZDZ);
+		}
+		else if (std::isinf(a) && std::isinf(b))
+		{
+			SetFPException(FPSCR_VXIDI);
+		}
+		return PPC_NAN;
+	}
+	return t;
+}
+
 inline double NI_add(double a, double b)
 {
 	double t = a + b;
