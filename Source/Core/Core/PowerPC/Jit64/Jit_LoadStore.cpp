@@ -7,6 +7,8 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Core/HW/DSP.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
@@ -288,6 +290,68 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
+}
+
+void Jit64::dcbx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff);
+
+	X64Reg addr = RSCRATCH;
+	X64Reg value = RSCRATCH2;
+	X64Reg tmp = ECX;
+
+	PUSH(tmp);
+
+	MOV(32, R(addr), gpr.R(inst.RB));
+	if (inst.RA)
+	{
+		ADD(32, R(addr), gpr.R(inst.RA));
+	}
+
+	MOV(32, R(value), R(addr));
+	SHL(32, R(value), Imm8(3));
+	SHR(32, R(value), Imm8(13));
+	MOV(64, R(tmp), ImmPtr(jit->GetBlockCache()->GetBlockBitSet()));
+	MOV(32, R(value), MComplex(tmp, value, SCALE_4, 0));
+
+	MOV(32, R(tmp), R(addr));
+	SHR(32, R(tmp), Imm8(5));
+	SHR(32, R(value), R(tmp));
+	TEST(32, R(value), Imm32(1));
+
+	FixupBranch c = J_CC(CC_NZ, true);
+	SwitchToFarCode();
+	SetJumpTarget(c);
+	BitSet32 registersInUse = CallerSavedRegistersInUse();
+	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+	MOV(32, R(ABI_PARAM1), R(addr));
+	MOV(32, R(ABI_PARAM2), Imm32(32));
+	XOR(32, R(ABI_PARAM3), R(ABI_PARAM3));
+	ABI_CallFunction((void*)JitInterface::InvalidateICache);
+	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+	c = J(true);
+	SwitchToNearCode();
+	SetJumpTarget(c);
+
+	// dcbi
+	if (inst.SUBOP10 == 470)
+	{
+		MOV(16, R(tmp), M(&DSP::g_dspState));
+		TEST(16, R(tmp), Imm16(1 << 9));
+		c = J_CC(CC_NZ, true);
+		SwitchToFarCode();
+		SetJumpTarget(c);
+		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+		MOV(32, R(ABI_PARAM1), R(addr));
+		ABI_CallFunction((void*)DSP::FlushInstantDMA);
+		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+		c = J(true);
+		SwitchToNearCode();
+		SetJumpTarget(c);
+	}
+
+	POP(tmp);
 }
 
 void Jit64::dcbt(UGeckoInstruction inst)

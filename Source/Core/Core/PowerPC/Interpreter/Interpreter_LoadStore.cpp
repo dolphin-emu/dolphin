@@ -340,18 +340,7 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
 	// The following detects a situation where the game is writing to the dcache at the address being DMA'd. As we do not
 	// have dcache emulation, invalid data is being DMA'd causing audio glitches. The following code detects this and
 	// enables the DMA to complete instantly before the invalid data is written. Resident Evil 2 & 3 trigger this.
-	u64 dma_in_progress = DSP::DMAInProgress();
-	if (dma_in_progress != 0)
-	{
-		u32 start_addr = (dma_in_progress >> 32) & Memory::RAM_MASK;
-		u32 end_addr = (dma_in_progress & Memory::RAM_MASK) & 0xffffffff;
-		u32 invalidated_addr = (address & Memory::RAM_MASK) & ~0x1f;
-
-		if (invalidated_addr >= start_addr && invalidated_addr <= end_addr)
-		{
-			DSP::EnableInstantDMA();
-		}
-	}
+	DSP::FlushInstantDMA(address);
 }
 
 void Interpreter::dcbst(UGeckoInstruction _inst)
