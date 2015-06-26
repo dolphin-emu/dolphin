@@ -220,6 +220,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 
 		intent.putExtra("SelectedGame", holder.path);
 		intent.putExtra("SelectedTitle", holder.title);
+		intent.putExtra("ScreenPath", holder.screenshotPath);
 
 		view.getContext().startActivity(intent);
 	}

@@ -12,6 +12,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+
+import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -22,6 +26,8 @@ import java.util.List;
 public final class EmulationActivity extends AppCompatActivity
 {
 	private View mDecorView;
+	private ImageView mImageView;
+	private FrameLayout mFrameLayout;
 
 	private boolean mDeviceHasTouchScreen;
 	private boolean mSystemUiVisible;
@@ -79,9 +85,33 @@ public final class EmulationActivity extends AppCompatActivity
 
 		setContentView(R.layout.activity_emulation);
 
+		mImageView = (ImageView) findViewById(R.id.image_screenshot);
+		mFrameLayout = (FrameLayout) findViewById(R.id.frame_content);
+
 		Intent gameToEmulate = getIntent();
 		String path = gameToEmulate.getStringExtra("SelectedGame");
 		String title = gameToEmulate.getStringExtra("SelectedTitle");
+		String screenPath = gameToEmulate.getStringExtra("ScreenPath");
+
+		Picasso.with(this)
+				.load(screenPath)
+				.fit()
+				.noFade()
+				.into(mImageView);
+
+		mImageView.animate()
+				.setStartDelay(2000)
+				.setDuration(500)
+				.alpha(0.0f)
+				.withEndAction(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						mImageView.setVisibility(View.GONE);
+						mFrameLayout.setVisibility(View.VISIBLE);
+					}
+				});
 
 		setTitle(title);
 
