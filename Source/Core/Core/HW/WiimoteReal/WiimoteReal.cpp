@@ -485,9 +485,12 @@ void WiimoteScanner::ThreadFunc()
 
 bool Wiimote::Connect()
 {
-	m_thread_ready.store(false);
-	StartThread();
-	WaitReady();
+	if (!m_run_thread.load())
+	{
+		m_thread_ready.store(false);
+		StartThread();
+		WaitReady();
+	}
 	return IsConnected();
 }
 
