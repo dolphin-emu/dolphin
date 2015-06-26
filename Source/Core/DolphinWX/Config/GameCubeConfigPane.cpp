@@ -8,6 +8,7 @@
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/filedlg.h>
+#include <wx/filename.h>
 #include <wx/gbsizer.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -332,22 +333,21 @@ void GameCubeConfigPane::ChooseSlotPath(bool is_slot_a, TEXIDevices device_type)
 			}
 		}
 #ifdef _WIN32
-		if (!strncmp(File::GetExeDirectory().c_str(), filename.c_str(), File::GetExeDirectory().size()))
-		{
-			// If the Exe Directory Matches the prefix of the filename, we still need to verify
-			// that the next character is a directory separator character, otherwise we may create an invalid path
-			char next_char = filename.at(File::GetExeDirectory().size()) + 1;
-			if (next_char == '/' || next_char == '\\')
-			{
-				filename.erase(0, File::GetExeDirectory().size() + 1);
-				filename = "./" + filename;
-			}
-		}
+		// If the Memory Card file is within the Exe dir, we can assume that the user wants it to be stored relative
+		// to the executable, so it stays set correctly when the probably portable Exe dir is moved.
+		std::string exeDir = File::GetExeDirectory() + '\\';
+		if (!strncmp(exeDir.c_str(), filename.c_str(), exeDir.size()))
+			filename.erase(0, exeDir.size());
+
 		std::replace(filename.begin(), filename.end(), '\\', '/');
 #endif
 
 		// also check that the path isn't used for the other memcard...
-		if (filename.compare(is_slot_a ? pathB : pathA) != 0)
+		wxFileName newFilename(filename);
+		wxFileName otherFilename(is_slot_a ? pathB : pathA);
+		newFilename.MakeAbsolute();
+		otherFilename.MakeAbsolute();
+		if (newFilename.GetFullPath().compare(otherFilename.GetFullPath()) != 0)
 		{
 			if (memcard)
 			{
