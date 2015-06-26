@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.adapters;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.DataSetObserver;
@@ -222,7 +223,12 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		intent.putExtra("SelectedTitle", holder.title);
 		intent.putExtra("ScreenPath", holder.screenshotPath);
 
-		view.getContext().startActivity(intent);
+		ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+				(Activity) view.getContext(),
+				holder.imageScreenshot,
+				"image_game_screenshot");
+
+		view.getContext().startActivity(intent, options.toBundle());
 	}
 
 	/**

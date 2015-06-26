@@ -7,6 +7,18 @@
         <item name="colorPrimary">@color/dolphin_blue</item>
         <!--   darker variant for the status bar and contextual app bars -->
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
+
+        <!--enable window content transitions
+       <item name="android:windowContentTransitions">true</item>
+
+       &lt;!&ndash; specify enter and exit transitions &ndash;&gt;
+       <item name="android:windowEnterTransition">@android:transition/fade</item>
+       <item name="android:windowExitTransition">@android:transition/fade</item>
+
+       &lt;!&ndash; specify shared element transitions &ndash;&gt;
+       <item name="android:windowSharedElementEnterTransition">@transition/change_image_transform</item>
+       <item name="android:windowSharedElementExitTransition">@transition/change_image_transform</item>
+-->
     </style>
 
     <!-- Same as above, but use default action bar, and mandate margins. -->
@@ -66,6 +78,19 @@
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="android:windowTranslucentNavigation">true</item>
+
+        <!-- enable window content transitions -->
+        <item name="android:windowContentTransitions">true</item>
+
+        <!-- specify enter and exit transitions -->
+        <item name="android:windowEnterTransition">@android:transition/explode</item>
+        <item name="android:windowExitTransition">@android:transition/explode</item>
+
+        <!-- specify shared element transitions -->
+        <item name="android:windowSharedElementEnterTransition">@transition/change_image_transform
+        </item>
+        <item name="android:windowSharedElementExitTransition">@transition/change_image_transform
+        </item>
     </style>
 
     <!-- Inherit from the Base Dolphin Emulation Theme-->
@@ -80,7 +105,6 @@
     <style name="DolphinEmulationWiiware" parent="DolphinEmulationBase">
         <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
-
 
     <!-- Hax to make Tablayout render icons -->
     <style name="MyCustomTextAppearance" parent="TextAppearance.Design.Tab">

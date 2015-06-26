@@ -3,14 +3,16 @@
              android:layout_height="match_parent"
     >
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/image_screenshot"/>
-
     <FrameLayout
         android:id="@+id/frame_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"/>
+        android:visibility="invisible"/>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/image_screenshot"
+        android:transitionName="image_game_screenshot"/>
+
 </FrameLayout>

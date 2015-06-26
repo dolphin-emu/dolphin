@@ -12,9 +12,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -50,6 +52,10 @@ public final class EmulationActivity extends AppCompatActivity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+
+		// Picasso will take a while to load these big-ass screenshots. So don't run
+		// the animation until we say so.
+		postponeEnterTransition();
 
 		mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
 
@@ -95,21 +101,42 @@ public final class EmulationActivity extends AppCompatActivity
 
 		Picasso.with(this)
 				.load(screenPath)
-				.fit()
 				.noFade()
-				.into(mImageView);
+				.noPlaceholder()
+				.into(mImageView, new Callback()
+				{
+					@Override
+					public void onSuccess()
+					{
+						scheduleStartPostponedTransition(mImageView);
+					}
+
+					@Override
+					public void onError()
+					{
+						// Still have to do this, or else the app will crash.
+						scheduleStartPostponedTransition(mImageView);
+					}
+				});
 
 		mImageView.animate()
 				.setStartDelay(2000)
 				.setDuration(500)
 				.alpha(0.0f)
+				.withStartAction(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						mFrameLayout.setVisibility(View.VISIBLE);
+					}
+				})
 				.withEndAction(new Runnable()
 				{
 					@Override
 					public void run()
 					{
 						mImageView.setVisibility(View.GONE);
-						mFrameLayout.setVisibility(View.VISIBLE);
 					}
 				});
 
@@ -353,5 +380,21 @@ public final class EmulationActivity extends AppCompatActivity
 				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
 		hideSystemUiAfterDelay();
+	}
+
+
+	private void scheduleStartPostponedTransition(final View sharedElement)
+	{
+		sharedElement.getViewTreeObserver().addOnPreDrawListener(
+				new ViewTreeObserver.OnPreDrawListener()
+				{
+					@Override
+					public boolean onPreDraw()
+					{
+						sharedElement.getViewTreeObserver().removeOnPreDrawListener(this);
+						startPostponedEnterTransition();
+						return true;
+					}
+				});
 	}
 }
