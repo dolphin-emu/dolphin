@@ -5,6 +5,7 @@ import android.app.ActivityOptions;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.DataSetObserver;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -16,6 +17,7 @@ import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.activities.MainActivity;
 import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
@@ -81,14 +83,15 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 			if (mCursor.moveToPosition(position))
 			{
 				String screenPath = mCursor.getString(GameDatabase.GAME_COLUMN_SCREENSHOT_PATH);
-				Picasso.with(holder.imageScreenshot.getContext())
-						.invalidate(screenPath);
 
 				// Fill in the view contents.
 				Picasso.with(holder.imageScreenshot.getContext())
 						.load(screenPath)
 						.fit()
 						.centerCrop()
+						.noFade()
+						.noPlaceholder()
+						.config(Bitmap.Config.RGB_565)
 						.error(R.drawable.no_banner)
 						.into(holder.imageScreenshot);
 
@@ -113,8 +116,6 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		{
 			Log.e("DolphinEmu", "Can't bind view; dataset is not valid.");
 		}
-
-
 	}
 
 	/**
@@ -222,13 +223,16 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		intent.putExtra("SelectedGame", holder.path);
 		intent.putExtra("SelectedTitle", holder.title);
 		intent.putExtra("ScreenPath", holder.screenshotPath);
+		intent.putExtra("GridPosition", holder.getAdapterPosition());
 
 		ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
 				(Activity) view.getContext(),
 				holder.imageScreenshot,
 				"image_game_screenshot");
 
-		view.getContext().startActivity(intent, options.toBundle());
+		((Activity) view.getContext()).startActivityForResult(intent,
+				MainActivity.REQUEST_EMULATE_GAME,
+				options.toBundle());
 	}
 
 	/**

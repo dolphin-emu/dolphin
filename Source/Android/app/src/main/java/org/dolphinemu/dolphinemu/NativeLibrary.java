@@ -277,7 +277,7 @@ public final class NativeLibrary
 	public static void endEmulationActivity()
 	{
 		Log.v("DolphinEmu", "Ending EmulationActivity.");
-		mEmulationActivity.finish();
+		mEmulationActivity.exitWithAnimation();
 	}
 
 	public static void setEmulationActivity(EmulationActivity emulationActivity)
