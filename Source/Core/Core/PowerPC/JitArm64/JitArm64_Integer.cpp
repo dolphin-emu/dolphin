@@ -718,3 +718,51 @@ void JitArm64::addcx(UGeckoInstruction inst)
 			ComputeRC(gpr.R(d), 0);
 	}
 }
+
+void JitArm64::slwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int a = inst.RA, b = inst.RB, s = inst.RS;
+
+	if (gpr.IsImm(b) && gpr.IsImm(s))
+	{
+		u32 i = gpr.GetImm(s), j = gpr.GetImm(b);
+		gpr.SetImmediate(a, (j & 0x20) ? 0 : i << (j & 0x1F));
+
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(a), 0);
+	}
+	else if (gpr.IsImm(b))
+	{
+		u32 i = gpr.GetImm(b);
+		if (i & 0x20)
+		{
+			gpr.SetImmediate(a, 0);
+			if (inst.Rc)
+				ComputeRC(0, 0);
+		}
+		else
+		{
+			gpr.BindToRegister(a, a == s);
+			LSL(gpr.R(a), gpr.R(s), i & 0x1F);
+			if (inst.Rc)
+				ComputeRC(gpr.R(a), 0);
+		}
+	}
+	else
+	{
+		gpr.BindToRegister(a, a == b || a == s);
+
+		// PowerPC any shift in the 32-63 register range results in zero
+		// Since it has 32bit registers
+		// AArch64 it will use a mask of the register size for determining what shift amount
+		// So if we use a 64bit so the bits will end up in the high 32bits, and
+		// Later instructions will just eat high 32bits since it'll run 32bit operations for everything.
+		LSLV(EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(s)), EncodeRegTo64(gpr.R(b)));
+
+		if (inst.Rc)
+			ComputeRC(gpr.R(a), 0);
+	}
+}

@@ -218,7 +218,7 @@ static GekkoOPTemplate table31[] =
 	{536, &JitArm64::FallBackToInterpreter},    // srwx
 	{792, &JitArm64::FallBackToInterpreter},    // srawx
 	{824, &JitArm64::srawix},                   // srawix
-	{24,  &JitArm64::FallBackToInterpreter},    // slwx
+	{24,  &JitArm64::slwx},                     // slwx
 
 	{54,   &JitArm64::FallBackToInterpreter},   // dcbst
 	{86,   &JitArm64::FallBackToInterpreter},   // dcbf
