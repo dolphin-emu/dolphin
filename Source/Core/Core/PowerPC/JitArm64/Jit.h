@@ -97,6 +97,7 @@ public:
 	void addzex(UGeckoInstruction inst);
 	void subfx(UGeckoInstruction inst);
 	void addcx(UGeckoInstruction inst);
+	void slwx(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
