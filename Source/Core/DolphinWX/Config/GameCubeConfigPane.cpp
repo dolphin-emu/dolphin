@@ -332,20 +332,24 @@ void GameCubeConfigPane::ChooseSlotPath(bool is_slot_a, TEXIDevices device_type)
 				}
 			}
 		}
+
+		wxFileName newFilename(filename);
+		newFilename.MakeAbsolute();
+		filename = newFilename.GetFullPath();
+
 #ifdef _WIN32
 		// If the Memory Card file is within the Exe dir, we can assume that the user wants it to be stored relative
 		// to the executable, so it stays set correctly when the probably portable Exe dir is moved.
+		// TODO: Replace this with a cleaner, non-wx solution once std::filesystem is standard
 		std::string exeDir = File::GetExeDirectory() + '\\';
-		if (!strncmp(exeDir.c_str(), filename.c_str(), exeDir.size()))
+		if (wxString(filename).Lower().StartsWith(wxString(exeDir).Lower()))
 			filename.erase(0, exeDir.size());
 
 		std::replace(filename.begin(), filename.end(), '\\', '/');
 #endif
 
 		// also check that the path isn't used for the other memcard...
-		wxFileName newFilename(filename);
 		wxFileName otherFilename(is_slot_a ? pathB : pathA);
-		newFilename.MakeAbsolute();
 		otherFilename.MakeAbsolute();
 		if (newFilename.GetFullPath().compare(otherFilename.GetFullPath()) != 0)
 		{
