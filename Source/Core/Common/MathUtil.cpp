@@ -196,43 +196,37 @@ const int fres_expected_dec[] =
 // Used by fres and ps_res.
 double ApproximateReciprocal(double val)
 {
-	union
-	{
-		double valf;
-		s64 vali;
-	};
-
-	valf = val;
-	s64 mantissa = vali & ((1LL << 52) - 1);
-	s64 sign = vali & (1ULL << 63);
-	s64 exponent = vali & (0x7FFLL << 52);
+	IntDouble x(val);
+	s64 mantissa = x.i & ((1LL << 52) - 1);
+	s64 sign = x.i & (1ULL << 63);
+	s64 exponent = x.i & (0x7FFLL << 52);
 
 	// Special case 0
-	if (mantissa == 0 && exponent == 0)
-		return std::copysign(std::numeric_limits<double>::infinity(), valf);
+	if (val == 0)
+		return std::copysign(std::numeric_limits<double>::infinity(), val);
 
 	// Special case NaN-ish numbers
 	if (exponent == (0x7FFLL << 52))
 	{
 		if (mantissa == 0)
-			return std::copysign(0.0, valf);
-		return 0.0 + valf;
+			return std::copysign(0.0, val);
+		return 0.0 + val;
 	}
 
 	// Special case small inputs
 	if (exponent < (895LL << 52))
-		return std::copysign(std::numeric_limits<float>::max(), valf);
+		return std::copysign(std::numeric_limits<float>::max(), val);
 
 	// Special case large inputs
 	if (exponent >= (1149LL << 52))
-		return std::copysign(0.0, valf);
+		return std::copysign(0.0, val);
 
 	exponent = (0x7FDLL << 52) - exponent;
 
 	int i = (int)(mantissa >> 37);
-	vali = sign | exponent;
-	vali |= (s64)(fres_expected_base[i / 1024] - (fres_expected_dec[i / 1024] * (i % 1024) + 1) / 2) << 29;
-	return valf;
+	x.i = sign | exponent;
+	x.i |= (s64)(fres_expected_base[i / 1024] - (fres_expected_dec[i / 1024] * (i % 1024) + 1) / 2) << 29;
+	return x.d;
 }
 
 }  // namespace
