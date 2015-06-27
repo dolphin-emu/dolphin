@@ -42,7 +42,10 @@ static bool VerifyRoms()
 
 		// delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
 		// IPL/Card/GBA still broken)
-		{ 0xd9907f71, 0xb019c2fb }
+		{ 0xd9907f71, 0xb019c2fb },
+
+		// above with improved resampling coefficients
+		{ 0xd9907f71, 0xdb6880c1 }
 	};
 
 	u32 hash_irom = HashAdler32((u8*)g_dsp.irom, DSP_IROM_BYTE_SIZE);
@@ -69,7 +72,7 @@ static bool VerifyRoms()
 		DSPHost::OSD_AddMessage("You are using an old free DSP ROM made by the Dolphin Team.", 6000);
 		DSPHost::OSD_AddMessage("Only games using the Zelda UCode will work correctly.", 6000);
 	}
-	else if (rom_idx == 2)
+	else if (rom_idx == 2 || rom_idx == 3)
 	{
 		DSPHost::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
 		DSPHost::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
