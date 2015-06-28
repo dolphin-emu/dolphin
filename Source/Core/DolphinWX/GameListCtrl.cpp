@@ -402,7 +402,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 			if (line.substr(0,rISOFile.GetUniqueID().size()) == rISOFile.GetUniqueID())
 			{
-				name = line.substr(rISOFile.GetUniqueID().size() + 3);
+				name = StrToWxStr(line.substr(rISOFile.GetUniqueID().size() + 3));
 				break;
 			}
 		}
@@ -412,7 +412,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	std::string title;
 	IniFile gameini = SConfig::LoadGameIni(rISOFile.GetUniqueID(), rISOFile.GetRevision());
 	if (gameini.GetIfExists("EmuState", "Title", &title))
-		name = title;
+		name = StrToWxStr(title);
 
 	int disc_number = rISOFile.GetDiscNumber() + 1;
 	if (disc_number > 1 && name.Lower().find(wxString::Format("disc %i", disc_number)) == std::string::npos
