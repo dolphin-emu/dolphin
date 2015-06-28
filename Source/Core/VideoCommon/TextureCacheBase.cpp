@@ -474,7 +474,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		decoded_entry->is_efb_copy = false;
 
 		g_texture_cache->ConvertTexture(decoded_entry, entry, &texMem[tlutaddr], (TlutFormat)tlutfmt);
-		textures_by_address.insert(TexCache::value_type((u64)address, decoded_entry));
+		textures_by_address.emplace((u64)address, decoded_entry);
 		return ReturnEntry(stage, decoded_entry);
 	}
 
@@ -560,11 +560,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	TCacheEntryBase* entry = AllocateTexture(config);
 	GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 
-	textures_by_address.insert(TexCache::value_type((u64)address, entry));
+	textures_by_address.emplace((u64)address, entry);
 	if (g_ActiveConfig.iSafeTextureCache_ColorSamples == 0 ||
 		std::max(texture_size, palette_size) <= (u32)g_ActiveConfig.iSafeTextureCache_ColorSamples * 8)
 	{
-		entry->textures_by_hash_iter = textures_by_hash.insert(TexCache::value_type(full_hash, entry));
+		entry->textures_by_hash_iter = textures_by_hash.emplace(full_hash, entry);
 	}
 
 	entry->SetGeneralParameters(address, texture_size, full_format);
@@ -963,7 +963,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			count++), 0);
 	}
 
-	textures_by_address.insert(TexCache::value_type((u64)dstAddr, entry));
+	textures_by_address.emplace((u64)dstAddr, entry);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::AllocateTexture(const TCacheEntryConfig& config)
@@ -996,7 +996,7 @@ TextureCache::TexCache::iterator TextureCache::FreeTexture(TexCache::iterator it
 	}
 
 	entry->frameCount = FRAMECOUNT_INVALID;
-	texture_pool.insert(TexPool::value_type(entry->config, entry));
+	texture_pool.emplace(entry->config, entry);
 
 	return textures_by_address.erase(iter);
 }

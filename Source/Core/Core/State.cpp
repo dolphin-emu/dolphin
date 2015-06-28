@@ -257,9 +257,12 @@ static std::map<double, int> GetSavedStates()
 			if (ReadHeader(filename, header))
 			{
 				double d = Common::Timer::GetDoubleTime() - header.time;
+
 				// increase time until unique value is obtained
-				while (m.find(d) != m.end()) d += .001;
-				m.insert(std::pair<double,int>(d, i));
+				while (m.find(d) != m.end())
+					d += .001;
+
+				m.emplace(d, i);
 			}
 		}
 	}

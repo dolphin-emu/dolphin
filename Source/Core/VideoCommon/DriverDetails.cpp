@@ -105,7 +105,7 @@ namespace DriverDetails
 			    ( bug.m_versionstart <= m_version || bug.m_versionstart == -1 ) &&
 			    ( bug.m_versionend > m_version || bug.m_versionend == -1 )
 			)
-				m_bugs.insert(std::make_pair(bug.m_bug, bug));
+				m_bugs.emplace(bug.m_bug, bug);
 		}
 	}
 
