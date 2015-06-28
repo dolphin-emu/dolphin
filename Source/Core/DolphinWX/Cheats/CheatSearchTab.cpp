@@ -17,6 +17,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/ActionReplay.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CheatSearchTab.h"
@@ -125,7 +126,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED(event))
 {
 	const u8* const memptr = Memory::m_pRAM;
-	if (memptr == nullptr)
+	if (!Core::IsRunningAndStarted())
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
 		return;
@@ -157,7 +158,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED(event))
 void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 {
 	const u8* const memptr = Memory::m_pRAM;
-	if (memptr == nullptr)
+	if (!Core::IsRunningAndStarted())
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
 		return;
