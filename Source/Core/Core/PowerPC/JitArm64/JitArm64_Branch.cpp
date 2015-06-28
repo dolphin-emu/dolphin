@@ -18,6 +18,7 @@ using namespace Arm64Gen;
 void JitArm64::sc(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	gpr.Flush(FlushMode::FLUSH_ALL);
 	fpr.Flush(FlushMode::FLUSH_ALL);
@@ -38,6 +39,7 @@ void JitArm64::sc(UGeckoInstruction inst)
 void JitArm64::rfi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	gpr.Flush(FlushMode::FLUSH_ALL);
 	fpr.Flush(FlushMode::FLUSH_ALL);
@@ -78,6 +80,7 @@ void JitArm64::rfi(UGeckoInstruction inst)
 void JitArm64::bx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	gpr.Flush(FlushMode::FLUSH_ALL);
 	fpr.Flush(FlushMode::FLUSH_ALL);
@@ -115,6 +118,7 @@ void JitArm64::bx(UGeckoInstruction inst)
 void JitArm64::bcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	ARM64Reg WA = gpr.GetReg();
 	FixupBranch pCTRDontBranch;
@@ -173,6 +177,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
 void JitArm64::bcctrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	// bcctrx doesn't decrement and/or test CTR
 	_assert_msg_(DYNA_REC, inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
@@ -212,6 +217,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
 void JitArm64::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	ARM64Reg WA = gpr.GetReg();
 	FixupBranch pCTRDontBranch;
