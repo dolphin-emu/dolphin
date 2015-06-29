@@ -209,7 +209,7 @@ void Shutdown()
 
 HotkeyManager::HotkeyManager()
 {
-	for (int key = 0; key < NUM_HOTKEYS; key++)
+	for (int key = 0; key < NUM_HOTKEYS; ++key)
 	{
 		int set = key / 32;
 
@@ -235,7 +235,7 @@ std::string HotkeyManager::GetName() const
 
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
-	for (int set = 0; set < (NUM_HOTKEYS + 31) / 32; set++)
+	for (int set = 0; set < (NUM_HOTKEYS + 31) / 32; ++set)
 	{
 		std::vector<u32> bitmasks;
 		for (int key = 0; key < std::min(32, NUM_HOTKEYS - set * 32); key++)
@@ -299,7 +299,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 	set_control(HK_FREELOOK_RESET, SHIFT + " & R");
 
 	// Savestates
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 8; ++i)
 	{
 		set_control(HK_LOAD_STATE_SLOT_1 + i, StringFromFormat((NON + " & `F%d`").c_str(), i + 1));
 		set_control(HK_SAVE_STATE_SLOT_1 + i, StringFromFormat((SHIFT + " & `F%d`").c_str(), i + 1));

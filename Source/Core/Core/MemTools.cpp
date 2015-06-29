@@ -36,7 +36,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 	case EXCEPTION_ACCESS_VIOLATION:
 		{
 			int accessType = (int)pPtrs->ExceptionRecord->ExceptionInformation[0];
-			if (accessType == 8) //Rule out DEP
+			if (accessType == 8) // Rule out DEP
 			{
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
@@ -49,11 +49,8 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			{
 				return (DWORD)EXCEPTION_CONTINUE_EXECUTION;
 			}
-			else
-			{
-				// Let's not prevent debugging.
-				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
-			}
+			// Let's not prevent debugging.
+			return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 		}
 
 	case EXCEPTION_STACK_OVERFLOW:

@@ -742,7 +742,7 @@ bool NetPlayClient::ChangeGame(const std::string&)
 // called from ---NETPLAY--- thread
 void NetPlayClient::UpdateDevices()
 {
-	for (PadMapping i = 0; i < 4; i++)
+	for (PadMapping i = 0; i < 4; ++i)
 	{
 		// XXX: add support for other device types? does it matter?
 		SerialInterface::AddDevice(m_pad_map[i] > 0 ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
@@ -1035,10 +1035,10 @@ u8 NetPlayClient::InGamePadToLocalPad(u8 ingame_pad)
 	if (m_pad_map[ingame_pad] != m_local_player->pid)
 		return 4;
 
-	int local_pad = 0;
-	int pad = 0;
+	unsigned char local_pad = 0;
+	unsigned char pad = 0;
 
-	for (; pad < ingame_pad; pad++)
+	for (; pad < ingame_pad; ++pad)
 	{
 		if (m_pad_map[pad] == m_local_player->pid)
 			local_pad++;
@@ -1053,8 +1053,8 @@ u8 NetPlayClient::LocalPadToInGamePad(u8 local_pad)
 	// The logic we have here is that the local slots always
 	// go in order.
 	int local_pad_count = -1;
-	int ingame_pad = 0;
-	for (; ingame_pad < 4; ingame_pad++)
+	unsigned char ingame_pad = 0;
+	for (; ingame_pad < 4; ++ingame_pad)
 	{
 		if (m_pad_map[ingame_pad] == m_local_player->pid)
 			local_pad_count++;
@@ -1072,8 +1072,8 @@ u8 NetPlayClient::LocalWiimoteToInGameWiimote(u8 local_pad)
 	// The logic we have here is that the local slots always
 	// go in order.
 	int local_pad_count = -1;
-	int ingame_pad = 0;
-	for (; ingame_pad < 4; ingame_pad++)
+	unsigned char ingame_pad = 0;
+	for (; ingame_pad < 4; ++ingame_pad)
 	{
 		if (m_wiimote_map[ingame_pad] == m_local_player->pid)
 			local_pad_count++;
@@ -1109,8 +1109,7 @@ bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, GCPadStatus* PadStatus)
 
 	if (netplay_client)
 		return netplay_client->GetNetPads(numPAD, PadStatus);
-	else
-		return false;
+	return false;
 }
 
 bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
@@ -1119,8 +1118,7 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
 
 	if (netplay_client)
 		return netplay_client->WiimoteUpdate(wiimote, data, size);
-	else
-		return false;
+	return false;
 }
 
 // called from ---CPU--- thread
@@ -1131,8 +1129,7 @@ u64 CEXIIPL::NetPlay_GetGCTime()
 
 	if (netplay_client)
 		return g_netplay_initial_gctime;
-	else
-		return 0;
+	return 0;
 }
 
 // called from ---CPU--- thread
@@ -1143,8 +1140,7 @@ u8 CSIDevice_GCController::NetPlay_InGamePadToLocalPad(u8 numPAD)
 
 	if (netplay_client)
 		return netplay_client->InGamePadToLocalPad(numPAD);
-	else
-		return numPAD;
+	return numPAD;
 }
 
 bool NetPlay::IsNetPlayRunning()
