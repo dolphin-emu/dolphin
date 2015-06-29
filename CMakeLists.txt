@@ -308,6 +308,14 @@ if(WIN32)
 	add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 endif(WIN32)
 
+# Dolphin requires threads.
+# The Apple build may not need an explicit flag because one of the
+# frameworks may already provide it.
+# But for non-OSX systems, we will use the CMake Threads package.
+IF(NOT APPLE)
+  FIND_PACKAGE(Threads)
+ENDIF(NOT APPLE)
+
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release" CACHE STRING
 		"Build type (Release/Debug/RelWithDebInfo/MinSizeRe)" FORCE)
