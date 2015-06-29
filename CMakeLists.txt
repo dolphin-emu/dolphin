@@ -517,6 +517,19 @@ if(USE_EGL)
 	add_definitions(-DUSE_EGL=1)
 endif()
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+	include(FindLibudev OPTIONAL)
+	include(FindLibevdev OPTIONAL)
+	if(LIBUDEV_FOUND AND LIBEVDEV_FOUND)
+		message("libevdev/libudev found, enabling evdev controller backend")
+		add_definitions(-DHAVE_LIBUDEV=1)
+		add_definitions(-DHAVE_LIBEVDEV=1)
+		include_directories(${LIBUDEV_INCLUDE_DIR} ${LIBEVDEV_INCLUDE_DIR})
+	else()
+		message("Could find libevdev/libudev, disabling evdev controller backend")
+	endif()
+endif()
+
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
 #

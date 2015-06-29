@@ -26,6 +26,10 @@
 #ifdef CIFACE_USE_ANDROID
 	#include "InputCommon/ControllerInterface/Android/Android.h"
 #endif
+#ifdef CIFACE_USE_EVDEV
+	#include "InputCommon/ControllerInterface/evdev/evdev.h"
+#endif
+
 #ifdef _WIN32
 	#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
 #endif
@@ -71,6 +75,9 @@ void ControllerInterface::Initialize(void* const hwnd)
 #endif
 #ifdef CIFACE_USE_ANDROID
 	ciface::Android::Init(m_devices);
+#endif
+#ifdef CIFACE_USE_EVDEV
+	ciface::evdev::Init(m_devices);
 #endif
 #ifdef _WIN32
 	// VR Sixense Razer Hydra or STEM
