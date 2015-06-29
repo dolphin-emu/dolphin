@@ -136,7 +136,7 @@ using namespace Gen;
 		{
 			for (const auto& e : b.linkData)
 			{
-				links_to.insert(std::pair<u32, int>(e.exitAddress, block_num));
+				links_to.emplace(e.exitAddress, block_num);
 			}
 
 			LinkBlock(block_num);

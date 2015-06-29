@@ -258,7 +258,7 @@ ID3D11PixelShader* PSTextureEncoder::SetStaticShader(unsigned int dstFormat, PEC
 			dstFormat, srcFormat, isIntensity, scaleByHalf);
 		D3D::SetDebugObjectName(newShader, debugName);
 
-		it = m_staticShaders.insert(std::make_pair(key, newShader)).first;
+		it = m_staticShaders.emplace(key, newShader).first;
 		bytecode->Release();
 	}
 

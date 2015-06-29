@@ -333,7 +333,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	// add client to the player list
 	{
 		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-		m_players.insert(std::pair<PlayerId, Client>(*(PlayerId *)player.socket->data, player));
+		m_players.emplace(*(PlayerId *)player.socket->data, player);
 		UpdatePadMapping(); // sync pad mappings with everyone
 		UpdateWiimoteMapping();
 	}
