@@ -172,9 +172,22 @@ IF(SDL2_LIBRARY_TEMP)
   SET(SDL2_LIBRARY_TEMP "${SDL2_LIBRARY_TEMP}" CACHE INTERNAL "")
 
   SET(SDL2_FOUND "YES")
+
+  # extract the major and minor version numbers from SDL2/SDL_version.h
+  # we have to handle framework a little bit differently :
+  if("${SDL2_INCLUDE_DIR}" MATCHES ".framework")
+    set(SDL2_VERSION_H_INPUT "${SDL2_INCLUDE_DIR}/Headers/SDL_version.h")
+  else()
+    set(SDL2_VERSION_H_INPUT "${SDL2_INCLUDE_DIR}/SDL_version.h")
+  endif()
+  FILE(READ "${SDL2_VERSION_H_INPUT}" SDL2_VERSION_H_CONTENTS)
+  STRING(REGEX REPLACE ".*#define[ \t]+SDL_MAJOR_VERSION[ \t]+([0-9]+).*#define[ \t]+SDL_MINOR_VERSION[ \t]+([0-9]+).*#define[ \t]+SDL_PATCHLEVEL[ \t]+([0-9]+).*"
+                       "\\1.\\2.\\3" SDL2_VERSION "${SDL2_VERSION_H_CONTENTS}")
+#MESSAGE("SDL2 Version is ${SDL2_VERSION}")
+
 ENDIF(SDL2_LIBRARY_TEMP)
 
 INCLUDE(FindPackageHandleStandardArgs)
 
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(SDL2
-                                  REQUIRED_VARS SDL2_LIBRARY SDL2_INCLUDE_DIR)
+                                  REQUIRED_VARS SDL2_LIBRARY SDL2_INCLUDE_DIR VERSION_VAR SDL2_VERSION)
