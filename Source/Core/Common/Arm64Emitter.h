@@ -578,6 +578,8 @@ public:
 	void BFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
 	void SBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
 	void UBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
+	void BFI(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width);
+	void UBFIZ(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width);
 
 	// Extract register (ROR with two inputs, if same then faster on A67)
 	void EXTR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u32 shift);
@@ -591,7 +593,7 @@ public:
 
 	void UBFX(ARM64Reg Rd, ARM64Reg Rn, int lsb, int width)
 	{
-		UBFM(Rd, Rn, lsb, lsb + width <= (Is64Bit(Rn) ? 64 : 32));
+		UBFM(Rd, Rn, lsb, lsb + width - 1);
 	}
 
 	// Load Register (Literal)
