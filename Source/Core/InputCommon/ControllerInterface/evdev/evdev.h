@@ -43,6 +43,7 @@ private:
 		const u8 m_index;
 		const bool m_upper;
 		int m_range;
+		int m_min;
 		libevdev* m_dev;
 	};
 

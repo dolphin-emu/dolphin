@@ -164,7 +164,8 @@ ControlState evdevDevice::Button::GetState() const
 evdevDevice::Axis::Axis(u8 index, u16 code, bool upper, libevdev* dev) :
 	m_code(code), m_index(index), m_upper(upper), m_dev(dev)
 {
-	m_range = libevdev_get_abs_maximum(m_dev, m_code);
+	m_min = libevdev_get_abs_minimum(m_dev, m_code);
+	m_range = libevdev_get_abs_maximum(m_dev, m_code) + abs(m_min);
 }
 
 std::string evdevDevice::Axis::GetName() const
@@ -176,10 +177,15 @@ ControlState evdevDevice::Axis::GetState() const
 {
 	int value = 0;
 	libevdev_fetch_event_value(m_dev, EV_ABS, m_code, &value);
+
+	// Value from 0.0 to 1.0
+	ControlState fvalue = double(value - m_min) / double(m_range);
+
+	// Split into two axis, each covering half the range from 0.0 to 1.0
 	if (m_upper)
-		return std::max(0.0, double(value) / double(m_range) - 0.5) * 2.0;
+		return std::max(0.0, fvalue - 0.5) * 2.0;
 	else
-		return (0.5 - std::min(0.5, double(value) / double(m_range))) * 2.0;
+		return (0.5 - std::min(0.5, fvalue)) * 2.0;
 }
 
 std::string evdevDevice::ForceFeedback::GetName() const
