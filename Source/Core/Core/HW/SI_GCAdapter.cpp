@@ -235,6 +235,7 @@ static bool CheckDeviceAccess(libusb_device* device)
 				if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
 					s_libusb_driver_not_supported = true;
 			}
+			return false;
 		}
 		else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
 		{
