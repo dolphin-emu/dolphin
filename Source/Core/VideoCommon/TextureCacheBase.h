@@ -89,7 +89,10 @@ public:
 		virtual void Bind(unsigned int stage) = 0;
 		virtual bool Save(const std::string& filename, unsigned int level) = 0;
 
-		virtual void DoPartialTextureUpdate(TCacheEntryBase* entry, u32 x, u32 y) = 0;
+		virtual void CopyRectangleFromTexture(
+			const TCacheEntryBase* source,
+			const MathUtil::Rectangle<int> &srcrect,
+			const MathUtil::Rectangle<int> &dstrect) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
@@ -99,8 +102,6 @@ public:
 			const float *colmat) = 0;
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
-
-		void DoPartialTextureUpdates();
 
 		bool IsEfbCopy() const { return is_efb_copy; }
 	};
@@ -140,7 +141,7 @@ protected:
 private:
 	typedef std::multimap<u64, TCacheEntryBase*> TexCache;
 	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
-
+	static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter);
 	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
 	static void CheckTempSize(size_t required_size);
 
