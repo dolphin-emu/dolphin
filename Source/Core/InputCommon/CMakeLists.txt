@@ -37,6 +37,11 @@ elseif(ANDROID)
 				ControllerInterface/Android/Android.cpp)
 endif()
 
+if(LIBEVDEV_FOUND AND LIBUDEV_FOUND)
+	set(SRCS ${SRCS} ControllerInterface/evdev/evdev.cpp)
+	set(LIBS ${LIBS} ${LIBEVDEV_LIBRARY} ${LIBUDEV_LIBRARY})
+endif()
+
 if(SDL_FOUND OR SDL2_FOUND)
 	set(SRCS ${SRCS} ControllerInterface/SDL/SDL.cpp)
 	if (SDL2_FOUND)
