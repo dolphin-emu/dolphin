@@ -12,6 +12,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -22,9 +28,14 @@ import java.util.List;
 public final class EmulationActivity extends AppCompatActivity
 {
 	private View mDecorView;
+	private ImageView mImageView;
+	private FrameLayout mFrameEmulation;
 
 	private boolean mDeviceHasTouchScreen;
 	private boolean mSystemUiVisible;
+
+	// So that MainActivity knows which view to invalidate before the return animation.
+	private int mPosition;
 
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
@@ -39,11 +50,17 @@ public final class EmulationActivity extends AppCompatActivity
 			hideSystemUI();
 		}
 	};
+	private String mScreenPath;
+	private FrameLayout mFrameContent;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+
+		// Picasso will take a while to load these big-ass screenshots. So don't run
+		// the animation until we say so.
+		postponeEnterTransition();
 
 		mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
 
@@ -79,9 +96,57 @@ public final class EmulationActivity extends AppCompatActivity
 
 		setContentView(R.layout.activity_emulation);
 
+		mImageView = (ImageView) findViewById(R.id.image_screenshot);
+		mFrameContent = (FrameLayout) findViewById(R.id.frame_content);
+		mFrameEmulation = (FrameLayout) findViewById(R.id.frame_emulation_fragment);
+
 		Intent gameToEmulate = getIntent();
 		String path = gameToEmulate.getStringExtra("SelectedGame");
 		String title = gameToEmulate.getStringExtra("SelectedTitle");
+		mScreenPath = gameToEmulate.getStringExtra("ScreenPath");
+		mPosition = gameToEmulate.getIntExtra("GridPosition", -1);
+
+		Picasso.with(this)
+				.load(mScreenPath)
+				.noFade()
+				.noPlaceholder()
+				.into(mImageView, new Callback()
+				{
+					@Override
+					public void onSuccess()
+					{
+						scheduleStartPostponedTransition(mImageView);
+					}
+
+					@Override
+					public void onError()
+					{
+						// Still have to do this, or else the app will crash.
+						scheduleStartPostponedTransition(mImageView);
+					}
+				});
+
+		mImageView.animate()
+				.withLayer()
+				.setStartDelay(2000)
+				.setDuration(500)
+				.alpha(0.0f)
+				.withStartAction(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						mFrameEmulation.setVisibility(View.VISIBLE);
+					}
+				})
+				.withEndAction(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						mImageView.setVisibility(View.GONE);
+					}
+				});
 
 		setTitle(title);
 
@@ -90,7 +155,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 		// Add fragment to the activity - this triggers all its lifecycle callbacks.
 		getFragmentManager().beginTransaction()
-				.add(R.id.frame_content, emulationFragment, EmulationFragment.FRAGMENT_TAG)
+				.add(R.id.frame_emulation_fragment, emulationFragment, EmulationFragment.FRAGMENT_TAG)
 				.commit();
 	}
 
@@ -154,6 +219,59 @@ public final class EmulationActivity extends AppCompatActivity
 			NativeLibrary.StopEmulation();
 		}
 	}
+
+	public void exitWithAnimation()
+	{
+		runOnUiThread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				Picasso.with(EmulationActivity.this)
+						.invalidate(mScreenPath);
+
+				Picasso.with(EmulationActivity.this)
+						.load(mScreenPath)
+						.noFade()
+						.noPlaceholder()
+						.into(mImageView, new Callback()
+						{
+							@Override
+							public void onSuccess()
+							{
+								showScreenshot();
+							}
+
+							@Override
+							public void onError()
+							{
+								finish();
+							}
+						});
+			}
+		});
+	}
+
+	private void showScreenshot()
+	{
+		mImageView.setVisibility(View.VISIBLE);
+		mImageView.animate()
+				.withLayer()
+				.setDuration(500)
+				.alpha(1.0f)
+				.withEndAction(afterShowingScreenshot);
+	}
+
+	private Runnable afterShowingScreenshot = new Runnable()
+	{
+		@Override
+		public void run()
+		{
+			mFrameContent.removeView(mFrameEmulation);
+			setResult(mPosition);
+			finishAfterTransition();
+		}
+	};
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
@@ -323,5 +441,21 @@ public final class EmulationActivity extends AppCompatActivity
 				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
 		hideSystemUiAfterDelay();
+	}
+
+
+	private void scheduleStartPostponedTransition(final View sharedElement)
+	{
+		sharedElement.getViewTreeObserver().addOnPreDrawListener(
+				new ViewTreeObserver.OnPreDrawListener()
+				{
+					@Override
+					public boolean onPreDraw()
+					{
+						sharedElement.getViewTreeObserver().removeOnPreDrawListener(this);
+						startPostponedEnterTransition();
+						return true;
+					}
+				});
 	}
 }
