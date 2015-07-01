@@ -1523,6 +1523,21 @@ void ARM64XEmitter::UBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms)
 {
 	EncodeBitfieldMOVInst(2, Rd, Rn, immr, imms);
 }
+
+void ARM64XEmitter::BFI(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
+{
+	u32 size = Is64Bit(Rn) ? 64 : 32;
+	_assert_msg_(DYNA_REC, (lsb + width) <= size, "%s passed lsb %d and width %d which is greater than the register size!",
+			__FUNCTION__, lsb, width);
+	EncodeBitfieldMOVInst(1, Rd, Rn, (size - lsb) % size, width - 1);
+}
+void ARM64XEmitter::UBFIZ(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
+{
+	u32 size = Is64Bit(Rn) ? 64 : 32;
+	_assert_msg_(DYNA_REC, (lsb + width) <= size, "%s passed lsb %d and width %d which is greater than the register size!",
+			__FUNCTION__, lsb, width);
+	EncodeBitfieldMOVInst(2, Rd, Rn, (size - lsb) % size, width - 1);
+}
 void ARM64XEmitter::EXTR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u32 shift)
 {
 	bool sf = Is64Bit(Rd);

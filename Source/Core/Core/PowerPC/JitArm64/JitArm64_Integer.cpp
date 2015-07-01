@@ -766,3 +766,79 @@ void JitArm64::slwx(UGeckoInstruction inst)
 			ComputeRC(gpr.R(a), 0);
 	}
 }
+
+void JitArm64::rlwimix(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int a = inst.RA, s = inst.RS;
+	u32 mask = Helper_Mask(inst.MB, inst.ME);
+
+	if (gpr.IsImm(a) && gpr.IsImm(s))
+	{
+		u32 res = (gpr.GetImm(a) & ~mask) | (_rotl(gpr.GetImm(s), inst.SH) & mask);
+		gpr.SetImmediate(a, res);
+		if (inst.Rc)
+			ComputeRC(res, 0);
+	}
+	else
+	{
+		if (mask == 0 || (a == s && inst.SH == 0))
+		{
+			// Do Nothing
+		}
+		else if (mask == 0xFFFFFFFF)
+		{
+			if (inst.SH || a != s)
+				gpr.BindToRegister(a, a == s);
+
+			if (inst.SH)
+				ROR(gpr.R(a), gpr.R(s), 32 - inst.SH);
+			else if (a != s)
+				MOV(gpr.R(a), gpr.R(s));
+		}
+		else if (inst.SH == 0 && inst.MB <= inst.ME)
+		{
+			// No rotation
+			// No mask inversion
+			u32 lsb = 31 - inst.ME;
+			u32 width = inst.ME - inst.MB + 1;
+
+			gpr.BindToRegister(a, true);
+			ARM64Reg WA = gpr.GetReg();
+			UBFX(WA, gpr.R(s), lsb, width);
+			BFI(gpr.R(a), WA, lsb, width);
+			gpr.Unlock(WA);
+		}
+		else if (inst.SH && inst.MB <= inst.ME)
+		{
+			// No mask inversion
+			u32 lsb = 31 - inst.ME;
+			u32 width = inst.ME - inst.MB + 1;
+
+			gpr.BindToRegister(a, true);
+			ARM64Reg WA = gpr.GetReg();
+			ROR(WA, gpr.R(s), 32 - inst.SH);
+			UBFX(WA, WA, lsb, width);
+			BFI(gpr.R(a), WA, lsb, width);
+			gpr.Unlock(WA);
+		}
+		else
+		{
+			gpr.BindToRegister(a, true);
+			ARM64Reg WA = gpr.GetReg();
+			ARM64Reg WB = gpr.GetReg();
+
+			MOVI2R(WA, mask);
+			BIC(WB, gpr.R(a), WA);
+			AND(WA, WA, gpr.R(s), ArithOption(gpr.R(s), ST_ROR, 32 - inst.SH));
+			ORR(gpr.R(a), WB, WA);
+
+			gpr.Unlock(WA, WB);
+		}
+
+		if (inst.Rc)
+			ComputeRC(gpr.R(a), 0);
+	}
+}

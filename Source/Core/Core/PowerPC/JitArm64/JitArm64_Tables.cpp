@@ -52,7 +52,7 @@ static GekkoOPTemplate primarytable[] =
 	{14, &JitArm64::arith_imm},                 // addi
 	{15, &JitArm64::arith_imm},                 // addis
 
-	{20, &JitArm64::FallBackToInterpreter},     // rlwimix
+	{20, &JitArm64::rlwimix},                   // rlwimix
 	{21, &JitArm64::rlwinmx},                   // rlwinmx
 	{23, &JitArm64::FallBackToInterpreter},     // rlwnmx
 
