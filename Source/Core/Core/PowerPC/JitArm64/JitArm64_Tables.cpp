@@ -302,7 +302,7 @@ static GekkoOPTemplate table31[] =
 
 	{4,   &JitArm64::twx},                      // tw
 	{598, &JitArm64::DoNothing},                // sync
-	{982, &JitArm64::icbi},                     // icbi
+	{982, &JitArm64::FallBackToInterpreter},    // icbi
 
 	// Unused instructions on GC
 	{310, &JitArm64::FallBackToInterpreter},    // eciwx

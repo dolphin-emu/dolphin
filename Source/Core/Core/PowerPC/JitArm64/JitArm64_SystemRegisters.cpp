@@ -48,8 +48,7 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 void JitArm64::mtmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	// Don't interpret this, if we do we get thrown out
-	//JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	gpr.BindToRegister(inst.RS, true);
 	STR(INDEX_UNSIGNED, gpr.R(inst.RS), X29, PPCSTATE_OFF(msr));
@@ -143,6 +142,7 @@ void JitArm64::mtsrin(UGeckoInstruction inst)
 void JitArm64::twx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
 
 	s32 a = inst.RA;
 

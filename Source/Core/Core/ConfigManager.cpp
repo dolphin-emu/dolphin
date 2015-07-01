@@ -621,6 +621,7 @@ void SConfig::LoadDefaults()
 	bJITIntegerOff = false;
 	bJITPairedOff = false;
 	bJITSystemRegistersOff = false;
+	bJITBranchOff = false;
 
 	m_strName = "NONE";
 	m_strUniqueID = "00000000";

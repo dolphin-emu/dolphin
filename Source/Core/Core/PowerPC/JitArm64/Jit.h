@@ -114,7 +114,6 @@ public:
 	void mtspr(UGeckoInstruction inst);
 
 	// LoadStore
-	void icbi(UGeckoInstruction inst);
 	void lXX(UGeckoInstruction inst);
 	void stX(UGeckoInstruction inst);
 	void lmw(UGeckoInstruction inst);

@@ -51,10 +51,45 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush(FlushMode::FLUSH_INTERPRETER, js.op);
 	fpr.Flush(FlushMode::FLUSH_INTERPRETER, js.op);
+
+	if (js.op->opinfo->flags & FL_ENDBLOCK)
+	{
+		// also flush the program counter
+		ARM64Reg WA = gpr.GetReg();
+		MOVI2R(WA, js.compilerPC);
+		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(pc));
+		ADD(WA, WA, 4);
+		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+		gpr.Unlock(WA);
+	}
+
 	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
 	MOVI2R(W0, inst.hex);
 	MOVI2R(X30, (u64)instr);
 	BLR(X30);
+
+	if (js.op->opinfo->flags & FL_ENDBLOCK)
+	{
+		if (js.isLastInstruction)
+		{
+			ARM64Reg WA = gpr.GetReg();
+			LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+			WriteExceptionExit(WA);
+		}
+		else
+		{
+			// only exit if ppcstate.npc was changed
+			ARM64Reg WA = gpr.GetReg();
+			LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+			ARM64Reg WB = gpr.GetReg();
+			MOVI2R(WB, js.compilerPC + 4);
+			CMP(WB, WA);
+			gpr.Unlock(WB);
+			FixupBranch c = B(CC_EQ);
+			WriteExceptionExit(WA);
+			SetJumpTarget(c);
+		}
+	}
 }
 
 void JitArm64::HLEFunction(UGeckoInstruction inst)
