@@ -239,6 +239,13 @@ void VideoConfig::VerifyValidity()
 
 void VideoConfig::Save(const std::string& ini_file)
 {
+	// TODO: The is a hotfix to prevent writing of temporary per-game settings
+	// (GameINI, Movie, Netplay, ...) to the global Dolphin configuration file.
+	// The Config logic should be rewritten instead so that per-game settings
+	// aren't stored in the same configuration as the actual user settings.
+	if (Core::IsRunning())
+		return;
+
 	IniFile iniFile;
 	iniFile.Load(ini_file);
 
