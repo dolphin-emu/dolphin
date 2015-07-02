@@ -406,7 +406,7 @@ static const u32 LogicalEnc[][2] = {
 };
 
 // Load/Store Exclusive
-static u32 LoadStoreExcEnc[][5] = {
+static const u32 LoadStoreExcEnc[][5] = {
 	{0, 0, 0, 0, 0}, // STXRB
 	{0, 0, 0, 0, 1}, // STLXRB
 	{0, 0, 1, 0, 0}, // LDXRB
