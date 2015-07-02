@@ -265,8 +265,14 @@ bool ParsePartitionData(SPartition& _rPartition)
 
 	// Ready some stuff
 	m_Disc = CreateVolumeFromFilename(m_Filename, _rPartition.GroupNumber, _rPartition.Number);
-	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_Disc));
+	if (m_Disc == nullptr)
+	{
+		ERROR_LOG(DISCIO, "Failed to create volume from file %s", m_Filename.c_str());
+		m_Disc = OldVolume;
+		return false;
+	}
 
+	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_Disc));
 	if (!filesystem)
 	{
 		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", _rPartition.GroupNumber, _rPartition.Number);
