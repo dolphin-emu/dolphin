@@ -581,11 +581,11 @@ int GetTicksToNextSIPoll()
 		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
 
 	if (!g_Poll.Y && g_Poll.X)
-		return VideoInterface::GetTicksPerLine() * g_Poll.X;
+		return 2 * VideoInterface::GetTicksPerHalfLine() * g_Poll.X;
 	else if (!g_Poll.Y)
 		return SystemTimers::GetTicksPerSecond() / 60;
 
-	return std::min(VideoInterface::GetTicksPerFrame() / g_Poll.Y, VideoInterface::GetTicksPerLine() * g_Poll.X);
+	return std::min(VideoInterface::GetTicksPerField() / g_Poll.Y, 2 * VideoInterface::GetTicksPerHalfLine() * g_Poll.X);
 }
 
 } // end of namespace SerialInterface

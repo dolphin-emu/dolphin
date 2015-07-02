@@ -36,8 +36,6 @@ static UVIFBInfoRegister         m_XFBInfoTop;
 static UVIFBInfoRegister         m_XFBInfoBottom;
 static UVIFBInfoRegister         m_3DFBInfoTop;     // Start making your stereoscopic demos! :p
 static UVIFBInfoRegister         m_3DFBInfoBottom;
-static u16                       m_VBeamPos = 0;    // 0: Inactive
-static u16                       m_HBeamPos = 0;    // 0: Inactive
 static UVIInterruptRegister      m_InterruptRegister[4];
 static UVILatchRegister          m_LatchRegister[2];
 static PictureConfigurationRegister  m_PictureConfiguration;
@@ -53,11 +51,23 @@ static UVIBorderBlankRegister    m_BorderHBlank;
 
 u32 TargetRefreshRate = 0;
 
-static u32 TicksPerFrame = 0;
-static u32 s_lineCount = 0;
-static u32 s_upperFieldBegin = 0;
-static u32 s_lowerFieldBegin = 0;
-static int fields = 1;
+static u32 s_clock_freqs[2] =
+{
+	27000000UL,
+	54000000UL,
+};
+
+static u64 s_ticks_last_line_start;  // number of ticks when the current full scanline started
+static u32 s_half_line_count;  // number of halflines that have occurred for this full frame
+
+
+static FieldType s_current_field;
+
+// below indexes are 1-based
+static u32 s_even_field_first_hl; // index first halfline of the even field
+static u32 s_odd_field_first_hl;  // index first halfline of the odd field
+static u32 s_even_field_last_hl;  // index last halfline of the even field
+static u32 s_odd_field_last_hl;   // index last halfline of the odd field
 
 void DoState(PointerWrap &p)
 {
@@ -73,8 +83,6 @@ void DoState(PointerWrap &p)
 	p.Do(m_XFBInfoBottom);
 	p.Do(m_3DFBInfoTop);
 	p.Do(m_3DFBInfoBottom);
-	p.Do(m_VBeamPos);
-	p.Do(m_HBeamPos);
 	p.DoArray(m_InterruptRegister, 4);
 	p.DoArray(m_LatchRegister, 2);
 	p.Do(m_PictureConfiguration);
@@ -86,16 +94,20 @@ void DoState(PointerWrap &p)
 	p.Do(m_FBWidth);
 	p.Do(m_BorderHBlank);
 	p.Do(TargetRefreshRate);
-	p.Do(TicksPerFrame);
-	p.Do(s_lineCount);
-	p.Do(s_upperFieldBegin);
-	p.Do(s_lowerFieldBegin);
+	p.Do(s_ticks_last_line_start);
+	p.Do(s_half_line_count);
+	p.Do(s_current_field);
+	p.Do(s_even_field_first_hl);
+	p.Do(s_odd_field_first_hl);
+	p.Do(s_even_field_last_hl);
+	p.Do(s_odd_field_last_hl);
 }
 
 // Executed after Init, before game boot
 void Preset(bool _bNTSC)
 {
 	m_VerticalTimingRegister.EQU = 6;
+	m_VerticalTimingRegister.ACV = 0;
 
 	m_DisplayControlRegister.ENB = 1;
 	m_DisplayControlRegister.FMT = _bNTSC ? 0 : 1;
@@ -133,59 +145,22 @@ void Preset(bool _bNTSC)
 	m_PictureConfiguration.STD = 40;
 	m_PictureConfiguration.WPL = 40;
 
-	m_HBeamPos = -1; // NTSC-U N64 VC games check for a non-zero HBeamPos
-	m_VBeamPos = 0; // RG4JC0 checks for a zero VBeamPos
-
 	// 54MHz, capable of progressive scan
 	m_Clock = SConfig::GetInstance().bNTSC;
 
 	// Say component cable is plugged
 	m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
 
+	s_ticks_last_line_start = 0;
+	s_half_line_count = 1;
+	s_current_field = FIELD_ODD;
+
 	UpdateParameters();
 }
 
 void Init()
 {
-	m_VerticalTimingRegister.Hex = 0;
-	m_DisplayControlRegister.Hex = 0;
-	m_HTiming0.Hex = 0;
-	m_HTiming1.Hex = 0;
-	m_VBlankTimingOdd.Hex = 0;
-	m_VBlankTimingEven.Hex = 0;
-	m_BurstBlankingOdd.Hex = 0;
-	m_BurstBlankingEven.Hex = 0;
-	m_XFBInfoTop.Hex = 0;
-	m_XFBInfoBottom.Hex = 0;
-	m_3DFBInfoTop.Hex = 0;
-	m_3DFBInfoBottom.Hex = 0;
-	m_VBeamPos = 0;
-	m_HBeamPos = 0;
-	m_PictureConfiguration.Hex = 0;
-	m_HorizontalScaling.Hex = 0;
-	m_UnkAARegister = 0;
-	m_Clock = 0;
-	m_DTVStatus.Hex = 0;
-	m_FBWidth.Hex = 0;
-	m_BorderHBlank.Hex = 0;
-	memset(&m_FilterCoefTables, 0, sizeof(m_FilterCoefTables));
-
-	fields = 1;
-
-	m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ;
-
-	for (UVIInterruptRegister& reg : m_InterruptRegister)
-	{
-		reg.Hex = 0;
-	}
-
-	for (UVILatchRegister& reg : m_LatchRegister)
-	{
-		reg.Hex = 0;
-	}
-
-	m_DisplayControlRegister.Hex = 0;
-	UpdateParameters();
+	Preset(true);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -251,6 +226,32 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		);
 	}
 
+	struct {
+		u32 addr;
+		u16* ptr;
+	} update_params_on_read_vars[] = {
+		{ VI_VERTICAL_TIMING, &m_VerticalTimingRegister.Hex },
+		{ VI_HORIZONTAL_TIMING_0_HI, &m_HTiming0.Hi },
+		{ VI_HORIZONTAL_TIMING_0_LO, &m_HTiming0.Lo },
+		{ VI_VBLANK_TIMING_ODD_HI, &m_VBlankTimingOdd.Hi },
+		{ VI_VBLANK_TIMING_ODD_LO, &m_VBlankTimingOdd.Lo },
+		{ VI_VBLANK_TIMING_EVEN_HI, &m_VBlankTimingEven.Hi },
+		{ VI_VBLANK_TIMING_EVEN_LO, &m_VBlankTimingEven.Lo },
+		{ VI_CLOCK, &m_Clock },
+	};
+
+	// Declare all the MMIOs that update timing params.
+	for (auto& mapped_var : update_params_on_read_vars)
+	{
+		mmio->Register(base | mapped_var.addr,
+			MMIO::DirectRead<u16>(mapped_var.ptr),
+			MMIO::ComplexWrite<u16>([mapped_var](u32, u16 val) {
+				*mapped_var.ptr = val;
+				UpdateParameters();
+			})
+		);
+	}
+
 	// XFB related MMIOs that require special handling on writes.
 	mmio->Register(base | VI_FB_LEFT_TOP_HI,
 		MMIO::DirectRead<u16>(&m_XFBInfoTop.Hi),
@@ -283,13 +284,17 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 	// MMIOs with unimplemented writes that trigger warnings.
 	mmio->Register(base | VI_VERTICAL_BEAM_POSITION,
-		MMIO::DirectRead<u16>(&m_VBeamPos),
+		MMIO::ComplexRead<u16>([](u32) {
+			return (s_half_line_count + 1) / 2;
+		}),
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
 			WARN_LOG(VIDEOINTERFACE, "Changing vertical beam position to 0x%04x - not documented or implemented yet", val);
 		})
 	);
 	mmio->Register(base | VI_HORIZONTAL_BEAM_POSITION,
-		MMIO::DirectRead<u16>(&m_HBeamPos),
+		MMIO::ComplexRead<u16>([](u32) {
+			return static_cast<u16>(m_HTiming0.HLW * (CoreTiming::GetTicks() - s_ticks_last_line_start) / GetTicksPerHalfLine());
+		}),
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
 			WARN_LOG(VIDEOINTERFACE, "Changing horizontal beam position to 0x%04x - not documented or implemented yet", val);
 		})
@@ -436,6 +441,27 @@ u32 GetXFBAddressBottom()
 		return m_XFBInfoBottom.FBB;
 }
 
+static u32 GetHalfLinesPerEvenField()
+{
+	return (3 * m_VerticalTimingRegister.EQU + m_VBlankTimingEven.PRB + 2 * m_VerticalTimingRegister.ACV + m_VBlankTimingEven.PSB);
+}
+
+static u32 GetHalfLinesPerOddField()
+{
+	return (3 * m_VerticalTimingRegister.EQU + m_VBlankTimingOdd.PRB + 2 * m_VerticalTimingRegister.ACV + m_VBlankTimingOdd.PSB);
+}
+
+
+static u32 GetTicksPerEvenField()
+{
+	return GetTicksPerHalfLine() * GetHalfLinesPerEvenField();
+}
+
+static u32 GetTicksPerOddField()
+{
+	return GetTicksPerHalfLine() * GetHalfLinesPerOddField();
+}
+
 float GetAspectRatio(bool wide)
 {
 	u32 multiplier = static_cast<u32>(m_PictureConfiguration.STD / m_PictureConfiguration.WPL);
@@ -489,59 +515,23 @@ float GetAspectRatio(bool wide)
 
 void UpdateParameters()
 {
-	fields = m_DisplayControlRegister.NIN ? 2 : 1;
+	s_even_field_first_hl = 1;
+	s_odd_field_first_hl = s_even_field_first_hl + GetHalfLinesPerEvenField();
+	s_even_field_last_hl = s_odd_field_first_hl - 1;
+	s_odd_field_last_hl = s_odd_field_first_hl + GetHalfLinesPerOddField() - 1;
 
-	switch (m_DisplayControlRegister.FMT)
-	{
-	case 0: // NTSC
-		TargetRefreshRate = NTSC_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
-		s_lineCount = NTSC_LINE_COUNT;
-		s_upperFieldBegin = NTSC_UPPER_BEGIN;
-		s_lowerFieldBegin = NTSC_LOWER_BEGIN;
-		break;
-
-	case 2: // PAL-M
-		TargetRefreshRate = NTSC_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
-		s_lineCount = PAL_LINE_COUNT;
-		s_upperFieldBegin = PAL_UPPER_BEGIN;
-		s_lowerFieldBegin = PAL_LOWER_BEGIN;
-		break;
-
-	case 1: // PAL
-		TargetRefreshRate = PAL_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / PAL_FIELD_RATE;
-		s_lineCount = PAL_LINE_COUNT;
-		s_upperFieldBegin = PAL_UPPER_BEGIN;
-		s_lowerFieldBegin = PAL_LOWER_BEGIN;
-		break;
-
-	case 3: // Debug
-		PanicAlert("Debug video mode not implemented");
-		break;
-
-	default:
-		PanicAlert("Unknown Video Format - CVideoInterface");
-		break;
-	}
+	TargetRefreshRate = 2 * SystemTimers::GetTicksPerSecond() / (GetTicksPerEvenField() + GetTicksPerOddField());
 }
 
-unsigned int GetTicksPerLine()
+u32 GetTicksPerHalfLine()
 {
-	if (s_lineCount == 0)
-	{
-		return 1;
-	}
-	else
-	{
-		return TicksPerFrame / (s_lineCount / (2 / fields)) ;
-	}
+	return 2 * SystemTimers::GetTicksPerSecond() / s_clock_freqs[m_Clock] * m_HTiming0.HLW;
 }
 
-unsigned int GetTicksPerFrame()
+
+u32 GetTicksPerField()
 {
-	return TicksPerFrame;
+	return GetTicksPerEvenField();
 }
 
 static void BeginField(FieldType field)
@@ -556,39 +546,48 @@ static void BeginField(FieldType field)
 	// What should actually happen is that we should pass on the correct width,
 	// stride, and height to the video backend, and it should deinterlace the
 	// output when appropriate.
-	u32 fbStride = m_PictureConfiguration.STD * (field == FIELD_PROGRESSIVE ? 16 : 8);
+
+	// STD is the stride between lines and WPL is the words per line. STD/WPL be either
+	// 1 or 2 (the latter indicates emitting a single field of an interlaced output from
+	// a framebuffer that contains both i.e. it skips the other field.)
+	u32 multiplier = static_cast<u32>(m_PictureConfiguration.STD / m_PictureConfiguration.WPL);
+
+	// if it's interlaced output from a framebuffer containing both fields, we
+	// divide the stride by 2 so that it emits every line
+	u32 fbStride = m_PictureConfiguration.STD * 16 / multiplier;
 	u32 fbWidth = m_PictureConfiguration.WPL * 16;
-	u32 fbHeight = m_VerticalTimingRegister.ACV * (field == FIELD_PROGRESSIVE ? 1 : 2);
+
+	// if it's interlaced output from a framebuffer containing both fields,
+	// double the number of lines we're outputting because we actually output
+	// both fields
+	u32 fbHeight = m_VerticalTimingRegister.ACV * multiplier;
+
 	u32 xfbAddr;
 
-	// Only the top field is valid in progressive mode.
-	if (field == FieldType::FIELD_PROGRESSIVE)
+	if (field == FieldType::FIELD_EVEN)
 	{
 		xfbAddr = GetXFBAddressTop();
 	}
 	else
 	{
-		// If we are displaying an interlaced field, we convert it to a progressive field
-		// by simply using the whole XFB, which 99% of the time contains a whole progressive
-		// frame.
-
-		// All known NTSC games use the top/odd field as the upper field but
-		// PAL games are known to whimsically arrange the fields in either order.
-		// So to work out which field is pointing to the top of the progressive XFB we check
-		// which field has the lower PRB value in the VBlank Timing Registers.
-
-		if(m_VBlankTimingOdd.PRB < m_VBlankTimingEven.PRB)
-			xfbAddr = GetXFBAddressTop();
-		else
-			xfbAddr = GetXFBAddressBottom();
+		xfbAddr = GetXFBAddressBottom();
 	}
 
-	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
+	static const char* const fieldTypeNames[] = { "Odd", "Even" };
 
-	DEBUG_LOG(VIDEOINTERFACE,
-			  "(VI->BeginField): Address: %.08X | WPL %u | STD %u | ACV %u | Field %s",
-			  xfbAddr, m_PictureConfiguration.WPL, m_PictureConfiguration.STD,
-			  m_VerticalTimingRegister.ACV, fieldTypeNames[field]);
+	static const UVIVBlankTimingRegister *vert_timing[] = {
+		&m_VBlankTimingOdd,
+		&m_VBlankTimingEven,
+	};
+
+	WARN_LOG(VIDEOINTERFACE,
+				"(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | ACV %u | PSB %u | Field %s",
+				xfbAddr, m_PictureConfiguration.WPL, m_PictureConfiguration.STD, m_VerticalTimingRegister.EQU,
+				vert_timing[field]->PRB, m_VerticalTimingRegister.ACV, vert_timing[field]->PSB, fieldTypeNames[field]);
+
+	WARN_LOG(VIDEOINTERFACE,
+			"HorizScaling: %04x | fbwidth %d | %u | %u",
+			m_HorizontalScaling.Hex, m_FBWidth.Hex, GetTicksPerEvenField(), GetTicksPerOddField());
 
 	if (xfbAddr)
 		g_video_backend->Video_BeginField(xfbAddr, fbWidth, fbStride, fbHeight);
@@ -604,44 +603,41 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update()
 {
-	if (m_DisplayControlRegister.NIN)
+	if (s_half_line_count == s_even_field_first_hl)
 	{
-		// Progressive
-		if (m_VBeamPos == 1)
-			BeginField(FIELD_PROGRESSIVE);
+		BeginField(FIELD_EVEN);
 	}
-	else if (m_VBeamPos == s_upperFieldBegin)
+	else if (s_half_line_count == s_odd_field_first_hl)
 	{
-		// Interlace Upper
-		BeginField(FIELD_UPPER);
+		BeginField(FIELD_ODD);
 	}
-	else if (m_VBeamPos == s_lowerFieldBegin)
+	else if (s_half_line_count == s_even_field_last_hl)
 	{
-		// Interlace Lower
-		BeginField(FIELD_LOWER);
-	}
-
-	if (m_VBeamPos == s_upperFieldBegin + m_VerticalTimingRegister.ACV)
-	{
-		// Interlace Upper.
 		EndField();
 	}
-	else if (m_VBeamPos == s_lowerFieldBegin + m_VerticalTimingRegister.ACV)
+	else if (s_half_line_count == s_odd_field_last_hl)
 	{
-		// Interlace Lower
 		EndField();
 	}
-
-	if (++m_VBeamPos > s_lineCount * fields)
-		m_VBeamPos = 1;
 
 	for (UVIInterruptRegister& reg : m_InterruptRegister)
 	{
-		if (m_VBeamPos == reg.VCT)
+		if (s_half_line_count == 2 * reg.VCT)
 		{
 			reg.IR_INT = 1;
 		}
 	}
+
+	s_half_line_count++;
+
+	if (s_half_line_count > s_odd_field_last_hl) {
+		s_half_line_count = 1;
+	}
+
+	if (s_half_line_count & 1) {
+		s_ticks_last_line_start = CoreTiming::GetTicks();
+	}
+
 	UpdateInterrupts();
 }
 

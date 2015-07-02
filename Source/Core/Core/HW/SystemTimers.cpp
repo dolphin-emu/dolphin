@@ -126,7 +126,7 @@ static void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 static void VICallback(u64 userdata, int cyclesLate)
 {
 	VideoInterface::Update();
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine() - cyclesLate, et_VI);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
 }
 
 static void SICallback(u64 userdata, int cyclesLate)
@@ -185,7 +185,7 @@ static void PatchEngineCallback(u64 userdata, int cyclesLate)
 {
 	// Patch mem and run the Action Replay
 	PatchEngine::ApplyFramePatches();
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_PatchEngine);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField() - cyclesLate, et_PatchEngine);
 }
 
 static void ThrottleCallback(u64 last_time, int cyclesLate)
@@ -259,16 +259,16 @@ void Init()
 	et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
 	et_Throttle = CoreTiming::RegisterEvent("Throttle", ThrottleCallback);
 
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
 	CoreTiming::ScheduleEvent(0, et_DSP);
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_SI);
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 	CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
 	if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
 		CoreTiming::ScheduleEvent(0, et_CP);
 	s_last_sync_gpu_tick = CoreTiming::GetTicks();
 
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_PatchEngine);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
 
 	if (SConfig::GetInstance().bWii)
 		CoreTiming::ScheduleEvent(IPC_HLE_PERIOD, et_IPC_HLE);
