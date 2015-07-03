@@ -10,6 +10,12 @@
         android:layout_height="match_parent"
         android:visibility="invisible"/>
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/image_screenshot"
+        android:transitionName="image_game_screenshot"/>
+
     <LinearLayout
         android:id="@+id/layout_ingame_menu"
         android:layout_width="match_parent"
@@ -35,11 +41,5 @@
             android:layout_weight="2"/>
 
     </LinearLayout>
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/image_screenshot"
-        android:transitionName="image_game_screenshot"/>
 
 </FrameLayout>
