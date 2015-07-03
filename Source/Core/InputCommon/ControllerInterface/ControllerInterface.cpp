@@ -26,6 +26,9 @@
 #ifdef CIFACE_USE_ANDROID
 	#include "InputCommon/ControllerInterface/Android/Android.h"
 #endif
+#ifdef CIFACE_USE_EVDEV
+	#include "InputCommon/ControllerInterface/evdev/evdev.h"
+#endif
 
 using namespace ciface::ExpressionParser;
 
@@ -68,6 +71,9 @@ void ControllerInterface::Initialize(void* const hwnd)
 #endif
 #ifdef CIFACE_USE_ANDROID
 	ciface::Android::Init(m_devices);
+#endif
+#ifdef CIFACE_USE_EVDEV
+	ciface::evdev::Init(m_devices);
 #endif
 
 	m_is_init = true;

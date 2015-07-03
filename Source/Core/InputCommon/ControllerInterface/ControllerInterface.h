@@ -35,6 +35,9 @@
 #if defined(HAVE_SDL) && HAVE_SDL
 	#define CIFACE_USE_SDL
 #endif
+#if defined(HAVE_LIBEVDEV) && defined(HAVE_LIBUDEV)
+	#define CIFACE_USE_EVDEV
+#endif
 
 //
 // ControllerInterface
