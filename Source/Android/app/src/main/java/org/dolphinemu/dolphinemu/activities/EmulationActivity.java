@@ -13,6 +13,9 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -40,6 +43,9 @@ public final class EmulationActivity extends AppCompatActivity
 
 	// So that MainActivity knows which view to invalidate before the return animation.
 	private int mPosition;
+
+	private static Interpolator sDecelerator = new DecelerateInterpolator();
+	private static Interpolator sAccelerator = new AccelerateInterpolator();
 
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
@@ -241,44 +247,40 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		if (mMenuVisible)
 		{
+			mMenuVisible = false;
+
 			mMenuLayout.animate()
 					.withLayer()
 					.setDuration(200)
+					.setInterpolator(sAccelerator)
 					.alpha(0.0f)
-					.scaleX(1.1f)
-					.scaleY(1.1f)
+					.translationX(-400.0f)
 					.withEndAction(new Runnable()
 					{
 						@Override
 						public void run()
 						{
-							mMenuLayout.setVisibility(View.GONE);
-							mMenuVisible = false;
+							if (mMenuVisible)
+							{
+								mMenuLayout.setVisibility(View.GONE);
+							}
 						}
 					});
 		}
 		else
 		{
+			mMenuVisible = true;
 			mMenuLayout.setVisibility(View.VISIBLE);
 
-			mMenuLayout.setScaleX(1.1f);
-			mMenuLayout.setScaleY(1.1f);
+//			mMenuLayout.setTranslationX(-400.0f);
 			mMenuLayout.setAlpha(0.0f);
 
 			mMenuLayout.animate()
 					.withLayer()
 					.setDuration(300)
+					.setInterpolator(sDecelerator)
 					.alpha(1.0f)
-					.scaleX(1.0f)
-					.scaleY(1.0f)
-					.withEndAction(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							mMenuVisible = true;
-						}
-					});
+					.translationX(0.0f);
 		}
 	}
 

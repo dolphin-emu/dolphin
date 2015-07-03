@@ -127,11 +127,16 @@
     </style>
 
     <style name="InGameMenuOption" parent="Widget.AppCompat.Button.Borderless">
-        <item name="android:textSize">24dp</item>
+        <item name="android:textSize">20sp</item>
         <item name="android:fontFamily">sans-serif-condensed</item>
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textAllCaps">false</item>
-        <item name="android:gravity">left</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:gravity">center_vertical|left</item>
+        <item name="android:paddingLeft">32dp</item>
+        <item name="android:paddingRight">32dp</item>
+        <item name="android:layout_margin">0dp</item>
     </style>
 
 </resources>

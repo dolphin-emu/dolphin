@@ -20,7 +20,6 @@
         android:id="@+id/layout_ingame_menu"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#af000000"
         android:orientation="horizontal"
         android:visibility="gone"
         tools:visibility="visible"
@@ -38,7 +37,7 @@
             android:id="@+id/frame_submenu"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="2"/>
+            android:layout_weight="3"/>
 
     </LinearLayout>
 
