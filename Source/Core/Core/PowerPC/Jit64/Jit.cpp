@@ -236,7 +236,7 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush();
 	fpr.Flush();
-	if (js.isLastInstruction)
+	if (js.op->opinfo->flags & FL_ENDBLOCK)
 	{
 		MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
 		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
@@ -245,6 +245,25 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunctionC((void*)instr, inst.hex);
 	ABI_PopRegistersAndAdjustStack({}, 0);
+	if (js.op->opinfo->flags & FL_ENDBLOCK)
+	{
+		if (js.isLastInstruction)
+		{
+			MOV(32, R(RSCRATCH), PPCSTATE(npc));
+			MOV(32, PPCSTATE(pc), R(RSCRATCH));
+			WriteExceptionExit();
+		}
+		else
+		{
+			MOV(32, R(RSCRATCH), PPCSTATE(npc));
+			SUB(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
+			FixupBranch c = J_CC(CC_Z);
+			MOV(32, R(RSCRATCH), PPCSTATE(npc));
+			MOV(32, PPCSTATE(pc), R(RSCRATCH));
+			WriteExceptionExit();
+			SetJumpTarget(c);
+		}
+	}
 }
 
 void Jit64::FallBackToInterpreter(UGeckoInstruction _inst)
