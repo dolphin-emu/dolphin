@@ -59,8 +59,10 @@ void Interpreter::ps_abs(UGeckoInstruction _inst)
 // These are just moves, double is OK.
 void Interpreter::ps_merge00(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS0(_inst.FA);
-	rPS1(_inst.FD) = rPS0(_inst.FB);
+	double p0 = rPS0(_inst.FA);
+	double p1 = rPS0(_inst.FB);
+	rPS0(_inst.FD) = p0;
+	rPS1(_inst.FD) = p1;
 
 	if (_inst.Rc)
 		Helper_UpdateCR1();
@@ -68,8 +70,10 @@ void Interpreter::ps_merge00(UGeckoInstruction _inst)
 
 void Interpreter::ps_merge01(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS0(_inst.FA);
-	rPS1(_inst.FD) = rPS1(_inst.FB);
+	double p0 = rPS0(_inst.FA);
+	double p1 = rPS1(_inst.FB);
+	rPS0(_inst.FD) = p0;
+	rPS1(_inst.FD) = p1;
 
 	if (_inst.Rc)
 		Helper_UpdateCR1();
@@ -77,8 +81,10 @@ void Interpreter::ps_merge01(UGeckoInstruction _inst)
 
 void Interpreter::ps_merge10(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FA);
-	rPS1(_inst.FD) = rPS0(_inst.FB);
+	double p0 = rPS1(_inst.FA);
+	double p1 = rPS0(_inst.FB);
+	rPS0(_inst.FD) = p0;
+	rPS1(_inst.FD) = p1;
 
 	if (_inst.Rc)
 		Helper_UpdateCR1();
@@ -86,8 +92,10 @@ void Interpreter::ps_merge10(UGeckoInstruction _inst)
 
 void Interpreter::ps_merge11(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FA);
-	rPS1(_inst.FD) = rPS1(_inst.FB);
+	double p0 = rPS1(_inst.FA);
+	double p1 = rPS1(_inst.FB);
+	rPS0(_inst.FD) = p0;
+	rPS1(_inst.FD) = p1;
 
 	if (_inst.Rc)
 		Helper_UpdateCR1();
@@ -228,8 +236,10 @@ void Interpreter::ps_nmadd(UGeckoInstruction _inst)
 
 void Interpreter::ps_sum0(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle(NI_add(rPS0(_inst.FA), rPS1(_inst.FB)));
-	rPS1(_inst.FD) = ForceSingle(rPS1(_inst.FC));
+	double p0 = ForceSingle(NI_add(rPS0(_inst.FA), rPS1(_inst.FB)));
+	double p1 = ForceSingle(rPS1(_inst.FC));
+	rPS0(_inst.FD) = p0;
+	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -238,8 +248,10 @@ void Interpreter::ps_sum0(UGeckoInstruction _inst)
 
 void Interpreter::ps_sum1(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle(rPS0(_inst.FC));
-	rPS1(_inst.FD) = ForceSingle(NI_add(rPS0(_inst.FA), rPS1(_inst.FB)));
+	double p0 = ForceSingle(rPS0(_inst.FC));
+	double p1 = ForceSingle(NI_add(rPS0(_inst.FA), rPS1(_inst.FB)));
+	rPS0(_inst.FD) = p0;
+	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS1(_inst.FD));
 
 	if (_inst.Rc)
@@ -249,8 +261,10 @@ void Interpreter::ps_sum1(UGeckoInstruction _inst)
 void Interpreter::ps_muls0(UGeckoInstruction _inst)
 {
 	double c0 = Force25Bit(rPS0(_inst.FC));
-	rPS0(_inst.FD) = ForceSingle(NI_mul(rPS0(_inst.FA), c0));
-	rPS1(_inst.FD) = ForceSingle(NI_mul(rPS1(_inst.FA), c0));
+	double p0 = ForceSingle(NI_mul(rPS0(_inst.FA), c0));
+	double p1 = ForceSingle(NI_mul(rPS1(_inst.FA), c0));
+	rPS0(_inst.FD) = p0;
+	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -260,8 +274,10 @@ void Interpreter::ps_muls0(UGeckoInstruction _inst)
 void Interpreter::ps_muls1(UGeckoInstruction _inst)
 {
 	double c1 = Force25Bit(rPS1(_inst.FC));
-	rPS0(_inst.FD) = ForceSingle(NI_mul(rPS0(_inst.FA), c1));
-	rPS1(_inst.FD) = ForceSingle(NI_mul(rPS1(_inst.FA), c1));
+	double p0 = ForceSingle(NI_mul(rPS0(_inst.FA), c1));
+	double p1 = ForceSingle(NI_mul(rPS1(_inst.FA), c1));
+	rPS0(_inst.FD) = p0;
+	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -271,8 +287,10 @@ void Interpreter::ps_muls1(UGeckoInstruction _inst)
 void Interpreter::ps_madds0(UGeckoInstruction _inst)
 {
 	double c0 = Force25Bit(rPS0(_inst.FC));
-	rPS0(_inst.FD) = ForceSingle(NI_madd(rPS0(_inst.FA), c0, rPS0(_inst.FB)));
-	rPS1(_inst.FD) = ForceSingle(NI_madd(rPS1(_inst.FA), c0, rPS1(_inst.FB)));
+	double p0 = ForceSingle(NI_madd(rPS0(_inst.FA), c0, rPS0(_inst.FB)));
+	double p1 = ForceSingle(NI_madd(rPS1(_inst.FA), c0, rPS1(_inst.FB)));
+	rPS0(_inst.FD) = p0;
+	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -282,8 +300,10 @@ void Interpreter::ps_madds0(UGeckoInstruction _inst)
 void Interpreter::ps_madds1(UGeckoInstruction _inst)
 {
 	double c1 = Force25Bit(rPS1(_inst.FC));
-	rPS0(_inst.FD) = ForceSingle(NI_madd(rPS0(_inst.FA), c1, rPS0(_inst.FB)));
-	rPS1(_inst.FD) = ForceSingle(NI_madd(rPS1(_inst.FA), c1, rPS1(_inst.FB)));
+	double p0 = ForceSingle(NI_madd(rPS0(_inst.FA), c1, rPS0(_inst.FB)));
+	double p1 = ForceSingle(NI_madd(rPS1(_inst.FA), c1, rPS1(_inst.FB)));
+	rPS0(_inst.FD) = p0;
+	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
