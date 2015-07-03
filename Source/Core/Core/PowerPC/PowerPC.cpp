@@ -529,11 +529,6 @@ void CheckBreakPoints()
 	}
 }
 
-void OnIdle()
-{
-	CoreTiming::Idle();
-}
-
 }  // namespace
 
 
