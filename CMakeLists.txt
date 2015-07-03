@@ -206,6 +206,11 @@ if(NOT MSVC)
 	check_and_add_flag(MISSING_VARIABLE_DECLARATIONS -Wmissing-variable-declarations)
 endif(NOT MSVC)
 
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	# The JIT breaks horrendously if clang inlines functions, which it does at -O3
+	add_definitions(-fno-inline-functions)
+endif()
+
 # gcc uses some optimizations which might break stuff without this flag
 add_definitions(-fno-strict-aliasing -fno-exceptions)
 
