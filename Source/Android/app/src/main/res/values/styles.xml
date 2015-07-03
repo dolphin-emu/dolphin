@@ -12,6 +12,8 @@
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
+
+        <item name="android:colorControlHighlight">?attr/colorAccent</item>
     </style>
 
     <!-- Same as above, but use default action bar, and mandate margins. -->
