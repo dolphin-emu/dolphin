@@ -1,0 +1,45 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:id="@+id/frame_content">
+
+    <FrameLayout
+        android:id="@+id/frame_emulation_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"/>
+
+    <LinearLayout
+        android:id="@+id/layout_ingame_menu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#af000000"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:baselineAligned="false">
+
+        <fragment
+            android:id="@+id/fragment_menu"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:name="org.dolphinemu.dolphinemu.fragments.MenuFragment"
+            tools:layout="@layout/fragment_ingame_menu"/>
+
+        <FrameLayout
+            android:id="@+id/frame_submenu"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"/>
+
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/image_screenshot"
+        android:transitionName="image_game_screenshot"/>
+
+</FrameLayout>

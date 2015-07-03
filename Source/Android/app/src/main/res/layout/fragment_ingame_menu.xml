@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:padding="32dp">
+
+    <Button
+        android:id="@+id/menu_take_screenshot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/overlay_screenshot"
+        android:layout_margin="8dp"
+        style="@style/InGameMenuOption"/>
+
+    <Button
+        android:id="@+id/menu_quicksave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/emulation_quicksave"
+        android:layout_margin="8dp"
+        style="@style/InGameMenuOption"/>
+
+    <Button
+        android:id="@+id/menu_quickload"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/emulation_quickload"
+        android:layout_margin="8dp"
+        style="@style/InGameMenuOption"/>
+
+    <Button
+        android:id="@+id/menu_emulation_save_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/overlay_savestate"
+        android:layout_margin="8dp"
+        style="@style/InGameMenuOption"/>
+
+    <Button
+        android:id="@+id/menu_emulation_load_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/overlay_loadstate"
+        android:layout_margin="8dp"
+        style="@style/InGameMenuOption"/>
+
+    <Button
+        android:id="@+id/menu_ingame_settings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/settings"
+        android:layout_margin="8dp"
+        style="@style/InGameMenuOption"/>
+
+    <Button
+        android:id="@+id/menu_exit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/overlay_exit_emulation"
+        android:layout_margin="8dp"
+        style="@style/InGameMenuOption"/>
+
+</LinearLayout>
