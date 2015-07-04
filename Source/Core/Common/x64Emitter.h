@@ -964,10 +964,9 @@ public:
 	// (this method might be a thunk in the case of multi-inheritance) so we
 	// have to go through a trampoline function.
 	template <typename T, typename... Args>
-	static void CallLambdaTrampoline(const std::function<T(Args...)>* f,
-	                                 Args... args)
+	static T CallLambdaTrampoline(const std::function<T(Args...)>* f, Args... args)
 	{
-		(*f)(args...);
+		return (*f)(args...);
 	}
 
 	template <typename T, typename... Args>
