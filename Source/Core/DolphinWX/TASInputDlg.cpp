@@ -776,8 +776,8 @@ void TASInputDlg::GetValues(GCPadStatus* PadStatus)
 	PadStatus->stickY = m_main_stick.y_cont.value;
 	PadStatus->substickX = m_c_stick.x_cont.value;
 	PadStatus->substickY = m_c_stick.y_cont.value;
-	PadStatus->triggerLeft = m_l.checkbox->GetValue() ? 255 : m_l_cont.slider->GetValue();
-	PadStatus->triggerRight = m_r.checkbox->GetValue() ? 255 : m_r_cont.slider->GetValue();
+	PadStatus->triggerLeft = m_l.checkbox->GetValue() ? 255 : m_l_cont.value;
+	PadStatus->triggerRight = m_r.checkbox->GetValue() ? 255 : m_r_cont.value;
 
 	for (unsigned int i = 0; i < ArraySize(m_buttons); ++i)
 	{
