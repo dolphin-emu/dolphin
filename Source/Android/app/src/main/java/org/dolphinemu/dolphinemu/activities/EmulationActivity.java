@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.activities;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +27,8 @@ import com.squareup.picasso.Picasso;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
+import org.dolphinemu.dolphinemu.fragments.LoadStateFragment;
+import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
 
 import java.util.List;
 
@@ -37,12 +40,14 @@ public final class EmulationActivity extends AppCompatActivity
 	private FrameLayout mFrameEmulation;
 	private LinearLayout mMenuLayout;
 
-	private boolean mDeviceHasTouchScreen;
-	private boolean mSystemUiVisible;
-	private boolean mMenuVisible;
+	private String mMenuFragmentTag;
 
 	// So that MainActivity knows which view to invalidate before the return animation.
 	private int mPosition;
+
+	private boolean mDeviceHasTouchScreen;
+	private boolean mSystemUiVisible;
+	private boolean mMenuVisible;
 
 	private static Interpolator sDecelerator = new DecelerateInterpolator();
 	private static Interpolator sAccelerator = new AccelerateInterpolator();
@@ -235,7 +240,14 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		if (!mDeviceHasTouchScreen)
 		{
-			toggleMenu();
+			if (mMenuFragmentTag != null)
+			{
+				removeMenu();
+			}
+			else
+			{
+				toggleMenu();
+			}
 		}
 		else
 		{
@@ -388,6 +400,15 @@ public final class EmulationActivity extends AppCompatActivity
 
 			case R.id.menu_quickload:
 				NativeLibrary.LoadState(9);
+				return;
+
+			// TV Menu only
+			case R.id.menu_emulation_save_root:
+				showMenu(SaveStateFragment.FRAGMENT_ID);
+				return;
+
+			case R.id.menu_emulation_load_root:
+				showMenu(LoadStateFragment.FRAGMENT_ID);
 				return;
 
 			// Save state slots
@@ -548,5 +569,74 @@ public final class EmulationActivity extends AppCompatActivity
 						return true;
 					}
 				});
+	}
+
+	private void showMenu(int menuId)
+	{
+		Fragment fragment;
+
+		switch (menuId)
+		{
+			case SaveStateFragment.FRAGMENT_ID:
+				fragment = SaveStateFragment.newInstance();
+				mMenuFragmentTag = SaveStateFragment.FRAGMENT_TAG;
+				break;
+
+			case LoadStateFragment.FRAGMENT_ID:
+				fragment = LoadStateFragment.newInstance();
+				mMenuFragmentTag = LoadStateFragment.FRAGMENT_TAG;
+				break;
+
+			default:
+				return;
+		}
+
+		getFragmentManager().beginTransaction()
+				.setCustomAnimations(R.animator.menu_slide_in, R.animator.menu_slide_out)
+				.replace(R.id.frame_submenu, fragment, mMenuFragmentTag)
+				.commit();
+	}
+
+	private void removeMenu()
+	{
+		if (mMenuFragmentTag != null)
+		{
+			final Fragment fragment = getFragmentManager().findFragmentByTag(mMenuFragmentTag);
+
+			if (fragment != null)
+			{
+				// When removing a fragment without replacement, its aniimation must be done
+				// manually beforehand.
+				fragment.getView().animate()
+						.withLayer()
+						.setDuration(200)
+						.setInterpolator(sAccelerator)
+						.alpha(0.0f)
+						.translationX(600.0f)
+						.withEndAction(new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								if (mMenuVisible)
+								{
+									getFragmentManager().beginTransaction()
+											.remove(fragment)
+											.commit();
+								}
+							}
+						});
+			}
+			else
+			{
+				Log.e("DolphinEmu", "[EmulationActivity] Fragment not found, can't remove.");
+			}
+
+			mMenuFragmentTag = null;
+		}
+		else
+		{
+			Log.e("DolphinEmu", "[EmulationActivity] Fragment Tag empty.");
+		}
 	}
 }
