@@ -77,11 +77,8 @@ set(GUI_SRCS
 	WXInputBase.cpp
 	WxUtils.cpp)
 
-set(NOGUI_SRCS MainNoGUI.cpp)
-
 if(USE_X11)
 	set(GUI_SRCS ${GUI_SRCS} X11Utils.cpp)
-	set(NOGUI_SRCS ${NOGUI_SRCS} X11Utils.cpp)
 endif()
 
 set(WXLIBS ${wxWidgets_LIBRARIES})
@@ -107,12 +104,10 @@ if(APPLE)
 endif()
 
 if(APPLE)
-	set(DOLPHIN_EXE_BASE Dolphin)
+	set(DOLPHIN_EXE Dolphin)
 else()
-	set(DOLPHIN_EXE_BASE dolphin-emu)
+	set(DOLPHIN_EXE dolphin-emu)
 endif()
-
-set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE})
 
 include(FindGettext)
 if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
@@ -217,12 +212,4 @@ if(wxWidgets_FOUND)
 	endif()
 
 	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
-endif()
-
-if(USE_X11 OR ENABLE_HEADLESS)
-	set(DOLPHIN_NOGUI_EXE ${DOLPHIN_EXE_BASE}-nogui)
-	add_executable(${DOLPHIN_NOGUI_EXE} ${SRCS} ${NOGUI_SRCS})
-	target_link_libraries(${DOLPHIN_NOGUI_EXE} ${LIBS})
-	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_NOGUI_EXE})
-	install(TARGETS ${DOLPHIN_NOGUI_EXE} RUNTIME DESTINATION ${bindir})
 endif()
