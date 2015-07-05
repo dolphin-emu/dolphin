@@ -110,7 +110,7 @@ void CommonAsmRoutines::GenFres()
 	// This function clobbers all three RSCRATCH.
 	MOVQ_xmm(R(RSCRATCH), XMM0);
 
-	// Zero inputs set an exception and take the complex path.
+	// Zero inputs set an exception.
 	TEST(64, R(RSCRATCH), R(RSCRATCH));
 	FixupBranch zero = J_CC(CC_Z);
 
@@ -118,11 +118,11 @@ void CommonAsmRoutines::GenFres()
 	SHR(64, R(RSCRATCH_EXTRA), Imm8(52));
 	MOV(32, R(RSCRATCH2), R(RSCRATCH_EXTRA));
 	AND(32, R(RSCRATCH_EXTRA), Imm32(0x7FF)); // exp
-	AND(32, R(RSCRATCH2), Imm32(0x800)); // sign
 	SUB(32, R(RSCRATCH_EXTRA), Imm32(895));
 	CMP(32, R(RSCRATCH_EXTRA), Imm32(1149 - 895));
 	// Take the complex path for very large/small exponents.
 	FixupBranch complex = J_CC(CC_AE); // if (exp < 895 || exp >= 1149)
+	AND(32, R(RSCRATCH2), Imm32(0x800)); // sign
 
 	SUB(32, R(RSCRATCH_EXTRA), Imm32(0x7FD - 895));
 	NEG(32, R(RSCRATCH_EXTRA));
@@ -130,8 +130,8 @@ void CommonAsmRoutines::GenFres()
 	SHL(64, R(RSCRATCH_EXTRA), Imm8(52));	   // vali = sign | exponent
 
 	MOV(64, R(RSCRATCH2), R(RSCRATCH));
-	SHR(64, R(RSCRATCH), Imm8(37));
-	SHR(64, R(RSCRATCH2), Imm8(47));
+	SHR(64, R(RSCRATCH), Imm8(52 - 5 - 10));
+	SHR(64, R(RSCRATCH2), Imm8(52 - 5));
 	AND(32, R(RSCRATCH), Imm32(0x3FF)); // i % 1024
 	AND(32, R(RSCRATCH2), Imm8(0x1F));   // i / 1024
 
@@ -141,22 +141,31 @@ void CommonAsmRoutines::GenFres()
 
 	MOV(32, R(RSCRATCH2), MScaled(RSCRATCH2, SCALE_4, (u32)(u64)MathUtil::fres_expected_base));
 	SUB(32, R(RSCRATCH2), R(RSCRATCH));
-	SHL(64, R(RSCRATCH2), Imm8(29));
+	SHL(64, R(RSCRATCH2), Imm8(52 - 23));
 	OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));     // vali |= (s64)(fres_expected_base[i / 1024] - (fres_expected_dec[i / 1024] * (i % 1024) + 1) / 2) << 29
 	MOVQ_xmm(XMM0, R(RSCRATCH2));
 	RET();
 
-	// Exception flags for zero input.
+	static __m128d sign_bit = _mm_set_pd(0.0, -0.0);
+	static __m128d infinity = _mm_set_pd(0, std::numeric_limits<double>::infinity());
+	static __m128d float_max = _mm_set_pd(0, std::numeric_limits<float>::max());
+
 	SetJumpTarget(zero);
 	TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_ZX));
 	FixupBranch skip_set_fx1 = J_CC(CC_NZ);
 	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_ZX));
 	SetJumpTarget(skip_set_fx1);
+	ANDPD(XMM0, M(&sign_bit));
+	ORPD(XMM0, M(&infinity));
+	RET();
 
+	// exp < 895 || exp >= 1149
 	SetJumpTarget(complex);
-	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-	ABI_CallFunction((void *)&MathUtil::ApproximateReciprocal);
-	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
+	ANDPD(XMM0, M(&sign_bit));
+	// Check the sign flag set by the CMP that got us here.
+	FixupBranch large = J_CC(CC_NS);
+	ORPD(XMM0, M(&float_max));
+	SetJumpTarget(large);
 	RET();
 
 	JitRegister::Register(start, GetCodePtr(), "JIT_Fres");
