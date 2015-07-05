@@ -18,6 +18,9 @@ const std::string hotkey_labels[] =
 	_trans("Stop"),
 	_trans("Reset"),
 	_trans("Frame Advance"),
+	_trans("Frame Advance Decrease Speed"),
+	_trans("Frame Advance Increase Speed"),
+	_trans("Frame Advance Reset Speed"),
 
 	_trans("Start Recording"),
 	_trans("Play Recording"),
