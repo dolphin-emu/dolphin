@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.activities;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -658,5 +660,38 @@ public final class EmulationActivity extends AppCompatActivity
 	public String getSelectedTitle()
 	{
 		return mSelectedTitle;
+	}
+
+	public void showPanicDialog(String message)
+	{
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+		builder.setTitle(R.string.dialog_panic_title)
+				.setMessage(message + "\n\n" +
+						getString(R.string.dialog_panic_instructions))
+				.setPositiveButton(R.string.dialog_panic_pos, new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialog, int which)
+					{
+						NativeLibrary.UnPauseEmulation();
+					}
+				})
+				.setNegativeButton(R.string.dialog_panic_neg, new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialog, int which)
+					{
+						// TODO If this Unpause isn't here, for some reason, the emulator stops responding.
+						NativeLibrary.UnPauseEmulation();
+
+						EmulationFragment fragment = (EmulationFragment) getFragmentManager()
+								.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+						fragment.notifyEmulationStopped();
+
+						NativeLibrary.StopEmulation();
+					}
+				})
+				.show();
 	}
 }

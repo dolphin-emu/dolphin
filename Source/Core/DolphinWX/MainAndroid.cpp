@@ -124,6 +124,9 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, int /*S
 	// Execute the Java method.
 	env->CallStaticVoidMethod(g_jni_class, g_jni_method_alert, env->NewStringUTF(text));
 
+	// Block until the alert is acknowledged.
+	PowerPC::Pause();
+
 	// Must be called before the current thread exits; might as well do it here.
 	g_java_vm->DetachCurrentThread();
 

@@ -352,4 +352,9 @@
 
     <!-- Package Names-->
     <string name="application_id">org.dolphinemu.dolphinemu</string>
+
+    <string name="dialog_panic_title">Panic Alert</string>
+    <string name="dialog_panic_instructions">Emulation will probably fail, but you can try to continue regardless.</string>
+    <string name="dialog_panic_pos">Continue</string>
+    <string name="dialog_panic_neg">Quit</string>
 </resources>

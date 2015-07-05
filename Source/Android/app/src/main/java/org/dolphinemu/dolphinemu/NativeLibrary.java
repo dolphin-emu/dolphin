@@ -8,7 +8,6 @@ package org.dolphinemu.dolphinemu;
 
 import android.util.Log;
 import android.view.Surface;
-import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
@@ -351,16 +350,6 @@ public final class NativeLibrary
 	public static native void WriteProfileResults();
 
 	/**
-	 * @return If we have an alert
-	 */
-	public static native boolean HasAlertMsg();
-
-	/**
-	 * @return The alert string
-	 */
-	public static native String GetAlertMsg();
-
-	/**
 	 * Clears event in the JNI so we can continue onward
 	 */
 	public static native void ClearAlertMsg();
@@ -397,7 +386,7 @@ public final class NativeLibrary
 			@Override
 			public void run()
 			{
-				Toast.makeText(mEmulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show();
+				mEmulationActivity.showPanicDialog(alert);
 			}
 		});
 	}
