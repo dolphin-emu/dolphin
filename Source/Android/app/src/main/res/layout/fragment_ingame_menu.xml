@@ -1,46 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="@color/dolphin_blue_dark"
-              android:paddingTop="32dp"
-              android:paddingBottom="32dp"
+              tools:layout_width="250dp"
     >
 
-    <Button
-        android:id="@+id/menu_take_screenshot"
-        android:text="@string/overlay_screenshot"
-        style="@style/InGameMenuOption"/>
+    <TextView
+        android:id="@+id/text_game_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="The Legend of Zelda: The Wind Waker"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:layout_margin="32dp"/>
 
-    <Button
-        android:id="@+id/menu_quicksave"
-        android:text="@string/emulation_quicksave"
-        style="@style/InGameMenuOption"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        >
 
-    <Button
-        android:id="@+id/menu_quickload"
-        android:text="@string/emulation_quickload"
-        style="@style/InGameMenuOption"/>
+        <LinearLayout
+            android:id="@+id/layout_options"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <Button
-        android:id="@+id/menu_emulation_save_root"
-        android:text="@string/overlay_savestate"
-        style="@style/InGameMenuOption"/>
+            <Button
+                android:id="@+id/menu_take_screenshot"
+                android:text="@string/overlay_screenshot"
+                style="@style/InGameMenuOption"/>
 
-    <Button
-        android:id="@+id/menu_emulation_load_root"
-        android:text="@string/overlay_loadstate"
-        style="@style/InGameMenuOption"/>
+            <Button
+                android:id="@+id/menu_quicksave"
+                android:text="@string/emulation_quicksave"
+                style="@style/InGameMenuOption"/>
 
-    <Button
-        android:id="@+id/menu_ingame_settings"
-        android:text="@string/settings"
-        style="@style/InGameMenuOption"/>
+            <Button
+                android:id="@+id/menu_quickload"
+                android:text="@string/emulation_quickload"
+                style="@style/InGameMenuOption"/>
 
-    <Button
-        android:id="@+id/menu_exit"
-        android:text="@string/overlay_exit_emulation"
-        style="@style/InGameMenuOption"/>
+            <Button
+                android:id="@+id/menu_emulation_save_root"
+                android:text="@string/overlay_savestate"
+                style="@style/InGameMenuOption"/>
 
+            <Button
+                android:id="@+id/menu_emulation_load_root"
+                android:text="@string/overlay_loadstate"
+                style="@style/InGameMenuOption"/>
+
+            <Button
+                android:id="@+id/menu_ingame_settings"
+                android:text="@string/settings"
+                style="@style/InGameMenuOption"/>
+
+            <Button
+                android:id="@+id/menu_exit"
+                android:text="@string/overlay_exit_emulation"
+                style="@style/InGameMenuOption"/>
+
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>

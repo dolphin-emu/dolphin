@@ -28,6 +28,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.LoadStateFragment;
+import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public final class EmulationActivity extends AppCompatActivity
 	private FrameLayout mFrameEmulation;
 	private LinearLayout mMenuLayout;
 
-	private String mMenuFragmentTag;
+	private String mSubmenuFragmentTag;
 
 	// So that MainActivity knows which view to invalidate before the return animation.
 	private int mPosition;
@@ -67,6 +68,7 @@ public final class EmulationActivity extends AppCompatActivity
 	};
 	private String mScreenPath;
 	private FrameLayout mFrameContent;
+	private String mSelectedTitle;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -129,7 +131,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 		Intent gameToEmulate = getIntent();
 		String path = gameToEmulate.getStringExtra("SelectedGame");
-		String title = gameToEmulate.getStringExtra("SelectedTitle");
+		mSelectedTitle = gameToEmulate.getStringExtra("SelectedTitle");
 		mScreenPath = gameToEmulate.getStringExtra("ScreenPath");
 		mPosition = gameToEmulate.getIntExtra("GridPosition", -1);
 
@@ -175,8 +177,6 @@ public final class EmulationActivity extends AppCompatActivity
 					}
 				});
 
-		setTitle(title);
-
 		// Instantiate an EmulationFragment.
 		EmulationFragment emulationFragment = EmulationFragment.newInstance(path);
 
@@ -184,6 +184,21 @@ public final class EmulationActivity extends AppCompatActivity
 		getFragmentManager().beginTransaction()
 				.add(R.id.frame_emulation_fragment, emulationFragment, EmulationFragment.FRAGMENT_TAG)
 				.commit();
+
+		if (mDeviceHasTouchScreen)
+		{
+			setTitle(mSelectedTitle);
+		}
+		else
+		{
+			MenuFragment menuFragment = (MenuFragment) getFragmentManager()
+					.findFragmentById(R.id.fragment_menu);
+
+			if (menuFragment != null)
+			{
+				menuFragment.setTitleText(mSelectedTitle);
+			}
+		}
 	}
 
 	@Override
@@ -240,7 +255,7 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		if (!mDeviceHasTouchScreen)
 		{
-			if (mMenuFragmentTag != null)
+			if (mSubmenuFragmentTag != null)
 			{
 				removeMenu();
 			}
@@ -579,12 +594,12 @@ public final class EmulationActivity extends AppCompatActivity
 		{
 			case SaveStateFragment.FRAGMENT_ID:
 				fragment = SaveStateFragment.newInstance();
-				mMenuFragmentTag = SaveStateFragment.FRAGMENT_TAG;
+				mSubmenuFragmentTag = SaveStateFragment.FRAGMENT_TAG;
 				break;
 
 			case LoadStateFragment.FRAGMENT_ID:
 				fragment = LoadStateFragment.newInstance();
-				mMenuFragmentTag = LoadStateFragment.FRAGMENT_TAG;
+				mSubmenuFragmentTag = LoadStateFragment.FRAGMENT_TAG;
 				break;
 
 			default:
@@ -593,15 +608,15 @@ public final class EmulationActivity extends AppCompatActivity
 
 		getFragmentManager().beginTransaction()
 				.setCustomAnimations(R.animator.menu_slide_in, R.animator.menu_slide_out)
-				.replace(R.id.frame_submenu, fragment, mMenuFragmentTag)
+				.replace(R.id.frame_submenu, fragment, mSubmenuFragmentTag)
 				.commit();
 	}
 
 	private void removeMenu()
 	{
-		if (mMenuFragmentTag != null)
+		if (mSubmenuFragmentTag != null)
 		{
-			final Fragment fragment = getFragmentManager().findFragmentByTag(mMenuFragmentTag);
+			final Fragment fragment = getFragmentManager().findFragmentByTag(mSubmenuFragmentTag);
 
 			if (fragment != null)
 			{
@@ -632,11 +647,16 @@ public final class EmulationActivity extends AppCompatActivity
 				Log.e("DolphinEmu", "[EmulationActivity] Fragment not found, can't remove.");
 			}
 
-			mMenuFragmentTag = null;
+			mSubmenuFragmentTag = null;
 		}
 		else
 		{
 			Log.e("DolphinEmu", "[EmulationActivity] Fragment Tag empty.");
 		}
+	}
+
+	public String getSelectedTitle()
+	{
+		return mSelectedTitle;
 	}
 }
