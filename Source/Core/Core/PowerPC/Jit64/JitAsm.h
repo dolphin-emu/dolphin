@@ -34,7 +34,7 @@ public:
 		m_stack_top = stack_top;
 		// NOTE: When making large additions to the AsmCommon code, you might
 		// want to ensure this number is big enough.
-		AllocCodeSpace(16384, PPCSTATE_BASE);
+		AllocCodeSpace(16384);
 		Generate();
 		WriteProtect();
 	}

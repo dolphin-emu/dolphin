@@ -250,7 +250,7 @@ void JitIL::Init()
 	UpdateMemoryOptions();
 
 	trampolines.Init(jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
-	AllocCodeSpace(CODE_SIZE, PPCSTATE_BASE);
+	AllocCodeSpace(CODE_SIZE);
 	blocks.Init();
 	asm_routines.Init(nullptr);
 

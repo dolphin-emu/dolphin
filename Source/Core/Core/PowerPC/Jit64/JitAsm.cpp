@@ -40,7 +40,7 @@ void Jit64AsmRoutineManager::Generate()
 
 	// Two statically allocated registers.
 	//MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
-	MOV(64, R(RPPCSTATE), ImmPtr(PPCSTATE_BASE));
+	MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
 
 	const u8* outerLoop = GetCodePtr();
 		ABI_PushRegistersAndAdjustStack({}, 0);
@@ -103,9 +103,9 @@ void Jit64AsmRoutineManager::Generate()
 			// optimizations safe, because IR and DR are usually set/cleared together.
 			// TODO: Branching based on the 20 most significant bits of instruction
 			// addresses without translating them is wrong.
-			u8* icache = jit->GetBlockCache()->iCache.data();
-			u8* icacheVmem = jit->GetBlockCache()->iCacheVMEM.data();
-			u8* icacheEx = jit->GetBlockCache()->iCacheEx.data();
+			u64 icache = (u64)jit->GetBlockCache()->iCache.data();
+			u64 icacheVmem = (u64)jit->GetBlockCache()->iCacheVMEM.data();
+			u64 icacheEx = (u64)jit->GetBlockCache()->iCacheEx.data();
 			u32 mask = 0;
 			FixupBranch no_mem;
 			FixupBranch exit_mem;
@@ -117,13 +117,13 @@ void Jit64AsmRoutineManager::Generate()
 			no_mem = J_CC(CC_NZ);
 			AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
 
-			if (FitsInS32(PPCSTATE_OFS(icache)))
+			if (icache <= INT_MAX)
 			{
-				MOV(32, R(RSCRATCH), MPIC(icache, RSCRATCH));
+				MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icache));
 			}
 			else
 			{
-				MOV(64, R(RSCRATCH2), ImmPtr(icache));
+				MOV(64, R(RSCRATCH2), Imm64(icache));
 				MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 			}
 
@@ -132,14 +132,13 @@ void Jit64AsmRoutineManager::Generate()
 			TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_VMEM_BIT));
 			FixupBranch no_vmem = J_CC(CC_Z);
 			AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
-
-			if (FitsInS32(PPCSTATE_OFS(icacheVmem)))
+			if (icacheVmem <= INT_MAX)
 			{
-				MOV(32, R(RSCRATCH), MPIC(icacheVmem, RSCRATCH));
+				MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icacheVmem));
 			}
 			else
 			{
-				MOV(64, R(RSCRATCH2), ImmPtr(icacheVmem));
+				MOV(64, R(RSCRATCH2), Imm64(icacheVmem));
 				MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 			}
 
@@ -150,13 +149,14 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
 				AND(32, R(RSCRATCH), Imm32(JIT_ICACHEEX_MASK));
-				if (FitsInS32(PPCSTATE_OFS(icacheEx)))
+
+				if (icacheEx <= INT_MAX)
 				{
-					MOV(32, R(RSCRATCH), MPIC(icacheEx, RSCRATCH));
+					MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icacheEx));
 				}
 				else
 				{
-					MOV(64, R(RSCRATCH2), ImmPtr(icacheEx));
+					MOV(64, R(RSCRATCH2), Imm64(icacheEx));
 					MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 				}
 
@@ -169,17 +169,16 @@ void Jit64AsmRoutineManager::Generate()
 			TEST(32, R(RSCRATCH), R(RSCRATCH));
 			FixupBranch notfound = J_CC(CC_L);
 			//grab from list and jump to it
-			const u8** codePointers = jit->GetBlockCache()->GetCodePointers();
-			if (FitsInS32(PPCSTATE_OFS(codePointers)))
+			u64 codePointers = (u64)jit->GetBlockCache()->GetCodePointers();
+			if (codePointers <= INT_MAX)
 			{
-				JMPptr(MPIC(codePointers, RSCRATCH, SCALE_8));
+				JMPptr(MScaled(RSCRATCH, SCALE_8, (s32)codePointers));
 			}
 			else
 			{
-				MOV(64, R(RSCRATCH2), ImmPtr(codePointers));
+				MOV(64, R(RSCRATCH2), Imm64(codePointers));
 				JMPptr(MComplex(RSCRATCH2, RSCRATCH, SCALE_8, 0));
 			}
-
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
@@ -272,7 +271,7 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	CMP(32, R(ABI_PARAM2), Imm32(0xCC008000));
 	FixupBranch skip_fast_write = J_CC(CC_NE, false);
 	MOV(32, RSCRATCH, M(&m_gatherPipeCount));
-	MOV(8, MPIC(&m_gatherPipe, RSCRATCH), ABI_PARAM1);
+	MOV(8, MDisp(RSCRATCH, (u32)&m_gatherPipe), ABI_PARAM1);
 	ADD(32, 1, M(&m_gatherPipeCount));
 	RET();
 	SetJumpTarget(skip_fast_write);
