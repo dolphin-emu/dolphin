@@ -218,17 +218,17 @@ inline OpArg M(const T* ptr)    {return OpArg((u64)(const void*)ptr, (int)SCALE_
 inline OpArg R(X64Reg value)    {return OpArg(0, SCALE_NONE, value);}
 inline OpArg MatR(X64Reg value) {return OpArg(0, SCALE_ATREG, value);}
 
-inline OpArg MDisp(X64Reg value, ptrdiff_t offset)
+inline OpArg MDisp(X64Reg value, int offset)
 {
-	return OpArg(offset, SCALE_ATREG, value);
+	return OpArg((u32)offset, SCALE_ATREG, value);
 }
 
-inline OpArg MComplex(X64Reg base, X64Reg scaled, int scale, ptrdiff_t offset)
+inline OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset)
 {
 	return OpArg(offset, scale, base, scaled);
 }
 
-inline OpArg MScaled(X64Reg scaled, int scale, ptrdiff_t offset)
+inline OpArg MScaled(X64Reg scaled, int scale, int offset)
 {
 	if (scale == SCALE_1)
 		return OpArg(offset, SCALE_ATREG, scaled);
@@ -247,10 +247,17 @@ inline OpArg Imm32(u32 imm) {return OpArg(imm, SCALE_IMM32);}
 inline OpArg Imm64(u64 imm) {return OpArg(imm, SCALE_IMM64);}
 inline OpArg ImmPtr(const void* imm) {return Imm64((u64)imm);}
 
-inline bool FitsInS32(const ptrdiff_t distance)
+inline u32 PtrOffset(const void* ptr, const void* base)
 {
-	return distance <   0x80000000LL &&
-	       distance >= -0x80000000LL;
+	s64 distance = (s64)ptr-(s64)base;
+	if (distance >= 0x80000000LL ||
+	    distance < -0x80000000LL)
+	{
+		_assert_msg_(DYNA_REC, 0, "pointer offset out of range");
+		return 0;
+	}
+
+	return (u32)distance;
 }
 
 //usage: int a[]; ARRAY_OFFSET(a,10)

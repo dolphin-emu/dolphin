@@ -19,7 +19,6 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
 
 namespace Gen
 {
@@ -95,7 +94,7 @@ protected:
 		memset(&cpu_info, 0xFF, sizeof (cpu_info));
 
 		emitter.reset(new X64CodeBlock());
-		emitter->AllocCodeSpace(4096, PPCSTATE_BASE);
+		emitter->AllocCodeSpace(4096);
 		code_buffer = emitter->GetWritableCodePtr();
 
 		disasm.reset(new disassembler);

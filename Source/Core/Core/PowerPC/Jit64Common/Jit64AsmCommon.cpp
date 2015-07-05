@@ -24,8 +24,10 @@ void CommonAsmRoutines::GenFifoWrite(int size)
 	const void* start = GetCodePtr();
 
 	// Assume value in RSCRATCH
+	u32 gather_pipe = (u32)(u64)GPFifo::m_gatherPipe;
+	_assert_msg_(DYNA_REC, gather_pipe <= 0x7FFFFFFF, "Gather pipe not in low 2GB of memory!");
 	MOV(32, R(RSCRATCH2), M(&GPFifo::m_gatherPipeCount));
-	SwapAndStore(size, MPIC(GPFifo::m_gatherPipe, RSCRATCH2), RSCRATCH);
+	SwapAndStore(size, MDisp(RSCRATCH2, gather_pipe), RSCRATCH);
 	ADD(32, R(RSCRATCH2), Imm8(size >> 3));
 	MOV(32, M(&GPFifo::m_gatherPipeCount), R(RSCRATCH2));
 	RET();
@@ -66,8 +68,8 @@ void CommonAsmRoutines::GenFrsqrte()
 
 	SHR(64, R(RSCRATCH), Imm8(37));
 	AND(32, R(RSCRATCH), Imm32(0x7FF));
-	IMUL(32, RSCRATCH, MPIC(MathUtil::frsqrte_expected_dec, RSCRATCH_EXTRA, SCALE_4));
-	MOV(32, R(RSCRATCH_EXTRA), MPIC(MathUtil::frsqrte_expected_base, RSCRATCH_EXTRA, SCALE_4));
+	IMUL(32, RSCRATCH, MScaled(RSCRATCH_EXTRA, SCALE_4, (u32)(u64)MathUtil::frsqrte_expected_dec));
+	MOV(32, R(RSCRATCH_EXTRA), MScaled(RSCRATCH_EXTRA, SCALE_4, (u32)(u64)MathUtil::frsqrte_expected_base));
 	SUB(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
 	SHL(64, R(RSCRATCH_EXTRA), Imm8(26));
 	OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));     // vali |= (s64)(frsqrte_expected_base[index] - frsqrte_expected_dec[index] * (i % 2048)) << 26;
@@ -134,11 +136,11 @@ void CommonAsmRoutines::GenFres()
 	AND(32, R(RSCRATCH), Imm32(0x3FF)); // i % 1024
 	AND(32, R(RSCRATCH2), Imm8(0x1F));   // i / 1024
 
-	IMUL(32, RSCRATCH, MPIC(MathUtil::fres_expected_dec, RSCRATCH2, SCALE_4));
+	IMUL(32, RSCRATCH, MScaled(RSCRATCH2, SCALE_4, (u32)(u64)MathUtil::fres_expected_dec));
 	ADD(32, R(RSCRATCH), Imm8(1));
 	SHR(32, R(RSCRATCH), Imm8(1));
 
-	MOV(32, R(RSCRATCH2), MPIC(MathUtil::fres_expected_base, RSCRATCH2, SCALE_4));
+	MOV(32, R(RSCRATCH2), MScaled(RSCRATCH2, SCALE_4, (u32)(u64)MathUtil::fres_expected_base));
 	SUB(32, R(RSCRATCH2), R(RSCRATCH));
 	SHL(64, R(RSCRATCH2), Imm8(29));
 	OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));     // vali |= (s64)(fres_expected_base[i / 1024] - (fres_expected_dec[i / 1024] * (i % 1024) + 1) / 2) << 29
@@ -197,7 +199,7 @@ void CommonAsmRoutines::GenMfcr()
 		// SO: Bit 61 set; set flag bit 0
 		// LT: Bit 62 set; set flag bit 3
 		SHR(64, R(cr_val), Imm8(61));
-		OR(32, R(dst), MPIC(m_flagTable, cr_val, SCALE_4));
+		OR(32, R(dst), MScaled(cr_val, SCALE_4, (u32)(u64)m_flagTable));
 	}
 	RET();
 
@@ -245,7 +247,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 
 	const u8* storePairedU8 = AlignCode4();
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVQ_xmm(XMM1, MPIC(m_quantizeTableS, RSCRATCH2));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 #ifdef QUANTIZE_OVERFLOW_SAFE
 	MINPS(XMM0, M(m_65535));
@@ -260,7 +262,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 
 	const u8* storePairedS8 = AlignCode4();
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVQ_xmm(XMM1, MPIC(m_quantizeTableS, RSCRATCH2));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 #ifdef QUANTIZE_OVERFLOW_SAFE
 	MINPS(XMM0, M(m_65535));
@@ -276,7 +278,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 
 	const u8* storePairedU16 = AlignCode4();
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVQ_xmm(XMM1, MPIC(m_quantizeTableS, RSCRATCH2));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 
 	if (cpu_info.bSSE4_1)
@@ -308,7 +310,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 
 	const u8* storePairedS16 = AlignCode4();
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVQ_xmm(XMM1, MPIC(m_quantizeTableS, RSCRATCH2));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 #ifdef QUANTIZE_OVERFLOW_SAFE
 	MINPS(XMM0, M(m_65535));
@@ -353,7 +355,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	const u8* storeSingleU8 = AlignCode4();  // Used by MKWii
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MULSS(XMM0, MPIC(m_quantizeTableS, RSCRATCH2));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	XORPS(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M(&m_255));
@@ -363,7 +365,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	const u8* storeSingleS8 = AlignCode4();
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MULSS(XMM0, MPIC(m_quantizeTableS, RSCRATCH2));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MAXSS(XMM0, M(&m_m128));
 	MINSS(XMM0, M(&m_127));
 	CVTTSS2SI(RSCRATCH, R(XMM0));
@@ -372,7 +374,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	const u8* storeSingleU16 = AlignCode4();  // Used by MKWii
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MULSS(XMM0, MPIC(m_quantizeTableS, RSCRATCH2));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	XORPS(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M(m_65535));
@@ -382,7 +384,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	const u8* storeSingleS16 = AlignCode4();
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MULSS(XMM0, MPIC(m_quantizeTableS, RSCRATCH2));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MAXSS(XMM0, M(&m_m32768));
 	MINSS(XMM0, M(&m_32767));
 	CVTTSS2SI(RSCRATCH, R(XMM0));
@@ -482,7 +484,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	}
 	CVTDQ2PS(XMM0, R(XMM0));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVQ_xmm(XMM1, MPIC(m_dequantizeTableS, RSCRATCH2));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULPS(XMM0, R(XMM1));
 	RET();
 
@@ -493,7 +495,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 8, 0); // RSCRATCH_EXTRA = 0x000000xx
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MULSS(XMM0, MPIC(m_dequantizeTableS, RSCRATCH2));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	UNPCKLPS(XMM0, M(m_one));
 	RET();
 
@@ -521,7 +523,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	}
 	CVTDQ2PS(XMM0, R(XMM0));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVQ_xmm(XMM1, MPIC(m_dequantizeTableS, RSCRATCH2));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULPS(XMM0, R(XMM1));
 	RET();
 
@@ -532,7 +534,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 8, 0, true);
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MULSS(XMM0, MPIC(m_dequantizeTableS, RSCRATCH2));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	UNPCKLPS(XMM0, M(m_one));
 	RET();
 
@@ -555,7 +557,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	}
 	CVTDQ2PS(XMM0, R(XMM0));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVQ_xmm(XMM1, MPIC(m_dequantizeTableS, RSCRATCH2));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULPS(XMM0, R(XMM1));
 	RET();
 
@@ -566,7 +568,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 16, 0, false);
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MULSS(XMM0, MPIC(m_dequantizeTableS, RSCRATCH2));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	UNPCKLPS(XMM0, M(m_one));
 	RET();
 
@@ -588,7 +590,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	}
 	CVTDQ2PS(XMM0, R(XMM0));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVQ_xmm(XMM1, MPIC(m_dequantizeTableS, RSCRATCH2));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULPS(XMM0, R(XMM1));
 	RET();
 
@@ -599,7 +601,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 16, 0, true);
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MULSS(XMM0, MPIC(m_dequantizeTableS, RSCRATCH2));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	UNPCKLPS(XMM0, M(m_one));
 	RET();
 

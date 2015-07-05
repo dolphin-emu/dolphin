@@ -132,13 +132,13 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	{
 		// One value
 		CVTSD2SS(XMM0, fpr.R(s));
-		CALLptr(MPIC(asm_routines.singleStoreQuantized, RSCRATCH, SCALE_8));
+		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
 	}
 	else
 	{
 		// Pair of values
 		CVTPD2PS(XMM0, fpr.R(s));
-		CALLptr(MPIC(asm_routines.pairedStoreQuantized, RSCRATCH, SCALE_8));
+		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
 	}
 
 	if (update && jo.memcheck)
@@ -306,7 +306,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 	AND(32, R(RSCRATCH2), gqr);
 	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
-	CALLptr(MPIC(&asm_routines.pairedLoadQuantized[w * 8], RSCRATCH, SCALE_8));
+	CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
 
 	MemoryExceptionCheck();
 	CVTPS2PD(fpr.RX(s), R(XMM0));
