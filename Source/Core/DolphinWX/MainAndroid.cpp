@@ -48,6 +48,8 @@ jclass g_jni_class;
 jmethodID g_jni_method_alert;
 jmethodID g_jni_method_end;
 
+static Common::Event g_alert_event;
+
 #define DOLPHIN_TAG "DolphinEmuNative"
 
 /*
@@ -124,12 +126,11 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, int /*S
 	// Execute the Java method.
 	env->CallStaticVoidMethod(g_jni_class, g_jni_method_alert, env->NewStringUTF(text));
 
-	// Block until the alert is acknowledged.
-	PowerPC::Pause();
-
 	// Must be called before the current thread exits; might as well do it here.
 	g_java_vm->DetachCurrentThread();
 
+	// Block until the alert is acknowledged.
+	g_alert_event.Wait();
 	return false;
 }
 
@@ -382,6 +383,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv *env, jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv *env, jobject obj, jboolean enable);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ClearAlertMsg(JNIEnv *env, jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv *env, jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf);
 
@@ -580,6 +582,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfile
 	std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
 	File::CreateFullPath(filename);
 	JitInterface::WriteProfileResults(filename);
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ClearAlertMsg(JNIEnv *env, jobject obj)
+{
+	g_alert_event.Set(); // Kick the alert
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv *env, jobject obj)

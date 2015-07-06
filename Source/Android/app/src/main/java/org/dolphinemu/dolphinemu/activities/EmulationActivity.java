@@ -674,7 +674,7 @@ public final class EmulationActivity extends AppCompatActivity
 					@Override
 					public void onClick(DialogInterface dialog, int which)
 					{
-						NativeLibrary.UnPauseEmulation();
+						NativeLibrary.ClearAlertMsg();
 					}
 				})
 				.setNegativeButton(R.string.dialog_panic_neg, new DialogInterface.OnClickListener()
@@ -682,8 +682,7 @@ public final class EmulationActivity extends AppCompatActivity
 					@Override
 					public void onClick(DialogInterface dialog, int which)
 					{
-						// TODO If this Unpause isn't here, for some reason, the emulator stops responding.
-						NativeLibrary.UnPauseEmulation();
+						NativeLibrary.ClearAlertMsg();
 
 						EmulationFragment fragment = (EmulationFragment) getFragmentManager()
 								.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
