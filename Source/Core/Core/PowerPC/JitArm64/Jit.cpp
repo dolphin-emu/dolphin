@@ -303,6 +303,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	}
 
 	js.isLastInstruction = false;
+	js.firstFPInstructionFound = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.downcountAmount = 0;
@@ -389,6 +390,28 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 		if (!ops[i].skip)
 		{
+			if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
+			{
+				//This instruction uses FPU - needs to add FP exception bailout
+				ARM64Reg WA = gpr.GetReg();
+				LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(msr));
+				FixupBranch b1 = TBNZ(WA, 13); // Test FP enabled bit
+
+				gpr.Flush(FLUSH_MAINTAIN_STATE);
+				fpr.Flush(FLUSH_MAINTAIN_STATE);
+
+				LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+				ORR(WA, WA, 26, 0); // EXCEPTION_FPU_UNAVAILABLE
+				STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+
+				MOVI2R(WA, js.compilerPC);
+				WriteExceptionExit(WA);
+
+				SetJumpTarget(b1);
+
+				js.firstFPInstructionFound = true;
+			}
+
 			if (jo.memcheck && (opinfo->flags & FL_USE_FPU))
 			{
 				// Don't do this yet
