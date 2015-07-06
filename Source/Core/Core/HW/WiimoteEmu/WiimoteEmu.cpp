@@ -6,6 +6,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
@@ -403,18 +404,9 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 	s16 y = (s16)(4 * (m_accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
 	s16 z = (s16)(4 * (m_accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
 
-	if (x > 1024)
-		x = 1024;
-	else if (x < 0)
-		x = 0;
-	if (y > 1024)
-		y = 1024;
-	else if (y < 0)
-		y = 0;
-	if (z > 1024)
-		z = 1024;
-	else if (z < 0)
-		z = 0;
+	x = MathUtil::Clamp<s16>(x, 0, 1024);
+	y = MathUtil::Clamp<s16>(y, 0, 1024);
+	z = MathUtil::Clamp<s16>(z, 0, 1024);
 
 	accel.x = (x >> 2) & 0xFF;
 	accel.y = (y >> 2) & 0xFF;

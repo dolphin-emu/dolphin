@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/MathUtil.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 
@@ -93,18 +94,9 @@ void Nunchuk::GetState(u8* const data)
 	s16 accel_y = (s16)(4 * (accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
 	s16 accel_z = (s16)(4 * (accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
 
-	if (accel_x > 1024)
-		accel_x = 1024;
-	else if (accel_x < 0)
-		accel_x = 0;
-	if (accel_y > 1024)
-		accel_y = 1024;
-	else if (accel_y < 0)
-		accel_y = 0;
-	if (accel_z > 1024)
-		accel_z = 1024;
-	else if (accel_z < 0)
-		accel_z = 0;
+	accel_x = MathUtil::Clamp<s16>(accel_x, 0, 1024);
+	accel_y = MathUtil::Clamp<s16>(accel_y, 0, 1024);
+	accel_z = MathUtil::Clamp<s16>(accel_z, 0, 1024);
 
 	ncdata->ax = (accel_x >> 2) & 0xFF;
 	ncdata->ay = (accel_y >> 2) & 0xFF;
