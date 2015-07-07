@@ -115,15 +115,15 @@ const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbA
 	return &m_overlappingXFBArray[0];
 }
 
-void FramebufferManagerBase::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
+void FramebufferManagerBase::CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 {
 	if (g_ActiveConfig.bUseRealXFB)
-		g_framebuffer_manager->CopyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
+		g_framebuffer_manager->CopyToRealXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
 	else
-		CopyToVirtualXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
+		CopyToVirtualXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
 }
 
-void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
+void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 {
 	VirtualXFBListType::iterator vxfb = FindVirtualXFB(xfbAddr, fbWidth, fbHeight);
 
