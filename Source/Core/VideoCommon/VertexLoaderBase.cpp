@@ -120,7 +120,7 @@ void VertexLoaderBase::AppendToString(std::string *dest) const
 				i, m_VtxAttr.texCoord[i].Elements, posMode[tex_mode[i]], posFormats[m_VtxAttr.texCoord[i].Format]));
 		}
 	}
-	dest->append(StringFromFormat(" - %i v\n", m_numLoadedVertices));
+	dest->append(StringFromFormat(" - %i v", m_numLoadedVertices));
 }
 
 // a hacky implementation to compare two vertex loaders

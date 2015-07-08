@@ -109,7 +109,8 @@ void AppendListToString(std::string *dest)
 	dest->reserve(dest->size() + total_size);
 	for (const entry& entry : entries)
 	{
-		dest->append(entry.text);
+		*dest += entry.text;
+		*dest += '\n';
 	}
 }
 
