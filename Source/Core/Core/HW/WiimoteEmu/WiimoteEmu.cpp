@@ -249,6 +249,7 @@ void Wiimote::Reset()
 
 Wiimote::Wiimote( const unsigned int index )
 	: m_index(index)
+	, m_last_connect_request_counter(0)
 	, ir_sin(0)
 	, ir_cos(1)
 // , m_sound_stream( nullptr )
@@ -873,6 +874,27 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 	default:
 		PanicAlert("HidInput: Unknown type 0x%02x and param 0x%02x", hidp->type, hidp->param);
 		break;
+	}
+}
+
+void Wiimote::ConnectOnInput()
+{
+	if (m_last_connect_request_counter > 0)
+	{
+		--m_last_connect_request_counter;
+		return;
+	}
+
+	u16 buttons = 0;
+	m_buttons->GetState(&buttons, button_bitmasks);
+	m_dpad->GetState(&buttons, dpad_bitmasks);
+
+	if (buttons != 0)
+	{
+		Host_ConnectWiimote(m_index, true);
+		// arbitrary value so it doesn't try to send multiple requests before Dolphin can react
+		// if Wiimotes are polled at 200Hz then this results in one request being sent per 500ms
+		m_last_connect_request_counter = 100;
 	}
 }
 

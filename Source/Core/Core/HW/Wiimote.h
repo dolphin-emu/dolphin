@@ -48,7 +48,7 @@ InputConfig* GetConfig();
 
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
-void Update(int _number);
+void Update(int _number, bool _connected);
 
 }
 
