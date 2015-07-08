@@ -99,7 +99,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 END_EVENT_TABLE()
 
-CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CISOProperties::CISOProperties(const std::string& fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
 	// Load ISO data

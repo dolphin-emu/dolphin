@@ -51,7 +51,7 @@ struct PHackData
 class CISOProperties : public wxDialog
 {
 public:
-	CISOProperties(const std::string fileName,
+	CISOProperties(const std::string& fileName,
 			wxWindow* parent,
 			wxWindowID id = wxID_ANY,
 			const wxString& title = _("Properties"),
