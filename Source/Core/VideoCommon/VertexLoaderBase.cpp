@@ -131,13 +131,14 @@ public:
 	: VertexLoaderBase(vtx_desc, vtx_attr), a(_a), b(_b)
 	{
 		m_initialized = a && b && a->IsInitialized() && b->IsInitialized();
-		bool can_test = a->m_VertexSize == b->m_VertexSize &&
-		                a->m_native_components == b->m_native_components &&
-		                a->m_native_vtx_decl.stride == b->m_native_vtx_decl.stride;
 
 		if (m_initialized)
 		{
-			if (can_test)
+			m_initialized = a->m_VertexSize == b->m_VertexSize &&
+			                a->m_native_components == b->m_native_components &&
+			                a->m_native_vtx_decl.stride == b->m_native_vtx_decl.stride;
+
+			if (m_initialized)
 			{
 				m_VertexSize = a->m_VertexSize;
 				m_native_components = a->m_native_components;
@@ -152,8 +153,6 @@ public:
 				                 b->m_VertexSize, b->m_native_components, b->m_native_vtx_decl.stride);
 			}
 		}
-
-		m_initialized &= can_test;
 	}
 	~VertexLoaderTester() override
 	{
