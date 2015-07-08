@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <fcntl.h>
 #include <libudev.h>
 #include <unistd.h>
 

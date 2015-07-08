@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "Common/CommonFuncs.h"
+#include "Common/MsgHandler.h"
+
 namespace LogTypes
 {
 
