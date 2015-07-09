@@ -43,7 +43,6 @@ enum
 
 CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent)
 	: wxControl(parent, wxID_ANY)
-	, curAddress(debuginterface->GetPC())
 	, debugger(debuginterface)
 	, align(debuginterface->GetInstructionSize(0))
 	, rowHeight(13)
@@ -51,6 +50,8 @@ CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent)
 	, oldSelection(0)
 	, selecting(false)
 	, memory(0)
+	, curAddress(debuginterface->GetPC())
+	, dataType(MemoryDataType::U8)
 	, viewAsType(VIEWAS_FP)
 {
 	Bind(wxEVT_PAINT, &CMemoryView::OnPaint, this);
@@ -364,21 +365,21 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 				{
 					switch (dataType)
 					{
-					case 0:
+					case MemoryDataType::U8:
 						dis += StringFromFormat(" %02X %02X %02X %02X",
 							((word & 0xff000000) >> 24) & 0xFF,
 							((word & 0xff0000) >> 16) & 0xFF,
 							((word & 0xff00) >> 8) & 0xFF,
 							word & 0xff);
 						break;
-					case 1:
+					case MemoryDataType::U16:
 						dis += StringFromFormat(" %02X%02X %02X%02X",
 							((word & 0xff000000) >> 24) & 0xFF,
 							((word & 0xff0000) >> 16) & 0xFF,
 							((word & 0xff00) >> 8) & 0xFF,
 							word & 0xff);
 						break;
-					case 2:
+					case MemoryDataType::U32:
 						dis += StringFromFormat(" %02X%02X%02X%02X",
 							((word & 0xff000000) >> 24) & 0xFF,
 							((word & 0xff0000) >> 16) & 0xFF,
