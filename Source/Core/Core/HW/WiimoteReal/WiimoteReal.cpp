@@ -41,6 +41,7 @@ Wiimote::Wiimote()
 	: m_index()
 	, m_last_input_report()
 	, m_channel(0)
+	, m_last_connect_request_counter(0)
 	, m_rumble_state()
 	, m_need_prepare()
 {}
@@ -296,6 +297,43 @@ void Wiimote::Update()
 	{
 		Core::Callback_WiimoteInterruptChannel(m_index, m_channel,
 			rpt.data(), (u32)rpt.size());
+	}
+}
+
+void Wiimote::ConnectOnInput()
+{
+	if (m_last_connect_request_counter > 0)
+	{
+		--m_last_connect_request_counter;
+		return;
+	}
+
+	const Report& rpt = ProcessReadQueue();
+	if (rpt.size() >= 4)
+	{
+		switch (rpt[1])
+		{
+		case WM_REPORT_CORE:
+		case WM_REPORT_CORE_ACCEL:
+		case WM_REPORT_CORE_EXT8:
+		case WM_REPORT_CORE_ACCEL_IR12:
+		case WM_REPORT_CORE_EXT19:
+		case WM_REPORT_CORE_ACCEL_EXT16:
+		case WM_REPORT_CORE_IR10_EXT9:
+		case WM_REPORT_CORE_ACCEL_IR10_EXT6:
+		case WM_REPORT_INTERLEAVE1:
+		case WM_REPORT_INTERLEAVE2:
+			// check any button without checking accelerometer data
+			if ((rpt[2] & 0x1F) != 0 || (rpt[3] & 0x9F) != 0)
+			{
+				Host_ConnectWiimote(m_index, true);
+				// see WiimoteEmu::Wiimote::ConnectOnInput(), same idea here
+				m_last_connect_request_counter = 100;
+			}
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -844,6 +882,18 @@ void Update(int _WiimoteNumber)
 	{
 		Host_ConnectWiimote(_WiimoteNumber, false);
 	}
+	g_refresh_lock.unlock();
+}
+
+void ConnectOnInput(int _WiimoteNumber)
+{
+	// see Update() above
+	if (!g_refresh_lock.try_lock())
+		return;
+
+	if (g_wiimotes[_WiimoteNumber])
+		g_wiimotes[_WiimoteNumber]->ConnectOnInput();
+
 	g_refresh_lock.unlock();
 }
 

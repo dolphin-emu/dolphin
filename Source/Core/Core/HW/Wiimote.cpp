@@ -127,6 +127,8 @@ void Update(int _number, bool _connected)
 	{
 		if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
 			((WiimoteEmu::Wiimote*)s_config.controllers[_number])->ConnectOnInput();
+		if (WIIMOTE_SRC_REAL & g_wiimote_sources[_number])
+			WiimoteReal::ConnectOnInput(_number);
 	}
 }
 
