@@ -252,6 +252,12 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
       int ret =
           mbedtls_x509_crt_parse_der(&ssl->cacert, Memory::GetPointer(BufferOut2), BufferOutSize2);
 
+      if (SConfig::GetInstance().m_SSLDumpRootCA)
+      {
+        std::string filename = File::GetUserPath(D_DUMPSSL_IDX) + ssl->hostname + "_rootca.der";
+        File::IOFile(filename, "wb").WriteBytes(Memory::GetPointer(BufferOut2), BufferOutSize2);
+      }
+
       if (ret)
       {
         Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
