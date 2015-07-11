@@ -277,6 +277,8 @@ struct SConfig : NonCopyable
   bool m_SSLDumpRead;
   bool m_SSLDumpWrite;
   bool m_SSLVerifyCert;
+  bool m_SSLDumpRootCA;
+  bool m_SSLDumpPeerCert;
 
   SysConf* m_SYSCONF;
 

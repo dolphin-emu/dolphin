@@ -353,6 +353,20 @@ void WiiSocket::Update(bool read, bool write, bool except)
               break;
             }
 
+            // mbedtls_ssl_get_peer_cert(ctx) seems not to work if handshake failed
+            // Below is an alternative to dump the peer certificate
+            if (SConfig::GetInstance().m_SSLDumpPeerCert && ctx->session_negotiate != nullptr)
+            {
+              const mbedtls_x509_crt* cert = ctx->session_negotiate->peer_cert;
+              if (cert != nullptr)
+              {
+                std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
+                                       ((ctx->hostname != nullptr) ? ctx->hostname : "") +
+                                       "_peercert.der";
+                File::IOFile(filename, "wb").WriteBytes(cert->raw.p, cert->raw.len);
+              }
+            }
+
             INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE = (%d) "
                                   "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
                                   "BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
@@ -366,8 +380,11 @@ void WiiSocket::Update(bool read, bool write, bool except)
                                         Memory::GetPointer(BufferOut2), BufferOutSize2);
 
             if (SConfig::GetInstance().m_SSLDumpWrite && ret > 0)
-              File::IOFile("ssl_write.bin", "ab")
-                  .WriteBytes(Memory::GetPointer(BufferOut2), ret);
+            {
+              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
+                                     SConfig::GetInstance().GetUniqueID() + "_write.bin";
+              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferOut2), ret);
+            }
 
             if (ret >= 0)
             {
@@ -401,8 +418,11 @@ void WiiSocket::Update(bool read, bool write, bool except)
                                        Memory::GetPointer(BufferIn2), BufferInSize2);
 
             if (SConfig::GetInstance().m_SSLDumpRead && ret > 0)
-              File::IOFile("ssl_read.bin", "ab")
-                  .WriteBytes(Memory::GetPointer(BufferIn2), ret);
+            {
+              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
+                                     SConfig::GetInstance().GetUniqueID() + "_read.bin";
+              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
+            }
 
             if (ret >= 0)
             {

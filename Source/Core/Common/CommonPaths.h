@@ -64,6 +64,7 @@
 #define DUMP_FRAMES_DIR "Frames"
 #define DUMP_AUDIO_DIR "Audio"
 #define DUMP_DSP_DIR "DSP"
+#define DUMP_SSL_DIR "SSL"
 #define LOGS_DIR "Logs"
 #define MAIL_LOGS_DIR "Mail"
 #define SHADERS_DIR "Shaders"

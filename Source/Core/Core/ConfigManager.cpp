@@ -97,6 +97,7 @@ void CreateDumpPath(const std::string& path)
   File::SetUserPath(D_DUMP_IDX, path + '/');
   File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPFRAMES_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
 }
@@ -320,6 +321,8 @@ void SConfig::SaveNetworkSettings(IniFile& ini)
   network->Set("SSLDumpRead", m_SSLDumpRead);
   network->Set("SSLDumpWrite", m_SSLDumpWrite);
   network->Set("SSLVerifyCert", m_SSLVerifyCert);
+  network->Set("SSLDumpRootCA", m_SSLDumpRootCA);
+  network->Set("SSLDumpPeerCert", m_SSLDumpPeerCert);
 }
 
 void SConfig::SaveAnalyticsSettings(IniFile& ini)
@@ -620,6 +623,8 @@ void SConfig::LoadNetworkSettings(IniFile& ini)
   network->Get("SSLDumpRead", &m_SSLDumpRead, false);
   network->Get("SSLDumpWrite", &m_SSLDumpWrite, false);
   network->Get("SSLVerifyCert", &m_SSLVerifyCert, false);
+  network->Get("SSLDumpRootCA", &m_SSLDumpRootCA, false);
+  network->Get("SSLDumpPeerCert", &m_SSLDumpPeerCert, false);
 }
 
 void SConfig::LoadAnalyticsSettings(IniFile& ini)
