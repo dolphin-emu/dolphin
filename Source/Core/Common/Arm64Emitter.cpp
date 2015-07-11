@@ -271,8 +271,8 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int *n, unsigned 
 void ARM64XEmitter::SetCodePtr(u8* ptr)
 {
 	m_code = ptr;
-	m_startcode = m_code;
-	m_lastCacheFlushEnd = ptr;
+	if (!m_lastCacheFlushEnd)
+		m_lastCacheFlushEnd = ptr;
 }
 
 const u8* ARM64XEmitter::GetCodePtr() const
@@ -315,6 +315,9 @@ void ARM64XEmitter::FlushIcache()
 
 void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
 {
+	if (start == end)
+		return;
+
 #if defined(IOS)
 	// Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
 	sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
