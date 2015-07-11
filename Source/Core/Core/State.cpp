@@ -435,6 +435,19 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
 	return true;
 }
 
+std::string GetInfoStringOfSlot(int slot)
+{
+	std::string filename = MakeStateFilename(slot);
+	if (!File::Exists(filename))
+		return "Empty";
+
+	State::StateHeader header;
+	if (!ReadHeader(filename, header))
+		return "Unknown";
+
+	return Common::Timer::GetDateTimeFormatted(header.time);
+}
+
 static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 {
 	Flush();
