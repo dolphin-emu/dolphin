@@ -348,17 +348,17 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// Internal resolution
 	{
 	const wxString efbscale_choices[] = { _("Auto (Window Size)"), _("Auto (Multiple of 640x528)"),
-		_("Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056) for 720p"), _("2.5x Native (1600x1320)"),
+		_("Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056) for 720p"),
 		_("3x Native (1920x1584) for 1080p"), _("4x Native (2560x2112) for 1440p"), _("5x Native (3200x2640)"),
 		_("6x Native (3840x3168) for 4K"), _("7x Native (4480x3696)"), _("8x Native (5120x4224) for 5K"), _("Custom") };
 
 	wxChoice *const choice_efbscale = CreateChoice(page_enh,
-		vconfig.iEFBScale, wxGetTranslation(internal_res_desc), (vconfig.iEFBScale > 11) ?
+		vconfig.iEFBScale, wxGetTranslation(internal_res_desc), (vconfig.iEFBScale > 10) ?
 		ArraySize(efbscale_choices) : ArraySize(efbscale_choices) - 1, efbscale_choices);
 
 
-	if (vconfig.iEFBScale > 11)
-		choice_efbscale->SetSelection(12);
+	if (vconfig.iEFBScale > 10)
+		choice_efbscale->SetSelection(11);
 
 	szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Internal Resolution:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	szr_enh->Add(choice_efbscale);
