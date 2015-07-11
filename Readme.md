@@ -65,14 +65,14 @@ and place the following inside:
 # Specifies arguments for the 'make' command. Can be blank.
 makeArgs=
 
-# The path to your machine's Git executable. Will autodetect if blank.
+# The path to your machine's Git executable. Will autodetect if blank (on Linux only).
 gitPath=
 
-# The path to the extracted NDK package. Will autodetect if blank.
-ndkPath=
-
-# The path to the CMake executable. Will autodetect if blank.
+# The path to the CMake executable. Will autodetect if blank (on Linux only).
 cmakePath=
+
+# The path to the extracted NDK package. Will autodetect if blank (on Linux only).
+ndkPath=
 ```
 
 If you prefer, you can run the CMake step manually, and it will copy the resulting
