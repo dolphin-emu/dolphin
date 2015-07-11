@@ -80,10 +80,10 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 	// multibyte handling is required as we can simply assume that no '%' char
 	// will be present in the middle of a multibyte sequence.
 	//
-	// This is why we lookup an ANSI (cp1252) locale here and use _vsnprintf_l.
+	// This is why we look up the default C locale here and use _vsnprintf_l.
 	static _locale_t c_locale = nullptr;
 	if (!c_locale)
-		c_locale = _create_locale(LC_ALL, ".1252");
+		c_locale = _create_locale(LC_ALL, "C");
 	writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
 #else
 	#if !defined(ANDROID)
