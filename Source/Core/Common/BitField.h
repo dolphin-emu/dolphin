@@ -156,7 +156,7 @@ public:
 		if (std::numeric_limits<T>::is_signed)
 		{
 			std::size_t shift = 8 * sizeof(T) - bits;
-			return (T)(((storage & GetMask()) << (shift - position)) >> shift);
+			return (T)((storage << (shift - position)) >> shift);
 		}
 		else
 		{
