@@ -183,7 +183,7 @@ private:
 
 	__forceinline StorageType GetMask() const
 	{
-		return ((~(StorageTypeU)0) >> (8 * sizeof(T) - bits)) << position;
+		return (((StorageTypeU)~0) >> (8 * sizeof(T) - bits)) << position;
 	}
 
 	StorageType storage;
