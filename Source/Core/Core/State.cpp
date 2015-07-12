@@ -17,6 +17,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/HW/CPU.h"
@@ -373,6 +374,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 	}
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 2000);
+	Host_UpdateMainFrame();
 }
 
 void SaveAs(const std::string& filename, bool wait)
