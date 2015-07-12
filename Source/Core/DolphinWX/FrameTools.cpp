@@ -489,6 +489,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_LOAD_LAST_STATE_6:
 		case HK_LOAD_LAST_STATE_7:
 		case HK_LOAD_LAST_STATE_8:
+		case HK_LOAD_LAST_STATE_9:
+		case HK_LOAD_LAST_STATE_10:
 			Label = wxString::Format(_("Last %i"),
 				Id - HK_LOAD_LAST_STATE_1 + 1);
 			break;
