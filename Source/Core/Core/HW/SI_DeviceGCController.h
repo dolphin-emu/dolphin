@@ -118,7 +118,11 @@ public:
 	virtual bool GetData(u32& _Hi, u32& _Low) override
 	{
 		CSIDevice_GCController::GetData(_Hi, _Low);
-		_Hi &= ~PAD_USE_ORIGIN << 16;
+
+		// Unset all bits except those that represent
+		// A, B, X, Y, Start and the error bits, as they
+		// are not used.
+		_Hi &= ~0x20FFFFFF;
 		return true;
 	}
 };
