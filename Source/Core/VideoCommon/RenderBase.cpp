@@ -209,13 +209,8 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 			efb_scale_denominatorX = efb_scale_denominatorY = 1;
 			break;
 
-		case SCALE_2_5X:
-			efb_scale_numeratorX = efb_scale_numeratorY = 5;
-			efb_scale_denominatorX = efb_scale_denominatorY = 2;
-			break;
-
 		default:
-			efb_scale_numeratorX = efb_scale_numeratorY = s_last_efb_scale - 3;
+			efb_scale_numeratorX = efb_scale_numeratorY = s_last_efb_scale - 2;
 			efb_scale_denominatorX = efb_scale_denominatorY = 1;
 
 
@@ -346,11 +341,8 @@ void Renderer::DrawDebugText()
 		case SCALE_2X:
 			res_text = "2x";
 			break;
-		case SCALE_2_5X:
-			res_text = "2.5x";
-			break;
 		default:
-			res_text = StringFromFormat("%dx", g_ActiveConfig.iEFBScale - 3);
+			res_text = StringFromFormat("%dx", g_ActiveConfig.iEFBScale - 2);
 			break;
 		}
 		const char* ar_text = "";
