@@ -217,6 +217,12 @@ void evdevDevice::ForceFeedback::SetState(ControlState state)
 	// libevdev doesn't have nice helpers for forcefeedback
 	// we will use the file descriptors directly.
 
+	if (m_id != -1)  // delete the previous effect (which also stops it)
+	{
+		ioctl(m_fd, EVIOCRMFF, m_id);
+		m_id = -1;
+	}
+
 	if (state > 0) // Upload and start an effect.
 	{
 		ff_effect effect;
@@ -261,9 +267,14 @@ void evdevDevice::ForceFeedback::SetState(ControlState state)
 
 		write(m_fd, (const void*) &play, sizeof(play));
 	}
-	else if (m_id != -1)  // delete the effect (which also stops it)
+}
+
+evdevDevice::ForceFeedback::~ForceFeedback()
+{
+	// delete the uploaded effect, so we don't leak it.
+	if (m_id != -1)
 	{
-		ioctl(m_id, EVIOCRMFF, m_id);
+		ioctl(m_fd, EVIOCRMFF, m_id);
 	}
 }
 
