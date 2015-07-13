@@ -15,7 +15,7 @@ typedef pollfd pollfd_t;
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
-#elif defined(__linux__) or defined(__APPLE__)
+#elif defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__)
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/types.h>

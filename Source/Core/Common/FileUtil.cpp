@@ -42,7 +42,7 @@
 #define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)
 #endif
 
-#ifdef BSD4_4
+#if defined BSD4_4 || defined __FreeBSD__
 #define stat64 stat
 #define fstat64 fstat
 #endif
