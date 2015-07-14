@@ -151,7 +151,8 @@ void Init()
 	}
 	else
 	{
-		StartScanThread();
+		if (SConfig::GetInstance().m_GameCubeAdapter)
+			StartScanThread();
 	}
 }
 
