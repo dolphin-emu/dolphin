@@ -174,6 +174,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 			m_adapter_status->SetLabelText(_("Driver Not Detected"));
 			gamecube_adapter->Disable();
 			gamecube_adapter->SetValue(false);
+			gamecube_rumble->Disable();
 		}
 	}
 	else

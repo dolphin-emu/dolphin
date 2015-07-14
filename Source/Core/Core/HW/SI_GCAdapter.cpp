@@ -146,6 +146,7 @@ void Init()
 	if (ret)
 	{
 		ERROR_LOG(SERIALINTERFACE, "libusb_init failed with error: %d", ret);
+		s_libusb_driver_not_supported = true;
 		Shutdown();
 	}
 	else
