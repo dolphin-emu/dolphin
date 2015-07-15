@@ -279,8 +279,7 @@ void JitArm64::SingleStep()
 
 void JitArm64::Jit(u32)
 {
-	if (GetSpaceLeft() < 0x10000 || farcode.GetSpaceLeft() < 0x10000 || blocks.IsFull() ||
-		SConfig::GetInstance().bJITNoBlockCache)
+	if (IsAlmostFull() || farcode.IsAlmostFull() || blocks.IsFull() || SConfig::GetInstance().bJITNoBlockCache)
 	{
 		ClearCache();
 	}

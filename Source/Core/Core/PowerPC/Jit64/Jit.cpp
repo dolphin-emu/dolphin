@@ -490,9 +490,7 @@ void Jit64::Trace()
 
 void Jit64::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 ||
-	    farcode.GetSpaceLeft() < 0x10000 ||
-	    trampolines.GetSpaceLeft() < 0x10000 ||
+	if (IsAlmostFull() || farcode.IsAlmostFull() || trampolines.IsAlmostFull() ||
 	    blocks.IsFull() ||
 	    SConfig::GetInstance().bJITNoBlockCache ||
 	    m_clear_cache_asap)
