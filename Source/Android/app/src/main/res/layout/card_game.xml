@@ -33,7 +33,6 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginTop="16dp"
-            android:layout_toStartOf="@+id/button_details"
             android:ellipsize="end"
             android:lines="1"
             android:maxLines="1"

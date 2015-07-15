@@ -3,8 +3,6 @@ package org.dolphinemu.dolphinemu.model;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import java.io.File;
-
 public final class Game
 {
 	public static final int PLATFORM_GC = 0;
@@ -33,13 +31,13 @@ public final class Game
 	private String mDescription;
 	private String mPath;
 	private String mGameId;
-	private String mScreenshotFolderPath;
+	private String mScreenshotPath;
 	private String mCompany;
 
 	private int mPlatform;
 	private int mCountry;
 
-	public Game(int platform, String title, String description, int country, String path, String gameId, String company)
+	public Game(int platform, String title, String description, int country, String path, String gameId, String company, String screenshotPath)
 	{
 		mPlatform = platform;
 		mTitle = title;
@@ -48,7 +46,7 @@ public final class Game
 		mPath = path;
 		mGameId = gameId;
 		mCompany = company;
-		mScreenshotFolderPath = PATH_SCREENSHOT_FOLDER + getGameId() + "/";
+		mScreenshotPath = screenshotPath;
 	}
 
 	public int getPlatform()
@@ -86,27 +84,9 @@ public final class Game
 		return mGameId;
 	}
 
-	public String getScreenshotFolderPath()
+	public String getScreenshotPath()
 	{
-		return mScreenshotFolderPath;
-	}
-
-	public String getScreenPath()
-	{
-		// Count how many screenshots are available, so we can use the most recent one.
-		File screenshotFolder = new File(mScreenshotFolderPath.substring(mScreenshotFolderPath.indexOf('s') - 1));
-		int screenCount = 0;
-
-		if (screenshotFolder.isDirectory())
-		{
-			screenCount = screenshotFolder.list().length;
-		}
-
-		String screenPath = mScreenshotFolderPath
-				+ getGameId() + "-"
-				+ screenCount + ".png";
-
-		return screenPath;
+		return mScreenshotPath;
 	}
 
 	public static ContentValues asContentValues(int platform, String title, String description, int country, String path, String gameId, String company)
@@ -135,6 +115,7 @@ public final class Game
 				cursor.getInt(GameDatabase.GAME_COLUMN_COUNTRY),
 				cursor.getString(GameDatabase.GAME_COLUMN_PATH),
 				cursor.getString(GameDatabase.GAME_COLUMN_GAME_ID),
-				cursor.getString(GameDatabase.GAME_COLUMN_COMPANY));
+				cursor.getString(GameDatabase.GAME_COLUMN_COMPANY),
+				cursor.getString(GameDatabase.GAME_COLUMN_SCREENSHOT_PATH));
 	}
 }

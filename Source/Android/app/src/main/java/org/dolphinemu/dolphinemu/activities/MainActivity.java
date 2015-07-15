@@ -226,7 +226,7 @@ public final class MainActivity extends AppCompatActivity implements LoaderManag
 						GameProvider.URI_GAME,                        // URI of table to query
 						null,                                        // Return all columns
 						GameDatabase.KEY_GAME_PLATFORM + " = ?",    // Select by platform
-						new String[]{Integer.toString(id)},    // Platform id is Loader id minus 1
+						new String[]{Integer.toString(id)},    // Platform id is Loader id
 						GameDatabase.KEY_GAME_TITLE + " asc"        // Sort by game name, ascending order
 				);
 
