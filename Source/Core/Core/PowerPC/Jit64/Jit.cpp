@@ -231,8 +231,7 @@ void Jit64::Shutdown()
 	farcode.Shutdown();
 }
 
-// This is only called by FallBackToInterpreter() in this file. It will execute an instruction with the interpreter functions.
-void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
+void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush();
 	fpr.Flush();
@@ -245,11 +244,6 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunctionC((void*)instr, inst.hex);
 	ABI_PopRegistersAndAdjustStack({}, 0);
-}
-
-void Jit64::FallBackToInterpreter(UGeckoInstruction _inst)
-{
-	WriteCallInterpreter(_inst.hex);
 }
 
 void Jit64::HLEFunction(UGeckoInstruction _inst)
