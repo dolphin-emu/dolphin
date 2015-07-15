@@ -73,6 +73,10 @@ private:
 	void OnGameCubeAdapter(wxCommandEvent& event)
 	{
 		SConfig::GetInstance().m_GameCubeAdapter = event.IsChecked();
+		if (event.IsChecked())
+			SI_GCAdapter::StartScanThread();
+		else
+			SI_GCAdapter::StopScanThread();
 		event.Skip();
 	}
 	void OnAdapterRumble(wxCommandEvent& event)
