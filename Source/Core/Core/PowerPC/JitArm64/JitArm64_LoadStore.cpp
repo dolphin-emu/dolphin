@@ -411,6 +411,10 @@ void JitArm64::lXX(UGeckoInstruction inst)
 		// if it's still 0, we can wait until the next event
 		FixupBranch noIdle = CBNZ(gpr.R(d));
 
+		FixupBranch far = B();
+		SwitchToFarCode();
+		SetJumpTarget(far);
+
 		gpr.Flush(FLUSH_MAINTAIN_STATE);
 		fpr.Flush(FLUSH_MAINTAIN_STATE);
 
@@ -422,6 +426,8 @@ void JitArm64::lXX(UGeckoInstruction inst)
 
 		gpr.Unlock(WA);
 		WriteExceptionExit();
+
+		SwitchToNearCode();
 
 		SetJumpTarget(noIdle);
 

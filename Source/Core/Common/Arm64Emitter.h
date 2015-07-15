@@ -324,7 +324,6 @@ class ARM64XEmitter
 
 private:
 	u8* m_code;
-	u8* m_startcode;
 	u8* m_lastCacheFlushEnd;
 
 	void EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr);
@@ -365,14 +364,13 @@ protected:
 
 public:
 	ARM64XEmitter()
-		: m_code(nullptr), m_startcode(nullptr), m_lastCacheFlushEnd(nullptr)
+		: m_code(nullptr), m_lastCacheFlushEnd(nullptr)
 	{
 	}
 
 	ARM64XEmitter(u8* code_ptr) {
 		m_code = code_ptr;
 		m_lastCacheFlushEnd = code_ptr;
-		m_startcode = code_ptr;
 	}
 
 	virtual ~ARM64XEmitter()

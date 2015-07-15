@@ -142,6 +142,10 @@ void JitArm64::bcx(UGeckoInstruction inst)
 		                                        !(inst.BO_2 & BO_BRANCH_IF_TRUE));
 	}
 
+	FixupBranch far = B();
+	SwitchToFarCode();
+	SetJumpTarget(far);
+
 	if (inst.LK)
 	{
 		u32 Jumpto = js.compilerPC + 4;
@@ -160,6 +164,8 @@ void JitArm64::bcx(UGeckoInstruction inst)
 	fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
 
 	WriteExit(destination);
+
+	SwitchToNearCode();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );
@@ -235,6 +241,10 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 		                                        !(inst.BO_2 & BO_BRANCH_IF_TRUE));
 	}
 
+	FixupBranch far = B();
+	SwitchToFarCode();
+	SetJumpTarget(far);
+
 	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_LR]));
 	AND(WA, WA, 30, 29); // Wipe the bottom 2 bits.
 
@@ -251,6 +261,8 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 	fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
 
 	WriteExitDestInR(WA);
+
+	SwitchToNearCode();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );

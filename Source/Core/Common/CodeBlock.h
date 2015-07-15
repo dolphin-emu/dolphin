@@ -72,5 +72,11 @@ public:
 	{
 		return region_size - (T::GetCodePtr() - region);
 	}
+
+	bool IsAlmostFull() const
+	{
+		// This should be bigger than the biggest block ever.
+		return GetSpaceLeft() < 0x10000;
+	}
 };
 

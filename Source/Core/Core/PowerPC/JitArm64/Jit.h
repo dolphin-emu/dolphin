@@ -18,6 +18,15 @@
 
 #define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
+// A place to throw blocks of code we don't want polluting the cache, e.g. rarely taken
+// exception branches.
+class FarCodeCacheArm64 : public Arm64Gen::ARM64CodeBlock
+{
+public:
+	void Init(int size) { AllocCodeSpace(size); }
+	void Shutdown() { FreeCodeSpace(); }
+};
+
 // Some asserts to make sure we will be able to load everything
 static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
 static_assert((PPCSTATE_OFF(ps[0][0]) % 8) == 0, "LDR(64bit VFP) requires FPRs to be 8 byte aligned");
@@ -184,6 +193,22 @@ private:
 	PPCAnalyst::CodeBuffer code_buffer;
 
 	ARM64FloatEmitter m_float_emit;
+
+	FarCodeCacheArm64 farcode;
+	u8* nearcode; // Backed up when we switch to far code.
+
+	// Simple functions to switch between near and far code emitting
+	void SwitchToFarCode()
+	{
+		nearcode = GetWritableCodePtr();
+		SetCodePtr(farcode.GetWritableCodePtr());
+	}
+
+	void SwitchToNearCode()
+	{
+		farcode.SetCodePtr(GetWritableCodePtr());
+		SetCodePtr(nearcode);
+	}
 
 	// Dump a memory range of code
 	void DumpCode(const u8* start, const u8* end);

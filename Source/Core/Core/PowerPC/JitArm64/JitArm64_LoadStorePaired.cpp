@@ -156,7 +156,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 		m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
 		BLR(EncodeRegTo64(type_reg));
 		m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
-		ABI_PushRegisters(gprs_in_use);
+		ABI_PopRegisters(gprs_in_use);
 
 		SetJumpTarget(continue1);
 	}

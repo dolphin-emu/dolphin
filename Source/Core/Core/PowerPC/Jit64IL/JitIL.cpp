@@ -473,7 +473,7 @@ void JitIL::Trace()
 
 void JitIL::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 || farcode.GetSpaceLeft() < 0x10000 || blocks.IsFull() ||
+	if (IsAlmostFull() || farcode.IsAlmostFull() || blocks.IsFull() ||
 		SConfig::GetInstance().bJITNoBlockCache)
 	{
 		ClearCache();

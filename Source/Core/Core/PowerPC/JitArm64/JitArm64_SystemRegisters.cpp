@@ -184,6 +184,10 @@ void JitArm64::twx(UGeckoInstruction inst)
 		SetJumpTarget(fixup);
 	}
 
+	FixupBranch far = B();
+	SwitchToFarCode();
+	SetJumpTarget(far);
+
 	gpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
 	fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
 
@@ -195,6 +199,8 @@ void JitArm64::twx(UGeckoInstruction inst)
 
 	// WA is unlocked in this function
 	WriteExceptionExit(WA);
+
+	SwitchToNearCode();
 
 	SetJumpTarget(dont_trap);
 

@@ -17,6 +17,7 @@ using namespace Arm64Gen;
 void JitArm64::Init()
 {
 	AllocCodeSpace(CODE_SIZE);
+	farcode.Init(SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE);
 	jo.enableBlocklink = true;
 	jo.optimizeGatherPipe = true;
 	UpdateMemoryOptions();
@@ -36,6 +37,7 @@ void JitArm64::Init()
 void JitArm64::ClearCache()
 {
 	ClearCodeSpace();
+	farcode.ClearCodeSpace();
 	blocks.Clear();
 	UpdateMemoryOptions();
 }
@@ -43,6 +45,7 @@ void JitArm64::ClearCache()
 void JitArm64::Shutdown()
 {
 	FreeCodeSpace();
+	farcode.Shutdown();
 	blocks.Shutdown();
 	asm_routines.Shutdown();
 }
@@ -276,7 +279,7 @@ void JitArm64::SingleStep()
 
 void JitArm64::Jit(u32)
 {
-	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().bJITNoBlockCache)
+	if (IsAlmostFull() || farcode.IsAlmostFull() || blocks.IsFull() || SConfig::GetInstance().bJITNoBlockCache)
 	{
 		ClearCache();
 	}
@@ -397,6 +400,10 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(msr));
 				FixupBranch b1 = TBNZ(WA, 13); // Test FP enabled bit
 
+				FixupBranch far = B();
+				SwitchToFarCode();
+				SetJumpTarget(far);
+
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
 				fpr.Flush(FLUSH_MAINTAIN_STATE);
 
@@ -406,6 +413,8 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 				MOVI2R(WA, js.compilerPC);
 				WriteExceptionExit(WA);
+
+				SwitchToNearCode();
 
 				SetJumpTarget(b1);
 
@@ -450,5 +459,6 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	b->originalSize = code_block.m_num_instructions;
 
 	FlushIcache();
+	farcode.FlushIcache();
 	return start;
 }
