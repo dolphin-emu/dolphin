@@ -1308,6 +1308,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Reason: 0x%02x", pDiscon->reason);
 
 	Host_SetWiiMoteConnectionState(0);
+	DisplayDisconnectMessage((pDiscon->con_handle & 0xFF) + 1, pDiscon->reason);
 
 	SendEventCommandStatus(HCI_CMD_DISCONNECT);
 	SendEventDisconnect(pDiscon->con_handle, pDiscon->reason);
@@ -1875,6 +1876,13 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _Co
 	ERROR_LOG(WII_IPC_WIIMOTE, "Can't find Wiimote by connection handle %02x", _ConnectionHandle);
 	PanicAlertT("Can't find Wiimote by connection handle %02x", _ConnectionHandle);
 	return nullptr;
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::DisplayDisconnectMessage(const int wiimoteNumber, const int reason)
+{
+	// TODO: If someone wants to be fancy we could also figure out what the values for pDiscon->reason mean
+	// and display things like "Wiimote %i disconnected due to inactivity!" etc.
+	Core::DisplayMessage(StringFromFormat(_trans("Wiimote %i disconnected by emulated software"), wiimoteNumber), 3000);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::LOG_LinkKey(const u8* _pLinkKey)
