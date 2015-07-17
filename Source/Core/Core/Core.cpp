@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <atomic>
 #include <cctype>
 
 #ifdef _WIN32
@@ -10,7 +11,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 
-#include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
@@ -83,8 +83,8 @@ bool g_want_determinism;
 
 // Declarations and definitions
 static Common::Timer s_timer;
-static volatile u32 s_drawn_frame = 0;
-static u32 s_drawn_video = 0;
+static std::atomic<u32> s_drawn_frame;
+static std::atomic<u32> s_drawn_video;
 
 // Function forwarding
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
@@ -725,14 +725,14 @@ void VideoThrottle()
 {
 	// Update info per second
 	u32 ElapseTime = (u32)s_timer.GetTimeDifference();
-	if ((ElapseTime >= 1000 && s_drawn_video > 0) || s_request_refresh_info)
+	if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_request_refresh_info)
 	{
 		UpdateTitle();
 
 		// Reset counter
 		s_timer.Update();
-		Common::AtomicStore(s_drawn_frame, 0);
-		s_drawn_video = 0;
+		s_drawn_frame.store(0);
+		s_drawn_video.store(0);
 	}
 
 	s_drawn_video++;
@@ -746,7 +746,7 @@ bool ShouldSkipFrame(int skipped)
 	const u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1)
 		? (SConfig::GetInstance().m_Framelimit - 1) * 5
 		: VideoInterface::TargetRefreshRate;
-	const u32 frames = Common::AtomicLoad(s_drawn_frame);
+	const u32 frames = s_drawn_frame.load();
 	const bool fps_slow = !(s_timer.GetTimeDifference() < (frames + skipped) * 1000 / TargetFPS);
 
 	return fps_slow;
@@ -758,7 +758,8 @@ bool ShouldSkipFrame(int skipped)
 void Callback_VideoCopiedToXFB(bool video_update)
 {
 	if (video_update)
-		Common::AtomicIncrement(s_drawn_frame);
+		s_drawn_frame++;
+
 	Movie::FrameUpdate();
 }
 
@@ -771,9 +772,9 @@ void UpdateTitle()
 	if (ElapseTime == 0)
 		ElapseTime = 1;
 
-	float FPS = (float) (Common::AtomicLoad(s_drawn_frame) * 1000.0 / ElapseTime);
-	float VPS = (float) (s_drawn_video * 1000.0 / ElapseTime);
-	float Speed = (float) (s_drawn_video * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
+	float FPS   = (float)(s_drawn_frame.load() * 1000.0 / ElapseTime);
+	float VPS   = (float)(s_drawn_video.load() * 1000.0 / ElapseTime);
+	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
 	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), _CoreParameter.bCPUThread ? "DC" : "SC",
