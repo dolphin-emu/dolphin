@@ -453,16 +453,16 @@ void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
 	switch (accessSize)
 	{
 	case 8:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite8);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite8);
 		break;
 	case 16:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite16);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite16);
 		break;
 	case 32:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite32);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite32);
 		break;
 	case 64:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite64);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite64);
 		break;
 	}
 	jit->js.fifoBytesThisBlock += accessSize >> 3;

@@ -408,7 +408,7 @@ void Jit64::mfcr(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 	int d = inst.RD;
 	gpr.FlushLockX(RSCRATCH_EXTRA);
-	CALL((void *)asm_routines.mfcr);
+	CALL(asm_routines.mfcr);
 	gpr.Lock(d);
 	gpr.BindToRegister(d, false, true);
 	MOV(32, gpr.R(d), R(RSCRATCH));
