@@ -150,7 +150,7 @@ inline double NI_sub(double a, double b)
 // FMA instructions on PowerPC are weird:
 // They calculate (a * c) + b, but the order in which
 // inputs are checked for NaN is still a, b, c.
-inline double NI_madd(double a, double c, double b, bool negate = false)
+inline double NI_madd(double a, double c, double b)
 {
 	double t = a * c;
 	if (std::isnan(t))
@@ -168,10 +168,10 @@ inline double NI_madd(double a, double c, double b, bool negate = false)
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
-	return negate ? -t : t;
+	return t;
 }
 
-inline double NI_msub(double a, double c, double b, bool negate = false)
+inline double NI_msub(double a, double c, double b)
 {
 	double t = a * c;
 	if (std::isnan(t))
@@ -190,7 +190,7 @@ inline double NI_msub(double a, double c, double b, bool negate = false)
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
-	return negate ? -t : t;
+	return t;
 }
 
 // used by stfsXX instructions and ps_rsqrte
