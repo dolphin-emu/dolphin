@@ -288,23 +288,6 @@ void JitIL::Shutdown()
 	farcode.Shutdown();
 }
 
-
-void JitIL::WriteCallInterpreter(UGeckoInstruction inst)
-{
-	if (js.isLastInstruction)
-	{
-		MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
-		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
-	}
-	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
-	ABI_CallFunctionC((void*)instr, inst.hex);
-	if (js.isLastInstruction)
-	{
-		MOV(32, R(RSCRATCH), PPCSTATE(npc));
-		WriteRfiExitDestInOpArg(R(RSCRATCH));
-	}
-}
-
 void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
 {
 	ibuild.EmitFallBackToInterpreter(

@@ -154,11 +154,11 @@ void Jit64::ps_rsqrte(UGeckoInstruction inst)
 	fpr.BindToRegister(d, false);
 
 	MOVSD(XMM0, fpr.R(b));
-	CALL((void *)asm_routines.frsqrte);
+	CALL(asm_routines.frsqrte);
 	MOVSD(fpr.R(d), XMM0);
 
 	MOVHLPS(XMM0, fpr.RX(b));
-	CALL((void *)asm_routines.frsqrte);
+	CALL(asm_routines.frsqrte);
 	MOVLHPS(fpr.RX(d), XMM0);
 
 	ForceSinglePrecision(fpr.RX(d), fpr.R(d));
@@ -181,11 +181,11 @@ void Jit64::ps_res(UGeckoInstruction inst)
 	fpr.BindToRegister(d, false);
 
 	MOVSD(XMM0, fpr.R(b));
-	CALL((void *)asm_routines.fres);
+	CALL(asm_routines.fres);
 	MOVSD(fpr.R(d), XMM0);
 
 	MOVHLPS(XMM0, fpr.RX(b));
-	CALL((void *)asm_routines.fres);
+	CALL(asm_routines.fres);
 	MOVLHPS(fpr.RX(d), XMM0);
 
 	ForceSinglePrecision(fpr.RX(d), fpr.R(d));

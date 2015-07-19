@@ -104,7 +104,6 @@ public:
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
 	void WriteRfiExitDestInRSCRATCH();
-	void WriteCallInterpreter(UGeckoInstruction _inst);
 	bool Cleanup();
 
 	void GenerateConstantOverflow(bool overflow);

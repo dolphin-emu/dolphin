@@ -82,7 +82,6 @@ public:
 	void WriteExitDestInOpArg(const Gen::OpArg& arg);
 	void WriteExceptionExit();
 	void WriteRfiExitDestInOpArg(const Gen::OpArg& arg);
-	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 
 	void WriteCode(u32 exitAddress);
