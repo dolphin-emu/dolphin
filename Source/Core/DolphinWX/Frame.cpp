@@ -1085,6 +1085,20 @@ bool TASInputHasFocus()
 	return false;
 }
 
+void CFrame::OnKeyDown(wxKeyEvent& event)
+{
+	// On OS X, we claim all keyboard events while
+	// emulation is running to avoid wxWidgets sounding
+	// the system beep for unhandled key events when
+	// receiving pad/Wiimote keypresses which take an
+	// entirely different path through the HID subsystem.
+#ifndef __APPLE__
+	// On other platforms, we leave the key event alone
+	// so it can be passed on to the windowing system.
+	event.Skip();
+#endif
+}
+
 void CFrame::OnMouse(wxMouseEvent& event)
 {
 	// next handlers are all for FreeLook, so we don't need to check them if disabled
