@@ -320,8 +320,6 @@ private:
 	void OnToggleWindow(wxCommandEvent& event);
 
 	void OnKeyDown(wxKeyEvent& event); // Keyboard
-	void OnKeyUp(wxKeyEvent& event);
-
 	void OnMouse(wxMouseEvent& event); // Mouse
 
 	void OnFocusChange(wxFocusEvent& event);
