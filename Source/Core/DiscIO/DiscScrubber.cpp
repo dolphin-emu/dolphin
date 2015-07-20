@@ -315,7 +315,7 @@ bool ParsePartitionData(SPartition& partition)
     for (SFileInfo file : filesystem->GetFileList())
     {
       DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
-      if ((file.m_NameOffset & 0x1000000) == 0)
+      if (!file.IsDirectory())
         MarkAsUsedE(partition.Offset + partition.Header.DataOffset, file.m_Offset, file.m_FileSize);
     }
   }
