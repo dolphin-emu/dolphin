@@ -103,9 +103,7 @@ extern "C"
 }
 	#define Crash() {DebugBreak();}
 
-	#if (_MSC_VER > 1800)
-	#error alignof compat can be removed
-	#else
+	#if (_MSC_VER <= 1800)
 	#define alignof(x) __alignof(x)
 	#endif
 #endif // WIN32 ndef
