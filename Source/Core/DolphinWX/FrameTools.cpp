@@ -1046,6 +1046,7 @@ void CFrame::StartGame(const std::string& filename)
 
 		m_RenderParent->SetFocus();
 
+		wxTheApp->Bind(wxEVT_KEY_DOWN,     &CFrame::OnKeyDown,     this);
 		wxTheApp->Bind(wxEVT_RIGHT_DOWN,   &CFrame::OnMouse,       this);
 		wxTheApp->Bind(wxEVT_RIGHT_UP,     &CFrame::OnMouse,       this);
 		wxTheApp->Bind(wxEVT_MIDDLE_DOWN,  &CFrame::OnMouse,       this);
