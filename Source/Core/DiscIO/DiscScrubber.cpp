@@ -222,7 +222,7 @@ bool DiscScrubber::ParsePartitionData(const Partition& partition, PartitionHeade
   for (const FileInfo& file : filesystem->GetFileList())
   {
     DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
-    if ((file.m_NameOffset & 0x1000000) == 0)
+    if (!file.IsDirectory())
       MarkAsUsedE(partition_data_offset, file.m_Offset, file.m_FileSize);
   }
 
