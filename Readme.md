@@ -50,29 +50,37 @@ On OS X, an application bundle will be created in `./Binaries`.
 On Linux, it's strongly recommended to perform a global installation via `sudo make install`.
 
 ## Installation on Android
-Dolphin requires [Android Studio](http://developer.android.com/tools/studio/index.html) to build
-the Android UI. Import the Gradle project located in `./Source/Android`, and then execute the
-Gradle task `assembleDebug` to build, or `installDebug` to install the UI onto a connected device.
 
-In order to launch the app, you must build and include the native Dolphin libraries into the UI project.
-(Building native code requires the [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html).)
-Android Studio will do this for you if you create `Source/Android/build.properties`, and place the
-following inside:
+These instructions assume familiarity with Android development. If you do not have an
+Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
+
+If using Android Studio, import the Gradle project located in `./Source/Android`. 
+
+Android apps are compiled using a build system called Gradle. Dolphin's native component,
+however, is compiled using CMake. The Gradle script will attempt to run a CMake build
+automatically while building the Java code, if you create the file `Source/Android/build.properties`,
+and place the following inside:
 
 ```
-makeArgs=<make-args>
+# Specifies arguments for the 'make' command. Can be blank.
+makeArgs=
+
+# The path to your machine's Git executable. Will autodetect if blank (on Linux only).
+gitPath=
+
+# The path to the CMake executable. Will autodetect if blank (on Linux only).
+cmakePath=
+
+# The path to the extracted NDK package. Will autodetect if blank (on Linux only).
+ndkPath=
 ```
 
-Replace `<make-args>` with any arguments you want to pass to `make`. If you need to use a specific
-version of git, cmake, or the NDK, you can also add `gitPath=<path>`, `cmakePath=<path>` or
-`ndkPath=<path>`, replacing `<path>` with the actual paths. Otherwise, these will be found
-automatically. Then execute the `assembleDebug` or `installDebug` task corresponding to the
-hardware platform you are targeting. For example, to deploy to a Nexus 9, which runs the AArch64
-architecture, execute `installArm_64Debug`. A list of available tasks can be found in Android
-Studio in the Gradle tray, located at the top-right corner of the IDE by default.
+If you prefer, you can run the CMake step manually, and it will copy the resulting
+binary into the correct location for inclusion in the Android APK.
 
-The native libraries will be compiled, and copied into `./Source/Android/app/libs`. Android Studio
-and Gradle will include any libraries in that folder into the APK at build time.
+Execute the Gradle task `assembleArm_64Debug` to build, or `installArm_64Debug` to
+install the application onto a connected device. If other ABIs are eventually supported,
+execute the tasks corresponding to the desired ABI.
 
 ## Uninstalling
 When Dolphin has been installed with the NSIS installer, you can uninstall

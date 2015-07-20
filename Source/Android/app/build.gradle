@@ -134,7 +134,11 @@ task compileNative(type: Exec, dependsOn: 'setupCMake') {
 
         executable 'make'
 
-        args buildProperties.makeArgs
+        if (buildProperties.makeArgs == null || buildProperties.makeArgs.isEmpty()) {
+            // TODO
+        } else {
+            args buildProperties.makeArgs
+        }
     } else {
         executable 'echo'
         args 'No build.properties found; skipping native build.'
@@ -144,13 +148,15 @@ task compileNative(type: Exec, dependsOn: 'setupCMake') {
 String getExecutablePath(String command) {
     def propsFile = rootProject.file("build.properties")
     def path = null
+
     if (propsFile.canRead()) {
         def buildProperties = new Properties()
         buildProperties.load(new FileInputStream(propsFile))
         println buildProperties
         path = buildProperties[command + "Path"]
     }
-    if (path == null) {
+
+    if (path == null || path.isEmpty()) {
         try {
             def stdout = new ByteArrayOutputStream()
 
@@ -164,21 +170,25 @@ String getExecutablePath(String command) {
             project.logger.error("Gradle error: Couldn't find " + command + " executable.")
         }
     }
+
     if (path != null) {
         project.logger.quiet("Gradle: Found " + command + " executuable:" + path)
     }
+
     return path
 }
 
 String getNdkPath() {
     def propsFile = rootProject.file("build.properties")
     def ndkPath = null
+
     if (propsFile.canRead()) {
         def buildProperties = new Properties()
         buildProperties.load(new FileInputStream(propsFile))
         ndkPath = buildProperties.ndkPath
     }
-    if (ndkPath == null) {
+
+    if (ndkPath == null || ndkPath.isEmpty()) {
         try {
             def stdout = new ByteArrayOutputStream()
 
@@ -194,6 +204,7 @@ String getNdkPath() {
             project.logger.error("Gradle error: Couldn't find NDK.")
         }
     }
+
     if (ndkPath != null) {
         project.logger.quiet("Gradle: Found Android NDK: " + ndkPath)
     }
