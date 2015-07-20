@@ -540,7 +540,16 @@ bool Host_RendererIsFullscreen()
 
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
-	CFrame::ConnectWiimote(wm_idx, connect);
+	if (connect)
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FORCE_CONNECT_WIIMOTE1 + wm_idx);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+	}
+	else
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FORCE_DISCONNECT_WIIMOTE1 + wm_idx);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+	}
 }
 
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
