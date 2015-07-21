@@ -78,64 +78,105 @@ public final class TvMainActivity extends Activity
 	{
 		mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
 
-		// For each row
-		for (int platformIndex = 0; platformIndex <= Game.PLATFORM_WII_WARE; ++platformIndex)
+		// For each platform
+		for (int platformIndex = 0; platformIndex <= Game.PLATFORM_ALL; ++platformIndex)
 		{
-			// Create an adapter for this row.
-			CursorObjectAdapter row = new CursorObjectAdapter(new GamePresenter(platformIndex));
+			ListRow row = buildGamesRow(platformIndex);
 
-			// Add items to the adapter.
-			Cursor games = getContentResolver().query(
-					GameProvider.URI_GAME,                        // URI of table to query
-					null,                                        // Return all columns
-					GameDatabase.KEY_GAME_PLATFORM + " = ?",    // Select by platform
-					new String[]{Integer.toString(platformIndex)},    // Platform id
-					GameDatabase.KEY_GAME_TITLE + " asc"        // Sort by game name, ascending order
-			);
-
-			row.swapCursor(games);
-			row.setMapper(new CursorMapper()
+			// Add row to the adapter only if it is not empty.
+			if (row != null)
 			{
-				@Override
-				protected void bindColumns(Cursor cursor)
-				{
-					// No-op? Not sure what this does.
-				}
-
-				@Override
-				protected Object bind(Cursor cursor)
-				{
-					return Game.fromCursor(cursor);
-				}
-			});
-
-			String headerName;
-			switch (platformIndex)
-			{
-				case Game.PLATFORM_GC:
-					headerName = "GameCube Games";
-					break;
-
-				case Game.PLATFORM_WII:
-					headerName = "Wii Games";
-					break;
-
-				case Game.PLATFORM_WII_WARE:
-					headerName = "WiiWare";
-					break;
-
-				default:
-					headerName = "Error";
-					break;
+				mRowsAdapter.add(row);
 			}
-
-			// Create a header for this row.
-			HeaderItem header = new HeaderItem(platformIndex, headerName);
-
-			// Create the row, passing it the filled adapter and the header, and give it to the master adapter.
-			mRowsAdapter.add(new ListRow(header, row));
 		}
 
 		mBrowseFragment.setAdapter(mRowsAdapter);
 	}
+
+	private ListRow buildGamesRow(int platform)
+	{
+		// Create an adapter for this row.
+		CursorObjectAdapter row = new CursorObjectAdapter(new GamePresenter(platform));
+
+		Cursor games;
+		if (platform == Game.PLATFORM_ALL)
+		{
+			// Get all games.
+			games = getContentResolver().query(
+					GameProvider.URI_GAME,                        // URI of table to query
+					null,                                        // Return all columns
+					null,                                        // Return all games
+					null,                                        // Return all games
+					GameDatabase.KEY_GAME_TITLE + " asc"        // Sort by game name, ascending order
+			);
+		}
+		else
+		{
+			// Get games for this particular platform.
+			games = getContentResolver().query(
+					GameProvider.URI_GAME,                        // URI of table to query
+					null,                                        // Return all columns
+					GameDatabase.KEY_GAME_PLATFORM + " = ?",    // Select by platform
+					new String[]{Integer.toString(platform)},    // Platform id
+					GameDatabase.KEY_GAME_TITLE + " asc"        // Sort by game name, ascending order
+			);
+		}
+
+		// If cursor is empty, don't return a Row.
+		if (!games.moveToFirst())
+		{
+			return null;
+		}
+
+		row.changeCursor(games);
+		row.setMapper(new CursorMapper()
+		{
+			@Override
+			protected void bindColumns(Cursor cursor)
+			{
+				// No-op? Not sure what this does.
+			}
+
+			@Override
+			protected Object bind(Cursor cursor)
+			{
+				return Game.fromCursor(cursor);
+			}
+		});
+
+		String headerName;
+		switch (platform)
+		{
+			case Game.PLATFORM_GC:
+				headerName = "GameCube Games";
+				break;
+
+			case Game.PLATFORM_WII:
+				headerName = "Wii Games";
+				break;
+
+			case Game.PLATFORM_WII_WARE:
+				headerName = "WiiWare";
+				break;
+
+			case Game.PLATFORM_ALL:
+				headerName = "All Games";
+				break;
+
+			default:
+				headerName = "Error";
+				break;
+		}
+
+		// Create a header for this row.
+		HeaderItem header = new HeaderItem(platform, headerName);
+
+		// Create the row, passing it the filled adapter and the header, and give it to the master adapter.
+		return new ListRow(header, row);
+	}
+
+	/*private ListRow buildSettingsRow()
+	{
+
+	}*/
 }

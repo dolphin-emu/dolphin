@@ -8,6 +8,7 @@ public final class Game
 	public static final int PLATFORM_GC = 0;
 	public static final int PLATFORM_WII = 1;
 	public static final int PLATFORM_WII_WARE = 2;
+	public static final int PLATFORM_ALL = 3;
 
 	// Copied from IVolume::ECountry. Update these if that is ever modified.
 	public static final int COUNTRY_EUROPE = 0;
