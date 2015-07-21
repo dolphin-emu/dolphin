@@ -250,6 +250,10 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	if (b_info->type != OPTYPE_INTEGER)
 		return false;
 
+	// And it's possible a might raise an interrupt too (fcmpo/fcmpu)
+	if (a_info->type != OPTYPE_INTEGER)
+		return false;
+
 	// Check that we have no register collisions.
 	// That is, check that none of b's outputs matches any of a's inputs,
 	// and that none of a's outputs matches any of b's inputs.
