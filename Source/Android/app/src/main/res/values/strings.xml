@@ -66,6 +66,7 @@
     <string name="overlay_slot3">Slot 3</string>
     <string name="overlay_slot4">Slot 4</string>
     <string name="overlay_slot5">Slot 5</string>
+    <string name="overlay_slot6">Slot 6</string>
 
     <!-- Input Config Fragment -->
     <string name="input_settings">Input</string>

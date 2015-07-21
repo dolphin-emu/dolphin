@@ -81,9 +81,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		mSurfaceView.getHolder().addCallback(this);
 
 		// If the input overlay was previously disabled, then don't show it.
-		if (!mPreferences.getBoolean("showInputOverlay", true))
+		if (mInputOverlay != null)
 		{
-			mInputOverlay.setVisibility(View.GONE);
+			if (!mPreferences.getBoolean("showInputOverlay", true))
+			{
+				mInputOverlay.setVisibility(View.GONE);
+			}
 		}
 
 

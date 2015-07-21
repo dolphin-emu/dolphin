@@ -95,9 +95,48 @@
         <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
+    <style name="DolphinEmulationTvBase" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/dolphin_blue</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+
+        <item name="android:windowBackground">@android:color/black</item>
+
+        <!--enable window content transitions-->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+    </style>
+
+    <!-- Inherit from the Base Dolphin Emulation Theme-->
+    <style name="DolphinEmulationTvWii" parent="DolphinEmulationTvBase">
+        <item name="colorAccent">@color/dolphin_accent_wii</item>
+    </style>
+
+    <style name="DolphinEmulationTvGamecube" parent="DolphinEmulationTvBase">
+        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
+    </style>
+
+    <style name="DolphinEmulationTvWiiware" parent="DolphinEmulationTvBase">
+        <item name="colorAccent">@color/dolphin_accent_wiiware</item>
+    </style>
+
     <!-- Hax to make Tablayout render icons -->
     <style name="MyCustomTextAppearance" parent="TextAppearance.Design.Tab">
         <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="InGameMenuOption" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:gravity">center_vertical|left</item>
+        <item name="android:paddingLeft">32dp</item>
+        <item name="android:paddingRight">32dp</item>
+        <item name="android:layout_margin">0dp</item>
     </style>
 
 </resources>
