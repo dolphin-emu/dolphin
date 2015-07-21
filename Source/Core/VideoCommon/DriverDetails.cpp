@@ -53,6 +53,7 @@ namespace DriverDetails
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENNEGATEDBOOLEAN,-1.0, -1.0, true},
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENIVECSHIFTS,    -1.0, 46.0, true},
 		{OS_ALL,    VENDOR_ARM,      DRIVER_ARM,          -1, BUG_BROKENBUFFERSTREAM,  -1.0, -1.0, true},
+		{OS_ALL,    VENDOR_IMGTEC,   DRIVER_IMGTEC,       -1, BUG_BROKENBUFFERSTREAM,  -1.0, -1.0, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_NOUVEAU,      -1, BUG_BROKENUBO,           900,  916, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_R600,         -1, BUG_BROKENUBO,           900,  913, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_I965,         -1, BUG_BROKENUBO,           900,  920, true},
