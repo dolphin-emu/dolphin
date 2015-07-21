@@ -868,7 +868,9 @@ void TASInputDlg::UpdateStickBitmap(Stick stick)
 		x = 256 - (u8)x;
 	if (stick.y_cont.reverse)
 		y = 256 - (u8)y;
-	stick.bitmap->SetBitmap(CreateStickBitmap(x, y));
+    	// If TASInputDlg::UpdateFromText(wxCommandEvent&) interrupts stick initialization, this bitmap is a nullptr
+    	if (stick.bitmap != nullptr)
+        	stick.bitmap->SetBitmap(CreateStickBitmap(x, y));
 }
 
 void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
