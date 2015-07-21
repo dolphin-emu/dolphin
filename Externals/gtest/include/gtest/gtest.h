@@ -70,14 +70,14 @@
 // class ::string, which has the same interface as ::std::string, but
 // has a different implementation.
 //
-// The user can define GTEST_HAS_GLOBAL_STRING to 1 to indicate that
+// You can define GTEST_HAS_GLOBAL_STRING to 1 to indicate that
 // ::string is available AND is a distinct type to ::std::string, or
 // define it to 0 to indicate otherwise.
 //
-// If the user's ::std::string and ::string are the same class due to
-// aliasing, he should define GTEST_HAS_GLOBAL_STRING to 0.
+// If ::std::string and ::string are the same class on your platform
+// due to aliasing, you should define GTEST_HAS_GLOBAL_STRING to 0.
 //
-// If the user doesn't define GTEST_HAS_GLOBAL_STRING, it is defined
+// If you do not define GTEST_HAS_GLOBAL_STRING, it is defined
 // heuristically.
 
 namespace testing {
@@ -258,8 +258,31 @@ class GTEST_API_ AssertionResult {
   // Copy constructor.
   // Used in EXPECT_TRUE/FALSE(assertion_result).
   AssertionResult(const AssertionResult& other);
+
+  GTEST_DISABLE_MSC_WARNINGS_PUSH_(4800 /* forcing value to bool */)
+
   // Used in the EXPECT_TRUE/FALSE(bool_expression).
-  explicit AssertionResult(bool success) : success_(success) {}
+  //
+  // T must be contextually convertible to bool.
+  //
+  // The second parameter prevents this overload from being considered if
+  // the argument is implicitly convertible to AssertionResult. In that case
+  // we want AssertionResult's copy constructor to be used.
+  template <typename T>
+  explicit AssertionResult(
+      const T& success,
+      typename internal::EnableIf<
+          !internal::ImplicitlyConvertible<T, AssertionResult>::value>::type*
+          /*enabler*/ = NULL)
+      : success_(success) {}
+
+  GTEST_DISABLE_MSC_WARNINGS_POP_()
+
+  // Assignment operator.
+  AssertionResult& operator=(AssertionResult other) {
+    swap(other);
+    return *this;
+  }
 
   // Returns true iff the assertion succeeded.
   operator bool() const { return success_; }  // NOLINT
@@ -300,6 +323,9 @@ class GTEST_API_ AssertionResult {
     message_->append(a_message.GetString().c_str());
   }
 
+  // Swap the contents of this AssertionResult with other.
+  void swap(AssertionResult& other);
+
   // Stores result of the assertion predicate.
   bool success_;
   // Stores the message describing the condition in case the expectation
@@ -307,8 +333,6 @@ class GTEST_API_ AssertionResult {
   // Referenced via a pointer to avoid taking too much stack frame space
   // with test assertions.
   internal::scoped_ptr< ::std::string> message_;
-
-  GTEST_DISALLOW_ASSIGN_(AssertionResult);
 };
 
 // Makes a successful assertion result.
@@ -335,8 +359,8 @@ GTEST_API_ AssertionResult AssertionFailure(const Message& msg);
 //
 //   class FooTest : public testing::Test {
 //    protected:
-//     virtual void SetUp() { ... }
-//     virtual void TearDown() { ... }
+//     void SetUp() override { ... }
+//     void TearDown() override { ... }
 //     ...
 //   };
 //
@@ -428,20 +452,19 @@ class GTEST_API_ Test {
   // internal method to avoid clashing with names used in user TESTs.
   void DeleteSelf_() { delete this; }
 
-  // Uses a GTestFlagSaver to save and restore all Google Test flags.
-  const internal::GTestFlagSaver* const gtest_flag_saver_;
+  const internal::scoped_ptr< GTEST_FLAG_SAVER_ > gtest_flag_saver_;
 
-  // Often a user mis-spells SetUp() as Setup() and spends a long time
+  // Often a user misspells SetUp() as Setup() and spends a long time
   // wondering why it is never called by Google Test.  The declaration of
   // the following method is solely for catching such an error at
   // compile time:
   //
   //   - The return type is deliberately chosen to be not void, so it
-  //   will be a conflict if a user declares void Setup() in his test
-  //   fixture.
+  //   will be a conflict if void Setup() is declared in the user's
+  //   test fixture.
   //
   //   - This method is private, so it will be another compiler error
-  //   if a user calls it from his test fixture.
+  //   if the method is called from the user's test fixture.
   //
   // DO NOT OVERRIDE THIS FUNCTION.
   //
@@ -646,6 +669,12 @@ class GTEST_API_ TestInfo {
     return NULL;
   }
 
+  // Returns the file name where this test is defined.
+  const char* file() const { return location_.file.c_str(); }
+
+  // Returns the line where this test is defined.
+  int line() const { return location_.line; }
+
   // Returns true if this test should run, that is if the test is not
   // disabled (or it is disabled but the also_run_disabled_tests flag has
   // been specified) and its full name matches the user-specified filter.
@@ -688,6 +717,7 @@ class GTEST_API_ TestInfo {
       const char* name,
       const char* type_param,
       const char* value_param,
+      internal::CodeLocation code_location,
       internal::TypeId fixture_class_id,
       Test::SetUpTestCaseFunc set_up_tc,
       Test::TearDownTestCaseFunc tear_down_tc,
@@ -699,6 +729,7 @@ class GTEST_API_ TestInfo {
            const std::string& name,
            const char* a_type_param,   // NULL if not a type-parameterized test
            const char* a_value_param,  // NULL if not a value-parameterized test
+           internal::CodeLocation a_code_location,
            internal::TypeId fixture_class_id,
            internal::TestFactoryBase* factory);
 
@@ -725,6 +756,7 @@ class GTEST_API_ TestInfo {
   // Text representation of the value parameter, or NULL if this is not a
   // value-parameterized test.
   const internal::scoped_ptr<const ::std::string> value_param_;
+  internal::CodeLocation location_;
   const internal::TypeId fixture_class_id_;   // ID of the test fixture class
   bool should_run_;                 // True iff this test should run
   bool is_disabled_;                // True iff this test is disabled
@@ -924,7 +956,7 @@ class GTEST_API_ TestCase {
 };
 
 // An Environment object is capable of setting up and tearing down an
-// environment.  The user should subclass this to define his own
+// environment.  You should subclass this to define your own
 // environment(s).
 //
 // An Environment object does the set-up and tear-down in virtual
@@ -1433,31 +1465,34 @@ std::string FormatForComparisonFailureMessage(
   return FormatForComparison<T1, T2>::Format(value);
 }
 
+// Separate the error generating code from the code path to reduce the stack
+// frame size of CmpHelperEQ. This helps reduce the overhead of some sanitizers
+// when calling EXPECT_* in a tight loop.
+template <typename T1, typename T2>
+AssertionResult CmpHelperEQFailure(const char* expected_expression,
+                                   const char* actual_expression,
+                                   const T1& expected, const T2& actual) {
+  return EqFailure(expected_expression,
+                   actual_expression,
+                   FormatForComparisonFailureMessage(expected, actual),
+                   FormatForComparisonFailureMessage(actual, expected),
+                   false);
+}
+
 // The helper function for {ASSERT|EXPECT}_EQ.
 template <typename T1, typename T2>
 AssertionResult CmpHelperEQ(const char* expected_expression,
                             const char* actual_expression,
                             const T1& expected,
                             const T2& actual) {
-#ifdef _MSC_VER
-# pragma warning(push)          // Saves the current warning state.
-# pragma warning(disable:4389)  // Temporarily disables warning on
-                                // signed/unsigned mismatch.
-#endif
-
+GTEST_DISABLE_MSC_WARNINGS_PUSH_(4389 /* signed/unsigned mismatch */)
   if (expected == actual) {
     return AssertionSuccess();
   }
+GTEST_DISABLE_MSC_WARNINGS_POP_()
 
-#ifdef _MSC_VER
-# pragma warning(pop)          // Restores the warning state.
-#endif
-
-  return EqFailure(expected_expression,
-                   actual_expression,
-                   FormatForComparisonFailureMessage(expected, actual),
-                   FormatForComparisonFailureMessage(actual, expected),
-                   false);
+  return CmpHelperEQFailure(expected_expression, actual_expression, expected,
+                            actual);
 }
 
 // With this overloaded version, we allow anonymous enums to be used
@@ -1545,6 +1580,19 @@ class EqHelper<true> {
   }
 };
 
+// Separate the error generating code from the code path to reduce the stack
+// frame size of CmpHelperOP. This helps reduce the overhead of some sanitizers
+// when calling EXPECT_OP in a tight loop.
+template <typename T1, typename T2>
+AssertionResult CmpHelperOpFailure(const char* expr1, const char* expr2,
+                                   const T1& val1, const T2& val2,
+                                   const char* op) {
+  return AssertionFailure()
+         << "Expected: (" << expr1 << ") " << op << " (" << expr2
+         << "), actual: " << FormatForComparisonFailureMessage(val1, val2)
+         << " vs " << FormatForComparisonFailureMessage(val2, val1);
+}
+
 // A macro for implementing the helper functions needed to implement
 // ASSERT_?? and EXPECT_??.  It is here just to avoid copy-and-paste
 // of similar code.
@@ -1555,6 +1603,7 @@ class EqHelper<true> {
 // with gcc 4.
 //
 // INTERNAL IMPLEMENTATION - DO NOT USE IN A USER PROGRAM.
+
 #define GTEST_IMPL_CMP_HELPER_(op_name, op)\
 template <typename T1, typename T2>\
 AssertionResult CmpHelper##op_name(const char* expr1, const char* expr2, \
@@ -1562,10 +1611,7 @@ AssertionResult CmpHelper##op_name(const char* expr1, const char* expr2, \
   if (val1 op val2) {\
     return AssertionSuccess();\
   } else {\
-    return AssertionFailure() \
-        << "Expected: (" << expr1 << ") " #op " (" << expr2\
-        << "), actual: " << FormatForComparisonFailureMessage(val1, val2)\
-        << " vs " << FormatForComparisonFailureMessage(val2, val1);\
+    return CmpHelperOpFailure(expr1, expr2, val1, val2, #op);\
   }\
 }\
 GTEST_API_ AssertionResult CmpHelper##op_name(\
@@ -2215,8 +2261,8 @@ bool StaticAssertTypeEq() {
 // The convention is to end the test case name with "Test".  For
 // example, a test case for the Foo class can be named FooTest.
 //
-// The user should put his test code between braces after using this
-// macro.  Example:
+// Test code should appear between braces after an invocation of
+// this macro.  Example:
 //
 //   TEST(FooTest, InitializesCorrectly) {
 //     Foo foo;

@@ -32,6 +32,7 @@
 // The Google C++ Testing Framework (Google Test)
 
 #include "gtest/gtest.h"
+#include "gtest/internal/custom/gtest.h"
 #include "gtest/gtest-spi.h"
 
 #include <ctype.h>
@@ -46,6 +47,8 @@
 #include <algorithm>
 #include <iomanip>
 #include <limits>
+#include <list>
+#include <map>
 #include <ostream>  // NOLINT
 #include <sstream>
 #include <vector>
@@ -80,6 +83,7 @@
 #elif GTEST_OS_WINDOWS_MOBILE  // We are on Windows CE.
 
 # include <windows.h>  // NOLINT
+# undef min
 
 #elif GTEST_OS_WINDOWS  // We are on Windows proper.
 
@@ -102,6 +106,7 @@
 // cpplint thinks that the header is already included, so we want to
 // silence it.
 # include <windows.h>  // NOLINT
+# undef min
 
 #else
 
@@ -124,6 +129,8 @@
 #if GTEST_CAN_STREAM_RESULTS_
 # include <arpa/inet.h>  // NOLINT
 # include <netdb.h>  // NOLINT
+# include <sys/socket.h>  // NOLINT
+# include <sys/types.h>  // NOLINT
 #endif
 
 // Indicates that this translation unit is part of Google Test's
@@ -183,6 +190,12 @@ bool g_help_flag = false;
 }  // namespace internal
 
 static const char* GetDefaultFilter() {
+#ifdef GTEST_TEST_FILTER_ENV_VAR_
+  const char* const testbridge_test_only = getenv(GTEST_TEST_FILTER_ENV_VAR_);
+  if (testbridge_test_only != NULL) {
+    return testbridge_test_only;
+  }
+#endif  // GTEST_TEST_FILTER_ENV_VAR_
   return kUniversalFilter;
 }
 
@@ -282,6 +295,13 @@ GTEST_DEFINE_bool_(
     "When this flag is specified, a failed assertion will throw an exception "
     "if exceptions are enabled or exit the program with a non-zero code "
     "otherwise.");
+
+#if GTEST_USE_OWN_FLAGFILE_FLAG_
+GTEST_DEFINE_string_(
+    flagfile,
+    internal::StringFromGTestEnv("flagfile", ""),
+    "This flag specifies the flagfile to read command-line flags from.");
+#endif  // GTEST_USE_OWN_FLAGFILE_FLAG_
 
 namespace internal {
 
@@ -772,8 +792,12 @@ int UnitTestImpl::test_to_run_count() const {
 // CurrentOsStackTraceExceptTop(1), Foo() will be included in the
 // trace but Bar() and CurrentOsStackTraceExceptTop() won't.
 std::string UnitTestImpl::CurrentOsStackTraceExceptTop(int skip_count) {
-  (void)skip_count;
-  return "";
+  return os_stack_trace_getter()->CurrentStackTrace(
+      static_cast<int>(GTEST_FLAG(stack_trace_depth)),
+      skip_count + 1
+      // Skips the user-specified number of frames plus this function
+      // itself.
+      );  // NOLINT
 }
 
 // Returns the current time in milliseconds.
@@ -802,21 +826,13 @@ TimeInMillis GetTimeInMillis() {
 #elif GTEST_OS_WINDOWS && !GTEST_HAS_GETTIMEOFDAY_
   __timeb64 now;
 
-# ifdef _MSC_VER
-
   // MSVC 8 deprecates _ftime64(), so we want to suppress warning 4996
   // (deprecated function) there.
   // TODO(kenton@google.com): Use GetTickCount()?  Or use
   //   SystemTimeToFileTime()
-#  pragma warning(push)          // Saves the current warning state.
-#  pragma warning(disable:4996)  // Temporarily disables warning 4996.
+  GTEST_DISABLE_MSC_WARNINGS_PUSH_(4996)
   _ftime64(&now);
-#  pragma warning(pop)           // Restores the warning state.
-# else
-
-  _ftime64(&now);
-
-# endif  // _MSC_VER
+  GTEST_DISABLE_MSC_WARNINGS_POP_()
 
   return static_cast<TimeInMillis>(now.time) * 1000 + now.millitm;
 #elif GTEST_HAS_GETTIMEOFDAY_
@@ -901,6 +917,23 @@ static void StreamWideCharsToMessage(const wchar_t* wstr, size_t length,
 
 #endif  // GTEST_HAS_STD_WSTRING || GTEST_HAS_GLOBAL_WSTRING
 
+void SplitString(const ::std::string& str, char delimiter,
+                 ::std::vector< ::std::string>* dest) {
+  ::std::vector< ::std::string> parsed;
+  ::std::string::size_type pos = 0;
+  while (::testing::internal::AlwaysTrue()) {
+    const ::std::string::size_type colon = str.find(delimiter, pos);
+    if (colon == ::std::string::npos) {
+      parsed.push_back(str.substr(pos));
+      break;
+    } else {
+      parsed.push_back(str.substr(pos, colon - pos));
+      pos = colon + 1;
+    }
+  }
+  dest->swap(parsed);
+}
+
 }  // namespace internal
 
 // Constructs an empty Message.
@@ -956,6 +989,13 @@ AssertionResult::AssertionResult(const AssertionResult& other)
                static_cast< ::std::string*>(NULL)) {
 }
 
+// Swaps two AssertionResults.
+void AssertionResult::swap(AssertionResult& other) {
+  using std::swap;
+  swap(success_, other.success_);
+  swap(message_, other.message_);
+}
+
 // Returns the assertion's negation. Used with EXPECT/ASSERT_FALSE.
 AssertionResult AssertionResult::operator!() const {
   AssertionResult negation(!success_);
@@ -981,6 +1021,276 @@ AssertionResult AssertionFailure(const Message& message) {
 }
 
 namespace internal {
+
+namespace edit_distance {
+std::vector<EditType> CalculateOptimalEdits(const std::vector<size_t>& left,
+                                            const std::vector<size_t>& right) {
+  std::vector<std::vector<double> > costs(
+      left.size() + 1, std::vector<double>(right.size() + 1));
+  std::vector<std::vector<EditType> > best_move(
+      left.size() + 1, std::vector<EditType>(right.size() + 1));
+
+  // Populate for empty right.
+  for (size_t l_i = 0; l_i < costs.size(); ++l_i) {
+    costs[l_i][0] = static_cast<double>(l_i);
+    best_move[l_i][0] = kRemove;
+  }
+  // Populate for empty left.
+  for (size_t r_i = 1; r_i < costs[0].size(); ++r_i) {
+    costs[0][r_i] = static_cast<double>(r_i);
+    best_move[0][r_i] = kAdd;
+  }
+
+  for (size_t l_i = 0; l_i < left.size(); ++l_i) {
+    for (size_t r_i = 0; r_i < right.size(); ++r_i) {
+      if (left[l_i] == right[r_i]) {
+        // Found a match. Consume it.
+        costs[l_i + 1][r_i + 1] = costs[l_i][r_i];
+        best_move[l_i + 1][r_i + 1] = kMatch;
+        continue;
+      }
+
+      const double add = costs[l_i + 1][r_i];
+      const double remove = costs[l_i][r_i + 1];
+      const double replace = costs[l_i][r_i];
+      if (add < remove && add < replace) {
+        costs[l_i + 1][r_i + 1] = add + 1;
+        best_move[l_i + 1][r_i + 1] = kAdd;
+      } else if (remove < add && remove < replace) {
+        costs[l_i + 1][r_i + 1] = remove + 1;
+        best_move[l_i + 1][r_i + 1] = kRemove;
+      } else {
+        // We make replace a little more expensive than add/remove to lower
+        // their priority.
+        costs[l_i + 1][r_i + 1] = replace + 1.00001;
+        best_move[l_i + 1][r_i + 1] = kReplace;
+      }
+    }
+  }
+
+  // Reconstruct the best path. We do it in reverse order.
+  std::vector<EditType> best_path;
+  for (size_t l_i = left.size(), r_i = right.size(); l_i > 0 || r_i > 0;) {
+    EditType move = best_move[l_i][r_i];
+    best_path.push_back(move);
+    l_i -= move != kAdd;
+    r_i -= move != kRemove;
+  }
+  std::reverse(best_path.begin(), best_path.end());
+  return best_path;
+}
+
+namespace {
+
+// Helper class to convert string into ids with deduplication.
+class InternalStrings {
+ public:
+  size_t GetId(const std::string& str) {
+    IdMap::iterator it = ids_.find(str);
+    if (it != ids_.end()) return it->second;
+    size_t id = ids_.size();
+    return ids_[str] = id;
+  }
+
+ private:
+  typedef std::map<std::string, size_t> IdMap;
+  IdMap ids_;
+};
+
+}  // namespace
+
+std::vector<EditType> CalculateOptimalEdits(
+    const std::vector<std::string>& left,
+    const std::vector<std::string>& right) {
+  std::vector<size_t> left_ids, right_ids;
+  {
+    InternalStrings intern_table;
+    for (size_t i = 0; i < left.size(); ++i) {
+      left_ids.push_back(intern_table.GetId(left[i]));
+    }
+    for (size_t i = 0; i < right.size(); ++i) {
+      right_ids.push_back(intern_table.GetId(right[i]));
+    }
+  }
+  return CalculateOptimalEdits(left_ids, right_ids);
+}
+
+namespace {
+
+// Helper class that holds the state for one hunk and prints it out to the
+// stream.
+// It reorders adds/removes when possible to group all removes before all
+// adds. It also adds the hunk header before printint into the stream.
+class Hunk {
+ public:
+  Hunk(size_t left_start, size_t right_start)
+      : left_start_(left_start),
+        right_start_(right_start),
+        adds_(),
+        removes_(),
+        common_() {}
+
+  void PushLine(char edit, const char* line) {
+    switch (edit) {
+      case ' ':
+        ++common_;
+        FlushEdits();
+        hunk_.push_back(std::make_pair(' ', line));
+        break;
+      case '-':
+        ++removes_;
+        hunk_removes_.push_back(std::make_pair('-', line));
+        break;
+      case '+':
+        ++adds_;
+        hunk_adds_.push_back(std::make_pair('+', line));
+        break;
+    }
+  }
+
+  void PrintTo(std::ostream* os) {
+    PrintHeader(os);
+    FlushEdits();
+    for (std::list<std::pair<char, const char*> >::const_iterator it =
+             hunk_.begin();
+         it != hunk_.end(); ++it) {
+      *os << it->first << it->second << "\n";
+    }
+  }
+
+  bool has_edits() const { return adds_ || removes_; }
+
+ private:
+  void FlushEdits() {
+    hunk_.splice(hunk_.end(), hunk_removes_);
+    hunk_.splice(hunk_.end(), hunk_adds_);
+  }
+
+  // Print a unified diff header for one hunk.
+  // The format is
+  //   "@@ -<left_start>,<left_length> +<right_start>,<right_length> @@"
+  // where the left/right parts are ommitted if unnecessary.
+  void PrintHeader(std::ostream* ss) const {
+    *ss << "@@ ";
+    if (removes_) {
+      *ss << "-" << left_start_ << "," << (removes_ + common_);
+    }
+    if (removes_ && adds_) {
+      *ss << " ";
+    }
+    if (adds_) {
+      *ss << "+" << right_start_ << "," << (adds_ + common_);
+    }
+    *ss << " @@\n";
+  }
+
+  size_t left_start_, right_start_;
+  size_t adds_, removes_, common_;
+  std::list<std::pair<char, const char*> > hunk_, hunk_adds_, hunk_removes_;
+};
+
+}  // namespace
+
+// Create a list of diff hunks in Unified diff format.
+// Each hunk has a header generated by PrintHeader above plus a body with
+// lines prefixed with ' ' for no change, '-' for deletion and '+' for
+// addition.
+// 'context' represents the desired unchanged prefix/suffix around the diff.
+// If two hunks are close enough that their contexts overlap, then they are
+// joined into one hunk.
+std::string CreateUnifiedDiff(const std::vector<std::string>& left,
+                              const std::vector<std::string>& right,
+                              size_t context) {
+  const std::vector<EditType> edits = CalculateOptimalEdits(left, right);
+
+  size_t l_i = 0, r_i = 0, edit_i = 0;
+  std::stringstream ss;
+  while (edit_i < edits.size()) {
+    // Find first edit.
+    while (edit_i < edits.size() && edits[edit_i] == kMatch) {
+      ++l_i;
+      ++r_i;
+      ++edit_i;
+    }
+
+    // Find the first line to include in the hunk.
+    const size_t prefix_context = std::min(l_i, context);
+    Hunk hunk(l_i - prefix_context + 1, r_i - prefix_context + 1);
+    for (size_t i = prefix_context; i > 0; --i) {
+      hunk.PushLine(' ', left[l_i - i].c_str());
+    }
+
+    // Iterate the edits until we found enough suffix for the hunk or the input
+    // is over.
+    size_t n_suffix = 0;
+    for (; edit_i < edits.size(); ++edit_i) {
+      if (n_suffix >= context) {
+        // Continue only if the next hunk is very close.
+        std::vector<EditType>::const_iterator it = edits.begin() + edit_i;
+        while (it != edits.end() && *it == kMatch) ++it;
+        if (it == edits.end() || (it - edits.begin()) - edit_i >= context) {
+          // There is no next edit or it is too far away.
+          break;
+        }
+      }
+
+      EditType edit = edits[edit_i];
+      // Reset count when a non match is found.
+      n_suffix = edit == kMatch ? n_suffix + 1 : 0;
+
+      if (edit == kMatch || edit == kRemove || edit == kReplace) {
+        hunk.PushLine(edit == kMatch ? ' ' : '-', left[l_i].c_str());
+      }
+      if (edit == kAdd || edit == kReplace) {
+        hunk.PushLine('+', right[r_i].c_str());
+      }
+
+      // Advance indices, depending on edit type.
+      l_i += edit != kAdd;
+      r_i += edit != kRemove;
+    }
+
+    if (!hunk.has_edits()) {
+      // We are done. We don't want this hunk.
+      break;
+    }
+
+    hunk.PrintTo(&ss);
+  }
+  return ss.str();
+}
+
+}  // namespace edit_distance
+
+namespace {
+
+// The string representation of the values received in EqFailure() are already
+// escaped. Split them on escaped '\n' boundaries. Leave all other escaped
+// characters the same.
+std::vector<std::string> SplitEscapedString(const std::string& str) {
+  std::vector<std::string> lines;
+  size_t start = 0, end = str.size();
+  if (end > 2 && str[0] == '"' && str[end - 1] == '"') {
+    ++start;
+    --end;
+  }
+  bool escaped = false;
+  for (size_t i = start; i + 1 < end; ++i) {
+    if (escaped) {
+      escaped = false;
+      if (str[i] == 'n') {
+        lines.push_back(str.substr(start, i - start - 1));
+        start = i + 1;
+      }
+    } else {
+      escaped = str[i] == '\\';
+    }
+  }
+  lines.push_back(str.substr(start, end - start));
+  return lines;
+}
+
+}  // namespace
 
 // Constructs and returns the message for an equality assertion
 // (e.g. ASSERT_EQ, EXPECT_STREQ, etc) failure.
@@ -1014,6 +1324,17 @@ AssertionResult EqFailure(const char* expected_expression,
   }
   if (expected_value != expected_expression) {
     msg << "\nWhich is: " << expected_value;
+  }
+
+  if (!expected_value.empty() && !actual_value.empty()) {
+    const std::vector<std::string> expected_lines =
+        SplitEscapedString(expected_value);
+    const std::vector<std::string> actual_lines =
+        SplitEscapedString(actual_value);
+    if (expected_lines.size() > 1 || actual_lines.size() > 1) {
+      msg << "\nWith diff:\n"
+          << edit_distance::CreateUnifiedDiff(expected_lines, actual_lines);
+    }
   }
 
   return AssertionFailure() << msg;
@@ -1887,14 +2208,15 @@ int TestResult::test_property_count() const {
 
 // Creates a Test object.
 
-// The c'tor saves the values of all Google Test flags.
+// The c'tor saves the states of all flags.
 Test::Test()
-    : gtest_flag_saver_(new internal::GTestFlagSaver) {
+    : gtest_flag_saver_(new GTEST_FLAG_SAVER_) {
 }
 
-// The d'tor restores the values of all Google Test flags.
+// The d'tor restores the states of all flags.  The actual work is
+// done by the d'tor of the gtest_flag_saver_ field, and thus not
+// visible here.
 Test::~Test() {
-  delete gtest_flag_saver_;
 }
 
 // Sets up the test fixture.
@@ -1963,8 +2285,8 @@ bool Test::HasSameFixtureClass() {
     const bool this_is_TEST = this_fixture_id == internal::GetTestTypeId();
 
     if (first_is_TEST || this_is_TEST) {
-      // The user mixed TEST and TEST_F in this test case - we'll tell
-      // him/her how to fix it.
+      // Both TEST and TEST_F appear in same test case, which is incorrect.
+      // Tell the user how to fix this.
 
       // Gets the name of the TEST and the name of the TEST_F.  Note
       // that first_is_TEST and this_is_TEST cannot both be true, as
@@ -1984,8 +2306,8 @@ bool Test::HasSameFixtureClass() {
           << "want to change the TEST to TEST_F or move it to another test\n"
           << "case.";
     } else {
-      // The user defined two fixture classes with the same name in
-      // two namespaces - we'll tell him/her how to fix it.
+      // Two fixture classes with the same name appear in two different
+      // namespaces, which is not allowed. Tell the user how to fix this.
       ADD_FAILURE()
           << "All tests in the same test case must use the same test fixture\n"
           << "class.  However, in test case "
@@ -2178,12 +2500,14 @@ TestInfo::TestInfo(const std::string& a_test_case_name,
                    const std::string& a_name,
                    const char* a_type_param,
                    const char* a_value_param,
+                   internal::CodeLocation a_code_location,
                    internal::TypeId fixture_class_id,
                    internal::TestFactoryBase* factory)
     : test_case_name_(a_test_case_name),
       name_(a_name),
       type_param_(a_type_param ? new std::string(a_type_param) : NULL),
       value_param_(a_value_param ? new std::string(a_value_param) : NULL),
+      location_(a_code_location),
       fixture_class_id_(fixture_class_id),
       should_run_(false),
       is_disabled_(false),
@@ -2207,6 +2531,7 @@ namespace internal {
 //                     this is not a typed or a type-parameterized test.
 //   value_param:      text representation of the test's value parameter,
 //                     or NULL if this is not a value-parameterized test.
+//   code_location:    code location where the test is defined
 //   fixture_class_id: ID of the test fixture class
 //   set_up_tc:        pointer to the function that sets up the test case
 //   tear_down_tc:     pointer to the function that tears down the test case
@@ -2218,20 +2543,21 @@ TestInfo* MakeAndRegisterTestInfo(
     const char* name,
     const char* type_param,
     const char* value_param,
+    CodeLocation code_location,
     TypeId fixture_class_id,
     SetUpTestCaseFunc set_up_tc,
     TearDownTestCaseFunc tear_down_tc,
     TestFactoryBase* factory) {
   TestInfo* const test_info =
       new TestInfo(test_case_name, name, type_param, value_param,
-                   fixture_class_id, factory);
+                   code_location, fixture_class_id, factory);
   GetUnitTestImpl()->AddTestInfo(set_up_tc, tear_down_tc, test_info);
   return test_info;
 }
 
 #if GTEST_HAS_PARAM_TEST
 void ReportInvalidTestCaseType(const char* test_case_name,
-                               const char* file, int line) {
+                               CodeLocation code_location) {
   Message errors;
   errors
       << "Attempted redefinition of test case " << test_case_name << ".\n"
@@ -2243,7 +2569,9 @@ void ReportInvalidTestCaseType(const char* test_case_name,
       << "probably rename one of the classes to put the tests into different\n"
       << "test cases.";
 
-  fprintf(stderr, "%s %s", FormatFileLocation(file, line).c_str(),
+  fprintf(stderr, "%s %s",
+          FormatFileLocation(code_location.file.c_str(),
+                             code_location.line).c_str(),
           errors.GetString().c_str());
 }
 #endif  // GTEST_HAS_PARAM_TEST
@@ -2554,7 +2882,8 @@ enum GTestColor {
   COLOR_YELLOW
 };
 
-#if GTEST_OS_WINDOWS && !GTEST_OS_WINDOWS_MOBILE
+#if GTEST_OS_WINDOWS && !GTEST_OS_WINDOWS_MOBILE && \
+    !GTEST_OS_WINDOWS_PHONE && !GTEST_OS_WINDOWS_RT
 
 // Returns the character attribute for the given color.
 WORD GetColorAttribute(GTestColor color) {
@@ -2599,6 +2928,8 @@ bool ShouldUseColor(bool stdout_is_tty) {
         String::CStringEquals(term, "xterm-256color") ||
         String::CStringEquals(term, "screen") ||
         String::CStringEquals(term, "screen-256color") ||
+        String::CStringEquals(term, "rxvt-unicode") ||
+        String::CStringEquals(term, "rxvt-unicode-256color") ||
         String::CStringEquals(term, "linux") ||
         String::CStringEquals(term, "cygwin");
     return stdout_is_tty && term_supports_color;
@@ -2622,8 +2953,9 @@ void ColoredPrintf(GTestColor color, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
 
-#if GTEST_OS_WINDOWS_MOBILE || GTEST_OS_SYMBIAN || GTEST_OS_ZOS || GTEST_OS_IOS
-  const bool use_color = false;
+#if GTEST_OS_WINDOWS_MOBILE || GTEST_OS_SYMBIAN || GTEST_OS_ZOS || \
+    GTEST_OS_IOS || GTEST_OS_WINDOWS_PHONE || GTEST_OS_WINDOWS_RT
+  const bool use_color = AlwaysFalse();
 #else
   static const bool in_color_mode =
       ShouldUseColor(posix::IsATTY(posix::FileNo(stdout)) != 0);
@@ -2637,7 +2969,8 @@ void ColoredPrintf(GTestColor color, const char* fmt, ...) {
     return;
   }
 
-#if GTEST_OS_WINDOWS && !GTEST_OS_WINDOWS_MOBILE
+#if GTEST_OS_WINDOWS && !GTEST_OS_WINDOWS_MOBILE && \
+    !GTEST_OS_WINDOWS_PHONE && !GTEST_OS_WINDOWS_RT
   const HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
   // Gets the current text color.
@@ -3212,34 +3545,39 @@ std::string XmlUnitTestResultPrinter::RemoveInvalidXmlCharacters(
 // Formats the given time in milliseconds as seconds.
 std::string FormatTimeInMillisAsSeconds(TimeInMillis ms) {
   ::std::stringstream ss;
-  ss << ms/1000.0;
+  ss << (static_cast<double>(ms) * 1e-3);
   return ss.str();
+}
+
+static bool PortableLocaltime(time_t seconds, struct tm* out) {
+#if defined(_MSC_VER)
+  return localtime_s(out, &seconds) == 0;
+#elif defined(__MINGW32__) || defined(__MINGW64__)
+  // MINGW <time.h> provides neither localtime_r nor localtime_s, but uses
+  // Windows' localtime(), which has a thread-local tm buffer.
+  struct tm* tm_ptr = localtime(&seconds);  // NOLINT
+  if (tm_ptr == NULL)
+    return false;
+  *out = *tm_ptr;
+  return true;
+#else
+  return localtime_r(&seconds, out) != NULL;
+#endif
 }
 
 // Converts the given epoch time in milliseconds to a date string in the ISO
 // 8601 format, without the timezone information.
 std::string FormatEpochTimeInMillisAsIso8601(TimeInMillis ms) {
-  // Using non-reentrant version as localtime_r is not portable.
-  time_t seconds = static_cast<time_t>(ms / 1000);
-#ifdef _MSC_VER
-# pragma warning(push)          // Saves the current warning state.
-# pragma warning(disable:4996)  // Temporarily disables warning 4996
-                                // (function or variable may be unsafe).
-  const struct tm* const time_struct = localtime(&seconds);  // NOLINT
-# pragma warning(pop)           // Restores the warning state again.
-#else
-  const struct tm* const time_struct = localtime(&seconds);  // NOLINT
-#endif
-  if (time_struct == NULL)
-    return "";  // Invalid ms value
-
+  struct tm time_struct;
+  if (!PortableLocaltime(static_cast<time_t>(ms / 1000), &time_struct))
+    return "";
   // YYYY-MM-DDThh:mm:ss
-  return StreamableToString(time_struct->tm_year + 1900) + "-" +
-      String::FormatIntWidth2(time_struct->tm_mon + 1) + "-" +
-      String::FormatIntWidth2(time_struct->tm_mday) + "T" +
-      String::FormatIntWidth2(time_struct->tm_hour) + ":" +
-      String::FormatIntWidth2(time_struct->tm_min) + ":" +
-      String::FormatIntWidth2(time_struct->tm_sec);
+  return StreamableToString(time_struct.tm_year + 1900) + "-" +
+      String::FormatIntWidth2(time_struct.tm_mon + 1) + "-" +
+      String::FormatIntWidth2(time_struct.tm_mday) + "T" +
+      String::FormatIntWidth2(time_struct.tm_hour) + ":" +
+      String::FormatIntWidth2(time_struct.tm_min) + ":" +
+      String::FormatIntWidth2(time_struct.tm_sec);
 }
 
 // Streams an XML CDATA section, escaping invalid CDATA sequences as needed.
@@ -3502,26 +3840,15 @@ ScopedTrace::~ScopedTrace()
 
 // class OsStackTraceGetter
 
-// Returns the current OS stack trace as an std::string.  Parameters:
-//
-//   max_depth  - the maximum number of stack frames to be included
-//                in the trace.
-//   skip_count - the number of top frames to be skipped; doesn't count
-//                against max_depth.
-//
-string OsStackTraceGetter::CurrentStackTrace(int /* max_depth */,
-                                             int /* skip_count */)
-    GTEST_LOCK_EXCLUDED_(mutex_) {
+const char* const OsStackTraceGetterInterface::kElidedFramesMarker =
+    "... " GTEST_NAME_ " internal frames ...";
+
+string OsStackTraceGetter::CurrentStackTrace(int /*max_depth*/,
+                                             int /*skip_count*/) {
   return "";
 }
 
-void OsStackTraceGetter::UponLeavingGTest()
-    GTEST_LOCK_EXCLUDED_(mutex_) {
-}
-
-const char* const
-OsStackTraceGetter::kElidedFramesMarker =
-    "... " GTEST_NAME_ " internal frames ...";
+void OsStackTraceGetter::UponLeavingGTest() {}
 
 // A helper class that creates the premature-exit file in its
 // constructor and deletes the file in its destructor.
@@ -3812,7 +4139,7 @@ void UnitTest::AddTestPartResult(
     // with another testing framework) and specify the former on the
     // command line for debugging.
     if (GTEST_FLAG(break_on_failure)) {
-#if GTEST_OS_WINDOWS
+#if GTEST_OS_WINDOWS && !GTEST_OS_WINDOWS_PHONE && !GTEST_OS_WINDOWS_RT
       // Using DebugBreak on Windows allows gtest to still break into a debugger
       // when a failure happens and both the --gtest_break_on_failure and
       // the --gtest_catch_exceptions flags are specified.
@@ -3890,7 +4217,7 @@ int UnitTest::Run() {
   // process. In either case the user does not want to see pop-up dialogs
   // about crashes - they are expected.
   if (impl()->catch_exceptions() || in_death_test_child_process) {
-# if !GTEST_OS_WINDOWS_MOBILE
+# if !GTEST_OS_WINDOWS_MOBILE && !GTEST_OS_WINDOWS_PHONE && !GTEST_OS_WINDOWS_RT
     // SetErrorMode doesn't exist on CE.
     SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOALIGNMENTFAULTEXCEPT |
                  SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
@@ -3993,17 +4320,10 @@ namespace internal {
 
 UnitTestImpl::UnitTestImpl(UnitTest* parent)
     : parent_(parent),
-#ifdef _MSC_VER
-# pragma warning(push)                    // Saves the current warning state.
-# pragma warning(disable:4355)            // Temporarily disables warning 4355
-                                         // (using this in initializer).
+      GTEST_DISABLE_MSC_WARNINGS_PUSH_(4355 /* using this in initializer */)
       default_global_test_part_result_reporter_(this),
       default_per_thread_test_part_result_reporter_(this),
-# pragma warning(pop)                     // Restores the warning state again.
-#else
-      default_global_test_part_result_reporter_(this),
-      default_per_thread_test_part_result_reporter_(this),
-#endif  // _MSC_VER
+      GTEST_DISABLE_MSC_WARNINGS_POP_()
       global_test_part_result_repoter_(
           &default_global_test_part_result_reporter_),
       per_thread_test_part_result_reporter_(
@@ -4583,7 +4903,11 @@ void UnitTestImpl::set_os_stack_trace_getter(
 // getter, and returns it.
 OsStackTraceGetterInterface* UnitTestImpl::os_stack_trace_getter() {
   if (os_stack_trace_getter_ == NULL) {
+#ifdef GTEST_OS_STACK_TRACE_GETTER_
+    os_stack_trace_getter_ = new GTEST_OS_STACK_TRACE_GETTER_;
+#else
     os_stack_trace_getter_ = new OsStackTraceGetter;
+#endif  // GTEST_OS_STACK_TRACE_GETTER_
   }
 
   return os_stack_trace_getter_;
@@ -4882,6 +5206,58 @@ static const char kColorEncodedHelpMessage[] =
 "(not one in your own code or tests), please report it to\n"
 "@G<" GTEST_DEV_EMAIL_ ">@D.\n";
 
+bool ParseGoogleTestFlag(const char* const arg) {
+  return ParseBoolFlag(arg, kAlsoRunDisabledTestsFlag,
+                       &GTEST_FLAG(also_run_disabled_tests)) ||
+      ParseBoolFlag(arg, kBreakOnFailureFlag,
+                    &GTEST_FLAG(break_on_failure)) ||
+      ParseBoolFlag(arg, kCatchExceptionsFlag,
+                    &GTEST_FLAG(catch_exceptions)) ||
+      ParseStringFlag(arg, kColorFlag, &GTEST_FLAG(color)) ||
+      ParseStringFlag(arg, kDeathTestStyleFlag,
+                      &GTEST_FLAG(death_test_style)) ||
+      ParseBoolFlag(arg, kDeathTestUseFork,
+                    &GTEST_FLAG(death_test_use_fork)) ||
+      ParseStringFlag(arg, kFilterFlag, &GTEST_FLAG(filter)) ||
+      ParseStringFlag(arg, kInternalRunDeathTestFlag,
+                      &GTEST_FLAG(internal_run_death_test)) ||
+      ParseBoolFlag(arg, kListTestsFlag, &GTEST_FLAG(list_tests)) ||
+      ParseStringFlag(arg, kOutputFlag, &GTEST_FLAG(output)) ||
+      ParseBoolFlag(arg, kPrintTimeFlag, &GTEST_FLAG(print_time)) ||
+      ParseInt32Flag(arg, kRandomSeedFlag, &GTEST_FLAG(random_seed)) ||
+      ParseInt32Flag(arg, kRepeatFlag, &GTEST_FLAG(repeat)) ||
+      ParseBoolFlag(arg, kShuffleFlag, &GTEST_FLAG(shuffle)) ||
+      ParseInt32Flag(arg, kStackTraceDepthFlag,
+                     &GTEST_FLAG(stack_trace_depth)) ||
+      ParseStringFlag(arg, kStreamResultToFlag,
+                      &GTEST_FLAG(stream_result_to)) ||
+      ParseBoolFlag(arg, kThrowOnFailureFlag,
+                    &GTEST_FLAG(throw_on_failure));
+}
+
+#if GTEST_USE_OWN_FLAGFILE_FLAG_
+void LoadFlagsFromFile(const std::string& path) {
+  FILE* flagfile = posix::FOpen(path.c_str(), "r");
+  if (!flagfile) {
+    fprintf(stderr,
+            "Unable to open file \"%s\"\n",
+            GTEST_FLAG(flagfile).c_str());
+    fflush(stderr);
+    exit(EXIT_FAILURE);
+  }
+  std::string contents(ReadEntireFile(flagfile));
+  posix::FClose(flagfile);
+  std::vector<std::string> lines;
+  SplitString(contents, '\n', &lines);
+  for (size_t i = 0; i < lines.size(); ++i) {
+    if (lines[i].empty())
+      continue;
+    if (!ParseGoogleTestFlag(lines[i].c_str()))
+      g_help_flag = true;
+  }
+}
+#endif  // GTEST_USE_OWN_FLAGFILE_FLAG_
+
 // Parses the command line for Google Test flags, without initializing
 // other parts of Google Test.  The type parameter CharType can be
 // instantiated to either char or wchar_t.
@@ -4895,35 +5271,24 @@ void ParseGoogleTestFlagsOnlyImpl(int* argc, CharType** argv) {
     using internal::ParseInt32Flag;
     using internal::ParseStringFlag;
 
-    // Do we see a Google Test flag?
-    if (ParseBoolFlag(arg, kAlsoRunDisabledTestsFlag,
-                      &GTEST_FLAG(also_run_disabled_tests)) ||
-        ParseBoolFlag(arg, kBreakOnFailureFlag,
-                      &GTEST_FLAG(break_on_failure)) ||
-        ParseBoolFlag(arg, kCatchExceptionsFlag,
-                      &GTEST_FLAG(catch_exceptions)) ||
-        ParseStringFlag(arg, kColorFlag, &GTEST_FLAG(color)) ||
-        ParseStringFlag(arg, kDeathTestStyleFlag,
-                        &GTEST_FLAG(death_test_style)) ||
-        ParseBoolFlag(arg, kDeathTestUseFork,
-                      &GTEST_FLAG(death_test_use_fork)) ||
-        ParseStringFlag(arg, kFilterFlag, &GTEST_FLAG(filter)) ||
-        ParseStringFlag(arg, kInternalRunDeathTestFlag,
-                        &GTEST_FLAG(internal_run_death_test)) ||
-        ParseBoolFlag(arg, kListTestsFlag, &GTEST_FLAG(list_tests)) ||
-        ParseStringFlag(arg, kOutputFlag, &GTEST_FLAG(output)) ||
-        ParseBoolFlag(arg, kPrintTimeFlag, &GTEST_FLAG(print_time)) ||
-        ParseInt32Flag(arg, kRandomSeedFlag, &GTEST_FLAG(random_seed)) ||
-        ParseInt32Flag(arg, kRepeatFlag, &GTEST_FLAG(repeat)) ||
-        ParseBoolFlag(arg, kShuffleFlag, &GTEST_FLAG(shuffle)) ||
-        ParseInt32Flag(arg, kStackTraceDepthFlag,
-                       &GTEST_FLAG(stack_trace_depth)) ||
-        ParseStringFlag(arg, kStreamResultToFlag,
-                        &GTEST_FLAG(stream_result_to)) ||
-        ParseBoolFlag(arg, kThrowOnFailureFlag,
-                      &GTEST_FLAG(throw_on_failure))
-        ) {
-      // Yes.  Shift the remainder of the argv list left by one.  Note
+    bool remove_flag = false;
+    if (ParseGoogleTestFlag(arg)) {
+      remove_flag = true;
+#if GTEST_USE_OWN_FLAGFILE_FLAG_
+    } else if (ParseStringFlag(arg, kFlagfileFlag, &GTEST_FLAG(flagfile))) {
+      LoadFlagsFromFile(GTEST_FLAG(flagfile));
+      remove_flag = true;
+#endif  // GTEST_USE_OWN_FLAGFILE_FLAG_
+    } else if (arg_string == "--help" || arg_string == "-h" ||
+               arg_string == "-?" || arg_string == "/?" ||
+               HasGoogleTestFlagPrefix(arg)) {
+      // Both help flag and unrecognized Google Test flags (excluding
+      // internal ones) trigger help display.
+      g_help_flag = true;
+    }
+
+    if (remove_flag) {
+      // Shift the remainder of the argv list left by one.  Note
       // that argv has (*argc + 1) elements, the last one always being
       // NULL.  The following loop moves the trailing NULL element as
       // well.
@@ -4937,12 +5302,6 @@ void ParseGoogleTestFlagsOnlyImpl(int* argc, CharType** argv) {
       // We also need to decrement the iterator as we just removed
       // an element.
       i--;
-    } else if (arg_string == "--help" || arg_string == "-h" ||
-               arg_string == "-?" || arg_string == "/?" ||
-               HasGoogleTestFlagPrefix(arg)) {
-      // Both help flag and unrecognized Google Test flags (excluding
-      // internal ones) trigger help display.
-      g_help_flag = true;
     }
   }
 
