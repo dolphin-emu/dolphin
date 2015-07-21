@@ -16,15 +16,8 @@ import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
  * The Leanback library / docs call this a Presenter, but it works very
  * similarly to a RecyclerView.ViewHolder.
  */
-public final class GamePresenter extends Presenter
+public final class GameRowPresenter extends Presenter
 {
-	private int mPlatform;
-
-	public GamePresenter(int platform)
-	{
-		mPlatform = platform;
-	}
-
 	public ViewHolder onCreateViewHolder(ViewGroup parent)
 	{
 		// Create a new view.
@@ -80,6 +73,25 @@ public final class GamePresenter extends Presenter
 		holder.country = game.getCountry();
 		holder.company = game.getCompany();
 		holder.screenshotPath = game.getScreenshotPath();
+
+		switch (game.getPlatform())
+		{
+			case Game.PLATFORM_GC:
+				holder.cardParent.setTag(R.color.dolphin_accent_gamecube);
+				break;
+
+			case Game.PLATFORM_WII:
+				holder.cardParent.setTag(R.color.dolphin_accent_wii);
+				break;
+
+			case Game.PLATFORM_WII_WARE:
+				holder.cardParent.setTag(R.color.dolphin_accent_wiiware);
+				break;
+
+			default:
+				holder.cardParent.setTag(android.R.color.holo_red_dark);
+				break;
+		}
 	}
 
 	public void onUnbindViewHolder(ViewHolder viewHolder)
@@ -93,24 +105,8 @@ public final class GamePresenter extends Presenter
 
 		if (selected)
 		{
-			switch (mPlatform)
-			{
-				case Game.PLATFORM_GC:
-					backgroundColor = R.color.dolphin_accent_gamecube;
-					break;
-
-				case Game.PLATFORM_WII:
-					backgroundColor = R.color.dolphin_accent_wii;
-					break;
-
-				case Game.PLATFORM_WII_WARE:
-					backgroundColor = R.color.dolphin_accent_wiiware;
-					break;
-
-				default:
-					backgroundColor = android.R.color.holo_red_dark;
-					break;
-			}
+			// TODO: 7/20/15 Try using view tag to set color
+			backgroundColor = (int) view.getTag();
 		}
 		else
 		{

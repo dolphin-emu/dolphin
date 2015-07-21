@@ -4,19 +4,16 @@ import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 /**
  * A simple class that stores references to views so that the GameAdapter doesn't need to
  * keep calling findViewById(), which is expensive.
  */
-public class TvGameViewHolder extends Presenter.ViewHolder
+public final class TvGameViewHolder extends Presenter.ViewHolder
 {
 	public ImageCardView cardParent;
 
 	public ImageView imageScreenshot;
-	public TextView textGameTitle;
-	public TextView textCompany;
 
 	public String gameId;
 
@@ -27,6 +24,8 @@ public class TvGameViewHolder extends Presenter.ViewHolder
 	public int country;
 	public String company;
 	public String screenshotPath;
+
+	public int backgroundColor;
 
 	public TvGameViewHolder(View itemView)
 	{

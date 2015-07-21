@@ -35,7 +35,7 @@ import org.dolphinemu.dolphinemu.services.AssetCopyService;
  */
 public final class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
 {
-	private static final int REQUEST_ADD_DIRECTORY = 1;
+	public static final int REQUEST_ADD_DIRECTORY = 1;
 	public static final int REQUEST_EMULATE_GAME = 2;
 
 	/**
@@ -139,6 +139,7 @@ public final class MainActivity extends AppCompatActivity implements LoaderManag
 				{
 					fragment.refreshScreenshotAtPosition(resultCode);
 				}
+				break;
 		}
 	}
 

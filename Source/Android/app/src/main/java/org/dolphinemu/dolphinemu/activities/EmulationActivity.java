@@ -50,8 +50,8 @@ public final class EmulationActivity extends AppCompatActivity
 	private boolean mSystemUiVisible;
 	private boolean mMenuVisible;
 
-	private static Interpolator sDecelerator = new DecelerateInterpolator();
-	private static Interpolator sAccelerator = new AccelerateInterpolator();
+	private static final Interpolator sDecelerator = new DecelerateInterpolator();
+	private static final Interpolator sAccelerator = new AccelerateInterpolator();
 
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
