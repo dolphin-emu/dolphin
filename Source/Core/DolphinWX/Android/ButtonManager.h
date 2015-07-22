@@ -11,6 +11,7 @@ namespace ButtonManager
 {
 	enum ButtonType
 	{
+		// GC
 		BUTTON_A = 0,
 		BUTTON_B = 1,
 		BUTTON_START = 2,
@@ -33,6 +34,18 @@ namespace ButtonManager
 		STICK_C_RIGHT = 19,
 		TRIGGER_L = 20,
 		TRIGGER_R = 21,
+		// Wiimote
+		WIIMOTE_BUTTON_A = 22,
+		WIIMOTE_BUTTON_B = 23,
+		WIIMOTE_BUTTON_MINUS = 24,
+		WIIMOTE_BUTTON_PLUS = 25,
+		WIIMOTE_BUTTON_HOME = 26,
+		WIIMOTE_BUTTON_1 = 27,
+		WIIMOTE_BUTTON_2 = 28,
+		WIIMOTE_UP = 29,
+		WIIMOTE_DOWN = 30,
+		WIIMOTE_LEFT = 31,
+		WIIMOTE_RIGHT = 32,
 	};
 	enum ButtonState
 	{

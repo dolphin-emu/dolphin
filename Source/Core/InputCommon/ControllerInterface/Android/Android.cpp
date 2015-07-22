@@ -17,6 +17,10 @@ void Init( std::vector<Core::Device*>& devices )
 	devices.push_back(new Touchscreen(1));
 	devices.push_back(new Touchscreen(2));
 	devices.push_back(new Touchscreen(3));
+	devices.push_back(new Touchscreen(4));
+	devices.push_back(new Touchscreen(5));
+	devices.push_back(new Touchscreen(6));
+	devices.push_back(new Touchscreen(7));
 }
 
 // Touchscreens and stuff
@@ -37,6 +41,7 @@ int Touchscreen::GetId() const
 Touchscreen::Touchscreen(int padID)
 	: _padID(padID)
 {
+	// GC
 	AddInput(new Button(_padID, ButtonManager::BUTTON_A));
 	AddInput(new Button(_padID, ButtonManager::BUTTON_B));
 	AddInput(new Button(_padID, ButtonManager::BUTTON_START));
@@ -53,6 +58,19 @@ Touchscreen::Touchscreen(int padID)
 	AddAnalogInputs(new Axis(_padID, ButtonManager::STICK_C_UP), new Axis(_padID, ButtonManager::STICK_C_DOWN));
 	AddAnalogInputs(new Axis(_padID, ButtonManager::TRIGGER_L), new Axis(_padID, ButtonManager::TRIGGER_L));
 	AddAnalogInputs(new Axis(_padID, ButtonManager::TRIGGER_R), new Axis(_padID, ButtonManager::TRIGGER_R));
+
+	// Wiimote
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_BUTTON_A));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_BUTTON_B));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_BUTTON_MINUS));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_BUTTON_PLUS));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_BUTTON_HOME));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_BUTTON_1));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_BUTTON_2));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_UP));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_DOWN));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_LEFT));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_RIGHT));
 }
 // Buttons and stuff
 
