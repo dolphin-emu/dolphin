@@ -923,9 +923,9 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
 
-	out.Write("\ttevin_a = int4(%s, %s)&255;\n", tevCInputTable[cc.a], tevAInputTable[ac.a]);
-	out.Write("\ttevin_b = int4(%s, %s)&255;\n", tevCInputTable[cc.b], tevAInputTable[ac.b]);
-	out.Write("\ttevin_c = int4(%s, %s)&255;\n", tevCInputTable[cc.c], tevAInputTable[ac.c]);
+	out.Write("\ttevin_a = int4(%s, %s)&int4(255, 255, 255, 255);\n", tevCInputTable[cc.a], tevAInputTable[ac.a]);
+	out.Write("\ttevin_b = int4(%s, %s)&int4(255, 255, 255, 255);\n", tevCInputTable[cc.b], tevAInputTable[ac.b]);
+	out.Write("\ttevin_c = int4(%s, %s)&int4(255, 255, 255, 255);\n", tevCInputTable[cc.c], tevAInputTable[ac.c]);
 	out.Write("\ttevin_d = int4(%s, %s);\n", tevCInputTable[cc.d], tevAInputTable[ac.d]);
 
 	out.Write("\t// color combine\n");
