@@ -189,7 +189,7 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 
 bool IsRunning()
 {
-	return (GetState() != CORE_UNINITIALIZED) || s_hardware_initialized;
+	return (GetState() != CORE_UNINITIALIZED || s_hardware_initialized) && !s_is_stopping;
 }
 
 bool IsRunningAndStarted()
