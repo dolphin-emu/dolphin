@@ -1,5 +1,4 @@
-set(SRCS GLExtensions/GLExtensions.cpp
-	   BoundingBox.cpp
+set(SRCS BoundingBox.cpp
 	   FramebufferManager.cpp
 	   GLUtil.cpp
 	   main.cpp
@@ -45,6 +44,7 @@ set(LIBS	${LIBS}
 			videocommon
 			SOIL
 			common
+			epoxy
 			${X11_LIBRARIES})
 if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD)
 	set(LIBS ${LIBS} dl)

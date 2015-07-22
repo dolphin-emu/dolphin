@@ -5,6 +5,8 @@
 #pragma once
 
 #include <string>
+#include <epoxy/wgl.h>
+
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 
 class cInterfaceWGL : public cInterfaceBase

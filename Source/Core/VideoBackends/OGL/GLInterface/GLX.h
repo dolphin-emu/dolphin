@@ -5,7 +5,7 @@
 #pragma once
 
 #include <string>
-#include <GL/glx.h>
+#include <epoxy/glx.h>
 
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLInterface/X11_Util.h"
