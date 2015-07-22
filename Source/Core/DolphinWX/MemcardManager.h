@@ -123,9 +123,6 @@ class CMemcardManager : public wxDialog
 
 		class CMemcardListCtrl : public wxListCtrl
 		{
-//BEGIN_EVENT_TABLE(CMemcardManager::CMemcardListCtrl, wxListCtrl)
-//      EVT_RIGHT_DOWN(CMemcardManager::CMemcardListCtrl::OnRightClick)
-//END_EVENT_TABLE()
 		public:
 			CMemcardListCtrl(wxWindow* parent, const wxWindowID id,
 				const wxPoint& pos, const wxSize& size,
