@@ -1158,7 +1158,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::OnFocusChange(wxFocusEvent& event)
 {
-	if (SConfig::GetInstance().m_PauseOnFocusLost)
+	if (SConfig::GetInstance().m_PauseOnFocusLost && Core::IsRunningAndStarted())
 	{
 		if (RendererHasFocus())
 		{
