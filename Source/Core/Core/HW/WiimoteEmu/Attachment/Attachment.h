@@ -17,6 +17,7 @@ public:
 	Attachment(const char* const _name, WiimoteEmu::ExtensionReg& _reg);
 
 	virtual void GetState(u8* const data) {}
+	virtual bool IsButtonPressed() const { return false; }
 	void Reset();
 	std::string GetName() const override;
 
