@@ -119,7 +119,8 @@ void EnableCompression(bool compression)
 	g_use_compression = compression;
 }
 
-static std::string DoState(PointerWrap& p)
+// Returns true if state version matches current Dolphin state version, false otherwise.
+static bool DoStateVersion(PointerWrap& p, std::string* version_created_by)
 {
 	u32 version = STATE_VERSION;
 	{
@@ -129,15 +130,15 @@ static std::string DoState(PointerWrap& p)
 		version = cookie - COOKIE_BASE;
 	}
 
-	std::string version_created_by = scm_rev_str;
+	*version_created_by = scm_rev_str;
 	if (version > 42)
-		p.Do(version_created_by);
+		p.Do(*version_created_by);
 	else
-		version_created_by.clear();
+		version_created_by->clear();
 
 	if (version != STATE_VERSION)
 	{
-		if (version_created_by.empty() && s_old_versions.count(version))
+		if (version_created_by->empty() && s_old_versions.count(version))
 		{
 			// The savestate is from an old version that doesn't
 			// save the Dolphin version number to savestates, but
@@ -148,17 +149,27 @@ static std::string DoState(PointerWrap& p)
 			std::string oldest_version = version_range.first;
 			std::string newest_version = version_range.second;
 
-			version_created_by = "Dolphin " + oldest_version + " - " + newest_version;
+			*version_created_by = "Dolphin " + oldest_version + " - " + newest_version;
 		}
 
+		return false;
+	}
+
+	p.DoMarker("Version");
+	return true;
+}
+
+static std::string DoState(PointerWrap& p)
+{
+	std::string version_created_by;
+	if (!DoStateVersion(p, &version_created_by))
+	{
 		// because the version doesn't match, fail.
 		// this will trigger an OSD message like "Can't load state from other revisions"
 		// we could use the version numbers to maintain some level of backward compatibility, but currently don't.
 		p.SetMode(PointerWrap::MODE_MEASURE);
 		return version_created_by;
 	}
-
-	p.DoMarker("Version");
 
 	// Begin with video backend, so that it gets a chance to clear its caches and writeback modified things to RAM
 	g_video_backend->DoState(p);
