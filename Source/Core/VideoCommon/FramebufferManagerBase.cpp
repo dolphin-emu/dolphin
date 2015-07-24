@@ -123,9 +123,9 @@ void FramebufferManagerBase::CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, 
 		CopyToVirtualXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
 }
 
-void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 {
-	VirtualXFBListType::iterator vxfb = FindVirtualXFB(xfbAddr, fbWidth, fbHeight);
+	VirtualXFBListType::iterator vxfb = FindVirtualXFB(xfbAddr, sourceRc.GetWidth(), fbHeight);
 
 	if (m_virtualXFBList.end() == vxfb)
 	{
@@ -165,7 +165,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 	}
 
 	vxfb->xfbSource->srcAddr = vxfb->xfbAddr = xfbAddr;
-	vxfb->xfbSource->srcWidth = vxfb->xfbWidth = fbWidth;
+	vxfb->xfbSource->srcWidth = vxfb->xfbWidth = sourceRc.GetWidth();
 	vxfb->xfbSource->srcHeight = vxfb->xfbHeight = fbHeight;
 
 	vxfb->xfbSource->sourceRc = g_renderer->ConvertEFBRectangle(sourceRc);
