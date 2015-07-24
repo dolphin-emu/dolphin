@@ -36,7 +36,7 @@ std::string Touchscreen::GetSource() const
 
 int Touchscreen::GetId() const
 {
-	return 0;
+	return _padID;
 }
 Touchscreen::Touchscreen(int padID)
 	: _padID(padID)
