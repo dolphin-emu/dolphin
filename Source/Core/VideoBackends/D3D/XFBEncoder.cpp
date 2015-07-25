@@ -288,7 +288,7 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 	D3D::stateman->PushDepthState(m_xfbEncodeDepthState);
 	D3D::stateman->PushRasterizerState(m_xfbEncodeRastState);
 
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(width/4), FLOAT(height));
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(width/2), FLOAT(height));
 	D3D::context->RSSetViewports(1, &vp);
 
 	D3D::stateman->SetInputLayout(m_quadLayout);
@@ -300,7 +300,7 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(srcRect);
 
 	XFBEncodeParams params = { 0 };
-	params.Width = FLOAT(width/2);
+	params.Width = FLOAT(width);
 	params.Height = FLOAT(height);
 	params.TexLeft = FLOAT(targetRect.left) / g_renderer->GetTargetWidth();
 	params.TexTop = FLOAT(targetRect.top) / g_renderer->GetTargetHeight();
@@ -325,7 +325,7 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
 	// Copy to staging buffer
 
-	D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, width/4, height, 1);
+	D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, width/2, height, 1);
 	D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
 
 	// Clean up state
@@ -353,7 +353,7 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 	u8* src = (u8*)map.pData;
 	for (unsigned int y = 0; y < height; ++y)
 	{
-		memcpy(dst, src, width);
+		memcpy(dst, src, 2*width);
 		dst += bpmem.copyMipMapStrideChannels*32;
 		src += map.RowPitch;
 	}
