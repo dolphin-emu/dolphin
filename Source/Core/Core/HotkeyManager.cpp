@@ -159,16 +159,14 @@ bool IsPressed(int Id, bool held)
 	unsigned int setKey = Id % 32;
 	if (s_hotkey.button[set] & (1 << setKey))
 	{
+		bool pressed = !!(s_hotkeyDown[set] & (1 << setKey));
 		s_hotkeyDown[set] |= (1 << setKey);
-		if (held)
+		if (!pressed || held)
 			return true;
 	}
 	else
 	{
-		bool pressed = !!(s_hotkeyDown[set] & (1 << setKey));
 		s_hotkeyDown[set] &= ~(1 << setKey);
-		if (pressed)
-			return true;
 	}
 
 	return false;
