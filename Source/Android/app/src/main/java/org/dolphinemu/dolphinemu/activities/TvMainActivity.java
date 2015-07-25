@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.database.CursorMapper;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
@@ -19,6 +21,7 @@ import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.widget.Toast;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
@@ -26,6 +29,7 @@ import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
+import org.dolphinemu.dolphinemu.services.AssetCopyService;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
 public final class TvMainActivity extends Activity
@@ -111,6 +115,23 @@ public final class TvMainActivity extends Activity
 						}
 					}
 				});
+
+		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
+		if (savedInstanceState == null)
+		{
+			NativeLibrary.SetUserDirectory(""); // Auto-Detect
+
+			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+			boolean assetsCopied = preferences.getBoolean("assetsCopied", false);
+
+			// Only perform these extensive copy operations once.
+			if (!assetsCopied)
+			{
+				// Copy assets into appropriate locations.
+				Intent copyAssets = new Intent(this, AssetCopyService.class);
+				startService(copyAssets);
+			}
+		}
 	}
 
 	/**
