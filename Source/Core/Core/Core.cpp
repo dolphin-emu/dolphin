@@ -162,7 +162,7 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 
 bool IsRunning()
 {
-	return (GetState() != CORE_UNINITIALIZED) || s_hardware_initialized;
+	return (GetState() != CORE_UNINITIALIZED || s_hardware_initialized) && !s_is_stopping;
 }
 
 bool IsRunningAndStarted()
@@ -273,8 +273,6 @@ void Stop()  // - Hammertime!
 
 		g_video_backend->Video_ExitLoop();
 	}
-	if (s_emu_thread.joinable())
-		s_emu_thread.join();
 }
 
 static void DeclareAsCPUThread()
@@ -827,6 +825,18 @@ void UpdateTitle()
 	}
 
 	Host_UpdateTitle(SMessage);
+}
+
+void Shutdown()
+{
+	// During shutdown DXGI expects us to handle some messages on the UI thread.
+	// Therefore we can't immediately block and wait for the emu thread to shut
+	// down, so we join the emu thread as late as possible when the UI has already
+	// shut down.
+	// For more info read "DirectX Graphics Infrastructure (DXGI): Best Practices"
+	// on MSDN.
+	if (s_emu_thread.joinable())
+		s_emu_thread.join();
 }
 
 void SetOnStoppedCallback(StoppedCallbackFunc callback)
