@@ -1154,7 +1154,9 @@ void CFrame::DoStop()
 				wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
 				wxDefaultPosition);
 
+			HotkeyManagerEmu::Enable(false);
 			int Ret = m_StopDlg.ShowModal();
+			HotkeyManagerEmu::Enable(true);
 			if (Ret != wxID_YES)
 			{
 				Core::SetState(state);
@@ -1298,29 +1300,37 @@ void CFrame::OnReset(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 {
 	CConfigMain ConfigMain(this);
+	HotkeyManagerEmu::Enable(false);
 	if (ConfigMain.ShowModal() == wxID_OK)
 		m_GameListCtrl->Update();
+	HotkeyManagerEmu::Enable(true);
 	UpdateGUI();
 }
 
 void CFrame::OnConfigGFX(wxCommandEvent& WXUNUSED (event))
 {
+	HotkeyManagerEmu::Enable(false);
 	if (g_video_backend)
 		g_video_backend->ShowConfig(this);
+	HotkeyManagerEmu::Enable(true);
 }
 
 void CFrame::OnConfigAudio(wxCommandEvent& WXUNUSED (event))
 {
 	CConfigMain ConfigMain(this);
 	ConfigMain.SetSelectedTab(CConfigMain::ID_AUDIOPAGE);
+	HotkeyManagerEmu::Enable(false);
 	if (ConfigMain.ShowModal() == wxID_OK)
 		m_GameListCtrl->Update();
+	HotkeyManagerEmu::Enable(true);
 }
 
 void CFrame::OnConfigControllers(wxCommandEvent& WXUNUSED (event))
 {
 	ControllerConfigDiag config_dlg(this);
+	HotkeyManagerEmu::Enable(false);
 	config_dlg.ShowModal();
+	HotkeyManagerEmu::Enable(true);
 }
 
 void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
@@ -1365,7 +1375,9 @@ void CFrame::OnHelp(wxCommandEvent& event)
 	case wxID_ABOUT:
 		{
 			AboutDolphin frame(this);
+			HotkeyManagerEmu::Enable(false);
 			frame.ShowModal();
+			HotkeyManagerEmu::Enable(true);
 		}
 		break;
 	case IDM_HELP_WEBSITE:
@@ -1425,7 +1437,9 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 {
 	CMemcardManager MemcardManager(this);
+	HotkeyManagerEmu::Enable(false);
 	MemcardManager.ShowModal();
+	HotkeyManagerEmu::Enable(true);
 }
 
 void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED (event))
