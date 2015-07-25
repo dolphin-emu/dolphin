@@ -159,10 +159,10 @@ FramebufferManager::~FramebufferManager()
 	SAFE_RELEASE(m_efb.resolved_depth_tex);
 }
 
-void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
+void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
 	u8* dst = Memory::GetPointer(xfbAddr);
-	s_xfbEncoder.Encode(dst, fbWidth, fbHeight, sourceRc, Gamma);
+	s_xfbEncoder.Encode(dst, fbStride, fbHeight, sourceRc, Gamma);
 }
 
 XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)

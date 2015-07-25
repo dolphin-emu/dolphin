@@ -213,12 +213,12 @@ void Shutdown()
 	s_texConvFrameBuffer[1] = 0;
 }
 
+// dst_line_size, writeStride in bytes
+
 static void EncodeToRamUsingShader(GLuint srcTexture,
-						u8* destAddr, int dstWidth, int dstHeight, int readStride,
-						bool linearFilter)
+						u8* destAddr, u32 dst_line_size, u32 dstHeight,
+						u32 writeStride, bool linearFilter)
 {
-
-
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
@@ -234,19 +234,13 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	else
 		g_sampler_cache->BindNearestSampler(9);
 
-	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
+	glViewport(0, 0, (GLsizei)(dst_line_size / 4), (GLsizei)dstHeight);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	// .. and then read back the results.
-	// TODO: make this less slow.
+	int dstSize = dst_line_size * dstHeight;
 
-	int writeStride = bpmem.copyMipMapStrideChannels * 32;
-	int dstSize = dstWidth*dstHeight*4;
-	int readHeight = readStride / dstWidth / 4; // 4 bytes per pixel
-	int readLoops = dstHeight / readHeight;
-
-	if (writeStride != readStride && readLoops > 1)
+	if ((writeStride != dst_line_size) && (dstHeight > 1))
 	{
 		// writing to a texture of a different size
 		// also copy more then one block line, so the different strides matters
@@ -255,13 +249,13 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 		// CPU overhead because of the pbo
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, s_PBO);
 		glBufferData(GL_PIXEL_PACK_BUFFER, dstSize, nullptr, GL_STREAM_READ);
-		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+		glReadPixels(0, 0, (GLsizei)(dst_line_size / 4), (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
 		u8* pbo = (u8*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, dstSize, GL_MAP_READ_BIT);
 
-		for (int i = 0; i < readLoops; i++)
+		for (size_t i = 0; i < dstHeight; ++i)
 		{
-			memcpy(destAddr, pbo, readStride);
-			pbo += readStride;
+			memcpy(destAddr, pbo, dst_line_size);
+			pbo += dst_line_size;
 			destAddr += writeStride;
 		}
 
@@ -270,11 +264,11 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	}
 	else
 	{
-		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+		glReadPixels(0, 0, (GLsizei)(dst_line_size / 4), (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 	}
 }
 
-int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
+int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source, u32 writeStride)
 {
 	u32 format = copyfmt;
 
@@ -323,13 +317,13 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		cacheLinesPerRow = numBlocksX;
 
 	EncodeToRamUsingShader(source_texture,
-		dest_ptr, cacheLinesPerRow * 8, numBlocksY, cacheLinesPerRow * 32,
-		bScaleByHalf > 0 && !bFromZBuffer);
+		dest_ptr, cacheLinesPerRow * 32, numBlocksY,
+		writeStride, bScaleByHalf > 0 && !bFromZBuffer);
 	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
 
 }
 
-void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)
+void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, u32 dstWidth, u32 dstStride, u32 dstHeight)
 {
 	g_renderer->ResetAPIState();
 
@@ -341,7 +335,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	// We enable linear filtering, because the GameCube does filtering in the vertical direction when
 	// yscale is enabled.
 	// Otherwise we get jaggies when a game uses yscaling (most PAL games)
-	EncodeToRamUsingShader(srcTexture, destAddr, dstWidth / 2, dstHeight, dstWidth*dstHeight*2, true);
+	EncodeToRamUsingShader(srcTexture, destAddr, dstWidth * 2, dstHeight, dstStride, true);
 	FramebufferManager::SetFramebuffer(0);
 	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
