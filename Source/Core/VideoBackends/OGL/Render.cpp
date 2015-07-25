@@ -303,7 +303,7 @@ static void InitDriverInfo()
 			int major = 0;
 			int minor = 0;
 			int release = 0;
-			sscanf(g_ogl_config.gl_version, "%*s Mesa %d.%d.%d", &major, &minor, &release);
+			sscanf(g_ogl_config.gl_version, "%*s (Core Profile) Mesa %d.%d.%d", &major, &minor, &release);
 			version = 100*major + 10*minor + release;
 		}
 		break;
@@ -469,10 +469,11 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsGeometryShaders = GLExtensions::Version() >= 320;
 	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object");
 	g_Config.backend_info.bSupportsClipControl = GLExtensions::Supports("GL_ARB_clip_control");
-	g_ogl_config.bSupportsCopySubImage = GLExtensions::Supports("GL_ARB_copy_image") ||
-	                                     GLExtensions::Supports("GL_NV_copy_image") ||
-	                                     GLExtensions::Supports("GL_EXT_copy_image") ||
-	                                     GLExtensions::Supports("GL_OES_copy_image");
+	g_ogl_config.bSupportsCopySubImage = (GLExtensions::Supports("GL_ARB_copy_image") ||
+	                                      GLExtensions::Supports("GL_NV_copy_image") ||
+	                                      GLExtensions::Supports("GL_EXT_copy_image") ||
+	                                      GLExtensions::Supports("GL_OES_copy_image")) &&
+	                                      !DriverDetails::HasBug(DriverDetails::BUG_BROKENCOPYIMAGE);
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
