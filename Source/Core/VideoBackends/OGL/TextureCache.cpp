@@ -147,7 +147,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 	TCacheEntry* srcentry = (TCacheEntry*)source;
 	if (srcrect.GetWidth() == dstrect.GetWidth()
 		&& srcrect.GetHeight() == dstrect.GetHeight()
-		&& g_ActiveConfig.backend_info.bSupportsCopySubImage)
+		&& g_ogl_config.bSupportsCopySubImage)
 	{
 		glCopyImageSubData(
 			srcentry->texture,
@@ -167,9 +167,11 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 			1);
 		return;
 	}
-	else if (!config.rendertarget)
+	else if (!framebuffer)
 	{
-		return;
+		glGenFramebuffers(1, &framebuffer);
+		FramebufferManager::SetFramebuffer(framebuffer);
+		FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, texture, 0);
 	}
 	g_renderer->ResetAPIState();
 	FramebufferManager::SetFramebuffer(framebuffer);

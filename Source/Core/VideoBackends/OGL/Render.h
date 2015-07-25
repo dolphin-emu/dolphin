@@ -36,6 +36,7 @@ struct VideoConfig
 	bool bSupportViewportFloat;
 	bool bSupportsAEP;
 	bool bSupportsDebug;
+	bool bSupportsCopySubImage;
 
 	const char* gl_vendor;
 	const char* gl_renderer;
