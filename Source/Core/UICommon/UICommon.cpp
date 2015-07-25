@@ -6,6 +6,8 @@
 #include <shlobj.h>    // for SHGetFolderPath
 #endif
 
+#include <stdlib.h>    // for exit
+
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
@@ -137,11 +139,16 @@ void SetUserDirectory(const std::string& custom_path)
 		user_path += DIR_SEP;
 #else
 	if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
+	{
 		user_path = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
+	}
 	else
-		user_path = std::string(getenv("HOME") ?
-			getenv("HOME") : getenv("PWD") ?
-			getenv("PWD") : "") + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+	{
+		File::DeleteDirRecursively(std::string(getenv("HOME")) + "/.config/dolphin-emu");
+		File::DeleteDirRecursively(std::string(getenv("HOME")) + "/.local/share/dolphin-emu");
+		File::DeleteDirRecursively(std::string(getenv("HOME")) + "/.cache/dolphin-emu");
+		exit(1);
+	}
 #endif
 	File::SetUserPath(D_USER_IDX, user_path);
 }
