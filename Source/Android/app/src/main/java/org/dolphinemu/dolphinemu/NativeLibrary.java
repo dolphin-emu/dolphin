@@ -25,28 +25,39 @@ public final class NativeLibrary
 	 */
 	public static final class ButtonType
 	{
-		public static final int BUTTON_A         = 0;
-		public static final int BUTTON_B         = 1;
-		public static final int BUTTON_START     = 2;
-		public static final int BUTTON_X         = 3;
-		public static final int BUTTON_Y         = 4;
-		public static final int BUTTON_Z         = 5;
-		public static final int BUTTON_UP        = 6;
-		public static final int BUTTON_DOWN      = 7;
-		public static final int BUTTON_LEFT      = 8;
-		public static final int BUTTON_RIGHT     = 9;
-		public static final int STICK_MAIN       = 10;
-		public static final int STICK_MAIN_UP    = 11;
-		public static final int STICK_MAIN_DOWN  = 12;
-		public static final int STICK_MAIN_LEFT  = 13;
-		public static final int STICK_MAIN_RIGHT = 14;
-		public static final int STICK_C          = 15;
-		public static final int STICK_C_UP       = 16;
-		public static final int STICK_C_DOWN     = 17;
-		public static final int STICK_C_LEFT     = 18;
-		public static final int STICK_C_RIGHT    = 19;
-		public static final int TRIGGER_L        = 20;
-		public static final int TRIGGER_R        = 21;
+		public static final int BUTTON_A             = 0;
+		public static final int BUTTON_B             = 1;
+		public static final int BUTTON_START         = 2;
+		public static final int BUTTON_X             = 3;
+		public static final int BUTTON_Y             = 4;
+		public static final int BUTTON_Z             = 5;
+		public static final int BUTTON_UP            = 6;
+		public static final int BUTTON_DOWN          = 7;
+		public static final int BUTTON_LEFT          = 8;
+		public static final int BUTTON_RIGHT         = 9;
+		public static final int STICK_MAIN           = 10;
+		public static final int STICK_MAIN_UP        = 11;
+		public static final int STICK_MAIN_DOWN      = 12;
+		public static final int STICK_MAIN_LEFT      = 13;
+		public static final int STICK_MAIN_RIGHT     = 14;
+		public static final int STICK_C              = 15;
+		public static final int STICK_C_UP           = 16;
+		public static final int STICK_C_DOWN         = 17;
+		public static final int STICK_C_LEFT         = 18;
+		public static final int STICK_C_RIGHT        = 19;
+		public static final int TRIGGER_L            = 20;
+		public static final int TRIGGER_R            = 21;
+		public static final int WIIMOTE_BUTTON_A     = 22;
+		public static final int WIIMOTE_BUTTON_B     = 23;
+		public static final int WIIMOTE_BUTTON_MINUS = 24;
+		public static final int WIIMOTE_BUTTON_PLUS  = 25;
+		public static final int WIIMOTE_BUTTON_HOME  = 26;
+		public static final int WIIMOTE_BUTTON_1     = 27;
+		public static final int WIIMOTE_BUTTON_2     = 28;
+		public static final int WIIMOTE_UP           = 29;
+		public static final int WIIMOTE_DOWN         = 30;
+		public static final int WIIMOTE_LEFT         = 31;
+		public static final int WIIMOTE_RIGHT        = 32;
 	}
 
 	/**
