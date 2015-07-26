@@ -706,6 +706,13 @@ bool DSPAssembler::VerifyParams(const opc_t *opc, param_t *par, int count, bool 
 // Merge opcode with params.
 void DSPAssembler::BuildCode(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf)
 {
+	if (par_count >= sizeof(opc->params) / sizeof(opc->params[0]))
+	{
+		fprintf(stderr, "par_count is too large\n");
+		ShowError(ERR_OUT_RANGE_NUMBER);
+		return;
+	}
+
 	outbuf[m_cur_addr] |= opc->opcode;
 	for (u32 i = 0; i < par_count; i++)
 	{
