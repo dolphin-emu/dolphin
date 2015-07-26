@@ -1,7 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
+    // Leanback support requires >22
+    compileSdkVersion 22
     buildToolsVersion "22.0.1"
 
     lintOptions {
@@ -79,6 +80,9 @@ dependencies {
     compile 'com.android.support:cardview-v7:22.2.0'
     compile 'com.android.support:recyclerview-v7:22.2.0'
     compile 'com.android.support:design:22.2.0'
+
+    // Android TV UI libraries.
+    compile 'com.android.support:leanback-v17:22.2.0'
 
     // For showing the banner as a circle a-la Material Design Guidelines
     compile 'de.hdodenhof:circleimageview:1.2.2'
