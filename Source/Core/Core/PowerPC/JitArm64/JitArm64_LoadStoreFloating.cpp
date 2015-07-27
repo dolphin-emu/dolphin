@@ -230,6 +230,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 				break;
 				case 695: // stfsux
 					flags |= BackPatchInfo::FLAG_SIZE_F32;
+					update = true;
 					offset_reg = b;
 				break;
 				case 727: // stfdx
