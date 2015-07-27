@@ -71,7 +71,9 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 	u32 imm_addr = 0;
 	bool is_immediate = false;
 
-	fpr.BindToRegister(inst.FD, false);
+	// 64 bit loads only load PSR0
+	fpr.BindToRegister(inst.FD, flags & BackPatchInfo::FLAG_SIZE_F64);
+
 	ARM64Reg VD = fpr.R(inst.FD);
 	ARM64Reg addr_reg = W0;
 
