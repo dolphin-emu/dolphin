@@ -18,6 +18,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace VideoInterface
 {
@@ -520,7 +521,7 @@ void UpdateParameters()
 	s_even_field_last_hl = s_odd_field_first_hl - 1;
 	s_odd_field_last_hl = s_odd_field_first_hl + GetHalfLinesPerOddField() - 1;
 
-	TargetRefreshRate = 2 * SystemTimers::GetTicksPerSecond() / (GetTicksPerEvenField() + GetTicksPerOddField());
+	TargetRefreshRate = lround(2.0 * SystemTimers::GetTicksPerSecond() / (GetTicksPerEvenField() + GetTicksPerOddField()));
 }
 
 u32 GetTicksPerHalfLine()
@@ -564,13 +565,21 @@ static void BeginField(FieldType field)
 
 	u32 xfbAddr;
 
-	if (field == FieldType::FIELD_EVEN)
-	{
-		xfbAddr = GetXFBAddressTop();
+	if (g_ActiveConfig.bForceProgressive && (multiplier == 2)) {
+		if (m_VBlankTimingOdd.PRB < m_VBlankTimingEven.PRB)
+			xfbAddr = GetXFBAddressTop();
+		else
+			xfbAddr = GetXFBAddressBottom();
 	}
-	else
-	{
-		xfbAddr = GetXFBAddressBottom();
+	else {
+		if (field == FieldType::FIELD_EVEN)
+		{
+			xfbAddr = GetXFBAddressTop();
+		}
+		else
+		{
+			xfbAddr = GetXFBAddressBottom();
+		}
 	}
 
 	static const char* const fieldTypeNames[] = { "Odd", "Even" };

@@ -112,6 +112,7 @@ struct VideoConfig final
 	bool bEFBAccessEnable;
 	bool bPerfQueriesEnable;
 	bool bBBoxEnable;
+	bool bForceProgressive;
 
 	bool bEFBEmulateFormatChanges;
 	bool bSkipEFBCopyToRam;
