@@ -282,6 +282,25 @@ void JitArm64::addx(UGeckoInstruction inst)
 		if (inst.Rc)
 			ComputeRC(gpr.GetImm(d), 0);
 	}
+	else if (gpr.IsImm(a) || gpr.IsImm(b))
+	{
+		int imm_reg = gpr.IsImm(a) ? a : b;
+		int in_reg = gpr.IsImm(a) ? b : a;
+		gpr.BindToRegister(d, d == in_reg);
+		if (gpr.GetImm(imm_reg) < 4096)
+		{
+			ADD(gpr.R(d), gpr.R(in_reg), gpr.GetImm(imm_reg));
+		}
+		else
+		{
+			ARM64Reg WA = gpr.GetReg();
+			MOVI2R(WA, gpr.GetImm(imm_reg));
+			ADD(gpr.R(d), gpr.R(in_reg), WA);
+			gpr.Unlock(WA);
+		}
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
 	else
 	{
 		gpr.BindToRegister(d, d == a || d == b);
