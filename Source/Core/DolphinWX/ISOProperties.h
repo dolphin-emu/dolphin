@@ -16,6 +16,8 @@
 #include "Common/IniFile.h"
 #include "Core/ActionReplay.h"
 #include "DiscIO/Filesystem.h"
+// TODO: eww
+#include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Volume.h"
 #include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/ISOFile.h"
@@ -217,10 +219,12 @@ private:
 
   const GameListItem OpenGameListItem;
 
-  typedef std::vector<const DiscIO::SFileInfo*>::iterator fileIter;
+  typedef std::vector<const DiscIO::CFileInfoGCWii*>::iterator fileIter;
 
-  size_t CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos);
-  size_t CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos,
+  size_t CreateDirectoryTree(wxTreeItemId& parent,
+                             const std::vector<DiscIO::CFileInfoGCWii>& fileInfos);
+  size_t CreateDirectoryTree(wxTreeItemId& parent,
+                             const std::vector<DiscIO::CFileInfoGCWii>& fileInfos,
                              const size_t _FirstIndex, const size_t _LastIndex);
   void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
                  const WiiPartition* partition = nullptr);
