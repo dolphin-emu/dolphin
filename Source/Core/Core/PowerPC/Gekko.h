@@ -17,8 +17,8 @@ union UGeckoInstruction
 {
 	u32 hex;
 
-	UGeckoInstruction(u32 _hex) { hex = _hex;}
-	UGeckoInstruction()         { hex = 0;}
+	UGeckoInstruction(u32 _hex) : hex(_hex) {}
+	UGeckoInstruction() : hex(0) {}
 
 	struct
 	{
