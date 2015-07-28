@@ -23,6 +23,8 @@
 #include "Common/Logging/Log.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
+// TODO: eww
+#include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Volume.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
@@ -84,14 +86,14 @@ wxImageList* LoadIconBitmaps(const wxWindow* context)
 }
 
 size_t CreateDirectoryTree(wxTreeCtrl* tree_ctrl, wxTreeItemId parent,
-                           const std::vector<DiscIO::FileInfo>& file_infos,
+                           const std::vector<DiscIO::FileInfoGCWii>& file_infos,
                            const size_t first_index, const size_t last_index)
 {
   size_t current_index = first_index;
 
   while (current_index < last_index)
   {
-    const DiscIO::FileInfo& file_info = file_infos[current_index];
+    const DiscIO::FileInfoGCWii& file_info = file_infos[current_index];
     std::string file_path = file_info.m_FullPath;
 
     // Trim the trailing '/' if it exists.
@@ -113,7 +115,7 @@ size_t CreateDirectoryTree(wxTreeCtrl* tree_ctrl, wxTreeItemId parent,
     {
       const wxTreeItemId item = tree_ctrl->AppendItem(parent, StrToWxStr(file_path), ICON_FOLDER);
       current_index = CreateDirectoryTree(tree_ctrl, item, file_infos, current_index + 1,
-                                          static_cast<size_t>(file_info.m_FileSize));
+                                          static_cast<size_t>(file_info.GetSize()));
     }
     else
     {
@@ -126,12 +128,12 @@ size_t CreateDirectoryTree(wxTreeCtrl* tree_ctrl, wxTreeItemId parent,
 }
 
 size_t CreateDirectoryTree(wxTreeCtrl* tree_ctrl, wxTreeItemId parent,
-                           const std::vector<DiscIO::FileInfo>& file_infos)
+                           const std::vector<DiscIO::FileInfoGCWii>& file_infos)
 {
   if (file_infos.empty())
     return 0;
 
-  return CreateDirectoryTree(tree_ctrl, parent, file_infos, 1, file_infos.at(0).m_FileSize);
+  return CreateDirectoryTree(tree_ctrl, parent, file_infos, 1, file_infos.at(0).GetSize());
 }
 
 WiiPartition* FindWiiPartition(wxTreeCtrl* tree_ctrl, const wxString& label)
@@ -452,7 +454,7 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
                                          const std::string& output_folder,
                                          DiscIO::FileSystem* filesystem)
 {
-  const std::vector<DiscIO::FileInfo>& fst = filesystem->GetFileList();
+  const std::vector<DiscIO::FileInfoGCWii>& fst = filesystem->GetFileList();
 
   u32 index = 0;
   u32 size = 0;
@@ -473,7 +475,7 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
       if (fst[index].m_FullPath == full_path)
       {
         INFO_LOG(DISCIO, "Found the directory at %u", index);
-        size = static_cast<u32>(fst[index].m_FileSize);
+        size = static_cast<u32>(fst[index].GetSize());
         break;
       }
     }
