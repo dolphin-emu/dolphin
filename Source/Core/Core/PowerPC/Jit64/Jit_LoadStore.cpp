@@ -561,9 +561,3 @@ void Jit64::stmw(UGeckoInstruction inst)
 	}
 	gpr.UnlockAllX();
 }
-
-void Jit64::icbi(UGeckoInstruction inst)
-{
-	FallBackToInterpreter(inst);
-	WriteExit(js.compilerPC + 4);
-}
