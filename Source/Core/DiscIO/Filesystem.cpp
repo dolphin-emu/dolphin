@@ -9,6 +9,10 @@
 
 namespace DiscIO
 {
+FileInfo::~FileInfo()
+{
+}
+
 FileSystem::FileSystem(const Volume* _rVolume, const Partition& partition)
     : m_rVolume(_rVolume), m_partition(partition)
 {

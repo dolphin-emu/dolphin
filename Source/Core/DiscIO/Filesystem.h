@@ -14,22 +14,20 @@
 
 namespace DiscIO
 {
+// TODO: eww
+class FileInfoGCWii;
+
 // file info of an FST entry
-struct FileInfo
+class FileInfo
 {
-  u64 m_NameOffset = 0u;
-  u64 m_Offset = 0u;
-  u64 m_FileSize = 0u;
-  std::string m_FullPath;
+public:
+  virtual ~FileInfo();
 
-  bool IsDirectory() const { return (m_NameOffset & 0xFF000000) != 0; }
-  FileInfo(u64 name_offset, u64 offset, u64 filesize)
-      : m_NameOffset(name_offset), m_Offset(offset), m_FileSize(filesize)
-  {
-  }
-
-  FileInfo(FileInfo const&) = default;
-  FileInfo() = default;
+  // Not guaranteed to return a meaningful value for directories
+  virtual u64 GetOffset() const = 0;
+  // Not guaranteed to return a meaningful value for directories
+  virtual u64 GetSize() const = 0;
+  virtual bool IsDirectory() const = 0;
 };
 
 class FileSystem
@@ -39,7 +37,8 @@ public:
 
   virtual ~FileSystem();
   virtual bool IsValid() const = 0;
-  virtual const std::vector<FileInfo>& GetFileList() = 0;
+  // TODO: Should only return FileInfo, not FileInfoGCWii
+  virtual const std::vector<FileInfoGCWii>& GetFileList() = 0;
   virtual u64 GetFileSize(const std::string& _rFullPath) = 0;
   virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize,
                        u64 _OffsetInFile = 0) = 0;
