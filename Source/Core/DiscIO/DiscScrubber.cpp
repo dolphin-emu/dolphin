@@ -15,6 +15,8 @@
 #include "Common/Logging/Log.h"
 #include "DiscIO/DiscScrubber.h"
 #include "DiscIO/Filesystem.h"
+// TODO: eww
+#include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
@@ -247,13 +249,13 @@ bool DiscScrubber::ParsePartitionData(Partition& partition)
                 partition.header.fst_size);
 
     // Go through the filesystem and mark entries as used
-    for (const SFileInfo& file : filesystem->GetFileList())
+    for (const CFileInfoGCWii& file : filesystem->GetFileList())
     {
       DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
       if (!file.IsDirectory())
       {
-        MarkAsUsedE(partition.offset + partition.header.data_offset, file.m_Offset,
-                    file.m_FileSize);
+        MarkAsUsedE(partition.offset + partition.header.data_offset, file.GetOffset(),
+                    file.GetSize());
       }
     }
   }
