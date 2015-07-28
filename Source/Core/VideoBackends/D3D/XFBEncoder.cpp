@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D/D3DBase.h"
@@ -92,7 +92,7 @@ static const char XFB_ENCODE_PS[] =
 "float3 SampleEFB(float2 coord)\n"
 "{\n"
 	"float2 texCoord = lerp(float2(Params.TexLeft,Params.TexTop), float2(Params.TexRight,Params.TexBottom), coord / float2(Params.Width,Params.Height));\n"
-	"return EFBTexture.Sample(EFBSampler, float3(texCoord, 0)).rgb;\n"
+	"return EFBTexture.Sample(EFBSampler, float3(texCoord, 0.0)).rgb;\n"
 "}\n"
 
 "void main(out float4 ocol0 : SV_Target, in float4 Pos : SV_Position, in float2 Coord : ENCODECOORD)\n"
@@ -361,8 +361,8 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 	D3D::context->Unmap(m_outStage, 0);
 
 	// Restore API
-
 	g_renderer->RestoreAPIState();
+	D3D::stateman->Apply(); // force unbind efb texture as shader resource
 	D3D::context->OMSetRenderTargets(1,
 		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());

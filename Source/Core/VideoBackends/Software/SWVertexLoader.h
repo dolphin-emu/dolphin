@@ -1,8 +1,11 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
+
+#include <memory>
+#include <unordered_map>
 
 #include "Common/CommonTypes.h"
 
@@ -33,7 +36,6 @@ class SWVertexLoader
 	VertexLoaderBase* m_CurrentLoader;
 
 	u8 m_attributeIndex;
-	u8 m_primitiveType;
 
 public:
 	SWVertexLoader();

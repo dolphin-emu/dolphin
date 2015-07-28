@@ -1,9 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <string>
 #include <polarssl/ctr_drbg.h>
 #include <polarssl/entropy.h>
 #include <polarssl/net.h>
@@ -75,13 +76,13 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ssl();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
-	virtual bool IOCtl(u32 _CommandAddress) override;
-	virtual bool IOCtlV(u32 _CommandAddress) override;
-	int getSSLFreeID();
+	int GetSSLFreeID() const;
 
 	static WII_SSL _SSL[NET_SSL_MAXINSTANCES];
 };

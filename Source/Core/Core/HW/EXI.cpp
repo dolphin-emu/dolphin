@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
@@ -9,12 +9,14 @@
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
 #include "Core/HW/EXI.h"
+#include "Core/HW/EXI_Channel.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/Sram.h"
 #include "Core/PowerPC/PowerPC.h"
 
 SRAM g_SRAM;
+bool g_SRAM_netplay_initialized = false;
 
 namespace ExpansionInterface
 {
@@ -29,7 +31,11 @@ static void UpdateInterruptsCallback(u64 userdata, int cycles_late);
 
 void Init()
 {
-	InitSRAM();
+	if (!g_SRAM_netplay_initialized)
+	{
+		InitSRAM();
+	}
+
 	for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
 		g_Channels[i] = new CEXIChannel(i);
 

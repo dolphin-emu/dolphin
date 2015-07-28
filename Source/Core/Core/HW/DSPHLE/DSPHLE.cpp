@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <iostream>
@@ -62,6 +62,8 @@ void DSPHLE::DSP_StopSoundStream()
 
 void DSPHLE::Shutdown()
 {
+	delete m_pUCode;
+	m_pUCode = nullptr;
 }
 
 void DSPHLE::DSP_Update(int cycles)
@@ -73,9 +75,8 @@ void DSPHLE::DSP_Update(int cycles)
 u32 DSPHLE::DSP_UpdateRate()
 {
 	// AX HLE uses 3ms (Wii) or 5ms (GC) timing period
-	int fields = VideoInterface::GetNumFields();
 	if (m_pUCode != nullptr)
-		return (SystemTimers::GetTicksPerSecond() / 1000) * m_pUCode->GetUpdateMs() / fields;
+		return (SystemTimers::GetTicksPerSecond() / 1000) * m_pUCode->GetUpdateMs();
 	else
 		return SystemTimers::GetTicksPerSecond() / 1000;
 }

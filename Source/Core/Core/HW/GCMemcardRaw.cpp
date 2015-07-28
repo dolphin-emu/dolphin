@@ -1,10 +1,12 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <chrono>
 #include "Common/ChunkFile.h"
+#include "Common/FileUtil.h"
 #include "Common/StdMakeUnique.h"
+#include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCMemcard.h"
@@ -13,7 +15,7 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-MemoryCard::MemoryCard(std::string filename, int _card_index, u16 sizeMb)
+MemoryCard::MemoryCard(const std::string& filename, int _card_index, u16 sizeMb)
 	: MemoryCardBase(_card_index, sizeMb)
 	, m_filename(filename)
 {
@@ -61,7 +63,7 @@ MemoryCard::~MemoryCard()
 
 void MemoryCard::FlushThread()
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableMemcardSaving)
+	if (!SConfig::GetInstance().bEnableMemcardSaving)
 	{
 		return;
 	}

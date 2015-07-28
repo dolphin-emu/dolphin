@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -75,7 +75,7 @@ public:
 	virtual void ClearBlock(u32 address) = 0;
 	virtual void ClearAll() = 0;
 	virtual void DoState(PointerWrap &p) = 0;
-	u32 GetCardId() { return nintendo_card_id; }
+	u32 GetCardId() const { return nintendo_card_id; }
 	bool IsAddressInBounds(u32 address) const
 	{
 		return address <= (memory_card_size - 1);
@@ -302,11 +302,11 @@ class GCIFile
 {
 public:
 	bool LoadSaveBlocks();
-	bool HasCopyProtection()
+	bool HasCopyProtection() const
 	{
-		if ((strcmp((char *)m_gci_header.Filename, "PSO_SYSTEM") == 0) ||
-			(strcmp((char *)m_gci_header.Filename, "PSO3_SYSTEM") == 0) ||
-			(strcmp((char *)m_gci_header.Filename, "f_zero.dat") == 0))
+		if ((strcmp((char*)m_gci_header.Filename, "PSO_SYSTEM") == 0) ||
+			(strcmp((char*)m_gci_header.Filename, "PSO3_SYSTEM") == 0) ||
+			(strcmp((char*)m_gci_header.Filename, "f_zero.dat") == 0))
 			return true;
 		return false;
 	}
@@ -360,7 +360,7 @@ public:
 	u16 GetFreeBlocks() const;
 
 	// If title already on memcard returns index, otherwise returns -1
-	u8 TitlePresent(DEntry d) const;
+	u8 TitlePresent(const DEntry& d) const;
 
 	bool GCI_FileName(u8 index, std::string &filename) const;
 	// DEntry functions, all take u8 index < DIRLEN (127)

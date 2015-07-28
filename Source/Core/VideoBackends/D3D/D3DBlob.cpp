@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <d3d11.h>
@@ -44,7 +44,7 @@ unsigned int D3DBlob::Release()
 	return ref;
 }
 
-unsigned int D3DBlob::Size()
+unsigned int D3DBlob::Size() const
 {
 	return size;
 }

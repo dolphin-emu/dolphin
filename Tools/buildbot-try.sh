@@ -28,11 +28,15 @@ shortrev=$(git describe --always --long --dirty=+ | sed 's/-g[0-9a-f]*\(+*\)$/\1
 
 author=$(grep try_username "$opt_file" | cut -d "'" -f 2)
 
-baserev=$(git merge-base HEAD origin/master)
+remote=$(git remote -v | grep dolphin-emu/dolphin.git | head -n1 | cut -f1)
+remote=${remote:-origin}
+
+baserev=$(git merge-base HEAD $remote/master)
 
 echo "Branch name: $branchname"
 echo "Change author: $author"
 echo "Short rev: $shortrev"
+echo "Remote: $remote"
 echo "Base rev: $baserev"
 
-git diff -r $baserev | buildbot try --properties=branchname=$branchname,author=$author,shortrev=$shortrev --diff=- -p1 --baserev $baserev $*
+git diff --binary -r $baserev | buildbot try --properties=branchname=$branchname,author=$author,shortrev=$shortrev --diff=- -p1 --baserev $baserev $*

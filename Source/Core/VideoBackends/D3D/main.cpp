@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -75,13 +75,16 @@ void InitBackendInfo()
 	}
 
 	g_Config.backend_info.APIType = API_D3D;
-	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupportsExclusiveFullscreen = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 	g_Config.backend_info.bSupportsOversizedViewports = false;
 	g_Config.backend_info.bSupportsGeometryShaders = true;
 	g_Config.backend_info.bSupports3DVision = true;
+	g_Config.backend_info.bSupportsPostProcessing = false;
+	g_Config.backend_info.bSupportsPaletteConversion = true;
+	g_Config.backend_info.bSupportsClipControl = true;
+	g_Config.backend_info.bSupportsCopySubImage = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -134,6 +137,7 @@ void InitBackendInfo()
 
 	// Clear ppshaders string vector
 	g_Config.backend_info.PPShaders.clear();
+	g_Config.backend_info.AnaglyphShaders.clear();
 
 	DX11::D3D::UnloadDXGI();
 	DX11::D3D::UnloadD3D();

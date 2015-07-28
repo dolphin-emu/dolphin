@@ -1,3 +1,7 @@
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #pragma once
 
 #include <string>
@@ -19,7 +23,7 @@ public:
 	void SetDepthMode() override;
 	void SetLogicOpMode() override;
 	void SetDitherMode() override;
-	void SetSamplerState(int stage,int texindex) override;
+	void SetSamplerState(int stage, int texindex, bool custom_tex) override;
 	void SetInterlacingMode() override;
 	void SetViewport() override;
 

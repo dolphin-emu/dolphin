@@ -14,6 +14,7 @@
     <ClInclude Include="Atomic_Win32.h" />
     <ClInclude Include="BitField.h" />
     <ClInclude Include="BitSet.h" />
+    <ClInclude Include="BlockingLoop.h" />
     <ClInclude Include="BreakPoints.h" />
     <ClInclude Include="CDUtils.h" />
     <ClInclude Include="ChunkFile.h" />
@@ -25,7 +26,7 @@
     <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
-    <ClInclude Include="ExtendedTrace.h" />
+    <ClInclude Include="ENetUtil.h" />
     <ClInclude Include="FifoQueue.h" />
     <ClInclude Include="FileSearch.h" />
     <ClInclude Include="FileUtil.h" />
@@ -71,12 +72,15 @@
     </ClInclude>
     <ClInclude Include="GekkoDisassembler.h" />
     <ClInclude Include="Event.h" />
+    <ClInclude Include="JitRegister.h" />
+    <ClInclude Include="TraversalClient.h" />
+    <ClInclude Include="TraversalProto.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
-    <ClCompile Include="ExtendedTrace.cpp" />
+    <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="Hash.cpp" />
@@ -109,14 +113,16 @@
     <ClCompile Include="Crypto\ec.cpp">
       <Filter>Crypto</Filter>
     </ClCompile>
-    <ClCompile Include="Logging\ConsoleListener.cpp">
-      <Filter>Logging</Filter>
-    </ClCompile>
     <ClCompile Include="Logging\LogManager.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
     <ClCompile Include="XSaveWorkaround.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
+    <ClCompile Include="JitRegister.cpp" />
+    <ClCompile Include="TraversalClient.cpp" />
+    <ClCompile Include="Logging\ConsoleListenerWin.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

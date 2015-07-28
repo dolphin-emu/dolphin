@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <spawn.h>
@@ -9,7 +9,6 @@
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "DolphinWX/X11Utils.h"
 
 extern char **environ;
@@ -24,7 +23,7 @@ extern char **environ;
 namespace X11Utils
 {
 
-void ToggleFullscreen(Display *dpy, Window win)
+bool ToggleFullscreen(Display *dpy, Window win)
 {
 	// Init X event structure for _NET_WM_STATE_FULLSCREEN client message
 	XEvent event;
@@ -38,7 +37,12 @@ void ToggleFullscreen(Display *dpy, Window win)
 	// Send the event
 	if (!XSendEvent(dpy, DefaultRootWindow(dpy), False,
 	                SubstructureRedirectMask | SubstructureNotifyMask, &event))
+	{
 		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.");
+		return false;
+	}
+
+	return true;
 }
 
 void InhibitScreensaver(Display *dpy, Window win, bool suspend)
@@ -107,7 +111,7 @@ XRRConfiguration::~XRRConfiguration()
 
 void XRRConfiguration::Update()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution == "Auto")
+	if (SConfig::GetInstance().strFullscreenResolution == "Auto")
 		return;
 
 	if (!bValid)
@@ -128,7 +132,8 @@ void XRRConfiguration::Update()
 	// Get the resolution setings for fullscreen mode
 	unsigned int fullWidth, fullHeight;
 	char *output_name = nullptr;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.find(':') ==
+	char auxFlag = '\0';
+	if (SConfig::GetInstance().strFullscreenResolution.find(':') ==
 			std::string::npos)
 	{
 		fullWidth = fb_width;
@@ -136,9 +141,10 @@ void XRRConfiguration::Update()
 	}
 	else
 	{
-		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
-				"%m[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
+		sscanf(SConfig::GetInstance().strFullscreenResolution.c_str(),
+				"%m[^:]: %ux%u%c", &output_name, &fullWidth, &fullHeight, &auxFlag);
 	}
+	bool want_interlaced = ('i' == auxFlag);
 
 	for (int i = 0; i < screenResources->noutput; i++)
 	{
@@ -154,7 +160,7 @@ void XRRConfiguration::Update()
 					if (!output_name)
 					{
 						output_name = strdup(output_info->name);
-						SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+						SConfig::GetInstance().strFullscreenResolution =
 							StringFromFormat("%s: %ux%u", output_info->name, fullWidth, fullHeight);
 					}
 					outputInfo = output_info;
@@ -166,7 +172,8 @@ void XRRConfiguration::Update()
 							if (output_info->modes[j] == screenResources->modes[k].id)
 							{
 								if (fullWidth == screenResources->modes[k].width &&
-										fullHeight == screenResources->modes[k].height)
+										fullHeight == screenResources->modes[k].height &&
+										want_interlaced == !!(screenResources->modes[k].modeFlags & RR_Interlace))
 								{
 									fullMode = screenResources->modes[k].id;
 									if (crtcInfo->x + (int)screenResources->modes[k].width > fs_fb_width)
@@ -256,9 +263,10 @@ void XRRConfiguration::AddResolutions(std::vector<std::string>& resos)
 				{
 					if (output_info->modes[j] == screenResources->modes[k].id)
 					{
+						bool interlaced = !!(screenResources->modes[k].modeFlags & RR_Interlace);
 						const std::string strRes =
 							std::string(output_info->name) + ": " +
-							std::string(screenResources->modes[k].name);
+							std::string(screenResources->modes[k].name) + (interlaced? "i" : "");
 						// Only add unique resolutions
 						if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
 						{

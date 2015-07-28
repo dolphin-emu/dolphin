@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -9,7 +9,7 @@ void JitILBase::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(js.memcheck);
+	FALLBACK_IF(jo.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA)
@@ -20,11 +20,26 @@ void JitILBase::lhax(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
+void JitILBase::lhaux(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(jo.memcheck);
+
+	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
+	addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
+	IREmitter::InstLoc val = ibuild.EmitLoad16(addr);
+	val = ibuild.EmitSExt16(val);
+	ibuild.EmitStoreGReg(val, inst.RD);
+	ibuild.EmitStoreGReg(addr, inst.RA);
+}
+
 void JitILBase::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(js.memcheck);
+	FALLBACK_IF(jo.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
@@ -34,15 +49,17 @@ void JitILBase::lXz(UGeckoInstruction inst)
 
 	IREmitter::InstLoc val;
 
-	// Idle Skipping. This really should be done somewhere else.
-	// Either lower in the IR or higher in PPCAnalyist
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+	// Idle Skipping.
+	// TODO: This really should be done somewhere else. Either lower in the IR
+	// or higher in PPCAnalyst
+	// TODO: We shouldn't use debug reads here.
+	if (SConfig::GetInstance().bSkipIdle &&
 		PowerPC::GetState() != PowerPC::CPU_STEPPING &&
 		inst.OPCD == 32 && // Lwx
 		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
-		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
-		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
+		(PowerPC::HostRead_U32(js.compilerPC + 4) == 0x28000000 ||
+		(SConfig::GetInstance().bWii && PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
+		PowerPC::HostRead_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
 		val = ibuild.EmitLoad32(addr);
 		ibuild.EmitIdleBranch(val, ibuild.EmitIntConst(js.compilerPC));
@@ -84,7 +101,7 @@ void JitILBase::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(js.memcheck);
+	FALLBACK_IF(jo.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst((s32)(s16)inst.SIMM_16);
 
@@ -96,11 +113,27 @@ void JitILBase::lha(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
+void JitILBase::lhau(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(jo.memcheck);
+
+	IREmitter::InstLoc addr = ibuild.EmitIntConst((s32)inst.SIMM_16);
+
+	addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
+	IREmitter::InstLoc val = ibuild.EmitLoad16(addr);
+	val = ibuild.EmitSExt16(val);
+	ibuild.EmitStoreGReg(val, inst.RD);
+	ibuild.EmitStoreGReg(addr, inst.RA);
+}
+
 void JitILBase::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(js.memcheck);
+	FALLBACK_IF(jo.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 
@@ -138,7 +171,9 @@ void JitILBase::dcbst(UGeckoInstruction inst)
 	// memory location.  Do not invalidate the JIT cache in this case as the memory
 	// will be the same.
 	// dcbt = 0x7c00022c
-	FALLBACK_IF((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c);
+	// TODO: We shouldn't use a debug read here; it should be possible to get the
+	// previous instruction from the JIT state.
+	FALLBACK_IF((PowerPC::HostRead_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c);
 }
 
 // Zero cache line.
@@ -148,7 +183,7 @@ void JitILBase::dcbz(UGeckoInstruction inst)
 
 	// TODO!
 #if 0
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITOff || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStoreOff)
+	if (SConfig::GetInstance().bJITOff || SConfig::GetInstance().bJITLoadStoreOff)
 	{
 		Default(inst);
 		return;
@@ -168,7 +203,7 @@ void JitILBase::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(js.memcheck);
+	FALLBACK_IF(jo.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	IREmitter::InstLoc value = ibuild.EmitLoadGReg(inst.RS);
@@ -199,7 +234,7 @@ void JitILBase::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(js.memcheck);
+	FALLBACK_IF(jo.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	IREmitter::InstLoc value = ibuild.EmitLoadGReg(inst.RS);
@@ -231,7 +266,7 @@ void JitILBase::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(js.memcheck);
+	FALLBACK_IF(jo.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 
@@ -250,7 +285,7 @@ void JitILBase::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(js.memcheck);
+	FALLBACK_IF(jo.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 

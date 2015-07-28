@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -110,6 +110,41 @@ void Jit64::ClearCRFieldBit(int field, int bit)
 		break;
 	}
 	// We don't need to set bit 32; the cases where that's needed only come up when setting bits, not clearing.
+}
+
+void Jit64::SetCRFieldBit(int field, int bit)
+{
+	MOV(64, R(RSCRATCH), PPCSTATE(cr_val[field]));
+	if (bit != CR_GT_BIT)
+	{
+		TEST(64, R(RSCRATCH), R(RSCRATCH));
+		FixupBranch dont_clear_gt = J_CC(CC_NZ);
+		BTS(64, R(RSCRATCH), Imm8(63));
+		SetJumpTarget(dont_clear_gt);
+	}
+
+	switch (bit)
+	{
+	case CR_SO_BIT:
+		BTS(64, PPCSTATE(cr_val[field]), Imm8(61));
+		break;
+
+	case CR_EQ_BIT:
+		SHR(64, R(RSCRATCH), Imm8(32));
+		SHL(64, R(RSCRATCH), Imm8(32));
+		break;
+
+	case CR_GT_BIT:
+		BTR(64, PPCSTATE(cr_val[field]), Imm8(63));
+		break;
+
+	case CR_LT_BIT:
+		BTS(64, PPCSTATE(cr_val[field]), Imm8(62));
+		break;
+	}
+
+	BTS(64, R(RSCRATCH), Imm8(32));
+	MOV(64, PPCSTATE(cr_val[field]), R(RSCRATCH));
 }
 
 FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
@@ -247,38 +282,38 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		ADD(64, R(RAX), R(RDX));
 		MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));
 
-		// Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
-		// if we can.
-		u32 nextIndex = (js.next_inst.SPRU << 5) | (js.next_inst.SPRL & 0x1F);
-		// Be careful; the actual opcode is for mftb (371), not mfspr (339)
-		int n = js.next_inst.RD;
-		if (js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL) &&
-			PowerPC::GetState() != PowerPC::CPU_STEPPING && n != d)
+		if (MergeAllowedNextInstructions(1))
 		{
-			js.downcountAmount++;
-			js.skipnext = true;
-			gpr.Lock(d, n);
-			gpr.BindToRegister(d, false);
-			gpr.BindToRegister(n, false);
-			if (iIndex == SPR_TL)
-				MOV(32, gpr.R(d), R(RAX));
-			if (nextIndex == SPR_TL)
-				MOV(32, gpr.R(n), R(RAX));
-			SHR(64, R(RAX), Imm8(32));
-			if (iIndex == SPR_TU)
-				MOV(32, gpr.R(d), R(RAX));
-			if (nextIndex == SPR_TU)
-				MOV(32, gpr.R(n), R(RAX));
-		}
-		else
-		{
-			gpr.Lock(d);
-			gpr.BindToRegister(d, false);
-			if (iIndex == SPR_TU)
+			const UGeckoInstruction& next = js.op[1].inst;
+			// Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
+			// if we can.
+			u32 nextIndex = (next.SPRU << 5) | (next.SPRL & 0x1F);
+			// Be careful; the actual opcode is for mftb (371), not mfspr (339)
+			int n = next.RD;
+			if (next.OPCD == 31 && next.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL) && n != d)
+			{
+				js.downcountAmount++;
+				js.skipInstructions = 1;
+				gpr.Lock(d, n);
+				gpr.BindToRegister(d, false);
+				gpr.BindToRegister(n, false);
+				if (iIndex == SPR_TL)
+					MOV(32, gpr.R(d), R(RAX));
+				if (nextIndex == SPR_TL)
+					MOV(32, gpr.R(n), R(RAX));
 				SHR(64, R(RAX), Imm8(32));
-			MOV(32, gpr.R(d), R(RAX));
+				if (iIndex == SPR_TU)
+					MOV(32, gpr.R(d), R(RAX));
+				if (nextIndex == SPR_TU)
+					MOV(32, gpr.R(n), R(RAX));
+				break;
+			}
 		}
-		gpr.UnlockAllX();
+		gpr.Lock(d);
+		gpr.BindToRegister(d, false);
+		if (iIndex == SPR_TU)
+			SHR(64, R(RAX), Imm8(32));
+		MOV(32, gpr.R(d), R(RAX));
 		break;
 	}
 	case SPR_XER:
@@ -306,6 +341,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		MOV(32, gpr.R(d), PPCSTATE(spr[iIndex]));
 		break;
 	}
+	gpr.UnlockAllX();
 	gpr.UnlockAll();
 }
 
@@ -344,9 +380,8 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	SetJumpTarget(noExceptionsPending);
 	SetJumpTarget(eeDisabled);
 
-	WriteExit(js.compilerPC + 4);
-
-	js.firstFPInstructionFound = false;
+	MOV(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
+	WriteExitDestInRSCRATCH();
 }
 
 void Jit64::mfmsr(UGeckoInstruction inst)
@@ -371,39 +406,12 @@ void Jit64::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
-	// USES_CR
 	int d = inst.RD;
+	gpr.FlushLockX(RSCRATCH_EXTRA);
+	CALL(asm_routines.mfcr);
+	gpr.Lock(d);
 	gpr.BindToRegister(d, false, true);
-	XOR(32, gpr.R(d), gpr.R(d));
-
-	X64Reg cr_val = RSCRATCH2;
-	// we only need to zero the high bits of RSCRATCH once
-	XOR(32, R(RSCRATCH), R(RSCRATCH));
-	for (int i = 0; i < 8; i++)
-	{
-		static const u8 m_flagTable[8] = {0x0,0x1,0x8,0x9,0x0,0x1,0x8,0x9};
-		if (i != 0)
-			SHL(32, gpr.R(d), Imm8(4));
-
-		MOV(64, R(cr_val), PPCSTATE(cr_val[i]));
-
-		// EQ: Bits 31-0 == 0; set flag bit 1
-		TEST(32, R(cr_val), R(cr_val));
-		SETcc(CC_Z, R(RSCRATCH));
-		LEA(32, gpr.RX(d), MComplex(gpr.RX(d), RSCRATCH, SCALE_2, 0));
-
-		// GT: Value > 0; set flag bit 2
-		TEST(64, R(cr_val), R(cr_val));
-		SETcc(CC_G, R(RSCRATCH));
-		LEA(32, gpr.RX(d), MComplex(gpr.RX(d), RSCRATCH, SCALE_4, 0));
-
-		// SO: Bit 61 set; set flag bit 0
-		// LT: Bit 62 set; set flag bit 3
-		SHR(64, R(cr_val), Imm8(61));
-		MOVZX(32, 8, RSCRATCH, MDisp(cr_val, (u32)(u64)m_flagTable));
-		OR(32, gpr.R(d), R(RSCRATCH));
-	}
-
+	MOV(32, gpr.R(d), R(RSCRATCH));
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
@@ -423,7 +431,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 			{
 				if ((crm & (0x80 >> i)) != 0)
 				{
-					u8 newcr = (gpr.R(inst.RS).offset >> (28 - (i * 4))) & 0xF;
+					u8 newcr = (gpr.R(inst.RS).Imm32() >> (28 - (i * 4))) & 0xF;
 					u64 newcrval = PPCCRToInternal(newcr);
 					if ((s64)newcrval == (s32)newcrval)
 					{
@@ -503,6 +511,13 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
 	{
 		ClearCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
+		return;
+	}
+
+	// Special case: crset
+	if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 289)
+	{
+		SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
 		return;
 	}
 

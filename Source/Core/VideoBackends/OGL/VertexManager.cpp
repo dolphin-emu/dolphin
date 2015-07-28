@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <fstream>
@@ -41,6 +41,7 @@ static size_t s_baseVertex;
 static size_t s_index_offset;
 
 VertexManager::VertexManager()
+	: m_cpu_v_buffer(MAX_VBUFFER_SIZE), m_cpu_i_buffer(MAX_IBUFFER_SIZE)
 {
 	CreateDeviceObjects();
 }
@@ -81,14 +82,25 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 void VertexManager::ResetBuffer(u32 stride)
 {
-	auto buffer = s_vertexBuffer->Map(MAXVBUFFERSIZE, stride);
-	s_pCurBufferPointer = s_pBaseBufferPointer = buffer.first;
-	s_pEndBufferPointer = buffer.first + MAXVBUFFERSIZE;
-	s_baseVertex = buffer.second / stride;
+	if (s_cull_all)
+	{
+		// This buffer isn't getting sent to the GPU. Just allocate it on the cpu.
+		s_pCurBufferPointer = s_pBaseBufferPointer = m_cpu_v_buffer.data();
+		s_pEndBufferPointer = s_pBaseBufferPointer + m_cpu_v_buffer.size();
 
-	buffer = s_indexBuffer->Map(MAXIBUFFERSIZE * sizeof(u16));
-	IndexGenerator::Start((u16*)buffer.first);
-	s_index_offset = buffer.second;
+		IndexGenerator::Start((u16*)m_cpu_i_buffer.data());
+	}
+	else
+	{
+		auto buffer = s_vertexBuffer->Map(MAXVBUFFERSIZE, stride);
+		s_pCurBufferPointer = s_pBaseBufferPointer = buffer.first;
+		s_pEndBufferPointer = buffer.first + MAXVBUFFERSIZE;
+		s_baseVertex = buffer.second / stride;
+
+		buffer = s_indexBuffer->Map(MAXIBUFFERSIZE * sizeof(u16));
+		IndexGenerator::Start((u16*)buffer.first);
+		s_index_offset = buffer.second;
+	}
 }
 
 void VertexManager::Draw(u32 stride)

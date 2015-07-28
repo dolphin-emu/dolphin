@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <climits>
@@ -9,11 +9,9 @@
 #include <string>
 #include <vector>
 #include <wx/button.h>
-#include <wx/chartype.h>
 #include <wx/checkbox.h>
 #include <wx/checklst.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/listbox.h>
 #include <wx/msgdlg.h>
 #include <wx/notebook.h>
@@ -21,19 +19,15 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/translation.h>
-#include <wx/validate.h>
-#include <wx/window.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 #include "DolphinWX/Frame.h"
@@ -45,7 +39,7 @@
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 
 wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
-	: wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxDIALOG_NO_PARENT)
+	: wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX | wxDIALOG_NO_PARENT)
 {
 	// Create the GUI controls
 	Init_ChildControls();
@@ -109,12 +103,12 @@ void wxCheatsWindow::Init_ChildControls()
 	m_textctrl_log = new wxTextCtrl(m_tab_log, wxID_ANY, "", wxDefaultPosition, wxSize(100, -1), wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
 
 	wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
-	HStrip1->Add(m_checkbox_log_ar, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+	HStrip1->Add(m_checkbox_log_ar, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
 	HStrip1->Add(button_updatelog, 0, wxALL, 5);
 
 	wxBoxSizer *sTabLog = new wxBoxSizer(wxVERTICAL);
 	sTabLog->Add(HStrip1, 0, wxALL, 5);
-	sTabLog->Add(m_textctrl_log, 1, wxALL|wxEXPAND, 5);
+	sTabLog->Add(m_textctrl_log, 1, wxALL | wxEXPAND, 5);
 
 	m_tab_log->SetSizerAndFit(sTabLog);
 
@@ -140,12 +134,12 @@ void wxCheatsWindow::Init_ChildControls()
 	sButtons->Realize();
 
 	wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
-	sMain->Add(m_notebook_main, 1, wxEXPAND|wxALL, 5);
+	sMain->Add(m_notebook_main, 1, wxEXPAND | wxALL, 5);
 	sMain->Add(sButtons, 0, wxRIGHT | wxBOTTOM | wxALIGN_RIGHT, 5);
 	SetSizerAndFit(sMain);
 }
 
-void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& WXUNUSED (event))
+void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& WXUNUSED(event))
 {
 	Close();
 }
@@ -159,20 +153,21 @@ void wxCheatsWindow::OnEvent_Close(wxCloseEvent& ev)
 void wxCheatsWindow::UpdateGUI()
 {
 	// load code
-	m_gameini_default = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
-	m_gameini_local = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
-	m_gameini_local_path = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal;
+	const SConfig& parameters = SConfig::GetInstance();
+	m_gameini_default = parameters.LoadDefaultGameIni();
+	m_gameini_local = parameters.LoadLocalGameIni();
+	m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + parameters.GetUniqueID() + ".ini";
 	Load_ARCodes();
 	Load_GeckoCodes();
 
 	// enable controls
 	m_button_apply->Enable(Core::IsRunning());
 
-	wxString title = _("Cheats Manager");
+	wxString title = _("Cheat Manager");
 
 	// write the ISO name in the title
 	if (Core::IsRunning())
-		SetTitle(title + ": " + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + " - " + SConfig::GetInstance().m_LocalCoreStartupParameter.m_strName);
+		SetTitle(title + ": " + parameters.GetUniqueID() + " - " + parameters.m_strName);
 	else
 		SetTitle(title);
 }
@@ -202,10 +197,10 @@ void wxCheatsWindow::Load_ARCodes()
 
 void wxCheatsWindow::Load_GeckoCodes()
 {
-	m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID(), true);
+	m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, SConfig::GetInstance().GetUniqueID(), true);
 }
 
-void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (event))
+void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED(event))
 {
 	using namespace ActionReplay;
 
@@ -230,7 +225,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 	}
 }
 
-void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (event))
+void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED(event))
 {
 	int index = m_checklistbox_cheats_list->GetSelection();
 	for (const ARCodeIndex& code_index : m_index_list)
@@ -268,7 +263,7 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 	ev.Skip();
 }
 
-void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (event))
+void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED(event))
 {
 	m_textctrl_log->Clear();
 	for (const std::string& text : ActionReplay::GetSelfLog())
@@ -277,7 +272,7 @@ void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (eve
 	}
 }
 
-void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& WXUNUSED (event))
+void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& WXUNUSED(event))
 {
 	ActionReplay::EnableSelfLogging(m_checkbox_log_ar->IsChecked());
 }

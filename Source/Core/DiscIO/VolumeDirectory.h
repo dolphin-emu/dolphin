@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -32,20 +32,22 @@ public:
 
 	static bool IsValidDirectory(const std::string& _rDirectory);
 
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
-	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
+	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
 
 	std::string GetUniqueID() const override;
 	void SetUniqueID(const std::string& _ID);
 
 	std::string GetMakerID() const override;
 
-	std::vector<std::string> GetNames() const override;
+	u16 GetRevision() const override { return 0; }
+	std::string GetInternalName() const override;
+	std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
 	void SetName(const std::string&);
 
 	u32 GetFSTSize() const override;
 
 	std::string GetApploaderDate() const override;
+	EPlatform GetVolumeType() const override;
 
 	ECountry GetCountry() const override;
 
@@ -73,18 +75,20 @@ private:
 	void Write32(u32 data, u32 offset, std::vector<u8>* const buffer);
 
 	// FST creation
-	void WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u32 length);
+	void WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u64 length);
 	void WriteEntryName(u32& nameOffset, const std::string& name);
 	void WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset, u32 parentEntryNum);
 
 	// returns number of entries found in _Directory
-	u32 AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry);
+	u64 AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry);
 
 	std::string m_rootDirectory;
 
 	std::map<u64, std::string> m_virtualDisk;
 
 	u32 m_totalNameSize;
+
+	bool m_is_wii;
 
 	// GameCube has no shift, Wii has 2 bit shift
 	u32 m_addressShift;
@@ -106,7 +110,7 @@ private:
 		u32 debug_flag;
 		u32 track_location;
 		u32 track_size;
-		u32 countrycode;
+		u32 country_code;
 		u32 unknown;
 		u32 unknown2;
 
@@ -119,7 +123,7 @@ private:
 			debug_flag = 0;
 			track_location = 0;
 			track_size = 0;
-			countrycode = 0;
+			country_code = 0;
 			unknown = 0;
 			unknown2 = 0;
 		}

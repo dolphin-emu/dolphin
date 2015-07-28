@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -12,38 +12,51 @@
 
 // GameBoy Advance "Link Cable"
 
+u8 GetNumConnected();
+int GetTransferTime(u8 cmd);
 void GBAConnectionWaiter_Shutdown();
 
 class GBASockServer
 {
 public:
-	GBASockServer();
+	GBASockServer(int _iDeviceNumber);
 	~GBASockServer();
 
-	void Transfer(char* si_buffer);
+	void Disconnect();
+
+	void ClockSync();
+
+	void Send(u8* si_buffer);
+	int Receive(u8* si_buffer);
 
 private:
-	enum EJoybusCmds
-	{
-		CMD_RESET  = 0xff,
-		CMD_STATUS = 0x00,
-		CMD_READ   = 0x14,
-		CMD_WRITE  = 0x15
-	};
-
 	std::unique_ptr<sf::TcpSocket> client;
-	char current_data[5];
+	std::unique_ptr<sf::TcpSocket> clock_sync;
+	char send_data[5];
+	char recv_data[5];
+
+	u64 time_cmd_sent;
+	u64 last_time_slice;
+	u8 device_number;
+	u8 cmd;
+	bool booted;
 };
 
 class CSIDevice_GBA : public ISIDevice, private GBASockServer
 {
 public:
 	CSIDevice_GBA(SIDevices device, int _iDeviceNumber);
-	~CSIDevice_GBA() {}
+	~CSIDevice_GBA();
 
-	// Run the SI Buffer
 	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
+	virtual int TransferInterval() override;
 
-	virtual bool GetData(u32& _Hi, u32& _Low) override { return true; }
+	virtual bool GetData(u32& _Hi, u32& _Low) override { return false; }
 	virtual void SendCommand(u32 _Cmd, u8 _Poll) override {}
+
+private:
+	u8 send_data[5];
+	int num_data_received;
+	u64 timestamp_sent;
+	bool waiting_for_response;
 };

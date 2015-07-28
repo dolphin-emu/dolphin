@@ -1,28 +1,21 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include <disasm.h>        // Bochs
 #include <memory>
 #include <vector>
 
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/listctrl.h>
 #include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
+#include "UICommon/Disassembler.h"
 
 class wxButton;
 class wxListBox;
 class wxTextCtrl;
-class wxWindow;
 
 class JitBlockList : public wxListCtrl
 {
@@ -33,25 +26,6 @@ public:
 	void Update() override;
 };
 
-class HostDisassembler
-{
-public:
-	std::string DisassembleBlock(u32* address, u32* host_instructions_count, u32* code_size);
-
-private:
-	virtual std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) { return "(No disassembler)"; }
-};
-
-class HostDisassemblerX86 : public HostDisassembler
-{
-public:
-	HostDisassemblerX86();
-
-private:
-	disassembler m_disasm;
-
-	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) override;
-};
 
 class CJitWindow : public wxPanel
 {
@@ -61,7 +35,7 @@ public:
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
-		const wxString& name = _("JIT block viewer"));
+		const wxString& name = _("JIT Block Viewer"));
 
 	void ViewAddr(u32 em_address);
 	void Update() override;

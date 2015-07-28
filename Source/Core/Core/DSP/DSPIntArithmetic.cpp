@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 //
 // Additional copyrights go to Duddie and Tratax (c) 2004
@@ -7,6 +7,8 @@
 #include "Core/DSP/DSPIntCCUtil.h"
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/DSPTables.h"
 
 // Arithmetic and accumulator control.
 

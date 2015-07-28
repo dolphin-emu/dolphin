@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -12,10 +12,6 @@
 
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
-
-// Define this in order to get VTune profile support for the Jit generated code.
-// Add the VTune include/lib directories to the project directories to get this to build.
-// #define USE_VTUNE
 
 // emulate CPU with unlimited instruction cache
 // the only way to invalidate a region is the "icbi" instruction
@@ -42,7 +38,6 @@ struct JitBlock
 	int runCount;  // for profiling.
 
 	bool invalid;
-	bool memoryException;
 
 	struct LinkData
 	{
@@ -57,10 +52,6 @@ struct JitBlock
 	u64 ticStart;   // for profiling - time.
 	u64 ticStop;    // for profiling - time.
 	u64 ticCounter; // for profiling - time.
-
-#ifdef USE_VTUNE
-	char blockName[32];
-#endif
 };
 
 typedef void (*CompiledCode)();
@@ -115,7 +106,7 @@ class JitBaseBlockCache
 	std::array<JitBlock, MAX_NUM_BLOCKS> blocks;
 	int num_blocks;
 	std::multimap<u32, int> links_to;
-	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
+	std::map<std::pair<u32, u32>, u32> block_map; // (end_addr, start_addr) -> number
 	ValidBlockBitSet valid_block;
 
 	bool m_initialized;
@@ -125,12 +116,19 @@ class JitBaseBlockCache
 	void LinkBlock(int i);
 	void UnlinkBlock(int i);
 
+	u32* GetICachePtr(u32 addr);
+	void DestroyBlock(int block_num, bool invalidate);
+
 	// Virtual for overloaded
 	virtual void WriteLinkBlock(u8* location, const u8* address) = 0;
 	virtual void WriteDestroyBlock(const u8* location, u32 address) = 0;
 
 public:
 	JitBaseBlockCache() : num_blocks(0), m_initialized(false)
+	{
+	}
+
+	virtual ~JitBaseBlockCache()
 	{
 	}
 
@@ -152,17 +150,13 @@ public:
 	std::array<u8, JIT_ICACHEEX_SIZE> iCacheEx;
 	std::array<u8, JIT_ICACHE_SIZE>   iCacheVMEM;
 
-	u32* GetICachePtr(u32 addr);
-
 	// Fast way to get a block. Only works on the first ppc instruction of a block.
 	int GetBlockNumberFromStartAddress(u32 em_address);
 
-	u32 GetOriginalFirstOp(int block_num);
 	CompiledCode GetCompiledCodeFromBlock(int block_num);
 
 	// DOES NOT WORK CORRECTLY WITH INLINING
 	void InvalidateICache(u32 address, const u32 length, bool forced);
-	void DestroyBlock(int block_num, bool invalidate);
 };
 
 // x86 BlockCache

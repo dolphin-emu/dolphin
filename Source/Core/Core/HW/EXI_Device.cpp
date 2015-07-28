@@ -1,12 +1,13 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-
+#include "Common/ChunkFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceAD16.h"
+#include "Core/HW/EXI_DeviceAGP.h"
 #include "Core/HW/EXI_DeviceAMBaseboard.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
 #include "Core/HW/EXI_DeviceGecko.h"
@@ -14,7 +15,6 @@
 #include "Core/HW/EXI_DeviceMemoryCard.h"
 #include "Core/HW/EXI_DeviceMic.h"
 #include "Core/HW/Memmap.h"
-
 
 // --- interface IEXIDevice ---
 void IEXIDevice::ImmWrite(u32 _uData, u32 _uSize)
@@ -35,7 +35,7 @@ u32 IEXIDevice::ImmRead(u32 _uSize)
 	{
 		u8 uByte = 0;
 		TransferByte(uByte);
-		uResult |= uByte << (24-(uPosition++ * 8));
+		uResult |= uByte << (24 - (uPosition++ * 8));
 	}
 	return uResult;
 }
@@ -84,6 +84,7 @@ public:
 	u32  ImmRead (u32 size) override           {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
 	void DMAWrite(u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_strName.c_str(), size, addr);}
 	void DMARead (u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_strName.c_str(), size, addr);}
+	bool IsPresent() const override { return true; }
 };
 
 
@@ -127,6 +128,10 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 
 	case EXIDEVICE_GECKO:
 		result = new CEXIGecko();
+		break;
+
+	case EXIDEVICE_AGP:
+		result = new CEXIAgp(channel_num);
 		break;
 
 	case EXIDEVICE_NONE:

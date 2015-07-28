@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -63,7 +63,7 @@ enum ExpressionParseStatus
 	EXPRESSION_PARSE_NO_DEVICE,
 };
 
-ExpressionParseStatus ParseExpression(std::string expr, ControlFinder &finder, Expression **expr_out);
+ExpressionParseStatus ParseExpression(const std::string& expr, ControlFinder &finder, Expression **expr_out);
 
 }
 }

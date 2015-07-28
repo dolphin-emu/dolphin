@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -142,11 +142,12 @@ void JitILBase::bcx(UGeckoInstruction inst)
 	// The main Idle skipping is done in the LoadStore code, but there is an optimization here.
 	// If idle skipping is enabled, then this branch will only be reached when the branch is not
 	// taken.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+	// TODO: We shouldn't use debug reads here.
+	if (SConfig::GetInstance().bSkipIdle &&
 		inst.hex == 0x4182fff8 &&
-		(Memory::ReadUnchecked_U32(js.compilerPC - 8) & 0xFFFF0000) == 0x800D0000 &&
-		(Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x28000000 ||
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x2C000000))
+		(PowerPC::HostRead_U32(js.compilerPC - 8) & 0xFFFF0000) == 0x800D0000 &&
+		(PowerPC::HostRead_U32(js.compilerPC - 4) == 0x28000000 ||
+		(SConfig::GetInstance().bWii && PowerPC::HostRead_U32(js.compilerPC - 4) == 0x2C000000))
 		)
 	{
 		// Uh, Do nothing.

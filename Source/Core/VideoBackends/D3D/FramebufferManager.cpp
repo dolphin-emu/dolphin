@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Core/HW/Memmap.h"
@@ -45,7 +45,7 @@ D3DTexture2D* &FramebufferManager::GetResolvedEFBDepthTexture()
 	if (g_ActiveConfig.iMultisampleMode)
 	{
 		for (int i = 0; i < m_efb.slices; i++)
-			D3D::context->ResolveSubresource(m_efb.resolved_depth_tex->GetTex(), D3D11CalcSubresource(0, i, 1), m_efb.depth_tex->GetTex(), D3D11CalcSubresource(0, i, 1), DXGI_FORMAT_R8G8B8A8_UNORM);
+			D3D::context->ResolveSubresource(m_efb.resolved_depth_tex->GetTex(), D3D11CalcSubresource(0, i, 1), m_efb.depth_tex->GetTex(), D3D11CalcSubresource(0, i, 1), DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
 		return m_efb.resolved_depth_tex;
 	}
 	else
@@ -159,10 +159,11 @@ FramebufferManager::~FramebufferManager()
 	SAFE_RELEASE(m_efb.resolved_depth_tex);
 }
 
-void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
+void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
 	u8* dst = Memory::GetPointer(xfbAddr);
-	s_xfbEncoder.Encode(dst, fbWidth, fbHeight, sourceRc, Gamma);
+	// below div2 due to dx using pixel width
+	s_xfbEncoder.Encode(dst, fbStride/2, fbHeight, sourceRc, Gamma);
 }
 
 XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)

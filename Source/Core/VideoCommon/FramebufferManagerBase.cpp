@@ -1,3 +1,7 @@
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/RenderBase.h"
@@ -111,26 +115,24 @@ const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbA
 	return &m_overlappingXFBArray[0];
 }
 
-void FramebufferManagerBase::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
+void FramebufferManagerBase::CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 {
 	if (g_ActiveConfig.bUseRealXFB)
-		g_framebuffer_manager->CopyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
+		g_framebuffer_manager->CopyToRealXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
 	else
-		CopyToVirtualXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
+		CopyToVirtualXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
 }
 
-void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
+void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 {
-	VirtualXFBListType::iterator vxfb = FindVirtualXFB(xfbAddr, fbWidth, fbHeight);
+	VirtualXFBListType::iterator vxfb = FindVirtualXFB(xfbAddr, sourceRc.GetWidth(), fbHeight);
 
 	if (m_virtualXFBList.end() == vxfb)
 	{
 		if (m_virtualXFBList.size() < MAX_VIRTUAL_XFB)
 		{
 			// create a new Virtual XFB and place it at the front of the list
-			VirtualXFB v;
-			memset(&v, 0, sizeof v);
-			m_virtualXFBList.push_front(v);
+			m_virtualXFBList.emplace_front();
 			vxfb = m_virtualXFBList.begin();
 		}
 		else
@@ -163,7 +165,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 	}
 
 	vxfb->xfbSource->srcAddr = vxfb->xfbAddr = xfbAddr;
-	vxfb->xfbSource->srcWidth = vxfb->xfbWidth = fbWidth;
+	vxfb->xfbSource->srcWidth = vxfb->xfbWidth = sourceRc.GetWidth();
 	vxfb->xfbSource->srcHeight = vxfb->xfbHeight = fbHeight;
 
 	vxfb->xfbSource->sourceRc = g_renderer->ConvertEFBRectangle(sourceRc);

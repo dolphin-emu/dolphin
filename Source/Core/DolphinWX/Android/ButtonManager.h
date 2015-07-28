@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -11,6 +11,7 @@ namespace ButtonManager
 {
 	enum ButtonType
 	{
+		// GC
 		BUTTON_A = 0,
 		BUTTON_B = 1,
 		BUTTON_START = 2,
@@ -33,6 +34,18 @@ namespace ButtonManager
 		STICK_C_RIGHT = 19,
 		TRIGGER_L = 20,
 		TRIGGER_R = 21,
+		// Wiimote
+		WIIMOTE_BUTTON_A = 22,
+		WIIMOTE_BUTTON_B = 23,
+		WIIMOTE_BUTTON_MINUS = 24,
+		WIIMOTE_BUTTON_PLUS = 25,
+		WIIMOTE_BUTTON_HOME = 26,
+		WIIMOTE_BUTTON_1 = 27,
+		WIIMOTE_BUTTON_2 = 28,
+		WIIMOTE_UP = 29,
+		WIIMOTE_DOWN = 30,
+		WIIMOTE_LEFT = 31,
+		WIIMOTE_RIGHT = 32,
 	};
 	enum ButtonState
 	{
@@ -99,7 +112,7 @@ namespace ButtonManager
 			_inputbinds.clear();
 		}
 		void AddBind(sBind* bind) { _inputbinds[std::make_pair(bind->_padID, bind->_buttontype)] = bind; }
-		void PressEvent(int button, int action);
+		bool PressEvent(int button, int action);
 		void AxisEvent(int axis, float value);
 		bool ButtonValue(int padID, ButtonType button);
 		float AxisValue(int padID, ButtonType axis);
@@ -108,7 +121,7 @@ namespace ButtonManager
 	void Init();
 	bool GetButtonPressed(int padID, ButtonType button);
 	float GetAxisValue(int padID, ButtonType axis);
-	void GamepadEvent(std::string dev, int button, int action);
-	void GamepadAxisEvent(std::string dev, int axis, float value);
+	bool GamepadEvent(const std::string& dev, int button, int action);
+	void GamepadAxisEvent(const std::string& dev, int axis, float value);
 	void Shutdown();
 }

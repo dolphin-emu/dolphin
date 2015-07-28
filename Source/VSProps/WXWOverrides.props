@@ -8,9 +8,8 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>wx/wxprec.h</PrecompiledHeaderFile>
       <ExceptionHandling>Async</ExceptionHandling>
-      <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <PreprocessorDefinitions>__WXMSW__;WXBUILDING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\;..\..\include;..\..\..\zlib;..\..\..\libpng</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\;..\..\include;..\..\..\xxhash;..\..\..\zlib;..\..\..\libpng</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalOptions>"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\" %(AdditionalOptions)</AdditionalOptions>

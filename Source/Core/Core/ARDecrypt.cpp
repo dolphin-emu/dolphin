@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Most of the code in this file is from:
@@ -7,11 +7,15 @@
 // Copyright (C) 2003-2004 Parasyte
 
 #include <algorithm>
+#include <cstring>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Core/ARDecrypt.h"
 
 namespace ActionReplay
@@ -375,7 +379,7 @@ static bool batchdecrypt(u32 *codes, u16 size)
 	getbitstring(tmparray,tmparray2+5,2);  // Region
 
 	// Grab gameid and region from the last decrypted code
-	// TODO: Maybe check this against dolphin's GameID? - "code is for wrong game" type msg
+	// TODO: Maybe check this against Dolphin's GameID? - "code is for wrong game" type msg
 	//gameid = tmparray2[1];
 	//region = tmparray2[5];
 
@@ -410,7 +414,7 @@ static int GetVal(const char *flt, char chr)
 	return ret;
 }
 
-static int alphatobin(u32 *dst, std::vector<std::string> alpha, int size)
+static int alphatobin(u32 *dst, const std::vector<std::string>& alpha, int size)
 {
 	int j = 0;
 	int ret = 0;

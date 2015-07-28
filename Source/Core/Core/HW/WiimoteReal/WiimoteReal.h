@@ -1,21 +1,24 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <string>
+#include <thread>
 #include <vector>
 
-#include "Common/ChunkFile.h"
 #include "Common/FifoQueue.h"
-#include "Common/Thread.h"
 #include "Common/Timer.h"
-
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteRealBase.h"
-
 #include "InputCommon/InputConfig.h"
+
+class PointerWrap;
 
 typedef std::vector<u8> Report;
 
@@ -33,6 +36,7 @@ public:
 	void ControlChannel(const u16 channel, const void* const data, const u32 size);
 	void InterruptChannel(const u16 channel, const void* const data, const u32 size);
 	void Update();
+	void ConnectOnInput();
 
 	const Report& ProcessReadQueue();
 
@@ -53,7 +57,7 @@ public:
 
 	// connecting and disconnecting from physical devices
 	// (using address inserted by FindWiimotes)
-	// these are called from the wiimote's thread.
+	// these are called from the Wiimote's thread.
 	virtual bool ConnectInternal() = 0;
 	virtual void DisconnectInternal() = 0;
 
@@ -77,6 +81,7 @@ protected:
 	Wiimote();
 	Report m_last_input_report;
 	u16 m_channel;
+	u8 m_last_connect_request_counter;
 
 private:
 	void ClearReadQueue();
@@ -94,11 +99,11 @@ private:
 
 	std::thread               m_wiimote_thread;
 	// Whether to keep running the thread.
-	volatile bool             m_run_thread;
+	std::atomic<bool>         m_run_thread;
 	// Whether to call PrepareOnThread.
-	volatile bool             m_need_prepare;
+	std::atomic<bool>         m_need_prepare;
 	// Whether the thread has finished ConnectInternal.
-	volatile bool             m_thread_ready;
+	std::atomic<bool>         m_thread_ready;
 	std::mutex                m_thread_ready_mutex;
 	std::condition_variable   m_thread_ready_cond;
 
@@ -124,7 +129,7 @@ public:
 
 	void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&);
 
-	// function called when not looking for more wiimotes
+	// function called when not looking for more Wiimotes
 	void Update();
 
 private:
@@ -132,9 +137,9 @@ private:
 
 	std::thread m_scan_thread;
 
-	volatile bool m_run_thread;
-	volatile bool m_want_wiimotes;
-	volatile bool m_want_bb;
+	std::atomic<bool> m_run_thread;
+	std::atomic<bool> m_want_wiimotes;
+	std::atomic<bool> m_want_bb;
 
 #if defined(_WIN32)
 	void CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool &real_wiimote, bool &is_bb);
@@ -151,6 +156,7 @@ extern Wiimote *g_wiimotes[MAX_BBMOTES];
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
 void Update(int _WiimoteNumber);
+void ConnectOnInput(int _WiimoteNumber);
 
 void DoState(PointerWrap &p);
 void StateChange(EMUSTATE_CHANGE newState);

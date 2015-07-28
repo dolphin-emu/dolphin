@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
@@ -77,12 +77,14 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 	default:
 		if (wii)
 		{
-			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AXWii.\n\nTry LLE emulator if this is homebrew.", crc);
+			PanicAlertT("This title might be incompatible with DSP HLE emulation. Try using LLE if this is homebrew.\n\n"
+			            "Unknown ucode (CRC = %08x) - forcing AXWii.", crc);
 			return new AXWiiUCode(dsphle, crc);
 		}
 		else
 		{
-			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.\n\nTry LLE emulator if this is homebrew.", crc);
+			PanicAlertT("This title might be incompatible with DSP HLE emulation. Try using LLE if this is homebrew.\n\n"
+			            "DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.", crc);
 			return new AXUCode(dsphle, crc);
 		}
 
@@ -157,12 +159,12 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 		if (m_next_ucode.mram_size)
 		{
 			WARN_LOG(DSPHLE,
-				"Trying to boot new ucode with dram download - not implemented");
+				"Trying to boot new ucode with DRAM download - not implemented");
 		}
 		if (m_next_ucode.dram_size)
 		{
 			WARN_LOG(DSPHLE,
-				"Trying to boot new ucode with dram upload - not implemented");
+				"Trying to boot new ucode with DRAM upload - not implemented");
 		}
 
 		m_dsphle->SwapUCode(ector_crc);

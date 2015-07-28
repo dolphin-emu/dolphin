@@ -21,6 +21,18 @@ static inline int CountSetBits(T v)
 	v = (v + (v >> 4)) & (T)~(T)0/255*15;
 	return (T)(v * ((T)~(T)0/255)) >> (sizeof(T) - 1) * 8;
 }
+static inline int LeastSignificantSetBit(u8 val)
+{
+	unsigned long index;
+	_BitScanForward(&index, val);
+	return (int)index;
+}
+static inline int LeastSignificantSetBit(u16 val)
+{
+	unsigned long index;
+	_BitScanForward(&index, val);
+	return (int)index;
+}
 static inline int LeastSignificantSetBit(u32 val)
 {
 	unsigned long index;
@@ -34,8 +46,12 @@ static inline int LeastSignificantSetBit(u64 val)
 	return (int)index;
 }
 #else
+static inline int CountSetBits(u8 val) { return __builtin_popcount(val); }
+static inline int CountSetBits(u16 val) { return __builtin_popcount(val); }
 static inline int CountSetBits(u32 val) { return __builtin_popcount(val); }
 static inline int CountSetBits(u64 val) { return __builtin_popcountll(val); }
+static inline int LeastSignificantSetBit(u8 val) { return __builtin_ctz(val); }
+static inline int LeastSignificantSetBit(u16 val) { return __builtin_ctz(val); }
 static inline int LeastSignificantSetBit(u32 val) { return __builtin_ctz(val); }
 static inline int LeastSignificantSetBit(u64 val) { return __builtin_ctzll(val); }
 #endif
@@ -163,5 +179,7 @@ public:
 
 }
 
+typedef BS::BitSet<u8> BitSet8;
+typedef BS::BitSet<u16> BitSet16;
 typedef BS::BitSet<u32> BitSet32;
 typedef BS::BitSet<u64> BitSet64;

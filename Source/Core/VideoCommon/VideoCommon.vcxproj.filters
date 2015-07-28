@@ -122,6 +122,9 @@
     <ClCompile Include="VertexLoaderBase.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
+    <ClCompile Include="VertexLoaderX64.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
     <ClCompile Include="VertexLoader_Color.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
@@ -142,6 +145,9 @@
     </ClCompile>
     <ClCompile Include="TextureDecoder_x64.cpp">
       <Filter>Decoding</Filter>
+    </ClCompile>
+    <ClCompile Include="AsyncRequests.cpp">
+      <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="BoundingBox.cpp">
       <Filter>Util</Filter>
@@ -286,6 +292,9 @@
     </ClInclude>
     <ClInclude Include="VertexLoaderUtils.h">
       <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="AsyncRequests.h">
+      <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="BoundingBox.h">
       <Filter>Util</Filter>

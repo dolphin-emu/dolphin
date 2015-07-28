@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/Attachment/Drums.h"
 
 namespace WiimoteEmu

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
@@ -546,7 +546,7 @@ void CWII_IPC_HLE_WiiMote::ReceiveDisconnectionReq(u8 _Ident, u8* _pData, u32 _S
 //
 //
 
-// We assume WiiMote is always connected
+// We assume Wiimote is always connected
 void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm)
 {
 	// create the channel
@@ -604,7 +604,7 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16 MTU, u16 Flush
 	// (shuffle2) currently we end up not appending options. this is because we don't
 	// negotiate after trying to set MTU = 0 fails (stack will respond with
 	// "configuration failed" msg...). This is still fine, we'll just use whatever the
-	// bt stack defaults to.
+	// Bluetooth stack defaults to.
 	if (MTU || rChannel.MTU)
 	{
 		if (MTU == 0)

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -36,8 +36,8 @@ ID3D11GeometryShader* CopyGeometryShader = nullptr;
 
 LinearDiskCache<GeometryShaderUid, u8> g_gs_disk_cache;
 
-ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return (FramebufferManager::GetEFBLayers() > 1) ? ClearGeometryShader: nullptr; }
-ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader() { return (FramebufferManager::GetEFBLayers() > 1) ? CopyGeometryShader : nullptr; }
+ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return (g_ActiveConfig.iStereoMode > 0) ? ClearGeometryShader: nullptr; }
+ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader() { return (g_ActiveConfig.iStereoMode > 0) ? CopyGeometryShader : nullptr; }
 
 ID3D11Buffer* gscbuf = nullptr;
 
@@ -155,7 +155,7 @@ void GeometryShaderCache::Init()
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 	std::string cache_filename = StringFromFormat("%sdx11-%s-gs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+			SConfig::GetInstance().m_strUniqueID.c_str());
 	GeometryShaderCacheInserter inserter;
 	g_gs_disk_cache.OpenAndRead(cache_filename, inserter);
 

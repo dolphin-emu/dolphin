@@ -187,6 +187,9 @@
     <ClInclude Include="GLExtensions\GLExtensions.h">
       <Filter>GLExtensions</Filter>
     </ClInclude>
+    <ClInclude Include="GLExtensions\NV_occlusion_query_samples.h">
+      <Filter>GLExtensions</Filter>
+    </ClInclude>
     <ClInclude Include="GLExtensions\NV_primitive_restart.h">
       <Filter>GLExtensions</Filter>
     </ClInclude>
@@ -195,6 +198,9 @@
     </ClInclude>
     <ClInclude Include="GLInterface\WGL.h">
       <Filter>GLInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="GLExtensions\ARB_clip_control.h">
+      <Filter>GLExtensions</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,14 +1,16 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <mutex>
+#include <string>
 #include <thread>
 #include <lzo/lzo1x.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
@@ -64,7 +66,42 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 37;
+static const u32 STATE_VERSION = 44; // Last changed in PR 2464
+
+// Maps savestate versions to Dolphin versions.
+// Versions after 42 don't need to be added to this list,
+// beacuse they save the exact Dolphin version to savestates.
+static const std::map<u32, std::pair<std::string, std::string>> s_old_versions =
+{
+	// The 16 -> 17 change modified the size of StateHeader,
+	// so version older than that can't even be decompressed anymore
+	{ 17, { "3.5-1311", "3.5-1364" } },
+	{ 18, { "3.5-1366", "3.5-1371" } },
+	{ 19, { "3.5-1372", "3.5-1408" } },
+	{ 20, { "3.5-1409", "4.0-704" } },
+	{ 21, { "4.0-705", "4.0-889" } },
+	{ 22, { "4.0-905", "4.0-1871" } },
+	{ 23, { "4.0-1873", "4.0-1900" } },
+	{ 24, { "4.0-1902", "4.0-1919" } },
+	{ 25, { "4.0-1921", "4.0-1936" } },
+	{ 26, { "4.0-1939", "4.0-1959" } },
+	{ 27, { "4.0-1961", "4.0-2018" } },
+	{ 28, { "4.0-2020", "4.0-2291" } },
+	{ 29, { "4.0-2293", "4.0-2360" } },
+	{ 30, { "4.0-2362", "4.0-2628" } },
+	{ 31, { "4.0-2632", "4.0-3331" } },
+	{ 32, { "4.0-3334", "4.0-3340" } },
+	{ 33, { "4.0-3342", "4.0-3373" } },
+	{ 34, { "4.0-3376", "4.0-3402" } },
+	{ 35, { "4.0-3409", "4.0-3603" } },
+	{ 36, { "4.0-3610", "4.0-4480" } },
+	{ 37, { "4.0-4484", "4.0-4943" } },
+	{ 38, { "4.0-4963", "4.0-5267" } },
+	{ 39, { "4.0-5279", "4.0-5525" } },
+	{ 40, { "4.0-5531", "4.0-5809" } },
+	{ 41, { "4.0-5811", "4.0-5923" } },
+	{ 42, { "4.0-5925", "4.0-5946" } }
+};
 
 enum
 {
@@ -80,7 +117,7 @@ void EnableCompression(bool compression)
 	g_use_compression = compression;
 }
 
-static void DoState(PointerWrap &p)
+static std::string DoState(PointerWrap& p)
 {
 	u32 version = STATE_VERSION;
 	{
@@ -90,22 +127,42 @@ static void DoState(PointerWrap &p)
 		version = cookie - COOKIE_BASE;
 	}
 
+	std::string version_created_by = scm_rev_str;
+	if (version > 42)
+		p.Do(version_created_by);
+	else
+		version_created_by.clear();
+
 	if (version != STATE_VERSION)
 	{
-		// if the version doesn't match, fail.
-		// this will trigger a message like "Can't load state from other revisions"
+		if (version_created_by.empty() && s_old_versions.count(version))
+		{
+			// The savestate is from an old version that doesn't
+			// save the Dolphin version number to savestates, but
+			// by looking up the savestate version number, it is possible
+			// to know approximately which Dolphin version was used.
+
+			std::pair<std::string, std::string> version_range = s_old_versions.find(version)->second;
+			std::string oldest_version = version_range.first;
+			std::string newest_version = version_range.second;
+
+			version_created_by = "Dolphin " + oldest_version + " - " + newest_version;
+		}
+
+		// because the version doesn't match, fail.
+		// this will trigger an OSD message like "Can't load state from other revisions"
 		// we could use the version numbers to maintain some level of backward compatibility, but currently don't.
 		p.SetMode(PointerWrap::MODE_MEASURE);
-		return;
+		return version_created_by;
 	}
 
 	p.DoMarker("Version");
 
-	// Begin with video backend, so that it gets a chance to clear it's caches and writeback modified things to RAM
+	// Begin with video backend, so that it gets a chance to clear its caches and writeback modified things to RAM
 	g_video_backend->DoState(p);
 	p.DoMarker("video_backend");
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 		Wiimote::DoState(p.GetPPtr(), p.GetMode());
 	p.DoMarker("Wiimote");
 
@@ -117,9 +174,12 @@ static void DoState(PointerWrap &p)
 	p.DoMarker("CoreTiming");
 	Movie::DoState(p);
 	p.DoMarker("Movie");
+
 #if defined(HAVE_LIBAV) || defined (WIN32)
 	AVIDump::DoState();
 #endif
+
+	return version_created_by;
 }
 
 void LoadFromBuffer(std::vector<u8>& buffer)
@@ -176,7 +236,8 @@ static int GetEmptySlot(std::map<double, int> m)
 				break;
 			}
 		}
-		if (!found) return i;
+		if (!found)
+			return i;
 	}
 	return -1;
 }
@@ -196,9 +257,12 @@ static std::map<double, int> GetSavedStates()
 			if (ReadHeader(filename, header))
 			{
 				double d = Common::Timer::GetDoubleTime() - header.time;
+
 				// increase time until unique value is obtained
-				while (m.find(d) != m.end()) d += .001;
-				m.insert(std::pair<double,int>(d, i));
+				while (m.find(d) != m.end())
+					d += .001;
+
+				m.emplace(d, i);
 			}
 		}
 	}
@@ -255,7 +319,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 	// Setting up the header
 	StateHeader header;
-	memcpy(header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
+	memcpy(header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
 	header.size = g_use_compression ? (u32)buffer_size : 0;
 	header.time = Common::Timer::GetDoubleTime();
 
@@ -339,7 +403,7 @@ void SaveAs(const std::string& filename, bool wait)
 	else
 	{
 		// someone aborted the save by changing the mode?
-		Core::DisplayMessage("Unable to Save : Internal DoState Error", 4000);
+		Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
 	}
 
 	// Resume the core and disable stepping
@@ -373,7 +437,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 	StateHeader header;
 	f.ReadArray(&header, 1);
 
-	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6))
+	if (memcmp(SConfig::GetInstance().GetUniqueID().c_str(), header.gameID, 6))
 	{
 		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %.*s)",
 			6, header.gameID), 2000);
@@ -449,6 +513,7 @@ void LoadAs(const std::string& filename)
 
 	bool loaded = false;
 	bool loadedSuccessfully = false;
+	std::string version_created_by;
 
 	// brackets here are so buffer gets freed ASAP
 	{
@@ -459,7 +524,7 @@ void LoadAs(const std::string& filename)
 		{
 			u8 *ptr = &buffer[0];
 			PointerWrap p(&ptr, PointerWrap::MODE_READ);
-			DoState(p);
+			version_created_by = DoState(p);
 			loaded = true;
 			loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
 		}
@@ -478,7 +543,9 @@ void LoadAs(const std::string& filename)
 		else
 		{
 			// failed to load
-			Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
+			Core::DisplayMessage("Unable to load: Can't load state from other versions!", 4000);
+			if (!version_created_by.empty())
+				Core::DisplayMessage("The savestate was created using " + version_created_by, 4000);
 
 			// since we could be in an inconsistent state now (and might crash or whatever), undo.
 			if (g_loadDepth < 2)
@@ -549,7 +616,7 @@ void Shutdown()
 static std::string MakeStateFilename(int number)
 {
 	return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX).c_str(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), number);
+		SConfig::GetInstance().GetUniqueID().c_str(), number);
 }
 
 void Save(int slot, bool wait)
@@ -619,12 +686,12 @@ void UndoLoadState()
 		}
 		else
 		{
-			PanicAlert("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+			PanicAlertT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
 		}
 	}
 	else
 	{
-		PanicAlert("There is nothing to undo!");
+		PanicAlertT("There is nothing to undo!");
 	}
 }
 

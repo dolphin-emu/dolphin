@@ -46,7 +46,6 @@
     <ClCompile Include="Boot\ElfReader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="Core.cpp" />
-    <ClCompile Include="CoreParameter.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
     <ClCompile Include="Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Debugger\Dump.cpp" />
@@ -94,6 +93,7 @@
     <ClCompile Include="HLE\HLE.cpp" />
     <ClCompile Include="HLE\HLE_Misc.cpp" />
     <ClCompile Include="HLE\HLE_OS.cpp" />
+    <ClCompile Include="HotkeyManager.cpp" />
     <ClCompile Include="HW\AudioInterface.cpp" />
     <ClCompile Include="HW\BBA-TAP\TAP_Win32.cpp" />
     <ClCompile Include="HW\CPU.cpp" />
@@ -119,12 +119,15 @@
     <ClCompile Include="HW\EXI_Channel.cpp" />
     <ClCompile Include="HW\EXI_Device.cpp" />
     <ClCompile Include="HW\EXI_DeviceAD16.cpp" />
+    <ClCompile Include="HW\EXI_DeviceAGP.cpp" />
     <ClCompile Include="HW\EXI_DeviceAMBaseboard.cpp" />
     <ClCompile Include="HW\EXI_DeviceEthernet.cpp" />
     <ClCompile Include="HW\EXI_DeviceGecko.cpp" />
     <ClCompile Include="HW\EXI_DeviceIPL.cpp" />
     <ClCompile Include="HW\EXI_DeviceMemoryCard.cpp" />
     <ClCompile Include="HW\EXI_DeviceMic.cpp" />
+    <ClCompile Include="HW\GCKeyboard.cpp" />
+    <ClCompile Include="HW\GCKeyboardEmu.cpp" />
     <ClCompile Include="HW\GCMemcard.cpp" />
     <ClCompile Include="HW\GCMemcardDirectory.cpp" />
     <ClCompile Include="HW\GCMemcardRaw.cpp" />
@@ -133,7 +136,6 @@
     <ClCompile Include="HW\GPFifo.cpp" />
     <ClCompile Include="HW\HW.cpp" />
     <ClCompile Include="HW\Memmap.cpp" />
-    <ClCompile Include="HW\MemmapFunctions.cpp" />
     <ClCompile Include="HW\MemoryInterface.cpp" />
     <ClCompile Include="HW\MMIO.cpp" />
     <ClCompile Include="HW\ProcessorInterface.cpp" />
@@ -144,6 +146,7 @@
     <ClCompile Include="HW\SI_DeviceGBA.cpp" />
     <ClCompile Include="HW\SI_DeviceGCController.cpp" />
     <ClCompile Include="HW\SI_DeviceGCSteeringWheel.cpp" />
+    <ClCompile Include="HW\SI_DeviceKeyboard.cpp" />
     <ClCompile Include="HW\SI_GCAdapter.cpp">
       <!--
       Disable "nonstandard extension used : zero-sized array in struct/union" warning,
@@ -229,6 +232,7 @@
     <ClCompile Include="PowerPC\Jit64\Jit_LoadStorePaired.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_Paired.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_SystemRegisters.cpp" />
+    <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitBase.cpp" />
@@ -236,6 +240,7 @@
     <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp" />
     <ClCompile Include="PowerPC\JitCommon\TrampolineCache.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
+    <ClCompile Include="PowerPC\MMU.cpp" />
     <ClCompile Include="PowerPC\PowerPC.cpp" />
     <ClCompile Include="PowerPC\PPCAnalyst.cpp" />
     <ClCompile Include="PowerPC\PPCCache.cpp" />
@@ -244,7 +249,6 @@
     <ClCompile Include="PowerPC\Profiler.cpp" />
     <ClCompile Include="PowerPC\SignatureDB.cpp" />
     <ClCompile Include="State.cpp" />
-    <ClCompile Include="VolumeHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionReplay.h" />
@@ -256,7 +260,6 @@
     <ClInclude Include="Boot\ElfTypes.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Core.h" />
-    <ClInclude Include="CoreParameter.h" />
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="Debugger\Debugger_SymbolMap.h" />
     <ClInclude Include="Debugger\Dump.h" />
@@ -298,6 +301,7 @@
     <ClInclude Include="HLE\HLE_Misc.h" />
     <ClInclude Include="HLE\HLE_OS.h" />
     <ClInclude Include="Host.h" />
+    <ClInclude Include="HotkeyManager.h" />
     <ClInclude Include="HW\AudioInterface.h" />
     <ClInclude Include="HW\BBA-TAP\TAP_Win32.h" />
     <ClInclude Include="HW\CPU.h" />
@@ -324,12 +328,15 @@
     <ClInclude Include="HW\EXI_Channel.h" />
     <ClInclude Include="HW\EXI_Device.h" />
     <ClInclude Include="HW\EXI_DeviceAD16.h" />
+    <ClInclude Include="HW\EXI_DeviceAGP.h" />
     <ClInclude Include="HW\EXI_DeviceAMBaseboard.h" />
     <ClInclude Include="HW\EXI_DeviceEthernet.h" />
     <ClInclude Include="HW\EXI_DeviceGecko.h" />
     <ClInclude Include="HW\EXI_DeviceIPL.h" />
     <ClInclude Include="HW\EXI_DeviceMemoryCard.h" />
     <ClInclude Include="HW\EXI_DeviceMic.h" />
+    <ClInclude Include="HW\GCKeyboard.h" />
+    <ClInclude Include="HW\GCKeyboardEmu.h" />
     <ClInclude Include="HW\GCMemcard.h" />
     <ClInclude Include="HW\GCMemcardDirectory.h" />
     <ClInclude Include="HW\GCMemcardRaw.h" />
@@ -349,6 +356,7 @@
     <ClInclude Include="HW\SI_DeviceGBA.h" />
     <ClInclude Include="HW\SI_DeviceGCController.h" />
     <ClInclude Include="HW\SI_DeviceGCSteeringWheel.h" />
+    <ClInclude Include="HW\SI_DeviceKeyboard.h" />
     <ClInclude Include="HW\SI_GCAdapter.h" />
     <ClInclude Include="HW\Sram.h" />
     <ClInclude Include="HW\StreamADPCM.h" />
@@ -408,6 +416,7 @@
     <ClInclude Include="PowerPC\Jit64\JitRegCache.h" />
     <ClInclude Include="PowerPC\JitILCommon\IR.h" />
     <ClInclude Include="PowerPC\JitILCommon\JitILBase.h" />
+    <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h" />
     <ClInclude Include="PowerPC\JitCommon\JitAsmCommon.h" />
     <ClInclude Include="PowerPC\JitCommon\JitBase.h" />
     <ClInclude Include="PowerPC\JitCommon\JitCache.h" />
@@ -422,7 +431,6 @@
     <ClInclude Include="PowerPC\Profiler.h" />
     <ClInclude Include="PowerPC\SignatureDB.h" />
     <ClInclude Include="State.h" />
-    <ClInclude Include="VolumeHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
@@ -431,7 +439,10 @@
     <ProjectReference Include="$(ExternalsDir)Bochs_disasm\Bochs_disasm.vcxproj">
       <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)libusbx\msvc\libusb_static_2013.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
+      <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)libusb\libusb_static_2013.vcxproj">
       <Project>{349ee8f9-7d25-4909-aaf5-ff3fade72187}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)LZO\LZO.vcxproj">

@@ -1,3 +1,7 @@
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/BPStructs.h"
@@ -12,6 +16,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -25,7 +30,10 @@ u8 *VertexManager::s_pEndBufferPointer;
 
 PrimitiveType VertexManager::current_primitive_type;
 
-bool VertexManager::IsFlushed;
+Slope VertexManager::s_zslope;
+
+bool VertexManager::s_is_flushed;
+bool VertexManager::s_cull_all;
 
 static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS
@@ -40,7 +48,8 @@ static const PrimitiveType primitive_from_gx[8] = {
 
 VertexManager::VertexManager()
 {
-	IsFlushed = true;
+	s_is_flushed = true;
+	s_cull_all = false;
 }
 
 VertexManager::~VertexManager()
@@ -52,7 +61,7 @@ u32 VertexManager::GetRemainingSize()
 	return (u32)(s_pEndBufferPointer - s_pCurBufferPointer);
 }
 
-DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride)
+DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall)
 {
 	// The SSE vertex loader can write up to 4 bytes past the end
 	u32 const needed_vertex_bytes = count * stride + 4;
@@ -63,8 +72,8 @@ DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32
 	current_primitive_type = primitive_from_gx[primitive];
 
 	// Check for size in buffer, if the buffer gets full, call Flush()
-	if ( !IsFlushed && ( count > IndexGenerator::GetRemainingIndices() ||
-	     count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize() ) )
+	if (!s_is_flushed && ( count > IndexGenerator::GetRemainingIndices() ||
+	     count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize()))
 	{
 		Flush();
 
@@ -78,11 +87,13 @@ DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32
 				"Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
 	}
 
+	s_cull_all = cullall;
+
 	// need to alloc new buffer
-	if (IsFlushed)
+	if (s_is_flushed)
 	{
 		g_vertex_manager->ResetBuffer(stride);
-		IsFlushed = false;
+		s_is_flushed = false;
 	}
 
 	return DataReader(s_pCurBufferPointer, s_pEndBufferPointer);
@@ -153,13 +164,11 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 
 void VertexManager::Flush()
 {
-	if (IsFlushed)
+	if (s_is_flushed)
 		return;
 
 	// loading a state will invalidate BP, so check for it
 	g_video_backend->CheckInvalidState();
-
-	VideoFifo_CheckEFBAccess();
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens,
@@ -189,63 +198,141 @@ void VertexManager::Flush()
 		(int)bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alpha_test.hex>>16)&0xff);
 #endif
 
-	BitSet32 usedtextures;
-	for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
-		if (bpmem.tevorders[i / 2].getEnable(i & 1))
-			usedtextures[bpmem.tevorders[i/2].getTexMap(i & 1)] = true;
-
-	if (bpmem.genMode.numindstages > 0)
-		for (unsigned int i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
-			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
-				usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
-
-	for (unsigned int i : usedtextures)
+	// If the primitave is marked CullAll. All we need to do is update the vertex constants and calculate the zfreeze refrence slope
+	if (!s_cull_all)
 	{
-		g_renderer->SetSamplerState(i & 3, i >> 2);
-		const FourTexUnits &tex = bpmem.tex[i >> 2];
-		const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i,
-			(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
-			tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
-			tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9,
-			tex.texTlut[i&3].tlut_format,
-			((tex.texMode0[i&3].min_filter & 3) != 0),
-			(tex.texMode1[i&3].max_lod + 0xf) / 0x10,
-			(tex.texImage1[i&3].image_type != 0));
+		BitSet32 usedtextures;
+		for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
+			if (bpmem.tevorders[i / 2].getEnable(i & 1))
+				usedtextures[bpmem.tevorders[i/2].getTexMap(i & 1)] = true;
 
-		if (tentry)
+		if (bpmem.genMode.numindstages > 0)
+			for (unsigned int i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
+				if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
+					usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
+
+		TextureCache::UnbindTextures();
+		for (unsigned int i : usedtextures)
 		{
-			// 0s are probably for no manual wrapping needed.
-			PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
+			const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i);
+
+			if (tentry)
+			{
+				g_renderer->SetSamplerState(i & 3, i >> 2, tentry->is_custom_tex);
+				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
+			}
+			else
+			{
+				ERROR_LOG(VIDEO, "error loading texture");
+			}
 		}
-		else
-			ERROR_LOG(VIDEO, "error loading texture");
+		TextureCache::BindTextures();
 	}
 
-	// set global constants
+	// set global vertex constants
 	VertexShaderManager::SetConstants();
-	GeometryShaderManager::SetConstants();
-	PixelShaderManager::SetConstants();
 
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass &&
-	                   bpmem.dstalpha.enable &&
-	                   bpmem.blendmode.alphaupdate &&
-	                   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+	// Calculate ZSlope for zfreeze
+	if (!bpmem.genMode.zfreeze)
+	{
+		// Must be done after VertexShaderManager::SetConstants()
+		CalculateZSlope(VertexLoaderManager::GetCurrentVertexFormat());
+	}
+	else if (s_zslope.dirty && !s_cull_all) // or apply any dirty ZSlopes
+	{
+		PixelShaderManager::SetZSlope(s_zslope.dfdx, s_zslope.dfdy, s_zslope.f0);
+		s_zslope.dirty = false;
+	}
 
-	if (PerfQueryBase::ShouldEmulate())
-		g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-	g_vertex_manager->vFlush(useDstAlpha);
-	if (PerfQueryBase::ShouldEmulate())
-		g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+	if (!s_cull_all)
+	{
+		// set the rest of the global constants
+		GeometryShaderManager::SetConstants();
+		PixelShaderManager::SetConstants();
+
+		bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass &&
+						   bpmem.dstalpha.enable &&
+						   bpmem.blendmode.alphaupdate &&
+						   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
+		if (PerfQueryBase::ShouldEmulate())
+			g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+		g_vertex_manager->vFlush(useDstAlpha);
+		if (PerfQueryBase::ShouldEmulate())
+			g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+	}
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
 		ERROR_LOG(VIDEO, "xf.numtexgens (%d) does not match bp.numtexgens (%d). Error in command stream.", xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
 
-	IsFlushed = true;
+	s_is_flushed = true;
+	s_cull_all = false;
 }
 
 void VertexManager::DoState(PointerWrap& p)
 {
+	p.Do(s_zslope);
 	g_vertex_manager->vDoState(p);
+}
+
+void VertexManager::CalculateZSlope(NativeVertexFormat* format)
+{
+	float out[12];
+	float viewOffset[2] = { xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
+	                        xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
+
+	if (current_primitive_type != PRIMITIVE_TRIANGLES)
+		return;
+
+	// Global matrix ID.
+	u32 mtxIdx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
+	const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
+
+	// Make sure the buffer contains at least 3 vertices.
+	if ((s_pCurBufferPointer - s_pBaseBufferPointer) < (vert_decl.stride * 3))
+		return;
+
+	// Lookup vertices of the last rendered triangle and software-transform them
+	// This allows us to determine the depth slope, which will be used if z-freeze
+	// is enabled in the following flush.
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		// If this vertex format has per-vertex position matrix IDs, look it up.
+		if (vert_decl.posmtx.enable)
+			mtxIdx = VertexLoaderManager::position_matrix_index[2 - i];
+
+		if (vert_decl.position.components == 2)
+			VertexLoaderManager::position_cache[2 - i][2] = 0;
+
+		VertexShaderManager::TransformToClipSpace(&VertexLoaderManager::position_cache[2 - i][0], &out[i * 4], mtxIdx);
+
+		// Transform to Screenspace
+		float inv_w = 1.0f / out[3 + i * 4];
+
+		out[0 + i * 4] = out[0 + i * 4] * inv_w * xfmem.viewport.wd + viewOffset[0];
+		out[1 + i * 4] = out[1 + i * 4] * inv_w * xfmem.viewport.ht + viewOffset[1];
+		out[2 + i * 4] = out[2 + i * 4] * inv_w * xfmem.viewport.zRange + xfmem.viewport.farZ;
+	}
+
+	float dx31 = out[8] - out[0];
+	float dx12 = out[0] - out[4];
+	float dy12 = out[1] - out[5];
+	float dy31 = out[9] - out[1];
+
+	float DF31 = out[10] - out[2];
+	float DF21 = out[6] - out[2];
+	float a = DF31 * -dy12 - DF21 * dy31;
+	float b = dx31 * DF21 + dx12 * DF31;
+	float c = -dx12 * dy31 - dx31 * -dy12;
+
+	// Sometimes we process de-generate triangles. Stop any divide by zeros
+	if (c == 0)
+		return;
+
+	s_zslope.dfdx = -a / c;
+	s_zslope.dfdy = -b / c;
+	s_zslope.f0 = out[2] - (out[0] * s_zslope.dfdx + out[1] * s_zslope.dfdy);
+	s_zslope.dirty = true;
 }

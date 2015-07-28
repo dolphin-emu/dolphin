@@ -1,13 +1,13 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstdio>
 
-#include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
@@ -36,8 +36,8 @@ enum
 
 
 // STATE_TO_SAVE
-volatile u32 m_InterruptCause;
-volatile u32 m_InterruptMask;
+u32 m_InterruptCause;
+u32 m_InterruptMask;
 // addresses for CPU fifo accesses
 u32 Fifo_CPUBase;
 u32 Fifo_CPUEnd;
@@ -86,7 +86,7 @@ void Init()
 	m_FlipperRev = 0x246500B1; // revision C
 	m_Unknown = 0;
 
-	m_ResetCode = 0x80000000; // Cold reset
+	m_ResetCode = 0; // Cold reset
 	m_InterruptCause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
 
 	toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
@@ -97,7 +97,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	mmio->Register(base | PI_INTERRUPT_CAUSE,
 		MMIO::DirectRead<u32>(&m_InterruptCause),
 		MMIO::ComplexWrite<u32>([](u32, u32 val) {
-			Common::AtomicAnd(m_InterruptCause, ~val);
+			m_InterruptCause &= ~val;
 			UpdateException();
 		})
 	);
@@ -159,9 +159,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 void UpdateException()
 {
 	if ((m_InterruptCause & m_InterruptMask) != 0)
-		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_EXTERNAL_INT);
+		PowerPC::ppcState.Exceptions |= EXCEPTION_EXTERNAL_INT;
 	else
-		Common::AtomicAnd(PowerPC::ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
+		PowerPC::ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 }
 
 static const char *Debug_GetInterruptName(u32 _causemask)
@@ -190,7 +190,7 @@ static const char *Debug_GetInterruptName(u32 _causemask)
 
 void SetInterrupt(u32 _causemask, bool _bSet)
 {
-	// TODO(ector): add sanity check that current thread id is CPU thread
+	_dbg_assert_msg_(POWERPC, Core::IsCPUThread(), "SetInterrupt from wrong thread");
 
 	if (_bSet && !(m_InterruptCause & _causemask))
 	{
@@ -203,20 +203,17 @@ void SetInterrupt(u32 _causemask, bool _bSet)
 	}
 
 	if (_bSet)
-		Common::AtomicOr(m_InterruptCause, _causemask);
+		m_InterruptCause |= _causemask;
 	else
-		Common::AtomicAnd(m_InterruptCause, ~_causemask);// is there any reason to have this possibility?
-										// F|RES: i think the hw devices reset the interrupt in the PI to 0
-										// if the interrupt cause is eliminated. that isnt done by software (afaik)
+		m_InterruptCause &= ~_causemask;// is there any reason to have this possibility?
+		                                // F|RES: i think the hw devices reset the interrupt in the PI to 0
+		                                // if the interrupt cause is eliminated. that isnt done by software (afaik)
 	UpdateException();
 }
 
 static void SetResetButton(bool _bSet)
 {
-	if (_bSet)
-		Common::AtomicAnd(m_InterruptCause, ~INT_CAUSE_RST_BUTTON);
-	else
-		Common::AtomicOr(m_InterruptCause, INT_CAUSE_RST_BUTTON);
+	SetInterrupt(INT_CAUSE_RST_BUTTON, !_bSet);
 }
 
 void ToggleResetButtonCallback(u64 userdata, int cyclesLate)

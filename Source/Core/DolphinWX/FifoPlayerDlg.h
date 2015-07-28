@@ -1,22 +1,17 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <cstddef>
 #include <vector>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/string.h>
 
 #include "Common/CommonTypes.h"
 
 class wxButton;
 class wxCheckBox;
-class wxCommandEvent;
-class wxEvent;
-class wxEvtHandler;
 class wxListBox;
 class wxNotebook;
 class wxPaintEvent;
@@ -25,7 +20,6 @@ class wxSpinCtrl;
 class wxSpinEvent;
 class wxStaticText;
 class wxTextCtrl;
-class wxWindow;
 
 class FifoPlayerDlg : public wxDialog
 {
@@ -36,16 +30,16 @@ public:
 private:
 	void CreateGUIControls();
 
-	void OnPaint( wxPaintEvent& event );
-	void OnFrameFrom( wxSpinEvent& event );
-	void OnFrameTo( wxSpinEvent& event );
-	void OnObjectFrom( wxSpinEvent& event );
-	void OnObjectTo( wxSpinEvent& event );
-	void OnCheckEarlyMemoryUpdates( wxCommandEvent& event );
-	void OnRecordStop( wxCommandEvent& event );
-	void OnSaveFile( wxCommandEvent& event );
-	void OnNumFramesToRecord( wxSpinEvent& event );
-	void OnCloseClick( wxCommandEvent& event );
+	void OnPaint(wxPaintEvent& event);
+	void OnFrameFrom(wxSpinEvent& event);
+	void OnFrameTo(wxSpinEvent& event);
+	void OnObjectFrom(wxSpinEvent& event);
+	void OnObjectTo(wxSpinEvent& event);
+	void OnCheckEarlyMemoryUpdates(wxCommandEvent& event);
+	void OnRecordStop(wxCommandEvent& event);
+	void OnSaveFile(wxCommandEvent& event);
+	void OnNumFramesToRecord(wxSpinEvent& event);
+	void OnCloseClick(wxCommandEvent& event);
 
 	void OnBeginSearch(wxCommandEvent& event);
 	void OnFindNextClick(wxCommandEvent& event);

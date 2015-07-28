@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -9,7 +9,7 @@
 
 enum
 {
-	TMEM_SIZE = 1024*1024,
+	TMEM_SIZE = 1024 * 1024,
 	TMEM_LINE_SIZE = 32,
 };
 extern  GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
@@ -66,25 +66,12 @@ int TexDecoder_GetBlockWidthInTexels(u32 format);
 int TexDecoder_GetBlockHeightInTexels(u32 format);
 int TexDecoder_GetPaletteSize(int fmt);
 
-enum PC_TexFormat
-{
-	PC_TEX_FMT_NONE = 0,
-	PC_TEX_FMT_BGRA32,
-	PC_TEX_FMT_RGBA32,
-	PC_TEX_FMT_I4_AS_I8,
-	PC_TEX_FMT_IA4_AS_IA8,
-	PC_TEX_FMT_I8,
-	PC_TEX_FMT_IA8,
-	PC_TEX_FMT_RGB565,
-	PC_TEX_FMT_DXT1,
-};
-
-PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt);
-PC_TexFormat TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height);
+void TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt);
+void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height);
 void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, const u8* tlut, TlutFormat tlutfmt);
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8 *dst, const u8 *src_ar, const u8* src_gb, int s, int t, int imageWidth);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 
 /* Internal method, implemented by TextureDecoder_Generic and TextureDecoder_x64. */
-PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt);
+void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt);

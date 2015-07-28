@@ -1,10 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <atomic>
 #include <string>
 
-#include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -41,7 +41,7 @@
 
 #define VSYNC_ENABLED 0
 
-static volatile u32 s_swapRequested = false;
+static std::atomic<bool> s_swapRequested;
 
 static volatile struct
 {
@@ -53,8 +53,8 @@ static volatile struct
 namespace SW
 {
 
-static volatile bool fifoStateRun = false;
-static volatile bool emuRunningState = false;
+static std::atomic<bool> fifoStateRun;
+static std::atomic<bool> emuRunningState;
 static std::mutex m_csSWVidOccupied;
 
 std::string VideoSoftware::GetName() const
@@ -144,12 +144,12 @@ void VideoSoftware::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 
 void VideoSoftware::RunLoop(bool enable)
 {
-	emuRunningState = enable;
+	emuRunningState.store(enable);
 }
 
 void VideoSoftware::EmuStateChange(EMUSTATE_CHANGE newState)
 {
-	emuRunningState = (newState == EMUSTATE_CHANGE_PLAY) ? true : false;
+	emuRunningState.store(newState == EMUSTATE_CHANGE_PLAY);
 }
 
 void VideoSoftware::Shutdown()
@@ -163,6 +163,8 @@ void VideoSoftware::Shutdown()
 	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
 
 	GLInterface->Shutdown();
+	delete GLInterface;
+	GLInterface = nullptr;
 }
 
 void VideoSoftware::Video_Cleanup()
@@ -240,8 +242,8 @@ void VideoSoftware::Video_EndField()
 		DebugUtil::OnFrameEnd(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 
 		// If we are in dual core mode, notify the GPU thread about the new color texture.
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
-			Common::AtomicStoreRelease(s_swapRequested, true);
+		if (SConfig::GetInstance().bCPUThread)
+			s_swapRequested.store(true);
 		else
 			SWRenderer::Swap(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 	}
@@ -298,10 +300,10 @@ bool VideoSoftware::Video_Screenshot(const std::string& filename)
 // Run from the graphics thread
 static void VideoFifo_CheckSwapRequest()
 {
-	if (Common::AtomicLoadAcquire(s_swapRequested))
+	if (s_swapRequested.load())
 	{
 		SWRenderer::Swap(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
-		Common::AtomicStoreRelease(s_swapRequested, false);
+		s_swapRequested.store(false);
 	}
 }
 
@@ -311,9 +313,9 @@ static void VideoFifo_CheckSwapRequest()
 void VideoSoftware::Video_EnterLoop()
 {
 	std::lock_guard<std::mutex> lk(m_csSWVidOccupied);
-	fifoStateRun = true;
+	fifoStateRun.store(true);
 
-	while (fifoStateRun)
+	while (fifoStateRun.load())
 	{
 		VideoFifo_CheckSwapRequest();
 		g_video_backend->PeekMessages();
@@ -323,7 +325,7 @@ void VideoSoftware::Video_EnterLoop()
 			Common::YieldCPU();
 		}
 
-		while (!emuRunningState && fifoStateRun)
+		while (!emuRunningState.load() && fifoStateRun.load())
 		{
 			g_video_backend->PeekMessages();
 			VideoFifo_CheckSwapRequest();
@@ -336,7 +338,7 @@ void VideoSoftware::Video_EnterLoop()
 
 void VideoSoftware::Video_ExitLoop()
 {
-	fifoStateRun = false;
+	fifoStateRun.store(false);
 }
 
 // TODO : could use the OSD class in video common, we would need to implement the Renderer class
@@ -356,11 +358,6 @@ void VideoSoftware::Video_SetRendering(bool bEnabled)
 void VideoSoftware::Video_GatherPipeBursted()
 {
 	SWCommandProcessor::GatherPipeBursted();
-}
-
-bool VideoSoftware::Video_IsPossibleWaitingSetDrawDone()
-{
-	return false;
 }
 
 void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)

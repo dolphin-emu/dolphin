@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 //DL facts:
@@ -33,13 +33,14 @@
 
 
 bool g_bRecordFifoData = false;
+static bool s_bFifoErrorSeen = false;
 
 static u32 InterpretDisplayList(u32 address, u32 size)
 {
 	u8* startAddress;
 
 	if (g_use_deterministic_gpu_thread)
-		startAddress = (u8*) PopFifoAuxBuffer(size);
+		startAddress = (u8*)PopFifoAuxBuffer(size);
 	else
 		startAddress = Memory::GetPointer(address);
 
@@ -77,12 +78,13 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 {
 	// TODO(Omega): Maybe dump FIFO to file on this error
 	PanicAlert(
-	    "GFX FIFO: Unknown Opcode (0x%x @ %p, preprocessing=%s).\n"
+	    "GFX FIFO: Unknown Opcode (0x%02x @ %p, preprocessing=%s).\n"
 	    "This means one of the following:\n"
 	    "* The emulated GPU got desynced, disabling dual core can help\n"
 	    "* Command stream corrupted by some spurious memory bug\n"
 	    "* This really is an unknown opcode (unlikely)\n"
 	    "* Some other sort of bug\n\n"
+	    "Further errors will be sent to the Video Backend log and\n"
 	    "Dolphin will now likely crash or hang. Enjoy." ,
 	    cmd_byte,
 	    buffer,
@@ -123,6 +125,7 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 
 void OpcodeDecoder_Init()
 {
+	s_bFifoErrorSeen = false;
 }
 
 
@@ -137,7 +140,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 	u8* opcodeStart;
 	while (true)
 	{
-		src.WritePointer(&opcodeStart);
+		opcodeStart = src.GetPointer();
 
 		if (!src.size())
 			goto end;
@@ -150,7 +153,12 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 			totalCycles += 6; // Hm, this means that we scan over nop streams pretty slowly...
 			break;
 
-		case GX_LOAD_CP_REG: //0x08
+		case GX_UNKNOWN_RESET:
+			totalCycles += 6; // Datel software uses this command
+			DEBUG_LOG(VIDEO, "GX Reset?: %08x", cmd_byte);
+			break;
+
+		case GX_LOAD_CP_REG:
 			{
 				if (src.size() < 1 + 4)
 					goto end;
@@ -237,7 +245,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 			DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
 			break;
 
-		case GX_LOAD_BP_REG: //0x61
+		case GX_LOAD_BP_REG:
 			// In skipped_frame case: We have to let BP writes through because they set
 			// tokens and stuff.  TODO: Call a much simplified LoadBPReg instead.
 			{
@@ -265,33 +273,28 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 				if (src.size() < 2)
 					goto end;
 				u16 num_vertices = src.Read<u16>();
+				int bytes = VertexLoaderManager::RunVertices(
+					cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+					(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+					num_vertices,
+					src,
+					g_bSkipCurrentFrame,
+					is_preprocess);
 
-				if (is_preprocess)
-				{
-					size_t size = num_vertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK, is_preprocess);
-					if (src.size() < size)
-						goto end;
-					src.Skip(size);
-				}
-				else
-				{
-					int bytes = VertexLoaderManager::RunVertices(
-						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
-						num_vertices,
-						src,
-						g_bSkipCurrentFrame);
+				if (bytes < 0)
+					goto end;
 
-					if (bytes < 0)
-						goto end;
-					else
-						src.Skip(bytes);
-				}
-				totalCycles += 1600;
+				src.Skip(bytes);
+
+				// 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
+				totalCycles += num_vertices * 4 * 3 + 6;
 			}
 			else
 			{
-				UnknownOpcode(cmd_byte, opcodeStart, is_preprocess);
+				if (!s_bFifoErrorSeen)
+					UnknownOpcode(cmd_byte, opcodeStart, is_preprocess);
+				ERROR_LOG(VIDEO, "FIFO: Unknown Opcode(0x%02x @ %p, preprocessing = %s)", cmd_byte, opcodeStart, is_preprocess ? "yes" : "no");
+				s_bFifoErrorSeen = true;
 				totalCycles += 1;
 			}
 			break;
@@ -301,7 +304,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 		if (!is_preprocess && g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
 		{
 			u8* opcodeEnd;
-			src.WritePointer(&opcodeEnd);
+			opcodeEnd = src.GetPointer();
 			FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(opcodeEnd - opcodeStart));
 		}
 	}

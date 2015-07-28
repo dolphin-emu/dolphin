@@ -1,11 +1,13 @@
 set(SRCS BreakPoints.cpp
          CDUtils.cpp
          ColorUtil.cpp
+         ENetUtil.cpp
          FileSearch.cpp
          FileUtil.cpp
          GekkoDisassembler.cpp
          Hash.cpp
          IniFile.cpp
+         JitRegister.cpp
          MathUtil.cpp
          MemArena.cpp
          MemoryUtil.cpp
@@ -23,27 +25,22 @@ set(SRCS BreakPoints.cpp
          SysConf.cpp
          Thread.cpp
          Timer.cpp
+         TraversalClient.cpp
          Version.cpp
          x64ABI.cpp
          x64Analyzer.cpp
          x64Emitter.cpp
          Crypto/bn.cpp
          Crypto/ec.cpp
-         Logging/ConsoleListener.cpp
+         Logging/ConsoleListenerNix.cpp
          Logging/LogManager.cpp)
 
-
-if(_M_ARM)
-	if (_M_ARM_32) #ARMv7
-		set(SRCS ${SRCS}
-		         ArmEmitter.cpp)
-	else() #AArch64
-		set(SRCS ${SRCS}
-	               Arm64Emitter.cpp)
-	endif()
+set(LIBS enet)
+if(_M_ARM_64)
 	set(SRCS ${SRCS}
-	    ArmCPUDetect.cpp
-	    GenericFPURoundMode.cpp)
+	         Arm64Emitter.cpp
+	         ArmCPUDetect.cpp
+	         GenericFPURoundMode.cpp)
 else()
 	if(_M_X86) #X86
 		set(SRCS ${SRCS}
@@ -55,13 +52,11 @@ else()
 		         GenericCPUDetect.cpp)
 	endif()
 endif()
-if(WIN32)
-    set(SRCS ${SRCS} ExtendedTrace.cpp)
-endif(WIN32)
 
-set(LIBS "${CMAKE_THREAD_LIBS_INIT}")
-if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND (NOT ANDROID))
+set(LIBS "${CMAKE_THREAD_LIBS_INIT}" ${VTUNE_LIBRARIES})
+if(NOT APPLE AND NOT ANDROID)
 	set(LIBS ${LIBS} rt)
 endif()
 
 add_dolphin_library(common "${SRCS}" "${LIBS}")
+add_executable(traversal_server TraversalServer.cpp)

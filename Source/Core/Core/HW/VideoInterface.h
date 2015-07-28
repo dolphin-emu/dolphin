@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -290,7 +290,7 @@ struct SVIFilterCoefTables
 	UVIFilterCoefTable4 Tables36[4];
 };
 
-// Debug video mode only, probably never used in dolphin...
+// Debug video mode only, probably never used in Dolphin...
 union UVIBorderBlankRegister
 {
 	u32 Hex;
@@ -353,6 +353,4 @@ union UVIHorizontalStepping
 
 	unsigned int GetTicksPerLine();
 	unsigned int GetTicksPerFrame();
-
-	int GetNumFields();
 }

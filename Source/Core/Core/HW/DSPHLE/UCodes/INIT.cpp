@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Core/ConfigManager.h"
@@ -27,7 +27,7 @@ void INITUCode::Update()
 
 u32 INITUCode::GetUpdateMs()
 {
-	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
+	return SConfig::GetInstance().bWii ? 3 : 5;
 }
 
 void INITUCode::HandleMail(u32 mail)

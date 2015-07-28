@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstring>
@@ -7,72 +7,49 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
+#include "Common/Intrinsics.h"
 
-#ifdef _WIN32
-#include <intrin.h>
-#else
+#ifndef _WIN32
 
-//#include <config/i386/cpuid.h>
-#include <xmmintrin.h>
-
-#if defined __FreeBSD__
+#ifdef __FreeBSD__
 #include <sys/types.h>
 #include <machine/cpufunc.h>
-#else
-static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
-							unsigned int *ecx, unsigned int *edx)
+#endif
+
+static inline void __cpuidex(int info[4], int function_id, int subfunction_id)
 {
-#if defined _LP64
-	// Note: EBX is reserved on Mac OS X and in PIC on Linux, so it has to
-	// restored at the end of the asm block.
-	__asm__ (
-		"cpuid;"
-		"movl  %%ebx,%1;"
-		: "=a" (*eax),
-		  "=S" (*ebx),
-		  "=c" (*ecx),
-		  "=d" (*edx)
-		: "a"  (*eax)
-		: "rbx"
-		);
+#ifdef __FreeBSD__
+	// Despite the name, this is just do_cpuid() with ECX as second input.
+	cpuid_count((u_int)function_id, (u_int)subfunction_id, (u_int*)info);
 #else
-	__asm__ (
-		"cpuid;"
-		"movl  %%ebx,%1;"
-		: "=a" (*eax),
-		  "=S" (*ebx),
-		  "=c" (*ecx),
-		  "=d" (*edx)
-		: "a"  (*eax)
-		: "ebx"
-		);
+	info[0] = function_id;    // eax
+	info[2] = subfunction_id; // ecx
+	__asm__(
+		"cpuid"
+		: "=a" (info[0]),
+		  "=b" (info[1]),
+		  "=c" (info[2]),
+		  "=d" (info[3])
+		: "a" (function_id),
+		  "c" (subfunction_id)
+	);
 #endif
 }
-#endif /* defined __FreeBSD__ */
 
-static void __cpuid(int info[4], int x)
+static inline void __cpuid(int info[4], int function_id)
 {
-#if defined __FreeBSD__
-	do_cpuid((unsigned int)x, (unsigned int*)info);
-#else
-	unsigned int eax = x, ebx = 0, ecx = 0, edx = 0;
-	do_cpuid(&eax, &ebx, &ecx, &edx);
-	info[0] = eax;
-	info[1] = ebx;
-	info[2] = ecx;
-	info[3] = edx;
-#endif
+	return __cpuidex(info, function_id, 0);
 }
 
 #define _XCR_XFEATURE_ENABLED_MASK 0
-static unsigned long long _xgetbv(unsigned int index)
+static u64 _xgetbv(u32 index)
 {
-	unsigned int eax, edx;
+	u32 eax, edx;
 	__asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(index));
-	return ((unsigned long long)edx << 32) | eax;
+	return ((u64)edx << 32) | eax;
 }
 
-#endif
+#endif // ifndef _WIN32
 
 CPUInfo cpu_info;
 
@@ -169,7 +146,7 @@ void CPUInfo::Detect()
 
 		if (max_std_fn >= 7)
 		{
-			__cpuid(cpu_id, 0x00000007);
+			__cpuidex(cpu_id, 0x00000007, 0x00000000);
 			// careful; we can't enable AVX2 unless the XSAVE/XGETBV checks above passed
 			if ((cpu_id[1] >> 5) & 1)
 				bAVX2 = bAVX;
@@ -198,6 +175,7 @@ void CPUInfo::Detect()
 		__cpuid(cpu_id, 0x80000001);
 		if (cpu_id[2] & 1) bLAHFSAHF64 = true;
 		if ((cpu_id[2] >> 5) & 1) bLZCNT = true;
+		if ((cpu_id[2] >> 16) & 1) bFMA4 = true;
 		if ((cpu_id[3] >> 29) & 1) bLongMode = true;
 	}
 
@@ -215,7 +193,7 @@ void CPUInfo::Detect()
 				// New mechanism for modern Intel CPUs.
 				if (vendor == VENDOR_INTEL)
 				{
-					__cpuid(cpu_id, 0x00000004);
+					__cpuidex(cpu_id, 0x00000004, 0x00000000);
 					int cores_x_package = ((cpu_id[0] >> 26) & 0x3F) + 1;
 					HTT = (cores_x_package < logical_cpu_count);
 					cores_x_package = ((logical_cpu_count % cores_x_package) == 0) ? cores_x_package : 1;
@@ -223,7 +201,8 @@ void CPUInfo::Detect()
 					logical_cpu_count /= cores_x_package;
 				}
 			}
-		} else
+		}
+		else
 		{
 			// Use AMD's new method.
 			num_cores = (cpu_id[2] & 0xFF) + 1;

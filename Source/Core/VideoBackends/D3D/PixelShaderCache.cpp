@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -61,6 +61,11 @@ const char color_copy_program_code[] = {
 	"}\n"
 };
 
+// Anaglyph Red-Cyan shader based on Dubois algorithm
+// Constants taken from the paper:
+// "Conversion of a Stereo Pair to Anaglyph with
+// the Least-Squares Projection Method"
+// Eric Dubois, March 2009
 const char anaglyph_program_code[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2DArray Tex0 : register(t0);\n"
@@ -69,15 +74,22 @@ const char anaglyph_program_code[] = {
 	"in float4 pos : SV_Position,\n"
 	"in float3 uv0 : TEXCOORD0){\n"
 	"float4 c0 = Tex0.Sample(samp0, float3(uv0.xy, 0.0));\n"
-	"float4 c1 = Tex0.Sample(samp0, float3(uv0.xy, 1));\n"
-	"ocol0 = float4(pow(0.7 * c0.g + 0.3 * c0.b, 1.5), c1.gba);"
+	"float4 c1 = Tex0.Sample(samp0, float3(uv0.xy, 1.0));\n"
+	"float3x3 l = float3x3( 0.437, 0.449, 0.164,\n"
+	"                      -0.062,-0.062,-0.024,\n"
+	"                      -0.048,-0.050,-0.017);\n"
+	"float3x3 r = float3x3(-0.011,-0.032,-0.007,\n"
+	"                       0.377, 0.761, 0.009,\n"
+	"                      -0.026,-0.093, 1.234);\n"
+	"ocol0 = float4(mul(l, c0.rgb) + mul(r, c1.rgb), c0.a);\n"
 	"}\n"
 };
 
 // TODO: Improve sampling algorithm!
 const char color_copy_program_code_msaa[] = {
+	"#define SAMPLES %d\n"
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
@@ -85,9 +97,9 @@ const char color_copy_program_code_msaa[] = {
 	"int width, height, slices, samples;\n"
 	"Tex0.GetDimensions(width, height, slices, samples);\n"
 	"ocol0 = 0;\n"
-	"for(int i = 0; i < samples; ++i)\n"
+	"for(int i = 0; i < SAMPLES; ++i)\n"
 	"	ocol0 += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"ocol0 /= samples;\n"
+	"ocol0 /= SAMPLES;\n"
 	"}\n"
 };
 
@@ -106,8 +118,9 @@ const char color_matrix_program_code[] = {
 };
 
 const char color_matrix_program_code_msaa[] = {
+	"#define SAMPLES %d\n"
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
@@ -116,9 +129,9 @@ const char color_matrix_program_code_msaa[] = {
 	"int width, height, slices, samples;\n"
 	"Tex0.GetDimensions(width, height, slices, samples);\n"
 	"float4 texcol = 0;\n"
-	"for(int i = 0; i < samples; ++i)\n"
+	"for(int i = 0; i < SAMPLES; ++i)\n"
 	"	texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"texcol /= samples;\n"
+	"texcol /= SAMPLES;\n"
 	"texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
@@ -133,35 +146,29 @@ const char depth_matrix_program[] = {
 	" in float4 pos : SV_Position,\n"
 	" in float3 uv0 : TEXCOORD0){\n"
 	"	float4 texcol = Tex0.Sample(samp0,uv0);\n"
+	"	int depth = clamp(int((1.0 - texcol.x) * 16777216.0), 0, 0xFFFFFF);\n"
 
-	// 255.99998474121 = 16777215/16777216*256
-	"	float workspace = texcol.x * 255.99998474121;\n"
+	// Convert to Z24 format
+	"	int4 workspace;\n"
+	"	workspace.r = (depth >> 16) & 255;\n"
+	"	workspace.g = (depth >> 8) & 255;\n"
+	"	workspace.b = depth & 255;\n"
 
-	"	texcol.x = floor(workspace);\n"         // x component
+	// Convert to Z4 format
+	"	workspace.a = (depth >> 16) & 0xF0;\n"
 
-	"	workspace = workspace - texcol.x;\n"    // subtract x component out
-	"	workspace = workspace * 256.0;\n"       // shift left 8 bits
-	"	texcol.y = floor(workspace);\n"         // y component
+	// Normalize components to [0.0..1.0]
+	"	texcol = float4(workspace) / 255.0;\n"
 
-	"	workspace = workspace - texcol.y;\n"    // subtract y component out
-	"	workspace = workspace * 256.0;\n"       // shift left 8 bits
-	"	texcol.z = floor(workspace);\n"         // z component
-
-	"	texcol.w = texcol.x;\n"                 // duplicate x into w
-
-	"	texcol = texcol / 255.0;\n"             // normalize components to [0.0..1.0]
-
-	"	texcol.w = texcol.w * 15.0;\n"
-	"	texcol.w = floor(texcol.w);\n"
-	"	texcol.w = texcol.w / 15.0;\n"          // w component
-
+	// Apply color matrix
 	"	ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };
 
 const char depth_matrix_program_msaa[] = {
+	"#define SAMPLES %d\n"
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
@@ -170,31 +177,24 @@ const char depth_matrix_program_msaa[] = {
 	"	int width, height, slices, samples;\n"
 	"	Tex0.GetDimensions(width, height, slices, samples);\n"
 	"	float4 texcol = 0;\n"
-	"	for(int i = 0; i < samples; ++i)\n"
+	"	for(int i = 0; i < SAMPLES; ++i)\n"
 	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"	texcol /= samples;\n"
+	"	texcol /= SAMPLES;\n"
+	"	int depth = clamp(int((1.0 - texcol.x) * 16777216.0), 0, 0xFFFFFF);\n"
 
-	// 255.99998474121 = 16777215/16777216*256
-	"	float workspace = texcol.x * 255.99998474121;\n"
+	// Convert to Z24 format
+	"	int4 workspace;\n"
+	"	workspace.r = (depth >> 16) & 255;\n"
+	"	workspace.g = (depth >> 8) & 255;\n"
+	"	workspace.b = depth & 255;\n"
 
-	"	texcol.x = floor(workspace);\n"         // x component
+	// Convert to Z4 format
+	"	workspace.a = (depth >> 16) & 0xF0;\n"
 
-	"	workspace = workspace - texcol.x;\n"    // subtract x component out
-	"	workspace = workspace * 256.0;\n"       // shift left 8 bits
-	"	texcol.y = floor(workspace);\n"         // y component
+	// Normalize components to [0.0..1.0]
+	"	texcol = float4(workspace) / 255.0;\n"
 
-	"	workspace = workspace - texcol.y;\n"    // subtract y component out
-	"	workspace = workspace * 256.0;\n"       // shift left 8 bits
-	"	texcol.z = floor(workspace);\n"         // z component
-
-	"	texcol.w = texcol.x;\n"                 // duplicate x into w
-
-	"	texcol = texcol / 255.0;\n"             // normalize components to [0.0..1.0]
-
-	"	texcol.w = texcol.w * 15.0;\n"
-	"	texcol.w = floor(texcol.w);\n"
-	"	texcol.w = texcol.w / 15.0;\n"          // w component
-
+	// Apply color matrix
 	"	ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };
@@ -218,8 +218,9 @@ const char reint_rgba6_to_rgb8[] = {
 };
 
 const char reint_rgba6_to_rgb8_msaa[] = {
+	"#define SAMPLES %d\n"
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"void main(\n"
 	"	out float4 ocol0 : SV_Target,\n"
 	"	in float4 pos : SV_Position,\n"
@@ -228,9 +229,9 @@ const char reint_rgba6_to_rgb8_msaa[] = {
 	"	int width, height, slices, samples;\n"
 	"	Tex0.GetDimensions(width, height, slices, samples);\n"
 	"	float4 texcol = 0;\n"
-	"	for (int i = 0; i < samples; ++i)\n"
+	"	for (int i = 0; i < SAMPLES; ++i)\n"
 	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"	texcol /= samples;\n"
+	"	texcol /= SAMPLES;\n"
 	"	int4 src6 = round(texcol * 63.f);\n"
 	"	int4 dst8;\n"
 	"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
@@ -260,8 +261,9 @@ const char reint_rgb8_to_rgba6[] = {
 };
 
 const char reint_rgb8_to_rgba6_msaa[] = {
+	"#define SAMPLES %d\n"
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"void main(\n"
 	"	out float4 ocol0 : SV_Target,\n"
 	"	in float4 pos : SV_Position,\n"
@@ -270,9 +272,9 @@ const char reint_rgb8_to_rgba6_msaa[] = {
 	"	int width, height, slices, samples;\n"
 	"	Tex0.GetDimensions(width, height, slices, samples);\n"
 	"	float4 texcol = 0;\n"
-	"	for (int i = 0; i < samples; ++i)\n"
+	"	for (int i = 0; i < SAMPLES; ++i)\n"
 	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"	texcol /= samples;\n"
+	"	texcol /= SAMPLES;\n"
 	"	int4 src8 = round(texcol * 255.f);\n"
 	"	int4 dst6;\n"
 	"	dst6.r = src8.r >> 2;\n"
@@ -472,7 +474,7 @@ void PixelShaderCache::Init()
 	SETSTAT(stats.numPixelShadersAlive, 0);
 
 	std::string cache_filename = StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+			SConfig::GetInstance().m_strUniqueID.c_str());
 	PixelShaderCacheInserter inserter;
 	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 

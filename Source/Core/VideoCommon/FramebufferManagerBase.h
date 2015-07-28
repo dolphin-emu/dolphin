@@ -1,3 +1,7 @@
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #pragma once
 
 #include <list>
@@ -41,7 +45,7 @@ public:
 	FramebufferManagerBase();
 	virtual ~FramebufferManagerBase();
 
-	static void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma);
+	static void CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma);
 	static const XFBSourceBase* const* GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32* xfbCount);
 
 	static void SetLastXfbWidth(unsigned int width) { s_last_xfb_width = width; }
@@ -57,14 +61,16 @@ public:
 protected:
 	struct VirtualXFB
 	{
-		VirtualXFB() : xfbSource(nullptr) {}
+		VirtualXFB()
+		{
+		}
 
 		// Address and size in GameCube RAM
-		u32 xfbAddr;
-		u32 xfbWidth;
-		u32 xfbHeight;
+		u32 xfbAddr = 0;
+		u32 xfbWidth = 0;
+		u32 xfbHeight = 0;
 
-		XFBSourceBase *xfbSource;
+		XFBSourceBase* xfbSource = nullptr;
 	};
 
 	typedef std::list<VirtualXFB> VirtualXFBListType;
@@ -81,7 +87,7 @@ private:
 	static void ReplaceVirtualXFB();
 
 	// TODO: merge these virtual funcs, they are nearly all the same
-	virtual void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma = 1.0f) = 0;
+	virtual void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma = 1.0f) = 0;
 	static void CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma = 1.0f);
 
 	static const XFBSourceBase* const* GetRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32* xfbCount);

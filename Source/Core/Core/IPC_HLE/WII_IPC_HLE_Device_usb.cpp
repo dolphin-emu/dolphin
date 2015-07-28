@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/CommonPaths.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -13,7 +14,8 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
-
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::EnqueueReply(u32 CommandAddress)
@@ -35,11 +37,25 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	, m_ACLEndpoint(0)
 	, m_last_ticks(0)
 {
+	SysConf* sysconf;
+	std::unique_ptr<SysConf> owned_sysconf;
+	if (Core::g_want_determinism)
+	{
+		// See SysConf::UpdateLocation for comment about the Future.
+		owned_sysconf.reset(new SysConf());
+		sysconf = owned_sysconf.get();
+		sysconf->LoadFromFile(File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF);
+	}
+	else
+	{
+		sysconf = SConfig::GetInstance().m_SYSCONF;
+	}
+
 	// Activate only first Wiimote by default
 
 	_conf_pads BT_DINF;
 	SetUsbPointer(this);
-	if (!SConfig::GetInstance().m_SYSCONF->GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
+	if (!sysconf->GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
 	{
 		PanicAlertT("Trying to read from invalid SYSCONF\nWiimote bt ids are not available");
 	}
@@ -81,9 +97,9 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 			i++;
 		}
 
-		// save now so that when games load sysconf file it includes the new wiimotes
-		// and the correct order for connected wiimotes
-		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !SConfig::GetInstance().m_SYSCONF->Save())
+		// save now so that when games load sysconf file it includes the new Wiimotes
+		// and the correct order for connected Wiimotes
+		if (!sysconf->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !sysconf->Save())
 			PanicAlertT("Failed to write BT.DINF to SYSCONF");
 	}
 
@@ -129,7 +145,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::RemoteDisconnect(u16 _connectionHandle
 	return SendEventDisconnect(_connectionHandle, 0x13);
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
+IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
 {
 	m_ScanEnable = 0;
 
@@ -141,10 +157,10 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 	m_Active = true;
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForce)
+IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForce)
 {
 	m_ScanEnable = 0;
 
@@ -157,16 +173,16 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForc
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 {
 	//ERROR_LOG(WII_IPC_WIIMOTE, "Passing ioctl to ioctlv");
 	return IOCtlV(_CommandAddress); // FIXME: Hack
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 {
 /*
 	Memory::Write_U8(255, 0x80149950);  // BTM LOG  // 3 logs L2Cap  // 4 logs l2_csm$
@@ -304,7 +320,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 
 	// write return value
 	Memory::Write_U32(0, _CommandAddress + 4);
-	return _SendReply;
+	return { _SendReply, IPC_DEFAULT_DELAY };
 }
 
 
@@ -441,7 +457,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		packet_transferred = true;
 	}
 
-	// We wait for ScanEnable to be sent from the bt stack through HCI_CMD_WRITE_SCAN_ENABLE
+	// We wait for ScanEnable to be sent from the Bluetooth stack through HCI_CMD_WRITE_SCAN_ENABLE
 	// before we initiate the connection.
 	//
 	// FiRES: TODO find a better way to do this
@@ -475,11 +491,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 	if (now - m_last_ticks > interval)
 	{
+		g_controller_interface.UpdateInput();
 		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
-			if (m_WiiMotes[i].IsConnected())
-			{
-				Wiimote::Update(i);
-			}
+			Wiimote::Update(i, m_WiiMotes[i].IsConnected());
 		m_last_ticks = now;
 	}
 
@@ -1857,8 +1871,8 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _Co
 			return &wiimote;
 	}
 
-	ERROR_LOG(WII_IPC_WIIMOTE, "Can't find WiiMote by connection handle %02x", _ConnectionHandle);
-	PanicAlertT("Can't find WiiMote by connection handle %02x", _ConnectionHandle);
+	ERROR_LOG(WII_IPC_WIIMOTE, "Can't find Wiimote by connection handle %02x", _ConnectionHandle);
+	PanicAlertT("Can't find Wiimote by connection handle %02x", _ConnectionHandle);
 	return nullptr;
 }
 

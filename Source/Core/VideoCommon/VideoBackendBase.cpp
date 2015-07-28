@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // TODO: ugly
@@ -46,9 +46,7 @@ void VideoBackend::PopulateList()
 	VideoBackend* backends[4] = { nullptr };
 
 	// OGL > D3D11 > SW
-#if !defined(USE_GLES) || USE_GLES3
 	g_available_video_backends.push_back(backends[0] = new OGL::VideoBackend);
-#endif
 #ifdef _WIN32
 	if (IsGteVista())
 		g_available_video_backends.push_back(backends[1] = new DX11::VideoBackend);

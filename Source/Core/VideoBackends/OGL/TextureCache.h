@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -27,17 +27,16 @@ private:
 		GLuint texture;
 		GLuint framebuffer;
 
-		PC_TexFormat pcfmt;
-
-		int gl_format;
-		int gl_iformat;
-		int gl_type;
-
 		//TexMode0 mode; // current filter and clamp modes that texture is set to
 		//TexMode1 mode1; // current filter and clamp modes that texture is set to
 
-		TCacheEntry();
+		TCacheEntry(const TCacheEntryConfig& config);
 		~TCacheEntry();
+
+		void CopyRectangleFromTexture(
+			const TCacheEntryBase* source,
+			const MathUtil::Rectangle<int> &srcrect,
+			const MathUtil::Rectangle<int> &dstrect) override;
 
 		void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) override;
@@ -53,10 +52,8 @@ private:
 
 	~TextureCache();
 
-	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
-		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt) override;
-
-	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) override;
+	TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
+	void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) override;
 
 	void CompileShaders() override;
 	void DeleteShaders() override;

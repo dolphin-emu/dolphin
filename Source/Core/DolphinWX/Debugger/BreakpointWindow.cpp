@@ -1,17 +1,11 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <wx/bitmap.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/image.h>
 #include <wx/listbase.h>
 #include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/windowid.h>
 #include <wx/aui/auibar.h>
 #include <wx/aui/framemanager.h>
 
@@ -177,10 +171,10 @@ void CBreakPointWindow::SaveAll()
 {
 	// simply dump all to bp/mc files in a way we can read again
 	IniFile ini;
-	ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false);
+	ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini", false);
 	ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
 	ini.SetLines("MemoryChecks", PowerPC::memchecks.GetStrings());
-	ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
+	ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini");
 }
 
 void CBreakPointWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
@@ -195,7 +189,7 @@ void CBreakPointWindow::LoadAll()
 	BreakPoints::TBreakPointsStr newbps;
 	MemChecks::TMemChecksStr newmcs;
 
-	if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false))
+	if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini", false))
 	{
 		return;
 	}

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -13,8 +13,6 @@ namespace OGL
 {
 	class GLVertexFormat : public NativeVertexFormat
 	{
-		PortableVertexDeclaration vtx_decl;
-
 	public:
 		GLVertexFormat();
 		~GLVertexFormat();
@@ -42,10 +40,15 @@ public:
 	GLuint m_last_vao;
 protected:
 	virtual void ResetBuffer(u32 stride) override;
+
 private:
 	void Draw(u32 stride);
 	void vFlush(bool useDstAlpha) override;
 	void PrepareDrawBuffers(u32 stride);
+
+	// Alternative buffers in CPU memory for primatives we are going to discard.
+	std::vector<u8> m_cpu_v_buffer;
+	std::vector<u16> m_cpu_i_buffer;
 };
 
 }

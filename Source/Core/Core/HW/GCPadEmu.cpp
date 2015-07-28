@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Core/Host.h"
@@ -138,10 +138,10 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_buttons, 3, "S"); // Y
 	set_control(m_buttons, 4, "D"); // Z
 #ifdef _WIN32
-	set_control(m_buttons, 5, "RETURN"); // Start
+	set_control(m_buttons, 5, "!LMENU & RETURN"); // Start
 #else
-	// osx/linux
-	set_control(m_buttons, 5, "Return"); // Start
+	// OS X/Linux
+	set_control(m_buttons, 5, "!`Alt_L` & Return"); // Start
 #endif
 
 	// stick modifiers to 50 %

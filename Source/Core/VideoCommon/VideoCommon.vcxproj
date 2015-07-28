@@ -35,6 +35,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="AsyncRequests.cpp" />
     <ClCompile Include="AVIDump.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="BPFunctions.cpp" />
@@ -66,6 +67,7 @@
     <ClCompile Include="TextureConversionShader.cpp" />
     <ClCompile Include="VertexLoader.cpp" />
     <ClCompile Include="VertexLoaderBase.cpp" />
+    <ClCompile Include="VertexLoaderX64.cpp" />
     <ClCompile Include="VertexLoaderManager.cpp" />
     <ClCompile Include="VertexLoader_Color.cpp" />
     <ClCompile Include="VertexLoader_Normal.cpp" />
@@ -83,6 +85,7 @@
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AsyncRequests.h" />
     <ClInclude Include="AVIDump.h" />
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="BPFunctions.h" />
@@ -145,6 +148,9 @@
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)SOIL\SOIL.vcxproj">
       <Project>{b441cc62-877e-4b3f-93e0-0de80544f705}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)xxhash\xxhash.vcxproj">
+      <Project>{677EA016-1182-440C-9345-DC88D1E98C0C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
       <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>

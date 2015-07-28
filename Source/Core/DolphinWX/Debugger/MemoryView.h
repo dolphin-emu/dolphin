@@ -1,21 +1,40 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <wx/control.h>
-#include <wx/event.h>
-
 #include "Common/CommonTypes.h"
 
 class DebugInterface;
-class wxWindow;
+
+enum class MemoryDataType
+{
+	U8, U16, U32
+};
 
 class CMemoryView : public wxControl
 {
 public:
 	CMemoryView(DebugInterface* debuginterface, wxWindow* parent);
+
+	u32 GetSelection() const { return selection ; }
+	int GetMemoryType() const { return memory; }
+
+	void Center(u32 addr)
+	{
+		curAddress = addr;
+		Refresh();
+	}
+
+	void SetDataType(MemoryDataType data_type)
+	{
+		dataType = data_type;
+		Refresh();
+	}
+
+private:
 	void OnPaint(wxPaintEvent& event);
 	void OnMouseDownL(wxMouseEvent& event);
 	void OnMouseMove(wxMouseEvent& event);
@@ -24,18 +43,6 @@ public:
 	void OnScrollWheel(wxMouseEvent& event);
 	void OnPopupMenu(wxCommandEvent& event);
 
-	u32 GetSelection() { return selection ; }
-	int GetMemoryType() { return memory; }
-
-	void Center(u32 addr)
-	{
-		curAddress = addr;
-		Refresh();
-	}
-	int dataType;   // u8,u16,u32
-	int curAddress; // Will be accessed by parent
-
-private:
 	int YToAddress(int y);
 	void OnResize(wxSizeEvent& event);
 
@@ -49,6 +56,8 @@ private:
 	bool selecting;
 
 	int memory;
+	int curAddress;
+	MemoryDataType dataType;
 
 	enum EViewAsType
 	{

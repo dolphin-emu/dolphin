@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cinttypes>
@@ -756,7 +756,7 @@ void DSPJitRegCache::getReg(int reg, OpArg &oparg, bool load)
 	{
 		emitter.INT3();
 	}
-	// no nead to actually emit code for load or rotate if caller doesn't
+	// no need to actually emit code for load or rotate if caller doesn't
 	// use the contents, but see above for a reason to force the load
 	movToHostReg(real_reg, load);
 
@@ -903,19 +903,19 @@ void DSPJitRegCache::writeReg(int dreg, OpArg arg)
 		switch (regs[dreg].size)
 		{
 		case 2:
-			emitter.MOV(16, reg, Imm16((u16) arg.offset));
+			emitter.MOV(16, reg, Imm16(arg.Imm16()));
 			break;
 		case 4:
-			emitter.MOV(32, reg, Imm32((u32) arg.offset));
+			emitter.MOV(32, reg, Imm32(arg.Imm32()));
 			break;
 		case 8:
-			if ((u32) arg.offset == arg.offset)
+			if ((u32)arg.Imm64() == arg.Imm64())
 			{
-				emitter.MOV(64, reg, Imm32((u32) arg.offset));
+				emitter.MOV(64, reg, Imm32((u32) arg.Imm64()));
 			}
 			else
 			{
-				emitter.MOV(64, reg, Imm64(arg.offset));
+				emitter.MOV(64, reg, Imm64(arg.Imm64()));
 			}
 			break;
 		default:

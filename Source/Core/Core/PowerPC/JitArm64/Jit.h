@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -18,14 +18,25 @@
 
 #define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
+// A place to throw blocks of code we don't want polluting the cache, e.g. rarely taken
+// exception branches.
+class FarCodeCacheArm64 : public Arm64Gen::ARM64CodeBlock
+{
+public:
+	void Init(int size) { AllocCodeSpace(size); }
+	void Shutdown() { FreeCodeSpace(); }
+};
+
 // Some asserts to make sure we will be able to load everything
 static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
 static_assert((PPCSTATE_OFF(ps[0][0]) % 8) == 0, "LDR(64bit VFP) requires FPRs to be 8 byte aligned");
+static_assert(PPCSTATE_OFF(xer_ca) < 4096, "STRB can't store xer_ca!");
+static_assert(PPCSTATE_OFF(xer_so_ov) < 4096, "STRB can't store xer_so_ov!");
 
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock
 {
 public:
-	JitArm64() : code_buffer(32000) {}
+	JitArm64() : code_buffer(32000), m_float_emit(this) {}
 	~JitArm64() {}
 
 	void Init();
@@ -33,7 +44,7 @@ public:
 
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
-	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
+	bool IsInCodeSpace(u8 *ptr) const { return IsInSpace(ptr); }
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
@@ -55,7 +66,6 @@ public:
 	}
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction inst);
 	void FallBackToInterpreter(UGeckoInstruction inst);
 	void DoNothing(UGeckoInstruction inst);
 	void HLEFunction(UGeckoInstruction inst);
@@ -80,6 +90,7 @@ public:
 	// Integer
 	void arith_imm(UGeckoInstruction inst);
 	void boolX(UGeckoInstruction inst);
+	void addx(UGeckoInstruction inst);
 	void extsXx(UGeckoInstruction inst);
 	void cntlzwx(UGeckoInstruction inst);
 	void negx(UGeckoInstruction inst);
@@ -87,6 +98,16 @@ public:
 	void cmpl(UGeckoInstruction inst);
 	void cmpi(UGeckoInstruction inst);
 	void cmpli(UGeckoInstruction inst);
+	void rlwinmx(UGeckoInstruction inst);
+	void srawix(UGeckoInstruction inst);
+	void mullwx(UGeckoInstruction inst);
+	void addic(UGeckoInstruction inst);
+	void mulli(UGeckoInstruction inst);
+	void addzex(UGeckoInstruction inst);
+	void subfx(UGeckoInstruction inst);
+	void addcx(UGeckoInstruction inst);
+	void slwx(UGeckoInstruction inst);
+	void rlwimix(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
@@ -97,11 +118,70 @@ public:
 	void mfsrin(UGeckoInstruction inst);
 	void mtsrin(UGeckoInstruction inst);
 	void twx(UGeckoInstruction inst);
+	void mfspr(UGeckoInstruction inst);
+	void mftb(UGeckoInstruction inst);
+	void mtspr(UGeckoInstruction inst);
 
 	// LoadStore
-	void icbi(UGeckoInstruction inst);
 	void lXX(UGeckoInstruction inst);
 	void stX(UGeckoInstruction inst);
+	void lmw(UGeckoInstruction inst);
+	void stmw(UGeckoInstruction inst);
+
+	// LoadStore floating point
+	void lfXX(UGeckoInstruction inst);
+	void stfXX(UGeckoInstruction inst);
+
+	// Floating point
+	void fabsx(UGeckoInstruction inst);
+	void faddsx(UGeckoInstruction inst);
+	void faddx(UGeckoInstruction inst);
+	void fmaddsx(UGeckoInstruction inst);
+	void fmaddx(UGeckoInstruction inst);
+	void fmrx(UGeckoInstruction inst);
+	void fmsubsx(UGeckoInstruction inst);
+	void fmsubx(UGeckoInstruction inst);
+	void fmulsx(UGeckoInstruction inst);
+	void fmulx(UGeckoInstruction inst);
+	void fnabsx(UGeckoInstruction inst);
+	void fnegx(UGeckoInstruction inst);
+	void fnmaddsx(UGeckoInstruction inst);
+	void fnmaddx(UGeckoInstruction inst);
+	void fnmsubsx(UGeckoInstruction inst);
+	void fnmsubx(UGeckoInstruction inst);
+	void fselx(UGeckoInstruction inst);
+	void fsubsx(UGeckoInstruction inst);
+	void fsubx(UGeckoInstruction inst);
+
+	// Paired
+	void ps_abs(UGeckoInstruction inst);
+	void ps_add(UGeckoInstruction inst);
+	void ps_div(UGeckoInstruction inst);
+	void ps_madd(UGeckoInstruction inst);
+	void ps_madds0(UGeckoInstruction inst);
+	void ps_madds1(UGeckoInstruction inst);
+	void ps_merge00(UGeckoInstruction inst);
+	void ps_merge01(UGeckoInstruction inst);
+	void ps_merge10(UGeckoInstruction inst);
+	void ps_merge11(UGeckoInstruction inst);
+	void ps_mr(UGeckoInstruction inst);
+	void ps_msub(UGeckoInstruction inst);
+	void ps_mul(UGeckoInstruction inst);
+	void ps_muls0(UGeckoInstruction inst);
+	void ps_muls1(UGeckoInstruction inst);
+	void ps_nabs(UGeckoInstruction inst);
+	void ps_nmadd(UGeckoInstruction inst);
+	void ps_nmsub(UGeckoInstruction inst);
+	void ps_neg(UGeckoInstruction inst);
+	void ps_res(UGeckoInstruction inst);
+	void ps_sel(UGeckoInstruction inst);
+	void ps_sub(UGeckoInstruction inst);
+	void ps_sum0(UGeckoInstruction inst);
+	void ps_sum1(UGeckoInstruction inst);
+
+	// Loadstore paired
+	void psq_l(UGeckoInstruction inst);
+	void psq_st(UGeckoInstruction inst);
 
 private:
 	Arm64GPRCache gpr;
@@ -111,6 +191,27 @@ private:
 	JitArm64AsmRoutineManager asm_routines;
 
 	PPCAnalyst::CodeBuffer code_buffer;
+
+	ARM64FloatEmitter m_float_emit;
+
+	FarCodeCacheArm64 farcode;
+	u8* nearcode; // Backed up when we switch to far code.
+
+	// Simple functions to switch between near and far code emitting
+	void SwitchToFarCode()
+	{
+		nearcode = GetWritableCodePtr();
+		SetCodePtr(farcode.GetWritableCodePtr());
+	}
+
+	void SwitchToNearCode()
+	{
+		farcode.SetCodePtr(GetWritableCodePtr());
+		SetCodePtr(nearcode);
+	}
+
+	// Dump a memory range of code
+	void DumpCode(const u8* start, const u8* end);
 
 	// The key is the backpatch flags
 	std::map<u32, BackPatchInfo> m_backpatch_info;
@@ -127,6 +228,10 @@ private:
 
 	void DoDownCount();
 
+	// Profiling
+	void BeginTimeProfile(JitBlock* b);
+	void EndTimeProfile(JitBlock* b);
+
 	// Exits
 	void WriteExit(u32 destination);
 	void WriteExceptionExit(Arm64Gen::ARM64Reg dest);
@@ -137,6 +242,8 @@ private:
 
 	void ComputeRC(Arm64Gen::ARM64Reg reg, int crf = 0);
 	void ComputeRC(u32 imm, int crf = 0);
+	void ComputeCarry(bool Carry);
+	void ComputeCarry();
 
 	typedef u32 (*Operation)(u32, u32);
 	void reg_imm(u32 d, u32 a, bool binary, u32 value, Operation do_op, void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, ArithOption), bool Rc = false);

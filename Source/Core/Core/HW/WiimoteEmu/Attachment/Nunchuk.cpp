@@ -1,7 +1,9 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/MathUtil.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 
 namespace WiimoteEmu
@@ -87,23 +89,21 @@ void Nunchuk::GetState(u8* const data)
 	// flip the button bits :/
 	ncdata->bt.hex ^= 0x03;
 
-	u16 accel_x = (u16)(accel.x * ACCEL_RANGE + ACCEL_ZERO_G);
-	u16 accel_y = (u16)(accel.y * ACCEL_RANGE + ACCEL_ZERO_G);
-	u16 accel_z = (u16)(accel.z * ACCEL_RANGE + ACCEL_ZERO_G);
+	// We now use 2 bits more precision, so multiply by 4 before converting to int
+	s16 accel_x = (s16)(4 * (accel.x * ACCEL_RANGE + ACCEL_ZERO_G));
+	s16 accel_y = (s16)(4 * (accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
+	s16 accel_z = (s16)(4 * (accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
 
-	if (accel_x > 1024)
-		accel_x = 1024;
-	if (accel_y > 1024)
-		accel_y = 1024;
-	if (accel_z > 1024)
-		accel_z = 1024;
+	accel_x = MathUtil::Clamp<s16>(accel_x, 0, 1024);
+	accel_y = MathUtil::Clamp<s16>(accel_y, 0, 1024);
+	accel_z = MathUtil::Clamp<s16>(accel_z, 0, 1024);
 
-	ncdata->ax = accel_x & 0xFF;
-	ncdata->ay = accel_y & 0xFF;
-	ncdata->az = accel_z & 0xFF;
-	ncdata->passthrough_data.acc_x_lsb = accel_x >> 8 & 0x3;
-	ncdata->passthrough_data.acc_y_lsb = accel_y >> 8 & 0x3;
-	ncdata->passthrough_data.acc_z_lsb = accel_z >> 8 & 0x3;
+	ncdata->ax = (accel_x >> 2) & 0xFF;
+	ncdata->ay = (accel_y >> 2) & 0xFF;
+	ncdata->az = (accel_z >> 2) & 0xFF;
+	ncdata->bt.acc_x_lsb = accel_x & 0x3;
+	ncdata->bt.acc_y_lsb = accel_y & 0x3;
+	ncdata->bt.acc_z_lsb = accel_z & 0x3;
 }
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)

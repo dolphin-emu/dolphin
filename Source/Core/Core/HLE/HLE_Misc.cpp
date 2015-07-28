@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -63,7 +63,7 @@ void HLEGeckoCodehandler()
 	// robust alternative would be to actually detect memory writes, but that
 	// would be even uglier.)
 	u32 magic = 0xd01f1bad;
-	u32 existing = Memory::Read_U32(0x80001800);
+	u32 existing = PowerPC::HostRead_U32(0x80001800);
 	if (existing - magic == 5)
 	{
 		return;
@@ -72,7 +72,7 @@ void HLEGeckoCodehandler()
 	{
 		existing = magic;
 	}
-	Memory::Write_U32(existing + 1, 0x80001800);
+	PowerPC::HostWrite_U32(existing + 1, 0x80001800);
 	PowerPC::ppcState.iCache.Reset();
 }
 

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -22,7 +22,16 @@
 	#include <Windows.h>
 #else
 	#include <iconv.h>
+	#include <locale.h>
 	#include <errno.h>
+#endif
+
+#if !defined(_WIN32) && !defined(ANDROID)
+static locale_t GetCLocale()
+{
+	static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
+	return c_locale;
+}
 #endif
 
 // faster than sscanf
@@ -77,7 +86,13 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 		c_locale = _create_locale(LC_ALL, ".1252");
 	writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
 #else
+	#if !defined(ANDROID)
+	locale_t previousLocale = uselocale(GetCLocale());
+	#endif
 	writtenCount = vsnprintf(out, outsize, format, args);
+	#if !defined(ANDROID)
+	uselocale(previousLocale);
+	#endif
 #endif
 
 	if (writtenCount > 0 && writtenCount < outsize)
@@ -95,28 +110,36 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 std::string StringFromFormat(const char* format, ...)
 {
 	va_list args;
+	va_start(args, format);
+	std::string res = StringFromFormatV(format, args);
+	va_end(args);
+	return std::move(res);
+}
+
+std::string StringFromFormatV(const char* format, va_list args)
+{
 	char *buf = nullptr;
 #ifdef _WIN32
-	int required = 0;
-
-	va_start(args, format);
-	required = _vscprintf(format, args);
+	int required = _vscprintf(format, args);
 	buf = new char[required + 1];
 	CharArrayFromFormatV(buf, required + 1, format, args);
-	va_end(args);
 
 	std::string temp = buf;
 	delete[] buf;
 #else
-	va_start(args, format);
+	#if !defined(ANDROID)
+	locale_t previousLocale = uselocale(GetCLocale());
+	#endif
 	if (vasprintf(&buf, format, args) < 0)
 		ERROR_LOG(COMMON, "Unable to allocate memory for string");
-	va_end(args);
+	#if !defined(ANDROID)
+	uselocale(previousLocale);
+	#endif
 
 	std::string temp = buf;
 	free(buf);
 #endif
-	return temp;
+	return std::move(temp);
 }
 
 // For Debugging. Read out an u8 array.
@@ -218,7 +241,7 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 		return false;
 
 	size_t dir_end = full_path.find_last_of("/"
-	// windows needs the : included for something like just "C:" to be considered a directory
+	// Windows needs the : included for something like just "C:" to be considered a directory
 #ifdef _WIN32
 		":"
 #endif

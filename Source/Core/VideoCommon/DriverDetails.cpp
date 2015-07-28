@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <map>
@@ -30,6 +30,8 @@ namespace DriverDetails
 	const u32 m_os = OS_ALL | OS_OSX;
 #elif __linux__
 	const u32 m_os = OS_ALL | OS_LINUX;
+#elif __FreeBSD__
+	const u32 m_os = OS_ALL | OS_FREEBSD;
 #endif
 
 	static Vendor m_vendor = VENDOR_UNKNOWN;
@@ -49,7 +51,9 @@ namespace DriverDetails
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENTEXTURESIZE,   -1.0, 65.0, true},
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENATTRIBUTELESS, -1.0, 94.0, true},
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENNEGATEDBOOLEAN,-1.0, -1.0, true},
+		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENIVECSHIFTS,    -1.0, 46.0, true},
 		{OS_ALL,    VENDOR_ARM,      DRIVER_ARM,          -1, BUG_BROKENBUFFERSTREAM,  -1.0, -1.0, true},
+		{OS_ALL,    VENDOR_IMGTEC,   DRIVER_IMGTEC,       -1, BUG_BROKENBUFFERSTREAM,  -1.0, -1.0, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_NOUVEAU,      -1, BUG_BROKENUBO,           900,  916, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_R600,         -1, BUG_BROKENUBO,           900,  913, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_I965,         -1, BUG_BROKENUBO,           900,  920, true},
@@ -59,7 +63,6 @@ namespace DriverDetails
 		{OS_WINDOWS,VENDOR_NVIDIA,   DRIVER_NVIDIA,       -1, BUG_BROKENUNSYNCMAPPING, -1.0, -1.0, true},
 		{OS_LINUX,  VENDOR_NVIDIA,   DRIVER_NVIDIA,       -1, BUG_BROKENUNSYNCMAPPING, -1.0, -1.0, true},
 		{OS_WINDOWS,VENDOR_INTEL,    DRIVER_INTEL,        -1, BUG_INTELBROKENBUFFERSTORAGE, 101810.3907, 101810.3960, true},
-		{OS_WINDOWS,VENDOR_INTEL,    DRIVER_INTEL,        -1, BUG_INTELBROKENINTERFACEBLOCKS, -1.0, -1.0, true},
 	};
 
 	static std::map<Bug, BugInfo> m_bugs;
@@ -103,7 +106,7 @@ namespace DriverDetails
 			    ( bug.m_versionstart <= m_version || bug.m_versionstart == -1 ) &&
 			    ( bug.m_versionend > m_version || bug.m_versionend == -1 )
 			)
-				m_bugs.insert(std::make_pair(bug.m_bug, bug));
+				m_bugs.emplace(bug.m_bug, bug);
 		}
 	}
 

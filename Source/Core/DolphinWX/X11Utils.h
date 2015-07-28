@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -34,7 +34,7 @@
 namespace X11Utils
 {
 
-void ToggleFullscreen(Display *dpy, Window win);
+bool ToggleFullscreen(Display *dpy, Window win);
 #if defined(HAVE_WX) && HAVE_WX
 Window XWindowFromHandle(void *Handle);
 Display *XDisplayFromHandle(void *Handle);

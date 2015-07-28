@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -40,8 +40,6 @@ enum EFBScale
 	SCALE_1_5X,
 	SCALE_2X,
 	SCALE_2_5X,
-	SCALE_3X,
-	SCALE_4X,
 };
 
 enum StereoMode
@@ -67,6 +65,7 @@ struct VideoConfig final
 	// General
 	bool bVSync;
 	bool bFullscreen;
+	bool bExclusiveMode;
 	bool bRunning;
 	bool bWidescreenHack;
 	int iAspectRatio;
@@ -81,7 +80,7 @@ struct VideoConfig final
 	int iMaxAnisotropy;
 	std::string sPostProcessingShader;
 	int iStereoMode;
-	int iStereoSeparation;
+	int iStereoDepth;
 	int iStereoConvergence;
 	bool bStereoSwapEyes;
 
@@ -102,6 +101,8 @@ struct VideoConfig final
 	// Utility
 	bool bDumpTextures;
 	bool bHiresTextures;
+	bool bConvertHiresTextures;
+	bool bCacheHiresTextures;
 	bool bDumpEFBTarget;
 	bool bUseFFV1;
 	bool bFreeLook;
@@ -110,11 +111,10 @@ struct VideoConfig final
 	// Hacks
 	bool bEFBAccessEnable;
 	bool bPerfQueriesEnable;
+	bool bBBoxEnable;
 
-	bool bEFBCopyEnable;
-	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;
-	bool bCopyEFBToTexture;
+	bool bSkipEFBCopyToRam;
 	bool bCopyEFBScaled;
 	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[3];
@@ -126,9 +126,9 @@ struct VideoConfig final
 	int iSaveTargetId; // TODO: Should be dropped
 
 	// Stereoscopy
-	bool bStereoMonoEFBDepth;
-	int iStereoSeparationPercent;
-	int iStereoConvergencePercent;
+	bool bStereoEFBMonoDepth;
+	int iStereoDepthPercentage;
+	int iStereoConvergenceMinimum;
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
@@ -145,8 +145,8 @@ struct VideoConfig final
 		std::vector<std::string> Adapters; // for D3D
 		std::vector<std::string> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
+		std::vector<std::string> AnaglyphShaders; // anaglyph shaders
 
-		bool bUseMinimalMipCount;
 		bool bSupportsExclusiveFullscreen;
 		bool bSupportsDualSourceBlend;
 		bool bSupportsPrimitiveRestart;
@@ -157,13 +157,15 @@ struct VideoConfig final
 		bool bSupportsBindingLayout; // Needed by ShaderGen, so must stay in VideoCommon
 		bool bSupportsBBox;
 		bool bSupportsGSInstancing; // Needed by GeometryShaderGen, so must stay in VideoCommon
+		bool bSupportsPostProcessing;
+		bool bSupportsPaletteConversion;
+		bool bSupportsClipControl; // Needed by VertexShaderGen, so must stay in VideoCommon
+		bool bSupportsCopySubImage; // Needed for partial texture updates
 	} backend_info;
 
 	// Utility
 	bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
 	bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
-	bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
-	bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
 	bool ExclusiveFullscreenEnabled() const { return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen; }
 };
 

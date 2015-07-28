@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/BitSet.h"
 #include "Common/Logging/Log.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
@@ -87,15 +88,18 @@ void StateManager::Apply()
 		return;
 	}
 
-	const u32 dirtyTextures = DirtyFlag_Texture0 | DirtyFlag_Texture1 | DirtyFlag_Texture2 | DirtyFlag_Texture3
-		| DirtyFlag_Texture4 | DirtyFlag_Texture5 | DirtyFlag_Texture6 | DirtyFlag_Texture7;
-	const u32 dirtySamplers = DirtyFlag_Sampler0 | DirtyFlag_Sampler1 | DirtyFlag_Sampler2 | DirtyFlag_Sampler3
-		| DirtyFlag_Sampler4 | DirtyFlag_Sampler5 | DirtyFlag_Sampler6 | DirtyFlag_Sampler7;
-	const u32 dirtyConstants = DirtyFlag_PixelConstants | DirtyFlag_VertexConstants | DirtyFlag_GeometryConstants;
-	const u32 dirtyShaders = DirtyFlag_PixelShader | DirtyFlag_VertexShader | DirtyFlag_GeometryShader;
-	const u32 dirtyBuffers = DirtyFlag_VertexBuffer | DirtyFlag_IndexBuffer;
+	int textureMaskShift = LeastSignificantSetBit((u32)DirtyFlag_Texture0);
+	int samplerMaskShift = LeastSignificantSetBit((u32)DirtyFlag_Sampler0);
 
-	if (m_dirtyFlags & dirtyConstants)
+	u32 dirtyTextures = (m_dirtyFlags & (DirtyFlag_Texture0 | DirtyFlag_Texture1 | DirtyFlag_Texture2 | DirtyFlag_Texture3
+		| DirtyFlag_Texture4 | DirtyFlag_Texture5 | DirtyFlag_Texture6 | DirtyFlag_Texture7)) >> textureMaskShift;
+	u32 dirtySamplers = (m_dirtyFlags & (DirtyFlag_Sampler0 | DirtyFlag_Sampler1 | DirtyFlag_Sampler2 | DirtyFlag_Sampler3
+		| DirtyFlag_Sampler4 | DirtyFlag_Sampler5 | DirtyFlag_Sampler6 | DirtyFlag_Sampler7)) >> samplerMaskShift;
+	u32 dirtyConstants = m_dirtyFlags & (DirtyFlag_PixelConstants | DirtyFlag_VertexConstants | DirtyFlag_GeometryConstants);
+	u32 dirtyShaders = m_dirtyFlags & (DirtyFlag_PixelShader | DirtyFlag_VertexShader | DirtyFlag_GeometryShader);
+	u32 dirtyBuffers = m_dirtyFlags & (DirtyFlag_VertexBuffer | DirtyFlag_IndexBuffer);
+
+	if (dirtyConstants)
 	{
 		if (m_current.pixelConstants[0] != m_pending.pixelConstants[0] ||
 			m_current.pixelConstants[1] != m_pending.pixelConstants[1])
@@ -118,7 +122,7 @@ void StateManager::Apply()
 		}
 	}
 
-	if (m_dirtyFlags & (dirtyBuffers|DirtyFlag_InputAssembler))
+	if (dirtyBuffers || (m_dirtyFlags & DirtyFlag_InputAssembler))
 	{
 		if (m_current.vertexBuffer != m_pending.vertexBuffer ||
 			m_current.vertexBufferStride != m_pending.vertexBufferStride ||
@@ -149,33 +153,31 @@ void StateManager::Apply()
 		}
 	}
 
-	if (m_dirtyFlags & dirtyTextures)
+	while (dirtyTextures)
 	{
-		for (int i = 0; i < 8; ++i)
+		int index = LeastSignificantSetBit(dirtyTextures);
+		if (m_current.textures[index] != m_pending.textures[index])
 		{
-			// TODO: bit scan through dirty flags
-			if (m_current.textures[i] != m_pending.textures[i])
-			{
-				D3D::context->PSSetShaderResources(i, 1, &m_pending.textures[i]);
-				m_current.textures[i] = m_pending.textures[i];
-			}
+			D3D::context->PSSetShaderResources(index, 1, &m_pending.textures[index]);
+			m_current.textures[index] = m_pending.textures[index];
 		}
+
+		dirtyTextures &= ~(1 << index);
 	}
 
-	if (m_dirtyFlags & dirtySamplers)
+	while (dirtySamplers)
 	{
-		for (int i = 0; i < 8; ++i)
+		int index = LeastSignificantSetBit(dirtySamplers);
+		if (m_current.samplers[index] != m_pending.samplers[index])
 		{
-			// TODO: bit scan through dirty flags
-			if (m_current.samplers[i] != m_pending.samplers[i])
-			{
-				D3D::context->PSSetSamplers(i, 1, &m_pending.samplers[i]);
-				m_current.samplers[i] = m_pending.samplers[i];
-			}
+			D3D::context->PSSetSamplers(index, 1, &m_pending.samplers[index]);
+			m_current.samplers[index] = m_pending.samplers[index];
 		}
+
+		dirtySamplers &= ~(1 << index);
 	}
 
-	if (m_dirtyFlags & dirtyShaders)
+	if (dirtyShaders)
 	{
 		if (m_current.pixelShader != m_pending.pixelShader)
 		{
@@ -219,8 +221,7 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
 {
 	while (textureSlotMask)
 	{
-		unsigned long index;
-		_BitScanForward(&index, textureSlotMask);
+		int index = LeastSignificantSetBit(textureSlotMask);
 		SetTexture(index, srv);
 		textureSlotMask &= ~(1 << index);
 	}
@@ -256,7 +257,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 
 	unsigned int mip = d3dMipFilters[state.min_filter & 3];
 
-	if (state.max_anisotropy)
+	if (state.max_anisotropy > 1)
 	{
 		sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
 		sampdc.MaxAnisotropy = (u32)state.max_anisotropy;
@@ -314,9 +315,11 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 	ID3D11SamplerState* res = nullptr;
 
 	HRESULT hr = D3D::device->CreateSamplerState(&sampdc, &res);
-	if (FAILED(hr)) PanicAlert("Fail %s %d\n", __FILE__, __LINE__);
+	if (FAILED(hr))
+		PanicAlert("Fail %s %d\n", __FILE__, __LINE__);
+
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "sampler state used to emulate the GX pipeline");
-	m_sampler.insert(std::make_pair(state.packed, res));
+	m_sampler.emplace(state.packed, res);
 
 	return res;
 }
@@ -393,9 +396,11 @@ ID3D11BlendState* StateCache::Get(BlendState state)
 	ID3D11BlendState* res = nullptr;
 
 	HRESULT hr = D3D::device->CreateBlendState(&blenddc, &res);
-	if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
+	if (FAILED(hr))
+		PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
+
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "blend state used to emulate the GX pipeline");
-	m_blend.insert(std::make_pair(state.packed, res));
+	m_blend.emplace(state.packed, res);
 
 	return res;
 }
@@ -414,9 +419,11 @@ ID3D11RasterizerState* StateCache::Get(RasterizerState state)
 	ID3D11RasterizerState* res = nullptr;
 
 	HRESULT hr = D3D::device->CreateRasterizerState(&rastdc, &res);
-	if (FAILED(hr)) PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
+	if (FAILED(hr))
+		PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
+
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "rasterizer state used to emulate the GX pipeline");
-	m_raster.insert(std::make_pair(state.packed, res));
+	m_raster.emplace(state.packed, res);
 
 	return res;
 }
@@ -432,7 +439,7 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
 
 	depthdc.DepthEnable = TRUE;
 	depthdc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	depthdc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthdc.DepthFunc = D3D11_COMPARISON_GREATER;
 	depthdc.StencilEnable = FALSE;
 	depthdc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
 	depthdc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
@@ -440,12 +447,12 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
 	const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] =
 	{
 		D3D11_COMPARISON_NEVER,
-		D3D11_COMPARISON_LESS,
-		D3D11_COMPARISON_EQUAL,
-		D3D11_COMPARISON_LESS_EQUAL,
 		D3D11_COMPARISON_GREATER,
-		D3D11_COMPARISON_NOT_EQUAL,
+		D3D11_COMPARISON_EQUAL,
 		D3D11_COMPARISON_GREATER_EQUAL,
+		D3D11_COMPARISON_LESS,
+		D3D11_COMPARISON_NOT_EQUAL,
+		D3D11_COMPARISON_LESS_EQUAL,
 		D3D11_COMPARISON_ALWAYS
 	};
 
@@ -465,10 +472,12 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
 	ID3D11DepthStencilState* res = nullptr;
 
 	HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, &res);
-	if (SUCCEEDED(hr)) D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "depth-stencil state used to emulate the GX pipeline");
-	else PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
+	if (SUCCEEDED(hr))
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "depth-stencil state used to emulate the GX pipeline");
+	else
+		PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
 
-	m_depth.insert(std::make_pair(state.hex, res));
+	m_depth.emplace(state.hex, res);
 
 	return res;
 }

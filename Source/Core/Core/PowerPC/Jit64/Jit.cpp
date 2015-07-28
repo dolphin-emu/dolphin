@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <map>
@@ -15,6 +15,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
@@ -177,17 +178,19 @@ void Jit64::Init()
 
 	jo.optimizeGatherPipe = true;
 	jo.accurateSinglePrecision = true;
-	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	UpdateMemoryOptions();
+	js.fastmemLoadStore = nullptr;
+	js.compilerPC = 0;
 
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
 
-	trampolines.Init();
+	trampolines.Init(jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
 	AllocCodeSpace(CODE_SIZE);
 
 	// BLR optimization has the same consequences as block linking, as well as
 	// depending on the fault handler to be safe in the event of excessive BL.
-	m_enable_blr_optimization = jo.enableBlocklink && SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging;
+	m_enable_blr_optimization = jo.enableBlocklink && SConfig::GetInstance().bFastmem && !SConfig::GetInstance().bEnableDebugging;
 	m_clear_cache_asap = false;
 
 	m_stack = nullptr;
@@ -199,7 +202,7 @@ void Jit64::Init()
 
 	// important: do this *after* generating the global asm routines, because we can't use farcode in them.
 	// it'll crash because the farcode functions get cleared on JIT clears.
-	farcode.Init(js.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
+	farcode.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
 
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
@@ -213,6 +216,7 @@ void Jit64::ClearCache()
 	trampolines.ClearCodeSpace();
 	farcode.ClearCodeSpace();
 	ClearCodeSpace();
+	UpdateMemoryOptions();
 	m_clear_cache_asap = false;
 }
 
@@ -227,8 +231,7 @@ void Jit64::Shutdown()
 	farcode.Shutdown();
 }
 
-// This is only called by FallBackToInterpreter() in this file. It will execute an instruction with the interpreter functions.
-void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
+void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush();
 	fpr.Flush();
@@ -241,16 +244,6 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunctionC((void*)instr, inst.hex);
 	ABI_PopRegistersAndAdjustStack({}, 0);
-}
-
-void Jit64::unknown_instruction(UGeckoInstruction inst)
-{
-	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
-}
-
-void Jit64::FallBackToInterpreter(UGeckoInstruction _inst)
-{
-	WriteCallInterpreter(_inst.hex);
 }
 
 void Jit64::HLEFunction(UGeckoInstruction _inst)
@@ -298,7 +291,7 @@ bool Jit64::Cleanup()
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 	{
 		ABI_PushRegistersAndAdjustStack({}, 0);
-		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+		ABI_CallFunction((void *)&GPFifo::FastCheckGatherPipe);
 		ABI_PopRegistersAndAdjustStack({}, 0);
 		did_something = true;
 	}
@@ -491,25 +484,17 @@ void Jit64::Trace()
 
 void Jit64::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 ||
-	    farcode.GetSpaceLeft() < 0x10000 ||
-		blocks.IsFull() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache ||
-		m_clear_cache_asap)
+	if (IsAlmostFull() || farcode.IsAlmostFull() || trampolines.IsAlmostFull() ||
+	    blocks.IsFull() ||
+	    SConfig::GetInstance().bJITNoBlockCache ||
+	    m_clear_cache_asap)
 	{
 		ClearCache();
 	}
 
-	int block_num = blocks.AllocateBlock(em_address);
-	JitBlock *b = blocks.GetBlock(block_num);
-	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
-}
+	int blockSize = code_buffer.GetSize();
 
-const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
-{
-	int blockSize = code_buf->GetSize();
-
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().bEnableDebugging)
 	{
 		// We can link blocks as long as we are not single stepping and there are no breakpoints here
 		EnableBlockLink();
@@ -526,12 +511,34 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				jo.enableBlocklink = false;
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
+				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
 			}
 			Trace();
 		}
 	}
 
+	// Analyze the block, collect all instructions it is made of (including inlining,
+	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
+	u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, blockSize);
+
+	if (code_block.m_memory_exception)
+	{
+		// Address of instruction could not be translated
+		NPC = nextPC;
+		PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
+		PowerPC::CheckExceptions();
+		WARN_LOG(POWERPC, "ISI exception at 0x%08x", nextPC);
+		return;
+	}
+
+	int block_num = blocks.AllocateBlock(em_address);
+	JitBlock *b = blocks.GetBlock(block_num);
+	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
+}
+
+const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC)
+{
 	js.firstFPInstructionFound = false;
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
@@ -539,10 +546,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.curBlock = b;
 	jit->js.numLoadStoreInst = 0;
 	jit->js.numFloatingPointInst = 0;
-
-	// Analyze the block, collect all instructions it is made of (including inlining,
-	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	u32 nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -588,13 +591,42 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	fpr.Start();
 
 	js.downcountAmount = 0;
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (!SConfig::GetInstance().bEnableDebugging)
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
-	js.skipnext = false;
+	js.skipInstructions = 0;
 	js.carryFlagSet = false;
 	js.carryFlagInverted = false;
-	js.compilerPC = nextPC;
+	js.assumeNoPairedQuantize = false;
+
+	// If the block only uses one GQR and the GQR is zero at compile time, make a guess that the block
+	// never uses quantized loads/stores. Many paired-heavy games use largely float loads and stores,
+	// which are significantly faster when inlined (especially in MMU mode, where this lets them use
+	// fastmem).
+	// Insert a check that the GQR is still zero at the start of the block in case our guess turns out
+	// wrong.
+	// TODO: support any other constant GQR value, not merely zero/unquantized: we can optimize quantized
+	// loadstores too, it'd just be more code.
+	if (code_block.m_gqr_used.Count() == 1 && js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
+	{
+		int gqr = *code_block.m_gqr_used.begin();
+		if (!code_block.m_gqr_modified[gqr] && !GQR(gqr))
+		{
+			CMP(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm8(0));
+			FixupBranch failure = J_CC(CC_NZ, true);
+			SwitchToFarCode();
+				SetJumpTarget(failure);
+				MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+				ABI_PushRegistersAndAdjustStack({}, 0);
+				ABI_CallFunctionC((void *)&JitInterface::CompileExceptionCheck,
+				                  (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
+				ABI_PopRegistersAndAdjustStack({}, 0);
+				JMP(asm_routines.dispatcher, true);
+			SwitchToNearCode();
+			js.assumeNoPairedQuantize = true;
+		}
+	}
+
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
@@ -604,15 +636,16 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
+		js.fastmemLoadStore = nullptr;
+		js.fixupExceptionHandler = false;
+		js.revertGprLoad = -1;
+		js.revertFprLoad = -1;
 
 		if (i == (code_block.m_num_instructions - 1))
 		{
-			// WARNING - cmp->branch merging will screw this up.
-			js.isLastInstruction = true;
-			js.next_inst = 0;
-			js.next_inst_bp = false;
 			if (Profiler::g_ProfileBlocks)
 			{
+				// WARNING - cmp->branch merging will screw this up.
 				PROFILER_VPUSH;
 				// get end tic
 				PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStop);
@@ -620,24 +653,49 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				PROFILER_UPDATE_TIME(b);
 				PROFILER_VPOP;
 			}
-		}
-		else
-		{
-			// help peephole optimizations
-			js.next_inst = ops[i + 1].inst;
-			js.next_compilerPC = ops[i + 1].address;
-			js.next_op = &ops[i + 1];
-			js.next_inst_bp = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i + 1].address);
+			js.isLastInstruction = true;
 		}
 
+		// Gather pipe writes using a non-immediate address are discovered by profiling.
+		bool gatherPipeIntCheck = jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end();
+
+		// Gather pipe writes using an immediate address are explicitly tracked.
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
 			js.fifoBytesThisBlock -= 32;
-			MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 			BitSet32 registersInUse = CallerSavedRegistersInUse();
 			ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-			ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+			ABI_CallFunction((void *)&GPFifo::FastCheckGatherPipe);
 			ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+			gatherPipeIntCheck = true;
+		}
+
+		// Gather pipe writes can generate an exception; add an exception check.
+		// TODO: This doesn't really match hardware; the CP interrupt is
+		// asynchronous.
+		if (gatherPipeIntCheck)
+		{
+			TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+			FixupBranch extException = J_CC(CC_NZ, true);
+
+			SwitchToFarCode();
+				SetJumpTarget(extException);
+				TEST(32, PPCSTATE(msr), Imm32(0x0008000));
+				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
+				TEST(32, M(&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP |
+				                                                         ProcessorInterface::INT_CAUSE_PE_TOKEN |
+				                                                         ProcessorInterface::INT_CAUSE_PE_FINISH));
+				FixupBranch noCPInt = J_CC(CC_Z, true);
+
+				gpr.Flush(FLUSH_MAINTAIN_STATE);
+				fpr.Flush(FLUSH_MAINTAIN_STATE);
+
+				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+				WriteExternalExceptionExit();
+			SwitchToNearCode();
+
+			SetJumpTarget(noCPInt);
+			SetJumpTarget(noExtIntEnable);
 		}
 
 		u32 function = HLE::GetFunctionIndex(ops[i].address);
@@ -668,49 +726,23 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				//This instruction uses FPU - needs to add FP exception bailout
 				TEST(32, PPCSTATE(msr), Imm32(1 << 13)); // Test FP enabled bit
 				FixupBranch b1 = J_CC(CC_Z, true);
+
 				SwitchToFarCode();
-				SetJumpTarget(b1);
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
+					SetJumpTarget(b1);
+					gpr.Flush(FLUSH_MAINTAIN_STATE);
+					fpr.Flush(FLUSH_MAINTAIN_STATE);
 
-				// If a FPU exception occurs, the exception handler will read
-				// from PC.  Update PC with the latest value in case that happens.
-				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
-				OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
-				WriteExceptionExit();
-
+					// If a FPU exception occurs, the exception handler will read
+					// from PC.  Update PC with the latest value in case that happens.
+					MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+					OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+					WriteExceptionExit();
 				SwitchToNearCode();
+
 				js.firstFPInstructionFound = true;
 			}
 
-			// Add an external exception check if the instruction writes to the FIFO.
-			if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end())
-			{
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
-				FixupBranch clearInt = J_CC(CC_NZ);
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
-				FixupBranch extException = J_CC(CC_NZ, true);
-				SwitchToFarCode();
-				SetJumpTarget(extException);
-				TEST(32, PPCSTATE(msr), Imm32(0x0008000));
-				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
-				TEST(32, M(&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
-				FixupBranch noCPInt = J_CC(CC_Z, true);
-
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
-
-				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
-				WriteExternalExceptionExit();
-
-				SwitchToNearCode();
-
-				SetJumpTarget(noCPInt);
-				SetJumpTarget(noExtIntEnable);
-				SetJumpTarget(clearInt);
-			}
-
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			if (SConfig::GetInstance().bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
 			{
 				// Turn off block linking if there are breakpoints so that the Step Over command does not link this block.
 				jo.enableBlocklink = false;
@@ -753,29 +785,50 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			Jit64Tables::CompileInstruction(ops[i]);
 
+			if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
+			{
+				// If we have a fastmem loadstore, we can omit the exception check and let fastmem handle it.
+				FixupBranch memException;
+				_assert_msg_(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
+					"Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!", ops[i].address);
+				if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
+				{
+					TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
+					memException = J_CC(CC_NZ, true);
+				}
+
+				SwitchToFarCode();
+					if (!js.fastmemLoadStore)
+					{
+						exceptionHandlerAtLoc[js.fastmemLoadStore] = nullptr;
+						SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
+					}
+					else
+					{
+						exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
+					}
+
+					BitSet32 gprToFlush = BitSet32::AllTrue(32);
+					BitSet32 fprToFlush = BitSet32::AllTrue(32);
+					if (js.revertGprLoad >= 0)
+						gprToFlush[js.revertGprLoad] = false;
+					if (js.revertFprLoad >= 0)
+						fprToFlush[js.revertFprLoad] = false;
+					gpr.Flush(FLUSH_MAINTAIN_STATE, gprToFlush);
+					fpr.Flush(FLUSH_MAINTAIN_STATE, fprToFlush);
+
+					// If a memory exception occurs, the exception handler will read
+					// from PC.  Update PC with the latest value in case that happens.
+					MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+					WriteExceptionExit();
+				SwitchToNearCode();
+			}
+
 			// If we have a register that will never be used again, flush it.
 			for (int j : ~ops[i].gprInUse)
 				gpr.StoreFromRegister(j);
 			for (int j : ~ops[i].fprInUse)
 				fpr.StoreFromRegister(j);
-
-			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
-			{
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-				FixupBranch memException = J_CC(CC_NZ, true);
-
-				SwitchToFarCode();
-				SetJumpTarget(memException);
-
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
-
-				// If a memory exception occurs, the exception handler will read
-				// from PC.  Update PC with the latest value in case that happens.
-				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
-				WriteExceptionExit();
-				SwitchToNearCode();
-			}
 
 			if (opinfo->flags & FL_LOADSTORE)
 				++jit->js.numLoadStoreInst;
@@ -791,40 +844,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			//NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
 		}
 #endif
-		if (js.skipnext)
-		{
-			js.skipnext = false;
-			i++; // Skip next instruction
-		}
-	}
-
-	u32 function = HLE::GetFunctionIndex(js.blockStart);
-	if (function != 0)
-	{
-		int type = HLE::GetFunctionTypeByIndex(function);
-		if (type == HLE::HLE_HOOK_END)
-		{
-			int flags = HLE::GetFunctionFlagsByIndex(function);
-			if (HLE::IsEnabled(flags))
-			{
-				HLEFunction(function);
-			}
-		}
-	}
-
-	if (code_block.m_memory_exception)
-	{
-		b->memoryException = true;
-		// Address of instruction could not be translated
-		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC));
-
-		OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI));
-
-		// Remove the invalid instruction from the icache, forcing a recompile
-		MOV(64, R(RSCRATCH), ImmPtr(jit->GetBlockCache()->GetICachePtr(js.compilerPC)));
-		MOV(32,MatR(RSCRATCH),Imm32(JIT_ICACHE_INVALID_WORD));
-
-		WriteExceptionExit();
+		i += js.skipInstructions;
+		js.skipInstructions = 0;
 	}
 
 	if (code_block.m_broken)
@@ -834,11 +855,11 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		WriteExit(nextPC);
 	}
 
-	b->codeSize = (u32)(GetCodePtr() - normalEntry);
+	b->codeSize = (u32)(GetCodePtr() - start);
 	b->originalSize = code_block.m_num_instructions;
 
 #ifdef JIT_LOG_X86
-	LogGeneratedX86(code_block.m_num_instructions, code_buf, normalEntry, b);
+	LogGeneratedX86(code_block.m_num_instructions, code_buf, start, b);
 #endif
 
 	return normalEntry;
@@ -860,7 +881,7 @@ BitSet32 Jit64::CallerSavedRegistersInUse()
 void Jit64::EnableBlockLink()
 {
 	jo.enableBlocklink = true;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking)
+	if (SConfig::GetInstance().bJITNoBlockLinking)
 		jo.enableBlocklink = false;
 }
 
@@ -868,5 +889,6 @@ void Jit64::EnableOptimization()
 {
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
 }

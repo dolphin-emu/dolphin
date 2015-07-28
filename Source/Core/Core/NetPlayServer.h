@@ -1,28 +1,30 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <queue>
 #include <sstream>
-
-#include <SFML/Network.hpp>
-
-#include "Common/CommonTypes.h"
-#include "Common/CommonTypes.h"
-#include "Common/Thread.h"
+#include <thread>
+#include <unordered_map>
+#include <unordered_set>
+#include <SFML/Network/Packet.hpp>
 #include "Common/Timer.h"
-
+#include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 
-class NetPlayServer
+class NetPlayUI;
+
+class NetPlayServer : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
+	void SendAsyncToClients(sf::Packet* packet);
 
-	NetPlayServer(const u16 port);
+	NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort);
 	~NetPlayServer();
 
 	bool ChangeGame(const std::string& game);
@@ -40,7 +42,13 @@ public:
 
 	void AdjustPadBufferSize(unsigned int size);
 
-	void KickPlayer(u8 player);
+	void KickPlayer(PlayerId player);
+
+	u16 GetPort();
+
+	void SetNetPlayUI(NetPlayUI* dialog);
+	std::unordered_set<std::string> GetInterfaceSet();
+	std::string GetInterfaceHost(const std::string& inter);
 
 	bool is_connected;
 
@@ -56,19 +64,9 @@ private:
 		std::string name;
 		std::string revision;
 
-		std::unique_ptr<sf::TcpSocket> socket;
+		ENetPeer* socket;
 		u32 ping;
 		u32 current_game;
-
-		// VS2013 does not generate the right constructors here automatically
-		//  like GCC does, so we implement them manually
-		Client() = default;
-		Client(const Client& other) = delete;
-		Client(Client&& other)
-			: pid(other.pid), name(std::move(other.name)), revision(std::move(other.revision)),
-			socket(std::move(other.socket)), ping(other.ping), current_game(other.current_game)
-		{
-		}
 
 		bool operator==(const Client& other) const
 		{
@@ -77,11 +75,16 @@ private:
 	};
 
 	void SendToClients(sf::Packet& packet, const PlayerId skip_pid = 0);
-	unsigned int OnConnect(std::unique_ptr<sf::TcpSocket>& socket);
+	void Send(ENetPeer* socket, sf::Packet& packet);
+	unsigned int OnConnect(ENetPeer* socket);
 	unsigned int OnDisconnect(Client& player);
 	unsigned int OnData(sf::Packet& packet, Client& player);
+	virtual void OnTraversalStateChanged();
+	virtual void OnConnectReady(ENetAddress addr) {}
+	virtual void OnConnectFailed(u8 reason) {}
 	void UpdatePadMapping();
 	void UpdateWiimoteMapping();
+	std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal();
 
 	NetSettings     m_settings;
 
@@ -95,20 +98,26 @@ private:
 	PadMapping      m_pad_map[4];
 	PadMapping      m_wiimote_map[4];
 
-	std::list<Client> m_players;
+	std::map<PlayerId, Client> m_players;
+
+	std::unordered_map<u32, std::vector<std::pair<PlayerId, u64>>> m_timebase_by_frame;
+	bool m_desync_detected;
 
 	struct
 	{
 		std::recursive_mutex game;
 		// lock order
-		std::recursive_mutex players, send;
+		std::recursive_mutex players;
+		std::recursive_mutex async_queue_write;
 	} m_crit;
 
 	std::string m_selected_game;
-
-	sf::TcpListener m_socket;
 	std::thread m_thread;
-	sf::SocketSelector m_selector;
+	Common::FifoQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
+
+	ENetHost*        m_server;
+	TraversalClient* m_traversal_client;
+	NetPlayUI*       m_dialog;
 
 #ifdef USE_UPNP
 	static void mapPortThread(const u16 port);

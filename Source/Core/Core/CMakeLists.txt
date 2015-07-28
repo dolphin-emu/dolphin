@@ -3,19 +3,18 @@ set(SRCS	ActionReplay.cpp
 			BootManager.cpp
 			ConfigManager.cpp
 			Core.cpp
-			CoreParameter.cpp
 			CoreTiming.cpp
 			DSPEmulator.cpp
 			ec_wii.cpp
 			GeckoCodeConfig.cpp
 			GeckoCode.cpp
+			HotkeyManager.cpp
 			MemTools.cpp
 			Movie.cpp
 			NetPlayClient.cpp
 			NetPlayServer.cpp
 			PatchEngine.cpp
 			State.cpp
-			VolumeHandler.cpp
 			Boot/Boot_BS2Emu.cpp
 			Boot/Boot.cpp
 			Boot/Boot_DOL.cpp
@@ -88,12 +87,15 @@ set(SRCS	ActionReplay.cpp
 			HW/EXI.cpp
 			HW/EXI_Device.cpp
 			HW/EXI_DeviceAD16.cpp
+			HW/EXI_DeviceAGP.cpp
 			HW/EXI_DeviceAMBaseboard.cpp
 			HW/EXI_DeviceEthernet.cpp
 			HW/EXI_DeviceGecko.cpp
 			HW/EXI_DeviceIPL.cpp
 			HW/EXI_DeviceMemoryCard.cpp
 			HW/EXI_DeviceMic.cpp
+			HW/GCKeyboard.cpp
+			HW/GCKeyboardEmu.cpp
 			HW/GCMemcard.cpp
 			HW/GCMemcardDirectory.cpp
 			HW/GCMemcardRaw.cpp
@@ -102,7 +104,6 @@ set(SRCS	ActionReplay.cpp
 			HW/GPFifo.cpp
 			HW/HW.cpp
 			HW/Memmap.cpp
-			HW/MemmapFunctions.cpp
 			HW/MemoryInterface.cpp
 			HW/MMIO.cpp
 			HW/ProcessorInterface.cpp
@@ -113,6 +114,7 @@ set(SRCS	ActionReplay.cpp
 			HW/SI_DeviceGBA.cpp
 			HW/SI_DeviceGCController.cpp
 			HW/SI_DeviceGCSteeringWheel.cpp
+			HW/SI_DeviceKeyboard.cpp
 			HW/Sram.cpp
 			HW/StreamADPCM.cpp
 			HW/SystemTimers.cpp
@@ -145,6 +147,7 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
 			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
 			IPC_HLE/WiiMote_HID_Attr.cpp
+			PowerPC/MMU.cpp
 			PowerPC/PowerPC.cpp
 			PowerPC/PPCAnalyst.cpp
 			PowerPC/PPCCache.cpp
@@ -162,6 +165,7 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/Interpreter/Interpreter_Paired.cpp
 			PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
 			PowerPC/Interpreter/Interpreter_Tables.cpp
+			PowerPC/JitCommon/JitAsmCommon.cpp
 			PowerPC/JitCommon/JitBase.cpp
 			PowerPC/JitCommon/JitCache.cpp
 			PowerPC/JitILCommon/IR.cpp
@@ -192,28 +196,10 @@ if(_M_X86)
 			PowerPC/Jit64/Jit_Paired.cpp
 			PowerPC/Jit64/JitRegCache.cpp
 			PowerPC/Jit64/Jit_SystemRegisters.cpp
-			PowerPC/JitCommon/JitAsmCommon.cpp
+			PowerPC/Jit64Common/Jit64AsmCommon.cpp
 			PowerPC/JitCommon/JitBackpatch.cpp
 			PowerPC/JitCommon/Jit_Util.cpp
 			PowerPC/JitCommon/TrampolineCache.cpp)
-elseif(_M_ARM_32)
-	set(SRCS ${SRCS}
-			PowerPC/JitArm32/Jit.cpp
-			PowerPC/JitArm32/JitAsm.cpp
-			PowerPC/JitArm32/JitArm_BackPatch.cpp
-			PowerPC/JitArm32/JitArm_Tables.cpp
-			PowerPC/JitArm32/JitArmCache.cpp
-			PowerPC/JitArm32/JitRegCache.cpp
-			PowerPC/JitArm32/JitFPRCache.cpp
-			PowerPC/JitArm32/JitArm_Branch.cpp
-			PowerPC/JitArm32/JitArm_Integer.cpp
-			PowerPC/JitArm32/JitArm_LoadStore.cpp
-			PowerPC/JitArm32/JitArm_FloatingPoint.cpp
-			PowerPC/JitArm32/JitArm_Paired.cpp
-			PowerPC/JitArm32/JitArm_LoadStorePaired.cpp
-			PowerPC/JitArm32/JitArm_SystemRegisters.cpp
-			PowerPC/JitArm32/JitArm_LoadStoreFloating.cpp
-			)
 elseif(_M_ARM_64)
 	set(SRCS ${SRCS}
 	         PowerPC/JitArm64/Jit.cpp
@@ -222,9 +208,14 @@ elseif(_M_ARM_64)
 	         PowerPC/JitArm64/JitArm64_RegCache.cpp
 	         PowerPC/JitArm64/JitArm64_BackPatch.cpp
 	         PowerPC/JitArm64/JitArm64_Branch.cpp
+	         PowerPC/JitArm64/JitArm64_FloatingPoint.cpp
 	         PowerPC/JitArm64/JitArm64_Integer.cpp
 	         PowerPC/JitArm64/JitArm64_LoadStore.cpp
+	         PowerPC/JitArm64/JitArm64_LoadStoreFloating.cpp
+	         PowerPC/JitArm64/JitArm64_Paired.cpp
+	         PowerPC/JitArm64/JitArm64_LoadStorePaired.cpp
 	         PowerPC/JitArm64/JitArm64_SystemRegisters.cpp
+	         PowerPC/JitArm64/Jit_Util.cpp
 	         PowerPC/JitArm64/JitArm64_Tables.cpp)
 endif()
 
@@ -233,6 +224,7 @@ set(LIBS
 	bdisasm
 	common
 	discio
+	enet
 	inputcommon
 	${LZO}
 	sfml-network
@@ -253,13 +245,13 @@ set(LIBS ${LIBS} ${POLARSSL_LIBRARY})
 
 if(WIN32)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+elseif(APPLE)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm)
 	set(LIBS ${LIBS}
 		${IOB_LIBRARY})
 elseif(UNIX)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Unix.cpp)
-	if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND BLUEZ_FOUND)
+	if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND BLUEZ_FOUND)
 		set(SRCS ${SRCS} HW/WiimoteReal/IONix.cpp)
 		set(LIBS ${LIBS} bluetooth)
 	else()

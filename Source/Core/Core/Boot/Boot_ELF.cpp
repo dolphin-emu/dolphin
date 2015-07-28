@@ -1,8 +1,9 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/FileUtil.h"
+#include "Common/StdMakeUnique.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/ElfReader.h"
@@ -14,12 +15,12 @@ bool CBoot::IsElfWii(const std::string& filename)
 	/* We already check if filename existed before we called this function, so
 	   there is no need for another check, just read the file right away */
 
-	const u64 filesize = File::GetSize(filename);
-	std::vector<u8> mem((size_t)filesize);
+	size_t filesize = File::GetSize(filename);
+	auto elf = std::make_unique<u8 []>(filesize);
 
 	{
 	File::IOFile f(filename, "rb");
-	f.ReadBytes(mem.data(), (size_t)filesize);
+	f.ReadBytes(elf.get(), filesize);
 	}
 
 	// Use the same method as the DOL loader uses: search for mfspr from HID4,
@@ -28,21 +29,20 @@ bool CBoot::IsElfWii(const std::string& filename)
 	// Likely to have some false positives/negatives, patches implementing a
 	// better heuristic are welcome.
 
-	u32 HID4_pattern = 0x7c13fba6;
-	u32 HID4_mask = 0xfc1fffff;
-	ElfReader reader(mem.data());
+	// Swap these once, instead of swapping every word in the file.
+	u32 HID4_pattern = Common::swap32(0x7c13fba6);
+	u32 HID4_mask = Common::swap32(0xfc1fffff);
+	ElfReader reader(elf.get());
 
 	for (int i = 0; i < reader.GetNumSections(); ++i)
 	{
 		if (reader.IsCodeSection(i))
 		{
-			for (unsigned int j = 0; j < reader.GetSectionSize(i) / sizeof (u32); ++j)
+			u32* code = (u32*)reader.GetSectionDataPtr(i);
+			for (u32 j = 0; j < reader.GetSectionSize(i) / sizeof(u32); ++j)
 			{
-				u32 word = Common::swap32(((u32*)reader.GetSectionDataPtr(i))[j]);
-				if ((word & HID4_mask) == HID4_pattern)
-				{
+				if ((code[j] & HID4_mask) == HID4_pattern)
 					return true;
-				}
 			}
 		}
 	}
@@ -53,16 +53,39 @@ bool CBoot::IsElfWii(const std::string& filename)
 
 bool CBoot::Boot_ELF(const std::string& filename)
 {
-	const u64 filesize = File::GetSize(filename);
-	std::vector<u8> mem((size_t)filesize);
+	// Read ELF from file
+	size_t filesize = File::GetSize(filename);
+	auto elf = std::make_unique<u8 []>(filesize);
 
 	{
 	File::IOFile f(filename, "rb");
-	f.ReadBytes(mem.data(), (size_t)filesize);
+	f.ReadBytes(elf.get(), filesize);
 	}
 
-	ElfReader reader(mem.data());
-	reader.LoadInto(0x80000000);
+	// Load ELF into GameCube Memory
+	ElfReader reader(elf.get());
+	if (!reader.LoadIntoMemory())
+		return false;
+
+	// Set up MSR and the BAT SPR registers.
+	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
+	m_MSR.FP = 1;
+	m_MSR.DR = 1;
+	m_MSR.IR = 1;
+	m_MSR.EE = 1;
+	PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
+	PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+	PowerPC::ppcState.spr[SPR_IBAT4U] = 0x90001fff;
+	PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
+	PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
+	PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
+	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+	PowerPC::ppcState.spr[SPR_DBAT4U] = 0x90001fff;
+	PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
+	PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
+	PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+
 	if (!reader.LoadSymbols())
 	{
 		if (LoadMapFromFilename())

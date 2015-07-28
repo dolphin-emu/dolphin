@@ -1,3 +1,7 @@
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 /* mksdcard.c
 **
 ** Copyright 2007, The Android Open Source Project
@@ -276,6 +280,6 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
 FailWrite:
 	ERROR_LOG(COMMON, "Could not write to '%s', aborting...\n", filename.c_str());
 	if (unlink(filename.c_str()) < 0)
-		ERROR_LOG(COMMON, "unlink(%s) failed\n%s", filename.c_str(), GetLastErrorMsg());
+		ERROR_LOG(COMMON, "unlink(%s) failed\n%s", filename.c_str(), GetLastErrorMsg().c_str());
 	return false;
 }

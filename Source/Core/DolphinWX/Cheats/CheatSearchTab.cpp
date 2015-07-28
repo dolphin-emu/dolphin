@@ -1,24 +1,23 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <array>
 #include <wx/button.h>
 #include <wx/choice.h>
-#include <wx/event.h>
 #include <wx/listbox.h>
 #include <wx/panel.h>
 #include <wx/radiobox.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/window.h>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Core/ActionReplay.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CheatSearchTab.h"
@@ -42,7 +41,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	m_btn_next_scan->Disable();
 
 	// data sizes radiobox
-	std::array<wxString, 3> data_size_names = {{ _("8-bit"), _("16-bit"), _("32-bit") }};
+	std::array<wxString, 3> data_size_names = { { _("8-bit"), _("16-bit"), _("32-bit") } };
 	m_data_sizes = new wxRadioBox(this, wxID_ANY, _("Data Size"), wxDefaultPosition, wxDefaultSize, static_cast<int>(data_size_names.size()), data_size_names.data());
 
 	// Listbox for search results (shown in monospace font).
@@ -111,7 +110,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 	// right sizer
 	wxBoxSizer* const sizer_right = new wxBoxSizer(wxVERTICAL);
-	sizer_right->Add(m_data_sizes, 0,  wxEXPAND | wxBOTTOM, 5);
+	sizer_right->Add(m_data_sizes, 0, wxEXPAND | wxBOTTOM, 5);
 	sizer_right->Add(sizer_cheat_search_filter, 0, wxEXPAND | wxBOTTOM, 5);
 	sizer_right->AddStretchSpacer(1);
 	sizer_right->Add(boxButtons, 0, wxTOP | wxEXPAND, 5);
@@ -124,10 +123,10 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	SetSizerAndFit(sizer_main);
 }
 
-void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
+void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED(event))
 {
 	const u8* const memptr = Memory::m_pRAM;
-	if (memptr == nullptr)
+	if (!Core::IsRunningAndStarted())
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
 		return;
@@ -159,7 +158,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 {
 	const u8* const memptr = Memory::m_pRAM;
-	if (memptr == nullptr)
+	if (!Core::IsRunningAndStarted())
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
 		return;
@@ -174,7 +173,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	// 2 : greater-than
 	// 4 : less-than
 
-	const int filters[] = {7, 6, 1, 2, 4};
+	const int filters[] = { 7, 6, 1, 2, 4 };
 	int filter_mask = filters[m_search_type->GetSelection()];
 
 	if (m_value_x_radiobtn.rad_oldvalue->GetValue()) // using old value comparison
@@ -182,7 +181,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 		for (CheatSearchResult& result : m_search_results)
 		{
 			// with big endian, can just use memcmp for ><= comparison
-			int cmp_result = memcmp(memptr + result.address, &result.old_value,m_search_type_size);
+			int cmp_result = memcmp(memptr + result.address, &result.old_value, m_search_type_size);
 			if (cmp_result < 0)
 				cmp_result = 4;
 			else
@@ -216,12 +215,12 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 			// #ifdef LIL_ENDIAN :p
 			switch (m_search_type_size)
 			{
-			case 1 :
+			case 1:
 				break;
-			case 2 :
+			case 2:
 				*(u16*)&user_x_val = Common::swap16((u8*)&user_x_val);
 				break;
-			case 4 :
+			case 4:
 				user_x_val = Common::swap32(user_x_val);
 				break;
 			}
@@ -279,12 +278,12 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 			// #ifdef LIL_ENDIAN :p
 			switch (m_search_type_size)
 			{
-			case 1 :
+			case 1:
 				break;
-			case 2 :
+			case 2:
 				*(u16*)&display_value = Common::swap16((u8*)&display_value);
 				break;
-			case 4 :
+			case 4:
 				display_value = Common::swap32(display_value);
 				break;
 			}
@@ -308,7 +307,7 @@ void CheatSearchTab::CreateARCode(wxCommandEvent&)
 	{
 		const u32 address = m_search_results[sel].address | ((m_search_type_size & ~1) << 24);
 
-		CreateCodeDialog arcode_dlg(this, address);
+		CreateCodeDialog arcode_dlg(this, address, ActionReplay::GetARCodes());
 		arcode_dlg.SetExtraStyle(arcode_dlg.GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
 		arcode_dlg.ShowModal();
 	}

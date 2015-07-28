@@ -1,35 +1,14 @@
-/*====================================================================
-
-   filename:     DSPCore.h
-   project:      GCemu
-   created:      2004-6-18
-   mail:         duddie@walla.com
-
-   Copyright (c) 2005 Duddie & Tratax
-
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
-   ====================================================================*/
+// Copyright 2008 Dolphin Emulator Project
+// Copyright 2004 Duddie & Tratax
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <memory>
 #include <string>
-
-#include "Common/Thread.h"
 
 #include "Core/DSP/DSPBreakpoints.h"
 #include "Core/DSP/DSPCaptureLogger.h"
@@ -260,7 +239,7 @@ struct SDSP
 	u64 step_counter;
 
 	// Mailbox.
-	volatile u32 mbox[2];
+	std::atomic<u32> mbox[2];
 
 	// Accelerator / DMA / other hardware registers. Not GPRs.
 	u16 ifx_regs[256];

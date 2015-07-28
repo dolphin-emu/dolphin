@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -18,6 +18,11 @@ namespace ciface
 namespace SDL
 {
 
+// 10ms = 100Hz which homebrew docs very roughly imply is within WiiMote normal
+// range, used for periodic haptic effects though often ignored by devices
+static const u16 RUMBLE_PERIOD = 10;
+static const u16 RUMBLE_LENGTH_MAX = 500; // ms: enough to span multiple frames at low FPS, but still finite
+
 static std::string GetJoystickName(int index)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -33,21 +38,31 @@ void Init( std::vector<Core::Device*>& devices )
 	// multiple joysticks with the same name shall get unique ids starting at 0
 	std::map<std::string, int> name_counts;
 
-	if (SDL_Init( SDL_INIT_FLAGS ) >= 0)
+#ifdef USE_SDL_HAPTIC
+	if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) >= 0)
 	{
-		// joysticks
-		for (int i = 0; i < SDL_NumJoysticks(); ++i)
+		// Correctly initialized
+	}
+	else
+#endif
+	if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
+	{
+		// Failed to initialize
+		return;
+	}
+
+	// joysticks
+	for (int i = 0; i < SDL_NumJoysticks(); ++i)
+	{
+		SDL_Joystick* dev = SDL_JoystickOpen(i);
+		if (dev)
 		{
-			SDL_Joystick* dev = SDL_JoystickOpen(i);
-			if (dev)
-			{
-				Joystick* js = new Joystick(dev, i, name_counts[GetJoystickName(i)]++);
-				// only add if it has some inputs/outputs
-				if (js->Inputs().size() || js->Outputs().size())
-					devices.push_back( js );
-				else
-					delete js;
-			}
+			Joystick* js = new Joystick(dev, i, name_counts[GetJoystickName(i)]++);
+			// only add if it has some inputs/outputs
+			if (js->Inputs().size() || js->Outputs().size())
+				devices.push_back( js );
+			else
+				delete js;
 		}
 	}
 }
@@ -126,6 +141,18 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 		// ramp effect
 		if (supported_effects & SDL_HAPTIC_RAMP)
 			AddOutput(new RampEffect(m_haptic));
+
+		// sine effect
+		if (supported_effects & SDL_HAPTIC_SINE)
+			AddOutput(new SineEffect(m_haptic));
+
+		// triangle effect
+		if (supported_effects & SDL_HAPTIC_TRIANGLE)
+			AddOutput(new TriangleEffect(m_haptic));
+
+		// left-right effect
+		if (supported_effects & SDL_HAPTIC_LEFTRIGHT)
+			AddOutput(new LeftRightEffect(m_haptic));
 	}
 #endif
 
@@ -178,36 +205,81 @@ std::string Joystick::RampEffect::GetName() const
 	return "Ramp";
 }
 
-void Joystick::ConstantEffect::SetState(ControlState state)
+std::string Joystick::SineEffect::GetName() const
 {
+	return "Sine";
+}
+
+std::string Joystick::TriangleEffect::GetName() const
+{
+	return "Triangle";
+}
+
+std::string Joystick::LeftRightEffect::GetName() const
+{
+	return "LeftRight";
+}
+
+void Joystick::HapticEffect::SetState(ControlState state)
+{
+	memset(&m_effect, 0, sizeof(m_effect));
 	if (state)
 	{
-		m_effect.type = SDL_HAPTIC_CONSTANT;
-		m_effect.constant.length = SDL_HAPTIC_INFINITY;
+		SetSDLHapticEffect(state);
 	}
 	else
 	{
+		// this module uses type==0 to indicate 'off'
 		m_effect.type = 0;
 	}
-
-	m_effect.constant.level = (Sint16)(state * 0x7FFF);
 	Update();
 }
 
-void Joystick::RampEffect::SetState(ControlState state)
+void Joystick::ConstantEffect::SetSDLHapticEffect(ControlState state)
 {
-	if (state)
-	{
-		m_effect.type = SDL_HAPTIC_RAMP;
-		m_effect.ramp.length = SDL_HAPTIC_INFINITY;
-	}
-	else
-	{
-		m_effect.type = 0;
-	}
+	m_effect.type = SDL_HAPTIC_CONSTANT;
+	m_effect.constant.length = RUMBLE_LENGTH_MAX;
+	m_effect.constant.level = (Sint16)(state * 0x7FFF);
+}
 
+void Joystick::RampEffect::SetSDLHapticEffect(ControlState state)
+{
+	m_effect.type = SDL_HAPTIC_RAMP;
+	m_effect.ramp.length = RUMBLE_LENGTH_MAX;
 	m_effect.ramp.start = (Sint16)(state * 0x7FFF);
-	Update();
+}
+
+void Joystick::SineEffect::SetSDLHapticEffect(ControlState state)
+{
+	m_effect.type = SDL_HAPTIC_SINE;
+	m_effect.periodic.period = RUMBLE_PERIOD;
+	m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
+	m_effect.periodic.offset = 0;
+	m_effect.periodic.phase = 18000;
+	m_effect.periodic.length = RUMBLE_LENGTH_MAX;
+	m_effect.periodic.delay = 0;
+	m_effect.periodic.attack_length = 0;
+}
+
+void Joystick::TriangleEffect::SetSDLHapticEffect(ControlState state)
+{
+	m_effect.type = SDL_HAPTIC_TRIANGLE;
+	m_effect.periodic.period = RUMBLE_PERIOD;
+	m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
+	m_effect.periodic.offset = 0;
+	m_effect.periodic.phase = 18000;
+	m_effect.periodic.length = RUMBLE_LENGTH_MAX;
+	m_effect.periodic.delay = 0;
+	m_effect.periodic.attack_length = 0;
+}
+
+void Joystick::LeftRightEffect::SetSDLHapticEffect(ControlState state)
+{
+	m_effect.type = SDL_HAPTIC_LEFTRIGHT;
+	m_effect.leftright.length = RUMBLE_LENGTH_MAX;
+	// max ranges tuned to 'feel' similar in magnitude to triangle/sine on xbox360 controller
+	m_effect.leftright.large_magnitude = (Uint16)(state * 0x4000);
+	m_effect.leftright.small_magnitude = (Uint16)(state * 0xFFFF);
 }
 #endif
 

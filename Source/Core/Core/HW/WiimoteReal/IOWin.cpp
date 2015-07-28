@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -176,7 +176,7 @@ inline void init_lib()
 		if (!load_hid() || !load_bthprops())
 		{
 			NOTICE_LOG(WIIMOTE,
-				"Failed to load bluetooth support libraries, wiimotes will not function");
+				"Failed to load Bluetooth support libraries, Wiimotes will not function");
 			return;
 		}
 
@@ -202,11 +202,11 @@ protected:
 	int IOWrite(u8 const* buf, size_t len) override;
 
 private:
-	std::basic_string<TCHAR> m_devicepath; // Unique wiimote reference
+	std::basic_string<TCHAR> m_devicepath; // Unique Wiimote reference
 	HANDLE m_dev_handle;                   // HID handle
 	OVERLAPPED m_hid_overlap_read;         // Overlap handles
 	OVERLAPPED m_hid_overlap_write;
-	enum win_bt_stack_t m_stack;           // Type of bluetooth stack to use
+	enum win_bt_stack_t m_stack;           // Type of Bluetooth stack to use
 };
 
 int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len, DWORD* written);
@@ -250,15 +250,15 @@ void WiimoteScanner::Update()
 	});
 
 	// Some hacks that allows disconnects to be detected before connections are handled
-	// workaround for wiimote 1 moving to slot 2 on temporary disconnect
+	// workaround for Wiimote 1 moving to slot 2 on temporary disconnect
 	if (forgot_some)
 		SLEEP(100);
 }
 
-// Find and connect wiimotes.
-// Does not replace already found wiimotes even if they are disconnected.
-// wm is an array of max_wiimotes wiimotes
-// Returns the total number of found and connected wiimotes.
+// Find and connect Wiimotes.
+// Does not replace already found Wiimotes even if they are disconnected.
+// wm is an array of max_wiimotes Wiimotes
+// Returns the total number of found and connected Wiimotes.
 void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimote* & found_board)
 {
 	if (!s_loaded_ok)
@@ -359,7 +359,7 @@ int CheckDeviceType_Read(HANDLE &dev_handle, u8* buf, int attempts)
 
 // A convoluted way of checking if a device is a Wii Balance Board and if it is a connectible Wiimote.
 // Because nothing on Windows should be easy.
-// (We can't seem to easily identify the bluetooth device an HID device belongs to...)
+// (We can't seem to easily identify the Bluetooth device an HID device belongs to...)
 void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool &real_wiimote, bool &is_bb)
 {
 	real_wiimote = false;
@@ -519,7 +519,7 @@ bool WiimoteScanner::IsReady() const
 	}
 }
 
-// Connect to a wiimote with a known device path.
+// Connect to a Wiimote with a known device path.
 bool WiimoteWindows::ConnectInternal()
 {
 	if (IsConnected())
@@ -532,8 +532,8 @@ bool WiimoteWindows::ConnectInternal()
 
 	auto const open_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
 #else
-	// Having no FILE_SHARE_WRITE disallows us from connecting to the same wiimote twice.
-	// (And disallows using wiimotes in use by other programs)
+	// Having no FILE_SHARE_WRITE disallows us from connecting to the same Wiimote twice.
+	// (And disallows using Wiimotes in use by other programs)
 	// This is what "WiiYourself" does.
 	// Apparently this doesn't work for everyone. It might be their fault.
 	auto const open_flags = FILE_SHARE_READ;
@@ -727,7 +727,7 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 					NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to the Wiimote");
 				}
 				else if (err != 0x1F)  // Some third-party adapters (DolphinBar) use this
-				                       // error code to signal the absence of a WiiMote
+				                       // error code to signal the absence of a Wiimote
 				                       // linked to the HID device.
 				{
 					WARN_LOG(WIIMOTE, "IOWrite[MSBT_STACK_MS]: ERROR: %08x", err);
@@ -795,7 +795,7 @@ int WiimoteWindows::IOWrite(const u8* buf, size_t len)
 	return _IOWrite(m_dev_handle, m_hid_overlap_write, m_stack, buf, len, nullptr);
 }
 
-// invokes callback for each found wiimote bluetooth device
+// invokes callback for each found Wiimote Bluetooth device
 template <typename T>
 void ProcessWiimotes(bool new_scan, T& callback)
 {

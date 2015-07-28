@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Multithreaded event class. This allows waiting in a thread for an event to

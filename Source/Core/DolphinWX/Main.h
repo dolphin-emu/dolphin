@@ -1,14 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <wx/app.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/string.h>
 
 class CFrame;
 class wxLocale;
@@ -27,7 +23,9 @@ private:
 	void OnFatalException() override;
 	bool Initialize(int& c, wxChar **v) override;
 	void InitLanguageSupport();
-	void MacOpenFile(const wxString &fileName);
+#ifdef __APPLE__
+	void MacOpenFile(const wxString &fileName) override;
+#endif
 
 	bool BatchMode;
 	bool LoadFile;

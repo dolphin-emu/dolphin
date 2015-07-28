@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -21,7 +21,7 @@ public:
 
 	/* This mapping function will return a pair of:
 	 * - the pointer to the mapped buffer
-	 * - the offset into the real gpu buffer (always multiple of stride)
+	 * - the offset into the real GPU buffer (always multiple of stride)
 	 * On mapping, the maximum of size for allocation has to be set.
 	 * The size really pushed into this fifo only has to be known on Unmapping.
 	 * Mapping invalidates the current buffer content,

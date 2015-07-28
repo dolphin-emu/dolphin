@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <functional>
@@ -39,27 +39,27 @@ void AddAutoBreakpoints()
 // Returns true if the address is not a valid RAM address or NULL.
 static bool IsStackBottom(u32 addr)
 {
-	return !addr || !Memory::IsRAMAddress(addr);
+	return !addr || !PowerPC::HostIsRAMAddress(addr);
 }
 
 static void WalkTheStack(const std::function<void(u32)>& stack_step)
 {
 	if (!IsStackBottom(PowerPC::ppcState.gpr[1]))
 	{
-		u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
+		u32 addr = PowerPC::HostRead_U32(PowerPC::ppcState.gpr[1]);  // SP
 
 		// Walk the stack chain
 		for (int count = 0;
 		     !IsStackBottom(addr + 4) && (count++ < 20);
 		     ++count)
 		{
-			u32 func_addr = Memory::ReadUnchecked_U32(addr + 4);
+			u32 func_addr = PowerPC::HostRead_U32(addr + 4);
 			stack_step(func_addr);
 
 			if (IsStackBottom(addr))
 				break;
 
-			addr = Memory::ReadUnchecked_U32(addr);
+			addr = PowerPC::HostRead_U32(addr);
 		}
 	}
 }
@@ -69,7 +69,7 @@ static void WalkTheStack(const std::function<void(u32)>& stack_step)
 // instead of "pointing ahead"
 bool GetCallstack(std::vector<CallstackEntry> &output)
 {
-	if (!Core::IsRunning() || !Memory::IsRAMAddress(PowerPC::ppcState.gpr[1]))
+	if (!Core::IsRunning() || !PowerPC::HostIsRAMAddress(PowerPC::ppcState.gpr[1]))
 		return false;
 
 	if (LR == 0)

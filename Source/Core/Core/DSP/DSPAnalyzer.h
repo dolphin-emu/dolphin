@@ -1,11 +1,11 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <array>
-#include "Core/DSP/DSPInterpreter.h"
+#include "Common/CommonTypes.h"
 
 // Basic code analysis.
 namespace DSPAnalyzer

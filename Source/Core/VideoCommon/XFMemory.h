@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -44,10 +44,10 @@
 #define LIGHTDIF_SIGN  1
 #define LIGHTDIF_CLAMP 2
 
-#define LIGHTATTN_SPEC 0 // specular attenuation
-#define LIGHTATTN_SPOT 1 // distance/spotlight attenuation
-#define LIGHTATTN_NONE 2
-#define LIGHTATTN_DIR  3
+#define LIGHTATTN_NONE 0 // no attenuation
+#define LIGHTATTN_SPEC 1 // point light attenuation
+#define LIGHTATTN_DIR  2 // directional light attenuation
+#define LIGHTATTN_SPOT 3 // spot light attenuation
 
 #define GX_PERSPECTIVE  0
 #define GX_ORTHOGRAPHIC 1

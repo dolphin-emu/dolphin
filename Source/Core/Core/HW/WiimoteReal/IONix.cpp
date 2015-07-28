@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <bluetooth/bluetooth.h>
@@ -40,7 +40,7 @@ WiimoteScanner::WiimoteScanner()
 	, device_id(-1)
 	, device_sock(-1)
 {
-	// Get the id of the first bluetooth device.
+	// Get the id of the first Bluetooth device.
 	device_id = hci_get_route(nullptr);
 	if (device_id < 0)
 	{
@@ -52,7 +52,7 @@ WiimoteScanner::WiimoteScanner()
 	device_sock = hci_open_dev(device_id);
 	if (device_sock < 0)
 	{
-		ERROR_LOG(WIIMOTE, "Unable to open bluetooth.");
+		ERROR_LOG(WIIMOTE, "Unable to open Bluetooth.");
 		return;
 	}
 }
@@ -81,15 +81,15 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	auto* scan_infos_ptr = scan_infos;
 	found_board = nullptr;
 
-	// Scan for bluetooth devices
+	// Scan for Bluetooth devices
 	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, nullptr, &scan_infos_ptr, IREQ_CACHE_FLUSH);
 	if (found_devices < 0)
 	{
-		ERROR_LOG(WIIMOTE, "Error searching for bluetooth devices.");
+		ERROR_LOG(WIIMOTE, "Error searching for Bluetooth devices.");
 		return;
 	}
 
-	DEBUG_LOG(WIIMOTE, "Found %i bluetooth device(s).", found_devices);
+	DEBUG_LOG(WIIMOTE, "Found %i Bluetooth device(s).", found_devices);
 
 	// Display discovered devices
 	for (int i = 0; i < found_devices; ++i)
@@ -111,7 +111,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 			// TODO: do this
 
-			// Determine if this wiimote has already been found.
+			// Determine if this Wiimote has already been found.
 			//for (int j = 0; j < MAX_WIIMOTES && new_wiimote; ++j)
 			//{
 			//	if (wm[j] && bacmp(&scan_infos[i].bdaddr,&wm[j]->bdaddr) == 0)
@@ -133,7 +133,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 				else
 				{
 					found_wiimotes.push_back(wm);
-					NOTICE_LOG(WIIMOTE, "Found wiimote (%s).", bdaddr_str);
+					NOTICE_LOG(WIIMOTE, "Found Wiimote (%s).", bdaddr_str);
 				}
 			}
 		}
@@ -163,10 +163,10 @@ WiimoteLinux::~WiimoteLinux()
 	close(m_wakeup_pipe_r);
 }
 
-// Connect to a wiimote with a known address.
+// Connect to a Wiimote with a known address.
 bool WiimoteLinux::ConnectInternal()
 {
-	sockaddr_l2 addr;
+	sockaddr_l2 addr = {};
 	addr.l2_family = AF_BLUETOOTH;
 	addr.l2_bdaddr = m_bdaddr;
 	addr.l2_cid = 0;
@@ -176,7 +176,7 @@ bool WiimoteLinux::ConnectInternal()
 	if ((m_cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
 	                  connect(m_cmd_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
 	{
-		DEBUG_LOG(WIIMOTE, "Unable to open output socket to wiimote.");
+		WARN_LOG(WIIMOTE, "Unable to open output socket to Wiimote: %s", strerror(errno));
 		close(m_cmd_sock);
 		m_cmd_sock = -1;
 		return false;
@@ -187,7 +187,7 @@ bool WiimoteLinux::ConnectInternal()
 	if ((m_int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
 	                  connect(m_int_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
 	{
-		DEBUG_LOG(WIIMOTE, "Unable to open input socket from wiimote.");
+		WARN_LOG(WIIMOTE, "Unable to open input socket from Wiimote: %s", strerror(errno));
 		close(m_int_sock);
 		close(m_cmd_sock);
 		m_int_sock = m_cmd_sock = -1;
@@ -234,7 +234,7 @@ int WiimoteLinux::IORead(u8* buf)
 
 	if (select(m_int_sock + 1, &fds, nullptr, nullptr, nullptr) == -1)
 	{
-		ERROR_LOG(WIIMOTE, "Unable to select wiimote %i input socket.", m_index + 1);
+		ERROR_LOG(WIIMOTE, "Unable to select Wiimote %i input socket.", m_index + 1);
 		return -1;
 	}
 
@@ -256,11 +256,11 @@ int WiimoteLinux::IORead(u8* buf)
 	if (r == -1)
 	{
 		// Error reading data
-		ERROR_LOG(WIIMOTE, "Receiving data from wiimote %i.", m_index + 1);
+		ERROR_LOG(WIIMOTE, "Receiving data from Wiimote %i.", m_index + 1);
 
 		if (errno == ENOTCONN)
 		{
-			// This can happen if the bluetooth dongle is disconnected
+			// This can happen if the Bluetooth dongle is disconnected
 			ERROR_LOG(WIIMOTE, "Bluetooth appears to be disconnected.  "
 					"Wiimote %i will be disconnected.", m_index + 1);
 		}

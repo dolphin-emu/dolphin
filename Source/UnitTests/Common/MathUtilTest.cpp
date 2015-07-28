@@ -1,10 +1,10 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <gtest/gtest.h>
 #include <limits>
 #include <random>
+#include <gtest/gtest.h>
 
 #include "Common/MathUtil.h"
 

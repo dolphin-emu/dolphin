@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -15,41 +15,18 @@
 bool PixelShaderManager::s_bFogRangeAdjustChanged;
 bool PixelShaderManager::s_bViewPortChanged;
 
-std::array<int4,4> PixelShaderManager::s_tev_color;
-std::array<int4,4> PixelShaderManager::s_tev_konst_color;
-
 PixelShaderConstants PixelShaderManager::constants;
 bool PixelShaderManager::dirty;
 
 void PixelShaderManager::Init()
 {
 	memset(&constants, 0, sizeof(constants));
-	memset(s_tev_color.data(), 0, sizeof(s_tev_color));
-	memset(s_tev_konst_color.data(), 0, sizeof(s_tev_konst_color));
 
-	Dirty();
-}
-
-void PixelShaderManager::Dirty()
-{
+	// Init any intial constants which aren't zero when bpmem is zero.
 	s_bFogRangeAdjustChanged = true;
-	s_bViewPortChanged = true;
+	s_bViewPortChanged = false;
 
-	for (unsigned index = 0; index < s_tev_color.size(); ++index)
-	{
-		for (int comp = 0; comp < 4; ++comp)
-		{
-			SetTevColor(index, comp, s_tev_color[index][comp]);
-			SetTevKonstColor(index, comp, s_tev_konst_color[index][comp]);
-		}
-	}
-
-	SetAlpha();
-	SetDestAlpha();
-	SetZTextureBias();
-	SetViewportChanged();
-	SetIndTexScaleChanged(false);
-	SetIndTexScaleChanged(true);
+	SetEfbScaleChanged();
 	SetIndMatrixChanged(0);
 	SetIndMatrixChanged(1);
 	SetIndMatrixChanged(2);
@@ -62,8 +39,20 @@ void PixelShaderManager::Dirty()
 	SetTexCoordChanged(5);
 	SetTexCoordChanged(6);
 	SetTexCoordChanged(7);
-	SetFogColorChanged();
+
+	dirty = true;
+}
+
+void PixelShaderManager::Dirty()
+{
+	// This function is called after a savestate is loaded.
+	// Any constants that can changed based on settings should be re-calculated
+	s_bFogRangeAdjustChanged = true;
+
+	SetEfbScaleChanged();
 	SetFogParamChanged();
+
+	dirty = true;
 }
 
 void PixelShaderManager::Shutdown()
@@ -107,8 +96,8 @@ void PixelShaderManager::SetConstants()
 
 	if (s_bViewPortChanged)
 	{
-		constants.zbias[1][0] = static_cast<u32>(xfmem.viewport.farZ);
-		constants.zbias[1][1] = static_cast<u32>(xfmem.viewport.zRange);
+		constants.zbias[1][0] = (u32)xfmem.viewport.farZ;
+		constants.zbias[1][1] = (u32)xfmem.viewport.zRange;
 		dirty = true;
 		s_bViewPortChanged = false;
 	}
@@ -117,7 +106,7 @@ void PixelShaderManager::SetConstants()
 void PixelShaderManager::SetTevColor(int index, int component, s32 value)
 {
 	auto& c = constants.colors[index];
-	c[component] = s_tev_color[index][component] = value;
+	c[component] = value;
 	dirty = true;
 
 	PRIM_LOG("tev color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
@@ -126,7 +115,7 @@ void PixelShaderManager::SetTevColor(int index, int component, s32 value)
 void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value)
 {
 	auto& c = constants.kcolors[index];
-	c[component] = s_tev_konst_color[index][component] = value;
+	c[component] = value;
 	dirty = true;
 
 	PRIM_LOG("tev konst color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
@@ -145,7 +134,7 @@ void PixelShaderManager::SetDestAlpha()
 	dirty = true;
 }
 
-void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt)
+void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
 {
 	// TODO: move this check out to callee. There we could just call this function on texture changes
 	// or better, use textureSize() in glsl
@@ -166,6 +155,21 @@ void PixelShaderManager::SetViewportChanged()
 {
 	s_bViewPortChanged = true;
 	s_bFogRangeAdjustChanged = true; // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
+}
+
+void PixelShaderManager::SetEfbScaleChanged()
+{
+	constants.efbscale[0] = 1.0f / Renderer::EFBToScaledXf(1);
+	constants.efbscale[1] = 1.0f / Renderer::EFBToScaledYf(1);
+	dirty = true;
+}
+
+void PixelShaderManager::SetZSlope(float dfdx, float dfdy, float f0)
+{
+	constants.zslope[0] = dfdx;
+	constants.zslope[1] = dfdy;
+	constants.zslope[2] = f0;
+	dirty = true;
 }
 
 void PixelShaderManager::SetIndTexScaleChanged(bool high)
@@ -226,8 +230,8 @@ void PixelShaderManager::SetZTextureTypeChanged()
 			break;
 		default:
 			break;
-        }
-        dirty = true;
+	}
+	dirty = true;
 }
 
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
@@ -278,12 +282,14 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
 
 void PixelShaderManager::DoState(PointerWrap &p)
 {
-	p.DoArray(s_tev_color);
-	p.DoArray(s_tev_konst_color);
+	p.Do(s_bFogRangeAdjustChanged);
+	p.Do(s_bViewPortChanged);
+
+	p.Do(constants);
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		// Reload current state from global GPU state
+		// Fixup the current state from global GPU state
 		// NOTE: This requires that all GPU memory has been loaded already.
 		Dirty();
 	}

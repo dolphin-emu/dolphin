@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "ui_GameGrid.h"
@@ -76,7 +76,7 @@ void DGameGrid::AddGame(GameFile* gameItem)
 	QListWidgetItem* i = new QListWidgetItem;
 	i->setIcon(QIcon(gameItem->GetBitmap()
 		.scaled(GRID_BANNER_WIDTH, GRID_BANNER_HEIGHT, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
-	i->setText(gameItem->GetName(0));
+	i->setText(gameItem->GetName(false));
 	if (gameItem->IsCompressed())
 		i->setTextColor(QColor("#00F"));
 

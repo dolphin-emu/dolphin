@@ -1,13 +1,17 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include "Common/Thread.h"
+#include <atomic>
+#include <mutex>
+#include <thread>
 
+#include "Common/Flag.h"
 #include "Core/DSPEmulator.h"
-#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
+
+class PointerWrap;
 
 class DSPLLE : public DSPEmulator
 {
@@ -32,13 +36,12 @@ public:
 	virtual u32 DSP_UpdateRate() override;
 
 private:
-	static void dsp_thread(DSPLLE* lpParameter);
+	static void DSPThread(DSPLLE* lpParameter);
 
 	std::thread m_hDSPThread;
 	std::mutex m_csDSPThreadActive;
-	std::mutex m_csDSPCycleCountActive;
 	bool m_bWii;
 	bool m_bDSPThread;
 	Common::Flag m_bIsRunning;
-	u32 m_cycle_count;
+	std::atomic<u32> m_cycle_count;
 };

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -8,17 +8,11 @@
 #include "Common/Common.h"
 //#include "VideoCommon.h" // to get debug logs
 #include "Common/CPUDetect.h"
+#include "Common/Intrinsics.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
-
-#if _M_SSE >= 0x401
-#include <smmintrin.h>
-#include <emmintrin.h>
-#elif _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
-#include <tmmintrin.h>
-#endif
 
 // This avoids a harmless warning from a system header in Clang;
 // see http://llvm.org/bugs/show_bug.cgi?id=16093
@@ -236,7 +230,7 @@ static void DecodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
 
-PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
+void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
 {
 	const int Wsteps4 = (width + 3) / 4;
 	const int Wsteps8 = (width + 7) / 8;
@@ -1273,7 +1267,4 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			break;
 		}
 	}
-
-	// The "copy" texture formats, too?
-	return PC_TEX_FMT_RGBA32;
 }

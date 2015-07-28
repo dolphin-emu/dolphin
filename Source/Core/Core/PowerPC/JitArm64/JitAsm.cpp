@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/Arm64Emitter.h"
@@ -7,6 +7,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitAsm.h"
+#include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
 using namespace Arm64Gen;
@@ -86,12 +87,477 @@ void JitArm64AsmRoutineManager::Generate()
 
 	SetJumpTarget(Exit);
 
+	// Let the waiting thread know we are done leaving
+	MOVI2R(X0, (u64)&PowerPC::FinishStateMove);
+	BLR(X0);
+
 	ABI_PopRegisters(regs_to_save);
 	RET(X30);
+
+	GenerateCommon();
 
 	FlushIcache();
 }
 
 void JitArm64AsmRoutineManager::GenerateCommon()
 {
+	// X0 is the scale
+	// X1 is address
+	// X2 is a temporary on stores
+	// X30 is LR
+	// Q0 is the return for loads
+	//    is the register for stores
+	// Q1 is a temporary
+	ARM64Reg addr_reg = X1;
+	ARM64Reg scale_reg = X0;
+	ARM64FloatEmitter float_emit(this);
+
+	const u8* loadPairedIllegal = GetCodePtr();
+		BRK(100);
+	const u8* loadPairedFloatTwo = GetCodePtr();
+	{
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.LD1(32, 1, D0, addr_reg);
+		float_emit.REV32(8, D0, D0);
+		RET(X30);
+	}
+	const u8* loadPairedU8Two = GetCodePtr();
+	{
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
+		float_emit.UXTL(8, D0, D0);
+		float_emit.UXTL(16, D0, D0);
+		float_emit.UCVTF(32, D0, D0);
+
+		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
+		RET(X30);
+	}
+	const u8* loadPairedS8Two = GetCodePtr();
+	{
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
+		float_emit.SXTL(8, D0, D0);
+		float_emit.SXTL(16, D0, D0);
+		float_emit.SCVTF(32, D0, D0);
+
+		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
+		RET(X30);
+	}
+	const u8* loadPairedU16Two = GetCodePtr();
+	{
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.LD1(16, 1, D0, addr_reg);
+		float_emit.REV16(8, D0, D0);
+		float_emit.UXTL(16, D0, D0);
+		float_emit.UCVTF(32, D0, D0);
+
+		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
+		RET(X30);
+	}
+	const u8* loadPairedS16Two = GetCodePtr();
+	{
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.LD1(16, 1, D0, addr_reg);
+		float_emit.REV16(8, D0, D0);
+		float_emit.SXTL(16, D0, D0);
+		float_emit.SCVTF(32, D0, D0);
+
+		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
+		RET(X30);
+	}
+
+	const u8* loadPairedFloatOne = GetCodePtr();
+	{
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.LDR(32, INDEX_UNSIGNED, D0, addr_reg, 0);
+		float_emit.REV32(8, D0, D0);
+		RET(X30);
+	}
+	const u8* loadPairedU8One = GetCodePtr();
+	{
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.LDR(8, INDEX_UNSIGNED, D0, addr_reg, 0);
+		float_emit.UXTL(8, D0, D0);
+		float_emit.UXTL(16, D0, D0);
+		float_emit.UCVTF(32, D0, D0);
+
+		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
+		RET(X30);
+	}
+	const u8* loadPairedS8One = GetCodePtr();
+	{
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.LDR(8, INDEX_UNSIGNED, D0, addr_reg, 0);
+		float_emit.SXTL(8, D0, D0);
+		float_emit.SXTL(16, D0, D0);
+		float_emit.SCVTF(32, D0, D0);
+
+		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
+		RET(X30);
+	}
+	const u8* loadPairedU16One = GetCodePtr();
+	{
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
+		float_emit.REV16(8, D0, D0);
+		float_emit.UXTL(16, D0, D0);
+		float_emit.UCVTF(32, D0, D0);
+
+		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
+		RET(X30);
+	}
+	const u8* loadPairedS16One = GetCodePtr();
+	{
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
+		float_emit.REV16(8, D0, D0);
+		float_emit.SXTL(16, D0, D0);
+		float_emit.SCVTF(32, D0, D0);
+
+		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
+		RET(X30);
+	}
+
+	pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+	ReserveCodeSpace(16 * sizeof(u8*));
+
+	pairedLoadQuantized[0] = loadPairedFloatTwo;
+	pairedLoadQuantized[1] = loadPairedIllegal;
+	pairedLoadQuantized[2] = loadPairedIllegal;
+	pairedLoadQuantized[3] = loadPairedIllegal;
+	pairedLoadQuantized[4] = loadPairedU8Two;
+	pairedLoadQuantized[5] = loadPairedU16Two;
+	pairedLoadQuantized[6] = loadPairedS8Two;
+	pairedLoadQuantized[7] = loadPairedS16Two;
+
+	pairedLoadQuantized[8] = loadPairedFloatOne;
+	pairedLoadQuantized[9] = loadPairedIllegal;
+	pairedLoadQuantized[10] = loadPairedIllegal;
+	pairedLoadQuantized[11] = loadPairedIllegal;
+	pairedLoadQuantized[12] = loadPairedU8One;
+	pairedLoadQuantized[13] = loadPairedU16One;
+	pairedLoadQuantized[14] = loadPairedS8One;
+	pairedLoadQuantized[15] = loadPairedS16One;
+
+	// Stores
+	const u8* storePairedIllegal = GetCodePtr();
+		BRK(0x101);
+	const u8* storePairedFloat;
+	const u8* storePairedFloatSlow;
+	{
+		storePairedFloat = GetCodePtr();
+		float_emit.REV32(8, D0, D0);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.ST1(64, Q0, 0, addr_reg, SP);
+		RET(X30);
+
+		storePairedFloatSlow = GetCodePtr();
+		float_emit.UMOV(64, X0, Q0, 0);
+		ORR(X0, SP, X0, ArithOption(X0, ST_ROR, 32));
+		MOVI2R(X2, (u64)PowerPC::Write_U64);
+		BR(X2);
+	}
+
+	const u8* storePairedU8;
+	const u8* storePairedU8Slow;
+	{
+		auto emit_quantize = [this, &float_emit, scale_reg]()
+		{
+			MOVI2R(X2, (u64)&m_quantizeTableS);
+			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+			float_emit.FMUL(32, D0, D0, D1, 0);
+
+			float_emit.FCVTZU(32, D0, D0);
+			float_emit.UQXTN(16, D0, D0);
+			float_emit.UQXTN(8, D0, D0);
+		};
+
+		storePairedU8 = GetCodePtr();
+		emit_quantize();
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.ST1(16, Q0, 0, addr_reg, SP);
+		RET(X30);
+
+		storePairedU8Slow = GetCodePtr();
+		emit_quantize();
+		float_emit.UMOV(16, W0, Q0, 0);
+		REV16(W0, W0);
+		MOVI2R(X2, (u64)PowerPC::Write_U16);
+		BR(X2);
+	}
+	const u8* storePairedS8;
+	const u8* storePairedS8Slow;
+	{
+		auto emit_quantize = [this, &float_emit, scale_reg]()
+		{
+			MOVI2R(X2, (u64)&m_quantizeTableS);
+			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+			float_emit.FMUL(32, D0, D0, D1, 0);
+
+			float_emit.FCVTZS(32, D0, D0);
+			float_emit.SQXTN(16, D0, D0);
+			float_emit.SQXTN(8, D0, D0);
+		};
+
+		storePairedS8 = GetCodePtr();
+		emit_quantize();
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.ST1(16, Q0, 0, addr_reg, SP);
+		RET(X30);
+
+		storePairedS8Slow = GetCodePtr();
+		emit_quantize();
+		float_emit.UMOV(16, W0, Q0, 0);
+		REV16(W0, W0);
+		MOVI2R(X2, (u64)PowerPC::Write_U16);
+		BR(X2);
+	}
+
+	const u8* storePairedU16;
+	const u8* storePairedU16Slow;
+	{
+		auto emit_quantize = [this, &float_emit, scale_reg]()
+		{
+			MOVI2R(X2, (u64)&m_quantizeTableS);
+			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+			float_emit.FMUL(32, D0, D0, D1, 0);
+
+			float_emit.FCVTZU(32, D0, D0);
+			float_emit.UQXTN(16, D0, D0);
+			float_emit.REV16(8, D0, D0);
+		};
+
+		storePairedU16 = GetCodePtr();
+		emit_quantize();
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.ST1(32, Q0, 0, addr_reg, SP);
+		RET(X30);
+
+		storePairedU16Slow = GetCodePtr();
+		emit_quantize();
+		float_emit.REV32(8, D0, D0);
+		float_emit.UMOV(32, W0, Q0, 0);
+		MOVI2R(X2, (u64)PowerPC::Write_U32);
+		BR(X2);
+	}
+	const u8* storePairedS16; // Used by Viewtiful Joe's intro movie
+	const u8* storePairedS16Slow;
+	{
+		auto emit_quantize = [this, &float_emit, scale_reg]()
+		{
+			MOVI2R(X2, (u64)&m_quantizeTableS);
+			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+			float_emit.FMUL(32, D0, D0, D1, 0);
+
+			float_emit.FCVTZS(32, D0, D0);
+			float_emit.SQXTN(16, D0, D0);
+			float_emit.REV16(8, D0, D0);
+		};
+
+		storePairedS16 = GetCodePtr();
+		emit_quantize();
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.ST1(32, Q0, 0, addr_reg, SP);
+		RET(X30);
+
+		storePairedS16Slow = GetCodePtr();
+		emit_quantize();
+		float_emit.REV32(8, D0, D0);
+		float_emit.UMOV(32, W0, Q0, 0);
+		MOVI2R(X2, (u64)PowerPC::Write_U32);
+		BR(X2);
+	}
+
+	const u8* storeSingleFloat;
+	const u8* storeSingleFloatSlow;
+	{
+		storeSingleFloat = GetCodePtr();
+		float_emit.REV32(8, D0, D0);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.STR(32, INDEX_UNSIGNED, D0, addr_reg, 0);
+		RET(X30);
+
+		storeSingleFloatSlow = GetCodePtr();
+		float_emit.UMOV(32, W0, Q0, 0);
+		MOVI2R(X2, (u64)&PowerPC::Write_U32);
+		BR(X2);
+	}
+	const u8* storeSingleU8;  // Used by MKWii
+	const u8* storeSingleU8Slow;
+	{
+		auto emit_quantize = [this, &float_emit, scale_reg]()
+		{
+			MOVI2R(X2, (u64)&m_quantizeTableS);
+			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+			float_emit.FMUL(32, D0, D0, D1);
+
+			float_emit.FCVTZU(32, D0, D0);
+			float_emit.UQXTN(16, D0, D0);
+			float_emit.UQXTN(8, D0, D0);
+		};
+
+		storeSingleU8 = GetCodePtr();
+		emit_quantize();
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.ST1(8, Q0, 0, addr_reg);
+		RET(X30);
+
+		storeSingleU8Slow = GetCodePtr();
+		emit_quantize();
+		float_emit.UMOV(8, W0, Q0, 0);
+		MOVI2R(X2, (u64)&PowerPC::Write_U8);
+		BR(X2);
+	}
+	const u8* storeSingleS8;
+	const u8* storeSingleS8Slow;
+	{
+		auto emit_quantize = [this, &float_emit, scale_reg]()
+		{
+			MOVI2R(X2, (u64)&m_quantizeTableS);
+			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+			float_emit.FMUL(32, D0, D0, D1);
+
+			float_emit.FCVTZS(32, D0, D0);
+			float_emit.SQXTN(16, D0, D0);
+			float_emit.SQXTN(8, D0, D0);
+		};
+
+		storeSingleS8 = GetCodePtr();
+		emit_quantize();
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.ST1(8, Q0, 0, addr_reg);
+		RET(X30);
+
+		storeSingleS8Slow = GetCodePtr();
+		emit_quantize();
+		float_emit.SMOV(8, W0, Q0, 0);
+		MOVI2R(X2, (u64)&PowerPC::Write_U8);
+		BR(X2);
+	}
+	const u8* storeSingleU16;  // Used by MKWii
+	const u8* storeSingleU16Slow;
+	{
+		auto emit_quantize = [this, &float_emit, scale_reg]()
+		{
+			MOVI2R(X2, (u64)&m_quantizeTableS);
+			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+			float_emit.FMUL(32, D0, D0, D1);
+
+			float_emit.FCVTZU(32, D0, D0);
+			float_emit.UQXTN(16, D0, D0);
+		};
+
+		storeSingleU16 = GetCodePtr();
+		emit_quantize();
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.REV16(8, D0, D0);
+		float_emit.ST1(16, Q0, 0, addr_reg);
+		RET(X30);
+
+		storeSingleU16Slow = GetCodePtr();
+		emit_quantize();
+		float_emit.UMOV(16, W0, Q0, 0);
+		MOVI2R(X2, (u64)&PowerPC::Write_U16);
+		BR(X2);
+	}
+	const u8* storeSingleS16;
+	const u8* storeSingleS16Slow;
+	{
+		auto emit_quantize = [this, &float_emit, scale_reg]()
+		{
+			MOVI2R(X2, (u64)&m_quantizeTableS);
+			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+			float_emit.FMUL(32, D0, D0, D1);
+
+			float_emit.FCVTZS(32, D0, D0);
+			float_emit.SQXTN(16, D0, D0);
+		};
+
+		storeSingleS16 = GetCodePtr();
+		emit_quantize();
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.REV16(8, D0, D0);
+		float_emit.ST1(16, Q0, 0, addr_reg);
+		RET(X30);
+
+		storeSingleS16Slow = GetCodePtr();
+		emit_quantize();
+		float_emit.SMOV(16, W0, Q0, 0);
+		MOVI2R(X2, (u64)&PowerPC::Write_U16);
+		BR(X2);
+	}
+
+	pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+	ReserveCodeSpace(32 * sizeof(u8*));
+
+	// Fast
+	pairedStoreQuantized[0] = storePairedFloat;
+	pairedStoreQuantized[1] = storePairedIllegal;
+	pairedStoreQuantized[2] = storePairedIllegal;
+	pairedStoreQuantized[3] = storePairedIllegal;
+	pairedStoreQuantized[4] = storePairedU8;
+	pairedStoreQuantized[5] = storePairedU16;
+	pairedStoreQuantized[6] = storePairedS8;
+	pairedStoreQuantized[7] = storePairedS16;
+
+	pairedStoreQuantized[8] = storeSingleFloat;
+	pairedStoreQuantized[9] = storePairedIllegal;
+	pairedStoreQuantized[10] = storePairedIllegal;
+	pairedStoreQuantized[11] = storePairedIllegal;
+	pairedStoreQuantized[12] = storeSingleU8;
+	pairedStoreQuantized[13] = storeSingleU16;
+	pairedStoreQuantized[14] = storeSingleS8;
+	pairedStoreQuantized[15] = storeSingleS16;
+
+	// Slow
+	pairedStoreQuantized[16] = storePairedFloatSlow;
+	pairedStoreQuantized[17] = storePairedIllegal;
+	pairedStoreQuantized[18] = storePairedIllegal;
+	pairedStoreQuantized[19] = storePairedIllegal;
+	pairedStoreQuantized[20] = storePairedU8Slow;
+	pairedStoreQuantized[21] = storePairedU16Slow;
+	pairedStoreQuantized[22] = storePairedS8Slow;
+	pairedStoreQuantized[23] = storePairedS16Slow;
+
+	pairedStoreQuantized[24] = storeSingleFloatSlow;
+	pairedStoreQuantized[25] = storePairedIllegal;
+	pairedStoreQuantized[26] = storePairedIllegal;
+	pairedStoreQuantized[27] = storePairedIllegal;
+	pairedStoreQuantized[28] = storeSingleU8Slow;
+	pairedStoreQuantized[29] = storeSingleU16Slow;
+	pairedStoreQuantized[30] = storeSingleS8Slow;
+	pairedStoreQuantized[31] = storeSingleS16Slow;
+
 }

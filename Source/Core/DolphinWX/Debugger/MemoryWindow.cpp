@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
@@ -8,21 +8,12 @@
 #include <string>
 #include <vector>
 #include <wx/button.h>
-#include <wx/chartype.h>
 #include <wx/checkbox.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/listbox.h>
 #include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/translation.h>
-#include <wx/window.h>
-#include <wx/windowid.h>
-#include <wx/wxcrtvararg.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -30,7 +21,6 @@
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
 #include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
@@ -59,6 +49,7 @@ enum
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
 	EVT_TEXT(IDM_MEM_ADDRBOX,       CMemoryWindow::OnAddrBoxChange)
+	EVT_TEXT_ENTER(IDM_VALBOX,      CMemoryWindow::SetMemoryValueFromValBox)
 	EVT_LISTBOX(IDM_SYMBOLLIST,     CMemoryWindow::OnSymbolListChange)
 	EVT_HOST_COMMAND(wxID_ANY,      CMemoryWindow::OnHostMessage)
 	EVT_BUTTON(IDM_SETVALBUTTON,    CMemoryWindow::SetMemoryValue)
@@ -88,33 +79,33 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	//      wxSize(20, 100), 0, nullptr, wxLB_SORT);
 	//sizerLeft->Add(symbols, 1, wxEXPAND);
 	memview = new CMemoryView(di, this);
-	memview->dataType = 0;
+
 	//sizerBig->Add(sizerLeft, 1, wxEXPAND);
 	sizerBig->Add(memview, 20, wxEXPAND);
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
 	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_MEM_ADDRBOX, ""));
-	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, ""));
-	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set &Value")));
+	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER));
+	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set Value")));
 
 	sizerRight->AddSpacer(5);
-	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _("&Dump MRAM")));
-	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _("&Dump EXRAM")));
+	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _("Dump MRAM")));
+	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _("Dump EXRAM")));
 
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-		sizerRight->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("&Dump FakeVMEM")));
+	if (!SConfig::GetInstance().bMMU)
+		sizerRight->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("Dump FakeVMEM")));
 
 	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
 
 	sizerSearchType->Add(btnSearch = new wxButton(this, IDM_SEARCH, _("Search")));
-	sizerSearchType->Add(chkAscii = new wxCheckBox(this, IDM_ASCII, "&Ascii "));
-	sizerSearchType->Add(chkHex = new wxCheckBox(this, IDM_HEX, _("&Hex")));
+	sizerSearchType->Add(chkAscii = new wxCheckBox(this, IDM_ASCII, "Ascii "));
+	sizerSearchType->Add(chkHex = new wxCheckBox(this, IDM_HEX, _("Hex")));
 	sizerRight->Add(sizerSearchType);
 	wxStaticBoxSizer* sizerDataTypes = new wxStaticBoxSizer(wxVERTICAL, this, _("Data Type"));
 
 	sizerDataTypes->SetMinSize(74, 40);
-	sizerDataTypes->Add(chk8 = new wxCheckBox(this, IDM_U8, "&U8"));
-	sizerDataTypes->Add(chk16 = new wxCheckBox(this, IDM_U16, "&U16"));
-	sizerDataTypes->Add(chk32 = new wxCheckBox(this, IDM_U32, "&U32"));
+	sizerDataTypes->Add(chk8 = new wxCheckBox(this, IDM_U8, "U8"));
+	sizerDataTypes->Add(chk16 = new wxCheckBox(this, IDM_U16, "U16"));
+	sizerDataTypes->Add(chk32 = new wxCheckBox(this, IDM_U32, "U32"));
 	sizerRight->Add(sizerDataTypes);
 	SetSizer(sizerBig);
 	chkHex->SetValue(1); //Set defaults
@@ -156,6 +147,13 @@ void CMemoryWindow::JumpToAddress(u32 _Address)
 	memview->Center(_Address);
 }
 
+void CMemoryWindow::SetMemoryValueFromValBox(wxCommandEvent& event)
+{
+	SetMemoryValue(event);
+	valbox->SetFocus();
+
+}
+
 void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 {
 	if (!Memory::IsInitialized())
@@ -181,7 +179,7 @@ void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 		return;
 	}
 
-	Memory::Write_U32(val, addr);
+	PowerPC::HostWrite_U32(val, addr);
 	memview->Refresh();
 }
 
@@ -239,7 +237,7 @@ void CMemoryWindow::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-		case IDM_NOTIFYMAPLOADED:
+		case IDM_NOTIFY_MAP_LOADED:
 			NotifyMapLoaded();
 			break;
 	}
@@ -263,7 +261,7 @@ void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 // Write exram (aram or mem2) to file
 void CMemoryWindow::OnDumpMem2( wxCommandEvent& event )
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 	{
 		DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), Memory::m_pEXRAM, Memory::EXRAM_SIZE);
 	}
@@ -283,24 +281,21 @@ void CMemoryWindow::U8(wxCommandEvent& event)
 {
 	chk16->SetValue(0);
 	chk32->SetValue(0);
-	memview->dataType = 0;
-	memview->Refresh();
+	memview->SetDataType(MemoryDataType::U8);
 }
 
 void CMemoryWindow::U16(wxCommandEvent& event)
 {
 	chk8->SetValue(0);
 	chk32->SetValue(0);
-	memview->dataType = 1;
-	memview->Refresh();
+	memview->SetDataType(MemoryDataType::U16);
 }
 
 void CMemoryWindow::U32(wxCommandEvent& event)
 {
 	chk16->SetValue(0);
 	chk8->SetValue(0);
-	memview->dataType = 2;
-	memview->Refresh();
+	memview->SetDataType(MemoryDataType::U32);
 }
 
 void CMemoryWindow::onSearch(wxCommandEvent& event)

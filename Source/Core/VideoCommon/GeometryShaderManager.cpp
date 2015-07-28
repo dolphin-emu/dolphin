@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cfloat>
@@ -26,7 +26,11 @@ void GeometryShaderManager::Init()
 {
 	memset(&constants, 0, sizeof(constants));
 
-	Dirty();
+	// Init any intial constants which aren't zero when bpmem is zero.
+	SetViewportChanged();
+	SetProjectionChanged();
+
+	dirty = true;
 }
 
 void GeometryShaderManager::Shutdown()
@@ -35,12 +39,9 @@ void GeometryShaderManager::Shutdown()
 
 void GeometryShaderManager::Dirty()
 {
-	SetViewportChanged();
-	SetProjectionChanged();
-	SetLinePtWidthChanged();
-
-	for (int i = 0; i < 8; i++)
-		SetTexCoordChanged(i);
+	// This function is called after a savestate is loaded.
+	// Any constants that can changed based on settings should be re-calculated
+	s_projection_changed = true;
 
 	dirty = true;
 }
@@ -53,15 +54,16 @@ void GeometryShaderManager::SetConstants()
 
 		if (xfmem.projection.type == GX_PERSPECTIVE)
 		{
-			float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
-			constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
-			constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
-			constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
+			float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) * (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
+			constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
+			constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;
 		}
 		else
 		{
 			constants.stereoparams[0] = constants.stereoparams[1] = 0;
 		}
+
+		constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergenceMinimum + g_ActiveConfig.iStereoConvergence);
 
 		dirty = true;
 	}
@@ -109,9 +111,14 @@ void GeometryShaderManager::SetTexCoordChanged(u8 texmapid)
 
 void GeometryShaderManager::DoState(PointerWrap &p)
 {
+	p.Do(s_projection_changed);
+	p.Do(s_viewport_changed);
+
+	p.Do(constants);
+
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		// Reload current state from global GPU state
+		// Fixup the current state from global GPU state
 		// NOTE: This requires that all GPU memory has been loaded already.
 		Dirty();
 	}

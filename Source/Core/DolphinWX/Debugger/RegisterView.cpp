@@ -1,14 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wx/chartype.h>
 #include <wx/colour.h>
-#include <wx/defs.h>
 #include <wx/grid.h>
 #include <wx/menu.h>
-#include <wx/string.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
@@ -73,54 +69,48 @@ static wxString GetValueByRowCol(int row, int col)
 		case 5:
 		{
 			if (row < 4)
-			{
 				return wxString::Format("DBAT%01d", row);
-			}
+
 			if (row < 8)
-			{
 				return wxString::Format("IBAT%01d", row - 4);
-			}
+
 			if (row < 12)
-			{
 				return wxString::Format("DBAT%01d", row - 4);
-			}
+
 			if (row < 16)
-			{
 				return wxString::Format("IBAT%01d", row - 8);
-			}
+
+			break;
 		}
 		case 6:
 		{
 			if (row < 4)
-			{
 				return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_DBAT0U + row * 2] << 32 | PowerPC::ppcState.spr[SPR_DBAT0L + row * 2]);
-			}
+
 			if (row < 8)
-			{
 				return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_IBAT0U + (row - 4) * 2] << 32 | PowerPC::ppcState.spr[SPR_IBAT0L + (row - 4) * 2]);
-			}
+
 			if (row < 12)
-			{
 				return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_DBAT4U + (row - 12) * 2] << 32 | PowerPC::ppcState.spr[SPR_DBAT4L + (row - 12) * 2]);
-			}
+
 			if (row < 16)
-			{
 				return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_IBAT4U + (row - 16) * 2] << 32 | PowerPC::ppcState.spr[SPR_IBAT4L + (row - 16) * 2]);
-			}
+
+			break;
 		}
 		case 7:
 		{
 			if (row < 16)
-			{
 				return wxString::Format("SR%02d", row);
-			}
+
+			break;
 		}
 		case 8:
 		{
 			if (row < 16)
-			{
 				return wxString::Format("%08x", PowerPC::ppcState.sr[row]);
-			}
+
+			break;
 		}
 		default: return wxEmptyString;
 		}
@@ -241,14 +231,15 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 	}
 
 	attr->SetTextColour(red ? *wxRED : *wxBLACK);
-	attr->IncRef();
 	return attr;
 }
 
 CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
 	: wxGrid(parent, id)
 {
-	SetTable(new CRegTable(), true);
+	m_register_table = new CRegTable();
+
+	SetTable(m_register_table, true);
 	SetRowLabelSize(0);
 	SetColLabelSize(0);
 	DisableDragRowSize();
@@ -261,8 +252,8 @@ CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
 
 void CRegisterView::Update()
 {
+	m_register_table->UpdateCachedRegs();
 	ForceRefresh();
-	((CRegTable *)GetTable())->UpdateCachedRegs();
 }
 
 void CRegisterView::OnMouseDownR(wxGridEvent& event)

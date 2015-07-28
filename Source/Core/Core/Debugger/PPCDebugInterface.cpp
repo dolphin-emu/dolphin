@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -19,26 +19,22 @@
 
 std::string PPCDebugInterface::Disassemble(unsigned int address)
 {
-	// Memory::ReadUnchecked_U32 seemed to crash on shutdown
+	// PowerPC::HostRead_U32 seemed to crash on shutdown
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return "";
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::GetState() == Core::CORE_PAUSE)
 	{
-		if (!Memory::IsRAMAddress(address, true, true))
+		if (!PowerPC::HostIsRAMAddress(address))
 		{
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || !((address & JIT_ICACHE_VMEM_BIT) &&
-				Memory::TranslateAddress(address, Memory::FLAG_NO_EXCEPTION)))
-			{
-				return "(No RAM here)";
-			}
+			return "(No RAM here)";
 		}
 
-		u32 op = Memory::Read_Instruction(address);
+		u32 op = PowerPC::HostRead_Instruction(address);
 		std::string disasm = GekkoDisassembler::Disassemble(op, address);
 
 		UGeckoInstruction inst;
-		inst.hex = Memory::ReadUnchecked_U32(address);
+		inst.hex = PowerPC::HostRead_U32(address);
 
 		if (inst.OPCD == 1)
 		{
@@ -57,7 +53,7 @@ void PPCDebugInterface::GetRawMemoryString(int memory, unsigned int address, cha
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		if (memory || Memory::IsRAMAddress(address, true, true))
+		if (memory || PowerPC::HostIsRAMAddress(address))
 		{
 			snprintf(dest, max_size, "%08X%s", ReadExtraMemory(memory, address), memory ? " (ARAM)" : "");
 		}
@@ -74,7 +70,7 @@ void PPCDebugInterface::GetRawMemoryString(int memory, unsigned int address, cha
 
 unsigned int PPCDebugInterface::ReadMemory(unsigned int address)
 {
-	return Memory::ReadUnchecked_U32(address);
+	return PowerPC::HostRead_U32(address);
 }
 
 unsigned int PPCDebugInterface::ReadExtraMemory(int memory, unsigned int address)
@@ -82,7 +78,7 @@ unsigned int PPCDebugInterface::ReadExtraMemory(int memory, unsigned int address
 	switch (memory)
 	{
 	case 0:
-		return Memory::ReadUnchecked_U32(address);
+		return PowerPC::HostRead_U32(address);
 	case 1:
 		return (DSP::ReadARAM(address)     << 24) |
 		       (DSP::ReadARAM(address + 1) << 16) |
@@ -95,7 +91,7 @@ unsigned int PPCDebugInterface::ReadExtraMemory(int memory, unsigned int address
 
 unsigned int PPCDebugInterface::ReadInstruction(unsigned int address)
 {
-	return Memory::Read_Instruction(address);
+	return PowerPC::HostRead_Instruction(address);
 }
 
 bool PPCDebugInterface::IsAlive()
@@ -170,12 +166,7 @@ void PPCDebugInterface::ToggleMemCheck(unsigned int address)
 
 void PPCDebugInterface::InsertBLR(unsigned int address, unsigned int value)
 {
-	Memory::Write_U32(value, address);
-}
-
-void PPCDebugInterface::BreakNow()
-{
-	CCPU::Break();
+	PowerPC::HostWrite_U32(value, address);
 }
 
 
@@ -184,7 +175,9 @@ void PPCDebugInterface::BreakNow()
 // -------------
 int PPCDebugInterface::GetColor(unsigned int address)
 {
-	if (!Memory::IsRAMAddress(address, true, true))
+	if (!IsAlive())
+		return 0xFFFFFF;
+	if (!PowerPC::HostIsRAMAddress(address))
 		return 0xeeeeee;
 	static const int colors[6] =
 	{

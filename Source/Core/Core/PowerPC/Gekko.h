@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -305,6 +305,9 @@ union UGeckoInstruction
 enum EQuantizeType : u32
 {
 	QUANTIZE_FLOAT = 0,
+	QUANTIZE_INVALID1 = 1,
+	QUANTIZE_INVALID2 = 2,
+	QUANTIZE_INVALID3 = 3,
 	QUANTIZE_U8    = 4,
 	QUANTIZE_U16   = 5,
 	QUANTIZE_S8    = 6,
@@ -828,7 +831,9 @@ enum
 	EXCEPTION_ALIGNMENT           = 0x00000020,
 	EXCEPTION_FPU_UNAVAILABLE     = 0x00000040,
 	EXCEPTION_PROGRAM             = 0x00000080,
-	EXCEPTION_PERFORMANCE_MONITOR = 0x00000100
+	EXCEPTION_PERFORMANCE_MONITOR = 0x00000100,
+
+	EXCEPTION_FAKE_MEMCHECK_HIT   = 0x00000200,
 };
 
 inline s32 SignExt16(s16 x) {return (s32)(s16)x;}

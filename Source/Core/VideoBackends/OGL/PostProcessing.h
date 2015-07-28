@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -28,7 +28,6 @@ public:
 
 private:
 	bool m_initialized;
-	bool m_anaglyph;
 	SHADER m_shader;
 	GLuint m_uniform_resolution;
 	GLuint m_uniform_src_rect;

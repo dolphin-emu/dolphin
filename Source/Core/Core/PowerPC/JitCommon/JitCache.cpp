@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Enable define below to enable oprofile integration. For this to work,
@@ -12,24 +12,13 @@
 #include "disasm.h"
 
 #include "Common/CommonTypes.h"
+#include "Common/JitRegister.h"
 #include "Common/MemoryUtil.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #ifdef _WIN32
 #include <windows.h>
-#endif
-
-#if defined USE_OPROFILE && USE_OPROFILE
-#include <opagent.h>
-
-op_agent_t agent;
-#endif
-
-#if defined USE_VTUNE
-#include <jitprofiling.h>
-#pragma comment(lib, "libittnotify.lib")
-#pragma comment(lib, "jitprofiling.lib")
 #endif
 
 using namespace Gen;
@@ -47,9 +36,8 @@ using namespace Gen;
 			return;
 		}
 
-#if defined USE_OPROFILE && USE_OPROFILE
-		agent = op_open_agent();
-#endif
+		JitRegister::Init(SConfig::GetInstance().m_perfDir);
+
 		iCache.fill(JIT_ICACHE_INVALID_BYTE);
 		iCacheEx.fill(JIT_ICACHE_INVALID_BYTE);
 		iCacheVMEM.fill(JIT_ICACHE_INVALID_BYTE);
@@ -62,13 +50,8 @@ using namespace Gen;
 	{
 		num_blocks = 0;
 		m_initialized = false;
-#if defined USE_OPROFILE && USE_OPROFILE
-		op_close_agent(agent);
-#endif
 
-#ifdef USE_VTUNE
-		iJIT_NotifyEvent(iJVM_EVENT_TYPE_SHUTDOWN, nullptr);
-#endif
+		JitRegister::Shutdown();
 	}
 
 	// This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
@@ -82,6 +65,7 @@ using namespace Gen;
 			Core::DisplayMessage("Clearing code cache.", 3000);
 #endif
 		jit->js.fifoWriteAddresses.clear();
+		jit->js.pairedQuantizeAddresses.clear();
 		for (int i = 0; i < num_blocks; i++)
 		{
 			DestroyBlock(i, false);
@@ -127,7 +111,6 @@ using namespace Gen;
 	{
 		JitBlock &b = blocks[num_blocks];
 		b.invalid = false;
-		b.memoryException = false;
 		b.originalAddress = em_address;
 		b.linkData.clear();
 		num_blocks++; //commit the current block
@@ -149,42 +132,19 @@ using namespace Gen;
 
 		block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
 
-		// Blocks where a memory exception (ISI) occurred in the instruction fetch have to
-		// execute the ISI handler as the next instruction. These blocks cannot be
-		// linked to other blocks.  The block will be recompiled after the ISI is handled
-		// and so we do not link other blocks to it either.
-		if (block_link && !b.memoryException)
+		if (block_link)
 		{
 			for (const auto& e : b.linkData)
 			{
-				links_to.insert(std::pair<u32, int>(e.exitAddress, block_num));
+				links_to.emplace(e.exitAddress, block_num);
 			}
 
 			LinkBlock(block_num);
 			LinkBlockExits(block_num);
 		}
 
-#if defined USE_OPROFILE && USE_OPROFILE
-		char buf[100];
-		sprintf(buf, "EmuCode%x", b.originalAddress);
-		const u8* blockStart = blockCodePointers[block_num];
-		op_write_native_code(agent, buf, (uint64_t)blockStart,
-		                     blockStart, b.codeSize);
-#endif
-
-#ifdef USE_VTUNE
-		sprintf(b.blockName, "EmuCode_0x%08x", b.originalAddress);
-
-		iJIT_Method_Load jmethod = {0};
-		jmethod.method_id = iJIT_GetNewMethodID();
-		jmethod.class_file_name = "";
-		jmethod.source_file_name = __FILE__;
-		jmethod.method_load_address = (void*)blockCodePointers[block_num];
-		jmethod.method_size = b.codeSize;
-		jmethod.line_number_size = 0;
-		jmethod.method_name = b.blockName;
-		iJIT_NotifyEvent(iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void*)&jmethod);
-#endif
+		JitRegister::Register(blockCodePointers[block_num], b.codeSize,
+			"JIT_PPC_%08x", b.originalAddress);
 	}
 
 	const u8 **JitBaseBlockCache::GetCodePointers()
@@ -352,7 +312,10 @@ using namespace Gen;
 			if (!forced)
 			{
 				for (u32 i = address; i < address + length; i += 4)
+				{
 					jit->js.fifoWriteAddresses.erase(i);
+					jit->js.pairedQuantizeAddresses.erase(i);
+				}
 			}
 		}
 	}

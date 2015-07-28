@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -40,7 +40,8 @@ struct TMemCheck
 
 	u32 numHits;
 
-	void Action(DebugInterface *dbg_interface, u32 _iValue, u32 addr,
+	// returns whether to break
+	bool Action(DebugInterface *dbg_interface, u32 _iValue, u32 addr,
 	            bool write, int size, u32 pc);
 };
 
@@ -64,11 +65,11 @@ public:
 	void AddFromStrings(const TBreakPointsStr& bps);
 
 	// is address breakpoint
-	bool IsAddressBreakPoint(u32 _iAddress);
-	bool IsTempBreakPoint(u32 _iAddress);
+	bool IsAddressBreakPoint(u32 address) const;
+	bool IsTempBreakPoint(u32 address) const;
 
 	// Add BreakPoint
-	void Add(u32 em_address, bool temp=false);
+	void Add(u32 em_address, bool temp = false);
 	void Add(const TBreakPoint& bp);
 
 	// Remove Breakpoint
@@ -105,6 +106,8 @@ public:
 	void Remove(u32 _Address);
 
 	void Clear() { m_MemChecks.clear(); }
+
+	bool HasAny() const { return !m_MemChecks.empty(); }
 };
 
 class Watches

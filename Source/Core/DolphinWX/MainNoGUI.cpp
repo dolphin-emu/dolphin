@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
@@ -15,10 +15,11 @@
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Host.h"
 #include "Core/State.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "UICommon/UICommon.h"
@@ -26,6 +27,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 
 static bool rendererHasFocus = true;
+static bool rendererIsFullscreen = false;
 static bool running = true;
 
 class Platform
@@ -74,7 +76,7 @@ void Host_RequestFullscreen(bool enable_fullscreen) {}
 
 void Host_SetStartupDebuggingParameters()
 {
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& StartUp = SConfig::GetInstance();
 	StartUp.bEnableDebugging = false;
 	StartUp.bBootToPause = false;
 }
@@ -89,7 +91,21 @@ bool Host_RendererHasFocus()
 	return rendererHasFocus;
 }
 
-void Host_ConnectWiimote(int wm_idx, bool connect) {}
+bool Host_RendererIsFullscreen()
+{
+	return rendererIsFullscreen;
+}
+
+void Host_ConnectWiimote(int wm_idx, bool connect)
+{
+	if (Core::IsRunning() && SConfig::GetInstance().bWii)
+	{
+		bool was_unpaused = Core::PauseAndLock(true);
+		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+		Host_UpdateMainFrame();
+		Core::PauseAndLock(false, was_unpaused);
+	}
+}
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
@@ -112,12 +128,17 @@ class PlatformX11 : public Platform
 	{
 		XInitThreads();
 		dpy = XOpenDisplay(nullptr);
+		if (!dpy)
+		{
+			PanicAlert("No X11 display found");
+			exit(1);
+		}
 
 		win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy),
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					  SConfig::GetInstance().iRenderWindowXPos,
+					  SConfig::GetInstance().iRenderWindowYPos,
+					  SConfig::GetInstance().iRenderWindowWidth,
+					  SConfig::GetInstance().iRenderWindowHeight,
 					  0, 0, BlackPixel(dpy, 0));
 		XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
 		Atom wmProtocols[1];
@@ -125,24 +146,24 @@ class PlatformX11 : public Platform
 		XSetWMProtocols(dpy, win, wmProtocols, 1);
 		XMapRaised(dpy, win);
 		XFlush(dpy);
-		s_window_handle = (void*) win;
+		s_window_handle = (void*)win;
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+		if (SConfig::GetInstance().bDisableScreenSaver)
 			X11Utils::InhibitScreensaver(dpy, win, true);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 		XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
 #endif
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		if (SConfig::GetInstance().bHideCursor)
 		{
 			// make a blank cursor
 			Pixmap Blank;
 			XColor DummyColor;
-			char ZeroData[1] = {0};
-			Blank = XCreateBitmapFromData (dpy, win, ZeroData, 1, 1);
+			char ZeroData[1] = { 0 };
+			Blank = XCreateBitmapFromData(dpy, win, ZeroData, 1, 1);
 			blankCursor = XCreatePixmapCursor(dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
-			XFreePixmap (dpy, Blank);
+			XFreePixmap(dpy, Blank);
 			XDefineCursor(dpy, win, blankCursor);
 		}
 	}
@@ -154,11 +175,11 @@ class PlatformX11 : public Platform
 
 	void MainLoop() override
 	{
-		bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
+		bool fullscreen = SConfig::GetInstance().bFullscreen;
 
 		if (fullscreen)
 		{
-			X11Utils::ToggleFullscreen(dpy, win);
+			rendererIsFullscreen = X11Utils::ToggleFullscreen(dpy, win);
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 			XRRConfig->ToggleDisplayMode(True);
 #endif
@@ -180,13 +201,13 @@ class PlatformX11 : public Platform
 					{
 						if (Core::GetState() == Core::CORE_RUN)
 						{
-							if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							if (SConfig::GetInstance().bHideCursor)
 								XUndefineCursor(dpy, win);
 							Core::SetState(Core::CORE_PAUSE);
 						}
 						else
 						{
-							if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							if (SConfig::GetInstance().bHideCursor)
 								XDefineCursor(dpy, win, blankCursor);
 							Core::SetState(Core::CORE_RUN);
 						}
@@ -221,13 +242,13 @@ class PlatformX11 : public Platform
 					break;
 				case FocusIn:
 					rendererHasFocus = true;
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+					if (SConfig::GetInstance().bHideCursor &&
 					    Core::GetState() != Core::CORE_PAUSE)
 						XDefineCursor(dpy, win, blankCursor);
 					break;
 				case FocusOut:
 					rendererHasFocus = false;
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					if (SConfig::GetInstance().bHideCursor)
 						XUndefineCursor(dpy, win);
 					break;
 				case ClientMessage:
@@ -241,11 +262,12 @@ class PlatformX11 : public Platform
 				Window winDummy;
 				unsigned int borderDummy, depthDummy;
 				XGetGeometry(dpy, win, &winDummy,
-					     &SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-					     &SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
-					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					     &SConfig::GetInstance().iRenderWindowXPos,
+					     &SConfig::GetInstance().iRenderWindowYPos,
+					     (unsigned int *)&SConfig::GetInstance().iRenderWindowWidth,
+					     (unsigned int *)&SConfig::GetInstance().iRenderWindowHeight,
 					     &borderDummy, &depthDummy);
+				rendererIsFullscreen = false;
 			}
 			usleep(100000);
 		}
@@ -257,7 +279,7 @@ class PlatformX11 : public Platform
 		delete XRRConfig;
 #endif
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		if (SConfig::GetInstance().bHideCursor)
 			XFreeCursor(dpy, blankCursor);
 
 		XCloseDisplay(dpy);
@@ -304,9 +326,9 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "%s\n\n", scm_rev_str);
 		fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
-		fprintf(stderr, "  -e, --exec   Load the specified file\n");
-		fprintf(stderr, "  -h, --help   Show this help message\n");
-		fprintf(stderr, "  -v, --help   Print version and exit\n");
+		fprintf(stderr, "  -e, --exec     Load the specified file\n");
+		fprintf(stderr, "  -h, --help     Show this help message\n");
+		fprintf(stderr, "  -v, --version  Print version and exit\n");
 		return 1;
 	}
 
@@ -317,6 +339,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	UICommon::SetUserDirectory(""); // Auto-detect user folder
 	UICommon::Init();
 
 	platform->Init();

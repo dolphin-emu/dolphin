@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -35,6 +35,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/HW/EXI.h"
 #include "Core/HW/SI.h"
+#include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -47,8 +48,9 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool valid, bCPUThread, bSkipIdle, bFPRF, bBAT, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
-	     bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bProgressive;
+	bool valid, bCPUThread, bSkipIdle, bSyncGPUOnSkipIdleHack, bFPRF, bAccurateNaNs, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
+	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive, bPAL60;
+	int iSelectedLanguage;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
 	SIDevices Pads[MAX_SI_CHANNELS];
@@ -76,12 +78,12 @@ static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 // Boot the ISO or file
 bool BootCore(const std::string& _rFilename)
 {
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& StartUp = SConfig::GetInstance();
 
 	// Use custom settings for debugging mode
 	Host_SetStartupDebuggingParameters();
 
-	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
+	StartUp.m_BootType = SConfig::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
 	SConfig::GetInstance().m_LastFilename = _rFilename;
 	SConfig::GetInstance().SaveSettings();
@@ -92,35 +94,25 @@ bool BootCore(const std::string& _rFilename)
 	config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
 
 	// If for example the ISO file is bad we return here
-	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT))
+	if (!StartUp.AutoSetup(SConfig::BOOT_DEFAULT))
 		return false;
 
 	// Load game specific settings
-	std::string unique_id = StartUp.GetUniqueID();
-	std::string revision_specific = StartUp.m_strRevisionSpecificUniqueID;
-	StartUp.m_strGameIniDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + unique_id + ".ini";
-	if (revision_specific != "")
-		StartUp.m_strGameIniDefaultRevisionSpecific = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + revision_specific + ".ini";
-	else
-		StartUp.m_strGameIniDefaultRevisionSpecific = "";
-	StartUp.m_strGameIniLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + unique_id + ".ini";
-
-	if (unique_id.size() == 6)
+	if (StartUp.GetUniqueID().size() == 6)
 	{
 		IniFile game_ini = StartUp.LoadGameIni();
 
 		config_cache.valid = true;
 		config_cache.bCPUThread = StartUp.bCPUThread;
 		config_cache.bSkipIdle = StartUp.bSkipIdle;
+		config_cache.bSyncGPUOnSkipIdleHack = StartUp.bSyncGPUOnSkipIdleHack;
 		config_cache.iCPUCore = StartUp.iCPUCore;
 		config_cache.bFPRF = StartUp.bFPRF;
-		config_cache.bBAT = StartUp.bBAT;
+		config_cache.bAccurateNaNs = StartUp.bAccurateNaNs;
 		config_cache.bMMU = StartUp.bMMU;
 		config_cache.bDCBZOFF = StartUp.bDCBZOFF;
-		config_cache.bVBeamSpeedHack = StartUp.bVBeamSpeedHack;
 		config_cache.bSyncGPU = StartUp.bSyncGPU;
 		config_cache.bFastDiscSpeed = StartUp.bFastDiscSpeed;
-		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
 		config_cache.bDSPHLE = StartUp.bDSPHLE;
 		config_cache.strBackend = StartUp.m_strVideoBackend;
 		config_cache.m_strGPUDeterminismMode = StartUp.m_strGPUDeterminismMode;
@@ -130,6 +122,8 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
 		config_cache.frameSkip = SConfig::GetInstance().m_FrameSkip;
 		config_cache.bProgressive = StartUp.bProgressive;
+		config_cache.bPAL60 = StartUp.bPAL60;
+		config_cache.iSelectedLanguage = StartUp.SelectedLanguage;
 		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		{
 			config_cache.iWiimoteSource[i] = g_wiimote_sources[i];
@@ -155,19 +149,19 @@ bool BootCore(const std::string& _rFilename)
 
 		core_section->Get("CPUThread",        &StartUp.bCPUThread, StartUp.bCPUThread);
 		core_section->Get("SkipIdle",         &StartUp.bSkipIdle, StartUp.bSkipIdle);
+		core_section->Get("SyncOnSkipIdle",   &StartUp.bSyncGPUOnSkipIdleHack, StartUp.bSyncGPUOnSkipIdleHack);
 		core_section->Get("FPRF",             &StartUp.bFPRF, StartUp.bFPRF);
-		core_section->Get("BAT",              &StartUp.bBAT, StartUp.bBAT);
+		core_section->Get("AccurateNaNs",     &StartUp.bAccurateNaNs, StartUp.bAccurateNaNs);
 		core_section->Get("MMU",              &StartUp.bMMU, StartUp.bMMU);
 		core_section->Get("DCBZ",             &StartUp.bDCBZOFF, StartUp.bDCBZOFF);
-		core_section->Get("VBeam",            &StartUp.bVBeamSpeedHack, StartUp.bVBeamSpeedHack);
 		core_section->Get("SyncGPU",          &StartUp.bSyncGPU, StartUp.bSyncGPU);
 		core_section->Get("FastDiscSpeed",    &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
-		core_section->Get("BlockMerging",     &StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		core_section->Get("DSPHLE",           &StartUp.bDSPHLE, StartUp.bDSPHLE);
 		core_section->Get("GFXBackend",       &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
 		core_section->Get("CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
 		core_section->Get("HLE_BS2",          &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
 		core_section->Get("ProgressiveScan",  &StartUp.bProgressive, StartUp.bProgressive);
+		core_section->Get("PAL60",            &StartUp.bPAL60, StartUp.bPAL60);
 		if (core_section->Get("FrameLimit",   &SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
 			config_cache.bSetFramelimit = true;
 		if (core_section->Get("FrameSkip",    &SConfig::GetInstance().m_FrameSkip))
@@ -230,6 +224,7 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bSkipIdle = Movie::IsSkipIdle();
 		StartUp.bDSPHLE = Movie::IsDSPHLE();
 		StartUp.bProgressive = Movie::IsProgressive();
+		StartUp.bPAL60 = Movie::IsPAL60();
 		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
 		StartUp.iCPUCore = Movie::GetCPUMode();
 		StartUp.bSyncGPU = Movie::IsSyncGPU();
@@ -249,14 +244,36 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
 		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
 		StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
+		StartUp.SelectedLanguage = g_NetPlaySettings.m_SelectedLanguage;
+		StartUp.bOverrideGCLanguage = g_NetPlaySettings.m_OverrideGCLanguage;
 		SConfig::GetInstance().m_DSPEnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
+		SConfig::GetInstance().m_OCEnable = g_NetPlaySettings.m_OCEnable;
+		SConfig::GetInstance().m_OCFactor = g_NetPlaySettings.m_OCFactor;
 		SConfig::GetInstance().m_EXIDevice[0] = g_NetPlaySettings.m_EXIDevice[0];
 		SConfig::GetInstance().m_EXIDevice[1] = g_NetPlaySettings.m_EXIDevice[1];
 		config_cache.bSetEXIDevice[0] = true;
 		config_cache.bSetEXIDevice[1] = true;
 	}
+	else
+	{
+		g_SRAM_netplay_initialized = false;
+	}
+
+	// Apply overrides
+	// Some NTSC GameCube games such as Baten Kaitos react strangely to language settings that would be invalid on an NTSC system
+	if (!StartUp.bOverrideGCLanguage && StartUp.bNTSC)
+	{
+		StartUp.SelectedLanguage = 0;
+	}
+
+	// Some NTSC Wii games such as Doc Louis's Punch-Out!! and 1942 (Virtual Console) crash if the PAL60 option is enabled
+	if (StartUp.bWii && StartUp.bNTSC)
+	{
+		StartUp.bPAL60 = false;
+	}
 
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", StartUp.bPAL60);
 
 	// Run the game
 	// Init the core
@@ -273,7 +290,7 @@ void Stop()
 {
 	Core::Stop();
 
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& StartUp = SConfig::GetInstance();
 
 	StartUp.m_strUniqueID = "00000000";
 	if (config_cache.valid)
@@ -281,15 +298,14 @@ void Stop()
 		config_cache.valid = false;
 		StartUp.bCPUThread = config_cache.bCPUThread;
 		StartUp.bSkipIdle = config_cache.bSkipIdle;
+		StartUp.bSyncGPUOnSkipIdleHack = config_cache.bSyncGPUOnSkipIdleHack;
 		StartUp.iCPUCore = config_cache.iCPUCore;
 		StartUp.bFPRF = config_cache.bFPRF;
-		StartUp.bBAT = config_cache.bBAT;
+		StartUp.bAccurateNaNs = config_cache.bAccurateNaNs;
 		StartUp.bMMU = config_cache.bMMU;
 		StartUp.bDCBZOFF = config_cache.bDCBZOFF;
-		StartUp.bVBeamSpeedHack = config_cache.bVBeamSpeedHack;
 		StartUp.bSyncGPU = config_cache.bSyncGPU;
 		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
-		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		StartUp.m_strGPUDeterminismMode = config_cache.m_strGPUDeterminismMode;
@@ -298,7 +314,10 @@ void Stop()
 		SConfig::GetInstance().sBackend = config_cache.sBackend;
 		SConfig::GetInstance().m_DSPEnableJIT = config_cache.m_EnableJIT;
 		StartUp.bProgressive = config_cache.bProgressive;
+		StartUp.SelectedLanguage = config_cache.iSelectedLanguage;
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", config_cache.bProgressive);
+		StartUp.bPAL60 = config_cache.bPAL60;
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", config_cache.bPAL60);
 
 		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
 		if (config_cache.bSetFramelimit)

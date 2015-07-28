@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -15,17 +15,12 @@ class NullSound final : public SoundStream
 	short realtimeBuffer[BUF_SIZE / sizeof(short)];
 
 public:
-	NullSound(CMixer *mixer)
-		: SoundStream(mixer)
-	{}
+	bool Start() override;
+	void SoundLoop() override;
+	void SetVolume(int volume) override;
+	void Stop() override;
+	void Clear(bool mute) override;
+	void Update() override;
 
-	virtual ~NullSound() {}
-
-	virtual bool Start() override;
-	virtual void SoundLoop() override;
-	virtual void SetVolume(int volume) override;
-	virtual void Stop() override;
-	virtual void Clear(bool mute) override;
 	static bool isValid() { return true; }
-	virtual void Update() override;
 };

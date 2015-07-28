@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -31,7 +31,7 @@
 	#endif
 #endif
 
-// Shared data dirs (Sys and shared User for linux)
+// Shared data dirs (Sys and shared User for Linux)
 #ifdef _WIN32
 	#define SYSDATA_DIR "Sys"
 #elif defined __APPLE__
@@ -74,6 +74,7 @@
 #define WII_SYSCONF_DIR     "shared2" DIR_SEP "sys"
 #define WII_WC24CONF_DIR    "shared2" DIR_SEP "wc24"
 #define THEMES_DIR          "Themes"
+#define ANAGLYPH_DIR        "Anaglyph"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)

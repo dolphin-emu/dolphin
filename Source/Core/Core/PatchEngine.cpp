@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -30,7 +31,7 @@
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
-#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
 
 using namespace Common;
 
@@ -92,7 +93,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
 			}
 			else
 			{
-				std::string::size_type loc = line.find_first_of('=', 0);
+				std::string::size_type loc = line.find('=');
 
 				if (loc != std::string::npos)
 				{
@@ -160,9 +161,9 @@ int GetSpeedhackCycles(const u32 addr)
 
 void LoadPatches()
 {
-	IniFile merged = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
-	IniFile globalIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
-	IniFile localIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
+	IniFile merged = SConfig::GetInstance().LoadGameIni();
+	IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
+	IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
 	LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
 	ActionReplay::LoadCodes(globalIni, localIni, false);
@@ -188,13 +189,13 @@ static void ApplyPatches(const std::vector<Patch> &patches)
 				switch (entry.type)
 				{
 				case PATCH_8BIT:
-					Memory::Write_U8((u8)value, addr);
+					PowerPC::HostWrite_U8((u8)value, addr);
 					break;
 				case PATCH_16BIT:
-					Memory::Write_U16((u16)value, addr);
+					PowerPC::HostWrite_U16((u16)value, addr);
 					break;
 				case PATCH_32BIT:
-					Memory::Write_U32(value, addr);
+					PowerPC::HostWrite_U32(value, addr);
 					break;
 				default:
 					//unknown patchtype
@@ -207,15 +208,20 @@ static void ApplyPatches(const std::vector<Patch> &patches)
 
 void ApplyFramePatches()
 {
+	// TODO: Messing with MSR this way is really, really, evil; we should
+	// probably be using some sort of Gecko OS-style hooking mechanism
+	// so the emulated CPU is in a predictable state when we process cheats.
+	u32 oldMSR = MSR;
+	UReg_MSR newMSR = oldMSR;
+	newMSR.IR = 1;
+	newMSR.DR = 1;
+	MSR = newMSR.Hex;
 	ApplyPatches(onFrame);
 
 	// Run the Gecko code handler
 	Gecko::RunCodeHandler();
-}
-
-void ApplyARPatches()
-{
 	ActionReplay::RunAllActive();
+	MSR = oldMSR;
 }
 
 void Shutdown()

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Core/DSPEmulator.h"
@@ -10,11 +10,7 @@
 DSPEmulator *CreateDSPEmulator(bool HLE)
 {
 	if (HLE)
-	{
 		return new DSPHLE();
-	}
 	else
-	{
 		return new DSPLLE();
-	}
 }

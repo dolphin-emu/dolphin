@@ -1,17 +1,12 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <wx/bitmap.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
+#include <wx/aui/framemanager.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -26,23 +21,25 @@ class CJitWindow;
 class CCodeView;
 class DSPDebuggerLLE;
 class GFXDebuggerPanel;
-struct SCoreStartupParameter;
+struct SConfig;
 
-class wxToolBar;
+class wxAuiToolBar;
 class wxListBox;
 class wxMenu;
 class wxMenuBar;
+class wxToolBar;
 
 class CCodeWindow : public wxPanel
 {
 public:
-	CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter,
+	CCodeWindow(const SConfig& _LocalCoreStartupParameter,
 	            CFrame * parent,
 	            wxWindowID id = wxID_ANY,
 	            const wxPoint& pos = wxDefaultPosition,
 	            const wxSize& size = wxDefaultSize,
 	            long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
 	            const wxString& name = _("Code"));
+	~CCodeWindow();
 
 	void Load();
 	void Save();
@@ -51,7 +48,7 @@ public:
 	CFrame *Parent;
 	wxMenuBar * GetMenuBar();
 	wxToolBar * GetToolBar();
-	wxBitmap m_Bitmaps[ToolbarDebugBitmapMax];
+	wxBitmap m_Bitmaps[Toolbar_Debug_Bitmap_Max];
 
 	bool UseInterpreter();
 	bool BootToPause();
@@ -62,7 +59,7 @@ public:
 
 	void Update() override;
 	void NotifyMapLoaded();
-	void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
+	void CreateMenu(const SConfig& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
 	void CreateMenuOptions(wxMenu *pMenu);
 	void CreateMenuSymbols(wxMenuBar *pMenuBar);
 	void RecreateToolbar(wxToolBar*);
@@ -72,10 +69,6 @@ public:
 	void UpdateManager();
 
 	// Menu bar
-	// -------------------
-	void OnCPUMode(wxCommandEvent& event); // CPU Mode menu
-	void OnJITOff(wxCommandEvent& event);
-
 	void ToggleCodeWindow(bool bShow);
 	void ToggleRegisterWindow(bool bShow);
 	void ToggleWatchWindow(bool bShow);
@@ -84,14 +77,6 @@ public:
 	void ToggleJitWindow(bool bShow);
 	void ToggleSoundWindow(bool bShow);
 	void ToggleVideoWindow(bool bShow);
-
-	void OnChangeFont(wxCommandEvent& event);
-
-	void OnCodeStep(wxCommandEvent& event);
-	void OnAddrBoxChange(wxCommandEvent& event);
-	void OnSymbolsMenu(wxCommandEvent& event);
-	void OnJitMenu(wxCommandEvent& event);
-	void OnProfilerMenu(wxCommandEvent& event);
 
 	// Sub dialogs
 	CRegisterWindow* m_RegisterWindow;
@@ -104,10 +89,20 @@ public:
 
 	// Settings
 	bool bAutomaticStart; bool bBootToPause;
-	bool bShowOnStart[IDM_VIDEOWINDOW - IDM_LOGWINDOW + 1];
-	int iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
+	bool bShowOnStart[IDM_VIDEO_WINDOW - IDM_LOG_WINDOW + 1];
+	int iNbAffiliation[IDM_CODE_WINDOW - IDM_LOG_WINDOW + 1];
 
 private:
+	void OnCPUMode(wxCommandEvent& event);
+
+	void OnChangeFont(wxCommandEvent& event);
+
+	void OnCodeStep(wxCommandEvent& event);
+	void OnAddrBoxChange(wxCommandEvent& event);
+	void OnSymbolsMenu(wxCommandEvent& event);
+	void OnJitMenu(wxCommandEvent& event);
+	void OnProfilerMenu(wxCommandEvent& event);
+
 	void OnSymbolListChange(wxCommandEvent& event);
 	void OnSymbolListContextMenu(wxContextMenuEvent& event);
 	void OnCallstackListChange(wxCommandEvent& event);
@@ -133,4 +128,7 @@ private:
 	wxListBox* callers;
 	wxListBox* calls;
 	Common::Event sync_event;
+
+	wxAuiManager  m_aui_manager;
+	wxAuiToolBar* m_aui_toolbar;
 };

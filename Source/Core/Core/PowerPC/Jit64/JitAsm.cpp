@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/JitRegister.h"
 #include "Common/MemoryUtil.h"
 
 #include "Core/PowerPC/Jit64/Jit.h"
@@ -38,14 +39,14 @@ void Jit64AsmRoutineManager::Generate()
 	MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
 
 	// Two statically allocated registers.
-	MOV(64, R(RMEM), Imm64((u64)Memory::base));
+	//MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
 	MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
 
 	const u8* outerLoop = GetCodePtr();
 		ABI_PushRegistersAndAdjustStack({}, 0);
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		ABI_PopRegistersAndAdjustStack({}, 0);
-		FixupBranch skipToRealDispatch = J(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging); //skip the sync and compare first time
+		FixupBranch skipToRealDispatch = J(SConfig::GetInstance().bEnableDebugging); //skip the sync and compare first time
 		dispatcherMispredictedBLR = GetCodePtr();
 		AND(32, PPCSTATE(pc), Imm32(0xFFFFFFFC));
 
@@ -67,7 +68,7 @@ void Jit64AsmRoutineManager::Generate()
 
 			FixupBranch dbg_exit;
 
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+			if (SConfig::GetInstance().bEnableDebugging)
 			{
 				TEST(32, M(PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
 				FixupBranch notStepping = J_CC(CC_Z);
@@ -82,8 +83,26 @@ void Jit64AsmRoutineManager::Generate()
 			SetJumpTarget(skipToRealDispatch);
 
 			dispatcherNoCheck = GetCodePtr();
+
+			// Switch to the correct memory base, in case MSR.DR has changed.
+			// TODO: Is there a more efficient place to put this?  We don't
+			// need to do this for indirect jumps, just exceptions etc.
+			TEST(32, PPCSTATE(msr), Imm32(1 << (31 - 27)));
+			FixupBranch physmem = J_CC(CC_NZ);
+			MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
+			FixupBranch membaseend = J();
+			SetJumpTarget(physmem);
+			MOV(64, R(RMEM), Imm64((u64)Memory::logical_base));
+			SetJumpTarget(membaseend);
+
 			MOV(32, R(RSCRATCH), PPCSTATE(pc));
 
+			// TODO: We need to handle code which executes the same PC with
+			// different values of MSR.IR. It probably makes sense to handle
+			// MSR.DR here too, to allow IsOptimizableRAMAddress-based
+			// optimizations safe, because IR and DR are usually set/cleared together.
+			// TODO: Branching based on the 20 most significant bits of instruction
+			// addresses without translating them is wrong.
 			u64 icache = (u64)jit->GetBlockCache()->iCache.data();
 			u64 icacheVmem = (u64)jit->GetBlockCache()->iCacheVMEM.data();
 			u64 icacheEx = (u64)jit->GetBlockCache()->iCacheEx.data();
@@ -91,7 +110,7 @@ void Jit64AsmRoutineManager::Generate()
 			FixupBranch no_mem;
 			FixupBranch exit_mem;
 			FixupBranch exit_vmem;
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+			if (SConfig::GetInstance().bWii)
 				mask = JIT_ICACHE_EXRAM_BIT;
 			mask |= JIT_ICACHE_VMEM_BIT;
 			TEST(32, R(RSCRATCH), Imm32(mask));
@@ -105,7 +124,7 @@ void Jit64AsmRoutineManager::Generate()
 			else
 			{
 				MOV(64, R(RSCRATCH2), Imm64(icache));
-				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+				MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 			}
 
 			exit_mem = J();
@@ -120,12 +139,12 @@ void Jit64AsmRoutineManager::Generate()
 			else
 			{
 				MOV(64, R(RSCRATCH2), Imm64(icacheVmem));
-				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+				MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 			}
 
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) exit_vmem = J();
+			if (SConfig::GetInstance().bWii) exit_vmem = J();
 			SetJumpTarget(no_vmem);
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+			if (SConfig::GetInstance().bWii)
 			{
 				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
@@ -138,13 +157,13 @@ void Jit64AsmRoutineManager::Generate()
 				else
 				{
 					MOV(64, R(RSCRATCH2), Imm64(icacheEx));
-					MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+					MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 				}
 
 				SetJumpTarget(no_exram);
 			}
 			SetJumpTarget(exit_mem);
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+			if (SConfig::GetInstance().bWii)
 				SetJumpTarget(exit_vmem);
 
 			TEST(32, R(RSCRATCH), R(RSCRATCH));
@@ -153,12 +172,12 @@ void Jit64AsmRoutineManager::Generate()
 			u64 codePointers = (u64)jit->GetBlockCache()->GetCodePointers();
 			if (codePointers <= INT_MAX)
 			{
-				JMPptr(MScaled(RSCRATCH, 8, (s32)codePointers));
+				JMPptr(MScaled(RSCRATCH, SCALE_8, (s32)codePointers));
 			}
 			else
 			{
 				MOV(64, R(RSCRATCH2), Imm64(codePointers));
-				JMPptr(MComplex(RSCRATCH2, RSCRATCH, 8, 0));
+				JMPptr(MComplex(RSCRATCH2, RSCRATCH, SCALE_8, 0));
 			}
 			SetJumpTarget(notfound);
 
@@ -170,7 +189,7 @@ void Jit64AsmRoutineManager::Generate()
 			// Jit might have cleared the code cache
 			ResetStack();
 
-			JMP(dispatcherNoCheck); // no point in special casing this
+			JMP(dispatcherNoCheck, true); // no point in special casing this
 
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
@@ -189,7 +208,7 @@ void Jit64AsmRoutineManager::Generate()
 		J_CC(CC_Z, outerLoop);
 
 	//Landing pad for drec space
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().bEnableDebugging)
 		SetJumpTarget(dbg_exit);
 	ResetStack();
 	if (m_stack_top)
@@ -197,8 +216,16 @@ void Jit64AsmRoutineManager::Generate()
 		ADD(64, R(RSP), Imm8(0x18));
 		POP(RSP);
 	}
+
+	// Let the waiting thread know we are done leaving
+	ABI_PushRegistersAndAdjustStack({}, 0);
+	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::FinishStateMove));
+	ABI_PopRegistersAndAdjustStack({}, 0);
+
 	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 	RET();
+
+	JitRegister::Register(enterCode, GetCodePtr(), "JIT_Loop");
 
 	GenerateCommon();
 }
@@ -226,6 +253,8 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	GenFrsqrte();
 	fres = AlignCode4();
 	GenFres();
+	mfcr = AlignCode4();
+	GenMfcr();
 
 	GenQuantizedLoads();
 	GenQuantizedStores();
@@ -246,5 +275,5 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	ADD(32, 1, M(&m_gatherPipeCount));
 	RET();
 	SetJumpTarget(skip_fast_write);
-	CALL((void *)&Memory::Write_U8);*/
+	CALL((void *)&PowerPC::Write_U8);*/
 }

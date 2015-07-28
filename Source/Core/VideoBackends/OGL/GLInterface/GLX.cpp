@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2012 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -21,8 +21,8 @@ static PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
 static bool s_glxError;
 static int ctxErrorHandler(Display *dpy, XErrorEvent *ev)
 {
-    s_glxError = true;
-    return 0;
+	s_glxError = true;
+	return 0;
 }
 
 void cInterfaceGLX::SwapInterval(int Interval)
@@ -92,7 +92,7 @@ bool cInterfaceGLX::Create(void *window_handle)
 	XFree(fbc);
 
 	// Get an appropriate visual
-	vi = glXGetVisualFromFBConfig(dpy, fbconfig);
+	XVisualInfo* vi = glXGetVisualFromFBConfig(dpy, fbconfig);
 
 	// Create a GLX context.
 	// We try to get a 3.3 core profile, else we try it with anything we get.
@@ -142,6 +142,8 @@ bool cInterfaceGLX::Create(void *window_handle)
 	s_backbuffer_height = attribs.height;
 
 	win = XWindow.CreateXWindow(parent, vi);
+	XFree(vi);
+
 	return true;
 }
 

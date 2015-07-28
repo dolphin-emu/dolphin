@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -81,8 +81,8 @@ public:
 		LockX(reg1); LockX(reg2);
 	}
 
-	void Flush(FlushMode mode = FLUSH_ALL);
-	void Flush(PPCAnalyst::CodeOp *op) {Flush();}
+	void Flush(FlushMode mode = FLUSH_ALL, BitSet32 regsToFlush = BitSet32::AllTrue(32));
+	void Flush(PPCAnalyst::CodeOp *op) { Flush(); }
 	int SanityCheck() const;
 	void KillImmediate(size_t preg, bool doLoad, bool makeDirty);
 
@@ -90,7 +90,7 @@ public:
 	//read only will not set dirty flag
 	void BindToRegister(size_t preg, bool doLoad = true, bool makeDirty = true);
 	void StoreFromRegister(size_t preg, FlushMode mode = FLUSH_ALL);
-	virtual void StoreRegister(size_t preg, Gen::OpArg newLoc) = 0;
+	virtual void StoreRegister(size_t preg, const Gen::OpArg& newLoc) = 0;
 	virtual void LoadRegister(size_t preg, Gen::X64Reg newLoc) = 0;
 
 	const Gen::OpArg &R(size_t preg) const
@@ -103,14 +103,55 @@ public:
 		if (IsBound(preg))
 			return regs[preg].location.GetSimpleReg();
 
-		PanicAlert("Not so simple - %u", (unsigned int) preg);
+		PanicAlert("Not so simple - %u", (unsigned int)preg);
 		return Gen::INVALID_REG;
 	}
 	virtual Gen::OpArg GetDefaultLocation(size_t reg) const = 0;
 
 	// Register locking.
-	void Lock(int p1, int p2=0xff, int p3=0xff, int p4=0xff);
-	void LockX(int x1, int x2=0xff, int x3=0xff, int x4=0xff);
+
+	// these are powerpc reg indices
+	template<typename T>
+	void Lock(T p)
+	{
+		regs[p].locked = true;
+	}
+	template<typename T, typename... Args>
+	void Lock(T first, Args... args)
+	{
+		Lock(first);
+		Lock(args...);
+	}
+
+	// these are x64 reg indices
+	template<typename T>
+	void LockX(T x)
+	{
+		if (xregs[x].locked)
+			PanicAlert("RegCache: x %i already locked!", x);
+		xregs[x].locked = true;
+	}
+	template<typename T, typename... Args>
+	void LockX(T first, Args... args)
+	{
+		LockX(first);
+		LockX(args...);
+	}
+
+	template<typename T>
+	void UnlockX(T x)
+	{
+		if (!xregs[x].locked)
+			PanicAlert("RegCache: x %i already unlocked!", x);
+		xregs[x].locked = false;
+	}
+	template<typename T, typename... Args>
+	void UnlockX(T first, Args... args)
+	{
+		UnlockX(first);
+		UnlockX(args...);
+	}
+
 	void UnlockAll();
 	void UnlockAllX();
 
@@ -132,7 +173,7 @@ public:
 class GPRRegCache : public RegCache
 {
 public:
-	void StoreRegister(size_t preg, Gen::OpArg newLoc) override;
+	void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
 	void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
 	const int* GetAllocationOrder(size_t& count) override;
@@ -145,7 +186,7 @@ public:
 class FPURegCache : public RegCache
 {
 public:
-	void StoreRegister(size_t preg, Gen::OpArg newLoc) override;
+	void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
 	void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
 	const int* GetAllocationOrder(size_t& count) override;
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;

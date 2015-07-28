@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -251,9 +251,10 @@ static void BPWritten(const BPCmd& bp)
 					height = MAX_XFB_HEIGHT;
 				}
 
-				u32 width = bpmem.copyMipMapStrideChannels << 4;
-
-				Renderer::RenderToXFB(destAddr, srcRect, width, height, s_gammaLUT[PE_copy.gamma]);
+				u32 stride = bpmem.copyMipMapStrideChannels << 5;
+				DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | fbStride: %u | fbHeight: %u",
+					destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom, bpmem.copyTexSrcWH.x + 1, stride, height);
+				Renderer::RenderToXFB(destAddr, srcRect, stride, height, s_gammaLUT[PE_copy.gamma]);
 			}
 
 			// Clear the rectangular region after copying it.
@@ -273,7 +274,7 @@ static void BPWritten(const BPCmd& bp)
 			u32 addr = bpmem.tmem_config.tlut_src << 5;
 
 			// The GameCube ignores the upper bits of this address. Some games (WW, MKDD) set them.
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+			if (!SConfig::GetInstance().bWii)
 				addr = addr & 0x01FFFFFF;
 
 			Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
@@ -379,15 +380,10 @@ static void BPWritten(const BPCmd& bp)
 			u8 offset = bp.address & 2;
 			BoundingBox::active = true;
 
-			if (g_ActiveConfig.backend_info.bSupportsBBox)
+			if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
 			{
 				g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
 				g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
-			}
-			else
-			{
-				BoundingBox::coords[offset]     = bp.newvalue & 0x3ff;
-				BoundingBox::coords[offset + 1] = bp.newvalue >> 10;
 			}
 		}
 		return;

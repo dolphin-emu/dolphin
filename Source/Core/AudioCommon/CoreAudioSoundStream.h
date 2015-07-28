@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -14,20 +14,16 @@ class CoreAudioSound final : public SoundStream
 {
 #ifdef __APPLE__
 public:
-	CoreAudioSound(CMixer *mixer);
-	virtual ~CoreAudioSound();
-
-	virtual bool Start();
-	virtual void SetVolume(int volume);
-	virtual void SoundLoop();
-	virtual void Stop();
+	bool Start() override;
+	void SetVolume(int volume) override;
+	void SoundLoop() override;
+	void Stop() override;
+	void Update() override;
 
 	static bool isValid()
 	{
 		return true;
 	}
-
-	virtual void Update();
 
 private:
 	AudioUnit audioUnit;
@@ -38,8 +34,5 @@ private:
 		const AudioTimeStamp *inTimeStamp,
 		UInt32 inBusNumber, UInt32 inNumberFrames,
 		AudioBufferList *ioData);
-#else
-public:
-	CoreAudioSound(CMixer *mixer) : SoundStream(mixer) {}
 #endif
 };

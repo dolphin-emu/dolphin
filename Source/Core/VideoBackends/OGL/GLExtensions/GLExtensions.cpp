@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <sstream>
@@ -776,6 +776,21 @@ PFNGLPUSHDEBUGGROUPPROC glPushDebugGroup;
 PFNGLBUFFERSTORAGEPROC glBufferStorage;
 PFNGLNAMEDBUFFERSTORAGEEXTPROC glNamedBufferStorageEXT;
 
+// GL_NV_occlusion_query_samples
+PFNGLGENOCCLUSIONQUERIESNVPROC glGenOcclusionQueriesNV;
+PFNGLDELETEOCCLUSIONQUERIESNVPROC glDeleteOcclusionQueriesNV;
+PFNGLISOCCLUSIONQUERYNVPROC glIsOcclusionQueryNV;
+PFNGLBEGINOCCLUSIONQUERYNVPROC glBeginOcclusionQueryNV;
+PFNGLENDOCCLUSIONQUERYNVPROC glEndOcclusionQueryNV;
+PFNGLGETOCCLUSIONQUERYIVNVPROC glGetOcclusionQueryivNV;
+PFNGLGETOCCLUSIONQUERYUIVNVPROC glGetOcclusionQueryuivNV;
+
+// ARB_clip_control
+PFNGLCLIPCONTROLPROC glClipControl;
+
+// ARB_copy_image
+PFNGLCOPYIMAGESUBDATAPROC glCopyImageSubData;
+
 // Creates a GLFunc object that requires a feature
 #define GLFUNC_REQUIRES(x, y) { (void**)&x, #x, y }
 // Creates a GLFunc object with a different function suffix
@@ -1201,11 +1216,17 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glDrawRangeElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
 	GLFUNC_REQUIRES(glMultiDrawElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
 
+	// OES_draw_elements_base_vertex
+	GLFUNC_SUFFIX(glDrawElementsBaseVertex,          OES, "GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
+	GLFUNC_SUFFIX(glDrawElementsInstancedBaseVertex, OES, "GL_OES_draw_elements_base_vertex VERSION_GLES3 !GL_ARB_draw_elements_base_vertex"),
+	GLFUNC_SUFFIX(glDrawRangeElementsBaseVertex,     OES, "GL_OES_draw_elements_base_vertex VERSION_GLES3 !GL_ARB_draw_elements_base_vertex"),
+	GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex,     OES, "GL_OES_draw_elements_base_vertex GL_EXT_multi_draw_arrays !GL_ARB_draw_elements_base_vertex"),
+
 	// EXT_draw_elements_base_vertex
-	GLFUNC_SUFFIX(glDrawElementsBaseVertex,          EXT, "GL_EXT_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_SUFFIX(glDrawElementsInstancedBaseVertex, EXT, "GL_EXT_draw_elements_base_vertex VERSION_GLES3 !GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_SUFFIX(glDrawRangeElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex VERSION_GLES3 !GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex GL_EXT_multi_draw_arrays !GL_ARB_draw_elements_base_vertex"),
+	GLFUNC_SUFFIX(glDrawElementsBaseVertex,          EXT, "GL_EXT_draw_elements_base_vertex !GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
+	GLFUNC_SUFFIX(glDrawElementsInstancedBaseVertex, EXT, "GL_EXT_draw_elements_base_vertex VERSION_GLES3 !GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
+	GLFUNC_SUFFIX(glDrawRangeElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex VERSION_GLES3 !GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
+	GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex GL_EXT_multi_draw_arrays !GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
 
 	// ARB_sample_shading
 	GLFUNC_REQUIRES(glMinSampleShadingARB, "GL_ARB_sample_shading"),
@@ -1242,8 +1263,35 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glBufferStorage,         "GL_ARB_buffer_storage"),
 	GLFUNC_REQUIRES(glNamedBufferStorageEXT, "GL_ARB_buffer_storage GL_EXT_direct_state_access"),
 
+	// EXT_buffer_storage
+	GLFUNC_SUFFIX(glBufferStorage, EXT, "GL_EXT_buffer_storage !GL_ARB_buffer_storage"),
+
 	// EXT_geometry_shader
 	GLFUNC_SUFFIX(glFramebufferTexture, EXT, "GL_EXT_geometry_shader !VERSION_3_2"),
+
+	// NV_occlusion_query_samples
+	GLFUNC_REQUIRES(glGenOcclusionQueriesNV,    "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glDeleteOcclusionQueriesNV, "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glIsOcclusionQueryNV,       "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glBeginOcclusionQueryNV,    "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glEndOcclusionQueryNV,      "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glGetOcclusionQueryivNV,    "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glGetOcclusionQueryuivNV,   "GL_NV_occlusion_query_samples"),
+
+	// ARB_clip_control
+	GLFUNC_REQUIRES(glClipControl, "GL_ARB_clip_control"),
+
+	// ARB_copy_image
+	GLFUNC_REQUIRES(glCopyImageSubData, "GL_ARB_copy_image"),
+
+	// NV_copy_image
+	GLFUNC_SUFFIX(glCopyImageSubData, NV, "GL_NV_copy_image !GL_ARB_copy_image"),
+
+	// OES_copy_image
+	GLFUNC_SUFFIX(glCopyImageSubData, OES, "GL_OES_copy_image"),
+
+	// EXT_copy_image
+	GLFUNC_SUFFIX(glCopyImageSubData, EXT, "GL_EXT_copy_image !GL_OES_copy_image"),
 
 	// gl_1_1
 	// OpenGL 1.1 is at the end due to a bug in Android's EGL stack.
@@ -1875,7 +1923,7 @@ namespace GLExtensions
 			_GLVersion = 330; // Get all the fun things
 	}
 
-	static void* GetFuncAddress(std::string name, void **func)
+	static void* GetFuncAddress(const std::string& name, void **func)
 	{
 		*func = GLInterface->GetFuncAddress(name);
 		if (*func == nullptr)
@@ -1885,7 +1933,7 @@ namespace GLExtensions
 			*func = dlsym(RTLD_NEXT, name.c_str());
 #endif
 			if (*func == nullptr && _isES)
-				*func = (void*)0xFFFFFFFF; // Easy to determine invalid function, just so we continue on
+				*func = (void*)(uintptr_t)0xFFFFFFFF; // Easy to determine invalid function, just so we continue on
 			if (*func == nullptr)
 				ERROR_LOG(VIDEO, "Couldn't load function %s", name.c_str());
 		}
@@ -1907,7 +1955,7 @@ namespace GLExtensions
 		// Grab a few functions for initial checking
 		// We need them to grab the extension list
 		// Also to check if there is an error grabbing the version
-		if (GetFuncAddress ("glGetIntegerv", (void**)&glGetIntegerv) == nullptr)
+		if (GetFuncAddress("glGetIntegerv", (void**)&glGetIntegerv) == nullptr)
 			return false;
 		if (GetFuncAddress("glGetString", (void**)&glGetString) == nullptr)
 			return false;
@@ -1936,7 +1984,7 @@ namespace GLExtensions
 		while (buffer >> tmp)
 		{
 			if (tmp[0] == '!')
-				result &= !m_extension_list[tmp.erase(0)];
+				result &= !m_extension_list[tmp.erase(0, 1)];
 			else
 				result &= m_extension_list[tmp];
 		}

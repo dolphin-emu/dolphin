@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -209,23 +209,23 @@ double ApproximateReciprocal(double val)
 
 	// Special case 0
 	if (mantissa == 0 && exponent == 0)
-		return sign ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity();
+		return std::copysign(std::numeric_limits<double>::infinity(), valf);
 
 	// Special case NaN-ish numbers
 	if (exponent == (0x7FFLL << 52))
 	{
 		if (mantissa == 0)
-			return sign ? -0.0 : 0.0;
+			return std::copysign(0.0, valf);
 		return 0.0 + valf;
 	}
 
 	// Special case small inputs
 	if (exponent < (895LL << 52))
-		return sign ? -std::numeric_limits<float>::max() : std::numeric_limits<float>::max();
+		return std::copysign(std::numeric_limits<float>::max(), valf);
 
 	// Special case large inputs
 	if (exponent >= (1149LL << 52))
-		return sign ? -0.0f : 0.0f;
+		return std::copysign(0.0, valf);
 
 	exponent = (0x7FDLL << 52) - exponent;
 

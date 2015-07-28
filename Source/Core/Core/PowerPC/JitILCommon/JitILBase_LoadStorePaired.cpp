@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -9,7 +9,7 @@ void JitILBase::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff);
-	FALLBACK_IF(js.memcheck || inst.W);
+	FALLBACK_IF(jo.memcheck || inst.W);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12);
 	IREmitter::InstLoc val;
@@ -29,7 +29,7 @@ void JitILBase::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff);
-	FALLBACK_IF(js.memcheck || inst.W);
+	FALLBACK_IF(jo.memcheck || inst.W);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12);
 	IREmitter::InstLoc val;

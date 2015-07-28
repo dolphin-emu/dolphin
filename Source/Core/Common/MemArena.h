@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -24,8 +24,8 @@ public:
 	void *CreateView(s64 offset, size_t size, void *base = nullptr);
 	void ReleaseView(void *view, size_t size);
 
-	// This only finds 1 GB in 32-bit
-	static u8 *Find4GBBase();
+	// This finds 1 GB in 32-bit, 16 GB in 64-bit.
+	static u8 *FindMemoryBase();
 private:
 
 #ifdef _WIN32
@@ -44,7 +44,7 @@ enum {
 struct MemoryView
 {
 	u8** out_ptr;
-	u32 virtual_address;
+	u64 virtual_address;
 	u32 size;
 	u32 flags;
 	void* mapped_ptr;

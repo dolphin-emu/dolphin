@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstring>
@@ -46,6 +46,11 @@ bool Host_RendererHasFocus()
 bool Host_UIHasFocus()
 {
 	return g_main_window->isActiveWindow();
+}
+
+bool Host_RendererIsFullscreen()
+{
+	return false; // TODO
 }
 
 void Host_RequestFullscreen(bool enable)

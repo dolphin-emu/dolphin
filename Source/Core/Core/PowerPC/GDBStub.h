@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Originally written by Sven Peter <sven@fail0verflow.com> for anergistic.
@@ -30,6 +30,7 @@ typedef enum {
 } gdb_bp_type;
 
 void gdb_init(u32 port);
+void gdb_init_local(const char *socket);
 void gdb_deinit();
 bool gdb_active();
 void gdb_break();

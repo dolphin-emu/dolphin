@@ -1,0 +1,258 @@
+apply plugin: 'com.android.application'
+
+android {
+    // Leanback support requires >22
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
+
+    lintOptions {
+        // This is important as it will run lint but not abort on error
+        // Lint has some overly obnoxious "errors" that should really be warnings
+        abortOnError false
+    }
+
+    defaultConfig {
+        // TODO If this is ever modified, change application_id in strings.xml
+        applicationId "org.dolphinemu.dolphinemu"
+        minSdkVersion 21
+        targetSdkVersion 21
+
+        // TODO This should be set to the Buildbot build number for release builds, and be "1" for debug builds.
+        versionCode 13
+
+        // TODO This should be set to the string currently provided by NativeLibrary.GetVersionString().
+        versionName "0.13"
+    }
+
+    signingConfigs {
+        release {
+            if (project.hasProperty('keystore')) {
+                storeFile file(project.property('keystore'))
+                storePassword project.property('storepass')
+                keyAlias project.property('keyalias')
+                keyPassword project.property('keypass')
+            }
+        }
+    }
+
+    // Define build types, which are orthogonal to product flavors.
+    buildTypes {
+        // Signed by release key, allowing for upload to Play Store.
+        release {
+            signingConfig signingConfigs.release
+        }
+
+        // Signed by debug key disallowing distribution on Play Store.
+        // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
+        debug {
+            // TODO If this is ever modified, change application_id in debug/strings.xml
+            applicationIdSuffix ".debug"
+            versionNameSuffix '-debug'
+            jniDebuggable true
+
+            tasks.withType(JavaCompile) {
+                compileTask -> compileTask.dependsOn(compileNative)
+            }
+        }
+    }
+
+    // Define product flavors, which can be split into categories. Common examples
+    // of product flavors are paid vs. free, ARM vs. x86, etc.
+    productFlavors {
+        arm_64 {
+            flavorDimension "abi"
+            ndk {
+                abiFilter "arm64-v8a"
+            }
+        }
+
+        x86_64 {
+            flavorDimension "abi"
+            ndk {
+                abiFilter "x86_64"
+            }
+        }
+    }
+}
+
+dependencies {
+    compile 'com.android.support:support-v13:22.2.0'
+    compile 'com.android.support:cardview-v7:22.2.0'
+    compile 'com.android.support:recyclerview-v7:22.2.0'
+    compile 'com.android.support:design:22.2.0'
+
+    // Android TV UI libraries.
+    compile 'com.android.support:leanback-v17:22.2.0'
+
+    // For showing the banner as a circle a-la Material Design Guidelines
+    compile 'de.hdodenhof:circleimageview:1.2.2'
+
+    // For loading huge screenshots from the disk.
+    compile 'com.squareup.picasso:picasso:2.5.2'
+}
+
+task setupCMake(type: Exec) {
+    // Check if a build properties file exists.
+    def propsFile = rootProject.file("build.properties")
+
+    // If it does, call CMake.
+    if (propsFile.canRead()) {
+        // Read the properties file's contents.
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+
+        String abi = getAbi()
+
+        mkdir('build/' + abi)
+        workingDir 'build/' + abi
+
+        executable getExecutablePath("cmake")
+
+        args "-DANDROID=true",
+                "-DANDROID_NATIVE_API_LEVEL=android-18",
+                "-DCMAKE_TOOLCHAIN_FILE=../../../android.toolchain.cmake",
+                "../../../../..",
+                "-DGIT_EXECUTABLE=" + getExecutablePath("git"),
+                "-DANDROID_NDK=" + getNdkPath(),
+                "-DANDROID_TOOLCHAIN_NAME=" + getToolchainName(),
+                "-DANDROID_ABI=" + abi
+    } else {
+        executable 'echo'
+        args 'No build.properties found; skipping CMake.'
+    }
+}
+
+task compileNative(type: Exec, dependsOn: 'setupCMake') {
+    // Check if a build properties file exists.
+    def propsFile = rootProject.file("build.properties")
+
+    // If it does, call make.
+    if (propsFile.canRead()) {
+        // Read the properties file's contents.
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+
+        String abi = getAbi()
+
+        workingDir 'build/' + abi
+
+        executable 'make'
+
+        if (buildProperties.makeArgs == null || buildProperties.makeArgs.isEmpty()) {
+            // TODO
+        } else {
+            args buildProperties.makeArgs
+        }
+    } else {
+        executable 'echo'
+        args 'No build.properties found; skipping native build.'
+    }
+}
+
+String getExecutablePath(String command) {
+    def propsFile = rootProject.file("build.properties")
+    def path = null
+
+    if (propsFile.canRead()) {
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+        println buildProperties
+        path = buildProperties[command + "Path"]
+    }
+
+    if (path == null || path.isEmpty()) {
+        try {
+            def stdout = new ByteArrayOutputStream()
+
+            exec {
+                commandLine 'which', command
+                standardOutput = stdout
+            }
+
+            path = stdout.toString().trim()
+        } catch (ignored) {
+            project.logger.error("Gradle error: Couldn't find " + command + " executable.")
+        }
+    }
+
+    if (path != null) {
+        project.logger.quiet("Gradle: Found " + command + " executuable:" + path)
+    }
+
+    return path
+}
+
+String getNdkPath() {
+    def propsFile = rootProject.file("build.properties")
+    def ndkPath = null
+
+    if (propsFile.canRead()) {
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+        ndkPath = buildProperties.ndkPath
+    }
+
+    if (ndkPath == null || ndkPath.isEmpty()) {
+        try {
+            def stdout = new ByteArrayOutputStream()
+
+            exec {
+                // ndk-build.cmd is a file unique to the root directory of android-ndk-r10e.
+                commandLine 'locate', 'ndk-build.cmd'
+                standardOutput = stdout
+            }
+
+            def ndkCmdPath = stdout.toString()
+            ndkPath = ndkCmdPath.substring(0, ndkCmdPath.lastIndexOf('/'))
+        } catch (ignored) {
+            project.logger.error("Gradle error: Couldn't find NDK.")
+        }
+    }
+
+    if (ndkPath != null) {
+        project.logger.quiet("Gradle: Found Android NDK: " + ndkPath)
+    }
+    return ndkPath
+}
+
+String getAbi() {
+    String taskName = getGradle().startParameter.taskNames[0]
+    String abi;
+
+    if (taskName == null) {
+        return ""
+    }
+
+    project.logger.quiet("Gradle: Build = " + taskName)
+
+    if (taskName.contains("Arm_64")) {
+        abi = "arm64-v8a"
+    } else if (taskName.contains("Arm")) {
+        abi = "armeabi-v7a"
+    } else if (taskName.contains("X86_64")) {
+        abi = "x86_64"
+    }
+
+    project.logger.quiet("Gradle: ABI name: " + abi)
+    return abi;
+}
+
+String getToolchainName() {
+    String taskName = getGradle().startParameter.taskNames[0]
+    String toolchain;
+
+    if (taskName == null) {
+        return ""
+    }
+
+    if (taskName.contains("Arm_64")) {
+        toolchain = "aarch64-linux-android-4.9"
+    } else if (taskName.contains("Arm")) {
+        toolchain = "arm-linux-androideabi-4.9"
+    } else if (taskName.contains("X86_64")) {
+        toolchain = "x86_64-4.9"
+    }
+
+    project.logger.quiet("Gradle: ABI name: " + toolchain)
+    return toolchain;
+}

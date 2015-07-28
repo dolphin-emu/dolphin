@@ -1,10 +1,14 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <atomic>
+
 #include "Common/Atomic.h"
+#include "Common/BlockingLoop.h"
 #include "Common/ChunkFile.h"
 #include "Common/CPUDetect.h"
+#include "Common/Event.h"
 #include "Common/FPURoundMode.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
@@ -15,6 +19,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
@@ -22,13 +27,14 @@
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 bool g_bSkipCurrentFrame = false;
 
-static volatile bool GpuRunningState = false;
-static volatile bool EmuRunningState = false;
-static std::mutex m_csHWVidOccupied;
+static Common::BlockingLoop s_gpu_mainloop;
+
+static std::atomic<bool> s_emu_running_state;
 
 // Most of this array is unlikely to be faulted in...
 static u8 s_fifo_aux_data[FIFO_SIZE];
@@ -38,8 +44,6 @@ static u8* s_fifo_aux_read_ptr;
 bool g_use_deterministic_gpu_thread;
 
 // STATE_TO_SAVE
-static std::mutex s_video_buffer_lock;
-static std::condition_variable s_video_buffer_cond;
 static u8* s_video_buffer;
 static u8* s_video_buffer_read_ptr;
 static std::atomic<u8*> s_video_buffer_write_ptr;
@@ -56,6 +60,9 @@ static u8* s_video_buffer_pp_read_ptr;
 // FIFO.  Maybe someday it will be under the lock.  For now, because RunGpuLoop
 // polls, it's just atomic.
 // - The pp_read_ptr is the CPU preprocessing version of the read_ptr.
+
+static std::atomic<int> s_sync_ticks;
+static Common::Event s_sync_wakeup_event;
 
 void Fifo_DoState(PointerWrap &p)
 {
@@ -78,16 +85,12 @@ void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	{
 		SyncGPU(SYNC_GPU_OTHER);
 		EmulatorState(false);
-		if (!Core::IsGPUThread())
-			m_csHWVidOccupied.lock();
-		_dbg_assert_(COMMON, !CommandProcessor::fifo.isGpuReadingData);
+		FlushGpu();
 	}
 	else
 	{
 		if (unpauseOnUnlock)
 			EmulatorState(true);
-		if (!Core::IsGPUThread())
-			m_csHWVidOccupied.unlock();
 	}
 }
 
@@ -97,13 +100,16 @@ void Fifo_Init()
 	// Padded so that SIMD overreads in the vertex loader are safe
 	s_video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE + 4);
 	ResetVideoBuffer();
-	GpuRunningState = false;
-	Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
+	if (SConfig::GetInstance().bCPUThread)
+		s_gpu_mainloop.Prepare();
+	s_sync_ticks.store(0);
 }
 
 void Fifo_Shutdown()
 {
-	if (GpuRunningState) PanicAlert("Fifo shutting down while active");
+	if (s_gpu_mainloop.IsRunning())
+		PanicAlert("Fifo shutting down while active");
+
 	FreeMemoryPages(s_video_buffer, FIFO_SIZE + 4);
 	s_video_buffer = nullptr;
 	s_video_buffer_write_ptr = nullptr;
@@ -112,16 +118,6 @@ void Fifo_Shutdown()
 	s_video_buffer_seen_ptr = nullptr;
 	s_fifo_aux_write_ptr = nullptr;
 	s_fifo_aux_read_ptr = nullptr;
-}
-
-u8* GetVideoBufferStartPtr()
-{
-	return s_video_buffer;
-}
-
-u8* GetVideoBufferEndPtr()
-{
-	return s_video_buffer_write_ptr;
 }
 
 void Fifo_SetRendering(bool enabled)
@@ -135,28 +131,25 @@ void ExitGpuLoop()
 {
 	// This should break the wait loop in CPU thread
 	CommandProcessor::fifo.bFF_GPReadEnable = false;
-	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	while (fifo.isGpuReadingData) Common::YieldCPU();
+	FlushGpu();
+
 	// Terminate GPU thread loop
-	GpuRunningState = false;
-	EmuRunningState = true;
+	s_emu_running_state.store(true);
+	s_gpu_mainloop.Stop(false);
 }
 
 void EmulatorState(bool running)
 {
-	EmuRunningState = running;
+	s_emu_running_state.store(running);
+	s_gpu_mainloop.Wakeup();
 }
 
 void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
 {
-	if (g_use_deterministic_gpu_thread && GpuRunningState)
+	if (g_use_deterministic_gpu_thread)
 	{
-		std::unique_lock<std::mutex> lk(s_video_buffer_lock);
-		u8* write_ptr = s_video_buffer_write_ptr;
-		s_video_buffer_cond.wait(lk, [&]() {
-			return !GpuRunningState || s_video_buffer_seen_ptr == write_ptr;
-		});
-		if (!GpuRunningState)
+		s_gpu_mainloop.Wait();
+		if (!s_gpu_mainloop.IsRunning())
 			return;
 
 		// Opportunistically reset FIFOs so we don't wrap around.
@@ -169,6 +162,8 @@ void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
 
 		if (may_move_read_ptr)
 		{
+			u8* write_ptr = s_video_buffer_write_ptr;
+
 			// what's left over in the buffer
 			size_t size = write_ptr - s_video_buffer_pp_read_ptr;
 
@@ -189,6 +184,11 @@ void PushFifoAuxBuffer(void* ptr, size_t size)
 	if (size > (size_t) (s_fifo_aux_data + FIFO_SIZE - s_fifo_aux_write_ptr))
 	{
 		SyncGPU(SYNC_GPU_AUX_SPACE, /* may_move_read_ptr */ false);
+		if (!s_gpu_mainloop.IsRunning())
+		{
+			// GPU is shutting down
+			return;
+		}
 		if (size > (size_t) (s_fifo_aux_data + FIFO_SIZE - s_fifo_aux_write_ptr))
 		{
 			// That will sync us up to the last 32 bytes, so this short region
@@ -239,6 +239,12 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
 		// We can't wrap around while the GPU is working on the data.
 		// This should be very rare due to the reset in SyncGPU.
 		SyncGPU(SYNC_GPU_WRAPAROUND);
+		if (!s_gpu_mainloop.IsRunning())
+		{
+			// GPU is shutting down, so the next asserts may fail
+			return;
+		}
+
 		if (s_video_buffer_pp_read_ptr != s_video_buffer_read_ptr)
 		{
 			PanicAlert("desynced read pointers");
@@ -273,22 +279,24 @@ void ResetVideoBuffer()
 // Purpose: Keep the Core HW updated about the CPU-GPU distance
 void RunGpuLoop()
 {
-	std::lock_guard<std::mutex> lk(m_csHWVidOccupied);
-	GpuRunningState = true;
-	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	u32 cyclesExecuted = 0;
 
-	// If the host CPU has only two cores, idle loop instead of busy loop
-	// This allows a system that we are maxing out in dual core mode to do other things
-	bool yield_cpu = cpu_info.num_cores <= 2;
+	AsyncRequests::GetInstance()->SetEnable(true);
+	AsyncRequests::GetInstance()->SetPassthrough(false);
 
-	while (GpuRunningState)
-	{
+	s_gpu_mainloop.Run(
+	[] {
+		const SConfig& param = SConfig::GetInstance();
+
 		g_video_backend->PeekMessages();
 
-		VideoFifo_CheckAsyncRequest();
+		// Do nothing while paused
+		if (!s_emu_running_state.load())
+			return;
+
 		if (g_use_deterministic_gpu_thread)
 		{
+			AsyncRequests::GetInstance()->PullEvents();
+
 			// All the fifo/CP stuff is on the CPU.  We just need to run the opcode decoder.
 			u8* seen_ptr = s_video_buffer_seen_ptr;
 			u8* write_ptr = s_video_buffer_write_ptr;
@@ -296,89 +304,91 @@ void RunGpuLoop()
 			if (write_ptr > seen_ptr)
 			{
 				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, write_ptr), nullptr, false);
-
-				{
-					std::lock_guard<std::mutex> vblk(s_video_buffer_lock);
-					s_video_buffer_seen_ptr = write_ptr;
-					s_video_buffer_cond.notify_all();
-				}
+				s_video_buffer_seen_ptr = write_ptr;
 			}
 		}
 		else
 		{
+			SCPFifoStruct &fifo = CommandProcessor::fifo;
+
+			AsyncRequests::GetInstance()->PullEvents();
+
 			CommandProcessor::SetCPStatusFromGPU();
 
-			Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
-
 			// check if we are able to run this buffer
-			while (GpuRunningState && EmuRunningState && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
+			while (!CommandProcessor::IsInterruptWaiting() && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 			{
-				fifo.isGpuReadingData = true;
-				CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable ? true : false;
+				if (param.bSyncGPU && s_sync_ticks.load() < param.iSyncGpuMinDistance)
+					break;
 
-				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || Common::AtomicLoad(CommandProcessor::VITicks) > CommandProcessor::m_cpClockOrigin)
-				{
-					u32 readPtr = fifo.CPReadPointer;
-					ReadDataFromFifo(readPtr);
+				u32 cyclesExecuted = 0;
+				u32 readPtr = fifo.CPReadPointer;
+				ReadDataFromFifo(readPtr);
 
-					if (readPtr == fifo.CPEnd)
-						readPtr = fifo.CPBase;
-					else
-						readPtr += 32;
+				if (readPtr == fifo.CPEnd)
+					readPtr = fifo.CPBase;
+				else
+					readPtr += 32;
 
-					_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
-						"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instability in the game. Please report it.", fifo.CPReadWriteDistance - 32);
+				_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
+					"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instability in the game. Please report it.", fifo.CPReadWriteDistance - 32);
 
+				u8* write_ptr = s_video_buffer_write_ptr;
+				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false);
 
-					u8* write_ptr = s_video_buffer_write_ptr;
-					s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false);
-
-
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && Common::AtomicLoad(CommandProcessor::VITicks) >= cyclesExecuted)
-						Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
-
-					Common::AtomicStore(fifo.CPReadPointer, readPtr);
-					Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
-					if ((write_ptr - s_video_buffer_read_ptr) == 0)
-						Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
-				}
+				Common::AtomicStore(fifo.CPReadPointer, readPtr);
+				Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
+				if ((write_ptr - s_video_buffer_read_ptr) == 0)
+					Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
 
 				CommandProcessor::SetCPStatusFromGPU();
+
+				if (param.bSyncGPU)
+				{
+					cyclesExecuted = (int)(cyclesExecuted / param.fSyncGpuOverclock);
+					int old = s_sync_ticks.fetch_sub(cyclesExecuted);
+					if (old > 0 && old - (int)cyclesExecuted <= 0)
+						s_sync_wakeup_event.Set();
+				}
 
 				// This call is pretty important in DualCore mode and must be called in the FIFO Loop.
 				// If we don't, s_swapRequested or s_efbAccessRequested won't be set to false
 				// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
-				VideoFifo_CheckAsyncRequest();
-				CommandProcessor::isPossibleWaitingSetDrawDone = false;
+				AsyncRequests::GetInstance()->PullEvents();
 			}
 
-			fifo.isGpuReadingData = false;
-		}
-
-		if (EmuRunningState)
-		{
-			// NOTE(jsd): Calling SwitchToThread() on Windows 7 x64 is a hot spot, according to profiler.
-			// See https://docs.google.com/spreadsheet/ccc?key=0Ah4nh0yGtjrgdFpDeF9pS3V6RUotRVE3S3J4TGM1NlE#gid=0
-			// for benchmark details.
-			if (yield_cpu)
-				Common::YieldCPU();
-		}
-		else
-		{
-			// While the emu is paused, we still handle async requests then sleep.
-			while (!EmuRunningState)
+			// fast skip remaining GPU time if fifo is empty
+			if (s_sync_ticks.load() > 0)
 			{
-				g_video_backend->PeekMessages();
-				m_csHWVidOccupied.unlock();
-				Common::SleepCurrentThread(1);
-				m_csHWVidOccupied.lock();
+				int old = s_sync_ticks.exchange(0);
+				if (old > 0)
+					s_sync_wakeup_event.Set();
 			}
+
+			// The fifo is empty and it's unlikely we will get any more work in the near future.
+			// Make sure VertexManager finishes drawing any primitives it has stored in it's buffer.
+			VertexManager::Flush();
 		}
-	}
-	// wake up SyncGPU if we were interrupted
-	s_video_buffer_cond.notify_all();
+	}, 100);
+
+	AsyncRequests::GetInstance()->SetEnable(false);
+	AsyncRequests::GetInstance()->SetPassthrough(true);
 }
 
+void FlushGpu()
+{
+	const SConfig& param = SConfig::GetInstance();
+
+	if (!param.bCPUThread || g_use_deterministic_gpu_thread)
+		return;
+
+	s_gpu_mainloop.Wait();
+}
+
+void GpuMaySleep()
+{
+	s_gpu_mainloop.AllowSleep();
+}
 
 bool AtBreakpoint()
 {
@@ -388,43 +398,61 @@ bool AtBreakpoint()
 
 void RunGpu()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread &&
-	    !g_use_deterministic_gpu_thread)
-		return;
-
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
+	const SConfig& param = SConfig::GetInstance();
+
+	// execute GPU
+	if (!param.bCPUThread || g_use_deterministic_gpu_thread)
 	{
-		if (g_use_deterministic_gpu_thread)
+		bool reset_simd_state = false;
+		while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
 		{
-			ReadDataFromFifoOnCPU(fifo.CPReadPointer);
+			if (g_use_deterministic_gpu_thread)
+			{
+				ReadDataFromFifoOnCPU(fifo.CPReadPointer);
+				s_gpu_mainloop.Wakeup();
+			}
+			else
+			{
+				if (!reset_simd_state)
+				{
+					FPURoundMode::SaveSIMDState();
+					FPURoundMode::LoadDefaultSIMDState();
+					reset_simd_state = true;
+				}
+				ReadDataFromFifo(fifo.CPReadPointer);
+				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
+			}
+
+			//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
+
+			if (fifo.CPReadPointer == fifo.CPEnd)
+				fifo.CPReadPointer = fifo.CPBase;
+			else
+				fifo.CPReadPointer += 32;
+
+			fifo.CPReadWriteDistance -= 32;
 		}
-		else
+		CommandProcessor::SetCPStatusFromGPU();
+
+		if (reset_simd_state)
 		{
-			FPURoundMode::SaveSIMDState();
-			FPURoundMode::LoadDefaultSIMDState();
-			ReadDataFromFifo(fifo.CPReadPointer);
-			s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
 			FPURoundMode::LoadSIMDState();
 		}
-
-		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
-
-		if (fifo.CPReadPointer == fifo.CPEnd)
-			fifo.CPReadPointer = fifo.CPBase;
-		else
-			fifo.CPReadPointer += 32;
-
-		fifo.CPReadWriteDistance -= 32;
 	}
-	CommandProcessor::SetCPStatusFromGPU();
+
+	// wake up GPU thread
+	if (param.bCPUThread)
+	{
+		s_gpu_mainloop.Wakeup();
+	}
 }
 
 void Fifo_UpdateWantDeterminism(bool want)
 {
-	// We are paused (or not running at all yet) and have m_csHWVidOccupied, so
+	// We are paused (or not running at all yet), so
 	// it should be safe to change this.
-	const SCoreStartupParameter& param = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& param = SConfig::GetInstance();
 	bool gpu_thread = false;
 	switch (param.m_GPUDeterminismMode)
 	{
@@ -447,7 +475,7 @@ void Fifo_UpdateWantDeterminism(bool want)
 			break;
 	}
 
-	gpu_thread = gpu_thread && SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+	gpu_thread = gpu_thread && param.bCPUThread;
 
 	if (g_use_deterministic_gpu_thread != gpu_thread)
 	{
@@ -460,4 +488,41 @@ void Fifo_UpdateWantDeterminism(bool want)
 			VertexLoaderManager::MarkAllDirty();
 		}
 	}
+}
+
+int Fifo_Update(int ticks)
+{
+	const SConfig& param = SConfig::GetInstance();
+
+	if (ticks == 0)
+	{
+		FlushGpu();
+		return param.iSyncGpuMaxDistance;
+	}
+
+	// GPU is sleeping, so no need for synchronization
+	if (s_gpu_mainloop.IsDone() || g_use_deterministic_gpu_thread)
+	{
+		if (s_sync_ticks.load() < 0)
+		{
+			int old = s_sync_ticks.fetch_add(ticks);
+			if (old < param.iSyncGpuMinDistance && old + ticks >= param.iSyncGpuMinDistance)
+				RunGpu();
+		}
+		return param.iSyncGpuMaxDistance;
+	}
+
+	int old = s_sync_ticks.fetch_add(ticks);
+	if (old < param.iSyncGpuMinDistance && old + ticks >= param.iSyncGpuMinDistance)
+		RunGpu();
+
+	if (s_sync_ticks.load() >= param.iSyncGpuMaxDistance)
+	{
+		while (s_sync_ticks.load() > 0)
+		{
+			s_sync_wakeup_event.Wait();
+		}
+	}
+
+	return param.iSyncGpuMaxDistance - s_sync_ticks.load();
 }

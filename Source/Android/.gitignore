@@ -15,7 +15,7 @@
 /obj/
 
 # Copied by cmake
-/assets/
+*/*/*/assets/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -36,4 +36,7 @@ workspace.xml
 tasks.xml
 .gradle/*
 .idea
-gradle/
+build/
+*.so
+*.iml
+build.properties

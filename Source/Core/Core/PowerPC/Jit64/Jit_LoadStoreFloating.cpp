@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -33,7 +33,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 
 	s32 offset = 0;
 	OpArg addr = gpr.R(a);
-	if (update && js.memcheck)
+	if (update && jo.memcheck)
 	{
 		addr = R(RSCRATCH2);
 		MOV(32, addr, gpr.R(a));
@@ -46,9 +46,9 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 		}
 		else
 		{
-			addr = R(RSCRATCH);
+			addr = R(RSCRATCH2);
 			if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
-				LEA(32, RSCRATCH, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+				LEA(32, RSCRATCH2, MRegSum(gpr.RX(a), gpr.RX(b)));
 			else
 			{
 				MOV(32, addr, gpr.R(b));
@@ -65,14 +65,19 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 			offset = (s16)inst.SIMM_16;
 	}
 
+	fpr.Lock(d);
+	if (jo.memcheck && single)
+	{
+		fpr.StoreFromRegister(d);
+		js.revertFprLoad = d;
+	}
+	fpr.BindToRegister(d, !single);
 	BitSet32 registersInUse = CallerSavedRegistersInUse();
-	if (update && js.memcheck)
+	if (update && jo.memcheck)
 		registersInUse[RSCRATCH2] = true;
 	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, registersInUse, false);
-	fpr.Lock(d);
-	fpr.BindToRegister(d, js.memcheck || !single);
 
-	MEMCHECK_START(false)
+	MemoryExceptionCheck();
 	if (single)
 	{
 		ConvertSingleToDouble(fpr.RX(d), RSCRATCH, true);
@@ -82,9 +87,8 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 		MOVQ_xmm(XMM0, R(RSCRATCH));
 		MOVSD(fpr.RX(d), R(XMM0));
 	}
-	if (update && js.memcheck)
+	if (update && jo.memcheck)
 		MOV(32, gpr.R(a), addr);
-	MEMCHECK_END
 	fpr.UnlockAll();
 	gpr.UnlockAll();
 }
@@ -104,7 +108,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 	s32 imm = (s16)inst.SIMM_16;
 	int accessSize = single ? 32 : 64;
 
-	FALLBACK_IF(update && js.memcheck && a == b);
+	FALLBACK_IF(update && jo.memcheck && a == b);
 
 	if (single)
 	{
@@ -129,21 +133,20 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
 	if (!indexed && (!a || gpr.R(a).IsImm()))
 	{
-		u32 addr = (a ? (u32)gpr.R(a).offset : 0) + imm;
+		u32 addr = (a ? gpr.R(a).Imm32() : 0) + imm;
 		bool exception = WriteToConstAddress(accessSize, R(RSCRATCH), addr, CallerSavedRegistersInUse());
 
 		if (update)
 		{
-			if (!js.memcheck || !exception)
+			if (!jo.memcheck || !exception)
 			{
 				gpr.SetImmediate32(a, addr);
 			}
 			else
 			{
 				gpr.KillImmediate(a, true, true);
-				MEMCHECK_START(false)
+				MemoryExceptionCheck();
 				ADD(32, gpr.R(a), Imm32((u32)imm));
-				MEMCHECK_END
 			}
 		}
 		fpr.UnlockAll();
@@ -152,48 +155,43 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 	}
 
 	s32 offset = 0;
+	if (update)
+		gpr.BindToRegister(a, true, true);
 	if (indexed)
 	{
-		if (update)
-		{
-			gpr.BindToRegister(a, true, true);
-			ADD(32, gpr.R(a), gpr.R(b));
-			MOV(32, R(RSCRATCH2), gpr.R(a));
-		}
+		if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
+			LEA(32, RSCRATCH2, MRegSum(gpr.RX(a), gpr.RX(b)));
 		else
 		{
-			if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
-				LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
-			else
-			{
-				MOV(32, R(RSCRATCH2), gpr.R(b));
-				if (a)
-					ADD(32, R(RSCRATCH2), gpr.R(a));
-			}
+			MOV(32, R(RSCRATCH2), gpr.R(b));
+			if (a)
+				ADD(32, R(RSCRATCH2), gpr.R(a));
 		}
 	}
 	else
 	{
 		if (update)
 		{
-			gpr.BindToRegister(a, true, true);
-			ADD(32, gpr.R(a), Imm32(imm));
+			LEA(32, RSCRATCH2, MDisp(gpr.RX(a), imm));
 		}
 		else
 		{
 			offset = imm;
+			MOV(32, R(RSCRATCH2), gpr.R(a));
 		}
-		MOV(32, R(RSCRATCH2), gpr.R(a));
 	}
 
-	SafeWriteRegToReg(RSCRATCH, RSCRATCH2, accessSize, offset, CallerSavedRegistersInUse());
+	BitSet32 registersInUse = CallerSavedRegistersInUse();
+	// We need to save the (usually scratch) address register for the update.
+	if (update)
+		registersInUse[RSCRATCH2] = true;
 
-	if (js.memcheck && update)
+	SafeWriteRegToReg(RSCRATCH, RSCRATCH2, accessSize, offset, registersInUse);
+
+	if (update)
 	{
-		// revert the address change if an exception occurred
-		MEMCHECK_START(true)
-		SUB(32, gpr.R(a), indexed ? gpr.R(b) : Imm32(imm));
-		MEMCHECK_END
+		MemoryExceptionCheck();
+		MOV(32, gpr.R(a), R(RSCRATCH2));
 	}
 
 	fpr.UnlockAll();

@@ -1,17 +1,19 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include "Core/HW/EXI_Device.h"
 
+class PointerWrap;
+
 class CEXIAD16 : public IEXIDevice
 {
 public:
 	CEXIAD16();
 	virtual void SetCS(int _iCS) override;
-	virtual bool IsPresent() override;
+	virtual bool IsPresent() const override;
 	virtual void DoState(PointerWrap &p) override;
 
 private:

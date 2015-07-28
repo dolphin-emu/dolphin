@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -18,13 +18,11 @@ class wxButton;
 class wxCheckBox;
 class wxCheckListBox;
 class wxCloseEvent;
-class wxCommandEvent;
 class wxListBox;
 class wxNotebook;
 class wxStaticBox;
 class wxStaticText;
 class wxTextCtrl;
-class wxWindow;
 
 namespace Gecko
 {

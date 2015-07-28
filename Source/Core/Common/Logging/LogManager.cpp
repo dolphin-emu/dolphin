@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstdarg>
@@ -85,25 +85,25 @@ LogManager::LogManager()
 
 	m_fileLog = new FileLogListener(File::GetUserPath(F_MAINLOG_IDX));
 	m_consoleLog = new ConsoleListener();
-	m_debuggerLog = new DebuggerLogListener();
 
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
 	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
+	IniFile::Section* options = ini.GetOrCreateSection("Options");
+	bool write_file;
+	bool write_console;
+	options->Get("WriteToFile", &write_file, false);
+	options->Get("WriteToConsole", &write_console, true);
+
 	for (LogContainer* container : m_Log)
 	{
 		bool enable;
 		logs->Get(container->GetShortName(), &enable, false);
 		container->SetEnable(enable);
-		if (enable)
-		{
+		if (enable && write_file)
 			container->AddListener(m_fileLog);
+		if (enable && write_console)
 			container->AddListener(m_consoleLog);
-#ifdef _MSC_VER
-			if (IsDebuggerPresent())
-				container->AddListener(m_debuggerLog);
-#endif
-		}
 	}
 }
 
@@ -113,7 +113,6 @@ LogManager::~LogManager()
 	{
 		m_logManager->RemoveListener((LogTypes::LOG_TYPE)i, m_fileLog);
 		m_logManager->RemoveListener((LogTypes::LOG_TYPE)i, m_consoleLog);
-		m_logManager->RemoveListener((LogTypes::LOG_TYPE)i, m_debuggerLog);
 	}
 
 	for (LogContainer* container : m_Log)
@@ -121,7 +120,6 @@ LogManager::~LogManager()
 
 	delete m_fileLog;
 	delete m_consoleLog;
-	delete m_debuggerLog;
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
@@ -130,7 +128,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	char temp[MAX_MSGLEN];
 	LogContainer *log = m_Log[type];
 
-	if (!log->IsEnabled() || level > log->GetLevel() || ! log->HasListeners())
+	if (!log->IsEnabled() || level > log->GetLevel() || !log->HasListeners())
 		return;
 
 	CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
@@ -201,11 +199,4 @@ void FileLogListener::Log(LogTypes::LOG_LEVELS, const char *msg)
 
 	std::lock_guard<std::mutex> lk(m_log_lock);
 	m_logfile << msg << std::flush;
-}
-
-void DebuggerLogListener::Log(LogTypes::LOG_LEVELS, const char *msg)
-{
-#if _MSC_VER
-	::OutputDebugStringA(msg);
-#endif
 }

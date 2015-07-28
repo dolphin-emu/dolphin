@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/FileUtil.h"
@@ -13,6 +13,8 @@
 #include <windows.h>
 #endif
 
+// TODO: support in netplay/movies.
+
 CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName)
 : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {}
@@ -20,7 +22,7 @@ CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const st
 CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
 {}
 
-bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
+IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 {
 	INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Open");
 	IniFile ini;
@@ -37,10 +39,10 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 	//m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, nullptr));
 	Memory::Write_U32(m_DeviceID, _CommandAddress+4);
 	m_Active = true;
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
+IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
 {
 	INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Close");
 	while (!m_MessageQueue.empty())
@@ -48,30 +50,30 @@ bool CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
 {
 	INFO_LOG(WII_IPC_STM, "Ignoring write to CWII_IPC_HLE_Device_usb_kbd");
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	DumpCommands(_CommandAddress, 10, LogTypes::WII_IPC_STM, LogTypes::LDEBUG);
 #endif
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
 {
 	u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 
-	if (SConfig::GetInstance().m_WiiKeyboard && !m_MessageQueue.empty())
+	if (SConfig::GetInstance().m_WiiKeyboard && !Core::g_want_determinism && !m_MessageQueue.empty())
 	{
 		Memory::CopyToEmu(BufferOut, &m_MessageQueue.front(), sizeof(SMessageData));
 		m_MessageQueue.pop();
 	}
 
 	Memory::Write_U32(0, _CommandAddress + 0x4);
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
 bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
@@ -89,7 +91,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
 
 u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 {
-	if (!SConfig::GetInstance().m_WiiKeyboard || !m_Active)
+	if (!SConfig::GetInstance().m_WiiKeyboard || Core::g_want_determinism || !m_Active)
 		return 0;
 
 	u8 Modifiers = 0x00;

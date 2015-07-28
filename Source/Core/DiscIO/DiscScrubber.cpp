@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -73,10 +73,8 @@ static SPartitionGroup PartitionGroup[4];
 
 void MarkAsUsed(u64 _Offset, u64 _Size);
 void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size);
-void ReadFromDisc(u64 _Offset, u64 _Length, u32& _Buffer);
-void ReadFromDisc(u64 _Offset, u64 _Length, u64& _Buffer);
-void ReadFromVolume(u64 _Offset, u64 _Length, u32& _Buffer);
-void ReadFromVolume(u64 _Offset, u64 _Length, u64& _Buffer);
+void ReadFromVolume(u64 _Offset, u64 _Length, u32& _Buffer, bool _Decrypt);
+void ReadFromVolume(u64 _Offset, u64 _Length, u64& _Buffer, bool _Decrypt);
 bool ParseDisc();
 bool ParsePartitionData(SPartition& _rPartition);
 u32 GetDOLSize(u64 _DOLOffset);
@@ -190,27 +188,15 @@ void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size)
 	MarkAsUsed(Offset, Size);
 }
 
-// Helper functions for RAW reading the BE discs
-void ReadFromDisc(u64 _Offset, u64 _Length, u32& _Buffer)
-{
-	m_Disc->RAWRead(_Offset, _Length, (u8*)&_Buffer);
-	_Buffer = Common::swap32(_Buffer);
-}
-void ReadFromDisc(u64 _Offset, u64 _Length, u64& _Buffer)
-{
-	m_Disc->RAWRead(_Offset, _Length, (u8*)&_Buffer);
-	_Buffer = Common::swap32((u32)_Buffer);
-	_Buffer <<= 2;
-}
 // Helper functions for reading the BE volume
-void ReadFromVolume(u64 _Offset, u64 _Length, u32& _Buffer)
+void ReadFromVolume(u64 _Offset, u64 _Length, u32& _Buffer, bool _Decrypt)
 {
-	m_Disc->Read(_Offset, _Length, (u8*)&_Buffer);
+	m_Disc->Read(_Offset, _Length, (u8*)&_Buffer, _Decrypt);
 	_Buffer = Common::swap32(_Buffer);
 }
-void ReadFromVolume(u64 _Offset, u64 _Length, u64& _Buffer)
+void ReadFromVolume(u64 _Offset, u64 _Length, u64& _Buffer, bool _Decrypt)
 {
-	m_Disc->Read(_Offset, _Length, (u8*)&_Buffer);
+	m_Disc->Read(_Offset, _Length, (u8*)&_Buffer, _Decrypt);
 	_Buffer = Common::swap32((u32)_Buffer);
 	_Buffer <<= 2;
 }
@@ -222,8 +208,8 @@ bool ParseDisc()
 
 	for (int x = 0; x < 4; x++)
 	{
-		ReadFromDisc(0x40000 + (x * 8) + 0, 4, PartitionGroup[x].numPartitions);
-		ReadFromDisc(0x40000 + (x * 8) + 4, 4, PartitionGroup[x].PartitionsOffset);
+		ReadFromVolume(0x40000 + (x * 8) + 0, 4, PartitionGroup[x].numPartitions, false);
+		ReadFromVolume(0x40000 + (x * 8) + 4, 4, PartitionGroup[x].PartitionsOffset, false);
 
 		// Read all partitions
 		for (u32 i = 0; i < PartitionGroup[x].numPartitions; i++)
@@ -233,16 +219,16 @@ bool ParseDisc()
 			Partition.GroupNumber = x;
 			Partition.Number = i;
 
-			ReadFromDisc(PartitionGroup[x].PartitionsOffset + (i * 8) + 0, 4, Partition.Offset);
-			ReadFromDisc(PartitionGroup[x].PartitionsOffset + (i * 8) + 4, 4, Partition.Type);
+			ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 0, 4, Partition.Offset, false);
+			ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 4, 4, Partition.Type, false);
 
-			ReadFromDisc(Partition.Offset + 0x2a4, 4, Partition.Header.TMDSize);
-			ReadFromDisc(Partition.Offset + 0x2a8, 4, Partition.Header.TMDOffset);
-			ReadFromDisc(Partition.Offset + 0x2ac, 4, Partition.Header.CertChainSize);
-			ReadFromDisc(Partition.Offset + 0x2b0, 4, Partition.Header.CertChainOffset);
-			ReadFromDisc(Partition.Offset + 0x2b4, 4, Partition.Header.H3Offset);
-			ReadFromDisc(Partition.Offset + 0x2b8, 4, Partition.Header.DataOffset);
-			ReadFromDisc(Partition.Offset + 0x2bc, 4, Partition.Header.DataSize);
+			ReadFromVolume(Partition.Offset + 0x2a4, 4, Partition.Header.TMDSize, false);
+			ReadFromVolume(Partition.Offset + 0x2a8, 4, Partition.Header.TMDOffset, false);
+			ReadFromVolume(Partition.Offset + 0x2ac, 4, Partition.Header.CertChainSize, false);
+			ReadFromVolume(Partition.Offset + 0x2b0, 4, Partition.Header.CertChainOffset, false);
+			ReadFromVolume(Partition.Offset + 0x2b4, 4, Partition.Header.H3Offset, false);
+			ReadFromVolume(Partition.Offset + 0x2b8, 4, Partition.Header.DataOffset, false);
+			ReadFromVolume(Partition.Offset + 0x2bc, 4, Partition.Header.DataSize, false);
 
 			PartitionGroup[x].PartitionsVec.push_back(Partition);
 		}
@@ -279,8 +265,14 @@ bool ParsePartitionData(SPartition& _rPartition)
 
 	// Ready some stuff
 	m_Disc = CreateVolumeFromFilename(m_Filename, _rPartition.GroupNumber, _rPartition.Number);
-	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_Disc));
+	if (m_Disc == nullptr)
+	{
+		ERROR_LOG(DISCIO, "Failed to create volume from file %s", m_Filename.c_str());
+		m_Disc = OldVolume;
+		return false;
+	}
 
+	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_Disc));
 	if (!filesystem)
 	{
 		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", _rPartition.GroupNumber, _rPartition.Number);
@@ -288,13 +280,10 @@ bool ParsePartitionData(SPartition& _rPartition)
 	}
 	else
 	{
-		std::vector<const SFileInfo *> Files;
-		size_t numFiles = filesystem->GetFileList(Files);
-
 		// Mark things as used which are not in the filesystem
 		// Header, Header Information, Apploader
-		ReadFromVolume(0x2440 + 0x14, 4, _rPartition.Header.ApploaderSize);
-		ReadFromVolume(0x2440 + 0x18, 4, _rPartition.Header.ApploaderTrailerSize);
+		ReadFromVolume(0x2440 + 0x14, 4, _rPartition.Header.ApploaderSize, true);
+		ReadFromVolume(0x2440 + 0x18, 4, _rPartition.Header.ApploaderTrailerSize, true);
 		MarkAsUsedE(_rPartition.Offset
 			+ _rPartition.Header.DataOffset
 			, 0
@@ -303,7 +292,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 			+ _rPartition.Header.ApploaderTrailerSize);
 
 		// DOL
-		ReadFromVolume(0x420, 4, _rPartition.Header.DOLOffset);
+		ReadFromVolume(0x420, 4, _rPartition.Header.DOLOffset, true);
 		_rPartition.Header.DOLSize = GetDOLSize(_rPartition.Header.DOLOffset);
 		MarkAsUsedE(_rPartition.Offset
 			+ _rPartition.Header.DataOffset
@@ -311,26 +300,22 @@ bool ParsePartitionData(SPartition& _rPartition)
 			, _rPartition.Header.DOLSize);
 
 		// FST
-		ReadFromVolume(0x424, 4, _rPartition.Header.FSTOffset);
-		ReadFromVolume(0x428, 4, _rPartition.Header.FSTSize);
+		ReadFromVolume(0x424, 4, _rPartition.Header.FSTOffset, true);
+		ReadFromVolume(0x428, 4, _rPartition.Header.FSTSize, true);
 		MarkAsUsedE(_rPartition.Offset
 			+ _rPartition.Header.DataOffset
 			, _rPartition.Header.FSTOffset
 			, _rPartition.Header.FSTSize);
 
 		// Go through the filesystem and mark entries as used
-		for (size_t currentFile = 0; currentFile < numFiles; currentFile++)
+		for (SFileInfo file : filesystem->GetFileList())
 		{
-			DEBUG_LOG(DISCIO, "%s", currentFile ? (*Files.at(currentFile)).m_FullPath.c_str() : "/");
+			DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
 			// Just 1byte for directory? - it will end up reserving a cluster this way
-			if ((*Files.at(currentFile)).m_NameOffset & 0x1000000)
-				MarkAsUsedE(_rPartition.Offset
-				+ _rPartition.Header.DataOffset
-				, (*Files.at(currentFile)).m_Offset, 1);
+			if (file.m_NameOffset & 0x1000000)
+				MarkAsUsedE(_rPartition.Offset + _rPartition.Header.DataOffset, file.m_Offset, 1);
 			else
-				MarkAsUsedE(_rPartition.Offset
-				+ _rPartition.Header.DataOffset
-				, (*Files.at(currentFile)).m_Offset, (*Files.at(currentFile)).m_FileSize);
+				MarkAsUsedE(_rPartition.Offset + _rPartition.Header.DataOffset, file.m_Offset, file.m_FileSize);
 		}
 	}
 
@@ -348,8 +333,8 @@ u32 GetDOLSize(u64 _DOLOffset)
 	// Iterate through the 7 code segments
 	for (u8 i = 0; i < 7; i++)
 	{
-		ReadFromVolume(_DOLOffset + 0x00 + i * 4, 4, offset);
-		ReadFromVolume(_DOLOffset + 0x90 + i * 4, 4, size);
+		ReadFromVolume(_DOLOffset + 0x00 + i * 4, 4, offset, true);
+		ReadFromVolume(_DOLOffset + 0x90 + i * 4, 4, size, true);
 		if (offset + size > max)
 			max = offset + size;
 	}
@@ -357,8 +342,8 @@ u32 GetDOLSize(u64 _DOLOffset)
 	// Iterate through the 11 data segments
 	for (u8 i = 0; i < 11; i++)
 	{
-		ReadFromVolume(_DOLOffset + 0x1c + i * 4, 4, offset);
-		ReadFromVolume(_DOLOffset + 0xac + i * 4, 4, size);
+		ReadFromVolume(_DOLOffset + 0x1c + i * 4, 4, offset, true);
+		ReadFromVolume(_DOLOffset + 0xac + i * 4, 4, size, true);
 		if (offset + size > max)
 			max = offset + size;
 	}

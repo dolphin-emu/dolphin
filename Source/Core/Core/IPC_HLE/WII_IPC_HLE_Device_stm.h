@@ -1,9 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <string>
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 enum
@@ -36,24 +37,24 @@ public:
 	virtual ~CWII_IPC_HLE_Device_stm_immediate()
 	{}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
+	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		m_Active = true;
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override
+	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Close");
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress+4);
 		m_Active = false;
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress) override
+	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
@@ -107,7 +108,7 @@ public:
 
 		// Write return value to the IPC call
 		Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
 };
 
@@ -125,14 +126,14 @@ public:
 	{
 	}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
+	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 		m_Active = true;
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override
+	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
 	{
 		m_EventHookAddress = 0;
 
@@ -140,10 +141,10 @@ public:
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress+4);
 		m_Active = false;
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress) override
+	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
@@ -182,7 +183,7 @@ public:
 
 		// Write return value to the IPC call, 0 means success
 		Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-		return false;
+		return IPC_DEFAULT_REPLY;
 	}
 
 	// STATE_TO_SAVE

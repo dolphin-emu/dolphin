@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
@@ -68,7 +68,7 @@ void CMailHandler::Clear()
 		m_Mails.pop();
 }
 
-bool CMailHandler::IsEmpty()
+bool CMailHandler::IsEmpty() const
 {
 	return m_Mails.empty();
 }

@@ -1,3 +1,7 @@
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #pragma once
 
 #include <string>
@@ -45,7 +49,7 @@ class VideoSoftware : public VideoBackend
 	void Video_SetRendering(bool bEnabled) override;
 
 	void Video_GatherPipeBursted() override;
-	bool Video_IsPossibleWaitingSetDrawDone() override;
+	int Video_Sync(int ticks) override { return 0; }
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 

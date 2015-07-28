@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -32,6 +32,29 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	_assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
 
+	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENIVECSHIFTS))
+	{
+		// Add functions to do shifts on scalars and ivecs.
+		// This is included in the vertex shader for lighting shader generation.
+		out.Write("int ilshift(int a, int b) { return a << b; }\n"
+		          "int irshift(int a, int b) { return a >> b; }\n"
+
+		          "int2 ilshift(int2 a, int2 b) { return int2(a.x << b.x, a.y << b.y); }\n"
+		          "int2 ilshift(int2 a, int b) { return int2(a.x << b, a.y << b); }\n"
+		          "int2 irshift(int2 a, int2 b) { return int2(a.x >> b.x, a.y >> b.y); }\n"
+		          "int2 irshift(int2 a, int b) { return int2(a.x >> b, a.y >> b); }\n"
+
+		          "int3 ilshift(int3 a, int3 b) { return int3(a.x << b.x, a.y << b.y, a.z << b.z); }\n"
+		          "int3 ilshift(int3 a, int b) { return int3(a.x << b, a.y << b, a.z << b); }\n"
+		          "int3 irshift(int3 a, int3 b) { return int3(a.x >> b.x, a.y >> b.y, a.z >> b.z); }\n"
+		          "int3 irshift(int3 a, int b) { return int3(a.x >> b, a.y >> b, a.z >> b); }\n"
+
+		          "int4 ilshift(int4 a, int4 b) { return int4(a.x << b.x, a.y << b.y, a.z << b.z, a.w << b.w); }\n"
+		          "int4 ilshift(int4 a, int b) { return int4(a.x << b, a.y << b, a.z << b, a.w << b); }\n"
+		          "int4 irshift(int4 a, int4 b) { return int4(a.x >> b.x, a.y >> b.y, a.z >> b.z, a.w >> b.w); }\n"
+		          "int4 irshift(int4 a, int b) { return int4(a.x >> b, a.y >> b, a.z >> b, a.w >> b); }\n\n");
+	}
+
 	out.Write("%s", s_lighting_struct);
 
 	// uniforms
@@ -42,7 +65,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	out.Write(s_shader_uniforms);
 	out.Write("};\n");
 
-	GenerateVSOutputStruct<T>(out, api_type);
+	out.Write("struct VS_OUTPUT {\n");
+	GenerateVSOutputMembers<T>(out, api_type);
+	out.Write("};\n");
 
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data->components = components;
@@ -74,9 +99,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			out.Write("out VertexData {\n"
-			          "\tcentroid %s VS_OUTPUT o;\n"
-					  "};\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "out");
+			out.Write("out VertexData {\n");
+			GenerateVSOutputMembers<T>(out, api_type, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
+			out.Write("} vs;\n");
 		}
 		else
 		{
@@ -90,15 +115,15 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			}
 			out.Write("centroid out float4 clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
-				out.Write("centroid out float4 Normal;\n");
-			out.Write("centroid out float4 colors_02;\n");
-			out.Write("centroid out float4 colors_12;\n");
+			{
+				out.Write("centroid out float3 Normal;\n");
+				out.Write("centroid out float3 WorldPos;\n");
+			}
+			out.Write("centroid out float4 colors_0;\n");
+			out.Write("centroid out float4 colors_1;\n");
 		}
 
 		out.Write("void main()\n{\n");
-
-		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-			out.Write("VS_OUTPUT o;\n");
 	}
 	else // D3D
 	{
@@ -124,14 +149,14 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (components & VB_HAS_POSMTXIDX)
 			out.Write("  int posmtx : BLENDINDICES,\n");
 		out.Write("  float4 rawpos : POSITION) {\n");
-
-		out.Write("VS_OUTPUT o;\n");
 	}
+
+	out.Write("VS_OUTPUT o;\n");
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
 	{
-		if (is_writing_shadercode && (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS) && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS)) )
+		if (is_writing_shadercode && (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS) && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS)))
 		{
 			// This'll cause issues, but  it can't be helped
 			out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[0], rawpos), dot(" I_TRANSFORMMATRICES"[1], rawpos), dot(" I_TRANSFORMMATRICES"[2], rawpos), 1);\n");
@@ -174,7 +199,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	out.Write("o.pos = float4(dot(" I_PROJECTION"[0], pos), dot(" I_PROJECTION"[1], pos), dot(" I_PROJECTION"[2], pos), dot(" I_PROJECTION"[3], pos));\n");
 
 	out.Write("int4 lacc;\n"
-			"float3 ldir, h;\n"
+			"float3 ldir, h, cosAttn, distAttn;\n"
 			"float dist, dist2, attn;\n");
 
 	uid_data->numColorChans = xfmem.numChan.numColorChans;
@@ -216,36 +241,37 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		switch (texinfo.sourcerow)
 		{
 		case XF_SRCGEOM_INROW:
-			_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
+			// The following assert was triggered in Super Smash Bros. Project M 3.6.
+			//_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 			out.Write("coord = rawpos;\n"); // pos.w is 1
 			break;
 		case XF_SRCNORMAL_INROW:
 			if (components & VB_HAS_NRM0)
 			{
-				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
+				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 				out.Write("coord = float4(rawnorm0.xyz, 1.0);\n");
 			}
 			break;
 		case XF_SRCCOLORS_INROW:
-			_assert_( texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 || texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1 );
+			_assert_(texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 || texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1);
 			break;
 		case XF_SRCBINORMAL_T_INROW:
 			if (components & VB_HAS_NRM1)
 			{
-				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
+				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 				out.Write("coord = float4(rawnorm1.xyz, 1.0);\n");
 			}
 			break;
 		case XF_SRCBINORMAL_B_INROW:
 			if (components & VB_HAS_NRM2)
 			{
-				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
+				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 				out.Write("coord = float4(rawnorm2.xyz, 1.0);\n");
 			}
 			break;
 		default:
 			_assert_(texinfo.sourcerow <= XF_SRCTEX7_INROW);
-			if (components & (VB_HAS_UV0<<(texinfo.sourcerow - XF_SRCTEX0_INROW)) )
+			if (components & (VB_HAS_UV0 << (texinfo.sourcerow - XF_SRCTEX0_INROW)))
 				out.Write("coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
 			break;
 		}
@@ -266,7 +292,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				}
 				else
 				{
-					_assert_(0); // should have normals
+					// The following assert was triggered in House of the Dead Overkill and Star Wars Rogue Squadron 2
+					//_assert_(0); // should have normals
 					uid_data->texMtxInfo[i].embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
 					out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
 				}
@@ -312,7 +339,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES"[%d];\n"
 				"float4 P1 = " I_POSTTRANSFORMMATRICES"[%d];\n"
 				"float4 P2 = " I_POSTTRANSFORMMATRICES"[%d];\n",
-				postidx&0x3f, (postidx+1)&0x3f, (postidx+2)&0x3f);
+				postidx & 0x3f, (postidx + 1) & 0x3f, (postidx + 2) & 0x3f);
 
 			if (texGenSpecialCase)
 			{
@@ -338,11 +365,12 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	}
 
 	// clipPos/w needs to be done in pixel shader, not here
-	out.Write("o.clipPos = float4(pos.x,pos.y,o.pos.z,o.pos.w);\n");
+	out.Write("o.clipPos = o.pos;\n");
 
 	if (g_ActiveConfig.bEnablePixelLighting)
 	{
-		out.Write("o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
+		out.Write("o.Normal = _norm0;\n");
+		out.Write("o.WorldPos = pos.xyz;\n");
 
 		if (components & VB_HAS_COL0)
 			out.Write("o.colors_0 = color0;\n");
@@ -353,15 +381,15 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
 	//if not early z culling will improve speed
-	if (api_type == API_D3D)
+	if (g_ActiveConfig.backend_info.bSupportsClipControl)
 	{
-		out.Write("o.pos.z = o.pos.w + o.pos.z;\n");
+		out.Write("o.pos.z = -o.pos.z;\n");
 	}
 	else // OGL
 	{
 		// this results in a scale from -1..0 to -1..1 after perspective
 		// divide
-		out.Write("o.pos.z = o.pos.w + o.pos.z * 2.0;\n");
+		out.Write("o.pos.z = o.pos.z * -2.0 - o.pos.w;\n");
 
 		// the next steps of the OGL pipeline are:
 		// (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
@@ -380,21 +408,28 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// which in turn can be critical if it happens for clear quads.
 	// Hence, we compensate for this pixel center difference so that primitives
 	// get rasterized correctly.
-	out.Write("o.pos.xy = o.pos.xy - " I_PIXELCENTERCORRECTION".xy;\n");
+	out.Write("o.pos.xy = o.pos.xy - o.pos.w * " I_PIXELCENTERCORRECTION".xy;\n");
 
 	if (api_type == API_OPENGL)
 	{
-		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			// TODO: Pass structs between shader stages even if geometry shaders
-			// are not supported, however that will break GL 3.0 and 3.1 support.
+			AssignVSOutputMembers(out, "vs", "o");
+		}
+		else
+		{
+			// TODO: Pass interface blocks between shader stages even if geometry shaders
+			// are not supported, however that will require at least OpenGL 3.2 support.
 			for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 				out.Write("uv%d.xyz = o.tex%d;\n", i, i);
 			out.Write("clipPos = o.clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
+			{
 				out.Write("Normal = o.Normal;\n");
-			out.Write("colors_02 = o.colors_0;\n");
-			out.Write("colors_12 = o.colors_1;\n");
+				out.Write("WorldPos = o.WorldPos;\n");
+			}
+			out.Write("colors_0 = o.colors_0;\n");
+			out.Write("colors_1 = o.colors_1;\n");
 		}
 
 		out.Write("gl_Position = o.pos;\n");

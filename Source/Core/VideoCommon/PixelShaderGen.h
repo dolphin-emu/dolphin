@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -21,8 +21,10 @@
 #define C_FOGCOLOR      (C_INDTEXMTX + 6)   //27
 #define C_FOGI          (C_FOGCOLOR + 1)    //28
 #define C_FOGF          (C_FOGI + 1)        //29
+#define C_ZSLOPE        (C_FOGF + 2)        //31
+#define C_EFBSCALE      (C_ZSLOPE + 1)      //32
 
-#define C_PENVCONST_END (C_FOGF + 2)
+#define C_PENVCONST_END (C_EFBSCALE + 1)
 
 // Different ways to achieve rendering with destination alpha
 enum DSTALPHA_MODE
@@ -62,6 +64,10 @@ struct pixel_shader_uid_data
 	u32 forced_early_z : 1;
 	u32 early_ztest : 1;
 	u32 bounding_box : 1;
+
+	// TODO: 31 bits of padding is a waste. Can we free up some bits elseware?
+	u32 zfreeze : 1;
+	u32 pad : 31;
 
 	u32 texMtxInfo_n_projection : 8; // 8x1 bit
 	u32 tevindref_bi0 : 3;

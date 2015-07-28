@@ -1,21 +1,16 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <cmath>
 #include <limits>
 
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
-
-// warning! very slow! This setting fixes NAN
-//#define VERY_ACCURATE_FP
-
-#define MIN_SINGLE 0xc7efffffe0000000ull
-#define MAX_SINGLE 0x47efffffe0000000ull
 
 const u64 PPC_NAN_U64 = 0x7ff8000000000000ull;
 const double PPC_NAN  = *(double* const)&PPC_NAN_U64;
@@ -76,116 +71,126 @@ inline double ForceDouble(double d)
 
 inline double Force25Bit(double d)
 {
-	u64 di = *(u64*)&d;
-	di = (di & 0xFFFFFFFFF8000000ULL) + (di & 0x8000000);
-	return *(double*)&di;
+	MathUtil::IntDouble x(d);
+	x.i = (x.i & 0xFFFFFFFFF8000000ULL) + (x.i & 0x8000000);
+	return x.d;
+}
+
+inline double MakeQuiet(double d)
+{
+	MathUtil::IntDouble x(d);
+	x.i |= MathUtil::DOUBLE_QBIT;
+	return x.d;
 }
 
 // these functions allow globally modify operations behaviour
 // also, these may be used to set flags like FR, FI, OX, UX
 
-inline double NI_mul(const double a, const double b)
+inline double NI_mul(double a, double b)
 {
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (b != b) return b;
 	double t = a * b;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
 	return t;
-#else
-	return a * b;
-#endif
 }
 
-inline double NI_add(const double a, const double b)
+inline double NI_div(double a, double b)
 {
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (b != b) return b;
+	double t = a / b;
+	if (std::isnan(t))
+	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
+		if (b == 0.0)
+		{
+			SetFPException(FPSCR_ZX);
+			if (a == 0.0)
+				SetFPException(FPSCR_VXZDZ);
+		}
+		else if (std::isinf(a) && std::isinf(b))
+		{
+			SetFPException(FPSCR_VXIDI);
+		}
+		return PPC_NAN;
+	}
+	return t;
+}
+
+inline double NI_add(double a, double b)
+{
 	double t = a + b;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
 	return t;
-#else
-	return a + b;
-#endif
 }
 
-inline double NI_sub(const double a, const double b)
+inline double NI_sub(double a, double b)
 {
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (b != b) return b;
 	double t = a - b;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
 	return t;
-#else
-	return a - b;
-#endif
 }
 
-inline double NI_madd(const double a, const double b, const double c)
+// FMA instructions on PowerPC are weird:
+// They calculate (a * c) + b, but the order in which
+// inputs are checked for NaN is still a, b, c.
+inline double NI_madd(double a, double c, double b)
 {
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (c != c) return c;
-	if (b != b) return b;
-	double t = a * b;
-	if (t != t)
+	double t = a * c;
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b); // !
+		if (std::isnan(c)) return MakeQuiet(c);
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
-	t = t + c;
-	if (t != t)
+	t += b;
+	if (std::isnan(t))
 	{
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
 	return t;
-#else
-	return NI_add(NI_mul(a, b), c);
-#endif
 }
 
-inline double NI_msub(const double a, const double b, const double c)
+inline double NI_msub(double a, double c, double b)
 {
-//#ifdef VERY_ACCURATE_FP
-//  This code does not produce accurate fp!  NAN's are not calculated correctly, nor negative zero.
-//	The code is kept here for reference.
-//
-//	if (a != a) return a;
-//	if (c != c) return c;
-//	if (b != b) return b;
-//	double t = a * b;
-//	if (t != t)
-//	{
-//		SetFPException(FPSCR_VXIMZ);
-//		return PPC_NAN;
-//	}
-//
-//	t = t - c;
-//	if (t != t)
-//	{
-//		SetFPException(FPSCR_VXISI);
-//		return PPC_NAN;
-//	}
-//	return t;
-//#else
-//	This code does not calculate QNAN's correctly but calculates negative zero correctly.
-	return NI_sub(NI_mul(a, b), c);
-// #endif
+	double t = a * c;
+	if (std::isnan(t))
+	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b); // !
+		if (std::isnan(c)) return MakeQuiet(c);
+		SetFPException(FPSCR_VXIMZ);
+		return PPC_NAN;
+	}
+
+	t -= b;
+	if (std::isnan(t))
+	{
+		if (std::isnan(b)) return MakeQuiet(b);
+		SetFPException(FPSCR_VXISI);
+		return PPC_NAN;
+	}
+	return t;
 }
 
 // used by stfsXX instructions and ps_rsqrte

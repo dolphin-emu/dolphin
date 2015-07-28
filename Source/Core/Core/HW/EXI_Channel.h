@@ -1,14 +1,15 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <memory>
-
 #include "Common/CommonTypes.h"
-#include "Core/HW/EXI_Device.h"
 
+class IEXIDevice;
+class PointerWrap;
+enum TEXIDevices : int;
 namespace MMIO { class Mapping; }
 
 class CEXIChannel
@@ -47,8 +48,8 @@ private:
 			        u32 ROMDIS  : 1; // ROM Disable
 			u32                 :18;
 		};
-		UEXI_STATUS() {Hex = 0;}
-		UEXI_STATUS(u32 _hex) {Hex = _hex;}
+		UEXI_STATUS() { Hex = 0; }
+		UEXI_STATUS(u32 _hex) { Hex = _hex; }
 	};
 
 	// EXI Control Register
@@ -86,7 +87,7 @@ private:
 public:
 	// get device
 	IEXIDevice* GetDevice(const u8 _CHIP_SELECT);
-	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1);
+	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1);
 
 	CEXIChannel(u32 ChannelId);
 	~CEXIChannel();
@@ -96,7 +97,7 @@ public:
 	void SendTransferComplete();
 
 	void AddDevice(const TEXIDevices device_type, const int device_num);
-	void AddDevice(IEXIDevice* pDevice, const int device_num, bool notifyPresenceChanged=true);
+	void AddDevice(IEXIDevice* pDevice, const int device_num, bool notifyPresenceChanged = true);
 
 	// Remove all devices
 	void RemoveDevices();

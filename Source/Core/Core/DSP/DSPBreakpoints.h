@@ -1,10 +1,11 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include "Common/Common.h"
+#include <cstring>
+#include "Common/CommonTypes.h"
 
 // super fast breakpoints for a limited range.
 // To be used interchangeably with the BreakPoints class.

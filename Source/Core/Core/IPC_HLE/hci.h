@@ -1,8 +1,12 @@
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 // Dolphin notes:
 //  Added some info from bluetooth.h
 //  All packet headers have had the packet type field removed. This is because
 //   IOS adds the packet type to the header, and strips it before returning the
-//   packet to the overlying bt stack.
+//   packet to the overlying Bluetooth stack.
 
 /*	$NetBSD: hci.h,v 1.33 2009/09/11 18:35:50 plunky Exp $	*/
 

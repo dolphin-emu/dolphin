@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -35,8 +35,8 @@ enum InterruptCause
 };
 
 
-extern volatile u32 m_InterruptCause;
-extern volatile u32 m_InterruptMask;
+extern u32 m_InterruptCause;
+extern u32 m_InterruptMask;
 extern u32 Fifo_CPUBase;
 extern u32 Fifo_CPUEnd;
 extern u32 Fifo_CPUWritePointer;

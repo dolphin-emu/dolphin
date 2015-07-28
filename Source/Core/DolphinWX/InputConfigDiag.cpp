@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -10,20 +10,15 @@
 #include <string>
 #include <vector>
 #include <wx/app.h>
-#include <wx/arrstr.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
-#include <wx/chartype.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/combobox.h>
 #include <wx/control.h>
 #include <wx/dcmemory.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/font.h>
-#include <wx/gdicmn.h>
 #include <wx/listbox.h>
 #include <wx/msgdlg.h>
 #include <wx/notebook.h>
@@ -33,17 +28,17 @@
 #include <wx/spinctrl.h>
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
 #include <wx/timer.h>
-#include <wx/toplevel.h>
-#include <wx/translation.h>
-#include <wx/unichar.h>
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+#include "Core/Core.h"
+#include "Core/HotkeyManager.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
@@ -177,18 +172,14 @@ void InputConfigDialog::UpdateProfileComboBox()
 	pname += PROFILES_PATH;
 	pname += m_config.profile_name;
 
-	CFileSearch::XStringVector exts;
-	exts.push_back("*.ini");
-	CFileSearch::XStringVector dirs;
-	dirs.push_back(pname);
-	CFileSearch cfs(exts, dirs);
-	const CFileSearch::XStringVector& sv = cfs.GetFileNames();
+	std::vector<std::string> sv = DoFileSearch({"*.ini"}, {pname});
 
 	wxArrayString strs;
-	for (auto si = sv.cbegin(); si != sv.cend(); ++si)
+	for (const std::string& filename : sv)
 	{
-		std::string str(si->begin() + si->find_last_of('/') + 1 , si->end() - 4) ;
-		strs.push_back(StrToWxStr(str));
+		std::string base;
+		SplitPath(filename, nullptr, &base, nullptr);
+		strs.push_back(StrToWxStr(base));
 	}
 
 	for (GamepadPage* page : m_padpages)
@@ -210,6 +201,11 @@ void InputConfigDialog::ClickSave(wxCommandEvent& event)
 {
 	m_config.SaveConfig();
 	event.Skip();
+}
+
+int ControlDialog::GetRangeSliderValue() const
+{
+	return range_slider->GetValue();
 }
 
 void ControlDialog::UpdateListContents()
@@ -296,7 +292,6 @@ void GamepadPage::ClearAll(wxCommandEvent&)
 	// no point in using the real ControllerInterface i guess
 	ControllerInterface face;
 
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	controller->UpdateReferences(face);
 
 	UpdateGUI();
@@ -306,7 +301,6 @@ void GamepadPage::LoadDefaults(wxCommandEvent&)
 {
 	controller->LoadDefaults(g_controller_interface);
 
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	controller->UpdateReferences(g_controller_interface);
 
 	UpdateGUI();
@@ -316,7 +310,6 @@ bool ControlDialog::Validate()
 {
 	control_reference->expression = WxStrToStr(textctrl->GetValue());
 
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
 	UpdateGUI();
@@ -335,7 +328,6 @@ void GamepadPage::SetDevice(wxCommandEvent&)
 	controller->UpdateDefaultDevice();
 
 	// update references
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	controller->UpdateReferences(g_controller_interface);
 }
 
@@ -354,7 +346,6 @@ void ControlDialog::ClearControl(wxCommandEvent&)
 {
 	control_reference->expression.clear();
 
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
 	UpdateGUI();
@@ -416,7 +407,6 @@ void ControlDialog::SetSelectedControl(wxCommandEvent&)
 	textctrl->WriteText(expr);
 	control_reference->expression = textctrl->GetValue();
 
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
 	UpdateGUI();
@@ -451,7 +441,6 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
 	textctrl->WriteText(expr);
 	control_reference->expression = textctrl->GetValue();
 
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
 	UpdateGUI();
@@ -459,21 +448,18 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
 
 void GamepadPage::AdjustSetting(wxCommandEvent& event)
 {
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
 }
 
 void GamepadPage::AdjustSettingUI(wxCommandEvent& event)
 {
 	m_iterate = !m_iterate;
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
 }
 
 void GamepadPage::AdjustControlOption(wxCommandEvent&)
 {
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
-	m_control_dialog->control_reference->range = (ControlState)(m_control_dialog->range_slider->GetValue()) / SLIDER_TICK_COUNT;
+	m_control_dialog->control_reference->range = (ControlState)(m_control_dialog->GetRangeSliderValue()) / SLIDER_TICK_COUNT;
 }
 
 void GamepadPage::ConfigControl(wxEvent& event)
@@ -492,7 +478,6 @@ void GamepadPage::ClearControl(wxEvent& event)
 	btn->control_reference->expression.clear();
 	btn->control_reference->range = 1.0;
 
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	controller->UpdateReferences(g_controller_interface);
 
 	// update changes
@@ -512,7 +497,6 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 		// This makes the "waiting" text work on Linux. true (only if needed) prevents crash on Windows
 		wxTheApp->Yield(true);
 
-		std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 		ciface::Core::Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, select it in the list
@@ -552,7 +536,6 @@ bool GamepadPage::DetectButton(ControlButton* button)
 		// This makes the "waiting" text work on Linux. true (only if needed) prevents crash on Windows
 		wxTheApp->Yield(true);
 
-		std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 		ciface::Core::Device::Control* const ctrl = button->control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, update expression and reference
@@ -677,7 +660,6 @@ void GamepadPage::LoadProfile(wxCommandEvent&)
 	IniFile inifile;
 	inifile.Load(fname);
 
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	controller->LoadConfig(inifile.GetOrCreateSection("Profile"));
 	controller->UpdateReferences(g_controller_interface);
 
@@ -740,7 +722,7 @@ void InputConfigDialog::UpdateDeviceComboBox()
 
 void GamepadPage::RefreshDevices(wxCommandEvent&)
 {
-	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
+	bool was_unpaused = Core::PauseAndLock(true);
 
 	// refresh devices
 	g_controller_interface.Reinitialize();
@@ -750,6 +732,13 @@ void GamepadPage::RefreshDevices(wxCommandEvent&)
 
 	// update device cbox
 	m_config_dialog->UpdateDeviceComboBox();
+
+	Wiimote::LoadConfig();
+	Keyboard::LoadConfig();
+	Pad::LoadConfig();
+	HotkeyManagerEmu::LoadConfig();
+
+	Core::PauseAndLock(false, was_unpaused);
 }
 
 ControlGroupBox::~ControlGroupBox()
@@ -836,7 +825,11 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 		break;
 	case GROUP_TYPE_BUTTONS:
 		{
-			wxBitmap bitmap(int(12*group->controls.size()+1), 12);
+			// Draw buttons in rows of 8
+			unsigned int button_cols = group->controls.size() > 8 ? 8 : group->controls.size();
+			unsigned int button_rows = ceil((float)group->controls.size() / 8.0f);
+			wxBitmap bitmap(int(12 * button_cols + 1), (11 * button_rows) + 1);
+
 			dc.SelectObject(bitmap);
 			dc.Clear();
 			static_bitmap = new wxStaticBitmap(parent, wxID_ANY, bitmap, wxDefaultPosition, wxDefaultSize, wxBITMAP_TYPE_BMP);
@@ -999,7 +992,7 @@ GamepadPage::GamepadPage(wxWindow* parent, InputConfig& config, const unsigned i
 	device_cbox = new wxComboBox(this, wxID_ANY, "", wxDefaultPosition, wxSize(64, -1));
 	device_cbox->ToggleWindowStyle(wxTE_PROCESS_ENTER);
 
-	wxButton* refresh_button = new wxButton(this, wxID_ANY, _("Refresh"), wxDefaultPosition, wxSize(60, -1));
+	wxButton* refresh_button = new wxButton(this, wxID_ANY, _("Refresh"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
 	device_cbox->Bind(wxEVT_COMBOBOX, &GamepadPage::SetDevice, this);
 	device_cbox->Bind(wxEVT_TEXT_ENTER, &GamepadPage::SetDevice, this);
@@ -1008,8 +1001,8 @@ GamepadPage::GamepadPage(wxWindow* parent, InputConfig& config, const unsigned i
 	device_sbox->Add(device_cbox, 1, wxLEFT|wxRIGHT, 3);
 	device_sbox->Add(refresh_button, 0, wxRIGHT|wxBOTTOM, 3);
 
-	wxButton* const default_button = new wxButton(this, wxID_ANY, _("Default"), wxDefaultPosition, wxSize(48, -1));
-	wxButton* const clearall_button = new wxButton(this, wxID_ANY, _("Clear"), wxDefaultPosition, wxSize(58, -1));
+	wxButton* const default_button = new wxButton(this, wxID_ANY, _("Default"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+	wxButton* const clearall_button = new wxButton(this, wxID_ANY, _("Clear"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
 	wxStaticBoxSizer* const clear_sbox = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Reset"));
 	clear_sbox->Add(default_button, 1, wxLEFT, 3);
@@ -1020,9 +1013,9 @@ GamepadPage::GamepadPage(wxWindow* parent, InputConfig& config, const unsigned i
 
 	profile_cbox = new wxComboBox(this, wxID_ANY, "", wxDefaultPosition, wxSize(64, -1));
 
-	wxButton* const pload_btn = new wxButton(this, wxID_ANY, _("Load"), wxDefaultPosition, wxSize(48, -1));
-	wxButton* const psave_btn = new wxButton(this, wxID_ANY, _("Save"), wxDefaultPosition, wxSize(48, -1));
-	wxButton* const pdelete_btn = new wxButton(this, wxID_ANY, _("Delete"), wxDefaultPosition, wxSize(60, -1));
+	wxButton* const pload_btn = new wxButton(this, wxID_ANY, _("Load"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+	wxButton* const psave_btn = new wxButton(this, wxID_ANY, _("Save"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+	wxButton* const pdelete_btn = new wxButton(this, wxID_ANY, _("Delete"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
 	pload_btn->Bind(wxEVT_BUTTON, &GamepadPage::LoadProfile, this);
 	psave_btn->Bind(wxEVT_BUTTON, &GamepadPage::SaveProfile, this);
@@ -1055,14 +1048,11 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
 	, m_config(config)
 {
 	m_pad_notebook = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);
-	for (unsigned int i = 0; i < std::min(config.controllers.size(), (size_t)MAX_WIIMOTES); ++i)
-	{
-		GamepadPage* gp = new GamepadPage(m_pad_notebook, m_config, i, this);
-		m_padpages.push_back(gp);
-		m_pad_notebook->AddPage(gp, wxString::Format("%s %u", wxGetTranslation(StrToWxStr(m_config.gui_name)), 1+i));
-	}
+	GamepadPage* gp = new GamepadPage(m_pad_notebook, m_config, tab_num, this);
+	m_padpages.push_back(gp);
+	m_pad_notebook->AddPage(gp, wxString::Format("%s [%u]", wxGetTranslation(StrToWxStr(m_config.gui_name)), 1 + tab_num));
 
-	m_pad_notebook->SetSelection(tab_num);
+	m_pad_notebook->SetSelection(0);
 
 	UpdateDeviceComboBox();
 	UpdateProfileComboBox();
@@ -1073,17 +1063,12 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
 	szr->Add(m_pad_notebook, 0, wxEXPAND|wxTOP|wxLEFT|wxRIGHT, 5);
 	szr->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxEXPAND|wxALL, 5);
 
+	SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
 	SetSizerAndFit(szr);
 	Center();
 
 	// live preview update timer
-	m_update_timer = new wxTimer(this);
+	m_update_timer.SetOwner(this);
 	Bind(wxEVT_TIMER, &InputConfigDialog::UpdateBitmaps, this);
-	m_update_timer->Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
-}
-
-bool InputConfigDialog::Destroy()
-{
-	m_update_timer->Stop();
-	return true;
+	m_update_timer.Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
 }

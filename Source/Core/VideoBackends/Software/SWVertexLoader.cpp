@@ -1,6 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
+
+#include <limits>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -14,7 +16,9 @@
 #include "VideoBackends/Software/XFMemLoader.h"
 
 #include "VideoCommon/VertexLoaderBase.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
+
 
 SWVertexLoader::SWVertexLoader() :
 	m_VertexSize(0)
@@ -31,7 +35,6 @@ SWVertexLoader::~SWVertexLoader()
 void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
 	m_attributeIndex = attributeIndex;
-	m_primitiveType = primitiveType;
 
 	VertexLoaderUID uid(g_main_cp_state.vtx_desc, g_main_cp_state.vtx_attr[m_attributeIndex]);
 	m_CurrentLoader = m_VertexLoaderMap[uid].get();
@@ -98,16 +101,17 @@ static T ReadNormalized(I value)
 }
 
 template <typename T, bool swap = false>
-static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& format, int base_component, int max_components, bool reverse)
+static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& format, int base_component, int components, bool reverse)
 {
 	if (format.enable)
 	{
 		src.Skip(format.offset);
 		src.Skip(base_component * (1<<(format.type>>1)));
 
-		for (int i = 0; i < std::min(format.components - base_component, max_components); i++)
+		int i;
+		for (i = 0; i < std::min(format.components - base_component, components); i++)
 		{
-			int i_dst = reverse ? max_components - i - 1 : i;
+			int i_dst = reverse ? components - i - 1 : i;
 			switch (format.type)
 			{
 				case VAR_UNSIGNED_BYTE:
@@ -128,6 +132,11 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
 			}
 
 			_assert_msg_(VIDEO, !format.integer || format.type != VAR_FLOAT, "only non-float values are allowed to be streamed as integer");
+		}
+		for (; i < components; i++)
+		{
+			int i_dst = reverse ? components - i - 1 : i;
+			dst[i_dst] = i == 3;
 		}
 	}
 }
@@ -169,14 +178,19 @@ void SWVertexLoader::LoadVertex()
 	// reserve memory for the destination of the vertex loader
 	m_LoadedVertices.resize(vdec.stride + 4);
 
+	VertexLoaderManager::UpdateVertexArrayPointers();
+
 	// convert the vertex from the gc format to the videocommon (hardware optimized) format
 	u8* old = g_video_buffer_read_ptr;
-	m_CurrentLoader->RunVertices(
-		m_primitiveType, 1,
+	int converted_vertices = m_CurrentLoader->RunVertices(
 		DataReader(g_video_buffer_read_ptr, nullptr), // src
-		DataReader(m_LoadedVertices.data(), m_LoadedVertices.data() + m_LoadedVertices.size()) // dst
+		DataReader(m_LoadedVertices.data(), m_LoadedVertices.data() + m_LoadedVertices.size()), // dst
+		1 // vertices
 	);
 	g_video_buffer_read_ptr = old + m_CurrentLoader->m_VertexSize;
+
+	if (converted_vertices == 0)
+		return;
 
 	// parse the videocommon format to our own struct format (m_Vertex)
 	ParseVertex(vdec);

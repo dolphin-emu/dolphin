@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -24,16 +24,6 @@ enum
 	TOP    = 2,
 	BOTTOM = 3
 };
-
-// Current position matrix index
-extern u8 posMtxIdx;
-
-// Texture matrix indexes
-extern u8 texMtxIdx[8];
-
-void LOADERDECL SetVertexBufferPosition(VertexLoader* loader);
-void LOADERDECL Update(VertexLoader* loader);
-void Prepare(const VAT & vat, int primitive, const TVtxDesc & vtxDesc, const PortableVertexDeclaration & vtxDecl);
 
 // Save state
 void DoState(PointerWrap &p);

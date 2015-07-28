@@ -1,13 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/panel.h>
-#include <wx/windowid.h>
 #include <wx/aui/framemanager.h>
 
 #include "Common/CommonTypes.h"
@@ -19,7 +16,6 @@ class CMemoryView;
 class wxAuiNotebook;
 class wxAuiToolBar;
 class wxListBox;
-class wxWindow;
 
 class DSPDebuggerLLE : public wxPanel
 {
@@ -36,7 +32,6 @@ private:
 		ID_RUNTOOL,
 		ID_STEPTOOL,
 		ID_SHOWPCTOOL,
-		ID_DSP_REGS
 	};
 
 	DSPDebugInterface debug_interface;

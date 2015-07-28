@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 #pragma once
 #include "Common/CommonTypes.h"
@@ -14,6 +14,7 @@ namespace DriverDetails
 		OS_LINUX   = (1 << 2),
 		OS_OSX     = (1 << 3),
 		OS_ANDROID = (1 << 4),
+		OS_FREEBSD = (1 << 5),
 	};
 	// Enum of known vendors
 	// Tegra and Nvidia are separated out due to such substantial differences
@@ -97,10 +98,10 @@ namespace DriverDetails
 		// Started Version: ?
 		// Ended Version: 13.9 working for me (neobrain).
 		// Affected OS: Linux
-		// Pinned memory is disabled for index buffer as the amd driver (the only one with pinned memory support) seems
+		// Pinned memory is disabled for index buffer as the AMD driver (the only one with pinned memory support) seems
 		// to be broken. We just get flickering/black rendering when using pinned memory here -- degasus - 2013/08/20
 		// This bug only happens when paired with base_vertex.
-		// Please see issue #6105 on google code. Let's hope buffer storage solves this issues.
+		// Please see issue #6105 on Google Code. Let's hope buffer storage solves this issues.
 		// TODO: Detect broken drivers.
 		BUG_BROKENPINNEDMEMORY,
 		// Bug: Entirely broken UBOs
@@ -134,7 +135,7 @@ namespace DriverDetails
 		// If a shader includes a textureSize function call then the shader compiler will call abort()
 		BUG_BROKENTEXTURESIZE,
 		// Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams
-		// Affected devices: Geforce 4xx+
+		// Affected devices: GeForce 4xx+
 		// Started Version: -1
 		// Ended Version: 332.21
 		// The buffer_storage streaming method is required for greater speed gains in our buffer streaming
@@ -150,14 +151,14 @@ namespace DriverDetails
 		// Intel HD 4000 series isn't affected by the bug
 		BUG_PRIMITIVERESTART,
 		// Bug: unsync mapping doesn't work fine
-		// Affected devices: nvidia driver
+		// Affected devices: Nvidia driver
 		// Started Version: -1
 		// Ended Version: -1
-		// The nvidia driver (both windows + linux) doesn't like unsync mapping performance wise.
-		// Because of their threaded behavoir, they seem not to handle unsync mapping complete unsync,
+		// The Nvidia driver (both Windows + Linux) doesn't like unsync mapping performance wise.
+		// Because of their threaded behavior, they seem not to handle unsync mapping complete unsync,
 		// in fact, they serialize the driver which adds a much bigger overhead.
 		// Workaround: Use BufferSubData
-		// TODO: some windows AMD driver/gpu combination seems also affected
+		// TODO: some Windows AMD driver/GPU combination seems also affected
 		//       but as they all support pinned memory, it doesn't matter
 		BUG_BROKENUNSYNCMAPPING,
 		// Bug: Intel's Window driver broke buffer_storage with GL_ELEMENT_ARRAY_BUFFER
@@ -200,16 +201,39 @@ namespace DriverDetails
 		// Broken on Windows Intel
 		// if (cond == false)
 		BUG_BROKENNEGATEDBOOLEAN,
-		// Bug: Intel's Windows driver breaks interface blocks that contain structs.
-		// Affected devices: Intel (Windows)
-		// Started Version: -1
-		// Ended Version: -1
-		// We need interface blocks to make the geometry shader optional and we need structs to make
-		// assignment easier in the geometry shader stage. However Intel's Windows drivers don't seem
-		// to be able handle this combination.
-		// TODO: Find affected versions.
-		BUG_INTELBROKENINTERFACEBLOCKS,
 
+		// Bug: Qualcomm has broken ivec to scalar and ivec to ivec bitshifts
+		// Affected devices: Adreno
+		// Started Version: -1
+		// Ended Version: 46 (TODO: Test more devices, the real end is currently unknown)
+		// Qualcomm has broken integer vector to integer bitshifts, and integer vector to integer vector bitshifts
+		// A compilation error is generated when trying to compile the shaders.
+		//
+		// For example:
+		//	Broken on Qualcomm:
+		//		ivec4 ab = ivec4(1,1,1,1);
+		//		ab <<= 2;
+		//
+		//	Working on Qualcomm:
+		//		ivec4 ab = ivec4(1,1,1,1);
+		//		ab.x <<= 2;
+		//		ab.y <<= 2;
+		//		ab.z <<= 2;
+		//		ab.w <<= 2;
+		//
+		//	Broken on Qualcomm:
+		//		ivec4 ab = ivec4(1,1,1,1);
+		//		ivec4 cd = ivec4(1,2,3,4);
+		//		ab <<= cd;
+		//
+		//	Working on Qualcomm:
+		//		ivec4 ab = ivec4(1,1,1,1);
+		//		ivec4 cd = ivec4(1,2,3,4);
+		//		ab.x <<= cd.x;
+		//		ab.y <<= cd.y;
+		//		ab.z <<= cd.z;
+		//		ab.w <<= cd.w;
+		BUG_BROKENIVECSHIFTS,
 	};
 
 	// Initializes our internal vendor, device family, and driver version

@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -19,6 +19,8 @@ class PCAP;
 class DSPCaptureLogger
 {
 public:
+	virtual ~DSPCaptureLogger() {}
+
 	// Accesses (reads or writes) to memory mapped registers (external
 	// interface, also known as IFX). These are always 16 bits accesses.
 	virtual void LogIFXRead(u16 address, u16 read_value) = 0;

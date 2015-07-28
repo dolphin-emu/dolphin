@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
@@ -163,7 +163,7 @@ void SetupUnit::SetupPoint()
 
 void SetupUnit::DoState(PointerWrap &p)
 {
-	// TODO: some or all of this is making the save states stop working once dolphin is closed...sometimes (usually)
+	// TODO: some or all of this is making the save states stop working once Dolphin is closed...sometimes (usually)
 	// I have no idea what specifically is wrong, or if this is even important. Disabling it doesn't seem to make any noticible difference...
 /*	p.Do(m_PrimType);
 	p.Do(m_VertexCounter);

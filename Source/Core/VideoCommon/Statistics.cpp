@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -28,6 +28,7 @@ std::string Statistics::ToString()
 {
 	std::string str;
 	str += StringFromFormat("Textures created: %i\n", stats.numTexturesCreated);
+	str += StringFromFormat("Textures uploaded: %i\n", stats.numTexturesUploaded);
 	str += StringFromFormat("Textures alive: %i\n", stats.numTexturesAlive);
 	str += StringFromFormat("pshaders created: %i\n", stats.numPixelShadersCreated);
 	str += StringFromFormat("pshaders alive: %i\n", stats.numPixelShadersAlive);
@@ -45,9 +46,9 @@ std::string Statistics::ToString()
 	str += StringFromFormat("CP loads (DL): %i\n", stats.thisFrame.numCPLoadsInDL);
 	str += StringFromFormat("BP loads: %i\n", stats.thisFrame.numBPLoads);
 	str += StringFromFormat("BP loads (DL): %i\n", stats.thisFrame.numBPLoadsInDL);
-	str += StringFromFormat("Vertex streamed: %i kB\n", stats.thisFrame.bytesVertexStreamed/1024);
-	str += StringFromFormat("Index streamed: %i kB\n", stats.thisFrame.bytesIndexStreamed/1024);
-	str += StringFromFormat("Uniform streamed: %i kB\n", stats.thisFrame.bytesUniformStreamed/1024);
+	str += StringFromFormat("Vertex streamed: %i kB\n", stats.thisFrame.bytesVertexStreamed / 1024);
+	str += StringFromFormat("Index streamed: %i kB\n", stats.thisFrame.bytesIndexStreamed / 1024);
+	str += StringFromFormat("Uniform streamed: %i kB\n", stats.thisFrame.bytesUniformStreamed / 1024);
 	str += StringFromFormat("Vertex Loaders: %i\n", stats.numVertexLoaders);
 
 	std::string vertex_list;

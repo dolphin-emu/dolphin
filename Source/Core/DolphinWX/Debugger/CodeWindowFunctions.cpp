@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
@@ -7,21 +7,14 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/filedlg.h>
 #include <wx/font.h>
 #include <wx/fontdata.h>
 #include <wx/fontdlg.h>
 #include <wx/listbox.h>
 #include <wx/menu.h>
-#include <wx/menuitem.h>
 #include <wx/mimetype.h>
-#include <wx/string.h>
 #include <wx/textdlg.h>
-#include <wx/translation.h>
-#include <wx/utils.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -86,7 +79,7 @@ void CCodeWindow::Load()
 	};
 
 	// Decide what windows to show
-	for (int i = 0; i <= IDM_VIDEOWINDOW - IDM_LOGWINDOW; i++)
+	for (int i = 0; i <= IDM_VIDEO_WINDOW - IDM_LOG_WINDOW; i++)
 		ini.GetOrCreateSection("ShowOnStart")->Get(SettingName[i], &bShowOnStart[i], false);
 
 	// Get notebook affiliation
@@ -94,11 +87,11 @@ void CCodeWindow::Load()
 		((Parent->ActivePerspective < Parent->Perspectives.size())
 		? Parent->Perspectives[Parent->ActivePerspective].Name : "Perspective 1");
 
-	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
+	for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
 		ini.GetOrCreateSection(section)->Get(SettingName[i], &iNbAffiliation[i], 0);
 
 	// Get floating setting
-	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
+	for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
 		ini.GetOrCreateSection("Float")->Get(SettingName[i], &Parent->bFloatWindow[i], false);
 }
 
@@ -109,8 +102,8 @@ void CCodeWindow::Save()
 
 	IniFile::Section* general = ini.GetOrCreateSection("General");
 	general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
-	general->Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
-	general->Set("BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
+	general->Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATIC_START));
+	general->Set("BootToPause", GetMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE));
 
 	const char* SettingName[] = {
 		"Log",
@@ -126,17 +119,17 @@ void CCodeWindow::Save()
 	};
 
 	// Save windows settings
-	for (int i = IDM_LOGWINDOW; i <= IDM_VIDEOWINDOW; i++)
-		ini.GetOrCreateSection("ShowOnStart")->Set(SettingName[i - IDM_LOGWINDOW], GetMenuBar()->IsChecked(i));
+	for (int i = IDM_LOG_WINDOW; i <= IDM_VIDEO_WINDOW; i++)
+		ini.GetOrCreateSection("ShowOnStart")->Set(SettingName[i - IDM_LOG_WINDOW], GetMenuBar()->IsChecked(i));
 
 	// Save notebook affiliations
 	std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
-	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
+	for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
 		ini.GetOrCreateSection(section)->Set(SettingName[i], iNbAffiliation[i]);
 
 	// Save floating setting
-	for (int i = IDM_LOGWINDOW_PARENT; i <= IDM_CODEWINDOW_PARENT; i++)
-		ini.GetOrCreateSection("Float")->Set(SettingName[i - IDM_LOGWINDOW_PARENT], !!FindWindowById(i));
+	for (int i = IDM_LOG_WINDOW_PARENT; i <= IDM_CODE_WINDOW_PARENT; i++)
+		ini.GetOrCreateSection("Float")->Set(SettingName[i - IDM_LOG_WINDOW_PARENT], !!FindWindowById(i));
 
 	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 }
@@ -146,24 +139,24 @@ void CCodeWindow::Save()
 void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 {
 	wxMenu *pSymbolsMenu = new wxMenu;
-	pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _("&Clear symbols"),
+	pSymbolsMenu->Append(IDM_CLEAR_SYMBOLS, _("&Clear symbols"),
 		_("Remove names from all functions and variables."));
-	pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _("&Generate symbol map"),
+	pSymbolsMenu->Append(IDM_SCAN_FUNCTIONS, _("&Generate symbol map"),
 		_("Recognise standard functions from sys\\totaldb.dsy, and use generic zz_ names for other functions."));
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_LOADMAPFILE, _("&Load symbol map"),
+	pSymbolsMenu->Append(IDM_LOAD_MAP_FILE, _("&Load symbol map"),
 		_("Try to load this game's function names automatically - but doesn't check .map files stored on the disc image yet."));
 	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"),
 		_("Save the function names for each address to a .map file in your user settings map folder, named after the title id."));
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_LOADMAPFILEAS, _("Load &other map file..."),
+	pSymbolsMenu->Append(IDM_LOAD_MAP_FILE_AS, _("Load &other map file..."),
 		_("Load any .map file containing the function names and addresses for this game."));
-	pSymbolsMenu->Append(IDM_LOADBADMAPFILE, _("Load &bad map file..."),
+	pSymbolsMenu->Append(IDM_LOAD_BAD_MAP_FILE, _("Load &bad map file..."),
 		_("Try to load a .map file that might be from a slightly different version."));
-	pSymbolsMenu->Append(IDM_SAVEMAPFILEAS, _("Save symbol map &as..."),
+	pSymbolsMenu->Append(IDM_SAVE_MAP_FILE_AS, _("Save symbol map &as..."),
 		_("Save the function names and addresses for this game as a .map file. If you want to open it in IDA pro, use the .idc script."));
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _("Save code"),
+	pSymbolsMenu->Append(IDM_SAVE_MAP_FILE_WITH_CODES, _("Save code"),
 		_("Save the entire disassembled code. This may take a several seconds"
 		" and may require between 50 and 100 MB of hard drive space. It will only save code"
 		" that are in the first 4 MB of memory, if you are debugging a game that load .rel"
@@ -172,23 +165,23 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 		);
 
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _("&Create signature file..."),
+	pSymbolsMenu->Append(IDM_CREATE_SIGNATURE_FILE, _("&Create signature file..."),
 		_("Create a .dsy file that can be used to recognise these same functions in other games."));
-	pSymbolsMenu->Append(IDM_APPENDSIGNATUREFILE, _("Append to &existing signature file..."),
+	pSymbolsMenu->Append(IDM_APPEND_SIGNATURE_FILE, _("Append to &existing signature file..."),
 		_("Add any named functions missing from a .dsy file, so it can also recognise these additional functions in other games."));
-	pSymbolsMenu->Append(IDM_COMBINESIGNATUREFILES, _("Combine two signature files..."),
+	pSymbolsMenu->Append(IDM_COMBINE_SIGNATURE_FILES, _("Combine two signature files..."),
 		_("Make a new .dsy file which can recognise more functions, by combining two existing files. The first input file has priority."));
-	pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _("Apply signat&ure file..."),
+	pSymbolsMenu->Append(IDM_USE_SIGNATURE_FILE, _("Apply signat&ure file..."),
 		_("Must use Generate symbol map first! Recognise names of any standard library functions used in multiple games, by loading them from a .dsy file."));
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _("&Patch HLE functions"));
+	pSymbolsMenu->Append(IDM_PATCH_HLE_FUNCTIONS, _("&Patch HLE functions"));
 	pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _("&Rename symbols from file..."));
 	pMenuBar->Append(pSymbolsMenu, _("&Symbols"));
 
 	wxMenu *pProfilerMenu = new wxMenu;
-	pProfilerMenu->Append(IDM_PROFILEBLOCKS, _("&Profile blocks"), wxEmptyString, wxITEM_CHECK);
+	pProfilerMenu->Append(IDM_PROFILE_BLOCKS, _("&Profile blocks"), wxEmptyString, wxITEM_CHECK);
 	pProfilerMenu->AppendSeparator();
-	pProfilerMenu->Append(IDM_WRITEPROFILE, _("&Write to profile.txt, show"));
+	pProfilerMenu->Append(IDM_WRITE_PROFILE, _("&Write to profile.txt, show"));
 	pMenuBar->Append(pProfilerMenu, _("&Profiler"));
 }
 
@@ -196,14 +189,14 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case IDM_PROFILEBLOCKS:
+	case IDM_PROFILE_BLOCKS:
 		Core::SetState(Core::CORE_PAUSE);
 		if (jit != nullptr)
 			jit->ClearCache();
-		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
+		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILE_BLOCKS);
 		Core::SetState(Core::CORE_RUN);
 		break;
-	case IDM_WRITEPROFILE:
+	case IDM_WRITE_PROFILE:
 		if (Core::GetState() == Core::CORE_RUN)
 			Core::SetState(Core::CORE_PAUSE);
 
@@ -245,12 +238,12 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	                                     &title_id_str);
 	switch (event.GetId())
 	{
-	case IDM_CLEARSYMBOLS:
+	case IDM_CLEAR_SYMBOLS:
 		if (!AskYesNoT("Do you want to clear the list of symbol names?")) return;
 		g_symbolDB.Clear();
 		Host_NotifyMapLoaded();
 		break;
-	case IDM_SCANFUNCTIONS:
+	case IDM_SCAN_FUNCTIONS:
 		{
 		PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
 		SignatureDB db;
@@ -269,7 +262,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		NotifyMapLoaded();
 		break;
 		}
-	case IDM_LOADMAPFILE:
+	case IDM_LOAD_MAP_FILE:
 		if (!map_exists)
 		{
 			g_symbolDB.Clear();
@@ -287,7 +280,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		HLE::PatchFunctions();
 		NotifyMapLoaded();
 		break;
-	case IDM_LOADMAPFILEAS:
+	case IDM_LOAD_MAP_FILE_AS:
 		{
 			const wxString path = wxFileSelector(
 				_("Load map file"), File::GetUserPath(D_MAPS_IDX),
@@ -304,7 +297,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			NotifyMapLoaded();
 		}
 		break;
-	case IDM_LOADBADMAPFILE:
+	case IDM_LOAD_BAD_MAP_FILE:
 		{
 			const wxString path = wxFileSelector(
 				_("Load bad map file"), File::GetUserPath(D_MAPS_IDX),
@@ -324,7 +317,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	case IDM_SAVEMAPFILE:
 		g_symbolDB.SaveMap(writable_map_file);
 		break;
-	case IDM_SAVEMAPFILEAS:
+	case IDM_SAVE_MAP_FILE_AS:
 		{
 			const wxString path = wxFileSelector(
 				_("Save map file as"), File::GetUserPath(D_MAPS_IDX),
@@ -336,7 +329,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				g_symbolDB.SaveMap(WxStrToStr(path));
 		}
 		break;
-	case IDM_SAVEMAPFILEWITHCODES:
+	case IDM_SAVE_MAP_FILE_WITH_CODES:
 		g_symbolDB.SaveMap(writable_map_file, true);
 		break;
 
@@ -375,7 +368,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		}
 		break;
 
-	case IDM_CREATESIGNATUREFILE:
+	case IDM_CREATE_SIGNATURE_FILE:
 		{
 			wxTextEntryDialog input_prefix(
 				this,
@@ -401,7 +394,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			}
 		}
 		break;
-	case IDM_APPENDSIGNATUREFILE:
+	case IDM_APPEND_SIGNATURE_FILE:
 		{
 			wxTextEntryDialog input_prefix(
 				this,
@@ -429,7 +422,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			}
 		}
 		break;
-	case IDM_USESIGNATUREFILE:
+	case IDM_USE_SIGNATURE_FILE:
 		{
 			wxString path = wxFileSelector(
 				_("Apply signature file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
@@ -445,7 +438,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			}
 		}
 		break;
-	case IDM_COMBINESIGNATUREFILES:
+	case IDM_COMBINE_SIGNATURE_FILES:
 		{
 			wxString path1 = wxFileSelector(
 				_("Choose priority input file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
@@ -473,7 +466,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			}
 		}
 		break;
-	case IDM_PATCHHLEFUNCTIONS:
+	case IDM_PATCH_HLE_FUNCTIONS:
 		HLE::PatchFunctions();
 		Update();
 		break;
@@ -541,21 +534,21 @@ void CCodeWindow::OpenPages()
 	ToggleCodeWindow(true);
 	if (bShowOnStart[0])
 		Parent->ToggleLogWindow(true);
-	if (bShowOnStart[IDM_LOGCONFIGWINDOW - IDM_LOGWINDOW])
+	if (bShowOnStart[IDM_LOG_CONFIG_WINDOW - IDM_LOG_WINDOW])
 		Parent->ToggleLogConfigWindow(true);
-	if (bShowOnStart[IDM_REGISTERWINDOW - IDM_LOGWINDOW])
+	if (bShowOnStart[IDM_REGISTER_WINDOW - IDM_LOG_WINDOW])
 		ToggleRegisterWindow(true);
-	if (bShowOnStart[IDM_WATCHWINDOW - IDM_LOGWINDOW])
+	if (bShowOnStart[IDM_WATCH_WINDOW - IDM_LOG_WINDOW])
 		ToggleWatchWindow(true);
-	if (bShowOnStart[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW])
+	if (bShowOnStart[IDM_BREAKPOINT_WINDOW - IDM_LOG_WINDOW])
 		ToggleBreakPointWindow(true);
-	if (bShowOnStart[IDM_MEMORYWINDOW - IDM_LOGWINDOW])
+	if (bShowOnStart[IDM_MEMORY_WINDOW - IDM_LOG_WINDOW])
 		ToggleMemoryWindow(true);
-	if (bShowOnStart[IDM_JITWINDOW - IDM_LOGWINDOW])
+	if (bShowOnStart[IDM_JIT_WINDOW - IDM_LOG_WINDOW])
 		ToggleJitWindow(true);
-	if (bShowOnStart[IDM_SOUNDWINDOW - IDM_LOGWINDOW])
+	if (bShowOnStart[IDM_SOUND_WINDOW - IDM_LOG_WINDOW])
 		ToggleSoundWindow(true);
-	if (bShowOnStart[IDM_VIDEOWINDOW - IDM_LOGWINDOW])
+	if (bShowOnStart[IDM_VIDEO_WINDOW - IDM_LOG_WINDOW])
 		ToggleVideoWindow(true);
 }
 
@@ -563,22 +556,22 @@ void CCodeWindow::ToggleCodeWindow(bool bShow)
 {
 	if (bShow)
 		Parent->DoAddPage(this,
-		        iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW],
-		        Parent->bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_CODE_WINDOW - IDM_LOG_WINDOW],
+		        Parent->bFloatWindow[IDM_CODE_WINDOW - IDM_LOG_WINDOW]);
 	else // Hide
 		Parent->DoRemovePage(this);
 }
 
 void CCodeWindow::ToggleRegisterWindow(bool bShow)
 {
-	GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(bShow);
+	GetMenuBar()->FindItem(IDM_REGISTER_WINDOW)->Check(bShow);
 	if (bShow)
 	{
 		if (!m_RegisterWindow)
-			m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
+			m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTER_WINDOW);
 		Parent->DoAddPage(m_RegisterWindow,
-		        iNbAffiliation[IDM_REGISTERWINDOW - IDM_LOGWINDOW],
-		        Parent->bFloatWindow[IDM_REGISTERWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_REGISTER_WINDOW - IDM_LOG_WINDOW],
+		        Parent->bFloatWindow[IDM_REGISTER_WINDOW - IDM_LOG_WINDOW]);
 	}
 	else // Close
 	{
@@ -589,14 +582,14 @@ void CCodeWindow::ToggleRegisterWindow(bool bShow)
 
 void CCodeWindow::ToggleWatchWindow(bool bShow)
 {
-	GetMenuBar()->FindItem(IDM_WATCHWINDOW)->Check(bShow);
+	GetMenuBar()->FindItem(IDM_WATCH_WINDOW)->Check(bShow);
 	if (bShow)
 	{
 		if (!m_WatchWindow)
-			m_WatchWindow = new CWatchWindow(Parent, IDM_WATCHWINDOW);
+			m_WatchWindow = new CWatchWindow(Parent, IDM_WATCH_WINDOW);
 		Parent->DoAddPage(m_WatchWindow,
-		        iNbAffiliation[IDM_WATCHWINDOW - IDM_LOGWINDOW],
-		        Parent->bFloatWindow[IDM_WATCHWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_WATCH_WINDOW - IDM_LOG_WINDOW],
+		        Parent->bFloatWindow[IDM_WATCH_WINDOW - IDM_LOG_WINDOW]);
 	}
 	else // Close
 	{
@@ -607,14 +600,14 @@ void CCodeWindow::ToggleWatchWindow(bool bShow)
 
 void CCodeWindow::ToggleBreakPointWindow(bool bShow)
 {
-	GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(bShow);
+	GetMenuBar()->FindItem(IDM_BREAKPOINT_WINDOW)->Check(bShow);
 	if (bShow)
 	{
 		if (!m_BreakpointWindow)
-			m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
+			m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINT_WINDOW);
 		Parent->DoAddPage(m_BreakpointWindow,
-		        iNbAffiliation[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW],
-		        Parent->bFloatWindow[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_BREAKPOINT_WINDOW - IDM_LOG_WINDOW],
+		        Parent->bFloatWindow[IDM_BREAKPOINT_WINDOW - IDM_LOG_WINDOW]);
 	}
 	else // Close
 	{
@@ -625,14 +618,14 @@ void CCodeWindow::ToggleBreakPointWindow(bool bShow)
 
 void CCodeWindow::ToggleMemoryWindow(bool bShow)
 {
-	GetMenuBar()->FindItem(IDM_MEMORYWINDOW)->Check(bShow);
+	GetMenuBar()->FindItem(IDM_MEMORY_WINDOW)->Check(bShow);
 	if (bShow)
 	{
 		if (!m_MemoryWindow)
-			m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
+			m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORY_WINDOW);
 		Parent->DoAddPage(m_MemoryWindow,
-		        iNbAffiliation[IDM_MEMORYWINDOW - IDM_LOGWINDOW],
-		        Parent->bFloatWindow[IDM_MEMORYWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_MEMORY_WINDOW - IDM_LOG_WINDOW],
+		        Parent->bFloatWindow[IDM_MEMORY_WINDOW - IDM_LOG_WINDOW]);
 	}
 	else // Close
 	{
@@ -643,14 +636,14 @@ void CCodeWindow::ToggleMemoryWindow(bool bShow)
 
 void CCodeWindow::ToggleJitWindow(bool bShow)
 {
-	GetMenuBar()->FindItem(IDM_JITWINDOW)->Check(bShow);
+	GetMenuBar()->FindItem(IDM_JIT_WINDOW)->Check(bShow);
 	if (bShow)
 	{
 		if (!m_JitWindow)
-			m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
+			m_JitWindow = new CJitWindow(Parent, IDM_JIT_WINDOW);
 		Parent->DoAddPage(m_JitWindow,
-		        iNbAffiliation[IDM_JITWINDOW - IDM_LOGWINDOW],
-		        Parent->bFloatWindow[IDM_JITWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_JIT_WINDOW - IDM_LOG_WINDOW],
+		        Parent->bFloatWindow[IDM_JIT_WINDOW - IDM_LOG_WINDOW]);
 	}
 	else // Close
 	{
@@ -662,14 +655,14 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 
 void CCodeWindow::ToggleSoundWindow(bool bShow)
 {
-	GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(bShow);
+	GetMenuBar()->FindItem(IDM_SOUND_WINDOW)->Check(bShow);
 	if (bShow)
 	{
 		if (!m_SoundWindow)
-			m_SoundWindow = new DSPDebuggerLLE(Parent, IDM_SOUNDWINDOW);
+			m_SoundWindow = new DSPDebuggerLLE(Parent, IDM_SOUND_WINDOW);
 		Parent->DoAddPage(m_SoundWindow,
-		       iNbAffiliation[IDM_SOUNDWINDOW - IDM_LOGWINDOW],
-		        Parent->bFloatWindow[IDM_SOUNDWINDOW - IDM_LOGWINDOW]);
+		       iNbAffiliation[IDM_SOUND_WINDOW - IDM_LOG_WINDOW],
+		        Parent->bFloatWindow[IDM_SOUND_WINDOW - IDM_LOG_WINDOW]);
 	}
 	else // Close
 	{
@@ -680,14 +673,14 @@ void CCodeWindow::ToggleSoundWindow(bool bShow)
 
 void CCodeWindow::ToggleVideoWindow(bool bShow)
 {
-	GetMenuBar()->FindItem(IDM_VIDEOWINDOW)->Check(bShow);
+	GetMenuBar()->FindItem(IDM_VIDEO_WINDOW)->Check(bShow);
 	if (bShow)
 	{
 		if (!m_VideoWindow)
-			m_VideoWindow = new GFXDebuggerPanel(Parent, IDM_VIDEOWINDOW);
+			m_VideoWindow = new GFXDebuggerPanel(Parent, IDM_VIDEO_WINDOW);
 		Parent->DoAddPage(m_VideoWindow,
-		        iNbAffiliation[IDM_VIDEOWINDOW - IDM_LOGWINDOW],
-		        Parent->bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_VIDEO_WINDOW - IDM_LOG_WINDOW],
+		        Parent->bFloatWindow[IDM_VIDEO_WINDOW - IDM_LOG_WINDOW]);
 	}
 	else // Close
 	{

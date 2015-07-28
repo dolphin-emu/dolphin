@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -8,14 +8,9 @@
 #include <queue>
 #include <utility>
 #include <vector>
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/font.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
+#include <wx/timer.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/LogManager.h"
@@ -25,8 +20,6 @@ class wxBoxSizer;
 class wxCheckBox;
 class wxChoice;
 class wxTextCtrl;
-class wxTimer;
-class wxTimerEvent;
 
 // Uses multiple inheritance - only sane because LogListener is a pure virtual interface.
 class CLogWindow : public wxPanel, LogListener
@@ -50,11 +43,10 @@ private:
 	CFrame* Parent;
 	wxFont DefaultFont, MonoSpaceFont;
 	std::vector<wxFont> LogFont;
-	wxTimer* m_LogTimer;
-	bool m_ignoreLogTimer;
+	wxTimer m_LogTimer;
 	LogManager* m_LogManager;
 	std::queue<std::pair<u8, wxString> > msgQueue;
-	bool m_writeFile, m_writeWindow, m_writeDebugger, m_LogAccess;
+	bool m_writeFile, m_writeWindow, m_LogAccess;
 
 	// Controls
 	wxBoxSizer* sBottom;

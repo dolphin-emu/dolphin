@@ -32,7 +32,7 @@
      <x>0</x>
      <y>0</y>
      <width>990</width>
-     <height>24</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="mnuFile">
@@ -40,11 +40,18 @@
      <string>Fi&amp;le</string>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="separator"/>
+    <addaction name="actionBrowse"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="mnuEmulation">
     <property name="title">
      <string>E&amp;mulation</string>
     </property>
+    <addaction name="actionPlay_mnu"/>
+    <addaction name="actionStop_mnu"/>
+    <addaction name="actionReset"/>
    </widget>
    <widget class="QMenu" name="mnuOptions">
     <property name="title">
@@ -122,7 +129,7 @@
   </action>
   <action name="actionGitHub">
    <property name="text">
-    <string>&amp;Dolphin at GitHub</string>
+    <string>&amp;GitHub Repository</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -197,6 +204,37 @@
    </property>
    <property name="text">
     <string>&amp;Icon view</string>
+   </property>
+  </action>
+  <action name="actionBrowse">
+   <property name="text">
+    <string>&amp;Browse for ISOs...</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionPlay_mnu">
+   <property name="text">
+    <string>&amp;Play</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
+   </property>
+  </action>
+  <action name="actionStop_mnu">
+   <property name="text">
+    <string>&amp;Stop</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>&amp;Reset</string>
    </property>
   </action>
  </widget>

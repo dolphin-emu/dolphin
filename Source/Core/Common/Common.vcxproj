@@ -40,6 +40,7 @@
     <ClInclude Include="Atomic_Win32.h" />
     <ClInclude Include="BitField.h" />
     <ClInclude Include="BitSet.h" />
+    <ClInclude Include="BlockingLoop.h" />
     <ClInclude Include="BreakPoints.h" />
     <ClInclude Include="CDUtils.h" />
     <ClInclude Include="ChunkFile.h" />
@@ -51,8 +52,8 @@
     <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
+    <ClInclude Include="ENetUtil.h" />
     <ClInclude Include="Event.h" />
-    <ClInclude Include="ExtendedTrace.h" />
     <ClInclude Include="FifoQueue.h" />
     <ClInclude Include="FileSearch.h" />
     <ClInclude Include="FileUtil.h" />
@@ -62,6 +63,7 @@
     <ClInclude Include="GekkoDisassembler.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
+    <ClInclude Include="JitRegister.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="MemArena.h" />
@@ -79,6 +81,8 @@
     <ClInclude Include="SysConf.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="TraversalClient.h" />
+    <ClInclude Include="TraversalProto.h" />
     <ClInclude Include="x64ABI.h" />
     <ClInclude Include="x64Analyzer.h" />
     <ClInclude Include="x64Emitter.h" />
@@ -92,12 +96,14 @@
     <ClCompile Include="BreakPoints.cpp" />
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
-    <ClCompile Include="ExtendedTrace.cpp" />
+    <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="IniFile.cpp" />
+    <ClCompile Include="JitRegister.cpp" />
+    <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MemArena.cpp" />
     <ClCompile Include="MemoryUtil.cpp" />
@@ -114,6 +120,7 @@
     <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="TraversalClient.cpp" />
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="x64ABI.cpp" />
     <ClCompile Include="x64Analyzer.cpp" />
@@ -123,13 +130,15 @@
     <ClCompile Include="XSaveWorkaround.cpp" />
     <ClCompile Include="Crypto\bn.cpp" />
     <ClCompile Include="Crypto\ec.cpp" />
-    <ClCompile Include="Logging\ConsoleListener.cpp" />
     <ClCompile Include="Logging\LogManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
+      <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)polarssl\visualc\PolarSSL.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
     </ProjectReference>

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -23,8 +23,9 @@ namespace SerialInterface
 {
 
 static int changeDevice;
+static int et_transfer_pending;
 
-void RunSIBuffer();
+void RunSIBuffer(u64 userdata, int cyclesLate);
 void UpdateInterrupts();
 
 // SI Interrupt Types
@@ -274,6 +275,7 @@ void Init()
 	memset(g_SIBuffer, 0, 128);
 
 	changeDevice = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
+	et_transfer_pending = CoreTiming::RegisterEvent("SITransferPending", RunSIBuffer);
 }
 
 void Shutdown()
@@ -346,8 +348,18 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			if (tmpComCSR.TCINT)   g_ComCSR.TCINT = 0;
 
 			// be careful: run si-buffer after updating the INT flags
-			if (tmpComCSR.TSTART)  RunSIBuffer();
-			UpdateInterrupts();
+			if (tmpComCSR.TSTART)
+			{
+				g_ComCSR.TSTART = 1;
+				RunSIBuffer(0, 0);
+			}
+			else if (g_ComCSR.TSTART)
+			{
+				CoreTiming::RemoveEvent(et_transfer_pending);
+			}
+
+			if (!g_ComCSR.TSTART)
+				UpdateInterrupts();
 		})
 	);
 
@@ -492,6 +504,7 @@ void ChangeDevice(SIDevices device, int channel)
 {
 	// Called from GUI, so we need to make it thread safe.
 	// Let the hardware see no device for .5b cycles
+	// TODO: Calling GetDeviceType here isn't threadsafe.
 	if (GetDeviceType(channel) != device)
 	{
 		CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
@@ -518,29 +531,40 @@ SIDevices GetDeviceType(int channel)
 		return g_Channel[channel].m_pDevice->GetDeviceType();
 }
 
-void RunSIBuffer()
+void RunSIBuffer(u64 userdata, int cyclesLate)
 {
-	// Math inLength
-	int inLength = g_ComCSR.INLNGTH;
-	if (inLength == 0)
-		inLength = 128;
-	else
-		inLength++;
+	if (g_ComCSR.TSTART)
+	{
+		// Math inLength
+		int inLength = g_ComCSR.INLNGTH;
+		if (inLength == 0)
+			inLength = 128;
+		else
+			inLength++;
 
-	// Math outLength
-	int outLength = g_ComCSR.OUTLNGTH;
-	if (outLength == 0)
-		outLength = 128;
-	else
-		outLength++;
+		// Math outLength
+		int outLength = g_ComCSR.OUTLNGTH;
+		if (outLength == 0)
+			outLength = 128;
+		else
+			outLength++;
 
-	int numOutput = g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
+		int numOutput = 0;
 
-	DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
+		numOutput = g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
 
-	// Transfer completed
-	GenerateSIInterrupt(INT_TCINT);
-	g_ComCSR.TSTART = 0;
+		DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer  chan: %d  inLen: %i  outLen: %i  processed: %i", g_ComCSR.CHANNEL, inLength, outLength, numOutput);
+
+		if (numOutput != 0)
+		{
+			g_ComCSR.TSTART = 0;
+			GenerateSIInterrupt(INT_TCINT);
+		}
+		else
+		{
+			CoreTiming::ScheduleEvent(g_Channel[g_ComCSR.CHANNEL].m_pDevice->TransferInterval() - cyclesLate, et_transfer_pending);
+		}
+	}
 }
 
 int GetTicksToNextSIPoll()

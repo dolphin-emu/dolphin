@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -17,9 +17,6 @@
 
 #ifdef USE_SDL_HAPTIC
 	#include <SDL_haptic.h>
-	#define SDL_INIT_FLAGS  SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
-#else
-	#define SDL_INIT_FLAGS  SDL_INIT_JOYSTICK
 #endif
 
 namespace ciface
@@ -77,10 +74,13 @@ private:
 
 	protected:
 		void Update();
+		virtual void SetSDLHapticEffect(ControlState state) = 0;
 
 		SDL_HapticEffect m_effect;
 		SDL_Haptic* m_haptic;
 		int m_id;
+	private:
+		virtual void SetState(ControlState state) override final;
 	};
 
 	class ConstantEffect : public HapticEffect
@@ -88,7 +88,8 @@ private:
 	public:
 		ConstantEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
 		std::string GetName() const override;
-		void SetState(ControlState state) override;
+	private:
+		void SetSDLHapticEffect(ControlState state) override;
 	};
 
 	class RampEffect : public HapticEffect
@@ -96,7 +97,35 @@ private:
 	public:
 		RampEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
 		std::string GetName() const override;
-		void SetState(ControlState state) override;
+	private:
+		void SetSDLHapticEffect(ControlState state) override;
+	};
+
+	class SineEffect : public HapticEffect
+	{
+	public:
+		SineEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+	private:
+		void SetSDLHapticEffect(ControlState state) override;
+	};
+
+	class TriangleEffect : public HapticEffect
+	{
+	public:
+		TriangleEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+	private:
+		void SetSDLHapticEffect(ControlState state) override;
+	};
+
+	class LeftRightEffect : public HapticEffect
+	{
+	public:
+		LeftRightEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+	private:
+		void SetSDLHapticEffect(ControlState state) override;
 	};
 #endif
 

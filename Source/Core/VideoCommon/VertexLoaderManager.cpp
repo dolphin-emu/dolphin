@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -26,6 +26,9 @@
 namespace VertexLoaderManager
 {
 
+float position_cache[3][4];
+u32 position_matrix_index[3];
+
 typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexFormatMap;
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
@@ -35,6 +38,8 @@ static std::mutex s_vertex_loader_map_lock;
 static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
+u8 *cached_arraybases[12];
+
 void Init()
 {
 	MarkAllDirty();
@@ -42,7 +47,7 @@ void Init()
 		map_entry = nullptr;
 	for (auto& map_entry : g_preprocess_cp_state.vertex_loaders)
 		map_entry = nullptr;
-	RecomputeCachedArraybases();
+	SETSTAT(stats.numVertexLoaders, 0);
 }
 
 void Shutdown()
@@ -50,6 +55,27 @@ void Shutdown()
 	std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
 	s_vertex_loader_map.clear();
 	s_native_vertex_map.clear();
+}
+
+void UpdateVertexArrayPointers()
+{
+	// Anything to update?
+	if (!g_main_cp_state.bases_dirty)
+		return;
+
+	// Some games such as Burnout 2 can put invalid addresses into
+	// the array base registers. (see issue 8591)
+	// But the vertex arrays with invalid addresses aren't actually enabled.
+	// Note: Only array bases 0 through 11 are used by the Vertex loaders.
+	//       12 through 15 are used for loading data into xfmem.
+	for (int i = 0; i < 12; i++)
+	{
+		// Only update the array base if the vertex description states we are going to use it.
+		if (g_main_cp_state.vtx_desc.GetVertexArrayStatus(i) >= 0x2)
+			cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
+	}
+
+	g_main_cp_state.bases_dirty = false;
 }
 
 namespace
@@ -83,7 +109,8 @@ void AppendListToString(std::string *dest)
 	dest->reserve(dest->size() + total_size);
 	for (const entry& entry : entries)
 	{
-		dest->append(entry.text);
+		*dest += entry.text;
+		*dest += '\n';
 	}
 }
 
@@ -93,73 +120,83 @@ void MarkAllDirty()
 	g_preprocess_cp_state.attr_dirty = BitSet32::AllTrue(8);
 }
 
-static VertexLoaderBase* RefreshLoader(int vtx_attr_group, CPState* state)
+static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = false)
 {
+	CPState* state = preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
+
 	VertexLoaderBase* loader;
 	if (state->attr_dirty[vtx_attr_group])
 	{
+		// We are not allowed to create a native vertex format on preprocessing as this is on the wrong thread
+		bool check_for_native_format = !preprocess;
+
 		VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
 		std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
 		VertexLoaderMap::iterator iter = s_vertex_loader_map.find(uid);
 		if (iter != s_vertex_loader_map.end())
 		{
 			loader = iter->second.get();
+			check_for_native_format &= !loader->m_native_vertex_format;
 		}
 		else
 		{
 			loader = VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
 			s_vertex_loader_map[uid] = std::unique_ptr<VertexLoaderBase>(loader);
-
+			INCSTAT(stats.numVertexLoaders);
+		}
+		if (check_for_native_format)
+		{
 			// search for a cached native vertex format
 			const PortableVertexDeclaration& format = loader->m_native_vtx_decl;
-			auto& native = s_native_vertex_map[format];
+			std::unique_ptr<NativeVertexFormat>& native = s_native_vertex_map[format];
 			if (!native)
 			{
-				auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
-				native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
+				native.reset(g_vertex_manager->CreateNativeVertexFormat());
 				native->Initialize(format);
 				native->m_components = loader->m_native_components;
 			}
 			loader->m_native_vertex_format = native.get();
-
-			INCSTAT(stats.numVertexLoaders);
 		}
 		state->vertex_loaders[vtx_attr_group] = loader;
 		state->attr_dirty[vtx_attr_group] = false;
 	} else {
 		loader = state->vertex_loaders[vtx_attr_group];
 	}
+
+	// Lookup pointers for any vertex arrays.
+	if (!preprocess)
+		UpdateVertexArrayPointers();
+
 	return loader;
 }
 
-int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing)
+int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing, bool is_preprocess)
 {
 	if (!count)
 		return 0;
 
-	CPState* state = &g_main_cp_state;
-
-	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, state);
+	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 
 	int size = count * loader->m_VertexSize;
 	if ((int)src.size() < size)
 		return -1;
 
-	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))
-	{
-		// if cull mode is CULL_ALL, ignore triangles and quads
+	if (skip_drawing || is_preprocess)
 		return size;
-	}
 
 	// If the native vertex format changed, force a flush.
 	if (loader->m_native_vertex_format != s_current_vtx_fmt)
 		VertexManager::Flush();
 	s_current_vtx_fmt = loader->m_native_vertex_format;
 
-	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
-			loader->m_native_vtx_decl.stride);
+	// if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
+	// They still need to go through vertex loading, because we need to calculate a zfreeze refrence slope.
+	bool cullall = (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5);
 
-	count = loader->RunVertices(primitive, count, src, dst);
+	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
+			loader->m_native_vtx_decl.stride, cullall);
+
+	count = loader->RunVertices(src, dst, count);
 
 	IndexGenerator::AddIndices(primitive, count);
 
@@ -168,11 +205,6 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	ADDSTAT(stats.thisFrame.numPrims, count);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 	return size;
-}
-
-int GetVertexSize(int vtx_attr_group, bool preprocess)
-{
-	return RefreshLoader(vtx_attr_group, preprocess ? &g_preprocess_cp_state : &g_main_cp_state)->m_VertexSize;
 }
 
 NativeVertexFormat* GetCurrentVertexFormat()
@@ -202,12 +234,14 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 		state->vtx_desc.Hex &= ~0x1FFFF;  // keep the Upper bits
 		state->vtx_desc.Hex |= value;
 		state->attr_dirty = BitSet32::AllTrue(8);
+		state->bases_dirty = true;
 		break;
 
 	case 0x60:
 		state->vtx_desc.Hex &= 0x1FFFF;  // keep the lower 17Bits
 		state->vtx_desc.Hex |= (u64)value << 17;
 		state->attr_dirty = BitSet32::AllTrue(8);
+		state->bases_dirty = true;
 		break;
 
 	case 0x70:
@@ -231,8 +265,7 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 	// Pointers to vertex arrays in GC RAM
 	case 0xA0:
 		state->array_bases[sub_cmd & 0xF] = value;
-		if (update_global_state)
-			cached_arraybases[sub_cmd & 0xF] = Memory::GetPointer(value);
+		state->bases_dirty = true;
 		break;
 
 	case 0xB0:
@@ -259,13 +292,5 @@ void FillCPMemoryArray(u32 *memory)
 	{
 		memory[0xA0 + i] = g_main_cp_state.array_bases[i];
 		memory[0xB0 + i] = g_main_cp_state.array_strides[i];
-	}
-}
-
-void RecomputeCachedArraybases()
-{
-	for (int i = 0; i < 16; i++)
-	{
-		cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
 	}
 }

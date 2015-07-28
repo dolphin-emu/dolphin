@@ -1,21 +1,14 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstdio>
 #include <wx/artprov.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/listbox.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
 #include <wx/thread.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 #include <wx/aui/auibar.h>
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
@@ -89,7 +82,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	mem_panel->SetSizer(mem_sizer);
 	m_MainNotebook->AddPage(mem_panel, _("Memory"));
 
-	m_Regs = new DSPRegisterView(this, ID_DSP_REGS);
+	m_Regs = new DSPRegisterView(this);
 
 	// add the panes to the manager
 	m_mgr.AddPane(m_Toolbar, wxAuiPaneInfo().
@@ -171,7 +164,6 @@ void DSPDebuggerLLE::Update()
 	UpdateDisAsmListView();
 	UpdateRegisterFlags();
 	UpdateState();
-	m_mgr.Update();
 #if defined __WXGTK__
 	if (!wxIsMainThread())
 		wxMutexGuiLeave();

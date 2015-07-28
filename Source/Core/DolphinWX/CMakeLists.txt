@@ -1,12 +1,19 @@
 set(GUI_SRCS
 	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
-	ConfigMain.cpp
 	ControllerConfigDiag.cpp
 	Cheats/CheatSearchTab.cpp
 	Cheats/CheatsWindow.cpp
 	Cheats/CreateCodeDialog.cpp
 	Cheats/GeckoCodeDiag.cpp
+	Config/AdvancedConfigPane.cpp
+	Config/AudioConfigPane.cpp
+	Config/ConfigMain.cpp
+	Config/GameCubeConfigPane.cpp
+	Config/GeneralConfigPane.cpp
+	Config/InterfaceConfigPane.cpp
+	Config/PathConfigPane.cpp
+	Config/WiiConfigPane.cpp
 	Debugger/BreakpointDlg.cpp
 	Debugger/BreakpointView.cpp
 	Debugger/BreakpointWindow.cpp
@@ -25,12 +32,15 @@ set(GUI_SRCS
 	Debugger/RegisterWindow.cpp
 	Debugger/WatchView.cpp
 	Debugger/WatchWindow.cpp
+	NetPlay/ChangeGameDialog.cpp
+	NetPlay/NetPlaySetupFrame.cpp
+	NetPlay/NetWindow.cpp
+	NetPlay/PadMapDialog.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
 	FrameAui.cpp
 	FrameTools.cpp
 	GameListCtrl.cpp
-	HotkeyDlg.cpp
 	ISOFile.cpp
 	ISOProperties.cpp
 	InputConfigDiag.cpp
@@ -39,7 +49,6 @@ set(GUI_SRCS
 	LogWindow.cpp
 	Main.cpp
 	MemcardManager.cpp
-	NetWindow.cpp
 	PatchAddEdit.cpp
 	PostProcessingConfigDiag.cpp
 	SoftwareVideoConfigDialog.cpp
@@ -55,7 +64,11 @@ if(USE_X11)
 	set(NOGUI_SRCS ${NOGUI_SRCS} X11Utils.cpp)
 endif()
 
-set(WXLIBS ${wxWidgets_LIBRARIES} dl)
+set(WXLIBS ${wxWidgets_LIBRARIES})
+
+if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD)
+	set(WXLIBS ${WXLIBS} dl)
+endif()
 
 list(APPEND LIBS core uicommon)
 
@@ -66,7 +79,7 @@ endif()
 set(ANDROID_SRCS Android/ButtonManager.cpp
 	 MainAndroid.cpp)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	if(wxWidgets_FOUND)
 		list(APPEND WXLIBS
 			${APPSERV_LIBRARY}
@@ -80,7 +93,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	set(DOLPHIN_EXE_BASE Dolphin)
 else()
 	set(DOLPHIN_EXE_BASE dolphin-emu)
@@ -107,23 +120,26 @@ if(ANDROID)
 	"-Wl,--no-whole-archive"
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_ABI_NAME}
+		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/jniLibs/${ANDROID_NDK_ABI_NAME}
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND cp ARGS ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_ABI_NAME}/
+		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/
+		COMMAND cp ARGS ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/jniLibs/${ANDROID_NDK_ABI_NAME}/
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND cp ARGS -r ${CMAKE_SOURCE_DIR}/Data/Sys/Shaders ${CMAKE_SOURCE_DIR}/Source/Android/assets/
+		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/
+	)
+	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
+		COMMAND cp ARGS -r ${CMAKE_SOURCE_DIR}/Data/Sys/Shaders ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/
 	)
 
 	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
 elseif(wxWidgets_FOUND)
 	add_executable(${DOLPHIN_EXE} ${SRCS} ${GUI_SRCS})
 	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	if(APPLE)
 		include(BundleUtilities)
 		set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
 
@@ -145,7 +161,7 @@ elseif(wxWidgets_FOUND)
 				message(\"(Note: This is only necessary to produce a redistributable binary.\")
 				message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
 				set(BU_CHMOD_BUNDLE_ITEMS ON)
-				fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
+				execute_process(COMMAND ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py \"${BUNDLE_PATH}\")
 				file(INSTALL \"${CMAKE_SOURCE_DIR}/Data/Sys\"
 					DESTINATION \"${BUNDLE_PATH}/Contents/Resources\"
 					)

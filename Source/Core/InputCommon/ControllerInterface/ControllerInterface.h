@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -34,6 +34,9 @@
 #endif
 #if defined(HAVE_SDL) && HAVE_SDL
 	#define CIFACE_USE_SDL
+#endif
+#if defined(HAVE_LIBEVDEV) && defined(HAVE_LIBUDEV)
+	#define CIFACE_USE_EVDEV
 #endif
 
 //
@@ -121,8 +124,6 @@ public:
 
 	void UpdateReference(ControlReference* control, const ciface::Core::DeviceQualifier& default_device) const;
 	void UpdateInput();
-
-	std::recursive_mutex update_lock;
 
 private:
 	bool   m_is_init;

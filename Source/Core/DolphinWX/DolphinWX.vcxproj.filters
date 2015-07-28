@@ -25,6 +25,9 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{d6bc4dd6-06ed-46ad-b327-04afb26e10ec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI\Config">
+      <UniqueIdentifier>{9d8b4144-f335-4fa4-b995-852533298474}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -94,14 +97,14 @@
     <ClCompile Include="Debugger\WatchWindow.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
+    <ClCompile Include="NetPlay\NetWindow.cpp">
+      <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
     <ClCompile Include="InputConfigDiag.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
     <ClCompile Include="InputConfigDiagBitmaps.cpp">
       <Filter>GUI\InputConfig</Filter>
-    </ClCompile>
-    <ClCompile Include="NetWindow.cpp">
-      <Filter>GUI\NetPlay</Filter>
     </ClCompile>
     <ClCompile Include="Debugger\DebuggerPanel.cpp">
       <Filter>GUI\Video</Filter>
@@ -121,9 +124,6 @@
     <ClCompile Include="ARCodeAddEdit.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigMain.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="FifoPlayerDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -137,9 +137,6 @@
       <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="GameListCtrl.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="HotkeyDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="ISOProperties.cpp">
@@ -165,6 +162,39 @@
     </ClCompile>
     <ClCompile Include="ControllerConfigDiag.cpp">
       <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\ConfigMain.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\GeneralConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\InterfaceConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\AudioConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\GameCubeConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\WiiConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\PathConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\AdvancedConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp">
+      <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlay\ChangeGameDialog.cpp">
+      <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlay\PadMapDialog.cpp">
+      <Filter>GUI\NetPlay</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -231,11 +261,11 @@
     <ClInclude Include="Debugger\WatchWindow.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
+    <ClInclude Include="NetPlay\NetWindow.h">
+      <Filter>GUI\NetPlay</Filter>
+    </ClInclude>
     <ClInclude Include="InputConfigDiag.h">
       <Filter>GUI\InputConfig</Filter>
-    </ClInclude>
-    <ClInclude Include="NetWindow.h">
-      <Filter>GUI\NetPlay</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\DebuggerPanel.h">
       <Filter>GUI\Video</Filter>
@@ -258,9 +288,6 @@
     <ClInclude Include="ARCodeAddEdit.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigMain.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="FifoPlayerDlg.h">
       <Filter>GUI</Filter>
     </ClInclude>
@@ -271,9 +298,6 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="Globals.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="HotkeyDlg.h">
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="ISOProperties.h">
@@ -299,6 +323,39 @@
     </ClInclude>
     <ClInclude Include="ControllerConfigDiag.h">
       <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\ConfigMain.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\GeneralConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\InterfaceConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\AudioConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\GameCubeConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\WiiConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\PathConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\AdvancedConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlay\NetPlaySetupFrame.h">
+      <Filter>GUI\NetPlay</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlay\ChangeGameDialog.h">
+      <Filter>GUI\NetPlay</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlay\PadMapDialog.h">
+      <Filter>GUI\NetPlay</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

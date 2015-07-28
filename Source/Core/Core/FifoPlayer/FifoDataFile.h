@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -67,7 +67,7 @@ public:
 
 	void AddFrame(const FifoFrameInfo &frameInfo);
 	const FifoFrameInfo &GetFrame(u32 frame) const { return m_Frames[frame]; }
-	u32 GetFrameCount() { return static_cast<u32>(m_Frames.size()); }
+	u32 GetFrameCount() const { return static_cast<u32>(m_Frames.size()); }
 
 	bool Save(const std::string& filename);
 

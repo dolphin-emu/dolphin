@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -31,11 +31,11 @@ static const struct
 };
 
 // lil silly
-static HWND hwnd;
+static HWND m_hwnd;
 
 void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND _hwnd)
 {
-	hwnd = _hwnd;
+	m_hwnd = _hwnd;
 
 	// mouse and keyboard are a combined device, to allow shift+click and stuff
 	// if that's dumb, I will make a VirtualDevice class that just uses ranges of inputs/outputs from other devices
@@ -124,10 +124,11 @@ void GetMousePos(ControlState* const x, ControlState* const y)
 {
 	POINT point = { 1, 1 };
 	GetCursorPos(&point);
-	// Get the cursor position relative to the upper left corner of the rendering window
+	// Get the cursor position relative to the upper left corner of the current window (separate or render to main)
+	HWND hwnd = WindowFromPoint(point);
 	ScreenToClient(hwnd, &point);
 
-	// Get the size of the rendering window. (In my case Rect.top and Rect.left was zero.)
+	// Get the size of the current window. (In my case Rect.top and Rect.left was zero.)
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	// Width and height is the size of the rendering window

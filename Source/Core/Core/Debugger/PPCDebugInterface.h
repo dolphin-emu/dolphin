@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -39,7 +39,6 @@ public:
 	virtual unsigned int GetPC() override;
 	virtual void SetPC(unsigned int address) override;
 	virtual void Step() override {}
-	virtual void BreakNow() override;
 	virtual void RunToBreakpoint() override;
 	virtual void InsertBLR(unsigned int address, unsigned int value) override;
 	virtual int GetColor(unsigned int address) override;

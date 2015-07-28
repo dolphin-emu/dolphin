@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -85,7 +85,6 @@ public:
 		class Setting
 		{
 		public:
-
 			Setting(const std::string& _name, const ControlState def_value
 				, const unsigned int _low = 0, const unsigned int _high = 100)
 				: name(_name)
@@ -95,6 +94,10 @@ public:
 				, high(_high)
 				, is_virtual(false)
 				, is_iterate(false) {}
+
+			virtual ~Setting()
+			{
+			}
 
 			const std::string   name;
 			ControlState        value;

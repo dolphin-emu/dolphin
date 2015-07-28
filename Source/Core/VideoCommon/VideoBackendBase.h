@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -56,9 +56,6 @@ struct SCPFifoStruct
 
 	volatile u32 bFF_LoWatermark;
 	volatile u32 bFF_HiWatermark;
-
-	// for GP watchdog hack
-	volatile u32 isGpuReadingData;
 };
 
 class VideoBackend
@@ -99,7 +96,7 @@ public:
 
 	virtual void Video_GatherPipeBursted() = 0;
 
-	virtual bool Video_IsPossibleWaitingSetDrawDone() = 0;
+	virtual int Video_Sync(int ticks) = 0;
 
 	// Registers MMIO handlers for the CommandProcessor registers.
 	virtual void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) = 0;
@@ -111,7 +108,7 @@ public:
 	// waits until is paused and fully idle, and acquires a lock on that state.
 	// or, if doLock is false, releases a lock on that state and optionally unpauses.
 	// calls must be balanced and non-recursive (once with doLock true, then once with doLock false).
-	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) = 0;
+	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock = true) = 0;
 
 	// the implementation needs not do synchronization logic, because calls to it are surrounded by PauseAndLock now
 	virtual void DoState(PointerWrap &p) = 0;
@@ -148,11 +145,11 @@ class VideoBackendHardware : public VideoBackend
 
 	void Video_GatherPipeBursted() override;
 
-	bool Video_IsPossibleWaitingSetDrawDone() override;
+	int Video_Sync(int ticks) override;
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 
-	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock = true) override;
 	void DoState(PointerWrap &p) override;
 
 	void UpdateWantDeterminism(bool want) override;
@@ -160,7 +157,7 @@ class VideoBackendHardware : public VideoBackend
 	bool m_invalid;
 
 public:
-	 void CheckInvalidState() override;
+	void CheckInvalidState() override;
 
 protected:
 	void InitializeShared();

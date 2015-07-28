@@ -1,9 +1,9 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cstring>
 #include <cctype>
+#include <cstring>
 #include <disasm.h>  // From Bochs, fallback included in Externals.
 #include <map>
 #include <memory>
@@ -99,6 +99,11 @@ protected:
 
 		disasm.reset(new disassembler);
 		disasm->set_syntax_intel();
+	}
+
+	void TearDown() override
+	{
+		cpu_info = CPUInfo();
 	}
 
 	void ExpectDisassembly(const std::string& expected)
@@ -609,12 +614,12 @@ TEST_F(x64EmitterTest, MOVZX)
 
 TEST_F(x64EmitterTest, MOVBE)
 {
-	emitter->MOVBE(16, R(RAX), MatR(R12));
-	emitter->MOVBE(16, MatR(RAX), R(R12));
-	emitter->MOVBE(32, R(RAX), MatR(R12));
-	emitter->MOVBE(32, MatR(RAX), R(R12));
-	emitter->MOVBE(64, R(RAX), MatR(R12));
-	emitter->MOVBE(64, MatR(RAX), R(R12));
+	emitter->MOVBE(16, RAX, MatR(R12));
+	emitter->MOVBE(16, MatR(RAX), R12);
+	emitter->MOVBE(32, RAX, MatR(R12));
+	emitter->MOVBE(32, MatR(RAX), R12);
+	emitter->MOVBE(64, RAX, MatR(R12));
+	emitter->MOVBE(64, MatR(RAX), R12);
 	ExpectDisassembly("movbe ax, word ptr ds:[r12] "
 	                  "movbe word ptr ds:[rax], r12w "
 	                  "movbe eax, dword ptr ds:[r12] "
@@ -728,9 +733,44 @@ TWO_OP_SSE_TEST(UCOMISS, "dword")
 TWO_OP_SSE_TEST(COMISD, "qword")
 TWO_OP_SSE_TEST(UCOMISD, "qword")
 
+// register-only instructions
+#define TWO_OP_SSE_REG_TEST(Name, MemBits) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		for (const auto& r1 : xmmnames) \
+		{ \
+			for (const auto& r2 : xmmnames) \
+			{ \
+				emitter->Name(r1.reg, r2.reg); \
+				ExpectDisassembly(#Name " " + r1.name + ", " + r2.name); \
+			} \
+		} \
+	}
+
+TWO_OP_SSE_REG_TEST(MOVHLPS, "qword")
+TWO_OP_SSE_REG_TEST(MOVLHPS, "qword")
+
+// "register + memory"-only instructions
+#define TWO_OP_SSE_MEM_TEST(Name, MemBits) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		for (const auto& r1 : xmmnames) \
+		{ \
+			emitter->Name(r1.reg, MatR(R12)); \
+			ExpectDisassembly(#Name " " + r1.name + ", " MemBits " ptr ds:[r12]"); \
+			emitter->Name(MatR(R12), r1.reg); \
+			ExpectDisassembly(#Name " " MemBits " ptr ds:[r12], " + r1.name); \
+		} \
+	}
+
+TWO_OP_SSE_MEM_TEST(MOVLPS, "qword")
+TWO_OP_SSE_MEM_TEST(MOVHPS, "qword")
+TWO_OP_SSE_MEM_TEST(MOVLPD, "qword")
+TWO_OP_SSE_MEM_TEST(MOVHPD, "qword")
+
 // TODO: CMPSS/SD
 // TODO: SHUFPS/PD
-// TODO: SSE MOVs
+// TODO: more SSE MOVs
 // TODO: MOVMSK
 
 TEST_F(x64EmitterTest, MASKMOVDQU)
@@ -775,6 +815,7 @@ TWO_OP_SSE_TEST(PACKUSWB, "dqword")
 TWO_OP_SSE_TEST(PUNPCKLBW, "dqword")
 TWO_OP_SSE_TEST(PUNPCKLWD, "dqword")
 TWO_OP_SSE_TEST(PUNPCKLDQ, "dqword")
+TWO_OP_SSE_TEST(PUNPCKLQDQ, "dqword")
 
 TWO_OP_SSE_TEST(PTEST, "dqword")
 TWO_OP_SSE_TEST(PAND, "dqword")
@@ -985,7 +1026,7 @@ AVX_RRM_TEST(VPANDN,  "dqword")
 AVX_RRM_TEST(VPOR,    "dqword")
 AVX_RRM_TEST(VPXOR,   "dqword")
 
-#define FMA_TEST(Name, P, packed) \
+#define FMA3_TEST(Name, P, packed) \
 	AVX_RRM_TEST(Name ## 132 ## P ## S, packed ? "dqword" : "dword") \
 	AVX_RRM_TEST(Name ## 213 ## P ## S, packed ? "dqword" : "dword") \
 	AVX_RRM_TEST(Name ## 231 ## P ## S, packed ? "dqword" : "dword") \
@@ -993,15 +1034,54 @@ AVX_RRM_TEST(VPXOR,   "dqword")
 	AVX_RRM_TEST(Name ## 213 ## P ## D, packed ? "dqword" : "qword") \
 	AVX_RRM_TEST(Name ## 231 ## P ## D, packed ? "dqword" : "qword")
 
-FMA_TEST(VFMADD, P, true)
-FMA_TEST(VFMADD, S, false)
-FMA_TEST(VFMSUB, P, true)
-FMA_TEST(VFMSUB, S, false)
-FMA_TEST(VFNMADD, P, true)
-FMA_TEST(VFNMADD, S, false)
-FMA_TEST(VFNMSUB, P, true)
-FMA_TEST(VFNMSUB, S, false)
-FMA_TEST(VFMADDSUB, P, true)
-FMA_TEST(VFMSUBADD, P, true)
+FMA3_TEST(VFMADD, P, true)
+FMA3_TEST(VFMADD, S, false)
+FMA3_TEST(VFMSUB, P, true)
+FMA3_TEST(VFMSUB, S, false)
+FMA3_TEST(VFNMADD, P, true)
+FMA3_TEST(VFNMADD, S, false)
+FMA3_TEST(VFNMSUB, P, true)
+FMA3_TEST(VFNMSUB, S, false)
+FMA3_TEST(VFMADDSUB, P, true)
+FMA3_TEST(VFMSUBADD, P, true)
+
+// for VEX instructions that take the form op reg, reg, r/m, reg OR reg, reg, reg, r/m
+#define VEX_RRMR_RRRM_TEST(Name, sizename) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		struct { \
+			int bits; \
+			std::vector<NamedReg> regs; \
+			std::string out_name; \
+			std::string size; \
+		} regsets[] = { \
+			{ 64, xmmnames, "xmm0", sizename }, \
+		}; \
+		for (const auto& regset : regsets) \
+			for (const auto& r : regset.regs) \
+			{ \
+				emitter->Name(r.reg, XMM0, R(XMM0), r.reg); \
+				emitter->Name(XMM0, XMM0, r.reg, MatR(R12)); \
+				emitter->Name(XMM0, r.reg, MatR(R12), XMM0); \
+				ExpectDisassembly(#Name " " + r.name+ ", " + regset.out_name + ", " + regset.out_name  + ", " + r.name + " " \
+				                  #Name " " + regset.out_name + ", " + regset.out_name + ", " + r.name + ", " + regset.size + " ptr ds:[r12] " \
+				                  #Name " " + regset.out_name + ", " + r.name + ", " + regset.size + " ptr ds:[r12], " + regset.out_name); \
+			} \
+	}
+
+#define FMA4_TEST(Name, P, packed) \
+	VEX_RRMR_RRRM_TEST(Name ## P ## S, packed ? "dqword" : "dword") \
+	VEX_RRMR_RRRM_TEST(Name ## P ## D, packed ? "dqword" : "qword")
+
+FMA4_TEST(VFMADD, P, true)
+FMA4_TEST(VFMADD, S, false)
+FMA4_TEST(VFMSUB, P, true)
+FMA4_TEST(VFMSUB, S, false)
+FMA4_TEST(VFNMADD, P, true)
+FMA4_TEST(VFNMADD, S, false)
+FMA4_TEST(VFNMSUB, P, true)
+FMA4_TEST(VFNMSUB, S, false)
+FMA4_TEST(VFMADDSUB, P, true)
+FMA4_TEST(VFMSUBADD, P, true)
 
 }  // namespace Gen

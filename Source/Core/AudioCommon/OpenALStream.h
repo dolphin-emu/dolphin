@@ -1,9 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <atomic>
 #include <thread>
 
 #include "AudioCommon/SoundStream.h"
@@ -55,23 +56,23 @@ class OpenALStream final : public SoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
 public:
-	OpenALStream(CMixer *mixer)
-		: SoundStream(mixer)
-		, uiSource(0)
-	{}
+	OpenALStream() : uiSource(0)
+	{
+	}
 
-	virtual ~OpenALStream() {}
+	bool Start() override;
+	void SoundLoop() override;
+	void SetVolume(int volume) override;
+	void Stop() override;
+	void Clear(bool mute) override;
+	void Update() override;
 
-	virtual bool Start() override;
-	virtual void SoundLoop() override;
-	virtual void SetVolume(int volume) override;
-	virtual void Stop() override;
-	virtual void Clear(bool mute) override;
 	static bool isValid() { return true; }
-	virtual void Update() override;
 
 private:
 	std::thread thread;
+	std::atomic<bool> m_run_thread;
+
 	Common::Event soundSyncEvent;
 
 	short realtimeBuffer[OAL_MAX_SAMPLES * STEREO_CHANNELS];
@@ -81,10 +82,5 @@ private:
 	ALfloat fVolume;
 
 	u8 numBuffers;
-#else
-public:
-	OpenALStream(CMixer *mixer)
-		: SoundStream(mixer)
-	{}
 #endif // HAVE_OPENAL
 };

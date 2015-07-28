@@ -1,16 +1,17 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <queue>
 #include <string>
+#include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/StringUtil.h"
-
 #include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 
 #define FS_SUCCESS      (u32)0      // Success
 #define FS_EACCES       (u32)-1     // Permission denied
@@ -119,39 +120,37 @@ public:
 	const std::string& GetDeviceName() const { return m_Name; }
 	u32 GetDeviceID() const { return m_DeviceID; }
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode)
+	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode)
 	{
 		(void)_Mode;
 		WARN_LOG(WII_IPC_HLE, "%s does not support Open()", m_Name.c_str());
 		Memory::Write_U32(FS_ENOENT, _CommandAddress + 4);
 		m_Active = true;
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce = false)
+	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce = false)
 	{
 		WARN_LOG(WII_IPC_HLE, "%s does not support Close()", m_Name.c_str());
 		if (!_bForce)
 			Memory::Write_U32(FS_EINVAL, _CommandAddress + 4);
 		m_Active = false;
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
 
-#define UNIMPLEMENTED_CMD(cmd) WARN_LOG(WII_IPC_HLE, "%s does not support "#cmd"()", m_Name.c_str()); return true;
-	virtual bool Seek   (u32) { UNIMPLEMENTED_CMD(Seek) }
-	virtual bool Read   (u32) { UNIMPLEMENTED_CMD(Read) }
-	virtual bool Write  (u32) { UNIMPLEMENTED_CMD(Write) }
-	virtual bool IOCtl  (u32) { UNIMPLEMENTED_CMD(IOCtl) }
-	virtual bool IOCtlV (u32) { UNIMPLEMENTED_CMD(IOCtlV) }
+#define UNIMPLEMENTED_CMD(cmd) WARN_LOG(WII_IPC_HLE, "%s does not support "#cmd"()", m_Name.c_str()); return IPC_DEFAULT_REPLY;
+	virtual IPCCommandResult Seek(u32)   { UNIMPLEMENTED_CMD(Seek) }
+	virtual IPCCommandResult Read(u32)   { UNIMPLEMENTED_CMD(Read) }
+	virtual IPCCommandResult Write(u32)  { UNIMPLEMENTED_CMD(Write) }
+	virtual IPCCommandResult IOCtl(u32)  { UNIMPLEMENTED_CMD(IOCtl) }
+	virtual IPCCommandResult IOCtlV(u32) { UNIMPLEMENTED_CMD(IOCtlV) }
 #undef UNIMPLEMENTED_CMD
-
-	virtual int GetCmdDelay(u32) { return 0; }
 
 	virtual u32 Update() { return 0; }
 
 	virtual bool IsHardware() { return m_Hardware; }
 	virtual bool IsOpened() { return m_Active; }
-public:
+
 	std::string m_Name;
 protected:
 
@@ -223,33 +222,33 @@ public:
 	{
 	}
 
-	bool Open(u32 CommandAddress, u32 Mode) override
+	IPCCommandResult Open(u32 CommandAddress, u32 Mode) override
 	{
 		(void)Mode;
 		WARN_LOG(WII_IPC_HLE, "%s faking Open()", m_Name.c_str());
 		Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
 		m_Active = true;
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
-	bool Close(u32 CommandAddress, bool bForce = false) override
+	IPCCommandResult Close(u32 CommandAddress, bool bForce = false) override
 	{
 		WARN_LOG(WII_IPC_HLE, "%s faking Close()", m_Name.c_str());
 		if (!bForce)
 			Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
 		m_Active = false;
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
 
-	bool IOCtl(u32 CommandAddress) override
+	IPCCommandResult IOCtl(u32 CommandAddress) override
 	{
 		WARN_LOG(WII_IPC_HLE, "%s faking IOCtl()", m_Name.c_str());
 		Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
-	bool IOCtlV(u32 CommandAddress) override
+	IPCCommandResult IOCtlV(u32 CommandAddress) override
 	{
 		WARN_LOG(WII_IPC_HLE, "%s faking IOCtlV()", m_Name.c_str());
 		Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
-		return true;
+		return IPC_DEFAULT_REPLY;
 	}
 };

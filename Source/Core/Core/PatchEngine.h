@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -45,7 +45,6 @@ void LoadPatchSection(const std::string& section, std::vector<Patch> &patches,
                       IniFile &globalIni, IniFile &localIni);
 void LoadPatches();
 void ApplyFramePatches();
-void ApplyARPatches();
 void Shutdown();
 
 inline int GetPatchTypeCharLength(PatchType type)

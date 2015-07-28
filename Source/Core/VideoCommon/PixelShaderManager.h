@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -33,9 +33,11 @@ public:
 	static void SetTevKonstColor(int index, int component, s32 value);
 	static void SetAlpha();
 	static void SetDestAlpha();
-	static void SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt);
+	static void SetTexDims(int texmapid, u32 width, u32 height);
 	static void SetZTextureBias();
 	static void SetViewportChanged();
+	static void SetEfbScaleChanged();
+	static void SetZSlope(float dfdx, float dfdy, float f0);
 	static void SetIndMatrixChanged(int matrixidx);
 	static void SetTevKSelChanged(int id);
 	static void SetZTextureTypeChanged();
@@ -50,9 +52,4 @@ public:
 
 	static bool s_bFogRangeAdjustChanged;
 	static bool s_bViewPortChanged;
-
-	// These colors aren't available from global BP state,
-	// hence we keep a copy of them around.
-	static std::array<int4,4> s_tev_color;
-	static std::array<int4,4> s_tev_konst_color;
 };

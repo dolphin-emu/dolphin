@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <QApplication>
@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
 	app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 	// TODO: Add command line options
 
+	UICommon::SetUserDirectory(""); // Auto-detect user folder
 	UICommon::CreateDirectories();
 	UICommon::Init();
 

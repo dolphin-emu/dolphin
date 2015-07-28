@@ -54,7 +54,14 @@
     <ClCompile Include="Cheats\CheatsWindow.cpp" />
     <ClCompile Include="Cheats\CreateCodeDialog.cpp" />
     <ClCompile Include="Cheats\GeckoCodeDiag.cpp" />
-    <ClCompile Include="ConfigMain.cpp" />
+    <ClCompile Include="Config\AdvancedConfigPane.cpp" />
+    <ClCompile Include="Config\AudioConfigPane.cpp" />
+    <ClCompile Include="Config\ConfigMain.cpp" />
+    <ClCompile Include="Config\GameCubeConfigPane.cpp" />
+    <ClCompile Include="Config\GeneralConfigPane.cpp" />
+    <ClCompile Include="Config\InterfaceConfigPane.cpp" />
+    <ClCompile Include="Config\PathConfigPane.cpp" />
+    <ClCompile Include="Config\WiiConfigPane.cpp" />
     <ClCompile Include="Debugger\BreakpointDlg.cpp" />
     <ClCompile Include="Debugger\BreakpointView.cpp" />
     <ClCompile Include="Debugger\BreakpointWindow.cpp" />
@@ -73,12 +80,14 @@
     <ClCompile Include="Debugger\RegisterWindow.cpp" />
     <ClCompile Include="Debugger\WatchView.cpp" />
     <ClCompile Include="Debugger\WatchWindow.cpp" />
+    <ClCompile Include="NetPlay\ChangeGameDialog.cpp" />
+    <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp" />
+    <ClCompile Include="NetPlay\NetWindow.cpp" />
     <ClCompile Include="FifoPlayerDlg.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="FrameAui.cpp" />
     <ClCompile Include="FrameTools.cpp" />
     <ClCompile Include="GameListCtrl.cpp" />
-    <ClCompile Include="HotkeyDlg.cpp" />
     <ClCompile Include="InputConfigDiag.cpp" />
     <ClCompile Include="InputConfigDiagBitmaps.cpp" />
     <ClCompile Include="ISOFile.cpp" />
@@ -90,7 +99,7 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="MemcardManager.cpp" />
-    <ClCompile Include="NetWindow.cpp" />
+    <ClCompile Include="NetPlay\PadMapDialog.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
     <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
     <ClCompile Include="TASInputDlg.cpp" />
@@ -101,14 +110,24 @@
     <ClCompile Include="WxUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Config\AdvancedConfigPane.h" />
+    <ClInclude Include="Config\AudioConfigPane.h" />
+    <ClInclude Include="Config\GameCubeConfigPane.h" />
+    <ClInclude Include="Config\GeneralConfigPane.h" />
+    <ClInclude Include="Config\InterfaceConfigPane.h" />
+    <ClInclude Include="Config\PathConfigPane.h" />
+    <ClInclude Include="Config\WiiConfigPane.h" />
+    <ClInclude Include="NetPlay\ChangeGameDialog.h" />
+    <ClInclude Include="NetPlay\NetPlaySetupFrame.h" />
+    <ClInclude Include="NetPlay\PadMapDialog.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="AboutDolphin.h" />
     <ClInclude Include="ARCodeAddEdit.h" />
-    <ClInclude Include="ConfigMain.h" />
     <ClInclude Include="Cheats\CheatSearchTab.h" />
     <ClInclude Include="Cheats\CheatsWindow.h" />
     <ClInclude Include="Cheats\CreateCodeDialog.h" />
     <ClInclude Include="Cheats\GeckoCodeDiag.h" />
+    <ClInclude Include="Config\ConfigMain.h" />
     <ClInclude Include="Debugger\BreakpointDlg.h" />
     <ClInclude Include="Debugger\BreakpointView.h" />
     <ClInclude Include="Debugger\BreakpointWindow.h" />
@@ -126,11 +145,11 @@
     <ClInclude Include="Debugger\RegisterWindow.h" />
     <ClInclude Include="Debugger\WatchView.h" />
     <ClInclude Include="Debugger\WatchWindow.h" />
+    <ClInclude Include="NetPlay\NetWindow.h" />
     <ClInclude Include="FifoPlayerDlg.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GameListCtrl.h" />
     <ClInclude Include="Globals.h" />
-    <ClInclude Include="HotkeyDlg.h" />
     <ClInclude Include="InputConfigDiag.h" />
     <ClInclude Include="ISOFile.h" />
     <ClInclude Include="ISOProperties.h" />
@@ -138,7 +157,6 @@
     <ClInclude Include="LogWindow.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="MemcardManager.h" />
-    <ClInclude Include="NetWindow.h" />
     <ClInclude Include="PatchAddEdit.h" />
     <ClInclude Include="SoftwareVideoConfigDialog.h" />
     <ClInclude Include="TASInputDlg.h" />

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
@@ -25,9 +25,6 @@
 
 namespace DiscIO
 {
-CSharedContent CSharedContent::m_Instance;
-cUIDsys cUIDsys::m_Instance;
-
 
 CSharedContent::CSharedContent()
 {
@@ -38,7 +35,7 @@ void CSharedContent::UpdateLocation()
 {
 	m_Elements.clear();
 	m_lastID = 0;
-	m_contentMap = StringFromFormat("%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX).c_str());
+	m_contentMap = StringFromFormat("%s/shared1/content.map", File::GetUserPath(D_WIIROOT_IDX).c_str());
 
 	File::IOFile pFile(m_contentMap, "rb");
 	SElement Element;
@@ -58,7 +55,7 @@ std::string CSharedContent::GetFilenameFromSHA1(const u8* _pHash)
 	{
 		if (memcmp(_pHash, Element.SHA1Hash, 20) == 0)
 		{
-			return StringFromFormat("%sshared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIUSER_IDX).c_str(),
+			return StringFromFormat("%s/shared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIROOT_IDX).c_str(),
 			    Element.FileName[0], Element.FileName[1], Element.FileName[2], Element.FileName[3],
 			    Element.FileName[4], Element.FileName[5], Element.FileName[6], Element.FileName[7]);
 		}
@@ -83,7 +80,7 @@ std::string CSharedContent::AddSharedContent(const u8* _pHash)
 		File::IOFile pFile(m_contentMap, "ab");
 		pFile.WriteArray(&Element, 1);
 
-		filename = StringFromFormat("%sshared1/%s.app", File::GetUserPath(D_WIIUSER_IDX).c_str(), id.c_str());
+		filename = StringFromFormat("%s/shared1/%s.app", File::GetUserPath(D_WIIROOT_IDX).c_str(), id.c_str());
 		m_lastID++;
 	}
 
@@ -240,14 +237,14 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 	m_Content.resize(m_numEntries);
 
 
-	for (u32 i=0; i<m_numEntries; i++)
+	for (u32 i=0; i < m_numEntries; i++)
 	{
 		SNANDContent& rContent = m_Content[i];
 
 		rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
 		rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
 		rContent.m_Type = Common::swap16(pTMD + 0x01ea + 0x24*i);
-		rContent.m_Size= (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
+		rContent.m_Size = (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
 		memcpy(rContent.m_SHA1Hash, pTMD + 0x01f4 + 0x24*i, 20);
 		memcpy(rContent.m_Header, pTMD + 0x01e4 + 0x24*i, 36);
 
@@ -271,7 +268,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		else
 			rContent.m_Filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
 
-		// Be graceful about incorrect tmds.
+		// Be graceful about incorrect TMDs.
 		if (File::Exists(rContent.m_Filename))
 			rContent.m_Size = (u32) File::GetSize(rContent.m_Filename);
 	}
@@ -304,9 +301,6 @@ DiscIO::IVolume::ECountry CNANDContentLoader::GetCountry() const
 
 	return CountrySwitch(m_Country);
 }
-
-
-CNANDContentManager CNANDContentManager::m_Instance;
 
 
 CNANDContentManager::~CNANDContentManager()
@@ -355,7 +349,7 @@ void CNANDContentLoader::RemoveTitle() const
 	INFO_LOG(DISCIO, "RemoveTitle %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
 	if (IsValid())
 	{
-		// remove tmd?
+		// remove TMD?
 		for (u32 i = 0; i < m_numEntries; i++)
 		{
 			if (!(m_Content[i].m_Type & 0x8000)) // skip shared apps
@@ -377,7 +371,7 @@ void cUIDsys::UpdateLocation()
 {
 	m_Elements.clear();
 	m_lastUID = 0x00001000;
-	m_uidSys = StringFromFormat("%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
+	m_uidSys = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/sys/uid.sys";
 
 	File::IOFile pFile(m_uidSys, "rb");
 	SElement Element;
@@ -445,7 +439,7 @@ void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
 	}
 }
 
-u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
+u64 CNANDContentManager::Install_WiiWAD(const std::string& fileName)
 {
 	if (fileName.find(".wad") == std::string::npos)
 		return 0;
@@ -455,7 +449,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 
 	u64 TitleID = ContentLoader.GetTitleID();
 
-	//copy WAD's tmd header and contents to content directory
+	//copy WAD's TMD header and contents to content directory
 
 	std::string ContentPath(Common::GetTitleContentPath(TitleID));
 	std::string TMDFileName(Common::GetTMDFileName(TitleID));

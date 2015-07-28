@@ -1,17 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
-
 #include "Common/CommonTypes.h"
 
 class CMemoryView;
@@ -20,7 +13,6 @@ class wxButton;
 class wxCheckBox;
 class wxListBox;
 class wxTextCtrl;
-class wxWindow;
 
 class CMemoryWindow : public wxPanel
 {
@@ -32,12 +24,6 @@ public:
 	              long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
 	              const wxString& name = _("Memory"));
 
-	wxCheckBox* chk8;
-	wxCheckBox* chk16;
-	wxCheckBox* chk32;
-	wxButton*   btnSearch;
-	wxCheckBox* chkAscii;
-	wxCheckBox* chkHex;
 	void Save(IniFile& _IniFile) const;
 	void Load(IniFile& _IniFile);
 
@@ -49,13 +35,6 @@ public:
 private:
 	DECLARE_EVENT_TABLE()
 
-	CMemoryView* memview;
-	wxListBox* symbols;
-
-	wxButton* buttonGo;
-	wxTextCtrl* addrbox;
-	wxTextCtrl* valbox;
-
 	void U8(wxCommandEvent& event);
 	void U16(wxCommandEvent& event);
 	void U32(wxCommandEvent& event);
@@ -66,8 +45,23 @@ private:
 	void OnCallstackListChange(wxCommandEvent& event);
 	void OnAddrBoxChange(wxCommandEvent& event);
 	void OnHostMessage(wxCommandEvent& event);
+	void SetMemoryValueFromValBox(wxCommandEvent& event);
 	void SetMemoryValue(wxCommandEvent& event);
 	void OnDumpMemory(wxCommandEvent& event);
 	void OnDumpMem2(wxCommandEvent& event);
 	void OnDumpFakeVMEM(wxCommandEvent& event);
+
+	wxCheckBox* chk8;
+	wxCheckBox* chk16;
+	wxCheckBox* chk32;
+	wxButton*   btnSearch;
+	wxCheckBox* chkAscii;
+	wxCheckBox* chkHex;
+
+	CMemoryView* memview;
+	wxListBox* symbols;
+
+	wxButton* buttonGo;
+	wxTextCtrl* addrbox;
+	wxTextCtrl* valbox;
 };

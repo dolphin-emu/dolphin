@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/ColorUtil.h"
+#include "Common/FileUtil.h"
 #include "Core/HW/GCMemcard.h"
 
 static void ByteSwap(u8 *valueA, u8 *valueB)
@@ -346,7 +347,7 @@ u16 GCMemcard::GetFreeBlocks() const
 	return BE16(CurrentBat->FreeBlocks);
 }
 
-u8 GCMemcard::TitlePresent(DEntry d) const
+u8 GCMemcard::TitlePresent(const DEntry& d) const
 {
 	if (!m_valid)
 		return DIRLEN;

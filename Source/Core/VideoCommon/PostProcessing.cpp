@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -12,6 +12,8 @@
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoConfig.h"
 
+
+static const char s_default_shader[] = "void main() { SetOutput(Sample()); }\n";
 
 PostProcessingShaderImplementation::PostProcessingShaderImplementation()
 {
@@ -30,20 +32,29 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
 		shader = g_ActiveConfig.sPostProcessingShader;
 	m_current_shader = shader;
 
+	const std::string sub_dir = (g_Config.iStereoMode == STEREO_ANAGLYPH) ? ANAGLYPH_DIR DIR_SEP : "";
+
 	// loading shader code
 	std::string code;
-	std::string path = File::GetUserPath(D_SHADERS_IDX) + shader + ".glsl";
+	std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + ".glsl";
 
-	if (!File::Exists(path))
+	if (shader == "")
 	{
-		// Fallback to shared user dir
-		path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + shader + ".glsl";
+		code = s_default_shader;
 	}
-
-	if (!File::ReadFileToString(path, code))
+	else
 	{
-		ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
-		return "";
+		if (!File::Exists(path))
+		{
+			// Fallback to shared user dir
+			path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir + shader + ".glsl";
+		}
+
+		if (!File::ReadFileToString(path, code))
+		{
+			ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
+			code = s_default_shader;
+		}
 	}
 
 	LoadOptions(code);
@@ -118,7 +129,7 @@ void PostProcessingShaderConfiguration::LoadOptions(const std::string& code)
 						IniFile::ParseLine(line, &key, &value);
 
 						if (!(key == "" && value == ""))
-							current_strings->m_options.push_back(std::make_pair(key, value));
+							current_strings->m_options.emplace_back(key, value);
 					}
 				}
 			}
@@ -260,10 +271,16 @@ void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
 		break;
 		case ConfigurationOption::OptionType::OPTION_FLOAT:
 		{
-			std::string value = "";
+			std::ostringstream value;
+			value.imbue(std::locale("C"));
+
 			for (size_t i = 0; i < it.second.m_float_values.size(); ++i)
-				value += StringFromFormat("%f%s", it.second.m_float_values[i], i == (it.second.m_float_values.size() - 1) ? "": ", ");
-			ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value);
+			{
+				value << it.second.m_float_values[i];
+				if (i != (it.second.m_float_values.size() - 1))
+					value << ", ";
+			}
+			ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value.str());
 		}
 		break;
 		}
@@ -276,7 +293,7 @@ void PostProcessingShaderConfiguration::ReloadShader()
 	m_current_shader = "";
 }
 
-void PostProcessingShaderConfiguration::SetOptionf(std::string option, int index, float value)
+void PostProcessingShaderConfiguration::SetOptionf(const std::string& option, int index, float value)
 {
 	auto it = m_options.find(option);
 
@@ -285,7 +302,7 @@ void PostProcessingShaderConfiguration::SetOptionf(std::string option, int index
 	m_any_options_dirty = true;
 }
 
-void PostProcessingShaderConfiguration::SetOptioni(std::string option, int index, s32 value)
+void PostProcessingShaderConfiguration::SetOptioni(const std::string& option, int index, s32 value)
 {
 	auto it = m_options.find(option);
 
@@ -294,7 +311,7 @@ void PostProcessingShaderConfiguration::SetOptioni(std::string option, int index
 	m_any_options_dirty = true;
 }
 
-void PostProcessingShaderConfiguration::SetOptionb(std::string option, bool value)
+void PostProcessingShaderConfiguration::SetOptionb(const std::string& option, bool value)
 {
 	auto it = m_options.find(option);
 

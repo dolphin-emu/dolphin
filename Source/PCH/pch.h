@@ -1,3 +1,7 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include <algorithm>
 #include <array>
 #include <assert.h>
@@ -27,14 +31,14 @@
 #endif
 #include <iomanip>
 #include <iostream>
-#include <limits.h>
 #include <limits>
+#include <limits.h>
 #include <list>
 #include <locale.h>
 #include <map>
 #include <math.h>
-#include <memory.h>
 #include <memory>
+#include <memory.h>
 #include <mutex>
 #include <numeric>
 #ifndef _WIN32
@@ -67,19 +71,6 @@
 #error Please update your build environment to VS2013 with Update 3 or later!
 #endif
 
-// This numeral indicates the "minimum system required" to run the resulting
-// program. Dolphin targets Vista+, so it should be 0x0600. However in practice,
-// _WIN32_WINNT just removes up-level API declarations from headers. This is a
-// problem for XAudio2 and XInput, where dolphin expects to compile against the
-// Win8+ versions of their headers. So while we really need Vista+ level of
-// support, we declare Win8+ here globally. If this becomes a problem, the
-// higher declaration can be contained to just the XAudio2/XInput related code.
-#define _WIN32_WINNT 0x0602
-
-// Exclude rarely-used stuff from Windows headers
-#define WIN32_LEAN_AND_MEAN
-// Don't include windows min/max definitions. They would conflict with the STL.
-#define NOMINMAX
 #include <Windows.h>
 
 #endif

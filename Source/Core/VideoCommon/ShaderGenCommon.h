@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2012 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -113,7 +113,6 @@ class ShaderCode : public ShaderGeneratorInterface
 public:
 	ShaderCode() : buf(nullptr), write_ptr(nullptr)
 	{
-
 	}
 
 	void Write(const char* fmt, ...)
@@ -142,7 +141,7 @@ public:
 
 	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index)
 	{
-		for (unsigned int i = first_index; i < last_index+1; ++i)
+		for (unsigned int i = first_index; i < last_index + 1; ++i)
 			constant_usage[i] = true;
 	}
 
@@ -198,7 +197,7 @@ public:
 					u8 value = new_uid.GetUidDataRaw()[i];
 					if ((i % 4) == 0)
 					{
-						auto last_value = (i+3 < new_uid.GetUidDataSize()-1) ? i+3 : new_uid.GetUidDataSize();
+						auto last_value = (i + 3 < new_uid.GetUidDataSize() - 1) ? i + 3 : new_uid.GetUidDataSize();
 						file << std::setfill(' ') << std::dec;
 						file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
 					}
@@ -216,14 +215,18 @@ public:
 	}
 
 private:
-	std::map<UidT,std::string> m_shaders;
+	std::map<UidT, std::string> m_shaders;
 	std::vector<UidT> m_uids;
 };
 
 template<class T>
-static void DefineOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
+static void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
 {
-	object.Write("  %s %s", type, name);
+	if (qualifier != nullptr)
+		object.Write("\t%s %s %s", qualifier, type, name);
+	else
+		object.Write("\t%s %s", type, name);
+
 	if (var_index != -1)
 		object.Write("%d", var_index);
 
@@ -239,23 +242,41 @@ static void DefineOutputStructMember(T& object, API_TYPE api_type, const char* t
 }
 
 template<class T>
-static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
+static inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier = nullptr)
 {
-	object.Write("struct VS_OUTPUT {\n");
-
-	DefineOutputStructMember(object, api_type, "float4", "pos", -1, "POSITION");
-	DefineOutputStructMember(object, api_type, "float4", "colors_", 0, "COLOR", 0);
-	DefineOutputStructMember(object, api_type, "float4", "colors_", 1, "COLOR", 1);
+	DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
+	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
+	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 
 	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-		DefineOutputStructMember(object, api_type, "float3", "tex", i, "TEXCOORD", i);
+		DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
 
-	DefineOutputStructMember(object, api_type, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
+	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
 
 	if (g_ActiveConfig.bEnablePixelLighting)
-		DefineOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
+	{
+		DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
+		DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 2);
+	}
+}
 
-	object.Write("};\n");
+template<class T>
+static inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
+{
+	object.Write("\t%s.pos = %s.pos;\n", a, b);
+	object.Write("\t%s.colors_0 = %s.colors_0;\n", a, b);
+	object.Write("\t%s.colors_1 = %s.colors_1;\n", a, b);
+
+	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+		object.Write("\t%s.tex%d = %s.tex%d;\n", a, i, b, i);
+
+	object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
+
+	if (g_ActiveConfig.bEnablePixelLighting)
+	{
+		object.Write("\t%s.Normal = %s.Normal;\n", a, b);
+		object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
+	}
 }
 
 // Constant variable names
@@ -269,6 +290,8 @@ static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
 #define I_FOGCOLOR      "cfogcolor"
 #define I_FOGI          "cfogi"
 #define I_FOGF          "cfogf"
+#define I_ZSLOPE        "czslope"
+#define I_EFBSCALE      "cefbscale"
 
 #define I_POSNORMALMATRIX       "cpnmtx"
 #define I_PROJECTION            "cproj"

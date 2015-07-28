@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -8,6 +8,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
 
@@ -29,7 +30,8 @@ static void DoBacktrace(uintptr_t access_address, SContext* ctx)
 	for (u64 pc = (ctx->CTX_PC - 32); pc < (ctx->CTX_PC + 32); pc += 16)
 	{
 		pc_memory += StringFromFormat("%08x%08x%08x%08x",
-			*(u32*)pc, *(u32*)(pc + 4), *(u32*)(pc + 8), *(u32*)(pc + 12));
+			Common::swap32(*(u32*)pc), Common::swap32(*(u32*)(pc + 4)),
+			Common::swap32(*(u32*)(pc + 8)), Common::swap32(*(u32*)(pc + 12)));
 
 		ERROR_LOG(DYNA_REC, "0x%016lx: %08x %08x %08x %08x",
 			pc, *(u32*)pc, *(u32*)(pc + 4), *(u32*)(pc + 8), *(u32*)(pc + 12));
@@ -51,17 +53,64 @@ bool JitArm64::DisasmLoadStore(const u8* ptr, u32* flags, ARM64Reg* reg)
 		*flags |= BackPatchInfo::FLAG_SIZE_8;
 	else if (size == 1) // 16-bit
 		*flags |= BackPatchInfo::FLAG_SIZE_16;
-	else // 32-bit
+	else if (size == 2) // 32-bit
 		*flags |= BackPatchInfo::FLAG_SIZE_32;
+	else if (size == 3) // 64-bit
+		*flags |= BackPatchInfo::FLAG_SIZE_F64;
 
-	if (op == 0xE5) // Load
+	if (op == 0xF5) // NEON LDR
+	{
+		if (size == 2) // 32-bit float
+		{
+			*flags &= ~BackPatchInfo::FLAG_SIZE_32;
+			*flags |= BackPatchInfo::FLAG_SIZE_F32;
+
+			// Loads directly in to the target register
+			// Duplicates bottom result in to top register
+			*reg = (ARM64Reg)(inst & 0x1F);
+		}
+		else // 64-bit float
+		{
+			// Real register is in the INS instruction
+			u32 ins_inst = *(u32*)(ptr + 8);
+			*reg = (ARM64Reg)(ins_inst & 0x1F);
+		}
+		*flags |= BackPatchInfo::FLAG_LOAD;
+		return true;
+	}
+	else if (op == 0xF4) // NEON STR
+	{
+		if (size == 2) // 32-bit float
+		{
+			*flags &= ~BackPatchInfo::FLAG_SIZE_32;
+			*flags |= BackPatchInfo::FLAG_SIZE_F32;
+
+			// Real register is in the first FCVT conversion instruction
+			u32 fcvt_inst = *(u32*)(ptr - 8);
+			*reg = (ARM64Reg)((fcvt_inst >> 5) & 0x1F);
+		}
+		else // 64-bit float
+		{
+			// Real register is in the previous REV64 instruction
+			*reg = (ARM64Reg)((prev_inst >> 5) & 0x1F);
+		}
+		*flags |= BackPatchInfo::FLAG_STORE;
+		return true;
+	}
+	else if (op == 0xE5) // Load
 	{
 		*flags |= BackPatchInfo::FLAG_LOAD;
 		*reg = (ARM64Reg)(inst & 0x1F);
-		if ((next_inst & 0x7FFFF000) != 0x5AC00000) // REV
+		if ((next_inst & 0x7FFFF000) == 0x5AC00000) // REV
+		{
+			u32 sxth_inst = *(u32*)(ptr + 8);
+			if ((sxth_inst & 0x7F800000) == 0x13000000) // SXTH
+				*flags |= BackPatchInfo::FLAG_EXTEND;
+		}
+		else
+		{
 			*flags |= BackPatchInfo::FLAG_REVERSE;
-		if ((next_inst & 0x7F800000) == 0x13000000) // SXTH
-			*flags |= BackPatchInfo::FLAG_EXTEND;
+		}
 		return true;
 	}
 	else if (op == 0xE4) // Store
@@ -85,15 +134,44 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 
 	if (fastmem)
 	{
-		MOVK(addr, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		u8* base = UReg_MSR(MSR).DR ? Memory::logical_base : Memory::physical_base;
+		MOVK(addr, ((u64)base >> 32) & 0xFFFF, SHIFT_32);
 
 		if (flags & BackPatchInfo::FLAG_STORE &&
 		    flags & (BackPatchInfo::FLAG_SIZE_F32 | BackPatchInfo::FLAG_SIZE_F64))
 		{
+			ARM64FloatEmitter float_emit(emit);
+			if (flags & BackPatchInfo::FLAG_SIZE_F32)
+			{
+				float_emit.FCVT(32, 64, D0, RS);
+				float_emit.REV32(8, D0, D0);
+				trouble_offset = (emit->GetCodePtr() - code_base) / 4;
+				float_emit.STR(32, INDEX_UNSIGNED, D0, addr, 0);
+			}
+			else
+			{
+				float_emit.REV64(8, Q0, RS);
+				trouble_offset = (emit->GetCodePtr() - code_base) / 4;
+				float_emit.STR(64, INDEX_UNSIGNED, Q0, addr, 0);
+			}
 		}
 		else if (flags & BackPatchInfo::FLAG_LOAD &&
 		         flags & (BackPatchInfo::FLAG_SIZE_F32 | BackPatchInfo::FLAG_SIZE_F64))
 		{
+			ARM64FloatEmitter float_emit(emit);
+			trouble_offset = (emit->GetCodePtr() - code_base) / 4;
+			if (flags & BackPatchInfo::FLAG_SIZE_F32)
+			{
+				float_emit.LD1R(32, EncodeRegToDouble(RS), addr);
+				float_emit.REV32(8, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
+				float_emit.FCVTL(64, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
+			}
+			else
+			{
+				float_emit.LDR(64, INDEX_UNSIGNED, Q0, addr, 0);
+				float_emit.REV64(8, Q0, Q0);
+				float_emit.INS(64, RS, 0, Q0, 0);
+			}
 		}
 		else if (flags & BackPatchInfo::FLAG_STORE)
 		{
@@ -110,10 +188,7 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
 				emit->STRH(INDEX_UNSIGNED, temp, addr, 0);
 			else
-			{
 				emit->STRB(INDEX_UNSIGNED, RS, addr, 0);
-				emit->HINT(HINT_NOP);
-			}
 		}
 		else
 		{
@@ -143,32 +218,61 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 		if (flags & BackPatchInfo::FLAG_STORE &&
 		    flags & (BackPatchInfo::FLAG_SIZE_F32 | BackPatchInfo::FLAG_SIZE_F64))
 		{
+			ARM64FloatEmitter float_emit(emit);
+			if (flags & BackPatchInfo::FLAG_SIZE_F32)
+			{
+				float_emit.FCVT(32, 64, D0, RS);
+				float_emit.UMOV(32, W0, Q0, 0);
+				emit->MOVI2R(X30, (u64)&PowerPC::Write_U32);
+				emit->BLR(X30);
+			}
+			else
+			{
+				emit->MOVI2R(X30, (u64)&PowerPC::Write_U64);
+				float_emit.UMOV(64, X0, RS, 0);
+				emit->BLR(X30);
+			}
+
 		}
 		else if (flags & BackPatchInfo::FLAG_LOAD &&
 			   flags & (BackPatchInfo::FLAG_SIZE_F32 | BackPatchInfo::FLAG_SIZE_F64))
 		{
+			ARM64FloatEmitter float_emit(emit);
+			if (flags & BackPatchInfo::FLAG_SIZE_F32)
+			{
+				emit->MOVI2R(X30, (u64)&PowerPC::Read_U32);
+				emit->BLR(X30);
+				float_emit.DUP(32, RS, X0);
+				float_emit.FCVTL(64, RS, RS);
+			}
+			else
+			{
+				emit->MOVI2R(X30, (u64)&PowerPC::Read_F64);
+				emit->BLR(X30);
+				float_emit.INS(64, RS, 0, X0);
+			}
 		}
 		else if (flags & BackPatchInfo::FLAG_STORE)
 		{
 			emit->MOV(W0, RS);
 
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
-				emit->MOVI2R(X30, (u64)&Memory::Write_U32);
+				emit->MOVI2R(X30, (u64)&PowerPC::Write_U32);
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
-				emit->MOVI2R(X30, (u64)&Memory::Write_U16);
+				emit->MOVI2R(X30, (u64)&PowerPC::Write_U16);
 			else
-				emit->MOVI2R(X30, (u64)&Memory::Write_U8);
+				emit->MOVI2R(X30, (u64)&PowerPC::Write_U8);
 
 			emit->BLR(X30);
 		}
 		else
 		{
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
-				emit->MOVI2R(X30, (u64)&Memory::Read_U32);
+				emit->MOVI2R(X30, (u64)&PowerPC::Read_U32);
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
-				emit->MOVI2R(X30, (u64)&Memory::Read_U16);
+				emit->MOVI2R(X30, (u64)&PowerPC::Read_U16);
 			else if (flags & BackPatchInfo::FLAG_SIZE_8)
-				emit->MOVI2R(X30, (u64)&Memory::Read_U8);
+				emit->MOVI2R(X30, (u64)&PowerPC::Read_U8);
 
 			emit->BLR(X30);
 
@@ -206,9 +310,10 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 
 bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
-	if (access_address < (uintptr_t)Memory::base)
+	if (!(access_address >= (uintptr_t)Memory::physical_base && access_address < (uintptr_t)Memory::physical_base + 0x100010000) &&
+		!(access_address >= (uintptr_t)Memory::logical_base && access_address < (uintptr_t)Memory::logical_base + 0x100010000))
 	{
-		ERROR_LOG(DYNA_REC, "Exception handler - access below memory space. PC: 0x%016llx 0x%016lx < 0x%016lx", ctx->CTX_PC, access_address, (uintptr_t)Memory::base);
+		ERROR_LOG(DYNA_REC, "Exception handler - access below memory space. PC: 0x%016llx 0x%016lx < 0x%016lx", ctx->CTX_PC, access_address, (uintptr_t)Memory::physical_base);
 
 		DoBacktrace(access_address, ctx);
 		return false;
@@ -245,7 +350,8 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 	ctx->CTX_PC = new_pc;
 
 	// Wipe the top bits of the addr_register
-	if (flags & BackPatchInfo::FLAG_STORE)
+	if (flags & BackPatchInfo::FLAG_STORE &&
+	    !(flags & BackPatchInfo::FLAG_SIZE_F64))
 		ctx->CTX_REG(1) &= 0xFFFFFFFFUll;
 	else
 		ctx->CTX_REG(0) &= 0xFFFFFFFFUll;
@@ -384,6 +490,46 @@ void JitArm64::InitBackpatch()
 
 			m_backpatch_info[flags] = info;
 		}
+		// 32bit float
+		{
+			flags =
+				BackPatchInfo::FLAG_LOAD |
+				BackPatchInfo::FLAG_SIZE_F32;
+			EmitBackpatchRoutine(this, flags, false, false, Q0, X1);
+			code_end = GetWritableCodePtr();
+			info.m_slowmem_size = (code_end - code_base) / 4;
+
+			SetCodePtr(code_base);
+
+			info.m_fastmem_trouble_inst_offset =
+				EmitBackpatchRoutine(this, flags, true, false, Q0, X1);
+			code_end = GetWritableCodePtr();
+			info.m_fastmem_size = (code_end - code_base) / 4;
+
+			SetCodePtr(code_base);
+
+			m_backpatch_info[flags] = info;
+		}
+		// 64bit float
+		{
+			flags =
+				BackPatchInfo::FLAG_LOAD |
+				BackPatchInfo::FLAG_SIZE_F64;
+			EmitBackpatchRoutine(this, flags, false, false, Q0, X1);
+			code_end = GetWritableCodePtr();
+			info.m_slowmem_size = (code_end - code_base) / 4;
+
+			SetCodePtr(code_base);
+
+			info.m_fastmem_trouble_inst_offset =
+				EmitBackpatchRoutine(this, flags, true, false, Q0, X1);
+			code_end = GetWritableCodePtr();
+			info.m_fastmem_size = (code_end - code_base) / 4;
+
+			SetCodePtr(code_base);
+
+			m_backpatch_info[flags] = info;
+		}
 	}
 
 	// Stores
@@ -441,6 +587,46 @@ void JitArm64::InitBackpatch()
 
 			info.m_fastmem_trouble_inst_offset =
 				EmitBackpatchRoutine(this, flags, true, false, W0, X1);
+			code_end = GetWritableCodePtr();
+			info.m_fastmem_size = (code_end - code_base) / 4;
+
+			SetCodePtr(code_base);
+
+			m_backpatch_info[flags] = info;
+		}
+		// 32bit float
+		{
+			flags =
+				BackPatchInfo::FLAG_STORE |
+				BackPatchInfo::FLAG_SIZE_F32;
+			EmitBackpatchRoutine(this, flags, false, false, Q0, X1);
+			code_end = GetWritableCodePtr();
+			info.m_slowmem_size = (code_end - code_base) / 4;
+
+			SetCodePtr(code_base);
+
+			info.m_fastmem_trouble_inst_offset =
+				EmitBackpatchRoutine(this, flags, true, false, Q0, X1);
+			code_end = GetWritableCodePtr();
+			info.m_fastmem_size = (code_end - code_base) / 4;
+
+			SetCodePtr(code_base);
+
+			m_backpatch_info[flags] = info;
+		}
+		// 64bit float
+		{
+			flags =
+				BackPatchInfo::FLAG_STORE |
+				BackPatchInfo::FLAG_SIZE_F64;
+			EmitBackpatchRoutine(this, flags, false, false, Q0, X1);
+			code_end = GetWritableCodePtr();
+			info.m_slowmem_size = (code_end - code_base) / 4;
+
+			SetCodePtr(code_base);
+
+			info.m_fastmem_trouble_inst_offset =
+				EmitBackpatchRoutine(this, flags, true, false, Q0, X1);
 			code_end = GetWritableCodePtr();
 			info.m_fastmem_size = (code_end - code_base) / 4;
 

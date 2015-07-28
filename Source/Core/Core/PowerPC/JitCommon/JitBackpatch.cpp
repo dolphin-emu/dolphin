@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cinttypes>
@@ -30,8 +30,11 @@ static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress)
 bool Jitx86Base::HandleFault(uintptr_t access_address, SContext* ctx)
 {
 	// TODO: do we properly handle off-the-end?
-	if (access_address >= (uintptr_t)Memory::base && access_address < (uintptr_t)Memory::base + 0x100010000)
-		return BackPatch((u32)(access_address - (uintptr_t)Memory::base), ctx);
+	if (access_address >= (uintptr_t)Memory::physical_base && access_address < (uintptr_t)Memory::physical_base + 0x100010000)
+		return BackPatch((u32)(access_address - (uintptr_t)Memory::physical_base), ctx);
+	if (access_address >= (uintptr_t)Memory::logical_base && access_address < (uintptr_t)Memory::logical_base + 0x100010000)
+		return BackPatch((u32)(access_address - (uintptr_t)Memory::logical_base), ctx);
+
 
 	return false;
 }
@@ -73,9 +76,20 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 
 	BitSet32 registersInUse = it->second;
 
+	u8* exceptionHandler = nullptr;
+	if (jit->jo.memcheck)
+	{
+		auto it2 = exceptionHandlerAtLoc.find(codePtr);
+		if (it2 != exceptionHandlerAtLoc.end())
+			exceptionHandler = it2->second;
+	}
+
+	// Compute the start and length of the memory operation, including
+	// any byteswapping.
+	int totalSize;
+	u8 *start = codePtr;
 	if (!info.isMemoryWrite)
 	{
-		XEmitter emitter(codePtr);
 		int bswapNopCount;
 		if (info.byteSwap || info.operandSize == 1)
 			bswapNopCount = 0;
@@ -85,7 +99,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		else
 			bswapNopCount = 2;
 
-		int totalSize = info.instructionSize + bswapNopCount;
+		totalSize = info.instructionSize + bswapNopCount;
 		if (info.operandSize == 2 && !info.byteSwap)
 		{
 			if ((codePtr[totalSize] & 0xF0) == 0x40)
@@ -95,38 +109,18 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			if (codePtr[totalSize] != 0xc1 || codePtr[totalSize + 2] != 0x10)
 			{
 				PanicAlert("BackPatch: didn't find expected shift %p", codePtr);
-				return nullptr;
+				return false;
 			}
 			info.signExtend = (codePtr[totalSize + 1] & 0x10) != 0;
 			totalSize += 3;
 		}
-
-		const u8 *trampoline = trampolines.GetReadTrampoline(info, registersInUse);
-		emitter.CALL((void *)trampoline);
-		int padding = totalSize - BACKPATCH_SIZE;
-		if (padding > 0)
-		{
-			emitter.NOP(padding);
-		}
-		ctx->CTX_PC = (u64)codePtr;
 	}
 	else
 	{
-		// TODO: special case FIFO writes. Also, support 32-bit mode.
-		auto it2 = pcAtLoc.find(codePtr);
-		if (it2 == pcAtLoc.end())
-		{
-			PanicAlert("BackPatch: no pc entry for address %p", codePtr);
-			return nullptr;
-		}
-
-		u32 pc = it2->second;
-
-		u8 *start;
 		if (info.byteSwap || info.hasImmediate)
 		{
 			// The instruction is a MOVBE but it failed so the value is still in little-endian byte order.
-			start = codePtr;
+			totalSize = info.instructionSize;
 		}
 		else
 		{
@@ -152,17 +146,45 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 				break;
 			}
 			start = codePtr - bswapSize;
+			totalSize = info.instructionSize + bswapSize;
 		}
-		XEmitter emitter(start);
-		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse, pc);
-		emitter.CALL((void *)trampoline);
-		ptrdiff_t padding = (codePtr - emitter.GetCodePtr()) + info.instructionSize;
-		if (padding > 0)
-		{
-			emitter.NOP(padding);
-		}
-		ctx->CTX_PC = (u64)start;
 	}
+
+	// In the trampoline code, we jump back into the block at the beginning
+	// of the next instruction. The next instruction comes immediately
+	// after the backpatched operation, or BACKPATCH_SIZE bytes after the start
+	// of the backpatched operation, whichever comes last. (The JIT inserts NOPs
+	// into the original code if necessary to ensure there is enough space
+	// to insert the backpatch jump.)
+	int padding = totalSize > BACKPATCH_SIZE ? totalSize - BACKPATCH_SIZE : 0;
+	u8* returnPtr = start + 5 + padding;
+
+	// Generate the trampoline.
+	const u8* trampoline;
+	if (info.isMemoryWrite)
+	{
+		// TODO: special case FIFO writes.
+		auto it3 = pcAtLoc.find(codePtr);
+		if (it3 == pcAtLoc.end())
+		{
+			PanicAlert("BackPatch: no pc entry for address %p", codePtr);
+			return false;
+		}
+
+		u32 pc = it3->second;
+		trampoline = trampolines.GenerateWriteTrampoline(info, registersInUse, exceptionHandler, returnPtr, pc);
+	}
+	else
+	{
+		trampoline = trampolines.GenerateReadTrampoline(info, registersInUse, exceptionHandler, returnPtr);
+	}
+
+	// Patch the original memory operation.
+	XEmitter emitter(start);
+	emitter.JMP(trampoline, true);
+	for (int i = 0; i < padding; ++i)
+		emitter.INT3();
+	ctx->CTX_PC = (u64)start;
 
 	return true;
 }

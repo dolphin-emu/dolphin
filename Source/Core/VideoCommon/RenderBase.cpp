@@ -1,11 +1,11 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // ---------------------------------------------------------------------------------------------
 // GC graphics pipeline
 // ---------------------------------------------------------------------------------------------
-// 3d commands are issued through the fifo. The gpu draws to the 2MB EFB.
+// 3d commands are issued through the fifo. The GPU draws to the 2MB EFB.
 // The efb can be copied back into ram in two forms: as textures or as XFB.
 // The XFB is the region in RAM that the VI chip scans out to the television.
 // So, after all rendering to EFB is done, the image is copied into one of two XFBs in RAM.
@@ -17,6 +17,7 @@
 #include <string>
 
 #include "Common/Atomic.h"
+#include "Common/Event.h"
 #include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
@@ -53,6 +54,8 @@ Renderer *g_renderer = nullptr;
 std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;
 
+Common::Event Renderer::s_screenshotCompleted;
+
 volatile bool Renderer::s_bScreenshot;
 
 // The framebuffer size
@@ -67,7 +70,7 @@ PostProcessingShaderImplementation* Renderer::m_post_processor;
 
 TargetRectangle Renderer::target_rc;
 
-int Renderer::s_LastEFBScale;
+int Renderer::s_last_efb_scale;
 
 bool Renderer::XFBWrited;
 
@@ -109,25 +112,23 @@ Renderer::~Renderer()
 #endif
 }
 
-void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidth, u32 fbHeight, float Gamma)
+void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight, float Gamma)
 {
 	CheckFifoRecording();
 
-	if (!fbWidth || !fbHeight)
+	if (!fbStride || !fbHeight)
 		return;
 
-	VideoFifo_CheckEFBAccess();
-	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 	XFBWrited = true;
 
 	if (g_ActiveConfig.bUseXFB)
 	{
-		FramebufferManagerBase::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
+		FramebufferManagerBase::CopyToXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
 	}
 	else
 	{
-		Swap(xfbAddr, fbWidth, fbWidth, fbHeight, sourceRc, Gamma);
-		s_swapRequested.Clear();
+		// below div two to convert from bytes to pixels - it expects width, not stride
+		Swap(xfbAddr, fbStride/2, fbStride/2, fbHeight, sourceRc, Gamma);
 	}
 }
 
@@ -176,14 +177,14 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 	newEFBWidth = newEFBHeight = 0;
 
 	// TODO: Ugly. Clean up
-	switch (s_LastEFBScale)
+	switch (s_last_efb_scale)
 	{
 		case SCALE_AUTO:
 		case SCALE_AUTO_INTEGRAL:
 			newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH);
 			newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT);
 
-			if (s_LastEFBScale == SCALE_AUTO_INTEGRAL)
+			if (s_last_efb_scale == SCALE_AUTO_INTEGRAL)
 			{
 				newEFBWidth = ((newEFBWidth-1) / EFB_WIDTH + 1) * EFB_WIDTH;
 				newEFBHeight = ((newEFBHeight-1) / EFB_HEIGHT + 1) * EFB_HEIGHT;
@@ -214,10 +215,8 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 			efb_scale_denominatorX = efb_scale_denominatorY = 2;
 			break;
 
-		case SCALE_3X:
-		case SCALE_4X:
 		default:
-			efb_scale_numeratorX = efb_scale_numeratorY = s_LastEFBScale - 3;
+			efb_scale_numeratorX = efb_scale_numeratorY = s_last_efb_scale - 3;
 			efb_scale_denominatorX = efb_scale_denominatorY = 1;
 
 
@@ -231,7 +230,7 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 
 			break;
 	}
-	if (s_LastEFBScale > SCALE_AUTO_INTEGRAL)
+	if (s_last_efb_scale > SCALE_AUTO_INTEGRAL)
 		CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, &newEFBWidth, &newEFBHeight);
 
 	if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
@@ -293,7 +292,6 @@ void Renderer::DrawDebugText()
 
 	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
 	{
-		std::string fps = "";
 		if (g_ActiveConfig.bShowFPS)
 			final_cyan += StringFromFormat("FPS: %d", g_renderer->m_fps_counter.m_fps);
 
@@ -331,8 +329,7 @@ void Renderer::DrawDebugText()
 
 	if ((u32)OSDTime > Common::Timer::GetTimeMs())
 	{
-
-		const char* res_text = "";
+		std::string res_text;
 		switch (g_ActiveConfig.iEFBScale)
 		{
 		case SCALE_AUTO:
@@ -353,14 +350,10 @@ void Renderer::DrawDebugText()
 		case SCALE_2_5X:
 			res_text = "2.5x";
 			break;
-		case SCALE_3X:
-			res_text = "3x";
-			break;
-		case SCALE_4X:
-			res_text = "4x";
+		default:
+			res_text = StringFromFormat("%dx", g_ActiveConfig.iEFBScale - 3);
 			break;
 		}
-
 		const char* ar_text = "";
 		switch (g_ActiveConfig.iAspectRatio)
 		{
@@ -378,8 +371,7 @@ void Renderer::DrawDebugText()
 			break;
 		}
 
-		const char* const efbcopy_text = g_ActiveConfig.bEFBCopyEnable ?
-			(g_ActiveConfig.bCopyEFBToTexture ? "to Texture" : "to RAM") : "Disabled";
+		const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
 
 		// The rows
 		const std::string lines[] =
@@ -390,7 +382,7 @@ void Renderer::DrawDebugText()
 			std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
 		};
 
-		enum { lines_count = sizeof(lines)/sizeof(*lines) };
+		enum { lines_count = sizeof(lines) / sizeof(*lines) };
 
 		// The latest changed setting in yellow
 		for (int i = 0; i != lines_count; ++i)
@@ -440,34 +432,34 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	// Update aspect ratio hack values
 	// Won't take effect until next frame
 	// Don't know if there is a better place for this code so there isn't a 1 frame delay
-	if ( g_ActiveConfig.bWidescreenHack )
+	if (g_ActiveConfig.bWidescreenHack)
 	{
 		float source_aspect = use16_9 ? (16.0f / 9.0f) : (4.0f / 3.0f);
 		float target_aspect;
 
-		switch ( g_ActiveConfig.iAspectRatio )
+		switch (g_ActiveConfig.iAspectRatio)
 		{
-		case ASPECT_FORCE_16_9 :
+		case ASPECT_FORCE_16_9:
 			target_aspect = 16.0f / 9.0f;
 			break;
-		case ASPECT_FORCE_4_3 :
+		case ASPECT_FORCE_4_3:
 			target_aspect = 4.0f / 3.0f;
 			break;
-		case ASPECT_STRETCH :
+		case ASPECT_STRETCH:
 			target_aspect = WinWidth / WinHeight;
 			break;
-		default :
+		default:
 			// ASPECT_AUTO == no hacking
 			target_aspect = source_aspect;
 			break;
 		}
 
 		float adjust = source_aspect / target_aspect;
-		if ( adjust > 1 )
+		if (adjust > 1)
 		{
 			// Vert+
 			g_Config.fAspectRatioHackW = 1;
-			g_Config.fAspectRatioHackH = 1/adjust;
+			g_Config.fAspectRatioHackH = 1 / adjust;
 		}
 		else
 		{
@@ -603,4 +595,12 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
+}
+
+void Renderer::PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data)
+{
+	for (EfbPokeData poke : data)
+	{
+		AccessEFB(type, poke.x, poke.y, poke.data);
+	}
 }

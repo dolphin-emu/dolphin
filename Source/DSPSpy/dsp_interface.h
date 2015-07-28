@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -8,7 +8,7 @@
 
 // DSPCR bits
 #define DSPCR_DSPRESET      0x0800        // Reset DSP
-#define DSPCR_ARDMA         0x0200        // ARAM dma in progress, if set
+#define DSPCR_ARDMA         0x0200        // ARAM DMA in progress, if set
 #define DSPCR_DSPINTMSK     0x0100        // * interrupt mask   (RW)
 #define DSPCR_DSPINT        0x0080        // * interrupt active (RWC)
 #define DSPCR_ARINTMSK      0x0040
@@ -32,5 +32,3 @@ public:
 	// the implementation does nothing but calling the virtual methods above.
 	void SendTask(void *addr, u16 iram_addr, u16 len, u16 start);
 };
-
-#endif  // _DSP_INTERFACE_H

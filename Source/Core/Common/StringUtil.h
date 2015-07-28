@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -12,6 +12,8 @@
 #include <vector>
 
 #include "Common/Common.h"
+
+std::string StringFromFormatV(const char* format, va_list args);
 
 std::string StringFromFormat(const char* format, ...)
 #if !defined _WIN32
@@ -64,6 +66,8 @@ template <typename N>
 static bool TryParse(const std::string &str, N *const output)
 {
 	std::istringstream iss(str);
+	// is this right? not doing this breaks reading floats on locales that use different decimal separators
+	iss.imbue(std::locale("C"));
 
 	N tmp = 0;
 	if (iss >> tmp)

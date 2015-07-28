@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -8,7 +8,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "Common/CommonPaths.h"
@@ -16,6 +15,7 @@
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "DiscIO/FileBlob.h"
+#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDirectory.h"
 
@@ -63,13 +63,21 @@ bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 	return File::IsDirectory(directoryName);
 }
 
-bool CVolumeDirectory::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
+bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {
-	return false;
-}
+	if (!decrypt && (_Offset + _Length >= 0x400) && m_is_wii)
+	{
+		// Fully supporting this would require re-encrypting every file that's read.
+		// Only supporting the areas that IOS allows software to read could be more feasible.
+		// Currently, only the header (up to 0x400) is supported, though we're cheating a bit
+		// with it by reading the header inside the current partition instead. Supporting the
+		// header is enough for booting games, but not for running things like the Disc Channel.
+		return false;
+	}
 
-bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
-{
+	if (decrypt && !m_is_wii)
+		PanicAlertT("Tried to decrypt data from a non-Wii volume");
+
 	// header
 	if (_Offset < DISKHEADERINFO_ADDRESS)
 	{
@@ -111,12 +119,15 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 	{
 		_dbg_assert_(DVDINTERFACE, fileIter->first <= _Offset);
 		u64 fileOffset = _Offset - fileIter->first;
+		const std::string fileName = fileIter->second;
 
-		std::unique_ptr<PlainFileReader> reader(PlainFileReader::Create(fileIter->second));
+		std::unique_ptr<PlainFileReader> reader(PlainFileReader::Create(fileName));
 		if (reader == nullptr)
 			return false;
 
 		u64 fileSize = reader->GetDataSize();
+
+		FileMon::CheckFile(fileName, fileSize);
 
 		if (fileOffset < fileSize)
 		{
@@ -127,9 +138,9 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 			if (!reader->Read(fileOffset, fileBytes, _pBuffer))
 				return false;
 
-			_Length -= fileBytes;
+			_Length  -= fileBytes;
 			_pBuffer += fileBytes;
-			_Offset += fileBytes;
+			_Offset  += fileBytes;
 		}
 
 		++fileIter;
@@ -161,9 +172,9 @@ void CVolumeDirectory::SetUniqueID(const std::string& id)
 
 IVolume::ECountry CVolumeDirectory::GetCountry() const
 {
-	u8 CountryCode = m_diskHeader[3];
+	u8 country_code = m_diskHeader[3];
 
-	return CountrySwitch(CountryCode);
+	return CountrySwitch(country_code);
 }
 
 std::string CVolumeDirectory::GetMakerID() const
@@ -171,9 +182,22 @@ std::string CVolumeDirectory::GetMakerID() const
 	return "VOID";
 }
 
-std::vector<std::string> CVolumeDirectory::GetNames() const
+std::string CVolumeDirectory::GetInternalName() const
 {
-	return std::vector<std::string>(1, (char*)(&m_diskHeader[0x20]));
+	char name[0x60];
+	if (Read(0x20, 0x60, (u8*)name, false))
+		return DecodeString(name);
+	else
+		return "";
+}
+
+std::map<IVolume::ELanguage, std::string> CVolumeDirectory::GetNames(bool prefer_long) const
+{
+	std::map<IVolume::ELanguage, std::string> names;
+	std::string name = GetInternalName();
+	if (!name.empty())
+		names[IVolume::ELanguage::LANGUAGE_UNKNOWN] = name;
+	return names;
 }
 
 void CVolumeDirectory::SetName(const std::string& name)
@@ -194,6 +218,11 @@ u32 CVolumeDirectory::GetFSTSize() const
 std::string CVolumeDirectory::GetApploaderDate() const
 {
 	return "VOID";
+}
+
+IVolume::EPlatform CVolumeDirectory::GetVolumeType() const
+{
+	return m_is_wii ? WII_DISC : GAMECUBE_DISC;
 }
 
 u64 CVolumeDirectory::GetSize() const
@@ -239,6 +268,7 @@ void CVolumeDirectory::SetDiskTypeWii()
 	m_diskHeader[0x1b] = 0xa3;
 	memset(&m_diskHeader[0x1c], 0, 4);
 
+	m_is_wii = true;
 	m_addressShift = 2;
 }
 
@@ -250,6 +280,7 @@ void CVolumeDirectory::SetDiskTypeGC()
 	m_diskHeader[0x1e] = 0x9f;
 	m_diskHeader[0x1f] = 0x3d;
 
+	m_is_wii = false;
 	m_addressShift = 0;
 }
 
@@ -308,7 +339,7 @@ void CVolumeDirectory::BuildFST()
 	File::FSTEntry rootEntry;
 
 	// read data from physical disk to rootEntry
-	u32 totalEntries = AddDirectoryEntries(m_rootDirectory, rootEntry) + 1;
+	u64 totalEntries = AddDirectoryEntries(m_rootDirectory, rootEntry) + 1;
 
 	m_fstNameOffset = totalEntries * ENTRY_SIZE; // offset in FST nameTable
 	m_FSTData.resize(m_fstNameOffset + m_totalNameSize);
@@ -392,7 +423,7 @@ void CVolumeDirectory::Write32(u32 data, u32 offset, std::vector<u8>* const buff
 	(*buffer)[offset] = (data) & 0xff;
 }
 
-void CVolumeDirectory::WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u32 length)
+void CVolumeDirectory::WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u64 length)
 {
 	m_FSTData[entryOffset++] = type;
 
@@ -420,7 +451,7 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 	{
 		u32 myOffset = fstOffset;
 		u32 myEntryNum = myOffset / ENTRY_SIZE;
-		WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum, (u32)(myEntryNum + entry.size + 1));
+		WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum, myEntryNum + entry.size + 1);
 		WriteEntryName(nameOffset, entry.virtualName);
 
 		for (const auto& child : entry.children)
@@ -431,12 +462,12 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 	else
 	{
 		// put entry in FST
-		WriteEntryData(fstOffset, FILE_ENTRY, nameOffset, dataOffset, (u32)entry.size);
+		WriteEntryData(fstOffset, FILE_ENTRY, nameOffset, dataOffset, entry.size);
 		WriteEntryName(nameOffset, entry.virtualName);
 
 		// write entry to virtual disk
 		_dbg_assert_(DVDINTERFACE, m_virtualDisk.find(dataOffset) == m_virtualDisk.end());
-		m_virtualDisk.insert(make_pair(dataOffset, entry.physicalName));
+		m_virtualDisk.emplace(dataOffset, entry.physicalName);
 
 		// 4 byte aligned
 		dataOffset = ROUND_UP(dataOffset + entry.size, 0x8000ull);
@@ -459,11 +490,11 @@ static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
 	return nameSize;
 }
 
-u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry)
+u64 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry)
 {
-	u32 foundEntries = ScanDirectoryTree(_Directory, parentEntry);
+	parentEntry = File::ScanDirectoryTree(_Directory, true);
 	m_totalNameSize += ComputeNameSize(parentEntry);
-	return foundEntries;
+	return parentEntry.size;
 }
 
 } // namespace

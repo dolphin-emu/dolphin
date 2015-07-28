@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // ========================
@@ -71,7 +71,7 @@ public:
 	// Jit!
 
 	void Jit(u32 em_address) override;
-	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
+	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC);
 
 	BitSet32 CallerSavedRegistersInUse();
 
@@ -80,11 +80,6 @@ public:
 	void Trace();
 
 	void ClearCache() override;
-
-	const u8 *GetDispatcher()
-	{
-		return asm_routines.dispatcher;
-	}
 
 	const CommonAsmRoutines *GetAsmRoutines() override
 	{
@@ -109,7 +104,6 @@ public:
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
 	void WriteRfiExitDestInRSCRATCH();
-	void WriteCallInterpreter(UGeckoInstruction _inst);
 	bool Cleanup();
 
 	void GenerateConstantOverflow(bool overflow);
@@ -133,25 +127,29 @@ public:
 	// Clobbers RDX.
 	void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
 	void ClearCRFieldBit(int field, int bit);
+	void SetCRFieldBit(int field, int bit);
 
 	// Generates a branch that will check if a given bit of a CR register part
 	// is set or not.
 	Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
-	void SetFPRFIfNeeded(UGeckoInstruction inst, Gen::X64Reg xmm);
+	void SetFPRFIfNeeded(Gen::X64Reg xmm);
+
+	void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
+	                Gen::X64Reg clobber = Gen::XMM0);
 
 	void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
-	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg),
-	            void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS = false);
 	typedef u32 (*Operation)(u32 a, u32 b);
-	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
-		          bool Rc = false, bool carry = false);
-	void fp_tri_op(int d, int a, int b, bool reversible, bool single, void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg),
-	               void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool packed = false, bool roundRHS = false);
+	void regimmop(int d, int a, bool binary, u32 value, Operation doop,
+	              void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
+	              bool Rc = false, bool carry = false);
+	Gen::X64Reg fp_tri_op(int d, int a, int b, bool reversible, bool single,
+	                      void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&),
+	                      void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&),
+	                      bool packed, bool preserve_inputs, bool roundRHS = false);
 	void FloatCompare(UGeckoInstruction inst, bool upper = false);
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction _inst);
 	void FallBackToInterpreter(UGeckoInstruction _inst);
 	void DoNothing(UGeckoInstruction _inst);
 	void HLEFunction(UGeckoInstruction _inst);
@@ -198,12 +196,8 @@ public:
 
 	void reg_imm(UGeckoInstruction inst);
 
-	void ps_sel(UGeckoInstruction inst);
 	void ps_mr(UGeckoInstruction inst);
-	void ps_sign(UGeckoInstruction inst); //aggregate
-	void ps_arith(UGeckoInstruction inst); //aggregate
 	void ps_mergeXX(UGeckoInstruction inst);
-	void ps_maddXX(UGeckoInstruction inst);
 	void ps_res(UGeckoInstruction inst);
 	void ps_rsqrte(UGeckoInstruction inst);
 	void ps_sum(UGeckoInstruction inst);
@@ -239,13 +233,13 @@ public:
 	void negx(UGeckoInstruction inst);
 	void slwx(UGeckoInstruction inst);
 	void srwx(UGeckoInstruction inst);
-	void dcbst(UGeckoInstruction inst);
+	void dcbt(UGeckoInstruction inst);
 	void dcbz(UGeckoInstruction inst);
 
 	void subfic(UGeckoInstruction inst);
 	void subfx(UGeckoInstruction inst);
 
-	void twx(UGeckoInstruction inst);
+	void twX(UGeckoInstruction inst);
 
 	void lXXx(UGeckoInstruction inst);
 

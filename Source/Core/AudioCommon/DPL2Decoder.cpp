@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Dolby Pro Logic 2 decoder from ffdshow-tryout
@@ -39,21 +39,25 @@ static float *filter_coefs_lfe;
 static unsigned int len125;
 
 template<class T, class _ftype_t>
-static _ftype_t DotProduct(int count,const T *buf,const _ftype_t *coefficients)
+static _ftype_t DotProduct(int count, const T *buf, const _ftype_t *coefficients)
 {
-	float sum0=0,sum1=0,sum2=0,sum3=0;
-	for (;count>=4;buf+=4,coefficients+=4,count-=4)
+	int i;
+	float sum0 = 0.0f, sum1 = 0.0f, sum2 = 0.0f, sum3 = 0.0f;
+
+	// Unrolled loop
+	for (i = 0; (i + 3) < count; i += 4)
 	{
-		sum0+=buf[0]*coefficients[0];
-		sum1+=buf[1]*coefficients[1];
-		sum2+=buf[2]*coefficients[2];
-		sum3+=buf[3]*coefficients[3];
+		sum0 += buf[i + 0] * coefficients[i + 0];
+		sum1 += buf[i + 1] * coefficients[i + 1];
+		sum2 += buf[i + 2] * coefficients[i + 2];
+		sum3 += buf[i + 3] * coefficients[i + 3];
 	}
 
-	while (count--)
-		sum0+= *buf++ * *coefficients++;
+	// Epilogue of unrolled loop
+	for (; i < count; i++)
+		sum0 += buf[i] * coefficients[i];
 
-	return sum0+sum1+sum2+sum3;
+	return sum0 + sum1 + sum2 + sum3;
 }
 
 template<class T>
@@ -76,9 +80,9 @@ static T FIRFilter(const T *buf, int pos, int len, int count, const float *coeff
 	// high part of window
 	const T *ptr = &buf[pos];
 
-	float r1=DotProduct(count1,ptr,coefficients);coefficients+=count1;
-	float r2=DotProduct(count2,buf,coefficients);
-	return T(r1+r2);
+	float r1 = DotProduct(count1, ptr, coefficients); coefficients += count1;
+	float r2 = DotProduct(count2, buf, coefficients);
+	return T(r1 + r2);
 }
 
 /*
@@ -92,7 +96,7 @@ static T FIRFilter(const T *buf, int pos, int len, int count, const float *coeff
 */
 static void Hamming(int n, float* w)
 {
-	float k = float(2*M_PI/((float)(n-1))); // 2*pi/(N-1)
+	float k = float(2*M_PI/((float)(n - 1))); // 2*pi/(N-1)
 
 	// Calculate window coefficients
 	for (int i = 0; i < n; i++)
@@ -118,27 +122,28 @@ returns 0 if OK, -1 if fail
 */
 static float* DesignFIR(unsigned int *n, float* fc, float opt)
 {
-	unsigned int  o   = *n & 1;              // Indicator for odd filter length
+	unsigned int  o = *n & 1;                // Indicator for odd filter length
 	unsigned int  end = ((*n + 1) >> 1) - o; // Loop end
 
 	float k1 = 2 * float(M_PI);              // 2*pi*fc1
 	float k2 = 0.5f * (float)(1 - o);        // Constant used if the filter has even length
-	float g  = 0.0f;                         // Gain
+	float g = 0.0f;                          // Gain
 	float t1;                                // Temporary variables
 	float fc1;                               // Cutoff frequencies
 
 	// Sanity check
-	if (*n==0) return nullptr;
-	MathUtil::Clamp(&fc[0],float(0.001),float(1));
+	if (*n == 0)
+		return nullptr;
+	MathUtil::Clamp(&fc[0], float(0.001), float(1));
 
-	float *w=(float*)calloc(sizeof(float),*n);
+	float *w = (float*)calloc(sizeof(float), *n);
 
 	// Get window coefficients
-	Hamming(*n,w);
+	Hamming(*n, w);
 
-	fc1=*fc;
+	fc1 = *fc;
 	// Cutoff frequency must be < 0.5 where 0.5 <=> Fs/2
-	fc1 = ((fc1 <= 1.0) && (fc1 > 0.0)) ? fc1/2 : 0.25f;
+	fc1 = ((fc1 <= 1.0) && (fc1 > 0.0)) ? fc1 / 2 : 0.25f;
 	k1 *= fc1;
 
 	// Low pass filter
@@ -150,20 +155,20 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 	if (o)
 	{
 		w[end] = fc1 * w[end] * 2.0f;
-		g=w[end];
+		g = w[end];
 	}
 
 	// Create filter
 	for (u32 i = 0; i < end; i++)
 	{
-		t1 = (float)(i+1) - k2;
-		w[end-i-1] = w[*n-end+i] = float(w[end-i-1] * sin(k1 * t1)/(M_PI * t1)); // Sinc
-		g += 2*w[end-i-1]; // Total gain in filter
+		t1 = (float)(i + 1) - k2;
+		w[end - i - 1] = w[*n - end + i] = float(w[end - i - 1] * sin(k1 * t1)/(M_PI * t1)); // Sinc
+		g += 2*w[end - i - 1]; // Total gain in filter
 	}
 
 
 	// Normalize gain
-	g=1/g;
+	g = 1/g;
 	for (u32 i = 0; i < *n; i++)
 		w[i] *= g;
 
@@ -361,7 +366,7 @@ void DPL2Decode(float *samples, int numsamples, float *out)
 		out[cur + 0] = lf[k];
 		out[cur + 1] = rf[k];
 		out[cur + 2] = cf[k];
-		LFE_buf[lfe_pos] = (out[0] + out[1]) / 2;
+		LFE_buf[lfe_pos] = (lf[k] + rf[k] + 2.0f * cf[k] + lr[k] + rr[k]) / 2.0f;
 		out[cur + 3] = FIRFilter(LFE_buf, lfe_pos, len125, len125, filter_coefs_lfe);
 		lfe_pos++;
 		if (lfe_pos == len125)

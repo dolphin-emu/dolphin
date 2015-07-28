@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // see IniFile.h
@@ -104,7 +104,7 @@ bool IniFile::Section::Get(const std::string& key, std::vector<std::string>* out
 	while (subStart != std::string::npos)
 	{
 		// Find next ,
-		size_t subEnd = temp.find_first_of(",", subStart);
+		size_t subEnd = temp.find(',', subStart);
 		if (subStart != subEnd)
 			// take from first char until next ,
 			out->push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
@@ -203,7 +203,7 @@ IniFile::Section* IniFile::GetOrCreateSection(const std::string& sectionName)
 	Section* section = GetSection(sectionName);
 	if (!section)
 	{
-		sections.push_back(Section(sectionName));
+		sections.emplace_back(sectionName);
 		section = &sections.back();
 	}
 	return section;
@@ -262,11 +262,12 @@ bool IniFile::GetKeys(const std::string& sectionName, std::vector<std::string>* 
 // Return a list of all lines in a section
 bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>* lines, const bool remove_comments) const
 {
+	lines->clear();
+
 	const Section* section = GetSection(sectionName);
 	if (!section)
 		return false;
 
-	lines->clear();
 	for (std::string line : section->lines)
 	{
 		line = StripSpaces(line);
@@ -310,6 +311,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 		return false;
 
 	Section* current_section = nullptr;
+	bool first_line = true;
 	while (!in.eof())
 	{
 		std::string line;
@@ -321,6 +323,11 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 			else
 				return false;
 		}
+
+		// Skips the UTF-8 BOM at the start of files. Notepad likes to add this.
+		if (first_line && line.substr(0, 3) == "\xEF\xBB\xBF")
+			line = line.substr(3);
+		first_line = false;
 
 #ifndef _WIN32
 		// Check for CRLF eol and convert it to LF

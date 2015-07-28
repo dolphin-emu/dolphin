@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -8,15 +8,15 @@
 #include <string>
 #include <vector>
 
-#include <wx/button.h>
-#include <wx/checkbox.h>
 #include <wx/dialog.h>
-#include <wx/sizer.h>
 #include <wx/slider.h>
-#include <wx/stattext.h>
 #include <wx/textctrl.h>
 
 #include "VideoCommon/PostProcessing.h"
+
+class wxButton;
+class wxCheckBox;
+class wxFlexGridSizer;
 
 class PostProcessingConfigDiag : public wxDialog
 {

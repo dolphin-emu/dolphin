@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <QApplication>
@@ -31,13 +31,13 @@ void Resources::Init()
 	m_regions[DiscIO::IVolume::COUNTRY_AUSTRALIA].load(GIFN("Flag_Australia"));
 	m_regions[DiscIO::IVolume::COUNTRY_FRANCE].load(GIFN("Flag_France"));
 	m_regions[DiscIO::IVolume::COUNTRY_GERMANY].load(GIFN("Flag_Germany"));
-	m_regions[DiscIO::IVolume::COUNTRY_INTERNATIONAL].load(GIFN("Flag_Europe")); // Uses European flag as a placeholder
 	m_regions[DiscIO::IVolume::COUNTRY_ITALY].load(GIFN("Flag_Italy"));
 	m_regions[DiscIO::IVolume::COUNTRY_KOREA].load(GIFN("Flag_Korea"));
 	m_regions[DiscIO::IVolume::COUNTRY_NETHERLANDS].load(GIFN("Flag_Netherlands"));
 	m_regions[DiscIO::IVolume::COUNTRY_RUSSIA].load(GIFN("Flag_Russia"));
 	m_regions[DiscIO::IVolume::COUNTRY_SPAIN].load(GIFN("Flag_Spain"));
 	m_regions[DiscIO::IVolume::COUNTRY_TAIWAN].load(GIFN("Flag_Taiwan"));
+	m_regions[DiscIO::IVolume::COUNTRY_WORLD].load(GIFN("Flag_Europe")); // Uses European flag as a placeholder
 	m_regions[DiscIO::IVolume::COUNTRY_UNKNOWN].load(GIFN("Flag_Unknown"));
 
 	m_platforms.resize(3);
@@ -60,7 +60,7 @@ void Resources::Init()
 
 void Resources::UpdatePixmaps()
 {
-	QString dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
+	QString dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
 	m_pixmaps[TOOLBAR_OPEN].load(GIFN("open"));
 	m_pixmaps[TOOLBAR_REFRESH].load(GIFN("refresh"));
 	m_pixmaps[TOOLBAR_BROWSE].load(GIFN("browse"));

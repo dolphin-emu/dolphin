@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -92,7 +92,7 @@ public:
 	std::string expr;
 	std::string::iterator it;
 
-	Lexer(std::string expr_) : expr(expr_)
+	Lexer(const std::string& expr_) : expr(expr_)
 	{
 		it = expr.begin();
 	}
@@ -219,6 +219,33 @@ public:
 	virtual operator std::string() { return ""; }
 };
 
+class DummyExpression : public ExpressionNode
+{
+public:
+	std::string name;
+
+	DummyExpression(const std::string& name_) : name(name_) {}
+
+	ControlState GetValue() override
+	{
+		return 0.0;
+	}
+
+	void SetValue(ControlState value) override
+	{
+	}
+
+	int CountNumControls() override
+	{
+		return 0;
+	}
+
+	operator std::string() override
+	{
+		return "`" + name + "`";
+	}
+};
+
 class ControlExpression : public ExpressionNode
 {
 public:
@@ -330,6 +357,8 @@ public:
 		{
 		case TOK_NOT:
 			inner->SetValue(1.0 - value);
+			break;
+
 		default:
 			assert(false);
 		}
@@ -416,7 +445,10 @@ private:
 			{
 				Device::Control *control = finder.FindControl(tok.qualifier);
 				if (control == nullptr)
-					return EXPRESSION_PARSE_NO_DEVICE;
+				{
+					*expr_out = new DummyExpression(tok.qualifier);
+					return EXPRESSION_PARSE_SUCCESS;
+				}
 
 				*expr_out = new ControlExpression(tok.qualifier, control);
 				return EXPRESSION_PARSE_SUCCESS;
@@ -536,7 +568,7 @@ Expression::~Expression()
 	delete node;
 }
 
-static ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder &finder, Expression **expr_out)
+static ExpressionParseStatus ParseExpressionInner(const std::string& str, ControlFinder &finder, Expression **expr_out)
 {
 	ExpressionParseStatus status;
 	Expression *expr;
@@ -560,7 +592,7 @@ static ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder
 	return EXPRESSION_PARSE_SUCCESS;
 }
 
-ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Expression **expr_out)
+ExpressionParseStatus ParseExpression(const std::string& str, ControlFinder &finder, Expression **expr_out)
 {
 	// Add compatibility with old simple expressions, which are simple
 	// barewords control names.

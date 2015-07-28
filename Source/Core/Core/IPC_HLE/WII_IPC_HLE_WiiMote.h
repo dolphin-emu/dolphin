@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -7,7 +7,8 @@
 #include <map>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Core/IPC_HLE/hci.h"
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305;
@@ -21,9 +22,9 @@ class CBigEndianBuffer
 public:
 	CBigEndianBuffer(u8* pBuffer) : m_pBuffer(pBuffer) {}
 
-	u8   Read8(u32 offset)              { return m_pBuffer[offset]; }
-	u16  Read16(u32 offset)             { return Common::swap16(*(u16*)&m_pBuffer[offset]); }
-	u32  Read32(u32 offset)             { return Common::swap32(*(u32*)&m_pBuffer[offset]); }
+	u8   Read8(u32 offset)  const       { return m_pBuffer[offset]; }
+	u16  Read16(u32 offset) const       { return Common::swap16(*(u16*)&m_pBuffer[offset]); }
+	u32  Read32(u32 offset) const       { return Common::swap32(*(u32*)&m_pBuffer[offset]); }
 
 	void Write8(u32 offset, u8 data)    { m_pBuffer[offset] = data; }
 	void Write16(u32 offset, u16 data)  { *(u16*)&m_pBuffer[offset] = Common::swap16(data); }
@@ -54,7 +55,7 @@ public:
 	void ResetChannels();
 	void Activate(bool ready);
 	void ExecuteL2capCmd(u8* _pData, u32 _Size); // From CPU
-	void ReceiveL2capData(u16 scid, const void* _pData, u32 _Size); // From wiimote
+	void ReceiveL2capData(u16 scid, const void* _pData, u32 _Size); // From Wiimote
 
 	int NetPlay_GetWiimoteNum(int _number);
 

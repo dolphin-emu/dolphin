@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #if defined(__FreeBSD__)
@@ -88,8 +88,11 @@ bool AVIDump::CreateFile()
 	// Ask to delete file
 	if (File::Exists(movie_file_name))
 	{
-		if (AskYesNoT("Delete the existing file '%s'?", movie_file_name.c_str()))
+		if (SConfig::GetInstance().m_DumpFramesSilent ||
+		    AskYesNoT("Delete the existing file '%s'?", movie_file_name.c_str()))
+		{
 			File::Delete(movie_file_name);
+		}
 	}
 
 	AVIFileInit();
@@ -189,9 +192,9 @@ void AVIDump::StoreFrame(const void* data)
 		else
 		{
 			free(s_stored_frame);
-			PanicAlert("Something has gone seriously wrong.\n"
-				"Stopping video recording.\n"
-				"Your video will likely be broken.");
+			PanicAlertT("Something has gone seriously wrong.\n"
+			            "Stopping video recording.\n"
+			            "Your video will likely be broken.");
 			Stop();
 		}
 		s_stored_frame_size = s_bitmap.biSizeImage;
@@ -216,9 +219,9 @@ void AVIDump::AddFrame(const u8* data, int w, int h)
 	static bool shown_error = false;
 	if ((w != s_bitmap.biWidth || h != s_bitmap.biHeight) && !shown_error)
 	{
-		PanicAlert("You have resized the window while dumping frames.\n"
-			"Nothing sane can be done to handle this.\n"
-			"Your video will likely be broken.");
+		PanicAlertT("You have resized the window while dumping frames.\n"
+		            "Nothing can be done to handle this properly.\n"
+		            "Your video will likely be broken.");
 		shown_error = true;
 
 		s_bitmap.biWidth = w;
@@ -239,13 +242,13 @@ void AVIDump::AddFrame(const u8* data, int w, int h)
 	}
 	bool b_frame_dumped = false;
 	// try really hard to place one copy of frame in stream (otherwise it's dropped)
-	if (delta > (s64)one_cfr * 3 / 10) // place if 3/10th of a frame space
+	if (delta > (s64)one_cfr * 1 / 10) // place if 1/10th of a frame space
 	{
 		delta -= one_cfr;
 		nplay++;
 	}
 	// try not nearly so hard to place additional copies of the frame
-	while (delta > (s64)one_cfr * 8 / 10) // place if 8/10th of a frame space
+	while (delta > (s64)one_cfr * 9 / 10) // place if 9/10th of a frame space
 	{
 		delta -= one_cfr;
 		nplay++;
@@ -291,7 +294,16 @@ bool AVIDump::SetCompressionOptions()
 	memset(&s_options, 0, sizeof(s_options));
 	s_array_options[0] = &s_options;
 
-	return (AVISaveOptions(s_emu_wnd, 0, 1, &s_stream, s_array_options) != 0);
+	if (SConfig::GetInstance().m_DumpFramesSilent)
+	{
+		s_options.fccType = streamtypeVIDEO;
+		s_options.fccHandler = mmioFOURCC('D', 'I', 'B', ' ');  // Uncompressed
+		return true;
+	}
+	else
+	{
+		return (AVISaveOptions(s_emu_wnd, 0, 1, &s_stream, s_array_options) != 0);
+	}
 }
 
 bool AVIDump::SetVideoFormat()

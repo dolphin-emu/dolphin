@@ -1,8 +1,9 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/HW/GPFifo.h"
@@ -55,56 +56,69 @@ void ResetGatherPipe()
 	m_gatherPipeCount = 0;
 }
 
+static void UpdateGatherPipe()
+{
+	u32 cnt;
+	u8* curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
+	for (cnt = 0; m_gatherPipeCount >= GATHER_PIPE_SIZE; cnt += GATHER_PIPE_SIZE)
+	{
+		// copy the GatherPipe
+		memcpy(curMem, m_gatherPipe + cnt, GATHER_PIPE_SIZE);
+		m_gatherPipeCount -= GATHER_PIPE_SIZE;
+
+		// increase the CPUWritePointer
+		if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
+		{
+			ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
+			curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
+		}
+		else
+		{
+			curMem += GATHER_PIPE_SIZE;
+			ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE;
+		}
+
+		g_video_backend->Video_GatherPipeBursted();
+	}
+
+	// move back the spill bytes
+	memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
+}
+
+void FastCheckGatherPipe()
+{
+	if (m_gatherPipeCount >= GATHER_PIPE_SIZE)
+	{
+		UpdateGatherPipe();
+	}
+}
+
 void CheckGatherPipe()
 {
 	if (m_gatherPipeCount >= GATHER_PIPE_SIZE)
 	{
-		u32 cnt;
-		u8* curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
-		for (cnt = 0; m_gatherPipeCount >= GATHER_PIPE_SIZE; cnt += GATHER_PIPE_SIZE)
-		{
-			// copy the GatherPipe
-			memcpy(curMem, m_gatherPipe + cnt, GATHER_PIPE_SIZE);
-			m_gatherPipeCount -= GATHER_PIPE_SIZE;
+		UpdateGatherPipe();
 
-			// increase the CPUWritePointer
-			if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
-			{
-				ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
-				curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
-			}
-			else
-			{
-				curMem += GATHER_PIPE_SIZE;
-				ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE;
-			}
-
-			g_video_backend->Video_GatherPipeBursted();
-		}
-
-		// move back the spill bytes
-		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
-
-		// Profile where the FIFO writes are occurring.
+		// Profile where slow FIFO writes are occurring.
 		JitInterface::CompileExceptionCheck(JitInterface::ExceptionType::EXCEPTIONS_FIFO_WRITE);
 	}
 }
 
-void Write8(const u8 _iValue, const u32 _iAddress)
+void Write8(const u8 _iValue)
 {
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%02x",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue);
 	FastWrite8(_iValue);
 	CheckGatherPipe();
 }
 
-void Write16(const u16 _iValue, const u32 _iAddress)
+void Write16(const u16 _iValue)
 {
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%04x",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue);
 	FastWrite16(_iValue);
 	CheckGatherPipe();
 }
 
-void Write32(const u32 _iValue, const u32 _iAddress)
+void Write32(const u32 _iValue)
 {
 //#ifdef _DEBUG
 //	float floatvalue = *(float*)&_iValue;
@@ -114,7 +128,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	CheckGatherPipe();
 }
 
-void Write64(const u64 _iValue, const u32 _iAddress)
+void Write64(const u64 _iValue)
 {
 	FastWrite64(_iValue);
 	CheckGatherPipe();

@@ -1,17 +1,17 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/Timer.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
-
 #include "Core/HW/WiimoteEmu/MatrixMath.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
@@ -32,13 +32,15 @@ auto const PI = TAU / 2.0;
 namespace WiimoteEmu
 {
 
-/* An example of a factory default first bytes of the Eeprom memory. There are differences between
-   different Wiimotes, my Wiimote had different neutral values for the accelerometer. */
 static const u8 eeprom_data_0[] = {
 	// IR, maybe more
 	// assuming last 2 bytes are checksum
 	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00, // messing up the checksum on purpose
 	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00,
+	// Accelerometer
+	// Important: checksum is required for tilt games
+	ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0xA3,
+	ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0xA3,
 };
 
 static const u8 motion_plus_id[] = { 0x00, 0x00, 0xA6, 0x20, 0x00, 0x05 };
@@ -230,7 +232,7 @@ void Wiimote::Reset()
 	//   0x33 - 0x43: level 2
 	//   0x33 - 0x54: level 3
 	//   0x55 - 0xff: level 4
-	m_status.battery = 0x5f;
+	m_status.battery = (u8)(m_options->settings[5]->GetValue() * 100);
 
 	memset(m_shake_step, 0, sizeof(m_shake_step));
 
@@ -240,10 +242,15 @@ void Wiimote::Reset()
 		delete[] m_read_requests.front().data;
 		m_read_requests.pop();
 	}
+
+	// Yamaha ADPCM state initialize
+	m_adpcm_state.predictor = 0;
+	m_adpcm_state.step = 127;
 }
 
 Wiimote::Wiimote( const unsigned int index )
 	: m_index(index)
+	, m_last_connect_request_counter(0)
 	, ir_sin(0)
 	, ir_cos(1)
 // , m_sound_stream( nullptr )
@@ -297,6 +304,7 @@ Wiimote::Wiimote( const unsigned int index )
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
 	m_options->settings.emplace_back(new ControlGroup::IterateUI(_trans("Iterative Input")));
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Speaker Pan"), 0, -127, 127));
+	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Battery"), 95.0 / 100, 0, 255));
 
 	// TODO: This value should probably be re-read if SYSCONF gets changed
 	m_sensor_bar_on_top = SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR") != 0;
@@ -338,17 +346,17 @@ bool Wiimote::Step()
 			m_read_requests.pop();
 		}
 
-		// dont send any other reports
+		// don't send any other reports
 		return true;
 	}
 
 	// check if a status report needs to be sent
-	// this happens on wiimote sync and when extensions are switched
+	// this happens on Wiimote sync and when extensions are switched
 	if (m_extension->active_extension != m_extension->switch_extension)
 	{
 		RequestStatus();
 
-		// Wiibrew: Following a connection or disconnection event on the Extension Port,
+		// WiiBrew: Following a connection or disconnection event on the Extension Port,
 		// data reporting is disabled and the Data Reporting Mode must be reset before new data can arrive.
 		// after a game receives an unrequested status report,
 		// it expects data reports to stop until it sets the reporting mode again
@@ -392,30 +400,30 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 	wm_accel& accel = *(wm_accel*)(data + rptf.accel);
 	wm_buttons& core = *(wm_buttons*)(data + rptf.core);
 
-	u16 x = (u16)(m_accel.x * ACCEL_RANGE + ACCEL_ZERO_G);
-	u16 y = (u16)(m_accel.y * ACCEL_RANGE + ACCEL_ZERO_G);
-	u16 z = (u16)(m_accel.z * ACCEL_RANGE + ACCEL_ZERO_G);
+	// We now use 2 bits more precision, so multiply by 4 before converting to int
+	s16 x = (s16)(4 * (m_accel.x * ACCEL_RANGE + ACCEL_ZERO_G));
+	s16 y = (s16)(4 * (m_accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
+	s16 z = (s16)(4 * (m_accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
 
-	if (x > 1024)
-		x = 1024;
-	if (y > 1024)
-		y = 1024;
-	if (z > 1024)
-		z = 1024;
+	x = MathUtil::Clamp<s16>(x, 0, 1024);
+	y = MathUtil::Clamp<s16>(y, 0, 1024);
+	z = MathUtil::Clamp<s16>(z, 0, 1024);
 
-	accel.x = x & 0xFF;
-	accel.y = y & 0xFF;
-	accel.z = z & 0xFF;
+	accel.x = (x >> 2) & 0xFF;
+	accel.y = (y >> 2) & 0xFF;
+	accel.z = (z >> 2) & 0xFF;
 
-	core.acc_x_lsb = x >> 8 & 0x3;
-	core.acc_y_lsb = y >> 8 & 0x1;
-	core.acc_z_lsb = z >> 8 & 0x1;
+	core.acc_x_lsb = x & 0x3;
+	core.acc_y_lsb = (y >> 1) & 0x1;
+	core.acc_z_lsb = (z >> 1) & 0x1;
 }
-#define kCutoffFreq 5.0
-inline void LowPassFilter(double & var, double newval, double period)
+
+inline void LowPassFilter(double& var, double newval, double period)
 {
-	double RC=1.0/kCutoffFreq;
-	double alpha=period/(period+RC);
+	static const double CUTOFF_FREQUENCY = 5.0;
+
+	double RC = 1.0 / CUTOFF_FREQUENCY;
+	double alpha = period / (period + RC);
 	var = newval * alpha + var * (1.0 - alpha);
 }
 
@@ -627,6 +635,8 @@ void Wiimote::Update()
 
 	Movie::SetPolledDevice();
 
+	m_status.battery = (u8)(m_options->settings[5]->GetValue() * 100);
+
 	const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
 	s8 rptf_size = rptf.size;
 	if (Movie::IsPlayingInput() && Movie::PlayWiimote(m_index, data, rptf, m_extension->active_extension, m_ext_key))
@@ -655,7 +665,7 @@ void Wiimote::Update()
 		if (rptf.ext)
 			GetExtData(data + rptf.ext);
 
-		// hybrid wiimote stuff (for now, it's not supported while recording)
+		// hybrid Wiimote stuff (for now, it's not supported while recording)
 		if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index] && !Movie::IsRecordingInput())
 		{
 			using namespace WiimoteReal;
@@ -675,7 +685,7 @@ void Wiimote::Update()
 						{
 							const ReportFeatures& real_rptf = reporting_mode_features[real_data[1] - WM_REPORT_CORE];
 
-							// force same report type from real-wiimote
+							// force same report type from real-Wiimote
 							if (&real_rptf != &rptf)
 								rptf_size = 0;
 
@@ -723,7 +733,7 @@ void Wiimote::Update()
 
 					}
 
-					// copy over report from real-wiimote
+					// copy over report from real-Wiimote
 					if (-1 == rptf_size)
 					{
 						std::copy(rpt.begin(), rpt.end(), data);
@@ -760,7 +770,7 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 	// Check for custom communication
 	if (99 == _channelID)
 	{
-		// wiimote disconnected
+		// Wiimote disconnected
 		//PanicAlert( "Wiimote Disconnected" );
 
 		// reset eeprom/register/reporting mode
@@ -859,6 +869,27 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 	}
 }
 
+void Wiimote::ConnectOnInput()
+{
+	if (m_last_connect_request_counter > 0)
+	{
+		--m_last_connect_request_counter;
+		return;
+	}
+
+	u16 buttons = 0;
+	m_buttons->GetState(&buttons, button_bitmasks);
+	m_dpad->GetState(&buttons, dpad_bitmasks);
+
+	if (buttons != 0)
+	{
+		Host_ConnectWiimote(m_index, true);
+		// arbitrary value so it doesn't try to send multiple requests before Dolphin can react
+		// if Wiimotes are polled at 200Hz then this results in one request being sent per 500ms
+		m_last_connect_request_counter = 100;
+	}
+}
+
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
 	ControllerEmu::LoadDefaults(ciface);
@@ -879,9 +910,9 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_buttons, 5, "E"); // +
 
 #ifdef _WIN32
-	set_control(m_buttons, 6, "RETURN"); // Home
+	set_control(m_buttons, 6, "!LMENU & RETURN"); // Home
 #else
-	set_control(m_buttons, 6, "Return"); // Home
+	set_control(m_buttons, 6, "!`Alt_L` & Return"); // Home
 #endif
 
 	// Shake

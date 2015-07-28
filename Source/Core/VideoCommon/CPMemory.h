@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -20,10 +20,12 @@ enum
 // Vertex components
 enum
 {
-	NOT_PRESENT = 0,
-	DIRECT      = 1,
-	INDEX8      = 2,
-	INDEX16     = 3,
+	NOT_PRESENT  = 0,
+	DIRECT       = 1,
+	INDEX8       = 2,
+	INDEX16      = 3,
+
+	MASK_INDEXED = 2,
 };
 
 enum
@@ -86,6 +88,12 @@ union TVtxDesc
 	{
 		u32 Hex0, Hex1;
 	};
+
+	// Easily index into the Position..Tex7Coord fields.
+	u32 GetVertexArrayStatus(int idx)
+	{
+		return (Hex >> (9 + idx * 2)) & 0x3;
+	}
 };
 
 union UVAT_group0
@@ -185,7 +193,7 @@ struct TVtxAttr
 	u8 NormalFormat;
 	ColorAttr color[2];
 	TexAttr texCoord[8];
-	u8 ByteDequant;
+	bool ByteDequant;
 	u8 NormalIndex3;
 };
 
@@ -237,16 +245,17 @@ class VertexLoaderBase;
 // STATE_TO_SAVE
 struct CPState final
 {
-    u32 array_bases[16];
-    u32 array_strides[16];
-    TMatrixIndexA matrix_index_a;
-    TMatrixIndexB matrix_index_b;
-    TVtxDesc vtx_desc;
-    // Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
-    VAT vtx_attr[8];
+	u32 array_bases[16];
+	u32 array_strides[16];
+	TMatrixIndexA matrix_index_a;
+	TMatrixIndexB matrix_index_b;
+	TVtxDesc vtx_desc;
+	// Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
+	VAT vtx_attr[8];
 
 	// Attributes that actually belong to VertexLoaderManager:
 	BitSet32 attr_dirty;
+	bool bases_dirty;
 	VertexLoaderBase* vertex_loaders[8];
 };
 
@@ -259,7 +268,6 @@ extern void CopyPreprocessCPStateFromMain();
 extern CPState g_main_cp_state;
 extern CPState g_preprocess_cp_state;
 
-extern u8 *cached_arraybases[16];
 
 // Might move this into its own file later.
 void LoadCPReg(u32 SubCmd, u32 Value, bool is_preprocess = false);

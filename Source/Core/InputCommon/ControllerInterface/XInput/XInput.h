@@ -1,3 +1,7 @@
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 // XInput suffers a similar issue as XAudio2. Since Win8, it is part of the OS.
 // However, unlike XAudio2 they have not made the API incompatible - so we just
 // compile against the latest version and fall back to dynamically loading the

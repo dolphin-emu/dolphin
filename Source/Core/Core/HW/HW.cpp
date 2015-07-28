@@ -1,9 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/NandPaths.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -25,6 +26,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+#include "DiscIO/NANDContentLoader.h"
 
 namespace HW
 {
@@ -42,14 +44,17 @@ namespace HW
 		ProcessorInterface::Init();
 		ExpansionInterface::Init(); // Needs to be initialized before Memory
 		Memory::Init();
-		DSP::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE);
+		DSP::Init(SConfig::GetInstance().bDSPHLE);
 		DVDInterface::Init();
 		GPFifo::Init();
-		CCPU::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore);
+		CCPU::Init(SConfig::GetInstance().iCPUCore);
 		SystemTimers::Init();
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		if (SConfig::GetInstance().bWii)
 		{
+			Common::InitializeWiiRoot(Core::g_want_determinism);
+			DiscIO::cUIDsys::AccessInstance().UpdateLocation();
+			DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 			WII_IPCInterface::Init();
 			WII_IPC_HLE_Interface::Init();
 		}
@@ -66,10 +71,11 @@ namespace HW
 		SerialInterface::Shutdown();
 		AudioInterface::Shutdown();
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		if (SConfig::GetInstance().bWii)
 		{
 			WII_IPCInterface::Shutdown();
 			WII_IPC_HLE_Interface::Shutdown();
+			Common::ShutdownWiiRoot();
 		}
 
 		State::Shutdown();
@@ -97,7 +103,7 @@ namespace HW
 		AudioInterface::DoState(p);
 		p.DoMarker("AudioInterface");
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		if (SConfig::GetInstance().bWii)
 		{
 			WII_IPCInterface::DoState(p);
 			p.DoMarker("WII_IPCInterface");

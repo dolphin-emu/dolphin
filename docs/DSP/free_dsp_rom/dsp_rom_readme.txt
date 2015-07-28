@@ -1,3 +1,16 @@
+Legal GC/WII DSP IROM replacement (v0.2.1)
+-------------------------------------------------------
+
+- coef: 4-tap polyphase FIR filters
+- irom: unchanged
+
+Coefficients are roughly equivalent to those in the official DROM.
+Improves resampling quality greatly over linear interpolation.
+See generate_coefs.py for details.
+
+stgn
+29/june/2015
+
 Legal GC/WII DSP IROM replacement (v0.2)
 -------------------------------------------------------
 

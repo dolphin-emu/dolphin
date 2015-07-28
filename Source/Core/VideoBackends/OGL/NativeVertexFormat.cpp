@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/MemoryUtil.h"
@@ -58,7 +58,7 @@ static void SetPointer(u32 attrib, u32 stride, const AttributeFormat &format)
 void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
 	this->vtx_decl = _vtx_decl;
-	vertex_stride = vtx_decl.stride;
+	u32 vertex_stride = _vtx_decl.stride;
 
 	// We will not allow vertex components causing uneven strides.
 	if (vertex_stride & 3)

@@ -1,3 +1,7 @@
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 // Most of the code in this file was shamelessly ripped from libcdio With minor adjustments
 
 #include <algorithm>
@@ -72,23 +76,23 @@ std::vector<std::string> cdio_get_devices()
 	CFMutableDictionaryRef classes_to_match;
 	std::vector<std::string> drives;
 
-	kern_result = IOMasterPort( MACH_PORT_NULL, &master_port );
+	kern_result = IOMasterPort(MACH_PORT_NULL, &master_port);
 	if (kern_result != KERN_SUCCESS)
-		return( drives );
+		return drives;
 
-	classes_to_match = IOServiceMatching( kIOCDMediaClass );
+	classes_to_match = IOServiceMatching(kIOCDMediaClass);
 	if (classes_to_match == nullptr)
-		return( drives );
+		return drives;
 
-	CFDictionarySetValue( classes_to_match,
-		CFSTR(kIOMediaEjectableKey), kCFBooleanTrue );
+	CFDictionarySetValue(classes_to_match,
+		CFSTR(kIOMediaEjectableKey), kCFBooleanTrue);
 
-	kern_result = IOServiceGetMatchingServices( master_port,
-		classes_to_match, &media_iterator );
+	kern_result = IOServiceGetMatchingServices(master_port,
+		classes_to_match, &media_iterator);
 	if (kern_result != KERN_SUCCESS)
-		return( drives );
+		return drives;
 
-	next_media = IOIteratorNext( media_iterator );
+	next_media = IOIteratorNext(media_iterator);
 	if (next_media != 0)
 	{
 		CFTypeRef str_bsd_path;
@@ -96,12 +100,12 @@ std::vector<std::string> cdio_get_devices()
 		do
 		{
 			str_bsd_path =
-				IORegistryEntryCreateCFProperty( next_media,
-					CFSTR( kIOBSDNameKey ), kCFAllocatorDefault,
-					0 );
+				IORegistryEntryCreateCFProperty(next_media,
+					CFSTR(kIOBSDNameKey), kCFAllocatorDefault,
+					0);
 			if (str_bsd_path == nullptr)
 			{
-				IOObjectRelease( next_media );
+				IOObjectRelease(next_media);
 				continue;
 			}
 
@@ -120,12 +124,11 @@ std::vector<std::string> cdio_get_devices()
 
 				delete[] buf;
 			}
-			CFRelease( str_bsd_path );
-			IOObjectRelease( next_media );
-
-		} while (( next_media = IOIteratorNext( media_iterator ) ) != 0);
+			CFRelease(str_bsd_path);
+			IOObjectRelease(next_media);
+		} while ((next_media = IOIteratorNext(media_iterator)) != 0);
 	}
-	IOObjectRelease( media_iterator );
+	IOObjectRelease(media_iterator);
 	return drives;
 }
 #else
@@ -166,11 +169,11 @@ static bool is_cdrom(const std::string& drive, char *mnttype)
 {
 	// Check if the device exists
 	if (!is_device(drive))
-		return(false);
+		return false;
 
-	bool is_cd=false;
+	bool is_cd = false;
 	// If it does exist, verify that it is a cdrom/dvd drive
-	int cdfd = open(drive.c_str(), (O_RDONLY|O_NONBLOCK), 0);
+	int cdfd = open(drive.c_str(), (O_RDONLY | O_NONBLOCK), 0);
 	if (cdfd >= 0)
 	{
 #ifdef __linux__
@@ -179,11 +182,11 @@ static bool is_cdrom(const std::string& drive, char *mnttype)
 			is_cd = true;
 		close(cdfd);
 	}
-	return(is_cd);
+	return is_cd;
 }
 
 // Returns a pointer to an array of strings with the device names
-std::vector<std::string> cdio_get_devices ()
+std::vector<std::string> cdio_get_devices()
 {
 	std::vector<std::string> drives;
 	// Scan the system for DVD/CD-ROM drives.

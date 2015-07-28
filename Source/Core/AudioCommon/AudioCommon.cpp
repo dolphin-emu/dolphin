@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -27,40 +27,39 @@ static bool s_audio_dump_start = false;
 
 namespace AudioCommon
 {
+	static const int AUDIO_VOLUME_MIN = 0;
+	static const int AUDIO_VOLUME_MAX = 100;
+
 	SoundStream* InitSoundStream()
 	{
-		CMixer *mixer = new CMixer(48000);
-
-		// TODO: possible memleak with mixer
-
 		std::string backend = SConfig::GetInstance().sBackend;
-		if (backend == BACKEND_OPENAL           && OpenALStream::isValid())
-			g_sound_stream = new OpenALStream(mixer);
-		else if (backend == BACKEND_NULLSOUND   && NullSound::isValid())
-			g_sound_stream = new NullSound(mixer);
+		if (backend == BACKEND_OPENAL && OpenALStream::isValid())
+			g_sound_stream = new OpenALStream();
+		else if (backend == BACKEND_NULLSOUND && NullSound::isValid())
+			g_sound_stream = new NullSound();
 		else if (backend == BACKEND_XAUDIO2)
 		{
 			if (XAudio2::isValid())
-				g_sound_stream = new XAudio2(mixer);
+				g_sound_stream = new XAudio2();
 			else if (XAudio2_7::isValid())
-				g_sound_stream = new XAudio2_7(mixer);
+				g_sound_stream = new XAudio2_7();
 		}
-		else if (backend == BACKEND_AOSOUND     && AOSound::isValid())
-			g_sound_stream = new AOSound(mixer);
-		else if (backend == BACKEND_ALSA        && AlsaSound::isValid())
-			g_sound_stream = new AlsaSound(mixer);
-		else if (backend == BACKEND_COREAUDIO   && CoreAudioSound::isValid())
-			g_sound_stream = new CoreAudioSound(mixer);
-		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
-			g_sound_stream = new PulseAudio(mixer);
+		else if (backend == BACKEND_AOSOUND && AOSound::isValid())
+			g_sound_stream = new AOSound();
+		else if (backend == BACKEND_ALSA && AlsaSound::isValid())
+			g_sound_stream = new AlsaSound();
+		else if (backend == BACKEND_COREAUDIO && CoreAudioSound::isValid())
+			g_sound_stream = new CoreAudioSound();
+		else if (backend == BACKEND_PULSEAUDIO && PulseAudio::isValid())
+			g_sound_stream = new PulseAudio();
 		else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
-			g_sound_stream = new OpenSLESStream(mixer);
+			g_sound_stream = new OpenSLESStream();
 
 		if (!g_sound_stream && NullSound::isValid())
 		{
 			WARN_LOG(DSPHLE, "Could not initialize backend %s, using %s instead.",
 				backend.c_str(), BACKEND_NULLSOUND);
-			g_sound_stream = new NullSound(mixer);
+			g_sound_stream = new NullSound();
 		}
 
 		if (g_sound_stream)
@@ -122,29 +121,12 @@ namespace AudioCommon
 		return backends;
 	}
 
-	void PauseAndLock(bool doLock, bool unpauseOnUnlock)
-	{
-		if (g_sound_stream)
-		{
-			// audio typically doesn't maintain its own "paused" state
-			// (that's already handled by the CPU and whatever else being paused)
-			// so it should be good enough to only lock/unlock here.
-			CMixer* pMixer = g_sound_stream->GetMixer();
-			if (pMixer)
-			{
-				std::mutex& csMixing = pMixer->MixerCritical();
-				if (doLock)
-					csMixing.lock();
-				else
-					csMixing.unlock();
-			}
-		}
-	}
 	void UpdateSoundStream()
 	{
 		if (g_sound_stream)
 		{
-			g_sound_stream->SetVolume(SConfig::GetInstance().m_Volume);
+			int volume = SConfig::GetInstance().m_IsMuted ? 0 : SConfig::GetInstance().m_Volume;
+			g_sound_stream->SetVolume(volume);
 		}
 	}
 
@@ -190,5 +172,32 @@ namespace AudioCommon
 		g_sound_stream->GetMixer()->StopLogDTKAudio();
 		g_sound_stream->GetMixer()->StopLogDSPAudio();
 		s_audio_dump_start = false;
+	}
+
+	void IncreaseVolume(unsigned short offset)
+	{
+		SConfig::GetInstance().m_IsMuted = false;
+		int& currentVolume = SConfig::GetInstance().m_Volume;
+		currentVolume += offset;
+		if (currentVolume > AUDIO_VOLUME_MAX)
+			currentVolume = AUDIO_VOLUME_MAX;
+		UpdateSoundStream();
+	}
+
+	void DecreaseVolume(unsigned short offset)
+	{
+		SConfig::GetInstance().m_IsMuted = false;
+		int& currentVolume = SConfig::GetInstance().m_Volume;
+		currentVolume -= offset;
+		if (currentVolume < AUDIO_VOLUME_MIN)
+			currentVolume = AUDIO_VOLUME_MIN;
+		UpdateSoundStream();
+	}
+
+	void ToggleMuteVolume()
+	{
+		bool& isMuted = SConfig::GetInstance().m_IsMuted;
+		isMuted = !isMuted;
+		UpdateSoundStream();
 	}
 }

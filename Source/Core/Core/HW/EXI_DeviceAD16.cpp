@@ -1,9 +1,9 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Core/Core.h"
-
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceAD16.h"
 
@@ -20,7 +20,7 @@ void CEXIAD16::SetCS(int cs)
 		m_uPosition = 0;
 }
 
-bool CEXIAD16::IsPresent()
+bool CEXIAD16::IsPresent() const
 {
 	return true;
 }

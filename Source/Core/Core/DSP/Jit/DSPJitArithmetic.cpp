@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
@@ -8,6 +8,7 @@
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPIntCCUtil.h"
 #include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/DSPMemoryMap.h"
 
 using namespace Gen;
 
@@ -179,7 +180,7 @@ void DSPEmitter::cmp(const UDSPInstruction opc)
 		SUB(64, R(RAX), R(RDX));
 //		Update_SR_Register64(res, isCarry2(acc0, res), isOverflow(acc0, -acc1, res)); // CF -> influence on ABS/0xa100
 		NEG(64, R(RDX));
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 		gpr.putXReg(tmp1);
 	}
 }
@@ -210,7 +211,7 @@ void DSPEmitter::cmpar(const UDSPInstruction opc)
 		SUB(64, R(RAX), R(RDX));
 //		Update_SR_Register64(res, isCarry2(sr, res), isOverflow(sr, -rr, res));
 		NEG(64, R(RDX));
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 		gpr.putXReg(tmp1);
 	}
 }
@@ -239,7 +240,7 @@ void DSPEmitter::cmpi(const UDSPInstruction opc)
 		SUB(64, R(RAX), R(RDX));
 //		Update_SR_Register64(res, isCarry2(val, res), isOverflow(val, -imm, res));
 		NEG(64, R(RDX));
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 		gpr.putXReg(tmp1);
 	}
 }
@@ -268,7 +269,7 @@ void DSPEmitter::cmpis(const UDSPInstruction opc)
 		SUB(64, R(RAX), R(RDX));
 //		Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -val, res));
 		NEG(64, R(RDX));
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 		gpr.putXReg(tmp1);
 	}
 }
@@ -862,7 +863,7 @@ void DSPEmitter::subr(const UDSPInstruction opc)
 		NEG(64, R(RDX));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -898,7 +899,7 @@ void DSPEmitter::subax(const UDSPInstruction opc)
 		NEG(64, R(RDX));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -932,7 +933,7 @@ void DSPEmitter::sub(const UDSPInstruction opc)
 		NEG(64, R(RDX));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -966,7 +967,7 @@ void DSPEmitter::subp(const UDSPInstruction opc)
 		NEG(64, R(RDX));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -999,7 +1000,7 @@ void DSPEmitter::decm(const UDSPInstruction opc)
 		MOV(64, R(RDX), Imm64(-subtract));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -1031,7 +1032,7 @@ void DSPEmitter::dec(const UDSPInstruction opc)
 		MOV(64, R(RDX), Imm64(-1));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -1075,7 +1076,7 @@ void DSPEmitter::abs(const UDSPInstruction opc)
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg);
 //	if (acc < 0) acc = 0 - acc;
-	CMP(64, R(RAX), Imm8(0));
+	TEST(64, R(RAX), R(RAX));
 	FixupBranch GreaterThanOrEqual = J_CC(CC_GE);
 	NEG(64, R(RAX));
 	set_long_acc(dreg);
@@ -1367,7 +1368,7 @@ void DSPEmitter::lsrn(const UDSPInstruction opc)
 	//		acc <<= -shift;
 	//	}
 
-	CMP(64, R(RDX), Imm8(0));//is this actually worth the branch cost?
+	TEST(64, R(RDX), R(RDX));//is this actually worth the branch cost?
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));//is this actually worth the branch cost?
 	FixupBranch noShift = J_CC(CC_Z);
@@ -1426,7 +1427,7 @@ void DSPEmitter::asrn(const UDSPInstruction opc)
 //		acc <<= -shift;
 //	}
 
-	CMP(64, R(RDX), Imm8(0));
+	TEST(64, R(RDX), R(RDX));
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));
 	FixupBranch noShift = J_CC(CC_Z);
@@ -1489,7 +1490,7 @@ void DSPEmitter::lsrnrx(const UDSPInstruction opc)
 //		acc >>= -shift;
 //	}
 
-	CMP(64, R(RDX), Imm8(0));
+	TEST(64, R(RDX), R(RDX));
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));
 	FixupBranch noShift = J_CC(CC_Z);
@@ -1546,7 +1547,7 @@ void DSPEmitter::asrnrx(const UDSPInstruction opc)
 //		acc >>= -shift;
 //	}
 
-	CMP(64, R(RDX), Imm8(0));
+	TEST(64, R(RDX), R(RDX));
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));
 	FixupBranch noShift = J_CC(CC_Z);
@@ -1604,7 +1605,7 @@ void DSPEmitter::lsrnr(const UDSPInstruction opc)
 //	else if (shift < 0)
 //		acc >>= -shift;
 
-	CMP(64, R(RDX), Imm8(0));
+	TEST(64, R(RDX), R(RDX));
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));
 	FixupBranch noShift = J_CC(CC_Z);
@@ -1659,7 +1660,7 @@ void DSPEmitter::asrnr(const UDSPInstruction opc)
 //	else if (shift < 0)
 //		acc >>= -shift;
 
-	CMP(64, R(RDX), Imm8(0));
+	TEST(64, R(RDX), R(RDX));
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));
 	FixupBranch noShift = J_CC(CC_Z);

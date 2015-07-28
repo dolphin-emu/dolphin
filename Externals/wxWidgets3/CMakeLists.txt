@@ -861,7 +861,7 @@ set(SRCS
 	${SRCS_COMMON}
 	${SRCS_GENERIC})
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98")
 	add_definitions(-D__WXOSX_COCOA__)
 	set(SRCS
@@ -882,7 +882,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		${IOK_LIBRARY}
 		${OPENGL_LIBRARY}
 		${QUICKTIME_LIBRARY})
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 	add_definitions(-D__WXGTK__)
 	set(SRCS

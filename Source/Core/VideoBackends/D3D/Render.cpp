@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cinttypes>
@@ -8,6 +8,7 @@
 #include <strsafe.h>
 #include <unordered_map>
 
+#include "Common/MathUtil.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
@@ -33,6 +34,7 @@
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -40,12 +42,11 @@
 namespace DX11
 {
 
-static u32 s_LastAA = 0;
+static u32 s_last_multisample_mode = 0;
+static bool s_last_stereo_mode = false;
+static bool s_last_xfb_mode = false;
 
 static Television s_television;
-
-static bool s_last_fullscreen_mode = false;
-static bool s_LastStereo = 0;
 
 ID3D11Buffer* access_efb_cbuf = nullptr;
 ID3D11BlendState* clearblendstates[4] = {nullptr};
@@ -227,11 +228,12 @@ Renderer::Renderer(void *&window_handle)
 
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-	s_LastAA = g_ActiveConfig.iMultisampleMode;
-	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	s_last_fullscreen_mode = g_ActiveConfig.bFullscreen;
-	s_LastStereo = g_ActiveConfig.iStereoMode > 0;
+	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
+	s_last_efb_scale = g_ActiveConfig.iEFBScale;
+	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+	PixelShaderManager::SetEfbScaleChanged();
 
 	SetupDeviceObjects();
 
@@ -257,7 +259,7 @@ Renderer::Renderer(void *&window_handle)
 	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
 	D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), ClearColor);
-	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)s_target_width, (float)s_target_height);
 	D3D::context->RSSetViewports(1, &vp);
@@ -349,15 +351,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	D3D11_MAPPED_SUBRESOURCE map;
 	ID3D11Texture2D* read_tex;
 
-	if (type == POKE_Z)
-	{
-		static bool alert_only_once = true;
-		if (!alert_only_once) return 0;
-		PanicAlert("EFB: Poke Z not implemented (tried to poke z value %#x at (%d,%d))", poke_data, x, y);
-		alert_only_once = false;
-		return 0;
-	}
-
 	// Convert EFB dimensions to the ones of our render target
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;
@@ -413,20 +406,20 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// read the data from system memory
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
 
-		float val = *(float*)map.pData;
+		// depth buffer is inverted in the d3d backend
+		float val = 1.0f - *(float*)map.pData;
 		u32 ret = 0;
 		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 		{
 			// if Z is in 16 bit format you must return a 16 bit integer
-			ret = ((u32)(val * 0xffff));
+			ret = MathUtil::Clamp<u32>((u32)(val * 65536.0f), 0, 0xFFFF);
 		}
 		else
 		{
-			ret = ((u32)(val * 0xffffff));
+			ret = MathUtil::Clamp<u32>((u32)(val * 16777216.0f), 0, 0xFFFFFF);
 		}
 		D3D::context->Unmap(read_tex, 0);
 
-		// TODO: in RE0 this value is often off by one in Video_DX9 (where this code is derived from), which causes lighting to disappear
 		return ret;
 	}
 	else if (type == PEEK_COLOR)
@@ -463,22 +456,53 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		else if (alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
 		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
 	}
-	else //if(type == POKE_COLOR)
+	else if (type == POKE_COLOR)
 	{
 		u32 rgbaColor = (poke_data & 0xFF00FF00) | ((poke_data >> 16) & 0xFF) | ((poke_data << 16) & 0xFF0000);
 
 		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
 		ResetAPIState();
 
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
+		D3D::context->RSSetViewports(1, &vp);
+
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), nullptr);
-		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
-		                            - (float)RectToLock.top    * 2.f / (float)Renderer::GetTargetHeight() + 1.f,
-		                              (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
-		                            - (float)RectToLock.bottom * 2.f / (float)Renderer::GetTargetHeight() + 1.f);
+		D3D::drawColorQuad(rgbaColor, 0.f,
+		                  (float)RectToLock.left   * 2.f / GetTargetWidth()  - 1.f,
+		                - (float)RectToLock.top    * 2.f / GetTargetHeight() + 1.f,
+		                  (float)RectToLock.right  * 2.f / GetTargetWidth()  - 1.f,
+		                - (float)RectToLock.bottom * 2.f / GetTargetHeight() + 1.f);
 
 		RestoreAPIState();
-		return 0;
 	}
+	else // if (type == POKE_Z)
+	{
+		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
+		ResetAPIState();
+
+		D3D::stateman->PushBlendState(clearblendstates[3]);
+		D3D::stateman->PushDepthState(cleardepthstates[1]);
+
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight(),
+			1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
+			1.0f - MathUtil::Clamp<float>((xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f)), 0.0f, 16777215.0f) / 16777216.0f);
+		D3D::context->RSSetViewports(1, &vp);
+
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
+			FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		D3D::drawColorQuad(0, 1.0f - float(poke_data & 0xFFFFFF) / 16777216.0f,
+		                  (float)RectToLock.left   * 2.f / GetTargetWidth()  - 1.f,
+		                - (float)RectToLock.top    * 2.f / GetTargetHeight() + 1.f,
+		                  (float)RectToLock.right  * 2.f / GetTargetWidth()  - 1.f,
+		                - (float)RectToLock.bottom * 2.f / GetTargetHeight() + 1.f);
+
+		D3D::stateman->PopDepthState();
+		D3D::stateman->PopBlendState();
+
+		RestoreAPIState();
+	}
+
+	return 0;
 }
 
 
@@ -521,8 +545,8 @@ void Renderer::SetViewport()
 	Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
-		std::max(0.0f, std::min(1.0f, (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f)),
-		std::max(0.0f, std::min(1.0f, xfmem.viewport.farZ / 16777216.0f)));
+		1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
+		1.0f - MathUtil::Clamp<float>((xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f)), 0.0f, 16777215.0f) / 16777216.0f);
 	D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -547,7 +571,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	// Color is passed in bgra mode so we need to convert it to rgba
 	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
-	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / float(0xFFFFFF));
+	D3D::drawClearQuad(rgbaColor, 1.0f - (z & 0xFFFFFF) / 16777216.0f);
 
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopBlendState();
@@ -744,10 +768,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			int xfbWidth = xfbSource->srcWidth;
 			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
 
-			drawRc.top = targetRc.bottom - (hOffset + xfbHeight) * targetRc.GetHeight() / fbHeight;
-			drawRc.bottom = targetRc.bottom - hOffset * targetRc.GetHeight() / fbHeight;
-			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / fbStride) / 2;
-			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / fbStride) / 2;
+			drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / (s32)fbHeight;
+			drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / (s32)fbHeight;
+			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
+			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
 
 			// The following code disables auto stretch.  Kept for reference.
 			// scale draw area for a 1 to 1 pixel mapping with the draw target
@@ -763,6 +787,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			sourceRc.top = 0;
 			sourceRc.right = (int)xfbSource->texWidth;
 			sourceRc.bottom = (int)xfbSource->texHeight;
+
+			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
 			BlitScreen(sourceRc, drawRc, xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight, Gamma);
 		}
@@ -852,7 +878,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	OSD::DrawMessages();
 	D3D::EndFrame();
 
-	TextureCache::Cleanup();
+	TextureCache::Cleanup(frameCount);
 
 	// Enable configuration changes
 	UpdateActiveConfig();
@@ -861,46 +887,57 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	SetWindowSize(fbStride, fbHeight);
 
 	const bool windowResized = CheckForResize();
-	const bool fullscreen = g_ActiveConfig.bFullscreen &&
-		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain;
+	const bool fullscreen = g_ActiveConfig.bFullscreen && !g_ActiveConfig.bBorderlessFullscreen &&
+		!SConfig::GetInstance().bRenderToMain;
 
-	bool fullscreen_changed = s_last_fullscreen_mode != fullscreen;
-
-	bool fullscreen_state;
-	if (SUCCEEDED(D3D::GetFullscreenState(&fullscreen_state)))
-	{
-		if (fullscreen_state != fullscreen && Host_RendererHasFocus())
-		{
-			// The current fullscreen state does not match the configuration,
-			// this may happen when the renderer frame loses focus. When the
-			// render frame is in focus again we can re-apply the configuration.
-			fullscreen_changed = true;
-		}
-	}
-
-	bool xfbchanged = false;
+	bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
 	if (FramebufferManagerBase::LastXfbWidth() != fbStride || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		unsigned int w = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
-		unsigned int h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
-		FramebufferManagerBase::SetLastXfbWidth(w);
-		FramebufferManagerBase::SetLastXfbHeight(h);
+		unsigned int xfb_w = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
+		unsigned int xfb_h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+		FramebufferManagerBase::SetLastXfbWidth(xfb_w);
+		FramebufferManagerBase::SetLastXfbHeight(xfb_h);
 	}
 
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
 
+	// Check exclusive fullscreen state
+	bool exclusive_mode, fullscreen_changed = false;
+	if (SUCCEEDED(D3D::GetFullscreenState(&exclusive_mode)))
+	{
+		if (fullscreen && !exclusive_mode)
+		{
+			if (g_Config.bExclusiveMode)
+				OSD::AddMessage("Lost exclusive fullscreen.");
+
+			// Exclusive fullscreen is enabled in the configuration, but we're
+			// not in exclusive mode. Either exclusive fullscreen was turned on
+			// or the render frame lost focus. When the render frame is in focus
+			// we can apply exclusive mode.
+			fullscreen_changed = Host_RendererHasFocus();
+
+			g_Config.bExclusiveMode = false;
+		}
+		else if (!fullscreen && exclusive_mode)
+		{
+			// Exclusive fullscreen is disabled, but we're still in exclusive mode.
+			fullscreen_changed = true;
+		}
+	}
+
 	// Resize the back buffers NOW to avoid flickering
 	if (xfbchanged ||
 		windowResized ||
 		fullscreen_changed ||
-		s_LastEFBScale != g_ActiveConfig.iEFBScale ||
-		s_LastAA != g_ActiveConfig.iMultisampleMode ||
-		s_LastStereo != (g_ActiveConfig.iStereoMode > 0))
+		s_last_efb_scale != g_ActiveConfig.iEFBScale ||
+		s_last_multisample_mode != g_ActiveConfig.iMultisampleMode ||
+		s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
 	{
-		s_LastAA = g_ActiveConfig.iMultisampleMode;
+		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
+		s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
 		PixelShaderCache::InvalidateMSAAShaders();
 
 		if (windowResized || fullscreen_changed)
@@ -908,14 +945,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// Apply fullscreen state
 			if (fullscreen_changed)
 			{
-				s_last_fullscreen_mode = fullscreen;
+				g_Config.bExclusiveMode = fullscreen;
+
+				if (fullscreen)
+					OSD::AddMessage("Entered exclusive fullscreen.");
+
 				D3D::SetFullscreenState(fullscreen);
 
-				// Notify the host that it is safe to exit fullscreen
-				if (!fullscreen)
-				{
+				// If fullscreen is disabled we can safely notify the UI to exit fullscreen.
+				if (!g_ActiveConfig.bFullscreen)
 					Host_RequestFullscreen(false);
-				}
 			}
 
 			// TODO: Aren't we still holding a reference to the back buffer right now?
@@ -928,9 +967,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		s_LastEFBScale = g_ActiveConfig.iEFBScale;
-		s_LastStereo = g_ActiveConfig.iStereoMode > 0;
+		s_last_efb_scale = g_ActiveConfig.iEFBScale;
+		s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+
+		PixelShaderManager::SetEfbScaleChanged();
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
@@ -938,7 +979,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		g_framebuffer_manager = new FramebufferManager;
 		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
 		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
-		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
 	}
 
 	// begin next frame
@@ -976,7 +1017,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	for (unsigned int stage = 0; stage < 8; stage++)
 	{
 		// TODO: cache SamplerState directly, not d3d object
-		gx_state.sampler[stage].max_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+		gx_state.sampler[stage].max_anisotropy = 1 << g_ActiveConfig.iMaxAnisotropy;
 		D3D::stateman->SetSampler(stage, gx_state_cache.Get(gx_state.sampler[stage]));
 	}
 
@@ -1136,7 +1177,7 @@ void Renderer::SetDitherMode()
 	// TODO: Set dither mode to bpmem.blendmode.dither
 }
 
-void Renderer::SetSamplerState(int stage, int texindex)
+void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 {
 	const FourTexUnits &tex = bpmem.tex[texindex];
 	const TexMode0 &tm0 = tex.texMode0[stage];
@@ -1161,6 +1202,12 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	gx_state.sampler[stage].max_lod = (u32)tm1.max_lod;
 	gx_state.sampler[stage].min_lod = (u32)tm1.min_lod;
 	gx_state.sampler[stage].lod_bias = (s32)tm0.lod_bias;
+
+	// custom textures may have higher resolution, so disable the max_lod
+	if (custom_tex)
+	{
+		gx_state.sampler[stage].max_lod = 255;
+	}
 }
 
 void Renderer::SetInterlacingMode()

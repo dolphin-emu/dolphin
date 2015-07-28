@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -44,7 +44,7 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 
 	_rSamplePos++;
 
-	// The advanced interpolation (linear, polyphase,...) is done by the UCode,
+	// The advanced interpolation (linear, polyphase,...) is done by the ucode,
 	// so we don't need to bother with it here.
 	return val;
 }
@@ -87,7 +87,7 @@ void dsp_write_aram_d3(u16 value)
 	// Zelda ucode writes a bunch of zeros to ARAM through d3 during
 	// initialization.  Don't know if it ever does it later, too.
 	// Pikmin 2 Wii writes non-stop to 0x10008000-0x1000801f (non-zero values too)
-	// Zelda TP WII writes non-stop to 0x10000000-0x1000001f (non-zero values too)
+	// Zelda TP Wii writes non-stop to 0x10000000-0x1000001f (non-zero values too)
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
 
 	switch (g_dsp.ifx_regs[DSP_FORMAT])
@@ -116,7 +116,7 @@ u16 dsp_read_accelerator()
 	// let's do the "hardware" decode DSP_FORMAT is interesting - the Zelda
 	// ucode seems to indicate that the bottom two bits specify the "read size"
 	// and the address multiplier.  The bits above that may be things like sign
-	// extention and do/do not use ADPCM.  It also remains to be figured out
+	// extension and do/do not use ADPCM.  It also remains to be figured out
 	// whether there's a difference between the usual accelerator "read
 	// address" and 0xd3.
 	switch (g_dsp.ifx_regs[DSP_FORMAT])
@@ -152,7 +152,7 @@ u16 dsp_read_accelerator()
 
 	// TODO: Take GAIN into account
 	// adpcm = 0, pcm8 = 0x100, pcm16 = 0x800
-	// games using pcm8 : Phoenix Wright Ace Attorney (Wiiware), Megaman 9-10 (WiiWare)
+	// games using pcm8 : Phoenix Wright Ace Attorney (WiiWare), Megaman 9-10 (WiiWare)
 	// games using pcm16: GC Sega games, ...
 
 	// Check for loop.

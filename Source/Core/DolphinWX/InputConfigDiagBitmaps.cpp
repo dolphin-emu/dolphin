@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstring>
@@ -9,16 +9,12 @@
 #include <vector>
 #include <wx/bitmap.h>
 #include <wx/brush.h>
-#include <wx/chartype.h>
 #include <wx/colour.h>
 #include <wx/dcmemory.h>
-#include <wx/defs.h>
 #include <wx/font.h>
-#include <wx/gdicmn.h>
 #include <wx/notebook.h>
 #include <wx/pen.h>
 #include <wx/statbmp.h>
-#include <wx/string.h>
 
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
@@ -26,6 +22,66 @@
 #include "InputCommon/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
+
+struct ShapePosition
+{
+	double max;
+	double diag;
+	double box;
+	double scale;
+
+	double dz;
+	double range;
+
+	wxCoord offset;
+};
+
+// regular octagon
+static void DrawOctagon(wxDC* dc, ShapePosition p)
+{
+	const int vertices = 8;
+	double radius = p.max;
+
+	wxPoint point[vertices];
+
+	double angle = 2.0 * M_PI / vertices;
+
+	for (int i = 0; i < vertices; i++)
+	{
+		double a = (angle * i);
+		double x = radius * cos(a);
+		double y = radius * sin(a);
+		point[i].x = x;
+		point[i].y = y;
+	}
+
+	dc->DrawPolygon(vertices, point, p.offset, p.offset);
+}
+
+// irregular dodecagon
+static void DrawDodecagon(wxDC* dc, ShapePosition p)
+{
+	const int vertices = 12;
+
+	wxPoint point[vertices];
+	point[0].x = p.dz; point[0].y = p.max;
+	point[1].x = p.diag; point[1].y = p.diag;
+	point[2].x = p.max; point[2].y = p.dz;
+
+	point[3].x = p.max; point[3].y = -p.dz;
+	point[4].x = p.diag; point[4].y = -p.diag;
+	point[5].x = p.dz; point[5].y = -p.max;
+
+	point[6].x = -p.dz; point[6].y = -p.max;
+	point[7].x = -p.diag; point[7].y = -p.diag;
+	point[8].x = -p.max; point[8].y = -p.dz;
+
+	point[9].x = -p.max; point[9].y = p.dz;
+	point[10].x = -p.diag; point[10].y = p.diag;
+	point[11].x = -p.dz; point[11].y = p.max;
+
+	dc->DrawPolygon(vertices, point, p.offset, p.offset);
+}
 
 static void DrawCenteredRectangle(wxDC &dc, int x, int y, int w, int h)
 {
@@ -46,6 +102,25 @@ static void DrawCoordinate(wxDC &dc, ControlState x, ControlState y)
 	int xc = VIS_COORD(x);
 	int yc = VIS_COORD(y);
 	DrawCenteredRectangle(dc, xc, yc, COORD_VIS_SIZE, COORD_VIS_SIZE);
+}
+
+static void DrawButton(unsigned int* const bitmasks, unsigned int buttons, unsigned int n, wxDC& dc, ControlGroupBox* g, unsigned int row)
+{
+	if (buttons & bitmasks[(row * 8) + n])
+	{
+		dc.SetBrush(*wxRED_BRUSH);
+	}
+	else
+	{
+		unsigned char amt = 255 - g->control_group->controls[(row * 8) + n]->control_ref->State() * 128;
+		dc.SetBrush(wxBrush(wxColour(amt, amt, amt)));
+	}
+	dc.DrawRectangle(n * 12, (row == 0) ? 0 : (row * 11), 14, 12);
+
+	// text
+	const std::string name = g->control_group->controls[(row * 8) + n]->name;
+	// bit of hax so ZL, ZR show up as L, R
+	dc.DrawText(StrToWxStr(std::string(1, (name[1] && name[1] < 'a') ? name[1] : name[0])), n * 12 + 2, 1 + ((row == 0) ? 0 : (row * 11)));
 }
 
 static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
@@ -89,7 +164,7 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 			dc.DrawRectangle(0, 31 - z*31, 64, 2);
 		}
 
-		// octagon for visual aid for diagonal adjustment
+		// input zone
 		dc.SetPen(*wxLIGHT_GREY_PEN);
 		dc.SetBrush(*wxWHITE_BRUSH);
 		if (GROUP_TYPE_STICK == g->control_group->type)
@@ -100,42 +175,35 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 			dc.SetBrush(LightGrayBrush);
 			dc.SetPen(LightGrayPen);
 
-			// polygon offset
-			ControlState max
-				, diagonal
-				, box = 64
-				, d_of = box / 256.0
-				, x_of = box / 2.0;
+			ShapePosition p;
+			p.box = 64;
+			p.offset = p.box / 2;
+			p.range = 256;
+			p.scale = p.box / p.range;
+			p.dz = 15 * p.scale;
+			bool octagon = false;
 
 			if (g->control_group->name == "Main Stick")
 			{
-				max = (87.0 / 127.0) * 100;
-				diagonal = (55.0 / 127.0) * 100;
+				p.max = 87 * p.scale;
+				p.diag = 55 * p.scale;
 			}
 			else if (g->control_group->name == "C-Stick")
 			{
-				max = (74.0 / 127.0) * 100;
-				diagonal = (46.0 / 127.0) * 100;
+				p.max = 74 * p.scale;
+				p.diag = 46 * p.scale;
 			}
 			else
 			{
-				max = (82.0 / 127.0) * 100;
-				diagonal = (58.0 / 127.0) * 100;
+				p.scale = 1;
+				p.max = 32;
+				octagon = true;
 			}
 
-			// polygon corners
-			wxPoint Points[8];
-			Points[0].x = (int)(0.0 * d_of + x_of); Points[0].y = (int)(max * d_of + x_of);
-			Points[1].x = (int)(diagonal * d_of + x_of); Points[1].y = (int)(diagonal * d_of + x_of);
-			Points[2].x = (int)(max * d_of + x_of); Points[2].y = (int)(0.0 * d_of + x_of);
-			Points[3].x = (int)(diagonal * d_of + x_of); Points[3].y = (int)(-diagonal * d_of + x_of);
-			Points[4].x = (int)(0.0 * d_of + x_of); Points[4].y = (int)(-max * d_of + x_of);
-			Points[5].x = (int)(-diagonal * d_of + x_of); Points[5].y = (int)(-diagonal * d_of + x_of);
-			Points[6].x = (int)(-max * d_of + x_of); Points[6].y = (int)(0.0 * d_of + x_of);
-			Points[7].x = (int)(-diagonal * d_of + x_of); Points[7].y = (int)(diagonal * d_of + x_of);
-
-			// draw polygon
-			dc.DrawPolygon(8, Points);
+			if (octagon)
+				DrawOctagon(&dc, p);
+			else
+				DrawDodecagon(&dc, p);
 		}
 		else
 		{
@@ -242,35 +310,29 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 	break;
 	case GROUP_TYPE_BUTTONS :
 	{
-		const unsigned int button_count = ((unsigned int)g->control_group->controls.size());
+		unsigned int button_count = ((unsigned int)g->control_group->controls.size());
 
 		// draw the shit
 		dc.SetPen(*wxGREY_PEN);
 
-		unsigned int * const bitmasks = new unsigned int[ button_count ];
+		unsigned int* const bitmasks = new unsigned int[button_count];
 		for (unsigned int n = 0; n<button_count; ++n)
 			bitmasks[n] = (1 << n);
 
 		unsigned int buttons = 0;
 		((ControllerEmu::Buttons*)g->control_group)->GetState(&buttons, bitmasks);
 
-		for (unsigned int n = 0; n<button_count; ++n)
+		// Draw buttons in rows of 8
+		for (unsigned int row = 0; row < ceil((float)button_count / 8.0f); row++)
 		{
-			if (buttons & bitmasks[n])
-			{
-				dc.SetBrush(*wxRED_BRUSH);
-			}
-			else
-			{
-				unsigned char amt = 255 - g->control_group->controls[n]->control_ref->State() * 128;
-				dc.SetBrush(wxBrush(wxColour(amt, amt, amt)));
-			}
-			dc.DrawRectangle(n * 12, 0, 14, 12);
+			unsigned int buttons_to_draw = 8;
+			if ((button_count - row * 8) <= 8)
+				buttons_to_draw = button_count - row * 8;
 
-			// text
-			const std::string name = g->control_group->controls[n]->name;
-			// bit of hax so ZL, ZR show up as L, R
-			dc.DrawText(StrToWxStr(std::string(1, (name[1] && name[1] < 'a') ? name[1] : name[0])), n*12 + 2, 1);
+			for (unsigned int n = 0; n < buttons_to_draw; ++n)
+			{
+				DrawButton(bitmasks, buttons, n, dc, g, row);
+			}
 		}
 
 		delete[] bitmasks;
@@ -387,11 +449,6 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
 	g_controller_interface.UpdateInput();
 
-	// don't want game thread updating input when we are using it here
-	std::unique_lock<std::recursive_mutex> lk(g_controller_interface.update_lock, std::try_to_lock);
-	if (!lk.owns_lock())
-		return;
-
 	GamepadPage* const current_page = (GamepadPage*)m_pad_notebook->GetPage(m_pad_notebook->GetSelection());
 
 	for (ControlGroupBox* g : current_page->control_groups)
@@ -407,10 +464,6 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 			dc.SetFont(small_font);
 			dc.SetTextForeground(0xC0C0C0);
 
-			// label for sticks and stuff
-			if (64 == bitmap.GetHeight())
-				dc.DrawText(StrToWxStr(g->control_group->name).Upper(), 4, 2);
-
 			DrawControlGroupBox(dc, g);
 
 			// box outline
@@ -418,6 +471,10 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 			dc.SetPen(wxPen("#7f9db9"));
 			dc.SetBrush(*wxTRANSPARENT_BRUSH);
 			dc.DrawRectangle(0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+
+			// label for sticks and stuff
+			if (64 == bitmap.GetHeight())
+				dc.DrawText(StrToWxStr(g->control_group->name).Upper(), 4, 2);
 
 			dc.SelectObject(wxNullBitmap);
 			g->static_bitmap->SetBitmap(bitmap);

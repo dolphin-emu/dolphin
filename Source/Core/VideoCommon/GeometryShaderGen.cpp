@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -81,10 +81,12 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		"\tint4 " I_TEXOFFSET";\n"
 		"};\n");
 
-	uid_data->numTexGens = bpmem.genMode.numtexgens;
+	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
-	GenerateVSOutputStruct<T>(out, ApiType);
+	out.Write("struct VS_OUTPUT {\n");
+	GenerateVSOutputMembers<T>(out, ApiType);
+	out.Write("};\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -92,11 +94,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 			out.Write("#define InstanceID gl_InvocationID\n");
 
 		out.Write("in VertexData {\n");
-		out.Write("\tcentroid %s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "in");
+		GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid in");
 		out.Write("} vs[%d];\n", vertex_in);
 
 		out.Write("out VertexData {\n");
-		out.Write("\tcentroid %s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "out");
+		GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
 
 		if (g_ActiveConfig.iStereoMode > 0)
 			out.Write("\tflat int layer;\n");
@@ -133,8 +135,9 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	{
 		if (ApiType == API_OPENGL)
 		{
-			out.Write("\tVS_OUTPUT start = vs[0].o;\n");
-			out.Write("\tVS_OUTPUT end = vs[1].o;\n");
+			out.Write("\tVS_OUTPUT start, end;\n");
+			AssignVSOutputMembers(out, "start", "vs[0]");
+			AssignVSOutputMembers(out, "end", "vs[1]");
 		}
 		else
 		{
@@ -147,7 +150,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		// horizontal depending the slope of the line.
 		out.Write(
 			"\tfloat2 offset;\n"
-			"\tfloat2 to = abs(end.pos.xy - start.pos.xy);\n"
+			"\tfloat2 to = abs(end.pos.xy / end.pos.w - start.pos.xy / start.pos.w);\n"
 			// FIXME: What does real hardware do when line is at a 45-degree angle?
 			// FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
 			"\tif (" I_LINEPTPARAMS".y * to.y > " I_LINEPTPARAMS".x * to.x) {\n"
@@ -163,9 +166,14 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	else if (primitive_type == PRIMITIVE_POINTS)
 	{
 		if (ApiType == API_OPENGL)
-			out.Write("\tVS_OUTPUT center = vs[0].o;\n");
+		{
+			out.Write("\tVS_OUTPUT center;\n");
+			AssignVSOutputMembers(out, "center", "vs[0]");
+		}
 		else
+		{
 			out.Write("\tVS_OUTPUT center = o[0];\n");
+		}
 
 		// Offset from center to upper right vertex
 		// Lerp PointSize/2 from [0,0..VpWidth,VpHeight] to [-1,1..1,-1]
@@ -188,9 +196,14 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	out.Write("\tfor (int i = 0; i < %d; ++i) {\n", vertex_in);
 
 	if (ApiType == API_OPENGL)
-		out.Write("\tVS_OUTPUT f = vs[i].o;\n");
+	{
+		out.Write("\tVS_OUTPUT f;\n");
+		AssignVSOutputMembers(out, "f", "vs[i]");
+	}
 	else
+	{
 		out.Write("\tVS_OUTPUT f = o[i];\n");
+	}
 
 	if (g_ActiveConfig.iStereoMode > 0)
 	{
@@ -206,7 +219,6 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		// the depth value. This results in objects at a distance smaller than the convergence
 		// distance to seemingly appear in front of the screen.
 		// This formula is based on page 13 of the "Nvidia 3D Vision Automatic, Best Practices Guide"
-		out.Write("\tf.clipPos.x += " I_STEREOPARAMS"[eye] * (f.clipPos.w - " I_STEREOPARAMS"[2]);\n");
 		out.Write("\tf.pos.x += " I_STEREOPARAMS"[eye] * (f.pos.w - " I_STEREOPARAMS"[2]);\n");
 	}
 
@@ -221,7 +233,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		out.Write("\tif (" I_TEXOFFSET"[2] != 0) {\n");
 		out.Write("\tfloat texOffset = 1.0 / float(" I_TEXOFFSET"[2]);\n");
 
-		for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
+		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 		{
 			out.Write("\tif (((" I_TEXOFFSET"[0] >> %d) & 0x1) != 0)\n", i);
 			out.Write("\t\tr.tex%d.x += texOffset;\n", i);
@@ -246,7 +258,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		out.Write("\tif (" I_TEXOFFSET"[3] != 0) {\n");
 		out.Write("\tfloat2 texOffset = float2(1.0 / float(" I_TEXOFFSET"[3]), 1.0 / float(" I_TEXOFFSET"[3]));\n");
 
-		for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
+		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 		{
 			out.Write("\tif (((" I_TEXOFFSET"[1] >> %d) & 0x1) != 0) {\n", i);
 			out.Write("\t\tll.tex%d.xy += float2(0,1) * texOffset;\n", i);
@@ -289,9 +301,14 @@ static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool
 		out.Write("\tif (i == 0) first = %s;\n", vertex);
 
 	if (ApiType == API_OPENGL)
+	{
 		out.Write("\tgl_Position = %s.pos;\n", vertex);
-
-	out.Write("\tps.o = %s;\n", vertex);
+		AssignVSOutputMembers(out, "ps", vertex);
+	}
+	else
+	{
+		out.Write("\tps.o = %s;\n", vertex);
+	}
 
 	if (ApiType == API_OPENGL)
 		out.Write("\tEmitVertex();\n");

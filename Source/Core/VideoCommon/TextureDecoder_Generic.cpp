@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -202,7 +202,7 @@ static void DecodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
 
-PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
+void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
 {
 	const int Wsteps4 = (width + 3) / 4;
 	const int Wsteps8 = (width + 7) / 8;
@@ -344,7 +344,4 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			break;
 		}
 	}
-
-	// The "copy" texture formats, too?
-	return PC_TEX_FMT_RGBA32;
 }

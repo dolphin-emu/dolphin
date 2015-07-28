@@ -541,7 +541,7 @@ public:
         // very first initialization function
         //
         // Override: very rarely
-    virtual bool Initialize(int& argc, wxChar **argv);
+    virtual bool Initialize(int& _argc, wxChar **_argv);
 
         // a platform-dependent version of OnInit(): the code here is likely to
         // depend on the toolkit. default version does nothing.

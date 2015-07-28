@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -16,7 +16,7 @@ private:
 public:
 	void Init()
 	{
-		AllocCodeSpace(8192);
+		AllocCodeSpace(16384);
 		Generate();
 		WriteProtect();
 	}

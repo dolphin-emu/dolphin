@@ -1,14 +1,22 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <map>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
-#include "DiscIO/NANDContentLoader.h"
+
+class PointerWrap;
+namespace DiscIO
+{
+	class INANDContentLoader;
+	struct SNANDContent;
+}
 
 class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
 {
@@ -24,11 +32,11 @@ public:
 
 	virtual void DoState(PointerWrap& p) override;
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
-	virtual bool IOCtlV(u32 _CommandAddress) override;
 	static u32 ES_DIVerify(u8 *_pTMD, u32 _sz);
 
 	// This should only be cleared on power reset

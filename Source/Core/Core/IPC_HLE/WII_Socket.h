@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -15,7 +15,7 @@ typedef pollfd pollfd_t;
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
-#elif defined(__linux__) or defined(__APPLE__)
+#elif defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__)
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -47,7 +47,6 @@ typedef struct pollfd pollfd_t;
 #include <string>
 #include <unordered_map>
 
-#include "Common/FileUtil.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
@@ -189,7 +188,7 @@ private:
 	void DoSock(u32 _CommandAddress, NET_IOCTL type);
 	void DoSock(u32 _CommandAddress, SSL_IOCTL type);
 	void Update(bool read, bool write, bool except);
-	bool IsValid() {return fd >= 0;}
+	bool IsValid() const { return fd >= 0; }
 public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();
@@ -200,7 +199,7 @@ public:
 class WiiSockMan : public ::NonCopyable
 {
 public:
-	static s32 GetNetErrorCode(s32 ret, std::string caller, bool isRW);
+	static s32 GetNetErrorCode(s32 ret, const std::string& caller, bool isRW);
 	static char* DecodeError(s32 ErrorCode);
 
 	static WiiSockMan& GetInstance()
@@ -211,12 +210,12 @@ public:
 	void Update();
 	static void EnqueueReply(u32 CommandAddress, s32 ReturnValue, IPCCommandType CommandType);
 	static void Convert(WiiSockAddrIn const & from, sockaddr_in& to);
-	static void Convert(sockaddr_in const & from, WiiSockAddrIn& to, s32 addrlen=-1);
+	static void Convert(sockaddr_in const & from, WiiSockAddrIn& to, s32 addrlen = -1);
 	// NON-BLOCKING FUNCTIONS
 	s32 NewSocket(s32 af, s32 type, s32 protocol);
 	void AddSocket(s32 fd);
 	s32 DeleteSocket(s32 s);
-	s32 GetLastNetError() { return errno_last; }
+	s32 GetLastNetError() const { return errno_last; }
 	void SetLastNetError(s32 error) { errno_last = error; }
 
 	void Clean()

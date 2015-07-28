@@ -1,6 +1,9 @@
 set(LIBS core gtest)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	list(APPEND LIBS ${FOUNDATION_LIBRARY} ${CORESERV_LIBRARY})
+endif()
+if(ANDROID)
+	set(LIBS ${LIBS} android log)
 endif()
 macro(add_dolphin_test target srcs)
 	# Since this is a Core dependency, it can't be linked as a library and has

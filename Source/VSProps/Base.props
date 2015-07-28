@@ -23,6 +23,7 @@
     <IntDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <OutDir>$(IntDir)bin\</OutDir>
     <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->
@@ -35,9 +36,10 @@
       <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)enet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)GL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(ExternalsDir)libusbx\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)libusb\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)LZO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)polarssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -46,12 +48,27 @@
       <AdditionalIncludeDirectories>$(ExternalsDir)SOIL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>USE_UPNP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>PSAPI_VERSION=1;_M_X86=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_ARCH_64=1;_M_X86_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--
+      Make sure we include a clean version of windows.h.
+      -->
+      <PreprocessorDefinitions Condition="'$(ProjectName)'!='portaudio' And '$(ProjectName)'!='wxWidgets'">WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--
+      This numeral indicates the "minimum system required" to run the resulting
+      program. Dolphin targets Vista+, so it should be 0x0600. However in practice,
+      _WIN32_WINNT just removes up-level API declarations from headers. This is a
+      problem for XAudio2 and XInput, where Dolphin expects to compile against the
+      Win8+ versions of their headers. So while we really need Vista+ level of
+      support, we declare Win8+ here globally. If this becomes a problem, the
+      higher declaration can be contained to just the XAudio2/XInput related code.
+      -->
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0602;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -70,7 +87,6 @@
       seem to be a way to only ignore the specific instance we don't care about...
       -->
       <DisableSpecificWarnings>4996;4351</DisableSpecificWarnings>
-      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
@@ -114,6 +130,25 @@
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
       <LinkTimeCodeGeneration Condition="'$(DolphinRelease)'=='true'">true</LinkTimeCodeGeneration>
     </Lib>
+    <!--
+    Prefer VTune 2015 over 2013 but support both since there is no non-commercial license for 2015 :(
+    -->
+    <ItemDefinitionGroup Condition="Exists('$(VTUNE_AMPLIFIER_XE_2015_DIR)')">
+      <ClCompile>
+        <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);"$(VTUNE_AMPLIFIER_XE_2015_DIR)\include"</AdditionalIncludeDirectories>
+      </ClCompile>
+      <Link>
+        <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);"$(VTUNE_AMPLIFIER_XE_2015_DIR)\lib64"</AdditionalLibraryDirectories>
+      </Link>
+    </ItemDefinitionGroup>
+    <ItemDefinitionGroup Condition="Exists('$(VTUNE_AMPLIFIER_XE_2013_DIR)') And !Exists('$(VTUNE_AMPLIFIER_XE_2015_DIR)')">
+      <ClCompile>
+        <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);"$(VTUNE_AMPLIFIER_XE_2013_DIR)\include"</AdditionalIncludeDirectories>
+      </ClCompile>
+      <Link>
+        <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);"$(VTUNE_AMPLIFIER_XE_2013_DIR)\lib64"</AdditionalLibraryDirectories>
+      </Link>
+    </ItemDefinitionGroup>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

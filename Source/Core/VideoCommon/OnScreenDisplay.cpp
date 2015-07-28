@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <list>
 #include <map>
 #include <string>
@@ -21,42 +22,38 @@ namespace OSD
 struct Message
 {
 	Message() {}
-	Message(const std::string& s, u32 ts) : str(s), timestamp(ts) {}
+	Message(const std::string& s, u32 ts, u32 rgba) : m_str(s), m_timestamp(ts), m_rgba(rgba)
+	{
+	}
 
-	std::string str;
-	u32 timestamp;
+	std::string m_str;
+	u32 m_timestamp;
+	u32 m_rgba;
 };
 
 static std::multimap<CallbackType, Callback> s_callbacks;
 static std::list<Message> s_msgList;
 
-void AddMessage(const std::string& str, u32 ms)
+void AddMessage(const std::string& str, u32 ms, u32 rgba)
 {
-	s_msgList.push_back(Message(str, Common::Timer::GetTimeMs() + ms));
+	s_msgList.emplace_back(str, Common::Timer::GetTimeMs() + ms, rgba);
 }
 
 void DrawMessages()
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages)
+	if (!SConfig::GetInstance().bOnScreenDisplayMessages)
 		return;
 
 	int left = 25, top = 15;
 	auto it = s_msgList.begin();
 	while (it != s_msgList.end())
 	{
-		int time_left = (int)(it->timestamp - Common::Timer::GetTimeMs());
-		u32 alpha = 255;
+		int time_left = (int)(it->m_timestamp - Common::Timer::GetTimeMs());
+		float alpha = std::max(1.0f, std::min(0.0f, time_left / 1024.0f));
+		u32 color = (it->m_rgba & 0xFFFFFF) | ((u32)((it->m_rgba >> 24) * alpha) << 24);
 
-		if (time_left < 1024)
-		{
-			alpha = time_left >> 2;
-			if (time_left < 0)
-				alpha = 0;
-		}
+		g_renderer->RenderText(it->m_str, left, top, color);
 
-		alpha <<= 24;
-
-		g_renderer->RenderText(it->str, left, top, 0xffff30 | alpha);
 		top += 15;
 
 		if (time_left <= 0)
@@ -74,7 +71,7 @@ void ClearMessages()
 // On-Screen Display Callbacks
 void AddCallback(CallbackType type, Callback cb)
 {
-	s_callbacks.insert(std::pair<CallbackType, Callback>(type, cb));
+	s_callbacks.emplace(type, cb);
 }
 
 void DoCallbacks(CallbackType type)

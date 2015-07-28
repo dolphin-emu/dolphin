@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // TODO: Merge this with the original VideoConfigDiag or something
@@ -9,15 +9,8 @@
 
 #include <string>
 #include <vector>
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/combobox.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/wx.h>
+
+#include <wx/dialog.h>
 
 #include "Core/ConfigManager.h"
 #include "VideoBackends/Software/SWVideoConfig.h"
@@ -38,7 +31,7 @@ public:
 			Close();
 
 			g_video_backend = new_backend;
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = g_video_backend->GetName();
+			SConfig::GetInstance().m_strVideoBackend = g_video_backend->GetName();
 
 			g_video_backend->ShowConfig(GetParent());
 		}

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -27,7 +27,6 @@ namespace FileMon
 
 static DiscIO::IVolume *OpenISO = nullptr;
 static DiscIO::IFileSystem *pFileSystem = nullptr;
-static std::vector<const DiscIO::SFileInfo *> DiscFiles;
 static std::string ISOFile = "", CurrentFile = "";
 static bool FileAccess = true;
 
@@ -73,30 +72,26 @@ void ReadFileSystem(const std::string& filename)
 		pFileSystem = nullptr;
 	}
 
-	// DiscFiles' pointers are no longer valid after pFileSystem is cleared
-	DiscFiles.clear();
 	OpenISO = DiscIO::CreateVolumeFromFilename(filename);
 	if (!OpenISO)
 		return;
 
-	if (!DiscIO::IsVolumeWadFile(OpenISO))
+	if (OpenISO->GetVolumeType() != DiscIO::IVolume::WII_WAD)
 	{
 		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
 
 		if (!pFileSystem)
 			return;
-
-		pFileSystem->GetFileList(DiscFiles);
 	}
 
 	FileAccess = true;
 }
 
-// Check if we should play this file
+// Logs a file if it passes a few checks
 void CheckFile(const std::string& file, u64 size)
 {
 	// Don't do anything if the log is unselected
-	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
+	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
 		return;
 	// Do nothing if we found the same file again
 	if (CurrentFile == file)
@@ -128,7 +123,7 @@ void FindFilename(u64 offset)
 		return;
 
 	// Or if the log is unselected
-	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
+	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
 		return;
 
 	// Or if we don't have file access
@@ -165,9 +160,6 @@ void Close()
 		delete pFileSystem;
 		pFileSystem = nullptr;
 	}
-
-	// DiscFiles' pointers are no longer valid after pFileSystem is cleared
-	DiscFiles.clear();
 
 	ISOFile = "";
 	CurrentFile = "";

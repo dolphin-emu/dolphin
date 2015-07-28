@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -7,7 +7,7 @@
 #include <functional>
 #include <memory>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 // All the templated and very repetitive MMIO-related code is isolated in this
 // file for easier reading. It mostly contains code related to handling methods

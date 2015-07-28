@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -10,24 +10,14 @@
 #include <string>
 #include <vector>
 #include <wx/brush.h>
-#include <wx/chartype.h>
 #include <wx/clipbrd.h>
 #include <wx/colour.h>
-#include <wx/control.h>
 #include <wx/dataobj.h>
 #include <wx/dcclient.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/graphics.h>
 #include <wx/menu.h>
-#include <wx/menuitem.h>
 #include <wx/pen.h>
-#include <wx/setup.h>
-#include <wx/string.h>
 #include <wx/textdlg.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
@@ -141,7 +131,7 @@ void CCodeView::ToggleBreakpoint(u32 address)
 	Refresh();
 
 	// Propagate back to the parent window to update the breakpoint list.
-	wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
+	wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_BREAKPOINTS);
 	GetEventHandler()->AddPendingEvent(evt);
 }
 
@@ -311,7 +301,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			{
 				// Propagate back to the parent window and tell it
 				// to flip to the JIT tab for the current address.
-				wxCommandEvent jit_event(wxEVT_HOST_COMMAND, IDM_UPDATEJITPANE);
+				wxCommandEvent jit_event(wxEVT_HOST_COMMAND, IDM_UPDATE_JIT_PANE);
 				GetEventHandler()->AddPendingEvent(jit_event);
 			}
 			break;

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <mutex>
@@ -13,6 +13,7 @@
 #include "Core/Movie.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -42,7 +43,6 @@ void CCPU::Run()
 
 	while (true)
 	{
-reswitch:
 		switch (PowerPC::GetState())
 		{
 		case PowerPC::CPU_RUNNING:
@@ -60,7 +60,7 @@ reswitch:
 			if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 				return;
 			if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
-				goto reswitch;
+				continue;
 
 			//3: do a step
 			PowerPC::SingleStep();
@@ -94,7 +94,6 @@ bool CCPU::IsStepping()
 
 void CCPU::Reset()
 {
-
 }
 
 void CCPU::StepOpcode(Common::Event *event)
@@ -119,7 +118,14 @@ void CCPU::EnableStepping(const bool _bStepping)
 	{
 		// SingleStep so that the "continue", "step over" and "step out" debugger functions
 		// work when the PC is at a breakpoint at the beginning of the block
-		if (PowerPC::breakpoints.IsAddressBreakPoint(PC) && PowerPC::GetMode() != PowerPC::MODE_INTERPRETER)
+		// If watchpoints are enabled, any instruction could be a breakpoint.
+		bool could_be_bp;
+#ifdef ENABLE_MEM_CHECK
+		could_be_bp = true;
+#else
+		could_be_bp = PowerPC::breakpoints.IsAddressBreakPoint(PC);
+#endif
+		if (could_be_bp && PowerPC::GetMode() != PowerPC::MODE_INTERPRETER)
 		{
 			PowerPC::CoreMode oldMode = PowerPC::GetMode();
 			PowerPC::SetMode(PowerPC::MODE_INTERPRETER);

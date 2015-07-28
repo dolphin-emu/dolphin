@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Title of the app -->
+    <string name="app_name">Dolphin Emulator</string>
+
+    <!-- Navigation-related Strings -->
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+
+    <!-- About Fragment -->
+    <string name="build_revision">Build Revision</string>
+    <string name="supports_gles3">Supports OpenGL ES 3</string>
+    <string name="supports_neon">Supports NEON</string>
+    <string name="general">General</string>
+    <string name="cpu">CPU</string>
+    <string name="gles_two">GLES 2</string>
+    <string name="gles_three">GLES 3</string>
+    <string name="desktop_gl">OpenGL</string>
+
+    <!-- About Menu - CPU Info -->
+    <string name="cpu_abi_one">CPU ABI 1</string>
+    <string name="cpu_abi_two">CPU ABI 2</string>
+    <string name="cpu_info">CPU Info</string>
+    <string name="cpu_type">CPU Type</string>
+    <string name="cpu_features">CPU Features</string>
+    <string name="num_cores">Number of Cores</string>
+    <string name="cpu_implementer">CPU Implementer</string>
+    <string name="cpu_hardware">Hardware</string>
+    <string name="unknown_part_num">Unknown (%1$d). Please report this number so it can be documented!</string>
+
+    <!-- Folder Browser -->
+    <string name="current_dir">Current Dir: %1$s</string>
+    <string name="parent_directory">Parent Directory</string>
+    <string name="file_size">File Size: %1$s</string>
+
+
+    <!-- Game List Activity -->
+    <string name="clear_game_list">Clear game list</string>
+    <string name="clear_game_list_confirm">Do you want to clear the game list?</string>
+    <string name="game_list">Game List</string>
+    <string name="browse_folder">Browse Folder</string>
+    <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="file_size_gib">File Size: %.2f GiB</string>
+    <string name="file_size_mib">File Size: %.2f MiB</string>
+
+    <!-- Game List Activity - Device Compatibility AlertDialog -->
+    <string name="device_compat_warning">Device Compatibility Warning</string>
+    <string name="device_compat_warning_msg">Your phone doesn\'t support NEON which makes it incapable of running Dolphin Mobile?\nDo you want to try anyway?</string>
+    <string name="device_gles3compat_warning_msg">Your device has known buggy video drivers for OpenGL ES 3.\nDo you want to try anyway?</string>
+
+    <!-- Game List Fragment -->
+    <string name="file_clicked">File clicked: %1$s</string>
+
+    <!-- Emulation Overlay -->
+    <string name="enable_input_overlay">Enable Input Overlay</string>
+    <string name="disable_input_overlay">Disable Input Overlay</string>
+    <string name="overlay_screenshot">Take Screenshot</string>
+    <string name="overlay_savestate">Save State</string>
+    <string name="overlay_loadstate">Load State</string>
+    <string name="overlay_exit_emulation">Exit</string>
+    <string name="overlay_exit_emulation_confirm">Are you sure you wish to exit this game?</string>
+    <string name="overlay_slot1">Slot 1</string>
+    <string name="overlay_slot2">Slot 2</string>
+    <string name="overlay_slot3">Slot 3</string>
+    <string name="overlay_slot4">Slot 4</string>
+    <string name="overlay_slot5">Slot 5</string>
+    <string name="overlay_slot6">Slot 6</string>
+
+    <!-- Input Config Fragment -->
+    <string name="input_settings">Input</string>
+    <string name="input_overlay">Input Overlay</string>
+    <string name="input_overlay_desc">Configure the onscreen input overlay.</string>
+    <string name="input_overlay_layout">Input Overlay Layout</string>
+    <string name="input_overlay_layout_desc">Button layout for the input overlay.</string>
+    <string name="controls_size">Adjust the control size</string>
+    <string name="gamecube_bindings">GameCube Controller Bindings</string>
+    <string name="controller_0">Controller 1</string>
+    <string name="controller_1">Controller 2</string>
+    <string name="controller_2">Controller 3</string>
+    <string name="controller_3">Controller 4</string>
+    <string name="enable_controller">Enable controller</string>
+    <string name="wiimote_bindings">Wiimote Bindings</string>
+    <string name="wiimote_1">Wiimote 1</string>
+    <string name="wiimote_2">Wiimote 2</string>
+    <string name="wiimote_3">Wiimote 3</string>
+    <string name="wiimote_4">Wiimote 4</string>
+    <string name="enable_wiimote">Enable Wiimote</string>
+    <string name="input_binding">Input Binding</string>
+    <string name="input_binding_descrip">Press or move an input to bind it to %1$s.</string>
+    <!-- GameCube buttons (May be shared with Wiimote stuff too) -->
+    <string name="button_a">Button A</string>
+    <string name="button_b">Button B</string>
+    <string name="button_start">Button Start</string>
+    <string name="button_x">Button X</string>
+    <string name="button_y">Button Y</string>
+    <string name="button_z">Button Z</string>
+    <string name="dpad_up">D-Pad Up</string>
+    <string name="dpad_down">D-Pad Down</string>
+    <string name="dpad_left">D-Pad Left</string>
+    <string name="dpad_right">D-Pad Right</string>
+    <string name="main_stick_up">Main Stick Up</string>
+    <string name="main_stick_down">Main Stick Down</string>
+    <string name="main_stick_left">Main Stick Left</string>
+    <string name="main_stick_right">Main Stick Right</string>
+    <string name="c_stick_up">C Stick Up</string>
+    <string name="c_stick_down">C Stick Down</string>
+    <string name="c_stick_left">C Stick Left</string>
+    <string name="c_stick_right">C Stick Right</string>
+    <string name="trigger_left">Trigger L</string>
+    <string name="trigger_right">Trigger R</string>
+    <!-- Wiimote (+ extension) only buttons -->
+    <string name="button_one">Button 1</string>
+    <string name="button_two">Button 2</string>
+    <string name="button_plus">Button +</string>
+    <string name="button_minus">Button -</string>
+    <string name="button_home">Button Home</string>
+    <string name="ir_up">IR Up</string>
+    <string name="ir_down">IR Down</string>
+    <string name="ir_left">IR Left</string>
+    <string name="ir_right">IR Right</string>
+    <string name="ir_forward">IR Forward</string>
+    <string name="ir_backward">IR Backward</string>
+    <string name="swing_up">Swing Up</string>
+    <string name="swing_down">Swing Down</string>
+    <string name="swing_left">Swing Left</string>
+    <string name="swing_right">Swing Right</string>
+    <string name="tilt_forward">Tilt Forward</string>
+    <string name="tilt_backward">Tilt Backward</string>
+    <string name="tilt_left">Tilt Left</string>
+    <string name="tilt_right">Tilt Right</string>
+    <string name="shake_x">Shake X</string>
+    <string name="shake_y">Shake Y</string>
+    <string name="shake_z">Shake Z</string>
+
+    <!-- CPU Preference Fragment -->
+    <string name="interpreter">Interpreter</string>
+    <string name="jit64_recompiler">JIT64 Recompiler</string>
+    <string name="jitil_recompiler">JITIL Recompiler</string>
+    <string name="jit_arm_recompiler">JIT ARM Recompiler</string>
+    <string name="jit_arm64_recompiler">JIT ARM64 Recompiler</string>
+    <string name="cpu_settings">CPU</string>
+    <string name="cpu_core">CPU Core</string>
+    <string name="cpu_core_desc">%s</string>
+    <string name="dual_core">Dual Core</string>
+    <string name="dual_core_descrip">Split workload to two CPU cores instead of one. Increases speed.</string>
+    <string name="fastmem">Fastmem</string>
+    <string name="fastmem_desc">Uses potentially unsafe optimizations for memory access.</string>
+
+    <!-- Video Preference Fragment -->
+    <string name="video_settings">Video</string>
+    <string name="software_renderer">Software Renderer</string>
+    <string name="opengl_es3">OpenGL ES</string>
+    <string name="opengl">OpenGL</string>
+    <string name="video_backend">Video Backend</string>
+    <string name="video_backend_desc">%s</string>
+    <string name="show_fps">Show FPS</string>
+    <string name="show_fps_descrip">Show the number of frames rendered per second as a measure of emulation speed.</string>
+
+    <string name="enhancements">Enhancements</string>
+    <string name="internal_resolution">Internal Resolution</string>
+    <string name="internal_resolution_descrip">Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.</string>
+    <string name="FSAA">Full-scene Anti-aliasing</string>
+    <string name="FSAA_descrip">Reduces the amount of aliasing caused by rasterizing 3D graphics. This makes the rendered picture look less blocky. Heavily decreases emulation speed and sometimes causes issues.</string>
+    <string name="anisotropic_filtering">Anisotropic Filtering</string>
+    <string name="anisotropic_filtering_descrip">Enhances visual quality of textures that are at oblique viewing angles. Might cause issues in a small number of games.</string>
+    <string name="postprocessing_shader">Post Processing Shader</string>
+    <string name="postprocessing_shader_descrip">Apply a post-processing effect after finishing a frame.</string>
+    <string name="scaled_efb_copy">Scaled EFB Copy</string>
+    <string name="scaled_efb_copy_descrip">Greatly increases quality of textures generated using render to texture effects. Raising the internal resolution will improve the effect of this setting. Slightly decreases performance and possibly causes issues (although unlikely).</string>
+    <string name="per_pixel_lighting">Per-Pixel Lighting</string>
+    <string name="per_pixel_lighting_descrip">Calculate lighting of 3D graphics per-pixel rather than per vertex. Decreases emulation speed by some percent (depending on your GPU). This usually is a safe enhancement, but might cause issues sometimes.</string>
+    <string name="force_texture_filtering">Force Texture Filtering</string>
+    <string name="force_texture_filtering_descrip">Force texture filtering even if the emulated game explicitly disabled it. Improves texture quality slightly but causes glitches in some games.</string>
+    <string name="disable_fog">Disable Fog</string>
+    <string name="disable_fog_descrip">Makes distant objects more visible by removing fog, thus increasing the overall detail. Disabling fog will break some games which rely on proper fog emulation.</string>
+    <string name="stereoscopy">Stereoscopy</string>
+    <string name="stereoscopy_descrip">Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nHeavily decreases emulation speed and sometimes causes issues</string>
+    <string name="stereoscopy_mode">Stereoscopy Mode</string>
+    <string name="stereoscopy_mode_descrip">Select the stereoscopic 3D mode.</string>
+    <string name="sterescopy_depth">Depth</string>
+    <string name="sterescopy_depth_descrip">Control the distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.</string>
+    <string name="convergence">Convergence</string>
+    <string name="convergence_descrip">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
+    <string name="swap_eyes">Swap Eyes</string>
+    <string name="swap_eyes_descrip">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
+
+    <string name="hacks">Hacks</string>
+    <string name="embedded_frame_buffer">Embedded Frame Buffer</string>
+    <string name="skip_efb_access">Skip EFB Access from CPU</string>
+    <string name="skip_efb_access_descrip">Ignore any requests from the CPU to read/write to the EFB.</string>
+    <string name="ignore_format_changes">Ignore Format Changes</string>
+    <string name="ignore_format_changes_descrip">Ignore any changes to the EFB format.</string>
+    <string name="efb_copy_method">EFB Copy Method</string>
+    <string name="efb_copy_method_descrip">Determines how EFB copies will be emulated.</string>
+    <string name="efb_copy_texture">Texture</string>
+    <string name="efb_copy_ram_uncached">RAM (uncached)</string>
+    <string name="efb_copy_ram_cached">RAM (cached)</string>
+    <string name="texture_cache">Texture Cache</string>
+    <string name="texture_cache_accuracy">Texture Cache Accuracy</string>
+    <string name="texture_cache_accuracy_descrip">The safer the selection, the less likely the emulator will be missing any texture updates from RAM.</string>
+    <string name="texture_cache_accuracy_low">Low</string>
+    <string name="texture_cache_accuracy_medium">Medium</string>
+    <string name="texture_cache_accuracy_high">High</string>
+    <string name="external_frame_buffer">External Frame Buffer</string>
+    <string name="external_frame_buffer_descrip">Determines how the XFB will be emulated.</string>
+    <string name="external_frame_buffer_virtual">Virtual</string>
+    <string name="external_frame_buffer_real">Real</string>
+    <string name="disable_destination_alpha">Disable Destination Alpha</string>
+    <string name="disable_destination_alpha_descrip">Disables emulation of a hardware feature called destination alpha, which is used in many games for various effects.</string>
+    <string name="fast_depth_calculation">Fast Depth Calculation</string>
+    <string name="fast_depth_calculation_descrip">Uses a less accurate algorithm to calculate depth values.</string>
+    <string name="aspect_ratio">Aspect Ratio</string>
+    <string name="aspect_ratio_descrip">Select what aspect ratio to use when rendering</string>
+
+    <!-- Miscellaneous -->
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="cancel">Cancel</string>
+    <string name="disabled">Disabled</string>
+    <string name="other">Other</string>
+
+    <!-- New UI Strings -->
+    <string name="title_new_ui">Dolphin New UI</string>
+
+
+    <!-- Game Grid Screen-->
+    <string name="grid_menu_settings">Settings</string>
+    <string name="grid_menu_refresh">Refresh Library</string>
+
+    <!-- Add Directory Screen-->
+    <string name="add_directory_title">Add Folder to Library</string>
+    <string name="add_directory_up_one_level">Up one level</string>
+    <string name="add_directory_empty_folder">That folder is empty.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_cpu">CPU Settings</string>
+    <string name="preferences_input">Input Settings</string>
+    <string name="preferences_video">Video Settings</string>
+    <string name="emulation_title">Emulation Activity</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_toggle_input">Toggle Touch Controls</string>
+    <string name="emulation_quicksave">Quick Save</string>
+    <string name="emulation_quickload">Quick Load</string>
+
+    <!-- Package Names-->
+    <string name="application_id">org.dolphinemu.dolphinemu</string>
+</resources>

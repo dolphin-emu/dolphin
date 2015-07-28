@@ -1,17 +1,11 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
 #include <cstdio>
 
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/gdicmn.h>
-#include <wx/listbase.h>
 #include <wx/listctrl.h>
-#include <wx/string.h>
-#include <wx/windowid.h>
 
 #include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"

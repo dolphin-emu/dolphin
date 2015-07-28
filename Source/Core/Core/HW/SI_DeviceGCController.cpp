@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
@@ -16,6 +17,7 @@
 #include "Core/HW/SI_GCAdapter.h"
 #endif
 #include "Core/HW/SystemTimers.h"
+#include "InputCommon/GCPadStatus.h"
 
 // --- standard GameCube controller ---
 CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNumber)
@@ -24,17 +26,25 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNum
 	, m_TButtonCombo(0)
 	, m_LastButtonCombo(COMBO_NONE)
 {
-	memset(&m_Origin, 0, sizeof(SOrigin));
-	m_Origin.uCommand        = CMD_ORIGIN;
-	m_Origin.uOriginStickX   = 0x80; // center
-	m_Origin.uOriginStickY   = 0x80;
-	m_Origin.uSubStickStickX = 0x80;
-	m_Origin.uSubStickStickY = 0x80;
-	m_Origin.uTrigger_L      = 0x1F; // 0-30 is the lower deadzone
-	m_Origin.uTrigger_R      = 0x1F;
-
 	// Dunno if we need to do this, game/lib should set it?
 	m_Mode                   = 0x03;
+
+	m_Calibrated = false;
+}
+
+void CSIDevice_GCController::Calibrate()
+{
+	GCPadStatus pad_origin = GetPadStatus();
+	memset(&m_Origin, 0, sizeof(SOrigin));
+	m_Origin.uButton = pad_origin.button;
+	m_Origin.uOriginStickX = pad_origin.stickX;
+	m_Origin.uOriginStickY = pad_origin.stickY;
+	m_Origin.uSubStickStickX = pad_origin.substickX;
+	m_Origin.uSubStickStickY = pad_origin.substickY;
+	m_Origin.uTrigger_L = pad_origin.triggerLeft;
+	m_Origin.uTrigger_R = pad_origin.triggerRight;
+
+	m_Calibrated = true;
 }
 
 int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
@@ -49,6 +59,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	switch (command)
 	{
 	case CMD_RESET:
+	case CMD_ID:
 		*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER;
 		break;
 
@@ -68,6 +79,10 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	case CMD_ORIGIN:
 		{
 			INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
+
+			if (!m_Calibrated)
+				Calibrate();
+
 			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
 			for (int i = 0; i < (int)sizeof(SOrigin); i++)
 			{
@@ -80,6 +95,10 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	case CMD_RECALIBRATE:
 		{
 			INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
+
+			if (!m_Calibrated)
+				Calibrate();
+
 			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
 			for (int i = 0; i < (int)sizeof(SOrigin); i++)
 			{
@@ -100,14 +119,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	return _iLength;
 }
 
-
-// GetData
-
-// Return true on new data (max 7 Bytes and 6 bits ;)
-// [00?SYXBA] [1LRZUDRL] [x] [y] [cx] [cy] [l] [r]
-//  |\_ ERR_LATCH (error latched - check SISR)
-//  |_ ERR_STATUS (error on last GetData or SendCmd?)
-bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
+GCPadStatus CSIDevice_GCController::GetPadStatus()
 {
 	GCPadStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
@@ -138,6 +150,19 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	{
 		Movie::CheckPadStatus(&PadStatus, ISIDevice::m_iDeviceNumber);
 	}
+
+	return PadStatus;
+}
+
+// GetData
+
+// Return true on new data (max 7 Bytes and 6 bits ;)
+// [00?SYXBA] [1LRZUDRL] [x] [y] [cx] [cy] [l] [r]
+//  |\_ ERR_LATCH (error latched - check SISR)
+//  |_ ERR_STATUS (error on last GetData or SendCmd?)
+bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
+{
+	GCPadStatus PadStatus = GetPadStatus();
 
 	_Hi = MapPadStatus(PadStatus);
 
@@ -257,7 +282,13 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 			const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
 #if defined(__LIBUSB__) || defined (_WIN32)
-			SI_GCAdapter::Output(numPAD, command.Parameter1 & 0xff);
+			if (numPAD < 4)
+			{
+				if (uType == 1 && uStrength > 2)
+					SI_GCAdapter::Output(numPAD, 1);
+				else
+					SI_GCAdapter::Output(numPAD, 0);
+			}
 #endif
 			if (numPAD < 4)
 			{
@@ -287,6 +318,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 // Savestate support
 void CSIDevice_GCController::DoState(PointerWrap& p)
 {
+	p.Do(m_Calibrated);
 	p.Do(m_Origin);
 	p.Do(m_Mode);
 	p.Do(m_TButtonComboStart);

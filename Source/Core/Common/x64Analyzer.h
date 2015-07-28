@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -30,7 +30,7 @@ struct ModRM
 	ModRM(u8 modRM, u8 rex)
 	{
 		mod = modRM >> 6;
-		reg = ((modRM >> 3) & 7) | ((rex & 4)?8:0);
+		reg = ((modRM >> 3) & 7) | ((rex & 4) ? 8 : 0);
 		rm = modRM & 7;
 	}
 };

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -22,6 +22,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
@@ -70,7 +71,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 {
 	INFO_LOG(WIIMOTE, "HidOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index, m_reporting_channel, sr->wm);
 
-	// wiibrew:
+	// WiiBrew:
 	// In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.
 	m_rumble_on = sr->rumble;
 
@@ -125,7 +126,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 		//wm_speaker_data *spkz = (wm_speaker_data*)sr->data;
 		//ERROR_LOG(WIIMOTE, "WM_WRITE_SPEAKER_DATA len:%x %s", spkz->length,
 		//	ArrayToString(spkz->data, spkz->length, 100, false).c_str());
-		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index] && !m_speaker_mute)
 			Wiimote::SpeakerData((wm_speaker_data*) sr->data);
 		return;	// no ack
 		break;
@@ -221,7 +222,7 @@ void Wiimote::RequestStatus(const wm_request_status* const rs)
 	// status values
 	*(wm_status_report*)(data + 2) = m_status;
 
-	// hybrid wiimote stuff
+	// hybrid Wiimote stuff
 	if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && (m_extension->switch_extension <= 0))
 	{
 		using namespace WiimoteReal;
@@ -275,7 +276,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			{
 				// writing the whole mii block each write :/
 				std::ofstream file;
-				OpenFStream(file, File::GetUserPath(D_WIIUSER_IDX) + "mii.bin", std::ios::binary | std::ios::out);
+				OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin", std::ios::binary | std::ios::out);
 				file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
 				file.close();
 			}
@@ -380,13 +381,13 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 	// ignore the 0x010000 bit
 	address &= 0xFEFFFF;
 
-	// hybrid wiimote stuff
-	// relay the read data request to real-wiimote
+	// hybrid Wiimote stuff
+	// relay the read data request to real-Wiimote
 	if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && ((0xA4 != (address >> 16)) || (m_extension->switch_extension <= 0)))
 	{
 		WiimoteReal::InterruptChannel(m_index, m_reporting_channel, ((u8*)rd) - 2, sizeof(wm_read_data) + 2); // hacky
 
-		// don't want emu-wiimote to send reply
+		// don't want emu-Wiimote to send reply
 		return;
 	}
 
@@ -417,7 +418,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 			{
 				// reading the whole mii block :/
 				std::ifstream file;
-				file.open((File::GetUserPath(D_WIIUSER_IDX) + "mii.bin").c_str(), std::ios::binary | std::ios::in);
+				file.open((File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(), std::ios::binary | std::ios::in);
 				file.read((char*)m_eeprom + 0x0FCA, 0x02f0);
 				file.close();
 			}

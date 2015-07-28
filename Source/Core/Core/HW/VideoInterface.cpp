@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
@@ -137,10 +137,10 @@ void Preset(bool _bNTSC)
 	m_VBeamPos = 0; // RG4JC0 checks for a zero VBeamPos
 
 	// 54MHz, capable of progressive scan
-	m_Clock = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+	m_Clock = SConfig::GetInstance().bNTSC;
 
 	// Say component cable is plugged
-	m_DTVStatus.component_plugged = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+	m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
 
 	UpdateParameters();
 }
@@ -172,7 +172,7 @@ void Init()
 
 	fields = 1;
 
-	m_DTVStatus.ntsc_j = SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ;
+	m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ;
 
 	for (UVIInterruptRegister& reg : m_InterruptRegister)
 	{
@@ -375,7 +375,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		})
 	);
 
-    // Map 8 bit reads (not writes) to 16 bit reads.
+	// Map 8 bit reads (not writes) to 16 bit reads.
 	for (int i = 0; i < 0x1000; i += 2)
 	{
 		mmio->Register(base | i,
@@ -388,19 +388,19 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		);
 	}
 
-    // Map 32 bit reads and writes to 16 bit reads and writes.
-    for (int i = 0; i < 0x1000; i += 4)
-    {
+	// Map 32 bit reads and writes to 16 bit reads and writes.
+	for (int i = 0; i < 0x1000; i += 4)
+	{
 		mmio->Register(base | i,
 			MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
 			MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2))
 		);
-    }
+	}
 }
 
 void SetRegionReg(char region)
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ)
+	if (!SConfig::GetInstance().bForceNTSCJ)
 		m_DTVStatus.ntsc_j = region == 'J';
 }
 
@@ -476,14 +476,6 @@ void UpdateParameters()
 	}
 }
 
-int GetNumFields()
-{
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeamSpeedHack)
-		return (2 / fields);
-	else
-		return 1;
-}
-
 unsigned int GetTicksPerLine()
 {
 	if (s_lineCount == 0)
@@ -492,10 +484,7 @@ unsigned int GetTicksPerLine()
 	}
 	else
 	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeamSpeedHack)
-			return TicksPerFrame / s_lineCount;
-		else
-			return TicksPerFrame / (s_lineCount / (2 / fields)) ;
+		return TicksPerFrame / (s_lineCount / (2 / fields)) ;
 	}
 }
 

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -44,6 +44,7 @@ struct CPUInfo
 	bool bBMI1;
 	bool bBMI2;
 	bool bFMA;
+	bool bFMA4;
 	bool bAES;
 	// FXSAVE/FXRSTOR
 	bool bFXSR;
@@ -55,25 +56,12 @@ struct CPUInfo
 	bool bLongMode;
 	bool bAtom;
 
-	// ARM specific CPUInfo
-	bool bSwp;
-	bool bHalf;
-	bool bThumb;
-	bool bFastMult;
-	bool bVFP;
-	bool bEDSP;
-	bool bThumbEE;
-	bool bNEON;
-	bool bVFPv3;
-	bool bTLS;
-	bool bVFPv4;
-	bool bIDIVa;
-	bool bIDIVt;
-	bool bArmV7;  // enable MOVT, MOVW etc
-
 	// ARMv8 specific
 	bool bFP;
 	bool bASIMD;
+	bool bCRC32;
+	bool bSHA1;
+	bool bSHA2;
 
 	// Call Detect()
 	explicit CPUInfo();

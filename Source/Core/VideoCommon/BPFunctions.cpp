@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -90,11 +90,8 @@ void CopyEFB(u32 dstAddr, const EFBRectangle& srcRect,
 	     bool isIntensity, bool scaleByHalf)
 {
 	// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
-	if (g_ActiveConfig.bEFBCopyEnable)
-	{
-		TextureCache::CopyRenderTargetToTexture(dstAddr, dstFormat, srcFormat,
-			srcRect, isIntensity, scaleByHalf);
-	}
+	TextureCache::CopyRenderTargetToTexture(dstAddr, dstFormat, srcFormat,
+		srcRect, isIntensity, scaleByHalf);
 }
 
 /* Explanation of the magic behind ClearScreen:

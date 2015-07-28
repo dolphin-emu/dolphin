@@ -1,10 +1,11 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 class PointerWrap;
@@ -16,12 +17,6 @@ namespace CommandProcessor
 {
 
 extern SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread.
-
-extern volatile bool isPossibleWaitingSetDrawDone; //This one is used for sync gfx thread and emulator thread.
-extern volatile bool interruptSet;
-extern volatile bool interruptWaiting;
-extern volatile bool interruptTokenWaiting;
-extern volatile bool interruptFinishWaiting;
 
 // internal hardware addresses
 enum
@@ -126,9 +121,6 @@ union UCPClearReg
 	UCPClearReg(u16 _hex) {Hex = _hex; }
 };
 
-// Can be any number, low enough to not be below the number of clocks executed by the GPU per CP_PERIOD
-const static u32 m_cpClockOrigin = 200000;
-
 // Init
 void Init();
 void Shutdown();
@@ -142,13 +134,13 @@ void GatherPipeBursted();
 void UpdateInterrupts(u64 userdata);
 void UpdateInterruptsFromVideoBackend(u64 userdata);
 
+bool IsInterruptWaiting();
+void SetInterruptTokenWaiting(bool waiting);
+void SetInterruptFinishWaiting(bool waiting);
+
 void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
-void ProcessFifoAllDistance();
 void ProcessFifoEvents();
-
-void Update();
-extern volatile u32 VITicks;
 
 } // namespace CommandProcessor

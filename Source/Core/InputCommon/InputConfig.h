@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -21,14 +21,10 @@ public:
 		const char* const _profile_name)
 		: ini_name(_ini_name), gui_name(_gui_name), profile_name(_profile_name) {}
 
-	~InputConfig();
-
 	bool LoadConfig(bool isGC);
 	void SaveConfig();
 
 	std::vector<ControllerEmu*>  controllers;
-
-	std::recursive_mutex controls_lock; // for changing any control references
 
 	const char* const ini_name;
 	const char* const gui_name;

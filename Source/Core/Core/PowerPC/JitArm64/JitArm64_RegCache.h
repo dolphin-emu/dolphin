@@ -1,6 +1,6 @@
-// copyright 2014 dolphin emulator project
-// licensed under gplv2
-// refer to the license.txt file included.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
@@ -46,16 +46,16 @@ public:
 	{
 	}
 
-	RegType GetType()
+	RegType GetType() const
 	{
 		return m_type;
 	}
 
-	ARM64Reg GetReg()
+	ARM64Reg GetReg() const
 	{
 		return m_reg;
 	}
-	u32 GetImm()
+	u32 GetImm() const
 	{
 		return m_value;
 	}
@@ -81,9 +81,12 @@ public:
 		m_last_used = 0xFFFF;
 	}
 
-	u32 GetLastUsed() { return m_last_used; }
+	u32 GetLastUsed() const { return m_last_used; }
 	void ResetLastUsed() { m_last_used = 0; }
 	void IncrementLastUsed() { ++m_last_used; }
+
+	void SetDirty(bool dirty) { m_dirty = dirty; }
+	bool IsDirty() const { return m_dirty; }
 
 private:
 	// For REG_REG
@@ -94,6 +97,8 @@ private:
 	u32 m_value; // IMM value
 
 	u32 m_last_used;
+
+	bool m_dirty;
 };
 
 class HostReg
@@ -101,10 +106,10 @@ class HostReg
 public:
 	HostReg() : m_reg(INVALID_REG), m_locked(false) {}
 	HostReg(ARM64Reg reg) : m_reg(reg), m_locked(false) {}
-	bool IsLocked() { return m_locked; }
+	bool IsLocked() const { return m_locked; }
 	void Lock() { m_locked = true; }
 	void Unlock() { m_locked = false; }
-	ARM64Reg GetReg() { return m_reg; }
+	ARM64Reg GetReg() const { return m_reg; }
 
 	bool operator==(const ARM64Reg& reg)
 	{
@@ -119,7 +124,7 @@ private:
 class Arm64RegCache
 {
 public:
-	Arm64RegCache() : m_emit(nullptr), m_reg_stats(nullptr) {};
+	Arm64RegCache() : m_emit(nullptr), m_float_emit(nullptr), m_reg_stats(nullptr) {};
 	virtual ~Arm64RegCache() {};
 
 	void Init(ARM64XEmitter *emitter);
@@ -133,9 +138,13 @@ public:
 	// Will dump an immediate to the host register as well
 	virtual ARM64Reg R(u32 reg) = 0;
 
+	virtual BitSet32 GetCallerSavedUsed() = 0;
+
 	// Returns a temporary register for use
 	// Requires unlocking after done
 	ARM64Reg GetReg();
+
+	void StoreRegister(u32 preg) { FlushRegister(preg, false); }
 
 	// Locks a register so a cache cannot use it
 	// Useful for function calls
@@ -166,7 +175,7 @@ protected:
 	virtual void GetAllocationOrder() = 0;
 
 	// Flushes the most stale register
-	virtual void FlushMostStaleRegister() = 0;
+	void FlushMostStaleRegister();
 
 	// Lock a register
 	void LockRegister(ARM64Reg host_reg);
@@ -177,14 +186,30 @@ protected:
 	// Flushes a guest register by host provided
 	virtual void FlushByHost(ARM64Reg host_reg) = 0;
 
+	virtual void FlushRegister(u32 preg, bool maintain_state) = 0;
+
 	// Get available host registers
 	u32 GetUnlockedRegisterCount();
+
+	void IncrementAllUsed()
+	{
+		for (auto& reg : m_guest_registers)
+			reg.IncrementLastUsed();
+	}
 
 	// Code emitter
 	ARM64XEmitter *m_emit;
 
+	// Float emitter
+	std::unique_ptr<ARM64FloatEmitter> m_float_emit;
+
 	// Host side registers that hold the host registers in order of use
 	std::vector<HostReg> m_host_registers;
+
+	// Our guest GPRs
+	// PowerPC has 32 GPRs
+	// PowerPC also has 32 paired FPRs
+	OpArg m_guest_registers[32];
 
 	// Register stats for the current block
 	PPCAnalyst::BlockRegStats *m_reg_stats;
@@ -208,41 +233,27 @@ public:
 	void SetImmediate(u32 preg, u32 imm);
 
 	// Returns if a register is set as an immediate
-	bool IsImm(u32 reg) { return m_guest_registers[reg].GetType() == REG_IMM; }
+	bool IsImm(u32 reg) const { return m_guest_registers[reg].GetType() == REG_IMM; }
 
 	// Gets the immediate that a register is set to
-	u32 GetImm(u32 reg) { return m_guest_registers[reg].GetImm(); }
+	u32 GetImm(u32 reg) const { return m_guest_registers[reg].GetImm(); }
 
 	void BindToRegister(u32 preg, bool do_load);
 
-	void StoreRegister(u32 preg) { FlushRegister(preg, false); }
-
-	BitSet32 GetCallerSavedUsed();
+	BitSet32 GetCallerSavedUsed() override;
 
 protected:
 	// Get the order of the host registers
 	void GetAllocationOrder();
 
-	// Flushes the most stale register
-	void FlushMostStaleRegister();
-
 	// Flushes a guest register by host provided
 	void FlushByHost(ARM64Reg host_reg) override;
 
-	// Our guest GPRs
-	// PowerPC has 32 GPRs
-	OpArg m_guest_registers[32];
+	void FlushRegister(u32 preg, bool maintain_state) override;
 
 private:
 	bool IsCalleeSaved(ARM64Reg reg);
 
-	void IncrementAllUsed()
-	{
-		for (auto& reg : m_guest_registers)
-			reg.IncrementLastUsed();
-	}
-
-	void FlushRegister(u32 preg, bool maintain_state);
 };
 
 class Arm64FPRCache : public Arm64RegCache
@@ -256,17 +267,19 @@ public:
 	// Will dump an immediate to the host register as well
 	ARM64Reg R(u32 preg);
 
+	void BindToRegister(u32 preg, bool do_load);
+
+	BitSet32 GetCallerSavedUsed() override;
+
 protected:
 	// Get the order of the host registers
 	void GetAllocationOrder();
 
-	// Flushes the most stale register
-	void FlushMostStaleRegister();
-
 	// Flushes a guest register by host provided
 	void FlushByHost(ARM64Reg host_reg) override;
 
-	// Our guest FPRs
-	// Gekko has 32 paired registers(32x2)
-	OpArg m_guest_registers[32][2];
+	void FlushRegister(u32 preg, bool maintain_state) override;
+
+private:
+	bool IsCalleeSaved(ARM64Reg reg);
 };

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -33,7 +33,7 @@ public:
 
 	~FixedSizeQueue()
 	{
-		delete [] storage;
+		delete[] storage;
 	}
 
 	void clear()

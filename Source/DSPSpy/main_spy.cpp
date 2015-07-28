@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // This is a test program for running code on the Wii DSP, with full control over input
@@ -9,17 +9,17 @@
 // Use Dolphin's dsptool to generate a new dsp_code.h.
 // Originally written by duddie and modified by FIRES. Then further modified by ector.
 
+#include <debug.h>
+#include <fat.h>
+#include <fcntl.h>
 #include <gccore.h>
 #include <malloc.h>
+#include <network.h>
+#include <ogcsys.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <network.h>
-#include <ogcsys.h>
 #include <time.h>
-#include <fat.h>
-#include <fcntl.h>
-#include <debug.h>
 
 #include <unistd.h>
 #include <ogc/color.h>
@@ -33,6 +33,8 @@
 #ifdef HW_RVL
 #include <wiiuse/wpad.h>
 #include <sdcard/wiisd_io.h>
+#else
+#include <sdcard/gcsd.h>
 #endif
 
 #include "ConsoleHelper.h"
@@ -218,7 +220,6 @@ void UpdateLastMessage(const char* msg)
 
 void DumpDSP_ROMs(const u16* rom, const u16* coef)
 {
-#ifdef HW_RVL
 	char filename[260] = {0};
 	sprintf(filename, "sd:/dsp_rom.bin");
 	FILE *fROM = fopen(filename, "wb");
@@ -241,10 +242,6 @@ void DumpDSP_ROMs(const u16* rom, const u16* coef)
 		fclose(fROM);
 	if (fCOEF)
 		fclose(fCOEF);
-#else
-	// Allow to connect to gdb (dump ram... :s)
-	_break();
-#endif
 }
 
 void ui_pad_sel(void)
@@ -353,7 +350,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0x8888dead)
 		{
-			// Send memory dump (dsp dram from someone's cube?)
+			// Send memory dump (DSP DRAM from someone's GameCube?)
 			// not really sure why this is important - I guess just to try to keep tests predictable
 			u16* tmpBuf = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
 
@@ -363,7 +360,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0x8888beef)
 		{
-			// Provide register base to dsp (if using dsp_base.inc, it will dma them to the correct place)
+			// Provide register base to DSP (if using dsp_base.inc, it will DMA them to the correct place)
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)dspbufP);
 			while (real_dsp.CheckMailTo());
@@ -385,14 +382,14 @@ void handle_dsp_mail(void)
 		// ROM dumping mails
 		else if (mail == 0x8888c0de)
 		{
-			// DSP has copied irom to its dram...send address so it can dma it back
+			// DSP has copied irom to its DRAM...send address so it can dma it back
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)dspbufP);
 			while (real_dsp.CheckMailTo());
 		}
 		else if (mail == 0x8888da7a)
 		{
-			// DSP has copied coef to its dram...send address so it can dma it back
+			// DSP has copied coef to its DRAM...send address so it can DMA it back
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)&dspbufP[0x1000]);
 			while (real_dsp.CheckMailTo());
@@ -415,7 +412,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0xdcd10003) // DSP_DONE
 		{
-			real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell dsp to halt (calls end_of_test)
+			real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell DSP to halt (calls end_of_test)
 			while (real_dsp.CheckMailTo());
 
 			DCInvalidateRange(SecParams_out, sizeof(SecParams_out));
@@ -525,7 +522,7 @@ void InitGeneral()
 #endif
 
 	// Obtain the preferred video mode from the system
-	// This will correspond to the settings in the Wii menu
+	// This will correspond to the settings in the Wii Menu
 	rmode = VIDEO_GetPreferredMode(nullptr);
 
 	// Allocate memory for the display in the uncached region
@@ -552,6 +549,9 @@ void InitGeneral()
 	__io_wiisd.startup();
 	fatMountSimple("sd", &__io_wiisd);
 #else
+	// Initialize FAT so we can write to SD Gecko in slot B.
+	fatMountSimple("sd", &__io_gcsdb);
+
 	// Init debug over BBA...change IPs to suite your needs
 	tcp_localip="192.168.1.103";
 	tcp_netmask="255.255.255.0";
@@ -562,8 +562,8 @@ void InitGeneral()
 
 void ExitToLoader()
 {
-#ifdef HW_RVL
 	fatUnmount("sd");
+#ifdef HW_RVL
 	__io_wiisd.shutdown();
 #endif
 

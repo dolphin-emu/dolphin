@@ -1,37 +1,31 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
 #include <vector>
 #include <wx/arrstr.h>
 #include <wx/button.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/gbsizer.h>
-#include <wx/gdicmn.h>
 #include <wx/msgdlg.h>
 #include <wx/radiobox.h>
 #include <wx/sizer.h>
 #include <wx/spinbutt.h>
 #include <wx/statbox.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 #include "Core/PatchEngine.h"
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
 
-CPatchAddEdit::CPatchAddEdit(int _selection, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CPatchAddEdit::CPatchAddEdit(int _selection, std::vector<PatchEngine::Patch>* _onFrame, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
+	, onFrame(_onFrame)
+	, selection(_selection)
 {
-	selection = _selection;
 	CreateGUIControls(selection);
 
 	Bind(wxEVT_BUTTON, &CPatchAddEdit::SavePatchData, this, wxID_OK);
@@ -48,12 +42,12 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	if (_selection == -1)
 	{
 		tempEntries.clear();
-		tempEntries.push_back(PatchEngine::PatchEntry(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000));
+		tempEntries.emplace_back(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000);
 	}
 	else
 	{
-		currentName = StrToWxStr(onFrame.at(_selection).name);
-		tempEntries = onFrame.at(_selection).entries;
+		currentName = StrToWxStr(onFrame->at(_selection).name);
+		tempEntries = onFrame->at(_selection).entries;
 	}
 
 	itCurEntry = tempEntries.begin();
@@ -70,8 +64,8 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 
 	EntrySelection = new wxSpinButton(this);
 	EntrySelection->Bind(wxEVT_SPIN, &CPatchAddEdit::ChangeEntry, this);
-	EntrySelection->SetRange(0, (int)tempEntries.size()-1);
-	EntrySelection->SetValue((int)tempEntries.size()-1);
+	EntrySelection->SetRange(0, (int)tempEntries.size() - 1);
+	EntrySelection->SetValue((int)tempEntries.size() - 1);
 
 	wxArrayString wxArrayStringFor_EditPatchType;
 	for (int i = 0; i < 3; ++i)
@@ -92,19 +86,19 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 		EntryRemove->Disable();
 
 	wxBoxSizer* sEditPatchName = new wxBoxSizer(wxHORIZONTAL);
-	sEditPatchName->Add(EditPatchNameText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sEditPatchName->Add(EditPatchName, 1, wxEXPAND|wxALL, 5);
+	sEditPatchName->Add(EditPatchNameText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sEditPatchName->Add(EditPatchName, 1, wxEXPAND | wxALL, 5);
 	sEditPatch->Add(sEditPatchName, 0, wxEXPAND);
 	sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(_("Entry 1/%d"), (int)tempEntries.size()));
 	currentItem = 1;
 
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
-	sgEntry->Add(EditPatchType, wxGBPosition(0, 0), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sgEntry->Add(EditPatchOffsetText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sgEntry->Add(EditPatchOffset, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sgEntry->Add(EditPatchValueText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sgEntry->Add(EditPatchValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(3, 1), wxEXPAND|wxALL, 5);
+	sgEntry->Add(EditPatchType, wxGBPosition(0, 0), wxGBSpan(1, 2), wxEXPAND | wxALL, 5);
+	sgEntry->Add(EditPatchOffsetText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sgEntry->Add(EditPatchOffset, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
+	sgEntry->Add(EditPatchValueText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sgEntry->Add(EditPatchValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
+	sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(3, 1), wxEXPAND | wxALL, 5);
 	sgEntry->AddGrowableCol(1);
 
 	wxBoxSizer* sEntryAddRemove = new wxBoxSizer(wxHORIZONTAL);
@@ -113,8 +107,8 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	sbEntry->Add(sgEntry, 0, wxEXPAND);
 	sbEntry->Add(sEntryAddRemove, 0, wxEXPAND);
 
-	sEditPatch->Add(sbEntry, 0, wxEXPAND|wxALL, 5);
-	sEditPatch->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+	sEditPatch->Add(sbEntry, 0, wxEXPAND | wxALL, 5);
+	sEditPatch->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	SetSizerAndFit(sEditPatch);
 	SetFocus();
 }
@@ -141,12 +135,12 @@ void CPatchAddEdit::SavePatchData(wxCommandEvent& event)
 		newPatch.entries = tempEntries;
 		newPatch.active = true;
 
-		onFrame.push_back(newPatch);
+		onFrame->push_back(newPatch);
 	}
 	else
 	{
-		onFrame.at(selection).name = WxStrToStr(EditPatchName->GetValue());
-		onFrame.at(selection).entries = tempEntries;
+		onFrame->at(selection).name = WxStrToStr(EditPatchName->GetValue());
+		onFrame->at(selection).entries = tempEntries;
 	}
 
 	AcceptAndClose();

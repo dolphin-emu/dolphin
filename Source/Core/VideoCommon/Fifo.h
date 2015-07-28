@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -13,17 +13,13 @@ class PointerWrap;
 
 extern bool g_bSkipCurrentFrame;
 
-// This could be in SCoreStartupParameter, but it depends on multiple settings
+// This could be in SConfig, but it depends on multiple settings
 // and can change at runtime.
 extern bool g_use_deterministic_gpu_thread;
 extern std::atomic<u8*> g_video_buffer_write_ptr_xthread;
 
 void Fifo_Init();
 void Fifo_Shutdown();
-
-u8* GetVideoBufferStartPtr();
-u8* GetVideoBufferEndPtr();
-
 void Fifo_DoState(PointerWrap &f);
 void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock);
 void Fifo_UpdateWantDeterminism(bool want);
@@ -31,7 +27,6 @@ void Fifo_UpdateWantDeterminism(bool want);
 // Used for diagnostics.
 enum SyncGPUReason
 {
-	SYNC_GPU_NONE,
 	SYNC_GPU_OTHER,
 	SYNC_GPU_WRAPAROUND,
 	SYNC_GPU_EFB_POKE,
@@ -46,14 +41,13 @@ void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr = true);
 void PushFifoAuxBuffer(void* ptr, size_t size);
 void* PopFifoAuxBuffer(size_t size);
 
+void FlushGpu();
 void RunGpu();
+void GpuMaySleep();
 void RunGpuLoop();
 void ExitGpuLoop();
 void EmulatorState(bool running);
 bool AtBreakpoint();
 void ResetVideoBuffer();
 void Fifo_SetRendering(bool bEnabled);
-
-
-// Implemented by the Video Backend
-void VideoFifo_CheckAsyncRequest();
+int Fifo_Update(int ticks);

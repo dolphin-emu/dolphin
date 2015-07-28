@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Core/DSP/DSPTables.h"
@@ -33,7 +33,7 @@ void LabelMap::RegisterLabel(const std::string &label, u16 lval, LabelType type)
 			   label.c_str(), lval, old_value);
 		DeleteLabel(label);
 	}
-	labels.push_back(label_t(label, lval, type));
+	labels.emplace_back(label, lval, type);
 }
 
 void LabelMap::DeleteLabel(const std::string &label)

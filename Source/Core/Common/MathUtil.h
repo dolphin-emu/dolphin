@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -156,20 +156,20 @@ struct Rectangle
 	// this Clamp.
 	void ClampLL(T x1, T y1, T x2, T y2)
 	{
-		if (left < x1) left = x1;
-		if (right > x2) right = x2;
-		if (top > y1) top = y1;
-		if (bottom < y2) bottom = y2;
+		Clamp(&left, x1, x2);
+		Clamp(&right, x1, x2);
+		Clamp(&top, y2, y1);
+		Clamp(&bottom, y2, y1);
 	}
 
 	// If the rectangle is in a coordinate system with an upper-left origin,
 	// use this Clamp.
 	void ClampUL(T x1, T y1, T x2, T y2)
 	{
-		if (left < x1) left = x1;
-		if (right > x2) right = x2;
-		if (top < y1) top = y1;
-		if (bottom > y2) bottom = y2;
+		Clamp(&left, x1, x2);
+		Clamp(&right, x1, x2);
+		Clamp(&top, y1, y2);
+		Clamp(&bottom, y1, y2);
 	}
 };
 

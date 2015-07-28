@@ -1,6 +1,6 @@
-// copyright 2014 dolphin emulator project
-// licensed under gplv2
-// refer to the license.txt file included.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
@@ -10,6 +10,7 @@ using namespace Arm64Gen;
 void Arm64RegCache::Init(ARM64XEmitter *emitter)
 {
 	m_emit = emitter;
+	m_float_emit.reset(new ARM64FloatEmitter(m_emit));
 	GetAllocationOrder();
 }
 
@@ -45,15 +46,32 @@ u32 Arm64RegCache::GetUnlockedRegisterCount()
 void Arm64RegCache::LockRegister(ARM64Reg host_reg)
 {
 	auto reg = std::find(m_host_registers.begin(), m_host_registers.end(), host_reg);
-	_assert_msg_(DYNA_REC, reg == m_host_registers.end(), "Don't try locking a register that isn't in the cache");
+	_assert_msg_(DYNA_REC, reg != m_host_registers.end(), "Don't try locking a register that isn't in the cache. Reg %d", host_reg);
 	reg->Lock();
 }
 
 void Arm64RegCache::UnlockRegister(ARM64Reg host_reg)
 {
 	auto reg = std::find(m_host_registers.begin(), m_host_registers.end(), host_reg);
-	_assert_msg_(DYNA_REC, reg == m_host_registers.end(), "Don't try unlocking a register that isn't in the cache");
+	_assert_msg_(DYNA_REC, reg != m_host_registers.end(), "Don't try unlocking a register that isn't in the cache. Reg %d", host_reg);
 	reg->Unlock();
+}
+
+void Arm64RegCache::FlushMostStaleRegister()
+{
+	u32 most_stale_preg = 0;
+	u32 most_stale_amount = 0;
+	for (u32 i = 0; i < 32; ++i)
+	{
+		u32 last_used = m_guest_registers[i].GetLastUsed();
+		if (last_used > most_stale_amount &&
+		    m_guest_registers[i].GetType() == REG_REG)
+		{
+			most_stale_preg = i;
+			most_stale_amount = last_used;
+		}
+	}
+	FlushRegister(most_stale_preg, false);
 }
 
 // GPR Cache
@@ -77,7 +95,8 @@ void Arm64GPRCache::FlushRegister(u32 preg, bool maintain_state)
 	if (reg.GetType() == REG_REG)
 	{
 		ARM64Reg host_reg = reg.GetReg();
-		m_emit->STR(INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(gpr[preg]));
+		if (reg.IsDirty())
+			m_emit->STR(INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(gpr[preg]));
 
 		if (!maintain_state)
 		{
@@ -151,6 +170,7 @@ ARM64Reg Arm64GPRCache::R(u32 preg)
 		ARM64Reg host_reg = GetReg();
 		m_emit->MOVI2R(host_reg, reg.GetImm());
 		reg.LoadToReg(host_reg);
+		reg.SetDirty(true);
 		return host_reg;
 	}
 	break;
@@ -160,6 +180,7 @@ ARM64Reg Arm64GPRCache::R(u32 preg)
 		// This can also happen on cases where PPCAnalyst isn't feeing us proper register usage statistics
 		ARM64Reg host_reg = GetReg();
 		reg.LoadToReg(host_reg);
+		reg.SetDirty(false);
 		m_emit->LDR(INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(gpr[preg]));
 		return host_reg;
 	}
@@ -184,6 +205,7 @@ void Arm64GPRCache::BindToRegister(u32 preg, bool do_load)
 {
 	OpArg& reg = m_guest_registers[preg];
 
+	reg.SetDirty(true);
 	if (reg.GetType() == REG_NOTLOADED)
 	{
 		ARM64Reg host_reg = GetReg();
@@ -212,23 +234,6 @@ void Arm64GPRCache::GetAllocationOrder()
 		m_host_registers.push_back(HostReg(reg));
 }
 
-void Arm64GPRCache::FlushMostStaleRegister()
-{
-	u32 most_stale_preg = 0;
-	u32 most_stale_amount = 0;
-	for (u32 i = 0; i < 32; ++i)
-	{
-		u32 last_used = m_guest_registers[i].GetLastUsed();
-		if (last_used > most_stale_amount &&
-		    m_guest_registers[i].GetType() == REG_REG)
-		{
-			most_stale_preg = i;
-			most_stale_amount = last_used;
-		}
-	}
-	FlushRegister(most_stale_preg, false);
-}
-
 BitSet32 Arm64GPRCache::GetCallerSavedUsed()
 {
 	BitSet32 registers(0);
@@ -254,35 +259,122 @@ void Arm64GPRCache::FlushByHost(ARM64Reg host_reg)
 // FPR Cache
 void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
-	// XXX: Flush our stuff
+	for (int i = 0; i < 32; ++i)
+	{
+		if (m_guest_registers[i].GetType() == REG_REG)
+		{
+			// XXX: Determine if we can keep a register in the lower 64bits
+			// Which will allow it to be callee saved.
+			FlushRegister(i, mode == FLUSH_MAINTAIN_STATE);
+		}
+	}
 }
 
 ARM64Reg Arm64FPRCache::R(u32 preg)
 {
-	// XXX: return a host reg holding a guest register
+	OpArg& reg = m_guest_registers[preg];
+	IncrementAllUsed();
+	reg.ResetLastUsed();
+
+	switch (reg.GetType())
+	{
+	case REG_REG: // already in a reg
+		return reg.GetReg();
+	break;
+	case REG_NOTLOADED: // Register isn't loaded at /all/
+	{
+		ARM64Reg host_reg = GetReg();
+		reg.LoadToReg(host_reg);
+		reg.SetDirty(false);
+		m_float_emit->LDR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+		return host_reg;
+	}
+	break;
+	default:
+		_dbg_assert_msg_(DYNA_REC, false, "Invalid OpArg Type!");
+	break;
+	}
+	// We've got an issue if we end up here
+	return INVALID_REG;
+}
+
+void Arm64FPRCache::BindToRegister(u32 preg, bool do_load)
+{
+	OpArg& reg = m_guest_registers[preg];
+
+	reg.SetDirty(true);
+	if (reg.GetType() == REG_NOTLOADED)
+	{
+		ARM64Reg host_reg = GetReg();
+		reg.LoadToReg(host_reg);
+		if (do_load)
+			m_float_emit->LDR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+	}
 }
 
 void Arm64FPRCache::GetAllocationOrder()
 {
 	const std::vector<ARM64Reg> allocation_order =
 	{
-		D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10,
-		D11, D12, D13, D14, D15, D16, D17, D18, D19,
-		D20, D21, D22, D23, D24, D25, D26, D27, D28,
-		D29, D30, D31,
+		// Callee saved
+		Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15,
+
+		// Caller saved
+		Q16, Q17, Q18, Q19, Q20, Q21, Q22, Q23,
+		Q24, Q25, Q26, Q27, Q28, Q29, Q30, Q31,
+		Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0
 	};
 
 	for (ARM64Reg reg : allocation_order)
 		m_host_registers.push_back(HostReg(reg));
 }
 
-void Arm64FPRCache::FlushMostStaleRegister()
-{
-	// XXX: Flush a register
-}
-
 void Arm64FPRCache::FlushByHost(ARM64Reg host_reg)
 {
-	// XXX: Scan guest registers and flush if found
+	for (int i = 0; i < 32; ++i)
+	{
+		OpArg& reg = m_guest_registers[i];
+		if (reg.GetType() == REG_REG && reg.GetReg() == host_reg)
+		{
+			FlushRegister(i, false);
+			return;
+		}
+	}
+
 }
 
+bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg)
+{
+	static std::vector<ARM64Reg> callee_regs =
+	{
+		Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15, INVALID_REG,
+	};
+	return std::find(callee_regs.begin(), callee_regs.end(), reg) != callee_regs.end();
+}
+
+void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
+{
+	OpArg& reg = m_guest_registers[preg];
+	if (reg.GetType() == REG_REG)
+	{
+		ARM64Reg host_reg = reg.GetReg();
+
+		if (reg.IsDirty())
+			m_float_emit->STR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+
+		if (!maintain_state)
+		{
+			UnlockRegister(host_reg);
+			reg.Flush();
+		}
+	}
+}
+
+BitSet32 Arm64FPRCache::GetCallerSavedUsed()
+{
+	BitSet32 registers(0);
+	for (auto& it : m_host_registers)
+		if (it.IsLocked())
+			registers[it.GetReg() - Q0] = 1;
+	return registers;
+}

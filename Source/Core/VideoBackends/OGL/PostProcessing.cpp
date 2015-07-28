@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonPaths.h"
@@ -10,6 +10,7 @@
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/SamplerCache.h"
 
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoCommon.h"
@@ -18,7 +19,7 @@
 namespace OGL
 {
 
-static char s_vertex_workaround_shader[] =
+static const char s_vertex_workaround_shader[] =
 	"in vec4 rawpos;\n"
 	"out vec2 uv0;\n"
 	"uniform vec4 src_rect;\n"
@@ -27,7 +28,7 @@ static char s_vertex_workaround_shader[] =
 	"	uv0 = rawpos.zw * src_rect.zw + src_rect.xy;\n"
 	"}\n";
 
-static char s_vertex_shader[] =
+static const char s_vertex_shader[] =
 	"out vec2 uv0;\n"
 	"uniform vec4 src_rect;\n"
 	"void main(void) {\n"
@@ -38,7 +39,6 @@ static char s_vertex_shader[] =
 
 OpenGLPostProcessing::OpenGLPostProcessing()
 	: m_initialized(false)
-	, m_anaglyph(false)
 {
 	CreateHeader();
 
@@ -153,35 +153,23 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 		m_config.SetDirty(false);
 	}
 
-	glActiveTexture(GL_TEXTURE0+9);
+	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, src_texture);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	g_sampler_cache->BindLinearSampler(9);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 void OpenGLPostProcessing::ApplyShader()
 {
 	// shader didn't changed
-	if (m_initialized && m_config.GetShader() == g_ActiveConfig.sPostProcessingShader &&
-			((g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH) == m_anaglyph))
+	if (m_initialized && m_config.GetShader() == g_ActiveConfig.sPostProcessingShader)
 		return;
 
 	m_shader.Destroy();
 	m_uniform_bindings.clear();
 
 	// load shader code
-	std::string code = "";
-	std::string default_shader = "void main() { SetOutput(Sample()); }\n";
-
-	if (g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH)
-		code = "void main() { SetOutput(float4(pow(0.7 * SampleLayer(0).g + 0.3 * SampleLayer(0).b, 1.5), SampleLayer(1).gba)); }\n";
-	else if (g_ActiveConfig.sPostProcessingShader != "")
-		code = m_config.LoadShader();
-
-	if (code == "")
-		code = default_shader;
-
+	std::string code = m_config.LoadShader();
 	code = LoadShaderOptions(code);
 
 	const char* vertex_shader = s_vertex_shader;
@@ -193,8 +181,8 @@ void OpenGLPostProcessing::ApplyShader()
 	if (!ProgramShaderCache::CompileShader(m_shader, vertex_shader, code.c_str()))
 	{
 		ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", m_config.GetShader().c_str());
-
-		code = LoadShaderOptions(default_shader);
+		g_ActiveConfig.sPostProcessingShader.clear();
+		code = m_config.LoadShader();
 		ProgramShaderCache::CompileShader(m_shader, vertex_shader, code.c_str());
 	}
 
@@ -226,7 +214,6 @@ void OpenGLPostProcessing::ApplyShader()
 		std::string glsl_name = "option_" + it.first;
 		m_uniform_bindings[it.first] = glGetUniformLocation(m_shader.glprogid, glsl_name.c_str());
 	}
-	m_anaglyph = g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH;
 	m_initialized = true;
 }
 

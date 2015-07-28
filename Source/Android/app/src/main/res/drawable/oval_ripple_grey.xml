@@ -1,0 +1,8 @@
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+        android:color="?android:colorControlHighlight">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/circle_grey"/>
+        </shape>
+    </item>
+</ripple>

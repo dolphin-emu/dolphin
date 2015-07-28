@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -96,7 +96,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 		if (func.size >= CODEBUFFER_SIZE * 4) //weird
 			return false;
 
-		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
+		UGeckoInstruction instr = (UGeckoInstruction)PowerPC::HostRead_U32(addr);
 		if (max_size && func.size > max_size)
 		{
 			func.address = startAddr;
@@ -175,7 +175,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 					if (target != INVALID_TARGET && instr.LK)
 					{
 						//we found a branch-n-link!
-						func.calls.push_back(SCall(target,addr));
+						func.calls.emplace_back(target, addr);
 						func.flags &= ~FFLAG_LEAF;
 					}
 				}
@@ -219,6 +219,11 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	const GekkoOPInfo *b_info = b.opinfo;
 	int a_flags = a_info->flags;
 	int b_flags = b_info->flags;
+
+	// can't reorder around breakpoints
+	if (SConfig::GetInstance().bEnableDebugging &&
+	    (PowerPC::breakpoints.IsAddressBreakPoint(a.address) || PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+		return false;
 	if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
 		return false;
 	if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
@@ -243,6 +248,10 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	//
 	// [1] https://code.google.com/p/dolphin-emu/issues/detail?id=5864#c7
 	if (b_info->type != OPTYPE_INTEGER)
+		return false;
+
+	// And it's possible a might raise an interrupt too (fcmpo/fcmpu)
+	if (a_info->type != OPTYPE_INTEGER)
 		return false;
 
 	// Check that we have no register collisions.
@@ -270,7 +279,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func
 {
 	for (u32 addr = startAddr; addr < endAddr; addr+=4)
 	{
-		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
+		UGeckoInstruction instr = (UGeckoInstruction)PowerPC::HostRead_U32(addr);
 
 		if (PPCTables::IsValidInstruction(instr))
 		{
@@ -283,7 +292,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func
 						u32 target = SignExt26(instr.LI << 2);
 						if (!instr.AA)
 							target += addr;
-						if (Memory::IsRAMAddress(target))
+						if (PowerPC::HostIsRAMAddress(target))
 						{
 							func_db->AddFunction(target);
 						}
@@ -308,7 +317,10 @@ static void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
 	{
 		while (true)
 		{
-			if (PPCTables::IsValidInstruction(Memory::Read_Instruction(location)))
+			// skip zeroes that sometimes pad function to 16 byte boundary (e.g. Donkey Kong Country Returns)
+			while (PowerPC::HostRead_Instruction(location) == 0 && ((location & 0xf) != 0))
+				location += 4;
+			if (PPCTables::IsValidInstruction(PowerPC::HostRead_Instruction(location)))
 			{
 				//check if this function is already mapped
 				Symbol *f = func_db->AddFunction(location);
@@ -462,7 +474,8 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 	// Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
 	// picky about this, but cror seems to almost solely be used for this purpose in real code.
 	// Additionally, the other boolean ops seem to almost never be used.
-	ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
+	if (HasOption(OPTION_CROR_MERGE))
+		ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
 	// For carry, bubble instructions *towards* each other; one direction often isn't enough
 	// to get pairs like addc/adde next to each other.
 	if (HasOption(OPTION_CARRY_MERGE))
@@ -535,11 +548,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 		code->regsOut[code->inst.RD] = true;
 		block->m_gpa->SetOutputRegister(code->inst.RD, index);
 	}
-	if (opinfo->flags & FL_OUT_S)
-	{
-		code->regsOut[code->inst.RS] = true;
-		block->m_gpa->SetOutputRegister(code->inst.RS, index);
-	}
 	if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA != 0))
 	{
 		code->regsIn[code->inst.RA] = true;
@@ -580,8 +588,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	code->fregOut = -1;
 	if (opinfo->flags & FL_OUT_FLOAT_D)
 		code->fregOut = code->inst.FD;
-	else if (opinfo->flags & FL_OUT_FLOAT_S)
-		code->fregOut = code->inst.FS;
+
 	code->fregsIn = BitSet32(0);
 	if (opinfo->flags & FL_IN_FLOAT_A)
 		code->fregsIn[code->inst.FA] = true;
@@ -638,24 +645,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	block->m_broken = false;
 	block->m_memory_exception = false;
 	block->m_num_instructions = 0;
-
-	if (address == 0)
-	{
-		// Memory exception occurred during instruction fetch
-		block->m_memory_exception = true;
-		return address;
-	}
-
-	bool virtualAddr = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT);
-	if (virtualAddr)
-	{
-		if (!Memory::TranslateAddress(address, Memory::FLAG_NO_EXCEPTION))
-		{
-			// Memory exception occurred during instruction fetch
-			block->m_memory_exception = true;
-			return address;
-		}
-	}
+	block->m_gqr_used = BitSet8(0);
 
 	CodeOp *code = buffer->codebuffer;
 
@@ -663,138 +653,145 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	u32 return_address = 0;
 	u32 numFollows = 0;
 	u32 num_inst = 0;
+	bool prev_inst_from_bat = true;
 
 	for (u32 i = 0; i < blockSize; ++i)
 	{
-		UGeckoInstruction inst = JitInterface::ReadOpcodeJIT(address);
-
-		if (inst.hex != 0)
+		auto result = PowerPC::TryReadInstruction(address);
+		if (!result.valid)
 		{
-			num_inst++;
-			memset(&code[i], 0, sizeof(CodeOp));
-			GekkoOPInfo *opinfo = GetOpInfo(inst);
-
-			code[i].opinfo = opinfo;
-			code[i].address = address;
-			code[i].inst = inst;
-			code[i].branchTo = -1;
-			code[i].branchToIndex = -1;
-			code[i].skip = false;
-			block->m_stats->numCycles += opinfo->numCycles;
-
-			SetInstructionStats(block, &code[i], opinfo, i);
-
-			bool follow = false;
-			u32 destination = 0;
-
-			bool conditional_continue = false;
-
-			// Do we inline leaf functions?
-			if (HasOption(OPTION_LEAF_INLINE))
-			{
-				if (inst.OPCD == 18 && blockSize > 1)
-				{
-					//Is bx - should we inline? yes!
-					if (inst.AA)
-						destination = SignExt26(inst.LI << 2);
-					else
-						destination = address + SignExt26(inst.LI << 2);
-					if (destination != block->m_address)
-						follow = true;
-				}
-				else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
-					(inst.BO & (1 << 4)) && (inst.BO & (1 << 2)) &&
-					return_address != 0)
-				{
-					// bclrx with unconditional branch = return
-					follow = true;
-					destination = return_address;
-					return_address = 0;
-
-					if (inst.LK)
-						return_address = address + 4;
-				}
-				else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
-				{
-					// mtspr
-					const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-					if (index == SPR_LR)
-					{
-						// We give up to follow the return address
-						// because we have to check the register usage.
-						return_address = 0;
-					}
-				}
-
-				// TODO: Find the optimal value for FUNCTION_FOLLOWING_THRESHOLD.
-				//       If it is small, the performance will be down.
-				//       If it is big, the size of generated code will be big and
-				//       cache clearning will happen many times.
-				// TODO: Investivate the reason why
-				//       "0" is fastest in some games, MP2 for example.
-				if (numFollows > FUNCTION_FOLLOWING_THRESHOLD)
-					follow = false;
-			}
-
-			if (HasOption(OPTION_CONDITIONAL_CONTINUE))
-			{
-				if (inst.OPCD == 16 &&
-				   ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
-				{
-					// bcx with conditional branch
-					conditional_continue = true;
-				}
-				else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
-				        ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
-				{
-					// bclrx with conditional branch
-					conditional_continue = true;
-				}
-				else if (inst.OPCD == 3 ||
-					  (inst.OPCD == 31 && inst.SUBOP10 == 4))
-				{
-					// tw/twi tests and raises an exception
-					conditional_continue = true;
-				}
-				else if (inst.OPCD == 19 && inst.SUBOP10 == 528 &&
-				        (inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0)
-				{
-					// Rare bcctrx with conditional branch
-					// Seen in NES games
-					conditional_continue = true;
-				}
-			}
-
-			if (!follow)
-			{
-				address += 4;
-				if (!conditional_continue && opinfo->flags & FL_ENDBLOCK) //right now we stop early
-				{
-					found_exit = true;
-					break;
-				}
-			}
-			// XXX: We don't support inlining yet.
-#if 0
-			else
-			{
-				numFollows++;
-				// We don't "code[i].skip = true" here
-				// because bx may store a certain value to the link register.
-				// Instead, we skip a part of bx in Jit**::bx().
-				address = destination;
-				merged_addresses[size_of_merged_addresses++] = address;
-			}
-#endif
-		}
-		else
-		{
-			// ISI exception or other critical memory exception occured (game over)
-			// We can continue on in MMU mode though, so don't spam this error in that case.
-			if (!virtualAddr)
-				ERROR_LOG(DYNA_REC, "Instruction hex was 0!");
+			if (i == 0)
+				block->m_memory_exception = true;
 			break;
 		}
+		UGeckoInstruction inst = result.hex;
+
+		// Slight hack: the JIT block cache currently assumes all blocks end at the same place,
+		// but broken blocks due to page faults break this assumption. Avoid this by just ending
+		// all virtual memory instruction blocks at page boundaries.
+		// FIXME: improve the JIT block cache so we don't need to do this.
+		if ((!result.from_bat || !prev_inst_from_bat) && i > 0 && (address & 0xfff) == 0)
+		{
+			break;
+		}
+		prev_inst_from_bat = result.from_bat;
+
+		num_inst++;
+		memset(&code[i], 0, sizeof(CodeOp));
+		GekkoOPInfo *opinfo = GetOpInfo(inst);
+
+		code[i].opinfo = opinfo;
+		code[i].address = address;
+		code[i].inst = inst;
+		code[i].branchTo = -1;
+		code[i].branchToIndex = -1;
+		code[i].skip = false;
+		block->m_stats->numCycles += opinfo->numCycles;
+
+		SetInstructionStats(block, &code[i], opinfo, i);
+
+		bool follow = false;
+		u32 destination = 0;
+
+		bool conditional_continue = false;
+
+		// Do we inline leaf functions?
+		if (HasOption(OPTION_LEAF_INLINE))
+		{
+			if (inst.OPCD == 18 && blockSize > 1)
+			{
+				//Is bx - should we inline? yes!
+				if (inst.AA)
+					destination = SignExt26(inst.LI << 2);
+				else
+					destination = address + SignExt26(inst.LI << 2);
+				if (destination != block->m_address)
+					follow = true;
+			}
+			else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
+				(inst.BO & (1 << 4)) && (inst.BO & (1 << 2)) &&
+				return_address != 0)
+			{
+				// bclrx with unconditional branch = return
+				follow = true;
+				destination = return_address;
+				return_address = 0;
+
+				if (inst.LK)
+					return_address = address + 4;
+			}
+			else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
+			{
+				// mtspr
+				const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+				if (index == SPR_LR)
+				{
+					// We give up to follow the return address
+					// because we have to check the register usage.
+					return_address = 0;
+				}
+			}
+
+			// TODO: Find the optimal value for FUNCTION_FOLLOWING_THRESHOLD.
+			//       If it is small, the performance will be down.
+			//       If it is big, the size of generated code will be big and
+			//       cache clearning will happen many times.
+			// TODO: Investivate the reason why
+			//       "0" is fastest in some games, MP2 for example.
+			if (numFollows > FUNCTION_FOLLOWING_THRESHOLD)
+				follow = false;
+		}
+
+		if (HasOption(OPTION_CONDITIONAL_CONTINUE))
+		{
+			if (inst.OPCD == 16 &&
+				((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+			{
+				// bcx with conditional branch
+				conditional_continue = true;
+			}
+			else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
+				    ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+			{
+				// bclrx with conditional branch
+				conditional_continue = true;
+			}
+			else if (inst.OPCD == 3 ||
+					(inst.OPCD == 31 && inst.SUBOP10 == 4))
+			{
+				// tw/twi tests and raises an exception
+				conditional_continue = true;
+			}
+			else if (inst.OPCD == 19 && inst.SUBOP10 == 528 &&
+				    (inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0)
+			{
+				// Rare bcctrx with conditional branch
+				// Seen in NES games
+				conditional_continue = true;
+			}
+		}
+
+		if (!follow)
+		{
+			address += 4;
+			if (!conditional_continue && opinfo->flags & FL_ENDBLOCK) //right now we stop early
+			{
+				found_exit = true;
+				break;
+			}
+		}
+		// XXX: We don't support inlining yet.
+#if 0
+		else
+		{
+			numFollows++;
+			// We don't "code[i].skip = true" here
+			// because bx may store a certain value to the link register.
+			// Instead, we skip a part of bx in Jit**::bx().
+			address = destination;
+			merged_addresses[size_of_merged_addresses++] = address;
+		}
+#endif
 	}
 
 	block->m_num_instructions = num_inst;
@@ -851,6 +848,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	// Forward scan, for flags that need the other direction for calculation.
 	BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe;
+	BitSet8 gqrUsed, gqrModified;
 	for (u32 i = 0; i < block->m_num_instructions; i++)
 	{
 		code[i].fprIsSingle = fprIsSingle;
@@ -889,7 +887,22 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 			if (!strncmp(code[i].opinfo->opname, "mtfs", 4))
 				fprIsStoreSafe = BitSet32(0);
 		}
+
+		if (code[i].opinfo->type == OPTYPE_STOREPS || code[i].opinfo->type == OPTYPE_LOADPS)
+		{
+			int gqr = code[i].inst.OPCD == 4 ? code[i].inst.Ix : code[i].inst.I;
+			gqrUsed[gqr] = true;
+		}
+
+		if (code[i].inst.OPCD == 31 && code[i].inst.SUBOP10 == 467) // mtspr
+		{
+			int gqr = ((code[i].inst.SPRU << 5) | code[i].inst.SPRL) - SPR_GQR0;
+			if (gqr >= 0 && gqr <= 7)
+				gqrModified[gqr] = true;
+		}
 	}
+	block->m_gqr_used = gqrUsed;
+	block->m_gqr_modified = gqrModified;
 	return address;
 }
 

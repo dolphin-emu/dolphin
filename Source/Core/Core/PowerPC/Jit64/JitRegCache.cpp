@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cinttypes>
@@ -46,41 +46,6 @@ void RegCache::Start()
 	}*/
 	//Find top regs - preload them (load bursts ain't bad)
 	//But only preload IF written OR reads >= 3
-}
-
-// these are powerpc reg indices
-void RegCache::Lock(int p1, int p2, int p3, int p4)
-{
-	regs[p1].locked = true;
-
-	if (p2 != 0xFF)
-		regs[p2].locked = true;
-
-	if (p3 != 0xFF)
-		regs[p3].locked = true;
-
-	if (p4 != 0xFF)
-		regs[p4].locked = true;
-}
-
-// these are x64 reg indices
-void RegCache::LockX(int x1, int x2, int x3, int x4)
-{
-	if (xregs[x1].locked)
-	{
-		PanicAlert("RegCache: x %i already locked!", x1);
-	}
-
-	xregs[x1].locked = true;
-
-	if (x2 != 0xFF)
-		xregs[x2].locked = true;
-
-	if (x3 != 0xFF)
-		xregs[x3].locked = true;
-
-	if (x4 != 0xFF)
-		xregs[x4].locked = true;
 }
 
 void RegCache::UnlockAll()
@@ -172,7 +137,7 @@ X64Reg RegCache::GetFreeXReg()
 		X64Reg xr = (X64Reg)aOrder[i];
 		if (!xregs[xr].locked && xregs[xr].free)
 		{
-			return (X64Reg)xr;
+			return xr;
 		}
 	}
 
@@ -382,26 +347,22 @@ void GPRRegCache::LoadRegister(size_t preg, X64Reg newLoc)
 	emit->MOV(32, ::Gen::R(newLoc), regs[preg].location);
 }
 
-void GPRRegCache::StoreRegister(size_t preg, OpArg newLoc)
+void GPRRegCache::StoreRegister(size_t preg, const OpArg& newLoc)
 {
 	emit->MOV(32, newLoc, regs[preg].location);
 }
 
 void FPURegCache::LoadRegister(size_t preg, X64Reg newLoc)
 {
-	if (!regs[preg].location.IsImm() && (regs[preg].location.offset & 0xF))
-	{
-		PanicAlert("WARNING - misaligned fp register location %u", (unsigned int) preg);
-	}
 	emit->MOVAPD(newLoc, regs[preg].location);
 }
 
-void FPURegCache::StoreRegister(size_t preg, OpArg newLoc)
+void FPURegCache::StoreRegister(size_t preg, const OpArg& newLoc)
 {
 	emit->MOVAPD(newLoc, regs[preg].location.GetSimpleReg());
 }
 
-void RegCache::Flush(FlushMode mode)
+void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
 {
 	for (unsigned int i = 0; i < xregs.size(); i++)
 	{
@@ -409,7 +370,7 @@ void RegCache::Flush(FlushMode mode)
 			PanicAlert("Someone forgot to unlock X64 reg %u", i);
 	}
 
-	for (unsigned int i = 0; i < regs.size(); i++)
+	for (unsigned int i : regsToFlush)
 	{
 		if (regs[i].locked)
 		{

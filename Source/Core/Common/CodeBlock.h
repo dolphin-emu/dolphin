@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -51,7 +51,7 @@ public:
 		region_size = 0;
 	}
 
-	bool IsInSpace(u8 *ptr)
+	bool IsInSpace(u8 *ptr) const
 	{
 		return (ptr >= region) && (ptr < (region + region_size));
 	}
@@ -71,6 +71,12 @@ public:
 	size_t GetSpaceLeft() const
 	{
 		return region_size - (T::GetCodePtr() - region);
+	}
+
+	bool IsAlmostFull() const
+	{
+		// This should be bigger than the biggest block ever.
+		return GetSpaceLeft() < 0x10000;
 	}
 };
 

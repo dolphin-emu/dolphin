@@ -1,12 +1,17 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
-#include "Common/StdMakeUnique.h"
+
+#include <functional>
+#include <memory>
+
 #include "Core/HW/EXI_Device.h"
 
 class MemoryCardBase;
+class PointerWrap;
+
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
@@ -14,10 +19,10 @@ public:
 	virtual ~CEXIMemoryCard();
 	void SetCS(int cs) override;
 	bool IsInterruptSet() override;
-	bool UseDelayedTransferCompletion() override;
-	bool IsPresent() override;
+	bool UseDelayedTransferCompletion() const override;
+	bool IsPresent() const override;
 	void DoState(PointerWrap &p) override;
-	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) override;
+	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1) override;
 	void DMARead(u32 _uAddr, u32 _uSize) override;
 	void DMAWrite(u32 _uAddr, u32 _uSize) override;
 

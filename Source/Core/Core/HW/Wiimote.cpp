@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -39,9 +39,10 @@ void Shutdown()
 // if plugin isn't initialized, init and load config
 void Initialize(void* const hwnd, bool wait)
 {
-	// add 4 wiimotes
-	for (unsigned int i = WIIMOTE_CHAN_0; i<MAX_BBMOTES; ++i)
-		s_config.controllers.push_back(new WiimoteEmu::Wiimote(i));
+	// add 4 Wiimotes
+	if (s_config.controllers.empty())
+		for (unsigned int i = WIIMOTE_CHAN_0; i < MAX_BBMOTES; ++i)
+			s_config.controllers.push_back(new WiimoteEmu::Wiimote(i));
 
 	g_controller_interface.Initialize(hwnd);
 
@@ -53,6 +54,12 @@ void Initialize(void* const hwnd, bool wait)
 	if (Movie::IsMovieActive())
 		Movie::ChangeWiiPads();
 }
+
+void LoadConfig()
+{
+	s_config.LoadConfig(false);
+}
+
 
 void Resume()
 {
@@ -107,17 +114,22 @@ void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size
 // input:    _number: [Description needed]
 // output:   none
 //
-void Update(int _number)
+void Update(int _number, bool _connected)
 {
-	//PanicAlert( "Wiimote_Update" );
-
-	// TODO: change this to a try_to_lock, and make it give empty input on failure
-	std::lock_guard<std::recursive_mutex> lk(s_config.controls_lock);
-
-	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
-		((WiimoteEmu::Wiimote*)s_config.controllers[_number])->Update();
+	if (_connected)
+	{
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+			((WiimoteEmu::Wiimote*)s_config.controllers[_number])->Update();
+		else
+			WiimoteReal::Update(_number);
+	}
 	else
-		WiimoteReal::Update(_number);
+	{
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+			((WiimoteEmu::Wiimote*)s_config.controllers[_number])->ConnectOnInput();
+		if (WIIMOTE_SRC_REAL & g_wiimote_sources[_number])
+			WiimoteReal::ConnectOnInput(_number);
+	}
 }
 
 // __________________________________________________________________________________________________

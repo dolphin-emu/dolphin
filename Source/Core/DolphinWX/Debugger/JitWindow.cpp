@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstdio>
@@ -7,168 +7,20 @@
 #include <disasm.h>        // Bochs
 #include <sstream>
 
-#if defined(HAS_LLVM)
-// PowerPC.h defines PC.
-// This conflicts with a function that has an argument named PC
-#undef PC
-#include <llvm-c/Disassembler.h>
-#include <llvm-c/Target.h>
-#endif
-
 #include <wx/button.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
-#include <wx/listbase.h>
 #include <wx/listctrl.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/translation.h>
-#include <wx/window.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
-#include "Common/StringUtil.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitCommon/JitCache.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/JitWindow.h"
-
-#if defined(HAS_LLVM)
-// This class declaration should be in the header
-// Due to the conflict with the PC define and the function with PC as an argument
-// it has to be in this file instead.
-// Once that conflict is resolved this can be moved to the header
-class HostDisassemblerLLVM : public HostDisassembler
-{
-public:
-	HostDisassemblerLLVM(const std::string host_disasm);
-	~HostDisassemblerLLVM()
-	{
-		if (m_can_disasm)
-			LLVMDisasmDispose(m_llvm_context);
-	}
-
-private:
-	bool m_can_disasm;
-	LLVMDisasmContextRef m_llvm_context;
-
-	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) override;
-};
-
-HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string host_disasm)
-	: m_can_disasm(false)
-{
-	LLVMInitializeAllTargetInfos();
-	LLVMInitializeAllTargetMCs();
-	LLVMInitializeAllDisassemblers();
-
-	m_llvm_context = LLVMCreateDisasm(host_disasm.c_str(), nullptr, 0, 0, nullptr);
-
-	// Couldn't create llvm context
-	if (!m_llvm_context)
-		return;
-	LLVMSetDisasmOptions(m_llvm_context,
-		LLVMDisassembler_Option_AsmPrinterVariant |
-		LLVMDisassembler_Option_PrintLatency);
-
-	m_can_disasm = true;
-}
-
-std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, const u32 code_size, u32 *host_instructions_count)
-{
-	if (!m_can_disasm)
-		return "(No LLVM context)";
-
-	u64 disasmPtr = (u64)code_start;
-	const u8 *end = code_start + code_size;
-
-	std::ostringstream x86_disasm;
-	while ((u8*)disasmPtr < end)
-	{
-		char inst_disasm[256];
-		disasmPtr += LLVMDisasmInstruction(m_llvm_context, (u8*)disasmPtr, (u64)(end - disasmPtr), (u64)disasmPtr, inst_disasm, 256);
-		x86_disasm << inst_disasm << std::endl;
-		(*host_instructions_count)++;
-	}
-
-	return x86_disasm.str();
-}
-#endif
-
-std::string HostDisassembler::DisassembleBlock(u32* address, u32* host_instructions_count, u32* code_size)
-{
-	if (!jit)
-	{
-		*host_instructions_count = 0;
-		*code_size = 0;
-		return "(No JIT active)";
-	}
-
-	int block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address);
-	if (block_num < 0)
-	{
-		for (int i = 0; i < 500; i++)
-		{
-			block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address - 4 * i);
-			if (block_num >= 0)
-				break;
-		}
-
-		if (block_num >= 0)
-		{
-			JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
-			if (!(block->originalAddress <= *address &&
-			    block->originalSize + block->originalAddress >= *address))
-				block_num = -1;
-		}
-
-		// Do not merge this "if" with the above - block_num changes inside it.
-		if (block_num < 0)
-		{
-			host_instructions_count = 0;
-			code_size = 0;
-			return "(No translation)";
-		}
-	}
-
-	JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
-
-	const u8* code = (const u8*)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
-
-	*code_size = block->codeSize;
-	*address = block->originalAddress;
-	return DisassembleHostBlock(code, block->codeSize, host_instructions_count);
-}
-
-HostDisassemblerX86::HostDisassemblerX86()
-{
-	m_disasm.set_syntax_intel();
-}
-
-std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count)
-{
-	u64 disasmPtr = (u64)code_start;
-	const u8* end = code_start + code_size;
-
-	std::ostringstream x86_disasm;
-	while ((u8*)disasmPtr < end)
-	{
-		char inst_disasm[256];
-		disasmPtr += m_disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, inst_disasm);
-		x86_disasm << inst_disasm << std::endl;
-		(*host_instructions_count)++;
-	}
-
-	return x86_disasm.str();
-}
+#include "UICommon/Disassembler.h"
 
 CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 		const wxSize& size, long style, const wxString& name)
@@ -194,16 +46,12 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerSplit->Fit(this);
 	sizerBig->Fit(this);
 
-#if defined(_M_X86) && defined(HAS_LLVM)
-	m_disassembler.reset(new HostDisassemblerLLVM("x86_64-none-unknown"));
-#elif defined(_M_X86)
-	m_disassembler.reset(new HostDisassemblerX86());
-#elif defined(_M_ARM_64) && defined(HAS_LLVM)
-	m_disassembler.reset(new HostDisassemblerLLVM("aarch64-none-unknown"));
-#elif defined(_M_ARM_32) && defined(HAS_LLVM)
-	m_disassembler.reset(new HostDisassemblerLLVM("armv7-none-unknown"));
+#if defined(_M_X86)
+	m_disassembler.reset(GetNewDisassembler("x86"));
+#elif defined(_M_ARM_64)
+	m_disassembler.reset(GetNewDisassembler("aarch64"));
 #else
-	m_disassembler.reset(new HostDisassembler());
+	m_disassembler.reset(GetNewDisassembler("UNK"));
 #endif
 }
 
@@ -225,7 +73,7 @@ void CJitWindow::Compare(u32 em_address)
 	u32 host_instructions_count = 0;
 	u32 host_code_size = 0;
 	std::string host_instructions_disasm;
-	host_instructions_disasm = m_disassembler->DisassembleBlock(&em_address, &host_instructions_count, &host_code_size);
+	host_instructions_disasm = DisassembleBlock(m_disassembler.get(), &em_address, &host_instructions_count, &host_code_size);
 
 	x86_box->SetValue(host_instructions_disasm);
 
@@ -293,7 +141,7 @@ void CJitWindow::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-		case IDM_NOTIFYMAPLOADED:
+		case IDM_NOTIFY_MAP_LOADED:
 			//NotifyMapLoaded();
 			break;
 	}

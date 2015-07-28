@@ -1,3 +1,7 @@
+// Copyright 2012 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/PerfQuery.h"
 #include "VideoCommon/RenderBase.h"
@@ -6,7 +10,6 @@ namespace DX11 {
 
 PerfQuery::PerfQuery()
 	: m_query_read_pos()
-	, m_query_count()
 {
 	for (ActiveQuery& entry : m_query_buffer)
 	{

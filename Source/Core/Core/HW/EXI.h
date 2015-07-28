@@ -1,15 +1,15 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "Common/Thread.h"
 
-#include "Core/HW/EXI_Channel.h"
-
+class CEXIChannel;
+class IEXIDevice;
 class PointerWrap;
+enum TEXIDevices : int;
 namespace MMIO { class Mapping; }
 
 enum

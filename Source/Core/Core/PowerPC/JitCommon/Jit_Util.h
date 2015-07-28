@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included./
 
 #pragma once
@@ -11,18 +11,6 @@
 #include "Common/x64Emitter.h"
 
 namespace MMIO { class Mapping; }
-
-// If inv is true, invert the check (i.e. skip over the associated code if an exception hits,
-// instead of skipping over the code if an exception isn't hit).
-#define MEMCHECK_START(inv) \
-	Gen::FixupBranch memException; \
-	if (jit->js.memcheck) \
-	{ TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI)); \
-	memException = J_CC((inv) ? Gen::CC_Z : Gen::CC_NZ, true); }
-
-#define MEMCHECK_END \
-	if (jit->js.memcheck) \
-	SetJumpTarget(memException);
 
 // We offset by 0x80 because the range of one byte memory offsets is
 // -0x80..0x7f.
@@ -54,12 +42,18 @@ static const int CODE_SIZE = 1024 * 1024 * 32;
 static const int FARCODE_SIZE = 1024 * 1024 * 8;
 static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
 
+// same for the trampoline code cache, because fastmem results in far more backpatches in MMU mode
+static const int TRAMPOLINE_CODE_SIZE = 1024 * 1024 * 8;
+static const int TRAMPOLINE_CODE_SIZE_MMU = 1024 * 1024 * 32;
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
 	FarCodeCache farcode;
 	u8* nearcode; // Backed up when we switch to far code.
+
+	void MemoryExceptionCheck();
 
 	// Simple functions to switch between near and far code emitting
 	void SwitchToFarCode()
@@ -74,10 +68,7 @@ public:
 		SetCodePtr(nearcode);
 	}
 
-	void LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src);
-	void SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src);
-
-	Gen::FixupBranch CheckIfSafeAddress(Gen::OpArg reg_value, Gen::X64Reg reg_addr, BitSet32 registers_in_use, u32 mem_mask);
+	Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr, BitSet32 registers_in_use, u32 mem_mask);
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
 	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset, bool signExtend = false);
 	// these return the address of the MOV, for backpatching
@@ -125,14 +116,13 @@ public:
 	void JitSetCAIf(Gen::CCFlags conditionCode);
 	void JitClearCA();
 
-	void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg), void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg),
-                Gen::X64Reg regOp, Gen::OpArg arg1, Gen::OpArg arg2, bool packed = true, bool reversible = false);
-	void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg, u8), void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg, u8),
-	            Gen::X64Reg regOp, Gen::OpArg arg1, Gen::OpArg arg2, u8 imm);
+	void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&), void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&),
+	            Gen::X64Reg regOp, const Gen::OpArg& arg1, const Gen::OpArg& arg2, bool packed = true, bool reversible = false);
+	void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&, u8), void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&, u8),
+	            Gen::X64Reg regOp, const Gen::OpArg& arg1, const Gen::OpArg& arg2, u8 imm);
 
-	void ForceSinglePrecisionS(Gen::X64Reg output, Gen::X64Reg input);
-	void ForceSinglePrecisionP(Gen::X64Reg output, Gen::X64Reg input);
-	void Force25BitPrecision(Gen::X64Reg output, Gen::OpArg input, Gen::X64Reg tmp);
+	void ForceSinglePrecision(Gen::X64Reg output, const Gen::OpArg& input, bool packed = true, bool duplicate = false);
+	void Force25BitPrecision(Gen::X64Reg output, const Gen::OpArg& input, Gen::X64Reg tmp);
 
 	// RSCRATCH might get trashed
 	void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, bool src_is_gpr = false);
@@ -141,4 +131,5 @@ public:
 protected:
 	std::unordered_map<u8 *, BitSet32> registersInUseAtLoc;
 	std::unordered_map<u8 *, u32> pcAtLoc;
+	std::unordered_map<u8 *, u8 *> exceptionHandlerAtLoc;
 };

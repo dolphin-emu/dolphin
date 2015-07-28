@@ -1,9 +1,11 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QCloseEvent>
 #include <QMessageBox>
 
+#include "DolphinQt/MainWindow.h"
 #include "DolphinQt/VideoInterface/RenderWidget.h"
 
 DRenderWidget::DRenderWidget(QWidget* parent_widget)
@@ -16,9 +18,10 @@ DRenderWidget::DRenderWidget(QWidget* parent_widget)
 
 void DRenderWidget::closeEvent(QCloseEvent* e)
 {
-	// TODO: update render window positions in config
-
-	// TODO: Do this differently...
-	emit Closed();
+	if (!g_main_window->OnStop())
+	{
+		e->ignore();
+		return;
+	}
 	QWidget::closeEvent(e);
 }

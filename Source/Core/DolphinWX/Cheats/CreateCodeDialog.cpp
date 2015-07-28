@@ -1,15 +1,12 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/window.h>
 
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
@@ -20,9 +17,10 @@
 // Fired when an ActionReplay code is created.
 wxDEFINE_EVENT(UPDATE_CHEAT_LIST_EVENT, wxCommandEvent);
 
-CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
+CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address, std::vector<ActionReplay::ARCode>* _arCodes)
 	: wxDialog(parent, wxID_ANY, _("Create AR Code"))
 	, m_code_address(address)
+	, arCodes(_arCodes)
 {
 	wxStaticText* const label_name = new wxStaticText(this, wxID_ANY, _("Name: "));
 	m_textctrl_name = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(256, -1));
@@ -91,7 +89,7 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	{
 	CISOProperties isoprops(SConfig::GetInstance().m_LastFilename, this);
 	// add the code to the isoproperties arcode list
-	arCodes.push_back(new_cheat);
+	arCodes->push_back(new_cheat);
 	// save the gameini
 	isoprops.SaveGameConfig();
 	isoprops.ActionReplayList_Load(); // loads the new arcodes

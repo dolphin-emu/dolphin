@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -54,10 +54,8 @@ bool CompileVertexShader(const std::string& code, D3DBlob** blob)
 		file << code;
 		file.close();
 
-		PanicAlert("Failed to compile vertex shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
-						filename.c_str(),
-						D3D::VertexShaderVersionString(),
-						(const char*)errorBuffer->GetBufferPointer());
+		PanicAlert("Failed to compile vertex shader: %s\nDebug info (%s):\n%s",
+		           filename.c_str(), D3D::VertexShaderVersionString(), (const char*)errorBuffer->GetBufferPointer());
 
 		*blob = nullptr;
 		errorBuffer->Release();
@@ -110,10 +108,8 @@ bool CompileGeometryShader(const std::string& code, D3DBlob** blob, const D3D_SH
 		file << code;
 		file.close();
 
-		PanicAlert("Failed to compile geometry shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
-						filename.c_str(),
-						D3D::GeometryShaderVersionString(),
-						(const char*)errorBuffer->GetBufferPointer());
+		PanicAlert("Failed to compile geometry shader: %s\nDebug info (%s):\n%s",
+		           filename.c_str(), D3D::GeometryShaderVersionString(), (const char*)errorBuffer->GetBufferPointer());
 
 		*blob = nullptr;
 		errorBuffer->Release();
@@ -168,10 +164,8 @@ bool CompilePixelShader(const std::string& code, D3DBlob** blob, const D3D_SHADE
 		file << code;
 		file.close();
 
-		PanicAlert("Failed to compile pixel shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
-						filename.c_str(),
-						D3D::PixelShaderVersionString(),
-						(const char*)errorBuffer->GetBufferPointer());
+		PanicAlert("Failed to compile pixel shader: %s\nDebug info (%s):\n%s",
+		           filename.c_str(), D3D::PixelShaderVersionString(), (const char*)errorBuffer->GetBufferPointer());
 
 		*blob = nullptr;
 		errorBuffer->Release();

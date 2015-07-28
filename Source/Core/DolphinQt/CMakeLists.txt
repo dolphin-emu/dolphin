@@ -31,7 +31,7 @@ set(UIS
 
 list(APPEND LIBS core uicommon)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	set(DOLPHINQT_BINARY DolphinQt)
 else()
 	set(DOLPHINQT_BINARY dolphin-emu-qt)
@@ -42,7 +42,7 @@ add_executable(${DOLPHINQT_BINARY} ${SRCS} ${UI_HEADERS})
 target_link_libraries(${DOLPHINQT_BINARY} ${LIBS})
 qt5_use_modules(${DOLPHINQT_BINARY} Widgets)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	# Note: This is based on the DolphinWX version.
 
 	include(BundleUtilities)
@@ -66,7 +66,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			message(\"(Note: This is only necessary to produce a redistributable binary.\")
 			message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
 			set(BU_CHMOD_BUNDLE_ITEMS ON)
-			fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
+			execute_process(COMMAND ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py -p platforms/libqcocoa.dylib \"${BUNDLE_PATH}\")
 			file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys
 				DESTINATION ${BUNDLE_PATH}/Contents/Resources
 				)

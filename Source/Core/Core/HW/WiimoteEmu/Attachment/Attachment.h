@@ -1,14 +1,15 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/ControllerEmu.h"
 
 namespace WiimoteEmu
 {
+
+struct ExtensionReg;
 
 class Attachment : public ControllerEmu
 {

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cctype>
@@ -399,10 +399,10 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 			D3D::context->Draw(3 * dwNumTriangles, 0);
 
 			dwNumTriangles = 0;
-			D3D11_MAPPED_SUBRESOURCE vbmap;
-			hr = context->Map(m_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vbmap);
+			D3D11_MAPPED_SUBRESOURCE _vbmap;
+			hr = context->Map(m_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &_vbmap);
 			if (FAILED(hr)) PanicAlert("Mapping vertex buffer failed, %s %d\n", __FILE__, __LINE__);
-			pVertices = (D3D::FONT2DVERTEX*)vbmap.pData;
+			pVertices = (D3D::FONT2DVERTEX*)_vbmap.pData;
 		}
 		sx += w + spacing * scalex * size;
 	}
@@ -442,7 +442,7 @@ struct
 
 struct
 {
-	float x1, y1, x2, y2;
+	float x1, y1, x2, y2, z;
 	u32 col;
 } draw_quad_data;
 
@@ -570,87 +570,21 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	D3D::stateman->SetGeometryShader(nullptr);
 }
 
-void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
-							const MathUtil::Rectangle<int>* rSource,
-							int SourceWidth,
-							int SourceHeight,
-							const MathUtil::Rectangle<float>* rDest,
-							ID3D11PixelShader* PShader,
-							ID3D11VertexShader* VShader,
-							ID3D11InputLayout* layout,
-							ID3D11GeometryShader* GShader,
-							float Gamma,
-							u32 slice)
-{
-	float sw = 1.0f /(float) SourceWidth;
-	float sh = 1.0f /(float) SourceHeight;
-	float u1 = (rSource->left  ) * sw;
-	float u2 = (rSource->right ) * sw;
-	float v1 = (rSource->top   ) * sh;
-	float v2 = (rSource->bottom) * sh;
-	float S = (float)slice;
-	float G = 1.0f / Gamma;
-
-	STSQVertex coords[4] = {
-		{ rDest->left , rDest->bottom, 0.0f, u1, v2, S, G},
-		{ rDest->right, rDest->bottom, 0.0f, u2, v2, S, G},
-		{ rDest->left , rDest->top   , 0.0f, u1, v1, S, G},
-		{ rDest->right, rDest->top   , 0.0f, u2, v1, S, G},
-	};
-
-	// only upload the data to VRAM if it changed
-	if (stsq_observer ||
-		memcmp(rDest, &tex_sub_quad_data.rdest, sizeof(*rDest)) != 0 ||
-		tex_sub_quad_data.u1 != u1 || tex_sub_quad_data.v1 != v1 ||
-		tex_sub_quad_data.u2 != u2 || tex_sub_quad_data.v2 != v2 ||
-		tex_sub_quad_data.S  != S  || tex_sub_quad_data.G  != G)
-	{
-		stsq_offset = util_vbuf->AppendData(coords, sizeof(coords), sizeof(STSQVertex));
-		stsq_observer = false;
-
-		tex_sub_quad_data.u1 = u1;
-		tex_sub_quad_data.v1 = v1;
-		tex_sub_quad_data.u2 = u2;
-		tex_sub_quad_data.v2 = v2;
-		tex_sub_quad_data.S  = S;
-		tex_sub_quad_data.G  = G;
-		memcpy(&tex_sub_quad_data.rdest, &rDest, sizeof(rDest));
-	}
-	UINT stride = sizeof(STSQVertex);
-	UINT offset = 0;
-
-	stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	stateman->SetVertexBuffer(util_vbuf->GetBuffer(), stride, offset);
-	stateman->SetInputLayout(layout);
-	stateman->SetTexture(0, texture);
-	stateman->SetPixelShader(PShader);
-	stateman->SetVertexShader(VShader);
-	stateman->SetGeometryShader(GShader);
-
-	stateman->Apply();
-	context->Draw(4, stsq_offset);
-
-	stateman->SetTexture(0, nullptr); // immediately unbind the texture
-	stateman->Apply();
-
-	stateman->SetGeometryShader(nullptr);
-}
-
 // Fills a certain area of the current render target with the specified color
 // destination coordinates normalized to (-1;1)
-void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
+void drawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2)
 {
 	ColVertex coords[4] = {
-		{ x1, y2, 0.f, Color },
-		{ x2, y2, 0.f, Color },
-		{ x1, y1, 0.f, Color },
-		{ x2, y1, 0.f, Color },
+		{ x1, y1, z, Color },
+		{ x2, y1, z, Color },
+		{ x1, y2, z, Color },
+		{ x2, y2, z, Color },
 	};
 
 	if (cq_observer ||
 	    draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||
 	    draw_quad_data.x2 != x2 || draw_quad_data.y2 != y2 ||
-	    draw_quad_data.col != Color)
+	    draw_quad_data.col != Color || draw_quad_data.z != z)
 	{
 		cq_offset = util_vbuf->AppendData(coords, sizeof(coords), sizeof(ColVertex));
 		cq_observer = false;
@@ -660,10 +594,11 @@ void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
 		draw_quad_data.x2 = x2;
 		draw_quad_data.y2 = y2;
 		draw_quad_data.col = Color;
+		draw_quad_data.z = z;
 	}
 
 	stateman->SetVertexShader(VertexShaderCache::GetClearVertexShader());
-	stateman->SetGeometryShader(g_ActiveConfig.iStereoMode > 0 ? GeometryShaderCache::GetClearGeometryShader() : nullptr);
+	stateman->SetGeometryShader(GeometryShaderCache::GetClearGeometryShader());
 	stateman->SetPixelShader(PixelShaderCache::GetClearProgram());
 	stateman->SetInputLayout(VertexShaderCache::GetClearInputLayout());
 

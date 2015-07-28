@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/StringUtil.h"
@@ -32,6 +32,7 @@ namespace D3D
 ID3D11Device* device = nullptr;
 ID3D11DeviceContext* context = nullptr;
 static IDXGISwapChain* swapchain = nullptr;
+static ID3D11Debug* debug = nullptr;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = nullptr;
 HWND hWnd;
@@ -154,41 +155,41 @@ void UnloadD3DCompiler()
 
 std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
 {
-	std::vector<DXGI_SAMPLE_DESC> aa_modes;
+	std::vector<DXGI_SAMPLE_DESC> _aa_modes;
 
 	// NOTE: D3D 10.0 doesn't support multisampled resources which are bound as depth buffers AND shader resources.
 	// Thus, we can't have MSAA with 10.0 level hardware.
-	ID3D11Device* device;
-	ID3D11DeviceContext* context;
+	ID3D11Device* _device;
+	ID3D11DeviceContext* _context;
 	D3D_FEATURE_LEVEL feat_level;
-	HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &device, &feat_level, &context);
+	HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &_device, &feat_level, &_context);
 	if (FAILED(hr) || feat_level == D3D_FEATURE_LEVEL_10_0)
 	{
 		DXGI_SAMPLE_DESC desc;
 		desc.Count = 1;
 		desc.Quality = 0;
-		aa_modes.push_back(desc);
-		SAFE_RELEASE(context);
-		SAFE_RELEASE(device);
+		_aa_modes.push_back(desc);
+		SAFE_RELEASE(_context);
+		SAFE_RELEASE(_device);
 	}
 	else
 	{
 		for (int samples = 0; samples < D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
 		{
 			UINT quality_levels = 0;
-			device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, samples, &quality_levels);
+			_device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, samples, &quality_levels);
 			if (quality_levels > 0)
 			{
 				DXGI_SAMPLE_DESC desc;
 				desc.Count = samples;
 				for (desc.Quality = 0; desc.Quality < quality_levels; ++desc.Quality)
-					aa_modes.push_back(desc);
+					_aa_modes.push_back(desc);
 			}
 		}
-		context->Release();
-		device->Release();
+		_context->Release();
+		_device->Release();
 	}
-	return aa_modes;
+	return _aa_modes;
 }
 
 D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
@@ -243,11 +244,16 @@ HRESULT Create(HWND wnd)
 	if (FAILED(hr))
 	{
 		// try using the first one
-		hr = adapter->EnumOutputs(0, &output);
-		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate outputs!\n")
-		                                _T("This usually happens when you've set your video adapter to the Nvidia GPU in an Optimus-equipped system.\n")
-		                                _T("Set Dolphin to use the high-performance graphics in Nvidia's drivers instead and leave Dolphin's video adapter set to the Intel GPU."),
-		                                _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+		IDXGIAdapter* firstadapter;
+		hr = factory->EnumAdapters(0, &firstadapter);
+		if (!FAILED(hr))
+			hr = firstadapter->EnumOutputs(0, &output);
+		if (FAILED(hr)) MessageBox(wnd,
+			_T("Failed to enumerate outputs!\n")
+			_T("This usually happens when you've set your video adapter to the Nvidia GPU in an Optimus-equipped system.\n")
+			_T("Set Dolphin to use the high-performance graphics in Nvidia's drivers instead and leave Dolphin's video adapter set to the Intel GPU."),
+			_T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+		SAFE_RELEASE(firstadapter);
 	}
 
 	// get supported AA modes
@@ -258,21 +264,18 @@ HRESULT Create(HWND wnd)
 		UpdateActiveConfig();
 	}
 
-	DXGI_SWAP_CHAIN_DESC swap_chain_desc;
-	memset(&swap_chain_desc, 0, sizeof(swap_chain_desc));
+	DXGI_SWAP_CHAIN_DESC swap_chain_desc = {};
 	swap_chain_desc.BufferCount = 1;
 	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swap_chain_desc.OutputWindow = wnd;
 	swap_chain_desc.SampleDesc.Count = 1;
 	swap_chain_desc.SampleDesc.Quality = 0;
-	swap_chain_desc.Windowed = !g_ActiveConfig.bFullscreen;
+	swap_chain_desc.Windowed = !g_Config.bFullscreen;
 
-	DXGI_OUTPUT_DESC out_desc;
-	memset(&out_desc, 0, sizeof(out_desc));
+	DXGI_OUTPUT_DESC out_desc = {};
 	output->GetDesc(&out_desc);
 
-	DXGI_MODE_DESC mode_desc;
-	memset(&mode_desc, 0, sizeof(mode_desc));
+	DXGI_MODE_DESC mode_desc = {};
 	mode_desc.Width = out_desc.DesktopCoordinates.right - out_desc.DesktopCoordinates.left;
 	mode_desc.Height = out_desc.DesktopCoordinates.bottom - out_desc.DesktopCoordinates.top;
 	mode_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -297,6 +300,27 @@ HRESULT Create(HWND wnd)
 											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
 											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
 											&featlevel, &context);
+		// Debugbreak on D3D error
+		if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&debug)))
+		{
+			ID3D11InfoQueue* infoQueue = nullptr;
+			if (SUCCEEDED(debug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&infoQueue)))
+			{
+				infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
+				infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+
+				D3D11_MESSAGE_ID hide[] =
+				{
+					D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS
+				};
+
+				D3D11_INFO_QUEUE_FILTER filter = {};
+				filter.DenyList.NumIDs = sizeof(hide) / sizeof(D3D11_MESSAGE_ID);
+				filter.DenyList.pIDList = hide;
+				infoQueue->AddStorageFilterEntries(&filter);
+				infoQueue->Release();
+			}
+		}
 	}
 
 	if (FAILED(hr))
@@ -370,6 +394,21 @@ void Close()
 
 	SAFE_RELEASE(context);
 	ULONG references = device->Release();
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (debug)
+	{
+		--references; // the debug interface increases the refcount of the device, subtract that.
+		if (references)
+		{
+			// print out alive objects, but only if we actually have pending references
+			// note this will also print out internal live objects to the debug console
+			debug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
+		}
+		SAFE_RELEASE(debug)
+	}
+#endif
+
 	if (references)
 	{
 		ERROR_LOG(VIDEO, "Unreleased references: %i.", references);

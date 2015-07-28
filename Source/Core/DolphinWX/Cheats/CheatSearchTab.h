@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -9,14 +9,12 @@
 
 class wxButton;
 class wxChoice;
-class wxCommandEvent;
 class wxFocusEvent;
 class wxListBox;
 class wxRadioBox;
 class wxRadioButton;
 class wxStaticText;
 class wxTextCtrl;
-class wxWindow;
 
 class CheatSearchTab final : public wxPanel
 {
@@ -50,7 +48,6 @@ private:
 	{
 		wxRadioButton* rad_oldvalue;
 		wxRadioButton* rad_uservalue;
-
 	} m_value_x_radiobtn;
 
 	void UpdateCheatSearchResultsList();

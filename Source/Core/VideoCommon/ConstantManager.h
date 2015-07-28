@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -23,6 +23,8 @@ struct PixelShaderConstants
 	int4 fogcolor;
 	int4 fogi;
 	float4 fogf[2];
+	float4 zslope;
+	float4 efbscale;
 };
 
 struct VertexShaderConstants

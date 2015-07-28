@@ -1,9 +1,10 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
 
+#include "Common/FileUtil.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
@@ -76,7 +77,7 @@ static s32 TranslateErrorCode(s32 native_error, bool isRW)
 	}
 }
 
-s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string caller, bool isRW)
+s32 WiiSockMan::GetNetErrorCode(s32 ret, const std::string& caller, bool isRW)
 {
 #ifdef _WIN32
 	s32 errorCode = WSAGetLastError();
@@ -424,7 +425,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 					u32 flags = Memory::Read_U32(BufferIn2 + 0x04);
 					u32 has_destaddr = Memory::Read_U32(BufferIn2 + 0x08);
 
-                                        // Not a string, windows requires a const char* for sendto
+                                        // Not a string, Windows requires a const char* for sendto
 					const char* data = (const char*)Memory::GetPointer(BufferIn);
 
 					// Act as non blocking when SO_MSG_NONBLOCK is specified
@@ -459,7 +460,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 				case IOCTLV_SO_RECVFROM:
 				{
 					u32 flags = Memory::Read_U32(BufferIn + 0x04);
-					// Not a string, windows requires a char* for recvfrom
+					// Not a string, Windows requires a char* for recvfrom
 					char* data = (char*)Memory::GetPointer(BufferOut);
 					int data_len = BufferOutSize;
 
@@ -561,11 +562,6 @@ void WiiSockMan::AddSocket(s32 fd)
 
 s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 {
-	if (Core::g_want_determinism)
-	{
-		return SO_ENOMEM;
-	}
-
 	s32 fd = (s32)socket(af, type, protocol);
 	s32 ret = GetNetErrorCode(fd, "NewSocket", false);
 	AddSocket(ret);

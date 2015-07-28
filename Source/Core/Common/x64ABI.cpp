@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -45,14 +45,14 @@ size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_align
 	ABI_CalculateFrameSize(mask, rsp_alignment, needed_frame_size, &shadow, &subtraction, &xmm_offset);
 
 	for (int r : mask & ABI_ALL_GPRS)
-		PUSH((X64Reg) r);
+		PUSH((X64Reg)r);
 
 	if (subtraction)
 		SUB(64, R(RSP), subtraction >= 0x80 ? Imm32((u32)subtraction) : Imm8((u8)subtraction));
 
 	for (int x : mask & ABI_ALL_FPRS)
 	{
-		MOVAPD(MDisp(RSP, (int)xmm_offset), (X64Reg) (x - 16));
+		MOVAPD(MDisp(RSP, (int)xmm_offset), (X64Reg)(x - 16));
 		xmm_offset += 16;
 	}
 
@@ -76,7 +76,7 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignmen
 	for (int r = 15; r >= 0; r--)
 	{
 		if (mask[r])
-			POP((X64Reg) r);
+			POP((X64Reg)r);
 	}
 }
 
@@ -181,20 +181,26 @@ void XEmitter::ABI_CallFunctionR(const void *func, X64Reg reg1)
 // Pass two registers as parameters.
 void XEmitter::ABI_CallFunctionRR(const void *func, X64Reg reg1, X64Reg reg2)
 {
-	MOVTwo(64, ABI_PARAM1, reg1, ABI_PARAM2, reg2);
+	MOVTwo(64, ABI_PARAM1, reg1, 0, ABI_PARAM2, reg2);
 	ABI_CallFunction(func);
 }
 
-void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2)
+void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset1, Gen::X64Reg dst2, Gen::X64Reg src2)
 {
 	if (dst1 == src2 && dst2 == src1)
 	{
 		XCHG(bits, R(src1), R(src2));
+		if (offset1)
+			ADD(bits, R(dst1), Imm32(offset1));
 	}
 	else if (src2 != dst1)
 	{
-		if (dst1 != src1)
+		if (dst1 != src1 && offset1)
+			LEA(bits, dst1, MDisp(src1, offset1));
+		else if (dst1 != src1)
 			MOV(bits, R(dst1), R(src1));
+		else if (offset1)
+			ADD(bits, R(dst1), Imm32(offset1));
 		if (dst2 != src2)
 			MOV(bits, R(dst2), R(src2));
 	}
@@ -202,8 +208,12 @@ void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg 
 	{
 		if (dst2 != src2)
 			MOV(bits, R(dst2), R(src2));
-		if (dst1 != src1)
+		if (dst1 != src1 && offset1)
+			LEA(bits, dst1, MDisp(src1, offset1));
+		else if (dst1 != src1)
 			MOV(bits, R(dst1), R(src1));
+		else if (offset1)
+			ADD(bits, R(dst1), Imm32(offset1));
 	}
 }
 

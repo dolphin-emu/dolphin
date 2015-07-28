@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2012 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "VideoBackends/OGL/GLInterfaceBase.h"
@@ -29,52 +29,64 @@ void cInterfaceEGL::DetectMode()
 	EGLint num_configs;
 	EGLConfig *config = nullptr;
 	bool supportsGL = false, supportsGLES2 = false, supportsGLES3 = false;
+	std::array<int, 3> renderable_types = {
+		EGL_OPENGL_BIT,
+		(1 << 6), /* EGL_OPENGL_ES3_BIT_KHR */
+		EGL_OPENGL_ES2_BIT,
+	};
 
-	// attributes for a visual in RGBA format with at least
-	// 8 bits per color
-	int attribs[] = {
-		EGL_RED_SIZE, 8,
-		EGL_GREEN_SIZE, 8,
-		EGL_BLUE_SIZE, 8,
-		EGL_NONE };
-
-	// Get how many configs there are
-	if (!eglChooseConfig( egl_dpy, attribs, nullptr, 0, &num_configs))
+	for (auto renderable_type : renderable_types)
 	{
-		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
-		goto err_exit;
-	}
+		// attributes for a visual in RGBA format with at least
+		// 8 bits per color
+		int attribs[] = {
+			EGL_RED_SIZE, 8,
+			EGL_GREEN_SIZE, 8,
+			EGL_BLUE_SIZE, 8,
+			EGL_RENDERABLE_TYPE, renderable_type,
+			EGL_NONE
+		};
 
-	config = new EGLConfig[num_configs];
-
-	// Get all the configurations
-	if (!eglChooseConfig(egl_dpy, attribs, config, num_configs, &num_configs))
-	{
-		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
-		goto err_exit;
-	}
-
-	for (int i = 0; i < num_configs; ++i)
-	{
-		EGLint attribVal;
-		bool ret;
-		ret = eglGetConfigAttrib(egl_dpy, config[i], EGL_RENDERABLE_TYPE, &attribVal);
-		if (ret)
+		// Get how many configs there are
+		if (!eglChooseConfig( egl_dpy, attribs, nullptr, 0, &num_configs))
 		{
-			if (attribVal & EGL_OPENGL_BIT)
-				supportsGL = true;
-			if (attribVal & (1 << 6)) /* EGL_OPENGL_ES3_BIT_KHR */
-				supportsGLES3 = true;
-			if (attribVal & EGL_OPENGL_ES2_BIT)
-				supportsGLES2 = true;
+			INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
+			goto err_exit;
+		}
+
+		config = new EGLConfig[num_configs];
+
+		// Get all the configurations
+		if (!eglChooseConfig(egl_dpy, attribs, config, num_configs, &num_configs))
+		{
+			INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
+			goto err_exit;
+		}
+
+		for (int i = 0; i < num_configs; ++i)
+		{
+			EGLint attribVal;
+			bool ret;
+			ret = eglGetConfigAttrib(egl_dpy, config[i], EGL_RENDERABLE_TYPE, &attribVal);
+			if (ret)
+			{
+				if (attribVal & EGL_OPENGL_BIT)
+					supportsGL = true;
+				if (attribVal & (1 << 6)) /* EGL_OPENGL_ES3_BIT_KHR */
+					supportsGLES3 = true;
+				if (attribVal & EGL_OPENGL_ES2_BIT)
+					supportsGLES2 = true;
+			}
 		}
 	}
+
 	if (supportsGL)
 		s_opengl_mode = GLInterfaceMode::MODE_OPENGL;
 	else if (supportsGLES3)
 		s_opengl_mode = GLInterfaceMode::MODE_OPENGLES3;
 	else if (supportsGLES2)
 		s_opengl_mode = GLInterfaceMode::MODE_OPENGLES2;
+
 err_exit:
 	if (s_opengl_mode == GLInterfaceMode::MODE_DETECT) // Errored before we found a mode
 		s_opengl_mode = GLInterfaceMode::MODE_OPENGL; // Fall back to OpenGL

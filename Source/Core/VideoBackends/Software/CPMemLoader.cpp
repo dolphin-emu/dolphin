@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonFuncs.h"
@@ -23,11 +23,13 @@ void SWLoadCPReg(u32 sub_cmd, u32 value)
 	case 0x50:
 		g_main_cp_state.vtx_desc.Hex &= ~0x1FFFF;  // keep the Upper bits
 		g_main_cp_state.vtx_desc.Hex |= value;
+		g_main_cp_state.bases_dirty = true;
 		break;
 
 	case 0x60:
 		g_main_cp_state.vtx_desc.Hex &= 0x1FFFF;  // keep the lower 17Bits
 		g_main_cp_state.vtx_desc.Hex |= (u64)value << 17;
+		g_main_cp_state.bases_dirty = true;
 		break;
 
 	case 0x70:
@@ -48,7 +50,7 @@ void SWLoadCPReg(u32 sub_cmd, u32 value)
 	// Pointers to vertex arrays in GC RAM
 	case 0xA0:
 		g_main_cp_state.array_bases[sub_cmd & 0xF] = value;
-		cached_arraybases[sub_cmd & 0xF] = Memory::GetPointer(value);
+		g_main_cp_state.bases_dirty = true;
 		break;
 
 	case 0xB0:

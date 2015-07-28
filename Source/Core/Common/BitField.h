@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -115,10 +115,14 @@ template<std::size_t position, std::size_t bits, typename T>
 struct BitField
 {
 private:
+#ifndef _WIN32
 	// This constructor might be considered ambiguous:
 	// Would it initialize the storage or just the bitfield?
 	// Hence, delete it. Use the assignment operator to set bitfield values!
+	// MSVC 2013 Intellisense complains that this declaration isn't allowed
+	// in a union member, so disable it on Windows.
 	BitField(T val) = delete;
+#endif
 
 public:
 	// Force default constructor to be created
@@ -126,7 +130,7 @@ public:
 	BitField() = default;
 
 #ifndef _WIN32
-	// We explicitly delete the copy assigment operator here, because the
+	// We explicitly delete the copy assignment operator here, because the
 	// default copy assignment would copy the full storage value, rather than
 	// just the bits relevant to this particular bit field.
 	// Ideally, we would just implement the copy assignment to copy only the
@@ -179,7 +183,7 @@ private:
 
 	__forceinline StorageType GetMask() const
 	{
-		return ((~(StorageTypeU)0) >> (8*sizeof(T) - bits)) << position;
+		return ((~(StorageTypeU)0) >> (8 * sizeof(T) - bits)) << position;
 	}
 
 	StorageType storage;

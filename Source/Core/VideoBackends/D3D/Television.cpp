@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <vector>
@@ -136,7 +136,7 @@ void Television::Submit(u32 xfbAddr, u32 stride, u32 width, u32 height)
 	// Load data from GameCube RAM to YUYV texture
 	u8* yuyvSrc = Memory::GetPointer(xfbAddr);
 	D3D11_BOX box = CD3D11_BOX(0, 0, 0, stride, height, 1);
-	D3D::context->UpdateSubresource(m_yuyvTexture, 0, &box, yuyvSrc, 2*stride, 2*stride*height);
+	D3D::context->UpdateSubresource(m_yuyvTexture, 0, &box, yuyvSrc, 2 * stride, 2 * stride * height);
 }
 
 void Television::Render()
@@ -148,15 +148,13 @@ void Television::Render()
 		// line down. We could even consider implementing a deinterlacing
 		// algorithm.
 
-		MathUtil::Rectangle<int> sourceRc(0, 0, int(m_curWidth), int(m_curHeight));
-		MathUtil::Rectangle<float> destRc(-1.f, 1.f, 1.f, -1.f);
+		D3D11_RECT sourceRc = CD3D11_RECT(0, 0, int(m_curWidth), int(m_curHeight));
 
 		D3D::stateman->SetSampler(0, m_samplerState);
 
-		D3D::drawShadedTexSubQuad(
+		D3D::drawShadedTexQuad(
 			m_yuyvTextureSRV, &sourceRc,
 			MAX_XFB_WIDTH, MAX_XFB_HEIGHT,
-			&destRc,
 			m_pShader,
 			VertexShaderCache::GetSimpleVertexShader(),
 			VertexShaderCache::GetSimpleInputLayout());

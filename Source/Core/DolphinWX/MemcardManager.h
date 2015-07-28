@@ -1,20 +1,12 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <string>
-#include <wx/chartype.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/listctrl.h>
-#include <wx/string.h>
-#include <wx/toplevel.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
@@ -24,14 +16,11 @@ class wxButton;
 class wxFileDirPickerEvent;
 class wxFilePickerCtrl;
 class wxStaticText;
-class wxWindow;
 
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX
 #define MEMCARDMAN_TITLE _trans("Memory Card Manager WARNING-Make backups before using, should be fixed but could mangle stuff!")
 
-#define E_SAVEFAILED "File write failed"
-#define E_UNK "Unknown error"
 #define FIRSTPAGE 0
 
 class CMemcardManager : public wxDialog
@@ -134,9 +123,6 @@ class CMemcardManager : public wxDialog
 
 		class CMemcardListCtrl : public wxListCtrl
 		{
-//BEGIN_EVENT_TABLE(CMemcardManager::CMemcardListCtrl, wxListCtrl)
-//      EVT_RIGHT_DOWN(CMemcardManager::CMemcardListCtrl::OnRightClick)
-//END_EVENT_TABLE()
 		public:
 			CMemcardListCtrl(wxWindow* parent, const wxWindowID id,
 				const wxPoint& pos, const wxSize& size,

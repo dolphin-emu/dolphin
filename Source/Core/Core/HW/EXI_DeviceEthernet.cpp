@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Common/Network.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI.h"
@@ -10,7 +11,7 @@
 #include "Core/HW/Memmap.h"
 
 // XXX: The BBA stores multi-byte elements as little endian.
-// Multiple parts of this implementation depend on dolphin
+// Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
 
 
@@ -68,7 +69,7 @@ void CEXIETHERNET::SetCS(int cs)
 	}
 }
 
-bool CEXIETHERNET::IsPresent()
+bool CEXIETHERNET::IsPresent() const
 {
 	return true;
 }
@@ -78,7 +79,7 @@ bool CEXIETHERNET::IsInterruptSet()
 	return !!(exi_status.interrupt & exi_status.interrupt_mask);
 }
 
-void CEXIETHERNET::ImmWrite(u32 data,  u32 size)
+void CEXIETHERNET::ImmWrite(u32 data, u32 size)
 {
 	data >>= (4 - size) * 8;
 
@@ -403,7 +404,7 @@ void CEXIETHERNET::SendComplete()
 		mBbaMem[BBA_IR] |= INT_T;
 
 		exi_status.interrupt |= exi_status.TRANSFER;
-		ExpansionInterface::ScheduleUpdateInterrupts_Threadsafe(0);
+		ExpansionInterface::ScheduleUpdateInterrupts(0);
 	}
 
 	mBbaMem[BBA_LTPS] = 0;

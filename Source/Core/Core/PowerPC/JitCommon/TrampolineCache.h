@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -14,33 +14,13 @@
 // We need at least this many bytes for backpatching.
 const int BACKPATCH_SIZE = 5;
 
-struct TrampolineCacheKey
-{
-	BitSet32 registersInUse;
-	u32 pc;
-	InstructionInfo info;
-
-	bool operator==(const TrampolineCacheKey &other) const;
-};
-
-struct TrampolineCacheKeyHasher
-{
-	size_t operator()(const TrampolineCacheKey& k) const;
-};
-
 class TrampolineCache : public Gen::X64CodeBlock
 {
 public:
-	void Init();
+	void Init(int size);
 	void Shutdown();
 
-	const u8* GetReadTrampoline(const InstructionInfo &info, BitSet32 registersInUse);
-	const u8* GetWriteTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u32 pc);
+	const u8* GenerateReadTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u8* exceptionHandler, u8* returnPtr);
+	const u8* GenerateWriteTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u8* exceptionHandler, u8* returnPtr, u32 pc);
 	void ClearCodeSpace();
-
-private:
-	const u8* GenerateReadTrampoline(const InstructionInfo &info, BitSet32 registersInUse);
-	const u8* GenerateWriteTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u32 pc);
-
-	std::unordered_map<TrampolineCacheKey, const u8*, TrampolineCacheKeyHasher> cachedTrampolines;
 };

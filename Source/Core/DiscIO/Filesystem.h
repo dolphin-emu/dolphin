@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -19,21 +19,21 @@ class IVolume;
 // file info of an FST entry
 struct SFileInfo
 {
-	u64 m_NameOffset;
-	u64 m_Offset;
-	u64 m_FileSize;
+	u64 m_NameOffset = 0u;
+	u64 m_Offset = 0u;
+	u64 m_FileSize = 0u;
 	std::string m_FullPath;
 
 	bool IsDirectory() const { return (m_NameOffset & 0xFF000000) != 0; }
 
-	SFileInfo() : m_NameOffset(0), m_Offset(0), m_FileSize(0)
-	{
-	}
+	SFileInfo(u64 name_offset, u64 offset, u64 filesize) :
+		m_NameOffset(name_offset),
+		m_Offset(offset),
+		m_FileSize(filesize)
+	{ }
 
-	SFileInfo(const SFileInfo& rhs) : m_NameOffset(rhs.m_NameOffset),
-	    m_Offset(rhs.m_Offset), m_FileSize(rhs.m_FileSize), m_FullPath(rhs.m_FullPath)
-	{
-	}
+	SFileInfo (SFileInfo const&) = default;
+	SFileInfo () = default;
 };
 
 class IFileSystem
@@ -43,9 +43,9 @@ public:
 
 	virtual ~IFileSystem();
 	virtual bool IsValid() const = 0;
-	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) = 0;
+	virtual const std::vector<SFileInfo>& GetFileList() = 0;
 	virtual u64 GetFileSize(const std::string& _rFullPath) = 0;
-	virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) = 0;
+	virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize, u64 _OffsetInFile = 0) = 0;
 	virtual bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename) = 0;
 	virtual bool ExportApploader(const std::string& _rExportFolder) const = 0;
 	virtual bool ExportDOL(const std::string& _rExportFolder) const = 0;

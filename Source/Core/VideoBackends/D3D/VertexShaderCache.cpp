@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -149,7 +149,7 @@ void VertexShaderCache::Init()
 	SETSTAT(stats.numVertexShadersAlive, 0);
 
 	std::string cache_filename = StringFromFormat("%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+			SConfig::GetInstance().m_strUniqueID.c_str());
 	VertexShaderCacheInserter inserter;
 	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
 

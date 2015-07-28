@@ -1,9 +1,17 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <atomic>
+#include <chrono>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
+
+#include "Common/Event.h"
 #include "Core/HW/GCMemcard.h"
 #include "DiscIO/Volume.h"
 
@@ -18,7 +26,7 @@ public:
 		DiscIO::IVolume::ECountry  card_region = DiscIO::IVolume::COUNTRY_EUROPE, int gameId = 0);
 	~GCMemcardDirectory();
 	void FlushToFile();
-
+	void FlushThread();
 	s32 Read(u32 address, s32 length, u8 *destaddress) override;
 	s32 Write(u32 destaddress, s32 length, u8 *srcaddress) override;
 	void ClearBlock(u32 address) override;
@@ -44,4 +52,9 @@ private:
 
 	std::vector<std::string> m_loaded_saves;
 	std::string m_SaveDirectory;
+	const std::chrono::seconds flush_interval = std::chrono::seconds(1);
+	Common::Event m_flush_trigger;
+	std::mutex m_write_mutex;
+	std::atomic<bool> m_exiting;
+	std::thread m_flush_thread;
 };

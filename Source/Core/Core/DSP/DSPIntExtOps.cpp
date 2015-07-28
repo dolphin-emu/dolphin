@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "DSPIntExtOps.h"
@@ -34,7 +34,7 @@ namespace Ext
 
 inline bool IsSameMemArea(u16 a, u16 b)
 {
-	//LM: tested on WII
+	// LM: tested on Wii
 	if ((a>>10)==(b>>10))
 		return true;
 	else
@@ -532,7 +532,7 @@ void applyWriteBackLog()
 // then 0 | ext output = ext output and if it did then bitwise or is still the
 // right thing to do
 // Only needed for cases when mainop and extended are modifying the same ACC
-// Games are not doing that + in motorola (similar dsp) dox this is forbidden to do.
+// Games are not doing that + in motorola (similar DSP) dox this is forbidden to do.
 void zeroWriteBackLog()
 {
 #ifdef PRECISE_BACKLOG
