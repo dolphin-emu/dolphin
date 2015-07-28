@@ -20,6 +20,11 @@
 
 namespace DiscIO
 {
+CFileInfoGCWii::CFileInfoGCWii(u64 name_offset, u64 offset, u64 file_size)
+    : m_NameOffset(name_offset), m_Offset(offset), m_FileSize(file_size)
+{
+}
+
 CFileSystemGCWii::CFileSystemGCWii(const IVolume* _rVolume)
     : IFileSystem(_rVolume), m_Initialized(false), m_Valid(false), m_Wii(false)
 {
@@ -36,10 +41,10 @@ u64 CFileSystemGCWii::GetFileSize(const std::string& _rFullPath)
   if (!m_Initialized)
     InitFileSystem();
 
-  const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
+  const CFileInfoGCWii* pFileInfo = FindFileInfo(_rFullPath);
 
   if (pFileInfo != nullptr && !pFileInfo->IsDirectory())
-    return pFileInfo->m_FileSize;
+    return pFileInfo->GetSize();
 
   return 0;
 }
@@ -51,7 +56,8 @@ const std::string CFileSystemGCWii::GetFileName(u64 _Address)
 
   for (auto& fileInfo : m_FileInfoVector)
   {
-    if ((fileInfo.m_Offset <= _Address) && ((fileInfo.m_Offset + fileInfo.m_FileSize) > _Address))
+    if ((fileInfo.GetOffset() <= _Address) &&
+        ((fileInfo.GetOffset() + fileInfo.GetSize()) > _Address))
     {
       return fileInfo.m_FullPath;
     }
@@ -66,21 +72,21 @@ u64 CFileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 
   if (!m_Initialized)
     InitFileSystem();
 
-  const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
+  const CFileInfoGCWii* pFileInfo = FindFileInfo(_rFullPath);
   if (pFileInfo == nullptr)
     return 0;
 
-  if (_OffsetInFile >= pFileInfo->m_FileSize)
+  if (_OffsetInFile >= pFileInfo->GetSize())
     return 0;
 
-  u64 read_length = std::min(_MaxBufferSize, pFileInfo->m_FileSize - _OffsetInFile);
+  u64 read_length = std::min(_MaxBufferSize, pFileInfo->GetSize() - _OffsetInFile);
 
   DEBUG_LOG(DISCIO, "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
                     " Size: %" PRIx64,
-            read_length, _OffsetInFile, _rFullPath.c_str(), pFileInfo->m_Offset,
-            pFileInfo->m_FileSize);
+            read_length, _OffsetInFile, _rFullPath.c_str(), pFileInfo->GetOffset(),
+            pFileInfo->GetSize());
 
-  m_rVolume->Read(pFileInfo->m_Offset + _OffsetInFile, read_length, _pBuffer, m_Wii);
+  m_rVolume->Read(pFileInfo->GetOffset() + _OffsetInFile, read_length, _pBuffer, m_Wii);
   return read_length;
 }
 
@@ -90,13 +96,13 @@ bool CFileSystemGCWii::ExportFile(const std::string& _rFullPath,
   if (!m_Initialized)
     InitFileSystem();
 
-  const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
+  const CFileInfoGCWii* pFileInfo = FindFileInfo(_rFullPath);
 
   if (!pFileInfo)
     return false;
 
-  u64 remainingSize = pFileInfo->m_FileSize;
-  u64 fileOffset = pFileInfo->m_Offset;
+  u64 remainingSize = pFileInfo->GetSize();
+  u64 fileOffset = pFileInfo->GetOffset();
 
   File::IOFile f(_rExportFilename, "wb");
   if (!f)
@@ -226,7 +232,7 @@ std::string CFileSystemGCWii::GetStringFromOffset(u64 _Offset) const
   return SHIFTJISToUTF8(data);
 }
 
-const std::vector<SFileInfo>& CFileSystemGCWii::GetFileList()
+const std::vector<CFileInfoGCWii>& CFileSystemGCWii::GetFileList()
 {
   if (!m_Initialized)
     InitFileSystem();
@@ -234,7 +240,7 @@ const std::vector<SFileInfo>& CFileSystemGCWii::GetFileList()
   return m_FileInfoVector;
 }
 
-const SFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& _rFullPath)
+const CFileInfoGCWii* CFileSystemGCWii::FindFileInfo(const std::string& _rFullPath)
 {
   if (!m_Initialized)
     InitFileSystem();
@@ -282,7 +288,7 @@ void CFileSystemGCWii::InitFileSystem()
       !m_rVolume->ReadSwapped(FSTOffset + 0x4, &offset, m_Wii) ||
       !m_rVolume->ReadSwapped(FSTOffset + 0x8, &size, m_Wii))
     return;
-  SFileInfo root = {name_offset, static_cast<u64>(offset) << shift, size};
+  CFileInfoGCWii root(name_offset, static_cast<u64>(offset) << shift, size);
 
   if (!root.IsDirectory())
     return;
@@ -290,7 +296,7 @@ void CFileSystemGCWii::InitFileSystem()
   // 12 bytes (the size of a file entry) times 10 * 1024 * 1024 is 120 MiB,
   // more than total RAM in a Wii. No file system should use anywhere near that much.
   static const u32 ARBITRARY_FILE_SYSTEM_SIZE_LIMIT = 10 * 1024 * 1024;
-  if (root.m_FileSize > ARBITRARY_FILE_SYSTEM_SIZE_LIMIT)
+  if (root.GetSize() > ARBITRARY_FILE_SYSTEM_SIZE_LIMIT)
   {
     // Without this check, Dolphin can crash by trying to allocate too much
     // memory when loading the file systems of certain malformed disc images.
@@ -303,8 +309,8 @@ void CFileSystemGCWii::InitFileSystem()
     PanicAlert("Wtf?");
   u64 NameTableOffset = FSTOffset;
 
-  m_FileInfoVector.reserve((size_t)root.m_FileSize);
-  for (u32 i = 0; i < root.m_FileSize; i++)
+  m_FileInfoVector.reserve((size_t)root.GetSize());
+  for (u32 i = 0; i < root.GetSize(); i++)
   {
     const u64 read_offset = FSTOffset + (i * 0xC);
     name_offset = 0;
@@ -327,7 +333,7 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 
   while (CurrentIndex < _LastIndex)
   {
-    SFileInfo& rFileInfo = m_FileInfoVector[CurrentIndex];
+    CFileInfoGCWii& rFileInfo = m_FileInfoVector[CurrentIndex];
     u64 const uOffset = _NameTableOffset + (rFileInfo.m_NameOffset & 0xFFFFFF);
     std::string const offset_str{GetStringFromOffset(uOffset)};
     bool const is_dir = rFileInfo.IsDirectory();
@@ -344,7 +350,7 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
     }
 
     // check next index
-    CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t)rFileInfo.m_FileSize,
+    CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t)rFileInfo.GetSize(),
                                   rFileInfo.m_FullPath, _NameTableOffset);
   }
 

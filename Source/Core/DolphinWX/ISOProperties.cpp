@@ -241,23 +241,23 @@ CISOProperties::~CISOProperties()
 }
 
 size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
-                                           const std::vector<DiscIO::SFileInfo>& fileInfos)
+                                           const std::vector<DiscIO::CFileInfoGCWii>& fileInfos)
 {
   if (fileInfos.empty())
     return 0;
   else
-    return CreateDirectoryTree(parent, fileInfos, 1, fileInfos.at(0).m_FileSize);
+    return CreateDirectoryTree(parent, fileInfos, 1, fileInfos.at(0).GetSize());
 }
 
 size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
-                                           const std::vector<DiscIO::SFileInfo>& fileInfos,
+                                           const std::vector<DiscIO::CFileInfoGCWii>& fileInfos,
                                            const size_t _FirstIndex, const size_t _LastIndex)
 {
   size_t CurrentIndex = _FirstIndex;
 
   while (CurrentIndex < _LastIndex)
   {
-    const DiscIO::SFileInfo rFileInfo = fileInfos[CurrentIndex];
+    const DiscIO::CFileInfoGCWii rFileInfo = fileInfos[CurrentIndex];
     std::string filePath = rFileInfo.m_FullPath;
 
     // Trim the trailing '/' if it exists.
@@ -279,7 +279,7 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
     {
       wxTreeItemId item = m_Treectrl->AppendItem(parent, StrToWxStr(filePath), 1, 1);
       CurrentIndex =
-          CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo.m_FileSize);
+          CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo.GetSize());
     }
     else
     {
@@ -819,7 +819,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
                                       partition->FileSystem.get() :
                                       m_filesystem.get();
 
-  const std::vector<DiscIO::SFileInfo>& fst = fs->GetFileList();
+  const std::vector<DiscIO::CFileInfoGCWii>& fst = fs->GetFileList();
 
   u32 index = 0;
   u32 size = 0;
@@ -842,7 +842,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
       if (fst[index].m_FullPath == _rFullPath)
       {
         DEBUG_LOG(DISCIO, "Found the directory at %u", index);
-        size = (u32)fst[index].m_FileSize;
+        size = (u32)fst[index].GetSize();
         break;
       }
     }
