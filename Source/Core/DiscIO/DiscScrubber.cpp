@@ -314,9 +314,12 @@ bool ParsePartitionData(SPartition& partition)
                 partition.Header.FSTSize);
 
     // Go through the filesystem and mark entries as used
-    for (CFileInfoGCWii file : filesystem->GetFileList())
+    auto& file_list = filesystem->GetFileList();
+    for (size_t i = 0; i < file_list.size(); ++i)
     {
-      DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
+      const std::string path = filesystem->GetPathFromFSTOffset(i);
+      DEBUG_LOG(DISCIO, "%s", path.empty() ? "/" : path.c_str());
+      auto& file = file_list[i];
       if (!file.IsDirectory())
         MarkAsUsedE(partition.Offset + partition.Header.DataOffset, file.GetOffset(),
                     file.GetSize());

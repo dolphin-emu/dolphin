@@ -259,32 +259,17 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
   while (CurrentIndex < _LastIndex)
   {
     const DiscIO::CFileInfoGCWii rFileInfo = fileInfos[CurrentIndex];
-    std::string filePath = rFileInfo.m_FullPath;
-
-    // Trim the trailing '/' if it exists.
-    if (filePath[filePath.length() - 1] == DIR_SEP_CHR)
-    {
-      filePath.pop_back();
-    }
-
-    // Cut off the path up to the actual filename or folder.
-    // Say we have "/music/stream/stream1.strm", the result will be "stream1.strm".
-    size_t dirSepIndex = filePath.find_last_of(DIR_SEP_CHR);
-    if (dirSepIndex != std::string::npos)
-    {
-      filePath = filePath.substr(dirSepIndex + 1);
-    }
 
     // check next index
     if (rFileInfo.IsDirectory())
     {
-      wxTreeItemId item = m_Treectrl->AppendItem(parent, StrToWxStr(filePath), 1, 1);
+      wxTreeItemId item = m_Treectrl->AppendItem(parent, StrToWxStr(rFileInfo.GetName()), 1, 1);
       CurrentIndex =
           CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo.GetSize());
     }
     else
     {
-      m_Treectrl->AppendItem(parent, StrToWxStr(filePath), 2, 2);
+      m_Treectrl->AppendItem(parent, StrToWxStr(rFileInfo.GetName()), 2, 2);
       CurrentIndex++;
     }
   }
@@ -839,7 +824,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
     // Look for the dir we are going to extract
     for (index = 0; index != fst.size(); ++index)
     {
-      if (fst[index].m_FullPath == _rFullPath)
+      if (fs->GetPathFromFSTOffset(index) == _rFullPath)
       {
         DEBUG_LOG(DISCIO, "Found the directory at %u", index);
         size = (u32)fst[index].GetSize();
@@ -859,10 +844,12 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
   // Extraction
   for (u32 i = index; i < size; i++)
   {
+    const std::string path = fs->GetPathFromFSTOffset(i);
+
     dialog.SetTitle(wxString::Format("%s : %d%%", dialogTitle.c_str(),
                                      (u32)(((float)(i - index) / (float)(size - index)) * 100)));
 
-    dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(fst[i].m_FullPath)));
+    dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(path)));
 
     if (dialog.WasCancelled())
       break;
@@ -870,7 +857,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
     if (fst[i].IsDirectory())
     {
       const std::string exportName =
-          StringFromFormat("%s/%s/", _rExportFolder.c_str(), fst[i].m_FullPath.c_str());
+          StringFromFormat("%s/%s/", _rExportFolder.c_str(), path.c_str());
       DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
       if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
@@ -888,10 +875,10 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
     else
     {
       const std::string exportName =
-          StringFromFormat("%s/%s", _rExportFolder.c_str(), fst[i].m_FullPath.c_str());
+          StringFromFormat("%s/%s", _rExportFolder.c_str(), path.c_str());
       DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
-      if (!File::Exists(exportName) && !fs->ExportFile(fst[i].m_FullPath, exportName))
+      if (!File::Exists(exportName) && !fs->ExportFile(path, exportName))
       {
         ERROR_LOG(DISCIO, "Could not export %s", exportName.c_str());
       }
