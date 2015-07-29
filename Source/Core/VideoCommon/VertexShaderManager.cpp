@@ -9,6 +9,8 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/RenderBase.h"
@@ -416,6 +418,21 @@ void VertexShaderManager::SetConstants()
 			// I (neobrain) don't think his conjecture is true and thus reverted his change.
 			g_fProjectionMatrix[14] = -1.0f;
 			g_fProjectionMatrix[15] = 0.0f;
+
+			// Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
+			if (!SConfig::GetInstance().bWii)
+			{
+				// Due to the BT.601 standard which the GameCube is based on being a compromise
+				// between PAL and NTSC, neither standard gets square pixels. They are each off
+				// by ~9% in opposite directions.
+				// Just in case any game decides to take this into account, we do these tests
+				// with a large amount of slop.
+				float aspect = fabsf(rawProjection[2] / rawProjection[0]);
+				if (fabsf(aspect - 16.0f/9.0f) < 16.0f/9.0f * 0.11) // within 11% of 16:9
+					g_aspect_wide = true;
+				else if (fabsf(aspect - 4.0f/3.0f) < 4.0f/3.0f * 0.11) // within 11% of 4:3
+					g_aspect_wide = false;
+			}
 
 			SETSTAT_FT(stats.gproj_0,  g_fProjectionMatrix[0]);
 			SETSTAT_FT(stats.gproj_1,  g_fProjectionMatrix[1]);
