@@ -221,9 +221,12 @@ bool DiscScrubber::ParsePartitionData(const Partition& partition, PartitionHeade
   MarkAsUsedE(partition_data_offset, header->fst_offset, header->fst_size);
 
   // Go through the filesystem and mark entries as used
-  for (const FileInfoGCWii& file : filesystem->GetFileList())
+  auto& file_list = filesystem->GetFileList();
+  for (size_t i = 0; i < file_list.size(); ++i)
   {
-    DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
+    const std::string path = filesystem->GetPathFromFSTOffset(i);
+    DEBUG_LOG(DISCIO, "%s", path.empty() ? "/" : path.c_str());
+    auto& file = file_list[i];
     if (!file.IsDirectory())
       MarkAsUsedE(partition_data_offset, file.GetOffset(), file.GetSize());
   }

@@ -94,32 +94,18 @@ size_t CreateDirectoryTree(wxTreeCtrl* tree_ctrl, wxTreeItemId parent,
   while (current_index < last_index)
   {
     const DiscIO::FileInfoGCWii& file_info = file_infos[current_index];
-    std::string file_path = file_info.m_FullPath;
-
-    // Trim the trailing '/' if it exists.
-    if (file_path.back() == DIR_SEP_CHR)
-    {
-      file_path.pop_back();
-    }
-
-    // Cut off the path up to the actual filename or folder.
-    // Say we have "/music/stream/stream1.strm", the result will be "stream1.strm".
-    const size_t dir_sep_index = file_path.rfind(DIR_SEP_CHR);
-    if (dir_sep_index != std::string::npos)
-    {
-      file_path = file_path.substr(dir_sep_index + 1);
-    }
 
     // check next index
     if (file_info.IsDirectory())
     {
-      const wxTreeItemId item = tree_ctrl->AppendItem(parent, StrToWxStr(file_path), ICON_FOLDER);
+      const wxTreeItemId item =
+          tree_ctrl->AppendItem(parent, StrToWxStr(file_info.GetName()), ICON_FOLDER);
       current_index = CreateDirectoryTree(tree_ctrl, item, file_infos, current_index + 1,
                                           static_cast<size_t>(file_info.GetSize()));
     }
     else
     {
-      tree_ctrl->AppendItem(parent, StrToWxStr(file_path), ICON_FILE);
+      tree_ctrl->AppendItem(parent, StrToWxStr(file_info.GetName()), ICON_FILE);
       current_index++;
     }
   }
@@ -472,7 +458,7 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
     // Look for the dir we are going to extract
     for (index = 0; index < fst.size(); ++index)
     {
-      if (fst[index].m_FullPath == full_path)
+      if (filesystem->GetPathFromFSTOffset(index) == full_path)
       {
         INFO_LOG(DISCIO, "Found the directory at %u", index);
         size = static_cast<u32>(fst[index].GetSize());
@@ -492,12 +478,13 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
   // Extraction
   for (u32 i = index; i < size; i++)
   {
+    const std::string path = filesystem->GetPathFromFSTOffset(i);
     dialog.SetTitle(wxString::Format(
         "%s : %u%%", dialog_title.c_str(),
         static_cast<u32>((static_cast<float>(i - index) / static_cast<float>(size - index)) *
                          100)));
 
-    dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(fst[i].m_FullPath)));
+    dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(path)));
 
     if (dialog.WasCancelled())
       break;
@@ -505,7 +492,7 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
     if (fst[i].IsDirectory())
     {
       const std::string export_name =
-          StringFromFormat("%s/%s/", output_folder.c_str(), fst[i].m_FullPath.c_str());
+          StringFromFormat("%s/%s/", output_folder.c_str(), path.c_str());
       INFO_LOG(DISCIO, "%s", export_name.c_str());
 
       if (!File::Exists(export_name) && !File::CreateFullPath(export_name))
@@ -523,10 +510,10 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
     else
     {
       const std::string export_name =
-          StringFromFormat("%s/%s", output_folder.c_str(), fst[i].m_FullPath.c_str());
+          StringFromFormat("%s/%s", output_folder.c_str(), path.c_str());
       INFO_LOG(DISCIO, "%s", export_name.c_str());
 
-      if (!File::Exists(export_name) && !filesystem->ExportFile(fst[i].m_FullPath, export_name))
+      if (!File::Exists(export_name) && !filesystem->ExportFile(path, export_name))
       {
         ERROR_LOG(DISCIO, "Could not export %s", export_name.c_str());
       }
