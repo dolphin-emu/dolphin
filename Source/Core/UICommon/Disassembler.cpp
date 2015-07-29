@@ -31,7 +31,7 @@ private:
 class HostDisassemblerLLVM : public HostDisassembler
 {
 public:
-	HostDisassemblerLLVM(const std::string host_disasm, int inst_size = -1, const std::string cpu = "");
+	HostDisassemblerLLVM(const std::string& host_disasm, int inst_size = -1, const std::string& cpu = "");
 	~HostDisassemblerLLVM()
 	{
 		if (m_can_disasm)
@@ -46,7 +46,7 @@ private:
 	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) override;
 };
 
-HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string host_disasm, int inst_size, const std::string cpu)
+HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string& host_disasm, int inst_size, const std::string& cpu)
 	: m_can_disasm(false), m_instruction_size(inst_size)
 {
 	LLVMInitializeAllTargetInfos();
