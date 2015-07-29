@@ -20,13 +20,14 @@ struct Partition;
 class FileInfoGCWii : public FileInfo
 {
 public:
-  FileInfoGCWii(u64 name_offset, u64 offset, u64 file_size);
+  FileInfoGCWii(u64 name_offset, u64 offset, u64 file_size, std::string name);
 
   u64 GetOffset() const override { return m_Offset; }
   u64 GetSize() const override { return m_FileSize; }
   bool IsDirectory() const override { return (m_NameOffset & 0xFF000000) != 0; }
+  const std::string& GetName() const override { return m_Name; }
   // TODO: These shouldn't be public
-  std::string m_FullPath;
+  std::string m_Name;
   const u64 m_NameOffset = 0u;
 
 private:
@@ -42,7 +43,8 @@ public:
   bool IsValid() const override { return m_Valid; }
   u64 GetFileSize(const std::string& _rFullPath) override;
   const std::vector<FileInfoGCWii>& GetFileList() override;
-  std::string GetFileName(u64 _Address) override;
+  std::string GetPath(u64 _Address) override;
+  std::string GetPathFromFSTOffset(size_t file_info_offset) override;
   u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize,
                u64 _OffsetInFile) override;
   bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename) override;
@@ -61,8 +63,6 @@ private:
   const FileInfoGCWii* FindFileInfo(const std::string& _rFullPath);
   bool DetectFileSystem();
   void InitFileSystem();
-  size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex,
-                        const std::string& _szDirectory, u64 _NameTableOffset);
 };
 
 }  // namespace
