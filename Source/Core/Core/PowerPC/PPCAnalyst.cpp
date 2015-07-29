@@ -46,9 +46,6 @@ CodeBuffer::~CodeBuffer()
 	delete[] codebuffer;
 }
 
-void AnalyzeFunction2(Symbol &func);
-u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc);
-
 #define INVALID_TARGET ((u32)-1)
 
 u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
