@@ -1418,6 +1418,70 @@ void CFrame::ParseHotkeys()
 		State::Load(g_saveSlot);
 	}
 
+	if (IsHotkey(HK_TOGGLE_STEREO_SBS))
+	{
+		if (g_Config.iStereoMode != STEREO_SBS)
+		{
+			// Current implementation of anaglyph stereoscopy uses a
+			// post-processing shader. Thus the shader needs to be to be
+			// turned off when selecting other stereoscopy modes.
+			if (g_Config.sPostProcessingShader == "dubois")
+			{
+				g_Config.sPostProcessingShader = "";
+			}
+			g_Config.iStereoMode = STEREO_SBS;
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+		}
+	}
+	if (IsHotkey(HK_TOGGLE_STEREO_TAB))
+	{
+		if (g_Config.iStereoMode != STEREO_TAB)
+		{
+			if (g_Config.sPostProcessingShader == "dubois")
+			{
+				g_Config.sPostProcessingShader = "";
+			}
+			g_Config.iStereoMode = STEREO_TAB;
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+		}
+	}
+	if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
+	{
+		if (g_Config.iStereoMode != STEREO_ANAGLYPH)
+		{
+			// Setting the anaglyph mode also requires a specific
+			// post-processing shader to be activated.
+			g_Config.iStereoMode = STEREO_ANAGLYPH;
+			g_Config.sPostProcessingShader = "dubois";
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+			g_Config.sPostProcessingShader = "";
+		}
+	}
+	if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
+	{
+		if (g_Config.iStereoMode != STEREO_3DVISION)
+		{
+			if (g_Config.sPostProcessingShader == "dubois")
+			{
+				g_Config.sPostProcessingShader = "";
+			}
+			g_Config.iStereoMode = STEREO_3DVISION;
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+		}
+	}
+
 	auto savePreset = [](const std::string& param, int value)
 	{
 		IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();

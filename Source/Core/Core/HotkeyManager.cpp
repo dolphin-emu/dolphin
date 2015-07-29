@@ -63,6 +63,11 @@ const std::string hotkey_labels[] =
 	_trans("Freelook Zoom Out"),
 	_trans("Freelook Reset"),
 
+	_trans("Toggle 3D Side-by-side"),
+	_trans("Toggle 3D Top-bottom"),
+	_trans("Toggle 3D Anaglyph"),
+	_trans("Toggle 3D Vision"),
+
 	_trans("Decrease Depth"),
 	_trans("Increase Depth"),
 	_trans("Decrease Convergence"),
