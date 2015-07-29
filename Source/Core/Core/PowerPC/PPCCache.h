@@ -29,7 +29,7 @@ namespace PowerPC
 
 		u8 lookup_table[1<<20];
 		u8 lookup_table_ex[1<<21];
-		u8 lookup_table_vmem[1<<20];
+		//u8 lookup_table_vmem[1<<20];
 
 		InstructionCache();
 		u32 ReadInstruction(u32 addr);

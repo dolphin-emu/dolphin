@@ -63,7 +63,6 @@ namespace PowerPC
 		memset(plru, 0, sizeof(plru));
 		memset(lookup_table, 0xff, sizeof(lookup_table));
 		memset(lookup_table_ex, 0xff, sizeof(lookup_table_ex));
-		memset(lookup_table_vmem, 0xff, sizeof(lookup_table_vmem));
 		JitInterface::ClearSafe();
 	}
 
@@ -84,12 +83,10 @@ namespace PowerPC
 		for (int i = 0; i < 8; i++)
 			if (valid[set] & (1 << i))
 			{
-				if (tags[set][i] & (ICACHE_VMEM_BIT >> 12))
-					lookup_table_vmem[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
-				else if (tags[set][i] & (ICACHE_EXRAM_BIT >> 12))
-					lookup_table_ex[((tags[set][i] << 7) | set) & 0x1fffff] = 0xff;
-				else
+				if ((tags[set][i] & 0x000F0000) == 0x00080000)
 					lookup_table[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
+				else if ((tags[set][i] & 0x000F0000) == 0x00090000)
+					lookup_table_ex[((tags[set][i] << 7) | set) & 0x1fffff] = 0xff;
 			}
 		valid[set] = 0;
 		JitInterface::InvalidateICache(addr & ~0x1f, 32, false);
@@ -102,18 +99,26 @@ namespace PowerPC
 		u32 set = (addr >> 5) & 0x7f;
 		u32 tag = addr >> 12;
 
-		u32 t;
-		if (addr & ICACHE_VMEM_BIT)
+		u32 t = 0xff;
+		// Fast paths for mem1 and mem2
+		if ((addr & 0xF000000) == 0x80000000)
 		{
-			t = lookup_table_vmem[(addr >> 5) & 0xfffff];
+			t = lookup_table[(addr >> 5) & 0xfffff];
 		}
-		else if (addr & ICACHE_EXRAM_BIT)
+		else if ((addr & 0xF000000) == 0x90000000)
 		{
 			t = lookup_table_ex[(addr >> 5) & 0x1fffff];
 		}
 		else
 		{
-			t = lookup_table[(addr >> 5) & 0xfffff];
+			for(int i = 0; i < 8; i++)
+			{
+				if(tags[set][i] == tag && valid[set] & (1 << i))
+				{
+					t = i;
+					break;
+				}
+			}
 		}
 
 		if (t == 0xff) // load to the cache
@@ -122,27 +127,27 @@ namespace PowerPC
 				return Memory::Read_U32(addr);
 			// select a way
 			if (valid[set] != 0xff)
-				t = way_from_valid[valid[set]];
-			else
-				t = way_from_plru[plru[set]];
-			// load
-			Memory::CopyFromEmu((u8*)data[set][t], (addr & ~0x1f), 32);
-			if (valid[set] & (1 << t))
 			{
-				if (tags[set][t] & (ICACHE_VMEM_BIT >> 12))
-					lookup_table_vmem[((tags[set][t] << 7) | set) & 0xfffff] = 0xff;
-				else if (tags[set][t] & (ICACHE_EXRAM_BIT >> 12))
-					lookup_table_ex[((tags[set][t] << 7) | set) & 0x1fffff] = 0xff;
-				else
+				t = way_from_valid[valid[set]];
+			}
+			else
+			{
+				t = way_from_plru[plru[set]];
+
+				if ((tags[set][t] & 0x000F0000) == 0x00080000)
 					lookup_table[((tags[set][t] << 7) | set) & 0xfffff] = 0xff;
+				else if ((tags[set][t] & 0x000F0000) == 0x00090000)
+					lookup_table_ex[((tags[set][t] << 7) | set) & 0x1fffff] = 0xff;
 			}
 
-			if (addr & ICACHE_VMEM_BIT)
-				lookup_table_vmem[(addr >> 5) & 0xfffff] = t;
-			else if (addr & ICACHE_EXRAM_BIT)
-				lookup_table_ex[(addr >> 5) & 0x1fffff] = t;
-			else
+			if ((addr & 0xF000000) == 0x80000000)
 				lookup_table[(addr >> 5) & 0xfffff] = t;
+			else if ((addr & 0xF000000) == 0x90000000)
+				lookup_table_ex[(addr >> 5) & 0x1fffff] = t;
+
+			// load
+			Memory::CopyFromEmu((u8*)data[set][t], (addr & ~0x1f), 32);
+
 			tags[set][t] = tag;
 			valid[set] |= (1 << t);
 		}
