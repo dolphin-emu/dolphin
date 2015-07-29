@@ -129,12 +129,12 @@ void FindFilename(u64 offset)
     return;
   }
 
-  const std::string filename = s_filesystem->GetFileName(offset);
+  const std::string path = s_filesystem->GetPath(offset);
 
-  if (filename.empty())
+  if (path.empty())
     return;
 
-  CheckFile(filename, s_filesystem->GetFileSize(filename));
+  CheckFile(path, s_filesystem->GetFileSize(path));
 }
 
 void Close()
