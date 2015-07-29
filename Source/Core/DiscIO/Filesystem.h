@@ -39,6 +39,7 @@ public:
   // TODO: Should only return FileInfo, not FileInfoGCWii
   virtual const std::vector<FileInfoGCWii>& GetFileList() = 0;
   virtual u64 GetFileSize(const std::string& _rFullPath) = 0;
+  virtual const FileInfo* FindFileInfo(const std::string& path) = 0;
   virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize,
                        u64 _OffsetInFile = 0) = 0;
   virtual bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename) = 0;
