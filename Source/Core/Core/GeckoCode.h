@@ -20,13 +20,9 @@ namespace Gecko
 
 		struct Code
 		{
-			Code() : address(0), data(0) {}
-
-			u32 address, data;
-
+			u32 address = 0;
+			u32 data = 0;
 			std::string original_line;
-
-			u32 GetAddress() const;
 		};
 
 		std::vector<Code> codes;
