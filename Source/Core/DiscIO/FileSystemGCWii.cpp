@@ -22,8 +22,8 @@
 
 namespace DiscIO
 {
-FileInfoGCWii::FileInfoGCWii(u64 name_offset, u64 offset, u64 file_size)
-    : m_NameOffset(name_offset), m_Offset(offset), m_FileSize(file_size)
+FileInfoGCWii::FileInfoGCWii(u64 name_offset, u64 offset, u64 file_size, std::string name)
+    : m_NameOffset(name_offset), m_Offset(offset), m_FileSize(file_size), m_Name(name)
 {
 }
 
@@ -55,21 +55,62 @@ u64 FileSystemGCWii::GetFileSize(const std::string& _rFullPath)
   return 0;
 }
 
-std::string FileSystemGCWii::GetFileName(u64 _Address)
+std::string FileSystemGCWii::GetPath(u64 _Address)
 {
   if (!m_Initialized)
     InitFileSystem();
 
-  for (auto& fileInfo : m_FileInfoVector)
+  for (size_t i = 0; i < m_FileInfoVector.size(); ++i)
   {
-    if ((fileInfo.GetOffset() <= _Address) &&
-        ((fileInfo.GetOffset() + fileInfo.GetSize()) > _Address))
+    const FileInfoGCWii& file_info = m_FileInfoVector[i];
+    if ((file_info.GetOffset() <= _Address) &&
+        ((file_info.GetOffset() + file_info.GetSize()) > _Address))
     {
-      return fileInfo.m_FullPath;
+      return GetPathFromFSTOffset(i);
     }
   }
 
   return "";
+}
+
+std::string FileSystemGCWii::GetPathFromFSTOffset(size_t file_info_offset)
+{
+  if (!m_Initialized)
+    InitFileSystem();
+
+  // Root entry doesn't have a name
+  if (file_info_offset == 0)
+    return "";
+
+  const FileInfoGCWii& file_info = m_FileInfoVector[file_info_offset];
+  if (file_info.IsDirectory())
+  {
+    // The offset of the parent directory is stored in the current directory.
+
+    if (file_info.GetOffset() >= file_info_offset)
+    {
+      // The offset of the parent directory is supposed to be smaller than
+      // the current offset. If an FST is malformed and breaks that rule,
+      // there's a risk that parent directory pointers form a loop.
+      // To avoid stack overflows, this method returns.
+      ERROR_LOG(DISCIO, "Invalid parent offset in file system");
+      return "";
+    }
+    return GetPathFromFSTOffset(file_info.GetOffset()) + file_info.GetName() + "/";
+  }
+  else
+  {
+    // The parent directory can be found by searching backwards
+    // for a directory that contains this file.
+
+    size_t parent_offset = file_info_offset - 1;
+    while (!(m_FileInfoVector[parent_offset].IsDirectory() &&
+             m_FileInfoVector[parent_offset].GetSize() > file_info_offset))
+    {
+      parent_offset--;
+    }
+    return GetPathFromFSTOffset(parent_offset) + file_info.GetName();
+  }
 }
 
 u64 FileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize,
@@ -248,10 +289,10 @@ const FileInfoGCWii* FileSystemGCWii::FindFileInfo(const std::string& _rFullPath
   if (!m_Initialized)
     InitFileSystem();
 
-  for (auto& fileInfo : m_FileInfoVector)
+  for (size_t i = 0; i < m_FileInfoVector.size(); ++i)
   {
-    if (!strcasecmp(fileInfo.m_FullPath.c_str(), _rFullPath.c_str()))
-      return &fileInfo;
+    if (!strcasecmp(GetPathFromFSTOffset(i).c_str(), _rFullPath.c_str()))
+      return &m_FileInfoVector[i];
   }
 
   return nullptr;
@@ -290,7 +331,7 @@ void FileSystemGCWii::InitFileSystem()
   if (!root_name_offset || !root_offset || !root_size)
     return;
   FileInfoGCWii root(*root_name_offset, static_cast<u64>(*root_offset) << m_offset_shift,
-                     *root_size);
+                     *root_size, "");
 
   if (!root.IsDirectory())
     return;
@@ -309,53 +350,20 @@ void FileSystemGCWii::InitFileSystem()
 
   if (m_FileInfoVector.size())
     PanicAlert("Wtf?");
-  u64 NameTableOffset = FSTOffset;
+  u64 NameTableOffset = FSTOffset + (root.GetSize() * 0xC);
 
   m_FileInfoVector.reserve((size_t)root.GetSize());
   for (u32 i = 0; i < root.GetSize(); i++)
   {
     const u64 read_offset = FSTOffset + (i * 0xC);
-    const std::optional<u32> name_offset = m_rVolume->ReadSwapped<u32>(read_offset, m_partition);
-    const std::optional<u32> offset = m_rVolume->ReadSwapped<u32>(read_offset + 0x4, m_partition);
-    const std::optional<u32> size = m_rVolume->ReadSwapped<u32>(read_offset + 0x8, m_partition);
-    m_FileInfoVector.emplace_back(name_offset.value_or(0),
-                                  static_cast<u64>(offset.value_or(0)) << m_offset_shift,
-                                  size.value_or(0));
-    NameTableOffset += 0xC;
+    const u32 name_offset = m_rVolume->ReadSwapped<u32>(read_offset, m_partition).value_or(0);
+    const u32 offset = m_rVolume->ReadSwapped<u32>(read_offset + 0x4, m_partition).value_or(0);
+    const u32 size = m_rVolume->ReadSwapped<u32>(read_offset + 0x8, m_partition).value_or(0);
+    const std::string name = GetStringFromOffset(NameTableOffset + (name_offset & 0xFFFFFF));
+    m_FileInfoVector.emplace_back(
+        name_offset, static_cast<u64>(offset) << (m_offset_shift * !(name_offset & 0xFF000000)),
+        size, name);
   }
-
-  BuildFilenames(1, m_FileInfoVector.size(), "", NameTableOffset);
-}
-
-size_t FileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex,
-                                       const std::string& _szDirectory, u64 _NameTableOffset)
-{
-  size_t CurrentIndex = _FirstIndex;
-
-  while (CurrentIndex < _LastIndex)
-  {
-    FileInfoGCWii& rFileInfo = m_FileInfoVector[CurrentIndex];
-    u64 const uOffset = _NameTableOffset + (rFileInfo.m_NameOffset & 0xFFFFFF);
-    std::string const offset_str{GetStringFromOffset(uOffset)};
-    bool const is_dir = rFileInfo.IsDirectory();
-    rFileInfo.m_FullPath.reserve(_szDirectory.size() + offset_str.size());
-
-    rFileInfo.m_FullPath.append(_szDirectory.data(), _szDirectory.size())
-        .append(offset_str.data(), offset_str.size())
-        .append("/", size_t(is_dir));
-
-    if (!is_dir)
-    {
-      ++CurrentIndex;
-      continue;
-    }
-
-    // check next index
-    CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t)rFileInfo.GetSize(),
-                                  rFileInfo.m_FullPath, _NameTableOffset);
-  }
-
-  return CurrentIndex;
 }
 
 }  // namespace

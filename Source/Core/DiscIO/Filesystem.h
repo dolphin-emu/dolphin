@@ -28,6 +28,7 @@ public:
   // Not guaranteed to return a meaningful value for directories
   virtual u64 GetSize() const = 0;
   virtual bool IsDirectory() const = 0;
+  virtual const std::string& GetName() const = 0;
 };
 
 class FileSystem
@@ -45,7 +46,8 @@ public:
   virtual bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename) = 0;
   virtual bool ExportApploader(const std::string& _rExportFolder) const = 0;
   virtual bool ExportDOL(const std::string& _rExportFolder) const = 0;
-  virtual std::string GetFileName(u64 _Address) = 0;
+  virtual std::string GetPath(u64 _Address) = 0;
+  virtual std::string GetPathFromFSTOffset(size_t file_info_offset) = 0;
   virtual std::optional<u64> GetBootDOLOffset() const = 0;
   virtual std::optional<u32> GetBootDOLSize(u64 dol_offset) const = 0;
 
