@@ -42,12 +42,34 @@ FileSystemGCWii::~FileSystemGCWii()
   m_FileInfoVector.clear();
 }
 
+const std::vector<FileInfoGCWii>& FileSystemGCWii::GetFileList()
+{
+  if (!m_Initialized)
+    InitFileSystem();
+
+  return m_FileInfoVector;
+}
+
+const FileInfo* FileSystemGCWii::FindFileInfo(const std::string& _rFullPath)
+{
+  if (!m_Initialized)
+    InitFileSystem();
+
+  for (size_t i = 0; i < m_FileInfoVector.size(); ++i)
+  {
+    if (!strcasecmp(GetPathFromFSTOffset(i).c_str(), _rFullPath.c_str()))
+      return &m_FileInfoVector[i];
+  }
+
+  return nullptr;
+}
+
 u64 FileSystemGCWii::GetFileSize(const std::string& _rFullPath)
 {
   if (!m_Initialized)
     InitFileSystem();
 
-  const FileInfoGCWii* pFileInfo = FindFileInfo(_rFullPath);
+  const FileInfo* pFileInfo = FindFileInfo(_rFullPath);
 
   if (pFileInfo != nullptr && !pFileInfo->IsDirectory())
     return pFileInfo->GetSize();
@@ -119,7 +141,7 @@ u64 FileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _
   if (!m_Initialized)
     InitFileSystem();
 
-  const FileInfoGCWii* pFileInfo = FindFileInfo(_rFullPath);
+  const FileInfo* pFileInfo = FindFileInfo(_rFullPath);
   if (pFileInfo == nullptr)
     return 0;
 
@@ -142,7 +164,7 @@ bool FileSystemGCWii::ExportFile(const std::string& _rFullPath, const std::strin
   if (!m_Initialized)
     InitFileSystem();
 
-  const FileInfoGCWii* pFileInfo = FindFileInfo(_rFullPath);
+  const FileInfo* pFileInfo = FindFileInfo(_rFullPath);
 
   if (!pFileInfo)
     return false;
@@ -274,28 +296,6 @@ std::string FileSystemGCWii::GetStringFromOffset(u64 _Offset) const
   // TODO: Should we really always use SHIFT-JIS?
   // It makes some filenames in Pikmin (NTSC-U) sane, but is it correct?
   return SHIFTJISToUTF8(data);
-}
-
-const std::vector<FileInfoGCWii>& FileSystemGCWii::GetFileList()
-{
-  if (!m_Initialized)
-    InitFileSystem();
-
-  return m_FileInfoVector;
-}
-
-const FileInfoGCWii* FileSystemGCWii::FindFileInfo(const std::string& _rFullPath)
-{
-  if (!m_Initialized)
-    InitFileSystem();
-
-  for (size_t i = 0; i < m_FileInfoVector.size(); ++i)
-  {
-    if (!strcasecmp(GetPathFromFSTOffset(i).c_str(), _rFullPath.c_str()))
-      return &m_FileInfoVector[i];
-  }
-
-  return nullptr;
 }
 
 bool FileSystemGCWii::DetectFileSystem()

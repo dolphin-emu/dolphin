@@ -42,8 +42,9 @@ public:
   FileSystemGCWii(const Volume* _rVolume, const Partition& partition);
   ~FileSystemGCWii() override;
   bool IsValid() const override { return m_Valid; }
-  u64 GetFileSize(const std::string& _rFullPath) override;
   const std::vector<FileInfoGCWii>& GetFileList() override;
+  const FileInfo* FindFileInfo(const std::string& path) override;
+  u64 GetFileSize(const std::string& _rFullPath) override;
   std::string GetPath(u64 _Address) override;
   std::string GetPathFromFSTOffset(size_t file_info_offset) override;
   u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize,
@@ -61,7 +62,6 @@ private:
   std::vector<FileInfoGCWii> m_FileInfoVector;
 
   std::string GetStringFromOffset(u64 _Offset) const;
-  const FileInfoGCWii* FindFileInfo(const std::string& _rFullPath);
   bool DetectFileSystem();
   void InitFileSystem();
 };
