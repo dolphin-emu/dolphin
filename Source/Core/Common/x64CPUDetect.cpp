@@ -61,7 +61,6 @@ CPUInfo::CPUInfo()
 // Detects the various CPU features
 void CPUInfo::Detect()
 {
-	memset(this, 0, sizeof(*this));
 #ifdef _M_X86_64
 	Mode64bit = true;
 	OS64bit = true;
@@ -79,7 +78,6 @@ void CPUInfo::Detect()
 	// Assume CPU supports the CPUID instruction. Those that don't can barely
 	// boot modern OS:es anyway.
 	int cpu_id[4];
-	memset(brand_string, 0, sizeof(brand_string));
 
 	// Detect CPU's CPUID capabilities, and grab CPU string
 	__cpuid(cpu_id, 0x00000000);
