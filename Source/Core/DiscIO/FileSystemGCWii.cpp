@@ -55,10 +55,65 @@ const FileInfo* FileSystemGCWii::FindFileInfo(const std::string& path)
   if (!m_Initialized)
     InitFileSystem();
 
-  for (size_t i = 0; i < m_FileInfoVector.size(); ++i)
+  return FindFileInfo(path, 0);
+}
+
+const FileInfo* FileSystemGCWii::FindFileInfo(const std::string& path,
+                                              size_t search_start_offset) const
+{
+  // Given a path like "directory1/directory2/fileA.bin", this function will
+  // find directory1 and then call itself to search for "directory2/fileA.bin".
+
+  if (path.empty() || path == "/")
+    return &m_FileInfoVector[search_start_offset];
+
+  // It's only possible to search in directories. Searching in a file is an error
+  if (!m_FileInfoVector[search_start_offset].IsDirectory())
+    return nullptr;
+
+  size_t first_dir_separator = path.find('/');
+  const std::string searching_for = path.substr(0, first_dir_separator);
+  const std::string rest_of_path =
+      (first_dir_separator != std::string::npos) ? path.substr(first_dir_separator + 1) : "";
+
+  size_t search_end_offset = m_FileInfoVector[search_start_offset].GetSize();
+  search_start_offset++;
+  while (search_start_offset < search_end_offset)
   {
-    if (!strcasecmp(GetPathFromFSTOffset(i).c_str(), path.c_str()))
-      return &m_FileInfoVector[i];
+    const FileInfoGCWii& file_info = m_FileInfoVector[search_start_offset];
+
+    if (file_info.GetName() == searching_for)
+    {
+      // A match is found. The rest of the path is passed on to finish the search.
+      const FileInfo* result = FindFileInfo(rest_of_path, search_start_offset);
+
+      // If the search wasn't successful, the loop continues, just in case there's a second
+      // file info that matches searching_for (which probably won't happen in practice)
+      if (result)
+        return result;
+    }
+
+    if (file_info.IsDirectory())
+    {
+      // Skip a directory and everything that it contains
+
+      if (file_info.GetSize() <= search_start_offset)
+      {
+        // The next offset (obtained by GetSize) is supposed to be larger than
+        // the current offset. If an FST is malformed and breaks that rule,
+        // there's a risk that next offset pointers form a loop.
+        // To avoid infinite loops, this method returns.
+        ERROR_LOG(DISCIO, "Invalid next offset in file system");
+        return nullptr;
+      }
+
+      search_start_offset = file_info.GetSize();
+    }
+    else
+    {
+      // Skip a single file
+      search_start_offset++;
+    }
   }
 
   return nullptr;
