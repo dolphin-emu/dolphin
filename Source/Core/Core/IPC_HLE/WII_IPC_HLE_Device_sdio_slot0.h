@@ -18,7 +18,7 @@ public:
 
 	CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName);
 
-	virtual void DoState(PointerWrap& p) override;
+	void DoState(PointerWrap& p) override;
 
 	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
 	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;

@@ -38,13 +38,13 @@ public:
 	CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName);
 	virtual ~CWII_IPC_HLE_Device_fs();
 
-	virtual void DoState(PointerWrap& p) override;
+	void DoState(PointerWrap& p) override;
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
-	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
 private:
 

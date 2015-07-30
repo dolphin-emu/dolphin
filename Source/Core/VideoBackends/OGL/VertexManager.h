@@ -17,8 +17,8 @@ namespace OGL
 		GLVertexFormat();
 		~GLVertexFormat();
 
-		virtual void Initialize(const PortableVertexDeclaration &_vtx_decl) override;
-		virtual void SetupVertexPointers() override;
+		void Initialize(const PortableVertexDeclaration &_vtx_decl) override;
+		void SetupVertexPointers() override;
 
 		GLuint VAO;
 	};
@@ -39,7 +39,7 @@ public:
 	GLuint m_index_buffers;
 	GLuint m_last_vao;
 protected:
-	virtual void ResetBuffer(u32 stride) override;
+	void ResetBuffer(u32 stride) override;
 
 private:
 	void Draw(u32 stride);

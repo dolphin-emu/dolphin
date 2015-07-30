@@ -20,7 +20,7 @@ public:
 	void DestroyDeviceObjects() override;
 
 protected:
-	virtual void ResetBuffer(u32 stride) override;
+	void ResetBuffer(u32 stride) override;
 	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
 
 private:
