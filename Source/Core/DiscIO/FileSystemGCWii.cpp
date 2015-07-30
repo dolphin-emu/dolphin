@@ -22,8 +22,8 @@
 
 namespace DiscIO
 {
-FileInfoGCWii::FileInfoGCWii(u64 name_offset, u64 offset, u64 file_size, std::string name)
-    : m_NameOffset(name_offset), m_Offset(offset), m_FileSize(file_size), m_Name(name)
+FileInfoGCWii::FileInfoGCWii(u8 offset_shift, const u8* fst_entry, const u8* name_table_start)
+    : m_offset_shift(offset_shift), m_fst_entry(fst_entry), m_name_table_start(name_table_start)
 {
 }
 
@@ -31,8 +31,36 @@ FileInfoGCWii::~FileInfoGCWii()
 {
 }
 
+u32 FileInfoGCWii::Get(EntryProperty entry_property) const
+{
+  return Common::swap32(m_fst_entry + sizeof(u32) * static_cast<int>(entry_property));
+}
+
+u32 FileInfoGCWii::GetSize() const
+{
+  return Get(EntryProperty::FILE_SIZE);
+}
+
+u64 FileInfoGCWii::GetOffset() const
+{
+  return static_cast<u64>(Get(EntryProperty::FILE_OFFSET)) << (IsDirectory() ? 0 : m_offset_shift);
+}
+
+bool FileInfoGCWii::IsDirectory() const
+{
+  return (Get(EntryProperty::NAME_OFFSET) & 0xFF000000) != 0;
+}
+
+std::string FileInfoGCWii::GetName() const
+{
+  // TODO: Should we really always use SHIFT-JIS?
+  // Some names in Pikmin (NTSC-U) don't make sense without it, but is it correct?
+  const u8* name = m_name_table_start + (Get(EntryProperty::NAME_OFFSET) & 0xFFFFFF);
+  return SHIFTJISToUTF8(reinterpret_cast<const char*>(name));
+}
+
 FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partition)
-  : FileSystem(_rVolume, partition), m_Initialized(false), m_Valid(false), m_offset_shift(0)
+    : FileSystem(_rVolume, partition), m_Initialized(false), m_Valid(false), m_offset_shift(0)
 {
   m_Valid = DetectFileSystem();
 }
@@ -54,6 +82,9 @@ const FileInfo* FileSystemGCWii::FindFileInfo(const std::string& path)
 {
   if (!m_Initialized)
     InitFileSystem();
+
+  if (m_FileInfoVector.empty())
+    return nullptr;
 
   return FindFileInfo(path, 0);
 }
@@ -209,7 +240,7 @@ u64 FileSystemGCWii::ReadFile(const FileInfo* file_info, u8* _pBuffer, u64 _MaxB
   u64 read_length = std::min(_MaxBufferSize, file_info->GetSize() - _OffsetInFile);
 
   DEBUG_LOG(DISCIO, "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
-                    " Size: %" PRIx64,
+                    " Size: %" PRIx32,
             read_length, _OffsetInFile, GetPath(file_info->GetOffset()).c_str(),
             file_info->GetOffset(), file_info->GetSize());
 
@@ -343,17 +374,6 @@ bool FileSystemGCWii::ExportDOL(const std::string& _rExportFolder) const
   return false;
 }
 
-std::string FileSystemGCWii::GetStringFromOffset(u64 _Offset) const
-{
-  std::string data(255, 0x00);
-  m_rVolume->Read(_Offset, data.size(), (u8*)&data[0], m_partition);
-  data.erase(std::find(data.begin(), data.end(), 0x00), data.end());
-
-  // TODO: Should we really always use SHIFT-JIS?
-  // It makes some filenames in Pikmin (NTSC-U) sane, but is it correct?
-  return SHIFTJISToUTF8(data);
-}
-
 bool FileSystemGCWii::DetectFileSystem()
 {
   if (m_rVolume->ReadSwapped<u32>(0x18, m_partition) == u32(0x5D1C9EA3))
@@ -374,52 +394,41 @@ void FileSystemGCWii::InitFileSystem()
 {
   m_Initialized = true;
 
-  // read the whole FST
   const std::optional<u32> fst_offset_unshifted = m_rVolume->ReadSwapped<u32>(0x424, m_partition);
-  if (!fst_offset_unshifted)
+  const std::optional<u32> fst_size_unshifted = m_rVolume->ReadSwapped<u32>(0x428, m_partition);
+  if (!fst_offset_unshifted || !fst_size_unshifted)
     return;
-  const u64 FSTOffset = static_cast<u64>(*fst_offset_unshifted) << m_offset_shift;
-
-  // read all fileinfos
-  const std::optional<u32> root_name_offset = m_rVolume->ReadSwapped<u32>(FSTOffset, m_partition);
-  const std::optional<u32> root_offset = m_rVolume->ReadSwapped<u32>(FSTOffset + 0x4, m_partition);
-  const std::optional<u32> root_size = m_rVolume->ReadSwapped<u32>(FSTOffset + 0x8, m_partition);
-  if (!root_name_offset || !root_offset || !root_size)
-    return;
-  FileInfoGCWii root(*root_name_offset, static_cast<u64>(*root_offset) << m_offset_shift,
-                     *root_size, "");
-
-  if (!root.IsDirectory())
+  const u64 fst_offset = static_cast<u64>(*fst_offset_unshifted) << m_offset_shift;
+  const u64 fst_size = static_cast<u64>(*fst_size_unshifted) << m_offset_shift;
+  if (fst_size < 0xC)
     return;
 
-  // 12 bytes (the size of a file entry) times 10 * 1024 * 1024 is 120 MiB,
-  // more than total RAM in a Wii. No file system should use anywhere near that much.
-  static const u32 ARBITRARY_FILE_SYSTEM_SIZE_LIMIT = 10 * 1024 * 1024;
-  if (root.GetSize() > ARBITRARY_FILE_SYSTEM_SIZE_LIMIT)
+  // 128 MiB is more than the total amount of RAM in a Wii.
+  // No file system should use anywhere near that much.
+  static const u32 ARBITRARY_FILE_SYSTEM_SIZE_LIMIT = 128 * 1024 * 1024;
+  if (fst_size > ARBITRARY_FILE_SYSTEM_SIZE_LIMIT)
   {
     // Without this check, Dolphin can crash by trying to allocate too much
-    // memory when loading the file systems of certain malformed disc images.
+    // memory when loading a disc image with an incorrect FST size.
 
     ERROR_LOG(DISCIO, "File system is abnormally large! Aborting loading");
     return;
   }
 
-  if (m_FileInfoVector.size())
-    PanicAlert("Wtf?");
-  u64 NameTableOffset = FSTOffset + (root.GetSize() * 0xC);
+  // Read the whole FST
+  m_file_system_table.resize(fst_size);
+  if (!m_rVolume->Read(fst_offset, fst_size, m_file_system_table.data(), m_partition))
+    return;
 
-  m_FileInfoVector.reserve((size_t)root.GetSize());
-  for (u32 i = 0; i < root.GetSize(); i++)
-  {
-    const u64 read_offset = FSTOffset + (i * 0xC);
-    const u32 name_offset = m_rVolume->ReadSwapped<u32>(read_offset, m_partition).value_or(0);
-    const u32 offset = m_rVolume->ReadSwapped<u32>(read_offset + 0x4, m_partition).value_or(0);
-    const u32 size = m_rVolume->ReadSwapped<u32>(read_offset + 0x8, m_partition).value_or(0);
-    const std::string name = GetStringFromOffset(NameTableOffset + (name_offset & 0xFFFFFF));
-    m_FileInfoVector.emplace_back(
-        name_offset, static_cast<u64>(offset) << (m_offset_shift * !(name_offset & 0xFF000000)),
-        size, name);
-  }
+  // Create all file info objects
+  u32 number_of_file_infos = Common::swap32(*((u32*)m_file_system_table.data() + 2));
+  const u8* fst_start = m_file_system_table.data();
+  const u8* name_table_start = fst_start + (number_of_file_infos * 0xC);
+  const u8* name_table_end = fst_start + fst_size;
+  if (name_table_end < name_table_start)
+    return;
+  for (u32 i = 0; i < number_of_file_infos; i++)
+    m_FileInfoVector.emplace_back(m_offset_shift, fst_start + (i * 0xC), name_table_start);
 }
 
 }  // namespace

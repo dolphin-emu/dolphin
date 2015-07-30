@@ -20,20 +20,29 @@ struct Partition;
 class FileInfoGCWii : public FileInfo
 {
 public:
-  FileInfoGCWii(u64 name_offset, u64 offset, u64 file_size, std::string name);
+  // Does not take ownership of pointers
+  FileInfoGCWii(u8 offset_shift, const u8* fst_entry, const u8* name_table_start);
+
   ~FileInfoGCWii() override;
 
-  u64 GetOffset() const override { return m_Offset; }
-  u64 GetSize() const override { return m_FileSize; }
-  bool IsDirectory() const override { return (m_NameOffset & 0xFF000000) != 0; }
-  const std::string& GetName() const override { return m_Name; }
-  // TODO: These shouldn't be public
-  std::string m_Name;
-  const u64 m_NameOffset = 0u;
+  u64 GetOffset() const override;
+  u32 GetSize() const override;
+  bool IsDirectory() const override;
+  std::string GetName() const override;
 
 private:
-  const u64 m_Offset = 0u;
-  const u64 m_FileSize = 0u;
+  enum class EntryProperty
+  {
+    NAME_OFFSET = 0,
+    FILE_OFFSET = 1,
+    FILE_SIZE = 2
+  };
+
+  u32 Get(EntryProperty entry_property) const;
+
+  const u8 m_offset_shift;
+  const u8* const m_fst_entry;
+  const u8* const m_name_table_start;
 };
 
 class FileSystemGCWii : public FileSystem
@@ -60,9 +69,9 @@ private:
   bool m_Valid;
   u32 m_offset_shift;
   std::vector<FileInfoGCWii> m_FileInfoVector;
+  std::vector<u8> m_file_system_table;
 
   const FileInfo* FindFileInfo(const std::string& path, size_t search_start_offset) const;
-  std::string GetStringFromOffset(u64 _Offset) const;
   bool DetectFileSystem();
   void InitFileSystem();
 };
