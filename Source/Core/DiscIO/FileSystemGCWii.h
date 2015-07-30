@@ -60,6 +60,7 @@ private:
   u32 m_offset_shift;
   std::vector<FileInfoGCWii> m_FileInfoVector;
 
+  const FileInfo* FindFileInfo(const std::string& path, size_t search_start_offset) const;
   std::string GetStringFromOffset(u64 _Offset) const;
   bool DetectFileSystem();
   void InitFileSystem();
