@@ -24,9 +24,9 @@ public:
   // Not guaranteed to return a meaningful value for directories
   virtual u64 GetOffset() const = 0;
   // Not guaranteed to return a meaningful value for directories
-  virtual u64 GetSize() const = 0;
+  virtual u32 GetSize() const = 0;
   virtual bool IsDirectory() const = 0;
-  virtual const std::string& GetName() const = 0;
+  virtual std::string GetName() const = 0;
 };
 
 class FileSystem
