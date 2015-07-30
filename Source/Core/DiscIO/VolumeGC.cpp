@@ -207,8 +207,11 @@ void CVolumeGC::LoadBannerFile() const
 
   GCBanner banner_file;
   std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
-  size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
+  const IFileInfo* file_info = file_system->FindFileInfo("opening.bnr");
+  if (!file_info)
+    return;
 
+  size_t file_size = (size_t)file_info->GetSize();
   constexpr int BNR1_MAGIC = 0x31524e42;
   constexpr int BNR2_MAGIC = 0x32524e42;
   if (file_size != BNR1_SIZE && file_size != BNR2_SIZE)
@@ -217,7 +220,11 @@ void CVolumeGC::LoadBannerFile() const
     return;
   }
 
-  file_system->ReadFile("opening.bnr", reinterpret_cast<u8*>(&banner_file), file_size);
+  if (file_size != file_system->ReadFile(file_info, reinterpret_cast<u8*>(&banner_file), file_size))
+  {
+    WARN_LOG(DISCIO, "Could not read opening.bnr.");
+    return;
+  }
 
   bool is_bnr1;
   if (banner_file.id == BNR1_MAGIC && file_size == BNR1_SIZE)

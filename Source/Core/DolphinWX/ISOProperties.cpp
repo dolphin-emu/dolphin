@@ -782,6 +782,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED(event))
     m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
   }
 
+  DiscIO::IFileSystem* file_system;
   if (m_open_iso->GetVolumeType() == DiscIO::IVolume::WII_DISC)
   {
     const wxTreeItemId tree_selection = m_Treectrl->GetSelection();
@@ -789,12 +790,14 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED(event))
         reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(tree_selection));
     File.erase(0, m_Treectrl->GetItemText(tree_selection).length() + 1);  // Remove "Partition x/"
 
-    partition->FileSystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
+    file_system = partition->FileSystem.get();
   }
   else
   {
-    m_filesystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
+    file_system = m_filesystem.get();
   }
+
+  file_system->ExportFile(file_system->FindFileInfo(WxStrToStr(File)), WxStrToStr(Path));
 }
 
 void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder,
@@ -822,6 +825,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
   else
   {
     // Look for the dir we are going to extract
+    // TODO: Make this more efficient
     for (index = 0; index != fst.size(); ++index)
     {
       if (fs->GetPathFromFSTOffset(index) == _rFullPath)
@@ -878,7 +882,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
           StringFromFormat("%s/%s", _rExportFolder.c_str(), path.c_str());
       DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
-      if (!File::Exists(exportName) && !fs->ExportFile(path, exportName))
+      if (!File::Exists(exportName) && !fs->ExportFile(&fst[index], exportName))
       {
         ERROR_LOG(DISCIO, "Could not export %s", exportName.c_str());
       }

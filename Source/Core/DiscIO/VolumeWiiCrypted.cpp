@@ -242,8 +242,9 @@ std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetLongNames() cons
 {
   std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
   std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
+  const IFileInfo* file_info = file_system->FindFileInfo("opening.bnr");
   opening_bnr.resize(
-      file_system->ReadFile("opening.bnr", opening_bnr.data(), opening_bnr.size(), 0x5C));
+      file_system->ReadFile(file_info, opening_bnr.data(), opening_bnr.size(), 0x5C));
   return ReadWiiNames(opening_bnr);
 }
 
