@@ -58,6 +58,7 @@ private:
   bool m_Wii;
   std::vector<CFileInfoGCWii> m_FileInfoVector;
 
+  const IFileInfo* FindFileInfo(const std::string& path, size_t search_start_offset) const;
   std::string GetStringFromOffset(u64 _Offset) const;
   bool DetectFileSystem();
   void InitFileSystem();

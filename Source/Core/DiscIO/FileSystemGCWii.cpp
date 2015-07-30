@@ -38,24 +38,89 @@ CFileSystemGCWii::~CFileSystemGCWii()
 
 const std::vector<CFileInfoGCWii>& CFileSystemGCWii::GetFileList()
 {
-	if (!m_Initialized)
-		InitFileSystem();
+  if (!m_Initialized)
+    InitFileSystem();
 
-	return m_FileInfoVector;
+  return m_FileInfoVector;
 }
 
 const IFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& path)
 {
-	if (!m_Initialized)
-		InitFileSystem();
+  if (!m_Initialized)
+    InitFileSystem();
 
-	for (size_t i = 0; i < m_FileInfoVector.size(); ++i)
-	{
-		if (!strcasecmp(GetPathFromFSTOffset(i).c_str(), path.c_str()))
-			return &m_FileInfoVector[i];
-	}
+  return FindFileInfo(path, 0);
+}
 
-	return nullptr;
+const IFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& path,
+                                                size_t search_start_offset) const
+{
+  // Given a path like "directory1/directory2/fileA.bin", this method will
+  // find directory1 and then call itself to search for "directory2/fileA.bin".
+
+  // If there's nothing left to search for, return the current entry
+  if (path.empty())
+    return &m_FileInfoVector[search_start_offset];
+
+  // It's only possible to search in directories. Searching in a file is an error
+  if (!m_FileInfoVector[search_start_offset].IsDirectory())
+    return nullptr;
+
+  std::string searching_for;
+  std::string rest_of_path;
+  size_t first_dir_separator = path.find('/');
+  if (first_dir_separator != std::string::npos)
+  {
+    searching_for = path.substr(0, first_dir_separator);
+    rest_of_path = path.substr(first_dir_separator + 1);
+  }
+  else
+  {
+    searching_for = path;
+    rest_of_path = "";
+  }
+
+  size_t search_end_offset = m_FileInfoVector[search_start_offset].GetSize();
+  search_start_offset++;
+  while (search_start_offset < search_end_offset)
+  {
+    const CFileInfoGCWii& file_info = m_FileInfoVector[search_start_offset];
+
+    if (file_info.GetName() == searching_for)
+    {
+      // A match is found. The rest of the path is passed on to finish the search.
+      const IFileInfo* result = FindFileInfo(rest_of_path, search_start_offset);
+
+      // If the search wasn't sucessful, the loop continues. It's possible
+      // but unlikely that there's a second file info that matches searching_for.
+      if (result)
+        return result;
+    }
+
+    if (file_info.IsDirectory())
+    {
+      // Skip a directory and everything that it contains
+
+      if (file_info.GetSize() <= search_start_offset)
+      {
+        // The next offset (obtained by GetSize) is supposed to be larger than
+        // the current offset. If an FST is malformed and breaks that rule,
+        // there's a risk that next offset pointers form a loop.
+        // To avoid infinite loops, this method returns.
+        ERROR_LOG(DISCIO, "Invalid next offset in file system");
+        return nullptr;
+      }
+
+      search_start_offset = file_info.GetSize();
+    }
+    else
+    {
+      // Skip a single file
+      search_start_offset++;
+    }
+  }
+
+  return nullptr;
 }
 
 const IFileInfo* CFileSystemGCWii::FindFileInfo(u64 disc_offset)
