@@ -44,12 +44,12 @@ public:
   bool IsValid() const override { return m_Valid; }
   const std::vector<FileInfoGCWii>& GetFileList() override;
   const FileInfo* FindFileInfo(const std::string& path) override;
-  u64 GetFileSize(const std::string& _rFullPath) override;
+  const FileInfo* FindFileInfo(u64 disc_offset) override;
   std::string GetPath(u64 _Address) override;
   std::string GetPathFromFSTOffset(size_t file_info_offset) override;
-  u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize,
+  u64 ReadFile(const FileInfo* file_info, u8* _pBuffer, u64 _MaxBufferSize,
                u64 _OffsetInFile) override;
-  bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename) override;
+  bool ExportFile(const FileInfo* file_info, const std::string& _rExportFilename) override;
   bool ExportApploader(const std::string& _rExportFolder) const override;
   bool ExportDOL(const std::string& _rExportFolder) const override;
   std::optional<u64> GetBootDOLOffset() const override;

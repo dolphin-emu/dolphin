@@ -405,12 +405,14 @@ void FilesystemPanel::ExtractSingleFile(const wxString& output_file_path) const
     // Remove "Partition x/"
     selection_file_path.erase(0, slash_index + 1);
 
-    partition->filesystem->ExportFile(WxStrToStr(selection_file_path),
-                                      WxStrToStr(output_file_path));
+    partition->filesystem->ExportFile(
+        partition->filesystem->FindFileInfo(WxStrToStr(selection_file_path)),
+        WxStrToStr(output_file_path));
   }
   else
   {
-    m_filesystem->ExportFile(WxStrToStr(selection_file_path), WxStrToStr(output_file_path));
+    m_filesystem->ExportFile(m_filesystem->FindFileInfo(WxStrToStr(selection_file_path)),
+                             WxStrToStr(output_file_path));
   }
 }
 
@@ -456,6 +458,7 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
   else
   {
     // Look for the dir we are going to extract
+    // TODO: Make this more efficient
     for (index = 0; index < fst.size(); ++index)
     {
       if (filesystem->GetPathFromFSTOffset(index) == full_path)
@@ -513,7 +516,7 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
           StringFromFormat("%s/%s", output_folder.c_str(), path.c_str());
       INFO_LOG(DISCIO, "%s", export_name.c_str());
 
-      if (!File::Exists(export_name) && !filesystem->ExportFile(path, export_name))
+      if (!File::Exists(export_name) && !filesystem->ExportFile(&fst[index], export_name))
       {
         ERROR_LOG(DISCIO, "Could not export %s", export_name.c_str());
       }
