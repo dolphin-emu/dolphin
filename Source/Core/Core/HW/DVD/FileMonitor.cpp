@@ -88,18 +88,19 @@ void Log(u64 offset, const DiscIO::Partition& partition)
   if (!s_filesystem)
     return;
 
-  const std::string path = s_filesystem->GetPath(offset);
+  const DiscIO::FileInfo* file_info = s_filesystem->FindFileInfo(offset);
 
   // Do nothing if no file was found at that offset
-  if (path.empty())
+  if (!file_info)
     return;
+
+  const std::string path = s_filesystem->GetPath(file_info->GetOffset());
 
   // Do nothing if we found the same file again
   if (s_previous_file == path)
     return;
 
-  const u64 size = s_filesystem->GetFileSize(path);
-  const std::string size_string = ThousandSeparate(size / 1000, 7);
+  const std::string size_string = ThousandSeparate(file_info->GetSize() / 1000, 7);
 
   const std::string log_string = StringFromFormat("%s kB %s", size_string.c_str(), path.c_str());
   if (IsSoundFile(path))
