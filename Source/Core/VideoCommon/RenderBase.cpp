@@ -46,7 +46,6 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-
 // TODO: Move these out of here.
 int frameCount;
 int OSDChoice;
@@ -478,17 +477,18 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
 	float Ratio;
 	switch (g_ActiveConfig.iAspectRatio)
-		{
-	case ASPECT_ANALOG_WIDE:
-		Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(true);
-		break;
-	case ASPECT_ANALOG:
-		Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(false);
-		break;
-	default:
-		Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(g_aspect_wide);
-		break;
+	{
+		case ASPECT_ANALOG_WIDE:
+			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(true);
+			break;
+		case ASPECT_ANALOG:
+			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(false);
+			break;
+		default:
+			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(g_aspect_wide);
+			break;
 	}
+
 	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
 	{
 		if (Ratio > 1.0f)

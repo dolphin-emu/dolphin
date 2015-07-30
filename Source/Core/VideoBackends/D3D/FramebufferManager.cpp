@@ -56,11 +56,11 @@ FramebufferManager::FramebufferManager()
 {
 	m_target_width = Renderer::GetTargetWidth();
 	m_target_height = Renderer::GetTargetHeight();
-	if(m_target_height < 1)
+	if (m_target_height < 1)
 	{
 		m_target_height = 1;
 	}
-	if(m_target_width < 1)
+	if (m_target_width < 1)
 	{
 		m_target_width = 1;
 	}

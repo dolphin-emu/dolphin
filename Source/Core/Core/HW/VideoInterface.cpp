@@ -477,11 +477,11 @@ float GetAspectRatio(bool wide)
 	{
 		if (wide)
 		{
-			return 16.0f/9.0f;
+			return 16.0f / 9.0f;
 		}
 		else
 		{
-			return 4.0f/3.0f;
+			return 4.0f / 3.0f;
 		}
 	}
 	return ((float)width / (float)height) * pixelAR;
