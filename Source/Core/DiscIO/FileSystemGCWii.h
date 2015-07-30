@@ -18,19 +18,22 @@ class IVolume;
 class CFileInfoGCWii : public IFileInfo
 {
 public:
-  CFileInfoGCWii(u64 name_offset, u64 offset, u64 file_size, std::string name);
+  // Does not take ownership of pointers
+  CFileInfoGCWii(bool wii, const u8* fst_entry, const u8* name_table_start);
 
-  u64 GetOffset() const override { return m_Offset; }
-  u64 GetSize() const override { return m_FileSize; }
-  bool IsDirectory() const override { return (m_NameOffset & 0xFF000000) != 0; }
-  const std::string& GetName() const override { return m_Name; }
-  // TODO: These shouldn't be public
-  std::string m_Name;
-  const u64 m_NameOffset = 0u;
+  u64 GetOffset() const override;
+  u32 GetSize() const override;
+  bool IsDirectory() const override;
+  std::string GetName() const override;
 
 private:
-  const u64 m_Offset = 0u;
-  const u64 m_FileSize = 0u;
+  u32 Get(int n) const;
+  u32 GetRawNameOffset() const;
+  u32 GetRawOffset() const;
+
+  const bool m_wii;
+  const u8* const m_fst_entry;
+  const u8* const m_name_table_start;
 };
 
 class CFileSystemGCWii : public IFileSystem
@@ -57,9 +60,9 @@ private:
   bool m_Valid;
   bool m_Wii;
   std::vector<CFileInfoGCWii> m_FileInfoVector;
+  std::vector<u8> m_file_system_table;
 
   const IFileInfo* FindFileInfo(const std::string& path, size_t search_start_offset) const;
-  std::string GetStringFromOffset(u64 _Offset) const;
   bool DetectFileSystem();
   void InitFileSystem();
   u32 GetOffsetShift() const;
