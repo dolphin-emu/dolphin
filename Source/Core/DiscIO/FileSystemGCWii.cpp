@@ -46,31 +46,35 @@ const std::vector<FileInfoGCWii>& FileSystemGCWii::GetFileList()
   return m_FileInfoVector;
 }
 
-const FileInfo* FileSystemGCWii::FindFileInfo(const std::string& _rFullPath)
+const FileInfo* FileSystemGCWii::FindFileInfo(const std::string& path)
 {
   if (!m_Initialized)
     InitFileSystem();
 
   for (size_t i = 0; i < m_FileInfoVector.size(); ++i)
   {
-    if (!strcasecmp(GetPathFromFSTOffset(i).c_str(), _rFullPath.c_str()))
+    if (!strcasecmp(GetPathFromFSTOffset(i).c_str(), path.c_str()))
       return &m_FileInfoVector[i];
   }
 
   return nullptr;
 }
 
-u64 FileSystemGCWii::GetFileSize(const std::string& _rFullPath)
+const FileInfo* FileSystemGCWii::FindFileInfo(u64 disc_offset)
 {
   if (!m_Initialized)
     InitFileSystem();
 
-  const FileInfo* pFileInfo = FindFileInfo(_rFullPath);
+  for (auto& file_info : m_FileInfoVector)
+  {
+    if ((file_info.GetOffset() <= disc_offset) &&
+        ((file_info.GetOffset() + file_info.GetSize()) > disc_offset))
+    {
+      return &file_info;
+    }
+  }
 
-  if (pFileInfo != nullptr && !pFileInfo->IsDirectory())
-    return pFileInfo->GetSize();
-
-  return 0;
+  return nullptr;
 }
 
 std::string FileSystemGCWii::GetPath(u64 _Address)
@@ -131,42 +135,39 @@ std::string FileSystemGCWii::GetPathFromFSTOffset(size_t file_info_offset)
   }
 }
 
-u64 FileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize,
+u64 FileSystemGCWii::ReadFile(const FileInfo* file_info, u8* _pBuffer, u64 _MaxBufferSize,
                               u64 _OffsetInFile)
 {
   if (!m_Initialized)
     InitFileSystem();
 
-  const FileInfo* pFileInfo = FindFileInfo(_rFullPath);
-  if (pFileInfo == nullptr)
+  if (!file_info || file_info->IsDirectory())
     return 0;
 
-  if (_OffsetInFile >= pFileInfo->GetSize())
+  if (_OffsetInFile >= file_info->GetSize())
     return 0;
 
-  u64 read_length = std::min(_MaxBufferSize, pFileInfo->GetSize() - _OffsetInFile);
+  u64 read_length = std::min(_MaxBufferSize, file_info->GetSize() - _OffsetInFile);
 
-  DEBUG_LOG(
-      DISCIO,
-      "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64 " Size: %" PRIx64,
-      read_length, _OffsetInFile, _rFullPath.c_str(), pFileInfo->GetOffset(), pFileInfo->GetSize());
+  DEBUG_LOG(DISCIO, "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
+                    " Size: %" PRIx64,
+            read_length, _OffsetInFile, GetPath(file_info->GetOffset()).c_str(),
+            file_info->GetOffset(), file_info->GetSize());
 
-  m_rVolume->Read(pFileInfo->GetOffset() + _OffsetInFile, read_length, _pBuffer, m_partition);
+  m_rVolume->Read(file_info->GetOffset() + _OffsetInFile, read_length, _pBuffer, m_partition);
   return read_length;
 }
 
-bool FileSystemGCWii::ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename)
+bool FileSystemGCWii::ExportFile(const FileInfo* file_info, const std::string& _rExportFilename)
 {
   if (!m_Initialized)
     InitFileSystem();
 
-  const FileInfo* pFileInfo = FindFileInfo(_rFullPath);
-
-  if (!pFileInfo)
+  if (!file_info || file_info->IsDirectory())
     return false;
 
-  u64 remainingSize = pFileInfo->GetSize();
-  u64 fileOffset = pFileInfo->GetOffset();
+  u64 remainingSize = file_info->GetSize();
+  u64 fileOffset = file_info->GetOffset();
 
   File::IOFile f(_rExportFilename, "wb");
   if (!f)
