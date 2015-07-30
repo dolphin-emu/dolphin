@@ -46,7 +46,7 @@ public:
 
 	// A pointer returned by GetBlockData is invalidated as soon as GetBlockData, Read, or ReadMultipleAlignedBlocks is called again.
 	const u8 *GetBlockData(u64 block_num);
-	virtual bool Read(u64 offset, u64 size, u8 *out_ptr) override;
+	bool Read(u64 offset, u64 size, u8 *out_ptr) override;
 	friend class DriveReader;
 
 protected:

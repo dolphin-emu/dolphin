@@ -95,7 +95,7 @@ public:
 	int samples_avail;
 
 protected:
-	virtual void TransferByte(u8 &byte) override;
+	void TransferByte(u8& byte) override;
 };
 
 #else // HAVE_PORTAUDIO
