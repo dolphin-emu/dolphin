@@ -130,12 +130,12 @@ void FindFilename(u64 offset)
     return;
   }
 
-  const std::string path = s_filesystem->GetPath(offset);
+  const DiscIO::IFileInfo* file_info = s_filesystem->FindFileInfo(offset);
 
-  if (path.empty())
+  if (!file_info)
     return;
 
-  CheckFile(path, s_filesystem->GetFileSize(path));
+  CheckFile(s_filesystem->GetPath(file_info->GetOffset()), file_info->GetSize());
 }
 
 void Close()
