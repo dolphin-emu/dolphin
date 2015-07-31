@@ -51,29 +51,26 @@ public:
   FileSystemGCWii(const Volume* _rVolume, const Partition& partition);
   ~FileSystemGCWii() override;
   bool IsValid() const override { return m_Valid; }
-  const std::vector<FileInfoGCWii>& GetFileList() override;
-  const FileInfo* FindFileInfo(const std::string& path) override;
-  const FileInfo* FindFileInfo(u64 disc_offset) override;
-  std::string GetPath(u64 _Address) override;
-  std::string GetPathFromFSTOffset(size_t file_info_offset) override;
+  const std::vector<FileInfoGCWii>& GetFileList() const override;
+  const FileInfo* FindFileInfo(const std::string& path) const override;
+  const FileInfo* FindFileInfo(u64 disc_offset) const override;
+  std::string GetPath(u64 _Address) const override;
+  std::string GetPathFromFSTOffset(size_t file_info_offset) const override;
   u64 ReadFile(const FileInfo* file_info, u8* _pBuffer, u64 _MaxBufferSize,
-               u64 _OffsetInFile) override;
-  bool ExportFile(const FileInfo* file_info, const std::string& _rExportFilename) override;
+               u64 _OffsetInFile) const override;
+  bool ExportFile(const FileInfo* file_info, const std::string& _rExportFilename) const override;
   bool ExportApploader(const std::string& _rExportFolder) const override;
   bool ExportDOL(const std::string& _rExportFolder) const override;
   std::optional<u64> GetBootDOLOffset() const override;
   std::optional<u32> GetBootDOLSize(u64 dol_offset) const override;
 
 private:
-  bool m_Initialized;
   bool m_Valid;
   u32 m_offset_shift;
   std::vector<FileInfoGCWii> m_FileInfoVector;
   std::vector<u8> m_file_system_table;
 
   const FileInfo* FindFileInfo(const std::string& path, size_t search_start_offset) const;
-  bool DetectFileSystem();
-  void InitFileSystem();
 };
 
 }  // namespace
