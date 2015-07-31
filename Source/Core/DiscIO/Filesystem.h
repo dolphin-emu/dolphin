@@ -37,16 +37,17 @@ public:
   virtual ~FileSystem();
   virtual bool IsValid() const = 0;
   // TODO: Should only return FileInfo, not FileInfoGCWii
-  virtual const std::vector<FileInfoGCWii>& GetFileList() = 0;
-  virtual const FileInfo* FindFileInfo(const std::string& path) = 0;
-  virtual const FileInfo* FindFileInfo(u64 disc_offset) = 0;
+  virtual const std::vector<FileInfoGCWii>& GetFileList() const = 0;
+  virtual const FileInfo* FindFileInfo(const std::string& path) const = 0;
+  virtual const FileInfo* FindFileInfo(u64 disc_offset) const = 0;
   virtual u64 ReadFile(const FileInfo* file_info, u8* _pBuffer, u64 _MaxBufferSize,
-                       u64 _OffsetInFile = 0) = 0;
-  virtual bool ExportFile(const FileInfo* file_info, const std::string& _rExportFilename) = 0;
+                       u64 _OffsetInFile = 0) const = 0;
+  virtual bool ExportFile(const FileInfo* file_info,
+                          const std::string& _rExportFilename) const = 0;
   virtual bool ExportApploader(const std::string& _rExportFolder) const = 0;
   virtual bool ExportDOL(const std::string& _rExportFolder) const = 0;
-  virtual std::string GetPath(u64 _Address) = 0;
-  virtual std::string GetPathFromFSTOffset(size_t file_info_offset) = 0;
+  virtual std::string GetPath(u64 _Address) const = 0;
+  virtual std::string GetPathFromFSTOffset(size_t file_info_offset) const = 0;
   virtual std::optional<u64> GetBootDOLOffset() const = 0;
   virtual std::optional<u32> GetBootDOLSize(u64 dol_offset) const = 0;
 
