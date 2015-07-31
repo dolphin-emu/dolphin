@@ -60,17 +60,10 @@ FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partit
 {
   // Check if this is a GameCube or Wii disc
   if (m_rVolume->ReadSwapped<u32>(0x18, m_partition) == u32(0x5D1C9EA3))
-  {
     m_offset_shift = 2;  // Wii file system
-    m_Valid = true;
-  }
   else if (m_rVolume->ReadSwapped<u32>(0x1c, m_partition) == u32(0xC2339F3D))
-  {
     m_offset_shift = 0;  // GameCube file system
-    m_Valid = true;
-  }
-
-  if (!m_Valid)
+  else
     return;
 
   const std::optional<u32> fst_offset_unshifted = m_rVolume->ReadSwapped<u32>(0x424, m_partition);
@@ -108,6 +101,9 @@ FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partit
     return;
   for (u32 i = 0; i < number_of_file_infos; i++)
     m_FileInfoVector.emplace_back(m_offset_shift, fst_start + (i * 0xC), name_table_start);
+
+  // If we haven't returned yet, everything succeeded
+  m_Valid = true;
 }
 
 FileSystemGCWii::~FileSystemGCWii()
