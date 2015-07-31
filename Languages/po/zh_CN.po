@@ -17,8 +17,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-07-28 10:01+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2015-07-30 15:19+0000\n"
+"Last-Translator: 天绝星 <c.cejhb@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/dolphin-"
 "emu/language/zh_CN/)\n"
 "Language: zh_CN\n"
@@ -105,8 +105,9 @@ msgid ""
 "%s"
 msgstr ""
 "%s\n"
-"无法加载，因为有相同的内部文件名先前已载入并保存为\n"
-"%s"
+"无法加载，因为其与先前已载入的存档\n"
+"%s\n"
+"有相同的内部文件名"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:86
 #, c-format
@@ -117,7 +118,7 @@ msgid ""
 msgstr ""
 "%s\n"
 "无法加载，因为不是一个有效的 gci 文件。\n"
-"文件大小 (%<PRIx64>) 与文件头里的记录不匹配 (%d)"
+"文件大小 (%<PRIx64>) 与文件头里所记录的 (%d) 不匹配"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:77
 #, c-format
@@ -512,6 +513,17 @@ msgid ""
 "If connecting directly, the host must have the chosen UDP port open/"
 "forwarded!\n"
 msgstr ""
+"注意：\n"
+"\n"
+"网络对战 (Netplay) 仅在如下设置时可用：\n"
+"- 所有计算机上的 DSP 模拟引擎必须一致\n"
+"- 手动设置每一个 Wii 控制器的扩展\n"
+"\n"
+"所有玩家都应使用相同的 Dolphin 版本与设置。\n"
+"所有玩家的存储卡必须相同或禁用。\n"
+"对 Wii 控制器的支持可能不好，建议不要使用。\n"
+"\n"
+"如果以直接方式连接，主机必须开放/映射选定的 UDP 端口。\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:54
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
@@ -683,7 +695,7 @@ msgstr "压缩的 GC/Wii 镜像文件 (gcz)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Anaglyph"
-msgstr "互补图像"
+msgstr "色差式"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:265
 msgid "Analyze"
@@ -918,7 +930,7 @@ msgstr "蓝 右"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:594
 msgid "Borderless Fullscreen"
-msgstr "无边界全屏"
+msgstr "无边框全屏"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:338
 msgid "Bottom"
@@ -1017,8 +1029,8 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "逐个像素而非逐个顶点地计算 3D 物体的照明，\n"
-"这会使发光多边形更平滑，单个三角形可见度降低。\n"
-"偶尔会造成卡顿或图像问题。\n"
+"将使被照明多边形外观更平滑，单个三角形更不明显。\n"
+"偶尔会造成速度降低或图像问题。\n"
 "\n"
 "如果不确定，请不要勾选此项。"
 
@@ -1758,7 +1770,7 @@ msgstr "已断开连接"
 
 #: Source/Core/Common/TraversalClient.cpp:225
 msgid "Disconnected from traversal server"
-msgstr "与遍历服务器断开连接。"
+msgstr "与穿透服务器断开连接"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:326
 msgid "Display"
@@ -1843,7 +1855,7 @@ msgstr "Dolphin 当前设置了隐藏所有游戏。双击这里显示所有游�
 
 #: Source/Core/Common/TraversalClient.cpp:222
 msgid "Dolphin too old for traversal server"
-msgstr "对于遍历服务器的 Dolphin 版本太老"
+msgstr "Dolphin 版本太旧，穿透服务器不支持"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1141
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1228
@@ -2101,7 +2113,7 @@ msgid ""
 "Enable fast disc access. This can cause crashes and other problems in some "
 "games. (ON = Fast, OFF = Compatible)"
 msgstr ""
-"启用快速光盘访问。这会造成崩溃以及一些游戏的其他问题。（ON = 快速，OFF = 兼"
+"启用快速光盘访问。这会造成一些游戏的崩溃以及其他问题。（ON = 快速，OFF = 兼"
 "容）"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:825
@@ -2189,7 +2201,7 @@ msgstr "End"
 
 #: Source/Core/Core/NetPlayServer.cpp:71
 msgid "Enet Didn't Initialize"
-msgstr "以太网未初始化。"
+msgstr "Enet 没有初始化"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:47
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:32
@@ -2402,7 +2414,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:338
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
-msgstr "监听失败。另一方的联机服务器是否在运行？"
+msgstr "监听失败。是否有另一个联机服务器的实例正在运行？"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:160
 #: Source/Core/DiscIO/CompressedBlob.cpp:342
@@ -2589,10 +2601,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"过滤所有材质，包括已明确设定为不过滤的任意游戏。\n"
-"可能提升一些游戏的某些纹理质量，但会导致其他游戏\n"
+"过滤所有纹理，包括游戏已明确设定为不过滤的。\n"
+"可能提升一些游戏的某些纹理质量，但会导致另一些游戏\n"
 "出现问题。\n"
-"在 Direct3D 模式下，设置 1x 以上的各向异性过滤与启用该选项的效果是一样的。\n"
+"在 Direct3D 模式下，设置 1x 以上的各向异性过滤\n"
+"与启用该选项的效果是一样的。\n"
 "\n"
 "如果不确定，请不要勾选此项。"
 
@@ -2810,7 +2823,7 @@ msgid ""
 "GCI save file was not loaded because it is the wrong region for this memory "
 "card:\n"
 "%s"
-msgstr "未加载 GCI 保存文件，它的区域在该存储卡 %s 上是错误的。"
+msgstr "未加载 GCI 存档文件，其地区对于存储卡 %s 不正确。"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:361
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
@@ -2933,7 +2946,7 @@ msgid ""
 msgstr ""
 "显著提高渲染到纹理效果所生成纹理的质量。 \n"
 "提高内部分辨率将增强此选项的效果。\n"
-"轻微提升 GPU 占用率并可能产生一些图像问题。\n"
+"轻微提升 GPU 占用率，较少产生图像问题。\n"
 "\n"
 "如果没有把握，请勾选此项。"
 
@@ -2959,7 +2972,7 @@ msgstr "修正"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:80
 msgid "Hardware rasterization"
-msgstr "硬件光栅处理"
+msgstr "硬件栅格化"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:119
 msgid "Header checksum failed"
@@ -2989,7 +3002,7 @@ msgid ""
 msgstr ""
 "当鼠标光标位于模拟窗口前方时将其隐藏。\n"
 "\n"
-"如果没有把握，请勾选此项。"
+"如果没有把握，请不要勾选此项。"
 
 #: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:32
 msgid ""
@@ -3005,7 +3018,7 @@ msgstr ""
 "较低的数值可以以较低的帧速运行可变帧率游戏，节省 CPU 资源。\n"
 "\n"
 "警告：改动默认值 (100%) 可能会破坏游戏而导致故障。这样做需要您自担风险。\n"
-"请不要提交非默认时钟频率导致的错误。"
+"请不要提交非默认时钟频率下出现的错误。"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:46
 msgid "Home"
@@ -3139,11 +3152,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"用一个无边界的窗口来使用全屏模式而不是使用单独\n"
-"一个分辨率。\n"
+"使用一个全屏幕大小的无边框窗口来实现全屏模式而非\n"
+"使用独占模式。\n"
 "这可以更快地切换全屏/窗口模式，但会造成轻微的\n"
 "输入延迟，移动的迟钝和性能下降。\n"
-"NVIDIA 3D 视觉需要使用单独分辨率模式和 Direct3D 后端。\n"
+"如要在 Direct3D 后端开启 NVIDIA 3D Vision 必须使用\n"
+"独占模式。\n"
 "\n"
 "如果不确定，请不要勾选此项。"
 
@@ -3506,9 +3520,8 @@ msgid "Load State Last 1"
 msgstr "载入最近状态 1"
 
 #: Source/Core/Core/HotkeyManager.cpp:113
-#, fuzzy
 msgid "Load State Last 10"
-msgstr "载入最近状态 1"
+msgstr "载入最近状态 10"
 
 #: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Load State Last 2"
@@ -3539,9 +3552,8 @@ msgid "Load State Last 8"
 msgstr "载入最近状态 8"
 
 #: Source/Core/Core/HotkeyManager.cpp:112
-#, fuzzy
 msgid "Load State Last 9"
-msgstr "载入最近状态 1"
+msgstr "载入最近状态 9"
 
 #: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Load State Slot 1"
@@ -4010,7 +4022,7 @@ msgstr "没有已录制文件"
 
 #: Source/Core/Core/State.cpp:686
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
-msgstr "未找到 undo.dtm 文件，为防止出现不同步撤销载入状态操作被取消。"
+msgstr "未找到 undo.dtm 文件，为防止影片出现不同步撤销载入状态操作被取消。"
 
 #: Source/Core/VideoBackends/D3D/main.cpp:112
 #: Source/Core/VideoBackends/OGL/main.cpp:124
@@ -4069,7 +4081,7 @@ msgstr "双节棍控制器"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Nvidia 3D Vision"
-msgstr "NVIDIA 3D 视觉"
+msgstr "NVIDIA 3D Vision"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:894
 msgid "Object"
@@ -4313,7 +4325,7 @@ msgstr "后处理效果:"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:560
 msgid "Prefetch Custom Textures"
-msgstr "预获取自定义材质"
+msgstr "预读取自定义材质"
 
 #: Source/Core/Core/Movie.cpp:1036
 #, c-format
@@ -4513,7 +4525,7 @@ msgstr "重置"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:73
 msgid "Reset Traversal Settings"
-msgstr "重置遍历设置"
+msgstr "重置穿透设置"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:61
 msgid "Results"
@@ -4868,8 +4880,8 @@ msgid ""
 msgstr ""
 "选择 3D 显示方式。如果硬件支持，开启此功能可使你获得\n"
 "更真实的立体感。\n"
-"多数 3D 电视采用左右并列或上下并列模式。\n"
-"互补色模式用于红蓝眼镜。\n"
+"多数 3D 电视采用左右或上下模式。\n"
+"色差模式配合红青眼镜使用。\n"
 "严重降低模拟速度，有时会造成问题。\n"
 "\n"
 "如果没有把握，请选择关。"
@@ -4925,7 +4937,7 @@ msgstr "串行端口 1 - 这是网络适配器等设备使用的端口。"
 
 #: Source/Core/Core/NetPlayClient.cpp:784
 msgid "Server rejected traversal attempt"
-msgstr "服务器拒绝尝试遍历"
+msgstr "穿透尝试被服务器拒绝"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:851
 msgid "Set as &default ISO"
@@ -5223,7 +5235,7 @@ msgstr "截图"
 
 #: Source/Core/Common/TraversalClient.cpp:228
 msgid "Socket error sending to traversal server"
-msgstr "套接字发送至遍历服务器时出错"
+msgstr "正在将套接字错误发送至穿透服务器"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.h:94
 msgid ""
@@ -5374,6 +5386,13 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"绕过系统内存而在 GPU 上完全存储 EFB 副本。\n"
+"会在少数游戏中导致图形缺陷。\n"
+"\n"
+"开启 = EFB 副本为纹理 \n"
+"关闭 = EFB 副本为内存 (和纹理)\n"
+"\n"
+"如果不确定，请勾选此项。"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:294
 msgid "Stretch to Window"
@@ -5416,7 +5435,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"交换左右眼图像。主要用于采用交叉观察法观看\n"
+"交换左右眼图像。一般用于采用交叉法观看左右\n"
 "并排图像时。\n"
 "\n"
 "如果没有把握，请不要勾选此项。"
@@ -5543,7 +5562,7 @@ msgid ""
 "Hash of block %<PRIu64> is %08x instead of %08x."
 msgstr ""
 "磁盘镜像“%s”已损坏。\n"
-"块 Hash %<PRIu64> 是 %08x 而不是 %08x."
+"块 %<PRIu64> 的 Hash 是 %08x 而不是 %08x."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1099
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1127
@@ -5631,9 +5650,9 @@ msgid ""
 "%s\n"
 "Only the first 127 will be available"
 msgstr ""
-"以下文件夹中 gci 文件过多\n"
+"文件夹\n"
 "%s\n"
-"将只有前 127 个可用"
+"中 gci 文件过多，只有前 127 个可用"
 
 #: Source/Core/Core/State.cpp:691
 msgid "There is nothing to undo!"
@@ -5738,7 +5757,7 @@ msgstr "倾斜"
 
 #: Source/Core/Common/TraversalClient.cpp:231
 msgid "Timeout connecting to traversal server"
-msgstr "与遍历服务器的连接超时。"
+msgstr "与穿透服务器的连接超时"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:269
 #: Source/Core/DolphinWX/MemcardManager.cpp:645
@@ -5798,16 +5817,16 @@ msgstr "繁体中文"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:57
 msgid "Traversal"
-msgstr "遍历"
+msgstr "穿透"
 
 #: Source/Core/Core/NetPlayClient.cpp:781
 msgid "Traversal server timed out connecting to the host"
-msgstr "遍历服务器与主机的连接超时。"
+msgstr "穿透服务器与主机连接超时"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:90
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:366
 msgid "Traversal: "
-msgstr "遍历："
+msgstr "穿透："
 
 #: Source/Core/DiscIO/VolumeGC.cpp:34
 #: Source/Core/DiscIO/VolumeDirectory.cpp:79
@@ -5979,7 +5998,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:377
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
-msgstr "使用双眼单深度缓冲，部分游戏需要。"
+msgstr "双眼使用同一个深度缓冲，部分游戏需要。"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:98
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:568
@@ -6070,7 +6089,7 @@ msgstr "警告 - 正在错误的终端模式下开始 ISO！"
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:539
 #, c-format
 msgid "Warning BAT number of blocks %d does not match file header loaded %d"
-msgstr "警告：格子 BAT 数 %d 与已载入的文件头 %d 不匹配"
+msgstr "警告：BAT 区块数 %d 与已载入的文件头 %d 不匹配"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:604
 #, c-format
@@ -6402,13 +6421,3 @@ msgstr "wxExecute 在应用运行时返回了  -1！ "
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| 或"
-
-#~ msgid ""
-#~ "Skip GPU synchronizing on EFB copies. Causes graphical defects in a small "
-#~ "number of games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "跳过 GPU 对 EFB 副本的同步。在个别游戏中导致图像缺陷。\n"
-#~ "\n"
-#~ "如果没有把握，请勾选此项。"

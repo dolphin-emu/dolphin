@@ -16,7 +16,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-07-28 10:01+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
+"PO-Revision-Date: 2015-07-28 10:01+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Dutch (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/nl/)\n"
@@ -128,6 +128,9 @@ msgid ""
 "%s\n"
 "was not loaded because there are not enough free blocks on virtual memorycard"
 msgstr ""
+"%s\n"
+"is niet geladen omdat er niet genoeg vrije blokken zijn op de virtuele "
+"geheugenkaart"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:107
 #, c-format
@@ -417,7 +420,7 @@ msgstr "1.5x Native (960x792)"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:44
 msgid "16-bit"
-msgstr ""
+msgstr "16-bit"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "1x Native (640x528)"
@@ -433,7 +436,7 @@ msgstr "2x Native (1280x1056)"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:44
 msgid "32-bit"
-msgstr ""
+msgstr "32-bit"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "3x Native (1920x1584)"
@@ -445,7 +448,7 @@ msgstr "4x Native (2560x2112)"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:44
 msgid "8-bit"
-msgstr ""
+msgstr "8-bit"
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:40
 msgid "<Insert name here>"
@@ -466,7 +469,7 @@ msgstr ""
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:291
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:347
 msgid "A NetPlay window is already open!"
-msgstr ""
+msgstr "Er is al een NetPlay venster geopend!"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:131
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:163
@@ -494,6 +497,21 @@ msgid ""
 "If connecting directly, the host must have the chosen UDP port open/"
 "forwarded!\n"
 msgstr ""
+"ALERT:\n"
+"\n"
+"Netplay zal op dit moment alleen goed werken wanneer je de volgende "
+"instellingen gebruikt:\n"
+" - DSP Emulator Engine moet hetzelfde zijn op alle computers!\n"
+" - De extensies van elke Wiimote handmatig instellen\n"
+"\n"
+"Alle spelers moeten dezelfde Dolphin versie en instellingen gebruiken.\n"
+"Schakel alle geheugenkaarten uit of stuur ze naar alle spelers voor het "
+"spelen.\n"
+"Wiimote ondersteuning is zeer waarschijnlijk verschrikkelijk. Gebruik het "
+"niet.\n"
+"\n"
+"Als je direct verbinding maakt moet je de UDP poort open hebben staan voor "
+"het hosten!\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:54
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
@@ -606,12 +624,12 @@ msgstr "Action Replay: Normal Code 0: Onjuist Subtype %08x (%s)"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:181
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:203
 msgid "Adapter Detected"
-msgstr ""
+msgstr "Adapter Gedetecteerd"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:160
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:205
 msgid "Adapter Not Detected"
-msgstr ""
+msgstr "Geen Adapter Gedetecteerd"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:263
 msgid "Adapter:"
@@ -1714,6 +1732,13 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Sla de destination alpha pass over die in veel spellen voor verschillende "
+"grafische effecten gebruikt wordt.\n"
+"Het heeft geen invloed op de prestaties met de D3D en desktop OpenGL, maar "
+"met OpenGL ES wordt het gerenderd in twee stappen, wat een kleine maar "
+"merkbaar invloed heeft op de prestaties. \n"
+"\n"
+"In geval van twijfel leeg laten."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:617
 msgid "Disc"
@@ -2224,7 +2249,7 @@ msgstr "Euforie"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:144
 msgid "Europe"
-msgstr ""
+msgstr "Europa"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:53
 msgid "Execute"
@@ -2335,7 +2360,7 @@ msgstr "FST Groote:"
 
 #: Source/Core/Core/NetPlayClient.cpp:171
 msgid "Failed To Connect!"
-msgstr ""
+msgstr "Verbinden Mislukt!"
 
 #: Source/Core/Core/NetPlayClient.cpp:115
 msgid "Failed to Connect!"
@@ -2662,7 +2687,7 @@ msgstr "Frames om op te nemen"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:147
 msgid "France"
-msgstr ""
+msgstr "Frans"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:563
 msgid "Free Look"
@@ -3412,9 +3437,8 @@ msgid "Load State Last 1"
 msgstr "Laad laatste staat 1"
 
 #: Source/Core/Core/HotkeyManager.cpp:113
-#, fuzzy
 msgid "Load State Last 10"
-msgstr "Laad laatste staat 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Load State Last 2"
@@ -3445,9 +3469,8 @@ msgid "Load State Last 8"
 msgstr "Laad laatste staat 8"
 
 #: Source/Core/Core/HotkeyManager.cpp:112
-#, fuzzy
 msgid "Load State Last 9"
-msgstr "Laad laatste staat 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Load State Slot 1"

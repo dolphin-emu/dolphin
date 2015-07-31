@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-07-28 10:01+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
+"PO-Revision-Date: 2015-07-28 10:01+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Turkish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/tr/)\n"
@@ -59,12 +59,12 @@ msgstr ""
 #: Source/Core/DiscIO/CompressedBlob.cpp:177
 #, c-format
 msgid "\"%s\" failed to be scrubbed. Probably the image is corrupt."
-msgstr ""
+msgstr "\"%s\" küçültülemedi. Kalıp dosyası bozuk olabilir."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:153
 #, c-format
 msgid "\"%s\" is already compressed! Cannot compress it further."
-msgstr ""
+msgstr "\"%s\" zaten sıkıştırılmış! Daha fazla sıkıştırılamaz."
 
 #: Source/Core/Core/CoreParameter.cpp:179
 #, c-format
@@ -212,7 +212,7 @@ msgstr "&Hakkında..."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:230
 msgid "&Audio Settings"
-msgstr ""
+msgstr "&Ses Ayarları"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:133
 msgid "&Boot from DVD Backup..."
@@ -228,7 +228,7 @@ msgstr "Kalıplara &Gözat... "
 
 #: Source/Core/DolphinWX/FrameTools.cpp:245
 msgid "&Cheat Manager"
-msgstr ""
+msgstr "&Hile Yöneticisi"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:231
 msgid "&Controller Settings"
@@ -316,7 +316,7 @@ msgstr "&Özellikler"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:431
 msgid "&Read-Only Mode"
-msgstr ""
+msgstr "&Salt-Okunur Mod"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:402
 msgid "&Refresh List"
@@ -406,7 +406,7 @@ msgstr "Orjinalin 1.5 katı (960x792)"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:44
 msgid "16-bit"
-msgstr ""
+msgstr "16-bit"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "1x Native (640x528)"
@@ -422,7 +422,7 @@ msgstr "Orjinalin 2 katı (1280x1056)"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:44
 msgid "32-bit"
-msgstr ""
+msgstr "32-bit"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "3x Native (1920x1584)"
@@ -434,7 +434,7 @@ msgstr "Orjinalin 4 katı (2560x2112)"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:44
 msgid "8-bit"
-msgstr ""
+msgstr "8-bit"
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:40
 msgid "<Insert name here>"
@@ -455,7 +455,7 @@ msgstr ""
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:291
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:347
 msgid "A NetPlay window is already open!"
-msgstr ""
+msgstr "Bir NetPlay penceresi zaten açık!"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:131
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:163
@@ -467,6 +467,8 @@ msgid ""
 "A supported Bluetooth device could not be found.\n"
 "You must manually connect your Wiimotes."
 msgstr ""
+"Desteklenen bir Bluetooth aygıtı bulunamadı.\n"
+"Wiimote'larınızı elle bağlamak zorundasınız."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:118
 msgid ""
@@ -645,7 +647,7 @@ msgstr "Tüm GC/Wii dosyaları (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1171
 msgid "All GameCube GCM files (gcm)"
-msgstr ""
+msgstr "Tüm GameCube GCM Dosyaları (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1602
 #: Source/Core/DolphinWX/FrameTools.cpp:1616
@@ -731,11 +733,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:364
 msgid "Are you trying to use the same file in both slots?"
-msgstr ""
+msgstr "2 slot için de aynı dosyayı deniyor olabilir misiniz?"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:30
 msgid "Arm64 JIT (experimental)"
-msgstr ""
+msgstr "Arm64 JIT (deneysel)"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:65
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:296
@@ -763,7 +765,7 @@ msgstr "Ses Çözücüsü:"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:554
 msgid "Audio settings"
-msgstr ""
+msgstr "Ses Ayarları"
 
 #: Source/Core/AudioCommon/AOSoundStream.cpp:27
 msgid "AudioCommon: Error opening AO device.\n"
@@ -775,7 +777,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:61
 msgid "Authors"
-msgstr ""
+msgstr "Yazarlar"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:42
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:153
@@ -873,7 +875,7 @@ msgstr "Bass"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:304
 msgid "Battery"
-msgstr ""
+msgstr "Batarya"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:147
 msgid "Block Allocation Table checksum failed"
@@ -897,7 +899,7 @@ msgstr "Mavi Sağ"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:594
 msgid "Borderless Fullscreen"
-msgstr ""
+msgstr "Çerçevesiz Tam Ekran"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:338
 msgid "Bottom"
@@ -911,7 +913,7 @@ msgstr "Bağlı Denetimler: %lu"
 #: Source/Core/DolphinWX/AboutDolphin.cpp:52
 #, c-format
 msgid "Branch: %s"
-msgstr ""
+msgstr "Dal: %s"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:382
 msgid "Broken"
@@ -967,7 +969,7 @@ msgstr "C-Çubuğu"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:774
 msgid "CP register "
-msgstr ""
+msgstr "CP kaydı"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:54
 msgid "CPU Emulator Engine"
@@ -975,7 +977,7 @@ msgstr "CPU Emülatör Motoru"
 
 #: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:52
 msgid "CPU Options"
-msgstr ""
+msgstr "İşlemci Seçenekleri"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:134
 msgid ""
@@ -998,7 +1000,7 @@ msgstr ""
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1876
 #, c-format
 msgid "Can't find Wiimote by connection handle %02x"
-msgstr ""
+msgstr "İşleyici bağlantısı ile Wiimote bulunamadı: %02x"
 
 #: Source/Core/Core/HW/DVDInterface.cpp:343
 msgid "Can't read from DVD_Plugin - DVD-Interface: Fatal Error"
@@ -1016,6 +1018,9 @@ msgid ""
 "%s\n"
 "is not a valid GameCube memory card file"
 msgstr ""
+"Bu dosya bir hafıza kartı olarak kullanılamıyor.\n"
+"%s\n"
+"geçerli bir GameCube hafıza kartı dosyası değil."
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:44
 msgid "Caps Lock"
@@ -1031,7 +1036,7 @@ msgstr "Değiştir"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:876
 msgid "Change &Disc"
-msgstr ""
+msgstr "&Diski Değiştir"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:399
 msgid "Change &Disc..."
@@ -1061,6 +1066,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:49
 msgid "Changing this will have no effect while the emulator is running."
 msgstr ""
+"Emülatör çalışırken değiştirirseniz herhangi bir etkisini göremezsiniz."
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:132
 msgid "Chat"
@@ -1072,7 +1078,7 @@ msgstr "Hile Kodu"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:167
 msgid "Cheat Manager"
-msgstr ""
+msgstr "Hile Yöneticisi"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:120
 msgid "Cheat Search"
@@ -1277,11 +1283,11 @@ msgstr "4. Wiimote'u Bağla"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:256
 msgid "Connect Wiimotes"
-msgstr ""
+msgstr "Wiimote'ları Bağla"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1564
 msgid "Connected"
-msgstr ""
+msgstr "Bağlandı"
 
 #: Source/Core/DolphinWX/Main.cpp:510
 msgid "Connecting..."
@@ -3396,9 +3402,8 @@ msgid "Load State Last 1"
 msgstr "Son 1. Durumu Yükle"
 
 #: Source/Core/Core/HotkeyManager.cpp:113
-#, fuzzy
 msgid "Load State Last 10"
-msgstr "Son 1. Durumu Yükle"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Load State Last 2"
@@ -3429,9 +3434,8 @@ msgid "Load State Last 8"
 msgstr "Son 8. Durumu Yükle"
 
 #: Source/Core/Core/HotkeyManager.cpp:112
-#, fuzzy
 msgid "Load State Last 9"
-msgstr "Son 1. Durumu Yükle"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Load State Slot 1"

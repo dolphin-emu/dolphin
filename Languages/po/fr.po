@@ -6,9 +6,9 @@
 # Pascal <pascal2j-language@yahoo.com>, 2013
 # Pascal <pascal2j-language@yahoo.com>, 2013-2015
 # Pierre Bourdon <delroth@gmail.com>, 2014
-# Spanti Nicola <rydroid_trans@yahoo.fr>, 2013
-# Spanti Nicola <rydroid_trans@yahoo.fr>, 2013
-# Spanti Nicola <rydroid_trans@yahoo.fr>, 2013
+# Nicola Spanti <translations@nicola-spanti.info>, 2013
+# Nicola Spanti <translations@nicola-spanti.info>, 2013
+# Nicola Spanti <translations@nicola-spanti.info>, 2013
 # Toadjaune <arnaud.venturi@gmail.com>, 2013
 # Toadjaune <arnaud.venturi@gmail.com>, 2013
 # Vinet Sebastien <vinet.sebastien@live.fr>, 2011
@@ -18,8 +18,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-07-28 10:01+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2015-07-28 17:41+0000\n"
+"Last-Translator: Pascal <pascal2j-language@yahoo.com>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/fr/)\n"
 "Language: fr\n"
@@ -521,6 +521,21 @@ msgid ""
 "If connecting directly, the host must have the chosen UDP port open/"
 "forwarded!\n"
 msgstr ""
+"ATTENTION :\n"
+"\n"
+"NetPlay ne fonctionnera qu'avec les réglages suivants :\n"
+"- Le moteur d'émulation audio DSP doit être le même sur tous les "
+"ordinateurs !\n"
+"- Régler les extensions manuellement pour chaque Wiimote\n"
+"\n"
+"Tous les joueurs devraient utiliser la même version de Dolphin et les mêmes "
+"réglages.\n"
+"Toutes les cartes mémoires des joueurs doivent être identiques, ou "
+"désactivées.\n"
+"La prise en charge de la Wiimote n'est pas terrible. Ne l'utilisez pas.\n"
+"\n"
+"Si connecté en Direct, l'hôte doit avoir le port UDP choisi ouvert/"
+"redirigé !\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:54
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
@@ -1622,15 +1637,15 @@ msgstr "Décompression de l'ISO"
 
 #: Source/Core/Core/HotkeyManager.cpp:65
 msgid "Decrease Convergence"
-msgstr "Baisser la convergence"
+msgstr "Réduire la convergence"
 
 #: Source/Core/Core/HotkeyManager.cpp:63
 msgid "Decrease Depth"
-msgstr "Baisser la profondeur"
+msgstr "Réduire la profondeur"
 
 #: Source/Core/Core/HotkeyManager.cpp:49
 msgid "Decrease Frame limit"
-msgstr "Baisser la limite d'image/s"
+msgstr "Réduire la limite d'image/s"
 
 #: Source/Core/Core/HotkeyManager.cpp:42
 msgid "Decrease IR"
@@ -1848,7 +1863,7 @@ msgstr "Configuration des manettes pour Dolphin"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:425
 msgid "Dolphin Emulated Wiimote Configuration"
-msgstr "Configuration de la Wiimote pour Dolphin"
+msgstr "Configuration de la Wiimote émulée pour Dolphin"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:376
 msgid "Dolphin FIFO"
@@ -2627,7 +2642,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:430
 msgid "File is not recognized as a memcard"
-msgstr "Le fichier n'est pas reconnu comme une carte mémoire"
+msgstr "Le fichier n'est pas reconnu comme étant une carte mémoire"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:335
 msgid "File not compressed"
@@ -2768,7 +2783,7 @@ msgstr "Image "
 
 #: Source/Core/Core/HotkeyManager.cpp:20
 msgid "Frame Advance"
-msgstr "Avancement d'image"
+msgstr "Avancer d'une image"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:565
 msgid "Frame Dumps use FFV1"
@@ -2804,7 +2819,7 @@ msgstr "Vue libre"
 
 #: Source/Core/Core/HotkeyManager.cpp:52
 msgid "Freelook Decrease Speed"
-msgstr "Baisser la vitesse de la vue libre"
+msgstr "Réduire la vitesse de la vue libre"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Freelook Increase Speed"
@@ -3601,9 +3616,8 @@ msgid "Load State Last 1"
 msgstr "Charger le dernier état 1"
 
 #: Source/Core/Core/HotkeyManager.cpp:113
-#, fuzzy
 msgid "Load State Last 10"
-msgstr "Charger le dernier état 1"
+msgstr "Charger le dernier état 10"
 
 #: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Load State Last 2"
@@ -3634,9 +3648,8 @@ msgid "Load State Last 8"
 msgstr "Charger le dernier état 8"
 
 #: Source/Core/Core/HotkeyManager.cpp:112
-#, fuzzy
 msgid "Load State Last 9"
-msgstr "Charger le dernier état 1"
+msgstr "Charger le dernier état 9"
 
 #: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Load State Slot 1"
@@ -3644,7 +3657,7 @@ msgstr "Charger l'état du Slot 1"
 
 #: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Load State Slot 10"
-msgstr "Charger le dernier état 10"
+msgstr "Charger l'état du Slot 10"
 
 #: Source/Core/Core/HotkeyManager.cpp:69
 msgid "Load State Slot 2"
@@ -3676,7 +3689,7 @@ msgstr "Charger l'état du Slot 8"
 
 #: Source/Core/Core/HotkeyManager.cpp:76
 msgid "Load State Slot 9"
-msgstr "Charger le dernier état 9"
+msgstr "Charger l'état du Slot 9"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:497
 msgid "Load State..."
@@ -4705,7 +4718,7 @@ msgstr "Sauvegarder l'état vers le Slot 1"
 
 #: Source/Core/Core/HotkeyManager.cpp:88
 msgid "Save State Slot 10"
-msgstr "Sauvegarder l'état au Slot 10"
+msgstr "Sauvegarder l'état vers le Slot 10"
 
 #: Source/Core/Core/HotkeyManager.cpp:80
 msgid "Save State Slot 2"
@@ -4737,7 +4750,7 @@ msgstr "Sauvegarder l'état vers le Slot 8"
 
 #: Source/Core/Core/HotkeyManager.cpp:87
 msgid "Save State Slot 9"
-msgstr "Sauvegarder l'état au Slot 9"
+msgstr "Sauvegarder l'état vers le Slot 9"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:482
 msgid "Save State..."
@@ -4992,7 +5005,7 @@ msgstr ""
 "Anaglyphe est utilisé pour les lunettes Rouge-Cyan.\n"
 "Baisse beaucoup la vitesse d'émulation et provoque parfois des pépins.\n"
 "\n"
-"Dans le doute, sélectionnez Désactivé."
+"Dans le doute, sélectionnez Arrêt."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:95
 msgid ""
@@ -5513,6 +5526,14 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Enregistre les copies d'EFB exclusivement sur le GPU, outrepassant la "
+"mémoire système. Provoque des pépins graphiques dans un petit nombre de "
+"jeux.\n"
+"\n"
+"Activé = Copie d'EFB vers Texture\n"
+"Désactivé = Copie d'EFB vers la RAM (et Texture)\n"
+"\n"
+"Dans le doute, cochez cette case."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:294
 msgid "Stretch to Window"
@@ -6190,7 +6211,7 @@ msgstr "Baisser Volume"
 
 #: Source/Core/Core/HotkeyManager.cpp:39
 msgid "Volume Toggle Mute"
-msgstr "Activer la coupure du son"
+msgstr "Couper le son"
 
 #: Source/Core/Core/HotkeyManager.cpp:38
 msgid "Volume Up"
@@ -6581,14 +6602,3 @@ msgstr "wxExecute a retourné -1 sur l'exécution de l'application !"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OU"
-
-#~ msgid ""
-#~ "Skip GPU synchronizing on EFB copies. Causes graphical defects in a small "
-#~ "number of games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Saute la synchronisation du GPU avec les copies d'EFB. Provoque des "
-#~ "défauts graphiques dans un petit nombre de jeux.\n"
-#~ "\n"
-#~ "Dans le doute, cochez cette case."

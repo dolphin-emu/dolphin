@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-07-28 10:01+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
+"PO-Revision-Date: 2015-07-28 10:01+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Italian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/it/)\n"
@@ -516,6 +516,20 @@ msgid ""
 "If connecting directly, the host must have the chosen UDP port open/"
 "forwarded!\n"
 msgstr ""
+"ATTENZIONE:\n"
+"\n"
+"La modalità NetPlay funzionerà solamente con le seguenti impostazioni:\n"
+" - DSP Emulator Engine uguale su ogni computer!\n"
+" - Estensioni per ogni Wiimote impostate manualmente\n"
+"\n"
+"Tutti i giocatori devono cercare di utilizzare le stesse impostazioni e "
+"versioni di Dolphin.\n"
+"Tutte le memory card devono essere identiche per ogni giocatore, o essere "
+"disabilitate.\n"
+"Il supporto per il Wiimote è probabilmente pessimo. Non usatelo.\n"
+"\n"
+"In caso di connessione diretta, l'host deve inoltre avere aperto/inoltrato "
+"le porte UDP scelte!\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:54
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
@@ -3593,9 +3607,8 @@ msgid "Load State Last 1"
 msgstr "Carica Stato di Gioco in Posizione 1"
 
 #: Source/Core/Core/HotkeyManager.cpp:113
-#, fuzzy
 msgid "Load State Last 10"
-msgstr "Carica Stato di Gioco in Posizione 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Load State Last 2"
@@ -3626,9 +3639,8 @@ msgid "Load State Last 8"
 msgstr "Carica Stato di Gioco in Posizione 8"
 
 #: Source/Core/Core/HotkeyManager.cpp:112
-#, fuzzy
 msgid "Load State Last 9"
-msgstr "Carica Stato di Gioco in Posizione 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Load State Slot 1"
@@ -6566,14 +6578,3 @@ msgstr "wxExecute ritorna -1 all'avvio dell'applicazione!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid ""
-#~ "Skip GPU synchronizing on EFB copies. Causes graphical defects in a small "
-#~ "number of games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Ignora la sincronizzazione GPU sulle copie dell'EFB. Causa difetti "
-#~ "grafici in un ristretto numero di giochi.\n"
-#~ "\n"
-#~ "Nel dubbio, lascia selezionato."

@@ -13,8 +13,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-07-28 10:01+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2015-07-28 13:51+0000\n"
+"Last-Translator: Anton Regnander <anton_r_3@hotmail.com>\n"
 "Language-Team: Swedish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/sv/)\n"
 "Language: sv\n"
@@ -513,6 +513,18 @@ msgid ""
 "If connecting directly, the host must have the chosen UDP port open/"
 "forwarded!\n"
 msgstr ""
+"OBS:\n"
+"\n"
+"Nätspel kommer bara fungera med följande inställningar:\n"
+" - DSP-emulatormotorn måste vara likadan på alla datorer!\n"
+" - Konfigurera tilläggen för varje Wiimote manuellt\n"
+"\n"
+"Alla spelare bör använda samma inställningar och version av Dolphin.\n"
+"Alla minneskort måste antingen vara identiska mellan spelarna eller "
+"inaktiveras.\n"
+"Stöd för Wiimotes är förmodligen fruktansvärt. Använd det inte.\n"
+"\n"
+"Vid direkt anslutning måste värden ha UDP-porten öppen/vidarebefordrad!\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:54
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
@@ -1015,10 +1027,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Läser in anpassade texturer i RAM när emulation startas.\n"
+"Cachelagrar anpassade texturer i RAM när emulering startas.\n"
 "Det här kan kräva mycket RAM men kan också fixa prestandaproblem.\n"
 "\n"
-"Om du är osäker kan du lämna det här omarkerat."
+"Om du är osäker kan du lämna detta omarkerat."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:111
 msgid ""
@@ -2814,7 +2826,7 @@ msgstr "Fri kamera - Återställ hastighet"
 
 #: Source/Core/Core/HotkeyManager.cpp:59
 msgid "Freelook Zoom In"
-msgstr "Fri kamera - zooma in"
+msgstr "Fri kamera - Zooma in"
 
 #: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Freelook Zoom Out"
@@ -3574,9 +3586,8 @@ msgid "Load State Last 1"
 msgstr "Läs in senaste snabbsparning 1"
 
 #: Source/Core/Core/HotkeyManager.cpp:113
-#, fuzzy
 msgid "Load State Last 10"
-msgstr "Läs in senaste snabbsparning 1"
+msgstr "Läs in senaste snabbsparning 10"
 
 #: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Load State Last 2"
@@ -3607,9 +3618,8 @@ msgid "Load State Last 8"
 msgstr "Läs in senaste snabbsparning 8"
 
 #: Source/Core/Core/HotkeyManager.cpp:112
-#, fuzzy
 msgid "Load State Last 9"
-msgstr "Läs in senaste snabbsparning 1"
+msgstr "Läs in senaste snabbsparning 9"
 
 #: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Load State Slot 1"
@@ -5466,6 +5476,13 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Lagrar kopior av EFB exklusivt på grafikprocessorn och kringgår "
+"systemminnet. Kan orsaka grafikfel för ett litet antal spel.\n"
+"\n"
+"Aktiverat = EFB-kopior till texturer\n"
+"Inaktiverat = EFB-kopior till RAM (och texturer)\n"
+"\n"
+"Om du är osäker kan du lämna detta markerat."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:294
 msgid "Stretch to Window"
@@ -6527,14 +6544,3 @@ msgstr "wxExecute returnerade -1 i applikationkörningen!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| ELLER"
-
-#~ msgid ""
-#~ "Skip GPU synchronizing on EFB copies. Causes graphical defects in a small "
-#~ "number of games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Hoppar över GPU-synkronisering när EFB-kopior görs. Orsakar grafikproblem "
-#~ "i ett litet antal spel.\n"
-#~ "\n"
-#~ "Om du är osäker kan du lämna detta markerat."
