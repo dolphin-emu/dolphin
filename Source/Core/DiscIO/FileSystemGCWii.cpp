@@ -65,9 +65,59 @@ std::string CFileInfoGCWii::GetName() const
 }
 
 CFileSystemGCWii::CFileSystemGCWii(const IVolume* _rVolume)
-    : IFileSystem(_rVolume), m_Initialized(false), m_Valid(false), m_Wii(false)
+    : IFileSystem(_rVolume), m_Valid(false), m_Wii(false)
 {
-  m_Valid = DetectFileSystem();
+  // Check if this is a GameCube or Wii disc
+  u32 magic_bytes;
+  if (m_rVolume->ReadSwapped(0x18, &magic_bytes, false) && magic_bytes == 0x5D1C9EA3)
+  {
+    m_Wii = true;
+    m_Valid = true;
+  }
+  else if (m_rVolume->ReadSwapped(0x1c, &magic_bytes, false) && magic_bytes == 0xC2339F3D)
+  {
+    m_Wii = false;
+    m_Valid = true;
+  }
+
+  if (!m_Valid)
+    return;
+
+  u32 fst_offset_unshifted, fst_size_unshifted;
+  if (!m_rVolume->ReadSwapped(0x424, &fst_offset_unshifted, m_Wii) ||
+      !m_rVolume->ReadSwapped(0x428, &fst_size_unshifted, m_Wii))
+    return;
+  u64 fst_offset = static_cast<u64>(fst_offset_unshifted) << GetOffsetShift();
+  u64 fst_size = static_cast<u64>(fst_size_unshifted) << GetOffsetShift();
+  if (fst_size < 0xC)
+    return;
+
+  // 128 MiB is more than the total amount of RAM in a Wii.
+  // No file system should use anywhere near that much.
+  static const u32 ARBITRARY_FILE_SYSTEM_SIZE_LIMIT = 128 * 1024 * 1024;
+  if (fst_size > ARBITRARY_FILE_SYSTEM_SIZE_LIMIT)
+  {
+    // Without this check, Dolphin can crash by trying to allocate too much
+    // memory when loading a disc image with an incorrect FST size.
+
+    ERROR_LOG(DISCIO, "File system is abnormally large! Aborting loading");
+    return;
+  }
+
+  // Read the whole FST
+  m_file_system_table.resize(fst_size);
+  if (!m_rVolume->Read(fst_offset, fst_size, m_file_system_table.data(), m_Wii))
+    return;
+
+  // Create all file info objects
+  u32 number_of_file_infos = Common::swap32(*((u32*)m_file_system_table.data() + 2));
+  const u8* fst_start = m_file_system_table.data();
+  const u8* name_table_start = fst_start + (number_of_file_infos * 0xC);
+  const u8* name_table_end = fst_start + fst_size;
+  if (name_table_end < name_table_start)
+    return;
+  for (u32 i = 0; i < number_of_file_infos; i++)
+    m_FileInfoVector.emplace_back(m_Wii, fst_start + (i * 0xC), name_table_start);
 }
 
 CFileSystemGCWii::~CFileSystemGCWii()
@@ -75,19 +125,13 @@ CFileSystemGCWii::~CFileSystemGCWii()
   m_FileInfoVector.clear();
 }
 
-const std::vector<CFileInfoGCWii>& CFileSystemGCWii::GetFileList()
+const std::vector<CFileInfoGCWii>& CFileSystemGCWii::GetFileList() const
 {
-  if (!m_Initialized)
-    InitFileSystem();
-
   return m_FileInfoVector;
 }
 
-const IFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& path)
+const IFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& path) const
 {
-  if (!m_Initialized)
-    InitFileSystem();
-
   if (m_FileInfoVector.empty())
     return nullptr;
 
@@ -165,11 +209,8 @@ const IFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& path,
   return nullptr;
 }
 
-const IFileInfo* CFileSystemGCWii::FindFileInfo(u64 disc_offset)
+const IFileInfo* CFileSystemGCWii::FindFileInfo(u64 disc_offset) const
 {
-  if (!m_Initialized)
-    InitFileSystem();
-
   for (auto& file_info : m_FileInfoVector)
   {
     if ((file_info.GetOffset() <= disc_offset) &&
@@ -182,11 +223,8 @@ const IFileInfo* CFileSystemGCWii::FindFileInfo(u64 disc_offset)
   return nullptr;
 }
 
-std::string CFileSystemGCWii::GetPath(u64 _Address)
+std::string CFileSystemGCWii::GetPath(u64 _Address) const
 {
-  if (!m_Initialized)
-    InitFileSystem();
-
   for (size_t i = 0; i < m_FileInfoVector.size(); ++i)
   {
     const CFileInfoGCWii& file_info = m_FileInfoVector[i];
@@ -200,11 +238,8 @@ std::string CFileSystemGCWii::GetPath(u64 _Address)
   return "";
 }
 
-std::string CFileSystemGCWii::GetPathFromFSTOffset(size_t file_info_offset)
+std::string CFileSystemGCWii::GetPathFromFSTOffset(size_t file_info_offset) const
 {
-  if (!m_Initialized)
-    InitFileSystem();
-
   // Root entry doesn't have a name
   if (file_info_offset == 0)
     return "";
@@ -241,11 +276,8 @@ std::string CFileSystemGCWii::GetPathFromFSTOffset(size_t file_info_offset)
 }
 
 u64 CFileSystemGCWii::ReadFile(const IFileInfo* file_info, u8* _pBuffer, u64 _MaxBufferSize,
-                               u64 _OffsetInFile)
+                               u64 _OffsetInFile) const
 {
-  if (!m_Initialized)
-    InitFileSystem();
-
   if (!file_info || file_info->IsDirectory())
     return 0;
 
@@ -263,11 +295,9 @@ u64 CFileSystemGCWii::ReadFile(const IFileInfo* file_info, u8* _pBuffer, u64 _Ma
   return read_length;
 }
 
-bool CFileSystemGCWii::ExportFile(const IFileInfo* file_info, const std::string& _rExportFilename)
+bool CFileSystemGCWii::ExportFile(const IFileInfo* file_info,
+                                  const std::string& _rExportFilename) const
 {
-  if (!m_Initialized)
-    InitFileSystem();
-
   if (!file_info || file_info->IsDirectory())
     return false;
 
@@ -389,64 +419,6 @@ bool CFileSystemGCWii::ExportDOL(const std::string& _rExportFolder) const
   }
 
   return false;
-}
-
-bool CFileSystemGCWii::DetectFileSystem()
-{
-  u32 magic_bytes;
-  if (m_rVolume->ReadSwapped(0x18, &magic_bytes, false) && magic_bytes == 0x5D1C9EA3)
-  {
-    m_Wii = true;
-    return true;
-  }
-  else if (m_rVolume->ReadSwapped(0x1c, &magic_bytes, false) && magic_bytes == 0xC2339F3D)
-  {
-    m_Wii = false;
-    return true;
-  }
-
-  return false;
-}
-
-void CFileSystemGCWii::InitFileSystem()
-{
-  m_Initialized = true;
-
-  u32 fst_offset_unshifted, fst_size_unshifted;
-  if (!m_rVolume->ReadSwapped(0x424, &fst_offset_unshifted, m_Wii) ||
-      !m_rVolume->ReadSwapped(0x428, &fst_size_unshifted, m_Wii))
-    return;
-  u64 fst_offset = static_cast<u64>(fst_offset_unshifted) << GetOffsetShift();
-  u64 fst_size = static_cast<u64>(fst_size_unshifted) << GetOffsetShift();
-  if (fst_size < 0xC)
-    return;
-
-  // 128 MiB is more than the total amount of RAM in a Wii.
-  // No file system should use anywhere near that much.
-  static const u32 ARBITRARY_FILE_SYSTEM_SIZE_LIMIT = 128 * 1024 * 1024;
-  if (fst_size > ARBITRARY_FILE_SYSTEM_SIZE_LIMIT)
-  {
-    // Without this check, Dolphin can crash by trying to allocate too much
-    // memory when loading a disc image with an incorrect FST size.
-
-    ERROR_LOG(DISCIO, "File system is abnormally large! Aborting loading");
-    return;
-  }
-
-  // Read the whole FST
-  m_file_system_table.resize(fst_size);
-  if (!m_rVolume->Read(fst_offset, fst_size, m_file_system_table.data(), m_Wii))
-    return;
-
-  // Create all file info objects
-  u32 number_of_file_infos = Common::swap32(*((u32*)m_file_system_table.data() + 2));
-  const u8* fst_start = m_file_system_table.data();
-  const u8* name_table_start = fst_start + (number_of_file_infos * 0xC);
-  const u8* name_table_end = fst_start + fst_size;
-  if (name_table_end < name_table_start)
-    return;
-  for (u32 i = 0; i < number_of_file_infos; i++)
-    m_FileInfoVector.emplace_back(m_Wii, fst_start + (i * 0xC), name_table_start);
 }
 
 u32 CFileSystemGCWii::GetOffsetShift() const
