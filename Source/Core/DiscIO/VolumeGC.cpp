@@ -207,6 +207,9 @@ void CVolumeGC::LoadBannerFile() const
 
   GCBanner banner_file;
   std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
+  if (!file_system)
+    return;
+
   const IFileInfo* file_info = file_system->FindFileInfo("opening.bnr");
   if (!file_info)
     return;
