@@ -70,17 +70,10 @@ CFileSystemGCWii::CFileSystemGCWii(const IVolume* _rVolume)
   // Check if this is a GameCube or Wii disc
   u32 magic_bytes;
   if (m_rVolume->ReadSwapped(0x18, &magic_bytes, false) && magic_bytes == 0x5D1C9EA3)
-  {
     m_Wii = true;
-    m_Valid = true;
-  }
   else if (m_rVolume->ReadSwapped(0x1c, &magic_bytes, false) && magic_bytes == 0xC2339F3D)
-  {
     m_Wii = false;
-    m_Valid = true;
-  }
-
-  if (!m_Valid)
+  else
     return;
 
   u32 fst_offset_unshifted, fst_size_unshifted;
@@ -118,6 +111,9 @@ CFileSystemGCWii::CFileSystemGCWii(const IVolume* _rVolume)
     return;
   for (u32 i = 0; i < number_of_file_infos; i++)
     m_FileInfoVector.emplace_back(m_Wii, fst_start + (i * 0xC), name_table_start);
+
+  // If we haven't returned yet, everything succeeded
+  m_Valid = true;
 }
 
 CFileSystemGCWii::~CFileSystemGCWii()
