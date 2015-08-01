@@ -428,9 +428,11 @@ void VertexShaderManager::SetConstants()
 				// Just in case any game decides to take this into account, we do these tests
 				// with a large amount of slop.
 				float aspect = fabsf(rawProjection[2] / rawProjection[0]);
-				if (fabsf(aspect - 16.0f/9.0f) < 16.0f/9.0f * 0.11) // within 11% of 16:9
+				float viewport_aspect = fabsf(xfmem.viewport.wd / xfmem.viewport.ht);
+				bool viewport_is_4_3 = fabsf(viewport_aspect - 4.0f/3.0f) < 4.0f/3.0f * 0.11;
+				if (fabsf(aspect - 16.0f/9.0f) < 16.0f/9.0f * 0.11 && viewport_is_4_3) // within 11% of 16:9
 					g_aspect_wide = true;
-				else if (fabsf(aspect - 4.0f/3.0f) < 4.0f/3.0f * 0.11) // within 11% of 4:3
+				else if (fabsf(aspect - 4.0f/3.0f) < 4.0f/3.0f * 0.11 && viewport_is_4_3) // within 11% of 4:3
 					g_aspect_wide = false;
 			}
 
