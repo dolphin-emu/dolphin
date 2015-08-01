@@ -353,4 +353,7 @@ union UVIHorizontalStepping
 
 	unsigned int GetTicksPerLine();
 	unsigned int GetTicksPerFrame();
+
+	//For VI Scaling and Aspect Ratio Correction
+	float GetAspectRatio(bool);
 }

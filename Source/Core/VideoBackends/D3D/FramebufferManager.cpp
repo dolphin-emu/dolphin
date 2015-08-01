@@ -56,6 +56,14 @@ FramebufferManager::FramebufferManager()
 {
 	m_target_width = Renderer::GetTargetWidth();
 	m_target_height = Renderer::GetTargetHeight();
+	if (m_target_height < 1)
+	{
+		m_target_height = 1;
+	}
+	if (m_target_width < 1)
+	{
+		m_target_width = 1;
+	}
 	DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
 
 	ID3D11Texture2D* buf;
