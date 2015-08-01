@@ -70,6 +70,7 @@ struct VideoConfig final
 	bool bWidescreenHack;
 	int iAspectRatio;
 	bool bCrop;   // Aspect ratio controls.
+	bool bSquarePixels;
 	bool bUseXFB;
 	bool bUseRealXFB;
 

@@ -18,6 +18,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace VideoInterface
 {
@@ -473,7 +474,7 @@ float GetAspectRatio(bool wide)
 			pixelAR = 648.0f / 710.85f;
 		}
 	}
-	if (width == 0 || height == 0)
+	if (width == 0 || height == 0 || g_ActiveConfig.bSquarePixels)
 	{
 		if (wide)
 		{
