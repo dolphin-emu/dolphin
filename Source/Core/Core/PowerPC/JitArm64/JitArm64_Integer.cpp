@@ -15,24 +15,31 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::ComputeRC(ARM64Reg reg, int crf)
+void JitArm64::ComputeRC(ARM64Reg reg, int crf, bool needs_sext)
 {
-	ARM64Reg WA = gpr.GetReg();
-	ARM64Reg XA = EncodeRegTo64(WA);
+	if (needs_sext)
+	{
+		ARM64Reg WA = gpr.GetReg();
+		ARM64Reg XA = EncodeRegTo64(WA);
 
-	SXTW(XA, reg);
+		SXTW(XA, reg);
 
-	STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[crf]));
-	gpr.Unlock(WA);
+		STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[crf]));
+		gpr.Unlock(WA);
+	}
+	else
+	{
+		STR(INDEX_UNSIGNED, EncodeRegTo64(reg), X29, PPCSTATE_OFF(cr_val[crf]));
+	}
 }
 
-void JitArm64::ComputeRC(u32 imm, int crf)
+void JitArm64::ComputeRC(u64 imm, int crf, bool needs_sext)
 {
 	ARM64Reg WA = gpr.GetReg();
 	ARM64Reg XA = EncodeRegTo64(WA);
 
 	MOVI2R(XA, imm);
-	if (imm & 0x80000000)
+	if (imm & 0x80000000 && needs_sext)
 		SXTW(XA, WA);
 
 	STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[crf]));
@@ -472,13 +479,13 @@ void JitArm64::cmpli(UGeckoInstruction inst)
 
 	if (gpr.IsImm(a))
 	{
-		ComputeRC(gpr.GetImm(a) - inst.UIMM, crf);
+		ComputeRC((u64)gpr.GetImm(a) - inst.UIMM, crf, false);
 		return;
 	}
 
 	if (!inst.UIMM)
 	{
-		ComputeRC(gpr.R(a), crf);
+		ComputeRC(gpr.R(a), crf, false);
 		return;
 	}
 

@@ -240,8 +240,8 @@ private:
 
 	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
-	void ComputeRC(Arm64Gen::ARM64Reg reg, int crf = 0);
-	void ComputeRC(u32 imm, int crf = 0);
+	void ComputeRC(Arm64Gen::ARM64Reg reg, int crf = 0, bool needs_sext = true);
+	void ComputeRC(u64 imm, int crf = 0, bool needs_sext = true);
 	void ComputeCarry(bool Carry);
 	void ComputeCarry();
 
