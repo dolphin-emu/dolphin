@@ -89,6 +89,23 @@ static float PHackValue(std::string sValue)
 	return f;
 }
 
+// Due to the BT.601 standard which the GameCube is based on being a compromise
+// between PAL and NTSC, neither standard gets square pixels. They are each off
+// by ~9% in opposite directions.
+// Just in case any game decides to take this into account, we do both these
+// tests with a large amount of slop.
+static bool AspectIs4_3(float width, float height)
+{
+	float aspect = fabsf(width / height);
+	return fabsf(aspect - 4.0f / 3.0f) < 4.0f / 3.0f * 0.11; // within 11% of 4:3
+}
+
+static bool AspectIs16_9(float width, float height)
+{
+	float aspect = fabsf(width / height);
+	return fabsf(aspect - 16.0f / 9.0f) < 16.0f / 9.0f * 0.11; // within 11% of 16:9
+}
+
 void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 {
 	float fhackvalue1 = 0, fhackvalue2 = 0;
@@ -422,16 +439,11 @@ void VertexShaderManager::SetConstants()
 			// Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
 			if (!SConfig::GetInstance().bWii)
 			{
-				// Due to the BT.601 standard which the GameCube is based on being a compromise
-				// between PAL and NTSC, neither standard gets square pixels. They are each off
-				// by ~9% in opposite directions.
-				// Just in case any game decides to take this into account, we do these tests
-				// with a large amount of slop.
-				float aspect = fabsf(rawProjection[2] / rawProjection[0]);
-				if (fabsf(aspect - 16.0f/9.0f) < 16.0f/9.0f * 0.11) // within 11% of 16:9
-					g_aspect_wide = true;
-				else if (fabsf(aspect - 4.0f/3.0f) < 4.0f/3.0f * 0.11) // within 11% of 4:3
-					g_aspect_wide = false;
+				bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
+				if (AspectIs16_9(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+					g_aspect_wide = true; // Projection is 16:9 and viewport is 4:3, we are rendering an anamorphic widescreen picture
+				else if (AspectIs4_3(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+					g_aspect_wide = false; // Project and viewports are both 4:3, we are rendering a normal image.
 			}
 
 			SETSTAT_FT(stats.gproj_0,  g_fProjectionMatrix[0]);
