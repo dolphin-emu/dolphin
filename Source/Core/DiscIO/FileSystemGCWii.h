@@ -19,7 +19,7 @@ class CFileInfoGCWii : public IFileInfo
 {
 public:
   // Does not take ownership of pointers
-  CFileInfoGCWii(bool wii, const u8* fst_entry, const u8* name_table_start);
+  CFileInfoGCWii(const u8* fst, bool wii, u32 index, u32 total_file_infos);
 
   u64 GetOffset() const override;
   u32 GetSize() const override;
@@ -31,9 +31,10 @@ private:
   u32 GetRawNameOffset() const;
   u32 GetRawOffset() const;
 
+  const u8* const m_fst;
   const bool m_wii;
-  const u8* const m_fst_entry;
-  const u8* const m_name_table_start;
+  const u32 m_index;
+  const u32 m_total_file_infos;
 };
 
 class CFileSystemGCWii : public IFileSystem
