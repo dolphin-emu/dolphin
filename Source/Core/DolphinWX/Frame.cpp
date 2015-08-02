@@ -1472,7 +1472,7 @@ void CFrame::ParseHotkeys()
 		VertexShaderManager::ResetView();
 
 	// Savestates
-	for (unsigned int i = 0; i < State::NUM_STATES; i++)
+	for (u32 i = 0; i < State::NUM_STATES; i++)
 	{
 		if (IsHotkey(HK_LOAD_STATE_SLOT_1 + i))
 			State::Load(1 + i);
