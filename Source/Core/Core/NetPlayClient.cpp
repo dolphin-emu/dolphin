@@ -381,6 +381,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> g_NetPlaySettings.m_CPUcore;
 			packet >> g_NetPlaySettings.m_SelectedLanguage;
 			packet >> g_NetPlaySettings.m_OverrideGCLanguage;
+			packet >> g_NetPlaySettings.m_ProgressiveScan;
+			packet >> g_NetPlaySettings.m_PAL60;
 			packet >> g_NetPlaySettings.m_DSPEnableJIT;
 			packet >> g_NetPlaySettings.m_DSPHLE;
 			packet >> g_NetPlaySettings.m_WriteToMemcard;
