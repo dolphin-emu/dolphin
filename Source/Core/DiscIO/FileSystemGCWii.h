@@ -21,7 +21,7 @@ class FileInfoGCWii : public FileInfo
 {
 public:
   // Does not take ownership of pointers
-  FileInfoGCWii(u8 offset_shift, const u8* fst_entry, const u8* name_table_start);
+  FileInfoGCWii(const u8* fst, u8 offset_shift, u32 index, u32 total_file_infos);
 
   u64 GetOffset() const override;
   u32 GetSize() const override;
@@ -38,9 +38,10 @@ private:
 
   u32 Get(EntryProperty entry_property) const;
 
+  const u8* const m_fst;
   const u8 m_offset_shift;
-  const u8* const m_fst_entry;
-  const u8* const m_name_table_start;
+  const u32 m_index;
+  const u32 m_total_file_infos;
 };
 
 class FileSystemGCWii : public FileSystem

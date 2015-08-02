@@ -22,14 +22,17 @@
 
 namespace DiscIO
 {
-FileInfoGCWii::FileInfoGCWii(u8 offset_shift, const u8* fst_entry, const u8* name_table_start)
-    : m_offset_shift(offset_shift), m_fst_entry(fst_entry), m_name_table_start(name_table_start)
+static constexpr u32 FST_ENTRY_SIZE = 4 * 3;  // An FST entry consists of three 32-bit integers
+
+FileInfoGCWii::FileInfoGCWii(const u8* fst, u8 offset_shift, u32 index, u32 total_file_infos)
+    : m_fst(fst), m_offset_shift(offset_shift), m_index(index), m_total_file_infos(total_file_infos)
 {
 }
 
 u32 FileInfoGCWii::Get(EntryProperty entry_property) const
 {
-  return Common::swap32(m_fst_entry + sizeof(u32) * static_cast<int>(entry_property));
+  return Common::swap32(m_fst + FST_ENTRY_SIZE * m_index +
+                        sizeof(u32) * static_cast<int>(entry_property));
 }
 
 u32 FileInfoGCWii::GetSize() const
@@ -51,7 +54,8 @@ std::string FileInfoGCWii::GetName() const
 {
   // TODO: Should we really always use SHIFT-JIS?
   // Some names in Pikmin (NTSC-U) don't make sense without it, but is it correct?
-  const u8* name = m_name_table_start + (Get(EntryProperty::NAME_OFFSET) & 0xFFFFFF);
+  u32 name_offset = Get(EntryProperty::NAME_OFFSET) & 0xFFFFFF;
+  const u8* name = m_fst + FST_ENTRY_SIZE * m_total_file_infos + name_offset;
   return SHIFTJISToUTF8(reinterpret_cast<const char*>(name));
 }
 
@@ -72,7 +76,7 @@ FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partit
     return;
   const u64 fst_offset = static_cast<u64>(*fst_offset_unshifted) << m_offset_shift;
   const u64 fst_size = static_cast<u64>(*fst_size_unshifted) << m_offset_shift;
-  if (fst_size < 0xC)
+  if (fst_size < FST_ENTRY_SIZE)
     return;
 
   // 128 MiB is more than the total amount of RAM in a Wii.
@@ -95,12 +99,12 @@ FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partit
   // Create all file info objects
   u32 number_of_file_infos = Common::swap32(*((u32*)m_file_system_table.data() + 2));
   const u8* fst_start = m_file_system_table.data();
-  const u8* name_table_start = fst_start + (number_of_file_infos * 0xC);
+  const u8* name_table_start = fst_start + (FST_ENTRY_SIZE * number_of_file_infos);
   const u8* name_table_end = fst_start + fst_size;
   if (name_table_end < name_table_start)
     return;
   for (u32 i = 0; i < number_of_file_infos; i++)
-    m_FileInfoVector.emplace_back(m_offset_shift, fst_start + (i * 0xC), name_table_start);
+    m_FileInfoVector.emplace_back(fst_start, m_offset_shift, i, number_of_file_infos);
 
   // If we haven't returned yet, everything succeeded
   m_Valid = true;
