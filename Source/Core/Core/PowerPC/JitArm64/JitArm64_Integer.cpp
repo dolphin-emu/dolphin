@@ -678,6 +678,9 @@ void JitArm64::addzex(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	FALLBACK_IF(inst.OE);
 
+	// breaks Kirby
+	FALLBACK_IF(1);
+
 	int a = inst.RA, d = inst.RD;
 
 	gpr.BindToRegister(d, d == a);
