@@ -480,12 +480,12 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	while (!error && got_packet)
 	{
 		// Write the compressed frame in the media file.
-		if (pkt.pts != AV_NOPTS_VALUE)
+		if (static_cast<u64>(pkt.pts) != AV_NOPTS_VALUE)
 		{
 			pkt.pts = av_rescale_q(pkt.pts,
 			                       s_stream->codec->time_base, s_stream->time_base);
 		}
-		if (pkt.dts != AV_NOPTS_VALUE)
+		if (static_cast<u64>(pkt.dts) != AV_NOPTS_VALUE)
 		{
 			pkt.dts = av_rescale_q(pkt.dts,
 			                       s_stream->codec->time_base, s_stream->time_base);
