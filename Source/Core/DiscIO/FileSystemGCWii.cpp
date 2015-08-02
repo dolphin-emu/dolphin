@@ -20,15 +20,17 @@
 
 namespace DiscIO
 {
-CFileInfoGCWii::CFileInfoGCWii(bool wii, const u8* fst_entry, const u8* name_table_start)
-    : m_wii(wii), m_fst_entry(fst_entry), m_name_table_start(name_table_start)
+static const u32 FST_ENTRY_SIZE = 4 * 3;  // An FST entry consists of three 32-bit integers
+
+CFileInfoGCWii::CFileInfoGCWii(const u8* fst, bool wii, u32 index, u32 total_file_infos)
+    : m_fst(fst), m_wii(wii), m_index(index), m_total_file_infos(total_file_infos)
 {
 }
 
-// Reads the u32 at m_fst_entry for Get(0), reads the u32 after that for Get(1), and so on
+// Reads the first u32 of this entry for Get(0), reads the u32 after that for Get(1), and so on
 u32 CFileInfoGCWii::Get(int n) const
 {
-  return Common::swap32(m_fst_entry + sizeof(u32) * n);
+  return Common::swap32(m_fst + FST_ENTRY_SIZE * m_index + sizeof(u32) * n);
 }
 
 u32 CFileInfoGCWii::GetRawNameOffset() const
@@ -60,8 +62,8 @@ std::string CFileInfoGCWii::GetName() const
 {
   // TODO: Should we really always use SHIFT-JIS?
   // Some names in Pikmin (NTSC-U) don't make sense without it, but is it correct?
-  return SHIFTJISToUTF8(
-      reinterpret_cast<const char*>(m_name_table_start + (GetRawNameOffset() & 0xFFFFFF)));
+  return SHIFTJISToUTF8(reinterpret_cast<const char*>(m_fst + FST_ENTRY_SIZE * m_total_file_infos +
+                                                      (GetRawNameOffset() & 0xFFFFFF)));
 }
 
 CFileSystemGCWii::CFileSystemGCWii(const IVolume* _rVolume)
@@ -82,7 +84,7 @@ CFileSystemGCWii::CFileSystemGCWii(const IVolume* _rVolume)
     return;
   u64 fst_offset = static_cast<u64>(fst_offset_unshifted) << GetOffsetShift();
   u64 fst_size = static_cast<u64>(fst_size_unshifted) << GetOffsetShift();
-  if (fst_size < 0xC)
+  if (fst_size < FST_ENTRY_SIZE)
     return;
 
   // 128 MiB is more than the total amount of RAM in a Wii.
@@ -105,12 +107,12 @@ CFileSystemGCWii::CFileSystemGCWii(const IVolume* _rVolume)
   // Create all file info objects
   u32 number_of_file_infos = Common::swap32(*((u32*)m_file_system_table.data() + 2));
   const u8* fst_start = m_file_system_table.data();
-  const u8* name_table_start = fst_start + (number_of_file_infos * 0xC);
+  const u8* name_table_start = fst_start + (FST_ENTRY_SIZE * number_of_file_infos);
   const u8* name_table_end = fst_start + fst_size;
   if (name_table_end < name_table_start)
     return;
   for (u32 i = 0; i < number_of_file_infos; i++)
-    m_FileInfoVector.emplace_back(m_Wii, fst_start + (i * 0xC), name_table_start);
+    m_FileInfoVector.emplace_back(fst_start, m_Wii, i, number_of_file_infos);
 
   // If we haven't returned yet, everything succeeded
   m_Valid = true;
