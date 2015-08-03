@@ -43,6 +43,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -431,8 +432,12 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	// Don't know if there is a better place for this code so there isn't a 1 frame delay
 	if (g_ActiveConfig.bWidescreenHack)
 	{
-		float source_aspect = VideoInterface::GetAspectRatio(g_aspect_wide);
+		float source_aspect;
 		float target_aspect;
+		if (g_ActiveConfig.bSmartAR)
+			source_aspect = VertexShaderManager::projection_ratio;
+		else
+			source_aspect = VideoInterface::GetAspectRatio(g_aspect_wide, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 
 		switch (g_ActiveConfig.iAspectRatio)
 		{
@@ -440,10 +445,10 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 			target_aspect = WinWidth / WinHeight;
 			break;
 		case ASPECT_ANALOG:
-			target_aspect = VideoInterface::GetAspectRatio(false);
+			target_aspect = VideoInterface::GetAspectRatio(false, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		case ASPECT_ANALOG_WIDE:
-			target_aspect = VideoInterface::GetAspectRatio(true);
+			target_aspect = VideoInterface::GetAspectRatio(true, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		default:
 			// ASPECT_AUTO
@@ -479,13 +484,16 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	switch (g_ActiveConfig.iAspectRatio)
 	{
 		case ASPECT_ANALOG_WIDE:
-			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(true);
+			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(true, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		case ASPECT_ANALOG:
-			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(false);
+			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(false, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		default:
-			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(g_aspect_wide);
+			if (g_ActiveConfig.bSmartAR)
+				Ratio = (WinWidth / WinHeight) / VertexShaderManager::projection_ratio;
+			else
+				Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(g_aspect_wide, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 	}
 
@@ -515,13 +523,16 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 		switch (g_ActiveConfig.iAspectRatio)
 		{
 		case ASPECT_ANALOG_WIDE:
-			Ratio = (16.0f / 9.0f) / VideoInterface::GetAspectRatio(true);
+			Ratio = (16.0f / 9.0f) / VideoInterface::GetAspectRatio(true, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		case ASPECT_ANALOG:
-			Ratio = (4.0f / 3.0f) / VideoInterface::GetAspectRatio(false);
+			Ratio = (4.0f / 3.0f) / VideoInterface::GetAspectRatio(false, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		default:
-			Ratio = (!g_aspect_wide ? (4.0f / 3.0f) : (16.0f / 9.0f)) / VideoInterface::GetAspectRatio(g_aspect_wide);
+			if (g_ActiveConfig.bSmartAR)
+				Ratio = (!g_aspect_wide ? (4.0f / 3.0f) : (16.0f / 9.0f)) / VertexShaderManager::projection_ratio;
+			else
+				Ratio = (!g_aspect_wide ? (4.0f / 3.0f) : (16.0f / 9.0f)) / VideoInterface::GetAspectRatio(g_aspect_wide, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		}
 		if (Ratio <= 1.0f)

@@ -42,4 +42,5 @@ public:
 
 	static VertexShaderConstants constants;
 	static bool dirty;
+	static float projection_ratio;
 };
