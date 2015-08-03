@@ -110,6 +110,10 @@ void VideoConfig::Load(const std::string& ini_file)
 	iPhackvalue[0] = 0;
 	bPerfQueriesEnable = false;
 
+	// aspect ratio defaults
+	bVIScale = true;
+	bPARCorrect = true;
+
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	IniFile::Section* interface = iniFile.GetOrCreateSection("Interface");
