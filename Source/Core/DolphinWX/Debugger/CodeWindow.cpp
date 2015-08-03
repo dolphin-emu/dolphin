@@ -240,7 +240,7 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 
 	if (success)
 		pAddrCtrl->SetBackgroundColour(wxNullColour);
-	else
+	else if (!txt.empty())
 		pAddrCtrl->SetBackgroundColour(*wxRED);
 
 	pAddrCtrl->Refresh();
