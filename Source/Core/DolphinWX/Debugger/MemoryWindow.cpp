@@ -13,6 +13,7 @@
 #include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/srchctrl.h>
 #include <wx/textctrl.h>
 
 #include "Common/CommonTypes.h"
@@ -48,8 +49,6 @@ enum
 };
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
-	EVT_TEXT(IDM_MEM_ADDRBOX,       CMemoryWindow::OnAddrBoxChange)
-	EVT_TEXT_ENTER(IDM_VALBOX,      CMemoryWindow::SetMemoryValueFromValBox)
 	EVT_LISTBOX(IDM_SYMBOLLIST,     CMemoryWindow::OnSymbolListChange)
 	EVT_HOST_COMMAND(wxID_ANY,      CMemoryWindow::OnHostMessage)
 	EVT_BUTTON(IDM_SETVALBUTTON,    CMemoryWindow::SetMemoryValue)
@@ -70,21 +69,22 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 {
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerRight = new wxBoxSizer(wxVERTICAL);
-	// Didn't see anything useful in the left part
-	//wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
 
 	DebugInterface* di = &PowerPC::debug_interface;
 
-	//symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition,
-	//      wxSize(20, 100), 0, nullptr, wxLB_SORT);
-	//sizerLeft->Add(symbols, 1, wxEXPAND);
 	memview = new CMemoryView(di, this);
 
-	//sizerBig->Add(sizerLeft, 1, wxEXPAND);
+	addrbox = new wxSearchCtrl(this, IDM_MEM_ADDRBOX);
+	addrbox->Bind(wxEVT_TEXT, &CMemoryWindow::OnAddrBoxChange, this);
+	addrbox->SetDescriptiveText(_("Search Address"));
+
+	valbox = new wxTextCtrl(this, IDM_VALBOX, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	valbox->Bind(wxEVT_TEXT_ENTER, &CMemoryWindow::SetMemoryValueFromValBox, this);
+
 	sizerBig->Add(memview, 20, wxEXPAND);
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
-	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_MEM_ADDRBOX, ""));
-	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER));
+	sizerRight->Add(addrbox);
+	sizerRight->Add(valbox);
 	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set Value")));
 
 	sizerRight->AddSpacer(5);
