@@ -289,7 +289,7 @@ void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
 			LoadRegister(i, xr);
 		for (size_t j = 0; j < regs.size(); j++)
 		{
-			if (i != j && regs[j].location.IsSimpleReg() && regs[j].location.GetSimpleReg() == xr)
+			if (i != j && regs[j].location.IsSimpleReg(xr))
 			{
 				Crash();
 			}
