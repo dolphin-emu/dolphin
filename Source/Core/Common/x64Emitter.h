@@ -581,9 +581,12 @@ public:
 	void SHUFPS(X64Reg regOp, const OpArg& arg, u8 shuffle);
 	void SHUFPD(X64Reg regOp, const OpArg& arg, u8 shuffle);
 
-	// SSE/SSE2: Useful alternative to shuffle in some cases.
+	// SSE3
+	void MOVSLDUP(X64Reg regOp, const OpArg& arg);
+	void MOVSHDUP(X64Reg regOp, const OpArg& arg);
 	void MOVDDUP(X64Reg regOp, const OpArg& arg);
 
+	// SSE/SSE2: Useful alternative to shuffle in some cases.
 	void UNPCKLPS(X64Reg dest, const OpArg& src);
 	void UNPCKHPS(X64Reg dest, const OpArg& src);
 	void UNPCKLPD(X64Reg dest, const OpArg& src);
