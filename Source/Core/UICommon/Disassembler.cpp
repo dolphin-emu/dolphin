@@ -152,7 +152,7 @@ HostDisassembler* GetNewDisassembler(const std::string& arch)
 		return new HostDisassemblerLLVM("armv7-none-unknown", 4, "cortex-a15");
 #elif defined(_M_X86)
 	if (arch == "x86")
-		new HostDisassemblerX86();
+		return new HostDisassemblerX86();
 #endif
 	return new HostDisassembler();
 }
