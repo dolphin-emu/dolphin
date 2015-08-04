@@ -4,6 +4,7 @@
 
 #include <fcntl.h>
 #include <libudev.h>
+#include <map>
 #include <unistd.h>
 
 #include "Common/Logging/Log.h"
