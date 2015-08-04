@@ -28,7 +28,7 @@ static std::string GetName(const std::string& devnode)
 	std::string res = libevdev_get_name(dev);
 	libevdev_free(dev);
 	close(fd);
-	return std::move(res);
+	return res;
 }
 
 void Init(std::vector<Core::Device*> &controllerDevices)
