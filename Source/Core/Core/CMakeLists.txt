@@ -168,6 +168,7 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/Interpreter/Interpreter_Paired.cpp
 			PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
 			PowerPC/Interpreter/Interpreter_Tables.cpp
+			PowerPC/TieredRecompiler.cpp
 			PowerPC/JitCommon/JitAsmCommon.cpp
 			PowerPC/JitCommon/JitBase.cpp
 			PowerPC/JitCommon/JitCache.cpp
@@ -221,6 +222,24 @@ elseif(_M_ARM_64)
 	         PowerPC/JitArm64/JitArm64_SystemRegisters.cpp
 	         PowerPC/JitArm64/Jit_Util.cpp
 	         PowerPC/JitArm64/JitArm64_Tables.cpp)
+endif()
+
+if(HAS_LLVM)
+	set(SRCS ${SRCS}
+	         PowerPC/JitLLVM/Jit.cpp
+	         PowerPC/JitLLVM/JitBinding.cpp
+	         PowerPC/JitLLVM/JitFunction.cpp
+	         PowerPC/JitLLVM/JitHelpers.cpp
+	         PowerPC/JitLLVM/JitModule.cpp
+	         PowerPC/JitLLVM/JitLLVM_Branch.cpp
+	         PowerPC/JitLLVM/JitLLVM_FloatingPoint.cpp
+	         PowerPC/JitLLVM/JitLLVM_Integer.cpp
+	         PowerPC/JitLLVM/JitLLVM_LoadStore.cpp
+	         PowerPC/JitLLVM/JitLLVM_LoadStoreFloating.cpp
+	         PowerPC/JitLLVM/JitLLVM_LoadStorePaired.cpp
+	         PowerPC/JitLLVM/JitLLVM_Paired.cpp
+	         PowerPC/JitLLVM/JitLLVM_SystemRegisters.cpp
+	         PowerPC/JitLLVM/JitLLVM_Tables.cpp)
 endif()
 
 set(LIBS
