@@ -420,7 +420,8 @@ void JitLLVM::slwx(LLVMFunction* func, UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	Value* reg_rb = func->LoadGPR(b);
 	Value* reg_rs = func->LoadGPR(s);
-	Value* cmp_res = builder->CreateICmpEQ(reg_rb, builder->getInt32(0x20));
+	Value* bit = builder->CreateAnd(reg_rb, builder->getInt32(0x20));
+	Value* cmp_res = builder->CreateICmpEQ(bit, builder->getInt32(0x20));
 	Value* shift_amount = builder->CreateAnd(reg_rb, builder->getInt32(0x1F));
 	Value* shifted_res = builder->CreateShl(reg_rs, shift_amount);
 	Value* res = builder->CreateSelect(cmp_res, builder->getInt32(0), shifted_res);
@@ -440,7 +441,8 @@ void JitLLVM::srwx(LLVMFunction* func, UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	Value* reg_rb = func->LoadGPR(b);
 	Value* reg_rs = func->LoadGPR(s);
-	Value* cmp_res = builder->CreateICmpEQ(reg_rb, builder->getInt32(0x20));
+	Value* bit = builder->CreateAnd(reg_rb, builder->getInt32(0x20));
+	Value* cmp_res = builder->CreateICmpEQ(bit, builder->getInt32(0x20));
 	Value* shift_amount = builder->CreateAnd(reg_rb, builder->getInt32(0x1F));
 	Value* shifted_res = builder->CreateLShr(reg_rs, shift_amount);
 	Value* res = builder->CreateSelect(cmp_res, builder->getInt32(0), shifted_res);
