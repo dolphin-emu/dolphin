@@ -299,14 +299,18 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
 	X64Reg addr = RSCRATCH;
 	X64Reg value = RSCRATCH2;
-	X64Reg tmp = ECX;
+	X64Reg tmp = gpr.GetFreeXReg();
+	gpr.FlushLockX(tmp);
 
-	PUSH(tmp);
-
-	MOV(32, R(addr), gpr.R(inst.RB));
-	if (inst.RA)
+	if (inst.RA && gpr.R(inst.RA).IsSimpleReg() && gpr.R(inst.RB).IsSimpleReg())
 	{
-		ADD(32, R(addr), gpr.R(inst.RA));
+		LEA(32, addr, MRegSum(gpr.RX(inst.RA), gpr.RX(inst.RB)));
+	}
+	else
+	{
+		MOV(32, R(addr), gpr.R(inst.RB));
+		if (inst.RA)
+			ADD(32, R(addr), gpr.R(inst.RA));
 	}
 
 	MOV(32, R(value), R(addr));
@@ -317,10 +321,9 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
 	MOV(32, R(tmp), R(addr));
 	SHR(32, R(tmp), Imm8(5));
-	SHR(32, R(value), R(tmp));
-	TEST(32, R(value), Imm32(1));
+	BT(32, R(value), R(tmp));
 
-	FixupBranch c = J_CC(CC_NZ, true);
+	FixupBranch c = J_CC(CC_C, true);
 	SwitchToFarCode();
 	SetJumpTarget(c);
 	BitSet32 registersInUse = CallerSavedRegistersInUse();
@@ -337,21 +340,19 @@ void Jit64::dcbx(UGeckoInstruction inst)
 	// dcbi
 	if (inst.SUBOP10 == 470)
 	{
-		MOV(16, R(tmp), M(&DSP::g_dspState));
-		TEST(16, R(tmp), Imm16(1 << 9));
+		TEST(16, M(&DSP::g_dspState), Imm16(1 << 9));
 		c = J_CC(CC_NZ, true);
 		SwitchToFarCode();
 		SetJumpTarget(c);
 		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-		MOV(32, R(ABI_PARAM1), R(addr));
-		ABI_CallFunction((void*)DSP::FlushInstantDMA);
+		ABI_CallFunctionR((void*)DSP::FlushInstantDMA, addr);
 		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 		c = J(true);
 		SwitchToNearCode();
 		SetJumpTarget(c);
 	}
 
-	POP(tmp);
+	gpr.UnlockAllX();
 }
 
 void Jit64::dcbt(UGeckoInstruction inst)
