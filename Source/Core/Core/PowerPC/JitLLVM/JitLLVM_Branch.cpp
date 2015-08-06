@@ -100,7 +100,9 @@ void JitLLVM::bcx(LLVMFunction* func, UGeckoInstruction inst)
 		builder->CreateCondBr(ctr_cmp, do_branch, cr_branch);
 	}
 	else
+	{
 		builder->CreateBr(cr_branch);
+	}
 
 	builder->SetInsertPoint(cr_branch);
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
@@ -110,7 +112,9 @@ void JitLLVM::bcx(LLVMFunction* func, UGeckoInstruction inst)
 		builder->CreateCondBr(cr_cmp, do_branch, no_branch);
 	}
 	else
+	{
 		builder->CreateBr(do_branch);
+	}
 
 	builder->SetInsertPoint(do_branch);
 	{
@@ -200,7 +204,9 @@ void JitLLVM::bclrx(LLVMFunction* func, UGeckoInstruction inst)
 		builder->CreateCondBr(ctr_cmp, do_branch, cr_branch);
 	}
 	else
+	{
 		builder->CreateBr(cr_branch);
+	}
 
 	builder->SetInsertPoint(cr_branch);
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
@@ -210,7 +216,9 @@ void JitLLVM::bclrx(LLVMFunction* func, UGeckoInstruction inst)
 		builder->CreateCondBr(cr_cmp, do_branch, no_branch);
 	}
 	else
+	{
 		builder->CreateBr(do_branch);
+	}
 
 	builder->SetInsertPoint(do_branch);
 	{

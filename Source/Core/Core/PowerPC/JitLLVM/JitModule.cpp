@@ -106,10 +106,9 @@ void LLVMModule::BindGlobalFunctions()
 {
 	LLVMContext& con = getGlobalContext();
 
-	Function* dispatcher_func;
 	FunctionType* void_type = GenerateFunctionType(Type::getVoidTy(con));
 
-	dispatcher_func = Function::Create(void_type, Function::ExternalLinkage, "Dispatcher", m_mod);
+	Function* dispatcher_func = Function::Create(void_type, Function::ExternalLinkage, "Dispatcher", m_mod);
 	dispatcher_func->setCallingConv(CallingConv::C);
 	dispatcher_func->setDoesNotReturn();
 	m_binder->Bind(dispatcher_func, (void*)JitInterface::GetDispatcher());

@@ -102,16 +102,16 @@ public:
 
 	void Run() override {};
 
-	const char *GetName() override { return "LLVMJIT"; }
+	const char* GetName() override { return "LLVMJIT"; }
 
 	// XXX: Tie our LLVM memory manager and block cache together?
-	JitBaseBlockCache *GetBlockCache() override { return nullptr; }
+	JitBaseBlockCache* GetBlockCache() override { return nullptr; }
 
 	void Jit(u32 em_address) override;
 
 	// We don't generate our own ASM routines
 	// We ride on the ASM routines that the tier 1 recompiler uses
-	const CommonAsmRoutinesBase *GetAsmRoutines() override { return nullptr; }
+	const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
 
 	// We don't actually handle faults...yet
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }

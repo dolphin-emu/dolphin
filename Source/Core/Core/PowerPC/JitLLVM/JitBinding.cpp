@@ -44,33 +44,33 @@ LLVMMemoryManager::~LLVMMemoryManager()
 		FreeMemoryPages(it.second.first, it.second.second);
 
 	for (auto& it : m_data_sections)
-		free(it.second);
+		delete[] it.second;
 
 	m_code_sections.clear();
 	m_data_sections.clear();
 }
 
-uint8_t *LLVMMemoryManager::allocateCodeSection(
+u8* LLVMMemoryManager::allocateCodeSection(
 	uintptr_t Size, unsigned Alignment, unsigned SectionID,
 	StringRef SectionName)
 {
 	// XXX: Respect alignment
-	uint8_t* section = (uint8_t*)AllocateExecutableMemory(Size);
+	u8* section = (u8*)AllocateExecutableMemory(Size);
 	m_code_sections[SectionID] = std::make_pair(section, Size);
 	return section;
 }
 
-uint8_t *LLVMMemoryManager::allocateDataSection(
+u8* LLVMMemoryManager::allocateDataSection(
 	uintptr_t Size, unsigned Alignment, unsigned SectionID,
 	StringRef SectionName, bool IsReadOnly)
 {
 	// XXX: Respect alignment
-	uint8_t* section = (uint8_t*)malloc(Size);
+	u8* section = new u8(Size);
 	m_data_sections[SectionID] = section;
 	return section;
 }
 
-bool LLVMMemoryManager::finalizeMemory(std::string *ErrMsg)
+bool LLVMMemoryManager::finalizeMemory(std::string* ErrMsg)
 {
 	return true;
 }

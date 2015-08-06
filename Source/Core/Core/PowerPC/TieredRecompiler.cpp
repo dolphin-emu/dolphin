@@ -61,7 +61,7 @@ namespace TieredRecompiler
 		m_rec_thread.join();
 		m_work_queue.Clear();
 #if HAS_LLVM
-		delete m_llvm_jit.release();
+		m_llvm_jit.reset();
 #endif
 	}
 

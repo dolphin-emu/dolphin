@@ -82,15 +82,19 @@ void JitLLVM::psq_lXX(LLVMFunction* func, UGeckoInstruction inst)
 	Value* scale = Paired_GetLoadScale(func, gqr);
 
 	if (indexed)
+	{
 		if (update)
 			address = Paired_GetEAUX(func, inst);
 		else
 			address = Paired_GetEAX(func, inst);
+	}
 	else
+	{
 		if (update)
 			address = Paired_GetEAU(func, inst);
 		else
 			address = Paired_GetEA(func, inst);
+	}
 
 	Value* res = CreatePairedLoad(func, paired, type, scale, address);
 	Value* PS0 = builder->CreateExtractElement(res, builder->getInt32(0));

@@ -359,7 +359,7 @@ static GekkoOPTemplate table63_2[] =
 namespace JitLLVMTables
 {
 
-void CompileInstruction(JitLLVM* _jit, LLVMFunction* func, PPCAnalyst::CodeOp & op)
+void CompileInstruction(JitLLVM* _jit, LLVMFunction* func, PPCAnalyst::CodeOp& op)
 {
 	(_jit->*dynaOpTable[op.inst.OPCD])(func, op.inst);
 	GekkoOPInfo *info = op.opinfo;

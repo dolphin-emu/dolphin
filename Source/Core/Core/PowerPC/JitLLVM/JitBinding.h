@@ -49,8 +49,8 @@ class LLVMMemoryManager : public llvm::RTDyldMemoryManager
 private:
 	LLVMNamedBinding* m_binder;
 
-	std::unordered_map<unsigned, std::pair<uint8_t*, uint64_t>> m_code_sections;
-	std::unordered_map<unsigned, uint8_t*> m_data_sections;
+	std::unordered_map<unsigned, std::pair<u8*, u64>> m_code_sections;
+	std::unordered_map<unsigned, u8*> m_data_sections;
 
 public:
 	LLVMMemoryManager(LLVMNamedBinding* binder)
@@ -65,11 +65,11 @@ public:
 
 	/// This method returns the address of the specified function or variable.
 	/// It is used to resolve symbols during module linking.
-	uint64_t getSymbolAddress(const std::string &Name) override
+	u64 getSymbolAddress(const std::string &Name) override
 	{
 		void* our_bind = m_binder->GetBinding(Name);
 		if (our_bind)
-			return (uint64_t)our_bind;
+			return (u64)our_bind;
 		else
 			return llvm::RTDyldMemoryManager::getSymbolAddressInProcess(Name);
 	}
@@ -78,14 +78,14 @@ public:
 	/// executable code. The SectionID is a unique identifier assigned by the JIT
 	/// engine, and optionally recorded by the memory manager to access a loaded
 	/// section.
-	uint8_t *allocateCodeSection(
+	u8* allocateCodeSection(
 		uintptr_t Size, unsigned Alignment, unsigned SectionID,
 		llvm::StringRef SectionName) override;
 
 	/// Allocate a memory block of (at least) the given size suitable for data.
 	/// The SectionID is a unique identifier assigned by the JIT engine, and
 	/// optionally recorded by the memory manager to access a loaded section.
-	uint8_t *allocateDataSection(
+	u8* allocateDataSection(
 		uintptr_t Size, unsigned Alignment, unsigned SectionID,
 		llvm::StringRef SectionName, bool IsReadOnly) override;
 
@@ -99,5 +99,5 @@ public:
 	/// operations needed to reliably use the memory are also performed.
 	///
 	/// Returns true if an error occurred, false otherwise.
-	bool finalizeMemory(std::string *ErrMsg = nullptr) override;
+	bool finalizeMemory(std::string* ErrMsg = nullptr) override;
 };
