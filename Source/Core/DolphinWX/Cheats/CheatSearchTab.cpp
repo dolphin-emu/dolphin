@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <array>
+#include <cstring>
 #include <wx/button.h>
 #include <wx/choice.h>
 #include <wx/listctrl.h>
@@ -294,6 +295,16 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 
 			buf.Printf("0x%08X", display_value);
 			m_lview_search_results->SetItem(index, 1, buf);
+
+			float display_value_float = 0.0f;
+			std::memcpy(&display_value_float, &display_value, sizeof(u32));
+			buf.Printf("%e", display_value_float);
+			m_lview_search_results->SetItem(index, 2, buf);
+
+			double display_value_double = 0.0;
+			std::memcpy(&display_value_double, &display_value, sizeof(u32));
+			buf.Printf("%e", display_value_double);
+			m_lview_search_results->SetItem(index, 3, buf);
 		}
 
 		m_lview_search_results->Thaw();
@@ -320,4 +331,6 @@ void CheatSearchTab::ResetListViewColumns()
 {
 	m_lview_search_results->AppendColumn(_("Address"));
 	m_lview_search_results->AppendColumn(_("Value"));
+	m_lview_search_results->AppendColumn(_("Value (float)"));
+	m_lview_search_results->AppendColumn(_("Value (double)"));
 }
