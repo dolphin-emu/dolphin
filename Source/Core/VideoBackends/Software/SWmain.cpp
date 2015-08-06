@@ -17,7 +17,6 @@
 #include "Core/HW/VideoInterface.h"
 
 #include "VideoBackends/OGL/GLInterfaceBase.h"
-#include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/DebugUtil.h"
@@ -176,13 +175,6 @@ void VideoSoftware::Video_Cleanup()
 void VideoSoftware::Video_Prepare()
 {
 	GLInterface->MakeCurrent();
-
-	// Init extension support.
-	if (!GLExtensions::Init())
-	{
-		ERROR_LOG(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
-		return;
-	}
 
 	// Handle VSync on/off
 	GLInterface->SwapInterval(VSYNC_ENABLED);

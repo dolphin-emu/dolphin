@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"

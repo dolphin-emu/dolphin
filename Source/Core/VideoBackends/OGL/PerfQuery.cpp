@@ -12,7 +12,7 @@ namespace OGL
 PerfQueryBase* GetPerfQuery()
 {
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 &&
-	    GLExtensions::Supports("GL_NV_occlusion_query_samples"))
+	    epoxy_has_gl_extension("GL_NV_occlusion_query_samples"))
 		return new PerfQueryGLESNV();
 	else if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 		return new PerfQueryGL(GL_ANY_SAMPLES_PASSED);

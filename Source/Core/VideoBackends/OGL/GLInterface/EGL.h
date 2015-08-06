@@ -5,7 +5,7 @@
 #pragma once
 
 #include <string>
-#include <EGL/egl.h>
+#include <epoxy/egl.h>
 
 #include "Core/ConfigManager.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"

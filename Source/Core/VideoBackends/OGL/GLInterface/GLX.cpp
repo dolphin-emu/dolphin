@@ -9,15 +9,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-#define GLX_CONTEXT_MAJOR_VERSION_ARB       0x2091
-#define GLX_CONTEXT_MINOR_VERSION_ARB       0x2092
-
-typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSPROC)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
-typedef int ( * PFNGLXSWAPINTERVALSGIPROC) (int interval);
-
-static PFNGLXCREATECONTEXTATTRIBSPROC glXCreateContextAttribs = nullptr;
-static PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
-
 static bool s_glxError;
 static int ctxErrorHandler(Display *dpy, XErrorEvent *ev)
 {
@@ -56,14 +47,6 @@ bool cInterfaceGLX::Create(void *window_handle)
 	{
 		ERROR_LOG(VIDEO, "glX-Version %d.%d detected, but need at least 1.4",
 		          glxMajorVersion, glxMinorVersion);
-		return false;
-	}
-
-	// loading core context creation function
-	glXCreateContextAttribs = (PFNGLXCREATECONTEXTATTRIBSPROC)GetFuncAddress("glXCreateContextAttribsARB");
-	if (!glXCreateContextAttribs)
-	{
-		ERROR_LOG(VIDEO, "glXCreateContextAttribsARB not found, do you support GLX_ARB_create_context?");
 		return false;
 	}
 
@@ -106,7 +89,7 @@ bool cInterfaceGLX::Create(void *window_handle)
 	};
 	s_glxError = false;
 	XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
-	ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs);
+	ctx = glXCreateContextAttribsARB(dpy, fbconfig, 0, True, context_attribs);
 	XSync(dpy, False);
 	if (!ctx || s_glxError)
 	{
@@ -117,7 +100,7 @@ bool cInterfaceGLX::Create(void *window_handle)
 			None
 		};
 		s_glxError = false;
-		ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs_legacy);
+		ctx = glXCreateContextAttribsARB(dpy, fbconfig, 0, True, context_attribs_legacy);
 		XSync(dpy, False);
 		if (!ctx || s_glxError)
 		{
@@ -149,13 +132,7 @@ bool cInterfaceGLX::Create(void *window_handle)
 
 bool cInterfaceGLX::MakeCurrent()
 {
-	bool success = glXMakeCurrent(dpy, win, ctx);
-	if (success)
-	{
-		// load this function based on the current bound context
-		glXSwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC)GLInterface->GetFuncAddress("glXSwapIntervalSGI");
-	}
-	return success;
+	return glXMakeCurrent(dpy, win, ctx);
 }
 
 bool cInterfaceGLX::ClearCurrent()
