@@ -202,8 +202,7 @@ namespace JitInterface
 
 		JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
 
-		*code = (const u8*)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
-
+		*code = block->checkedEntry;
 		*code_size = block->codeSize;
 		*address = block->originalAddress;
 		return 0;
