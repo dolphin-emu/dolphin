@@ -10,7 +10,7 @@
 class wxButton;
 class wxChoice;
 class wxFocusEvent;
-class wxListBox;
+class wxListView;
 class wxRadioBox;
 class wxRadioButton;
 class wxStaticText;
@@ -31,11 +31,18 @@ private:
 		u32 old_value;
 	};
 
+	void UpdateCheatSearchResultsList();
+	void ResetListViewColumns();
+	void StartNewSearch(wxCommandEvent& event);
+	void FilterCheatSearchResults(wxCommandEvent& event);
+	void CreateARCode(wxCommandEvent&);
+	void ApplyFocus(wxFocusEvent&);
+
 	std::vector<CheatSearchResult> m_search_results;
 	unsigned int m_search_type_size;
 
 	wxChoice* m_search_type;
-	wxListBox* m_lbox_search_results;
+	wxListView* m_lview_search_results;
 	wxStaticText* m_label_results_count;
 	wxTextCtrl* m_textctrl_value_x;
 
@@ -49,10 +56,4 @@ private:
 		wxRadioButton* rad_oldvalue;
 		wxRadioButton* rad_uservalue;
 	} m_value_x_radiobtn;
-
-	void UpdateCheatSearchResultsList();
-	void StartNewSearch(wxCommandEvent& event);
-	void FilterCheatSearchResults(wxCommandEvent& event);
-	void CreateARCode(wxCommandEvent&);
-	void ApplyFocus(wxFocusEvent&);
 };

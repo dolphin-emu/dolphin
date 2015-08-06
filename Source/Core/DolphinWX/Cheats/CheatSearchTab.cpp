@@ -5,7 +5,7 @@
 #include <array>
 #include <wx/button.h>
 #include <wx/choice.h>
-#include <wx/listbox.h>
+#include <wx/listctrl.h>
 #include <wx/panel.h>
 #include <wx/radiobox.h>
 #include <wx/radiobut.h>
@@ -44,11 +44,9 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	std::array<wxString, 3> data_size_names = { { _("8-bit"), _("16-bit"), _("32-bit") } };
 	m_data_sizes = new wxRadioBox(this, wxID_ANY, _("Data Size"), wxDefaultPosition, wxDefaultSize, static_cast<int>(data_size_names.size()), data_size_names.data());
 
-	// Listbox for search results (shown in monospace font).
-	m_lbox_search_results = new wxListBox(this, wxID_ANY);
-	wxFont list_font = m_lbox_search_results->GetFont();
-	list_font.SetFamily(wxFONTFAMILY_TELETYPE);
-	m_lbox_search_results->SetFont(list_font);
+	// ListView for search results
+	m_lview_search_results = new wxListView(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
+	ResetListViewColumns();
 
 	// Result count
 	m_label_results_count = new wxStaticText(this, wxID_ANY, _("Count:"));
@@ -60,7 +58,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	// results groupbox
 	wxStaticBoxSizer* const sizer_cheat_search_results = new wxStaticBoxSizer(wxVERTICAL, this, _("Results"));
 	sizer_cheat_search_results->Add(m_label_results_count, 0, wxALIGN_LEFT | wxALL, 5);
-	sizer_cheat_search_results->Add(m_lbox_search_results, 1, wxEXPAND | wxALL, 5);
+	sizer_cheat_search_results->Add(m_lview_search_results, 1, wxEXPAND | wxALL, 5);
 	sizer_cheat_search_results->Add(button_cheat_search_copy_address, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
 
 	// Search value radio buttons
@@ -153,7 +151,6 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED(event))
 
 	UpdateCheatSearchResultsList();
 }
-
 
 void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 {
@@ -261,7 +258,8 @@ void CheatSearchTab::ApplyFocus(wxFocusEvent& ev)
 
 void CheatSearchTab::UpdateCheatSearchResultsList()
 {
-	m_lbox_search_results->Clear();
+	m_lview_search_results->ClearAll();
+	ResetListViewColumns();
 
 	wxString count_label = wxString::Format(_("Count: %lu"),
 		(unsigned long)m_search_results.size());
@@ -271,11 +269,12 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 	}
 	else
 	{
-		for (const CheatSearchResult& result : m_search_results)
-		{
-			u32 display_value = result.old_value;
+		m_lview_search_results->Freeze();
 
-			// #ifdef LIL_ENDIAN :p
+		for (size_t i = 0; i < m_search_results.size(); i++)
+		{
+			u32 display_value = m_search_results[i].old_value;
+
 			switch (m_search_type_size)
 			{
 			case 1:
@@ -287,14 +286,17 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 				display_value = Common::swap32(display_value);
 				break;
 			}
-			// #elseif BIG_ENDIAN
-			// need to do some stuff in here (for 8 and 16bit) for bigendian
-			// #endif
-			std::string rowfmt = StringFromFormat("0x%%08X    0x%%0%uX    %%u/%%i", m_search_type_size*2);
 
-			m_lbox_search_results->Append(
-				wxString::Format(rowfmt.c_str(), result.address, display_value, display_value, display_value));
+			// Insert into the list control.
+			wxString buf;
+			buf.Printf("0x%08X", m_search_results[i].address);
+			long index = m_lview_search_results->InsertItem(static_cast<long>(i), buf);
+
+			buf.Printf("0x%08X", display_value);
+			m_lview_search_results->SetItem(index, 1, buf);
 		}
+
+		m_lview_search_results->Thaw();
 	}
 
 	m_label_results_count->SetLabel(count_label);
@@ -302,13 +304,20 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 
 void CheatSearchTab::CreateARCode(wxCommandEvent&)
 {
-	const int sel = m_lbox_search_results->GetSelection();
-	if (sel >= 0)
+	long idx = m_lview_search_results->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+	if (idx != wxNOT_FOUND)
 	{
-		const u32 address = m_search_results[sel].address | ((m_search_type_size & ~1) << 24);
+		const u32 address = m_search_results[idx].address | ((m_search_type_size & ~1) << 24);
 
 		CreateCodeDialog arcode_dlg(this, address, ActionReplay::GetARCodes());
 		arcode_dlg.SetExtraStyle(arcode_dlg.GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
 		arcode_dlg.ShowModal();
 	}
+}
+
+void CheatSearchTab::ResetListViewColumns()
+{
+	m_lview_search_results->AppendColumn(_("Address"));
+	m_lview_search_results->AppendColumn(_("Value"));
 }
