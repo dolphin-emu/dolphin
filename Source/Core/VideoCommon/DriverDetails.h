@@ -234,6 +234,12 @@ namespace DriverDetails
 		//		ab.z <<= cd.z;
 		//		ab.w <<= cd.w;
 		BUG_BROKENIVECSHIFTS,
+
+		// Bug: glCopyImageSubData doesn't work on i965
+		// Started Version: -1
+		// Ended Version: 10.6.4
+		// Mesa meta misses to disable the scissor test.
+		BUG_BROKENCOPYIMAGE,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
