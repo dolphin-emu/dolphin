@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <wx/button.h>
@@ -13,6 +14,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/timer.h>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
@@ -32,6 +34,9 @@ namespace
 CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	: wxPanel(parent)
 {
+	m_update_timer.SetOwner(this);
+	Bind(wxEVT_TIMER, &CheatSearchTab::OnTimerUpdate, this);
+
 	// first scan button
 	m_btn_init_scan = new wxButton(this, wxID_ANY, _("New Scan"));
 	m_btn_init_scan->Bind(wxEVT_BUTTON, &CheatSearchTab::StartNewSearch, this);
@@ -208,23 +213,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 				return;
 			}
 
-			user_x_val = (u32)parsed_x_val;
-
-			// #ifdef LIL_ENDIAN :p
-			switch (m_search_type_size)
-			{
-			case 1:
-				break;
-			case 2:
-				*(u16*)&user_x_val = Common::swap16((u8*)&user_x_val);
-				break;
-			case 4:
-				user_x_val = Common::swap32(user_x_val);
-				break;
-			}
-			// #elseif BIG_ENDIAN
-			// would have to move <u32 vals (8/16bit) to start of the user_x_val for the comparisons i use below
-			// #endif
+			user_x_val = SwapValue(static_cast<u32>(parsed_x_val));
 		}
 
 		for (CheatSearchResult& result : m_search_results)
@@ -251,14 +240,48 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	UpdateCheatSearchResultsList();
 }
 
+void CheatSearchTab::CreateARCode(wxCommandEvent&)
+{
+	long idx = m_lview_search_results->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	if (idx == wxNOT_FOUND)
+		return;
+
+	const u32 address = m_search_results[idx].address | ((m_search_type_size & ~1) << 24);
+
+	CreateCodeDialog arcode_dlg(this, address, ActionReplay::GetARCodes());
+	arcode_dlg.SetExtraStyle(arcode_dlg.GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
+	arcode_dlg.ShowModal();
+}
+
 void CheatSearchTab::ApplyFocus(wxFocusEvent& ev)
 {
 	ev.Skip();
 	m_value_x_radiobtn.rad_uservalue->SetValue(true);
 }
 
+void CheatSearchTab::OnTimerUpdate(wxTimerEvent&)
+{
+	if (Core::GetState() != Core::CORE_RUN)
+		return;
+
+	// Only update the currently visible list rows.
+	long first = m_lview_search_results->GetTopItem();
+	long last = std::min(m_lview_search_results->GetItemCount(), m_lview_search_results->GetCountPerPage());
+
+	m_lview_search_results->Freeze();
+
+	while (first < last)
+	{
+		UpdateCheatSearchResultItem(first);
+		first++;
+	}
+
+	m_lview_search_results->Thaw();
+}
+
 void CheatSearchTab::UpdateCheatSearchResultsList()
 {
+	m_update_timer.Stop();
 	m_lview_search_results->ClearAll();
 	ResetListViewColumns();
 
@@ -274,57 +297,43 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 
 		for (size_t i = 0; i < m_search_results.size(); i++)
 		{
-			u32 display_value = m_search_results[i].old_value;
-
-			switch (m_search_type_size)
-			{
-			case 1:
-				break;
-			case 2:
-				*(u16*)&display_value = Common::swap16((u8*)&display_value);
-				break;
-			case 4:
-				display_value = Common::swap32(display_value);
-				break;
-			}
-
 			// Insert into the list control.
-			wxString buf;
-			buf.Printf("0x%08X", m_search_results[i].address);
-			long index = m_lview_search_results->InsertItem(static_cast<long>(i), buf);
+			wxString address_string = wxString::Format("0x%08X", m_search_results[i].address);
+			long index = m_lview_search_results->InsertItem(static_cast<long>(i), address_string);
 
-			buf.Printf("0x%08X", display_value);
-			m_lview_search_results->SetItem(index, 1, buf);
-
-			float display_value_float = 0.0f;
-			std::memcpy(&display_value_float, &display_value, sizeof(u32));
-			buf.Printf("%e", display_value_float);
-			m_lview_search_results->SetItem(index, 2, buf);
-
-			double display_value_double = 0.0;
-			std::memcpy(&display_value_double, &display_value, sizeof(u32));
-			buf.Printf("%e", display_value_double);
-			m_lview_search_results->SetItem(index, 3, buf);
+			UpdateCheatSearchResultItem(index);
 		}
 
 		m_lview_search_results->Thaw();
+
+		// Half-second update interval
+		m_update_timer.Start(500);
 	}
 
 	m_label_results_count->SetLabel(count_label);
 }
 
-void CheatSearchTab::CreateARCode(wxCommandEvent&)
+void CheatSearchTab::UpdateCheatSearchResultItem(long index)
 {
-	long idx = m_lview_search_results->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	u32 address_value = 0;
+	std::memcpy(&address_value, &Memory::m_pRAM[m_search_results[index].address], m_search_type_size);
+	m_search_results[index].old_value = address_value;
 
-	if (idx != wxNOT_FOUND)
-	{
-		const u32 address = m_search_results[idx].address | ((m_search_type_size & ~1) << 24);
+	u32 display_value = SwapValue(address_value);
 
-		CreateCodeDialog arcode_dlg(this, address, ActionReplay::GetARCodes());
-		arcode_dlg.SetExtraStyle(arcode_dlg.GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
-		arcode_dlg.ShowModal();
-	}
+	wxString buf;
+	buf.Printf("0x%08X", display_value);
+	m_lview_search_results->SetItem(index, 1, buf);
+
+	float display_value_float = 0.0f;
+	std::memcpy(&display_value_float, &display_value, sizeof(u32));
+	buf.Printf("%e", display_value_float);
+	m_lview_search_results->SetItem(index, 2, buf);
+
+	double display_value_double = 0.0;
+	std::memcpy(&display_value_double, &display_value, sizeof(u32));
+	buf.Printf("%e", display_value_double);
+	m_lview_search_results->SetItem(index, 3, buf);
 }
 
 void CheatSearchTab::ResetListViewColumns()
@@ -333,4 +342,19 @@ void CheatSearchTab::ResetListViewColumns()
 	m_lview_search_results->AppendColumn(_("Value"));
 	m_lview_search_results->AppendColumn(_("Value (float)"));
 	m_lview_search_results->AppendColumn(_("Value (double)"));
+}
+
+u32 CheatSearchTab::SwapValue(u32 value) const
+{
+	switch (m_search_type_size)
+	{
+	case 2:
+		*(u16*)&value = Common::swap16((u8*)&value);
+		break;
+	case 4:
+		value = Common::swap32(value);
+		break;
+	}
+
+	return value;
 }
