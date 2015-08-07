@@ -24,7 +24,7 @@ public:
 private:
 	disassembler m_disasm;
 
-	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) override;
+	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count, u64 starting_pc) override;
 };
 
 #if defined(HAS_LLVM)
@@ -43,7 +43,7 @@ private:
 	LLVMDisasmContextRef m_llvm_context;
 	int m_instruction_size;
 
-	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) override;
+	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count, u64 starting_pc) override;
 };
 
 HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string& host_disasm, int inst_size, const std::string& cpu)
@@ -66,7 +66,7 @@ HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string& host_disasm, int i
 	m_can_disasm = true;
 }
 
-std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, const u32 code_size, u32 *host_instructions_count)
+std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, const u32 code_size, u32 *host_instructions_count, u64 starting_pc)
 {
 	if (!m_can_disasm)
 		return "(No LLVM context)";
@@ -78,7 +78,9 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
 	while ((u8*)disasmPtr < end)
 	{
 		char inst_disasm[256];
-		size_t inst_size = LLVMDisasmInstruction(m_llvm_context, disasmPtr, (u64)(end - disasmPtr), (u64)disasmPtr, inst_disasm, 256);
+		size_t inst_size = LLVMDisasmInstruction(m_llvm_context, disasmPtr, (u64)(end - disasmPtr), starting_pc, inst_disasm, 256);
+
+		x86_disasm << "0x" << std::hex << starting_pc << "\t";
 		if (!inst_size)
 		{
 			x86_disasm << "Invalid inst:";
@@ -110,6 +112,7 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
 		{
 			x86_disasm << inst_disasm << std::endl;
 			disasmPtr += inst_size;
+			starting_pc += inst_size;
 		}
 
 		(*host_instructions_count)++;
@@ -124,7 +127,7 @@ HostDisassemblerX86::HostDisassemblerX86()
 	m_disasm.set_syntax_intel();
 }
 
-std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count)
+std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count, u64 starting_pc)
 {
 	u64 disasmPtr = (u64)code_start;
 	const u8* end = code_start + code_size;
@@ -172,5 +175,5 @@ std::string DisassembleBlock(HostDisassembler* disasm, u32* address, u32* host_i
 		host_instructions_count = 0;
 		return "(No translation)";
 	}
-	return disasm->DisassembleHostBlock(code, *code_size, host_instructions_count);
+	return disasm->DisassembleHostBlock(code, *code_size, host_instructions_count, (u64)code);
 }
