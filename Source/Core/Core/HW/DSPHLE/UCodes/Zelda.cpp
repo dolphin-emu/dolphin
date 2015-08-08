@@ -84,12 +84,13 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	// Super Mario Galaxy.
 	// Super Mario Galaxy 2.
 	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
+	// Pikmin 1/2 New Play Control.
+	{ 0xEAEB38CC, NO_ARAM | MAKE_DOLBY_LOUDER },
 
 	// TODO: Other games that use this UCode (exhaustive list):
 	// * Link's Crossbow Training
 	// * The Legend of Zelda: Collector's Edition
 	// * The Legend of Zelda: Twilight Princess / Wii (type ????, CRC ????)
-	// * Pikmin 1/2 New Play Control!
 };
 
 ZeldaUCode::ZeldaUCode(DSPHLE *dsphle, u32 crc)
