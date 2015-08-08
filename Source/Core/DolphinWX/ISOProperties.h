@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <set>
 #include <string>
@@ -16,8 +17,6 @@
 #include "Common/IniFile.h"
 #include "Core/ActionReplay.h"
 #include "DiscIO/Filesystem.h"
-// TODO: eww
-#include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
@@ -216,15 +215,13 @@ private:
 
   const GameListItem OpenGameListItem;
 
-  typedef std::vector<const DiscIO::CFileInfoGCWii*>::iterator fileIter;
-
-  size_t CreateDirectoryTree(wxTreeItemId& parent,
-                             const std::vector<DiscIO::CFileInfoGCWii>& fileInfos);
-  size_t CreateDirectoryTree(wxTreeItemId& parent,
-                             const std::vector<DiscIO::CFileInfoGCWii>& fileInfos,
-                             const size_t _FirstIndex, const size_t _LastIndex);
+  void CreateDirectoryTree(wxTreeItemId& parent, const DiscIO::IFileInfo& directory);
   void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
                  const WiiPartition* partition = nullptr);
+  static void ExportDir(const std::string& export_folder, const DiscIO::IFileSystem& file_system,
+                        const DiscIO::IFileInfo& directory, const std::string& directory_path,
+                        const std::function<bool(const std::string& path)>& update_progress);
+  static void CreateFullPath(const std::string& path);
 
   IniFile GameIniDefault;
   IniFile GameIniLocal;

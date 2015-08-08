@@ -129,12 +129,12 @@ void FindFilename(u64 offset)
     return;
   }
 
-  const DiscIO::IFileInfo* file_info = s_filesystem->FindFileInfo(offset);
+  std::unique_ptr<DiscIO::IFileInfo> file_info = s_filesystem->FindFileInfo(offset);
 
   if (!file_info)
     return;
 
-  CheckFile(s_filesystem->GetPath(file_info->GetOffset()), file_info->GetSize());
+  CheckFile(file_info->GetPath(), file_info->GetSize());
 }
 
 void Close()
