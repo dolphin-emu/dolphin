@@ -77,6 +77,7 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	// * Link's Crossbow Training
 	// * The Legend of Zelda: Collector's Edition
 	// * The Legend of Zelda: Twilight Princess / Wii (type ????, CRC ????)
+	// * Pikmin 1/2 New Play Control!
 };
 
 ZeldaUCode::ZeldaUCode(DSPHLE *dsphle, u32 crc)
