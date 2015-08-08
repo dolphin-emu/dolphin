@@ -26,6 +26,12 @@ AlsaSound::~AlsaSound()
 bool AlsaSound::Start()
 {
 	m_thread_status.store(ALSAThreadStatus::RUNNING);
+	if (!AlsaInit())
+	{
+		m_thread_status.store(ALSAThreadStatus::STOPPED);
+		return false;
+	}
+
 	thread = std::thread(&AlsaSound::SoundLoop, this);
 	return true;
 }
@@ -44,10 +50,6 @@ void AlsaSound::Update()
 // Called on audio thread.
 void AlsaSound::SoundLoop()
 {
-	if (!AlsaInit()) {
-		m_thread_status.store(ALSAThreadStatus::STOPPED);
-		return;
-	}
 	Common::SetCurrentThreadName("Audio thread - alsa");
 	while (m_thread_status.load() == ALSAThreadStatus::RUNNING)
 	{
