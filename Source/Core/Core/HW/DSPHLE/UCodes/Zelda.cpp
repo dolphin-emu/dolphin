@@ -264,6 +264,8 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
 
 void ZeldaUCode::HandleMailLight(u32 mail)
 {
+	bool add_command = true;
+
 	switch (m_mail_current_state)
 	{
 	case MailState::WAITING:
@@ -274,11 +276,15 @@ void ZeldaUCode::HandleMailLight(u32 mail)
 		// for each command - the alternative is to rewrite command handling as
 		// an asynchronous procedure, and we wouldn't want that, would we?
 		Write32(mail);
+
 		switch ((mail >> 24) & 0x7F)
 		{
 		case 0: m_mail_expected_cmd_mails = 0; break;
 		case 1: m_mail_expected_cmd_mails = 4; break;
 		case 2: m_mail_expected_cmd_mails = 2; break;
+		// Doesn't even register as a command, just rejumps to the dispatcher.
+		case 3: add_command = false; break;
+
 		default:
 			PanicAlert("Received unknown command in light protocol: %08x", mail);
 			break;
@@ -287,7 +293,7 @@ void ZeldaUCode::HandleMailLight(u32 mail)
 		{
 			SetMailState(MailState::WRITING_CMD);
 		}
-		else
+		else if (add_command)
 		{
 			m_pending_commands_count += 1;
 			RunPendingCommands();
