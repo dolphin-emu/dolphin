@@ -758,6 +758,7 @@ struct ZeldaAudioRenderer::VPB
 		// Simple pattern stored in the data downloaded by command 01. Playback
 		// frequency is controlled by the resampling ratio.
 		SRC_CONST_PATTERN_0 = 7,
+		SRC_CONST_PATTERN_0_VARIABLE_STEP = 10,
 		SRC_CONST_PATTERN_1 = 4,
 		SRC_CONST_PATTERN_2 = 11,
 		SRC_CONST_PATTERN_3 = 12,
@@ -1320,27 +1321,33 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 		}
 
 		case VPB::SRC_CONST_PATTERN_0:
+		case VPB::SRC_CONST_PATTERN_0_VARIABLE_STEP:
 		case VPB::SRC_CONST_PATTERN_1:
 		case VPB::SRC_CONST_PATTERN_2:
 		case VPB::SRC_CONST_PATTERN_3:
 		{
 			const u16 PATTERN_SIZE = 0x40;
 
-			std::map<u16, u16> samples_source_to_pattern = {
-				{ VPB::SRC_CONST_PATTERN_0, 0 },
-				{ VPB::SRC_CONST_PATTERN_1, 1 },
-				{ VPB::SRC_CONST_PATTERN_2, 2 },
-				{ VPB::SRC_CONST_PATTERN_3, 3 },
+			struct PatternInfo { u16 idx; bool variable_step; };
+			std::map<u16, PatternInfo> samples_source_to_pattern = {
+				{ VPB::SRC_CONST_PATTERN_0, {0, false} },
+				{ VPB::SRC_CONST_PATTERN_0_VARIABLE_STEP, {0, true} },
+				{ VPB::SRC_CONST_PATTERN_1, {1, false} },
+				{ VPB::SRC_CONST_PATTERN_2, {2, false} },
+				{ VPB::SRC_CONST_PATTERN_3, {3, false} },
 			};
-			u16 pattern_idx = samples_source_to_pattern[vpb->samples_source_type];
-			u16 pattern_offset = pattern_idx * PATTERN_SIZE;
+			auto& pattern_info = samples_source_to_pattern[vpb->samples_source_type];
+			u16 pattern_offset = pattern_info.idx * PATTERN_SIZE;
 			s16* pattern = m_const_patterns.data() + pattern_offset;
 
 			u32 pos = vpb->current_pos_frac << 6;  // log2(PATTERN_SIZE)
-			u32 step = vpb->resampling_ratio << 5;
 
 			for (size_t i = 0; i < buffer->size(); ++i)
 			{
+				u32 step = vpb->resampling_ratio << 5;
+				if (pattern_info.variable_step)
+					step += (u32)((u16)m_buf_back_right[i] * vpb->resampling_ratio) >> 10;
+
 				(*buffer)[i] = pattern[pos >> 16];
 				pos = (pos + step) % (PATTERN_SIZE << 16);
 			}
