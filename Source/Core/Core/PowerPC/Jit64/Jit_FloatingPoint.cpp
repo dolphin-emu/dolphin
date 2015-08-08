@@ -650,10 +650,10 @@ void Jit64::fresx(UGeckoInstruction inst)
 
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d);
 	MOVAPD(XMM0, fpr.R(b));
+	fpr.BindToRegister(d, false);
 	CALL(asm_routines.fres);
-	MOVSD(fpr.R(d), XMM0);
+	MOVDDUP(fpr.RX(d), R(XMM0));
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 	gpr.UnlockAllX();
