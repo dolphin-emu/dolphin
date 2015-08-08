@@ -25,6 +25,7 @@ class IOFile;
 
 namespace DiscIO
 {
+class IFileInfo;
 class IVolume;
 
 class DiscScrubber final
@@ -79,6 +80,7 @@ private:
   bool ReadFromVolume(u64 offset, u64& buffer, bool decrypt);
   bool ParseDisc();
   bool ParsePartitionData(Partition& partition);
+  void ParseFileSystemData(u64 offset, const IFileInfo& directory);
 
   std::string m_filename;
   std::unique_ptr<IVolume> m_disc;

@@ -15,8 +15,6 @@
 #include "Common/Logging/Log.h"
 #include "DiscIO/DiscScrubber.h"
 #include "DiscIO/Filesystem.h"
-// TODO: eww
-#include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
@@ -249,24 +247,25 @@ bool DiscScrubber::ParsePartitionData(Partition& partition)
                 partition.header.fst_size);
 
     // Go through the filesystem and mark entries as used
-    auto& file_list = filesystem->GetFileList();
-    for (size_t i = 0; i < file_list.size(); ++i)
-    {
-      const std::string path = filesystem->GetPathFromFSTOffset(i);
-      DEBUG_LOG(DISCIO, "%s", path.empty() ? "/" : path.c_str());
-      auto& file = file_list[i];
-      if (!file.IsDirectory())
-      {
-        MarkAsUsedE(partition.offset + partition.header.data_offset, file.GetOffset(),
-                    file.GetSize());
-      }
-    }
+    ParseFileSystemData(partition.offset + partition.header.data_offset, filesystem->GetRoot());
   }
 
   // Swap back
   m_disc.swap(old_volume);
 
   return parsed_ok;
+}
+
+void DiscScrubber::ParseFileSystemData(u64 offset, const IFileInfo& directory)
+{
+  for (const DiscIO::IFileInfo& file_info : directory)
+  {
+    DEBUG_LOG(DISCIO, "Scrubbing %s", file_info.GetPath().c_str());
+    if (file_info.IsDirectory())
+      ParseFileSystemData(offset, file_info);
+    else
+      MarkAsUsedE(offset, file_info.GetOffset(), file_info.GetSize());
+  }
 }
 
 }  // namespace DiscIO
