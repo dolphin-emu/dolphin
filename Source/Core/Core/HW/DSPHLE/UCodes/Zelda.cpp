@@ -4,6 +4,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
+#include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
@@ -474,8 +475,7 @@ void ZeldaUCode::RunPendingCommands()
 		case 0x0C:
 			if (m_flags & SUPPORTS_GBA_CRYPTO)
 			{
-				// TODO
-				NOTICE_LOG(DSPHLE, "Received an unhandled GBA crypto command, param: %08x", Read32());
+				ProcessGBACrypto(Read32());
 			}
 			else if (m_flags & WEIRD_CMD_0C)
 			{
