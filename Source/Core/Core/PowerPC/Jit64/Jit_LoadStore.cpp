@@ -313,15 +313,13 @@ void Jit64::dcbx(UGeckoInstruction inst)
 			ADD(32, R(addr), gpr.R(inst.RA));
 	}
 
-	MOV(32, R(value), R(addr));
-	SHL(32, R(value), Imm8(3));
-	SHR(32, R(value), Imm8(13));
+	// Check whether a JIT cache line needs to be invalidated.
+	LEA(32, value, MScaled(addr, SCALE_8, 0)); // addr << 3 (masks the first 3 bits)
+	SHR(32, R(value), Imm8(3 + 5 + 5));        // >> 5 for cache line size, >> 5 for width of bitset
 	MOV(64, R(tmp), ImmPtr(jit->GetBlockCache()->GetBlockBitSet()));
 	MOV(32, R(value), MComplex(tmp, value, SCALE_4, 0));
-
-	MOV(32, R(tmp), R(addr));
-	SHR(32, R(tmp), Imm8(5));
-	BT(32, R(value), R(tmp));
+	SHR(32, R(addr), Imm8(5));
+	BT(32, R(value), R(addr));
 
 	FixupBranch c = J_CC(CC_C, true);
 	SwitchToFarCode();
@@ -329,6 +327,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
 	BitSet32 registersInUse = CallerSavedRegistersInUse();
 	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 	MOV(32, R(ABI_PARAM1), R(addr));
+	SHL(32, R(ABI_PARAM1), Imm8(5));
 	MOV(32, R(ABI_PARAM2), Imm32(32));
 	XOR(32, R(ABI_PARAM3), R(ABI_PARAM3));
 	ABI_CallFunction((void*)JitInterface::InvalidateICache);
@@ -340,11 +339,13 @@ void Jit64::dcbx(UGeckoInstruction inst)
 	// dcbi
 	if (inst.SUBOP10 == 470)
 	{
+		// Flush DSP DMA if DMAState bit is set
 		TEST(16, M(&DSP::g_dspState), Imm16(1 << 9));
 		c = J_CC(CC_NZ, true);
 		SwitchToFarCode();
 		SetJumpTarget(c);
 		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+		SHL(32, R(addr), Imm8(5));
 		ABI_CallFunctionR((void*)DSP::FlushInstantDMA, addr);
 		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 		c = J(true);

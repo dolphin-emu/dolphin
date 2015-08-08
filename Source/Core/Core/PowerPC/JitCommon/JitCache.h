@@ -66,6 +66,7 @@ public:
 		VALID_BLOCK_MASK_SIZE = 0x20000000 / 32,
 		VALID_BLOCK_ALLOC_ELEMENTS = VALID_BLOCK_MASK_SIZE / 32
 	};
+	// Directly accessed by Jit64.
 	std::unique_ptr<u32[]> m_valid_block;
 
 	ValidBlockBitSet()
