@@ -18,15 +18,6 @@
 
 #define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
-// A place to throw blocks of code we don't want polluting the cache, e.g. rarely taken
-// exception branches.
-class FarCodeCacheArm64 : public Arm64Gen::ARM64CodeBlock
-{
-public:
-	void Init(int size) { AllocCodeSpace(size); }
-	void Shutdown() { FreeCodeSpace(); }
-};
-
 // Some asserts to make sure we will be able to load everything
 static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
 static_assert((PPCSTATE_OFF(ps[0][0]) % 8) == 0, "LDR(64bit VFP) requires FPRs to be 8 byte aligned");
@@ -184,6 +175,27 @@ public:
 	void psq_st(UGeckoInstruction inst);
 
 private:
+
+	struct SlowmemHandler
+	{
+		ARM64Reg dest_reg;
+		ARM64Reg addr_reg;
+		BitSet32 gprs;
+		BitSet32 fprs;
+		u32 flags;
+		bool operator< (const SlowmemHandler& rhs) const
+		{
+			return !(dest_reg == rhs.dest_reg &&
+			       addr_reg == rhs.addr_reg &&
+				 gprs == rhs.gprs &&
+				 fprs == rhs.fprs &&
+				 flags == rhs.flags);
+		}
+	};
+
+	// <Fastmem fault location, slowmem handler location>
+	std::map<const u8*, std::pair<SlowmemHandler, const u8*>> m_fault_to_handler;
+	std::map<SlowmemHandler, const u8*> m_handler_to_loc;
 	Arm64GPRCache gpr;
 	Arm64FPRCache fpr;
 
@@ -194,7 +206,7 @@ private:
 
 	ARM64FloatEmitter m_float_emit;
 
-	FarCodeCacheArm64 farcode;
+	Arm64Gen::ARM64CodeBlock farcode;
 	u8* nearcode; // Backed up when we switch to far code.
 
 	// Simple functions to switch between near and far code emitting
@@ -219,7 +231,9 @@ private:
 	// Backpatching routines
 	bool DisasmLoadStore(const u8* ptr, u32* flags, Arm64Gen::ARM64Reg* reg);
 	void InitBackpatch();
-	u32 EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem, bool do_padding, Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr);
+	u32 EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
+		Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr,
+		BitSet32 gprs_to_push = BitSet32(0), BitSet32 fprs_to_push = BitSet32(0));
 	// Loadstore routines
 	void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
 	void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);

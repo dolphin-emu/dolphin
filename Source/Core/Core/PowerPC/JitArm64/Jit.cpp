@@ -14,10 +14,13 @@
 
 using namespace Arm64Gen;
 
+static const int AARCH64_FARCODE_SIZE = 1024 * 1024 * 16;
+
 void JitArm64::Init()
 {
-	AllocCodeSpace(CODE_SIZE);
-	farcode.Init(SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE);
+	size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : AARCH64_FARCODE_SIZE;
+	AllocCodeSpace(CODE_SIZE + child_code_size);
+	AddChildCodeSpace(&farcode, child_code_size);
 	jo.enableBlocklink = true;
 	jo.optimizeGatherPipe = true;
 	UpdateMemoryOptions();
@@ -36,16 +39,18 @@ void JitArm64::Init()
 
 void JitArm64::ClearCache()
 {
+	m_fault_to_handler.clear();
+	m_handler_to_loc.clear();
+
+	blocks.Clear();
 	ClearCodeSpace();
 	farcode.ClearCodeSpace();
-	blocks.Clear();
 	UpdateMemoryOptions();
 }
 
 void JitArm64::Shutdown()
 {
 	FreeCodeSpace();
-	farcode.Shutdown();
 	blocks.Shutdown();
 	asm_routines.Shutdown();
 }
