@@ -358,7 +358,6 @@ void ZeldaUCode::RunPendingCommands()
 		switch (command)
 		{
 		case 0x00:
-		case 0x03:
 		case 0x0A:
 		case 0x0B:
 		case 0x0C:
@@ -366,6 +365,17 @@ void ZeldaUCode::RunPendingCommands()
 			// NOP commands. Log anyway in case we encounter a new version
 			// where these are not NOPs anymore.
 			NOTICE_LOG(DSPHLE, "Received a NOP command: %d", command);
+			SendCommandAck(CommandAck::STANDARD, sync);
+			break;
+
+		case 0x03:
+			// NOP on standard protocol but shouldn't ever happen on light protocol
+			// since it's going directly back to the dispatcher with no ack.
+			if (m_flags & LIGHT_PROTOCOL)
+			{
+				PanicAlert("Received a 03 command on light protocol.");
+				break;
+			}
 			SendCommandAck(CommandAck::STANDARD, sync);
 			break;
 
