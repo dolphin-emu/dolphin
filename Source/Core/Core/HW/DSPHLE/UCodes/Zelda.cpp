@@ -1341,20 +1341,21 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 			s16* pattern = m_const_patterns.data() + pattern_offset;
 
 			u32 pos = vpb->current_pos_frac << 6;  // log2(PATTERN_SIZE)
+			u32 step = vpb->resampling_ratio << 5;
 
 			for (size_t i = 0; i < buffer->size(); ++i)
 			{
-				u32 step = vpb->resampling_ratio << 5;
-				if (pattern_info.variable_step)
-					step += (u32)((u16)m_buf_back_right[i] * vpb->resampling_ratio) >> 26;
-
 				(*buffer)[i] = pattern[pos >> 16];
 				pos = (pos + step) % (PATTERN_SIZE << 16);
+				if (pattern_info.variable_step)
+					pos = ((pos << 10) + m_buf_back_right[i] * vpb->resampling_ratio) >> 10;
 			}
 
 			vpb->current_pos_frac = pos >> 6;
 			break;
 		}
+
+
 
 		case VPB::SRC_PCM8_FROM_ARAM:
 			DownloadPCMSamplesFromARAM<s8>(raw_input_samples.data() + 4, vpb,
