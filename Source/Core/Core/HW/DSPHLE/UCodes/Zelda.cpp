@@ -1346,7 +1346,7 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 			{
 				u32 step = vpb->resampling_ratio << 5;
 				if (pattern_info.variable_step)
-					step += (u32)((u16)m_buf_back_right[i] * vpb->resampling_ratio) >> 10;
+					step += (u32)((u16)m_buf_back_right[i] * vpb->resampling_ratio) >> 26;
 
 				(*buffer)[i] = pattern[pos >> 16];
 				pos = (pos + step) % (PATTERN_SIZE << 16);
