@@ -375,7 +375,11 @@ void ZeldaUCode::RunPendingCommands()
 		case 0x07:
 		case 0x08:
 		case 0x09:
-			// Commands that crash the DAC UCode. Log and enter HALTED mode.
+			// Commands that crash the DAC UCode on non-light protocols. Log and
+			// enter HALTED mode.
+			//
+			// TODO: These are not crashes on light protocol, however I've never seen
+			// them used so far.
 			NOTICE_LOG(DSPHLE, "Received a crashy command: %d", command);
 			SetMailState(MailState::HALTED);
 			return;
