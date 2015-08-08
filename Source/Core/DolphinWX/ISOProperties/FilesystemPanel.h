@@ -51,7 +51,7 @@ private:
   void ExtractSingleFile(const wxString& output_file_path) const;
   void ExtractSingleDirectory(const wxString& output_folder);
   void ExtractDirectories(const std::string& full_path, const std::string& output_folder,
-                          DiscIO::FileSystem* filesystem);
+                          const DiscIO::FileSystem& filesystem);
 
   wxString BuildFilePathFromSelection() const;
   wxString BuildDirectoryPathFromSelection() const;

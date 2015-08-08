@@ -88,13 +88,13 @@ void Log(u64 offset, const DiscIO::Partition& partition)
   if (!s_filesystem)
     return;
 
-  const DiscIO::FileInfo* file_info = s_filesystem->FindFileInfo(offset);
+  const std::unique_ptr<DiscIO::FileInfo> file_info = s_filesystem->FindFileInfo(offset);
 
   // Do nothing if no file was found at that offset
   if (!file_info)
     return;
 
-  const std::string path = s_filesystem->GetPath(file_info->GetOffset());
+  const std::string path = file_info->GetPath();
 
   // Do nothing if we found the same file again
   if (s_previous_file == path)
