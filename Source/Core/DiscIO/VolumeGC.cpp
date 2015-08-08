@@ -177,7 +177,7 @@ void VolumeGC::LoadBannerFile() const
   if (!file_system)
     return;
 
-  const FileInfo* file_info = file_system->FindFileInfo("opening.bnr");
+  std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
   if (!file_info)
     return;
 
@@ -190,7 +190,8 @@ void VolumeGC::LoadBannerFile() const
     return;
   }
 
-  if (file_size != file_system->ReadFile(file_info, reinterpret_cast<u8*>(&banner_file), file_size))
+  if (file_size !=
+      file_system->ReadFile(file_info.get(), reinterpret_cast<u8*>(&banner_file), file_size))
   {
     WARN_LOG(DISCIO, "Could not read opening.bnr.");
     return;

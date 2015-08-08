@@ -6,6 +6,7 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstring>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -24,9 +25,58 @@ namespace DiscIO
 {
 static constexpr u32 FST_ENTRY_SIZE = 4 * 3;  // An FST entry consists of three 32-bit integers
 
+// Set everything manually.
 FileInfoGCWii::FileInfoGCWii(const u8* fst, u8 offset_shift, u32 index, u32 total_file_infos)
     : m_fst(fst), m_offset_shift(offset_shift), m_index(index), m_total_file_infos(total_file_infos)
 {
+}
+
+// For the root object only.
+// m_fst and m_index must be correctly set before GetSize() is called!
+FileInfoGCWii::FileInfoGCWii(const u8* fst, u8 offset_shift)
+    : m_fst(fst), m_offset_shift(offset_shift), m_index(0), m_total_file_infos(GetSize())
+{
+}
+
+// Copy data that is common to the whole file system.
+FileInfoGCWii::FileInfoGCWii(const FileInfoGCWii& file_info, u32 index)
+    : FileInfoGCWii(file_info.m_fst, file_info.m_offset_shift, index, file_info.m_total_file_infos)
+{
+}
+
+FileInfoGCWii::~FileInfoGCWii()
+{
+}
+
+uintptr_t FileInfoGCWii::GetAddress() const
+{
+  return reinterpret_cast<uintptr_t>(m_fst + FST_ENTRY_SIZE * m_index);
+}
+
+u32 FileInfoGCWii::GetNextIndex() const
+{
+  return IsDirectory() ? GetSize() : m_index + 1;
+}
+
+FileInfo& FileInfoGCWii::operator++()
+{
+  m_index = GetNextIndex();
+  return *this;
+}
+
+std::unique_ptr<FileInfo> FileInfoGCWii::clone() const
+{
+  return std::make_unique<FileInfoGCWii>(*this);
+}
+
+FileInfo::const_iterator FileInfoGCWii::begin() const
+{
+  return const_iterator(std::make_unique<FileInfoGCWii>(*this, m_index + 1));
+}
+
+FileInfo::const_iterator FileInfoGCWii::end() const
+{
+  return const_iterator(std::make_unique<FileInfoGCWii>(*this, GetNextIndex()));
 }
 
 u32 FileInfoGCWii::Get(EntryProperty entry_property) const
@@ -37,17 +87,33 @@ u32 FileInfoGCWii::Get(EntryProperty entry_property) const
 
 u32 FileInfoGCWii::GetSize() const
 {
-  return Get(EntryProperty::FILE_SIZE);
+  u32 result = Get(EntryProperty::FILE_SIZE);
+
+  if (IsDirectory() && result <= m_index)
+  {
+    // For directories, GetSize is supposed to return the index of the next entry.
+    // If a file system is malformed and instead has an index that isn't after this one,
+    // we act as if the directory is empty to avoid strange behavior.
+    ERROR_LOG(DISCIO, "Invalid folder end in file system");
+    return m_index + 1;
+  }
+
+  return result;
 }
 
 u64 FileInfoGCWii::GetOffset() const
 {
-  return static_cast<u64>(Get(EntryProperty::FILE_OFFSET)) << (IsDirectory() ? 0 : m_offset_shift);
+  return static_cast<u64>(Get(EntryProperty::FILE_OFFSET)) << m_offset_shift;
 }
 
 bool FileInfoGCWii::IsDirectory() const
 {
   return (Get(EntryProperty::NAME_OFFSET) & 0xFF000000) != 0;
+}
+
+u32 FileInfoGCWii::GetTotalChildren() const
+{
+  return GetSize() - (m_index + 1);
 }
 
 std::string FileInfoGCWii::GetName() const
@@ -59,8 +125,48 @@ std::string FileInfoGCWii::GetName() const
   return SHIFTJISToUTF8(reinterpret_cast<const char*>(name));
 }
 
+std::string FileInfoGCWii::GetPath() const
+{
+  // The root entry doesn't have a name
+  if (m_index == 0)
+    return "";
+
+  if (IsDirectory())
+  {
+    u32 parent_directory_index = Get(EntryProperty::FILE_OFFSET);
+    if (parent_directory_index >= m_index)
+    {
+      // The index of the parent directory is supposed to be smaller than
+      // the current index. If an FST is malformed and breaks that rule,
+      // there's a risk that parent directory pointers form a loop.
+      // To avoid stack overflows, this method returns.
+      ERROR_LOG(DISCIO, "Invalid parent offset in file system");
+      return "";
+    }
+    return FileInfoGCWii(*this, parent_directory_index).GetPath() + GetName() + "/";
+  }
+  else
+  {
+    // The parent directory can be found by searching backwards
+    // for a directory that contains this file.
+
+    FileInfoGCWii potential_parent(*this, m_index - 1);
+    while (!(potential_parent.IsDirectory() && potential_parent.GetSize() > m_index))
+    {
+      if (potential_parent.m_index == 0)
+      {
+        // This can happen if an FST has a root with a size that's too small
+        ERROR_LOG(DISCIO, "The parent of %s couldn't be found", GetName().c_str());
+        return "";
+      }
+      potential_parent = FileInfoGCWii(*this, potential_parent.m_index - 1);
+    }
+    return potential_parent.GetPath() + GetName();
+  }
+}
+
 FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partition)
-    : FileSystem(_rVolume, partition), m_Valid(false), m_offset_shift(0)
+    : FileSystem(_rVolume, partition), m_Valid(false), m_offset_shift(0), m_root(nullptr, 0, 0, 0)
 {
   // Check if this is a GameCube or Wii disc
   if (m_rVolume->ReadSwapped<u32>(0x18, m_partition) == u32(0x5D1C9EA3))
@@ -77,7 +183,10 @@ FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partit
   const u64 fst_offset = static_cast<u64>(*fst_offset_unshifted) << m_offset_shift;
   const u64 fst_size = static_cast<u64>(*fst_size_unshifted) << m_offset_shift;
   if (fst_size < FST_ENTRY_SIZE)
+  {
+    ERROR_LOG(DISCIO, "File system is too small");
     return;
+  }
 
   // 128 MiB is more than the total amount of RAM in a Wii.
   // No file system should use anywhere near that much.
@@ -94,17 +203,18 @@ FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partit
   // Read the whole FST
   m_file_system_table.resize(fst_size);
   if (!m_rVolume->Read(fst_offset, fst_size, m_file_system_table.data(), m_partition))
+  {
+    ERROR_LOG(DISCIO, "Couldn't read file system table");
     return;
+  }
 
-  // Create all file info objects
-  u32 number_of_file_infos = Common::swap32(*((u32*)m_file_system_table.data() + 2));
-  const u8* fst_start = m_file_system_table.data();
-  const u8* name_table_start = fst_start + (FST_ENTRY_SIZE * number_of_file_infos);
-  const u8* name_table_end = fst_start + fst_size;
-  if (name_table_end < name_table_start)
+  // Create the root object
+  m_root = FileInfoGCWii(m_file_system_table.data(), m_offset_shift);
+  if (!m_root.IsDirectory())
+  {
+    ERROR_LOG(DISCIO, "File system root is not a directory");
     return;
-  for (u32 i = 0; i < number_of_file_infos; i++)
-    m_FileInfoVector.emplace_back(fst_start, m_offset_shift, i, number_of_file_infos);
+  }
 
   // If we haven't returned yet, everything succeeded
   m_Valid = true;
@@ -112,33 +222,32 @@ FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partit
 
 FileSystemGCWii::~FileSystemGCWii()
 {
-  m_FileInfoVector.clear();
 }
 
-const std::vector<FileInfoGCWii>& FileSystemGCWii::GetFileList() const
+const FileInfo& FileSystemGCWii::GetRoot() const
 {
-  return m_FileInfoVector;
+  return m_root;
 }
 
-const FileInfo* FileSystemGCWii::FindFileInfo(const std::string& path) const
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string& path) const
 {
-  if (m_FileInfoVector.empty())
+  if (!IsValid())
     return nullptr;
 
-  return FindFileInfo(path, 0);
+  return FindFileInfo(path, m_root);
 }
 
-const FileInfo* FileSystemGCWii::FindFileInfo(const std::string& path,
-                                              size_t search_start_offset) const
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string& path,
+                                                        const FileInfo& file_info) const
 {
   // Given a path like "directory1/directory2/fileA.bin", this function will
   // find directory1 and then call itself to search for "directory2/fileA.bin".
 
   if (path.empty() || path == "/")
-    return &m_FileInfoVector[search_start_offset];
+    return file_info.clone();
 
   // It's only possible to search in directories. Searching in a file is an error
-  if (!m_FileInfoVector[search_start_offset].IsDirectory())
+  if (!file_info.IsDirectory())
     return nullptr;
 
   size_t first_dir_separator = path.find('/');
@@ -146,113 +255,50 @@ const FileInfo* FileSystemGCWii::FindFileInfo(const std::string& path,
   const std::string rest_of_path =
       (first_dir_separator != std::string::npos) ? path.substr(first_dir_separator + 1) : "";
 
-  size_t search_end_offset = m_FileInfoVector[search_start_offset].GetSize();
-  search_start_offset++;
-  while (search_start_offset < search_end_offset)
+  for (const FileInfo& child : file_info)
   {
-    const FileInfoGCWii& file_info = m_FileInfoVector[search_start_offset];
-
-    if (file_info.GetName() == searching_for)
+    if (child.GetName() == searching_for)
     {
       // A match is found. The rest of the path is passed on to finish the search.
-      const FileInfo* result = FindFileInfo(rest_of_path, search_start_offset);
+      std::unique_ptr<FileInfo> result = FindFileInfo(rest_of_path, child);
 
       // If the search wasn't successful, the loop continues, just in case there's a second
       // file info that matches searching_for (which probably won't happen in practice)
       if (result)
         return result;
     }
-
-    if (file_info.IsDirectory())
-    {
-      // Skip a directory and everything that it contains
-
-      if (file_info.GetSize() <= search_start_offset)
-      {
-        // The next offset (obtained by GetSize) is supposed to be larger than
-        // the current offset. If an FST is malformed and breaks that rule,
-        // there's a risk that next offset pointers form a loop.
-        // To avoid infinite loops, this method returns.
-        ERROR_LOG(DISCIO, "Invalid next offset in file system");
-        return nullptr;
-      }
-
-      search_start_offset = file_info.GetSize();
-    }
-    else
-    {
-      // Skip a single file
-      search_start_offset++;
-    }
   }
 
   return nullptr;
 }
 
-const FileInfo* FileSystemGCWii::FindFileInfo(u64 disc_offset) const
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset) const
 {
-  for (auto& file_info : m_FileInfoVector)
+  if (!IsValid())
+    return nullptr;
+
+  return FindFileInfo(disc_offset, m_root);
+}
+
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset,
+                                                        const FileInfo& file_info) const
+{
+  for (const FileInfo& child : file_info)
   {
-    if ((file_info.GetOffset() <= disc_offset) &&
-        ((file_info.GetOffset() + file_info.GetSize()) > disc_offset))
+    if (child.IsDirectory())
     {
-      return &file_info;
+      std::unique_ptr<FileInfo> result = FindFileInfo(disc_offset, child);
+      if (result)
+        return result;
+    }
+    else if ((file_info.GetOffset() <= disc_offset) &&
+             ((file_info.GetOffset() + file_info.GetSize()) > disc_offset))
+    {
+      return file_info.clone();
     }
   }
 
   return nullptr;
-}
-
-std::string FileSystemGCWii::GetPath(u64 _Address) const
-{
-  for (size_t i = 0; i < m_FileInfoVector.size(); ++i)
-  {
-    const FileInfoGCWii& file_info = m_FileInfoVector[i];
-    if ((file_info.GetOffset() <= _Address) &&
-        ((file_info.GetOffset() + file_info.GetSize()) > _Address))
-    {
-      return GetPathFromFSTOffset(i);
-    }
-  }
-
-  return "";
-}
-
-std::string FileSystemGCWii::GetPathFromFSTOffset(size_t file_info_offset) const
-{
-  // Root entry doesn't have a name
-  if (file_info_offset == 0)
-    return "";
-
-  const FileInfoGCWii& file_info = m_FileInfoVector[file_info_offset];
-  if (file_info.IsDirectory())
-  {
-    // The offset of the parent directory is stored in the current directory.
-
-    if (file_info.GetOffset() >= file_info_offset)
-    {
-      // The offset of the parent directory is supposed to be smaller than
-      // the current offset. If an FST is malformed and breaks that rule,
-      // there's a risk that parent directory pointers form a loop.
-      // To avoid stack overflows, this method returns.
-      ERROR_LOG(DISCIO, "Invalid parent offset in file system");
-      return "";
-    }
-    return GetPathFromFSTOffset(file_info.GetOffset()) + file_info.GetName() + "/";
-  }
-  else
-  {
-    // The parent directory can be found by searching backwards
-    // for a directory that contains this file.
-
-    size_t parent_offset = file_info_offset - 1;
-    while (!(m_FileInfoVector[parent_offset].IsDirectory() &&
-             m_FileInfoVector[parent_offset].GetSize() > file_info_offset))
-    {
-      parent_offset--;
-    }
-    return GetPathFromFSTOffset(parent_offset) + file_info.GetName();
-  }
 }
 
 u64 FileSystemGCWii::ReadFile(const FileInfo* file_info, u8* _pBuffer, u64 _MaxBufferSize,
@@ -268,8 +314,8 @@ u64 FileSystemGCWii::ReadFile(const FileInfo* file_info, u8* _pBuffer, u64 _MaxB
 
   DEBUG_LOG(DISCIO, "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
                     " Size: %" PRIx64,
-            read_length, _OffsetInFile, GetPath(file_info->GetOffset()).c_str(),
-            file_info->GetOffset(), file_info->GetSize());
+            read_length, _OffsetInFile, file_info->GetPath().c_str(), file_info->GetOffset(),
+            file_info->GetSize());
 
   m_rVolume->Read(file_info->GetOffset() + _OffsetInFile, read_length, _pBuffer, m_partition);
   return read_length;

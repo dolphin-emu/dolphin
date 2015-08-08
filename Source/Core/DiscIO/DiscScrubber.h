@@ -25,6 +25,7 @@ class IOFile;
 
 namespace DiscIO
 {
+class FileInfo;
 class Volume;
 struct Partition;
 
@@ -64,6 +65,7 @@ private:
   bool ReadFromVolume(u64 offset, u64& buffer, const Partition& partition);
   bool ParseDisc();
   bool ParsePartitionData(const Partition& partition, PartitionHeader* header);
+  void ParseFileSystemData(u64 partition_data_offset, const FileInfo& directory);
 
   std::string m_filename;
   std::unique_ptr<Volume> m_disc;
