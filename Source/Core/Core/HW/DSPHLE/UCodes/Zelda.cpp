@@ -46,24 +46,29 @@ enum ZeldaUCodeFlag
 
 	// If set, does not support command 0D. TODO: rename.
 	NO_CMD_0D = 0x00000080,
+
+	// If set, command 0C is used for GBA crypto. This was used before the GBA
+	// UCode and UCode switching was available.
+	SUPPORTS_GBA_CRYPTO = 0x00000100,
+
+	// If set, command 0C is used for an unknown purpose. TODO: rename.
+	WEIRD_CMD_0C = 0x00000200,
 };
 
 static const std::map<u32, u32> UCODE_FLAGS = {
 	// GameCube IPL/BIOS, NTSC.
-	// TODO: check NO_CMD_0D presence.
 	{ 0x24B22038, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | TINY_VPB |
-	              VOLUME_EXPLICIT_STEP | NO_CMD_0D },
+	              VOLUME_EXPLICIT_STEP | NO_CMD_0D | WEIRD_CMD_0C },
 	// GameCube IPL/BIOS, PAL.
-	// TODO: check NO_CMD_0D presence.
-	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | NO_CMD_0D },
+	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | NO_CMD_0D |
+	              WEIRD_CMD_0C },
 	// Pikmin 1 GC NTSC.
 	// Animal Crossing.
-	{ 0x4BE6A5CB, LIGHT_PROTOCOL | NO_CMD_0D },
+	{ 0x4BE6A5CB, LIGHT_PROTOCOL | NO_CMD_0D | SUPPORTS_GBA_CRYPTO },
 	// Luigi's Mansion.
-	{ 0x42F64AC4, LIGHT_PROTOCOL },
+	{ 0x42F64AC4, LIGHT_PROTOCOL | NO_CMD_0D | WEIRD_CMD_0C },
 	// Super Mario Sunshine.
-	// TODO: check NO_CMD_0D presence.
-	{ 0x56D36052, SYNC_PER_FRAME },
+	{ 0x56D36052, SYNC_PER_FRAME | NO_CMD_0D },
 	// The Legend of Zelda: The Wind Waker.
 	{ 0x86840740, 0 },
 	// The Legend of Zelda: Four Swords Adventures.
@@ -285,12 +290,20 @@ void ZeldaUCode::HandleMailLight(u32 mail)
 
 		switch ((mail >> 24) & 0x7F)
 		{
-		case 0: m_mail_expected_cmd_mails = 0; break;
-		case 1: m_mail_expected_cmd_mails = 4; break;
-		case 2: m_mail_expected_cmd_mails = 2; break;
+		case 0x00: m_mail_expected_cmd_mails = 0; break;
+		case 0x01: m_mail_expected_cmd_mails = 4; break;
+		case 0x02: m_mail_expected_cmd_mails = 2; break;
 		// Doesn't even register as a command, just rejumps to the dispatcher.
 		// TODO: That's true on 0x4BE6A5CB and 0x42F64AC4, what about others?
-		case 3: add_command = false; break;
+		case 0x03: add_command = false; break;
+		case 0x0C:
+			if (m_flags & SUPPORTS_GBA_CRYPTO)
+				m_mail_expected_cmd_mails = 1;
+			else if (m_flags & WEIRD_CMD_0C)
+				m_mail_expected_cmd_mails = 2;
+			else
+				m_mail_expected_cmd_mails = 0;
+			break;
 
 		default:
 			PanicAlert("Received unknown command in light protocol: %08x", mail);
@@ -360,7 +373,6 @@ void ZeldaUCode::RunPendingCommands()
 		case 0x00:
 		case 0x0A:
 		case 0x0B:
-		case 0x0C:
 		case 0x0F:
 			// NOP commands. Log anyway in case we encounter a new version
 			// where these are not NOPs anymore.
@@ -454,6 +466,28 @@ void ZeldaUCode::RunPendingCommands()
 				RenderAudio();
 			}
 			return;
+
+		// Command 0C: used for multiple purpose depending on the UCode version:
+		// * IPL NTSC/PAL, Luigi's Mansion: TODO (unknown as of now).
+		// * Pikmin/AC: GBA crypto.
+		// * SMS and onwards: NOP.
+		case 0x0C:
+			if (m_flags & SUPPORTS_GBA_CRYPTO)
+			{
+				// TODO
+				NOTICE_LOG(DSPHLE, "Received an unhandled GBA crypto command, param: %08x", Read32());
+			}
+			else if (m_flags & WEIRD_CMD_0C)
+			{
+				// TODO
+				NOTICE_LOG(DSPHLE, "Received an unhandled 0C command, params: %08x %08x", Read32(), Read32());
+			}
+			else
+			{
+				WARN_LOG(DSPHLE, "Received a NOP 0C command. Flags=%08x", m_flags);
+			}
+			SendCommandAck(CommandAck::STANDARD, sync);
+			break;
 
 		// Command 0D: TODO: find a name and implement.
 		case 0x0D:
