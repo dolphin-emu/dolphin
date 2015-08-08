@@ -11,7 +11,9 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <functional>
 #include <mbedtls/md5.h>
+#include <memory>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -209,7 +211,7 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
                   RootId, wxString::Format(_("Partition %i"), partition_count), 0, 0);
 
               m_Treectrl->SetItemData(PartitionRoot, partition);
-              CreateDirectoryTree(PartitionRoot, partition->FileSystem->GetFileList());
+              CreateDirectoryTree(PartitionRoot, partition->FileSystem->GetRoot());
 
               if (partition_count == 1)
                 m_Treectrl->Expand(PartitionRoot);
@@ -228,7 +230,7 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
     {
       m_filesystem = DiscIO::CreateFileSystem(m_open_iso.get());
       if (m_filesystem)
-        CreateDirectoryTree(RootId, m_filesystem->GetFileList());
+        CreateDirectoryTree(RootId, m_filesystem->GetRoot());
     }
 
     m_Treectrl->Expand(RootId);
@@ -241,40 +243,20 @@ CISOProperties::~CISOProperties()
 {
 }
 
-size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
-                                           const std::vector<DiscIO::CFileInfoGCWii>& fileInfos)
+void CISOProperties::CreateDirectoryTree(wxTreeItemId& parent, const DiscIO::IFileInfo& directory)
 {
-  if (fileInfos.empty())
-    return 0;
-  else
-    return CreateDirectoryTree(parent, fileInfos, 1, fileInfos.at(0).GetSize());
-}
-
-size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
-                                           const std::vector<DiscIO::CFileInfoGCWii>& fileInfos,
-                                           const size_t _FirstIndex, const size_t _LastIndex)
-{
-  size_t CurrentIndex = _FirstIndex;
-
-  while (CurrentIndex < _LastIndex)
+  for (const DiscIO::IFileInfo& file_info : directory)
   {
-    const DiscIO::CFileInfoGCWii rFileInfo = fileInfos[CurrentIndex];
-
-    // check next index
-    if (rFileInfo.IsDirectory())
+    if (file_info.IsDirectory())
     {
-      wxTreeItemId item = m_Treectrl->AppendItem(parent, StrToWxStr(rFileInfo.GetName()), 1, 1);
-      CurrentIndex =
-          CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo.GetSize());
+      wxTreeItemId item = m_Treectrl->AppendItem(parent, StrToWxStr(file_info.GetName()), 1, 1);
+      CreateDirectoryTree(item, file_info);
     }
     else
     {
-      m_Treectrl->AppendItem(parent, StrToWxStr(rFileInfo.GetName()), 2, 2);
-      CurrentIndex++;
+      m_Treectrl->AppendItem(parent, StrToWxStr(file_info.GetName()), 2, 2);
     }
   }
-
-  return CurrentIndex;
 }
 
 long CISOProperties::GetElementStyle(const char* section, const char* key)
@@ -798,99 +780,77 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED(event))
     file_system = m_filesystem.get();
   }
 
-  file_system->ExportFile(file_system->FindFileInfo(WxStrToStr(File)), WxStrToStr(Path));
+  file_system->ExportFile(file_system->FindFileInfo(WxStrToStr(File)).get(), WxStrToStr(Path));
 }
 
 void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder,
                                const WiiPartition* partition)
 {
-  bool is_wii = m_open_iso->GetVolumeType() == DiscIO::Platform::WII_DISC;
-  DiscIO::IFileSystem* const fs = is_wii ? partition->FileSystem.get() : m_filesystem.get();
+  const DiscIO::IFileSystem* const fs =
+      partition ? partition->FileSystem.get() : m_filesystem.get();
+  std::unique_ptr<DiscIO::IFileInfo> file_info = fs->FindFileInfo(_rFullPath);
+  u32 size = file_info->GetTotalChildren();
+  u32 progress = 0;
 
-  const std::vector<DiscIO::CFileInfoGCWii>& fst = fs->GetFileList();
-
-  u32 index = 0;
-  u32 size = 0;
-
-  // Extract all
-  if (_rFullPath.empty())
-  {
-    index = 0;
-    size = (u32)fst.size();
-
-    fs->ExportApploader(_rExportFolder);
-    if (m_open_iso->GetVolumeType() != DiscIO::Platform::WII_DISC)
-      fs->ExportDOL(_rExportFolder);
-  }
-  else
-  {
-    // Look for the dir we are going to extract
-    // TODO: Make this more efficient
-    for (index = 0; index != fst.size(); ++index)
-    {
-      if (fs->GetPathFromFSTOffset(index) == _rFullPath)
-      {
-        DEBUG_LOG(DISCIO, "Found the directory at %u", index);
-        size = (u32)fst[index].GetSize();
-        break;
-      }
-    }
-
-    DEBUG_LOG(DISCIO, "Directory found from %u to %u\nextracting to:\n%s", index, size,
-              _rExportFolder.c_str());
-  }
-
-  wxString dialogTitle = (index != 0) ? _("Extracting Directory") : _("Extracting All Files");
-  wxProgressDialog dialog(dialogTitle, _("Extracting..."), size - 1, this,
+  wxString dialogTitle = _rFullPath.empty() ? _("Extracting All Files") : _("Extracting Directory");
+  wxProgressDialog dialog(dialogTitle, _("Extracting..."), size, this,
                           wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME |
                               wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
-  // Extraction
-  for (u32 i = index; i < size; i++)
-  {
-    const std::string path = fs->GetPathFromFSTOffset(i);
-
+  CreateFullPath(_rExportFolder + "/" + _rFullPath);
+  ExportDir(_rExportFolder, *fs, *file_info, _rFullPath, [&](const std::string& path) {
     dialog.SetTitle(wxString::Format("%s : %d%%", dialogTitle.c_str(),
-                                     (u32)(((float)(i - index) / (float)(size - index)) * 100)));
+                                     (u32)(((float)(progress) / (float)(size)) * 100)));
+    dialog.Update(progress, wxString::Format(_("Extracting %s"), StrToWxStr(path)));
+    ++progress;
+    return dialog.WasCancelled();
+  });
+}
 
-    dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(path)));
+void CISOProperties::ExportDir(const std::string& export_folder,
+                               const DiscIO::IFileSystem& file_system,
+                               const DiscIO::IFileInfo& directory,
+                               const std::string& directory_path,
+                               const std::function<bool(const std::string& path)>& update_progress)
+{
+  for (const DiscIO::IFileInfo& file_info : directory)
+  {
+    const std::string path =
+        directory_path + file_info.GetName() + (file_info.IsDirectory() ? "/" : "");
+    const std::string export_name = export_folder + "/" + path;
 
-    if (dialog.WasCancelled())
-      break;
+    if (update_progress(path))
+      return;
 
-    if (fst[i].IsDirectory())
+    DEBUG_LOG(DISCIO, export_name.c_str());
+
+    if (file_info.IsDirectory())
     {
-      const std::string exportName =
-          StringFromFormat("%s/%s/", _rExportFolder.c_str(), path.c_str());
-      DEBUG_LOG(DISCIO, "%s", exportName.c_str());
-
-      if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
-      {
-        ERROR_LOG(DISCIO, "Could not create the path %s", exportName.c_str());
-      }
-      else
-      {
-        if (!File::IsDirectory(exportName))
-          ERROR_LOG(DISCIO, "%s already exists and is not a directory", exportName.c_str());
-
-        DEBUG_LOG(DISCIO, "Folder %s already exists", exportName.c_str());
-      }
+      CreateFullPath(export_name);
+      ExportDir(export_folder, file_system, file_info, path, update_progress);
     }
     else
     {
-      const std::string exportName =
-          StringFromFormat("%s/%s", _rExportFolder.c_str(), path.c_str());
-      DEBUG_LOG(DISCIO, "%s", exportName.c_str());
-
-      if (!File::Exists(exportName) && !fs->ExportFile(&fst[index], exportName))
-      {
-        ERROR_LOG(DISCIO, "Could not export %s", exportName.c_str());
-      }
-      else
-      {
-        DEBUG_LOG(DISCIO, "%s already exists", exportName.c_str());
-      }
+      if (File::Exists(export_name))
+        DEBUG_LOG(DISCIO, "%s already exists", export_name.c_str());
+      else if (!file_system.ExportFile(&file_info, export_name))
+        ERROR_LOG(DISCIO, "Could not export %s", export_name.c_str());
     }
+  }
+}
+
+void CISOProperties::CreateFullPath(const std::string& path)
+{
+  if (File::Exists(path))
+  {
+    if (File::IsDirectory(path))
+      DEBUG_LOG(DISCIO, "Folder %s already exists", path.c_str());
+    else
+      ERROR_LOG(DISCIO, "%s already exists and is not a directory", path.c_str());
+  }
+  else if (!File::CreateFullPath(path))
+  {
+    ERROR_LOG(DISCIO, "Could not create the path %s", path.c_str());
   }
 }
 
