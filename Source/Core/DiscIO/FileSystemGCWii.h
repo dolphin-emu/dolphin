@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -20,28 +21,60 @@ struct Partition;
 class FileInfoGCWii : public FileInfo
 {
 public:
-  // Does not take ownership of pointers
+  // None of the constructors take ownership of FST pointers
+
+  // Set everything manually
   FileInfoGCWii(const u8* fst, u8 offset_shift, u32 index, u32 total_file_infos);
+  // For the root object only
+  FileInfoGCWii(const u8* fst, u8 offset_shift);
+  // Copy another object
+  FileInfoGCWii(const FileInfoGCWii& file_info) = default;
+  // Copy data that is common to the whole file system
+  FileInfoGCWii(const FileInfoGCWii& file_info, u32 index);
+
+  ~FileInfoGCWii() override;
+
+  std::unique_ptr<FileInfo> clone() const override;
+  const_iterator begin() const override;
+  const_iterator end() const override;
 
   u64 GetOffset() const override;
   u32 GetSize() const override;
   bool IsDirectory() const override;
+  u32 GetTotalChildren() const override;
   std::string GetName() const override;
+  std::string GetPath() const override;
+
+protected:
+  uintptr_t GetAddress() const override;
+  FileInfo& operator++() override;
 
 private:
   enum class EntryProperty
   {
+    // NAME_OFFSET's lower 3 bytes are the name's offset within the name table.
+    // NAME_OFFSET's upper 1 byte is 1 for directories and 0 for files.
     NAME_OFFSET = 0,
+    // For files, FILE_OFFSET is the file offset in the partition,
+    // and for directories, it's the FST index of the parent directory.
+    // The root directory has its parent directory index set to 0.
     FILE_OFFSET = 1,
+    // For files, FILE_SIZE is the file size, and for directories,
+    // it's the FST index of the next entry that isn't in the directory.
     FILE_SIZE = 2
   };
 
+  // For files, returns the index of the next item. For directories,
+  // returns the index of the next item that isn't inside it.
+  u32 GetNextIndex() const;
+  // Returns one of the three properties of this FST entry.
+  // Read the comments in EntryProperty for details.
   u32 Get(EntryProperty entry_property) const;
 
-  const u8* const m_fst;
-  const u8 m_offset_shift;
-  const u32 m_index;
-  const u32 m_total_file_infos;
+  const u8* m_fst;
+  u8 m_offset_shift;
+  u32 m_index;
+  u32 m_total_file_infos;
 };
 
 class FileSystemGCWii : public FileSystem
@@ -49,12 +82,12 @@ class FileSystemGCWii : public FileSystem
 public:
   FileSystemGCWii(const Volume* _rVolume, const Partition& partition);
   ~FileSystemGCWii() override;
+
   bool IsValid() const override { return m_Valid; }
-  const std::vector<FileInfoGCWii>& GetFileList() const override;
-  const FileInfo* FindFileInfo(const std::string& path) const override;
-  const FileInfo* FindFileInfo(u64 disc_offset) const override;
-  std::string GetPath(u64 _Address) const override;
-  std::string GetPathFromFSTOffset(size_t file_info_offset) const override;
+  const FileInfo& GetRoot() const override;
+  std::unique_ptr<FileInfo> FindFileInfo(const std::string& path) const override;
+  std::unique_ptr<FileInfo> FindFileInfo(u64 disc_offset) const override;
+
   u64 ReadFile(const FileInfo* file_info, u8* _pBuffer, u64 _MaxBufferSize,
                u64 _OffsetInFile) const override;
   bool ExportFile(const FileInfo* file_info, const std::string& _rExportFilename) const override;
@@ -66,10 +99,11 @@ public:
 private:
   bool m_Valid;
   u32 m_offset_shift;
-  std::vector<FileInfoGCWii> m_FileInfoVector;
   std::vector<u8> m_file_system_table;
+  FileInfoGCWii m_root;
 
-  const FileInfo* FindFileInfo(const std::string& path, size_t search_start_offset) const;
+  std::unique_ptr<FileInfo> FindFileInfo(const std::string& path, const FileInfo& file_info) const;
+  std::unique_ptr<FileInfo> FindFileInfo(u64 disc_offset, const FileInfo& file_info) const;
 };
 
 }  // namespace
