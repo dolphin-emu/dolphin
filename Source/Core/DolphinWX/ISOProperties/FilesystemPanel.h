@@ -62,7 +62,7 @@ private:
   void ExtractSingleDirectoryWii(wxString directory_path, const wxString& output_folder);
 
   void ExtractDirectories(const std::string& full_path, const std::string& output_folder,
-                          DiscIO::IFileSystem* filesystem);
+                          const DiscIO::IFileSystem& filesystem);
 
   wxString BuildFilePathFromSelection() const;
   wxString BuildDirectoryPathFromSelection() const;
