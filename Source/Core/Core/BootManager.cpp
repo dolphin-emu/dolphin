@@ -246,6 +246,8 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
 		StartUp.SelectedLanguage = g_NetPlaySettings.m_SelectedLanguage;
 		StartUp.bOverrideGCLanguage = g_NetPlaySettings.m_OverrideGCLanguage;
+		StartUp.bProgressive = g_NetPlaySettings.m_ProgressiveScan;
+		StartUp.bPAL60 = g_NetPlaySettings.m_PAL60;
 		SConfig::GetInstance().m_DSPEnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
 		SConfig::GetInstance().m_OCEnable = g_NetPlaySettings.m_OCEnable;
 		SConfig::GetInstance().m_OCFactor = g_NetPlaySettings.m_OCFactor;

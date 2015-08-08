@@ -4,6 +4,7 @@
 
 #include <fcntl.h>
 #include <libudev.h>
+#include <map>
 #include <unistd.h>
 
 #include "Common/Logging/Log.h"
@@ -15,8 +16,28 @@ namespace ciface
 namespace evdev
 {
 
+static std::string GetName(const std::string& devnode)
+{
+	int fd = open(devnode.c_str(), O_RDWR|O_NONBLOCK);
+	libevdev* dev = nullptr;
+	int ret = libevdev_new_from_fd(fd, &dev);
+	if (ret != 0)
+	{
+		close(fd);
+		return std::string();
+	}
+	std::string res = libevdev_get_name(dev);
+	libevdev_free(dev);
+	close(fd);
+	return res;
+}
+
 void Init(std::vector<Core::Device*> &controllerDevices)
 {
+	// this is used to number the joysticks
+	// multiple joysticks with the same name shall get unique ids starting at 0
+	std::map<std::string, int> name_counts;
+
 	int num_controllers = 0;
 
 	// We use Udev to find any devices. In the future this will allow for hotplugging.
@@ -46,7 +67,8 @@ void Init(std::vector<Core::Device*> &controllerDevices)
 		{
 			// Unfortunately udev gives us no way to filter out the non event device interfaces.
 			// So we open it and see if it works with evdev ioctls or not.
-			evdevDevice* input = new evdevDevice(devnode, num_controllers);
+			std::string name = GetName(devnode);
+			evdevDevice* input = new evdevDevice(devnode, name_counts[name]++);
 
 			if (input->IsInteresting())
 			{

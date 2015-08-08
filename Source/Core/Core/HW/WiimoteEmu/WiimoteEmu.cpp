@@ -250,10 +250,9 @@ void Wiimote::Reset()
 
 Wiimote::Wiimote( const unsigned int index )
 	: m_index(index)
-	, m_last_connect_request_counter(0)
 	, ir_sin(0)
 	, ir_cos(1)
-// , m_sound_stream( nullptr )
+	, m_last_connect_request_counter(0)
 {
 	// ---- set up all the controls ----
 

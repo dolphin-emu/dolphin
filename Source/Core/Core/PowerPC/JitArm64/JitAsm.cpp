@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/Arm64Emitter.h"
+#include "Common/JitRegister.h"
 
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
@@ -94,6 +95,8 @@ void JitArm64AsmRoutineManager::Generate()
 	ABI_PopRegisters(regs_to_save);
 	RET(X30);
 
+	JitRegister::Register(enterCode, GetCodePtr(), "JIT_Dispatcher");
+
 	GenerateCommon();
 
 	FlushIcache();
@@ -112,6 +115,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	ARM64Reg scale_reg = X0;
 	ARM64FloatEmitter float_emit(this);
 
+	const u8* start = GetCodePtr();
 	const u8* loadPairedIllegal = GetCodePtr();
 		BRK(100);
 	const u8* loadPairedFloatTwo = GetCodePtr();
@@ -242,6 +246,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		RET(X30);
 	}
 
+	JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
+
 	pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
 	ReserveCodeSpace(16 * sizeof(u8*));
 
@@ -264,6 +270,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	pairedLoadQuantized[15] = loadPairedS16One;
 
 	// Stores
+	start = GetCodePtr();
 	const u8* storePairedIllegal = GetCodePtr();
 		BRK(0x101);
 	const u8* storePairedFloat;
@@ -518,6 +525,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		MOVI2R(X2, (u64)&PowerPC::Write_U16);
 		BR(X2);
 	}
+
+	JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
 
 	pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
 	ReserveCodeSpace(32 * sizeof(u8*));

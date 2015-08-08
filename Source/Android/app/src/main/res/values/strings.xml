@@ -136,6 +136,7 @@
 
     <!-- CPU Preference Fragment -->
     <string name="interpreter">Interpreter</string>
+    <string name="cached_interpreter">Cached Interpreter</string>
     <string name="jit64_recompiler">JIT64 Recompiler</string>
     <string name="jitil_recompiler">JITIL Recompiler</string>
     <string name="jit_arm_recompiler">JIT ARM Recompiler</string>

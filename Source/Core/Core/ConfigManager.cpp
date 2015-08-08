@@ -264,6 +264,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
 	core->Set("GameCubeAdapter", m_GameCubeAdapter);
 	core->Set("AdapterRumble", m_AdapterRumble);
+	core->Set("PerfMapDir", m_perfDir);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -523,6 +524,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("GPUDeterminismMode",        &m_strGPUDeterminismMode, "auto");
 	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
 	core->Get("AdapterRumble",             &m_AdapterRumble,                               true);
+	core->Get("PerfMapDir",                &m_perfDir, "");
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)

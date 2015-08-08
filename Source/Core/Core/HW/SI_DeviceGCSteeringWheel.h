@@ -26,7 +26,8 @@ private:
 
 public:
 	CSIDevice_GCSteeringWheel(SIDevices device, int _iDeviceNumber);
-	virtual int RunBuffer(u8* _pBuffer, int _iLength);
-	virtual bool GetData(u32& _Hi, u32& _Low);
-	virtual void SendCommand(u32 _Cmd, u8 _Poll);
+
+	int RunBuffer(u8* _pBuffer, int _iLength) override;
+	bool GetData(u32& _Hi, u32& _Low) override;
+	void SendCommand(u32 _Cmd, u8 _Poll) override;
 };

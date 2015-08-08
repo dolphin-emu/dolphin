@@ -254,6 +254,8 @@ void NetPlayDialog::GetNetSettings(NetSettings &settings)
 	settings.m_CPUcore = instance.iCPUCore;
 	settings.m_SelectedLanguage = instance.SelectedLanguage;
 	settings.m_OverrideGCLanguage = instance.bOverrideGCLanguage;
+	settings.m_ProgressiveScan = instance.bProgressive;
+	settings.m_PAL60 = instance.bPAL60;
 	settings.m_DSPHLE = instance.bDSPHLE;
 	settings.m_DSPEnableJIT = instance.m_DSPEnableJIT;
 	settings.m_WriteToMemcard = m_memcard_write->GetValue();

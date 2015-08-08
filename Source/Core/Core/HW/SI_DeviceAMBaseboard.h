@@ -21,11 +21,11 @@ public:
 	CSIDevice_AMBaseboard(SIDevices device, int _iDeviceNumber);
 
 	// run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
+	int RunBuffer(u8* _pBuffer, int _iLength) override;
 
 	// return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low) override;
+	bool GetData(u32& _Hi, u32& _Low) override;
 
 	// send a command directly
-	virtual void SendCommand(u32 _Cmd, u8 _Poll) override;
+	void SendCommand(u32 _Cmd, u8 _Poll) override;
 };

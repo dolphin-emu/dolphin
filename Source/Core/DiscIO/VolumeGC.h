@@ -28,7 +28,7 @@ public:
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
 	u16 GetRevision() const override;
-	virtual std::string GetInternalName() const override;
+	std::string GetInternalName() const override;
 	std::map<ELanguage, std::string> GetNames(bool prefer_long) const override;
 	std::map<ELanguage, std::string> GetDescriptions() const override;
 	std::string GetCompany() const override;

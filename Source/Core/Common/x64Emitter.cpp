@@ -1636,22 +1636,47 @@ void XEmitter::MOVMSKPD(X64Reg dest, const OpArg& arg) {WriteSSEOp(0x66, 0x50, d
 
 void XEmitter::LDDQU(X64Reg dest, const OpArg& arg)    {WriteSSEOp(0xF2, sseLDDQU, dest, arg);} // For integer data only
 
-// THESE TWO ARE UNTESTED.
 void XEmitter::UNPCKLPS(X64Reg dest, const OpArg& arg) {WriteSSEOp(0x00, 0x14, dest, arg);}
 void XEmitter::UNPCKHPS(X64Reg dest, const OpArg& arg) {WriteSSEOp(0x00, 0x15, dest, arg);}
-
 void XEmitter::UNPCKLPD(X64Reg dest, const OpArg& arg) {WriteSSEOp(0x66, 0x14, dest, arg);}
 void XEmitter::UNPCKHPD(X64Reg dest, const OpArg& arg) {WriteSSEOp(0x66, 0x15, dest, arg);}
 
+// Pretty much every x86 CPU nowadays supports SSE3,
+// but the SSE2 fallbacks are easy.
+void XEmitter::MOVSLDUP(X64Reg regOp, const OpArg& arg)
+{
+	if (cpu_info.bSSE3)
+	{
+		WriteSSEOp(0xF3, 0x12, regOp, arg);
+	}
+	else
+	{
+		if (!arg.IsSimpleReg(regOp))
+			MOVAPD(regOp, arg);
+		UNPCKLPS(regOp, R(regOp));
+	}
+}
+void XEmitter::MOVSHDUP(X64Reg regOp, const OpArg& arg)
+{
+	if (cpu_info.bSSE3)
+	{
+		WriteSSEOp(0xF3, 0x16, regOp, arg);
+	}
+	else
+	{
+		if (!arg.IsSimpleReg(regOp))
+			MOVAPD(regOp, arg);
+		UNPCKHPS(regOp, R(regOp));
+	}
+}
 void XEmitter::MOVDDUP(X64Reg regOp, const OpArg& arg)
 {
 	if (cpu_info.bSSE3)
 	{
-		WriteSSEOp(0xF2, 0x12, regOp, arg); //SSE3 movddup
+		WriteSSEOp(0xF2, 0x12, regOp, arg);
 	}
 	else
 	{
-		// Simulate this instruction with SSE2 instructions
 		if (!arg.IsSimpleReg(regOp))
 			MOVSD(regOp, arg);
 		UNPCKLPD(regOp, R(regOp));

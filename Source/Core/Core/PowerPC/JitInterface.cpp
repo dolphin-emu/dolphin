@@ -14,6 +14,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/CachedInterpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -63,6 +64,10 @@ namespace JitInterface
 			ptr = new JitArm64();
 			break;
 		#endif
+		case PowerPC::CORE_CACHEDINTERPRETER:
+			ptr = new CachedInterpreter();
+			break;
+
 		default:
 			PanicAlert("Unrecognizable cpu_core: %d", core);
 			jit = nullptr;
@@ -89,6 +94,9 @@ namespace JitInterface
 			JitArm64Tables::InitTables();
 			break;
 		#endif
+		case PowerPC::CORE_CACHEDINTERPRETER:
+			// has no tables
+			break;
 		default:
 			PanicAlert("Unrecognizable cpu_core: %d", core);
 			break;
@@ -194,8 +202,7 @@ namespace JitInterface
 
 		JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
 
-		*code = (const u8*)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
-
+		*code = block->checkedEntry;
 		*code_size = block->codeSize;
 		*address = block->originalAddress;
 		return 0;

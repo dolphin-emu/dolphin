@@ -170,7 +170,7 @@ public:
 	int NumFreeRegisters();
 };
 
-class GPRRegCache : public RegCache
+class GPRRegCache final : public RegCache
 {
 public:
 	void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
@@ -183,7 +183,7 @@ public:
 };
 
 
-class FPURegCache : public RegCache
+class FPURegCache final : public RegCache
 {
 public:
 	void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
