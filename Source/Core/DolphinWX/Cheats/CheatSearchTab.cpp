@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <wx/arrstr.h>
 #include <wx/button.h>
 #include <wx/choice.h>
 #include <wx/listctrl.h>
@@ -39,11 +40,11 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 	// first scan button
 	m_btn_init_scan = new wxButton(this, wxID_ANY, _("New Scan"));
-	m_btn_init_scan->Bind(wxEVT_BUTTON, &CheatSearchTab::StartNewSearch, this);
+	m_btn_init_scan->Bind(wxEVT_BUTTON, &CheatSearchTab::OnNewScanClicked, this);
 
 	// next scan button
 	m_btn_next_scan = new wxButton(this, wxID_ANY, _("Next Scan"));
-	m_btn_next_scan->Bind(wxEVT_BUTTON, &CheatSearchTab::FilterCheatSearchResults, this);
+	m_btn_next_scan->Bind(wxEVT_BUTTON, &CheatSearchTab::OnNextScanClicked, this);
 	m_btn_next_scan->Disable();
 
 	// data sizes radiobox
@@ -59,7 +60,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 	// create AR code button
 	wxButton* const button_cheat_search_copy_address = new wxButton(this, wxID_ANY, _("Create AR Code"));
-	button_cheat_search_copy_address->Bind(wxEVT_BUTTON, &CheatSearchTab::CreateARCode, this);
+	button_cheat_search_copy_address->Bind(wxEVT_BUTTON, &CheatSearchTab::OnCreateARCodeClicked, this);
 
 	// results groupbox
 	wxStaticBoxSizer* const sizer_cheat_search_results = new wxStaticBoxSizer(wxVERTICAL, this, _("Results"));
@@ -67,40 +68,26 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	sizer_cheat_search_results->Add(m_lview_search_results, 1, wxEXPAND | wxALL, 5);
 	sizer_cheat_search_results->Add(button_cheat_search_copy_address, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
 
-	// Search value radio buttons
-	m_value_x_radiobtn.rad_oldvalue = new wxRadioButton(this, wxID_ANY, _("Previous Value"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-	m_value_x_radiobtn.rad_uservalue = new wxRadioButton(this, wxID_ANY, "");
-	m_value_x_radiobtn.rad_oldvalue->SetValue(true);
-
 	// search value textbox
 	m_textctrl_value_x = new wxTextCtrl(this, wxID_ANY, "0x0", wxDefaultPosition, wxSize(96, -1));
-	m_textctrl_value_x->Bind(wxEVT_SET_FOCUS, &CheatSearchTab::ApplyFocus, this);
 
 	wxBoxSizer* const sizer_cheat_filter_text = new wxBoxSizer(wxHORIZONTAL);
-	sizer_cheat_filter_text->Add(m_value_x_radiobtn.rad_uservalue, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
 	sizer_cheat_filter_text->Add(m_textctrl_value_x, 1, wxALIGN_CENTER_VERTICAL, 5);
 
-	// value groupbox
-	wxStaticBoxSizer* const sizer_cheat_search_filter_x = new wxStaticBoxSizer(wxVERTICAL, this, _("Value"));
-	sizer_cheat_search_filter_x->Add(m_value_x_radiobtn.rad_oldvalue, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
-	sizer_cheat_search_filter_x->Add(sizer_cheat_filter_text, 0, wxALL | wxEXPAND, 5);
+	// Filter types in the compare dropdown
+	// TODO: Implement between search
+	wxArrayString filters;
+	filters.Add(_("Unknown"));
+	filters.Add(_("Not Equal"));
+	filters.Add(_("Equal"));
+	filters.Add(_("Greater Than"));
+	filters.Add(_("Less Than"));
 
-	// filter types in the compare dropdown
-	static const wxString searches[] = {
-		_("Unknown"),
-		_("Not Equal"),
-		_("Equal"),
-		_("Greater Than"),
-		_("Less Than"),
-	// TODO: Implement between search.
-		//_("Between"),
-	};
-
-	m_search_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizeof(searches) / sizeof(*searches), searches);
+	m_search_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, filters);
 	m_search_type->Select(0);
 
-	wxStaticBoxSizer* const sizer_cheat_search_filter = new wxStaticBoxSizer(wxVERTICAL, this, _("Search Filter"));
-	sizer_cheat_search_filter->Add(sizer_cheat_search_filter_x, 0, wxALL | wxEXPAND, 5);
+	wxStaticBoxSizer* const sizer_cheat_search_filter = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
+	sizer_cheat_search_filter->Add(sizer_cheat_filter_text, 0, wxALL | wxEXPAND, 5);
 	sizer_cheat_search_filter->Add(m_search_type, 0, wxALL, 5);
 
 	// left sizer
@@ -127,9 +114,8 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	SetSizerAndFit(sizer_main);
 }
 
-void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED(event))
+void CheatSearchTab::OnNewScanClicked(wxCommandEvent& WXUNUSED(event))
 {
-	const u8* const memptr = Memory::m_pRAM;
 	if (!Core::IsRunningAndStarted())
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
@@ -151,96 +137,31 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED(event))
 	for (u32 addr = 0; addr != Memory::RAM_SIZE; addr += m_search_type_size)
 	{
 		r.address = addr;
-		memcpy(&r.old_value, memptr + addr, m_search_type_size);
+		memcpy(&r.old_value, &Memory::m_pRAM[addr], m_search_type_size);
 		m_search_results.push_back(r);
 	}
 
 	UpdateCheatSearchResultsList();
 }
 
-void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
+void CheatSearchTab::OnNextScanClicked(wxCommandEvent&)
 {
-	const u8* const memptr = Memory::m_pRAM;
 	if (!Core::IsRunningAndStarted())
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
 		return;
 	}
 
-	// Set up the sub-search results efficiently to prevent automatic re-allocations.
-	std::vector<CheatSearchResult> filtered_results;
-	filtered_results.reserve(m_search_results.size());
+	u32 user_x_val = 0;
+	if (!ParseUserEnteredValue(&user_x_val))
+		return;
 
-	// Determine the selected filter
-	// 1 : equal
-	// 2 : greater-than
-	// 4 : less-than
-
-	const int filters[] = { 7, 6, 1, 2, 4 };
-	int filter_mask = filters[m_search_type->GetSelection()];
-
-	if (m_value_x_radiobtn.rad_oldvalue->GetValue()) // using old value comparison
-	{
-		for (CheatSearchResult& result : m_search_results)
-		{
-			// with big endian, can just use memcmp for ><= comparison
-			int cmp_result = memcmp(memptr + result.address, &result.old_value, m_search_type_size);
-			if (cmp_result < 0)
-				cmp_result = 4;
-			else
-				cmp_result = cmp_result ? 2 : 1;
-
-			if (cmp_result & filter_mask)
-			{
-				memcpy(&result.old_value, memptr + result.address, m_search_type_size);
-				filtered_results.push_back(result);
-			}
-		}
-	}
-	else // using user entered x value comparison
-	{
-		u32 user_x_val;
-
-		// parse the user entered x value
-		if (filter_mask != 7) // don't need the value for the "None" filter
-		{
-			unsigned long parsed_x_val = 0;
-			wxString x_val = m_textctrl_value_x->GetValue();
-
-			if (!x_val.ToULong(&parsed_x_val, 0))
-			{
-				WxUtils::ShowErrorDialog(_("You must enter a valid decimal, hexadecimal or octal value."));
-				return;
-			}
-
-			user_x_val = SwapValue(static_cast<u32>(parsed_x_val));
-		}
-
-		for (CheatSearchResult& result : m_search_results)
-		{
-			// with big endian, can just use memcmp for ><= comparison
-			int cmp_result = memcmp(memptr + result.address, &user_x_val, m_search_type_size);
-			if (cmp_result < 0)
-				cmp_result = 4;
-			else if (cmp_result)
-				cmp_result = 2;
-			else
-				cmp_result = 1;
-
-			if (cmp_result & filter_mask)
-			{
-				memcpy(&result.old_value, memptr + result.address, m_search_type_size);
-				filtered_results.push_back(result);
-			}
-		}
-	}
-
-	m_search_results.swap(filtered_results);
+	FilterCheatSearchResults(user_x_val);
 
 	UpdateCheatSearchResultsList();
 }
 
-void CheatSearchTab::CreateARCode(wxCommandEvent&)
+void CheatSearchTab::OnCreateARCodeClicked(wxCommandEvent&)
 {
 	long idx = m_lview_search_results->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	if (idx == wxNOT_FOUND)
@@ -251,12 +172,6 @@ void CheatSearchTab::CreateARCode(wxCommandEvent&)
 	CreateCodeDialog arcode_dlg(this, address, ActionReplay::GetARCodes());
 	arcode_dlg.SetExtraStyle(arcode_dlg.GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
 	arcode_dlg.ShowModal();
-}
-
-void CheatSearchTab::ApplyFocus(wxFocusEvent& ev)
-{
-	ev.Skip();
-	m_value_x_radiobtn.rad_uservalue->SetValue(true);
 }
 
 void CheatSearchTab::OnTimerUpdate(wxTimerEvent&)
@@ -336,12 +251,61 @@ void CheatSearchTab::UpdateCheatSearchResultItem(long index)
 	m_lview_search_results->SetItem(index, 3, buf);
 }
 
+void CheatSearchTab::FilterCheatSearchResults(u32 value)
+{
+	// Determine the selected filter
+	// 1 : equal
+	// 2 : greater-than
+	// 4 : less-than
+	// 6 : not equal
+	static const int filters[] = { 6, 1, 2, 4 };
+	int filter_mask = filters[m_search_type->GetSelection()];
+
+	std::vector<CheatSearchResult> filtered_results;
+	filtered_results.reserve(m_search_results.size());
+
+	for (CheatSearchResult& result : m_search_results)
+	{
+		// with big endian, can just use memcmp for ><= comparison
+		int cmp_result = std::memcmp(&Memory::m_pRAM[result.address], &value, m_search_type_size);
+		if (cmp_result < 0)
+			cmp_result = 4;
+		else if (cmp_result)
+			cmp_result = 2;
+		else
+			cmp_result = 1;
+
+		if (cmp_result & filter_mask)
+		{
+			std::memcpy(&result.old_value, &Memory::m_pRAM[result.address], m_search_type_size);
+			filtered_results.push_back(result);
+		}
+	}
+
+	m_search_results.swap(filtered_results);
+}
+
 void CheatSearchTab::ResetListViewColumns()
 {
 	m_lview_search_results->AppendColumn(_("Address"));
 	m_lview_search_results->AppendColumn(_("Value"));
 	m_lview_search_results->AppendColumn(_("Value (float)"));
 	m_lview_search_results->AppendColumn(_("Value (double)"));
+}
+
+bool CheatSearchTab::ParseUserEnteredValue(u32* out) const
+{
+	unsigned long parsed_x_val = 0;
+	wxString x_val = m_textctrl_value_x->GetValue();
+
+	if (!x_val.ToULong(&parsed_x_val, 0))
+	{
+		WxUtils::ShowErrorDialog(_("You must enter a valid decimal, hexadecimal or octal value."));
+		return false;
+	}
+
+	*out = SwapValue(static_cast<u32>(parsed_x_val));
+	return true;
 }
 
 u32 CheatSearchTab::SwapValue(u32 value) const

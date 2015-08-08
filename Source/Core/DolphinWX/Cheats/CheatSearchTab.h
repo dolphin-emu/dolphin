@@ -34,13 +34,14 @@ private:
 
 	void UpdateCheatSearchResultsList();
 	void UpdateCheatSearchResultItem(long index);
+	void FilterCheatSearchResults(u32 value);
 	void ResetListViewColumns();
+	bool ParseUserEnteredValue(u32* out) const;
 	u32 SwapValue(u32 value) const;
 
-	void StartNewSearch(wxCommandEvent& event);
-	void FilterCheatSearchResults(wxCommandEvent& event);
-	void CreateARCode(wxCommandEvent&);
-	void ApplyFocus(wxFocusEvent&);
+	void OnNewScanClicked(wxCommandEvent&);
+	void OnNextScanClicked(wxCommandEvent&);
+	void OnCreateARCodeClicked(wxCommandEvent&);
 	void OnTimerUpdate(wxTimerEvent&);
 
 	std::vector<CheatSearchResult> m_search_results;
@@ -57,10 +58,4 @@ private:
 	wxRadioBox* m_data_sizes;
 
 	wxTimer m_update_timer;
-
-	struct
-	{
-		wxRadioButton* rad_oldvalue;
-		wxRadioButton* rad_uservalue;
-	} m_value_x_radiobtn;
 };
