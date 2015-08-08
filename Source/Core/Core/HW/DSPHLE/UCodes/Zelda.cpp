@@ -43,20 +43,26 @@ enum ZeldaUCodeFlag
 
 	// If set, handle synchronization per-frame instead of per-16-voices.
 	SYNC_PER_FRAME = 0x00000040,
+
+	// If set, does not support command 0D. TODO: rename.
+	NO_CMD_0D = 0x00000080,
 };
 
 static const std::map<u32, u32> UCODE_FLAGS = {
 	// GameCube IPL/BIOS, NTSC.
+	// TODO: check NO_CMD_0D presence.
 	{ 0x24B22038, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | TINY_VPB |
-	              VOLUME_EXPLICIT_STEP },
+	              VOLUME_EXPLICIT_STEP | NO_CMD_0D },
 	// GameCube IPL/BIOS, PAL.
-	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
-	// Luigi's Mansion.
-	{ 0x42F64AC4, LIGHT_PROTOCOL },
+	// TODO: check NO_CMD_0D presence.
+	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | NO_CMD_0D },
 	// Pikmin 1 GC NTSC.
 	// Animal Crossing.
-	{ 0x4BE6A5CB, LIGHT_PROTOCOL },
+	{ 0x4BE6A5CB, LIGHT_PROTOCOL | NO_CMD_0D },
+	// Luigi's Mansion.
+	{ 0x42F64AC4, LIGHT_PROTOCOL },
 	// Super Mario Sunshine.
+	// TODO: check NO_CMD_0D presence.
 	{ 0x56D36052, SYNC_PER_FRAME },
 	// The Legend of Zelda: The Wind Waker.
 	{ 0x86840740, 0 },
@@ -283,6 +289,7 @@ void ZeldaUCode::HandleMailLight(u32 mail)
 		case 1: m_mail_expected_cmd_mails = 4; break;
 		case 2: m_mail_expected_cmd_mails = 2; break;
 		// Doesn't even register as a command, just rejumps to the dispatcher.
+		// TODO: That's true on 0x4BE6A5CB and 0x42F64AC4, what about others?
 		case 3: add_command = false; break;
 
 		default:
@@ -436,6 +443,13 @@ void ZeldaUCode::RunPendingCommands()
 
 		// Command 0D: TODO: find a name and implement.
 		case 0x0D:
+			if (m_flags & NO_CMD_0D)
+			{
+				WARN_LOG(DSPHLE, "Received a 0D command which is NOP'd on this UCode.");
+				SendCommandAck(CommandAck::STANDARD, sync);
+				break;
+			}
+
 			WARN_LOG(DSPHLE, "CMD0D: %08x", Read32());
 			SendCommandAck(CommandAck::STANDARD, sync);
 			break;
