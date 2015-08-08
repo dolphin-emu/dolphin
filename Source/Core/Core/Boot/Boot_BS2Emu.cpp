@@ -57,7 +57,10 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 	// Write necessary values
 	// Here we write values to memory that the apploader does not take care of. Game info goes
 	// to 0x80000000 according to YAGCD 4.2.
-	DVDInterface::DVDRead(/*offset*/0x00000000, /*address*/0x00000000, 0x20, false); // write disc info
+
+	// It's possible to boot DOL and ELF files without a disc inserted
+	if (DVDInterface::VolumeIsValid())
+		DVDInterface::DVDRead(/*offset*/0x00000000, /*address*/0x00000000, 0x20, false); // write disc info
 
 	PowerPC::HostWrite_U32(0x0D15EA5E, 0x80000020); // Booted from bootrom. 0xE5207C22 = booted from jtag
 	PowerPC::HostWrite_U32(Memory::REALRAM_SIZE, 0x80000028); // Physical Memory Size (24MB on retail)
@@ -81,6 +84,9 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 	//PowerPC::HostWrite_U16(0x8200,     0x000030e6); // Console type
 
 	HLE::Patch(0x81300000, "OSReport"); // HLE OSReport for Apploader
+
+	if (!DVDInterface::VolumeIsValid())
+		return false;
 
 	// Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
 	// but the size can differ between discs. Compare with YAGCD chap 13.
