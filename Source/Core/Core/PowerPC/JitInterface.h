@@ -43,6 +43,10 @@ namespace JitInterface
 	void CompileExceptionCheck(ExceptionType type);
 
 	void Shutdown();
+
+	// This is used with the tiered recompiler
+	// We need to know the JIT's dispatcher location to jump to it
+	const void* GetDispatcher();
 }
 extern bool bMMU;
 

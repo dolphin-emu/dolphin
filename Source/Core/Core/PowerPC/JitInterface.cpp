@@ -19,6 +19,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/Profiler.h"
+#include "Core/PowerPC/TieredRecompiler.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #if _M_X86
@@ -75,6 +76,7 @@ namespace JitInterface
 		}
 		jit = static_cast<JitBase*>(ptr);
 		jit->Init();
+		TieredRecompiler::Init();
 		return ptr;
 	}
 	void InitTables(int core)
@@ -281,5 +283,14 @@ namespace JitInterface
 			delete jit;
 			jit = nullptr;
 		}
+		TieredRecompiler::Shutdown();
+	}
+
+	const void* GetDispatcher()
+	{
+		if (jit)
+			return (const void*)jit->GetAsmRoutines()->dispatcher;
+
+		return nullptr;
 	}
 }

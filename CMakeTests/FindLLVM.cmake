@@ -17,6 +17,7 @@ foreach(LLVM_CONFIG_NAME ${LLVM_CONFIG_EXECUTABLES})
 			execute_process(COMMAND ${LLVM_CONFIG_EXE} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS
 				OUTPUT_STRIP_TRAILING_WHITESPACE )
 			set(LLVM_LIBRARIES "${LLVM_LDFLAGS} -lLLVM-${LLVM_PACKAGE_VERSION}")
+			add_definitions(-fno-rtti)
 			break()
 		endif()
 	endif()
