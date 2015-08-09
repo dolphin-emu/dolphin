@@ -552,7 +552,6 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	ToolBar->AddSeparator();
 	WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES,        _("Config"),      m_Bitmaps[Toolbar_ConfigMain],  _("Configure..."));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND,  _("Graphics"),    m_Bitmaps[Toolbar_ConfigGFX],   _("Graphics settings"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_AUDIO,        _("Audio"),       m_Bitmaps[Toolbar_ConfigAudio], _("Audio settings"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_CONTROLLERS,  _("Controllers"), m_Bitmaps[Toolbar_Controller],  _("Controller settings"));
 }
 
@@ -596,7 +595,6 @@ void CFrame::InitBitmaps()
 	m_Bitmaps[Toolbar_Pause      ].LoadFile(dir + "pause.png",      wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_ConfigMain ].LoadFile(dir + "config.png",     wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_ConfigGFX  ].LoadFile(dir + "graphics.png",   wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigAudio].LoadFile(dir + "audio.png",      wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Controller ].LoadFile(dir + "classic.png",    wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Screenshot ].LoadFile(dir + "screenshot.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_FullScreen ].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
