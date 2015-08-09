@@ -169,7 +169,7 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 			else
 			{
 				float_emit.LDR(64, INDEX_UNSIGNED, Q0, addr, 0);
-				float_emit.REV64(8, Q0, Q0);
+				float_emit.REV64(8, D0, D0);
 				float_emit.INS(64, RS, 0, Q0, 0);
 			}
 		}
