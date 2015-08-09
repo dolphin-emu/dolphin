@@ -88,7 +88,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 			}
 		}
 	}
-	SuccessAlertT("Found %u save files", (unsigned int)titles.size());
+	SuccessAlertT("Found %u save file(s)", (unsigned int)titles.size());
 	u32 success = 0;
 	for (const u64& title : titles)
 	{
@@ -97,7 +97,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 			success++;
 		delete export_save;
 	}
-	SuccessAlertT("Sucessfully exported %u saves to %s", success,
+	SuccessAlertT("Sucessfully exported %u save(s) to %s", success,
 		(File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
 }
 
@@ -189,7 +189,7 @@ void CWiiSaveCrypted::ReadHDR()
 	}
 	std::string banner_file_path = m_wii_title_path + "banner.bin";
 	if (!File::Exists(banner_file_path) ||
-		AskYesNoT("%s already exists, overwrite?", banner_file_path.c_str()))
+		AskYesNoT("%s already exists. Consider making a backup of the current save files before overwriting.\nOverwrite now?", banner_file_path.c_str()))
 	{
 		INFO_LOG(CONSOLE, "Creating file %s", banner_file_path.c_str());
 		File::IOFile banner_file(banner_file_path, "wb");
@@ -368,7 +368,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 					(const u8*)&file_data_enc[0], &file_data[0]);
 
 				if (!File::Exists(file_path_full) ||
-					AskYesNoT("%s already exists, overwrite?", file_path_full.c_str()))
+					AskYesNoT("%s already exists. Consider making a backup of the current save files before overwriting.\nOverwrite now?", file_path_full.c_str()))
 				{
 					INFO_LOG(CONSOLE, "Creating file %s", file_path_full.c_str());
 
@@ -566,7 +566,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
 {
 	if (m_title_id)
 	{
-		m_wii_title_path = Common::GetTitleDataPath(m_title_id);
+		m_wii_title_path = File::GetUserPath(D_WIIROOT_IDX) + Common::GetTitleDataPath(m_title_id);
 	}
 
 	if (for_export)
@@ -586,7 +586,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
 		if (!File::Exists(m_wii_title_path + "banner.bin"))
 		{
 			m_valid = false;
-			ERROR_LOG(CONSOLE, "No banner file found for title  %s", game_id);
+			ERROR_LOG(CONSOLE, "No banner file found for title %s", game_id);
 			return false;
 		}
 		if (m_encrypted_save_path.length() == 0)
@@ -596,16 +596,6 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
 		}
 		m_encrypted_save_path += StringFromFormat("private/wii/title/%s/data.bin", game_id);
 		File::CreateFullPath(m_encrypted_save_path);
-	}
-	else
-	{
-		File::CreateFullPath(m_wii_title_path);
-		if (!AskYesNoT(
-			"Warning! it is advised to backup all files in the folder:\n%s\nDo you wish to continue?",
-			m_wii_title_path.c_str()))
-		{
-			return false;
-		}
 	}
 	return true;
 }
