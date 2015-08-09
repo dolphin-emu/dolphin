@@ -216,6 +216,10 @@ void VertexShaderManager::Init()
 		g_fProjectionMatrix[i*5] = 1.0f;
 
 	dirty = true;
+	if (g_aspect_wide)
+		projection_ratio = 16.0f/9.0f;
+	else
+		projection_ratio = 4.0f / 3.0f;
 }
 
 void VertexShaderManager::Shutdown()
@@ -410,7 +414,9 @@ void VertexShaderManager::SetConstants()
 		bProjectionChanged = false;
 
 		float *rawProjection = xfmem.projection.rawProjection;
-
+		float temp_ratio;
+		float vp_ratio;
+		bool viewport_matches;
 		switch (xfmem.projection.type)
 		{
 		case GX_PERSPECTIVE:
@@ -440,12 +446,9 @@ void VertexShaderManager::SetConstants()
 			g_fProjectionMatrix[15] = 0.0f;
 
 			// Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
-			float temp_ratio;
-			float vp_ratio;
 			temp_ratio = fabsf(rawProjection[2] / rawProjection[0]);
 			vp_ratio = fabsf(xfmem.viewport.wd / xfmem.viewport.ht);
-			bool viewport_matches;
-			viewport_matches = fabsf(VideoInterface::GetAspectRatio(false, false, false) / vp_ratio - 1) < 0.14f;
+			viewport_matches = fabsf((VideoInterface::GetAspectRatio(false, false, false) / ((float)bpmem.dispcopyyscale / 256.0f)) / vp_ratio - 1) < 0.14f;
 			// Rogue Squadron II cutscenes have the largest known error of just under 14%
 			if (!SConfig::GetInstance().bWii)
 			{

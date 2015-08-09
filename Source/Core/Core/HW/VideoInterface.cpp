@@ -443,7 +443,7 @@ float GetAspectRatio(bool wide, bool scale, bool par_correct)
 	int width = ((2 * m_HTiming0.HLW) - (m_HTiming0.HLW - m_HTiming1.HBS640)
 		- m_HTiming1.HBE640);
 	float pixelAR;
-	if (!par_correct) 
+	if (!par_correct)
 	{
 		pixelAR = 1.0f;
 	}
