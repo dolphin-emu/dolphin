@@ -6,6 +6,7 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstring>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -277,26 +278,27 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset) const
   if (!IsValid())
     return nullptr;
 
-  return FindFileInfo(disc_offset, m_root);
-}
-
-std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset,
-                                                        const FileInfo& file_info) const
-{
-  for (const FileInfo& child : file_info)
+  // Build a cache (unless there already is one)
+  if (m_offset_file_info_cache.empty())
   {
-    if (child.IsDirectory())
+    u32 fst_entries = m_root.GetSize();
+    for (u32 i = 0; i < fst_entries; i++)
     {
-      std::unique_ptr<FileInfo> result = FindFileInfo(disc_offset, child);
-      if (result)
-        return result;
-    }
-    else if ((file_info.GetOffset() <= disc_offset) &&
-             ((file_info.GetOffset() + file_info.GetSize()) > disc_offset))
-    {
-      return file_info.clone();
+      FileInfoGCWii file_info(m_root, i);
+      if (!file_info.IsDirectory())
+        m_offset_file_info_cache.emplace(file_info.GetOffset() + file_info.GetSize(), i);
     }
   }
+
+  // Get the first file that ends after disc_offset
+  const auto it = m_offset_file_info_cache.upper_bound(disc_offset);
+  if (it == m_offset_file_info_cache.end())
+    return nullptr;
+  std::unique_ptr<FileInfo> result(std::make_unique<FileInfoGCWii>(m_root, it->second));
+
+  // If the file's start isn't after disc_offset, success
+  if (result->GetOffset() <= disc_offset)
+    return result;
 
   return nullptr;
 }
