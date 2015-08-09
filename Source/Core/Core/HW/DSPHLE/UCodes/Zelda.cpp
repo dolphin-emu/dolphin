@@ -1544,8 +1544,9 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(
 		// Try to push currently cached/already decoded samples.
 		u16 remaining_to_output = std::min(vpb->afc_remaining_decoded_samples,
 		                                   requested_samples_count);
-		for (size_t i = 0x10 - remaining_to_output; i < 0x10; ++i)
-			*dst++ = vpb->afc_remaining_samples[i];
+		s16* base = &vpb->afc_remaining_samples[0x10 - vpb->afc_remaining_decoded_samples];
+		for (size_t i = 0; i < remaining_to_output; ++i)
+			*dst++ = base[i];
 
 		vpb->afc_remaining_decoded_samples -= remaining_to_output;
 		requested_samples_count -= remaining_to_output;
