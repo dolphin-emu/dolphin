@@ -106,7 +106,7 @@ protected:
 class FileSystem
 {
 public:
-  FileSystem(const Volume* _rVolume, const Partition& partition);
+  FileSystem(const Volume* volume, const Partition& partition);
   virtual ~FileSystem();
 
   // If IsValid is false, GetRoot must not be called. CreateFileSystem
@@ -120,17 +120,17 @@ public:
   // Returns nullptr if not found
   virtual std::unique_ptr<FileInfo> FindFileInfo(u64 disc_offset) const = 0;
 
-  virtual u64 ReadFile(const FileInfo* file_info, u8* _pBuffer, u64 _MaxBufferSize,
-                       u64 _OffsetInFile = 0) const = 0;
-  virtual bool ExportFile(const FileInfo* file_info, const std::string& _rExportFilename) const = 0;
-  virtual bool ExportApploader(const std::string& _rExportFolder) const = 0;
-  virtual bool ExportDOL(const std::string& _rExportFolder) const = 0;
+  virtual u64 ReadFile(const FileInfo* file_info, u8* buffer, u64 max_buffer_size,
+                       u64 offset_in_file = 0) const = 0;
+  virtual bool ExportFile(const FileInfo* file_info, const std::string& export_filename) const = 0;
+  virtual bool ExportApploader(const std::string& export_folder) const = 0;
+  virtual bool ExportDOL(const std::string& export_folder) const = 0;
   virtual std::optional<u64> GetBootDOLOffset() const = 0;
   virtual std::optional<u32> GetBootDOLSize(u64 dol_offset) const = 0;
 
   virtual const Partition GetPartition() const { return m_partition; }
 protected:
-  const Volume* const m_rVolume;
+  const Volume* const m_volume;
   const Partition m_partition;
 };
 

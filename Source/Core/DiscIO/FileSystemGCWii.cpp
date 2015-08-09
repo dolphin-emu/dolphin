@@ -185,19 +185,19 @@ bool FileInfoGCWii::IsValid(u64 fst_size, const FileInfoGCWii& parent_directory)
   return true;
 }
 
-FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partition)
-    : FileSystem(_rVolume, partition), m_Valid(false), m_offset_shift(0), m_root(nullptr, 0, 0, 0)
+FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partition)
+    : FileSystem(volume, partition), m_valid(false), m_offset_shift(0), m_root(nullptr, 0, 0, 0)
 {
   // Check if this is a GameCube or Wii disc
-  if (m_rVolume->ReadSwapped<u32>(0x18, m_partition) == u32(0x5D1C9EA3))
+  if (m_volume->ReadSwapped<u32>(0x18, m_partition) == u32(0x5D1C9EA3))
     m_offset_shift = 2;  // Wii file system
-  else if (m_rVolume->ReadSwapped<u32>(0x1c, m_partition) == u32(0xC2339F3D))
+  else if (m_volume->ReadSwapped<u32>(0x1c, m_partition) == u32(0xC2339F3D))
     m_offset_shift = 0;  // GameCube file system
   else
     return;
 
-  const std::optional<u32> fst_offset_unshifted = m_rVolume->ReadSwapped<u32>(0x424, m_partition);
-  const std::optional<u32> fst_size_unshifted = m_rVolume->ReadSwapped<u32>(0x428, m_partition);
+  const std::optional<u32> fst_offset_unshifted = m_volume->ReadSwapped<u32>(0x424, m_partition);
+  const std::optional<u32> fst_size_unshifted = m_volume->ReadSwapped<u32>(0x428, m_partition);
   if (!fst_offset_unshifted || !fst_size_unshifted)
     return;
   const u64 fst_offset = static_cast<u64>(*fst_offset_unshifted) << m_offset_shift;
@@ -222,7 +222,7 @@ FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partit
 
   // Read the whole FST
   m_file_system_table.resize(fst_size);
-  if (!m_rVolume->Read(fst_offset, fst_size, m_file_system_table.data(), m_partition))
+  if (!m_volume->Read(fst_offset, fst_size, m_file_system_table.data(), m_partition))
   {
     ERROR_LOG(DISCIO, "Couldn't read file system table");
     return;
@@ -249,7 +249,7 @@ FileSystemGCWii::FileSystemGCWii(const Volume* _rVolume, const Partition& partit
     return;
   }
 
-  m_Valid = m_root.IsValid(fst_size, m_root);
+  m_valid = m_root.IsValid(fst_size, m_root);
 }
 
 FileSystemGCWii::~FileSystemGCWii()
@@ -334,66 +334,66 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset) const
   return nullptr;
 }
 
-u64 FileSystemGCWii::ReadFile(const FileInfo* file_info, u8* _pBuffer, u64 _MaxBufferSize,
-                              u64 _OffsetInFile) const
+u64 FileSystemGCWii::ReadFile(const FileInfo* file_info, u8* buffer, u64 max_buffer_size,
+                              u64 offset_in_file) const
 {
   if (!file_info || file_info->IsDirectory())
     return 0;
 
-  if (_OffsetInFile >= file_info->GetSize())
+  if (offset_in_file >= file_info->GetSize())
     return 0;
 
-  u64 read_length = std::min(_MaxBufferSize, file_info->GetSize() - _OffsetInFile);
+  u64 read_length = std::min(max_buffer_size, file_info->GetSize() - offset_in_file);
 
   DEBUG_LOG(DISCIO, "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
                     " Size: %" PRIx32,
-            read_length, _OffsetInFile, file_info->GetPath().c_str(), file_info->GetOffset(),
+            read_length, offset_in_file, file_info->GetPath().c_str(), file_info->GetOffset(),
             file_info->GetSize());
 
-  m_rVolume->Read(file_info->GetOffset() + _OffsetInFile, read_length, _pBuffer, m_partition);
+  m_volume->Read(file_info->GetOffset() + offset_in_file, read_length, buffer, m_partition);
   return read_length;
 }
 
 bool FileSystemGCWii::ExportFile(const FileInfo* file_info,
-                                 const std::string& _rExportFilename) const
+                                 const std::string& export_filename) const
 {
   if (!file_info || file_info->IsDirectory())
     return false;
 
-  u64 remainingSize = file_info->GetSize();
-  u64 fileOffset = file_info->GetOffset();
+  u64 remaining_size = file_info->GetSize();
+  u64 file_offset = file_info->GetOffset();
 
-  File::IOFile f(_rExportFilename, "wb");
+  File::IOFile f(export_filename, "wb");
   if (!f)
     return false;
 
   bool result = true;
 
-  while (remainingSize)
+  while (remaining_size)
   {
     // Limit read size to 128 MB
-    size_t readSize = (size_t)std::min(remainingSize, (u64)0x08000000);
+    size_t read_size = (size_t)std::min(remaining_size, (u64)0x08000000);
 
-    std::vector<u8> buffer(readSize);
+    std::vector<u8> buffer(read_size);
 
-    result = m_rVolume->Read(fileOffset, readSize, &buffer[0], m_partition);
+    result = m_volume->Read(file_offset, read_size, &buffer[0], m_partition);
 
     if (!result)
       break;
 
-    f.WriteBytes(&buffer[0], readSize);
+    f.WriteBytes(&buffer[0], read_size);
 
-    remainingSize -= readSize;
-    fileOffset += readSize;
+    remaining_size -= read_size;
+    file_offset += read_size;
   }
 
   return result;
 }
 
-bool FileSystemGCWii::ExportApploader(const std::string& _rExportFolder) const
+bool FileSystemGCWii::ExportApploader(const std::string& export_folder) const
 {
-  std::optional<u32> apploader_size = m_rVolume->ReadSwapped<u32>(0x2440 + 0x14, m_partition);
-  const std::optional<u32> trailer_size = m_rVolume->ReadSwapped<u32>(0x2440 + 0x18, m_partition);
+  std::optional<u32> apploader_size = m_volume->ReadSwapped<u32>(0x2440 + 0x14, m_partition);
+  const std::optional<u32> trailer_size = m_volume->ReadSwapped<u32>(0x2440 + 0x18, m_partition);
   constexpr u32 header_size = 0x20;
   if (!apploader_size || !trailer_size)
     return false;
@@ -401,14 +401,14 @@ bool FileSystemGCWii::ExportApploader(const std::string& _rExportFolder) const
   DEBUG_LOG(DISCIO, "Apploader size -> %x", *apploader_size);
 
   std::vector<u8> buffer(*apploader_size);
-  if (m_rVolume->Read(0x2440, *apploader_size, buffer.data(), m_partition))
+  if (m_volume->Read(0x2440, *apploader_size, buffer.data(), m_partition))
   {
-    std::string exportName(_rExportFolder + "/apploader.img");
+    std::string export_name(export_folder + "/apploader.img");
 
-    File::IOFile AppFile(exportName, "wb");
-    if (AppFile)
+    File::IOFile apploader_file(export_name, "wb");
+    if (apploader_file)
     {
-      AppFile.WriteBytes(buffer.data(), *apploader_size);
+      apploader_file.WriteBytes(buffer.data(), *apploader_size);
       return true;
     }
   }
@@ -418,7 +418,7 @@ bool FileSystemGCWii::ExportApploader(const std::string& _rExportFolder) const
 
 std::optional<u64> FileSystemGCWii::GetBootDOLOffset() const
 {
-  std::optional<u32> offset = m_rVolume->ReadSwapped<u32>(0x420, m_partition);
+  std::optional<u32> offset = m_volume->ReadSwapped<u32>(0x420, m_partition);
   return offset ? static_cast<u64>(*offset) << m_offset_shift : std::optional<u64>();
 }
 
@@ -430,9 +430,9 @@ std::optional<u32> FileSystemGCWii::GetBootDOLSize(u64 dol_offset) const
   for (u8 i = 0; i < 7; i++)
   {
     const std::optional<u32> offset =
-        m_rVolume->ReadSwapped<u32>(dol_offset + 0x00 + i * 4, m_partition);
+        m_volume->ReadSwapped<u32>(dol_offset + 0x00 + i * 4, m_partition);
     const std::optional<u32> size =
-        m_rVolume->ReadSwapped<u32>(dol_offset + 0x90 + i * 4, m_partition);
+        m_volume->ReadSwapped<u32>(dol_offset + 0x90 + i * 4, m_partition);
     if (!offset || !size)
       return {};
     dol_size = std::max(*offset + *size, dol_size);
@@ -442,9 +442,9 @@ std::optional<u32> FileSystemGCWii::GetBootDOLSize(u64 dol_offset) const
   for (u8 i = 0; i < 11; i++)
   {
     const std::optional<u32> offset =
-        m_rVolume->ReadSwapped<u32>(dol_offset + 0x1c + i * 4, m_partition);
+        m_volume->ReadSwapped<u32>(dol_offset + 0x1c + i * 4, m_partition);
     const std::optional<u32> size =
-        m_rVolume->ReadSwapped<u32>(dol_offset + 0xac + i * 4, m_partition);
+        m_volume->ReadSwapped<u32>(dol_offset + 0xac + i * 4, m_partition);
     if (!offset || !size)
       return {};
     dol_size = std::max(*offset + *size, dol_size);
@@ -453,7 +453,7 @@ std::optional<u32> FileSystemGCWii::GetBootDOLSize(u64 dol_offset) const
   return dol_size;
 }
 
-bool FileSystemGCWii::ExportDOL(const std::string& _rExportFolder) const
+bool FileSystemGCWii::ExportDOL(const std::string& export_folder) const
 {
   std::optional<u64> dol_offset = GetBootDOLOffset();
   if (!dol_offset)
@@ -463,14 +463,14 @@ bool FileSystemGCWii::ExportDOL(const std::string& _rExportFolder) const
     return false;
 
   std::vector<u8> buffer(*dol_size);
-  if (m_rVolume->Read(*dol_offset, *dol_size, &buffer[0], m_partition))
+  if (m_volume->Read(*dol_offset, *dol_size, buffer.data(), m_partition))
   {
-    std::string exportName(_rExportFolder + "/boot.dol");
+    std::string export_name(export_folder + "/boot.dol");
 
-    File::IOFile DolFile(exportName, "wb");
-    if (DolFile)
+    File::IOFile dol_file(export_name, "wb");
+    if (dol_file)
     {
-      DolFile.WriteBytes(&buffer[0], *dol_size);
+      dol_file.WriteBytes(&buffer[0], *dol_size);
       return true;
     }
   }

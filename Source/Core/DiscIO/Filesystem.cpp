@@ -13,8 +13,8 @@ FileInfo::~FileInfo()
 {
 }
 
-FileSystem::FileSystem(const Volume* _rVolume, const Partition& partition)
-    : m_rVolume(_rVolume), m_partition(partition)
+FileSystem::FileSystem(const Volume* volume, const Partition& partition)
+    : m_volume(volume), m_partition(partition)
 {
 }
 
