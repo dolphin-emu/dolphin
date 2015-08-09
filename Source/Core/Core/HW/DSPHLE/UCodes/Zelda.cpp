@@ -78,6 +78,9 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	{ 0x2FCDF1EC, MAKE_DOLBY_LOUDER },
 	// The Legend of Zelda: Twilight Princess / GC.
 	// Donkey Kong Jungle Beat.
+	//
+	// TODO: These do additional filtering at frame rendering time. We don't
+	// implement this yet.
 	{ 0x6CA33A6D, MAKE_DOLBY_LOUDER },
 	// The Legend of Zelda: Twilight Princess / Wii.
 	{ 0x6C3F6F94, NO_ARAM | MAKE_DOLBY_LOUDER },
