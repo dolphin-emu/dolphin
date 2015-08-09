@@ -65,14 +65,19 @@ namespace AudioCommon
 		if (g_sound_stream)
 		{
 			UpdateSoundStream();
-			if (g_sound_stream->Start())
+			if (!g_sound_stream->Start())
 			{
-				if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
-					StartAudioDump();
-
-				return g_sound_stream;
+				ERROR_LOG(AUDIO, "Could not start backend %s, using %s instead",
+					  backend.c_str(), BACKEND_NULLSOUND);
+				delete g_sound_stream;
+				g_sound_stream = new NullSound();
+				g_sound_stream->Start();
 			}
-			PanicAlertT("Could not initialize backend %s.", backend.c_str());
+
+			if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
+				StartAudioDump();
+
+			return g_sound_stream;
 		}
 
 		PanicAlertT("Sound backend %s is not valid.", backend.c_str());
