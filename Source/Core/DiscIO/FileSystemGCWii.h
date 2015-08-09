@@ -70,25 +70,25 @@ private:
 class CFileSystemGCWii : public IFileSystem
 {
 public:
-  CFileSystemGCWii(const IVolume* _rVolume);
+  CFileSystemGCWii(const IVolume* volume);
   ~CFileSystemGCWii() override;
 
-  bool IsValid() const override { return m_Valid; }
+  bool IsValid() const override { return m_valid; }
   const IFileInfo& GetRoot() const override;
   std::unique_ptr<IFileInfo> FindFileInfo(const std::string& path) const override;
   std::unique_ptr<IFileInfo> FindFileInfo(u64 disc_offset) const override;
 
-  u64 ReadFile(const IFileInfo* file_info, u8* _pBuffer, u64 _MaxBufferSize,
-               u64 _OffsetInFile) const override;
-  bool ExportFile(const IFileInfo* file_info, const std::string& _rExportFilename) const override;
-  bool ExportApploader(const std::string& _rExportFolder) const override;
-  bool ExportDOL(const std::string& _rExportFolder) const override;
+  u64 ReadFile(const IFileInfo* file_info, u8* buffer, u64 max_buffer_size,
+               u64 offset_in_file) const override;
+  bool ExportFile(const IFileInfo* file_info, const std::string& export_filename) const override;
+  bool ExportApploader(const std::string& export_folder) const override;
+  bool ExportDOL(const std::string& export_folder) const override;
   u64 GetBootDOLOffset() const override;
   u32 GetBootDOLSize(u64 dol_offset) const override;
 
 private:
-  bool m_Valid;
-  bool m_Wii;
+  bool m_valid;
+  bool m_wii;
   std::vector<u8> m_file_system_table;
   CFileInfoGCWii m_root;
   // Maps the end offset of files to FST indexes
