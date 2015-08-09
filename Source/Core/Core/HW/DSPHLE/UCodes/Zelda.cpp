@@ -929,7 +929,24 @@ void ZeldaAudioRenderer::PrepareFrame()
 	m_buf_back_left_reverb.fill(0);
 	m_buf_back_right_reverb.fill(0);
 
-	// TODO: Prepare patterns 2/3 - they are not constant unlike 0/1.
+	// Prepare patterns 2/3 - they are not constant unlike 0/1.
+	s16* pattern2 = m_const_patterns.data() + 2 * 0x40;
+	s32 yn2 = pattern2[0x40 - 2], yn1 = pattern2[0x40 - 1], v;
+	for (int i = 0; i < 0x40; i += 2)
+	{
+		v = yn2 * yn1 - (pattern2[i] << 16);
+		yn2 = yn1; yn1 = pattern2[i]; pattern2[i] = v >> 16;
+
+		v = 2 * (yn2 * yn1 + (pattern2[i + 1] << 16));
+		yn2 = yn1; yn1 = pattern2[i + 1]; pattern2[i + 1] = v >> 16;
+	}
+	s16* pattern3 = m_const_patterns.data() + 3 * 0x40;
+	yn2 = pattern3[0x40 - 2]; yn1 = pattern3[0x40 - 1];
+	s16 acc = yn1;
+	s16 step = pattern3[0] + ((yn1 * yn2 + ((yn2 << 16) + yn1)) >> 16);
+	step = (step & 0x1FF) | 0x2000;
+	for (s32 i = 0; i < 0x40; ++i)
+		pattern3[i] = acc + (i + 1) * step;
 
 	m_prepared = true;
 }
