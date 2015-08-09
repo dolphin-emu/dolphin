@@ -8,7 +8,7 @@
 
 namespace DiscIO
 {
-IFileSystem::IFileSystem(const IVolume* _rVolume) : m_rVolume(_rVolume)
+IFileSystem::IFileSystem(const IVolume* volume) : m_volume(volume)
 {
 }
 
