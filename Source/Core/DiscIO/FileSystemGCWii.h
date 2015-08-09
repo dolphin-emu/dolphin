@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -87,10 +88,11 @@ private:
   bool m_Wii;
   std::vector<u8> m_file_system_table;
   CFileInfoGCWii m_root;
+  // Maps the end offset of files to FST indexes
+  mutable std::map<u64, u32> m_offset_file_info_cache;
 
   std::unique_ptr<IFileInfo> FindFileInfo(const std::string& path,
                                           const IFileInfo& file_info) const;
-  std::unique_ptr<IFileInfo> FindFileInfo(u64 disc_offset, const IFileInfo& file_info) const;
   u32 GetOffsetShift() const;
 };
 
