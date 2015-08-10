@@ -537,41 +537,34 @@ u32 GetTicksPerField()
 
 static void BeginField(FieldType field)
 {
-	// TODO: the stride and height shouldn't depend on whether the FieldType is
-	// "progressive".  We're actually telling the video backend to draw unspecified
-	// junk.  Due to the way XFB copies work, the unspecified junk is usually
-	// the contents of the other field, so it looks okay in most cases, but we
-	// shouldn't depend on that; a good example of where our output is wrong is
-	// the title screen teaser videos in Metroid Prime.
-	//
-	// What should actually happen is that we should pass on the correct width,
-	// stride, and height to the video backend, and it should deinterlace the
-	// output when appropriate.
-
-	// STD is the stride between lines and WPL is the words per line. STD/WPL be either
-	// 1 or 2 (the latter indicates emitting a single field of an interlaced output from
-	// a framebuffer that contains both i.e. it skips the other field.)
-	u32 multiplier = static_cast<u32>(m_PictureConfiguration.STD / m_PictureConfiguration.WPL);
-
-	// if it's interlaced output from a framebuffer containing both fields, we
-	// divide the stride by 2 so that it emits every line
-	u32 fbStride = m_PictureConfiguration.STD * 16 / multiplier;
+	bool interlaced_xfb = ((m_PictureConfiguration.STD / m_PictureConfiguration.WPL)==2);
+	u32 fbStride = m_PictureConfiguration.STD * 16;
 	u32 fbWidth = m_PictureConfiguration.WPL * 16;
-
-	// if it's interlaced output from a framebuffer containing both fields,
-	// double the number of lines we're outputting because we actually output
-	// both fields
-	u32 fbHeight = m_VerticalTimingRegister.ACV * multiplier;
+	u32 fbHeight = m_VerticalTimingRegister.ACV;
 
 	u32 xfbAddr;
 
-	if (g_ActiveConfig.bForceProgressive && (multiplier == 2)) {
+	if (interlaced_xfb && g_ActiveConfig.bForceProgressive) {
+		// Strictly speaking, in interlaced mode, we're only supposed to read
+		// half of the lines of the XFB, and use that to display a field; the
+		// other lines are unspecified junk.  However, in practice, we can
+		// almost always double the vertical resolution of the output by
+		// forcing progressive output: there's usually useful data in the
+		// other field.  One notable exception: the title screen teaser
+		// videos in Metroid Prime don't render correctly using this hack.
+		fbStride /= 2;
+		fbHeight *= 2;
 		if (m_VBlankTimingOdd.PRB < m_VBlankTimingEven.PRB)
+		{
 			xfbAddr = GetXFBAddressTop();
+		}
 		else
+		{
 			xfbAddr = GetXFBAddressBottom();
+		}
 	}
-	else {
+	else
+	{
 		if (field == FieldType::FIELD_EVEN)
 		{
 			xfbAddr = GetXFBAddressTop();
