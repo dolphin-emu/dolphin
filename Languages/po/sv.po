@@ -12,9 +12,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-06-10 07:28+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"POT-Creation-Date: 2015-07-28 10:01+0000\n"
+"PO-Revision-Date: 2015-07-28 13:51+0000\n"
+"Last-Translator: Anton Regnander <anton_r_3@hotmail.com>\n"
 "Language-Team: Swedish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/sv/)\n"
 "Language: sv\n"
@@ -40,7 +40,7 @@ msgstr ""
 msgid " (internal IP)"
 msgstr "(intern IP)"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:269
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:270
 msgid " (too many to display)"
 msgstr "(för många att visa)"
 
@@ -432,7 +432,7 @@ msgstr "+ PLUS"
 msgid "1.5x Native (960x792)"
 msgstr "1.5x ursprunglig (960x792)"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:43
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:44
 msgid "16-bit"
 msgstr "16 bitar"
 
@@ -448,7 +448,7 @@ msgstr "2.5x ursprunglig (1600x1320)"
 msgid "2x Native (1280x1056)"
 msgstr "2x ursprunglig (1280x1056)"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:43
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:44
 msgid "32-bit"
 msgstr "32 bitar"
 
@@ -460,7 +460,7 @@ msgstr "3x ursprunglig (1920x1584)"
 msgid "4x Native (2560x2112)"
 msgstr "4x ursprunglig (2560x2112)"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:43
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:44
 msgid "8-bit"
 msgstr "8 bitar"
 
@@ -485,8 +485,8 @@ msgstr "<Systemspråk>"
 msgid "A NetPlay window is already open!"
 msgstr "Det finns redan ett öppet nätspelsfönster!"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:130
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:162
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:131
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:163
 msgid "A game is not currently running."
 msgstr "Ett spel körs inte för tillfället."
 
@@ -513,6 +513,18 @@ msgid ""
 "If connecting directly, the host must have the chosen UDP port open/"
 "forwarded!\n"
 msgstr ""
+"OBS:\n"
+"\n"
+"Nätspel kommer bara fungera med följande inställningar:\n"
+" - DSP-emulatormotorn måste vara likadan på alla datorer!\n"
+" - Konfigurera tilläggen för varje Wiimote manuellt\n"
+"\n"
+"Alla spelare bör använda samma inställningar och version av Dolphin.\n"
+"Alla minneskort måste antingen vara identiska mellan spelarna eller "
+"inaktiveras.\n"
+"Stöd för Wiimotes är förmodligen fruktansvärt. Använd det inte.\n"
+"\n"
+"Vid direkt anslutning måste värden ha UDP-porten öppen/vidarebefordrad!\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:54
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
@@ -678,8 +690,8 @@ msgstr "Alla GC/Wii-filer (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgid "All GameCube GCM files (gcm)"
 msgstr "Alla GCM-filer för GameCube (gcm)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1587
-#: Source/Core/DolphinWX/FrameTools.cpp:1601
+#: Source/Core/DolphinWX/FrameTools.cpp:1602
+#: Source/Core/DolphinWX/FrameTools.cpp:1616
 msgid "All Save States (sav, s##)"
 msgstr "Alla snabbsparningar (sav, s##)"
 
@@ -1015,10 +1027,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Läser in anpassade texturer i RAM när emulation startas.\n"
+"Cachelagrar anpassade texturer i RAM när emulering startas.\n"
 "Det här kan kräva mycket RAM men kan också fixa prestandaproblem.\n"
 "\n"
-"Om du är osäker kan du lämna det här omarkerat."
+"Om du är osäker kan du lämna detta omarkerat."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:111
 msgid ""
@@ -1322,11 +1334,11 @@ msgstr "Anslut Wiimote 4"
 msgid "Connect Wiimotes"
 msgstr "Anslut Wiimotes"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1549
+#: Source/Core/DolphinWX/FrameTools.cpp:1564
 msgid "Connected"
 msgstr "Ansluten"
 
-#: Source/Core/DolphinWX/Main.cpp:509
+#: Source/Core/DolphinWX/Main.cpp:510
 msgid "Connecting..."
 msgstr "Ansluter..."
 
@@ -1472,11 +1484,11 @@ msgstr ""
 msgid "Couldn't look up central server %s"
 msgstr "Kunde inte hitta centralserver %s"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:53
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:54
 msgid "Count:"
 msgstr "Antal:"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:265
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:266
 #, c-format
 msgid "Count: %lu"
 msgstr "Antal: %lu"
@@ -1485,7 +1497,7 @@ msgstr "Antal: %lu"
 msgid "Country:"
 msgstr "Land:"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:56
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:57
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:21
 msgid "Create AR Code"
 msgstr "Skapa AR-kod"
@@ -1559,7 +1571,7 @@ msgstr "DVD-rotkatalog:"
 msgid "Dance Mat"
 msgstr "Dansmatta"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:44
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:45
 msgid "Data Size"
 msgstr "Datastorlek"
 
@@ -1778,7 +1790,7 @@ msgstr "Skiva"
 msgid "Disc Read Error"
 msgstr "Diskläsningsfel"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1549
+#: Source/Core/DolphinWX/FrameTools.cpp:1564
 msgid "Disconnected"
 msgstr "Inte ansluten"
 
@@ -1804,7 +1816,7 @@ msgstr ""
 msgid "Divide"
 msgstr "Dividera"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1150
+#: Source/Core/DolphinWX/FrameTools.cpp:1151
 msgid "Do you want to stop the current emulation?"
 msgstr "Vill du stoppa den aktuella emuleringen?"
 
@@ -1839,7 +1851,7 @@ msgstr "Dolphin - Konfiguration för emulerad Wiimote"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1338
+#: Source/Core/DolphinWX/FrameTools.cpp:1349
 msgid "Dolphin Hotkeys"
 msgstr "Dolphin - Kortkommandon"
 
@@ -1852,7 +1864,7 @@ msgid "Dolphin NetPlay Setup"
 msgstr "Dolphin - Nätspelsinställningar"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:816
-#: Source/Core/DolphinWX/FrameTools.cpp:1270
+#: Source/Core/DolphinWX/FrameTools.cpp:1273
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin-TAS-filmer (*.dtm)"
 
@@ -2258,7 +2270,7 @@ msgstr "Ingång %d/%d"
 msgid "Entry 1/%d"
 msgstr "Ingång 1/%d"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:87
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:88
 msgid "Equal"
 msgstr "Samma"
 
@@ -2814,7 +2826,7 @@ msgstr "Fri kamera - Återställ hastighet"
 
 #: Source/Core/Core/HotkeyManager.cpp:59
 msgid "Freelook Zoom In"
-msgstr "Fri kamera - zooma in"
+msgstr "Fri kamera - Zooma in"
 
 #: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Freelook Zoom Out"
@@ -2974,7 +2986,7 @@ msgstr "Grafik"
 msgid "Graphics settings"
 msgstr "Grafikinställningar"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:88
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:89
 msgid "Greater Than"
 msgstr "Större än"
 
@@ -3087,7 +3099,7 @@ msgid ""
 "Please recheck that you have the correct code"
 msgstr "Värdkoden är för stor. Kontrollera att du har rätt kod."
 
-#: Source/Core/Core/HotkeyManager.cpp:129
+#: Source/Core/Core/HotkeyManager.cpp:131
 msgid "Hotkeys"
 msgstr "Kortkommandon"
 
@@ -3300,7 +3312,7 @@ msgstr "Installera WAD"
 msgid "Install to Wii Menu"
 msgstr "Installera till Wii-meny"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1490
+#: Source/Core/DolphinWX/FrameTools.cpp:1505
 msgid "Installing WAD..."
 msgstr "Installerar WAD..."
 
@@ -3541,7 +3553,7 @@ msgstr ""
 "Vänster-/högerklicka för fler alternativ.\n"
 "Mittenklicka för att rensa."
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:89
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:90
 msgid "Less Than"
 msgstr "Mindre än"
 
@@ -3565,13 +3577,17 @@ msgstr "Läs in"
 msgid "Load Custom Textures"
 msgstr "Läs in anpassade texturer"
 
-#: Source/Core/Core/HotkeyManager.cpp:117
+#: Source/Core/Core/HotkeyManager.cpp:119
 msgid "Load State"
 msgstr "Läs in snabbsparning"
 
 #: Source/Core/Core/HotkeyManager.cpp:104
 msgid "Load State Last 1"
 msgstr "Läs in senaste snabbsparning 1"
+
+#: Source/Core/Core/HotkeyManager.cpp:113
+msgid "Load State Last 10"
+msgstr "Läs in senaste snabbsparning 10"
 
 #: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Load State Last 2"
@@ -3600,6 +3616,10 @@ msgstr "Läs in senaste snabbsparning 7"
 #: Source/Core/Core/HotkeyManager.cpp:111
 msgid "Load State Last 8"
 msgstr "Läs in senaste snabbsparning 8"
+
+#: Source/Core/Core/HotkeyManager.cpp:112
+msgid "Load State Last 9"
+msgstr "Läs in senaste snabbsparning 9"
 
 #: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Load State Slot 1"
@@ -3645,11 +3665,11 @@ msgstr "Läs in snabbsparningsplats 9"
 msgid "Load State..."
 msgstr "Läs in snabbsparning"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1525
+#: Source/Core/DolphinWX/FrameTools.cpp:1540
 msgid "Load Wii System Menu"
 msgstr "Läs in Wii-systemmeny"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1520
+#: Source/Core/DolphinWX/FrameTools.cpp:1535
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Läs in Wii-systemmeny %d%c"
@@ -4032,7 +4052,7 @@ msgstr "Nederländerna"
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "Nätspelet har desynkroniserats. Det går inte att fixa detta."
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:34
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:35
 msgid "New Scan"
 msgstr "Ny sökning"
 
@@ -4041,7 +4061,7 @@ msgstr "Ny sökning"
 msgid "Next Page"
 msgstr "Nästa sida"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:38
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:39
 msgid "Next Scan"
 msgstr "Nästa sökning"
 
@@ -4085,7 +4105,7 @@ msgstr ""
 msgid "None"
 msgstr "Ingen"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:86
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:87
 msgid "Not Equal"
 msgstr "Inte samma"
 
@@ -4095,7 +4115,7 @@ msgstr "Inte samma"
 msgid "Not Set"
 msgstr "Inte angiven"
 
-#: Source/Core/DolphinWX/Main.cpp:508
+#: Source/Core/DolphinWX/Main.cpp:509
 msgid "Not connected"
 msgstr "Inte ansluten"
 
@@ -4292,8 +4312,8 @@ msgid "Paths"
 msgstr "Sökvägar"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:43
-#: Source/Core/DolphinWX/FrameTools.cpp:1781
-#: Source/Core/DolphinWX/FrameTools.cpp:1782
+#: Source/Core/DolphinWX/FrameTools.cpp:1796
+#: Source/Core/DolphinWX/FrameTools.cpp:1797
 msgid "Pause"
 msgstr "Pausa"
 
@@ -4328,8 +4348,8 @@ msgstr "Plattform"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:146
 #: Source/Core/DolphinWX/FrameTools.cpp:547
-#: Source/Core/DolphinWX/FrameTools.cpp:1787
-#: Source/Core/DolphinWX/FrameTools.cpp:1788
+#: Source/Core/DolphinWX/FrameTools.cpp:1802
+#: Source/Core/DolphinWX/FrameTools.cpp:1803
 msgid "Play"
 msgstr "Spela"
 
@@ -4349,7 +4369,7 @@ msgstr "Uppspelningsalternativ"
 msgid "Players"
 msgstr "Spelare"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1151
+#: Source/Core/DolphinWX/FrameTools.cpp:1152
 msgid "Please confirm..."
 msgstr "Var god bekräfta..."
 
@@ -4406,7 +4426,7 @@ msgstr "Föreg. sida"
 msgid "Previous Page"
 msgstr "Föregående sida"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:66
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:67
 msgid "Previous Value"
 msgstr "Föregående värde"
 
@@ -4583,7 +4603,7 @@ msgstr "Återställ"
 msgid "Reset Traversal Settings"
 msgstr "Återställ traverseringsinställningar"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:60
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:61
 msgid "Results"
 msgstr "Resultat"
 
@@ -4645,11 +4665,11 @@ msgid "Save GCI as..."
 msgstr "Spara GCI som..."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:500
-#: Source/Core/Core/HotkeyManager.cpp:113
+#: Source/Core/Core/HotkeyManager.cpp:115
 msgid "Save Oldest State"
 msgstr "Spara äldsta snabbsparning"
 
-#: Source/Core/Core/HotkeyManager.cpp:116
+#: Source/Core/Core/HotkeyManager.cpp:118
 msgid "Save State"
 msgstr "Spara snabbsparning"
 
@@ -4761,7 +4781,7 @@ msgstr "Scroll Lock"
 msgid "Search"
 msgstr "Sök"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:97
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:98
 msgid "Search Filter"
 msgstr "Sökfilter"
 
@@ -4842,11 +4862,11 @@ msgid "Select State slot"
 msgstr "Välj snabbsparningsplats"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:814
-#: Source/Core/DolphinWX/FrameTools.cpp:1268
+#: Source/Core/DolphinWX/FrameTools.cpp:1271
 msgid "Select The Recording File"
 msgstr "Spara inspelningsfilen"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1478
+#: Source/Core/DolphinWX/FrameTools.cpp:1493
 msgid "Select a Wii WAD file to install"
 msgstr "Välj en Wii WAD-fil som ska installeras"
 
@@ -4862,15 +4882,15 @@ msgstr "Välj flytande fönster"
 msgid "Select the file to load"
 msgstr "Öppna fil att läsa in"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1436
+#: Source/Core/DolphinWX/FrameTools.cpp:1451
 msgid "Select the save file"
 msgstr "Välj sparningsfilen"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1585
+#: Source/Core/DolphinWX/FrameTools.cpp:1600
 msgid "Select the state to load"
 msgstr "Välj snabbsparning att läsa in"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1599
+#: Source/Core/DolphinWX/FrameTools.cpp:1614
 msgid "Select the state to save"
 msgstr "Välj snabbsparning att spara"
 
@@ -5266,18 +5286,6 @@ msgstr "Hoppa över rensning av DCBZ "
 msgid "Skip EFB Access from CPU"
 msgstr "Hoppa över tillgång till EFB från processorn"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:119
-msgid ""
-"Skip GPU synchronizing on EFB copies. Causes graphical defects in a small "
-"number of games.\n"
-"\n"
-"If unsure, leave this checked."
-msgstr ""
-"Hoppar över GPU-synkronisering när EFB-kopior görs. Orsakar grafikproblem i "
-"ett litet antal spel.\n"
-"\n"
-"Om du är osäker kan du lämna detta markerat."
-
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:142
 msgid ""
 "Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\n"
@@ -5457,6 +5465,24 @@ msgstr "Stoppa"
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:476
 msgid "Store EFB Copies to Texture Only"
 msgstr "Lagra EFB-kopior endast i texturer"
+
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:119
+msgid ""
+"Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes "
+"graphical defects in a small number of games.\n"
+"\n"
+"Enabled = EFB Copies to Texture\n"
+"Disabled = EFB Copies to RAM (and Texture)\n"
+"\n"
+"If unsure, leave this checked."
+msgstr ""
+"Lagrar kopior av EFB exklusivt på grafikprocessorn och kringgår "
+"systemminnet. Kan orsaka grafikfel för ett litet antal spel.\n"
+"\n"
+"Aktiverat = EFB-kopior till texturer\n"
+"Inaktiverat = EFB-kopior till RAM (och texturer)\n"
+"\n"
+"Om du är osäker kan du lämna detta markerat."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:294
 msgid "Stretch to Window"
@@ -5983,12 +6009,12 @@ msgid "Undefined %i"
 msgstr "Odefinerad %i"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:501
-#: Source/Core/Core/HotkeyManager.cpp:114
+#: Source/Core/Core/HotkeyManager.cpp:116
 msgid "Undo Load State"
 msgstr "Ångra inläsning av snabbsparning"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:502
-#: Source/Core/Core/HotkeyManager.cpp:115
+#: Source/Core/Core/HotkeyManager.cpp:117
 msgid "Undo Save State"
 msgstr "Ångra snabbsparning"
 
@@ -5996,7 +6022,7 @@ msgstr "Ångra snabbsparning"
 msgid "Unexpected 0x80 call? Aborting..."
 msgstr "Oväntat anrop av 0x80? Avbryter..."
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:85
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:86
 #: Source/Core/DolphinWX/ISOProperties.cpp:181
 #: Source/Core/DolphinWX/ISOProperties.cpp:536
 msgid "Unknown"
@@ -6094,7 +6120,7 @@ msgstr "Hjälpprogram"
 msgid "V-Sync"
 msgstr "V-synk"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:79
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:80
 msgid "Value"
 msgstr "Värde"
 
@@ -6300,7 +6326,7 @@ msgstr "Wii-konsol"
 msgid "Wii NAND Root:"
 msgstr "Wii-nandrot:"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1438
+#: Source/Core/DolphinWX/FrameTools.cpp:1453
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Wii-sparningsfiler (*.bin)|*.bin"
 
@@ -6321,12 +6347,12 @@ msgstr "Wiimote "
 msgid "Wiimote %i"
 msgstr "Wiimote %i"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1548
+#: Source/Core/DolphinWX/FrameTools.cpp:1563
 #, c-format
 msgid "Wiimote %i %s"
 msgstr "Wiimote %i %s"
 
-#: Source/Core/DolphinWX/Main.cpp:510
+#: Source/Core/DolphinWX/Main.cpp:511
 msgid "Wiimote Connected"
 msgstr "Wiimote ansluten"
 
@@ -6358,7 +6384,7 @@ msgstr "Radbrytning"
 #: Source/Core/DolphinWX/ISOProperties.cpp:1251
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1068
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1207
-#: Source/Core/DolphinWX/FrameTools.cpp:1491
+#: Source/Core/DolphinWX/FrameTools.cpp:1506
 msgid "Working..."
 msgstr "Arbetar..."
 
@@ -6420,7 +6446,7 @@ msgstr "Du måste välja ett spel!"
 msgid "You must enter a name."
 msgstr "Du måste skriva in ett namn."
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:208
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:209
 msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "Du måste ange en giltig decimal, hexadecimal eller oktalt värde."
 
