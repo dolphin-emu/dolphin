@@ -206,7 +206,7 @@ std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetNames(bool prefe
 	return ReadWiiNames(opening_bnr);
 }
 
-u32 CVolumeWiiCrypted::GetFSTSize() const
+u64 CVolumeWiiCrypted::GetFSTSize() const
 {
 	if (m_pReader == nullptr)
 		return 0;
@@ -216,7 +216,7 @@ u32 CVolumeWiiCrypted::GetFSTSize() const
 	if (!Read(0x428, 0x4, (u8*)&size, true))
 		return 0;
 
-	return Common::swap32(size);
+	return (u64)Common::swap32(size) << 2;
 }
 
 std::string CVolumeWiiCrypted::GetApploaderDate() const
