@@ -210,21 +210,6 @@ void XAudio2::SetVolume(int volume)
 		m_mastering_voice->SetVolume(m_volume);
 }
 
-void XAudio2::Update()
-{
-	//m_sound_sync_event.Set();
-
-	//static int xi = 0;
-	//if (100000 == ++xi)
-	//{
-	//    xi = 0;
-	//    XAUDIO2_PERFORMANCE_DATA perfData;
-	//    pXAudio2->GetPerformanceData(&perfData);
-	//    NOTICE_LOG(DSPHLE, "XAudio2 latency (samples): %i", perfData.CurrentLatencyInSamples);
-	//    NOTICE_LOG(DSPHLE, "XAudio2 total glitches: %i", perfData.GlitchesSinceEngineStarted);
-	//}
-}
-
 void XAudio2::Clear(bool mute)
 {
 	m_muted = mute;
