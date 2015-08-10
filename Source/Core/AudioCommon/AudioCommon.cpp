@@ -57,7 +57,7 @@ namespace AudioCommon
 
 		if (!g_sound_stream && NullSound::isValid())
 		{
-			WARN_LOG(DSPHLE, "Could not initialize backend %s, using %s instead.",
+			WARN_LOG(AUDIO, "Could not initialize backend %s, using %s instead.",
 				backend.c_str(), BACKEND_NULLSOUND);
 			g_sound_stream = new NullSound();
 		}
@@ -89,7 +89,7 @@ namespace AudioCommon
 
 	void ShutdownSoundStream()
 	{
-		INFO_LOG(DSPHLE, "Shutting down sound stream");
+		INFO_LOG(AUDIO, "Shutting down sound stream");
 
 		if (g_sound_stream)
 		{
@@ -100,7 +100,7 @@ namespace AudioCommon
 			g_sound_stream = nullptr;
 		}
 
-		INFO_LOG(DSPHLE, "Done shutting down sound stream");
+		INFO_LOG(AUDIO, "Done shutting down sound stream");
 	}
 
 	std::vector<std::string> GetSoundBackends()

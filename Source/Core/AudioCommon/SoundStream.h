@@ -39,11 +39,11 @@ public:
 			m_logAudio = true;
 			g_wave_writer.Start(filename, m_mixer->GetSampleRate());
 			g_wave_writer.SetSkipSilence(false);
-			NOTICE_LOG(DSPHLE, "Starting Audio logging");
+			NOTICE_LOG(AUDIO, "Starting Audio logging");
 		}
 		else
 		{
-			WARN_LOG(DSPHLE, "Audio logging already started");
+			WARN_LOG(AUDIO, "Audio logging already started");
 		}
 	}
 
@@ -53,11 +53,11 @@ public:
 		{
 			m_logAudio = false;
 			g_wave_writer.Stop();
-			NOTICE_LOG(DSPHLE, "Stopping Audio logging");
+			NOTICE_LOG(AUDIO, "Stopping Audio logging");
 		}
 		else
 		{
-			WARN_LOG(DSPHLE, "Audio logging already stopped");
+			WARN_LOG(AUDIO, "Audio logging already stopped");
 		}
 	}
 };
