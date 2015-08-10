@@ -210,11 +210,11 @@ void CMixer::StartLogDTKAudio(const std::string& filename)
 		m_log_dtk_audio = true;
 		m_wave_writer_dtk.Start(filename, 48000);
 		m_wave_writer_dtk.SetSkipSilence(false);
-		NOTICE_LOG(DSPHLE, "Starting DTK Audio logging");
+		NOTICE_LOG(AUDIO, "Starting DTK Audio logging");
 	}
 	else
 	{
-		WARN_LOG(DSPHLE, "DTK Audio logging has already been started");
+		WARN_LOG(AUDIO, "DTK Audio logging has already been started");
 	}
 }
 
@@ -224,11 +224,11 @@ void CMixer::StopLogDTKAudio()
 	{
 		m_log_dtk_audio = false;
 		m_wave_writer_dtk.Stop();
-		NOTICE_LOG(DSPHLE, "Stopping DTK Audio logging");
+		NOTICE_LOG(AUDIO, "Stopping DTK Audio logging");
 	}
 	else
 	{
-		WARN_LOG(DSPHLE, "DTK Audio logging has already been stopped");
+		WARN_LOG(AUDIO, "DTK Audio logging has already been stopped");
 	}
 }
 
@@ -239,11 +239,11 @@ void CMixer::StartLogDSPAudio(const std::string& filename)
 		m_log_dsp_audio = true;
 		m_wave_writer_dsp.Start(filename, 32000);
 		m_wave_writer_dsp.SetSkipSilence(false);
-		NOTICE_LOG(DSPHLE, "Starting DSP Audio logging");
+		NOTICE_LOG(AUDIO, "Starting DSP Audio logging");
 	}
 	else
 	{
-		WARN_LOG(DSPHLE, "DSP Audio logging has already been started");
+		WARN_LOG(AUDIO, "DSP Audio logging has already been started");
 	}
 }
 
@@ -253,11 +253,11 @@ void CMixer::StopLogDSPAudio()
 	{
 		m_log_dsp_audio = false;
 		m_wave_writer_dsp.Stop();
-		NOTICE_LOG(DSPHLE, "Stopping DSP Audio logging");
+		NOTICE_LOG(AUDIO, "Stopping DSP Audio logging");
 	}
 	else
 	{
-		WARN_LOG(DSPHLE, "DSP Audio logging has already been stopped");
+		WARN_LOG(AUDIO, "DSP Audio logging has already been stopped");
 	}
 }
 
