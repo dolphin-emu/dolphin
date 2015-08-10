@@ -95,6 +95,9 @@ bool SetupScrub(const std::string& filename, int block_size)
 	m_BlocksPerCluster = CLUSTER_SIZE / m_BlockSize;
 
 	m_Disc = CreateVolumeFromFilename(filename);
+	if (!m_Disc)
+		return false;
+
 	m_FileSize = m_Disc->GetSize();
 
 	u32 numClusters = (u32)(m_FileSize / CLUSTER_SIZE);
