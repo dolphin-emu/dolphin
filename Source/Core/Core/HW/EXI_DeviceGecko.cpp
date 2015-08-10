@@ -163,13 +163,13 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 	switch (_uData >> 28)
 	{
 	case CMD_LED_OFF:
-		Core::DisplayMessage(StringFromFormat(
-			"USBGecko: No LEDs for you!"),
+		Core::DisplayMessage(
+			"USBGecko: No LEDs for you!",
 			3000);
 		break;
 	case CMD_LED_ON:
-		Core::DisplayMessage(StringFromFormat(
-			"USBGecko: A piercing blue light is now shining in your general direction"),
+		Core::DisplayMessage(
+			"USBGecko: A piercing blue light is now shining in your general direction",
 			3000);
 		break;
 
