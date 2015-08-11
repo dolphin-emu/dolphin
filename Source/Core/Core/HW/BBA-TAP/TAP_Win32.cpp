@@ -88,14 +88,13 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 	HKEY control_net_key;
 	DWORD len;
 	int i = 0;
-	bool found_all = false;
 
 	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ, &control_net_key);
 
 	if (status != ERROR_SUCCESS)
 		return false;
 
-	while (!found_all)
+	for (;; i++)
 	{
 		TCHAR enum_name[256];
 		TCHAR connection_string[256];
@@ -111,7 +110,7 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 		if (status == ERROR_NO_MORE_ITEMS)
 			break;
 		else if (status != ERROR_SUCCESS)
-			return false;
+			continue;
 
 		_sntprintf(connection_string, sizeof(connection_string),
 			_T("%s\\%s\\Connection"), NETWORK_CONNECTIONS_KEY, enum_name);
@@ -127,28 +126,23 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 
 			if (status != ERROR_SUCCESS || name_type != REG_SZ)
 			{
-				return false;
+				continue;
 			}
 			else
 			{
 				if (IsTAPDevice(enum_name))
 				{
 					guids.push_back(enum_name);
-					//found_all = true;
 				}
 			}
 
 			RegCloseKey(connection_key);
 		}
-		i++;
 	}
 
 	RegCloseKey(control_net_key);
 
-	//if (!found_all)
-		//return false;
-
-	return true;
+	return !guids.empty();
 }
 
 bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
@@ -187,7 +181,7 @@ bool CEXIETHERNET::Activate()
 		if (Win32TAPHelper::OpenTAP(mHAdapter, device_guids.at(i)))
 		{
 			INFO_LOG(SP1, "OPENED %s", device_guids.at(i).c_str());
-			i = device_guids.size();
+			break;
 		}
 	}
 	if (mHAdapter == INVALID_HANDLE_VALUE)
@@ -248,19 +242,16 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 	DEBUG_LOG(SP1, "SendFrame %x\n%s",
 		size, ArrayToString(frame, size, 0x10).c_str());
 
-	DWORD numBytesWrit;
 	OVERLAPPED overlap;
 	ZeroMemory(&overlap, sizeof(overlap));
 
-	if (!WriteFile(mHAdapter, frame, size, &numBytesWrit, &overlap))
-	{
-		DWORD res = GetLastError();
-		ERROR_LOG(SP1, "Failed to send packet with error 0x%X", res);
-	}
+	//WriteFile will always return false because the TAP handle is async
+	WriteFile(mHAdapter, frame, size, NULL, &overlap);
 
-	if (numBytesWrit != size)
+	DWORD res = GetLastError();
+	if (res != ERROR_IO_PENDING)
 	{
-		ERROR_LOG(SP1, "BBA SendFrame %i only got %i bytes sent!", size, numBytesWrit);
+		ERROR_LOG(SP1, "Failed to send packet with error 0x%X", res);
 	}
 
 	// Always report the packet as being sent successfully, even though it might be a lie
