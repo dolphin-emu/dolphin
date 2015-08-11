@@ -87,14 +87,19 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 	LONG status;
 	HKEY control_net_key;
 	DWORD len;
-	int i = 0;
+	DWORD cSubKeys = 0;
 
-	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ, &control_net_key);
+	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ | KEY_QUERY_VALUE, &control_net_key);
 
 	if (status != ERROR_SUCCESS)
 		return false;
 
-	for (;; i++)
+	status = RegQueryInfoKey(control_net_key, nullptr, nullptr, nullptr, &cSubKeys, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+
+	if (status != ERROR_SUCCESS)
+		return false;
+
+	for (DWORD i = 0; i < cSubKeys; i++)
 	{
 		TCHAR enum_name[256];
 		TCHAR connection_string[256];
@@ -107,9 +112,7 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 		status = RegEnumKeyEx(control_net_key, i, enum_name,
 			&len, nullptr, nullptr, nullptr, nullptr);
 
-		if (status == ERROR_NO_MORE_ITEMS)
-			break;
-		else if (status != ERROR_SUCCESS)
+		if (status != ERROR_SUCCESS)
 			continue;
 
 		_sntprintf(connection_string, sizeof(connection_string),
