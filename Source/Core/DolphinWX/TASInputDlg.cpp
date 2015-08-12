@@ -23,6 +23,16 @@
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
+wxDEFINE_EVENT(WIIMOTE_UPDATE_CALLBACK, wxCommandEvent);
+wxDEFINE_EVENT(GCPAD_UPDATE_CALLBACK, wxCommandEvent);
+
+struct TASWiimoteReport
+{
+	u8* data;
+	WiimoteEmu::ReportFeatures rptf;
+	int ext;
+	const wiimote_key key;
+};
 
 TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
                          const wxPoint& position, const wxSize& size, long style)
@@ -65,9 +75,6 @@ void TASInputDlg::CreateBaseLayout()
 	m_buttons_dpad->AddSpacer(20);
 	m_buttons_dpad->Add(m_dpad_down.checkbox);
 	m_buttons_dpad->AddSpacer(20);
-
-	Bind(wxEVT_CLOSE_WINDOW, &TASInputDlg::OnCloseWindow, this);
-	Bind(wxEVT_TEXT, &TASInputDlg::UpdateFromText, this);
 }
 
 const int TASInputDlg::m_gc_pad_buttons_bitmask[12] = {
@@ -193,6 +200,15 @@ void TASInputDlg::CreateWiiLayout(int num)
 	m_main_szr->Add(m_cc_szr);
 
 	HandleExtensionChange();
+	FinishLayout();
+}
+
+void TASInputDlg::FinishLayout()
+{
+	Bind(wxEVT_CLOSE_WINDOW, &TASInputDlg::OnCloseWindow, this);
+	Bind(GCPAD_UPDATE_CALLBACK, &TASInputDlg::GetValuesCallback, this);
+	Bind(WIIMOTE_UPDATE_CALLBACK, &TASInputDlg::GetValuesCallback, this);
+	Bind(wxEVT_TEXT, &TASInputDlg::UpdateFromText, this);
 	m_has_layout = true;
 }
 
@@ -354,7 +370,7 @@ void TASInputDlg::CreateGCLayout()
 	SetSizerAndFit(main_szr);
 
 	ResetValues();
-	m_has_layout = true;
+	FinishLayout();
 }
 
 
@@ -483,10 +499,7 @@ void TASInputDlg::SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, w
 		return;
 	}
 
-	Textbox->ChangeValue(std::to_string(*AmountPressed));
-	wxCommandEvent* evt = new wxCommandEvent(wxEVT_TEXT, Textbox->GetId());
-	evt->SetEventObject(Textbox);
-	wxQueueEvent(this, evt);
+	Textbox->SetValue(std::to_string(*AmountPressed));
 }
 
 void TASInputDlg::SetSliderValue(Control* control, int CurrentValue)
@@ -627,6 +640,15 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 	if (!IsShown() || !m_has_layout)
 		return;
 
+	if (!wxIsMainThread())
+	{
+		TASWiimoteReport* report = new TASWiimoteReport{ data, rptf, ext, key };
+		wxCommandEvent* evt = new wxCommandEvent(WIIMOTE_UPDATE_CALLBACK);
+		evt->SetClientData(report);
+		wxQueueEvent(this, evt);
+		return;
+	}
+
 	GetKeyBoardInput(data, rptf, ext, key);
 
 	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
@@ -764,10 +786,36 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 	}
 }
 
+void TASInputDlg::GetValuesCallback(wxCommandEvent& event)
+{
+	if (event.GetEventType() == WIIMOTE_UPDATE_CALLBACK)
+	{
+		TASWiimoteReport* report = static_cast<TASWiimoteReport*>(event.GetClientData());
+		GetValues(report->data, report->rptf, report->ext, report->key);
+		delete report;
+	}
+	else if (event.GetEventType() == GCPAD_UPDATE_CALLBACK)
+	{
+		GCPadStatus* pad = static_cast<GCPadStatus*>(event.GetClientData());
+		GetValues(pad);
+		delete pad;
+	}
+}
+
 void TASInputDlg::GetValues(GCPadStatus* PadStatus)
 {
-	if (!IsShown())
+	if (!IsShown() || !m_has_layout)
 		return;
+
+	if (!wxIsMainThread())
+	{
+		GCPadStatus* status = new GCPadStatus(*PadStatus);
+		wxCommandEvent* evt = new wxCommandEvent(GCPAD_UPDATE_CALLBACK);
+		evt->SetClientData(status);
+		wxQueueEvent(this, evt);
+		return;
+	}
+
 
 	//TODO:: Make this instant not when polled.
 	GetKeyBoardInput(PadStatus);
@@ -868,9 +916,7 @@ void TASInputDlg::UpdateStickBitmap(Stick stick)
 		x = 256 - (u8)x;
 	if (stick.y_cont.reverse)
 		y = 256 - (u8)y;
-    	// If TASInputDlg::UpdateFromText(wxCommandEvent&) interrupts stick initialization, this bitmap is a nullptr
-    	if (stick.bitmap != nullptr)
-        	stick.bitmap->SetBitmap(CreateStickBitmap(x, y));
+	stick.bitmap->SetBitmap(CreateStickBitmap(x, y));
 }
 
 void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
