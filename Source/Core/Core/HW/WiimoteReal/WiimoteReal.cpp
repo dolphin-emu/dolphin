@@ -42,7 +42,6 @@ Wiimote::Wiimote()
 	, m_last_input_report()
 	, m_channel(0)
 	, m_rumble_state()
-	, m_need_prepare()
 {}
 
 void Wiimote::Shutdown()
