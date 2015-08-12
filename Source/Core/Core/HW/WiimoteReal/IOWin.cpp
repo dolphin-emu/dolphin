@@ -220,8 +220,6 @@ void RemoveWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
 bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
 
 WiimoteScanner::WiimoteScanner()
-	: m_run_thread()
-	, m_want_wiimotes()
 {
 	init_lib();
 }

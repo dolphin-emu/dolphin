@@ -71,8 +71,6 @@ private:
 };
 
 WiimoteScanner::WiimoteScanner()
-	: m_run_thread()
-	, m_want_wiimotes()
 {}
 
 WiimoteScanner::~WiimoteScanner()
