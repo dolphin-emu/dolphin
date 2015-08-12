@@ -121,7 +121,7 @@ static void CreatePrograms()
 			// We switch top/bottom here. TODO: move this to screen blit.
 		"	ivec2 ts = textureSize(samp9, 0);\n"
 		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x>>1, ts.y-uv.y-1), 0);\n"
-		"	float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
+		"	float y = mix(c0.r, c0.b, (uv.x & 1) == 1);\n"
 		"	float yComp = 1.164 * (y - 0.0625);\n"
 		"	float uComp = c0.g - 0.5;\n"
 		"	float vComp = c0.a - 0.5;\n"
@@ -365,7 +365,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, srcAddr);
 	g_sampler_cache->BindNearestSampler(9);
 
 	glViewport(0, 0, srcWidth, srcHeight);
