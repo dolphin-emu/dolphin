@@ -65,7 +65,8 @@ void Arm64RegCache::FlushMostStaleRegister()
 	{
 		u32 last_used = m_guest_registers[i].GetLastUsed();
 		if (last_used > most_stale_amount &&
-		    m_guest_registers[i].GetType() == REG_REG)
+		    (m_guest_registers[i].GetType() != REG_NOTLOADED &&
+		     m_guest_registers[i].GetType() != REG_IMM))
 		{
 			most_stale_preg = i;
 			most_stale_amount = last_used;
@@ -261,7 +262,8 @@ void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
 	for (int i = 0; i < 32; ++i)
 	{
-		if (m_guest_registers[i].GetType() == REG_REG)
+		if (m_guest_registers[i].GetType() != REG_NOTLOADED &&
+		    m_guest_registers[i].GetType() != REG_IMM)
 		{
 			// XXX: Determine if we can keep a register in the lower 64bits
 			// Which will allow it to be callee saved.
@@ -270,7 +272,7 @@ void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 	}
 }
 
-ARM64Reg Arm64FPRCache::R(u32 preg)
+ARM64Reg Arm64FPRCache::R(u32 preg, bool only_lower)
 {
 	OpArg& reg = m_guest_registers[preg];
 	IncrementAllUsed();
@@ -279,14 +281,25 @@ ARM64Reg Arm64FPRCache::R(u32 preg)
 	switch (reg.GetType())
 	{
 	case REG_REG: // already in a reg
+	case REG_LOWER_PAIR:
 		return reg.GetReg();
 	break;
 	case REG_NOTLOADED: // Register isn't loaded at /all/
 	{
 		ARM64Reg host_reg = GetReg();
-		reg.LoadToReg(host_reg);
+		u32 load_size;
+		if (only_lower)
+		{
+			load_size = 64;
+			reg.LoadLowerReg(host_reg);
+		}
+		else
+		{
+			load_size = 128;
+			reg.LoadToReg(host_reg);
+		}
 		reg.SetDirty(false);
-		m_float_emit->LDR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+		m_float_emit->LDR(load_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
 		return host_reg;
 	}
 	break;
@@ -298,17 +311,55 @@ ARM64Reg Arm64FPRCache::R(u32 preg)
 	return INVALID_REG;
 }
 
-void Arm64FPRCache::BindToRegister(u32 preg, bool do_load)
+void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, bool only_lower)
 {
 	OpArg& reg = m_guest_registers[preg];
 
 	reg.SetDirty(true);
-	if (reg.GetType() == REG_NOTLOADED)
+	switch (reg.GetType())
+	{
+	case REG_NOTLOADED:
 	{
 		ARM64Reg host_reg = GetReg();
-		reg.LoadToReg(host_reg);
+		u32 load_size;
+		if (only_lower)
+		{
+			// We only want the lower 64bits
+			load_size = 64;
+			reg.LoadLowerReg(host_reg);
+		}
+		else
+		{
+			// We want the full 128bit register
+			load_size = 128;
+			reg.LoadToReg(host_reg);
+		}
 		if (do_load)
-			m_float_emit->LDR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			m_float_emit->LDR(load_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+	}
+	break;
+	case REG_LOWER_PAIR:
+	{
+		if (!only_lower)
+		{
+			// Okay, we've got the lower reg loaded and we really wanted the full register
+			if (do_load)
+			{
+				// Load the high 64bits from the file and insert them in to the high 64bits of the host register
+				ARM64Reg tmp_reg = GetReg();
+				m_float_emit->LDR(64, INDEX_UNSIGNED, tmp_reg, X29, PPCSTATE_OFF(ps[preg][1]));
+				m_float_emit->INS(64, reg.GetReg(), 1, tmp_reg, 0);
+				UnlockRegister(tmp_reg);
+			}
+
+			// Change it over to a full 128bit register
+			reg.LoadToReg(reg.GetReg());
+		}
+	}
+	break;
+	default:
+		// Do nothing
+	break;
 	}
 }
 
@@ -334,7 +385,7 @@ void Arm64FPRCache::FlushByHost(ARM64Reg host_reg)
 	for (int i = 0; i < 32; ++i)
 	{
 		OpArg& reg = m_guest_registers[i];
-		if (reg.GetType() == REG_REG && reg.GetReg() == host_reg)
+		if ((reg.GetType() != REG_NOTLOADED && reg.GetType() != REG_IMM) && reg.GetReg() == host_reg)
 		{
 			FlushRegister(i, false);
 			return;
@@ -355,12 +406,18 @@ bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg)
 void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
 {
 	OpArg& reg = m_guest_registers[preg];
-	if (reg.GetType() == REG_REG)
+	if (reg.GetType() == REG_REG ||
+	    reg.GetType() == REG_LOWER_PAIR)
 	{
 		ARM64Reg host_reg = reg.GetReg();
+		u32 store_size;
+		if (reg.GetType() == REG_REG)
+			store_size = 128;
+		else
+			store_size = 64;
 
 		if (reg.IsDirty())
-			m_float_emit->STR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			m_float_emit->STR(store_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
 
 		if (!maintain_state)
 		{
