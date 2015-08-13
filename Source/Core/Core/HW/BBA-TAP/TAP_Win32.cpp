@@ -304,15 +304,17 @@ bool CEXIETHERNET::RecvStart()
 	DWORD res = ReadFile(mHAdapter, mRecvBuffer, BBA_RECV_SIZE,
 		(LPDWORD)&mRecvBufferLength, &mReadOverlapped);
 
-	if (!res && (GetLastError() != ERROR_IO_PENDING))
+	DWORD err = GetLastError();
+	if (!res && err != ERROR_IO_PENDING)
 	{
 		// error occurred
+		ERROR_LOG(SP1, "Failed to recieve packet with error 0x%X", err);
 		return false;
 	}
 
 	if (res)
 	{
-		// Completed immediately
+		// Synce the read is syncronouse here, complete immediately
 		RecvHandlePacket();
 	}
 
@@ -326,6 +328,9 @@ void CEXIETHERNET::RecvStop()
 
 	UnregisterWaitEx(mHReadWait, INVALID_HANDLE_VALUE);
 
-	CloseHandle(mHRecvEvent);
-	mHRecvEvent = INVALID_HANDLE_VALUE;
+	if (mHRecvEvent != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle(mHRecvEvent);
+		mHRecvEvent = INVALID_HANDLE_VALUE;
+	}
 }
