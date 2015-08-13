@@ -678,18 +678,23 @@ void JitArm64::addzex(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	FALLBACK_IF(inst.OE);
 
-	// breaks Kirby
-	FALLBACK_IF(1);
-
 	int a = inst.RA, d = inst.RD;
 
-	gpr.BindToRegister(d, d == a);
-	ARM64Reg WA = gpr.GetReg();
-	LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
-	CMP(WA, 0);
-	CSINC(gpr.R(d), gpr.R(a), gpr.R(a), CC_EQ);
-	CMP(gpr.R(d), 0);
-	gpr.Unlock(WA);
+	if (d == a)
+	{
+		gpr.BindToRegister(d, true);
+		ARM64Reg WA = gpr.GetReg();
+		LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		ADDS(gpr.R(d), gpr.R(a), WA);
+		gpr.Unlock(WA);
+	}
+	else
+	{
+		gpr.BindToRegister(d, false);
+		LDRB(INDEX_UNSIGNED, gpr.R(d), X29, PPCSTATE_OFF(xer_ca));
+		ADDS(gpr.R(d), gpr.R(a), gpr.R(d));
+	}
+
 	ComputeCarry();
 	if (inst.Rc)
 		ComputeRC(gpr.R(d), 0);
