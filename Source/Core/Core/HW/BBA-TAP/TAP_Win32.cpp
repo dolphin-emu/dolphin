@@ -248,7 +248,7 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 	OVERLAPPED overlap;
 	ZeroMemory(&overlap, sizeof(overlap));
 
-	//WriteFile will always return false because the TAP handle is async
+	// WriteFile will always return false because the TAP handle is async
 	WriteFile(mHAdapter, frame, size, NULL, &overlap);
 
 	DWORD res = GetLastError();
@@ -314,7 +314,7 @@ bool CEXIETHERNET::RecvStart()
 
 	if (res)
 	{
-		// Synce the read is syncronouse here, complete immediately
+		// Since the read is synchronous here, complete immediately
 		RecvHandlePacket();
 	}
 
