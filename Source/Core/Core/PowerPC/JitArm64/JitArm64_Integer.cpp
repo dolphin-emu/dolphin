@@ -724,6 +724,66 @@ void JitArm64::subfx(UGeckoInstruction inst)
 	}
 }
 
+void JitArm64::subfex(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+
+		gpr.BindToRegister(d, false);
+		MOVI2R(gpr.R(d), ~i + j);
+		ARM64Reg WA = gpr.GetReg();
+		LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		ADD(gpr.R(d), gpr.R(d), WA);
+		gpr.Unlock(WA);
+
+		bool must_have_carry = Interpreter::Helper_Carry(~i, j);
+		bool might_have_carry = (~i + j) == 0xFFFFFFFF;
+
+		if (must_have_carry)
+		{
+			ComputeCarry(true);
+		}
+		else if (might_have_carry)
+		{
+			// carry stay as it is
+		}
+		else
+		{
+			ComputeCarry(false);
+		}
+	}
+	else
+	{
+		ARM64Reg WA = gpr.GetReg();
+		gpr.BindToRegister(d, d == a || d == b);
+
+		// upload the carry state
+		LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		CMP(WA, 1);
+
+		// d = ~a + b + carry;
+		if (gpr.IsImm(a))
+			MOVI2R(WA, ~gpr.GetImm(a));
+		else
+			MVN(WA, gpr.R(a));
+		ADCS(gpr.R(d), WA, gpr.R(b));
+
+		gpr.Unlock(WA);
+
+		ComputeCarry();
+	}
+
+	if (inst.Rc)
+		ComputeRC(gpr.R(d), 0);
+}
+
 void JitArm64::addcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

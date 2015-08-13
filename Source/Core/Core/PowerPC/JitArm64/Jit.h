@@ -99,6 +99,7 @@ public:
 	void addcx(UGeckoInstruction inst);
 	void slwx(UGeckoInstruction inst);
 	void rlwimix(UGeckoInstruction inst);
+	void subfex(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
