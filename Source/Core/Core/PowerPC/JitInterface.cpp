@@ -133,14 +133,14 @@ namespace JitInterface
 
 	void GetProfileResults(ProfileStats* prof_stats)
 	{
+		// Can't really do this with no jit core available
+		if (!jit)
+			return;
+
 		prof_stats->cost_sum = 0;
 		prof_stats->timecost_sum = 0;
 		prof_stats->block_stats.clear();
 		prof_stats->block_stats.reserve(jit->GetBlockCache()->GetNumBlocks());
-
-		// Can't really do this with no jit core available
-		if (!jit)
-			return;
 
 		Core::EState old_state = Core::GetState();
 		if (old_state == Core::CORE_RUN)
