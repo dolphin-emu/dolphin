@@ -373,3 +373,214 @@ void JitArm64::mtspr(UGeckoInstruction inst)
 	ARM64Reg RD = gpr.R(inst.RD);
 	STR(INDEX_UNSIGNED, RD, X29,  PPCSTATE_OFF(spr) + iIndex * 4);
 }
+
+void JitArm64::crXXX(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	FALLBACK_IF(1);
+
+	// Special case: crclr
+	if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
+	{
+		// Clear CR field bit
+		int field = inst.CRBD >> 2;
+		int bit = 3 - (inst.CRBD & 3);
+
+		ARM64Reg WA = gpr.GetReg();
+		ARM64Reg XA = EncodeRegTo64(WA);
+		LDR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val) + 8 * field);
+		switch (bit)
+		{
+		case CR_SO_BIT:
+			AND(XA, XA, 61, 62); // XA & ~(1<<61)
+			break;
+
+		case CR_EQ_BIT:
+			ORR(XA, XA, 1, 0); // XA | 1<<0
+			break;
+
+		case CR_GT_BIT:
+			ORR(XA, XA, 63, 0); // XA | 1<<63
+			break;
+
+		case CR_LT_BIT:
+			AND(XA, XA, 62, 62); // XA & ~(1<<62)
+			break;
+		}
+		STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val) + 8 * field);
+		gpr.Unlock(WA);
+		return;
+	}
+
+	// Special case: crset
+	if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 289)
+	{
+		// SetCRFieldBit
+		int field = inst.CRBD >> 2;
+		int bit = 3 - (inst.CRBD & 3);
+
+		ARM64Reg WA = gpr.GetReg();
+		ARM64Reg XA = EncodeRegTo64(WA);
+		LDR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val) + 8 * field);
+
+		if (bit != CR_GT_BIT)
+		{
+			ANDS(ZR, XA, XA);
+			FixupBranch dont_clear_gt = B(CC_NEQ);
+			ORR(XA, XA, 63, 0); // XA | 1<<63
+			SetJumpTarget(dont_clear_gt);
+		}
+
+		switch (bit)
+		{
+		case CR_SO_BIT:
+			ORR(XA, XA, 61, 0); // XA | 1<<61
+			break;
+
+		case CR_EQ_BIT:
+			LSR(XA, XA, 32);
+			LSL(XA, XA, 32);
+			break;
+
+		case CR_GT_BIT:
+			AND(XA, XA, 63, 62); // XA & ~(1<<63)
+			break;
+
+		case CR_LT_BIT:
+			ORR(XA, XA, 62, 0); // XA | 1<<62
+			break;
+		}
+
+		ORR(XA, XA, 32, 0); // XA | 1<<32
+
+		STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val) + 8 * field);
+		gpr.Unlock(WA);
+		return;
+	}
+
+	ARM64Reg WA = gpr.GetReg();
+	ARM64Reg XA = EncodeRegTo64(WA);
+	ARM64Reg WB = gpr.GetReg();
+	ARM64Reg XB = EncodeRegTo64(WB);
+
+	// creqv or crnand or crnor
+	bool negateA = inst.SUBOP10 == 289 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
+	// crandc or crorc or crnand or crnor
+	bool negateB = inst.SUBOP10 == 129 || inst.SUBOP10 == 417 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
+
+	// GetCRFieldBit
+	for (int i = 0; i < 2; i++)
+	{
+		int field = i ? inst.CRBB >> 2 : inst.CRBA >> 2;
+		int bit = i ? 3 - (inst.CRBB & 3) : 3 - (inst.CRBA & 3);
+		ARM64Reg out = i ? XB : XA;
+		bool negate = i ? negateB : negateA;
+
+		ARM64Reg WC = gpr.GetReg();
+		ARM64Reg XC = EncodeRegTo64(WC);
+		LDR(INDEX_UNSIGNED, XC, X29, PPCSTATE_OFF(cr_val) + 8 * field);
+		switch (bit)
+		{
+		case CR_SO_BIT:  // check bit 61 set
+			ANDS(ZR, XC, 61, 62); // XC & ~(1<<61)
+			CSINC(out, ZR, ZR, negate ? CC_NEQ : CC_EQ);
+			break;
+
+		case CR_EQ_BIT:  // check bits 31-0 == 0
+			ANDS(ZR, WC, WC);
+			CSINC(out, ZR, ZR, negate ? CC_NEQ : CC_EQ);
+			break;
+
+		case CR_GT_BIT:  // check val > 0
+			ANDS(ZR, XC, XC);
+			CSINC(out, ZR, ZR, negate ? CC_NEQ : CC_EQ);
+			break;
+
+		case CR_LT_BIT:  // check bit 62 set
+			ANDS(ZR, XC, 62, 62); // XC & ~(1<<62)
+			CSINC(out, ZR, ZR, negate ? CC_NEQ : CC_EQ);
+			break;
+
+		default:
+			_assert_msg_(DYNA_REC, false, "Invalid CR bit");
+		}
+		gpr.Unlock(WC);
+	}
+
+
+	// Compute combined bit
+	switch (inst.SUBOP10)
+	{
+	case 33:  // crnor: ~(A || B) == (~A && ~B)
+	case 129: // crandc: A && ~B
+	case 257: // crand:  A && B
+		AND(XA, XA, XB);
+		break;
+
+	case 193: // crxor: A ^ B
+	case 289: // creqv: ~(A ^ B) = ~A ^ B
+		EOR(XA, XA, XB);
+		break;
+
+	case 225: // crnand: ~(A && B) == (~A || ~B)
+	case 417: // crorc: A || ~B
+	case 449: // cror:  A || B
+		ORR(XA, XA, XB);
+		break;
+	}
+	AND(XA, XA, 0, 63-8); // A & 0xff
+
+	// Store result bit in CRBD
+	int field = inst.CRBD >> 2;
+	int bit = 3 - (inst.CRBD & 3);
+
+	LDR(INDEX_UNSIGNED, XB, X29, PPCSTATE_OFF(cr_val) + 8 * field);
+
+	// Gross but necessary; if the input is totally zero and we set SO or LT,
+	// or even just add the (1<<32), GT will suddenly end up set without us
+	// intending to. This can break actual games, so fix it up.
+	if (bit != CR_GT_BIT)
+	{
+		ANDS(ZR, XB, XB);
+		FixupBranch dont_clear_gt = B(CC_NEQ);
+		ORR(XB, XB, 63, 0); // XA | 1<<63
+		SetJumpTarget(dont_clear_gt);
+	}
+
+	switch (bit)
+	{
+	case CR_SO_BIT:  // set bit 61 to input
+		AND(XB, XB, 61, 62); // XB & ~(1<<61)
+		LSL(XA, XA, 61);
+		ORR(XB, XB, XA);
+		break;
+
+	case CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
+		LSR(XB, XB, 32);
+		LSL(XB, XB, 32);
+		EOR(XA, XA, 1, 0); // XA ^ 1<<0
+		ORR(XB, XB, XA);
+		break;
+
+	case CR_GT_BIT:  // set bit 63 to !input
+		AND(XB, XB, 63, 62); // XB & ~(1<<63)
+		NEG(XA, XA);
+		LSL(XA, XA, 63);
+		ORR(XB, XB, XA);
+		break;
+
+	case CR_LT_BIT:  // set bit 62 to input
+		AND(XB, XB, 62, 62); // XB & ~(1<<62)
+		LSL(XA, XA, 62);
+		ORR(XB, XB, XA);
+		break;
+	}
+
+	ORR(XB, XB, 32, 0); // XB | 1<<32
+	STR(INDEX_UNSIGNED, XB, X29, PPCSTATE_OFF(cr_val) + 8 * field);
+
+	gpr.Unlock(WA);
+	gpr.Unlock(WB);
+}
