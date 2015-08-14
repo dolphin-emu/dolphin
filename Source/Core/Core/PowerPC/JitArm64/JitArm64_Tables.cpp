@@ -222,8 +222,8 @@ static GekkoOPTemplate table31[] =
 
 	{54,   &JitArm64::FallBackToInterpreter},   // dcbst
 	{86,   &JitArm64::FallBackToInterpreter},   // dcbf
-	{246,  &JitArm64::DoNothing},               // dcbtst
-	{278,  &JitArm64::DoNothing},               // dcbt
+	{246,  &JitArm64::dcbt},                    // dcbtst
+	{278,  &JitArm64::dcbt},                    // dcbt
 	{470,  &JitArm64::FallBackToInterpreter},   // dcbi
 	{758,  &JitArm64::DoNothing},               // dcba
 	{1014, &JitArm64::FallBackToInterpreter},   // dcbz
