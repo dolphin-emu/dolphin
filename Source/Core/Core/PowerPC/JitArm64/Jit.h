@@ -200,8 +200,14 @@ private:
 		}
 	};
 
+	struct FastmemArea
+	{
+		u32 length;
+		const u8* slowmem_code;
+	};
+
 	// <Fastmem fault location, slowmem handler location>
-	std::map<const u8*, std::pair<SlowmemHandler, const u8*>> m_fault_to_handler;
+	std::map<const u8*, FastmemArea> m_fault_to_handler;
 	std::map<SlowmemHandler, const u8*> m_handler_to_loc;
 	Arm64GPRCache gpr;
 	Arm64FPRCache fpr;
@@ -232,13 +238,9 @@ private:
 	// Dump a memory range of code
 	void DumpCode(const u8* start, const u8* end);
 
-	// The key is the backpatch flags
-	std::map<u32, BackPatchInfo> m_backpatch_info;
-
 	// Backpatching routines
 	bool DisasmLoadStore(const u8* ptr, u32* flags, Arm64Gen::ARM64Reg* reg);
-	void InitBackpatch();
-	u32 EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
+	void EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 		Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr,
 		BitSet32 gprs_to_push = BitSet32(0), BitSet32 fprs_to_push = BitSet32(0));
 	// Loadstore routines

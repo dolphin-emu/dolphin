@@ -34,8 +34,4 @@ struct BackPatchInfo
 			return 64;
 		return 0;
 	}
-
-	u32 m_fastmem_size;
-	u32 m_fastmem_trouble_inst_offset;
-	u32 m_slowmem_size;
 };

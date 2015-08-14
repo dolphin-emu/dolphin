@@ -127,14 +127,12 @@ bool JitArm64::DisasmLoadStore(const u8* ptr, u32* flags, ARM64Reg* reg)
 	return false;
 }
 
-u32 JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
+void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 	ARM64Reg RS, ARM64Reg addr,
 	BitSet32 gprs_to_push, BitSet32 fprs_to_push)
 {
 	bool in_far_code = false;
-	u32 trouble_offset = 0;
-	const u8* trouble_location = nullptr;
-	const u8* code_base = GetCodePtr();
+	const u8* fastmem_start = GetCodePtr();
 
 	if (fastmem)
 	{
@@ -148,23 +146,17 @@ u32 JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 			{
 				m_float_emit.FCVT(32, 64, D0, RS);
 				m_float_emit.REV32(8, D0, D0);
-				trouble_offset = (GetCodePtr() - code_base) / 4;
-				trouble_location = GetCodePtr();
 				m_float_emit.STR(32, INDEX_UNSIGNED, D0, addr, 0);
 			}
 			else
 			{
 				m_float_emit.REV64(8, Q0, RS);
-				trouble_offset = (GetCodePtr() - code_base) / 4;
-				trouble_location = GetCodePtr();
 				m_float_emit.STR(64, INDEX_UNSIGNED, Q0, addr, 0);
 			}
 		}
 		else if (flags & BackPatchInfo::FLAG_LOAD &&
 		         flags & (BackPatchInfo::FLAG_SIZE_F32 | BackPatchInfo::FLAG_SIZE_F64))
 		{
-			trouble_offset = (GetCodePtr() - code_base) / 4;
-			trouble_location = GetCodePtr();
 			if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
 				m_float_emit.LD1R(32, EncodeRegToDouble(RS), addr);
@@ -186,9 +178,6 @@ u32 JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
 				REV16(temp, RS);
 
-			trouble_offset = (GetCodePtr() - code_base) / 4;
-			trouble_location = GetCodePtr();
-
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
 				STR(INDEX_UNSIGNED, temp, addr, 0);
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
@@ -198,9 +187,6 @@ u32 JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 		}
 		else
 		{
-			trouble_offset = (GetCodePtr() - code_base) / 4;
-			trouble_location = GetCodePtr();
-
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
 				LDR(INDEX_UNSIGNED, RS, addr, 0);
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
@@ -220,6 +206,7 @@ u32 JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 				SXTH(RS, RS);
 		}
 	}
+	const u8* fastmem_end = GetCodePtr();
 
 	if (!fastmem || do_farcode)
 	{
@@ -232,8 +219,8 @@ u32 JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 			handler.fprs = fprs_to_push;
 			handler.flags = flags;
 
-			std::map<SlowmemHandler, const u8*>::iterator handler_loc_iter;
-			handler_loc_iter = m_handler_to_loc.find(handler);
+			FastmemArea* fastmem_area = &m_fault_to_handler[fastmem_start];
+			auto handler_loc_iter = m_handler_to_loc.find(handler);
 
 			if (handler_loc_iter == m_handler_to_loc.end())
 			{
@@ -241,13 +228,15 @@ u32 JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 				SwitchToFarCode();
 				const u8* handler_loc = GetCodePtr();
 				m_handler_to_loc[handler] = handler_loc;
-				m_fault_to_handler[trouble_location] = std::make_pair(handler, handler_loc);
+				fastmem_area->slowmem_code = handler_loc;
+				fastmem_area->length = fastmem_end - fastmem_start;
 			}
 			else
 			{
 				const u8* handler_loc = handler_loc_iter->second;
-				m_fault_to_handler[trouble_location] = std::make_pair(handler, handler_loc);
-				return trouble_offset;
+				fastmem_area->slowmem_code = handler_loc;
+				fastmem_area->length = fastmem_end - fastmem_start;
+				return;
 			}
 		}
 
@@ -338,8 +327,6 @@ u32 JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 		RET(X30);
 		SwitchToNearCode();
 	}
-
-	return trouble_offset;
 }
 
 bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
@@ -372,28 +359,29 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 		return false;
 	}
 
-	std::map<const u8*, std::pair<SlowmemHandler, const u8*>>::iterator slow_handler_iter = m_fault_to_handler.find((const u8*)ctx->CTX_PC);
+	auto slow_handler_iter = m_fault_to_handler.upper_bound((const u8*)ctx->CTX_PC);
+	slow_handler_iter--;
 
+	// no fastmem area found
 	if (slow_handler_iter == m_fault_to_handler.end())
 		return false;
 
-	BackPatchInfo& info = m_backpatch_info[flags];
-	ARM64XEmitter emitter((u8*)(ctx->CTX_PC - info.m_fastmem_trouble_inst_offset * 4));
-	u64 new_pc = (u64)emitter.GetCodePtr();
+	// no overlapping fastmem area found
+	if ((const u8*)ctx->CTX_PC - slow_handler_iter->first > slow_handler_iter->second.length)
+		return false;
 
-	{
-		u32 num_insts_max = info.m_fastmem_size - 1;
+	ARM64XEmitter emitter((u8*) slow_handler_iter->first);
 
-		for (u32 i = 0; i < num_insts_max; ++i)
-			emitter.HINT(HINT_NOP);
+	emitter.BL(slow_handler_iter->second.slowmem_code);
 
-		emitter.BL(slow_handler_iter->second.second);
+	u32 num_insts_max = slow_handler_iter->second.length / 4 - 1;
+	for (u32 i = 0; i < num_insts_max; ++i)
+		emitter.HINT(HINT_NOP);
 
-		m_fault_to_handler.erase(slow_handler_iter);
-	}
+	m_fault_to_handler.erase(slow_handler_iter);
 
 	emitter.FlushIcache();
-	ctx->CTX_PC = new_pc;
+	ctx->CTX_PC = (u64)slow_handler_iter->first;
 
 	// Wipe the top bits of the addr_register
 	if (flags & BackPatchInfo::FLAG_STORE &&
@@ -403,283 +391,3 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 		ctx->CTX_REG(0) &= 0xFFFFFFFFUll;
 	return true;
 }
-
-void JitArm64::InitBackpatch()
-{
-	u32 flags = 0;
-	BackPatchInfo info;
-	u8* code_base = GetWritableCodePtr();
-	u8* code_end;
-
-	// Loads
-	{
-		// 8bit
-		{
-			flags =
-				BackPatchInfo::FLAG_LOAD |
-				BackPatchInfo::FLAG_SIZE_8;
-			EmitBackpatchRoutine(flags, false, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 16bit
-		{
-			flags =
-				BackPatchInfo::FLAG_LOAD |
-				BackPatchInfo::FLAG_SIZE_16;
-			EmitBackpatchRoutine(flags, false, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 32bit
-		{
-			flags =
-				BackPatchInfo::FLAG_LOAD |
-				BackPatchInfo::FLAG_SIZE_32;
-			EmitBackpatchRoutine(flags, false, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 16bit - Extend
-		{
-			flags =
-				BackPatchInfo::FLAG_LOAD |
-				BackPatchInfo::FLAG_SIZE_16 |
-				BackPatchInfo::FLAG_EXTEND;
-			EmitBackpatchRoutine(flags, false, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 16bit - Reverse
-		{
-			flags =
-				BackPatchInfo::FLAG_LOAD |
-				BackPatchInfo::FLAG_SIZE_16 |
-				BackPatchInfo::FLAG_REVERSE;
-			EmitBackpatchRoutine(flags, false, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 32bit - Reverse
-		{
-			flags =
-				BackPatchInfo::FLAG_LOAD |
-				BackPatchInfo::FLAG_SIZE_32 |
-				BackPatchInfo::FLAG_REVERSE;
-			EmitBackpatchRoutine(flags, false, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 32bit float
-		{
-			flags =
-				BackPatchInfo::FLAG_LOAD |
-				BackPatchInfo::FLAG_SIZE_F32;
-			EmitBackpatchRoutine(flags, false, false, Q0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, Q0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 64bit float
-		{
-			flags =
-				BackPatchInfo::FLAG_LOAD |
-				BackPatchInfo::FLAG_SIZE_F64;
-			EmitBackpatchRoutine(flags, false, false, Q0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, Q0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-	}
-
-	// Stores
-	{
-		// 8bit
-		{
-			flags =
-				BackPatchInfo::FLAG_STORE |
-				BackPatchInfo::FLAG_SIZE_8;
-			EmitBackpatchRoutine(flags, false, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 16bit
-		{
-			flags =
-				BackPatchInfo::FLAG_STORE |
-				BackPatchInfo::FLAG_SIZE_16;
-			EmitBackpatchRoutine(flags, false, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 32bit
-		{
-			flags =
-				BackPatchInfo::FLAG_STORE |
-				BackPatchInfo::FLAG_SIZE_32;
-			EmitBackpatchRoutine(flags, false, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, W0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 32bit float
-		{
-			flags =
-				BackPatchInfo::FLAG_STORE |
-				BackPatchInfo::FLAG_SIZE_F32;
-			EmitBackpatchRoutine(flags, false, false, Q0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, Q0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-		// 64bit float
-		{
-			flags =
-				BackPatchInfo::FLAG_STORE |
-				BackPatchInfo::FLAG_SIZE_F64;
-			EmitBackpatchRoutine(flags, false, false, Q0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_slowmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			info.m_fastmem_trouble_inst_offset =
-				EmitBackpatchRoutine(flags, true, false, Q0, X1);
-			code_end = GetWritableCodePtr();
-			info.m_fastmem_size = (code_end - code_base) / 4;
-
-			SetCodePtr(code_base);
-
-			m_backpatch_info[flags] = info;
-		}
-	}
-}
-
