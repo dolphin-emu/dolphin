@@ -59,6 +59,7 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 	case 0x24b22038: // GC IPL - US
 	case 0x2fcdf1ec: // Zelda FSA - US
 	case 0x4be6a5cb: // Pikmin 1 GC - US
+	case 0x267fd05a: // Pikmin 1 GC - PAL
 	case 0x42f64ac4: // Luigi's Mansion - US
 	case 0x56d36052: // Super Mario Sunshine - US
 	case 0x6c3f6f94: // Zelda TP Wii - US
