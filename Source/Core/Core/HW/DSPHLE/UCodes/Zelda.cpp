@@ -1579,8 +1579,19 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(
 
 			DecodeAFC(vpb, dst, requested_blocks_count);
 
-			for (size_t i = 0; i < 0x10; ++i)
-				vpb->afc_remaining_samples[i] = dst[decoded_samples_count - 0x10 + i];
+			if (vpb->afc_remaining_decoded_samples)
+			{
+				for (size_t i = 0; i < 0x10; ++i)
+					vpb->afc_remaining_samples[i] = dst[decoded_samples_count - 0x10 + i];
+
+				if (!vpb->GetRemainingLength() && vpb->GetLoopStartPosition())
+				{
+					// Adjust remaining samples to account for the future loop iteration.
+					base = vpb->afc_remaining_samples + ((vpb->GetLoopStartPosition() + 0xF) & 0xF);
+					for (size_t i = 0; i < vpb->afc_remaining_decoded_samples; ++i)
+						vpb->afc_remaining_samples[0x10 - i - 1] = *base--;
+				}
+			}
 
 			return;
 		}
