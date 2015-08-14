@@ -155,6 +155,8 @@ public:
 	const Ref operator[](size_t bit) const { return (*const_cast<BitSet*>(this))[bit]; }
 	bool operator==(BitSet other) const { return m_val == other.m_val; }
 	bool operator!=(BitSet other) const { return m_val != other.m_val; }
+	bool operator<(BitSet other) const { return m_val < other.m_val; }
+	bool operator>(BitSet other) const { return m_val > other.m_val; }
 	BitSet operator|(BitSet other) const { return BitSet(m_val | other.m_val); }
 	BitSet operator&(BitSet other) const { return BitSet(m_val & other.m_val); }
 	BitSet operator^(BitSet other) const { return BitSet(m_val ^ other.m_val); }

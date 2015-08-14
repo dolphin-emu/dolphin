@@ -185,11 +185,18 @@ private:
 		u32 flags;
 		bool operator< (const SlowmemHandler& rhs) const
 		{
-			return !(dest_reg == rhs.dest_reg &&
-			       addr_reg == rhs.addr_reg &&
-				 gprs == rhs.gprs &&
-				 fprs == rhs.fprs &&
-				 flags == rhs.flags);
+			if (dest_reg < rhs.dest_reg) return true;
+			if (dest_reg > rhs.dest_reg) return false;
+			if (addr_reg < rhs.addr_reg) return true;
+			if (addr_reg > rhs.addr_reg) return false;
+			if (gprs < rhs.gprs) return true;
+			if (gprs > rhs.gprs) return false;
+			if (fprs < rhs.fprs) return true;
+			if (fprs > rhs.fprs) return false;
+			if (flags < rhs.flags) return true;
+			if (flags > rhs.flags) return false;
+
+			return false;
 		}
 	};
 

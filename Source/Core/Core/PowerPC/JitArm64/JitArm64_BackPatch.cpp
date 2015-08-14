@@ -374,6 +374,9 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 
 	std::map<const u8*, std::pair<SlowmemHandler, const u8*>>::iterator slow_handler_iter = m_fault_to_handler.find((const u8*)ctx->CTX_PC);
 
+	if (slow_handler_iter == m_fault_to_handler.end())
+		return false;
+
 	BackPatchInfo& info = m_backpatch_info[flags];
 	ARM64XEmitter emitter((u8*)(ctx->CTX_PC - info.m_fastmem_trouble_inst_offset * 4));
 	u64 new_pc = (u64)emitter.GetCodePtr();
