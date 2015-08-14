@@ -68,6 +68,8 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	{ 0x4BE6A5CB, LIGHT_PROTOCOL | NO_CMD_0D | SUPPORTS_GBA_CRYPTO },
 	// Luigi's Mansion.
 	{ 0x42F64AC4, LIGHT_PROTOCOL | NO_CMD_0D | WEIRD_CMD_0C },
+	// Pikmin 1 GC PAL.
+	{ 0x267FD05A, SYNC_PER_FRAME | NO_CMD_0D },
 	// Super Mario Sunshine.
 	{ 0x56D36052, SYNC_PER_FRAME | NO_CMD_0D },
 	// The Legend of Zelda: The Wind Waker.
