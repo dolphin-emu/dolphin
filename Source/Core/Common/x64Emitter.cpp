@@ -1447,8 +1447,10 @@ void XEmitter::WriteFMA4Op(u8 op, X64Reg dest, X64Reg regOp1, X64Reg regOp2, con
 void XEmitter::WriteBMIOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg, int extrabytes)
 {
 	CheckFlags();
+	if (arg.IsImm())
+		PanicAlert("BMI1/2 instructions don't support immediate operands.");
 	if (size != 32 && size != 64)
-		PanicAlert("VEX GPR instructions only support 32-bit and 64-bit modes!");
+		PanicAlert("BMI1/2 instructions only support 32-bit and 64-bit modes!");
 	int W = size == 64;
 	WriteVEXOp(opPrefix, op, regOp1, regOp2, arg, W, extrabytes);
 }
