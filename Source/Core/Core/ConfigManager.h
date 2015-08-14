@@ -255,6 +255,7 @@ struct SConfig : NonCopyable
 	bool m_DSPCaptureLog;
 	bool m_DumpAudio;
 	bool m_IsMuted;
+	bool m_DumpUCode;
 	int m_Volume;
 	std::string sBackend;
 

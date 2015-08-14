@@ -284,6 +284,7 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 
 	dsp->Set("EnableJIT", m_DSPEnableJIT);
 	dsp->Set("DumpAudio", m_DumpAudio);
+	dsp->Set("DumpUCode", m_DumpUCode);
 	dsp->Set("Backend", sBackend);
 	dsp->Set("Volume", m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
@@ -543,6 +544,7 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 
 	dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
 	dsp->Get("DumpAudio", &m_DumpAudio, false);
+	dsp->Get("DumpUCode", &m_DumpUCode, false);
 #if defined __linux__ && HAVE_ALSA
 	dsp->Get("Backend", &sBackend, BACKEND_ALSA);
 #elif defined __APPLE__
