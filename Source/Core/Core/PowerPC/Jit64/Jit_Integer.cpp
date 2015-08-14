@@ -676,7 +676,12 @@ void Jit64::boolX(UGeckoInstruction inst)
 		}
 		else if (inst.SUBOP10 == 60) // andcx
 		{
-			if (a == b)
+			if (cpu_info.bBMI1 && (gpr.R(b).IsSimpleReg() || a == s))
+			{
+				gpr.BindToRegister(b, true, false);
+				ANDN(32, gpr.RX(a), gpr.RX(b), gpr.R(s));
+			}
+			else if (a == b)
 			{
 				NOT(32, gpr.R(a));
 				AND(32, gpr.R(a), operand);
@@ -745,9 +750,17 @@ void Jit64::boolX(UGeckoInstruction inst)
 		}
 		else if (inst.SUBOP10 == 60) // andcx
 		{
-			MOV(32, gpr.R(a), gpr.R(b));
-			NOT(32, gpr.R(a));
-			AND(32, gpr.R(a), gpr.R(s));
+			if (cpu_info.bBMI1)
+			{
+				gpr.BindToRegister(b, true, false);
+				ANDN(32, gpr.RX(a), gpr.RX(b), gpr.R(s));
+			}
+			else
+			{
+				MOV(32, gpr.R(a), gpr.R(b));
+				NOT(32, gpr.R(a));
+				AND(32, gpr.R(a), gpr.R(s));
+			}
 		}
 		else if (inst.SUBOP10 == 444) // orx
 		{

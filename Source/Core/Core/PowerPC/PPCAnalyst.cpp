@@ -48,7 +48,7 @@ CodeBuffer::~CodeBuffer()
 
 #define INVALID_TARGET ((u32)-1)
 
-u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
+static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 {
 	switch (instr.OPCD)
 	{

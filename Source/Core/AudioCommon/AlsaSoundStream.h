@@ -5,6 +5,8 @@
 #pragma once
 
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 
 #if defined(HAVE_ALSA) && HAVE_ALSA
@@ -25,6 +27,7 @@ public:
 	void SoundLoop() override;
 	void Stop() override;
 	void Update() override;
+	void Clear(bool) override;
 
 	static bool isValid()
 	{
@@ -45,6 +48,8 @@ private:
 	u8 *mix_buffer;
 	std::thread thread;
 	std::atomic<ALSAThreadStatus> m_thread_status;
+	std::condition_variable cv;
+	std::mutex cv_m;
 
 	snd_pcm_t *handle;
 	int frames_to_deliver;

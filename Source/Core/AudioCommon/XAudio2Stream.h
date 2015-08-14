@@ -57,7 +57,6 @@ public:
 	bool Start() override;
 	void Stop() override;
 
-	void Update() override;
 	void Clear(bool mute) override;
 	void SetVolume(int volume) override;
 

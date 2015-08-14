@@ -182,7 +182,6 @@ private:
 		Toolbar_FullScreen,
 		Toolbar_ConfigMain,
 		Toolbar_ConfigGFX,
-		Toolbar_ConfigAudio,
 		Toolbar_Controller,
 		EToolbar_Max
 	};

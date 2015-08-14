@@ -43,7 +43,6 @@ Wiimote::Wiimote()
 	, m_channel(0)
 	, m_last_connect_request_counter(0)
 	, m_rumble_state()
-	, m_need_prepare()
 {}
 
 void Wiimote::Shutdown()
