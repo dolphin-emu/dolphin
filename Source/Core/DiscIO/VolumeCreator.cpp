@@ -178,7 +178,7 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 	};
 	SPartitionGroup PartitionGroup[4];
 
-	// read all partitions
+	// Read all partitions
 	for (SPartitionGroup& group : PartitionGroup)
 	{
 		for (u32 i = 0; i < numPartitions; i++)
@@ -190,9 +190,9 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 		}
 	}
 
-	// return the partition type specified or number
+	// Return the partition type specified or number
 	// types: 0 = game, 1 = firmware update, 2 = channel installer
-	//  some partitions on ssbb use the ascii title id of the demo VC game they hold...
+	//  some partitions on SSBB use the ASCII title id of the demo VC game they hold...
 	for (size_t i = 0; i < PartitionGroup[_PartitionGroup].PartitionsVec.size(); i++)
 	{
 		const SPartition& rPartition = PartitionGroup[_PartitionGroup].PartitionsVec.at(i);
@@ -216,18 +216,18 @@ EDiscType GetDiscType(IBlobReader& _rReader)
 	u32 WADMagic = Reader.Read32(0x02);
 	u32 GCMagic = Reader.Read32(0x1C);
 
-	// check for Wii
+	// Check for Wii
 	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic != 0)
 		return DISC_TYPE_WII;
 	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic == 0)
 		return DISC_TYPE_WII_CONTAINER;
 
-	// check for WAD
+	// Check for WAD
 	// 0x206962 for boot2 wads
 	if (WADMagic == 0x00204973 || WADMagic == 0x00206962)
 		return DISC_TYPE_WAD;
 
-	// check for GC
+	// Check for GC
 	if (GCMagic == 0xC2339F3D)
 		return DISC_TYPE_GC;
 
