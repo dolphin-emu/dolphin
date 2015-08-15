@@ -89,6 +89,8 @@ class TASInputDlg : public wxDialog
 		};
 
 		wxBoxSizer* CreateCCLayout();
+		void FinishLayout();
+		void GetValuesCallback(wxCommandEvent& event);
 		void SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, wxTextCtrl* Textbox, int CurrentValue, int center = 128);
 		void SetButtonValue(Button* button, bool CurrentState);
 		void SetSliderValue(Control* control, int CurrentValue);
