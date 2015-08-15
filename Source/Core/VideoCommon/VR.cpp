@@ -15,6 +15,23 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
+// for testing only
+#ifndef HAVE_OPENVR
+#define HAVE_OPENVR
+#endif
+
+#ifdef HAVE_OPENVR
+#include <openvr.h>
+
+vr::IVRSystem *m_pHMD;
+vr::IVRRenderModels *m_pRenderModels;
+vr::IVRCompositor *m_pCompositor;
+std::string m_strDriver;
+std::string m_strDisplay;
+vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+bool m_bUseCompositor = true;
+#endif
+
 void ClearDebugProj();
 
 #ifdef OVR_MAJOR_VERSION
@@ -150,11 +167,111 @@ void NewVRFrame()
 	}
 }
 
+#ifdef HAVE_OPENVR
+//-----------------------------------------------------------------------------
+// Purpose: Helper to get a string from a tracked device property and turn it
+//			into a std::string
+//-----------------------------------------------------------------------------
+std::string GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = nullptr)
+{
+	uint32_t unRequiredBufferLen = pHmd->GetStringTrackedDeviceProperty(unDevice, prop, nullptr, 0, peError);
+	if (unRequiredBufferLen == 0)
+		return "";
+
+	char *pchBuffer = new char[unRequiredBufferLen];
+	unRequiredBufferLen = pHmd->GetStringTrackedDeviceProperty(unDevice, prop, pchBuffer, unRequiredBufferLen, peError);
+	std::string sResult = pchBuffer;
+	delete[] pchBuffer;
+	return sResult;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+bool BInitCompositor()
+{
+	vr::HmdError peError = vr::HmdError_None;
+
+	m_pCompositor = (vr::IVRCompositor*)vr::VR_GetGenericInterface(vr::IVRCompositor_Version, &peError);
+
+	if (peError != vr::HmdError_None)
+	{
+		m_pCompositor = nullptr;
+
+		ERROR_LOG(VR, "Compositor initialization failed with error: %s\n", vr::VR_GetStringForHmdError(peError));
+		return false;
+	}
+
+	uint32_t unSize = m_pCompositor->GetLastError(NULL, 0);
+	if (unSize > 1)
+	{
+		char* buffer = new char[unSize];
+		m_pCompositor->GetLastError(buffer, unSize);
+		NOTICE_LOG(VR, "Compositor - %s\n", buffer);
+		delete[] buffer;
+		return false;
+	}
+
+	return true;
+}
+#endif
+
 void InitVR()
 {
 	g_has_hmd = false;
 	g_is_direct_mode = false;
 	g_hmd_device_name = nullptr;
+#ifdef HAVE_OPENVR
+	// Loading the SteamVR Runtime
+	vr::HmdError eError = vr::HmdError_None;
+	m_pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
+
+	if (eError != vr::HmdError_None)
+	{
+		m_pHMD = nullptr;
+		WARN_LOG(VR, "Unable to init VR runtime: %s, Steam might not be running.", vr::VR_GetStringForHmdError(eError));
+		PanicAlertT("VR_Init Failed, Steam might not be running.");
+	}
+	else
+	{
+		m_pRenderModels = (vr::IVRRenderModels *)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &eError);
+		if (!m_pRenderModels)
+		{
+			m_pHMD = nullptr;
+			vr::VR_Shutdown();
+
+			ERROR_LOG(VR, "Unable to get render model interface: %s", vr::VR_GetStringForHmdError(eError));
+			PanicAlertT("VR_Init Failed");
+		}
+		else
+		{
+			SuccessAlertT("VR_Init Succeeded");
+			NOTICE_LOG(VR, "VR_Init Succeeded");
+		}
+
+		u32 m_nWindowWidth = 0;
+		u32 m_nWindowHeight = 0;
+		m_pHMD->GetWindowBounds( &g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight );
+		g_hmd_window_width = m_nWindowWidth;
+		g_hmd_window_height = m_nWindowHeight;
+		NOTICE_LOG(VR, "WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y, g_hmd_window_width, g_hmd_window_height);
+
+		std::string m_strDriver = "No Driver";
+		std::string m_strDisplay = "No Display";
+		m_strDriver = GetTrackedDeviceString( m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String );
+		m_strDisplay = GetTrackedDeviceString( m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String );
+		NOTICE_LOG(VR, "strDriver = '%s'", m_strDriver.c_str());
+		NOTICE_LOG(VR, "strDisplay = '%s'", m_strDisplay.c_str());
+
+		if (m_bUseCompositor)
+		{
+			if (!BInitCompositor())
+			{
+				PanicAlertT("%s - Failed to initialize VR Compositor!\n", __FUNCTION__);
+			}
+		}
+	}
+#else
 #ifdef OVR_MAJOR_VERSION
 	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
 	ovr_Initialize();
@@ -227,6 +344,7 @@ void InitVR()
 		}
 	}
 #endif
+#endif
 	if (g_has_hmd)
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
@@ -262,6 +380,13 @@ void VR_StopRendering()
 
 void ShutdownVR()
 {
+#ifdef HAVE_OPENVR
+	if (m_pHMD)
+	{
+		vr::VR_Shutdown();
+		m_pHMD = nullptr;
+	}
+#else
 #ifdef OVR_MAJOR_VERSION
 	if (hmd)
 	{
@@ -275,6 +400,7 @@ void ShutdownVR()
 		NOTICE_LOG(VR, "Oculus Rift shut down.");
 	}
 	ovr_Shutdown();
+#endif
 #endif
 }
 

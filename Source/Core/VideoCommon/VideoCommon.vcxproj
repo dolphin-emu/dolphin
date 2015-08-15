@@ -54,6 +54,11 @@
       <AdditionalIncludeDirectories>$(ExternalsDir)LibOvr\Include;$(ExternalsDir)LibOvr\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)openvr\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AsyncRequests.cpp" />
     <ClCompile Include="AVIDump.cpp" />
