@@ -362,7 +362,7 @@ void TextureCache::CompileShaders()
 		"\n"
 		"void main(){\n"
 		"	vec4 texcol = texture(samp9, vec3(f_uv0.xy, %s));\n"
-		"	int depth = clamp(int(texcol.x * 16777216.0), 0, 0xFFFFFF);\n"
+		"	int depth = int(floor(texcol.x * 16777216.0));\n"
 
 		// Convert to Z24 format
 		"	ivec4 workspace;\n"
