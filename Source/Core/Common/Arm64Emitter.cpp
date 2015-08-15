@@ -268,11 +268,15 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int *n, unsigned 
 	return true;
 }
 
-void ARM64XEmitter::SetCodePtr(u8* ptr)
+void ARM64XEmitter::SetCodePtrUnsafe(u8* ptr)
 {
 	m_code = ptr;
-	if (!m_lastCacheFlushEnd)
-		m_lastCacheFlushEnd = ptr;
+}
+
+void ARM64XEmitter::SetCodePtr(u8* ptr)
+{
+	SetCodePtrUnsafe(ptr);
+	m_lastCacheFlushEnd = ptr;
 }
 
 const u8* ARM64XEmitter::GetCodePtr() const

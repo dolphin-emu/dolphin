@@ -378,6 +378,7 @@ public:
 	}
 
 	void SetCodePtr(u8* ptr);
+	void SetCodePtrUnsafe(u8* ptr);
 	void ReserveCodeSpace(u32 bytes);
 	const u8* AlignCode16();
 	const u8* AlignCodePage();
