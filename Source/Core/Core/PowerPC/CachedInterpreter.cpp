@@ -10,6 +10,8 @@ void CachedInterpreter::Init()
 {
 	m_code.reserve(CODE_SIZE / sizeof(Instruction));
 
+	jo.enableBlocklink = false;
+
 	JitBaseBlockCache::Init();
 
 	code_block.m_stats = &js.st;
