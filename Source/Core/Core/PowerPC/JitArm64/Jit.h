@@ -227,13 +227,13 @@ private:
 	void SwitchToFarCode()
 	{
 		nearcode = GetWritableCodePtr();
-		SetCodePtr(farcode.GetWritableCodePtr());
+		SetCodePtrUnsafe(farcode.GetWritableCodePtr());
 	}
 
 	void SwitchToNearCode()
 	{
-		farcode.SetCodePtr(GetWritableCodePtr());
-		SetCodePtr(nearcode);
+		farcode.SetCodePtrUnsafe(GetWritableCodePtr());
+		SetCodePtrUnsafe(nearcode);
 	}
 
 	// Dump a memory range of code
