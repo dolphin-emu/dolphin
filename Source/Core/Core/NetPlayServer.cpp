@@ -189,6 +189,8 @@ void NetPlayServer::ThreadFunc()
 			case ENET_EVENT_TYPE_DISCONNECT:
 			{
 				std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+				if  (!netEvent.peer->data)
+					break;
 				auto it = m_players.find(*(PlayerId *)netEvent.peer->data);
 				if (it != m_players.end())
 				{
@@ -229,6 +231,18 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	} while (epack == nullptr);
 	rpac.append(epack->data, epack->dataLength);
 
+	// give new client first available id
+	PlayerId pid = 1;
+	for (auto i = m_players.begin(); i != m_players.end(); ++i)
+	{
+		if (i->second.pid == pid)
+		{
+			pid++;
+			i = m_players.begin();
+		}
+	}
+	socket->data = new PlayerId(pid);
+
 	std::string npver;
 	rpac >> npver;
 	// Dolphin netplay version
@@ -247,25 +261,12 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	m_update_pings = true;
 
 	Client player;
+	player.pid = pid;
 	player.socket = socket;
 	rpac >> player.revision;
 	rpac >> player.name;
 
 	enet_packet_destroy(epack);
-
-	// give new client first available id
-	PlayerId pid = 1;
-	for (auto i = m_players.begin(); i != m_players.end(); ++i)
-	{
-		if (i->second.pid == pid)
-		{
-			pid++;
-			i = m_players.begin();
-		}
-	}
-	player.pid = pid;
-	socket->data = new PlayerId(pid);
-
 	// try to automatically assign new user a pad
 	for (PadMapping& mapping : m_pad_map)
 	{
