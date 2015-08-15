@@ -295,7 +295,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 			i + 1, rGPR[i + 1],
 			i + 2, rGPR[i + 2],
 			i + 3, rGPR[i + 3]);
-	assert(0);
+	_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
 }
 
 void Interpreter::ClearCache()
