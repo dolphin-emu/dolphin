@@ -304,21 +304,25 @@ bool CEXIETHERNET::RecvStart()
 	DWORD res = ReadFile(mHAdapter, mRecvBuffer, BBA_RECV_SIZE,
 		(LPDWORD)&mRecvBufferLength, &mReadOverlapped);
 
-	DWORD err = GetLastError();
-	if (!res && err != ERROR_IO_PENDING)
-	{
-		// error occurred
-		ERROR_LOG(SP1, "Failed to recieve packet with error 0x%X", err);
-		return false;
-	}
-
 	if (res)
 	{
 		// Since the read is synchronous here, complete immediately
 		RecvHandlePacket();
+		return true;
+	}
+	else
+	{
+		DWORD err = GetLastError();
+		if (err == ERROR_IO_PENDING)
+		{
+			return true;
+		}
+
+		// Unexpected error
+		ERROR_LOG(SP1, "Failed to recieve packet with error 0x%X", err);
+		return false;
 	}
 
-	return true;
 }
 
 void CEXIETHERNET::RecvStop()
