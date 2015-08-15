@@ -473,7 +473,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
 	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
-	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
+	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             false);
 	core->Get("AdapterRumble",             &m_AdapterRumble,                               true);
 }
 
