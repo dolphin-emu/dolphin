@@ -5,8 +5,10 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 #include <wx/dialog.h>
 #include <wx/treebase.h>
@@ -36,8 +38,13 @@ namespace Gecko { class CodeConfigPanel; }
 class WiiPartition final : public wxTreeItemData
 {
 public:
-	DiscIO::IVolume *Partition;
-	DiscIO::IFileSystem *FileSystem;
+	WiiPartition(std::unique_ptr<DiscIO::IVolume> partition, std::unique_ptr<DiscIO::IFileSystem> file_system)
+		: Partition(std::move(partition)), FileSystem(std::move(file_system))
+	{
+	}
+
+	std::unique_ptr<DiscIO::IVolume> Partition;
+	std::unique_ptr<DiscIO::IFileSystem> FileSystem;
 };
 
 struct PHackData
