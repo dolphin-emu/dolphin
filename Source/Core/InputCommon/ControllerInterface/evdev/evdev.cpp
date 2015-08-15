@@ -41,7 +41,7 @@ void Init(std::vector<Core::Device*> &controllerDevices)
 
 		const char* devnode = udev_device_get_devnode(dev);
 		// We only care about devices which we have read/write access to.
-		if (access(devnode, W_OK) == 0)
+		if (devnode && access(devnode, W_OK) == 0)
 		{
 			// Unfortunately udev gives us no way to filter out the non event device interfaces.
 			// So we open it and see if it works with evdev ioctls or not.
