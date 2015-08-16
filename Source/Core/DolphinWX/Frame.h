@@ -188,14 +188,6 @@ private:
 
 	enum
 	{
-		Toolbar_Delete,
-		Toolbar_Add_BP,
-		Toolbar_Add_MC,
-		Num_Bitmaps
-	};
-
-	enum
-	{
 		ADD_PANE_TOP,
 		ADD_PANE_BOTTOM,
 		ADD_PANE_LEFT,
@@ -206,7 +198,6 @@ private:
 	wxTimer m_poll_hotkey_timer;
 
 	wxBitmap m_Bitmaps[EToolbar_Max];
-	wxBitmap m_BitmapsMenu[EToolbar_Max];
 
 	wxMenuBar* m_menubar_shadow;
 
