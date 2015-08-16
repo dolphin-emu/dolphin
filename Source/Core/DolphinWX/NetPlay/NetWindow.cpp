@@ -141,7 +141,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 	{
 		wxBoxSizer* const host_szr = new wxBoxSizer(wxHORIZONTAL);
 		m_host_type_choice = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(60, -1));
-		m_host_type_choice->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &NetPlayDialog::OnChoice, this);
+		m_host_type_choice->Bind(wxEVT_CHOICE, &NetPlayDialog::OnChoice, this);
 		m_host_type_choice->Append(_("ID:"));
 		host_szr->Add(m_host_type_choice);
 
@@ -151,7 +151,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 		host_szr->Add(m_host_label, 1, wxLEFT | wxCENTER, 5);
 
 		m_host_copy_btn = new wxButton(panel, wxID_ANY, _("Copy"));
-		m_host_copy_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDialog::OnCopyIP, this);
+		m_host_copy_btn->Bind(wxEVT_BUTTON, &NetPlayDialog::OnCopyIP, this);
 		m_host_copy_btn->Disable();
 		host_szr->Add(m_host_copy_btn, 0, wxLEFT | wxCENTER, 5);
 		player_szr->Add(host_szr, 0, wxEXPAND | wxBOTTOM, 5);
