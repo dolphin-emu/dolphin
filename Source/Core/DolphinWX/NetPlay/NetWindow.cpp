@@ -147,7 +147,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 
 		m_host_label = new wxStaticText(panel, wxID_ANY, "555.555.555.555:55555", wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE | wxALIGN_LEFT);
 		// Update() should fix this immediately.
-		m_host_label->SetLabel(_(""));
+		m_host_label->SetLabel("");
 		host_szr->Add(m_host_label, 1, wxLEFT | wxCENTER, 5);
 
 		m_host_copy_btn = new wxButton(panel, wxID_ANY, _("Copy"));
