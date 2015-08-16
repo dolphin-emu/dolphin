@@ -206,17 +206,23 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			{
 				for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
 				{
-					WiiPartition partition;
-					if ((partition.Partition = DiscIO::CreateVolumeFromFilename(fileName, group, i)) != nullptr)
+					std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(fileName, group, i));
+					if (volume != nullptr)
 					{
-						if ((partition.FileSystem = DiscIO::CreateFileSystem(partition.Partition)) != nullptr)
+						std::unique_ptr<DiscIO::IFileSystem> file_system(DiscIO::CreateFileSystem(volume.get()));
+						if (file_system != nullptr)
 						{
+							WiiPartition* const partition = new WiiPartition(std::move(volume), std::move(file_system));
+
 							wxTreeItemId PartitionRoot =
 								m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), partition_count), 0, 0);
-							m_Treectrl->SetItemData(PartitionRoot, new WiiPartition(partition));
-							CreateDirectoryTree(PartitionRoot, partition.FileSystem->GetFileList());
+
+							m_Treectrl->SetItemData(PartitionRoot, partition);
+							CreateDirectoryTree(PartitionRoot, partition->FileSystem->GetFileList());
+
 							if (partition_count == 1)
 								m_Treectrl->Expand(PartitionRoot);
+
 							partition_count++;
 						}
 					}
@@ -767,7 +773,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder, const WiiPartition* partition)
 {
-	DiscIO::IFileSystem* const fs = OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC ? partition->FileSystem : pFileSystem;
+	DiscIO::IFileSystem* const fs = OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC ? partition->FileSystem.get() : pFileSystem;
 
 	const std::vector<DiscIO::SFileInfo>& fst = fs->GetFileList();
 
@@ -920,7 +926,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	if (OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC)
 	{
 		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
-		FS = partition->FileSystem;
+		FS = partition->FileSystem.get();
 	}
 	else
 	{
