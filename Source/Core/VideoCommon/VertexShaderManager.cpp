@@ -189,7 +189,6 @@ void VertexShaderManager::Init()
 	memset(&xfmem, 0, sizeof(xfmem));
 	memset(&constants, 0, sizeof(constants));
 	ResetView();
-	VRTracker::ResetView();
 
 	// TODO: should these go inside ResetView()?
 	Matrix44::LoadIdentity(s_viewportCorrection);
@@ -705,6 +704,8 @@ void VertexShaderManager::RotateView(float x, float y)
 
 void VertexShaderManager::ResetView()
 {
+	VRTracker::ResetView();
+
 	memset(s_fViewTranslationVector, 0, sizeof(s_fViewTranslationVector));
 	Matrix33::LoadIdentity(s_viewRotationMatrix);
 	Matrix33::LoadIdentity(s_viewInvRotationMatrix);
