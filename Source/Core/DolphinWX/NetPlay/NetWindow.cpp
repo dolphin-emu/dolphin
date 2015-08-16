@@ -383,13 +383,13 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 		m_player_lbox->Append(StrToWxStr(tmps));
 
 	// remove ping from selection string, in case it has changed
-	selection.erase(selection.find_last_of("|") + 1);
+	selection.erase(selection.rfind('|') + 1);
 
 	if (!selection.empty())
 	{
 		for (unsigned int i = 0; i < m_player_lbox->GetCount(); ++i)
 		{
-			if (selection == m_player_lbox->GetString(i).Mid(0, selection.length()))
+			if (selection == m_player_lbox->GetString(i).substr(0, selection.length()))
 			{
 				m_player_lbox->SetSelection(i);
 				break;
@@ -413,7 +413,7 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 	case NP_GUI_EVT_CHANGE_GAME:
 		// update selected game :/
 	{
-		m_selected_game.assign(WxStrToStr(event.GetString()));
+		m_selected_game = WxStrToStr(event.GetString());
 
 		wxString button_label = event.GetString();
 		m_game_btn->SetLabel(button_label.Prepend(_(" Game : ")));
@@ -471,7 +471,7 @@ void NetPlayDialog::OnKick(wxCommandEvent&)
 {
 	wxString selection = m_player_lbox->GetStringSelection();
 	unsigned long player = 0;
-	selection.Mid(selection.find_last_of("[") + 1, selection.find_last_of("]")).ToULong(&player);
+	selection.substr(selection.rfind('[') + 1, selection.rfind(']')).ToULong(&player);
 
 	netplay_server->KickPlayer((u8)player);
 
@@ -482,17 +482,13 @@ void NetPlayDialog::OnKick(wxCommandEvent&)
 
 void NetPlayDialog::OnPlayerSelect(wxCommandEvent&)
 {
-	if (m_player_lbox->GetSelection() > 0)
-		m_kick_btn->Enable();
-	else
-		m_kick_btn->Disable();
+	m_kick_btn->Enable(m_player_lbox->GetSelection() > 0);
 }
 
 bool NetPlayDialog::IsRecording()
 {
 	return m_record_chkbox->GetValue();
 }
-
 
 void NetPlayDialog::OnCopyIP(wxCommandEvent&)
 {
