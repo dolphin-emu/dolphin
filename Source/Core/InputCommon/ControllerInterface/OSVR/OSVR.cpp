@@ -132,6 +132,7 @@ Tracker::Tracker(const OSVR_ClientInterface& device, const char* path, u8 index)
 	memset(&m_last_update, 0, sizeof(m_last_update));
 	memset(&m_pose_report, 0, sizeof(m_pose_report));
 	osvrQuatSetIdentity(&m_pose_report.pose.rotation);
+	osvrRegisterPoseCallback(device, TrackerCallback, this);
 
 	// get supported buttons
 	for (int i = 0; i != sizeof(named_positions) / sizeof(*named_positions); ++i)
