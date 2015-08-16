@@ -53,7 +53,6 @@ public:
 	static void fnmaddsx(UGeckoInstruction _inst);
 	static void fnmsubsx(UGeckoInstruction _inst);
 	static void fresx(UGeckoInstruction _inst);
-	//static void fsqrtsx(UGeckoInstruction _inst);
 	static void fsubsx(UGeckoInstruction _inst);
 	static void fabsx(UGeckoInstruction _inst);
 	static void fcmpo(UGeckoInstruction _inst);
@@ -73,7 +72,6 @@ public:
 	static void fnmsubx(UGeckoInstruction _inst);
 	static void frsqrtex(UGeckoInstruction _inst);
 	static void fselx(UGeckoInstruction _inst);
-	static void fsqrtx(UGeckoInstruction _inst);
 	static void fsubx(UGeckoInstruction _inst);
 
 	// Integer Instructions
@@ -199,7 +197,6 @@ public:
 	static void stwcxd(UGeckoInstruction _inst);
 	static void stwux(UGeckoInstruction _inst);
 	static void stwx(UGeckoInstruction _inst);
-	static void tlbia(UGeckoInstruction _inst);
 	static void tlbie(UGeckoInstruction _inst);
 	static void tlbsync(UGeckoInstruction _inst);
 

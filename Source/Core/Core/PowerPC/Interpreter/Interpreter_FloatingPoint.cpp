@@ -482,21 +482,3 @@ void Interpreter::fsubsx(UGeckoInstruction _inst)
 	if (_inst.Rc)
 		Helper_UpdateCR1();
 }
-
-void Interpreter::fsqrtx(UGeckoInstruction _inst)
-{
-	// GEKKO is not supposed to support this instruction.
-	// PanicAlert("fsqrtx");
-	double b = rPS0(_inst.FB);
-
-	if (b < 0.0)
-	{
-		FPSCR.VXSQRT = 1;
-	}
-
-	rPS0(_inst.FD) = sqrt(b);
-	UpdateFPRF(rPS0(_inst.FD));
-
-	if (_inst.Rc)
-		Helper_UpdateCR1();
-}

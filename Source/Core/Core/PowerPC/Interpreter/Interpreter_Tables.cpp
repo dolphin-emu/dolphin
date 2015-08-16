@@ -152,7 +152,6 @@ static GekkoOPTemplate table19[] =
 	{0,   Interpreter::mcrf,        {"mcrf",   OPTYPE_SYSTEM, FL_EVIL | FL_SET_CRn, 1, 0, 0, 0}},
 
 	{50,  Interpreter::rfi,         {"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 2, 0, 0, 0}},
-	{18,  Interpreter::rfid,        {"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1, 0, 0, 0}}
 };
 
 
@@ -296,7 +295,6 @@ static GekkoOPTemplate table31[] =
 	{438, Interpreter::ecowx,       {"ecowx",   OPTYPE_SYSTEM, FL_IN_A0B | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
 	{854, Interpreter::eieio,       {"eieio",   OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
 	{306, Interpreter::tlbie,       {"tlbie",   OPTYPE_SYSTEM, FL_IN_B, 1, 0, 0, 0}},
-	{370, Interpreter::tlbia,       {"tlbia",   OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
 	{566, Interpreter::tlbsync,     {"tlbsync", OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
 };
 
@@ -305,7 +303,6 @@ static GekkoOPTemplate table59[] =
 	{18, Interpreter::fdivsx,       {"fdivsx",   OPTYPE_SINGLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 17, 0, 0, 0}}, // TODO
 	{20, Interpreter::fsubsx,       {"fsubsx",   OPTYPE_SINGLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 	{21, Interpreter::faddsx,       {"faddsx",   OPTYPE_SINGLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
-	//{22, Interpreter::fsqrtsx,      {"fsqrtsx",  OPTYPE_SINGLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}}, // Not implemented on gekko
 	{24, Interpreter::fresx,        {"fresx",    OPTYPE_SINGLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 	{25, Interpreter::fmulsx,       {"fmulsx",   OPTYPE_SINGLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 	{28, Interpreter::fmsubsx,      {"fmsubsx",  OPTYPE_SINGLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
@@ -345,7 +342,6 @@ static GekkoOPTemplate table63_2[] =
 	{18, Interpreter::fdivx,        {"fdivx",    OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 31, 0, 0, 0}},
 	{20, Interpreter::fsubx,        {"fsubx",    OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 	{21, Interpreter::faddx,        {"faddx",    OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
-	{22, Interpreter::fsqrtx,       {"fsqrtx",   OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 	{23, Interpreter::fselx,        {"fselx",    OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{25, Interpreter::fmulx,        {"fmulx",    OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 	{26, Interpreter::frsqrtex,     {"frsqrtex", OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},

@@ -164,7 +164,6 @@ static GekkoOPTemplate table19[] =
 	{0,   &JitIL::mcrf},                  //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
 
 	{50,  &JitIL::rfi},                   //"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
-	{18,  &JitIL::FallBackToInterpreter}, //"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}
 };
 
 
@@ -308,7 +307,6 @@ static GekkoOPTemplate table31[] =
 	{438, &JitIL::FallBackToInterpreter},  //"ecowx",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{854, &JitIL::DoNothing},              //"eieio",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{306, &JitIL::FallBackToInterpreter},  //"tlbie",   OPTYPE_SYSTEM, 0}},
-	{370, &JitIL::FallBackToInterpreter},  //"tlbia",   OPTYPE_SYSTEM, 0}},
 	{566, &JitIL::DoNothing},              //"tlbsync", OPTYPE_SYSTEM, 0}},
 };
 
@@ -317,7 +315,6 @@ static GekkoOPTemplate table59[] =
 	{18, &JitIL::FallBackToInterpreter},       //{"fdivsx",  OPTYPE_FPU, FL_RC_BIT_F, 16}},
 	{20, &JitIL::fp_arith_s},                  //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{21, &JitIL::fp_arith_s},                  //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}},
-//	{22, &JitIL::FallBackToInterpreter},         //"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
 	{24, &JitIL::FallBackToInterpreter},       //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{25, &JitIL::fp_arith_s},                  //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{28, &JitIL::fmaddXX},                     //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}},
@@ -351,7 +348,6 @@ static GekkoOPTemplate table63_2[] =
 	{18, &JitIL::FallBackToInterpreter}, //"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
 	{20, &JitIL::FallBackToInterpreter}, //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{21, &JitIL::FallBackToInterpreter}, //"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{22, &JitIL::FallBackToInterpreter}, //"fsqrtx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{23, &JitIL::FallBackToInterpreter}, //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{25, &JitIL::fp_arith_s},            //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{26, &JitIL::FallBackToInterpreter}, //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
