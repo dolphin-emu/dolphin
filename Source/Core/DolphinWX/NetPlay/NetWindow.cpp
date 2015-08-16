@@ -445,17 +445,16 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 
 void NetPlayDialog::OnChangeGame(wxCommandEvent&)
 {
-	wxString game_name;
-
-	ChangeGameDialog cgd(this, m_game_list, game_name);
+	ChangeGameDialog cgd(this, m_game_list);
 	cgd.ShowModal();
 
-	if (game_name.length())
-	{
-		m_selected_game = WxStrToStr(game_name);
-		netplay_server->ChangeGame(m_selected_game);
-		m_game_btn->SetLabel(game_name.Prepend(_(" Game : ")));
-	}
+	wxString game_name = cgd.GetChosenGameName();
+	if (game_name.empty())
+		return;
+
+	m_selected_game = WxStrToStr(game_name);
+	netplay_server->ChangeGame(m_selected_game);
+	m_game_btn->SetLabel(game_name.Prepend(_(" Game : ")));
 }
 
 void NetPlayDialog::OnConfigPads(wxCommandEvent&)
