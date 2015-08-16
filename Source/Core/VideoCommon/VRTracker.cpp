@@ -109,7 +109,9 @@ namespace VRTracker
 
 		// Rotate the current orientation by the inverse of the initial orientation
 		Quaternion::Invert(initialQuat);
-		Quaternion::Multiply(orientationQuat, initialQuat, worldQuat);
+		initialQuat.data[1] = 0.0f;
+		initialQuat.data[3] = 0.0f;
+		Quaternion::Multiply(initialQuat, orientationQuat, worldQuat);
 
 		// Invert the quaternion to get the world orientation
 		Quaternion::Invert(worldQuat);
