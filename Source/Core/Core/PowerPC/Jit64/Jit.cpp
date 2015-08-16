@@ -255,9 +255,8 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 		else
 		{
 			MOV(32, R(RSCRATCH), PPCSTATE(npc));
-			SUB(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
+			CMP(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
 			FixupBranch c = J_CC(CC_Z);
-			MOV(32, R(RSCRATCH), PPCSTATE(npc));
 			MOV(32, PPCSTATE(pc), R(RSCRATCH));
 			WriteExceptionExit();
 			SetJumpTarget(c);
