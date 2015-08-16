@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI_Device.h"
@@ -77,8 +78,9 @@ enum
 using NetWiimote = std::vector<u8>;
 using MessageId  = u8;
 using PlayerId   = u8;
-using PadMapping = s8;
 using FrameNum   = u32;
+using PadMapping = s8;
+using PadMappingArray = std::array<PadMapping, 4>;
 
 namespace NetPlay
 {

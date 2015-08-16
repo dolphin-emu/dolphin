@@ -74,8 +74,9 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& 
 		PanicAlertT("Enet Didn't Initialize");
 	}
 
-	memset(m_pad_map, -1, sizeof(m_pad_map));
-	memset(m_wiimote_map, -1, sizeof(m_wiimote_map));
+	m_pad_map.fill(-1);
+	m_wiimote_map.fill(-1);
+
 	if (traversal)
 	{
 		if (!EnsureTraversalClient(centralServer, centralPort))

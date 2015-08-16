@@ -121,8 +121,8 @@ protected:
 
 	u32 m_current_game;
 
-	PadMapping m_pad_map[4];
-	PadMapping m_wiimote_map[4];
+	PadMappingArray m_pad_map;
+	PadMappingArray m_wiimote_map;
 
 	bool m_is_recording;
 

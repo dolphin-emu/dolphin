@@ -95,8 +95,8 @@ private:
 	bool            m_update_pings;
 	u32             m_current_game;
 	unsigned int    m_target_buffer_size;
-	PadMapping      m_pad_map[4];
-	PadMapping      m_wiimote_map[4];
+	PadMappingArray m_pad_map;
+	PadMappingArray m_wiimote_map;
 
 	std::map<PlayerId, Client> m_players;
 
