@@ -465,7 +465,7 @@ union UReg_FPSCR
 		u32 VXIMZ   : 1;
 		// Invalid operation exception for 0 / 0 (sticky)
 		u32 VXZDZ   : 1;
-		// Invalid operation exception for int / inf (sticky)
+		// Invalid operation exception for inf / inf (sticky)
 		u32 VXIDI   : 1;
 		// Invalid operation exception for inf - inf (sticky)
 		u32 VXISI   : 1;
