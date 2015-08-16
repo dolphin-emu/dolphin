@@ -34,11 +34,11 @@ public:
 
 	bool StartGame();
 
-	void GetPadMapping(PadMapping map[]);
-	void SetPadMapping(const PadMapping map[]);
+	PadMappingArray GetPadMapping() const;
+	void SetPadMapping(const PadMappingArray& mappings);
 
-	void GetWiimoteMapping(PadMapping map[]);
-	void SetWiimoteMapping(const PadMapping map[]);
+	PadMappingArray GetWiimoteMapping() const;
+	void SetWiimoteMapping(const PadMappingArray& mappings);
 
 	void AdjustPadBufferSize(unsigned int size);
 

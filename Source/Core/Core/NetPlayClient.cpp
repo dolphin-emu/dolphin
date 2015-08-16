@@ -617,17 +617,15 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 }
 
 // called from ---GUI--- thread
-void NetPlayClient::GetPlayers(std::vector<const Player *> &player_list)
+std::vector<const Player*> NetPlayClient::GetPlayers()
 {
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-	std::map<PlayerId, Player>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for (; i != e; ++i)
-	{
-		const Player *player = &(i->second);
-		player_list.push_back(player);
-	}
+	std::vector<const Player*> players;
+
+	for (const auto& pair : m_players)
+		players.push_back(&pair.second);
+
+	return players;
 }
 
 

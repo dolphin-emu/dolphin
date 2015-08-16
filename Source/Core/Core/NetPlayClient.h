@@ -54,7 +54,7 @@ public:
 	~NetPlayClient();
 
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
-	void GetPlayers(std::vector<const Player *>& player_list);
+	std::vector<const Player*> GetPlayers();
 
 	bool is_connected;
 

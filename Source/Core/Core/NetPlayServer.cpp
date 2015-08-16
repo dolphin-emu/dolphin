@@ -403,31 +403,27 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::GetPadMapping(PadMapping map[4])
+PadMappingArray NetPlayServer::GetPadMapping() const
 {
-	for (int i = 0; i < 4; i++)
-		map[i] = m_pad_map[i];
+	return m_pad_map;
 }
 
-void NetPlayServer::GetWiimoteMapping(PadMapping map[4])
+PadMappingArray NetPlayServer::GetWiimoteMapping() const
 {
-	for (int i = 0; i < 4; i++)
-		map[i] = m_wiimote_map[i];
+	return m_wiimote_map;
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::SetPadMapping(const PadMapping map[4])
+void NetPlayServer::SetPadMapping(const PadMappingArray& mappings)
 {
-	for (int i = 0; i < 4; i++)
-		m_pad_map[i] = map[i];
+	m_pad_map = mappings;
 	UpdatePadMapping();
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::SetWiimoteMapping(const PadMapping map[4])
+void NetPlayServer::SetWiimoteMapping(const PadMappingArray& mappings)
 {
-	for (int i = 0; i < 4; i++)
-		m_wiimote_map[i] = map[i];
+	m_wiimote_map = mappings;
 	UpdateWiimoteMapping();
 }
 

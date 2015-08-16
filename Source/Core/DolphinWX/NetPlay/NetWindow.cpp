@@ -460,19 +460,11 @@ void NetPlayDialog::OnChangeGame(wxCommandEvent&)
 
 void NetPlayDialog::OnConfigPads(wxCommandEvent&)
 {
-	PadMapping mapping[4];
-	PadMapping wiimotemapping[4];
-	std::vector<const Player *> player_list;
-
-	netplay_server->GetPadMapping(mapping);
-	netplay_server->GetWiimoteMapping(wiimotemapping);
-	netplay_client->GetPlayers(player_list);
-
-	PadMapDialog pmd(this, mapping, wiimotemapping, player_list);
+	PadMapDialog pmd(this, netplay_server, netplay_client);
 	pmd.ShowModal();
 
-	netplay_server->SetPadMapping(mapping);
-	netplay_server->SetWiimoteMapping(wiimotemapping);
+	netplay_server->SetPadMapping(pmd.GetModifiedPadMappings());
+	netplay_server->SetWiimoteMapping(pmd.GetModifiedWiimoteMappings());
 }
 
 void NetPlayDialog::OnKick(wxCommandEvent&)
