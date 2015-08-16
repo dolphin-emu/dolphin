@@ -61,7 +61,6 @@ private:
 	CMemoryView* memview;
 	wxListBox* symbols;
 
-	wxButton* buttonGo;
 	wxTextCtrl* addrbox;
 	wxTextCtrl* valbox;
 };
