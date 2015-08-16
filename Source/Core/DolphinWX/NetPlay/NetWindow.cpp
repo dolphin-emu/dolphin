@@ -399,10 +399,7 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 
 	// flash window in taskbar when someone joins if window isn't active
 	static u8 numPlayers = 1;
-	bool focus = (wxWindow::FindFocus() == this || (wxWindow::FindFocus() != nullptr && wxWindow::FindFocus()->GetParent() == this) ||
-		(wxWindow::FindFocus() != nullptr && wxWindow::FindFocus()->GetParent() != nullptr
-		&& wxWindow::FindFocus()->GetParent()->GetParent() == this));
-	if (netplay_server != nullptr && numPlayers < m_playerids.size() && !focus)
+	if (netplay_server != nullptr && numPlayers < m_playerids.size() && !HasFocus())
 	{
 		RequestUserAttention();
 	}
