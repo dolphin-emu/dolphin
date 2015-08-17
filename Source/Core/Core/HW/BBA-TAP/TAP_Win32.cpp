@@ -248,7 +248,7 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 	OVERLAPPED overlap;
 	ZeroMemory(&overlap, sizeof(overlap));
 
-	//WriteFile will always return false because the TAP handle is async
+	// WriteFile will always return false because the TAP handle is async
 	WriteFile(mHAdapter, frame, size, NULL, &overlap);
 
 	DWORD res = GetLastError();
@@ -304,19 +304,25 @@ bool CEXIETHERNET::RecvStart()
 	DWORD res = ReadFile(mHAdapter, mRecvBuffer, BBA_RECV_SIZE,
 		(LPDWORD)&mRecvBufferLength, &mReadOverlapped);
 
-	if (!res && (GetLastError() != ERROR_IO_PENDING))
+	if (res)
 	{
-		// error occurred
+		// Since the read is synchronous here, complete immediately
+		RecvHandlePacket();
+		return true;
+	}
+	else
+	{
+		DWORD err = GetLastError();
+		if (err == ERROR_IO_PENDING)
+		{
+			return true;
+		}
+
+		// Unexpected error
+		ERROR_LOG(SP1, "Failed to recieve packet with error 0x%X", err);
 		return false;
 	}
 
-	if (res)
-	{
-		// Completed immediately
-		RecvHandlePacket();
-	}
-
-	return true;
 }
 
 void CEXIETHERNET::RecvStop()
@@ -326,6 +332,9 @@ void CEXIETHERNET::RecvStop()
 
 	UnregisterWaitEx(mHReadWait, INVALID_HANDLE_VALUE);
 
-	CloseHandle(mHRecvEvent);
-	mHRecvEvent = INVALID_HANDLE_VALUE;
+	if (mHRecvEvent != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle(mHRecvEvent);
+		mHRecvEvent = INVALID_HANDLE_VALUE;
+	}
 }
