@@ -44,8 +44,8 @@ CEXIETHERNET::CEXIETHERNET()
 
 #if defined(_WIN32)
 	mHAdapter = INVALID_HANDLE_VALUE;
-	mHRecvEvent = INVALID_HANDLE_VALUE;
-	mHReadWait = INVALID_HANDLE_VALUE;
+	mHReadEvent = INVALID_HANDLE_VALUE;
+	mHWriteEvent = INVALID_HANDLE_VALUE;
 #elif defined(__linux__) || defined(__APPLE__)
 	fd = -1;
 #endif
