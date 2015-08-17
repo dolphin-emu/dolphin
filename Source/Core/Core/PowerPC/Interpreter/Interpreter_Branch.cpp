@@ -131,12 +131,6 @@ void Interpreter::rfi(UGeckoInstruction _inst)
 	m_EndBlock = true;
 }
 
-void Interpreter::rfid(UGeckoInstruction _inst)
-{
-	_dbg_assert_msg_(POWERPC, 0, "rfid instruction unimplemented (does this instruction even exist?)");
-	m_EndBlock = true;
-}
-
 // sc isn't really used for anything important in GameCube games (just for a write barrier) so we really don't have to emulate it.
 // We do it anyway, though :P
 void Interpreter::sc(UGeckoInstruction _inst)
