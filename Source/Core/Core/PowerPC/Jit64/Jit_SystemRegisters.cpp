@@ -175,6 +175,11 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 	return FixupBranch();
 }
 
+static void DoICacheReset()
+{
+	PowerPC::ppcState.iCache.Reset();
+}
+
 void Jit64::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -193,13 +198,9 @@ void Jit64::mtspr(UGeckoInstruction inst)
 
 	case SPR_SRR0:
 	case SPR_SRR1:
-		// These are safe to do the easy way, see the bottom of this function.
-		break;
 
 	case SPR_LR:
 	case SPR_CTR:
-		// These are safe to do the easy way, see the bottom of this function.
-		break;
 
 	case SPR_GQR0:
 	case SPR_GQR0 + 1:
@@ -229,6 +230,20 @@ void Jit64::mtspr(UGeckoInstruction inst)
 		MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
 		gpr.UnlockAll();
 		return;
+
+	case SPR_HID0:
+		{
+			gpr.BindToRegister(d, true, false);
+			BTR(32, gpr.R(d), Imm8(31 - 20)); // ICFI
+			MOV(32, PPCSTATE(spr[iIndex]), gpr.R(d));
+			FixupBranch dont_reset_icache = J_CC(CC_NC);
+			BitSet32 regs = CallerSavedRegistersInUse();
+			ABI_PushRegistersAndAdjustStack(regs, 0);
+			ABI_CallFunction((void*)DoICacheReset);
+			ABI_PopRegistersAndAdjustStack(regs, 0);
+			SetJumpTarget(dont_reset_icache);
+			break;
+		}
 
 	default:
 		FALLBACK_IF(true);
