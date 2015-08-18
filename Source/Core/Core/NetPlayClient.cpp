@@ -188,6 +188,7 @@ bool NetPlayClient::Connect()
 	if (enet_host_service(m_client, &netEvent, 5000) > 0 && netEvent.type == ENET_EVENT_TYPE_RECEIVE)
 	{
 		rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
+		enet_packet_destroy(netEvent.packet);
 	}
 	else
 	{
