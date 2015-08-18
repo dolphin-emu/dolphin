@@ -27,10 +27,9 @@ void cInterfaceEGL::DetectMode()
 		return;
 
 	EGLint num_configs;
-	EGLConfig *config = nullptr;
 	bool supportsGL = false, supportsGLES2 = false, supportsGLES3 = false;
 	std::array<int, 3> renderable_types = {
-		EGL_OPENGL_BIT,
+		//EGL_OPENGL_BIT,
 		(1 << 6), /* EGL_OPENGL_ES3_BIT_KHR */
 		EGL_OPENGL_ES2_BIT,
 	};
@@ -51,16 +50,17 @@ void cInterfaceEGL::DetectMode()
 		if (!eglChooseConfig( egl_dpy, attribs, nullptr, 0, &num_configs))
 		{
 			INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
-			goto err_exit;
+			continue;
 		}
 
-		config = new EGLConfig[num_configs];
+		EGLConfig* config = new EGLConfig[num_configs];
 
 		// Get all the configurations
 		if (!eglChooseConfig(egl_dpy, attribs, config, num_configs, &num_configs))
 		{
 			INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
-			goto err_exit;
+			delete[] config;
+			continue;
 		}
 
 		for (int i = 0; i < num_configs; ++i)
@@ -87,11 +87,8 @@ void cInterfaceEGL::DetectMode()
 	else if (supportsGLES2)
 		s_opengl_mode = GLInterfaceMode::MODE_OPENGLES2;
 
-err_exit:
 	if (s_opengl_mode == GLInterfaceMode::MODE_DETECT) // Errored before we found a mode
 		s_opengl_mode = GLInterfaceMode::MODE_OPENGL; // Fall back to OpenGL
-	if (config)
-		delete[] config;
 }
 
 // Create rendering window.

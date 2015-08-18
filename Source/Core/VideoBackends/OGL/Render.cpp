@@ -495,7 +495,7 @@ Renderer::Renderer()
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
-		if (strstr(g_ogl_config.glsl_version, "3.0"))
+		if (1) //if (strstr(g_ogl_config.glsl_version, "3.0"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
 			g_ogl_config.bSupportsAEP = false;
