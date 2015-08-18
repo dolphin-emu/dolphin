@@ -1,0 +1,14 @@
+# GSRE7S - Smuggler's Run: Warzones
+[Core]
+# Values set here will override the main Dolphin settings.
+[EmuState]
+# The Emulation State. 1 is worst, 5 is best, 0 is not set.
+EmulationStateId = 
+EmulationIssues = 
+[OnLoad]
+# Add memory patches to be loaded once on boot here.
+[OnFrame]
+[ActionReplay]
+[Video_Hacks]
+[Video_Stereoscopy]
+StereoConvergenceMinimum = 5
