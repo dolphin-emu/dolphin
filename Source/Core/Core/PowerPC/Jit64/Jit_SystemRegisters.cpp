@@ -556,3 +556,188 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	// Store result bit in CRBD
 	SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), RSCRATCH);
 }
+
+void Jit64::mcrfs(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	u8 shift = 4 * (7 - inst.CRFS);
+	u32 mask = 0xF << shift;
+
+	// Only clear exception bits (but not FEX/VX).
+	mask &= 0x9FF87000;
+
+	MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
+	if (cpu_info.bBMI1)
+	{
+		MOV(32, R(RSCRATCH2), Imm32((4 << 8) | shift));
+		BEXTR(32, RSCRATCH2, R(RSCRATCH), RSCRATCH2);
+	}
+	else
+	{
+		MOV(32, R(RSCRATCH2), R(RSCRATCH));
+		SHR(32, R(RSCRATCH2), Imm8(shift));
+		AND(32, R(RSCRATCH2), Imm32(0xF));
+	}
+	AND(32, R(RSCRATCH), Imm32(mask));
+	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+	LEA(64, RSCRATCH, M(&m_crTable));
+	MOV(64, R(RSCRATCH), MComplex(RSCRATCH, RSCRATCH2, SCALE_8, 0));
+	MOV(64, PPCSTATE(cr_val[inst.CRFD]), R(RSCRATCH));
+}
+
+void Jit64::mffsx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+	FALLBACK_IF(inst.Rc);
+
+	MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
+
+	// FPSCR.FEX = 0 (and VX for below)
+	AND(32, R(RSCRATCH), Imm32(~0x60000000));
+
+	// FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
+	XOR(32, R(RSCRATCH2), R(RSCRATCH2));
+	TEST(32, R(RSCRATCH), Imm32(FPSCR_VX_ANY));
+	SETcc(CC_NZ, R(RSCRATCH2));
+	SHL(32, R(RSCRATCH2), Imm8(31 - 2));
+	OR(32, R(RSCRATCH), R(RSCRATCH2));
+
+	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+
+	int d = inst.FD;
+	fpr.BindToRegister(d, false, true);
+	MOV(64, R(RSCRATCH2), Imm64(0xFFF8000000000000));
+	OR(64, R(RSCRATCH), R(RSCRATCH2));
+	MOVQ_xmm(XMM0, R(RSCRATCH));
+	MOVSD(fpr.RX(d), R(XMM0));
+}
+
+static const u32 s_rn_to_rc[] = { 0 << 13, 3 << 13, 2 << 13, 1 << 13 };
+
+void Jit64::UpdateRoundingMode()
+{
+	static u32 csr;
+	STMXCSR(M(&csr));
+	MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
+	AND(32, R(RSCRATCH), Imm32(3));
+	LEA(64, RSCRATCH2, M(&s_rn_to_rc));
+	MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_4, 0));
+	OR(32, M(&csr), R(RSCRATCH));
+	LDMXCSR(M(&csr));
+}
+
+void Jit64::mtfsb0x(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+	FALLBACK_IF(inst.Rc);
+
+	AND(32, PPCSTATE(fpscr), Imm32(~(0x80000000 >> inst.CRBD)));
+
+	switch (inst.CRBD)
+	{
+	case 29:
+		// NI
+		static u32 csr;
+		STMXCSR(M(&csr));
+		AND(32, M(&csr), Imm32(~(1 << 15)));
+		LDMXCSR(M(&csr));
+		break;
+	case 30:
+	case 31:
+		// RN
+		UpdateRoundingMode();
+		break;
+	default:
+		break;
+	}
+}
+
+void Jit64::mtfsb1x(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+	FALLBACK_IF(inst.Rc);
+
+	OR(32, PPCSTATE(fpscr), Imm32(0x80000000 >> inst.CRBD));
+
+	switch (inst.CRBD)
+	{
+	case 29:
+		// NI
+		static u32 csr;
+		STMXCSR(M(&csr));
+		OR(32, M(&csr), Imm32(1 << 15));
+		LDMXCSR(M(&csr));
+		break;
+	case 30:
+	case 31:
+		// RN
+		UpdateRoundingMode();
+		break;
+	default:
+		break;
+	}
+}
+
+void Jit64::mtfsfix(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+	FALLBACK_IF(inst.Rc);
+
+	u8 imm = inst.hex >> (31 - 19);
+
+	MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
+	AND(32, R(RSCRATCH), Imm32(~0xF));
+	OR(32, R(RSCRATCH), Imm32(imm << (28 - 4 * inst.CRFD)));
+	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+
+	// XE, NI, RN
+	if (inst.CRFD == 7)
+	{
+		u32 ftz_bit = (imm & 4) << 13;
+		u32 rc_mask = s_rn_to_rc[imm & 3];
+		u32 or_mask = ftz_bit | rc_mask;
+		u32 all_bits = 7 << 13;
+		u32 and_mask = all_bits & ~(ftz_bit | rc_mask);
+
+		static u32 csr;
+		STMXCSR(M(&csr));
+		if (or_mask)
+			OR(32, M(&csr), Imm32(or_mask));
+		if (and_mask != all_bits)
+			AND(32, M(&csr), Imm32(~and_mask));
+		LDMXCSR(M(&csr));
+	}
+}
+
+void Jit64::mtfsfx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+	FALLBACK_IF(inst.Rc);
+
+	u32 mask = 0;
+	for (int i = 0; i < 8; i++)
+	{
+		if (inst.FM & (1 << i))
+			mask |= 0xF << (4 * i);
+	}
+
+	int b = inst.FB;
+	X64Reg xmm = XMM0;
+	if (fpr.R(b).IsSimpleReg())
+		xmm = fpr.RX(b);
+	else
+		MOVSD(XMM0, fpr.R(b));
+	MOVQ_xmm(R(RSCRATCH), xmm);
+	AND(32, R(RSCRATCH), Imm32(mask));
+	MOV(32, R(RSCRATCH2), PPCSTATE(fpscr));
+	AND(32, R(RSCRATCH2), Imm32(~mask));
+	OR(32, R(RSCRATCH), R(RSCRATCH2));
+	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+}

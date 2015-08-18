@@ -334,12 +334,12 @@ static GekkoOPTemplate table63[] =
 	{40,  &Jit64::fsign},                 // fnegx
 	{12,  &Jit64::frspx},                 // frspx
 
-	{64,  &Jit64::FallBackToInterpreter}, // mcrfs
-	{583, &Jit64::FallBackToInterpreter}, // mffsx
-	{70,  &Jit64::FallBackToInterpreter}, // mtfsb0x
-	{38,  &Jit64::FallBackToInterpreter}, // mtfsb1x
-	{134, &Jit64::FallBackToInterpreter}, // mtfsfix
-	{711, &Jit64::FallBackToInterpreter}, // mtfsfx
+	{64,  &Jit64::mcrfs},                 // mcrfs
+	{583, &Jit64::mffsx},                 // mffsx
+	{70,  &Jit64::mtfsb0x},               // mtfsb0x
+	{38,  &Jit64::mtfsb1x},               // mtfsb1x
+	{134, &Jit64::mtfsfix},               // mtfsfix
+	{711, &Jit64::mtfsfx},                // mtfsfx
 };
 
 static GekkoOPTemplate table63_2[] =
