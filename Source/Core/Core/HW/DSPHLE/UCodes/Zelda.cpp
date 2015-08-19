@@ -134,11 +134,6 @@ void ZeldaUCode::Update()
 	}
 }
 
-u32 ZeldaUCode::GetUpdateMs()
-{
-	return SConfig::GetInstance().bWii ? 3 : 5;
-}
-
 void ZeldaUCode::DoState(PointerWrap &p)
 {
 	p.Do(m_flags);

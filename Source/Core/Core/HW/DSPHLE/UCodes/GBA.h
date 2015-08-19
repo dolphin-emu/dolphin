@@ -15,7 +15,6 @@ struct GBAUCode : public UCodeInterface
 {
 	GBAUCode(DSPHLE *dsphle, u32 crc);
 	virtual ~GBAUCode();
-	u32 GetUpdateMs() override;
 
 	void HandleMail(u32 mail) override;
 	void Update() override;

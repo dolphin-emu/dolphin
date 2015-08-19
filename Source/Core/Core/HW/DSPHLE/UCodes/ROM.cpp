@@ -116,11 +116,6 @@ void ROMUCode::BootUCode()
 	m_dsphle->SetUCode(ector_crc);
 }
 
-u32 ROMUCode::GetUpdateMs()
-{
-	return SConfig::GetInstance().bWii ? 3 : 5;
-}
-
 void ROMUCode::DoState(PointerWrap &p)
 {
 	p.Do(m_current_ucode);

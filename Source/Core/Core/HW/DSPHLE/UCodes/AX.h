@@ -58,7 +58,6 @@ public:
 	void HandleMail(u32 mail) override;
 	void Update() override;
 	void DoState(PointerWrap& p) override;
-	u32 GetUpdateMs() override;
 
 protected:
 	enum MailType
@@ -83,9 +82,6 @@ protected:
 	int m_samples_auxB_left[32 * 5];
 	int m_samples_auxB_right[32 * 5];
 	int m_samples_auxB_surround[32 * 5];
-
-	// This flag is set if there is anything to process.
-	bool m_work_available;
 
 	u16 m_cmdlist[512];
 	u32 m_cmdlist_size;

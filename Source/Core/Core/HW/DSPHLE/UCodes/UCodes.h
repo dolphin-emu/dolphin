@@ -77,7 +77,6 @@ public:
 
 	virtual void HandleMail(u32 mail) = 0;
 	virtual void Update() = 0;
-	virtual u32 GetUpdateMs() = 0;
 
 	virtual void DoState(PointerWrap &p)
 	{

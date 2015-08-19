@@ -660,11 +660,6 @@ void AXWiiUCode::OutputWMSamples(u32* addresses)
 	}
 }
 
-u32 AXWiiUCode::GetUpdateMs()
-{
-	return 3;
-}
-
 void AXWiiUCode::DoState(PointerWrap &p)
 {
 	DoStateShared(p);

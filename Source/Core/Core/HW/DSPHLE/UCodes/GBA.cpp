@@ -102,11 +102,6 @@ void GBAUCode::Update()
 	}
 }
 
-u32 GBAUCode::GetUpdateMs()
-{
-	return SConfig::GetInstance().bWii ? 3 : 5;
-}
-
 void GBAUCode::HandleMail(u32 mail)
 {
 	static bool nextmail_is_mramaddr = false;
