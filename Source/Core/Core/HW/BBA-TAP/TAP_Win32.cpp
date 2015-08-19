@@ -153,7 +153,7 @@ bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 	auto const device_path = USERMODEDEVICEDIR + device_guid + TAPSUFFIX;
 
 	adapter = CreateFile(device_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, 0);
+		OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH, 0);
 
 	if (adapter == INVALID_HANDLE_VALUE)
 	{
@@ -225,7 +225,7 @@ bool CEXIETHERNET::Activate()
 	readEnabled.store(false);
 
 	// Init async packet writing
-	if ((mHWriteEvent = CreateEvent(nullptr, false, true, nullptr)) == nullptr)
+	if ((mHWriteEvent = CreateEvent(nullptr, false, false, nullptr)) == nullptr)
 	{
 		ERROR_LOG(SP1, "Failed to create write event:%x", GetLastError());
 		return false;
@@ -233,6 +233,14 @@ bool CEXIETHERNET::Activate()
 
 	ZeroMemory(&mWriteOverlapped, sizeof(mWriteOverlapped));
 	mWriteOverlapped.hEvent = mHWriteEvent;
+
+	//Make read timeout if nothing arrives in 50 ms
+	COMMTIMEOUTS cto;
+	GetCommTimeouts(mHAdapter, &cto);
+	cto.ReadIntervalTimeout = MAXDWORD;
+	cto.ReadTotalTimeoutMultiplier = MAXDWORD;
+	cto.ReadTotalTimeoutConstant = 1;
+	SetCommTimeouts(mHAdapter, &cto);
 
 	return true;
 }
@@ -242,6 +250,11 @@ void CEXIETHERNET::Deactivate()
 	if (!IsActivated())
 		return;
 
+	// Stop read thread
+	readEnabled.store(false);
+	if (readThread.joinable())
+		readThread.join();
+
 	// Close file and event handles
 	CloseHandle(mHAdapter);
 	mHAdapter = INVALID_HANDLE_VALUE;
@@ -249,11 +262,6 @@ void CEXIETHERNET::Deactivate()
 	mHReadEvent = INVALID_HANDLE_VALUE;
 	CloseHandle(mHWriteEvent);
 	mHWriteEvent = INVALID_HANDLE_VALUE;
-
-	// Stop read thread
-	readEnabled.store(false);
-	if (readThread.joinable())
-		readThread.join();
 }
 
 bool CEXIETHERNET::IsActivated()
@@ -265,11 +273,8 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 {
 	DEBUG_LOG(SP1, "SendFrame %u\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 
-	// Make sure our first write is done before we start the second
-	WaitForSingleObject(mHWriteEvent, INFINITE);
-
 	// WriteFile will always return false because the TAP handle is async
-	if (!WriteFile(mHAdapter, frame, size, NULL, &mWriteOverlapped))
+	if (!WriteFile(mHAdapter, frame, size, NULL, NULL))
 	{
 		DWORD err = GetLastError();
 		if (err != ERROR_IO_PENDING)
@@ -280,7 +285,7 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 
 	// Always report the packet as being sent successfully, even though it might be a lie
 	SendComplete();
-
+	INFO_LOG(SP1, "SendFrame complete");
 	return true;
 }
 
@@ -291,7 +296,9 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 		if (self->mHAdapter == INVALID_HANDLE_VALUE)
 			return;
 
-		DWORD res = ReadFile(self->mHAdapter, self->mRecvBuffer, BBA_RECV_SIZE, (LPDWORD)&self->mRecvBufferLength, &self->mReadOverlapped);
+		INFO_LOG(SP1, "ReadFile start");
+		DWORD res = ReadFile(self->mHAdapter, self->mRecvBuffer, BBA_RECV_SIZE, (LPDWORD)&self->mRecvBufferLength, NULL);
+		INFO_LOG(SP1, "ReadFile end");
 
 		// If the read is Async or has errors, check and wait
 		if (!res)
@@ -303,18 +310,16 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 				ERROR_LOG(SP1, "Failed to recieve packet with error 0x%X", err);
 				return;
 			}
-
-			// Wait for writing to be completed
-			//if (WaitForSingleObject(self->mHRecvEvent, 50) != WAIT_OBJECT_0)
-			//	continue;
-
-			GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped, (LPDWORD)&self->mRecvBufferLength, true);
 		}
 
 		// Handle packet if allowed
 		if (self->readEnabled.load())
 		{
 			self->RecvHandlePacket();
+		}
+		else
+		{
+			break;
 		}
 	}
 }
