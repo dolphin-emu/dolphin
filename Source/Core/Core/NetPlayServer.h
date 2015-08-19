@@ -34,11 +34,11 @@ public:
 
 	bool StartGame();
 
-	void GetPadMapping(PadMapping map[]);
-	void SetPadMapping(const PadMapping map[]);
+	PadMappingArray GetPadMapping() const;
+	void SetPadMapping(const PadMappingArray& mappings);
 
-	void GetWiimoteMapping(PadMapping map[]);
-	void SetWiimoteMapping(const PadMapping map[]);
+	PadMappingArray GetWiimoteMapping() const;
+	void SetWiimoteMapping(const PadMappingArray& mappings);
 
 	void AdjustPadBufferSize(unsigned int size);
 
@@ -95,8 +95,8 @@ private:
 	bool            m_update_pings;
 	u32             m_current_game;
 	unsigned int    m_target_buffer_size;
-	PadMapping      m_pad_map[4];
-	PadMapping      m_wiimote_map[4];
+	PadMappingArray m_pad_map;
+	PadMappingArray m_wiimote_map;
 
 	std::map<PlayerId, Client> m_players;
 

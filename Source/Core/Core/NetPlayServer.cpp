@@ -74,8 +74,9 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& 
 		PanicAlertT("Enet Didn't Initialize");
 	}
 
-	memset(m_pad_map, -1, sizeof(m_pad_map));
-	memset(m_wiimote_map, -1, sizeof(m_wiimote_map));
+	m_pad_map.fill(-1);
+	m_wiimote_map.fill(-1);
+
 	if (traversal)
 	{
 		if (!EnsureTraversalClient(centralServer, centralPort))
@@ -402,31 +403,27 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::GetPadMapping(PadMapping map[4])
+PadMappingArray NetPlayServer::GetPadMapping() const
 {
-	for (int i = 0; i < 4; i++)
-		map[i] = m_pad_map[i];
+	return m_pad_map;
 }
 
-void NetPlayServer::GetWiimoteMapping(PadMapping map[4])
+PadMappingArray NetPlayServer::GetWiimoteMapping() const
 {
-	for (int i = 0; i < 4; i++)
-		map[i] = m_wiimote_map[i];
+	return m_wiimote_map;
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::SetPadMapping(const PadMapping map[4])
+void NetPlayServer::SetPadMapping(const PadMappingArray& mappings)
 {
-	for (int i = 0; i < 4; i++)
-		m_pad_map[i] = map[i];
+	m_pad_map = mappings;
 	UpdatePadMapping();
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::SetWiimoteMapping(const PadMapping map[4])
+void NetPlayServer::SetWiimoteMapping(const PadMappingArray& mappings)
 {
-	for (int i = 0; i < 4; i++)
-		m_wiimote_map[i] = map[i];
+	m_wiimote_map = mappings;
 	UpdateWiimoteMapping();
 }
 
