@@ -189,7 +189,6 @@ class ZeldaUCode : public UCodeInterface
 public:
 	ZeldaUCode(DSPHLE *dsphle, u32 crc);
 	virtual ~ZeldaUCode();
-	u32 GetUpdateMs() override;
 
 	void HandleMail(u32 mail) override;
 	void Update() override;

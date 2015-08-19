@@ -25,11 +25,6 @@ void INITUCode::Update()
 {
 }
 
-u32 INITUCode::GetUpdateMs()
-{
-	return SConfig::GetInstance().bWii ? 3 : 5;
-}
-
 void INITUCode::HandleMail(u32 mail)
 {
 }

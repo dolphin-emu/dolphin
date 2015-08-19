@@ -58,7 +58,6 @@ public:
 	void HandleMail(u32 mail) override;
 	void Update() override;
 	void DoState(PointerWrap& p) override;
-	u32 GetUpdateMs() override;
 
 protected:
 	enum MailType

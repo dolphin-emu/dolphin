@@ -672,11 +672,6 @@ void AXUCode::Update()
 	}
 }
 
-u32 AXUCode::GetUpdateMs()
-{
-	return 5;
-}
-
 void AXUCode::DoAXState(PointerWrap& p)
 {
 	p.Do(m_cmdlist);
