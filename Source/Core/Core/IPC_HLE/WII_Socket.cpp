@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "Common/FileUtil.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
@@ -342,9 +343,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
 					{
 						int ret = ssl_write(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx, Memory::GetPointer(BufferOut2), BufferOutSize2);
 
-#ifdef DEBUG_SSL
-						File::IOFile("ssl_write.bin", "ab").WriteBytes(Memory::GetPointer(BufferOut2), BufferOutSize2);
-#endif
+						if (SConfig::GetInstance().m_SSLDumpWrite && ret > 0)
+							File::IOFile("ssl_write.bin", "ab").WriteBytes(Memory::GetPointer(BufferOut2), ret);
+
 						if (ret >= 0)
 						{
 							// Return bytes written or SSL_ERR_ZERO if none
@@ -374,12 +375,10 @@ void WiiSocket::Update(bool read, bool write, bool except)
 					case IOCTLV_NET_SSL_READ:
 					{
 						int ret = ssl_read(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx, Memory::GetPointer(BufferIn2), BufferInSize2);
-#ifdef DEBUG_SSL
-						if (ret > 0)
-						{
+
+						if (SConfig::GetInstance().m_SSLDumpRead && ret > 0)
 							File::IOFile("ssl_read.bin", "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
-						}
-#endif
+
 						if (ret >= 0)
 						{
 							// Return bytes read or SSL_ERR_ZERO if none

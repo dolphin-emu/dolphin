@@ -95,6 +95,7 @@ void SConfig::SaveSettings()
 	SaveDSPSettings(ini);
 	SaveInputSettings(ini);
 	SaveFifoPlayerSettings(ini);
+	SaveNetworkSettings(ini);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
@@ -304,6 +305,14 @@ void SConfig::SaveFifoPlayerSettings(IniFile& ini)
 	fifoplayer->Set("LoopReplay", bLoopFifoReplay);
 }
 
+void SConfig::SaveNetworkSettings(IniFile& ini)
+{
+	IniFile::Section* network = ini.GetOrCreateSection("Network");
+
+	network->Set("SSLDumpRead", m_SSLDumpRead);
+	network->Set("SSLDumpWrite", m_SSLDumpWrite);
+}
+
 void SConfig::LoadSettings()
 {
 	INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
@@ -319,6 +328,7 @@ void SConfig::LoadSettings()
 	LoadDSPSettings(ini);
 	LoadInputSettings(ini);
 	LoadFifoPlayerSettings(ini);
+	LoadNetworkSettings(ini);
 
 	m_SYSCONF = new SysConf();
 }
@@ -972,4 +982,12 @@ std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id, u16
 	filenames.push_back(id + StringFromFormat("r%d", revision) + ".ini");
 
 	return filenames;
+}
+
+void SConfig::LoadNetworkSettings(IniFile& ini)
+{
+	IniFile::Section* network = ini.GetOrCreateSection("Network");
+
+	network->Get("SSLDumpRead", &m_SSLDumpRead, false);
+	network->Get("SSLDumpWrite", &m_SSLDumpWrite, false);
 }
