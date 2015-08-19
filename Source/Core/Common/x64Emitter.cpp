@@ -1446,7 +1446,6 @@ void XEmitter::WriteFMA4Op(u8 op, X64Reg dest, X64Reg regOp1, X64Reg regOp2, con
 
 void XEmitter::WriteBMIOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg, int extrabytes)
 {
-	CheckFlags();
 	if (arg.IsImm())
 		PanicAlert("BMI1/2 instructions don't support immediate operands.");
 	if (size != 32 && size != 64)
@@ -1457,6 +1456,7 @@ void XEmitter::WriteBMIOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg r
 
 void XEmitter::WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg, int extrabytes)
 {
+	CheckFlags();
 	if (!cpu_info.bBMI1)
 		PanicAlert("Trying to use BMI1 on a system that doesn't support it. Bad programmer.");
 	WriteBMIOp(size, opPrefix, op, regOp1, regOp2, arg, extrabytes);
@@ -1989,7 +1989,7 @@ void XEmitter::RORX(int bits, X64Reg regOp, const OpArg& arg, u8 rotate)      {W
 void XEmitter::PEXT(int bits, X64Reg regOp1, X64Reg regOp2, const OpArg& arg) {WriteBMI2Op(bits, 0xF3, 0x38F5, regOp1, regOp2, arg);}
 void XEmitter::PDEP(int bits, X64Reg regOp1, X64Reg regOp2, const OpArg& arg) {WriteBMI2Op(bits, 0xF2, 0x38F5, regOp1, regOp2, arg);}
 void XEmitter::MULX(int bits, X64Reg regOp1, X64Reg regOp2, const OpArg& arg) {WriteBMI2Op(bits, 0xF2, 0x38F6, regOp2, regOp1, arg);}
-void XEmitter::BZHI(int bits, X64Reg regOp1, const OpArg& arg, X64Reg regOp2) {WriteBMI2Op(bits, 0x00, 0x38F5, regOp1, regOp2, arg);}
+void XEmitter::BZHI(int bits, X64Reg regOp1, const OpArg& arg, X64Reg regOp2) {CheckFlags(); WriteBMI2Op(bits, 0x00, 0x38F5, regOp1, regOp2, arg);}
 void XEmitter::BLSR(int bits, X64Reg regOp, const OpArg& arg)                 {WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x1, regOp, arg);}
 void XEmitter::BLSMSK(int bits, X64Reg regOp, const OpArg& arg)               {WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x2, regOp, arg);}
 void XEmitter::BLSI(int bits, X64Reg regOp, const OpArg& arg)                 {WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x3, regOp, arg);}
