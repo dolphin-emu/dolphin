@@ -929,25 +929,6 @@ void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
 	}
 }
 
-bool TASInputDlg::TASHasFocus()
-{
-	if (!m_has_layout)
-		return false;
-	//allows numbers to be used as hotkeys
-	for (Control* const control : m_controls)
-	{
-		if (control != nullptr && wxWindow::FindFocus() == control->text)
-			return false;
-	}
-
-	if (wxWindow::FindFocus() == this)
-		return true;
-	else if (wxWindow::FindFocus() != nullptr && wxWindow::FindFocus()->GetParent() == this)
-		return true;
-	else
-		return false;
-}
-
 TASInputDlg::Stick* TASInputDlg::FindStickByID(int id)
 {
 	if (id == ID_MAIN_STICK)
