@@ -162,7 +162,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	s32 loadOffset = 0;
 
 	// Prepare address operand
-	Gen::OpArg opAddress;
+	OpArg opAddress;
 	if (!update && !a)
 	{
 		if (inst.OPCD == 31)

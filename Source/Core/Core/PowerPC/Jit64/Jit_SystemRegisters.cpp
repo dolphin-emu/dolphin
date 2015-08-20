@@ -11,7 +11,7 @@
 
 using namespace Gen;
 
-void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate)
+void Jit64::GetCRFieldBit(int field, int bit, X64Reg out, bool negate)
 {
 	switch (bit)
 	{
@@ -40,7 +40,7 @@ void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate)
 	}
 }
 
-void Jit64::SetCRFieldBit(int field, int bit, Gen::X64Reg in)
+void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
 {
 	MOV(64, R(RSCRATCH2), PPCSTATE(cr_val[field]));
 	MOVZX(32, 8, in, R(in));
