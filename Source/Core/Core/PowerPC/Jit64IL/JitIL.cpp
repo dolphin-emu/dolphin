@@ -375,7 +375,7 @@ void JitIL::WriteExit(u32 destination)
 	b->linkData.push_back(linkData);
 }
 
-void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
+void JitIL::WriteExitDestInOpArg(const OpArg& arg)
 {
 	MOV(32, PPCSTATE(pc), arg);
 	Cleanup();
@@ -387,7 +387,7 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 	JMP(asm_routines.dispatcher, true);
 }
 
-void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
+void JitIL::WriteRfiExitDestInOpArg(const OpArg& arg)
 {
 	MOV(32, PPCSTATE(pc), arg);
 	MOV(32, PPCSTATE(npc), arg);

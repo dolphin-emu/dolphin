@@ -128,7 +128,7 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 // to be recalculated and haven't been clobbered. Keep in mind not all instructions set
 // sufficient flags -- for example, the flags from SHL/SHR are *not* sufficient for LT/GT
 // branches, only EQ.
-void Jit64::ComputeRC(const Gen::OpArg & arg, bool needs_test, bool needs_sext)
+void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
 {
 	_assert_msg_(DYNA_REC, arg.IsSimpleReg() || arg.IsImm(), "Invalid ComputeRC operand");
 	if (arg.IsImm())
@@ -215,7 +215,7 @@ static u32 Xor(u32 a, u32 b)
 	return a ^ b;
 }
 
-void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc, bool carry)
+void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const OpArg&, const OpArg&), bool Rc, bool carry)
 {
 	bool needs_test = false;
 	gpr.Lock(d, a);
