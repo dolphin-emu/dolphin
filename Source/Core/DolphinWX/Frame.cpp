@@ -1075,16 +1075,6 @@ void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controll
 	}
 }
 
-bool TASInputHasFocus()
-{
-	for (int i = 0; i < 8; ++i)
-	{
-		if (main_frame->g_TASInputDlg[i]->TASHasFocus())
-			return true;
-	}
-	return false;
-}
-
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	// On OS X, we claim all keyboard events while

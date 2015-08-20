@@ -45,7 +45,6 @@ class TASInputDlg : public wxDialog
 		void GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
 		bool TextBoxHasFocus();
 		void SetLandRTriggers();
-		bool TASHasFocus();
 		void CreateGCLayout();
 		void CreateWiiLayout(int num);
 		wxBitmap CreateStickBitmap(int x, int y);
