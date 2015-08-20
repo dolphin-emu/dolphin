@@ -235,7 +235,7 @@ bool CEXIETHERNET::Activate()
 	ZeroMemory(&mWriteOverlapped, sizeof(mWriteOverlapped));
 	mWriteOverlapped.hEvent = mHWriteEvent;
 
-	// Start early so we can get all those pestky 
+	// Start early so we can get all those pestky packets that are not ment for us
 	RecvInit();
 
 	return true;
@@ -284,7 +284,7 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 		DWORD byteswritten;
 		GetOverlappedResult(mHAdapter, &mWriteOverlapped, &byteswritten, true);
 	}
-	
+
 
 	// Always report the packet as being sent successfully, even though it might be a lie
 	SendComplete();
