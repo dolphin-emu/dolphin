@@ -224,8 +224,9 @@ bool CEXIETHERNET::Activate()
 
 	// Disable packet reading
 	readEnabled.store(false);
+	writeRequest.store(false);
 
-	if ((mHWriteEvent = CreateEvent(nullptr, false, false, nullptr)) == nullptr)
+	if ((mHWriteEvent = CreateEvent(nullptr, true, false, nullptr)) == nullptr)
 	{
 		ERROR_LOG(SP1, "Failed to create write event:%x", GetLastError());
 		return false;
@@ -269,7 +270,15 @@ bool CEXIETHERNET::IsActivated()
 
 bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 {
+	// Inform the read thread that we want to read
+	writeRequest.store(true);
+
+	// Wait for read thread to release the lock
 	mMutex.lock();
+
+	// Stop requesting lock as we already have it
+	writeRequest.store(false);
+
 	DEBUG_LOG(SP1, "SendFrame %u\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 
 	// WriteFile will always return false because the TAP handle is async
@@ -305,7 +314,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 		self->mMutex.lock();
 
 		// Handle all packets currently in queue
-		while (true)
+		do
 		{
 			DWORD res = ReadFile(self->mHAdapter, self->mRecvBuffer, BBA_RECV_SIZE, (LPDWORD)&self->mRecvBufferLength, &self->mReadOverlapped);
 
@@ -321,7 +330,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 				}
 
 				// Wait for a result for 50 ms
-				res = WaitForSingleObject(self->mHReadEvent, 50);
+				res = WaitForSingleObject(self->mHReadEvent, 25);
 				// Get whatever result there is so far
 				GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped, (LPDWORD)&self->mRecvBufferLength, false);
 
@@ -338,7 +347,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 			{
 				self->RecvHandlePacket();
 			}
-		}
+		} while (!self->writeRequest.load());
 
 		self->mMutex.unlock();
 	}
@@ -346,7 +355,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 
 bool CEXIETHERNET::RecvInit()
 {
-	if ((mHReadEvent = CreateEvent(nullptr, false, false, nullptr)) == nullptr)
+	if ((mHReadEvent = CreateEvent(nullptr, true, false, nullptr)) == nullptr)
 	{
 		ERROR_LOG(SP1, "Failed to create recv event:%x", GetLastError());
 		return false;

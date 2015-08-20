@@ -327,6 +327,7 @@ public:
 	HANDLE mHAdapter, mHReadEvent, mHWriteEvent;
 	OVERLAPPED mReadOverlapped, mWriteOverlapped;
 	std::mutex mMutex;
+	std::atomic<bool> writeRequest;
 #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 	int fd;
 #endif
