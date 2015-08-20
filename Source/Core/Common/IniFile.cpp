@@ -72,7 +72,7 @@ void IniFile::Section::Set(const std::string& key, const std::vector<std::string
 	Set(key, temp);
 }
 
-bool IniFile::Section::Get(const std::string& key, std::string* value, const std::string& defaultValue)
+bool IniFile::Section::Get(const std::string& key, std::string* value, const std::string& defaultValue) const
 {
 	auto it = values.find(key);
 	if (it != values.end())
@@ -85,11 +85,11 @@ bool IniFile::Section::Get(const std::string& key, std::string* value, const std
 		*value = defaultValue;
 		return true;
 	}
-	else
-		return false;
+
+	return false;
 }
 
-bool IniFile::Section::Get(const std::string& key, std::vector<std::string>* out)
+bool IniFile::Section::Get(const std::string& key, std::vector<std::string>* out) const
 {
 	std::string temp;
 	bool retval = Get(key, &temp);
@@ -97,69 +97,84 @@ bool IniFile::Section::Get(const std::string& key, std::vector<std::string>* out
 	{
 		return false;
 	}
-	// ignore starting , if any
+
+	// ignore starting comma, if any
 	size_t subStart = temp.find_first_not_of(",");
 
-	// split by ,
+	// split by comma
 	while (subStart != std::string::npos)
 	{
-		// Find next ,
+		// Find next comma
 		size_t subEnd = temp.find(',', subStart);
 		if (subStart != subEnd)
-			// take from first char until next ,
+		{
+			// take from first char until next comma
 			out->push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
-		// Find the next non , char
+		}
+
+		// Find the next non-comma char
 		subStart = temp.find_first_not_of(",", subEnd);
 	}
+
 	return true;
 }
 
-bool IniFile::Section::Get(const std::string& key, int* value, int defaultValue)
+bool IniFile::Section::Get(const std::string& key, int* value, int defaultValue) const
 {
 	std::string temp;
 	bool retval = Get(key, &temp);
+
 	if (retval && TryParse(temp, value))
 		return true;
+
 	*value = defaultValue;
 	return false;
 }
 
-bool IniFile::Section::Get(const std::string& key, u32* value, u32 defaultValue)
+bool IniFile::Section::Get(const std::string& key, u32* value, u32 defaultValue) const
 {
 	std::string temp;
 	bool retval = Get(key, &temp);
+
 	if (retval && TryParse(temp, value))
 		return true;
+
 	*value = defaultValue;
 	return false;
 }
 
-bool IniFile::Section::Get(const std::string& key, bool* value, bool defaultValue)
+bool IniFile::Section::Get(const std::string& key, bool* value, bool defaultValue) const
 {
 	std::string temp;
 	bool retval = Get(key, &temp);
+
 	if (retval && TryParse(temp, value))
 		return true;
+
 	*value = defaultValue;
 	return false;
 }
 
-bool IniFile::Section::Get(const std::string& key, float* value, float defaultValue)
+bool IniFile::Section::Get(const std::string& key, float* value, float defaultValue) const
 {
 	std::string temp;
 	bool retval = Get(key, &temp);
+
 	if (retval && TryParse(temp, value))
 		return true;
+
 	*value = defaultValue;
 	return false;
 }
 
-bool IniFile::Section::Get(const std::string& key, double* value, double defaultValue)
+bool IniFile::Section::Get(const std::string& key, double* value, double defaultValue) const
 {
 	std::string temp;
 	bool retval = Get(key, &temp);
+
 	if (retval && TryParse(temp, value))
 		return true;
+
 	*value = defaultValue;
 	return false;
 }
