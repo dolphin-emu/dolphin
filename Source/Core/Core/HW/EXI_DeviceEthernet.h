@@ -8,6 +8,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <mutex>
 #endif
 
 #include "Common/Thread.h"
@@ -325,6 +326,7 @@ public:
 #if defined(_WIN32)
 	HANDLE mHAdapter, mHReadEvent, mHWriteEvent;
 	OVERLAPPED mReadOverlapped, mWriteOverlapped;
+	std::mutex mMutex;
 #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 	int fd;
 #endif

@@ -44,8 +44,6 @@ CEXIETHERNET::CEXIETHERNET()
 
 #if defined(_WIN32)
 	mHAdapter = INVALID_HANDLE_VALUE;
-	mHReadEvent = INVALID_HANDLE_VALUE;
-	mHWriteEvent = INVALID_HANDLE_VALUE;
 #elif defined(__linux__) || defined(__APPLE__)
 	fd = -1;
 #endif
@@ -489,6 +487,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 	Descriptor *descriptor;
 	u32 status = 0;
 	u16 rwp_initial = page_ptr(BBA_RWP);
+	bool handled = false;
 
 	if (!RecvMACFilter())
 		goto wait_for_next;
@@ -589,9 +588,11 @@ bool CEXIETHERNET::RecvHandlePacket()
 		WARN_LOG(SP1, "NOT raising recv interrupt");
 	}
 
+	handled = true;
+
 wait_for_next:
 	if (mBbaMem[BBA_NCRA] & NCRA_SR)
 		RecvStart();
 
-	return true;
+	return handled;
 }
