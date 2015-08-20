@@ -402,7 +402,7 @@ void Renderer::DrawDebugText()
 		}
 	}
 
-	final_cyan += Profiler::ToString();
+	final_cyan += Common::Profiler::ToString();
 
 	if (g_ActiveConfig.bOverlayStats)
 		final_cyan += Statistics::ToString();
