@@ -309,10 +309,10 @@ private:
 	void ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size, size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
 
 protected:
-	inline void Write8(u8 value)   {*code++ = value;}
-	inline void Write16(u16 value) {*(u16*)code = (value); code += 2;}
-	inline void Write32(u32 value) {*(u32*)code = (value); code += 4;}
-	inline void Write64(u64 value) {*(u64*)code = (value); code += 8;}
+	void Write8(u8 value);
+	void Write16(u16 value);
+	void Write32(u32 value);
+	void Write64(u64 value);
 
 public:
 	XEmitter() { code = nullptr; flags_locked = false; }
