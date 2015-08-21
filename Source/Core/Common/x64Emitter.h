@@ -271,8 +271,6 @@ struct FixupBranch
 	int type; //0 = 8bit 1 = 32bit
 };
 
-typedef const u8* JumpTarget;
-
 class XEmitter
 {
 	friend struct OpArg;  // for Write8 etc
@@ -283,6 +281,8 @@ private:
 	void CheckFlags();
 
 	void Rex(int w, int r, int x, int b);
+	void WriteModRM(int mod, int rm, int reg);
+	void WriteSIB(int scale, int index, int base);
 	void WriteSimple1Byte(int bits, u8 byte, X64Reg reg);
 	void WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
 	void WriteMulDivType(int bits, OpArg src, int ext);
@@ -318,9 +318,6 @@ public:
 	XEmitter() { code = nullptr; flags_locked = false; }
 	XEmitter(u8* code_ptr) { code = code_ptr; flags_locked = false; }
 	virtual ~XEmitter() {}
-
-	void WriteModRM(int mod, int rm, int reg);
-	void WriteSIB(int scale, int index, int base);
 
 	void SetCodePtr(u8* ptr);
 	void ReserveCodeSpace(int bytes);
@@ -382,7 +379,6 @@ public:
 	void CALLptr(OpArg arg);
 
 	FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
-	//void J_CC(CCFlags conditionCode, JumpTarget target);
 	void J_CC(CCFlags conditionCode, const u8* addr);
 
 	void SetJumpTarget(const FixupBranch& branch);
@@ -941,32 +937,6 @@ public:
 	// Push returns the size of the shadow space, i.e. the offset of the frame.
 	size_t ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
 	void ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
-
-	inline int ABI_GetNumXMMRegs() { return 16; }
-
-	// Strange call wrappers.
-	void CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2);
-	void CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3);
-	void CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
-	void CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5);
-
-	// Comments from VertexLoader.cpp about these horrors:
-
-	// This is a horrible hack that is necessary in 64-bit mode because Opengl32.dll is based way, way above the 32-bit
-	// address space that is within reach of a CALL, and just doing &fn gives us these high uncallable addresses. So we
-	// want to grab the function pointers from the import table instead.
-
-	void ___CallCdeclImport3(void* impptr, u32 arg0, u32 arg1, u32 arg2);
-	void ___CallCdeclImport4(void* impptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3);
-	void ___CallCdeclImport5(void* impptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
-	void ___CallCdeclImport6(void* impptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5);
-
-	#define CallCdeclFunction3_I(a,b,c,d) ___CallCdeclImport3(&__imp_##a,b,c,d)
-	#define CallCdeclFunction4_I(a,b,c,d,e) ___CallCdeclImport4(&__imp_##a,b,c,d,e)
-	#define CallCdeclFunction5_I(a,b,c,d,e,f) ___CallCdeclImport5(&__imp_##a,b,c,d,e,f)
-	#define CallCdeclFunction6_I(a,b,c,d,e,f,g) ___CallCdeclImport6(&__imp_##a,b,c,d,e,f,g)
-
-	#define DECLARE_IMPORT(x) extern "C" void *__imp_##x
 
 	// Utility to generate a call to a std::function object.
 	//
