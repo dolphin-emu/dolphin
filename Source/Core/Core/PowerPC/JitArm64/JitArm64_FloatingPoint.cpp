@@ -457,3 +457,88 @@ void JitArm64::fsubx(UGeckoInstruction inst)
 		fpr.Unlock(V0);
 	}
 }
+
+void JitArm64::fcmpx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+
+	u32 a = inst.FA, b = inst.FB;
+	int crf = inst.CRFD;
+
+	ARM64Reg VA = fpr.R(a);
+	ARM64Reg VB = fpr.R(b);
+
+	ARM64Reg WA = gpr.GetReg();
+	ARM64Reg XA = EncodeRegTo64(WA);
+
+	FixupBranch pNaN1, pNaN2, pNaN3, pLesser, pGreater;
+	FixupBranch continue1, continue2, continue3;
+	ORR(XA, ZR, 32, 0, true);
+
+	if (a != b)
+	{
+		m_float_emit.FCMP(EncodeRegToDouble(VA), EncodeRegToDouble(VA));
+
+		// if (B != B) or (A != A), goto NaN's jump target
+		pNaN1 = B(CC_NEQ);
+
+		m_float_emit.FCMP(EncodeRegToDouble(VB), EncodeRegToDouble(VB));
+
+		pNaN2 = B(CC_NEQ);
+	}
+
+	m_float_emit.FCMP(EncodeRegToDouble(VA), EncodeRegToDouble(VB));
+
+	if (a == b)
+		pNaN3 = B(CC_NEQ);
+
+	if (a != b)
+	{
+		// if B > A goto Greater's jump target
+		pGreater = B(CC_GT);
+		// if B < A, goto Lesser's jump target
+		pLesser = B(CC_MI);
+	}
+
+	ORR(XA, XA, 64 - 63, 0, true);
+	continue1 = B();
+
+	if (a != b)
+	{
+		SetJumpTarget(pNaN1);
+		SetJumpTarget(pNaN2);
+	}
+	else
+	{
+		SetJumpTarget(pNaN3);
+	}
+
+	ORR(XA, XA, 64 - 61, 0, true);
+	ORR(XA, XA, 0, 0, true);
+
+	if (a != b)
+	{
+		continue2 = B();
+
+		SetJumpTarget(pGreater);
+		ORR(XA, XA, 0, 0, true);
+
+		continue3 = B();
+
+		SetJumpTarget(pLesser);
+		ORR(XA, XA, 64 - 62, 1, true);
+		ORR(XA, XA, 0, 0, true);
+	}
+
+	SetJumpTarget(continue1);
+	if (a != b)
+	{
+		SetJumpTarget(continue2);
+		SetJumpTarget(continue3);
+	}
+
+	STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
+
+	gpr.Unlock(WA);
+}
