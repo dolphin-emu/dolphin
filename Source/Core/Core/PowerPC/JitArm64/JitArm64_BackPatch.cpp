@@ -71,9 +71,22 @@ bool JitArm64::DisasmLoadStore(const u8* ptr, u32* flags, ARM64Reg* reg)
 		}
 		else // 64-bit float
 		{
-			// Real register is in the INS instruction
-			u32 ins_inst = *(u32*)(ptr + 8);
-			*reg = (ARM64Reg)(ins_inst & 0x1F);
+			u32 ldr_reg = inst & 0x1F;
+
+			if (ldr_reg)
+			{
+				// Loads directly in to the target register
+				// No need to dump the flag in to flags here
+				// The slowmem path always first returns in Q0
+				// then moves to the destination register
+				*reg = (ARM64Reg)(ldr_reg);
+			}
+			else
+			{
+				// Real register is in the INS instruction
+				u32 ins_inst = *(u32*)(ptr + 8);
+				*reg = (ARM64Reg)(ins_inst & 0x1F);
+			}
 		}
 		*flags |= BackPatchInfo::FLAG_LOAD;
 		return true;
@@ -165,9 +178,17 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 			}
 			else
 			{
-				m_float_emit.LDR(64, INDEX_UNSIGNED, Q0, addr, 0);
-				m_float_emit.REV64(8, D0, D0);
-				m_float_emit.INS(64, RS, 0, Q0, 0);
+				if (flags & BackPatchInfo::FLAG_ONLY_LOWER)
+				{
+					m_float_emit.LDR(64, INDEX_UNSIGNED, EncodeRegToDouble(RS), addr, 0);
+					m_float_emit.REV64(8, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
+				}
+				else
+				{
+					m_float_emit.LDR(64, INDEX_UNSIGNED, Q0, addr, 0);
+					m_float_emit.REV64(8, D0, D0);
+					m_float_emit.INS(64, RS, 0, Q0, 0);
+				}
 			}
 		}
 		else if (flags & BackPatchInfo::FLAG_STORE)
@@ -217,7 +238,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 			handler.addr_reg = addr;
 			handler.gprs = gprs_to_push;
 			handler.fprs = fprs_to_push;
-			handler.flags = flags;
+			handler.flags = flags & ~BackPatchInfo::FLAG_ONLY_LOWER;
 
 			FastmemArea* fastmem_area = &m_fault_to_handler[fastmem_start];
 			auto handler_loc_iter = m_handler_to_loc.find(handler);
