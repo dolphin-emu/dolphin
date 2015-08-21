@@ -19,11 +19,7 @@ enum RegType
 	REG_NOTLOADED = 0,
 	REG_REG, // Reg type is register
 	REG_IMM, // Reg is really a IMM
-};
-enum RegLocation
-{
-	REG_LOW = 0,
-	REG_HIGH,
+	REG_LOWER_PAIR, // Only the lower pair of a paired register
 };
 
 enum FlushMode
@@ -62,6 +58,11 @@ public:
 	void LoadToReg(ARM64Reg reg)
 	{
 		m_type = REG_REG;
+		m_reg = reg;
+	}
+	void LoadLowerReg(ARM64Reg reg)
+	{
+		m_type = REG_LOWER_PAIR;
 		m_reg = reg;
 	}
 	void LoadToImm(u32 imm)
@@ -133,10 +134,6 @@ public:
 
 	// Flushes the register cache in different ways depending on the mode
 	virtual void Flush(FlushMode mode, PPCAnalyst::CodeOp* op) = 0;
-
-	// Returns a guest register inside of a host register
-	// Will dump an immediate to the host register as well
-	virtual ARM64Reg R(u32 reg) = 0;
 
 	virtual BitSet32 GetCallerSavedUsed() = 0;
 
@@ -265,9 +262,12 @@ public:
 
 	// Returns a guest register inside of a host register
 	// Will dump an immediate to the host register as well
-	ARM64Reg R(u32 preg);
+	ARM64Reg R(u32 preg, bool only_lower = true);
 
-	void BindToRegister(u32 preg, bool do_load);
+	void BindToRegister(u32 preg, bool do_load, bool only_lower = true);
+
+	// Returns if the register is only the lower 64bit register
+	bool IsLower(u32 preg) const { return m_guest_registers[preg].GetType() == REG_LOWER_PAIR; }
 
 	BitSet32 GetCallerSavedUsed() override;
 

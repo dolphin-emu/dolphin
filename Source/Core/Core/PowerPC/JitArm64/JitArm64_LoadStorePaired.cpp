@@ -66,8 +66,8 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 	LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
 	BLR(X30);
 
-	fpr.BindToRegister(inst.RS, false);
-	ARM64Reg VS = fpr.R(inst.RS);
+	fpr.BindToRegister(inst.RS, false, false);
+	ARM64Reg VS = fpr.R(inst.RS, false);
 	m_float_emit.FCVTL(64, VS, D0);
 	if (inst.W)
 	{
@@ -97,7 +97,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 	fpr.Lock(Q0, Q1);
 
 	ARM64Reg arm_addr = gpr.R(inst.RA);
-	ARM64Reg VS = fpr.R(inst.RS);
+	ARM64Reg VS = fpr.R(inst.RS, false);
 
 	ARM64Reg scale_reg = W0;
 	ARM64Reg addr_reg = W1;
