@@ -22,7 +22,7 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa,
 {
 	int compareResult;
 
-	if (IsNAN(fa) || IsNAN(fb))
+	if (std::isnan(fa) || std::isnan(fb))
 	{
 		FPSCR.FX = 1;
 		compareResult = FPCC::FU;
@@ -62,7 +62,7 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double f
 {
 	int compareResult;
 
-	if (IsNAN(fa) || IsNAN(fb))
+	if (std::isnan(fa) || std::isnan(fb))
 	{
 		compareResult = FPCC::FU;
 
