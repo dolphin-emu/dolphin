@@ -274,6 +274,7 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 	writeRequest.store(true);
 
 	// Wait for read thread to release the lock
+	CancelIoEx(mHAdapter, &mReadOverlapped);
 	mMutex.lock();
 
 	// Stop requesting lock as we already have it
@@ -304,18 +305,18 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 
 static void ReadThreadHandler(CEXIETHERNET* self)
 {
-	std::chrono::milliseconds interval(50);
-
 	while (true)
 	{
-		if (self->mHAdapter == INVALID_HANDLE_VALUE)
-			return;
-
 		self->mMutex.lock();
 
 		// Handle all packets currently in queue
 		do
 		{
+			// Check if the device is still opened
+			if (self->mHAdapter == INVALID_HANDLE_VALUE)
+				break;
+
+			// Get packet, return right away if async/overlapped
 			DWORD res = ReadFile(self->mHAdapter, self->mRecvBuffer, BBA_RECV_SIZE, (LPDWORD)&self->mRecvBufferLength, &self->mReadOverlapped);
 
 			// If the read is Async or has errors, check and wait
@@ -329,15 +330,11 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 					return;
 				}
 
-				// Wait for a result for 50 ms
-				res = WaitForSingleObject(self->mHReadEvent, 25);
-				// Get whatever result there is so far
-				GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped, (LPDWORD)&self->mRecvBufferLength, false);
-
-				if (res != WAIT_OBJECT_0)
+				// Get the overlapped result, and wait for it (or a cancel)
+				BOOL overlap = GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped, (LPDWORD)&self->mRecvBufferLength, true);
+				if (!overlap)
 				{
-					// Read timed out, cancel and break
-					CancelIo(self->mHAdapter);
+					// Read got canceled! break so we can unlock the mutex
 					break;
 				}
 			}
