@@ -148,6 +148,7 @@ public:
 	                      void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&),
 	                      bool packed, bool preserve_inputs, bool roundRHS = false);
 	void FloatCompare(UGeckoInstruction inst, bool upper = false);
+	void UpdateRoundingMode();
 
 	// OPCODES
 	void FallBackToInterpreter(UGeckoInstruction _inst);
@@ -190,6 +191,12 @@ public:
 	void mfcr(UGeckoInstruction inst);
 	void mcrf(UGeckoInstruction inst);
 	void mcrxr(UGeckoInstruction inst);
+	void mcrfs(UGeckoInstruction inst);
+	void mffsx(UGeckoInstruction inst);
+	void mtfsb0x(UGeckoInstruction inst);
+	void mtfsb1x(UGeckoInstruction inst);
+	void mtfsfix(UGeckoInstruction inst);
+	void mtfsfx(UGeckoInstruction inst);
 
 	void boolX(UGeckoInstruction inst);
 	void crXXX(UGeckoInstruction inst);
