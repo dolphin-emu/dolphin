@@ -887,21 +887,46 @@ void XEmitter::WriteMOVBE(int bits, u8 op, X64Reg reg, const OpArg& arg)
 void XEmitter::MOVBE(int bits, X64Reg dest, const OpArg& src) {WriteMOVBE(bits, 0xF0, dest, src);}
 void XEmitter::MOVBE(int bits, const OpArg& dest, X64Reg src) {WriteMOVBE(bits, 0xF1, src, dest);}
 
-void XEmitter::LoadAndSwap(int size, X64Reg dst, const OpArg& src)
+void XEmitter::LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_extend)
 {
-	if (cpu_info.bMOVBE)
+	switch (size)
 	{
-		MOVBE(size, dst, src);
-	}
-	else
-	{
-		MOV(size, R(dst), src);
-		BSWAP(size, dst);
+	case 8:
+		if (sign_extend)
+			MOVSX(32, 8, dst, src);
+		else
+			MOVZX(32, 8, dst, src);
+		break;
+	case 16:
+		MOVZX(32, 16, dst, src);
+		if (sign_extend)
+		{
+			BSWAP(32, dst);
+			SAR(32, R(dst), Imm8(16));
+		}
+		else
+		{
+			ROL(16, R(dst), Imm8(8));
+		}
+		break;
+	case 32:
+	case 64:
+		if (cpu_info.bMOVBE)
+		{
+			MOVBE(size, dst, src);
+		}
+		else
+		{
+			MOV(size, R(dst), src);
+			BSWAP(size, dst);
+		}
+		break;
 	}
 }
 
-void XEmitter::SwapAndStore(int size, const OpArg& dst, X64Reg src)
+u8* XEmitter::SwapAndStore(int size, const OpArg& dst, X64Reg src)
 {
+	u8* mov_location = GetWritableCodePtr();
 	if (cpu_info.bMOVBE)
 	{
 		MOVBE(size, dst, src);
@@ -909,8 +934,10 @@ void XEmitter::SwapAndStore(int size, const OpArg& dst, X64Reg src)
 	else
 	{
 		BSWAP(size, src);
+		mov_location = GetWritableCodePtr();
 		MOV(size, dst, R(src));
 	}
+	return mov_location;
 }
 
 
