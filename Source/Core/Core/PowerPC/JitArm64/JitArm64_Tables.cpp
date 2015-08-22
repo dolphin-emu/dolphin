@@ -334,7 +334,7 @@ static GekkoOPTemplate table63[] =
 	{72,  &JitArm64::fmrx},                     // fmrx
 	{136, &JitArm64::fnabsx},                   // fnabsx
 	{40,  &JitArm64::fnegx},                    // fnegx
-	{12,  &JitArm64::FallBackToInterpreter},    // frspx
+	{12,  &JitArm64::frspx},                    // frspx
 
 	{64,  &JitArm64::FallBackToInterpreter},    // mcrfs
 	{583, &JitArm64::FallBackToInterpreter},    // mffsx

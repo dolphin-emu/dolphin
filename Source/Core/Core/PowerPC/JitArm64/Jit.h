@@ -145,6 +145,7 @@ public:
 	void fsubsx(UGeckoInstruction inst);
 	void fsubx(UGeckoInstruction inst);
 	void fcmpx(UGeckoInstruction inst);
+	void frspx(UGeckoInstruction inst);
 
 	// Paired
 	void ps_abs(UGeckoInstruction inst);
