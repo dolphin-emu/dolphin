@@ -458,6 +458,22 @@ void JitArm64::fsubx(UGeckoInstruction inst)
 	}
 }
 
+void JitArm64::frspx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+
+	u32 b = inst.FB, d = inst.FD;
+	fpr.BindToRegister(d, d == b, false);
+
+	ARM64Reg VB = fpr.R(b);
+	ARM64Reg VD = fpr.R(d, false);
+
+	m_float_emit.FCVTN(32, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
+	m_float_emit.FCVTL(64, EncodeRegToDouble(VD), EncodeRegToDouble(VD));
+	m_float_emit.INS(64, VD, 1, VD, 0);
+}
+
 void JitArm64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
