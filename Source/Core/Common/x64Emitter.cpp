@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
@@ -89,6 +90,29 @@ const u8* XEmitter::GetCodePtr() const
 u8* XEmitter::GetWritableCodePtr()
 {
 	return code;
+}
+
+void XEmitter::Write8(u8 value)
+{
+	*code++ = value;
+}
+
+void XEmitter::Write16(u16 value)
+{
+	std::memcpy(code, &value, sizeof(u16));
+	code += sizeof(u16);
+}
+
+void XEmitter::Write32(u32 value)
+{
+	std::memcpy(code, &value, sizeof(u32));
+	code += sizeof(u32);
+}
+
+void XEmitter::Write64(u64 value)
+{
+	std::memcpy(code, &value, sizeof(u64));
+	code += sizeof(u64);
 }
 
 void XEmitter::ReserveCodeSpace(int bytes)
