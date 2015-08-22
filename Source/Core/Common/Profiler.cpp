@@ -12,11 +12,15 @@
 #include "Common/Profiler.h"
 #include "Common/Timer.h"
 
+namespace Common
+{
+
 static const u32 PROFILER_FIELD_LENGTH = 8;
 static const u32 PROFILER_FIELD_LENGTH_FP = PROFILER_FIELD_LENGTH + 3;
 static const int PROFILER_LAZY_DELAY = 60; // in frames
 
 std::list<Profiler*> Profiler::s_all_profilers;
+std::mutex Profiler::s_mutex;
 u32 Profiler::s_max_length = 0;
 u64 Profiler::s_frame_time;
 u64 Profiler::s_usecs_frame;
@@ -30,12 +34,19 @@ Profiler::Profiler(const std::string& name)
 	m_time = Common::Timer::GetTimeUs();
 	s_max_length = std::max<u32>(s_max_length, u32(m_name.length()));
 
+	std::lock_guard<std::mutex> lk(s_mutex);
 	s_all_profilers.push_back(this);
 }
 
 Profiler::~Profiler()
 {
+	std::lock_guard<std::mutex> lk(s_mutex);
 	s_all_profilers.remove(this);
+}
+
+bool Profiler::operator<(const Profiler& b) const
+{
+	return m_usecs < b.m_usecs;
 }
 
 std::string Profiler::ToString()
@@ -48,6 +59,7 @@ std::string Profiler::ToString()
 	s_lazy_delay = PROFILER_LAZY_DELAY - 1;
 
 	// don't write anything if no profilation is enabled
+	std::lock_guard<std::mutex> lk(s_mutex);
 	if (s_all_profilers.empty())
 		return "";
 
@@ -65,6 +77,8 @@ std::string Profiler::ToString()
 	buffer << std::setw(PROFILER_FIELD_LENGTH_FP) << std::right << "stdev" << " ";
 	buffer << std::setw(PROFILER_FIELD_LENGTH) << std::right << "max" << " ";
 	buffer << "/ usec" << std::endl;
+
+	s_all_profilers.sort([](Profiler* a, Profiler* b) { return *b < *a; });
 
 	for (auto profiler : s_all_profilers)
 	{
@@ -135,4 +149,6 @@ std::string Profiler::Read()
 	m_calls = 0;
 
 	return buffer.str();
+}
+
 }
