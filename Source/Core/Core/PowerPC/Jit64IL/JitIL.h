@@ -87,6 +87,7 @@ public:
 	void WriteCode(u32 exitAddress);
 
 	// OPCODES
+	using Instruction = void (JitIL::*)(UGeckoInstruction instCode);
 	void FallBackToInterpreter(UGeckoInstruction _inst) override;
 	void DoNothing(UGeckoInstruction _inst) override;
 	void HLEFunction(UGeckoInstruction _inst) override;
@@ -96,5 +97,4 @@ public:
 	void DynaRunTable31(UGeckoInstruction _inst) override;
 	void DynaRunTable59(UGeckoInstruction _inst) override;
 	void DynaRunTable63(UGeckoInstruction _inst) override;
-
 };

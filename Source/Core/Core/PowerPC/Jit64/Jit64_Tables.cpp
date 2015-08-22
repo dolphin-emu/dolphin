@@ -5,15 +5,12 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
 
-// Should be moved in to the Jit class
-typedef void (Jit64::*_Instruction) (UGeckoInstruction instCode);
-
-static _Instruction dynaOpTable[64];
-static _Instruction dynaOpTable4[1024];
-static _Instruction dynaOpTable19[1024];
-static _Instruction dynaOpTable31[1024];
-static _Instruction dynaOpTable59[32];
-static _Instruction dynaOpTable63[1024];
+static Jit64::Instruction dynaOpTable[64];
+static Jit64::Instruction dynaOpTable4[1024];
+static Jit64::Instruction dynaOpTable19[1024];
+static Jit64::Instruction dynaOpTable31[1024];
+static Jit64::Instruction dynaOpTable59[32];
+static Jit64::Instruction dynaOpTable63[1024];
 void Jit64::DynaRunTable4(UGeckoInstruction _inst)  {(this->*dynaOpTable4 [_inst.SUBOP10])(_inst);}
 void Jit64::DynaRunTable19(UGeckoInstruction _inst) {(this->*dynaOpTable19[_inst.SUBOP10])(_inst);}
 void Jit64::DynaRunTable31(UGeckoInstruction _inst) {(this->*dynaOpTable31[_inst.SUBOP10])(_inst);}
@@ -23,8 +20,7 @@ void Jit64::DynaRunTable63(UGeckoInstruction _inst) {(this->*dynaOpTable63[_inst
 struct GekkoOPTemplate
 {
 	int opcode;
-	_Instruction Inst;
-	//GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
+	Jit64::Instruction Inst;
 };
 
 static GekkoOPTemplate primarytable[] =
