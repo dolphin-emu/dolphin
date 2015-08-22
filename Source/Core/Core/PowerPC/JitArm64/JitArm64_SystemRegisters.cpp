@@ -379,8 +379,6 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
 
-	FALLBACK_IF(1);
-
 	// Special case: crclr
 	if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
 	{
@@ -394,19 +392,19 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 		switch (bit)
 		{
 		case CR_SO_BIT:
-			AND(XA, XA, 61, 62); // XA & ~(1<<61)
+			AND(XA, XA, 64 - 62, 62, true); // XA & ~(1<<61)
 			break;
 
 		case CR_EQ_BIT:
-			ORR(XA, XA, 1, 0); // XA | 1<<0
+			ORR(XA, XA, 0, 0, true); // XA | 1<<0
 			break;
 
 		case CR_GT_BIT:
-			ORR(XA, XA, 63, 0); // XA | 1<<63
+			ORR(XA, XA, 64 - 63, 0, true); // XA | 1<<63
 			break;
 
 		case CR_LT_BIT:
-			AND(XA, XA, 62, 62); // XA & ~(1<<62)
+			AND(XA, XA, 64 - 63, 62, true); // XA & ~(1<<62)
 			break;
 		}
 		STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val) + 8 * field);
@@ -427,33 +425,34 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 
 		if (bit != CR_GT_BIT)
 		{
-			ANDS(ZR, XA, XA);
-			FixupBranch dont_clear_gt = B(CC_NEQ);
-			ORR(XA, XA, 63, 0); // XA | 1<<63
-			SetJumpTarget(dont_clear_gt);
+			ARM64Reg WB = gpr.GetReg();
+			ARM64Reg XB = EncodeRegTo64(WB);
+			ORR(XB, XA, 64 - 63, 0, true); // XA | 1<<63
+			CMP(XA, ZR);
+			CSEL(XA, XA, XB, CC_NEQ);
+			gpr.Unlock(WB);
 		}
 
 		switch (bit)
 		{
 		case CR_SO_BIT:
-			ORR(XA, XA, 61, 0); // XA | 1<<61
+			ORR(XA, XA, 64 - 61, 0, true); // XA | 1<<61
 			break;
 
 		case CR_EQ_BIT:
-			LSR(XA, XA, 32);
-			LSL(XA, XA, 32);
+			AND(XA, XA, 32, 31, true); // Clear lower 32bits
 			break;
 
 		case CR_GT_BIT:
-			AND(XA, XA, 63, 62); // XA & ~(1<<63)
+			AND(XA, XA, 0, 62, true); // XA & ~(1<<63)
 			break;
 
 		case CR_LT_BIT:
-			ORR(XA, XA, 62, 0); // XA | 1<<62
+			ORR(XA, XA, 64 - 62, 0, true); // XA | 1<<62
 			break;
 		}
 
-		ORR(XA, XA, 32, 0); // XA | 1<<32
+		ORR(XA, XA, 32, 0, true); // XA | 1<<32
 
 		STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val) + 8 * field);
 		gpr.Unlock(WA);
@@ -484,23 +483,25 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 		switch (bit)
 		{
 		case CR_SO_BIT:  // check bit 61 set
-			ANDS(ZR, XC, 61, 62); // XC & ~(1<<61)
-			CSINC(out, ZR, ZR, negate ? CC_NEQ : CC_EQ);
+			UBFX(out, XC, 61, 1);
+			if (negate)
+				EOR(out, out, 0, 0, true); // XC ^ 1
 			break;
 
 		case CR_EQ_BIT:  // check bits 31-0 == 0
-			ANDS(ZR, WC, WC);
-			CSINC(out, ZR, ZR, negate ? CC_NEQ : CC_EQ);
+			CMP(WC, WZR);
+			CSET(out, negate ? CC_NEQ : CC_EQ);
 			break;
 
 		case CR_GT_BIT:  // check val > 0
-			ANDS(ZR, XC, XC);
-			CSINC(out, ZR, ZR, negate ? CC_NEQ : CC_EQ);
+			CMP(XC, ZR);
+			CSET(out, negate ? CC_LE : CC_GT);
 			break;
 
 		case CR_LT_BIT:  // check bit 62 set
-			ANDS(ZR, XC, 62, 62); // XC & ~(1<<62)
-			CSINC(out, ZR, ZR, negate ? CC_NEQ : CC_EQ);
+			UBFX(out, XC, 62, 1);
+			if (negate)
+				EOR(out, out, 0, 0, true); // XC ^ 1
 			break;
 
 		default:
@@ -530,7 +531,6 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 		ORR(XA, XA, XB);
 		break;
 	}
-	AND(XA, XA, 0, 63-8); // A & 0xff
 
 	// Store result bit in CRBD
 	int field = inst.CRBD >> 2;
@@ -543,42 +543,37 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 	// intending to. This can break actual games, so fix it up.
 	if (bit != CR_GT_BIT)
 	{
-		ANDS(ZR, XB, XB);
-		FixupBranch dont_clear_gt = B(CC_NEQ);
-		ORR(XB, XB, 63, 0); // XA | 1<<63
-		SetJumpTarget(dont_clear_gt);
+		ARM64Reg WC = gpr.GetReg();
+		ARM64Reg XC = EncodeRegTo64(WC);
+		ORR(XC, XB, 64 - 63, 0, true); // XB | 1<<63
+		CMP(XB, ZR);
+		CSEL(XB, XB, XC, CC_NEQ);
+		gpr.Unlock(WC);
 	}
 
 	switch (bit)
 	{
 	case CR_SO_BIT:  // set bit 61 to input
-		AND(XB, XB, 61, 62); // XB & ~(1<<61)
-		LSL(XA, XA, 61);
-		ORR(XB, XB, XA);
+		BFI(XB, XA, 61, 1);
 		break;
 
 	case CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
-		LSR(XB, XB, 32);
-		LSL(XB, XB, 32);
-		EOR(XA, XA, 1, 0); // XA ^ 1<<0
+		AND(XB, XB, 32, 31, true); // Clear lower 32bits
+		EOR(XA, XA, 0, 0); // XA ^ 1<<0
 		ORR(XB, XB, XA);
 		break;
 
 	case CR_GT_BIT:  // set bit 63 to !input
-		AND(XB, XB, 63, 62); // XB & ~(1<<63)
-		NEG(XA, XA);
-		LSL(XA, XA, 63);
-		ORR(XB, XB, XA);
+		EOR(XA, XA, 0, 0); // XA ^ 1<<0
+		BFI(XB, XA, 63, 1);
 		break;
 
 	case CR_LT_BIT:  // set bit 62 to input
-		AND(XB, XB, 62, 62); // XB & ~(1<<62)
-		LSL(XA, XA, 62);
-		ORR(XB, XB, XA);
+		BFI(XB, XA, 62, 1);
 		break;
 	}
 
-	ORR(XB, XB, 32, 0); // XB | 1<<32
+	ORR(XA, XA, 32, 0, true); // XA | 1<<32
 	STR(INDEX_UNSIGNED, XB, X29, PPCSTATE_OFF(cr_val) + 8 * field);
 
 	gpr.Unlock(WA);
