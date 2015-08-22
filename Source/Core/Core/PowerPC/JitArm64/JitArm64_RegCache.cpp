@@ -222,7 +222,7 @@ void Arm64GPRCache::GetAllocationOrder()
 	const std::vector<ARM64Reg> allocation_order =
 	{
 		// Callee saved
-		W28, W27, W26, W25, W24, W23, W22, W21, W20,
+		W27, W26, W25, W24, W23, W22, W21, W20,
 		W19,
 
 		// Caller saved
