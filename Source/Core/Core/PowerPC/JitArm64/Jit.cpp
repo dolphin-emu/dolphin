@@ -70,7 +70,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 		gpr.Unlock(WA);
 	}
 
-	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
+	Interpreter::Instruction instr = GetInterpreterOp(inst);
 	MOVI2R(W0, inst.hex);
 	MOVI2R(X30, (u64)instr);
 	BLR(X30);

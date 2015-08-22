@@ -63,7 +63,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 	}
 }
 
-Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
+Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
 {
 	const GekkoOPInfo *info = m_infoTable[_inst.OPCD];
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
