@@ -152,14 +152,14 @@ static GekkoOPTemplate table19[] =
 {
 	{528, &JitArm64::bcctrx},                   // bcctrx
 	{16,  &JitArm64::bclrx},                    // bclrx
-	{257, &JitArm64::FallBackToInterpreter},    // crand
-	{129, &JitArm64::FallBackToInterpreter},    // crandc
-	{289, &JitArm64::FallBackToInterpreter},    // creqv
-	{225, &JitArm64::FallBackToInterpreter},    // crnand
-	{33,  &JitArm64::FallBackToInterpreter},    // crnor
-	{449, &JitArm64::FallBackToInterpreter},    // cror
-	{417, &JitArm64::FallBackToInterpreter},    // crorc
-	{193, &JitArm64::FallBackToInterpreter},    // crxor
+	{257, &JitArm64::crXXX},                    // crand
+	{129, &JitArm64::crXXX},                    // crandc
+	{289, &JitArm64::crXXX},                    // creqv
+	{225, &JitArm64::crXXX},                    // crnand
+	{33,  &JitArm64::crXXX},                    // crnor
+	{449, &JitArm64::crXXX},                    // cror
+	{417, &JitArm64::crXXX},                    // crorc
+	{193, &JitArm64::crXXX},                    // crxor
 
 	{150, &JitArm64::DoNothing},                // isync
 	{0,   &JitArm64::mcrf},                     // mcrf
