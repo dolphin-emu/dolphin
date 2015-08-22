@@ -273,13 +273,13 @@ public:
 	static void sync(UGeckoInstruction _inst);
 	static void isync(UGeckoInstruction _inst);
 
-	typedef void(*_interpreterInstruction)(UGeckoInstruction instCode);
-	static _interpreterInstruction m_opTable[64];
-	static _interpreterInstruction m_opTable4[1024];
-	static _interpreterInstruction m_opTable19[1024];
-	static _interpreterInstruction m_opTable31[1024];
-	static _interpreterInstruction m_opTable59[32];
-	static _interpreterInstruction m_opTable63[1024];
+	using Instruction = void (*)(UGeckoInstruction instCode);
+	static Instruction m_opTable[64];
+	static Instruction m_opTable4[1024];
+	static Instruction m_opTable19[1024];
+	static Instruction m_opTable31[1024];
+	static Instruction m_opTable59[32];
+	static Instruction m_opTable63[1024];
 
 	// singleton
 	static Interpreter* getInstance();

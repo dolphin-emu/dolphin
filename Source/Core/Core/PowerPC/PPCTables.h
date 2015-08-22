@@ -100,7 +100,7 @@ extern GekkoOPInfo *m_allInstructions[512];
 extern int m_numInstructions;
 
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst);
-Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
+Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst);
 
 namespace PPCTables
 {

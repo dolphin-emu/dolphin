@@ -240,7 +240,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 		MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
 		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
 	}
-	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
+	Interpreter::Instruction instr = GetInterpreterOp(inst);
 	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunctionC((void*)instr, inst.hex);
 	ABI_PopRegistersAndAdjustStack({}, 0);

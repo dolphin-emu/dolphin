@@ -151,6 +151,7 @@ public:
 	void UpdateRoundingMode();
 
 	// OPCODES
+	using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
 	void FallBackToInterpreter(UGeckoInstruction _inst);
 	void DoNothing(UGeckoInstruction _inst);
 	void HLEFunction(UGeckoInstruction _inst);

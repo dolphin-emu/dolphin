@@ -2,17 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 
-// Should be moved in to the Jit class
-typedef void (JitIL::*_Instruction) (UGeckoInstruction instCode);
-
-static _Instruction dynaOpTable[64];
-static _Instruction dynaOpTable4[1024];
-static _Instruction dynaOpTable19[1024];
-static _Instruction dynaOpTable31[1024];
-static _Instruction dynaOpTable59[32];
-static _Instruction dynaOpTable63[1024];
+static JitIL::Instruction dynaOpTable[64];
+static JitIL::Instruction dynaOpTable4[1024];
+static JitIL::Instruction dynaOpTable19[1024];
+static JitIL::Instruction dynaOpTable31[1024];
+static JitIL::Instruction dynaOpTable59[32];
+static JitIL::Instruction dynaOpTable63[1024];
 
 void JitIL::DynaRunTable4(UGeckoInstruction _inst)  {(this->*dynaOpTable4 [_inst.SUBOP10])(_inst);}
 void JitIL::DynaRunTable19(UGeckoInstruction _inst) {(this->*dynaOpTable19[_inst.SUBOP10])(_inst);}
@@ -20,13 +20,10 @@ void JitIL::DynaRunTable31(UGeckoInstruction _inst) {(this->*dynaOpTable31[_inst
 void JitIL::DynaRunTable59(UGeckoInstruction _inst) {(this->*dynaOpTable59[_inst.SUBOP5 ])(_inst);}
 void JitIL::DynaRunTable63(UGeckoInstruction _inst) {(this->*dynaOpTable63[_inst.SUBOP10])(_inst);}
 
-
-
 struct GekkoOPTemplate
 {
 	int opcode;
-	_Instruction Inst;
-	//GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
+	JitIL::Instruction Inst;
 };
 
 static GekkoOPTemplate primarytable[] =
