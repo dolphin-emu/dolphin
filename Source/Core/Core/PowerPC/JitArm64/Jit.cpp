@@ -362,6 +362,10 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	gpr.Start(js.gpa);
 	fpr.Start(js.fpa);
 
+	// Setup memory base register
+	u8* base = UReg_MSR(MSR).DR ? Memory::logical_base : Memory::physical_base;
+	MOVI2R(X28, (u64)base);
+
 	if (!SConfig::GetInstance().bEnableDebugging)
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
