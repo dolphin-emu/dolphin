@@ -724,6 +724,188 @@ void JitArm64::subfx(UGeckoInstruction inst)
 	}
 }
 
+void JitArm64::subfex(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+
+		gpr.BindToRegister(d, false);
+		MOVI2R(gpr.R(d), ~i + j);
+		ARM64Reg WA = gpr.GetReg();
+		LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		ADD(gpr.R(d), gpr.R(d), WA);
+		gpr.Unlock(WA);
+
+		bool must_have_carry = Interpreter::Helper_Carry(~i, j);
+		bool might_have_carry = (~i + j) == 0xFFFFFFFF;
+
+		if (must_have_carry)
+		{
+			ComputeCarry(true);
+		}
+		else if (might_have_carry)
+		{
+			// carry stay as it is
+		}
+		else
+		{
+			ComputeCarry(false);
+		}
+	}
+	else
+	{
+		ARM64Reg WA = gpr.GetReg();
+		gpr.BindToRegister(d, d == a || d == b);
+
+		// upload the carry state
+		LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		CMP(WA, 1);
+
+		// d = ~a + b + carry;
+		if (gpr.IsImm(a))
+			MOVI2R(WA, ~gpr.GetImm(a));
+		else
+			MVN(WA, gpr.R(a));
+		ADCS(gpr.R(d), WA, gpr.R(b));
+
+		gpr.Unlock(WA);
+
+		ComputeCarry();
+	}
+
+	if (inst.Rc)
+		ComputeRC(gpr.R(d), 0);
+}
+
+void JitArm64::subfcx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		u32 a_imm = gpr.GetImm(a), b_imm = gpr.GetImm(b);
+
+		gpr.SetImmediate(d, b_imm - a_imm);
+		ComputeCarry(a_imm == 0 || Interpreter::Helper_Carry(b_imm, 0u - a_imm));
+
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a || d == b);
+
+		// d = b - a
+		SUBS(gpr.R(d), gpr.R(b), gpr.R(a));
+
+		ComputeCarry();
+
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
+void JitArm64::subfic(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int a = inst.RA, d = inst.RD;
+	s32 imm = inst.SIMM_16;
+
+	if (gpr.IsImm(a))
+	{
+		u32 a_imm = gpr.GetImm(a);
+
+		gpr.SetImmediate(d, imm - a_imm);
+		ComputeCarry(a_imm == 0 || Interpreter::Helper_Carry(imm, 0u - a_imm));
+
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a);
+
+		// d = imm - a
+		ARM64Reg WA = gpr.GetReg();
+		MOVI2R(WA, imm);
+		SUBS(gpr.R(d), WA, gpr.R(a));
+		gpr.Unlock(WA);
+
+		ComputeCarry();
+
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
+void JitArm64::addex(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+
+		gpr.BindToRegister(d, false);
+		MOVI2R(gpr.R(d), i + j);
+		ARM64Reg WA = gpr.GetReg();
+		LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		ADD(gpr.R(d), gpr.R(d), WA);
+		gpr.Unlock(WA);
+
+		bool must_have_carry = Interpreter::Helper_Carry(i, j);
+		bool might_have_carry = (i + j) == 0xFFFFFFFF;
+
+		if (must_have_carry)
+		{
+			ComputeCarry(true);
+		}
+		else if (might_have_carry)
+		{
+			// carry stay as it is
+		}
+		else
+		{
+			ComputeCarry(false);
+		}
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a || d == b);
+
+		// upload the carry state
+		ARM64Reg WA = gpr.GetReg();
+		LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		CMP(WA, 1);
+		gpr.Unlock(WA);
+
+		// d = a + b + carry;
+		ADCS(gpr.R(d), gpr.R(a), gpr.R(b));
+
+		ComputeCarry();
+	}
+
+	if (inst.Rc)
+		ComputeRC(gpr.R(d), 0);
+}
+
 void JitArm64::addcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -748,6 +930,34 @@ void JitArm64::addcx(UGeckoInstruction inst)
 		ADDS(gpr.R(d), gpr.R(a), gpr.R(b));
 
 		ComputeCarry();
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
+void JitArm64::divwux(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+		gpr.SetImmediate(d, j == 0 ? 0 : i / j);
+
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a || d == b);
+
+		// d = a / b
+		UDIV(gpr.R(d), gpr.R(a), gpr.R(b));
+
 		if (inst.Rc)
 			ComputeRC(gpr.R(d), 0);
 	}
@@ -795,6 +1005,52 @@ void JitArm64::slwx(UGeckoInstruction inst)
 		// So if we use a 64bit so the bits will end up in the high 32bits, and
 		// Later instructions will just eat high 32bits since it'll run 32bit operations for everything.
 		LSLV(EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(s)), EncodeRegTo64(gpr.R(b)));
+
+		if (inst.Rc)
+			ComputeRC(gpr.R(a), 0);
+	}
+}
+
+void JitArm64::srwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int a = inst.RA, b = inst.RB, s = inst.RS;
+
+	if (gpr.IsImm(b) && gpr.IsImm(s))
+	{
+		u32 i = gpr.GetImm(s), amount = gpr.GetImm(b);
+		gpr.SetImmediate(a, (amount & 0x20) ? 0 : i >> (amount & 0x1F));
+
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(a), 0);
+	}
+	else if (gpr.IsImm(b))
+	{
+		u32 amount = gpr.GetImm(b);
+		if (amount & 0x20)
+		{
+			gpr.SetImmediate(a, 0);
+			if (inst.Rc)
+				ComputeRC(0, 0);
+		}
+		else
+		{
+			gpr.BindToRegister(a, a == s);
+			LSR(gpr.R(a), gpr.R(s), amount & 0x1F);
+			if (inst.Rc)
+				ComputeRC(gpr.R(a), 0);
+		}
+	}
+	else
+	{
+		gpr.BindToRegister(a, a == b || a == s);
+
+		// wipe upper bits. TODO: get rid of it, but then no instruction is allowed to emit some higher bits.
+		MOV(gpr.R(s), gpr.R(s));
+
+		LSRV(EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(s)), EncodeRegTo64(gpr.R(b)));
 
 		if (inst.Rc)
 			ComputeRC(gpr.R(a), 0);

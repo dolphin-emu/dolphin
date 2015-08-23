@@ -44,7 +44,7 @@ static GekkoOPTemplate primarytable[] =
 	{17, &JitArm64::sc},                        // sc
 
 	{7,  &JitArm64::mulli},                     // mulli
-	{8,  &JitArm64::FallBackToInterpreter},     // subfic
+	{8,  &JitArm64::subfic},                    // subfic
 	{10, &JitArm64::cmpli},                     // cmpli
 	{11, &JitArm64::cmpi},                      // cmpi
 	{12, &JitArm64::addic},                     // addic
@@ -174,16 +174,16 @@ static GekkoOPTemplate table31[] =
 	{778,  &JitArm64::addx},                    // addox
 	{10,   &JitArm64::addcx},                   // addcx
 	{522,  &JitArm64::addcx},                   // addcox
-	{138,  &JitArm64::FallBackToInterpreter},   // addex
-	{650,  &JitArm64::FallBackToInterpreter},   // addeox
+	{138,  &JitArm64::addex},                   // addex
+	{650,  &JitArm64::addex},                   // addeox
 	{234,  &JitArm64::FallBackToInterpreter},   // addmex
 	{746,  &JitArm64::FallBackToInterpreter},   // addmeox
 	{202,  &JitArm64::addzex},                  // addzex
 	{714,  &JitArm64::addzex},                  // addzeox
 	{491,  &JitArm64::FallBackToInterpreter},   // divwx
 	{1003, &JitArm64::FallBackToInterpreter},   // divwox
-	{459,  &JitArm64::FallBackToInterpreter},   // divwux
-	{971,  &JitArm64::FallBackToInterpreter},   // divwuox
+	{459,  &JitArm64::divwux},                  // divwux
+	{971,  &JitArm64::divwux},                  // divwuox
 	{75,   &JitArm64::FallBackToInterpreter},   // mulhwx
 	{11,   &JitArm64::FallBackToInterpreter},   // mulhwux
 	{235,  &JitArm64::mullwx},                  // mullwx
@@ -192,10 +192,10 @@ static GekkoOPTemplate table31[] =
 	{616,  &JitArm64::negx},                    // negox
 	{40,   &JitArm64::subfx},                   // subfx
 	{552,  &JitArm64::subfx},                   // subfox
-	{8,    &JitArm64::FallBackToInterpreter},   // subfcx
-	{520,  &JitArm64::FallBackToInterpreter},   // subfcox
-	{136,  &JitArm64::FallBackToInterpreter},   // subfex
-	{648,  &JitArm64::FallBackToInterpreter},   // subfeox
+	{8,    &JitArm64::subfcx},                  // subfcx
+	{520,  &JitArm64::subfcx},                  // subfcox
+	{136,  &JitArm64::subfex},                  // subfex
+	{648,  &JitArm64::subfex},                  // subfeox
 	{232,  &JitArm64::FallBackToInterpreter},   // subfmex
 	{744,  &JitArm64::FallBackToInterpreter},   // subfmeox
 	{200,  &JitArm64::FallBackToInterpreter},   // subfzex
@@ -214,7 +214,7 @@ static GekkoOPTemplate table31[] =
 	{26,  &JitArm64::cntlzwx},                  // cntlzwx
 	{922, &JitArm64::extsXx},                   // extshx
 	{954, &JitArm64::extsXx},                   // extsbx
-	{536, &JitArm64::FallBackToInterpreter},    // srwx
+	{536, &JitArm64::srwx},                     // srwx
 	{792, &JitArm64::FallBackToInterpreter},    // srawx
 	{824, &JitArm64::srawix},                   // srawix
 	{24,  &JitArm64::slwx},                     // slwx

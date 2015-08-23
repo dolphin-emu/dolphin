@@ -98,7 +98,13 @@ public:
 	void subfx(UGeckoInstruction inst);
 	void addcx(UGeckoInstruction inst);
 	void slwx(UGeckoInstruction inst);
+	void srwx(UGeckoInstruction inst);
 	void rlwimix(UGeckoInstruction inst);
+	void subfex(UGeckoInstruction inst);
+	void subfcx(UGeckoInstruction inst);
+	void subfic(UGeckoInstruction inst);
+	void addex(UGeckoInstruction inst);
+	void divwux(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
