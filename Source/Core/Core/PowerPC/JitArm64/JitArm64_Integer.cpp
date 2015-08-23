@@ -1011,6 +1011,52 @@ void JitArm64::slwx(UGeckoInstruction inst)
 	}
 }
 
+void JitArm64::srwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int a = inst.RA, b = inst.RB, s = inst.RS;
+
+	if (gpr.IsImm(b) && gpr.IsImm(s))
+	{
+		u32 i = gpr.GetImm(s), amount = gpr.GetImm(b);
+		gpr.SetImmediate(a, (amount & 0x20) ? 0 : i >> (amount & 0x1F));
+
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(a), 0);
+	}
+	else if (gpr.IsImm(b))
+	{
+		u32 amount = gpr.GetImm(b);
+		if (amount & 0x20)
+		{
+			gpr.SetImmediate(a, 0);
+			if (inst.Rc)
+				ComputeRC(0, 0);
+		}
+		else
+		{
+			gpr.BindToRegister(a, a == s);
+			LSR(gpr.R(a), gpr.R(s), amount & 0x1F);
+			if (inst.Rc)
+				ComputeRC(gpr.R(a), 0);
+		}
+	}
+	else
+	{
+		gpr.BindToRegister(a, a == b || a == s);
+
+		// wipe upper bits. TODO: get rid of it, but then no instruction is allowed to emit some higher bits.
+		MOV(gpr.R(s), gpr.R(s));
+
+		LSRV(EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(s)), EncodeRegTo64(gpr.R(b)));
+
+		if (inst.Rc)
+			ComputeRC(gpr.R(a), 0);
+	}
+}
+
 void JitArm64::rlwimix(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

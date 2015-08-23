@@ -214,7 +214,7 @@ static GekkoOPTemplate table31[] =
 	{26,  &JitArm64::cntlzwx},                  // cntlzwx
 	{922, &JitArm64::extsXx},                   // extshx
 	{954, &JitArm64::extsXx},                   // extsbx
-	{536, &JitArm64::FallBackToInterpreter},    // srwx
+	{536, &JitArm64::srwx},                     // srwx
 	{792, &JitArm64::FallBackToInterpreter},    // srawx
 	{824, &JitArm64::srawix},                   // srawix
 	{24,  &JitArm64::slwx},                     // slwx
