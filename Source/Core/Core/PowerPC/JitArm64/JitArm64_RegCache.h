@@ -269,6 +269,11 @@ public:
 	// Returns if the register is only the lower 64bit register
 	bool IsLower(u32 preg) const { return m_guest_registers[preg].GetType() == REG_LOWER_PAIR; }
 
+	// This flushes the lower 64bit FPR to the higher FPR location
+	// and then sets the guest register type to a lower pair
+	// This is only used with the lfs PowerPC instruction
+	void DumpDuplicatedLower(u32 preg);
+
 	BitSet32 GetCallerSavedUsed() override;
 
 protected:
