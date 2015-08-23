@@ -85,6 +85,7 @@ public:
   void addcx(UGeckoInstruction inst);
   void slwx(UGeckoInstruction inst);
   void srwx(UGeckoInstruction inst);
+  void srawx(UGeckoInstruction inst);
   void rlwimix(UGeckoInstruction inst);
   void subfex(UGeckoInstruction inst);
   void subfcx(UGeckoInstruction inst);
