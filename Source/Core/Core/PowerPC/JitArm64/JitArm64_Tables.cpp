@@ -330,7 +330,7 @@ static GekkoOPTemplate table63[] =
 	{32,  &JitArm64::fcmpx},                    // fcmpo
 	{0,   &JitArm64::fcmpx},                    // fcmpu
 	{14,  &JitArm64::FallBackToInterpreter},    // fctiwx
-	{15,  &JitArm64::FallBackToInterpreter},    // fctiwzx
+	{15,  &JitArm64::fctiwzx},                  // fctiwzx
 	{72,  &JitArm64::fmrx},                     // fmrx
 	{136, &JitArm64::fnabsx},                   // fnabsx
 	{40,  &JitArm64::fnegx},                    // fnegx
