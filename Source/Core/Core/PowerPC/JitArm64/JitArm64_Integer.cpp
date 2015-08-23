@@ -935,6 +935,34 @@ void JitArm64::addcx(UGeckoInstruction inst)
 	}
 }
 
+void JitArm64::divwux(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+		gpr.SetImmediate(d, j == 0 ? 0 : i / j);
+
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a || d == b);
+
+		// d = a / b
+		UDIV(gpr.R(d), gpr.R(a), gpr.R(b));
+
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
 void JitArm64::slwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

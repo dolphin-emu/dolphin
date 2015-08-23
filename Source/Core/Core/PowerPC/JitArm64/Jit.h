@@ -103,6 +103,7 @@ public:
 	void subfcx(UGeckoInstruction inst);
 	void subfic(UGeckoInstruction inst);
 	void addex(UGeckoInstruction inst);
+	void divwux(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);

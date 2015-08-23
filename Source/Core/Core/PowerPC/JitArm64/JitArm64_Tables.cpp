@@ -182,8 +182,8 @@ static GekkoOPTemplate table31[] =
 	{714,  &JitArm64::addzex},                  // addzeox
 	{491,  &JitArm64::FallBackToInterpreter},   // divwx
 	{1003, &JitArm64::FallBackToInterpreter},   // divwox
-	{459,  &JitArm64::FallBackToInterpreter},   // divwux
-	{971,  &JitArm64::FallBackToInterpreter},   // divwuox
+	{459,  &JitArm64::divwux},                  // divwux
+	{971,  &JitArm64::divwux},                  // divwuox
 	{75,   &JitArm64::FallBackToInterpreter},   // mulhwx
 	{11,   &JitArm64::FallBackToInterpreter},   // mulhwux
 	{235,  &JitArm64::mullwx},                  // mullwx
