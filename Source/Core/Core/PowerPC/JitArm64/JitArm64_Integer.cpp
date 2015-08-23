@@ -816,6 +816,41 @@ void JitArm64::subfcx(UGeckoInstruction inst)
 	}
 }
 
+void JitArm64::subfic(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int a = inst.RA, d = inst.RD;
+	s32 imm = inst.SIMM_16;
+
+	if (gpr.IsImm(a))
+	{
+		u32 a_imm = gpr.GetImm(a);
+
+		gpr.SetImmediate(d, imm - a_imm);
+		ComputeCarry(a_imm == 0 || Interpreter::Helper_Carry(imm, 0u - a_imm));
+
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a);
+
+		// d = imm - a
+		ARM64Reg WA = gpr.GetReg();
+		MOVI2R(WA, imm);
+		SUBS(gpr.R(d), WA, gpr.R(a));
+		gpr.Unlock(WA);
+
+		ComputeCarry();
+
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
 void JitArm64::addex(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

@@ -44,7 +44,7 @@ static GekkoOPTemplate primarytable[] =
 	{17, &JitArm64::sc},                        // sc
 
 	{7,  &JitArm64::mulli},                     // mulli
-	{8,  &JitArm64::FallBackToInterpreter},     // subfic
+	{8,  &JitArm64::subfic},                    // subfic
 	{10, &JitArm64::cmpli},                     // cmpli
 	{11, &JitArm64::cmpi},                      // cmpi
 	{12, &JitArm64::addic},                     // addic

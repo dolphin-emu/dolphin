@@ -101,6 +101,7 @@ public:
 	void rlwimix(UGeckoInstruction inst);
 	void subfex(UGeckoInstruction inst);
 	void subfcx(UGeckoInstruction inst);
+	void subfic(UGeckoInstruction inst);
 	void addex(UGeckoInstruction inst);
 
 	// System Registers
