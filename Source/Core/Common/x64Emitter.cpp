@@ -56,6 +56,7 @@ enum NormalSSEOps
 	sseCOMIS       = 0x2F, //COMIS
 	sseUCOMIS      = 0x2E, //UCOMIS
 	sseSQRT        = 0x51, //SQRT
+	sseRCP         = 0x53, //RCP
 	sseRSQRT       = 0x52, //RSQRT (NO DOUBLE PRECISION!!!)
 	sseMOVAPfromRM = 0x28, //MOVAP from RM
 	sseMOVAPtoRM   = 0x29, //MOVAP to RM
@@ -1543,6 +1544,7 @@ void XEmitter::MAXSS(X64Reg regOp, const OpArg& arg)   {WriteSSEOp(0xF3, sseMAX,
 void XEmitter::MAXSD(X64Reg regOp, const OpArg& arg)   {WriteSSEOp(0xF2, sseMAX, regOp, arg);}
 void XEmitter::SQRTSS(X64Reg regOp, const OpArg& arg)  {WriteSSEOp(0xF3, sseSQRT, regOp, arg);}
 void XEmitter::SQRTSD(X64Reg regOp, const OpArg& arg)  {WriteSSEOp(0xF2, sseSQRT, regOp, arg);}
+void XEmitter::RCPSS(X64Reg regOp, const OpArg& arg)   {WriteSSEOp(0xF3, sseRCP, regOp, arg);}
 void XEmitter::RSQRTSS(X64Reg regOp, const OpArg& arg) {WriteSSEOp(0xF3, sseRSQRT, regOp, arg);}
 
 void XEmitter::ADDPS(X64Reg regOp, const OpArg& arg)   {WriteSSEOp(0x00, sseADD, regOp, arg);}
@@ -1569,6 +1571,7 @@ void XEmitter::MAXPS(X64Reg regOp, const OpArg& arg)   {WriteSSEOp(0x00, sseMAX,
 void XEmitter::MAXPD(X64Reg regOp, const OpArg& arg)   {WriteSSEOp(0x66, sseMAX, regOp, arg);}
 void XEmitter::SQRTPS(X64Reg regOp, const OpArg& arg)  {WriteSSEOp(0x00, sseSQRT, regOp, arg);}
 void XEmitter::SQRTPD(X64Reg regOp, const OpArg& arg)  {WriteSSEOp(0x66, sseSQRT, regOp, arg);}
+void XEmitter::RCPPS(X64Reg regOp, const OpArg& arg)   {WriteSSEOp(0x00, sseRCP, regOp, arg);}
 void XEmitter::RSQRTPS(X64Reg regOp, const OpArg& arg) {WriteSSEOp(0x00, sseRSQRT, regOp, arg);}
 void XEmitter::SHUFPS(X64Reg regOp, const OpArg& arg, u8 shuffle) {WriteSSEOp(0x00, sseSHUF, regOp, arg,1); Write8(shuffle);}
 void XEmitter::SHUFPD(X64Reg regOp, const OpArg& arg, u8 shuffle) {WriteSSEOp(0x66, sseSHUF, regOp, arg,1); Write8(shuffle);}
