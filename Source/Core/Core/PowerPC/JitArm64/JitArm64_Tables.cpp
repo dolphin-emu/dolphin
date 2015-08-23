@@ -174,8 +174,8 @@ static GekkoOPTemplate table31[] =
 	{778,  &JitArm64::addx},                    // addox
 	{10,   &JitArm64::addcx},                   // addcx
 	{522,  &JitArm64::addcx},                   // addcox
-	{138,  &JitArm64::FallBackToInterpreter},   // addex
-	{650,  &JitArm64::FallBackToInterpreter},   // addeox
+	{138,  &JitArm64::addex},                   // addex
+	{650,  &JitArm64::addex},                   // addeox
 	{234,  &JitArm64::FallBackToInterpreter},   // addmex
 	{746,  &JitArm64::FallBackToInterpreter},   // addmeox
 	{202,  &JitArm64::addzex},                  // addzex
