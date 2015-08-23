@@ -245,6 +245,10 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 					update = true;
 					offset_reg = b;
 				break;
+				case 983: // stfiwx
+					flags |= BackPatchInfo::FLAG_SIZE_F32I;
+					offset_reg = b;
+				break;
 			}
 		break;
 		case 53: // stfsu
