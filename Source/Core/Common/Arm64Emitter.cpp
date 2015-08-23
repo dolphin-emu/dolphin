@@ -2505,6 +2505,23 @@ void ARM64FloatEmitter::EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64
 	        Rm.GetData() | (1 << 11) | (Rn << 5) | Rt);
 }
 
+void ARM64FloatEmitter::EncodeModImm(bool Q, u8 op, u8 cmode, u8 o2, ARM64Reg Rd, u8 abcdefgh)
+{
+	union
+	{
+		u8 hex;
+		struct
+		{
+			unsigned defgh : 5;
+			unsigned abc : 3;
+		};
+	} v;
+	v.hex = abcdefgh;
+	Rd = DecodeReg(Rd);
+	Write32((Q << 30) | (op << 29) | (0xF << 24) | (v.abc << 16) | (cmode << 12) | \
+	        (o2 << 11) | (1 << 10) | (v.defgh << 5) | Rd);
+}
+
 void ARM64FloatEmitter::LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	EmitLoadStoreImmediate(size, 1, type, Rt, Rn, imm);
@@ -3628,6 +3645,90 @@ void ARM64FloatEmitter::FMLA(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 
 	}
 
 	EmitVectorxElement(0, 2 | (size >> 6), L, 1, H, Rd, Rn, Rm);
+}
+
+// Modified Immediate
+void ARM64FloatEmitter::MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift)
+{
+	bool Q = IsQuad(Rd);
+	u8 cmode = 0;
+	u8 op = 0;
+	u8 abcdefgh = imm & 0xFF;
+	if (size == 8)
+	{
+		_assert_msg_(DYNA_REC, shift == 0, "%s(size8) doesn't support shift!", __FUNCTION__);
+		_assert_msg_(DYNA_REC, !(imm & ~0xFFULL), "%s(size8) only supports 8bit values!", __FUNCTION__);
+	}
+	else if (size == 16)
+	{
+		_assert_msg_(DYNA_REC, shift == 0 || shift == 8, "%s(size16) only supports shift of {0, 8}!", __FUNCTION__);
+		_assert_msg_(DYNA_REC, !(imm & ~0xFFULL), "%s(size16) only supports 8bit values!", __FUNCTION__);
+
+		if (shift == 8)
+			cmode |= 2;
+	}
+	else if (size == 32)
+	{
+		_assert_msg_(DYNA_REC,
+			shift == 0 || shift == 8 || shift == 16 || shift == 24,
+			"%s(size32) only supports shift of {0, 8, 16, 24}!", __FUNCTION__);
+		// XXX: Implement support for MOVI - shifting ones variant
+		_assert_msg_(DYNA_REC, !(imm & ~0xFFULL), "%s(size32) only supports 8bit values!", __FUNCTION__);
+		switch (shift)
+		{
+		case 8:  cmode |= 2; break;
+		case 16: cmode |= 4; break;
+		case 24: cmode |= 6; break;
+		default: break;
+		}
+	}
+	else // 64
+	{
+		_assert_msg_(DYNA_REC, shift == 0, "%s(size64) doesn't support shift!", __FUNCTION__);
+
+		op = 1;
+		cmode = 0xE;
+		abcdefgh = 0;
+		for (int i = 0; i < 8; ++i)
+		{
+			u8 tmp = (imm >> (i << 3)) & 0xFF;
+			_assert_msg_(DYNA_REC, tmp == 0xFF || tmp == 0, "%s(size64) Invalid immediate!", __FUNCTION__);
+			if (tmp == 0xFF)
+				abcdefgh |= (1 << i);
+		}
+	}
+	EncodeModImm(Q, op, cmode, 0, Rd, abcdefgh);
+}
+
+void ARM64FloatEmitter::BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift)
+{
+	bool Q = IsQuad(Rd);
+	u8 cmode = 1;
+	u8 op = 1;
+	if (size == 16)
+	{
+		_assert_msg_(DYNA_REC, shift == 0 || shift == 8, "%s(size16) only supports shift of {0, 8}!", __FUNCTION__);
+
+		if (shift == 8)
+			cmode |= 2;
+	}
+	else if (size == 32)
+	{
+		_assert_msg_(DYNA_REC,
+			shift == 0 || shift == 8 || shift == 16 || shift == 24,
+			"%s(size32) only supports shift of {0, 8, 16, 24}!", __FUNCTION__);
+		// XXX: Implement support for MOVI - shifting ones variant
+		switch (shift)
+		{
+		case 8:  cmode |= 2; break;
+		case 16: cmode |= 4; break;
+		case 24: cmode |= 6; break;
+		default: break;
+		}
+	}
+	else
+		_assert_msg_(DYNA_REC, false, "%s only supports size of {16, 32}!", __FUNCTION__);
+	EncodeModImm(Q, op, cmode, 0, Rd, imm);
 }
 
 void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
