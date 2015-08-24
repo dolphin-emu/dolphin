@@ -48,7 +48,7 @@
         The following libs are needed since we pull in pretty much the entire
         dolphin codebase.
         -->
-      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;$(ExternalsDir)openvr\lib\win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2013/libovr64d.lib')">libovr64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Debug/VS2013/libovr.lib')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(ExternalsDir)LibOVR/Lib/Win32/VS2013/libovr64d.lib')">libovrd.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -56,21 +56,11 @@
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2013/libovr64.lib')">libovr64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Release/VS2013/libovr.lib')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32' And Exists('$(ExternalsDir)LibOVR')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Platform)'=='x64' And Exists('$(ExternalsDir)openvr/lib/win64/openvr_api.lib')">openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Platform)'=='Win32' And Exists('$(ExternalsDir)openvr/lib/win32/openvr_api.lib')">openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
-    <ClCompile>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <ClCompile>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <ClCompile>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <ClCompile>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <!--gtest is rather small, so just include it into the build here-->
