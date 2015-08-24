@@ -30,6 +30,8 @@ std::string m_strDriver;
 std::string m_strDisplay;
 vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
 bool m_bUseCompositor = true;
+bool m_rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
+int m_iValidPoseCount;
 #endif
 
 void ClearDebugProj();
@@ -47,7 +49,7 @@ int g_ovr_frameindex;
 std::mutex g_vr_lock;
 
 bool g_force_vr = false;
-bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
+bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false, g_has_steamvr = false;
 bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
@@ -131,7 +133,7 @@ void NewVRFrame()
 			g_vr_speed += vr_freelook_speed;
 		vr_freelook_speed = 0;
 	}
-	if (g_has_hmd && g_ActiveConfig.iMotionSicknessMethod == 2)
+	if ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.iMotionSicknessMethod == 2)
 	{
 		// black the screen if we are moving fast
 		g_vr_black_screen = (g_vr_speed > 0.15f);
@@ -198,7 +200,7 @@ bool BInitCompositor()
 	{
 		m_pCompositor = nullptr;
 
-		ERROR_LOG(VR, "Compositor initialization failed with error: %s\n", vr::VR_GetStringForHmdError(peError));
+		NOTICE_LOG(VR, "Compositor initialization failed with error: %s\n", vr::VR_GetStringForHmdError(peError));
 		return false;
 	}
 
@@ -221,6 +223,7 @@ void InitVR()
 	g_has_hmd = false;
 	g_is_direct_mode = false;
 	g_hmd_device_name = nullptr;
+	g_has_steamvr = false;
 #ifdef HAVE_OPENVR
 	// Loading the SteamVR Runtime
 	vr::HmdError eError = vr::HmdError_None;
@@ -229,8 +232,9 @@ void InitVR()
 	if (eError != vr::HmdError_None)
 	{
 		m_pHMD = nullptr;
-		WARN_LOG(VR, "Unable to init VR runtime: %s, Steam might not be running.", vr::VR_GetStringForHmdError(eError));
-		PanicAlertT("VR_Init Failed, Steam might not be running.");
+		WARN_LOG(VR, "Unable to init VR runtime: %s", vr::VR_GetStringForHmdError(eError));
+		PanicAlertT("VR_Init Failed");
+		g_has_steamvr = false;
 	}
 	else
 	{
@@ -242,11 +246,13 @@ void InitVR()
 
 			ERROR_LOG(VR, "Unable to get render model interface: %s", vr::VR_GetStringForHmdError(eError));
 			PanicAlertT("VR_Init Failed");
+			g_has_steamvr = false;
 		}
 		else
 		{
 			SuccessAlertT("VR_Init Succeeded");
 			NOTICE_LOG(VR, "VR_Init Succeeded");
+			g_has_steamvr = true;
 		}
 
 		u32 m_nWindowWidth = 0;
@@ -385,6 +391,7 @@ void ShutdownVR()
 	{
 		vr::VR_Shutdown();
 		m_pHMD = nullptr;
+		g_has_steamvr = false;
 	}
 #else
 #ifdef OVR_MAJOR_VERSION
@@ -406,11 +413,18 @@ void ShutdownVR()
 
 void VR_RecenterHMD()
 {
+#ifdef HAVE_OPENVR
+	if (m_pHMD)
+	{
+		m_pHMD->ResetSeatedZeroPose();
+	}
+#else
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		ovrHmd_RecenterPose(hmd);
 	}
+#endif
 #endif
 }
 
@@ -475,8 +489,69 @@ void VR_GetEyePoses()
 #endif
 }
 
+#ifdef HAVE_OPENVR
+//-----------------------------------------------------------------------------
+// Purpose: Processes a single VR event
+//-----------------------------------------------------------------------------
+void ProcessVREvent(const vr::VREvent_t & event)
+{
+	switch (event.eventType)
+	{
+	case vr::VREvent_TrackedDeviceActivated:
+		{
+			//SetupRenderModelForTrackedDevice(event.trackedDeviceIndex);
+			NOTICE_LOG(VR, "Device %u attached. Setting up render model.\n", event.trackedDeviceIndex);
+			break;
+		}
+	case vr::VREvent_TrackedDeviceDeactivated:
+		{
+			NOTICE_LOG(VR, "Device %u detached.\n", event.trackedDeviceIndex);
+			break;
+		}
+	case vr::VREvent_TrackedDeviceUpdated:
+		{
+			NOTICE_LOG(VR, "Device %u updated.\n", event.trackedDeviceIndex);
+			break;
+		}
+	}
+}
+#endif
+
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z)
 {
+#ifdef HAVE_OPENVR
+	if (m_pHMD)
+	{
+		float fSecondsUntilPhotons = 0.0f;
+		m_pHMD->GetDeviceToAbsoluteTrackingPose( vr::TrackingUniverseSeated, fSecondsUntilPhotons, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount );
+		m_iValidPoseCount = 0;
+		//for ( int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice )
+		//{
+		//	if ( m_rTrackedDevicePose[nDevice].bPoseIsValid )
+		//	{
+		//		m_iValidPoseCount++;
+		//		//m_rTrackedDevicePose[nDevice].mDeviceToAbsoluteTracking;
+		//	}
+		//}
+
+		if ( m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid )
+		{
+			*x = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[0][3];
+			*y = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[1][3];
+			*z = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[2][3];
+			Matrix33 m;
+			for (int r = 0; r < 3; r++)
+				for (int c = 0; c < 3; c++)
+					m.data[r*3+c] = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[r][c];
+			float ya = 0.0f, p = 0.0f, r = 0.0f;
+			m.GetPieYawPitchRollR(m, ya, p, r);
+			*roll = -RADIANS_TO_DEGREES(r);  // ???
+			*pitch = -RADIANS_TO_DEGREES(p); // should be degrees down
+			*yaw = RADIANS_TO_DEGREES(ya);   // should be degrees right
+		}
+	}
+#else
+
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift && hmd)
 	{
@@ -524,12 +599,32 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 		}
 #endif
 	}
+#endif
 }
 
 void UpdateHeadTrackingIfNeeded()
 {
 	if (g_new_tracking_frame)
 	{
+#ifdef HAVE_OPENVR
+		// Process SteamVR events
+		vr::VREvent_t event;
+		while (m_pHMD->PollNextEvent(&event))
+		{
+			ProcessVREvent(event);
+		}
+
+		// Process SteamVR controller state
+		for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
+		{
+			vr::VRControllerState_t state;
+			if (m_pHMD->GetControllerState(unDevice, &state))
+			{
+				m_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
+			}
+		}
+#endif
+
 		float x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0;
 		ReadHmdOrientation(&roll, &pitch, &yaw, &x, &y, &z);
 		g_head_tracking_position[0] = -x;

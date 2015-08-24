@@ -28,7 +28,7 @@ void UpdateActiveConfig()
 		Movie::SetGraphicsConfig();
 
 	g_ActiveConfig = g_Config;
-	if (g_has_hmd)
+	if ((g_has_hmd || g_has_steamvr))
 		g_ActiveConfig.bUseRealXFB = false;
 }
 
@@ -186,7 +186,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("StereoDepth", &iStereoDepth, 20);
 	enhancements->Get("StereoConvergence", &iStereoConvergence, 20);
 	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
-	if (g_has_rift && backend_info.bSupportsGeometryShaders)
+	if ((g_has_rift || g_has_steamvr) && backend_info.bSupportsGeometryShaders)
 		iStereoMode = STEREO_OCULUS;
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
@@ -354,7 +354,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "DstAlphaPass", bDstAlphaPass);
 	CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
 
-	if (g_has_hmd)
+	if ((g_has_hmd || g_has_steamvr))
 	{
 		CHECK_SETTING("Video_Settings_VR", "UseXFB", bUseXFB);
 		CHECK_SETTING("Video_Settings_VR", "UseRealXFB", bUseRealXFB);
@@ -412,7 +412,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-	if (g_has_hmd)
+	if ((g_has_hmd || g_has_steamvr))
 	{
 		CHECK_SETTING("Video_Hacks_VR", "EFBAccessEnable", bEFBAccessEnable);
 		CHECK_SETTING("Video_Hacks_VR", "EFBCopyEnable", bEFBCopyEnable);
@@ -575,7 +575,7 @@ void VideoConfig::VerifyValidity()
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
 
-	if (g_has_rift)
+	if (g_has_rift || g_has_steamvr)
 		iStereoMode = STEREO_OCULUS;
 	else if (g_has_vr920)
 		iStereoMode = STEREO_VR920;

@@ -2259,7 +2259,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 
 	case NES_RENDER_TO_TEXTURE:
 		g_viewport_type = VIEW_RENDER_TO_TEXTURE;
-		if (g_has_hmd && g_ActiveConfig.bEnableVR)
+		if ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR)
 		{
 			// The Wii doesn't change viewports here, but we need to, because we are going from fullscreen VR to rendering to a texture.
 			VertexShaderManager::SetViewportConstants();
@@ -2267,7 +2267,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		break;
 	case NES_SHOW_TEXTURE:
 		g_viewport_type = VIEW_LETTERBOXED;
-		if (g_has_hmd && g_ActiveConfig.bEnableVR)
+		if ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR)
 		{
 			// The Wii doesn't change viewports here, but we need to, because we are going from rendering to a texture to fullscreen VR rendering
 			VertexShaderManager::SetViewportConstants();
@@ -2279,7 +2279,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		break;
 	case NES_WII_GUI_BACKGROUND:
 		g_viewport_type = VIEW_LETTERBOXED;
-		if (g_has_hmd && g_ActiveConfig.bEnableVR)
+		if ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR)
 		{
 			VertexShaderManager::SetViewportConstants();
 		}
@@ -2289,7 +2289,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case NES_UNKNOWN_2D:
 		g_viewport_type = VIEW_LETTERBOXED;
 		*fScaleHack = 2.0f;
-		if (g_has_hmd && g_ActiveConfig.bEnableVR)
+		if ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR)
 		{
 			VertexShaderManager::SetViewportConstants();
 		}

@@ -58,6 +58,12 @@ extern "C"
 #define SCM_OCULUS_STR ", no Oculus SDK"
 #endif
 #endif
+#ifdef HAVE_OPENVR
+#include <openvr.h>
+#undef SCM_OCULUS_STR
+#define SCM_OCULUS_STR ", for SteamVR"
+#endif
+
 
 #include <mutex>
 
@@ -129,7 +135,7 @@ void OpcodeReplayBuffer();
 void OpcodeReplayBufferInline();
 
 extern bool g_force_vr;
-extern bool g_has_hmd, g_has_rift, g_has_vr920, g_is_direct_mode, g_is_nes;
+extern bool g_has_hmd, g_has_rift, g_has_vr920, g_has_steamvr, g_is_direct_mode, g_is_nes;
 extern bool g_new_tracking_frame;
 extern bool g_new_frame_tracker_for_efb_skip;
 extern u32 skip_objects_count;
@@ -179,6 +185,18 @@ extern std::mutex g_vr_lock;
 extern volatile u32 g_drawn_vr;
 
 extern bool debug_nextScene;
+
+#ifdef HAVE_OPENVR
+extern vr::IVRSystem *m_pHMD;
+extern vr::IVRRenderModels *m_pRenderModels;
+extern vr::IVRCompositor *m_pCompositor;
+extern std::string m_strDriver;
+extern std::string m_strDisplay;
+extern vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+extern bool m_bUseCompositor;
+extern bool m_rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
+extern int m_iValidPoseCount;
+#endif
 
 #ifdef OVR_MAJOR_VERSION
 extern ovrHmd hmd;

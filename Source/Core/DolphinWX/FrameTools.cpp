@@ -641,7 +641,7 @@ void CFrame::BootGame(const std::string& filename)
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
 
-	if (g_has_hmd)
+	if (g_has_hmd || g_has_steamvr)
 	{
 		wxMessageDialog HealthDlg(
 			this,

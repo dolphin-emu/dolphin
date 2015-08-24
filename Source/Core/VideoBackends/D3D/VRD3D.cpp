@@ -21,7 +21,7 @@ namespace DX11
 
 void VR_ConfigureHMD()
 {
-#ifdef OVR_MAJOR_VERSION
+#ifdef OVR_MAJOR_VERSION_
 	ovrD3D11Config cfg;
 	cfg.D3D11.Header.API = ovrRenderAPI_D3D11;
 #ifdef OCULUSSDK044ORABOVE

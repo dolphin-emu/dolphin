@@ -236,7 +236,7 @@ namespace HotkeysXInput
 		{
 			VertexShaderManager::TranslateView(-freeLookSpeed, 0.0f);
 		}
-		else if (g_has_hmd)
+		else if (g_has_hmd || g_has_steamvr)
 		{
 			if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_LARGER_SCALE)) 
 			{

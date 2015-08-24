@@ -339,7 +339,7 @@ void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
 	TargetRectangle trc;
 	// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
-	if (g_has_hmd)
+	if ((g_has_hmd || g_has_steamvr))
 	{
 		EFBRectangle sourceRc;
 		sourceRc.left = 0;
@@ -561,7 +561,7 @@ void Renderer::SetViewport()
 	}
 	g_requested_viewport = EFBRectangle((int)X, (int)Y, (int)Wd, (int)Ht);
 
-	if (g_viewport_type != VIEW_RENDER_TO_TEXTURE && g_has_hmd && g_ActiveConfig.bEnableVR)
+	if (g_viewport_type != VIEW_RENDER_TO_TEXTURE && (g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR)
 	{
 		// In VR we must use the entire EFB, not just the copyTexSrc area that is normally used.
 		// So scale from copyTexSrc to entire EFB, and we won't use copyTexSrc during rendering.
@@ -1162,7 +1162,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Enable configuration changes
 	UpdateActiveConfig();
 	// VR Real XFB isn't implemented yet, so always disable it for VR
-	if (g_has_hmd && g_ActiveConfig.bEnableVR)
+	if ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR)
 	{
 		g_ActiveConfig.bUseRealXFB = false;
 		// always stretch to fit
@@ -1282,7 +1282,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		if (g_ActiveConfig.bAsynchronousTimewarp)
 			g_vr_lock.unlock();
 	}
-	else if (g_has_hmd && !g_ActiveConfig.bDontClearScreen)
+	else if ((g_has_hmd || g_has_steamvr) && !g_ActiveConfig.bDontClearScreen)
 	{
 		// cegli - clearing the screen here causes flickering in games that fake 60fps by only actually updating
 		// the entire screen once every 2 frames.  They rely on the fact that nothing is cleared on the fake frame.

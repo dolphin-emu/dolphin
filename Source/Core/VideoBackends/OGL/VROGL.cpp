@@ -23,8 +23,36 @@ ovrGLTexture g_eye_texture[2];
 namespace OGL
 {
 
+#ifdef HAVE_OPENVR
+GLuint m_left_texture = 0, m_right_texture = 0;
+//-----------------------------------------------------------------------------
+// Purpose: Creates all the shaders used by HelloVR SDL
+//-----------------------------------------------------------------------------
+bool CreateAllShaders()
+{
+	return false;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+bool BInitGL()
+{
+	if (!CreateAllShaders())
+		return false;
+	return true;
+}
+#endif
+
+
 void VR_ConfigureHMD()
 {
+#ifdef HAVE_OPENVR
+	if (m_pCompositor)
+	{
+		//m_pCompositor->SetGraphicsDevice(vr::Compositor_DeviceType_OpenGL, nullptr);
+	}
+#else
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
@@ -79,10 +107,15 @@ void VR_ConfigureHMD()
 #endif
 	}
 #endif
+#endif
 }
 
 void VR_StartFramebuffer(int target_width, int target_height, GLuint left_texture, GLuint right_texture)
 {
+#ifdef HAVE_OPENVR
+	m_left_texture = left_texture;
+	m_right_texture = right_texture;
+#else
 	if (g_has_vr920)
 	{
 #ifdef _WIN32
@@ -105,10 +138,27 @@ void VR_StartFramebuffer(int target_width, int target_height, GLuint left_textur
 			g_eye_texture[1].OGL.TexId = right_texture;
 	}
 #endif
+#endif
 }
 
 void VR_PresentHMDFrame()
 {
+#ifdef HAVE_OPENVR
+	if (m_pCompositor)
+	{
+		m_pCompositor->Submit(vr::Eye_Left, vr::API_OpenGL, (void*)m_left_texture, nullptr);
+		m_pCompositor->Submit(vr::Eye_Right, vr::API_OpenGL, (void*)m_right_texture, nullptr);
+		m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+		uint32_t unSize = m_pCompositor->GetLastError(NULL, 0);
+		if (unSize > 1)
+		{
+			char* buffer = new char[unSize];
+			m_pCompositor->GetLastError(buffer, unSize);
+			NOTICE_LOG(VR, "Compositor - %s\n", buffer);
+			delete[] buffer;
+		}
+	}
+#endif
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{

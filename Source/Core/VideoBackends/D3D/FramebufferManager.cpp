@@ -71,7 +71,7 @@ FramebufferManager::FramebufferManager()
 		m_efb.m_frontBuffer[eye] = nullptr;
 		// init to null
 	}
-	if (g_has_hmd)
+	if (g_has_hmd || g_has_steamvr)
 	{
 		m_stereo3d = true;
 		m_eye_count = 2;
@@ -86,7 +86,7 @@ FramebufferManager::FramebufferManager()
 	m_target_height = Renderer::GetTargetHeight();
 	DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
 
-	if (g_has_hmd)
+	if (g_has_hmd || g_has_steamvr)
 		VR_ConfigureHMD();
 
 	ID3D11Texture2D* buf;

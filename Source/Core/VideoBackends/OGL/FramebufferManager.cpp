@@ -106,7 +106,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	m_efbFramebuffer = new GLuint[m_EFBLayers]();
 	m_resolvedFramebuffer = new GLuint[m_EFBLayers]();
 
-	if (g_has_rift)
+	if (g_has_rift || g_has_steamvr)
 	{
 		m_textureType = GL_TEXTURE_2D;
 		glGenTextures(2, m_frontBuffer);
@@ -217,7 +217,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	// Create XFB framebuffer; targets will be created elsewhere.
 	glGenFramebuffers(1, &m_xfbFramebuffer);
 
-	if (g_has_rift)
+	if (g_has_rift || g_has_steamvr)
 	{
 		glGenFramebuffers(2, m_eyeFramebuffer);
 		for (int eye = 0; eye < 2; ++eye)

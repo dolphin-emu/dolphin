@@ -230,7 +230,7 @@ static void BPWritten(const BPCmd& bp)
 				// (except when rendering to a square texture in the corner)
 				// So we want to copy a fraction of the whole screen, instead of a fraction of the viewport.
 				// Currently this will only work will copying the EFB to a texture.
-				if (g_has_hmd && g_viewport_type != VIEW_RENDER_TO_TEXTURE && !(g_rendered_viewport==g_requested_viewport) 
+				if ((g_has_hmd || g_has_steamvr) && g_viewport_type != VIEW_RENDER_TO_TEXTURE && !(g_rendered_viewport == g_requested_viewport)
 					&& g_ActiveConfig.bEnableVR && g_ActiveConfig.bSkipEFBCopyToRam)
 				{
 					if (debug_newScene)
@@ -294,7 +294,7 @@ static void BPWritten(const BPCmd& bp)
 
 #ifdef RECURSIVE_OPCODE
 			//Render Extra Headtracking Frames for VR.
-			if (new_frame_just_rendered && g_has_hmd)
+			if (new_frame_just_rendered && (g_has_hmd || g_has_steamvr))
 			{
 				OpcodeReplayBuffer();
 			}

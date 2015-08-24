@@ -49,7 +49,7 @@ ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(vscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 
-		if (g_has_hmd)
+		if ((g_has_hmd || g_has_steamvr))
 		{
 			static int i = 0;
 

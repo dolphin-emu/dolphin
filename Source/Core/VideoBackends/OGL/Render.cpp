@@ -710,7 +710,7 @@ Renderer::~Renderer()
 void Renderer::Shutdown()
 {
 	static int ElementArrayBufferBinding, ArrayBufferBinding;
-	if (g_has_rift && !g_first_rift_frame && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
+	if ((g_has_rift || g_has_steamvr) && !g_first_rift_frame && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		VR_PresentHMDFrame();
 	}
@@ -929,7 +929,7 @@ void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
 	TargetRectangle trc;
 	// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
-	if (g_has_hmd)
+	if ((g_has_hmd || g_has_steamvr))
 	{
 		EFBRectangle sourceRc;
 		sourceRc.left = 0;
@@ -1284,7 +1284,7 @@ void Renderer::SetViewport()
 	}
 	g_requested_viewport = EFBRectangle((int)X, (int)Y, (int)Width, (int)Height);
 
-	if (g_viewport_type != VIEW_RENDER_TO_TEXTURE && g_has_hmd && g_ActiveConfig.bEnableVR)
+	if (g_viewport_type != VIEW_RENDER_TO_TEXTURE && (g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR)
 	{
 		// In VR we must use the entire EFB, not just the copyTexSrc area that is normally used.
 		// So scale from copyTexSrc to entire EFB, and we won't use copyTexSrc during rendering.
@@ -1341,7 +1341,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	// Update rect for clearing the picture
 	// TODO fix this properly by setting the scissor rectangle
-	if (g_has_hmd)
+	if ((g_has_hmd || g_has_steamvr))
 		glDisable(GL_SCISSOR_TEST);
 	else
 		glEnable(GL_SCISSOR_TEST);
@@ -1393,7 +1393,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	{
 		// Reinterpretting pixel data crashes OpenGL at the next glFinish
 		//	FramebufferManager::ReinterpretPixelData(convtype);
-		if (!g_has_hmd)
+		if (!(g_has_hmd || g_has_steamvr))
 			FramebufferManager::ReinterpretPixelData(convtype);
 	}
 	else
@@ -1711,7 +1711,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Copy the framebuffer to screen.
 	const XFBSource* xfbSource = nullptr;
 
-	if (g_has_rift && g_ActiveConfig.bEnableVR)
+	if ((g_has_rift || g_has_steamvr) && g_ActiveConfig.bEnableVR)
 	{
 		EFBRectangle sourceRc;
 		// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
@@ -1766,6 +1766,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
 				{
 					m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
+					// OpenVR mirror window
+					if (g_has_steamvr)
+					{
+						glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+						m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
+					}
 
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[1]);
 					m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
@@ -1785,6 +1791,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
 			{
 				m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 0);
+				// OpenVR mirror window
+				if (g_has_steamvr)
+				{
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+					m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 0);
+				}
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[1]);
 				m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 1);
@@ -2167,7 +2179,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	NewVRFrame();
 
 	// Clear framebuffer
-	if (g_has_hmd && g_ActiveConfig.bEnableVR)
+	if ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR)
 	{
 		if (!g_ActiveConfig.bDontClearScreen)
 		{
@@ -2242,7 +2254,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	UpdateActiveConfig();
 	// VR Real XFB isn't implemented yet, so always disable it for VR
-	if (g_has_hmd && g_ActiveConfig.bEnableVR)
+	if ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR)
 	{
 		g_ActiveConfig.bUseRealXFB = false;
 		// always stretch to fit
@@ -2285,7 +2297,7 @@ void Renderer::ResetAPIState()
 void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.
-	if (g_has_hmd)
+	if ((g_has_hmd || g_has_steamvr))
 		glDisable(GL_SCISSOR_TEST);
 	else
 		glEnable(GL_SCISSOR_TEST);

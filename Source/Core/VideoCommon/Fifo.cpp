@@ -268,7 +268,7 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
 
 #ifdef INLINE_OPCODE
 	//Render Extra Headtracking Frames for VR.
-	if (g_new_frame_just_rendered && g_has_hmd)
+	if (g_new_frame_just_rendered && (g_has_hmd || g_has_steamvr))
 	{
 		OpcodeReplayBufferInline();
 	}
@@ -319,7 +319,7 @@ void RunGpuLoop()
 
 #ifdef INLINE_OPCODE
 				//Render Extra Headtracking Frames for VR.
-				if (g_new_frame_just_rendered && g_has_hmd)
+				if (g_new_frame_just_rendered && (g_has_hmd || g_has_steamvr))
 				{
 					OpcodeReplayBufferInline();
 				}
@@ -370,7 +370,7 @@ void RunGpuLoop()
 
 #ifdef INLINE_OPCODE
 					//Render Extra Headtracking Frames for VR.
-					if (g_new_frame_just_rendered && g_has_hmd)
+					if (g_new_frame_just_rendered && (g_has_hmd || g_has_steamvr))
 					{
 						OpcodeReplayBufferInline();
 					}
@@ -471,7 +471,7 @@ void RunGpu()
 
 #ifdef INLINE_OPCODE
 				//Render Extra Headtracking Frames for VR.
-				if (g_new_frame_just_rendered && g_has_hmd)
+				if (g_new_frame_just_rendered && (g_has_hmd || g_has_steamvr))
 				{
 					OpcodeReplayBufferInline();
 				}
