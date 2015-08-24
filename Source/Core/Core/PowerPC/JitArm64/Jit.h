@@ -153,6 +153,7 @@ public:
 	void fsubx(UGeckoInstruction inst);
 	void fcmpx(UGeckoInstruction inst);
 	void frspx(UGeckoInstruction inst);
+	void fctiwzx(UGeckoInstruction inst);
 
 	// Paired
 	void ps_abs(UGeckoInstruction inst);
