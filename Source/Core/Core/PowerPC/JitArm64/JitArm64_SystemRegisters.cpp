@@ -579,3 +579,56 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 	gpr.Unlock(WA);
 	gpr.Unlock(WB);
 }
+
+void JitArm64::mfcr(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	gpr.Lock(W0, W1, W2, W30);
+	MOVI2R(X0, (u64)asm_routines.mfcr);
+	BLR(X0);
+	gpr.Unlock(W1, W2, W30);
+
+	gpr.BindToRegister(inst.RD, false);
+	MOV(gpr.R(inst.RD), W0);
+
+	gpr.Unlock(W0);
+}
+
+void JitArm64::mtcrf(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	u32 crm = inst.CRM;
+	if (crm != 0)
+	{
+		ARM64Reg RS = gpr.R(inst.RS);
+		ARM64Reg WA = gpr.GetReg();
+		ARM64Reg XA = EncodeRegTo64(WA);
+		ARM64Reg WB = gpr.GetReg();
+		ARM64Reg XB = EncodeRegTo64(WB);
+		MOVI2R(XB, (u64)m_crTable);
+		for (int i = 0; i < 8; ++i)
+		{
+			if ((crm & (0x80 >> i)) != 0)
+			{
+				if (i != 7)
+					LSR(WA, RS, 28 - i * 4);
+				if (i != 0)
+				{
+					if (i != 7)
+						UBFX(WA, WA, 0, 4);
+					else
+						UBFX(WA, RS, 0, 4);
+				}
+
+				LDR(XA, XB, ArithOption(XA, true));
+				STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val) + 8 * i);
+			}
+		}
+		gpr.Unlock(WA, WB);
+	}
+}
+
