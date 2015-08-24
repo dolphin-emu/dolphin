@@ -336,7 +336,7 @@ static GekkoOPTemplate table63[] =
 	{70,  &Jit64::mtfsb0x},               // mtfsb0x
 	{38,  &Jit64::mtfsb1x},               // mtfsb1x
 	{134, &Jit64::mtfsfix},               // mtfsfix
-	{711, &Jit64::mtfsfx},                // mtfsfx
+	{711, &Jit64::FallBackToInterpreter}, // mtfsfx
 };
 
 static GekkoOPTemplate table63_2[] =
