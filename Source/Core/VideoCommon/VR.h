@@ -15,6 +15,11 @@ const int DEFAULT_VR_EXTRA_FRAMES = 0;
 const int DEFAULT_VR_EXTRA_VIDEO_LOOPS = 0;
 const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 
+// Disable OpenVR support for now
+#ifdef HAVE_OPENVR
+#undef HAVE_OPENVR
+#endif
+
 #ifdef HAVE_OCULUSSDK
 #include "OVR_Version.h"
 #if OVR_MAJOR_VERSION <= 4

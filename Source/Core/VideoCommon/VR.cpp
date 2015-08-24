@@ -15,11 +15,6 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
-// for testing only
-#ifndef HAVE_OPENVR
-#define HAVE_OPENVR
-#endif
-
 #ifdef HAVE_OPENVR
 #include <openvr.h>
 
