@@ -284,7 +284,7 @@ static GekkoOPTemplate table31[] =
 	{695, &JitArm64::stfXX},                    // stfsux
 	{727, &JitArm64::stfXX},                    // stfdx
 	{759, &JitArm64::stfXX},                    // stfdux
-	{983, &JitArm64::FallBackToInterpreter},    // stfiwx
+	{983, &JitArm64::stfXX},                    // stfiwx
 
 	{19,  &JitArm64::FallBackToInterpreter},    // mfcr
 	{83,  &JitArm64::mfmsr},                    // mfmsr
