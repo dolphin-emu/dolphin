@@ -153,7 +153,7 @@ bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 	auto const device_path = USERMODEDEVICEDIR + device_guid + TAPSUFFIX;
 
 	adapter = CreateFile(device_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, 0);
+		OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED | FILE_FLAG_NO_BUFFERING, 0);
 
 	if (adapter == INVALID_HANDLE_VALUE)
 	{
@@ -187,6 +187,7 @@ bool CEXIETHERNET::Activate()
 			break;
 		}
 	}
+
 	if (mHAdapter == INVALID_HANDLE_VALUE)
 	{
 		PanicAlert("Failed to open any TAP");
@@ -221,6 +222,23 @@ bool CEXIETHERNET::Activate()
 		return false;
 	}
 
+	// Disable packet reading
+	readEnabled.store(false);
+	writeRequest.store(false);
+
+	if ((mHWriteEvent = CreateEvent(nullptr, true, false, nullptr)) == nullptr)
+	{
+		ERROR_LOG(SP1, "Failed to create write event:%x", GetLastError());
+		return false;
+	}
+
+	// Initialize overlapped
+	ZeroMemory(&mWriteOverlapped, sizeof(mWriteOverlapped));
+	mWriteOverlapped.hEvent = mHWriteEvent;
+
+	// Start early so we can get all those pestky packets that are not ment for us
+	RecvInit();
+
 	return true;
 }
 
@@ -229,10 +247,20 @@ void CEXIETHERNET::Deactivate()
 	if (!IsActivated())
 		return;
 
-	RecvStop();
+	// Stop package handling
+	readEnabled.store(false);
 
+	// Close file and event handles
 	CloseHandle(mHAdapter);
 	mHAdapter = INVALID_HANDLE_VALUE;
+	CloseHandle(mHReadEvent);
+	mHReadEvent = INVALID_HANDLE_VALUE;
+	CloseHandle(mHWriteEvent);
+	mHWriteEvent = INVALID_HANDLE_VALUE;
+
+	// Stop read thread
+	if (readThread.joinable())
+		readThread.join();
 }
 
 bool CEXIETHERNET::IsActivated()
@@ -242,99 +270,113 @@ bool CEXIETHERNET::IsActivated()
 
 bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 {
-	DEBUG_LOG(SP1, "SendFrame %x\n%s",
-		size, ArrayToString(frame, size, 0x10).c_str());
+	// Inform the read thread that we want to read
+	writeRequest.store(true);
 
-	OVERLAPPED overlap;
-	ZeroMemory(&overlap, sizeof(overlap));
+	// Wait for read thread to release the lock
+	CancelIoEx(mHAdapter, &mReadOverlapped);
+	mMutex.lock();
+
+	// Stop requesting lock as we already have it
+	writeRequest.store(false);
+
+	DEBUG_LOG(SP1, "SendFrame %u\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 
 	// WriteFile will always return false because the TAP handle is async
-	WriteFile(mHAdapter, frame, size, NULL, &overlap);
-
-	DWORD res = GetLastError();
-	if (res != ERROR_IO_PENDING)
+	if (!WriteFile(mHAdapter, frame, size, NULL, &mWriteOverlapped))
 	{
-		ERROR_LOG(SP1, "Failed to send packet with error 0x%X", res);
+		DWORD err = GetLastError();
+		if (err && err != ERROR_IO_PENDING)
+		{
+			ERROR_LOG(SP1, "Failed to send packet with error 0x%X", err);
+		}
+
+		DWORD byteswritten;
+		GetOverlappedResult(mHAdapter, &mWriteOverlapped, &byteswritten, true);
 	}
+
 
 	// Always report the packet as being sent successfully, even though it might be a lie
 	SendComplete();
 
+	mMutex.unlock();
 	return true;
 }
 
-VOID CALLBACK CEXIETHERNET::ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired)
+static void ReadThreadHandler(CEXIETHERNET* self)
 {
-	CEXIETHERNET* self = (CEXIETHERNET*)lpParameter;
+	while (true)
+	{
+		self->mMutex.lock();
 
-	GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped,
-		(LPDWORD)&self->mRecvBufferLength, false);
+		// Handle all packets currently in queue
+		do
+		{
+			// Check if the device is still opened
+			if (self->mHAdapter == INVALID_HANDLE_VALUE)
+				break;
 
-	self->RecvHandlePacket();
+			// Get packet, return right away if async/overlapped
+			DWORD res = ReadFile(self->mHAdapter, self->mRecvBuffer, BBA_RECV_SIZE, (LPDWORD)&self->mRecvBufferLength, &self->mReadOverlapped);
+
+			// If the read is Async or has errors, check and wait
+			if (!res)
+			{
+				DWORD err = GetLastError();
+				if (err && err != ERROR_IO_PENDING)
+				{
+					// Unexpected error
+					ERROR_LOG(SP1, "Failed to recieve packet with error 0x%X", err);
+					return;
+				}
+
+				// Get the overlapped result, and wait for it (or a cancel)
+				BOOL overlap = GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped, (LPDWORD)&self->mRecvBufferLength, true);
+				if (!overlap)
+				{
+					// Read got canceled! break so we can unlock the mutex
+					break;
+				}
+			}
+
+			// Handle packet if allowed
+			if (self->readEnabled.load())
+			{
+				self->RecvHandlePacket();
+			}
+		} while (!self->writeRequest.load());
+
+		self->mMutex.unlock();
+	}
 }
 
 bool CEXIETHERNET::RecvInit()
 {
-	// Set up recv event
-
-	if ((mHRecvEvent = CreateEvent(nullptr, false, false, nullptr)) == nullptr)
+	if ((mHReadEvent = CreateEvent(nullptr, true, false, nullptr)) == nullptr)
 	{
 		ERROR_LOG(SP1, "Failed to create recv event:%x", GetLastError());
 		return false;
 	}
 
+	// Initialize overlapped
 	ZeroMemory(&mReadOverlapped, sizeof(mReadOverlapped));
+	mReadOverlapped.hEvent = mHReadEvent;
 
-	RegisterWaitForSingleObject(&mHReadWait, mHRecvEvent, ReadWaitCallback,
-		this, INFINITE, WT_EXECUTEDEFAULT);
-
-	mReadOverlapped.hEvent = mHRecvEvent;
-
+	// Start read thread
+	readThread = std::thread(ReadThreadHandler, this);
 	return true;
 }
 
 bool CEXIETHERNET::RecvStart()
 {
-	if (!IsActivated())
-		return false;
-
-	if (mHRecvEvent == INVALID_HANDLE_VALUE)
+	if (!readThread.joinable())
 		RecvInit();
 
-	DWORD res = ReadFile(mHAdapter, mRecvBuffer, BBA_RECV_SIZE,
-		(LPDWORD)&mRecvBufferLength, &mReadOverlapped);
-
-	if (res)
-	{
-		// Since the read is synchronous here, complete immediately
-		RecvHandlePacket();
-		return true;
-	}
-	else
-	{
-		DWORD err = GetLastError();
-		if (err == ERROR_IO_PENDING)
-		{
-			return true;
-		}
-
-		// Unexpected error
-		ERROR_LOG(SP1, "Failed to recieve packet with error 0x%X", err);
-		return false;
-	}
-
+	readEnabled.store(true);
+	return true;
 }
 
 void CEXIETHERNET::RecvStop()
 {
-	if (!IsActivated())
-		return;
-
-	UnregisterWaitEx(mHReadWait, INVALID_HANDLE_VALUE);
-
-	if (mHRecvEvent != INVALID_HANDLE_VALUE)
-	{
-		CloseHandle(mHRecvEvent);
-		mHRecvEvent = INVALID_HANDLE_VALUE;
-	}
+	readEnabled.store(false);
 }

@@ -8,6 +8,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <mutex>
 #endif
 
 #include "Common/Thread.h"
@@ -323,14 +324,14 @@ public:
 	u32 mRecvBufferLength;
 
 #if defined(_WIN32)
-	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
-	DWORD mMtu;
-	OVERLAPPED mReadOverlapped;
-	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
+	HANDLE mHAdapter, mHReadEvent, mHWriteEvent;
+	OVERLAPPED mReadOverlapped, mWriteOverlapped;
+	std::mutex mMutex;
+	std::atomic<bool> writeRequest;
 #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 	int fd;
-	std::thread readThread;
-	std::atomic<bool> readEnabled;
 #endif
 
+	std::thread readThread;
+	std::atomic<bool> readEnabled;
 };
