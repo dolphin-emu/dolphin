@@ -630,18 +630,18 @@ void Jit64::mffsx(UGeckoInstruction inst)
 	MOVSD(fpr.RX(d), R(XMM0));
 }
 
-static const u32 s_rn_to_rc[] = { 0 << 13, 3 << 13, 2 << 13, 1 << 13 };
+// MXCSR = s_fpscr_to_mxcsr[FPSCR & 7]
+static const u32 s_fpscr_to_mxcsr[] = {
+	0x1F80, 0x7F80, 0x5F80, 0x3F80,
+	0x9F80, 0xFF80, 0xDF80, 0xBF80,
+};
 
-void Jit64::UpdateRoundingMode()
+// Needs value of FPSCR in RSCRATCH.
+void Jit64::UpdateMXCSR()
 {
-	static u32 csr;
-	STMXCSR(M(&csr));
-	MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
-	AND(32, R(RSCRATCH), Imm32(3));
-	LEA(64, RSCRATCH2, M(&s_rn_to_rc));
-	MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_4, 0));
-	OR(32, M(&csr), R(RSCRATCH));
-	LDMXCSR(M(&csr));
+	LEA(64, RSCRATCH2, M(&s_fpscr_to_mxcsr));
+	AND(32, R(RSCRATCH), Imm32(7));
+	LDMXCSR(MComplex(RSCRATCH2, RSCRATCH, SCALE_4, 0));
 }
 
 void Jit64::mtfsb0x(UGeckoInstruction inst)
@@ -650,24 +650,17 @@ void Jit64::mtfsb0x(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 	FALLBACK_IF(inst.Rc);
 
-	AND(32, PPCSTATE(fpscr), Imm32(~(0x80000000 >> inst.CRBD)));
-
-	switch (inst.CRBD)
+	u32 mask= ~(0x80000000 >> inst.CRBD);
+	if (inst.CRBD < 29)
 	{
-	case 29:
-		// NI
-		static u32 csr;
-		STMXCSR(M(&csr));
-		AND(32, M(&csr), Imm32(~(1 << 15)));
-		LDMXCSR(M(&csr));
-		break;
-	case 30:
-	case 31:
-		// RN
-		UpdateRoundingMode();
-		break;
-	default:
-		break;
+		AND(32, PPCSTATE(fpscr), Imm32(mask));
+	}
+	else
+	{
+		MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
+		AND(32, R(RSCRATCH), Imm32(mask));
+		MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+		UpdateMXCSR();
 	}
 }
 
@@ -677,25 +670,22 @@ void Jit64::mtfsb1x(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 	FALLBACK_IF(inst.Rc);
 
-	OR(32, PPCSTATE(fpscr), Imm32(0x80000000 >> inst.CRBD));
-
-	switch (inst.CRBD)
+	u32 mask = 0x80000000 >> inst.CRBD;
+	MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
+	if (mask & FPSCR_ANY_X)
 	{
-	case 29:
-		// NI
-		static u32 csr;
-		STMXCSR(M(&csr));
-		OR(32, M(&csr), Imm32(1 << 15));
-		LDMXCSR(M(&csr));
-		break;
-	case 30:
-	case 31:
-		// RN
-		UpdateRoundingMode();
-		break;
-	default:
-		break;
+		BTS(32, R(RSCRATCH), Imm32(31 - inst.CRBD));
+		FixupBranch dont_set_fx = J_CC(CC_C);
+		OR(32, R(RSCRATCH), Imm32(1u << 31));
+		SetJumpTarget(dont_set_fx);
 	}
+	else
+	{
+		OR(32, R(RSCRATCH), Imm32(mask));
+	}
+	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+	if (inst.CRBD >= 29)
+		UpdateMXCSR();
 }
 
 void Jit64::mtfsfix(UGeckoInstruction inst)
@@ -704,30 +694,18 @@ void Jit64::mtfsfix(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 	FALLBACK_IF(inst.Rc);
 
-	u8 imm = inst.hex >> (31 - 19);
+	u8 imm = (inst.hex >> (31 - 19)) & 0xF;
+	u32 or_mask = imm << (28 - 4 * inst.CRFD);
+	u32 and_mask = ~(0xF0000000 >> (4 * inst.CRFD));
 
 	MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
-	AND(32, R(RSCRATCH), Imm32(~0xF));
-	OR(32, R(RSCRATCH), Imm32(imm << (28 - 4 * inst.CRFD)));
+	AND(32, R(RSCRATCH), Imm32(and_mask));
+	OR(32, R(RSCRATCH), Imm32(or_mask));
 	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
 
-	// XE, NI, RN
+	// Field 7 contains NI and RN.
 	if (inst.CRFD == 7)
-	{
-		u32 ftz_bit = (imm & 4) << 13;
-		u32 rc_mask = s_rn_to_rc[imm & 3];
-		u32 or_mask = ftz_bit | rc_mask;
-		u32 all_bits = 7 << 13;
-		u32 and_mask = all_bits & ~(ftz_bit | rc_mask);
-
-		static u32 csr;
-		STMXCSR(M(&csr));
-		if (or_mask)
-			OR(32, M(&csr), Imm32(or_mask));
-		if (and_mask != all_bits)
-			AND(32, M(&csr), Imm32(~and_mask));
-		LDMXCSR(M(&csr));
-	}
+		LDMXCSR(M(&s_fpscr_to_mxcsr[imm & 7]));
 }
 
 void Jit64::mtfsfx(UGeckoInstruction inst)
@@ -744,15 +722,17 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
 	}
 
 	int b = inst.FB;
-	X64Reg xmm = XMM0;
 	if (fpr.R(b).IsSimpleReg())
-		xmm = fpr.RX(b);
+		MOVQ_xmm(R(RSCRATCH), fpr.RX(b));
 	else
-		MOVSD(XMM0, fpr.R(b));
-	MOVQ_xmm(R(RSCRATCH), xmm);
-	AND(32, R(RSCRATCH), Imm32(mask));
+		MOV(32, R(RSCRATCH), fpr.R(b));
+
 	MOV(32, R(RSCRATCH2), PPCSTATE(fpscr));
+	AND(32, R(RSCRATCH), Imm32(mask));
 	AND(32, R(RSCRATCH2), Imm32(~mask));
 	OR(32, R(RSCRATCH), R(RSCRATCH2));
 	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+
+	if (inst.FM & 1)
+		UpdateMXCSR();
 }

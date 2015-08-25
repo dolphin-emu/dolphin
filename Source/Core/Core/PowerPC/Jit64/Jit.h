@@ -148,7 +148,7 @@ public:
 	                      void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&),
 	                      bool packed, bool preserve_inputs, bool roundRHS = false);
 	void FloatCompare(UGeckoInstruction inst, bool upper = false);
-	void UpdateRoundingMode();
+	void UpdateMXCSR();
 
 	// OPCODES
 	using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
