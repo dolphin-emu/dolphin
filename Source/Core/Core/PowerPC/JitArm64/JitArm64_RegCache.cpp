@@ -281,8 +281,23 @@ ARM64Reg Arm64FPRCache::R(u32 preg, bool only_lower)
 	switch (reg.GetType())
 	{
 	case REG_REG: // already in a reg
-	case REG_LOWER_PAIR:
 		return reg.GetReg();
+	break;
+	case REG_LOWER_PAIR:
+	{
+		if (!only_lower)
+		{
+			// Load the high 64bits from the file and insert them in to the high 64bits of the host register
+			ARM64Reg tmp_reg = GetReg();
+			m_float_emit->LDR(64, INDEX_UNSIGNED, tmp_reg, X29, PPCSTATE_OFF(ps[preg][1]));
+			m_float_emit->INS(64, reg.GetReg(), 1, tmp_reg, 0);
+			UnlockRegister(tmp_reg);
+
+			// Change it over to a full 128bit register
+			reg.LoadToReg(reg.GetReg());
+		}
+		return reg.GetReg();
+	}
 	break;
 	case REG_NOTLOADED: // Register isn't loaded at /all/
 	{
