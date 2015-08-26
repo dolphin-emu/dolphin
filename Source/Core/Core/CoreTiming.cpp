@@ -324,21 +324,11 @@ bool IsScheduled(int event_type)
 
 void RemoveEvent(int event_type)
 {
-	if (!first)
-		return;
-
-	while (first)
+	while (first && first->type == event_type)
 	{
-		if (first->type == event_type)
-		{
-			Event *next = first->next;
-			FreeEvent(first);
-			first = next;
-		}
-		else
-		{
-			break;
-		}
+		Event* next = first->next;
+		FreeEvent(first);
+		first = next;
 	}
 
 	if (!first)
@@ -434,21 +424,14 @@ void Advance()
 	lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
 	PowerPC::ppcState.downcount = CyclesToDowncount(slicelength);
 
-	while (first)
+	while (first && first->time <= globalTimer)
 	{
-		if (first->time <= globalTimer)
-		{
-			//LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
-			//             event_types[first->type].name ? event_types[first->type].name : "?", (u64)globalTimer, (u64)first->time);
-			Event* evt = first;
-			first = first->next;
-			event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
-			FreeEvent(evt);
-		}
-		else
-		{
-			break;
-		}
+		//LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
+		//             event_types[first->type].name ? event_types[first->type].name : "?", (u64)globalTimer, (u64)first->time);
+		Event* evt = first;
+		first = first->next;
+		event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
+		FreeEvent(evt);
 	}
 
 	if (!first)
