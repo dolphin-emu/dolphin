@@ -752,7 +752,7 @@ PFNGLDRAWRANGEELEMENTSBASEVERTEXPROC glDrawRangeElementsBaseVertex;
 PFNGLMULTIDRAWELEMENTSBASEVERTEXPROC glMultiDrawElementsBaseVertex;
 
 // ARB_sample_shading
-PFNGLMINSAMPLESHADINGARBPROC glMinSampleShadingARB;
+PFNGLMINSAMPLESHADINGARBPROC glMinSampleShading;
 
 // ARB_debug_output
 PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB;
@@ -1229,7 +1229,7 @@ const GLFunc gl_function_array[] =
 	GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex GL_EXT_multi_draw_arrays !GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
 
 	// ARB_sample_shading
-	GLFUNC_REQUIRES(glMinSampleShadingARB, "GL_ARB_sample_shading"),
+	GLFUNC_SUFFIX(glMinSampleShading, ARB, "GL_ARB_sample_shading"),
 
 	// ARB_debug_output
 	GLFUNC_REQUIRES(glDebugMessageCallbackARB, "GL_ARB_debug_output"),
@@ -1285,13 +1285,27 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glCopyImageSubData, "GL_ARB_copy_image"),
 
 	// NV_copy_image
-	GLFUNC_SUFFIX(glCopyImageSubData, NV, "GL_NV_copy_image !GL_ARB_copy_image"),
+	GLFUNC_SUFFIX(glCopyImageSubData, NV, "GL_NV_copy_image !GL_ARB_copy_image !VERSION_GLES_3_2"),
 
 	// OES_copy_image
-	GLFUNC_SUFFIX(glCopyImageSubData, OES, "GL_OES_copy_image"),
+	GLFUNC_SUFFIX(glCopyImageSubData, OES, "GL_OES_copy_image !VERSION_GLES_3_2"),
 
 	// EXT_copy_image
-	GLFUNC_SUFFIX(glCopyImageSubData, EXT, "GL_EXT_copy_image !GL_OES_copy_image"),
+	GLFUNC_SUFFIX(glCopyImageSubData, EXT, "GL_EXT_copy_image !GL_OES_copy_image !VERSION_GLES_3_2"),
+
+	// GLES 3.2
+	GLFUNC_REQUIRES(glMinSampleShading,     "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDebugMessageCallback, "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDebugMessageControl,  "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDebugMessageInsert,   "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetDebugMessageLog,   "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetObjectLabel,       "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetObjectPtrLabel,    "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glObjectLabel,          "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glObjectPtrLabel,       "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glPopDebugGroup,        "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glPushDebugGroup,       "VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glCopyImageSubData,     "VERSION_GLES_3_2"),
 
 	// gl_1_1
 	// OpenGL 1.1 is at the end due to a bug in Android's EGL stack.
@@ -1641,6 +1655,7 @@ namespace GLExtensions
 	static bool _isES3;
 	static bool _isES;
 	static u32 _GLVersion;
+	static u32 _GLESVersion;
 	static std::unordered_map<std::string, bool> m_extension_list;
 
 	// Private initialization functions
@@ -1663,21 +1678,39 @@ namespace GLExtensions
 		if (_isES3)
 		{
 			// XXX: Add all extensions that a base ES3 implementation supports
-			std::string gles3exts[] = {
-				"GL_ARB_uniform_buffer_object",
-				"GL_ARB_sampler_objects",
-				"GL_ARB_map_buffer_range",
-				"GL_ARB_vertex_array_object",
-				"GL_ARB_framebuffer_object",
-				"GL_ARB_occlusion_query",
-				"GL_ARB_get_program_binary",
-				"GL_ARB_sync",
-				"GL_ARB_ES2_compatibility",
-				"VERSION_GLES3",
-				"VERSION_3_0",
-				};
-			for (auto it : gles3exts)
-				m_extension_list[it] = true;
+			switch (_GLESVersion)
+			{
+				default:
+				case 320:
+				{
+					std::string gles320exts[] = {
+						"GL_ARB_draw_elements_base_vertex",
+						"VERSION_GLES_3_2",
+					};
+					for (auto it : gles320exts)
+						m_extension_list[it] = true;
+				}
+				case 310:
+				case 300:
+				{
+					std::string gles3exts[] = {
+						"GL_ARB_uniform_buffer_object",
+						"GL_ARB_sampler_objects",
+						"GL_ARB_map_buffer_range",
+						"GL_ARB_vertex_array_object",
+						"GL_ARB_framebuffer_object",
+						"GL_ARB_occlusion_query",
+						"GL_ARB_get_program_binary",
+						"GL_ARB_sync",
+						"GL_ARB_ES2_compatibility",
+						"VERSION_GLES3",
+						"VERSION_3_0",
+						};
+					for (auto it : gles3exts)
+						m_extension_list[it] = true;
+				}
+				break;
+			}
 		}
 		else if (!_isES)
 		{
@@ -1920,7 +1953,10 @@ namespace GLExtensions
 		else
 			_GLVersion = 210;
 		if (_isES3)
+		{
+			_GLESVersion = _GLVersion;
 			_GLVersion = 330; // Get all the fun things
+		}
 	}
 
 	static void* GetFuncAddress(const std::string& name, void **func)

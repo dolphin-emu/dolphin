@@ -50,6 +50,8 @@ static std::string GetGLSLVersionString()
 			return "#version 300 es";
 		case GLSLES_310:
 			return "#version 310 es";
+		case GLSLES_320:
+			return "#version 320 es";
 		case GLSL_130:
 			return "#version 130";
 		case GLSL_140:
@@ -521,6 +523,13 @@ void ProgramShaderCache::CreateHeader()
 {
 	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
 	bool is_glsles = v >= GLSLES_300;
+	std::string SupportedESPointSize;
+	switch (g_ogl_config.SupportedESPointSize)
+	{
+	case 1: SupportedESPointSize = "#extension GL_OES_geometry_point_size : enable"; break;
+	case 2: SupportedESPointSize = "#extension GL_EXT_geometry_point_size : enable"; break;
+	default: SupportedESPointSize = ""; break;
+	}
 
 	snprintf(s_glsl_header, sizeof(s_glsl_header),
 		"%s\n"
@@ -532,6 +541,7 @@ void ProgramShaderCache::CreateHeader()
 		"%s\n" // Sampler binding
 		"%s\n" // storage buffer
 		"%s\n" // shader5
+		"%s\n" // Geometry point size
 		"%s\n" // AEP
 		"%s\n" // texture buffer
 
@@ -567,7 +577,8 @@ void ProgramShaderCache::CreateHeader()
 		, (g_ogl_config.bSupportSampleShading) ? "#extension GL_ARB_sample_shading : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "#define SAMPLER_BINDING(x) layout(binding = x)" : "#define SAMPLER_BINDING(x)"
 		, g_ActiveConfig.backend_info.bSupportsBBox ? "#extension GL_ARB_shader_storage_buffer_object : enable" : ""
-		, g_ActiveConfig.backend_info.bSupportsGSInstancing ? "#extension GL_ARB_gpu_shader5 : enable" : ""
+		, !is_glsles && g_ActiveConfig.backend_info.bSupportsGSInstancing ? "#extension GL_ARB_gpu_shader5 : enable" : ""
+		, SupportedESPointSize.c_str()
 		, g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : ""
 		, v<GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ? "#extension GL_ARB_texture_buffer_object : enable" : ""
 
