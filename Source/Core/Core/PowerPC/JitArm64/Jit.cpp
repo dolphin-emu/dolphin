@@ -7,6 +7,7 @@
 #include "Common/PerformanceCounter.h"
 
 #include "Core/PatchEngine.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
@@ -137,6 +138,17 @@ void JitArm64::Break(UGeckoInstruction inst)
 	exit(0);
 }
 
+void JitArm64::Cleanup()
+{
+	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+	{
+		gpr.Lock(W0);
+		MOVI2R(X0, (u64)&GPFifo::FastCheckGatherPipe);
+		BLR(X0);
+		gpr.Unlock(W0);
+	}
+}
+
 void JitArm64::DoDownCount()
 {
 	ARM64Reg WA = gpr.GetReg();
@@ -160,6 +172,7 @@ void JitArm64::DoDownCount()
 // Exits
 void JitArm64::WriteExit(u32 destination)
 {
+	Cleanup();
 	DoDownCount();
 
 	if (Profiler::g_ProfileBlocks)
@@ -188,6 +201,7 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest)
 	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
 	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
 	gpr.Unlock(dest);
+		Cleanup();
 		DoDownCount();
 
 		if (Profiler::g_ProfileBlocks)
@@ -204,6 +218,7 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest)
 
 void JitArm64::WriteExceptionExit()
 {
+	Cleanup();
 	DoDownCount();
 
 	if (Profiler::g_ProfileBlocks)
@@ -224,10 +239,31 @@ void JitArm64::WriteExceptionExit()
 	gpr.Unlock(WA);
 }
 
+void JitArm64::WriteExternalExceptionExit(ARM64Reg dest)
+{
+	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
+	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
+	gpr.Unlock(dest);
+		Cleanup();
+		DoDownCount();
+
+		if (Profiler::g_ProfileBlocks)
+			EndTimeProfile(js.curBlock);
+
+		MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExternalExceptions);
+		BLR(EncodeRegTo64(dest));
+	LDR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
+	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
+
+	MOVI2R(EncodeRegTo64(dest), (u64)asm_routines.dispatcher);
+	BR(EncodeRegTo64(dest));
+}
+
 void JitArm64::WriteExitDestInR(ARM64Reg Reg)
 {
 	STR(INDEX_UNSIGNED, Reg, X29, PPCSTATE_OFF(pc));
 	gpr.Unlock(Reg);
+	Cleanup();
 	DoDownCount();
 
 	if (Profiler::g_ProfileBlocks)
@@ -450,6 +486,9 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			js.isLastInstruction = true;
 		}
 
+		// Gather pipe writes using a non-immediate address are discovered by profiling.
+		bool gatherPipeIntCheck = jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end();
+
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
 			js.fifoBytesThisBlock -= 32;
@@ -458,11 +497,65 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
 			regs_in_use[W30] = 0;
 
-			ABI_PushRegisters(regs_in_use);
-			MOVI2R(X30, (u64)&GPFifo::FastCheckGatherPipe);
-			BLR(X30);
-			ABI_PopRegisters(regs_in_use);
+			FixupBranch Exception = B();
+			SwitchToFarCode();
+				const u8* done_here = GetCodePtr();
+				FixupBranch exit = B();
+				SetJumpTarget(Exception);
+				ABI_PushRegisters(regs_in_use);
+				MOVI2R(X30, (u64)&GPFifo::FastCheckGatherPipe);
+				BLR(X30);
+				ABI_PopRegisters(regs_in_use);
+
+				// Inline exception check
+				LDR(INDEX_UNSIGNED, W30, X29, PPCSTATE_OFF(Exceptions));
+				TBZ(W30, 3, done_here); // EXCEPTION_EXTERNAL_INT
+				LDR(INDEX_UNSIGNED, W30, X29, PPCSTATE_OFF(msr));
+				TBZ(W30, 11, done_here);
+				MOVI2R(X30, (u64)&ProcessorInterface::m_InterruptCause);
+				LDR(INDEX_UNSIGNED, W30, X30, 0);
+				TST(W30, 23, 2);
+				B(CC_EQ, done_here);
+
+				gpr.Flush(FLUSH_MAINTAIN_STATE);
+				fpr.Flush(FLUSH_MAINTAIN_STATE);
+				MOVI2R(W30, ops[i].address);
+				WriteExternalExceptionExit(W30);
+			SwitchToNearCode();
+			SetJumpTarget(exit);
 			gpr.Unlock(W30);
+
+			// So we don't check exceptions twice
+			gatherPipeIntCheck = false;
+		}
+		// Gather pipe writes can generate an exception; add an exception check.
+		// TODO: This doesn't really match hardware; the CP interrupt is
+		// asynchronous.
+		if (jo.optimizeGatherPipe && gatherPipeIntCheck)
+		{
+			ARM64Reg WA = gpr.GetReg();
+			ARM64Reg XA = EncodeRegTo64(WA);
+			LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+			FixupBranch NoExtException = TBZ(WA, 3); // EXCEPTION_EXTERNAL_INT
+			FixupBranch Exception = B();
+			SwitchToFarCode();
+				const u8* done_here = GetCodePtr();
+				FixupBranch exit = B();
+				SetJumpTarget(Exception);
+				LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(msr));
+				TBZ(WA, 11, done_here);
+				MOVI2R(XA, (u64)&ProcessorInterface::m_InterruptCause);
+				LDR(INDEX_UNSIGNED, WA, XA, 0);
+				TST(WA, 23, 2);
+				B(CC_EQ, done_here);
+
+				gpr.Flush(FLUSH_MAINTAIN_STATE);
+				fpr.Flush(FLUSH_MAINTAIN_STATE);
+				MOVI2R(WA, ops[i].address);
+				WriteExternalExceptionExit(WA);
+			SwitchToNearCode();
+			SetJumpTarget(NoExtException);
+			SetJumpTarget(exit);
 		}
 
 		if (!ops[i].skip)

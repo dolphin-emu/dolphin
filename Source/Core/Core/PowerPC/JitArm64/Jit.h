@@ -273,6 +273,7 @@ private:
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b);
 
 	void DoDownCount();
+	void Cleanup();
 
 	// Profiling
 	void BeginTimeProfile(JitBlock* b);
@@ -282,6 +283,7 @@ private:
 	void WriteExit(u32 destination);
 	void WriteExceptionExit(Arm64Gen::ARM64Reg dest);
 	void WriteExceptionExit();
+	void WriteExternalExceptionExit(ARM64Reg dest);
 	void WriteExitDestInR(Arm64Gen::ARM64Reg dest);
 
 	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
