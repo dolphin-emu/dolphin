@@ -54,7 +54,7 @@ static GekkoOPTemplate primarytable[] =
 
 	{20, &JitArm64::rlwimix},                   // rlwimix
 	{21, &JitArm64::rlwinmx},                   // rlwinmx
-	{23, &JitArm64::FallBackToInterpreter},     // rlwnmx
+	{23, &JitArm64::rlwnmx},                    // rlwnmx
 
 	{24, &JitArm64::arith_imm},                 // ori
 	{25, &JitArm64::arith_imm},                 // oris
