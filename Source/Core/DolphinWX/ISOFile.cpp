@@ -66,10 +66,12 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_emu_state(0)
 	, m_FileSize(0)
 	, m_Revision(0)
+	, m_Country(DiscIO::IVolume::COUNTRY_UNKNOWN)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
 	, m_ImageWidth(0)
 	, m_ImageHeight(0)
+	, m_disc_number(0)
 {
 	if (LoadFromCache())
 	{
@@ -127,6 +129,13 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
 		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
 		ini.GetIfExists("EmuState", "EmulationIssues", &m_issues);
+	}
+
+	if (!IsValid() && IsElfOrDol())
+	{
+		m_Valid = true;
+		m_FileSize = File::GetSize(_rFileName);
+		m_Platform = DiscIO::IVolume::ELF_DOL;
 	}
 
 	if (!m_pImage.empty())
@@ -238,8 +247,11 @@ std::string GameListItem::GetName() const
 	std::string name = GetName(SConfig::GetInstance().GetCurrentLanguage(wii));
 	if (name.empty())
 	{
+		std::string ext;
+
 		// No usable name, return filename (better than nothing)
-		SplitPath(GetFileName(), nullptr, &name, nullptr);
+		SplitPath(GetFileName(), nullptr, &name, &ext);
+		return name + ext;
 	}
 	return name;
 }
@@ -283,3 +295,18 @@ const std::string GameListItem::GetWiiFSPath() const
 	return ret;
 }
 
+bool GameListItem::IsElfOrDol() const
+{
+	const std::string name = GetName();
+	const size_t pos = name.rfind('.');
+
+	if (pos != std::string::npos)
+	{
+		std::string ext = name.substr(pos);
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		return ext == ".elf" ||
+		       ext == ".dol";
+	}
+	return false;
+}

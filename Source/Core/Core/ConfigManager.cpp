@@ -185,6 +185,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 
 	gamelist->Set("ListDrives", m_ListDrives);
 	gamelist->Set("ListWad", m_ListWad);
+	gamelist->Set("ListElfDol", m_ListElfDol);
 	gamelist->Set("ListWii", m_ListWii);
 	gamelist->Set("ListGC", m_ListGC);
 	gamelist->Set("ListJap", m_ListJap);
@@ -430,6 +431,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 
 	gamelist->Get("ListDrives",        &m_ListDrives,  false);
 	gamelist->Get("ListWad",           &m_ListWad,     true);
+	gamelist->Get("ListElfDol",        &m_ListElfDol,  true);
 	gamelist->Get("ListWii",           &m_ListWii,     true);
 	gamelist->Get("ListGC",            &m_ListGC,      true);
 	gamelist->Get("ListJap",           &m_ListJap,     true);

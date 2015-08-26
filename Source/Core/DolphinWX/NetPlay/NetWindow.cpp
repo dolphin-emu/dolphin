@@ -75,7 +75,13 @@ static std::string BuildGameName(const GameListItem& game)
 	if (game.GetRevision() != 0)
 		return name + " (" + game.GetUniqueID() + ", Revision " + std::to_string((long long)game.GetRevision()) + ")";
 	else
+	{
+		if (game.GetUniqueID().empty())
+		{
+			return game.GetName();
+		}
 		return name + " (" + game.GetUniqueID() + ")";
+	}
 }
 
 void NetPlayDialog::FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)

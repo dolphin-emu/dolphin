@@ -207,6 +207,7 @@ struct SConfig : NonCopyable
 
 	bool m_ListDrives;
 	bool m_ListWad;
+	bool m_ListElfDol;
 	bool m_ListWii;
 	bool m_ListGC;
 	bool m_ListPal;
