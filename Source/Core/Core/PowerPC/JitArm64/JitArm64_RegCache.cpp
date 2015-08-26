@@ -330,6 +330,7 @@ void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, bool only_lower)
 {
 	OpArg& reg = m_guest_registers[preg];
 
+	bool was_dirty = reg.IsDirty();
 	reg.SetDirty(true);
 	switch (reg.GetType())
 	{
@@ -369,6 +370,20 @@ void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, bool only_lower)
 
 			// Change it over to a full 128bit register
 			reg.LoadToReg(reg.GetReg());
+		}
+	}
+	break;
+	case REG_REG:
+	{
+		if (only_lower)
+		{
+			// If we only want the lower bits, let's store away the high bits and drop to a lower only register
+			// We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit store.
+			// It would take longer to do an insert to a temporary and a 64bit store than to just do this.
+			ARM64Reg host_reg = reg.GetReg();
+			if (was_dirty)
+				m_float_emit->STR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			reg.LoadLowerReg(host_reg);
 		}
 	}
 	break;
