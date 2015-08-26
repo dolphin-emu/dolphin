@@ -206,6 +206,9 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 			regs_in_use, fprs_in_use);
 	}
 
+	if (flags & BackPatchInfo::FLAG_SIZE_F32)
+		fpr.DumpDuplicatedLower(inst.FD);
+
 	gpr.Unlock(W0, W30);
 	fpr.Unlock(Q0);
 }
