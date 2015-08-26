@@ -19,6 +19,7 @@ enum GLSL_VERSION
 	GLSL_150,  // and above
 	GLSLES_300,  // GLES 3.0
 	GLSLES_310, // GLES 3.1
+	GLSLES_320, // GLES 3.2
 };
 
 // ogl-only config, so not in VideoConfig.h
@@ -37,6 +38,7 @@ struct VideoConfig
 	bool bSupportsAEP;
 	bool bSupportsDebug;
 	bool bSupportsCopySubImage;
+	u8   SupportedESPointSize;
 
 	const char* gl_vendor;
 	const char* gl_renderer;

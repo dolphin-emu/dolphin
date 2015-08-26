@@ -150,7 +150,7 @@ static void ApplySSAASettings()
 			{
 				glEnable(GL_SAMPLE_SHADING_ARB);
 				GLfloat min_sample_shading_value = static_cast<GLfloat>(s_MSAASamples);
-				glMinSampleShadingARB(min_sample_shading_value);
+				glMinSampleShading(min_sample_shading_value);
 			}
 			else
 			{
@@ -491,24 +491,41 @@ Renderer::Renderer()
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
-	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
+	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") ||
+	                              GLExtensions::Supports("GL_ARB_debug_output");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
+		g_ogl_config.SupportedESPointSize = GLExtensions::Supports("GL_OES_geometry_point_size") ? 1 : GLExtensions::Supports("GL_EXT_geometry_point_size") ? 2 : 0;
+
 		if (strstr(g_ogl_config.glsl_version, "3.0") || DriverDetails::HasBug(DriverDetails::BUG_BROKENGLES31))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
 			g_ogl_config.bSupportsAEP = false;
 			g_Config.backend_info.bSupportsGeometryShaders = false;
 		}
-		else
+		else if (strstr(g_ogl_config.glsl_version, "3.1"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
 			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
 			g_Config.backend_info.bSupportsBindingLayout = true;
 			g_Config.backend_info.bSupportsEarlyZ = true;
 			g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
+			g_Config.backend_info.bSupportsGSInstancing = g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
 			//g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_EXT_texture_buffer");
+		}
+		else
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSLES_320;
+			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
+			g_Config.backend_info.bSupportsBindingLayout = true;
+			g_Config.backend_info.bSupportsEarlyZ = true;
+			g_Config.backend_info.bSupportsGeometryShaders = true;
+			g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
+			g_ogl_config.bSupportsCopySubImage = true;
+			g_ogl_config.bSupportsGLBaseVertex = true;
+			g_ogl_config.bSupportSampleShading = true;
+			g_ogl_config.bSupportsDebug = true;
 		}
 	}
 	else
