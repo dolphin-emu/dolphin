@@ -119,6 +119,8 @@ public:
 	void mftb(UGeckoInstruction inst);
 	void mtspr(UGeckoInstruction inst);
 	void crXXX(UGeckoInstruction inst);
+	void mfcr(UGeckoInstruction inst);
+	void mtcrf(UGeckoInstruction inst);
 
 	// LoadStore
 	void lXX(UGeckoInstruction inst);
@@ -154,6 +156,8 @@ public:
 	void fcmpx(UGeckoInstruction inst);
 	void frspx(UGeckoInstruction inst);
 	void fctiwzx(UGeckoInstruction inst);
+	void fdivx(UGeckoInstruction inst);
+	void fdivsx(UGeckoInstruction inst);
 
 	// Paired
 	void ps_abs(UGeckoInstruction inst);

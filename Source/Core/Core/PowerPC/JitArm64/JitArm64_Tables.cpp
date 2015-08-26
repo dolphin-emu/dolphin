@@ -286,9 +286,9 @@ static GekkoOPTemplate table31[] =
 	{759, &JitArm64::stfXX},                    // stfdux
 	{983, &JitArm64::stfXX},                    // stfiwx
 
-	{19,  &JitArm64::FallBackToInterpreter},    // mfcr
+	{19,  &JitArm64::mfcr},                     // mfcr
 	{83,  &JitArm64::mfmsr},                    // mfmsr
-	{144, &JitArm64::FallBackToInterpreter},    // mtcrf
+	{144, &JitArm64::mtcrf},                    // mtcrf
 	{146, &JitArm64::mtmsr},                    // mtmsr
 	{210, &JitArm64::mtsr},                     // mtsr
 	{242, &JitArm64::mtsrin},                   // mtsrin
@@ -313,7 +313,7 @@ static GekkoOPTemplate table31[] =
 
 static GekkoOPTemplate table59[] =
 {
-	{18, &JitArm64::FallBackToInterpreter},     // fdivsx
+	{18, &JitArm64::fdivsx},                    // fdivsx
 	{20, &JitArm64::fsubsx},                    // fsubsx
 	{21, &JitArm64::faddsx},                    // faddsx
 	{24, &JitArm64::FallBackToInterpreter},     // fresx
@@ -346,7 +346,7 @@ static GekkoOPTemplate table63[] =
 
 static GekkoOPTemplate table63_2[] =
 {
-	{18, &JitArm64::FallBackToInterpreter},     // fdivx
+	{18, &JitArm64::fdivx},                     // fdivx
 	{20, &JitArm64::fsubx},                     // fsubx
 	{21, &JitArm64::faddx},                     // faddx
 	{23, &JitArm64::fselx},                     // fselx
