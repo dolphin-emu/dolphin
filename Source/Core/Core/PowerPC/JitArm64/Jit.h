@@ -90,6 +90,7 @@ public:
 	void cmpi(UGeckoInstruction inst);
 	void cmpli(UGeckoInstruction inst);
 	void rlwinmx(UGeckoInstruction inst);
+	void rlwnmx(UGeckoInstruction inst);
 	void srawix(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
 	void addic(UGeckoInstruction inst);
