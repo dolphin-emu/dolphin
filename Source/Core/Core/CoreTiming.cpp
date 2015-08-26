@@ -63,9 +63,6 @@ u64 fakeTBStartTicks;
 
 static int ev_lost;
 
-
-static void (*advanceCallback)(int cyclesExecuted) = nullptr;
-
 static Event* GetNewEvent()
 {
 	if (!eventPool)
@@ -303,25 +300,6 @@ void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
 	AddEventToQueue(ne);
 }
 
-void RegisterAdvanceCallback(void (*callback)(int cyclesExecuted))
-{
-	advanceCallback = callback;
-}
-
-bool IsScheduled(int event_type)
-{
-	if (!first)
-		return false;
-	Event *e = first;
-	while (e)
-	{
-		if (e->type == event_type)
-			return true;
-		e = e->next;
-	}
-	return false;
-}
-
 void RemoveEvent(int event_type)
 {
 	while (first && first->type == event_type)
@@ -358,11 +336,6 @@ void RemoveAllEvents(int event_type)
 	RemoveEvent(event_type);
 }
 
-void SetMaximumSlice(int maximumSliceLength)
-{
-	maxSliceLength = maximumSliceLength;
-}
-
 void ForceExceptionCheck(int cycles)
 {
 	if (DowncountToCycles(PowerPC::ppcState.downcount) > cycles)
@@ -370,11 +343,6 @@ void ForceExceptionCheck(int cycles)
 		slicelength -= (DowncountToCycles(PowerPC::ppcState.downcount) - cycles); // Account for cycles already executed by adjusting the slicelength
 		PowerPC::ppcState.downcount = CyclesToDowncount(cycles);
 	}
-}
-
-void ResetSliceLength()
-{
-	maxSliceLength = MAX_SLICE_LENGTH;
 }
 
 
@@ -446,9 +414,6 @@ void Advance()
 			slicelength = maxSliceLength;
 		PowerPC::ppcState.downcount = CyclesToDowncount(slicelength);
 	}
-
-	if (advanceCallback)
-		advanceCallback(cyclesExecuted);
 }
 
 void LogPendingEvents()
