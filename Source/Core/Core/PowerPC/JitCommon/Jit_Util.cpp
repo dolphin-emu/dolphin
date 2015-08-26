@@ -24,24 +24,8 @@ void EmuCodeBlock::MemoryExceptionCheck()
 
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
-	MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
-	if (accessSize == 32)
-	{
-		BSWAP(32, reg_value);
-	}
-	else if (accessSize == 16)
-	{
-		BSWAP(32, reg_value);
-		if (signExtend)
-			SAR(32, R(reg_value), Imm8(16));
-		else
-			SHR(32, R(reg_value), Imm8(16));
-	}
-	else if (signExtend)
-	{
-		// TODO: bake 8-bit into the original load.
-		MOVSX(32, accessSize, reg_value, R(reg_value));
-	}
+	OpArg src = MComplex(RMEM, reg_addr, SCALE_1, offset);
+	LoadAndSwap(accessSize, reg_value, src, signExtend);
 }
 
 void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
@@ -84,34 +68,7 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessS
 	}
 
 	result = GetWritableCodePtr();
-	if (accessSize == 8 && signExtend)
-		MOVSX(32, accessSize, reg_value, memOperand);
-	else
-		MOVZX(64, accessSize, reg_value, memOperand);
-
-	switch (accessSize)
-	{
-	case 8:
-		_dbg_assert_(DYNA_REC, BACKPATCH_SIZE - (GetCodePtr() - result <= 0));
-		break;
-
-	case 16:
-		BSWAP(32, reg_value);
-		if (signExtend)
-			SAR(32, R(reg_value), Imm8(16));
-		else
-			SHR(32, R(reg_value), Imm8(16));
-		break;
-
-	case 32:
-		BSWAP(32, reg_value);
-		break;
-
-	case 64:
-		BSWAP(64, reg_value);
-		break;
-	}
-
+	LoadAndSwap(accessSize, reg_value, memOperand, signExtend);
 	return result;
 }
 
@@ -415,17 +372,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acce
 	}
 	else if (swap)
 	{
-		if (cpu_info.bMOVBE)
-		{
-			MOVBE(accessSize, dest, reg_value.GetSimpleReg());
-		}
-		else
-		{
-			if (accessSize > 8)
-				BSWAP(accessSize, reg_value.GetSimpleReg());
-			result = GetWritableCodePtr();
-			MOV(accessSize, dest, reg_value);
-		}
+		result = SwapAndStore(accessSize, dest, reg_value.GetSimpleReg());
 	}
 	else
 	{

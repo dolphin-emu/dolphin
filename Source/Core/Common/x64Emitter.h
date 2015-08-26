@@ -480,8 +480,8 @@ public:
 	// Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
 	void MOVBE(int bits, X64Reg dest, const OpArg& src);
 	void MOVBE(int bits, const OpArg& dest, X64Reg src);
-	void LoadAndSwap(int size, X64Reg dst, const OpArg& src);
-	void SwapAndStore(int size, const OpArg& dst, X64Reg src);
+	void LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_extend = false);
+	u8* SwapAndStore(int size, const OpArg& dst, X64Reg src);
 
 	// Available only on AMD >= Phenom or Intel >= Haswell
 	void LZCNT(int bits, X64Reg dest, const OpArg& src);

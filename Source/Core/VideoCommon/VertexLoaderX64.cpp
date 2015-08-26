@@ -53,21 +53,12 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
 	OpArg data = MDisp(src_reg, m_src_ofs);
 	if (attribute & MASK_INDEXED)
 	{
-		if (attribute == INDEX8)
-		{
-			MOVZX(64, 8, scratch1, data);
-			m_src_ofs += 1;
-		}
-		else
-		{
-			MOV(16, R(scratch1), data);
-			m_src_ofs += 2;
-			BSWAP(16, scratch1);
-			MOVZX(64, 16, scratch1, R(scratch1));
-		}
+		int bits = attribute == INDEX8 ? 8 : 16;
+		LoadAndSwap(bits, scratch1, data);
+		m_src_ofs += bits / 8;
 		if (array == ARRAY_POSITION)
 		{
-			CMP(attribute == INDEX8 ? 8 : 16, R(scratch1), Imm8(-1));
+			CMP(bits, R(scratch1), Imm8(-1));
 			m_skip_vertex = J_CC(CC_E, true);
 		}
 		IMUL(32, scratch1, MPIC(&g_main_cp_state.array_strides[array]));
