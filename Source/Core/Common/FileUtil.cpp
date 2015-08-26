@@ -499,6 +499,7 @@ FSTEntry ScanDirectoryTree(const std::string &directory, bool recursive)
 					entry = ScanDirectoryTree(physical_name, true);
 				else
 					entry.size = 0;
+				parent_entry.size += entry.size;
 			}
 			else
 			{
