@@ -96,7 +96,7 @@ bool DolphinApp::Initialize(int& c, wxChar **v)
 
 bool DolphinApp::OnInit()
 {
-	if (!wxApp::OnInit())
+	if (!wxApp::OnInit() || DolphinEmulatorDotComTextFileExists())
 		return false;
 
 	Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
@@ -130,20 +130,6 @@ bool DolphinApp::OnInit()
 	int y = SConfig::GetInstance().iPosY;
 	int w = SConfig::GetInstance().iWidth;
 	int h = SConfig::GetInstance().iHeight;
-
-	if (File::Exists("www.dolphin-emulator.com.txt"))
-	{
-		File::Delete("www.dolphin-emulator.com.txt");
-		wxMessageDialog dlg(nullptr, _(
-		    "This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
-		    "download Dolphin from the official website instead: https://dolphin-emu.org/"),
-		    _("Unofficial version detected"), wxOK | wxICON_WARNING);
-		dlg.ShowModal();
-
-		wxLaunchDefaultBrowser("https://dolphin-emu.org/?ref=badver");
-
-		exit(0);
-	}
 
 	// The following is not needed with X11, where window managers
 	// do not allow windows to be created off the desktop.
@@ -256,7 +242,6 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
 	return true;
 }
 
-
 #ifdef __APPLE__
 void DolphinApp::MacOpenFile(const wxString& fileName)
 {
@@ -265,6 +250,23 @@ void DolphinApp::MacOpenFile(const wxString& fileName)
 	main_frame->BootGame(WxStrToStr(m_file_to_load));
 }
 #endif
+
+bool DolphinApp::DolphinEmulatorDotComTextFileExists()
+{
+	if (!File::Exists("www.dolphin-emulator.com.txt"))
+		return false;
+
+	File::Delete("www.dolphin-emulator.com.txt");
+	wxMessageDialog dlg(nullptr, _(
+	    "This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
+	    "download Dolphin from the official website instead: https://dolphin-emu.org/"),
+	    _("Unofficial version detected"), wxOK | wxICON_WARNING);
+	dlg.ShowModal();
+
+	wxLaunchDefaultBrowser("https://dolphin-emu.org/?ref=badver");
+
+	return true;
+}
 
 void DolphinApp::AfterInit()
 {
