@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include <cstring>
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 
 class DataReader
 {
@@ -33,9 +35,12 @@ public:
 
 	template <typename T, bool swapped = true> __forceinline T Peek(int offset = 0)
 	{
-		T data = *(T*)(buffer + offset);
+		T data;
+		std::memcpy(&data, &buffer[offset], sizeof(T));
+
 		if (swapped)
 			data = Common::FromBigEndian(data);
+
 		return data;
 	}
 
@@ -50,7 +55,8 @@ public:
 	{
 		if (swapped)
 			data = Common::FromBigEndian(data);
-		*(T*)(buffer) = data;
+
+		std::memcpy(buffer, &data, sizeof(T));
 		buffer += sizeof(T);
 	}
 
