@@ -96,95 +96,11 @@ bool DolphinApp::Initialize(int& c, wxChar **v)
 
 bool DolphinApp::OnInit()
 {
+	if (!wxApp::OnInit())
+		return false;
+
 	Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
 	Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
-
-	// Declarations and definitions
-	bool UseDebugger = false;
-	bool UseLogger = false;
-	bool selectVideoBackend = false;
-	bool selectAudioEmulation = false;
-
-	wxString videoBackendName;
-	wxString audioEmulationName;
-	wxString userPath;
-
-#if wxUSE_CMDLINE_PARSER // Parse command lines
-	wxCmdLineEntryDesc cmdLineDesc[] =
-	{
-		{
-			wxCMD_LINE_SWITCH, "h", "help",
-			"Show this help message",
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
-		},
-		{
-			wxCMD_LINE_SWITCH, "d", "debugger",
-			"Opens the debugger",
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_SWITCH, "l", "logger",
-			"Opens the logger",
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_OPTION, "e", "exec",
-			"Loads the specified file (ELF, DOL, GCM, ISO, WBFS, CISO, GCZ, WAD)",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_SWITCH, "b", "batch",
-			"Exit Dolphin with emulator",
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_OPTION, "V", "video_backend",
-			"Specify a video backend",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_OPTION, "A", "audio_emulation",
-			"Low level (LLE) or high level (HLE) audio",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_OPTION, "m", "movie",
-			"Play a movie file",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_OPTION, "U", "user",
-			"User folder path",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0
-		}
-	};
-
-	// Gets the command line parameters
-	wxCmdLineParser parser(cmdLineDesc, argc, argv);
-	LoadFile = false;
-	if (argc == 2 && File::Exists(argv[1].ToUTF8().data()))
-	{
-		LoadFile = true;
-		FileToLoad = argv[1];
-	}
-	else if (parser.Parse() != 0)
-	{
-		return false;
-	}
-
-	UseDebugger = parser.Found("debugger");
-	UseLogger = parser.Found("logger");
-	if (!LoadFile)
-		LoadFile = parser.Found("exec", &FileToLoad);
-	BatchMode = parser.Found("batch");
-	selectVideoBackend = parser.Found("video_backend", &videoBackendName);
-	selectAudioEmulation = parser.Found("audio_emulation", &audioEmulationName);
-	playMovie = parser.Found("movie", &movieFile);
-	parser.Found("user", &userPath);
-#endif // wxUSE_CMDLINE_PARSER
 
 	// Register message box and translation handlers
 	RegisterMsgAlertHandler(&wxMsgAlert);
@@ -194,22 +110,16 @@ bool DolphinApp::OnInit()
 	wxHandleFatalExceptions(true);
 #endif
 
-	UICommon::SetUserDirectory(userPath.ToStdString());
+	UICommon::SetUserDirectory(m_user_path.ToStdString());
 	UICommon::CreateDirectories();
-	InitLanguageSupport();	// The language setting is loaded from the user directory
+	InitLanguageSupport(); // The language setting is loaded from the user directory
 	UICommon::Init();
 
-	if (selectVideoBackend && videoBackendName != wxEmptyString)
-		SConfig::GetInstance().m_strVideoBackend =
-			WxStrToStr(videoBackendName);
+	if (m_select_video_backend && !m_video_backend_name.empty())
+		SConfig::GetInstance().m_strVideoBackend = WxStrToStr(m_video_backend_name);
 
-	if (selectAudioEmulation)
-	{
-		if (audioEmulationName == "HLE")
-			SConfig::GetInstance().bDSPHLE = true;
-		else if (audioEmulationName == "LLE")
-			SConfig::GetInstance().bDSPHLE = false;
-	}
+	if (m_select_audio_emulation)
+		SConfig::GetInstance().bDSPHLE = (m_audio_emulation_name.Upper() == "HLE");
 
 	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
@@ -251,9 +161,10 @@ bool DolphinApp::OnInit()
 #endif
 
 	main_frame = new CFrame(nullptr, wxID_ANY,
-				StrToWxStr(scm_rev_str),
-				wxPoint(x, y), wxSize(w, h),
-				UseDebugger, BatchMode, UseLogger);
+	                        StrToWxStr(scm_rev_str),
+	                        wxPoint(x, y), wxSize(w, h),
+	                        m_use_debugger, m_batch_mode, m_use_logger);
+
 	SetTopWindow(main_frame);
 	main_frame->SetMinSize(wxSize(400, 300));
 
@@ -262,27 +173,111 @@ bool DolphinApp::OnInit()
 	return true;
 }
 
-#ifdef __APPLE__
-void DolphinApp::MacOpenFile(const wxString &fileName)
+void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
 {
-	FileToLoad = fileName;
-	LoadFile = true;
-	main_frame->BootGame(WxStrToStr(FileToLoad));
+	static const wxCmdLineEntryDesc desc[] =
+	{
+		{
+			wxCMD_LINE_SWITCH, "h", "help",
+			"Show this help message",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
+		},
+		{
+			wxCMD_LINE_SWITCH, "d", "debugger",
+			"Opens the debugger",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_SWITCH, "l", "logger",
+			"Opens the logger",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "e", "exec",
+			"Loads the specified file (ELF, DOL, GCM, ISO, WBFS, CISO, GCZ, WAD)",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_SWITCH, "b", "batch",
+			"Exit Dolphin with emulator",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "v", "video_backend",
+			"Specify a video backend",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "a", "audio_emulation",
+			"Low level (LLE) or high level (HLE) audio",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "m", "movie",
+			"Play a movie file",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "u", "user",
+			"User folder path",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0
+		}
+	};
+
+	parser.SetDesc(desc);
+}
+
+bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
+{
+	if (argc == 2 && File::Exists(argv[1].ToUTF8().data()))
+	{
+		m_load_file = true;
+		m_file_to_load = argv[1];
+	}
+	else if (parser.Parse() != 0)
+	{
+		return false;
+	}
+
+	if (!m_load_file)
+		m_load_file = parser.Found("exec", &m_file_to_load);
+
+	m_use_debugger = parser.Found("debugger");
+	m_use_logger = parser.Found("logger");
+	m_batch_mode = parser.Found("batch");
+	m_select_video_backend = parser.Found("video_backend", &m_video_backend_name);
+	m_select_audio_emulation = parser.Found("audio_emulation", &m_audio_emulation_name);
+	m_play_movie = parser.Found("movie", &m_movie_file);
+	parser.Found("user", &m_user_path);
+
+	return true;
+}
+
+
+#ifdef __APPLE__
+void DolphinApp::MacOpenFile(const wxString& fileName)
+{
+	m_file_to_load = fileName;
+	m_load_file = true;
+	main_frame->BootGame(WxStrToStr(m_file_to_load));
 }
 #endif
 
 void DolphinApp::AfterInit()
 {
-	if (!BatchMode)
+	if (!m_batch_mode)
 		main_frame->UpdateGameList();
 
-	if (playMovie && movieFile != wxEmptyString)
+	if (m_play_movie && !m_movie_file.empty())
 	{
-		if (Movie::PlayInput(WxStrToStr(movieFile)))
+		if (Movie::PlayInput(WxStrToStr(m_movie_file)))
 		{
-			if (LoadFile && FileToLoad != wxEmptyString)
+			if (m_load_file && !m_file_to_load.empty())
 			{
-				main_frame->BootGame(WxStrToStr(FileToLoad));
+				main_frame->BootGame(WxStrToStr(m_file_to_load));
 			}
 			else
 			{
@@ -290,11 +285,10 @@ void DolphinApp::AfterInit()
 			}
 		}
 	}
-
 	// First check if we have an exec command line.
-	else if (LoadFile && FileToLoad != wxEmptyString)
+	else if (m_load_file && !m_file_to_load.empty())
 	{
-		main_frame->BootGame(WxStrToStr(FileToLoad));
+		main_frame->BootGame(WxStrToStr(m_file_to_load));
 	}
 	// If we have selected Automatic Start, start the default ISO,
 	// or if no default ISO exists, start the last loaded ISO
