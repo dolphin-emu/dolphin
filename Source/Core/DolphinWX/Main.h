@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <wx/app.h>
 
 class CFrame;
@@ -46,7 +47,7 @@ private:
 	wxString m_user_path;
 	wxString m_file_to_load;
 	wxString m_movie_file;
-	wxLocale* m_locale;
+	std::unique_ptr<wxLocale> m_locale;
 };
 
 DECLARE_APP(DolphinApp);

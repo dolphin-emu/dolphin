@@ -314,7 +314,7 @@ void DolphinApp::InitLanguageSupport()
 	// Load language if possible, fall back to system default otherwise
 	if (wxLocale::IsAvailable(language))
 	{
-		m_locale = new wxLocale(language);
+		m_locale.reset(new wxLocale(language));
 
 		// Specify where dolphins *.gmo files are located on each operating system
 #ifdef _WIN32
@@ -330,14 +330,13 @@ void DolphinApp::InitLanguageSupport()
 		if (!m_locale->IsOk())
 		{
 			wxMessageBox(_("Error loading selected language. Falling back to system default."), _("Error"));
-			delete m_locale;
-			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+			m_locale.reset(new wxLocale(wxLANGUAGE_DEFAULT));
 		}
 	}
 	else
 	{
 		wxMessageBox(_("The selected language is not supported by your system. Falling back to system default."), _("Error"));
-		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+		m_locale.reset(new wxLocale(wxLANGUAGE_DEFAULT));
 	}
 }
 
@@ -354,8 +353,6 @@ int DolphinApp::OnExit()
 {
 	Core::Shutdown();
 	UICommon::Shutdown();
-
-	delete m_locale;
 
 	return wxApp::OnExit();
 }
