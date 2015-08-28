@@ -158,7 +158,9 @@ public:
 
 	void SetZero()
 	{
-		memset((void*)this, 0, sizeof(float) * 3);
+		x = 0.0f;
+		y = 0.0f;
+		z = 0.0f;
 	}
 
 	void DoState(PointerWrap &p)
