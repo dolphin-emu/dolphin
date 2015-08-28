@@ -63,7 +63,7 @@ MemoryCard::~MemoryCard()
 
 void MemoryCard::FlushThread()
 {
-	if (!SConfig::GetInstance().bEnableMemcardSaving)
+	if (!SConfig::GetInstance().bEnableMemcardSdWriting)
 	{
 		return;
 	}

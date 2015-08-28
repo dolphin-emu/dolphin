@@ -202,7 +202,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 		padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDialog::OnAdjustBuffer, this);
 		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
 
-		m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write memcards (GC)"));
+		m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write memcards/SD"));
 		bottom_szr->Add(m_memcard_write, 0, wxCENTER);
 	}
 
