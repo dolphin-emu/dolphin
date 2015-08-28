@@ -150,10 +150,7 @@ public:
 
 	bool operator==(const Vec3 &other) const
 	{
-		if (x == other.x && y == other.y && z == other.z)
-			return true;
-		else
-			return false;
+		return x == other.x && y == other.y && z == other.z;
 	}
 
 	void SetZero()
