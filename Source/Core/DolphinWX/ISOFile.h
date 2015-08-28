@@ -42,7 +42,9 @@ public:
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
 	// 0 is the first disc, 1 is the second disc
-	u8 GetDiscNumber() const {return m_disc_number;}
+	u8 GetDiscNumber() const { return m_disc_number; }
+	bool IsElfOrDol() const;
+
 #if defined(HAVE_WX) && HAVE_WX
 	const wxBitmap& GetBitmap() const {return m_Bitmap;}
 #endif

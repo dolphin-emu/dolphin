@@ -24,6 +24,7 @@ public:
 		GAMECUBE_DISC = 0,
 		WII_DISC,
 		WII_WAD,
+		ELF_DOL,
 		NUMBER_OF_PLATFORMS
 	};
 
