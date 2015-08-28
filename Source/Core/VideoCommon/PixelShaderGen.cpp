@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstdio>
 
+#include "Common/Common.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/ConstantManager.h"

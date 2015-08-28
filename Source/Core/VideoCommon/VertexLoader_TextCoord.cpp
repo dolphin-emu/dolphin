@@ -4,6 +4,7 @@
 
 #include <type_traits>
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
