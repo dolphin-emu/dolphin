@@ -84,15 +84,15 @@ public:
 	{
 	}
 
-	virtual void VisitConstant(T value)
+	void VisitConstant(T value) override
 	{
 		LoadConstantToReg(8 * sizeof (T), value);
 	}
-	virtual void VisitDirect(const T* addr, u32 mask)
+	void VisitDirect(const T* addr, u32 mask) override
 	{
 		LoadAddrMaskToReg(8 * sizeof (T), addr, mask);
 	}
-	virtual void VisitComplex(const std::function<T(u32)>* lambda)
+	void VisitComplex(const std::function<T(u32)>* lambda) override
 	{
 		CallLambda(8 * sizeof (T), lambda);
 	}
