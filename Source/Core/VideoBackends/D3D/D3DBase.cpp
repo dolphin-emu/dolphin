@@ -17,7 +17,7 @@ D3DREFLECT PD3DReflect = nullptr;
 pD3DCompile PD3DCompile = nullptr;
 int d3dcompiler_dll_ref = 0;
 
-CREATEDXGIFACTORY PCreateDXGIFactory = nullptr;
+CREATEDXGIFACTORY PCreateDXGIFactory = nullptr, PCreateDXGIFactory1 = nullptr;
 HINSTANCE hDXGIDll = nullptr;
 int dxgi_dll_ref = 0;
 
@@ -66,6 +66,7 @@ HRESULT LoadDXGI()
 		return E_FAIL;
 	}
 	PCreateDXGIFactory = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory");
+	PCreateDXGIFactory1 = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory1");
 	if (PCreateDXGIFactory == nullptr) MessageBoxA(nullptr, "GetProcAddress failed for CreateDXGIFactory!", "Critical error", MB_OK | MB_ICONERROR);
 
 	return S_OK;
@@ -131,6 +132,7 @@ void UnloadDXGI()
 	if (hDXGIDll) FreeLibrary(hDXGIDll);
 	hDXGIDll = nullptr;
 	PCreateDXGIFactory = nullptr;
+	PCreateDXGIFactory1 = nullptr;
 }
 
 void UnloadD3D()
@@ -231,7 +233,14 @@ HRESULT Create(HWND wnd)
 	IDXGIAdapter* adapter = nullptr;
 	IDXGIOutput* output = nullptr;
 	DXGI_OUTPUT_DESC out_desc;
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+	if (PCreateDXGIFactory1)
+		hr = PCreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory);
+	else
+		hr = E_NOINTERFACE;
+#else
 	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+#endif
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 
 	// Find the adapter & output (monitor) to use for fullscreen, based on the reported name of the HMD's monitor.

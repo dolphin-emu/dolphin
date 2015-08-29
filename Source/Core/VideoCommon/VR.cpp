@@ -324,8 +324,11 @@ void InitVR()
 		hmdDesc = *hmd;
 		ovrHmd_SetEnabledCaps(hmd, ovrHmd_GetEnabledCaps(hmd) | ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
 
-		if (ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection,
-			0))
+#if OVR_MAJOR_VERSION >= 6
+		if (OVR_SUCCESS(ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0)))
+#else
+		if (ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0))
+#endif
 		{
 			g_has_rift = true;
 			g_has_hmd = true;
@@ -723,6 +726,13 @@ void VR_GetEyePos(float *posLeft, float *posRight)
 		posRight[0] = g_eye_render_desc[1].HmdToEyeViewOffset.x;
 		posRight[1] = g_eye_render_desc[1].HmdToEyeViewOffset.y;
 		posRight[2] = g_eye_render_desc[1].HmdToEyeViewOffset.z;
+#if OVR_MAJOR_VERSION >= 6
+		for (int i=0; i<3; ++i)
+		{
+			posLeft[i] = -posLeft[i];
+			posRight[i] = -posRight[i];
+		}
+#endif
 #endif
 	}
 	else

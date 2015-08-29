@@ -245,7 +245,7 @@ void VR_RenderToEyebuffer(int eye)
 #if OVR_MAJOR_VERSION >= 6
 	D3D::context->OMSetRenderTargets(1, &pEyeRenderTexture[eye]->TexRtv[pEyeRenderTexture[eye]->TextureSet->CurrentIndex], nullptr);
 #else
-	D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[0]->GetRTV(), nullptr);
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[eye]->GetRTV(), nullptr);
 #endif
 #endif
 }
@@ -303,10 +303,11 @@ void VR_PresentHMDFrame()
 void VR_DrawTimewarpFrame()
 {
 #ifdef OVR_MAJOR_VERSION
-#if OVR_MAJOR_VERSION <= 5
 	if (g_has_rift)
 	{
-		ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
+		ovrFrameTiming frameTime;
+#if OVR_MAJOR_VERSION <= 5
+		frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 		//const ovrTexture* new_eye_texture = new ovrTexture(FramebufferManager::m_eye_texture[0].Texture);
 		//ovrD3D11Texture new_eye_texture;
 		//memcpy((void*)&new_eye_texture, &FramebufferManager::m_eye_texture[0], sizeof(ovrD3D11Texture));
@@ -317,8 +318,29 @@ void VR_DrawTimewarpFrame()
 		ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
 
 		ovrHmd_EndFrame(hmd, g_eye_poses, &g_eye_texture[0].Texture);
-	}
+#else
+		++g_ovr_frameindex;
+		// On Oculus SDK 0.6.0 and above, we get the frame timing manually, then swap each eye texture 
+		frameTime = ovrHmd_GetFrameTiming(hmd, 0);
+
+		//ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
+		Sleep(1);
+
+		ovrLayerEyeFov ld;
+		ld.Header.Type = ovrLayerType_EyeFov;
+		ld.Header.Flags = 0;
+		for (int eye = 0; eye < 2; eye++)
+		{
+			ld.ColorTexture[eye] = pEyeRenderTexture[eye]->TextureSet;
+			ld.Viewport[eye] = eyeRenderViewport[eye];
+			ld.Fov[eye] = g_eye_fov[eye];
+			ld.RenderPose[eye] = g_eye_poses[eye];
+		}
+		ovrLayerHeader* layers = &ld.Header;
+		ovrResult result = ovrHmd_SubmitFrame(hmd, 0, nullptr, &layers, 1);
+
 #endif
+	}
 #endif
 }
 
