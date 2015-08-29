@@ -56,6 +56,7 @@ void VR_ConfigureHMD()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
+#if OVR_MAJOR_VERSION <= 5
 		ovrGLConfig cfg;
 		cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
 #ifdef OCULUSSDK044ORABOVE
@@ -70,10 +71,12 @@ void VR_ConfigureHMD()
 		cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
 		cfg.OGL.DC = GetDC(cfg.OGL.Window);
 #ifndef OCULUSSDK042
+#if OVR_MAJOR_VERSION <= 5
 		if (g_is_direct_mode) //If in Direct Mode
 		{
 			ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr); //Attach to Direct Mode.
 		}
+#endif
 #endif
 #else
 		cfg.OGL.Disp = (Display*)((cInterfaceGLX*)GLInterface)->getDisplay();
@@ -103,7 +106,12 @@ void VR_ConfigureHMD()
 		ovrHmd_ConfigureRendering(hmd, &cfg.Config, caps,
 			g_eye_fov, g_eye_render_desc);
 #if OVR_MAJOR_VERSION <= 4
-		ovrhmd_EnableHSWDisplaySDKRender(hmd, false);
+		ovrhmd_EnableHSWDisplaySDKRender(hmd, false); //Disable Health and Safety Warning.
+#endif
+
+#else
+		for (int i = 0; i < ovrEye_Count; ++i)
+			g_eye_render_desc[i] = ovrHmd_GetRenderDesc(hmd, (ovrEyeType)i, g_eye_fov[i]);
 #endif
 	}
 #endif
@@ -128,16 +136,47 @@ void VR_StartFramebuffer(int target_width, int target_height, GLuint left_textur
 		g_eye_texture[0].OGL.Header.API = ovrRenderAPI_OpenGL;
 		g_eye_texture[0].OGL.Header.TextureSize.w = target_width;
 		g_eye_texture[0].OGL.Header.TextureSize.h = target_height;
+#if OVR_MAJOR_VERSION <= 5
 		g_eye_texture[0].OGL.Header.RenderViewport.Pos.x = 0;
 		g_eye_texture[0].OGL.Header.RenderViewport.Pos.y = 0;
 		g_eye_texture[0].OGL.Header.RenderViewport.Size.w = target_width;
 		g_eye_texture[0].OGL.Header.RenderViewport.Size.h = target_height;
+#endif
 		g_eye_texture[0].OGL.TexId = left_texture;
 		g_eye_texture[1] = g_eye_texture[0];
 		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
 			g_eye_texture[1].OGL.TexId = right_texture;
 	}
 #endif
+#endif
+}
+
+void VR_StopFramebuffer()
+{
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+	// On Oculus SDK 0.6.0 and above, we need to destroy the eye textures Oculus created for us.
+#endif
+}
+
+void VR_BeginFrame()
+{
+	// At the start of a frame, we get the frame timing and begin the frame.
+#ifdef OVR_MAJOR_VERSION
+	if (g_has_rift)
+	{
+#if OVR_MAJOR_VERSION >= 6
+		++g_ovr_frameindex;
+		// On Oculus SDK 0.6.0 and above, we get the frame timing manually, then swap each eye texture 
+		g_rift_frame_timing = ovrHmd_GetFrameTiming(hmd, 0);
+		for (int eye = 0; eye < 2; eye++)
+		{
+			// Increment to use next texture, just before writing
+			//pEyeRenderTexture[eye]->AdvanceToNextTexture();
+		}
+#else
+		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
+#endif
+}
 #endif
 }
 
@@ -164,9 +203,23 @@ void VR_PresentHMDFrame()
 	{
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
-
+#if OVR_MAJOR_VERSION <= 5
 		// Let OVR do distortion rendering, Present and flush/sync.
 		ovrHmd_EndFrame(hmd, g_eye_poses, &g_eye_texture[0].Texture);
+#else
+		ovrLayerEyeFov ld;
+		ld.Header.Type = ovrLayerType_EyeFov;
+		ld.Header.Flags = 0;
+		for (int eye = 0; eye < 2; eye++)
+		{
+			//ld.ColorTexture[eye] = g_eye_texture[eye].Texture;
+			//ld.Viewport[eye] = eyeRenderViewport[eye];
+			ld.Fov[eye] = hmdDesc.DefaultEyeFov[eye];
+			ld.RenderPose[eye] = g_eye_poses[eye];
+		}
+		ovrLayerHeader* layers = &ld.Header;
+		ovrResult result = ovrHmd_SubmitFrame(hmd, 0, nullptr, &layers, 1);
+#endif
 	}
 #endif
 }
@@ -174,6 +227,7 @@ void VR_PresentHMDFrame()
 void VR_DrawTimewarpFrame()
 {
 #ifdef OVR_MAJOR_VERSION
+#if OVR_MAJOR_VERSION <= 5
 	if (g_has_rift)
 	{
 		ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
@@ -183,11 +237,13 @@ void VR_DrawTimewarpFrame()
 		ovrHmd_EndFrame(hmd, g_eye_poses, &g_eye_texture[0].Texture);
 	}
 #endif
+#endif
 }
 
 void VR_DrawAsyncTimewarpFrame()
 {
 #ifdef OVR_MAJOR_VERSION
+#if OVR_MAJOR_VERSION <= 5
 	if (g_has_rift)
 	{
 		auto frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
@@ -215,6 +271,7 @@ void VR_DrawAsyncTimewarpFrame()
 		//ResumeThread(thread_handle);
 #endif
 	}
+#endif
 #endif
 }
 

@@ -107,7 +107,9 @@ public:
 		D3DTexture2D* resolved_color_tex;
 		D3DTexture2D* resolved_depth_tex;
 
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
 		D3DTexture2D* m_frontBuffer[2];
+#endif
 
 		int slices;
 	} m_efb;

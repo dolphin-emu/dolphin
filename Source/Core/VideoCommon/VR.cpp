@@ -275,8 +275,14 @@ void InitVR()
 #else
 #ifdef OVR_MAJOR_VERSION
 	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
+#if OVR_MAJOR_VERSION >= 6
+	ovr_Initialize(nullptr);
+	if (ovrHmd_Create(0, &hmd) != ovrSuccess)
+		hmd = nullptr;
+#else
 	ovr_Initialize();
 	hmd = ovrHmd_Create(0);
+#endif
 	if (!hmd)
 	{
 		WARN_LOG(VR, "Oculus Rift not detected. Oculus Rift support will not be available.");
@@ -300,7 +306,12 @@ void InitVR()
 			if (g_force_vr)
 			{
 				WARN_LOG(VR, "Forcing VR mode, simulating Oculus Rift DK2.");
+#if OVR_MAJOR_VERSION >= 6
+				if (ovrHmd_CreateDebug(ovrHmd_DK2, &hmd) != ovrSuccess)
+					hmd = nullptr;
+#else
 				hmd = ovrHmd_CreateDebug(ovrHmd_DK2);
+#endif
 			}
 #endif
 		}
@@ -326,11 +337,21 @@ void InitVR()
 			g_eye_fov[1] = g_best_eye_fov[1];
 			g_last_eye_fov[0] = g_eye_fov[0];
 			g_last_eye_fov[1] = g_eye_fov[1];
+#if OVR_MAJOR_VERSION < 6
 			g_hmd_window_x = hmdDesc.WindowsPos.x;
 			g_hmd_window_y = hmdDesc.WindowsPos.y;
 			g_is_direct_mode = !(hmdDesc.HmdCaps & ovrHmdCap_ExtendDesktop);
+#else
+			g_hmd_window_x = 0;
+			g_hmd_window_y = 0;
+			g_is_direct_mode = true;
+#endif
 #ifdef _WIN32
+#if OVR_MAJOR_VERSION < 6
 			g_hmd_device_name = hmdDesc.DisplayDeviceName;
+#else
+			g_hmd_device_name = nullptr;
+#endif
 			const char *p;
 			if (g_hmd_device_name && (p = strstr(g_hmd_device_name, "\\Monitor")))
 			{
@@ -374,7 +395,12 @@ void VR_StopRendering()
 	// Shut down rendering and release resources (by passing NULL)
 	if (g_has_rift)
 	{
+#if OVR_MAJOR_VERSION >= 6
+		for (int i = 0; i < ovrEye_Count; ++i)
+			g_eye_render_desc[i] = ovrHmd_GetRenderDesc(hmd, (ovrEyeType)i, g_eye_fov[i]);
+#else
 		ovrHmd_ConfigureRendering(hmd, nullptr, 0, g_eye_fov, g_eye_render_desc);
+#endif
 	}
 #endif
 }
@@ -392,9 +418,11 @@ void ShutdownVR()
 #ifdef OVR_MAJOR_VERSION
 	if (hmd)
 	{
+#if OVR_MAJOR_VERSION < 6
 		// on my computer, on runtime 0.4.2, the Rift won't switch itself off without this:
 		if (g_is_direct_mode)
 			ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_DisplayOff);
+#endif
 		ovrHmd_Destroy(hmd);
 		g_has_rift = false;
 		g_has_hmd = false;
@@ -445,25 +473,20 @@ void VR_ConfigureHMDPrediction()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
+#if OVR_MAJOR_VERSION < 6
 		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence | ovrHmdCap_NoMirrorToWindow);
+#else
+		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
+#endif
 		if (g_Config.bLowPersistence)
 			caps |= ovrHmdCap_LowPersistence;
 		if (g_Config.bDynamicPrediction)
 			caps |= ovrHmdCap_DynamicPrediction;
+#if OVR_MAJOR_VERSION < 6
 		if (g_Config.bNoMirrorToWindow)
 			caps |= ovrHmdCap_NoMirrorToWindow;
-
-		ovrHmd_SetEnabledCaps(hmd, caps);
-	}
 #endif
-}
-
-void VR_BeginFrame()
-{
-#ifdef OVR_MAJOR_VERSION
-	if (g_has_rift)
-	{
-		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
+		ovrHmd_SetEnabledCaps(hmd, caps);
 	}
 #endif
 }
