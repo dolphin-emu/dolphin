@@ -4,6 +4,7 @@
 
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLInterface/EGL.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/RenderBase.h"
 
 // Show the current FPS
@@ -13,7 +14,8 @@ void cInterfaceEGL::Swap()
 }
 void cInterfaceEGL::SwapInterval(int Interval)
 {
-	eglSwapInterval(egl_dpy, Interval);
+	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENVSYNC))
+		eglSwapInterval(egl_dpy, Interval);
 }
 
 void* cInterfaceEGL::GetFuncAddress(const std::string& name)
