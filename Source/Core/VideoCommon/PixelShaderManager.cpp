@@ -96,8 +96,8 @@ void PixelShaderManager::SetConstants()
 
 	if (s_bViewPortChanged)
 	{
-		constants.zbias[1][0] = static_cast<u32>(xfmem.viewport.farZ);
-		constants.zbias[1][1] = static_cast<u32>(xfmem.viewport.zRange);
+		constants.zbias[1][0] = MathUtil::Clamp<u32>((u32)xfmem.viewport.farZ, 0, 0xFFFFFF);
+		constants.zbias[1][1] = MathUtil::Clamp<u32>((u32)xfmem.viewport.zRange, 0, 0xFFFFFF);
 		dirty = true;
 		s_bViewPortChanged = false;
 	}

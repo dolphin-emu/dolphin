@@ -1267,11 +1267,12 @@ void Renderer::SetViewport()
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
 	// TODO: ceil, floor or just cast to int?
-	float X, Y, Width, Height;
-	X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
-	Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht + (float)scissorYOff);
-	Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
-	Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+	float X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
+	float Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht + (float)scissorYOff);
+	float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
+	float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+	float GLNear = MathUtil::Clamp<float>(xfmem.viewport.farZ - xfmem.viewport.zRange, 0.0f, 16777215.0f) / 16777216.0f;
+	float GLFar = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
 	if (Width < 0)
 	{
 		X += Width;
@@ -1295,9 +1296,6 @@ void Renderer::SetViewport()
 		X = 0.0f; Y = 0.0f; Width = (float)GetTargetWidth(); Height = (float)GetTargetHeight();
 	}
 	g_rendered_viewport = EFBRectangle((int)X, (int)Y, (int)Width, (int)Height);
-
-	float GLNear = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-	float GLFar = xfmem.viewport.farZ / 16777216.0f;
 
 	// Update the view port
 	if (g_ogl_config.bSupportViewportFloat)
