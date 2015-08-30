@@ -3,7 +3,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Atomic.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 #include "Common/MemoryUtil.h"
@@ -26,25 +26,29 @@ void gdsp_ifx_init()
 		g_dsp.ifx_regs[i] = 0;
 	}
 
-	g_dsp.mbox[0] = 0;
-	g_dsp.mbox[1] = 0;
+	g_dsp.mbox[0].store(0);
+	g_dsp.mbox[1].store(0);
 }
 
 u32 gdsp_mbox_peek(u8 mbx)
 {
-	return Common::AtomicLoad(g_dsp.mbox[mbx]);
+	return g_dsp.mbox[mbx].load();
 }
 
 void gdsp_mbox_write_h(u8 mbx, u16 val)
 {
-	const u32 new_value = (Common::AtomicLoadAcquire(g_dsp.mbox[mbx]) & 0xffff) | (val << 16);
-	Common::AtomicStoreRelease(g_dsp.mbox[mbx], new_value & ~0x80000000);
+	const u32 old_value = g_dsp.mbox[mbx].load(std::memory_order_acquire);
+	const u32 new_value = (old_value & 0xffff) | (val << 16);
+
+	g_dsp.mbox[mbx].store(new_value & ~0x80000000, std::memory_order_release);
 }
 
 void gdsp_mbox_write_l(u8 mbx, u16 val)
 {
-	const u32 new_value = (Common::AtomicLoadAcquire(g_dsp.mbox[mbx]) & ~0xffff) | val;
-	Common::AtomicStoreRelease(g_dsp.mbox[mbx], new_value | 0x80000000);
+	const u32 old_value = g_dsp.mbox[mbx].load(std::memory_order_acquire);
+	const u32 new_value = (old_value & ~0xffff) | val;
+
+	g_dsp.mbox[mbx].store(new_value | 0x80000000, std::memory_order_release);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (mbx == GDSP_MBOX_DSP)
@@ -63,13 +67,13 @@ u16 gdsp_mbox_read_h(u8 mbx)
 		return 0x8054;
 	}
 
-	return (u16)(Common::AtomicLoad(g_dsp.mbox[mbx]) >> 16); // TODO: mask away the top bit?
+	return (u16)(g_dsp.mbox[mbx].load() >> 16); // TODO: mask away the top bit?
 }
 
 u16 gdsp_mbox_read_l(u8 mbx)
 {
-	const u32 value = Common::AtomicLoadAcquire(g_dsp.mbox[mbx]);
-	Common::AtomicStoreRelease(g_dsp.mbox[mbx], value & ~0x80000000);
+	const u32 value = g_dsp.mbox[mbx].load(std::memory_order_acquire);
+	g_dsp.mbox[mbx].store(value & ~0x80000000, std::memory_order_release);
 
 	if (init_hax && mbx)
 	{
