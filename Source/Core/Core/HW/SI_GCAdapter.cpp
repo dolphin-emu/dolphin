@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <libusb.h>
+#include <mutex>
 
 #include "Common/Flag.h"
 #include "Common/Thread.h"

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <mutex>
 #include <string>
 
 #include "Common/CommonTypes.h"

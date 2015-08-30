@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <mutex>
 
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
