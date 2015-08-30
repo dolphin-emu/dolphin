@@ -206,6 +206,8 @@ void Arm64GPRCache::BindToRegister(u32 preg, bool do_load)
 {
 	OpArg& reg = m_guest_registers[preg];
 
+	reg.ResetLastUsed();
+
 	reg.SetDirty(true);
 	if (reg.GetType() == REG_NOTLOADED)
 	{
@@ -331,6 +333,9 @@ void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, bool only_lower)
 	OpArg& reg = m_guest_registers[preg];
 
 	bool was_dirty = reg.IsDirty();
+
+	reg.ResetLastUsed();
+
 	reg.SetDirty(true);
 	switch (reg.GetType())
 	{

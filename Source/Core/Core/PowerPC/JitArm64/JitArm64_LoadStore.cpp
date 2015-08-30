@@ -543,15 +543,46 @@ void JitArm64::lmw(UGeckoInstruction inst)
 		MOVI2R(WA, (u32)(s32)(s16)inst.SIMM_16);
 	}
 
-	u8* base = UReg_MSR(MSR).DR ? Memory::logical_base : Memory::physical_base;
-	MOVK(XA, ((u64)base >> 32) & 0xFFFF, SHIFT_32);
+	ADD(XA, XA, X28);
 
 	for (int i = inst.RD; i < 32; i++)
 	{
-		gpr.BindToRegister(i, false);
-		ARM64Reg RX = gpr.R(i);
-		LDR(INDEX_UNSIGNED, RX, XA, (i - inst.RD) * 4);
-		REV32(RX, RX);
+		int remaining = 32 - i;
+		if (remaining >= 4)
+		{
+			gpr.BindToRegister(i + 3, false);
+			gpr.BindToRegister(i + 2, false);
+			gpr.BindToRegister(i + 1, false);
+			gpr.BindToRegister(i, false);
+			ARM64Reg RX4 = gpr.R(i + 3);
+			ARM64Reg RX3 = gpr.R(i + 2);
+			ARM64Reg RX2 = gpr.R(i + 1);
+			ARM64Reg RX1 = gpr.R(i);
+			LDP(INDEX_POST, EncodeRegTo64(RX1), EncodeRegTo64(RX3), XA, 16);
+			REV32(EncodeRegTo64(RX1), EncodeRegTo64(RX1));
+			REV32(EncodeRegTo64(RX3), EncodeRegTo64(RX3));
+			ORR(EncodeRegTo64(RX2), ZR, EncodeRegTo64(RX1), ArithOption(EncodeRegTo64(RX1), ST_LSR, 32));
+			ORR(EncodeRegTo64(RX4), ZR, EncodeRegTo64(RX3), ArithOption(EncodeRegTo64(RX3), ST_LSR, 32));
+			i+=3;
+		}
+		else if (remaining >= 2)
+		{
+			gpr.BindToRegister(i + 1, false);
+			gpr.BindToRegister(i, false);
+			ARM64Reg RX2 = gpr.R(i + 1);
+			ARM64Reg RX1 = gpr.R(i);
+			LDP(INDEX_POST, RX1, RX2, XA, 8);
+			REV32(RX1, RX1);
+			REV32(RX2, RX2);
+			++i;
+		}
+		else
+		{
+			gpr.BindToRegister(i, false);
+			ARM64Reg RX = gpr.R(i);
+			LDR(INDEX_POST, RX, XA, 4);
+			REV32(RX, RX);
+		}
 	}
 
 	gpr.Unlock(WA);
