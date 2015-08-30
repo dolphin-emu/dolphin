@@ -217,7 +217,6 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		m_invalid = true;
-		RecomputeCachedArraybases();
 
 		// Clear all caches that touch RAM
 		// (? these don't appear to touch any emulation state that gets saved. moved to on load only.)

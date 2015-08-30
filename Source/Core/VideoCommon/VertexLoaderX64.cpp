@@ -7,6 +7,7 @@
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderX64.h"
 
 using namespace Gen;
@@ -58,7 +59,7 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
 		}
 		// TODO: Move cached_arraybases into CPState and use MDisp() relative to a constant register loaded with &g_main_cp_state.
 		IMUL(32, scratch1, M(&g_main_cp_state.array_strides[array]));
-		MOV(64, R(scratch2), M(&cached_arraybases[array]));
+		MOV(64, R(scratch2), M(&VertexLoaderManager::cached_arraybases[array]));
 		return MRegSum(scratch1, scratch2);
 	}
 	else

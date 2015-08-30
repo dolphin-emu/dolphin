@@ -16,7 +16,9 @@
 #include "VideoBackends/Software/XFMemLoader.h"
 
 #include "VideoCommon/VertexLoaderBase.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
+
 
 SWVertexLoader::SWVertexLoader() :
 	m_VertexSize(0)
@@ -175,6 +177,8 @@ void SWVertexLoader::LoadVertex()
 
 	// reserve memory for the destination of the vertex loader
 	m_LoadedVertices.resize(vdec.stride + 4);
+
+	VertexLoaderManager::UpdateVertexArrayPointers();
 
 	// convert the vertex from the gc format to the videocommon (hardware optimized) format
 	u8* old = g_video_buffer_read_ptr;

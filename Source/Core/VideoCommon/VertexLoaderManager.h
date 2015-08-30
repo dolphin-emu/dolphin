@@ -24,6 +24,9 @@ namespace VertexLoaderManager
 	void AppendListToString(std::string *dest);
 
 	NativeVertexFormat* GetCurrentVertexFormat();
+
+	// Resolved pointers to array bases. Used by vertex loaders.
+	extern u8 *cached_arraybases[12];
+	void UpdateVertexArrayPointers();
 }
 
-void RecomputeCachedArraybases();

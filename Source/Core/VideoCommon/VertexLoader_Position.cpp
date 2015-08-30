@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Position.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -46,7 +47,7 @@ void LOADERDECL Pos_ReadIndex(VertexLoader* loader)
 
 	auto const index = DataRead<I>();
 	loader->m_vertexSkip = index == std::numeric_limits<I>::max();
-	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
+	auto const data = reinterpret_cast<const T*>(VertexLoaderManager::cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
 	auto const scale = loader->m_posScale;
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
 

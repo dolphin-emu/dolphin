@@ -88,6 +88,12 @@ union TVtxDesc
 	{
 		u32 Hex0, Hex1;
 	};
+
+	// Easily index into the Position..Tex7Coord fields.
+	u32 GetVertexArrayStatus(int idx)
+	{
+		return (Hex >> (9 + idx * 2)) & 0x3;
+	}
 };
 
 union UVAT_group0
@@ -249,6 +255,7 @@ struct CPState final
 
 	// Attributes that actually belong to VertexLoaderManager:
 	BitSet32 attr_dirty;
+	bool bases_dirty;
 	VertexLoaderBase* vertex_loaders[8];
 };
 
@@ -261,7 +268,6 @@ extern void CopyPreprocessCPStateFromMain();
 extern CPState g_main_cp_state;
 extern CPState g_preprocess_cp_state;
 
-extern u8 *cached_arraybases[16];
 
 // Might move this into its own file later.
 void LoadCPReg(u32 SubCmd, u32 Value, bool is_preprocess = false);
