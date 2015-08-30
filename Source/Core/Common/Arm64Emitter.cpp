@@ -1102,6 +1102,12 @@ static void GetSystemReg(PStateField field, int &o0, int &op1, int &CRn, int &CR
 	case FIELD_FPSR:
 		o0 = 3; op1 = 3; CRn = 4; CRm = 4; op2 = 1;
 		break;
+	case FIELD_PMCR_EL0:
+		o0 = 3; op1 = 3; CRn = 9; CRm = 6; op2 = 0;
+		break;
+	case FIELD_PMCCNTR_EL0:
+		o0 = 3; op1 = 3; CRn = 9; CRm = 7; op2 = 0;
+		break;
 	default:
 		_assert_msg_(DYNA_REC, false, "Invalid PStateField to do a register move from/to");
 		break;

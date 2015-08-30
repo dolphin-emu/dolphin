@@ -238,6 +238,12 @@ private:
 	Arm64Gen::ARM64CodeBlock farcode;
 	u8* nearcode; // Backed up when we switch to far code.
 
+	// Do we support cycle counter profiling?
+	bool m_supports_cycle_counter;
+
+	void EmitResetCycleCounters();
+	void EmitGetCycles(Arm64Gen::ARM64Reg reg);
+
 	// Simple functions to switch between near and far code emitting
 	void SwitchToFarCode()
 	{

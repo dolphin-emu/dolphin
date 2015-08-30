@@ -172,6 +172,8 @@ enum PStateField
 	FIELD_DAIFSet,
 	FIELD_DAIFClr,
 	FIELD_NZCV,	// The only system registers accessible from EL0 (user space)
+	FIELD_PMCR_EL0,
+	FIELD_PMCCNTR_EL0,
 	FIELD_FPCR = 0x340,
 	FIELD_FPSR = 0x341,
 };
@@ -809,6 +811,7 @@ public:
 	void FCVTL(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void FCVTL2(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void FCVTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
+	void FCVTN2(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
 	void FCVTZS(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void FCVTZU(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void FDIV(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);

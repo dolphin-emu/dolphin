@@ -15,6 +15,15 @@
 using namespace Arm64Gen;
 
 static const int AARCH64_FARCODE_SIZE = 1024 * 1024 * 16;
+static bool HasCycleCounters()
+{
+	// Bit needs to be set to support cycle counters
+	const u32 PMUSERENR_CR = 0x4;
+	u32 reg;
+	asm ("mrs %[val], PMUSERENR_EL0"
+			: [val] "=r" (reg));
+	return !!(reg & PMUSERENR_CR);
+}
 
 void JitArm64::Init()
 {
@@ -34,6 +43,8 @@ void JitArm64::Init()
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+
+	m_supports_cycle_counter = HasCycleCounters();
 }
 
 void JitArm64::ClearCache()
@@ -233,26 +244,65 @@ void JitArm64::DumpCode(const u8* start, const u8* end)
 	WARN_LOG(DYNA_REC, "Code dump from %p to %p:\n%s", start, end, output.c_str());
 }
 
+void JitArm64::EmitResetCycleCounters()
+{
+	const u32 PMCR_EL0_E  = 1;
+	const u32 PMCR_EL0_P  = 2;
+	const u32 PMCR_EL0_C  = 4;
+	const u32 PMCR_EL0_LC = 0x40;
+	_MSR(FIELD_PMCR_EL0, X0);
+	MOVI2R(X1, PMCR_EL0_E |
+	           PMCR_EL0_P |
+	           PMCR_EL0_C |
+	           PMCR_EL0_LC);
+	ORR(X0, X0, X1);
+	MRS(X0, FIELD_PMCR_EL0);
+}
+
+void JitArm64::EmitGetCycles(Arm64Gen::ARM64Reg reg)
+{
+	_MSR(FIELD_PMCCNTR_EL0, reg);
+}
+
 void JitArm64::BeginTimeProfile(JitBlock* b)
 {
 	b->ticCounter = 0;
 	b->ticStart = 0;
 	b->ticStop = 0;
 
-	MOVI2R(X1, (u64)QueryPerformanceCounter);
-	MOVI2R(X0, (u64)&b->ticStart);
-	BLR(X1);
+	if (m_supports_cycle_counter)
+	{
+		EmitResetCycleCounters();
+		EmitGetCycles(X1);
+		MOVI2R(X0, (u64)&b->ticStart);
+		STR(INDEX_UNSIGNED, X1, X0, 0);
+	}
+	else
+	{
+		MOVI2R(X1, (u64)QueryPerformanceCounter);
+		MOVI2R(X0, (u64)&b->ticStart);
+		BLR(X1);
+	}
 }
 
 void JitArm64::EndTimeProfile(JitBlock* b)
 {
-	MOVI2R(X1, (u64)QueryPerformanceCounter);
-	MOVI2R(X0, (u64)&b->ticStop);
-	BLR(X1);
+	if (m_supports_cycle_counter)
+	{
+		EmitGetCycles(X2);
+		MOVI2R(X0, (u64)&b->ticStart);
+	}
+	else
+	{
+		MOVI2R(X1, (u64)QueryPerformanceCounter);
+		MOVI2R(X0, (u64)&b->ticStop);
+		BLR(X1);
 
-	MOVI2R(X0, (u64)&b->ticStart);
+		MOVI2R(X0, (u64)&b->ticStart);
+		LDR(INDEX_UNSIGNED, X2, X0, 8); // Stop
+	}
+
 	LDR(INDEX_UNSIGNED, X1, X0, 0); // Start
-	LDR(INDEX_UNSIGNED, X2, X0, 8); // Stop
 	LDR(INDEX_UNSIGNED, X3, X0, 16); // Counter
 	SUB(X2, X2, X1);
 	ADD(X3, X3, X2);
