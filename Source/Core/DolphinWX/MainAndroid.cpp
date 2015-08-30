@@ -301,10 +301,9 @@ static std::string GetCompany(std::string filename)
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
 	if (pVolume != nullptr)
 	{
-		std::string date = pVolume->GetCompany();
-		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Company: %s", date.c_str());
-
-		return date;
+		std::string company = DiscIO::GetCompanyFromID(pVolume->GetMakerID());
+		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Company: %s", company.c_str());
+		return company;
 	}
 	return std::string ("");
 }

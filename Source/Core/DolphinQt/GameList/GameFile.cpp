@@ -129,6 +129,9 @@ GameFile::GameFile(const QString& fileName)
 		}
 	}
 
+	if (m_company.isEmpty() && m_unique_id.size() >= 6)
+		m_company = QString::fromStdString(DiscIO::GetCompanyFromID(m_unique_id.mid(4, 2).toStdString()));
+
 	if (m_valid)
 	{
 		IniFile ini = SCoreStartupParameter::LoadGameIni(m_unique_id.toStdString(), m_revision);

@@ -122,6 +122,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		}
 	}
 
+	if (m_company.empty() && m_UniqueID.size() >= 6)
+		m_company = DiscIO::GetCompanyFromID(m_UniqueID.substr(4, 2));
+
 	if (IsValid())
 	{
 		IniFile ini = SCoreStartupParameter::LoadGameIni(m_UniqueID, m_Revision);
