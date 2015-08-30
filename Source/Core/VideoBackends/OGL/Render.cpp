@@ -1766,8 +1766,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
 				{
 					m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
-					// OpenVR mirror window
-					if (g_has_steamvr)
+					// mirror window (if not done automatically)
+					if ((g_has_steamvr
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+						|| g_has_rift
+#endif
+						) && !g_ActiveConfig.bNoMirrorToWindow)
 					{
 						glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 						m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
@@ -1791,8 +1795,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
 			{
 				m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 0);
-				// OpenVR mirror window
-				if (g_has_steamvr)
+				// mirror window (if not done automatically)
+				if ((g_has_steamvr
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+					|| g_has_rift
+#endif
+					) && !g_ActiveConfig.bNoMirrorToWindow)
 				{
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 					m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 0);
