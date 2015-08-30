@@ -32,7 +32,7 @@
      <x>0</x>
      <y>0</y>
      <width>990</width>
-     <height>24</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="mnuFile">
@@ -218,17 +218,23 @@
   </action>
   <action name="actionPlay_mnu">
    <property name="text">
-    <string>Play</string>
+    <string>&amp;Play</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
    </property>
   </action>
   <action name="actionStop_mnu">
    <property name="text">
-    <string>Stop</string>
+    <string>&amp;Stop</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
    </property>
   </action>
   <action name="actionReset">
    <property name="text">
-    <string>Reset</string>
+    <string>&amp;Reset</string>
    </property>
   </action>
  </widget>

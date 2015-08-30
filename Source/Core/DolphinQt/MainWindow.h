@@ -58,11 +58,13 @@ private slots:
 	void OnOpenGitHub();
 	void OnOpenSystemInfo();
 	void OnOpenAbout();
+	void OnOpenAboutQt();
 
 	// Misc.
 	void UpdateIcons();
 
 private:
+	void closeEvent(QCloseEvent* ce);
 	std::unique_ptr<Ui::DMainWindow> m_ui;
 	DGameTracker* m_game_tracker;
 
