@@ -107,7 +107,7 @@ void Fifo_Init()
 	s_video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE + 4);
 	ResetVideoBuffer();
 	s_gpu_running_state.store(false);
-	Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
+	CommandProcessor::SetVITicks(CommandProcessor::m_cpClockOrigin);
 }
 
 void Fifo_Shutdown()
@@ -344,17 +344,17 @@ void RunGpuLoop()
 
 			if (!fifo.isGpuReadingData)
 			{
-				Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
+				CommandProcessor::SetVITicks(CommandProcessor::m_cpClockOrigin);
 			}
 
 			bool run_loop = true;
 
 			// check if we are able to run this buffer
-			while (run_loop && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
+			while (run_loop && !CommandProcessor::IsInterruptWaiting() && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 			{
 				fifo.isGpuReadingData = true;
 
-				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || Common::AtomicLoad(CommandProcessor::VITicks) > CommandProcessor::m_cpClockOrigin)
+				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || CommandProcessor::GetVITicks() > CommandProcessor::m_cpClockOrigin)
 				{
 					u32 readPtr = fifo.CPReadPointer;
 					ReadDataFromFifo(readPtr);
@@ -380,8 +380,8 @@ void RunGpuLoop()
 					g_new_frame_just_rendered = false;
 #endif
 
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && Common::AtomicLoad(CommandProcessor::VITicks) >= cyclesExecuted)
-						Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
+					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && CommandProcessor::GetVITicks() >= cyclesExecuted)
+						CommandProcessor::DecrementVITicks(cyclesExecuted);
 
 					Common::AtomicStore(fifo.CPReadPointer, readPtr);
 					Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
