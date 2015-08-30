@@ -114,7 +114,7 @@ void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*avxOp)
 		avx_op(avxOp, sseOp, fpr.RX(d), fpr.R(a), fpr.R(b), true, reversible);
 	}
 	ForceSinglePrecisionP(fpr.RX(d), fpr.RX(d));
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
 
@@ -174,7 +174,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 	}
 	fpr.BindToRegister(d, false);
 	ForceSinglePrecisionP(fpr.RX(d), XMM0);
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
 
@@ -206,7 +206,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 	MULPD(XMM0, fpr.R(a));
 	fpr.BindToRegister(d, false);
 	ForceSinglePrecisionP(fpr.RX(d), XMM0);
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
 
@@ -265,7 +265,7 @@ void Jit64::ps_rsqrte(UGeckoInstruction inst)
 	MOVLHPS(fpr.RX(d), XMM0);
 
 	ForceSinglePrecisionP(fpr.RX(d), fpr.RX(d));
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 	gpr.UnlockAllX();
 }
@@ -292,7 +292,7 @@ void Jit64::ps_res(UGeckoInstruction inst)
 	MOVLHPS(fpr.RX(d), XMM0);
 
 	ForceSinglePrecisionP(fpr.RX(d), fpr.RX(d));
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 	gpr.UnlockAllX();
 }
@@ -387,7 +387,7 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 
 	fpr.BindToRegister(d, false);
 	ForceSinglePrecisionP(fpr.RX(d), XMM0);
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
 

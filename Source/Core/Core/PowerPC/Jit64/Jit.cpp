@@ -623,12 +623,13 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			CMP(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm8(0));
 			FixupBranch failure = J_CC(CC_NZ, true);
 			SwitchToFarCode();
-			SetJumpTarget(failure);
-			MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
-			ABI_PushRegistersAndAdjustStack({}, 0);
-			ABI_CallFunctionC((void *)&JitInterface::CompileExceptionCheck, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
-			ABI_PopRegistersAndAdjustStack({}, 0);
-			JMP(asm_routines.dispatcher, true);
+				SetJumpTarget(failure);
+				MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+				ABI_PushRegistersAndAdjustStack({}, 0);
+				ABI_CallFunctionC((void *)&JitInterface::CompileExceptionCheck,
+				                  (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
+				ABI_PopRegistersAndAdjustStack({}, 0);
+				JMP(asm_routines.dispatcher, true);
 			SwitchToNearCode();
 			js.assumeNoPairedQuantize = true;
 		}
@@ -684,19 +685,21 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
 			FixupBranch extException = J_CC(CC_NZ, true);
+
 			SwitchToFarCode();
-			SetJumpTarget(extException);
-			TEST(32, PPCSTATE(msr), Imm32(0x0008000));
-			FixupBranch noExtIntEnable = J_CC(CC_Z, true);
-			TEST(32, M(&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
-			FixupBranch noCPInt = J_CC(CC_Z, true);
+				SetJumpTarget(extException);
+				TEST(32, PPCSTATE(msr), Imm32(0x0008000));
+				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
+				TEST(32, M(&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP |
+				                                                         ProcessorInterface::INT_CAUSE_PE_TOKEN |
+				                                                         ProcessorInterface::INT_CAUSE_PE_FINISH));
+				FixupBranch noCPInt = J_CC(CC_Z, true);
 
-			gpr.Flush(FLUSH_MAINTAIN_STATE);
-			fpr.Flush(FLUSH_MAINTAIN_STATE);
+				gpr.Flush(FLUSH_MAINTAIN_STATE);
+				fpr.Flush(FLUSH_MAINTAIN_STATE);
 
-			MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
-			WriteExternalExceptionExit();
-
+				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+				WriteExternalExceptionExit();
 			SwitchToNearCode();
 
 			SetJumpTarget(noCPInt);
@@ -731,18 +734,19 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				//This instruction uses FPU - needs to add FP exception bailout
 				TEST(32, PPCSTATE(msr), Imm32(1 << 13)); // Test FP enabled bit
 				FixupBranch b1 = J_CC(CC_Z, true);
+
 				SwitchToFarCode();
-				SetJumpTarget(b1);
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
+					SetJumpTarget(b1);
+					gpr.Flush(FLUSH_MAINTAIN_STATE);
+					fpr.Flush(FLUSH_MAINTAIN_STATE);
 
-				// If a FPU exception occurs, the exception handler will read
-				// from PC.  Update PC with the latest value in case that happens.
-				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
-				OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
-				WriteExceptionExit();
-
+					// If a FPU exception occurs, the exception handler will read
+					// from PC.  Update PC with the latest value in case that happens.
+					MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+					OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+					WriteExceptionExit();
 				SwitchToNearCode();
+
 				js.firstFPInstructionFound = true;
 			}
 
@@ -802,29 +806,29 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				}
 
 				SwitchToFarCode();
-				if (!js.fastmemLoadStore)
-				{
-					exceptionHandlerAtLoc[js.fastmemLoadStore] = nullptr;
-					SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
-				}
-				else
-				{
-					exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
-				}
+					if (!js.fastmemLoadStore)
+					{
+						exceptionHandlerAtLoc[js.fastmemLoadStore] = nullptr;
+						SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
+					}
+					else
+					{
+						exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
+					}
 
-				BitSet32 gprToFlush = BitSet32::AllTrue(32);
-				BitSet32 fprToFlush = BitSet32::AllTrue(32);
-				if (js.revertGprLoad >= 0)
-					gprToFlush[js.revertGprLoad] = false;
-				if (js.revertFprLoad >= 0)
-					fprToFlush[js.revertFprLoad] = false;
-				gpr.Flush(FLUSH_MAINTAIN_STATE, gprToFlush);
-				fpr.Flush(FLUSH_MAINTAIN_STATE, fprToFlush);
+					BitSet32 gprToFlush = BitSet32::AllTrue(32);
+					BitSet32 fprToFlush = BitSet32::AllTrue(32);
+					if (js.revertGprLoad >= 0)
+						gprToFlush[js.revertGprLoad] = false;
+					if (js.revertFprLoad >= 0)
+						fprToFlush[js.revertFprLoad] = false;
+					gpr.Flush(FLUSH_MAINTAIN_STATE, gprToFlush);
+					fpr.Flush(FLUSH_MAINTAIN_STATE, fprToFlush);
 
-				// If a memory exception occurs, the exception handler will read
-				// from PC.  Update PC with the latest value in case that happens.
-				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
-				WriteExceptionExit();
+					// If a memory exception occurs, the exception handler will read
+					// from PC.  Update PC with the latest value in case that happens.
+					MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+					WriteExceptionExit();
 				SwitchToNearCode();
 			}
 

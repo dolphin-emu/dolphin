@@ -49,14 +49,14 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 			MOVDDUP(fpr.RX(d), fpr.R(d));
 		}
 	}
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
 
 // We can avoid calculating FPRF if it's not needed; every float operation resets it, so
 // if it's going to be clobbered in a future instruction before being read, we can just
 // not calculate it.
-void Jit64::SetFPRFIfNeeded(UGeckoInstruction inst, X64Reg xmm)
+void Jit64::SetFPRFIfNeeded(X64Reg xmm)
 {
 	// As far as we know, the games that use this flag only need FPRF for fmul and fmadd, but
 	// FPRF is fast enough in JIT that we might as well just enable it for every float instruction
@@ -230,7 +230,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	{
 		MOVSD(fpr.RX(d), R(XMM0));
 	}
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
 
@@ -497,7 +497,7 @@ void Jit64::frspx(UGeckoInstruction inst)
 		MOVAPD(fpr.RX(d), fpr.R(b));
 	ForceSinglePrecisionS(fpr.RX(d), fpr.RX(d));
 	MOVDDUP(fpr.RX(d), fpr.R(d));
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
 
@@ -515,7 +515,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
 	MOVAPD(XMM0, fpr.R(b));
 	CALL((void *)asm_routines.frsqrte);
 	MOVSD(fpr.R(d), XMM0);
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 	gpr.UnlockAllX();
 }
@@ -534,7 +534,7 @@ void Jit64::fresx(UGeckoInstruction inst)
 	MOVAPD(XMM0, fpr.R(b));
 	CALL((void *)asm_routines.fres);
 	MOVSD(fpr.R(d), XMM0);
-	SetFPRFIfNeeded(inst, fpr.RX(d));
+	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 	gpr.UnlockAllX();
 }

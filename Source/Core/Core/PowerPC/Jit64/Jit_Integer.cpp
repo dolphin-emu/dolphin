@@ -1161,7 +1161,6 @@ void Jit64::divwux(UGeckoInstruction inst)
 		{
 			GenerateConstantOverflow(true);
 		}
-		//MOV(32, R(RAX), gpr.R(d));
 		FixupBranch end = J();
 		SetJumpTarget(not_div_by_zero);
 		DIV(32, gpr.R(b));
@@ -1849,7 +1848,7 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
 	gpr.UnlockAll();
 }
 
-void Jit64::twx(UGeckoInstruction inst)
+void Jit64::twX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
