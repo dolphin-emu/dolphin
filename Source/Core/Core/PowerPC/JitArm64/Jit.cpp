@@ -4,8 +4,10 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/Common.h"
+#include "Common/PerformanceCounter.h"
 
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArm64/JitArm64_Tables.h"
@@ -106,6 +108,9 @@ void JitArm64::WriteExit(u32 destination)
 {
 	DoDownCount();
 
+	if (Profiler::g_ProfileBlocks)
+		EndTimeProfile(js.curBlock);
+
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
 	JitBlock::LinkData linkData;
@@ -140,6 +145,10 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest)
 	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
 	gpr.Unlock(dest);
 		DoDownCount();
+
+		if (Profiler::g_ProfileBlocks)
+			EndTimeProfile(js.curBlock);
+
 		MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExceptions);
 		BLR(EncodeRegTo64(dest));
 	LDR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
@@ -152,6 +161,9 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest)
 void JitArm64::WriteExceptionExit()
 {
 	DoDownCount();
+
+	if (Profiler::g_ProfileBlocks)
+		EndTimeProfile(js.curBlock);
 
 	ARM64Reg WA = gpr.GetReg();
 	ARM64Reg XA = EncodeRegTo64(WA);
@@ -173,6 +185,10 @@ void JitArm64::WriteExitDestInR(ARM64Reg Reg)
 	STR(INDEX_UNSIGNED, Reg, X29, PPCSTATE_OFF(pc));
 	gpr.Unlock(Reg);
 	DoDownCount();
+
+	if (Profiler::g_ProfileBlocks)
+		EndTimeProfile(js.curBlock);
+
 	MOVI2R(EncodeRegTo64(Reg), (u64)asm_routines.dispatcher);
 	BR(EncodeRegTo64(Reg));
 }
@@ -183,6 +199,32 @@ void JitArm64::DumpCode(const u8* start, const u8* end)
 	for (u8* code = (u8*)start; code < end; code += 4)
 		output += StringFromFormat("%08x", Common::swap32(*(u32*)code));
 	WARN_LOG(DYNA_REC, "Code dump from %p to %p:\n%s", start, end, output.c_str());
+}
+
+void JitArm64::BeginTimeProfile(JitBlock* b)
+{
+	b->ticCounter = 0;
+	b->ticStart = 0;
+	b->ticStop = 0;
+
+	MOVI2R(X1, (u64)QueryPerformanceCounter);
+	MOVI2R(X0, (u64)&b->ticStart);
+	BLR(X1);
+}
+
+void JitArm64::EndTimeProfile(JitBlock* b)
+{
+	MOVI2R(X1, (u64)QueryPerformanceCounter);
+	MOVI2R(X0, (u64)&b->ticStop);
+	BLR(X1);
+
+	MOVI2R(X0, (u64)&b->ticStart);
+	LDR(INDEX_UNSIGNED, X1, X0, 0); // Start
+	LDR(INDEX_UNSIGNED, X2, X0, 8); // Stop
+	LDR(INDEX_UNSIGNED, X3, X0, 16); // Counter
+	SUB(X2, X2, X1);
+	ADD(X3, X3, X2);
+	STR(INDEX_UNSIGNED, X3, X0, 16);
 }
 
 void JitArm64::Run()
@@ -256,6 +298,21 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		SetJumpTarget(bail);
 	}
 
+	// Conditionally add profiling code.
+	if (Profiler::g_ProfileBlocks)
+	{
+		ARM64Reg WA = gpr.GetReg();
+		ARM64Reg WB = gpr.GetReg();
+		ARM64Reg XA = EncodeRegTo64(WA);
+		ARM64Reg XB = EncodeRegTo64(WB);
+		MOVI2R(XA, (u64)&b->runCount);
+		LDR(INDEX_UNSIGNED, XB, XA, 0);
+		ADD(XB, XB, 1);
+		STR(INDEX_UNSIGNED, XB, XA, 0);
+		gpr.Unlock(WA, WB);
+		// get start tic
+		BeginTimeProfile(b);
+	}
 	const u8 *normalEntry = GetCodePtr();
 	b->normalEntry = normalEntry;
 
