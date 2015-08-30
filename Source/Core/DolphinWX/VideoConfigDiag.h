@@ -223,6 +223,9 @@ protected:
 		virtual_xfb->Enable(vconfig.bUseXFB);
 		real_xfb->Enable(vconfig.bUseXFB);
 
+		// custom textures
+		cache_hires_textures->Enable(vconfig.bHiresTextures);
+
 		// Repopulating the post-processing shaders can't be done from an event
 		if (choice_ppshader && choice_ppshader->IsEmpty())
 			PopulatePostProcessingShaders();
@@ -291,6 +294,8 @@ protected:
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;
+
+	SettingCheckBox* cache_hires_textures;
 
 	wxCheckBox* progressive_scan_checkbox;
 
