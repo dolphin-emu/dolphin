@@ -20,6 +20,8 @@ enum RegType
 	REG_REG, // Reg type is register
 	REG_IMM, // Reg is really a IMM
 	REG_LOWER_PAIR, // Only the lower pair of a paired register
+	REG_DUP, // The lower reg is the same as the upper one (physical upper doesn't actually have the duplicated value)
+	REG_IS_LOADED, // We don't care what type it is, as long as the lower 64bits are loaded
 };
 
 enum FlushMode
@@ -63,6 +65,11 @@ public:
 	void LoadLowerReg(ARM64Reg reg)
 	{
 		m_type = REG_LOWER_PAIR;
+		m_reg = reg;
+	}
+	void LoadDup(ARM64Reg reg)
+	{
+		m_type = REG_DUP;
 		m_reg = reg;
 	}
 	void LoadToImm(u32 imm)
@@ -262,12 +269,9 @@ public:
 
 	// Returns a guest register inside of a host register
 	// Will dump an immediate to the host register as well
-	ARM64Reg R(u32 preg, bool only_lower = true);
+	ARM64Reg R(u32 preg, RegType type = REG_LOWER_PAIR);
 
-	void BindToRegister(u32 preg, bool do_load, bool only_lower = true);
-
-	// Returns if the register is only the lower 64bit register
-	bool IsLower(u32 preg) const { return m_guest_registers[preg].GetType() == REG_LOWER_PAIR; }
+	void BindToRegister(u32 preg, bool do_load, RegType type = REG_LOWER_PAIR);
 
 	BitSet32 GetCallerSavedUsed() override;
 

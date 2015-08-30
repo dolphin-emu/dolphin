@@ -18,8 +18,7 @@ struct BackPatchInfo
 		FLAG_SIZE_F64 = (1 << 6),
 		FLAG_REVERSE  = (1 << 7),
 		FLAG_EXTEND   = (1 << 8),
-		FLAG_ONLY_LOWER = (1 << 9),
-		FLAG_SIZE_F32I = (1 << 10),
+		FLAG_SIZE_F32I = (1 << 9),
 	};
 
 	static u32 GetFlagSize(u32 flags)
