@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -12,14 +13,15 @@ class CDolLoader
 {
 public:
 	CDolLoader(const std::string& filename);
-	CDolLoader(u8* _pBuffer, u32 _Size);
+	CDolLoader(u8* buffer, size_t size);
 	~CDolLoader();
 
-	bool IsWii()        const { return m_isWii; }
+	bool IsValid()      const { return m_is_valid; }
+	bool IsWii()        const { return m_is_wii; }
 	u32 GetEntryPoint() const { return m_dolheader.entryPoint; }
 
 	// Load into emulated memory
-	void Load();
+	void Load() const;
 
 private:
 	enum
@@ -42,15 +44,15 @@ private:
 		u32 bssAddress;
 		u32 bssSize;
 		u32 entryPoint;
-		u32 padd[7];
 	};
 	SDolHeader m_dolheader;
 
-	u8 *data_section[DOL_NUM_DATA];
-	u8 *text_section[DOL_NUM_TEXT];
+	std::vector<std::vector<u8>> m_data_sections;
+	std::vector<std::vector<u8>> m_text_sections;
 
-	bool m_isWii;
+	bool m_is_valid;
+	bool m_is_wii;
 
 	// Copy sections to internal buffers
-	void Initialize(u8* _pBuffer, u32 _Size);
+	bool Initialize(u8* buffer, size_t size);
 };
