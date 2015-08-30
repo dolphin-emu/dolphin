@@ -42,6 +42,10 @@ android {
             applicationIdSuffix ".debug"
             versionNameSuffix '-debug'
             jniDebuggable true
+
+            tasks.withType(JavaCompile) {
+                compileTask -> compileTask.dependsOn(compileNative)
+            }
         }
     }
 
@@ -87,4 +91,96 @@ dependencies {
 
     // For loading huge screenshots from the disk.
     compile 'com.squareup.picasso:picasso:2.5.2'
+}
+
+task setupCMake(type: Exec) {
+    // Check if a build properties file exists.
+    def propsFile = rootProject.file("build.properties")
+
+    // If it does, call CMake.
+    if (propsFile.canRead()) {
+        // Read the properties file's contents.
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+
+        mkdir('build/' + buildProperties.abi)
+        workingDir 'build/' + buildProperties.abi
+
+        executable 'cmake'
+
+        args "-DANDROID=true",
+                "-DANDROID_NATIVE_API_LEVEL=android-18",
+                "-DCMAKE_TOOLCHAIN_FILE=../../../android.toolchain.cmake",
+                "../../../../..",
+                "-DGIT_EXECUTABLE=" + getGitPath(),
+                "-DANDROID_NDK=" + getNdkPath(),
+                "-DANDROID_TOOLCHAIN_NAME=" + buildProperties.toolchain,
+                "-DANDROID_ABI=" + buildProperties.abi
+    } else {
+        executable 'echo'
+        args 'No build.properties found; skipping CMake.'
+    }
+}
+
+task compileNative(type: Exec, dependsOn: 'setupCMake') {
+    // Check if a build properties file exists.
+    def propsFile = rootProject.file("build.properties")
+
+    // If it does, call make.
+    if (propsFile.canRead()) {
+        // Read the properties file's contents.
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+
+        workingDir 'build/' + buildProperties.abi
+
+        executable 'make'
+
+        args buildProperties.makeArgs
+    } else {
+        executable 'echo'
+        args 'No build.properties found; skipping native build.'
+    }
+}
+
+String getGitPath() {
+    try {
+        def stdout = new ByteArrayOutputStream()
+
+        exec {
+            commandLine 'which', 'git'
+            standardOutput = stdout
+        }
+
+        def gitPath = stdout.toString().trim()
+        project.logger.quiet("Gradle: Found git executuable:" + gitPath)
+
+        return gitPath
+    } catch (ignored) {
+        // Shouldn't happen. How did the user get this file without git?
+        project.logger.error("Gradle error: Couldn't find git executable.")
+        return null;
+    }
+}
+
+String getNdkPath() {
+    try {
+        def stdout = new ByteArrayOutputStream()
+
+        exec {
+            // ndk-build.cmd is a file unique to the root directory of android-ndk-r10d.
+            commandLine 'locate', 'ndk-build.cmd'
+            standardOutput = stdout
+        }
+
+        def ndkCmdPath = stdout.toString()
+        def ndkPath = ndkCmdPath.substring(0, ndkCmdPath.lastIndexOf('/'))
+
+        project.logger.quiet("Gradle: Found Android NDK:" + ndkPath)
+
+        return ndkPath
+    } catch (ignored) {
+        project.logger.error("Gradle error: Couldn't find NDK.")
+        return null;
+    }
 }
