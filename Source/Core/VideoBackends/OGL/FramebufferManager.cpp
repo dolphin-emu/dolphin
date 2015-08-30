@@ -43,6 +43,11 @@ GLuint FramebufferManager::m_resolvedDepthTexture;
 // reinterpret pixel format
 SHADER FramebufferManager::m_pixel_format_shaders[2];
 
+// EFB pokes
+GLuint FramebufferManager::m_EfbColorPokes_VBO;
+GLuint FramebufferManager::m_EfbColorPokes_VAO;
+SHADER FramebufferManager::m_EfbColorPokes;
+
 bool FramebufferManager::m_stereo3d = false;
 int FramebufferManager::m_eye_count = 1;
 
@@ -344,6 +349,51 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6.c_str(), (m_EFBLayers > 1) ? gs.c_str() : nullptr);
 	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8.c_str(), (m_EFBLayers > 1) ? gs.c_str() : nullptr);
+
+	ProgramShaderCache::CompileShader(m_EfbColorPokes,
+		StringFromFormat(
+		"in vec2 rawpos;\n"
+		"in vec4 color0;\n"
+		"out vec4 v_c;\n"
+		"void main(void) {\n"
+		"	gl_Position = vec4(((rawpos + 0.5) / vec2(640.0, 528.0) * 2.0 - 1.0) * vec2(1.0, -1.0), 0.0, 1.0);\n"
+		"	gl_PointSize = %d.0 / 640.0;\n"
+		"	v_c = color0;\n"
+		"}\n", m_targetWidth).c_str(),
+
+		StringFromFormat(
+		"in vec4 %s_c;\n"
+		"out vec4 ocol0;\n"
+		"void main(void) {\n"
+		"	ocol0 = %s_c.bgra;\n"
+		"}\n", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v").c_str(),
+
+		m_EFBLayers > 1 ? StringFromFormat(
+		"layout(points) in;\n"
+		"layout(points, max_vertices = %d) out;\n"
+		"in vec4 v_c[1];\n"
+		"out vec4 g_c;\n"
+		"void main()\n"
+		"{\n"
+		"	for (int j = 0; j < %d; ++j) {\n"
+		"		gl_Layer = j;\n"
+		"		gl_Position = gl_in[0].gl_Position;\n"
+		"		gl_PointSize = %d.0 / 640.0;\n"
+		"		g_c = v_c[0];\n"
+		"		EmitVertex();\n"
+		"		EndPrimitive();\n"
+		"	}\n"
+		"}\n", m_EFBLayers, m_EFBLayers, m_targetWidth).c_str() : nullptr);
+	glGenBuffers(1, &m_EfbColorPokes_VBO);
+	glGenVertexArrays(1, &m_EfbColorPokes_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_EfbColorPokes_VBO);
+	glBindVertexArray(m_EfbColorPokes_VAO );
+	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_UNSIGNED_SHORT, 0, sizeof(EfbPokeData), (void*)offsetof(EfbPokeData, x));
+	glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB);
+	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 4, GL_UNSIGNED_BYTE, 1, sizeof(EfbPokeData), (void*)offsetof(EfbPokeData, data));
+
+	glEnable(GL_PROGRAM_POINT_SIZE);
 }
 
 FramebufferManager::~FramebufferManager()
@@ -384,6 +434,13 @@ FramebufferManager::~FramebufferManager()
 	// reinterpret pixel format
 	m_pixel_format_shaders[0].Destroy();
 	m_pixel_format_shaders[1].Destroy();
+
+	// EFB pokes
+	glDeleteBuffers(1, &m_EfbColorPokes_VBO);
+	glDeleteVertexArrays(1, &m_EfbColorPokes_VAO);
+	m_EfbColorPokes_VBO = 0;
+	m_EfbColorPokes_VAO = 0;
+	m_EfbColorPokes.Destroy();
 }
 
 GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc)
@@ -591,6 +648,33 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 {
 	*width = m_targetWidth;
 	*height = m_targetHeight;
+}
+
+void FramebufferManager::PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data)
+{
+	switch (type)
+	{
+	case POKE_COLOR:
+	{
+		g_renderer->ResetAPIState();
+
+		glBindVertexArray(m_EfbColorPokes_VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, m_EfbColorPokes_VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(EfbPokeData) * data.size(), data.data(), GL_STREAM_DRAW);
+		m_EfbColorPokes.Bind();
+		glViewport(0, 0, m_targetWidth, m_targetHeight);
+		glDrawArrays(GL_POINTS, 0, (GLsizei)data.size());
+
+		g_renderer->RestoreAPIState();
+
+		// TODO: Could just update the EFB cache with the new value
+		ClearEFBCache();
+		break;
+	}
+
+	default:
+		break;
+	}
 }
 
 }  // namespace OGL

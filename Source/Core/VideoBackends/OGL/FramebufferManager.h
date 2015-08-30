@@ -93,6 +93,8 @@ public:
 	// convtype=0 -> rgb8->rgba6, convtype=2 -> rgba6->rgb8
 	static void ReinterpretPixelData(unsigned int convtype);
 
+	static void PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data);
+
 	static void SwapAsyncFrontBuffers();
 
 	static GLuint m_eyeFramebuffer[2];
@@ -124,6 +126,11 @@ private:
 
 	// For pixel format draw
 	static SHADER m_pixel_format_shaders[2];
+
+	// For EFB pokes
+	static GLuint m_EfbColorPokes_VBO;
+	static GLuint m_EfbColorPokes_VAO;
+	static SHADER m_EfbColorPokes;
 };
 
 }  // namespace OGL
