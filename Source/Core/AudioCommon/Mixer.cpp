@@ -120,8 +120,6 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider
 	if (!samples)
 		return 0;
 
-	std::lock_guard<std::mutex> lk(m_csMixing);
-
 	memset(samples, 0, num_samples * 2 * sizeof(short));
 
 	if (PowerPC::GetState() != PowerPC::CPU_RUNNING)
