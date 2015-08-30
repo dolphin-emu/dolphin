@@ -101,7 +101,6 @@ void InterfaceConfigPane::InitializeGUI()
 	m_osd_messages_checkbox     = new wxCheckBox(this, wxID_ANY, _("On-Screen Display Messages"));
 	m_pause_focus_lost_checkbox = new wxCheckBox(this, wxID_ANY, _("Pause on Focus Lost"));
 	m_interface_lang_choice     = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_interface_lang_strings);
-	m_hotkey_config_button      = new wxButton(this, wxID_ANY, _("Hotkeys"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 	m_theme_choice              = new wxChoice(this, wxID_ANY);
 
 	m_confirm_stop_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnConfirmStopCheckBoxChanged, this);
@@ -120,8 +119,6 @@ void InterfaceConfigPane::InitializeGUI()
 	wxBoxSizer* const language_sizer = new wxBoxSizer(wxHORIZONTAL);
 	language_sizer->Add(new wxStaticText(this, wxID_ANY, _("Language:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	language_sizer->Add(m_interface_lang_choice, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	language_sizer->AddStretchSpacer();
-	language_sizer->Add(m_hotkey_config_button, 0, wxALIGN_RIGHT | wxALL, 5);
 
 	wxBoxSizer* const theme_sizer = new wxBoxSizer(wxHORIZONTAL);
 	theme_sizer->Add(new wxStaticText(this, wxID_ANY, _("Theme:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -183,38 +180,6 @@ void InterfaceConfigPane::LoadThemes()
 	}
 
 	m_theme_choice->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
-}
-
-void InterfaceConfigPane::OnHotkeyConfigButtonClicked(wxCommandEvent& event)
-{
-	bool was_init = false;
-
-	InputConfig* const hotkey_plugin = HotkeyManagerEmu::GetConfig();
-
-	// check if game is running
-	if (g_controller_interface.IsInit())
-	{
-		was_init = true;
-	}
-	else
-	{
-#if defined(HAVE_X11) && HAVE_X11
-		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
-#else
-		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
-#endif
-	}
-
-	InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"));
-	m_ConfigFrame.ShowModal();
-
-	// if game isn't running
-	if (!was_init)
-		HotkeyManagerEmu::Shutdown();
-
-	// Update the GUI in case menu accelerators were changed
-	main_frame->UpdateGUI();
 }
 
 void InterfaceConfigPane::OnConfirmStopCheckBoxChanged(wxCommandEvent& event)
