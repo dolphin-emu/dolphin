@@ -143,7 +143,6 @@ void JitArm64::mtsrin(UGeckoInstruction inst)
 void JitArm64::twx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
 
 	s32 a = inst.RA;
 
