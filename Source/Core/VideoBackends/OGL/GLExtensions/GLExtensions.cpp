@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <sstream>
@@ -785,6 +785,9 @@ PFNGLENDOCCLUSIONQUERYNVPROC glEndOcclusionQueryNV;
 PFNGLGETOCCLUSIONQUERYIVNVPROC glGetOcclusionQueryivNV;
 PFNGLGETOCCLUSIONQUERYUIVNVPROC glGetOcclusionQueryuivNV;
 
+// ARB_clip_control
+PFNGLCLIPCONTROLPROC glClipControl;
+
 // Creates a GLFunc object that requires a feature
 #define GLFUNC_REQUIRES(x, y) { (void**)&x, #x, y }
 // Creates a GLFunc object with a different function suffix
@@ -1271,6 +1274,9 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glEndOcclusionQueryNV,      "GL_NV_occlusion_query_samples"),
 	GLFUNC_REQUIRES(glGetOcclusionQueryivNV,    "GL_NV_occlusion_query_samples"),
 	GLFUNC_REQUIRES(glGetOcclusionQueryuivNV,   "GL_NV_occlusion_query_samples"),
+
+	// ARB_clip_control
+	GLFUNC_REQUIRES(glClipControl, "GL_ARB_clip_control"),
 
 	// gl_1_1
 	// OpenGL 1.1 is at the end due to a bug in Android's EGL stack.

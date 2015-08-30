@@ -1,3 +1,7 @@
+// Copyright 2012 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include "Core/IPC_HLE/ICMP.h"
 
 enum

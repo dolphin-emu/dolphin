@@ -1,6 +1,6 @@
-// copyright 2014 dolphin emulator project
-// licensed under gplv2
-// refer to the license.txt file included.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 

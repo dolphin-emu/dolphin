@@ -1,3 +1,7 @@
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 static const char *rating_5[] = {
 "96 32 33 1",
 "7 c #EBB027",

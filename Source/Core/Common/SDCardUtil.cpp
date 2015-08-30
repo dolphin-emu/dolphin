@@ -1,3 +1,7 @@
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 /* mksdcard.c
 **
 ** Copyright 2007, The Android Open Source Project
