@@ -439,7 +439,7 @@ void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
 	}
 }
 
-u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
+u64 CNANDContentManager::Install_WiiWAD(const std::string& fileName)
 {
 	if (fileName.find(".wad") == std::string::npos)
 		return 0;

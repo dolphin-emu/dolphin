@@ -153,15 +153,15 @@ void SetIsFramelimiterTempDisabled(bool disable)
 }
 
 std::string GetStateFileName() { return s_state_filename; }
-void SetStateFileName(std::string val) { s_state_filename = val; }
+void SetStateFileName(const std::string& val) { s_state_filename = val; }
 
 // Display messages and return values
 
 // Formatted stop message
-std::string StopMessage(bool bMainThread, std::string Message)
+std::string StopMessage(bool main_thread, const std::string& message)
 {
 	return StringFromFormat("Stop [%s %i]\t%s\t%s",
-		bMainThread ? "Main Thread" : "Video Thread", Common::CurrentThreadId(), MemUsage().c_str(), Message.c_str());
+		main_thread ? "Main Thread" : "Video Thread", Common::CurrentThreadId(), MemUsage().c_str(), message.c_str());
 }
 
 void DisplayMessage(const std::string& message, int time_in_ms)

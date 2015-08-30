@@ -68,5 +68,5 @@ private:
 	bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
 	u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
 
-	void LoadFileToIPL(std::string filename, u32 offset);
+	void LoadFileToIPL(const std::string& filename, u32 offset);
 };

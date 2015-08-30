@@ -332,7 +332,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 	return true;
 }
 
-void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::string gameRegion, bool isSlotA)
+void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA)
 {
 	std::string ext("." + gameRegion + ".raw");
 	if (memcardPath.empty())

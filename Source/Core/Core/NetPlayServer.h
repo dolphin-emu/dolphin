@@ -23,7 +23,7 @@ public:
 	void ThreadFunc();
 	void SendAsyncToClients(sf::Packet* packet);
 
-	NetPlayServer(const u16 port, bool traversal, std::string centralServer, u16 centralPort);
+	NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort);
 	~NetPlayServer();
 
 	bool ChangeGame(const std::string& game);
@@ -47,7 +47,7 @@ public:
 
 	void SetNetPlayUI(NetPlayUI* dialog);
 	std::unordered_set<std::string> GetInterfaceSet();
-	std::string GetInterfaceHost(const std::string inter);
+	std::string GetInterfaceHost(const std::string& inter);
 
 	bool is_connected;
 
