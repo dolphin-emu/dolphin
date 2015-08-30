@@ -90,7 +90,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	// The distinction becomes important for certain operations, i.e. the
 	// alpha channel should be ignored if the EFB does not have one.
 
-	glActiveTexture(GL_TEXTURE0 + 9);
+	glActiveTexture(GL_TEXTURE9);
 
 	GLuint glObj[3];
 	glGenTextures(3, glObj);
@@ -583,7 +583,7 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 	FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
 
 	glViewport(0,0, m_targetWidth, m_targetHeight);
-	glActiveTexture(GL_TEXTURE0 + 9);
+	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(m_textureType, src_texture);
 
 	m_pixel_format_shaders[convtype ? 1 : 0].Bind();
@@ -636,7 +636,7 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 
 	glGenTextures(1, &texture);
 
-	glActiveTexture(GL_TEXTURE0 + 9);
+	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, target_width, target_height, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);

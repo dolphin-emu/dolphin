@@ -172,7 +172,7 @@ void Init()
 {
 	glGenFramebuffers(2, s_texConvFrameBuffer);
 
-	glActiveTexture(GL_TEXTURE0 + 9);
+	glActiveTexture(GL_TEXTURE9);
 	glGenTextures(1, &s_srcTexture);
 	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -225,7 +225,7 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	OpenGL_BindAttributelessVAO();
 
 	// set source texture
-	glActiveTexture(GL_TEXTURE0+9);
+	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, srcTexture);
 
 	if (linearFilter)
@@ -374,7 +374,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	// activate source texture
 	// set srcAddr as data for source texture
-	glActiveTexture(GL_TEXTURE0+9);
+	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 

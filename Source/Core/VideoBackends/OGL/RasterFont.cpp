@@ -142,7 +142,7 @@ RasterFont::RasterFont()
 {
 	// generate the texture
 	glGenTextures(1, &texture);
-	glActiveTexture(GL_TEXTURE0+8);
+	glActiveTexture(GL_TEXTURE8);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	std::vector<u32> texture_data(CHAR_WIDTH * CHAR_COUNT * CHAR_HEIGHT);
 	for (int y = 0; y < CHAR_HEIGHT; y++)
