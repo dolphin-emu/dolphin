@@ -14,6 +14,7 @@
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/TextureCache.h"
 #include "VideoBackends/OGL/TextureConverter.h"
 
@@ -229,15 +230,9 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	glBindTexture(GL_TEXTURE_2D_ARRAY, srcTexture);
 
 	if (linearFilter)
-	{
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	}
+		g_sampler_cache->BindLinearSampler(9);
 	else
-	{
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	}
+		g_sampler_cache->BindNearestSampler(9);
 
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
 
@@ -377,6 +372,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
+	g_sampler_cache->BindNearestSampler(9);
 
 	glViewport(0, 0, srcWidth, srcHeight);
 	s_yuyvToRgbProgram.Bind();
