@@ -136,6 +136,10 @@ void JitArmAsmRoutineManager::Generate()
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		SetJumpTarget(dbg_exit);
 
+	// Let the waiting thread know we are done leaving
+	MOVI2R(R0, (u32)&PowerPC::FinishStateMove);
+	BL(R0);
+
 	ADD(_SP, _SP, 4);
 
 	POP(9, R4, R5, R6, R7, R8, R9, R10, R11, _PC);  // Returns

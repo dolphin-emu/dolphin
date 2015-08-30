@@ -216,6 +216,12 @@ void Jit64AsmRoutineManager::Generate()
 		ADD(64, R(RSP), Imm8(0x18));
 		POP(RSP);
 	}
+
+	// Let the waiting thread know we are done leaving
+	ABI_PushRegistersAndAdjustStack({}, 0);
+	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::FinishStateMove));
+	ABI_PopRegistersAndAdjustStack({}, 0);
+
 	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 	RET();
 
