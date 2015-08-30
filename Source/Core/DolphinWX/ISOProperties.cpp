@@ -1487,7 +1487,7 @@ bool CISOProperties::SaveGameConfig()
 	return success;
 }
 
-void CISOProperties::LaunchExternalEditor(const std::string& filename)
+void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait_until_closed)
 {
 #ifdef __APPLE__
 	// wxTheMimeTypesManager is not yet implemented for wxCocoa
@@ -1510,18 +1510,25 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename)
 	if (OpenCommand.IsEmpty())
 	{
 		WxUtils::ShowErrorDialog(_("Couldn't find open command for extension 'ini'!"));
+		return;
 	}
+
+	long result;
+
+	if (wait_until_closed)
+		result = wxExecute(OpenCommand, wxEXEC_SYNC);
 	else
+		result = wxExecute(OpenCommand);
+
+	if (result == -1)
 	{
-		if (wxExecute(OpenCommand, wxEXEC_SYNC) == -1)
-			WxUtils::ShowErrorDialog(_("wxExecute returned -1 on application run!"));
+		WxUtils::ShowErrorDialog(_("wxExecute returned -1 on application run!"));
+		return;
 	}
+
+	if (wait_until_closed)
+		bRefreshList = true; // Just in case
 #endif
-
-	bRefreshList = true; // Just in case
-
-	// Once we're done with the ini edit, give the focus back to Dolphin
-	SetFocus();
 }
 
 void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
@@ -1533,7 +1540,7 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 		std::fstream blankFile(GameIniFileLocal, std::ios::out);
 		blankFile.close();
 	}
-	LaunchExternalEditor(GameIniFileLocal);
+	LaunchExternalEditor(GameIniFileLocal, true);
 	GameIniLocal.Load(GameIniFileLocal);
 	LoadGameConfig();
 }
@@ -1590,7 +1597,7 @@ void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED (event))
 	{
 		std::string path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename;
 		if (File::Exists(path))
-			LaunchExternalEditor(path);
+			LaunchExternalEditor(path, false);
 	}
 }
 
