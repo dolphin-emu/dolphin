@@ -33,17 +33,15 @@ class AOSound final : public SoundStream
 	short realtimeBuffer[1024 * 1024];
 
 public:
-	virtual bool Start() override;
-
-	virtual void SoundLoop() override;
-
-	virtual void Stop() override;
+	bool Start() override;
+	void SoundLoop() override;
+	void Stop() override;
+	void Update() override;
 
 	static bool isValid()
 	{
 		return true;
 	}
 
-	virtual void Update() override;
 #endif
 };

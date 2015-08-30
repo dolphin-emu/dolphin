@@ -32,7 +32,7 @@ public:
 	virtual void Clear(bool mute) { m_muted = mute; }
 	bool IsMuted() const { return m_muted; }
 
-	virtual void StartLogAudio(const std::string& filename)
+	void StartLogAudio(const std::string& filename)
 	{
 		if (!m_logAudio)
 		{
@@ -47,7 +47,7 @@ public:
 		}
 	}
 
-	virtual void StopLogAudio()
+	void StopLogAudio()
 	{
 		if (m_logAudio)
 		{
