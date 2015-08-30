@@ -84,7 +84,7 @@ and Gradle will include any libraries in that folder into the APK at build time.
 When Dolphin has been installed with the NSIS installer, you can uninstall
 Dolphin like any other Windows application.
 
-Linux users can run `cat install_manifest | xargs -d '\n' rm` from the build directory
+Linux users can run `cat install_manifest.txt | xargs -d '\n' rm` as root from the build directory
 to uninstall Dolphin from their system.
 
 OS X users can simply delete Dolphin.app to uninstall it.
