@@ -18,7 +18,7 @@
             android:layout_marginLeft="16dp"
             android:layout_marginTop="24dp"
             tools:src="@drawable/placeholder_banner"
-            app:border_color="#ffcccccc"
+            app:border_color="?android:colorAccent"
             app:border_width="2dp"
             />
 
@@ -32,6 +32,7 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:transitionName="image_game_screen"
+            tools:scaleType="centerCrop"
             tools:src="@drawable/placeholder_screenshot"/>
 
         <TextView
@@ -46,12 +47,10 @@
             android:layout_marginTop="24dp"
             android:layout_toEndOf="@+id/circle_banner"
             android:ellipsize="end"
-            android:lines="1"
-            android:maxLines="1"
             tools:text="Rhythm Heaven Fever"/>
 
         <TextView
-            android:id="@+id/text_game_description"
+            android:id="@+id/text_company"
             style="@android:style/TextAppearance.Material.Caption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -59,7 +58,6 @@
             android:layout_alignStart="@+id/text_game_title"
             android:layout_below="@+id/text_game_title"
             android:layout_marginTop="8dp"
-            android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sed odio vel quam auctor euismod. Pellentesque odio nibh, fermentum ut hendrerit id, ultrices et justo. "
             tools:text="Zany rhythm action!"
             />
 
@@ -69,7 +67,7 @@
             android:layout_height="1dp"
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true"
-            android:layout_below="@+id/text_game_description"
+            android:layout_below="@+id/text_company"
             android:layout_marginTop="16dp"
 
             android:background="#1F000000"/>
@@ -85,14 +83,14 @@
             android:src="@drawable/ic_country"/>
 
         <ImageView
-            android:id="@+id/icon_year"
+            android:id="@+id/icon_company"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_alignStart="@+id/icon_country"
             android:layout_below="@+id/icon_country"
             android:layout_marginTop="16dp"
             android:padding="6dp"
-            android:src="@drawable/ic_date"
+            android:src="@drawable/ic_company"
             android:layout_marginBottom="16dp"/>
 
         <TextView
@@ -100,22 +98,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/icon_country"
-            android:layout_alignStart="@+id/text_game_description"
+            android:layout_alignStart="@+id/text_company"
             android:layout_alignTop="@+id/icon_country"
             android:gravity="center_vertical"
-            android:text="United States"
             tools:text="United States"/>
 
         <TextView
             android:id="@+id/text_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/icon_year"
+            android:layout_alignBottom="@+id/icon_company"
             android:layout_alignStart="@+id/text_country"
-            android:layout_alignTop="@+id/icon_year"
+            android:layout_alignTop="@+id/icon_company"
             android:gravity="center_vertical"
-            android:text="2010"
-            tools:text="2010"/>
+            tools:text="Nintendo"/>
 
         <ImageButton
             android:id="@+id/button_launch"
@@ -124,7 +120,7 @@
             android:layout_alignBottom="@+id/image_game_screen"
             android:layout_alignEnd="@+id/text_game_title"
             android:layout_marginBottom="-28dp"
-            android:background="@drawable/oval_ripple_wii"
+            android:background="@drawable/oval_ripple_accent"
             android:src="@drawable/ic_play"
             android:stateListAnimator="@anim/button_elevation"
             android:elevation="4dp"/>

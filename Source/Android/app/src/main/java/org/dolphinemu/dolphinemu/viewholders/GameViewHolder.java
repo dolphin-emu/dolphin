@@ -1,29 +1,31 @@
 package org.dolphinemu.dolphinemu.viewholders;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
-import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
-import org.dolphinemu.dolphinemu.model.Game;
 
-
+/**
+ * A simple class that stores references to views so that the GameAdapter doesn't need to
+ * keep calling findViewById(), which is expensive.
+ */
 public class GameViewHolder extends RecyclerView.ViewHolder
 {
 	public ImageView imageScreenshot;
 	public TextView textGameTitle;
-	public TextView textDescription;
+	public TextView textCompany;
 
-	// Used to handle onClick(). Set this in onBindViewHolder().
+	public String gameId;
+
+	// TODO Not need any of this stuff. Currently only the properties dialog needs it.
 	public String path;
+	public String title;
+	public String description;
+	public int country;
+	public String company;
 	public String screenshotPath;
-	public Game game;
 
 	public GameViewHolder(View itemView)
 	{
@@ -33,6 +35,6 @@ public class GameViewHolder extends RecyclerView.ViewHolder
 
 		imageScreenshot = (ImageView) itemView.findViewById(R.id.image_game_screen);
 		textGameTitle = (TextView) itemView.findViewById(R.id.text_game_title);
-		textDescription = (TextView) itemView.findViewById(R.id.text_game_description);
+		textCompany = (TextView) itemView.findViewById(R.id.text_company);
 	}
 }

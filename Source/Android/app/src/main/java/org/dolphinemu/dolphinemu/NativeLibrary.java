@@ -132,9 +132,13 @@ public final class NativeLibrary
 
 	public static native String GetDescription(String filename);
 	public static native String GetGameId(String filename);
-	public static native String GetDate(String filename);
+
+	public static native int GetCountry(String filename);
+
+	public static native String GetCompany(String filename);
 	public static native long GetFilesize(String filename);
-	public static native boolean IsWiiTitle(String filename);
+
+	public static native int GetPlatform(String filename);
 
 	/**
 	 * Gets the Dolphin version string.

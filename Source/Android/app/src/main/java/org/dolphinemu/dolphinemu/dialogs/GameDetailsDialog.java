@@ -16,12 +16,11 @@ import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
-import org.dolphinemu.dolphinemu.model.Game;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class GameDetailsDialog extends DialogFragment
+public final class GameDetailsDialog extends DialogFragment
 {
 	public static final String ARGUMENT_GAME_TITLE = BuildConfig.APPLICATION_ID + ".game_title";
 	public static final String ARGUMENT_GAME_DESCRIPTION = BuildConfig.APPLICATION_ID + ".game_description";
@@ -30,18 +29,18 @@ public class GameDetailsDialog extends DialogFragment
 	public static final String ARGUMENT_GAME_PATH = BuildConfig.APPLICATION_ID + ".game_path";
 	public static final String ARGUMENT_GAME_SCREENSHOT_PATH = BuildConfig.APPLICATION_ID + ".game_screenshot_path";
 
-
-	public static GameDetailsDialog newInstance(Game game)
+	// TODO Add all of this to the Loader in GameActivity.java
+	public static GameDetailsDialog newInstance(String title, String description, int country, String company, String path, String screenshotPath)
 	{
 		GameDetailsDialog fragment = new GameDetailsDialog();
 
 		Bundle arguments = new Bundle();
-		arguments.putString(ARGUMENT_GAME_TITLE, game.getTitle());
-		arguments.putString(ARGUMENT_GAME_DESCRIPTION, game.getDescription());
-		arguments.putString(ARGUMENT_GAME_COUNTRY, game.getCountry());
-		arguments.putString(ARGUMENT_GAME_DATE, game.getDate());
-		arguments.putString(ARGUMENT_GAME_PATH, game.getPath());
-		arguments.putString(ARGUMENT_GAME_SCREENSHOT_PATH, game.getScreenPath());
+		arguments.putString(ARGUMENT_GAME_TITLE, title);
+		arguments.putString(ARGUMENT_GAME_DESCRIPTION, description);
+		arguments.putInt(ARGUMENT_GAME_COUNTRY, country);
+		arguments.putString(ARGUMENT_GAME_DATE, company);
+		arguments.putString(ARGUMENT_GAME_PATH, path);
+		arguments.putString(ARGUMENT_GAME_SCREENSHOT_PATH, screenshotPath);
 		fragment.setArguments(arguments);
 
 		return fragment;
@@ -57,16 +56,19 @@ public class GameDetailsDialog extends DialogFragment
 		CircleImageView circleBanner = (CircleImageView) contents.findViewById(R.id.circle_banner);
 
 		TextView textTitle = (TextView) contents.findViewById(R.id.text_game_title);
-		TextView textDescription = (TextView) contents.findViewById(R.id.text_game_description);
+		TextView textDescription = (TextView) contents.findViewById(R.id.text_company);
 
 		TextView textCountry = (TextView) contents.findViewById(R.id.text_country);
 		TextView textDate = (TextView) contents.findViewById(R.id.text_date);
 
 		ImageButton buttonLaunch = (ImageButton) contents.findViewById(R.id.button_launch);
 
+		int countryIndex = getArguments().getInt(ARGUMENT_GAME_COUNTRY);
+		String country = getResources().getStringArray(R.array.country_names)[countryIndex];
+
 		textTitle.setText(getArguments().getString(ARGUMENT_GAME_TITLE));
 		textDescription.setText(getArguments().getString(ARGUMENT_GAME_DESCRIPTION));
-		textCountry.setText(getArguments().getString(ARGUMENT_GAME_COUNTRY));
+		textCountry.setText(country);
 		textDate.setText(getArguments().getString(ARGUMENT_GAME_DATE));
 		buttonLaunch.setOnClickListener(new View.OnClickListener()
 		{
@@ -77,6 +79,8 @@ public class GameDetailsDialog extends DialogFragment
 				Intent intent = new Intent(view.getContext(), EmulationActivity.class);
 
 				intent.putExtra("SelectedGame", getArguments().getString(ARGUMENT_GAME_PATH));
+				intent.putExtra("SelectedTitle", getArguments().getString(ARGUMENT_GAME_TITLE));
+
 				startActivity(intent);
 			}
 		});

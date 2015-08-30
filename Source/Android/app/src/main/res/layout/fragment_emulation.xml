@@ -1,0 +1,22 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context="org.dolphinemu.dolphinemu.fragments.EmulationFragment">
+
+    <!-- This is what everything is rendered to during emulation -->
+    <org.dolphinemu.dolphinemu.emulation.NativeGLSurfaceView
+        android:id="@+id/surface_emulation"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:focusable="false"
+        android:focusableInTouchMode="false"/>
+
+    <!-- This is the onscreen input overlay -->
+    <org.dolphinemu.dolphinemu.emulation.overlay.InputOverlay
+        android:id="@+id/surface_input_overlay"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"/>
+</FrameLayout>
