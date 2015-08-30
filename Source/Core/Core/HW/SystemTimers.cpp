@@ -85,7 +85,6 @@ static int et_DSP;
 static int et_IPC_HLE;
 static int et_PatchEngine; // PatchEngine updates every 1/60th of a second by default
 static int et_Throttle;
-static int et_UpdateInput;
 
 // These are badly educated guesses
 // Feel free to experiment. Set these in Init below.
@@ -137,14 +136,6 @@ static void VICallback(u64 userdata, int cyclesLate)
 {
 	VideoInterface::Update();
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine() - cyclesLate, et_VI);
-}
-
-static void UpdateInputCallback(u64 userdata, int cyclesLate)
-{
-	g_controller_interface.UpdateInput();
-
-	// Poll system input every 1/60th of a second.
-	CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond() / 60 - cyclesLate, et_UpdateInput);
 }
 
 static void SICallback(u64 userdata, int cyclesLate)
@@ -286,7 +277,6 @@ void Init()
 	et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
 	et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
 	et_Throttle = CoreTiming::RegisterEvent("Throttle", ThrottleCallback);
-	et_UpdateInput = CoreTiming::RegisterEvent("UpdateInput", UpdateInputCallback);
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
 	CoreTiming::ScheduleEvent(0, et_DSP);
@@ -301,8 +291,6 @@ void Init()
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		CoreTiming::ScheduleEvent(IPC_HLE_PERIOD, et_IPC_HLE);
-
-	CoreTiming::ScheduleEvent(0, et_UpdateInput);
 }
 
 void Shutdown()
