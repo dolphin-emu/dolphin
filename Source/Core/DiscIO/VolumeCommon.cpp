@@ -57,7 +57,7 @@ std::vector<u32> IVolume::GetBanner(int* width, int* height) const
 	return image_buffer;
 }
 
-std::map<IVolume::ELanguage, std::string> IVolume::ReadWiiNames(std::vector<u8>& data)
+std::map<IVolume::ELanguage, std::string> IVolume::ReadWiiNames(const std::vector<u8>& data)
 {
 	std::map<IVolume::ELanguage, std::string> names;
 	for (size_t i = 0; i < NUMBER_OF_LANGUAGES; ++i)
