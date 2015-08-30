@@ -9,6 +9,12 @@
         <item name="android:colorPrimaryDark">@color/dolphin_blue_dark</item>
     </style>
 
+    <!-- Same as above, but use default action bar, and mandate margins. -->
+    <style name="DolphinSettingsBase" parent="android:Theme.Material.Light.DarkActionBar">
+        <item name="android:colorPrimary">@color/dolphin_blue</item>
+        <item name="android:colorPrimaryDark">@color/dolphin_blue_dark</item>
+    </style>
+
     <!-- Inherit from the Base Dolphin Theme-->
     <style name="DolphinWii" parent="DolphinBase">
         <!--   theme UI controls like checkboxes and text fields -->
@@ -21,6 +27,22 @@
     </style>
 
     <style name="DolphinWiiware" parent="DolphinBase">
+        <!--   theme UI controls like checkboxes and text fields -->
+        <item name="android:colorAccent">@color/dolphin_accent_wiiware</item>
+    </style>
+
+    <!-- Inherit from the Base Dolphin Settings Theme-->
+    <style name="DolphinSettingsWii" parent="DolphinSettingsBase">
+        <!--   theme UI controls like checkboxes and text fields -->
+        <item name="android:colorAccent">@color/dolphin_accent_wii</item>
+    </style>
+
+    <style name="DolphinSettingsGamecube" parent="DolphinSettingsBase">
+        <!--   theme UI controls like checkboxes and text fields -->
+        <item name="android:colorAccent">@color/dolphin_accent_gamecube</item>
+    </style>
+
+    <style name="DolphinSettingsWiiware" parent="DolphinSettingsBase">
         <!--   theme UI controls like checkboxes and text fields -->
         <item name="android:colorAccent">@color/dolphin_accent_wiiware</item>
     </style>

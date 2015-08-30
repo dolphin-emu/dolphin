@@ -2,7 +2,7 @@
 
 <!-- All lists for ListPreference keys/values are placed here -->
 <resources>
-    
+
     <!-- CPU core selection - X86_64 -->
     <string-array name="emuCoreEntriesX86_64" translatable="false">
         <item>@string/interpreter</item>
@@ -42,7 +42,14 @@
     <string-array name="emuCoreValuesOther" translatable="false">
         <item>0</item>
     </string-array>
-    
+
+    <!-- New UI CPU Core selection - Default -->
+    <string-array name="string_emu_cores" translatable="false">
+        <item>@string/interpreter</item>
+    </string-array>
+    <string-array name="int_emu_cores" translatable="false">
+        <item>0</item>
+    </string-array>
     
     <!-- Video Backend Selection - Supports OpenGL ES 3 -->
     <string-array name="videoBackendEntriesGLES3" translatable="false">

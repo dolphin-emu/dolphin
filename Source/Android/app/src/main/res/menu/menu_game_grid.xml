@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/clearGameList"
-        android:title="@string/clear_game_list"
+        android:id="@+id/menu_settings"
+        android:title="@string/grid_menu_settings"
         android:showAsAction="never"/>
 </menu>

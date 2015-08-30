@@ -4,13 +4,13 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.services;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.os.Environment;
 import android.util.Log;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.settings.UserPreferences;
 
 import java.io.File;

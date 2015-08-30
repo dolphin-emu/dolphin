@@ -10,16 +10,17 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toolbar;
 
-import org.dolphinemu.dolphinemu.AssetCopyService;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.GcGame;
+import org.dolphinemu.dolphinemu.services.AssetCopyService;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -89,8 +90,8 @@ public final class GameGridActivity extends Activity
 	 * Callback from AddDirectoryActivity. Applies any changes necessary to the GameGridActivity.
 	 *
 	 * @param requestCode An int describing whether the Activity that is returning did so successfully.
-	 * @param resultCode An int describing what Activity is giving us this callback.
-	 * @param result The information the returning Activity is providing us.
+	 * @param resultCode  An int describing what Activity is giving us this callback.
+	 * @param result      The information the returning Activity is providing us.
 	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent result)
@@ -126,7 +127,27 @@ public final class GameGridActivity extends Activity
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.menu_game_grid, menu);
 		return true;
+	}
 
+	/**
+	 * Called by the framework whenever any actionbar/toolbar icon is clicked.
+	 *
+	 * @param item The icon that was clicked on.
+	 * @return True if the event was handled, false to bubble it up to the OS.
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		switch (item.getItemId())
+		{
+			case R.id.menu_settings:
+				// Launch the Settings Actvity.
+				Intent settings = new Intent(this, SettingsActivity.class);
+				startActivity(settings);
+				return true;
+		}
+
+		return false;
 	}
 
 	// TODO Replace all of this with a SQLite database
@@ -172,7 +193,8 @@ public final class GameGridActivity extends Activity
 				}
 
 			}
-		} catch (Exception ignored)
+		}
+		catch (Exception ignored)
 		{
 
 		}
