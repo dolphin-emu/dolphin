@@ -18,7 +18,7 @@ class PulseAudio final : public SoundStream
 {
 #if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
 public:
-	PulseAudio(CMixer *mixer);
+	PulseAudio();
 
 	virtual bool Start() override;
 	virtual void Stop() override;
@@ -56,8 +56,5 @@ private:
 	pa_context *m_pa_ctx;
 	pa_stream *m_pa_s;
 	pa_buffer_attr m_pa_ba;
-#else
-public:
-	PulseAudio(CMixer *mixer) : SoundStream(mixer) {}
 #endif
 };

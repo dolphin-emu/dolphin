@@ -155,9 +155,8 @@ bool XAudio2::InitLibrary()
 	return true;
 }
 
-XAudio2::XAudio2(CMixer *mixer)
-	: SoundStream(mixer)
-	, m_mastering_voice(nullptr)
+XAudio2::XAudio2()
+	: m_mastering_voice(nullptr)
 	, m_volume(1.0f)
 	, m_cleanup_com(SUCCEEDED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
 {
@@ -197,7 +196,7 @@ bool XAudio2::Start()
 	m_mastering_voice->SetVolume(m_volume);
 
 	m_voice_context = std::unique_ptr<StreamingVoiceContext>
-		(new StreamingVoiceContext(m_xaudio2.get(), m_mixer, m_sound_sync_event));
+		(new StreamingVoiceContext(m_xaudio2.get(), m_mixer.get(), m_sound_sync_event));
 
 	return true;
 }

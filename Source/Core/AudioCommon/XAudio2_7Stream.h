@@ -58,7 +58,7 @@ private:
 	static bool InitLibrary();
 
 public:
-	XAudio2_7(CMixer *mixer);
+	XAudio2_7();
 	virtual ~XAudio2_7();
 
 	virtual bool Start();
@@ -69,13 +69,5 @@ public:
 	virtual void SetVolume(int volume);
 
 	static bool isValid() { return InitLibrary(); }
-
-#else
-
-public:
-	XAudio2_7(CMixer *mixer)
-		: SoundStream(mixer)
-	{}
-
 #endif
 };
