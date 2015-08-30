@@ -5,11 +5,12 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <queue>
 #include <sstream>
+#include <thread>
 #include <unordered_set>
 #include <SFML/Network/Packet.hpp>
-#include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"

@@ -5,12 +5,13 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <queue>
 #include <sstream>
+#include <thread>
 #include <SFML/Network/Packet.hpp>
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
-#include "Common/Thread.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCPadStatus.h"
