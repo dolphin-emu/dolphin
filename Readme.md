@@ -118,12 +118,17 @@ is intended for debugging purposes only.
 * `GC/font_sjis.bin`: font dumps
 * `GC/dsp_coef.bin`: DSP dumps
 * `GC/dsp_rom.bin`: DSP dumps
+* `Wii/clientca.pem`: Wii network certificate
+* `Wii/clientcacakey.pem`: Wii network certificate
+* `Wii/rootca.pem`: Wii network certificate
 
 The DSP dumps included with Dolphin have been written from scratch and do not
 contain any copyrighted material. They should work for most purposes, however
 some games implement copy protection by checksumming the dumps. You will need
 to dump the DSP files from a console and replace the default dumps if you want
 to fix those issues.
+
+Wii network certificates must be extracted from a Wii IOS. A guide for that can be found [here](https://wiki.dolphin-emu.org/index.php?title=Wii_Network_Guide).
 
 ## Folder Structure
 These folders are installed read-only and should not be changed:
