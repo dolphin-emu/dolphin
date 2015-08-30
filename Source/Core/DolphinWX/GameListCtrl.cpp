@@ -387,7 +387,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 
-	wxString name = rISOFile.GetName();
+	wxString name = StrToWxStr(rISOFile.GetName());
 
 	std::ifstream titlestxt;
 	OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
