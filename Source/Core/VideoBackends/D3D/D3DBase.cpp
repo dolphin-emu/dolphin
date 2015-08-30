@@ -237,7 +237,7 @@ HRESULT Create(HWND wnd)
 	if (PCreateDXGIFactory1)
 		hr = PCreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory);
 	else
-		hr = E_NOINTERFACE;
+		hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
 #else
 	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
 #endif

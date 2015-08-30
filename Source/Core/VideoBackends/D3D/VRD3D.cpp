@@ -11,6 +11,9 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
+namespace DX11
+{
+
 // Oculus Rift
 #ifdef OVR_MAJOR_VERSION
 
@@ -65,9 +68,6 @@ ovrRecti       eyeRenderViewport[2];
 #endif
 
 
-namespace DX11
-{
-	
 void VR_ConfigureHMD()
 {
 #ifdef OVR_MAJOR_VERSION
@@ -285,7 +285,7 @@ void VR_PresentHMDFrame()
 #else
 		ovrLayerEyeFov ld;
 		ld.Header.Type = ovrLayerType_EyeFov;
-		ld.Header.Flags = 0;
+		ld.Header.Flags = (g_ActiveConfig.bFlipVertical?ovrLayerFlag_TextureOriginAtBottomLeft:0) | (g_ActiveConfig.bHqDistortion?ovrLayerFlag_HighQuality:0);
 		for (int eye = 0; eye < 2; eye++)
 		{
 			ld.ColorTexture[eye] = pEyeRenderTexture[eye]->TextureSet;
@@ -328,7 +328,7 @@ void VR_DrawTimewarpFrame()
 
 		ovrLayerEyeFov ld;
 		ld.Header.Type = ovrLayerType_EyeFov;
-		ld.Header.Flags = 0;
+		ld.Header.Flags = (g_ActiveConfig.bFlipVertical?ovrLayerFlag_TextureOriginAtBottomLeft:0) | (g_ActiveConfig.bHqDistortion?ovrLayerFlag_HighQuality:0);
 		for (int eye = 0; eye < 2; eye++)
 		{
 			ld.ColorTexture[eye] = pEyeRenderTexture[eye]->TextureSet;

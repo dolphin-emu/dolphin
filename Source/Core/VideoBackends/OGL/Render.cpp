@@ -1762,7 +1762,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 				sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[0]);
+				VR_RenderToEyebuffer(0);
 				if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
 				{
 					m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
@@ -1773,7 +1773,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 						m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
 					}
 
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[1]);
+					VR_RenderToEyebuffer(1);
 					m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
 				}
 				else
@@ -1787,7 +1787,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// for msaa mode, we must resolve the efb content to non-msaa
 			GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(sourceRc);
 
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[0]);
+			VR_RenderToEyebuffer(0);
 			if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
 			{
 				m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 0);
@@ -1798,7 +1798,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 					m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 0);
 				}
 
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[1]);
+				VR_RenderToEyebuffer(1);
 				m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 1);
 			}
 			else
