@@ -216,7 +216,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
 			loader->m_native_vtx_decl.stride, cullall);
 
-	count = loader->RunVertices(src, dst, count, primitive);
+	count = loader->RunVertices(src, dst, count);
 
 	IndexGenerator::AddIndices(primitive, count);
 

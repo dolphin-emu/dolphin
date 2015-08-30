@@ -191,6 +191,7 @@ void VideoConfig::Load(const std::string& ini_file)
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
+	hacks->Get("BBoxEnable", &bBBoxEnable, false);
 	hacks->Get("EFBCopyEnable", &bEFBCopyEnable, true);
 	hacks->Get("EFBCopyClearDisable", &bEFBCopyClearDisable, false);
 	hacks->Get("EFBToTextureEnable", &bSkipEFBCopyToRam, true);
@@ -407,6 +408,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Stereoscopy", "StereoConvergenceMinimum", iStereoConvergenceMinimum);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
+	CHECK_SETTING("Video_Hacks", "BBoxEnable", bBBoxEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
@@ -651,6 +653,7 @@ void VideoConfig::Save(const std::string& ini_file)
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
+	hacks->Set("BBoxEnable", bBBoxEnable);
 	hacks->Set("EFBCopyEnable", bEFBCopyEnable);
 	hacks->Set("EFBCopyClearDisable", bEFBCopyClearDisable);
 	hacks->Set("EFBToTextureEnable", bSkipEFBCopyToRam);

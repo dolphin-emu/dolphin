@@ -33,7 +33,6 @@ SWVertexLoader::~SWVertexLoader()
 void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
 	m_attributeIndex = attributeIndex;
-	m_primitiveType = primitiveType;
 
 	VertexLoaderUID uid(g_main_cp_state.vtx_desc, g_main_cp_state.vtx_attr[m_attributeIndex]);
 	m_CurrentLoader = m_VertexLoaderMap[uid].get();
@@ -182,7 +181,7 @@ void SWVertexLoader::LoadVertex()
 	int converted_vertices = m_CurrentLoader->RunVertices(
 		DataReader(g_video_buffer_read_ptr, nullptr), // src
 		DataReader(m_LoadedVertices.data(), m_LoadedVertices.data() + m_LoadedVertices.size()), // dst
-		1, m_primitiveType
+		1 // vertices
 	);
 	g_video_buffer_read_ptr = old + m_CurrentLoader->m_VertexSize;
 

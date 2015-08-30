@@ -9,7 +9,7 @@
 namespace JitRegister
 {
 
-void Init();
+void Init(const std::string& perf_dir);
 void Shutdown();
 void RegisterV(const void* base_address, u32 code_size,
 	const char* format, va_list args);

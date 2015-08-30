@@ -277,7 +277,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("};\n");
 	}
 
-	if (g_ActiveConfig.backend_info.bSupportsBBox)
+	if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
 	{
 		if (ApiType == API_OPENGL)
 		{
@@ -641,7 +641,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("\tocol0.a = float(" I_ALPHA".a) / 255.0;\n");
 	}
 
-	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
+	if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable && BoundingBox::active)
 	{
 		uid_data->bounding_box = true;
 		const char* atomic_op = ApiType == API_OPENGL ? "atomic" : "Interlocked";
