@@ -242,7 +242,7 @@ bool BootCore(const std::string& _rFilename)
 	{
 		StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
 		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
-		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
+		StartUp.bEnableMemcardSdWriting = g_NetPlaySettings.m_WriteToMemcard;
 		StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
 		StartUp.SelectedLanguage = g_NetPlaySettings.m_SelectedLanguage;
 		StartUp.bOverrideGCLanguage = g_NetPlaySettings.m_OverrideGCLanguage;
