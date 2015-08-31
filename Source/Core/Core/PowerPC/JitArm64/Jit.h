@@ -129,6 +129,7 @@ public:
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);
 	void dcbt(UGeckoInstruction inst);
+	void dcbz(UGeckoInstruction inst);
 
 	// LoadStore floating point
 	void lfXX(UGeckoInstruction inst);

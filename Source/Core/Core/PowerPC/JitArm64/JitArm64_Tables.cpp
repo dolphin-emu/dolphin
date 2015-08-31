@@ -225,7 +225,7 @@ static GekkoOPTemplate table31[] =
 	{278,  &JitArm64::dcbt},                    // dcbt
 	{470,  &JitArm64::FallBackToInterpreter},   // dcbi
 	{758,  &JitArm64::DoNothing},               // dcba
-	{1014, &JitArm64::FallBackToInterpreter},   // dcbz
+	{1014, &JitArm64::dcbz},                    // dcbz
 
 	//load word
 	{23,  &JitArm64::lXX},                      // lwzx

@@ -663,3 +663,78 @@ void JitArm64::dcbt(UGeckoInstruction inst)
 		js.skipInstructions = 1;
 	}
 }
+
+void JitArm64::dcbz(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff);
+
+	int a = inst.RA, b = inst.RB;
+
+	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+
+	// The following masks the region used by the GC/Wii virtual memory lib
+	mem_mask |= Memory::ADDR_MASK_MEM1;
+
+	gpr.Lock(W0);
+
+	ARM64Reg addr_reg = W0;
+
+	if (a)
+	{
+		bool is_imm_a, is_imm_b;
+		is_imm_a = gpr.IsImm(a);
+		is_imm_b = gpr.IsImm(b);
+		if (is_imm_a && is_imm_b)
+		{
+			// full imm_addr
+			u32 imm_addr = gpr.GetImm(b) + gpr.GetImm(a);
+			MOVI2R(addr_reg, imm_addr);
+		}
+		else if (is_imm_a || is_imm_b)
+		{
+			// Only one register is an immediate
+			ARM64Reg base = is_imm_a ? gpr.R(b) : gpr.R(a);
+			u32 imm_offset = is_imm_a ? gpr.GetImm(a) : gpr.GetImm(b);
+			if (imm_offset < 4096)
+			{
+				ADD(addr_reg, base, imm_offset);
+			}
+			else
+			{
+				MOVI2R(addr_reg, imm_offset);
+				ADD(addr_reg, addr_reg, base);
+			}
+		}
+		else
+		{
+			// Both are registers
+			ADD(addr_reg, gpr.R(a), gpr.R(b));
+		}
+	}
+	else
+	{
+		// RA isn't used, only RB
+		if (gpr.IsImm(b))
+		{
+			u32 imm_addr = gpr.GetImm(b);
+			MOVI2R(addr_reg, imm_addr);
+		}
+		else
+		{
+			MOV(addr_reg, gpr.R(b));
+		}
+	}
+
+	// We don't care about being /too/ terribly efficient here
+	// As long as we aren't falling back to interpreter we're winning a lot
+
+	BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
+	BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
+	gprs_to_push[W0] = 0;
+
+	EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, true, true, W0, EncodeRegTo64(addr_reg), gprs_to_push, fprs_to_push);
+
+	gpr.Unlock(W0);
+
+}
