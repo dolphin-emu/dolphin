@@ -100,6 +100,13 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 			else
 				STRB(RS, X28, addr);
 		}
+		else if (flags & BackPatchInfo::FLAG_ZERO_256)
+		{
+			// This literally only stores 32bytes of zeros to the target address
+			ADD(addr, addr, X28);
+			STP(INDEX_SIGNED, ZR, ZR, addr, 0);
+			STP(INDEX_SIGNED, ZR, ZR, addr, 16);
+		}
 		else
 		{
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
@@ -210,6 +217,11 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 			else
 				MOVI2R(X30, (u64)&PowerPC::Write_U8);
 
+			BLR(X30);
+		}
+		else if (flags & BackPatchInfo::FLAG_ZERO_256)
+		{
+			MOVI2R(X30, (u64)&PowerPC::ClearCacheLine);
 			BLR(X30);
 		}
 		else
