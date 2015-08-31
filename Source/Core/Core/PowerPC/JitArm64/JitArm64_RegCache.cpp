@@ -307,7 +307,7 @@ void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 	}
 }
 
-ARM64Reg Arm64FPRCache::R(u32 preg, bool only_lower)
+ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 {
 	OpArg& reg = m_guest_registers[preg];
 	IncrementAllUsed();
@@ -320,7 +320,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg, bool only_lower)
 	break;
 	case REG_LOWER_PAIR:
 	{
-		if (!only_lower)
+		if (type == REG_REG)
 		{
 			// Load the high 64bits from the file and insert them in to the high 64bits of the host register
 			ARM64Reg tmp_reg = GetReg();
@@ -331,17 +331,51 @@ ARM64Reg Arm64FPRCache::R(u32 preg, bool only_lower)
 			// Change it over to a full 128bit register
 			reg.LoadToReg(reg.GetReg());
 		}
+		else if (type == REG_DUP)
+		{
+			// We already only have the lower 64bits
+			// Don't do anything
+		}
 		return reg.GetReg();
+	}
+	break;
+	case REG_DUP:
+	{
+		ARM64Reg host_reg = reg.GetReg();
+		if (type == REG_REG)
+		{
+			// We are requesting a full 128bit register
+			// but we are only available in the lower 64bits
+			// Duplicate to the top and change over
+			m_float_emit->INS(64, host_reg, 1, host_reg, 0);
+			reg.LoadToReg(host_reg);
+		}
+		else if (type == REG_LOWER_PAIR)
+		{
+			// We are only requesting the lower 64bits of a pair
+			// We've got to be careful in this instance
+			// Store our current duplicated high bits to the file
+			// then convert over to a lower reg
+			if (reg.IsDirty())
+				m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][1]));
+			reg.LoadLowerReg(host_reg);
+		}
+		return host_reg;
 	}
 	break;
 	case REG_NOTLOADED: // Register isn't loaded at /all/
 	{
 		ARM64Reg host_reg = GetReg();
 		u32 load_size;
-		if (only_lower)
+		if (type == REG_LOWER_PAIR)
 		{
 			load_size = 64;
 			reg.LoadLowerReg(host_reg);
+		}
+		else if (type == REG_DUP)
+		{
+			load_size = 64;
+			reg.LoadDup(host_reg);
 		}
 		else
 		{
@@ -361,7 +395,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg, bool only_lower)
 	return INVALID_REG;
 }
 
-void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, bool only_lower)
+void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, RegType type)
 {
 	OpArg& reg = m_guest_registers[preg];
 
@@ -376,11 +410,16 @@ void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, bool only_lower)
 	{
 		ARM64Reg host_reg = GetReg();
 		u32 load_size;
-		if (only_lower)
+		if (type == REG_LOWER_PAIR)
 		{
 			// We only want the lower 64bits
 			load_size = 64;
 			reg.LoadLowerReg(host_reg);
+		}
+		else if (type == REG_DUP)
+		{
+			load_size = 64;
+			reg.LoadDup(host_reg);
 		}
 		else
 		{
@@ -394,7 +433,8 @@ void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, bool only_lower)
 	break;
 	case REG_LOWER_PAIR:
 	{
-		if (!only_lower)
+		ARM64Reg host_reg = reg.GetReg();
+		if (type == REG_REG)
 		{
 			// Okay, we've got the lower reg loaded and we really wanted the full register
 			if (do_load)
@@ -402,25 +442,61 @@ void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, bool only_lower)
 				// Load the high 64bits from the file and insert them in to the high 64bits of the host register
 				ARM64Reg tmp_reg = GetReg();
 				m_float_emit->LDR(64, INDEX_UNSIGNED, tmp_reg, X29, PPCSTATE_OFF(ps[preg][1]));
-				m_float_emit->INS(64, reg.GetReg(), 1, tmp_reg, 0);
+				m_float_emit->INS(64, host_reg, 1, tmp_reg, 0);
 				UnlockRegister(tmp_reg);
 			}
 
 			// Change it over to a full 128bit register
-			reg.LoadToReg(reg.GetReg());
+			reg.LoadToReg(host_reg);
+		}
+		else if (type == REG_DUP)
+		{
+			// Register is already the lower pair
+			// Just convert it over to a dup
+			reg.LoadDup(host_reg);
 		}
 	}
 	break;
 	case REG_REG:
 	{
-		if (only_lower)
+		ARM64Reg host_reg = reg.GetReg();
+		if (type == REG_LOWER_PAIR)
 		{
 			// If we only want the lower bits, let's store away the high bits and drop to a lower only register
 			// We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit store.
 			// It would take longer to do an insert to a temporary and a 64bit store than to just do this.
-			ARM64Reg host_reg = reg.GetReg();
 			if (was_dirty)
 				m_float_emit->STR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			reg.LoadLowerReg(host_reg);
+		}
+		else if (type == REG_DUP)
+		{
+			// If we are going from a full 128bit register to a duplicate
+			// then we can just change over
+			reg.LoadDup(host_reg);
+		}
+	}
+	break;
+	case REG_DUP:
+	{
+		ARM64Reg host_reg = reg.GetReg();
+		if (type == REG_REG)
+		{
+			// We are a duplicated register going to a full 128bit register
+			// Do an insert of our lower 64bits to the higher 64bits
+			m_float_emit->INS(64, host_reg, 1, host_reg, 0);
+
+			// Change over to the full 128bit register
+			reg.LoadToReg(host_reg);
+		}
+		else if (type == REG_LOWER_PAIR)
+		{
+			// We are duplicated changing over to a lower register
+			// We've got to be careful in this instance and do a store of our lower 64bits
+			// to the upper 64bits in the PowerPC state
+			// That way incase if we hit the path of DUP->LOWER->REG we get the correct bits back
+			if (was_dirty)
+				m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][1]));
 			reg.LoadLowerReg(host_reg);
 		}
 	}
@@ -486,6 +562,24 @@ void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
 
 		if (reg.IsDirty())
 			m_float_emit->STR(store_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+
+		if (!maintain_state)
+		{
+			UnlockRegister(host_reg);
+			reg.Flush();
+		}
+	}
+	else if (reg.GetType() == REG_DUP)
+	{
+		ARM64Reg host_reg = reg.GetReg();
+		if (reg.IsDirty())
+		{
+			// If the paired registers were at the start of ppcState we could do an STP here.
+			// Too bad moving them would break savestate compatibility between x86_64 and AArch64
+			//m_float_emit->STP(64, INDEX_SIGNED, host_reg, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][1]));
+		}
 
 		if (!maintain_state)
 		{
