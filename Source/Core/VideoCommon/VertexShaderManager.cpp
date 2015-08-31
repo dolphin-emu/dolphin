@@ -1872,7 +1872,7 @@ void VertexShaderManager::CheckOrientationConstants()
 			movement[i] = worldspacepos[i] - oldpos[i];
 		float distance = sqrt(sqr(movement[0]) + sqr(movement[1]) + sqr(movement[2]));
 
-		NOTICE_LOG(VR, "WorldPos: %5.2fm, %5.2fm, %5.2fm; Move: %5.2fm, %5.2fm, %5.2fm; Distance: %5.2fm; Scale: x%5.2f",
+		HACK_LOG(VR, "WorldPos: %5.2fm, %5.2fm, %5.2fm; Move: %5.2fm, %5.2fm, %5.2fm; Distance: %5.2fm; Scale: x%5.2f",
 			pos[0] / g_ActiveConfig.fUnitsPerMetre, pos[1] / g_ActiveConfig.fUnitsPerMetre, pos[2] / g_ActiveConfig.fUnitsPerMetre, 
 			movement[0] / g_ActiveConfig.fUnitsPerMetre, movement[1] / g_ActiveConfig.fUnitsPerMetre, movement[2] / g_ActiveConfig.fUnitsPerMetre, distance / g_ActiveConfig.fUnitsPerMetre, scale);
 		// moving more than 2 metres per frame (before VR scaling down to toy size) means we probably jumped to a new object
@@ -1882,7 +1882,7 @@ void VertexShaderManager::CheckOrientationConstants()
 		{
 			for (int i = 0; i < 3; ++i)
 				totalpos[i] += movement[i];
-			ERROR_LOG(VR, "Total Pos: %5.2f, %5.2f, %5.2f", totalpos[0], totalpos[1], totalpos[2]);
+			HACK_LOG(VR, "Total Pos: %5.2f, %5.2f, %5.2f", totalpos[0], totalpos[1], totalpos[2]);
 		}
 		for (int i = 0; i < 3; ++i)
 			oldpos[i] = worldspacepos[i];
@@ -1890,7 +1890,7 @@ void VertexShaderManager::CheckOrientationConstants()
 		Matrix33::Multiply(rot, totalpos, g_game_camera_pos);
 		for (int i = 0; i < 3; ++i)
 			g_game_camera_pos[i] = g_game_camera_pos[i] / g_ActiveConfig.fUnitsPerMetre;
-		ERROR_LOG(VR, "g_game_camera_pos: %5.2fm, %5.2fm, %5.2fm", g_game_camera_pos[0], g_game_camera_pos[1], g_game_camera_pos[2]);
+		HACK_LOG(VR, "g_game_camera_pos: %5.2fm, %5.2fm, %5.2fm", g_game_camera_pos[0], g_game_camera_pos[1], g_game_camera_pos[2]);
 
 		// add pitch to rotation matrix
 		if (g_ActiveConfig.fReadPitch != 0)

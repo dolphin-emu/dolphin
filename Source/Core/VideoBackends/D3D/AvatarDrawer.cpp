@@ -122,58 +122,58 @@ namespace DX11
 				m_indices[i] = shapes[0].mesh.indices[i];
 			}
 			// debug model loading
-			NOTICE_LOG(VR, "LoadObj = '%s'", err);
-			NOTICE_LOG(VR, "# of shapes: %d,  # of materials: %d", shapes.size(), materials.size());
-			NOTICE_LOG(VR, "Size=%f, %f, %f,   Midpoint=%f, %f, %f", hydra_size[0], hydra_size[1], hydra_size[2], hydra_mid[0], hydra_mid[1], hydra_mid[2]);
+			DEBUG_LOG(VR, "LoadObj = '%s'", err);
+			DEBUG_LOG(VR, "# of shapes: %d,  # of materials: %d", shapes.size(), materials.size());
+			DEBUG_LOG(VR, "Size=%f, %f, %f,   Midpoint=%f, %f, %f", hydra_size[0], hydra_size[1], hydra_size[2], hydra_mid[0], hydra_mid[1], hydra_mid[2]);
 			for (size_t i = 0; i < shapes.size(); i++) {
-				NOTICE_LOG(VR, "shape[%ld].name = %s", i, shapes[i].name.c_str());
-				NOTICE_LOG(VR, "Size of shape[%ld].indices: %ld", i, shapes[i].mesh.indices.size());
-				NOTICE_LOG(VR, "Size of shape[%ld].material_ids: %ld", i, shapes[i].mesh.material_ids.size());
-				NOTICE_LOG(VR, "shape[%ld].vertices: %ld", i, shapes[i].mesh.vertices.size());
-				NOTICE_LOG(VR, "shape[%ld].positions: %ld", i, shapes[i].mesh.positions.size());
-				NOTICE_LOG(VR, "shape[%ld].normals: %ld", i, shapes[i].mesh.normals.size());
-				NOTICE_LOG(VR, "shape[%ld].texcoords: %ld", i, shapes[i].mesh.texcoords.size());
+				DEBUG_LOG(VR, "shape[%ld].name = %s", i, shapes[i].name.c_str());
+				DEBUG_LOG(VR, "Size of shape[%ld].indices: %ld", i, shapes[i].mesh.indices.size());
+				DEBUG_LOG(VR, "Size of shape[%ld].material_ids: %ld", i, shapes[i].mesh.material_ids.size());
+				DEBUG_LOG(VR, "shape[%ld].vertices: %ld", i, shapes[i].mesh.vertices.size());
+				DEBUG_LOG(VR, "shape[%ld].positions: %ld", i, shapes[i].mesh.positions.size());
+				DEBUG_LOG(VR, "shape[%ld].normals: %ld", i, shapes[i].mesh.normals.size());
+				DEBUG_LOG(VR, "shape[%ld].texcoords: %ld", i, shapes[i].mesh.texcoords.size());
 			}
 
 			for (size_t i = 0; i < 0; i++) {
-				NOTICE_LOG(VR, "shape[%ld].name = %s\n", i, shapes[i].name.c_str());
-				NOTICE_LOG(VR, "Size of shape[%ld].indices: %ld\n", i, shapes[i].mesh.indices.size());
-				NOTICE_LOG(VR, "Size of shape[%ld].material_ids: %ld\n", i, shapes[i].mesh.material_ids.size());
+				DEBUG_LOG(VR, "shape[%ld].name = %s\n", i, shapes[i].name.c_str());
+				DEBUG_LOG(VR, "Size of shape[%ld].indices: %ld\n", i, shapes[i].mesh.indices.size());
+				DEBUG_LOG(VR, "Size of shape[%ld].material_ids: %ld\n", i, shapes[i].mesh.material_ids.size());
 				assert((shapes[i].mesh.indices.size() % 3) == 0);
 				for (size_t f = 0; f < shapes[i].mesh.indices.size() / 3; f++) {
-					NOTICE_LOG(VR, "  idx[%ld] = %d, %d, %d. mat_id = %d\n", f, shapes[i].mesh.indices[3 * f + 0], shapes[i].mesh.indices[3 * f + 1], shapes[i].mesh.indices[3 * f + 2], shapes[i].mesh.material_ids[f]);
+					DEBUG_LOG(VR, "  idx[%ld] = %d, %d, %d. mat_id = %d\n", f, shapes[i].mesh.indices[3 * f + 0], shapes[i].mesh.indices[3 * f + 1], shapes[i].mesh.indices[3 * f + 2], shapes[i].mesh.material_ids[f]);
 				}
 
-				NOTICE_LOG(VR, "shape[%ld].vertices: %ld\n", i, shapes[i].mesh.positions.size());
+				DEBUG_LOG(VR, "shape[%ld].vertices: %ld\n", i, shapes[i].mesh.positions.size());
 				assert((shapes[i].mesh.positions.size() % 3) == 0);
 				for (size_t v = 0; v < shapes[i].mesh.positions.size() / 3; v++) {
-					NOTICE_LOG(VR, "  v[%ld] = (%f, %f, %f)\n", v,
+					DEBUG_LOG(VR, "  v[%ld] = (%f, %f, %f)\n", v,
 						shapes[i].mesh.positions[3 * v + 0],
 						shapes[i].mesh.positions[3 * v + 1],
 						shapes[i].mesh.positions[3 * v + 2]);
 				}
 			}
 			for (size_t i = 0; i < materials.size(); i++) {
-				NOTICE_LOG(VR, "material[%ld].name = %s\n", i, materials[i].name.c_str());
-				NOTICE_LOG(VR, "  material.Ka = (%f, %f ,%f)\n", materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2]);
-				NOTICE_LOG(VR, "  material.Kd = (%f, %f ,%f)\n", materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]);
-				NOTICE_LOG(VR, "  material.Ks = (%f, %f ,%f)\n", materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]);
-				NOTICE_LOG(VR, "  material.Tr = (%f, %f ,%f)\n", materials[i].transmittance[0], materials[i].transmittance[1], materials[i].transmittance[2]);
-				NOTICE_LOG(VR, "  material.Ke = (%f, %f ,%f)\n", materials[i].emission[0], materials[i].emission[1], materials[i].emission[2]);
-				NOTICE_LOG(VR, "  material.Ns = %f\n", materials[i].shininess);
-				NOTICE_LOG(VR, "  material.Ni = %f\n", materials[i].ior);
-				NOTICE_LOG(VR, "  material.dissolve = %f\n", materials[i].dissolve);
-				NOTICE_LOG(VR, "  material.illum = %d\n", materials[i].illum);
-				NOTICE_LOG(VR, "  material.map_Ka = %s\n", materials[i].ambient_texname.c_str());
-				NOTICE_LOG(VR, "  material.map_Kd = %s\n", materials[i].diffuse_texname.c_str());
-				NOTICE_LOG(VR, "  material.map_Ks = %s\n", materials[i].specular_texname.c_str());
-				NOTICE_LOG(VR, "  material.map_Ns = %s\n", materials[i].normal_texname.c_str());
+				DEBUG_LOG(VR, "material[%ld].name = %s\n", i, materials[i].name.c_str());
+				DEBUG_LOG(VR, "  material.Ka = (%f, %f ,%f)\n", materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2]);
+				DEBUG_LOG(VR, "  material.Kd = (%f, %f ,%f)\n", materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]);
+				DEBUG_LOG(VR, "  material.Ks = (%f, %f ,%f)\n", materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]);
+				DEBUG_LOG(VR, "  material.Tr = (%f, %f ,%f)\n", materials[i].transmittance[0], materials[i].transmittance[1], materials[i].transmittance[2]);
+				DEBUG_LOG(VR, "  material.Ke = (%f, %f ,%f)\n", materials[i].emission[0], materials[i].emission[1], materials[i].emission[2]);
+				DEBUG_LOG(VR, "  material.Ns = %f\n", materials[i].shininess);
+				DEBUG_LOG(VR, "  material.Ni = %f\n", materials[i].ior);
+				DEBUG_LOG(VR, "  material.dissolve = %f\n", materials[i].dissolve);
+				DEBUG_LOG(VR, "  material.illum = %d\n", materials[i].illum);
+				DEBUG_LOG(VR, "  material.map_Ka = %s\n", materials[i].ambient_texname.c_str());
+				DEBUG_LOG(VR, "  material.map_Kd = %s\n", materials[i].diffuse_texname.c_str());
+				DEBUG_LOG(VR, "  material.map_Ks = %s\n", materials[i].specular_texname.c_str());
+				DEBUG_LOG(VR, "  material.map_Ns = %s\n", materials[i].normal_texname.c_str());
 				std::map<std::string, std::string>::const_iterator it(materials[i].unknown_parameter.begin());
 				std::map<std::string, std::string>::const_iterator itEnd(materials[i].unknown_parameter.end());
 				for (; it != itEnd; it++) {
-					NOTICE_LOG(VR, "  material.%s = %s\n", it->first.c_str(), it->second.c_str());
+					DEBUG_LOG(VR, "  material.%s = %s\n", it->first.c_str(), it->second.c_str());
 				}
-				NOTICE_LOG(VR, "\n");
+				DEBUG_LOG(VR, "\n");
 			}
 		}
 
