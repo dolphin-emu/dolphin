@@ -6,7 +6,9 @@
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
+#include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoBackends/D3D/VRD3D.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
@@ -63,6 +65,8 @@ struct OculusTexture
 
 OculusTexture *pEyeRenderTexture[2];
 ovrRecti       eyeRenderViewport[2];
+ovrTexture    *mirrorTexture = nullptr;
+int mirror_width, mirror_height;
 #endif
 
 #endif
@@ -193,6 +197,22 @@ void VR_StartFramebuffer()
 			eyeRenderViewport[eye].Size = target_size;
 		}
 
+		// Create a mirror to see on the monitor.
+		D3D11_TEXTURE2D_DESC texdesc;
+		texdesc.ArraySize = 1;
+		texdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		texdesc.Width = Renderer::GetBackbufferWidth();
+		texdesc.Height = Renderer::GetBackbufferHeight();
+		texdesc.Usage = D3D11_USAGE_DEFAULT;
+		texdesc.SampleDesc.Count = 1;
+		texdesc.MipLevels = 1;
+		mirror_width = texdesc.Width;
+		mirror_height = texdesc.Height;
+		if (!OVR_SUCCESS(ovrHmd_CreateMirrorTextureD3D11(hmd, D3D::device, &texdesc, &mirrorTexture)))
+		{
+			ERROR_LOG(VR, "Failed to create mirror texture.");
+			mirrorTexture = nullptr;
+		}
 #endif
 	}
 #endif
@@ -201,6 +221,11 @@ void VR_StartFramebuffer()
 void VR_StopFramebuffer()
 {
 #if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+	if (mirrorTexture)
+	{
+		ovrHmd_DestroyMirrorTexture(hmd, mirrorTexture);
+		mirrorTexture = nullptr;
+	}
 	// On Oculus SDK 0.6.0 and above, we need to destroy the eye textures Oculus created for us.
 	for (int eye = 0; eye < 2; eye++)
 	{
@@ -295,6 +320,25 @@ void VR_PresentHMDFrame()
 		}
 		ovrLayerHeader* layers = &ld.Header;
 		ovrResult result = ovrHmd_SubmitFrame(hmd, 0, nullptr, &layers, 1);
+
+		// Render mirror
+		if (mirrorTexture && !g_ActiveConfig.bNoMirrorToWindow)
+		{
+			ovrD3D11Texture* tex = (ovrD3D11Texture*)mirrorTexture;
+			TargetRectangle sourceRc;
+			sourceRc.left = 0;
+			sourceRc.top = 0;
+			sourceRc.right = mirror_width;
+			sourceRc.bottom = mirror_height;
+
+			D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
+			D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)0, (float)0, (float)Renderer::GetBackbufferWidth(), (float)Renderer::GetBackbufferHeight());
+			D3D::context->RSSetViewports(1, &vp);
+			D3D::drawShadedTexQuad(tex->D3D11.pSRView, sourceRc.AsRECT(), sourceRc.GetWidth(), sourceRc.GetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr);
+
+			//D3D::context->CopyResource(D3D::GetBackBuffer()->GetTex(), tex->D3D11.pTexture);
+			D3D::swapchain->Present(0, 0);
+		}
 #endif
 	}
 #endif

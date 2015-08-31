@@ -287,10 +287,13 @@ Renderer::Renderer(void *&window_handle)
 
 Renderer::~Renderer()
 {
+	// On Oculus SDK 0.5 and below, we called BeginFrame so we need a matching EndFrame, but on 0.6 this crashes
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
 	if (g_has_rift && !g_first_rift_frame && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		VR_PresentHMDFrame();
 	}
+#endif
 	g_first_rift_frame = true;
 
 	TeardownDeviceObjects();
