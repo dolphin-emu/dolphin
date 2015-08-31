@@ -562,6 +562,10 @@ public:
 	void EOR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
 	void ORR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
 	void TST(ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
+	void TST(ARM64Reg Rn, ARM64Reg Rm)
+	{
+		ANDS(Is64Bit(Rn) ? ZR : WZR, Rn, Rm);
+	}
 
 	// Add/subtract (immediate)
 	void ADD(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift = false);
