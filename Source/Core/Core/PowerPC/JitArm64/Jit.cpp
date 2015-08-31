@@ -428,10 +428,8 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			JitArm64Tables::CompileInstruction(ops[i]);
 
 			// If we have a register that will never be used again, flush it.
-			for (int j : ~ops[i].gprInUse)
-				gpr.StoreRegister(j);
-			for (int j : ~ops[i].fprInUse)
-				fpr.StoreRegister(j);
+			gpr.StoreRegisters(~ops[i].gprInUse);
+			fpr.StoreRegisters(~ops[i].fprInUse);
 
 			if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
