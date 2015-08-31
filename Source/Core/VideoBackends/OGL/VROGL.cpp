@@ -127,7 +127,9 @@ struct TextureBuffer
 TextureBuffer * eyeRenderTexture[2];
 ovrSwapTextureSet * pTextureSet = 0;
 ovrRecti eyeRenderViewport[2];
-
+ovrGLTexture * mirrorTexture;
+int mirror_width, mirror_height;
+GLuint mirrorFBO = 0;
 #endif
 
 #ifdef HAVE_OPENVR
@@ -275,6 +277,8 @@ void VR_StartFramebuffer(int target_width, int target_height)
 		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
 			g_eye_texture[1].OGL.TexId = FramebufferManager::m_frontBuffer[1];
 #else
+		GLInterface->SwapInterval(false);
+
 		for (int eye=0; eye<2; ++eye)
 		{
 			ovrSizei target_size;
@@ -284,7 +288,18 @@ void VR_StartFramebuffer(int target_width, int target_height)
 			eyeRenderViewport[eye].Pos.x = 0;
 			eyeRenderViewport[eye].Pos.y = 0;
 			eyeRenderViewport[eye].Size = target_size;
-	}
+		}
+
+		// Create mirror texture and an FBO used to copy mirror texture to back buffer
+		mirror_width = Renderer::GetBackbufferWidth();
+		mirror_height = Renderer::GetBackbufferHeight();
+		ovrHmd_CreateMirrorTextureGL(hmd, GL_RGBA, mirror_width, mirror_height, (ovrTexture**)&mirrorTexture);
+		// Configure the mirror read buffer
+		glGenFramebuffers(1, &mirrorFBO);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFBO);
+		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mirrorTexture->OGL.TexId, 0);
+		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 #endif
 
 
@@ -297,6 +312,11 @@ void VR_StartFramebuffer(int target_width, int target_height)
 void VR_StopFramebuffer()
 {
 #if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+	glDeleteFramebuffers(1, &mirrorFBO);
+	ovrHmd_DestroyMirrorTexture(hmd, (ovrTexture*)mirrorTexture);
+	ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[0]->TextureSet);
+	ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[1]->TextureSet);
+
 	// On Oculus SDK 0.6.0 and above, we need to destroy the eye textures Oculus created for us.
 	for (int eye = 0; eye < 2; eye++)
 	{
@@ -392,6 +412,20 @@ void VR_PresentHMDFrame()
 		}
 		ovrLayerHeader* layers = &ld.Header;
 		ovrResult result = ovrHmd_SubmitFrame(hmd, 0, nullptr, &layers, 1);
+
+		if (!g_ActiveConfig.bNoMirrorToWindow)
+		{
+			// Blit mirror texture to back buffer
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFBO);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			GLint w = mirrorTexture->OGL.Header.TextureSize.w;
+			GLint h = mirrorTexture->OGL.Header.TextureSize.h;
+			glBlitFramebuffer(0, h, w, 0,
+				0, 0, w, h,
+				GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			GLInterface->Swap();
+		}
 #endif
 	}
 #endif

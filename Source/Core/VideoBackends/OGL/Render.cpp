@@ -627,7 +627,10 @@ Renderer::Renderer()
 	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
-	s_vsync = g_ActiveConfig.IsVSync();
+	if (g_has_rift)
+		s_vsync = false;
+	else
+		s_vsync = g_ActiveConfig.IsVSync();
 	GLInterface->SwapInterval(s_vsync);
 
 	// TODO: Move these somewhere else?
