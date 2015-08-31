@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/ColorUtil.h"
@@ -20,8 +21,8 @@
 
 namespace DiscIO
 {
-CVolumeGC::CVolumeGC(IBlobReader* _pReader)
-	: m_pReader(_pReader)
+CVolumeGC::CVolumeGC(std::unique_ptr<IBlobReader> reader)
+	: m_pReader(std::move(reader))
 {}
 
 CVolumeGC::~CVolumeGC()

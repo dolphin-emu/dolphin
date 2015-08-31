@@ -23,7 +23,7 @@ class IBlobReader;
 class CVolumeWiiCrypted : public IVolume
 {
 public:
-	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
+	CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
 	~CVolumeWiiCrypted();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
 	bool GetTitleID(u8* _pBuffer) const override;
