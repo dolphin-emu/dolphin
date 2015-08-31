@@ -87,7 +87,7 @@ void PSTextureEncoder::Shutdown()
 	SAFE_RELEASE(m_out);
 }
 
-size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
+size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, size_t dstStride,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf)
 {
@@ -189,13 +189,13 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		for (unsigned int y = 0; y < numBlocksY; ++y)
 		{
 			memcpy(dst, src, cacheLinesPerRow*32);
-			dst += bpmem.copyMipMapStrideChannels*32;
+			dst += dstStride;
 			src += map.RowPitch;
 		}
 
 		D3D::context->Unmap(m_outStage, 0);
 
-		encodeSize = bpmem.copyMipMapStrideChannels*32 * numBlocksY;
+		encodeSize = dstStride * numBlocksY;
 	}
 
 	// Restore API

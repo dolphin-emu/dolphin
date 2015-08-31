@@ -111,7 +111,7 @@ public:
 	virtual void Init() = 0;
 	virtual void Shutdown() = 0;
 	// Returns size in bytes of encoded block of memory
-	virtual size_t Encode(u8* dst, unsigned int dstFormat,
+	virtual size_t Encode(u8* dst, unsigned int dstFormat, size_t dstStride,
 		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 		bool isIntensity, bool scaleByHalf) = 0;
 

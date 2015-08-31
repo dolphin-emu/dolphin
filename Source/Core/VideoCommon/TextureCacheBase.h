@@ -53,7 +53,7 @@ public:
 		u32 format;
 		bool is_efb_copy;
 		bool is_custom_tex;
-		u32 copyMipMapStrideChannels;
+		u32 copyStride;
 
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int native_levels;
@@ -96,7 +96,7 @@ public:
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
-		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
+		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
 			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 			const float *colmat) = 0;
@@ -125,8 +125,8 @@ public:
 	static TCacheEntryBase* Load(const u32 stage);
 	static void UnbindTextures();
 	static void BindTextures();
-	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
-		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
+		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 	static void RequestInvalidateTextureCache();
 

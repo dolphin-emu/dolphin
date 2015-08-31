@@ -29,7 +29,7 @@ public:
 
 	void Init();
 	void Shutdown();
-	size_t Encode(u8* dst, unsigned int dstFormat,
+	size_t Encode(u8* dst, unsigned int dstFormat, size_t dstStride,
 	              PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	              bool isIntensity, bool scaleByHalf);
 

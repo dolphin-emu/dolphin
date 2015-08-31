@@ -185,7 +185,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConf
 	}
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
+void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
@@ -238,7 +238,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	if (!g_ActiveConfig.bSkipEFBCopyToRam)
 	{
 		u8* dst = Memory::GetPointer(dstAddr);
-		size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+		size_t encoded_size = g_encoder->Encode(dst, dstFormat, dstStride, srcFormat, srcRect, isIntensity, scaleByHalf);
 
 		size_in_bytes = (u32)encoded_size;
 

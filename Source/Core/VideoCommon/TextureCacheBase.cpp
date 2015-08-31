@@ -243,7 +243,7 @@ TextureCache::TCacheEntryBase* TextureCache::DoPartialTextureUpdates(TexCache::i
 			&& entry_to_update->addr <= entry->addr
 			&& entry->addr + entry->size_in_bytes <= entry_to_update->addr + entry_to_update->size_in_bytes
 			&& entry->frameCount == FRAMECOUNT_INVALID
-			&& entry->copyMipMapStrideChannels * 32 == numBlocksX * block_size)
+			&& entry->copyStride == numBlocksX * block_size)
 		{
 			u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
 			u32 block_x = block_offset % numBlocksX;
@@ -693,7 +693,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	return ReturnEntry(stage, entry);
 }
 
-void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
+void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride, PEControl::PixelFormat srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
 	// Emulation methods:
@@ -1004,9 +1004,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	entry->frameCount = FRAMECOUNT_INVALID;
 	entry->is_efb_copy = true;
 	entry->is_custom_tex = false;
-	entry->copyMipMapStrideChannels = bpmem.copyMipMapStrideChannels;
+	entry->copyStride = dstStride;
 
-	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
+	entry->FromRenderTarget(dstAddr, dstFormat, dstStride, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
 	if (g_ActiveConfig.bDumpEFBTarget)
 	{
