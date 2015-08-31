@@ -18,6 +18,6 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii, const std::string& _rApploader = "", const std::string& _rDOL = "");
 bool IsVolumeWiiDisc(const IVolume *_rVolume);
 bool IsVolumeWadFile(const IVolume *_rVolume);
-void VolumeKeyForParition(IBlobReader& _rReader, u64 offset, u8* VolumeKey);
+void VolumeKeyForPartition(IBlobReader& _rReader, u64 offset, u8* VolumeKey);
 
 } // namespace

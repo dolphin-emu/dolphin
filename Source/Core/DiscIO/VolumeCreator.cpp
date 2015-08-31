@@ -120,7 +120,7 @@ bool IsVolumeWadFile(const IVolume *_rVolume)
 	return (Common::swap32(MagicWord) == 0x00204973 || Common::swap32(MagicWord) == 0x00206962);
 }
 
-void VolumeKeyForParition(IBlobReader& _rReader, u64 offset, u8* VolumeKey)
+void VolumeKeyForPartition(IBlobReader& _rReader, u64 offset, u8* VolumeKey)
 {
 	CBlobBigEndianReader Reader(_rReader);
 
@@ -192,7 +192,7 @@ static IVolume* CreateVolumeFromCryptedWiiImage(std::unique_ptr<IBlobReader> rea
 		if ((rPartition.Type == _VolumeType && (int)_VolumeNum == -1) || i == _VolumeNum)
 		{
 			u8 VolumeKey[16];
-			VolumeKeyForParition(*reader, rPartition.Offset, VolumeKey);
+			VolumeKeyForPartition(*reader, rPartition.Offset, VolumeKey);
 			return new CVolumeWiiCrypted(std::move(reader), rPartition.Offset, VolumeKey);
 		}
 	}

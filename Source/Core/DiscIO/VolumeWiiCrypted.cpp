@@ -46,7 +46,7 @@ bool CVolumeWiiCrypted::ChangePartition(u64 offset)
 	m_LastDecryptedBlockOffset = -1;
 
 	u8 volume_key[16];
-	DiscIO::VolumeKeyForParition(*m_pReader, offset, volume_key);
+	DiscIO::VolumeKeyForPartition(*m_pReader, offset, volume_key);
 	aes_setkey_dec(m_AES_ctx.get(), volume_key, 128);
 	return true;
 }
