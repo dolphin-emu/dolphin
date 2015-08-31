@@ -126,8 +126,44 @@ void Arm64GPRCache::FlushRegister(u32 preg, bool maintain_state)
 	}
 }
 
+void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
+{
+	for (int i = 0; i < 32; ++i)
+	{
+		if (regs[i])
+		{
+			if (i < 31 && regs[i + 1])
+			{
+				// We've got two guest registers in a row to store
+				OpArg& reg1 = m_guest_registers[i];
+				OpArg& reg2 = m_guest_registers[i + 1];
+				if (reg1.IsDirty() && reg2.IsDirty() &&
+				    reg1.GetType() == REG_REG && reg2.GetType() == REG_REG)
+				{
+					ARM64Reg RX1 = R(i);
+					ARM64Reg RX2 = R(i + 1);
+
+					m_emit->STP(INDEX_SIGNED, RX1, RX2, X29, PPCSTATE_OFF(gpr[0]) + i * sizeof(u32));
+					if (!maintain_state)
+					{
+						UnlockRegister(RX1);
+						UnlockRegister(RX2);
+						reg1.Flush();
+						reg2.Flush();
+					}
+					++i;
+					continue;
+				}
+			}
+
+			FlushRegister(i, maintain_state);
+		}
+	}
+}
+
 void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
+	BitSet32 to_flush;
 	for (int i = 0; i < 32; ++i)
 	{
 		bool flush = true;
@@ -144,15 +180,12 @@ void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 		{
 			// Has to be flushed if it isn't in a callee saved register
 			ARM64Reg host_reg = m_guest_registers[i].GetReg();
-			if (flush || !IsCalleeSaved(host_reg))
-				FlushRegister(i, mode == FLUSH_MAINTAIN_STATE);
+			flush = IsCalleeSaved(host_reg) ? flush : true;
 		}
-		else if (m_guest_registers[i].GetType() == REG_IMM)
-		{
-			if (flush)
-				FlushRegister(i, mode == FLUSH_MAINTAIN_STATE);
-		}
+
+		to_flush[i] = flush;
 	}
+	FlushRegisters(to_flush, mode == FLUSH_MAINTAIN_STATE);
 }
 
 ARM64Reg Arm64GPRCache::R(u32 preg)
@@ -460,6 +493,12 @@ void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
 			reg.Flush();
 		}
 	}
+}
+
+void Arm64FPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
+{
+	for (int j : regs)
+		FlushRegister(j, maintain_state);
 }
 
 BitSet32 Arm64FPRCache::GetCallerSavedUsed()

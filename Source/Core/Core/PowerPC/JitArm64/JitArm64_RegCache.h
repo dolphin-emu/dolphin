@@ -141,7 +141,7 @@ public:
 	// Requires unlocking after done
 	ARM64Reg GetReg();
 
-	void StoreRegister(u32 preg) { FlushRegister(preg, false); }
+	void StoreRegisters(BitSet32 regs) { FlushRegisters(regs, false); }
 
 	// Locks a register so a cache cannot use it
 	// Useful for function calls
@@ -184,6 +184,8 @@ protected:
 	virtual void FlushByHost(ARM64Reg host_reg) = 0;
 
 	virtual void FlushRegister(u32 preg, bool maintain_state) = 0;
+
+	virtual void FlushRegisters(BitSet32 regs, bool maintain_state) = 0;
 
 	// Get available host registers
 	u32 GetUnlockedRegisterCount();
@@ -248,6 +250,8 @@ protected:
 
 	void FlushRegister(u32 preg, bool maintain_state) override;
 
+	void FlushRegisters(BitSet32 regs, bool maintain_state) override;
+
 private:
 	bool IsCalleeSaved(ARM64Reg reg);
 
@@ -279,6 +283,8 @@ protected:
 	void FlushByHost(ARM64Reg host_reg) override;
 
 	void FlushRegister(u32 preg, bool maintain_state) override;
+
+	void FlushRegisters(BitSet32 regs, bool maintain_state) override;
 
 private:
 	bool IsCalleeSaved(ARM64Reg reg);
