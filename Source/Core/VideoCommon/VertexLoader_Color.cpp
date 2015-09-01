@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
+
+#include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
