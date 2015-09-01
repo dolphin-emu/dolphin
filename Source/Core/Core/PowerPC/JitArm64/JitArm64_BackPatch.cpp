@@ -83,7 +83,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 			{
 				m_float_emit.LDR(32, EncodeRegToDouble(RS), X28, addr);
 				m_float_emit.REV32(8, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
-				m_float_emit.FCVTL(64, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
+				m_float_emit.FCVT(64, 32, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
 			}
 			else
 			{
@@ -211,7 +211,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 				MOVI2R(X30, (u64)&PowerPC::Read_U32);
 				BLR(X30);
 				m_float_emit.INS(32, RS, 0, X0);
-				m_float_emit.FCVTL(64, RS, RS);
+				m_float_emit.FCVT(64, 32, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
 			}
 			else
 			{

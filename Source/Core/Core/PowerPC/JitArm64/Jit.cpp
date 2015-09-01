@@ -405,7 +405,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		if (!code_block.m_gqr_modified[gqr] && !GQR(gqr))
 		{
 			LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(spr[SPR_GQR0]) + gqr * 4);
-			FixupBranch no_fail = B(CC_EQ);
+			FixupBranch no_fail = CBZ(W0);
 			FixupBranch fail = B();
 			SwitchToFarCode();
 				SetJumpTarget(fail);

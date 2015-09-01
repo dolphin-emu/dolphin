@@ -335,8 +335,8 @@ void JitArm64::frspx(UGeckoInstruction inst)
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 	ARM64Reg VD = fpr.RW(d, REG_DUP);
 
-	m_float_emit.FCVTN(32, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
-	m_float_emit.FCVTL(64, EncodeRegToDouble(VD), EncodeRegToDouble(VD));
+	m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
+	m_float_emit.FCVT(64, 32, EncodeRegToDouble(VD), EncodeRegToDouble(VD));
 }
 
 void JitArm64::fcmpx(UGeckoInstruction inst)
@@ -441,7 +441,7 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 	m_float_emit.MOVI(64, EncodeRegToDouble(V0), 0xFFFF000000000000ULL);
 	m_float_emit.BIC(16, EncodeRegToDouble(V0), 0x7);
 
-	m_float_emit.FCVTN(32, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
+	m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
 	m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), ROUND_Z);
 	m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
 	fpr.Unlock(V0);
