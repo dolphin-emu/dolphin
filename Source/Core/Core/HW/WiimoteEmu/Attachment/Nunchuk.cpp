@@ -106,6 +106,13 @@ void Nunchuk::GetState(u8* const data)
 	ncdata->bt.acc_z_lsb = accel_z & 0x3;
 }
 
+bool Nunchuk::IsButtonPressed() const
+{
+	u8 buttons = 0;
+	m_buttons->GetState(&buttons, nunchuk_button_bitmasks);
+	return buttons != 0;
+}
+
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 {
 	// ugly macroooo

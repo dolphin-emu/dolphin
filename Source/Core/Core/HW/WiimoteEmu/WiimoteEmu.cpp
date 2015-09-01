@@ -880,7 +880,7 @@ void Wiimote::ConnectOnInput()
 	m_buttons->GetState(&buttons, button_bitmasks);
 	m_dpad->GetState(&buttons, dpad_bitmasks);
 
-	if (buttons != 0)
+	if (buttons != 0 || m_extension->IsButtonPressed())
 	{
 		Host_ConnectWiimote(m_index, true);
 		// arbitrary value so it doesn't try to send multiple requests before Dolphin can react
