@@ -783,7 +783,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		ARBruteForcer::ch_last_search = true;
 
 	// VR - before the first frame we need BeginFrame, and we need to configure the tracking
-	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
+	if (g_first_rift_frame && g_has_hmd && g_ActiveConfig.bEnableVR)
 	{
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
@@ -843,7 +843,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_television.Submit(xfbAddr, fbStride, fbWidth, fbHeight);
 		s_television.Render();
 	}
-	else if (g_has_rift && g_ActiveConfig.bEnableVR)
+	else if (g_has_hmd && g_ActiveConfig.bEnableVR)
 	{
 		// Draw our Razer Hydra
 		if (!g_ActiveConfig.bUseXFB)
@@ -1112,7 +1112,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		bLastFrameDumped = false;
 	}
 
-	if (!g_has_rift)
+	if (!g_has_hmd)
 	{
 		// Reset viewport for drawing text
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
@@ -1192,7 +1192,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// Flip/present backbuffer to frontbuffer here
-	if (!g_has_rift)
+	if (!g_has_hmd)
 		D3D::Present();
 
 	// Check exclusive fullscreen state

@@ -720,8 +720,20 @@ void VR_StopFramebuffer()
 		}
 	}
 #endif
-#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5 || defined(HAVE_OPENVR))
-	if (g_has_rift || g_has_steamvr)
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
+	if (g_has_rift)
+	{
+		glDeleteFramebuffers(2, FramebufferManager::m_eyeFramebuffer);
+		FramebufferManager::m_eyeFramebuffer[0] = 0;
+		FramebufferManager::m_eyeFramebuffer[1] = 0;
+
+		glDeleteTextures(2, FramebufferManager::m_frontBuffer);
+		FramebufferManager::m_frontBuffer[0] = 0;
+		FramebufferManager::m_frontBuffer[1] = 0;
+	}
+#endif
+#if defined(HAVE_OPENVR)
+	if (g_has_steamvr)
 	{
 		glDeleteFramebuffers(2, FramebufferManager::m_eyeFramebuffer);
 		FramebufferManager::m_eyeFramebuffer[0] = 0;

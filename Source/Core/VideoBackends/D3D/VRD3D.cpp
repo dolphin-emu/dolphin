@@ -71,9 +71,20 @@ int mirror_width, mirror_height;
 
 #endif
 
+#ifdef HAVE_OPENVR
+ID3D11Texture2D* m_left_texture = nullptr;
+ID3D11Texture2D* m_right_texture = nullptr;
+#endif
+
 
 void VR_ConfigureHMD()
 {
+#ifdef HAVE_OPENVR
+		if (g_has_steamvr && m_pCompositor)
+		{
+			//m_pCompositor->SetGraphicsDevice(vr::Compositor_DeviceType_DirectX, nullptr);
+		}
+#endif
 #ifdef OVR_MAJOR_VERSION
 #if OVR_MAJOR_VERSION <= 5
 	ovrD3D11Config cfg;
@@ -132,59 +143,9 @@ void VR_ConfigureHMD()
 
 void VR_StartFramebuffer()
 {
-	if (g_has_vr920)
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+	if (g_has_rift)
 	{
-#ifdef _WIN32
-		VR920_StartStereo3D();
-#endif
-	}
-#ifdef OVR_MAJOR_VERSION
-	else if (g_has_rift)
-	{
-
-#if OVR_MAJOR_VERSION <= 5
-		for (int eye = 0; eye < 2; ++eye)
-		{
-			FramebufferManager::m_efb.m_frontBuffer[eye] = nullptr;
-			// init to null
-		}
-		// In Oculus SDK 0.5.0.1 or below we need to create our own textures for eye render targets
-		ID3D11Texture2D* buf;
-		DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
-		D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, FramebufferManager::m_target_width, FramebufferManager::m_target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, sample_desc.Quality);
-		for (int eye = 0; eye<2; ++eye)
-		{
-			HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
-			CHECK(hr == S_OK, "create Oculus Rift eye texture (size: %dx%d; hr=%#x)", FramebufferManager::m_target_width, FramebufferManager::m_target_height, hr);
-			FramebufferManager::m_efb.m_frontBuffer[eye] = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, false);
-			CHECK(FramebufferManager::m_efb.m_frontBuffer[eye] != nullptr, "create Oculus Rift eye texture (size: %dx%d)", FramebufferManager::m_target_width, FramebufferManager::m_target_height);
-			SAFE_RELEASE(buf);
-		}
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[0]->GetTex(), "Left eye color texture");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[0]->GetSRV(), "Left eye color texture shader resource view");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[0]->GetRTV(), "Left eye color texture render target view");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[1]->GetTex(), "Right eye color texture");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[1]->GetSRV(), "Right eye color texture shader resource view");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[1]->GetRTV(), "Right eye color texture render target view");
-
-		// In Oculus SDK 0.5.0.1 and below, we need to keep descriptions of our eye textures to pass to ovrHmd_EndFrame()
-		g_eye_texture[0].D3D11.Header.API = ovrRenderAPI_D3D11;
-		g_eye_texture[0].D3D11.Header.TextureSize.w = Renderer::GetTargetWidth();
-		g_eye_texture[0].D3D11.Header.TextureSize.h = Renderer::GetTargetHeight();
-		g_eye_texture[0].D3D11.Header.RenderViewport.Pos.x = 0;
-		g_eye_texture[0].D3D11.Header.RenderViewport.Pos.y = 0;
-		g_eye_texture[0].D3D11.Header.RenderViewport.Size.w = Renderer::GetTargetWidth();
-		g_eye_texture[0].D3D11.Header.RenderViewport.Size.h = Renderer::GetTargetHeight();
-		g_eye_texture[0].D3D11.pTexture = FramebufferManager::m_efb.m_frontBuffer[0]->GetTex();
-		g_eye_texture[0].D3D11.pSRView = FramebufferManager::m_efb.m_frontBuffer[0]->GetSRV();
-		// If we are rendering in mono then use the same texture for both eyes, otherwise use a different eye texture
-		g_eye_texture[1] = g_eye_texture[0];
-		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
-		{
-			g_eye_texture[1].D3D11.pTexture = FramebufferManager::m_efb.m_frontBuffer[1]->GetTex();
-			g_eye_texture[1].D3D11.pSRView = FramebufferManager::m_efb.m_frontBuffer[1]->GetSRV();
-		}
-#else
 		// On Oculus SDK 0.6.0 and above, get Oculus to create our textures for us. And remember the viewport.
 		for (int eye = 0; eye < 2; eye++)
 		{
@@ -213,6 +174,70 @@ void VR_StartFramebuffer()
 			ERROR_LOG(VR, "Failed to create mirror texture.");
 			mirrorTexture = nullptr;
 		}
+	}
+	else
+#endif
+	if (g_has_vr920)
+	{
+#ifdef _WIN32
+		VR920_StartStereo3D();
+#endif
+	}
+#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5) || defined(HAVE_OPENVR)
+	else if (g_has_rift || g_has_steamvr)
+	{
+		for (int eye = 0; eye < 2; ++eye)
+		{
+			FramebufferManager::m_efb.m_frontBuffer[eye] = nullptr;
+			// init to null
+		}
+		// In Oculus SDK 0.5.0.1 or below we need to create our own textures for eye render targets
+		ID3D11Texture2D* buf;
+		DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
+		D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, FramebufferManager::m_target_width, FramebufferManager::m_target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, sample_desc.Quality);
+		for (int eye = 0; eye < 2; ++eye)
+		{
+			HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
+			CHECK(hr == S_OK, "create Oculus Rift eye texture (size: %dx%d; hr=%#x)", FramebufferManager::m_target_width, FramebufferManager::m_target_height, hr);
+			FramebufferManager::m_efb.m_frontBuffer[eye] = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, false);
+			CHECK(FramebufferManager::m_efb.m_frontBuffer[eye] != nullptr, "create Oculus Rift eye texture (size: %dx%d)", FramebufferManager::m_target_width, FramebufferManager::m_target_height);
+			SAFE_RELEASE(buf);
+		}
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[0]->GetTex(), "Left eye color texture");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[0]->GetSRV(), "Left eye color texture shader resource view");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[0]->GetRTV(), "Left eye color texture render target view");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[1]->GetTex(), "Right eye color texture");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[1]->GetSRV(), "Right eye color texture shader resource view");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[1]->GetRTV(), "Right eye color texture render target view");
+
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
+		if (g_has_rift)
+		{
+			// In Oculus SDK 0.5.0.1 and below, we need to keep descriptions of our eye textures to pass to ovrHmd_EndFrame()
+			g_eye_texture[0].D3D11.Header.API = ovrRenderAPI_D3D11;
+			g_eye_texture[0].D3D11.Header.TextureSize.w = Renderer::GetTargetWidth();
+			g_eye_texture[0].D3D11.Header.TextureSize.h = Renderer::GetTargetHeight();
+			g_eye_texture[0].D3D11.Header.RenderViewport.Pos.x = 0;
+			g_eye_texture[0].D3D11.Header.RenderViewport.Pos.y = 0;
+			g_eye_texture[0].D3D11.Header.RenderViewport.Size.w = Renderer::GetTargetWidth();
+			g_eye_texture[0].D3D11.Header.RenderViewport.Size.h = Renderer::GetTargetHeight();
+			g_eye_texture[0].D3D11.pTexture = FramebufferManager::m_efb.m_frontBuffer[0]->GetTex();
+			g_eye_texture[0].D3D11.pSRView = FramebufferManager::m_efb.m_frontBuffer[0]->GetSRV();
+			// If we are rendering in mono then use the same texture for both eyes, otherwise use a different eye texture
+			g_eye_texture[1] = g_eye_texture[0];
+			if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
+			{
+				g_eye_texture[1].D3D11.pTexture = FramebufferManager::m_efb.m_frontBuffer[1]->GetTex();
+				g_eye_texture[1].D3D11.pSRView = FramebufferManager::m_efb.m_frontBuffer[1]->GetSRV();
+			}
+		}
+#endif
+#if defined(HAVE_OPENVR)
+		if (g_has_steamvr)
+		{
+			m_left_texture = FramebufferManager::m_efb.m_frontBuffer[0]->GetTex();
+			m_right_texture = FramebufferManager::m_efb.m_frontBuffer[1]->GetTex();
+		}
 #endif
 	}
 #endif
@@ -236,9 +261,20 @@ void VR_StopFramebuffer()
 			pEyeRenderTexture[eye] = nullptr;
 		}
 	}
-#else
-	SAFE_RELEASE(FramebufferManager::m_efb.m_frontBuffer[0]);
-	SAFE_RELEASE(FramebufferManager::m_efb.m_frontBuffer[1]);
+#endif
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
+	if (g_has_rift)
+	{
+		SAFE_RELEASE(FramebufferManager::m_efb.m_frontBuffer[0]);
+		SAFE_RELEASE(FramebufferManager::m_efb.m_frontBuffer[1]);
+	}
+#endif
+#if defined(HAVE_OPENVR)
+	if (g_has_steamvr)
+	{
+		SAFE_RELEASE(FramebufferManager::m_efb.m_frontBuffer[0]);
+		SAFE_RELEASE(FramebufferManager::m_efb.m_frontBuffer[1]);
+	}
 #endif
 }
 
@@ -266,17 +302,56 @@ void VR_BeginFrame()
 
 void VR_RenderToEyebuffer(int eye)
 {
-#ifdef OVR_MAJOR_VERSION
-#if OVR_MAJOR_VERSION >= 6
-	D3D::context->OMSetRenderTargets(1, &pEyeRenderTexture[eye]->TexRtv[pEyeRenderTexture[eye]->TextureSet->CurrentIndex], nullptr);
-#else
-	D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[eye]->GetRTV(), nullptr);
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+	if (g_has_rift)
+	{
+		D3D::context->OMSetRenderTargets(1, &pEyeRenderTexture[eye]->TexRtv[pEyeRenderTexture[eye]->TextureSet->CurrentIndex], nullptr);
+	}
 #endif
+#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5)
+	if (g_has_rift)
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[eye]->GetRTV(), nullptr);
+#endif
+#if defined(HAVE_OPENVR)
+	if (g_has_steamvr)
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[eye]->GetRTV(), nullptr);
 #endif
 }
 
 void VR_PresentHMDFrame()
 {
+#ifdef HAVE_OPENVR
+	if (m_pCompositor)
+	{
+		m_pCompositor->Submit(vr::Eye_Left, vr::API_DirectX, (void*)m_left_texture, nullptr);
+		m_pCompositor->Submit(vr::Eye_Right, vr::API_DirectX, (void*)m_right_texture, nullptr);
+		m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+		uint32_t unSize = m_pCompositor->GetLastError(NULL, 0);
+		if (unSize > 1)
+		{
+			char* buffer = new char[unSize];
+			m_pCompositor->GetLastError(buffer, unSize);
+			NOTICE_LOG(VR, "Compositor - %s\n", buffer);
+			delete[] buffer;
+		}
+		if (!g_ActiveConfig.bNoMirrorToWindow)
+		{
+			TargetRectangle sourceRc;
+			sourceRc.left = 0;
+			sourceRc.top = 0;
+			sourceRc.right = Renderer::GetTargetWidth();
+			sourceRc.bottom = Renderer::GetTargetHeight();
+
+			D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
+			D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)0, (float)0, (float)Renderer::GetBackbufferWidth(), (float)Renderer::GetBackbufferHeight());
+			D3D::context->RSSetViewports(1, &vp);
+			D3D::drawShadedTexQuad(FramebufferManager::m_efb.m_frontBuffer[0]->GetSRV(), sourceRc.AsRECT(), sourceRc.GetWidth(), sourceRc.GetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr);
+
+			//D3D::context->CopyResource(D3D::GetBackBuffer()->GetTex(), tex->D3D11.pTexture);
+			D3D::swapchain->Present(0, 0);
+		}
+	}
+#endif
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
