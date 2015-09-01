@@ -931,7 +931,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 
 	out.Write("\t// color combine\n");
 	out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
-	if (cc.bias != TevBias_COMPARE)
+	if (cc.bias != TEVBIAS_COMPARE)
 	{
 		WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.shift);
 	}
@@ -961,7 +961,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 
 	out.Write("\t// alpha combine\n");
 	out.Write("\t%s = clamp(", tevAOutputTable[ac.dest]);
-	if (ac.bias != TevBias_COMPARE)
+	if (ac.bias != TEVBIAS_COMPARE)
 	{
 		WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.shift);
 	}
