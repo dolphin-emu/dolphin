@@ -436,42 +436,41 @@ u32 GetXFBAddressBottom()
 		return m_XFBInfoBottom.FBB;
 }
 
-float GetAspectRatio(bool wide)
+float GetAspectRatio(bool wide, bool scale, bool par_correct)
 {
 	u32 multiplier = static_cast<u32>(m_PictureConfiguration.STD / m_PictureConfiguration.WPL);
 	int height = (multiplier * m_VerticalTimingRegister.ACV);
 	int width = ((2 * m_HTiming0.HLW) - (m_HTiming0.HLW - m_HTiming1.HBS640)
 		- m_HTiming1.HBE640);
 	float pixelAR;
-	if (m_DisplayControlRegister.FMT == 1)
+	if (!par_correct)
 	{
-		//PAL active frame is 702*576
-		//In square pixels, 1024*576 is 16:9, and 768*576 is 4:3
-		//Therefore a 16:9 TV would have a "pixel" aspect ratio of 1024/702
-		//Similarly a 4:3 TV would have a ratio of 768/702
-		if (wide)
-		{
-			pixelAR = 1024.0f / 702.0f;
-		}
-		else
-		{
-			pixelAR = 768.0f / 702.0f;
-		}
+		pixelAR = 1.0f;
 	}
 	else
 	{
-		//NTSC active frame is 710.85*486
-		//In square pixels, 864*486 is 16:9, and 648*486 is 4:3
-		//Therefore a 16:9 TV would have a "pixel" aspect ratio of 864/710.85
-		//Similarly a 4:3 TV would have a ratio of 648/710.85
-		if (wide)
+		if (m_DisplayControlRegister.FMT == 1)
 		{
-			pixelAR = 864.0f / 710.85f;
+			// PAL active frame is 702*576
+			// In square pixels, 768*576 is 4:3
+			// Therefore a 4:3 TV would have a ratio of 768/702
+			pixelAR = 768.0f / 702.0f;
 		}
 		else
 		{
+			// NTSC active frame is 710.85*486
+			// In square pixels, 648*486 is 4:3
+			// Therefore a 4:3 TV would have a ratio of 648/710.85
 			pixelAR = 648.0f / 710.85f;
 		}
+	}
+	if (wide)
+	{
+		pixelAR *= (4.0f / 3.0f);
+	}
+	if (!scale)
+	{
+		width = 8 * m_PictureConfiguration.STD;
 	}
 	if (width == 0 || height == 0)
 	{
