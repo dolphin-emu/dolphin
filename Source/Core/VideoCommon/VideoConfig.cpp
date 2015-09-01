@@ -28,7 +28,7 @@ void UpdateActiveConfig()
 		Movie::SetGraphicsConfig();
 
 	g_ActiveConfig = g_Config;
-	if ((g_has_hmd || g_has_steamvr))
+	if (g_has_hmd)
 		g_ActiveConfig.bUseRealXFB = false;
 }
 
@@ -357,7 +357,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "DstAlphaPass", bDstAlphaPass);
 	CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
 
-	if ((g_has_hmd || g_has_steamvr))
+	if (g_has_hmd)
 	{
 		CHECK_SETTING("Video_Settings_VR", "UseXFB", bUseXFB);
 		CHECK_SETTING("Video_Settings_VR", "UseRealXFB", bUseRealXFB);
@@ -416,7 +416,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-	if ((g_has_hmd || g_has_steamvr))
+	if (g_has_hmd)
 	{
 		CHECK_SETTING("Video_Hacks_VR", "EFBAccessEnable", bEFBAccessEnable);
 		CHECK_SETTING("Video_Hacks_VR", "EFBCopyEnable", bEFBCopyEnable);

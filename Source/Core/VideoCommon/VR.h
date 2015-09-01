@@ -15,11 +15,6 @@ const int DEFAULT_VR_EXTRA_FRAMES = 0;
 const int DEFAULT_VR_EXTRA_VIDEO_LOOPS = 0;
 const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 
-// Disable OpenVR support for now
-#ifdef HAVE_OPENVR
-#undef HAVE_OPENVR
-#endif
-
 #ifdef HAVE_OCULUSSDK
 #include "OVR_Version.h"
 #if OVR_MAJOR_VERSION <= 4
@@ -139,7 +134,7 @@ ControllerStyle VR_GetHydraStyle(int hand);
 void OpcodeReplayBuffer();
 void OpcodeReplayBufferInline();
 
-extern bool g_force_vr;
+extern bool g_force_vr, g_prefer_steamvr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920, g_has_steamvr, g_is_direct_mode, g_is_nes;
 extern bool g_new_tracking_frame;
 extern bool g_new_frame_tracker_for_efb_skip;

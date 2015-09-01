@@ -112,7 +112,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	D3D::context->Map(m_buffers[m_currentBuffer], 0, MapType, 0, &map);
 	u8* mappedData = reinterpret_cast<u8*>(map.pData);
 
-	if ((g_has_hmd || g_has_steamvr))
+	if (g_has_hmd)
 	{
 		static bool previous_replay_vertex_data = !g_ActiveConfig.bReplayVertexData;
 

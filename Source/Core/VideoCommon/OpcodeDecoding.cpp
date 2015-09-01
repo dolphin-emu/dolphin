@@ -140,7 +140,7 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opc
 
 void OpcodeDecoder_Init()
 {
-	g_opcode_replay_enabled = g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && (g_has_hmd || g_has_steamvr);
+	g_opcode_replay_enabled = g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && g_has_hmd;
 	g_opcode_replay_frame = false;
 	g_opcode_replay_log_frame = false;
 	s_bFifoErrorSeen = false;
@@ -149,7 +149,7 @@ void OpcodeDecoder_Init()
 
 void OpcodeDecoder_Shutdown()
 {
-	if ((g_has_hmd || g_has_steamvr))
+	if (g_has_hmd)
 	{
 		g_opcode_replay_frame = false;
 		g_opcode_replay_log_frame = false;

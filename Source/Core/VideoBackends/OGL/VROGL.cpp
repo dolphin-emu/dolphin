@@ -8,10 +8,13 @@
 #include "VideoBackends/OGL/GLInterface/GLX.h"
 #endif
 
+#include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/TextureConverter.h"
 #include "VideoBackends/OGL/VROGL.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
@@ -133,13 +136,348 @@ GLuint mirrorFBO = 0;
 #endif
 
 #ifdef HAVE_OPENVR
+///////////////////////////////////////////////////////////////////////////////
+// 2D vector
+///////////////////////////////////////////////////////////////////////////////
+struct Vector2
+{
+	float x;
+	float y;
+
+	// ctors
+	Vector2() : x(0), y(0) {};
+	Vector2(float x, float y) : x(x), y(y) {};
+
+	// utils functions
+	void        set(float x, float y);
+	float       length() const;                         //
+	float       distance(const Vector2& vec) const;     // distance between two vectors
+	Vector2&    normalize();                            //
+	float       dot(const Vector2& vec) const;          // dot product
+	bool        equal(const Vector2& vec, float e) const; // compare with epsilon
+
+	// operators
+	Vector2     operator-() const;                      // unary operator (negate)
+	Vector2     operator+(const Vector2& rhs) const;    // add rhs
+	Vector2     operator-(const Vector2& rhs) const;    // subtract rhs
+	Vector2&    operator+=(const Vector2& rhs);         // add rhs and update this object
+	Vector2&    operator-=(const Vector2& rhs);         // subtract rhs and update this object
+	Vector2     operator*(const float scale) const;     // scale
+	Vector2     operator*(const Vector2& rhs) const;    // multiply each element
+	Vector2&    operator*=(const float scale);          // scale and update this object
+	Vector2&    operator*=(const Vector2& rhs);         // multiply each element and update this object
+	Vector2     operator/(const float scale) const;     // inverse scale
+	Vector2&    operator/=(const float scale);          // scale and update this object
+	bool        operator==(const Vector2& rhs) const;   // exact compare, no epsilon
+	bool        operator!=(const Vector2& rhs) const;   // exact compare, no epsilon
+	bool        operator<(const Vector2& rhs) const;    // comparison for sort
+	float       operator[](int index) const;            // subscript operator v[0], v[1]
+	float&      operator[](int index);                  // subscript operator v[0], v[1]
+
+	friend Vector2 operator*(const float a, const Vector2 vec);
+	friend std::ostream& operator<<(std::ostream& os, const Vector2& vec);
+};
+
+struct VertexDataLens
+{
+	Vector2 position;
+	Vector2 texCoordRed;
+	Vector2 texCoordGreen;
+	Vector2 texCoordBlue;
+};
+
 GLuint m_left_texture = 0, m_right_texture = 0;
+
+GLuint m_unSceneProgramID = 0, m_unLensProgramID = 0, m_unControllerTransformProgramID = 0, m_unRenderModelProgramID = 0;
+
+GLint m_nSceneMatrixLocation = -1, m_nControllerMatrixLocation = -1, m_nRenderModelMatrixLocation = -1;
+
+unsigned int m_uiVertcount;
+
+GLuint m_glSceneVertBuffer;
+GLuint m_unLensVAO;
+GLuint m_glIDVertBuffer;
+GLuint m_glIDIndexBuffer;
+unsigned int m_uiIndexSize;
+
+
 //-----------------------------------------------------------------------------
 // Purpose: Creates all the shaders used by HelloVR SDL
 //-----------------------------------------------------------------------------
 bool CreateAllShaders()
 {
-	return false;
+	m_unSceneProgramID = OpenGL_CompileProgram(
+		// Vertex Shader
+		"#version 410\n"
+		"uniform mat4 matrix;\n"
+		"layout(location = 0) in vec4 position;\n"
+		"layout(location = 1) in vec2 v2UVcoordsIn;\n"
+		"layout(location = 2) in vec3 v3NormalIn;\n"
+		"out vec2 v2UVcoords;\n"
+		"void main()\n"
+		"{\n"
+		"	v2UVcoords = v2UVcoordsIn;\n"
+		"	gl_Position = matrix * position;\n"
+		"}\n",
+
+		// Fragment Shader
+		"#version 410 core\n"
+		"uniform sampler2D mytexture;\n"
+		"in vec2 v2UVcoords;\n"
+		"out vec4 outputColor;\n"
+		"void main()\n"
+		"{\n"
+		"   outputColor = texture(mytexture, v2UVcoords);\n"
+		"}\n"
+		);
+	m_nSceneMatrixLocation = glGetUniformLocation(m_unSceneProgramID, "matrix");
+	if (m_nSceneMatrixLocation == -1)
+	{
+		ERROR_LOG(VR, "Unable to find matrix uniform in scene shader\n");
+		return false;
+	}
+
+	m_unControllerTransformProgramID = OpenGL_CompileProgram(
+		// vertex shader
+		"#version 410\n"
+		"uniform mat4 matrix;\n"
+		"layout(location = 0) in vec4 position;\n"
+		"layout(location = 1) in vec3 v3ColorIn;\n"
+		"out vec4 v4Color;\n"
+		"void main()\n"
+		"{\n"
+		"	v4Color.xyz = v3ColorIn; v4Color.a = 1.0;\n"
+		"	gl_Position = matrix * position;\n"
+		"}\n",
+
+		// fragment shader
+		"#version 410\n"
+		"in vec4 v4Color;\n"
+		"out vec4 outputColor;\n"
+		"void main()\n"
+		"{\n"
+		"   outputColor = v4Color;\n"
+		"}\n"
+		);
+	m_nControllerMatrixLocation = glGetUniformLocation(m_unControllerTransformProgramID, "matrix");
+	if (m_nControllerMatrixLocation == -1)
+	{
+		ERROR_LOG(VR, "Unable to find matrix uniform in controller shader\n");
+		return false;
+	}
+
+	m_unRenderModelProgramID = OpenGL_CompileProgram(
+		// vertex shader
+		"#version 410\n"
+		"uniform mat4 matrix;\n"
+		"layout(location = 0) in vec4 position;\n"
+		"layout(location = 1) in vec3 v3NormalIn;\n"
+		"layout(location = 2) in vec2 v2TexCoordsIn;\n"
+		"out vec2 v2TexCoord;\n"
+		"void main()\n"
+		"{\n"
+		"	v2TexCoord = v2TexCoordsIn;\n"
+		"	gl_Position = matrix * vec4(position.xyz, 1);\n"
+		"}\n",
+
+		//fragment shader
+		"#version 410 core\n"
+		"uniform sampler2D diffuse;\n"
+		"in vec2 v2TexCoord;\n"
+		"out vec4 outputColor;\n"
+		"void main()\n"
+		"{\n"
+		"   outputColor = texture( diffuse, v2TexCoord);\n"
+		"}\n"
+
+		);
+	m_nRenderModelMatrixLocation = glGetUniformLocation(m_unRenderModelProgramID, "matrix");
+	if (m_nRenderModelMatrixLocation == -1)
+	{
+		ERROR_LOG(VR, "Unable to find matrix uniform in render model shader\n");
+		return false;
+	}
+
+	m_unLensProgramID = OpenGL_CompileProgram(
+		// vertex shader
+		"#version 410 core\n"
+		"layout(location = 0) in vec4 position;\n"
+		"layout(location = 1) in vec2 v2UVredIn;\n"
+		"layout(location = 2) in vec2 v2UVGreenIn;\n"
+		"layout(location = 3) in vec2 v2UVblueIn;\n"
+		"noperspective  out vec2 v2UVred;\n"
+		"noperspective  out vec2 v2UVgreen;\n"
+		"noperspective  out vec2 v2UVblue;\n"
+		"void main()\n"
+		"{\n"
+		"	v2UVred = v2UVredIn;\n"
+		"	v2UVgreen = v2UVGreenIn;\n"
+		"	v2UVblue = v2UVblueIn;\n"
+		"	gl_Position = position;\n"
+		"}\n",
+
+		// fragment shader
+		"#version 410 core\n"
+		"uniform sampler2D mytexture;\n"
+
+		"noperspective  in vec2 v2UVred;\n"
+		"noperspective  in vec2 v2UVgreen;\n"
+		"noperspective  in vec2 v2UVblue;\n"
+
+		"out vec4 outputColor;\n"
+
+		"void main()\n"
+		"{\n"
+		"	float fBoundsCheck = ( (dot( vec2( lessThan( v2UVgreen.xy, vec2(0.05, 0.05)) ), vec2(1.0, 1.0))+dot( vec2( greaterThan( v2UVgreen.xy, vec2( 0.95, 0.95)) ), vec2(1.0, 1.0))) );\n"
+		"	if( fBoundsCheck > 1.0 )\n"
+		"	{ outputColor = vec4( 0, 0, 0, 1.0 ); }\n"
+		"	else\n"
+		"	{\n"
+		"		float red = texture(mytexture, v2UVred).x;\n"
+		"		float green = texture(mytexture, v2UVgreen).y;\n"
+		"		float blue = texture(mytexture, v2UVblue).z;\n"
+		"		outputColor = vec4( red, green, blue, 1.0  ); }\n"
+		"}\n"
+		);
+
+
+	return m_unSceneProgramID != 0
+		&& m_unControllerTransformProgramID != 0
+		&& m_unRenderModelProgramID != 0
+		&& m_unLensProgramID != 0;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void SetupDistortion()
+{
+	if (!m_pHMD)
+		return;
+
+	GLushort m_iLensGridSegmentCountH = 43;
+	GLushort m_iLensGridSegmentCountV = 43;
+
+	float w = (float)(1.0 / float(m_iLensGridSegmentCountH - 1));
+	float h = (float)(1.0 / float(m_iLensGridSegmentCountV - 1));
+
+	float u, v = 0;
+
+	std::vector<VertexDataLens> vVerts(0);
+	VertexDataLens vert;
+
+	//left eye distortion verts
+	float Xoffset = -1;
+	for (int y = 0; y<m_iLensGridSegmentCountV; y++)
+	{
+		for (int x = 0; x<m_iLensGridSegmentCountH; x++)
+		{
+			u = x*w; v = 1 - y*h;
+			vert.position = Vector2(Xoffset + u, -1 + 2 * y*h);
+
+			vr::DistortionCoordinates_t dc0 = m_pHMD->ComputeDistortion(vr::Eye_Left, u, v);
+
+			vert.texCoordRed = Vector2(dc0.rfRed[0], 1 - dc0.rfRed[1]);
+			vert.texCoordGreen = Vector2(dc0.rfGreen[0], 1 - dc0.rfGreen[1]);
+			vert.texCoordBlue = Vector2(dc0.rfBlue[0], 1 - dc0.rfBlue[1]);
+
+			vVerts.push_back(vert);
+		}
+	}
+
+	//right eye distortion verts
+	Xoffset = 0;
+	for (int y = 0; y<m_iLensGridSegmentCountV; y++)
+	{
+		for (int x = 0; x<m_iLensGridSegmentCountH; x++)
+		{
+			u = x*w; v = 1 - y*h;
+			vert.position = Vector2(Xoffset + u, -1 + 2 * y*h);
+
+			vr::DistortionCoordinates_t dc0 = m_pHMD->ComputeDistortion(vr::Eye_Right, u, v);
+
+			vert.texCoordRed = Vector2(dc0.rfRed[0], 1 - dc0.rfRed[1]);
+			vert.texCoordGreen = Vector2(dc0.rfGreen[0], 1 - dc0.rfGreen[1]);
+			vert.texCoordBlue = Vector2(dc0.rfBlue[0], 1 - dc0.rfBlue[1]);
+
+			vVerts.push_back(vert);
+		}
+	}
+
+	std::vector<GLushort> vIndices;
+	GLushort a, b, c, d;
+
+	GLushort offset = 0;
+	for (GLushort y = 0; y<m_iLensGridSegmentCountV - 1; y++)
+	{
+		for (GLushort x = 0; x<m_iLensGridSegmentCountH - 1; x++)
+		{
+			a = m_iLensGridSegmentCountH*y + x + offset;
+			b = m_iLensGridSegmentCountH*y + x + 1 + offset;
+			c = (y + 1)*m_iLensGridSegmentCountH + x + 1 + offset;
+			d = (y + 1)*m_iLensGridSegmentCountH + x + offset;
+			vIndices.push_back(a);
+			vIndices.push_back(b);
+			vIndices.push_back(c);
+
+			vIndices.push_back(a);
+			vIndices.push_back(c);
+			vIndices.push_back(d);
+		}
+	}
+
+	offset = (m_iLensGridSegmentCountH)*(m_iLensGridSegmentCountV);
+	for (GLushort y = 0; y<m_iLensGridSegmentCountV - 1; y++)
+	{
+		for (GLushort x = 0; x<m_iLensGridSegmentCountH - 1; x++)
+		{
+			a = m_iLensGridSegmentCountH*y + x + offset;
+			b = m_iLensGridSegmentCountH*y + x + 1 + offset;
+			c = (y + 1)*m_iLensGridSegmentCountH + x + 1 + offset;
+			d = (y + 1)*m_iLensGridSegmentCountH + x + offset;
+			vIndices.push_back(a);
+			vIndices.push_back(b);
+			vIndices.push_back(c);
+
+			vIndices.push_back(a);
+			vIndices.push_back(c);
+			vIndices.push_back(d);
+		}
+	}
+	m_uiIndexSize = (unsigned int)vIndices.size();
+
+	glGenVertexArrays(1, &m_unLensVAO);
+	glBindVertexArray(m_unLensVAO);
+
+	glGenBuffers(1, &m_glIDVertBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_glIDVertBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vVerts.size()*sizeof(VertexDataLens), &vVerts[0], GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_glIDIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_glIDIndexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, vIndices.size()*sizeof(GLushort), &vIndices[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexDataLens), (void *)offsetof(VertexDataLens, position));
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexDataLens), (void *)offsetof(VertexDataLens, texCoordRed));
+
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(VertexDataLens), (void *)offsetof(VertexDataLens, texCoordGreen));
+
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(VertexDataLens), (void *)offsetof(VertexDataLens, texCoordBlue));
+
+	glBindVertexArray(0);
+
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
+	glDisableVertexAttribArray(3);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -149,7 +487,46 @@ bool BInitGL()
 {
 	if (!CreateAllShaders())
 		return false;
+	
+	//SetupTexturemaps();
+	//SetupScene();
+	//SetupCameras();
+	//SetupStereoRenderTargets();
+	SetupDistortion();
+
+	//SetupRenderModels();
 	return true;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Mirror window, not needed for compositor
+//-----------------------------------------------------------------------------
+void RenderDistortion()
+{
+	glDisable(GL_DEPTH_TEST);
+	glViewport(0, 0, Renderer::GetBackbufferWidth(), Renderer::GetBackbufferHeight());
+
+	glBindVertexArray(m_unLensVAO);
+	glUseProgram(m_unLensProgramID);
+
+	//render left lens (first half of index array )
+	glBindTexture(GL_TEXTURE_2D, FramebufferManager::m_frontBuffer[0]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glDrawElements(GL_TRIANGLES, m_uiIndexSize / 2, GL_UNSIGNED_SHORT, 0);
+
+	//render right lens (second half of index array )
+	glBindTexture(GL_TEXTURE_2D, FramebufferManager::m_frontBuffer[1]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glDrawElements(GL_TRIANGLES, m_uiIndexSize / 2, GL_UNSIGNED_SHORT, (const void *)(m_uiIndexSize));
+
+	glBindVertexArray(0);
+	glUseProgram(0);
 }
 #endif
 
@@ -157,11 +534,11 @@ bool BInitGL()
 void VR_ConfigureHMD()
 {
 #ifdef HAVE_OPENVR
-	if (m_pCompositor)
+	if (g_has_steamvr && m_pCompositor)
 	{
 		//m_pCompositor->SetGraphicsDevice(vr::Compositor_DeviceType_OpenGL, nullptr);
 	}
-#else
+#endif
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
@@ -224,7 +601,6 @@ void VR_ConfigureHMD()
 #endif
 	}
 #endif
-#endif
 }
 
 void VR_StartFramebuffer(int target_width, int target_height)
@@ -234,52 +610,12 @@ void VR_StartFramebuffer(int target_width, int target_height)
 	FramebufferManager::m_frontBuffer[0] = 0;
 	FramebufferManager::m_frontBuffer[1] = 0;
 
-#ifdef HAVE_OPENVR
-	m_left_texture = left_texture;
-	m_right_texture = right_texture;
-#else
-	if (g_has_vr920)
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+	if (g_has_rift)
 	{
-#ifdef _WIN32
-		VR920_StartStereo3D();
-#endif
-	}
-#ifdef OVR_MAJOR_VERSION
-	else if (g_has_rift || g_has_steamvr)
-	{
-#if OVR_MAJOR_VERSION <= 5
-		glGenTextures(2, FramebufferManager::m_frontBuffer);
-		for (int eye = 0; eye < 2; ++eye)
-		{
-			glBindTexture(GL_TEXTURE_2D, FramebufferManager::m_frontBuffer[eye]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, target_width, target_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		}
-
-		glGenFramebuffers(2, FramebufferManager::m_eyeFramebuffer);
-		for (int eye = 0; eye < 2; ++eye)
-		{
-			glBindFramebuffer(GL_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
-			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, FramebufferManager::m_frontBuffer[eye], 0);
-		}
-
-		g_eye_texture[0].OGL.Header.API = ovrRenderAPI_OpenGL;
-		g_eye_texture[0].OGL.Header.TextureSize.w = target_width;
-		g_eye_texture[0].OGL.Header.TextureSize.h = target_height;
-		g_eye_texture[0].OGL.Header.RenderViewport.Pos.x = 0;
-		g_eye_texture[0].OGL.Header.RenderViewport.Pos.y = 0;
-		g_eye_texture[0].OGL.Header.RenderViewport.Size.w = target_width;
-		g_eye_texture[0].OGL.Header.RenderViewport.Size.h = target_height;
-		g_eye_texture[0].OGL.TexId = FramebufferManager::m_frontBuffer[0];
-		g_eye_texture[1] = g_eye_texture[0];
-		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
-			g_eye_texture[1].OGL.TexId = FramebufferManager::m_frontBuffer[1];
-#else
 		GLInterface->SwapInterval(false);
 
-		for (int eye=0; eye<2; ++eye)
+		for (int eye = 0; eye<2; ++eye)
 		{
 			ovrSizei target_size;
 			target_size.w = target_width;
@@ -300,41 +636,101 @@ void VR_StartFramebuffer(int target_width, int target_height)
 		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mirrorTexture->OGL.TexId, 0);
 		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	}
+	else
 #endif
+	if (g_has_vr920)
+	{
+#ifdef _WIN32
+		VR920_StartStereo3D();
+#endif
+	}
+#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5) || defined(HAVE_OPENVR)
+	else if (g_has_rift || g_has_steamvr)
+	{
+		// create the eye textures
+		glGenTextures(2, FramebufferManager::m_frontBuffer);
+		for (int eye = 0; eye < 2; ++eye)
+		{
+			glBindTexture(GL_TEXTURE_2D, FramebufferManager::m_frontBuffer[eye]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, target_width, target_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		}
 
+		// create the eye framebuffers
+		glGenFramebuffers(2, FramebufferManager::m_eyeFramebuffer);
+		for (int eye = 0; eye < 2; ++eye)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, FramebufferManager::m_frontBuffer[eye], 0);
+		}
 
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
+		if (g_has_rift)
+		{
+			g_eye_texture[0].OGL.Header.API = ovrRenderAPI_OpenGL;
+			g_eye_texture[0].OGL.Header.TextureSize.w = target_width;
+			g_eye_texture[0].OGL.Header.TextureSize.h = target_height;
+			g_eye_texture[0].OGL.Header.RenderViewport.Pos.x = 0;
+			g_eye_texture[0].OGL.Header.RenderViewport.Pos.y = 0;
+			g_eye_texture[0].OGL.Header.RenderViewport.Size.w = target_width;
+			g_eye_texture[0].OGL.Header.RenderViewport.Size.h = target_height;
+			g_eye_texture[0].OGL.TexId = FramebufferManager::m_frontBuffer[0];
+			g_eye_texture[1] = g_eye_texture[0];
+			if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
+				g_eye_texture[1].OGL.TexId = FramebufferManager::m_frontBuffer[1];
+		}
+#endif
+#if defined(HAVE_OPENVR)
+		if (g_has_steamvr)
+		{
+			m_left_texture = FramebufferManager::m_frontBuffer[0];
+			m_right_texture = FramebufferManager::m_frontBuffer[1];
+		}
+#endif
 	}
 #endif
-#endif
-
+	else
+	{
+		// no VR 
+	}
 }
 
 void VR_StopFramebuffer()
 {
 #if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
-	glDeleteFramebuffers(1, &mirrorFBO);
-	ovrHmd_DestroyMirrorTexture(hmd, (ovrTexture*)mirrorTexture);
-	ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[0]->TextureSet);
-	ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[1]->TextureSet);
-
-	// On Oculus SDK 0.6.0 and above, we need to destroy the eye textures Oculus created for us.
-	for (int eye = 0; eye < 2; eye++)
+	if (g_has_rift)
 	{
-		if (eyeRenderTexture[eye])
+		glDeleteFramebuffers(1, &mirrorFBO);
+		ovrHmd_DestroyMirrorTexture(hmd, (ovrTexture*)mirrorTexture);
+		ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[0]->TextureSet);
+		ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[1]->TextureSet);
+
+		// On Oculus SDK 0.6.0 and above, we need to destroy the eye textures Oculus created for us.
+		for (int eye = 0; eye < 2; eye++)
 		{
-			ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[eye]->TextureSet);
-			delete eyeRenderTexture[eye];
-			eyeRenderTexture[eye] = nullptr;
+			if (eyeRenderTexture[eye])
+			{
+				ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[eye]->TextureSet);
+				delete eyeRenderTexture[eye];
+				eyeRenderTexture[eye] = nullptr;
+			}
 		}
 	}
-#else
-	glDeleteFramebuffers(2, FramebufferManager::m_eyeFramebuffer);
-	FramebufferManager::m_eyeFramebuffer[0] = 0;
-	FramebufferManager::m_eyeFramebuffer[1] = 0;
+#endif
+#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5 || defined(HAVE_OPENVR))
+	if (g_has_rift || g_has_steamvr)
+	{
+		glDeleteFramebuffers(2, FramebufferManager::m_eyeFramebuffer);
+		FramebufferManager::m_eyeFramebuffer[0] = 0;
+		FramebufferManager::m_eyeFramebuffer[1] = 0;
 
-	glDeleteTextures(2, FramebufferManager::m_frontBuffer);
-	FramebufferManager::m_frontBuffer[0] = 0;
-	FramebufferManager::m_frontBuffer[1] = 0;
+		glDeleteTextures(2, FramebufferManager::m_frontBuffer);
+		FramebufferManager::m_frontBuffer[0] = 0;
+		FramebufferManager::m_frontBuffer[1] = 0;
+	}
 #endif
 }
 
@@ -362,14 +758,21 @@ void VR_BeginFrame()
 
 void VR_RenderToEyebuffer(int eye)
 {
-#ifdef OVR_MAJOR_VERSION
-#if OVR_MAJOR_VERSION >= 6
-	eyeRenderTexture[eye]->UnsetRenderSurface();
-	// Switch to eye render target
-	eyeRenderTexture[eye]->SetAndClearRenderSurface();
-#else
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+	if (g_has_rift)
+	{
+		eyeRenderTexture[eye]->UnsetRenderSurface();
+		// Switch to eye render target
+		eyeRenderTexture[eye]->SetAndClearRenderSurface();
+	}
 #endif
+#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5)
+	if (g_has_rift)
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
+#endif
+#if defined(HAVE_OPENVR)
+	if (g_has_steamvr)
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
 #endif
 }
 
@@ -388,6 +791,20 @@ void VR_PresentHMDFrame()
 			m_pCompositor->GetLastError(buffer, unSize);
 			NOTICE_LOG(VR, "Compositor - %s\n", buffer);
 			delete[] buffer;
+		}
+		if (!g_ActiveConfig.bNoMirrorToWindow)
+		{
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			// Blit mirror texture to back buffer
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[0]);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			GLint w = Renderer::GetTargetWidth();
+			GLint h = Renderer::GetTargetHeight();
+			glBlitFramebuffer(0, h, w, 0,
+				0, 0, w, h,
+				GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			GLInterface->Swap();
 		}
 	}
 #endif

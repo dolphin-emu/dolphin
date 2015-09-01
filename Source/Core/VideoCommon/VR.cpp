@@ -43,7 +43,7 @@ int g_ovr_frameindex;
 
 std::mutex g_vr_lock;
 
-bool g_force_vr = false;
+bool g_force_vr = false, g_prefer_steamvr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false, g_has_steamvr = false;
 bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
@@ -128,7 +128,7 @@ void NewVRFrame()
 			g_vr_speed += vr_freelook_speed;
 		vr_freelook_speed = 0;
 	}
-	if ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.iMotionSicknessMethod == 2)
+	if (g_has_hmd && g_ActiveConfig.iMotionSicknessMethod == 2)
 	{
 		// black the screen if we are moving fast
 		g_vr_black_screen = (g_vr_speed > 0.15f);
@@ -213,12 +213,8 @@ bool BInitCompositor()
 }
 #endif
 
-void InitVR()
+bool InitSteamVR()
 {
-	g_has_hmd = false;
-	g_is_direct_mode = false;
-	g_hmd_device_name = nullptr;
-	g_has_steamvr = false;
 #ifdef HAVE_OPENVR
 	// Loading the SteamVR Runtime
 	vr::HmdError eError = vr::HmdError_None;
@@ -248,19 +244,20 @@ void InitVR()
 			SuccessAlertT("VR_Init Succeeded");
 			NOTICE_LOG(VR, "VR_Init Succeeded");
 			g_has_steamvr = true;
+			g_has_hmd = true;
 		}
 
 		u32 m_nWindowWidth = 0;
 		u32 m_nWindowHeight = 0;
-		m_pHMD->GetWindowBounds( &g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight );
+		m_pHMD->GetWindowBounds(&g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight);
 		g_hmd_window_width = m_nWindowWidth;
 		g_hmd_window_height = m_nWindowHeight;
 		NOTICE_LOG(VR, "WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y, g_hmd_window_width, g_hmd_window_height);
 
 		std::string m_strDriver = "No Driver";
 		std::string m_strDisplay = "No Display";
-		m_strDriver = GetTrackedDeviceString( m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String );
-		m_strDisplay = GetTrackedDeviceString( m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String );
+		m_strDriver = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
+		m_strDisplay = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
 		NOTICE_LOG(VR, "strDriver = '%s'", m_strDriver.c_str());
 		NOTICE_LOG(VR, "strDisplay = '%s'", m_strDisplay.c_str());
 
@@ -269,54 +266,36 @@ void InitVR()
 			if (!BInitCompositor())
 			{
 				PanicAlertT("%s - Failed to initialize VR Compositor!\n", __FUNCTION__);
+				g_has_steamvr = false;
 			}
 		}
+		return g_has_steamvr;
 	}
-#else
-#ifdef OVR_MAJOR_VERSION
-	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
-#if OVR_MAJOR_VERSION >= 6
-	ovr_Initialize(nullptr);
-	if (ovrHmd_Create(0, &hmd) != ovrSuccess)
-		hmd = nullptr;
-#else
-	ovr_Initialize();
-	hmd = ovrHmd_Create(0);
 #endif
-	if (!hmd)
+	return false;
+}
+
+bool InitOculusDebugVR()
+{
+#ifdef OVR_MAJOR_VERSION
+	if (g_force_vr)
 	{
-		WARN_LOG(VR, "Oculus Rift not detected. Oculus Rift support will not be available.");
-#endif
-#ifdef _WIN32
-		LoadVR920();
-		if (g_has_vr920)
-		{
-			g_has_hmd = true;
-			g_hmd_window_width = 800;
-			g_hmd_window_height = 600;
-			// Todo: find vr920
-			g_hmd_window_x = 0;
-			g_hmd_window_y = 0;
-		}
-		else
-#endif
-		{
-			g_has_hmd = g_force_vr;
-#ifdef OVR_MAJOR_VERSION
-			if (g_force_vr)
-			{
-				WARN_LOG(VR, "Forcing VR mode, simulating Oculus Rift DK2.");
+		WARN_LOG(VR, "Forcing VR mode, simulating Oculus Rift DK2.");
 #if OVR_MAJOR_VERSION >= 6
-				if (ovrHmd_CreateDebug(ovrHmd_DK2, &hmd) != ovrSuccess)
-					hmd = nullptr;
+		if (ovrHmd_CreateDebug(ovrHmd_DK2, &hmd) != ovrSuccess)
+			hmd = nullptr;
 #else
-				hmd = ovrHmd_CreateDebug(ovrHmd_DK2);
+		hmd = ovrHmd_CreateDebug(ovrHmd_DK2);
 #endif
-			}
-#endif
-		}
-#ifdef OVR_MAJOR_VERSION
+		return (hmd != nullptr);
 	}
+#endif
+	return false;
+}
+
+bool InitOculusHMD()
+{
+#ifdef OVR_MAJOR_VERSION
 	if (hmd)
 	{
 		// Get more details about the HMD
@@ -324,11 +303,11 @@ void InitVR()
 		hmdDesc = *hmd;
 		ovrHmd_SetEnabledCaps(hmd, ovrHmd_GetEnabledCaps(hmd) | ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
 
-#if OVR_MAJOR_VERSION >= 6
+	#if OVR_MAJOR_VERSION >= 6
 		if (OVR_SUCCESS(ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0)))
-#else
+	#else
 		if (ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0))
-#endif
+	#endif
 		{
 			g_has_rift = true;
 			g_has_hmd = true;
@@ -340,21 +319,21 @@ void InitVR()
 			g_eye_fov[1] = g_best_eye_fov[1];
 			g_last_eye_fov[0] = g_eye_fov[0];
 			g_last_eye_fov[1] = g_eye_fov[1];
-#if OVR_MAJOR_VERSION < 6
+	#if OVR_MAJOR_VERSION < 6
 			g_hmd_window_x = hmdDesc.WindowsPos.x;
 			g_hmd_window_y = hmdDesc.WindowsPos.y;
 			g_is_direct_mode = !(hmdDesc.HmdCaps & ovrHmdCap_ExtendDesktop);
-#else
+	#else
 			g_hmd_window_x = 0;
 			g_hmd_window_y = 0;
 			g_is_direct_mode = true;
-#endif
-#ifdef _WIN32
-#if OVR_MAJOR_VERSION < 6
+	#endif
+	#ifdef _WIN32
+	#if OVR_MAJOR_VERSION < 6
 			g_hmd_device_name = hmdDesc.DisplayDeviceName;
-#else
+	#else
 			g_hmd_device_name = nullptr;
-#endif
+	#endif
 			const char *p;
 			if (g_hmd_device_name && (p = strstr(g_hmd_device_name, "\\Monitor")))
 			{
@@ -364,12 +343,72 @@ void InitVR()
 				g_hmd_device_name = strncpy(hmd_device_name, g_hmd_device_name, n);
 				hmd_device_name[n] = '\0';
 			}
-#endif
+	#endif
 			NOTICE_LOG(VR, "Oculus Rift head tracker started.");
 		}
+		return g_has_rift;
 	}
 #endif
+return false;
+}
+
+bool InitOculusVR()
+{
+#ifdef OVR_MAJOR_VERSION
+	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
+
+#if OVR_MAJOR_VERSION >= 6
+	ovr_Initialize(nullptr);
+	if (ovrHmd_Create(0, &hmd) != ovrSuccess)
+		hmd = nullptr;
+#else
+	ovr_Initialize();
+	hmd = ovrHmd_Create(0);
 #endif
+
+	if (!hmd)
+		WARN_LOG(VR, "Oculus Rift not detected. Oculus Rift support will not be available.");
+	return (hmd != nullptr);
+#endif
+}
+
+bool InitVR920VR()
+{
+#ifdef _WIN32
+	LoadVR920();
+	if (g_has_vr920)
+	{
+		g_has_hmd = true;
+		g_hmd_window_width = 800;
+		g_hmd_window_height = 600;
+		// Todo: find vr920
+		g_hmd_window_x = 0;
+		g_hmd_window_y = 0;
+		return true;
+	}
+#endif
+	return false;
+}
+
+void InitVR()
+{
+	g_has_hmd = false;
+	g_is_direct_mode = false;
+	g_hmd_device_name = nullptr;
+	g_has_steamvr = false;
+
+	if (g_prefer_steamvr)
+	{
+		if (!InitSteamVR() && !InitOculusVR() && !InitVR920VR() && !InitOculusDebugVR())
+			g_has_hmd = g_force_vr;
+	}
+	else
+	{
+		if (!InitOculusVR() && !InitSteamVR() && !InitVR920VR() && !InitOculusDebugVR())
+			g_has_hmd = g_force_vr;
+	}
+	InitOculusHMD();
+
 	if (g_has_hmd)
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
@@ -411,13 +450,13 @@ void VR_StopRendering()
 void ShutdownVR()
 {
 #ifdef HAVE_OPENVR
-	if (m_pHMD)
+	if (g_has_steamvr && m_pHMD)
 	{
 		vr::VR_Shutdown();
 		m_pHMD = nullptr;
 		g_has_steamvr = false;
 	}
-#else
+#endif
 #ifdef OVR_MAJOR_VERSION
 	if (hmd)
 	{
@@ -434,23 +473,21 @@ void ShutdownVR()
 	}
 	ovr_Shutdown();
 #endif
-#endif
 }
 
 void VR_RecenterHMD()
 {
 #ifdef HAVE_OPENVR
-	if (m_pHMD)
+	if (g_has_steamvr && m_pHMD)
 	{
 		m_pHMD->ResetSeatedZeroPose();
 	}
-#else
+#endif
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		ovrHmd_RecenterPose(hmd);
 	}
-#endif
 #endif
 }
 
@@ -508,6 +545,15 @@ void VR_GetEyePoses()
 #endif
 	}
 #endif
+#if HAVE_OPENVR
+	if (g_has_steamvr)
+	{
+		if (m_pCompositor)
+		{
+			m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+		}
+	}
+#endif
 }
 
 #ifdef HAVE_OPENVR
@@ -541,7 +587,7 @@ void ProcessVREvent(const vr::VREvent_t & event)
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z)
 {
 #ifdef HAVE_OPENVR
-	if (m_pHMD)
+	if (g_has_steamvr && m_pHMD)
 	{
 		float fSecondsUntilPhotons = 0.0f;
 		m_pHMD->GetDeviceToAbsoluteTrackingPose( vr::TrackingUniverseSeated, fSecondsUntilPhotons, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount );
@@ -571,8 +617,7 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 			*yaw = RADIANS_TO_DEGREES(ya);   // should be degrees right
 		}
 	}
-#else
-
+#endif
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift && hmd)
 	{
@@ -620,7 +665,6 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 		}
 #endif
 	}
-#endif
 }
 
 void UpdateHeadTrackingIfNeeded()
@@ -628,20 +672,23 @@ void UpdateHeadTrackingIfNeeded()
 	if (g_new_tracking_frame)
 	{
 #ifdef HAVE_OPENVR
-		// Process SteamVR events
-		vr::VREvent_t event;
-		while (m_pHMD->PollNextEvent(&event))
+		if (g_has_steamvr)
 		{
-			ProcessVREvent(event);
-		}
-
-		// Process SteamVR controller state
-		for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
-		{
-			vr::VRControllerState_t state;
-			if (m_pHMD->GetControllerState(unDevice, &state))
+			// Process SteamVR events
+			vr::VREvent_t event;
+			while (m_pHMD->PollNextEvent(&event))
 			{
-				m_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
+				ProcessVREvent(event);
+			}
+
+			// Process SteamVR controller state
+			for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
+			{
+				vr::VRControllerState_t state;
+				if (m_pHMD->GetControllerState(unDevice, &state))
+				{
+					m_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
+				}
 			}
 		}
 #endif
@@ -694,6 +741,20 @@ void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float zne
 	}
 	else
 #endif
+#ifdef HAVE_OPENVR
+	if (g_has_steamvr)
+	{
+		vr::HmdMatrix44_t mat = m_pHMD->GetProjectionMatrix(vr::Eye_Left, znear, zfar, vr::API_DirectX);
+		for (int r = 0; r < 4; ++r)
+			for (int c = 0; c < 4; ++c)
+				left_eye.data[r * 4 + c] = mat.m[r][c];
+		mat = m_pHMD->GetProjectionMatrix(vr::Eye_Right, znear, zfar, vr::API_DirectX);
+		for (int r = 0; r < 4; ++r)
+			for (int c = 0; c < 4; ++c)
+				right_eye.data[r * 4 + c] = mat.m[r][c];
+	}
+	else
+#endif
 	{
 		Matrix44::LoadIdentity(left_eye);
 		left_eye.data[10] = -znear / (zfar - znear);
@@ -737,10 +798,21 @@ void VR_GetEyePos(float *posLeft, float *posRight)
 	}
 	else
 #endif
+#ifdef HAVE_OPENVR
+	if (g_has_steamvr)
 	{
 		// assume 62mm IPD
-		posLeft[0] = -0.031f;
-		posRight[0] = 0.031f;
+		posLeft[0] = 0.031f;
+		posRight[0] = -0.031f;
+		posLeft[1] = posRight[1] = 0;
+		posLeft[2] = posRight[2] = 0;
+	}
+	else
+#endif
+	{
+		// assume 62mm IPD
+		posLeft[0] = 0.031f;
+		posRight[0] = -0.031f;
 		posLeft[1] = posRight[1] = 0;
 		posLeft[2] = posRight[2] = 0;
 	}

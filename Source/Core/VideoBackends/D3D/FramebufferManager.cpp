@@ -66,7 +66,7 @@ D3DTexture2D* &FramebufferManager::GetResolvedEFBDepthTexture()
 
 FramebufferManager::FramebufferManager()
 {
-	if (g_has_hmd || g_has_steamvr)
+	if (g_has_hmd)
 	{
 		m_stereo3d = true;
 		m_eye_count = 2;
@@ -81,7 +81,7 @@ FramebufferManager::FramebufferManager()
 	m_target_height = Renderer::GetTargetHeight();
 	DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
 
-	if (g_has_hmd || g_has_steamvr)
+	if (g_has_hmd)
 		VR_ConfigureHMD();
 
 	ID3D11Texture2D* buf;
@@ -167,7 +167,7 @@ FramebufferManager::FramebufferManager()
 		m_efb.resolved_color_tex = nullptr;
 		m_efb.resolved_depth_tex = nullptr;
 	}
-	if (g_has_hmd || g_has_steamvr)
+	if (g_has_hmd)
 		VR_StartFramebuffer();
 
 	s_xfbEncoder.Init();

@@ -169,7 +169,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 	vxfb->xfbSource->srcWidth = vxfb->xfbWidth = fbWidth;
 	vxfb->xfbSource->srcHeight = vxfb->xfbHeight = fbHeight;
 
-	if ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR)
+	if (g_has_hmd && g_ActiveConfig.bEnableVR)
 		vxfb->xfbSource->sourceRc = g_renderer->ConvertEFBRectangle(EFBRectangle(0, 0, EFB_WIDTH, EFB_HEIGHT));
 	else
 		vxfb->xfbSource->sourceRc = g_renderer->ConvertEFBRectangle(sourceRc);

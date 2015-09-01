@@ -986,7 +986,7 @@ void VertexShaderManager::SetProjectionConstants()
 	}
 
 	// VR: in split-screen, only draw VR player TODO: fix offscreen to render to a separate texture in VR 
-	bHide = bHide || ((g_has_hmd || g_has_steamvr) && (g_viewport_type == VIEW_OFFSCREEN || (g_viewport_type >= VIEW_PLAYER_1 && g_viewport_type <= VIEW_PLAYER_4 && g_ActiveConfig.iVRPlayer!=g_viewport_type-VIEW_PLAYER_1)));
+	bHide = bHide || (g_has_hmd && (g_viewport_type == VIEW_OFFSCREEN || (g_viewport_type >= VIEW_PLAYER_1 && g_viewport_type <= VIEW_PLAYER_4 && g_ActiveConfig.iVRPlayer!=g_viewport_type-VIEW_PLAYER_1)));
 	// flash selected layer for debugging
 	bHide = bHide || (bFlashing && g_ActiveConfig.iFlashState > 5);
 	// hide skybox or everything to reduce motion sickness
@@ -999,7 +999,7 @@ void VertexShaderManager::SetProjectionConstants()
 	if (iTelescopeHack < 0 && g_ActiveConfig.iTelescopeEye && vr_widest_3d_VFOV <= g_ActiveConfig.fTelescopeMaxFOV && vr_widest_3d_VFOV > 1
 		&& (g_ActiveConfig.fTelescopeMaxFOV <= g_ActiveConfig.fMinFOV || (g_ActiveConfig.fTelescopeMaxFOV > g_ActiveConfig.fMinFOV && vr_widest_3d_VFOV > g_ActiveConfig.fMinFOV)))
 		iTelescopeHack = g_ActiveConfig.iTelescopeEye;
-	if ((g_has_hmd || g_has_steamvr) && iTelescopeHack > 0)
+	if (g_has_hmd && iTelescopeHack > 0)
 	{
 		bNoForward = true;
 		// Calculate telescope scale
@@ -1140,7 +1140,7 @@ void VertexShaderManager::SetProjectionConstants()
 
 	float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre * fScaleHack / g_ActiveConfig.fScale;
 
-	bHide = bHide && (bFlashing || ((g_has_hmd || g_has_steamvr) && g_ActiveConfig.bEnableVR));
+	bHide = bHide && (bFlashing || (g_has_hmd && g_ActiveConfig.bEnableVR));
 
 	if (bHide)
 	{
@@ -1165,7 +1165,7 @@ void VertexShaderManager::SetProjectionConstants()
 		GeometryShaderManager::constants.stereoparams[2] = GeometryShaderManager::constants.stereoparams[3] = 0;
 		return;
 	}
-	else if (!(g_has_hmd || g_has_steamvr) || !g_ActiveConfig.bEnableVR)
+	else if (!g_has_hmd || !g_ActiveConfig.bEnableVR)
 	{
 		Matrix44 mtxA;
 		Matrix44 mtxB;
@@ -2237,7 +2237,7 @@ void VertexShaderManager::TranslateView(float left_metres, float forward_metres,
 	float vector[3] = { left_metres, down_metres, forward_metres };
 
 	// use scaled metres in VR, or real metres otherwise
-	if (g_has_hmd || g_has_steamvr)
+	if (g_has_hmd)
 		for (int i = 0; i < 3; ++i)
 			vector[i] *= g_ActiveConfig.fScale;
 

@@ -1099,7 +1099,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	{
 		ParseHotkeys(event);
 
-		if ((g_has_hmd || g_has_steamvr) && event.GetModifiers() == wxMOD_SHIFT)
+		if (g_has_hmd && event.GetModifiers() == wxMOD_SHIFT)
 		{
 			switch (event.GetKeyCode())
 			{
@@ -1192,7 +1192,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 		if (mouseMoveEnabled)
 		{
-			if (g_has_hmd || g_has_steamvr)
+			if (g_has_hmd)
 			{
 				VertexShaderManager::TranslateView(
 					(event.GetX() - lastMouse[0]) * g_ActiveConfig.fScale * g_ActiveConfig.fFreeLookSensitivity / 7.0f,
@@ -1566,7 +1566,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 			VertexShaderManager::ResetView();
 			VR_RecenterHMD();
 		}
-		else if (g_has_hmd || g_has_steamvr)
+		else if (g_has_hmd)
 		{
 			if (IsVRSettingsKey(event, VR_LARGER_SCALE))
 			{
@@ -1728,7 +1728,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 			}
 		}
 	}
-	if ((g_has_hmd || g_has_steamvr) && event.GetModifiers() == wxMOD_SHIFT)
+	if (g_has_hmd && event.GetModifiers() == wxMOD_SHIFT)
 	{
 		switch (event.GetKeyCode())
 		{

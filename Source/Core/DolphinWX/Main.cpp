@@ -171,6 +171,18 @@ bool DolphinApp::OnInit()
 			"force Virtual Reality on",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
+		// -steamvr option to use SteamVR instead of Oculus
+		{
+			wxCMD_LINE_SWITCH, "steamvr", nullptr,
+			"use SteamVR instead of Oculus",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		// -oculus option to use Oculus instead of SteamVR, and to force virtual reality on
+		{
+			wxCMD_LINE_SWITCH, "oculus", nullptr,
+			"use Oculus instead of SteamVR, and force VR on",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
+		},
 		// -force-d3d11 and -force-ogl options like in Oculus Rift unity demos
 		// note, wxwidgets had to be modified to allow this
 		{
@@ -220,7 +232,11 @@ bool DolphinApp::OnInit()
 	selectAudioEmulation = parser.Found("audio_emulation", &audioEmulationName);
 	selectPerfDir = parser.Found("perf_dir", &perfDir);
 	playMovie = parser.Found("movie", &movieFile);
-	g_force_vr = parser.Found("vr");
+	g_force_vr = parser.Found("vr") || parser.Found("oculus");
+	if (parser.Found("oculus"))
+		g_prefer_steamvr = false;
+	else if (parser.Found("steamvr"))
+		g_prefer_steamvr = true;
 	ARBruteForcer::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
 	ARBruteForcer::ch_code = WxStrToStr(bruteforceResult);
 	if (ARBruteForcer::ch_bruteforce)
