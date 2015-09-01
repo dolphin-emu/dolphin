@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-
+#include <algorithm>
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -182,17 +182,12 @@ FramebufferManagerBase::VirtualXFBListType::iterator FramebufferManagerBase::Fin
 	const u32 srcLower = xfbAddr;
 	const u32 srcUpper = xfbAddr + 2 * width * height;
 
-	VirtualXFBListType::iterator it = m_virtualXFBList.begin();
-	for (; it != m_virtualXFBList.end(); ++it)
-	{
-		const u32 dstLower = it->xfbAddr;
-		const u32 dstUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
+	return std::find_if(m_virtualXFBList.begin(), m_virtualXFBList.end(), [srcLower, srcUpper](const VirtualXFB& xfb) {
+		const u32 dstLower = xfb.xfbAddr;
+		const u32 dstUpper = xfb.xfbAddr + 2 * xfb.xfbWidth * xfb.xfbHeight;
 
-		if (dstLower >= srcLower && dstUpper <= srcUpper)
-			break;
-	}
-
-	return it;
+		return dstLower >= srcLower && dstUpper <= srcUpper;
+	});
 }
 
 void FramebufferManagerBase::ReplaceVirtualXFB()
