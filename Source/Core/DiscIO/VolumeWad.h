@@ -24,7 +24,7 @@ class IBlobReader;
 class CVolumeWAD : public IVolume
 {
 public:
-	CVolumeWAD(IBlobReader* _pReader);
+	CVolumeWAD(std::unique_ptr<IBlobReader> reader);
 	~CVolumeWAD();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
 	bool GetTitleID(u8* _pBuffer) const override;

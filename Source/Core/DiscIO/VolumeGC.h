@@ -22,7 +22,7 @@ class IBlobReader;
 class CVolumeGC : public IVolume
 {
 public:
-	CVolumeGC(IBlobReader* _pReader);
+	CVolumeGC(std::unique_ptr<IBlobReader> reader);
 	~CVolumeGC();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
 	std::string GetUniqueID() const override;

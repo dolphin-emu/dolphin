@@ -5,7 +5,9 @@
 #include <cstddef>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include <polarssl/aes.h>
 #include <polarssl/sha1.h>
@@ -25,9 +27,9 @@
 namespace DiscIO
 {
 
-CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
+CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset,
 									 const unsigned char* _pVolumeKey)
-	: m_pReader(_pReader),
+	: m_pReader(std::move(reader)),
 	m_AES_ctx(new aes_context),
 	m_pBuffer(nullptr),
 	m_VolumeOffset(_VolumeOffset),
@@ -44,7 +46,7 @@ bool CVolumeWiiCrypted::ChangePartition(u64 offset)
 	m_LastDecryptedBlockOffset = -1;
 
 	u8 volume_key[16];
-	DiscIO::VolumeKeyForParition(*m_pReader, offset, volume_key);
+	DiscIO::VolumeKeyForPartition(*m_pReader, offset, volume_key);
 	aes_setkey_dec(m_AES_ctx.get(), volume_key, 128);
 	return true;
 }
