@@ -7,6 +7,7 @@
 #include "Common/PerformanceCounter.h"
 
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
@@ -351,6 +352,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 	js.isLastInstruction = false;
 	js.firstFPInstructionFound = false;
+	js.assumeNoPairedQuantize = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.downcountAmount = 0;
@@ -396,6 +398,30 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		// get start tic
 		BeginTimeProfile(b);
 	}
+
+	if (code_block.m_gqr_used.Count() == 1 && js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
+	{
+		int gqr = *code_block.m_gqr_used.begin();
+		if (!code_block.m_gqr_modified[gqr] && !GQR(gqr))
+		{
+			LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(spr[SPR_GQR0]) + gqr * 4);
+			FixupBranch no_fail = B(CC_EQ);
+			FixupBranch fail = B();
+			SwitchToFarCode();
+				SetJumpTarget(fail);
+				MOVI2R(W0, js.blockStart);
+				STR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(pc));
+				MOVI2R(W0, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
+				MOVI2R(X1, (u64)&JitInterface::CompileExceptionCheck);
+				BLR(X1);
+				MOVI2R(X1, (u64)asm_routines.dispatcher);
+				BR(X1);
+			SwitchToNearCode();
+			SetJumpTarget(no_fail);
+			js.assumeNoPairedQuantize = true;
+		}
+	}
+
 	const u8 *normalEntry = GetCodePtr();
 	b->normalEntry = normalEntry;
 
