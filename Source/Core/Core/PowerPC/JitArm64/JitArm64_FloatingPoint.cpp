@@ -23,9 +23,8 @@ void JitArm64::fabsx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == b);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FABS(EncodeRegToDouble(VD), EncodeRegToDouble(VB));
 }
@@ -37,11 +36,10 @@ void JitArm64::faddsx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b, REG_DUP);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d, REG_DUP);
+	ARM64Reg VD = fpr.RW(d, REG_DUP);
 
 	m_float_emit.FADD(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VB));
 }
@@ -53,11 +51,10 @@ void JitArm64::faddx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FADD(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VB));
 }
@@ -69,12 +66,11 @@ void JitArm64::fmaddsx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b || d == c, REG_DUP);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d, REG_DUP);
+	ARM64Reg VD = fpr.RW(d, REG_DUP);
 	ARM64Reg V0 = fpr.GetReg();
 
 	m_float_emit.FMUL(EncodeRegToDouble(V0), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
@@ -90,12 +86,11 @@ void JitArm64::fmaddx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b || d == c);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FMADD(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VC), EncodeRegToDouble(VB));
 }
@@ -107,10 +102,9 @@ void JitArm64::fmrx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == b);
 
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.INS(64, VD, 0, VB, 0);
 }
@@ -122,12 +116,11 @@ void JitArm64::fmsubsx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b || d == c, REG_DUP);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d, REG_DUP);
+	ARM64Reg VD = fpr.RW(d, REG_DUP);
 	ARM64Reg V0 = fpr.GetReg();
 
 	m_float_emit.FMUL(EncodeRegToDouble(V0), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
@@ -143,12 +136,11 @@ void JitArm64::fmsubx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b || d == c);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FNMSUB(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VC), EncodeRegToDouble(VB));
 }
@@ -160,11 +152,10 @@ void JitArm64::fmulsx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == c, REG_DUP);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d, REG_DUP);
+	ARM64Reg VD = fpr.RW(d, REG_DUP);
 
 	m_float_emit.FMUL(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
 }
@@ -176,11 +167,10 @@ void JitArm64::fmulx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == c);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FMUL(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
 }
@@ -192,10 +182,9 @@ void JitArm64::fnabsx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == b);
 
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FABS(EncodeRegToDouble(VD), EncodeRegToDouble(VB));
 	m_float_emit.FNEG(EncodeRegToDouble(VD), EncodeRegToDouble(VD));
@@ -208,10 +197,9 @@ void JitArm64::fnegx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == b);
 
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FNEG(EncodeRegToDouble(VD), EncodeRegToDouble(VB));
 }
@@ -223,12 +211,11 @@ void JitArm64::fnmaddsx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b || d == c, REG_DUP);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d, REG_DUP);
+	ARM64Reg VD = fpr.RW(d, REG_DUP);
 	ARM64Reg V0 = fpr.GetReg();
 
 	m_float_emit.FMUL(EncodeRegToDouble(V0), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
@@ -245,12 +232,11 @@ void JitArm64::fnmaddx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b || d == c);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FNMADD(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VC), EncodeRegToDouble(VB));
 }
@@ -262,12 +248,11 @@ void JitArm64::fnmsubsx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b || d == c, REG_DUP);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d, REG_DUP);
+	ARM64Reg VD = fpr.RW(d, REG_DUP);
 	ARM64Reg V0 = fpr.GetReg();
 
 	m_float_emit.FMUL(EncodeRegToDouble(V0), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
@@ -284,12 +269,11 @@ void JitArm64::fnmsubx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b || d == c);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FMSUB(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VC), EncodeRegToDouble(VB));
 }
@@ -301,12 +285,11 @@ void JitArm64::fselx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b || d == c);
 
-	ARM64Reg VD = fpr.R(d, REG_IS_LOADED);
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VC = fpr.R(c);
+	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FCMPE(EncodeRegToDouble(VA));
 	m_float_emit.FCSEL(EncodeRegToDouble(VD), EncodeRegToDouble(VC), EncodeRegToDouble(VB), CC_GE);
@@ -319,11 +302,10 @@ void JitArm64::fsubsx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b, REG_DUP);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d, REG_DUP);
+	ARM64Reg VD = fpr.RW(d, REG_DUP);
 
 	m_float_emit.FSUB(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VB));
 }
@@ -335,11 +317,10 @@ void JitArm64::fsubx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FSUB(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VB));
 }
@@ -350,10 +331,9 @@ void JitArm64::frspx(UGeckoInstruction inst)
 	JITDISABLE(bJITFloatingPointOff);
 
 	u32 b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == b, REG_DUP);
 
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d, REG_DUP);
+	ARM64Reg VD = fpr.RW(d, REG_DUP);
 
 	m_float_emit.FCVTN(32, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
 	m_float_emit.FCVTL(64, EncodeRegToDouble(VD), EncodeRegToDouble(VD));
@@ -451,10 +431,9 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == b);
 
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	ARM64Reg V0 = fpr.GetReg();
 
@@ -475,11 +454,10 @@ void JitArm64::fdivx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d);
+	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FDIV(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VB));
 }
@@ -491,11 +469,10 @@ void JitArm64::fdivsx(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	fpr.BindToRegister(d, d == a || d == b, REG_DUP);
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.R(d, REG_DUP);
+	ARM64Reg VD = fpr.RW(d, REG_DUP);
 
 	m_float_emit.FDIV(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VB));
 }

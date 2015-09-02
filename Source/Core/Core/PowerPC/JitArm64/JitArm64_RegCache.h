@@ -275,7 +275,7 @@ public:
 	// Will dump an immediate to the host register as well
 	ARM64Reg R(u32 preg, RegType type = REG_LOWER_PAIR);
 
-	void BindToRegister(u32 preg, bool do_load, RegType type = REG_LOWER_PAIR);
+	ARM64Reg RW(u32 preg, RegType type = REG_LOWER_PAIR);
 
 	BitSet32 GetCallerSavedUsed() override;
 

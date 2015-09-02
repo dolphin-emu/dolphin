@@ -395,12 +395,13 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 	return INVALID_REG;
 }
 
-void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, RegType type)
+ARM64Reg Arm64FPRCache::RW(u32 preg, RegType type)
 {
 	OpArg& reg = m_guest_registers[preg];
 
 	bool was_dirty = reg.IsDirty();
 
+	IncrementAllUsed();
 	reg.ResetLastUsed();
 
 	reg.SetDirty(true);
@@ -409,26 +410,18 @@ void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, RegType type)
 	case REG_NOTLOADED:
 	{
 		ARM64Reg host_reg = GetReg();
-		u32 load_size;
 		if (type == REG_LOWER_PAIR)
 		{
-			// We only want the lower 64bits
-			load_size = 64;
 			reg.LoadLowerReg(host_reg);
 		}
 		else if (type == REG_DUP)
 		{
-			load_size = 64;
 			reg.LoadDup(host_reg);
 		}
 		else
 		{
-			// We want the full 128bit register
-			load_size = 128;
 			reg.LoadToReg(host_reg);
 		}
-		if (do_load)
-			m_float_emit->LDR(load_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
 	}
 	break;
 	case REG_LOWER_PAIR:
@@ -436,16 +429,6 @@ void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, RegType type)
 		ARM64Reg host_reg = reg.GetReg();
 		if (type == REG_REG)
 		{
-			// Okay, we've got the lower reg loaded and we really wanted the full register
-			if (do_load)
-			{
-				// Load the high 64bits from the file and insert them in to the high 64bits of the host register
-				ARM64Reg tmp_reg = GetReg();
-				m_float_emit->LDR(64, INDEX_UNSIGNED, tmp_reg, X29, PPCSTATE_OFF(ps[preg][1]));
-				m_float_emit->INS(64, host_reg, 1, tmp_reg, 0);
-				UnlockRegister(tmp_reg);
-			}
-
 			// Change it over to a full 128bit register
 			reg.LoadToReg(host_reg);
 		}
@@ -505,6 +488,8 @@ void Arm64FPRCache::BindToRegister(u32 preg, bool do_load, RegType type)
 		// Do nothing
 	break;
 	}
+
+	return reg.GetReg();
 }
 
 void Arm64FPRCache::GetAllocationOrder()
