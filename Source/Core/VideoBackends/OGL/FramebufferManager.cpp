@@ -389,8 +389,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 FramebufferManager::~FramebufferManager()
 {
-	VR_StopRendering();
 	VR_StopFramebuffer();
+	VR_StopRendering();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

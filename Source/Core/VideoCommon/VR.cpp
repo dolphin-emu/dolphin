@@ -43,7 +43,7 @@ int g_ovr_frameindex;
 
 std::mutex g_vr_lock;
 
-bool g_force_vr = false, g_prefer_steamvr = false;
+bool g_force_vr = false, g_prefer_steamvr = true;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false, g_has_steamvr = false;
 bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
@@ -208,6 +208,9 @@ bool BInitCompositor()
 		delete[] buffer;
 		return false;
 	}
+
+	// change grid room colour
+	m_pCompositor->FadeToColor(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, true);
 
 	return true;
 }
