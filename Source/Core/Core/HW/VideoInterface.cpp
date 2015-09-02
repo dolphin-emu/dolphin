@@ -51,7 +51,7 @@ static UVIBorderBlankRegister    m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
 // 0xcc002080 - 0xcc002100 even more unknown
 
-u32 TargetRefreshRate = 0;
+float TargetRefreshRate = 0;
 
 static u32 TicksPerFrame = 0;
 static u32 s_lineCount = 0;
@@ -495,7 +495,7 @@ void UpdateParameters()
 	{
 	case 0: // NTSC
 		TargetRefreshRate = NTSC_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
+		TicksPerFrame = (u32)(SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE);
 		s_lineCount = NTSC_LINE_COUNT;
 		s_upperFieldBegin = NTSC_UPPER_BEGIN;
 		s_lowerFieldBegin = NTSC_LOWER_BEGIN;
@@ -503,7 +503,7 @@ void UpdateParameters()
 
 	case 2: // PAL-M
 		TargetRefreshRate = NTSC_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
+		TicksPerFrame = (u32)(SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE);
 		s_lineCount = PAL_LINE_COUNT;
 		s_upperFieldBegin = PAL_UPPER_BEGIN;
 		s_lowerFieldBegin = PAL_LOWER_BEGIN;
@@ -511,7 +511,7 @@ void UpdateParameters()
 
 	case 1: // PAL
 		TargetRefreshRate = PAL_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / PAL_FIELD_RATE;
+		TicksPerFrame = (u32)(SystemTimers::GetTicksPerSecond() / PAL_FIELD_RATE);
 		s_lineCount = PAL_LINE_COUNT;
 		s_upperFieldBegin = PAL_UPPER_BEGIN;
 		s_lowerFieldBegin = PAL_LOWER_BEGIN;

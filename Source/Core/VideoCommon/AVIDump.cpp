@@ -66,7 +66,7 @@ bool AVIDump::Start(HWND hWnd, int w, int h)
 	if (SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60"))
 		s_frame_rate = 60; // always 60, for either pal60 or ntsc
 	else
-		s_frame_rate = VideoInterface::TargetRefreshRate; // 50 or 60, depending on region
+		s_frame_rate = (int)(VideoInterface::TargetRefreshRate + 0.5f);
 
 	// clear CFR frame cache on start, not on file create (which is also segment switch)
 	SetBitmapFormat();
@@ -228,7 +228,7 @@ void AVIDump::AddFrame(const u8* data, int w, int h)
 		s_bitmap.biHeight = h;
 	}
 	// no timecodes, instead dump each frame as many/few times as needed to keep sync
-	u64 one_cfr = SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
+	u64 one_cfr = (u64)(SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate);
 	int nplay = 0;
 	s64 delta;
 	if (!s_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())

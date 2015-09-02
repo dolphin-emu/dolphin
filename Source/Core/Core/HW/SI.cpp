@@ -573,12 +573,12 @@ int GetTicksToNextSIPoll()
 	if (Movie::IsMovieActive())
 	{
 		if (Movie::IsNetPlayRecording())
-			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
+			return (int)(SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2);
 		else
-			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
+			return (int)(SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate);
 	}
 	if (NetPlay::IsNetPlayRunning())
-		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
+		return (int)(SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2);
 
 	if (!g_Poll.Y && g_Poll.X)
 		return VideoInterface::GetTicksPerLine() * g_Poll.X;

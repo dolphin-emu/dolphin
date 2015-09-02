@@ -201,7 +201,7 @@ static void ThrottleCallback(u64 last_time, int cyclesLate)
 	u32 next_event = GetTicksPerSecond()/1000;
 	if (SConfig::GetInstance().m_Framelimit > 1)
 	{
-		next_event = next_event * (SConfig::GetInstance().m_Framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
+		next_event = (u32)(next_event * (SConfig::GetInstance().m_Framelimit - 1) * 5 / VideoInterface::TargetRefreshRate);
 	}
 
 	const int max_fallback = 40; // 40 ms for one frame on 25 fps games
