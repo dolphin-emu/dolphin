@@ -34,16 +34,16 @@ void FastCheckGatherPipe();
 bool IsEmpty();
 
 // Write
-void Write8(const u8 _iValue);
-void Write16(const u16 _iValue);
-void Write32(const u32 _iValue);
-void Write64(const u64 _iValue);
+void Write8(u8 value);
+void Write16(u16 value);
+void Write32(u32 value);
+void Write64(u64 value);
 
 // These expect pre-byteswapped values
 // Also there's an upper limit of about 512 per batch
 // Most likely these should be inlined into JIT instead
-void FastWrite8(const u8 _iValue);
-void FastWrite16(const u16 _iValue);
-void FastWrite32(const u32 _iValue);
-void FastWrite64(const u64 _iValue);
+void FastWrite8(u8 value);
+void FastWrite16(u16 value);
+void FastWrite32(u32 value);
+void FastWrite64(u64 value);
 }
