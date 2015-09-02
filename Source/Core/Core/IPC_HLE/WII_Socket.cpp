@@ -562,11 +562,6 @@ void WiiSockMan::AddSocket(s32 fd)
 
 s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 {
-	if (Core::g_want_determinism)
-	{
-		return SO_ENOMEM;
-	}
-
 	s32 fd = (s32)socket(af, type, protocol);
 	s32 ret = GetNetErrorCode(fd, "NewSocket", false);
 	AddSocket(ret);

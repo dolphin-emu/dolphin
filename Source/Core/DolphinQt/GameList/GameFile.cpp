@@ -292,7 +292,7 @@ const QString GameFile::GetWiiFSPath() const
 		volume->GetTitleID((u8*)&title);
 		title = Common::swap64(title);
 
-		path = StringFromFormat("%stitle/%08x/%08x/data/", File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(title >> 32), (u32)title);
+		path = StringFromFormat("%s/title/%08x/%08x/data/", File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(title >> 32), (u32)title);
 
 		if (!File::Exists(path))
 			File::CreateFullPath(path);

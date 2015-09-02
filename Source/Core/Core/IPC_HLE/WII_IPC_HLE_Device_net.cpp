@@ -15,6 +15,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/ec_wii.h"
 #include "Core/IPC_HLE/ICMP.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
@@ -314,6 +315,10 @@ static void GetMacAddress(u8* mac)
 	// Parse MAC address from config, and generate a new one if it doesn't
 	// exist or can't be parsed.
 	std::string wireless_mac = SConfig::GetInstance().m_WirelessMac;
+
+	if (Core::g_want_determinism)
+		wireless_mac = "12:34:56:78:9a:bc";
+
 	if (!StringToMacAddress(wireless_mac, mac))
 	{
 		GenerateMacAddress(IOS, mac);
@@ -639,6 +644,13 @@ static unsigned int opt_name_mapping[][2] = {
 
 IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 {
+	if (Core::g_want_determinism)
+	{
+		Memory::Write_U32(-1, _CommandAddress + 4);
+		return IPC_DEFAULT_REPLY;
+	}
+
+
 	u32 Command       = Memory::Read_U32(_CommandAddress + 0x0C);
 	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
@@ -1217,65 +1229,68 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		{
 			u32 address = 0;
 #ifdef _WIN32
-			PIP_ADAPTER_ADDRESSES AdapterAddresses = nullptr;
-			ULONG OutBufferLength = 0;
-			ULONG RetVal = 0, i;
-			for (i = 0; i < 5; ++i)
+			if (!Core::g_want_determinism)
 			{
-				RetVal = GetAdaptersAddresses(
-					AF_INET,
-					0,
-					nullptr,
-					AdapterAddresses,
-					&OutBufferLength);
-
-				if (RetVal != ERROR_BUFFER_OVERFLOW)
+				PIP_ADAPTER_ADDRESSES AdapterAddresses = nullptr;
+				ULONG OutBufferLength = 0;
+				ULONG RetVal = 0, i;
+				for (i = 0; i < 5; ++i)
 				{
-					break;
-				}
+					RetVal = GetAdaptersAddresses(
+						AF_INET,
+						0,
+						nullptr,
+						AdapterAddresses,
+						&OutBufferLength);
 
+					if (RetVal != ERROR_BUFFER_OVERFLOW)
+					{
+						break;
+					}
+
+					if (AdapterAddresses != nullptr)
+					{
+						FREE(AdapterAddresses);
+					}
+
+					AdapterAddresses = (PIP_ADAPTER_ADDRESSES)MALLOC(OutBufferLength);
+					if (AdapterAddresses == nullptr)
+					{
+						RetVal = GetLastError();
+						break;
+					}
+				}
+				if (RetVal == NO_ERROR)
+				{
+					unsigned long dwBestIfIndex = 0;
+					IPAddr dwDestAddr = (IPAddr)0x08080808;
+					// If successful, output some information from the data we received
+					PIP_ADAPTER_ADDRESSES AdapterList = AdapterAddresses;
+					if (GetBestInterface(dwDestAddr, &dwBestIfIndex) == NO_ERROR)
+					{
+						while (AdapterList)
+						{
+							if (AdapterList->IfIndex == dwBestIfIndex &&
+								AdapterList->FirstDnsServerAddress &&
+								AdapterList->OperStatus == IfOperStatusUp)
+							{
+								INFO_LOG(WII_IPC_NET, "Name of valid interface: %S", AdapterList->FriendlyName);
+								INFO_LOG(WII_IPC_NET, "DNS: %u.%u.%u.%u",
+									(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2],
+									(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[3],
+									(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[4],
+									(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[5]);
+								address = Common::swap32(*(u32*)(&AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2]));
+								break;
+							}
+							AdapterList = AdapterList->Next;
+						}
+					}
+				}
 				if (AdapterAddresses != nullptr)
 				{
 					FREE(AdapterAddresses);
 				}
-
-				AdapterAddresses = (PIP_ADAPTER_ADDRESSES)MALLOC(OutBufferLength);
-				if (AdapterAddresses == nullptr)
-				{
-					RetVal = GetLastError();
-					break;
-				}
-			}
-			if (RetVal == NO_ERROR)
-			{
-				unsigned long dwBestIfIndex = 0;
-				IPAddr dwDestAddr = (IPAddr)0x08080808;
-				// If successful, output some information from the data we received
-				PIP_ADAPTER_ADDRESSES AdapterList = AdapterAddresses;
-				if (GetBestInterface(dwDestAddr, &dwBestIfIndex) == NO_ERROR)
-				{
-					while (AdapterList)
-					{
-						if (AdapterList->IfIndex == dwBestIfIndex &&
-							AdapterList->FirstDnsServerAddress &&
-							AdapterList->OperStatus == IfOperStatusUp)
-						{
-							INFO_LOG(WII_IPC_NET, "Name of valid interface: %S", AdapterList->FriendlyName);
-							INFO_LOG(WII_IPC_NET, "DNS: %u.%u.%u.%u",
-								(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2],
-								(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[3],
-								(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[4],
-								(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[5]);
-							address = Common::swap32(*(u32*)(&AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2]));
-							break;
-						}
-						AdapterList = AdapterList->Next;
-					}
-				}
-			}
-			if (AdapterAddresses != nullptr)
-			{
-				FREE(AdapterAddresses);
 			}
 #endif
 			if (address == 0)

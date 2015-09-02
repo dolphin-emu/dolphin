@@ -172,18 +172,14 @@ void InputConfigDialog::UpdateProfileComboBox()
 	pname += PROFILES_PATH;
 	pname += m_config.profile_name;
 
-	CFileSearch::XStringVector exts;
-	exts.push_back("*.ini");
-	CFileSearch::XStringVector dirs;
-	dirs.push_back(pname);
-	CFileSearch cfs(exts, dirs);
-	const CFileSearch::XStringVector& sv = cfs.GetFileNames();
+	std::vector<std::string> sv = DoFileSearch({"*.ini"}, {pname});
 
 	wxArrayString strs;
-	for (auto si = sv.cbegin(); si != sv.cend(); ++si)
+	for (const std::string& filename : sv)
 	{
-		std::string str(si->begin() + si->find_last_of('/') + 1 , si->end() - 4) ;
-		strs.push_back(StrToWxStr(str));
+		std::string base;
+		SplitPath(filename, nullptr, &base, nullptr);
+		strs.push_back(StrToWxStr(base));
 	}
 
 	for (GamepadPage* page : m_padpages)
