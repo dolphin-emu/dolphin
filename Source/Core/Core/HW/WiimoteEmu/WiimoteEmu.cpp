@@ -960,9 +960,9 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_buttons, 5, "E"); // +
 
 #ifdef _WIN32
-	set_control(m_buttons, 6, "RETURN"); // Home
+	set_control(m_buttons, 6, "!LMENU & RETURN"); // Home
 #else
-	set_control(m_buttons, 6, "Return"); // Home
+	set_control(m_buttons, 6, "!`Alt_L` & Return"); // Home
 #endif
 
 	// Shake
