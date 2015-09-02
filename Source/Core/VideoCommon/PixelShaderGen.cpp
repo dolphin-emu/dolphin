@@ -18,6 +18,24 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"  // for texture projection mode
 
+// TODO: Get rid of these
+enum : u32
+{
+	C_COLORMATRIX   = 0,                 //  0
+	C_COLORS        = 0,                 //  0
+	C_KCOLORS       = C_COLORS + 4,      //  4
+	C_ALPHA         = C_KCOLORS + 4,     //  8
+	C_TEXDIMS       = C_ALPHA + 1,       //  9
+	C_ZBIAS         = C_TEXDIMS + 8,     // 17
+	C_INDTEXSCALE   = C_ZBIAS + 2,       // 19
+	C_INDTEXMTX     = C_INDTEXSCALE + 2, // 21
+	C_FOGCOLOR      = C_INDTEXMTX + 6,   // 27
+	C_FOGI          = C_FOGCOLOR + 1,    // 28
+	C_FOGF          = C_FOGI + 1,        // 29
+	C_ZSLOPE        = C_FOGF + 2,        // 31
+	C_EFBSCALE      = C_ZSLOPE + 1,      // 32
+	C_PENVCONST_END = C_EFBSCALE + 1
+};
 
 static const char *tevKSelTableC[] =
 {
@@ -931,7 +949,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 
 	out.Write("\t// color combine\n");
 	out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
-	if (cc.bias != TevBias_COMPARE)
+	if (cc.bias != TEVBIAS_COMPARE)
 	{
 		WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.shift);
 	}
@@ -961,7 +979,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 
 	out.Write("\t// alpha combine\n");
 	out.Write("\t%s = clamp(", tevAOutputTable[ac.dest]);
-	if (ac.bias != TevBias_COMPARE)
+	if (ac.bias != TEVBIAS_COMPARE)
 	{
 		WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.shift);
 	}
@@ -1082,14 +1100,14 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 
 static const char *tevAlphaFuncsTable[] =
 {
-	"(false)",					// NEVER
-	"(prev.a <  %s)",			// LESS
-	"(prev.a == %s)",			// EQUAL
-	"(prev.a <= %s)",			// LEQUAL
-	"(prev.a >  %s)",			// GREATER
-	"(prev.a != %s)",			// NEQUAL
-	"(prev.a >= %s)",			// GEQUAL
-	"(true)"					// ALWAYS
+	"(false)",        // NEVER
+	"(prev.a <  %s)", // LESS
+	"(prev.a == %s)", // EQUAL
+	"(prev.a <= %s)", // LEQUAL
+	"(prev.a >  %s)", // GREATER
+	"(prev.a != %s)", // NEQUAL
+	"(prev.a >= %s)", // GEQUAL
+	"(true)"          // ALWAYS
 };
 
 static const char *tevAlphaFunclogicTable[] =
