@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
@@ -134,22 +136,25 @@ void FastWrite8(const u8 value)
 	++m_gatherPipeCount;
 }
 
-void FastWrite16(const u16 value)
+void FastWrite16(u16 value)
 {
-	*(u16*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap16(value);
-	m_gatherPipeCount += 2;
+	value = Common::swap16(value);
+	std::memcpy(&m_gatherPipe[m_gatherPipeCount], &value, sizeof(u16));
+	m_gatherPipeCount += sizeof(u16);
 }
 
-void FastWrite32(const u32 value)
+void FastWrite32(u32 value)
 {
-	*(u32*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap32(value);
-	m_gatherPipeCount += 4;
+	value = Common::swap32(value);
+	std::memcpy(&m_gatherPipe[m_gatherPipeCount], &value, sizeof(u32));
+	m_gatherPipeCount += sizeof(u32);
 }
 
-void FastWrite64(const u64 value)
+void FastWrite64(u64 value)
 {
-	*(u64*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap64(value);
-	m_gatherPipeCount += 8;
+	value = Common::swap64(value);
+	std::memcpy(&m_gatherPipe[m_gatherPipeCount], &value, sizeof(u64));
+	m_gatherPipeCount += sizeof(u64);
 }
 
 } // end of namespace GPFifo
