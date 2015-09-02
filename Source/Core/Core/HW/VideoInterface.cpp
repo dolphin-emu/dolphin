@@ -436,10 +436,42 @@ u32 GetXFBAddressBottom()
 		return m_XFBInfoBottom.FBB;
 }
 
+static u32 GetHalfLinesPerEvenField()
+{
+	return (3 * m_VerticalTimingRegister.EQU + m_VBlankTimingEven.PRB + 2 * m_VerticalTimingRegister.ACV + m_VBlankTimingEven.PSB);
+}
+
+static u32 GetHalfLinesPerOddField()
+{
+	return (3 * m_VerticalTimingRegister.EQU + m_VBlankTimingOdd.PRB + 2 * m_VerticalTimingRegister.ACV + m_VBlankTimingOdd.PSB);
+}
+
+static bool IsInterlaced()
+{
+	int odd = m_VBlankTimingOdd.PRB + m_VerticalTimingRegister.EQU * 3 + m_VBlankTimingOdd.PSB;
+	int even = m_VBlankTimingEven.PRB + m_VerticalTimingRegister.EQU * 3 + m_VBlankTimingEven.PSB;
+	// If either field has an odd number of halflines post vertical blanking, it is an interlaced signal.
+	return GetHalfLinesPerEvenField() & 1 || GetHalfLinesPerOddField() & 1;
+}
+
+static bool IsDoubleStrike()
+{
+	int halflines = GetHalfLinesPerEvenField() + GetHalfLinesPerOddField();
+	// Normally pal has 625 lines and ntsc has 525 lines. But the double strike modes have weird timings.
+	return halflines == 624 * 2 || halflines == 526 * 2;
+}
+
 float GetAspectRatio(bool wide)
 {
-	u32 multiplier = static_cast<u32>(m_PictureConfiguration.STD / m_PictureConfiguration.WPL);
-	int height = (multiplier * m_VerticalTimingRegister.ACV);
+	int height = m_VerticalTimingRegister.ACV;
+
+	// We need to consider the actual height of the frame for aspect ratio.
+	//  * Progressive gives us the full height of the frame
+	//  * For interlaced signals we only have half the lines
+	//  * In double strike mode, the TV will 'insert' blank scanlines between each line
+	if (IsInterlaced() || IsDoubleStrike())
+		height = height * 2;
+
 	int width = ((2 * m_HTiming0.HLW) - (m_HTiming0.HLW - m_HTiming1.HBS640)
 		- m_HTiming1.HBE640);
 	float pixelAR;
