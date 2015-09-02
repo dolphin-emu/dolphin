@@ -801,7 +801,7 @@ void VR_PresentHMDFrame()
 		{
 			char* buffer = new char[unSize];
 			m_pCompositor->GetLastError(buffer, unSize);
-			NOTICE_LOG(VR, "Compositor - %s\n", buffer);
+			ERROR_LOG(VR, "Compositor - %s\n", buffer);
 			delete[] buffer;
 		}
 		if (!g_ActiveConfig.bNoMirrorToWindow)
@@ -812,8 +812,8 @@ void VR_PresentHMDFrame()
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 			GLint w = Renderer::GetTargetWidth();
 			GLint h = Renderer::GetTargetHeight();
-			glBlitFramebuffer(0, h, w, 0,
-				0, 0, w, h,
+			glBlitFramebuffer(0, 0, w, h,
+				0, 0, Renderer::GetBackbufferWidth(), Renderer::GetBackbufferHeight(),
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			GLInterface->Swap();
@@ -862,6 +862,23 @@ void VR_PresentHMDFrame()
 
 void VR_DrawTimewarpFrame()
 {
+	// As far as I know, OpenVR doesn't support Timewarp yet
+#if 0 && defined(HAVE_OPENVR)
+	if (g_has_steamvr && m_pCompositor)
+	{
+		m_pCompositor->Submit(vr::Eye_Left, vr::API_OpenGL, (void*)m_left_texture, nullptr);
+		m_pCompositor->Submit(vr::Eye_Right, vr::API_OpenGL, (void*)m_right_texture, nullptr);
+		m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+		uint32_t unSize = m_pCompositor->GetLastError(NULL, 0);
+		if (unSize > 1)
+		{
+			char* buffer = new char[unSize];
+			m_pCompositor->GetLastError(buffer, unSize);
+			ERROR_LOG(VR, "Compositor - %s\n", buffer);
+			delete[] buffer;
+		}
+	}
+#endif
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{

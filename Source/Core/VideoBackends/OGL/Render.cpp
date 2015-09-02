@@ -627,7 +627,7 @@ Renderer::Renderer()
 	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
-	if (g_has_rift)
+	if (g_has_hmd)
 		s_vsync = false;
 	else
 		s_vsync = g_ActiveConfig.IsVSync();
@@ -1678,7 +1678,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glDisable(GL_DEBUG_OUTPUT);
 	}
 
-	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
+	if (g_first_rift_frame && g_has_hmd && g_ActiveConfig.bEnableVR)
 	{
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
@@ -1720,7 +1720,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Copy the framebuffer to screen.
 	const XFBSource* xfbSource = nullptr;
 
-	if ((g_has_rift || g_has_steamvr) && g_ActiveConfig.bEnableVR)
+	if (g_has_hmd && g_ActiveConfig.bEnableVR)
 	{
 		EFBRectangle sourceRc;
 		// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
@@ -2154,7 +2154,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// ---------------------------------------------------------------------
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP) && !(g_has_rift && g_ActiveConfig.bEnableVR))
+	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP) && !(g_has_hmd && g_ActiveConfig.bEnableVR))
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2170,7 +2170,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		OSD::DrawMessages();
 	}
 	// Copy the rendered frame to the real window
-	if (!(g_has_rift && g_ActiveConfig.bEnableVR))
+	if (!(g_has_hmd && g_ActiveConfig.bEnableVR))
 		GLInterface->Swap();
 
 	NewVRFrame();
@@ -2201,7 +2201,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	TextureCache::Cleanup(frameCount);
 
-	if (g_has_rift)
+	if (g_has_hmd)
 	{
 		if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
 			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction ||
@@ -2258,7 +2258,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		g_ActiveConfig.iAspectRatio = 3;
 	}
 	TextureCache::OnConfigChanged(g_ActiveConfig);
-	if (g_has_rift && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
+	if (g_has_hmd && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		VR_BeginFrame();
 	}

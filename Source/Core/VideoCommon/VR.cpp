@@ -455,9 +455,10 @@ void ShutdownVR()
 #ifdef HAVE_OPENVR
 	if (g_has_steamvr && m_pHMD)
 	{
-		vr::VR_Shutdown();
-		m_pHMD = nullptr;
 		g_has_steamvr = false;
+		m_pHMD = nullptr;
+		// crashes if OpenGL
+		vr::VR_Shutdown();
 	}
 #endif
 #ifdef OVR_MAJOR_VERSION
@@ -587,120 +588,41 @@ void ProcessVREvent(const vr::VREvent_t & event)
 }
 #endif
 
-void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z)
-{
-#ifdef HAVE_OPENVR
-	if (g_has_steamvr && m_pHMD)
-	{
-		float fSecondsUntilPhotons = 0.0f;
-		m_pHMD->GetDeviceToAbsoluteTrackingPose( vr::TrackingUniverseSeated, fSecondsUntilPhotons, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount );
-		m_iValidPoseCount = 0;
-		//for ( int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice )
-		//{
-		//	if ( m_rTrackedDevicePose[nDevice].bPoseIsValid )
-		//	{
-		//		m_iValidPoseCount++;
-		//		//m_rTrackedDevicePose[nDevice].mDeviceToAbsoluteTracking;
-		//	}
-		//}
-
-		if ( m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid )
-		{
-			*x = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[0][3];
-			*y = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[1][3];
-			*z = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[2][3];
-			Matrix33 m;
-			for (int r = 0; r < 3; r++)
-				for (int c = 0; c < 3; c++)
-					m.data[r*3+c] = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[r][c];
-			float ya = 0.0f, p = 0.0f, r = 0.0f;
-			m.GetPieYawPitchRollR(m, ya, p, r);
-			*roll = -RADIANS_TO_DEGREES(r);  // ???
-			*pitch = -RADIANS_TO_DEGREES(p); // should be degrees down
-			*yaw = RADIANS_TO_DEGREES(ya);   // should be degrees right
-		}
-	}
-#endif
 #ifdef OVR_MAJOR_VERSION
-	if (g_has_rift && hmd)
-	{
-		// we can only call GetEyePose between BeginFrame and EndFrame
-#ifdef OCULUSSDK042
-		g_vr_lock.lock();
-		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
-		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-		g_vr_lock.unlock();
-#else
-		ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
-		ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
-#endif
-		//ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
-		//if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
-		{
-			//OVR::Posef pose = ss.HeadPose.ThePose;
-			OVR::Posef pose = g_eye_poses[ovrEye_Left];
-			float ya = 0.0f, p = 0.0f, r = 0.0f;
-			pose.Rotation.GetEulerAngles<OVR::Axis_Y, OVR::Axis_X, OVR::Axis_Z>(&ya, &p, &r);
-			*roll = -RADIANS_TO_DEGREES(r);  // ???
-			*pitch = -RADIANS_TO_DEGREES(p); // should be degrees down
-			*yaw = -RADIANS_TO_DEGREES(ya);   // should be degrees right
-			*x = pose.Translation.x;
-			*y = pose.Translation.y;
-			*z = pose.Translation.z;
-		}
-	}
-	else
-#endif
-#ifdef _WIN32
-	if (g_has_vr920 && Vuzix_GetTracking)
-#endif
-	{
-#ifdef _WIN32
-		LONG ya = 0, p = 0, r = 0;
-		if (Vuzix_GetTracking(&ya, &p, &r) == ERROR_SUCCESS)
-		{
-			*yaw = -ya * 180.0f / 32767.0f;
-			*pitch = p * -180.0f / 32767.0f;
-			*roll = r * 180.0f / 32767.0f;
-			*x = 0;
-			*y = 0;
-			*z = 0;
-		}
-#endif
-	}
-}
-
-void UpdateHeadTrackingIfNeeded()
+void UpdateOculusHeadTracking()
 {
-	if (g_new_tracking_frame)
-	{
-#ifdef HAVE_OPENVR
-		if (g_has_steamvr)
-		{
-			// Process SteamVR events
-			vr::VREvent_t event;
-			while (m_pHMD->PollNextEvent(&event))
-			{
-				ProcessVREvent(event);
-			}
-
-			// Process SteamVR controller state
-			for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
-			{
-				vr::VRControllerState_t state;
-				if (m_pHMD->GetControllerState(unDevice, &state))
-				{
-					m_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
-				}
-			}
-		}
+	// we can only call GetEyePose between BeginFrame and EndFrame
+#ifdef OCULUSSDK042
+	g_vr_lock.lock();
+	g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
+	g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
+	g_vr_lock.unlock();
+#else
+	ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+	ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
 #endif
+	//ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
+	//if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
+	{
+		//OVR::Posef pose = ss.HeadPose.ThePose;
+		OVR::Posef pose = g_eye_poses[ovrEye_Left];
+		float yaw = 0.0f, pitch = 0.0f, roll = 0.0f;
+		pose.Rotation.GetEulerAngles<OVR::Axis_Y, OVR::Axis_X, OVR::Axis_Z>(&yaw, &pitch, &roll);
 
-		float x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0;
-		ReadHmdOrientation(&roll, &pitch, &yaw, &x, &y, &z);
+		float x = 0, y = 0, z = 0;
+		roll = -RADIANS_TO_DEGREES(roll);  // ???
+		pitch = -RADIANS_TO_DEGREES(pitch); // should be degrees down
+		yaw = -RADIANS_TO_DEGREES(yaw);   // should be degrees right
+		x = pose.Translation.x;
+		y = pose.Translation.y;
+		z = pose.Translation.z;
 		g_head_tracking_position[0] = -x;
 		g_head_tracking_position[1] = -y;
-		g_head_tracking_position[2] = 0.06f-z;
+#if OVR_MAJOR_VERSION <= 4
+		g_head_tracking_position[2] = 0.06f - z;
+#else
+		g_head_tracking_position[2] = -z;
+#endif
 		Matrix33 m, yp, ya, p, r;
 		Matrix33::RotateY(ya, DEGREES_TO_RADIANS(yaw));
 		Matrix33::RotateX(p, DEGREES_TO_RADIANS(pitch));
@@ -708,7 +630,102 @@ void UpdateHeadTrackingIfNeeded()
 		Matrix33::RotateZ(r, DEGREES_TO_RADIANS(roll));
 		Matrix33::Multiply(r, yp, m);
 		Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
+	}
+}
+#endif
+
+#ifdef HAVE_OPENVR
+void UpdateSteamVRHeadTracking()
+{
+	// Process SteamVR events
+	vr::VREvent_t event;
+	while (m_pHMD->PollNextEvent(&event))
+	{
+		ProcessVREvent(event);
+	}
+
+	// Process SteamVR controller state
+	for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
+	{
+		vr::VRControllerState_t state;
+		if (m_pHMD->GetControllerState(unDevice, &state))
+		{
+			m_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
+		}
+	}
+	float fSecondsUntilPhotons = 0.0f;
+	m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, fSecondsUntilPhotons, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+	m_iValidPoseCount = 0;
+	//for ( int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice )
+	//{
+	//	if ( m_rTrackedDevicePose[nDevice].bPoseIsValid )
+	//	{
+	//		m_iValidPoseCount++;
+	//		//m_rTrackedDevicePose[nDevice].mDeviceToAbsoluteTracking;
+	//	}
+	//}
+
+	if (m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
+	{
+		float x = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[0][3];
+		float y = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[1][3];
+		float z = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[2][3];
+		g_head_tracking_position[0] = -x;
+		g_head_tracking_position[1] = -y;
+		g_head_tracking_position[2] = -z;
+		Matrix33 m;
+		for (int r = 0; r < 3; r++)
+			for (int c = 0; c < 3; c++)
+				m.data[r * 3 + c] = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[c][r];
+		Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
+	}
+}
+#endif
+
+#ifdef _WIN32
+void UpdateVuzixHeadTracking()
+{
+	LONG ya = 0, p = 0, r = 0;
+	if (Vuzix_GetTracking(&ya, &p, &r) == ERROR_SUCCESS)
+	{
+		float yaw = -ya * 180.0f / 32767.0f;
+		float pitch = p * -180.0f / 32767.0f;
+		float roll = r * 180.0f / 32767.0f;
+		// todo: use head and neck model
+		float x = 0;
+		float y = 0;
+		float z = 0;
+		Matrix33 m, yp, ya, p, r;
+		Matrix33::RotateY(ya, DEGREES_TO_RADIANS(yaw));
+		Matrix33::RotateX(p, DEGREES_TO_RADIANS(pitch));
+		Matrix33::Multiply(p, ya, yp);
+		Matrix33::RotateZ(r, DEGREES_TO_RADIANS(roll));
+		Matrix33::Multiply(r, yp, m);
+		Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
+		g_head_tracking_position[0] = -x;
+		g_head_tracking_position[1] = -y;
+		g_head_tracking_position[2] = -z;
+	}
+}
+#endif
+
+void UpdateHeadTrackingIfNeeded()
+{
+	if (g_new_tracking_frame)
+	{
 		g_new_tracking_frame = false;
+#ifdef _WIN32
+		if (g_has_vr920 && Vuzix_GetTracking)
+			UpdateVuzixHeadTracking();
+#endif
+#ifdef HAVE_OPENVR
+		if (g_has_steamvr)
+			UpdateSteamVRHeadTracking();
+#endif
+#ifdef OVR_MAJOR_VERSION
+		if (g_has_rift)
+			UpdateOculusHeadTracking();
+#endif
 	}
 }
 
@@ -727,6 +744,12 @@ void VR_GetProjectionHalfTan(float &hmd_halftan)
 	}
 	else
 #endif
+	if (g_has_steamvr)
+	{
+		// rough approximation, can't be bothered to work this out properly
+		hmd_halftan = tan(DEGREES_TO_RADIANS(100.0f / 2));
+	}
+	else
 	{
 		hmd_halftan = tan(DEGREES_TO_RADIANS(32.0f / 2))*3.0f / 4.0f;
 	}
