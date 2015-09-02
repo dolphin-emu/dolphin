@@ -43,6 +43,7 @@ void JitArm64::ps_add(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_REG);
 
 	m_float_emit.FADD(64, VD, VA, VB);
+	fpr.FixSinglePrecision(d);
 }
 
 void JitArm64::ps_div(UGeckoInstruction inst)
@@ -58,6 +59,7 @@ void JitArm64::ps_div(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_REG);
 
 	m_float_emit.FDIV(64, VD, VA, VB);
+	fpr.FixSinglePrecision(d);
 }
 
 void JitArm64::ps_madd(UGeckoInstruction inst)
@@ -76,6 +78,7 @@ void JitArm64::ps_madd(UGeckoInstruction inst)
 
 	m_float_emit.FMUL(64, V0, VA, VC);
 	m_float_emit.FADD(64, VD, V0, VB);
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -97,6 +100,7 @@ void JitArm64::ps_madds0(UGeckoInstruction inst)
 	m_float_emit.DUP(64, V0, VC, 0);
 	m_float_emit.FMUL(64, V0, V0, VA);
 	m_float_emit.FADD(64, VD, V0, VB);
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -118,6 +122,7 @@ void JitArm64::ps_madds1(UGeckoInstruction inst)
 	m_float_emit.DUP(64, V0, VC, 1);
 	m_float_emit.FMUL(64, V0, V0, VA);
 	m_float_emit.FADD(64, VD, V0, VB);
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -225,6 +230,7 @@ void JitArm64::ps_mul(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_REG);
 
 	m_float_emit.FMUL(64, VD, VA, VC);
+	fpr.FixSinglePrecision(d);
 }
 
 void JitArm64::ps_muls0(UGeckoInstruction inst)
@@ -242,6 +248,7 @@ void JitArm64::ps_muls0(UGeckoInstruction inst)
 
 	m_float_emit.DUP(64, V0, VC, 0);
 	m_float_emit.FMUL(64, VD, VA, V0);
+	fpr.FixSinglePrecision(d);
 	fpr.Unlock(V0);
 }
 
@@ -260,6 +267,7 @@ void JitArm64::ps_muls1(UGeckoInstruction inst)
 
 	m_float_emit.DUP(64, V0, VC, 1);
 	m_float_emit.FMUL(64, VD, VA, V0);
+	fpr.FixSinglePrecision(d);
 	fpr.Unlock(V0);
 }
 
@@ -279,6 +287,7 @@ void JitArm64::ps_msub(UGeckoInstruction inst)
 
 	m_float_emit.FMUL(64, V0, VA, VC);
 	m_float_emit.FSUB(64, VD, V0, VB);
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -329,6 +338,7 @@ void JitArm64::ps_nmadd(UGeckoInstruction inst)
 	m_float_emit.FMUL(64, V0, VA, VC);
 	m_float_emit.FADD(64, VD, V0, VB);
 	m_float_emit.FNEG(64, VD, VD);
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -350,6 +360,7 @@ void JitArm64::ps_nmsub(UGeckoInstruction inst)
 	m_float_emit.FMUL(64, V0, VA, VC);
 	m_float_emit.FSUB(64, VD, V0, VB);
 	m_float_emit.FNEG(64, VD, VD);
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -366,6 +377,7 @@ void JitArm64::ps_res(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_REG);
 
 	m_float_emit.FRSQRTE(64, VD, VB);
+	fpr.FixSinglePrecision(d);
 }
 
 void JitArm64::ps_sel(UGeckoInstruction inst)
@@ -409,6 +421,7 @@ void JitArm64::ps_sub(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_REG);
 
 	m_float_emit.FSUB(64, VD, VA, VB);
+	fpr.FixSinglePrecision(d);
 }
 
 void JitArm64::ps_sum0(UGeckoInstruction inst)
@@ -436,6 +449,7 @@ void JitArm64::ps_sum0(UGeckoInstruction inst)
 		m_float_emit.FADD(64, V0, V0, VA);
 		m_float_emit.INS(64, VD, 0, V0, 0);
 	}
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -465,6 +479,7 @@ void JitArm64::ps_sum1(UGeckoInstruction inst)
 		m_float_emit.FADD(64, V0, V0, VB);
 		m_float_emit.INS(64, VD, 1, V0, 1);
 	}
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }

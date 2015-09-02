@@ -42,6 +42,7 @@ void JitArm64::faddsx(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_DUP);
 
 	m_float_emit.FADD(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VB));
+	fpr.FixSinglePrecision(d);
 }
 
 void JitArm64::faddx(UGeckoInstruction inst)
@@ -75,6 +76,7 @@ void JitArm64::fmaddsx(UGeckoInstruction inst)
 
 	m_float_emit.FMUL(EncodeRegToDouble(V0), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
 	m_float_emit.FADD(EncodeRegToDouble(VD), EncodeRegToDouble(V0), EncodeRegToDouble(VB));
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -125,6 +127,7 @@ void JitArm64::fmsubsx(UGeckoInstruction inst)
 
 	m_float_emit.FMUL(EncodeRegToDouble(V0), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
 	m_float_emit.FSUB(EncodeRegToDouble(VD), EncodeRegToDouble(V0), EncodeRegToDouble(VB));
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -158,6 +161,7 @@ void JitArm64::fmulsx(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_DUP);
 
 	m_float_emit.FMUL(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
+	fpr.FixSinglePrecision(d);
 }
 
 void JitArm64::fmulx(UGeckoInstruction inst)
@@ -221,6 +225,7 @@ void JitArm64::fnmaddsx(UGeckoInstruction inst)
 	m_float_emit.FMUL(EncodeRegToDouble(V0), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
 	m_float_emit.FADD(EncodeRegToDouble(VD), EncodeRegToDouble(V0), EncodeRegToDouble(VB));
 	m_float_emit.FNEG(EncodeRegToDouble(VD), EncodeRegToDouble(VD));
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -258,6 +263,7 @@ void JitArm64::fnmsubsx(UGeckoInstruction inst)
 	m_float_emit.FMUL(EncodeRegToDouble(V0), EncodeRegToDouble(VA), EncodeRegToDouble(VC));
 	m_float_emit.FSUB(EncodeRegToDouble(VD), EncodeRegToDouble(V0), EncodeRegToDouble(VB));
 	m_float_emit.FNEG(EncodeRegToDouble(VD), EncodeRegToDouble(VD));
+	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
 }
@@ -308,6 +314,7 @@ void JitArm64::fsubsx(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_DUP);
 
 	m_float_emit.FSUB(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VB));
+	fpr.FixSinglePrecision(d);
 }
 
 void JitArm64::fsubx(UGeckoInstruction inst)
@@ -476,4 +483,5 @@ void JitArm64::fdivsx(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_DUP);
 
 	m_float_emit.FDIV(EncodeRegToDouble(VD), EncodeRegToDouble(VA), EncodeRegToDouble(VB));
+	fpr.FixSinglePrecision(d);
 }

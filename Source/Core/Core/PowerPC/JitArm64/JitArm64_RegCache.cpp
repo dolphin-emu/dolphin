@@ -559,3 +559,21 @@ BitSet32 Arm64FPRCache::GetCallerSavedUsed()
 			registers[it.GetReg() - Q0] = 1;
 	return registers;
 }
+
+void Arm64FPRCache::FixSinglePrecision(u32 preg)
+{
+	ARM64Reg host_reg = m_guest_registers[preg].GetReg();
+	switch (m_guest_registers[preg].GetType())
+	{
+	case REG_DUP: // only PS0 needs to be converted
+		m_float_emit->FCVT(32, 64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+		m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+		break;
+	case REG_REG: // PS0 and PS1 needs to be converted
+		m_float_emit->FCVTN(32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+		m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+		break;
+	default:
+		break;
+	}
+}

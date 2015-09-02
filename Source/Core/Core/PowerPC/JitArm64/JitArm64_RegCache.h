@@ -277,6 +277,8 @@ public:
 
 	BitSet32 GetCallerSavedUsed() override;
 
+	void FixSinglePrecision(u32 preg);
+
 protected:
 	// Get the order of the host registers
 	void GetAllocationOrder();
