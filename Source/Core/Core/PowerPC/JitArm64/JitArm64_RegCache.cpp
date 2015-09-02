@@ -331,11 +331,6 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 			// Change it over to a full 128bit register
 			reg.LoadToReg(reg.GetReg());
 		}
-		else if (type == REG_DUP)
-		{
-			// We already only have the lower 64bits
-			// Don't do anything
-		}
 		return reg.GetReg();
 	}
 	break;
@@ -350,16 +345,6 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 			m_float_emit->INS(64, host_reg, 1, host_reg, 0);
 			reg.LoadToReg(host_reg);
 		}
-		else if (type == REG_LOWER_PAIR)
-		{
-			// We are only requesting the lower 64bits of a pair
-			// We've got to be careful in this instance
-			// Store our current duplicated high bits to the file
-			// then convert over to a lower reg
-			if (reg.IsDirty())
-				m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][1]));
-			reg.LoadLowerReg(host_reg);
-		}
 		return host_reg;
 	}
 	break;
@@ -367,20 +352,15 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 	{
 		ARM64Reg host_reg = GetReg();
 		u32 load_size;
-		if (type == REG_LOWER_PAIR)
-		{
-			load_size = 64;
-			reg.LoadLowerReg(host_reg);
-		}
-		else if (type == REG_DUP)
-		{
-			load_size = 64;
-			reg.LoadDup(host_reg);
-		}
-		else
+		if (type == REG_REG)
 		{
 			load_size = 128;
 			reg.LoadToReg(host_reg);
+		}
+		else
+		{
+			load_size = 64;
+			reg.LoadLowerReg(host_reg);
 		}
 		reg.SetDirty(false);
 		m_float_emit->LDR(load_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
