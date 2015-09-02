@@ -19,6 +19,8 @@
 #include "Core/Host.h"
 #include "Core/State.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "UICommon/UICommon.h"
@@ -96,7 +98,16 @@ bool Host_RendererIsFullscreen()
 	return rendererIsFullscreen;
 }
 
-void Host_ConnectWiimote(int wm_idx, bool connect) {}
+void Host_ConnectWiimote(int wm_idx, bool connect)
+{
+	if (Core::IsRunning() && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	{
+		bool was_unpaused = Core::PauseAndLock(true);
+		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+		Host_UpdateMainFrame();
+		Core::PauseAndLock(false, was_unpaused);
+	}
+}
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
