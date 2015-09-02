@@ -1520,7 +1520,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 			g_Config.iStereoConvergence = 500;
 	}
 
-	for (int i = HK_SELECT_STATE_SLOT_1; i < HK_SELECT_STATE_SLOT_10; ++i)
+	for (i = HK_SELECT_STATE_SLOT_1; i < HK_SELECT_STATE_SLOT_10; ++i)
 	{
 		if (IsHotkey(event, i))
 		{
