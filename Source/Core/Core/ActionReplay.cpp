@@ -229,16 +229,14 @@ static void LogInfo(const char *format, ...)
 	{
 		if (LogManager::GetMaxLevel() >= LogTypes::LINFO || logSelf)
 		{
-			char* temp = (char*)alloca(strlen(format)+512);
 			va_list args;
 			va_start(args, format);
-			CharArrayFromFormatV(temp, 512, format, args);
+			std::string text = StringFromFormatV(format, args);
 			va_end(args);
-			INFO_LOG(ACTIONREPLAY, "%s", temp);
+			INFO_LOG(ACTIONREPLAY, "%s", text.c_str());
 
 			if (logSelf)
 			{
-				std::string text = temp;
 				text += '\n';
 				arLog.push_back(text);
 			}
