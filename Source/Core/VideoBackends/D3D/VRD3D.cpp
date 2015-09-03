@@ -66,7 +66,7 @@ struct OculusTexture
 OculusTexture *pEyeRenderTexture[2];
 ovrRecti       eyeRenderViewport[2];
 ovrTexture    *mirrorTexture = nullptr;
-int mirror_width, mirror_height;
+int mirror_width = 0, mirror_height = 0;
 #endif
 
 #endif
@@ -141,6 +141,43 @@ void VR_ConfigureHMD()
 #endif
 }
 
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+void RecreateMirrorTextureIfNeeded()
+{
+	int w = Renderer::GetBackbufferWidth();
+	int h = Renderer::GetBackbufferHeight();
+	if (w != mirror_width || h != mirror_height || ((mirrorTexture == nullptr) != g_ActiveConfig.bNoMirrorToWindow))
+	{
+		if (mirrorTexture)
+		{
+			ovrHmd_DestroyMirrorTexture(hmd, mirrorTexture);
+			mirrorTexture = nullptr;
+		}
+		if (!g_ActiveConfig.bNoMirrorToWindow)
+		{
+			// Create a mirror to see on the monitor.
+			D3D11_TEXTURE2D_DESC texdesc;
+			texdesc.ArraySize = 1;
+			texdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			texdesc.Width = w;
+			texdesc.Height = h;
+			texdesc.Usage = D3D11_USAGE_DEFAULT;
+			texdesc.SampleDesc.Count = 1;
+			texdesc.MipLevels = 1;
+			mirror_width = texdesc.Width;
+			mirror_height = texdesc.Height;
+			mirrorTexture = nullptr;
+			ovrResult result = ovrHmd_CreateMirrorTextureD3D11(hmd, D3D::device, &texdesc, &mirrorTexture);
+			if (!OVR_SUCCESS(result))
+			{
+				ERROR_LOG(VR, "Failed to create D3D mirror texture. Error: %d", result);
+				mirrorTexture = nullptr;
+			}
+		}
+	}
+}
+#endif
+
 void VR_StartFramebuffer()
 {
 #if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
@@ -157,23 +194,7 @@ void VR_StartFramebuffer()
 			eyeRenderViewport[eye].Pos.y = 0;
 			eyeRenderViewport[eye].Size = target_size;
 		}
-
-		// Create a mirror to see on the monitor.
-		D3D11_TEXTURE2D_DESC texdesc;
-		texdesc.ArraySize = 1;
-		texdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		texdesc.Width = Renderer::GetBackbufferWidth();
-		texdesc.Height = Renderer::GetBackbufferHeight();
-		texdesc.Usage = D3D11_USAGE_DEFAULT;
-		texdesc.SampleDesc.Count = 1;
-		texdesc.MipLevels = 1;
-		mirror_width = texdesc.Width;
-		mirror_height = texdesc.Height;
-		if (!OVR_SUCCESS(ovrHmd_CreateMirrorTextureD3D11(hmd, D3D::device, &texdesc, &mirrorTexture)))
-		{
-			ERROR_LOG(VR, "Failed to create mirror texture.");
-			mirrorTexture = nullptr;
-		}
+		RecreateMirrorTextureIfNeeded();
 	}
 	else
 #endif
@@ -285,6 +306,7 @@ void VR_BeginFrame()
 	if (g_has_rift)
 	{
 #if OVR_MAJOR_VERSION >= 6
+		RecreateMirrorTextureIfNeeded();
 		++g_ovr_frameindex;
 		// On Oculus SDK 0.6.0 and above, we get the frame timing manually, then swap each eye texture 
 		g_rift_frame_timing = ovrHmd_GetFrameTiming(hmd, 0);
@@ -407,9 +429,9 @@ void VR_PresentHMDFrame()
 			sourceRc.bottom = mirror_height;
 
 			D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
-			D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)0, (float)0, (float)Renderer::GetBackbufferWidth(), (float)Renderer::GetBackbufferHeight());
+			D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)0, (float)0, (float)mirror_width, (float)mirror_height);
 			D3D::context->RSSetViewports(1, &vp);
-			D3D::drawShadedTexQuad(tex->D3D11.pSRView, sourceRc.AsRECT(), sourceRc.GetWidth(), sourceRc.GetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr);
+			D3D::drawShadedTexQuad(tex->D3D11.pSRView, sourceRc.AsRECT(), mirror_width, mirror_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr);
 
 			//D3D::context->CopyResource(D3D::GetBackBuffer()->GetTex(), tex->D3D11.pTexture);
 			D3D::swapchain->Present(0, 0);

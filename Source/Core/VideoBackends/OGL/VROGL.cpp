@@ -131,7 +131,7 @@ TextureBuffer * eyeRenderTexture[2];
 ovrSwapTextureSet * pTextureSet = 0;
 ovrRecti eyeRenderViewport[2];
 ovrGLTexture * mirrorTexture;
-int mirror_width, mirror_height;
+int mirror_width = 0, mirror_height = 0;
 GLuint mirrorFBO = 0;
 #endif
 
@@ -603,6 +603,36 @@ void VR_ConfigureHMD()
 #endif
 }
 
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+void RecreateMirrorTextureIfNeeded()
+{
+	int w = Renderer::GetBackbufferWidth();
+	int h = Renderer::GetBackbufferHeight();
+	if (w != mirror_width || h != mirror_height || ((mirrorTexture == nullptr)!=g_ActiveConfig.bNoMirrorToWindow))
+	{
+		if (mirrorTexture)
+		{
+			glDeleteFramebuffers(1, &mirrorFBO);
+			ovrHmd_DestroyMirrorTexture(hmd, (ovrTexture*)mirrorTexture);
+			mirrorTexture = nullptr;
+		}
+		if (!g_ActiveConfig.bNoMirrorToWindow)
+		{
+			// Create mirror texture and an FBO used to copy mirror texture to back buffer
+			mirror_width = w;
+			mirror_height = h;
+			ovrHmd_CreateMirrorTextureGL(hmd, GL_RGBA, mirror_width, mirror_height, (ovrTexture**)&mirrorTexture);
+			// Configure the mirror read buffer
+			glGenFramebuffers(1, &mirrorFBO);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFBO);
+			glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mirrorTexture->OGL.TexId, 0);
+			glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		}
+	}
+}
+#endif
+
 void VR_StartFramebuffer(int target_width, int target_height)
 {
 	FramebufferManager::m_eyeFramebuffer[0] = 0;
@@ -626,16 +656,7 @@ void VR_StartFramebuffer(int target_width, int target_height)
 			eyeRenderViewport[eye].Size = target_size;
 		}
 
-		// Create mirror texture and an FBO used to copy mirror texture to back buffer
-		mirror_width = Renderer::GetBackbufferWidth();
-		mirror_height = Renderer::GetBackbufferHeight();
-		ovrHmd_CreateMirrorTextureGL(hmd, GL_RGBA, mirror_width, mirror_height, (ovrTexture**)&mirrorTexture);
-		// Configure the mirror read buffer
-		glGenFramebuffers(1, &mirrorFBO);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFBO);
-		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mirrorTexture->OGL.TexId, 0);
-		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		RecreateMirrorTextureIfNeeded();
 	}
 	else
 #endif
@@ -705,6 +726,7 @@ void VR_StopFramebuffer()
 	{
 		glDeleteFramebuffers(1, &mirrorFBO);
 		ovrHmd_DestroyMirrorTexture(hmd, (ovrTexture*)mirrorTexture);
+		mirrorTexture = nullptr;
 		ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[0]->TextureSet);
 		ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[1]->TextureSet);
 
@@ -829,6 +851,7 @@ void VR_PresentHMDFrame()
 		// Let OVR do distortion rendering, Present and flush/sync.
 		ovrHmd_EndFrame(hmd, g_eye_poses, &g_eye_texture[0].Texture);
 #else
+		RecreateMirrorTextureIfNeeded();
 		ovrLayerEyeFov ld;
 		ld.Header.Type = ovrLayerType_EyeFov;
 		ld.Header.Flags = (g_ActiveConfig.bFlipVertical?0:ovrLayerFlag_TextureOriginAtBottomLeft) | (g_ActiveConfig.bHqDistortion?ovrLayerFlag_HighQuality:0);
