@@ -176,8 +176,8 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 		player_szr->Add(m_kick_btn, 0, wxEXPAND | wxTOP, 5);
 		m_kick_btn->Disable();
 
-		m_player_config_btn = new wxButton(panel, wxID_ANY, _("Configure Pads"));
-		m_player_config_btn->Bind(wxEVT_BUTTON, &NetPlayDialog::OnConfigPads, this);
+		m_player_config_btn = new wxButton(panel, wxID_ANY, _("Assign Controller Ports"));
+		m_player_config_btn->Bind(wxEVT_BUTTON, &NetPlayDialog::OnAssignPads, this);
 		player_szr->Add(m_player_config_btn, 0, wxEXPAND | wxTOP, 5);
 	}
 
@@ -460,7 +460,7 @@ void NetPlayDialog::OnChangeGame(wxCommandEvent&)
 	m_game_btn->SetLabel(game_name.Prepend(_(" Game : ")));
 }
 
-void NetPlayDialog::OnConfigPads(wxCommandEvent&)
+void NetPlayDialog::OnAssignPads(wxCommandEvent&)
 {
 	PadMapDialog pmd(this, netplay_server, netplay_client);
 	pmd.ShowModal();
