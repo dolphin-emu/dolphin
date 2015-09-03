@@ -5,9 +5,6 @@
 #include "Core/Host.h"
 #include "Core/HW/GCPadEmu.h"
 
-// TODO: Move to header file when VS supports constexpr.
-const ControlState GCPad::DEFAULT_PAD_STICK_RADIUS = 1.0;
-
 static const u16 button_bitmasks[] =
 {
 	PAD_BUTTON_A,
