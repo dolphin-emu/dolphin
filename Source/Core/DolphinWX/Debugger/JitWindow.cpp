@@ -86,6 +86,10 @@ void CJitWindow::Compare(u32 em_address)
 	PPCAnalyst::CodeBlock code_block;
 	PPCAnalyst::PPCAnalyzer analyzer;
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_LEAF_INLINE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
 
 	code_block.m_stats = &st;
 	code_block.m_gpa = &gpa;

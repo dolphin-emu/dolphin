@@ -59,14 +59,13 @@ void Jit64::bx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff);
 
-	// We must always process the following sentence
-	// even if the blocks are merged by PPCAnalyst::Flatten().
+	// We must always process the following sentence even if the blocks are
+	// merged by e.g. inlining.
 	if (inst.LK)
 		MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
-	// If this is not the last instruction of a block,
-	// we will skip the rest process.
-	// Because PPCAnalyst::Flatten() merged the blocks.
+	// If this is not the last instruction of a block, we will skip the rest
+	// process. Something (e.g. inlining) merged the blocks.
 	if (!js.isLastInstruction)
 	{
 		return;
@@ -237,16 +236,24 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	if (inst.LK)
 		MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
-	gpr.Flush(FLUSH_MAINTAIN_STATE);
-	fpr.Flush(FLUSH_MAINTAIN_STATE);
-	WriteBLRExit();
+	bool skip_exit = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_LEAF_INLINE) && js.op->isInlinedBLR;
+	if (!skip_exit)
+	{
+		gpr.Flush(FLUSH_MAINTAIN_STATE);
+		fpr.Flush(FLUSH_MAINTAIN_STATE);
+		WriteBLRExit();
+	}
+	else
+	{
+		MOV(32, PPCSTATE(pc), R(RSCRATCH));
+	}
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget(pConditionDontBranch);
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget(pCTRDontBranch);
 
-	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE) && !skip_exit)
 	{
 		gpr.Flush();
 		fpr.Flush();

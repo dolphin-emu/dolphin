@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <map>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "Common/BitSet.h"
@@ -32,6 +33,8 @@ struct CodeOp //16B
 	BitSet32 fregsIn;
 	s8 fregOut;
 	bool isBranchTarget;
+	bool isExit;
+	bool isInlinedBLR;
 	bool wantsCR0;
 	bool wantsCR1;
 	bool wantsFPRF;
@@ -181,8 +184,19 @@ private:
 	void ReorderInstructions(u32 instructions, CodeOp *code);
 	void SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index);
 
+	// Collects instructions for a block, starting at a given address. Used for
+	// both the "top level" of a block and for potential inlining. Returns the
+	// number of instructions added to the block. In the case of inlining, if no
+	// instructions were added, it means inlining was impossible.
+	u32 CollectInstructions(u32 address, CodeOp* code, u32 max_block_size, bool inlining);
+
 	// Options
 	u32 m_options;
+
+	// Cache of whether a call to a given address can be inlined or not. Needs to
+	// be invalidated when the destination block has been invalidated.
+	std::unordered_set<u32> m_not_inlinable;
+
 public:
 
 	enum AnalystOption
@@ -196,7 +210,6 @@ public:
 		// If there is a unconditional branch that jumps to a leaf function then inline it.
 		// Might require JIT intervention to support it correctly.
 		// Requires JITBLock support for inlined code
-		// XXX: NOT COMPLETE
 		OPTION_LEAF_INLINE = (1 << 1),
 
 		// Complex blocks support jumping backwards on to themselves.

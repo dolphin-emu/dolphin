@@ -528,6 +528,7 @@ void Jit64::Jit(u32 em_address)
 				// Do not link this block to other blocks While single stepping
 				jo.enableBlocklink = false;
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_LEAF_INLINE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
@@ -906,6 +907,7 @@ void Jit64::EnableBlockLink()
 void Jit64::EnableOptimization()
 {
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_LEAF_INLINE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
