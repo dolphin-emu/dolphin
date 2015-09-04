@@ -421,7 +421,7 @@ void LogPendingEvents()
 	Event *ptr = first;
 	while (ptr)
 	{
-		INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %d", globalTimer, ptr->time, ptr->type);
+		INFO_LOG(POWERPC, "PENDING: Now: %lld Pending: %lld Type: %d", globalTimer, ptr->time, ptr->type);
 		ptr = ptr->next;
 	}
 }
@@ -456,7 +456,7 @@ std::string GetScheduledEventsSummary()
 
 		const std::string& name = event_types[ptr->type].name;
 
-		text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", name.c_str(), ptr->time, ptr->userdata);
+		text += StringFromFormat("%s : %lld %016llx\n", name.c_str(), ptr->time, ptr->userdata);
 		ptr = ptr->next;
 	}
 	return text;
