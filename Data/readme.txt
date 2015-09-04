@@ -1,6 +1,6 @@
-Dolphin VR 4.0-6324
-(Unofficial Dolphin build with Oculus Rift support.)
-Open Source licence: GPL v2 (my contributions are GPL v2+)
+Dolphin VR 4.0-8946
+(Unofficial Dolphin build with Oculus Rift and SteamVR support.)
+Open Source licence: GPL v2+
 
 The official Dolphin website: https://dolphin-emu.org
 See the website for non-VR related help, and the Wiki for game specific information.
@@ -22,7 +22,7 @@ In the 'Config' tab, 'Framelimit' should be set to match your Rift's refresh rat
 Games will run 25% too fast, but this will avoid judder. There are two options available to bring the game frame rate back down to
 normal speed. The first is the 'Opcode Replay Buffer', which rerenders game frames so headtracking runs at 75fps forcing
 the game to maintain its normal speed.  This feature only currently works in around 60% of games, but is the preferred
-method.  Synchronous timewarp smudges the image to fake head-tracking at a higher rate.  This can be tried if 'Opcode Replay Buffer' fails
+method.  Synchronous timewarp rotates the image to fake head-tracking at a higher rate.  This can be tried if 'Opcode Replay Buffer' fails
 but sometimes introduces artifacts and may judder depending on the game. As a last resort, the the Rift can be
 set to run at 60hz from your AMD/Nvidia control panel and still run with low persistence, but flickering can be seen
 in bright scenes. Different games run at differnet frame-rates, so choose the correct opcode replay/timewarp setting for the game.\n\n"
@@ -52,7 +52,7 @@ How to run:
 
 Optional: Copy sixense_x64.dll, iweardrv.dll, and iwrstdrv.dll into your Dolphin directory.
 
-Oculus Rift DK1 to DK2 are supported. You need the Oculus 0.4.4 runtime installed.
+Oculus Rift DK1 to DK2, and HTC Vive are supported. You need the Oculus 0.6 runtime installed.
 Both Direct and Extended modes work now.
 Dolphin performs best if it is the only monitor connected to the desktop, but that
 also makes the menus more difficult to use.
@@ -61,7 +61,7 @@ and if using DK1 make sure legacy DK1 support is turned off (this is not a legac
 before launching Dolphin.
 
 Only Direct3D and OpenGL renderers will work. Direct3D is recommended.
-In Graphics, turn off Render To Main Window.
+In Graphics, turn OFF Render To Main Window.
 In the Graphics options Enhancements tab set the internal resolution to a multiple
 of the native. 1x Native is much too blurry, 2x or 2.5x are good choices.
 Lower resoultions are faster but blurrier.

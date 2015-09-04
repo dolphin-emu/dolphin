@@ -48,22 +48,32 @@ extern "C"
 }
 #endif
 
+#ifdef HAVE_OPENVR
+#define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING " or SteamVR"
+#else
 #define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING
+#endif
 #else
 #ifdef _WIN32
 #include "OculusSystemLibraryHeader.h"
 #define OCULUSSDK044ORABOVE
+#ifdef HAVE_OPENVR
+#define SCM_OCULUS_STR ", for Oculus DLL " OVR_VERSION_STRING " or SteamVR"
+#else
 #define SCM_OCULUS_STR ", for Oculus DLL " OVR_VERSION_STRING
+#endif
+#else
+#ifdef HAVE_OPENVR
+#define SCM_OCULUS_STR ", SteamVR"
 #else
 #define SCM_OCULUS_STR ", no Oculus SDK"
 #endif
 #endif
-#ifdef HAVE_OPENVR
-#include <openvr.h>
-#undef SCM_OCULUS_STR
-#define SCM_OCULUS_STR ", for SteamVR"
 #endif
 
+#ifdef HAVE_OPENVR
+#include <openvr.h>
+#endif
 
 #include <atomic>
 #include <mutex>
