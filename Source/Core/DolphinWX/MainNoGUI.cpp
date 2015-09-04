@@ -7,6 +7,7 @@
 #include <cstring>
 #include <getopt.h>
 #include <string>
+#include <unistd.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"

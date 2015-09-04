@@ -6,6 +6,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/Thread.h"
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/NativeVertexFormat.h"
@@ -56,7 +57,7 @@ void GFXDebuggerCheckAndPause(bool update)
 		while ( GFXDebuggerPauseFlag )
 		{
 			if (update) GFXDebuggerUpdateScreen();
-			SLEEP(5);
+			Common::SleepCurrentThread(5);
 		}
 		g_pdebugger->OnContinue();
 	}

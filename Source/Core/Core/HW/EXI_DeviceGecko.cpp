@@ -74,7 +74,8 @@ void GeckoSockServer::GeckoConnectionWaiter()
 
 			new_client = std::make_unique<sf::TcpSocket>();
 		}
-		SLEEP(1);
+
+		Common::SleepCurrentThread(1);
 	}
 }
 

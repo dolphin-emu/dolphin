@@ -4,13 +4,6 @@
 
 #pragma once
 
-#ifdef _WIN32
-#define SLEEP(x) Sleep(x)
-#else
-#include <unistd.h>
-#define SLEEP(x) usleep(x*1000)
-#endif
-
 #ifdef __APPLE__
 #include <libkern/OSByteOrder.h>
 #endif
