@@ -111,10 +111,35 @@ public final class GameDatabase extends SQLiteOpenHelper
 
 	public void scanLibrary(SQLiteDatabase database)
 	{
-		// TODO Before scanning known folders, go through the game table and remove any entries for which the file itself is missing.
+		// Before scanning known folders, go through the game table and remove any entries for which the file itself is missing.
+		Cursor fileCursor = database.query(TABLE_NAME_GAMES,
+				null,    // Get all columns.
+				null,    // Get all rows.
+				null,
+				null,    // No grouping.
+				null,
+				null);    // Order of games is irrelevant.
+
+		// Possibly overly defensive, but ensures that moveToNext() does not skip a row.
+		fileCursor.moveToPosition(-1);
+
+		while (fileCursor.moveToNext())
+		{
+			String gamePath = fileCursor.getString(GAME_COLUMN_PATH);
+			File game = new File(gamePath);
+
+			if (!game.exists())
+			{
+				Log.e("DolphinEmu", "Game file no longer exists. Removing from the library: " + gamePath);
+				database.delete(TABLE_NAME_GAMES,
+						KEY_DB_ID + " = ?",
+						new String[]{Long.toString(fileCursor.getLong(COLUMN_DB_ID))});
+			}
+		}
+
 
 		// Get a cursor listing all the folders the user has added to the library.
-		Cursor cursor = database.query(TABLE_NAME_FOLDERS,
+		Cursor folderCursor = database.query(TABLE_NAME_FOLDERS,
 				null,    // Get all columns.
 				null,    // Get all rows.
 				null,
@@ -125,74 +150,106 @@ public final class GameDatabase extends SQLiteOpenHelper
 		Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
 
 		// Possibly overly defensive, but ensures that moveToNext() does not skip a row.
-		cursor.moveToPosition(-1);
+		folderCursor.moveToPosition(-1);
 
 		// Iterate through all results of the DB query (i.e. all folders in the library.)
-		while (cursor.moveToNext())
+		while (folderCursor.moveToNext())
 		{
 
-			String folderPath = cursor.getString(FOLDER_COLUMN_PATH);
+			String folderPath = folderCursor.getString(FOLDER_COLUMN_PATH);
 			File folder = new File(folderPath);
 
 			Log.i("DolphinEmu", "Reading files from library folder: " + folderPath);
 
 			// Iterate through every file in the folder.
 			File[] children = folder.listFiles();
-			for (File file : children)
+
+			if (children != null)
 			{
-				if (!file.isHidden() && !file.isDirectory())
+				for (File file : children)
 				{
-					String filePath = file.getPath();
-
-					int extensionStart = filePath.lastIndexOf('.');
-					if (extensionStart > 0)
+					if (!file.isHidden() && !file.isDirectory())
 					{
-						String fileExtension = filePath.substring(extensionStart);
+						String filePath = file.getPath();
 
-						// Check that the file has an extension we care about before trying to read out of it.
-						if (allowedExtensions.contains(fileExtension))
+						int extensionStart = filePath.lastIndexOf('.');
+						if (extensionStart > 0)
 						{
-							String name = NativeLibrary.GetTitle(filePath);
+							String fileExtension = filePath.substring(extensionStart);
 
-							// If the game's title field is empty, use the filename.
-							if (name.isEmpty())
+							// Check that the file has an extension we care about before trying to read out of it.
+							if (allowedExtensions.contains(fileExtension))
 							{
-								name = filePath.substring(filePath.lastIndexOf("/") + 1);
-							}
+								String name = NativeLibrary.GetTitle(filePath);
 
-							ContentValues game = Game.asContentValues(NativeLibrary.GetPlatform(filePath),
-									name,
-									NativeLibrary.GetDescription(filePath).replace("\n", " "),
-									NativeLibrary.GetCountry(filePath),
-									filePath,
-									NativeLibrary.GetGameId(filePath),
-									NativeLibrary.GetCompany(filePath));
+								// If the game's title field is empty, use the filename.
+								if (name.isEmpty())
+								{
+									name = filePath.substring(filePath.lastIndexOf("/") + 1);
+								}
 
-							// Try to update an existing game first.
-							int rowsMatched = database.update(TABLE_NAME_GAMES,    // Which table to update.
-									game,                                            // The values to fill the row with.
-									KEY_GAME_ID + " = ?",                            // The WHERE clause used to find the right row.
-									new String[]{game.getAsString(KEY_GAME_ID)});    // The ? in WHERE clause is replaced with this,
-							// which is provided as an array because there
-							// could potentially be more than one argument.
+								String gameId = NativeLibrary.GetGameId(filePath);
 
-							// If update fails, insert a new game instead.
-							if (rowsMatched == 0)
-							{
-								Log.v("DolphinEmu", "Adding game: " + game.getAsString(KEY_GAME_TITLE));
-								database.insert(TABLE_NAME_GAMES, null, game);
-							}
-							else
-							{
-								Log.v("DolphinEmu", "Updated game: " + game.getAsString(KEY_GAME_TITLE));
+								// If the game's ID field is empty, use the filename without extension.
+								if (gameId.isEmpty())
+								{
+									gameId = filePath.substring(filePath.lastIndexOf("/") + 1, filePath.lastIndexOf("."));
+								}
+
+								// If the game's platform field is empty, file under Wiiware. // TODO Something less dum
+								int platform = NativeLibrary.GetPlatform(filePath);
+								if (platform == -1)
+								{
+									platform = Game.PLATFORM_WII_WARE;
+								}
+
+								ContentValues game = Game.asContentValues(platform,
+										name,
+										NativeLibrary.GetDescription(filePath).replace("\n", " "),
+										NativeLibrary.GetCountry(filePath),
+										filePath,
+										gameId,
+										NativeLibrary.GetCompany(filePath));
+
+								// Try to update an existing game first.
+								int rowsMatched = database.update(TABLE_NAME_GAMES,    // Which table to update.
+										game,                                            // The values to fill the row with.
+										KEY_GAME_ID + " = ?",                            // The WHERE clause used to find the right row.
+										new String[]{game.getAsString(KEY_GAME_ID)});    // The ? in WHERE clause is replaced with this,
+								// which is provided as an array because there
+								// could potentially be more than one argument.
+
+								// If update fails, insert a new game instead.
+								if (rowsMatched == 0)
+								{
+									Log.v("DolphinEmu", "Adding game: " + game.getAsString(KEY_GAME_TITLE));
+									database.insert(TABLE_NAME_GAMES, null, game);
+								}
+								else
+								{
+									Log.v("DolphinEmu", "Updated game: " + game.getAsString(KEY_GAME_TITLE));
+								}
 							}
 						}
 					}
 				}
 			}
+			// If the folder is empty because it no longer exists, remove it from the library.
+			else if (!folder.exists())
+			{
+				Log.e("DolphinEmu", "Folder no longer exists. Removing from the library: " + folderPath);
+				database.delete(TABLE_NAME_FOLDERS,
+						KEY_DB_ID + " = ?",
+						new String[]{Long.toString(folderCursor.getLong(COLUMN_DB_ID))});
+			}
+			else
+			{
+				Log.e("DolphinEmu", "Folder contains no games: " + folderPath);
+			}
 		}
 
-		cursor.close();
+
+		folderCursor.close();
 		database.close();
 	}
 }

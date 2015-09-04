@@ -234,6 +234,31 @@ namespace DriverDetails
 		//		ab.z <<= cd.z;
 		//		ab.w <<= cd.w;
 		BUG_BROKENIVECSHIFTS,
+
+		// Bug: glCopyImageSubData doesn't work on i965
+		// Started Version: -1
+		// Ended Version: 10.6.4
+		// Mesa meta misses to disable the scissor test.
+		BUG_BROKENCOPYIMAGE,
+
+		// Bug: Qualcomm has broken OpenGL ES 3.1 support
+		// Affected devices: Adreno
+		// Started Version: -1
+		// Ended Version: -1
+		// This isn't fully researched, but at the very least Qualcomm doesn't implement Geometry shader features fully.
+		// Until each bug is fully investigated, just disable GLES 3.1 entirely on these devices.
+		BUG_BROKENGLES31,
+
+		// Bug: ARM Mali managed to break disabling vsync
+		// Affected Devices: Mali
+		// Started Version: r5p0-rev2
+		// Ended Version: -1
+		// If we disable vsync with eglSwapInterval(dpy, 0) then the screen will stop showing new updates after a handful of swaps.
+		// This was noticed on a Samsung Galaxy S6 with its Android 5.1.1 update.
+		// The default Android 5.0 image didn't encounter this issue.
+		// We can't actually detect what the driver version is on Android, so until the driver version lands that displays the version in
+		// the GL_VERSION string, we will have to force vsync to be enabled at all times.
+		BUG_BROKENVSYNC,
 	};
 
 	// Initializes our internal vendor, device family, and driver version

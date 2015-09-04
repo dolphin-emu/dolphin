@@ -8,92 +8,126 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 
-
 // Lighting
 
+// Projection
+enum : u32
+{
+	XF_TEXPROJ_ST  = 0,
+	XF_TEXPROJ_STQ = 1
+};
 
-#define XF_TEXPROJ_ST   0
-#define XF_TEXPROJ_STQ  1
+// Input form
+enum : u32
+{
+	XF_TEXINPUT_AB11 = 0,
+	XF_TEXINPUT_ABC1 = 1
+};
 
-#define XF_TEXINPUT_AB11 0
-#define XF_TEXINPUT_ABC1 1
+// Texture generation type
+enum : u32
+{
+	XF_TEXGEN_REGULAR       = 0,
+	XF_TEXGEN_EMBOSS_MAP    = 1, // Used when bump mapping
+	XF_TEXGEN_COLOR_STRGBC0 = 2,
+	XF_TEXGEN_COLOR_STRGBC1 = 3
+};
 
-#define XF_TEXGEN_REGULAR       0
-#define XF_TEXGEN_EMBOSS_MAP    1 // used when bump mapping
-#define XF_TEXGEN_COLOR_STRGBC0 2
-#define XF_TEXGEN_COLOR_STRGBC1 3
+// Source row
+enum : u32
+{
+	XF_SRCGEOM_INROW       = 0, // Input is abc
+	XF_SRCNORMAL_INROW     = 1, // Input is abc
+	XF_SRCCOLORS_INROW     = 2,
+	XF_SRCBINORMAL_T_INROW = 3, // Input is abc
+	XF_SRCBINORMAL_B_INROW = 4, // Input is abc
+	XF_SRCTEX0_INROW       = 5,
+	XF_SRCTEX1_INROW       = 6,
+	XF_SRCTEX2_INROW       = 7,
+	XF_SRCTEX3_INROW       = 8,
+	XF_SRCTEX4_INROW       = 9,
+	XF_SRCTEX5_INROW       = 10,
+	XF_SRCTEX6_INROW       = 11,
+	XF_SRCTEX7_INROW       = 12
+};
 
-#define XF_SRCGEOM_INROW       0 // input is abc
-#define XF_SRCNORMAL_INROW     1 // input is abc
-#define XF_SRCCOLORS_INROW     2
-#define XF_SRCBINORMAL_T_INROW 3 // input is abc
-#define XF_SRCBINORMAL_B_INROW 4 // input is abc
-#define XF_SRCTEX0_INROW       5
-#define XF_SRCTEX1_INROW       6
-#define XF_SRCTEX2_INROW       7
-#define XF_SRCTEX3_INROW       8
-#define XF_SRCTEX4_INROW       9
-#define XF_SRCTEX5_INROW       10
-#define XF_SRCTEX6_INROW       11
-#define XF_SRCTEX7_INROW       12
+// Control source
+enum : u32
+{
+	GX_SRC_REG = 0,
+	GX_SRC_VTX = 1
+};
 
-#define GX_SRC_REG 0
-#define GX_SRC_VTX 1
+// Light diffuse attenuation function
+enum : u32
+{
+	LIGHTDIF_NONE  = 0,
+	LIGHTDIF_SIGN  = 1,
+	LIGHTDIF_CLAMP = 2
+};
 
-#define LIGHTDIF_NONE  0
-#define LIGHTDIF_SIGN  1
-#define LIGHTDIF_CLAMP 2
+// Light attenuation function
+enum : u32
+{
+	LIGHTATTN_NONE = 0, // No attenuation
+	LIGHTATTN_SPEC = 1, // Point light attenuation
+	LIGHTATTN_DIR  = 2, // Directional light attenuation
+	LIGHTATTN_SPOT = 3  // Spot light attenuation
+};
 
-#define LIGHTATTN_NONE 0 // no attenuation
-#define LIGHTATTN_SPEC 1 // point light attenuation
-#define LIGHTATTN_DIR  2 // directional light attenuation
-#define LIGHTATTN_SPOT 3 // spot light attenuation
+// Projection type
+enum : u32
+{
+	GX_PERSPECTIVE  = 0,
+	GX_ORTHOGRAPHIC = 1
+};
 
-#define GX_PERSPECTIVE  0
-#define GX_ORTHOGRAPHIC 1
-
-#define XFMEM_POSMATRICES        0x000
-#define XFMEM_POSMATRICES_END    0x100
-#define XFMEM_NORMALMATRICES     0x400
-#define XFMEM_NORMALMATRICES_END 0x460
-#define XFMEM_POSTMATRICES       0x500
-#define XFMEM_POSTMATRICES_END   0x600
-#define XFMEM_LIGHTS             0x600
-#define XFMEM_LIGHTS_END         0x680
-#define XFMEM_ERROR              0x1000
-#define XFMEM_DIAG               0x1001
-#define XFMEM_STATE0             0x1002
-#define XFMEM_STATE1             0x1003
-#define XFMEM_CLOCK              0x1004
-#define XFMEM_CLIPDISABLE        0x1005
-#define XFMEM_SETGPMETRIC        0x1006
-#define XFMEM_VTXSPECS           0x1008
-#define XFMEM_SETNUMCHAN         0x1009
-#define XFMEM_SETCHAN0_AMBCOLOR  0x100a
-#define XFMEM_SETCHAN1_AMBCOLOR  0x100b
-#define XFMEM_SETCHAN0_MATCOLOR  0x100c
-#define XFMEM_SETCHAN1_MATCOLOR  0x100d
-#define XFMEM_SETCHAN0_COLOR     0x100e
-#define XFMEM_SETCHAN1_COLOR     0x100f
-#define XFMEM_SETCHAN0_ALPHA     0x1010
-#define XFMEM_SETCHAN1_ALPHA     0x1011
-#define XFMEM_DUALTEX            0x1012
-#define XFMEM_SETMATRIXINDA      0x1018
-#define XFMEM_SETMATRIXINDB      0x1019
-#define XFMEM_SETVIEWPORT        0x101a
-#define XFMEM_SETZSCALE          0x101c
-#define XFMEM_SETZOFFSET         0x101f
-#define XFMEM_SETPROJECTION      0x1020
-/*#define XFMEM_SETPROJECTIONB     0x1021
-#define XFMEM_SETPROJECTIONC     0x1022
-#define XFMEM_SETPROJECTIOND     0x1023
-#define XFMEM_SETPROJECTIONE     0x1024
-#define XFMEM_SETPROJECTIONF     0x1025
-#define XFMEM_SETPROJECTIONORTHO1 0x1026
-#define XFMEM_SETPROJECTIONORTHO2 0x1027*/
-#define XFMEM_SETNUMTEXGENS      0x103f
-#define XFMEM_SETTEXMTXINFO      0x1040
-#define XFMEM_SETPOSMTXINFO      0x1050
+// Registers and register ranges
+enum
+{
+	XFMEM_POSMATRICES         = 0x000,
+	XFMEM_POSMATRICES_END     = 0x100,
+	XFMEM_NORMALMATRICES      = 0x400,
+	XFMEM_NORMALMATRICES_END  = 0x460,
+	XFMEM_POSTMATRICES        = 0x500,
+	XFMEM_POSTMATRICES_END    = 0x600,
+	XFMEM_LIGHTS              = 0x600,
+	XFMEM_LIGHTS_END          = 0x680,
+	XFMEM_ERROR               = 0x1000,
+	XFMEM_DIAG                = 0x1001,
+	XFMEM_STATE0              = 0x1002,
+	XFMEM_STATE1              = 0x1003,
+	XFMEM_CLOCK               = 0x1004,
+	XFMEM_CLIPDISABLE         = 0x1005,
+	XFMEM_SETGPMETRIC         = 0x1006,
+	XFMEM_VTXSPECS            = 0x1008,
+	XFMEM_SETNUMCHAN          = 0x1009,
+	XFMEM_SETCHAN0_AMBCOLOR   = 0x100a,
+	XFMEM_SETCHAN1_AMBCOLOR   = 0x100b,
+	XFMEM_SETCHAN0_MATCOLOR   = 0x100c,
+	XFMEM_SETCHAN1_MATCOLOR   = 0x100d,
+	XFMEM_SETCHAN0_COLOR      = 0x100e,
+	XFMEM_SETCHAN1_COLOR      = 0x100f,
+	XFMEM_SETCHAN0_ALPHA      = 0x1010,
+	XFMEM_SETCHAN1_ALPHA      = 0x1011,
+	XFMEM_DUALTEX             = 0x1012,
+	XFMEM_SETMATRIXINDA       = 0x1018,
+	XFMEM_SETMATRIXINDB       = 0x1019,
+	XFMEM_SETVIEWPORT         = 0x101a,
+	XFMEM_SETZSCALE           = 0x101c,
+	XFMEM_SETZOFFSET          = 0x101f,
+	XFMEM_SETPROJECTION       = 0x1020,
+	// XFMEM_SETPROJECTIONB      = 0x1021,
+	// XFMEM_SETPROJECTIONC      = 0x1022,
+	// XFMEM_SETPROJECTIOND      = 0x1023,
+	// XFMEM_SETPROJECTIONE      = 0x1024,
+	// XFMEM_SETPROJECTIONF      = 0x1025,
+	// XFMEM_SETPROJECTIONORTHO1 = 0x1026,
+	// XFMEM_SETPROJECTIONORTHO2 = 0x1027,
+	XFMEM_SETNUMTEXGENS       = 0x103f,
+	XFMEM_SETTEXMTXINFO       = 0x1040,
+	XFMEM_SETPOSMTXINFO       = 0x1050,
+};
 
 union LitChannel
 {

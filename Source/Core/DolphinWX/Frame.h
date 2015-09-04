@@ -120,7 +120,7 @@ public:
 	void UpdateTitle(const std::string &str);
 
 	const CGameListCtrl *GetGameListCtrl() const;
-	virtual wxMenuBar* GetMenuBar() const override;
+	wxMenuBar* GetMenuBar() const override;
 
 #ifdef __WXGTK__
 	Common::Event panic_event;
@@ -182,18 +182,9 @@ private:
 		Toolbar_FullScreen,
 		Toolbar_ConfigMain,
 		Toolbar_ConfigGFX,
-		Toolbar_ConfigAudio,
 		Toolbar_Controller,
 		Toolbar_ConfigVR,
 		EToolbar_Max
-	};
-
-	enum
-	{
-		Toolbar_Delete,
-		Toolbar_Add_BP,
-		Toolbar_Add_MC,
-		Num_Bitmaps
 	};
 
 	enum
@@ -208,7 +199,6 @@ private:
 	wxTimer m_poll_hotkey_timer;
 
 	wxBitmap m_Bitmaps[EToolbar_Max];
-	wxBitmap m_BitmapsMenu[EToolbar_Max];
 
 	wxMenuBar* m_menubar_shadow;
 
@@ -308,7 +298,6 @@ private:
 	void OnConfigControllers(wxCommandEvent& event);
 	void OnConfigVR(wxCommandEvent& event);
 	void OnConfigHotkey(wxCommandEvent& event);
-	void OnConfigMenuCommands(wxCommandEvent& event);
 
 	void OnToggleFullscreen(wxCommandEvent& event);
 	void OnToggleDualCore(wxCommandEvent& event);
@@ -323,8 +312,6 @@ private:
 	void OnToggleWindow(wxCommandEvent& event);
 
 	void OnKeyDown(wxKeyEvent& event); // Keyboard
-	void OnKeyUp(wxKeyEvent& event);
-
 	void OnMouse(wxMouseEvent& event); // Mouse
 
 	void OnFocusChange(wxFocusEvent& event);
@@ -355,7 +342,7 @@ private:
 	void OnLoadCurrentSlot(wxCommandEvent& event);
 
 	void PollHotkeys(wxTimerEvent&);
-	void ParseHotkeys(wxKeyEvent &event);
+	void ParseHotkeys();
 
 	bool InitControllers();
 
@@ -371,5 +358,4 @@ void OnStoppedCallback();
 // For TASInputDlg
 void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID);
 void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key);
-bool TASInputHasFocus();
 extern int g_saveSlot;

@@ -54,7 +54,7 @@ public:
 	~NetPlayClient();
 
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
-	void GetPlayers(std::vector<const Player *>& player_list);
+	std::vector<const Player*> GetPlayers();
 
 	bool is_connected;
 
@@ -121,8 +121,8 @@ protected:
 
 	u32 m_current_game;
 
-	PadMapping m_pad_map[4];
-	PadMapping m_wiimote_map[4];
+	PadMappingArray m_pad_map;
+	PadMappingArray m_wiimote_map;
 
 	bool m_is_recording;
 

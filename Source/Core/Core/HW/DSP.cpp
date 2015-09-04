@@ -145,12 +145,12 @@ struct ARAMInfo
 
 // STATE_TO_SAVE
 static ARAMInfo g_ARAM;
-static UDSPControl g_dspState;
 static AudioDMA g_audioDMA;
 static ARAM_DMA g_arDMA;
 static u32 last_mmaddr;
 static u32 last_aram_dma_count;
 static bool instant_dma;
+UDSPControl g_dspState;
 
 union ARAM_Info
 {
@@ -216,6 +216,22 @@ void EnableInstantDMA()
 	instant_dma = true;
 }
 
+void FlushInstantDMA(u32 address)
+{
+	u64 dma_in_progress = DSP::DMAInProgress();
+	if (dma_in_progress != 0)
+	{
+		u32 start_addr = (dma_in_progress >> 32) & Memory::RAM_MASK;
+		u32 end_addr = (dma_in_progress & Memory::RAM_MASK) & 0xffffffff;
+		u32 invalidated_addr = (address & Memory::RAM_MASK) & ~0x1f;
+
+		if (invalidated_addr >= start_addr && invalidated_addr <= end_addr)
+		{
+			DSP::EnableInstantDMA();
+		}
+	}
+}
+
 DSPEmulator *GetDSPEmulator()
 {
 	return dsp_emulator;
@@ -226,7 +242,7 @@ void Init(bool hle)
 	dsp_emulator = CreateDSPEmulator(hle);
 	dsp_is_lle = dsp_emulator->IsLLE();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 	{
 		g_ARAM.wii_mode = true;
 		g_ARAM.size = Memory::EXRAM_SIZE;

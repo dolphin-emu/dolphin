@@ -424,6 +424,7 @@ public:
 		~Extension() {}
 
 		void GetState(u8* const data);
+		bool IsButtonPressed() const;
 
 		std::vector<std::unique_ptr<ControllerEmu>> attachments;
 

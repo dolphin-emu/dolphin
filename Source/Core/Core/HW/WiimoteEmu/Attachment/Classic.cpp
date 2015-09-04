@@ -138,5 +138,14 @@ void Classic::GetState(u8* const data)
 	ccdata->bt.hex ^= 0xFFFF;
 }
 
+bool Classic::IsButtonPressed() const
+{
+	u16 buttons = 0;
+	ControlState trigs[2] = { 0, 0 };
+	m_buttons->GetState(&buttons, classic_button_bitmasks);
+	m_dpad->GetState(&buttons, classic_dpad_bitmasks);
+	m_triggers->GetState(&buttons, classic_trigger_bitmasks, trigs);
+	return buttons != 0;
+}
 
 }

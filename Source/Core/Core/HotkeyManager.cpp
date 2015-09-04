@@ -41,7 +41,6 @@ const std::string hotkey_labels[] =
 	_trans("Increase IR"),
 	_trans("Decrease IR"),
 
-	_trans("Toggle IR"),
 	_trans("Toggle Aspect Ratio"),
 	_trans("Toggle EFB Copies"),
 	_trans("Toggle Fog"),
@@ -109,20 +108,54 @@ const std::string hotkey_labels[] =
 	_trans("Load State Last 6"),
 	_trans("Load State Last 7"),
 	_trans("Load State Last 8"),
+	_trans("Load State Last 9"),
+	_trans("Load State Last 10"),
 
 	_trans("Save Oldest State"),
 	_trans("Undo Load State"),
 	_trans("Undo Save State"),
 	_trans("Save State"),
 	_trans("Load State"),
-};
 
-const int num_hotkeys = (sizeof(hotkey_labels) / sizeof(hotkey_labels[0]));
+	_trans("Permanent Camera Forward"),
+	_trans("Permanent Camera Backward"),
+	_trans("Less Units Per Metre"),
+	_trans("More Units Per Metre"),
+	_trans("Global Larger Scale"),
+	_trans("Global Smaller Scale"),
+	_trans("Tilt Camera Up"),
+	_trans("Tilt Camera Down"),
+
+	_trans("HUD Forward"),
+	_trans("HUD Backward"),
+	_trans("HUD Thicker"),
+	_trans("HUD Thinner"),
+	_trans("HUD 3D Items Closer"),
+	_trans("HUD 3D Items Further"),
+
+	_trans("2D Screen Larger"),
+	_trans("2D Screen Smaller"),
+	_trans("2D Camera Forward"),
+	_trans("2D Camera Backward"),
+	//_trans("2D Screen Left"), //Doesn't exist right now?
+	//_trans("2D Screen Right"), //Doesn't exist right now?
+	_trans("2D Camera Up"),
+	_trans("2D Camera Down"),
+	_trans("2D Camera Tilt Up"),
+	_trans("2D Camera Tilt Down"),
+	_trans("2D Screen Thicker"),
+	_trans("2D Screen Thinner"),
+
+	_trans("Debug Previous Layer"),
+	_trans("Debug Next Layer"),
+	_trans("Debug Scene"),
+};
+static_assert(NUM_HOTKEYS == sizeof(hotkey_labels) / sizeof(hotkey_labels[0]), "Wrong count of hotkey_labels");
 
 namespace HotkeyManagerEmu
 {
 
-static u32 s_hotkeyDown[3];
+static u32 s_hotkeyDown[(NUM_HOTKEYS + 31) / 32];
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
@@ -157,16 +190,14 @@ bool IsPressed(int Id, bool held)
 	unsigned int setKey = Id % 32;
 	if (s_hotkey.button[set] & (1 << setKey))
 	{
+		bool pressed = !!(s_hotkeyDown[set] & (1 << setKey));
 		s_hotkeyDown[set] |= (1 << setKey);
-		if (held)
+		if (!pressed || held)
 			return true;
 	}
 	else
 	{
-		bool pressed = !!(s_hotkeyDown[set] & (1 << setKey));
 		s_hotkeyDown[set] &= ~(1 << setKey);
-		if (pressed)
-			return true;
 	}
 
 	return false;
@@ -182,8 +213,8 @@ void Initialize(void* const hwnd)
 	// load the saved controller config
 	s_config.LoadConfig(true);
 
-	for (unsigned int i = 0; i < 3; ++i)
-		s_hotkeyDown[i] = 0;
+	for (u32& key : s_hotkeyDown)
+		key = 0;
 
 	s_enabled = true;
 }
@@ -209,19 +240,14 @@ void Shutdown()
 
 HotkeyManager::HotkeyManager()
 {
-	for (int set = 0; set < 3; set++)
+	for (int key = 0; key < NUM_HOTKEYS; key++)
 	{
-		// buttons
-		if ((set * 32) < num_hotkeys)
+		int set = key / 32;
+
+		if (key % 32 == 0)
 			groups.emplace_back(m_keys[set] = new Buttons(_trans("Keys")));
 
-		for (int key = 0; key < 32; key++)
-		{
-			if ((set * 32 + key) < num_hotkeys && hotkey_labels[set * 32 + key].length() != 0)
-			{
-				m_keys[set]->controls.emplace_back(new ControlGroup::Input(hotkey_labels[set * 32 + key]));
-			}
-		}
+		m_keys[set]->controls.emplace_back(new ControlGroup::Input(hotkey_labels[key]));
 	}
 
 	groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
@@ -240,20 +266,14 @@ std::string HotkeyManager::GetName() const
 
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
-	for (int set = 0; set < 3; set++)
+	for (int set = 0; set < (NUM_HOTKEYS + 31) / 32; set++)
 	{
 		std::vector<u32> bitmasks;
-		for (int key = 0; key < 32; key++)
-		{
-			if ((set * 32 + key) < num_hotkeys && hotkey_labels[set * 32 + key].length() != 0)
-				bitmasks.push_back(1 << key);
-		}
+		for (int key = 0; key < std::min(32, NUM_HOTKEYS - set * 32); key++)
+			bitmasks.push_back(1 << key);
 
-		if ((set * 32) < num_hotkeys)
-		{
-			kb->button[set] = 0;
-			m_keys[set]->GetState(&kb->button[set], bitmasks.data());
-		}
+		kb->button[set] = 0;
+		m_keys[set]->GetState(&kb->button[set], bitmasks.data());
 	}
 }
 
@@ -308,6 +328,40 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 	set_control(HK_FREELOOK_ZOOM_IN, SHIFT + " & W");
 	set_control(HK_FREELOOK_ZOOM_OUT, SHIFT + " & S");
 	set_control(HK_FREELOOK_RESET, SHIFT + " & R");
+
+	// VR
+	set_control(VR_PERMANENT_CAMERA_FORWARD, SHIFT + " & P");
+	set_control(VR_PERMANENT_CAMERA_BACKWARD, SHIFT + " & SEMICOLON");
+	set_control(VR_LARGER_SCALE, SHIFT + " & EQUALS");
+	set_control(VR_SMALLER_SCALE, SHIFT + " & MINUS");
+	//set_control(VR_GLOBAL_LARGER_SCALE, SHIFT + " & ");
+	//set_control(VR_GLOBAL_SMALLER_SCALE, SHIFT + " & ");
+	set_control(VR_CAMERA_TILT_UP, SHIFT + " & O");
+	set_control(VR_CAMERA_TILT_DOWN, SHIFT + " & L");
+		
+	set_control(VR_HUD_FORWARD, SHIFT + " & SLASH");
+	set_control(VR_HUD_BACKWARD, SHIFT + " & PERIOD");
+	set_control(VR_HUD_THICKER, SHIFT + " & RBRACKET");
+	set_control(VR_HUD_THINNER, SHIFT + " & LBRACKET");
+	//set_control(VR_HUD_3D_CLOSER, SHIFT + " & ");
+	//set_control(VR_HUD_3D_FURTHER, SHIFT + " & ");
+
+	set_control(VR_2D_SCREEN_LARGER, SHIFT + " & COMMA");
+	set_control(VR_2D_SCREEN_SMALLER, SHIFT + " & M");
+	set_control(VR_2D_CAMERA_FORWARD, SHIFT + " & J");
+	set_control(VR_2D_CAMERA_BACKWARD, SHIFT + " & U");
+	//set_control(VR_2D_SCREEN_LEFT, SHIFT + " & "); //DOESN'T_EXIST_RIGHT_NOW?
+	//set_control(VR_2D_SCREEN_RIGHT, SHIFT + " & "); //DOESN'T_EXIST_RIGHT_NOW?
+	set_control(VR_2D_CAMERA_UP, SHIFT + " & H");
+	set_control(VR_2D_CAMERA_DOWN, SHIFT + " & Y");
+	set_control(VR_2D_CAMERA_TILT_UP, SHIFT + " & I");
+	set_control(VR_2D_CAMERA_TILT_DOWN, SHIFT + " & K");
+	set_control(VR_2D_SCREEN_THICKER, SHIFT + " & T");
+	set_control(VR_2D_SCREEN_THINNER, SHIFT + " & G");
+
+	set_control(VR_DEBUG_PREVIOUS_LAYER, SHIFT + " & B");
+	set_control(VR_DEBUG_NEXT_LAYER, SHIFT + " & N");
+	set_control(VR_DEBUG_SCENE, SHIFT + " & APOSTROPHE");
 
 	// Savestates
 	for (int i = 0; i < 8; i++)

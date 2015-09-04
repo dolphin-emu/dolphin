@@ -94,33 +94,35 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 
 	// Compute the start and length of the memory operation, including
 	// any byteswapping.
-	int totalSize;
+	int totalSize = info.instructionSize;
 	u8 *start = codePtr;
 	if (!info.isMemoryWrite)
 	{
-		int bswapNopCount;
-		if (info.byteSwap || info.operandSize == 1)
-			bswapNopCount = 0;
-		// Check the following BSWAP for REX byte
-		else if ((codePtr[info.instructionSize] & 0xF0) == 0x40)
-			bswapNopCount = 3;
-		else
-			bswapNopCount = 2;
-
-		totalSize = info.instructionSize + bswapNopCount;
-		if (info.operandSize == 2 && !info.byteSwap)
+		// MOVBE and single bytes don't need to be swapped.
+		if (!info.byteSwap && info.operandSize > 1)
 		{
+			// REX
 			if ((codePtr[totalSize] & 0xF0) == 0x40)
+				totalSize++;
+
+			// BSWAP
+			if (codePtr[totalSize] == 0x0F && (codePtr[totalSize + 1] & 0xF8) == 0xC8)
+				totalSize += 2;
+
+			if (info.operandSize == 2)
 			{
-				++totalSize;
+				// operand size override
+				if (codePtr[totalSize] == 0x66)
+					totalSize++;
+				// REX
+				if ((codePtr[totalSize] & 0xF0) == 0x40)
+					totalSize++;
+				// SAR/ROL
+				_assert_(codePtr[totalSize] == 0xC1 && (codePtr[totalSize + 2] == 0x10 ||
+				                                        codePtr[totalSize + 2] == 0x08));
+				info.signExtend = (codePtr[totalSize + 1] & 0x10) != 0;
+				totalSize += 3;
 			}
-			if (codePtr[totalSize] != 0xc1 || codePtr[totalSize + 2] != 0x10)
-			{
-				PanicAlert("BackPatch: didn't find expected shift %p", codePtr);
-				return false;
-			}
-			info.signExtend = (codePtr[totalSize + 1] & 0x10) != 0;
-			totalSize += 3;
 		}
 	}
 	else
@@ -128,7 +130,6 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		if (info.byteSwap || info.hasImmediate)
 		{
 			// The instruction is a MOVBE but it failed so the value is still in little-endian byte order.
-			totalSize = info.instructionSize;
 		}
 		else
 		{
@@ -154,7 +155,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 				break;
 			}
 			start = codePtr - bswapSize;
-			totalSize = info.instructionSize + bswapSize;
+			totalSize += bswapSize;
 		}
 	}
 

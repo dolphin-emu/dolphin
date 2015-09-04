@@ -15,6 +15,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::EnqueueReply(u32 CommandAddress)
@@ -490,11 +491,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 	if (now - m_last_ticks > interval)
 	{
+		g_controller_interface.UpdateInput();
 		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
-			if (m_WiiMotes[i].IsConnected())
-			{
-				Wiimote::Update(i);
-			}
+			Wiimote::Update(i, m_WiiMotes[i].IsConnected());
 		m_last_ticks = now;
 	}
 

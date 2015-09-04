@@ -149,49 +149,7 @@ public final class SettingsFragment extends PreferenceFragment implements Shared
 				findPreference("enhancements").setEnabled(true);
 				findPreference("hacks").setEnabled(true);
 				findPreference("showFPS").setEnabled(true);
-
-				// Create an alert telling them that their phone sucks
-				if (mEglHelper.supportsGLES3()
-						&& mVendor.equals("Qualcomm")
-						&& getQualcommVersion() == 14.0f)
-				{
-					AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-					builder.setTitle(R.string.device_compat_warning);
-					builder.setMessage(R.string.device_gles3compat_warning_msg);
-					builder.setPositiveButton(R.string.yes, null);
-					builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener()
-					{
-						public void onClick(DialogInterface dialog, int which)
-						{
-							// Get an editor.
-							SharedPreferences.Editor editor = mPreferences.edit();
-							editor.putString("gpuPref", "Software Renderer");
-							editor.apply();
-							mVideoBackendPreference.setValue("Software Renderer");
-						}
-					});
-					builder.show();
-				}
 			}
 		}
-	}
-
-	private float getQualcommVersion()
-	{
-		final int start = mVersion.indexOf("V@") + 2;
-		final StringBuilder versionBuilder = new StringBuilder();
-
-		for (int i = start; i < mVersion.length(); i++)
-		{
-			char c = mVersion.charAt(i);
-
-			// End of numeric portion of version string.
-			if (c == ' ')
-				break;
-
-			versionBuilder.append(c);
-		}
-
-		return Float.parseFloat(versionBuilder.toString());
 	}
 }

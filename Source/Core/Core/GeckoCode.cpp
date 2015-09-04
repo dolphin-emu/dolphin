@@ -86,7 +86,7 @@ static bool InstallCodeHandler()
 
 	u8 mmioAddr = 0xCC;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 	{
 		mmioAddr = 0xCD;
 	}
@@ -157,7 +157,7 @@ static bool InstallCodeHandler()
 
 void RunCodeHandler()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats && active_codes.size() > 0)
+	if (SConfig::GetInstance().bEnableCheats && active_codes.size() > 0)
 	{
 		if (!code_handler_installed || PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS) - 0xd01f1bad > 5)
 			code_handler_installed = InstallCodeHandler();

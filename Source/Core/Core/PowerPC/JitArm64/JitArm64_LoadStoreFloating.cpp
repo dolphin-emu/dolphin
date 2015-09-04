@@ -71,8 +71,11 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 	u32 imm_addr = 0;
 	bool is_immediate = false;
 
-	fpr.BindToRegister(inst.FD, false);
-	ARM64Reg VD = fpr.R(inst.FD);
+	RegType type = !!(flags & BackPatchInfo::FLAG_SIZE_F64) ? REG_LOWER_PAIR : REG_DUP;
+
+	fpr.BindToRegister(inst.FD, false, type);
+
+	ARM64Reg VD = fpr.R(inst.FD, type);
 	ARM64Reg addr_reg = W0;
 
 	gpr.Lock(W0, W30);
@@ -181,26 +184,20 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 	BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
 	BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
 	regs_in_use[W0] = 0;
-	regs_in_use[W30] = 0;
 	fprs_in_use[0] = 0; // Q0
 	fprs_in_use[VD - Q0] = 0;
 
 	if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
 	{
-		EmitBackpatchRoutine(this, flags, true, false, VD, XA);
+		EmitBackpatchRoutine(flags, true, false, VD, XA, BitSet32(0), BitSet32(0));
 	}
 	else
 	{
-		// Has a chance of being backpatched which will destroy our state
-		// push and pop everything in this instance
-		ABI_PushRegisters(regs_in_use);
-		m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
-		EmitBackpatchRoutine(this, flags,
+		EmitBackpatchRoutine(flags,
 			jo.fastmem,
 			jo.fastmem,
-			VD, XA);
-		m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
-		ABI_PopRegisters(regs_in_use);
+			VD, XA,
+			regs_in_use, fprs_in_use);
 	}
 
 	gpr.Unlock(W0, W30);
@@ -230,6 +227,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 				break;
 				case 695: // stfsux
 					flags |= BackPatchInfo::FLAG_SIZE_F32;
+					update = true;
 					offset_reg = b;
 				break;
 				case 727: // stfdx
@@ -239,6 +237,10 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 				case 759: // stfdux
 					flags |= BackPatchInfo::FLAG_SIZE_F64;
 					update = true;
+					offset_reg = b;
+				break;
+				case 983: // stfiwx
+					flags |= BackPatchInfo::FLAG_SIZE_F32I;
 					offset_reg = b;
 				break;
 			}
@@ -262,7 +264,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 	u32 imm_addr = 0;
 	bool is_immediate = false;
 
-	ARM64Reg V0 = fpr.R(inst.FS);
+	ARM64Reg V0 = fpr.R(inst.FS, REG_IS_LOADED);
 	ARM64Reg addr_reg = W1;
 
 	gpr.Lock(W0, W1, W30);
@@ -380,7 +382,6 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 	BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
 	regs_in_use[W0] = 0;
 	regs_in_use[W1] = 0;
-	regs_in_use[W30] = 0;
 	fprs_in_use[0] = 0; // Q0
 
 	if (is_immediate)
@@ -434,29 +435,20 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 		}
 		else if (PowerPC::IsOptimizableRAMAddress(imm_addr))
 		{
-			EmitBackpatchRoutine(this, flags, true, false, V0, XA);
+			EmitBackpatchRoutine(flags, true, false, V0, XA, BitSet32(0), BitSet32(0));
 		}
 		else
 		{
-			ABI_PushRegisters(regs_in_use);
-			m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
-			EmitBackpatchRoutine(this, flags, false, false, V0, XA);
-			m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
-			ABI_PopRegisters(regs_in_use);
+			EmitBackpatchRoutine(flags, false, false, V0, XA, regs_in_use, fprs_in_use);
 		}
 	}
 	else
 	{
-		// Has a chance of being backpatched which will destroy our state
-		// push and pop everything in this instance
-		ABI_PushRegisters(regs_in_use);
-		m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
-		EmitBackpatchRoutine(this, flags,
+		EmitBackpatchRoutine(flags,
 			jo.fastmem,
 			jo.fastmem,
-			V0, XA);
-		m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
-		ABI_PopRegisters(regs_in_use);
+			V0, XA,
+			regs_in_use, fprs_in_use);
 	}
 	gpr.Unlock(W0, W1, W30);
 	fpr.Unlock(Q0);

@@ -33,9 +33,9 @@ void Init()
 #if defined(__LIBUSB__) || defined (_WIN32)
 	SI_GCAdapter::Init();
 #endif
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
+	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
-	SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
+	SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
 }
 
 void Shutdown()

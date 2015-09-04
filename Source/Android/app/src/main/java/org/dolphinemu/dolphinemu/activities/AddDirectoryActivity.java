@@ -1,12 +1,12 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.Activity;
 import android.content.AsyncQueryHandler;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -24,7 +24,7 @@ import org.dolphinemu.dolphinemu.model.GameProvider;
  * An Activity that shows a list of files and folders, allowing the user to tell the app which folder(s)
  * contains the user's games.
  */
-public class AddDirectoryActivity extends Activity implements FileAdapter.FileClickListener
+public class AddDirectoryActivity extends AppCompatActivity implements FileAdapter.FileClickListener
 {
 	public static final String KEY_CURRENT_PATH = BuildConfig.APPLICATION_ID + ".path";
 
@@ -97,8 +97,6 @@ public class AddDirectoryActivity extends Activity implements FileAdapter.FileCl
 
 	/**
 	 * Add a directory to the library, and if successful, end the activity.
-	 *
-	 * @param path The target directory's path.
 	 */
 	@Override
 	public void addDirectory()

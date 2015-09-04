@@ -14,6 +14,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/CachedInterpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -25,11 +26,6 @@
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
-#endif
-
-#if _M_ARM_32
-#include "Core/PowerPC/JitArm32/Jit.h"
-#include "Core/PowerPC/JitArm32/JitArm_Tables.h"
 #endif
 
 #if _M_ARM_64
@@ -49,7 +45,7 @@ namespace JitInterface
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
-		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+		bMMU = SConfig::GetInstance().bMMU;
 		bFakeVMEM = !bMMU;
 
 		CPUCoreBase *ptr = nullptr;
@@ -63,16 +59,15 @@ namespace JitInterface
 			ptr = new JitIL();
 			break;
 		#endif
-		#if _M_ARM_32
-		case PowerPC::CORE_JITARM:
-			ptr = new JitArm();
-			break;
-		#endif
 		#if _M_ARM_64
 		case PowerPC::CORE_JITARM64:
 			ptr = new JitArm64();
 			break;
 		#endif
+		case PowerPC::CORE_CACHEDINTERPRETER:
+			ptr = new CachedInterpreter();
+			break;
+
 		default:
 			PanicAlert("Unrecognizable cpu_core: %d", core);
 			jit = nullptr;
@@ -94,16 +89,14 @@ namespace JitInterface
 			JitILTables::InitTables();
 			break;
 		#endif
-		#if _M_ARM_32
-		case PowerPC::CORE_JITARM:
-			JitArmTables::InitTables();
-			break;
-		#endif
 		#if _M_ARM_64
 		case PowerPC::CORE_JITARM64:
 			JitArm64Tables::InitTables();
 			break;
 		#endif
+		case PowerPC::CORE_CACHEDINTERPRETER:
+			// has no tables
+			break;
 		default:
 			PanicAlert("Unrecognizable cpu_core: %d", core);
 			break;
@@ -140,14 +133,14 @@ namespace JitInterface
 
 	void GetProfileResults(ProfileStats* prof_stats)
 	{
+		// Can't really do this with no jit core available
+		if (!jit)
+			return;
+
 		prof_stats->cost_sum = 0;
 		prof_stats->timecost_sum = 0;
 		prof_stats->block_stats.clear();
 		prof_stats->block_stats.reserve(jit->GetBlockCache()->GetNumBlocks());
-
-		// Can't really do this with no jit core available
-		if (!jit)
-			return;
 
 		Core::EState old_state = Core::GetState();
 		if (old_state == Core::CORE_RUN)
@@ -209,8 +202,7 @@ namespace JitInterface
 
 		JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
 
-		*code = (const u8*)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
-
+		*code = block->checkedEntry;
 		*code_size = block->codeSize;
 		*address = block->originalAddress;
 		return 0;
@@ -218,6 +210,12 @@ namespace JitInterface
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx)
 	{
+		// Prevent nullptr dereference on a crash with no JIT present
+		if (!jit)
+		{
+			return false;
+		}
+
 		return jit->HandleFault(access_address, ctx);
 	}
 

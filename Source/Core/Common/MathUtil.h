@@ -62,19 +62,6 @@ union IntFloat {
 	explicit IntFloat(float _f) : f(_f) {}
 };
 
-inline bool IsINF(double d)
-{
-	IntDouble x(d);
-	return (x.i & ~DOUBLE_SIGN) == DOUBLE_EXP;
-}
-
-inline bool IsNAN(double d)
-{
-	IntDouble x(d);
-	return ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
-	       ((x.i & DOUBLE_FRAC) != DOUBLE_ZERO);
-}
-
 inline bool IsQNAN(double d)
 {
 	IntDouble x(d);

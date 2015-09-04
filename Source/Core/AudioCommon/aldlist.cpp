@@ -335,7 +335,7 @@ s32 ALDeviceList::GetNextFilteredDevice()
 }
 
 /*
- * Internal function to detemine max number of Sources that can be generated
+ * Internal function to determine max number of Sources that can be generated
  */
 u32 ALDeviceList::GetMaxNumSources()
 {

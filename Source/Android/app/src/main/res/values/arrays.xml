@@ -46,9 +46,11 @@
     <!-- New UI CPU Core selection - Default -->
     <string-array name="string_emu_cores" translatable="false">
         <item>@string/interpreter</item>
+        <item>@string/cached_interpreter</item>
     </string-array>
     <string-array name="int_emu_cores" translatable="false">
         <item>0</item>
+        <item>5</item>
     </string-array>
     
     <!-- Video Backend Selection - Supports OpenGL ES 3 -->

@@ -499,6 +499,7 @@ FSTEntry ScanDirectoryTree(const std::string &directory, bool recursive)
 					entry = ScanDirectoryTree(physical_name, true);
 				else
 					entry.size = 0;
+				parent_entry.size += entry.size;
 			}
 			else
 			{
@@ -731,8 +732,12 @@ std::string& GetExeDirectory()
 	if (DolphinPath.empty())
 	{
 		TCHAR Dolphin_exe_Path[2048];
+		TCHAR Dolphin_exe_Clean_Path[MAX_PATH];
 		GetModuleFileName(nullptr, Dolphin_exe_Path, 2048);
-		DolphinPath = TStrToUTF8(Dolphin_exe_Path);
+		if (_tfullpath(Dolphin_exe_Clean_Path, Dolphin_exe_Path, MAX_PATH) != nullptr)
+			DolphinPath = TStrToUTF8(Dolphin_exe_Clean_Path);
+		else
+			DolphinPath = TStrToUTF8(Dolphin_exe_Path);
 		DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
 	}
 	return DolphinPath;

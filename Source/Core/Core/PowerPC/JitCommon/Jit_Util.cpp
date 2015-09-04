@@ -24,24 +24,8 @@ void EmuCodeBlock::MemoryExceptionCheck()
 
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
-	MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
-	if (accessSize == 32)
-	{
-		BSWAP(32, reg_value);
-	}
-	else if (accessSize == 16)
-	{
-		BSWAP(32, reg_value);
-		if (signExtend)
-			SAR(32, R(reg_value), Imm8(16));
-		else
-			SHR(32, R(reg_value), Imm8(16));
-	}
-	else if (signExtend)
-	{
-		// TODO: bake 8-bit into the original load.
-		MOVSX(32, accessSize, reg_value, R(reg_value));
-	}
+	OpArg src = MComplex(RMEM, reg_addr, SCALE_1, offset);
+	LoadAndSwap(accessSize, reg_value, src, signExtend);
 }
 
 void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
@@ -84,34 +68,7 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessS
 	}
 
 	result = GetWritableCodePtr();
-	if (accessSize == 8 && signExtend)
-		MOVSX(32, accessSize, reg_value, memOperand);
-	else
-		MOVZX(64, accessSize, reg_value, memOperand);
-
-	switch (accessSize)
-	{
-	case 8:
-		_dbg_assert_(DYNA_REC, BACKPATCH_SIZE - (GetCodePtr() - result <= 0));
-		break;
-
-	case 16:
-		BSWAP(32, reg_value);
-		if (signExtend)
-			SAR(32, R(reg_value), Imm8(16));
-		else
-			SHR(32, R(reg_value), Imm8(16));
-		break;
-
-	case 32:
-		BSWAP(32, reg_value);
-		break;
-
-	case 64:
-		BSWAP(64, reg_value);
-		break;
-	}
-
+	LoadAndSwap(accessSize, reg_value, memOperand, signExtend);
 	return result;
 }
 
@@ -127,15 +84,15 @@ public:
 	{
 	}
 
-	virtual void VisitConstant(T value)
+	void VisitConstant(T value) override
 	{
 		LoadConstantToReg(8 * sizeof (T), value);
 	}
-	virtual void VisitDirect(const T* addr, u32 mask)
+	void VisitDirect(const T* addr, u32 mask) override
 	{
 		LoadAddrMaskToReg(8 * sizeof (T), addr, mask);
 	}
-	virtual void VisitComplex(const std::function<T(u32)>* lambda)
+	void VisitComplex(const std::function<T(u32)>* lambda) override
 	{
 		CallLambda(8 * sizeof (T), lambda);
 	}
@@ -250,7 +207,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
 	// assuming they'll never do an invalid memory access.
 	// The slightly more complex check needed for Wii games using the space just above MEM1 isn't
 	// implemented here yet, since there are no known working Wii MMU games to test it with.
-	if (jit->jo.memcheck && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (jit->jo.memcheck && !SConfig::GetInstance().bWii)
 	{
 		if (scratch == reg_addr)
 			PUSH(scratch);
@@ -415,17 +372,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acce
 	}
 	else if (swap)
 	{
-		if (cpu_info.bMOVBE)
-		{
-			MOVBE(accessSize, dest, reg_value.GetSimpleReg());
-		}
-		else
-		{
-			if (accessSize > 8)
-				BSWAP(accessSize, reg_value.GetSimpleReg());
-			result = GetWritableCodePtr();
-			MOV(accessSize, dest, reg_value);
-		}
+		result = SwapAndStore(accessSize, dest, reg_value.GetSimpleReg());
 	}
 	else
 	{
@@ -453,16 +400,16 @@ void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
 	switch (accessSize)
 	{
 	case 8:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite8);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite8);
 		break;
 	case 16:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite16);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite16);
 		break;
 	case 32:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite32);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite32);
 		break;
 	case 64:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite64);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite64);
 		break;
 	}
 	jit->js.fifoBytesThisBlock += accessSize >> 3;
@@ -476,7 +423,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address, B
 	// fun tricks...
 	if (jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(address))
 	{
-		if (!arg.IsSimpleReg() || arg.GetSimpleReg() != RSCRATCH)
+		if (!arg.IsSimpleReg(RSCRATCH))
 			MOV(accessSize, R(RSCRATCH), arg);
 
 		UnsafeWriteGatherPipe(accessSize);
@@ -654,7 +601,7 @@ void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool 
 				MOVDDUP(output, R(output));
 		}
 	}
-	else if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
+	else if (!input.IsSimpleReg(output))
 	{
 		if (duplicate)
 			MOVDDUP(output, input);
@@ -667,7 +614,7 @@ void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool 
 void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&), void (XEmitter::*sseOp)(X64Reg, const OpArg&),
                           X64Reg regOp, const OpArg& arg1, const OpArg& arg2, bool packed, bool reversible)
 {
-	if (arg1.IsSimpleReg() && regOp == arg1.GetSimpleReg())
+	if (arg1.IsSimpleReg(regOp))
 	{
 		(this->*sseOp)(regOp, arg2);
 	}
@@ -675,7 +622,7 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
 	{
 		(this->*avxOp)(regOp, arg1.GetSimpleReg(), arg2);
 	}
-	else if (arg2.IsSimpleReg() && arg2.GetSimpleReg() == regOp)
+	else if (arg2.IsSimpleReg(regOp))
 	{
 		if (reversible)
 		{
@@ -684,7 +631,7 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
 		else
 		{
 			// The ugly case: regOp == arg2 without AVX, or with arg1 == memory
-			if (!arg1.IsSimpleReg() || arg1.GetSimpleReg() != XMM0)
+			if (!arg1.IsSimpleReg(XMM0))
 				MOVAPD(XMM0, arg1);
 			if (cpu_info.bAVX)
 			{
@@ -714,7 +661,7 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
 void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, u8), void (XEmitter::*sseOp)(X64Reg, const OpArg&, u8),
                           X64Reg regOp, const OpArg& arg1, const OpArg& arg2, u8 imm)
 {
-	if (arg1.IsSimpleReg() && regOp == arg1.GetSimpleReg())
+	if (arg1.IsSimpleReg(regOp))
 	{
 		(this->*sseOp)(regOp, arg2, imm);
 	}
@@ -722,10 +669,10 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, 
 	{
 		(this->*avxOp)(regOp, arg1.GetSimpleReg(), arg2, imm);
 	}
-	else if (arg2.IsSimpleReg() && arg2.GetSimpleReg() == regOp)
+	else if (arg2.IsSimpleReg(regOp))
 	{
 		// The ugly case: regOp == arg2 without AVX, or with arg1 == memory
-		if (!arg1.IsSimpleReg() || arg1.GetSimpleReg() != XMM0)
+		if (!arg1.IsSimpleReg(XMM0))
 			MOVAPD(XMM0, arg1);
 		if (cpu_info.bAVX)
 		{
@@ -764,14 +711,14 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg
 		}
 		else
 		{
-			if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
+			if (!input.IsSimpleReg(output))
 				MOVAPD(output, input);
 			avx_op(&XEmitter::VPAND, &XEmitter::PAND, tmp, R(output), M(psRoundBit), true, true);
 			PAND(output, M(psMantissaTruncate));
 			PADDQ(output, R(tmp));
 		}
 	}
-	else if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
+	else if (!input.IsSimpleReg(output))
 	{
 		MOVAPD(output, input);
 	}

@@ -53,7 +53,6 @@ public:
 	static void fnmaddsx(UGeckoInstruction _inst);
 	static void fnmsubsx(UGeckoInstruction _inst);
 	static void fresx(UGeckoInstruction _inst);
-	//static void fsqrtsx(UGeckoInstruction _inst);
 	static void fsubsx(UGeckoInstruction _inst);
 	static void fabsx(UGeckoInstruction _inst);
 	static void fcmpo(UGeckoInstruction _inst);
@@ -73,7 +72,6 @@ public:
 	static void fnmsubx(UGeckoInstruction _inst);
 	static void frsqrtex(UGeckoInstruction _inst);
 	static void fselx(UGeckoInstruction _inst);
-	static void fsqrtx(UGeckoInstruction _inst);
 	static void fsubx(UGeckoInstruction _inst);
 
 	// Integer Instructions
@@ -199,7 +197,6 @@ public:
 	static void stwcxd(UGeckoInstruction _inst);
 	static void stwux(UGeckoInstruction _inst);
 	static void stwx(UGeckoInstruction _inst);
-	static void tlbia(UGeckoInstruction _inst);
 	static void tlbie(UGeckoInstruction _inst);
 	static void tlbsync(UGeckoInstruction _inst);
 
@@ -276,13 +273,13 @@ public:
 	static void sync(UGeckoInstruction _inst);
 	static void isync(UGeckoInstruction _inst);
 
-	typedef void(*_interpreterInstruction)(UGeckoInstruction instCode);
-	static _interpreterInstruction m_opTable[64];
-	static _interpreterInstruction m_opTable4[1024];
-	static _interpreterInstruction m_opTable19[1024];
-	static _interpreterInstruction m_opTable31[1024];
-	static _interpreterInstruction m_opTable59[32];
-	static _interpreterInstruction m_opTable63[1024];
+	using Instruction = void (*)(UGeckoInstruction instCode);
+	static Instruction m_opTable[64];
+	static Instruction m_opTable4[1024];
+	static Instruction m_opTable19[1024];
+	static Instruction m_opTable31[1024];
+	static Instruction m_opTable59[32];
+	static Instruction m_opTable63[1024];
 
 	// singleton
 	static Interpreter* getInstance();

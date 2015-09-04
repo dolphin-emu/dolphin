@@ -4,7 +4,7 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
 
-import org.dolphinemu.dolphinemu.settings.UserPreferences;
+import org.dolphinemu.dolphinemu.utils.UserPreferences;
 
 /**
  * IntentServices, unlike regular services, inherently run on a background thread.

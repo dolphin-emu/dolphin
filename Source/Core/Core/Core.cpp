@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <atomic>
 #include <cctype>
 
 #ifdef _WIN32
@@ -10,7 +11,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 
-#include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
@@ -25,7 +25,6 @@
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
@@ -93,7 +92,7 @@
 // TODO: ugly, remove
 bool g_aspect_wide;
 
-volatile u32 g_drawn_vr = 0;
+std::atomic<u32> g_drawn_vr = 0;
 
 namespace Core
 {
@@ -103,8 +102,8 @@ bool g_want_determinism;
 // Declarations and definitions
 static Common::Timer s_timer;
 static Common::Timer s_vr_timer;
-static volatile u32 s_drawn_frame = 0;
-static u32 s_drawn_video = 0;
+static std::atomic<u32> s_drawn_frame;
+static std::atomic<u32> s_drawn_video;
 static float s_vr_fps = 0;
 
 // Function forwarding
@@ -216,8 +215,7 @@ bool IsCPUThread()
 
 bool IsGPUThread()
 {
-	const SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& _CoreParameter = SConfig::GetInstance();
 	if (_CoreParameter.bCPUThread)
 	{
 		return (s_emu_thread.joinable() && (s_emu_thread.get_id() == std::this_thread::get_id()));
@@ -232,8 +230,7 @@ bool IsGPUThread()
 // BootManager.cpp
 bool Init()
 {
-	const SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (s_emu_thread.joinable())
 	{
@@ -293,8 +290,7 @@ void Stop()  // - Hammertime!
 	if (GetState() == CORE_STOPPING)
 		return;
 
-	const SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	s_is_stopping = true;
 
@@ -349,8 +345,7 @@ static void CpuThread()
 {
 	DeclareAsCPUThread();
 
-	const SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -407,7 +402,7 @@ static void CpuThread()
 
 static void FifoPlayerThread()
 {
-	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -445,7 +440,7 @@ void VRThread()
 	Common::SetCurrentThreadName("VR Thread");
 
 	const SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+		SConfig::GetInstance();
 
 	std::thread *video_thread = &s_emu_thread;
 	if (!_CoreParameter.bCPUThread)
@@ -490,8 +485,7 @@ void VRThread()
 // See the BootManager.cpp file description for a complete call schedule.
 void EmuThread()
 {
-	const SCoreStartupParameter& core_parameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& core_parameter = SConfig::GetInstance();
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
 
@@ -553,9 +547,9 @@ void EmuThread()
 	OSD::AddMessage("Dolphin " + g_video_backend->GetName() + " Video Backend.", 5000);
 
 	if (cpu_info.HTT)
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = cpu_info.num_cores > 4;
+		SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 4;
 	else
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = cpu_info.num_cores > 2;
+		SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 2;
 
 	if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
 	{
@@ -628,7 +622,7 @@ void EmuThread()
 
 	// Determine the CPU thread function
 	void (*cpuThreadFunc)(void);
-	if (core_parameter.m_BootType == SCoreStartupParameter::BOOT_DFF)
+	if (core_parameter.m_BootType == SConfig::BOOT_DFF)
 		cpuThreadFunc = FifoPlayerThread;
 	else
 		cpuThreadFunc = CpuThread;
@@ -800,9 +794,9 @@ EState GetState()
 	return CORE_UNINITIALIZED;
 }
 
-static std::string GenerateScreenshotName()
+static std::string GenerateScreenshotFolderPath()
 {
-	const std::string& gameId = SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
+	const std::string& gameId = SConfig::GetInstance().GetUniqueID();
 	std::string path = File::GetUserPath(D_SCREENSHOTS_IDX) + gameId + DIR_SEP_CHR;
 
 	if (!File::CreateFullPath(path))
@@ -811,8 +805,15 @@ static std::string GenerateScreenshotName()
 		path = File::GetUserPath(D_SCREENSHOTS_IDX);
 	}
 
+	return path;
+}
+
+static std::string GenerateScreenshotName()
+{
+	std::string path = GenerateScreenshotFolderPath();
+
 	//append gameId, path only contains the folder here.
-	path += gameId;
+	path += SConfig::GetInstance().GetUniqueID();
 
 	std::string name;
 	for (int i = 1; File::Exists(name = StringFromFormat("%s-%d.png", path.c_str(), i)); ++i)
@@ -833,6 +834,20 @@ void SaveScreenShot()
 
 	if (!bPaused)
 		SetState(CORE_RUN);
+}
+
+void SaveScreenShot(const std::string& name)
+{
+	const bool bPaused = (GetState() == CORE_PAUSE);
+
+	SetState(CORE_PAUSE);
+
+	std::string filePath = GenerateScreenshotFolderPath() + name + ".png";
+
+	g_video_backend->Video_Screenshot(filePath);
+
+	if (!bPaused)
+	 	SetState(CORE_RUN);
 }
 
 void RequestRefreshInfo()
@@ -868,15 +883,15 @@ void VideoThrottle()
 {
 	// Update info per second
 	u32 ElapseTime = (u32)s_timer.GetTimeDifference();
-	if ((ElapseTime >= 1000 && s_drawn_video > 0) || s_request_refresh_info)
+	if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_request_refresh_info)
 	{
 		UpdateTitle();
 
 		// Reset counter
 		s_timer.Update();
-		Common::AtomicStore(s_drawn_frame, 0);
-		s_drawn_video = 0;
-		Common::AtomicStore(g_drawn_vr, 0);
+		s_drawn_frame.store(0);
+		s_drawn_video.store(0);
+		g_drawn_vr.store(0);
 	}
 
 	s_drawn_video++;
@@ -890,7 +905,7 @@ bool ShouldSkipFrame(int skipped)
 	const u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1)
 		? (SConfig::GetInstance().m_Framelimit - 1) * 5
 		: VideoInterface::TargetRefreshRate;
-	const u32 frames = Common::AtomicLoad(s_drawn_frame);
+	const u32 frames = s_drawn_frame.load();
 	const bool fps_slow = !(s_timer.GetTimeDifference() < (frames + skipped) * 1000 / TargetFPS);
 
 	return fps_slow;
@@ -939,7 +954,8 @@ bool ShouldAddTimewarpFrame()
 void Callback_VideoCopiedToXFB(bool video_update)
 {
 	if (video_update)
-		Common::AtomicIncrement(s_drawn_frame);
+		s_drawn_frame++;
+
 	Movie::FrameUpdate();
 }
 
@@ -947,15 +963,15 @@ void UpdateTitle()
 {
 	u32 ElapseTime = (u32)s_timer.GetTimeDifference();
 	s_request_refresh_info = false;
-	SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (ElapseTime == 0)
 		ElapseTime = 1;
 
-	float FPS = (float) (Common::AtomicLoad(s_drawn_frame) * 1000.0 / ElapseTime);
-	float VPS = (float) (s_drawn_video * 1000.0 / ElapseTime);
-	float VRPS = (float) (Common::AtomicLoad(g_drawn_vr) * 1000.0 / ElapseTime);
-	float Speed = (float) (s_drawn_video * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
+	float FPS   = (float)(s_drawn_frame.load() * 1000.0 / ElapseTime);
+	float VPS   = (float)(s_drawn_video.load() * 1000.0 / ElapseTime);
+	float VRPS  = (float)(g_drawn_vr.load()    * 1000.0 / ElapseTime);
+	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
 	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), _CoreParameter.bCPUThread ? "DC" : "SC",

@@ -46,7 +46,6 @@
     <ClCompile Include="Boot\ElfReader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="Core.cpp" />
-    <ClCompile Include="CoreParameter.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
     <ClCompile Include="Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Debugger\Dump.cpp" />
@@ -109,9 +108,6 @@
     <ClCompile Include="HW\DSPHLE\UCodes\INIT.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\ROM.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\Zelda.cpp" />
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaADPCM.cpp" />
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaSynth.cpp" />
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaVoice.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPDebugInterface.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPLLE.cpp" />
@@ -244,6 +240,7 @@
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp" />
     <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp" />
     <ClCompile Include="PowerPC\JitCommon\TrampolineCache.cpp" />
+    <ClCompile Include="PowerPC\CachedInterpreter.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
     <ClCompile Include="PowerPC\MMU.cpp" />
     <ClCompile Include="PowerPC\PowerPC.cpp" />
@@ -267,7 +264,6 @@
     <ClInclude Include="Boot\ElfTypes.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Core.h" />
-    <ClInclude Include="CoreParameter.h" />
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="Debugger\Debugger_SymbolMap.h" />
     <ClInclude Include="Debugger\Dump.h" />
@@ -432,6 +428,7 @@
     <ClInclude Include="PowerPC\JitCommon\JitCache.h" />
     <ClInclude Include="PowerPC\JitCommon\Jit_Util.h" />
     <ClInclude Include="PowerPC\JitCommon\TrampolineCache.h" />
+    <ClInclude Include="PowerPC\CachedInterpreter.h" />
     <ClInclude Include="PowerPC\JitInterface.h" />
     <ClInclude Include="PowerPC\PowerPC.h" />
     <ClInclude Include="PowerPC\PPCAnalyst.h" />

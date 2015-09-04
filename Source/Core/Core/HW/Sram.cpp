@@ -60,7 +60,7 @@ SRAM sram_dump_german = {{
 
 void InitSRAM()
 {
-	File::IOFile file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM, "rb");
+	File::IOFile file(SConfig::GetInstance().m_strSRAM, "rb");
 	if (file)
 	{
 		if (!file.ReadArray(&g_SRAM, 1))

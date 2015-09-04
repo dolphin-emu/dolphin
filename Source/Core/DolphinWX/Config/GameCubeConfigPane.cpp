@@ -8,6 +8,7 @@
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/filedlg.h>
+#include <wx/filename.h>
 #include <wx/gbsizer.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -55,6 +56,10 @@ void GameCubeConfigPane::InitializeGUI()
 	m_system_lang_choice->SetToolTip(_("Sets the GameCube system language."));
 	m_system_lang_choice->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSystemLanguageChange, this);
 
+	m_override_lang_checkbox = new wxCheckBox(this, wxID_ANY, _("Override Language on NTSC Games"));
+	m_override_lang_checkbox->SetToolTip(_("Lets the system language be set to values that games were not designed for. This can allow the use of extra translations for a few games, but can also lead to text display issues."));
+	m_override_lang_checkbox->Bind(wxEVT_CHECKBOX, &GameCubeConfigPane::OnOverrideLanguageCheckBoxChanged, this);
+
 	m_skip_bios_checkbox = new wxCheckBox(this, wxID_ANY, _("Skip BIOS"));
 	m_skip_bios_checkbox->Bind(wxEVT_CHECKBOX, &GameCubeConfigPane::OnSkipBiosCheckBoxChanged, this);
 
@@ -96,6 +101,7 @@ void GameCubeConfigPane::InitializeGUI()
 	sGamecubeIPLSettings->Add(new wxStaticText(this, wxID_ANY, _("System Language:")),
 		wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	sGamecubeIPLSettings->Add(m_system_lang_choice, wxGBPosition(1, 1), wxDefaultSpan, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	sGamecubeIPLSettings->Add(m_override_lang_checkbox, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 
 	wxStaticBoxSizer* const sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, this, _("IPL Settings"));
 	sbGamecubeIPLSettings->Add(sGamecubeIPLSettings);
@@ -124,10 +130,11 @@ void GameCubeConfigPane::InitializeGUI()
 
 void GameCubeConfigPane::LoadGUIValues()
 {
-	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& startup_params = SConfig::GetInstance();
 
 	m_system_lang_choice->SetSelection(startup_params.SelectedLanguage);
 	m_skip_bios_checkbox->SetValue(startup_params.bHLE_BS2);
+	m_override_lang_checkbox->SetValue(startup_params.bOverrideGCLanguage);
 
 	wxArrayString slot_devices;
 	slot_devices.Add(_(DEV_NONE_STR));
@@ -199,20 +206,28 @@ void GameCubeConfigPane::RefreshGUI()
 	if (Core::IsRunning())
 	{
 		m_system_lang_choice->Disable();
+		m_override_lang_checkbox->Disable();
 		m_skip_bios_checkbox->Disable();
 	}
 }
 
 void GameCubeConfigPane::OnSystemLanguageChange(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = m_system_lang_choice->GetSelection();
+	SConfig::GetInstance().SelectedLanguage = m_system_lang_choice->GetSelection();
+
+	AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
+}
+
+void GameCubeConfigPane::OnOverrideLanguageCheckBoxChanged(wxCommandEvent& event)
+{
+	SConfig::GetInstance().bOverrideGCLanguage = m_override_lang_checkbox->IsChecked();
 
 	AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
 }
 
 void GameCubeConfigPane::OnSkipBiosCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2 = m_skip_bios_checkbox->IsChecked();
+	SConfig::GetInstance().bHLE_BS2 = m_skip_bios_checkbox->IsChecked();
 }
 
 void GameCubeConfigPane::OnSlotAChanged(wxCommandEvent& event)
@@ -317,23 +332,26 @@ void GameCubeConfigPane::ChooseSlotPath(bool is_slot_a, TEXIDevices device_type)
 				}
 			}
 		}
+
+		wxFileName newFilename(filename);
+		newFilename.MakeAbsolute();
+		filename = newFilename.GetFullPath();
+
 #ifdef _WIN32
-		if (!strncmp(File::GetExeDirectory().c_str(), filename.c_str(), File::GetExeDirectory().size()))
-		{
-			// If the Exe Directory Matches the prefix of the filename, we still need to verify
-			// that the next character is a directory separator character, otherwise we may create an invalid path
-			char next_char = filename.at(File::GetExeDirectory().size()) + 1;
-			if (next_char == '/' || next_char == '\\')
-			{
-				filename.erase(0, File::GetExeDirectory().size() + 1);
-				filename = "./" + filename;
-			}
-		}
+		// If the Memory Card file is within the Exe dir, we can assume that the user wants it to be stored relative
+		// to the executable, so it stays set correctly when the probably portable Exe dir is moved.
+		// TODO: Replace this with a cleaner, non-wx solution once std::filesystem is standard
+		std::string exeDir = File::GetExeDirectory() + '\\';
+		if (wxString(filename).Lower().StartsWith(wxString(exeDir).Lower()))
+			filename.erase(0, exeDir.size());
+
 		std::replace(filename.begin(), filename.end(), '\\', '/');
 #endif
 
 		// also check that the path isn't used for the other memcard...
-		if (filename.compare(is_slot_a ? pathB : pathA) != 0)
+		wxFileName otherFilename(is_slot_a ? pathB : pathA);
+		otherFilename.MakeAbsolute();
+		if (newFilename.GetFullPath().compare(otherFilename.GetFullPath()) != 0)
 		{
 			if (memcard)
 			{

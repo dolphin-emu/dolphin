@@ -41,8 +41,8 @@ Wiimote::Wiimote()
 	: m_index()
 	, m_last_input_report()
 	, m_channel(0)
+	, m_last_connect_request_counter(0)
 	, m_rumble_state()
-	, m_need_prepare()
 {}
 
 void Wiimote::Shutdown()
@@ -195,14 +195,14 @@ bool Wiimote::Read()
 
 	if (result > 0 && m_channel > 0)
 	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 &&
+		if (SConfig::GetInstance().iBBDumpPort > 0 &&
 		    m_index == WIIMOTE_BALANCE_BOARD)
 		{
 			static sf::UdpSocket Socket;
 			Socket.send((char*)rpt.data(),
 			            rpt.size(),
 			            sf::IpAddress::LocalHost,
-		                SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
+		                SConfig::GetInstance().iBBDumpPort);
 		}
 
 		// Add it to queue
@@ -229,10 +229,10 @@ bool Wiimote::Write()
 
 		if (!is_speaker_data || m_last_audio_report.GetTimeDifference() > 5)
 		{
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+			if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
 			{
 				static sf::UdpSocket Socket;
-				Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
+				Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, SConfig::GetInstance().iBBDumpPort);
 			}
 			IOWrite(rpt.data(), rpt.size());
 
@@ -296,6 +296,43 @@ void Wiimote::Update()
 	{
 		Core::Callback_WiimoteInterruptChannel(m_index, m_channel,
 			rpt.data(), (u32)rpt.size());
+	}
+}
+
+void Wiimote::ConnectOnInput()
+{
+	if (m_last_connect_request_counter > 0)
+	{
+		--m_last_connect_request_counter;
+		return;
+	}
+
+	const Report& rpt = ProcessReadQueue();
+	if (rpt.size() >= 4)
+	{
+		switch (rpt[1])
+		{
+		case WM_REPORT_CORE:
+		case WM_REPORT_CORE_ACCEL:
+		case WM_REPORT_CORE_EXT8:
+		case WM_REPORT_CORE_ACCEL_IR12:
+		case WM_REPORT_CORE_EXT19:
+		case WM_REPORT_CORE_ACCEL_EXT16:
+		case WM_REPORT_CORE_IR10_EXT9:
+		case WM_REPORT_CORE_ACCEL_IR10_EXT6:
+		case WM_REPORT_INTERLEAVE1:
+		case WM_REPORT_INTERLEAVE2:
+			// check any button without checking accelerometer data
+			if ((rpt[2] & 0x1F) != 0 || (rpt[3] & 0x9F) != 0)
+			{
+				Host_ConnectWiimote(m_index, true);
+				// see WiimoteEmu::Wiimote::ConnectOnInput(), same idea here
+				m_last_connect_request_counter = 100;
+			}
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -844,6 +881,18 @@ void Update(int _WiimoteNumber)
 	{
 		Host_ConnectWiimote(_WiimoteNumber, false);
 	}
+	g_refresh_lock.unlock();
+}
+
+void ConnectOnInput(int _WiimoteNumber)
+{
+	// see Update() above
+	if (!g_refresh_lock.try_lock())
+		return;
+
+	if (g_wiimotes[_WiimoteNumber])
+		g_wiimotes[_WiimoteNumber]->ConnectOnInput();
+
 	g_refresh_lock.unlock();
 }
 

@@ -12,7 +12,7 @@
 // include order is important
 #include <gtest/gtest.h> // NOLINT
 
-#if _M_X86_64 || _M_ARM_32
+#if _M_X86_64
 enum
 {
 #ifdef _WIN32

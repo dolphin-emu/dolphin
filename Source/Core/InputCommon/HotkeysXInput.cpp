@@ -4,7 +4,6 @@
 
 #include "InputCommon/HotkeysXInput.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "Core/CoreParameter.h"
 #include "Core/ConfigManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -204,227 +203,13 @@ namespace HotkeysXInput
 
 	void OnXInputPoll(u32* XInput_State, u32* DInput_State_Extra, bool DInput)
 	{
-
 		float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
-
-		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_POSITION_RESET)) 
-		{
-			VertexShaderManager::ResetView();
-			VR_RecenterHMD();
-		}
-		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_FORWARD))
-		{
-			VertexShaderManager::TranslateView(0.0f, freeLookSpeed);
-		}
-		else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_BACKWARD)) 
-		{
-			VertexShaderManager::TranslateView(0.0f, -freeLookSpeed);
-		}
-		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_UP)) 
-		{
-			VertexShaderManager::TranslateView(0.0f, 0.0f, -freeLookSpeed / 2);
-		}
-		else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_DOWN)) 
-		{
-			VertexShaderManager::TranslateView(0.0f, 0.0f, freeLookSpeed / 2);
-		}
-		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_LEFT)) 
-		{
-			VertexShaderManager::TranslateView(freeLookSpeed, 0.0f);
-		}
-		else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_RIGHT)) 
-		{
-			VertexShaderManager::TranslateView(-freeLookSpeed, 0.0f);
-		}
-		else if (g_has_hmd)
-		{
-			if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_LARGER_SCALE)) 
-			{
-				// Make everything 10% bigger (and further)
-				g_Config.fUnitsPerMetre /= 1.10f;
-				VertexShaderManager::ScaleView(1.10f);
-				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_SMALLER_SCALE)) 
-			{
-				// Make everything 10% smaller (and closer)
-				g_Config.fUnitsPerMetre *= 1.10f;
-				VertexShaderManager::ScaleView(1.0f / 1.10f);
-				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
-			}
-			if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_GLOBAL_LARGER_SCALE))
-			{
-				// Make everything 10% bigger (and further)
-				g_Config.fScale *= 1.10f;
-				SConfig::GetInstance().SaveSingleSetting("VR", "Scale", g_Config.fScale);
-				VertexShaderManager::ScaleView(1.10f);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_GLOBAL_SMALLER_SCALE))
-			{
-				// Make everything 10% smaller (and closer)
-				g_Config.fScale /= 1.10f;
-				SConfig::GetInstance().SaveSingleSetting("VR", "Scale", g_Config.fScale);
-				VertexShaderManager::ScaleView(1.0f / 1.10f);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_PERMANENT_CAMERA_FORWARD)) 
-			{
-				// Move camera forward 10cm
-				g_Config.fCameraForward += freeLookSpeed;
-				NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_PERMANENT_CAMERA_BACKWARD)) 
-			{
-				// Move camera back 10cm
-				g_Config.fCameraForward -= freeLookSpeed;
-				NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_TILT_UP)) 
-			{
-				// Pitch camera up 5 degrees
-				g_Config.fCameraPitch += 1.0f;
-				NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_TILT_DOWN)) 
-			{
-				// Pitch camera down 5 degrees
-				g_Config.fCameraPitch -= 1.0f;
-				NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_HUD_FORWARD)) 
-			{
-				// Move HUD out 10cm
-				g_Config.fHudDistance += 0.1f;
-				NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_HUD_BACKWARD)) 
-			{
-				// Move HUD in 10cm
-				g_Config.fHudDistance -= 0.1f;
-				if (g_Config.fHudDistance <= 0)
-					g_Config.fHudDistance = 0;
-				NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_HUD_THICKER)) 
-			{
-				// Make HUD 10cm thicker
-				if (g_Config.fHudThickness < 0.01f)
-					g_Config.fHudThickness = 0.01f;
-				else if (g_Config.fHudThickness < 0.1f)
-					g_Config.fHudThickness += 0.01f;
-				else
-					g_Config.fHudThickness += 0.1f;
-				NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_HUD_THINNER)) 
-			{
-				// Make HUD 10cm thinner
-				if (g_Config.fHudThickness <= 0.01f)
-					g_Config.fHudThickness = 0;
-				else if (g_Config.fHudThickness <= 0.1f)
-					g_Config.fHudThickness -= 0.01f;
-				else
-					g_Config.fHudThickness -= 0.1f;
-				NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_HUD_3D_CLOSER)) 
-			{
-				// Make HUD 3D elements 5% closer (and smaller)
-				if (g_Config.fHud3DCloser >= 0.95f)
-					g_Config.fHud3DCloser = 1;
-				else
-					g_Config.fHud3DCloser += 0.05f;
-				NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_HUD_3D_FURTHER)) 
-			{
-				// Make HUD 3D elements 5% further (and smaller)
-				if (g_Config.fHud3DCloser <= 0.05f)
-					g_Config.fHud3DCloser = 0;
-				else
-					g_Config.fHud3DCloser -= 0.05f;
-				NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_2D_SCREEN_LARGER)) 
-			{
-				// Make everything 20% smaller (and closer)
-				g_Config.fScreenHeight *= 1.05f;
-				NOTICE_LOG(VR, "Screen is %fm high", g_Config.fScreenHeight);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_2D_SCREEN_SMALLER)) 
-			{
-				// Make everything 20% bigger (and further)
-				g_Config.fScreenHeight /= 1.05f;
-				NOTICE_LOG(VR, "Screen is %fm High", g_Config.fScreenHeight);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_2D_SCREEN_THICKER)) 
-			{
-				// Make Screen 10cm thicker
-				if (g_Config.fScreenThickness < 0.01f)
-					g_Config.fScreenThickness = 0.01f;
-				else if (g_Config.fScreenThickness < 0.1f)
-					g_Config.fScreenThickness += 0.01f;
-				else
-					g_Config.fScreenThickness += 0.1f;
-				NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_2D_SCREEN_THINNER)) 
-			{
-				// Make Screen 10cm thinner
-				if (g_Config.fScreenThickness <= 0.01f)
-					g_Config.fScreenThickness = 0;
-				else if (g_Config.fScreenThickness <= 0.1f)
-					g_Config.fScreenThickness -= 0.01f;
-				else
-					g_Config.fScreenThickness -= 0.1f;
-				NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_2D_CAMERA_FORWARD)) 
-			{
-				// Move Screen in 10cm
-				g_Config.fScreenDistance -= 0.1f;
-				if (g_Config.fScreenDistance <= 0)
-					g_Config.fScreenDistance = 0;
-				NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_2D_CAMERA_BACKWARD)) 
-			{
-				// Move Screen out 10cm
-				g_Config.fScreenDistance += 0.1f;
-				NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_2D_CAMERA_UP)) 
-			{
-				// Move Screen Down (Camera Up) 10cm
-				g_Config.fScreenUp -= 0.1f;
-				NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_2D_CAMERA_DOWN)) 
-			{
-				// Move Screen Up (Camera Down) 10cm
-				g_Config.fScreenUp += 0.1f;
-				NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_2D_CAMERA_TILT_UP)) 
-			{
-				// Pitch camera up 5 degrees
-				g_Config.fScreenPitch += 1.0f;
-				NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);
-			}
-			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_2D_CAMERA_TILT_DOWN)) 
-			{
-				// Pitch camera down 5 degrees
-				g_Config.fScreenPitch -= 1.0f;
-				NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);
-			}
-		}
-
-
 	}
 
-	u32 GetBinaryfromXInputIniStr(wxString ini_setting)
+	u32 GetBinaryfromXInputIniStr(std::string ini_setting)
 	{
 
-		std::string ini_setting_str = std::string(ini_setting.mb_str());
+		std::string ini_setting_str = ini_setting;
 
 		if (ini_setting_str == "Button A")
 			return XINPUT_GAMEPAD_A;
@@ -480,10 +265,10 @@ namespace HotkeysXInput
 		return 0;
 	}
 
-	u32 GetBinaryfromDInputIniStr(wxString ini_setting)
+	u32 GetBinaryfromDInputIniStr(std::string ini_setting)
 	{
 
-		std::string ini_setting_str = std::string(ini_setting.mb_str());
+		std::string ini_setting_str = ini_setting;
 
 		if (ini_setting_str.find("Button") != std::string::npos)
 		{
@@ -495,10 +280,10 @@ namespace HotkeysXInput
 	}
 
 
-	u32 GetBinaryfromDInputExtraIniStr(wxString ini_setting)
+	u32 GetBinaryfromDInputExtraIniStr(std::string ini_setting)
 	{
 
-		std::string ini_setting_str = std::string(ini_setting.mb_str());
+		std::string ini_setting_str = ini_setting;
 
 		if (ini_setting_str.find("Hat") != std::string::npos)
 		{
@@ -543,7 +328,7 @@ namespace HotkeysXInput
 		return 0;
 	}
 
-	wxString GetwxStringfromXInputIni(u32 ini_setting)
+	std::string GetStringfromXInputIni(u32 ini_setting)
 	{
 
 		if (ini_setting == XINPUT_GAMEPAD_A)
@@ -599,103 +384,4 @@ namespace HotkeysXInput
 
 		return "";
 	}
-
-	//Take in ID of setting and Current XInput State, and compare to see if the right buttons are being pressed.
-	bool IsVRSettingsXInput(u32* XInput_State, u32* DInput_State_Extra, bool DInput, int id)
-	{
-		bool ini_dinput = SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[id];
-		if (DInput == ini_dinput)
-		{
-			u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
-			u32 ini_setting_dinput_extra = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[id];
-			if ((!ini_setting_dinput_extra || !*DInput_State_Extra) && ini_setting)
-			{
-				return (((*XInput_State & ini_setting) == ini_setting) &&
-					false == SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[id]);
-			}
-			else if ((!ini_setting || !*XInput_State) && ini_setting_dinput_extra)
-			{
-				return (((*DInput_State_Extra & ini_setting_dinput_extra) == ini_setting_dinput_extra) &&
-					false == SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[id]);
-			}
-			else if (ini_setting || ini_setting_dinput_extra)
-			{
-				return ((((*XInput_State & ini_setting) == ini_setting) || ((*DInput_State_Extra & ini_setting_dinput_extra) == ini_setting_dinput_extra)) &&
-					false == SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[id]);
-			}
-		}
-		
-		return false;
-	}
-
-	//Take in ID of setting and Current XInput State, and compare to see if the right buttons are being pressed.
-	bool IsHotkeyXInput(u32* XInput_State, int id)
-	{
-		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[id];
-		return (((*XInput_State & ini_setting) == ini_setting) &&
-			false == SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeyKBM[id]);
-	}
-
-	//Take xinput_string and see if it is currently set in ini.
-	bool IsXInputButtonSet(wxString button_string, int id)
-	{
-		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
-		u32 xinput_value = GetBinaryfromXInputIniStr(button_string);
-		bool dinput = SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[id];
-
-		if (((xinput_value & ini_setting) == xinput_value) && xinput_value && ini_setting && !dinput)
-			return true;
-		else
-			return false;
-	}
-
-	//Take xinput_string and see if it is currently set in ini.
-	bool IsDInputButtonSet(wxString button_string, int id)
-	{
-		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
-		u32 dinput_value = GetBinaryfromDInputIniStr(button_string);
-		bool dinput = SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[id];
-
-		if (((dinput_value & ini_setting) == dinput_value) && dinput_value && ini_setting && dinput)
-			return true;
-		else
-			return false;
-	}
-
-	bool IsDInputOthersSet(wxString button_string, int id)
-	{
-		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[id];
-		u32 dinput_value = GetBinaryfromDInputExtraIniStr(button_string);
-		bool dinput = SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[id];
-
-		if ((dinput_value & ini_setting) == dinput_value && dinput)
-			return true;
-		else
-			return false;
-	}
-
-	//Take xinput_string and see if it is currently set in ini.
-	bool IsHotkeyXInputButtonSet(wxString button_string, int id)
-	{
-		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[id];
-		u32 xinput_value = GetBinaryfromXInputIniStr(button_string);
-
-		if ((xinput_value & ini_setting) == xinput_value)
-			return true;
-		else
-			return false;
-	}
-
-	//Take xinput_string and see if it is currently set in ini.
-	bool IsHotkeyDInputButtonSet(wxString button_string, int id)
-	{
-		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
-		u32 dinput_value = GetBinaryfromDInputIniStr(button_string);
-
-		if ((dinput_value & ini_setting) == dinput_value)
-			return true;
-		else
-			return false;
-	}
-
 }

@@ -41,7 +41,7 @@ void AddMessage(const std::string& str, u32 ms, u32 rgba)
 
 void DrawMessages()
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages)
+	if (!SConfig::GetInstance().bOnScreenDisplayMessages)
 		return;
 
 	int left = 25, top = 15;
@@ -71,7 +71,7 @@ void ClearMessages()
 // On-Screen Display Callbacks
 void AddCallback(CallbackType type, Callback cb)
 {
-	s_callbacks.insert(std::pair<CallbackType, Callback>(type, cb));
+	s_callbacks.emplace(type, cb);
 }
 
 void DoCallbacks(CallbackType type)

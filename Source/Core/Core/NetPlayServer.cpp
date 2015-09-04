@@ -5,12 +5,15 @@
 #include <string>
 #include <vector>
 #include "Common/ENetUtil.h"
+#include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "Core/NetPlayClient.h" //for NetPlayUI
 #include "Core/NetPlayServer.h"
 #include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/Sram.h"
 #include "InputCommon/GCPadStatus.h"
 #if !defined(_WIN32)
 #include <sys/types.h>
@@ -71,8 +74,9 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& 
 		PanicAlertT("Enet Didn't Initialize");
 	}
 
-	memset(m_pad_map, -1, sizeof(m_pad_map));
-	memset(m_wiimote_map, -1, sizeof(m_wiimote_map));
+	m_pad_map.fill(-1);
+	m_wiimote_map.fill(-1);
+
 	if (traversal)
 	{
 		if (!EnsureTraversalClient(centralServer, centralPort))
@@ -189,6 +193,8 @@ void NetPlayServer::ThreadFunc()
 			case ENET_EVENT_TYPE_DISCONNECT:
 			{
 				std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+				if  (!netEvent.peer->data)
+					break;
 				auto it = m_players.find(*(PlayerId *)netEvent.peer->data);
 				if (it != m_players.end())
 				{
@@ -229,6 +235,18 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	} while (epack == nullptr);
 	rpac.append(epack->data, epack->dataLength);
 
+	// give new client first available id
+	PlayerId pid = 1;
+	for (auto i = m_players.begin(); i != m_players.end(); ++i)
+	{
+		if (i->second.pid == pid)
+		{
+			pid++;
+			i = m_players.begin();
+		}
+	}
+	socket->data = new PlayerId(pid);
+
 	std::string npver;
 	rpac >> npver;
 	// Dolphin netplay version
@@ -247,25 +265,12 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	m_update_pings = true;
 
 	Client player;
+	player.pid = pid;
 	player.socket = socket;
 	rpac >> player.revision;
 	rpac >> player.name;
 
 	enet_packet_destroy(epack);
-
-	// give new client first available id
-	PlayerId pid = 1;
-	for (auto i = m_players.begin(); i != m_players.end(); ++i)
-	{
-		if (i->second.pid == pid)
-		{
-			pid++;
-			i = m_players.begin();
-		}
-	}
-	player.pid = pid;
-	socket->data = new PlayerId(pid);
-
 	// try to automatically assign new user a pad
 	for (PadMapping& mapping : m_pad_map)
 	{
@@ -303,6 +308,21 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	spac << (u32)m_target_buffer_size;
 	Send(player.socket, spac);
 
+	// sync GC SRAM with new client
+	if (!g_SRAM_netplay_initialized)
+	{
+		SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+		InitSRAM();
+		g_SRAM_netplay_initialized = true;
+	}
+	spac.clear();
+	spac << (MessageId)NP_MSG_SYNC_GC_SRAM;
+	for (size_t i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+	{
+		spac << g_SRAM.p_SRAM[i];
+	}
+	Send(player.socket, spac);
+
 	// sync values with new client
 	for (const auto& p : m_players)
 	{
@@ -315,7 +335,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	// add client to the player list
 	{
 		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-		m_players.insert(std::pair<PlayerId, Client>(*(PlayerId *)player.socket->data, player));
+		m_players.emplace(*(PlayerId *)player.socket->data, player);
 		UpdatePadMapping(); // sync pad mappings with everyone
 		UpdateWiimoteMapping();
 	}
@@ -383,31 +403,27 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::GetPadMapping(PadMapping map[4])
+PadMappingArray NetPlayServer::GetPadMapping() const
 {
-	for (int i = 0; i < 4; i++)
-		map[i] = m_pad_map[i];
+	return m_pad_map;
 }
 
-void NetPlayServer::GetWiimoteMapping(PadMapping map[4])
+PadMappingArray NetPlayServer::GetWiimoteMapping() const
 {
-	for (int i = 0; i < 4; i++)
-		map[i] = m_wiimote_map[i];
+	return m_wiimote_map;
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::SetPadMapping(const PadMapping map[4])
+void NetPlayServer::SetPadMapping(const PadMappingArray& mappings)
 {
-	for (int i = 0; i < 4; i++)
-		m_pad_map[i] = map[i];
+	m_pad_map = mappings;
 	UpdatePadMapping();
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::SetWiimoteMapping(const PadMapping map[4])
+void NetPlayServer::SetWiimoteMapping(const PadMappingArray& mappings)
 {
-	for (int i = 0; i < 4; i++)
-		m_wiimote_map[i] = map[i];
+	m_wiimote_map = mappings;
 	UpdateWiimoteMapping();
 }
 
@@ -697,6 +713,10 @@ bool NetPlayServer::StartGame()
 	*spac << m_current_game;
 	*spac << m_settings.m_CPUthread;
 	*spac << m_settings.m_CPUcore;
+	*spac << m_settings.m_SelectedLanguage;
+	*spac << m_settings.m_OverrideGCLanguage;
+	*spac << m_settings.m_ProgressiveScan;
+	*spac << m_settings.m_PAL60;
 	*spac << m_settings.m_DSPEnableJIT;
 	*spac << m_settings.m_DSPHLE;
 	*spac << m_settings.m_WriteToMemcard;

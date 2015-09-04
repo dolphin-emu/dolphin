@@ -65,6 +65,7 @@ extern "C"
 #endif
 
 
+#include <atomic>
 #include <mutex>
 
 #include "Common/MathUtil.h"
@@ -182,7 +183,7 @@ extern int skipped_opcode_replay_count;
 //extern std::vector<u32> CPBreakpoint_log;
 
 extern std::mutex g_vr_lock;
-extern volatile u32 g_drawn_vr;
+extern std::atomic<u32> g_drawn_vr;
 
 extern bool debug_nextScene;
 

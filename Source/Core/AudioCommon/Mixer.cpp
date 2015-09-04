@@ -52,7 +52,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		// VR requires a head-tracking rate greater than 60fps per second. This is solved by
 		// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio
 		// back to 100% speed, it must be slowed down by 25%
-		SCoreStartupParameter& startup_parameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+		SConfig& startup_parameter = SConfig::GetInstance();
 		if ((g_ActiveConfig.bOpcodeReplay || g_ActiveConfig.bSynchronousTimewarp) &&
 			((startup_parameter.bSkipIdle && startup_parameter.bSyncGPUOnSkipIdleHack) ||
 			(startup_parameter.bSyncGPU || ((startup_parameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION) && (framelimit == 16))) ||
@@ -167,14 +167,14 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 {
 	m_dma_mixer.PushSamples(samples, num_samples);
 	if (m_log_dsp_audio)
-		g_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples);
+		m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples);
 }
 
 void CMixer::PushStreamingSamples(const short *samples, unsigned int num_samples)
 {
 	m_streaming_mixer.PushSamples(samples, num_samples);
 	if (m_log_dtk_audio)
-		g_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples);
+		m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples);
 }
 
 void CMixer::PushWiimoteSpeakerSamples(const short *samples, unsigned int num_samples, unsigned int sample_rate)
@@ -213,6 +213,64 @@ void CMixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
 void CMixer::SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume)
 {
 	m_wiimote_speaker_mixer.SetVolume(lvolume, rvolume);
+}
+
+void CMixer::StartLogDTKAudio(const std::string& filename)
+{
+	if (!m_log_dtk_audio)
+	{
+		m_log_dtk_audio = true;
+		m_wave_writer_dtk.Start(filename, 48000);
+		m_wave_writer_dtk.SetSkipSilence(false);
+		NOTICE_LOG(AUDIO, "Starting DTK Audio logging");
+	}
+	else
+	{
+		WARN_LOG(AUDIO, "DTK Audio logging has already been started");
+	}
+}
+
+void CMixer::StopLogDTKAudio()
+{
+	if (m_log_dtk_audio)
+	{
+		m_log_dtk_audio = false;
+		m_wave_writer_dtk.Stop();
+		NOTICE_LOG(AUDIO, "Stopping DTK Audio logging");
+	}
+	else
+	{
+		WARN_LOG(AUDIO, "DTK Audio logging has already been stopped");
+	}
+}
+
+void CMixer::StartLogDSPAudio(const std::string& filename)
+{
+	if (!m_log_dsp_audio)
+	{
+		m_log_dsp_audio = true;
+		m_wave_writer_dsp.Start(filename, 32000);
+		m_wave_writer_dsp.SetSkipSilence(false);
+		NOTICE_LOG(AUDIO, "Starting DSP Audio logging");
+	}
+	else
+	{
+		WARN_LOG(AUDIO, "DSP Audio logging has already been started");
+	}
+}
+
+void CMixer::StopLogDSPAudio()
+{
+	if (m_log_dsp_audio)
+	{
+		m_log_dsp_audio = false;
+		m_wave_writer_dsp.Stop();
+		NOTICE_LOG(AUDIO, "Stopping DSP Audio logging");
+	}
+	else
+	{
+		WARN_LOG(AUDIO, "DSP Audio logging has already been stopped");
+	}
 }
 
 void CMixer::MixerFifo::SetInputSampleRate(unsigned int rate)

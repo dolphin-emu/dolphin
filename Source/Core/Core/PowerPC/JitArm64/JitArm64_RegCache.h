@@ -19,11 +19,9 @@ enum RegType
 	REG_NOTLOADED = 0,
 	REG_REG, // Reg type is register
 	REG_IMM, // Reg is really a IMM
-};
-enum RegLocation
-{
-	REG_LOW = 0,
-	REG_HIGH,
+	REG_LOWER_PAIR, // Only the lower pair of a paired register
+	REG_DUP, // The lower reg is the same as the upper one (physical upper doesn't actually have the duplicated value)
+	REG_IS_LOADED, // We don't care what type it is, as long as the lower 64bits are loaded
 };
 
 enum FlushMode
@@ -62,6 +60,16 @@ public:
 	void LoadToReg(ARM64Reg reg)
 	{
 		m_type = REG_REG;
+		m_reg = reg;
+	}
+	void LoadLowerReg(ARM64Reg reg)
+	{
+		m_type = REG_LOWER_PAIR;
+		m_reg = reg;
+	}
+	void LoadDup(ARM64Reg reg)
+	{
+		m_type = REG_DUP;
 		m_reg = reg;
 	}
 	void LoadToImm(u32 imm)
@@ -134,17 +142,13 @@ public:
 	// Flushes the register cache in different ways depending on the mode
 	virtual void Flush(FlushMode mode, PPCAnalyst::CodeOp* op) = 0;
 
-	// Returns a guest register inside of a host register
-	// Will dump an immediate to the host register as well
-	virtual ARM64Reg R(u32 reg) = 0;
-
 	virtual BitSet32 GetCallerSavedUsed() = 0;
 
 	// Returns a temporary register for use
 	// Requires unlocking after done
 	ARM64Reg GetReg();
 
-	void StoreRegister(u32 preg) { FlushRegister(preg, false); }
+	void StoreRegisters(BitSet32 regs) { FlushRegisters(regs, false); }
 
 	// Locks a register so a cache cannot use it
 	// Useful for function calls
@@ -187,6 +191,8 @@ protected:
 	virtual void FlushByHost(ARM64Reg host_reg) = 0;
 
 	virtual void FlushRegister(u32 preg, bool maintain_state) = 0;
+
+	virtual void FlushRegisters(BitSet32 regs, bool maintain_state) = 0;
 
 	// Get available host registers
 	u32 GetUnlockedRegisterCount();
@@ -251,6 +257,8 @@ protected:
 
 	void FlushRegister(u32 preg, bool maintain_state) override;
 
+	void FlushRegisters(BitSet32 regs, bool maintain_state) override;
+
 private:
 	bool IsCalleeSaved(ARM64Reg reg);
 
@@ -265,9 +273,9 @@ public:
 
 	// Returns a guest register inside of a host register
 	// Will dump an immediate to the host register as well
-	ARM64Reg R(u32 preg);
+	ARM64Reg R(u32 preg, RegType type = REG_LOWER_PAIR);
 
-	void BindToRegister(u32 preg, bool do_load);
+	void BindToRegister(u32 preg, bool do_load, RegType type = REG_LOWER_PAIR);
 
 	BitSet32 GetCallerSavedUsed() override;
 
@@ -279,6 +287,8 @@ protected:
 	void FlushByHost(ARM64Reg host_reg) override;
 
 	void FlushRegister(u32 preg, bool maintain_state) override;
+
+	void FlushRegisters(BitSet32 regs, bool maintain_state) override;
 
 private:
 	bool IsCalleeSaved(ARM64Reg reg);

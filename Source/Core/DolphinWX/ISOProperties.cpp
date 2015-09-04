@@ -55,7 +55,6 @@
 #include "Common/SysConf.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
 #include "Core/HideObjectEngine.h"
@@ -112,7 +111,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 END_EVENT_TABLE()
 
-CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CISOProperties::CISOProperties(const std::string& fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
 	// Load ISO data
@@ -131,8 +130,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// Load game INIs
 	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
-	GameIniDefault = SCoreStartupParameter::LoadDefaultGameIni(game_id, OpenISO->GetRevision());
-	GameIniLocal = SCoreStartupParameter::LoadLocalGameIni(game_id, OpenISO->GetRevision());
+	GameIniDefault = SConfig::LoadDefaultGameIni(game_id, OpenISO->GetRevision());
+	GameIniLocal = SConfig::LoadLocalGameIni(game_id, OpenISO->GetRevision());
 
 	// Setup GUI
 	OpenGameListItem = new GameListItem(fileName);
@@ -202,7 +201,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// Here we set all the info to be shown + we set the window title
 	bool wii = OpenISO->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-	ChangeBannerDetails(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
+	ChangeBannerDetails(SConfig::GetInstance().GetCurrentLanguage(wii));
 
 	m_Banner->SetBitmap(OpenGameListItem->GetBitmap());
 	m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
@@ -218,18 +217,23 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			{
 				for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
 				{
-					WiiPartition partition;
-					if ((partition.Partition = DiscIO::CreateVolumeFromFilename(fileName, group, i)) != nullptr)
+					std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(fileName, group, i));
+					if (volume != nullptr)
 					{
-						if ((partition.FileSystem = DiscIO::CreateFileSystem(partition.Partition)) != nullptr)
+						std::unique_ptr<DiscIO::IFileSystem> file_system(DiscIO::CreateFileSystem(volume.get()));
+						if (file_system != nullptr)
 						{
-							partition.FileSystem->GetFileList(partition.Files);
+							WiiPartition* const partition = new WiiPartition(std::move(volume), std::move(file_system));
+
 							wxTreeItemId PartitionRoot =
 								m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), partition_count), 0, 0);
-							m_Treectrl->SetItemData(PartitionRoot, new WiiPartition(partition));
-							CreateDirectoryTree(PartitionRoot, partition.Files);
+
+							m_Treectrl->SetItemData(PartitionRoot, partition);
+							CreateDirectoryTree(PartitionRoot, partition->FileSystem->GetFileList());
+
 							if (partition_count == 1)
 								m_Treectrl->Expand(PartitionRoot);
+
 							partition_count++;
 						}
 					}
@@ -242,12 +246,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		}
 		else
 		{
-			GCFiles.clear();
 			pFileSystem = DiscIO::CreateFileSystem(OpenISO);
 			if (pFileSystem)
-				pFileSystem->GetFileList(GCFiles);
-			if (!GCFiles.empty())
-				CreateDirectoryTree(RootId, GCFiles);
+				CreateDirectoryTree(RootId, pFileSystem->GetFileList());
 		}
 
 		m_Treectrl->Expand(RootId);
@@ -258,22 +259,20 @@ CISOProperties::~CISOProperties()
 {
 	if (OpenISO->GetVolumeType() == DiscIO::IVolume::GAMECUBE_DISC && pFileSystem)
 		delete pFileSystem;
-	// vector's items are no longer valid after deleting filesystem
-	GCFiles.clear();
 	delete OpenGameListItem;
 	delete OpenISO;
 }
 
-size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent, std::vector<const DiscIO::SFileInfo*> fileInfos)
+size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos)
 {
 	if (fileInfos.empty())
 		return 0;
 	else
-		return CreateDirectoryTree(parent, fileInfos, 1, fileInfos.at(0)->m_FileSize);
+		return CreateDirectoryTree(parent, fileInfos, 1, fileInfos.at(0).m_FileSize);
 }
 
 size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
-		std::vector<const DiscIO::SFileInfo*> fileInfos,
+		const std::vector<DiscIO::SFileInfo>& fileInfos,
 		const size_t _FirstIndex,
 		const size_t _LastIndex)
 {
@@ -281,8 +280,8 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 
 	while (CurrentIndex < _LastIndex)
 	{
-		const DiscIO::SFileInfo* rFileInfo = fileInfos[CurrentIndex];
-		std::string filePath = rFileInfo->m_FullPath;
+		const DiscIO::SFileInfo rFileInfo = fileInfos[CurrentIndex];
+		std::string filePath = rFileInfo.m_FullPath;
 
 		// Trim the trailing '/' if it exists.
 		if (filePath[filePath.length() - 1] == DIR_SEP_CHR)
@@ -299,10 +298,10 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 		}
 
 		// check next index
-		if (rFileInfo->IsDirectory())
+		if (rFileInfo.IsDirectory())
 		{
 			wxTreeItemId item = m_Treectrl->AppendItem(parent, StrToWxStr(filePath), 1, 1);
-			CurrentIndex = CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo->m_FileSize);
+			CurrentIndex = CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo.m_FileSize);
 		}
 		else
 		{
@@ -575,8 +574,8 @@ void CISOProperties::CreateGUIControls()
 	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("From:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("To:")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	U32Setting* HideObjectsStart = new U32Setting(m_HideObjectPage, _("Hide Start"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start, 0, 100000);
-	U32Setting* HideObjectsEnd = new U32Setting(m_HideObjectPage, _("Hide End"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end, 0, 100000);
+	U32Setting* HideObjectsStart = new U32Setting(m_HideObjectPage, _("Hide Start"), SConfig::GetInstance().skip_objects_start, 0, 100000);
+	U32Setting* HideObjectsEnd = new U32Setting(m_HideObjectPage, _("Hide End"), SConfig::GetInstance().skip_objects_end, 0, 100000);
 	sbHideObjectRangeGrid->Add(HideObjectsStart, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
 	sbHideObjectRangeGrid->Add(HideObjectsEnd, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 5);
 
@@ -585,8 +584,8 @@ void CISOProperties::CreateGUIControls()
 	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("From:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("To:")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	U32Setting* HideObjectsStartTwo = new U32Setting(m_HideObjectPage, _("Hide Start Two"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start_two, 0, 100000);
-	U32Setting* HideObjectsEndTwo = new U32Setting(m_HideObjectPage, _("Hide End Two"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end_two, 0, 100000);
+	U32Setting* HideObjectsStartTwo = new U32Setting(m_HideObjectPage, _("Hide Start Two"), SConfig::GetInstance().skip_objects_start_two, 0, 100000);
+	U32Setting* HideObjectsEndTwo = new U32Setting(m_HideObjectPage, _("Hide End Two"), SConfig::GetInstance().skip_objects_end_two, 0, 100000);
 	sbHideObjectRangeGrid->Add(HideObjectsStartTwo, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
 	sbHideObjectRangeGrid->Add(HideObjectsEndTwo, wxGBPosition(1, 3), wxDefaultSpan, wxALL, 5);
 
@@ -673,7 +672,7 @@ void CISOProperties::CreateGUIControls()
 	wxStaticText* const m_LangText = new wxStaticText(m_Information, wxID_ANY, _("Show Language:"));
 
 	bool wii = OpenISO->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-	DiscIO::IVolume::ELanguage preferred_language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii);
+	DiscIO::IVolume::ELanguage preferred_language = SConfig::GetInstance().GetCurrentLanguage(wii);
 
 	std::vector<DiscIO::IVolume::ELanguage> languages = OpenGameListItem->GetLanguages();
 	int preferred_language_index = 0;
@@ -811,7 +810,7 @@ void CISOProperties::CreateGUIControls()
 
 	// If there is no default gameini, disable the button.
 	bool game_ini_exists = false;
-	for (const std::string& ini_filename : SCoreStartupParameter::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
+	for (const std::string& ini_filename : SConfig::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
 	{
 		if (File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + ini_filename))
 		{
@@ -950,10 +949,9 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder, const WiiPartition* partition)
 {
-	DiscIO::IFileSystem* const fs = OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC ? partition->FileSystem : pFileSystem;
+	DiscIO::IFileSystem* const fs = OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC ? partition->FileSystem.get() : pFileSystem;
 
-	std::vector<const DiscIO::SFileInfo*> fst;
-	fs->GetFileList(fst);
+	const std::vector<DiscIO::SFileInfo>& fst = fs->GetFileList();
 
 	u32 index = 0;
 	u32 size = 0;
@@ -973,10 +971,10 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
 		// Look for the dir we are going to extract
 		for (index = 0; index != fst.size(); ++index)
 		{
-			if (fst[index]->m_FullPath == _rFullPath)
+			if (fst[index].m_FullPath == _rFullPath)
 			{
 				DEBUG_LOG(DISCIO, "Found the directory at %u", index);
-				size = (u32)fst[index]->m_FileSize;
+				size = (u32)fst[index].m_FileSize;
 				break;
 			}
 		}
@@ -1001,14 +999,14 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
 		dialog.SetTitle(wxString::Format("%s : %d%%", dialogTitle.c_str(),
 			(u32)(((float)(i - index) / (float)(size - index)) * 100)));
 
-		dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(fst[i]->m_FullPath)));
+		dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(fst[i].m_FullPath)));
 
 		if (dialog.WasCancelled())
 			break;
 
-		if (fst[i]->IsDirectory())
+		if (fst[i].IsDirectory())
 		{
-			const std::string exportName = StringFromFormat("%s/%s/", _rExportFolder.c_str(), fst[i]->m_FullPath.c_str());
+			const std::string exportName = StringFromFormat("%s/%s/", _rExportFolder.c_str(), fst[i].m_FullPath.c_str());
 			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
 			if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
@@ -1025,10 +1023,10 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
 		}
 		else
 		{
-			const std::string exportName = StringFromFormat("%s/%s", _rExportFolder.c_str(), fst[i]->m_FullPath.c_str());
+			const std::string exportName = StringFromFormat("%s/%s", _rExportFolder.c_str(), fst[i].m_FullPath.c_str());
 			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
-			if (!File::Exists(exportName) && !fs->ExportFile(fst[i]->m_FullPath, exportName))
+			if (!File::Exists(exportName) && !fs->ExportFile(fst[i].m_FullPath, exportName))
 			{
 				ERROR_LOG(DISCIO, "Could not export %s", exportName.c_str());
 			}
@@ -1104,7 +1102,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	if (OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC)
 	{
 		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
-		FS = partition->FileSystem;
+		FS = partition->FileSystem.get();
 	}
 	else
 	{
@@ -1134,7 +1132,7 @@ public:
 		Create();
 	}
 
-	virtual ExitCode Entry() override
+	ExitCode Entry() override
 	{
 		return (ExitCode)m_Partition.Partition->CheckIntegrity();
 	}
@@ -1596,7 +1594,7 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 // they will all be opened, but there is usually only one
 void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED (event))
 {
-	for (const std::string& filename : SCoreStartupParameter::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
+	for (const std::string& filename : SConfig::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
 	{
 		std::string path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename;
 		if (File::Exists(path))

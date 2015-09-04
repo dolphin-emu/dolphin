@@ -36,7 +36,6 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Movie.h"
 #include "Core/Boot/Boot.h"
 #include "Core/HW/DVDInterface.h"
@@ -85,8 +84,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 		sortData = -sortData;
 	}
 
-	DiscIO::IVolume::ELanguage languageOne = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso1->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC);
-	DiscIO::IVolume::ELanguage languageOther = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso2->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC);
+	DiscIO::IVolume::ELanguage languageOne = SConfig::GetInstance().GetCurrentLanguage(iso1->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC);
+	DiscIO::IVolume::ELanguage languageOther = SConfig::GetInstance().GetCurrentLanguage(iso2->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC);
 
 	switch (sortData)
 	{
@@ -198,10 +197,11 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_WORLD]         = m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm)); // Uses European flag as a placeholder
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN]       = m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm));
 
-	m_PlatformImageIndex.resize(3);
+	m_PlatformImageIndex.resize(4);
 	m_PlatformImageIndex[0] = m_imageListSmall->Add(wxBitmap(Platform_Gamecube_xpm));
 	m_PlatformImageIndex[1] = m_imageListSmall->Add(wxBitmap(Platform_Wii_xpm));
 	m_PlatformImageIndex[2] = m_imageListSmall->Add(wxBitmap(Platform_Wad_xpm));
+	m_PlatformImageIndex[3] = m_imageListSmall->Add(wxBitmap(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().theme_name) + "fileplatform.png"), wxBITMAP_TYPE_PNG));
 
 	m_EmuStateImageIndex.resize(6);
 	m_EmuStateImageIndex[0] = m_imageListSmall->Add(wxBitmap(rating_0));
@@ -411,7 +411,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	}
 
 	std::string title;
-	IniFile gameini = SCoreStartupParameter::LoadGameIni(rISOFile.GetUniqueID(), rISOFile.GetRevision());
+	IniFile gameini = SConfig::LoadGameIni(rISOFile.GetUniqueID(), rISOFile.GetRevision());
 	if (gameini.GetIfExists("EmuState", "Title", &title))
 		name = StrToWxStr(title);
 
@@ -483,6 +483,11 @@ void CGameListCtrl::ScanForISOs()
 	}
 	if (SConfig::GetInstance().m_ListWad)
 		Extensions.push_back("*.wad");
+	if (SConfig::GetInstance().m_ListElfDol)
+	{
+		Extensions.push_back("*.dol");
+		Extensions.push_back("*.elf");
+	}
 
 	auto rFilenames = DoFileSearch(Extensions, SConfig::GetInstance().m_ISOFolder, SConfig::GetInstance().m_RecursiveISOFolder);
 
@@ -838,27 +843,31 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		if (selected_iso)
 		{
 			wxMenu popupMenu;
-			popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
-			popupMenu.Append(IDM_GAME_WIKI, _("&Wiki"));
-			popupMenu.AppendSeparator();
 
-			if (selected_iso->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC)
+			if (!selected_iso->IsElfOrDol())
+			{
+				popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
+				popupMenu.Append(IDM_GAME_WIKI, _("&Wiki"));
+				popupMenu.AppendSeparator();
+			}
+			if (selected_iso->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC && !selected_iso->IsElfOrDol())
 			{
 				popupMenu.Append(IDM_OPEN_SAVE_FOLDER, _("Open Wii &save folder"));
 				popupMenu.Append(IDM_EXPORT_SAVE, _("Export Wii save (Experimental)"));
 			}
 			popupMenu.Append(IDM_OPEN_CONTAINING_FOLDER, _("Open &containing folder"));
-			popupMenu.AppendCheckItem(IDM_SET_DEFAULT_ISO, _("Set as &default ISO"));
+
+			if (!selected_iso->IsElfOrDol())
+				popupMenu.AppendCheckItem(IDM_SET_DEFAULT_ISO, _("Set as &default ISO"));
 
 			// First we have to decide a starting value when we append it
-			if (selected_iso->GetFileName() == SConfig::GetInstance().
-				m_LocalCoreStartupParameter.m_strDefaultISO)
+			if (selected_iso->GetFileName() == SConfig::GetInstance().m_strDefaultISO)
 				popupMenu.FindItem(IDM_SET_DEFAULT_ISO)->Check();
 
 			popupMenu.AppendSeparator();
-			popupMenu.Append(IDM_DELETE_ISO, _("&Delete ISO..."));
+			popupMenu.Append(IDM_DELETE_ISO, _("&Delete File..."));
 
-			if (selected_iso->GetPlatform() != DiscIO::IVolume::WII_WAD)
+			if (selected_iso->GetPlatform() != DiscIO::IVolume::WII_WAD && !selected_iso->IsElfOrDol())
 			{
 				if (selected_iso->IsCompressed())
 					popupMenu.Append(IDM_COMPRESS_ISO, _("Decompress ISO..."));
@@ -866,7 +875,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 				         selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
 					popupMenu.Append(IDM_COMPRESS_ISO, _("Compress ISO..."));
 			}
-			else
+			else if (!selected_iso->IsElfOrDol())
 			{
 				popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to Wii Menu"));
 			}
@@ -967,14 +976,14 @@ void CGameListCtrl::OnSetDefaultISO(wxCommandEvent& event)
 	if (event.IsChecked())
 	{
 		// Write the new default value and save it the ini file
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO =
+		SConfig::GetInstance().m_strDefaultISO =
 			iso->GetFileName();
 		SConfig::GetInstance().SaveSettings();
 	}
 	else
 	{
 		// Otherwise blank the value and save it
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO = "";
+		SConfig::GetInstance().m_strDefaultISO = "";
 		SConfig::GetInstance().SaveSettings();
 	}
 }

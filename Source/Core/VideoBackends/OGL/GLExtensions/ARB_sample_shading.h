@@ -4,5 +4,5 @@
 
 #include "VideoBackends/OGL/GLExtensions/gl_common.h"
 
-extern PFNGLMINSAMPLESHADINGARBPROC glMinSampleShadingARB;
+extern PFNGLMINSAMPLESHADINGARBPROC glMinSampleShading;
 

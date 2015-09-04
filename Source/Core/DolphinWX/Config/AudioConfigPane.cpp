@@ -86,7 +86,7 @@ void AudioConfigPane::LoadGUIValues()
 {
 	PopulateBackendChoiceBox();
 
-	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& startup_params = SConfig::GetInstance();
 
 	// Audio DSP Engine
 	if (startup_params.bDSPHLE)
@@ -120,14 +120,14 @@ void AudioConfigPane::RefreshGUI()
 
 void AudioConfigPane::OnDSPEngineRadioBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = m_dsp_engine_radiobox->GetSelection() == 0;
+	SConfig::GetInstance().bDSPHLE = m_dsp_engine_radiobox->GetSelection() == 0;
 	SConfig::GetInstance().m_DSPEnableJIT = m_dsp_engine_radiobox->GetSelection() == 1;
 	AudioCommon::UpdateSoundStream();
 }
 
 void AudioConfigPane::OnDPL2DecoderCheckBoxChanged(wxCommandEvent&)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bDPL2Decoder = m_dpl2_decoder_checkbox->IsChecked();
+	SConfig::GetInstance().bDPL2Decoder = m_dpl2_decoder_checkbox->IsChecked();
 }
 
 void AudioConfigPane::OnVolumeSliderChanged(wxCommandEvent& event)
@@ -153,7 +153,7 @@ void AudioConfigPane::OnAudioBackendChanged(wxCommandEvent& event)
 
 void AudioConfigPane::OnLatencySpinCtrlChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iLatency = m_audio_latency_spinctrl->GetValue();
+	SConfig::GetInstance().iLatency = m_audio_latency_spinctrl->GetValue();
 }
 
 void AudioConfigPane::PopulateBackendChoiceBox()

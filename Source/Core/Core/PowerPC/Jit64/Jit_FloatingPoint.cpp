@@ -51,7 +51,7 @@ void Jit64::SetFPRFIfNeeded(X64Reg xmm)
 	// As far as we know, the games that use this flag only need FPRF for fmul and fmadd, but
 	// FPRF is fast enough in JIT that we might as well just enable it for every float instruction
 	// if the FPRF flag is set.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF && js.op->wantsFPRF)
+	if (SConfig::GetInstance().bFPRF && js.op->wantsFPRF)
 		SetFPRF(xmm);
 }
 
@@ -65,7 +65,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
 	// Dragon Ball: Revenge of King Piccolo requires generated NaNs
 	// to be positive, so we'll have to handle them manually.
 
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bAccurateNaNs)
+	if (!SConfig::GetInstance().bAccurateNaNs)
 	{
 		if (xmm_out != xmm)
 			MOVAPD(xmm_out, R(xmm));
@@ -186,7 +186,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 		packed = false;
 
 	bool round_input = single && !jit->js.op->fprIsSingle[inst.FC];
-	bool preserve_inputs = SConfig::GetInstance().m_LocalCoreStartupParameter.bAccurateNaNs;
+	bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
 
 	X64Reg dest = INVALID_REG;
 	switch (inst.SUBOP5)
@@ -460,7 +460,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 
 void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-	bool fprf = SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF && js.op->wantsFPRF;
+	bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
 	//bool ordered = !!(inst.SUBOP10 & 32);
 	int a = inst.FA;
 	int b = inst.FB;
@@ -633,7 +633,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
 	fpr.Lock(b, d);
 	fpr.BindToRegister(d);
 	MOVAPD(XMM0, fpr.R(b));
-	CALL((void *)asm_routines.frsqrte);
+	CALL(asm_routines.frsqrte);
 	MOVSD(fpr.R(d), XMM0);
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
@@ -650,10 +650,10 @@ void Jit64::fresx(UGeckoInstruction inst)
 
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d);
 	MOVAPD(XMM0, fpr.R(b));
-	CALL((void *)asm_routines.fres);
-	MOVSD(fpr.R(d), XMM0);
+	fpr.BindToRegister(d, false);
+	CALL(asm_routines.fres);
+	MOVDDUP(fpr.RX(d), R(XMM0));
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 	gpr.UnlockAllX();

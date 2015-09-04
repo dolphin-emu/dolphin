@@ -67,7 +67,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 44; // Last changed in PR 2464
+static const u32 STATE_VERSION = 46; // Last changed in PR 2686
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -163,7 +163,7 @@ static std::string DoState(PointerWrap& p)
 	g_video_backend->DoState(p);
 	p.DoMarker("video_backend");
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 		Wiimote::DoState(p.GetPPtr(), p.GetMode());
 	p.DoMarker("Wiimote");
 
@@ -258,9 +258,12 @@ static std::map<double, int> GetSavedStates()
 			if (ReadHeader(filename, header))
 			{
 				double d = Common::Timer::GetDoubleTime() - header.time;
+
 				// increase time until unique value is obtained
-				while (m.find(d) != m.end()) d += .001;
-				m.insert(std::pair<double,int>(d, i));
+				while (m.find(d) != m.end())
+					d += .001;
+
+				m.emplace(d, i);
 			}
 		}
 	}
@@ -317,7 +320,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 	// Setting up the header
 	StateHeader header;
-	memcpy(header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
+	memcpy(header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
 	header.size = g_use_compression ? (u32)buffer_size : 0;
 	header.time = Common::Timer::GetDoubleTime();
 
@@ -435,7 +438,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 	StateHeader header;
 	f.ReadArray(&header, 1);
 
-	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6))
+	if (memcmp(SConfig::GetInstance().GetUniqueID().c_str(), header.gameID, 6))
 	{
 		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %.*s)",
 			6, header.gameID), 2000);
@@ -616,7 +619,7 @@ void Shutdown()
 static std::string MakeStateFilename(int number)
 {
 	return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX).c_str(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), number);
+		SConfig::GetInstance().GetUniqueID().c_str(), number);
 }
 
 void Save(int slot, bool wait)

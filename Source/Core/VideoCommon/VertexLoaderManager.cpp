@@ -28,6 +28,9 @@
 namespace VertexLoaderManager
 {
 
+float position_cache[3][4];
+u32 position_matrix_index[3];
+
 typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexFormatMap;
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
@@ -108,7 +111,8 @@ void AppendListToString(std::string *dest)
 	dest->reserve(dest->size() + total_size);
 	for (const entry& entry : entries)
 	{
-		dest->append(entry.text);
+		*dest += entry.text;
+		*dest += '\n';
 	}
 }
 
@@ -173,7 +177,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (!count)
 		return 0;
 
-	SCoreStartupParameter& m_LocalCoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& m_LocalCoreStartupParameter = SConfig::GetInstance();
 
 	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 	int size = count * loader->m_VertexSize;

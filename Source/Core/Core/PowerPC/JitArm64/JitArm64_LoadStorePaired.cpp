@@ -21,7 +21,6 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff);
 	FALLBACK_IF(jo.memcheck || !jo.fastmem);
-	FALLBACK_IF(true);
 
 	// X30 is LR
 	// X0 contains the scale
@@ -59,7 +58,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 
 	if (update)
 	{
-		gpr.BindToRegister(inst.RA, false);
+		gpr.BindToRegister(inst.RA, REG_REG);
 		MOV(arm_addr, addr_reg);
 	}
 
@@ -67,8 +66,8 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 	LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
 	BLR(X30);
 
-	fpr.BindToRegister(inst.RS, false);
-	ARM64Reg VS = fpr.R(inst.RS);
+	fpr.BindToRegister(inst.RS, false, REG_REG);
+	ARM64Reg VS = fpr.R(inst.RS, REG_REG);
 	m_float_emit.FCVTL(64, VS, D0);
 	if (inst.W)
 	{
@@ -98,7 +97,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 	fpr.Lock(Q0, Q1);
 
 	ARM64Reg arm_addr = gpr.R(inst.RA);
-	ARM64Reg VS = fpr.R(inst.RS);
+	ARM64Reg VS = fpr.R(inst.RS, REG_REG);
 
 	ARM64Reg scale_reg = W0;
 	ARM64Reg addr_reg = W1;
@@ -130,7 +129,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 
 	if (update)
 	{
-		gpr.BindToRegister(inst.RA, false);
+		gpr.BindToRegister(inst.RA, REG_REG);
 		MOV(arm_addr, addr_reg);
 	}
 
@@ -157,7 +156,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 		m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
 		BLR(EncodeRegTo64(type_reg));
 		m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
-		ABI_PushRegisters(gprs_in_use);
+		ABI_PopRegisters(gprs_in_use);
 
 		SetJumpTarget(continue1);
 	}

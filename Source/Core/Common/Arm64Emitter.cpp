@@ -268,10 +268,14 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int *n, unsigned 
 	return true;
 }
 
-void ARM64XEmitter::SetCodePtr(u8* ptr)
+void ARM64XEmitter::SetCodePtrUnsafe(u8* ptr)
 {
 	m_code = ptr;
-	m_startcode = m_code;
+}
+
+void ARM64XEmitter::SetCodePtr(u8* ptr)
+{
+	SetCodePtrUnsafe(ptr);
 	m_lastCacheFlushEnd = ptr;
 }
 
@@ -315,6 +319,9 @@ void ARM64XEmitter::FlushIcache()
 
 void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
 {
+	if (start == end)
+		return;
+
 #if defined(IOS)
 	// Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
 	sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
@@ -406,7 +413,7 @@ static const u32 LogicalEnc[][2] = {
 };
 
 // Load/Store Exclusive
-static u32 LoadStoreExcEnc[][5] = {
+static const u32 LoadStoreExcEnc[][5] = {
 	{0, 0, 0, 0, 0}, // STXRB
 	{0, 0, 0, 0, 1}, // STLXRB
 	{0, 0, 1, 0, 0}, // LDXRB
@@ -759,7 +766,7 @@ void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64R
 
 	switch (type)
 	{
-	case INDEX_UNSIGNED:
+	case INDEX_SIGNED:
 		type_encode = 0b010;
 		break;
 	case INDEX_POST:
@@ -768,8 +775,8 @@ void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64R
 	case INDEX_PRE:
 		type_encode = 0b011;
 		break;
-	case INDEX_SIGNED:
-		_assert_msg_(DYNA_REC, false, "%s doesn't support INDEX_SIGNED!", __FUNCTION__);
+	case INDEX_UNSIGNED:
+		_assert_msg_(DYNA_REC, false, "%s doesn't support INDEX_UNSIGNED!", __FUNCTION__);
 		break;
 	}
 
@@ -1094,6 +1101,12 @@ static void GetSystemReg(PStateField field, int &o0, int &op1, int &CRn, int &CR
 		break;
 	case FIELD_FPSR:
 		o0 = 3; op1 = 3; CRn = 4; CRm = 4; op2 = 1;
+		break;
+	case FIELD_PMCR_EL0:
+		o0 = 3; op1 = 3; CRn = 9; CRm = 6; op2 = 0;
+		break;
+	case FIELD_PMCCNTR_EL0:
+		o0 = 3; op1 = 3; CRn = 9; CRm = 7; op2 = 0;
 		break;
 	default:
 		_assert_msg_(DYNA_REC, false, "Invalid PStateField to do a register move from/to");
@@ -1522,6 +1535,21 @@ void ARM64XEmitter::SBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms)
 void ARM64XEmitter::UBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms)
 {
 	EncodeBitfieldMOVInst(2, Rd, Rn, immr, imms);
+}
+
+void ARM64XEmitter::BFI(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
+{
+	u32 size = Is64Bit(Rn) ? 64 : 32;
+	_assert_msg_(DYNA_REC, (lsb + width) <= size, "%s passed lsb %d and width %d which is greater than the register size!",
+			__FUNCTION__, lsb, width);
+	EncodeBitfieldMOVInst(1, Rd, Rn, (size - lsb) % size, width - 1);
+}
+void ARM64XEmitter::UBFIZ(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
+{
+	u32 size = Is64Bit(Rn) ? 64 : 32;
+	_assert_msg_(DYNA_REC, (lsb + width) <= size, "%s passed lsb %d and width %d which is greater than the register size!",
+			__FUNCTION__, lsb, width);
+	EncodeBitfieldMOVInst(2, Rd, Rn, (size - lsb) % size, width - 1);
 }
 void ARM64XEmitter::EXTR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u32 shift)
 {
@@ -1970,7 +1998,7 @@ void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
 				reg_pair.push_back((ARM64Reg)(X0 + it));
 				if (reg_pair.size() == 2)
 				{
-					STP(INDEX_UNSIGNED, reg_pair[0], reg_pair[1], SP, current_offset);
+					STP(INDEX_SIGNED, reg_pair[0], reg_pair[1], SP, current_offset);
 					reg_pair.clear();
 					current_offset += 16;
 				}
@@ -2445,7 +2473,6 @@ void ARM64FloatEmitter::EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64
 
 	u32 encoded_size = 0;
 	u32 encoded_op = 0;
-	bool shift = false;
 
 	if (size == 8)
 	{
@@ -2482,6 +2509,23 @@ void ARM64FloatEmitter::EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64
 
 	Write32((encoded_size << 30) | (encoded_op << 22) | (0b111100001 << 21) | (decoded_Rm << 16) | \
 	        Rm.GetData() | (1 << 11) | (Rn << 5) | Rt);
+}
+
+void ARM64FloatEmitter::EncodeModImm(bool Q, u8 op, u8 cmode, u8 o2, ARM64Reg Rd, u8 abcdefgh)
+{
+	union
+	{
+		u8 hex;
+		struct
+		{
+			unsigned defgh : 5;
+			unsigned abc : 3;
+		};
+	} v;
+	v.hex = abcdefgh;
+	Rd = DecodeReg(Rd);
+	Write32((Q << 30) | (op << 29) | (0xF << 24) | (v.abc << 16) | (cmode << 12) | \
+	        (o2 << 11) | (1 << 10) | (v.defgh << 5) | Rd);
 }
 
 void ARM64FloatEmitter::LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
@@ -2672,6 +2716,18 @@ void ARM64FloatEmitter::LD1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn, ARM64Re
 void ARM64FloatEmitter::LD1R(u8 size, ARM64Reg Rt, ARM64Reg Rn)
 {
 	EmitLoadStoreSingleStructure(1, 0, 6, 0, size >> 4, Rt, Rn);
+}
+void ARM64FloatEmitter::LD2R(u8 size, ARM64Reg Rt, ARM64Reg Rn)
+{
+	EmitLoadStoreSingleStructure(1, 1, 6, 0, size >> 4, Rt, Rn);
+}
+void ARM64FloatEmitter::LD1R(u8 size, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm)
+{
+	EmitLoadStoreSingleStructure(1, 0, 6, 0, size >> 4, Rt, Rn, Rm);
+}
+void ARM64FloatEmitter::LD2R(u8 size, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm)
+{
+	EmitLoadStoreSingleStructure(1, 1, 6, 0, size >> 4, Rt, Rn, Rm);
 }
 
 void ARM64FloatEmitter::ST1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn)
@@ -3026,9 +3082,17 @@ void ARM64FloatEmitter::FADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
 	EmitThreeSame(0, size >> 6, 0x1A, Rd, Rn, Rm);
 }
+void ARM64FloatEmitter::FMAX(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+	EmitThreeSame(0, size >> 6, 0b11110, Rd, Rn, Rm);
+}
 void ARM64FloatEmitter::FMLA(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
 	EmitThreeSame(0, size >> 6, 0x19, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::FMIN(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+	EmitThreeSame(0, 2 | size >> 6, 0b11110, Rd, Rn, Rm);
 }
 void ARM64FloatEmitter::FCVTL(u8 size, ARM64Reg Rd, ARM64Reg Rn)
 {
@@ -3112,10 +3176,29 @@ void ARM64FloatEmitter::UCVTF(u8 size, ARM64Reg Rd, ARM64Reg Rn, int scale)
 	int imm = size * 2 - scale;
 	EmitShiftImm(IsQuad(Rd), 1, imm >> 3, imm & 7, 0x1C, Rd, Rn);
 }
-
+void ARM64FloatEmitter::SQXTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
+{
+	Emit2RegMisc(false, 0, dest_size >> 4, 0b10100, Rd, Rn);
+}
+void ARM64FloatEmitter::SQXTN2(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
+{
+	Emit2RegMisc(true, 0, dest_size >> 4, 0b10100, Rd, Rn);
+}
+void ARM64FloatEmitter::UQXTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
+{
+	Emit2RegMisc(false, 1, dest_size >> 4, 0b10100, Rd, Rn);
+}
+void ARM64FloatEmitter::UQXTN2(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
+{
+	Emit2RegMisc(true, 1, dest_size >> 4, 0b10100, Rd, Rn);
+}
 void ARM64FloatEmitter::XTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
 {
-	Emit2RegMisc(IsQuad(Rd), 0, dest_size >> 4, 0x12, Rd, Rn);
+	Emit2RegMisc(false, 0, dest_size >> 4, 0b10010, Rd, Rn);
+}
+void ARM64FloatEmitter::XTN2(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn)
+{
+	Emit2RegMisc(true, 0, dest_size >> 4, 0b10010, Rd, Rn);
 }
 
 // Move
@@ -3358,7 +3441,7 @@ void ARM64FloatEmitter::FCMEQ(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 }
 void ARM64FloatEmitter::FCMEQ(u8 size, ARM64Reg Rd, ARM64Reg Rn)
 {
-	Emit2RegMisc(IsQuad(Rd), 0, 2 | (size >> 6), 0x1D, Rd, Rn);
+	Emit2RegMisc(IsQuad(Rd), 0, 2 | (size >> 6), 0xD, Rd, Rn);
 }
 void ARM64FloatEmitter::FCMGE(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
@@ -3366,7 +3449,7 @@ void ARM64FloatEmitter::FCMGE(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 }
 void ARM64FloatEmitter::FCMGE(u8 size, ARM64Reg Rd, ARM64Reg Rn)
 {
-	Emit2RegMisc(IsQuad(Rd), 1, 2 | (size >> 6), 0x1C, Rd, Rn);
+	Emit2RegMisc(IsQuad(Rd), 1, 2 | (size >> 6), 0x0C, Rd, Rn);
 }
 void ARM64FloatEmitter::FCMGT(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
@@ -3568,6 +3651,90 @@ void ARM64FloatEmitter::FMLA(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 
 	}
 
 	EmitVectorxElement(0, 2 | (size >> 6), L, 1, H, Rd, Rn, Rm);
+}
+
+// Modified Immediate
+void ARM64FloatEmitter::MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift)
+{
+	bool Q = IsQuad(Rd);
+	u8 cmode = 0;
+	u8 op = 0;
+	u8 abcdefgh = imm & 0xFF;
+	if (size == 8)
+	{
+		_assert_msg_(DYNA_REC, shift == 0, "%s(size8) doesn't support shift!", __FUNCTION__);
+		_assert_msg_(DYNA_REC, !(imm & ~0xFFULL), "%s(size8) only supports 8bit values!", __FUNCTION__);
+	}
+	else if (size == 16)
+	{
+		_assert_msg_(DYNA_REC, shift == 0 || shift == 8, "%s(size16) only supports shift of {0, 8}!", __FUNCTION__);
+		_assert_msg_(DYNA_REC, !(imm & ~0xFFULL), "%s(size16) only supports 8bit values!", __FUNCTION__);
+
+		if (shift == 8)
+			cmode |= 2;
+	}
+	else if (size == 32)
+	{
+		_assert_msg_(DYNA_REC,
+			shift == 0 || shift == 8 || shift == 16 || shift == 24,
+			"%s(size32) only supports shift of {0, 8, 16, 24}!", __FUNCTION__);
+		// XXX: Implement support for MOVI - shifting ones variant
+		_assert_msg_(DYNA_REC, !(imm & ~0xFFULL), "%s(size32) only supports 8bit values!", __FUNCTION__);
+		switch (shift)
+		{
+		case 8:  cmode |= 2; break;
+		case 16: cmode |= 4; break;
+		case 24: cmode |= 6; break;
+		default: break;
+		}
+	}
+	else // 64
+	{
+		_assert_msg_(DYNA_REC, shift == 0, "%s(size64) doesn't support shift!", __FUNCTION__);
+
+		op = 1;
+		cmode = 0xE;
+		abcdefgh = 0;
+		for (int i = 0; i < 8; ++i)
+		{
+			u8 tmp = (imm >> (i << 3)) & 0xFF;
+			_assert_msg_(DYNA_REC, tmp == 0xFF || tmp == 0, "%s(size64) Invalid immediate!", __FUNCTION__);
+			if (tmp == 0xFF)
+				abcdefgh |= (1 << i);
+		}
+	}
+	EncodeModImm(Q, op, cmode, 0, Rd, abcdefgh);
+}
+
+void ARM64FloatEmitter::BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift)
+{
+	bool Q = IsQuad(Rd);
+	u8 cmode = 1;
+	u8 op = 1;
+	if (size == 16)
+	{
+		_assert_msg_(DYNA_REC, shift == 0 || shift == 8, "%s(size16) only supports shift of {0, 8}!", __FUNCTION__);
+
+		if (shift == 8)
+			cmode |= 2;
+	}
+	else if (size == 32)
+	{
+		_assert_msg_(DYNA_REC,
+			shift == 0 || shift == 8 || shift == 16 || shift == 24,
+			"%s(size32) only supports shift of {0, 8, 16, 24}!", __FUNCTION__);
+		// XXX: Implement support for MOVI - shifting ones variant
+		switch (shift)
+		{
+		case 8:  cmode |= 2; break;
+		case 16: cmode |= 4; break;
+		case 24: cmode |= 6; break;
+		default: break;
+		}
+	}
+	else
+		_assert_msg_(DYNA_REC, false, "%s only supports size of {16, 32}!", __FUNCTION__);
+	EncodeModImm(Q, op, cmode, 0, Rd, imm);
 }
 
 void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)

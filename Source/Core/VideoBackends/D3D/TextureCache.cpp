@@ -77,6 +77,69 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	return saved_png;
 }
 
+void TextureCache::TCacheEntry::CopyRectangleFromTexture(
+	const TCacheEntryBase* source,
+	const MathUtil::Rectangle<int> &srcrect,
+	const MathUtil::Rectangle<int> &dstrect)
+{
+	TCacheEntry* srcentry = (TCacheEntry*)source;
+	if (srcrect.GetWidth() == dstrect.GetWidth()
+		&& srcrect.GetHeight() == dstrect.GetHeight())
+	{
+		const D3D11_BOX *psrcbox = nullptr;
+		D3D11_BOX srcbox;
+		if (srcrect.left != 0 || srcrect.top != 0)
+		{
+			srcbox.left = srcrect.left;
+			srcbox.top = srcrect.top;
+			srcbox.right = srcrect.right;
+			srcbox.bottom = srcrect.bottom;
+			psrcbox = &srcbox;
+		}
+		D3D::context->CopySubresourceRegion(
+			texture->GetTex(),
+			0,
+			dstrect.left,
+			dstrect.top,
+			0,
+			srcentry->texture->GetTex(),
+			0,
+			psrcbox);
+		return;
+	}
+	else if (!config.rendertarget)
+	{
+		return;
+	}
+	g_renderer->ResetAPIState(); // reset any game specific settings
+
+	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(
+		float(dstrect.left),
+		float(dstrect.top),
+		float(dstrect.GetWidth()),
+		float(dstrect.GetHeight()));
+
+	D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
+	D3D::context->RSSetViewports(1, &vp);
+	D3D::SetLinearCopySampler();
+	D3D11_RECT srcRC;
+	srcRC.left = srcrect.left;
+	srcRC.right = srcrect.right;
+	srcRC.top = srcrect.top;
+	srcRC.bottom = srcrect.bottom;
+	D3D::drawShadedTexQuad(srcentry->texture->GetSRV(), &srcRC,
+		srcentry->config.width, srcentry->config.height,
+		PixelShaderCache::GetColorCopyProgram(false),
+		VertexShaderCache::GetSimpleVertexShader(),
+		VertexShaderCache::GetSimpleInputLayout(), nullptr, 1.0, 0);
+
+	D3D::context->OMSetRenderTargets(1,
+		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
+		FramebufferManager::GetEFBDepthTexture()->GetDSV());
+
+	g_renderer->RestoreAPIState();
+}
+
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {

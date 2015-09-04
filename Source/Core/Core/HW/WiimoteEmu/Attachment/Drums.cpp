@@ -81,4 +81,12 @@ void Drums::GetState(u8* const data)
 	ddata->bt ^= 0xFFFF;
 }
 
+bool Drums::IsButtonPressed() const
+{
+	u16 buttons = 0;
+	m_buttons->GetState(&buttons, drum_button_bitmasks);
+	m_pads->GetState(&buttons, drum_pad_bitmasks);
+	return buttons != 0;
+}
+
 }

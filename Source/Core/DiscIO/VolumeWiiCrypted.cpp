@@ -5,7 +5,9 @@
 #include <cstddef>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include <polarssl/aes.h>
 #include <polarssl/sha1.h>
@@ -25,9 +27,9 @@
 namespace DiscIO
 {
 
-CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
+CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset,
 									 const unsigned char* _pVolumeKey)
-	: m_pReader(_pReader),
+	: m_pReader(std::move(reader)),
 	m_AES_ctx(new aes_context),
 	m_pBuffer(nullptr),
 	m_VolumeOffset(_VolumeOffset),
@@ -44,7 +46,7 @@ bool CVolumeWiiCrypted::ChangePartition(u64 offset)
 	m_LastDecryptedBlockOffset = -1;
 
 	u8 volume_key[16];
-	DiscIO::VolumeKeyForParition(*m_pReader, offset, volume_key);
+	DiscIO::VolumeKeyForPartition(*m_pReader, offset, volume_key);
 	aes_setkey_dec(m_AES_ctx.get(), volume_key, 128);
 	return true;
 }
@@ -144,14 +146,12 @@ std::string CVolumeWiiCrypted::GetUniqueID() const
 	if (m_pReader == nullptr)
 		return std::string();
 
-	char ID[7];
+	char ID[6];
 
 	if (!Read(0, 6, (u8*)ID, false))
 		return std::string();
 
-	ID[6] = '\0';
-
-	return ID;
+	return DecodeString(ID);
 }
 
 
@@ -171,14 +171,12 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 	if (m_pReader == nullptr)
 		return std::string();
 
-	char makerID[3];
+	char makerID[2];
 
 	if (!Read(0x4, 0x2, (u8*)&makerID, false))
 		return std::string();
 
-	makerID[2] = '\0';
-
-	return makerID;
+	return DecodeString(makerID);
 }
 
 u16 CVolumeWiiCrypted::GetRevision() const
@@ -233,9 +231,7 @@ std::string CVolumeWiiCrypted::GetApploaderDate() const
 	if (!Read(0x2440, 0x10, (u8*)&date, true))
 		return std::string();
 
-	date[10] = '\0';
-
-	return date;
+	return DecodeString(date);
 }
 
 IVolume::EPlatform CVolumeWiiCrypted::GetVolumeType() const

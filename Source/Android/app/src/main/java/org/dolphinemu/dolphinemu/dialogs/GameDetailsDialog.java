@@ -6,9 +6,9 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -61,7 +61,7 @@ public final class GameDetailsDialog extends DialogFragment
 		TextView textCountry = (TextView) contents.findViewById(R.id.text_country);
 		TextView textDate = (TextView) contents.findViewById(R.id.text_date);
 
-		ImageButton buttonLaunch = (ImageButton) contents.findViewById(R.id.button_launch);
+		FloatingActionButton buttonLaunch = (FloatingActionButton) contents.findViewById(R.id.button_launch);
 
 		int countryIndex = getArguments().getInt(ARGUMENT_GAME_COUNTRY);
 		String country = getResources().getStringArray(R.array.country_names)[countryIndex];

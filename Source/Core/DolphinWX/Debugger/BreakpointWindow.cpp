@@ -171,10 +171,10 @@ void CBreakPointWindow::SaveAll()
 {
 	// simply dump all to bp/mc files in a way we can read again
 	IniFile ini;
-	ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false);
+	ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini", false);
 	ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
 	ini.SetLines("MemoryChecks", PowerPC::memchecks.GetStrings());
-	ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
+	ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini");
 }
 
 void CBreakPointWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
@@ -189,7 +189,7 @@ void CBreakPointWindow::LoadAll()
 	BreakPoints::TBreakPointsStr newbps;
 	MemChecks::TMemChecksStr newmcs;
 
-	if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false))
+	if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini", false))
 	{
 		return;
 	}

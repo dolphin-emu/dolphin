@@ -11,7 +11,6 @@ class CARDUCode : public UCodeInterface
 public:
 	CARDUCode(DSPHLE *dsphle, u32 crc);
 	virtual ~CARDUCode();
-	u32 GetUpdateMs() override;
 
 	void HandleMail(u32 mail) override;
 	void Update() override;

@@ -50,8 +50,6 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	m_disassembler.reset(GetNewDisassembler("x86"));
 #elif defined(_M_ARM_64)
 	m_disassembler.reset(GetNewDisassembler("aarch64"));
-#elif defined(_M_ARM_32)
-	m_disassembler.reset(GetNewDisassembler("armv7"));
 #else
 	m_disassembler.reset(GetNewDisassembler("UNK"));
 #endif

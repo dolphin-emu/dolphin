@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstdio>
 
+#include "Common/Common.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/ConstantManager.h"
@@ -17,6 +18,24 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"  // for texture projection mode
 
+// TODO: Get rid of these
+enum : u32
+{
+	C_COLORMATRIX   = 0,                 //  0
+	C_COLORS        = 0,                 //  0
+	C_KCOLORS       = C_COLORS + 4,      //  4
+	C_ALPHA         = C_KCOLORS + 4,     //  8
+	C_TEXDIMS       = C_ALPHA + 1,       //  9
+	C_ZBIAS         = C_TEXDIMS + 8,     // 17
+	C_INDTEXSCALE   = C_ZBIAS + 2,       // 19
+	C_INDTEXMTX     = C_INDTEXSCALE + 2, // 21
+	C_FOGCOLOR      = C_INDTEXMTX + 6,   // 27
+	C_FOGI          = C_FOGCOLOR + 1,    // 28
+	C_FOGF          = C_FOGI + 1,        // 29
+	C_ZSLOPE        = C_FOGF + 2,        // 31
+	C_EFBSCALE      = C_ZSLOPE + 1,      // 32
+	C_PENVCONST_END = C_EFBSCALE + 1
+};
 
 static const char *tevKSelTableC[] =
 {
@@ -137,7 +156,7 @@ static const char *tevRasTable[] =
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
 
-static char text[16384];
+static char text[32768];
 
 template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE ApiType, const char swapModeTable[4][5]);
 template<class T> static inline void WriteTevRegular(T& out, const char* components, int bias, int op, int clamp, int shift);
@@ -576,13 +595,16 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// For disabled FastDepth we just calculate the depth value again.
 		// The performance impact of this additional calculation doesn't matter, but it prevents
 		// the host GPU driver from performing any early depth test optimizations.
-		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
+		out.SetConstantsUsed(C_ZBIAS + 1, C_ZBIAS + 1);
 		// the screen space depth value = far z + (clip z / clip w) * z range
 		out.Write("\tint zCoord = " I_ZBIAS"[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y));\n");
 	}
 	else
 	{
-		out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
+		if (ApiType == API_D3D)
+			out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
+		else
+			out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
 	}
 	out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
 
@@ -600,7 +622,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// Note: z-textures are not written to depth buffer if early depth test is used
 	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
 	{
-		out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+		if (ApiType == API_D3D)
+			out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
+		else
+			out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
 	}
 
 	// Note: depth texture output is only written to depth buffer if late depth test is used
@@ -608,15 +633,18 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !skip_ztexture)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-		out.SetConstantsUsed(C_ZBIAS, C_ZBIAS+1);
+		out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
 		out.Write("\tzCoord = idot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
-									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
+			(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
 		out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
 	}
 
 	if (per_pixel_depth && bpmem.UseLateDepthTest())
 	{
-		out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+		if (ApiType == API_D3D)
+			out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
+		else
+			out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
 	}
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
@@ -914,14 +942,14 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
 
-	out.Write("\ttevin_a = int4(%s, %s)&255;\n", tevCInputTable[cc.a], tevAInputTable[ac.a]);
-	out.Write("\ttevin_b = int4(%s, %s)&255;\n", tevCInputTable[cc.b], tevAInputTable[ac.b]);
-	out.Write("\ttevin_c = int4(%s, %s)&255;\n", tevCInputTable[cc.c], tevAInputTable[ac.c]);
+	out.Write("\ttevin_a = int4(%s, %s)&int4(255, 255, 255, 255);\n", tevCInputTable[cc.a], tevAInputTable[ac.a]);
+	out.Write("\ttevin_b = int4(%s, %s)&int4(255, 255, 255, 255);\n", tevCInputTable[cc.b], tevAInputTable[ac.b]);
+	out.Write("\ttevin_c = int4(%s, %s)&int4(255, 255, 255, 255);\n", tevCInputTable[cc.c], tevAInputTable[ac.c]);
 	out.Write("\ttevin_d = int4(%s, %s);\n", tevCInputTable[cc.d], tevAInputTable[ac.d]);
 
 	out.Write("\t// color combine\n");
 	out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
-	if (cc.bias != TevBias_COMPARE)
+	if (cc.bias != TEVBIAS_COMPARE)
 	{
 		WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.shift);
 	}
@@ -951,7 +979,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 
 	out.Write("\t// alpha combine\n");
 	out.Write("\t%s = clamp(", tevAOutputTable[ac.dest]);
-	if (ac.bias != TevBias_COMPARE)
+	if (ac.bias != TEVBIAS_COMPARE)
 	{
 		WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.shift);
 	}
@@ -1062,7 +1090,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 template<class T>
 static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
-	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
+	out.SetConstantsUsed(C_TEXDIMS + texmap, C_TEXDIMS + texmap);
 
 	if (ApiType == API_D3D)
 		out.Write("iround(255.0 * Tex%d.Sample(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0", texswap);
@@ -1072,14 +1100,14 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 
 static const char *tevAlphaFuncsTable[] =
 {
-	"(false)",					// NEVER
-	"(prev.a <  %s)",			// LESS
-	"(prev.a == %s)",			// EQUAL
-	"(prev.a <= %s)",			// LEQUAL
-	"(prev.a >  %s)",			// GREATER
-	"(prev.a != %s)",			// NEQUAL
-	"(prev.a >= %s)",			// GEQUAL
-	"(true)"					// ALWAYS
+	"(false)",        // NEVER
+	"(prev.a <  %s)", // LESS
+	"(prev.a == %s)", // EQUAL
+	"(prev.a <= %s)", // LEQUAL
+	"(prev.a >  %s)", // GREATER
+	"(prev.a != %s)", // NEQUAL
+	"(prev.a >= %s)", // GEQUAL
+	"(true)"          // ALWAYS
 };
 
 static const char *tevAlphaFunclogicTable[] =
@@ -1129,7 +1157,7 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
 	if (per_pixel_depth)
-		out.Write("\t\tdepth = 1.0;\n");
+		out.Write("\t\tdepth = %s;\n", (ApiType == API_D3D) ? "0.0" : "1.0");
 
 	// ZCOMPLOC HACK:
 	// The only way to emulate alpha test + early-z is to force early-z in the shader.
@@ -1139,9 +1167,9 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	// important that a reliable alpha test, so we just force the alpha test to always succeed.
 	// At least this seems to be less buggy.
 	uid_data->alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest()
-	                                         && bpmem.zmode.updateenable
-	                                         && !g_ActiveConfig.backend_info.bSupportsEarlyZ
-	                                         && !bpmem.genMode.zfreeze;
+		&& bpmem.zmode.updateenable
+		&& !g_ActiveConfig.backend_info.bSupportsEarlyZ
+		&& !bpmem.genMode.zfreeze;
 
 	if (!uid_data->alpha_test_use_zcomploc_hack)
 	{
@@ -1176,7 +1204,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 
 	out.SetConstantsUsed(C_FOGCOLOR, C_FOGCOLOR);
 	out.SetConstantsUsed(C_FOGI, C_FOGI);
-	out.SetConstantsUsed(C_FOGF, C_FOGF+1);
+	out.SetConstantsUsed(C_FOGF, C_FOGF + 1);
 	if (bpmem.fog.c_proj_fsel.proj == 0)
 	{
 		// perspective
@@ -1239,4 +1267,3 @@ void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_
 {
 	GeneratePixelShader<PixelShaderConstantProfile>(object, dstAlphaMode, ApiType, components);
 }
-

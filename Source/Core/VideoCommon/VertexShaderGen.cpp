@@ -242,7 +242,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		switch (texinfo.sourcerow)
 		{
 		case XF_SRCGEOM_INROW:
-			_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
+			// The following assert was triggered in Super Smash Bros. Project M 3.6.
+			//_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 			out.Write("coord = rawpos;\n"); // pos.w is 1
 			break;
 		case XF_SRCNORMAL_INROW:
@@ -292,7 +293,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				}
 				else
 				{
-					_assert_(0); // should have normals
+					// The following assert was triggered in House of the Dead Overkill and Star Wars Rogue Squadron 2
+					//_assert_(0); // should have normals
 					uid_data->texMtxInfo[i].embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
 					out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
 				}
@@ -383,10 +385,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	if (g_ActiveConfig.backend_info.bSupportsClipControl)
 	{
 		out.Write("o.pos.z = -o.pos.z;\n");
-	}
-	else if (api_type == API_D3D)
-	{
-		out.Write("o.pos.z = o.pos.w + o.pos.z;\n");
 	}
 	else // OGL
 	{

@@ -19,6 +19,14 @@ enum GLSL_VERSION
 	GLSL_150,  // and above
 	GLSLES_300,  // GLES 3.0
 	GLSLES_310, // GLES 3.1
+	GLSLES_320, // GLES 3.2
+};
+enum class ES_TEXBUF_TYPE
+{
+	TEXBUF_NONE,
+	TEXBUF_CORE,
+	TEXBUF_OES,
+	TEXBUF_EXT
 };
 
 // ogl-only config, so not in VideoConfig.h
@@ -36,6 +44,9 @@ struct VideoConfig
 	bool bSupportViewportFloat;
 	bool bSupportsAEP;
 	bool bSupportsDebug;
+	bool bSupportsCopySubImage;
+	u8   SupportedESPointSize;
+	ES_TEXBUF_TYPE SupportedESTextureBuffer;
 
 	const char* gl_vendor;
 	const char* gl_renderer;

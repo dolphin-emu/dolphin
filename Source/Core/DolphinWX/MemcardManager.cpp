@@ -26,6 +26,7 @@
 #include "DolphinWX/MemcardManager.h"
 #include "DolphinWX/WxUtils.h"
 
+#define FIRSTPAGE 0
 #define ARROWS slot ? "" : ARROW[slot], slot ? ARROW[slot] : ""
 
 const u8 hdr[] = {
@@ -102,8 +103,9 @@ BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
 	EVT_MENU_RANGE(COLUMN_BANNER, NUMBER_OF_COLUMN, CMemcardManager::OnMenuChange)
 END_EVENT_TABLE()
 
-CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
-	: wxDialog(parent, id, title, position, size, style)
+CMemcardManager::CMemcardManager(wxWindow* parent)
+	: wxDialog(parent, wxID_ANY, _("Memory Card Manager"), wxDefaultPosition, wxDefaultSize,
+	           wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX)
 {
 	memoryCard[SLOT_A] = nullptr;
 	memoryCard[SLOT_B] = nullptr;

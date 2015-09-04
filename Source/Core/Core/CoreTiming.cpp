@@ -63,9 +63,6 @@ u64 fakeTBStartTicks;
 
 static int ev_lost;
 
-
-static void (*advanceCallback)(int cyclesExecuted) = nullptr;
-
 static Event* GetNewEvent()
 {
 	if (!eventPool)
@@ -243,6 +240,7 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 // Executes an event immediately, then returns.
 void ScheduleEvent_Immediate(int event_type, u64 userdata)
 {
+	_assert_msg_(POWERPC, Core::IsCPUThread(), "ScheduleEvent_Immediate from wrong thread");
 	event_types[event_type].callback(userdata, 0);
 }
 
@@ -302,42 +300,13 @@ void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
 	AddEventToQueue(ne);
 }
 
-void RegisterAdvanceCallback(void (*callback)(int cyclesExecuted))
-{
-	advanceCallback = callback;
-}
-
-bool IsScheduled(int event_type)
-{
-	if (!first)
-		return false;
-	Event *e = first;
-	while (e)
-	{
-		if (e->type == event_type)
-			return true;
-		e = e->next;
-	}
-	return false;
-}
-
 void RemoveEvent(int event_type)
 {
-	if (!first)
-		return;
-
-	while (first)
+	while (first && first->type == event_type)
 	{
-		if (first->type == event_type)
-		{
-			Event *next = first->next;
-			FreeEvent(first);
-			first = next;
-		}
-		else
-		{
-			break;
-		}
+		Event* next = first->next;
+		FreeEvent(first);
+		first = next;
 	}
 
 	if (!first)
@@ -367,11 +336,6 @@ void RemoveAllEvents(int event_type)
 	RemoveEvent(event_type);
 }
 
-void SetMaximumSlice(int maximumSliceLength)
-{
-	maxSliceLength = maximumSliceLength;
-}
-
 void ForceExceptionCheck(int cycles)
 {
 	if (DowncountToCycles(PowerPC::ppcState.downcount) > cycles)
@@ -379,11 +343,6 @@ void ForceExceptionCheck(int cycles)
 		slicelength -= (DowncountToCycles(PowerPC::ppcState.downcount) - cycles); // Account for cycles already executed by adjusting the slicelength
 		PowerPC::ppcState.downcount = CyclesToDowncount(cycles);
 	}
-}
-
-void ResetSliceLength()
-{
-	maxSliceLength = MAX_SLICE_LENGTH;
 }
 
 
@@ -433,21 +392,14 @@ void Advance()
 	lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
 	PowerPC::ppcState.downcount = CyclesToDowncount(slicelength);
 
-	while (first)
+	while (first && first->time <= globalTimer)
 	{
-		if (first->time <= globalTimer)
-		{
-			//LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
-			//             event_types[first->type].name ? event_types[first->type].name : "?", (u64)globalTimer, (u64)first->time);
-			Event* evt = first;
-			first = first->next;
-			event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
-			FreeEvent(evt);
-		}
-		else
-		{
-			break;
-		}
+		//LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
+		//             event_types[first->type].name ? event_types[first->type].name : "?", (u64)globalTimer, (u64)first->time);
+		Event* evt = first;
+		first = first->next;
+		event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
+		FreeEvent(evt);
 	}
 
 	if (!first)
@@ -462,9 +414,6 @@ void Advance()
 			slicelength = maxSliceLength;
 		PowerPC::ppcState.downcount = CyclesToDowncount(slicelength);
 	}
-
-	if (advanceCallback)
-		advanceCallback(cyclesExecuted);
 }
 
 void LogPendingEvents()
@@ -481,13 +430,13 @@ void Idle()
 {
 	//DEBUG_LOG(POWERPC, "Idle");
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack)
+	if (SConfig::GetInstance().bSyncGPUOnSkipIdleHack)
 	{
 		//When the FIFO is processing data we must not advance because in this way
 		//the VI will be desynchronized. So, We are waiting until the FIFO finish and
 		//while we process only the events required by the FIFO.
 		ProcessFifoWaitEvents();
-		g_video_backend->Video_Sync();
+		g_video_backend->Video_Sync(0);
 	}
 
 	idledCycles += DowncountToCycles(PowerPC::ppcState.downcount);

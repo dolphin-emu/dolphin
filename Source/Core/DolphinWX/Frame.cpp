@@ -35,7 +35,6 @@
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
@@ -147,7 +146,7 @@ bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
 	std::string internal_game_id(game_id_length, ' ');
 	file.read(&internal_game_id[0], game_id_length);
 
-	return internal_game_id == SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
+	return internal_game_id == SConfig::GetInstance().GetUniqueID();
 }
 
 #ifdef _WIN32
@@ -163,7 +162,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 			{
 				case SC_SCREENSAVE:
 				case SC_MONITORPOWER:
-					if (Core::GetState() == Core::CORE_RUN && SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+					if (Core::GetState() == Core::CORE_RUN && SConfig::GetInstance().bDisableScreenSaver)
 						break;
 				default:
 					return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
@@ -178,7 +177,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 				break;
 
 			case WM_USER_SETCURSOR:
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+				if (SConfig::GetInstance().bHideCursor &&
 					main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
 					SetCursor(wxCURSOR_BLANK);
 				else
@@ -211,7 +210,7 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 		// Some backends don't support exclusive fullscreen, so we
 		// can't tell exactly when exclusive mode is activated.
 		if (!g_Config.backend_info.bSupportsExclusiveFullscreen)
-			OSD::AddMessage("Enabled exclusive fullscreen.");
+			OSD::AddMessage("Entered exclusive fullscreen.");
 	}
 #endif
 
@@ -266,7 +265,6 @@ EVT_MENU(IDM_CONFIG_AUDIO, CFrame::OnConfigAudio)
 EVT_MENU(IDM_CONFIG_CONTROLLERS, CFrame::OnConfigControllers)
 EVT_MENU(IDM_CONFIG_VR, CFrame::OnConfigVR)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
-EVT_MENU(IDM_CONFIG_MENU_COMMANDS, CFrame::OnConfigMenuCommands)
 EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnPerspectiveMenu)
 EVT_MENU(IDM_EDIT_PERSPECTIVES, CFrame::OnPerspectiveMenu)
 // Drop down
@@ -314,7 +312,7 @@ EVT_MENU(IDM_SAVE_SELECTED_SLOT, CFrame::OnSaveCurrentSlot)
 EVT_MENU(IDM_LOAD_SELECTED_SLOT, CFrame::OnLoadCurrentSlot)
 
 EVT_MENU_RANGE(IDM_LOAD_SLOT_1, IDM_LOAD_SLOT_10, CFrame::OnLoadState)
-EVT_MENU_RANGE(IDM_LOAD_LAST_1, IDM_LOAD_LAST_8, CFrame::OnLoadLastState)
+EVT_MENU_RANGE(IDM_LOAD_LAST_1, IDM_LOAD_LAST_10, CFrame::OnLoadLastState)
 EVT_MENU_RANGE(IDM_SAVE_SLOT_1, IDM_SAVE_SLOT_10, CFrame::OnSaveState)
 EVT_MENU_RANGE(IDM_SELECT_SLOT_1, IDM_SELECT_SLOT_10, CFrame::OnSelectSlot)
 EVT_MENU_RANGE(IDM_FRAME_SKIP_0, IDM_FRAME_SKIP_9, CFrame::OnFrameSkip)
@@ -398,7 +396,7 @@ CFrame::CFrame(wxFrame* parent,
 	// Debugger class
 	if (UseDebugger)
 	{
-		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, IDM_CODE_WINDOW);
+		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance(), this, IDM_CODE_WINDOW);
 		LoadIniPerspectives();
 		g_pCodeWindow->Load();
 	}
@@ -567,16 +565,16 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			if (SConfig::GetInstance().bRenderToMain)
 				m_RenderParent->SetFocus();
 
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+			if (SConfig::GetInstance().bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
 				m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		}
 		else
 		{
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			if (SConfig::GetInstance().bHideCursor)
 				m_RenderParent->SetCursor(wxNullCursor);
 		}
 	}
@@ -647,10 +645,10 @@ void CFrame::OnMove(wxMoveEvent& event)
 	event.Skip();
 
 	if (!IsMaximized() &&
-		!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
+		!(SConfig::GetInstance().bRenderToMain && RendererIsFullscreen()))
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = GetPosition().x;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = GetPosition().y;
+		SConfig::GetInstance().iPosX = GetPosition().x;
+		SConfig::GetInstance().iPosY = GetPosition().y;
 	}
 }
 
@@ -659,13 +657,13 @@ void CFrame::OnResize(wxSizeEvent& event)
 	event.Skip();
 
 	if (!IsMaximized() &&
-		!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()) &&
+		!(SConfig::GetInstance().bRenderToMain && RendererIsFullscreen()) &&
 		!(Core::GetState() != Core::CORE_UNINITIALIZED &&
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize))
+			SConfig::GetInstance().bRenderToMain &&
+			SConfig::GetInstance().bRenderWindowAutoSize))
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
+		SConfig::GetInstance().iWidth = GetSize().GetWidth();
+		SConfig::GetInstance().iHeight = GetSize().GetHeight();
 	}
 
 	// Make sure the logger pane is a sane size
@@ -705,7 +703,7 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 
 void CFrame::UpdateTitle(const std::string &str)
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+	if (SConfig::GetInstance().bRenderToMain &&
 	    SConfig::GetInstance().m_InterfaceStatusbar)
 	{
 		GetStatusBar()->SetStatusText(str, 0);
@@ -759,7 +757,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case WM_USER_CREATE:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		if (SConfig::GetInstance().bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
 
@@ -782,21 +780,37 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case IDM_STOPPED:
 		OnStopped();
 		break;
+
+	case IDM_FORCE_CONNECT_WIIMOTE1:
+	case IDM_FORCE_CONNECT_WIIMOTE2:
+	case IDM_FORCE_CONNECT_WIIMOTE3:
+	case IDM_FORCE_CONNECT_WIIMOTE4:
+	case IDM_FORCE_CONNECT_BALANCEBOARD:
+		ConnectWiimote(event.GetId() - IDM_FORCE_CONNECT_WIIMOTE1, true);
+		break;
+
+	case IDM_FORCE_DISCONNECT_WIIMOTE1:
+	case IDM_FORCE_DISCONNECT_WIIMOTE2:
+	case IDM_FORCE_DISCONNECT_WIIMOTE3:
+	case IDM_FORCE_DISCONNECT_WIIMOTE4:
+	case IDM_FORCE_DISCONNECT_BALANCEBOARD:
+		ConnectWiimote(event.GetId() - IDM_FORCE_DISCONNECT_WIIMOTE1, false);
+		break;
 	}
 }
 
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
 	if (!Core::IsRunning() ||
-			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize ||
-			RendererIsFullscreen() || m_RenderFrame->IsMaximized() || g_has_hmd)
+			!SConfig::GetInstance().bRenderWindowAutoSize ||
+			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
 		return;
 
 	int old_width, old_height, log_width = 0, log_height = 0;
 	m_RenderFrame->GetClientSize(&old_width, &old_height);
 
 	// Add space for the log/console/debugger window
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+	if (SConfig::GetInstance().bRenderToMain &&
 			(SConfig::GetInstance().m_InterfaceLogWindow ||
 			 SConfig::GetInstance().m_InterfaceLogConfigWindow) &&
 			!m_Mgr->GetPane("Pane 1").IsFloating())
@@ -934,25 +948,9 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
 	}
 }
 
-static bool IsHotkey(wxKeyEvent &event, int id, bool held = false)
+static bool IsHotkey(int id, bool held = false)
 {
-	// Input event hotkey
-	if (event.GetKeyCode() == WXK_NONE)
-	{
-		return HotkeyManagerEmu::IsPressed(id, held);
-	}
-
-	return (event.GetKeyCode() != WXK_NONE &&
-		event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[id] &&
-		event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[id]);
-}
-
-static bool IsVRSettingsKey(wxKeyEvent &event, int Id)
-{
-	return (event.GetKeyCode() != WXK_NONE &&
-		event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[Id] &&
-		event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] &&
-		true == SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[Id]);
+	return HotkeyManagerEmu::IsPressed(id, held);
 }
 
 int GetCmdForHotkey(unsigned int key)
@@ -1010,6 +1008,8 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_LOAD_LAST_STATE_6: return IDM_LOAD_LAST_6;
 	case HK_LOAD_LAST_STATE_7: return IDM_LOAD_LAST_7;
 	case HK_LOAD_LAST_STATE_8: return IDM_LOAD_LAST_8;
+	case HK_LOAD_LAST_STATE_9: return IDM_LOAD_LAST_9;
+	case HK_LOAD_LAST_STATE_10: return IDM_LOAD_LAST_10;
 
 	case HK_SAVE_FIRST_STATE: return IDM_SAVE_FIRST_STATE;
 	case HK_UNDO_LOAD_STATE: return IDM_UNDO_LOAD_STATE;
@@ -1079,74 +1079,18 @@ void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controll
 	}
 }
 
-bool TASInputHasFocus()
-{
-	for (int i = 0; i < 8; ++i)
-	{
-		if (main_frame->g_TASInputDlg[i]->TASHasFocus())
-			return true;
-	}
-	return false;
-}
-
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED &&
-	    (RendererHasFocus() || TASInputHasFocus()))
-	{
-		if (IsHotkey(event, HK_TOGGLE_THROTTLE))
-		{
-			Core::SetIsFramelimiterTempDisabled(true);
-		}
-		else
-		{
-			ParseHotkeys(event);
-		}
-
-		if (g_has_hmd && event.GetModifiers() == wxMOD_SHIFT)
-		{
-			switch (event.GetKeyCode())
-			{
-			// Previous layer
-			case 'B':
-				g_Config.iSelectedLayer--;
-				if (g_Config.iSelectedLayer < -1)
-					g_Config.iSelectedLayer = -2;
-				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
-				debug_nextScene = true;
-				break;
-			// Next layer
-			case 'N':
-				g_Config.iSelectedLayer++;
-				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
-				debug_nextScene = true;
-				break;
-			case '\'':
-				NOTICE_LOG(VR, "--- pressed ' ---");
-				debug_nextScene = true;
-				break;
-			}
-		}
-	}
-	else
-	{
-		event.Skip();
-	}
-}
-
-void CFrame::OnKeyUp(wxKeyEvent& event)
-{
-	if (Core::IsRunning() && (RendererHasFocus() || TASInputHasFocus()))
-	{
-		if (IsHotkey(event, HK_TOGGLE_THROTTLE))
-		{
-			Core::SetIsFramelimiterTempDisabled(false);
-		}
-	}
-	else
-	{
-		event.Skip();
-	}
+	// On OS X, we claim all keyboard events while
+	// emulation is running to avoid wxWidgets sounding
+	// the system beep for unhandled key events when
+	// receiving pad/Wiimote keypresses which take an
+	// entirely different path through the HID subsystem.
+#ifndef __APPLE__
+	// On other platforms, we leave the key event alone
+	// so it can be passed on to the windowing system.
+	event.Skip();
+#endif
 }
 
 void CFrame::OnMouse(wxMouseEvent& event)
@@ -1196,18 +1140,8 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 		if (mouseMoveEnabled)
 		{
-			if (g_has_hmd)
-			{
-				VertexShaderManager::TranslateView(
-					(event.GetX() - lastMouse[0]) * g_ActiveConfig.fScale * g_ActiveConfig.fFreeLookSensitivity / 7.0f,
-					(event.GetY() - lastMouse[1]) * g_ActiveConfig.fScale * g_ActiveConfig.fFreeLookSensitivity / 7.0f);
-			}
-			else
-			{
-				VertexShaderManager::TranslateView(
-					((event.GetX() - lastMouse[0]) * g_ActiveConfig.fFreeLookSensitivity) / 7.0f,
-					((event.GetY() - lastMouse[1]) * g_ActiveConfig.fFreeLookSensitivity) / 7.0f);
-			}
+			VertexShaderManager::TranslateView((event.GetX() - lastMouse[0]) / 50.0f,
+					(event.GetY() - lastMouse[1]) / 50.0f);
 			lastMouse[0] = event.GetX();
 			lastMouse[1] = event.GetY();
 		}
@@ -1225,7 +1159,7 @@ void CFrame::OnFocusChange(wxFocusEvent& event)
 			if (Core::GetState() == Core::CORE_PAUSE)
 			{
 				Core::SetState(Core::CORE_RUN);
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+				if (SConfig::GetInstance().bHideCursor)
 					m_RenderParent->SetCursor(wxCURSOR_BLANK);
 			}
 		}
@@ -1234,7 +1168,7 @@ void CFrame::OnFocusChange(wxFocusEvent& event)
 			if (Core::GetState() == Core::CORE_RUN)
 			{
 				Core::SetState(Core::CORE_PAUSE);
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+				if (SConfig::GetInstance().bHideCursor)
 					m_RenderParent->SetCursor(wxNullCursor);
 				Core::UpdateTitle();
 			}
@@ -1280,7 +1214,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	}
 #endif
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	if (SConfig::GetInstance().bRenderToMain)
 	{
 		if (enable_fullscreen)
 		{
@@ -1328,7 +1262,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 		m_RenderFrame->Raise();
 	}
 
-	g_Config.bFullscreen = (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain) ? false : enable_fullscreen;
+	g_Config.bFullscreen = enable_fullscreen;
 }
 
 const CGameListCtrl *CFrame::GetGameListCtrl() const
@@ -1347,15 +1281,13 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 	if (Core::GetState() != Core::CORE_STOPPING)
 	{
 		HotkeyManagerEmu::GetStatus();
-		wxKeyEvent keyevent = 0;
-		ParseHotkeys(keyevent);
+		ParseHotkeys();
 	}
 }
 
-void CFrame::ParseHotkeys(wxKeyEvent &event)
+void CFrame::ParseHotkeys()
 {
-	unsigned int i = 0;
-	for (i = 0; i < NUM_HOTKEYS; i++)
+	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		switch  (i)
 		{
@@ -1369,46 +1301,11 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 			case HK_EXPORT_RECORDING:
 			case HK_READ_ONLY_MODE:
 
-			case HK_LOAD_STATE_SLOT_1:
-			case HK_LOAD_STATE_SLOT_2:
-			case HK_LOAD_STATE_SLOT_3:
-			case HK_LOAD_STATE_SLOT_4:
-			case HK_LOAD_STATE_SLOT_5:
-			case HK_LOAD_STATE_SLOT_6:
-			case HK_LOAD_STATE_SLOT_7:
-			case HK_LOAD_STATE_SLOT_8:
-			case HK_LOAD_STATE_SLOT_9:
-			case HK_LOAD_STATE_SLOT_10:
-
-			case HK_SAVE_STATE_SLOT_1:
-			case HK_SAVE_STATE_SLOT_2:
-			case HK_SAVE_STATE_SLOT_3:
-			case HK_SAVE_STATE_SLOT_4:
-			case HK_SAVE_STATE_SLOT_5:
-			case HK_SAVE_STATE_SLOT_6:
-			case HK_SAVE_STATE_SLOT_7:
-			case HK_SAVE_STATE_SLOT_8:
-			case HK_SAVE_STATE_SLOT_9:
-			case HK_SAVE_STATE_SLOT_10:
-
-			case HK_LOAD_LAST_STATE_1:
-			case HK_LOAD_LAST_STATE_2:
-			case HK_LOAD_LAST_STATE_3:
-			case HK_LOAD_LAST_STATE_4:
-			case HK_LOAD_LAST_STATE_5:
-			case HK_LOAD_LAST_STATE_6:
-			case HK_LOAD_LAST_STATE_7:
-			case HK_LOAD_LAST_STATE_8:
-
-			case HK_SAVE_FIRST_STATE:
-			case HK_UNDO_LOAD_STATE:
-			case HK_UNDO_SAVE_STATE:
 			case HK_LOAD_STATE_FILE:
 			case HK_SAVE_STATE_FILE:
-
 			case HK_LOAD_STATE_SLOT_SELECTED:
 
-				if (IsHotkey(event, i))
+				if (IsHotkey(i))
 				{
 					int cmd = GetCmdForHotkey(i);
 					if (cmd >= 0)
@@ -1428,256 +1325,213 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 				// do nothing
 		}
 	}
-	// On OS X, we claim all keyboard events while
-	// emulation is running to avoid wxWidgets sounding
-	// the system beep for unhandled key events when
-	// receiving pad/Wiimote keypresses which take an
-	// entirely different path through the HID subsystem.
-#ifndef __APPLE__
-	// On other platforms, we leave the key event alone
-	// so it can be passed on to the windowing system.
-	if (i == NUM_HOTKEYS)
-		event.Skip();
-#endif
 
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+	if (!Core::IsRunningAndStarted())
 	{
-		event.Skip();
 		return;
 	}
 
 	// Toggle fullscreen
-	if (IsHotkey(event, HK_FULLSCREEN))
+	if (IsHotkey(HK_FULLSCREEN))
 		DoFullscreen(!RendererIsFullscreen());
 	// Pause and Unpause
-	if (IsHotkey(event, HK_PLAY_PAUSE))
+	if (IsHotkey(HK_PLAY_PAUSE))
 		DoPause();
 	// Stop
-	if (IsHotkey(event, HK_STOP))
+	if (IsHotkey(HK_STOP))
 		DoStop();
 	// Screenshot hotkey
-	if (IsHotkey(event, HK_SCREENSHOT))
+	if (IsHotkey(HK_SCREENSHOT))
 		Core::SaveScreenShot();
-	if (IsHotkey(event, HK_EXIT))
+	if (IsHotkey(HK_EXIT))
 		wxPostEvent(this, wxCommandEvent(wxID_EXIT));
-	if (IsHotkey(event, HK_VOLUME_DOWN))
+	if (IsHotkey(HK_VOLUME_DOWN))
 		AudioCommon::DecreaseVolume(3);
-	if (IsHotkey(event, HK_VOLUME_UP))
+	if (IsHotkey(HK_VOLUME_UP))
 		AudioCommon::IncreaseVolume(3);
-	if (IsHotkey(event, HK_VOLUME_TOGGLE_MUTE))
+	if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
 		AudioCommon::ToggleMuteVolume();
 
 	// Wiimote connect and disconnect hotkeys
 	int WiimoteId = -1;
-	if (IsHotkey(event, HK_WIIMOTE1_CONNECT))
+	if (IsHotkey(HK_WIIMOTE1_CONNECT))
 		WiimoteId = 0;
-	if (IsHotkey(event, HK_WIIMOTE2_CONNECT))
+	if (IsHotkey(HK_WIIMOTE2_CONNECT))
 		WiimoteId = 1;
-	if (IsHotkey(event, HK_WIIMOTE3_CONNECT))
+	if (IsHotkey(HK_WIIMOTE3_CONNECT))
 		WiimoteId = 2;
-	if (IsHotkey(event, HK_WIIMOTE4_CONNECT))
+	if (IsHotkey(HK_WIIMOTE4_CONNECT))
 		WiimoteId = 3;
-	if (IsHotkey(event, HK_BALANCEBOARD_CONNECT))
+	if (IsHotkey(HK_BALANCEBOARD_CONNECT))
 		WiimoteId = 4;
 
 	// Actually perform the Wiimote connection or disconnection
-	if (WiimoteId >= 0 && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (WiimoteId >= 0 && SConfig::GetInstance().bWii)
 	{
 		wxCommandEvent evt;
 		evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);
 		OnConnectWiimote(evt);
 	}
 
-	if (IsHotkey(event, HK_TOGGLE_IR))
-	{
-		OSDChoice = 1;
-		// Toggle native resolution
-		if (++g_Config.iEFBScale > SCALE_4X)
-			g_Config.iEFBScale = SCALE_AUTO;
-	}
-	if (IsHotkey(event, HK_INCREASE_IR))
+	if (IsHotkey(HK_INCREASE_IR))
 	{
 		OSDChoice = 1;
 		++g_Config.iEFBScale;
 	}
-	if (IsHotkey(event, HK_DECREASE_IR))
+	if (IsHotkey(HK_DECREASE_IR))
 	{
 		OSDChoice = 1;
-		if (--g_Config.iEFBScale < SCALE_1X)
-			g_Config.iEFBScale = SCALE_1X;
+		if (--g_Config.iEFBScale < SCALE_AUTO)
+			g_Config.iEFBScale = SCALE_AUTO;
 	}
-	if (IsHotkey(event, HK_TOGGLE_AR))
+	if (IsHotkey(HK_TOGGLE_AR))
 	{
 		OSDChoice = 2;
 		// Toggle aspect ratio
 		g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
 	}
-	if (IsHotkey(event, HK_TOGGLE_EFBCOPIES))
+	if (IsHotkey(HK_TOGGLE_EFBCOPIES))
 	{
 		OSDChoice = 3;
 		// Toggle EFB copies between EFB2RAM and EFB2Texture
-		if (!g_Config.bEFBCopyEnable)
-		{
-			OSD::AddMessage("EFB Copies are disabled, enable them in Graphics settings for toggling", 6000);
-		}
-		else
-		{
-			g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
-		}
+		g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
 	}
-	if (IsHotkey(event, HK_TOGGLE_FOG))
+	if (IsHotkey(HK_TOGGLE_FOG))
 	{
 		OSDChoice = 4;
 		g_Config.bDisableFog = !g_Config.bDisableFog;
 	}
-	if (IsHotkey(event, HK_TOGGLE_THROTTLE, false))
-	{
-		Core::SetIsFramelimiterTempDisabled(false);
-	}
-	else if (IsHotkey(event, HK_TOGGLE_THROTTLE, true))
-	{
-		Core::SetIsFramelimiterTempDisabled(true);
-	}
-	if (IsHotkey(event, HK_DECREASE_FRAME_LIMIT))
+	Core::SetIsFramelimiterTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
+	if (IsHotkey(HK_DECREASE_FRAME_LIMIT))
 	{
 		if (--SConfig::GetInstance().m_Framelimit > 0x19)
 			SConfig::GetInstance().m_Framelimit = 0x19;
 	}
-	if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
+	if (IsHotkey(HK_INCREASE_FRAME_LIMIT))
 	{
 		if (++SConfig::GetInstance().m_Framelimit > 0x19)
 			SConfig::GetInstance().m_Framelimit = 0;
 	}
-	if (IsHotkey(event, HK_SAVE_STATE_SLOT_SELECTED))
+	if (IsHotkey(HK_SAVE_STATE_SLOT_SELECTED))
 	{
 		State::Save(g_saveSlot);
 	}
-	if (IsHotkey(event, HK_LOAD_STATE_SLOT_SELECTED))
+	if (IsHotkey(HK_LOAD_STATE_SLOT_SELECTED))
 	{
 		State::Load(g_saveSlot);
 	}
-	if (IsHotkey(event, HK_DECREASE_DEPTH, true))
+	if (IsHotkey(HK_DECREASE_DEPTH, true))
 	{
 		if (--g_Config.iStereoDepth < 0)
 			g_Config.iStereoDepth = 0;
 	}
-	if (IsHotkey(event, HK_INCREASE_DEPTH, true))
+	if (IsHotkey(HK_INCREASE_DEPTH, true))
 	{
 		if (++g_Config.iStereoDepth > 100)
 			g_Config.iStereoDepth = 100;
 	}
-	if (IsHotkey(event, HK_DECREASE_CONVERGENCE, true))
+	if (IsHotkey(HK_DECREASE_CONVERGENCE, true))
 	{
 		g_Config.iStereoConvergence -= 5;
 		if (g_Config.iStereoConvergence < 0)
 			g_Config.iStereoConvergence = 0;
 	}
-	if (IsHotkey(event, HK_INCREASE_CONVERGENCE, true))
+	if (IsHotkey(HK_INCREASE_CONVERGENCE, true))
 	{
 		g_Config.iStereoConvergence += 5;
 		if (g_Config.iStereoConvergence > 500)
 			g_Config.iStereoConvergence = 500;
 	}
 
-	for (i = HK_SELECT_STATE_SLOT_1; i < HK_SELECT_STATE_SLOT_10; ++i)
-	{
-		if (IsHotkey(event, i))
-		{
-			wxCommandEvent slot_event;
-			slot_event.SetId(i + IDM_SELECT_SLOT_1 - HK_SELECT_STATE_SLOT_1);
-			CFrame::OnSelectSlot(slot_event);
-		}
-	}
-
 	// Maths is probably cheaper than if statements, so always recalculate
 	float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
 
-	if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
+	if (IsHotkey(HK_FREELOOK_DECREASE_SPEED))
 		g_ActiveConfig.fFreeLookSensitivity /= 2.0f;
-	else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
+	else if (IsHotkey(HK_FREELOOK_INCREASE_SPEED))
 		g_ActiveConfig.fFreeLookSensitivity *= 2.0f;
-	else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
+	else if (IsHotkey(HK_FREELOOK_RESET_SPEED))
 		g_ActiveConfig.fFreeLookSensitivity = 1.0f;
-	else if (IsHotkey(event, HK_FREELOOK_UP))
+	else if (IsHotkey(HK_FREELOOK_UP))
 		VertexShaderManager::TranslateView(0.0f, 0.0f, -freeLookSpeed / 2);
-	else if (IsHotkey(event, HK_FREELOOK_DOWN))
+	else if (IsHotkey(HK_FREELOOK_DOWN))
 		VertexShaderManager::TranslateView(0.0f, 0.0f, freeLookSpeed / 2);
-	else if (IsHotkey(event, HK_FREELOOK_LEFT))
+	else if (IsHotkey(HK_FREELOOK_LEFT))
 		VertexShaderManager::TranslateView(freeLookSpeed, 0.0f);
-	else if (IsHotkey(event, HK_FREELOOK_RIGHT))
+	else if (IsHotkey(HK_FREELOOK_RIGHT))
 		VertexShaderManager::TranslateView(-freeLookSpeed, 0.0f);
-	else if (IsHotkey(event, HK_FREELOOK_ZOOM_IN))
+	else if (IsHotkey(HK_FREELOOK_ZOOM_IN))
 		VertexShaderManager::TranslateView(0.0f, freeLookSpeed);
-	else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT))
+	else if (IsHotkey(HK_FREELOOK_ZOOM_OUT))
 		VertexShaderManager::TranslateView(0.0f, -freeLookSpeed);
-	else if (IsHotkey(event, HK_FREELOOK_RESET))
+	else if (IsHotkey(HK_FREELOOK_RESET))
 	{
 		VertexShaderManager::ResetView();
 		VR_RecenterHMD();
 	}
 	else if (g_has_hmd)
 	{
-		if (IsVRSettingsKey(event, VR_LARGER_SCALE))
+		if (IsHotkey(VR_LARGER_SCALE))
 		{
 			// Make everything 10% bigger (and further)
 			g_Config.fUnitsPerMetre /= 1.10f;
 			VertexShaderManager::ScaleView(1.10f);
 			NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
 		}
-		else if (IsVRSettingsKey(event, VR_SMALLER_SCALE))
+		else if (IsHotkey(VR_SMALLER_SCALE))
 		{
 			// Make everything 10% smaller (and closer)
 			g_Config.fUnitsPerMetre *= 1.10f;
 			VertexShaderManager::ScaleView(1.0f / 1.10f);
 			NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
 		}
-		if (IsVRSettingsKey(event, VR_GLOBAL_LARGER_SCALE))
+		if (IsHotkey(VR_GLOBAL_LARGER_SCALE))
 		{
 			// Make everything 10% bigger (and further)
 			g_Config.fScale *= 1.10f;
 			SConfig::GetInstance().SaveSingleSetting("VR", "Scale", g_Config.fScale);
 			VertexShaderManager::ScaleView(1.10f);
 		}
-		else if (IsVRSettingsKey(event, VR_GLOBAL_SMALLER_SCALE))
+		else if (IsHotkey(VR_GLOBAL_SMALLER_SCALE))
 		{
 			// Make everything 10% smaller (and closer)
 			g_Config.fScale /= 1.10f;
 			SConfig::GetInstance().SaveSingleSetting("VR", "Scale", g_Config.fScale);
 			VertexShaderManager::ScaleView(1.0f / 1.10f);
 		}
-		else if (IsVRSettingsKey(event, VR_PERMANENT_CAMERA_FORWARD)) {
+		else if (IsHotkey(VR_PERMANENT_CAMERA_FORWARD)) {
 			// Move camera forward 10cm
 			g_Config.fCameraForward += freeLookSpeed;
 			NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_PERMANENT_CAMERA_BACKWARD)) {
+		else if (IsHotkey(VR_PERMANENT_CAMERA_BACKWARD)) {
 			// Move camera back 10cm
 			g_Config.fCameraForward -= freeLookSpeed;
 			NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_CAMERA_TILT_UP)) {
+		else if (IsHotkey(VR_CAMERA_TILT_UP)) {
 			// Pitch camera up 5 degrees
 			g_Config.fCameraPitch += 5.0f;
 			NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
 		}
-		else if (IsVRSettingsKey(event, VR_CAMERA_TILT_DOWN)) {
+		else if (IsHotkey(VR_CAMERA_TILT_DOWN)) {
 			// Pitch camera down 5 degrees
 			g_Config.fCameraPitch -= 5.0f;
 			NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
 		}
-		else if (IsVRSettingsKey(event, VR_HUD_FORWARD)) {
+		else if (IsHotkey(VR_HUD_FORWARD)) {
 			// Move HUD out 10cm
 			g_Config.fHudDistance += 0.1f;
 			NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_HUD_BACKWARD)) {
+		else if (IsHotkey(VR_HUD_BACKWARD)) {
 			// Move HUD in 10cm
 			g_Config.fHudDistance -= 0.1f;
 			if (g_Config.fHudDistance <= 0)
 				g_Config.fHudDistance = 0;
 			NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_HUD_THICKER)) {
+		else if (IsHotkey(VR_HUD_THICKER)) {
 			// Make HUD 10cm thicker
 			if (g_Config.fHudThickness < 0.01f)
 				g_Config.fHudThickness = 0.01f;
@@ -1687,7 +1541,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 				g_Config.fHudThickness += 0.1f;
 			NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_HUD_THINNER)) {
+		else if (IsHotkey(VR_HUD_THINNER)) {
 			// Make HUD 10cm thinner
 			if (g_Config.fHudThickness <= 0.01f)
 				g_Config.fHudThickness = 0;
@@ -1697,7 +1551,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 				g_Config.fHudThickness -= 0.1f;
 			NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_HUD_3D_CLOSER)) {
+		else if (IsHotkey(VR_HUD_3D_CLOSER)) {
 			// Make HUD 3D elements 5% closer (and smaller)
 			if (g_Config.fHud3DCloser >= 0.95f)
 				g_Config.fHud3DCloser = 1;
@@ -1705,7 +1559,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 				g_Config.fHud3DCloser += 0.05f;
 			NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_HUD_3D_FURTHER)) {
+		else if (IsHotkey(VR_HUD_3D_FURTHER)) {
 			// Make HUD 3D elements 5% further (and smaller)
 			if (g_Config.fHud3DCloser <= 0.05f)
 				g_Config.fHud3DCloser = 0;
@@ -1713,17 +1567,17 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 				g_Config.fHud3DCloser -= 0.05f;
 			NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_2D_SCREEN_LARGER)) {
+		else if (IsHotkey(VR_2D_SCREEN_LARGER)) {
 			// Make everything 20% smaller (and closer)
 			g_Config.fScreenHeight *= 1.05f;
 			NOTICE_LOG(VR, "Screen is %fm high", g_Config.fScreenHeight);
 		}
-		else if (IsVRSettingsKey(event, VR_2D_SCREEN_SMALLER)) {
+		else if (IsHotkey(VR_2D_SCREEN_SMALLER)) {
 			// Make everything 20% bigger (and further)
 			g_Config.fScreenHeight /= 1.05f;
 			NOTICE_LOG(VR, "Screen is %fm High", g_Config.fScreenHeight);
 		}
-		else if (IsVRSettingsKey(event, VR_2D_SCREEN_THICKER)) {
+		else if (IsHotkey(VR_2D_SCREEN_THICKER)) {
 			// Make Screen 10cm thicker
 			if (g_Config.fScreenThickness < 0.01f)
 				g_Config.fScreenThickness = 0.01f;
@@ -1733,7 +1587,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 				g_Config.fScreenThickness += 0.1f;
 			NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_2D_SCREEN_THINNER)) {
+		else if (IsHotkey(VR_2D_SCREEN_THINNER)) {
 			// Make Screen 10cm thinner
 			if (g_Config.fScreenThickness <= 0.01f)
 				g_Config.fScreenThickness = 0;
@@ -1743,62 +1597,87 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 				g_Config.fScreenThickness -= 0.1f;
 			NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_2D_CAMERA_FORWARD)) {
+		else if (IsHotkey(VR_2D_CAMERA_FORWARD)) {
 			// Move Screen in 10cm
 			g_Config.fScreenDistance -= 0.1f;
 			if (g_Config.fScreenDistance <= 0)
 				g_Config.fScreenDistance = 0;
 			NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_2D_CAMERA_BACKWARD)) {
+		else if (IsHotkey(VR_2D_CAMERA_BACKWARD)) {
 			// Move Screen out 10cm
 			g_Config.fScreenDistance += 0.1f;
 			NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
 		}
-		else if (IsVRSettingsKey(event, VR_2D_CAMERA_UP)) {
+		else if (IsHotkey(VR_2D_CAMERA_UP)) {
 			// Move Screen Down (Camera Up) 10cm
 			g_Config.fScreenUp -= 0.1f;
 			NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
 		}
-		else if (IsVRSettingsKey(event, VR_2D_CAMERA_DOWN)) {
+		else if (IsHotkey(VR_2D_CAMERA_DOWN)) {
 			// Move Screen Up (Camera Down) 10cm
 			g_Config.fScreenUp += 0.1f;
 			NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
 		}
-		else if (IsVRSettingsKey(event, VR_2D_CAMERA_TILT_UP)) {
+		else if (IsHotkey(VR_2D_CAMERA_TILT_UP)) {
 			// Pitch camera up 5 degrees
 			g_Config.fScreenPitch += 5.0f;
 			NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);
 		}
-		else if (IsVRSettingsKey(event, VR_2D_CAMERA_TILT_DOWN)) {
+		else if (IsHotkey(VR_2D_CAMERA_TILT_DOWN)) {
 			// Pitch camera down 5 degrees
 			g_Config.fScreenPitch -= 5.0f;
 			NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);;
 		}
 	}
-	if (g_has_hmd && event.GetModifiers() == wxMOD_SHIFT)
+	//if (g_has_hmd && event.GetModifiers() == wxMOD_SHIFT)
+	//{
+	//	switch (event.GetKeyCode())
+	//	{
+	//		// Previous layer
+	//	case 'B':
+	//		g_Config.iSelectedLayer--;
+	//		if (g_Config.iSelectedLayer < -1)
+	//			g_Config.iSelectedLayer = -2;
+	//		NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
+	//		debug_nextScene = true;
+	//		break;
+	//		// Next layer
+	//	case 'N':
+	//		g_Config.iSelectedLayer++;
+	//		NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
+	//		debug_nextScene = true;
+	//		break;
+	//	case '\'':
+	//		NOTICE_LOG(VR, "--- pressed ' ---");
+	//		debug_nextScene = true;
+	//		break;
+	//	}
+	//}
+
+	// Savestates
+	for (u32 i = 0; i < State::NUM_STATES; i++)
 	{
-		switch (event.GetKeyCode())
+		if (IsHotkey(HK_LOAD_STATE_SLOT_1 + i))
+			State::Load(1 + i);
+
+		if (IsHotkey(HK_SAVE_STATE_SLOT_1 + i))
+			State::Save(1 + i);
+
+		if (IsHotkey(HK_LOAD_LAST_STATE_1 + i))
+			State::LoadLastSaved(1 + i);
+
+		if (IsHotkey(HK_SELECT_STATE_SLOT_1 + i))
 		{
-			// Previous layer
-		case 'B':
-			g_Config.iSelectedLayer--;
-			if (g_Config.iSelectedLayer < -1)
-				g_Config.iSelectedLayer = -2;
-			NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
-			debug_nextScene = true;
-			break;
-			// Next layer
-		case 'N':
-			g_Config.iSelectedLayer++;
-			NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
-			debug_nextScene = true;
-			break;
-		case '\'':
-			NOTICE_LOG(VR, "--- pressed ' ---");
-			debug_nextScene = true;
-			break;
+			wxCommandEvent slot_event;
+			slot_event.SetId(IDM_SELECT_SLOT_1 + i);
+			CFrame::OnSelectSlot(slot_event);
 		}
 	}
+	if (IsHotkey(HK_SAVE_FIRST_STATE))
+		State::SaveFirstSaved();
+	if (IsHotkey(HK_UNDO_LOAD_STATE))
+		State::UndoLoadState();
+	if (IsHotkey(HK_UNDO_SAVE_STATE))
+		State::UndoSaveState();
 }
-

@@ -21,7 +21,7 @@ PulseAudio::PulseAudio()
 
 bool PulseAudio::Start()
 {
-	m_stereo = !SConfig::GetInstance().m_LocalCoreStartupParameter.bDPL2Decoder;
+	m_stereo = !SConfig::GetInstance().bDPL2Decoder;
 	m_channels = m_stereo ? 2 : 5; // will tell PA we use a Stereo or 5.0 channel setup
 
 	NOTICE_LOG(AUDIO, "PulseAudio backend using %d channels", m_channels);
@@ -163,7 +163,8 @@ void PulseAudio::StateCallback(pa_context* c)
 void PulseAudio::UnderflowCallback(pa_stream* s)
 {
 	m_pa_ba.tlength += BUFFER_SAMPLES * m_channels * m_bytespersample;
-	pa_stream_set_buffer_attr(s, &m_pa_ba, nullptr, nullptr);
+	pa_operation* op = pa_stream_set_buffer_attr(s, &m_pa_ba, nullptr, nullptr);
+	pa_operation_unref(op);
 
 	WARN_LOG(AUDIO, "pulseaudio underflow, new latency: %d bytes", m_pa_ba.tlength);
 }

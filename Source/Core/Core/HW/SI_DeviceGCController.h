@@ -85,24 +85,24 @@ public:
 	CSIDevice_GCController(SIDevices device, int _iDeviceNumber);
 
 	// Run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
-
-	// Send and Receive pad input from network
-	static bool NetPlay_GetInput(u8 numPAD, GCPadStatus* status);
-	static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
+	int RunBuffer(u8* _pBuffer, int _iLength) override;
 
 	// Return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low) override;
+	bool GetData(u32& _Hi, u32& _Low) override;
+
+	// Send a command directly
+	void SendCommand(u32 _Cmd, u8 _Poll) override;
+
+	// Savestate support
+	void DoState(PointerWrap& p) override;
 
 	virtual GCPadStatus GetPadStatus();
 	virtual u32 MapPadStatus(const GCPadStatus& pad_status);
 	virtual void HandleButtonCombos(const GCPadStatus& pad_status);
 
-	// Send a command directly
-	virtual void SendCommand(u32 _Cmd, u8 _Poll) override;
-
-	// Savestate support
-	virtual void DoState(PointerWrap& p) override;
+	// Send and Receive pad input from network
+	static bool NetPlay_GetInput(u8 numPAD, GCPadStatus* status);
+	static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
 
 private:
 	void Calibrate();
@@ -115,10 +115,14 @@ class CSIDevice_TaruKonga : public CSIDevice_GCController
 public:
 	CSIDevice_TaruKonga(SIDevices device, int _iDeviceNumber) : CSIDevice_GCController(device, _iDeviceNumber) { }
 
-	virtual bool GetData(u32& _Hi, u32& _Low) override
+	bool GetData(u32& _Hi, u32& _Low) override
 	{
 		CSIDevice_GCController::GetData(_Hi, _Low);
-		_Hi &= ~PAD_USE_ORIGIN << 16;
+
+		// Unset all bits except those that represent
+		// A, B, X, Y, Start and the error bits, as they
+		// are not used.
+		_Hi &= ~0x20FFFFFF;
 		return true;
 	}
 };

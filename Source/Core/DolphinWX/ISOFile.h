@@ -30,7 +30,7 @@ public:
 	std::string GetDescription(DiscIO::IVolume::ELanguage language) const;
 	std::string GetDescription() const;
 	std::vector<DiscIO::IVolume::ELanguage> GetLanguages() const;
-	std::string GetCompany() const;
+	std::string GetCompany() const { return m_company; }
 	u16 GetRevision() const { return m_Revision; }
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;
@@ -42,7 +42,9 @@ public:
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
 	// 0 is the first disc, 1 is the second disc
-	u8 GetDiscNumber() const {return m_disc_number;}
+	u8 GetDiscNumber() const { return m_disc_number; }
+	bool IsElfOrDol() const;
+
 #if defined(HAVE_WX) && HAVE_WX
 	const wxBitmap& GetBitmap() const {return m_Bitmap;}
 #endif
@@ -81,4 +83,6 @@ private:
 	void SaveToCache();
 
 	std::string CreateCacheFilename();
+
+	void ReadBanner(const DiscIO::IVolume& volume);
 };

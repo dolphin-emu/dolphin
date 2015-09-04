@@ -158,7 +158,7 @@ static void ApplySSAASettings()
 			{
 				glEnable(GL_SAMPLE_SHADING_ARB);
 				GLfloat min_sample_shading_value = static_cast<GLfloat>(s_MSAASamples);
-				glMinSampleShadingARB(min_sample_shading_value);
+				glMinSampleShading(min_sample_shading_value);
 			}
 			else
 			{
@@ -311,7 +311,7 @@ static void InitDriverInfo()
 			int major = 0;
 			int minor = 0;
 			int release = 0;
-			sscanf(g_ogl_config.gl_version, "%*s Mesa %d.%d.%d", &major, &minor, &release);
+			sscanf(g_ogl_config.gl_version, "%*s (Core Profile) Mesa %d.%d.%d", &major, &minor, &release);
 			version = 100*major + 10*minor + release;
 		}
 		break;
@@ -476,8 +476,15 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
 	g_Config.backend_info.bSupportsGeometryShaders = GLExtensions::Version() >= 320;
-	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object");
+	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object") ||
+	                                                   GLExtensions::Supports("GL_OES_texture_buffer") ||
+	                                                   GLExtensions::Supports("GL_EXT_texture_buffer");
 	g_Config.backend_info.bSupportsClipControl = GLExtensions::Supports("GL_ARB_clip_control");
+	g_ogl_config.bSupportsCopySubImage = (GLExtensions::Supports("GL_ARB_copy_image") ||
+	                                      GLExtensions::Supports("GL_NV_copy_image") ||
+	                                      GLExtensions::Supports("GL_EXT_copy_image") ||
+	                                      GLExtensions::Supports("GL_OES_copy_image")) &&
+	                                      !DriverDetails::HasBug(DriverDetails::BUG_BROKENCOPYIMAGE);
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -495,24 +502,44 @@ Renderer::Renderer()
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
-	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
+	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") ||
+	                              GLExtensions::Supports("GL_ARB_debug_output");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
-		if (strstr(g_ogl_config.glsl_version, "3.0"))
+		g_ogl_config.SupportedESPointSize = GLExtensions::Supports("GL_OES_geometry_point_size") ? 1 : GLExtensions::Supports("GL_EXT_geometry_point_size") ? 2 : 0;
+		g_ogl_config.SupportedESTextureBuffer = GLExtensions::Supports("VERSION_GLES_3_2") ? ES_TEXBUF_TYPE::TEXBUF_CORE :
+		                                        GLExtensions::Supports("GL_OES_texture_buffer") ? ES_TEXBUF_TYPE::TEXBUF_OES :
+		                                        GLExtensions::Supports("GL_EXT_texture_buffer") ? ES_TEXBUF_TYPE::TEXBUF_EXT : ES_TEXBUF_TYPE::TEXBUF_NONE;
+
+		if (strstr(g_ogl_config.glsl_version, "3.0") || DriverDetails::HasBug(DriverDetails::BUG_BROKENGLES31))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
 			g_ogl_config.bSupportsAEP = false;
 			g_Config.backend_info.bSupportsGeometryShaders = false;
 		}
-		else
+		else if (strstr(g_ogl_config.glsl_version, "3.1"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
 			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
 			g_Config.backend_info.bSupportsBindingLayout = true;
 			g_Config.backend_info.bSupportsEarlyZ = true;
 			g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
-			//g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_EXT_texture_buffer");
+			g_Config.backend_info.bSupportsGSInstancing = g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
+		}
+		else
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSLES_320;
+			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
+			g_Config.backend_info.bSupportsBindingLayout = true;
+			g_Config.backend_info.bSupportsEarlyZ = true;
+			g_Config.backend_info.bSupportsGeometryShaders = true;
+			g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
+			g_Config.backend_info.bSupportsPaletteConversion = true;
+			g_ogl_config.bSupportsCopySubImage = true;
+			g_ogl_config.bSupportsGLBaseVertex = true;
+			g_ogl_config.bSupportSampleShading = true;
+			g_ogl_config.bSupportsDebug = true;
 		}
 	}
 	else
@@ -612,7 +639,8 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA ",
 			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
-			g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl "
+			g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
+			g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData "
 			);
 
 	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
@@ -1501,7 +1529,7 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 void Renderer::AsyncTimewarpDraw()
 {
 	VR_DrawAsyncTimewarpFrame();
-	Common::AtomicIncrement(g_drawn_vr);
+	g_drawn_vr++;
 
 	static int w = 0, h = 0;
 	// Save screenshot
@@ -1795,11 +1823,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			VR_PresentHMDFrame();
-			Common::AtomicIncrement(g_drawn_vr);
+			g_drawn_vr++;
 
 			// VR Synchronous Timewarp
 			static int real_frame_count_for_timewarp = 0;
-			SCoreStartupParameter& startup_parameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+			SConfig& startup_parameter = SConfig::GetInstance();
 
 			if (g_ActiveConfig.bSynchronousTimewarp)
 			{
@@ -1851,7 +1879,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraTimewarpedFrames; ++i)
 			{
 				VR_DrawTimewarpFrame();
-				Common::AtomicIncrement(g_drawn_vr);
+				g_drawn_vr++;
 			}
 
 			//glBindVertexArray(VertexArrayBinding);
@@ -1895,10 +1923,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			xfbSource = (const XFBSource*) xfbSourceList[i];
 
 			TargetRectangle drawRc;
+			TargetRectangle sourceRc;
+			sourceRc.left = xfbSource->sourceRc.left;
+			sourceRc.right = xfbSource->sourceRc.right;
+			sourceRc.top = xfbSource->sourceRc.top;
+			sourceRc.bottom = xfbSource->sourceRc.bottom;
 
 			if (g_ActiveConfig.bUseRealXFB)
 			{
 				drawRc = flipped_trc;
+				sourceRc.right -= fbStride - fbWidth;
 			}
 			else
 			{
@@ -1920,17 +1954,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				//drawRc.bottom *= vScale;
 				//drawRc.left *= hScale;
 				//drawRc.right *= hScale;
+
+				sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 			}
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
-
-			TargetRectangle sourceRc;
-			sourceRc.left = xfbSource->sourceRc.left;
-			sourceRc.right = xfbSource->sourceRc.right;
-			sourceRc.top = xfbSource->sourceRc.top;
-			sourceRc.bottom = xfbSource->sourceRc.bottom;
-
-			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
@@ -1966,6 +1994,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		// Reset settings
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;
+		s_screenshotCompleted.Set();
 	}
 
 	// Frame dumps are handled a little differently in Windows
@@ -2101,14 +2130,18 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_backbuffer_height = H;
 		s_last_efb_scale = g_ActiveConfig.iEFBScale;
 	}
-
-	if (xfbchanged || WindowResized || (s_last_multisample_mode != g_ActiveConfig.iMultisampleMode) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
+	bool TargetSizeChanged = false;
+	if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+	{
+		TargetSizeChanged = true;
+	}
+	if (TargetSizeChanged || xfbchanged || WindowResized || (s_last_multisample_mode != g_ActiveConfig.iMultisampleMode) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
 	{
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_last_multisample_mode != g_ActiveConfig.iMultisampleMode || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
+		if (TargetSizeChanged || s_last_multisample_mode != g_ActiveConfig.iMultisampleMode || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
 		{
 			s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 			s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;

@@ -36,17 +36,11 @@ set(SRCS BreakPoints.cpp
          Logging/LogManager.cpp)
 
 set(LIBS enet)
-if(_M_ARM)
-	if (_M_ARM_32) #ARMv7
-		set(SRCS ${SRCS}
-		         ArmEmitter.cpp)
-	else() #AArch64
-		set(SRCS ${SRCS}
-	               Arm64Emitter.cpp)
-	endif()
+if(_M_ARM_64)
 	set(SRCS ${SRCS}
-	    ArmCPUDetect.cpp
-	    GenericFPURoundMode.cpp)
+	         Arm64Emitter.cpp
+	         ArmCPUDetect.cpp
+	         GenericFPURoundMode.cpp)
 else()
 	if(_M_X86) #X86
 		set(SRCS ${SRCS}

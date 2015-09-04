@@ -28,7 +28,6 @@
 #include "Common/IniFile.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
@@ -76,7 +75,13 @@ static std::string BuildGameName(const GameListItem& game)
 	if (game.GetRevision() != 0)
 		return name + " (" + game.GetUniqueID() + ", Revision " + std::to_string((long long)game.GetRevision()) + ")";
 	else
+	{
+		if (game.GetUniqueID().empty())
+		{
+			return game.GetName();
+		}
 		return name + " (" + game.GetUniqueID() + ")";
+	}
 }
 
 void NetPlayDialog::FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
@@ -142,17 +147,17 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 	{
 		wxBoxSizer* const host_szr = new wxBoxSizer(wxHORIZONTAL);
 		m_host_type_choice = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(60, -1));
-		m_host_type_choice->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &NetPlayDialog::OnChoice, this);
+		m_host_type_choice->Bind(wxEVT_CHOICE, &NetPlayDialog::OnChoice, this);
 		m_host_type_choice->Append(_("ID:"));
 		host_szr->Add(m_host_type_choice);
 
 		m_host_label = new wxStaticText(panel, wxID_ANY, "555.555.555.555:55555", wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE | wxALIGN_LEFT);
 		// Update() should fix this immediately.
-		m_host_label->SetLabel(_(""));
+		m_host_label->SetLabel("");
 		host_szr->Add(m_host_label, 1, wxLEFT | wxCENTER, 5);
 
 		m_host_copy_btn = new wxButton(panel, wxID_ANY, _("Copy"));
-		m_host_copy_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDialog::OnCopyIP, this);
+		m_host_copy_btn->Bind(wxEVT_BUTTON, &NetPlayDialog::OnCopyIP, this);
 		m_host_copy_btn->Disable();
 		host_szr->Add(m_host_copy_btn, 0, wxLEFT | wxCENTER, 5);
 		player_szr->Add(host_szr, 0, wxEXPAND | wxBOTTOM, 5);
@@ -197,7 +202,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 		padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDialog::OnAdjustBuffer, this);
 		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
 
-		m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write memcards (GC)"));
+		m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write memcards/SD"));
 		bottom_szr->Add(m_memcard_write, 0, wxCENTER);
 	}
 
@@ -251,9 +256,13 @@ void NetPlayDialog::OnChat(wxCommandEvent&)
 void NetPlayDialog::GetNetSettings(NetSettings &settings)
 {
 	SConfig &instance = SConfig::GetInstance();
-	settings.m_CPUthread = instance.m_LocalCoreStartupParameter.bCPUThread;
-	settings.m_CPUcore = instance.m_LocalCoreStartupParameter.iCPUCore;
-	settings.m_DSPHLE = instance.m_LocalCoreStartupParameter.bDSPHLE;
+	settings.m_CPUthread = instance.bCPUThread;
+	settings.m_CPUcore = instance.iCPUCore;
+	settings.m_SelectedLanguage = instance.SelectedLanguage;
+	settings.m_OverrideGCLanguage = instance.bOverrideGCLanguage;
+	settings.m_ProgressiveScan = instance.bProgressive;
+	settings.m_PAL60 = instance.bPAL60;
+	settings.m_DSPHLE = instance.bDSPHLE;
 	settings.m_DSPEnableJIT = instance.m_DSPEnableJIT;
 	settings.m_WriteToMemcard = m_memcard_write->GetValue();
 	settings.m_OCEnable = instance.m_OCEnable;
@@ -380,13 +389,13 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 		m_player_lbox->Append(StrToWxStr(tmps));
 
 	// remove ping from selection string, in case it has changed
-	selection.erase(selection.find_last_of("|") + 1);
+	selection.erase(selection.rfind('|') + 1);
 
 	if (!selection.empty())
 	{
 		for (unsigned int i = 0; i < m_player_lbox->GetCount(); ++i)
 		{
-			if (selection == m_player_lbox->GetString(i).Mid(0, selection.length()))
+			if (selection == m_player_lbox->GetString(i).substr(0, selection.length()))
 			{
 				m_player_lbox->SetSelection(i);
 				break;
@@ -396,10 +405,7 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 
 	// flash window in taskbar when someone joins if window isn't active
 	static u8 numPlayers = 1;
-	bool focus = (wxWindow::FindFocus() == this || (wxWindow::FindFocus() != nullptr && wxWindow::FindFocus()->GetParent() == this) ||
-		(wxWindow::FindFocus() != nullptr && wxWindow::FindFocus()->GetParent() != nullptr
-		&& wxWindow::FindFocus()->GetParent()->GetParent() == this));
-	if (netplay_server != nullptr && numPlayers < m_playerids.size() && !focus)
+	if (netplay_server != nullptr && numPlayers < m_playerids.size() && !HasFocus())
 	{
 		RequestUserAttention();
 	}
@@ -410,7 +416,7 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 	case NP_GUI_EVT_CHANGE_GAME:
 		// update selected game :/
 	{
-		m_selected_game.assign(WxStrToStr(event.GetString()));
+		m_selected_game = WxStrToStr(event.GetString());
 
 		wxString button_label = event.GetString();
 		m_game_btn->SetLabel(button_label.Prepend(_(" Game : ")));
@@ -442,41 +448,32 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 
 void NetPlayDialog::OnChangeGame(wxCommandEvent&)
 {
-	wxString game_name;
-
-	ChangeGameDialog cgd(this, m_game_list, game_name);
+	ChangeGameDialog cgd(this, m_game_list);
 	cgd.ShowModal();
 
-	if (game_name.length())
-	{
-		m_selected_game = WxStrToStr(game_name);
-		netplay_server->ChangeGame(m_selected_game);
-		m_game_btn->SetLabel(game_name.Prepend(_(" Game : ")));
-	}
+	wxString game_name = cgd.GetChosenGameName();
+	if (game_name.empty())
+		return;
+
+	m_selected_game = WxStrToStr(game_name);
+	netplay_server->ChangeGame(m_selected_game);
+	m_game_btn->SetLabel(game_name.Prepend(_(" Game : ")));
 }
 
 void NetPlayDialog::OnConfigPads(wxCommandEvent&)
 {
-	PadMapping mapping[4];
-	PadMapping wiimotemapping[4];
-	std::vector<const Player *> player_list;
-
-	netplay_server->GetPadMapping(mapping);
-	netplay_server->GetWiimoteMapping(wiimotemapping);
-	netplay_client->GetPlayers(player_list);
-
-	PadMapDialog pmd(this, mapping, wiimotemapping, player_list);
+	PadMapDialog pmd(this, netplay_server, netplay_client);
 	pmd.ShowModal();
 
-	netplay_server->SetPadMapping(mapping);
-	netplay_server->SetWiimoteMapping(wiimotemapping);
+	netplay_server->SetPadMapping(pmd.GetModifiedPadMappings());
+	netplay_server->SetWiimoteMapping(pmd.GetModifiedWiimoteMappings());
 }
 
 void NetPlayDialog::OnKick(wxCommandEvent&)
 {
 	wxString selection = m_player_lbox->GetStringSelection();
 	unsigned long player = 0;
-	selection.Mid(selection.find_last_of("[") + 1, selection.find_last_of("]")).ToULong(&player);
+	selection.substr(selection.rfind('[') + 1, selection.rfind(']')).ToULong(&player);
 
 	netplay_server->KickPlayer((u8)player);
 
@@ -487,17 +484,13 @@ void NetPlayDialog::OnKick(wxCommandEvent&)
 
 void NetPlayDialog::OnPlayerSelect(wxCommandEvent&)
 {
-	if (m_player_lbox->GetSelection() > 0)
-		m_kick_btn->Enable();
-	else
-		m_kick_btn->Disable();
+	m_kick_btn->Enable(m_player_lbox->GetSelection() > 0);
 }
 
 bool NetPlayDialog::IsRecording()
 {
 	return m_record_chkbox->GetValue();
 }
-
 
 void NetPlayDialog::OnCopyIP(wxCommandEvent&)
 {

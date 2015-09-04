@@ -193,11 +193,16 @@ void VideoConfig::Load(const std::string& ini_file)
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
 	hacks->Get("BBoxEnable", &bBBoxEnable, false);
+	hacks->Get("ForceProgressive", &bForceProgressive, true);
 	hacks->Get("EFBCopyEnable", &bEFBCopyEnable, true);
 	hacks->Get("EFBCopyClearDisable", &bEFBCopyClearDisable, false);
 	hacks->Get("EFBToTextureEnable", &bSkipEFBCopyToRam, true);
 	hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
 	hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
+
+	// hacks which are disabled by default
+	iPhackvalue[0] = 0;
+	bPerfQueriesEnable = false;
 
 	LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 
@@ -311,7 +316,7 @@ void VideoConfig::GameIniLoad()
 		} \
 	} while (0)
 
-	IniFile iniFile = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
+	IniFile iniFile = SConfig::GetInstance().LoadGameIni();
 
 	CHECK_SETTING("Video_Hardware", "VSync", bVSync);
 
@@ -411,6 +416,7 @@ void VideoConfig::GameIniLoad()
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "BBoxEnable", bBBoxEnable);
+	CHECK_SETTING("Video_Hacks", "ForceProgressive", bForceProgressive);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
@@ -494,8 +500,8 @@ void VideoConfig::GameIniSave()
 {
 	// Load game ini
 	IniFile GameIniDefault, GameIniLocal;
-	GameIniDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
-	GameIniLocal = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
+	GameIniDefault = SConfig::GetInstance().LoadDefaultGameIni();
+	GameIniLocal = SConfig::GetInstance().LoadLocalGameIni();
 
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \
@@ -533,14 +539,14 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
 	SAVE_IF_NOT_DEFAULT("VR", "ReadPitch", (float)fReadPitch, 0.0f);
 
-	GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
+	GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini");
 	g_SavedConfig = *this;
 }
 
 void VideoConfig::GameIniReset()
 {
 	// Load game ini
-	IniFile GameIniDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
+	IniFile GameIniDefault = SConfig::GetInstance().LoadDefaultGameIni();
 
 #define LOAD_DEFAULT(section, key, var, def) do { \
 			decltype(var) temp = var; \
@@ -657,6 +663,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
 	hacks->Set("BBoxEnable", bBBoxEnable);
+	hacks->Set("ForceProgressive", bForceProgressive);
 	hacks->Set("EFBCopyEnable", bEFBCopyEnable);
 	hacks->Set("EFBCopyClearDisable", bEFBCopyClearDisable);
 	hacks->Set("EFBToTextureEnable", bSkipEFBCopyToRam);

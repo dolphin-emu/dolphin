@@ -4,12 +4,10 @@
 
 #pragma once
 
-#include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/Jit64IL/JitIL.h"
+namespace PPCAnalyst { struct CodeOp; }
 
 namespace JitILTables
 {
-	void CompileInstruction(PPCAnalyst::CodeOp & op);
+	void CompileInstruction(PPCAnalyst::CodeOp& op);
 	void InitTables();
 }

@@ -36,6 +36,7 @@ public:
 	void ControlChannel(const u16 channel, const void* const data, const u32 size);
 	void InterruptChannel(const u16 channel, const void* const data, const u32 size);
 	void Update();
+	void ConnectOnInput();
 
 	const Report& ProcessReadQueue();
 
@@ -80,6 +81,7 @@ protected:
 	Wiimote();
 	Report m_last_input_report;
 	u16 m_channel;
+	u8 m_last_connect_request_counter;
 
 private:
 	void ClearReadQueue();
@@ -97,11 +99,11 @@ private:
 
 	std::thread               m_wiimote_thread;
 	// Whether to keep running the thread.
-	std::atomic<bool>         m_run_thread;
+	std::atomic<bool>         m_run_thread {false};
 	// Whether to call PrepareOnThread.
-	std::atomic<bool>         m_need_prepare;
+	std::atomic<bool>         m_need_prepare {false};
 	// Whether the thread has finished ConnectInternal.
-	std::atomic<bool>         m_thread_ready;
+	std::atomic<bool>         m_thread_ready {false};
 	std::mutex                m_thread_ready_mutex;
 	std::condition_variable   m_thread_ready_cond;
 
@@ -135,9 +137,9 @@ private:
 
 	std::thread m_scan_thread;
 
-	std::atomic<bool> m_run_thread;
-	std::atomic<bool> m_want_wiimotes;
-	std::atomic<bool> m_want_bb;
+	std::atomic<bool> m_run_thread {false};
+	std::atomic<bool> m_want_wiimotes {false};
+	std::atomic<bool> m_want_bb {false};
 
 #if defined(_WIN32)
 	void CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool &real_wiimote, bool &is_bb);
@@ -154,6 +156,7 @@ extern Wiimote *g_wiimotes[MAX_BBMOTES];
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
 void Update(int _WiimoteNumber);
+void ConnectOnInput(int _WiimoteNumber);
 
 void DoState(PointerWrap &p);
 void StateChange(EMUSTATE_CHANGE newState);

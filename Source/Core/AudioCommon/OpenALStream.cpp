@@ -129,7 +129,7 @@ void OpenALStream::SoundLoop()
 {
 	Common::SetCurrentThreadName("Audio thread - openal");
 
-	bool surround_capable = SConfig::GetInstance().m_LocalCoreStartupParameter.bDPL2Decoder;
+	bool surround_capable = SConfig::GetInstance().bDPL2Decoder;
 #if defined(__APPLE__)
 	bool float32_capable = false;
 	const ALenum AL_FORMAT_STEREO_FLOAT32 = 0;
@@ -141,7 +141,7 @@ void OpenALStream::SoundLoop()
 #endif
 
 	u32 ulFrequency = m_mixer->GetSampleRate();
-	numBuffers = SConfig::GetInstance().m_LocalCoreStartupParameter.iLatency + 2; // OpenAL requires a minimum of two buffers
+	numBuffers = SConfig::GetInstance().iLatency + 2; // OpenAL requires a minimum of two buffers
 
 	memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
 	uiSource = 0;

@@ -423,7 +423,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		DEBUG_LOG(WII_IPC_SD, "%sWrite %i Block(s) from 0x%08x bsize %i to offset 0x%08x!",
 			req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
-		if (m_Card)
+		if (m_Card && SConfig::GetInstance().bEnableMemcardSdWriting)
 		{
 			u32 size = req.bsize * req.blocks;
 

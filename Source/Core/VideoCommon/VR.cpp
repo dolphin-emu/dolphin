@@ -414,12 +414,12 @@ void InitVR()
 
 	if (g_has_hmd)
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+		SConfig::GetInstance().strFullscreenResolution =
 			StringFromFormat("%dx%d", g_hmd_window_width, g_hmd_window_height);
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = g_hmd_window_x;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = g_hmd_window_y;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = g_hmd_window_width;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = g_hmd_window_height;
+		SConfig::GetInstance().iRenderWindowXPos = g_hmd_window_x;
+		SConfig::GetInstance().iRenderWindowYPos = g_hmd_window_y;
+		SConfig::GetInstance().iRenderWindowWidth = g_hmd_window_width;
+		SConfig::GetInstance().iRenderWindowHeight = g_hmd_window_height;
 		SConfig::GetInstance().m_special_case = true;
 	}
 	else
@@ -963,7 +963,7 @@ void OpcodeReplayBuffer()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int extra_video_loops_count = 0;
 	static int real_frame_count = 0;
-	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
 		if (g_ActiveConfig.bPullUp20fps)
@@ -1101,7 +1101,7 @@ void OpcodeReplayBufferInline()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int real_frame_count = 0;
 	int extra_video_loops;
-	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
 		g_opcode_replay_log_frame = true;

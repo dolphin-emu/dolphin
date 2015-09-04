@@ -45,9 +45,7 @@ struct ArraySizeImpl : public std::extent<T>
 #endif
 
 // go to debugger mode
-	#ifdef GEKKO
-		#define Crash()
-	#elif defined _M_X86
+	#ifdef _M_X86
 		#define Crash() {asm ("int $3");}
 	#else
 		#define Crash() { exit(1); }
@@ -133,10 +131,6 @@ inline u32 swap24(const u8* _data) {return (_data[0] << 16) | (_data[1] << 8) | 
 inline u16 swap16(u16 _data) {return _byteswap_ushort(_data);}
 inline u32 swap32(u32 _data) {return _byteswap_ulong (_data);}
 inline u64 swap64(u64 _data) {return _byteswap_uint64(_data);}
-#elif _M_ARM_32
-inline u16 swap16 (u16 _data) { u32 data = _data; __asm__ ("rev16 %0, %1\n" : "=l" (data) : "l" (data)); return (u16)data;}
-inline u32 swap32 (u32 _data) {__asm__ ("rev %0, %1\n" : "=l" (_data) : "l" (_data)); return _data;}
-inline u64 swap64(u64 _data) {return ((u64)swap32(_data) << 32) | swap32(_data >> 32);}
 #elif __linux__ && !(ANDROID && _M_ARM_64)
 // Android NDK r10c has broken builtin byte swap routines
 // Disabled for now.

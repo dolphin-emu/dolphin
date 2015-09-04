@@ -31,6 +31,7 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 ANativeWindow* surf;
@@ -40,6 +41,7 @@ std::string g_set_userpath = "";
 JavaVM* g_java_vm;
 jclass g_jni_class;
 jmethodID g_jni_method_alert;
+jmethodID g_jni_method_end;
 
 #define DOLPHIN_TAG "DolphinEmuNative"
 
@@ -226,7 +228,7 @@ static std::string GetTitle(std::string filename)
 
 		/*
 		bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(is_wii_title);
+		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
 
 		auto it = titles.find(language);
 		if (it != end)
@@ -267,7 +269,7 @@ static std::string GetDescription(std::string filename)
 
 		/*
 		bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(is_wii_title);
+		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
 
 		auto it = descriptions.find(language);
 		if (it != end)
@@ -394,6 +396,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulati
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv *env, jobject obj)
 {
+	Core::SaveScreenShot("thumb");
+	Renderer::s_screenshotCompleted.Wait();
 	Core::Stop();
 	updateMainFrameEvent.Set(); // Kick the waiting event
 }
@@ -475,7 +479,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersio
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SupportsNEON(JNIEnv *env, jobject obj)
 {
-	return cpu_info.bNEON || cpu_info.bASIMD;
+	return cpu_info.bASIMD;
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv *env, jobject obj)
@@ -591,6 +595,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClasses
 
 	// Method signature taken from javap -s Source/Android/app/build/intermediates/classes/arm/debug/org/dolphinemu/dolphinemu/NativeLibrary.class
 	g_jni_method_alert = env->GetStaticMethodID(g_jni_class, "displayAlertMsg", "(Ljava/lang/String;)V");
+	g_jni_method_end = env->GetStaticMethodID(g_jni_class, "endEmulationActivity", "()V");
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)
@@ -625,6 +630,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	Core::Shutdown();
 	UICommon::Shutdown();
 	ANativeWindow_release(surf);
+
+	// Execute the Java method.
+	env->CallStaticVoidMethod(g_jni_class, g_jni_method_end);
 }
 
 

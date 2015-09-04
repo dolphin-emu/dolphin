@@ -467,7 +467,7 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 
 		// write entry to virtual disk
 		_dbg_assert_(DVDINTERFACE, m_virtualDisk.find(dataOffset) == m_virtualDisk.end());
-		m_virtualDisk.insert(make_pair(dataOffset, entry.physicalName));
+		m_virtualDisk.emplace(dataOffset, entry.physicalName);
 
 		// 4 byte aligned
 		dataOffset = ROUND_UP(dataOffset + entry.size, 0x8000ull);

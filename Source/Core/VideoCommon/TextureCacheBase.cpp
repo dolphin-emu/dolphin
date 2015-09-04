@@ -154,7 +154,7 @@ void TextureCache::Cleanup(int _frameCount)
 		    // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
 		    !iter->second->IsEfbCopy())
 		{
-			iter = RemoveTextureFromCache(iter);
+			iter = FreeTexture(iter);
 		}
 		else
 		{
@@ -191,7 +191,7 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 	{
 		if (iter->second->OverlapsMemoryRange(start_address, size))
 		{
-			iter = RemoveTextureFromCache(iter);
+			iter = FreeTexture(iter);
 		}
 		else
 		{
@@ -211,10 +211,104 @@ bool TextureCache::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u32 r
 	return true;
 }
 
+TextureCache::TCacheEntryBase* TextureCache::DoPartialTextureUpdates(TexCache::iterator iter_t)
+{
+	TCacheEntryBase* entry_to_update = iter_t->second;
+	const bool isPaletteTexture = (entry_to_update->format == GX_TF_C4
+		|| entry_to_update->format == GX_TF_C8
+		|| entry_to_update->format == GX_TF_C14X2
+		|| entry_to_update->format >= 0x10000);
+
+	// Efb copies and paletted textures are excluded from these updates, until there's an example where a game would
+	// benefit from this. Both would require more work to be done.
+	// TODO: Implement upscaling support for normal textures, and then remove the efb to ram and the scaled efb restrictions
+	if (entry_to_update->IsEfbCopy()
+		|| isPaletteTexture)
+		return entry_to_update;
+
+	u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format);
+	u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format);
+	u32 block_size = block_width * block_height * TexDecoder_GetTexelSizeInNibbles(entry_to_update->format) / 2;
+
+	u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
+
+	TexCache::iterator iter = textures_by_address.lower_bound(entry_to_update->addr);
+	TexCache::iterator iterend = textures_by_address.upper_bound(entry_to_update->addr + entry_to_update->size_in_bytes);
+	bool entry_need_scaling = true;
+	while (iter != iterend)
+	{
+		TCacheEntryBase* entry = iter->second;
+		if (entry != entry_to_update
+			&& entry->IsEfbCopy()
+			&& entry_to_update->addr <= entry->addr
+			&& entry->addr + entry->size_in_bytes <= entry_to_update->addr + entry_to_update->size_in_bytes
+			&& entry->frameCount == FRAMECOUNT_INVALID
+			&& entry->copyMipMapStrideChannels * 32 == numBlocksX * block_size)
+		{
+			u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
+			u32 block_x = block_offset % numBlocksX;
+			u32 block_y = block_offset / numBlocksX;
+
+			u32 x = block_x * block_width;
+			u32 y = block_y * block_height;
+			MathUtil::Rectangle<int> srcrect, dstrect;
+			srcrect.left = 0;
+			srcrect.top = 0;
+			dstrect.left = 0;
+			dstrect.top = 0;
+			if (entry_need_scaling)
+			{
+				entry_need_scaling = false;
+				u32 w = entry_to_update->native_width * entry->config.width / entry->native_width;
+				u32 h = entry_to_update->native_height * entry->config.height / entry->native_height;
+				u32 max = g_renderer->GetMaxTextureSize();
+				if (max < w || max < h)
+				{
+					iter++;
+					continue;
+				}
+				if (entry_to_update->config.width != w || entry_to_update->config.height != h)
+				{
+					TextureCache::TCacheEntryConfig newconfig;
+					newconfig.width = w;
+					newconfig.height = h;
+					newconfig.rendertarget = true;
+					TCacheEntryBase* newentry = AllocateTexture(newconfig);
+					newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
+					newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
+					newentry->SetHashes(entry_to_update->hash);
+					newentry->frameCount = frameCount;
+					newentry->is_efb_copy = false;
+					srcrect.right = entry_to_update->config.width;
+					srcrect.bottom = entry_to_update->config.height;
+					dstrect.right = w;
+					dstrect.bottom = h;
+					newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
+					entry_to_update = newentry;
+					u64 key = iter_t->first;
+					iter_t = FreeTexture(iter_t);
+					textures_by_address.emplace(key, entry_to_update);
+				}
+			}
+			srcrect.right = entry->config.width;
+			srcrect.bottom = entry->config.height;
+			dstrect.left = x * entry_to_update->config.width / entry_to_update->native_width;
+			dstrect.top = y * entry_to_update->config.height / entry_to_update->native_height;
+			dstrect.right = (x + entry->native_width) * entry_to_update->config.width / entry_to_update->native_width;
+			dstrect.bottom = (y + entry->native_height) * entry_to_update->config.height / entry_to_update->native_height;
+			entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
+			// Mark the texture update as used, so it isn't applied more than once
+			entry->frameCount = frameCount;
+		}
+		++iter;
+	}
+	return entry_to_update;
+}
+
 void TextureCache::DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level)
 {
 	std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
+		SConfig::GetInstance().m_strUniqueID;
 
 	// make sure that the directory exists
 	if (!File::Exists(szDir) || !File::IsDirectory(szDir))
@@ -281,7 +375,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat) - 1;
 	const unsigned int bsh = TexDecoder_GetBlockHeightInTexels(texformat) - 1;
 
-	unsigned int expandedWidth  = (width  + bsw) & (~bsw);
+	unsigned int expandedWidth = (width + bsw) & (~bsw);
 	unsigned int expandedHeight = (height + bsh) & (~bsh);
 	const unsigned int nativeW = width;
 	const unsigned int nativeH = height;
@@ -395,8 +489,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 				// never be useful again.  It's theoretically possible for a game to do
 				// something weird where the copy could become useful in the future, but in
 				// practice it doesn't happen.
-				FreeTexture(entry);
-				iter = textures_by_address.erase(iter);
+				iter = FreeTexture(iter);
 				continue;
 			}
 		}
@@ -406,6 +499,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			if (entry->hash == full_hash && entry->format == full_format && entry->native_levels >= tex_levels &&
 				entry->native_width == nativeW && entry->native_height == nativeH)
 			{
+				entry = DoPartialTextureUpdates(iter);
+
 				return ReturnEntry(stage, entry);
 			}
 		}
@@ -438,7 +533,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		decoded_entry->is_efb_copy = false;
 
 		g_texture_cache->ConvertTexture(decoded_entry, entry, &texMem[tlutaddr], (TlutFormat)tlutfmt);
-		textures_by_address.insert(TexCache::value_type((u64)address, decoded_entry));
+		textures_by_address.emplace((u64)address, decoded_entry);
 		return ReturnEntry(stage, decoded_entry);
 	}
 
@@ -458,6 +553,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			if (entry->format == full_format && entry->native_levels >= tex_levels &&
 				entry->native_width == nativeW && entry->native_height == nativeH)
 			{
+				entry = DoPartialTextureUpdates(iter);
+
 				return ReturnEntry(stage, entry);
 			}
 			++iter;
@@ -468,7 +565,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	if (temp_frameCount != 0x7fffffff)
 	{
 		// pool this texture and make a new one later
-		RemoveTextureFromCache(oldest_entry);
+		FreeTexture(oldest_entry);
 	}
 
 	std::shared_ptr<HiresTexture> hires_tex;
@@ -501,7 +598,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		if (!(texformat == GX_TF_RGBA8 && from_tmem))
 		{
 			const u8* tlut = &texMem[tlutaddr];
-			TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut, (TlutFormat) tlutfmt);
+			TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut, (TlutFormat)tlutfmt);
 		}
 		else
 		{
@@ -522,11 +619,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	TCacheEntryBase* entry = AllocateTexture(config);
 	GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 
-	textures_by_address.insert(TexCache::value_type((u64)address, entry));
+	iter = textures_by_address.emplace((u64)address, entry);
 	if (g_ActiveConfig.iSafeTextureCache_ColorSamples == 0 ||
 		std::max(texture_size, palette_size) <= (u32)g_ActiveConfig.iSafeTextureCache_ColorSamples * 8)
 	{
-		entry->textures_by_hash_iter = textures_by_hash.insert(TexCache::value_type(full_hash, entry));
+		entry->textures_by_hash_iter = textures_by_hash.emplace(full_hash, entry);
 	}
 
 	entry->SetGeneralParameters(address, texture_size, full_format);
@@ -597,6 +694,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 
 	INCSTAT(stats.numTexturesUploaded);
 	SETSTAT(stats.numTexturesAlive, textures_by_address.size());
+
+	entry = DoPartialTextureUpdates(iter);
 
 	return ReturnEntry(stage, entry);
 }
@@ -892,7 +991,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	TexCache::iterator iter = iter_range.first;
 	while (iter != iter_range.second)
 	{
-		iter = RemoveTextureFromCache(iter);
+		iter = FreeTexture(iter);
 	}
 
 	// create the texture
@@ -912,6 +1011,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	entry->frameCount = FRAMECOUNT_INVALID;
 	entry->is_efb_copy = true;
 	entry->is_custom_tex = false;
+	entry->copyMipMapStrideChannels = bpmem.copyMipMapStrideChannels;
 
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
@@ -922,7 +1022,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			count++), 0);
 	}
 
-	textures_by_address.insert(TexCache::value_type((u64)dstAddr, entry));
+	textures_by_address.emplace((u64)dstAddr, entry);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::AllocateTexture(const TCacheEntryConfig& config)
@@ -944,20 +1044,18 @@ TextureCache::TCacheEntryBase* TextureCache::AllocateTexture(const TCacheEntryCo
 	return entry;
 }
 
-TextureCache::TexCache::iterator TextureCache::RemoveTextureFromCache(TexCache::iterator iter)
+TextureCache::TexCache::iterator TextureCache::FreeTexture(TexCache::iterator iter)
 {
-	if (iter->second->textures_by_hash_iter != textures_by_hash.end())
+	TCacheEntryBase* entry = iter->second;
+
+	if (entry->textures_by_hash_iter != textures_by_hash.end())
 	{
-		textures_by_hash.erase(iter->second->textures_by_hash_iter);
-		iter->second->textures_by_hash_iter = textures_by_hash.end();
+		textures_by_hash.erase(entry->textures_by_hash_iter);
+		entry->textures_by_hash_iter = textures_by_hash.end();
 	}
 
-	FreeTexture(iter->second);
-	return textures_by_address.erase(iter);
-}
-
-void TextureCache::FreeTexture(TCacheEntryBase* entry)
-{
 	entry->frameCount = FRAMECOUNT_INVALID;
-	texture_pool.insert(TexPool::value_type(entry->config, entry));
+	texture_pool.emplace(entry->config, entry);
+
+	return textures_by_address.erase(iter);
 }

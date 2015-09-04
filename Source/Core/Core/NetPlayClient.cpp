@@ -13,6 +13,7 @@
 #include "Core/HW/SI_DeviceDanceMat.h"
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/SI_DeviceGCSteeringWheel.h"
+#include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
@@ -378,6 +379,10 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> m_current_game;
 			packet >> g_NetPlaySettings.m_CPUthread;
 			packet >> g_NetPlaySettings.m_CPUcore;
+			packet >> g_NetPlaySettings.m_SelectedLanguage;
+			packet >> g_NetPlaySettings.m_OverrideGCLanguage;
+			packet >> g_NetPlaySettings.m_ProgressiveScan;
+			packet >> g_NetPlaySettings.m_PAL60;
 			packet >> g_NetPlaySettings.m_DSPEnableJIT;
 			packet >> g_NetPlaySettings.m_DSPHLE;
 			packet >> g_NetPlaySettings.m_WriteToMemcard;
@@ -459,6 +464,22 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		}
 
 		m_dialog->AppendChat(StringFromFormat("/!\\ Possible desync detected%s%s on frame %u", blame_str, blame_name, frame));
+	}
+	break;
+
+	case NP_MSG_SYNC_GC_SRAM:
+	{
+		u8 sram[sizeof(g_SRAM.p_SRAM)];
+		for (size_t i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+		{
+			packet >> sram[i];
+		}
+
+		{
+			std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+			memcpy(g_SRAM.p_SRAM, sram, sizeof(g_SRAM.p_SRAM));
+			g_SRAM_netplay_initialized = true;
+		}
 	}
 	break;
 
@@ -596,17 +617,15 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 }
 
 // called from ---GUI--- thread
-void NetPlayClient::GetPlayers(std::vector<const Player *> &player_list)
+std::vector<const Player*> NetPlayClient::GetPlayers()
 {
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-	std::map<PlayerId, Player>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for (; i != e; ++i)
-	{
-		const Player *player = &(i->second);
-		player_list.push_back(player);
-	}
+	std::vector<const Player*> players;
+
+	for (const auto& pair : m_players)
+		players.push_back(&pair.second);
+
+	return players;
 }
 
 
@@ -693,7 +712,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 
 	UpdateDevices();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 	{
 		for (unsigned int i = 0; i < 4; ++i)
 			WiimoteReal::ChangeWiimoteSource(i, m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);

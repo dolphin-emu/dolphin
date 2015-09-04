@@ -27,7 +27,8 @@ enum
 	CORE_JIT64,
 	CORE_JITIL64,
 	CORE_JITARM,
-	CORE_JITARM64
+	CORE_JITARM64,
+	CORE_CACHEDINTERPRETER,
 };
 
 enum CoreMode
@@ -162,8 +163,6 @@ volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern d
 
 u32 CompactCR();
 void ExpandCR(u32 cr);
-
-void OnIdle();
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 

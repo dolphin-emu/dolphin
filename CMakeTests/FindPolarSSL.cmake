@@ -34,6 +34,7 @@ if (POLARSSL_FOUND)
 	set(CMAKE_REQUIRED_LIBRARIES ${POLARSSL_LIBRARY})
 	unset(POLARSSL_WORKS CACHE)
 	check_cxx_source_compiles("
+	#include <cstring>
 	#include <polarssl/ctr_drbg.h>
 	#include <polarssl/entropy.h>
 	#include <polarssl/net.h>

@@ -50,6 +50,8 @@ static std::string GetGLSLVersionString()
 			return "#version 300 es";
 		case GLSLES_310:
 			return "#version 310 es";
+		case GLSLES_320:
+			return "#version 320 es";
 		case GLSL_130:
 			return "#version 130";
 		case GLSL_140:
@@ -448,7 +450,7 @@ void ProgramShaderCache::Init()
 				File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 			std::string cache_filename = StringFromFormat("%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+				SConfig::GetInstance().m_strUniqueID.c_str());
 
 			ProgramShaderCacheInserter inserter;
 			g_program_disk_cache.OpenAndRead(cache_filename, inserter);
@@ -521,6 +523,28 @@ void ProgramShaderCache::CreateHeader()
 {
 	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
 	bool is_glsles = v >= GLSLES_300;
+	std::string SupportedESPointSize;
+	std::string SupportedESTextureBuffer;
+	switch (g_ogl_config.SupportedESPointSize)
+	{
+	case 1: SupportedESPointSize = "#extension GL_OES_geometry_point_size : enable"; break;
+	case 2: SupportedESPointSize = "#extension GL_EXT_geometry_point_size : enable"; break;
+	default: SupportedESPointSize = ""; break;
+	}
+
+	switch (g_ogl_config.SupportedESTextureBuffer)
+	{
+	case ES_TEXBUF_TYPE::TEXBUF_EXT:
+		SupportedESTextureBuffer = "#extension GL_EXT_texture_buffer : enable";
+	break;
+	case ES_TEXBUF_TYPE::TEXBUF_OES:
+		SupportedESTextureBuffer = "#extension GL_OES_texture_buffer : enable";
+	break;
+	case ES_TEXBUF_TYPE::TEXBUF_CORE:
+	case ES_TEXBUF_TYPE::TEXBUF_NONE:
+		SupportedESTextureBuffer = "";
+	break;
+	}
 
 	snprintf(s_glsl_header, sizeof(s_glsl_header),
 		"%s\n"
@@ -532,10 +556,13 @@ void ProgramShaderCache::CreateHeader()
 		"%s\n" // Sampler binding
 		"%s\n" // storage buffer
 		"%s\n" // shader5
+		"%s\n" // Geometry point size
 		"%s\n" // AEP
 		"%s\n" // texture buffer
+		"%s\n" // ES texture buffer
 
 		// Precision defines for GLSL ES
+		"%s\n"
 		"%s\n"
 		"%s\n"
 		"%s\n"
@@ -567,13 +594,16 @@ void ProgramShaderCache::CreateHeader()
 		, (g_ogl_config.bSupportSampleShading) ? "#extension GL_ARB_sample_shading : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "#define SAMPLER_BINDING(x) layout(binding = x)" : "#define SAMPLER_BINDING(x)"
 		, g_ActiveConfig.backend_info.bSupportsBBox ? "#extension GL_ARB_shader_storage_buffer_object : enable" : ""
-		, g_ActiveConfig.backend_info.bSupportsGSInstancing ? "#extension GL_ARB_gpu_shader5 : enable" : ""
+		, !is_glsles && g_ActiveConfig.backend_info.bSupportsGSInstancing ? "#extension GL_ARB_gpu_shader5 : enable" : ""
+		, SupportedESPointSize.c_str()
 		, g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : ""
 		, v<GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ? "#extension GL_ARB_texture_buffer_object : enable" : ""
+		, SupportedESTextureBuffer.c_str()
 
 		, is_glsles ? "precision highp float;" : ""
 		, is_glsles ? "precision highp int;" : ""
 		, is_glsles ? "precision highp sampler2DArray;" : ""
+		, (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ? "precision highp usamplerBuffer;" : ""
 
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENTEXTURESIZE) ? "#define textureSize(x, y) ivec2(1, 1)" : ""
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "#define centroid" : ""

@@ -60,14 +60,15 @@ typedef void (*CompiledCode)();
 // implementation of std::bitset is slow.
 class ValidBlockBitSet final
 {
+public:
 	enum
 	{
 		VALID_BLOCK_MASK_SIZE = 0x20000000 / 32,
 		VALID_BLOCK_ALLOC_ELEMENTS = VALID_BLOCK_MASK_SIZE / 32
 	};
+	// Directly accessed by Jit64.
 	std::unique_ptr<u32[]> m_valid_block;
 
-public:
 	ValidBlockBitSet()
 	{
 		m_valid_block.reset(new u32[VALID_BLOCK_ALLOC_ELEMENTS]);
@@ -157,6 +158,11 @@ public:
 
 	// DOES NOT WORK CORRECTLY WITH INLINING
 	void InvalidateICache(u32 address, const u32 length, bool forced);
+
+	u32* GetBlockBitSet() const
+	{
+		return valid_block.m_valid_block.get();
+	}
 };
 
 // x86 BlockCache

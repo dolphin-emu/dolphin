@@ -24,7 +24,6 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "Core/Boot/Boot.h"
 
 #include "DiscIO/CompressedBlob.h"
@@ -35,7 +34,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x124;
+static const u32 CACHE_REVISION = 0x125; // Last changed in PR 2598
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -66,15 +65,31 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName)
 	, m_emu_state(0)
 	, m_FileSize(0)
+	, m_Country(DiscIO::IVolume::COUNTRY_UNKNOWN)
 	, m_Revision(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
 	, m_ImageWidth(0)
 	, m_ImageHeight(0)
+	, m_disc_number(0)
 {
 	if (LoadFromCache())
 	{
 		m_Valid = true;
+
+		// Wii banners can only be read if there is a savefile,
+		// so sometimes caches don't contain banners. Let's check
+		// if a banner has become available after the cache was made.
+		if (m_pImage.empty())
+		{
+			std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
+			if (volume != nullptr)
+			{
+				ReadBanner(*volume);
+				if (!m_pImage.empty())
+					SaveToCache();
+			}
+		}
 	}
 	else
 	{
@@ -97,25 +112,12 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_disc_number = pVolume->GetDiscNumber();
 			m_Revision = pVolume->GetRevision();
 
-			std::vector<u32> Buffer = pVolume->GetBanner(&m_ImageWidth, &m_ImageHeight);
-			u32* pData = Buffer.data();
-			m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
-
-			for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
-			{
-				m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
-				m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >> 8;
-				m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >> 0;
-			}
+			ReadBanner(*pVolume);
 
 			delete pVolume;
 
 			m_Valid = true;
-
-			// Create a cache file only if we have an image.
-			// Wii ISOs create their images after you have generated the first savegame
-			if (!m_pImage.empty())
-				SaveToCache();
+			SaveToCache();
 		}
 	}
 
@@ -124,9 +126,16 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 	if (IsValid())
 	{
-		IniFile ini = SCoreStartupParameter::LoadGameIni(m_UniqueID, m_Revision);
+		IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
 		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
 		ini.GetIfExists("EmuState", "EmulationIssues", &m_issues);
+	}
+
+	if (!IsValid() && IsElfOrDol())
+	{
+		m_Valid = true;
+		m_FileSize = File::GetSize(_rFileName);
+		m_Platform = DiscIO::IVolume::ELF_DOL;
 	}
 
 	if (!m_pImage.empty())
@@ -145,7 +154,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	else
 	{
 		// default banner
-		m_Bitmap.LoadFile(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
+		m_Bitmap.LoadFile(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 
@@ -202,9 +211,18 @@ std::string GameListItem::CreateCacheFilename()
 	return fullname;
 }
 
-std::string GameListItem::GetCompany() const
+void GameListItem::ReadBanner(const DiscIO::IVolume& volume)
 {
-	return m_company;
+	std::vector<u32> Buffer = volume.GetBanner(&m_ImageWidth, &m_ImageHeight);
+	u32* pData = Buffer.data();
+	m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
+
+	for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
+	{
+		m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
+		m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >> 8;
+		m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >> 0;
+	}
 }
 
 std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) const
@@ -215,7 +233,7 @@ std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) co
 std::string GameListItem::GetDescription() const
 {
 	bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
-	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
+	return GetDescription(SConfig::GetInstance().GetCurrentLanguage(wii));
 }
 
 std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
@@ -226,11 +244,14 @@ std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
 std::string GameListItem::GetName() const
 {
 	bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
-	std::string name = GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
+	std::string name = GetName(SConfig::GetInstance().GetCurrentLanguage(wii));
 	if (name.empty())
 	{
+		std::string ext;
+
 		// No usable name, return filename (better than nothing)
-		SplitPath(GetFileName(), nullptr, &name, nullptr);
+		SplitPath(GetFileName(), nullptr, &name, &ext);
+		return name + ext;
 	}
 	return name;
 }
@@ -274,3 +295,18 @@ const std::string GameListItem::GetWiiFSPath() const
 	return ret;
 }
 
+bool GameListItem::IsElfOrDol() const
+{
+	const std::string name = GetName();
+	const size_t pos = name.rfind('.');
+
+	if (pos != std::string::npos)
+	{
+		std::string ext = name.substr(pos);
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		return ext == ".elf" ||
+		       ext == ".dol";
+	}
+	return false;
+}

@@ -4,10 +4,6 @@
 
 #pragma once
 
-#include "../Gekko.h"
-#include "../PPCTables.h"
-#include "Core/PowerPC/Interpreter/Interpreter.h"
-
 namespace InterpreterTables
 {
 	void InitTables();

@@ -4,15 +4,13 @@
 
 #pragma once
 
+#include <cmath>
 #include <limits>
 
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
-
-#define MIN_SINGLE 0xc7efffffe0000000ull
-#define MAX_SINGLE 0x47efffffe0000000ull
 
 const u64 PPC_NAN_U64 = 0x7ff8000000000000ull;
 const double PPC_NAN  = *(double* const)&PPC_NAN_U64;
@@ -78,17 +76,46 @@ inline double Force25Bit(double d)
 	return x.d;
 }
 
+inline double MakeQuiet(double d)
+{
+	MathUtil::IntDouble x(d);
+	x.i |= MathUtil::DOUBLE_QBIT;
+	return x.d;
+}
+
 // these functions allow globally modify operations behaviour
 // also, these may be used to set flags like FR, FI, OX, UX
 
 inline double NI_mul(double a, double b)
 {
-	if (a != a) return a;
-	if (b != b) return b;
 	double t = a * b;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXIMZ);
+		return PPC_NAN;
+	}
+	return t;
+}
+
+inline double NI_div(double a, double b)
+{
+	double t = a / b;
+	if (std::isnan(t))
+	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
+		if (b == 0.0)
+		{
+			SetFPException(FPSCR_ZX);
+			if (a == 0.0)
+				SetFPException(FPSCR_VXZDZ);
+		}
+		else if (std::isinf(a) && std::isinf(b))
+		{
+			SetFPException(FPSCR_VXIDI);
+		}
 		return PPC_NAN;
 	}
 	return t;
@@ -96,11 +123,11 @@ inline double NI_mul(double a, double b)
 
 inline double NI_add(double a, double b)
 {
-	if (a != a) return a;
-	if (b != b) return b;
 	double t = a + b;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
@@ -109,56 +136,61 @@ inline double NI_add(double a, double b)
 
 inline double NI_sub(double a, double b)
 {
-	if (a != a) return a;
-	if (b != b) return b;
 	double t = a - b;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
 	return t;
 }
 
-inline double NI_madd(double a, double c, double b, bool negate = false)
+// FMA instructions on PowerPC are weird:
+// They calculate (a * c) + b, but the order in which
+// inputs are checked for NaN is still a, b, c.
+inline double NI_madd(double a, double c, double b)
 {
-	if (a != a) return a;
-	if (b != b) return b;
-	if (c != c) return c;
 	double t = a * c;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b); // !
+		if (std::isnan(c)) return MakeQuiet(c);
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
-	t = t + b;
-	if (t != t)
+	t += b;
+	if (std::isnan(t))
 	{
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
-	return negate ? -t : t;
+	return t;
 }
 
-inline double NI_msub(double a, double c, double b, bool negate = false)
+inline double NI_msub(double a, double c, double b)
 {
-	if (a != a) return a;
-	if (b != b) return b;
-	if (c != c) return c;
 	double t = a * c;
-	if (t != t)
+	if (std::isnan(t))
 	{
+		if (std::isnan(a)) return MakeQuiet(a);
+		if (std::isnan(b)) return MakeQuiet(b); // !
+		if (std::isnan(c)) return MakeQuiet(c);
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
 
-	t = t - b;
-	if (t != t)
+	t -= b;
+	if (std::isnan(t))
 	{
+		if (std::isnan(b)) return MakeQuiet(b);
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
-	return negate ? -t : t;
+	return t;
 }
 
 // used by stfsXX instructions and ps_rsqrte

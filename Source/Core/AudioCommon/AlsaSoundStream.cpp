@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <mutex>
+
 #include "AudioCommon/AlsaSoundStream.h"
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
@@ -26,6 +28,12 @@ AlsaSound::~AlsaSound()
 bool AlsaSound::Start()
 {
 	m_thread_status.store(ALSAThreadStatus::RUNNING);
+	if (!AlsaInit())
+	{
+		m_thread_status.store(ALSAThreadStatus::STOPPED);
+		return false;
+	}
+
 	thread = std::thread(&AlsaSound::SoundLoop, this);
 	return true;
 }
@@ -33,6 +41,10 @@ bool AlsaSound::Start()
 void AlsaSound::Stop()
 {
 	m_thread_status.store(ALSAThreadStatus::STOPPING);
+
+	//Give the opportunity to the audio thread
+	//to realize we are stopping the emulation
+	cv.notify_one();
 	thread.join();
 }
 
@@ -44,15 +56,14 @@ void AlsaSound::Update()
 // Called on audio thread.
 void AlsaSound::SoundLoop()
 {
-	if (!AlsaInit()) {
-		m_thread_status.store(ALSAThreadStatus::STOPPED);
-		return;
-	}
 	Common::SetCurrentThreadName("Audio thread - alsa");
 	while (m_thread_status.load() == ALSAThreadStatus::RUNNING)
 	{
+		std::unique_lock<std::mutex> lock(cv_m);
+		cv.wait(lock, [this]{return !m_muted || m_thread_status.load() != ALSAThreadStatus::RUNNING;});
+
 		m_mixer->Mix(reinterpret_cast<short *>(mix_buffer), frames_to_deliver);
-		int rc = m_muted ? 1337 : snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
+		int rc = snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
 		if (rc == -EPIPE)
 		{
 			// Underrun
@@ -65,6 +76,24 @@ void AlsaSound::SoundLoop()
 	}
 	AlsaShutdown();
 	m_thread_status.store(ALSAThreadStatus::STOPPED);
+}
+
+
+void AlsaSound::Clear(bool muted)
+{
+	m_muted = muted;
+	if (m_muted)
+	{
+		std::lock_guard<std::mutex> lock(cv_m);
+		snd_pcm_drop(handle);
+	}
+	else
+	{
+		std::unique_lock<std::mutex> lock(cv_m);
+		snd_pcm_prepare(handle);
+		lock.unlock();
+		cv.notify_one();
+	}
 }
 
 bool AlsaSound::AlsaInit()

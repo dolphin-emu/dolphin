@@ -36,7 +36,7 @@ using namespace Gen;
 			return;
 		}
 
-		JitRegister::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_perfDir);
+		JitRegister::Init(SConfig::GetInstance().m_perfDir);
 
 		iCache.fill(JIT_ICACHE_INVALID_BYTE);
 		iCacheEx.fill(JIT_ICACHE_INVALID_BYTE);
@@ -136,7 +136,7 @@ using namespace Gen;
 		{
 			for (const auto& e : b.linkData)
 			{
-				links_to.insert(std::pair<u32, int>(e.exitAddress, block_num));
+				links_to.emplace(e.exitAddress, block_num);
 			}
 
 			LinkBlock(block_num);
@@ -324,9 +324,20 @@ using namespace Gen;
 	{
 		XEmitter emit(location);
 		if (*location == 0xE8)
+		{
 			emit.CALL(address);
+		}
 		else
-			emit.JMP(address, true);
+		{
+			// If we're going to link with the next block, there is no need
+			// to emit JMP. So just NOP out the gap to the next block.
+			// Support up to 3 additional bytes because of alignment.
+			s64 offset = address - emit.GetCodePtr();
+			if (offset > 0 && offset <= 5 + 3)
+				emit.NOP(offset);
+			else
+				emit.JMP(address, true);
+		}
 	}
 
 	void JitBlockCache::WriteDestroyBlock(const u8* location, u32 address)

@@ -13,6 +13,8 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
+#include "DolphinQt/Utils/Resources.h"
+
 class GameFile final
 {
 public:
@@ -26,7 +28,7 @@ public:
 	QString GetName(bool prefer_long) const;
 	QString GetDescription(DiscIO::IVolume::ELanguage language) const;
 	QString GetDescription() const;
-	QString GetCompany() const;
+	QString GetCompany() const { return m_company; }
 	u16 GetRevision() const { return m_revision; }
 	const QString GetUniqueID() const { return m_unique_id; }
 	const QString GetWiiFSPath() const;
@@ -39,7 +41,13 @@ public:
 	u64 GetVolumeSize() const { return m_volume_size; }
 	// 0 is the first disc, 1 is the second disc
 	u8 GetDiscNumber() const { return m_disc_number; }
-	const QPixmap GetBitmap() const { return m_banner; }
+	const QPixmap GetBitmap() const
+	{
+		if (m_banner.isNull())
+			return Resources::GetPixmap(Resources::BANNER_MISSING);
+
+		return m_banner;
+	}
 
 private:
 	QString m_file_name;
@@ -71,4 +79,6 @@ private:
 	void SaveToCache();
 
 	QString CreateCacheFilename();
+
+	void ReadBanner(const DiscIO::IVolume& volume);
 };

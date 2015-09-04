@@ -16,6 +16,7 @@ class Classic : public Attachment
 public:
 	Classic(WiimoteEmu::ExtensionReg& _reg, int index);
 	void GetState(u8* const data) override;
+	bool IsButtonPressed() const override;
 
 	enum
 	{

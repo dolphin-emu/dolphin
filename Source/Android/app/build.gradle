@@ -1,7 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
+    // Leanback support requires >22
+    compileSdkVersion 22
     buildToolsVersion "22.0.1"
 
     lintOptions {
@@ -11,8 +12,9 @@ android {
     }
 
     defaultConfig {
+        // TODO If this is ever modified, change application_id in strings.xml
         applicationId "org.dolphinemu.dolphinemu"
-        minSdkVersion 18
+        minSdkVersion 21
         targetSdkVersion 21
 
         // TODO This should be set to the Buildbot build number for release builds, and be "1" for debug builds.
@@ -43,6 +45,7 @@ android {
         // Signed by debug key disallowing distribution on Play Store.
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
+            // TODO If this is ever modified, change application_id in debug/strings.xml
             applicationIdSuffix ".debug"
             versionNameSuffix '-debug'
             jniDebuggable true
@@ -56,16 +59,6 @@ android {
     // Define product flavors, which can be split into categories. Common examples
     // of product flavors are paid vs. free, ARM vs. x86, etc.
     productFlavors {
-        arm {
-            // This flavor is mutually exclusive against any flavor in the same dimension.
-            flavorDimension "abi"
-
-            // When building this flavor, only include native libs from the specified folder.
-            ndk {
-                abiFilter "armeabi-v7a"
-            }
-        }
-
         arm_64 {
             flavorDimension "abi"
             ndk {
@@ -83,11 +76,13 @@ android {
 }
 
 dependencies {
+    compile 'com.android.support:support-v13:22.2.1'
+    compile 'com.android.support:cardview-v7:22.2.1'
+    compile 'com.android.support:recyclerview-v7:22.2.1'
+    compile 'com.android.support:design:22.2.1'
 
-    compile 'com.android.support:support-v4:22.1.1'
-    compile 'com.android.support:support-v13:22.0.0'
-    compile 'com.android.support:cardview-v7:21.0.3'
-    compile 'com.android.support:recyclerview-v7:21.0.3'
+    // Android TV UI libraries.
+    compile 'com.android.support:leanback-v17:22.2.1'
 
     // For showing the banner as a circle a-la Material Design Guidelines
     compile 'de.hdodenhof:circleimageview:1.2.2'
@@ -111,13 +106,13 @@ task setupCMake(type: Exec) {
         mkdir('build/' + abi)
         workingDir 'build/' + abi
 
-        executable 'cmake'
+        executable getExecutablePath("cmake")
 
         args "-DANDROID=true",
                 "-DANDROID_NATIVE_API_LEVEL=android-18",
                 "-DCMAKE_TOOLCHAIN_FILE=../../../android.toolchain.cmake",
                 "../../../../..",
-                "-DGIT_EXECUTABLE=" + getGitPath(),
+                "-DGIT_EXECUTABLE=" + getExecutablePath("git"),
                 "-DANDROID_NDK=" + getNdkPath(),
                 "-DANDROID_TOOLCHAIN_NAME=" + getToolchainName(),
                 "-DANDROID_ABI=" + abi
@@ -143,53 +138,81 @@ task compileNative(type: Exec, dependsOn: 'setupCMake') {
 
         executable 'make'
 
-        args buildProperties.makeArgs
+        if (buildProperties.makeArgs == null || buildProperties.makeArgs.isEmpty()) {
+            // TODO
+        } else {
+            args buildProperties.makeArgs
+        }
     } else {
         executable 'echo'
         args 'No build.properties found; skipping native build.'
     }
 }
 
-String getGitPath() {
-    try {
-        def stdout = new ByteArrayOutputStream()
+String getExecutablePath(String command) {
+    def propsFile = rootProject.file("build.properties")
+    def path = null
 
-        exec {
-            commandLine 'which', 'git'
-            standardOutput = stdout
-        }
-
-        def gitPath = stdout.toString().trim()
-        project.logger.quiet("Gradle: Found git executuable:" + gitPath)
-
-        return gitPath
-    } catch (ignored) {
-        // Shouldn't happen. How did the user get this file without git?
-        project.logger.error("Gradle error: Couldn't find git executable.")
-        return null;
+    if (propsFile.canRead()) {
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+        println buildProperties
+        path = buildProperties[command + "Path"]
     }
+
+    if (path == null || path.isEmpty()) {
+        try {
+            def stdout = new ByteArrayOutputStream()
+
+            exec {
+                commandLine 'which', command
+                standardOutput = stdout
+            }
+
+            path = stdout.toString().trim()
+        } catch (ignored) {
+            project.logger.error("Gradle error: Couldn't find " + command + " executable.")
+        }
+    }
+
+    if (path != null) {
+        project.logger.quiet("Gradle: Found " + command + " executuable:" + path)
+    }
+
+    return path
 }
 
 String getNdkPath() {
-    try {
-        def stdout = new ByteArrayOutputStream()
+    def propsFile = rootProject.file("build.properties")
+    def ndkPath = null
 
-        exec {
-            // ndk-build.cmd is a file unique to the root directory of android-ndk-r10e.
-            commandLine 'locate', 'ndk-build.cmd'
-            standardOutput = stdout
-        }
-
-        def ndkCmdPath = stdout.toString()
-        def ndkPath = ndkCmdPath.substring(0, ndkCmdPath.lastIndexOf('/'))
-
-        project.logger.quiet("Gradle: Found Android NDK:" + ndkPath)
-
-        return ndkPath
-    } catch (ignored) {
-        project.logger.error("Gradle error: Couldn't find NDK.")
-        return null;
+    if (propsFile.canRead()) {
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+        ndkPath = buildProperties.ndkPath
     }
+
+    if (ndkPath == null || ndkPath.isEmpty()) {
+        try {
+            def stdout = new ByteArrayOutputStream()
+
+            exec {
+                // ndk-build.cmd is a file unique to the root directory of android-ndk-r10e.
+                commandLine 'locate', 'ndk-build.cmd'
+                standardOutput = stdout
+            }
+
+            def ndkCmdPath = stdout.toString()
+            ndkPath = ndkCmdPath.substring(0, ndkCmdPath.lastIndexOf('/'))
+        } catch (ignored) {
+            project.logger.error("Gradle error: Couldn't find NDK.")
+        }
+    }
+
+    if (ndkPath != null) {
+        project.logger.quiet("Gradle: Found Android NDK: " + ndkPath)
+    }
+    return ndkPath
 }
 
 String getAbi() {

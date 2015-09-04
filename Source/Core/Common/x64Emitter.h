@@ -271,8 +271,6 @@ struct FixupBranch
 	int type; //0 = 8bit 1 = 32bit
 };
 
-typedef const u8* JumpTarget;
-
 class XEmitter
 {
 	friend struct OpArg;  // for Write8 etc
@@ -283,6 +281,8 @@ private:
 	void CheckFlags();
 
 	void Rex(int w, int r, int x, int b);
+	void WriteModRM(int mod, int rm, int reg);
+	void WriteSIB(int scale, int index, int base);
 	void WriteSimple1Byte(int bits, u8 byte, X64Reg reg);
 	void WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
 	void WriteMulDivType(int bits, OpArg src, int ext);
@@ -309,18 +309,15 @@ private:
 	void ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size, size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
 
 protected:
-	inline void Write8(u8 value)   {*code++ = value;}
-	inline void Write16(u16 value) {*(u16*)code = (value); code += 2;}
-	inline void Write32(u32 value) {*(u32*)code = (value); code += 4;}
-	inline void Write64(u64 value) {*(u64*)code = (value); code += 8;}
+	void Write8(u8 value);
+	void Write16(u16 value);
+	void Write32(u32 value);
+	void Write64(u64 value);
 
 public:
 	XEmitter() { code = nullptr; flags_locked = false; }
 	XEmitter(u8* code_ptr) { code = code_ptr; flags_locked = false; }
 	virtual ~XEmitter() {}
-
-	void WriteModRM(int mod, int rm, int reg);
-	void WriteSIB(int scale, int index, int base);
 
 	void SetCodePtr(u8* ptr);
 	void ReserveCodeSpace(int bytes);
@@ -382,7 +379,6 @@ public:
 	void CALLptr(OpArg arg);
 
 	FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
-	//void J_CC(CCFlags conditionCode, JumpTarget target);
 	void J_CC(CCFlags conditionCode, const u8* addr);
 
 	void SetJumpTarget(const FixupBranch& branch);
@@ -484,8 +480,8 @@ public:
 	// Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
 	void MOVBE(int bits, X64Reg dest, const OpArg& src);
 	void MOVBE(int bits, const OpArg& dest, X64Reg src);
-	void LoadAndSwap(int size, X64Reg dst, const OpArg& src);
-	void SwapAndStore(int size, const OpArg& dst, X64Reg src);
+	void LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_extend = false);
+	u8* SwapAndStore(int size, const OpArg& dst, X64Reg src);
 
 	// Available only on AMD >= Phenom or Intel >= Haswell
 	void LZCNT(int bits, X64Reg dest, const OpArg& src);
@@ -542,6 +538,7 @@ public:
 	void MAXSD(X64Reg regOp, const OpArg& arg);
 	void SQRTSS(X64Reg regOp, const OpArg& arg);
 	void SQRTSD(X64Reg regOp, const OpArg& arg);
+	void RCPSS(X64Reg regOp, const OpArg& arg);
 	void RSQRTSS(X64Reg regOp, const OpArg& arg);
 
 	// SSE/SSE2: Floating point bitwise (yes)
@@ -565,6 +562,7 @@ public:
 	void MAXPD(X64Reg regOp, const OpArg& arg);
 	void SQRTPS(X64Reg regOp, const OpArg& arg);
 	void SQRTPD(X64Reg regOp, const OpArg& arg);
+	void RCPPS(X64Reg regOp, const OpArg& arg);
 	void RSQRTPS(X64Reg regOp, const OpArg& arg);
 
 	// SSE/SSE2: Floating point packed bitwise (x4 for float, x2 for double)
@@ -581,9 +579,12 @@ public:
 	void SHUFPS(X64Reg regOp, const OpArg& arg, u8 shuffle);
 	void SHUFPD(X64Reg regOp, const OpArg& arg, u8 shuffle);
 
-	// SSE/SSE2: Useful alternative to shuffle in some cases.
+	// SSE3
+	void MOVSLDUP(X64Reg regOp, const OpArg& arg);
+	void MOVSHDUP(X64Reg regOp, const OpArg& arg);
 	void MOVDDUP(X64Reg regOp, const OpArg& arg);
 
+	// SSE/SSE2: Useful alternative to shuffle in some cases.
 	void UNPCKLPS(X64Reg dest, const OpArg& src);
 	void UNPCKHPS(X64Reg dest, const OpArg& src);
 	void UNPCKLPD(X64Reg dest, const OpArg& src);
@@ -718,6 +719,7 @@ public:
 
 	void PEXTRW(X64Reg dest, const OpArg& arg, u8 subreg);
 	void PINSRW(X64Reg dest, const OpArg& arg, u8 subreg);
+	void PINSRD(X64Reg dest, const OpArg& arg, u8 subreg);
 
 	void PMADDWD(X64Reg dest, const OpArg& arg);
 	void PSADBW(X64Reg dest, const OpArg& arg);
@@ -937,32 +939,6 @@ public:
 	// Push returns the size of the shadow space, i.e. the offset of the frame.
 	size_t ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
 	void ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
-
-	inline int ABI_GetNumXMMRegs() { return 16; }
-
-	// Strange call wrappers.
-	void CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2);
-	void CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3);
-	void CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
-	void CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5);
-
-	// Comments from VertexLoader.cpp about these horrors:
-
-	// This is a horrible hack that is necessary in 64-bit mode because Opengl32.dll is based way, way above the 32-bit
-	// address space that is within reach of a CALL, and just doing &fn gives us these high uncallable addresses. So we
-	// want to grab the function pointers from the import table instead.
-
-	void ___CallCdeclImport3(void* impptr, u32 arg0, u32 arg1, u32 arg2);
-	void ___CallCdeclImport4(void* impptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3);
-	void ___CallCdeclImport5(void* impptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
-	void ___CallCdeclImport6(void* impptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5);
-
-	#define CallCdeclFunction3_I(a,b,c,d) ___CallCdeclImport3(&__imp_##a,b,c,d)
-	#define CallCdeclFunction4_I(a,b,c,d,e) ___CallCdeclImport4(&__imp_##a,b,c,d,e)
-	#define CallCdeclFunction5_I(a,b,c,d,e,f) ___CallCdeclImport5(&__imp_##a,b,c,d,e,f)
-	#define CallCdeclFunction6_I(a,b,c,d,e,f,g) ___CallCdeclImport6(&__imp_##a,b,c,d,e,f,g)
-
-	#define DECLARE_IMPORT(x) extern "C" void *__imp_##x
 
 	// Utility to generate a call to a std::function object.
 	//

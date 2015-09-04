@@ -104,7 +104,6 @@ public:
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
 	void WriteRfiExitDestInRSCRATCH();
-	void WriteCallInterpreter(UGeckoInstruction _inst);
 	bool Cleanup();
 
 	void GenerateConstantOverflow(bool overflow);
@@ -149,8 +148,10 @@ public:
 	                      void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&),
 	                      bool packed, bool preserve_inputs, bool roundRHS = false);
 	void FloatCompare(UGeckoInstruction inst, bool upper = false);
+	void UpdateMXCSR();
 
 	// OPCODES
+	using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
 	void FallBackToInterpreter(UGeckoInstruction _inst);
 	void DoNothing(UGeckoInstruction _inst);
 	void HLEFunction(UGeckoInstruction _inst);
@@ -191,6 +192,12 @@ public:
 	void mfcr(UGeckoInstruction inst);
 	void mcrf(UGeckoInstruction inst);
 	void mcrxr(UGeckoInstruction inst);
+	void mcrfs(UGeckoInstruction inst);
+	void mffsx(UGeckoInstruction inst);
+	void mtfsb0x(UGeckoInstruction inst);
+	void mtfsb1x(UGeckoInstruction inst);
+	void mtfsfix(UGeckoInstruction inst);
+	void mtfsfx(UGeckoInstruction inst);
 
 	void boolX(UGeckoInstruction inst);
 	void crXXX(UGeckoInstruction inst);
@@ -249,5 +256,5 @@ public:
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);
 
-	void icbi(UGeckoInstruction inst);
+	void dcbx(UGeckoInstruction inst);
 };

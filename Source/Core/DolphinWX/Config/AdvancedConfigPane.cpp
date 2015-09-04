@@ -86,7 +86,7 @@ void AdvancedConfigPane::OnClockOverrideSliderChanged(wxCommandEvent& event)
 
 void AdvancedConfigPane::UpdateCPUClock()
 {
-	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	bool wii = SConfig::GetInstance().bWii;
 	int percent = (int)(std::roundf(SConfig::GetInstance().m_OCFactor * 100.f));
 	int clock = (int)(std::roundf(SConfig::GetInstance().m_OCFactor * (wii ? 729.f : 486.f)));
 

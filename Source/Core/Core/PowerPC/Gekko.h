@@ -17,8 +17,8 @@ union UGeckoInstruction
 {
 	u32 hex;
 
-	UGeckoInstruction(u32 _hex) { hex = _hex;}
-	UGeckoInstruction()         { hex = 0;}
+	UGeckoInstruction(u32 _hex) : hex(_hex) {}
+	UGeckoInstruction() : hex(0) {}
 
 	struct
 	{
@@ -465,7 +465,7 @@ union UReg_FPSCR
 		u32 VXIMZ   : 1;
 		// Invalid operation exception for 0 / 0 (sticky)
 		u32 VXZDZ   : 1;
-		// Invalid operation exception for int / inf (sticky)
+		// Invalid operation exception for inf / inf (sticky)
 		u32 VXIDI   : 1;
 		// Invalid operation exception for inf - inf (sticky)
 		u32 VXISI   : 1;
@@ -537,12 +537,12 @@ union UReg_HID2
 	struct
 	{
 		u32         : 16;
-		u32 DQOMEE  : 1;
+		u32 DQOEE   : 1;
 		u32 DCMEE   : 1;
 		u32 DNCEE   : 1;
 		u32 DCHEE   : 1;
 		u32 DQOERR  : 1;
-		u32 DCEMERR : 1;
+		u32 DCMERR  : 1;
 		u32 DNCERR  : 1;
 		u32 DCHERR  : 1;
 		u32 DMAQL   : 4;

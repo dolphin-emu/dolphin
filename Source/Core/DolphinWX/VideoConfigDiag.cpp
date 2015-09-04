@@ -22,7 +22,6 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/VideoConfigDiag.h"
@@ -95,7 +94,7 @@ void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 
 void VideoConfigDiag::Event_ClickSave(wxCommandEvent&)
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID != "")
+	if (SConfig::GetInstance().m_strUniqueID != "")
 		g_Config.GameIniSave();
 }
 
@@ -119,7 +118,7 @@ static wxString keep_window_on_top_desc = wxTRANSLATE("Keep the game window on t
 static wxString hide_mouse_cursor_desc = wxTRANSLATE("Hides the mouse cursor if it's on top of the emulation window.\n\nIf unsure, leave this unchecked.");
 static wxString render_to_main_win_desc = wxTRANSLATE("Enable this if you want to use the main Dolphin window for rendering rather than a separate render window.\n\nIf unsure, leave this unchecked.");
 static wxString prog_scan_desc = wxTRANSLATE("Enables progressive scan if supported by the emulated software.\nMost games don't care about this.\n\nIf unsure, leave this unchecked.");
-static wxString ar_desc = wxTRANSLATE("Select what aspect ratio to use when rendering:\nAuto: Use the native aspect ratio\nForce 16:9: Stretch the picture to an aspect ratio of 16:9.\nForce 4:3: Stretch the picture to an aspect ratio of 4:3.\nStretch to Window: Stretch the picture to the window size.\n\nIf unsure, select Auto.");
+static wxString ar_desc = wxTRANSLATE("Select what aspect ratio to use when rendering:\nAuto: Use the native aspect ratio\nForce 16:9: Mimic an analog TV with a widescreen aspect ratio.\nForce 4:3: Mimic a standard 4:3 analog TV.\nStretch to Window: Stretch the picture to the window size.\n\nIf unsure, select Auto.");
 static wxString ws_hack_desc = wxTRANSLATE("Forces the game to output graphics for any aspect ratio.\nUse with \"Aspect Ratio\" set to \"Force 16:9\" to force 4:3-only games to run at 16:9.\nRarely produces good results and often partially breaks graphics and game UIs.\nUnnecessary (and detrimental) if using any AR/Gecko-code widescreen patches.\n\nIf unsure, leave this unchecked.");
 static wxString vsync_desc = wxTRANSLATE("Wait for vertical blanks in order to reduce tearing.\nDecreases performance if emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
 static wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique viewing angles.\nMight cause issues in a small number of games.\nOn Direct3D, setting this above 1x will also have the same effect as enabling \"Force Texture Filtering\".\n\nIf unsure, select 1x.");
@@ -130,14 +129,14 @@ static wxString fast_depth_calc_desc = wxTRANSLATE("Use a less accurate algorith
 static wxString disable_bbox_desc = wxTRANSLATE("Disable the bounding box emulation.\nThis may improve the GPU performance a lot, but some games will break.\n\nIf unsure, leave this checked.");
 static wxString force_filtering_desc = wxTRANSLATE("Filter all textures, including any that the game explicitly set as unfiltered.\nMay improve quality of certain textures in some games, but will cause issues in others.\nOn Direct3D, setting Anisotropic Filtering above 1x will also have the same effect as enabling this option.\n\nIf unsure, leave this unchecked.");
 static wxString borderless_fullscreen_desc = wxTRANSLATE("Implement fullscreen mode with a borderless window spanning the whole screen instead of using exclusive mode.\nAllows for faster transitions between fullscreen and windowed mode, but slightly increases input latency, makes movement less smooth and slightly decreases performance.\nExclusive mode is required for Nvidia 3D Vision to work in the Direct3D backend.\n\nIf unsure, leave this unchecked.");
-static wxString internal_res_desc = wxTRANSLATE("Specifies the resolution used to render at. A high resolution greatly improves visual quality, but also greatly increases GPU load and can cause issues in certain games.\n\"Multiple of 640x528\" will result in a size slightly larger than \"Window Size\" but yield fewer issues. Generally speaking, the lower the internal resolution is, the better your performance will be.\n\nIf unsure, select 640x528.");
+static wxString internal_res_desc = wxTRANSLATE("Specifies the resolution used to render at. A high resolution greatly improves visual quality, but also greatly increases GPU load and can cause issues in certain games.\n\"Multiple of 640x528\" will result in a size slightly larger than \"Window Size\" but yield fewer issues. Generally speaking, the lower the internal resolution is, the better your performance will be. Auto (Window Size), 1.5x, and 2.5x may cause issues in some games.\n\nIf unsure, select Native.");
 static wxString efb_access_desc = wxTRANSLATE("Ignore any requests from the CPU to read from or write to the EFB.\nImproves performance in some games, but might disable some gameplay-related features or graphical effects.\n\nIf unsure, leave this unchecked.");
-static wxString efb_emulate_format_changes_desc = wxTRANSLATE("Ignore any changes to the EFB format.\nImproves performance in many games without any negative effect. Causes graphical defects in a small number of other games.\n\nIf unsure, leave this checked.");
 static wxString efb_copy_desc = wxTRANSLATE("Disable emulation of EFB copies.\nThese are often used for post-processing or render-to-texture effects, so while checking this setting may give a minor speedup over EFB to Texture it almost invariably also causes issues.\n\nIf unsure, leave this unchecked.");
+static wxString efb_emulate_format_changes_desc = wxTRANSLATE("Ignore any changes to the EFB format.\nImproves performance in many games without any negative effect. Causes graphical defects in a small number of other games.\n\nIf unsure, leave this checked.");
 static wxString efb_copy_clear_desc = wxTRANSLATE("Disables the black box or screen that appears where an EFB copy should have been rendered.  Use only if you are seeing a black box or screen after disabling EFB copies, or if a game is not rendering properly.  May cause artifacts such as bad blending on shadows or phantom images.\n\nIf unsure, leave this unchecked.");
 static wxString efb_copy_texture_desc = wxTRANSLATE("Store EFB copies in GPU texture objects.\nThis isn't particularly accurate, but it works well enough for most games and gives a great speedup over EFB to RAM.\n\nIf unsure, leave this checked.");
 static wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nNumerous games depend on this for certain graphical effects or gameplay functionality.\nThis is much slower than EFB to Texture.\n\nIf unsure, check EFB to Texture instead.");
-static wxString skip_efb_copy_to_ram_desc = wxTRANSLATE("Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games.\n\nIf unsure, leave this checked.");
+static wxString skip_efb_copy_to_ram_desc = wxTRANSLATE("Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games.\n\nEnabled = EFB Copies to Texture\nDisabled = EFB Copies to RAM (and Texture)\n\nIf unsure, leave this checked.");
 static wxString stc_desc = wxTRANSLATE("The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates from RAM.\nLower accuracies cause in-game text to appear garbled in certain games.\n\nIf unsure, use the rightmost value.");
 static wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
 static wxString disable_fog_desc = wxTRANSLATE("Makes distant objects more visible by removing fog, thus increasing the overall detail.\nDisabling fog will break some games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
@@ -158,7 +157,7 @@ static wxString dump_efb_desc = wxTRANSLATE("Dump the contents of EFB copies to 
 static wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
 #endif
 static wxString free_look_desc = wxTRANSLATE("This feature allows you to change the game's camera with the mouse.\nMove the mouse while holding the right mouse button to pan and while holding the middle button to move.\n\nIf unsure, leave this unchecked.");
-static wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.\n\nIf unsure, leave this unchecked.");
+static wxString crop_desc = wxTRANSLATE("Crop the picture from its native aspect ratio to 4:3 or 16:9.\n\nIf unsure, leave this unchecked.");
 static wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
 static wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
 static wxString stereo_3d_desc = wxTRANSLATE("Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
@@ -304,7 +303,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
 		choice_display_resolution->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_DisplayResolution, this);
 
-		choice_display_resolution->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution));
+		choice_display_resolution->SetStringSelection(StrToWxStr(SConfig::GetInstance().strFullscreenResolution));
 
 		szr_display->Add(label_display_resolution, 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_display->Add(choice_display_resolution);
@@ -324,7 +323,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// various other display options
 	{
 	szr_display->Add(CreateCheckBox(page_general, _("V-Sync"), wxGetTranslation(vsync_desc), vconfig.bVSync));
-	szr_display->Add(CreateCheckBox(page_general, _("Use Fullscreen"), wxGetTranslation(use_fullscreen_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen));
+	szr_display->Add(CreateCheckBox(page_general, _("Use Fullscreen"), wxGetTranslation(use_fullscreen_desc), SConfig::GetInstance().bFullscreen));
 	}
 	}
 
@@ -334,10 +333,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	szr_other->Add(CreateCheckBox(page_general, _("Show FPS"), wxGetTranslation(show_fps_desc), vconfig.bShowFPS));
 	szr_other->Add(CreateCheckBox(page_general, _("Log Render Time to File"), wxGetTranslation(log_render_time_to_file_desc), vconfig.bLogRenderTimeToFile));
-	szr_other->Add(CreateCheckBox(page_general, _("Auto adjust Window Size"), wxGetTranslation(auto_window_size_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize));
-	szr_other->Add(CreateCheckBox(page_general, _("Keep Window on Top"), wxGetTranslation(keep_window_on_top_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop));
-	szr_other->Add(CreateCheckBox(page_general, _("Hide Mouse Cursor"), wxGetTranslation(hide_mouse_cursor_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor));
-	szr_other->Add(render_to_main_checkbox = CreateCheckBox(page_general, _("Render to Main Window"), wxGetTranslation(render_to_main_win_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain));
+	szr_other->Add(CreateCheckBox(page_general, _("Auto adjust Window Size"), wxGetTranslation(auto_window_size_desc), SConfig::GetInstance().bRenderWindowAutoSize));
+	szr_other->Add(CreateCheckBox(page_general, _("Keep Window on Top"), wxGetTranslation(keep_window_on_top_desc), SConfig::GetInstance().bKeepWindowOnTop));
+	szr_other->Add(CreateCheckBox(page_general, _("Hide Mouse Cursor"), wxGetTranslation(hide_mouse_cursor_desc), SConfig::GetInstance().bHideCursor));
+	szr_other->Add(render_to_main_checkbox = CreateCheckBox(page_general, _("Render to Main Window"), wxGetTranslation(render_to_main_win_desc), SConfig::GetInstance().bRenderToMain));
 	}
 
 
@@ -371,16 +370,17 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// Internal resolution
 	{
 	const wxString efbscale_choices[] = { _("Auto (Window Size)"), _("Auto (Multiple of 640x528)"),
-		_("1x Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056)"),
-		_("2.5x Native (1600x1320)"), _("3x Native (1920x1584)"), _("4x Native (2560x2112)"), _("Custom") };
+		_("Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056) for 720p"), _("2.5x Native (1600x1320)"),
+		_("3x Native (1920x1584) for 1080p"), _("4x Native (2560x2112) for 1440p"), _("5x Native (3200x2640)"),
+		_("6x Native (3840x3168) for 4K"), _("7x Native (4480x3696)"), _("8x Native (5120x4224) for 5K"), _("Custom") };
 
 	wxChoice *const choice_efbscale = CreateChoice(page_enh,
-		vconfig.iEFBScale, wxGetTranslation(internal_res_desc), (vconfig.iEFBScale > 7) ?
+		vconfig.iEFBScale, wxGetTranslation(internal_res_desc), (vconfig.iEFBScale > 11) ?
 		ArraySize(efbscale_choices) : ArraySize(efbscale_choices) - 1, efbscale_choices);
 
 
-	if (vconfig.iEFBScale > 7)
-		choice_efbscale->SetSelection(8);
+	if (vconfig.iEFBScale > 11)
+		choice_efbscale->SetSelection(12);
 
 	szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Internal Resolution:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	szr_enh->Add(choice_efbscale);
@@ -629,9 +629,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	RegisterControl(progressive_scan_checkbox, wxGetTranslation(prog_scan_desc));
 	progressive_scan_checkbox->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_ProgressiveScan, this);
 
-	progressive_scan_checkbox->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive);
+	progressive_scan_checkbox->SetValue(SConfig::GetInstance().bProgressive);
 	// A bit strange behavior, but this needs to stay in sync with the main progressive boolean; TODO: Is this still necessary?
-	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive);
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", SConfig::GetInstance().bProgressive);
 
 	szr_misc->Add(progressive_scan_checkbox);
 	}
@@ -670,7 +670,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent &ev)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+	SConfig::GetInstance().strFullscreenResolution =
 		WxStrToStr(choice_display_resolution->GetStringSelection());
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->Update();
@@ -709,7 +709,7 @@ SettingNumber* VideoConfigDiag::CreateNumber(wxWindow* parent, float &setting, c
 /* Use this to register descriptions for controls which have NOT been created using the Create* functions from above */
 wxControl* VideoConfigDiag::RegisterControl(wxControl* const control, const wxString& description)
 {
-	ctrl_descs.insert(std::pair<wxWindow*, wxString>(control, description));
+	ctrl_descs.emplace(control, description);
 	control->Bind(wxEVT_ENTER_WINDOW, &VideoConfigDiag::Evt_EnterControl, this);
 	control->Bind(wxEVT_LEAVE_WINDOW, &VideoConfigDiag::Evt_LeaveControl, this);
 	return control;
@@ -764,7 +764,7 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 	desc_sizer->Add(desc_text, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	// Store description text object for later lookup
-	desc_texts.insert(std::pair<wxWindow*, wxStaticText*>(page, desc_text));
+	desc_texts.emplace(page, desc_text);
 }
 
 void VideoConfigDiag::PopulatePostProcessingShaders()

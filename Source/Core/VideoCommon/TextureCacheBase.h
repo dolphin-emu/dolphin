@@ -53,6 +53,7 @@ public:
 		u32 format;
 		bool is_efb_copy;
 		bool is_custom_tex;
+		u32 copyMipMapStrideChannels;
 
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int native_levels;
@@ -87,6 +88,11 @@ public:
 
 		virtual void Bind(unsigned int stage) = 0;
 		virtual bool Save(const std::string& filename, unsigned int level) = 0;
+
+		virtual void CopyRectangleFromTexture(
+			const TCacheEntryBase* source,
+			const MathUtil::Rectangle<int> &srcrect,
+			const MathUtil::Rectangle<int> &dstrect) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
@@ -135,13 +141,12 @@ protected:
 private:
 	typedef std::multimap<u64, TCacheEntryBase*> TexCache;
 	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
-
+	static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter);
 	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
 	static void CheckTempSize(size_t required_size);
 
 	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
-	static TexCache::iterator RemoveTextureFromCache(TexCache::iterator t_iter);
-	static void FreeTexture(TCacheEntryBase* entry);
+	static TexCache::iterator FreeTexture(TexCache::iterator t_iter);
 
 	static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
 

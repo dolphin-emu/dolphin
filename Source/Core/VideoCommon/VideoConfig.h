@@ -25,10 +25,10 @@
 
 enum AspectMode
 {
-	ASPECT_AUTO       = 0,
-	ASPECT_FORCE_16_9 = 1,
-	ASPECT_FORCE_4_3  = 2,
-	ASPECT_STRETCH    = 3,
+	ASPECT_AUTO        = 0,
+	ASPECT_ANALOG_WIDE = 1,
+	ASPECT_ANALOG      = 2,
+	ASPECT_STRETCH     = 3,
 };
 
 enum EFBScale
@@ -40,8 +40,6 @@ enum EFBScale
 	SCALE_1_5X,
 	SCALE_2X,
 	SCALE_2_5X,
-	SCALE_3X,
-	SCALE_4X,
 };
 
 enum StereoMode
@@ -129,6 +127,7 @@ struct VideoConfig final
 	bool bEFBAccessEnable;
 	bool bPerfQueriesEnable;
 	bool bBBoxEnable;
+	bool bForceProgressive;
 
 	bool bEFBCopyEnable;
 	bool bEFBCopyClearDisable;

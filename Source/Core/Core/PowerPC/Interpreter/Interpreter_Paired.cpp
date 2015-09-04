@@ -104,97 +104,8 @@ void Interpreter::ps_merge11(UGeckoInstruction _inst)
 // From here on, the real deal.
 void Interpreter::ps_div(UGeckoInstruction _inst)
 {
-	u32 ex_mask = 0;
-
-	// PS0
-	{
-		double a = rPS0(_inst.FA);
-		double b = rPS0(_inst.FB);
-		double &res = rPS0(_inst.FD);
-
-		if (a != a)
-		{
-			res = a;
-		}
-		else if (b != b)
-		{
-			res = b;
-		}
-		else
-		{
-			if (b == 0.0)
-			{
-				ex_mask |= FPSCR_ZX;
-				if (rPS0(_inst.FA) == 0.0)
-				{
-					ex_mask |= FPSCR_VXZDZ;
-					res = PPC_NAN;
-				}
-				else
-				{
-					res = ForceSingle(a / b);
-				}
-			}
-			else
-			{
-				if (IsINF(a) && IsINF(b))
-				{
-					ex_mask |= FPSCR_VXIDI;
-					res = PPC_NAN;
-				}
-				else
-				{
-					res = ForceSingle(a / b);
-				}
-			}
-		}
-	}
-
-	// PS1
-	{
-		double a = rPS1(_inst.FA);
-		double b = rPS1(_inst.FB);
-		double &res = rPS1(_inst.FD);
-
-		if (a != a)
-		{
-			res = a;
-		}
-		else if (b != b)
-		{
-			res = b;
-		}
-		else
-		{
-			if (b == 0.0)
-			{
-				ex_mask |= FPSCR_ZX;
-				if (rPS0(_inst.FA) == 0.0)
-				{
-					ex_mask |= FPSCR_VXZDZ;
-					res = PPC_NAN;
-				}
-				else
-				{
-					res = ForceSingle(a / b);
-				}
-			}
-			else
-			{
-				if (IsINF(a) && IsINF(b))
-				{
-					ex_mask |= FPSCR_VXIDI;
-					res = PPC_NAN;
-				}
-				else
-				{
-					res = ForceSingle(a / b);
-				}
-			}
-		}
-	}
-
-	SetFPException(ex_mask);
+	rPS0(_inst.FD) = ForceSingle(NI_div(rPS0(_inst.FA), rPS0(_inst.FB)));
+	rPS1(_inst.FD) = ForceSingle(NI_div(rPS1(_inst.FA), rPS1(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -303,8 +214,10 @@ void Interpreter::ps_nmsub(UGeckoInstruction _inst)
 {
 	double c0 = Force25Bit(rPS0(_inst.FC));
 	double c1 = Force25Bit(rPS1(_inst.FC));
-	rPS0(_inst.FD) = ForceSingle(NI_msub(rPS0(_inst.FA), c0, rPS0(_inst.FB), true));
-	rPS1(_inst.FD) = ForceSingle(NI_msub(rPS1(_inst.FA), c1, rPS1(_inst.FB), true));
+	double result0 = ForceSingle(NI_msub(rPS0(_inst.FA), c0, rPS0(_inst.FB)));
+	double result1 = ForceSingle(NI_msub(rPS1(_inst.FA), c1, rPS1(_inst.FB)));
+	rPS0(_inst.FD) = std::isnan(result0) ? result0 : -result0;
+	rPS1(_inst.FD) = std::isnan(result1) ? result1 : -result1;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -315,8 +228,10 @@ void Interpreter::ps_nmadd(UGeckoInstruction _inst)
 {
 	double c0 = Force25Bit(rPS0(_inst.FC));
 	double c1 = Force25Bit(rPS1(_inst.FC));
-	rPS0(_inst.FD) = ForceSingle(NI_madd(rPS0(_inst.FA), c0, rPS0(_inst.FB), true));
-	rPS1(_inst.FD) = ForceSingle(NI_madd(rPS1(_inst.FA), c1, rPS1(_inst.FB), true));
+	double result0 = ForceSingle(NI_madd(rPS0(_inst.FA), c0, rPS0(_inst.FB)));
+	double result1 = ForceSingle(NI_madd(rPS1(_inst.FA), c1, rPS1(_inst.FB)));
+	rPS0(_inst.FD) = std::isnan(result0) ? result0 : -result0;
+	rPS1(_inst.FD) = std::isnan(result1) ? result1 : -result1;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)

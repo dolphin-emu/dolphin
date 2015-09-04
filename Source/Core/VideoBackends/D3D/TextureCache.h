@@ -26,6 +26,11 @@ private:
 		TCacheEntry(const TCacheEntryConfig& config, D3DTexture2D *_tex) : TCacheEntryBase(config), texture(_tex) {}
 		~TCacheEntry();
 
+		void CopyRectangleFromTexture(
+			const TCacheEntryBase* source,
+			const MathUtil::Rectangle<int> &srcrect,
+			const MathUtil::Rectangle<int> &dstrect) override;
+
 		void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int levels) override;
 

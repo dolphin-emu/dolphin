@@ -23,6 +23,11 @@ static const X64Reg base_reg = RBX;
 
 static const u8* memory_base_ptr = (u8*)&g_main_cp_state.array_strides;
 
+static OpArg MPIC(const void* ptr, X64Reg scale_reg, int scale = SCALE_1)
+{
+	return MComplex(base_reg, scale_reg, scale, (s32)((u8*)ptr - memory_base_ptr));
+}
+
 static OpArg MPIC(const void* ptr)
 {
 	return MDisp(base_reg, (s32)((u8*)ptr - memory_base_ptr));
@@ -48,21 +53,12 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
 	OpArg data = MDisp(src_reg, m_src_ofs);
 	if (attribute & MASK_INDEXED)
 	{
-		if (attribute == INDEX8)
-		{
-			MOVZX(64, 8, scratch1, data);
-			m_src_ofs += 1;
-		}
-		else
-		{
-			MOV(16, R(scratch1), data);
-			m_src_ofs += 2;
-			BSWAP(16, scratch1);
-			MOVZX(64, 16, scratch1, R(scratch1));
-		}
+		int bits = attribute == INDEX8 ? 8 : 16;
+		LoadAndSwap(bits, scratch1, data);
+		m_src_ofs += bits / 8;
 		if (array == ARRAY_POSITION)
 		{
-			CMP(attribute == INDEX8 ? 8 : 16, R(scratch1), Imm8(-1));
+			CMP(bits, R(scratch1), Imm8(-1));
 			m_skip_vertex = J_CC(CC_E, true);
 		}
 		IMUL(32, scratch1, MPIC(&g_main_cp_state.array_strides[array]));
@@ -193,6 +189,31 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 				MOV(32, dest, R(scratch3));
 				data.AddMemOffset(sizeof(float));
 				dest.AddMemOffset(sizeof(float));
+
+				// zfreeze
+				if (native_format == &m_native_vtx_decl.position)
+				{
+					if (cpu_info.bSSE4_1)
+					{
+						PINSRD(coords, R(scratch3), i);
+					}
+					else
+					{
+						PINSRW(coords, R(scratch3), 2 * i + 0);
+						SHR(32, R(scratch3), Imm8(16));
+						PINSRW(coords, R(scratch3), 2 * i + 1);
+					}
+				}
+			}
+
+			// zfreeze
+			if (native_format == &m_native_vtx_decl.position)
+			{
+				CMP(32, R(count_reg), Imm8(3));
+				FixupBranch dont_store = J_CC(CC_A);
+				LEA(32, scratch3, MScaled(count_reg, SCALE_4, -4));
+				MOVUPS(MPIC(VertexLoaderManager::position_cache, scratch3, SCALE_4), coords);
+				SetJumpTarget(dont_store);
 			}
 			return load_bytes;
 		}
@@ -211,6 +232,16 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 	case 1: MOVSS(dest, coords); break;
 	case 2: MOVLPS(dest, coords); break;
 	case 3: MOVUPS(dest, coords); break;
+	}
+
+	// zfreeze
+	if (native_format == &m_native_vtx_decl.position)
+	{
+		CMP(32, R(count_reg), Imm8(3));
+		FixupBranch dont_store = J_CC(CC_A);
+		LEA(32, scratch3, MScaled(count_reg, SCALE_4, -4));
+		MOVUPS(MPIC(VertexLoaderManager::position_cache, scratch3, SCALE_4), coords);
+		SetJumpTarget(dont_store);
 	}
 
 	return load_bytes;
@@ -388,6 +419,13 @@ void VertexLoaderX64::GenerateVertexLoader()
 		MOVZX(32, 8, scratch1, MDisp(src_reg, m_src_ofs));
 		AND(32, R(scratch1), Imm8(0x3F));
 		MOV(32, MDisp(dst_reg, m_dst_ofs), R(scratch1));
+
+		// zfreeze
+		CMP(32, R(count_reg), Imm8(3));
+		FixupBranch dont_store = J_CC(CC_A);
+		MOV(32, MPIC(VertexLoaderManager::position_matrix_index - 1, count_reg, SCALE_4), R(scratch1));
+		SetJumpTarget(dont_store);
+
 		m_native_components |= VB_HAS_POSMTXIDX;
 		m_native_vtx_decl.posmtx.components = 4;
 		m_native_vtx_decl.posmtx.enable = true;

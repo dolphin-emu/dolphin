@@ -4,6 +4,7 @@
 
 #include <type_traits>
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Position.h"
@@ -24,7 +25,7 @@ float PosScale(float val, float scale)
 }
 
 template <typename T, int N>
-void LOADERDECL Pos_ReadDirect(VertexLoader* loader)
+void Pos_ReadDirect(VertexLoader* loader)
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
 	auto const scale = loader->m_posScale;
@@ -32,7 +33,12 @@ void LOADERDECL Pos_ReadDirect(VertexLoader* loader)
 	DataReader src(g_video_buffer_read_ptr, nullptr);
 
 	for (int i = 0; i < N; ++i)
-		dst.Write(PosScale(src.Read<T>(), scale));
+	{
+		float value = PosScale(src.Read<T>(), scale);
+		if (loader->m_counter < 3)
+			VertexLoaderManager::position_cache[loader->m_counter][i] = value;
+		dst.Write(value);
+	}
 
 	g_vertex_manager_write_ptr = dst.GetPointer();
 	g_video_buffer_read_ptr = src.GetPointer();
@@ -40,7 +46,7 @@ void LOADERDECL Pos_ReadDirect(VertexLoader* loader)
 }
 
 template <typename I, typename T, int N>
-void LOADERDECL Pos_ReadIndex(VertexLoader* loader)
+void Pos_ReadIndex(VertexLoader* loader)
 {
 	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 	static_assert(N <= 3, "N > 3 is not sane!");
@@ -52,7 +58,12 @@ void LOADERDECL Pos_ReadIndex(VertexLoader* loader)
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
 	for (int i = 0; i < N; ++i)
-		dst.Write(PosScale(Common::FromBigEndian(data[i]), scale));
+	{
+		float value = PosScale(Common::FromBigEndian(data[i]), scale);
+		if (loader->m_counter < 3)
+			VertexLoaderManager::position_cache[loader->m_counter][i] = value;
+		dst.Write(value);
+	}
 
 	g_vertex_manager_write_ptr = dst.GetPointer();
 	LOG_VTX();

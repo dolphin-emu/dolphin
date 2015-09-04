@@ -30,7 +30,7 @@ TEST(UniqueID, UniqueEnough)
 TEST(IsMMIOAddress, SpecialAddresses)
 {
 	SConfig::Init();
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bWii = true;
+	SConfig::GetInstance().bWii = true;
 
 	// WG Pipe address, should not be handled by MMIO.
 	EXPECT_FALSE(MMIO::IsMMIOAddress(0x0C008000));

@@ -18,6 +18,8 @@ struct BackPatchInfo
 		FLAG_SIZE_F64 = (1 << 6),
 		FLAG_REVERSE  = (1 << 7),
 		FLAG_EXTEND   = (1 << 8),
+		FLAG_SIZE_F32I = (1 << 9),
+		FLAG_ZERO_256  = (1 << 10),
 	};
 
 	static u32 GetFlagSize(u32 flags)
@@ -28,14 +30,12 @@ struct BackPatchInfo
 			return 16;
 		if (flags & FLAG_SIZE_32)
 			return 32;
-		if (flags & FLAG_SIZE_F32)
+		if (flags & FLAG_SIZE_F32 || flags & FLAG_SIZE_F32I)
 			return 32;
 		if (flags & FLAG_SIZE_F64)
 			return 64;
+		if (flags & FLAG_ZERO_256)
+			return 256;
 		return 0;
 	}
-
-	u32 m_fastmem_size;
-	u32 m_fastmem_trouble_inst_offset;
-	u32 m_slowmem_size;
 };

@@ -45,7 +45,6 @@ class TASInputDlg : public wxDialog
 		void GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
 		bool TextBoxHasFocus();
 		void SetLandRTriggers();
-		bool TASHasFocus();
 		void CreateGCLayout();
 		void CreateWiiLayout(int num);
 		wxBitmap CreateStickBitmap(int x, int y);
@@ -89,6 +88,8 @@ class TASInputDlg : public wxDialog
 		};
 
 		wxBoxSizer* CreateCCLayout();
+		void FinishLayout();
+		void GetValuesCallback(wxCommandEvent& event);
 		void SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, wxTextCtrl* Textbox, int CurrentValue, int center = 128);
 		void SetButtonValue(Button* button, bool CurrentState);
 		void SetSliderValue(Control* control, int CurrentValue);

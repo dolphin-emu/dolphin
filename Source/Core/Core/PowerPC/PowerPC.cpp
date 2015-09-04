@@ -171,7 +171,7 @@ void Init(int cpu_core)
 
 	ppcState.iCache.Init();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().bEnableDebugging)
 		breakpoints.ClearAllTemporary();
 }
 
@@ -527,11 +527,6 @@ void CheckBreakPoints()
 		if (PowerPC::breakpoints.IsTempBreakPoint(PC))
 			PowerPC::breakpoints.Remove(PC);
 	}
-}
-
-void OnIdle()
-{
-	CoreTiming::Idle();
 }
 
 }  // namespace

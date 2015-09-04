@@ -41,14 +41,12 @@ void OSD_AddMessage(const std::string& str, u32 ms)
 
 bool OnThread()
 {
-	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
-	return  _CoreParameter.bDSPThread;
+	return  SConfig::GetInstance().bDSPThread;
 }
 
 bool IsWiiHost()
 {
-	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
-	return  _CoreParameter.bWii;
+	return  SConfig::GetInstance().bWii;
 }
 
 void InterruptRequest()

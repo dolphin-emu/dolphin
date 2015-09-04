@@ -119,9 +119,9 @@ namespace HideObjectEngine
 
 	void LoadHideObjects()
 	{
-		IniFile merged = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
-		IniFile globalIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
-		IniFile localIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
+		IniFile merged = SConfig::GetInstance().LoadGameIni();
+		IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
+		IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
 		LoadHideObjectSection("HideObjectCodes", HideObjectCodes, globalIni, localIni);
 	}
@@ -129,13 +129,13 @@ namespace HideObjectEngine
 	void ApplyHideObjects(const std::vector<HideObject> &HideObjectects)
 	{
 		// Make the rendering code skip over checking skip entries
-		SConfig::GetInstance().m_LocalCoreStartupParameter.hide_objects_updating = true;
+		SConfig::GetInstance().hide_objects_updating = true;
 
 		// Wait until the next time the next time the rendering thread finishes checking the skip entries.
 		if (Core::IsRunning())
-			while (SConfig::GetInstance().m_LocalCoreStartupParameter.hide_objects_done == false) {}
+			while (SConfig::GetInstance().hide_objects_done == false) {}
 
-		SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.clear();
+		SConfig::GetInstance().object_removal_codes.clear();
 
 		for (const HideObject& HideObjectect : HideObjectects)
 		{
@@ -163,11 +163,11 @@ namespace HideObjectEngine
 						skipEntry.push_back((0xFF & (value_add_lower >> ((j - 1) * 8))));
 					}
 
-					SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.push_back(skipEntry);
+					SConfig::GetInstance().object_removal_codes.push_back(skipEntry);
 				}
 			}
 		}
-		SConfig::GetInstance().m_LocalCoreStartupParameter.hide_objects_updating = false;
+		SConfig::GetInstance().hide_objects_updating = false;
 	}
 
 	void ApplyFrameHideObjects()
