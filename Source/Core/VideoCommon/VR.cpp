@@ -1,4 +1,4 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -226,8 +226,7 @@ bool InitSteamVR()
 	if (eError != vr::HmdError_None)
 	{
 		m_pHMD = nullptr;
-		WARN_LOG(VR, "Unable to init VR runtime: %s", vr::VR_GetStringForHmdError(eError));
-		PanicAlertT("VR_Init Failed");
+		ERROR_LOG(VR, "Unable to init SteamVR: %s", vr::VR_GetStringForHmdError(eError));
 		g_has_steamvr = false;
 	}
 	else
@@ -239,12 +238,10 @@ bool InitSteamVR()
 			vr::VR_Shutdown();
 
 			ERROR_LOG(VR, "Unable to get render model interface: %s", vr::VR_GetStringForHmdError(eError));
-			PanicAlertT("VR_Init Failed");
 			g_has_steamvr = false;
 		}
 		else
 		{
-			SuccessAlertT("VR_Init Succeeded");
 			NOTICE_LOG(VR, "VR_Init Succeeded");
 			g_has_steamvr = true;
 			g_has_hmd = true;
@@ -255,20 +252,20 @@ bool InitSteamVR()
 		m_pHMD->GetWindowBounds(&g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight);
 		g_hmd_window_width = m_nWindowWidth;
 		g_hmd_window_height = m_nWindowHeight;
-		NOTICE_LOG(VR, "WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y, g_hmd_window_width, g_hmd_window_height);
+		NOTICE_LOG(VR, "SteamVR WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y, g_hmd_window_width, g_hmd_window_height);
 
 		std::string m_strDriver = "No Driver";
 		std::string m_strDisplay = "No Display";
 		m_strDriver = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
 		m_strDisplay = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
-		NOTICE_LOG(VR, "strDriver = '%s'", m_strDriver.c_str());
-		NOTICE_LOG(VR, "strDisplay = '%s'", m_strDisplay.c_str());
+		NOTICE_LOG(VR, "SteamVR strDriver = '%s'", m_strDriver.c_str());
+		NOTICE_LOG(VR, "SteamVR strDisplay = '%s'", m_strDisplay.c_str());
 
 		if (m_bUseCompositor)
 		{
 			if (!BInitCompositor())
 			{
-				PanicAlertT("%s - Failed to initialize VR Compositor!\n", __FUNCTION__);
+				ERROR_LOG(VR, "%s - Failed to initialize SteamVR Compositor!\n", __FUNCTION__);
 				g_has_steamvr = false;
 			}
 		}
@@ -283,7 +280,7 @@ bool InitOculusDebugVR()
 #ifdef OVR_MAJOR_VERSION
 	if (g_force_vr)
 	{
-		WARN_LOG(VR, "Forcing VR mode, simulating Oculus Rift DK2.");
+		NOTICE_LOG(VR, "Forcing VR mode, simulating Oculus Rift DK2.");
 #if OVR_MAJOR_VERSION >= 6
 		if (ovrHmd_CreateDebug(ovrHmd_DK2, &hmd) != ovrSuccess)
 			hmd = nullptr;
