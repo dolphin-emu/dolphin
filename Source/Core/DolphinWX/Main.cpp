@@ -96,21 +96,72 @@ bool DolphinApp::Initialize(int& c, wxChar **v)
 
 bool DolphinApp::OnInit()
 {
+	if (!wxApp::OnInit() || DolphinEmulatorDotComTextFileExists())
+		return false;
+
 	Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
 	Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
 
-	// Declarations and definitions
-	bool UseDebugger = false;
-	bool UseLogger = false;
-	bool selectVideoBackend = false;
-	bool selectAudioEmulation = false;
+	// Register message box and translation handlers
+	RegisterMsgAlertHandler(&wxMsgAlert);
+	RegisterStringTranslator(&wxStringTranslator);
 
-	wxString videoBackendName;
-	wxString audioEmulationName;
-	wxString userPath;
+#if wxUSE_ON_FATAL_EXCEPTION
+	wxHandleFatalExceptions(true);
+#endif
 
-#if wxUSE_CMDLINE_PARSER // Parse command lines
-	wxCmdLineEntryDesc cmdLineDesc[] =
+	UICommon::SetUserDirectory(m_user_path.ToStdString());
+	UICommon::CreateDirectories();
+	InitLanguageSupport(); // The language setting is loaded from the user directory
+	UICommon::Init();
+
+	if (m_select_video_backend && !m_video_backend_name.empty())
+		SConfig::GetInstance().m_strVideoBackend = WxStrToStr(m_video_backend_name);
+
+	if (m_select_audio_emulation)
+		SConfig::GetInstance().bDSPHLE = (m_audio_emulation_name.Upper() == "HLE");
+
+	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+
+	// Enable the PNG image handler for screenshots
+	wxImage::AddHandler(new wxPNGHandler);
+
+	int x = SConfig::GetInstance().iPosX;
+	int y = SConfig::GetInstance().iPosY;
+	int w = SConfig::GetInstance().iWidth;
+	int h = SConfig::GetInstance().iHeight;
+
+	// The following is not needed with X11, where window managers
+	// do not allow windows to be created off the desktop.
+#ifdef _WIN32
+	// Out of desktop check
+	int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
+	int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
+	int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+	if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
+		x = y = wxDefaultCoord;
+#elif defined __APPLE__
+	if (y < 1)
+		y = wxDefaultCoord;
+#endif
+
+	main_frame = new CFrame(nullptr, wxID_ANY,
+	                        StrToWxStr(scm_rev_str),
+	                        wxPoint(x, y), wxSize(w, h),
+	                        m_use_debugger, m_batch_mode, m_use_logger);
+
+	SetTopWindow(main_frame);
+	main_frame->SetMinSize(wxSize(400, 300));
+
+	AfterInit();
+
+	return true;
+}
+
+void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
+{
+	static const wxCmdLineEntryDesc desc[] =
 	{
 		{
 			wxCMD_LINE_SWITCH, "h", "help",
@@ -138,12 +189,12 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, "V", "video_backend",
+			wxCMD_LINE_OPTION, "v", "video_backend",
 			"Specify a video backend",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, "A", "audio_emulation",
+			wxCMD_LINE_OPTION, "a", "audio_emulation",
 			"Low level (LLE) or high level (HLE) audio",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
@@ -153,7 +204,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, "U", "user",
+			wxCMD_LINE_OPTION, "u", "user",
 			"User folder path",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
@@ -162,127 +213,73 @@ bool DolphinApp::OnInit()
 		}
 	};
 
-	// Gets the command line parameters
-	wxCmdLineParser parser(cmdLineDesc, argc, argv);
-	LoadFile = false;
+	parser.SetDesc(desc);
+}
+
+bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
+{
 	if (argc == 2 && File::Exists(argv[1].ToUTF8().data()))
 	{
-		LoadFile = true;
-		FileToLoad = argv[1];
+		m_load_file = true;
+		m_file_to_load = argv[1];
 	}
 	else if (parser.Parse() != 0)
 	{
 		return false;
 	}
 
-	UseDebugger = parser.Found("debugger");
-	UseLogger = parser.Found("logger");
-	if (!LoadFile)
-		LoadFile = parser.Found("exec", &FileToLoad);
-	BatchMode = parser.Found("batch");
-	selectVideoBackend = parser.Found("video_backend", &videoBackendName);
-	selectAudioEmulation = parser.Found("audio_emulation", &audioEmulationName);
-	playMovie = parser.Found("movie", &movieFile);
-	parser.Found("user", &userPath);
-#endif // wxUSE_CMDLINE_PARSER
+	if (!m_load_file)
+		m_load_file = parser.Found("exec", &m_file_to_load);
 
-	// Register message box and translation handlers
-	RegisterMsgAlertHandler(&wxMsgAlert);
-	RegisterStringTranslator(&wxStringTranslator);
-
-#if wxUSE_ON_FATAL_EXCEPTION
-	wxHandleFatalExceptions(true);
-#endif
-
-	UICommon::SetUserDirectory(userPath.ToStdString());
-	UICommon::CreateDirectories();
-	InitLanguageSupport();	// The language setting is loaded from the user directory
-	UICommon::Init();
-
-	if (selectVideoBackend && videoBackendName != wxEmptyString)
-		SConfig::GetInstance().m_strVideoBackend =
-			WxStrToStr(videoBackendName);
-
-	if (selectAudioEmulation)
-	{
-		if (audioEmulationName == "HLE")
-			SConfig::GetInstance().bDSPHLE = true;
-		else if (audioEmulationName == "LLE")
-			SConfig::GetInstance().bDSPHLE = false;
-	}
-
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
-
-	// Enable the PNG image handler for screenshots
-	wxImage::AddHandler(new wxPNGHandler);
-
-	int x = SConfig::GetInstance().iPosX;
-	int y = SConfig::GetInstance().iPosY;
-	int w = SConfig::GetInstance().iWidth;
-	int h = SConfig::GetInstance().iHeight;
-
-	if (File::Exists("www.dolphin-emulator.com.txt"))
-	{
-		File::Delete("www.dolphin-emulator.com.txt");
-		wxMessageDialog dlg(nullptr, _(
-		    "This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
-		    "download Dolphin from the official website instead: https://dolphin-emu.org/"),
-		    _("Unofficial version detected"), wxOK | wxICON_WARNING);
-		dlg.ShowModal();
-
-		wxLaunchDefaultBrowser("https://dolphin-emu.org/?ref=badver");
-
-		exit(0);
-	}
-
-	// The following is not needed with X11, where window managers
-	// do not allow windows to be created off the desktop.
-#ifdef _WIN32
-	// Out of desktop check
-	int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
-	int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
-	int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
-	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-	if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
-		x = y = wxDefaultCoord;
-#elif defined __APPLE__
-	if (y < 1)
-		y = wxDefaultCoord;
-#endif
-
-	main_frame = new CFrame(nullptr, wxID_ANY,
-				StrToWxStr(scm_rev_str),
-				wxPoint(x, y), wxSize(w, h),
-				UseDebugger, BatchMode, UseLogger);
-	SetTopWindow(main_frame);
-	main_frame->SetMinSize(wxSize(400, 300));
-
-	AfterInit();
+	m_use_debugger = parser.Found("debugger");
+	m_use_logger = parser.Found("logger");
+	m_batch_mode = parser.Found("batch");
+	m_select_video_backend = parser.Found("video_backend", &m_video_backend_name);
+	m_select_audio_emulation = parser.Found("audio_emulation", &m_audio_emulation_name);
+	m_play_movie = parser.Found("movie", &m_movie_file);
+	parser.Found("user", &m_user_path);
 
 	return true;
 }
 
 #ifdef __APPLE__
-void DolphinApp::MacOpenFile(const wxString &fileName)
+void DolphinApp::MacOpenFile(const wxString& fileName)
 {
-	FileToLoad = fileName;
-	LoadFile = true;
-	main_frame->BootGame(WxStrToStr(FileToLoad));
+	m_file_to_load = fileName;
+	m_load_file = true;
+	main_frame->BootGame(WxStrToStr(m_file_to_load));
 }
 #endif
 
+bool DolphinApp::DolphinEmulatorDotComTextFileExists()
+{
+	if (!File::Exists("www.dolphin-emulator.com.txt"))
+		return false;
+
+	File::Delete("www.dolphin-emulator.com.txt");
+	wxMessageDialog dlg(nullptr, _(
+	    "This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
+	    "download Dolphin from the official website instead: https://dolphin-emu.org/"),
+	    _("Unofficial version detected"), wxOK | wxICON_WARNING);
+	dlg.ShowModal();
+
+	wxLaunchDefaultBrowser("https://dolphin-emu.org/?ref=badver");
+
+	return true;
+}
+
 void DolphinApp::AfterInit()
 {
-	if (!BatchMode)
+	if (!m_batch_mode)
 		main_frame->UpdateGameList();
 
-	if (playMovie && movieFile != wxEmptyString)
+	if (m_play_movie && !m_movie_file.empty())
 	{
-		if (Movie::PlayInput(WxStrToStr(movieFile)))
+		if (Movie::PlayInput(WxStrToStr(m_movie_file)))
 		{
-			if (LoadFile && FileToLoad != wxEmptyString)
+			if (m_load_file && !m_file_to_load.empty())
 			{
-				main_frame->BootGame(WxStrToStr(FileToLoad));
+				main_frame->BootGame(WxStrToStr(m_file_to_load));
 			}
 			else
 			{
@@ -290,11 +287,10 @@ void DolphinApp::AfterInit()
 			}
 		}
 	}
-
 	// First check if we have an exec command line.
-	else if (LoadFile && FileToLoad != wxEmptyString)
+	else if (m_load_file && !m_file_to_load.empty())
 	{
-		main_frame->BootGame(WxStrToStr(FileToLoad));
+		main_frame->BootGame(WxStrToStr(m_file_to_load));
 	}
 	// If we have selected Automatic Start, start the default ISO,
 	// or if no default ISO exists, start the last loaded ISO
@@ -318,7 +314,7 @@ void DolphinApp::InitLanguageSupport()
 	// Load language if possible, fall back to system default otherwise
 	if (wxLocale::IsAvailable(language))
 	{
-		m_locale = new wxLocale(language);
+		m_locale.reset(new wxLocale(language));
 
 		// Specify where dolphins *.gmo files are located on each operating system
 #ifdef _WIN32
@@ -334,14 +330,13 @@ void DolphinApp::InitLanguageSupport()
 		if (!m_locale->IsOk())
 		{
 			wxMessageBox(_("Error loading selected language. Falling back to system default."), _("Error"));
-			delete m_locale;
-			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+			m_locale.reset(new wxLocale(wxLANGUAGE_DEFAULT));
 		}
 	}
 	else
 	{
 		wxMessageBox(_("The selected language is not supported by your system. Falling back to system default."), _("Error"));
-		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+		m_locale.reset(new wxLocale(wxLANGUAGE_DEFAULT));
 	}
 }
 
@@ -358,8 +353,6 @@ int DolphinApp::OnExit()
 {
 	Core::Shutdown();
 	UICommon::Shutdown();
-
-	delete m_locale;
 
 	return wxApp::OnExit();
 }
