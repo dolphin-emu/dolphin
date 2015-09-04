@@ -22,7 +22,7 @@ namespace Common
 
 int CurrentThreadId()
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
 	return GetCurrentThreadId();
 #elif defined __APPLE__
 	return mach_thread_self();
@@ -31,7 +31,7 @@ int CurrentThreadId()
 #endif
 }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 {
@@ -87,7 +87,7 @@ void SetCurrentThreadName(const char* szThreadName)
 	{}
 }
 
-#else // !WIN32, so must be POSIX threads
+#else // !_MSC_VER, so must be POSIX threads
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 {
@@ -131,7 +131,7 @@ void SetCurrentThreadName(const char* szThreadName)
 	pthread_setname_np(szThreadName);
 #elif defined __FreeBSD__
 	pthread_set_name_np(pthread_self(), szThreadName);
-#else
+#elif !defined __MINGW64__
 	pthread_setname_np(pthread_self(), szThreadName);
 #endif
 #ifdef USE_VTUNE

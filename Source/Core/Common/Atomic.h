@@ -4,7 +4,7 @@
 
 #pragma once
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 #include "Common/Atomic_Win32.h" // IWYU pragma: export
 

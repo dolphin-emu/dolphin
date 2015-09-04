@@ -31,7 +31,7 @@ if(PULSEAUDIO_FOUND)
 	set(LIBS ${LIBS} ${PULSEAUDIO_LIBRARIES})
 endif(PULSEAUDIO_FOUND)
 
-if(WIN32)
+if(WIN32 AND NOT MINGW)
 	set(SRCS ${SRCS} XAudio2Stream.cpp)
 elseif(APPLE)
 	set(SRCS ${SRCS} CoreAudioSoundStream.cpp)

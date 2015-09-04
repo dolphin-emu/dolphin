@@ -68,7 +68,7 @@ private:
 	NonCopyable& operator=(NonCopyable& other);
 };
 
-#if defined _WIN32
+#if defined _MSC_VER
 
 // Memory leak checks
 	#define CHECK_HEAP_INTEGRITY()
@@ -81,7 +81,7 @@ private:
 	#define GC_ALIGNED16_DECL(x) __declspec(align(16)) x
 	#define GC_ALIGNED64_DECL(x) __declspec(align(64)) x
 
-// Since they are always around on Windows
+// Since they are always around on MSVC
 	#define HAVE_WX 1
 	#define HAVE_OPENAL 1
 
@@ -102,11 +102,15 @@ private:
 #endif
 
 // Windows compatibility
-#ifndef _WIN32
+#ifndef _MSC_VER
 #include <limits.h>
+#ifndef MAX_PATH
 #define MAX_PATH PATH_MAX
+#endif
 
+#ifndef __forceinline
 #define __forceinline inline __attribute__((always_inline))
+#endif
 #define GC_ALIGNED16(x) __attribute__((aligned(16))) x
 #define GC_ALIGNED32(x) __attribute__((aligned(32))) x
 #define GC_ALIGNED64(x) __attribute__((aligned(64))) x

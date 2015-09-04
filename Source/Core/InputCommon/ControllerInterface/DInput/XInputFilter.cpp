@@ -5,6 +5,7 @@
 // This function is contained in a separate file because WbemIdl.h pulls in files which break on
 // /Zc:strictStrings, so this compilation unit is compiled without /Zc:strictStrings.
 
+#include <cstdio>
 #include <vector>
 #include <WbemIdl.h>
 #include <Windows.h>

@@ -1,7 +1,15 @@
+# Enable Unicode support on Win32
+if(WIN32)
+	add_definitions(-DUNICODE -D_UNICODE)
+endif()
+
 set(CMAKE_FAKELANG_CREATE_STATIC_LIBRARY "touch <TARGET>")
 if(ENABLE_PCH)
+	if(WIN32)
+		set(PCH_DIR_PREFIX "PCH/")
+	endif()
 	# This is actually a .h file, but trick cmake into compiling it as a source file
-	set(pch_out_filename "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/pch.dir/pch.h")
+	set(pch_out_filename "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/pch.dir/${PCH_DIR_PREFIX}pch.h")
 	if (ANDROID)
 		set(pch_lib_filename "${LIBRARY_OUTPUT_PATH}/libpch.a")
 	else()
@@ -23,12 +31,21 @@ if(ENABLE_PCH)
 
 	add_library(pch STATIC PCH/pch.h)
 
-	add_custom_command(
-		TARGET pch
-		PRE_LINK
-		COMMAND ln -fs "${pch_out_filename}.o" "${pch_out_filename}.gch"
-		COMMAND ln -fs "${pch_out_filename}.o" "${pch_out_filename}.pch"
-		COMMAND cp "${pch_src_filename}" "${pch_out_filename}")
+	if(NOT WIN32)
+		add_custom_command(
+			TARGET pch
+			PRE_LINK
+			COMMAND ln -fs "${pch_out_filename}.o" "${pch_out_filename}.gch"
+			COMMAND ln -fs "${pch_out_filename}.o" "${pch_out_filename}.pch"
+			COMMAND cp "${pch_src_filename}" "${pch_out_filename}")
+	else()
+		add_custom_command(
+			TARGET pch
+			PRE_LINK
+			COMMAND cp "${pch_out_filename}.obj" "${pch_out_filename}.gch"
+			COMMAND cp "${pch_out_filename}.obj" "${pch_out_filename}.pch"
+			COMMAND cp "${pch_src_filename}" "${pch_out_filename}")
+	endif()
 
 	set_target_properties(
 		pch PROPERTIES
@@ -41,7 +58,7 @@ macro(add_dolphin_library lib srcs libs)
 		add_dependencies(${lib} pch)
 		set_source_files_properties(
 			${srcs} PROPERTIES
-			COMPILE_FLAGS "-include '${pch_out_filename}'"
+			COMPILE_FLAGS "-include \"${pch_out_filename}\""
 			OBJECT_DEPENDS "${pch_lib_filename}")
 	endif(ENABLE_PCH)
 endmacro(add_dolphin_library)

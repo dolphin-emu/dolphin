@@ -9,7 +9,11 @@
 #include <iphlpapi.h>
 #include <WinSock2.h>
 
+#ifdef _MSC_VER
 typedef pollfd pollfd_t;
+#else
+typedef struct pollfd pollfd_t;
+#endif
 
 #define poll WSAPoll
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))

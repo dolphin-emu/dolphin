@@ -119,7 +119,7 @@ void NetPlayServer::ThreadFunc()
 			m_ping_key = Common::Timer::GetTimeMs();
 
 			sf::Packet spac;
-			spac << (MessageId)NP_MSG_PING;
+			spac << (NetMessageId)NP_MSG_PING;
 			spac << m_ping_key;
 
 			m_ping_timer.Start();
@@ -156,7 +156,7 @@ void NetPlayServer::ThreadFunc()
 				if (error)
 				{
 					sf::Packet spac;
-					spac << (MessageId)error;
+					spac << (NetMessageId)error;
 					// don't need to lock, this client isn't in the client map
 					Send(accept_peer, spac);
 					if (netEvent.peer->data)
@@ -283,13 +283,13 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 
 	// send join message to already connected clients
 	sf::Packet spac;
-	spac << (MessageId)NP_MSG_PLAYER_JOIN;
+	spac << (NetMessageId)NP_MSG_PLAYER_JOIN;
 	spac << player.pid << player.name << player.revision;
 	SendToClients(spac);
 
 	// send new client success message with their id
 	spac.clear();
-	spac << (MessageId)0;
+	spac << (NetMessageId)0;
 	spac << player.pid;
 	Send(player.socket, spac);
 
@@ -297,14 +297,14 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	if (m_selected_game != "")
 	{
 		spac.clear();
-		spac << (MessageId)NP_MSG_CHANGE_GAME;
+		spac << (NetMessageId)NP_MSG_CHANGE_GAME;
 		spac << m_selected_game;
 		Send(player.socket, spac);
 	}
 
 	// send the pad buffer value
 	spac.clear();
-	spac << (MessageId)NP_MSG_PAD_BUFFER;
+	spac << (NetMessageId)NP_MSG_PAD_BUFFER;
 	spac << (u32)m_target_buffer_size;
 	Send(player.socket, spac);
 
@@ -316,7 +316,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 		g_SRAM_netplay_initialized = true;
 	}
 	spac.clear();
-	spac << (MessageId)NP_MSG_SYNC_GC_SRAM;
+	spac << (NetMessageId)NP_MSG_SYNC_GC_SRAM;
 	for (size_t i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
 	{
 		spac << g_SRAM.p_SRAM[i];
@@ -327,7 +327,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	for (const auto& p : m_players)
 	{
 		spac.clear();
-		spac << (MessageId)NP_MSG_PLAYER_JOIN;
+		spac << (NetMessageId)NP_MSG_PLAYER_JOIN;
 		spac << p.second.pid << p.second.name << p.second.revision;
 		Send(player.socket, spac);
 	}
@@ -359,7 +359,7 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 				m_is_running = false;
 
 				sf::Packet spac;
-				spac << (MessageId)NP_MSG_DISABLE_GAME;
+				spac << (NetMessageId)NP_MSG_DISABLE_GAME;
 				// this thread doesn't need players lock
 				SendToClients(spac, 1);
 				break;
@@ -368,7 +368,7 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 	}
 
 	sf::Packet spac;
-	spac << (MessageId)NP_MSG_PLAYER_LEAVE;
+	spac << (NetMessageId)NP_MSG_PLAYER_LEAVE;
 	spac << pid;
 
 	enet_peer_disconnect(player.socket, 0);
@@ -431,7 +431,7 @@ void NetPlayServer::SetWiimoteMapping(const PadMappingArray& mappings)
 void NetPlayServer::UpdatePadMapping()
 {
 	sf::Packet spac;
-	spac << (MessageId)NP_MSG_PAD_MAPPING;
+	spac << (NetMessageId)NP_MSG_PAD_MAPPING;
 	for (PadMapping mapping : m_pad_map)
 	{
 		spac << mapping;
@@ -443,7 +443,7 @@ void NetPlayServer::UpdatePadMapping()
 void NetPlayServer::UpdateWiimoteMapping()
 {
 	sf::Packet spac;
-	spac << (MessageId)NP_MSG_WIIMOTE_MAPPING;
+	spac << (NetMessageId)NP_MSG_WIIMOTE_MAPPING;
 	for (PadMapping mapping : m_wiimote_map)
 	{
 		spac << mapping;
@@ -460,7 +460,7 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 
 	// tell clients to change buffer size
 	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_PAD_BUFFER;
+	*spac << (NetMessageId)NP_MSG_PAD_BUFFER;
 	*spac << (u32)m_target_buffer_size;
 
 	SendAsyncToClients(spac);
@@ -478,7 +478,7 @@ void NetPlayServer::SendAsyncToClients(sf::Packet* packet)
 // called from ---NETPLAY--- thread
 unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 {
-	MessageId mid;
+	NetMessageId mid;
 	packet >> mid;
 
 	// don't need lock because this is the only thread that modifies the players
@@ -493,7 +493,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		// send msg to other clients
 		sf::Packet spac;
-		spac << (MessageId)NP_MSG_CHAT_MESSAGE;
+		spac << (NetMessageId)NP_MSG_CHAT_MESSAGE;
 		spac << player.pid;
 		spac << msg;
 
@@ -518,7 +518,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		// Relay to clients
 		sf::Packet spac;
-		spac << (MessageId)NP_MSG_PAD_DATA;
+		spac << (NetMessageId)NP_MSG_PAD_DATA;
 		spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
 		SendToClients(spac, player.pid);
@@ -547,11 +547,11 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		// relay to clients
 		sf::Packet spac;
-		spac << (MessageId)NP_MSG_WIIMOTE_DATA;
+		spac << (NetMessageId)NP_MSG_WIIMOTE_DATA;
 		spac << map;
 		spac << size;
-		for (const u8& byte : data)
-			spac << byte;
+		for (const u8& cur_byte : data)
+			spac << cur_byte;
 
 		SendToClients(spac, player.pid);
 	}
@@ -569,7 +569,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 		}
 
 		sf::Packet spac;
-		spac << (MessageId)NP_MSG_PLAYER_PING_DATA;
+		spac << (NetMessageId)NP_MSG_PLAYER_PING_DATA;
 		spac << player.pid;
 		spac << player.ping;
 
@@ -587,7 +587,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 	{
 		// tell clients to stop game
 		sf::Packet spac;
-		spac << (MessageId)NP_MSG_STOP_GAME;
+		spac << (NetMessageId)NP_MSG_STOP_GAME;
 
 		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 		SendToClients(spac);
@@ -632,7 +632,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 				}
 
 				sf::Packet spac;
-				spac << (MessageId) NP_MSG_DESYNC_DETECTED;
+				spac << (NetMessageId) NP_MSG_DESYNC_DETECTED;
 				spac << pid_to_blame;
 				spac << frame;
 				SendToClients(spac);
@@ -664,7 +664,7 @@ void NetPlayServer::OnTraversalStateChanged()
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
 	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_CHAT_MESSAGE;
+	*spac << (NetMessageId)NP_MSG_CHAT_MESSAGE;
 	*spac << (PlayerId)0; // server id always 0
 	*spac << msg;
 
@@ -680,7 +680,7 @@ bool NetPlayServer::ChangeGame(const std::string &game)
 
 	// send changed game to clients
 	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_CHANGE_GAME;
+	*spac << (NetMessageId)NP_MSG_CHANGE_GAME;
 	*spac << game;
 
 	SendAsyncToClients(spac);
@@ -709,7 +709,7 @@ bool NetPlayServer::StartGame()
 
 	// tell clients to start game
 	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_START_GAME;
+	*spac << (NetMessageId)NP_MSG_START_GAME;
 	*spac << m_current_game;
 	*spac << m_settings.m_CPUthread;
 	*spac << m_settings.m_CPUcore;

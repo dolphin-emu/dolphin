@@ -26,7 +26,7 @@ constexpr size_t ArraySize(T (&arr)[N])
 #define b32(x)  (b16(x) | (b16(x) >>16) )
 #define ROUND_UP_POW2(x)  (b32(x - 1) + 1)
 
-#ifndef _WIN32
+#ifndef _MSC_VER
 
 #include <errno.h>
 #ifdef __linux__

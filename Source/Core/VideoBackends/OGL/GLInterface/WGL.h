@@ -5,6 +5,8 @@
 #pragma once
 
 #include <string>
+#include <windows.h>
+
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 
 class cInterfaceWGL : public cInterfaceBase

@@ -139,25 +139,25 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 
 void SConfig::SaveInterfaceSettings(IniFile& ini)
 {
-	IniFile::Section* interface = ini.GetOrCreateSection("Interface");
+	IniFile::Section* interfaceSection = ini.GetOrCreateSection("Interface");
 
-	interface->Set("ConfirmStop", bConfirmStop);
-	interface->Set("UsePanicHandlers", bUsePanicHandlers);
-	interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
-	interface->Set("HideCursor", bHideCursor);
-	interface->Set("AutoHideCursor", bAutoHideCursor);
-	interface->Set("MainWindowPosX", (iPosX == -32000) ? 0 : iPosX); // TODO - HAX
-	interface->Set("MainWindowPosY", (iPosY == -32000) ? 0 : iPosY); // TODO - HAX
-	interface->Set("MainWindowWidth", iWidth);
-	interface->Set("MainWindowHeight", iHeight);
-	interface->Set("Language", m_InterfaceLanguage);
-	interface->Set("ShowToolbar", m_InterfaceToolbar);
-	interface->Set("ShowStatusbar", m_InterfaceStatusbar);
-	interface->Set("ShowLogWindow", m_InterfaceLogWindow);
-	interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
-	interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
-	interface->Set("ThemeName40", theme_name);
-	interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
+	interfaceSection->Set("ConfirmStop", bConfirmStop);
+	interfaceSection->Set("UsePanicHandlers", bUsePanicHandlers);
+	interfaceSection->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
+	interfaceSection->Set("HideCursor", bHideCursor);
+	interfaceSection->Set("AutoHideCursor", bAutoHideCursor);
+	interfaceSection->Set("MainWindowPosX", (iPosX == -32000) ? 0 : iPosX); // TODO - HAX
+	interfaceSection->Set("MainWindowPosY", (iPosY == -32000) ? 0 : iPosY); // TODO - HAX
+	interfaceSection->Set("MainWindowWidth", iWidth);
+	interfaceSection->Set("MainWindowHeight", iHeight);
+	interfaceSection->Set("Language", m_InterfaceLanguage);
+	interfaceSection->Set("ShowToolbar", m_InterfaceToolbar);
+	interfaceSection->Set("ShowStatusbar", m_InterfaceStatusbar);
+	interfaceSection->Set("ShowLogWindow", m_InterfaceLogWindow);
+	interfaceSection->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
+	interfaceSection->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
+	interfaceSection->Set("ThemeName40", theme_name);
+	interfaceSection->Set("PauseOnFocusLost", m_PauseOnFocusLost);
 }
 
 void SConfig::SaveDisplaySettings(IniFile& ini)
@@ -385,25 +385,25 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
 void SConfig::LoadInterfaceSettings(IniFile& ini)
 {
-	IniFile::Section* interface = ini.GetOrCreateSection("Interface");
+	IniFile::Section* interfaceSection = ini.GetOrCreateSection("Interface");
 
-	interface->Get("ConfirmStop",             &bConfirmStop,      true);
-	interface->Get("UsePanicHandlers",        &bUsePanicHandlers, true);
-	interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
-	interface->Get("HideCursor",              &bHideCursor,       false);
-	interface->Get("AutoHideCursor",          &bAutoHideCursor,   false);
-	interface->Get("MainWindowPosX",          &iPosX,             100);
-	interface->Get("MainWindowPosY",          &iPosY,             100);
-	interface->Get("MainWindowWidth",         &iWidth,            800);
-	interface->Get("MainWindowHeight",        &iHeight,           600);
-	interface->Get("Language",                &m_InterfaceLanguage,                           0);
-	interface->Get("ShowToolbar",             &m_InterfaceToolbar,                            true);
-	interface->Get("ShowStatusbar",           &m_InterfaceStatusbar,                          true);
-	interface->Get("ShowLogWindow",           &m_InterfaceLogWindow,                          false);
-	interface->Get("ShowLogConfigWindow",     &m_InterfaceLogConfigWindow,                    false);
-	interface->Get("ExtendedFPSInfo",         &m_InterfaceExtendedFPSInfo,                    false);
-	interface->Get("ThemeName40",             &theme_name,        "Clean");
-	interface->Get("PauseOnFocusLost",        &m_PauseOnFocusLost,                            false);
+	interfaceSection->Get("ConfirmStop",             &bConfirmStop,      true);
+	interfaceSection->Get("UsePanicHandlers",        &bUsePanicHandlers, true);
+	interfaceSection->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
+	interfaceSection->Get("HideCursor",              &bHideCursor,       false);
+	interfaceSection->Get("AutoHideCursor",          &bAutoHideCursor,   false);
+	interfaceSection->Get("MainWindowPosX",          &iPosX,             100);
+	interfaceSection->Get("MainWindowPosY",          &iPosY,             100);
+	interfaceSection->Get("MainWindowWidth",         &iWidth,            800);
+	interfaceSection->Get("MainWindowHeight",        &iHeight,           600);
+	interfaceSection->Get("Language",                &m_InterfaceLanguage,                           0);
+	interfaceSection->Get("ShowToolbar",             &m_InterfaceToolbar,                            true);
+	interfaceSection->Get("ShowStatusbar",           &m_InterfaceStatusbar,                          true);
+	interfaceSection->Get("ShowLogWindow",           &m_InterfaceLogWindow,                          false);
+	interfaceSection->Get("ShowLogConfigWindow",     &m_InterfaceLogConfigWindow,                    false);
+	interfaceSection->Get("ExtendedFPSInfo",         &m_InterfaceExtendedFPSInfo,                    false);
+	interfaceSection->Get("ThemeName40",             &theme_name,        "Clean");
+	interfaceSection->Get("PauseOnFocusLost",        &m_PauseOnFocusLost,                            false);
 }
 
 void SConfig::LoadDisplaySettings(IniFile& ini)

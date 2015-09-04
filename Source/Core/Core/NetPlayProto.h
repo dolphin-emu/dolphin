@@ -75,11 +75,11 @@ enum
 	CON_ERR_VERSION_MISMATCH = 3
 };
 
-using NetWiimote = std::vector<u8>;
-using MessageId  = u8;
-using PlayerId   = u8;
-using FrameNum   = u32;
-using PadMapping = s8;
+using NetWiimote   = std::vector<u8>;
+using NetMessageId = u8;
+using PlayerId     = u8;
+using FrameNum     = u32;
+using PadMapping   = s8;
 using PadMappingArray = std::array<PadMapping, 4>;
 
 namespace NetPlay

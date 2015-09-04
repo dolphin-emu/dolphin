@@ -2,6 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#ifdef __MINGW64__
+// TDM-GCC has this, but for some reason doesn't enable it. We need it for vsnprintf_l.
+#define _WIN32_WINNT 0x0600
+#define MINGW_HAS_SECURE_API 1
+#endif
+
 #include <algorithm>
 #include <array>
 #include <assert.h>
@@ -57,7 +63,7 @@
 #include <thread>
 #include <time.h>
 #include <type_traits>
-#ifndef _WIN32
+#if defined(__MINGW64__) || !defined(_WIN32)
 #include <unistd.h>
 #endif
 #include <unordered_map>
@@ -67,7 +73,7 @@
 
 #ifdef _WIN32
 
-#if _MSC_FULL_VER < 180030723
+#if _MSC_FULL_VER < 180030723 && !defined(__GNUC__)
 #error Please update your build environment to VS2013 with Update 3 or later!
 #endif
 

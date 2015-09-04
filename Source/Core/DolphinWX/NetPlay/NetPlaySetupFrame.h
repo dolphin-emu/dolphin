@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <string>
+#undef GetClassInfo // otherwise, wx/frame.h conflicts with Win32 API stuff (PCH)
 #include <wx/frame.h>
 
 class CGameListCtrl;

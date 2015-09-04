@@ -102,7 +102,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 #define INFO_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__) } while (0)
 #define DEBUG_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__) } while (0)
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #define _dbg_assert_msg_(_t_, _a_, _msg_, ...)\
 	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_)) {\
 		ERROR_LOG(_t_, _msg_, __VA_ARGS__); \
@@ -118,19 +118,19 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	}
 #endif
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #define _assert_msg_(_t_, _a_, _fmt_, ...) \
 	if (!(_a_)) {\
 		if (!PanicYesNo(_fmt_, __VA_ARGS__)) \
 			Crash(); \
 	}
-#else // not win32
+#else // not MSVC
 #define _assert_msg_(_t_, _a_, _fmt_, ...) \
 	if (!(_a_)) {\
 		if (!PanicYesNo(_fmt_, ##__VA_ARGS__)) \
 			Crash(); \
 	}
-#endif // WIN32
+#endif // MSVC
 
 #define _assert_(_a_) \
 	_assert_msg_(MASTER_LOG, _a_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n\nIgnore and continue?", \

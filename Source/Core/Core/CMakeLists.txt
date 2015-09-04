@@ -246,6 +246,7 @@ set(LIBS ${LIBS} ${POLARSSL_LIBRARY})
 
 if(WIN32)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
+	set(LIBS ${LIBS} iphlpapi setupapi)
 elseif(APPLE)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm)
 	set(LIBS ${LIBS}

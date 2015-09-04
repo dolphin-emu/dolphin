@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 // TODO: ugly
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW64__)
 #include "VideoBackends/D3D/VideoBackend.h"
 #endif
 #include "VideoBackends/OGL/VideoBackend.h"
@@ -47,7 +47,7 @@ void VideoBackend::PopulateList()
 
 	// OGL > D3D11 > SW
 	g_available_video_backends.push_back(backends[0] = new OGL::VideoBackend);
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW64__)
 	if (IsGteVista())
 		g_available_video_backends.push_back(backends[1] = new DX11::VideoBackend);
 #endif

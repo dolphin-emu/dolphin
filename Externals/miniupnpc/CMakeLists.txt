@@ -11,7 +11,7 @@ elseif(WIN32)
 	add_definitions(-D_WIN32_WINNT=0x0501)
 	find_library(WINSOCK2_LIBRARY NAMES ws2_32 WS2_32 Ws2_32)
 	find_library(IPHLPAPI_LIBRARY NAMES iphlpapi)
-	set(LDLIBS ${WINSOCK2_LIBRARY} ${IPHLPAPI_LIBRARY} ${LDLIBS})
+	set(LIBS ${WINSOCK2_LIBRARY} ${IPHLPAPI_LIBRARY} ${LIBS})
 endif()
 
 if(APPLE)
@@ -34,4 +34,6 @@ set(SRCS	src/igd_desc_parse.c
 			src/receivedata.c)
 
 add_library(miniupnpc STATIC ${SRCS})
-
+if(WIN32)
+	target_link_libraries(miniupnpc ${LIBS})
+endif()

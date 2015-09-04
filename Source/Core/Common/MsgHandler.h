@@ -29,7 +29,7 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 	;
 void SetEnableAlert(bool enable);
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 	#define SuccessAlert(format, ...) MsgAlert(false, INFORMATION, format, __VA_ARGS__)
 	#define PanicAlert(format, ...) MsgAlert(false, WARNING, format, __VA_ARGS__)
 	#define PanicYesNo(format, ...) MsgAlert(true, WARNING, format, __VA_ARGS__)

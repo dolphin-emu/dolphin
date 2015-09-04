@@ -3,6 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <cstdio>
+#ifdef __MINGW64__
+#include <io.h>
+#endif
 
 #include "Common/Logging/ConsoleListener.h"
 

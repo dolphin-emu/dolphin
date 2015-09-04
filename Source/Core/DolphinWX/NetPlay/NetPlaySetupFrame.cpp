@@ -5,6 +5,7 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/frame.h>
 #include <wx/listbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>

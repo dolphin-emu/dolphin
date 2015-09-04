@@ -12,8 +12,15 @@ if(WIN32)
 				ControllerInterface/DInput/DInput.cpp
 				ControllerInterface/DInput/DInputJoystick.cpp
 				ControllerInterface/DInput/DInputKeyboardMouse.cpp
-				ControllerInterface/XInput/XInput.cpp
+				ControllerInterface/DInput/XInputFilter.cpp
 				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
+	if(NOT MINGW)
+		set(SRCS ${SRCS} ControllerInterface/XInput/XInput.cpp)
+	else()
+		# MinGW's dinput.h does not define DIK_PREVTRACK, so work around that
+		add_definitions(-DDIK_PREVTRACK=0x90)
+	endif()
+	set(LIBS ${LIBS} dinput8 dxguid)
 elseif(APPLE)
 	find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 	find_library(CARBON_LIBRARY Carbon)

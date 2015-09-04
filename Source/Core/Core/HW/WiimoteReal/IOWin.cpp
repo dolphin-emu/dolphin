@@ -21,6 +21,12 @@
 
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
+#ifdef __MINGW64__
+// Work around differences between Windows SDK and MinGW headers
+#define BLUETOOTH_DEVICE_INFO_STRUCT BLUETOOTH_DEVICE_INFO
+#define BLUETOOTH_SERVICE_ENABLE 0x01
+#endif
+
 //#define AUTHENTICATE_WIIMOTES
 #define SHARE_WRITE_WIIMOTES
 
@@ -243,10 +249,11 @@ void WiimoteScanner::Update()
 
 	bool forgot_some = false;
 
-	ProcessWiimotes(false, [&](HANDLE, BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+	auto callback = [&](HANDLE, BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 	{
 		forgot_some |= ForgetWiimote(btdi);
-	});
+	};
+	ProcessWiimotes(false, callback);
 
 	// Some hacks that allows disconnects to be detected before connections are handled
 	// workaround for Wiimote 1 moving to slot 2 on temporary disconnect
@@ -263,11 +270,12 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	if (!s_loaded_ok)
 		return;
 
-	ProcessWiimotes(true, [](HANDLE hRadio, const BLUETOOTH_RADIO_INFO& rinfo, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+	auto callback = [](HANDLE hRadio, const BLUETOOTH_RADIO_INFO& rinfo, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 	{
 		ForgetWiimote(btdi);
 		AttachWiimote(hRadio, rinfo, btdi);
-	});
+	};
+	ProcessWiimotes(true, callback);
 
 	// Get the device id
 	GUID device_id;
@@ -905,7 +913,7 @@ bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO& radio_info, BLUETO
 #endif
 		// Activate service
 		const DWORD hr = pBluetoothSetServiceState(hRadio, &btdi,
-			&HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
+			(GUID*)&HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
 
 		g_connect_times[btdi.Address.ullLong] = std::time(nullptr);
 
