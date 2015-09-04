@@ -35,7 +35,6 @@ enum TextureFormat
 	GX_CTF_R4    = 0x0 | _GX_TF_CTF,
 	GX_CTF_RA4   = 0x2 | _GX_TF_CTF,
 	GX_CTF_RA8   = 0x3 | _GX_TF_CTF,
-	GX_CTF_YUVA8 = 0x6 | _GX_TF_CTF,
 	GX_CTF_A8    = 0x7 | _GX_TF_CTF,
 	GX_CTF_R8    = 0x8 | _GX_TF_CTF,
 	GX_CTF_G8    = 0x9 | _GX_TF_CTF,
@@ -43,13 +42,17 @@ enum TextureFormat
 	GX_CTF_RG8   = 0xB | _GX_TF_CTF,
 	GX_CTF_GB8   = 0xC | _GX_TF_CTF,
 
+	// Texture formats (which match the color formats above)
 	GX_TF_Z8     = 0x1 | _GX_TF_ZTF,
 	GX_TF_Z16    = 0x3 | _GX_TF_ZTF,
 	GX_TF_Z24X8  = 0x6 | _GX_TF_ZTF,
 
+	// copy only texture formats
 	GX_CTF_Z4    = 0x0 | _GX_TF_ZTF | _GX_TF_CTF,
+	GX_CTF_Z8H   = 0x8 | _GX_TF_ZTF | _GX_TF_CTF, // This produces an identical result to to GX_TF_Z8
 	GX_CTF_Z8M   = 0x9 | _GX_TF_ZTF | _GX_TF_CTF,
 	GX_CTF_Z8L   = 0xA | _GX_TF_ZTF | _GX_TF_CTF,
+	GX_CTF_Z16R  = 0xB | _GX_TF_ZTF | _GX_TF_CTF, // Reversed version of GX_TF_Z16
 	GX_CTF_Z16L  = 0xC | _GX_TF_ZTF | _GX_TF_CTF,
 };
 

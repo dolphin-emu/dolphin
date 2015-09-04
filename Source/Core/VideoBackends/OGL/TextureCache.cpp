@@ -213,7 +213,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	TextureCache::SetStage();
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
+void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, unsigned int dstFormat, u32 dstStride,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
@@ -264,24 +264,14 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	if (!g_ActiveConfig.bSkipEFBCopyToRam)
 	{
-		int encoded_size = TextureConverter::EncodeToRamFromTexture(
-			dstAddr,
+		TextureConverter::EncodeToRamFromTexture(
+			dstPointer,
+			this,
 			read_texture,
 			srcFormat == PEControl::Z24,
 			isIntensity,
-			dstFormat,
 			scaleByHalf,
-			srcRect,
-			dstStride);
-
-		u8* dst = Memory::GetPointer(dstAddr);
-		u64 const new_hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
-		size_in_bytes = (u32)encoded_size;
-
-		TextureCache::MakeRangeDynamic(dstAddr, encoded_size);
-
-		hash = new_hash;
+			srcRect);
 	}
 
 	FramebufferManager::SetFramebuffer(0);

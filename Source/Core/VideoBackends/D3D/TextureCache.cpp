@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
 #include "VideoBackends/D3D/D3DState.h"
@@ -185,7 +184,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConf
 	}
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
+void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, unsigned int dstFormat, u32 dstStride,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
@@ -226,10 +225,13 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	// Create texture copy
 	D3D::drawShadedTexQuad(
-		(srcFormat == PEControl::Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
-		&sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-		(srcFormat == PEControl::Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
-		VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
+		(srcFormat == PEControl::Z24 ? FramebufferManager::GetEFBDepthTexture() : FramebufferManager::GetEFBColorTexture())->GetSRV(),
+		&sourcerect, Renderer::GetTargetWidth(),
+		Renderer::GetTargetHeight(),
+		srcFormat == PEControl::Z24 ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
+		VertexShaderCache::GetSimpleVertexShader(),
+		VertexShaderCache::GetSimpleInputLayout(),
+		GeometryShaderCache::GetCopyGeometryShader());
 
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
@@ -237,14 +239,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	if (!g_ActiveConfig.bSkipEFBCopyToRam)
 	{
-		u8* dst = Memory::GetPointer(dstAddr);
-		size_t encoded_size = g_encoder->Encode(dst, dstFormat, dstStride, srcFormat, srcRect, isIntensity, scaleByHalf);
-
-		size_in_bytes = (u32)encoded_size;
-
-		TextureCache::MakeRangeDynamic(dstAddr, (u32)encoded_size);
-
-		this->hash = GetHash64(dst, (int)encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		g_encoder->Encode(dst, this, srcFormat, srcRect, isIntensity, scaleByHalf);
 	}
 }
 

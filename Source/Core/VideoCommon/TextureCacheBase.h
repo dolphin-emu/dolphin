@@ -53,7 +53,7 @@ public:
 		u32 format;
 		bool is_efb_copy;
 		bool is_custom_tex;
-		u32 copyStride;
+		u32 memory_stride;
 
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int native_levels;
@@ -76,12 +76,15 @@ public:
 			native_width = _native_width;
 			native_height = _native_height;
 			native_levels = _native_levels;
+			memory_stride = _native_width;
 		}
 
 		void SetHashes(u64 _hash)
 		{
 			hash = _hash;
 		}
+
+		void SetEfbCopy(u32 stride);
 
 		TCacheEntryBase(const TCacheEntryConfig& c) : config(c) {}
 		virtual ~TCacheEntryBase();
@@ -96,7 +99,7 @@ public:
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
-		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
+		virtual void FromRenderTarget(u8* dst, unsigned int dstFormat, u32 dstStride,
 			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 			const float *colmat) = 0;
@@ -104,6 +107,11 @@ public:
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
 		bool IsEfbCopy() const { return is_efb_copy; }
+
+		u32 NumBlocksY() const;
+		u32 CacheLinesPerRow() const;
+
+		void Memset(u8* ptr, u32 tag);
 	};
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
@@ -115,7 +123,6 @@ public:
 	static void Cleanup(int _frameCount);
 
 	static void Invalidate();
-	static void MakeRangeDynamic(u32 start_address, u32 size);
 
 	virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 

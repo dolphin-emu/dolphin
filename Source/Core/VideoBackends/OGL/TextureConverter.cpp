@@ -268,59 +268,18 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	}
 }
 
-int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source, u32 writeStride)
+void EncodeToRamFromTexture(u8 *dest_ptr, const TextureCache::TCacheEntryBase *texture_entry,
+                            GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, int bScaleByHalf, const EFBRectangle& source)
 {
-	u32 format = copyfmt;
-
-	if (bFromZBuffer)
-	{
-		format |= _GX_TF_ZTF;
-		if (copyfmt == 11)
-			format = GX_TF_Z16;
-		else if (format < GX_TF_Z8 || format > GX_TF_Z24X8)
-			format |= _GX_TF_CTF;
-	}
-	else
-	{
-		if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
-			format |= _GX_TF_CTF;
-	}
-
-	SHADER& texconv_shader = GetOrCreateEncodingShader(format);
-
-	u8 *dest_ptr = Memory::GetPointer(address);
-
-	int width = (source.right - source.left) >> bScaleByHalf;
-	int height = (source.bottom - source.top) >> bScaleByHalf;
-
-	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
-
-	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
-	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;
-
-	// only copy on cache line boundaries
-	// extra pixels are copied but not displayed in the resulting texture
-	s32 expandedWidth = (width + blkW) & (~blkW);
-	s32 expandedHeight = (height + blkH) & (~blkH);
+	SHADER& texconv_shader = GetOrCreateEncodingShader(texture_entry->format);
 
 	texconv_shader.Bind();
-	glUniform4i(s_encodingUniforms[format],
-		source.left, source.top,
-		expandedWidth, bScaleByHalf ? 2 : 1);
-
-	unsigned int numBlocksX = expandedWidth / TexDecoder_GetBlockWidthInTexels(format);
-	unsigned int numBlocksY = expandedHeight / TexDecoder_GetBlockHeightInTexels(format);
-	unsigned int cacheLinesPerRow;
-	if ((format & 0x0f) == 6)
-		cacheLinesPerRow = numBlocksX * 2;
-	else
-		cacheLinesPerRow = numBlocksX;
+	glUniform4i(s_encodingUniforms[texture_entry->format],
+		source.left, source.top, texture_entry->native_width, bScaleByHalf ? 2 : 1);
 
 	EncodeToRamUsingShader(source_texture,
-		dest_ptr, cacheLinesPerRow * 32, numBlocksY,
-		writeStride, bScaleByHalf > 0 && !bFromZBuffer);
-	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
-
+		dest_ptr, texture_entry->CacheLinesPerRow() * 32, texture_entry->NumBlocksY(),
+		texture_entry->memory_stride, bScaleByHalf > 0 && !bFromZBuffer);
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, u32 dstWidth, u32 dstStride, u32 dstHeight)

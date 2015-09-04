@@ -182,24 +182,6 @@ void TextureCache::Cleanup(int _frameCount)
 	}
 }
 
-void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
-{
-	TexCache::iterator
-		iter = textures_by_address.begin();
-
-	while (iter != textures_by_address.end())
-	{
-		if (iter->second->OverlapsMemoryRange(start_address, size))
-		{
-			iter = FreeTexture(iter);
-		}
-		else
-		{
-			++iter;
-		}
-	}
-}
-
 bool TextureCache::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u32 range_size) const
 {
 	if (addr + size_in_bytes <= range_address)
@@ -243,7 +225,7 @@ TextureCache::TCacheEntryBase* TextureCache::DoPartialTextureUpdates(TexCache::i
 			&& entry_to_update->addr <= entry->addr
 			&& entry->addr + entry->size_in_bytes <= entry_to_update->addr + entry_to_update->size_in_bytes
 			&& entry->frameCount == FRAMECOUNT_INVALID
-			&& entry->copyStride == numBlocksX * block_size)
+			&& entry->memory_stride == numBlocksX * block_size)
 		{
 			u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
 			u32 block_x = block_offset % numBlocksX;
@@ -753,9 +735,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		case 0: // Z4
 			colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
 			cbufid = 0;
+			dstFormat |= _GX_TF_CTF;
 			break;
+		case 8: // Z8H
+			dstFormat |= _GX_TF_CTF;
 		case 1: // Z8
-		case 8: // Z8
 			colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
 			cbufid = 1;
 			break;
@@ -768,6 +752,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		case 11: // Z16 (reverse order)
 			colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
 			cbufid = 3;
+			dstFormat |= _GX_TF_CTF;
 			break;
 
 		case 6: // Z24X8
@@ -778,11 +763,13 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		case 9: // Z8M
 			colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
 			cbufid = 5;
+			dstFormat |= _GX_TF_CTF;
 			break;
 
 		case 10: // Z8L
 			colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
 			cbufid = 6;
+			dstFormat |= _GX_TF_CTF;
 			break;
 
 		case 12: // Z16L - copy lower 16 depth bits
@@ -790,6 +777,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			// Used e.g. in Zelda: Skyward Sword
 			colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
 			cbufid = 7;
+			dstFormat |= _GX_TF_CTF;
 			break;
 
 		default:
@@ -798,6 +786,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			cbufid = 8;
 			break;
 		}
+
+		dstFormat |= _GX_TF_ZTF;
 	}
 	else if (isIntensity)
 	{
@@ -862,11 +852,13 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			ColorMask[0] = 15.0f;
 			ColorMask[4] = 1.0f / 15.0f;
 			cbufid = 14;
+			dstFormat |= _GX_TF_CTF;
 			break;
 		case 1: // R8
 		case 8: // R8
 			colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
 			cbufid = 15;
+			dstFormat |= _GX_TF_CTF;
 			break;
 
 		case 2: // RA4
@@ -881,6 +873,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 				fConstAdd[3] = 1.0f;
 				cbufid = 17;
 			}
+			dstFormat |= _GX_TF_CTF;
 			break;
 		case 3: // RA8
 			colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
@@ -892,6 +885,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 				fConstAdd[3] = 1.0f;
 				cbufid = 19;
 			}
+			dstFormat |= _GX_TF_CTF;
 			break;
 
 		case 7: // A8
@@ -907,25 +901,30 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 				fConstAdd[3] = 1.0f;
 				cbufid = 21;
 			}
+			dstFormat |= _GX_TF_CTF;
 			break;
 
 		case 9: // G8
 			colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
 			cbufid = 22;
+			dstFormat |= _GX_TF_CTF;
 			break;
 		case 10: // B8
 			colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
 			cbufid = 23;
+			dstFormat |= _GX_TF_CTF;
 			break;
 
 		case 11: // RG8
 			colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
 			cbufid = 24;
+			dstFormat |= _GX_TF_CTF;
 			break;
 
 		case 12: // GB8
 			colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
 			cbufid = 25;
+			dstFormat |= _GX_TF_CTF;
 			break;
 
 		case 4: // RGB565
@@ -973,6 +972,13 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		}
 	}
 
+	u8* dst = Memory::GetPointer(dstAddr);
+	if (dst == nullptr)
+	{
+		ERROR_LOG(VIDEO, "Trying to copy from EFB to invalid address 0x%8x", dstAddr);
+		return;
+	}
+
 	const unsigned int tex_w = scaleByHalf ? srcRect.GetWidth() / 2 : srcRect.GetWidth();
 	const unsigned int tex_h = scaleByHalf ? srcRect.GetHeight() / 2 : srcRect.GetHeight();
 
@@ -996,17 +1002,36 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 	TCacheEntryBase* entry = AllocateTexture(config);
 
-	// TODO: Using the wrong dstFormat, dumb...
 	entry->SetGeneralParameters(dstAddr, 0, dstFormat);
 	entry->SetDimensions(tex_w, tex_h, 1);
 	entry->SetHashes(TEXHASH_INVALID);
 
 	entry->frameCount = FRAMECOUNT_INVALID;
-	entry->is_efb_copy = true;
+	entry->SetEfbCopy(dstStride);
 	entry->is_custom_tex = false;
-	entry->copyStride = dstStride;
 
-	entry->FromRenderTarget(dstAddr, dstFormat, dstStride, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
+	entry->FromRenderTarget(dst, dstFormat, dstStride, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
+
+	if (!g_ActiveConfig.bSkipEFBCopyToRam)
+	{
+		entry->hash = GetHash64(dst, (int)entry->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+		// Invalidate all textures that overlap the range of our texture
+		TexCache::iterator
+			iter = textures_by_address.begin();
+
+		while (iter != textures_by_address.end())
+		{
+			if (iter->second->OverlapsMemoryRange(dstAddr, entry->size_in_bytes))
+			{
+				iter = FreeTexture(iter);
+			}
+			else
+			{
+				++iter;
+			}
+		}
+	}
 
 	if (g_ActiveConfig.bDumpEFBTarget)
 	{
@@ -1051,4 +1076,37 @@ TextureCache::TexCache::iterator TextureCache::FreeTexture(TexCache::iterator it
 	texture_pool.emplace(entry->config, entry);
 
 	return textures_by_address.erase(iter);
+}
+
+u32 TextureCache::TCacheEntryBase::CacheLinesPerRow() const
+{
+	u32 blockW = TexDecoder_GetBlockWidthInTexels(format) - 1;
+	// Round up source height to multiple of block size
+	u32 actualWidth = (native_width + blockW) & ~(blockW);
+
+	u32 numBlocksX = actualWidth / TexDecoder_GetBlockWidthInTexels(format);
+
+	// RGBA takes two cache lines per block; all others take one
+	if (format == GX_TF_RGBA8)
+		numBlocksX = numBlocksX * 2;
+	return numBlocksX;
+}
+
+u32 TextureCache::TCacheEntryBase::NumBlocksY() const
+{
+	u32 blockH = TexDecoder_GetBlockHeightInTexels(format) - 1;
+	// Round up source height to multiple of block size
+	u32 actualHeight = (native_height + blockH) & ~(blockH);
+
+	return actualHeight / TexDecoder_GetBlockHeightInTexels(format);
+}
+
+void TextureCache::TCacheEntryBase::SetEfbCopy(u32 stride)
+{
+	is_efb_copy = true;
+	memory_stride = stride;
+
+	_assert_msg_(VIDEO, memory_stride >= CacheLinesPerRow(), "Memory stride is too small");
+
+	size_in_bytes = memory_stride * NumBlocksY();
 }
