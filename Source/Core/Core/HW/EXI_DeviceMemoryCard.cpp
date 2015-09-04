@@ -132,7 +132,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 
 	memory_card_size = memorycard->GetCardId() * SIZE_TO_Mb;
 	u8 header[20] = {0};
-	memorycard->Read(0, ArraySize(header), header);
+	memorycard->Read(0, static_cast<s32>(ArraySize(header)), header);
 	SetCardFlashID(header, card_index);
 }
 

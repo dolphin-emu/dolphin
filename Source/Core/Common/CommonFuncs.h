@@ -17,16 +17,14 @@
 
 #include <cstddef>
 #include <string>
-#include <type_traits>
 #include "Common/CommonTypes.h"
 
 // Will fail to compile on a non-array:
-// TODO: make this a function when constexpr is available
-template <typename T>
-struct ArraySizeImpl : public std::extent<T>
-{ static_assert(std::is_array<T>::value, "is array"); };
-
-#define ArraySize(x) ArraySizeImpl<decltype(x)>::value
+template <typename T, size_t N>
+constexpr size_t ArraySize(T (&arr)[N])
+{
+	return N;
+}
 
 #define b2(x)   (   (x) | (   (x) >> 1) )
 #define b4(x)   ( b2(x) | ( b2(x) >> 2) )
