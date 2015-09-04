@@ -84,5 +84,10 @@ private:
 
 	std::string CreateCacheFilename();
 
-	void ReadBanner(const DiscIO::IVolume& volume);
+	// Outputs to m_pImage
+	void ReadVolumeBanner(const DiscIO::IVolume& volume);
+	// Outputs to m_Bitmap
+	bool ReadPNGBanner(const std::string& path);
+
+	static wxBitmap ScaleBanner(wxImage* image);
 };
