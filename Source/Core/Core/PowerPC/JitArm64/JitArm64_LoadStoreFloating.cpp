@@ -73,9 +73,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
 	RegType type = !!(flags & BackPatchInfo::FLAG_SIZE_F64) ? REG_LOWER_PAIR : REG_DUP;
 
-	fpr.BindToRegister(inst.FD, false, type);
-
-	ARM64Reg VD = fpr.R(inst.FD, type);
+	ARM64Reg VD = fpr.RW(inst.FD, type);
 	ARM64Reg addr_reg = W0;
 
 	gpr.Lock(W0, W30);

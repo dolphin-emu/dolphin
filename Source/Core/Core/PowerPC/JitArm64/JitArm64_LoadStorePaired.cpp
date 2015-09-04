@@ -66,8 +66,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 	LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
 	BLR(X30);
 
-	fpr.BindToRegister(inst.RS, false, REG_REG);
-	ARM64Reg VS = fpr.R(inst.RS, REG_REG);
+	ARM64Reg VS = fpr.RW(inst.RS, REG_REG);
 	m_float_emit.FCVTL(64, VS, D0);
 	if (inst.W)
 	{
