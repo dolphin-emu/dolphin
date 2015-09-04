@@ -2,8 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <array>
 #include <cstring>
 #include <string>
+#include <vector>
 #include <wx/bitmap.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -29,54 +32,47 @@
 #define FIRSTPAGE 0
 #define ARROWS slot ? "" : ARROW[slot], slot ? ARROW[slot] : ""
 
-const u8 hdr[] = {
-	0x42, 0x4D,
-	0x38, 0x30, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00,
-	0x36, 0x00, 0x00, 0x00,
-	0x28, 0x00, 0x00, 0x00,
-	0x20, 0x00, 0x00, 0x00, //W
-	0x20, 0x00, 0x00, 0x00, //H
-	0x01, 0x00,
-	0x20, 0x00,
-	0x00, 0x00, 0x00, 0x00,
-	0x02, 0x30, 0x00, 0x00, //data size
-	0x12, 0x0B, 0x00, 0x00,
-	0x12, 0x0B, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00
-};
-
 static wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, u32 width, u32 height)
 {
-	u32 stride = (4*width);
+	static const std::array<u8, 54> header = {{
+		0x42, 0x4D,
+		0x38, 0x30, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+		0x36, 0x00, 0x00, 0x00,
+		0x28, 0x00, 0x00, 0x00,
+		0x20, 0x00, 0x00, 0x00, // Width
+		0x20, 0x00, 0x00, 0x00, // Height
+		0x01, 0x00,
+		0x20, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+		0x02, 0x30, 0x00, 0x00, // Data size
+		0x12, 0x0B, 0x00, 0x00,
+		0x12, 0x0B, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00
+	}};
 
-	u32 bytes = (stride*height) + sizeof(hdr);
+	u32 stride = (4 * width);
 
-	bytes = (bytes + 3)&(~3);
+	u32 bytes = (stride * height) + header.size();
+	bytes = (bytes + 3) & ~3;
 
-	u8 *pdata = new u8[bytes];
+	u32 data_length = bytes - header.size();
 
-	memcpy(pdata, hdr, sizeof(hdr));
-	memset(pdata + sizeof(hdr), 0, bytes - sizeof(hdr));
+	std::vector<u8> pdata(bytes);
+	std::copy(header.begin(), header.end(), pdata.begin());
 
-	u8 *pixelData = pdata + sizeof(hdr);
+	u8* const pixelData = &pdata[header.size()];
 
 	for (u32 y = 0; y < height; y++)
-	{
-		memcpy(pixelData + y*stride, data + (height - y - 1)*stride, stride);
-	}
+		std::memcpy(&pixelData[y * stride], &data[(height - y - 1) * stride], stride);
 
-	*(u32*)(pdata + 18) = width;
-	*(u32*)(pdata + 22) = height;
-	*(u32*)(pdata + 34) = bytes - sizeof(hdr);
+	std::memcpy(&pdata[18], &width, sizeof(u32));
+	std::memcpy(&pdata[22], &height, sizeof(u32));
+	std::memcpy(&pdata[34], &data_length, sizeof(u32));
 
-	wxMemoryInputStream is(pdata, bytes);
-	wxBitmap map(wxImage(is, wxBITMAP_TYPE_BMP, -1), -1);
-
-	delete[] pdata;
-
-	return map;
+	wxMemoryInputStream is(pdata.data(), bytes);
+	return wxBitmap(wxImage(is, wxBITMAP_TYPE_BMP));
 }
 
 BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
@@ -654,7 +650,7 @@ bool CMemcardManager::ReloadMemcard(const std::string& fileName, int card)
 	list->RemoveAll();
 
 	u8 nFiles = memoryCard[card]->GetNumFiles();
-	int *images = new int[nFiles * 2];
+	std::vector<int> images(nFiles * 2);
 
 	for (u8 i = 0; i < nFiles; i++)
 	{
@@ -774,7 +770,6 @@ bool CMemcardManager::ReloadMemcard(const std::string& fileName, int card)
 		}
 	}
 
-	delete[] images;
 	// Automatic column width and then show the list
 	for (int i = COLUMN_BANNER; i <= COLUMN_FIRSTBLOCK; i++)
 	{
