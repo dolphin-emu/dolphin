@@ -582,12 +582,12 @@ static void BeginField(FieldType field)
 		&m_VBlankTimingEven,
 	};
 
-	WARN_LOG(VIDEOINTERFACE,
+	DEBUG_LOG(VIDEOINTERFACE,
 				"(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | ACV %u | PSB %u | Field %s",
 				xfbAddr, m_PictureConfiguration.WPL, m_PictureConfiguration.STD, m_VerticalTimingRegister.EQU,
 				vert_timing[field]->PRB, m_VerticalTimingRegister.ACV, vert_timing[field]->PSB, fieldTypeNames[field]);
 
-	WARN_LOG(VIDEOINTERFACE,
+	DEBUG_LOG(VIDEOINTERFACE,
 			"HorizScaling: %04x | fbwidth %d | %u | %u",
 			m_HorizontalScaling.Hex, m_FBWidth.Hex, GetTicksPerEvenField(), GetTicksPerOddField());
 
