@@ -35,9 +35,9 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 
 ## Building for Windows
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2013 is a hard requirement since previous versions don't support
-many C++ features that we use. Other compilers might be able to build Dolphin
-on Windows but have not been tested and are not recommended to be used.
+Visual Studio 2015 is a hard requirement. Other compilers might be able to
+build Dolphin on Windows but have not been tested and are not recommended to
+be used.
 
 An installer can be created by using the `Installer_win32.nsi` and
 `Installer_x64.nsi` scripts in the Installer directory. This will require the
