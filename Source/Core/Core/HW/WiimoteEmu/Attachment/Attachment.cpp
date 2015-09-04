@@ -9,8 +9,10 @@
 namespace WiimoteEmu
 {
 
-// TODO: Move to header when VS supports constexpr.
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+// Moved to header file when VS supports constexpr.
 const ControlState Attachment::DEFAULT_ATTACHMENT_STICK_RADIUS = 1.0f;
+#endif
 
 // Extension device IDs to be written to the last bytes of the extension reg
 // The id for nothing inserted

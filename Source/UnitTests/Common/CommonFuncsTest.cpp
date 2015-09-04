@@ -6,7 +6,7 @@
 
 #include "Common/CommonFuncs.h"
 
-TEST(CommonFuncs, ArraySizeMacro)
+TEST(CommonFuncs, ArraySizeFunction)
 {
 	char test[4];
 	u32 test2[42];

@@ -359,7 +359,7 @@ bool Wiimote::PrepareOnThread()
 
 	return (IOWrite(mode_report, sizeof(mode_report)) &&
 	        IOWrite(led_report, sizeof(led_report)) &&
-	        (SLEEP(200), IOWrite(rumble_report, sizeof(rumble_report))) &&
+	        (Common::SleepCurrentThread(200), IOWrite(rumble_report, sizeof(rumble_report))) &&
 	        IOWrite(req_status_report, sizeof(req_status_report)));
 }
 

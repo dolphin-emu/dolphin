@@ -56,11 +56,15 @@ public:
 	}
 
 private:
+#if defined(_MSC_VER) && _MSC_VER <= 1800
 	// We are not using std::atomic_bool here because MSVC sucks as of VC++
 	// 2013 and does not implement the std::atomic_bool(bool) constructor.
 	//
 	// Re-evaluate next time we upgrade that piece of shit.
 	std::atomic<bool> m_val;
+#else
+	std::atomic_bool m_val;
+#endif
 };
 
 }  // namespace Common

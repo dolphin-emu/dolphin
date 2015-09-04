@@ -4,29 +4,29 @@
 
 #pragma once
 
-#ifdef _WIN32
-#define SLEEP(x) Sleep(x)
-#else
-#include <unistd.h>
-#define SLEEP(x) usleep(x*1000)
-#endif
-
 #ifdef __APPLE__
 #include <libkern/OSByteOrder.h>
 #endif
 
 #include <cstddef>
 #include <string>
-#include <type_traits>
 #include "Common/CommonTypes.h"
 
 // Will fail to compile on a non-array:
+#if defined(_MSC_VER) && _MSC_VER <= 1800
 // TODO: make this a function when constexpr is available
 template <typename T>
 struct ArraySizeImpl : public std::extent<T>
 { static_assert(std::is_array<T>::value, "is array"); };
 
 #define ArraySize(x) ArraySizeImpl<decltype(x)>::value
+#else
+template <typename T, size_t N>
+constexpr size_t ArraySize(T (&arr)[N])
+{
+	return N;
+}
+#endif
 
 #define b2(x)   (   (x) | (   (x) >> 1) )
 #define b4(x)   ( b2(x) | ( b2(x) >> 2) )
@@ -104,7 +104,6 @@ extern "C"
 	#define Crash() {DebugBreak();}
 
 	#if (_MSC_VER > 1800)
-	#error alignof compat can be removed
 	#else
 	#define alignof(x) __alignof(x)
 	#endif

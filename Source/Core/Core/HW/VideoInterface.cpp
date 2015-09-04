@@ -110,7 +110,7 @@ void Preset(bool _bNTSC)
 	m_VerticalTimingRegister.EQU = 6;
 	m_VerticalTimingRegister.ACV = 0;
 
-	m_DisplayControlRegister.ENB = 1;
+	m_DisplayControlRegister.ENB = 0;
 	m_DisplayControlRegister.FMT = _bNTSC ? 0 : 1;
 
 	m_HTiming0.HLW = 429;
@@ -588,12 +588,12 @@ static void BeginField(FieldType field)
 		&m_VBlankTimingEven,
 	};
 
-	WARN_LOG(VIDEOINTERFACE,
+	DEBUG_LOG(VIDEOINTERFACE,
 				"(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | ACV %u | PSB %u | Field %s",
 				xfbAddr, m_PictureConfiguration.WPL, m_PictureConfiguration.STD, m_VerticalTimingRegister.EQU,
 				vert_timing[field]->PRB, m_VerticalTimingRegister.ACV, vert_timing[field]->PSB, fieldTypeNames[field]);
 
-	WARN_LOG(VIDEOINTERFACE,
+	DEBUG_LOG(VIDEOINTERFACE,
 			"HorizScaling: %04x | fbwidth %d | %u | %u",
 			m_HorizontalScaling.Hex, m_FBWidth.Hex, GetTicksPerEvenField(), GetTicksPerOddField());
 
@@ -611,6 +611,9 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update()
 {
+	if (!m_DisplayControlRegister.ENB)
+		return;
+
 	if (s_half_line_count == s_even_field_first_hl)
 	{
 		BeginField(FIELD_EVEN);

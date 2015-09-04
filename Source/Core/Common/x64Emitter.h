@@ -954,8 +954,12 @@ public:
 	template <typename T, typename... Args>
 	void ABI_CallLambdaC(const std::function<T(Args...)>* f, u32 p1)
 	{
+#if defined(_MSC_VER) && _MSC_VER <= 1800
 		// Double casting is required by VC++ for some reason.
 		auto trampoline = (void(*)())&XEmitter::CallLambdaTrampoline<T, Args...>;
+#else
+		auto trampoline = &XEmitter::CallLambdaTrampoline<T, Args...>;
+#endif
 		ABI_CallFunctionPC((void*)trampoline, const_cast<void*>((const void*)f), p1);
 	}
 };  // class XEmitter

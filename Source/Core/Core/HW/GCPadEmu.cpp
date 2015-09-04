@@ -6,8 +6,10 @@
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
 
-// TODO: Move to header file when VS supports constexpr.
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+// Moved to header file when VS supports constexpr.
 const ControlState GCPad::DEFAULT_PAD_STICK_RADIUS = 1.0;
+#endif
 
 static const u16 button_bitmasks[] =
 {
