@@ -268,7 +268,7 @@ static void BPWritten(const BPCmd& bp)
 				else
 					yScale = (float)bpmem.dispcopyyscale / 256.0f;
 
-				float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y  * yScale;
+				float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
 
 				u32 height = static_cast<u32>(num_xfb_lines);
 				if (height > MAX_XFB_HEIGHT)
