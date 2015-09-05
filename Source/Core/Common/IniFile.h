@@ -140,8 +140,6 @@ private:
 
 	const Section* GetSection(const std::string& section) const;
 	Section* GetSection(const std::string& section);
-	std::string* GetLine(const std::string& section, const std::string& key);
-	void CreateSection(const std::string& section);
 
 	static const std::string& NULL_STRING;
 };

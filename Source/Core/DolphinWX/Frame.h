@@ -300,7 +300,6 @@ private:
 	void OnToggleFullscreen(wxCommandEvent& event);
 	void OnToggleDualCore(wxCommandEvent& event);
 	void OnToggleSkipIdle(wxCommandEvent& event);
-	void OnToggleThrottle(wxCommandEvent& event);
 	void OnManagerResize(wxAuiManagerEvent& event);
 	void OnMove(wxMoveEvent& event);
 	void OnResize(wxSizeEvent& event);

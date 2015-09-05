@@ -75,8 +75,6 @@ public:
 
 	void DoState(PointerWrap &p) override;
 
-	void NetPlay_WiimoteUpdate(int _number);
-
 private:
 	enum USBIOCtl
 	{

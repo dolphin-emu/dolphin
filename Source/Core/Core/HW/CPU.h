@@ -30,9 +30,6 @@ public:
 	// StepOpcode (Steps one Opcode)
 	static void StepOpcode(Common::Event *event = nullptr);
 
-	// one step only
-	static void SingleStep();
-
 	// Enable or Disable Stepping
 	static void EnableStepping(const bool _bStepping);
 

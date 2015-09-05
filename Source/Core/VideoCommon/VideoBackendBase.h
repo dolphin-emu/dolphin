@@ -160,5 +160,4 @@ public:
 
 protected:
 	void InitializeShared();
-	void InvalidState();
 };
