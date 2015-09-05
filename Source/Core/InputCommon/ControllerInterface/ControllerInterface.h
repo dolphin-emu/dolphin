@@ -19,6 +19,7 @@
 #ifdef _WIN32
 	#define CIFACE_USE_XINPUT
 	#define CIFACE_USE_DINPUT
+	#define CIFACE_USE_OSVR
 #endif
 #if defined(HAVE_X11) && HAVE_X11
 	#define CIFACE_USE_XLIB

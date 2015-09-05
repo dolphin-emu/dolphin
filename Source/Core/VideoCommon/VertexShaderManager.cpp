@@ -20,6 +20,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VRTracker.h"
 #include "VideoCommon/XFMemory.h"
 
 static float GC_ALIGNED16(g_fProjectionMatrix[16]);
@@ -37,6 +38,8 @@ static Matrix33 s_viewRotationMatrix;
 static Matrix33 s_viewInvRotationMatrix;
 static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
+
+static Matrix44 s_VRTransformationMatrix;
 
 VertexShaderConstants VertexShaderManager::constants;
 bool VertexShaderManager::dirty;
@@ -208,6 +211,7 @@ void VertexShaderManager::Init()
 
 	// TODO: should these go inside ResetView()?
 	Matrix44::LoadIdentity(s_viewportCorrection);
+	Matrix44::LoadIdentity(s_VRTransformationMatrix);
 	memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
 	for (int i = 0; i < 4; ++i)
 		g_fProjectionMatrix[i*5] = 1.0f;
@@ -402,6 +406,7 @@ void VertexShaderManager::SetConstants()
 		}
 	}
 
+	// Always update the perspective projection matrix every frame when we're in VR mode
 	if (bProjectionChanged)
 	{
 		bProjectionChanged = false;
@@ -519,29 +524,35 @@ void VertexShaderManager::SetConstants()
 
 		PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
 
-		if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
+		Matrix44 projMtx;
+		Matrix44::Set(projMtx, g_fProjectionMatrix);
+		if (xfmem.projection.type == GX_PERSPECTIVE)
 		{
-			Matrix44 mtxA;
-			Matrix44 mtxB;
-			Matrix44 viewMtx;
+			if (g_ActiveConfig.bFreeLook)
+			{
+				Matrix44 mtxA;
+				Matrix44 mtxB;
+				Matrix44 viewMtx;
 
-			Matrix44::Translate(mtxA, s_fViewTranslationVector);
-			Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
-			Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
-			Matrix44::Set(mtxB, g_fProjectionMatrix);
-			Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
-			Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
-			memcpy(constants.projection, mtxB.data, 4*16);
-		}
-		else
-		{
-			Matrix44 projMtx;
-			Matrix44::Set(projMtx, g_fProjectionMatrix);
+				Matrix44::Translate(mtxA, s_fViewTranslationVector);
+				Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
+				Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
+				Matrix44::Set(mtxB, g_fProjectionMatrix);
+				Matrix44::Multiply(mtxB, viewMtx, projMtx); // projection = projection x view
+			}
 
-			Matrix44 correctedMtx;
-			Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-			memcpy(constants.projection, correctedMtx.data, 4*16);
+			if (g_ActiveConfig.iStereoMode == STEREO_VR)
+			{
+				Matrix44 tempMtx, tranformMtx;
+				VRTracker::GetTransformMatrix(tranformMtx);
+				Matrix44::Set(tempMtx, g_fProjectionMatrix);
+				Matrix44::Multiply(tempMtx, tranformMtx, projMtx);
+			}
 		}
+
+		Matrix44 correctedMtx;
+		Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
+		memcpy(constants.projection, correctedMtx.data, 4 * 16);
 
 		dirty = true;
 	}
@@ -722,6 +733,8 @@ void VertexShaderManager::RotateView(float x, float y)
 
 void VertexShaderManager::ResetView()
 {
+	VRTracker::ResetView();
+
 	memset(s_fViewTranslationVector, 0, sizeof(s_fViewTranslationVector));
 	Matrix33::LoadIdentity(s_viewRotationMatrix);
 	Matrix33::LoadIdentity(s_viewInvRotationMatrix);

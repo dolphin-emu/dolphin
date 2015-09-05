@@ -60,10 +60,14 @@ void GeometryShaderManager::SetConstants()
 		}
 		else
 		{
-			constants.stereoparams[0] = constants.stereoparams[1] = 0;
+			constants.stereoparams[0] = constants.stereoparams[1] = 0.0f;
 		}
 
-		constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergenceMinimum + g_ActiveConfig.iStereoConvergence);
+		// In VR we're not looking at a screen in the distance, so turn off the convergence parameter
+		if (g_ActiveConfig.iStereoMode == STEREO_VR)
+			constants.stereoparams[2] = 0.0f;
+		else
+			constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergenceMinimum + g_ActiveConfig.iStereoConvergence);
 
 		dirty = true;
 	}

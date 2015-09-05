@@ -5,6 +5,9 @@
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#ifdef CIFACE_USE_OSVR
+#include "InputCommon/ControllerInterface/OSVR/OSVR.h"
+#endif
 #ifdef CIFACE_USE_XINPUT
 	#include "InputCommon/ControllerInterface/XInput/XInput.h"
 #endif
@@ -75,6 +78,9 @@ void ControllerInterface::Initialize(void* const hwnd)
 #ifdef CIFACE_USE_EVDEV
 	ciface::evdev::Init(m_devices);
 #endif
+#ifdef CIFACE_USE_OSVR
+	ciface::OSVR::Init(m_devices);
+#endif
 
 	m_is_init = true;
 }
@@ -127,6 +133,9 @@ void ControllerInterface::Shutdown()
 	SDL_Quit();
 #endif
 #ifdef CIFACE_USE_ANDROID
+	// nothing needed
+#endif
+#ifdef CIFACE_USE_OSVR
 	// nothing needed
 #endif
 

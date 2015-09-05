@@ -158,6 +158,7 @@
     <ClCompile Include="GeometryShaderManager.cpp">
       <Filter>Shader Managers</Filter>
     </ClCompile>
+    <ClCompile Include="VRTracker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -305,6 +306,7 @@
     <ClInclude Include="GeometryShaderManager.h">
       <Filter>Shader Managers</Filter>
     </ClInclude>
+    <ClInclude Include="VRTracker.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
