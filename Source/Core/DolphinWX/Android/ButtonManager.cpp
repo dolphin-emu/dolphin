@@ -201,20 +201,12 @@ namespace ButtonManager
 		auto it = m_controllers.find(dev);
 		if (it != m_controllers.end())
 			return it->second->PressEvent(button, action);
-
-		m_controllers[dev] = new InputDevice(dev);
-		return m_controllers[dev]->PressEvent(button, action);
 	}
 	void GamepadAxisEvent(const std::string& dev, int axis, float value)
 	{
 		auto it = m_controllers.find(dev);
 		if (it != m_controllers.end())
-		{
 			it->second->AxisEvent(axis, value);
-			return;
-		}
-		m_controllers[dev] = new InputDevice(dev);
-		m_controllers[dev]->AxisEvent(axis, value);
 	}
 	void Shutdown()
 	{

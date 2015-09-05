@@ -7,7 +7,7 @@
 
         <!-- CPU Settings -->
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="dualCorePref"
             android:summary="@string/dual_core_descrip"
             android:title="@string/dual_core"/>
@@ -20,7 +20,7 @@
             android:entryValues="@array/int_emu_cores"/>
 
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="fastmemPref"
             android:summary="@string/fastmem_desc"
             android:title="@string/fastmem"/>
