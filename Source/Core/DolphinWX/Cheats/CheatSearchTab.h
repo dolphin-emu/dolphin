@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <wx/panel.h>
+#include <wx/timer.h>
 
 class wxButton;
 class wxChoice;
@@ -32,11 +33,16 @@ private:
 	};
 
 	void UpdateCheatSearchResultsList();
+	void UpdateCheatSearchResultItem(long index);
+	void FilterCheatSearchResults(u32 value);
 	void ResetListViewColumns();
-	void StartNewSearch(wxCommandEvent& event);
-	void FilterCheatSearchResults(wxCommandEvent& event);
-	void CreateARCode(wxCommandEvent&);
-	void ApplyFocus(wxFocusEvent&);
+	bool ParseUserEnteredValue(u32* out) const;
+	u32 SwapValue(u32 value) const;
+
+	void OnNewScanClicked(wxCommandEvent&);
+	void OnNextScanClicked(wxCommandEvent&);
+	void OnCreateARCodeClicked(wxCommandEvent&);
+	void OnTimerUpdate(wxTimerEvent&);
 
 	std::vector<CheatSearchResult> m_search_results;
 	unsigned int m_search_type_size;
@@ -51,9 +57,5 @@ private:
 
 	wxRadioBox* m_data_sizes;
 
-	struct
-	{
-		wxRadioButton* rad_oldvalue;
-		wxRadioButton* rad_uservalue;
-	} m_value_x_radiobtn;
+	wxTimer m_update_timer;
 };
