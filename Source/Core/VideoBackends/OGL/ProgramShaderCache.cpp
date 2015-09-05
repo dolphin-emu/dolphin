@@ -560,6 +560,7 @@ void ProgramShaderCache::CreateHeader()
 		"%s\n" // AEP
 		"%s\n" // texture buffer
 		"%s\n" // ES texture buffer
+		"%s\n" // ES dual source blend
 
 		// Precision defines for GLSL ES
 		"%s\n"
@@ -599,6 +600,7 @@ void ProgramShaderCache::CreateHeader()
 		, g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : ""
 		, v<GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ? "#extension GL_ARB_texture_buffer_object : enable" : ""
 		, SupportedESTextureBuffer.c_str()
+		, is_glsles && g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "#extension GL_EXT_blend_func_extended : enable" : ""
 
 		, is_glsles ? "precision highp float;" : ""
 		, is_glsles ? "precision highp int;" : ""
