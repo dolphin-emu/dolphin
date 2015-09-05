@@ -75,6 +75,7 @@ struct VideoConfig final
 
 	// Enhancements
 	int iMultisampleMode;
+	bool bSSAA;
 	int iEFBScale;
 	bool bForceFiltering;
 	int iMaxAnisotropy;
@@ -161,6 +162,7 @@ struct VideoConfig final
 		bool bSupportsPostProcessing;
 		bool bSupportsPaletteConversion;
 		bool bSupportsClipControl; // Needed by VertexShaderGen, so must stay in VideoCommon
+		bool bSupportsSSAA;
 	} backend_info;
 
 	// Utility

@@ -193,6 +193,8 @@ protected:
 		// Anti-aliasing
 		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
+		if (vconfig.backend_info.bSupportsSSAA && ssaa_checkbox)
+			ssaa_checkbox->Enable(vconfig.iMultisampleMode > 0);
 
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
@@ -253,6 +255,7 @@ protected:
 
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
+	wxCheckBox* ssaa_checkbox;
 
 	wxStaticText* label_display_resolution;
 

@@ -20,6 +20,7 @@
 #include "VideoBackends/OGL/GLExtensions/ARB_sampler_objects.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_sync.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_texture_multisample.h"
+#include "VideoBackends/OGL/GLExtensions/ARB_texture_storage_multisample.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_uniform_buffer_object.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_vertex_array_object.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_viewport_array.h"

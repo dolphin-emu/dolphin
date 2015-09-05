@@ -38,7 +38,6 @@ struct VideoConfig
 	bool bSupportsGLBaseVertex;
 	bool bSupportsGLBufferStorage;
 	bool bSupportsMSAA;
-	bool bSupportSampleShading;
 	GLSL_VERSION eSupportedGLSLVersion;
 	bool bSupportOGL31;
 	bool bSupportViewportFloat;
@@ -47,6 +46,8 @@ struct VideoConfig
 	bool bSupportsCopySubImage;
 	u8   SupportedESPointSize;
 	ES_TEXBUF_TYPE SupportedESTextureBuffer;
+	bool bSupports2DTextureStorage;
+	bool bSupports3DTextureStorage;
 
 	const char* gl_vendor;
 	const char* gl_renderer;
