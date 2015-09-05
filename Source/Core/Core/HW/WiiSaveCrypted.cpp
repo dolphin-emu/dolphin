@@ -566,7 +566,8 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
 {
 	if (m_title_id)
 	{
-		m_wii_title_path = Common::GetTitleDataPath(m_title_id);
+		// CONFIGURED because this whole class is only used from the GUI, not directly by games.
+		m_wii_title_path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
 	}
 
 	if (for_export)

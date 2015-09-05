@@ -134,7 +134,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 		INFO_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
 		if (config.CreationStage() == nwc24_config_t::NWC24_IDCS_INITIAL)
 		{
-			std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
+			std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
 			SettingsHandler gen;
 			std::string area, model;
 			bool _GotSettings = false;

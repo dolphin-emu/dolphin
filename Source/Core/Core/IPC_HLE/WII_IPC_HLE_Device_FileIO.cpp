@@ -41,7 +41,7 @@ std::string HLE_IPC_BuildFilename(std::string path_wii)
 void HLE_IPC_CreateVirtualFATFilesystem()
 {
 	const int cdbSize = 0x01400000;
-	const std::string cdbPath = Common::GetTitleDataPath(TITLEID_SYSMENU) + "cdb.vff";
+	const std::string cdbPath = Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + "cdb.vff";
 	if ((int)File::GetSize(cdbPath) < cdbSize)
 	{
 		// cdb.vff is a virtual Fat filesystem created on first launch of sysmenu

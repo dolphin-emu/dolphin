@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "Common/NandPaths.h"
+#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 
@@ -86,58 +87,6 @@ std::string CSharedContent::AddSharedContent(const u8* _pHash)
 
 	return filename;
 }
-
-
-// this classes must be created by the CNANDContentManager
-class CNANDContentLoader : public INANDContentLoader
-{
-public:
-	CNANDContentLoader(const std::string& _rName);
-	virtual ~CNANDContentLoader();
-
-	bool IsValid() const override { return m_Valid; }
-	void RemoveTitle() const override;
-	u64 GetTitleID() const override  { return m_TitleID; }
-	u16 GetIosVersion() const override { return m_IosVersion; }
-	u32 GetBootIndex() const override  { return m_BootIndex; }
-	size_t GetContentSize() const override { return m_Content.size(); }
-	const SNANDContent* GetContentByIndex(int _Index) const override;
-	const u8* GetTMDView() const override { return m_TMDView; }
-	const u8* GetTMDHeader() const override { return m_TMDHeader; }
-	u32 GetTIKSize() const override { return m_TIKSize; }
-	const u8* GetTIK() const override { return m_TIK; }
-
-	const std::vector<SNANDContent>& GetContent() const override { return m_Content; }
-
-	u16 GetTitleVersion() const override {return m_TitleVersion;}
-	u16 GetNumEntries() const override {return m_numEntries;}
-	DiscIO::IVolume::ECountry GetCountry() const override;
-	u8 GetCountryChar() const override {return m_Country; }
-
-private:
-	bool m_Valid;
-	bool m_isWAD;
-	std::string m_Path;
-	u64 m_TitleID;
-	u16 m_IosVersion;
-	u32 m_BootIndex;
-	u16 m_numEntries;
-	u16 m_TitleVersion;
-	u8 m_TMDView[TMD_VIEW_SIZE];
-	u8 m_TMDHeader[TMD_HEADER_SIZE];
-	u32 m_TIKSize;
-	u8* m_TIK;
-	u8 m_Country;
-
-	std::vector<SNANDContent> m_Content;
-
-
-	bool Initialize(const std::string& _rName);
-
-	void AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest);
-
-	void GetKeyFromTicket(u8* pTicket, u8* pTicketKey);
-};
 
 
 CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
@@ -305,43 +254,34 @@ DiscIO::IVolume::ECountry CNANDContentLoader::GetCountry() const
 
 CNANDContentManager::~CNANDContentManager()
 {
-	for (auto& entry : m_Map)
-	{
-		delete entry.second;
-	}
-	m_Map.clear();
 }
 
-const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& _rName, bool forceReload)
+const CNANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& content_path)
 {
-	CNANDContentMap::iterator lb = m_Map.lower_bound(_rName);
-
-	if (lb == m_Map.end() || (m_Map.key_comp()(_rName, lb->first)))
-	{
-		m_Map.insert(lb, CNANDContentMap::value_type(_rName, new CNANDContentLoader(_rName)));
-	}
-	else
-	{
-		if (!lb->second->IsValid() || forceReload)
-		{
-			delete lb->second;
-			lb->second = new CNANDContentLoader(_rName);
-		}
-	}
-	return *m_Map[_rName];
+	auto it = m_map.find(content_path);
+	if (it != m_map.end())
+		return *it->second;
+	return *m_map.emplace_hint(it, std::make_pair(content_path, std::make_unique<CNANDContentLoader>(content_path)))->second;
 }
 
-const INANDContentLoader& CNANDContentManager::GetNANDLoader(u64 _titleId, bool forceReload)
+const CNANDContentLoader& CNANDContentManager::GetNANDLoader(u64 title_id, Common::FromWhichRoot from)
 {
-	std::string _rName = Common::GetTitleContentPath(_titleId);
-	return GetNANDLoader(_rName, forceReload);
+	std::string path = Common::GetTitleContentPath(title_id, from);
+	return GetNANDLoader(path);
 }
-bool CNANDContentManager::RemoveTitle(u64 _titleID)
+
+bool CNANDContentManager::RemoveTitle(u64 title_id, Common::FromWhichRoot from)
 {
-	if (!GetNANDLoader(_titleID).IsValid())
+	auto& loader = GetNANDLoader(title_id, from);
+	if (!loader.IsValid())
 		return false;
-	GetNANDLoader(_titleID).RemoveTitle();
-	return GetNANDLoader(_titleID, true).IsValid();
+	loader.RemoveTitle();
+	return GetNANDLoader(title_id, from).IsValid();
+}
+
+void CNANDContentManager::ClearCache()
+{
+	m_map.clear();
 }
 
 void CNANDContentLoader::RemoveTitle() const
@@ -354,11 +294,12 @@ void CNANDContentLoader::RemoveTitle() const
 		{
 			if (!(m_Content[i].m_Type & 0x8000)) // skip shared apps
 			{
-				std::string filename = StringFromFormat("%s%08x.app", Common::GetTitleContentPath(m_TitleID).c_str(), m_Content[i].m_ContentID);
+				std::string filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), m_Content[i].m_ContentID);
 				INFO_LOG(DISCIO, "Delete %s", filename.c_str());
 				File::Delete(filename);
 			}
 		}
+		CNANDContentManager::Access().ClearCache(); // deletes 'this'
 	}
 }
 
@@ -433,8 +374,8 @@ void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
 {
 	for (auto& Element : m_Elements)
 	{
-		if ((_owned && Common::CheckTitleTIK(Common::swap64(Element.titleID)))  ||
-			(!_owned && Common::CheckTitleTMD(Common::swap64(Element.titleID))))
+		if ((_owned && Common::CheckTitleTIK(Common::swap64(Element.titleID), Common::FROM_SESSION_ROOT))  ||
+			(!_owned && Common::CheckTitleTMD(Common::swap64(Element.titleID), Common::FROM_SESSION_ROOT)))
 			_TitleIDs.push_back(Common::swap64(Element.titleID));
 	}
 }
@@ -443,7 +384,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& fileName)
 {
 	if (fileName.find(".wad") == std::string::npos)
 		return 0;
-	const INANDContentLoader& ContentLoader = GetNANDLoader(fileName);
+	const CNANDContentLoader& ContentLoader = GetNANDLoader(fileName);
 	if (ContentLoader.IsValid() == false)
 		return 0;
 
@@ -451,8 +392,8 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& fileName)
 
 	//copy WAD's TMD header and contents to content directory
 
-	std::string ContentPath(Common::GetTitleContentPath(TitleID));
-	std::string TMDFileName(Common::GetTMDFileName(TitleID));
+	std::string ContentPath(Common::GetTitleContentPath(TitleID, Common::FROM_CONFIGURED_ROOT));
+	std::string TMDFileName(Common::GetTMDFileName(TitleID, Common::FROM_CONFIGURED_ROOT));
 	File::CreateFullPath(TMDFileName);
 
 	File::IOFile pTMDFile(TMDFileName, "wb");
@@ -462,13 +403,13 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& fileName)
 		return 0;
 	}
 
-	pTMDFile.WriteBytes(ContentLoader.GetTMDHeader(), INANDContentLoader::TMD_HEADER_SIZE);
+	pTMDFile.WriteBytes(ContentLoader.GetTMDHeader(), CNANDContentLoader::TMD_HEADER_SIZE);
 
 	for (u32 i = 0; i < ContentLoader.GetContentSize(); i++)
 	{
 		const SNANDContent& Content = ContentLoader.GetContent()[i];
 
-		pTMDFile.WriteBytes(Content.m_Header, INANDContentLoader::CONTENT_HEADER_SIZE);
+		pTMDFile.WriteBytes(Content.m_Header, CNANDContentLoader::CONTENT_HEADER_SIZE);
 
 		std::string APPFileName;
 		if (Content.m_Type & 0x8000) //shared
@@ -503,12 +444,14 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& fileName)
 
 	cUIDsys::AccessInstance().AddTitle(TitleID);
 
+	ClearCache();
+
 	return TitleID;
 }
 
 bool Add_Ticket(u64 TitleID, const u8* p_tik, u32 tikSize)
 {
-	std::string TicketFileName = Common::GetTicketFileName(TitleID);
+	std::string TicketFileName = Common::GetTicketFileName(TitleID, Common::FROM_CONFIGURED_ROOT);
 	File::CreateFullPath(TicketFileName);
 	File::IOFile pTicketFile(TicketFileName, "wb");
 	if (!pTicketFile || !p_tik)
