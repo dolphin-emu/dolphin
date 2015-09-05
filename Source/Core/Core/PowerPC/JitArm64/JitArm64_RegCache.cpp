@@ -167,15 +167,6 @@ void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 	for (int i = 0; i < 32; ++i)
 	{
 		bool flush = true;
-		if (mode == FLUSH_INTERPRETER)
-		{
-			if (!(op->regsOut[i] || op->regsIn[i]))
-			{
-				// This interpreted instruction doesn't use this register
-				flush = false;
-			}
-		}
-
 		if (m_guest_registers[i].GetType() == REG_REG)
 		{
 			// Has to be flushed if it isn't in a callee saved register

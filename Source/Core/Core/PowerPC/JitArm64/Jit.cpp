@@ -68,8 +68,8 @@ void JitArm64::Shutdown()
 
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 {
-	gpr.Flush(FlushMode::FLUSH_INTERPRETER, js.op);
-	fpr.Flush(FlushMode::FLUSH_INTERPRETER, js.op);
+	gpr.Flush(FlushMode::FLUSH_ALL, js.op);
+	fpr.Flush(FlushMode::FLUSH_ALL, js.op);
 
 	if (js.op->opinfo->flags & FL_ENDBLOCK)
 	{

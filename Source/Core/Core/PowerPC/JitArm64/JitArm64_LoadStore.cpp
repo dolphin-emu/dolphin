@@ -327,32 +327,29 @@ void JitArm64::lXX(UGeckoInstruction inst)
 	switch (inst.OPCD)
 	{
 		case 31:
+			offsetReg = b;
 			switch (inst.SUBOP10)
 			{
 				case 55: // lwzux
 					update = true;
 				case 23: // lwzx
 					flags |= BackPatchInfo::FLAG_SIZE_32;
-					offsetReg = b;
 				break;
 				case 119: //lbzux
 					update = true;
 				case 87: // lbzx
 					flags |= BackPatchInfo::FLAG_SIZE_8;
-					offsetReg = b;
 				break;
 				case 311: // lhzux
 					update = true;
 				case 279: // lhzx
 					flags |= BackPatchInfo::FLAG_SIZE_16;
-					offsetReg = b;
 				break;
 				case 375: // lhaux
 					update = true;
 				case 343: // lhax
 					flags |= BackPatchInfo::FLAG_EXTEND |
 					         BackPatchInfo::FLAG_SIZE_16;
-					offsetReg = b;
 				break;
 				case 534: // lwbrx
 					flags |= BackPatchInfo::FLAG_REVERSE |
