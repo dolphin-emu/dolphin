@@ -867,9 +867,6 @@ void JitArm64::subfic(UGeckoInstruction inst)
 
 		gpr.SetImmediate(d, imm - a_imm);
 		ComputeCarry(a_imm == 0 || Interpreter::Helper_Carry(imm, 0u - a_imm));
-
-		if (inst.Rc)
-			ComputeRC(gpr.GetImm(d), 0);
 	}
 	else
 	{
@@ -882,9 +879,6 @@ void JitArm64::subfic(UGeckoInstruction inst)
 		gpr.Unlock(WA);
 
 		ComputeCarry();
-
-		if (inst.Rc)
-			ComputeRC(gpr.R(d), 0);
 	}
 }
 
