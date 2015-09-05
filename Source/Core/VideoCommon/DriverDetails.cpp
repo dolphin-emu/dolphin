@@ -42,16 +42,8 @@ namespace DriverDetails
 	// This is a list of all known bugs for each vendor
 	// We use this to check if the device and driver has a issue
 	static BugInfo m_known_bugs[] = {
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_NODYNUBOACCESS,      14.0, 94.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENCENTROID,      14.0, 46.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENINFOLOG,       -1.0, 46.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_ANNIHILATEDUBOS,     41.0, 46.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENSWAP,          -1.0, 46.0, true},
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENBUFFERSTREAM,  -1.0, -1.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENTEXTURESIZE,   -1.0, 65.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENATTRIBUTELESS, -1.0, 94.0, true},
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENNEGATEDBOOLEAN,-1.0, -1.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENIVECSHIFTS,    -1.0, 46.0, true},
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM,     -1, BUG_BROKENGLES31,        -1.0, -1.0, true},
 		{OS_ALL,    VENDOR_ARM,      DRIVER_ARM,          -1, BUG_BROKENBUFFERSTREAM,  -1.0, -1.0, true},
 		{OS_ALL,    VENDOR_ARM,      DRIVER_ARM,          -1, BUG_BROKENVSYNC,         -1.0, -1.0, true},

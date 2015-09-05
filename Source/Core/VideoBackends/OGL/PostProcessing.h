@@ -35,11 +35,6 @@ private:
 	GLuint m_uniform_layer;
 	std::string m_glsl_header;
 
-	// These are only used when working around Qualcomm's broken attributeless rendering
-	GLuint m_attribute_vao;
-	GLuint m_attribute_vbo;
-	bool m_attribute_workaround = false;
-
 	std::unordered_map<std::string, GLuint> m_uniform_bindings;
 
 	void CreateHeader();

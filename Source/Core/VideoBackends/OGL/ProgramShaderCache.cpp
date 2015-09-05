@@ -583,10 +583,6 @@ void ProgramShaderCache::CreateHeader()
 		"#define frac fract\n"
 		"#define lerp mix\n"
 
-		// Terrible hacks, look at DriverDetails.h
-		"%s\n" // replace textureSize as constant
-		"%s\n" // wipe out all centroid usages
-
 		, GetGLSLVersionString().c_str()
 		, v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, !is_glsles && g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
@@ -606,9 +602,6 @@ void ProgramShaderCache::CreateHeader()
 		, is_glsles ? "precision highp int;" : ""
 		, is_glsles ? "precision highp sampler2DArray;" : ""
 		, (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ? "precision highp usamplerBuffer;" : ""
-
-		, DriverDetails::HasBug(DriverDetails::BUG_BROKENTEXTURESIZE) ? "#define textureSize(x, y) ivec2(1, 1)" : ""
-		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "#define centroid" : ""
 	);
 }
 
