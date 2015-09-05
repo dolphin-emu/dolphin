@@ -36,7 +36,7 @@ ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
 ID3D11PixelShader* s_DepthMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ClearProgram = nullptr;
 ID3D11PixelShader* s_AnaglyphProgram = nullptr;
-ID3D11PixelShader* s_VRProgram = nullptr;
+ID3D11PixelShader* s_OSVRProgram = nullptr;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
 ID3D11Buffer* pscbuf = nullptr;
@@ -86,7 +86,7 @@ const char anaglyph_program_code[] = {
 	"}\n"
 };
 
-const char vr_program_code[] = {
+const char osvr_program_code[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2DArray Tex0 : register(t0);\n"
 
@@ -448,9 +448,9 @@ ID3D11PixelShader* PixelShaderCache::GetAnaglyphProgram()
 	return s_AnaglyphProgram;
 }
 
-ID3D11PixelShader* PixelShaderCache::GetVRProgram()
+ID3D11PixelShader* PixelShaderCache::GetOSVRProgram()
 {
-	return s_VRProgram;
+	return s_OSVRProgram;
 }
 
 ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
@@ -498,9 +498,9 @@ void PixelShaderCache::Init()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_AnaglyphProgram, "anaglyph pixel shader");
 
 	// used for virtual reality
-	s_VRProgram = D3D::CompileAndCreatePixelShader(vr_program_code);
-	CHECK(s_VRProgram != nullptr, "Create vr pixel shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_VRProgram, "vr pixel shader");
+	s_OSVRProgram = D3D::CompileAndCreatePixelShader(osvr_program_code);
+	CHECK(s_OSVRProgram != nullptr, "Create osvr pixel shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_OSVRProgram, "osvr pixel shader");
 
 	// used when copying/resolving the color buffer
 	s_ColorCopyProgram[0] = D3D::CompileAndCreatePixelShader(color_copy_program_code);
@@ -563,7 +563,7 @@ void PixelShaderCache::Shutdown()
 
 	SAFE_RELEASE(s_ClearProgram);
 	SAFE_RELEASE(s_AnaglyphProgram);
-	SAFE_RELEASE(s_VRProgram);
+	SAFE_RELEASE(s_OSVRProgram);
 	for (int i = 0; i < 2; ++i)
 	{
 		SAFE_RELEASE(s_ColorCopyProgram[i]);

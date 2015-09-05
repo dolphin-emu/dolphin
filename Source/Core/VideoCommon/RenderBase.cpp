@@ -422,7 +422,7 @@ void Renderer::DrawDebugText()
 
 void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 {
-	float FloatGLWidth = (g_ActiveConfig.iStereoMode == STEREO_VR) ? (float)backbuffer_width / 2.0f : (float)backbuffer_width;
+	float FloatGLWidth = (g_ActiveConfig.iStereoMode == STEREO_OSVR) ? (float)backbuffer_width / 2.0f : (float)backbuffer_width;
 	float FloatGLHeight = (float)backbuffer_height;
 	float FloatXOffset = 0;
 	float FloatYOffset = 0;

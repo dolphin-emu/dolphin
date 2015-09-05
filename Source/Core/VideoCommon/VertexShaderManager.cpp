@@ -541,7 +541,7 @@ void VertexShaderManager::SetConstants()
 				Matrix44::Multiply(mtxB, viewMtx, projMtx); // projection = projection x view
 			}
 
-			if (g_ActiveConfig.iStereoMode == STEREO_VR)
+			if (g_ActiveConfig.iStereoMode == STEREO_OSVR)
 			{
 				Matrix44 tempMtx, tranformMtx;
 				VRTracker::GetTransformMatrix(tranformMtx);
