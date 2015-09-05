@@ -10,12 +10,12 @@
 
 using namespace Gen;
 
-static const u64 GC_ALIGNED16(psSignBits[2])      = {0x8000000000000000ULL, 0x0000000000000000ULL};
-static const u64 GC_ALIGNED16(psSignBits2[2])     = {0x8000000000000000ULL, 0x8000000000000000ULL};
-static const u64 GC_ALIGNED16(psAbsMask[2])       = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
-static const u64 GC_ALIGNED16(psAbsMask2[2])      = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-static const u64 GC_ALIGNED16(psGeneratedQNaN[2]) = {0x7FF8000000000000ULL, 0x7FF8000000000000ULL};
-static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
+alignas(16) static const u64 psSignBits[2]      = {0x8000000000000000ULL, 0x0000000000000000ULL};
+alignas(16) static const u64 psSignBits2[2]     = {0x8000000000000000ULL, 0x8000000000000000ULL};
+alignas(16) static const u64 psAbsMask[2]       = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
+alignas(16) static const u64 psAbsMask2[2]      = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+alignas(16) static const u64 psGeneratedQNaN[2] = {0x7FF8000000000000ULL, 0x7FF8000000000000ULL};
+alignas(16) static const double half_qnan_and_s32_max[2] = {0x7FFFFFFF, -0x80000};
 
 X64Reg Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
                         void (XEmitter::*sseOp)(X64Reg, const OpArg&), bool packed, bool preserve_inputs, bool roundRHS)

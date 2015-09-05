@@ -691,8 +691,8 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, 
 	}
 }
 
-static const u64 GC_ALIGNED16(psMantissaTruncate[2]) = {0xFFFFFFFFF8000000ULL, 0xFFFFFFFFF8000000ULL};
-static const u64 GC_ALIGNED16(psRoundBit[2]) = {0x8000000, 0x8000000};
+alignas(16) static const u64 psMantissaTruncate[2] = {0xFFFFFFFFF8000000ULL, 0xFFFFFFFFF8000000ULL};
+alignas(16) static const u64 psRoundBit[2] = {0x8000000, 0x8000000};
 
 // Emulate the odd truncation/rounding that the PowerPC does on the RHS operand before
 // a single precision multiply. To be precise, it drops the low 28 bits of the mantissa,
@@ -724,8 +724,8 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg
 	}
 }
 
-static u32 GC_ALIGNED16(temp32);
-static u64 GC_ALIGNED16(temp64);
+alignas(16) static u32 temp32;
+alignas(16) static u64 temp64;
 
 // Since the following float conversion functions are used in non-arithmetic PPC float instructions,
 // they must convert floats bitexact and never flush denormals to zero or turn SNaNs into QNaNs.
@@ -740,12 +740,12 @@ static u64 GC_ALIGNED16(temp64);
 //#define MORE_ACCURATE_DOUBLETOSINGLE
 #ifdef MORE_ACCURATE_DOUBLETOSINGLE
 
-static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi64x(0, 0x7ff0000000000000);
-static const __m128i GC_ALIGNED16(double_fraction) = _mm_set_epi64x(0, 0x000fffffffffffff);
-static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0, 0x8000000000000000);
-static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi64x(0, 0x0010000000000000);
-static const __m128i GC_ALIGNED16(double_top_two_bits) = _mm_set_epi64x(0, 0xc000000000000000);
-static const __m128i GC_ALIGNED16(double_bottom_bits)  = _mm_set_epi64x(0, 0x07ffffffe0000000);
+alignas(16) static const __m128i double_exponent = _mm_set_epi64x(0, 0x7ff0000000000000);
+alignas(16) static const __m128i double_fraction = _mm_set_epi64x(0, 0x000fffffffffffff);
+alignas(16) static const __m128i double_sign_bit = _mm_set_epi64x(0, 0x8000000000000000);
+alignas(16) static const __m128i double_explicit_top_bit = _mm_set_epi64x(0, 0x0010000000000000);
+alignas(16) static const __m128i double_top_two_bits = _mm_set_epi64x(0, 0xc000000000000000);
+alignas(16) static const __m128i double_bottom_bits  = _mm_set_epi64x(0, 0x07ffffffe0000000);
 
 // This is the same algorithm used in the interpreter (and actual hardware)
 // The documentation states that the conversion of a double with an outside the
@@ -816,12 +816,12 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 #else // MORE_ACCURATE_DOUBLETOSINGLE
 
-static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0xffffffffffffffff, 0x7fffffffffffffff);
-static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0xffffffffffffffff, 0xffffffffffbfffff);
-static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi64x(0xffffffffffffffff, 0xfff7ffffffffffff);
+alignas(16) static const __m128i double_sign_bit = _mm_set_epi64x(0xffffffffffffffff, 0x7fffffffffffffff);
+alignas(16) static const __m128i single_qnan_bit = _mm_set_epi64x(0xffffffffffffffff, 0xffffffffffbfffff);
+alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(0xffffffffffffffff, 0xfff7ffffffffffff);
 
 // Smallest positive double that results in a normalized single.
-static const double GC_ALIGNED16(min_norm_single) = std::numeric_limits<float>::min();
+alignas(16) static const double min_norm_single = std::numeric_limits<float>::min();
 
 void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 {
@@ -895,9 +895,9 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 	MOVDDUP(dst, R(dst));
 }
 
-static const u64 GC_ALIGNED16(psDoubleExp[2])  = {0x7FF0000000000000ULL, 0};
-static const u64 GC_ALIGNED16(psDoubleFrac[2]) = {0x000FFFFFFFFFFFFFULL, 0};
-static const u64 GC_ALIGNED16(psDoubleNoSign[2]) = {0x7FFFFFFFFFFFFFFFULL, 0};
+alignas(16) static const u64 psDoubleExp[2]  = {0x7FF0000000000000ULL, 0};
+alignas(16) static const u64 psDoubleFrac[2] = {0x000FFFFFFFFFFFFFULL, 0};
+alignas(16) static const u64 psDoubleNoSign[2] = {0x7FFFFFFFFFFFFFFFULL, 0};
 
 // TODO: it might be faster to handle FPRF in the same way as CR is currently handled for integer, storing
 // the result of each floating point op and calculating it when needed. This is trickier than for integers
