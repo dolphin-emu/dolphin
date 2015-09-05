@@ -45,7 +45,12 @@ struct OculusTexture
 		dsDesc.MiscFlags = 0;
 		dsDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
+#if OVR_MAJOR_VERSION >= 7
+		unsigned int miscFlags = 0; // the other option is ovrSwapTextureSetD3D11_Typeless
+		ovr_CreateSwapTextureSetD3D11(hmd, DX11::D3D::device, &dsDesc, miscFlags, &TextureSet);
+#else
 		ovrHmd_CreateSwapTextureSetD3D11(hmd, DX11::D3D::device, &dsDesc, &TextureSet);
+#endif
 		for (int i = 0; i < TextureSet->TextureCount; ++i)
 		{
 			ovrD3D11Texture* tex = (ovrD3D11Texture*)&TextureSet->Textures[i];
@@ -167,7 +172,12 @@ void RecreateMirrorTextureIfNeeded()
 			mirror_width = texdesc.Width;
 			mirror_height = texdesc.Height;
 			mirrorTexture = nullptr;
+#if OVR_MAJOR_VERSION >= 7
+			unsigned int miscFlags = 0; // could also be ovrSwapTextureSetD3D11_Typeless
+			ovrResult result = ovr_CreateMirrorTextureD3D11(hmd, D3D::device, &texdesc, miscFlags, &mirrorTexture);
+#else
 			ovrResult result = ovrHmd_CreateMirrorTextureD3D11(hmd, D3D::device, &texdesc, &mirrorTexture);
+#endif
 			if (!OVR_SUCCESS(result))
 			{
 				ERROR_LOG(VR, "Failed to create D3D mirror texture. Error: %d", result);

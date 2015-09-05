@@ -277,7 +277,7 @@ bool InitSteamVR()
 
 bool InitOculusDebugVR()
 {
-#ifdef OVR_MAJOR_VERSION
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 6
 	if (g_force_vr)
 	{
 		NOTICE_LOG(VR, "Forcing VR mode, simulating Oculus Rift DK2.");
@@ -300,8 +300,13 @@ bool InitOculusHMD()
 	{
 		// Get more details about the HMD
 		//ovrHmd_GetDesc(hmd, &hmdDesc);
+#if OVR_MAJOR_VERSION >= 7
+		hmdDesc = ovr_GetHmdDesc(hmd);
+		ovr_SetEnabledCaps(hmd, ovrHmd_GetEnabledCaps(hmd) | 0);
+#else
 		hmdDesc = *hmd;
 		ovrHmd_SetEnabledCaps(hmd, ovrHmd_GetEnabledCaps(hmd) | ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
+#endif
 
 	#if OVR_MAJOR_VERSION >= 6
 		if (OVR_SUCCESS(ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0)))
@@ -357,6 +362,12 @@ bool InitOculusVR()
 #ifdef OVR_MAJOR_VERSION
 	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
 
+#if OVR_MAJOR_VERSION >= 7
+	ovr_Initialize(nullptr);
+	ovrGraphicsLuid luid;
+	if (ovr_Create(&hmd, &luid) != ovrSuccess)
+		hmd = nullptr;
+#else
 #if OVR_MAJOR_VERSION >= 6
 	ovr_Initialize(nullptr);
 	if (ovrHmd_Create(0, &hmd) != ovrSuccess)
@@ -364,6 +375,7 @@ bool InitOculusVR()
 #else
 	ovr_Initialize();
 	hmd = ovrHmd_Create(0);
+#endif
 #endif
 
 	if (!hmd)
@@ -514,18 +526,24 @@ void VR_ConfigureHMDPrediction()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
-#if OVR_MAJOR_VERSION < 6
+#if OVR_MAJOR_VERSION <= 5
 		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence | ovrHmdCap_NoMirrorToWindow);
+#else
+#if OVR_MAJOR_VERSION >= 7
+		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(0);
 #else
 		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
 #endif
+#endif
+#if OVR_MAJOR_VERSION <= 6
 		if (g_Config.bLowPersistence)
 			caps |= ovrHmdCap_LowPersistence;
 		if (g_Config.bDynamicPrediction)
 			caps |= ovrHmdCap_DynamicPrediction;
-#if OVR_MAJOR_VERSION < 6
+#if OVR_MAJOR_VERSION <= 5
 		if (g_Config.bNoMirrorToWindow)
 			caps |= ovrHmdCap_NoMirrorToWindow;
+#endif
 #endif
 		ovrHmd_SetEnabledCaps(hmd, caps);
 	}
@@ -542,7 +560,11 @@ void VR_GetEyePoses()
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
 #else
 		ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+#if OVR_MAJOR_VERSION >= 7
+		ovr_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#else
 		ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#endif
 #endif
 	}
 #endif
@@ -596,7 +618,11 @@ void UpdateOculusHeadTracking()
 	g_vr_lock.unlock();
 #else
 	ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+#if OVR_MAJOR_VERSION >= 7
+	ovr_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#else
 	ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#endif
 #endif
 	//ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
 	//if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))

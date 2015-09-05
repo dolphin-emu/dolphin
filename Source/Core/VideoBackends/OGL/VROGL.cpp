@@ -51,7 +51,11 @@ struct TextureBuffer
 			//OVR_ASSERT(hmd); // No HMD? A little odd.
 			//OVR_ASSERT(sampleCount == 1); // ovrHmd_CreateSwapTextureSetD3D11 doesn't support MSAA.
 
+#if OVR_MAJOR_VERSION >= 7
+			ovr_CreateSwapTextureSetGL(hmd, GL_RGBA, size.w, size.h, &TextureSet);
+#else
 			ovrHmd_CreateSwapTextureSetGL(hmd, GL_RGBA, size.w, size.h, &TextureSet);
+#endif
 			for (int i = 0; i < TextureSet->TextureCount; ++i)
 			{
 				ovrGLTexture* tex = (ovrGLTexture*)&TextureSet->Textures[i];
@@ -621,7 +625,11 @@ void RecreateMirrorTextureIfNeeded()
 			// Create mirror texture and an FBO used to copy mirror texture to back buffer
 			mirror_width = w;
 			mirror_height = h;
+#if OVR_MAJOR_VERSION >= 7
+			ovr_CreateMirrorTextureGL(hmd, GL_RGBA, mirror_width, mirror_height, (ovrTexture**)&mirrorTexture);
+#else
 			ovrHmd_CreateMirrorTextureGL(hmd, GL_RGBA, mirror_width, mirror_height, (ovrTexture**)&mirrorTexture);
+#endif
 			// Configure the mirror read buffer
 			glGenFramebuffers(1, &mirrorFBO);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFBO);

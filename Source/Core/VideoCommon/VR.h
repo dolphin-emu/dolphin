@@ -218,3 +218,16 @@ extern ovrFrameTiming g_rift_frame_timing;
 extern ovrPosef g_eye_poses[2], g_front_eye_poses[2];
 extern int g_ovr_frameindex;
 #endif
+
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 7
+#define ovrHmd_GetFrameTiming ovr_GetFrameTiming
+#define ovrHmd_SubmitFrame ovr_SubmitFrame
+#define ovrHmd_GetRenderDesc ovr_GetRenderDesc
+#define ovrHmd_DestroySwapTextureSet ovr_DestroySwapTextureSet
+#define ovrHmd_DestroyMirrorTexture ovr_DestroyMirrorTexture
+#define ovrHmd_SetEnabledCaps ovr_SetEnabledCaps
+#define ovrHmd_GetEnabledCaps ovr_GetEnabledCaps
+#define ovrHmd_ConfigureTracking ovr_ConfigureTracking
+#define ovrHmd_RecenterPose ovr_RecenterPose
+#define ovrHmd_Destroy ovr_Destroy
+#endif
