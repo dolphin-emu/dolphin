@@ -397,7 +397,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulati
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv *env, jobject obj)
 {
 	Core::SaveScreenShot("thumb");
-	Renderer::s_screenshotCompleted.Wait();
+	Renderer::s_screenshotCompleted.WaitFor(std::chrono::seconds(2));
 	Core::Stop();
 	updateMainFrameEvent.Set(); // Kick the waiting event
 }
