@@ -201,6 +201,12 @@ bool cInterfaceEGL::MakeCurrent()
 {
 	return eglMakeCurrent(egl_dpy, egl_surf, egl_surf, egl_ctx);
 }
+
+bool cInterfaceEGL::ClearCurrent()
+{
+	return eglMakeCurrent(egl_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+}
+
 // Close backend
 void cInterfaceEGL::Shutdown()
 {

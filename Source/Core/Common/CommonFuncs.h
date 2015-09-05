@@ -86,7 +86,9 @@ inline u64 _rotr64(u64 x, unsigned int shift)
 	#define strcasecmp _stricmp
 	#define strncasecmp _strnicmp
 	#define unlink _unlink
+#if defined(_MSC_VER) && _MSC_VER <= 1800
 	#define snprintf _snprintf
+#endif
 	#define vscprintf _vscprintf
 
 // 64 bit offsets for Windows

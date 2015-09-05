@@ -1299,6 +1299,10 @@ const GLFunc gl_function_array[] =
 	// EXT_texture_buffer
 	GLFUNC_SUFFIX(glTexBuffer, EXT, "GL_EXT_texture_buffer !GL_OES_texture_buffer !VERSION_GLES_3_2"),
 
+	// EXT_blend_func_extended
+	GLFUNC_SUFFIX(glBindFragDataLocationIndexed, EXT, "GL_EXT_blend_func_extended"),
+	GLFUNC_SUFFIX(glGetFragDataIndex, EXT,            "GL_EXT_blend_func_extended"),
+
 	// GLES 3.2
 	GLFUNC_REQUIRES(glMinSampleShading,        "VERSION_GLES_3_2"),
 	GLFUNC_REQUIRES(glDebugMessageCallback,    "VERSION_GLES_3_2"),

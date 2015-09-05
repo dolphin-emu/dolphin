@@ -28,5 +28,6 @@ public:
 	void* GetFuncAddress(const std::string& name);
 	bool Create(void *window_handle);
 	bool MakeCurrent();
+	bool ClearCurrent();
 	void Shutdown();
 };
