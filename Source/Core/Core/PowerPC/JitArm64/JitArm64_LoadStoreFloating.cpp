@@ -73,11 +73,11 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
 	RegType type = !!(flags & BackPatchInfo::FLAG_SIZE_F64) ? REG_LOWER_PAIR : REG_DUP;
 
-	ARM64Reg VD = fpr.RW(inst.FD, type);
-	ARM64Reg addr_reg = W0;
-
 	gpr.Lock(W0, W30);
 	fpr.Lock(Q0);
+
+	ARM64Reg VD = fpr.RW(inst.FD, type);
+	ARM64Reg addr_reg = W0;
 
 	if (update)
 	{
@@ -262,11 +262,11 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 	u32 imm_addr = 0;
 	bool is_immediate = false;
 
-	ARM64Reg V0 = fpr.R(inst.FS, REG_IS_LOADED);
-	ARM64Reg addr_reg = W1;
-
 	gpr.Lock(W0, W1, W30);
 	fpr.Lock(Q0);
+
+	ARM64Reg V0 = fpr.R(inst.FS, REG_IS_LOADED);
+	ARM64Reg addr_reg = W1;
 
 	if (update)
 	{
