@@ -82,6 +82,7 @@
     <ClCompile Include="VideoState.cpp" />
     <ClCompile Include="TextureDecoder_Common.cpp" />
     <ClCompile Include="TextureDecoder_x64.cpp" />
+    <ClCompile Include="VRTracker.cpp" />
     <ClCompile Include="XFMemory.cpp" />
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
@@ -137,6 +138,7 @@
     <ClInclude Include="VideoCommon.h" />
     <ClInclude Include="VideoConfig.h" />
     <ClInclude Include="VideoState.h" />
+    <ClInclude Include="VRTracker.h" />
     <ClInclude Include="XFMemory.h" />
     <ClInclude Include="XFStructs.h" />
   </ItemGroup>
@@ -158,6 +160,9 @@
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
       <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\InputCommon\InputCommon.vcxproj">
+      <Project>{6bbd47cf-91fd-4077-b676-8b76980178a9}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -463,11 +463,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Stereoscopic 3D Mode:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 
 #ifdef _WIN32
-		const wxString stereo_choices[] = { _("Off"), _("Side-by-Side"), _("Top-and-Bottom"), _("Anaglyph"), _("Nvidia 3D Vision"), _("Oculus"), _("VR920") };
-		const wxString stereo_choices_na[] = { _("Off"), _("Side-by-Side"), _("Top-and-Bottom"), _("Anaglyph"), _("N/A"), _("Oculus"), _("VR920") };
+		const wxString stereo_choices[] = { _("Off"), _("Side-by-Side"), _("Top-and-Bottom"), _("Anaglyph"), _("OSVR"), _("Nvidia 3D Vision"), _("Oculus"), _("VR920") };
+		const wxString stereo_choices_na[] = { _("Off"), _("Side-by-Side"), _("Top-and-Bottom"), _("Anaglyph"), _("OSVR"), _("N/A"), _("Oculus"), _("VR920") };
 #else
-		const wxString stereo_choices[] = { _("Off"), _("Side-by-Side"), _("Top-and-Bottom"), _("Anaglyph"), _("Nvidia 3D Vision"), _("Oculus") };
-		const wxString stereo_choices_na[] = { _("Off"), _("Side-by-Side"), _("Top-and-Bottom"), _("Anaglyph"), _("N/A"), _("Oculus") };
+		const wxString stereo_choices[] = { _("Off"), _("Side-by-Side"), _("Top-and-Bottom"), _("Anaglyph"), _("OSVR"), _("Nvidia 3D Vision"), _("Oculus") };
+		const wxString stereo_choices_na[] = { _("Off"), _("Side-by-Side"), _("Top-and-Bottom"), _("Anaglyph"), _("OSVR"), _("N/A"), _("Oculus") };
 #endif
 		wxChoice* stereo_choice;
 		if (vconfig.backend_info.bSupports3DVision)

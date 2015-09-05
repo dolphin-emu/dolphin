@@ -5,6 +5,9 @@
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#ifdef CIFACE_USE_OSVR
+#include "InputCommon/ControllerInterface/OSVR/OSVR.h"
+#endif
 #ifdef CIFACE_USE_XINPUT
 	#include "InputCommon/ControllerInterface/XInput/XInput.h"
 #endif
@@ -83,6 +86,9 @@ void ControllerInterface::Initialize(void* const hwnd)
 	// VR Sixense Razer Hydra or STEM
 	InitSixenseLib();
 #endif
+#ifdef CIFACE_USE_OSVR
+	ciface::OSVR::Init(m_devices);
+#endif
 
 	m_is_init = true;
 }
@@ -145,6 +151,9 @@ void ControllerInterface::Shutdown()
 		g_sixense_initialized = false;
 		Hydra_Exit();
 	}
+#endif
+#ifdef CIFACE_USE_OSVR
+	// nothing needed
 #endif
 
 	m_is_init = false;

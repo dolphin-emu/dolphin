@@ -233,6 +233,11 @@ void OpenGLPostProcessing::CreateHeader()
 			"\treturn time;\n"
 		"}\n"
 
+		"uint GetLayer()\n"
+		"{\n"
+			"\treturn layer;\n"
+		"}\n"
+
 		"void SetOutput(float4 color)\n"
 		"{\n"
 			"\tocol0 = color;\n"

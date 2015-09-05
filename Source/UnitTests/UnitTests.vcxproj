@@ -49,7 +49,8 @@
         The following libs are needed since we pull in pretty much the entire
         dolphin codebase.
         -->
-      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;$(ExternalsDir)openvr\lib\win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;$(ExternalsDir)openvr\lib\win64;$(ExternalsDir)OSVR\lib%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="Exists('$(ExternalsDir)OSVR/lib/osvrClientKit.lib')">osvrClientKit.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2013/libovr64d.lib')">libovr64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Debug/VS2013/libovr.lib')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(ExternalsDir)LibOVR/Lib/Win32/VS2013/libovr64d.lib')">libovrd.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -106,7 +107,7 @@
     OutDir :)
     -->
   <ItemGroup>
-    <ExternalDlls Include="$(ExternalsDir)OpenAL\$(PlatformName)\*.dll" />
+    <ExternalDlls Include="$(ExternalsDir)OSVR\bin\osvr*.dll;$(ExternalsDir)OpenAL\$(PlatformName)\*.dll" />
   </ItemGroup>
   <!--Either method of running requires the runtime deps to be copied to pwd-->
   <Target Name="CopyDeps"

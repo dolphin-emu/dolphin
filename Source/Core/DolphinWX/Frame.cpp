@@ -57,6 +57,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
+#include "VideoCommon/VRTracker.h"
 
 // Resources
 
@@ -353,11 +354,13 @@ bool CFrame::InitControllers()
 		Keyboard::Initialize(reinterpret_cast<void*>(win));
 		Wiimote::Initialize(reinterpret_cast<void*>(win));
 		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
+		VRTracker::Initialize(reinterpret_cast<void*>(win));
 #else
 		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
 		Keyboard::Initialize(reinterpret_cast<void*>(GetHandle()));
 		Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()));
 		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
+		VRTracker::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
 		return true;
 	}

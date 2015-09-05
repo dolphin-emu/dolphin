@@ -23,6 +23,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
+#include "VideoCommon/VRTracker.h"
 #include "VideoCommon/XFMemory.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/Core.h"
@@ -51,6 +52,8 @@ static Matrix33 s_viewRotationMatrix;
 static Matrix33 s_viewInvRotationMatrix;
 static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
+
+static Matrix44 s_VRTransformationMatrix;
 
 VertexShaderConstants VertexShaderManager::constants;
 std::vector<VertexShaderConstants> VertexShaderManager::constants_replay;
@@ -715,6 +718,7 @@ void VertexShaderManager::Init()
 
 	// TODO: should these go inside ResetView()?
 	Matrix44::LoadIdentity(s_viewportCorrection);
+	Matrix44::LoadIdentity(s_VRTransformationMatrix);
 	memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
 	for (int i = 0; i < 4; ++i)
 		g_fProjectionMatrix[i*5] = 1.0f;
@@ -2312,6 +2316,8 @@ void VertexShaderManager::RotateView(float x, float y)
 
 void VertexShaderManager::ResetView()
 {
+	VRTracker::ResetView();
+
 	memset(s_fViewTranslationVector, 0, sizeof(s_fViewTranslationVector));
 	Matrix33::LoadIdentity(s_viewRotationMatrix);
 	Matrix33::LoadIdentity(s_viewInvRotationMatrix);

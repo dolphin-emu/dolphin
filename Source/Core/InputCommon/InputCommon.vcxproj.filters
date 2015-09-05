@@ -13,6 +13,9 @@
     <Filter Include="ControllerInterface\ForceFeedback">
       <UniqueIdentifier>{e10ce316-283c-4be0-848d-578dec2b6404}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ControllerInterface\OSVR">
+      <UniqueIdentifier>{de46bc42-a4e5-4e40-b5ff-292bc76f6fd4}</UniqueIdentifier>
+    </Filter>
     <Filter Include="ControllerInterface\Sixense">
       <UniqueIdentifier>{8e4d9d8d-1a70-4a65-839f-34437b5f461c}</UniqueIdentifier>
     </Filter>
@@ -46,6 +49,9 @@
     </ClCompile>
     <ClCompile Include="ControllerInterface\DInput\XInputFilter.cpp">
       <Filter>ControllerInterface\DInput</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\OSVR\OSVR.cpp">
+      <Filter>ControllerInterface\OSVR</Filter>
     </ClCompile>
     <ClCompile Include="ControllerInterface\Sixense\SixenseHack.cpp">
       <Filter>ControllerInterface\Sixense</Filter>
@@ -88,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="ControllerInterface\DInput\XInputFilter.h">
       <Filter>ControllerInterface\DInput</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\OSVR\OSVR.h">
+      <Filter>ControllerInterface\OSVR</Filter>
     </ClInclude>
     <ClInclude Include="ControllerInterface\Sixense\SixenseHack.h">
       <Filter>ControllerInterface\Sixense</Filter>
