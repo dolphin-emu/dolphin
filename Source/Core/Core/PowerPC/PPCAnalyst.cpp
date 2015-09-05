@@ -624,12 +624,14 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 }
 
 u32 PPCAnalyzer::CollectInstructions(u32 address, CodeOp* code,
+                                     std::array<u32, 8>* inlined_addrs,
                                      u32 max_block_size, bool inlining)
 {
 	u32 start_address = address;
 	u32 num_instrs = 0;
 	bool prev_inst_from_bat = true;
 	bool clean_inlining_exit = false;
+	u32 num_inlined = 0;
 
 	while (num_instrs < max_block_size)
 	{
@@ -732,13 +734,14 @@ u32 PPCAnalyzer::CollectInstructions(u32 address, CodeOp* code,
 		}
 
 		bool inlined = false;
-		if (try_inlining)
+		if (try_inlining && num_inlined < 8)
 		{
-			u32 inlined_instrs = CollectInstructions(branch_destination, code,
+			u32 inlined_instrs = CollectInstructions(branch_destination, code, inlined_addrs,
 			                                         max_block_size - num_instrs, true);
 			if (inlined_instrs)
 			{
 				inlined = true;
+				(*inlined_addrs)[num_inlined++] = branch_destination;
 				code += inlined_instrs;
 				num_instrs += inlined_instrs;
 			}
@@ -768,6 +771,13 @@ u32 PPCAnalyzer::CollectInstructions(u32 address, CodeOp* code,
 	return num_instrs;
 }
 
+void PPCAnalyzer::InvalidateCache(u32 address, u32 size)
+{
+	auto it = m_not_inlinable.lower_bound(address);
+	while (it != m_not_inlinable.end() && *it < (address + size))
+		it = m_not_inlinable.erase(it);
+}
+
 u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize)
 {
 	// Clear block stats
@@ -792,7 +802,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	// Pass 1: collect instructions and potentially inline.
 	CodeOp *code = buffer->codebuffer;
 	block->m_num_instructions = CollectInstructions(
-			address, code, blockSize, false /* inlining */);
+			address, code, &block->m_inlined_addrs, blockSize, false /* inlining */);
 	if (!block->m_num_instructions && blockSize)
 		block->m_memory_exception = true;
 
@@ -810,7 +820,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	if (block->m_num_instructions > 1)
 		ReorderInstructions(block->m_num_instructions, code);
 
-	bool found_exit = code[block->m_num_instructions - 1].isExit;
+	bool found_exit = block->m_num_instructions && code[block->m_num_instructions - 1].isExit;
 	if ((!found_exit && block->m_num_instructions > 0) || blockSize == 1)
 	{
 		// We couldn't find an exit

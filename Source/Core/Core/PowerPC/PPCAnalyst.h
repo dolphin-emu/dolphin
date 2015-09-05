@@ -5,10 +5,11 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <map>
+#include <set>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "Common/BitSet.h"
@@ -167,6 +168,9 @@ struct CodeBlock
 
 	// Which GQRs this block modifies, if any.
 	BitSet8 m_gqr_modified;
+
+	// Which functions have been inlined into this block, if any.
+	std::array<u32, 8> m_inlined_addrs;
 };
 
 class PPCAnalyzer
@@ -188,14 +192,15 @@ private:
 	// both the "top level" of a block and for potential inlining. Returns the
 	// number of instructions added to the block. In the case of inlining, if no
 	// instructions were added, it means inlining was impossible.
-	u32 CollectInstructions(u32 address, CodeOp* code, u32 max_block_size, bool inlining);
+	u32 CollectInstructions(u32 address, CodeOp* code, std::array<u32, 8>* inlined_addrs,
+	                        u32 max_block_size, bool inlining);
 
 	// Options
 	u32 m_options;
 
 	// Cache of whether a call to a given address can be inlined or not. Needs to
 	// be invalidated when the destination block has been invalidated.
-	std::unordered_set<u32> m_not_inlinable;
+	std::set<u32> m_not_inlinable;
 
 public:
 
@@ -243,6 +248,11 @@ public:
 	void SetOption(AnalystOption option) { m_options |= option; }
 	void ClearOption(AnalystOption option) { m_options &= ~(option); }
 	bool HasOption(AnalystOption option) const { return !!(m_options & option); }
+
+	// Invalidate internal caches. Currently, this only effects the "inlinable"
+	// status of destination addresses.
+	void InvalidateCache(u32 address, u32 size);
+	void ClearCache() { m_not_inlinable.clear(); }
 
 	u32 Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize);
 };

@@ -119,6 +119,7 @@ public:
 	JitState js;
 
 	virtual JitBaseBlockCache *GetBlockCache() = 0;
+	PPCAnalyst::PPCAnalyzer *GetPPCAnalyzer() { return &analyzer; }
 
 	virtual void Jit(u32 em_address) = 0;
 
