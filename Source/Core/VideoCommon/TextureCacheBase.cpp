@@ -1014,7 +1014,10 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 	entry->hash = GetHash64(dst, (int)entry->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
-	// Invalidate all textures that overlap the range of our texture
+	// Invalidate all textures that overlap the range of our efb copy.
+	// Unless our efb copy has a weird stride, then we want avoid invalidating textures which
+	// we might be able to do a partial texture update on.
+	if (entry->memory_stride == entry->CacheLinesPerRow() * 32)
 	{
 		TexCache::iterator iter = textures_by_address.begin();
 		while (iter != textures_by_address.end())
