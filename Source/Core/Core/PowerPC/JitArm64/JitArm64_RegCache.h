@@ -31,8 +31,6 @@ enum FlushMode
 	// Flushes registers in a conditional branch
 	// Doesn't wipe the state of the registers from the cache
 	FLUSH_MAINTAIN_STATE,
-	// Flushes only the required registers for an interpreter call
-	FLUSH_INTERPRETER,
 };
 
 class OpArg
