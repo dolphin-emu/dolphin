@@ -22,6 +22,76 @@
 
 #include <wx/msgdlg.h>
 
+static wxString async_desc = wxTRANSLATE("Render head rotation updates in a separate thread at full frame rate using Timewarp even when the game runs at a lower frame rate.");
+static wxString temp_desc = wxTRANSLATE("Game specific VR option, in metres or degrees");
+static wxString minfov_desc = wxTRANSLATE("Minimum horizontal degrees of your view that the action will fill.\nWhen the game tries to render from a distance with a zoom lens, this will move thhe camera closer instead. When the FOV is less than the minimum the camera will move forward until objects at Aim Distance fill the minimum FOV.\nIf unsure, leave this at 10 degrees.");
+static wxString scale_desc = wxTRANSLATE("(Don't change this until the game's Units Per Metre setting is already lifesize!)\n\nScale multiplier for all VR worlds.\n1x = lifesize, 2x = Giant size\n0.5x = Child size, 0.17x = Barbie doll size, 0.02x = Lego size\n\nIf unsure, use 1.00.");
+static wxString lean_desc = wxTRANSLATE("How many degrees leaning back should count as vertical.\n0 = sitting/standing, 45 = reclining\n90 = playing lying on your back, -90 = on your front\n\nIf unsure, use 0.");
+static wxString extraframes_desc = wxTRANSLATE("How many extra frames to render via timewarp.  Set to 0 for 60fps games, 1 for 30fps games, 2 for 20fps games and the framelimiter to your Rift's refresh rate.  For 25fps PAL games, set to 2 and set the frame limiter to 60 (assuming the Rift's refresh rate is set to 75hz).  If unsure, use 0.");
+static wxString replaybuffer_desc = wxTRANSLATE("How many extra frames to render through replaying the video loop.  Set to 0 for 60fps games, 1 for 30fps games, 2 for 20fps games and the framelimiter to your Rift's refresh rate.  For 25fps PAL games, set to 2 and set the frame limiter to 60 (assuming the Rift's refresh rate is set to 75hz).  If unsure, use 0.");
+static wxString stabilizeroll_desc = wxTRANSLATE("Counteract the game's camera roll. Requires 'Read Camera Angles' to be checked in the 'VR Game' tab.\nIf unsure, leave this checked.");
+static wxString stabilizepitch_desc = wxTRANSLATE("Counteract the game's camera pitch. Fixes tilt in 3rd person games and allows free y-axis aiming in 1st person games.  Requires 'Read Camera Angles' to be checked in the 'VR Game' tab.\nIf unsure, leave this checked.");
+static wxString stabilizeyaw_desc = wxTRANSLATE("Counteract the game's camera yaw. Use this when playing standing up or in a swivel chair. Also allows completely free x-axis aiming in 1st person games.  Requires 'Read Camera Angles' to be checked in the 'VR Game' tab.\nIf unsure, leave this unchecked.");
+static wxString stabilizex_desc = wxTRANSLATE("Counteract the game's 'sideways' camera movement. Requires 'Read Camera Angles' to be checked in the 'VR Game' tab. This might reduce motion sickness, but will stop the HUD from lining up correctly. Use freelook to move the camera yourself. This option is for playing standing up in a large room, or with the scale set to toy sized.\nIf unsure, leave this unchecked.");
+static wxString stabilizey_desc = wxTRANSLATE("Counteract the game's 'vertical' camera movement. Requires 'Read Camera Angles' to be checked in the 'VR Game' tab. This might reduce motion sickness, but will stop the HUD from lining up correctly. Use freelook to move the camera yourself. This option sometimes works when seated, but is mostly for playing standing up in a large room, or with the scale set to toy sized.\nIf unsure, leave this unchecked.");
+static wxString stabilizez_desc = wxTRANSLATE("Counteract the game's 'forwards' camera movement. Requires 'Read Camera Angles' to be checked in the 'VR Game' tab. This might reduce motion sickness, but will stop the HUD from lining up correctly. Use freelook to move the camera yourself. This option is for playing standing up in a large room, or with the scale set to toy sized.\nIf unsure, leave this unchecked.");
+static wxString keyhole_desc = wxTRANSLATE("Allows keyhole aiming in 1st person games by manipulating the yaw correction. Great for first person shooters.\nIf unsure, leave this unchecked.");
+static wxString keyholewidth_desc = wxTRANSLATE("The width of the horizontal keyhole in degrees.\nIf unsure, use 45.");
+static wxString keyholesnap_desc = wxTRANSLATE("Snaps the view a certain amount of degrees to the side if the edge of the keyhole is reached. This lowers motion sickness during 1st person turns, but may be considered less immersive.\nIf unsure, leave this unchcked.");
+static wxString keyholesnapsize_desc = wxTRANSLATE("The size of the heyhole snap jump in degrees.\nIf unsure, use 30.");
+static wxString pullup20_desc = wxTRANSLATE("Make headtracking work at 75fps for a 20fps game. Enable this on 20fps games to fix judder.\nIf unsure, leave this unchecked.");
+static wxString pullup30_desc = wxTRANSLATE("Make headtracking work at 75fps for a 30fps game. Enable this on 30fps games to fix judder.\nIf unsure, leave this unchecked.");
+static wxString pullup60_desc = wxTRANSLATE("Make headtracking work at 75fps for a 60fps game. Enable this on 60fps games to fix judder.\nIf unsure, leave this unchecked.");
+static wxString opcodewarning_desc = wxTRANSLATE("Turn off Opcode Warnings.  Will ignore errors in the Opcode Replay Buffer, allowing many games with minor problems to be played.  This should be turned on if trying to play a game with Opcode Replay enabled. Once all the bugs in the Opcode Buffer are fixed, this option will be removed!");
+static wxString replayvertex_desc = wxTRANSLATE("Records and replays the vertex buffer and vertex shader constants. This is only needed for certain games that overwrite the vertex buffer midframe, causing corruption with Opcode Replay enabled, e.g. Metroid Prime and DK Country.\nIf unsure, leave this unchecked.");
+static wxString replayother_desc = wxTRANSLATE("Records and replays many other parts of the frame such as the Index Buffer, Geometery Shader Constants, and Pixel Shader constants.  This has not been found to help with any games (yet), and should be left disabled for most games. Enabling this will use more memory most likely for no reason.\nIf unsure, leave this unchecked.");
+static wxString pullup20timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 75fps for a 20fps game. Enable this on 20fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
+static wxString pullup30timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 75fps for a 30fps game. Enable this on 30fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
+static wxString pullup60timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 75fps for a 60fps game. Enable this on 60fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
+static wxString timewarptweak_desc = wxTRANSLATE("How long before the expected Vsync the timewarped frame should be injected. Ideally this value should be around 0.0040, but some configurations may benefit from tweaking this value.  Only used if 'Extra Timewarped Frames' is non-zero. If unsure, set this to 0.0040.");
+static wxString enablevr_desc = wxTRANSLATE("Enable Virtual Reality (if your HMD was detected when you started Dolphin).\n\nIf unsure, leave this checked.");
+static wxString player_desc = wxTRANSLATE("During split-screen games, which player is wearing the Oculus Rift?\nPlayer 1 is top left, player 2 is top right, player 3 is bottom left, player 4 is bottom right.\nThe player in the Rift will only see their player's view.\n\nIf unsure, say Player 1.");
+static wxString cameracontrol_desc = wxTRANSLATE("Let the game rotate the camera only in these axes, to prevent motion sickness.\nDoesn't work in all games.\n\nIf unsure, choose Yaw only.");
+static wxString readpitch_desc = wxTRANSLATE("How many extra degrees pitch to add to the camera when reading camera angles.\nThis only has an effect when 'Read Camera Angles' is checked and 'Let the Game Camera Control' is not set to 'yaw, pitch, and roll'. It is for games where the read camera angle is looking at the floor.\nThis will normally be 0 or 90.\nIf unsure, leave this at 0 degrees.");
+static wxString lowpersistence_desc = wxTRANSLATE("Use low persistence on DK2 to reduce motion blur when turning your head.\n\nIf unsure, leave this checked.");
+static wxString dynamicpred_desc = wxTRANSLATE("\"Adjust prediction dynamically based on internally measured latency.\"\n\nIf unsure, leave this checked.");
+static wxString nomirrortowindow_desc = wxTRANSLATE("Disable the mirrored window in direct mode.  Current tests show better performance with this unchecked and the mirrored window resized to 0 pixels by 0 pixels. Leave this unchecked.");
+static wxString orientation_desc = wxTRANSLATE("Use orientation tracking.\n\nLeave this checked.");
+static wxString magyaw_desc = wxTRANSLATE("Use the Rift's magnetometers to prevent yaw drift when out of camera range.\n\nIf unsure, leave this checked.");
+static wxString position_desc = wxTRANSLATE("Use position tracking (both from camera and head/neck model).\n\nLeave this checked.");
+static wxString chromatic_desc = wxTRANSLATE("Use chromatic aberration correction to prevent red and blue fringes at the edges of objects.\n\nIf unsure, leave this checked.");
+static wxString timewarp_desc = wxTRANSLATE("Shift the warped display after rendering to correct for head movement during rendering.\n\nIf unsure, leave this checked.");
+static wxString vignette_desc = wxTRANSLATE("Fade out the edges of the screen to make the screen sides look less harsh.\nNot needed on DK1.\n\nIf unsure, leave this unchecked.");
+static wxString norestore_desc = wxTRANSLATE("Tell the Oculus SDK not to restore OpenGL state.\n\nIf unsure, leave this unchecked.");
+static wxString flipvertical_desc = wxTRANSLATE("Flip the screen vertically.\n\nIf unsure, leave this unchecked.");
+static wxString srgb_desc = wxTRANSLATE("\"Assume input images are in sRGB gamma-corrected color space.\"\n\nIf unsure, leave this unchecked.");
+static wxString overdrive_desc = wxTRANSLATE("Try to fix true black smearing by overdriving brightness transitions.\n\nIf unsure, leave this unchecked.");
+static wxString hqdistortion_desc = wxTRANSLATE("\"High-quality sampling of distortion buffer for anti-aliasing\".\n\nIf unsure, leave this unchecked.");
+static wxString hudontop_desc = wxTRANSLATE("Always draw the HUD on top of everything else.\nUse this when you can't see the HUD because the world is covering it up.\n\nIf unsure, leave this unchecked.");
+static wxString dontclearscreen_desc = wxTRANSLATE("Don't clear the screen every frame. This prevents some games from flashing.\n\nIf unsure, leave this unchecked.");
+static wxString canreadcamera_desc = wxTRANSLATE("Read the camera angle from the angle of the first drawn 3D object.\nThis will only work in some games, but helps keep the ground horizontal.\n\nIf unsure, leave this unchecked.");
+static wxString detectskybox_desc = wxTRANSLATE("Assume any object drawn at 0,0,0 in camera space is a skybox.\nUse this if the sky looks too close, or to enable hiding or locking the skybox for motion sickness prevention (see the Motion Sickness tab).\n\nIf unsure, either setting is usually fine.");
+static wxString nearclip_desc = wxTRANSLATE("Always draw things which are close to (or far from) the camera.\nThis fixes the problem of things disappearing when you move your head close.\nThere can still be problems when two objects are in front of the near clipping plane, if they are drawn in the wrong order.\n\nIf unsure, leave this checked.");
+static wxString showcontroller_desc = wxTRANSLATE("Show the razer hydra, wiimote, or gamecube controller inside the game world. Note: Only works in Direct3D for now. \n\nIf unsure, leave this unchecked.");
+static wxString showhands_desc = wxTRANSLATE("Show your hands inside the game world.\n\nIf unsure, leave this unchecked.");
+static wxString showfeet_desc = wxTRANSLATE("Show your feet inside the game world.\nBased on your height in Oculus Configuration Utility.\n\nIf unsure, leave this unchecked.");
+static wxString showgamecamera_desc = wxTRANSLATE("Show the location of the game's camera inside the game world.\nNormally this will be where your head is unless you move your head.\n\nIf unsure, leave this unchecked.");
+static wxString showgamecamerafrustum_desc = wxTRANSLATE("Show the pyramid coming out of the game camera representing what the game thinks you can see.\n\nIf unsure, leave this unchecked.");
+static wxString showsensorbar_desc = wxTRANSLATE("Show the virtual or real sensor bar inside the game world.\n\nIf unsure, leave this unchecked.");
+static wxString showtrackingcamera_desc = wxTRANSLATE("Show the Oculus Rift tracking camera inside the game world.\n\nIf unsure, leave this unchecked.");
+static wxString showtrackingvolume_desc = wxTRANSLATE("Show the pyramid coming out of the Rift's tracking camera representing where your head can be tracked.\n\nIf unsure, leave this unchecked.");
+static wxString showbasestation_desc = wxTRANSLATE("Show the Razer Hydra base station inside the game world.\n\nIf unsure, leave this unchecked.");
+static wxString hideskybox_desc = wxTRANSLATE("Don't draw the background or sky in some games.\nThat may reduce motion sickness by reducing vection in your periphery, but most games won't look as good.\n\nIf unsure, chose 'normal'.");
+static wxString lockskybox_desc = wxTRANSLATE("Lock the game's background or sky to the real world in some games.\nTurning in-game will rotate the level but not the background. Oculus suggested this at Connect. It will reduce motion sickness at the cost of decreased immersion.\n\nIf unsure, leave this unchecked.");
+static wxString motionsicknessprevention_desc = wxTRANSLATE("A list of options that can help reduce motion sickness:\nReduce FOV - Lower the FOV temporarily during certain actions selected below.\nBlack Screen - Blank the screen entirely during certain actions selected below.\n\nIf unsure, select 'none'.");
+static wxString motionsicknessfov_desc = wxTRANSLATE("Set the restricted FOV to be used when the motion sickness reduction option is activated. A range somewhere between 80 to 40 degrees is ideal.");
+static wxString motionsicknessalways_desc = wxTRANSLATE("Always enable the selected motion sickness reduction option.\n\nIf unsure, leave this unchecked.");
+static wxString motionsicknessfreelook_desc = wxTRANSLATE("Enable the selected motion sickness reduction option during fast freelook movements.\n\nIf unsure, leave this unchecked.");
+static wxString motionsickness2d_desc = wxTRANSLATE("Enable the selected motion sickness reduction option in 2D scenes, when there is no 3D world detected.\n\nIf unsure, leave this unchecked.");
+static wxString motionsicknessleftstick_desc = wxTRANSLATE("Enable the selected motion sickness reduction option when using the left joystick.\n\nIf unsure, leave this unchecked.");
+static wxString motionsicknessrightstick_desc = wxTRANSLATE("Enable the selected motion sickness reduction option when using the right joystick.\n\nIf unsure, leave this unchecked.");
+static wxString motionsicknessdpad_desc = wxTRANSLATE("Enable the selected motion sickness reduction option when using the D-Pad.\n\nIf unsure, leave this unchecked.");
+static wxString motionsicknessir_desc = wxTRANSLATE("Enable the selected motion sickness reduction option when using the IR pointer.\n\nIf unsure, leave this unchecked.");
 
 BEGIN_EVENT_TABLE(CConfigVR, wxDialog)
 
@@ -81,7 +151,7 @@ void CConfigVR::CreateGUIControls()
 	// -- VR --
 	{
 		wxPanel* const page_vr = new wxPanel(Notebook, -1);
-		Notebook->AddPage(page_vr, _("VR"));
+		Notebook->AddPage(page_vr, wxTRANSLATE("VR"));
 		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
 
 		// - vr
@@ -92,7 +162,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber* const spin_scale = CreateNumber(page_vr, vconfig.fScale,
 				wxGetTranslation(scale_desc), 0.001f, 100.0f, 0.01f);
-			wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, _("Scale Multiplier:   x"));
+			wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Scale Multiplier:   x"));
 
 			spin_scale->SetToolTip(wxGetTranslation(scale_desc));
 			label->SetToolTip(wxGetTranslation(scale_desc));
@@ -103,7 +173,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber* const spin_lean = CreateNumber(page_vr, vconfig.fLeanBackAngle,
 				wxGetTranslation(lean_desc), -180.0f, 180.0f, 1.0f);
-			wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, _("Lean Back Angle:"));
+			wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Lean Back Angle:"));
 
 			spin_lean->SetToolTip(wxGetTranslation(lean_desc));
 			label->SetToolTip(wxGetTranslation(lean_desc));
@@ -112,38 +182,38 @@ void CConfigVR::CreateGUIControls()
 		}
 		// Game Camera Control
 		{
-			checkbox_roll = CreateCheckBox(page_vr, _("Roll"), wxGetTranslation(stabilizeroll_desc), vconfig.bStabilizeRoll);
-			checkbox_pitch = CreateCheckBox(page_vr, _("Pitch"), wxGetTranslation(stabilizepitch_desc), vconfig.bStabilizePitch);
-			checkbox_yaw = CreateCheckBox(page_vr, _("Yaw"), wxGetTranslation(stabilizeyaw_desc), vconfig.bStabilizeYaw);
-			checkbox_x = CreateCheckBox(page_vr, _("X"), wxGetTranslation(stabilizex_desc), vconfig.bStabilizeX);
-			checkbox_y = CreateCheckBox(page_vr, _("Y"), wxGetTranslation(stabilizey_desc), vconfig.bStabilizeY);
-			checkbox_z = CreateCheckBox(page_vr, _("Z"), wxGetTranslation(stabilizez_desc), vconfig.bStabilizeZ);
+			checkbox_roll = CreateCheckBox(page_vr, wxTRANSLATE("Roll"), wxGetTranslation(stabilizeroll_desc), vconfig.bStabilizeRoll);
+			checkbox_pitch = CreateCheckBox(page_vr, wxTRANSLATE("Pitch"), wxGetTranslation(stabilizepitch_desc), vconfig.bStabilizePitch);
+			checkbox_yaw = CreateCheckBox(page_vr, wxTRANSLATE("Yaw"), wxGetTranslation(stabilizeyaw_desc), vconfig.bStabilizeYaw);
+			checkbox_x = CreateCheckBox(page_vr, wxTRANSLATE("X"), wxGetTranslation(stabilizex_desc), vconfig.bStabilizeX);
+			checkbox_y = CreateCheckBox(page_vr, wxTRANSLATE("Y"), wxGetTranslation(stabilizey_desc), vconfig.bStabilizeY);
+			checkbox_z = CreateCheckBox(page_vr, wxTRANSLATE("Z"), wxGetTranslation(stabilizez_desc), vconfig.bStabilizeZ);
 
-			checkbox_keyhole = CreateCheckBox(page_vr, _("Keyhole"), wxGetTranslation(keyhole_desc), vconfig.bKeyhole);
+			checkbox_keyhole = CreateCheckBox(page_vr, wxTRANSLATE("Keyhole"), wxGetTranslation(keyhole_desc), vconfig.bKeyhole);
 			checkbox_yaw->Bind(wxEVT_CHECKBOX, &CConfigVR::OnYawCheckbox, this);
 			checkbox_keyhole->Bind(wxEVT_CHECKBOX, &CConfigVR::OnKeyholeCheckbox, this);
 
-			wxStaticText* label_keyhole_width = new wxStaticText(page_vr, wxID_ANY, _("Keyhole Width:"));
+			wxStaticText* label_keyhole_width = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Keyhole Width:"));
 			keyhole_width = CreateNumber(page_vr, vconfig.fKeyholeWidth, wxGetTranslation(keyholewidth_desc), 10.0f, 175.0f, 1.0f);
 			keyhole_width->Enable(vconfig.bKeyhole);
 
-			wxStaticText* label_snap = new wxStaticText(page_vr, wxID_ANY, _("Keyhole Snap:"));
-			checkbox_keyhole_snap = CreateCheckBox(page_vr, _("Keyhole Snap"), wxGetTranslation(keyholesnap_desc), vconfig.bKeyholeSnap);
+			wxStaticText* label_snap = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Keyhole Snap:"));
+			checkbox_keyhole_snap = CreateCheckBox(page_vr, wxTRANSLATE("Keyhole Snap"), wxGetTranslation(keyholesnap_desc), vconfig.bKeyholeSnap);
 			checkbox_keyhole_snap->Bind(wxEVT_CHECKBOX, &CConfigVR::OnKeyholeSnapCheckbox, this);
 
-			wxStaticText* label_snap_size = new wxStaticText(page_vr, wxID_ANY, _("Keyhole Snap Size:"));
+			wxStaticText* label_snap_size = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Keyhole Snap Size:"));
 			keyhole_snap_size = CreateNumber(page_vr, vconfig.fKeyholeSnapSize, wxGetTranslation(keyholesnapsize_desc), 10.0f, 120.0f, 1.0f);
 			keyhole_snap_size->Enable(vconfig.bKeyholeSnap);
 
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Stabilize: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Stabilize: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_roll, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_pitch, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_yaw, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Stabilize: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Stabilize: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_x, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_y, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_z, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Keyhole: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Keyhole: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_keyhole, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(label_keyhole_width, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(keyhole_width);
@@ -154,83 +224,83 @@ void CConfigVR::CreateGUIControls()
 		}
 		// VR Player
 		{
-			const wxString vr_choices[] = { _("Player 1"), _("Player 2"), _("Player 3"), _("Player 4") };
+			const wxString vr_choices[] = { wxTRANSLATE("Player 1"), wxTRANSLATE("Player 2"), wxTRANSLATE("Player 3"), wxTRANSLATE("Player 4") };
 
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Player wearing HMD:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Player wearing HMD:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iVRPlayer, wxGetTranslation(player_desc),
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
 			szr_vr->Add(choice_vr, 1, 0, 0);
 			choice_vr->Select(vconfig.iVRPlayer);
-			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, _(""));
-			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, _(""));
+			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
+			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
 			szr_vr->Add(spacer1, 1, 0, 0);
 			szr_vr->Add(spacer2, 1, 0, 0);
 		}
 		{
-			szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Low Persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Dynamic Prediction"), wxGetTranslation(dynamicpred_desc), vconfig.bDynamicPrediction));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Orientation Tracking"), wxGetTranslation(orientation_desc), vconfig.bOrientationTracking));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Magnetic Yaw"), wxGetTranslation(magyaw_desc), vconfig.bMagYawCorrection));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Position Tracking"), wxGetTranslation(position_desc), vconfig.bPositionTracking));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Chromatic Aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Timewarp"), wxGetTranslation(timewarp_desc), vconfig.bTimewarp));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Don't Restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Flip Vertical"), wxGetTranslation(flipvertical_desc), vconfig.bFlipVertical));
-			szr_vr->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
-			szr_vr->Add(CreateCheckBox(page_vr, _("HQ Distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
-			szr_vr->Add(CreateCheckBox(page_vr, _("Direct Mode - Disable Mirroring"), wxGetTranslation(nomirrortowindow_desc), vconfig.bNoMirrorToWindow));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Low Persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Dynamic Prediction"), wxGetTranslation(dynamicpred_desc), vconfig.bDynamicPrediction));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Orientation Tracking"), wxGetTranslation(orientation_desc), vconfig.bOrientationTracking));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Magnetic Yaw"), wxGetTranslation(magyaw_desc), vconfig.bMagYawCorrection));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Position Tracking"), wxGetTranslation(position_desc), vconfig.bPositionTracking));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Chromatic Aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Timewarp"), wxGetTranslation(timewarp_desc), vconfig.bTimewarp));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Don't Restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Flip Vertical"), wxGetTranslation(flipvertical_desc), vconfig.bFlipVertical));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("HQ Distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Direct Mode - Disable Mirroring"), wxGetTranslation(nomirrortowindow_desc), vconfig.bNoMirrorToWindow));
 
 #ifdef OCULUSSDK042
-			szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, _("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().bAsynchronousTimewarp));
+			szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, wxTRANSLATE("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().bAsynchronousTimewarp));
 #endif
-			szr_vr->Add(CreateCheckBox(page_vr, _("Disable Near-Clipping"), wxGetTranslation(nearclip_desc), vconfig.bDisableNearClipping));
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Disable Near-Clipping"), wxGetTranslation(nearclip_desc), vconfig.bDisableNearClipping));
 		}
 
 		// Opcode Replay Buffer GUI Options
 		wxFlexGridSizer* const szr_opcode = new wxFlexGridSizer(4, 10, 10);
 		{
-			spin_replay_buffer = new U32Setting(page_vr, _("Extra Opcode Replay Frames:"), vconfig.iExtraVideoLoops, 0, 100000);
-			RegisterControl(spin_replay_buffer, replaybuffer_desc);
-			spin_replay_buffer->SetToolTip(replaybuffer_desc);
+			spin_replay_buffer = new U32Setting(page_vr, wxTRANSLATE("Extra Opcode Replay Frames:"), vconfig.iExtraVideoLoops, 0, 100000);
+			RegisterControl(spin_replay_buffer, wxGetTranslation(replaybuffer_desc));
+			spin_replay_buffer->SetToolTip(wxGetTranslation(replaybuffer_desc));
 			spin_replay_buffer->SetValue(vconfig.iExtraVideoLoops);
 			spin_replay_buffer->Bind(wxEVT_SPINCTRL, &CConfigVR::OnOpcodeSpinCtrl, this);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frames:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Extra Opcode Replay Frames:"));
 
 			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
 			szr_opcode->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_opcode->Add(spin_replay_buffer);
 			spin_replay_buffer->Enable(!vconfig.bSynchronousTimewarp && !vconfig.bOpcodeReplay || vconfig.iExtraVideoLoops);
 
-			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, _(""));
-			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, _(""));
+			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
+			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
 			szr_opcode->Add(spacer1, 1, 0, 0);
 			szr_opcode->Add(spacer2, 1, 0, 0);
 
-			//spin_replay_buffer_divider = new U32Setting(page_vr, _("Extra Opcode Replay Frame Divider:"), vconfig.iExtraVideoLoopsDivider, 0, 100000);
-			//RegisterControl(spin_replay_buffer_divider, replaybuffer_desc);
-			//spin_replay_buffer_divider->SetToolTip(replaybuffer_desc);
+			//spin_replay_buffer_divider = new U32Setting(page_vr, wxTRANSLATE("Extra Opcode Replay Frame Divider:"), vconfig.iExtraVideoLoopsDivider, 0, 100000);
+			//RegisterControl(spin_replay_buffer_divider, wxGetTranslation(replaybuffer_desc));
+			//spin_replay_buffer_divider->SetToolTip(wxGetTranslation(replaybuffer_desc));
 			//spin_replay_buffer_divider->SetValue(vconfig.iExtraVideoLoopsDivider);
-			//wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frame Divider:"));
+			//wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Extra Opcode Replay Frame Divider:"));
 
 			//label->SetToolTip(wxGetTranslation(replaybuffer_desc));
 			//szr_opcode->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			//szr_opcode->Add(spin_replay_buffer_divider);
 			//spin_replay_buffer_divider->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 
-			szr_opcode->Add(new wxStaticText(page_vr, wxID_ANY, _("Quick Opcode Replay Settings:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-			checkbox_pullup20 = CreateCheckBox(page_vr, _("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps);
-			checkbox_pullup30 = CreateCheckBox(page_vr, _("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps);
-			checkbox_pullup60 = CreateCheckBox(page_vr, _("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps);
-			SettingCheckBox* checkbox_disable_warnings = CreateCheckBox(page_vr, _("Disable Opcode Warnings"), wxGetTranslation(opcodewarning_desc), vconfig.bOpcodeWarningDisable);
-			checkbox_replay_vertex_data = CreateCheckBox(page_vr, _("Replay Vertex Data"), wxGetTranslation(replayvertex_desc), vconfig.bReplayVertexData);
-			checkbox_replay_other_data = CreateCheckBox(page_vr, _("Replay Other Data"), wxGetTranslation(replayother_desc), vconfig.bReplayOtherData);
+			szr_opcode->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Quick Opcode Replay Settings:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			checkbox_pullup20 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps);
+			checkbox_pullup30 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps);
+			checkbox_pullup60 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps);
+			SettingCheckBox* checkbox_disable_warnings = CreateCheckBox(page_vr, wxTRANSLATE("Disable Opcode Warnings"), wxGetTranslation(opcodewarning_desc), vconfig.bOpcodeWarningDisable);
+			checkbox_replay_vertex_data = CreateCheckBox(page_vr, wxTRANSLATE("Replay Vertex Data"), wxGetTranslation(replayvertex_desc), vconfig.bReplayVertexData);
+			checkbox_replay_other_data = CreateCheckBox(page_vr, wxTRANSLATE("Replay Other Data"), wxGetTranslation(replayother_desc), vconfig.bReplayOtherData);
 			szr_opcode->Add(checkbox_pullup20, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_opcode->Add(checkbox_pullup30, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_opcode->Add(checkbox_pullup60, 1, wxALIGN_CENTER_VERTICAL, 0);
-			wxStaticText* spacer3 = new wxStaticText(page_vr, wxID_ANY, _(""));
+			wxStaticText* spacer3 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
 			szr_opcode->Add(spacer3, 1, 0, 0);
 			szr_opcode->Add(checkbox_replay_vertex_data, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_opcode->Add(checkbox_replay_other_data, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -248,42 +318,42 @@ void CConfigVR::CreateGUIControls()
 		// Synchronous Timewarp GUI Options
 		wxFlexGridSizer* const szr_timewarp = new wxFlexGridSizer(4, 10, 10);
 		{
-			spin_timewarped_frames = new U32Setting(page_vr, _("Extra Timewarped Frames:"), vconfig.iExtraTimewarpedFrames, 0, 4);
-			RegisterControl(spin_timewarped_frames, extraframes_desc);
-			spin_timewarped_frames->SetToolTip(extraframes_desc);
+			spin_timewarped_frames = new U32Setting(page_vr, wxTRANSLATE("Extra Timewarped Frames:"), vconfig.iExtraTimewarpedFrames, 0, 4);
+			RegisterControl(spin_timewarped_frames, wxGetTranslation(extraframes_desc));
+			spin_timewarped_frames->SetToolTip(wxGetTranslation(extraframes_desc));
 			spin_timewarped_frames->SetValue(vconfig.iExtraTimewarpedFrames);
 			spin_timewarped_frames->Bind(wxEVT_SPINCTRL, &CConfigVR::OnTimewarpSpinCtrl, this);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Timewarped Frames:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Extra Timewarped Frames:"));
 
-			label->SetToolTip(wxGetTranslation(extraframes_desc));
+			label->SetToolTip(wxGetTranslation(wxGetTranslation(extraframes_desc)));
 			szr_timewarp->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_timewarp->Add(spin_timewarped_frames);
 			spin_timewarped_frames->Enable(!vconfig.bSynchronousTimewarp && !vconfig.bOpcodeReplay || vconfig.iExtraTimewarpedFrames);
-			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, _(""));
-			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, _(""));
+			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
+			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
 			szr_timewarp->Add(spacer1, 1, 0, 0);
 			szr_timewarp->Add(spacer2, 1, 0, 0);
 		}
 		{
-			spin_timewarp_tweak = CreateNumber(page_vr, vconfig.fTimeWarpTweak, _("Timewarp VSync Tweak:"), -1.0f, 1.0f, 0.0001f);
-			RegisterControl(spin_timewarp_tweak, timewarptweak_desc);
-			spin_timewarp_tweak->SetToolTip(timewarptweak_desc);
+			spin_timewarp_tweak = CreateNumber(page_vr, vconfig.fTimeWarpTweak, wxTRANSLATE("Timewarp VSync Tweak:"), -1.0f, 1.0f, 0.0001f);
+			RegisterControl(spin_timewarp_tweak, wxGetTranslation(timewarptweak_desc));
+			spin_timewarp_tweak->SetToolTip(wxGetTranslation(timewarptweak_desc));
 			spin_timewarp_tweak->SetValue(vconfig.fTimeWarpTweak);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Timewarp VSync Tweak:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Timewarp VSync Tweak:"));
 			spin_timewarp_tweak->Enable(!vconfig.bOpcodeReplay);
 
 			label->SetToolTip(wxGetTranslation(timewarptweak_desc));
 			szr_timewarp->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_timewarp->Add(spin_timewarp_tweak);
-			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, _(""));
-			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, _(""));
+			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
+			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
 			szr_timewarp->Add(spacer1, 1, 0, 0);
 			szr_timewarp->Add(spacer2, 1, 0, 0);
 
-			szr_timewarp->Add(new wxStaticText(page_vr, wxID_ANY, _("Timewarp Pull-Up:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-			checkbox_pullup20_timewarp = CreateCheckBox(page_vr, _("Timewarp 20fps to 75fps"), wxGetTranslation(pullup20timewarp_desc), vconfig.bPullUp20fpsTimewarp);
-			checkbox_pullup30_timewarp = CreateCheckBox(page_vr, _("Timewarp 30fps to 75fps"), wxGetTranslation(pullup30timewarp_desc), vconfig.bPullUp30fpsTimewarp);
-			checkbox_pullup60_timewarp = CreateCheckBox(page_vr, _("Timewarp 60fps to 75fps"), wxGetTranslation(pullup60timewarp_desc), vconfig.bPullUp60fpsTimewarp);
+			szr_timewarp->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Timewarp Pull-Up:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			checkbox_pullup20_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 20fps to 75fps"), wxGetTranslation(pullup20timewarp_desc), vconfig.bPullUp20fpsTimewarp);
+			checkbox_pullup30_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 30fps to 75fps"), wxGetTranslation(pullup30timewarp_desc), vconfig.bPullUp30fpsTimewarp);
+			checkbox_pullup60_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 60fps to 75fps"), wxGetTranslation(pullup60timewarp_desc), vconfig.bPullUp60fpsTimewarp);
 			szr_timewarp->Add(checkbox_pullup20_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_timewarp->Add(checkbox_pullup30_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_timewarp->Add(checkbox_pullup60_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -295,13 +365,13 @@ void CConfigVR::CreateGUIControls()
 			checkbox_pullup60_timewarp->Enable(!vconfig.bOpcodeReplay);
 		}
 
-		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All Games"));
+		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, wxTRANSLATE("All Games"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
-		wxStaticBoxSizer* const group_opcode = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Opcode Replay (BETA) - Note: Enable 'Idle Skipping' in Config Tab"));
+		wxStaticBoxSizer* const group_opcode = new wxStaticBoxSizer(wxVERTICAL, page_vr, wxTRANSLATE("Opcode Replay (BETA) - Note: Enable 'Idle Skipping' in Config Tab"));
 		group_opcode->Add(szr_opcode, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_opcode, 0, wxEXPAND | wxALL, 5);
-		wxStaticBoxSizer* const group_timewarp = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Synchronous Timewarp - Note: Enable 'Idle Skipping' in Config Tab"));
+		wxStaticBoxSizer* const group_timewarp = new wxStaticBoxSizer(wxVERTICAL, page_vr, wxTRANSLATE("Synchronous Timewarp - Note: Enable 'Idle Skipping' in Config Tab"));
 		group_timewarp->Add(szr_timewarp, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_timewarp, 0, wxEXPAND | wxALL, 5);
 
@@ -313,7 +383,7 @@ void CConfigVR::CreateGUIControls()
 	// -- VR Game --
 	{
 		wxPanel* const page_vr = new wxPanel(Notebook, -1);
-		Notebook->AddPage(page_vr, _("VR Game"));
+		Notebook->AddPage(page_vr, wxTRANSLATE("VR Game"));
 		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
 
 		// - vr
@@ -323,7 +393,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fUnitsPerMetre,
 				wxGetTranslation(temp_desc), 0.0000001f, 10000000, 0.5f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Units Per Metre:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Units Per Metre:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_scale);
@@ -332,7 +402,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHud3DCloser,
 				wxGetTranslation(temp_desc), 0.0f, 1.0f, 0.5f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD 3D Items Closer:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("HUD 3D Items Closer:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -341,7 +411,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHudDistance,
 				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD Distance:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("HUD Distance:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -350,7 +420,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHudThickness,
 				wxGetTranslation(temp_desc), 0, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD Thickness:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("HUD Thickness:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -359,7 +429,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fCameraForward,
 				wxGetTranslation(temp_desc), -10000, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera Forward:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Camera Forward:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -368,7 +438,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fCameraPitch,
 				wxGetTranslation(temp_desc), -180, 360, 1);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera Pitch:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Camera Pitch:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -377,7 +447,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fAimDistance,
 				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Aim Distance:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Aim Distance:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -386,7 +456,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenHeight,
 				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Height:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("2D Screen Height:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -395,7 +465,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenDistance,
 				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Distance:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("2D Screen Distance:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -404,7 +474,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenThickness,
 				wxGetTranslation(temp_desc), 0, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Thickness:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("2D Screen Thickness:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -413,7 +483,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenUp,
 				wxGetTranslation(temp_desc), -10000, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Up:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("2D Screen Up:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -422,7 +492,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenPitch,
 				wxGetTranslation(temp_desc), -180, 360, 1);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Pitch:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("2D Screen Pitch:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -431,7 +501,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fMinFOV,
 				wxGetTranslation(temp_desc), 0, 179, 1);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Min HFOV:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Min HFOV:"));
 			label->SetToolTip(wxGetTranslation(minfov_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
@@ -440,25 +510,25 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fReadPitch,
 				wxGetTranslation(temp_desc), -180, 360, 1);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera Read Pitch:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Camera Read Pitch:"));
 			label->SetToolTip(wxGetTranslation(readpitch_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
 		}
 
-		szr_vr->Add(CreateCheckBox(page_vr, _("HUD on Top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Don't Clear Screen"), wxGetTranslation(dontclearscreen_desc), vconfig.bDontClearScreen));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Read Camera Angles"), wxGetTranslation(canreadcamera_desc), vconfig.bCanReadCameraAngles));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Detect Skybox"), wxGetTranslation(detectskybox_desc), vconfig.bDetectSkybox));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("HUD on Top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Don't Clear Screen"), wxGetTranslation(dontclearscreen_desc), vconfig.bDontClearScreen));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Read Camera Angles"), wxGetTranslation(canreadcamera_desc), vconfig.bCanReadCameraAngles));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Detect Skybox"), wxGetTranslation(detectskybox_desc), vconfig.bDetectSkybox));
 
-		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("For This Game Only"));
+		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, wxTRANSLATE("For This Game Only"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
 
-		wxButton* const btn_save = new wxButton(page_vr, wxID_ANY, _("Save"));
+		wxButton* const btn_save = new wxButton(page_vr, wxID_ANY, wxTRANSLATE("Save"));
 		btn_save->Bind(wxEVT_BUTTON, &CConfigVR::Event_ClickSave, this);
 		szr_vr->Add(btn_save, 1, wxALIGN_CENTER_VERTICAL, 0);
-		wxButton* const btn_reset = new wxButton(page_vr, wxID_ANY, _("Reset to Defaults"));
+		wxButton* const btn_reset = new wxButton(page_vr, wxID_ANY, wxTRANSLATE("Reset to Defaults"));
 		btn_reset->Bind(wxEVT_BUTTON, &CConfigVR::Event_ClickReset, this);
 		szr_vr->Add(btn_reset, 1, wxALIGN_CENTER_VERTICAL, 0);
 		if (SConfig::GetInstance().m_strUniqueID == "")
@@ -476,23 +546,23 @@ void CConfigVR::CreateGUIControls()
 	// -- Avatar --
 	{
 		wxPanel* const page_vr = new wxPanel(Notebook, -1);
-		Notebook->AddPage(page_vr, _("Avatar"));
+		Notebook->AddPage(page_vr, wxTRANSLATE("Avatar"));
 		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
 
 		// - vr
 		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(4, 5, 5);
 
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Controller"), wxGetTranslation(showcontroller_desc), vconfig.bShowController));
-		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Hands"), wxGetTranslation(showhands_desc), vconfig.bShowHands));
-		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Feet"), wxGetTranslation(showfeet_desc), vconfig.bShowFeet));
-		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Sensor Bar"), wxGetTranslation(showsensorbar_desc), vconfig.bShowSensorBar));
-		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera"), wxGetTranslation(showgamecamera_desc), vconfig.bShowGameCamera));
-		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera Frustum"), wxGetTranslation(showgamecamerafrustum_desc), vconfig.bShowGameFrustum));
-		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Camera"), wxGetTranslation(showtrackingcamera_desc), vconfig.bShowTrackingCamera));
-		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Volume"), wxGetTranslation(showtrackingvolume_desc), vconfig.bShowTrackingVolume));
-		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Hydra Base Station"), wxGetTranslation(showbasestation_desc), vconfig.bShowBaseStation));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Controller"), wxGetTranslation(showcontroller_desc), vconfig.bShowController));
+		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Hands"), wxGetTranslation(showhands_desc), vconfig.bShowHands));
+		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Feet"), wxGetTranslation(showfeet_desc), vconfig.bShowFeet));
+		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Sensor Bar"), wxGetTranslation(showsensorbar_desc), vconfig.bShowSensorBar));
+		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Game Camera"), wxGetTranslation(showgamecamera_desc), vconfig.bShowGameCamera));
+		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Game Camera Frustum"), wxGetTranslation(showgamecamerafrustum_desc), vconfig.bShowGameFrustum));
+		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Tracking Camera"), wxGetTranslation(showtrackingcamera_desc), vconfig.bShowTrackingCamera));
+		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Tracking Volume"), wxGetTranslation(showtrackingvolume_desc), vconfig.bShowTrackingVolume));
+		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Hydra Base Station"), wxGetTranslation(showbasestation_desc), vconfig.bShowBaseStation));
 
-		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Show Avatar"));
+		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, wxTRANSLATE("Show Avatar"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
 
@@ -504,14 +574,14 @@ void CConfigVR::CreateGUIControls()
 	// -- Motion Sickness --
 	{
 		wxPanel* const page_vr = new wxPanel(Notebook, -1);
-		Notebook->AddPage(page_vr, _("Motion Sickness"));
+		Notebook->AddPage(page_vr, wxTRANSLATE("Motion Sickness"));
 		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
 		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(4, 5, 5);
 
 		// Sky / Background
 		{
-			const wxString vr_choices[] = { _("Normal"), _("Hide"), _("Lock") };
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Sky / Background:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			const wxString vr_choices[] = { wxTRANSLATE("Normal"), wxTRANSLATE("Hide"), wxTRANSLATE("Lock") };
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Sky / Background:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iMotionSicknessSkybox, wxGetTranslation(hideskybox_desc),
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
 			szr_vr->Add(choice_vr, 1, 0, 0);
@@ -519,8 +589,8 @@ void CConfigVR::CreateGUIControls()
 		}
 		// Motion Sickness Prevention Method
 		{
-			const wxString vr_choices[] = { _("None"), _("Reduce FOV"), _("Black Screen")};
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Motion Sickness Prevention Method:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			const wxString vr_choices[] = { wxTRANSLATE("None"), wxTRANSLATE("Reduce FOV"), wxTRANSLATE("Black Screen")};
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Motion Sickness Prevention Method:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iMotionSicknessMethod, wxGetTranslation(motionsicknessprevention_desc),
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
 			szr_vr->Add(choice_vr, 1, 0, 0);
@@ -530,21 +600,21 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fMotionSicknessFOV,
 				wxGetTranslation(motionsicknessfov_desc), 1, 179, 1);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Reduced FOV:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Reduced FOV:"));
 			label->SetToolTip(wxGetTranslation(motionsicknessfov_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
 		}
 
-		szr_vr->Add(CreateCheckBox(page_vr, _("Always"), wxGetTranslation(motionsicknessalways_desc), vconfig.bMotionSicknessAlways));
-		szr_vr->Add(CreateCheckBox(page_vr, _("During Freelook"), wxGetTranslation(motionsicknessfreelook_desc), vconfig.bMotionSicknessFreelook));
-		szr_vr->Add(CreateCheckBox(page_vr, _("On 2D Screens"), wxGetTranslation(motionsickness2d_desc), vconfig.bMotionSickness2D));
-		szr_vr->Add(CreateCheckBox(page_vr, _("With Left Stick"), wxGetTranslation(motionsicknessleftstick_desc), vconfig.bMotionSicknessLeftStick));
-		szr_vr->Add(CreateCheckBox(page_vr, _("With Right Stick"), wxGetTranslation(motionsicknessrightstick_desc), vconfig.bMotionSicknessRightStick));
-		szr_vr->Add(CreateCheckBox(page_vr, _("With D-Pad"), wxGetTranslation(motionsicknessdpad_desc), vconfig.bMotionSicknessDPad));
-		szr_vr->Add(CreateCheckBox(page_vr, _("With IR Pointer"), wxGetTranslation(motionsicknessir_desc), vconfig.bMotionSicknessIR));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Always"), wxGetTranslation(motionsicknessalways_desc), vconfig.bMotionSicknessAlways));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("During Freelook"), wxGetTranslation(motionsicknessfreelook_desc), vconfig.bMotionSicknessFreelook));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("On 2D Screens"), wxGetTranslation(motionsickness2d_desc), vconfig.bMotionSickness2D));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("With Left Stick"), wxGetTranslation(motionsicknessleftstick_desc), vconfig.bMotionSicknessLeftStick));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("With Right Stick"), wxGetTranslation(motionsicknessrightstick_desc), vconfig.bMotionSicknessRightStick));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("With D-Pad"), wxGetTranslation(motionsicknessdpad_desc), vconfig.bMotionSicknessDPad));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("With IR Pointer"), wxGetTranslation(motionsicknessir_desc), vconfig.bMotionSicknessIR));
 
-		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Motion Sickness"));
+		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, wxTRANSLATE("Motion Sickness"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
 
@@ -555,7 +625,7 @@ void CConfigVR::CreateGUIControls()
 
 	const wxString pageNames[] =
 	{
-		_("VR Instructions")
+		wxTRANSLATE("VR Instructions")
 	};
 
 	for (int j = 0; j < 1; ++j)
@@ -566,10 +636,10 @@ void CConfigVR::CreateGUIControls()
 		if (j == 0) 
 		{
 			//Create "Device" box, and all buttons/options within it/
-			wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer(wxHORIZONTAL, Page, _("Instructions"));
+			wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer(wxHORIZONTAL, Page, wxTRANSLATE("Instructions"));
 
 			wxStaticText* const instruction_box = new wxStaticText(Page, wxID_ANY,
-				_("Dolphin VR has a lot of options and it can be confusing to set them all correctly. Here's a quick setup "
+				wxTRANSLATE("Dolphin VR has a lot of options and it can be confusing to set them all correctly. Here's a quick setup "
 				"guide to help.\n\nDirect mode is working, but the performance on many games is poor. It is recommended to run in "
 				"extended mode! If you do run in direct mode, make sure Aero is enabled. Some games are now working judder free, but "
 				"many require 'dual core determinism' set to 'fake-completion', 'synchronize GPU thread' to be enabled, or dual core mode "
@@ -678,7 +748,7 @@ void CConfigVR::Evt_EnterControl(wxMouseEvent& ev)
 }
 
 // TODO: Don't hardcode the size of the description area via line breaks
-#define DEFAULT_DESC_TEXT _("Move the mouse pointer over an option to display a detailed description.\n\n\n\n\n\n\n")
+#define DEFAULT_DESC_TEXT wxTRANSLATE("Move the mouse pointer over an option to display a detailed description.\n\n\n\n\n\n\n")
 void CConfigVR::Evt_LeaveControl(wxMouseEvent& ev)
 {
 	// look up description text control and reset its label
@@ -695,7 +765,7 @@ void CConfigVR::Evt_LeaveControl(wxMouseEvent& ev)
 void CConfigVR::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer)
 {
 	// Create description frame
-	wxStaticBoxSizer* const desc_sizer = new wxStaticBoxSizer(wxVERTICAL, page, _("Description"));
+	wxStaticBoxSizer* const desc_sizer = new wxStaticBoxSizer(wxVERTICAL, page, wxTRANSLATE("Description"));
 	sizer->Add(desc_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	// Need to call SetSizerAndFit here, since we don't want the description texts to change the dialog width

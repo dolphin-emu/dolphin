@@ -16,7 +16,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-	<PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -53,8 +53,6 @@
     <ClCompile Include="ImageWrite.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="MainBase.cpp" />
-    <ClCompile Include="MetroidVR.cpp" />
-    <ClCompile Include="OculusSystemLibraryHeader.cpp" />
     <ClCompile Include="OnScreenDisplay.cpp" />
     <ClCompile Include="OpcodeDecoding.cpp" />
     <ClCompile Include="PerfQueryBase.cpp" />
@@ -84,8 +82,6 @@
     <ClCompile Include="VideoState.cpp" />
     <ClCompile Include="TextureDecoder_Common.cpp" />
     <ClCompile Include="TextureDecoder_x64.cpp" />
-    <ClCompile Include="VR.cpp" />
-    <ClCompile Include="VR920.cpp" />
     <ClCompile Include="XFMemory.cpp" />
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
@@ -111,7 +107,6 @@
     <ClInclude Include="LookUpTables.h" />
     <ClInclude Include="MainBase.h" />
     <ClInclude Include="NativeVertexFormat.h" />
-    <ClInclude Include="OculusSystemLibraryHeader.h" />
     <ClInclude Include="OnScreenDisplay.h" />
     <ClInclude Include="OpcodeDecoding.h" />
     <ClInclude Include="PerfQueryBase.h" />
@@ -142,8 +137,6 @@
     <ClInclude Include="VideoCommon.h" />
     <ClInclude Include="VideoConfig.h" />
     <ClInclude Include="VideoState.h" />
-    <ClInclude Include="VR.h" />
-    <ClInclude Include="VR920.h" />
     <ClInclude Include="XFMemory.h" />
     <ClInclude Include="XFStructs.h" />
   </ItemGroup>

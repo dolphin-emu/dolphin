@@ -71,6 +71,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTests\Unit
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "enet", "..\Externals\enet\enet.vcxproj", "{CBC76802-C128-4B17-BF6C-23B08C313E5E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VR", "Core\VideoCommon\VR.vcxproj", "{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -201,6 +203,10 @@ Global
 		{CBC76802-C128-4B17-BF6C-23B08C313E5E}.Debug|x64.Build.0 = Debug|x64
 		{CBC76802-C128-4B17-BF6C-23B08C313E5E}.Release|x64.ActiveCfg = Release|x64
 		{CBC76802-C128-4B17-BF6C-23B08C313E5E}.Release|x64.Build.0 = Release|x64
+		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Debug|x64.ActiveCfg = Debug|x64
+		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Debug|x64.Build.0 = Debug|x64
+		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Release|x64.ActiveCfg = Release|x64
+		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

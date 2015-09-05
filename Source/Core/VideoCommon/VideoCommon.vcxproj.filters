@@ -158,10 +158,6 @@
     <ClCompile Include="GeometryShaderManager.cpp">
       <Filter>Shader Managers</Filter>
     </ClCompile>
-    <ClCompile Include="VR.cpp" />
-    <ClCompile Include="VR920.cpp" />
-    <ClCompile Include="MetroidVR.cpp" />
-    <ClCompile Include="OculusSystemLibraryHeader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -309,9 +305,6 @@
     <ClInclude Include="GeometryShaderManager.h">
       <Filter>Shader Managers</Filter>
     </ClInclude>
-    <ClInclude Include="VR.h" />
-    <ClInclude Include="VR920.h" />
-    <ClInclude Include="OculusSystemLibraryHeader.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
