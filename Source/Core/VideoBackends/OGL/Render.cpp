@@ -1705,30 +1705,25 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// ---------------------------------------------------------------------
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
-	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		// Reset viewport for drawing text
-		glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
+	// Reset viewport for drawing text
+	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
 
-		ShowEfbCopyRegions();
-		DrawDebugText();
+	ShowEfbCopyRegions();
+	DrawDebugText();
 
-		// Do our OSD callbacks
-		OSD::DoCallbacks(OSD::OSD_ONFRAME);
-		OSD::DrawMessages();
-	}
+	// Do our OSD callbacks
+	OSD::DoCallbacks(OSD::OSD_ONFRAME);
+	OSD::DrawMessages();
+
 	// Copy the rendered frame to the real window
 	GLInterface->Swap();
 
 	// Clear framebuffer
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
-	{
-		glClearColor(0, 0, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (s_vsync != g_ActiveConfig.IsVSync())
 	{
