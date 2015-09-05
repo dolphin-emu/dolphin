@@ -112,7 +112,6 @@ class JitBaseBlockCache
 
 	bool m_initialized;
 
-	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
 	void LinkBlockExits(int i);
 	void LinkBlock(int i);
 	void UnlinkBlock(int i);
