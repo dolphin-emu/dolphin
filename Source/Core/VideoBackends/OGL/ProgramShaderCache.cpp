@@ -567,6 +567,7 @@ void ProgramShaderCache::CreateHeader()
 		"%s\n"
 		"%s\n"
 		"%s\n"
+		"%s\n"
 
 		// Silly differences
 		"#define float2 vec2\n"
@@ -588,7 +589,7 @@ void ProgramShaderCache::CreateHeader()
 		, !is_glsles && g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
 		, (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ? "#extension GL_ARB_shading_language_420pack : enable" : ""
 		, (g_ogl_config.bSupportsMSAA && v < GLSL_150) ? "#extension GL_ARB_texture_multisample : enable" : ""
-		, (g_ogl_config.bSupportSampleShading) ? "#extension GL_ARB_sample_shading : enable" : ""
+		, (v < GLSLES_300 && g_ActiveConfig.backend_info.bSupportsSSAA) ? "#extension GL_ARB_sample_shading : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "#define SAMPLER_BINDING(x) layout(binding = x)" : "#define SAMPLER_BINDING(x)"
 		, g_ActiveConfig.backend_info.bSupportsBBox ? "#extension GL_ARB_shader_storage_buffer_object : enable" : ""
 		, !is_glsles && g_ActiveConfig.backend_info.bSupportsGSInstancing ? "#extension GL_ARB_gpu_shader5 : enable" : ""
@@ -602,6 +603,7 @@ void ProgramShaderCache::CreateHeader()
 		, is_glsles ? "precision highp int;" : ""
 		, is_glsles ? "precision highp sampler2DArray;" : ""
 		, (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ? "precision highp usamplerBuffer;" : ""
+		, v > GLSLES_300 ? "precision highp sampler2DMS;" : ""
 	);
 }
 

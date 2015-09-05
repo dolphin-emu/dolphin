@@ -132,29 +132,60 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		{
 			m_textureType = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 
-			glBindTexture(m_textureType, m_efbColor);
-			glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+			if (g_ogl_config.bSupports3DTextureStorage)
+			{
+				glBindTexture(m_textureType, m_efbColor);
+				glTexStorage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA8, m_targetWidth, m_targetHeight, m_EFBLayers, false);
 
-			glBindTexture(m_textureType, m_efbDepth);
-			glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT32F, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+				glBindTexture(m_textureType, m_efbDepth);
+				glTexStorage3DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT32F, m_targetWidth, m_targetHeight, m_EFBLayers, false);
 
-			glBindTexture(m_textureType, m_efbColorSwap);
-			glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
-			glBindTexture(m_textureType, 0);
+				glBindTexture(m_textureType, m_efbColorSwap);
+				glTexStorage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA8, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+				glBindTexture(m_textureType, 0);
+
+			}
+			else
+			{
+				glBindTexture(m_textureType, m_efbColor);
+				glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+
+				glBindTexture(m_textureType, m_efbDepth);
+				glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT32F, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+
+				glBindTexture(m_textureType, m_efbColorSwap);
+				glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+				glBindTexture(m_textureType, 0);
+			}
 		}
 		else
 		{
 			m_textureType = GL_TEXTURE_2D_MULTISAMPLE;
 
-			glBindTexture(m_textureType, m_efbColor);
-			glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
+			if (g_ogl_config.bSupports2DTextureStorage)
+			{
+				glBindTexture(m_textureType, m_efbColor);
+				glTexStorage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA8, m_targetWidth, m_targetHeight, false);
 
-			glBindTexture(m_textureType, m_efbDepth);
-			glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT32F, m_targetWidth, m_targetHeight, false);
+				glBindTexture(m_textureType, m_efbDepth);
+				glTexStorage2DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT32F, m_targetWidth, m_targetHeight, false);
 
-			glBindTexture(m_textureType, m_efbColorSwap);
-			glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
-			glBindTexture(m_textureType, 0);
+				glBindTexture(m_textureType, m_efbColorSwap);
+				glTexStorage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA8, m_targetWidth, m_targetHeight, false);
+				glBindTexture(m_textureType, 0);
+			}
+			else
+			{
+				glBindTexture(m_textureType, m_efbColor);
+				glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
+
+				glBindTexture(m_textureType, m_efbDepth);
+				glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT32F, m_targetWidth, m_targetHeight, false);
+
+				glBindTexture(m_textureType, m_efbColorSwap);
+				glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
+				glBindTexture(m_textureType, 0);
+			}
 		}
 
 		// Although we are able to access the multisampled texture directly, we don't do it everywhere.
@@ -240,7 +271,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 			"	return texelFetch(samp9, pos, 0);\n"
 			"}\n";
 	}
-	else if (g_ogl_config.bSupportSampleShading)
+	else if (g_ActiveConfig.backend_info.bSupportsSSAA)
 	{
 		// msaa + sample shading available, so just fetch the sample
 		// This will lead to sample shading, but it's the only way to not loose

@@ -118,11 +118,12 @@ static void InitBackendInfo()
 	g_Config.backend_info.bSupportsGeometryShaders = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsPostProcessing = true;
+	g_Config.backend_info.bSupportsSSAA = true;
 
 	g_Config.backend_info.Adapters.clear();
 
 	// aamodes
-	const char* caamodes[] = {_trans("None"), "2x MSAA", "4x MSAA", "8x MSAA", "4x SSAA"};
+	const char* caamodes[] = {_trans("None"), "2x MSAA", "4x MSAA", "8x MSAA"};
 	g_Config.backend_info.AAModes.assign(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
 
 	// pp shaders

@@ -164,11 +164,13 @@ void VideoConfig::Load(const std::string& ini_file)
 	if (ARBruteForcer::ch_bruteforce)
 	{
 		iMultisampleMode = 0;
+		bSSAA = false;
 		iEFBScale = SCALE_1X;
 	}
 	else
 	{
 		settings->Get("MSAA", &iMultisampleMode, 0);
+		settings->Get("SSAA", &bSSAA, false);
 		settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
 	}
 	settings->Get("DstAlphaPass", &bDstAlphaPass, false);
@@ -332,6 +334,8 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
+	CHECK_SETTING("Video_Settings", "SSAA", bSSAA);
+
 	int tmp = -9000;
 	CHECK_SETTING("Video_Settings", "EFBScale", tmp); // integral
 	if (tmp != -9000)
@@ -641,6 +645,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	if (!ARBruteForcer::ch_dont_save_settings)
 	{
 		settings->Set("MSAA", iMultisampleMode);
+		settings->Set("SSAA", bSSAA);
 		settings->Set("EFBScale", iEFBScale);
 	}
 	settings->Set("TexFmtOverlayEnable", bTexFmtOverlayEnable);

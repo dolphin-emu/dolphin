@@ -95,18 +95,6 @@ using namespace Gen;
 		return num_blocks;
 	}
 
-	bool JitBaseBlockCache::RangeIntersect(int s1, int e1, int s2, int e2) const
-	{
-		// check if any endpoint is inside the other range
-		if ((s1 >= s2 && s1 <= e2) ||
-		    (e1 >= s2 && e1 <= e2) ||
-		    (s2 >= s1 && s2 <= e1) ||
-		    (e2 >= s1 && e2 <= e1))
-			return true;
-		else
-			return false;
-	}
-
 	int JitBaseBlockCache::AllocateBlock(u32 em_address)
 	{
 		JitBlock &b = blocks[num_blocks];

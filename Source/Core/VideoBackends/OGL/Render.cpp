@@ -79,9 +79,7 @@ enum MultisampleMode
 	MULTISAMPLE_2X,
 	MULTISAMPLE_4X,
 	MULTISAMPLE_8X,
-	MULTISAMPLE_SSAA_4X,
 };
-
 
 VideoConfig g_ogl_config;
 
@@ -98,6 +96,7 @@ static RasterFont* s_pfont = nullptr;
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
 static int s_last_multisample_mode = 0;
+static bool s_last_ssaa_mode = false;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
 
@@ -127,14 +126,12 @@ static int GetNumMSAASamples(int MSAAMode)
 			break;
 
 		case MULTISAMPLE_4X:
-		case MULTISAMPLE_SSAA_4X:
 			samples = 4;
 			break;
 
 		case MULTISAMPLE_8X:
 			samples = 8;
 			break;
-
 		default:
 			samples = 1;
 	}
@@ -149,27 +146,22 @@ static int GetNumMSAASamples(int MSAAMode)
 
 static void ApplySSAASettings()
 {
-	// GLES3 doesn't support SSAA
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+	if (g_ActiveConfig.bSSAA)
 	{
-		if (g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X)
+		if (g_ActiveConfig.backend_info.bSupportsSSAA)
 		{
-			if (g_ogl_config.bSupportSampleShading)
-			{
-				glEnable(GL_SAMPLE_SHADING_ARB);
-				GLfloat min_sample_shading_value = static_cast<GLfloat>(s_MSAASamples);
-				glMinSampleShading(min_sample_shading_value);
-			}
-			else
-			{
-				// TODO: move this to InitBackendInfo
-				OSD::AddMessage("SSAA Anti Aliasing isn't supported by your GPU.", 10000);
-			}
+			glEnable(GL_SAMPLE_SHADING_ARB);
+			glMinSampleShading(1.0f);
 		}
-		else if (g_ogl_config.bSupportSampleShading)
+		else
 		{
-			glDisable(GL_SAMPLE_SHADING_ARB);
+			// TODO: move this to InitBackendInfo
+			OSD::AddMessage("SSAA Anti Aliasing isn't supported by your GPU.", 10000);
 		}
+	}
+	else if (g_ActiveConfig.backend_info.bSupportsSSAA)
+	{
+		glDisable(GL_SAMPLE_SHADING_ARB);
 	}
 }
 
@@ -500,11 +492,15 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage") ||
 	                                        GLExtensions::Supports("GL_EXT_buffer_storage");
 	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
-	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
+	g_ActiveConfig.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_sample_shading") ||
+	                                            GLExtensions::Supports("GL_OES_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
 	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") ||
 	                              GLExtensions::Supports("GL_ARB_debug_output");
+	g_ogl_config.bSupports3DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample") ||
+	                                         GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array");
+	g_ogl_config.bSupports2DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
@@ -527,6 +523,14 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsEarlyZ = true;
 			g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
 			g_Config.backend_info.bSupportsGSInstancing = g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
+			g_ogl_config.bSupportsMSAA = true;
+			g_ogl_config.bSupports2DTextureStorage = true;
+			if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisampleMode > 1 && !g_ogl_config.bSupports3DTextureStorage)
+			{
+				// GLES 3.1 can't support stereo rendering and MSAA
+				OSD::AddMessage("MSAA Stereo rendering isn't supported by your GPU.", 10000);
+				g_ActiveConfig.iMultisampleMode = 1;
+			}
 		}
 		else
 		{
@@ -537,10 +541,13 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsGeometryShaders = true;
 			g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
 			g_Config.backend_info.bSupportsPaletteConversion = true;
+			g_Config.backend_info.bSupportsSSAA = true;
 			g_ogl_config.bSupportsCopySubImage = true;
 			g_ogl_config.bSupportsGLBaseVertex = true;
-			g_ogl_config.bSupportSampleShading = true;
 			g_ogl_config.bSupportsDebug = true;
+			g_ogl_config.bSupportsMSAA = true;
+			g_ogl_config.bSupports2DTextureStorage = true;
+			g_ogl_config.bSupports3DTextureStorage = true;
 		}
 	}
 	else
@@ -638,13 +645,14 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
 			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
-			g_ogl_config.bSupportSampleShading ? "" : "SSAA ",
+			g_ActiveConfig.backend_info.bSupportsSSAA ? "" : "SSAA ",
 			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
 			g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
 			g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData "
 			);
 
 	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
+	s_last_ssaa_mode = g_ActiveConfig.bSSAA;
 	s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
 	ApplySSAASettings();
 
@@ -2136,16 +2144,19 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	{
 		TargetSizeChanged = true;
 	}
-	if (TargetSizeChanged || xfbchanged || WindowResized || (s_last_multisample_mode != g_ActiveConfig.iMultisampleMode) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
+	if (TargetSizeChanged || xfbchanged || WindowResized || s_last_ssaa_mode != g_ActiveConfig.bSSAA ||
+	    (s_last_multisample_mode != g_ActiveConfig.iMultisampleMode) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
 	{
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		if (TargetSizeChanged || s_last_multisample_mode != g_ActiveConfig.iMultisampleMode || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
+		if (TargetSizeChanged || s_last_ssaa_mode != g_ActiveConfig.bSSAA ||
+		    s_last_multisample_mode != g_ActiveConfig.iMultisampleMode || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
 		{
 			s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 			s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
+			s_last_ssaa_mode = g_ActiveConfig.bSSAA;
 			s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
 			ApplySSAASettings();
 
