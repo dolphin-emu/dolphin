@@ -94,11 +94,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 			out.Write("#define InstanceID gl_InvocationID\n");
 
 		out.Write("in VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid in");
+		GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "sample" : "sample in");
 		out.Write("} vs[%d];\n", vertex_in);
 
 		out.Write("out VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
+		GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "sample" : "sample out");
 
 		if (g_ActiveConfig.iStereoMode > 0)
 			out.Write("\tflat int layer;\n");
