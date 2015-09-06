@@ -139,6 +139,9 @@
     <Filter Include="PowerPC\Jit64Common">
       <UniqueIdentifier>{81956f71-d9fe-454f-96a6-855195d611c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DolphinWatch">
+      <UniqueIdentifier>{771997b5-22b9-4936-831a-6bfc16b814d1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -726,6 +729,9 @@
     <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
+    <ClCompile Include="DolphinWatch.cpp">
+      <Filter>DolphinWatch</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1240,6 +1246,9 @@
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
       <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DolphinWatch.h">
+      <Filter>DolphinWatch</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
