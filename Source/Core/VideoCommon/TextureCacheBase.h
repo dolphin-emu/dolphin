@@ -50,6 +50,7 @@ public:
 		u32 addr;
 		u32 size_in_bytes;
 		u64 hash;
+		u64 base_hash;
 		u32 format;
 		bool is_efb_copy;
 		bool is_custom_tex;
@@ -78,9 +79,10 @@ public:
 			native_levels = _native_levels;
 		}
 
-		void SetHashes(u64 _hash)
+		void SetHashes(u64 _hash, u64 _base_hash)
 		{
 			hash = _hash;
+			base_hash = _base_hash;
 		}
 
 		TCacheEntryBase(const TCacheEntryConfig& c) : config(c) {}
