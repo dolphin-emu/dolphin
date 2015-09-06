@@ -875,16 +875,13 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" &&
 				         selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
 					popupMenu.Append(IDM_COMPRESS_ISO, _("Compress ISO..."));
-			}
-			if (platform == DiscIO::IVolume::WII_WAD)
-			{
-				popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to Wii Menu"));
-			}
-			if (platform == DiscIO::IVolume::GAMECUBE_DISC || platform == DiscIO::IVolume::WII_DISC)
-			{
+
 				wxMenuItem* changeDiscItem = popupMenu.Append(IDM_LIST_CHANGE_DISC, _("Change &Disc"));
 				changeDiscItem->Enable(Core::IsRunning());
 			}
+
+			if (platform == DiscIO::IVolume::WII_WAD)
+				popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to Wii Menu"));
 
 			PopupMenu(&popupMenu);
 		}
