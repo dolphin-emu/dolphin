@@ -50,6 +50,7 @@
     <ClCompile Include="Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Debugger\Dump.cpp" />
     <ClCompile Include="Debugger\PPCDebugInterface.cpp" />
+    <ClCompile Include="DolphinWatch.cpp" />
     <ClCompile Include="DSPEmulator.cpp" />
     <ClCompile Include="DSP\DSPAssembler.cpp" />
     <ClCompile Include="DSP\DSPDisassembler.cpp" />
@@ -266,6 +267,7 @@
     <ClInclude Include="Debugger\Dump.h" />
     <ClInclude Include="Debugger\GCELF.h" />
     <ClInclude Include="Debugger\PPCDebugInterface.h" />
+    <ClInclude Include="DolphinWatch.h" />
     <ClInclude Include="DSPEmulator.h" />
     <ClInclude Include="DSP\DSPAssembler.h" />
     <ClInclude Include="DSP\DSPDisassembler.h" />

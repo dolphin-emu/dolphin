@@ -47,6 +47,8 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
+#include "Core/DolphinWatch.h"
+
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
 #endif
@@ -276,6 +278,9 @@ bool DolphinApp::DolphinEmulatorDotComTextFileExists()
 
 void DolphinApp::AfterInit()
 {
+
+	DolphinWatch::Init(6000);
+
 	if (!m_batch_mode)
 		main_frame->UpdateGameList();
 
@@ -365,6 +370,9 @@ void DolphinApp::OnEndSession(wxCloseEvent& event)
 
 int DolphinApp::OnExit()
 {
+
+	DolphinWatch::Shutdown();
+
 	Core::Shutdown();
 	UICommon::Shutdown();
 
