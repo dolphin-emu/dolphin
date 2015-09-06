@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <memory>
 
 #include <QDataStream>
@@ -24,7 +25,7 @@
 #include "DolphinQt/GameList/GameFile.h"
 #include "DolphinQt/Utils/Utils.h"
 
-static const u32 CACHE_REVISION = 0x00B; // Last changed in PR 2598
+static const u32 CACHE_REVISION = 0x00C; // Last changed in PR 2993
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
 
 static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<DiscIO::IVolume::ELanguage, std::string> strings)
@@ -71,6 +72,9 @@ static QString GetLanguageString(DiscIO::IVolume::ELanguage language, QMap<DiscI
 GameFile::GameFile(const QString& fileName)
     : m_file_name(fileName)
 {
+	QFileInfo info(m_file_name);
+	m_folder_name = info.absoluteDir().dirName();
+
 	if (LoadFromCache())
 	{
 		m_valid = true;
@@ -111,9 +115,6 @@ GameFile::GameFile(const QString& fileName)
 			m_disc_number = volume->GetDiscNumber();
 			m_revision = volume->GetRevision();
 
-			QFileInfo info(m_file_name);
-			m_folder_name = info.absoluteDir().dirName();
-
 			ReadBanner(*volume);
 
 			m_valid = true;
@@ -131,6 +132,13 @@ GameFile::GameFile(const QString& fileName)
 		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
 		ini.GetIfExists("EmuState", "EmulationIssues", &issues_temp);
 		m_issues = QString::fromStdString(issues_temp);
+	}
+
+	if (!IsValid() && IsElfOrDol())
+	{
+		m_valid = true;
+		m_file_size = info.size();
+		m_platform = DiscIO::IVolume::ELF_DOL;
 	}
 }
 
@@ -160,8 +168,7 @@ bool GameFile::LoadFromCache()
 	QMap<u8, QString> short_names;
 	QMap<u8, QString> long_names;
 	QMap<u8, QString> descriptions;
-	stream >> m_folder_name
-	       >> short_names
+	stream >> short_names
 	       >> long_names
 	       >> descriptions
 	       >> m_company
@@ -203,8 +210,7 @@ void GameFile::SaveToCache()
 	stream.setVersion(DATASTREAM_REVISION);
 	stream << CACHE_REVISION;
 
-	stream << m_folder_name
-	       << CastLocalizedStrings<u8>(m_short_names)
+	stream << CastLocalizedStrings<u8>(m_short_names)
 	       << CastLocalizedStrings<u8>(m_long_names)
 	       << CastLocalizedStrings<u8>(m_descriptions)
 	       << m_company
@@ -219,7 +225,22 @@ void GameFile::SaveToCache()
 	       << m_revision;
 }
 
-QString GameFile::CreateCacheFilename()
+bool GameFile::IsElfOrDol() const
+{
+	const std::string name = m_file_name.toStdString();
+	const size_t pos = name.rfind('.');
+
+	if (pos != std::string::npos)
+	{
+		std::string ext = name.substr(pos);
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		return ext == ".elf" || ext == ".dol";
+	}
+	return false;
+}
+
+QString GameFile::CreateCacheFilename() const
 {
 	std::string filename, pathname, extension;
 	SplitPath(m_file_name.toStdString(), &pathname, &filename, &extension);
@@ -278,9 +299,9 @@ QString GameFile::GetName(bool prefer_long) const
 	if (name.isEmpty())
 	{
 		// No usable name, return filename (better than nothing)
-		std::string nametemp;
-		SplitPath(m_file_name.toStdString(), nullptr, &nametemp, nullptr);
-		name = QString::fromStdString(nametemp);
+		std::string name_temp, extension;
+		SplitPath(m_file_name.toStdString(), nullptr, &name_temp, &extension);
+		name = QString::fromStdString(name_temp + extension);
 	}
 	return name;
 }

@@ -40,7 +40,7 @@ void Resources::Init()
 	m_regions[DiscIO::IVolume::COUNTRY_WORLD].load(GIFN("Flag_Europe")); // Uses European flag as a placeholder
 	m_regions[DiscIO::IVolume::COUNTRY_UNKNOWN].load(GIFN("Flag_Unknown"));
 
-	m_platforms.resize(3);
+	m_platforms.resize(4);
 	m_platforms[0].load(GIFN("Platform_Gamecube"));
 	m_platforms[1].load(GIFN("Platform_Wii"));
 	m_platforms[2].load(GIFN("Platform_Wad"));
@@ -78,6 +78,8 @@ void Resources::UpdatePixmaps()
 	// TODO: toolbar[MEMCARD];
 	// TODO: toolbar[HOTKEYS];
 	m_pixmaps[BANNER_MISSING].load(GIFN("nobanner"));
+	// TODO: Make this consistent with the other files
+	m_platforms[3].load(GIFN("fileplatform"));
 }
 
 QString Resources::GetImageFilename(QString name, QString dir)

@@ -66,7 +66,7 @@ private:
 	quint64 m_file_size = 0;
 	quint64 m_volume_size = 0;
 
-	DiscIO::IVolume::ECountry m_country;
+	DiscIO::IVolume::ECountry m_country = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	DiscIO::IVolume::EPlatform m_platform;
 	u16 m_revision = 0;
 
@@ -78,7 +78,8 @@ private:
 	bool LoadFromCache();
 	void SaveToCache();
 
-	QString CreateCacheFilename();
+	bool IsElfOrDol() const;
+	QString CreateCacheFilename() const;
 
 	void ReadBanner(const DiscIO::IVolume& volume);
 };
