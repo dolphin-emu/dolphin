@@ -2,13 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <QDesktopServices>
 #include <QUrl>
 
 #include "ui_AboutDialog.h"
 
 #include "Common/Common.h"
-#include "Common/StdMakeUnique.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Utils/Utils.h"

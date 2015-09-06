@@ -11,7 +11,6 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Intrinsics.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"

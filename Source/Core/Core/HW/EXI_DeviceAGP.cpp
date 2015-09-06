@@ -2,10 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/ChunkFile.h"
 #include "Common/FileUtil.h"
 #include "Common/MemoryUtil.h"
-#include "Common/StdMakeUnique.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI_Device.h"
