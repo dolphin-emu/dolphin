@@ -223,7 +223,7 @@ namespace JitILProfiler
 				const u64 totalElapsed = block.totalElapsed;
 				const u64 numberOfCalls = block.numberOfCalls;
 				const double elapsedPerCall = totalElapsed / (double)numberOfCalls;
-				fprintf(file.GetHandle(), "%016llx, %lld, %lld, %f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
+				fprintf(file.GetHandle(), "%016lx, %ld, %ld, %f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
 			}
 		}
 	};

@@ -19,7 +19,7 @@ static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress)
 	disasm.disasm64(0, code_addr, codePtr, disbuf);
 	PanicAlert("%s\n\n"
 		"Error encountered accessing emulated address %08x.\n"
-		"Culprit instruction: \n%s\nat %#llx",
+		"Culprit instruction: \n%s\nat %#lx",
 		text.c_str(), emAddress, disbuf, code_addr);
 	return;
 }
