@@ -249,7 +249,7 @@ std::map<IVolume::ELanguage, std::string> CVolumeGC::ReadMultiLanguageStrings(bo
 		return strings;
 
 	u32 number_of_languages = 0;
-	ELanguage start_language;
+	ELanguage start_language = LANGUAGE_UNKNOWN;
 	bool is_japanese = GetCountry() == ECountry::COUNTRY_JAPAN;
 
 	switch (m_banner_file_type)
