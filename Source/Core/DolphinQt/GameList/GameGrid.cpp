@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "ui_GameGrid.h"
+#include <memory>
 
-#include "Common/StdMakeUnique.h"
+#include "ui_GameGrid.h"
 
 #include "DolphinQt/GameList/GameGrid.h"
 

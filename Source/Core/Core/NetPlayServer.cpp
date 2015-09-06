@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <string>
 #include <vector>
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/NetPlayClient.h" //for NetPlayUI

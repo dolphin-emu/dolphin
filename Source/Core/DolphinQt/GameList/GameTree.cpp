@@ -2,12 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "ui_GameTree.h"
 
-#include "Common/StdMakeUnique.h"
-
 #include "DolphinQt/GameList/GameTree.h"
-
 #include "DolphinQt/Utils/Resources.h"
 #include "DolphinQt/Utils/Utils.h"
 

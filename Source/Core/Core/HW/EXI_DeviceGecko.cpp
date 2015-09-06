@@ -2,9 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+#include <thread>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/Core.h"

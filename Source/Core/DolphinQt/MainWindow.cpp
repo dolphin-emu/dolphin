@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <QActionGroup>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -9,8 +10,6 @@
 #include <QUrl>
 
 #include "ui_MainWindow.h"
-
-#include "Common/StdMakeUnique.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"

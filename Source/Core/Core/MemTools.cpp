@@ -190,7 +190,7 @@ static void ExceptionThread(mach_port_t port)
 			msg_out.flavor = 0;
 			msg_out.new_stateCnt = 0;
 		}
-		msg_out.Head.msgh_size = offsetof(typeof(msg_out), new_state) + msg_out.new_stateCnt * sizeof(natural_t);
+		msg_out.Head.msgh_size = offsetof(__typeof__(msg_out), new_state) + msg_out.new_stateCnt * sizeof(natural_t);
 
 		send_msg = &msg_out.Head;
 		send_size = msg_out.Head.msgh_size;
