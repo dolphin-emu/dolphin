@@ -85,7 +85,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
 			if (volume != nullptr)
 			{
-				ReadBanner(*volume);
+				ReadVolumeBanner(*volume);
 				if (!m_pImage.empty())
 					SaveToCache();
 			}
@@ -112,7 +112,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_disc_number = pVolume->GetDiscNumber();
 			m_Revision = pVolume->GetRevision();
 
-			ReadBanner(*pVolume);
+			ReadVolumeBanner(*pVolume);
 
 			delete pVolume;
 
@@ -138,24 +138,28 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		m_Platform = DiscIO::IVolume::ELF_DOL;
 	}
 
+	std::string path, name;
+	SplitPath(m_FileName, &path, &name, nullptr);
+
+	// A bit like the Homebrew Channel icon, except there can be multiple files in a folder with their own icons.
+	// Useful for those who don't want to have a Homebrew Channel-style folder structure.
+	if (ReadPNGBanner(path + name + ".png"))
+		return;
+
+	// Homebrew Channel icon. Typical for DOLs and ELFs, but can be also used with volumes.
+	if (ReadPNGBanner(path + "icon.png"))
+		return;
+
+	// Volume banner. Typical for everything that isn't a DOL or ELF.
 	if (!m_pImage.empty())
 	{
-		wxImage Image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
-		double Scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
-		// Note: This uses nearest neighbor, which subjectively looks a lot
-		// better for GC banners than smooth scaling.
-		Image.Rescale(DVD_BANNER_WIDTH * Scale, DVD_BANNER_HEIGHT * Scale);
-#ifdef __APPLE__
-		m_Bitmap = wxBitmap(Image, -1, Scale);
-#else
-		m_Bitmap = wxBitmap(Image, -1);
-#endif
+		wxImage image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
+		m_Bitmap = ScaleBanner(&image);
+		return;
 	}
-	else
-	{
-		// default banner
-		m_Bitmap.LoadFile(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
-	}
+
+	// Fallback in case no banner is available.
+	ReadPNGBanner(File::GetThemeDir(SConfig::GetInstance().theme_name) + "nobanner.png");
 }
 
 GameListItem::~GameListItem()
@@ -202,7 +206,7 @@ std::string GameListItem::CreateCacheFilename()
 
 	// Filename.extension_HashOfFolderPath_Size.cache
 	// Append hash to prevent ISO name-clashing in different folders.
-	Filename.append(StringFromFormat("%s_%x_%" PRIx64 ".cache",
+	Filename.append(StringFromFormat("%s_%x_%llx.cache",
 		extension.c_str(), HashFletcher((const u8 *)LegalPathname.c_str(), LegalPathname.size()),
 		File::GetSize(m_FileName)));
 
@@ -211,7 +215,8 @@ std::string GameListItem::CreateCacheFilename()
 	return fullname;
 }
 
-void GameListItem::ReadBanner(const DiscIO::IVolume& volume)
+// Outputs to m_pImage
+void GameListItem::ReadVolumeBanner(const DiscIO::IVolume& volume)
 {
 	std::vector<u32> Buffer = volume.GetBanner(&m_ImageWidth, &m_ImageHeight);
 	u32* pData = Buffer.data();
@@ -223,6 +228,32 @@ void GameListItem::ReadBanner(const DiscIO::IVolume& volume)
 		m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >> 8;
 		m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >> 0;
 	}
+}
+
+// Outputs to m_Bitmap
+bool GameListItem::ReadPNGBanner(const std::string& path)
+{
+	if (!File::Exists(path))
+		return false;
+
+	wxImage image;
+	image.LoadFile(StrToWxStr(path), wxBITMAP_TYPE_PNG);
+	m_Bitmap = ScaleBanner(&image);
+	return true;
+}
+
+wxBitmap GameListItem::ScaleBanner(wxImage* image)
+{
+	double scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
+	// Note: This uses nearest neighbor, which subjectively looks a lot
+	// better for GC banners than smooth scaling.
+	// TODO: Make scaling less bad for Homebrew Channel banners.
+	image->Rescale(DVD_BANNER_WIDTH * scale, DVD_BANNER_HEIGHT * scale);
+#ifdef __APPLE__
+	return wxBitmap(*image, -1, scale);
+#else
+	return wxBitmap(*image, -1);
+#endif
 }
 
 std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) const

@@ -34,7 +34,7 @@ private:
 		void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int levels) override;
 
-		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
+		void FromRenderTarget(u8* dst, unsigned int dstFormat, u32 dstStride,
 			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 			const float *colmat) override;

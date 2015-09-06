@@ -364,10 +364,10 @@ void FPURegCache::StoreRegister(size_t preg, const OpArg& newLoc)
 
 void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
 {
-	for (unsigned int i = 0; i < xregs.size(); i++)
+	for (size_t i = 0; i < xregs.size(); i++)
 	{
 		if (xregs[i].locked)
-			PanicAlert("Someone forgot to unlock X64 reg %u", i);
+			PanicAlert("Someone forgot to unlock X64 reg %zu", i);
 	}
 
 	for (unsigned int i : regsToFlush)

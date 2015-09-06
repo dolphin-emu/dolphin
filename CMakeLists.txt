@@ -875,7 +875,7 @@ add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
 ########################################
 # Start compiling our code
 #
-add_definitions(-std=gnu++0x)
+add_definitions(-std=c++1y)
 
 # These aren't actually needed for C11/C++11
 # but some dependencies require them (LLVM, libav).

@@ -165,9 +165,9 @@ public:
 	HotkeyManager();
 	~HotkeyManager();
 
-	std::string GetName() const;
 	void GetInput(HotkeyStatus* const hk);
-	void LoadDefaults(const ControllerInterface& ciface);
+	std::string GetName() const override;
+	void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
 	Buttons* m_keys[(NUM_HOTKEYS + 31) / 32];

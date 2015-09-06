@@ -38,18 +38,13 @@ class TASInputDlg : public wxDialog
 		void GetValues(GCPadStatus* PadStatus);
 		void GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
 		void SetTurbo(wxMouseEvent& event);
-		void SetTurboFalse(wxMouseEvent& event);
-		void SetTurboState(wxCheckBox* CheckBox, bool* turbo_on);
 		void ButtonTurbo();
 		void GetKeyBoardInput(GCPadStatus* PadStatus);
 		void GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
-		bool TextBoxHasFocus();
-		void SetLandRTriggers();
 		void CreateGCLayout();
 		void CreateWiiLayout(int num);
 		wxBitmap CreateStickBitmap(int x, int y);
 		void SetWiiButtons(u16* butt);
-		void GetIRData(u8* const data, u8 mode, bool use_accel);
 		void HandleExtensionChange();
 
 	private:

@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <mutex>
 #include <queue>
 
 #include "Common/CommonFuncs.h"
 #include "Common/Flag.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/Thread.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"

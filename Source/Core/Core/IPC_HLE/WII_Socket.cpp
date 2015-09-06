@@ -3,6 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #include "Common/FileUtil.h"
 #include "Core/Core.h"

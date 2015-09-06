@@ -61,8 +61,6 @@ public:
 
 		virtual ControlState GetState() const = 0;
 
-		bool ShouldHaveInput();
-
 		ControlState GetGatedState()
 		{
 			if (InputGateOn())

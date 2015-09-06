@@ -5,6 +5,7 @@
 #pragma once
 
 #include "VideoBackends/OGL/GLUtil.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace OGL
@@ -24,7 +25,8 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,
 void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTexture);
 
 // returns size of the encoded data (in bytes)
-int EncodeToRamFromTexture(u32 address, GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source, u32 writeStride);
+void EncodeToRamFromTexture(u8 *dest_ptr, const TextureCache::TCacheEntryBase *texture_entry,
+	GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, int bScaleByHalf, const EFBRectangle& source);
 
 }
 

@@ -144,8 +144,6 @@ private:
 
 	static u8 *keyTable[11];
 
-	u64 GetCurrentTitleID() const;
-
 	const DiscIO::INANDContentLoader& AccessContentDevice(u64 _TitleID);
 	u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 

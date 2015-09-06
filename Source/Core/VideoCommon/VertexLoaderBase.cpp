@@ -173,7 +173,7 @@ public:
 
 		if (memcmp(buffer_a.data(), buffer_b.data(), std::min(count_a, count_b) * m_native_vtx_decl.stride))
 			ERROR_LOG(VIDEO, "The two vertex loaders have loaded different data "
-			                 "(guru meditation 0x%016" PRIx64 ", 0x%08x, 0x%08x, 0x%08x).",
+			                 "(guru meditation 0x%016llx, 0x%08x, 0x%08x, 0x%08x).",
 			                 m_VtxDesc.Hex, m_vat.g0.Hex, m_vat.g1.Hex, m_vat.g2.Hex);
 
 		memcpy(dst.GetPointer(), buffer_a.data(), count_a * m_native_vtx_decl.stride);

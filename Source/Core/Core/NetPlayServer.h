@@ -79,9 +79,11 @@ private:
 	unsigned int OnConnect(ENetPeer* socket);
 	unsigned int OnDisconnect(Client& player);
 	unsigned int OnData(sf::Packet& packet, Client& player);
-	virtual void OnTraversalStateChanged();
-	virtual void OnConnectReady(ENetAddress addr) {}
-	virtual void OnConnectFailed(u8 reason) {}
+
+	void OnTraversalStateChanged() override;
+	void OnConnectReady(ENetAddress) override {}
+	void OnConnectFailed(u8) override {}
+
 	void UpdatePadMapping();
 	void UpdateWiimoteMapping();
 	std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal();

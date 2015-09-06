@@ -39,7 +39,6 @@ public:
 	static void SetEfbScaleChanged();
 	static void SetZSlope(float dfdx, float dfdy, float f0);
 	static void SetIndMatrixChanged(int matrixidx);
-	static void SetTevKSelChanged(int id);
 	static void SetZTextureTypeChanged();
 	static void SetIndTexScaleChanged(bool high);
 	static void SetTexCoordChanged(u8 texmapid);

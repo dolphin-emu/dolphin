@@ -324,7 +324,7 @@ void Renderer::DrawDebugText()
 
 	if (SConfig::GetInstance().m_ShowLag)
 	{
-		final_cyan += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
+		final_cyan += StringFromFormat("Lag: %llu\n", Movie::g_currentLagCount);
 		final_yellow += "\n";
 	}
 

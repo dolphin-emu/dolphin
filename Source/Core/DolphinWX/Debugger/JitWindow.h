@@ -47,8 +47,5 @@ private:
 	wxTextCtrl* ppc_box;
 	wxTextCtrl* x86_box;
 
-	void OnSymbolListChange(wxCommandEvent& event);
-	void OnCallstackListChange(wxCommandEvent& event);
-	void OnAddrBoxChange(wxCommandEvent& event);
 	void OnHostMessage(wxCommandEvent& event);
 };

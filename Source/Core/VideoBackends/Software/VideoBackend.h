@@ -47,10 +47,6 @@ class VideoSoftware : public VideoBackend
 	void Video_ClearMessages() override;
 	bool Video_Screenshot(const std::string& filename) override;
 
-	int Video_LoadTexture(char *imagedata, u32 width, u32 height);
-	void Video_DeleteTexture(int texID);
-	void Video_DrawTexture(int texID, float *coords);
-
 	void Video_SetRendering(bool bEnabled) override;
 
 	void Video_GatherPipeBursted() override;

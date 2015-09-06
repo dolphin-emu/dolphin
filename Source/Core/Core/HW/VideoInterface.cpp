@@ -110,7 +110,7 @@ void Preset(bool _bNTSC)
 	m_VerticalTimingRegister.EQU = 6;
 	m_VerticalTimingRegister.ACV = 0;
 
-	m_DisplayControlRegister.ENB = 0;
+	m_DisplayControlRegister.ENB = 1;
 	m_DisplayControlRegister.FMT = _bNTSC ? 0 : 1;
 
 	m_HTiming0.HLW = 429;
@@ -611,9 +611,6 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update()
 {
-	if (!m_DisplayControlRegister.ENB)
-		return;
-
 	if (s_half_line_count == s_even_field_first_hl)
 	{
 		BeginField(FIELD_EVEN);

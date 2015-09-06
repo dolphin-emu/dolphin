@@ -9,10 +9,6 @@
 class VertexLoader_TextCoord
 {
 public:
-
-	// Init
-	static void Init();
-
 	// GetSize
 	static unsigned int GetSize(u64 _type, unsigned int _format, unsigned int _elements);
 

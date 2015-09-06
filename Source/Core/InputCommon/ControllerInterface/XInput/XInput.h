@@ -32,9 +32,9 @@ private:
 	class Button : public Core::Device::Input
 	{
 	public:
-		std::string GetName() const;
-		Button(u8 index, const WORD& buttons) : m_index(index), m_buttons(buttons) {}
-		ControlState GetState() const;
+		Button(u8 index, const WORD& buttons) : m_buttons(buttons), m_index(index) {}
+		std::string GetName() const override;
+		ControlState GetState() const override;
 		u32 GetStates() const;
 	private:
 		const WORD& m_buttons;
@@ -44,9 +44,9 @@ private:
 	class Axis : public Core::Device::Input
 	{
 	public:
-		std::string GetName() const;
-		Axis(u8 index, const SHORT& axis, SHORT range) : m_index(index), m_axis(axis), m_range(range) {}
-		ControlState GetState() const;
+		Axis(u8 index, const SHORT& axis, SHORT range) : m_axis(axis), m_range(range), m_index(index) {}
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const SHORT& m_axis;
 		const SHORT m_range;
@@ -56,9 +56,9 @@ private:
 	class Trigger : public Core::Device::Input
 	{
 	public:
-		std::string GetName() const;
-		Trigger(u8 index, const BYTE& trigger, BYTE range) : m_index(index), m_trigger(trigger), m_range(range) {}
-		ControlState GetState() const;
+		Trigger(u8 index, const BYTE& trigger, BYTE range) : m_trigger(trigger), m_range(range), m_index(index) {}
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const BYTE& m_trigger;
 		const BYTE m_range;
@@ -68,9 +68,9 @@ private:
 	class Motor : public Core::Device::Output
 	{
 	public:
-		std::string GetName() const;
-		Motor(u8 index, Device* parent, WORD &motor, WORD range) : m_index(index), m_parent(parent), m_motor(motor), m_range(range) {}
-		void SetState(ControlState state);
+		Motor(u8 index, Device* parent, WORD &motor, WORD range) : m_motor(motor), m_range(range), m_index(index), m_parent(parent) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
 	private:
 		WORD& m_motor;
 		const WORD m_range;
@@ -83,9 +83,9 @@ public:
 
 	Device(const XINPUT_CAPABILITIES& capabilities, u8 index);
 
-	std::string GetName() const;
-	int GetId() const;
-	std::string GetSource() const;
+	std::string GetName() const override;
+	int GetId() const override;
+	std::string GetSource() const override;
 
 	void UpdateMotors();
 

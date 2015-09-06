@@ -20,15 +20,12 @@ class Interpreter : public CPUCoreBase
 public:
 	void Init() override;
 	void Shutdown() override;
-	void Reset();
 	void SingleStep() override;
 	int SingleStepInner();
 
 	void Run() override;
 	void ClearCache() override;
 	const char *GetName() override;
-
-	void Log();
 
 	static bool m_EndBlock;
 
@@ -269,7 +266,6 @@ public:
 	static void crxor(UGeckoInstruction _inst);
 	static void mcrf(UGeckoInstruction _inst);
 	static void rfi(UGeckoInstruction _inst);
-	static void rfid(UGeckoInstruction _inst);
 	static void sync(UGeckoInstruction _inst);
 	static void isync(UGeckoInstruction _inst);
 
