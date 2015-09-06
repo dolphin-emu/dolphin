@@ -192,7 +192,7 @@ private:
 public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();
-	void operator=(WiiSocket const&); // Don't implement
+	void operator=(WiiSocket const&) = delete;
 
 };
 
