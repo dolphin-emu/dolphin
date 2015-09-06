@@ -58,6 +58,10 @@ static std::string GetGLSLVersionString()
 			return "#version 140";
 		case GLSL_150:
 			return "#version 150";
+		case GLSL_330:
+			return "#version 330";
+		case GLSL_400:
+			return "#version 400";
 		default:
 			// Shouldn't ever hit this
 			return "#version ERROR";
@@ -552,7 +556,6 @@ void ProgramShaderCache::CreateHeader()
 		"%s\n" // early-z
 		"%s\n" // 420pack
 		"%s\n" // msaa
-		"%s\n" // sample shading
 		"%s\n" // Sampler binding
 		"%s\n" // storage buffer
 		"%s\n" // shader5
@@ -585,17 +588,16 @@ void ProgramShaderCache::CreateHeader()
 		"#define lerp mix\n"
 
 		, GetGLSLVersionString().c_str()
-		, v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
+		, v < GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, !is_glsles && g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
 		, (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ? "#extension GL_ARB_shading_language_420pack : enable" : ""
 		, (g_ogl_config.bSupportsMSAA && v < GLSL_150) ? "#extension GL_ARB_texture_multisample : enable" : ""
-		, (v < GLSLES_300 && g_ActiveConfig.backend_info.bSupportsSSAA) ? "#extension GL_ARB_sample_shading : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "#define SAMPLER_BINDING(x) layout(binding = x)" : "#define SAMPLER_BINDING(x)"
 		, g_ActiveConfig.backend_info.bSupportsBBox ? "#extension GL_ARB_shader_storage_buffer_object : enable" : ""
-		, !is_glsles && g_ActiveConfig.backend_info.bSupportsGSInstancing ? "#extension GL_ARB_gpu_shader5 : enable" : ""
+		, v < GLSL_400 && g_ActiveConfig.backend_info.bSupportsGSInstancing ? "#extension GL_ARB_gpu_shader5 : enable" : ""
 		, SupportedESPointSize.c_str()
 		, g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : ""
-		, v<GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ? "#extension GL_ARB_texture_buffer_object : enable" : ""
+		, v < GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ? "#extension GL_ARB_texture_buffer_object : enable" : ""
 		, SupportedESTextureBuffer.c_str()
 		, is_glsles && g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "#extension GL_EXT_blend_func_extended : enable" : ""
 
