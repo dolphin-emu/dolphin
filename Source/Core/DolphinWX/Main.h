@@ -36,6 +36,7 @@ private:
 	static bool DolphinEmulatorDotComTextFileExists();
 
 	bool m_batch_mode = false;
+	bool m_no_confirm_stop = false;
 	bool m_load_file = false;
 	bool m_play_movie = false;
 	bool m_use_debugger = false;

@@ -189,6 +189,11 @@ void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
+			wxCMD_LINE_SWITCH, "n", "noconfirm",
+			"Disable Confirm on Stop",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
 			wxCMD_LINE_OPTION, "v", "video_backend",
 			"Specify a video backend",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
@@ -234,6 +239,7 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
 	m_use_debugger = parser.Found("debugger");
 	m_use_logger = parser.Found("logger");
 	m_batch_mode = parser.Found("batch");
+	m_no_confirm_stop = parser.Found("noconfirm");
 	m_select_video_backend = parser.Found("video_backend", &m_video_backend_name);
 	m_select_audio_emulation = parser.Found("audio_emulation", &m_audio_emulation_name);
 	m_play_movie = parser.Found("movie", &m_movie_file);
@@ -272,6 +278,9 @@ void DolphinApp::AfterInit()
 {
 	if (!m_batch_mode)
 		main_frame->UpdateGameList();
+
+	if (m_no_confirm_stop)
+		SConfig::GetInstance().bConfirmStop = false;
 
 	if (m_play_movie && !m_movie_file.empty())
 	{
