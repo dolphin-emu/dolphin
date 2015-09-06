@@ -84,7 +84,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsPostProcessing = false;
 	g_Config.backend_info.bSupportsPaletteConversion = true;
 	g_Config.backend_info.bSupportsClipControl = true;
-	g_Config.backend_info.bSupportsSSAA = false;
+	g_Config.backend_info.bSupportsSSAA = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
