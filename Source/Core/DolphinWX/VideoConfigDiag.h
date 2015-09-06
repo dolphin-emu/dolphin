@@ -193,8 +193,8 @@ protected:
 		// Anti-aliasing
 		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
-		if (vconfig.backend_info.bSupportsSSAA && ssaa_checkbox)
-			ssaa_checkbox->Enable(vconfig.iMultisampleMode > 0);
+		ssaa_checkbox->Enable(vconfig.backend_info.bSupportsSSAA && vconfig.iMultisampleMode > 0);
+
 
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
