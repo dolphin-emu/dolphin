@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
@@ -193,7 +194,22 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_Revision);
 }
 
-std::string GameListItem::CreateCacheFilename()
+bool GameListItem::IsElfOrDol() const
+{
+	const std::string name = GetName();
+	const size_t pos = name.rfind('.');
+
+	if (pos != std::string::npos)
+	{
+		std::string ext = name.substr(pos);
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		return ext == ".elf" || ext == ".dol";
+	}
+	return false;
+}
+
+std::string GameListItem::CreateCacheFilename() const
 {
 	std::string Filename, LegalPathname, extension;
 	SplitPath(m_FileName, &LegalPathname, &Filename, &extension);
@@ -293,20 +309,4 @@ const std::string GameListItem::GetWiiFSPath() const
 	delete iso;
 
 	return ret;
-}
-
-bool GameListItem::IsElfOrDol() const
-{
-	const std::string name = GetName();
-	const size_t pos = name.rfind('.');
-
-	if (pos != std::string::npos)
-	{
-		std::string ext = name.substr(pos);
-		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-
-		return ext == ".elf" ||
-		       ext == ".dol";
-	}
-	return false;
 }
