@@ -81,5 +81,6 @@ private:
 	bool IsElfOrDol() const;
 	QString CreateCacheFilename() const;
 
+	// Outputs to m_banner
 	void ReadBanner(const DiscIO::IVolume& volume);
 };

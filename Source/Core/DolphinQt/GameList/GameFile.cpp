@@ -73,7 +73,8 @@ GameFile::GameFile(const QString& fileName)
     : m_file_name(fileName)
 {
 	QFileInfo info(m_file_name);
-	m_folder_name = info.absoluteDir().dirName();
+	QDir directory = info.absoluteDir();
+	m_folder_name = directory.dirName();
 
 	if (LoadFromCache())
 	{
@@ -140,6 +141,16 @@ GameFile::GameFile(const QString& fileName)
 		m_file_size = info.size();
 		m_platform = DiscIO::IVolume::ELF_DOL;
 	}
+
+	// PNG files can optionally be used as banners. Typical for DOLs and ELFs, but also works with
+	// volumes. icon.png is the file name used by Homebrew Channel. The ability to use a PNG file
+	// with the same name as the main file is provided as an alternative for those who want to have
+	// multiple files in one folder instead of having a Homebrew Channel-style folder structure.
+	QImage banner(directory.filePath(info.baseName() + SL(".png")));
+	if (banner.isNull())
+		banner.load(directory.filePath(SL("icon.png")));
+	if (!banner.isNull())
+		m_banner = QPixmap::fromImage(banner);
 }
 
 bool GameFile::LoadFromCache()
@@ -259,6 +270,7 @@ QString GameFile::CreateCacheFilename() const
 	return fullname;
 }
 
+// Outputs to m_banner
 void GameFile::ReadBanner(const DiscIO::IVolume& volume)
 {
 	int width, height;
