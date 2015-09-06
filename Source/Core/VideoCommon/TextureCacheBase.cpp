@@ -1018,17 +1018,17 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 		// Invalidate all textures that overlap the range of our texture
 		TexCache::iterator
-			iter = textures_by_address.begin();
+			iter_overlap = textures_by_address.begin();
 
-		while (iter != textures_by_address.end())
+		while (iter_overlap != textures_by_address.end())
 		{
-			if (iter->second->OverlapsMemoryRange(dstAddr, entry->size_in_bytes))
+			if (iter_overlap->second->OverlapsMemoryRange(dstAddr, entry->size_in_bytes))
 			{
-				iter = FreeTexture(iter);
+				iter_overlap = FreeTexture(iter_overlap);
 			}
 			else
 			{
-				++iter;
+				++iter_overlap;
 			}
 		}
 	}
