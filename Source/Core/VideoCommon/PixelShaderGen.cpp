@@ -396,18 +396,37 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
 			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
-		out.Write("  in centroid float4 colors_0 : COLOR0,\n");
-		out.Write("  in centroid float4 colors_1 : COLOR1\n");
-
-		// compute window position if needed because binding semantic WPOS is not widely supported
-		for (unsigned int i = 0; i < numTexgen; ++i)
-			out.Write(",\n  in centroid float3 uv%d : TEXCOORD%d", i, i);
-		out.Write(",\n  in centroid float4 clipPos : TEXCOORD%d", numTexgen);
-		if (g_ActiveConfig.bEnablePixelLighting)
+		if (g_ActiveConfig.bSSAA)
 		{
-			out.Write(",\n  in centroid float3 Normal : TEXCOORD%d", numTexgen + 1);
-			out.Write(",\n  in centroid float3 WorldPos : TEXCOORD%d", numTexgen + 2);
+			out.Write("  in sample float4 colors_0 : COLOR0,\n");
+			out.Write("  in sample float4 colors_1 : COLOR1\n");
+
+			// compute window position if needed because binding semantic WPOS is not widely supported
+			for (unsigned int i = 0; i < numTexgen; ++i)
+				out.Write(",\n  in sample float3 uv%d : TEXCOORD%d", i, i);
+			out.Write(",\n  in sample float4 clipPos : TEXCOORD%d", numTexgen);
+			if (g_ActiveConfig.bEnablePixelLighting)
+			{
+				out.Write(",\n  in sample float3 Normal : TEXCOORD%d", numTexgen + 1);
+				out.Write(",\n  in sample float3 WorldPos : TEXCOORD%d", numTexgen + 2);
+			}
 		}
+		else
+		{
+			out.Write("  in centroid float4 colors_0 : COLOR0,\n");
+			out.Write("  in centroid float4 colors_1 : COLOR1\n");
+
+			// compute window position if needed because binding semantic WPOS is not widely supported
+			for (unsigned int i = 0; i < numTexgen; ++i)
+				out.Write(",\n  in centroid float3 uv%d : TEXCOORD%d", i, i);
+			out.Write(",\n  in centroid float4 clipPos : TEXCOORD%d", numTexgen);
+			if (g_ActiveConfig.bEnablePixelLighting)
+			{
+				out.Write(",\n  in centroid float3 Normal : TEXCOORD%d", numTexgen + 1);
+				out.Write(",\n  in centroid float3 WorldPos : TEXCOORD%d", numTexgen + 2);
+			}
+		}
+
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.iStereoMode > 0)
 			out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
