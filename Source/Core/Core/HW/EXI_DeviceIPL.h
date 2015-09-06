@@ -64,6 +64,8 @@ private:
 	std::string m_buffer;
 	bool m_FontsLoaded;
 
+	void UpdateRTC();
+
 	void TransferByte(u8& _uByte) override;
 	bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
 	u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
