@@ -147,7 +147,7 @@ std::string Timer::GetTimeElapsedFormatted() const
 	// Hours
 	u32 Hours = Minutes / 60;
 
-	std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03" PRIu64,
+	std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03llu",
 		Hours, Minutes % 60, Seconds % 60, Milliseconds % 1000);
 	return TmpStr;
 }

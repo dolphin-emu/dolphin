@@ -216,14 +216,14 @@ namespace JitILProfiler
 			std::string filename = StringFromFormat("JitIL_profiling_%d.csv", (int)time(nullptr));
 			File::IOFile file(filename, "w");
 			setvbuf(file.GetHandle(), nullptr, _IOFBF, 1024 * 1024);
-			fprintf(file.GetHandle(), "code hash,total elapsed,number of calls,elapsed per call\n");
+			fprintf(file.GetHandle(), "code hash, total elapsed, number of calls, elapsed per call\n");
 			for (auto& block : blocks)
 			{
 				const u64 codeHash = block.codeHash;
 				const u64 totalElapsed = block.totalElapsed;
 				const u64 numberOfCalls = block.numberOfCalls;
 				const double elapsedPerCall = totalElapsed / (double)numberOfCalls;
-				fprintf(file.GetHandle(), "%016" PRIx64 ",%" PRId64 ",%" PRId64 ",%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
+				fprintf(file.GetHandle(), "%016llx, %lld, %lld, %f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
 			}
 		}
 	};

@@ -254,7 +254,7 @@ ARCode GetARCode(size_t index)
 	if (index > arCodes.size())
 	{
 		PanicAlertT("GetARCode: Index is greater than "
-			"ar code list size %lu", (unsigned long)index);
+			"ar code list size %zu", index);
 		return ARCode();
 	}
 	return arCodes[index];
@@ -265,7 +265,7 @@ void SetARCode_IsActive(bool active, size_t index)
 	if (index > arCodes.size())
 	{
 		PanicAlertT("SetARCode_IsActive: Index is greater than "
-			"ar code list size %lu", (unsigned long)index);
+			"ar code list size %zu", index);
 		return;
 	}
 	arCodes[index].active = active;

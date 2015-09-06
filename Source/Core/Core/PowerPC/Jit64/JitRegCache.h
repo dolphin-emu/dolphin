@@ -103,7 +103,7 @@ public:
 		if (IsBound(preg))
 			return regs[preg].location.GetSimpleReg();
 
-		PanicAlert("Not so simple - %u", (unsigned int)preg);
+		PanicAlert("Unbounded register - %zu", preg);
 		return Gen::INVALID_REG;
 	}
 	virtual Gen::OpArg GetDefaultLocation(size_t reg) const = 0;

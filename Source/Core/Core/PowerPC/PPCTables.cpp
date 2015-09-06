@@ -161,8 +161,7 @@ void PrintInstructionRunCounts()
 		if (inst.second == 0)
 			break;
 
-		DEBUG_LOG(POWERPC, "%s : %" PRIu64, inst.first, inst.second);
-		//PanicAlert("%s : %llu", inst.first, inst.second);
+		DEBUG_LOG(POWERPC, "%s : %llu", inst.first, inst.second);
 	}
 }
 
@@ -176,7 +175,7 @@ void LogCompiledInstructions()
 		GekkoOPInfo *pInst = m_allInstructions[i];
 		if (pInst->compileCount > 0)
 		{
-			fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\t%08x\n", pInst->opname,
+			fprintf(f.GetHandle(), "%s\t%i\t%lld\t%08x\n", pInst->opname,
 				pInst->compileCount, pInst->runCount, pInst->lastUse);
 		}
 	}
@@ -187,7 +186,7 @@ void LogCompiledInstructions()
 		GekkoOPInfo *pInst = m_allInstructions[i];
 		if (pInst->compileCount == 0)
 		{
-			fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\n", pInst->opname,
+			fprintf(f.GetHandle(), "%s\t%i\t%lld\n", pInst->opname,
 				pInst->compileCount, pInst->runCount);
 		}
 	}

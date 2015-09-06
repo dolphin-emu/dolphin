@@ -181,7 +181,7 @@ GCMemcard::GCMemcard(const std::string &filename, bool forceCreation, bool ascii
 		}
 		else
 		{
-			PanicAlertT("Failed to read block %u of the save data\nMemcard may be truncated\nFile position: 0x%" PRIx64, i, mcdFile.Tell());
+			PanicAlertT("Failed to read block %u of the save data\nMemcard may be truncated\nFile position: 0x%llx", i, mcdFile.Tell());
 			m_valid = false;
 			break;
 		}

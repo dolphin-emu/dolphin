@@ -255,7 +255,7 @@ void CopyFromEmu(void* data, u32 address, size_t size)
 {
 	if (!ValidCopyRange(address, size))
 	{
-		PanicAlert("Invalid range in CopyFromEmu. %lx bytes from 0x%08x", (unsigned long)size, address);
+		PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
 		return;
 	}
 	memcpy(data, GetPointer(address), size);
@@ -265,7 +265,7 @@ void CopyToEmu(u32 address, const void* data, size_t size)
 {
 	if (!ValidCopyRange(address, size))
 	{
-		PanicAlert("Invalid range in CopyToEmu. %lx bytes to 0x%08x", (unsigned long)size, address);
+		PanicAlert("Invalid range in CopyToEmu. %zx bytes to 0x%08x", size, address);
 		return;
 	}
 	memcpy(GetPointer(address), data, size);
