@@ -74,5 +74,4 @@ private:
 	void OnClearTextureCacheButton(wxCommandEvent& event);
 	void OnClearVertexShaderCacheButton(wxCommandEvent& event);
 	void OnClearPixelShaderCacheButton(wxCommandEvent& event);
-	void OnCountEnter(wxCommandEvent& event);
 };

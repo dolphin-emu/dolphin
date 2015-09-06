@@ -158,10 +158,7 @@ void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 
 void Update(int _WiimoteNumber);
 void ConnectOnInput(int _WiimoteNumber);
 
-void DoState(PointerWrap &p);
 void StateChange(EMUSTATE_CHANGE newState);
-
-int FindWiimotes(Wiimote** wm, int max_wiimotes);
 void ChangeWiimoteSource(unsigned int index, int source);
 
 bool IsValidBluetoothName(const std::string& name);

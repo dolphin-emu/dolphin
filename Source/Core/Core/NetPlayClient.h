@@ -135,8 +135,6 @@ private:
 	void Disconnect();
 	bool Connect();
 
-	void OnTraversalDisconnect(int fail);
-
 	PlayerId m_pid;
 	std::map<PlayerId, Player> m_players;
 	std::string m_host_spec;
