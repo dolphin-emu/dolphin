@@ -87,55 +87,21 @@ void PSTextureEncoder::Shutdown()
 	SAFE_RELEASE(m_out);
 }
 
-size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
+void PSTextureEncoder::Encode(u8* dst, const TextureCache::TCacheEntryBase *texture_entry,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf)
 {
 	if (!m_ready) // Make sure we initialized OK
-		return 0;
-
-	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
-	// texture, which is invalid.
-	EFBRectangle correctSrc = srcRect;
-	correctSrc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
-
-	// Validate source rect size
-	if (correctSrc.GetWidth() <= 0 || correctSrc.GetHeight() <= 0)
-		return 0;
+		return;
 
 	HRESULT hr;
-
-	unsigned int blockW = BLOCK_WIDTHS[dstFormat];
-	unsigned int blockH = BLOCK_HEIGHTS[dstFormat];
-
-	// Round up source dims to multiple of block size
-	unsigned int actualWidth = correctSrc.GetWidth() / (scaleByHalf ? 2 : 1);
-	actualWidth = (actualWidth + blockW-1) & ~(blockW-1);
-	unsigned int actualHeight = correctSrc.GetHeight() / (scaleByHalf ? 2 : 1);
-	actualHeight = (actualHeight + blockH-1) & ~(blockH-1);
-
-	unsigned int numBlocksX = actualWidth/blockW;
-	unsigned int numBlocksY = actualHeight/blockH;
-
-	unsigned int cacheLinesPerRow;
-	if (dstFormat == 0x6) // RGBA takes two cache lines per block; all others take one
-		cacheLinesPerRow = numBlocksX*2;
-	else
-		cacheLinesPerRow = numBlocksX;
-	_assert_msg_(VIDEO, cacheLinesPerRow*32 <= MAX_BYTES_PER_BLOCK_ROW, "cache lines per row sanity check");
-
-	unsigned int totalCacheLines = cacheLinesPerRow * numBlocksY;
-	_assert_msg_(VIDEO, totalCacheLines*32 <= MAX_BYTES_PER_ENCODE, "total encode size sanity check");
-
-	size_t encodeSize = 0;
 
 	// Reset API
 	g_renderer->ResetAPIState();
 
 	// Set up all the state for EFB encoding
-
 	{
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(cacheLinesPerRow * 8), FLOAT(numBlocksY));
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(texture_entry->CacheLinesPerRow() * 8), FLOAT(texture_entry->NumBlocksY()));
 		D3D::context->RSSetViewports(1, &vp);
 
 		EFBRectangle fullSrcRect;
@@ -155,9 +121,9 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
 
 		EFBEncodeParams params;
-		params.SrcLeft = correctSrc.left;
-		params.SrcTop = correctSrc.top;
-		params.DestWidth = actualWidth;
+		params.SrcLeft = srcRect.left;
+		params.SrcTop = srcRect.top;
+		params.DestWidth = texture_entry->native_width;
 		params.ScaleFactor = scaleByHalf ? 2 : 1;
 		D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &params, 0, 0);
 		D3D::stateman->SetPixelConstants(m_encodeParams);
@@ -172,12 +138,12 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 			targetRect.AsRECT(),
 			Renderer::GetTargetWidth(),
 			Renderer::GetTargetHeight(),
-			SetStaticShader(dstFormat, srcFormat, isIntensity, scaleByHalf),
+			SetStaticShader(texture_entry->format, srcFormat, isIntensity, scaleByHalf),
 			VertexShaderCache::GetSimpleVertexShader(),
 			VertexShaderCache::GetSimpleInputLayout());
 
 		// Copy to staging buffer
-		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, cacheLinesPerRow * 8, numBlocksY, 1);
+		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, texture_entry->CacheLinesPerRow() * 8, texture_entry->NumBlocksY(), 1);
 		D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
 
 		// Transfer staging buffer to GameCube/Wii RAM
@@ -186,16 +152,14 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		CHECK(SUCCEEDED(hr), "map staging buffer (0x%x)", hr);
 
 		u8* src = (u8*)map.pData;
-		for (unsigned int y = 0; y < numBlocksY; ++y)
+		for (unsigned int y = 0; y < texture_entry->NumBlocksY(); ++y)
 		{
-			memcpy(dst, src, cacheLinesPerRow*32);
-			dst += bpmem.copyMipMapStrideChannels*32;
+			memcpy(dst, src, texture_entry->CacheLinesPerRow() * 32);
+			dst += texture_entry->memory_stride;
 			src += map.RowPitch;
 		}
 
 		D3D::context->Unmap(m_outStage, 0);
-
-		encodeSize = bpmem.copyMipMapStrideChannels*32 * numBlocksY;
 	}
 
 	// Restore API
@@ -203,8 +167,6 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	D3D::context->OMSetRenderTargets(1,
 		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
-
-	return encodeSize;
 }
 
 ID3D11PixelShader* PSTextureEncoder::SetStaticShader(unsigned int dstFormat, PEControl::PixelFormat srcFormat,
