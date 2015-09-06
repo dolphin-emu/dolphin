@@ -211,7 +211,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 
 	if (!Loader.IsValid())
 	{
-		WARN_LOG(WII_IPC_ES, "ES: loader not valid for %llx", TitleID);
+		WARN_LOG(WII_IPC_ES, "ES: loader not valid for %lx", TitleID);
 		return 0xffffffff;
 	}
 
@@ -952,7 +952,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			if (!bSuccess)
 			{
 				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your NAND dump\n"
-					"TitleID %016llx.\n Dolphin will likely hang now.", TitleID);
+					"TitleID %016lx.\n Dolphin will likely hang now.", TitleID);
 			}
 			else
 			{
@@ -993,7 +993,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			//TODO: provide correct return code when bSuccess= false
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 
-			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016llx %08x %016llx %08x %016llx %04x", TitleID,view,ticketid,devicetype,titleid,access);
+			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016lx %08x %016lx %08x %016lx %04x", TitleID,view,ticketid,devicetype,titleid,access);
 			//                     IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000 0001000248414341 ffff
 
 			// This is necessary because Reset(true) above deleted this object.  Ew.

@@ -108,7 +108,7 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 	u32 block_hash = HashAdler32(source, comp_block_size);
 	if (block_hash != m_hashes[block_num])
 		PanicAlertT("The disc image \"%s\" is corrupt.\n"
-		            "Hash of block %llu is %08x instead of %08x.",
+		            "Hash of block %lu is %08x instead of %08x.",
 		            m_file_name.c_str(),
 		            block_num, block_hash, m_hashes[block_num]);
 
@@ -135,7 +135,7 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 		{
 			// this seem to fire wrongly from time to time
 			// to be sure, don't use compressed isos :P
-			PanicAlert("Failure reading block %llu - out of data and not at end.", block_num);
+			PanicAlert("Failure reading block %lu - out of data and not at end.", block_num);
 		}
 		inflateEnd(&z);
 		if (uncomp_size != m_header.block_size)

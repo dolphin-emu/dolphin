@@ -162,7 +162,7 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 			u64 const partition_offset = ((u64)Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address + 4) << 2);
 			DVDInterface::ChangePartition(partition_offset);
 
-			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016llx", partition_offset);
+			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016lx", partition_offset);
 
 			// Read TMD to the buffer
 			u32 tmd_size;

@@ -77,7 +77,7 @@ u64 CFileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 
 
 	u64 read_length = std::min(_MaxBufferSize, pFileInfo->m_FileSize - _OffsetInFile);
 
-	DEBUG_LOG(DISCIO, "Reading %llx bytes at %llx from file %s. Offset: %llx Size: %llx",
+	DEBUG_LOG(DISCIO, "Reading %lx bytes at %lx from file %s. Offset: %lx Size: %lx",
 	          read_length, _OffsetInFile, _rFullPath.c_str(), pFileInfo->m_Offset, pFileInfo->m_FileSize);
 
 	m_rVolume->Read(pFileInfo->m_Offset + _OffsetInFile, read_length, _pBuffer, m_Wii);
