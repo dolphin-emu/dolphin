@@ -354,11 +354,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		return nullptr;
 
 	// TexelSizeInNibbles(format) * width * height / 16;
-	const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat) - 1;
-	const unsigned int bsh = TexDecoder_GetBlockHeightInTexels(texformat) - 1;
+	const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat);
+	const unsigned int bsh = TexDecoder_GetBlockHeightInTexels(texformat);
 
-	unsigned int expandedWidth = (width + bsw) & (~bsw);
-	unsigned int expandedHeight = (height + bsh) & (~bsh);
+	unsigned int expandedWidth = ROUND_UP(width, bsw);
+	unsigned int expandedHeight = ROUND_UP(height, bsh);
 	const unsigned int nativeW = width;
 	const unsigned int nativeH = height;
 
@@ -650,8 +650,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		{
 			const u32 mip_width = CalculateLevelSize(width, level);
 			const u32 mip_height = CalculateLevelSize(height, level);
-			const u32 expanded_mip_width = (mip_width + bsw) & (~bsw);
-			const u32 expanded_mip_height = (mip_height + bsh) & (~bsh);
+			const u32 expanded_mip_width = ROUND_UP(mip_width, bsw);
+			const u32 expanded_mip_height = ROUND_UP(mip_height, bsh);
 
 			const u8*& mip_src_data = from_tmem
 				? ((level % 2) ? ptr_odd : ptr_even)
@@ -1080,11 +1080,11 @@ TextureCache::TexCache::iterator TextureCache::FreeTexture(TexCache::iterator it
 
 u32 TextureCache::TCacheEntryBase::CacheLinesPerRow() const
 {
-	u32 blockW = TexDecoder_GetBlockWidthInTexels(format) - 1;
+	u32 blockW = TexDecoder_GetBlockWidthInTexels(format);
 	// Round up source height to multiple of block size
-	u32 actualWidth = (native_width + blockW) & ~(blockW);
+	u32 actualWidth = ROUND_UP(native_width, blockW);
 
-	u32 numBlocksX = actualWidth / TexDecoder_GetBlockWidthInTexels(format);
+	u32 numBlocksX = actualWidth / blockW;
 
 	// RGBA takes two cache lines per block; all others take one
 	if (format == GX_TF_RGBA8)
@@ -1094,11 +1094,11 @@ u32 TextureCache::TCacheEntryBase::CacheLinesPerRow() const
 
 u32 TextureCache::TCacheEntryBase::NumBlocksY() const
 {
-	u32 blockH = TexDecoder_GetBlockHeightInTexels(format) - 1;
+	u32 blockH = TexDecoder_GetBlockHeightInTexels(format);
 	// Round up source height to multiple of block size
-	u32 actualHeight = (native_height + blockH) & ~(blockH);
+	u32 actualHeight = ROUND_UP(native_height, blockH);
 
-	return actualHeight / TexDecoder_GetBlockHeightInTexels(format);
+	return actualHeight / blockH;
 }
 
 void TextureCache::TCacheEntryBase::SetEfbCopy(u32 stride)
