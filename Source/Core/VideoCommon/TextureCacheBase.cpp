@@ -10,6 +10,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/Debugger.h"
@@ -441,7 +442,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		{
 			// EFB copies have slightly different rules as EFB copy formats have different
 			// meanings from texture formats.
-			if (tex_hash == entry->hash && (!isPaletteTexture || g_Config.backend_info.bSupportsPaletteConversion))
+			if ((tex_hash == entry->hash && (!isPaletteTexture || g_Config.backend_info.bSupportsPaletteConversion)) ||
+				IsPlayingBackFifologWithBrokenEFBCopies)
 			{
 				// TODO: We should check format/width/height/levels for EFB copies. Checking
 				// format is complicated because EFB copy formats don't exactly match
