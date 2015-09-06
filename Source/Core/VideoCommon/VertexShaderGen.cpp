@@ -77,7 +77,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("out VertexData {\n");
-			GenerateVSOutputMembers<T>(out, api_type, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
+			GenerateVSOutputMembers<T>(out, api_type, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "sample" : "sample out");
 			out.Write("} vs;\n");
 		}
 		else
@@ -87,17 +87,17 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			{
 				if (i < xfmem.numTexGen.numTexGens)
 				{
-					out.Write("centroid out float3 uv%d;\n", i);
+					out.Write("sample out float3 uv%d;\n", i);
 				}
 			}
-			out.Write("centroid out float4 clipPos;\n");
+			out.Write("sample out float4 clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("centroid out float3 Normal;\n");
-				out.Write("centroid out float3 WorldPos;\n");
+				out.Write("sample out float3 Normal;\n");
+				out.Write("sample out float3 WorldPos;\n");
 			}
-			out.Write("centroid out float4 colors_0;\n");
-			out.Write("centroid out float4 colors_1;\n");
+			out.Write("sample out float4 colors_0;\n");
+			out.Write("sample out float4 colors_1;\n");
 		}
 
 		out.Write("void main()\n{\n");

@@ -354,7 +354,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("in VertexData {\n");
-			GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid in");
+			GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "sample" : "sample in");
 
 			if (g_ActiveConfig.iStereoMode > 0)
 				out.Write("\tflat int layer;\n");
@@ -363,19 +363,19 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		}
 		else
 		{
-			out.Write("centroid in float4 colors_0;\n");
-			out.Write("centroid in float4 colors_1;\n");
+			out.Write("sample in float4 colors_0;\n");
+			out.Write("sample in float4 colors_1;\n");
 			// compute window position if needed because binding semantic WPOS is not widely supported
 			// Let's set up attributes
 			for (unsigned int i = 0; i < numTexgen; ++i)
 			{
-				out.Write("centroid in float3 uv%d;\n", i);
+				out.Write("sample in float3 uv%d;\n", i);
 			}
-			out.Write("centroid in float4 clipPos;\n");
+			out.Write("sample in float4 clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("centroid in float3 Normal;\n");
-				out.Write("centroid in float3 WorldPos;\n");
+				out.Write("sample in float3 Normal;\n");
+				out.Write("sample in float3 WorldPos;\n");
 			}
 		}
 
@@ -396,17 +396,17 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
 			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
-		out.Write("  in centroid float4 colors_0 : COLOR0,\n");
-		out.Write("  in centroid float4 colors_1 : COLOR1\n");
+		out.Write("  in sample float4 colors_0 : COLOR0,\n");
+		out.Write("  in sample float4 colors_1 : COLOR1\n");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		for (unsigned int i = 0; i < numTexgen; ++i)
-			out.Write(",\n  in centroid float3 uv%d : TEXCOORD%d", i, i);
-		out.Write(",\n  in centroid float4 clipPos : TEXCOORD%d", numTexgen);
+			out.Write(",\n  in sample float3 uv%d : TEXCOORD%d", i, i);
+		out.Write(",\n  in sample float4 clipPos : TEXCOORD%d", numTexgen);
 		if (g_ActiveConfig.bEnablePixelLighting)
 		{
-			out.Write(",\n  in centroid float3 Normal : TEXCOORD%d", numTexgen + 1);
-			out.Write(",\n  in centroid float3 WorldPos : TEXCOORD%d", numTexgen + 2);
+			out.Write(",\n  in sample float3 Normal : TEXCOORD%d", numTexgen + 1);
+			out.Write(",\n  in sample float3 WorldPos : TEXCOORD%d", numTexgen + 2);
 		}
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.iStereoMode > 0)
