@@ -10,6 +10,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/Debugger.h"
@@ -439,11 +440,10 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		TCacheEntryBase* entry = iter->second;
 		if (entry->IsEfbCopy())
 		{
-			// EFB copies have slightly different rules: the hash doesn't need to match
-			// in EFB2Tex mode, and EFB copy formats have different meanings from texture
-			// formats.
-			if (g_ActiveConfig.bSkipEFBCopyToRam ||
-				(tex_hash == entry->hash && (!isPaletteTexture || g_Config.backend_info.bSupportsPaletteConversion)))
+			// EFB copies have slightly different rules as EFB copy formats have different
+			// meanings from texture formats.
+			if ((tex_hash == entry->hash && (!isPaletteTexture || g_Config.backend_info.bSupportsPaletteConversion)) ||
+				IsPlayingBackFifologWithBrokenEFBCopies)
 			{
 				// TODO: We should check format/width/height/levels for EFB copies. Checking
 				// format is complicated because EFB copy formats don't exactly match
@@ -986,11 +986,13 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
 	// remove all texture cache entries at dstAddr
-	std::pair<TexCache::iterator, TexCache::iterator> iter_range = textures_by_address.equal_range((u64)dstAddr);
-	TexCache::iterator iter = iter_range.first;
-	while (iter != iter_range.second)
 	{
-		iter = FreeTexture(iter);
+		std::pair<TexCache::iterator, TexCache::iterator> iter_range = textures_by_address.equal_range((u64)dstAddr);
+		TexCache::iterator iter = iter_range.first;
+		while (iter != iter_range.second)
+		{
+			iter = FreeTexture(iter);
+		}
 	}
 
 	// create the texture
@@ -1012,24 +1014,20 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 	entry->FromRenderTarget(dst, dstFormat, dstStride, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
-	if (!g_ActiveConfig.bSkipEFBCopyToRam)
+	entry->hash = GetHash64(dst, (int)entry->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+	// Invalidate all textures that overlap the range of our efb copy.
+	// Unless our efb copy has a weird stride, then we want avoid invalidating textures which
+	// we might be able to do a partial texture update on.
+	if (entry->memory_stride == entry->CacheLinesPerRow() * 32)
 	{
-		entry->hash = GetHash64(dst, (int)entry->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
-		// Invalidate all textures that overlap the range of our texture
-		TexCache::iterator
-			iter = textures_by_address.begin();
-
+		TexCache::iterator iter = textures_by_address.begin();
 		while (iter != textures_by_address.end())
 		{
 			if (iter->second->OverlapsMemoryRange(dstAddr, entry->size_in_bytes))
-			{
 				iter = FreeTexture(iter);
-			}
 			else
-			{
 				++iter;
-			}
 		}
 	}
 
@@ -1109,4 +1107,14 @@ void TextureCache::TCacheEntryBase::SetEfbCopy(u32 stride)
 	_assert_msg_(VIDEO, memory_stride >= CacheLinesPerRow(), "Memory stride is too small");
 
 	size_in_bytes = memory_stride * NumBlocksY();
+}
+
+// Fill gamecube memory backing this texture with zeros.
+void TextureCache::TCacheEntryBase::Zero(u8* ptr)
+{
+	for (u32 i = 0; i < NumBlocksY(); i++)
+	{
+		memset(ptr, 0, CacheLinesPerRow() * 32);
+		ptr += memory_stride;
+	}
 }

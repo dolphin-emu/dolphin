@@ -111,7 +111,7 @@ public:
 		u32 NumBlocksY() const;
 		u32 CacheLinesPerRow() const;
 
-		void Memset(u8* ptr, u32 tag);
+		void Zero(u8* ptr);
 	};
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
