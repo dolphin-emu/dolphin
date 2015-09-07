@@ -83,4 +83,7 @@ private:
 
 	// Outputs to m_banner
 	void ReadBanner(const DiscIO::IVolume& volume);
+	// Outputs to m_short_names, m_long_names, m_descriptions, m_company.
+	// Returns whether a file was found, not whether it contained useful data.
+	bool ReadXML(const QString& file_path);
 };

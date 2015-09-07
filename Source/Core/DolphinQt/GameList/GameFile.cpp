@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QXmlStreamReader>
 
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
@@ -142,10 +143,14 @@ GameFile::GameFile(const QString& fileName)
 		m_platform = DiscIO::IVolume::ELF_DOL;
 	}
 
-	// PNG files can optionally be used as banners. Typical for DOLs and ELFs, but also works with
-	// volumes. icon.png is the file name used by Homebrew Channel. The ability to use a PNG file
-	// with the same name as the main file is provided as an alternative for those who want to have
+	// Metadata can optionally be stored in XML and PNG files. Typical for DOLs and ELFs, but also works
+	// with volumes. icon.png and meta.xml are the file names used by Homebrew Channel. The ability to use
+	// files with the same name as the main file is provided as an alternative for those who want to have
 	// multiple files in one folder instead of having a Homebrew Channel-style folder structure.
+
+	if (!ReadXML(directory.filePath(info.baseName() + SL(".xml"))))
+		ReadXML(directory.filePath(SL("meta.xml")));
+
 	QImage banner(directory.filePath(info.baseName() + SL(".png")));
 	if (banner.isNull())
 		banner.load(directory.filePath(SL("icon.png")));
@@ -286,6 +291,50 @@ void GameFile::ReadBanner(const DiscIO::IVolume& volume)
 
 	if (!banner.isNull())
 		m_banner = QPixmap::fromImage(banner);
+}
+
+// Outputs to m_short_names, m_long_names, m_descriptions, m_company.
+// Returns whether a file was found, not whether it contained useful data.
+bool GameFile::ReadXML(const QString& file_path)
+{
+	// The format of Homebrew Channel XML metadata is described at:
+	// http://wiibrew.org/wiki/Homebrew_Channel#Adding_Text
+
+	QFile file(file_path);
+	if (!file.open(QIODevice::ReadOnly))
+		return false;
+
+	QXmlStreamReader reader(&file);
+	if (reader.readNextStartElement() && reader.name() == SL("app"))
+	{
+		while (reader.readNextStartElement())
+		{
+			QStringRef name = reader.name();
+			if (name == SL("name"))
+			{
+				m_short_names = { { DiscIO::IVolume::LANGUAGE_UNKNOWN, reader.readElementText() } };
+				m_long_names = m_short_names;
+			}
+			else if (name == SL("short_description"))
+			{
+				m_descriptions = { { DiscIO::IVolume::LANGUAGE_UNKNOWN, reader.readElementText() } };
+			}
+			else if (name == SL("coder"))
+			{
+				m_company = reader.readElementText();
+			}
+			else
+			{
+				reader.skipCurrentElement();
+			}
+			// Elements that we aren't using:
+			// version (can be written in any format)
+			// release_date (YYYYmmddHHMMSS format)
+			// long_description (can be several screens long!)
+		}
+	}
+
+	return true;
 }
 
 QString GameFile::GetDescription(DiscIO::IVolume::ELanguage language) const
