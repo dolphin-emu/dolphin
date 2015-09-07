@@ -68,18 +68,6 @@ void LoadBPReg(const BPCmd &bp, BPMemory &bpMem)
 		bpMem.bpMask = 0xFFFFFF;
 }
 
-void GetTlutLoadData(u32 &tlutAddr, u32 &memAddr, u32 &tlutXferCount, BPMemory &bpMem)
-{
-	tlutAddr = (bpMem.tmem_config.tlut_dest & 0x3FF) << 9;
-	tlutXferCount = (bpMem.tmem_config.tlut_dest & 0x1FFC00) >> 5;
-
-	// TODO - figure out a cleaner way.
-	if (SConfig::GetInstance().bWii)
-		memAddr = bpMem.tmem_config.tlut_src << 5;
-	else
-		memAddr = (bpMem.tmem_config.tlut_src & 0xFFFFF) << 5;
-}
-
 void LoadCPReg(u32 subCmd, u32 value, CPMemory &cpMem)
 {
 	switch (subCmd & 0xF0)

@@ -63,8 +63,7 @@ bool FifoPlayer::Play()
 	if (m_File->GetFrameCount() == 0)
 		return false;
 
-	// Currently these is no such thing as a Fifolog without broken EFB copies.
-	IsPlayingBackFifologWithBrokenEFBCopies = true;
+	IsPlayingBackFifologWithBrokenEFBCopies = m_File->HasBrokenEFBCopies();
 
 	m_CurrentFrame = m_FrameRangeStart;
 

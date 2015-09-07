@@ -12,7 +12,7 @@ namespace FifoFileStruct
 enum
 {
 	FILE_ID            = 0x0d01f1f0,
-	VERSION_NUMBER     = 1,
+	VERSION_NUMBER     = 2,
 	MIN_LOADER_VERSION = 1,
 };
 

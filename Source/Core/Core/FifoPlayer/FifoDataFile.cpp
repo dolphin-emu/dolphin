@@ -28,6 +28,11 @@ FifoDataFile::~FifoDataFile()
 	}
 }
 
+bool FifoDataFile::HasBrokenEFBCopies() const
+{
+	return version < 2;
+}
+
 void FifoDataFile::SetIsWii(bool isWii)
 {
 	SetFlag(FLAG_IS_WII, isWii);

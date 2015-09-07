@@ -11,6 +11,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/Debugger.h"
@@ -19,6 +20,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 static const u64 TEXHASH_INVALID = 0;
@@ -395,6 +397,25 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		full_format = texformat | (tlutfmt << 16);
 
 	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
+	u32 additional_mips_size = 0; // not including level 0, which is texture_size
+
+	// GPUs don't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
+	// e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,0x0, so we limit the mipmap count to 6 there
+	tex_levels = std::min<u32>(IntLog2(std::max(width, height)) + 1, tex_levels);
+
+	for (u32 level = 1; level != tex_levels; ++level)
+	{
+		// We still need to calculate the original size of the mips
+		const u32 expanded_mip_width = ROUND_UP(CalculateLevelSize(width, level), bsw);
+		const u32 expanded_mip_height = ROUND_UP(CalculateLevelSize(height, level), bsh);
+
+		additional_mips_size += TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
+	}
+
+	// If we are recording a FifoLog, keep track of what memory we read.
+	// FifiRecorder does it's own memory modification tracking independant of the texture hashing below.
+	if (g_bRecordFifoData && !from_tmem)
+		FifoRecorder::GetInstance().UseMemory(address, texture_size + additional_mips_size, MemoryUpdate::TEXTURE_MAP);
 
 	const u8* src_data;
 	if (from_tmem)
@@ -414,10 +435,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	{
 		full_hash = base_hash;
 	}
-
-	// GPUs don't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
-	// e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,0x0, so we limit the mipmap count to 6 there
-	tex_levels = std::min<u32>(IntLog2(std::max(width, height)) + 1, tex_levels);
 
 	// Search the texture cache for textures by address
 	//
@@ -740,7 +757,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	//
 	// For historical reasons, Dolphin doesn't actually implement "pure" EFB to RAM emulation, but only EFB to texture and hybrid EFB copies.
 
-	float colmat[28] = {0};
+	float colmat[28] = { 0 };
 	float *const fConstAdd = colmat + 16;
 	float *const ColorMask = colmat + 20;
 	ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f;
@@ -1056,6 +1073,17 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		static int count = 0;
 		entry->Save(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
 			count++), 0);
+	}
+
+	if (g_bRecordFifoData)
+	{
+		// Mark the memory behind this efb copy as dynamicly generated for the Fifo log
+		u32 address = dstAddr;
+		for (u32 i = 0; i < entry->NumBlocksY(); i++)
+		{
+			FifoRecorder::GetInstance().UseMemory(address, entry->CacheLinesPerRow() * 32, MemoryUpdate::TEXTURE_MAP, true);
+			address += entry->memory_stride;
+		}
 	}
 
 	textures_by_address.emplace((u64)dstAddr, entry);

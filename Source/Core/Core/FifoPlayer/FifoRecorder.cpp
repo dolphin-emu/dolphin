@@ -102,7 +102,7 @@ void FifoRecorder::WriteGPCommand(u8 *data, u32 size)
 	m_SkipNextData = m_SkipFutureData;
 }
 
-void FifoRecorder::WriteMemory(u32 address, u32 size, MemoryUpdate::Type type)
+void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, bool dynamicUpdate)
 {
 	u8 *curData;
 	u8 *newData;
@@ -117,7 +117,7 @@ void FifoRecorder::WriteMemory(u32 address, u32 size, MemoryUpdate::Type type)
 		newData = &Memory::m_pRAM[address & Memory::RAM_MASK];
 	}
 
-	if (memcmp(curData, newData, size) != 0)
+	if (!dynamicUpdate && memcmp(curData, newData, size) != 0)
 	{
 		// Update current memory
 		memcpy(curData, newData, size);
@@ -132,6 +132,11 @@ void FifoRecorder::WriteMemory(u32 address, u32 size, MemoryUpdate::Type type)
 		memcpy(memUpdate.data, newData, size);
 
 		m_CurrentFrame.memoryUpdates.push_back(memUpdate);
+	}
+	else if (dynamicUpdate)
+	{
+		// Shadow the data so it won't be recorded as changed by a future UseMemory
+		memcpy(curData, newData, size);
 	}
 }
 

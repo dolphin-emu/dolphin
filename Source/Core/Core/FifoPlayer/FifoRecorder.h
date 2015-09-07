@@ -27,7 +27,10 @@ public:
 	// Must write one full GP command at a time
 	void WriteGPCommand(u8 *data, u32 size);
 
-	void WriteMemory(u32 address, u32 size, MemoryUpdate::Type type);
+	// Track memory that has been used and write it to the fifolog if it has changed.
+	// If memory is updated by the video backend (dynamicUpdate == true) take special care to make sure the data
+	// isn't baked into the fifolog.
+	void UseMemory(u32 address, u32 size, MemoryUpdate::Type type, bool dynamicUpdate = false);
 
 	void EndFrame(u32 fifoStart, u32 fifoEnd);
 
