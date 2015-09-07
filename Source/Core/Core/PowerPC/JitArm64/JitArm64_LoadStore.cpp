@@ -285,10 +285,64 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 	if (is_immediate)
 		mmio_address = PowerPC::IsOptimizableMMIOAccess(imm_addr, access_size);
 
-	if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+	if (is_immediate && jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
+	{
+		ARM64Reg WA = INVALID_REG;
+		int accessSize;
+		if (flags & BackPatchInfo::FLAG_SIZE_32)
+			accessSize = 32;
+		else if (flags & BackPatchInfo::FLAG_SIZE_16)
+			accessSize = 16;
+		else
+			accessSize = 8;
+
+		if (accessSize != 8)
+			WA = gpr.GetReg();
+
+		u64 base_ptr = std::min((u64)&GPFifo::m_gatherPipeCount, (u64)&GPFifo::m_gatherPipe);
+		u32 count_off = (u64)&GPFifo::m_gatherPipeCount - base_ptr;
+		u32 pipe_off = (u64)&GPFifo::m_gatherPipe - base_ptr;
+
+		MOVI2R(X30, base_ptr);
+
+		if (pipe_off)
+			ADD(X1, X30, pipe_off);
+
+		LDR(INDEX_UNSIGNED, W0, X30, count_off);
+		if (accessSize == 32)
+		{
+			REV32(WA, RS);
+			if (pipe_off)
+				STR(WA, X1, ArithOption(X0));
+			else
+				STR(WA, X30, ArithOption(X0));
+		}
+		else if (accessSize == 16)
+		{
+			REV16(WA, RS);
+			if (pipe_off)
+				STRH(WA, X1, ArithOption(X0));
+			else
+				STRH(WA, X30, ArithOption(X0));
+		}
+		else
+		{
+			if (pipe_off)
+				STRB(RS, X1, ArithOption(X0));
+			else
+				STRB(RS, X30, ArithOption(X0));
+
+		}
+		ADD(W0, W0, accessSize >> 3);
+		STR(INDEX_UNSIGNED, W0, X30, count_off);
+		js.fifoBytesThisBlock += accessSize >> 3;
+
+		if (accessSize != 8)
+			gpr.Unlock(WA);
+	}
+	else if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
 	{
 		MOVI2R(XA, imm_addr);
-
 		EmitBackpatchRoutine(flags, true, false, RS, XA, BitSet32(0), BitSet32(0));
 	}
 	else if (mmio_address && !(flags & BackPatchInfo::FLAG_REVERSE))
