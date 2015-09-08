@@ -779,7 +779,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 
 	// Only used from WII_IPC. This is the only read command that decrypts data
 	case DVDLowRead:
-		INFO_LOG(DVDINTERFACE, "DVDLowRead: DVDAddr: 0x%09llx, Size: 0x%x", (u64)command_2 << 2, command_1);
+		INFO_LOG(DVDINTERFACE, "DVDLowRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x", (u64)command_2 << 2, command_1);
 		read_command = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length,
 		                                  true, &interrupt_type, &ticks_until_completion);
 		break;
@@ -846,7 +846,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 
 	// Probably only used by Wii
 	case DVDLowUnencryptedRead:
-		INFO_LOG(DVDINTERFACE, "DVDLowUnencryptedRead: DVDAddr: 0x%09llx, Size: 0x%x", (u64)command_2 << 2, command_1);
+		INFO_LOG(DVDINTERFACE, "DVDLowUnencryptedRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x", (u64)command_2 << 2, command_1);
 
 		// We must make sure it is in a valid area! (#001 check)
 		// Are these checks correct? They seem to mix 32-bit offsets and 8-bit lengths
@@ -865,7 +865,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 		}
 		else
 		{
-			WARN_LOG(DVDINTERFACE, "DVDLowUnencryptedRead: trying to read out of bounds @ %09llx", (u64)command_2 << 2);
+			WARN_LOG(DVDINTERFACE, "DVDLowUnencryptedRead: trying to read out of bounds @ %09" PRIx64, (u64)command_2 << 2);
 			g_ErrorCode = ERROR_READY | ERROR_BLOCK_OOB;
 			// Should cause software to call DVDLowRequestError
 			interrupt_type = INT_BRKINT;
@@ -904,7 +904,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 			{
 				u64 iDVDOffset = (u64)command_1 << 2;
 
-				INFO_LOG(DVDINTERFACE, "Read: DVDOffset=%08llx, DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
+				INFO_LOG(DVDINTERFACE, "Read: DVDOffset=%08" PRIx64 ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
 					        iDVDOffset, output_address, command_2, output_length);
 
 				if (GCAM)
@@ -941,7 +941,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 								Memory::Write_U32(0x00000000, output_address + i);
 							break;
 						default:
-							ERROR_LOG(DVDINTERFACE, "GC-AM: UNKNOWN MEDIA BOARD LOCATION %llx", iDVDOffset);
+							ERROR_LOG(DVDINTERFACE, "GC-AM: UNKNOWN MEDIA BOARD LOCATION %" PRIx64, iDVDOffset);
 							break;
 						}
 						break;
@@ -1002,7 +1002,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 
 				while (len >= 4)
 				{
-					ERROR_LOG(DVDINTERFACE, "GC-AM Media Board WRITE (0xAA): %08llx: %08x", iDVDOffset, Memory::Read_U32(addr));
+					ERROR_LOG(DVDINTERFACE, "GC-AM Media Board WRITE (0xAA): %08" PRIx64 ": %08x", iDVDOffset, Memory::Read_U32(addr));
 					addr += 4;
 					len -= 4;
 					iDVDOffset += 4;
@@ -1014,7 +1014,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 				Memory::CopyFromEmu(media_buffer + offset, addr, len);
 				while (len >= 4)
 				{
-					ERROR_LOG(DVDINTERFACE, "GC-AM Media Board WRITE (0xAA): %08llx: %08x", iDVDOffset, Memory::Read_U32(addr));
+					ERROR_LOG(DVDINTERFACE, "GC-AM Media Board WRITE (0xAA): %08" PRIx64 ": %08x", iDVDOffset, Memory::Read_U32(addr));
 					addr += 4;
 					len -= 4;
 					iDVDOffset += 4;
@@ -1028,7 +1028,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 		if (!GCAM)
 		{
 			// Currently unimplemented
-			INFO_LOG(DVDINTERFACE, "Seek: offset=%09llx (ignoring)", (u64)command_1 << 2);
+			INFO_LOG(DVDINTERFACE, "Seek: offset=%09" PRIx64 " (ignoring)", (u64)command_1 << 2);
 		}
 		else
 		{
@@ -1190,7 +1190,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 				}
 			}
 
-			INFO_LOG(DVDINTERFACE, "(Audio) Stream cmd: %08x offset: %08llx length: %08x",
+			INFO_LOG(DVDINTERFACE, "(Audio) Stream cmd: %08x offset: %08" PRIx64 " length: %08x",
 			         command_0, (u64)command_1 << 2, command_2);
 		}
 		break;
@@ -1357,7 +1357,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 	if (offset + length - g_last_read_offset > 1024 * 1024)
 	{
 		// No buffer; just use the simple seek time + read time.
-		DEBUG_LOG(DVDINTERFACE, "Seeking %lld bytes",
+		DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes",
 		          s64(g_last_read_offset) - s64(offset));
 		ticks_until_completion = disk_read_duration;
 		g_last_read_time = current_time + ticks_until_completion;
@@ -1378,20 +1378,20 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 
 		if (current_time > buffer_fill_time)
 		{
-			DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %llx", offset);
+			DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %" PRIx64, offset);
 			ticks_until_completion = buffer_read_duration;
 			g_last_read_time = buffer_fill_time;
 		}
 		else if (current_time + disk_read_duration > buffer_fill_time)
 		{
-			DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %llx", offset);
+			DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %" PRIx64, offset);
 			ticks_until_completion = std::max(buffer_fill_time - current_time,
 			                                  buffer_read_duration);
 			g_last_read_time = buffer_fill_time;
 		}
 		else
 		{
-			DEBUG_LOG(DVDINTERFACE, "Short seek %lld bytes",
+			DEBUG_LOG(DVDINTERFACE, "Short seek %" PRId64 " bytes",
 			          s64(g_last_read_offset) - s64(offset));
 			ticks_until_completion = disk_read_duration;
 			g_last_read_time = current_time + ticks_until_completion;

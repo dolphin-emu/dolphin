@@ -212,7 +212,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED(ev
 			ARCode code = GetARCode(i);
 			m_label_code_name->SetLabel(_("Name: ") + StrToWxStr(code.name));
 
-			std::string numcodes = StringFromFormat("Number of Codes: %lu", (unsigned long)code.ops.size());
+			std::string numcodes = StringFromFormat("Number of Codes: %zu", code.ops.size());
 			m_label_num_codes->SetLabel(StrToWxStr(numcodes));
 			m_listbox_codes_list->Clear();
 

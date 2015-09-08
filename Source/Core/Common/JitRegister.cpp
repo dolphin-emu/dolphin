@@ -96,7 +96,7 @@ void RegisterV(const void* base_address, u32 code_size,
 	if (s_perf_map_file.IsOpen())
 	{
 		std::string entry = StringFromFormat(
-			"%llx %x %s\n",
+			"%" PRIx64 " %x %s\n",
 			(u64)base_address, code_size, symbol_name.data());
 		s_perf_map_file.WriteBytes(entry.data(), entry.size());
 	}

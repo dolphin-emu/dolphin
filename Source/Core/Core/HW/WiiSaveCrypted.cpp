@@ -88,7 +88,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 			}
 		}
 	}
-	SuccessAlertT("Found %u save files", (unsigned int)titles.size());
+	SuccessAlertT("Found %zu save files", titles.size());
 	u32 success = 0;
 	for (const u64& title : titles)
 	{
@@ -176,7 +176,7 @@ void CWiiSaveCrypted::ReadHDR()
 	md5((u8*)&m_header, HEADER_SZ, md5_calc);
 	if (memcmp(md5_file, md5_calc, 0x10))
 	{
-		ERROR_LOG(CONSOLE, "MD5 mismatch\n %016llx%016llx != %016llx%016llx",
+		ERROR_LOG(CONSOLE, "MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64,
 			Common::swap64(md5_file),Common::swap64(md5_file + 8), Common::swap64(md5_calc),
 			Common::swap64(md5_calc + 8));
 		m_valid= false;
@@ -276,7 +276,7 @@ void CWiiSaveCrypted::ReadBKHDR()
 	}
 	if (m_title_id != Common::swap64(m_bk_hdr.SaveGameTitle))
 	{
-		WARN_LOG(CONSOLE, "Encrypted title (%llx) does not match unencrypted title (%llx)",
+		WARN_LOG(CONSOLE, "Encrypted title (%" PRIx64 ") does not match unencrypted title (%" PRIx64 ")",
 			m_title_id, Common::swap64(m_bk_hdr.SaveGameTitle));
 	}
 }

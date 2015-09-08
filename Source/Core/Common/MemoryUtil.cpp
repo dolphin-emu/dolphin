@@ -64,9 +64,6 @@ void* AllocateExecutableMemory(size_t size, bool low)
 		, -1, 0);
 #endif /* defined(_WIN32) */
 
-	// printf("Mapped executable memory at %p (size %ld)\n", ptr,
-	//	(unsigned long)size);
-
 #ifdef _WIN32
 	if (ptr == nullptr)
 	{
@@ -84,7 +81,6 @@ void* AllocateExecutableMemory(size_t size, bool low)
 		{
 			map_hint += size;
 			map_hint = (char*)round_page(map_hint); /* round up to the next page */
-			// printf("Next map will (hopefully) be at %p\n", map_hint);
 		}
 	}
 #endif
@@ -124,9 +120,6 @@ void* AllocateAlignedMemory(size_t size, size_t alignment)
 	if (posix_memalign(&ptr, alignment, size) != 0)
 		ERROR_LOG(MEMMAP, "Failed to allocate aligned memory");
 #endif
-
-	// printf("Mapped memory at %p (size %ld)\n", ptr,
-	//	(unsigned long)size);
 
 	if (ptr == nullptr)
 		PanicAlert("Failed to allocate aligned memory");
