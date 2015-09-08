@@ -364,8 +364,6 @@ wxMenuBar* CFrame::CreateMenu()
 	columnsMenu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
 	columnsMenu->Check(IDM_SHOW_STATE, SConfig::GetInstance().m_showStateColumn);
 
-
-
 	menubar->Append(viewMenu, _("&View"));
 
 	if (g_pCodeWindow)
@@ -1027,7 +1025,6 @@ void CFrame::StartGame(const std::string& filename)
 	// Determine if Dolphin needs to force fullscreen. 
 	// This needs to be done before BootManager does, as it can't fullscreen the window.
 	DoAutoFullscreen(filename);
-	
 	if (!BootManager::BootCore(filename))
 	{
 		DoFullscreen(false);
