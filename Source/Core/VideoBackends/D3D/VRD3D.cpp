@@ -46,7 +46,7 @@ struct OculusTexture
 		dsDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
 #if OVR_MAJOR_VERSION >= 7
-		unsigned int miscFlags = 0; // the other option is ovrSwapTextureSetD3D11_Typeless
+		unsigned int miscFlags = ovrSwapTextureSetD3D11_Typeless; // ovrSwapTextureSetD3D11_Typeless just causes a black screen on both the mirror and the HMD
 		ovr_CreateSwapTextureSetD3D11(hmd, DX11::D3D::device, &dsDesc, miscFlags, &TextureSet);
 #else
 		ovrHmd_CreateSwapTextureSetD3D11(hmd, DX11::D3D::device, &dsDesc, &TextureSet);
@@ -54,7 +54,14 @@ struct OculusTexture
 		for (int i = 0; i < TextureSet->TextureCount; ++i)
 		{
 			ovrD3D11Texture* tex = (ovrD3D11Texture*)&TextureSet->Textures[i];
+#if OVR_MAJOR_VERSION >= 7
+			D3D11_RENDER_TARGET_VIEW_DESC rtvd = {};
+			rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+			DX11::D3D::device->CreateRenderTargetView(tex->D3D11.pTexture, &rtvd, &TexRtv[i]);
+#else
 			DX11::D3D::device->CreateRenderTargetView(tex->D3D11.pTexture, nullptr, &TexRtv[i]);
+#endif;
 		}
 	}
 
@@ -173,7 +180,7 @@ void RecreateMirrorTextureIfNeeded()
 			mirror_height = texdesc.Height;
 			mirrorTexture = nullptr;
 #if OVR_MAJOR_VERSION >= 7
-			unsigned int miscFlags = 0; // could also be ovrSwapTextureSetD3D11_Typeless
+			unsigned int miscFlags = ovrSwapTextureSetD3D11_Typeless; // could also be ovrSwapTextureSetD3D11_Typeless
 			ovrResult result = ovr_CreateMirrorTextureD3D11(hmd, D3D::device, &texdesc, miscFlags, &mirrorTexture);
 #else
 			ovrResult result = ovrHmd_CreateMirrorTextureD3D11(hmd, D3D::device, &texdesc, &mirrorTexture);

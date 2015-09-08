@@ -39,6 +39,13 @@ ovrEyeRenderDesc g_eye_render_desc[2];
 ovrFrameTiming g_rift_frame_timing;
 ovrPosef g_eye_poses[2], g_front_eye_poses[2];
 int g_ovr_frameindex;
+#if OVR_MAJOR_VERSION >= 7
+ovrGraphicsLuid luid;
+#endif
+#endif
+
+#ifdef _WIN32
+LUID *g_hmd_luid = nullptr;
 #endif
 
 std::mutex g_vr_lock;
@@ -367,6 +374,11 @@ bool InitOculusVR()
 	ovrGraphicsLuid luid;
 	if (ovr_Create(&hmd, &luid) != ovrSuccess)
 		hmd = nullptr;
+#ifdef _WIN32
+	else
+		g_hmd_luid = reinterpret_cast<LUID*>(&luid);
+#endif
+
 #else
 #if OVR_MAJOR_VERSION >= 6
 	ovr_Initialize(nullptr);
@@ -408,6 +420,9 @@ void InitVR()
 	g_is_direct_mode = false;
 	g_hmd_device_name = nullptr;
 	g_has_steamvr = false;
+#ifdef _WIN32
+	g_hmd_luid = nullptr;
+#endif
 
 	if (g_prefer_steamvr)
 	{

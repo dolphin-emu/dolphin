@@ -52,7 +52,7 @@ struct TextureBuffer
 			//OVR_ASSERT(sampleCount == 1); // ovrHmd_CreateSwapTextureSetD3D11 doesn't support MSAA.
 
 #if OVR_MAJOR_VERSION >= 7
-			ovr_CreateSwapTextureSetGL(hmd, GL_RGBA, size.w, size.h, &TextureSet);
+			ovr_CreateSwapTextureSetGL(hmd, GL_SRGB8_ALPHA8, size.w, size.h, &TextureSet);
 #else
 			ovrHmd_CreateSwapTextureSetGL(hmd, GL_RGBA, size.w, size.h, &TextureSet);
 #endif
@@ -626,7 +626,7 @@ void RecreateMirrorTextureIfNeeded()
 			mirror_width = w;
 			mirror_height = h;
 #if OVR_MAJOR_VERSION >= 7
-			ovr_CreateMirrorTextureGL(hmd, GL_RGBA, mirror_width, mirror_height, (ovrTexture**)&mirrorTexture);
+			ovr_CreateMirrorTextureGL(hmd, GL_SRGB8_ALPHA8, mirror_width, mirror_height, (ovrTexture**)&mirrorTexture);
 #else
 			ovrHmd_CreateMirrorTextureGL(hmd, GL_RGBA, mirror_width, mirror_height, (ovrTexture**)&mirrorTexture);
 #endif

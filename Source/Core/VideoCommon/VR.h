@@ -231,3 +231,7 @@ extern int g_ovr_frameindex;
 #define ovrHmd_RecenterPose ovr_RecenterPose
 #define ovrHmd_Destroy ovr_Destroy
 #endif
+
+#ifdef _WIN32
+extern LUID *g_hmd_luid;
+#endif
