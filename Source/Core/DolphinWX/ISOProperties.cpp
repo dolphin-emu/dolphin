@@ -1046,16 +1046,18 @@ void CISOProperties::LoadGameConfig()
 
 	wxCheckBoxState FullscreenState = wxCHK_UNDETERMINED;
 	bool bTemp;
-	if (GameIniLocal.GetOrCreateSection("Display")->Get("ForceFullscreen", &bTemp)) {
-		if (bTemp == true)
+	if (GameIniLocal.GetOrCreateSection("Display")->Get("ForceFullscreen", &bTemp)) 
+	{
+		if (bTemp)
 		{
-			FullscreenState = (wxCheckBoxState)true;
+			FullscreenState = wxCHK_CHECKED;
 		}
 	}
-	if (GameIniLocal.GetOrCreateSection("Display")->Get("ForceWindowed", &bTemp)) {
-		if (bTemp == true)
+	if (GameIniLocal.GetOrCreateSection("Display")->Get("ForceWindowed", &bTemp)) 
+	{
+		if (bTemp)
 		{
-			FullscreenState = (wxCheckBoxState)false;
+			FullscreenState = wxCHK_UNCHECKED;
 		}
 	}
 	ForceFullscreen->Set3StateValue(FullscreenState);
