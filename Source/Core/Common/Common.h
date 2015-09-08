@@ -60,12 +60,12 @@ extern const char *netplay_dolphin_ver;
 class NonCopyable
 {
 protected:
-	NonCopyable() {}
-	NonCopyable(const NonCopyable&&) {}
-	void operator=(const NonCopyable&&) {}
+	constexpr NonCopyable() = default;
+	~NonCopyable() = default;
+
 private:
-	NonCopyable(NonCopyable&);
-	NonCopyable& operator=(NonCopyable& other);
+	NonCopyable(NonCopyable&) = delete;
+	NonCopyable& operator=(NonCopyable&) = delete;
 };
 
 #if defined _WIN32
