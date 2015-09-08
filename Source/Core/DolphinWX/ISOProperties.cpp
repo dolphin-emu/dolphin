@@ -1045,15 +1045,16 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
 
 	wxCheckBoxState FullscreenState = wxCHK_UNDETERMINED;
+	IniFile::Section* display_section = GameIniLocal.GetOrCreateSection("Display");
 	bool bTemp;
-	if (GameIniLocal.GetOrCreateSection("Display")->Get("ForceFullscreen", &bTemp)) 
+	if (display_section->Get("ForceFullscreen", &bTemp))
 	{
 		if (bTemp)
 		{
 			FullscreenState = wxCHK_CHECKED;
 		}
 	}
-	if (GameIniLocal.GetOrCreateSection("Display")->Get("ForceWindowed", &bTemp)) 
+	if (display_section->Get("ForceWindowed", &bTemp))
 	{
 		if (bTemp)
 		{

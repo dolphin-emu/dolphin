@@ -1024,10 +1024,8 @@ void CFrame::StartGame(const std::string& filename)
 #endif
 
 	wxBeginBusyCursor();
-
 	// Determine if Dolphin needs to force fullscreen. 
 	// This needs to be done before BootManager does, as it can't fullscreen the window.
-	
 	DoAutoFullscreen(filename);
 	
 	if (!BootManager::BootCore(filename))
