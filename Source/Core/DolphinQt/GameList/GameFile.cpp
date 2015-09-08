@@ -131,6 +131,9 @@ GameFile::GameFile(const QString& fileName)
 		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
 		ini.GetIfExists("EmuState", "EmulationIssues", &issues_temp);
 		m_issues = QString::fromStdString(issues_temp);
+		ini.GetIfExists("VR", "VRStateId", &m_emu_state);
+		ini.GetIfExists("VR", "VRIssues", &issues_temp);
+		m_vr_issues = QString::fromStdString(issues_temp);
 	}
 }
 

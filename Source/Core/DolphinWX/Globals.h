@@ -185,6 +185,7 @@ enum
 	IDM_SHOW_REGION,
 	IDM_SHOW_SIZE,
 	IDM_SHOW_STATE,
+	IDM_SHOW_VR_STATE,
 
 
 	// Float Window IDs

@@ -35,7 +35,9 @@ public:
 	DiscIO::IVolume::ECountry GetCountry() const { return m_country; }
 	DiscIO::IVolume::EPlatform GetPlatform() const { return m_platform; }
 	const QString GetIssues() const { return m_issues; }
+	const QString GetVRIssues() const { return m_vr_issues; }
 	int GetEmuState() const { return m_emu_state; }
+	int GetVRState() const { return m_vr_state; }
 	bool IsCompressed() const { return m_compressed; }
 	u64 GetFileSize() const { return m_file_size; }
 	u64 GetVolumeSize() const { return m_volume_size; }
@@ -60,8 +62,8 @@ private:
 
 	QString m_unique_id;
 
-	QString m_issues;
-	int m_emu_state = 0;
+	QString m_issues, m_vr_issues;
+	int m_emu_state = 0, m_vr_state = 0;
 
 	quint64 m_file_size = 0;
 	quint64 m_volume_size = 0;

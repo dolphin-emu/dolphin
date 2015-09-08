@@ -37,8 +37,10 @@ public:
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
 	DiscIO::IVolume::EPlatform GetPlatform() const { return m_Platform; }
 	const std::string& GetIssues() const { return m_issues; }
+	const std::string& GetVRIssues() const { return m_vr_issues; }
 	int GetEmuState() const { return m_emu_state; }
-	bool IsCompressed() const {return m_BlobCompressed;}
+	int GetVRState() const { return m_vr_state; }
+	bool IsCompressed() const { return m_BlobCompressed; }
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
 	// 0 is the first disc, 1 is the second disc
@@ -60,8 +62,8 @@ private:
 
 	std::string m_UniqueID;
 
-	std::string m_issues;
-	int m_emu_state;
+	std::string m_issues, m_vr_issues;
+	int m_emu_state, m_vr_state;
 
 	u64 m_FileSize;
 	u64 m_VolumeSize;

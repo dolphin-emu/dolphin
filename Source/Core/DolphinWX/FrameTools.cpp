@@ -369,6 +369,8 @@ wxMenuBar* CFrame::CreateMenu()
 	columnsMenu->Check(IDM_SHOW_SIZE, SConfig::GetInstance().m_showSizeColumn);
 	columnsMenu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
 	columnsMenu->Check(IDM_SHOW_STATE, SConfig::GetInstance().m_showStateColumn);
+	columnsMenu->AppendCheckItem(IDM_SHOW_VR_STATE, _("VR"));
+	columnsMenu->Check(IDM_SHOW_VR_STATE, SConfig::GetInstance().m_showVRStateColumn);
 
 
 
@@ -2193,6 +2195,9 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
 		break;
 	case IDM_SHOW_STATE:
 		SConfig::GetInstance().m_showStateColumn = !SConfig::GetInstance().m_showStateColumn;
+		break;
+	case IDM_SHOW_VR_STATE:
+		SConfig::GetInstance().m_showVRStateColumn = !SConfig::GetInstance().m_showVRStateColumn;
 		break;
 	default: return;
 	}

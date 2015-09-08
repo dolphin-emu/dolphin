@@ -64,6 +64,7 @@ static std::string GetLanguageString(DiscIO::IVolume::ELanguage language, std::m
 GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName)
 	, m_emu_state(0)
+	, m_vr_state(0)
 	, m_FileSize(0)
 	, m_Country(DiscIO::IVolume::COUNTRY_UNKNOWN)
 	, m_Revision(0)
@@ -129,6 +130,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
 		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
 		ini.GetIfExists("EmuState", "EmulationIssues", &m_issues);
+		ini.GetIfExists("VR", "VRStateId", &m_vr_state);
+		ini.GetIfExists("VR", "VRIssues", &m_vr_issues);
 	}
 
 	if (!IsValid() && IsElfOrDol())

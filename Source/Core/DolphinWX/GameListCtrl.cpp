@@ -136,7 +136,21 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 			else
 				return 0;
 		}
-			break;
+
+		case CGameListCtrl::COLUMN_VR_STATE:
+		{
+			const int
+				nState1 = (iso1->GetVRState() << 4) | iso1->GetEmuState(),
+				nState2 = (iso2->GetVRState() << 4) | iso2->GetEmuState();
+
+			if (nState1 > nState2)
+				return  1 * t;
+			if (nState1 < nState2)
+				return -1 * t;
+			else
+				return 0;
+		}
+		break;
 	}
 
 	return 0;
@@ -272,6 +286,7 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_COUNTRY, "");
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
+		InsertColumn(COLUMN_VR_STATE, _("VR"));
 
 #ifdef __WXMSW__
 		const int platform_padding = 0;
@@ -288,6 +303,7 @@ void CGameListCtrl::Update()
 		SetColumnWidth(COLUMN_ID, SConfig::GetInstance().m_showIDColumn ? 75 + platform_padding : 0);
 		SetColumnWidth(COLUMN_COUNTRY, SConfig::GetInstance().m_showRegionColumn ? 32 + platform_padding : 0);
 		SetColumnWidth(COLUMN_EMULATION_STATE, SConfig::GetInstance().m_showStateColumn ? 50 + platform_padding : 0);
+		SetColumnWidth(COLUMN_VR_STATE, SConfig::GetInstance().m_showVRStateColumn ? 50 + platform_padding : 0);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
@@ -426,6 +442,9 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// Emulation state
 	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[rISOFile.GetEmuState()]);
+
+	// VR state
+	SetItemColumnImage(_Index, COLUMN_VR_STATE, m_EmuStateImageIndex[rISOFile.GetVRState()]);
 
 	// Country
 	SetItemColumnImage(_Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
@@ -1273,7 +1292,8 @@ void CGameListCtrl::AutomaticColumnWidth()
 			+ GetColumnWidth(COLUMN_ID)
 			+ GetColumnWidth(COLUMN_COUNTRY)
 			+ GetColumnWidth(COLUMN_SIZE)
-			+ GetColumnWidth(COLUMN_EMULATION_STATE));
+			+ GetColumnWidth(COLUMN_EMULATION_STATE)
+			+ GetColumnWidth(COLUMN_VR_STATE));
 
 		// We hide the Maker column if the window is too small
 		if (resizable > 400)

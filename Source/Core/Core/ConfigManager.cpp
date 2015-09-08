@@ -468,7 +468,8 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 	gamelist->Set("ColumnRegion", m_showRegionColumn);
 	gamelist->Set("ColumnSize", m_showSizeColumn);
 	gamelist->Set("ColumnState", m_showStateColumn);
-}
+	gamelist->Set("ColumnVRState", m_showVRStateColumn);
+} 
 
 void SConfig::SaveCoreSettings(IniFile& ini)
 {
@@ -772,6 +773,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 	gamelist->Get("ColumnRegion",     &m_showRegionColumn,  true);
 	gamelist->Get("ColumnSize",       &m_showSizeColumn,    true);
 	gamelist->Get("ColumnState",      &m_showStateColumn,   true);
+	gamelist->Get("ColumnVRState",    &m_showVRStateColumn, true);
 }
 
 void SConfig::LoadCoreSettings(IniFile& ini)
