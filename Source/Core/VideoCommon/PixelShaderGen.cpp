@@ -333,6 +333,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		warn_once = false;
 	}
 
+	uid_data->msaa = g_ActiveConfig.iMultisampleMode > 0;
+	uid_data->ssaa = g_ActiveConfig.iMultisampleMode > 0 && g_ActiveConfig.bSSAA;
 	if (ApiType == API_OPENGL)
 	{
 		out.Write("out vec4 ocol0;\n");
@@ -342,19 +344,11 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (per_pixel_depth)
 			out.Write("#define depth gl_FragDepth\n");
 
-		// We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the
-		// pixel shader will be executed for each pixel which has at least one passed sample.
-		// So there may be rendered pixels where the center of the pixel isn't in the primitive.
-		// As the pixel shader usually renders at the center of the pixel, this position may be
-		// outside the primitive. This will lead to sampling outside the texture, sign changes, ...
-		// As a workaround, we interpolate at the centroid of the coveraged pixel, which
-		// is always inside the primitive.
-		// Without MSAA, this flag is defined to have no effect.
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("in VertexData {\n");
-			GenerateVSOutputMembers<T>(out, ApiType, uid_data->genMode_numtexgens, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid in");
+			GenerateVSOutputMembers<T>(out, ApiType, uid_data->genMode_numtexgens, GetInterpolationQualifier(ApiType, true, true));
 
 			if (g_ActiveConfig.iStereoMode > 0)
 				out.Write("\tflat int layer;\n");
@@ -363,19 +357,19 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		}
 		else
 		{
-			out.Write("centroid in float4 colors_0;\n");
-			out.Write("centroid in float4 colors_1;\n");
+			out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(ApiType));
+			out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(ApiType));
 			// compute window position if needed because binding semantic WPOS is not widely supported
 			// Let's set up attributes
 			for (unsigned int i = 0; i < numTexgen; ++i)
 			{
-				out.Write("centroid in float3 uv%d;\n", i);
+				out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(ApiType), i);
 			}
-			out.Write("centroid in float4 clipPos;\n");
+			out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(ApiType));
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("centroid in float3 Normal;\n");
-				out.Write("centroid in float3 WorldPos;\n");
+				out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(ApiType));
+				out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(ApiType));
 			}
 		}
 
@@ -396,17 +390,17 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
 			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
-		out.Write("  in centroid float4 colors_0 : COLOR0,\n");
-		out.Write("  in centroid float4 colors_1 : COLOR1\n");
+		out.Write("  in %s float4 colors_0 : COLOR0,\n", GetInterpolationQualifier(ApiType));
+		out.Write("  in %s float4 colors_1 : COLOR1\n", GetInterpolationQualifier(ApiType));
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		for (unsigned int i = 0; i < numTexgen; ++i)
-			out.Write(",\n  in centroid float3 uv%d : TEXCOORD%d", i, i);
-		out.Write(",\n  in centroid float4 clipPos : TEXCOORD%d", numTexgen);
+			out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", GetInterpolationQualifier(ApiType), i, i);
+		out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(ApiType), numTexgen);
 		if (g_ActiveConfig.bEnablePixelLighting)
 		{
-			out.Write(",\n  in centroid float3 Normal : TEXCOORD%d", numTexgen + 1);
-			out.Write(",\n  in centroid float3 WorldPos : TEXCOORD%d", numTexgen + 2);
+			out.Write(",\n  in %s float3 Normal : TEXCOORD%d", GetInterpolationQualifier(ApiType), numTexgen + 1);
+			out.Write(",\n  in %s float3 WorldPos : TEXCOORD%d", GetInterpolationQualifier(ApiType), numTexgen + 2);
 		}
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (uid_data->stereo)

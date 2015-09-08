@@ -36,12 +36,14 @@ private:
 	static bool DolphinEmulatorDotComTextFileExists();
 
 	bool m_batch_mode = false;
+	bool m_confirm_stop = false;
 	bool m_load_file = false;
 	bool m_play_movie = false;
 	bool m_use_debugger = false;
 	bool m_use_logger = false;
 	bool m_select_video_backend = false;
 	bool m_select_audio_emulation = false;
+	wxString m_confirm_setting;
 	wxString m_video_backend_name;
 	wxString m_audio_emulation_name;
 	wxString m_user_path;

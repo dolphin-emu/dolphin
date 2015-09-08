@@ -19,6 +19,8 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/BPMemory.h"
 
+bool IsPlayingBackFifologWithBrokenEFBCopies = false;
+
 FifoPlayer::~FifoPlayer()
 {
 	delete m_File;
@@ -61,6 +63,9 @@ bool FifoPlayer::Play()
 	if (m_File->GetFrameCount() == 0)
 		return false;
 
+	// Currently these is no such thing as a Fifolog without broken EFB copies.
+	IsPlayingBackFifologWithBrokenEFBCopies = true;
+
 	m_CurrentFrame = m_FrameRangeStart;
 
 	LoadMemory();
@@ -99,6 +104,8 @@ bool FifoPlayer::Play()
 			}
 		}
 	}
+
+	IsPlayingBackFifologWithBrokenEFBCopies = false;
 
 	return true;
 }

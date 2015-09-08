@@ -11,6 +11,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -1397,7 +1398,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 		}
 	}
 
-	g_last_read_offset = (offset + length - 2048) & ~2047;
+	g_last_read_offset = ROUND_DOWN(offset + length - 2048, 2048);
 
 	return ticks_until_completion;
 }

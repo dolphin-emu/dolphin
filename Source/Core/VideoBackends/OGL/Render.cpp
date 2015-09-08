@@ -96,7 +96,6 @@ static RasterFont* s_pfont = nullptr;
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
 static int s_last_multisample_mode = 0;
-static bool s_last_ssaa_mode = false;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
 
@@ -142,27 +141,6 @@ static int GetNumMSAASamples(int MSAAMode)
 	// TODO: move this to InitBackendInfo
 	OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", samples, g_ogl_config.max_samples), 10000);
 	return g_ogl_config.max_samples;
-}
-
-static void ApplySSAASettings()
-{
-	if (g_ActiveConfig.bSSAA)
-	{
-		if (g_ActiveConfig.backend_info.bSupportsSSAA)
-		{
-			glEnable(GL_SAMPLE_SHADING_ARB);
-			glMinSampleShading(1.0f);
-		}
-		else
-		{
-			// TODO: move this to InitBackendInfo
-			OSD::AddMessage("SSAA Anti Aliasing isn't supported by your GPU.", 10000);
-		}
-	}
-	else if (g_ActiveConfig.backend_info.bSupportsSSAA)
-	{
-		glDisable(GL_SAMPLE_SHADING_ARB);
-	}
 }
 
 static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
@@ -492,8 +470,6 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage") ||
 	                                        GLExtensions::Supports("GL_EXT_buffer_storage");
 	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
-	g_ActiveConfig.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_sample_shading") ||
-	                                            GLExtensions::Supports("GL_OES_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
 	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") ||
@@ -523,6 +499,7 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsEarlyZ = true;
 			g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
 			g_Config.backend_info.bSupportsGSInstancing = g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
+			g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
 			g_ogl_config.bSupportsMSAA = true;
 			g_ogl_config.bSupports2DTextureStorage = true;
 			if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisampleMode > 1 && !g_ogl_config.bSupports3DTextureStorage)
@@ -564,16 +541,28 @@ Renderer::Renderer()
 			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
+			g_Config.backend_info.bSupportsSSAA = false; // sample shading is only supported on glsl400+
 		}
 		else if (strstr(g_ogl_config.glsl_version, "1.40"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
+			g_Config.backend_info.bSupportsSSAA = false; // sample shading is only supported on glsl400+
+		}
+		else if (strstr(g_ogl_config.glsl_version, "1.50"))
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSL_150;
+			g_Config.backend_info.bSupportsSSAA = false; // sample shading is only supported on glsl400+
+		}
+		else if (strstr(g_ogl_config.glsl_version, "3.30"))
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSL_330;
+			g_Config.backend_info.bSupportsSSAA = false; // sample shading is only supported on glsl400+
 		}
 		else
 		{
-			g_ogl_config.eSupportedGLSLVersion = GLSL_150;
+			g_ogl_config.eSupportedGLSLVersion = GLSL_400;
 		}
 
 		// Desktop OpenGL can't have the Android Extension Pack
@@ -652,9 +641,7 @@ Renderer::Renderer()
 			);
 
 	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
-	s_last_ssaa_mode = g_ActiveConfig.bSSAA;
 	s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
-	ApplySSAASettings();
 
 	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
@@ -2144,21 +2131,19 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	{
 		TargetSizeChanged = true;
 	}
-	if (TargetSizeChanged || xfbchanged || WindowResized || s_last_ssaa_mode != g_ActiveConfig.bSSAA ||
+	if (TargetSizeChanged || xfbchanged || WindowResized ||
 	    (s_last_multisample_mode != g_ActiveConfig.iMultisampleMode) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
 	{
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		if (TargetSizeChanged || s_last_ssaa_mode != g_ActiveConfig.bSSAA ||
+		if (TargetSizeChanged ||
 		    s_last_multisample_mode != g_ActiveConfig.iMultisampleMode || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
 		{
 			s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 			s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
-			s_last_ssaa_mode = g_ActiveConfig.bSSAA;
 			s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
-			ApplySSAASettings();
 
 			if (g_ActiveConfig.bAsynchronousTimewarp)
 				g_vr_lock.lock();

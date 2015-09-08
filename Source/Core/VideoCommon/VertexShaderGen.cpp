@@ -78,7 +78,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("out VertexData {\n");
-			GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
+			GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens, GetInterpolationQualifier(api_type, false, true));
 			out.Write("} vs;\n");
 		}
 		else
@@ -88,17 +88,17 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			{
 				if (i < uid_data->numTexGens)
 				{
-					out.Write("centroid out float3 uv%d;\n", i);
+					out.Write("%s out float3 uv%d;\n", GetInterpolationQualifier(api_type), i);
 				}
 			}
-			out.Write("centroid out float4 clipPos;\n");
+			out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(api_type));
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("centroid out float3 Normal;\n");
-				out.Write("centroid out float3 WorldPos;\n");
+				out.Write("%s out float3 Normal;\n", GetInterpolationQualifier(api_type));
+				out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier(api_type));
 			}
-			out.Write("centroid out float4 colors_0;\n");
-			out.Write("centroid out float4 colors_1;\n");
+			out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier(api_type));
+			out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier(api_type));
 		}
 
 		out.Write("void main()\n{\n");
