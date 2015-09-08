@@ -491,6 +491,7 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
 			g_Config.backend_info.bSupportsGSInstancing = g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
 			g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
+			g_Config.backend_info.bSupportsBBox = true;
 			g_ogl_config.bSupportsMSAA = true;
 			g_ogl_config.bSupports2DTextureStorage = true;
 			if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisampleMode > 1 && !g_ogl_config.bSupports3DTextureStorage)
@@ -510,6 +511,7 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
 			g_Config.backend_info.bSupportsPaletteConversion = true;
 			g_Config.backend_info.bSupportsSSAA = true;
+			g_Config.backend_info.bSupportsBBox = true;
 			g_ogl_config.bSupportsCopySubImage = true;
 			g_ogl_config.bSupportsGLBaseVertex = true;
 			g_ogl_config.bSupportsDebug = true;
