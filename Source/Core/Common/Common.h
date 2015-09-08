@@ -60,7 +60,13 @@ extern const char *netplay_dolphin_ver;
 class NonCopyable
 {
 protected:
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+	NonCopyable() {}
+	NonCopyable(const NonCopyable&&) {}
+	void operator=(const NonCopyable&&) {}
+#else
 	constexpr NonCopyable() = default;
+#endif
 	~NonCopyable() = default;
 
 private:
