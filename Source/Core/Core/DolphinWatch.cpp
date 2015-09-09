@@ -135,15 +135,28 @@ namespace DolphinWatch {
 				return;
 			}
 
-			u32 addr, val;
+			u32 mode, addr, val;
 
-			if (!(parts >> addr)) {
+			if (!(parts >> mode >> addr)) {
 				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
 			// Parsing OK
-			val = PowerPC::HostRead_U32(addr);
+			switch (mode) {
+			case 8:
+				val = PowerPC::HostRead_U8(addr);
+				break;
+			case 16:
+				val = PowerPC::HostRead_U16(addr);
+				break;
+			case 32:
+				val = PowerPC::HostRead_U32(addr);
+				break;
+			default:
+				NOTICE_LOG(CONSOLE, "Wrong mode for reading, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
+				return;
+			}
 
 			ostringstream message;
 			message << "MEM " << addr << " " << val << endl;
@@ -264,7 +277,7 @@ namespace DolphinWatch {
 					string s2;
 					istringstream subcmds(s);
 					while (getline(subcmds, s2, ';')) {
-						process(client, s2);
+						if (!s2.empty()) process(client, s2);
 					}
 				}
 			}
