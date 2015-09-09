@@ -2,6 +2,13 @@
 
 #include <sstream>
 #include <SFML/Network.hpp>
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/InputConfig.h"
+#include "Core/HW/Wiimote.h"
+
+#define WATCH_TIMEOUT 100
+#define HIJACK_TIMEOUT 500
+#define NUM_WIIMOTES 4
 
 namespace DolphinWatch {
 
@@ -42,5 +49,9 @@ namespace DolphinWatch {
 	void process(Client &client, string &line);
 	void update();
 	void send(sf::TcpSocket &socket, string& data);
+
+	WiimoteEmu::Wiimote* getWiimote(int i_wiimote);
+	void sendButtons(int i_wiimote, u16 _buttons);
+	void checkHijacks();
 
 }
