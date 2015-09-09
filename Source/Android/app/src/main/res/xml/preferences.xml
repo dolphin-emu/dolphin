@@ -19,12 +19,6 @@
             android:entries="@array/string_emu_cores"
             android:entryValues="@array/int_emu_cores"/>
 
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="fastmemPref"
-            android:summary="@string/fastmem_desc"
-            android:title="@string/fastmem"/>
-
     </PreferenceCategory>
 
     <PreferenceCategory
