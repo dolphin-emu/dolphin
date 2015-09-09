@@ -123,6 +123,9 @@ public:
 	void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
 	void ConnectOnInput();
 
+	void SetReportingAuto(bool b);
+	u16 GetReportingChannel();
+
 	void DoState(PointerWrap& p);
 	void RealState();
 

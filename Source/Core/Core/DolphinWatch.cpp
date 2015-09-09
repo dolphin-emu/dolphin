@@ -7,6 +7,9 @@
 #include "Common/Logging/LogManager.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/InputConfig.h"
+#include "Core/HW/Wiimote.h"
 
 namespace DolphinWatch {
 
@@ -19,15 +22,60 @@ namespace DolphinWatch {
 	static thread thr;
 	static atomic<bool> running=true;
 
+	static int hijacks[NUM_WIIMOTES];
+
+	WiimoteEmu::Wiimote* getWiimote(int i_wiimote) {
+		return ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->controllers.at(i_wiimote));
+	}
+
+	void sendButtons(int i_wiimote, u16 _buttons) {
+		if (!Core::IsRunning()) {
+			// TODO error
+			return;
+		}
+		WiimoteEmu::Wiimote* wiimote = getWiimote(i_wiimote);
+
+		// disable reports from actual wiimote for a while, aka hijack for a while
+		wiimote->SetReportingAuto(false);
+		hijacks[i_wiimote] = HIJACK_TIMEOUT;
+
+		u8 data[4];
+		memset(data, 0, sizeof(data));
+
+		data[0] = 0xA1; // input (wiimote -> wii)
+		data[1] = 0x35; // mode: Core Buttons and Accelerometer with 16 Extension Bytes
+			            // because just core buttons does not work for some reason.
+		((wm_buttons*)(data + 2))->hex |= _buttons;
+		Core::Callback_WiimoteInterruptChannel(i_wiimote, wiimote->GetReportingChannel(), data, 4);
+
+	}
+
+	void checkHijacks() {
+		if (!Core::IsRunning()) {
+			return;
+		}
+		for (int i = 0; i < NUM_WIIMOTES; ++i) {
+			if (hijacks[i] <= 0) continue;
+			hijacks[i] -= WATCH_TIMEOUT;
+			if (hijacks[i] <= 0) {
+				hijacks[i] = 0;
+				getWiimote(i)->SetReportingAuto(true);
+			}
+		}
+	}
+
 	void Init(unsigned short port) {
 		server.listen(port);
 		// avoid threads or complicated select()'s, just poll in update.
 		server.setBlocking(false);
 
+		memset(hijacks, 0, sizeof(hijacks));
+
 		thr = thread([]() {
 			while (running) {
 				update();
-				Sleep(100);
+				Sleep(WATCH_TIMEOUT);
+				checkHijacks();
 			}
 		});
 	}
@@ -138,6 +186,25 @@ namespace DolphinWatch {
 			}
 
 		}
+		else if (cmd == "BUTTONSTATES") {
+
+			int i_wiimote;
+			u16 states;
+			
+			if (!(parts >> i_wiimote >> states)) {
+				// no valid parameters, skip
+				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				return;
+			}
+
+			if (i_wiimote >= NUM_WIIMOTES) {
+				NOTICE_LOG(CONSOLE, "Invalid wiimote number %d in: %s", i_wiimote, line.c_str());
+				return;
+			}
+
+			sendButtons(i_wiimote, states);
+
+		}
 		else {
 			NOTICE_LOG(CONSOLE, "Unknown command: %s", cmd.c_str());
 		}
@@ -145,6 +212,8 @@ namespace DolphinWatch {
 	}
 
 	void update() {
+
+		//sendButtons(0, WiimoteEmu::Wiimote::BUTTON_TWO);
 
 		string s;
 
@@ -155,7 +224,6 @@ namespace DolphinWatch {
 			Client client(socket);
 			clients.push_back(client);
 		}
-
 
 		// poll incoming data from clients, then process
 		for (Client &client : clients) {
