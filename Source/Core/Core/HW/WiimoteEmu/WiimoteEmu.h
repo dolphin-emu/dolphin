@@ -164,7 +164,7 @@ private:
 	bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size);
 
 	// control groups
-	Buttons *m_buttons, *m_dpad, *m_shake;
+	Buttons *m_buttons, *m_dpad, *m_shake, *m_hotkeys;
 	Cursor*        m_ir;
 	Tilt*          m_tilt;
 	Force*         m_swing;
