@@ -889,6 +889,14 @@ void Wiimote::ConnectOnInput()
 	}
 }
 
+void Wiimote::SetReportingAuto(bool b) {
+	m_reporting_auto = b;
+}
+
+u16 Wiimote::GetReportingChannel() {
+	return m_reporting_channel;
+}
+
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
 	ControllerEmu::LoadDefaults(ciface);
