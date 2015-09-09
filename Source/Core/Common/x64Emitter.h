@@ -166,16 +166,7 @@ struct OpArg
 	bool IsSimpleReg() const {return scale == SCALE_NONE;}
 	bool IsSimpleReg(X64Reg reg) const
 	{
-		if (!IsSimpleReg())
-			return false;
-		return GetSimpleReg() == reg;
-	}
-
-	bool CanDoOpWith(const OpArg& other) const
-	{
-		if (IsSimpleReg()) return true;
-		if (!IsSimpleReg() && !other.IsSimpleReg() && !other.IsImm()) return false;
-		return true;
+		return IsSimpleReg() && GetSimpleReg() == reg;
 	}
 
 	int GetImmBits() const

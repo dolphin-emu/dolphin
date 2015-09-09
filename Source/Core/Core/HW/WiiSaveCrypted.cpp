@@ -97,7 +97,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 			success++;
 		delete export_save;
 	}
-	SuccessAlertT("Sucessfully exported %u saves to %s", success,
+	SuccessAlertT("Successfully exported %u saves to %s", success,
 		(File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
 }
 
