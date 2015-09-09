@@ -279,10 +279,24 @@ void CLogWindow::UpdateLog()
 
 	m_LogTimer.Stop();
 
-	std::lock_guard<std::mutex> lk(m_LogSection);
-	while (!msgQueue.empty())
+	while (true)
 	{
-		switch (msgQueue.front().first)
+		u8 log_level;
+		wxString log_msg;
+
+		// We can't hold this mutex while calling Wx functions, due to deadlocks
+		{
+			std::lock_guard<std::mutex> lk(m_LogSection);
+
+			if (msgQueue.empty())
+				break;
+
+			log_level = msgQueue.front().first;
+			log_msg = std::move(msgQueue.front().second);
+			msgQueue.pop();
+		}
+
+		switch (log_level)
 		{
 			case LogTypes::LOG_LEVELS::LERROR:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
@@ -309,15 +323,13 @@ void CLogWindow::UpdateLog()
 				break;
 		}
 
-		if (msgQueue.front().second.size())
+		if (log_msg.size())
 		{
 			int i = m_Log->GetLastPosition();
-			m_Log->AppendText(msgQueue.front().second);
+			m_Log->AppendText(log_msg);
 			// White timestamp
 			m_Log->SetStyle(i, i + 9, wxTextAttr(*wxWHITE));
 		}
-
-		msgQueue.pop();
 	}
 
 	m_LogTimer.Start();
