@@ -1031,12 +1031,6 @@
             <PreferenceCategory android:title="@string/other">
 
                 <CheckBoxPreference
-                    android:defaultValue="false"
-                    android:key="disableDestinationAlpha"
-                    android:summary="@string/disable_destination_alpha_descrip"
-                    android:title="@string/disable_destination_alpha"/>
-
-                <CheckBoxPreference
                     android:defaultValue="true"
                     android:key="fastDepthCalculation"
                     android:summary="@string/fast_depth_calculation_descrip"
