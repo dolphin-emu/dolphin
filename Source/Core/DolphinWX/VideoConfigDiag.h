@@ -168,7 +168,7 @@ protected:
 
 	void Event_StereoConvergence(wxCommandEvent &ev)
 	{
-		vconfig.iStereoConvergence = ev.GetInt();
+		vconfig.iStereoConvergencePercentage = ev.GetInt();
 
 		ev.Skip();
 	}

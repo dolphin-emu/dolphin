@@ -88,10 +88,6 @@ struct VideoConfig final
 	bool bForceFiltering;
 	int iMaxAnisotropy;
 	std::string sPostProcessingShader;
-	int iStereoMode;
-	int iStereoDepth;
-	int iStereoConvergence;
-	bool bStereoSwapEyes;
 	std::array<StereoscopyPreset, STEREOSCOPY_PRESETS_NUM> oStereoPresets;
 	int iStereoActivePreset;
 
@@ -136,9 +132,13 @@ struct VideoConfig final
 	int iSaveTargetId; // TODO: Should be dropped
 
 	// Stereoscopy
+	int iStereoMode;
+	int iStereoDepth;
+	int iStereoConvergence;
+	int iStereoConvergencePercentage;
+	bool bStereoSwapEyes;
 	bool bStereoEFBMonoDepth;
 	int iStereoDepthPercentage;
-	int iStereoConvergenceMinimum;
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;

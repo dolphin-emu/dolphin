@@ -439,7 +439,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Depth:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_stereo->Add(sep_slider, 0, wxEXPAND | wxRIGHT);
 
-		wxSlider* const conv_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoConvergence, 0, 500, wxDefaultPosition, wxDefaultSize);
+		wxSlider* const conv_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoConvergencePercentage, 0, 200, wxDefaultPosition, wxDefaultSize);
 		conv_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoConvergence, this);
 		RegisterControl(conv_slider, wxGetTranslation(stereo_convergence_desc));
 
