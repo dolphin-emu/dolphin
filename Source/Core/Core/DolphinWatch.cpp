@@ -10,6 +10,9 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/InputConfig.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/Core.h"
+#include "Core/State.h"
+#include "Common\StringUtil.h"
 
 namespace DolphinWatch {
 
@@ -224,6 +227,38 @@ namespace DolphinWatch {
 			}
 
 			sendButtons(i_wiimote, states);
+
+		}
+		else if (cmd == "PAUSE") {
+			Core::SetState(Core::CORE_PAUSE);
+		}
+		else if (cmd == "RESUME") {
+			Core::SetState(Core::CORE_RUN);
+		}
+		else if (cmd == "SAVE") {
+
+			string file;
+			getline(parts, file);
+			file = StripSpaces(file);
+			if (file.empty() || file.find_first_of(":?\"<> | ") != string::npos) {
+				NOTICE_LOG(CONSOLE, "Invalid filename for saving savestate: %s", file.c_str());
+				return;
+			}
+
+			State::SaveAs(file);
+
+		}
+		else if (cmd == "LOAD") {
+
+			string file;
+			getline(parts, file);
+			file = StripSpaces(file);
+			if (file.empty() || file.find_first_of(":?\"<> | ") != string::npos) {
+				NOTICE_LOG(CONSOLE, "Invalid filename for loading savestate: %s", file.c_str());
+				return;
+			}
+
+			State::LoadAs(file);
 
 		}
 		else {
