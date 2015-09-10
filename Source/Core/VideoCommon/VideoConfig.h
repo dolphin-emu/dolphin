@@ -112,7 +112,6 @@ struct VideoConfig final
 
 	// Render
 	bool bWireFrame;
-	bool bDstAlphaPass;
 	bool bDisableFog;
 
 	// Utility

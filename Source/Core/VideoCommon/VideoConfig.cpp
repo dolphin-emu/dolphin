@@ -173,7 +173,6 @@ void VideoConfig::Load(const std::string& ini_file)
 		settings->Get("SSAA", &bSSAA, false);
 		settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
 	}
-	settings->Get("DstAlphaPass", &bDstAlphaPass, false);
 	settings->Get("TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
 	settings->Get("TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
 	settings->Get("WireFrame", &bWireFrame, 0);
@@ -363,7 +362,6 @@ void VideoConfig::GameIniLoad()
 		}
 	}
 
-	CHECK_SETTING("Video_Settings", "DstAlphaPass", bDstAlphaPass);
 	CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
 
 	if (g_has_hmd)
@@ -402,7 +400,6 @@ void VideoConfig::GameIniLoad()
 			}
 		}
 
-		CHECK_SETTING("Video_Settings_VR", "DstAlphaPass", bDstAlphaPass);
 		CHECK_SETTING("Video_Settings_VR", "DisableFog", bDisableFog);
 	}
 
@@ -651,7 +648,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	settings->Set("TexFmtOverlayCenter", bTexFmtOverlayCenter);
 	settings->Set("Wireframe", bWireFrame);
-	settings->Set("DstAlphaPass", bDstAlphaPass);
 	settings->Set("DisableFog", bDisableFog);
 	settings->Set("EnableShaderDebugging", bEnableShaderDebugging);
 	settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
