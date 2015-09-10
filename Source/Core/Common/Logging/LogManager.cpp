@@ -67,7 +67,6 @@ LogManager::LogManager()
 	m_Log[LogTypes::POWERPC]            = new LogContainer("PowerPC",         "IBM CPU");
 	m_Log[LogTypes::SERIALINTERFACE]    = new LogContainer("SI",              "Serial Interface (SI)");
 	m_Log[LogTypes::SP1]                = new LogContainer("SP1",             "Serial Port 1");
-	m_Log[LogTypes::STREAMINGINTERFACE] = new LogContainer("Stream",          "StreamingInt");
 	m_Log[LogTypes::VIDEO]              = new LogContainer("Video",           "Video Backend");
 	m_Log[LogTypes::VIDEOINTERFACE]     = new LogContainer("VI",              "Video Interface (VI)");
 	m_Log[LogTypes::WIIMOTE]            = new LogContainer("Wiimote",         "Wiimote");
