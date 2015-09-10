@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -107,7 +107,7 @@ struct ARAddr
 void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats &&
+	if (!SConfig::GetInstance().bEnableCheats &&
 		!forceLoad)
 		return;
 
@@ -231,16 +231,14 @@ static void LogInfo(const char *format, ...)
 	{
 		if (LogManager::GetMaxLevel() >= LogTypes::LINFO || logSelf)
 		{
-			char* temp = (char*)alloca(strlen(format)+512);
 			va_list args;
 			va_start(args, format);
-			CharArrayFromFormatV(temp, 512, format, args);
+			std::string text = StringFromFormatV(format, args);
 			va_end(args);
-			INFO_LOG(ACTIONREPLAY, "%s", temp);
+			INFO_LOG(ACTIONREPLAY, "%s", text.c_str());
 
 			if (logSelf)
 			{
-				std::string text = temp;
 				text += '\n';
 				arLog.push_back(text);
 			}
@@ -278,8 +276,8 @@ void SetARCode_IsActive(bool active, size_t index)
 
 void UpdateActiveList()
 {
-	bool old_value = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = false;
+	bool old_value = SConfig::GetInstance().bEnableCheats;
+	SConfig::GetInstance().bEnableCheats = false;
 	b_RanOnce = false;
 	activeCodes.clear();
 	for (auto& arCode : arCodes)
@@ -287,7 +285,7 @@ void UpdateActiveList()
 		if (arCode.active)
 			activeCodes.push_back(arCode);
 	}
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = old_value;
+	SConfig::GetInstance().bEnableCheats = old_value;
 }
 
 void EnableSelfLogging(bool enable)
@@ -815,7 +813,7 @@ void RunAllActive()
 		b_RanOnce = true;
 	}
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	if (SConfig::GetInstance().bEnableCheats)
 	{
 		for (auto& activeCode : activeCodes)
 		{

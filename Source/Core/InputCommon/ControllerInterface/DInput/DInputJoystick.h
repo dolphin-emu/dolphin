@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -20,9 +20,9 @@ private:
 	class Button : public Input
 	{
 	public:
-		std::string GetName() const;
-		Button(u8 index, const BYTE& button) : m_index(index), m_button(button) {}
-		ControlState GetState() const;
+		Button(u8 index, const BYTE& button) : m_button(button), m_index(index) {}
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const BYTE& m_button;
 		const u8 m_index;
@@ -31,9 +31,9 @@ private:
 	class Axis : public Input
 	{
 	public:
-		std::string GetName() const;
-		Axis(u8 index, const LONG& axis, LONG base, LONG range) : m_index(index), m_axis(axis), m_base(base), m_range(range) {}
-		ControlState GetState() const;
+		Axis(u8 index, const LONG& axis, LONG base, LONG range) : m_axis(axis), m_base(base), m_range(range), m_index(index) {}
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const LONG& m_axis;
 		const LONG m_base, m_range;
@@ -43,9 +43,9 @@ private:
 	class Hat : public Input
 	{
 	public:
-		std::string GetName() const;
-		Hat(u8 index, const DWORD& hat, u8 direction) : m_index(index), m_hat(hat), m_direction(direction) {}
-		ControlState GetState() const;
+		Hat(u8 index, const DWORD& hat, u8 direction) : m_hat(hat), m_direction(direction), m_index(index) {}
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const DWORD& m_hat;
 		const u8 m_index, m_direction;
@@ -57,9 +57,9 @@ public:
 	Joystick(const LPDIRECTINPUTDEVICE8 device, const unsigned int index);
 	~Joystick();
 
-	std::string GetName() const;
-	int GetId() const;
-	std::string GetSource() const;
+	std::string GetName() const override;
+	int GetId() const override;
+	std::string GetSource() const override;
 
 private:
 	const LPDIRECTINPUTDEVICE8 m_device;

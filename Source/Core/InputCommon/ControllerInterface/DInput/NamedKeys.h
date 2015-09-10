@@ -1,3 +1,7 @@
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 { DIK_A, "A" },
 { DIK_B, "B" },
 { DIK_C, "C" },

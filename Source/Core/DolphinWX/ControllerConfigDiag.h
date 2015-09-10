@@ -1,3 +1,7 @@
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #pragma once
 
 #include <array>
@@ -69,6 +73,12 @@ private:
 	void OnGameCubeAdapter(wxCommandEvent& event)
 	{
 		SConfig::GetInstance().m_GameCubeAdapter = event.IsChecked();
+#ifdef __LIBUSB__
+		if (event.IsChecked())
+			SI_GCAdapter::StartScanThread();
+		else
+			SI_GCAdapter::StopScanThread();
+#endif
 		event.Skip();
 	}
 	void OnAdapterRumble(wxCommandEvent& event)
@@ -91,7 +101,7 @@ private:
 
 	std::map<wxWindowID, unsigned int> m_gc_port_choice_ids;
 	std::map<wxWindowID, unsigned int> m_gc_port_config_ids;
-	static const std::array<wxString, 8> m_gc_pad_type_strs;
+	std::array<wxString, 8> m_gc_pad_type_strs;
 
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
 	unsigned int m_orig_wiimote_sources[MAX_BBMOTES];

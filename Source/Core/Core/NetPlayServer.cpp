@@ -1,16 +1,19 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <string>
 #include <vector>
 #include "Common/ENetUtil.h"
+#include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "Core/NetPlayClient.h" //for NetPlayUI
 #include "Core/NetPlayServer.h"
 #include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/Sram.h"
 #include "InputCommon/GCPadStatus.h"
 #if !defined(_WIN32)
 #include <sys/types.h>
@@ -52,7 +55,7 @@ NetPlayServer::~NetPlayServer()
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port, bool traversal, std::string centralServer, u16 centralPort)
+NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort)
 	: is_connected(false)
 	, m_is_running(false)
 	, m_do_loop(false)
@@ -71,8 +74,9 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal, std::string central
 		PanicAlertT("Enet Didn't Initialize");
 	}
 
-	memset(m_pad_map, -1, sizeof(m_pad_map));
-	memset(m_wiimote_map, -1, sizeof(m_wiimote_map));
+	m_pad_map.fill(-1);
+	m_wiimote_map.fill(-1);
+
 	if (traversal)
 	{
 		if (!EnsureTraversalClient(centralServer, centralPort))
@@ -110,7 +114,6 @@ void NetPlayServer::ThreadFunc()
 	while (m_do_loop)
 	{
 		// update pings every so many seconds
-
 		if ((m_ping_timer.GetTimeElapsed() > 1000) || m_update_pings)
 		{
 			m_ping_key = Common::Timer::GetTimeMs();
@@ -190,6 +193,8 @@ void NetPlayServer::ThreadFunc()
 			case ENET_EVENT_TYPE_DISCONNECT:
 			{
 				std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+				if  (!netEvent.peer->data)
+					break;
 				auto it = m_players.find(*(PlayerId *)netEvent.peer->data);
 				if (it != m_players.end())
 				{
@@ -230,6 +235,18 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	} while (epack == nullptr);
 	rpac.append(epack->data, epack->dataLength);
 
+	// give new client first available id
+	PlayerId pid = 1;
+	for (auto i = m_players.begin(); i != m_players.end(); ++i)
+	{
+		if (i->second.pid == pid)
+		{
+			pid++;
+			i = m_players.begin();
+		}
+	}
+	socket->data = new PlayerId(pid);
+
 	std::string npver;
 	rpac >> npver;
 	// Dolphin netplay version
@@ -248,25 +265,12 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	m_update_pings = true;
 
 	Client player;
+	player.pid = pid;
 	player.socket = socket;
 	rpac >> player.revision;
 	rpac >> player.name;
 
 	enet_packet_destroy(epack);
-
-	// give new client first available id
-	PlayerId pid = 1;
-	for (auto i = m_players.begin(); i != m_players.end(); ++i)
-	{
-		if (i->second.pid == pid)
-		{
-			pid++;
-			i = m_players.begin();
-		}
-	}
-	player.pid = pid;
-	socket->data = new PlayerId(pid);
-
 	// try to automatically assign new user a pad
 	for (PadMapping& mapping : m_pad_map)
 	{
@@ -304,6 +308,21 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	spac << (u32)m_target_buffer_size;
 	Send(player.socket, spac);
 
+	// sync GC SRAM with new client
+	if (!g_SRAM_netplay_initialized)
+	{
+		SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+		InitSRAM();
+		g_SRAM_netplay_initialized = true;
+	}
+	spac.clear();
+	spac << (MessageId)NP_MSG_SYNC_GC_SRAM;
+	for (size_t i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+	{
+		spac << g_SRAM.p_SRAM[i];
+	}
+	Send(player.socket, spac);
+
 	// sync values with new client
 	for (const auto& p : m_players)
 	{
@@ -316,7 +335,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	// add client to the player list
 	{
 		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-		m_players.insert(std::pair<PlayerId, Client>(*(PlayerId *)player.socket->data, player));
+		m_players.emplace(*(PlayerId *)player.socket->data, player);
 		UpdatePadMapping(); // sync pad mappings with everyone
 		UpdateWiimoteMapping();
 	}
@@ -384,31 +403,27 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::GetPadMapping(PadMapping map[4])
+PadMappingArray NetPlayServer::GetPadMapping() const
 {
-	for (int i = 0; i < 4; i++)
-		map[i] = m_pad_map[i];
+	return m_pad_map;
 }
 
-void NetPlayServer::GetWiimoteMapping(PadMapping map[4])
+PadMappingArray NetPlayServer::GetWiimoteMapping() const
 {
-	for (int i = 0; i < 4; i++)
-		map[i] = m_wiimote_map[i];
+	return m_wiimote_map;
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::SetPadMapping(const PadMapping map[4])
+void NetPlayServer::SetPadMapping(const PadMappingArray& mappings)
 {
-	for (int i = 0; i < 4; i++)
-		m_pad_map[i] = map[i];
+	m_pad_map = mappings;
 	UpdatePadMapping();
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::SetWiimoteMapping(const PadMapping map[4])
+void NetPlayServer::SetWiimoteMapping(const PadMappingArray& mappings)
 {
-	for (int i = 0; i < 4; i++)
-		m_wiimote_map[i] = map[i];
+	m_wiimote_map = mappings;
 	UpdateWiimoteMapping();
 }
 
@@ -581,6 +596,53 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 	}
 	break;
 
+	case NP_MSG_TIMEBASE:
+	{
+		u32 x, y, frame;
+		packet >> x;
+		packet >> y;
+		packet >> frame;
+
+		if (m_desync_detected)
+			break;
+
+		u64 timebase = x | ((u64)y << 32);
+		std::vector<std::pair<PlayerId, u64>>& timebases = m_timebase_by_frame[frame];
+		timebases.emplace_back(player.pid, timebase);
+		if (timebases.size() >= m_players.size())
+		{
+			// we have all records for this frame
+
+			if (!std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> pair){ return pair.second == timebases[0].second; }))
+			{
+				int pid_to_blame = -1;
+				if (timebases.size() > 2)
+				{
+					for (auto pair : timebases)
+					{
+						if (std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> other) {
+							return other.first == pair.first || other.second != pair.second;
+						}))
+						{
+							// we are the only outlier
+							pid_to_blame = pair.first;
+							break;
+						}
+					}
+				}
+
+				sf::Packet spac;
+				spac << (MessageId) NP_MSG_DESYNC_DETECTED;
+				spac << pid_to_blame;
+				spac << frame;
+				SendToClients(spac);
+
+				m_desync_detected = true;
+			}
+			m_timebase_by_frame.erase(frame);
+		}
+	}
+	break;
 	default:
 		PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid, player.pid);
 		// unknown message, kick the client
@@ -635,6 +697,8 @@ void NetPlayServer::SetNetSettings(const NetSettings &settings)
 // called from ---GUI--- thread
 bool NetPlayServer::StartGame()
 {
+	m_timebase_by_frame.clear();
+	m_desync_detected = false;
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 	m_current_game = Common::Timer::GetTimeMs();
 
@@ -649,6 +713,10 @@ bool NetPlayServer::StartGame()
 	*spac << m_current_game;
 	*spac << m_settings.m_CPUthread;
 	*spac << m_settings.m_CPUcore;
+	*spac << m_settings.m_SelectedLanguage;
+	*spac << m_settings.m_OverrideGCLanguage;
+	*spac << m_settings.m_ProgressiveScan;
+	*spac << m_settings.m_PAL60;
 	*spac << m_settings.m_DSPEnableJIT;
 	*spac << m_settings.m_DSPHLE;
 	*spac << m_settings.m_WriteToMemcard;
@@ -657,7 +725,7 @@ bool NetPlayServer::StartGame()
 	*spac << m_settings.m_EXIDevice[0];
 	*spac << m_settings.m_EXIDevice[1];
 	*spac << (u32)g_netplay_initial_gctime;
-	*spac << (u32)g_netplay_initial_gctime << 32;
+	*spac << (u32)(g_netplay_initial_gctime >> 32);
 
 	SendAsyncToClients(spac);
 
@@ -717,7 +785,7 @@ std::unordered_set<std::string> NetPlayServer::GetInterfaceSet()
 }
 
 // called from ---GUI--- thread
-std::string NetPlayServer::GetInterfaceHost(const std::string inter)
+std::string NetPlayServer::GetInterfaceHost(const std::string& inter)
 {
 	char buf[16];
 	sprintf(buf, ":%d", GetPort());

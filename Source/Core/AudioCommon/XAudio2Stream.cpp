@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <xaudio2.h>
@@ -78,7 +78,7 @@ StreamingVoiceContext::StreamingVoiceContext(IXAudio2 *pXAudio2, CMixer *pMixer,
 	HRESULT hr;
 	if (FAILED(hr = pXAudio2->CreateSourceVoice(&m_source_voice, &wfx.Format, XAUDIO2_VOICE_NOSRC, 1.0f, this)))
 	{
-		PanicAlertT("XAudio2 CreateSourceVoice failed: %#X", hr);
+		PanicAlert("XAudio2 CreateSourceVoice failed: %#X", hr);
 		return;
 	}
 
@@ -155,9 +155,8 @@ bool XAudio2::InitLibrary()
 	return true;
 }
 
-XAudio2::XAudio2(CMixer *mixer)
-	: SoundStream(mixer)
-	, m_mastering_voice(nullptr)
+XAudio2::XAudio2()
+	: m_mastering_voice(nullptr)
 	, m_volume(1.0f)
 	, m_cleanup_com(SUCCEEDED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
 {
@@ -178,7 +177,7 @@ bool XAudio2::Start()
 	IXAudio2* xaudptr;
 	if (FAILED(hr = ((XAudio2Create_t)PXAudio2Create)(&xaudptr, 0, XAUDIO2_DEFAULT_PROCESSOR)))
 	{
-		PanicAlertT("XAudio2 init failed: %#X", hr);
+		PanicAlert("XAudio2 init failed: %#X", hr);
 		Stop();
 		return false;
 	}
@@ -188,7 +187,7 @@ bool XAudio2::Start()
 	// XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
 	if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate())))
 	{
-		PanicAlertT("XAudio2 master voice creation failed: %#X", hr);
+		PanicAlert("XAudio2 master voice creation failed: %#X", hr);
 		Stop();
 		return false;
 	}
@@ -197,7 +196,7 @@ bool XAudio2::Start()
 	m_mastering_voice->SetVolume(m_volume);
 
 	m_voice_context = std::unique_ptr<StreamingVoiceContext>
-		(new StreamingVoiceContext(m_xaudio2.get(), m_mixer, m_sound_sync_event));
+		(new StreamingVoiceContext(m_xaudio2.get(), m_mixer.get(), m_sound_sync_event));
 
 	return true;
 }
@@ -209,21 +208,6 @@ void XAudio2::SetVolume(int volume)
 
 	if (m_mastering_voice)
 		m_mastering_voice->SetVolume(m_volume);
-}
-
-void XAudio2::Update()
-{
-	//m_sound_sync_event.Set();
-
-	//static int xi = 0;
-	//if (100000 == ++xi)
-	//{
-	//    xi = 0;
-	//    XAUDIO2_PERFORMANCE_DATA perfData;
-	//    pXAudio2->GetPerformanceData(&perfData);
-	//    NOTICE_LOG(DSPHLE, "XAudio2 latency (samples): %i", perfData.CurrentLatencyInSamples);
-	//    NOTICE_LOG(DSPHLE, "XAudio2 total glitches: %i", perfData.GlitchesSinceEngineStarted);
-	//}
 }
 
 void XAudio2::Clear(bool mute)

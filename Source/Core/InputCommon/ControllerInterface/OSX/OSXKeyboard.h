@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -57,9 +57,9 @@ public:
 
 	Keyboard(IOHIDDeviceRef device, std::string name, int index, void *window);
 
-	std::string GetName() const;
-	std::string GetSource() const;
-	int GetId() const;
+	std::string GetName() const override;
+	std::string GetSource() const override;
+	int GetId() const override;
 
 private:
 	struct

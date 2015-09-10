@@ -1,5 +1,5 @@
-// Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cinttypes>
@@ -272,7 +272,7 @@ Renderer::Renderer(void *&window_handle)
 	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
 	D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), ClearColor);
-	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)s_target_width, (float)s_target_height);
 	D3D::context->RSSetViewports(1, &vp);
@@ -287,10 +287,13 @@ Renderer::Renderer(void *&window_handle)
 
 Renderer::~Renderer()
 {
+	// On Oculus SDK 0.5 and below, we called BeginFrame so we need a matching EndFrame, but on 0.6 this crashes
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
 	if (g_has_rift && !g_first_rift_frame && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		VR_PresentHMDFrame();
 	}
+#endif
 	g_first_rift_frame = true;
 
 	TeardownDeviceObjects();
@@ -390,19 +393,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	D3D11_MAPPED_SUBRESOURCE map;
 	ID3D11Texture2D* read_tex;
 
-	if (type == POKE_Z)
-	{
-		if (ARBruteForcer::ch_bruteforce)
-		{
-			Core::KillDolphinAndRestart();
-		}
-		static bool alert_only_once = true;
-		if (!alert_only_once) return 0;
-		PanicAlert("EFB: Poke Z not implemented (tried to poke z value %#x at (%d,%d))", poke_data, x, y);
-		alert_only_once = false;
-		return 0;
-	}
-
 	// Convert EFB dimensions to the ones of our render target
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;
@@ -439,12 +429,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), nullptr);
 		D3D::SetPointCopySampler();
 		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
-								&RectToLock,
-								Renderer::GetTargetWidth(),
-								Renderer::GetTargetHeight(),
-								PixelShaderCache::GetColorCopyProgram(true),
-								VertexShaderCache::GetSimpleVertexShader(),
-								VertexShaderCache::GetSimpleInputLayout());
+			&RectToLock,
+			Renderer::GetTargetWidth(),
+			Renderer::GetTargetHeight(),
+			PixelShaderCache::GetColorCopyProgram(true),
+			VertexShaderCache::GetSimpleVertexShader(),
+			VertexShaderCache::GetSimpleInputLayout());
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
@@ -458,7 +448,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// read the data from system memory
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
 
-		float val = *(float*)map.pData;
+		// depth buffer is inverted in the d3d backend
+		float val = 1.0f - *(float*)map.pData;
 		u32 ret = 0;
 		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 		{
@@ -471,7 +462,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		}
 		D3D::context->Unmap(read_tex, 0);
 
-		// TODO: in RE0 this value is often off by one in Video_DX9 (where this code is derived from), which causes lighting to disappear
 		return ret;
 	}
 	else if (type == PEEK_COLOR)
@@ -508,22 +498,53 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		else if (alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
 		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
 	}
-	else //if(type == POKE_COLOR)
+	else if (type == POKE_COLOR)
 	{
 		u32 rgbaColor = (poke_data & 0xFF00FF00) | ((poke_data >> 16) & 0xFF) | ((poke_data << 16) & 0xFF0000);
 
 		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
 		ResetAPIState();
 
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
+		D3D::context->RSSetViewports(1, &vp);
+
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), nullptr);
-		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
-		                            - (float)RectToLock.top    * 2.f / (float)Renderer::GetTargetHeight() + 1.f,
-		                              (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
-		                            - (float)RectToLock.bottom * 2.f / (float)Renderer::GetTargetHeight() + 1.f);
+		D3D::drawColorQuad(rgbaColor, 0.f,
+			(float)RectToLock.left   * 2.f / GetTargetWidth() - 1.f,
+			-(float)RectToLock.top    * 2.f / GetTargetHeight() + 1.f,
+			(float)RectToLock.right  * 2.f / GetTargetWidth() - 1.f,
+			-(float)RectToLock.bottom * 2.f / GetTargetHeight() + 1.f);
 
 		RestoreAPIState();
-		return 0;
 	}
+	else // if (type == POKE_Z)
+	{
+		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
+		ResetAPIState();
+
+		D3D::stateman->PushBlendState(clearblendstates[3]);
+		D3D::stateman->PushDepthState(cleardepthstates[1]);
+
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight(),
+			1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
+			1.0f - MathUtil::Clamp<float>((xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f)), 0.0f, 16777215.0f) / 16777216.0f);
+		D3D::context->RSSetViewports(1, &vp);
+
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
+			FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		D3D::drawColorQuad(0, 1.0f - float(poke_data & 0xFFFFFF) / 16777216.0f,
+			(float)RectToLock.left   * 2.f / GetTargetWidth() - 1.f,
+			-(float)RectToLock.top    * 2.f / GetTargetHeight() + 1.f,
+			(float)RectToLock.right  * 2.f / GetTargetWidth() - 1.f,
+			-(float)RectToLock.bottom * 2.f / GetTargetHeight() + 1.f);
+
+		D3D::stateman->PopDepthState();
+		D3D::stateman->PopBlendState();
+
+		RestoreAPIState();
+	}
+
+	return 0;
 }
 
 
@@ -580,8 +601,8 @@ void Renderer::SetViewport()
 	g_rendered_viewport = EFBRectangle((int)X, (int)Y, (int)Wd, (int)Ht);
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
-		std::max(0.0f, std::min(1.0f, (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f)),
-		std::max(0.0f, std::min(1.0f, xfmem.viewport.farZ / 16777216.0f)));
+		1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
+		1.0f - MathUtil::Clamp<float>((xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f)), 0.0f, 16777215.0f) / 16777216.0f);
 	D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -606,7 +627,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	// Color is passed in bgra mode so we need to convert it to rgba
 	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
-	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / 16777216.0f);
+	D3D::drawClearQuad(rgbaColor, 1.0f - (z & 0xFFFFFF) / 16777216.0f);
 
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopBlendState();
@@ -781,7 +802,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		ARBruteForcer::ch_last_search = true;
 
 	// VR - before the first frame we need BeginFrame, and we need to configure the tracking
-	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
+	if (g_first_rift_frame && g_has_hmd && g_ActiveConfig.bEnableVR)
 	{
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
@@ -841,7 +862,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_television.Submit(xfbAddr, fbStride, fbWidth, fbHeight);
 		s_television.Render();
 	}
-	else if (g_has_rift && g_ActiveConfig.bEnableVR)
+	else if (g_has_hmd && g_ActiveConfig.bEnableVR)
 	{
 		// Draw our Razer Hydra
 		if (!g_ActiveConfig.bUseXFB)
@@ -889,12 +910,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				D3D11_VIEWPORT Vp = CD3D11_VIEWPORT((float)drawRc.left, (float)drawRc.top, (float)drawRc.GetWidth(), (float)drawRc.GetHeight());
 
 				// Render to left eye
-				D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[0]->GetRTV(), nullptr);
+				VR_RenderToEyebuffer(0);
 				D3D::context->RSSetViewports(1, &Vp);
 				D3D::drawShadedTexQuad(read_texture->GetSRV(), sourceRc.AsRECT(), xfbSource->texWidth, xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
 
 				// Render to right eye
-				D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[1]->GetRTV(), nullptr);
+				VR_RenderToEyebuffer(1);
 				D3D::drawShadedTexQuad(read_texture->GetSRV(), sourceRc.AsRECT(), xfbSource->texWidth, xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
 			}
 		}
@@ -906,12 +927,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			D3D11_VIEWPORT Vp = CD3D11_VIEWPORT((float)0, (float)0, (float)Renderer::GetTargetWidth(), (float)Renderer::GetTargetHeight());
 
 			// Render to left eye
-			D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[0]->GetRTV(), nullptr);
+			VR_RenderToEyebuffer(0);
 			D3D::context->RSSetViewports(1, &Vp);
 			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
 
 			// Render to right eye
-			D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[1]->GetRTV(), nullptr);
+			VR_RenderToEyebuffer(1);
 			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
 		}
 		// Reset viewport for drawing text
@@ -923,11 +944,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
 			VR_PresentHMDFrame();
-			Common::AtomicIncrement(g_drawn_vr);
+			g_drawn_vr++;
 
 			// VR Synchronous Timewarp
 			static int real_frame_count_for_timewarp = 0;
-			SCoreStartupParameter& startup_parameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+			SConfig& startup_parameter = SConfig::GetInstance();
 
 			if (g_ActiveConfig.bSynchronousTimewarp)
 			{
@@ -980,7 +1001,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraTimewarpedFrames; ++i)
 			{
 				VR_DrawTimewarpFrame();
-				Common::AtomicIncrement(g_drawn_vr);
+				g_drawn_vr++;
 			}
 
 		}
@@ -1110,7 +1131,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		bLastFrameDumped = false;
 	}
 
-	if (!g_has_rift)
+	if (!g_has_hmd)
 	{
 		// Reset viewport for drawing text
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
@@ -1176,7 +1197,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	bool windowResized = CheckForResize();
 	bool fullscreen = g_ActiveConfig.bFullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled() &&
-		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain;
+		!SConfig::GetInstance().bRenderToMain;
 
 	bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
@@ -1190,7 +1211,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// Flip/present backbuffer to frontbuffer here
-	if (!g_has_rift)
+	if (!g_has_hmd)
 		D3D::Present();
 
 	// Check exclusive fullscreen state
@@ -1226,7 +1247,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	NewVRFrame();
 
 	// Resize the back buffers NOW to avoid flickering
-	if (xfbchanged ||
+	if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) ||
+		xfbchanged ||
 		windowResized ||
 		fullscreen_changed ||
 		s_last_efb_scale != g_ActiveConfig.iEFBScale ||
@@ -1266,7 +1288,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		s_last_efb_scale = g_ActiveConfig.iEFBScale;
 		s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
-		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 		PixelShaderManager::SetEfbScaleChanged();
 
@@ -1278,7 +1299,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		g_framebuffer_manager = new FramebufferManager;
 		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
 		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
-		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
 		if (g_ActiveConfig.bAsynchronousTimewarp)
 			g_vr_lock.unlock();
 	}
@@ -1294,7 +1315,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		// VR Clear screen before every frame
 		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
 		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
-		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
 	}
 
 	// begin next frame
@@ -1333,7 +1354,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	for (unsigned int stage = 0; stage < 8; stage++)
 	{
 		// TODO: cache SamplerState directly, not d3d object
-		gx_state.sampler[stage].max_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+		gx_state.sampler[stage].max_anisotropy = 1 << g_ActiveConfig.iMaxAnisotropy;
 		D3D::stateman->SetSampler(stage, gx_state_cache.Get(gx_state.sampler[stage]));
 	}
 
@@ -1393,7 +1414,7 @@ void Renderer::SetGenerationMode()
 
 void Renderer::SetDepthMode()
 {
-	gx_state.zmode = bpmem.zmode;
+	gx_state.zmode.hex = bpmem.zmode.hex;
 }
 
 void Renderer::SetLogicOpMode()
@@ -1577,7 +1598,7 @@ void Renderer::BBoxWrite(int index, u16 _value)
 
 void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture, u32 src_width, u32 src_height, float Gamma)
 {
-	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB || g_ActiveConfig.iStereoMode == STEREO_OSVR)
 	{
 		TargetRectangle leftRc, rightRc;
 		ConvertStereoRectangle(dst, leftRc, rightRc);
@@ -1586,10 +1607,10 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 		D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)rightRc.left, (float)rightRc.top, (float)rightRc.GetWidth(), (float)rightRc.GetHeight());
 
 		D3D::context->RSSetViewports(1, &leftVp);
-		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, (g_Config.iStereoMode == STEREO_OSVR) ? PixelShaderCache::GetOSVRProgram() : PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
 
 		D3D::context->RSSetViewports(1, &rightVp);
-		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, (g_Config.iStereoMode == STEREO_OSVR) ? PixelShaderCache::GetOSVRProgram() : PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
 	}
 	else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
 	{

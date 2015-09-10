@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -44,12 +44,24 @@
 
 struct BlockStat
 {
-	BlockStat(int bn, u64 c) : blockNum(bn), cost(c) {}
+	BlockStat(int bn, u32 _addr, u64 c, u64 ticks, u64 run, u32 size) :
+		blockNum(bn), addr(_addr), cost(c), tick_counter(ticks), run_count(run), block_size(size) {}
 	int blockNum;
+	u32 addr;
 	u64 cost;
+	u64 tick_counter;
+	u64 run_count;
+	u32 block_size;
 
 	bool operator <(const BlockStat &other) const
 	{ return cost > other.cost; }
+};
+struct ProfileStats
+{
+	std::vector<BlockStat> block_stats;
+	u64 cost_sum;
+	u64 timecost_sum;
+	u64 countsPerSec;
 };
 
 namespace Profiler

@@ -139,9 +139,6 @@
     <ClCompile Include="GameListCtrl.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="HotkeyDlg.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="ISOProperties.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -307,9 +304,6 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="Globals.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="HotkeyDlg.h">
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="ISOProperties.h">

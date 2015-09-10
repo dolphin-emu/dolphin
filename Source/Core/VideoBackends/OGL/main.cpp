@@ -1,5 +1,5 @@
-// Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -38,9 +38,11 @@ Make AA apply instantly during gameplay if possible
 
 #include <algorithm>
 #include <cstdarg>
+#include <regex>
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
 #include "Common/Thread.h"
 #include "Common/Logging/LogManager.h"
 
@@ -96,39 +98,16 @@ std::string VideoBackend::GetDisplayName() const
 		return "OpenGL";
 }
 
-static void GetShaders(std::vector<std::string> &shaders, const std::string &sub_dir = "")
+static std::vector<std::string> GetShaders(const std::string &sub_dir = "")
 {
-	std::set<std::string> already_found;
-
-	shaders.clear();
-	const std::string directories[] = {
+	std::vector<std::string> paths = DoFileSearch({"*.glsl"}, {
 		File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-		File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir,
-	};
-	for (auto& directory : directories)
-	{
-		if (!File::IsDirectory(directory))
-			continue;
-
-		File::FSTEntry entry;
-		File::ScanDirectoryTree(directory, entry);
-		for (auto& file : entry.children)
-		{
-			std::string name = file.virtualName;
-			if (name.size() < 5)
-				continue;
-			if (strcasecmp(name.substr(name.size() - 5).c_str(), ".glsl"))
-				continue;
-
-			name = name.substr(0, name.size() - 5);
-			if (already_found.find(name) != already_found.end())
-				continue;
-
-			already_found.insert(name);
-			shaders.push_back(name);
-		}
-	}
-	std::sort(shaders.begin(), shaders.end());
+		File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir
+	});
+	std::vector<std::string> result;
+	for (std::string path : paths)
+		result.push_back(std::regex_replace(path, std::regex("^.*/(.*)\\.glsl$"), "$1"));
+	return result;
 }
 
 static void InitBackendInfo()
@@ -139,16 +118,17 @@ static void InitBackendInfo()
 	g_Config.backend_info.bSupportsGeometryShaders = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsPostProcessing = true;
+	g_Config.backend_info.bSupportsSSAA = true;
 
 	g_Config.backend_info.Adapters.clear();
 
 	// aamodes
-	const char* caamodes[] = {_trans("None"), "2x", "4x", "8x", "4x SSAA"};
+	const char* caamodes[] = {_trans("None"), "2x MSAA", "4x MSAA", "8x MSAA"};
 	g_Config.backend_info.AAModes.assign(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
 
 	// pp shaders
-	GetShaders(g_Config.backend_info.PPShaders);
-	GetShaders(g_Config.backend_info.AnaglyphShaders, std::string(ANAGLYPH_DIR DIR_SEP));
+	g_Config.backend_info.PPShaders = GetShaders("");
+	g_Config.backend_info.AnaglyphShaders = GetShaders(ANAGLYPH_DIR DIR_SEP);
 }
 
 void VideoBackend::ShowConfig(void *_hParent)

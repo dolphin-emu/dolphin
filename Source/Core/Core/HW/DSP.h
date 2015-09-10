@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -56,6 +56,8 @@ union UDSPControl
 	UDSPControl(u16 _Hex = 0) : Hex(_Hex) {}
 };
 
+extern UDSPControl g_dspState;
+
 void Init(bool hle);
 void Shutdown();
 
@@ -78,5 +80,6 @@ void UpdateAudioDMA();
 void UpdateDSPSlice(int cycles);
 u64 DMAInProgress();
 void EnableInstantDMA();
+void FlushInstantDMA(u32 address);
 
 }// end of namespace DSP

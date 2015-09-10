@@ -1,7 +1,14 @@
 package org.dolphinemu.dolphinemu.adapters;
 
+import android.app.Activity;
+import android.app.ActivityOptions;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.DataSetObserver;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,23 +16,34 @@ import android.view.ViewGroup;
 import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.model.Game;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.activities.MainActivity;
+import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
+import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
-import java.util.ArrayList;
-
-public class GameAdapter extends RecyclerView.Adapter<GameViewHolder>
+/**
+ * This adapter, unlike {@link FileAdapter} which is backed by an ArrayList, gets its
+ * information from a database Cursor. This fact, paired with the usage of ContentProviders
+ * and Loaders, allows for efficient display of a limited view into a (possibly) large dataset.
+ */
+public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> implements
+		View.OnClickListener,
+		View.OnLongClickListener
 {
-	private ArrayList<Game> mGameList;
+	private Cursor mCursor;
+	private GameDataSetObserver mObserver;
+
+	private boolean mDatasetValid;
 
 	/**
-	 * Mostly just initializes the dataset to be displayed.
-	 *
-	 * @param gameList
+	 * Initializes the adapter's observer, which watches for changes to the dataset. The adapter will
+	 * display no data until a Cursor is supplied by a CursorLoader.
 	 */
-	public GameAdapter(ArrayList<Game> gameList)
+	public GameAdapter()
 	{
-		mGameList = gameList;
+		mDatasetValid = false;
+		mObserver = new GameDataSetObserver();
 	}
 
 	/**
@@ -42,9 +60,11 @@ public class GameAdapter extends RecyclerView.Adapter<GameViewHolder>
 		View gameCard = LayoutInflater.from(parent.getContext())
 				.inflate(R.layout.card_game, parent, false);
 
+		gameCard.setOnClickListener(this);
+		gameCard.setOnLongClickListener(this);
+
 		// Use that view to create a ViewHolder.
-		GameViewHolder holder = new GameViewHolder(gameCard);
-		return holder;
+		return new GameViewHolder(gameCard);
 	}
 
 	/**
@@ -58,26 +78,44 @@ public class GameAdapter extends RecyclerView.Adapter<GameViewHolder>
 	@Override
 	public void onBindViewHolder(GameViewHolder holder, int position)
 	{
-		// Get a reference to the item from the dataset; we'll use this to fill in the view contents.
-		final Game game = mGameList.get(position);
-
-		// Fill in the view contents.
-		Picasso.with(holder.imageScreenshot.getContext())
-				.load(game.getScreenPath())
-				.error(R.drawable.no_banner)
-				.into(holder.imageScreenshot);
-
-		holder.textGameTitle.setText(game.getTitle());
-		if (game.getDescription() != null)
+		if (mDatasetValid)
 		{
-			holder.textDescription.setText(game.getDescription());
+			if (mCursor.moveToPosition(position))
+			{
+				String screenPath = mCursor.getString(GameDatabase.GAME_COLUMN_SCREENSHOT_PATH);
+
+				// Fill in the view contents.
+				Picasso.with(holder.imageScreenshot.getContext())
+						.load(screenPath)
+						.fit()
+						.centerCrop()
+						.noFade()
+						.noPlaceholder()
+						.config(Bitmap.Config.RGB_565)
+						.error(R.drawable.no_banner)
+						.into(holder.imageScreenshot);
+
+				holder.textGameTitle.setText(mCursor.getString(GameDatabase.GAME_COLUMN_TITLE));
+				holder.textCompany.setText(mCursor.getString(GameDatabase.GAME_COLUMN_COMPANY));
+
+				// TODO These shouldn't be necessary once the move to a DB-based model is complete.
+				holder.gameId = mCursor.getString(GameDatabase.GAME_COLUMN_GAME_ID);
+				holder.path = mCursor.getString(GameDatabase.GAME_COLUMN_PATH);
+				holder.title = mCursor.getString(GameDatabase.GAME_COLUMN_TITLE);
+				holder.description = mCursor.getString(GameDatabase.GAME_COLUMN_DESCRIPTION);
+				holder.country = mCursor.getInt(GameDatabase.GAME_COLUMN_COUNTRY);
+				holder.company = mCursor.getString(GameDatabase.GAME_COLUMN_COMPANY);
+				holder.screenshotPath = mCursor.getString(GameDatabase.GAME_COLUMN_SCREENSHOT_PATH);
+			}
+			else
+			{
+				Log.e("DolphinEmu", "Can't bind view; Cursor is not valid.");
+			}
 		}
-		holder.buttonDetails.setTag(game.getGameId());
-
-		holder.path = game.getPath();
-		holder.screenshotPath = game.getScreenPath();
-		holder.game = game;
-
+		else
+		{
+			Log.e("DolphinEmu", "Can't bind view; dataset is not valid.");
+		}
 	}
 
 	/**
@@ -88,7 +126,139 @@ public class GameAdapter extends RecyclerView.Adapter<GameViewHolder>
 	@Override
 	public int getItemCount()
 	{
-		return mGameList.size();
+		if (mDatasetValid && mCursor != null)
+		{
+			return mCursor.getCount();
+		}
+		Log.e("DolphinEmu", "Dataset is not valid.");
+		return 0;
+	}
+
+	/**
+	 * Return the contents of the _id column for a given row.
+	 *
+	 * @param position The row for which Android wants an ID.
+	 * @return A valid ID from the database, or 0 if not available.
+	 */
+	@Override
+	public long getItemId(int position)
+	{
+		if (mDatasetValid && mCursor != null)
+		{
+			if (mCursor.moveToPosition(position))
+			{
+				return mCursor.getLong(GameDatabase.COLUMN_DB_ID);
+			}
+		}
+
+		Log.e("DolphinEmu", "Dataset is not valid.");
+		return 0;
+	}
+
+	/**
+	 * Tell Android whether or not each item in the dataset has a stable identifier.
+	 * Which it does, because it's a database, so always tell Android 'true'.
+	 *
+	 * @param hasStableIds ignored.
+	 */
+	@Override
+	public void setHasStableIds(boolean hasStableIds)
+	{
+		super.setHasStableIds(true);
+	}
+
+	/**
+	 * When a load is finished, call this to replace the existing data with the newly-loaded
+	 * data.
+	 *
+	 * @param cursor The newly-loaded Cursor.
+	 */
+	public void swapCursor(Cursor cursor)
+	{
+		// Sanity check.
+		if (cursor == mCursor)
+		{
+			return;
+		}
+
+		// Before getting rid of the old cursor, disassociate it from the Observer.
+		final Cursor oldCursor = mCursor;
+		if (oldCursor != null && mObserver != null)
+		{
+			oldCursor.unregisterDataSetObserver(mObserver);
+		}
+
+		mCursor = cursor;
+		if (mCursor != null)
+		{
+			// Attempt to associate the new Cursor with the Observer.
+			if (mObserver != null)
+			{
+				mCursor.registerDataSetObserver(mObserver);
+			}
+
+			mDatasetValid = true;
+		}
+		else
+		{
+			mDatasetValid = false;
+		}
+
+		notifyDataSetChanged();
+	}
+
+	/**
+	 * Launches the game that was clicked on.
+	 *
+	 * @param view The card representing the game the user wants to play.
+	 */
+	@Override
+	public void onClick(View view)
+	{
+		GameViewHolder holder = (GameViewHolder) view.getTag();
+
+		// Start the emulation activity and send the path of the clicked ISO to it.
+		Intent intent = new Intent(view.getContext(), EmulationActivity.class);
+
+		intent.putExtra("SelectedGame", holder.path);
+		intent.putExtra("SelectedTitle", holder.title);
+		intent.putExtra("ScreenPath", holder.screenshotPath);
+		intent.putExtra("GridPosition", holder.getAdapterPosition());
+
+		ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+				(Activity) view.getContext(),
+				holder.imageScreenshot,
+				"image_game_screenshot");
+
+		((Activity) view.getContext()).startActivityForResult(intent,
+				MainActivity.REQUEST_EMULATE_GAME,
+				options.toBundle());
+	}
+
+	/**
+	 * Launches the details activity for this Game, using an ID stored in the
+	 * details button's Tag.
+	 *
+	 * @param view The Card button that was long-clicked.
+	 */
+	@Override
+	public boolean onLongClick(View view)
+	{
+		GameViewHolder holder = (GameViewHolder) view.getTag();
+
+		// Get the ID of the game we want to look at.
+		// TODO This should be all we need to pass in, eventually.
+		// String gameId = (String) holder.gameId;
+
+		Activity activity = (Activity) view.getContext();
+		GameDetailsDialog.newInstance(holder.title,
+				holder.description,
+				holder.country,
+				holder.company,
+				holder.path,
+				holder.screenshotPath).show(activity.getFragmentManager(), "game_details");
+
+		return true;
 	}
 
 	public static class SpacesItemDecoration extends RecyclerView.ItemDecoration
@@ -107,7 +277,27 @@ public class GameAdapter extends RecyclerView.Adapter<GameViewHolder>
 			outRect.right = space;
 			outRect.bottom = space;
 			outRect.top = space;
+		}
+	}
 
+	private final class GameDataSetObserver extends DataSetObserver
+	{
+		@Override
+		public void onChanged()
+		{
+			super.onChanged();
+
+			mDatasetValid = true;
+			notifyDataSetChanged();
+		}
+
+		@Override
+		public void onInvalidated()
+		{
+			super.onInvalidated();
+
+			mDatasetValid = false;
+			notifyDataSetChanged();
 		}
 	}
 }

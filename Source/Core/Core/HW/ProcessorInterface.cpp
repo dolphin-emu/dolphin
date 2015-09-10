@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstdio>
@@ -86,7 +86,7 @@ void Init()
 	m_FlipperRev = 0x246500B1; // revision C
 	m_Unknown = 0;
 
-	m_ResetCode = 0x80000000; // Cold reset
+	m_ResetCode = 0; // Cold reset
 	m_InterruptCause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
 
 	toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);

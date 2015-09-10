@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2012 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cerrno>
@@ -129,6 +129,12 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForc
 
 IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 {
+	if (Core::g_want_determinism)
+	{
+		Memory::Write_U32(-1, _CommandAddress + 0x4);
+		return IPC_DEFAULT_REPLY;
+	}
+
 	u32 Parameter     = Memory::Read_U32(_CommandAddress + 0xC);
 	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
@@ -456,7 +462,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 		{
 			Memory::Write_U32(OffsetBuffer-OffsetStart, OffsetStart); // fill in length
 
-			int devNum = GetAvaiableDevNum(desc.idVendor,
+			int devNum = GetAvailableDevNum(desc.idVendor,
 											desc.idProduct,
 											libusb_get_bus_number (device),
 											libusb_get_device_address (device),
@@ -617,7 +623,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 }
 
 
-int CWII_IPC_HLE_Device_hid::GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check)
+int CWII_IPC_HLE_Device_hid::GetAvailableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check)
 {
 	int pos = -1;
 	u64 unique_id = ((u64)idVendor << 32) | ((u64)idProduct << 16) | ((u64)bus << 8) | (u64)port;

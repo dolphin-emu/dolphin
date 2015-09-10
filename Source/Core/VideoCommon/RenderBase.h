@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // ---------------------------------------------------------------------------------------------
@@ -14,8 +14,10 @@
 
 #pragma once
 
+#include <mutex>
 #include <string>
 
+#include "Common/Event.h"
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
 #include "VideoCommon/BPMemory.h"
@@ -25,6 +27,12 @@
 #include "VideoCommon/VideoCommon.h"
 
 class PostProcessingShaderImplementation;
+
+struct EfbPokeData
+{
+	u16 x,y;
+	u32 data;
+};
 
 // TODO: Move these out of here.
 extern int frameCount;
@@ -102,9 +110,10 @@ public:
 	virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) = 0;
 	virtual void SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable) = 0;
 	virtual void ReinterpretPixelData(unsigned int convtype) = 0;
-	static void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidth, u32 fbHeight, float Gamma = 1.0f);
+	static void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight, float Gamma = 1.0f);
 
 	virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) = 0;
+	virtual void PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data);
 
 	virtual u16 BBoxRead(int index) = 0;
 	virtual void BBoxWrite(int index, u16 value) = 0;
@@ -127,6 +136,8 @@ public:
 	PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor; }
 	// Max height/width
 	virtual int GetMaxTextureSize() = 0;
+
+	static Common::Event s_screenshotCompleted;
 
 protected:
 

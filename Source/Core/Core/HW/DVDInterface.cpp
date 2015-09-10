@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cinttypes>
@@ -11,6 +11,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -332,7 +333,7 @@ static void FinishExecuteReadCommand(u64 userdata, int cyclesLate)
 {
 	if (!current_read_command.is_valid)
 	{
-		PanicAlertT("DVDInterface tried to execute non-existing command");
+		PanicAlert("DVDInterface: There is no command to execute!");
 	}
 	else
 	{
@@ -506,7 +507,7 @@ void EjectDiscCallback(u64 userdata, int cyclesLate)
 
 void InsertDiscCallback(u64 userdata, int cyclesLate)
 {
-	std::string& SavedFileName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename;
+	std::string& SavedFileName = SConfig::GetInstance().m_strFilename;
 	std::string *_FileName = (std::string *)userdata;
 
 	if (!SetVolumeName(*_FileName))
@@ -532,7 +533,8 @@ void ChangeDisc(const std::string& newFileName)
 		auto sizeofpath = fileName.find_last_of("/\\") + 1;
 		if (fileName.substr(sizeofpath).length() > 40)
 		{
-			PanicAlert("Saving iso filename to .dtm failed; max file name length is 40 characters.");
+			PanicAlertT("The disc change to \"%s\" could not be saved in the .dtm file.\n"
+			            "The filename of the disc image must not be longer than 40 characters.", newFileName.c_str());
 		}
 		Movie::g_discChange = fileName.substr(sizeofpath);
 	}
@@ -702,7 +704,7 @@ DVDReadCommand ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_le
 		DVD_length = output_length;
 	}
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
+	if (SConfig::GetInstance().bFastDiscSpeed)
 		// An optional hack to speed up loading times
 		*ticks_until_completion = output_length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
 	else
@@ -1396,7 +1398,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 		}
 	}
 
-	g_last_read_offset = (offset + length - 2048) & ~2047;
+	g_last_read_offset = ROUND_DOWN(offset + length - 2048, 2048);
 
 	return ticks_until_completion;
 }
@@ -1433,7 +1435,7 @@ s64 CalculateRawDiscReadTime(u64 offset, s64 length)
 	// Note that the speed at a track (in bytes per second) is the same as
 	// the radius of that track because of the length unit used.
 	double speed;
-	if (s_inserted_volume->IsWiiDisc())
+	if (s_inserted_volume->GetVolumeType() == DiscIO::IVolume::WII_DISC)
 	{
 		speed = std::sqrt(((average_offset - WII_DISC_LOCATION_1_OFFSET) /
 			WII_BYTES_PER_AREA_UNIT + WII_DISC_AREA_UP_TO_LOCATION_1) / PI);

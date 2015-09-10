@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -16,7 +16,7 @@ public:
 	CEXIIPL();
 	virtual ~CEXIIPL();
 
-	virtual void SetCS(int _iCS) override;
+	void SetCS(int _iCS) override;
 	bool IsPresent() const override;
 	void DoState(PointerWrap &p) override;
 
@@ -64,9 +64,9 @@ private:
 	std::string m_buffer;
 	bool m_FontsLoaded;
 
-	virtual void TransferByte(u8 &_uByte) override;
+	void TransferByte(u8& _uByte) override;
 	bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
 	u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
 
-	void LoadFileToIPL(std::string filename, u32 offset);
+	void LoadFileToIPL(const std::string& filename, u32 offset);
 };

@@ -1,6 +1,6 @@
-// copyright 2014 dolphin emulator project
-// licensed under gplv2
-// refer to the license.txt file included.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
@@ -65,7 +65,8 @@ void Arm64RegCache::FlushMostStaleRegister()
 	{
 		u32 last_used = m_guest_registers[i].GetLastUsed();
 		if (last_used > most_stale_amount &&
-		    m_guest_registers[i].GetType() == REG_REG)
+		    (m_guest_registers[i].GetType() != REG_NOTLOADED &&
+		     m_guest_registers[i].GetType() != REG_IMM))
 		{
 			most_stale_preg = i;
 			most_stale_amount = last_used;
@@ -125,33 +126,57 @@ void Arm64GPRCache::FlushRegister(u32 preg, bool maintain_state)
 	}
 }
 
-void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
+void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
 {
 	for (int i = 0; i < 32; ++i)
 	{
-		bool flush = true;
-		if (mode == FLUSH_INTERPRETER)
+		if (regs[i])
 		{
-			if (!(op->regsOut[i] || op->regsIn[i]))
+			if (i < 31 && regs[i + 1])
 			{
-				// This interpreted instruction doesn't use this register
-				flush = false;
-			}
-		}
+				// We've got two guest registers in a row to store
+				OpArg& reg1 = m_guest_registers[i];
+				OpArg& reg2 = m_guest_registers[i + 1];
+				if (reg1.IsDirty() && reg2.IsDirty() &&
+				    reg1.GetType() == REG_REG && reg2.GetType() == REG_REG)
+				{
+					ARM64Reg RX1 = R(i);
+					ARM64Reg RX2 = R(i + 1);
 
+					m_emit->STP(INDEX_SIGNED, RX1, RX2, X29, PPCSTATE_OFF(gpr[0]) + i * sizeof(u32));
+					if (!maintain_state)
+					{
+						UnlockRegister(RX1);
+						UnlockRegister(RX2);
+						reg1.Flush();
+						reg2.Flush();
+					}
+					++i;
+					continue;
+				}
+			}
+
+			FlushRegister(i, maintain_state);
+		}
+	}
+}
+
+void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
+{
+	BitSet32 to_flush;
+	for (int i = 0; i < 32; ++i)
+	{
+		bool flush = true;
 		if (m_guest_registers[i].GetType() == REG_REG)
 		{
 			// Has to be flushed if it isn't in a callee saved register
 			ARM64Reg host_reg = m_guest_registers[i].GetReg();
-			if (flush || !IsCalleeSaved(host_reg))
-				FlushRegister(i, mode == FLUSH_MAINTAIN_STATE);
+			flush = IsCalleeSaved(host_reg) ? flush : true;
 		}
-		else if (m_guest_registers[i].GetType() == REG_IMM)
-		{
-			if (flush)
-				FlushRegister(i, mode == FLUSH_MAINTAIN_STATE);
-		}
+
+		to_flush[i] = flush;
 	}
+	FlushRegisters(to_flush, mode == FLUSH_MAINTAIN_STATE);
 }
 
 ARM64Reg Arm64GPRCache::R(u32 preg)
@@ -205,6 +230,8 @@ void Arm64GPRCache::BindToRegister(u32 preg, bool do_load)
 {
 	OpArg& reg = m_guest_registers[preg];
 
+	reg.ResetLastUsed();
+
 	reg.SetDirty(true);
 	if (reg.GetType() == REG_NOTLOADED)
 	{
@@ -221,7 +248,7 @@ void Arm64GPRCache::GetAllocationOrder()
 	const std::vector<ARM64Reg> allocation_order =
 	{
 		// Callee saved
-		W28, W27, W26, W25, W24, W23, W22, W21, W20,
+		W27, W26, W25, W24, W23, W22, W21, W20,
 		W19,
 
 		// Caller saved
@@ -261,27 +288,17 @@ void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
 	for (int i = 0; i < 32; ++i)
 	{
-		bool flush = true;
-		if (mode == FLUSH_INTERPRETER)
+		if (m_guest_registers[i].GetType() != REG_NOTLOADED &&
+		    m_guest_registers[i].GetType() != REG_IMM)
 		{
-			if (!(op->regsOut[i] || op->regsIn[i]))
-			{
-				// This interpreted instruction doesn't use this register
-				flush = false;
-			}
-		}
-
-		if (m_guest_registers[i].GetType() == REG_REG)
-		{
-			// Has to be flushed if it isn't in a callee saved register
-			ARM64Reg host_reg = m_guest_registers[i].GetReg();
-			if (flush || !IsCalleeSaved(host_reg))
-				FlushRegister(i, mode == FLUSH_MAINTAIN_STATE);
+			// XXX: Determine if we can keep a register in the lower 64bits
+			// Which will allow it to be callee saved.
+			FlushRegister(i, mode == FLUSH_MAINTAIN_STATE);
 		}
 	}
 }
 
-ARM64Reg Arm64FPRCache::R(u32 preg)
+ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 {
 	OpArg& reg = m_guest_registers[preg];
 	IncrementAllUsed();
@@ -292,12 +309,52 @@ ARM64Reg Arm64FPRCache::R(u32 preg)
 	case REG_REG: // already in a reg
 		return reg.GetReg();
 	break;
+	case REG_LOWER_PAIR:
+	{
+		if (type == REG_REG)
+		{
+			// Load the high 64bits from the file and insert them in to the high 64bits of the host register
+			ARM64Reg tmp_reg = GetReg();
+			m_float_emit->LDR(64, INDEX_UNSIGNED, tmp_reg, X29, PPCSTATE_OFF(ps[preg][1]));
+			m_float_emit->INS(64, reg.GetReg(), 1, tmp_reg, 0);
+			UnlockRegister(tmp_reg);
+
+			// Change it over to a full 128bit register
+			reg.LoadToReg(reg.GetReg());
+		}
+		return reg.GetReg();
+	}
+	break;
+	case REG_DUP:
+	{
+		ARM64Reg host_reg = reg.GetReg();
+		if (type == REG_REG)
+		{
+			// We are requesting a full 128bit register
+			// but we are only available in the lower 64bits
+			// Duplicate to the top and change over
+			m_float_emit->INS(64, host_reg, 1, host_reg, 0);
+			reg.LoadToReg(host_reg);
+		}
+		return host_reg;
+	}
+	break;
 	case REG_NOTLOADED: // Register isn't loaded at /all/
 	{
 		ARM64Reg host_reg = GetReg();
-		reg.LoadToReg(host_reg);
+		u32 load_size;
+		if (type == REG_REG)
+		{
+			load_size = 128;
+			reg.LoadToReg(host_reg);
+		}
+		else
+		{
+			load_size = 64;
+			reg.LoadLowerReg(host_reg);
+		}
 		reg.SetDirty(false);
-		m_float_emit->LDR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+		m_float_emit->LDR(load_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
 		return host_reg;
 	}
 	break;
@@ -309,18 +366,101 @@ ARM64Reg Arm64FPRCache::R(u32 preg)
 	return INVALID_REG;
 }
 
-void Arm64FPRCache::BindToRegister(u32 preg, bool do_load)
+ARM64Reg Arm64FPRCache::RW(u32 preg, RegType type)
 {
 	OpArg& reg = m_guest_registers[preg];
 
+	bool was_dirty = reg.IsDirty();
+
+	IncrementAllUsed();
+	reg.ResetLastUsed();
+
 	reg.SetDirty(true);
-	if (reg.GetType() == REG_NOTLOADED)
+	switch (reg.GetType())
+	{
+	case REG_NOTLOADED:
 	{
 		ARM64Reg host_reg = GetReg();
-		reg.LoadToReg(host_reg);
-		if (do_load)
-			m_float_emit->LDR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+		if (type == REG_LOWER_PAIR)
+		{
+			reg.LoadLowerReg(host_reg);
+		}
+		else if (type == REG_DUP)
+		{
+			reg.LoadDup(host_reg);
+		}
+		else
+		{
+			reg.LoadToReg(host_reg);
+		}
 	}
+	break;
+	case REG_LOWER_PAIR:
+	{
+		ARM64Reg host_reg = reg.GetReg();
+		if (type == REG_REG)
+		{
+			// Change it over to a full 128bit register
+			reg.LoadToReg(host_reg);
+		}
+		else if (type == REG_DUP)
+		{
+			// Register is already the lower pair
+			// Just convert it over to a dup
+			reg.LoadDup(host_reg);
+		}
+	}
+	break;
+	case REG_REG:
+	{
+		ARM64Reg host_reg = reg.GetReg();
+		if (type == REG_LOWER_PAIR)
+		{
+			// If we only want the lower bits, let's store away the high bits and drop to a lower only register
+			// We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit store.
+			// It would take longer to do an insert to a temporary and a 64bit store than to just do this.
+			if (was_dirty)
+				m_float_emit->STR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			reg.LoadLowerReg(host_reg);
+		}
+		else if (type == REG_DUP)
+		{
+			// If we are going from a full 128bit register to a duplicate
+			// then we can just change over
+			reg.LoadDup(host_reg);
+		}
+	}
+	break;
+	case REG_DUP:
+	{
+		ARM64Reg host_reg = reg.GetReg();
+		if (type == REG_REG)
+		{
+			// We are a duplicated register going to a full 128bit register
+			// Do an insert of our lower 64bits to the higher 64bits
+			m_float_emit->INS(64, host_reg, 1, host_reg, 0);
+
+			// Change over to the full 128bit register
+			reg.LoadToReg(host_reg);
+		}
+		else if (type == REG_LOWER_PAIR)
+		{
+			// We are duplicated changing over to a lower register
+			// We've got to be careful in this instance and do a store of our lower 64bits
+			// to the upper 64bits in the PowerPC state
+			// That way incase if we hit the path of DUP->LOWER->REG we get the correct bits back
+			if (was_dirty)
+				m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][1]));
+			reg.LoadLowerReg(host_reg);
+		}
+	}
+	break;
+	default:
+		// Do nothing
+	break;
+	}
+
+	return reg.GetReg();
 }
 
 void Arm64FPRCache::GetAllocationOrder()
@@ -342,7 +482,16 @@ void Arm64FPRCache::GetAllocationOrder()
 
 void Arm64FPRCache::FlushByHost(ARM64Reg host_reg)
 {
-	// XXX: Scan guest registers and flush if found
+	for (int i = 0; i < 32; ++i)
+	{
+		OpArg& reg = m_guest_registers[i];
+		if ((reg.GetType() != REG_NOTLOADED && reg.GetType() != REG_IMM) && reg.GetReg() == host_reg)
+		{
+			FlushRegister(i, false);
+			return;
+		}
+	}
+
 }
 
 bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg)
@@ -351,18 +500,42 @@ bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg)
 	{
 		Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15, INVALID_REG,
 	};
-	return std::find(callee_regs.begin(), callee_regs.end(), EncodeRegTo64(reg)) != callee_regs.end();
+	return std::find(callee_regs.begin(), callee_regs.end(), reg) != callee_regs.end();
 }
 
 void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
 {
 	OpArg& reg = m_guest_registers[preg];
-	if (reg.GetType() == REG_REG)
+	if (reg.GetType() == REG_REG ||
+	    reg.GetType() == REG_LOWER_PAIR)
 	{
 		ARM64Reg host_reg = reg.GetReg();
+		u32 store_size;
+		if (reg.GetType() == REG_REG)
+			store_size = 128;
+		else
+			store_size = 64;
 
 		if (reg.IsDirty())
-			m_float_emit->STR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			m_float_emit->STR(store_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+
+		if (!maintain_state)
+		{
+			UnlockRegister(host_reg);
+			reg.Flush();
+		}
+	}
+	else if (reg.GetType() == REG_DUP)
+	{
+		ARM64Reg host_reg = reg.GetReg();
+		if (reg.IsDirty())
+		{
+			// If the paired registers were at the start of ppcState we could do an STP here.
+			// Too bad moving them would break savestate compatibility between x86_64 and AArch64
+			//m_float_emit->STP(64, INDEX_SIGNED, host_reg, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][1]));
+		}
 
 		if (!maintain_state)
 		{
@@ -372,11 +545,17 @@ void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
 	}
 }
 
+void Arm64FPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
+{
+	for (int j : regs)
+		FlushRegister(j, maintain_state);
+}
+
 BitSet32 Arm64FPRCache::GetCallerSavedUsed()
 {
 	BitSet32 registers(0);
 	for (auto& it : m_host_registers)
 		if (it.IsLocked())
-			registers[Q0 - it.GetReg()] = 1;
+			registers[it.GetReg() - Q0] = 1;
 	return registers;
 }

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -340,18 +340,7 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
 	// The following detects a situation where the game is writing to the dcache at the address being DMA'd. As we do not
 	// have dcache emulation, invalid data is being DMA'd causing audio glitches. The following code detects this and
 	// enables the DMA to complete instantly before the invalid data is written. Resident Evil 2 & 3 trigger this.
-	u64 dma_in_progress = DSP::DMAInProgress();
-	if (dma_in_progress != 0)
-	{
-		u32 start_addr = (dma_in_progress >> 32) & Memory::RAM_MASK;
-		u32 end_addr = (dma_in_progress & Memory::RAM_MASK) & 0xffffffff;
-		u32 invalidated_addr = (address & Memory::RAM_MASK) & ~0x1f;
-
-		if (invalidated_addr >= start_addr && invalidated_addr <= end_addr)
-		{
-			DSP::EnableInstantDMA();
-		}
-	}
+	DSP::FlushInstantDMA(address);
 }
 
 void Interpreter::dcbst(UGeckoInstruction _inst)
@@ -376,7 +365,7 @@ void Interpreter::dcbtst(UGeckoInstruction _inst)
 void Interpreter::dcbz(UGeckoInstruction _inst)
 {
 	// HACK but works... we think
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bDCBZOFF)
+	if (!SConfig::GetInstance().bDCBZOFF)
 		PowerPC::ClearCacheLine(Helper_Get_EA_X(_inst) & (~31));
 	if (!JitInterface::GetCore())
 		PowerPC::CheckExceptions();
@@ -814,14 +803,6 @@ void Interpreter::stwx(UGeckoInstruction _inst)
 void Interpreter::sync(UGeckoInstruction _inst)
 {
 	//ignored
-}
-
-void Interpreter::tlbia(UGeckoInstruction _inst)
-{
-	// Gekko does not support this instructions.
-	PanicAlert("The GameCube CPU does not support tlbia");
-	// invalid the whole TLB
-	//MessageBox(0,"TLBIA","TLBIA",0);
 }
 
 void Interpreter::tlbie(UGeckoInstruction _inst)

@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Based off of twintig http://git.infradead.org/?p=users/segher/wii.git
@@ -119,7 +119,7 @@ void make_blanksig_ec_cert(u8 *cert_out, const char *signer, const char *name, c
 EcWii::EcWii()
 {
 	bool init = true;
-	std::string keys_path = File::GetUserPath(D_WIIUSER_IDX) + "keys.bin";
+	std::string keys_path = File::GetUserPath(D_WIIROOT_IDX) + "/keys.bin";
 	if (File::Exists(keys_path))
 	{
 		File::IOFile keys_f(keys_path, "rb");

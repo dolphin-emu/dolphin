@@ -1,8 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
+
+#include <memory>
 
 #include "AudioCommon/Mixer.h"
 #include "AudioCommon/WaveFile.h"
@@ -11,21 +13,17 @@
 class SoundStream
 {
 protected:
-
-	CMixer* m_mixer;
-	// We set this to shut down the sound thread.
-	// 0=keep playing, 1=stop playing NOW.
-	volatile int threadData;
+	std::unique_ptr<CMixer> m_mixer;
 	bool m_logAudio;
 	WaveFileWriter g_wave_writer;
 	bool m_muted;
 
 public:
-	SoundStream(CMixer* mixer) : m_mixer(mixer), threadData(0), m_logAudio(false), m_muted(false) {}
-	virtual ~SoundStream() { delete m_mixer; }
+	SoundStream() : m_mixer(new CMixer(48000)), m_logAudio(false), m_muted(false) {}
+	virtual ~SoundStream() { }
 
 	static  bool isValid() { return false; }
-	virtual CMixer* GetMixer() const { return m_mixer; }
+	CMixer* GetMixer() const { return m_mixer.get(); }
 	virtual bool Start() { return false; }
 	virtual void SetVolume(int) {}
 	virtual void SoundLoop() {}
@@ -34,32 +32,32 @@ public:
 	virtual void Clear(bool mute) { m_muted = mute; }
 	bool IsMuted() const { return m_muted; }
 
-	virtual void StartLogAudio(const std::string& filename)
+	void StartLogAudio(const std::string& filename)
 	{
 		if (!m_logAudio)
 		{
 			m_logAudio = true;
 			g_wave_writer.Start(filename, m_mixer->GetSampleRate());
 			g_wave_writer.SetSkipSilence(false);
-			NOTICE_LOG(DSPHLE, "Starting Audio logging");
+			NOTICE_LOG(AUDIO, "Starting Audio logging");
 		}
 		else
 		{
-			WARN_LOG(DSPHLE, "Audio logging already started");
+			WARN_LOG(AUDIO, "Audio logging already started");
 		}
 	}
 
-	virtual void StopLogAudio()
+	void StopLogAudio()
 	{
 		if (m_logAudio)
 		{
 			m_logAudio = false;
 			g_wave_writer.Stop();
-			NOTICE_LOG(DSPHLE, "Stopping Audio logging");
+			NOTICE_LOG(AUDIO, "Stopping Audio logging");
 		}
 		else
 		{
-			WARN_LOG(DSPHLE, "Audio logging already stopped");
+			WARN_LOG(AUDIO, "Audio logging already stopped");
 		}
 	}
 };

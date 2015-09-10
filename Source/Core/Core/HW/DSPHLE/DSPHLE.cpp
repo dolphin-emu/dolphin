@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <iostream>
@@ -78,14 +78,16 @@ void DSPHLE::DSP_Update(int cycles)
 u32 DSPHLE::DSP_UpdateRate()
 {
 	// AX HLE uses 3ms (Wii) or 5ms (GC) timing period
-	if (m_pUCode != nullptr)
-	{
-		return (u32)((SystemTimers::GetTicksPerSecond() / (1000 / SConfig::GetInstance().m_AudioSlowDown)) * m_pUCode->GetUpdateMs());
-	}
-	else
-	{
-		return SystemTimers::GetTicksPerSecond() / 1000;
-	}
+	// But to be sure, just update the HLE every ms.
+	return SystemTimers::GetTicksPerSecond() / 1000;
+	//if (m_pUCode != nullptr)
+	//{
+	//	return (u32)((SystemTimers::GetTicksPerSecond() / (1000 / SConfig::GetInstance().m_AudioSlowDown)) * m_pUCode->GetUpdateMs());
+	//}
+	//else
+	//{
+	//	return SystemTimers::GetTicksPerSecond() / 1000;
+	//}
 }
 
 void DSPHLE::SendMailToDSP(u32 _uMail)

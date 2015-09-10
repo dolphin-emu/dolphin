@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -95,6 +95,9 @@ bool SetupScrub(const std::string& filename, int block_size)
 	m_BlocksPerCluster = CLUSTER_SIZE / m_BlockSize;
 
 	m_Disc = CreateVolumeFromFilename(filename);
+	if (!m_Disc)
+		return false;
+
 	m_FileSize = m_Disc->GetSize();
 
 	u32 numClusters = (u32)(m_FileSize / CLUSTER_SIZE);
@@ -130,14 +133,14 @@ size_t GetNextBlock(File::IOFile& in, u8* buffer)
 	size_t ReadBytes = 0;
 	if (m_isScrubbing && m_FreeTable[i])
 	{
-		DEBUG_LOG(DISCIO, "Freeing 0x%016" PRIx64, CurrentOffset);
+		DEBUG_LOG(DISCIO, "Freeing 0x%016llx", CurrentOffset);
 		std::fill(buffer, buffer + m_BlockSize, 0xFF);
 		in.Seek(m_BlockSize, SEEK_CUR);
 		ReadBytes = m_BlockSize;
 	}
 	else
 	{
-		DEBUG_LOG(DISCIO, "Used    0x%016" PRIx64, CurrentOffset);
+		DEBUG_LOG(DISCIO, "Used    0x%016llx", CurrentOffset);
 		in.ReadArray(buffer, m_BlockSize, &ReadBytes);
 	}
 
@@ -161,7 +164,7 @@ void MarkAsUsed(u64 _Offset, u64 _Size)
 	u64 CurrentOffset = _Offset;
 	u64 EndOffset = CurrentOffset + _Size;
 
-	DEBUG_LOG(DISCIO, "Marking 0x%016" PRIx64 " - 0x%016" PRIx64 " as used", _Offset, EndOffset);
+	DEBUG_LOG(DISCIO, "Marking 0x%016llx - 0x%016llx as used", _Offset, EndOffset);
 
 	while ((CurrentOffset < EndOffset) && (CurrentOffset < m_FileSize))
 	{
@@ -265,8 +268,14 @@ bool ParsePartitionData(SPartition& _rPartition)
 
 	// Ready some stuff
 	m_Disc = CreateVolumeFromFilename(m_Filename, _rPartition.GroupNumber, _rPartition.Number);
-	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_Disc));
+	if (m_Disc == nullptr)
+	{
+		ERROR_LOG(DISCIO, "Failed to create volume from file %s", m_Filename.c_str());
+		m_Disc = OldVolume;
+		return false;
+	}
 
+	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_Disc));
 	if (!filesystem)
 	{
 		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", _rPartition.GroupNumber, _rPartition.Number);
@@ -274,9 +283,6 @@ bool ParsePartitionData(SPartition& _rPartition)
 	}
 	else
 	{
-		std::vector<const SFileInfo *> Files;
-		size_t numFiles = filesystem->GetFileList(Files);
-
 		// Mark things as used which are not in the filesystem
 		// Header, Header Information, Apploader
 		ReadFromVolume(0x2440 + 0x14, 4, _rPartition.Header.ApploaderSize, true);
@@ -305,18 +311,14 @@ bool ParsePartitionData(SPartition& _rPartition)
 			, _rPartition.Header.FSTSize);
 
 		// Go through the filesystem and mark entries as used
-		for (size_t currentFile = 0; currentFile < numFiles; currentFile++)
+		for (SFileInfo file : filesystem->GetFileList())
 		{
-			DEBUG_LOG(DISCIO, "%s", currentFile ? (*Files.at(currentFile)).m_FullPath.c_str() : "/");
+			DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
 			// Just 1byte for directory? - it will end up reserving a cluster this way
-			if ((*Files.at(currentFile)).m_NameOffset & 0x1000000)
-				MarkAsUsedE(_rPartition.Offset
-				+ _rPartition.Header.DataOffset
-				, (*Files.at(currentFile)).m_Offset, 1);
+			if (file.m_NameOffset & 0x1000000)
+				MarkAsUsedE(_rPartition.Offset + _rPartition.Header.DataOffset, file.m_Offset, 1);
 			else
-				MarkAsUsedE(_rPartition.Offset
-				+ _rPartition.Header.DataOffset
-				, (*Files.at(currentFile)).m_Offset, (*Files.at(currentFile)).m_FileSize);
+				MarkAsUsedE(_rPartition.Offset + _rPartition.Header.DataOffset, file.m_Offset, file.m_FileSize);
 		}
 	}
 

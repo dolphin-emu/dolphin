@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2e6f41ca-9ead-4a12-97da-1b428c7dea76}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+	<PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="MetroidVR.cpp" />
+    <ClCompile Include="OculusSystemLibraryHeader.cpp" />
+    <ClCompile Include="VR.cpp" />
+    <ClCompile Include="VR920.cpp" />
+    <ClCompile Include="VertexShaderManager.cpp">
+	      <ExcludedFromBuild>true</ExcludedFromBuild>
+	</ClCompile>
+    <ClCompile Include="VideoConfig.cpp">
+	      <ExcludedFromBuild>true</ExcludedFromBuild>
+	</ClCompile>
+	<ClCompile Include="..\VideoBackends\D3D\VRD3D.cpp">
+	      <ExcludedFromBuild>true</ExcludedFromBuild>
+	</ClCompile>
+	<ClCompile Include="..\VideoBackends\D3D\AvatarDrawer.cpp">
+	      <ExcludedFromBuild>true</ExcludedFromBuild>
+	</ClCompile>
+	<ClCompile Include="..\VideoBackends\OGL\VROGL.cpp">
+	      <ExcludedFromBuild>true</ExcludedFromBuild>
+	</ClCompile>
+	<ClCompile Include="..\DolphinWX\ConfigVR.cpp">
+	      <ExcludedFromBuild>true</ExcludedFromBuild>
+	</ClCompile>
+	<ClCompile Include="..\DolphinWX\HideObjectAddEdit.cpp">
+	      <ExcludedFromBuild>true</ExcludedFromBuild>
+	</ClCompile>
+	<ClCompile Include="..\DolphinWX\ISOProperties.cpp">
+	      <ExcludedFromBuild>true</ExcludedFromBuild>
+	</ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="OculusSystemLibraryHeader.h" />
+    <ClInclude Include="MetroidVR.h" />
+    <ClInclude Include="VR.h" />
+    <ClInclude Include="VR920.h" />
+    <ClInclude Include="VertexShaderManager.h" />
+    <ClInclude Include="VideoConfig.h" />
+    <ClInclude Include="..\VideoBackends\D3D\VRD3D.h" />
+    <ClInclude Include="..\VideoBackends\D3D\AvatarDrawer.h" />
+    <ClInclude Include="..\VideoBackends\OGL\VROGL.h" />
+    <ClInclude Include="..\DolphinWX\ConfigVR.h" />
+    <ClInclude Include="..\DolphinWX\HideObjectAddEdit.h" />
+    <ClInclude Include="..\DolphinWX\ISOProperties.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)SOIL\SOIL.vcxproj">
+      <Project>{b441cc62-877e-4b3f-93e0-0de80544f705}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)xxhash\xxhash.vcxproj">
+      <Project>{677EA016-1182-440C-9345-DC88D1E98C0C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
+      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

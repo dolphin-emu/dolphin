@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -69,7 +69,7 @@ class CNANDContentManager
 {
 public:
 	static CNANDContentManager& Access() { static CNANDContentManager instance; return instance; }
-	u64 Install_WiiWAD(std::string &fileName);
+	u64 Install_WiiWAD(const std::string& fileName);
 
 	const INANDContentLoader& GetNANDLoader(const std::string& _rName, bool forceReload = false);
 	const INANDContentLoader& GetNANDLoader(u64 _titleId, bool forceReload = false);

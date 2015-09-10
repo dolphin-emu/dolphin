@@ -46,8 +46,10 @@ set(LIBS	${LIBS}
 			videocommon
 			SOIL
 			common
-			dl
 			${X11_LIBRARIES})
+if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD)
+	set(LIBS ${LIBS} dl)
+endif()
 if(USE_EGL)
 	set(LIBS ${LIBS} EGL)
 endif()

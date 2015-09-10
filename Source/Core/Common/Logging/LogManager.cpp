@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstdarg>
@@ -90,16 +90,21 @@ LogManager::LogManager()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
 	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
+	IniFile::Section* options = ini.GetOrCreateSection("Options");
+	bool write_file;
+	bool write_console;
+	options->Get("WriteToFile", &write_file, false);
+	options->Get("WriteToConsole", &write_console, true);
+
 	for (LogContainer* container : m_Log)
 	{
 		bool enable;
 		logs->Get(container->GetShortName(), &enable, false);
 		container->SetEnable(enable);
-		if (enable)
-		{
+		if (enable && write_file)
 			container->AddListener(m_fileLog);
+		if (enable && write_console)
 			container->AddListener(m_consoleLog);
-		}
 	}
 }
 

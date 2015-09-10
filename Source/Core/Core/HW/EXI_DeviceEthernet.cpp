@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
@@ -357,6 +357,12 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 	case BBA_IR:
 		data &= (data & 0xff) ^ 0xff;
 		goto write_to_register;
+
+	case BBA_TXFIFOCNT:
+	case BBA_TXFIFOCNT+1:
+		// Ignore all writes to BBA_TXFIFOCNT
+		transfer.address += size;
+		return;
 
 write_to_register:
 	default:

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2015 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -10,6 +10,8 @@
 #include <queue>
 
 #include "Common/CommonTypes.h"
+
+struct EfbPokeData;
 
 class AsyncRequests
 {
@@ -91,4 +93,6 @@ private:
 	bool m_wake_me_up_again;
 	bool m_enable;
 	bool m_passthrough;
+
+	std::vector<EfbPokeData> m_merged_efb_pokes;
 };

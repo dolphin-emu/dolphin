@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstdio>
@@ -17,6 +17,9 @@
 #include "Core/PowerPC/PowerPC.h"
 #ifndef _M_GENERIC
 #include "Core/PowerPC/JitCommon/JitBase.h"
+#endif
+#ifdef __FreeBSD__
+#include <signal.h>
 #endif
 
 namespace EMM
@@ -100,7 +103,7 @@ static void CheckKR(const char* name, kern_return_t kr)
 {
 	if (kr)
 	{
-		PanicAlertT("%s failed: kr=%x", name, kr);
+		PanicAlert("%s failed: kr=%x", name, kr);
 	}
 }
 
@@ -153,13 +156,13 @@ static void ExceptionThread(mach_port_t port)
 
 		if (msg_in.Head.msgh_id != 2406)
 		{
-			PanicAlertT("unknown message received");
+			PanicAlert("unknown message received");
 			return;
 		}
 
 		if (msg_in.flavor != x86_THREAD_STATE64)
 		{
-			PanicAlertT("unknown flavor %d (expected %d)", msg_in.flavor, x86_THREAD_STATE64);
+			PanicAlert("unknown flavor %d (expected %d)", msg_in.flavor, x86_THREAD_STATE64);
 			return;
 		}
 
@@ -187,7 +190,7 @@ static void ExceptionThread(mach_port_t port)
 			msg_out.flavor = 0;
 			msg_out.new_stateCnt = 0;
 		}
-		msg_out.Head.msgh_size = offsetof(typeof(msg_out), new_state) + msg_out.new_stateCnt * sizeof(natural_t);
+		msg_out.Head.msgh_size = offsetof(__typeof__(msg_out), new_state) + msg_out.new_stateCnt * sizeof(natural_t);
 
 		send_msg = &msg_out.Head;
 		send_size = msg_out.Head.msgh_size;
@@ -256,7 +259,11 @@ static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 void InstallExceptionHandler()
 {
 	stack_t signal_stack;
+#ifdef __FreeBSD__
+	signal_stack.ss_sp = (char*)malloc(SIGSTKSZ);
+#else
 	signal_stack.ss_sp = malloc(SIGSTKSZ);
+#endif
 	signal_stack.ss_size = SIGSTKSZ;
 	signal_stack.ss_flags = 0;
 	if (sigaltstack(&signal_stack, nullptr))

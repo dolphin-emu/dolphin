@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -19,6 +19,8 @@ class PCAP;
 class DSPCaptureLogger
 {
 public:
+	virtual ~DSPCaptureLogger() {}
+
 	// Accesses (reads or writes) to memory mapped registers (external
 	// interface, also known as IFX). These are always 16 bits accesses.
 	virtual void LogIFXRead(u16 address, u16 read_value) = 0;
@@ -41,9 +43,9 @@ public:
 class DefaultDSPCaptureLogger : public DSPCaptureLogger
 {
 public:
-	virtual void LogIFXRead(u16 address, u16 read_value) override {}
-	virtual void LogIFXWrite(u16 address, u16 written_value) override {}
-	virtual void LogDMA(u16 control, u32 gc_address, u16 dsp_address,
+	void LogIFXRead(u16 address, u16 read_value) override {}
+	void LogIFXWrite(u16 address, u16 written_value) override {}
+	void LogDMA(u16 control, u32 gc_address, u16 dsp_address,
 	                    u16 length, const u8* data) override {}
 };
 
@@ -58,15 +60,15 @@ public:
 	PCAPDSPCaptureLogger(PCAP* pcap);
 	PCAPDSPCaptureLogger(std::unique_ptr<PCAP>&& pcap);
 
-	virtual void LogIFXRead(u16 address, u16 read_value) override
+	void LogIFXRead(u16 address, u16 read_value) override
 	{
 		LogIFXAccess(true, address, read_value);
 	}
-	virtual void LogIFXWrite(u16 address, u16 written_value) override
+	void LogIFXWrite(u16 address, u16 written_value) override
 	{
 		LogIFXAccess(false, address, written_value);
 	}
-	virtual void LogDMA(u16 control, u32 gc_address, u16 dsp_address,
+	void LogDMA(u16 control, u32 gc_address, u16 dsp_address,
 	                    u16 length, const u8* data) override;
 
 private:

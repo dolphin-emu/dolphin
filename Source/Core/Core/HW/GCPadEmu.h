@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -34,8 +34,10 @@ private:
 
 	const unsigned int m_index;
 
-	// TODO: Make constexpr when VS supports it.
-	//
 	// Default analog stick radius for GameCube controllers.
+#if defined(_MSC_VER) && _MSC_VER <= 1800
 	static const ControlState DEFAULT_PAD_STICK_RADIUS;
+#else
+	static constexpr ControlState DEFAULT_PAD_STICK_RADIUS = 1.0;
+#endif
 };

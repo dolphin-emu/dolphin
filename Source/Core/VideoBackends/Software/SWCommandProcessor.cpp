@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <atomic>
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -41,8 +42,8 @@ static u8 commandBuffer[commandBufferSize];
 static u32 readPos;
 static u32 writePos;
 static int et_UpdateInterrupts;
-static volatile bool interruptSet;
-static volatile bool interruptWaiting;
+static std::atomic<bool> interruptSet;
+static std::atomic<bool> interruptWaiting;
 
 static CPReg cpreg; // shared between gfx and emulator thread
 
@@ -92,8 +93,8 @@ void Init()
 	readPos = 0;
 	writePos = 0;
 
-	interruptSet = false;
-	interruptWaiting = false;
+	interruptSet.store(false);
+	interruptWaiting.store(false);
 
 	g_video_buffer_read_ptr = nullptr;
 	g_bSkipCurrentFrame = false;
@@ -105,7 +106,7 @@ void Shutdown()
 
 void RunGpu()
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+	if (!SConfig::GetInstance().bCPUThread)
 	{
 		// We are going to do FP math on the main thread so have to save the current state
 		FPURoundMode::SaveSIMDState();
@@ -195,17 +196,17 @@ void UpdateInterrupts(u64 userdata)
 {
 	if (userdata)
 	{
-		interruptSet = true;
+		interruptSet.store(true);
 		INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
 		ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);
 	}
 	else
 	{
-		interruptSet = false;
+		interruptSet.store(false);
 		INFO_LOG(COMMANDPROCESSOR,"Interrupt cleared");
 		ProcessorInterface::SetInterrupt(INT_CAUSE_CP, false);
 	}
-	interruptWaiting = false;
+	interruptWaiting.store(false);
 }
 
 void UpdateInterruptsFromVideoBackend(u64 userdata)
@@ -285,12 +286,12 @@ static void SetStatus()
 
 	bool interrupt = bpInt || ovfInt || undfInt;
 
-	if (interrupt != interruptSet && !interruptWaiting)
+	if (interrupt != interruptSet.load() && !interruptWaiting.load())
 	{
 		u64 userdata = interrupt?1:0;
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		if (SConfig::GetInstance().bCPUThread)
 		{
-			interruptWaiting = true;
+			interruptWaiting.store(true);
 			SWCommandProcessor::UpdateInterruptsFromVideoBackend(userdata);
 		}
 		else

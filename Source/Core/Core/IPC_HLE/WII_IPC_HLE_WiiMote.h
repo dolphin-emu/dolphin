@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -56,8 +56,6 @@ public:
 	void Activate(bool ready);
 	void ExecuteL2capCmd(u8* _pData, u32 _Size); // From CPU
 	void ReceiveL2capData(u16 scid, const void* _pData, u32 _Size); // From Wiimote
-
-	int NetPlay_GetWiimoteNum(int _number);
 
 	void EventConnectionAccepted();
 	void EventDisconnect();
@@ -143,6 +141,4 @@ private:
 	void SDPSendServiceAttributeResponse(u16 _SCID, u16 TransactionID, u32 _ServiceHandle,
 											u16 _StartAttrID, u16 _EndAttrID,
 											u16 _MaximumAttributeByteCount, u8* _pContinuationState);
-
-	u16 AddAttribToList(int _AttribID, u8* _pBuffer);
 };

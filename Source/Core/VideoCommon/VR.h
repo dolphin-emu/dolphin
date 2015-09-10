@@ -48,17 +48,34 @@ extern "C"
 }
 #endif
 
+#ifdef HAVE_OPENVR
+#define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING " or SteamVR"
+#else
 #define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING
+#endif
 #else
 #ifdef _WIN32
 #include "OculusSystemLibraryHeader.h"
 #define OCULUSSDK044ORABOVE
+#ifdef HAVE_OPENVR
+#define SCM_OCULUS_STR ", for Oculus DLL " OVR_VERSION_STRING " or SteamVR"
+#else
 #define SCM_OCULUS_STR ", for Oculus DLL " OVR_VERSION_STRING
+#endif
+#else
+#ifdef HAVE_OPENVR
+#define SCM_OCULUS_STR ", SteamVR"
 #else
 #define SCM_OCULUS_STR ", no Oculus SDK"
 #endif
 #endif
+#endif
 
+#ifdef HAVE_OPENVR
+#include <openvr.h>
+#endif
+
+#include <atomic>
 #include <mutex>
 
 #include "Common/MathUtil.h"
@@ -128,10 +145,8 @@ ControllerStyle VR_GetHydraStyle(int hand);
 void OpcodeReplayBuffer();
 void OpcodeReplayBufferInline();
 
-void GetFovTextureSize(int* sizeX, int* sizeY);
-
-extern bool g_force_vr;
-extern bool g_has_hmd, g_has_rift, g_has_vr920, g_is_direct_mode, g_is_nes;
+extern bool g_force_vr, g_prefer_steamvr;
+extern bool g_has_hmd, g_has_rift, g_has_vr920, g_has_steamvr, g_is_direct_mode, g_is_nes;
 extern bool g_new_tracking_frame;
 extern bool g_new_frame_tracker_for_efb_skip;
 extern u32 skip_objects_count;
@@ -178,9 +193,21 @@ extern int skipped_opcode_replay_count;
 //extern std::vector<u32> CPBreakpoint_log;
 
 extern std::mutex g_vr_lock;
-extern volatile u32 g_drawn_vr;
+extern std::atomic<u32> g_drawn_vr;
 
 extern bool debug_nextScene;
+
+#ifdef HAVE_OPENVR
+extern vr::IVRSystem *m_pHMD;
+extern vr::IVRRenderModels *m_pRenderModels;
+extern vr::IVRCompositor *m_pCompositor;
+extern std::string m_strDriver;
+extern std::string m_strDisplay;
+extern vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+extern bool m_bUseCompositor;
+extern bool m_rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
+extern int m_iValidPoseCount;
+#endif
 
 #ifdef OVR_MAJOR_VERSION
 extern ovrHmd hmd;
@@ -190,4 +217,21 @@ extern ovrEyeRenderDesc g_eye_render_desc[2];
 extern ovrFrameTiming g_rift_frame_timing;
 extern ovrPosef g_eye_poses[2], g_front_eye_poses[2];
 extern int g_ovr_frameindex;
+#endif
+
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 7
+#define ovrHmd_GetFrameTiming ovr_GetFrameTiming
+#define ovrHmd_SubmitFrame ovr_SubmitFrame
+#define ovrHmd_GetRenderDesc ovr_GetRenderDesc
+#define ovrHmd_DestroySwapTextureSet ovr_DestroySwapTextureSet
+#define ovrHmd_DestroyMirrorTexture ovr_DestroyMirrorTexture
+#define ovrHmd_SetEnabledCaps ovr_SetEnabledCaps
+#define ovrHmd_GetEnabledCaps ovr_GetEnabledCaps
+#define ovrHmd_ConfigureTracking ovr_ConfigureTracking
+#define ovrHmd_RecenterPose ovr_RecenterPose
+#define ovrHmd_Destroy ovr_Destroy
+#endif
+
+#ifdef _WIN32
+extern LUID *g_hmd_luid;
 #endif

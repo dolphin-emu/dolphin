@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dolphin", "Core\DolphinWX\DolphinWX.vcxproj", "{47411FDB-1BF2-48D0-AB4E-C7C41160F898}"
 EndProject
@@ -51,7 +51,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCMRevGen", "Core\Common\SC
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFML_Network", "..\Externals\SFML\build\vc2010\SFML_Network.vcxproj", "{93D73454-2512-424E-9CDA-4BB357FE13DD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libusb-1.0 (static)", "..\Externals\libusb\libusb_static_2013.vcxproj", "{349EE8F9-7D25-4909-AAF5-FF3FADE72187}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libusb-1.0", "..\Externals\libusb\libusb_static_2013.vcxproj", "{349EE8F9-7D25-4909-AAF5-FF3FADE72187}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "portaudio", "..\Externals\portaudio\build\portaudio.vcxproj", "{0A18A071-125E-442F-AFF7-A3F68ABECF99}"
 EndProject
@@ -70,6 +70,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTests\UnitTests.vcxproj", "{474661E7-C73A-43A6-AFEE-EE1EC433D49E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "enet", "..\Externals\enet\enet.vcxproj", "{CBC76802-C128-4B17-BF6C-23B08C313E5E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VR", "Core\VideoCommon\VR.vcxproj", "{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -201,6 +203,10 @@ Global
 		{CBC76802-C128-4B17-BF6C-23B08C313E5E}.Debug|x64.Build.0 = Debug|x64
 		{CBC76802-C128-4B17-BF6C-23B08C313E5E}.Release|x64.ActiveCfg = Release|x64
 		{CBC76802-C128-4B17-BF6C-23B08C313E5E}.Release|x64.Build.0 = Release|x64
+		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Debug|x64.ActiveCfg = Debug|x64
+		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Debug|x64.Build.0 = Debug|x64
+		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Release|x64.ActiveCfg = Release|x64
+		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

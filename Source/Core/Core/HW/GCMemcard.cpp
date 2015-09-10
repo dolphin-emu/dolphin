@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -30,7 +30,7 @@ GCMemcard::GCMemcard(const std::string &filename, bool forceCreation, bool ascii
 		{
 			if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename.c_str()))
 				return;
-			ascii = AskYesNoT("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)");
+			ascii = AskYesNoT("Format as ASCII (NTSC\\PAL)?\nChoose no for Shift JIS (NTSC-J)");
 		}
 		Format(ascii);
 		return;
@@ -42,18 +42,18 @@ GCMemcard::GCMemcard(const std::string &filename, bool forceCreation, bool ascii
 		SplitPath(filename, nullptr, nullptr, &fileType);
 		if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
 		{
-			PanicAlertT("File has the extension \"%s\"\nvalid extensions are (.raw/.gcp)", fileType.c_str());
+			PanicAlertT("File has the extension \"%s\".\nValid extensions are (.raw/.gcp)", fileType.c_str());
 			return;
 		}
 		auto size = mcdFile.GetSize();
 		if (size < MC_FST_BLOCKS*BLOCK_SIZE)
 		{
-			PanicAlertT("%s failed to load as a memorycard \nfile is not large enough to be a valid memory card file (0x%x bytes)", filename.c_str(), (unsigned) size);
+			PanicAlertT("%s failed to load as a memory card.\nFile is not large enough to be a valid memory card file (0x%x bytes)", filename.c_str(), (unsigned) size);
 			return;
 		}
 		if (size % BLOCK_SIZE)
 		{
-			PanicAlertT("%s failed to load as a memorycard \n Card file size is invalid (0x%x bytes)", filename.c_str(), (unsigned) size);
+			PanicAlertT("%s failed to load as a memory card.\nCard file size is invalid (0x%x bytes)", filename.c_str(), (unsigned) size);
 				return;
 		}
 
@@ -68,7 +68,7 @@ GCMemcard::GCMemcard(const std::string &filename, bool forceCreation, bool ascii
 			case MemCard2043Mb:
 				break;
 			default:
-				PanicAlertT("%s failed to load as a memorycard \n Card size is invalid (0x%x bytes)", filename.c_str(), (unsigned) size);
+				PanicAlertT("%s failed to load as a memory card.\nCard size is invalid (0x%x bytes)", filename.c_str(), (unsigned) size);
 				return;
 		}
 	}
@@ -82,7 +82,7 @@ GCMemcard::GCMemcard(const std::string &filename, bool forceCreation, bool ascii
 	}
 	if (m_sizeMb != BE16(hdr.SizeMb))
 	{
-		PanicAlertT("Memorycard filesize does not match the header size");
+		PanicAlertT("Memory card file size does not match the header size");
 		return;
 	}
 
@@ -125,7 +125,7 @@ GCMemcard::GCMemcard(const std::string &filename, bool forceCreation, bool ascii
 		if (csums & 0x4)
 		{
 			// backup is also wrong!
-			PanicAlertT("Directory checksum failed\n and Directory backup checksum failed");
+			PanicAlertT("Directory checksum and directory backup checksum failed");
 			return;
 		}
 		else
@@ -181,7 +181,7 @@ GCMemcard::GCMemcard(const std::string &filename, bool forceCreation, bool ascii
 		}
 		else
 		{
-			PanicAlertT("Failed to read block %d of the save data\nMemcard may be truncated\nFilePosition:%" PRIx64, i, mcdFile.Tell());
+			PanicAlertT("Failed to read block %u of the save data\nMemcard may be truncated\nFile position: 0x%" PRIx64, i, mcdFile.Tell());
 			m_valid = false;
 			break;
 		}
@@ -347,7 +347,7 @@ u16 GCMemcard::GetFreeBlocks() const
 	return BE16(CurrentBat->FreeBlocks);
 }
 
-u8 GCMemcard::TitlePresent(DEntry d) const
+u8 GCMemcard::TitlePresent(const DEntry& d) const
 {
 	if (!m_valid)
 		return DIRLEN;

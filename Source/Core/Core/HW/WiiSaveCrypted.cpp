@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Based off of tachtig/twintig http://git.infradead.org/?p=users/segher/wii.git
@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 #include <polarssl/aes.h>
@@ -21,7 +22,6 @@
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "Common/NandPaths.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Common/Crypto/ec.h"
 
@@ -62,14 +62,13 @@ bool CWiiSaveCrypted::ExportWiiSave(u64 title_id)
 
 void CWiiSaveCrypted::ExportAllSaves()
 {
-	std::string title_folder = File::GetUserPath(D_WIIUSER_IDX) + "title";
+	std::string title_folder = File::GetUserPath(D_WIIROOT_IDX) + "/title";
 	std::vector<u64> titles;
 	const u32 path_mask = 0x00010000;
 	for (int i = 0; i < 8; ++i)
 	{
-		File::FSTEntry fst_tmp;
 		std::string folder = StringFromFormat("%s/%08x/", title_folder.c_str(), path_mask | i);
-		File::ScanDirectoryTree(folder, fst_tmp);
+		File::FSTEntry fst_tmp = File::ScanDirectoryTree(folder, false);
 
 		for (const File::FSTEntry& entry : fst_tmp.children)
 		{
@@ -98,7 +97,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 			success++;
 		delete export_save;
 	}
-	SuccessAlertT("Sucessfully exported %u saves to %s", success,
+	SuccessAlertT("Successfully exported %u saves to %s", success,
 		(File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
 }
 
@@ -177,7 +176,7 @@ void CWiiSaveCrypted::ReadHDR()
 	md5((u8*)&m_header, HEADER_SZ, md5_calc);
 	if (memcmp(md5_file, md5_calc, 0x10))
 	{
-		ERROR_LOG(CONSOLE, "MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64,
+		ERROR_LOG(CONSOLE, "MD5 mismatch\n %016llx%016llx != %016llx%016llx",
 			Common::swap64(md5_file),Common::swap64(md5_file + 8), Common::swap64(md5_calc),
 			Common::swap64(md5_calc + 8));
 		m_valid= false;
@@ -277,7 +276,7 @@ void CWiiSaveCrypted::ReadBKHDR()
 	}
 	if (m_title_id != Common::swap64(m_bk_hdr.SaveGameTitle))
 	{
-		WARN_LOG(CONSOLE, "Encrypted title (%" PRIx64 ") does not match unencrypted title (%" PRIx64 ")",
+		WARN_LOG(CONSOLE, "Encrypted title (%llx) does not match unencrypted title (%llx)",
 			m_title_id, Common::swap64(m_bk_hdr.SaveGameTitle));
 	}
 }
@@ -627,8 +626,7 @@ void CWiiSaveCrypted::ScanForFiles(const std::string& save_directory, std::vecto
 			file_list.push_back(directories[i]);
 		}
 
-		File::FSTEntry fst_tmp;
-		File::ScanDirectoryTree(directories[i], fst_tmp);
+		File::FSTEntry fst_tmp = File::ScanDirectoryTree(directories[i], false);
 		for (const File::FSTEntry& elem : fst_tmp.children)
 		{
 			if (elem.virtualName != "banner.bin")

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
@@ -61,7 +61,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
 
 void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
 {
-	const std::string filename = File::GetUserPath(D_WIIUSER_IDX) + "sd.raw";
+	const std::string filename = File::GetUserPath(D_WIIROOT_IDX) + "/sd.raw";
 	m_Card.Open(filename, "r+b");
 	if (!m_Card)
 	{
@@ -423,7 +423,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		DEBUG_LOG(WII_IPC_SD, "%sWrite %i Block(s) from 0x%08x bsize %i to offset 0x%08x!",
 			req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
-		if (m_Card)
+		if (m_Card && SConfig::GetInstance().bEnableMemcardSdWriting)
 		{
 			u32 size = req.bsize * req.blocks;
 

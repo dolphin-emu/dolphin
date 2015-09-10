@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/JitRegister.h"
@@ -46,7 +46,7 @@ void Jit64AsmRoutineManager::Generate()
 		ABI_PushRegistersAndAdjustStack({}, 0);
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		ABI_PopRegistersAndAdjustStack({}, 0);
-		FixupBranch skipToRealDispatch = J(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging); //skip the sync and compare first time
+		FixupBranch skipToRealDispatch = J(SConfig::GetInstance().bEnableDebugging); //skip the sync and compare first time
 		dispatcherMispredictedBLR = GetCodePtr();
 		AND(32, PPCSTATE(pc), Imm32(0xFFFFFFFC));
 
@@ -68,7 +68,7 @@ void Jit64AsmRoutineManager::Generate()
 
 			FixupBranch dbg_exit;
 
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+			if (SConfig::GetInstance().bEnableDebugging)
 			{
 				TEST(32, M(PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
 				FixupBranch notStepping = J_CC(CC_Z);
@@ -110,7 +110,7 @@ void Jit64AsmRoutineManager::Generate()
 			FixupBranch no_mem;
 			FixupBranch exit_mem;
 			FixupBranch exit_vmem;
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+			if (SConfig::GetInstance().bWii)
 				mask = JIT_ICACHE_EXRAM_BIT;
 			mask |= JIT_ICACHE_VMEM_BIT;
 			TEST(32, R(RSCRATCH), Imm32(mask));
@@ -142,9 +142,9 @@ void Jit64AsmRoutineManager::Generate()
 				MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 			}
 
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) exit_vmem = J();
+			if (SConfig::GetInstance().bWii) exit_vmem = J();
 			SetJumpTarget(no_vmem);
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+			if (SConfig::GetInstance().bWii)
 			{
 				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
@@ -163,7 +163,7 @@ void Jit64AsmRoutineManager::Generate()
 				SetJumpTarget(no_exram);
 			}
 			SetJumpTarget(exit_mem);
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+			if (SConfig::GetInstance().bWii)
 				SetJumpTarget(exit_vmem);
 
 			TEST(32, R(RSCRATCH), R(RSCRATCH));
@@ -208,7 +208,7 @@ void Jit64AsmRoutineManager::Generate()
 		J_CC(CC_Z, outerLoop);
 
 	//Landing pad for drec space
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().bEnableDebugging)
 		SetJumpTarget(dbg_exit);
 	ResetStack();
 	if (m_stack_top)
@@ -216,6 +216,12 @@ void Jit64AsmRoutineManager::Generate()
 		ADD(64, R(RSP), Imm8(0x18));
 		POP(RSP);
 	}
+
+	// Let the waiting thread know we are done leaving
+	ABI_PushRegistersAndAdjustStack({}, 0);
+	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::FinishStateMove));
+	ABI_PopRegistersAndAdjustStack({}, 0);
+
 	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 	RET();
 

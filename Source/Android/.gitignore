@@ -36,7 +36,7 @@ workspace.xml
 tasks.xml
 .gradle/*
 .idea
-gradle/
 build/
 *.so
 *.iml
+build.properties

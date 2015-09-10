@@ -1,9 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Event.h"
 #include "Common/FPURoundMode.h"
 #include "Common/MathUtil.h"
 
@@ -33,6 +34,7 @@ static volatile CPUState state = CPU_POWERDOWN;
 
 Interpreter * const interpreter = Interpreter::getInstance();
 static CoreMode mode;
+static Common::Event s_state_change;
 
 Watches watches;
 BreakPoints breakpoints;
@@ -169,7 +171,7 @@ void Init(int cpu_core)
 
 	ppcState.iCache.Init();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().bEnableDebugging)
 		breakpoints.ClearAllTemporary();
 }
 
@@ -238,14 +240,29 @@ void Start()
 
 void Pause()
 {
+	volatile CPUState old_state = state;
 	state = CPU_STEPPING;
+
+	// Wait for the CPU core to leave
+	if (old_state == CPU_RUNNING)
+		s_state_change.WaitFor(std::chrono::seconds(1));
 	Host_UpdateDisasmDialog();
 }
 
 void Stop()
 {
+	volatile CPUState old_state = state;
 	state = CPU_POWERDOWN;
+
+	// Wait for the CPU core to leave
+	if (old_state == CPU_RUNNING)
+		s_state_change.WaitFor(std::chrono::seconds(1));
 	Host_UpdateDisasmDialog();
+}
+
+void FinishStateMove()
+{
+	s_state_change.Set();
 }
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
@@ -510,11 +527,6 @@ void CheckBreakPoints()
 		if (PowerPC::breakpoints.IsTempBreakPoint(PC))
 			PowerPC::breakpoints.Remove(PC);
 	}
-}
-
-void OnIdle()
-{
-	CoreTiming::Idle();
 }
 
 }  // namespace

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -41,8 +41,8 @@ Wiimote::Wiimote()
 	: m_index()
 	, m_last_input_report()
 	, m_channel(0)
+	, m_last_connect_request_counter(0)
 	, m_rumble_state()
-	, m_need_prepare()
 {}
 
 void Wiimote::Shutdown()
@@ -195,14 +195,14 @@ bool Wiimote::Read()
 
 	if (result > 0 && m_channel > 0)
 	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 &&
+		if (SConfig::GetInstance().iBBDumpPort > 0 &&
 		    m_index == WIIMOTE_BALANCE_BOARD)
 		{
 			static sf::UdpSocket Socket;
 			Socket.send((char*)rpt.data(),
 			            rpt.size(),
 			            sf::IpAddress::LocalHost,
-		                SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
+		                SConfig::GetInstance().iBBDumpPort);
 		}
 
 		// Add it to queue
@@ -229,10 +229,10 @@ bool Wiimote::Write()
 
 		if (!is_speaker_data || m_last_audio_report.GetTimeDifference() > 5)
 		{
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+			if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
 			{
 				static sf::UdpSocket Socket;
-				Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
+				Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, SConfig::GetInstance().iBBDumpPort);
 			}
 			IOWrite(rpt.data(), rpt.size());
 
@@ -299,10 +299,47 @@ void Wiimote::Update()
 	}
 }
 
+void Wiimote::ConnectOnInput()
+{
+	if (m_last_connect_request_counter > 0)
+	{
+		--m_last_connect_request_counter;
+		return;
+	}
+
+	const Report& rpt = ProcessReadQueue();
+	if (rpt.size() >= 4)
+	{
+		switch (rpt[1])
+		{
+		case WM_REPORT_CORE:
+		case WM_REPORT_CORE_ACCEL:
+		case WM_REPORT_CORE_EXT8:
+		case WM_REPORT_CORE_ACCEL_IR12:
+		case WM_REPORT_CORE_EXT19:
+		case WM_REPORT_CORE_ACCEL_EXT16:
+		case WM_REPORT_CORE_IR10_EXT9:
+		case WM_REPORT_CORE_ACCEL_IR10_EXT6:
+		case WM_REPORT_INTERLEAVE1:
+		case WM_REPORT_INTERLEAVE2:
+			// check any button without checking accelerometer data
+			if ((rpt[2] & 0x1F) != 0 || (rpt[3] & 0x9F) != 0)
+			{
+				Host_ConnectWiimote(m_index, true);
+				// see WiimoteEmu::Wiimote::ConnectOnInput(), same idea here
+				m_last_connect_request_counter = 100;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+}
+
 void Wiimote::Prepare(int _index)
 {
 	m_index = _index;
-	m_need_prepare = true;
+	m_need_prepare.store(true);
 }
 
 bool Wiimote::PrepareOnThread()
@@ -322,7 +359,7 @@ bool Wiimote::PrepareOnThread()
 
 	return (IOWrite(mode_report, sizeof(mode_report)) &&
 	        IOWrite(led_report, sizeof(led_report)) &&
-	        (SLEEP(200), IOWrite(rumble_report, sizeof(rumble_report))) &&
+	        (Common::SleepCurrentThread(200), IOWrite(rumble_report, sizeof(rumble_report))) &&
 	        IOWrite(req_status_report, sizeof(req_status_report)));
 }
 
@@ -406,27 +443,27 @@ static unsigned int CalculateWantedBB()
 
 void WiimoteScanner::WantWiimotes(bool do_want)
 {
-	m_want_wiimotes = do_want;
+	m_want_wiimotes.store(do_want);
 }
 
 
 void WiimoteScanner::WantBB(bool do_want)
 {
-	m_want_bb = do_want;
+	m_want_bb.store(do_want);
 }
 
 void WiimoteScanner::StartScanning()
 {
-	if (!m_run_thread)
+	if (!m_run_thread.load())
 	{
-		m_run_thread = true;
+		m_run_thread.store(true);
 		m_scan_thread = std::thread(&WiimoteScanner::ThreadFunc, this);
 	}
 }
 
 void WiimoteScanner::StopScanning()
 {
-	m_run_thread = false;
+	m_run_thread.store(false);
 	if (m_scan_thread.joinable())
 	{
 		m_scan_thread.join();
@@ -448,14 +485,14 @@ void WiimoteScanner::ThreadFunc()
 
 	NOTICE_LOG(WIIMOTE, "Wiimote scanning has started.");
 
-	while (m_run_thread)
+	while (m_run_thread.load())
 	{
 		std::vector<Wiimote*> found_wiimotes;
 		Wiimote* found_board = nullptr;
 
 		//NOTICE_LOG(WIIMOTE, "In loop");
 
-		if (m_want_wiimotes || m_want_bb)
+		if (m_want_wiimotes.load() || m_want_bb.load())
 		{
 			FindWiimotes(found_wiimotes, found_board);
 		}
@@ -470,9 +507,10 @@ void WiimoteScanner::ThreadFunc()
 		// TODO: this is a fairly lame place for this
 		CheckForDisconnectedWiimotes();
 
-		if (m_want_wiimotes)
+		if (m_want_wiimotes.load())
 			HandleFoundWiimotes(found_wiimotes);
-		if (m_want_bb && found_board)
+
+		if (m_want_bb.load() && found_board)
 			TryToConnectBalanceBoard(found_board);
 
 		//std::this_thread::yield();
@@ -484,21 +522,24 @@ void WiimoteScanner::ThreadFunc()
 
 bool Wiimote::Connect()
 {
-	m_thread_ready = false;
-	StartThread();
-	WaitReady();
+	if (!m_run_thread.load())
+	{
+		m_thread_ready.store(false);
+		StartThread();
+		WaitReady();
+	}
 	return IsConnected();
 }
 
 void Wiimote::StartThread()
 {
-	m_run_thread = true;
+	m_run_thread.store(true);
 	m_wiimote_thread = std::thread(&Wiimote::ThreadFunc, this);
 }
 
 void Wiimote::StopThread()
 {
-	m_run_thread = false;
+	m_run_thread.store(false);
 	IOWakeup();
 	if (m_wiimote_thread.joinable())
 		m_wiimote_thread.join();
@@ -506,12 +547,9 @@ void Wiimote::StopThread()
 
 void Wiimote::SetReady()
 {
-	if (!m_thread_ready)
+	if (!m_thread_ready.load())
 	{
-		{
-			std::lock_guard<std::mutex> Guard(m_thread_ready_mutex);
-			m_thread_ready = true;
-		}
+		m_thread_ready.store(true);
 		m_thread_ready_cond.notify_all();
 	}
 }
@@ -519,7 +557,7 @@ void Wiimote::SetReady()
 void Wiimote::WaitReady()
 {
 	std::unique_lock<std::mutex> lock(m_thread_ready_mutex);
-	while (!m_thread_ready)
+	while (!m_thread_ready.load())
 	{
 		m_thread_ready_cond.wait(lock);
 	}
@@ -546,11 +584,11 @@ void Wiimote::ThreadFunc()
 	}
 
 	// main loop
-	while (IsConnected() && m_run_thread)
+	while (IsConnected() && m_run_thread.load())
 	{
-		if (m_need_prepare)
+		if (m_need_prepare.load())
 		{
-			m_need_prepare = false;
+			m_need_prepare.store(false);
 			if (!PrepareOnThread())
 			{
 				ERROR_LOG(WIIMOTE, "Wiimote::PrepareOnThread failed.  Disconnecting Wiimote %d.", m_index + 1);
@@ -843,6 +881,18 @@ void Update(int _WiimoteNumber)
 	{
 		Host_ConnectWiimote(_WiimoteNumber, false);
 	}
+	g_refresh_lock.unlock();
+}
+
+void ConnectOnInput(int _WiimoteNumber)
+{
+	// see Update() above
+	if (!g_refresh_lock.try_lock())
+		return;
+
+	if (g_wiimotes[_WiimoteNumber])
+		g_wiimotes[_WiimoteNumber]->ConnectOnInput();
+
 	g_refresh_lock.unlock();
 }
 

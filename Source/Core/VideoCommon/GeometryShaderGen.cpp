@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -83,7 +83,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		"\tint4 " I_TEXOFFSET";\n"
 		"};\n");
 
-	uid_data->numTexGens = (is_custom ? 1 : static_cast<int>(bpmem.genMode.numtexgens));
+	uid_data->numTexGens = (is_custom ? 1 : static_cast<int>(xfmem.numTexGen.numTexGens));
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
 	out.Write("struct VS_OUTPUT {\n");
@@ -96,11 +96,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 			out.Write("#define InstanceID gl_InvocationID\n");
 
 		out.Write("in VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid in");
+		GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, GetInterpolationQualifier(ApiType, true, true));
 		out.Write("} vs[%d];\n", vertex_in);
 
 		out.Write("out VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
+		GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, GetInterpolationQualifier(ApiType, false, true));
 
 		if (uid_data->stereo)
 			out.Write("\tflat int layer;\n");

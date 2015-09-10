@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cinttypes>
@@ -120,7 +120,7 @@ void VertexLoaderBase::AppendToString(std::string *dest) const
 				i, m_VtxAttr.texCoord[i].Elements, posMode[tex_mode[i]], posFormats[m_VtxAttr.texCoord[i].Format]));
 		}
 	}
-	dest->append(StringFromFormat(" - %i v\n", m_numLoadedVertices));
+	dest->append(StringFromFormat(" - %i v", m_numLoadedVertices));
 }
 
 // a hacky implementation to compare two vertex loaders
@@ -131,13 +131,14 @@ public:
 	: VertexLoaderBase(vtx_desc, vtx_attr), a(_a), b(_b)
 	{
 		m_initialized = a && b && a->IsInitialized() && b->IsInitialized();
-		bool can_test = a->m_VertexSize == b->m_VertexSize &&
-		                a->m_native_components == b->m_native_components &&
-		                a->m_native_vtx_decl.stride == b->m_native_vtx_decl.stride;
 
 		if (m_initialized)
 		{
-			if (can_test)
+			m_initialized = a->m_VertexSize == b->m_VertexSize &&
+			                a->m_native_components == b->m_native_components &&
+			                a->m_native_vtx_decl.stride == b->m_native_vtx_decl.stride;
+
+			if (m_initialized)
 			{
 				m_VertexSize = a->m_VertexSize;
 				m_native_components = a->m_native_components;
@@ -152,8 +153,6 @@ public:
 				                 b->m_VertexSize, b->m_native_components, b->m_native_vtx_decl.stride);
 			}
 		}
-
-		m_initialized &= can_test;
 	}
 	~VertexLoaderTester() override
 	{
@@ -161,20 +160,20 @@ public:
 		delete b;
 	}
 
-	int RunVertices(DataReader src, DataReader dst, int count, int primitive) override
+	int RunVertices(DataReader src, DataReader dst, int count) override
 	{
 		buffer_a.resize(count * a->m_native_vtx_decl.stride + 4);
 		buffer_b.resize(count * b->m_native_vtx_decl.stride + 4);
 
-		int count_a = a->RunVertices(src, DataReader(buffer_a.data(), buffer_a.data()+buffer_a.size()), count, primitive);
-		int count_b = b->RunVertices(src, DataReader(buffer_b.data(), buffer_b.data()+buffer_b.size()), count, primitive);
+		int count_a = a->RunVertices(src, DataReader(buffer_a.data(), buffer_a.data()+buffer_a.size()), count);
+		int count_b = b->RunVertices(src, DataReader(buffer_b.data(), buffer_b.data()+buffer_b.size()), count);
 
 		if (count_a != count_b)
 			ERROR_LOG(VIDEO, "The two vertex loaders have loaded a different amount of vertices (a: %d, b: %d).", count_a, count_b);
 
 		if (memcmp(buffer_a.data(), buffer_b.data(), std::min(count_a, count_b) * m_native_vtx_decl.stride))
 			ERROR_LOG(VIDEO, "The two vertex loaders have loaded different data "
-			                 "(guru meditation 0x%016" PRIx64 ", 0x%08x, 0x%08x, 0x%08x).",
+			                 "(guru meditation 0x%016llx, 0x%08x, 0x%08x, 0x%08x).",
 			                 m_VtxDesc.Hex, m_vat.g0.Hex, m_vat.g1.Hex, m_vat.g2.Hex);
 
 		memcpy(dst.GetPointer(), buffer_a.data(), count_a * m_native_vtx_decl.stride);

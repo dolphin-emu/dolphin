@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2012 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -38,11 +38,11 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_hid();
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult IOCtl(u32 _CommandAddress) override;
 
 private:
 	enum
@@ -119,7 +119,7 @@ private:
 
 	u32 deviceCommandAddress;
 	void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
-	int GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check);
+	int GetAvailableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check);
 	bool ClaimDevice(libusb_device_handle* dev);
 
 	void ConvertDeviceToWii(WiiHIDDeviceDescriptor* dest, const libusb_device_descriptor* src);

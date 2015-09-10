@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -101,7 +101,8 @@ struct DTMHeader
 	u8   bongos;
 	bool bSyncGPU;
 	bool bNetPlay;
-	u8   reserved[13];      // Padding for any new config options
+	bool bPAL60;
+	u8   reserved[12];      // Padding for any new config options
 	u8   discChange[40];    // Name of iso file to switch to, for two disc games.
 	u8   revision[20];      // Git hash
 	u32  DSPiromHash;
@@ -131,6 +132,7 @@ u64  GetRecordingStartTime();
 bool IsConfigSaved();
 bool IsDualCore();
 bool IsProgressive();
+bool IsPAL60();
 bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();

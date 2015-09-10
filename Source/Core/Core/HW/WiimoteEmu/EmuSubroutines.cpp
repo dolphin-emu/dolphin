@@ -1,5 +1,5 @@
-// Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -22,6 +22,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
@@ -285,7 +286,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			{
 				// writing the whole mii block each write :/
 				std::ofstream file;
-				OpenFStream(file, File::GetUserPath(D_WIIUSER_IDX) + "mii.bin", std::ios::binary | std::ios::out);
+				OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin", std::ios::binary | std::ios::out);
 				file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
 				file.close();
 			}
@@ -484,7 +485,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 			{
 				// reading the whole mii block :/
 				std::ifstream file;
-				file.open((File::GetUserPath(D_WIIUSER_IDX) + "mii.bin").c_str(), std::ios::binary | std::ios::in);
+				file.open((File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(), std::ios::binary | std::ios::in);
 				file.read((char*)m_eeprom + 0x0FCA, 0x02f0);
 				file.close();
 			}

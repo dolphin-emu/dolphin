@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cinttypes>
@@ -12,7 +12,6 @@
 #include "Common/FileUtil.h"
 #include "Common/JitRegister.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
 
 #ifdef _WIN32
 #include <process.h>
@@ -38,13 +37,12 @@ static File::IOFile s_perf_map_file;
 namespace JitRegister
 {
 
-void Init()
+void Init(const std::string& perf_dir)
 {
 #if defined USE_OPROFILE && USE_OPROFILE
 	s_agent = op_open_agent();
 #endif
 
-	const std::string& perf_dir = SConfig::GetInstance().m_LocalCoreStartupParameter.m_perfDir;
 	if (!perf_dir.empty())
 	{
 		std::string filename = StringFromFormat("%s/perf-%d.map", perf_dir.data(), getpid());

@@ -68,9 +68,9 @@
 
 // Indicates that this translation unit is part of Google Test's
 // implementation.  It must come before gtest-internal-inl.h is
-// included, or there will be a compiler error.  This trick is to
-// prevent a user from accidentally including gtest-internal-inl.h in
-// his code.
+// included, or there will be a compiler error.  This trick exists to
+// prevent the accidental inclusion of gtest-internal-inl.h in the
+// user's code.
 #define GTEST_IMPLEMENTATION_ 1
 #include "src/gtest-internal-inl.h"
 #undef GTEST_IMPLEMENTATION_
@@ -169,6 +169,14 @@ KilledBySignal::KilledBySignal(int signum) : signum_(signum) {
 
 // KilledBySignal function-call operator.
 bool KilledBySignal::operator()(int exit_status) const {
+#  if defined(GTEST_KILLED_BY_SIGNAL_OVERRIDE_)
+  {
+    bool result;
+    if (GTEST_KILLED_BY_SIGNAL_OVERRIDE_(signum_, exit_status, &result)) {
+      return result;
+    }
+  }
+#  endif  // defined(GTEST_KILLED_BY_SIGNAL_OVERRIDE_)
   return WIFSIGNALED(exit_status) && WTERMSIG(exit_status) == signum_;
 }
 # endif  // !GTEST_OS_WINDOWS
@@ -985,6 +993,8 @@ void StackLowerThanAddress(const void* ptr, bool* result) {
   *result = (&dummy < ptr);
 }
 
+// Make sure AddressSanitizer does not tamper with the stack here.
+GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_
 bool StackGrowsDown() {
   int dummy;
   bool result;
@@ -1200,26 +1210,6 @@ bool DefaultDeathTestFactory::Create(const char* statement, const RE* regex,
   }
 
   return true;
-}
-
-// Splits a given string on a given delimiter, populating a given
-// vector with the fields.  GTEST_HAS_DEATH_TEST implies that we have
-// ::std::string, so we can use it here.
-static void SplitString(const ::std::string& str, char delimiter,
-                        ::std::vector< ::std::string>* dest) {
-  ::std::vector< ::std::string> parsed;
-  ::std::string::size_type pos = 0;
-  while (::testing::internal::AlwaysTrue()) {
-    const ::std::string::size_type colon = str.find(delimiter, pos);
-    if (colon == ::std::string::npos) {
-      parsed.push_back(str.substr(pos));
-      break;
-    } else {
-      parsed.push_back(str.substr(pos, colon - pos));
-      pos = colon + 1;
-    }
-  }
-  dest->swap(parsed);
 }
 
 # if GTEST_OS_WINDOWS

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -155,6 +155,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("DumpTextures", &bDumpTextures, 0);
 	settings->Get("HiresTextures", &bHiresTextures, 0);
 	settings->Get("ConvertHiresTextures", &bConvertHiresTextures, 0);
+	settings->Get("CacheHiresTextures", &bCacheHiresTextures, 0);
 	settings->Get("DumpEFBTarget", &bDumpEFBTarget, 0);
 	settings->Get("FreeLook", &bFreeLook, 0);
 	settings->Get("UseFFV1", &bUseFFV1, 0);
@@ -163,11 +164,13 @@ void VideoConfig::Load(const std::string& ini_file)
 	if (ARBruteForcer::ch_bruteforce)
 	{
 		iMultisampleMode = 0;
+		bSSAA = false;
 		iEFBScale = SCALE_1X;
 	}
 	else
 	{
 		settings->Get("MSAA", &iMultisampleMode, 0);
+		settings->Get("SSAA", &bSSAA, false);
 		settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
 	}
 	settings->Get("DstAlphaPass", &bDstAlphaPass, false);
@@ -186,16 +189,22 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("StereoDepth", &iStereoDepth, 20);
 	enhancements->Get("StereoConvergence", &iStereoConvergence, 20);
 	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
-	if (g_has_rift && backend_info.bSupportsGeometryShaders)
+	if ((g_has_rift || g_has_steamvr) && backend_info.bSupportsGeometryShaders)
 		iStereoMode = STEREO_OCULUS;
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
+	hacks->Get("BBoxEnable", &bBBoxEnable, false);
+	hacks->Get("ForceProgressive", &bForceProgressive, true);
 	hacks->Get("EFBCopyEnable", &bEFBCopyEnable, true);
 	hacks->Get("EFBCopyClearDisable", &bEFBCopyClearDisable, false);
 	hacks->Get("EFBToTextureEnable", &bSkipEFBCopyToRam, true);
 	hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
 	hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
+
+	// hacks which are disabled by default
+	iPhackvalue[0] = 0;
+	bPerfQueriesEnable = false;
 
 	LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 
@@ -309,7 +318,7 @@ void VideoConfig::GameIniLoad()
 		} \
 	} while (0)
 
-	IniFile iniFile = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
+	IniFile iniFile = SConfig::GetInstance().LoadGameIni();
 
 	CHECK_SETTING("Video_Hardware", "VSync", bVSync);
 
@@ -321,9 +330,12 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	CHECK_SETTING("Video_Settings", "HiresTextures", bHiresTextures);
 	CHECK_SETTING("Video_Settings", "ConvertHiresTextures", bConvertHiresTextures);
+	CHECK_SETTING("Video_Settings", "CacheHiresTextures", bCacheHiresTextures);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
+	CHECK_SETTING("Video_Settings", "SSAA", bSSAA);
+
 	int tmp = -9000;
 	CHECK_SETTING("Video_Settings", "EFBScale", tmp); // integral
 	if (tmp != -9000)
@@ -407,6 +419,8 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Stereoscopy", "StereoConvergenceMinimum", iStereoConvergenceMinimum);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
+	CHECK_SETTING("Video_Hacks", "BBoxEnable", bBBoxEnable);
+	CHECK_SETTING("Video_Hacks", "ForceProgressive", bForceProgressive);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
@@ -490,8 +504,8 @@ void VideoConfig::GameIniSave()
 {
 	// Load game ini
 	IniFile GameIniDefault, GameIniLocal;
-	GameIniDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
-	GameIniLocal = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
+	GameIniDefault = SConfig::GetInstance().LoadDefaultGameIni();
+	GameIniLocal = SConfig::GetInstance().LoadLocalGameIni();
 
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \
@@ -529,14 +543,14 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
 	SAVE_IF_NOT_DEFAULT("VR", "ReadPitch", (float)fReadPitch, 0.0f);
 
-	GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
+	GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini");
 	g_SavedConfig = *this;
 }
 
 void VideoConfig::GameIniReset()
 {
 	// Load game ini
-	IniFile GameIniDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
+	IniFile GameIniDefault = SConfig::GetInstance().LoadDefaultGameIni();
 
 #define LOAD_DEFAULT(section, key, var, def) do { \
 			decltype(var) temp = var; \
@@ -575,7 +589,7 @@ void VideoConfig::VerifyValidity()
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
 
-	if (g_has_rift)
+	if (g_has_rift || g_has_steamvr)
 		iStereoMode = STEREO_OCULUS;
 	else if (g_has_vr920)
 		iStereoMode = STEREO_VR920;
@@ -621,6 +635,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("DumpTextures", bDumpTextures);
 	settings->Set("HiresTextures", bHiresTextures);
 	settings->Set("ConvertHiresTextures", bConvertHiresTextures);
+	settings->Set("CacheHiresTextures", bCacheHiresTextures);
 	settings->Set("DumpEFBTarget", bDumpEFBTarget);
 	settings->Set("FreeLook", bFreeLook);
 	settings->Set("UseFFV1", bUseFFV1);
@@ -630,6 +645,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	if (!ARBruteForcer::ch_dont_save_settings)
 	{
 		settings->Set("MSAA", iMultisampleMode);
+		settings->Set("SSAA", bSSAA);
 		settings->Set("EFBScale", iEFBScale);
 	}
 	settings->Set("TexFmtOverlayEnable", bTexFmtOverlayEnable);
@@ -651,6 +667,8 @@ void VideoConfig::Save(const std::string& ini_file)
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
+	hacks->Set("BBoxEnable", bBBoxEnable);
+	hacks->Set("ForceProgressive", bForceProgressive);
 	hacks->Set("EFBCopyEnable", bEFBCopyEnable);
 	hacks->Set("EFBCopyClearDisable", bEFBCopyClearDisable);
 	hacks->Set("EFBToTextureEnable", bSkipEFBCopyToRam);

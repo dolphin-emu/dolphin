@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 //DL facts:
@@ -140,7 +140,7 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opc
 
 void OpcodeDecoder_Init()
 {
-	g_opcode_replay_enabled = g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && g_has_hmd;
+	g_opcode_replay_enabled = g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && g_has_hmd;
 	g_opcode_replay_frame = false;
 	g_opcode_replay_log_frame = false;
 	s_bFifoErrorSeen = false;

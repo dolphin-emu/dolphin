@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -43,10 +43,10 @@ u32 HashFletcher(const u8* data_u8, size_t length)
 
 // Implementation from Wikipedia
 // Slightly slower than Fletcher above, but slightly more reliable.
-#define MOD_ADLER 65521
 // data: Pointer to the data to be summed; len is in bytes
 u32 HashAdler32(const u8* data, size_t len)
 {
+	static const u32 MOD_ADLER = 65521;
 	u32 a = 1, b = 0;
 
 	while (len)
@@ -228,7 +228,7 @@ u64 GetMurmurHash3(const u8 *src, u32 len, u32 samples)
 // CRC32 hash using the SSE4.2 instruction
 u64 GetCRC32(const u8 *src, u32 len, u32 samples)
 {
-#if _M_SSE >= 0x402
+#if _M_SSE >= 0x402 || defined(_M_ARM_64)
 	u64 h[4] = { len, 0, 0, 0 };
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
@@ -238,6 +238,9 @@ u64 GetCRC32(const u8 *src, u32 len, u32 samples)
 	Step = Step / samples;
 	if (Step < 1)
 		Step = 1;
+#endif
+
+#if _M_SSE >= 0x402
 	while (data < end - Step * 3)
 	{
 		h[0] = _mm_crc32_u64(h[0], data[Step * 0]);
@@ -259,12 +262,66 @@ u64 GetCRC32(const u8 *src, u32 len, u32 samples)
 		memcpy(&temp, end, len & 7);
 		h[0] = _mm_crc32_u64(h[0], temp);
 	}
+#elif defined(_M_ARM_64)
+	// We should be able to use intrinsics for this
+	// Too bad the intrinsics for this instruction was added in GCC 4.9.1
+	// The Android NDK (as of r10e) only has GCC 4.9
+	// Once the Android NDK has a newer GCC version, update these to use intrinsics
+	while (data < end - Step * 3)
+	{
+		asm ("crc32x %w[res], %w[two], %x[three]"
+				: [res] "=r" (h[0])
+				: [two] "r" (h[0]),
+				  [three] "r" (data[Step * 0]));
+		asm ("crc32x %w[res], %w[two], %x[three]"
+				: [res] "=r" (h[1])
+				: [two] "r" (h[1]),
+				  [three] "r" (data[Step * 1]));
+		asm ("crc32x %w[res], %w[two], %x[three]"
+				: [res] "=r" (h[2])
+				: [two] "r" (h[2]),
+				  [three] "r" (data[Step * 2]));
+		asm ("crc32x %w[res], %w[two], %x[three]"
+				: [res] "=r" (h[3])
+				: [two] "r" (h[3]),
+				  [three] "r" (data[Step * 3]));
 
+		data += Step * 4;
+	}
+	if (data < end - Step * 0)
+		asm ("crc32x %w[res], %w[two], %x[three]"
+				: [res] "=r" (h[0])
+				: [two] "r" (h[0]),
+				  [three] "r" (data[Step * 0]));
+	if (data < end - Step * 1)
+		asm ("crc32x %w[res], %w[two], %x[three]"
+				: [res] "=r" (h[1])
+				: [two] "r" (h[1]),
+				  [three] "r" (data[Step * 1]));
+	if (data < end - Step * 2)
+		asm ("crc32x %w[res], %w[two], %x[three]"
+				: [res] "=r" (h[2])
+				: [two] "r" (h[2]),
+				  [three] "r" (data[Step * 2]));
+
+	if (len & 7)
+	{
+		u64 temp = 0;
+		memcpy(&temp, end, len & 7);
+		asm ("crc32x %w[res], %w[two], %x[three]"
+				: [res] "=r" (h[0])
+				: [two] "r" (h[0]),
+				  [three] "r" (temp));
+	}
+#endif
+
+#if _M_SSE >= 0x402 || defined(_M_ARM_64)
 	// FIXME: is there a better way to combine these partial hashes?
 	return h[0] + (h[1] << 10) + (h[2] << 21) + (h[3] << 32);
 #else
 	return 0;
 #endif
+
 }
 
 
@@ -528,6 +585,12 @@ void SetHash64Function()
 {
 #if _M_SSE >= 0x402
 	if (cpu_info.bSSE4_2) // sse crc32 version
+	{
+		ptrHashFunction = &GetCRC32;
+	}
+	else
+#elif defined(_M_ARM_64)
+	if (cpu_info.bCRC32)
 	{
 		ptrHashFunction = &GetCRC32;
 	}

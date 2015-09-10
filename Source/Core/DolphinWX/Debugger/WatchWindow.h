@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -27,8 +27,6 @@ public:
 	void LoadAll();
 
 private:
-	void CreateGUIControls();
-
 	wxAuiManager m_mgr;
 
 	// Owned by wx. Deleted implicitly upon destruction.

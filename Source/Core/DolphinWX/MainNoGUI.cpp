@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
@@ -7,6 +7,7 @@
 #include <cstring>
 #include <getopt.h>
 #include <string>
+#include <unistd.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -15,10 +16,11 @@
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Host.h"
 #include "Core/State.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "UICommon/UICommon.h"
@@ -76,7 +78,7 @@ void Host_RequestFullscreen(bool enable_fullscreen) {}
 
 void Host_SetStartupDebuggingParameters()
 {
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& StartUp = SConfig::GetInstance();
 	StartUp.bEnableDebugging = false;
 	StartUp.bBootToPause = false;
 }
@@ -96,7 +98,16 @@ bool Host_RendererIsFullscreen()
 	return rendererIsFullscreen;
 }
 
-void Host_ConnectWiimote(int wm_idx, bool connect) {}
+void Host_ConnectWiimote(int wm_idx, bool connect)
+{
+	if (Core::IsRunning() && SConfig::GetInstance().bWii)
+	{
+		bool was_unpaused = Core::PauseAndLock(true);
+		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+		Host_UpdateMainFrame();
+		Core::PauseAndLock(false, was_unpaused);
+	}
+}
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
@@ -126,10 +137,10 @@ class PlatformX11 : public Platform
 		}
 
 		win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy),
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					  SConfig::GetInstance().iRenderWindowXPos,
+					  SConfig::GetInstance().iRenderWindowYPos,
+					  SConfig::GetInstance().iRenderWindowWidth,
+					  SConfig::GetInstance().iRenderWindowHeight,
 					  0, 0, BlackPixel(dpy, 0));
 		XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
 		Atom wmProtocols[1];
@@ -139,14 +150,14 @@ class PlatformX11 : public Platform
 		XFlush(dpy);
 		s_window_handle = (void*)win;
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+		if (SConfig::GetInstance().bDisableScreenSaver)
 			X11Utils::InhibitScreensaver(dpy, win, true);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 		XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
 #endif
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		if (SConfig::GetInstance().bHideCursor)
 		{
 			// make a blank cursor
 			Pixmap Blank;
@@ -166,7 +177,7 @@ class PlatformX11 : public Platform
 
 	void MainLoop() override
 	{
-		bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
+		bool fullscreen = SConfig::GetInstance().bFullscreen;
 
 		if (fullscreen)
 		{
@@ -192,13 +203,13 @@ class PlatformX11 : public Platform
 					{
 						if (Core::GetState() == Core::CORE_RUN)
 						{
-							if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							if (SConfig::GetInstance().bHideCursor)
 								XUndefineCursor(dpy, win);
 							Core::SetState(Core::CORE_PAUSE);
 						}
 						else
 						{
-							if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							if (SConfig::GetInstance().bHideCursor)
 								XDefineCursor(dpy, win, blankCursor);
 							Core::SetState(Core::CORE_RUN);
 						}
@@ -233,13 +244,13 @@ class PlatformX11 : public Platform
 					break;
 				case FocusIn:
 					rendererHasFocus = true;
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+					if (SConfig::GetInstance().bHideCursor &&
 					    Core::GetState() != Core::CORE_PAUSE)
 						XDefineCursor(dpy, win, blankCursor);
 					break;
 				case FocusOut:
 					rendererHasFocus = false;
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					if (SConfig::GetInstance().bHideCursor)
 						XUndefineCursor(dpy, win);
 					break;
 				case ClientMessage:
@@ -253,10 +264,10 @@ class PlatformX11 : public Platform
 				Window winDummy;
 				unsigned int borderDummy, depthDummy;
 				XGetGeometry(dpy, win, &winDummy,
-					     &SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-					     &SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
-					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					     &SConfig::GetInstance().iRenderWindowXPos,
+					     &SConfig::GetInstance().iRenderWindowYPos,
+					     (unsigned int *)&SConfig::GetInstance().iRenderWindowWidth,
+					     (unsigned int *)&SConfig::GetInstance().iRenderWindowHeight,
 					     &borderDummy, &depthDummy);
 				rendererIsFullscreen = false;
 			}
@@ -270,7 +281,7 @@ class PlatformX11 : public Platform
 		delete XRRConfig;
 #endif
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		if (SConfig::GetInstance().bHideCursor)
 			XFreeCursor(dpy, blankCursor);
 
 		XCloseDisplay(dpy);
@@ -349,6 +360,7 @@ int main(int argc, char* argv[])
 	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		updateMainFrameEvent.Wait();
 
+	Core::Shutdown();
 	platform->Shutdown();
 	UICommon::Shutdown();
 

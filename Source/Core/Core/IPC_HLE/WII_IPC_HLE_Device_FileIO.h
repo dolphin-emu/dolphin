@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -28,7 +28,7 @@ public:
 	IPCCommandResult IOCtl(u32 _CommandAddress) override;
 	void DoState(PointerWrap &p) override;
 
-	File::IOFile OpenFile();
+	void OpenFile();
 
 private:
 	enum
@@ -75,4 +75,5 @@ private:
 	u32 m_SeekPos;
 
 	std::string m_filepath;
+	std::shared_ptr<File::IOFile> m_file;
 };

@@ -1,3 +1,7 @@
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include <unordered_set>
 #include <gtest/gtest.h>
 
@@ -26,7 +30,7 @@ TEST(UniqueID, UniqueEnough)
 TEST(IsMMIOAddress, SpecialAddresses)
 {
 	SConfig::Init();
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bWii = true;
+	SConfig::GetInstance().bWii = true;
 
 	// WG Pipe address, should not be handled by MMIO.
 	EXPECT_FALSE(MMIO::IsMMIOAddress(0x0C008000));

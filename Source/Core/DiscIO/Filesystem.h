@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -43,7 +43,7 @@ public:
 
 	virtual ~IFileSystem();
 	virtual bool IsValid() const = 0;
-	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) = 0;
+	virtual const std::vector<SFileInfo>& GetFileList() = 0;
 	virtual u64 GetFileSize(const std::string& _rFullPath) = 0;
 	virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize, u64 _OffsetInFile = 0) = 0;
 	virtual bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename) = 0;

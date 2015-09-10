@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -74,7 +74,7 @@ public:
 	static VertexLoaderBase* CreateVertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
 	virtual ~VertexLoaderBase() {}
 
-	virtual int RunVertices(DataReader src, DataReader dst, int count, int primitive) = 0;
+	virtual int RunVertices(DataReader src, DataReader dst, int count) = 0;
 
 	virtual bool IsInitialized() = 0;
 

@@ -1,7 +1,8 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <QActionGroup>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -9,8 +10,6 @@
 #include <QUrl>
 
 #include "ui_MainWindow.h"
-
-#include "Common/StdMakeUnique.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
@@ -78,6 +77,7 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(m_ui->actionGitHub, SIGNAL(triggered()), this, SLOT(OnOpenGitHub()));
 	connect(m_ui->actionSystemInfo, SIGNAL(triggered()), this, SLOT(OnOpenSystemInfo()));
 	connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(OnOpenAbout()));
+	connect(m_ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(OnOpenAboutQt()));
 
 	// Update GUI items
 	emit CoreStateChanged(Core::CORE_UNINITIALIZED);
@@ -92,6 +92,11 @@ DMainWindow::~DMainWindow()
 {
 }
 
+void DMainWindow::closeEvent(QCloseEvent* ce)
+{
+	Stop();
+}
+
 // Emulation
 
 void DMainWindow::StartGame(const QString filename)
@@ -100,7 +105,7 @@ void DMainWindow::StartGame(const QString filename)
 	m_render_widget->setWindowTitle(tr("Dolphin")); // TODO
 	m_render_widget->setWindowIcon(windowIcon());
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen)
+	if (SConfig::GetInstance().bFullscreen)
 	{
 		m_render_widget->setWindowFlags(m_render_widget->windowFlags() | Qt::BypassWindowManagerHint);
 		g_Config.bFullscreen = !g_Config.bBorderlessFullscreen;
@@ -111,15 +116,21 @@ void DMainWindow::StartGame(const QString filename)
 		m_ui->centralWidget->addWidget(m_render_widget.get());
 		m_ui->centralWidget->setCurrentWidget(m_render_widget.get());
 
-		// TODO: When rendering to main, this won't resize the parent window...
-		m_render_widget->resize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+		if (SConfig::GetInstance().bRenderWindowAutoSize)
+		{
+			// Resize main window to fit render
+			m_render_widget->setMinimumSize(SConfig::GetInstance().iRenderWindowWidth,
+				SConfig::GetInstance().iRenderWindowHeight);
+			qApp->processEvents(); // Force a redraw so the window has time to resize
+			m_render_widget->setMinimumSize(0, 0); // Allow the widget to scale down
+		}
+		m_render_widget->adjustSize();
 	}
 
 	if (!BootManager::BootCore(filename.toStdString()))
 	{
 		QMessageBox::critical(this, tr("Fatal error"), tr("Failed to init Core"), QMessageBox::Ok);
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen)
+		if (SConfig::GetInstance().bFullscreen)
 			m_render_widget->close();
 		else
 			m_ui->centralWidget->removeWidget(m_render_widget.get());
@@ -167,7 +178,7 @@ void DMainWindow::DoStartPause()
 		Core::SetState(Core::CORE_RUN);
 		emit CoreStateChanged(Core::CORE_RUN);
 	}
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+	if (SConfig::GetInstance().bHideCursor)
 		m_render_widget->setCursor(Qt::BlankCursor);
 }
 
@@ -224,7 +235,7 @@ bool DMainWindow::OnStop()
 		return true;
 
 	// Ask for confirmation in case the user accidentally clicked Stop / Escape
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
+	if (SConfig::GetInstance().bConfirmStop)
 	{
 		// Pause emulation
 		Core::SetState(Core::CORE_PAUSE);
@@ -261,7 +272,7 @@ bool DMainWindow::Stop()
 	//if (m_bBatchMode)
 	//	Close(true);
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen)
+	if (SConfig::GetInstance().bFullscreen)
 		m_render_widget->close();
 	else
 		m_ui->centralWidget->removeWidget(m_render_widget.get());
@@ -350,4 +361,9 @@ void DMainWindow::OnOpenAbout()
 {
 	DAboutDialog* dlg = new DAboutDialog(this);
 	dlg->open();
+}
+
+void DMainWindow::OnOpenAboutQt()
+{
+	QApplication::aboutQt();
 }

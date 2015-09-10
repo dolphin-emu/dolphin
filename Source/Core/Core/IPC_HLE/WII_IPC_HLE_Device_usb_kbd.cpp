@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/FileUtil.h"
@@ -12,6 +12,8 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
+// TODO: support in netplay/movies.
 
 CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName)
 : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -64,7 +66,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
 {
 	u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 
-	if (SConfig::GetInstance().m_WiiKeyboard && !m_MessageQueue.empty())
+	if (SConfig::GetInstance().m_WiiKeyboard && !Core::g_want_determinism && !m_MessageQueue.empty())
 	{
 		Memory::CopyToEmu(BufferOut, &m_MessageQueue.front(), sizeof(SMessageData));
 		m_MessageQueue.pop();
@@ -89,7 +91,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
 
 u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 {
-	if (!SConfig::GetInstance().m_WiiKeyboard || !m_Active)
+	if (!SConfig::GetInstance().m_WiiKeyboard || Core::g_want_determinism || !m_Active)
 		return 0;
 
 	u8 Modifiers = 0x00;

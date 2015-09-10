@@ -1,3 +1,7 @@
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
 
@@ -118,7 +122,7 @@ void DeInit()
 }
 
 Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
-	: m_index(index), m_subtype(caps.SubType)
+	: m_subtype(caps.SubType), m_index(index)
 {
 	ZeroMemory(&m_state_out, sizeof(m_state_out));
 

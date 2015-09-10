@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <QApplication>
@@ -60,7 +60,7 @@ void Resources::Init()
 
 void Resources::UpdatePixmaps()
 {
-	QString dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
+	QString dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
 	m_pixmaps[TOOLBAR_OPEN].load(GIFN("open"));
 	m_pixmaps[TOOLBAR_REFRESH].load(GIFN("refresh"));
 	m_pixmaps[TOOLBAR_BROWSE].load(GIFN("browse"));

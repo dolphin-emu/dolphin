@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -36,13 +36,13 @@
 // need to include this before polarssl/aes.h,
 // otherwise we may not get __STDC_FORMAT_MACROS
 #include <cinttypes>
+#include <memory>
 #include <polarssl/aes.h>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/ec_wii.h"
@@ -211,7 +211,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 
 	if (!Loader.IsValid())
 	{
-		WARN_LOG(WII_IPC_ES, "ES: loader not valid for %" PRIx64, TitleID);
+		WARN_LOG(WII_IPC_ES, "ES: loader not valid for %llx", TitleID);
 		return 0xffffffff;
 	}
 
@@ -338,9 +338,8 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				Memory::Write_U32((u32)rNANDCOntent.GetContentSize(), _CommandAddress + 0x4);
 				INFO_LOG(WII_IPC_ES,
 					"IOCTL_ES_GETTITLECONTENTS: "
-					"Unable to open content %lu",
-					(unsigned long)rNANDCOntent.\
-						GetContentSize());
+					"Unable to open content %zu",
+					rNANDCOntent.GetContentSize());
 			}
 
 			return IPC_DEFAULT_REPLY;
@@ -427,7 +426,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					}
 					rContent.m_Position += Size;
 				} else {
-					PanicAlertT("IOCTL_ES_READCONTENT - bad destination");
+					PanicAlert("IOCTL_ES_READCONTENT - bad destination");
 				}
 			}
 
@@ -543,8 +542,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			Memory::Write_U32((u32)m_TitleIDs.size(), Buffer.PayloadBuffer[0].m_Address);
 
-			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %lu",
-				(unsigned long)m_TitleIDs.size());
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", m_TitleIDs.size());
 
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 
@@ -925,10 +923,20 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 						{
 							pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
 						}
-						pDolLoader->Load(); // TODO: Check why sysmenu does not load the DOL correctly
-						PC = pDolLoader->GetEntryPoint();
+
+						if (pDolLoader->IsValid())
+						{
+							pDolLoader->Load(); // TODO: Check why sysmenu does not load the DOL correctly
+							PC = pDolLoader->GetEntryPoint();
+							bSuccess = true;
+						}
+						else
+						{
+							PanicAlertT("IOCTL_ES_LAUNCH: The DOL file is invalid!");
+							bSuccess = false;
+						}
+
 						IOSv = ContentLoader.GetIosVersion();
-						bSuccess = true;
 					}
 				}
 			}
@@ -951,7 +959,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				else
 				{
 					PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your NAND dump\n"
-						"TitleID %016" PRIx64".\n Dolphin will likely hang now.", TitleID);
+						"TitleID %016llx.\n Dolphin will likely hang now.", TitleID);
 				}
 			}
 			else
@@ -993,7 +1001,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			//TODO: provide correct return code when bSuccess= false
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 
-			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x", TitleID,view,ticketid,devicetype,titleid,access);
+			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016llx %08x %016llx %08x %016llx %04x", TitleID,view,ticketid,devicetype,titleid,access);
 			//                     IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000 0001000248414341 ffff
 
 			// This is necessary because Reset(true) above deleted this object.  Ew.

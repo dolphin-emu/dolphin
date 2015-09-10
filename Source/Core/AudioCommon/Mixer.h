@@ -1,9 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <atomic>
 #include <mutex>
 #include <string>
 
@@ -49,68 +50,14 @@ public:
 	void SetStreamingVolume(unsigned int lvolume, unsigned int rvolume);
 	void SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume);
 
-	virtual void StartLogDTKAudio(const std::string& filename)
-	{
-		if (!m_log_dtk_audio)
-		{
-			m_log_dtk_audio = true;
-			g_wave_writer_dtk.Start(filename, 48000);
-			g_wave_writer_dtk.SetSkipSilence(false);
-			NOTICE_LOG(DSPHLE, "Starting DTK Audio logging");
-		}
-		else
-		{
-			WARN_LOG(DSPHLE, "DTK Audio logging has already been started");
-		}
-	}
+	void StartLogDTKAudio(const std::string& filename);
+	void StopLogDTKAudio();
 
-	virtual void StopLogDTKAudio()
-	{
-		if (m_log_dtk_audio)
-		{
-			m_log_dtk_audio = false;
-			g_wave_writer_dtk.Stop();
-			NOTICE_LOG(DSPHLE, "Stopping DTK Audio logging");
-		}
-		else
-		{
-			WARN_LOG(DSPHLE, "DTK Audio logging has already been stopped");
-		}
-	}
+	void StartLogDSPAudio(const std::string& filename);
+	void StopLogDSPAudio();
 
-	virtual void StartLogDSPAudio(const std::string& filename)
-	{
-		if (!m_log_dsp_audio)
-		{
-			m_log_dsp_audio = true;
-			g_wave_writer_dsp.Start(filename, 32000);
-			g_wave_writer_dsp.SetSkipSilence(false);
-			NOTICE_LOG(DSPHLE, "Starting DSP Audio logging");
-		}
-		else
-		{
-			WARN_LOG(DSPHLE, "DSP Audio logging has already been started");
-		}
-	}
-
-	virtual void StopLogDSPAudio()
-	{
-		if (m_log_dsp_audio)
-		{
-			m_log_dsp_audio = false;
-			g_wave_writer_dsp.Stop();
-			NOTICE_LOG(DSPHLE, "Stopping DSP Audio logging");
-		}
-		else
-		{
-			WARN_LOG(DSPHLE, "DSP Audio logging has already been stopped");
-		}
-	}
-
-	std::mutex& MixerCritical() { return m_csMixing; }
-
-	float GetCurrentSpeed() const { return m_speed; }
-	void UpdateSpeed(volatile float val) { m_speed = val; }
+	float GetCurrentSpeed() const { return m_speed.load(); }
+	void UpdateSpeed(float val) { m_speed.store(val); }
 
 protected:
 	class MixerFifo {
@@ -135,11 +82,11 @@ protected:
 		CMixer *m_mixer;
 		unsigned m_input_sample_rate;
 		short m_buffer[MAX_SAMPLES * 2];
-		volatile u32 m_indexW;
-		volatile u32 m_indexR;
+		std::atomic<u32> m_indexW;
+		std::atomic<u32> m_indexR;
 		// Volume ranges from 0-256
-		volatile s32 m_LVolume;
-		volatile s32 m_RVolume;
+		std::atomic<s32> m_LVolume;
+		std::atomic<s32> m_RVolume;
 		float m_numLeftI;
 		u32 m_frac;
 	};
@@ -148,13 +95,11 @@ protected:
 	MixerFifo m_wiimote_speaker_mixer;
 	unsigned int m_sampleRate;
 
-	WaveFileWriter g_wave_writer_dtk;
-	WaveFileWriter g_wave_writer_dsp;
+	WaveFileWriter m_wave_writer_dtk;
+	WaveFileWriter m_wave_writer_dsp;
 
 	bool m_log_dtk_audio;
 	bool m_log_dsp_audio;
 
-	std::mutex m_csMixing;
-
-	volatile float m_speed; // Current rate of the emulation (1.0 = 100% speed)
+	std::atomic<float> m_speed; // Current rate of the emulation (1.0 = 100% speed)
 };

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -76,11 +76,11 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ssl();
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
-	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
 	int GetSSLFreeID() const;
 

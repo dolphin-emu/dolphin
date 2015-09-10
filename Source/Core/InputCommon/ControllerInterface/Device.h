@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -60,8 +60,6 @@ public:
 		virtual bool IsDetectable() { return true; }
 
 		virtual ControlState GetState() const = 0;
-
-		bool ShouldHaveInput();
 
 		ControlState GetGatedState()
 		{

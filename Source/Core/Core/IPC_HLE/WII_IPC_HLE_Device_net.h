@@ -1,12 +1,15 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
 #include "Common/Timer.h"
 
+#include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 #ifdef _WIN32
@@ -171,7 +174,7 @@ private:
 public:
 	NWC24Config()
 	{
-		path = File::GetUserPath(D_WIIWC24_IDX) + "nwc24msg.cfg";
+		path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_WC24CONF_DIR "/nwc24msg.cfg";
 		ReadConfig();
 	}
 
@@ -210,7 +213,7 @@ public:
 	{
 		if (!File::Exists(path))
 		{
-			if (!File::CreateFullPath(File::GetUserPath(D_WIIWC24_IDX)))
+			if (!File::CreateFullPath(File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_WC24CONF_DIR))
 			{
 				ERROR_LOG(WII_IPC_WC24, "Failed to create directory for WC24");
 			}
@@ -321,7 +324,7 @@ class WiiNetConfig
 public:
 	WiiNetConfig()
 	{
-		path = File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/config.dat";
+		path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_SYSCONF_DIR "/net/02/config.dat";
 		ReadConfig();
 	}
 
@@ -346,7 +349,7 @@ public:
 	{
 		if (!File::Exists(path))
 		{
-			if (!File::CreateFullPath(std::string(File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/")))
+			if (!File::CreateFullPath(std::string(File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_SYSCONF_DIR "/net/02/")))
 			{
 				ERROR_LOG(WII_IPC_NET, "Failed to create directory for network config file");
 			}
@@ -391,9 +394,9 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult IOCtl(u32 _CommandAddress) override;
 
 private:
 	enum
@@ -454,14 +457,14 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_kd_time()
 	{}
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
 		if (!_bForce)
@@ -469,7 +472,7 @@ public:
 		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override
+	IPCCommandResult IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn  = Memory::Read_U32(_CommandAddress + 0x10);
@@ -528,21 +531,26 @@ private:
 	u64 rtc;
 	s64 utcdiff;
 
-	// Seconds between 1.1.1970 and 4.1.2008 16:00:38
-	static const u64 wii_bias = 0x477E5826;
+	// TODO: depending on CEXIIPL is a hack which I don't feel like removing
+	// because the function itself is pretty hackish; wait until I re-port my
+	// netplay rewrite; also, is that random 16:00:38 actually meaningful?
+	// seems very very doubtful since Wii was released in 2006
+
+	// Seconds between 1.1.2000 and 4.1.2008 16:00:38
+	static const u64 wii_bias = 0x477E5826 - 0x386D4380;
 
 	// Returns seconds since Wii epoch
 	// +/- any bias set from IOCTL_NW24_SET_UNIVERSAL_TIME
 	u64 GetAdjustedUTC() const
 	{
-		return Common::Timer::GetTimeSinceJan1970() - wii_bias + utcdiff;
+		return CEXIIPL::GetGCTime() - wii_bias + utcdiff;
 	}
 
 	// Store the difference between what the Wii thinks is UTC and
 	// what the host OS thinks
 	void SetAdjustedUTC(u64 wii_utc)
 	{
-		utcdiff = Common::Timer::GetTimeSinceJan1970() - wii_bias - wii_utc;
+		utcdiff = CEXIIPL::GetGCTime() - wii_bias - wii_utc;
 	}
 };
 
@@ -593,19 +601,17 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ip_top();
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
-	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
-	virtual u32 Update() override;
+	u32 Update() override;
 
 private:
 #ifdef _WIN32
 	WSADATA InitData;
 #endif
-	u32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
-	u32 ExecuteCommandV(SIOCtlVBuffer& CommandBuffer);
 };
 
 // **********************************************************************************
@@ -617,9 +623,9 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
 private:
 	enum
@@ -645,9 +651,9 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_wd_command();
 
-	virtual IPCCommandResult Open(u32 CommandAddress, u32 Mode) override;
-	virtual IPCCommandResult Close(u32 CommandAddress, bool Force) override;
-	virtual IPCCommandResult IOCtlV(u32 CommandAddress) override;
+	IPCCommandResult Open(u32 CommandAddress, u32 Mode) override;
+	IPCCommandResult Close(u32 CommandAddress, bool Force) override;
+	IPCCommandResult IOCtlV(u32 CommandAddress) override;
 
 private:
 	enum

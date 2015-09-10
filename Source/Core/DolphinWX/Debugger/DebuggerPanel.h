@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -74,5 +74,4 @@ private:
 	void OnClearTextureCacheButton(wxCommandEvent& event);
 	void OnClearVertexShaderCacheButton(wxCommandEvent& event);
 	void OnClearPixelShaderCacheButton(wxCommandEvent& event);
-	void OnCountEnter(wxCommandEvent& event);
 };

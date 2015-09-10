@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CDUtils.h"
@@ -25,9 +25,9 @@ void AbstractGameList::RemoveGames(QList<GameFile*> items)
 
 DGameTracker::DGameTracker(QWidget* parent_widget)
 	: QStackedWidget(parent_widget),
-	  m_watcher(this)
+	  m_watcher(new QFileSystemWatcher(this))
 {
-	connect(&m_watcher, SIGNAL(directoryChanged(QString)), this, SLOT(ScanForGames()));
+	connect(m_watcher, SIGNAL(directoryChanged(QString)), this, SLOT(ScanForGames()));
 
 	m_tree_widget = new DGameTree(this);
 	addWidget(m_tree_widget);
@@ -78,38 +78,17 @@ void DGameTracker::ScanForGames()
 {
 	setDisabled(true);
 
-	CFileSearch::XStringVector dirs(SConfig::GetInstance().m_ISOFolder);
-
+	delete m_watcher;
+	m_watcher = new QFileSystemWatcher(this);
+	for (std::string dir : SConfig::GetInstance().m_ISOFolder)
+		m_watcher->addPath(QString::fromStdString(dir));
 	if (SConfig::GetInstance().m_RecursiveISOFolder)
 	{
-		for (u32 i = 0; i < dirs.size(); i++)
-		{
-			File::FSTEntry FST_Temp;
-			File::ScanDirectoryTree(dirs[i], FST_Temp);
-			for (auto& entry : FST_Temp.children)
-			{
-				if (entry.isDirectory)
-				{
-					bool duplicate = false;
-					for (auto& dir : dirs)
-					{
-						if (dir == entry.physicalName)
-						{
-							duplicate = true;
-							break;
-						}
-					}
-					if (!duplicate)
-						dirs.push_back(entry.physicalName);
-				}
-			}
-		}
+		for (std::string dir : FindSubdirectories(SConfig::GetInstance().m_ISOFolder, /*recursive*/ true))
+			m_watcher->addPath(QString::fromStdString(dir));
 	}
 
-	for (std::string& dir : dirs)
-		m_watcher.addPath(QString::fromStdString(dir));
-
-	CFileSearch::XStringVector exts;
+	std::vector<std::string> exts;
 	if (SConfig::GetInstance().m_ListGC)
 	{
 		exts.push_back("*.gcm");
@@ -124,8 +103,7 @@ void DGameTracker::ScanForGames()
 	if (SConfig::GetInstance().m_ListWad)
 		exts.push_back("*.wad");
 
-	CFileSearch FileSearch(exts, dirs);
-	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
+	auto rFilenames = DoFileSearch(exts, SConfig::GetInstance().m_ISOFolder, SConfig::GetInstance().m_RecursiveISOFolder);
 	QList<GameFile*> newItems;
 	QStringList allItems;
 

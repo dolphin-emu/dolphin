@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -29,15 +29,13 @@
 #include "Common/Flag.h"
 
 // ewww
-#if _LIBCPP_VERSION
+#if _LIBCPP_VERSION || __GNUC__ >= 5
 #define IsTriviallyCopyable(T) std::is_trivially_copyable<typename std::remove_volatile<T>::type>::value
 #elif __GNUC__
 #define IsTriviallyCopyable(T) std::has_trivial_copy_constructor<T>::value
-#elif _MSC_VER >= 1800
-// work around bug
-#define IsTriviallyCopyable(T) (std::is_trivially_copyable<T>::value || std::is_pod<T>::value)
-#elif defined(_MSC_VER)
-#define IsTriviallyCopyable(T) std::has_trivial_copy<T>::value
+#elif _MSC_VER
+// (shuffle2) see https://github.com/dolphin-emu/dolphin/pull/2218
+#define IsTriviallyCopyable(T) 1
 #else
 #error No version of is_trivially_copyable
 #endif

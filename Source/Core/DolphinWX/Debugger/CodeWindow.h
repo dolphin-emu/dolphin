@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -21,7 +21,7 @@ class CJitWindow;
 class CCodeView;
 class DSPDebuggerLLE;
 class GFXDebuggerPanel;
-struct SCoreStartupParameter;
+struct SConfig;
 
 class wxAuiToolBar;
 class wxListBox;
@@ -32,7 +32,7 @@ class wxToolBar;
 class CCodeWindow : public wxPanel
 {
 public:
-	CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter,
+	CCodeWindow(const SConfig& _LocalCoreStartupParameter,
 	            CFrame * parent,
 	            wxWindowID id = wxID_ANY,
 	            const wxPoint& pos = wxDefaultPosition,
@@ -59,14 +59,12 @@ public:
 
 	void Update() override;
 	void NotifyMapLoaded();
-	void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
+	void CreateMenu(const SConfig& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
 	void CreateMenuOptions(wxMenu *pMenu);
 	void CreateMenuSymbols(wxMenuBar *pMenuBar);
-	void RecreateToolbar(wxToolBar*);
 	void PopulateToolbar(wxToolBar* toolBar);
 	void UpdateButtonStates();
 	void OpenPages();
-	void UpdateManager();
 
 	// Menu bar
 	void ToggleCodeWindow(bool bShow);

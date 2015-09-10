@@ -1,15 +1,17 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <queue>
 #include <sstream>
+#include <thread>
+#include <unordered_map>
 #include <unordered_set>
 #include <SFML/Network/Packet.hpp>
-#include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
@@ -22,7 +24,7 @@ public:
 	void ThreadFunc();
 	void SendAsyncToClients(sf::Packet* packet);
 
-	NetPlayServer(const u16 port, bool traversal, std::string centralServer, u16 centralPort);
+	NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort);
 	~NetPlayServer();
 
 	bool ChangeGame(const std::string& game);
@@ -32,11 +34,11 @@ public:
 
 	bool StartGame();
 
-	void GetPadMapping(PadMapping map[]);
-	void SetPadMapping(const PadMapping map[]);
+	PadMappingArray GetPadMapping() const;
+	void SetPadMapping(const PadMappingArray& mappings);
 
-	void GetWiimoteMapping(PadMapping map[]);
-	void SetWiimoteMapping(const PadMapping map[]);
+	PadMappingArray GetWiimoteMapping() const;
+	void SetWiimoteMapping(const PadMappingArray& mappings);
 
 	void AdjustPadBufferSize(unsigned int size);
 
@@ -46,7 +48,7 @@ public:
 
 	void SetNetPlayUI(NetPlayUI* dialog);
 	std::unordered_set<std::string> GetInterfaceSet();
-	std::string GetInterfaceHost(const std::string inter);
+	std::string GetInterfaceHost(const std::string& inter);
 
 	bool is_connected;
 
@@ -77,9 +79,11 @@ private:
 	unsigned int OnConnect(ENetPeer* socket);
 	unsigned int OnDisconnect(Client& player);
 	unsigned int OnData(sf::Packet& packet, Client& player);
-	virtual void OnTraversalStateChanged();
-	virtual void OnConnectReady(ENetAddress addr) {}
-	virtual void OnConnectFailed(u8 reason) {}
+
+	void OnTraversalStateChanged() override;
+	void OnConnectReady(ENetAddress) override {}
+	void OnConnectFailed(u8) override {}
+
 	void UpdatePadMapping();
 	void UpdateWiimoteMapping();
 	std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal();
@@ -93,10 +97,13 @@ private:
 	bool            m_update_pings;
 	u32             m_current_game;
 	unsigned int    m_target_buffer_size;
-	PadMapping      m_pad_map[4];
-	PadMapping      m_wiimote_map[4];
+	PadMappingArray m_pad_map;
+	PadMappingArray m_wiimote_map;
 
 	std::map<PlayerId, Client> m_players;
+
+	std::unordered_map<u32, std::vector<std::pair<PlayerId, u64>>> m_timebase_by_frame;
+	bool m_desync_detected;
 
 	struct
 	{

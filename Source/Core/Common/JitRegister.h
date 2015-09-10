@@ -1,15 +1,16 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 #include <stdarg.h>
+#include <string>
 #include "Common/CommonTypes.h"
 
 namespace JitRegister
 {
 
-void Init();
+void Init(const std::string& perf_dir);
 void Shutdown();
 void RegisterV(const void* base_address, u32 code_size,
 	const char* format, va_list args);

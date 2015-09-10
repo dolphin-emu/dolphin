@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -17,7 +17,8 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -40,8 +41,9 @@
       <BaseAddress>0x00400000</BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <FixedBaseAddress>true</FixedBaseAddress>
-      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;$(ExternalsDir)openvr\lib\win64;$(ExternalsDir)OSVR\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="Exists('$(ExternalsDir)OSVR/lib/osvrClientKit.lib')">osvrClientKit.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2013/libovr64d.lib')">libovr64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Debug/VS2013/libovr.lib')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(ExternalsDir)LibOVR/Lib/Win32/VS2013/libovr64d.lib')">libovrd.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -49,22 +51,12 @@
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2013/libovr64.lib')">libovr64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Release/VS2013/libovr.lib')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32' And Exists('$(ExternalsDir)LibOVR')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Platform)'=='x64' And Exists('$(ExternalsDir)openvr/lib/win64/openvr_api.lib')">openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Platform)'=='Win32' And Exists('$(ExternalsDir)openvr/lib/win32/openvr_api.lib')">openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-    <ClCompile>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <ClCompile>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <ClCompile>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <ClCompile>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDolphin.cpp" />
@@ -108,7 +100,6 @@
     <ClCompile Include="FrameAui.cpp" />
     <ClCompile Include="FrameTools.cpp" />
     <ClCompile Include="GameListCtrl.cpp" />
-    <ClCompile Include="HotkeyDlg.cpp" />
     <ClCompile Include="InputConfigDiag.cpp" />
     <ClCompile Include="InputConfigDiagBitmaps.cpp" />
     <ClCompile Include="ISOFile.cpp" />
@@ -173,7 +164,6 @@
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GameListCtrl.h" />
     <ClInclude Include="Globals.h" />
-    <ClInclude Include="HotkeyDlg.h" />
     <ClInclude Include="InputConfigDiag.h" />
     <ClInclude Include="ISOFile.h" />
     <ClInclude Include="ISOProperties.h" />
@@ -252,6 +242,9 @@
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\VideoCommon\VR.vcxproj">
+      <Project>{2e6f41ca-9ead-4a12-97da-1b428c7dea76}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -259,7 +252,7 @@
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
     <DataDirFiles Include="$(DolphinRootDir)Data\**\*.*" />
-    <ExternalDlls Include="$(ExternalsDir)OpenAL\$(PlatformName)\*.dll;$(ExternalsDir)msvcrt\$(PlatformName)\*.dll" />
+    <ExternalDlls Include="$(ExternalsDir)OSVR\bin\osvr*.dll;$(ExternalsDir)OpenAL\$(PlatformName)\*.dll;$(ExternalsDir)openvr\bin\win64\*.dll" />
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataDirFiles);@(ExternalDlls);@(BinaryFiles)" />
   </ItemGroup>

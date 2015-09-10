@@ -54,12 +54,19 @@
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="SystemInfo.h" />
     <QtMoc Include="VideoInterface\RenderWidget.h" />
+    <QtMoc Include="GameList\GameFile.h" />
+    <QtMoc Include="GameList\GameGrid.h" />
+    <QtMoc Include="GameList\GameTracker.h" />
+    <QtMoc Include="GameList\GameTree.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
     <QtUi Include="GameList\*.ui">
       <Filter>GameList</Filter>
     </QtUi>
+    <QtUi Include="*.ui" />
+    <QtUi Include="*.ui" />
+    <QtUi Include="GameList\*.ui" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
@@ -14,7 +14,6 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerPanel.h"
 #include "VideoCommon/Debugger.h"
@@ -269,7 +268,7 @@ void GFXDebuggerPanel::OnPauseAtNextFrameButton(wxCommandEvent& event)
 void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 {
 	std::string dump_path = File::GetUserPath(D_DUMP_IDX) + "Debug/" +
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID + "/";
+		SConfig::GetInstance().m_strUniqueID + "/";
 	if (!File::CreateFullPath(dump_path))
 		return;
 

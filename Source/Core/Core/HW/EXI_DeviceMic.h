@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -95,7 +95,7 @@ public:
 	int samples_avail;
 
 protected:
-	virtual void TransferByte(u8 &byte) override;
+	void TransferByte(u8& byte) override;
 };
 
 #else // HAVE_PORTAUDIO

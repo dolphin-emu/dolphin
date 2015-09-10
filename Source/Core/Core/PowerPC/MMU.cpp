@@ -1,25 +1,11 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official Git repository and contact information can be found at
-// https://github.com/dolphin-emu/dolphin
+// Copyright 2003 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include "Common/Atomic.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 
-#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
@@ -183,10 +169,6 @@ __forceinline static T ReadFromHardware(const u32 em_address)
 		{
 			return bswap((*(const T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF]));
 		}
-		if (ARBruteForcer::ch_bruteforce)
-		{
-			return 0;
-		}
 		PanicAlert("Unable to resolve read address %x PC %x", em_address, PC);
 		return 0;
 	}
@@ -338,10 +320,6 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 			*(T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF] = bswap(data);
 			return;
 		}
-		if (ARBruteForcer::ch_bruteforce)
-		{
-			return;
-		}
 		PanicAlert("Unable to resolve write address %x PC %x", em_address, PC);
 		return;
 	}
@@ -408,7 +386,7 @@ TryReadInstResult TryReadInstruction(u32 address)
 	if (UReg_MSR(MSR).IR)
 	{
 		// TODO: Use real translation.
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & Memory::ADDR_MASK_MEM1))
+		if (SConfig::GetInstance().bMMU && (address & Memory::ADDR_MASK_MEM1))
 		{
 			u32 tlb_addr = TranslateAddress<FLAG_OPCODE>(address);
 			if (tlb_addr == 0)
@@ -907,15 +885,10 @@ union UPTE2
 
 static void GenerateDSIException(u32 effectiveAddress, bool write)
 {
-	if (ARBruteForcer::ch_bruteforce)
-	{
-		return;
-	}
-
 	// DSI exceptions are only supported in MMU mode.
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	if (!SConfig::GetInstance().bMMU)
 	{
-		PanicAlertT("Invalid %s to 0x%08x, PC = 0x%08x ", write ? "Write to" : "Read from", effectiveAddress, PC);
+		PanicAlert("Invalid %s 0x%08x, PC = 0x%08x ", write ? "write to" : "read from", effectiveAddress, PC);
 		return;
 	}
 

@@ -1,10 +1,13 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#ifdef CIFACE_USE_OSVR
+#include "InputCommon/ControllerInterface/OSVR/OSVR.h"
+#endif
 #ifdef CIFACE_USE_XINPUT
 	#include "InputCommon/ControllerInterface/XInput/XInput.h"
 #endif
@@ -26,6 +29,10 @@
 #ifdef CIFACE_USE_ANDROID
 	#include "InputCommon/ControllerInterface/Android/Android.h"
 #endif
+#ifdef CIFACE_USE_EVDEV
+	#include "InputCommon/ControllerInterface/evdev/evdev.h"
+#endif
+
 #ifdef _WIN32
 	#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
 #endif
@@ -72,9 +79,15 @@ void ControllerInterface::Initialize(void* const hwnd)
 #ifdef CIFACE_USE_ANDROID
 	ciface::Android::Init(m_devices);
 #endif
+#ifdef CIFACE_USE_EVDEV
+	ciface::evdev::Init(m_devices);
+#endif
 #ifdef _WIN32
 	// VR Sixense Razer Hydra or STEM
 	InitSixenseLib();
+#endif
+#ifdef CIFACE_USE_OSVR
+	ciface::OSVR::Init(m_devices);
 #endif
 
 	m_is_init = true;
@@ -138,6 +151,9 @@ void ControllerInterface::Shutdown()
 		g_sixense_initialized = false;
 		Hydra_Exit();
 	}
+#endif
+#ifdef CIFACE_USE_OSVR
+	// nothing needed
 #endif
 
 	m_is_init = false;

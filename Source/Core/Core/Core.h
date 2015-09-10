@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -39,9 +39,10 @@ enum EState
 
 bool Init();
 void Stop();
+void Shutdown();
 void KillDolphinAndRestart();
 
-std::string StopMessage(bool, std::string);
+std::string StopMessage(bool, const std::string&);
 
 bool IsRunning();
 bool IsRunningAndStarted(); // is running and the CPU loop has been entered
@@ -53,6 +54,7 @@ void SetState(EState _State);
 EState GetState();
 
 void SaveScreenShot();
+void SaveScreenShot(const std::string& name);
 
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
@@ -60,9 +62,11 @@ void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _
 void DisplayMessage(const std::string& message, int time_in_ms);
 
 std::string GetStateFileName();
-void SetStateFileName(std::string val);
+void SetStateFileName(const std::string& val);
 
 void SetBlockStart(u32 addr);
+
+void FrameUpdateOnCPUThread();
 
 bool ShouldSkipFrame(int skipped);
 bool ShouldAddTimewarpFrame();

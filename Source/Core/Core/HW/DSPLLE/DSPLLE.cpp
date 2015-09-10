@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <mutex>
@@ -324,7 +324,7 @@ void DSPLLE::DSP_Update(int cycles)
 			DSP_StopSoundStream();
 			m_bDSPThread = false;
 			requestDisableThread = false;
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = false;
+			SConfig::GetInstance().bDSPThread = false;
 		}
 	}
 

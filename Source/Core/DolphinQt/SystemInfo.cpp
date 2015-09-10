@@ -1,7 +1,8 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <QClipboard>
 #include <QPushButton>
 #include <QThread>
@@ -10,7 +11,6 @@
 
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
-#include "Common/StdMakeUnique.h"
 
 #include "DolphinQt/SystemInfo.h"
 #include "DolphinQt/Utils/Utils.h"

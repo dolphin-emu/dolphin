@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -29,9 +29,10 @@ private:
 	class Force : public Output
 	{
 	public:
-		std::string GetName() const;
 		Force(const std::string& name, LPDIRECTINPUTEFFECT iface);
 		~Force();
+
+		std::string GetName() const override;
 		void SetState(ControlState state);
 		void Update();
 		void Stop();

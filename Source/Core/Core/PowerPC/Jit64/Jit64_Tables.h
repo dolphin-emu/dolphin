@@ -1,15 +1,13 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/Jit64/Jit.h"
+namespace PPCAnalyst { struct CodeOp; }
 
 namespace Jit64Tables
 {
-	void CompileInstruction(PPCAnalyst::CodeOp & op);
+	void CompileInstruction(PPCAnalyst::CodeOp& op);
 	void InitTables();
 }

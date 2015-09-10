@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -24,19 +24,19 @@ class IBlobReader;
 class CVolumeWAD : public IVolume
 {
 public:
-	CVolumeWAD(IBlobReader* _pReader);
+	CVolumeWAD(std::unique_ptr<IBlobReader> reader);
 	~CVolumeWAD();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
 	bool GetTitleID(u8* _pBuffer) const override;
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
-	int GetRevision() const override;
-	std::string GetName() const override { return ""; }
-	std::map<IVolume::ELanguage, std::string> GetNames() const override;
+	u16 GetRevision() const override;
+	std::string GetInternalName() const override { return ""; }
+	std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
 	u32 GetFSTSize() const override { return 0; }
 	std::string GetApploaderDate() const override { return ""; }
 
-	bool IsWadFile() const override;
+	EPlatform GetVolumeType() const override;
 
 	ECountry GetCountry() const override;
 	u64 GetSize() const override;

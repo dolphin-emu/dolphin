@@ -1,8 +1,9 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <libusb.h>
+#include <mutex>
 
 #include "Common/Flag.h"
 #include "Common/Thread.h"
@@ -145,11 +146,13 @@ void Init()
 	if (ret)
 	{
 		ERROR_LOG(SERIALINTERFACE, "libusb_init failed with error: %d", ret);
+		s_libusb_driver_not_supported = true;
 		Shutdown();
 	}
 	else
 	{
-		StartScanThread();
+		if (SConfig::GetInstance().m_GameCubeAdapter)
+			StartScanThread();
 	}
 }
 
@@ -234,6 +237,7 @@ static bool CheckDeviceAccess(libusb_device* device)
 				if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
 					s_libusb_driver_not_supported = true;
 			}
+			return false;
 		}
 		else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
 		{

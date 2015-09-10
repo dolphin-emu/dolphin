@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -50,6 +50,7 @@ public:
 		COLUMN_COUNTRY,
 		COLUMN_SIZE,
 		COLUMN_EMULATION_STATE,
+		COLUMN_VR_STATE,
 		NUMBER_OF_COLUMN
 	};
 
@@ -96,7 +97,6 @@ private:
 	void OnCompressISO(wxCommandEvent& event);
 	void OnMultiCompressISO(wxCommandEvent& event);
 	void OnMultiDecompressISO(wxCommandEvent& event);
-	void OnInstallWAD(wxCommandEvent& event);
 	void OnChangeDisc(wxCommandEvent& event);
 
 	void CompressSelection(bool _compress);

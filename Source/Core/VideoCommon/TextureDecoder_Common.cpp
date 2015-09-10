@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -35,7 +35,6 @@ int TexDecoder_GetTexelSizeInNibbles(int format)
 	case GX_CTF_R4:    return 1;
 	case GX_CTF_RA4:   return 2;
 	case GX_CTF_RA8:   return 4;
-	case GX_CTF_YUVA8: return 8;
 	case GX_CTF_A8:    return 2;
 	case GX_CTF_R8:    return 2;
 	case GX_CTF_G8:    return 2;
@@ -48,10 +47,14 @@ int TexDecoder_GetTexelSizeInNibbles(int format)
 	case GX_TF_Z24X8:  return 8;
 
 	case GX_CTF_Z4:    return 1;
+	case GX_CTF_Z8H:   return 2;
 	case GX_CTF_Z8M:   return 2;
 	case GX_CTF_Z8L:   return 2;
+	case GX_CTF_Z16R:  return 4;
 	case GX_CTF_Z16L:  return 4;
-	default: return 1;
+	default:
+		PanicAlert("Unsupported Texture Format (%08x)! (GetTexelSizeInNibbles)", format);
+		return 1;
 	}
 }
 
@@ -88,11 +91,13 @@ int TexDecoder_GetBlockWidthInTexels(u32 format)
 	case GX_TF_Z16: return 4;
 	case GX_TF_Z24X8: return 4;
 	case GX_CTF_Z4: return 8;
+	case GX_CTF_Z8H: return 8;
 	case GX_CTF_Z8M: return 8;
 	case GX_CTF_Z8L: return 8;
+	case GX_CTF_Z16R: return 4;
 	case GX_CTF_Z16L: return 4;
 	default:
-		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockWidthInTexels)", format);
+		PanicAlert("Unsupported Texture Format (%08x)! (GetBlockWidthInTexels)", format);
 		return 8;
 	}
 }
@@ -125,11 +130,13 @@ int TexDecoder_GetBlockHeightInTexels(u32 format)
 	case GX_TF_Z16: return 4;
 	case GX_TF_Z24X8: return 4;
 	case GX_CTF_Z4: return 8;
+	case GX_CTF_Z8H: return 4;
 	case GX_CTF_Z8M: return 4;
 	case GX_CTF_Z8L: return 4;
+	case GX_CTF_Z16R: return 4;
 	case GX_CTF_Z16L: return 4;
 	default:
-		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockHeightInTexels)", format);
+		PanicAlert("Unsupported Texture Format (%08x)! (GetBlockHeightInTexels)", format);
 		return 4;
 	}
 }

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstring>
@@ -53,5 +53,5 @@ Symbol* SymbolDB::GetSymbolFromName(const std::string& name)
 
 void SymbolDB::AddCompleteSymbol(const Symbol &symbol)
 {
-	functions.insert(std::pair<u32, Symbol>(symbol.address, symbol));
+	functions.emplace(symbol.address, symbol);
 }

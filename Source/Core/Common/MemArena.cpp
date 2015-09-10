@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
@@ -63,7 +63,7 @@ void MemArena::GrabSHMSegment(size_t size)
 #else
 	for (int i = 0; i < 10000; i++)
 	{
-		std::string file_name = StringFromFormat("dolphinmem.%d", i);
+		std::string file_name = StringFromFormat("/dolphinmem.%d", i);
 		fd = shm_open(file_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
 		if (fd != -1)
 		{

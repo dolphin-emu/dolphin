@@ -1,10 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/FileUtil.h"
-#include "Common/StdMakeUnique.h"
+#include <memory>
 
+#include "Common/FileUtil.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/HLE/HLE.h"

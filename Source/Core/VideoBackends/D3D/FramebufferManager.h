@@ -1,5 +1,5 @@
-// Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -90,7 +90,7 @@ private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override;
 	void GetTargetSize(unsigned int *width, unsigned int *height) override;
 
-	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
+	void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
 
 public:
 	static struct Efb
@@ -107,7 +107,9 @@ public:
 		D3DTexture2D* resolved_color_tex;
 		D3DTexture2D* resolved_depth_tex;
 
+#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5) || defined(HAVE_OPENVR)
 		D3DTexture2D* m_frontBuffer[2];
+#endif
 
 		int slices;
 	} m_efb;

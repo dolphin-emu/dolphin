@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -24,9 +24,6 @@ int RunCyclesDebug(int cycles);
 
 void WriteCR(u16 val);
 u16  ReadCR();
-
-
-typedef void (*DSPInterpreterFunc)(const UDSPInstruction opc);
 
 // All the opcode functions.
 void call(const UDSPInstruction opc);

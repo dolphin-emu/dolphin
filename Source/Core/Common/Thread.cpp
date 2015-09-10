@@ -1,14 +1,18 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
 #ifdef __APPLE__
 #include <mach/mach.h>
-#elif defined BSD4_4
+#elif defined BSD4_4 || defined __FreeBSD__
 #include <pthread_np.h>
 #endif
 
@@ -94,8 +98,12 @@ void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 #ifdef __APPLE__
 	thread_policy_set(pthread_mach_thread_np(thread),
 		THREAD_AFFINITY_POLICY, (integer_t *)&mask, 1);
-#elif (defined __linux__ || defined BSD4_4) && !(defined ANDROID)
+#elif (defined __linux__ || defined BSD4_4 || defined __FreeBSD__) && !(defined ANDROID)
+#ifdef __FreeBSD__
+	cpuset_t cpu_set;
+#else
 	cpu_set_t cpu_set;
+#endif
 	CPU_ZERO(&cpu_set);
 
 	for (int i = 0; i != sizeof(mask) * 8; ++i)
@@ -125,6 +133,8 @@ void SetCurrentThreadName(const char* szThreadName)
 {
 #ifdef __APPLE__
 	pthread_setname_np(szThreadName);
+#elif defined __FreeBSD__
+	pthread_set_name_np(pthread_self(), szThreadName);
 #else
 	pthread_setname_np(pthread_self(), szThreadName);
 #endif

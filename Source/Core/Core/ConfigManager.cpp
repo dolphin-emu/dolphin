@@ -1,16 +1,28 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cinttypes>
+#include <memory>
+
+#include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/StringUtil.h"
+
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h" // for bWii
+#include "Core/Boot/Boot.h"
+#include "Core/Boot/Boot_DOL.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/HotkeyManager.h"
 #include "Core/HW/SI.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/VolumeCreator.h"
 
 SConfig* SConfig::m_Instance;
 
@@ -73,6 +85,8 @@ static const struct
 	{ "VolumeUp",            true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
 	{ "VolumeToggleMute",    true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
 
+	{ "IncreaseIR",           true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
+	{ "DecreaseIR",           true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "ToggleIR",             true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "ToggleAspectRatio",    true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "ToggleEFBCopies",      true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
@@ -210,7 +224,39 @@ GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 }
 
 SConfig::SConfig()
+: bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),
+  bJITNoBlockCache(false), bJITNoBlockLinking(false),
+  bJITOff(false),
+  bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),
+  bJITLoadStorelwzOff(false), bJITLoadStorelbzxOff(false),
+  bJITLoadStoreFloatingOff(false), bJITLoadStorePairedOff(false),
+  bJITFloatingPointOff(false), bJITIntegerOff(false),
+  bJITPairedOff(false), bJITSystemRegistersOff(false),
+  bJITBranchOff(false),
+  bJITILTimeProfiling(false), bJITILOutputIR(false),
+  bFPRF(false), bAccurateNaNs(false),
+  bCPUThread(true), bDSPThread(false), bDSPHLE(true),
+  bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
+  bHLE_BS2(true), bEnableCheats(false),
+  bEnableMemcardSdWriting(true),
+  bDPL2Decoder(false), iLatency(14),
+  bRunCompareServer(false), bRunCompareClient(false),
+  bMMU(false), bDCBZOFF(false),
+  iBBDumpPort(0),
+  bFastDiscSpeed(false), bSyncGPU(false),
+  SelectedLanguage(0), bOverrideGCLanguage(false), bWii(false),
+  bConfirmStop(false), bHideCursor(false),
+  bAutoHideCursor(false), bUsePanicHandlers(true), bOnScreenDisplayMessages(true),
+  iRenderWindowXPos(-1), iRenderWindowYPos(-1),
+  iRenderWindowWidth(640), iRenderWindowHeight(480),
+  bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
+  bFullscreen(false), bRenderToMain(false),
+  bProgressive(false), bPAL60(false),
+  bDisableScreenSaver(false),
+  iPosX(100), iPosY(100), iWidth(800), iHeight(600),
+  bLoopFifoReplay(true)
 {
+	LoadDefaults();
 	// Make sure we have log manager
 	LoadSettings();
 }
@@ -241,7 +287,6 @@ void SConfig::SaveSettings()
 
 	SaveGeneralSettings(ini);
 	SaveInterfaceSettings(ini);
-	SaveHotkeySettings(ini);
 	if (!ARBruteForcer::ch_dont_save_settings)
 		SaveDisplaySettings(ini);
 	SaveGameListSettings(ini);
@@ -305,9 +350,9 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 
 #ifdef USE_GDBSTUB
 #ifndef _WIN32
-	general->Set("GDBSocket", m_LocalCoreStartupParameter.gdb_socket);
+	general->Set("GDBSocket", gdb_socket);
 #endif
-	general->Set("GDBPort", m_LocalCoreStartupParameter.iGDBPort);
+	general->Set("GDBPort", iGDBPort);
 #endif
 }
 
@@ -315,22 +360,22 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
 {
 	IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
-	interface->Set("ConfirmStop", m_LocalCoreStartupParameter.bConfirmStop);
-	interface->Set("UsePanicHandlers", m_LocalCoreStartupParameter.bUsePanicHandlers);
-	interface->Set("OnScreenDisplayMessages", m_LocalCoreStartupParameter.bOnScreenDisplayMessages);
-	interface->Set("HideCursor", m_LocalCoreStartupParameter.bHideCursor);
-	interface->Set("AutoHideCursor", m_LocalCoreStartupParameter.bAutoHideCursor);
-	interface->Set("MainWindowPosX", (m_LocalCoreStartupParameter.iPosX == -32000) ? 0 : m_LocalCoreStartupParameter.iPosX); // TODO - HAX
-	interface->Set("MainWindowPosY", (m_LocalCoreStartupParameter.iPosY == -32000) ? 0 : m_LocalCoreStartupParameter.iPosY); // TODO - HAX
-	interface->Set("MainWindowWidth", m_LocalCoreStartupParameter.iWidth);
-	interface->Set("MainWindowHeight", m_LocalCoreStartupParameter.iHeight);
+	interface->Set("ConfirmStop", bConfirmStop);
+	interface->Set("UsePanicHandlers", bUsePanicHandlers);
+	interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
+	interface->Set("HideCursor", bHideCursor);
+	interface->Set("AutoHideCursor", bAutoHideCursor);
+	interface->Set("MainWindowPosX", (iPosX == -32000) ? 0 : iPosX); // TODO - HAX
+	interface->Set("MainWindowPosY", (iPosY == -32000) ? 0 : iPosY); // TODO - HAX
+	interface->Set("MainWindowWidth", iWidth);
+	interface->Set("MainWindowHeight", iHeight);
 	interface->Set("Language", m_InterfaceLanguage);
 	interface->Set("ShowToolbar", m_InterfaceToolbar);
 	interface->Set("ShowStatusbar", m_InterfaceStatusbar);
 	interface->Set("ShowLogWindow", m_InterfaceLogWindow);
 	interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
 	interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
-	interface->Set("ThemeName40", m_LocalCoreStartupParameter.theme_name);
+	interface->Set("ThemeName40", theme_name);
 	interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
 }
 
@@ -338,42 +383,26 @@ void SConfig::SaveHotkeySettings(IniFile& ini)
 {
 	IniFile::Section* hotkeys = ini.GetOrCreateSection("Hotkeys");
 
-	hotkeys->Set("XInputPolling", m_LocalCoreStartupParameter.bHotkeysXInput);
+	hotkeys->Set("XInputPolling", bHotkeysXInput);
 
-	for (int i = 0; i < NUM_HOTKEYS; i++)
-	{
-		hotkeys->Set(g_HKData[i].IniText, m_LocalCoreStartupParameter.iHotkey[i]);
-		hotkeys->Set(std::string(g_HKData[i].IniText) + "Modifier",
-			m_LocalCoreStartupParameter.iHotkeyModifier[i]);
-		hotkeys->Set(std::string(g_HKData[i].IniText) + "KBM",
-			m_LocalCoreStartupParameter.bHotkeyKBM[i]);
-		hotkeys->Set(std::string(g_HKData[i].IniText) + "DInput",
-			m_LocalCoreStartupParameter.bHotkeyDInput[i]);
-		hotkeys->Set(std::string(g_HKData[i].IniText) + "XInputMapping",
-			m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[i]);
-		hotkeys->Set(std::string(g_HKData[i].IniText) + "DInputMappingExtra",
-			m_LocalCoreStartupParameter.iHotkeyDInputMappingExtra[i]);
-	}
+	//for (int i = 0; i < NUM_HOTKEYS; i++)
+	//{
+	//	hotkeys->Set(g_HKData[i].IniText, iHotkey[i]);
+	//	hotkeys->Set(std::string(g_HKData[i].IniText) + "Modifier",
+	//		iHotkeyModifier[i]);
+	//	hotkeys->Set(std::string(g_HKData[i].IniText) + "KBM",
+	//		bHotkeyKBM[i]);
+	//	hotkeys->Set(std::string(g_HKData[i].IniText) + "DInput",
+	//		bHotkeyDInput[i]);
+	//	hotkeys->Set(std::string(g_HKData[i].IniText) + "XInputMapping",
+	//		iHotkeyDandXInputMapping[i]);
+	//	hotkeys->Set(std::string(g_HKData[i].IniText) + "DInputMappingExtra",
+	//		iHotkeyDInputMappingExtra[i]);
+	//}
 }
 
 void SConfig::SaveVRSettings(IniFile& ini)
 {
-	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
-
-	for (int i = 0; i < NUM_VR_HOTKEYS; i++)
-	{
-		vrsettings->Set(g_VRData[i].IniText, m_LocalCoreStartupParameter.iVRSettings[i]);
-		vrsettings->Set(std::string(g_VRData[i].IniText) + "Modifier",
-			m_LocalCoreStartupParameter.iVRSettingsModifier[i]);
-		vrsettings->Set(std::string(g_VRData[i].IniText) + "KBM",
-			m_LocalCoreStartupParameter.bVRSettingsKBM[i]);
-		vrsettings->Set(std::string(g_VRData[i].IniText) + "DInput",
-			m_LocalCoreStartupParameter.bVRSettingsDInput[i]);
-		vrsettings->Set(std::string(g_VRData[i].IniText) + "XInputMapping",
-			m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[i]);
-		vrsettings->Set(std::string(g_VRData[i].IniText) + "DInputMappingExtra",
-			m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[i]);
-	}
 }
 
 void SConfig::SaveDisplaySettings(IniFile& ini)
@@ -381,25 +410,26 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 	IniFile::Section* display = ini.GetOrCreateSection("Display");
 
 	if (!m_special_case)
-		display->Set("FullscreenResolution", m_LocalCoreStartupParameter.strFullscreenResolution);
-	display->Set("Fullscreen", m_LocalCoreStartupParameter.bFullscreen);
-	display->Set("RenderToMain", m_LocalCoreStartupParameter.bRenderToMain);
+		display->Set("FullscreenResolution", strFullscreenResolution);
+	display->Set("Fullscreen", bFullscreen);
+	display->Set("RenderToMain", bRenderToMain);
 	if (!m_special_case)
 	{
-		display->Set("RenderWindowXPos", m_LocalCoreStartupParameter.iRenderWindowXPos);
-		display->Set("RenderWindowYPos", m_LocalCoreStartupParameter.iRenderWindowYPos);
-		display->Set("RenderWindowWidth", m_LocalCoreStartupParameter.iRenderWindowWidth);
-		display->Set("RenderWindowHeight", m_LocalCoreStartupParameter.iRenderWindowHeight);
+		display->Set("RenderWindowXPos", iRenderWindowXPos);
+		display->Set("RenderWindowYPos", iRenderWindowYPos);
+		display->Set("RenderWindowWidth", iRenderWindowWidth);
+		display->Set("RenderWindowHeight", iRenderWindowHeight);
 	}
-	display->Set("RenderWindowAutoSize", m_LocalCoreStartupParameter.bRenderWindowAutoSize);
-	display->Set("KeepWindowOnTop", m_LocalCoreStartupParameter.bKeepWindowOnTop);
-	display->Set("ProgressiveScan", m_LocalCoreStartupParameter.bProgressive);
-	display->Set("DisableScreenSaver", m_LocalCoreStartupParameter.bDisableScreenSaver);
-	display->Set("ForceNTSCJ", m_LocalCoreStartupParameter.bForceNTSCJ);
+	display->Set("RenderWindowAutoSize", bRenderWindowAutoSize);
+	display->Set("KeepWindowOnTop", bKeepWindowOnTop);
+	display->Set("ProgressiveScan", bProgressive);
+	display->Set("PAL60", bPAL60);
+	display->Set("DisableScreenSaver", bDisableScreenSaver);
+	display->Set("ForceNTSCJ", bForceNTSCJ);
 
 	IniFile::Section* vr = ini.GetOrCreateSection("VR");
 #ifdef OCULUSSDK042
-	vr->Set("AsynchronousTimewarp", m_LocalCoreStartupParameter.bAsynchronousTimewarp);
+	vr->Set("AsynchronousTimewarp", bAsynchronousTimewarp);
 #endif
 }
 
@@ -409,6 +439,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 
 	gamelist->Set("ListDrives", m_ListDrives);
 	gamelist->Set("ListWad", m_ListWad);
+	gamelist->Set("ListElfDol", m_ListElfDol);
 	gamelist->Set("ListWii", m_ListWii);
 	gamelist->Set("ListGC", m_ListGC);
 	gamelist->Set("ListJap", m_ListJap);
@@ -437,26 +468,32 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 	gamelist->Set("ColumnRegion", m_showRegionColumn);
 	gamelist->Set("ColumnSize", m_showSizeColumn);
 	gamelist->Set("ColumnState", m_showStateColumn);
-}
+	gamelist->Set("ColumnVRState", m_showVRStateColumn);
+} 
 
 void SConfig::SaveCoreSettings(IniFile& ini)
 {
 	IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-	core->Set("HLE_BS2", m_LocalCoreStartupParameter.bHLE_BS2);
-	core->Set("CPUCore", m_LocalCoreStartupParameter.iCPUCore);
-	core->Set("Fastmem", m_LocalCoreStartupParameter.bFastmem);
-	core->Set("CPUThread", m_LocalCoreStartupParameter.bCPUThread);
-	core->Set("DSPHLE", m_LocalCoreStartupParameter.bDSPHLE);
-	core->Set("SkipIdle", m_LocalCoreStartupParameter.bSkipIdle);
-	core->Set("SyncOnSkipIdle", m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack);
-	core->Set("DefaultISO", m_LocalCoreStartupParameter.m_strDefaultISO);
-	core->Set("DVDRoot", m_LocalCoreStartupParameter.m_strDVDRoot);
-	core->Set("Apploader", m_LocalCoreStartupParameter.m_strApploader);
-	core->Set("EnableCheats", m_LocalCoreStartupParameter.bEnableCheats);
-	core->Set("SelectedLanguage", m_LocalCoreStartupParameter.SelectedLanguage);
-	core->Set("DPL2Decoder", m_LocalCoreStartupParameter.bDPL2Decoder);
-	core->Set("Latency", m_LocalCoreStartupParameter.iLatency);
+	core->Set("HLE_BS2", bHLE_BS2);
+	core->Set("CPUCore", iCPUCore);
+	core->Set("Fastmem", bFastmem);
+	core->Set("CPUThread", bCPUThread);
+	core->Set("DSPHLE", bDSPHLE);
+	core->Set("SkipIdle", bSkipIdle);
+	core->Set("SyncOnSkipIdle", bSyncGPUOnSkipIdleHack);
+	core->Set("SyncGPU", bSyncGPU);
+	core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
+	core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
+	core->Set("SyncGpuOverclock", fSyncGpuOverclock);
+	core->Set("DefaultISO", m_strDefaultISO);
+	core->Set("DVDRoot", m_strDVDRoot);
+	core->Set("Apploader", m_strApploader);
+	core->Set("EnableCheats", bEnableCheats);
+	core->Set("SelectedLanguage", SelectedLanguage);
+	core->Set("OverrideGCLang", bOverrideGCLanguage);
+	core->Set("DPL2Decoder", bDPL2Decoder);
+	core->Set("Latency", iLatency);
 	core->Set("MemcardAPath", m_strMemoryCardA);
 	core->Set("MemcardBPath", m_strMemoryCardB);
 	core->Set("AgpCartAPath", m_strGbaCartA);
@@ -473,17 +510,18 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("WiiKeyboard", m_WiiKeyboard);
 	core->Set("WiimoteContinuousScanning", m_WiimoteContinuousScanning);
 	core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
-	core->Set("RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
-	core->Set("RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
+	core->Set("RunCompareServer", bRunCompareServer);
+	core->Set("RunCompareClient", bRunCompareClient);
 	if (!ARBruteForcer::ch_dont_save_settings)
 		core->Set("FrameLimit", m_Framelimit);
 	core->Set("FrameSkip", m_FrameSkip);
 	core->Set("Overclock", m_OCFactor);
 	core->Set("OverclockEnable", m_OCEnable);
-	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_strVideoBackend);
-	core->Set("GPUDeterminismMode", m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
+	core->Set("GFXBackend", m_strVideoBackend);
+	core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
 	core->Set("GameCubeAdapter", m_GameCubeAdapter);
 	core->Set("AdapterRumble", m_AdapterRumble);
+	core->Set("PerfMapDir", m_perfDir);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -503,6 +541,7 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 
 	dsp->Set("EnableJIT", m_DSPEnableJIT);
 	dsp->Set("DumpAudio", m_DumpAudio);
+	dsp->Set("DumpUCode", m_DumpUCode);
 	if (!ARBruteForcer::ch_dont_save_settings)
 		dsp->Set("Backend", sBackend);
 	dsp->Set("Volume", m_Volume);
@@ -520,7 +559,7 @@ void SConfig::SaveFifoPlayerSettings(IniFile& ini)
 {
 	IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
 
-	fifoplayer->Set("LoopReplay", m_LocalCoreStartupParameter.bLoopFifoReplay);
+	fifoplayer->Set("LoopReplay", bLoopFifoReplay);
 }
 
 void SConfig::LoadSettings()
@@ -531,7 +570,6 @@ void SConfig::LoadSettings()
 
 	LoadGeneralSettings(ini);
 	LoadInterfaceSettings(ini);
-	LoadHotkeySettings(ini);
 	LoadDisplaySettings(ini);
 	LoadGameListSettings(ini);
 	LoadCoreSettings(ini);
@@ -553,9 +591,9 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 	general->Get("ShowFrameCount", &m_ShowFrameCount, false);
 #ifdef USE_GDBSTUB
 #ifndef _WIN32
-	general->Get("GDBSocket", &m_LocalCoreStartupParameter.gdb_socket, "");
+	general->Get("GDBSocket", &gdb_socket, "");
 #endif
-	general->Get("GDBPort", &(m_LocalCoreStartupParameter.iGDBPort), -1);
+	general->Get("GDBPort", &(iGDBPort), -1);
 #endif
 
 	m_ISOFolder.clear();
@@ -600,8 +638,6 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
 	general->Get("NANDRootPath", &m_NANDPath);
 	File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
-	DiscIO::cUIDsys::AccessInstance().UpdateLocation();
-	DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 	general->Get("WirelessMac", &m_WirelessMac);
 }
 
@@ -609,22 +645,22 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 {
 	IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
-	interface->Get("ConfirmStop",             &m_LocalCoreStartupParameter.bConfirmStop,      true);
-	interface->Get("UsePanicHandlers",        &m_LocalCoreStartupParameter.bUsePanicHandlers, true);
-	interface->Get("OnScreenDisplayMessages", &m_LocalCoreStartupParameter.bOnScreenDisplayMessages, true);
-	interface->Get("HideCursor",              &m_LocalCoreStartupParameter.bHideCursor,       false);
-	interface->Get("AutoHideCursor",          &m_LocalCoreStartupParameter.bAutoHideCursor,   false);
-	interface->Get("MainWindowPosX",          &m_LocalCoreStartupParameter.iPosX,             100);
-	interface->Get("MainWindowPosY",          &m_LocalCoreStartupParameter.iPosY,             100);
-	interface->Get("MainWindowWidth",         &m_LocalCoreStartupParameter.iWidth,            800);
-	interface->Get("MainWindowHeight",        &m_LocalCoreStartupParameter.iHeight,           600);
+	interface->Get("ConfirmStop",             &bConfirmStop,      true);
+	interface->Get("UsePanicHandlers",        &bUsePanicHandlers, true);
+	interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
+	interface->Get("HideCursor",              &bHideCursor,       false);
+	interface->Get("AutoHideCursor",          &bAutoHideCursor,   false);
+	interface->Get("MainWindowPosX",          &iPosX,             100);
+	interface->Get("MainWindowPosY",          &iPosY,             100);
+	interface->Get("MainWindowWidth",         &iWidth,            800);
+	interface->Get("MainWindowHeight",        &iHeight,           600);
 	interface->Get("Language",                &m_InterfaceLanguage,                           0);
 	interface->Get("ShowToolbar",             &m_InterfaceToolbar,                            true);
 	interface->Get("ShowStatusbar",           &m_InterfaceStatusbar,                          true);
 	interface->Get("ShowLogWindow",           &m_InterfaceLogWindow,                          false);
 	interface->Get("ShowLogConfigWindow",     &m_InterfaceLogConfigWindow,                    false);
 	interface->Get("ExtendedFPSInfo",         &m_InterfaceExtendedFPSInfo,                    false);
-	interface->Get("ThemeName40",             &m_LocalCoreStartupParameter.theme_name,        "Clean");
+	interface->Get("ThemeName40",             &theme_name,        "Clean");
 	interface->Get("PauseOnFocusLost",        &m_PauseOnFocusLost,                            false);
 }
 
@@ -632,45 +668,27 @@ void SConfig::LoadHotkeySettings(IniFile& ini)
 {
 	IniFile::Section* hotkeys = ini.GetOrCreateSection("Hotkeys");
 
-	hotkeys->Get("XInputPolling", &m_LocalCoreStartupParameter.bHotkeysXInput, true);
+	hotkeys->Get("XInputPolling", &bHotkeysXInput, true);
 
-	for (int i = 0; i < NUM_HOTKEYS; i++)
-	{
-		hotkeys->Get(g_HKData[i].IniText,
-		    &m_LocalCoreStartupParameter.iHotkey[i], g_HKData[i].DefaultKey);
-		hotkeys->Get(std::string(g_HKData[i].IniText) + "Modifier",
-		    &m_LocalCoreStartupParameter.iHotkeyModifier[i], g_HKData[i].DefaultModifier);
-		hotkeys->Get(std::string(g_HKData[i].IniText) + "KBM",
-			&m_LocalCoreStartupParameter.bHotkeyKBM[i], g_HKData[i].KBM);
-		hotkeys->Get(std::string(g_HKData[i].IniText) + "DInput",
-			&m_LocalCoreStartupParameter.bHotkeyDInput[i], g_HKData[i].DInput);
-		hotkeys->Get(std::string(g_HKData[i].IniText) + "XInputMapping",
-			&m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[i], g_HKData[i].DandXInputMapping);
-		hotkeys->Get(std::string(g_HKData[i].IniText) + "DInputMappingExtra",
-			&m_LocalCoreStartupParameter.iHotkeyDInputMappingExtra[i], g_HKData[i].DInputMappingExtra);
-	}
+	//for (int i = 0; i < NUM_HOTKEYS; i++)
+	//{
+	//	hotkeys->Get(g_HKData[i].IniText,
+	//	    &iHotkey[i], 0);
+	//	hotkeys->Get(std::string(g_HKData[i].IniText) + "Modifier",
+	//	    &iHotkeyModifier[i], 0);
+	//	hotkeys->Get(std::string(g_HKData[i].IniText) + "KBM",
+	//		&bHotkeyKBM[i], g_HKData[i].KBM);
+	//	hotkeys->Get(std::string(g_HKData[i].IniText) + "DInput",
+	//		&bHotkeyDInput[i], g_HKData[i].DInput);
+	//	hotkeys->Get(std::string(g_HKData[i].IniText) + "XInputMapping",
+	//		&iHotkeyDandXInputMapping[i], g_HKData[i].DandXInputMapping);
+	//	hotkeys->Get(std::string(g_HKData[i].IniText) + "DInputMappingExtra",
+	//		&iHotkeyDInputMappingExtra[i], g_HKData[i].DInputMappingExtra);
+	//}
 }
 
 void SConfig::LoadVRSettings(IniFile& ini)
 {
-	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
-
-
-	for (int i = 0; i < NUM_VR_HOTKEYS; i++)
-	{
-		vrsettings->Get(g_VRData[i].IniText,
-			&m_LocalCoreStartupParameter.iVRSettings[i], g_VRData[i].DefaultKey);
-		vrsettings->Get(std::string(g_VRData[i].IniText) + "Modifier",
-			&m_LocalCoreStartupParameter.iVRSettingsModifier[i], g_VRData[i].DefaultModifier);
-		vrsettings->Get(std::string(g_VRData[i].IniText) + "KBM",
-			&m_LocalCoreStartupParameter.bVRSettingsKBM[i], g_VRData[i].KBM);
-		vrsettings->Get(std::string(g_VRData[i].IniText) + "DInput",
-			&m_LocalCoreStartupParameter.bVRSettingsDInput[i], g_VRData[i].DInput);
-		vrsettings->Get(std::string(g_VRData[i].IniText) + "XInputMapping",
-			&m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[i], g_VRData[i].DandXInputMapping);
-		vrsettings->Get(std::string(g_VRData[i].IniText) + "DInputMappingExtra",
-			&m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[i], g_VRData[i].DInputMappingExtra);
-	}
 }
 
 void SConfig::LoadDisplaySettings(IniFile& ini)
@@ -679,40 +697,41 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
 
 	if (ARBruteForcer::ch_bruteforce)
 	{
-		m_LocalCoreStartupParameter.bFullscreen = false;
-		m_LocalCoreStartupParameter.strFullscreenResolution = "Auto";
-		m_LocalCoreStartupParameter.bRenderToMain = false;
-		m_LocalCoreStartupParameter.iRenderWindowXPos = -1;
-		m_LocalCoreStartupParameter.iRenderWindowYPos = -1;
-		m_LocalCoreStartupParameter.iRenderWindowWidth = 640;
-		m_LocalCoreStartupParameter.iRenderWindowHeight = 480;
-		m_LocalCoreStartupParameter.bRenderWindowAutoSize = false;
-		m_LocalCoreStartupParameter.bKeepWindowOnTop = false;
-		m_LocalCoreStartupParameter.bProgressive = false;
-		m_LocalCoreStartupParameter.bDisableScreenSaver = true;
-		m_LocalCoreStartupParameter.bForceNTSCJ = false;
+		bFullscreen = false;
+		strFullscreenResolution = "Auto";
+		bRenderToMain = false;
+		iRenderWindowXPos = -1;
+		iRenderWindowYPos = -1;
+		iRenderWindowWidth = 640;
+		iRenderWindowHeight = 480;
+		bRenderWindowAutoSize = false;
+		bKeepWindowOnTop = false;
+		bProgressive = false;
+		bDisableScreenSaver = true;
+		bForceNTSCJ = false;
 	}
 	else
 	{
-		display->Get("Fullscreen", &m_LocalCoreStartupParameter.bFullscreen, false);
-		display->Get("FullscreenResolution", &m_LocalCoreStartupParameter.strFullscreenResolution, "Auto");
-		display->Get("RenderToMain", &m_LocalCoreStartupParameter.bRenderToMain, false);
-		display->Get("RenderWindowXPos", &m_LocalCoreStartupParameter.iRenderWindowXPos, -1);
-		display->Get("RenderWindowYPos", &m_LocalCoreStartupParameter.iRenderWindowYPos, -1);
-		display->Get("RenderWindowWidth", &m_LocalCoreStartupParameter.iRenderWindowWidth, 640);
-		display->Get("RenderWindowHeight", &m_LocalCoreStartupParameter.iRenderWindowHeight, 480);
-		display->Get("RenderWindowAutoSize", &m_LocalCoreStartupParameter.bRenderWindowAutoSize, false);
-		display->Get("KeepWindowOnTop", &m_LocalCoreStartupParameter.bKeepWindowOnTop, false);
-		display->Get("ProgressiveScan", &m_LocalCoreStartupParameter.bProgressive, false);
-		display->Get("DisableScreenSaver", &m_LocalCoreStartupParameter.bDisableScreenSaver, true);
-		display->Get("ForceNTSCJ", &m_LocalCoreStartupParameter.bForceNTSCJ, false);
+		display->Get("Fullscreen",           &bFullscreen,             false);
+		display->Get("FullscreenResolution", &strFullscreenResolution, "Auto");
+		display->Get("RenderToMain",         &bRenderToMain,           false);
+		display->Get("RenderWindowXPos",     &iRenderWindowXPos,       -1);
+		display->Get("RenderWindowYPos",     &iRenderWindowYPos,       -1);
+		display->Get("RenderWindowWidth",    &iRenderWindowWidth,      640);
+		display->Get("RenderWindowHeight",   &iRenderWindowHeight,     480);
+		display->Get("RenderWindowAutoSize", &bRenderWindowAutoSize,   false);
+		display->Get("KeepWindowOnTop",      &bKeepWindowOnTop,        false);
+		display->Get("ProgressiveScan",      &bProgressive,            false);
+		display->Get("PAL60",                &bPAL60,                  true);
+		display->Get("DisableScreenSaver",   &bDisableScreenSaver,     true);
+		display->Get("ForceNTSCJ",           &bForceNTSCJ,             false);
 	}
 
 	IniFile::Section* vr = ini.GetOrCreateSection("VR");
 #ifdef OCULUSSDK042
-	vr->Get("AsynchronousTimewarp",      &m_LocalCoreStartupParameter.bAsynchronousTimewarp,   false);
+	vr->Get("AsynchronousTimewarp", &bAsynchronousTimewarp,   false);
 #else
-	m_LocalCoreStartupParameter.bAsynchronousTimewarp = false;
+	bAsynchronousTimewarp = false;
 #endif
 }
 
@@ -722,6 +741,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 
 	gamelist->Get("ListDrives",        &m_ListDrives,  false);
 	gamelist->Get("ListWad",           &m_ListWad,     true);
+	gamelist->Get("ListElfDol",        &m_ListElfDol,  true);
 	gamelist->Get("ListWii",           &m_ListWii,     true);
 	gamelist->Get("ListGC",            &m_ListGC,      true);
 	gamelist->Get("ListJap",           &m_ListJap,     true);
@@ -753,34 +773,34 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 	gamelist->Get("ColumnRegion",     &m_showRegionColumn,  true);
 	gamelist->Get("ColumnSize",       &m_showSizeColumn,    true);
 	gamelist->Get("ColumnState",      &m_showStateColumn,   true);
+	gamelist->Get("ColumnVRState",    &m_showVRStateColumn, true);
 }
 
 void SConfig::LoadCoreSettings(IniFile& ini)
 {
 	IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-	core->Get("HLE_BS2",      &m_LocalCoreStartupParameter.bHLE_BS2, false);
+	core->Get("HLE_BS2",      &bHLE_BS2, false);
 #ifdef _M_X86
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_JIT64);
-#elif _M_ARM_32
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_JITARM);
+	core->Get("CPUCore",      &iCPUCore, PowerPC::CORE_JIT64);
 #elif _M_ARM_64
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_JITARM64);
+	core->Get("CPUCore",      &iCPUCore, PowerPC::CORE_JITARM64);
 #else
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_INTERPRETER);
+	core->Get("CPUCore",      &iCPUCore, PowerPC::CORE_INTERPRETER);
 #endif
-	core->Get("Fastmem",           &m_LocalCoreStartupParameter.bFastmem,      true);
-	core->Get("DSPHLE",            &m_LocalCoreStartupParameter.bDSPHLE,       true);
-	core->Get("CPUThread",         &m_LocalCoreStartupParameter.bCPUThread,    true);
-	core->Get("SkipIdle",          &m_LocalCoreStartupParameter.bSkipIdle,     true);
-	core->Get("SyncOnSkipIdle",    &m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack, true);
-	core->Get("DefaultISO",        &m_LocalCoreStartupParameter.m_strDefaultISO);
-	core->Get("DVDRoot",           &m_LocalCoreStartupParameter.m_strDVDRoot);
-	core->Get("Apploader",         &m_LocalCoreStartupParameter.m_strApploader);
-	core->Get("EnableCheats",      &m_LocalCoreStartupParameter.bEnableCheats, false);
-	core->Get("SelectedLanguage",  &m_LocalCoreStartupParameter.SelectedLanguage, 0);
-	core->Get("DPL2Decoder",       &m_LocalCoreStartupParameter.bDPL2Decoder, false);
-	core->Get("Latency",           &m_LocalCoreStartupParameter.iLatency, 2);
+	core->Get("Fastmem",           &bFastmem,      true);
+	core->Get("DSPHLE",            &bDSPHLE,       true);
+	core->Get("CPUThread",         &bCPUThread,    true);
+	core->Get("SkipIdle",          &bSkipIdle,     true);
+	core->Get("SyncOnSkipIdle",    &bSyncGPUOnSkipIdleHack, true);
+	core->Get("DefaultISO",        &m_strDefaultISO);
+	core->Get("DVDRoot",           &m_strDVDRoot);
+	core->Get("Apploader",         &m_strApploader);
+	core->Get("EnableCheats",      &bEnableCheats, false);
+	core->Get("SelectedLanguage",  &SelectedLanguage, 0);
+	core->Get("OverrideGCLang",    &bOverrideGCLanguage, false);
+	core->Get("DPL2Decoder",       &bDPL2Decoder, false);
+	core->Get("Latency",           &iLatency, 2);
 	core->Get("MemcardAPath",      &m_strMemoryCardA);
 	core->Get("MemcardBPath",      &m_strMemoryCardB);
 	core->Get("AgpCartAPath",      &m_strGbaCartA);
@@ -789,8 +809,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("SlotB",       (int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 	core->Get("SerialPort1", (int*)&m_EXIDevice[2], EXIDEVICE_NONE);
 	core->Get("BBA_MAC",           &m_bba_mac);
-	core->Get("TimeProfiling",     &m_LocalCoreStartupParameter.bJITILTimeProfiling, false);
-	core->Get("OutputIR",          &m_LocalCoreStartupParameter.bJITILOutputIR,      false);
+	core->Get("TimeProfiling",     &bJITILTimeProfiling, false);
+	core->Get("OutputIR",          &bJITILOutputIR,      false);
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
 		core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
@@ -799,13 +819,16 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("WiiKeyboard",               &m_WiiKeyboard,                                 false);
 	core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning,                   false);
 	core->Get("WiimoteEnableSpeaker",      &m_WiimoteEnableSpeaker,                        false);
-	core->Get("RunCompareServer",          &m_LocalCoreStartupParameter.bRunCompareServer, false);
-	core->Get("RunCompareClient",          &m_LocalCoreStartupParameter.bRunCompareClient, false);
-	core->Get("MMU",                       &m_LocalCoreStartupParameter.bMMU,              false);
-	core->Get("BBDumpPort",                &m_LocalCoreStartupParameter.iBBDumpPort,       -1);
-	core->Get("SyncGPU",                   &m_LocalCoreStartupParameter.bSyncGPU,          false);
-	core->Get("FastDiscSpeed",             &m_LocalCoreStartupParameter.bFastDiscSpeed,    false);
-	core->Get("DCBZ",                      &m_LocalCoreStartupParameter.bDCBZOFF,          false);
+	core->Get("RunCompareServer",          &bRunCompareServer, false);
+	core->Get("RunCompareClient",          &bRunCompareClient, false);
+	core->Get("MMU",                       &bMMU,              false);
+	core->Get("BBDumpPort",                &iBBDumpPort,       -1);
+	core->Get("SyncGPU",                   &bSyncGPU,          false);
+	core->Get("SyncGpuMaxDistance",        &iSyncGpuMaxDistance,  200000);
+	core->Get("SyncGpuMinDistance",        &iSyncGpuMinDistance, -200000);
+	core->Get("SyncGpuOverclock",          &fSyncGpuOverclock, 1.0);
+	core->Get("FastDiscSpeed",             &bFastDiscSpeed,    false);
+	core->Get("DCBZ",                      &bDCBZOFF,          false);
 	if (ARBruteForcer::ch_bruteforce)
 		m_Framelimit = 0;
 	else
@@ -813,11 +836,12 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
 	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
-	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_strVideoBackend, "");
-	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
-	m_LocalCoreStartupParameter.m_GPUDeterminismMode = ParseGPUDeterminismMode(m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
+	core->Get("GFXBackend",                &m_strVideoBackend, "");
+	core->Get("GPUDeterminismMode",        &m_strGPUDeterminismMode, "auto");
+	m_GPUDeterminismMode = ParseGPUDeterminismMode(m_strGPUDeterminismMode);
 	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
 	core->Get("AdapterRumble",             &m_AdapterRumble,                               true);
+	core->Get("PerfMapDir",                &m_perfDir, "");
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
@@ -837,6 +861,7 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 
 	dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
 	dsp->Get("DumpAudio", &m_DumpAudio, false);
+	dsp->Get("DumpUCode", &m_DumpUCode, false);
 #if defined __linux__ && HAVE_ALSA
 	dsp->Get("Backend", &sBackend, BACKEND_ALSA);
 #elif defined __APPLE__
@@ -868,5 +893,403 @@ void SConfig::LoadFifoPlayerSettings(IniFile& ini)
 {
 	IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
 
-	fifoplayer->Get("LoopReplay", &m_LocalCoreStartupParameter.bLoopFifoReplay, true);
+	fifoplayer->Get("LoopReplay", &bLoopFifoReplay, true);
+}
+
+void SConfig::LoadDefaults()
+{
+	bEnableDebugging = false;
+	bAutomaticStart = false;
+	bBootToPause = false;
+
+	#ifdef USE_GDBSTUB
+	iGDBPort = -1;
+	#ifndef _WIN32
+	gdb_socket = "";
+	#endif
+	#endif
+
+	iCPUCore = PowerPC::CORE_JIT64;
+	bCPUThread = false;
+	bSkipIdle = false;
+	bSyncGPUOnSkipIdleHack = true;
+	bRunCompareServer = false;
+	bDSPHLE = true;
+	bFastmem = true;
+	bFPRF = false;
+	bAccurateNaNs = false;
+	bMMU = false;
+	bDCBZOFF = false;
+	iBBDumpPort = -1;
+	bSyncGPU = false;
+	bFastDiscSpeed = false;
+	bEnableMemcardSdWriting = true;
+	SelectedLanguage = 0;
+	bOverrideGCLanguage = false;
+	bWii = false;
+	bDPL2Decoder = false;
+	iLatency = 14;
+
+	iPosX = 100;
+	iPosY = 100;
+	iWidth = 800;
+	iHeight = 600;
+
+	bLoopFifoReplay = true;
+
+	bJITOff = false; // debugger only settings
+	bJITLoadStoreOff = false;
+	bJITLoadStoreFloatingOff = false;
+	bJITLoadStorePairedOff = false;
+	bJITFloatingPointOff = false;
+	bJITIntegerOff = false;
+	bJITPairedOff = false;
+	bJITSystemRegistersOff = false;
+	bJITBranchOff = false;
+
+	m_strName = "NONE";
+	m_strUniqueID = "00000000";
+}
+static const char* GetRegionOfCountry(DiscIO::IVolume::ECountry country)
+{
+	switch (country)
+	{
+	case DiscIO::IVolume::COUNTRY_USA:
+		return USA_DIR;
+
+	case DiscIO::IVolume::COUNTRY_TAIWAN:
+	case DiscIO::IVolume::COUNTRY_KOREA:
+		// TODO: Should these have their own Region Dir?
+	case DiscIO::IVolume::COUNTRY_JAPAN:
+		return JAP_DIR;
+
+	case DiscIO::IVolume::COUNTRY_AUSTRALIA:
+	case DiscIO::IVolume::COUNTRY_EUROPE:
+	case DiscIO::IVolume::COUNTRY_FRANCE:
+	case DiscIO::IVolume::COUNTRY_GERMANY:
+	case DiscIO::IVolume::COUNTRY_ITALY:
+	case DiscIO::IVolume::COUNTRY_NETHERLANDS:
+	case DiscIO::IVolume::COUNTRY_RUSSIA:
+	case DiscIO::IVolume::COUNTRY_SPAIN:
+	case DiscIO::IVolume::COUNTRY_WORLD:
+		return EUR_DIR;
+
+	case DiscIO::IVolume::COUNTRY_UNKNOWN:
+	default:
+		return nullptr;
+	}
+}
+
+bool SConfig::AutoSetup(EBootBS2 _BootBS2)
+{
+	std::string set_region_dir(EUR_DIR);
+
+	switch (_BootBS2)
+	{
+	case BOOT_DEFAULT:
+		{
+			bool bootDrive = cdio_is_cdrom(m_strFilename);
+			// Check if the file exist, we may have gotten it from a --elf command line
+			// that gave an incorrect file name
+			if (!bootDrive && !File::Exists(m_strFilename))
+			{
+				PanicAlertT("The specified file \"%s\" does not exist", m_strFilename.c_str());
+				return false;
+			}
+
+			std::string Extension;
+			SplitPath(m_strFilename, nullptr, nullptr, &Extension);
+			if (!strcasecmp(Extension.c_str(), ".gcm") ||
+				!strcasecmp(Extension.c_str(), ".iso") ||
+				!strcasecmp(Extension.c_str(), ".wbfs") ||
+				!strcasecmp(Extension.c_str(), ".ciso") ||
+				!strcasecmp(Extension.c_str(), ".gcz") ||
+				bootDrive)
+			{
+				m_BootType = BOOT_ISO;
+				std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(m_strFilename));
+				if (pVolume == nullptr)
+				{
+					if (bootDrive)
+						PanicAlertT("Could not read \"%s\".  "
+								"There is no disc in the drive, or it is not a GC/Wii backup.  "
+								"Please note that original GameCube and Wii discs cannot be read "
+								"by most PC DVD drives.", m_strFilename.c_str());
+					else
+						PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.",
+								m_strFilename.c_str());
+					return false;
+				}
+				m_strName = pVolume->GetInternalName();
+				m_strUniqueID = pVolume->GetUniqueID();
+				m_revision = pVolume->GetRevision();
+
+				// Check if we have a Wii disc
+				bWii = pVolume.get()->GetVolumeType() == DiscIO::IVolume::WII_DISC;
+
+				const char* retrieved_region_dir = GetRegionOfCountry(pVolume->GetCountry());
+				if (!retrieved_region_dir)
+				{
+					if (!PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
+						"\nContinue with PAL region?"))
+						return false;
+					retrieved_region_dir = EUR_DIR;
+				}
+
+				set_region_dir = retrieved_region_dir;
+				bNTSC = set_region_dir == USA_DIR || set_region_dir == JAP_DIR;
+			}
+			else if (!strcasecmp(Extension.c_str(), ".elf"))
+			{
+				bWii = CBoot::IsElfWii(m_strFilename);
+				// TODO: Right now GC homebrew boots in NTSC and Wii homebrew in PAL.
+				// This is intentional so that Wii homebrew can boot in both 50Hz and 60Hz, without forcing all GC homebrew to 50Hz.
+				// In the future, it probably makes sense to add a Region setting for homebrew somewhere in the emulator config.
+				bNTSC = bWii ? false : true;
+				set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
+				m_BootType = BOOT_ELF;
+			}
+			else if (!strcasecmp(Extension.c_str(), ".dol"))
+			{
+				CDolLoader dolfile(m_strFilename);
+				bWii = dolfile.IsWii();
+				// TODO: See the ELF code above.
+				bNTSC = bWii ? false : true;
+				set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
+				m_BootType = BOOT_DOL;
+			}
+			else if (!strcasecmp(Extension.c_str(), ".dff"))
+			{
+				bWii = true;
+				set_region_dir = USA_DIR;
+				bNTSC = true;
+				m_BootType = BOOT_DFF;
+
+				std::unique_ptr<FifoDataFile> ddfFile(FifoDataFile::Load(m_strFilename, true));
+
+				if (ddfFile)
+				{
+					bWii = ddfFile->GetIsWii();
+				}
+			}
+			else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
+			{
+				std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(m_strFilename));
+				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
+
+				if (ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex()) == nullptr)
+				{
+					//WAD is valid yet cannot be booted. Install instead.
+					u64 installed = DiscIO::CNANDContentManager::Access().Install_WiiWAD(m_strFilename);
+					if (installed)
+						SuccessAlertT("The WAD has been installed successfully");
+					return false; //do not boot
+				}
+
+				const char* retrieved_region_dir = GetRegionOfCountry(ContentLoader.GetCountry());
+				set_region_dir = retrieved_region_dir ? retrieved_region_dir : EUR_DIR;
+				bNTSC = set_region_dir == USA_DIR || set_region_dir == JAP_DIR;
+
+				bWii = true;
+				m_BootType = BOOT_WII_NAND;
+
+				if (pVolume)
+				{
+					m_strName = pVolume->GetInternalName();
+					m_strUniqueID = pVolume->GetUniqueID();
+				}
+				else
+				{
+					// null pVolume means that we are loading from nand folder (Most Likely Wii Menu)
+					// if this is the second boot we would be using the Name and id of the last title
+					m_strName.clear();
+					m_strUniqueID.clear();
+				}
+
+				// Use the TitleIDhex for name and/or unique ID if launching from nand folder
+				// or if it is not ascii characters (specifically sysmenu could potentially apply to other things)
+				std::string titleidstr = StringFromFormat("%016" PRIx64, ContentLoader.GetTitleID());
+
+				if (m_strName.empty())
+				{
+					m_strName = titleidstr;
+				}
+				if (m_strUniqueID.empty())
+				{
+					m_strUniqueID = titleidstr;
+				}
+			}
+			else
+			{
+				PanicAlertT("Could not recognize ISO file %s", m_strFilename.c_str());
+				return false;
+			}
+		}
+		break;
+
+	case BOOT_BS2_USA:
+		set_region_dir = USA_DIR;
+		m_strFilename.clear();
+		bNTSC = true;
+		break;
+
+	case BOOT_BS2_JAP:
+		set_region_dir = JAP_DIR;
+		m_strFilename.clear();
+		bNTSC = true;
+		break;
+
+	case BOOT_BS2_EUR:
+		set_region_dir = EUR_DIR;
+		m_strFilename.clear();
+		bNTSC = false;
+		break;
+	}
+
+	// Setup paths
+	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, set_region_dir, true);
+	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, set_region_dir, false);
+	m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+	if (!bWii)
+	{
+		if (!bHLE_BS2)
+		{
+			m_strBootROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
+			if (!File::Exists(m_strBootROM))
+				m_strBootROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
+
+			if (!File::Exists(m_strBootROM))
+			{
+				WARN_LOG(BOOT, "Bootrom file %s not found - using HLE.", m_strBootROM.c_str());
+				bHLE_BS2 = true;
+			}
+		}
+	}
+	else if (bWii && !bHLE_BS2)
+	{
+		WARN_LOG(BOOT, "GC bootrom file will not be loaded for Wii mode.");
+		bHLE_BS2 = true;
+	}
+
+	return true;
+}
+
+void SConfig::CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA)
+{
+	std::string ext("." + gameRegion + ".raw");
+	if (memcardPath.empty())
+	{
+		// Use default memcard path if there is no user defined name
+		std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
+		memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+	}
+	else
+	{
+		std::string filename = memcardPath;
+		std::string region = filename.substr(filename.size()-7, 3);
+		bool hasregion = false;
+		hasregion |= region.compare(USA_DIR) == 0;
+		hasregion |= region.compare(JAP_DIR) == 0;
+		hasregion |= region.compare(EUR_DIR) == 0;
+		if (!hasregion)
+		{
+			// filename doesn't have region in the extension
+			if (File::Exists(filename))
+			{
+				// If the old file exists we are polite and ask if we should copy it
+				std::string oldFilename = filename;
+				filename.replace(filename.size()-4, 4, ext);
+				if (PanicYesNoT("Memory Card filename in Slot %c is incorrect\n"
+					"Region not specified\n\n"
+					"Slot %c path was changed to\n"
+					"%s\n"
+					"Would you like to copy the old file to this new location?\n",
+					isSlotA ? 'A':'B', isSlotA ? 'A':'B', filename.c_str()))
+				{
+					if (!File::Copy(oldFilename, filename))
+						PanicAlertT("Copy failed");
+				}
+			}
+			memcardPath = filename; // Always correct the path!
+		}
+		else if (region.compare(gameRegion) != 0)
+		{
+			// filename has region, but it's not == gameRegion
+			// Just set the correct filename, the EXI Device will create it if it doesn't exist
+			memcardPath = filename.replace(filename.size()-ext.size(), ext.size(), ext);
+		}
+	}
+}
+
+DiscIO::IVolume::ELanguage SConfig::GetCurrentLanguage(bool wii) const
+{
+	DiscIO::IVolume::ELanguage language;
+	if (wii)
+		language = (DiscIO::IVolume::ELanguage)SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+	else
+		language = (DiscIO::IVolume::ELanguage)(SConfig::GetInstance().SelectedLanguage + 1);
+
+	// Get rid of invalid values (probably doesn't matter, but might as well do it)
+	if (language > DiscIO::IVolume::ELanguage::LANGUAGE_UNKNOWN || language < 0)
+		language = DiscIO::IVolume::ELanguage::LANGUAGE_UNKNOWN;
+	return language;
+}
+
+IniFile SConfig::LoadDefaultGameIni() const
+{
+	return LoadDefaultGameIni(GetUniqueID(), m_revision);
+}
+
+IniFile SConfig::LoadLocalGameIni() const
+{
+	return LoadLocalGameIni(GetUniqueID(), m_revision);
+}
+
+IniFile SConfig::LoadGameIni() const
+{
+	return LoadGameIni(GetUniqueID(), m_revision);
+}
+
+IniFile SConfig::LoadDefaultGameIni(const std::string& id, u16 revision)
+{
+	IniFile game_ini;
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+	return game_ini;
+}
+
+IniFile SConfig::LoadLocalGameIni(const std::string& id, u16 revision)
+{
+	IniFile game_ini;
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+	return game_ini;
+}
+
+IniFile SConfig::LoadGameIni(const std::string& id, u16 revision)
+{
+	IniFile game_ini;
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+	return game_ini;
+}
+
+// Returns all possible filenames in ascending order of priority
+std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id, u16 revision)
+{
+	std::vector<std::string> filenames;
+
+	// INIs that match all regions
+	if (id.size() >= 4)
+		filenames.push_back(id.substr(0, 3) + ".ini");
+
+	// Regular INIs
+	filenames.push_back(id + ".ini");
+
+	// INIs with specific revisions
+	filenames.push_back(id + StringFromFormat("r%d", revision) + ".ini");
+
+	return filenames;
 }

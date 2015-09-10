@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -16,7 +16,8 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -34,26 +35,6 @@
     <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)LibOvr\Include;$(ExternalsDir)LibOvr\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)LibOvr\Include;$(ExternalsDir)LibOvr\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)LibOvr\Include;$(ExternalsDir)LibOvr\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)LibOvr\Include;$(ExternalsDir)LibOvr\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AsyncRequests.cpp" />
     <ClCompile Include="AVIDump.cpp" />
@@ -72,8 +53,6 @@
     <ClCompile Include="ImageWrite.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="MainBase.cpp" />
-    <ClCompile Include="MetroidVR.cpp" />
-    <ClCompile Include="OculusSystemLibraryHeader.cpp" />
     <ClCompile Include="OnScreenDisplay.cpp" />
     <ClCompile Include="OpcodeDecoding.cpp" />
     <ClCompile Include="PerfQueryBase.cpp" />
@@ -103,8 +82,7 @@
     <ClCompile Include="VideoState.cpp" />
     <ClCompile Include="TextureDecoder_Common.cpp" />
     <ClCompile Include="TextureDecoder_x64.cpp" />
-    <ClCompile Include="VR.cpp" />
-    <ClCompile Include="VR920.cpp" />
+    <ClCompile Include="VRTracker.cpp" />
     <ClCompile Include="XFMemory.cpp" />
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
@@ -130,7 +108,6 @@
     <ClInclude Include="LookUpTables.h" />
     <ClInclude Include="MainBase.h" />
     <ClInclude Include="NativeVertexFormat.h" />
-    <ClInclude Include="OculusSystemLibraryHeader.h" />
     <ClInclude Include="OnScreenDisplay.h" />
     <ClInclude Include="OpcodeDecoding.h" />
     <ClInclude Include="PerfQueryBase.h" />
@@ -161,8 +138,7 @@
     <ClInclude Include="VideoCommon.h" />
     <ClInclude Include="VideoConfig.h" />
     <ClInclude Include="VideoState.h" />
-    <ClInclude Include="VR.h" />
-    <ClInclude Include="VR920.h" />
+    <ClInclude Include="VRTracker.h" />
     <ClInclude Include="XFMemory.h" />
     <ClInclude Include="XFStructs.h" />
   </ItemGroup>
@@ -184,6 +160,9 @@
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
       <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\InputCommon\InputCommon.vcxproj">
+      <Project>{6bbd47cf-91fd-4077-b676-8b76980178a9}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

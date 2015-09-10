@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -26,7 +26,7 @@ public:
 	u64 GetDataSize() const override { return m_size; }
 	u64 GetRawSize() const override { return m_size; }
 
-	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr) override;
+	bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr) override;
 
 private:
 	DriveReader(const std::string& drive);

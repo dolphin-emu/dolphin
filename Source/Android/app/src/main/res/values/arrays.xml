@@ -2,7 +2,7 @@
 
 <!-- All lists for ListPreference keys/values are placed here -->
 <resources>
-    
+
     <!-- CPU core selection - X86_64 -->
     <string-array name="emuCoreEntriesX86_64" translatable="false">
         <item>@string/interpreter</item>
@@ -42,7 +42,16 @@
     <string-array name="emuCoreValuesOther" translatable="false">
         <item>0</item>
     </string-array>
-    
+
+    <!-- New UI CPU Core selection - Default -->
+    <string-array name="string_emu_cores" translatable="false">
+        <item>@string/interpreter</item>
+        <item>@string/cached_interpreter</item>
+    </string-array>
+    <string-array name="int_emu_cores" translatable="false">
+        <item>0</item>
+        <item>5</item>
+    </string-array>
     
     <!-- Video Backend Selection - Supports OpenGL ES 3 -->
     <string-array name="videoBackendEntriesGLES3" translatable="false">
@@ -182,5 +191,21 @@
         <item>1</item>
         <item>2</item>
         <item>3</item>
+    </string-array>
+
+    <string-array name="country_names">
+        <item>Europe</item>
+        <item>Japan</item>
+        <item>USA</item>
+        <item>Australia</item>
+        <item>France</item>
+        <item>Germany</item>
+        <item>Italy</item>
+        <item>Korea</item>
+        <item>Netherlands</item>
+        <item>Russia</item>
+        <item>Spain</item>
+        <item>Taiwan</item>
+        <item>Unknown</item>
     </string-array>
 </resources>

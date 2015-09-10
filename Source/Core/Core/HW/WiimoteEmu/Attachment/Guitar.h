@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -16,6 +16,7 @@ class Guitar : public Attachment
 public:
 	Guitar(WiimoteEmu::ExtensionReg& _reg);
 	void GetState(u8* const data) override;
+	bool IsButtonPressed() const override;
 
 	enum
 	{

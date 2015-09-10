@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -29,9 +29,6 @@ public:
 
 	// StepOpcode (Steps one Opcode)
 	static void StepOpcode(Common::Event *event = nullptr);
-
-	// one step only
-	static void SingleStep();
 
 	// Enable or Disable Stepping
 	static void EnableStepping(const bool _bStepping);

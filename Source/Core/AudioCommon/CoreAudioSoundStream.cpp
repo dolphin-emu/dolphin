@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <CoreServices/CoreServices.h>
@@ -17,14 +17,6 @@ OSStatus CoreAudioSound::callback(void *inRefCon,
 				ioData->mBuffers[i].mDataByteSize / 4);
 
 	return noErr;
-}
-
-CoreAudioSound::CoreAudioSound(CMixer *mixer) : SoundStream(mixer)
-{
-}
-
-CoreAudioSound::~CoreAudioSound()
-{
 }
 
 bool CoreAudioSound::Start()

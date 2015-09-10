@@ -24,8 +24,6 @@ public:
 		long style = wxDEFAULT_DIALOG_STYLE);
 	virtual ~CConfigVR();
 
-	void SaveXInputBinary(int Id, bool KBM, bool DInput, u32 Key, u32 DInputExtra);
-
 	enum
 	{
 		ID_NOTEBOOK = 1000,
@@ -67,11 +65,7 @@ protected:
 
 private:
 
-	bool button_already_clicked;
 	wxButton* m_Ok;
-	wxButton *ClickedButton;
-	wxButton *m_Button_VRSettings[NUM_VR_HOTKEYS];
-	wxComboBox* device_cbox;
 	wxNotebook* Notebook;
 	wxString OldLabel;
 	VRDialog* m_vr_dialog;
@@ -108,30 +102,9 @@ private:
 
 	void OnOk(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
-	void SetDevice(wxCommandEvent& event);
-	void UpdateDeviceComboBox();
-	void RefreshDevices(wxCommandEvent&);
-
-	void DetectControl(wxCommandEvent& event);
-	void ClearControl(wxEvent& event);
-	void ConfigControl(wxEvent& event);
-	void OnXInputPollCheckbox(wxCommandEvent& event);
-	void OnFreeLookSensitivity(wxCommandEvent& event);
-	void OnButtonClick(wxCommandEvent& event);
-	void OnKeyDown(wxKeyEvent& event);
-	int g_Pressed, g_Modkey;
-
-	void SaveButtonMapping(int Id, bool KBM, int Key, int Modkey);
-	void SetButtonText(int id, bool KBM, bool DInput, const wxString &keystr, const wxString &modkeystr = wxString(), const wxString &XInputMapping = wxString());
-	void DoGetButtons(int id);
-	void EndGetButtons();
-	void EndGetButtonsXInput();
 
 	void CreateGUIControls();
 	void UpdateGUI();
-
-	ciface::Core::Device::Control*   InputDetect(const unsigned int ms, ciface::Core::Device* const device);
-	ciface::Core::DeviceQualifier    default_device;
 
 	DECLARE_EVENT_TABLE();
 
@@ -139,16 +112,4 @@ private:
 	std::map<wxWindow*, wxStaticText*> desc_texts; // maps dialog tabs (which are the parents of the setting controls) to their description text objects
 
 	VideoConfig &vconfig;
-};
-
-class VRDialog : public wxDialog
-{
-	int button_id;
-public:
-	VRDialog(CConfigVR* const parent, int from_button);
-
-private:
-	void OnCheckBoxXInput(wxCommandEvent& event);
-	void OnCheckBoxDInputButtons(wxCommandEvent& event);
-	void OnCheckBoxDInputOthers(wxCommandEvent& event);
 };

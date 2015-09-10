@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -113,7 +113,7 @@ std::string StringFromFormat(const char* format, ...)
 	va_start(args, format);
 	std::string res = StringFromFormatV(format, args);
 	va_end(args);
-	return std::move(res);
+	return res;
 }
 
 std::string StringFromFormatV(const char* format, va_list args)
@@ -139,7 +139,7 @@ std::string StringFromFormatV(const char* format, va_list args)
 	std::string temp = buf;
 	free(buf);
 #endif
-	return std::move(temp);
+	return temp;
 }
 
 // For Debugging. Read out an u8 array.

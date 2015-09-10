@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/Common.h"
@@ -62,7 +62,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
 				if (xfmem.ambColor[chan] != newValue)
 				{
 					VertexManager::Flush();
-					VertexShaderManager::SetMaterialColorChanged(chan, newValue);
+					VertexShaderManager::SetMaterialColorChanged(chan);
 				}
 				break;
 			}
@@ -74,7 +74,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
 				if (xfmem.matColor[chan] != newValue)
 				{
 					VertexManager::Flush();
-					VertexShaderManager::SetMaterialColorChanged(chan + 2, newValue);
+					VertexShaderManager::SetMaterialColorChanged(chan + 2);
 				}
 				break;
 			}

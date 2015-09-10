@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -30,12 +30,12 @@ public:
 
 	void OpenInternal();
 
-	virtual void DoState(PointerWrap& p) override;
+	void DoState(PointerWrap& p) override;
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
 	static u32 ES_DIVerify(u8 *_pTMD, u32 _sz);
 
@@ -143,8 +143,6 @@ private:
 	u32 m_AccessIdentID;
 
 	static u8 *keyTable[11];
-
-	u64 GetCurrentTitleID() const;
 
 	const DiscIO::INANDContentLoader& AccessContentDevice(u64 _TitleID);
 	u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);

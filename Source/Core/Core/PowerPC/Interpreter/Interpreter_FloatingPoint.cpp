@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -22,7 +22,7 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa,
 {
 	int compareResult;
 
-	if (IsNAN(fa) || IsNAN(fb))
+	if (std::isnan(fa) || std::isnan(fb))
 	{
 		FPSCR.FX = 1;
 		compareResult = FPCC::FU;
@@ -62,7 +62,7 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double f
 {
 	int compareResult;
 
-	if (IsNAN(fa) || IsNAN(fb))
+	if (std::isnan(fa) || std::isnan(fb))
 	{
 		compareResult = FPCC::FU;
 
@@ -310,7 +310,7 @@ void Interpreter::fmulsx(UGeckoInstruction _inst)
 
 void Interpreter::fmaddx(UGeckoInstruction _inst)
 {
-	double result = ForceDouble(NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
+	double result = ForceDouble(NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
 	rPS0(_inst.FD) = result;
 	UpdateFPRF(result);
 
@@ -351,38 +351,7 @@ void Interpreter::faddsx(UGeckoInstruction _inst)
 
 void Interpreter::fdivx(UGeckoInstruction _inst)
 {
-	double a = rPS0(_inst.FA);
-	double b = rPS0(_inst.FB);
-
-	if (a != a)
-	{
-		rPS0(_inst.FD) = a;
-	}
-	else if (b != b)
-	{
-		rPS0(_inst.FD) = b;
-	}
-	else
-	{
-		rPS0(_inst.FD) = ForceDouble(a / b);
-		if (b == 0.0)
-		{
-			if (a == 0.0)
-			{
-				SetFPException(FPSCR_VXZDZ);
-				rPS0(_inst.FD) = PPC_NAN;
-			}
-			SetFPException(FPSCR_ZX);
-		}
-		else
-		{
-			if (IsINF(a) && IsINF(b))
-			{
-				SetFPException(FPSCR_VXIDI);
-				rPS0(_inst.FD) = PPC_NAN;
-			}
-		}
-	}
+	rPS0(_inst.FD) = ForceDouble(NI_div(rPS0(_inst.FA), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
 
 	// FR,FI,OX,UX???
@@ -391,41 +360,7 @@ void Interpreter::fdivx(UGeckoInstruction _inst)
 }
 void Interpreter::fdivsx(UGeckoInstruction _inst)
 {
-	double a = rPS0(_inst.FA);
-	double b = rPS0(_inst.FB);
-	double res;
-
-	if (a != a)
-	{
-		res = a;
-	}
-	else if (b != b)
-	{
-		res = b;
-	}
-	else
-	{
-		res = ForceSingle(a / b);
-		if (b == 0.0)
-		{
-			if (a == 0.0)
-			{
-				SetFPException(FPSCR_VXZDZ);
-				res = PPC_NAN;
-			}
-			SetFPException(FPSCR_ZX);
-		}
-		else
-		{
-			if (IsINF(a) && IsINF(b))
-			{
-				SetFPException(FPSCR_VXIDI);
-				res = PPC_NAN;
-			}
-		}
-	}
-
-	rPS0(_inst.FD) = rPS1(_inst.FD) = res;
+	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(NI_div(rPS0(_inst.FA), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -490,7 +425,8 @@ void Interpreter::fmsubsx(UGeckoInstruction _inst)
 
 void Interpreter::fnmaddx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceDouble(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	double result = ForceDouble(NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS0(_inst.FD) = std::isnan(result) ? result : -result;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -500,7 +436,8 @@ void Interpreter::fnmaddx(UGeckoInstruction _inst)
 void Interpreter::fnmaddsx(UGeckoInstruction _inst)
 {
 	double c_value = Force25Bit(rPS0(_inst.FC));
-	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(-NI_madd(rPS0(_inst.FA), c_value, rPS0(_inst.FB)));
+	double result = ForceSingle(NI_madd(rPS0(_inst.FA), c_value, rPS0(_inst.FB)));
+	rPS0(_inst.FD) = rPS1(_inst.FD) = std::isnan(result) ? result : -result;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -509,18 +446,19 @@ void Interpreter::fnmaddsx(UGeckoInstruction _inst)
 
 void Interpreter::fnmsubx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceDouble(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	double result = ForceDouble(NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS0(_inst.FD) = std::isnan(result) ? result : -result;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
 		Helper_UpdateCR1();
 }
 
-// fnmsubsx does not handle QNAN properly - see NI_msub
 void Interpreter::fnmsubsx(UGeckoInstruction _inst)
 {
 	double c_value = Force25Bit(rPS0(_inst.FC));
-	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(-NI_msub(rPS0(_inst.FA), c_value, rPS0(_inst.FB)));
+	double result = ForceSingle(NI_msub(rPS0(_inst.FA), c_value, rPS0(_inst.FB)));
+	rPS0(_inst.FD) = rPS1(_inst.FD) = std::isnan(result) ? result : -result;
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -539,24 +477,6 @@ void Interpreter::fsubx(UGeckoInstruction _inst)
 void Interpreter::fsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
-	UpdateFPRF(rPS0(_inst.FD));
-
-	if (_inst.Rc)
-		Helper_UpdateCR1();
-}
-
-void Interpreter::fsqrtx(UGeckoInstruction _inst)
-{
-	// GEKKO is not supposed to support this instruction.
-	// PanicAlert("fsqrtx");
-	double b = rPS0(_inst.FB);
-
-	if (b < 0.0)
-	{
-		FPSCR.VXSQRT = 1;
-	}
-
-	rPS0(_inst.FD) = sqrt(b);
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)

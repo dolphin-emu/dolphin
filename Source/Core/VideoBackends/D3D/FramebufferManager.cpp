@@ -1,5 +1,5 @@
-// Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
@@ -66,11 +66,6 @@ D3DTexture2D* &FramebufferManager::GetResolvedEFBDepthTexture()
 
 FramebufferManager::FramebufferManager()
 {
-	for (int eye = 0; eye < 2; ++eye)
-	{
-		m_efb.m_frontBuffer[eye] = nullptr;
-		// init to null
-	}
 	if (g_has_hmd)
 	{
 		m_stereo3d = true;
@@ -84,6 +79,14 @@ FramebufferManager::FramebufferManager()
 
 	m_target_width = Renderer::GetTargetWidth();
 	m_target_height = Renderer::GetTargetHeight();
+	if (m_target_height < 1)
+	{
+		m_target_height = 1;
+	}
+	if (m_target_width < 1)
+	{
+		m_target_width = 1;
+	}
 	DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
 
 	if (g_has_hmd)
@@ -94,25 +97,6 @@ FramebufferManager::FramebufferManager()
 	HRESULT hr;
 
 	m_EFBLayers = m_efb.slices = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
-
-	if (g_has_rift)
-	{
-		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, m_target_width, m_target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, sample_desc.Quality);
-		for (int eye=0; eye<2; ++eye)
-		{
-			hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
-			CHECK(hr == S_OK, "create Oculus Rift eye texture (size: %dx%d; hr=%#x)", m_target_width, m_target_height, hr);
-			m_efb.m_frontBuffer[eye] = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, false);
-			CHECK(m_efb.m_frontBuffer[eye] != nullptr, "create Oculus Rift eye texture (size: %dx%d)", m_target_width, m_target_height);
-			SAFE_RELEASE(buf);
-		}
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[0]->GetTex(), "Left eye color texture");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[0]->GetSRV(), "Left eye color texture shader resource view");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[0]->GetRTV(), "Left eye color texture render target view");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[1]->GetTex(), "Right eye color texture");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[1]->GetSRV(), "Right eye color texture shader resource view");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[1]->GetRTV(), "Right eye color texture render target view");
-	}
 
 	// EFB color texture - primary render target
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, m_target_width, m_target_height, m_efb.slices, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
@@ -143,10 +127,10 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_staging_buf, "EFB color staging texture (used for Renderer::AccessEFB)");
 
 	// EFB depth buffer - primary depth buffer
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_TYPELESS, m_target_width, m_target_height, m_efb.slices, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R24G8_TYPELESS, m_target_width, m_target_height, m_efb.slices, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
 	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
 	CHECK(hr==S_OK, "create EFB depth texture (size: %dx%d; hr=%#x)", m_target_width, m_target_height, hr);
-	m_efb.depth_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_D32_FLOAT, DXGI_FORMAT_UNKNOWN, (sample_desc.Count > 1));
+	m_efb.depth_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R24_UNORM_X8_TYPELESS, DXGI_FORMAT_D24_UNORM_S8_UINT, DXGI_FORMAT_UNKNOWN, (sample_desc.Count > 1));
 	SAFE_RELEASE(buf);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetTex(), "EFB depth texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetDSV(), "EFB depth texture depth stencil view");
@@ -200,6 +184,7 @@ FramebufferManager::FramebufferManager()
 
 FramebufferManager::~FramebufferManager()
 {
+	VR_StopFramebuffer();
 	VR_StopRendering();
 
 	s_xfbEncoder.Shutdown();
@@ -213,13 +198,13 @@ FramebufferManager::~FramebufferManager()
 	SAFE_RELEASE(m_efb.depth_staging_buf);
 	SAFE_RELEASE(m_efb.depth_read_texture);
 	SAFE_RELEASE(m_efb.resolved_depth_tex);
-	SAFE_RELEASE(m_efb.m_frontBuffer[0]);
-	SAFE_RELEASE(m_efb.m_frontBuffer[1]);
 }
 
-void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
+void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
 	u8* dst = Memory::GetPointer(xfbAddr);
+	// below div2 due to dx using pixel width
+	s_xfbEncoder.Encode(dst, fbStride/2, fbHeight, sourceRc, Gamma);
 }
 
 XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)

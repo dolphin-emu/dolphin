@@ -1,5 +1,5 @@
-// Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/StringUtil.h"
@@ -17,7 +17,7 @@ D3DREFLECT PD3DReflect = nullptr;
 pD3DCompile PD3DCompile = nullptr;
 int d3dcompiler_dll_ref = 0;
 
-CREATEDXGIFACTORY PCreateDXGIFactory = nullptr;
+CREATEDXGIFACTORY PCreateDXGIFactory = nullptr, PCreateDXGIFactory1 = nullptr;
 HINSTANCE hDXGIDll = nullptr;
 int dxgi_dll_ref = 0;
 
@@ -66,6 +66,7 @@ HRESULT LoadDXGI()
 		return E_FAIL;
 	}
 	PCreateDXGIFactory = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory");
+	PCreateDXGIFactory1 = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory1");
 	if (PCreateDXGIFactory == nullptr) MessageBoxA(nullptr, "GetProcAddress failed for CreateDXGIFactory!", "Critical error", MB_OK | MB_ICONERROR);
 
 	return S_OK;
@@ -131,6 +132,7 @@ void UnloadDXGI()
 	if (hDXGIDll) FreeLibrary(hDXGIDll);
 	hDXGIDll = nullptr;
 	PCreateDXGIFactory = nullptr;
+	PCreateDXGIFactory1 = nullptr;
 }
 
 void UnloadD3D()
@@ -231,8 +233,46 @@ HRESULT Create(HWND wnd)
 	IDXGIAdapter* adapter = nullptr;
 	IDXGIOutput* output = nullptr;
 	DXGI_OUTPUT_DESC out_desc;
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+	if (PCreateDXGIFactory1)
+		hr = PCreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory);
+	else
+		hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+#else
 	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+#endif
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+
+	if (g_hmd_luid)
+	{
+		SAFE_RELEASE(adapter);
+		for (UINT iAdapter = 0; factory->EnumAdapters(iAdapter, &adapter) != DXGI_ERROR_NOT_FOUND; ++iAdapter)
+		{
+			DXGI_ADAPTER_DESC Desc;
+			adapter->GetDesc(&Desc);
+			if (memcmp(&Desc.AdapterLuid, g_hmd_luid, sizeof(LUID)) == 0)
+			{
+				// TODO: Make this configurable
+				hr = adapter->EnumOutputs(0, &output);
+				if (FAILED(hr))
+				{
+					// try using the first one
+					IDXGIAdapter* firstadapter;
+					hr = factory->EnumAdapters(0, &firstadapter);
+					if (!FAILED(hr))
+						hr = firstadapter->EnumOutputs(0, &output);
+					if (FAILED(hr)) MessageBox(wnd,
+						_T("Failed to enumerate outputs!\n")
+						_T("This usually happens when you've set your video adapter to the Nvidia GPU in an Optimus-equipped system.\n")
+						_T("Set Dolphin to use the high-performance graphics in Nvidia's drivers instead and leave Dolphin's video adapter set to the Intel GPU."),
+						_T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+					SAFE_RELEASE(firstadapter);
+				}
+				break;
+			}
+			SAFE_RELEASE(adapter);
+		}
+	}
 
 	// Find the adapter & output (monitor) to use for fullscreen, based on the reported name of the HMD's monitor.
 	if (g_hmd_device_name && strlen(g_hmd_device_name) > 1)

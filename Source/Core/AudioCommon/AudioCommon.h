@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -17,7 +17,6 @@ namespace AudioCommon
 	SoundStream* InitSoundStream();
 	void ShutdownSoundStream();
 	std::vector<std::string> GetSoundBackends();
-	void PauseAndLock(bool doLock, bool unpauseOnUnlock = true);
 	void UpdateSoundStream();
 	void ClearAudioBuffer(bool mute);
 	void SendAIBuffer(short* samples, unsigned int num_samples);

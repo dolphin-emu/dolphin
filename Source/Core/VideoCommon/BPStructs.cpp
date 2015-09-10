@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -20,6 +20,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
@@ -209,6 +210,7 @@ static void BPWritten(const BPCmd& bp)
 			bool new_frame_just_rendered = false;
 
 			u32 destAddr = bpmem.copyTexDest << 5;
+			u32 destStride = bpmem.copyMipMapStrideChannels << 5;
 
 			EFBRectangle srcRect;
 			srcRect.left = (int)bpmem.copyTexSrcXY.x;
@@ -230,7 +232,7 @@ static void BPWritten(const BPCmd& bp)
 				// (except when rendering to a square texture in the corner)
 				// So we want to copy a fraction of the whole screen, instead of a fraction of the viewport.
 				// Currently this will only work will copying the EFB to a texture.
-				if (g_has_hmd && g_viewport_type != VIEW_RENDER_TO_TEXTURE && !(g_rendered_viewport==g_requested_viewport) 
+				if (g_has_hmd && g_viewport_type != VIEW_RENDER_TO_TEXTURE && !(g_rendered_viewport == g_requested_viewport)
 					&& g_ActiveConfig.bEnableVR && g_ActiveConfig.bSkipEFBCopyToRam)
 				{
 					if (debug_newScene)
@@ -250,9 +252,14 @@ static void BPWritten(const BPCmd& bp)
 							PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
 							!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
 				}
-				CopyEFB(destAddr, srcRect,
-					PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
-					!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
+				// CopyEFB - Do EFB Copy
+				// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
+				if (g_ActiveConfig.bEFBCopyEnable)
+				{
+					TextureCache::CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
+						bpmem.zcontrol.pixel_format, srcRect,
+						!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
+				}
 			}
 			else
 			{
@@ -268,7 +275,7 @@ static void BPWritten(const BPCmd& bp)
 				else
 					yScale = (float)bpmem.dispcopyyscale / 256.0f;
 
-				float num_xfb_lines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
+				float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
 
 				u32 height = static_cast<u32>(num_xfb_lines);
 				if (height > MAX_XFB_HEIGHT)
@@ -278,9 +285,9 @@ static void BPWritten(const BPCmd& bp)
 					height = MAX_XFB_HEIGHT;
 				}
 
-				u32 width = bpmem.copyMipMapStrideChannels << 4;
-
-				Renderer::RenderToXFB(destAddr, srcRect, width, height, s_gammaLUT[PE_copy.gamma]);
+				DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | fbStride: %u | fbHeight: %u",
+					destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom, bpmem.copyTexSrcWH.x + 1, destStride, height);
+				Renderer::RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
 				g_new_frame_just_rendered = true;
 				g_first_pass = g_first_pass_vs_constants = true;
 				new_frame_just_rendered = true;
@@ -311,7 +318,7 @@ static void BPWritten(const BPCmd& bp)
 			u32 addr = bpmem.tmem_config.tlut_src << 5;
 
 			// The GameCube ignores the upper bits of this address. Some games (WW, MKDD) set them.
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+			if (!SConfig::GetInstance().bWii)
 				addr = addr & 0x01FFFFFF;
 
 			Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
@@ -417,15 +424,10 @@ static void BPWritten(const BPCmd& bp)
 			u8 offset = bp.address & 2;
 			BoundingBox::active = true;
 
-			if (g_ActiveConfig.backend_info.bSupportsBBox)
+			if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
 			{
 				g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
 				g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
-			}
-			else
-			{
-				BoundingBox::coords[offset]     = bp.newvalue & 0x3ff;
-				BoundingBox::coords[offset + 1] = bp.newvalue >> 10;
 			}
 		}
 		return;

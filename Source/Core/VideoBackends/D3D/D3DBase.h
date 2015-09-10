@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -97,7 +97,7 @@ std::string GetDebugObjectName(T resource)
 }  // namespace D3D
 
 typedef HRESULT (WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
-extern CREATEDXGIFACTORY PCreateDXGIFactory;
+extern CREATEDXGIFACTORY PCreateDXGIFactory, PCreateDXGIFactory1;
 typedef HRESULT (WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 
 typedef HRESULT (WINAPI* D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);

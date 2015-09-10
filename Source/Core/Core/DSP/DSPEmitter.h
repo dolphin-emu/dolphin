@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -33,7 +33,6 @@ public:
 	void CompileDispatcher();
 	Block CompileStub();
 	void Compile(u16 start_addr);
-	void ClearCallFlag();
 
 	bool FlagsNeeded();
 
@@ -62,7 +61,6 @@ public:
 	void dmem_write_imm(u16 addr, Gen::X64Reg value);
 
 	// Ext command helpers
-	void pushExtValueFromReg(u16 dreg, u16 sreg);
 	void popExtValueToReg();
 	void pushExtValueFromMem(u16 dreg, u16 sreg);
 	void pushExtValueFromMem2(u16 dreg, u16 sreg);
@@ -272,11 +270,11 @@ private:
 	void round_long_acc(Gen::X64Reg long_acc = Gen::EAX);
 	void set_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
 	void get_acc_h(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
-	void set_acc_h(int _reg, Gen::OpArg arg = R(Gen::EAX));
+	void set_acc_h(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
 	void get_acc_m(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
-	void set_acc_m(int _reg, Gen::OpArg arg = R(Gen::EAX));
+	void set_acc_m(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
 	void get_acc_l(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
-	void set_acc_l(int _reg, Gen::OpArg arg = R(Gen::EAX));
+	void set_acc_l(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
 	void get_long_acx(int _reg, Gen::X64Reg acx = Gen::EAX);
 	void get_ax_l(int _reg, Gen::X64Reg acx = Gen::EAX);
 	void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);

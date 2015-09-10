@@ -66,6 +66,7 @@
     <string name="overlay_slot3">Slot 3</string>
     <string name="overlay_slot4">Slot 4</string>
     <string name="overlay_slot5">Slot 5</string>
+    <string name="overlay_slot6">Slot 6</string>
 
     <!-- Input Config Fragment -->
     <string name="input_settings">Input</string>
@@ -135,6 +136,7 @@
 
     <!-- CPU Preference Fragment -->
     <string name="interpreter">Interpreter</string>
+    <string name="cached_interpreter">Cached Interpreter</string>
     <string name="jit64_recompiler">JIT64 Recompiler</string>
     <string name="jitil_recompiler">JITIL Recompiler</string>
     <string name="jit_arm_recompiler">JIT ARM Recompiler</string>
@@ -220,4 +222,30 @@
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>
 
+    <!-- New UI Strings -->
+    <string name="title_new_ui">Dolphin New UI</string>
+
+
+    <!-- Game Grid Screen-->
+    <string name="grid_menu_settings">Settings</string>
+    <string name="grid_menu_refresh">Refresh Library</string>
+
+    <!-- Add Directory Screen-->
+    <string name="add_directory_title">Add Folder to Library</string>
+    <string name="add_directory_up_one_level">Up one level</string>
+    <string name="add_directory_empty_folder">That folder is empty.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_cpu">CPU Settings</string>
+    <string name="preferences_input">Input Settings</string>
+    <string name="preferences_video">Video Settings</string>
+    <string name="emulation_title">Emulation Activity</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_toggle_input">Toggle Touch Controls</string>
+    <string name="emulation_quicksave">Quick Save</string>
+    <string name="emulation_quickload">Quick Load</string>
+
+    <!-- Package Names-->
+    <string name="application_id">org.dolphinemu.dolphinemu</string>
 </resources>

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -47,7 +47,7 @@ public:
 	static void SetTexMatrixChangedB(u32 value);
 	static void SetViewportChanged();
 	static void SetProjectionChanged();
-	static void SetMaterialColorChanged(int index, u32 color);
+	static void SetMaterialColorChanged(int index);
 
 	static void TranslateView(float left_metres, float forward_metres, float down_metres = 0.0f);
 	static void RotateView(float x, float y);

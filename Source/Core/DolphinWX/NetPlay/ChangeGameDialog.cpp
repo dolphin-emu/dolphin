@@ -1,5 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <wx/button.h>
@@ -9,9 +9,8 @@
 #include "DolphinWX/NetPlay/ChangeGameDialog.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
 
-ChangeGameDialog::ChangeGameDialog(wxWindow* parent, const CGameListCtrl* const game_list, wxString& game_name)
+ChangeGameDialog::ChangeGameDialog(wxWindow* parent, const CGameListCtrl* const game_list)
 	: wxDialog(parent, wxID_ANY, _("Change Game"))
-	, m_game_name(game_name)
 {
 	m_game_lbox = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SORT);
 	m_game_lbox->Bind(wxEVT_LISTBOX_DCLICK, &ChangeGameDialog::OnPick, this);
@@ -29,9 +28,13 @@ ChangeGameDialog::ChangeGameDialog(wxWindow* parent, const CGameListCtrl* const 
 	SetFocus();
 }
 
+wxString ChangeGameDialog::GetChosenGameName() const
+{
+	return m_game_name;
+}
+
 void ChangeGameDialog::OnPick(wxCommandEvent& event)
 {
-	// return the selected game name
 	m_game_name = m_game_lbox->GetStringSelection();
 	EndModal(wxID_OK);
 }

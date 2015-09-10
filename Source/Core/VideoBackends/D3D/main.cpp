@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -84,6 +84,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bSupportsPostProcessing = false;
 	g_Config.backend_info.bSupportsPaletteConversion = true;
+	g_Config.backend_info.bSupportsClipControl = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -92,7 +93,14 @@ void InitBackendInfo()
     //If you never ShutdownVR() the OpenGL mode, and never InitVR() for the
 	//Direct3D mode, but that is very hacky.  Running ovr_Initialize(); here stops
 	//crash, bug kills Direct Mode. Wait until SDK fixes this issue?
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+	if (DX11::PCreateDXGIFactory1)
+		hr = DX11::PCreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory);
+	else
+		hr = E_NOINTERFACE;
+#else
 	hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+#endif
 	if (FAILED(hr))
 		PanicAlert("Failed to create IDXGIFactory object");
 
@@ -133,6 +141,9 @@ void InitBackendInfo()
 
 			// Requires the instance attribute (only available in shader model 5)
 			g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
+
+			// Sample shading requires shader model 5
+			g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
 		}
 		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
 		ad->Release();

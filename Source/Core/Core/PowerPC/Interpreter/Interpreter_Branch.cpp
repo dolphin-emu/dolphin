@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Core/ARBruteForcer.h"
@@ -24,6 +24,11 @@ void Interpreter::bx(UGeckoInstruction _inst)
 #endif*/
 
 	m_EndBlock = true;
+
+	if (NPC == PC && SConfig::GetInstance().bSkipIdle)
+	{
+		CoreTiming::Idle();
+	}
 }
 
 // bcx - ugly, straight from PPC manual equations :)
@@ -51,6 +56,23 @@ void Interpreter::bcx(UGeckoInstruction _inst)
 	}
 
 	m_EndBlock = true;
+
+	// this code trys to detect the most common idle loop:
+	// lwz r0, XXXX(r13)
+	// cmpXwi r0,0
+	// beq -8
+	if (NPC == PC - 8 && _inst.hex == 0x4182fff8 /* beq */ && SConfig::GetInstance().bSkipIdle)
+	{
+		if (PowerPC::HostRead_U32(PC - 8) >> 16 == 0x800D /* lwz */ )
+		{
+			u32 last_inst = PowerPC::HostRead_U32(PC - 4);
+
+			if (last_inst == 0x28000000 /* cmplwi */ || (last_inst == 0x2C000000 /* cmpwi */ && SConfig::GetInstance().bWii))
+			{
+				CoreTiming::Idle();
+			}
+		}
+	}
 }
 
 void Interpreter::bcctrx(UGeckoInstruction _inst)
@@ -107,12 +129,6 @@ void Interpreter::rfi(UGeckoInstruction _inst)
 	//else
 	// set NPC to saved offset and resume
 	NPC = SRR0;
-	m_EndBlock = true;
-}
-
-void Interpreter::rfid(UGeckoInstruction _inst)
-{
-	_dbg_assert_msg_(POWERPC, 0, "rfid instruction unimplemented (does this instruction even exist?)");
 	m_EndBlock = true;
 }
 

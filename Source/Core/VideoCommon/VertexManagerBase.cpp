@@ -1,3 +1,7 @@
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include "Common/CommonTypes.h"
 
 #include "Core/ARBruteForcer.h"
@@ -286,36 +290,34 @@ void VertexManager::DoState(PointerWrap& p)
 
 void VertexManager::CalculateZSlope(NativeVertexFormat* format)
 {
-	float vtx[9];
 	float out[12];
 	float viewOffset[2] = { xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
 	                        xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
+	if (current_primitive_type != PRIMITIVE_TRIANGLES)
+		return;
+
 	// Global matrix ID.
 	u32 mtxIdx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
 	const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
-	size_t posOff = vert_decl.position.offset;
-	size_t mtxOff = vert_decl.posmtx.offset;
 
-	// Make sure the buffer contains at lest 3 vertices.
+	// Make sure the buffer contains at least 3 vertices.
 	if ((s_pCurBufferPointer - s_pBaseBufferPointer) < (vert_decl.stride * 3))
 		return;
 
 	// Lookup vertices of the last rendered triangle and software-transform them
-	// This allows us to determine the depth slope, which will be used if z--freeze
+	// This allows us to determine the depth slope, which will be used if z-freeze
 	// is enabled in the following flush.
 	for (unsigned int i = 0; i < 3; ++i)
 	{
-		u8* vtx_ptr = s_pCurBufferPointer - vert_decl.stride * (3 - i);
-		vtx[0 + i * 3] = ((float*)(vtx_ptr + posOff))[0];
-		vtx[1 + i * 3] = ((float*)(vtx_ptr + posOff))[1];
-		vtx[2 + i * 3] = ((float*)(vtx_ptr + posOff))[2];
-
 		// If this vertex format has per-vertex position matrix IDs, look it up.
-		if(vert_decl.posmtx.enable)
-			mtxIdx = *((u32*)(vtx_ptr + mtxOff));
+		if (vert_decl.posmtx.enable)
+			mtxIdx = VertexLoaderManager::position_matrix_index[2 - i];
 
-		VertexShaderManager::TransformToClipSpace(&vtx[i * 3], &out[i * 4], mtxIdx);
+		if (vert_decl.position.components == 2)
+			VertexLoaderManager::position_cache[2 - i][2] = 0;
+
+		VertexShaderManager::TransformToClipSpace(&VertexLoaderManager::position_cache[2 - i][0], &out[i * 4], mtxIdx);
 
 		// Transform to Screenspace
 		float inv_w = 1.0f / out[3 + i * 4];

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 //
 #define AX_WII // Used in AXVoice.
@@ -658,11 +658,6 @@ void AXWiiUCode::OutputWMSamples(u32* addresses)
 			out[j] = Common::swap16((u16)sample);
 		}
 	}
-}
-
-u32 AXWiiUCode::GetUpdateMs()
-{
-	return 3;
 }
 
 void AXWiiUCode::DoState(PointerWrap &p)

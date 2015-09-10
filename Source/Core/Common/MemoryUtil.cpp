@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
@@ -19,6 +19,12 @@
 #else
 #include <stdio.h>
 #include <sys/mman.h>
+#include <sys/types.h>
+#if defined __APPLE__ || defined __FreeBSD__
+#include <sys/sysctl.h>
+#else
+#include <sys/sysinfo.h>
+#endif
 #endif
 
 // Valgrind doesn't support MAP_32BIT.
@@ -239,5 +245,32 @@ std::string MemUsage()
 	return Ret;
 #else
 	return "";
+#endif
+}
+
+
+size_t MemPhysical()
+{
+#ifdef _WIN32
+	MEMORYSTATUSEX memInfo;
+	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+	GlobalMemoryStatusEx(&memInfo);
+	return memInfo.ullTotalPhys;
+#elif defined __APPLE__ || defined __FreeBSD__
+	int mib[2];
+	size_t physical_memory;
+	mib[0] = CTL_HW;
+#ifdef __APPLE__
+	mib[1] = HW_MEMSIZE;
+#elif defined __FreeBSD__
+	mib[1] = HW_REALMEM;
+#endif
+	size_t length = sizeof(size_t);
+	sysctl(mib, 2, &physical_memory, &length, NULL, 0);
+	return physical_memory;
+#else
+	struct sysinfo memInfo;
+	sysinfo (&memInfo);
+	return (size_t)memInfo.totalram * memInfo.mem_unit;
 #endif
 }

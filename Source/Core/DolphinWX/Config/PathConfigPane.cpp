@@ -1,5 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -41,12 +41,12 @@ void PathConfigPane::InitializeGUI()
 
 	m_default_iso_filepicker = new wxFilePickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose a default ISO:"),
 		_("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") + wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad|%s", wxGetTranslation(wxALL_FILES)),
-		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
-	m_dvd_root_dirpicker = new wxDirPickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
+		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN | wxFLP_SMALL);
+	m_dvd_root_dirpicker = new wxDirPickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL | wxDIRP_SMALL);
 	m_apploader_path_filepicker = new wxFilePickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose file to use as apploader: (applies to discs constructed from directories only)"),
 		_("apploader (.img)") + wxString::Format("|*.img|%s", wxGetTranslation(wxALL_FILES)),
-		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
-	m_nand_root_dirpicker = new wxDirPickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose a NAND root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
+		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN | wxFLP_SMALL);
+	m_nand_root_dirpicker = new wxDirPickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose a NAND root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL | wxDIRP_SMALL);
 
 	m_iso_paths_listbox->Bind(wxEVT_LISTBOX, &PathConfigPane::OnISOPathSelectionChanged, this);
 	m_recursive_iso_paths_checkbox->Bind(wxEVT_CHECKBOX, &PathConfigPane::OnRecursiveISOCheckBoxChanged, this);
@@ -92,7 +92,7 @@ void PathConfigPane::InitializeGUI()
 
 void PathConfigPane::LoadGUIValues()
 {
-	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& startup_params = SConfig::GetInstance();
 
 	m_recursive_iso_paths_checkbox->SetValue(SConfig::GetInstance().m_RecursiveISOFolder);
 	m_default_iso_filepicker->SetPath(StrToWxStr(startup_params.m_strDefaultISO));
@@ -159,17 +159,17 @@ void PathConfigPane::OnRemoveISOPath(wxCommandEvent& event)
 
 void PathConfigPane::OnDefaultISOChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO = WxStrToStr(m_default_iso_filepicker->GetPath());
+	SConfig::GetInstance().m_strDefaultISO = WxStrToStr(m_default_iso_filepicker->GetPath());
 }
 
 void PathConfigPane::OnDVDRootChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = WxStrToStr(m_dvd_root_dirpicker->GetPath());
+	SConfig::GetInstance().m_strDVDRoot = WxStrToStr(m_dvd_root_dirpicker->GetPath());
 }
 
 void PathConfigPane::OnApploaderPathChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader = WxStrToStr(m_apploader_path_filepicker->GetPath());
+	SConfig::GetInstance().m_strApploader = WxStrToStr(m_apploader_path_filepicker->GetPath());
 }
 
 void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
@@ -182,8 +182,6 @@ void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
 	m_nand_root_dirpicker->SetPath(StrToWxStr(nand_path));
 
 	SConfig::GetInstance().m_SYSCONF->UpdateLocation();
-	DiscIO::cUIDsys::AccessInstance().UpdateLocation();
-	DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 
 	main_frame->UpdateWiiMenuChoice();
 }

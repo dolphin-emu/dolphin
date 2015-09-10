@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -96,8 +96,8 @@ void PixelShaderManager::SetConstants()
 
 	if (s_bViewPortChanged)
 	{
-		constants.zbias[1][0] = static_cast<u32>(xfmem.viewport.farZ);
-		constants.zbias[1][1] = static_cast<u32>(xfmem.viewport.zRange);
+		constants.zbias[1][0] = (u32)xfmem.viewport.farZ;
+		constants.zbias[1][1] = (u32)xfmem.viewport.zRange;
 		dirty = true;
 		s_bViewPortChanged = false;
 	}

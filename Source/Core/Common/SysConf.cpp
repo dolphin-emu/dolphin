@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cinttypes>
@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
@@ -15,8 +16,7 @@
 SysConf::SysConf()
 	: m_IsValid(false)
 {
-	m_FilenameDefault = File::GetUserPath(F_WIISYSCONF_IDX);
-	m_IsValid = LoadFromFile(m_FilenameDefault);
+	UpdateLocation();
 }
 
 SysConf::~SysConf()
@@ -38,6 +38,10 @@ void SysConf::Clear()
 
 bool SysConf::LoadFromFile(const std::string& filename)
 {
+	if (m_IsValid)
+		Clear();
+	m_IsValid = false;
+
 	// Basic check
 	if (!File::Exists(filename))
 	{
@@ -67,6 +71,7 @@ bool SysConf::LoadFromFile(const std::string& filename)
 		if (LoadFromFileInternal(f.ReleaseHandle()))
 		{
 			m_Filename = filename;
+			m_IsValid = true;
 			return true;
 		}
 	}
@@ -107,6 +112,7 @@ bool SysConf::LoadFromFileInternal(FILE *fh)
 		f.ReadArray(curEntry.name, curEntry.nameLength);
 		curEntry.name[curEntry.nameLength] = '\0';
 		// Get length of data
+		curEntry.data = nullptr;
 		curEntry.dataLength = 0;
 		switch (curEntry.type)
 		{
@@ -362,6 +368,7 @@ void SysConf::GenerateSysConf()
 	g.WriteBytes("SCed", 4);
 
 	m_Filename = m_FilenameDefault;
+	m_IsValid = true;
 }
 
 bool SysConf::SaveToFile(const std::string& filename)
@@ -409,17 +416,17 @@ void SysConf::UpdateLocation()
 	// Clear the old filename and set the default filename to the new user path
 	// So that it can be generated if the file does not exist in the new location
 	m_Filename.clear();
-	m_FilenameDefault =  File::GetUserPath(F_WIISYSCONF_IDX);
+	// Note: We don't use the dummy Wii root here (if in use) because this is
+	// all tied up with the configuration code.  In the future this should
+	// probably just be synced with the other settings.
+	m_FilenameDefault = File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF;
 	Reload();
 }
 
 bool SysConf::Reload()
 {
-	if (m_IsValid)
-		Clear();
-
 	std::string& filename = m_Filename.empty() ? m_FilenameDefault : m_Filename;
 
-	m_IsValid = LoadFromFile(filename);
+	LoadFromFile(filename);
 	return m_IsValid;
 }

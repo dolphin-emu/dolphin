@@ -1,6 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
+
+#include <mutex>
 
 #include "AudioCommon/AlsaSoundStream.h"
 #include "Common/CommonTypes.h"
@@ -10,7 +12,10 @@
 #define BUFFER_SIZE_MAX 8192
 #define BUFFER_SIZE_BYTES (BUFFER_SIZE_MAX*2*2)
 
-AlsaSound::AlsaSound(CMixer *mixer) : SoundStream(mixer), thread_data(0), handle(nullptr), frames_to_deliver(FRAME_COUNT_MIN)
+AlsaSound::AlsaSound()
+	: m_thread_status(ALSAThreadStatus::STOPPED)
+	, handle(nullptr)
+	, frames_to_deliver(FRAME_COUNT_MIN)
 {
 	mix_buffer = new u8[BUFFER_SIZE_BYTES];
 }
@@ -22,14 +27,24 @@ AlsaSound::~AlsaSound()
 
 bool AlsaSound::Start()
 {
+	m_thread_status.store(ALSAThreadStatus::RUNNING);
+	if (!AlsaInit())
+	{
+		m_thread_status.store(ALSAThreadStatus::STOPPED);
+		return false;
+	}
+
 	thread = std::thread(&AlsaSound::SoundLoop, this);
-	thread_data = 0;
 	return true;
 }
 
 void AlsaSound::Stop()
 {
-	thread_data = 1;
+	m_thread_status.store(ALSAThreadStatus::STOPPING);
+
+	//Give the opportunity to the audio thread
+	//to realize we are stopping the emulation
+	cv.notify_one();
 	thread.join();
 }
 
@@ -41,15 +56,14 @@ void AlsaSound::Update()
 // Called on audio thread.
 void AlsaSound::SoundLoop()
 {
-	if (!AlsaInit()) {
-		thread_data = 2;
-		return;
-	}
 	Common::SetCurrentThreadName("Audio thread - alsa");
-	while (!thread_data)
+	while (m_thread_status.load() == ALSAThreadStatus::RUNNING)
 	{
+		std::unique_lock<std::mutex> lock(cv_m);
+		cv.wait(lock, [this]{return !m_muted || m_thread_status.load() != ALSAThreadStatus::RUNNING;});
+
 		m_mixer->Mix(reinterpret_cast<short *>(mix_buffer), frames_to_deliver);
-		int rc = m_muted ? 1337 : snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
+		int rc = snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
 		if (rc == -EPIPE)
 		{
 			// Underrun
@@ -61,7 +75,25 @@ void AlsaSound::SoundLoop()
 		}
 	}
 	AlsaShutdown();
-	thread_data = 2;
+	m_thread_status.store(ALSAThreadStatus::STOPPED);
+}
+
+
+void AlsaSound::Clear(bool muted)
+{
+	m_muted = muted;
+	if (m_muted)
+	{
+		std::lock_guard<std::mutex> lock(cv_m);
+		snd_pcm_drop(handle);
+	}
+	else
+	{
+		std::unique_lock<std::mutex> lock(cv_m);
+		snd_pcm_prepare(handle);
+		lock.unlock();
+		cv.notify_one();
+	}
 }
 
 bool AlsaSound::AlsaInit()

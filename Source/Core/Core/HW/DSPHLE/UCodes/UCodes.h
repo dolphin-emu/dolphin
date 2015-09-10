@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -77,7 +77,6 @@ public:
 
 	virtual void HandleMail(u32 mail) = 0;
 	virtual void Update() = 0;
-	virtual u32 GetUpdateMs() = 0;
 
 	virtual void DoState(PointerWrap &p)
 	{

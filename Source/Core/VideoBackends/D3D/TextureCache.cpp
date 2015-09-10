@@ -1,8 +1,7 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
 #include "VideoBackends/D3D/D3DState.h"
@@ -77,6 +76,69 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	return saved_png;
 }
 
+void TextureCache::TCacheEntry::CopyRectangleFromTexture(
+	const TCacheEntryBase* source,
+	const MathUtil::Rectangle<int> &srcrect,
+	const MathUtil::Rectangle<int> &dstrect)
+{
+	TCacheEntry* srcentry = (TCacheEntry*)source;
+	if (srcrect.GetWidth() == dstrect.GetWidth()
+		&& srcrect.GetHeight() == dstrect.GetHeight())
+	{
+		const D3D11_BOX *psrcbox = nullptr;
+		D3D11_BOX srcbox;
+		if (srcrect.left != 0 || srcrect.top != 0)
+		{
+			srcbox.left = srcrect.left;
+			srcbox.top = srcrect.top;
+			srcbox.right = srcrect.right;
+			srcbox.bottom = srcrect.bottom;
+			psrcbox = &srcbox;
+		}
+		D3D::context->CopySubresourceRegion(
+			texture->GetTex(),
+			0,
+			dstrect.left,
+			dstrect.top,
+			0,
+			srcentry->texture->GetTex(),
+			0,
+			psrcbox);
+		return;
+	}
+	else if (!config.rendertarget)
+	{
+		return;
+	}
+	g_renderer->ResetAPIState(); // reset any game specific settings
+
+	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(
+		float(dstrect.left),
+		float(dstrect.top),
+		float(dstrect.GetWidth()),
+		float(dstrect.GetHeight()));
+
+	D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
+	D3D::context->RSSetViewports(1, &vp);
+	D3D::SetLinearCopySampler();
+	D3D11_RECT srcRC;
+	srcRC.left = srcrect.left;
+	srcRC.right = srcrect.right;
+	srcRC.top = srcrect.top;
+	srcRC.bottom = srcrect.bottom;
+	D3D::drawShadedTexQuad(srcentry->texture->GetSRV(), &srcRC,
+		srcentry->config.width, srcentry->config.height,
+		PixelShaderCache::GetColorCopyProgram(false),
+		VertexShaderCache::GetSimpleVertexShader(),
+		VertexShaderCache::GetSimpleInputLayout(), nullptr, 1.0, 0);
+
+	D3D::context->OMSetRenderTargets(1,
+		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
+		FramebufferManager::GetEFBDepthTexture()->GetDSV());
+
+	g_renderer->RestoreAPIState();
+}
+
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {
@@ -122,7 +184,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConf
 	}
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
+void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, unsigned int dstFormat, u32 dstStride,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
@@ -163,26 +225,22 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	// Create texture copy
 	D3D::drawShadedTexQuad(
-		(srcFormat == PEControl::Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
-		&sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-		(srcFormat == PEControl::Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
-		VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
+		(srcFormat == PEControl::Z24 ? FramebufferManager::GetEFBDepthTexture() : FramebufferManager::GetEFBColorTexture())->GetSRV(),
+		&sourcerect, Renderer::GetTargetWidth(),
+		Renderer::GetTargetHeight(),
+		srcFormat == PEControl::Z24 ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
+		VertexShaderCache::GetSimpleVertexShader(),
+		VertexShaderCache::GetSimpleInputLayout(),
+		GeometryShaderCache::GetCopyGeometryShader());
 
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 	g_renderer->RestoreAPIState();
 
-	if (!g_ActiveConfig.bSkipEFBCopyToRam)
-	{
-		u8* dst = Memory::GetPointer(dstAddr);
-		size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
-
-		size_in_bytes = (u32)encoded_size;
-
-		TextureCache::MakeRangeDynamic(dstAddr, (u32)encoded_size);
-
-		this->hash = GetHash64(dst, (int)encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-	}
+	if (g_ActiveConfig.bSkipEFBCopyToRam)
+		this->Zero(dst);
+	else
+		g_encoder->Encode(dst, this, srcFormat, srcRect, isIntensity, scaleByHalf);
 }
 
 const char palette_shader[] =
@@ -279,7 +337,7 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
 	D3D::stateman->SetTexture(1, palette_buf_srv);
 
 	// TODO: Add support for C14X2 format.  (Different multiplier, more palette entries.)
-	float params[4] = { unconverted->format == 0 ? 15.f : 255.f };
+	float params[4] = { (unconverted->format & 0xf) == 0 ? 15.f : 255.f };
 	D3D::context->UpdateSubresource(palette_uniform, 0, nullptr, &params, 0, 0);
 	D3D::stateman->SetPixelConstants(palette_uniform);
 

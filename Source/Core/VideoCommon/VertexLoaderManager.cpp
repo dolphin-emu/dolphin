@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -28,6 +28,9 @@
 namespace VertexLoaderManager
 {
 
+float position_cache[3][4];
+u32 position_matrix_index[3];
+
 typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexFormatMap;
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
@@ -37,6 +40,8 @@ static std::mutex s_vertex_loader_map_lock;
 static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
+u8 *cached_arraybases[12];
+
 void Init()
 {
 	MarkAllDirty();
@@ -44,7 +49,6 @@ void Init()
 		map_entry = nullptr;
 	for (auto& map_entry : g_preprocess_cp_state.vertex_loaders)
 		map_entry = nullptr;
-	RecomputeCachedArraybases();
 	SETSTAT(stats.numVertexLoaders, 0);
 }
 
@@ -53,6 +57,27 @@ void Shutdown()
 	std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
 	s_vertex_loader_map.clear();
 	s_native_vertex_map.clear();
+}
+
+void UpdateVertexArrayPointers()
+{
+	// Anything to update?
+	if (!g_main_cp_state.bases_dirty)
+		return;
+
+	// Some games such as Burnout 2 can put invalid addresses into
+	// the array base registers. (see issue 8591)
+	// But the vertex arrays with invalid addresses aren't actually enabled.
+	// Note: Only array bases 0 through 11 are used by the Vertex loaders.
+	//       12 through 15 are used for loading data into xfmem.
+	for (int i = 0; i < 12; i++)
+	{
+		// Only update the array base if the vertex description states we are going to use it.
+		if (g_main_cp_state.vtx_desc.GetVertexArrayStatus(i) >= 0x2)
+			cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
+	}
+
+	g_main_cp_state.bases_dirty = false;
 }
 
 namespace
@@ -86,7 +111,8 @@ void AppendListToString(std::string *dest)
 	dest->reserve(dest->size() + total_size);
 	for (const entry& entry : entries)
 	{
-		dest->append(entry.text);
+		*dest += entry.text;
+		*dest += '\n';
 	}
 }
 
@@ -138,6 +164,11 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 	} else {
 		loader = state->vertex_loaders[vtx_attr_group];
 	}
+
+	// Lookup pointers for any vertex arrays.
+	if (!preprocess)
+		UpdateVertexArrayPointers();
+
 	return loader;
 }
 
@@ -146,7 +177,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (!count)
 		return 0;
 
-	SCoreStartupParameter& m_LocalCoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& m_LocalCoreStartupParameter = SConfig::GetInstance();
 
 	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 	int size = count * loader->m_VertexSize;
@@ -216,7 +247,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
 			loader->m_native_vtx_decl.stride, cullall);
 
-	count = loader->RunVertices(src, dst, count, primitive);
+	count = loader->RunVertices(src, dst, count);
 
 	IndexGenerator::AddIndices(primitive, count);
 
@@ -254,12 +285,14 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 		state->vtx_desc.Hex &= ~0x1FFFF;  // keep the Upper bits
 		state->vtx_desc.Hex |= value;
 		state->attr_dirty = BitSet32::AllTrue(8);
+		state->bases_dirty = true;
 		break;
 
 	case 0x60:
 		state->vtx_desc.Hex &= 0x1FFFF;  // keep the lower 17Bits
 		state->vtx_desc.Hex |= (u64)value << 17;
 		state->attr_dirty = BitSet32::AllTrue(8);
+		state->bases_dirty = true;
 		break;
 
 	case 0x70:
@@ -283,8 +316,7 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 	// Pointers to vertex arrays in GC RAM
 	case 0xA0:
 		state->array_bases[sub_cmd & 0xF] = value;
-		if (update_global_state)
-			cached_arraybases[sub_cmd & 0xF] = Memory::GetPointer(value);
+		state->bases_dirty = true;
 		break;
 
 	case 0xB0:
@@ -311,13 +343,5 @@ void FillCPMemoryArray(u32 *memory)
 	{
 		memory[0xA0 + i] = g_main_cp_state.array_bases[i];
 		memory[0xB0 + i] = g_main_cp_state.array_strides[i];
-	}
-}
-
-void RecomputeCachedArraybases()
-{
-	for (int i = 0; i < 16; i++)
-	{
-		cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
 	}
 }

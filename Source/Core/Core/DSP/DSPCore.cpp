@@ -1,27 +1,7 @@
-/*====================================================================
-
-   filename:     gdsp_interpreter.cpp
-   project:      GCemu
-   created:      2004-6-18
-   mail:         duddie@walla.com
-
-   Copyright (c) 2005 Duddie & Tratax
-
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
-   ====================================================================*/
+// Copyright 2008 Dolphin Emulator Project
+// Copyright 2004 Duddie & Tratax
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -62,7 +42,10 @@ static bool VerifyRoms()
 
 		// delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
 		// IPL/Card/GBA still broken)
-		{ 0xd9907f71, 0xb019c2fb }
+		{ 0xd9907f71, 0xb019c2fb },
+
+		// above with improved resampling coefficients
+		{ 0xd9907f71, 0xdb6880c1 }
 	};
 
 	u32 hash_irom = HashAdler32((u8*)g_dsp.irom, DSP_IROM_BYTE_SIZE);
@@ -89,7 +72,7 @@ static bool VerifyRoms()
 		DSPHost::OSD_AddMessage("You are using an old free DSP ROM made by the Dolphin Team.", 6000);
 		DSPHost::OSD_AddMessage("Only games using the Zelda UCode will work correctly.", 6000);
 	}
-	else if (rom_idx == 2)
+	else if (rom_idx == 2 || rom_idx == 3)
 	{
 		DSPHost::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
 		DSPHost::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);

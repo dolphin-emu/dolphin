@@ -1,8 +1,9 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <mutex>
 
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
@@ -43,7 +44,7 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 	std::fill(m_Ram.begin(), m_Ram.end(), 0);
 	std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
 
-	m_File->SetIsWii(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
+	m_File->SetIsWii(SConfig::GetInstance().bWii);
 
 	if (!m_IsRecording)
 	{

@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -12,6 +12,7 @@ class JitArm64AsmRoutineManager : public CommonAsmRoutinesBase, public Arm64Gen:
 private:
 	void Generate();
 	void GenerateCommon();
+	void GenMfcr();
 
 public:
 	void Init()

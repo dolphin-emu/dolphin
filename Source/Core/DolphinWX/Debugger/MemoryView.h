@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -8,6 +8,11 @@
 #include "Common/CommonTypes.h"
 
 class DebugInterface;
+
+enum class MemoryDataType
+{
+	U8, U16, U32
+};
 
 class CMemoryView : public wxControl
 {
@@ -22,8 +27,12 @@ public:
 		curAddress = addr;
 		Refresh();
 	}
-	int dataType;   // u8,u16,u32
-	int curAddress; // Will be accessed by parent
+
+	void SetDataType(MemoryDataType data_type)
+	{
+		dataType = data_type;
+		Refresh();
+	}
 
 private:
 	void OnPaint(wxPaintEvent& event);
@@ -47,6 +56,8 @@ private:
 	bool selecting;
 
 	int memory;
+	int curAddress;
+	MemoryDataType dataType;
 
 	enum EViewAsType
 	{

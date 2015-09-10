@@ -1,6 +1,6 @@
 /*
  * Copyright 2013 Dolphin Emulator Project
- * Licensed under GPLv2
+ * Licensed under GPLv2+
  * Refer to the license.txt file included.
  */
 
@@ -8,6 +8,9 @@ package org.dolphinemu.dolphinemu;
 
 import android.util.Log;
 import android.view.Surface;
+import android.widget.Toast;
+
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 /**
  * Class which contains methods that interact
@@ -15,33 +18,46 @@ import android.view.Surface;
  */
 public final class NativeLibrary
 {
+	private static EmulationActivity mEmulationActivity;
+
 	/**
 	 * Button type for use in onTouchEvent
 	 */
 	public static final class ButtonType
 	{
-		public static final int BUTTON_A         = 0;
-		public static final int BUTTON_B         = 1;
-		public static final int BUTTON_START     = 2;
-		public static final int BUTTON_X         = 3;
-		public static final int BUTTON_Y         = 4;
-		public static final int BUTTON_Z         = 5;
-		public static final int BUTTON_UP        = 6;
-		public static final int BUTTON_DOWN      = 7;
-		public static final int BUTTON_LEFT      = 8;
-		public static final int BUTTON_RIGHT     = 9;
-		public static final int STICK_MAIN       = 10;
-		public static final int STICK_MAIN_UP    = 11;
-		public static final int STICK_MAIN_DOWN  = 12;
-		public static final int STICK_MAIN_LEFT  = 13;
-		public static final int STICK_MAIN_RIGHT = 14;
-		public static final int STICK_C          = 15;
-		public static final int STICK_C_UP       = 16;
-		public static final int STICK_C_DOWN     = 17;
-		public static final int STICK_C_LEFT     = 18;
-		public static final int STICK_C_RIGHT    = 19;
-		public static final int TRIGGER_L        = 20;
-		public static final int TRIGGER_R        = 21;
+		public static final int BUTTON_A             = 0;
+		public static final int BUTTON_B             = 1;
+		public static final int BUTTON_START         = 2;
+		public static final int BUTTON_X             = 3;
+		public static final int BUTTON_Y             = 4;
+		public static final int BUTTON_Z             = 5;
+		public static final int BUTTON_UP            = 6;
+		public static final int BUTTON_DOWN          = 7;
+		public static final int BUTTON_LEFT          = 8;
+		public static final int BUTTON_RIGHT         = 9;
+		public static final int STICK_MAIN           = 10;
+		public static final int STICK_MAIN_UP        = 11;
+		public static final int STICK_MAIN_DOWN      = 12;
+		public static final int STICK_MAIN_LEFT      = 13;
+		public static final int STICK_MAIN_RIGHT     = 14;
+		public static final int STICK_C              = 15;
+		public static final int STICK_C_UP           = 16;
+		public static final int STICK_C_DOWN         = 17;
+		public static final int STICK_C_LEFT         = 18;
+		public static final int STICK_C_RIGHT        = 19;
+		public static final int TRIGGER_L            = 20;
+		public static final int TRIGGER_R            = 21;
+		public static final int WIIMOTE_BUTTON_A     = 22;
+		public static final int WIIMOTE_BUTTON_B     = 23;
+		public static final int WIIMOTE_BUTTON_MINUS = 24;
+		public static final int WIIMOTE_BUTTON_PLUS  = 25;
+		public static final int WIIMOTE_BUTTON_HOME  = 26;
+		public static final int WIIMOTE_BUTTON_1     = 27;
+		public static final int WIIMOTE_BUTTON_2     = 28;
+		public static final int WIIMOTE_UP           = 29;
+		public static final int WIIMOTE_DOWN         = 30;
+		public static final int WIIMOTE_LEFT         = 31;
+		public static final int WIIMOTE_RIGHT        = 32;
 	}
 
 	/**
@@ -132,9 +148,13 @@ public final class NativeLibrary
 
 	public static native String GetDescription(String filename);
 	public static native String GetGameId(String filename);
-	public static native String GetDate(String filename);
+
+	public static native int GetCountry(String filename);
+
+	public static native String GetCompany(String filename);
 	public static native long GetFilesize(String filename);
-	public static native boolean IsWiiTitle(String filename);
+
+	public static native int GetPlatform(String filename);
 
 	/**
 	 * Gets the Dolphin version string.
@@ -202,8 +222,41 @@ public final class NativeLibrary
 	/** Stops emulation. */
 	public static native void StopEmulation();
 
+	/**
+	 * Enables or disables CPU block profiling
+	 * @param enable
+	 */
+	public static native void SetProfiling(boolean enable);
+
+	/**
+	 * Writes out the block profile results
+	 */
+	public static native void WriteProfileResults();
+
+	/**
+	 * @return If we have an alert
+	 */
+	public static native boolean HasAlertMsg();
+
+	/**
+	 * @return The alert string
+	 */
+	public static native String GetAlertMsg();
+
+	/**
+	 * Clears event in the JNI so we can continue onward
+	 */
+	public static native void ClearAlertMsg();
+
 	/** Native EGL functions not exposed by Java bindings **/
 	public static native void eglBindAPI(int api);
+
+	/**
+	 * The methods C++ uses to find references to Java classes and methods
+	 * are really expensive. Rather than calling them every time we want to
+	 * run them, do it once when we load the native library.
+	 */
+	private static native void CacheClassesAndMethods();
 
 	static
 	{
@@ -215,5 +268,32 @@ public final class NativeLibrary
 		{
 			Log.e("NativeLibrary", ex.toString());
 		}
+
+		CacheClassesAndMethods();
+	}
+
+	public static void displayAlertMsg(final String alert)
+	{
+		Log.e("DolphinEmu", "Alert: " + alert);
+		mEmulationActivity.runOnUiThread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				Toast.makeText(mEmulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show();
+			}
+		});
+	}
+
+	public static void endEmulationActivity()
+	{
+		Log.v("DolphinEmu", "Ending EmulationActivity.");
+		mEmulationActivity.exitWithAnimation();
+	}
+
+	public static void setEmulationActivity(EmulationActivity emulationActivity)
+	{
+		Log.v("DolphinEmu", "Registering EmulationActivity.");
+		mEmulationActivity = emulationActivity;
 	}
 }

@@ -1,8 +1,12 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2015 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstdio>
+
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #include "Common/Logging/ConsoleListener.h"
 

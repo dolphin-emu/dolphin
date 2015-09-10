@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonPaths.h"
@@ -57,14 +57,17 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 	// Write necessary values
 	// Here we write values to memory that the apploader does not take care of. Game info goes
 	// to 0x80000000 according to YAGCD 4.2.
-	DVDInterface::DVDRead(/*offset*/0x00000000, /*address*/0x00000000, 0x20, false); // write disc info
+
+	// It's possible to boot DOL and ELF files without a disc inserted
+	if (DVDInterface::VolumeIsValid())
+		DVDInterface::DVDRead(/*offset*/0x00000000, /*address*/0x00000000, 0x20, false); // write disc info
 
 	PowerPC::HostWrite_U32(0x0D15EA5E, 0x80000020); // Booted from bootrom. 0xE5207C22 = booted from jtag
 	PowerPC::HostWrite_U32(Memory::REALRAM_SIZE, 0x80000028); // Physical Memory Size (24MB on retail)
 	// TODO determine why some games fail when using a retail ID. (Seem to take different EXI paths, see Ikaruga for example)
 	PowerPC::HostWrite_U32(0x10000006, 0x8000002C); // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
 
-	PowerPC::HostWrite_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC
+	PowerPC::HostWrite_U32(SConfig::GetInstance().bNTSC
 						 ? 0 : 1, 0x800000CC); // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
 
 	PowerPC::HostWrite_U32(0x01000000, 0x800000d0); // ARAM Size. 16MB main + 4/16/32MB external (retail consoles have no external ARAM)
@@ -82,6 +85,9 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 
 	HLE::Patch(0x81300000, "OSReport"); // HLE OSReport for Apploader
 
+	if (!DVDInterface::VolumeIsValid())
+		return false;
+
 	// Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
 	// but the size can differ between discs. Compare with YAGCD chap 13.
 	const DiscIO::IVolume& volume = DVDInterface::GetVolume();
@@ -96,7 +102,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 	DVDInterface::DVDRead(iAppLoaderOffset + 0x20, 0x01200000, iAppLoaderSize, false);
 
 	// Setup pointers like real BS2 does
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC)
+	if (SConfig::GetInstance().bNTSC)
 	{
 		PowerPC::ppcState.gpr[1] = 0x81566550;  // StackPointer, used to be set to 0x816ffff0
 		PowerPC::ppcState.gpr[2] = 0x81465cc0;  // Global pointer to Small Data Area 2 Base (haven't seen anything use it...meh)
@@ -169,21 +175,24 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 {
 	static const CountrySetting SETTING_EUROPE = {"EUR", "PAL",  "EU", "LE"};
+	static const CountrySetting SETTING_USA    = {"USA", "NTSC", "US", "LU"};
+	static const CountrySetting SETTING_JAPAN  = {"JPN", "NTSC", "JP", "LJ"};
+	static const CountrySetting SETTING_KOREA  = {"KOR", "NTSC", "KR", "LKH"};
 	static const std::map<DiscIO::IVolume::ECountry, const CountrySetting> country_settings = {
 		{DiscIO::IVolume::COUNTRY_EUROPE, SETTING_EUROPE},
-		{DiscIO::IVolume::COUNTRY_USA,    {"USA", "NTSC", "US", "LU"}},
-		{DiscIO::IVolume::COUNTRY_JAPAN,  {"JPN", "NTSC", "JP", "LJ"}},
-		{DiscIO::IVolume::COUNTRY_KOREA,  {"KOR", "NTSC", "KR", "LKH"}},
+		{DiscIO::IVolume::COUNTRY_USA,    SETTING_USA},
+		{DiscIO::IVolume::COUNTRY_JAPAN,  SETTING_JAPAN},
+		{DiscIO::IVolume::COUNTRY_KOREA,  SETTING_KOREA},
 		//TODO: Determine if Taiwan have their own specific settings.
 		//      Also determine if there are other specific settings
 		//      for other countries.
-		{DiscIO::IVolume::COUNTRY_TAIWAN, {"JPN", "NTSC", "JP", "LJ"}}
+		{DiscIO::IVolume::COUNTRY_TAIWAN, SETTING_JAPAN}
 	};
 	auto entryPos = country_settings.find(country);
 	const CountrySetting& country_setting =
 		(entryPos != country_settings.end()) ?
 		  entryPos->second :
-		  SETTING_EUROPE; //Default to EUROPE
+		  (SConfig::GetInstance().bNTSC ? SETTING_USA : SETTING_EUROPE); // default to USA or EUR depending on game's video mode
 
 	SettingsHandler gen;
 	std::string serno;
@@ -202,7 +211,10 @@ bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 
 	if (serno.empty() || serno == "000000000")
 	{
-		serno = gen.generateSerialNumber();
+		if (Core::g_want_determinism)
+			serno = "123456789";
+		else
+			serno = gen.generateSerialNumber();
 		INFO_LOG(BOOT, "No previous serial number found, generated one instead: %s", serno.c_str());
 	}
 	else
@@ -226,7 +238,7 @@ bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 
 		if (!settingsFileHandle.WriteBytes(gen.GetData(), SettingsHandler::SETTINGS_SIZE))
 		{
-			PanicAlertT("SetupWiiMemory: Cant create setting.txt file");
+			PanicAlertT("SetupWiiMemory: Can't create setting.txt file");
 			return false;
 		}
 		// Write the 256 byte setting.txt to memory.
@@ -237,7 +249,7 @@ bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 
 	/*
 	Set hardcoded global variables to Wii memory. These are partly collected from
-	Wiibrew. These values are needed for the games to function correctly. A few
+	WiiBrew. These values are needed for the games to function correctly. A few
 	values in this region will also be placed here by the game as it boots.
 	They are:
 	0x80000038  Start of FST
@@ -294,7 +306,7 @@ bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 	Memory::Write_U32(0x80000000, 0x00003184);                  // GameID Address
 
 	// Fake the VI Init of the IPL
-	Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);
+	Memory::Write_U32(SConfig::GetInstance().bNTSC ? 0 : 1, 0x000000CC);
 
 	// Clear exception handler. Why? Don't we begin with only zeros?
 	for (int i = 0x3000; i <= 0x3038; i += 4)
@@ -312,7 +324,7 @@ bool CBoot::EmulatedBS2_Wii()
 {
 	INFO_LOG(BOOT, "Faking Wii BS2...");
 
-	// setup Wii memory
+	// Setup Wii memory
 	DiscIO::IVolume::ECountry country_code = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	if (DVDInterface::VolumeIsValid())
 		country_code = DVDInterface::GetVolume().GetCountry();
@@ -321,7 +333,7 @@ bool CBoot::EmulatedBS2_Wii()
 
 	// Execute the apploader
 	bool apploaderRan = false;
-	if (DVDInterface::VolumeIsValid() && DVDInterface::GetVolume().IsWiiDisc())
+	if (DVDInterface::VolumeIsValid() && DVDInterface::GetVolume().GetVolumeType() == DiscIO::IVolume::WII_DISC)
 	{
 		// This is some kind of consistency check that is compared to the 0x00
 		// values as the game boots. This location keep the 4 byte ID for as long

@@ -1,3 +1,7 @@
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 /* $VER: ppc_disasm.c V1.5 (27.05.2009)
  *
  * Disassembler module for the PowerPC microprocessor family
@@ -2204,7 +2208,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 				if ((in & 0x02010000) == 0)
 				{
 					m_opcode = StringFromFormat("mtfsf%s", rcsel[in & 1]);
-					m_operands = StringFromFormat("0x%x,%u", (unsigned int)(in & 0x01fe) >> 17, (int)PPCGETB(in));
+					m_operands = StringFromFormat("0x%x,%u", (unsigned int)(in >> 17) & 0x01fe, (unsigned int)PPCGETB(in));
 				}
 				else
 				{

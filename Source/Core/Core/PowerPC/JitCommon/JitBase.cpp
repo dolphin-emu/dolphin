@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <sstream>
@@ -20,11 +20,8 @@ void Jit(u32 em_address)
 
 u32 Helper_Mask(u8 mb, u8 me)
 {
-	return (((mb > me) ?
-		~(((u32)-1 >> mb) ^ ((me >= 31) ? 0 : (u32) -1 >> (me + 1)))
-		:
-		(((u32)-1 >> mb) ^ ((me >= 31) ? 0 : (u32) -1 >> (me + 1))))
-		);
+	u32 mask = ((u32)-1 >> mb) ^ (me >= 31 ? 0 : (u32)-1 >> (me + 1));
+	return mb > me ? ~mask : mask;
 }
 
 void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *normalEntry, JitBlock *b)
@@ -45,11 +42,7 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *no
 	while ((u8*)disasmPtr < end)
 	{
 		char sptr[1000] = "";
-#if _ARCH_64
 		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
-#else
-		disasmPtr += x64disasm.disasm32(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
-#endif
 		DEBUG_LOG(DYNA_REC,"IR_X86 x86: %s", sptr);
 	}
 
@@ -74,7 +67,7 @@ bool JitBase::MergeAllowedNextInstructions(int count)
 	// Be careful: a breakpoint kills flags in between instructions
 	for (int i = 1; i <= count; i++)
 	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging &&
+		if (SConfig::GetInstance().bEnableDebugging &&
 			PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
 			return false;
 		if (js.op[i].isBranchTarget)
@@ -86,9 +79,9 @@ bool JitBase::MergeAllowedNextInstructions(int count)
 void JitBase::UpdateMemoryOptions()
 {
 	bool any_watchpoints = PowerPC::memchecks.HasAny();
-	jo.fastmem = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
+	jo.fastmem = SConfig::GetInstance().bFastmem &&
 	             !any_watchpoints;
-	jo.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU ||
+	jo.memcheck = SConfig::GetInstance().bMMU ||
 	              any_watchpoints;
 	jo.alwaysUseMemFuncs = any_watchpoints;
 

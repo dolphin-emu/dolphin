@@ -1,3 +1,7 @@
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include <chrono>
 
 #include "Common/CommonTypes.h"
@@ -8,7 +12,7 @@
 // include order is important
 #include <gtest/gtest.h> // NOLINT
 
-#if _M_X86_64 || _M_ARM_32
+#if _M_X86_64
 enum
 {
 #ifdef _WIN32

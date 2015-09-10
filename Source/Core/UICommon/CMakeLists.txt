@@ -1,4 +1,5 @@
-set(SRCS UICommon.cpp)
+set(SRCS Disassembler.cpp
+         UICommon.cpp)
 
 set(LIBS common)
 

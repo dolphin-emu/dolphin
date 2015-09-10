@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -17,7 +17,7 @@ class PointerWrap;
 class MemoryCard : public MemoryCardBase
 {
 public:
-	MemoryCard(std::string filename, int _card_index, u16 sizeMb = MemCard2043Mb);
+	MemoryCard(const std::string& filename, int _card_index, u16 sizeMb = MemCard2043Mb);
 	~MemoryCard();
 	void FlushThread();
 	void MakeDirty();

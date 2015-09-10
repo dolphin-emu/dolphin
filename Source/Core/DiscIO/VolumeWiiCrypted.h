@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -23,21 +23,21 @@ class IBlobReader;
 class CVolumeWiiCrypted : public IVolume
 {
 public:
-	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
+	CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
 	~CVolumeWiiCrypted();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
 	bool GetTitleID(u8* _pBuffer) const override;
-	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const override;
+	std::unique_ptr<u8[]> GetTMD(u32 *_sz) const override;
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
-	int GetRevision() const override;
-	std::string GetName() const override;
-	std::map<IVolume::ELanguage, std::string> GetNames() const override;
+	u16 GetRevision() const override;
+	std::string GetInternalName() const override;
+	std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
 	u32 GetFSTSize() const override;
 	std::string GetApploaderDate() const override;
+	u8 GetDiscNumber() const override;
 
-	bool IsDiscTwo() const override;
-	bool IsWiiDisc() const override;
+	EPlatform GetVolumeType() const override;
 	bool SupportsIntegrityCheck() const override { return true; }
 	bool CheckIntegrity() const override;
 	bool ChangePartition(u64 offset) override;

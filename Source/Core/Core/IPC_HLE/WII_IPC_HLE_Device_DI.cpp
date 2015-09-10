@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cinttypes>
@@ -115,7 +115,7 @@ void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt
 {
 	if (m_commands_to_execute.empty())
 	{
-		PanicAlertT("WII_IPC_HLE_Device_DI tried to reply to non-existing command");
+		PanicAlert("WII_IPC_HLE_Device_DI: There is no command to execute!");
 		return;
 	}
 
@@ -162,7 +162,7 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 			u64 const partition_offset = ((u64)Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address + 4) << 2);
 			DVDInterface::ChangePartition(partition_offset);
 
-			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
+			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016llx", partition_offset);
 
 			// Read TMD to the buffer
 			u32 tmd_size;

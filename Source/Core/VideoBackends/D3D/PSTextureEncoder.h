@@ -1,10 +1,12 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2011 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include "VideoBackends/D3D/TextureEncoder.h"
+
+#include "VideoCommon/TextureCacheBase.h"
 
 struct ID3D11Texture2D;
 struct ID3D11RenderTargetView;
@@ -29,7 +31,7 @@ public:
 
 	void Init();
 	void Shutdown();
-	size_t Encode(u8* dst, unsigned int dstFormat,
+	void Encode(u8* dst, const TextureCache::TCacheEntryBase *texture_entry,
 	              PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	              bool isIntensity, bool scaleByHalf);
 

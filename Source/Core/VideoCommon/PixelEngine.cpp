@@ -1,15 +1,17 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
 // http://www.nvidia.com/object/General_FAQ.html#t6 !!!!!
 
+#include <atomic>
 
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/State.h"
 #include "Core/HW/MMIO.h"
@@ -99,14 +101,11 @@ static UPEAlphaReadReg     m_AlphaRead;
 static UPECtrlReg          m_Control;
 //static u16                 m_Token; // token value most recently encountered
 
-static volatile u32 g_bSignalTokenInterrupt;
-static volatile u32 g_bSignalFinishInterrupt;
+static std::atomic<u32> s_signal_token_interrupt;
+static std::atomic<u32> s_signal_finish_interrupt;
 
 static int et_SetTokenOnMainThread;
 static int et_SetFinishOnMainThread;
-
-static volatile u32 interruptSetToken = 0;
-static volatile u32 interruptSetFinish = 0;
 
 enum
 {
@@ -123,10 +122,8 @@ void DoState(PointerWrap &p)
 	p.Do(m_AlphaRead);
 	p.DoPOD(m_Control);
 
-	p.Do(g_bSignalTokenInterrupt);
-	p.Do(g_bSignalFinishInterrupt);
-	p.Do(interruptSetToken);
-	p.Do(interruptSetFinish);
+	p.Do(s_signal_token_interrupt);
+	p.Do(s_signal_finish_interrupt);
 }
 
 void UpdateInterrupts();
@@ -144,10 +141,8 @@ void Init()
 	m_AlphaModeConf.Hex = 0;
 	m_AlphaRead.Hex = 0;
 
-	g_bSignalTokenInterrupt = 0;
-	g_bSignalFinishInterrupt = 0;
-	interruptSetToken = 0;
-	interruptSetFinish = 0;
+	s_signal_token_interrupt.store(0);
+	s_signal_finish_interrupt.store(0);
 
 	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
 	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
@@ -209,8 +204,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
 			UPECtrlReg tmpCtrl(val);
 
-			if (tmpCtrl.PEToken)  g_bSignalTokenInterrupt = 0;
-			if (tmpCtrl.PEFinish) g_bSignalFinishInterrupt = 0;
+			if (tmpCtrl.PEToken)
+				s_signal_token_interrupt.store(0);
+
+			if (tmpCtrl.PEFinish)
+				s_signal_finish_interrupt.store(0);
 
 			m_Control.PETokenEnable  = tmpCtrl.PETokenEnable;
 			m_Control.PEFinishEnable = tmpCtrl.PEFinishEnable;
@@ -244,22 +242,20 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 void UpdateInterrupts()
 {
 	// check if there is a token-interrupt
-	UpdateTokenInterrupt((g_bSignalTokenInterrupt & m_Control.PETokenEnable));
+	UpdateTokenInterrupt((s_signal_token_interrupt.load() & m_Control.PETokenEnable) != 0);
 
 	// check if there is a finish-interrupt
-	UpdateFinishInterrupt((g_bSignalFinishInterrupt & m_Control.PEFinishEnable));
+	UpdateFinishInterrupt((s_signal_finish_interrupt.load() & m_Control.PEFinishEnable) != 0);
 }
 
 void UpdateTokenInterrupt(bool active)
 {
 	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
-	Common::AtomicStore(interruptSetToken, active ? 1 : 0);
 }
 
 void UpdateFinishInterrupt(bool active)
 {
 	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
-	Common::AtomicStore(interruptSetFinish, active ? 1 : 0);
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
@@ -276,17 +272,19 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 	INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
 	if (userdata >> 16)
 	{
-		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
+		s_signal_token_interrupt.store(1);
 		UpdateInterrupts();
 	}
-	CommandProcessor::interruptTokenWaiting = false;
+	CommandProcessor::SetInterruptTokenWaiting(false);
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
-	Common::AtomicStore(*(volatile u32*)&g_bSignalFinishInterrupt, 1);
+	s_signal_finish_interrupt.store(1);
 	UpdateInterrupts();
-	CommandProcessor::interruptFinishWaiting = false;
+	CommandProcessor::SetInterruptFinishWaiting(false);
+
+	Core::FrameUpdateOnCPUThread();
 }
 
 // SetToken
@@ -295,11 +293,12 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 {
 	if (_bSetTokenAcknowledge) // set token INT
 	{
-		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
+		s_signal_token_interrupt.store(1);
 	}
 
-	CommandProcessor::interruptTokenWaiting = true;
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || g_use_deterministic_gpu_thread)
+	CommandProcessor::SetInterruptTokenWaiting(true);
+
+	if (!SConfig::GetInstance().bCPUThread || g_use_deterministic_gpu_thread)
 		CoreTiming::ScheduleEvent(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 	else
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
@@ -309,11 +308,13 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 // THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
 void SetFinish()
 {
-	CommandProcessor::interruptFinishWaiting = true;
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || g_use_deterministic_gpu_thread)
+	CommandProcessor::SetInterruptFinishWaiting(true);
+
+	if (!SConfig::GetInstance().bCPUThread || g_use_deterministic_gpu_thread)
 		CoreTiming::ScheduleEvent(0, et_SetFinishOnMainThread, 0);
 	else
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
+
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 

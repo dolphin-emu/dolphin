@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -71,7 +71,6 @@ enum
 	OPTYPE_SINGLEFP,
 	OPTYPE_LOADPS  ,
 	OPTYPE_STOREPS ,
-	OPTYPE_FPU     ,
 	OPTYPE_PS      ,
 	OPTYPE_DCACHE  ,
 	OPTYPE_ICACHE  ,
@@ -101,7 +100,7 @@ extern GekkoOPInfo *m_allInstructions[512];
 extern int m_numInstructions;
 
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst);
-Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
+Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst);
 
 namespace PPCTables
 {

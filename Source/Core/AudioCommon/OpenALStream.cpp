@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <thread>
@@ -23,6 +23,7 @@ static soundtouch::SoundTouch soundTouch;
 //
 bool OpenALStream::Start()
 {
+	m_run_thread.store(true);
 	bool bReturn = false;
 
 	ALDeviceList pDeviceList;
@@ -72,7 +73,7 @@ bool OpenALStream::Start()
 
 void OpenALStream::Stop()
 {
-	threadData = 1;
+	m_run_thread.store(false);
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
 
@@ -128,7 +129,7 @@ void OpenALStream::SoundLoop()
 {
 	Common::SetCurrentThreadName("Audio thread - openal");
 
-	bool surround_capable = SConfig::GetInstance().m_LocalCoreStartupParameter.bDPL2Decoder;
+	bool surround_capable = SConfig::GetInstance().bDPL2Decoder;
 #if defined(__APPLE__)
 	bool float32_capable = false;
 	const ALenum AL_FORMAT_STEREO_FLOAT32 = 0;
@@ -140,7 +141,7 @@ void OpenALStream::SoundLoop()
 #endif
 
 	u32 ulFrequency = m_mixer->GetSampleRate();
-	numBuffers = SConfig::GetInstance().m_LocalCoreStartupParameter.iLatency + 2; // OpenAL requires a minimum of two buffers
+	numBuffers = SConfig::GetInstance().iLatency + 2; // OpenAL requires a minimum of two buffers
 
 	memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
 	uiSource = 0;
@@ -183,7 +184,7 @@ void OpenALStream::SoundLoop()
 	soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 28);
 	soundTouch.setSetting(SETTING_OVERLAP_MS, 12);
 
-	while (!threadData)
+	while (m_run_thread.load())
 	{
 		// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
 		const u32 stereo_16_bit_size = 4;
@@ -294,7 +295,7 @@ void OpenALStream::SoundLoop()
 					// Convert the samples from float to short
 					short stereo[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
 					for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
-						stereo[i] = (short)((float)sampleBuffer[i] * (1 << 16));
+						stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
 
 					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * FRAME_STEREO_SHORT, ulFrequency);
 				}

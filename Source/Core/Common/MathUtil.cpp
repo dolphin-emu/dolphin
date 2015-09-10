@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -209,23 +209,23 @@ double ApproximateReciprocal(double val)
 
 	// Special case 0
 	if (mantissa == 0 && exponent == 0)
-		return sign ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity();
+		return std::copysign(std::numeric_limits<double>::infinity(), valf);
 
 	// Special case NaN-ish numbers
 	if (exponent == (0x7FFLL << 52))
 	{
 		if (mantissa == 0)
-			return sign ? -0.0 : 0.0;
+			return std::copysign(0.0, valf);
 		return 0.0 + valf;
 	}
 
 	// Special case small inputs
 	if (exponent < (895LL << 52))
-		return sign ? -std::numeric_limits<float>::max() : std::numeric_limits<float>::max();
+		return std::copysign(std::numeric_limits<float>::max(), valf);
 
 	// Special case large inputs
 	if (exponent >= (1149LL << 52))
-		return sign ? -0.0f : 0.0f;
+		return std::copysign(0.0, valf);
 
 	exponent = (0x7FDLL << 52) - exponent;
 
@@ -265,6 +265,24 @@ void Matrix33::LoadIdentity(Matrix33 &mtx)
 	mtx.data[0] = 1.0f;
 	mtx.data[4] = 1.0f;
 	mtx.data[8] = 1.0f;
+}
+
+void Matrix33::LoadQuaternion(Matrix33 &mtx, const Quaternion &quat)
+{
+	const float qw = quat.data[0], qx = quat.data[1], qy = quat.data[2], qz = quat.data[3];
+	const float ww = qw * qw, xx = qx * qx, yy = qy * qy, zz = qz * qz;
+
+	mtx.data[0] = ww + xx - yy - zz;
+	mtx.data[1] = 2.0f * (qx * qy - qw * qz);
+	mtx.data[2] = 2.0f * (qx * qz + qw * qy);
+
+	mtx.data[3] = 2.0f * (qx * qy + qw * qz);
+	mtx.data[4] = ww - xx + yy - zz;
+	mtx.data[5] = 2.0f * (qy * qz - qw * qx);
+
+	mtx.data[6] = 2.0f * (qx * qz - qw * qy);
+	mtx.data[7] = 2.0f * (qy * qz + qw * qx);
+	mtx.data[8] = ww - xx - yy + zz;
 }
 
 void Matrix33::RotateX(Matrix33 &mtx, float rad)
@@ -399,3 +417,36 @@ void Matrix44::Multiply(const Matrix44 &a, const Matrix44 &b, Matrix44 &result)
 	MatrixMul(4, a.data, b.data, result.data);
 }
 
+void Quaternion::LoadIdentity(Quaternion &quat)
+{
+	quat.data[0] = 1.0f;
+	quat.data[1] = 0.0f;
+	quat.data[2] = 0.0f;
+	quat.data[3] = 0.0f;
+}
+
+void Quaternion::Set(Quaternion &quat, const float quatArray[4])
+{
+	for (int i = 0; i < 4; ++i)
+	{
+		quat.data[i] = quatArray[i];
+	}
+}
+
+void Quaternion::Invert(Quaternion &quat)
+{
+	quat.data[1] *= -1;
+	quat.data[2] *= -1;
+	quat.data[3] *= -1;
+}
+
+void Quaternion::Multiply(const Quaternion &a, const Quaternion &b, Quaternion &result)
+{
+	const float aw = a.data[0], ax = a.data[1], ay = a.data[2], az = a.data[3];
+	const float bw = b.data[0], bx = b.data[1], by = b.data[2], bz = b.data[3];
+
+	result.data[0] = aw * bw - ax * bx - ay * by - az * bz;
+	result.data[1] = aw * bx + ax * bw + ay * bz - az * by;
+	result.data[2] = aw * by - ax * bz + ay * bw + az * bx;
+	result.data[3] = aw * bz + ax * by - ay * bx + az * bw;
+}

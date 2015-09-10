@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -27,7 +27,8 @@ enum
 	CORE_JIT64,
 	CORE_JITIL64,
 	CORE_JITARM,
-	CORE_JITARM64
+	CORE_JITARM64,
+	CORE_CACHEDINTERPRETER,
 };
 
 enum CoreMode
@@ -156,13 +157,12 @@ void RunLoop();
 void Start();
 void Pause();
 void Stop();
+void FinishStateMove();
 CPUState GetState();
 volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern declaration to easily be able to find all direct accesses throughout the code.
 
 u32 CompactCR();
 void ExpandCR(u32 cr);
-
-void OnIdle();
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 

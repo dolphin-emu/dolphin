@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -19,6 +19,15 @@ class IVolume
 {
 public:
 	// Increment CACHE_REVISION if the enums below are modified (ISOFile.cpp & GameFile.cpp)
+	enum EPlatform
+	{
+		GAMECUBE_DISC = 0,
+		WII_DISC,
+		WII_WAD,
+		ELF_DOL,
+		NUMBER_OF_PLATFORMS
+	};
+
 	enum ECountry
 	{
 		COUNTRY_EUROPE = 0,
@@ -75,18 +84,18 @@ public:
 	}
 	virtual std::string GetUniqueID() const = 0;
 	virtual std::string GetMakerID() const = 0;
-	virtual int GetRevision() const = 0;
-	virtual std::string GetName() const = 0;
-	virtual std::map<ELanguage, std::string> GetNames() const = 0;
+	virtual u16 GetRevision() const = 0;
+	virtual std::string GetInternalName() const = 0;
+	virtual std::map<ELanguage, std::string> GetNames(bool prefer_long) const = 0;
 	virtual std::map<ELanguage, std::string> GetDescriptions() const { return std::map<ELanguage, std::string>(); }
 	virtual std::string GetCompany() const { return std::string(); }
 	virtual std::vector<u32> GetBanner(int* width, int* height) const;
 	virtual u32 GetFSTSize() const = 0;
 	virtual std::string GetApploaderDate() const = 0;
+	// 0 is the first disc, 1 is the second disc
+	virtual u8 GetDiscNumber() const { return 0; }
 
-	virtual bool IsDiscTwo() const { return false; }
-	virtual bool IsWiiDisc() const { return false; }
-	virtual bool IsWadFile() const { return false; }
+	virtual EPlatform GetVolumeType() const = 0;
 	virtual bool SupportsIntegrityCheck() const { return false; }
 	virtual bool CheckIntegrity() const { return false; }
 	virtual bool ChangePartition(u64 offset) { return false; }
@@ -114,7 +123,7 @@ protected:
 			return CP1252ToUTF8(string);
 	}
 
-	static std::map<IVolume::ELanguage, std::string> ReadWiiNames(std::vector<u8>& data);
+	static std::map<IVolume::ELanguage, std::string> ReadWiiNames(const std::vector<u8>& data);
 
 	static const size_t NUMBER_OF_LANGUAGES = 10;
 	static const size_t NAME_STRING_LENGTH = 42;
@@ -125,5 +134,6 @@ protected:
 // Generic Switch function for all volumes
 IVolume::ECountry CountrySwitch(u8 country_code);
 u8 GetSysMenuRegion(u16 _TitleVersion);
+std::string GetCompanyFromID(const std::string& company_id);
 
 } // namespace

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -16,6 +16,7 @@ extern  GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
 
 enum TextureFormat
 {
+	// These are the texture formats that can be read by the texture mapper.
 	GX_TF_I4     = 0x0,
 	GX_TF_I8     = 0x1,
 	GX_TF_IA4    = 0x2,
@@ -28,14 +29,21 @@ enum TextureFormat
 	GX_TF_C14X2  = 0xA,
 	GX_TF_CMPR   = 0xE,
 
-	_GX_TF_CTF   = 0x20,  // copy-texture-format only (simply means linear?)
-	_GX_TF_ZTF   = 0x10,  // Z-texture-format
+	_GX_TF_ZTF = 0x10,  // flag for Z texture formats (used internally by dolphin)
 
-	// these formats are also valid when copying targets
+	// Depth texture formats (which directly map to the equivalent colour format above.)
+	GX_TF_Z8     = 0x1 | _GX_TF_ZTF,
+	GX_TF_Z16    = 0x3 | _GX_TF_ZTF,
+	GX_TF_Z24X8  = 0x6 | _GX_TF_ZTF,
+
+	_GX_TF_CTF   = 0x20,  // flag for copy-texture-format only (used internally by dolphin)
+
+	// These are extra formats that can be used when copying from efb,
+	// they use one of texel formats from above, but pack diffrent data into them.
 	GX_CTF_R4    = 0x0 | _GX_TF_CTF,
 	GX_CTF_RA4   = 0x2 | _GX_TF_CTF,
 	GX_CTF_RA8   = 0x3 | _GX_TF_CTF,
-	GX_CTF_YUVA8 = 0x6 | _GX_TF_CTF,
+	GX_CTF_YUVA8 = 0x6 | _GX_TF_CTF, // YUV 4:4:4 - Dolphin doesn't implement this format as no commercial games use it
 	GX_CTF_A8    = 0x7 | _GX_TF_CTF,
 	GX_CTF_R8    = 0x8 | _GX_TF_CTF,
 	GX_CTF_G8    = 0x9 | _GX_TF_CTF,
@@ -43,13 +51,12 @@ enum TextureFormat
 	GX_CTF_RG8   = 0xB | _GX_TF_CTF,
 	GX_CTF_GB8   = 0xC | _GX_TF_CTF,
 
-	GX_TF_Z8     = 0x1 | _GX_TF_ZTF,
-	GX_TF_Z16    = 0x3 | _GX_TF_ZTF,
-	GX_TF_Z24X8  = 0x6 | _GX_TF_ZTF,
-
+	// extra depth texture formats that can be used for efb copies.
 	GX_CTF_Z4    = 0x0 | _GX_TF_ZTF | _GX_TF_CTF,
+	GX_CTF_Z8H   = 0x8 | _GX_TF_ZTF | _GX_TF_CTF, // This produces an identical result to to GX_TF_Z8
 	GX_CTF_Z8M   = 0x9 | _GX_TF_ZTF | _GX_TF_CTF,
 	GX_CTF_Z8L   = 0xA | _GX_TF_ZTF | _GX_TF_CTF,
+	GX_CTF_Z16R  = 0xB | _GX_TF_ZTF | _GX_TF_CTF, // Reversed version of GX_TF_Z16
 	GX_CTF_Z16L  = 0xC | _GX_TF_ZTF | _GX_TF_CTF,
 };
 

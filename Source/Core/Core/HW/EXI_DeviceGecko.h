@@ -1,9 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <atomic>
 #include <deque>
 #include <memory>
 #include <mutex>
@@ -31,14 +32,14 @@ public:
 	std::deque<u8> recv_fifo;
 
 private:
-	static int    client_count;
-	volatile bool client_running;
+	static int        client_count;
+	std::atomic<bool> client_running;
 
 	// Only ever one server thread
 	static void GeckoConnectionWaiter();
 
 	static u16                       server_port;
-	static volatile bool             server_running;
+	static std::atomic<bool>         server_running;
 	static std::thread               connectionThread;
 	static std::mutex                connection_lock;
 	static std::queue<std::unique_ptr<sf::TcpSocket>> waiting_socks;

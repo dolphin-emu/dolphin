@@ -1,12 +1,14 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <type_traits>
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -27,7 +29,7 @@ __forceinline void LOG_TEX<2>()
 	// PRIM_LOG("tex: %f %f, ", ((float*)g_vertex_manager_write_ptr)[-2], ((float*)g_vertex_manager_write_ptr)[-1]);
 }
 
-static void LOADERDECL TexCoord_Read_Dummy(VertexLoader* loader)
+static void TexCoord_Read_Dummy(VertexLoader* loader)
 {
 	loader->m_tcIndex++;
 }
@@ -45,7 +47,7 @@ float TCScale(float val, float scale)
 }
 
 template <typename T, int N>
-void LOADERDECL TexCoord_ReadDirect(VertexLoader* loader)
+void TexCoord_ReadDirect(VertexLoader* loader)
 {
 	auto const scale = loader->m_tcScale[loader->m_tcIndex];
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
@@ -62,12 +64,12 @@ void LOADERDECL TexCoord_ReadDirect(VertexLoader* loader)
 }
 
 template <typename I, typename T, int N>
-void LOADERDECL TexCoord_ReadIndex(VertexLoader* loader)
+void TexCoord_ReadIndex(VertexLoader* loader)
 {
 	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 
 	auto const index = DataRead<I>();
-	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + loader->m_tcIndex]
+	auto const data = reinterpret_cast<const T*>(VertexLoaderManager::cached_arraybases[ARRAY_TEXCOORD0 + loader->m_tcIndex]
 	                + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + loader->m_tcIndex]));
 	auto const scale = loader->m_tcScale[loader->m_tcIndex];
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);

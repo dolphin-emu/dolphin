@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
@@ -21,7 +21,6 @@
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
 #include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
@@ -80,7 +79,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	//      wxSize(20, 100), 0, nullptr, wxLB_SORT);
 	//sizerLeft->Add(symbols, 1, wxEXPAND);
 	memview = new CMemoryView(di, this);
-	memview->dataType = 0;
+
 	//sizerBig->Add(sizerLeft, 1, wxEXPAND);
 	sizerBig->Add(memview, 20, wxEXPAND);
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
@@ -92,7 +91,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _("Dump MRAM")));
 	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _("Dump EXRAM")));
 
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	if (!SConfig::GetInstance().bMMU)
 		sizerRight->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("Dump FakeVMEM")));
 
 	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
@@ -262,7 +261,7 @@ void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 // Write exram (aram or mem2) to file
 void CMemoryWindow::OnDumpMem2( wxCommandEvent& event )
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 	{
 		DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), Memory::m_pEXRAM, Memory::EXRAM_SIZE);
 	}
@@ -282,24 +281,21 @@ void CMemoryWindow::U8(wxCommandEvent& event)
 {
 	chk16->SetValue(0);
 	chk32->SetValue(0);
-	memview->dataType = 0;
-	memview->Refresh();
+	memview->SetDataType(MemoryDataType::U8);
 }
 
 void CMemoryWindow::U16(wxCommandEvent& event)
 {
 	chk8->SetValue(0);
 	chk32->SetValue(0);
-	memview->dataType = 1;
-	memview->Refresh();
+	memview->SetDataType(MemoryDataType::U16);
 }
 
 void CMemoryWindow::U32(wxCommandEvent& event)
 {
 	chk16->SetValue(0);
 	chk8->SetValue(0);
-	memview->dataType = 2;
-	memview->Refresh();
+	memview->SetDataType(MemoryDataType::U32);
 }
 
 void CMemoryWindow::onSearch(wxCommandEvent& event)

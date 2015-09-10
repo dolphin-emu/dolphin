@@ -1,5 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -17,6 +17,13 @@ public:
 	GeneralConfigPane(wxWindow* parent, wxWindowID id);
 
 private:
+
+	struct CPUCore
+	{
+		int CPUid;
+		wxString name;
+	};
+	std::vector<CPUCore> cpu_cores;
 	void InitializeGUI();
 	void LoadGUIValues();
 	void RefreshGUI();

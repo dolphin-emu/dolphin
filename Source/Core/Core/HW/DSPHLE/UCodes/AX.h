@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // High-level emulation for the AX GameCube UCode.
@@ -55,10 +55,9 @@ public:
 	AXUCode(DSPHLE* dsphle, u32 crc);
 	virtual ~AXUCode();
 
-	virtual void HandleMail(u32 mail) override;
-	virtual void Update() override;
-	virtual void DoState(PointerWrap& p) override;
-	u32 GetUpdateMs() override;
+	void HandleMail(u32 mail) override;
+	void Update() override;
+	void DoState(PointerWrap& p) override;
 
 protected:
 	enum MailType
@@ -83,9 +82,6 @@ protected:
 	int m_samples_auxB_left[32 * 5];
 	int m_samples_auxB_right[32 * 5];
 	int m_samples_auxB_surround[32 * 5];
-
-	// This flag is set if there is anything to process.
-	bool m_work_available;
 
 	u16 m_cmdlist[512];
 	u32 m_cmdlist_size;

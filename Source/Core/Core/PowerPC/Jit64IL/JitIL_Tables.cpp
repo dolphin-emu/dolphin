@@ -1,18 +1,18 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 
-// Should be moved in to the Jit class
-typedef void (JitIL::*_Instruction) (UGeckoInstruction instCode);
-
-static _Instruction dynaOpTable[64];
-static _Instruction dynaOpTable4[1024];
-static _Instruction dynaOpTable19[1024];
-static _Instruction dynaOpTable31[1024];
-static _Instruction dynaOpTable59[32];
-static _Instruction dynaOpTable63[1024];
+static JitIL::Instruction dynaOpTable[64];
+static JitIL::Instruction dynaOpTable4[1024];
+static JitIL::Instruction dynaOpTable19[1024];
+static JitIL::Instruction dynaOpTable31[1024];
+static JitIL::Instruction dynaOpTable59[32];
+static JitIL::Instruction dynaOpTable63[1024];
 
 void JitIL::DynaRunTable4(UGeckoInstruction _inst)  {(this->*dynaOpTable4 [_inst.SUBOP10])(_inst);}
 void JitIL::DynaRunTable19(UGeckoInstruction _inst) {(this->*dynaOpTable19[_inst.SUBOP10])(_inst);}
@@ -20,13 +20,10 @@ void JitIL::DynaRunTable31(UGeckoInstruction _inst) {(this->*dynaOpTable31[_inst
 void JitIL::DynaRunTable59(UGeckoInstruction _inst) {(this->*dynaOpTable59[_inst.SUBOP5 ])(_inst);}
 void JitIL::DynaRunTable63(UGeckoInstruction _inst) {(this->*dynaOpTable63[_inst.SUBOP10])(_inst);}
 
-
-
 struct GekkoOPTemplate
 {
 	int opcode;
-	_Instruction Inst;
-	//GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
+	JitIL::Instruction Inst;
 };
 
 static GekkoOPTemplate primarytable[] =
@@ -164,7 +161,6 @@ static GekkoOPTemplate table19[] =
 	{0,   &JitIL::mcrf},                  //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
 
 	{50,  &JitIL::rfi},                   //"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
-	{18,  &JitIL::FallBackToInterpreter}, //"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}
 };
 
 
@@ -308,7 +304,6 @@ static GekkoOPTemplate table31[] =
 	{438, &JitIL::FallBackToInterpreter},  //"ecowx",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{854, &JitIL::DoNothing},              //"eieio",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{306, &JitIL::FallBackToInterpreter},  //"tlbie",   OPTYPE_SYSTEM, 0}},
-	{370, &JitIL::FallBackToInterpreter},  //"tlbia",   OPTYPE_SYSTEM, 0}},
 	{566, &JitIL::DoNothing},              //"tlbsync", OPTYPE_SYSTEM, 0}},
 };
 
@@ -317,7 +312,6 @@ static GekkoOPTemplate table59[] =
 	{18, &JitIL::FallBackToInterpreter},       //{"fdivsx",  OPTYPE_FPU, FL_RC_BIT_F, 16}},
 	{20, &JitIL::fp_arith_s},                  //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{21, &JitIL::fp_arith_s},                  //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}},
-//	{22, &JitIL::FallBackToInterpreter},         //"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
 	{24, &JitIL::FallBackToInterpreter},       //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{25, &JitIL::fp_arith_s},                  //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{28, &JitIL::fmaddXX},                     //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}},
@@ -351,7 +345,6 @@ static GekkoOPTemplate table63_2[] =
 	{18, &JitIL::FallBackToInterpreter}, //"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
 	{20, &JitIL::FallBackToInterpreter}, //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{21, &JitIL::FallBackToInterpreter}, //"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{22, &JitIL::FallBackToInterpreter}, //"fsqrtx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{23, &JitIL::FallBackToInterpreter}, //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{25, &JitIL::fp_arith_s},            //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{26, &JitIL::FallBackToInterpreter}, //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},

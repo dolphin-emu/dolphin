@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstddef>
@@ -35,7 +35,7 @@ void CSharedContent::UpdateLocation()
 {
 	m_Elements.clear();
 	m_lastID = 0;
-	m_contentMap = StringFromFormat("%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX).c_str());
+	m_contentMap = StringFromFormat("%s/shared1/content.map", File::GetUserPath(D_WIIROOT_IDX).c_str());
 
 	File::IOFile pFile(m_contentMap, "rb");
 	SElement Element;
@@ -55,7 +55,7 @@ std::string CSharedContent::GetFilenameFromSHA1(const u8* _pHash)
 	{
 		if (memcmp(_pHash, Element.SHA1Hash, 20) == 0)
 		{
-			return StringFromFormat("%sshared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIUSER_IDX).c_str(),
+			return StringFromFormat("%s/shared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIROOT_IDX).c_str(),
 			    Element.FileName[0], Element.FileName[1], Element.FileName[2], Element.FileName[3],
 			    Element.FileName[4], Element.FileName[5], Element.FileName[6], Element.FileName[7]);
 		}
@@ -80,7 +80,7 @@ std::string CSharedContent::AddSharedContent(const u8* _pHash)
 		File::IOFile pFile(m_contentMap, "ab");
 		pFile.WriteArray(&Element, 1);
 
-		filename = StringFromFormat("%sshared1/%s.app", File::GetUserPath(D_WIIUSER_IDX).c_str(), id.c_str());
+		filename = StringFromFormat("%s/shared1/%s.app", File::GetUserPath(D_WIIROOT_IDX).c_str(), id.c_str());
 		m_lastID++;
 	}
 
@@ -371,7 +371,7 @@ void cUIDsys::UpdateLocation()
 {
 	m_Elements.clear();
 	m_lastUID = 0x00001000;
-	m_uidSys = StringFromFormat("%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
+	m_uidSys = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/sys/uid.sys";
 
 	File::IOFile pFile(m_uidSys, "rb");
 	SElement Element;
@@ -439,7 +439,7 @@ void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
 	}
 }
 
-u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
+u64 CNANDContentManager::Install_WiiWAD(const std::string& fileName)
 {
 	if (fileName.find(".wad") == std::string::npos)
 		return 0;

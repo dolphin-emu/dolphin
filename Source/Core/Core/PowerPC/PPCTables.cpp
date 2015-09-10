@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -63,7 +63,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 	}
 }
 
-Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
+Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
 {
 	const GekkoOPInfo *info = m_infoTable[_inst.OPCD];
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
@@ -161,8 +161,7 @@ void PrintInstructionRunCounts()
 		if (inst.second == 0)
 			break;
 
-		DEBUG_LOG(POWERPC, "%s : %" PRIu64, inst.first, inst.second);
-		//PanicAlert("%s : %llu", inst.first, inst.second);
+		DEBUG_LOG(POWERPC, "%s : %llu", inst.first, inst.second);
 	}
 }
 
@@ -176,7 +175,7 @@ void LogCompiledInstructions()
 		GekkoOPInfo *pInst = m_allInstructions[i];
 		if (pInst->compileCount > 0)
 		{
-			fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\t%08x\n", pInst->opname,
+			fprintf(f.GetHandle(), "%s\t%i\t%lld\t%08x\n", pInst->opname,
 				pInst->compileCount, pInst->runCount, pInst->lastUse);
 		}
 	}
@@ -187,7 +186,7 @@ void LogCompiledInstructions()
 		GekkoOPInfo *pInst = m_allInstructions[i];
 		if (pInst->compileCount == 0)
 		{
-			fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\n", pInst->opname,
+			fprintf(f.GetHandle(), "%s\t%i\t%lld\n", pInst->opname,
 				pInst->compileCount, pInst->runCount);
 		}
 	}

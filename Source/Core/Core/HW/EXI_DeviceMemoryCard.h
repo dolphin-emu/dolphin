@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -83,5 +83,5 @@ private:
 	std::unique_ptr<MemoryCardBase> memorycard;
 
 protected:
-	virtual void TransferByte(u8 &byte) override;
+	void TransferByte(u8& byte) override;
 };

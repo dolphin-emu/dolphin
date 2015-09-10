@@ -5,9 +5,13 @@
 #pragma once
 
 #include <list>
+#include <mutex>
 #include <string>
 
 #include "CommonTypes.h"
+
+namespace Common
+{
 
 class Profiler
 {
@@ -21,8 +25,11 @@ public:
 	void Stop();
 	std::string Read();
 
+	bool operator<(const Profiler& b) const;
+
 private:
 	static std::list<Profiler*> s_all_profilers;
+	static std::mutex s_mutex;
 	static u32 s_max_length;
 	static u64 s_frame_time;
 	static u64 s_usecs_frame;
@@ -55,5 +62,7 @@ private:
 	Profiler* m_p;
 };
 
+};
+
 // Warning: This profiler isn't thread safe. Only profile functions which doesn't run simultaneously
-#define PROFILE(name) static Profiler prof_gen(name); ProfilerExecuter prof_e(&prof_gen);
+#define PROFILE(name) static Common::Profiler prof_gen(name); Common::ProfilerExecuter prof_e(&prof_gen);

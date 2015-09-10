@@ -1,8 +1,11 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #include "Common/FileUtil.h"
 #include "Core/Core.h"
@@ -77,7 +80,7 @@ static s32 TranslateErrorCode(s32 native_error, bool isRW)
 	}
 }
 
-s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string caller, bool isRW)
+s32 WiiSockMan::GetNetErrorCode(s32 ret, const std::string& caller, bool isRW)
 {
 #ifdef _WIN32
 	s32 errorCode = WSAGetLastError();
@@ -562,11 +565,6 @@ void WiiSockMan::AddSocket(s32 fd)
 
 s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 {
-	if (Core::g_want_determinism)
-	{
-		return SO_ENOMEM;
-	}
-
 	s32 fd = (s32)socket(af, type, protocol);
 	s32 ret = GetNetErrorCode(fd, "NewSocket", false);
 	AddSocket(ret);

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -9,8 +9,10 @@
 namespace WiimoteEmu
 {
 
-// TODO: Move to header when VS supports constexpr.
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+// Moved to header file when VS supports constexpr.
 const ControlState Attachment::DEFAULT_ATTACHMENT_STICK_RADIUS = 1.0f;
+#endif
 
 // Extension device IDs to be written to the last bytes of the extension reg
 // The id for nothing inserted
@@ -49,4 +51,16 @@ void Attachment::Reset()
 void ControllerEmu::Extension::GetState(u8* const data)
 {
 	((WiimoteEmu::Attachment*)attachments[active_extension].get())->GetState(data);
+}
+
+bool ControllerEmu::Extension::IsButtonPressed() const
+{
+	// Extension == 0 means no Extension, > 0 means one is connected
+	// Since we want to use this to know if disconnected Wiimotes want to be connected, and disconnected
+	// Wiimotes (can? always?) have their active_extension set to -1, we also have to check the switch_extension
+	if (active_extension > 0)
+		return ((WiimoteEmu::Attachment*)attachments[active_extension].get())->IsButtonPressed();
+	if (switch_extension > 0)
+		return ((WiimoteEmu::Attachment*)attachments[switch_extension].get())->IsButtonPressed();
+	return false;
 }

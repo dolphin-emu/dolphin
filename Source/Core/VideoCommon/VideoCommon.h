@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -19,9 +19,10 @@ enum
 	EFB_HEIGHT = 528,
 };
 
-// XFB width is decided by EFB copy operation. The VI can do horizontal
-// scaling (TODO: emulate).
-const u32 MAX_XFB_WIDTH = EFB_WIDTH;
+// Max XFB width is 720. You can only copy out 640 wide areas of efb to XFB
+// so you need multiple copies to do the full width.
+// The VI can do horizontal scaling (TODO: emulate).
+const u32 MAX_XFB_WIDTH = 720;
 
 // Although EFB height is 528, 574-line XFB's can be created either with
 // vertical scaling by the EFB copy operation or copying to multiple XFB's

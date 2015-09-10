@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -60,7 +60,7 @@ public slots:
 
 private:
 	QMap<QString, GameFile*> m_games;
-	QFileSystemWatcher m_watcher;
+	QFileSystemWatcher* m_watcher;
 
 	GameListStyle m_current_style;
 	DGameGrid* m_grid_widget = nullptr;

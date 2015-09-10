@@ -2,9 +2,14 @@
 
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
                                     xmlns:tools="http://schemas.android.com/tools"
-                                    android:layout_width="200dp"
-                                    android:layout_height="250dp"
-                                    android:transitionName="card_game">
+                                    android:layout_width="0dp"
+                                    tools:layout_width="224dp"
+                                    android:layout_height="256dp"
+                                    android:transitionName="card_game"
+                                    android:focusable="true"
+                                    android:clickable="true"
+                                    android:foreground="?android:attr/selectableItemBackground"
+    >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,56 +20,38 @@
             android:id="@+id/image_game_screen"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:scaleType="centerCrop"
-            android:transitionName="image_game_screen"
+            android:transitionName="image_game_screenshot"
             android:layout_weight="1"
-            tools:src="@drawable/placeholder_screenshot"/>
+            tools:src="@drawable/placeholder_screenshot"
+            tools:scaleType="centerCrop"/>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="72dp">
+        <TextView
+            android:id="@+id/text_game_title"
+            style="@android:style/TextAppearance.Material.Subhead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp"
+            android:ellipsize="end"
+            android:lines="1"
+            android:maxLines="1"
+            tools:text="The Legend of Zelda: The Wind Waker"/>
 
+        <TextView
+            android:id="@+id/text_company"
+            style="@android:style/TextAppearance.Material.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:ellipsize="end"
+            android:lines="1"
+            android:maxLines="1"
+            tools:text="Nintendo"/>
 
-            <TextView
-                android:id="@+id/text_game_title"
-                style="@android:style/TextAppearance.Material.Subhead"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/image_game_screen"
-                android:layout_marginLeft="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_toStartOf="@+id/button_details"
-                android:ellipsize="end"
-                android:lines="1"
-                android:maxLines="1"
-                tools:text="Rhythm Heaven Fever"/>
-
-            <TextView
-                android:id="@+id/text_game_description"
-                style="@android:style/TextAppearance.Material.Caption"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignEnd="@+id/text_game_title"
-                android:layout_alignParentBottom="true"
-                android:layout_alignStart="@+id/text_game_title"
-                android:layout_marginBottom="16dp"
-                android:layout_toStartOf="@+id/button_details"
-                android:ellipsize="end"
-                android:lines="1"
-                android:maxLines="1"
-                android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sed odio vel quam auctor euismod. Pellentesque odio nibh, fermentum ut hendrerit id, ultrices et justo. "
-                tools:text="Zany rhythm action!"/>
-
-            <ImageButton
-                android:id="@+id/button_details"
-                style="@android:style/Widget.Material.Light.Button.Borderless.Small"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_alignParentEnd="true"
-                android:layout_alignTop="@+id/text_game_title"
-                android:src="@drawable/ic_action_overflow"/>
-        </RelativeLayout>
     </LinearLayout>
 
 </android.support.v7.widget.CardView>

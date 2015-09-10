@@ -1,3 +1,7 @@
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include <limits>
 #include <memory>
 #include <tuple>
@@ -12,6 +16,7 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoaderBase.h"
+#include "VideoCommon/VertexLoaderManager.h"
 
 TEST(VertexLoaderUID, UniqueEnough)
 {
@@ -83,7 +88,7 @@ protected:
 		if (expected_count == -1)
 			expected_count = count;
 		ResetPointers();
-		int actual_count = m_loader->RunVertices(m_src, m_dst, count, GX_DRAW_POINTS);
+		int actual_count = m_loader->RunVertices(m_src, m_dst, count);
 		EXPECT_EQ(actual_count, expected_count);
 	}
 
@@ -147,7 +152,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
 				Input<u8>(i);
 			else
 				Input<u16>(i);
-		cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
+		VertexLoaderManager::cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
 		g_main_cp_state.array_strides[ARRAY_POSITION] = elements * elem_size;
 	}
 	CreateAndCheckSizes(input_size, elements * sizeof(float));
@@ -188,7 +193,7 @@ TEST_F(VertexLoaderTest, PositionIndex16FloatXY)
 	m_vtx_attr.g0.PosFormat = FORMAT_FLOAT;
 	CreateAndCheckSizes(sizeof(u16), 2 * sizeof(float));
 	Input<u16>(1); Input<u16>(0);
-	cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
+	VertexLoaderManager::cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
 	g_main_cp_state.array_strides[ARRAY_POSITION] = sizeof(float); // ;)
 	Input(1.f); Input(2.f); Input(3.f);
 	RunVertices(2);
@@ -293,9 +298,9 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 
 	CreateAndCheckSizes(33, 156);
 
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < 12; i++)
 	{
-		cached_arraybases[i] = m_src.GetPointer();
+		VertexLoaderManager::cached_arraybases[i] = m_src.GetPointer();
 		g_main_cp_state.array_strides[i] = 129;
 	}
 

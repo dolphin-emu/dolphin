@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 /*
@@ -127,7 +127,6 @@ TODO (in no particular order):
 #include <string>
 
 #include "Common/FileUtil.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -1514,7 +1513,7 @@ void IRBuilder::WriteToFile(u64 codeHash)
 	}
 
 	FILE* const file = writer->file.GetHandle();
-	fprintf(file, "\ncode hash:%016" PRIx64 "\n", codeHash);
+	fprintf(file, "\ncode hash:%016llx\n", codeHash);
 
 	const InstLoc lastCurReadPtr = curReadPtr;
 	StartForwardPass();

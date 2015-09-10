@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <mutex>
 #include <vector>
 
 #include "Common/CommonPaths.h"
@@ -32,7 +33,7 @@ bool GeckoCode::Exist(u32 address, u32 data) const
 }
 
 // return true if the code is identical
-bool GeckoCode::Compare(GeckoCode compare) const
+bool GeckoCode::Compare(const GeckoCode& compare) const
 {
 	if (codes.size() != compare.codes.size())
 		return false;
@@ -85,7 +86,7 @@ static bool InstallCodeHandler()
 
 	u8 mmioAddr = 0xCC;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 	{
 		mmioAddr = 0xCD;
 	}
@@ -156,7 +157,7 @@ static bool InstallCodeHandler()
 
 void RunCodeHandler()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats && active_codes.size() > 0)
+	if (SConfig::GetInstance().bEnableCheats && active_codes.size() > 0)
 	{
 		if (!code_handler_installed || PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS) - 0xd01f1bad > 5)
 			code_handler_installed = InstallCodeHandler();

@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -92,7 +92,7 @@ public:
 	std::string expr;
 	std::string::iterator it;
 
-	Lexer(std::string expr_) : expr(expr_)
+	Lexer(const std::string& expr_) : expr(expr_)
 	{
 		it = expr.begin();
 	}
@@ -254,22 +254,22 @@ public:
 
 	ControlExpression(ControlQualifier qualifier_, Device::Control *control_) : qualifier(qualifier_), control(control_) {}
 
-	virtual ControlState GetValue() override
+	ControlState GetValue() override
 	{
 		return control->ToInput()->GetGatedState();
 	}
 
-	virtual void SetValue(ControlState value) override
+	void SetValue(ControlState value) override
 	{
 		control->ToOutput()->SetGatedState(value);
 	}
 
-	virtual int CountNumControls() override
+	int CountNumControls() override
 	{
 		return 1;
 	}
 
-	virtual operator std::string() override
+	operator std::string() override
 	{
 		return "`" + (std::string)qualifier + "`";
 	}
@@ -289,7 +289,7 @@ public:
 		delete rhs;
 	}
 
-	virtual ControlState GetValue() override
+	ControlState GetValue() override
 	{
 		ControlState lhsValue = lhs->GetValue();
 		ControlState rhsValue = rhs->GetValue();
@@ -307,7 +307,7 @@ public:
 		}
 	}
 
-	virtual void SetValue(ControlState value) override
+	void SetValue(ControlState value) override
 	{
 		// Don't do anything special with the op we have.
 		// Treat "A & B" the same as "A | B".
@@ -315,12 +315,12 @@ public:
 		rhs->SetValue(value);
 	}
 
-	virtual int CountNumControls() override
+	int CountNumControls() override
 	{
 		return lhs->CountNumControls() + rhs->CountNumControls();
 	}
 
-	virtual operator std::string() override
+	operator std::string() override
 	{
 		return OpName(op) + "(" + (std::string)(*lhs) + ", " + (std::string)(*rhs) + ")";
 	}
@@ -338,7 +338,7 @@ public:
 		delete inner;
 	}
 
-	virtual ControlState GetValue() override
+	ControlState GetValue() override
 	{
 		ControlState value = inner->GetValue();
 		switch (op)
@@ -351,23 +351,25 @@ public:
 		}
 	}
 
-	virtual void SetValue(ControlState value) override
+	void SetValue(ControlState value) override
 	{
 		switch (op)
 		{
 		case TOK_NOT:
 			inner->SetValue(1.0 - value);
+			break;
+
 		default:
 			assert(false);
 		}
 	}
 
-	virtual int CountNumControls() override
+	int CountNumControls() override
 	{
 		return inner->CountNumControls();
 	}
 
-	virtual operator std::string() override
+	operator std::string() override
 	{
 		return OpName(op) + "(" + (std::string)(*inner) + ")";
 	}
@@ -566,7 +568,7 @@ Expression::~Expression()
 	delete node;
 }
 
-static ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder &finder, Expression **expr_out)
+static ExpressionParseStatus ParseExpressionInner(const std::string& str, ControlFinder &finder, Expression **expr_out)
 {
 	ExpressionParseStatus status;
 	Expression *expr;
@@ -590,7 +592,7 @@ static ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder
 	return EXPRESSION_PARSE_SUCCESS;
 }
 
-ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Expression **expr_out)
+ExpressionParseStatus ParseExpression(const std::string& str, ControlFinder &finder, Expression **expr_out)
 {
 	// Add compatibility with old simple expressions, which are simple
 	// barewords control names.

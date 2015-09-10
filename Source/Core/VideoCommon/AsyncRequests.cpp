@@ -1,3 +1,7 @@
+// Copyright 2015 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/RenderBase.h"
@@ -16,7 +20,34 @@ void AsyncRequests::PullEventsInternal()
 
 	while (!m_queue.empty())
 	{
-		const Event& e = m_queue.front();
+		Event e = m_queue.front();
+
+		// try to merge as many efb pokes as possible
+		// it's a bit hacky, but some games render a complete frame in this way
+		if ((e.type == Event::EFB_POKE_COLOR || e.type == Event::EFB_POKE_Z))
+		{
+			m_merged_efb_pokes.clear();
+			Event first_event = m_queue.front();
+			EFBAccessType t = first_event.type == Event::EFB_POKE_COLOR ? POKE_COLOR : POKE_Z;
+
+			do
+			{
+				e = m_queue.front();
+
+				EfbPokeData d;
+				d.data = e.efb_poke.data;
+				d.x = e.efb_poke.x;
+				d.y = e.efb_poke.y;
+				m_merged_efb_pokes.push_back(d);
+
+				m_queue.pop();
+			} while(!m_queue.empty() && m_queue.front().type == first_event.type);
+
+			lock.unlock();
+			g_renderer->PokeEFB(t, m_merged_efb_pokes);
+			lock.lock();
+			continue;
+		}
 
 		lock.unlock();
 		HandleEvent(e);

@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -28,5 +28,6 @@ public:
 	void* GetFuncAddress(const std::string& name);
 	bool Create(void *window_handle);
 	bool MakeCurrent();
+	bool ClearCurrent();
 	void Shutdown();
 };

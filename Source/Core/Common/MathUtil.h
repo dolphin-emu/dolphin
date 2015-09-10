@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -61,19 +61,6 @@ union IntFloat {
 	explicit IntFloat(u32 _i) : i(_i) {}
 	explicit IntFloat(float _f) : f(_f) {}
 };
-
-inline bool IsINF(double d)
-{
-	IntDouble x(d);
-	return (x.i & ~DOUBLE_SIGN) == DOUBLE_EXP;
-}
-
-inline bool IsNAN(double d)
-{
-	IntDouble x(d);
-	return ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
-	       ((x.i & DOUBLE_FRAC) != DOUBLE_ZERO);
-}
 
 inline bool IsQNAN(double d)
 {
@@ -213,10 +200,25 @@ inline int IntLog2(u64 val)
 // Tiny matrix/vector library.
 // Used for things like Free-Look in the gfx backend.
 
+class Quaternion
+{
+public:
+	static void LoadIdentity(Quaternion &quat);
+	static void Set(Quaternion &quat, const float quatArray[4]);
+
+	static void Invert(Quaternion &quat);
+
+	static void Multiply(const Quaternion &a, const Quaternion &b, Quaternion &result);
+
+	// w, x, y, z
+	float data[4];
+};
+
 class Matrix33
 {
 public:
 	static void LoadIdentity(Matrix33 &mtx);
+	static void LoadQuaternion(Matrix33 &mtx, const Quaternion &quat);
 
 	// set mtx to be a rotation matrix around the x axis
 	static void RotateX(Matrix33 &mtx, float rad);

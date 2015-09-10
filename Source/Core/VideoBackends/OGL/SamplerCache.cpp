@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "VideoBackends/OGL/GLInterfaceBase.h"
@@ -13,11 +13,32 @@ SamplerCache *g_sampler_cache;
 
 SamplerCache::SamplerCache()
 	: m_last_max_anisotropy()
-{}
+{
+	glGenSamplers(2, m_sampler_id);
+	glSamplerParameteri(m_sampler_id[0], GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glSamplerParameteri(m_sampler_id[0], GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glSamplerParameteri(m_sampler_id[0], GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glSamplerParameteri(m_sampler_id[0], GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glSamplerParameteri(m_sampler_id[1], GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glSamplerParameteri(m_sampler_id[1], GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glSamplerParameteri(m_sampler_id[1], GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glSamplerParameteri(m_sampler_id[1], GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
 
 SamplerCache::~SamplerCache()
 {
 	Clear();
+	glDeleteSamplers(2, m_sampler_id);
+}
+
+void SamplerCache::BindNearestSampler(int stage)
+{
+	glBindSampler(stage, m_sampler_id[0]);
+}
+
+void SamplerCache::BindLinearSampler(int stage)
+{
+	glBindSampler(stage, m_sampler_id[1]);
 }
 
 void SamplerCache::SetSamplerState(int stage, const TexMode0& tm0, const TexMode1& tm1, bool custom_tex)

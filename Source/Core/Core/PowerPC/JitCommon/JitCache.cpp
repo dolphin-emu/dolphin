@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Enable define below to enable oprofile integration. For this to work,
@@ -36,7 +36,7 @@ using namespace Gen;
 			return;
 		}
 
-		JitRegister::Init();
+		JitRegister::Init(SConfig::GetInstance().m_perfDir);
 
 		iCache.fill(JIT_ICACHE_INVALID_BYTE);
 		iCacheEx.fill(JIT_ICACHE_INVALID_BYTE);
@@ -95,18 +95,6 @@ using namespace Gen;
 		return num_blocks;
 	}
 
-	bool JitBaseBlockCache::RangeIntersect(int s1, int e1, int s2, int e2) const
-	{
-		// check if any endpoint is inside the other range
-		if ((s1 >= s2 && s1 <= e2) ||
-		    (e1 >= s2 && e1 <= e2) ||
-		    (s2 >= s1 && s2 <= e1) ||
-		    (e2 >= s1 && e2 <= e1))
-			return true;
-		else
-			return false;
-	}
-
 	int JitBaseBlockCache::AllocateBlock(u32 em_address)
 	{
 		JitBlock &b = blocks[num_blocks];
@@ -136,7 +124,7 @@ using namespace Gen;
 		{
 			for (const auto& e : b.linkData)
 			{
-				links_to.insert(std::pair<u32, int>(e.exitAddress, block_num));
+				links_to.emplace(e.exitAddress, block_num);
 			}
 
 			LinkBlock(block_num);
@@ -324,9 +312,20 @@ using namespace Gen;
 	{
 		XEmitter emit(location);
 		if (*location == 0xE8)
+		{
 			emit.CALL(address);
+		}
 		else
-			emit.JMP(address, true);
+		{
+			// If we're going to link with the next block, there is no need
+			// to emit JMP. So just NOP out the gap to the next block.
+			// Support up to 3 additional bytes because of alignment.
+			s64 offset = address - emit.GetCodePtr();
+			if (offset > 0 && offset <= 5 + 3)
+				emit.NOP(offset);
+			else
+				emit.JMP(address, true);
+		}
 	}
 
 	void JitBlockCache::WriteDestroyBlock(const u8* location, u32 address)

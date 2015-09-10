@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonFuncs.h"
@@ -71,8 +71,6 @@ namespace PowerPC
 	{
 		memset(data, 0, sizeof(data));
 		memset(tags, 0, sizeof(tags));
-		memset(way_from_valid, 0, sizeof(way_from_valid));
-		memset(way_from_plru, 0, sizeof(way_from_plru));
 
 		Reset();
 	}

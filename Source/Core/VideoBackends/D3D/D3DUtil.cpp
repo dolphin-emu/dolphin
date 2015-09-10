@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cctype>
@@ -442,7 +442,7 @@ struct
 
 struct
 {
-	float x1, y1, x2, y2;
+	float x1, y1, x2, y2, z;
 	u32 col;
 } draw_quad_data;
 
@@ -572,19 +572,19 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 
 // Fills a certain area of the current render target with the specified color
 // destination coordinates normalized to (-1;1)
-void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
+void drawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2)
 {
 	ColVertex coords[4] = {
-		{ x1, y2, 0.f, Color },
-		{ x2, y2, 0.f, Color },
-		{ x1, y1, 0.f, Color },
-		{ x2, y1, 0.f, Color },
+		{ x1, y1, z, Color },
+		{ x2, y1, z, Color },
+		{ x1, y2, z, Color },
+		{ x2, y2, z, Color },
 	};
 
 	if (cq_observer ||
 	    draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||
 	    draw_quad_data.x2 != x2 || draw_quad_data.y2 != y2 ||
-	    draw_quad_data.col != Color)
+	    draw_quad_data.col != Color || draw_quad_data.z != z)
 	{
 		cq_offset = util_vbuf->AppendData(coords, sizeof(coords), sizeof(ColVertex));
 		cq_observer = false;
@@ -594,10 +594,11 @@ void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
 		draw_quad_data.x2 = x2;
 		draw_quad_data.y2 = y2;
 		draw_quad_data.col = Color;
+		draw_quad_data.z = z;
 	}
 
 	stateman->SetVertexShader(VertexShaderCache::GetClearVertexShader());
-	stateman->SetGeometryShader(g_ActiveConfig.iStereoMode > 0 ? GeometryShaderCache::GetClearGeometryShader() : nullptr);
+	stateman->SetGeometryShader(GeometryShaderCache::GetClearGeometryShader());
 	stateman->SetPixelShader(PixelShaderCache::GetClearProgram());
 	stateman->SetInputLayout(VertexShaderCache::GetClearInputLayout());
 

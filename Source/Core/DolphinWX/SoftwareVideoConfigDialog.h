@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // TODO: Merge this with the original VideoConfigDiag or something
@@ -31,7 +31,7 @@ public:
 			Close();
 
 			g_video_backend = new_backend;
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = g_video_backend->GetName();
+			SConfig::GetInstance().m_strVideoBackend = g_video_backend->GetName();
 
 			g_video_backend->ShowConfig(GetParent());
 		}

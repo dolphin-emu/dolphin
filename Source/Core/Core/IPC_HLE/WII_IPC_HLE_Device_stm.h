@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -37,7 +37,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_stm_immediate()
 	{}
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -45,7 +45,7 @@ public:
 		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Close");
 		if (!_bForce)
@@ -54,7 +54,7 @@ public:
 		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override
+	IPCCommandResult IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
@@ -126,14 +126,14 @@ public:
 	{
 	}
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 		m_Active = true;
 		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
 	{
 		m_EventHookAddress = 0;
 
@@ -144,7 +144,7 @@ public:
 		return IPC_DEFAULT_REPLY;
 	}
 
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override
+	IPCCommandResult IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);

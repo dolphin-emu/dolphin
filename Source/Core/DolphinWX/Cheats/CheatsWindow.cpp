@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <climits>
@@ -28,7 +28,6 @@
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 #include "DolphinWX/Frame.h"
@@ -154,7 +153,7 @@ void wxCheatsWindow::OnEvent_Close(wxCloseEvent& ev)
 void wxCheatsWindow::UpdateGUI()
 {
 	// load code
-	SCoreStartupParameter parameters = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& parameters = SConfig::GetInstance();
 	m_gameini_default = parameters.LoadDefaultGameIni();
 	m_gameini_local = parameters.LoadLocalGameIni();
 	m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + parameters.GetUniqueID() + ".ini";
@@ -168,7 +167,7 @@ void wxCheatsWindow::UpdateGUI()
 
 	// write the ISO name in the title
 	if (Core::IsRunning())
-		SetTitle(title + ": " + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + " - " + SConfig::GetInstance().m_LocalCoreStartupParameter.m_strName);
+		SetTitle(title + ": " + parameters.GetUniqueID() + " - " + parameters.m_strName);
 	else
 		SetTitle(title);
 }
@@ -198,7 +197,7 @@ void wxCheatsWindow::Load_ARCodes()
 
 void wxCheatsWindow::Load_GeckoCodes()
 {
-	m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID(), true);
+	m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, SConfig::GetInstance().GetUniqueID(), true);
 }
 
 void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED(event))

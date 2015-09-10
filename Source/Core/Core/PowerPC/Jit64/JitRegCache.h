@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -42,7 +42,7 @@ protected:
 	std::array<PPCCachedReg, 32> regs;
 	std::array<X64CachedReg, NUMXREGS> xregs;
 
-	virtual const int *GetAllocationOrder(size_t& count) = 0;
+	virtual const Gen::X64Reg* GetAllocationOrder(size_t* count) = 0;
 
 	virtual BitSet32 GetRegUtilization() = 0;
 	virtual BitSet32 CountRegsIn(size_t preg, u32 lookahead) = 0;
@@ -90,7 +90,7 @@ public:
 	//read only will not set dirty flag
 	void BindToRegister(size_t preg, bool doLoad = true, bool makeDirty = true);
 	void StoreFromRegister(size_t preg, FlushMode mode = FLUSH_ALL);
-	virtual void StoreRegister(size_t preg, Gen::OpArg newLoc) = 0;
+	virtual void StoreRegister(size_t preg, const Gen::OpArg& newLoc) = 0;
 	virtual void LoadRegister(size_t preg, Gen::X64Reg newLoc) = 0;
 
 	const Gen::OpArg &R(size_t preg) const
@@ -103,7 +103,7 @@ public:
 		if (IsBound(preg))
 			return regs[preg].location.GetSimpleReg();
 
-		PanicAlert("Not so simple - %u", (unsigned int)preg);
+		PanicAlert("Unbounded register - %zu", preg);
 		return Gen::INVALID_REG;
 	}
 	virtual Gen::OpArg GetDefaultLocation(size_t reg) const = 0;
@@ -138,6 +138,20 @@ public:
 		LockX(args...);
 	}
 
+	template<typename T>
+	void UnlockX(T x)
+	{
+		if (!xregs[x].locked)
+			PanicAlert("RegCache: x %i already unlocked!", x);
+		xregs[x].locked = false;
+	}
+	template<typename T, typename... Args>
+	void UnlockX(T first, Args... args)
+	{
+		UnlockX(first);
+		UnlockX(args...);
+	}
+
 	void UnlockAll();
 	void UnlockAllX();
 
@@ -156,25 +170,25 @@ public:
 	int NumFreeRegisters();
 };
 
-class GPRRegCache : public RegCache
+class GPRRegCache final : public RegCache
 {
 public:
-	void StoreRegister(size_t preg, Gen::OpArg newLoc) override;
+	void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
 	void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
-	const int* GetAllocationOrder(size_t& count) override;
+	const Gen::X64Reg* GetAllocationOrder(size_t* count) override;
 	void SetImmediate32(size_t preg, u32 immValue);
 	BitSet32 GetRegUtilization() override;
 	BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
 };
 
 
-class FPURegCache : public RegCache
+class FPURegCache final : public RegCache
 {
 public:
-	void StoreRegister(size_t preg, Gen::OpArg newLoc) override;
+	void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
 	void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
-	const int* GetAllocationOrder(size_t& count) override;
+	const Gen::X64Reg* GetAllocationOrder(size_t* count) override;
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
 	BitSet32 GetRegUtilization() override;
 	BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;

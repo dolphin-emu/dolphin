@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -11,154 +11,239 @@
 
 #pragma pack(4)
 
-#define BPMEM_GENMODE           0x00
-#define BPMEM_DISPLAYCOPYFILTER 0x01 // 0x01 + 4
-#define BPMEM_IND_MTXA          0x06 // 0x06 + (3 * 3)
-#define BPMEM_IND_MTXB          0x07 // 0x07 + (3 * 3)
-#define BPMEM_IND_MTXC          0x08 // 0x08 + (3 * 3)
-#define BPMEM_IND_IMASK         0x0F
-#define BPMEM_IND_CMD           0x10 // 0x10 + 16
-#define BPMEM_SCISSORTL         0x20
-#define BPMEM_SCISSORBR         0x21
-#define BPMEM_LINEPTWIDTH       0x22
-#define BPMEM_PERF0_TRI         0x23
-#define BPMEM_PERF0_QUAD        0x24
-#define BPMEM_RAS1_SS0          0x25
-#define BPMEM_RAS1_SS1          0x26
-#define BPMEM_IREF              0x27
-#define BPMEM_TREF              0x28 // 0x28 + 8
-#define BPMEM_SU_SSIZE          0x30 // 0x30 + (2 * 8)
-#define BPMEM_SU_TSIZE          0x31 // 0x31 + (2 * 8)
-#define BPMEM_ZMODE             0x40
-#define BPMEM_BLENDMODE         0x41
-#define BPMEM_CONSTANTALPHA     0x42
-#define BPMEM_ZCOMPARE          0x43
-#define BPMEM_FIELDMASK         0x44
-#define BPMEM_SETDRAWDONE       0x45
-#define BPMEM_BUSCLOCK0         0x46
-#define BPMEM_PE_TOKEN_ID       0x47
-#define BPMEM_PE_TOKEN_INT_ID   0x48
-#define BPMEM_EFB_TL            0x49
-#define BPMEM_EFB_BR            0x4A
-#define BPMEM_EFB_ADDR          0x4B
-#define BPMEM_MIPMAP_STRIDE     0x4D
-#define BPMEM_COPYYSCALE        0x4E
-#define BPMEM_CLEAR_AR          0x4F
-#define BPMEM_CLEAR_GB          0x50
-#define BPMEM_CLEAR_Z           0x51
-#define BPMEM_TRIGGER_EFB_COPY  0x52
-#define BPMEM_COPYFILTER0       0x53
-#define BPMEM_COPYFILTER1       0x54
-#define BPMEM_CLEARBBOX1        0x55
-#define BPMEM_CLEARBBOX2        0x56
-#define BPMEM_CLEAR_PIXEL_PERF  0x57
-#define BPMEM_REVBITS           0x58
-#define BPMEM_SCISSOROFFSET     0x59
-#define BPMEM_PRELOAD_ADDR      0x60
-#define BPMEM_PRELOAD_TMEMEVEN  0x61
-#define BPMEM_PRELOAD_TMEMODD   0x62
-#define BPMEM_PRELOAD_MODE      0x63
-#define BPMEM_LOADTLUT0         0x64
-#define BPMEM_LOADTLUT1         0x65
-#define BPMEM_TEXINVALIDATE     0x66
-#define BPMEM_PERF1             0x67
-#define BPMEM_FIELDMODE         0x68
-#define BPMEM_BUSCLOCK1         0x69
-#define BPMEM_TX_SETMODE0       0x80 // 0x80 + 4
-#define BPMEM_TX_SETMODE1       0x84 // 0x84 + 4
-#define BPMEM_TX_SETIMAGE0      0x88 // 0x88 + 4
-#define BPMEM_TX_SETIMAGE1      0x8C // 0x8C + 4
-#define BPMEM_TX_SETIMAGE2      0x90 // 0x90 + 4
-#define BPMEM_TX_SETIMAGE3      0x94 // 0x94 + 4
-#define BPMEM_TX_SETTLUT        0x98 // 0x98 + 4
-#define BPMEM_TX_SETMODE0_4     0xA0 // 0xA0 + 4
-#define BPMEM_TX_SETMODE1_4     0xA4 // 0xA4 + 4
-#define BPMEM_TX_SETIMAGE0_4    0xA8 // 0xA8 + 4
-#define BPMEM_TX_SETIMAGE1_4    0xAC // 0xA4 + 4
-#define BPMEM_TX_SETIMAGE2_4    0xB0 // 0xB0 + 4
-#define BPMEM_TX_SETIMAGE3_4    0xB4 // 0xB4 + 4
-#define BPMEM_TX_SETTLUT_4      0xB8 // 0xB8 + 4
-#define BPMEM_TEV_COLOR_ENV     0xC0 // 0xC0 + (2 * 16)
-#define BPMEM_TEV_ALPHA_ENV     0xC1 // 0xC1 + (2 * 16)
-#define BPMEM_TEV_COLOR_RA      0xE0 // 0xE0 + (2 * 4)
-#define BPMEM_TEV_COLOR_BG      0xE1 // 0xE1 + (2 * 4)
-#define BPMEM_FOGRANGE          0xE8 // 0xE8 + 6
-#define BPMEM_FOGPARAM0         0xEE
-#define BPMEM_FOGBMAGNITUDE     0xEF
-#define BPMEM_FOGBEXPONENT      0xF0
-#define BPMEM_FOGPARAM3         0xF1
-#define BPMEM_FOGCOLOR          0xF2
-#define BPMEM_ALPHACOMPARE      0xF3
-#define BPMEM_BIAS              0xF4
-#define BPMEM_ZTEX2             0xF5
-#define BPMEM_TEV_KSEL          0xF6 // 0xF6 + 8
-#define BPMEM_BP_MASK           0xFE
+enum
+{
+	BPMEM_GENMODE           = 0x00,
+	BPMEM_DISPLAYCOPYFILTER = 0x01, // 0x01 + 4
+	BPMEM_IND_MTXA          = 0x06, // 0x06 + (3 * 3)
+	BPMEM_IND_MTXB          = 0x07, // 0x07 + (3 * 3)
+	BPMEM_IND_MTXC          = 0x08, // 0x08 + (3 * 3)
+	BPMEM_IND_IMASK         = 0x0F,
+	BPMEM_IND_CMD           = 0x10, // 0x10 + 16
+	BPMEM_SCISSORTL         = 0x20,
+	BPMEM_SCISSORBR         = 0x21,
+	BPMEM_LINEPTWIDTH       = 0x22,
+	BPMEM_PERF0_TRI         = 0x23,
+	BPMEM_PERF0_QUAD        = 0x24,
+	BPMEM_RAS1_SS0          = 0x25,
+	BPMEM_RAS1_SS1          = 0x26,
+	BPMEM_IREF              = 0x27,
+	BPMEM_TREF              = 0x28, // 0x28 + 8
+	BPMEM_SU_SSIZE          = 0x30, // 0x30 + (2 * 8)
+	BPMEM_SU_TSIZE          = 0x31, // 0x31 + (2 * 8)
+	BPMEM_ZMODE             = 0x40,
+	BPMEM_BLENDMODE         = 0x41,
+	BPMEM_CONSTANTALPHA     = 0x42,
+	BPMEM_ZCOMPARE          = 0x43,
+	BPMEM_FIELDMASK         = 0x44,
+	BPMEM_SETDRAWDONE       = 0x45,
+	BPMEM_BUSCLOCK0         = 0x46,
+	BPMEM_PE_TOKEN_ID       = 0x47,
+	BPMEM_PE_TOKEN_INT_ID   = 0x48,
+	BPMEM_EFB_TL            = 0x49,
+	BPMEM_EFB_BR            = 0x4A,
+	BPMEM_EFB_ADDR          = 0x4B,
+	BPMEM_MIPMAP_STRIDE     = 0x4D,
+	BPMEM_COPYYSCALE        = 0x4E,
+	BPMEM_CLEAR_AR          = 0x4F,
+	BPMEM_CLEAR_GB          = 0x50,
+	BPMEM_CLEAR_Z           = 0x51,
+	BPMEM_TRIGGER_EFB_COPY  = 0x52,
+	BPMEM_COPYFILTER0       = 0x53,
+	BPMEM_COPYFILTER1       = 0x54,
+	BPMEM_CLEARBBOX1        = 0x55,
+	BPMEM_CLEARBBOX2        = 0x56,
+	BPMEM_CLEAR_PIXEL_PERF  = 0x57,
+	BPMEM_REVBITS           = 0x58,
+	BPMEM_SCISSOROFFSET     = 0x59,
+	BPMEM_PRELOAD_ADDR      = 0x60,
+	BPMEM_PRELOAD_TMEMEVEN  = 0x61,
+	BPMEM_PRELOAD_TMEMODD   = 0x62,
+	BPMEM_PRELOAD_MODE      = 0x63,
+	BPMEM_LOADTLUT0         = 0x64,
+	BPMEM_LOADTLUT1         = 0x65,
+	BPMEM_TEXINVALIDATE     = 0x66,
+	BPMEM_PERF1             = 0x67,
+	BPMEM_FIELDMODE         = 0x68,
+	BPMEM_BUSCLOCK1         = 0x69,
+	BPMEM_TX_SETMODE0       = 0x80, // 0x80 + 4
+	BPMEM_TX_SETMODE1       = 0x84, // 0x84 + 4
+	BPMEM_TX_SETIMAGE0      = 0x88, // 0x88 + 4
+	BPMEM_TX_SETIMAGE1      = 0x8C, // 0x8C + 4
+	BPMEM_TX_SETIMAGE2      = 0x90, // 0x90 + 4
+	BPMEM_TX_SETIMAGE3      = 0x94, // 0x94 + 4
+	BPMEM_TX_SETTLUT        = 0x98, // 0x98 + 4
+	BPMEM_TX_SETMODE0_4     = 0xA0, // 0xA0 + 4
+	BPMEM_TX_SETMODE1_4     = 0xA4, // 0xA4 + 4
+	BPMEM_TX_SETIMAGE0_4    = 0xA8, // 0xA8 + 4
+	BPMEM_TX_SETIMAGE1_4    = 0xAC, // 0xA4 + 4
+	BPMEM_TX_SETIMAGE2_4    = 0xB0, // 0xB0 + 4
+	BPMEM_TX_SETIMAGE3_4    = 0xB4, // 0xB4 + 4
+	BPMEM_TX_SETTLUT_4      = 0xB8, // 0xB8 + 4
+	BPMEM_TEV_COLOR_ENV     = 0xC0, // 0xC0 + (2 * 16)
+	BPMEM_TEV_ALPHA_ENV     = 0xC1, // 0xC1 + (2 * 16)
+	BPMEM_TEV_COLOR_RA      = 0xE0, // 0xE0 + (2 * 4)
+	BPMEM_TEV_COLOR_BG      = 0xE1, // 0xE1 + (2 * 4)
+	BPMEM_FOGRANGE          = 0xE8, // 0xE8 + 6
+	BPMEM_FOGPARAM0         = 0xEE,
+	BPMEM_FOGBMAGNITUDE     = 0xEF,
+	BPMEM_FOGBEXPONENT      = 0xF0,
+	BPMEM_FOGPARAM3         = 0xF1,
+	BPMEM_FOGCOLOR          = 0xF2,
+	BPMEM_ALPHACOMPARE      = 0xF3,
+	BPMEM_BIAS              = 0xF4,
+	BPMEM_ZTEX2             = 0xF5,
+	BPMEM_TEV_KSEL          = 0xF6, // 0xF6 + 8
+	BPMEM_BP_MASK           = 0xFE,
+};
 
 
 // Tev/combiner things
 
-#define TEVSCALE_1  0
-#define TEVSCALE_2  1
-#define TEVSCALE_4  2
-#define TEVDIVIDE_2 3
+// TEV scaling type
+enum : u32
+{
+	TEVSCALE_1  = 0,
+	TEVSCALE_2  = 1,
+	TEVSCALE_4  = 2,
+	TEVDIVIDE_2 = 3
+};
 
-#define TEVCMP_R8    0
-#define TEVCMP_GR16  1
-#define TEVCMP_BGR24 2
-#define TEVCMP_RGB8  3
+enum : u32
+{
+	TEVCMP_R8    = 0,
+	TEVCMP_GR16  = 1,
+	TEVCMP_BGR24 = 2,
+	TEVCMP_RGB8  = 3
+};
 
-#define TEVOP_ADD 0
-#define TEVOP_SUB 1
-#define TEVCMP_R8_GT 8
-#define TEVCMP_R8_EQ 9
-#define TEVCMP_GR16_GT 10
-#define TEVCMP_GR16_EQ 11
-#define TEVCMP_BGR24_GT 12
-#define TEVCMP_BGR24_EQ 13
-#define TEVCMP_RGB8_GT  14
-#define TEVCMP_RGB8_EQ  15
-#define TEVCMP_A8_GT 14
-#define TEVCMP_A8_EQ 15
+// TEV combiner operator
+enum : u32
+{
+	TEVOP_ADD       = 0,
+	TEVOP_SUB       = 1,
+	TEVCMP_R8_GT    = 8,
+	TEVCMP_R8_EQ    = 9,
+	TEVCMP_GR16_GT  = 10,
+	TEVCMP_GR16_EQ  = 11,
+	TEVCMP_BGR24_GT = 12,
+	TEVCMP_BGR24_EQ = 13,
+	TEVCMP_RGB8_GT  = 14,
+	TEVCMP_RGB8_EQ  = 15,
+	TEVCMP_A8_GT    = TEVCMP_RGB8_GT,
+	TEVCMP_A8_EQ    = TEVCMP_RGB8_EQ
+};
 
-#define TEVCOLORARG_CPREV 0
-#define TEVCOLORARG_APREV 1
-#define TEVCOLORARG_C0 2
-#define TEVCOLORARG_A0 3
-#define TEVCOLORARG_C1 4
-#define TEVCOLORARG_A1 5
-#define TEVCOLORARG_C2 6
-#define TEVCOLORARG_A2 7
-#define TEVCOLORARG_TEXC 8
-#define TEVCOLORARG_TEXA 9
-#define TEVCOLORARG_RASC 10
-#define TEVCOLORARG_RASA 11
-#define TEVCOLORARG_ONE 12
-#define TEVCOLORARG_HALF 13
-#define TEVCOLORARG_KONST 14
-#define TEVCOLORARG_ZERO 15
+// TEV color combiner input
+enum : u32
+{
+	TEVCOLORARG_CPREV = 0,
+	TEVCOLORARG_APREV = 1,
+	TEVCOLORARG_C0    = 2,
+	TEVCOLORARG_A0    = 3,
+	TEVCOLORARG_C1    = 4,
+	TEVCOLORARG_A1    = 5,
+	TEVCOLORARG_C2    = 6,
+	TEVCOLORARG_A2    = 7,
+	TEVCOLORARG_TEXC  = 8,
+	TEVCOLORARG_TEXA  = 9,
+	TEVCOLORARG_RASC  = 10,
+	TEVCOLORARG_RASA  = 11,
+	TEVCOLORARG_ONE   = 12,
+	TEVCOLORARG_HALF  = 13,
+	TEVCOLORARG_KONST = 14,
+	TEVCOLORARG_ZERO  = 15
+};
 
-#define TEVALPHAARG_APREV 0
-#define TEVALPHAARG_A0    1
-#define TEVALPHAARG_A1    2
-#define TEVALPHAARG_A2    3
-#define TEVALPHAARG_TEXA  4
-#define TEVALPHAARG_RASA  5
-#define TEVALPHAARG_KONST 6
-#define TEVALPHAARG_ZERO  7
+// TEV alpha combiner input
+enum : u32
+{
+	TEVALPHAARG_APREV = 0,
+	TEVALPHAARG_A0    = 1,
+	TEVALPHAARG_A1    = 2,
+	TEVALPHAARG_A2    = 3,
+	TEVALPHAARG_TEXA  = 4,
+	TEVALPHAARG_RASA  = 5,
+	TEVALPHAARG_KONST = 6,
+	TEVALPHAARG_ZERO  = 7
+};
 
-#define GX_TEVPREV       0
-#define GX_TEVREG0       1
-#define GX_TEVREG1       2
-#define GX_TEVREG2       3
+// TEV output registers
+enum : u32
+{
+	GX_TEVPREV = 0,
+	GX_TEVREG0 = 1,
+	GX_TEVREG1 = 2,
+	GX_TEVREG2 = 3
+};
 
-#define ZTEXTURE_DISABLE 0
-#define ZTEXTURE_ADD 1
-#define ZTEXTURE_REPLACE 2
+// Z-texture formats
+enum : u32
+{
+	TEV_ZTEX_TYPE_U8  = 0,
+	TEV_ZTEX_TYPE_U16 = 1,
+	TEV_ZTEX_TYPE_U24 = 2
+};
 
-#define TevBias_ZERO     0
-#define TevBias_ADDHALF  1
-#define TevBias_SUBHALF  2
-#define TevBias_COMPARE  3
+// Z texture operator
+enum : u32
+{
+	ZTEXTURE_DISABLE = 0,
+	ZTEXTURE_ADD     = 1,
+	ZTEXTURE_REPLACE = 2
+};
+
+// TEV bias value
+enum : u32
+{
+	TEVBIAS_ZERO    = 0,
+	TEVBIAS_ADDHALF = 1,
+	TEVBIAS_SUBHALF = 2,
+	TEVBIAS_COMPARE = 3
+};
+
+// Indirect texture format
+enum : u32
+{
+	ITF_8 = 0,
+	ITF_5 = 1,
+	ITF_4 = 2,
+	ITF_3 = 3
+};
+
+// Indirect texture bias
+enum : u32
+{
+	ITB_NONE = 0,
+	ITB_S    = 1,
+	ITB_T    = 2,
+	ITB_ST   = 3,
+	ITB_U    = 4,
+	ITB_SU   = 5,
+	ITB_TU   = 6,
+	ITB_STU  = 7
+};
+
+// Indirect texture bump alpha
+enum : u32
+{
+	ITBA_OFF = 0,
+	ITBA_S   = 1,
+	ITBA_T   = 2,
+	ITBA_U   = 3
+};
+
+// Indirect texture wrap value
+enum : u32
+{
+	ITW_OFF = 0,
+	ITW_256 = 1,
+	ITW_128 = 2,
+	ITW_64  = 3,
+	ITW_32  = 4,
+	ITW_16  = 5,
+	ITW_0   = 6
+};
 
 union IND_MTXA
 {
@@ -213,32 +298,6 @@ union IND_IMASK
 	u32 hex;
 };
 
-#define TEVSELCC_CPREV 0
-#define TEVSELCC_APREV 1
-#define TEVSELCC_C0 2
-#define TEVSELCC_A0 3
-#define TEVSELCC_C1 4
-#define TEVSELCC_A1 5
-#define TEVSELCC_C2 6
-#define TEVSELCC_A2 7
-#define TEVSELCC_TEXC 8
-#define TEVSELCC_TEXA 9
-#define TEVSELCC_RASC 10
-#define TEVSELCC_RASA 11
-#define TEVSELCC_ONE 12
-#define TEVSELCC_HALF 13
-#define TEVSELCC_KONST 14
-#define TEVSELCC_ZERO 15
-
-#define TEVSELCA_APREV 0
-#define TEVSELCA_A0 1
-#define TEVSELCA_A1 2
-#define TEVSELCA_A2 3
-#define TEVSELCA_TEXA 4
-#define TEVSELCA_RASA 5
-#define TEVSELCA_KONST 6
-#define TEVSELCA_ZERO 7
-
 struct TevStageCombiner
 {
 	union ColorCombiner
@@ -284,33 +343,6 @@ struct TevStageCombiner
 	ColorCombiner colorC;
 	AlphaCombiner alphaC;
 };
-
-#define ITF_8 0
-#define ITF_5 1
-#define ITF_4 2
-#define ITF_3 3
-
-#define ITB_NONE 0
-#define ITB_S    1
-#define ITB_T    2
-#define ITB_ST   3
-#define ITB_U    4
-#define ITB_SU   5
-#define ITB_TU   6
-#define ITB_STU  7
-
-#define ITBA_OFF 0
-#define ITBA_S   1
-#define ITBA_T   2
-#define ITBA_U   3
-
-#define ITW_OFF 0
-#define ITW_256 1
-#define ITW_128 2
-#define ITW_64  3
-#define ITW_32  4
-#define ITW_16  5
-#define ITW_0   6
 
 // several discoveries:
 // GXSetTevIndBumpST(tevstage, indstage, matrixind)
@@ -512,16 +544,6 @@ union ZTex2
 	};
 	u32 hex;
 };
-
-//  Z-texture types (formats)
-#define TEV_ZTEX_TYPE_U8  0
-#define TEV_ZTEX_TYPE_U16 1
-#define TEV_ZTEX_TYPE_U24 2
-
-#define TEV_ZTEX_DISABLE  0
-#define TEV_ZTEX_ADD      1
-#define TEV_ZTEX_REPLACE  2
-
 
 struct FourTexUnits
 {

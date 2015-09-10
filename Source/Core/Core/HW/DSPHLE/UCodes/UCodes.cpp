@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
@@ -9,6 +9,7 @@
 #include "Common/Hash.h"
 #include "Common/StringUtil.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
 #include "Core/HW/DSPHLE/UCodes/CARD.h"
@@ -51,27 +52,18 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 		INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", crc);
 		return new AXUCode(dsphle, crc);
 
-	case 0x6ba3b3ea: // IPL - PAL
-	case 0x24b22038: // IPL - NTSC/NTSC-JAP
-	case 0x42f64ac4: // Luigi's Mansion
-	case 0x4be6a5cb: // AC, Pikmin
-		INFO_LOG(DSPHLE, "CRC %08x: JAC (early Zelda) ucode chosen", crc);
-		return new ZeldaUCode(dsphle, crc);
-
-	case 0x6CA33A6D: // DK Jungle Beat
 	case 0x86840740: // Zelda WW - US
-	case 0x56d36052: // Mario Sunshine
-	case 0x2fcdf1ec: // Mario Kart, Zelda 4 Swords
-	case 0x267fd05a: // Pikmin PAL
-		INFO_LOG(DSPHLE, "CRC %08x: Zelda ucode chosen", crc);
-		return new ZeldaUCode(dsphle, crc);
-
-	// Wii CRCs
-	case 0xb7eb9a9c: // Wii Pikmin - PAL
-	case 0xeaeb38cc: // Wii Pikmin 2 - PAL
-	case 0x6c3f6f94: // Zelda TP - PAL
-	case 0xd643001f: // Mario Galaxy - PAL / Wii DK Jungle Beat - PAL
-		INFO_LOG(DSPHLE, "CRC %08x: Zelda Wii ucode chosen\n", crc);
+	case 0x6ca33a6d: // Zelda TP GC - US
+	case 0xd643001f: // Super Mario Galaxy - US
+	case 0x6ba3b3ea: // GC IPL - PAL
+	case 0x24b22038: // GC IPL - US
+	case 0x2fcdf1ec: // Zelda FSA - US
+	case 0x4be6a5cb: // Pikmin 1 GC - US
+	case 0x267fd05a: // Pikmin 1 GC - PAL
+	case 0x42f64ac4: // Luigi's Mansion - US
+	case 0x56d36052: // Super Mario Sunshine - US
+	case 0x6c3f6f94: // Zelda TP Wii - US
+	case 0xeaeb38cc: // Pikmin 1/2 New Play Control Wii - US
 		return new ZeldaUCode(dsphle, crc);
 
 	case 0x2ea36ce6: // Some Wii demos
@@ -87,12 +79,14 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 	default:
 		if (wii)
 		{
-			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AXWii.\n\nTry LLE emulator if this is homebrew.", crc);
+			PanicAlertT("This title might be incompatible with DSP HLE emulation. Try using LLE if this is homebrew.\n\n"
+			            "Unknown ucode (CRC = %08x) - forcing AXWii.", crc);
 			return new AXWiiUCode(dsphle, crc);
 		}
 		else
 		{
-			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.\n\nTry LLE emulator if this is homebrew.", crc);
+			PanicAlertT("This title might be incompatible with DSP HLE emulation. Try using LLE if this is homebrew.\n\n"
+			            "DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.", crc);
 			return new AXUCode(dsphle, crc);
 		}
 
@@ -140,17 +134,18 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 			(u8*)HLEMemory_Get_Pointer(m_next_ucode.iram_mram_addr),
 			m_next_ucode.iram_size);
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-		std::string ucode_dump_path = StringFromFormat(
-			"%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
-
-		File::IOFile fp(ucode_dump_path, "wb");
-		if (fp)
+		if (SConfig::GetInstance().m_DumpUCode)
 		{
-			fp.WriteArray((u8*)Memory::GetPointer(m_next_ucode.iram_mram_addr),
-			              m_next_ucode.iram_size);
+			std::string ucode_dump_path = StringFromFormat(
+				"%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
+
+			File::IOFile fp(ucode_dump_path, "wb");
+			if (fp)
+			{
+				fp.WriteArray((u8*)Memory::GetPointer(m_next_ucode.iram_mram_addr),
+							  m_next_ucode.iram_size);
+			}
 		}
-#endif
 
 		DEBUG_LOG(DSPHLE, "PrepareBootUCode 0x%08x", ector_crc);
 		DEBUG_LOG(DSPHLE, "DRAM -> MRAM: src %04x dst %08x size %04x",

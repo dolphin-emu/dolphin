@@ -42,7 +42,6 @@ set(GUI_SRCS
 	FrameAui.cpp
 	FrameTools.cpp
 	GameListCtrl.cpp
-	HotkeyDlg.cpp
 	ISOFile.cpp
 	ISOProperties.cpp
 	InputConfigDiag.cpp
@@ -68,7 +67,11 @@ if(USE_X11)
 	set(NOGUI_SRCS ${NOGUI_SRCS} X11Utils.cpp)
 endif()
 
-set(WXLIBS ${wxWidgets_LIBRARIES} dl)
+set(WXLIBS ${wxWidgets_LIBRARIES})
+
+if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD)
+	set(WXLIBS ${WXLIBS} dl)
+endif()
 
 list(APPEND LIBS core uicommon OVR.a)
 
@@ -161,7 +164,7 @@ elseif(wxWidgets_FOUND)
 				message(\"(Note: This is only necessary to produce a redistributable binary.\")
 				message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
 				set(BU_CHMOD_BUNDLE_ITEMS ON)
-				fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
+				execute_process(COMMAND ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py \"${BUNDLE_PATH}\")
 				file(INSTALL \"${CMAKE_SOURCE_DIR}/Data/Sys\"
 					DESTINATION \"${BUNDLE_PATH}/Contents/Resources\"
 					)

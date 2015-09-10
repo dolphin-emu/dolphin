@@ -1,4 +1,4 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -15,6 +15,20 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
+#ifdef HAVE_OPENVR
+#include <openvr.h>
+
+vr::IVRSystem *m_pHMD;
+vr::IVRRenderModels *m_pRenderModels;
+vr::IVRCompositor *m_pCompositor;
+std::string m_strDriver;
+std::string m_strDisplay;
+vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+bool m_bUseCompositor = true;
+bool m_rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
+int m_iValidPoseCount;
+#endif
+
 void ClearDebugProj();
 
 #ifdef OVR_MAJOR_VERSION
@@ -25,12 +39,19 @@ ovrEyeRenderDesc g_eye_render_desc[2];
 ovrFrameTiming g_rift_frame_timing;
 ovrPosef g_eye_poses[2], g_front_eye_poses[2];
 int g_ovr_frameindex;
+#if OVR_MAJOR_VERSION >= 7
+ovrGraphicsLuid luid;
+#endif
+#endif
+
+#ifdef _WIN32
+LUID *g_hmd_luid = nullptr;
 #endif
 
 std::mutex g_vr_lock;
 
-bool g_force_vr = false;
-bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
+bool g_force_vr = false, g_prefer_steamvr = false;
+bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false, g_has_steamvr = false;
 bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
@@ -150,53 +171,155 @@ void NewVRFrame()
 	}
 }
 
-void InitVR()
+#ifdef HAVE_OPENVR
+//-----------------------------------------------------------------------------
+// Purpose: Helper to get a string from a tracked device property and turn it
+//			into a std::string
+//-----------------------------------------------------------------------------
+std::string GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = nullptr)
 {
-	g_has_hmd = false;
-	g_is_direct_mode = false;
-	g_hmd_device_name = nullptr;
-#ifdef OVR_MAJOR_VERSION
-	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
-	ovr_Initialize();
-	hmd = ovrHmd_Create(0);
-	if (!hmd)
+	uint32_t unRequiredBufferLen = pHmd->GetStringTrackedDeviceProperty(unDevice, prop, nullptr, 0, peError);
+	if (unRequiredBufferLen == 0)
+		return "";
+
+	char *pchBuffer = new char[unRequiredBufferLen];
+	unRequiredBufferLen = pHmd->GetStringTrackedDeviceProperty(unDevice, prop, pchBuffer, unRequiredBufferLen, peError);
+	std::string sResult = pchBuffer;
+	delete[] pchBuffer;
+	return sResult;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+bool BInitCompositor()
+{
+	vr::HmdError peError = vr::HmdError_None;
+
+	m_pCompositor = (vr::IVRCompositor*)vr::VR_GetGenericInterface(vr::IVRCompositor_Version, &peError);
+
+	if (peError != vr::HmdError_None)
 	{
-		WARN_LOG(VR, "Oculus Rift not detected. Oculus Rift support will not be available.");
+		m_pCompositor = nullptr;
+
+		NOTICE_LOG(VR, "Compositor initialization failed with error: %s\n", vr::VR_GetStringForHmdError(peError));
+		return false;
+	}
+
+	uint32_t unSize = m_pCompositor->GetLastError(NULL, 0);
+	if (unSize > 1)
+	{
+		char* buffer = new char[unSize];
+		m_pCompositor->GetLastError(buffer, unSize);
+		NOTICE_LOG(VR, "Compositor - %s\n", buffer);
+		delete[] buffer;
+		return false;
+	}
+
+	// change grid room colour
+	m_pCompositor->FadeToColor(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, true);
+
+	return true;
+}
 #endif
-#ifdef _WIN32
-		LoadVR920();
-		if (g_has_vr920)
+
+bool InitSteamVR()
+{
+#ifdef HAVE_OPENVR
+	// Loading the SteamVR Runtime
+	vr::HmdError eError = vr::HmdError_None;
+	m_pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
+
+	if (eError != vr::HmdError_None)
+	{
+		m_pHMD = nullptr;
+		ERROR_LOG(VR, "Unable to init SteamVR: %s", vr::VR_GetStringForHmdError(eError));
+		g_has_steamvr = false;
+	}
+	else
+	{
+		m_pRenderModels = (vr::IVRRenderModels *)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &eError);
+		if (!m_pRenderModels)
 		{
-			g_has_hmd = true;
-			g_hmd_window_width = 800;
-			g_hmd_window_height = 600;
-			// Todo: find vr920
-			g_hmd_window_x = 0;
-			g_hmd_window_y = 0;
+			m_pHMD = nullptr;
+			vr::VR_Shutdown();
+
+			ERROR_LOG(VR, "Unable to get render model interface: %s", vr::VR_GetStringForHmdError(eError));
+			g_has_steamvr = false;
 		}
 		else
-#endif
 		{
-			g_has_hmd = g_force_vr;
-#ifdef OVR_MAJOR_VERSION
-			if (g_force_vr)
-			{
-				WARN_LOG(VR, "Forcing VR mode, simulating Oculus Rift DK2.");
-				hmd = ovrHmd_CreateDebug(ovrHmd_DK2);
-			}
-#endif
+			NOTICE_LOG(VR, "VR_Init Succeeded");
+			g_has_steamvr = true;
+			g_has_hmd = true;
 		}
-#ifdef OVR_MAJOR_VERSION
+
+		u32 m_nWindowWidth = 0;
+		u32 m_nWindowHeight = 0;
+		m_pHMD->GetWindowBounds(&g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight);
+		g_hmd_window_width = m_nWindowWidth;
+		g_hmd_window_height = m_nWindowHeight;
+		NOTICE_LOG(VR, "SteamVR WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y, g_hmd_window_width, g_hmd_window_height);
+
+		std::string m_strDriver = "No Driver";
+		std::string m_strDisplay = "No Display";
+		m_strDriver = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
+		m_strDisplay = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
+		NOTICE_LOG(VR, "SteamVR strDriver = '%s'", m_strDriver.c_str());
+		NOTICE_LOG(VR, "SteamVR strDisplay = '%s'", m_strDisplay.c_str());
+
+		if (m_bUseCompositor)
+		{
+			if (!BInitCompositor())
+			{
+				ERROR_LOG(VR, "%s - Failed to initialize SteamVR Compositor!\n", __FUNCTION__);
+				g_has_steamvr = false;
+			}
+		}
+		return g_has_steamvr;
 	}
+#endif
+	return false;
+}
+
+bool InitOculusDebugVR()
+{
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 6
+	if (g_force_vr)
+	{
+		NOTICE_LOG(VR, "Forcing VR mode, simulating Oculus Rift DK2.");
+#if OVR_MAJOR_VERSION >= 6
+		if (ovrHmd_CreateDebug(ovrHmd_DK2, &hmd) != ovrSuccess)
+			hmd = nullptr;
+#else
+		hmd = ovrHmd_CreateDebug(ovrHmd_DK2);
+#endif
+		return (hmd != nullptr);
+	}
+#endif
+	return false;
+}
+
+bool InitOculusHMD()
+{
+#ifdef OVR_MAJOR_VERSION
 	if (hmd)
 	{
 		// Get more details about the HMD
 		//ovrHmd_GetDesc(hmd, &hmdDesc);
+#if OVR_MAJOR_VERSION >= 7
+		hmdDesc = ovr_GetHmdDesc(hmd);
+		ovr_SetEnabledCaps(hmd, ovrHmd_GetEnabledCaps(hmd) | 0);
+#else
 		hmdDesc = *hmd;
 		ovrHmd_SetEnabledCaps(hmd, ovrHmd_GetEnabledCaps(hmd) | ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
+#endif
 
-		if (ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection,
-			0))
+	#if OVR_MAJOR_VERSION >= 6
+		if (OVR_SUCCESS(ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0)))
+	#else
+		if (ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0))
+	#endif
 		{
 			g_has_rift = true;
 			g_has_hmd = true;
@@ -208,11 +331,21 @@ void InitVR()
 			g_eye_fov[1] = g_best_eye_fov[1];
 			g_last_eye_fov[0] = g_eye_fov[0];
 			g_last_eye_fov[1] = g_eye_fov[1];
+	#if OVR_MAJOR_VERSION < 6
 			g_hmd_window_x = hmdDesc.WindowsPos.x;
 			g_hmd_window_y = hmdDesc.WindowsPos.y;
 			g_is_direct_mode = !(hmdDesc.HmdCaps & ovrHmdCap_ExtendDesktop);
-#ifdef _WIN32
+	#else
+			g_hmd_window_x = 0;
+			g_hmd_window_y = 0;
+			g_is_direct_mode = true;
+	#endif
+	#ifdef _WIN32
+	#if OVR_MAJOR_VERSION < 6
 			g_hmd_device_name = hmdDesc.DisplayDeviceName;
+	#else
+			g_hmd_device_name = nullptr;
+	#endif
 			const char *p;
 			if (g_hmd_device_name && (p = strstr(g_hmd_device_name, "\\Monitor")))
 			{
@@ -222,19 +355,95 @@ void InitVR()
 				g_hmd_device_name = strncpy(hmd_device_name, g_hmd_device_name, n);
 				hmd_device_name[n] = '\0';
 			}
-#endif
+	#endif
 			NOTICE_LOG(VR, "Oculus Rift head tracker started.");
 		}
+		return g_has_rift;
 	}
 #endif
+return false;
+}
+
+bool InitOculusVR()
+{
+#ifdef OVR_MAJOR_VERSION
+	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
+
+#if OVR_MAJOR_VERSION >= 7
+	ovr_Initialize(nullptr);
+	ovrGraphicsLuid luid;
+	if (ovr_Create(&hmd, &luid) != ovrSuccess)
+		hmd = nullptr;
+#ifdef _WIN32
+	else
+		g_hmd_luid = reinterpret_cast<LUID*>(&luid);
+#endif
+
+#else
+#if OVR_MAJOR_VERSION >= 6
+	ovr_Initialize(nullptr);
+	if (ovrHmd_Create(0, &hmd) != ovrSuccess)
+		hmd = nullptr;
+#else
+	ovr_Initialize();
+	hmd = ovrHmd_Create(0);
+#endif
+#endif
+
+	if (!hmd)
+		WARN_LOG(VR, "Oculus Rift not detected. Oculus Rift support will not be available.");
+	return (hmd != nullptr);
+#endif
+}
+
+bool InitVR920VR()
+{
+#ifdef _WIN32
+	LoadVR920();
+	if (g_has_vr920)
+	{
+		g_has_hmd = true;
+		g_hmd_window_width = 800;
+		g_hmd_window_height = 600;
+		// Todo: find vr920
+		g_hmd_window_x = 0;
+		g_hmd_window_y = 0;
+		return true;
+	}
+#endif
+	return false;
+}
+
+void InitVR()
+{
+	g_has_hmd = false;
+	g_is_direct_mode = false;
+	g_hmd_device_name = nullptr;
+	g_has_steamvr = false;
+#ifdef _WIN32
+	g_hmd_luid = nullptr;
+#endif
+
+	if (g_prefer_steamvr)
+	{
+		if (!InitSteamVR() && !InitOculusVR() && !InitVR920VR() && !InitOculusDebugVR())
+			g_has_hmd = g_force_vr;
+	}
+	else
+	{
+		if (!InitOculusVR() && !InitSteamVR() && !InitVR920VR() && !InitOculusDebugVR())
+			g_has_hmd = g_force_vr;
+	}
+	InitOculusHMD();
+
 	if (g_has_hmd)
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+		SConfig::GetInstance().strFullscreenResolution =
 			StringFromFormat("%dx%d", g_hmd_window_width, g_hmd_window_height);
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = g_hmd_window_x;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = g_hmd_window_y;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = g_hmd_window_width;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = g_hmd_window_height;
+		SConfig::GetInstance().iRenderWindowXPos = g_hmd_window_x;
+		SConfig::GetInstance().iRenderWindowYPos = g_hmd_window_y;
+		SConfig::GetInstance().iRenderWindowWidth = g_hmd_window_width;
+		SConfig::GetInstance().iRenderWindowHeight = g_hmd_window_height;
 		SConfig::GetInstance().m_special_case = true;
 	}
 	else
@@ -255,19 +464,35 @@ void VR_StopRendering()
 	// Shut down rendering and release resources (by passing NULL)
 	if (g_has_rift)
 	{
+#if OVR_MAJOR_VERSION >= 6
+		for (int i = 0; i < ovrEye_Count; ++i)
+			g_eye_render_desc[i] = ovrHmd_GetRenderDesc(hmd, (ovrEyeType)i, g_eye_fov[i]);
+#else
 		ovrHmd_ConfigureRendering(hmd, nullptr, 0, g_eye_fov, g_eye_render_desc);
+#endif
 	}
 #endif
 }
 
 void ShutdownVR()
 {
+#ifdef HAVE_OPENVR
+	if (g_has_steamvr && m_pHMD)
+	{
+		g_has_steamvr = false;
+		m_pHMD = nullptr;
+		// crashes if OpenGL
+		vr::VR_Shutdown();
+	}
+#endif
 #ifdef OVR_MAJOR_VERSION
 	if (hmd)
 	{
+#if OVR_MAJOR_VERSION < 6
 		// on my computer, on runtime 0.4.2, the Rift won't switch itself off without this:
 		if (g_is_direct_mode)
 			ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_DisplayOff);
+#endif
 		ovrHmd_Destroy(hmd);
 		g_has_rift = false;
 		g_has_hmd = false;
@@ -280,6 +505,12 @@ void ShutdownVR()
 
 void VR_RecenterHMD()
 {
+#ifdef HAVE_OPENVR
+	if (g_has_steamvr && m_pHMD)
+	{
+		m_pHMD->ResetSeatedZeroPose();
+	}
+#endif
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
@@ -310,25 +541,26 @@ void VR_ConfigureHMDPrediction()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
+#if OVR_MAJOR_VERSION <= 5
 		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence | ovrHmdCap_NoMirrorToWindow);
+#else
+#if OVR_MAJOR_VERSION >= 7
+		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(0);
+#else
+		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
+#endif
+#endif
+#if OVR_MAJOR_VERSION <= 6
 		if (g_Config.bLowPersistence)
 			caps |= ovrHmdCap_LowPersistence;
 		if (g_Config.bDynamicPrediction)
 			caps |= ovrHmdCap_DynamicPrediction;
+#if OVR_MAJOR_VERSION <= 5
 		if (g_Config.bNoMirrorToWindow)
 			caps |= ovrHmdCap_NoMirrorToWindow;
-
-		ovrHmd_SetEnabledCaps(hmd, caps);
-	}
 #endif
-}
-
-void VR_BeginFrame()
-{
-#ifdef OVR_MAJOR_VERSION
-	if (g_has_rift)
-	{
-		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
+#endif
+		ovrHmd_SetEnabledCaps(hmd, caps);
 	}
 #endif
 }
@@ -343,81 +575,92 @@ void VR_GetEyePoses()
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
 #else
 		ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
-		ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
-#endif
-	}
-#endif
-}
-
-void GetFovTextureSize(int* sizeX, int* sizeY) {
-		// g_eye_fov? Seriously? Why can't we leave it in the well-abstracted HMD description structure?
-		ovrSizei recommendedTexSize[2];
-		for(int eye = 0; eye < 2; eye++)
-			recommendedTexSize[eye] = ovrHmd_GetFovTextureSize(hmd, hmdDesc.EyeRenderOrder[eye],  g_eye_fov[0], 1.0);
-		*sizeX = (std::max) ( recommendedTexSize[0].w, recommendedTexSize[1].w );
-		*sizeY = (std::max) ( recommendedTexSize[0].h, recommendedTexSize[1].h );
-}
-
-void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z)
-{
-#ifdef OVR_MAJOR_VERSION
-	if (g_has_rift && hmd)
-	{
-		// we can only call GetEyePose between BeginFrame and EndFrame
-#ifdef OCULUSSDK042
-		g_vr_lock.lock();
-		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
-		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-		g_vr_lock.unlock();
+#if OVR_MAJOR_VERSION >= 7
+		ovr_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
 #else
-		ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
 		ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
 #endif
-		//ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
-		//if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
-		{
-			//OVR::Posef pose = ss.HeadPose.ThePose;
-			OVR::Posef pose = g_eye_poses[ovrEye_Left];
-			float ya = 0.0f, p = 0.0f, r = 0.0f;
-			pose.Rotation.GetEulerAngles<OVR::Axis_Y, OVR::Axis_X, OVR::Axis_Z>(&ya, &p, &r);
-			*roll = -RADIANS_TO_DEGREES(r);  // ???
-			*pitch = -RADIANS_TO_DEGREES(p); // should be degrees down
-			*yaw = -RADIANS_TO_DEGREES(ya);   // should be degrees right
-			*x = pose.Translation.x;
-			*y = pose.Translation.y;
-			*z = pose.Translation.z;
-		}
+#endif
 	}
-	else
 #endif
-#ifdef _WIN32
-	if (g_has_vr920 && Vuzix_GetTracking)
-#endif
+#if HAVE_OPENVR
+	if (g_has_steamvr)
 	{
-#ifdef _WIN32
-		LONG ya = 0, p = 0, r = 0;
-		if (Vuzix_GetTracking(&ya, &p, &r) == ERROR_SUCCESS)
+		if (m_pCompositor)
 		{
-			*yaw = -ya * 180.0f / 32767.0f;
-			*pitch = p * -180.0f / 32767.0f;
-			*roll = r * 180.0f / 32767.0f;
-			*x = 0;
-			*y = 0;
-			*z = 0;
+			m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 		}
-#endif
 	}
+#endif
 }
 
-void UpdateHeadTrackingIfNeeded()
+#ifdef HAVE_OPENVR
+//-----------------------------------------------------------------------------
+// Purpose: Processes a single VR event
+//-----------------------------------------------------------------------------
+void ProcessVREvent(const vr::VREvent_t & event)
 {
-	if (g_new_tracking_frame)
+	switch (event.eventType)
 	{
-		float x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0;
-		ReadHmdOrientation(&roll, &pitch, &yaw, &x, &y, &z);
+	case vr::VREvent_TrackedDeviceActivated:
+		{
+			//SetupRenderModelForTrackedDevice(event.trackedDeviceIndex);
+			NOTICE_LOG(VR, "Device %u attached. Setting up render model.\n", event.trackedDeviceIndex);
+			break;
+		}
+	case vr::VREvent_TrackedDeviceDeactivated:
+		{
+			NOTICE_LOG(VR, "Device %u detached.\n", event.trackedDeviceIndex);
+			break;
+		}
+	case vr::VREvent_TrackedDeviceUpdated:
+		{
+			NOTICE_LOG(VR, "Device %u updated.\n", event.trackedDeviceIndex);
+			break;
+		}
+	}
+}
+#endif
+
+#ifdef OVR_MAJOR_VERSION
+void UpdateOculusHeadTracking()
+{
+	// we can only call GetEyePose between BeginFrame and EndFrame
+#ifdef OCULUSSDK042
+	g_vr_lock.lock();
+	g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
+	g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
+	g_vr_lock.unlock();
+#else
+	ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+#if OVR_MAJOR_VERSION >= 7
+	ovr_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#else
+	ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#endif
+#endif
+	//ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
+	//if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
+	{
+		//OVR::Posef pose = ss.HeadPose.ThePose;
+		OVR::Posef pose = g_eye_poses[ovrEye_Left];
+		float yaw = 0.0f, pitch = 0.0f, roll = 0.0f;
+		pose.Rotation.GetEulerAngles<OVR::Axis_Y, OVR::Axis_X, OVR::Axis_Z>(&yaw, &pitch, &roll);
+
+		float x = 0, y = 0, z = 0;
+		roll = -RADIANS_TO_DEGREES(roll);  // ???
+		pitch = -RADIANS_TO_DEGREES(pitch); // should be degrees down
+		yaw = -RADIANS_TO_DEGREES(yaw);   // should be degrees right
+		x = pose.Translation.x;
+		y = pose.Translation.y;
+		z = pose.Translation.z;
 		g_head_tracking_position[0] = -x;
 		g_head_tracking_position[1] = -y;
-		g_head_tracking_position[2] = 0.06f-z;
+#if OVR_MAJOR_VERSION <= 4
+		g_head_tracking_position[2] = 0.06f - z;
+#else
+		g_head_tracking_position[2] = -z;
+#endif
 		Matrix33 m, yp, ya, p, r;
 		Matrix33::RotateY(ya, DEGREES_TO_RADIANS(yaw));
 		Matrix33::RotateX(p, DEGREES_TO_RADIANS(pitch));
@@ -425,7 +668,102 @@ void UpdateHeadTrackingIfNeeded()
 		Matrix33::RotateZ(r, DEGREES_TO_RADIANS(roll));
 		Matrix33::Multiply(r, yp, m);
 		Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
+	}
+}
+#endif
+
+#ifdef HAVE_OPENVR
+void UpdateSteamVRHeadTracking()
+{
+	// Process SteamVR events
+	vr::VREvent_t event;
+	while (m_pHMD->PollNextEvent(&event))
+	{
+		ProcessVREvent(event);
+	}
+
+	// Process SteamVR controller state
+	for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
+	{
+		vr::VRControllerState_t state;
+		if (m_pHMD->GetControllerState(unDevice, &state))
+		{
+			m_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
+		}
+	}
+	float fSecondsUntilPhotons = 0.0f;
+	m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, fSecondsUntilPhotons, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+	m_iValidPoseCount = 0;
+	//for ( int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice )
+	//{
+	//	if ( m_rTrackedDevicePose[nDevice].bPoseIsValid )
+	//	{
+	//		m_iValidPoseCount++;
+	//		//m_rTrackedDevicePose[nDevice].mDeviceToAbsoluteTracking;
+	//	}
+	//}
+
+	if (m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
+	{
+		float x = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[0][3];
+		float y = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[1][3];
+		float z = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[2][3];
+		g_head_tracking_position[0] = -x;
+		g_head_tracking_position[1] = -y;
+		g_head_tracking_position[2] = -z;
+		Matrix33 m;
+		for (int r = 0; r < 3; r++)
+			for (int c = 0; c < 3; c++)
+				m.data[r * 3 + c] = m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking.m[c][r];
+		Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
+	}
+}
+#endif
+
+#ifdef _WIN32
+void UpdateVuzixHeadTracking()
+{
+	LONG ya = 0, p = 0, r = 0;
+	if (Vuzix_GetTracking(&ya, &p, &r) == ERROR_SUCCESS)
+	{
+		float yaw = -ya * 180.0f / 32767.0f;
+		float pitch = p * -180.0f / 32767.0f;
+		float roll = r * 180.0f / 32767.0f;
+		// todo: use head and neck model
+		float x = 0;
+		float y = 0;
+		float z = 0;
+		Matrix33 m, yp, ya, p, r;
+		Matrix33::RotateY(ya, DEGREES_TO_RADIANS(yaw));
+		Matrix33::RotateX(p, DEGREES_TO_RADIANS(pitch));
+		Matrix33::Multiply(p, ya, yp);
+		Matrix33::RotateZ(r, DEGREES_TO_RADIANS(roll));
+		Matrix33::Multiply(r, yp, m);
+		Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
+		g_head_tracking_position[0] = -x;
+		g_head_tracking_position[1] = -y;
+		g_head_tracking_position[2] = -z;
+	}
+}
+#endif
+
+void UpdateHeadTrackingIfNeeded()
+{
+	if (g_new_tracking_frame)
+	{
 		g_new_tracking_frame = false;
+#ifdef _WIN32
+		if (g_has_vr920 && Vuzix_GetTracking)
+			UpdateVuzixHeadTracking();
+#endif
+#ifdef HAVE_OPENVR
+		if (g_has_steamvr)
+			UpdateSteamVRHeadTracking();
+#endif
+#ifdef OVR_MAJOR_VERSION
+		if (g_has_rift)
+			UpdateOculusHeadTracking();
+#endif
 	}
 }
 
@@ -444,6 +782,12 @@ void VR_GetProjectionHalfTan(float &hmd_halftan)
 	}
 	else
 #endif
+	if (g_has_steamvr)
+	{
+		// rough approximation, can't be bothered to work this out properly
+		hmd_halftan = tan(DEGREES_TO_RADIANS(100.0f / 2));
+	}
+	else
 	{
 		hmd_halftan = tan(DEGREES_TO_RADIANS(32.0f / 2))*3.0f / 4.0f;
 	}
@@ -458,6 +802,20 @@ void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float zne
 		ovrMatrix4f rift_right = ovrMatrix4f_Projection(g_eye_fov[1], znear, zfar, true);
 		Matrix44::Set(left_eye, rift_left.M[0]);
 		Matrix44::Set(right_eye, rift_right.M[0]);
+	}
+	else
+#endif
+#ifdef HAVE_OPENVR
+	if (g_has_steamvr)
+	{
+		vr::HmdMatrix44_t mat = m_pHMD->GetProjectionMatrix(vr::Eye_Left, znear, zfar, vr::API_DirectX);
+		for (int r = 0; r < 4; ++r)
+			for (int c = 0; c < 4; ++c)
+				left_eye.data[r * 4 + c] = mat.m[r][c];
+		mat = m_pHMD->GetProjectionMatrix(vr::Eye_Right, znear, zfar, vr::API_DirectX);
+		for (int r = 0; r < 4; ++r)
+			for (int c = 0; c < 4; ++c)
+				right_eye.data[r * 4 + c] = mat.m[r][c];
 	}
 	else
 #endif
@@ -493,14 +851,32 @@ void VR_GetEyePos(float *posLeft, float *posRight)
 		posRight[0] = g_eye_render_desc[1].HmdToEyeViewOffset.x;
 		posRight[1] = g_eye_render_desc[1].HmdToEyeViewOffset.y;
 		posRight[2] = g_eye_render_desc[1].HmdToEyeViewOffset.z;
+#if OVR_MAJOR_VERSION >= 6
+		for (int i=0; i<3; ++i)
+		{
+			posLeft[i] = -posLeft[i];
+			posRight[i] = -posRight[i];
+		}
 #endif
+#endif
+	}
+	else
+#endif
+#ifdef HAVE_OPENVR
+	if (g_has_steamvr)
+	{
+		// assume 62mm IPD
+		posLeft[0] = 0.031f;
+		posRight[0] = -0.031f;
+		posLeft[1] = posRight[1] = 0;
+		posLeft[2] = posRight[2] = 0;
 	}
 	else
 #endif
 	{
 		// assume 62mm IPD
-		posLeft[0] = -0.031f;
-		posRight[0] = 0.031f;
+		posLeft[0] = 0.031f;
+		posRight[0] = -0.031f;
 		posLeft[1] = posRight[1] = 0;
 		posLeft[2] = posRight[2] = 0;
 	}
@@ -625,7 +1001,7 @@ void OpcodeReplayBuffer()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int extra_video_loops_count = 0;
 	static int real_frame_count = 0;
-	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
 		if (g_ActiveConfig.bPullUp20fps)
@@ -763,7 +1139,7 @@ void OpcodeReplayBufferInline()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int real_frame_count = 0;
 	int extra_video_loops;
-	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
 		g_opcode_replay_log_frame = true;

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/FileUtil.h"
@@ -14,7 +14,6 @@
 
 AXUCode::AXUCode(DSPHLE* dsphle, u32 crc)
 	: UCodeInterface(dsphle, crc)
-	, m_work_available(false)
 	, m_cmdlist_size(0)
 {
 	WARN_LOG(DSPHLE, "Instantiating AXUCode: crc=%08x", crc);
@@ -609,7 +608,9 @@ void AXUCode::HandleMail(u32 mail)
 	if (next_is_cmdlist)
 	{
 		CopyCmdList(mail, cmdlist_size);
-		m_work_available = true;
+		HandleCommandList();
+		m_cmdlist_size = 0;
+		SignalWorkEnd();
 	}
 	else if (m_upload_setup_in_progress)
 	{
@@ -669,17 +670,6 @@ void AXUCode::Update()
 		m_mail_handler.PushMail(DSP_RESUME);
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
-	else if (m_work_available)
-	{
-		HandleCommandList();
-		m_cmdlist_size = 0;
-		SignalWorkEnd();
-	}
-}
-
-u32 AXUCode::GetUpdateMs()
-{
-	return 5;
 }
 
 void AXUCode::DoAXState(PointerWrap& p)

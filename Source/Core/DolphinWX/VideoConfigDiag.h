@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -21,7 +21,6 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "DolphinWX/PostProcessingConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/PostProcessing.h"
@@ -121,7 +120,7 @@ protected:
 				Close();
 
 				g_video_backend = new_backend;
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = g_video_backend->GetName();
+				SConfig::GetInstance().m_strVideoBackend = g_video_backend->GetName();
 
 				g_video_backend->ShowConfig(GetParent());
 			}
@@ -141,7 +140,7 @@ protected:
 	void Event_ProgressiveScan(wxCommandEvent &ev)
 	{
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", ev.GetInt());
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive = ev.IsChecked();
+		SConfig::GetInstance().bProgressive = ev.IsChecked();
 
 		ev.Skip();
 	}
@@ -213,6 +212,8 @@ protected:
 		// Anti-aliasing
 		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
+		ssaa_checkbox->Enable(vconfig.backend_info.bSupportsSSAA && vconfig.iMultisampleMode > 0);
+
 
 		// EFB copy
 		efbcopy_clear_disable->Enable(!vconfig.bEFBCopyEnable);
@@ -222,6 +223,9 @@ protected:
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
 		real_xfb->Enable(vconfig.bUseXFB);
+
+		// custom textures
+		cache_hires_textures->Enable(vconfig.bHiresTextures);
 
 		// Repopulating the post-processing shaders can't be done from an event
 		if (choice_ppshader && choice_ppshader->IsEmpty())
@@ -276,6 +280,7 @@ protected:
 
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
+	wxCheckBox* ssaa_checkbox;
 
 	wxStaticText* label_display_resolution;
 
@@ -292,6 +297,8 @@ protected:
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;
 
+	SettingCheckBox* cache_hires_textures;
+
 	wxCheckBox* progressive_scan_checkbox;
 
 	wxChoice* choice_ppshader;
@@ -302,74 +309,3 @@ protected:
 	VideoConfig &vconfig;
 	std::string ininame;
 };
-
-static wxString async_desc = _("Render head rotation updates in a separate thread at full frame rate using Timewarp even when the game runs at a lower frame rate.");
-static wxString temp_desc = _("Game specific VR option, in metres or degrees");
-static wxString minfov_desc = _("Minimum horizontal degrees of your view that the action will fill.\nWhen the game tries to render from a distance with a zoom lens, this will move thhe camera closer instead. When the FOV is less than the minimum the camera will move forward until objects at Aim Distance fill the minimum FOV.\nIf unsure, leave this at 10 degrees.");
-static wxString scale_desc = _("(Don't change this until the game's Units Per Metre setting is already lifesize!)\n\nScale multiplier for all VR worlds.\n1x = lifesize, 2x = Giant size\n0.5x = Child size, 0.17x = Barbie doll size, 0.02x = Lego size\n\nIf unsure, use 1.00.");
-static wxString lean_desc = _("How many degrees leaning back should count as vertical.\n0 = sitting/standing, 45 = reclining\n90 = playing lying on your back, -90 = on your front\n\nIf unsure, use 0.");
-static wxString extraframes_desc = _("How many extra frames to render via timewarp.  Set to 0 for 60fps games, 1 for 30fps games, 2 for 20fps games and the framelimiter to your Rift's refresh rate.  For 25fps PAL games, set to 2 and set the frame limiter to 60 (assuming the Rift's refresh rate is set to 75hz).  If unsure, use 0.");
-static wxString replaybuffer_desc = _("How many extra frames to render through replaying the video loop.  Set to 0 for 60fps games, 1 for 30fps games, 2 for 20fps games and the framelimiter to your Rift's refresh rate.  For 25fps PAL games, set to 2 and set the frame limiter to 60 (assuming the Rift's refresh rate is set to 75hz).  If unsure, use 0.");
-static wxString stabilizeroll_desc = _("Counteract the game's camera roll. Requires 'Read Camera Angles' to be checked in the 'VR Game' tab.\nIf unsure, leave this checked.");
-static wxString stabilizepitch_desc = _("Counteract the game's camera pitch. Fixes tilt in 3rd person games and allows free y-axis aiming in 1st person games.  Requires 'Read Camera Angles' to be checked in the 'VR Game' tab.\nIf unsure, leave this checked.");
-static wxString stabilizeyaw_desc = _("Counteract the game's camera yaw. Use this when playing standing up or in a swivel chair. Also allows completely free x-axis aiming in 1st person games.  Requires 'Read Camera Angles' to be checked in the 'VR Game' tab.\nIf unsure, leave this unchecked.");
-static wxString stabilizex_desc = _("Counteract the game's 'sideways' camera movement. Requires 'Read Camera Angles' to be checked in the 'VR Game' tab. This might reduce motion sickness, but will stop the HUD from lining up correctly. Use freelook to move the camera yourself. This option is for playing standing up in a large room, or with the scale set to toy sized.\nIf unsure, leave this unchecked.");
-static wxString stabilizey_desc = _("Counteract the game's 'vertical' camera movement. Requires 'Read Camera Angles' to be checked in the 'VR Game' tab. This might reduce motion sickness, but will stop the HUD from lining up correctly. Use freelook to move the camera yourself. This option sometimes works when seated, but is mostly for playing standing up in a large room, or with the scale set to toy sized.\nIf unsure, leave this unchecked.");
-static wxString stabilizez_desc = _("Counteract the game's 'forwards' camera movement. Requires 'Read Camera Angles' to be checked in the 'VR Game' tab. This might reduce motion sickness, but will stop the HUD from lining up correctly. Use freelook to move the camera yourself. This option is for playing standing up in a large room, or with the scale set to toy sized.\nIf unsure, leave this unchecked.");
-static wxString keyhole_desc = _("Allows keyhole aiming in 1st person games by manipulating the yaw correction. Great for first person shooters.\nIf unsure, leave this unchecked.");
-static wxString keyholewidth_desc = _("The width of the horizontal keyhole in degrees.\nIf unsure, use 45.");
-static wxString keyholesnap_desc = _("Snaps the view a certain amount of degrees to the side if the edge of the keyhole is reached. This lowers motion sickness during 1st person turns, but may be considered less immersive.\nIf unsure, leave this unchcked.");
-static wxString keyholesnapsize_desc = _("The size of the heyhole snap jump in degrees.\nIf unsure, use 30.");
-static wxString pullup20_desc = _("Make headtracking work at 75fps for a 20fps game. Enable this on 20fps games to fix judder.\nIf unsure, leave this unchecked.");
-static wxString pullup30_desc = _("Make headtracking work at 75fps for a 30fps game. Enable this on 30fps games to fix judder.\nIf unsure, leave this unchecked.");
-static wxString pullup60_desc = _("Make headtracking work at 75fps for a 60fps game. Enable this on 60fps games to fix judder.\nIf unsure, leave this unchecked.");
-static wxString opcodewarning_desc = _("Turn off Opcode Warnings.  Will ignore errors in the Opcode Replay Buffer, allowing many games with minor problems to be played.  This should be turned on if trying to play a game with Opcode Replay enabled. Once all the bugs in the Opcode Buffer are fixed, this option will be removed!");
-static wxString replayvertex_desc = _("Records and replays the vertex buffer and vertex shader constants. This is only needed for certain games that overwrite the vertex buffer midframe, causing corruption with Opcode Replay enabled, e.g. Metroid Prime and DK Country.\nIf unsure, leave this unchecked.");
-static wxString replayother_desc = _("Records and replays many other parts of the frame such as the Index Buffer, Geometery Shader Constants, and Pixel Shader constants.  This has not been found to help with any games (yet), and should be left disabled for most games. Enabling this will use more memory most likely for no reason.\nIf unsure, leave this unchecked.");
-static wxString pullup20timewarp_desc = _("Timewarp headtracking up to 75fps for a 20fps game. Enable this on 20fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
-static wxString pullup30timewarp_desc = _("Timewarp headtracking up to 75fps for a 30fps game. Enable this on 30fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
-static wxString pullup60timewarp_desc = _("Timewarp headtracking up to 75fps for a 60fps game. Enable this on 60fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
-static wxString timewarptweak_desc = _("How long before the expected Vsync the timewarped frame should be injected. Ideally this value should be around 0.0040, but some configurations may benefit from tweaking this value.  Only used if 'Extra Timewarped Frames' is non-zero. If unsure, set this to 0.0040.");
-static wxString enablevr_desc = _("Enable Virtual Reality (if your HMD was detected when you started Dolphin).\n\nIf unsure, leave this checked.");
-static wxString player_desc = _("During split-screen games, which player is wearing the Oculus Rift?\nPlayer 1 is top left, player 2 is top right, player 3 is bottom left, player 4 is bottom right.\nThe player in the Rift will only see their player's view.\n\nIf unsure, say Player 1.");
-static wxString cameracontrol_desc = _("Let the game rotate the camera only in these axes, to prevent motion sickness.\nDoesn't work in all games.\n\nIf unsure, choose Yaw only.");
-static wxString readpitch_desc = _("How many extra degrees pitch to add to the camera when reading camera angles.\nThis only has an effect when 'Read Camera Angles' is checked and 'Let the Game Camera Control' is not set to 'yaw, pitch, and roll'. It is for games where the read camera angle is looking at the floor.\nThis will normally be 0 or 90.\nIf unsure, leave this at 0 degrees.");
-static wxString lowpersistence_desc = _("Use low persistence on DK2 to reduce motion blur when turning your head.\n\nIf unsure, leave this checked.");
-static wxString dynamicpred_desc = _("\"Adjust prediction dynamically based on internally measured latency.\"\n\nIf unsure, leave this checked.");
-static wxString nomirrortowindow_desc = _("Disable the mirrored window in direct mode.  Current tests show better performance with this unchecked and the mirrored window resized to 0 pixels by 0 pixels. Leave this unchecked.");
-static wxString orientation_desc = _("Use orientation tracking.\n\nLeave this checked.");
-static wxString magyaw_desc = _("Use the Rift's magnetometers to prevent yaw drift when out of camera range.\n\nIf unsure, leave this checked.");
-static wxString position_desc = _("Use position tracking (both from camera and head/neck model).\n\nLeave this checked.");
-static wxString chromatic_desc = _("Use chromatic aberration correction to prevent red and blue fringes at the edges of objects.\n\nIf unsure, leave this checked.");
-static wxString timewarp_desc = _("Shift the warped display after rendering to correct for head movement during rendering.\n\nIf unsure, leave this checked.");
-static wxString vignette_desc = _("Fade out the edges of the screen to make the screen sides look less harsh.\nNot needed on DK1.\n\nIf unsure, leave this unchecked.");
-static wxString norestore_desc = _("Tell the Oculus SDK not to restore OpenGL state.\n\nIf unsure, leave this unchecked.");
-static wxString flipvertical_desc = _("Flip the screen vertically.\n\nIf unsure, leave this unchecked.");
-static wxString srgb_desc = _("\"Assume input images are in sRGB gamma-corrected color space.\"\n\nIf unsure, leave this unchecked.");
-static wxString overdrive_desc = _("Try to fix true black smearing by overdriving brightness transitions.\n\nIf unsure, leave this unchecked.");
-static wxString hqdistortion_desc = _("\"High-quality sampling of distortion buffer for anti-aliasing\".\n\nIf unsure, leave this unchecked.");
-static wxString hudontop_desc = _("Always draw the HUD on top of everything else.\nUse this when you can't see the HUD because the world is covering it up.\n\nIf unsure, leave this unchecked.");
-static wxString dontclearscreen_desc = _("Don't clear the screen every frame. This prevents some games from flashing.\n\nIf unsure, leave this unchecked.");
-static wxString canreadcamera_desc = _("Read the camera angle from the angle of the first drawn 3D object.\nThis will only work in some games, but helps keep the ground horizontal.\n\nIf unsure, leave this unchecked.");
-static wxString detectskybox_desc = _("Assume any object drawn at 0,0,0 in camera space is a skybox.\nUse this if the sky looks too close, or to enable hiding or locking the skybox for motion sickness prevention (see the Motion Sickness tab).\n\nIf unsure, either setting is usually fine.");
-static wxString nearclip_desc = _("Always draw things which are close to (or far from) the camera.\nThis fixes the problem of things disappearing when you move your head close.\nThere can still be problems when two objects are in front of the near clipping plane, if they are drawn in the wrong order.\n\nIf unsure, leave this checked.");
-static wxString showcontroller_desc = _("Show the razer hydra, wiimote, or gamecube controller inside the game world. Note: Only works in Direct3D for now. \n\nIf unsure, leave this unchecked.");
-static wxString showhands_desc = _("Show your hands inside the game world.\n\nIf unsure, leave this unchecked.");
-static wxString showfeet_desc = _("Show your feet inside the game world.\nBased on your height in Oculus Configuration Utility.\n\nIf unsure, leave this unchecked.");
-static wxString showgamecamera_desc = _("Show the location of the game's camera inside the game world.\nNormally this will be where your head is unless you move your head.\n\nIf unsure, leave this unchecked.");
-static wxString showgamecamerafrustum_desc = _("Show the pyramid coming out of the game camera representing what the game thinks you can see.\n\nIf unsure, leave this unchecked.");
-static wxString showsensorbar_desc = _("Show the virtual or real sensor bar inside the game world.\n\nIf unsure, leave this unchecked.");
-static wxString showtrackingcamera_desc = _("Show the Oculus Rift tracking camera inside the game world.\n\nIf unsure, leave this unchecked.");
-static wxString showtrackingvolume_desc = _("Show the pyramid coming out of the Rift's tracking camera representing where your head can be tracked.\n\nIf unsure, leave this unchecked.");
-static wxString showbasestation_desc = _("Show the Razer Hydra base station inside the game world.\n\nIf unsure, leave this unchecked.");
-static wxString hideskybox_desc = _("Don't draw the background or sky in some games.\nThat may reduce motion sickness by reducing vection in your periphery, but most games won't look as good.\n\nIf unsure, chose 'normal'.");
-static wxString lockskybox_desc = _("Lock the game's background or sky to the real world in some games.\nTurning in-game will rotate the level but not the background. Oculus suggested this at Connect. It will reduce motion sickness at the cost of decreased immersion.\n\nIf unsure, leave this unchecked.");
-static wxString motionsicknessprevention_desc = _("A list of options that can help reduce motion sickness:\nReduce FOV - Lower the FOV temporarily during certain actions selected below.\nBlack Screen - Blank the screen entirely during certain actions selected below.\n\nIf unsure, select 'none'.");
-static wxString motionsicknessfov_desc = _("Set the restricted FOV to be used when the motion sickness reduction option is activated. A range somewhere between 80 to 40 degrees is ideal.");
-static wxString motionsicknessalways_desc = _("Always enable the selected motion sickness reduction option.\n\nIf unsure, leave this unchecked.");
-static wxString motionsicknessfreelook_desc = _("Enable the selected motion sickness reduction option during fast freelook movements.\n\nIf unsure, leave this unchecked.");
-static wxString motionsickness2d_desc = _("Enable the selected motion sickness reduction option in 2D scenes, when there is no 3D world detected.\n\nIf unsure, leave this unchecked.");
-static wxString motionsicknessleftstick_desc = _("Enable the selected motion sickness reduction option when using the left joystick.\n\nIf unsure, leave this unchecked.");
-static wxString motionsicknessrightstick_desc = _("Enable the selected motion sickness reduction option when using the right joystick.\n\nIf unsure, leave this unchecked.");
-static wxString motionsicknessdpad_desc = _("Enable the selected motion sickness reduction option when using the D-Pad.\n\nIf unsure, leave this unchecked.");
-static wxString motionsicknessir_desc = _("Enable the selected motion sickness reduction option when using the IR pointer.\n\nIf unsure, leave this unchecked.");

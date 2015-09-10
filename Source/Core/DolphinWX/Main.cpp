@@ -1,5 +1,5 @@
-// Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cstdio>
@@ -9,6 +9,8 @@
 #include <fstream>
 #include <string>
 #include <utility>
+#include <wchar.h>
+
 #include <wx/app.h>
 #include <wx/buffer.h>
 #include <wx/cmdline.h>
@@ -33,7 +35,6 @@
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/HW/Wiimote.h"
@@ -101,24 +102,73 @@ bool DolphinApp::Initialize(int& c, wxChar **v)
 
 bool DolphinApp::OnInit()
 {
+	if (!wxApp::OnInit() || DolphinEmulatorDotComTextFileExists())
+		return false;
+
 	Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
 	Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
 
-	// Declarations and definitions
-	bool UseDebugger = false;
-	bool UseLogger = false;
-	bool selectVideoBackend = false;
-	bool selectAudioEmulation = false;
-	bool selectPerfDir = false;
+	// Register message box and translation handlers
+	RegisterMsgAlertHandler(&wxMsgAlert);
+	RegisterStringTranslator(&wxStringTranslator);
 
-	wxString videoBackendName;
-	wxString audioEmulationName;
-	wxString userPath;
-	wxString perfDir;
-	wxString bruteforceResult;
+#if wxUSE_ON_FATAL_EXCEPTION
+	wxHandleFatalExceptions(true);
+#endif
 
-#if wxUSE_CMDLINE_PARSER // Parse command lines
-	wxCmdLineEntryDesc cmdLineDesc[] =
+	UICommon::SetUserDirectory(m_user_path.ToStdString());
+	UICommon::CreateDirectories();
+	InitLanguageSupport(); // The language setting is loaded from the user directory
+	UICommon::Init();
+
+	if (m_select_video_backend && !m_video_backend_name.empty())
+		SConfig::GetInstance().m_strVideoBackend = WxStrToStr(m_video_backend_name);
+
+	if (m_select_audio_emulation)
+		SConfig::GetInstance().bDSPHLE = (m_audio_emulation_name.Upper() == "HLE");
+
+	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+
+	// Enable the PNG image handler for screenshots
+	wxImage::AddHandler(new wxPNGHandler);
+
+	int x = SConfig::GetInstance().iPosX;
+	int y = SConfig::GetInstance().iPosY;
+	int w = SConfig::GetInstance().iWidth;
+	int h = SConfig::GetInstance().iHeight;
+
+	// The following is not needed with X11, where window managers
+	// do not allow windows to be created off the desktop.
+#ifdef _WIN32
+	// Out of desktop check
+	int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
+	int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
+	int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+	if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
+		x = y = wxDefaultCoord;
+#elif defined __APPLE__
+	if (y < 1)
+		y = wxDefaultCoord;
+#endif
+
+	std::string titleStr = StringFromFormat("%s%s", scm_rev_str, SCM_OCULUS_STR);
+	main_frame = new CFrame(nullptr, wxID_ANY,
+	                        StrToWxStr(titleStr),
+	                        wxPoint(x, y), wxSize(w, h),
+	                        m_use_debugger, m_batch_mode, m_use_logger);
+
+	SetTopWindow(main_frame);
+	main_frame->SetMinSize(wxSize(400, 300));
+
+	AfterInit();
+
+	return true;
+}
+
+void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
+{
+	static const wxCmdLineEntryDesc desc[] =
 	{
 		{
 			wxCMD_LINE_SWITCH, "h", "help",
@@ -146,12 +196,17 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, "V", "video_backend",
+			wxCMD_LINE_OPTION, "c", "confirm",
+			"Set Confirm on Stop",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "v", "video_backend",
 			"Specify a video backend",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, "A", "audio_emulation",
+			wxCMD_LINE_OPTION, "a", "audio_emulation",
 			"Low level (LLE) or high level (HLE) audio",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
@@ -161,7 +216,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, "U", "user",
+			wxCMD_LINE_OPTION, "u", "user",
 			"User folder path",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
@@ -169,6 +224,18 @@ bool DolphinApp::OnInit()
 		{
 			wxCMD_LINE_SWITCH, "vr", nullptr,
 			"force Virtual Reality on",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		// -steamvr option to use SteamVR instead of Oculus
+		{
+			wxCMD_LINE_SWITCH, "steamvr", nullptr,
+			"use SteamVR instead of Oculus",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		// -oculus option to use Oculus instead of SteamVR, and to force virtual reality on
+		{
+			wxCMD_LINE_SWITCH, "oculus", nullptr,
+			"use Oculus instead of SteamVR, and force VR on",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		// -force-d3d11 and -force-ogl options like in Oculus Rift unity demos
@@ -189,38 +256,33 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, "P", "perf_dir",
-			"Directory for Linux perf perf-$pid.map file",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
 			wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
 
-	// Gets the command line parameters
-	wxCmdLineParser parser(cmdLineDesc, argc, argv);
-	LoadFile = false;
+	parser.SetDesc(desc);
+}
+
+bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
+{
 	if (argc == 2 && File::Exists(argv[1].ToUTF8().data()))
 	{
-		LoadFile = true;
-		FileToLoad = argv[1];
+		m_load_file = true;
+		m_file_to_load = argv[1];
 	}
 	else if (parser.Parse() != 0)
 	{
 		return false;
 	}
 
-	UseDebugger = parser.Found("debugger");
-	UseLogger = parser.Found("logger");
-	if (!LoadFile)
-		LoadFile = parser.Found("exec", &FileToLoad);
-	BatchMode = parser.Found("batch");
-	selectVideoBackend = parser.Found("video_backend", &videoBackendName);
-	selectAudioEmulation = parser.Found("audio_emulation", &audioEmulationName);
-	selectPerfDir = parser.Found("perf_dir", &perfDir);
-	playMovie = parser.Found("movie", &movieFile);
-	g_force_vr = parser.Found("vr");
+	if (!m_load_file)
+		m_load_file = parser.Found("exec", &m_file_to_load);
+	g_force_vr = parser.Found("vr") || parser.Found("oculus");
+	if (parser.Found("oculus"))
+		g_prefer_steamvr = false;
+	else if (parser.Found("steamvr"))
+		g_prefer_steamvr = true;
+	wxString bruteforceResult;
 	ARBruteForcer::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
 	ARBruteForcer::ch_code = WxStrToStr(bruteforceResult);
 	if (ARBruteForcer::ch_bruteforce)
@@ -232,124 +294,75 @@ bool DolphinApp::OnInit()
 			return false;
 		}
 	}
+
+	m_use_debugger = parser.Found("debugger");
+	m_use_logger = parser.Found("logger");
+	m_batch_mode = parser.Found("batch");
+	m_confirm_stop = parser.Found("confirm", &m_confirm_setting);
+	m_select_video_backend = parser.Found("video_backend", &m_video_backend_name);
+	m_select_audio_emulation = parser.Found("audio_emulation", &m_audio_emulation_name);
 	if (parser.Found("force-d3d11"))
 	{
-		selectVideoBackend = true;
-		videoBackendName = "D3D";
+		m_select_video_backend = true;
+		m_video_backend_name = "D3D";
 	}
 	else if (parser.Found("force-opengl"))
 	{
-		selectVideoBackend = true;
-		videoBackendName = "OGL";
+		m_select_video_backend = true;
+		m_video_backend_name = "OGL";
 	}
-
-	parser.Found("user", &userPath);
-#endif // wxUSE_CMDLINE_PARSER
-
-	// Register message box and translation handlers
-	RegisterMsgAlertHandler(&wxMsgAlert);
-	RegisterStringTranslator(&wxStringTranslator);
-
-#if wxUSE_ON_FATAL_EXCEPTION
-	wxHandleFatalExceptions(true);
-#endif
-
-	UICommon::SetUserDirectory(userPath.ToStdString());
-	UICommon::CreateDirectories();
-	InitLanguageSupport();	// The language setting is loaded from the user directory
-	UICommon::Init();
-
-	if (selectPerfDir)
-	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_perfDir =
-			WxStrToStr(perfDir);
-	}
-
-	if (selectVideoBackend && videoBackendName != wxEmptyString)
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
-			WxStrToStr(videoBackendName);
-
-	if (selectAudioEmulation)
-	{
-		if (audioEmulationName == "HLE")
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = true;
-		else if (audioEmulationName == "LLE")
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = false;
-	}
-
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
-
-	// Enable the PNG image handler for screenshots
-	wxImage::AddHandler(new wxPNGHandler);
-
-	int x = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX;
-	int y = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY;
-	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
-	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
-
-	if (File::Exists("www.dolphin-emulator.com.txt"))
-	{
-		File::Delete("www.dolphin-emulator.com.txt");
-		wxMessageDialog dlg(nullptr, _(
-		    "This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
-		    "download Dolphin from the official website instead: https://dolphin-emu.org/"),
-		    _("Unofficial version detected"), wxOK | wxICON_WARNING);
-		dlg.ShowModal();
-
-		wxLaunchDefaultBrowser("https://dolphin-emu.org/?ref=badver");
-
-		exit(0);
-	}
-
-	// The following is not needed with X11, where window managers
-	// do not allow windows to be created off the desktop.
-#ifdef _WIN32
-	// Out of desktop check
-	int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
-	int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
-	int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
-	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-	if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
-		x = y = wxDefaultCoord;
-#elif defined __APPLE__
-	if (y < 1)
-		y = wxDefaultCoord;
-#endif
-
-	{
-		std::string titleStr = StringFromFormat("%s%s", scm_rev_str, SCM_OCULUS_STR);
-		main_frame = new CFrame(nullptr, wxID_ANY,
-			StrToWxStr(titleStr),
-			wxPoint(x, y), wxSize(w, h),
-			UseDebugger, BatchMode, UseLogger);
-	}
-	SetTopWindow(main_frame);
-	main_frame->SetMinSize(wxSize(400, 300));
-
-	AfterInit();
+	m_play_movie = parser.Found("movie", &m_movie_file);
+	parser.Found("user", &m_user_path);
 
 	return true;
 }
 
-void DolphinApp::MacOpenFile(const wxString &fileName)
+#ifdef __APPLE__
+void DolphinApp::MacOpenFile(const wxString& fileName)
 {
-	FileToLoad = fileName;
-	LoadFile = true;
-	main_frame->BootGame(WxStrToStr(FileToLoad));
+	m_file_to_load = fileName;
+	m_load_file = true;
+	main_frame->BootGame(WxStrToStr(m_file_to_load));
+}
+#endif
+
+bool DolphinApp::DolphinEmulatorDotComTextFileExists()
+{
+	if (!File::Exists("www.dolphin-emulator.com.txt"))
+		return false;
+
+	File::Delete("www.dolphin-emulator.com.txt");
+	wxMessageDialog dlg(nullptr, _(
+	    "This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
+	    "download Dolphin from the official website instead: https://dolphin-emu.org/"),
+	    _("Unofficial version detected"), wxOK | wxICON_WARNING);
+	dlg.ShowModal();
+
+	wxLaunchDefaultBrowser("https://dolphin-emu.org/?ref=badver");
+
+	return true;
 }
 
 void DolphinApp::AfterInit()
 {
-	if (!BatchMode)
+	if (!m_batch_mode)
 		main_frame->UpdateGameList();
 
-	if (playMovie && movieFile != wxEmptyString)
+	if (m_confirm_stop)
 	{
-		if (Movie::PlayInput(WxStrToStr(movieFile)))
+		if (m_confirm_setting.Upper() == "TRUE")
+			SConfig::GetInstance().bConfirmStop = true;
+		else if (m_confirm_setting.Upper() == "FALSE")
+			SConfig::GetInstance().bConfirmStop = false;
+	}
+
+	if (m_play_movie && !m_movie_file.empty())
+	{
+		if (Movie::PlayInput(WxStrToStr(m_movie_file)))
 		{
-			if (LoadFile && FileToLoad != wxEmptyString)
+			if (m_load_file && !m_file_to_load.empty())
 			{
-				main_frame->BootGame(WxStrToStr(FileToLoad));
+				main_frame->BootGame(WxStrToStr(m_file_to_load));
 			}
 			else
 			{
@@ -357,11 +370,10 @@ void DolphinApp::AfterInit()
 			}
 		}
 	}
-
 	// First check if we have an exec command line.
-	else if (LoadFile && FileToLoad != wxEmptyString)
+	else if (m_load_file && !m_file_to_load.empty())
 	{
-		main_frame->BootGame(WxStrToStr(FileToLoad));
+		main_frame->BootGame(WxStrToStr(m_file_to_load));
 	}
 	// If we have selected Automatic Start, start the default ISO,
 	// or if no default ISO exists, start the last loaded ISO
@@ -414,10 +426,15 @@ void DolphinApp::InitLanguageSupport()
 	// Load language if possible, fall back to system default otherwise
 	if (wxLocale::IsAvailable(language))
 	{
-		m_locale = new wxLocale(language);
+		m_locale.reset(new wxLocale(language));
 
+		// Specify where dolphins *.gmo files are located on each operating system
 #ifdef _WIN32
 		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetExeDirectory() + DIR_SEP "Languages"));
+#elif defined(__LINUX__)
+		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(DATA_DIR "../locale"));
+#elif defined(__APPLE__)
+		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetBundleDirectory() + "Contents/Resources"));
 #endif
 
 		m_locale->AddCatalog("dolphin-emu");
@@ -425,14 +442,13 @@ void DolphinApp::InitLanguageSupport()
 		if (!m_locale->IsOk())
 		{
 			wxMessageBox(_("Error loading selected language. Falling back to system default."), _("Error"));
-			delete m_locale;
-			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+			m_locale.reset(new wxLocale(wxLANGUAGE_DEFAULT));
 		}
 	}
 	else
 	{
 		wxMessageBox(_("The selected language is not supported by your system. Falling back to system default."), _("Error"));
-		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+		m_locale.reset(new wxLocale(wxLANGUAGE_DEFAULT));
 	}
 }
 
@@ -447,9 +463,8 @@ void DolphinApp::OnEndSession(wxCloseEvent& event)
 
 int DolphinApp::OnExit()
 {
+	Core::Shutdown();
 	UICommon::Shutdown();
-
-	delete m_locale;
 
 	return wxApp::OnExit();
 }
@@ -562,7 +577,7 @@ void Host_RequestFullscreen(bool enable_fullscreen)
 
 void Host_SetStartupDebuggingParameters()
 {
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& StartUp = SConfig::GetInstance();
 	if (main_frame->g_pCodeWindow)
 	{
 		StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
@@ -617,7 +632,16 @@ bool Host_RendererIsFullscreen()
 
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
-	CFrame::ConnectWiimote(wm_idx, connect);
+	if (connect)
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FORCE_CONNECT_WIIMOTE1 + wm_idx);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+	}
+	else
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FORCE_DISCONNECT_WIIMOTE1 + wm_idx);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+	}
 }
 
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
@@ -634,3 +658,4 @@ void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
 		diag.ShowModal();
 	}
 }
+

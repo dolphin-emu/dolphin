@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -39,7 +39,6 @@ public:
 	static void SetEfbScaleChanged();
 	static void SetZSlope(float dfdx, float dfdy, float f0);
 	static void SetIndMatrixChanged(int matrixidx);
-	static void SetTevKSelChanged(int id);
 	static void SetZTextureTypeChanged();
 	static void SetIndTexScaleChanged(bool high);
 	static void SetTexCoordChanged(u8 texmapid);

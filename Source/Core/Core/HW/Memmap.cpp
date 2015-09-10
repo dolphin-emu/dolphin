@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -7,6 +7,8 @@
 // These functions are primarily used by the interpreter versions of the LoadStore instructions.
 // However, if a JITed instruction (for example lwz) wants to access a bad memory area that call
 // may be redirected here (for example to Read_U32()).
+
+#include <cstring>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -168,8 +170,8 @@ static const int num_views = sizeof(views) / sizeof(MemoryView);
 
 void Init()
 {
-	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	bool bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	bool wii = SConfig::GetInstance().bWii;
+	bool bMMU = SConfig::GetInstance().bMMU;
 #ifndef _ARCH_32
 	// If MMU is turned off in GameCube mode, turn on fake VMEM hack.
 	// The fake VMEM hack's address space is above the memory space that we
@@ -198,7 +200,7 @@ void Init()
 
 void DoState(PointerWrap &p)
 {
-	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	bool wii = SConfig::GetInstance().bWii;
 	p.DoArray(m_pRAM, RAM_SIZE);
 	p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
 	p.DoMarker("Memory RAM");
@@ -214,7 +216,7 @@ void Shutdown()
 {
 	m_IsInitialized = false;
 	u32 flags = 0;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) flags |= MV_WII_ONLY;
+	if (SConfig::GetInstance().bWii) flags |= MV_WII_ONLY;
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSHMSegment();
@@ -230,7 +232,7 @@ void Clear()
 		memset(m_pRAM, 0, RAM_SIZE);
 	if (m_pL1Cache)
 		memset(m_pL1Cache, 0, L1_CACHE_SIZE);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && m_pEXRAM)
+	if (SConfig::GetInstance().bWii && m_pEXRAM)
 		memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
 
@@ -254,7 +256,7 @@ void CopyFromEmu(void* data, u32 address, size_t size)
 {
 	if (!ValidCopyRange(address, size))
 	{
-		PanicAlert("Invalid range in CopyFromEmu. %lx bytes from 0x%08x", (unsigned long)size, address);
+		PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
 		return;
 	}
 	memcpy(data, GetPointer(address), size);
@@ -264,7 +266,7 @@ void CopyToEmu(u32 address, const void* data, size_t size)
 {
 	if (!ValidCopyRange(address, size))
 	{
-		PanicAlert("Invalid range in CopyToEmu. %lx bytes to 0x%08x", (unsigned long)size, address);
+		PanicAlert("Invalid range in CopyToEmu. %zx bytes to 0x%08x", size, address);
 		return;
 	}
 	memcpy(GetPointer(address), data, size);
@@ -304,7 +306,7 @@ u8* GetPointer(u32 address)
 	if (address < REALRAM_SIZE)
 		return m_pRAM + address;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().bWii)
 	{
 		if ((address >> 28) == 0x1 && (address & 0x0fffffff) < EXRAM_SIZE)
 			return m_pEXRAM + (address & EXRAM_MASK);
@@ -349,27 +351,30 @@ void Write_U8(u8 value, u32 address)
 
 void Write_U16(u16 value, u32 address)
 {
-	*(u16*)GetPointer(address) = Common::swap16(value);
+	u16 swapped_value = Common::swap16(value);
+	std::memcpy(GetPointer(address), &swapped_value, sizeof(u16));
 }
 
 void Write_U32(u32 value, u32 address)
 {
-	*(u32*)GetPointer(address) = Common::swap32(value);
+	u32 swapped_value = Common::swap32(value);
+	std::memcpy(GetPointer(address), &swapped_value, sizeof(u32));
 }
 
 void Write_U64(u64 value, u32 address)
 {
-	*(u64*)GetPointer(address) = Common::swap64(value);
+	u64 swapped_value = Common::swap64(value);
+	std::memcpy(GetPointer(address), &swapped_value, sizeof(u64));
 }
 
 void Write_U32_Swap(u32 value, u32 address)
 {
-	*(u32*)GetPointer(address) = value;
+	std::memcpy(GetPointer(address), &value, sizeof(u32));
 }
 
 void Write_U64_Swap(u64 value, u32 address)
 {
-	*(u64*)GetPointer(address) = value;
+	std::memcpy(GetPointer(address), &value, sizeof(u64));
 }
 
 }  // namespace

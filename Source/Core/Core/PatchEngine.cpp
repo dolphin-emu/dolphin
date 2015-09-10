@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 
@@ -161,9 +161,9 @@ int GetSpeedhackCycles(const u32 addr)
 
 void LoadPatches()
 {
-	IniFile merged = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
-	IniFile globalIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
-	IniFile localIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
+	IniFile merged = SConfig::GetInstance().LoadGameIni();
+	IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
+	IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
 	LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
 	ActionReplay::LoadCodes(globalIni, localIni, false);

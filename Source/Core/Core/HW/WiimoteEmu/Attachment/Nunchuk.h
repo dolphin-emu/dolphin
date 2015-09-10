@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -16,7 +16,8 @@ class Nunchuk : public Attachment
 public:
 	Nunchuk(WiimoteEmu::ExtensionReg& _reg, int index);
 
-	virtual void GetState(u8* const data) override;
+	void GetState(u8* const data) override;
+	bool IsButtonPressed() const override;
 
 	enum
 	{

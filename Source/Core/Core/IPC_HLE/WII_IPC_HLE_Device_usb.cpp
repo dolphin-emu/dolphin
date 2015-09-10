@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/CommonPaths.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -14,6 +15,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::EnqueueReply(u32 CommandAddress)
@@ -35,11 +37,25 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	, m_ACLEndpoint(0)
 	, m_last_ticks(0)
 {
+	SysConf* sysconf;
+	std::unique_ptr<SysConf> owned_sysconf;
+	if (Core::g_want_determinism)
+	{
+		// See SysConf::UpdateLocation for comment about the Future.
+		owned_sysconf.reset(new SysConf());
+		sysconf = owned_sysconf.get();
+		sysconf->LoadFromFile(File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF);
+	}
+	else
+	{
+		sysconf = SConfig::GetInstance().m_SYSCONF;
+	}
+
 	// Activate only first Wiimote by default
 
 	_conf_pads BT_DINF;
 	SetUsbPointer(this);
-	if (!SConfig::GetInstance().m_SYSCONF->GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
+	if (!sysconf->GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
 	{
 		PanicAlertT("Trying to read from invalid SYSCONF\nWiimote bt ids are not available");
 	}
@@ -83,7 +99,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 
 		// save now so that when games load sysconf file it includes the new Wiimotes
 		// and the correct order for connected Wiimotes
-		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !SConfig::GetInstance().m_SYSCONF->Save())
+		if (!sysconf->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !sysconf->Save())
 			PanicAlertT("Failed to write BT.DINF to SYSCONF");
 	}
 
@@ -386,14 +402,14 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 		else // push new one, pop oldest
 		{
 			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not "
-				"currently valid, queueing(%lu)...",
-				(unsigned long)m_EventQueue.size());
+				"currently valid, queueing (%zu)...",
+				m_EventQueue.size());
 			m_EventQueue.push_back(_event);
 			const SQueuedEvent& event = m_EventQueue.front();
 			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x "
-				"being written from queue(%lu) to %08x...",
+				"being written from queue (%zu) to %08x...",
 				((hci_event_hdr_t*)event.m_buffer)->event,
-				(unsigned long)m_EventQueue.size()-1,
+				m_EventQueue.size()-1,
 				m_HCIEndpoint.m_address);
 			m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
 			m_HCIEndpoint.SetRetVal(event.m_size);
@@ -405,8 +421,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 	}
 	else
 	{
-		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, "
-			"queuing(%lu)...", (unsigned long)m_EventQueue.size());
+		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, queuing (%zu)...", m_EventQueue.size());
 		m_EventQueue.push_back(_event);
 	}
 }
@@ -421,9 +436,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		// an endpoint has become available, and we have a stored response.
 		const SQueuedEvent& event = m_EventQueue.front();
 		DEBUG_LOG(WII_IPC_WIIMOTE,
-			"HCI event %x being written from queue(%lu) to %08x...",
+			"HCI event %x being written from queue (%zu) to %08x...",
 			((hci_event_hdr_t*)event.m_buffer)->event,
-			(unsigned long)m_EventQueue.size()-1,
+			m_EventQueue.size()-1,
 			m_HCIEndpoint.m_address);
 		m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
 		m_HCIEndpoint.SetRetVal(event.m_size);
@@ -475,11 +490,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 	if (now - m_last_ticks > interval)
 	{
+		g_controller_interface.UpdateInput();
 		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
-			if (m_WiiMotes[i].IsConnected())
-			{
-				Wiimote::Update(i);
-			}
+			Wiimote::Update(i, m_WiiMotes[i].IsConnected());
 		m_last_ticks = now;
 	}
 

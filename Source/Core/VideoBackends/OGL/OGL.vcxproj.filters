@@ -200,6 +200,9 @@
     <ClInclude Include="GLInterface\WGL.h">
       <Filter>GLInterface</Filter>
     </ClInclude>
+    <ClInclude Include="GLExtensions\ARB_clip_control.h">
+      <Filter>GLExtensions</Filter>
+    </ClInclude>
     <ClInclude Include="VROGL.h" />
   </ItemGroup>
   <ItemGroup>

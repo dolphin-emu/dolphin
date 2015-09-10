@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Originally written by Sven Peter <sven@fail0verflow.com> for anergistic.
@@ -809,7 +809,7 @@ void gdb_init_local(const char *socket)
 {
 	unlink(socket);
 
-	sockaddr_un addr = {}
+	sockaddr_un addr = {};
 	addr.sun_family = AF_UNIX;
 	strcpy(addr.sun_path, socket);
 

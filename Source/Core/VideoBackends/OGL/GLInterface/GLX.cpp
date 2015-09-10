@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2012 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <string>
@@ -94,20 +94,36 @@ bool cInterfaceGLX::Create(void *window_handle)
 	// Get an appropriate visual
 	XVisualInfo* vi = glXGetVisualFromFBConfig(dpy, fbconfig);
 
+	s_glxError = false;
+	XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
+
 	// Create a GLX context.
-	// We try to get a 3.3 core profile, else we try it with anything we get.
+	// We try to get a 4.0 core profile, else we try 3.3, else try it with anything we get.
 	int context_attribs[] =
 	{
-		GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-		GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+		GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
+		GLX_CONTEXT_MINOR_VERSION_ARB, 0,
 		GLX_CONTEXT_PROFILE_MASK_ARB,  GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
 		GLX_CONTEXT_FLAGS_ARB,         GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
 		None
 	};
-	s_glxError = false;
-	XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
 	ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs);
 	XSync(dpy, False);
+	if (!ctx || s_glxError)
+	{
+		int context_attribs_33[] =
+		{
+			GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+			GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+			GLX_CONTEXT_PROFILE_MASK_ARB,  GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+			GLX_CONTEXT_FLAGS_ARB,         GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+			None
+		};
+		s_glxError = false;
+		ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs_33);
+		XSync(dpy, False);
+
+	}
 	if (!ctx || s_glxError)
 	{
 		int context_attribs_legacy[] =
@@ -119,11 +135,12 @@ bool cInterfaceGLX::Create(void *window_handle)
 		s_glxError = false;
 		ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs_legacy);
 		XSync(dpy, False);
-		if (!ctx || s_glxError)
-		{
-			ERROR_LOG(VIDEO, "Unable to create GL context.");
-			return false;
-		}
+
+	}
+	if (!ctx || s_glxError)
+	{
+		ERROR_LOG(VIDEO, "Unable to create GL context.");
+		return false;
 	}
 	XSetErrorHandler(oldHandler);
 

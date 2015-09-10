@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
@@ -33,9 +33,9 @@ void Init()
 #if defined(__LIBUSB__) || defined (_WIN32)
 	SI_GCAdapter::Init();
 #endif
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
+	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
-	SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
+	SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
 }
 
 void Shutdown()
@@ -52,8 +52,8 @@ void Shutdown()
 void CreateDirectories()
 {
 	// Copy initial Wii NAND data from Sys to User.
-	File::CopyDir(File::GetSysDirectory() + WII_USER_DIR DIR_SEP,
-				  File::GetUserPath(D_WIIUSER_IDX));
+	File::CopyDir(File::GetSysDirectory() + WII_USER_DIR,
+				  File::GetUserPath(D_WIIROOT_IDX));
 
 	File::CreateFullPath(File::GetUserPath(D_USER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));

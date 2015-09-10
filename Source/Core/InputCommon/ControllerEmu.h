@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -424,6 +424,7 @@ public:
 		~Extension() {}
 
 		void GetState(u8* const data);
+		bool IsButtonPressed() const;
 
 		std::vector<std::unique_ptr<ControllerEmu>> attachments;
 

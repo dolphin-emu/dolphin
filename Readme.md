@@ -1,14 +1,15 @@
 # Dolphin - A GameCube / Wii / Triforce Emulator
 
-[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://code.google.com/p/dolphin-emu/issues/list) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu/)
+[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu/)
 
 Dolphin is an emulator for running GameCube, Wii, and Triforce games on
 Windows, Linux, OS X, and recent Android devices. It's licensed under
-the terms of the GNU General Public License, version 2 (GPLv2).
+the terms of the GNU General Public License, version 2 or later (GPLv2+).
 
 Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 ## System Requirements
+### Desktop
 * OS
     * Microsoft Windows (Vista or higher).
     * Linux.
@@ -21,11 +22,22 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
     * A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0).
     * A graphics card that supports Direct3D 11 / OpenGL 4.4 is recommended.
 
-## Installation on Windows
+### Android
+* OS
+    * Android 5.0 (Lollipop) or higher.
+* Processor
+    * An ARM processor with support for 64-bit applications. (An Intel x86 processor could also work in theory, but no known x86 devices support 64-bit applications.)
+* Graphics
+    * A graphics processor that supports OpenGL ES 3.0 or higher. Performance varies heavily with [driver quality](https://dolphin-emu.org/blog/2013/09/26/dolphin-emulator-and-opengl-drivers-hall-fameshame/).
+    * A graphics processor that supports standard desktop OpenGL features is recommended for best performance.
+
+Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
+
+## Building for Windows
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2013 Update 3 is a hard requirement since previous versions don't support
-many C++ features that we use. Other compilers might be able to build Dolphin
-on Windows but have not been tested and are not recommended to be used.
+Dolphin now prefers and recommends Visual Studio 2015 (get the free Community version).
+But Dolphin VR also still supports Visual Studio 2013 Update 3 or above.
+Previous versions don't support many C++ features that we use.
 
 An installer can be created by using the `Installer_win32.nsi` and
 `Installer_x64.nsi` scripts in the Installer directory. This will require the
@@ -41,7 +53,7 @@ HAVE_OCULUSSDK preprocessor definition.
 Currently only the OpenGL renderer works with the Oculus Rift.
 Oculus Rift features are not officially supported by the Dolphin team.
 
-## Installation on Linux and OS X
+## Building for Linux and OS X
 Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
@@ -57,38 +69,44 @@ On OS X, an application bundle will be created in `./Binaries`.
 
 On Linux, it's strongly recommended to perform a global installation via `sudo make install`.
 
-## Installation on Android
-Dolphin requires [Android Studio](http://developer.android.com/tools/studio/index.html) to build
-the Android UI. Import the Gradle project located in `./Source/Android`, and then execute the
-Gradle task `assembleDebug` to build, or `installDebug` to install the UI onto a connected device.
+## Building for Android
 
-In order to launch the app, you must build and include the native Dolphin libraries into the UI project.
-Building native code requires the [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html).
+These instructions assume familiarity with Android development. If you do not have an
+Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
 
-### Build Steps:
-1. `mkdir Build-Android-<abi>`
-2. `cd Build-Android-<abi>`
-3. `cmake -DANDROID=True -DANDROID_NDK=<ndk-path> -DANDROID_NATIVE_API_LEVEL=android-18 -DANDROID_TOOLCHAIN_NAME=<toolchain> -DANDROID_ABI=<abi> -DCMAKE_TOOLCHAIN_FILE=../Source/Android/android.toolchain.cmake -DGIT_EXECUTABLE=<git-path> ..`
-4. `make`
+If using Android Studio, import the Gradle project located in `./Source/Android`. 
 
-Replace `<git-path>` with the absolute path to your machine's Git executable, <ndk-path> with the absolute
-path to where you installed your NDK, and the rest depending on which platform the Android device you are
-targeting uses:
+Android apps are compiled using a build system called Gradle. Dolphin's native component,
+however, is compiled using CMake. The Gradle script will attempt to run a CMake build
+automatically while building the Java code, if you create the file `Source/Android/build.properties`,
+and place the following inside:
 
-|Platform                 | abi         | toolchain                 |
-|-------------------------|-------------|---------------------------|
-|ARM 32-bit (most devices)| armeabi-v7a | arm-linux-androideabi-4.9 |
-|ARM 64-bit (i.e. Nexus 9)| arm64-v8a   | aarch64-linux-android-4.9 |
-|Intel 64-bit             | x86_64      | x86_64-4.9                |
+```
+# Specifies arguments for the 'make' command. Can be blank.
+makeArgs=
 
-The native libraries will be compiled, and copied into `./Source/Android/app/libs`. Android Studio
-and Gradle will include any libraries in that folder into the APK at build time.
+# The path to your machine's Git executable. Will autodetect if blank (on Linux only).
+gitPath=
+
+# The path to the CMake executable. Will autodetect if blank (on Linux only).
+cmakePath=
+
+# The path to the extracted NDK package. Will autodetect if blank (on Linux only).
+ndkPath=
+```
+
+If you prefer, you can run the CMake step manually, and it will copy the resulting
+binary into the correct location for inclusion in the Android APK.
+
+Execute the Gradle task `assembleArm_64Debug` to build, or `installArm_64Debug` to
+install the application onto a connected device. If other ABIs are eventually supported,
+execute the tasks corresponding to the desired ABI.
 
 ## Uninstalling
 When Dolphin has been installed with the NSIS installer, you can uninstall
 Dolphin like any other Windows application.
 
-Linux users can run `cat install_manifest | xargs -d '\n' rm` from the build directory
+Linux users can run `cat install_manifest.txt | xargs -d '\n' rm` as root from the build directory
 to uninstall Dolphin from their system.
 
 OS X users can simply delete Dolphin.app to uninstall it.
@@ -122,12 +140,17 @@ is intended for debugging purposes only.
 * `GC/font_sjis.bin`: font dumps
 * `GC/dsp_coef.bin`: DSP dumps
 * `GC/dsp_rom.bin`: DSP dumps
+* `Wii/clientca.pem`: Wii network certificate
+* `Wii/clientcacakey.pem`: Wii network certificate
+* `Wii/rootca.pem`: Wii network certificate
 
 The DSP dumps included with Dolphin have been written from scratch and do not
 contain any copyrighted material. They should work for most purposes, however
 some games implement copy protection by checksumming the dumps. You will need
 to dump the DSP files from a console and replace the default dumps if you want
 to fix those issues.
+
+Wii network certificates must be extracted from a Wii IOS. A guide for that can be found [here](https://wiki.dolphin-emu.org/index.php?title=Wii_Network_Guide).
 
 ## Folder Structure
 These folders are installed read-only and should not be changed:

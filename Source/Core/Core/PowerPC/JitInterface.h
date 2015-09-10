@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -8,6 +8,7 @@
 #include "Common/ChunkFile.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/Profiler.h"
 
 namespace JitInterface
 {
@@ -25,6 +26,8 @@ namespace JitInterface
 
 	// Debugging
 	void WriteProfileResults(const std::string& filename);
+	void GetProfileResults(ProfileStats* prof_stats);
+	int GetHostCode(u32* address, const u8** code, u32* code_size);
 
 	// Memory Utilities
 	bool HandleFault(uintptr_t access_address, SContext* ctx);

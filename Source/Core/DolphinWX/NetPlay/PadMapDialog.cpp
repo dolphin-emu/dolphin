@@ -1,5 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <wx/choice.h>
@@ -8,13 +8,14 @@
 
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
+#include "Core/NetPlayServer.h"
 #include "DolphinWX/NetPlay/PadMapDialog.h"
 
-PadMapDialog::PadMapDialog(wxWindow* parent, PadMapping map[], PadMapping wiimotemap[], std::vector<const Player*>& player_list)
+PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client)
 	: wxDialog(parent, wxID_ANY, _("Configure Pads"))
-	, m_mapping(map)
-	, m_wiimapping(wiimotemap)
-	, m_player_list(player_list)
+	, m_pad_mapping(server->GetPadMapping())
+	, m_wii_mapping(server->GetWiimoteMapping())
+	, m_player_list(client->GetPlayers())
 {
 	wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
 	h_szr->AddSpacer(10);
@@ -32,7 +33,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, PadMapping map[], PadMapping wiimot
 
 		m_map_cbox[i] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
 		m_map_cbox[i]->Bind(wxEVT_CHOICE, &PadMapDialog::OnAdjust, this);
-		if (m_mapping[i] == -1)
+		if (m_pad_mapping[i] == -1)
 		{
 			m_map_cbox[i]->Select(0);
 		}
@@ -40,7 +41,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, PadMapping map[], PadMapping wiimot
 		{
 			for (unsigned int j = 0; j < m_player_list.size(); j++)
 			{
-				if (m_mapping[i] == m_player_list[j]->pid)
+				if (m_pad_mapping[i] == m_player_list[j]->pid)
 					m_map_cbox[i]->Select(j + 1);
 			}
 		}
@@ -59,7 +60,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, PadMapping map[], PadMapping wiimot
 
 		m_map_cbox[i + 4] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
 		m_map_cbox[i + 4]->Bind(wxEVT_CHOICE, &PadMapDialog::OnAdjust, this);
-		if (m_wiimapping[i] == -1)
+		if (m_wii_mapping[i] == -1)
 		{
 			m_map_cbox[i + 4]->Select(0);
 		}
@@ -67,7 +68,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, PadMapping map[], PadMapping wiimot
 		{
 			for (unsigned int j = 0; j < m_player_list.size(); j++)
 			{
-				if (m_wiimapping[i] == m_player_list[j]->pid)
+				if (m_wii_mapping[i] == m_player_list[j]->pid)
 					m_map_cbox[i + 4]->Select(j + 1);
 			}
 		}
@@ -87,20 +88,30 @@ PadMapDialog::PadMapDialog(wxWindow* parent, PadMapping map[], PadMapping wiimot
 	SetFocus();
 }
 
+PadMappingArray PadMapDialog::GetModifiedPadMappings() const
+{
+	return m_pad_mapping;
+}
+
+PadMappingArray PadMapDialog::GetModifiedWiimoteMappings() const
+{
+	return m_wii_mapping;
+}
+
 void PadMapDialog::OnAdjust(wxCommandEvent& WXUNUSED(event))
 {
 	for (unsigned int i = 0; i < 4; i++)
 	{
 		int player_idx = m_map_cbox[i]->GetSelection();
 		if (player_idx > 0)
-			m_mapping[i] = m_player_list[player_idx - 1]->pid;
+			m_pad_mapping[i] = m_player_list[player_idx - 1]->pid;
 		else
-			m_mapping[i] = -1;
+			m_pad_mapping[i] = -1;
 
 		player_idx = m_map_cbox[i + 4]->GetSelection();
 		if (player_idx > 0)
-			m_wiimapping[i] = m_player_list[player_idx - 1]->pid;
+			m_wii_mapping[i] = m_player_list[player_idx - 1]->pid;
 		else
-			m_wiimapping[i] = -1;
+			m_wii_mapping[i] = -1;
 	}
 }

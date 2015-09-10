@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
@@ -14,6 +14,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/CachedInterpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -25,11 +26,6 @@
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
-#endif
-
-#if _M_ARM_32
-#include "Core/PowerPC/JitArm32/Jit.h"
-#include "Core/PowerPC/JitArm32/JitArm_Tables.h"
 #endif
 
 #if _M_ARM_64
@@ -49,7 +45,7 @@ namespace JitInterface
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
-		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+		bMMU = SConfig::GetInstance().bMMU;
 		bFakeVMEM = !bMMU;
 
 		CPUCoreBase *ptr = nullptr;
@@ -63,16 +59,15 @@ namespace JitInterface
 			ptr = new JitIL();
 			break;
 		#endif
-		#if _M_ARM_32
-		case PowerPC::CORE_JITARM:
-			ptr = new JitArm();
-			break;
-		#endif
 		#if _M_ARM_64
 		case PowerPC::CORE_JITARM64:
 			ptr = new JitArm64();
 			break;
 		#endif
+		case PowerPC::CORE_CACHEDINTERPRETER:
+			ptr = new CachedInterpreter();
+			break;
+
 		default:
 			PanicAlert("Unrecognizable cpu_core: %d", core);
 			jit = nullptr;
@@ -94,16 +89,14 @@ namespace JitInterface
 			JitILTables::InitTables();
 			break;
 		#endif
-		#if _M_ARM_32
-		case PowerPC::CORE_JITARM:
-			JitArmTables::InitTables();
-			break;
-		#endif
 		#if _M_ARM_64
 		case PowerPC::CORE_JITARM64:
 			JitArm64Tables::InitTables();
 			break;
 		#endif
+		case PowerPC::CORE_CACHEDINTERPRETER:
+			// has no tables
+			break;
 		default:
 			PanicAlert("Unrecognizable cpu_core: %d", core);
 			break;
@@ -116,16 +109,44 @@ namespace JitInterface
 
 	void WriteProfileResults(const std::string& filename)
 	{
+		ProfileStats prof_stats;
+		GetProfileResults(&prof_stats);
+
+		File::IOFile f(filename, "w");
+		if (!f)
+		{
+			PanicAlert("Failed to open %s", filename.c_str());
+			return;
+		}
+		fprintf(f.GetHandle(), "origAddr\tblkName\trunCount\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
+		for (auto& stat : prof_stats.block_stats)
+		{
+			std::string name = g_symbolDB.GetDescription(stat.addr);
+			double percent = 100.0 * (double)stat.cost / (double)prof_stats.cost_sum;
+			double timePercent = 100.0 * (double)stat.tick_counter / (double)prof_stats.timecost_sum;
+			fprintf(f.GetHandle(), "%08x\t%s\t%llu\t%llu\t%llu\t%.2f\t%.2f\t%.2f\t%i\n",
+					stat.addr, name.c_str(), stat.run_count, stat.cost,
+					stat.tick_counter, percent, timePercent,
+					(double)stat.tick_counter*1000.0/(double)prof_stats.countsPerSec, stat.block_size);
+		}
+	}
+
+	void GetProfileResults(ProfileStats* prof_stats)
+	{
 		// Can't really do this with no jit core available
 		if (!jit)
 			return;
 
-		std::vector<BlockStat> stats;
-		stats.reserve(jit->GetBlockCache()->GetNumBlocks());
-		u64 cost_sum = 0;
-		u64 timecost_sum = 0;
-		u64 countsPerSec;
-		QueryPerformanceFrequency((LARGE_INTEGER*)&countsPerSec);
+		prof_stats->cost_sum = 0;
+		prof_stats->timecost_sum = 0;
+		prof_stats->block_stats.clear();
+		prof_stats->block_stats.reserve(jit->GetBlockCache()->GetNumBlocks());
+
+		Core::EState old_state = Core::GetState();
+		if (old_state == Core::CORE_RUN)
+			Core::SetState(Core::CORE_PAUSE);
+
+		QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
 		for (int i = 0; i < jit->GetBlockCache()->GetNumBlocks(); i++)
 		{
 			const JitBlock *block = jit->GetBlockCache()->GetBlock(i);
@@ -134,36 +155,68 @@ namespace JitInterface
 			u64 timecost = block->ticCounter;
 			// Todo: tweak.
 			if (block->runCount >= 1)
-				stats.emplace_back(i, cost);
-			cost_sum += cost;
-			timecost_sum += timecost;
+				prof_stats->block_stats.emplace_back(i, block->originalAddress,
+				                                     cost, timecost,
+				                                     block->runCount, block->codeSize);
+			prof_stats->cost_sum += cost;
+			prof_stats->timecost_sum += timecost;
 		}
 
-		sort(stats.begin(), stats.end());
-		File::IOFile f(filename, "w");
-		if (!f)
+		sort(prof_stats->block_stats.begin(), prof_stats->block_stats.end());
+		if (old_state == Core::CORE_RUN)
+			Core::SetState(Core::CORE_RUN);
+	}
+
+	int GetHostCode(u32* address, const u8** code, u32* code_size)
+	{
+		if (!jit)
 		{
-			PanicAlert("Failed to open %s", filename.c_str());
-			return;
+			*code_size = 0;
+			return 1;
 		}
-		fprintf(f.GetHandle(), "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
-		for (auto& stat : stats)
+
+		int block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address);
+		if (block_num < 0)
 		{
-			const JitBlock *block = jit->GetBlockCache()->GetBlock(stat.blockNum);
-			if (block)
+			for (int i = 0; i < 500; i++)
 			{
-				std::string name = g_symbolDB.GetDescription(block->originalAddress);
-				double percent = 100.0 * (double)stat.cost / (double)cost_sum;
-				double timePercent = 100.0 * (double)block->ticCounter / (double)timecost_sum;
-				fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t%" PRIu64 "\t%.2f\t%.2f\t%.2f\t%i\n",
-						block->originalAddress, name.c_str(), stat.cost,
-						block->ticCounter, percent, timePercent,
-						(double)block->ticCounter*1000.0/(double)countsPerSec, block->codeSize);
+				block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address - 4 * i);
+				if (block_num >= 0)
+					break;
+			}
+
+			if (block_num >= 0)
+			{
+				JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
+				if (!(block->originalAddress <= *address &&
+				    block->originalSize + block->originalAddress >= *address))
+					block_num = -1;
+			}
+
+			// Do not merge this "if" with the above - block_num changes inside it.
+			if (block_num < 0)
+			{
+				*code_size = 0;
+				return 2;
 			}
 		}
+
+		JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
+
+		*code = block->checkedEntry;
+		*code_size = block->codeSize;
+		*address = block->originalAddress;
+		return 0;
 	}
+
 	bool HandleFault(uintptr_t access_address, SContext* ctx)
 	{
+		// Prevent nullptr dereference on a crash with no JIT present
+		if (!jit)
+		{
+			return false;
+		}
+
 		return jit->HandleFault(access_address, ctx);
 	}
 

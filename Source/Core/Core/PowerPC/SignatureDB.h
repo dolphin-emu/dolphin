@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -35,7 +35,6 @@ public:
 
 	bool Load(const std::string& filename);  // Does not clear. Remember to clear first if that's what you want.
 	bool Save(const std::string& filename);
-	void Clean(const char *prefix);
 	void Clear();
 	void List();
 

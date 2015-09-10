@@ -30,9 +30,15 @@ CMakeLists.txt.user
 *.kdev4
 # Ignore IDEA/Clion files/dirs
 /.idea/
-# Ignore Oculus Rift SDK if present
+# Ignore Oculus Rift, OpenVR, or OSVR SDKs if present
 LibOVR
 LibOVRKernel
+openvr
+OSVR
+# Ignore Visual Studio profiling
+*.vspx
+*.psess
+*.diagsession
 # Ignore installer exe file
 /Installer/dolphin-vr-x64-4.0.exe
 # Ignore other files

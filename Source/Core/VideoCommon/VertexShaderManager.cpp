@@ -1,5 +1,5 @@
-// Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cfloat>
@@ -9,6 +9,8 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -21,6 +23,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
+#include "VideoCommon/VRTracker.h"
 #include "VideoCommon/XFMemory.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/Core.h"
@@ -49,6 +52,8 @@ static Matrix33 s_viewRotationMatrix;
 static Matrix33 s_viewInvRotationMatrix;
 static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
+
+static Matrix44 s_VRTransformationMatrix;
 
 VertexShaderConstants VertexShaderManager::constants;
 std::vector<VertexShaderConstants> VertexShaderManager::constants_replay;
@@ -592,6 +597,23 @@ static float PHackValue(std::string sValue)
 	return f;
 }
 
+// Due to the BT.601 standard which the GameCube is based on being a compromise
+// between PAL and NTSC, neither standard gets square pixels. They are each off
+// by ~9% in opposite directions.
+// Just in case any game decides to take this into account, we do both these
+// tests with a large amount of slop.
+static bool AspectIs4_3(float width, float height)
+{
+	float aspect = fabsf(width / height);
+	return fabsf(aspect - 4.0f / 3.0f) < 4.0f / 3.0f * 0.11; // within 11% of 4:3
+}
+
+static bool AspectIs16_9(float width, float height)
+{
+	float aspect = fabsf(width / height);
+	return fabsf(aspect - 16.0f / 9.0f) < 16.0f / 9.0f * 0.11; // within 11% of 16:9
+}
+
 void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 {
 	float fhackvalue1 = 0, fhackvalue2 = 0;
@@ -696,6 +718,7 @@ void VertexShaderManager::Init()
 
 	// TODO: should these go inside ResetView()?
 	Matrix44::LoadIdentity(s_viewportCorrection);
+	Matrix44::LoadIdentity(s_VRTransformationMatrix);
 	memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
 	for (int i = 0; i < 4; ++i)
 		g_fProjectionMatrix[i*5] = 1.0f;
@@ -1338,6 +1361,16 @@ void VertexShaderManager::SetProjectionConstants()
 			g_fProjectionMatrix[14] = -1.0f;
 			g_fProjectionMatrix[15] = 0.0f;
 
+			// Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
+			if (!SConfig::GetInstance().bWii)
+			{
+				bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
+				if (AspectIs16_9(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+					g_aspect_wide = true; // Projection is 16:9 and viewport is 4:3, we are rendering an anamorphic widescreen picture
+				else if (AspectIs4_3(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+					g_aspect_wide = false; // Project and viewports are both 4:3, we are rendering a normal image.
+			}
+
 		}
 
 		Matrix44 proj_left, proj_right, hmd_left, hmd_right;
@@ -1872,7 +1905,7 @@ void VertexShaderManager::CheckOrientationConstants()
 			movement[i] = worldspacepos[i] - oldpos[i];
 		float distance = sqrt(sqr(movement[0]) + sqr(movement[1]) + sqr(movement[2]));
 
-		NOTICE_LOG(VR, "WorldPos: %5.2fm, %5.2fm, %5.2fm; Move: %5.2fm, %5.2fm, %5.2fm; Distance: %5.2fm; Scale: x%5.2f",
+		HACK_LOG(VR, "WorldPos: %5.2fm, %5.2fm, %5.2fm; Move: %5.2fm, %5.2fm, %5.2fm; Distance: %5.2fm; Scale: x%5.2f",
 			pos[0] / g_ActiveConfig.fUnitsPerMetre, pos[1] / g_ActiveConfig.fUnitsPerMetre, pos[2] / g_ActiveConfig.fUnitsPerMetre, 
 			movement[0] / g_ActiveConfig.fUnitsPerMetre, movement[1] / g_ActiveConfig.fUnitsPerMetre, movement[2] / g_ActiveConfig.fUnitsPerMetre, distance / g_ActiveConfig.fUnitsPerMetre, scale);
 		// moving more than 2 metres per frame (before VR scaling down to toy size) means we probably jumped to a new object
@@ -1882,7 +1915,7 @@ void VertexShaderManager::CheckOrientationConstants()
 		{
 			for (int i = 0; i < 3; ++i)
 				totalpos[i] += movement[i];
-			ERROR_LOG(VR, "Total Pos: %5.2f, %5.2f, %5.2f", totalpos[0], totalpos[1], totalpos[2]);
+			HACK_LOG(VR, "Total Pos: %5.2f, %5.2f, %5.2f", totalpos[0], totalpos[1], totalpos[2]);
 		}
 		for (int i = 0; i < 3; ++i)
 			oldpos[i] = worldspacepos[i];
@@ -1890,7 +1923,7 @@ void VertexShaderManager::CheckOrientationConstants()
 		Matrix33::Multiply(rot, totalpos, g_game_camera_pos);
 		for (int i = 0; i < 3; ++i)
 			g_game_camera_pos[i] = g_game_camera_pos[i] / g_ActiveConfig.fUnitsPerMetre;
-		ERROR_LOG(VR, "g_game_camera_pos: %5.2fm, %5.2fm, %5.2fm", g_game_camera_pos[0], g_game_camera_pos[1], g_game_camera_pos[2]);
+		HACK_LOG(VR, "g_game_camera_pos: %5.2fm, %5.2fm, %5.2fm", g_game_camera_pos[0], g_game_camera_pos[1], g_game_camera_pos[2]);
 
 		// add pitch to rotation matrix
 		if (g_ActiveConfig.fReadPitch != 0)
@@ -2211,7 +2244,7 @@ void VertexShaderManager::SetProjectionChanged()
 	bProjectionChanged = true;
 }
 
-void VertexShaderManager::SetMaterialColorChanged(int index, u32 color)
+void VertexShaderManager::SetMaterialColorChanged(int index)
 {
 	nMaterialsChanged[index] = true;
 }
@@ -2283,6 +2316,8 @@ void VertexShaderManager::RotateView(float x, float y)
 
 void VertexShaderManager::ResetView()
 {
+	VRTracker::ResetView();
+
 	memset(s_fViewTranslationVector, 0, sizeof(s_fViewTranslationVector));
 	Matrix33::LoadIdentity(s_viewRotationMatrix);
 	Matrix33::LoadIdentity(s_viewInvRotationMatrix);

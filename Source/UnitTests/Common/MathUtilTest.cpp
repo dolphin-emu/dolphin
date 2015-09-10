@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <limits>
@@ -18,18 +18,6 @@ TEST(MathUtil, Clamp)
 
 	EXPECT_EQ(0, MathUtil::Clamp(-1, 0, 2));
 	EXPECT_EQ(0.0, MathUtil::Clamp(-1.0, 0.0, 2.0));
-}
-
-TEST(MathUtil, IsINF)
-{
-	EXPECT_TRUE(MathUtil::IsINF(+std::numeric_limits<double>::infinity()));
-	EXPECT_TRUE(MathUtil::IsINF(-std::numeric_limits<double>::infinity()));
-}
-
-TEST(MathUtil, IsNAN)
-{
-	EXPECT_TRUE(MathUtil::IsNAN(std::numeric_limits<double>::quiet_NaN()));
-	EXPECT_TRUE(MathUtil::IsNAN(std::numeric_limits<double>::signaling_NaN()));
 }
 
 TEST(MathUtil, IsQNAN)

@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -114,14 +114,22 @@ void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size
 // input:    _number: [Description needed]
 // output:   none
 //
-void Update(int _number)
+void Update(int _number, bool _connected)
 {
-	//PanicAlert( "Wiimote_Update" );
-
-	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
-		((WiimoteEmu::Wiimote*)s_config.controllers[_number])->Update();
+	if (_connected)
+	{
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+			((WiimoteEmu::Wiimote*)s_config.controllers[_number])->Update();
+		else
+			WiimoteReal::Update(_number);
+	}
 	else
-		WiimoteReal::Update(_number);
+	{
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+			((WiimoteEmu::Wiimote*)s_config.controllers[_number])->ConnectOnInput();
+		if (WIIMOTE_SRC_REAL & g_wiimote_sources[_number])
+			WiimoteReal::ConnectOnInput(_number);
+	}
 }
 
 // __________________________________________________________________________________________________

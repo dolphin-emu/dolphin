@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2010 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
@@ -56,6 +56,14 @@ void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 {
 	memset(_pPADStatus, 0, sizeof(*_pPADStatus));
 	_pPADStatus->err = PAD_ERR_NONE;
+
+	// if we are on the next input cycle, update output and input
+	static int _last_numPAD = 4;
+	if (_numPAD <= _last_numPAD)
+	{
+		g_controller_interface.UpdateInput();
+	}
+	_last_numPAD = _numPAD;
 
 	// get input
 	((GCPad*)s_config.controllers[_numPAD])->GetInput(_pPADStatus);

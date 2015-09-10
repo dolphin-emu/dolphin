@@ -1,8 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
+
+#include <atomic>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -325,10 +327,10 @@ public:
 	DWORD mMtu;
 	OVERLAPPED mReadOverlapped;
 	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
-#elif defined(__linux__) || defined(__APPLE__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 	int fd;
 	std::thread readThread;
-	volatile bool readEnabled;
+	std::atomic<bool> readEnabled;
 #endif
 
 };

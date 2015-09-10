@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <sstream>
@@ -170,7 +170,7 @@ void MemChecks::Add(const TMemCheck& _rMemoryCheck)
 		m_MemChecks.push_back(_rMemoryCheck);
 	// If this is the first one, clear the JIT cache so it can switch to
 	// watchpoint-compatible code.
-	if (!had_any)
+	if (!had_any && jit)
 		jit->ClearCache();
 }
 
@@ -184,7 +184,7 @@ void MemChecks::Remove(u32 _Address)
 			return;
 		}
 	}
-	if (!HasAny())
+	if (!HasAny() && jit)
 		jit->ClearCache();
 }
 

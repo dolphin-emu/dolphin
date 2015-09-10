@@ -1,5 +1,5 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -60,12 +60,18 @@ extern const char *netplay_dolphin_ver;
 class NonCopyable
 {
 protected:
+#if defined(_MSC_VER) && _MSC_VER <= 1800
 	NonCopyable() {}
 	NonCopyable(const NonCopyable&&) {}
 	void operator=(const NonCopyable&&) {}
+#else
+	constexpr NonCopyable() = default;
+#endif
+	~NonCopyable() = default;
+
 private:
-	NonCopyable(NonCopyable&);
-	NonCopyable& operator=(NonCopyable& other);
+	NonCopyable(NonCopyable&) = delete;
+	NonCopyable& operator=(NonCopyable&) = delete;
 };
 
 #if defined _WIN32
