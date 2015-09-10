@@ -82,6 +82,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::ACTIONREPLAY]       = new LogContainer("ActionReplay",    "ActionReplay");
 	m_Log[LogTypes::MEMCARD_MANAGER]    = new LogContainer("MemCard Manager", "MemCard Manager");
 	m_Log[LogTypes::NETPLAY]            = new LogContainer("NETPLAY",         "Netplay");
+	m_Log[LogTypes::HOST_GPU]           = new LogContainer("Host GPU",        "Host GPU");
 
 	m_fileLog = new FileLogListener(File::GetUserPath(F_MAINLOG_IDX));
 	m_consoleLog = new ConsoleListener();

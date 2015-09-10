@@ -58,6 +58,7 @@ enum LOG_TYPE
 	WII_IPC_WIIMOTE,
 	WIIMOTE,
 	NETPLAY,
+	HOST_GPU,
 
 	NUMBER_OF_LOGS // Must be last
 };
