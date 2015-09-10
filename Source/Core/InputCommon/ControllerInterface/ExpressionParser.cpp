@@ -63,8 +63,6 @@ public:
 	{
 		switch (type)
 		{
-		case TOK_INVALID:
-			return "Invalid";
 		case TOK_DISCARD:
 			return "Discard";
 		case TOK_EOF:
@@ -83,7 +81,11 @@ public:
 			return "+";
 		case TOK_CONTROL:
 			return "Device(" + (std::string)qualifier + ")";
+		case TOK_INVALID:
+			break;
 		}
+
+		return "Invalid";
 	}
 };
 
