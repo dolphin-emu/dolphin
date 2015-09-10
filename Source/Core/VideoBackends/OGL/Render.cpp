@@ -1322,7 +1322,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
 	bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
+	bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
 	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
 	const GLenum glSrcFactors[8] =
