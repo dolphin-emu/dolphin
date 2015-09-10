@@ -24,9 +24,10 @@ namespace DolphinWatch {
 
 	struct Subscription {
 		const u32 addr;
+		u32 mode;
 		mutable u32 prev = ~0;
-		Subscription(u32 val) : addr(val) {}
-		bool operator=(Subscription other) { return other.addr == addr; }
+		Subscription(u32 val, u32 len) : addr(val), mode(len) {}
+		bool operator=(Subscription other) { return other.addr == addr && other.mode == mode; }
 	};
 
 	struct Client {
