@@ -90,14 +90,15 @@ bool g_is_skybox = false;
 
 static float oldpos[3] = { 0, 0, 0 }, totalpos[3] = { 0, 0, 0 };
 
-void ScaleRequestedToRendered(EFBRectangle *src)
+// convert from the gamecube game's requested EFB region to the actual EFB region we used in Virtual Reality to render that part of the view
+void ScaleRequestedToRendered(EFBRectangle *requested, EFBRectangle *rendered)
 {
 	float m = (float)g_rendered_viewport.GetWidth() / g_requested_viewport.GetWidth();
-	src->left = (int)(0.5f+(src->left - g_requested_viewport.left)*m + g_rendered_viewport.left);
-	src->right = (int)(0.5f + (src->right - g_requested_viewport.left)*m + g_rendered_viewport.left);
+	rendered->left = (int)(0.5f + (requested->left - g_requested_viewport.left)*m + g_rendered_viewport.left);
+	rendered->right = (int)(0.5f + (requested->right - g_requested_viewport.left)*m + g_rendered_viewport.left);
 	m = (float)g_rendered_viewport.GetHeight() / g_requested_viewport.GetHeight();
-	src->top = (int)(0.5f + (src->top - g_requested_viewport.top)*m + g_rendered_viewport.top);
-	src->bottom = (int)(0.5f + (src->bottom - g_requested_viewport.top)*m + g_rendered_viewport.top);
+	rendered->top = (int)(0.5f + (requested->top - g_requested_viewport.top)*m + g_rendered_viewport.top);
+	rendered->bottom = (int)(0.5f + (requested->bottom - g_requested_viewport.top)*m + g_rendered_viewport.top);
 }
 
 const char *GetViewportTypeName(ViewportType v)

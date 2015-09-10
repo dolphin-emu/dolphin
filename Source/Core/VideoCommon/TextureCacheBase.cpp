@@ -698,8 +698,10 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	return ReturnEntry(stage, entry);
 }
 
+// gameSrcRect is the EFB rectangle the game is trying to read from, which matches the amount of RAM the game has allocated to hold it
+// ourSrcRect is the EFB rectangle it must actually read from, which will be larger in Virtual Reality because we force the game to use the whole EFB 
 void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride, PEControl::PixelFormat srcFormat,
-	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+	const EFBRectangle& gameSrcRect, const EFBRectangle& ourSrcRect, bool isIntensity, bool scaleByHalf)
 {
 	// Emulation methods:
 	//
@@ -1002,8 +1004,10 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		return;
 	}
 
-	const unsigned int tex_w = scaleByHalf ? srcRect.GetWidth() / 2 : srcRect.GetWidth();
-	const unsigned int tex_h = scaleByHalf ? srcRect.GetHeight() / 2 : srcRect.GetHeight();
+	const unsigned int tex_w = scaleByHalf ? gameSrcRect.GetWidth() / 2 : gameSrcRect.GetWidth();
+	const unsigned int tex_h = scaleByHalf ? gameSrcRect.GetHeight() / 2 : gameSrcRect.GetHeight();
+	const unsigned int our_tex_w = scaleByHalf ? ourSrcRect.GetWidth() / 2 : ourSrcRect.GetWidth(); // Currently unused. But Virtual Reality needs them.
+	const unsigned int our_tex_h = scaleByHalf ? ourSrcRect.GetHeight() / 2 : ourSrcRect.GetHeight(); // Currently unused. But Virtual Reality needs them.
 
 	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
@@ -1035,7 +1039,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	entry->SetEfbCopy(dstStride);
 	entry->is_custom_tex = false;
 
-	entry->FromRenderTarget(dst, dstFormat, dstStride, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
+	entry->FromRenderTarget(dst, dstFormat, dstStride, srcFormat, gameSrcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
 	entry->hash = GetHash64(dst, (int)entry->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 

@@ -212,52 +212,56 @@ static void BPWritten(const BPCmd& bp)
 			u32 destAddr = bpmem.copyTexDest << 5;
 			u32 destStride = bpmem.copyMipMapStrideChannels << 5;
 
-			EFBRectangle srcRect;
-			srcRect.left = (int)bpmem.copyTexSrcXY.x;
-			srcRect.top = (int)bpmem.copyTexSrcXY.y;
+			EFBRectangle gameSrcRect, ourSrcRect;
+			gameSrcRect.left = (int)bpmem.copyTexSrcXY.x;
+			gameSrcRect.top = (int)bpmem.copyTexSrcXY.y;
 
 			// Here Width+1 like Height, otherwise some textures are corrupted already since the native resolution.
 			// TODO: What's the behavior of out of bound access?
-			srcRect.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
-			srcRect.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
+			gameSrcRect.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
+			gameSrcRect.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
 			UPE_Copy PE_copy = bpmem.triggerEFBCopy;
+
+			// In Virtual Reality we normally render to the whole screen instead of the viewport, 
+			// (except when rendering to a square texture in the corner)
+			// So we want to copy a fraction of the whole screen, instead of a fraction of the viewport.
+			// Currently this will only work will copying the EFB to a texture.
+			if (g_has_hmd && g_viewport_type != VIEW_RENDER_TO_TEXTURE && !(g_rendered_viewport == g_requested_viewport) && g_ActiveConfig.bEnableVR)
+				ScaleRequestedToRendered(&gameSrcRect, &ourSrcRect);
+			else
+				ourSrcRect = gameSrcRect;
 
 			// Check if we are to copy from the EFB or draw to the XFB
 			if (PE_copy.copy_to_xfb == 0)
 			{
+				if (debug_newScene)
+				{
+					if (g_has_hmd && g_viewport_type != VIEW_RENDER_TO_TEXTURE && !(g_rendered_viewport == g_requested_viewport)
+						&& g_ActiveConfig.bEnableVR)
+					{
+						HACK_LOG(VR, "VR Resized EFB Copy (%d, %d) %dx%d to %8x, %d, %d, %d, %d",
+							gameSrcRect.left, gameSrcRect.top, gameSrcRect.GetWidth(), gameSrcRect.GetHeight(), destAddr,
+							PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
+							!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
+						HACK_LOG(VR, "    Resized to (%d, %d) %dx%d", ourSrcRect.left, ourSrcRect.top, ourSrcRect.GetWidth(), ourSrcRect.GetHeight());
+					}
+					else
+					{
+						HACK_LOG(VR, "Render to Texture EFB Copy (%d, %d) %dx%d to %8x, %d, %d, %d, %d",
+							gameSrcRect.left, gameSrcRect.top, gameSrcRect.GetWidth(), gameSrcRect.GetHeight(), destAddr,
+							PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
+							!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
+					}
+				}
 				if (g_ActiveConfig.bShowEFBCopyRegions)
-					stats.efb_regions.push_back(srcRect);
-				// In VR we normally render to the whole screen instead of the viewport, 
-				// (except when rendering to a square texture in the corner)
-				// So we want to copy a fraction of the whole screen, instead of a fraction of the viewport.
-				// Currently this will only work will copying the EFB to a texture.
-				if (g_has_hmd && g_viewport_type != VIEW_RENDER_TO_TEXTURE && !(g_rendered_viewport == g_requested_viewport)
-					&& g_ActiveConfig.bEnableVR && g_ActiveConfig.bSkipEFBCopyToRam)
-				{
-					if (debug_newScene)
-						HACK_LOG(VR, "VR Resized EFB Copy (%d, %d) %dx%d to %8x, %d, %d, %d, %d", 
-							srcRect.left, srcRect.top, srcRect.GetWidth(), srcRect.GetHeight(), destAddr,
-							PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
-							!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
-					ScaleRequestedToRendered(&srcRect);
-					if (debug_newScene)
-						HACK_LOG(VR, "    Resized to (%d, %d) %dx%d", srcRect.left, srcRect.top, srcRect.GetWidth(), srcRect.GetHeight());
-				}
-				else
-				{
-					if (debug_newScene)
-						HACK_LOG(VR, "Render to Texture EFB Copy (%d, %d) %dx%d to %8x, %d, %d, %d, %d", 
-							srcRect.left, srcRect.top, srcRect.GetWidth(), srcRect.GetHeight(), destAddr,
-							PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
-							!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
-				}
+					stats.efb_regions.push_back(ourSrcRect);
 				// CopyEFB - Do EFB Copy
 				// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 				if (g_ActiveConfig.bEFBCopyEnable)
 				{
 					TextureCache::CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
-						bpmem.zcontrol.pixel_format, srcRect,
+						bpmem.zcontrol.pixel_format, gameSrcRect, ourSrcRect,
 						!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
 				}
 			}
@@ -285,9 +289,9 @@ static void BPWritten(const BPCmd& bp)
 					height = MAX_XFB_HEIGHT;
 				}
 
-				DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | fbStride: %u | fbHeight: %u",
-					destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom, bpmem.copyTexSrcWH.x + 1, destStride, height);
-				Renderer::RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
+				DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | gameSrcRect {%d %d %d %d} | fbWidth: %u | fbStride: %u | fbHeight: %u",
+					destAddr, gameSrcRect.left, gameSrcRect.top, gameSrcRect.right, gameSrcRect.bottom, bpmem.copyTexSrcWH.x + 1, destStride, height);
+				Renderer::RenderToXFB(destAddr, gameSrcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
 				g_new_frame_just_rendered = true;
 				g_first_pass = g_first_pass_vs_constants = true;
 				new_frame_just_rendered = true;
@@ -296,7 +300,7 @@ static void BPWritten(const BPCmd& bp)
 			// Clear the rectangular region after copying it.
 			if (PE_copy.clear)
 			{
-				ClearScreen(srcRect, new_frame_just_rendered);
+				ClearScreen(ourSrcRect, new_frame_just_rendered);
 			}
 
 #ifdef RECURSIVE_OPCODE

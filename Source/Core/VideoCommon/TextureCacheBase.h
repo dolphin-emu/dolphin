@@ -132,8 +132,11 @@ public:
 	static TCacheEntryBase* Load(const u32 stage);
 	static void UnbindTextures();
 	static void BindTextures();
+
+	// gameSrcRect is the EFB rectangle the game is trying to read from, which matches the amount of RAM the game has allocated to hold it
+	// ourSrcRect is the EFB rectangle it must actually read from, which will be larger in Virtual Reality because we force the game to use the whole EFB 
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
-		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+		PEControl::PixelFormat srcFormat, const EFBRectangle& gameSrcRect, const EFBRectangle& ourSrcRect, bool isIntensity, bool scaleByHalf);
 
 	static void RequestInvalidateTextureCache();
 
