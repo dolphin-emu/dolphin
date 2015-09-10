@@ -230,18 +230,31 @@ namespace DolphinWatch {
 
 		}
 		else if (cmd == "PAUSE") {
+			if (!Core::IsRunning()) {
+				NOTICE_LOG(CONSOLE, "Core not running, can't pause: %s", line.c_str());
+				return;
+			}
 			Core::SetState(Core::CORE_PAUSE);
 		}
 		else if (cmd == "RESUME") {
+			if (!Core::IsRunning()) {
+				NOTICE_LOG(CONSOLE, "Core not running, can't resume: %s", line.c_str());
+				return;
+			}
 			Core::SetState(Core::CORE_RUN);
 		}
 		else if (cmd == "SAVE") {
+
+			if (!Core::IsRunning()) {
+				NOTICE_LOG(CONSOLE, "Core not running, can't save savestate: %s", line.c_str());
+				return;
+			}
 
 			string file;
 			getline(parts, file);
 			file = StripSpaces(file);
 			if (file.empty() || file.find_first_of(":?\"<> | ") != string::npos) {
-				NOTICE_LOG(CONSOLE, "Invalid filename for saving savestate: %s", file.c_str());
+				NOTICE_LOG(CONSOLE, "Invalid filename for saving savestate: %s", line.c_str());
 				return;
 			}
 
@@ -250,11 +263,16 @@ namespace DolphinWatch {
 		}
 		else if (cmd == "LOAD") {
 
+			if (!Core::IsRunning()) {
+				NOTICE_LOG(CONSOLE, "Core not running, can't load savestate: %s", line.c_str());
+				return;
+			}
+
 			string file;
 			getline(parts, file);
 			file = StripSpaces(file);
 			if (file.empty() || file.find_first_of(":?\"<> | ") != string::npos) {
-				NOTICE_LOG(CONSOLE, "Invalid filename for loading savestate: %s", file.c_str());
+				NOTICE_LOG(CONSOLE, "Invalid filename for loading savestate: %s", line.c_str());
 				return;
 			}
 
