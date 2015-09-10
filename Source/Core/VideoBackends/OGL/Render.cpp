@@ -1293,7 +1293,12 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
 	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
 	{
 		TargetRectangle leftRc, rightRc;
-		ConvertStereoRectangle(dst, leftRc, rightRc);
+
+		// Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
+		if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+			ConvertStereoRectangle(dst, rightRc, leftRc);
+		else
+			ConvertStereoRectangle(dst, leftRc, rightRc);
 
 		m_post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
 		m_post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
