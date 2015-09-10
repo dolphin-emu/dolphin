@@ -150,12 +150,28 @@ void TextureCache::Cleanup(int _frameCount)
 		if (iter->second->frameCount == FRAMECOUNT_INVALID)
 		{
 			iter->second->frameCount = _frameCount;
+			++iter;
 		}
-		if (_frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount &&
-		    // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
-		    !iter->second->IsEfbCopy())
+		else if (_frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount)
 		{
-			iter = FreeTexture(iter);
+			if (iter->second->IsEfbCopy())
+			{
+				// Only remove EFB copies when they wouldn't be used anymore(changed hash), because EFB copies living on the
+				// host GPU are unrecoverable. Perform this check only every TEXTURE_KILL_THRESHOLD for performance reasons
+				if ((_frameCount - iter->second->frameCount) % TEXTURE_KILL_THRESHOLD == 1 &&
+					iter->second->hash != GetHash64(Memory::GetPointer(iter->second->addr), iter->second->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples))
+				{
+					iter = FreeTexture(iter);
+				}
+				else
+				{
+					++iter;
+				}
+			}
+			else
+			{
+				iter = FreeTexture(iter);
+			}
 		}
 		else
 		{
