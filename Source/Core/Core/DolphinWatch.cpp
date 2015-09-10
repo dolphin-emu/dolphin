@@ -165,20 +165,28 @@ namespace DolphinWatch {
 		}
 		else if (cmd == "SUBSCRIBE") {
 
-			u32 addr;
+			u32 mode, addr;
 
-			if (!(parts >> addr)) {
+			if (!(parts >> mode >> addr)) {
 				// no valid parameters, skip
 				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
 				return;
 			}
+
+			// TODO handle overlapping subscribes etc. better. maybe by returning the mode again?
 
 			for (auto &sub : client.subs) {
 				if (sub.addr == addr) {
 					return;
 				}
 			}
-			client.subs.push_back(Subscription(addr));
+
+			if (mode == 8 || mode == 16 || mode == 32) {
+				client.subs.push_back(Subscription(addr, mode));
+			} else {
+				NOTICE_LOG(CONSOLE, "Wrong mode for subscribing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
+				return;
+			}
 
 		}
 		else if (cmd == "UNSUBSCRIBE") {
@@ -225,8 +233,6 @@ namespace DolphinWatch {
 	}
 
 	void update() {
-
-		//sendButtons(0, WiimoteEmu::Wiimote::BUTTON_TWO);
 
 		string s;
 
@@ -284,7 +290,10 @@ namespace DolphinWatch {
 
 			// check subscriptions
 			if (Memory::IsInitialized()) for (auto &sub : client.subs) {
-				u32 val = PowerPC::HostRead_U32(sub.addr);
+				u32 val;
+				if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
+				else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
+				else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
 				if (val != sub.prev) {
 					sub.prev = val;
 					ostringstream message;
