@@ -9,7 +9,7 @@
 
 // Helper functions:
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 template <typename T>
 static inline int CountSetBits(T v)
 {

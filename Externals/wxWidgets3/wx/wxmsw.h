@@ -762,6 +762,8 @@
         // here if you use MSVC 6 with a newer SDK
 #       define wxUSE_GRAPHICS_CONTEXT 0
 #   endif
+#elif defined(__MINGW64__)
+#	define wxUSE_GRAPHICS_CONTEXT 1
 #else
     // Disable support for other Windows compilers, enable it if your compiler
     // comes with new enough SDK or you installed the headers manually.

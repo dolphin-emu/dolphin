@@ -194,7 +194,7 @@ bool NetPlayClient::Connect()
 		return false;
 	}
 
-	MessageId error;
+	NetMessageId error;
 	rpac >> error;
 
 	// got error message
@@ -243,7 +243,7 @@ bool NetPlayClient::Connect()
 // called from ---NETPLAY--- thread
 unsigned int NetPlayClient::OnData(sf::Packet& packet)
 {
-	MessageId mid;
+	NetMessageId mid;
 	packet >> mid;
 
 	switch (mid)
@@ -425,7 +425,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		packet >> ping_key;
 
 		sf::Packet spac;
-		spac << (MessageId)NP_MSG_PONG;
+		spac << (NetMessageId)NP_MSG_PONG;
 		spac << ping_key;
 
 		Send(spac);
@@ -633,7 +633,7 @@ std::vector<const Player*> NetPlayClient::GetPlayers()
 void NetPlayClient::SendChatMessage(const std::string& msg)
 {
 	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_CHAT_MESSAGE;
+	*spac << (NetMessageId)NP_MSG_CHAT_MESSAGE;
 	*spac << msg;
 	SendAsync(spac);
 }
@@ -642,7 +642,7 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 void NetPlayClient::SendPadState(const PadMapping in_game_pad, const GCPadStatus& pad)
 {
 	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_PAD_DATA;
+	*spac << (NetMessageId)NP_MSG_PAD_DATA;
 	*spac << in_game_pad;
 	*spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
@@ -653,7 +653,7 @@ void NetPlayClient::SendPadState(const PadMapping in_game_pad, const GCPadStatus
 void NetPlayClient::SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw)
 {
 	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_WIIMOTE_DATA;
+	*spac << (NetMessageId)NP_MSG_WIIMOTE_DATA;
 	*spac << in_game_pad;
 	*spac << (u8)nw.size();
 	for (auto it : nw)
@@ -669,7 +669,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 	// tell server i started the game
 	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_START_GAME;
+	*spac << (NetMessageId)NP_MSG_START_GAME;
 	*spac << m_current_game;
 	*spac << (char *)&g_NetPlaySettings;
 	SendAsync(spac);
@@ -1024,7 +1024,7 @@ void NetPlayClient::Stop()
 	if (isPadMapped)
 	{
 		sf::Packet* spac = new sf::Packet;
-		*spac << (MessageId)NP_MSG_STOP_GAME;
+		*spac << (NetMessageId)NP_MSG_STOP_GAME;
 		SendAsync(spac);
 	}
 }
@@ -1092,7 +1092,7 @@ void NetPlayClient::SendTimeBase()
 	u64 timebase = SystemTimers::GetFakeTimeBase();
 
 	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_TIMEBASE;
+	*spac << (NetMessageId)NP_MSG_TIMEBASE;
 	*spac << (u32)timebase;
 	*spac << (u32)(timebase << 32);
 	*spac << netplay_client->m_timebase_frame++;

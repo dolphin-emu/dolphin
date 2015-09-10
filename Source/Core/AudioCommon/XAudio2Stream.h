@@ -13,7 +13,7 @@
 #include "AudioCommon/SoundStream.h"
 #include "Common/Event.h"
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 struct StreamingVoiceContext;
 struct IXAudio2;
@@ -23,7 +23,7 @@ struct IXAudio2MasteringVoice;
 
 class XAudio2 final : public SoundStream
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 private:
 	class Releaser

@@ -151,7 +151,8 @@ void PathConfigPane::OnRemoveISOPath(wxCommandEvent& event)
 
 	// This seems to not be activated on Windows when it should be. wxw bug?
 #ifdef _WIN32
-	OnISOPathSelectionChanged(wxCommandEvent());
+	wxCommandEvent ev; // because we're taking a reference to it
+	OnISOPathSelectionChanged(ev);
 #endif
 
 	SaveISOPathChanges();

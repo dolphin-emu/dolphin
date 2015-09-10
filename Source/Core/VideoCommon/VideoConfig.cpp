@@ -110,9 +110,9 @@ void VideoConfig::Load(const std::string& ini_file)
 
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	IniFile::Section* interface = iniFile.GetOrCreateSection("Interface");
+	IniFile::Section* interfaceSection = iniFile.GetOrCreateSection("Interface");
 	bool bTmp;
-	interface->Get("UsePanicHandlers", &bTmp, true);
+	interfaceSection->Get("UsePanicHandlers", &bTmp, true);
 	SetEnableAlert(bTmp);
 
 	// Shader Debugging causes a huge slowdown and it's easy to forget about it

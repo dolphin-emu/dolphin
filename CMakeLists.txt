@@ -158,9 +158,10 @@ else()
 endif()
 
 if(NOT ENABLE_GENERIC)
-	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
-	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
-	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
+	string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" LOWERCASE_SYSTEM_PROCESSOR)
+	if(${LOWERCASE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
+	   ${LOWERCASE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
+	   ${LOWERCASE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
 	   APPLE)
 		if(_ARCH_64)
 			set(_M_X86 1)
@@ -169,9 +170,9 @@ if(NOT ENABLE_GENERIC)
 		else()
 			message(FATAL_ERROR "x86_32 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
 		endif()
-	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
+	elseif(${LOWERCASE_SYSTEM_PROCESSOR} MATCHES "^arm")
 		message(FATAL_ERROR "ARMv7 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
-	elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+	elseif(${LOWERCASE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
 		# This option only applies to 64bit ARM
 		set(_M_ARM 1)
 		set(_M_ARM_64 1)
@@ -671,6 +672,12 @@ if(LIBUSB_FOUND)
 	message("Using shared LibUSB")
 	add_definitions(-D__LIBUSB__)
 	include_directories(${LIBUSB_INCLUDE_DIR})
+elseif(WIN32)
+	message("Using static LibUSB from externals")
+	add_definitions(-D__LIBUSB__)
+	set(LIBUSB_FOUND 1)
+	set(LIBUSB_LIBRARIES usb)
+	add_subdirectory(Externals/libusb)
 endif(LIBUSB_FOUND)
 
 set(SFML_REQD_VERSION 2.1)

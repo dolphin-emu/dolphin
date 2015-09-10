@@ -55,6 +55,9 @@ endif()
 
 if(LIBAV_FOUND OR WIN32)
 	set(SRCS ${SRCS} AVIDump.cpp)
+	if(WIN32)
+		set(LIBS ${LIBS} avifil32)
+	endif()
 endif()
 
 add_dolphin_library(videocommon "${SRCS}" "${LIBS}")

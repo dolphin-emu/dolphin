@@ -5,6 +5,7 @@
 #include <wx/choice.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/toplevel.h>
 
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"

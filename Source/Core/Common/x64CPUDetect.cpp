@@ -9,7 +9,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 
-#ifndef _WIN32
+#ifndef _MSC_VER
 
 #ifdef __FreeBSD__
 #include <sys/types.h>
@@ -49,7 +49,7 @@ static u64 _xgetbv(u32 index)
 	return ((u64)edx << 32) | eax;
 }
 
-#endif // ifndef _WIN32
+#endif // ifndef _MSC_VER
 
 CPUInfo cpu_info;
 
