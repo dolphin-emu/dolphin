@@ -1632,31 +1632,23 @@ void CFrame::ParseHotkeys()
 			g_Config.fScreenPitch -= 5.0f;
 			NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);;
 		}
+		else if (IsHotkey(VR_DEBUG_NEXT_LAYER)) {
+			g_Config.iSelectedLayer++;
+			NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
+			debug_nextScene = true;
+		}
+		else if (IsHotkey(VR_DEBUG_PREVIOUS_LAYER)) {
+			g_Config.iSelectedLayer--;
+			if (g_Config.iSelectedLayer < -1)
+				g_Config.iSelectedLayer = -2;
+			NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
+			debug_nextScene = true;
+		}
+		else if (IsHotkey(VR_DEBUG_SCENE)) {
+			NOTICE_LOG(VR, "--- pressed DEBUG SCENE ---");
+			debug_nextScene = true;
+		}
 	}
-	//if (g_has_hmd && event.GetModifiers() == wxMOD_SHIFT)
-	//{
-	//	switch (event.GetKeyCode())
-	//	{
-	//		// Previous layer
-	//	case 'B':
-	//		g_Config.iSelectedLayer--;
-	//		if (g_Config.iSelectedLayer < -1)
-	//			g_Config.iSelectedLayer = -2;
-	//		NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
-	//		debug_nextScene = true;
-	//		break;
-	//		// Next layer
-	//	case 'N':
-	//		g_Config.iSelectedLayer++;
-	//		NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
-	//		debug_nextScene = true;
-	//		break;
-	//	case '\'':
-	//		NOTICE_LOG(VR, "--- pressed ' ---");
-	//		debug_nextScene = true;
-	//		break;
-	//	}
-	//}
 
 	// Savestates
 	for (u32 i = 0; i < State::NUM_STATES; i++)
