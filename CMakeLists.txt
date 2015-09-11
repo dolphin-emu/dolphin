@@ -84,34 +84,6 @@ add_definitions(-DUSER_DIR="${userdir}")
 # as defined above.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
 
-# Precompiled header support for MSVC:
-# Call this after setting the source list (and don't add the source file used
-# to generate the pch file, this will be done here automatically)
-function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_FILE SOURCE_VARIABLE_NAME)
-	if(MSVC)
-		set(files ${${SOURCE_VARIABLE_NAME}})
-
-		# Generate precompiled header translation unit
-		get_filename_component(pch_basename ${PRECOMPILED_HEADER} NAME_WE)
-		set(pch_abs ${CMAKE_CURRENT_SOURCE_DIR}/${PRECOMPILED_HEADER})
-		set(pch_unity ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_FILE})
-		set_source_files_properties(${pch_unity}  PROPERTIES COMPILE_FLAGS
-			"/Yc\"${pch_abs}\"")
-
-		# Update properties of source files to use the precompiled header.
-		# Additionally, force the inclusion of the precompiled header at
-		# beginning of each source file.
-		foreach(source_file ${files} )
-			set_source_files_properties(${source_file} PROPERTIES COMPILE_FLAGS
-				"/Yu\"${pch_abs}\" /FI\"${pch_abs}\"")
-		endforeach(source_file)
-
-		# Finally, update the source file collection to contain the
-		# precompiled header translation unit
-		set(${SOURCE_VARIABLE_NAME} ${pch_unity} ${${SOURCE_VARIABLE_NAME}} PARENT_SCOPE)
-	endif(MSVC)
-endfunction(enable_precompiled_headers)
-
 # for revision info
 include(FindGit OPTIONAL)
 if(GIT_FOUND AND NOT DOLPHIN_WC_REVISION)
@@ -158,20 +130,24 @@ else()
 endif()
 
 if(NOT ENABLE_GENERIC)
-	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
-	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
-	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
+	string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" LOWERCASE_SYSTEM_PROCESSOR)
+	if(${LOWERCASE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
+	   ${LOWERCASE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
+	   ${LOWERCASE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
 	   APPLE)
 		if(_ARCH_64)
 			set(_M_X86 1)
 			set(_M_X86_64 1)
-			add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
+			add_definitions(-D_M_X86=1 -D_M_X86_64=1)
+			if(NOT MSVC)
+				add_definitions(-msse2)
+			endif()
 		else()
 			message(FATAL_ERROR "x86_32 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
 		endif()
-	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
+	elseif(${LOWERCASE_SYSTEM_PROCESSOR} MATCHES "^arm")
 		message(FATAL_ERROR "ARMv7 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
-	elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+	elseif(${LOWERCASE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
 		# This option only applies to 64bit ARM
 		set(_M_ARM 1)
 		set(_M_ARM_64 1)
@@ -218,8 +194,10 @@ if(NOT MSVC)
 	check_and_add_flag(MISSING_VARIABLE_DECLARATIONS -Wmissing-variable-declarations)
 endif(NOT MSVC)
 
-# gcc uses some optimizations which might break stuff without this flag
-add_definitions(-fno-strict-aliasing -fno-exceptions)
+if(NOT MSVC)
+	# gcc uses some optimizations which might break stuff without this flag
+	add_definitions(-fno-strict-aliasing -fno-exceptions)
+endif()
 
 check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
 
@@ -327,7 +305,10 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
-	add_definitions(-D_DEBUG -ggdb)
+	add_definitions(-D_DEBUG)
+	if(NOT MSVC)
+		add_definitions(-ggdb)
+	endif()
 	set(wxWidgets_USE_DEBUG ON CACHE BOOL "Use wxWidgets Debugging")
 
 	option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
@@ -671,6 +652,12 @@ if(LIBUSB_FOUND)
 	message("Using shared LibUSB")
 	add_definitions(-D__LIBUSB__)
 	include_directories(${LIBUSB_INCLUDE_DIR})
+elseif(WIN32)
+	message("Using static LibUSB from externals")
+	add_definitions(-D__LIBUSB__)
+	set(LIBUSB_FOUND 1)
+	set(LIBUSB_LIBRARIES usb)
+	add_subdirectory(Externals/libusb)
 endif(LIBUSB_FOUND)
 
 set(SFML_REQD_VERSION 2.1)
@@ -731,7 +718,7 @@ if (ANDROID)
 	include_directories(Externals/libiconv-1.14/include)
 	add_subdirectory(Externals/libiconv-1.14)
 	list(APPEND LIBS iconv)
-else()
+elseif(NOT WIN32)
 	find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
 	find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
 	list(APPEND LIBS ${ICONV_LIBRARIES})
@@ -867,7 +854,9 @@ add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
 ########################################
 # Start compiling our code
 #
-add_definitions(-std=c++1y)
+if(NOT MSVC)
+	add_definitions(-std=c++1y)
+endif()
 
 # These aren't actually needed for C11/C++11
 # but some dependencies require them (LLVM, libav).

@@ -26,6 +26,7 @@ endif()
 
 if(WIN32)
     set(SRCS ${SRCS} GLInterface/WGL.cpp)
+    set(LIBS ${LIBS} opengl32)
 elseif(APPLE)
     set(SRCS ${SRCS} GLInterface/AGL.cpp)
 elseif(USE_X11)
@@ -46,7 +47,7 @@ set(LIBS	${LIBS}
 			SOIL
 			common
 			${X11_LIBRARIES})
-if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD)
+if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD AND NOT WIN32)
 	set(LIBS ${LIBS} dl)
 endif()
 if(USE_EGL)

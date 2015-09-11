@@ -12,8 +12,10 @@ if(WIN32)
 				ControllerInterface/DInput/DInput.cpp
 				ControllerInterface/DInput/DInputJoystick.cpp
 				ControllerInterface/DInput/DInputKeyboardMouse.cpp
+				ControllerInterface/DInput/XInputFilter.cpp
 				ControllerInterface/XInput/XInput.cpp
 				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
+	set(LIBS ${LIBS} dinput8 dxguid)
 elseif(APPLE)
 	find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 	find_library(CARBON_LIBRARY Carbon)

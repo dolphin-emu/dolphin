@@ -162,7 +162,6 @@ set(SRCS_COMMON
 	"src/common/object.cpp"
 	"src/common/odcombocmn.cpp"
 	"src/common/overlaycmn.cpp"
-	#"src/common/ownerdrwcmn.cpp"
 	"src/common/panelcmn.cpp"
 	"src/common/paper.cpp"
 	"src/common/persist.cpp"
@@ -191,7 +190,6 @@ set(SRCS_COMMON
 	"src/common/sizer.cpp"
 	"src/common/slidercmn.cpp"
 	"src/common/socket.cpp"
-	"src/common/socketiohandler.cpp"
 	"src/common/spinbtncmn.cpp"
 	"src/common/spinctrlcmn.cpp"
 	"src/common/srchcmn.cpp"
@@ -255,6 +253,11 @@ set(SRCS_COMMON
 	#"src/common/xtixml.cpp"
 	"src/common/zipstrm.cpp"
 	"src/common/zstream.cpp")
+if(NOT WIN32)
+	set(SRCS_COMMON ${SRCS_COMMON} "src/common/socketiohandler.cpp")
+else()
+	set(SRCS_COMMON ${SRCS_COMMON} "src/common/ownerdrwcmn.cpp")
+endif()
 
 set(SRCS_GENERIC
 	"src/generic/aboutdlgg.cpp"
@@ -263,7 +266,6 @@ set(SRCS_GENERIC
 	"src/generic/busyinfo.cpp"
 	"src/generic/buttonbar.cpp"
 	"src/generic/calctrlg.cpp"
-	"src/generic/caret.cpp"
 	"src/generic/choicbkg.cpp"
 	"src/generic/choicdgg.cpp"
 	#"src/generic/colour.cpp"
@@ -276,7 +278,6 @@ set(SRCS_GENERIC
 	"src/generic/dirctrlg.cpp"
 	"src/generic/dragimgg.cpp"
 	"src/generic/editlbox.cpp"
-	"src/generic/fdrepdlg.cpp"
 	"src/generic/filectrlg.cpp"
 	"src/generic/filepickerg.cpp"
 	"src/generic/fontdlgg.cpp"
@@ -293,7 +294,6 @@ set(SRCS_GENERIC
 	"src/generic/infobar.cpp"
 	"src/generic/laywin.cpp"
 	"src/generic/listbkg.cpp"
-	"src/generic/listctrl.cpp"
 	"src/generic/logg.cpp"
 	#"src/generic/markuptext.cpp"
 	#"src/generic/mask.cpp"
@@ -335,6 +335,16 @@ set(SRCS_GENERIC
 	"src/generic/vlbox.cpp"
 	"src/generic/vscroll.cpp"
 	"src/generic/wizard.cpp")
+if(NOT WIN32)
+	set(SRCS_GENERIC ${SRCS_GENERIC}
+		"src/generic/caret.cpp"
+		"src/generic/fdrepdlg.cpp"
+		"src/generic/listctrl.cpp")
+endif()
+
+set(SRCS_GENERICWIN
+	"src/generic/collpaneg.cpp"
+	"src/generic/dirdlgg.cpp")
 
 set(SRCS_GENERICGTK
 	"src/generic/accel.cpp"
@@ -494,7 +504,7 @@ set(SRCS_MSW
 	"src/msw/dragimag.cpp"
 	"src/msw/enhmeta.cpp"
 	"src/msw/evtloop.cpp"
-	#"src/msw/evtloopconsole.cpp"
+	"src/msw/evtloopconsole.cpp"
 	"src/msw/fdrepdlg.cpp"
 	"src/msw/filedlg.cpp"
 	"src/msw/font.cpp"
@@ -528,7 +538,6 @@ set(SRCS_MSW
 	"src/msw/menu.cpp"
 	"src/msw/menuitem.cpp"
 	"src/msw/metafile.cpp"
-	"src/msw/microwin.c"
 	"src/msw/mimetype.cpp"
 	"src/msw/minifram.cpp"
 	"src/msw/msgdlg.cpp"
@@ -598,22 +607,23 @@ set(SRCS_MSW
 	"src/msw/utilsgui.cpp"
 	"src/msw/utilswin.cpp"
 	"src/msw/uxtheme.cpp"
-	"src/msw/version.rc"
+	#"src/msw/version.rc"
 	"src/msw/volume.cpp"
 	#"src/msw/webview_ie.cpp"
-	"src/msw/wince/checklst.cpp"
-	"src/msw/wince/choicece.cpp"
-	"src/msw/wince/crt.cpp"
-	"src/msw/wince/filedlgwce.cpp"
-	"src/msw/wince/filefnwce.cpp"
-	"src/msw/wince/helpwce.cpp"
-	"src/msw/wince/menuce.cpp"
-	"src/msw/wince/net.cpp"
-	"src/msw/wince/tbarwce.cpp"
-	"src/msw/wince/textctrlce.cpp"
-	"src/msw/wince/time.cpp"
+	#"src/msw/wince/checklst.cpp"
+	#"src/msw/wince/choicece.cpp"
+	#"src/msw/wince/crt.cpp"
+	#"src/msw/wince/filedlgwce.cpp"
+	#"src/msw/wince/filefnwce.cpp"
+	#"src/msw/wince/helpwce.cpp"
+	#"src/msw/wince/menuce.cpp"
+	#"src/msw/wince/net.cpp"
+	#"src/msw/wince/tbarwce.cpp"
+	#"src/msw/wince/textctrlce.cpp"
+	#"src/msw/wince/time.cpp"
 	"src/msw/window.cpp"
-	"src/msw/winestub.c")
+	#"src/msw/winestub.c"
+	)
 
 set(SRCS_OSX
 	"src/osx/accel.cpp"
@@ -897,16 +907,21 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 		${PANGOCAIRO_LIBRARIES}
 		${GTK2_LIBRARIES})
 else()
-	add_definitions(-D__WXMSW__)
+	add_definitions(-D__WXMSW__ -DNOPCH)
 	set(SRCS
 		${SRCS}
+		${SRCS_GENERICWIN}
 		${SRCS_MSW})
+	set(LIBS comctl32)
 endif()
 
 add_definitions(-DWXBUILDING)
-# wxWidgets warnings are not our problem.
-add_definitions(-w)
+if(NOT MSVC)
+	# wxWidgets warnings are not our problem.
+	add_definitions(-w)
+else()
+	# TODO: disable warnings
+endif()
 
-enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
 add_library(wx STATIC ${PNG_SRCS} ${SRCS})
 target_link_libraries(wx ${LIBS})

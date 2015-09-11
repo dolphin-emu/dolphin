@@ -18,5 +18,7 @@ set(SRCS
   pngwtran.c
   pngwutil.c
 )
-add_definitions(-Wno-self-assign)
+if(NOT MSVC)
+	add_definitions(-Wno-self-assign)
+endif()
 add_library(png STATIC ${SRCS})
