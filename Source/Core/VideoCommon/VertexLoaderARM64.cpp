@@ -21,7 +21,7 @@ ARM64Reg stride_reg = X11;
 ARM64Reg arraybase_reg = X10;
 ARM64Reg scale_reg = X9;
 
-static const float GC_ALIGNED16(scale_factors[]) =
+alignas(16) static const float scale_factors[] =
 {
 	1.0 / (1ULL <<  0), 1.0 / (1ULL <<  1), 1.0 / (1ULL <<  2), 1.0 / (1ULL <<  3),
 	1.0 / (1ULL <<  4), 1.0 / (1ULL <<  5), 1.0 / (1ULL <<  6), 1.0 / (1ULL <<  7),

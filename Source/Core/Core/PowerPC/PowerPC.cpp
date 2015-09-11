@@ -29,7 +29,7 @@ namespace PowerPC
 {
 
 // STATE_TO_SAVE
-PowerPCState GC_ALIGNED16(ppcState);
+PowerPCState ppcState;
 static volatile CPUState state = CPU_POWERDOWN;
 
 Interpreter * const interpreter = Interpreter::getInstance();

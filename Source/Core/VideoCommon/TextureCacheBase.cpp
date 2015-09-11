@@ -26,9 +26,9 @@ static const int TEXTURE_KILL_THRESHOLD = 60;
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static const int FRAMECOUNT_INVALID = 0;
 
-TextureCache *g_texture_cache;
+TextureCache* g_texture_cache;
 
-GC_ALIGNED16(u8 *TextureCache::temp) = nullptr;
+alignas(16) u8* TextureCache::temp = nullptr;
 size_t TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures_by_address;
