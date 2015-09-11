@@ -22,7 +22,7 @@ DGameGrid::DGameGrid(QWidget* parent_widget) :
 	m_ui->setupUi(this);
 	SetViewStyle(STYLE_GRID);
 
-	connect(this, SIGNAL(itemActivated(QListWidgetItem*)), this, SIGNAL(StartGame()));
+	connect(this, &QListWidget::itemActivated, this, &DGameGrid::StartGame);
 }
 
 DGameGrid::~DGameGrid()
