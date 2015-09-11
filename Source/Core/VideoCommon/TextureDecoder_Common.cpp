@@ -5,7 +5,9 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Common/Common.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/sfont.inc"

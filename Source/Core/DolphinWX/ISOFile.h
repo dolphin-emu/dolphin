@@ -45,7 +45,6 @@ public:
 	u64 GetVolumeSize() const {return m_VolumeSize;}
 	// 0 is the first disc, 1 is the second disc
 	u8 GetDiscNumber() const { return m_disc_number; }
-	bool IsElfOrDol() const;
 
 #if defined(HAVE_WX) && HAVE_WX
 	const wxBitmap& GetBitmap() const {return m_Bitmap;}
@@ -84,7 +83,8 @@ private:
 	bool LoadFromCache();
 	void SaveToCache();
 
-	std::string CreateCacheFilename();
+	bool IsElfOrDol() const;
+	std::string CreateCacheFilename() const;
 
 	// Outputs to m_pImage
 	void ReadVolumeBanner(const DiscIO::IVolume& volume);

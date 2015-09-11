@@ -17,7 +17,8 @@ enum
 	GATHER_PIPE_SIZE = 32
 };
 
-extern u8 GC_ALIGNED32(m_gatherPipe[GATHER_PIPE_SIZE*16]); //more room, for the fastmodes
+// More room for the fastmodes
+extern u8 GC_ALIGNED32(m_gatherPipe[GATHER_PIPE_SIZE*16]);
 
 // pipe counter
 extern u32 m_gatherPipeCount;

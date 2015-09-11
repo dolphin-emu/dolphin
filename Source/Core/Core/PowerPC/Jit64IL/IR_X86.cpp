@@ -104,7 +104,7 @@ static unsigned regReadUse(RegInfo& R, InstLoc I)
 }
 
 static u64 SlotSet[1000];
-static u8 GC_ALIGNED16(FSlotSet[16*1000]);
+static u8 GC_ALIGNED16(FSlotSet[16 * 1000]);
 
 static OpArg regLocForSlot(RegInfo& RI, unsigned slot)
 {

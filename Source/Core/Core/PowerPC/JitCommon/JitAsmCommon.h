@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 extern const u8 GC_ALIGNED16(pbswapShuffle1x4[16]);
 extern const u8 GC_ALIGNED16(pbswapShuffle2x4[16]);

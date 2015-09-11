@@ -861,48 +861,45 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		if (selected_iso)
 		{
 			wxMenu popupMenu;
+			DiscIO::IVolume::EPlatform platform = selected_iso->GetPlatform();
 
-			if (!selected_iso->IsElfOrDol())
+			if (platform != DiscIO::IVolume::ELF_DOL)
 			{
 				popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
 				popupMenu.Append(IDM_GAME_WIKI, _("&Wiki"));
 				popupMenu.AppendSeparator();
 			}
-			if (selected_iso->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC && !selected_iso->IsElfOrDol())
+			if (platform == DiscIO::IVolume::WII_DISC || platform == DiscIO::IVolume::WII_WAD)
 			{
 				popupMenu.Append(IDM_OPEN_SAVE_FOLDER, _("Open Wii &save folder"));
 				popupMenu.Append(IDM_EXPORT_SAVE, _("Export Wii save (Experimental)"));
 			}
 			popupMenu.Append(IDM_OPEN_CONTAINING_FOLDER, _("Open &containing folder"));
 
-			if (!selected_iso->IsElfOrDol())
+			if (platform != DiscIO::IVolume::ELF_DOL)
 				popupMenu.AppendCheckItem(IDM_SET_DEFAULT_ISO, _("Set as &default ISO"));
 
 			// First we have to decide a starting value when we append it
-			if (selected_iso->GetFileName() == SConfig::GetInstance().m_strDefaultISO)
+			if (platform == SConfig::GetInstance().m_strDefaultISO)
 				popupMenu.FindItem(IDM_SET_DEFAULT_ISO)->Check();
 
 			popupMenu.AppendSeparator();
 			popupMenu.Append(IDM_DELETE_ISO, _("&Delete File..."));
 
-			if (selected_iso->GetPlatform() != DiscIO::IVolume::WII_WAD && !selected_iso->IsElfOrDol())
+			if (platform == DiscIO::IVolume::GAMECUBE_DISC || platform == DiscIO::IVolume::WII_DISC)
 			{
 				if (selected_iso->IsCompressed())
 					popupMenu.Append(IDM_COMPRESS_ISO, _("Decompress ISO..."));
 				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" &&
 				         selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
 					popupMenu.Append(IDM_COMPRESS_ISO, _("Compress ISO..."));
-			}
-			else if (!selected_iso->IsElfOrDol())
-			{
-				popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to Wii Menu"));
-			}
-			if (selected_iso->GetPlatform() == DiscIO::IVolume::GAMECUBE_DISC ||
-				selected_iso->GetPlatform() == DiscIO::IVolume::WII_DISC)
-			{
+
 				wxMenuItem* changeDiscItem = popupMenu.Append(IDM_LIST_CHANGE_DISC, _("Change &Disc"));
 				changeDiscItem->Enable(Core::IsRunning());
 			}
+
+			if (platform == DiscIO::IVolume::WII_WAD)
+				popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to Wii Menu"));
 
 			PopupMenu(&popupMenu);
 		}

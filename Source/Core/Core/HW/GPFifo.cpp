@@ -22,16 +22,16 @@ namespace GPFifo
 // 32 Byte gather pipe with extra space
 // Overfilling is no problem (up to the real limit), CheckGatherPipe will blast the
 // contents in nicely sized chunks
-
+//
 // Other optimizations to think about:
-
-// If the gp is NOT linked to the fifo, just blast to memory byte by word
-// If the gp IS linked to the fifo, use a fast wrapping buffer and skip writing to memory
-
+// - If the GP is NOT linked to the FIFO, just blast to memory byte by word
+// - If the GP IS linked to the FIFO, use a fast wrapping buffer and skip writing to memory
+//
 // Both of these should actually work! Only problem is that we have to decide at run time,
 // the same function could use both methods. Compile 2 different versions of each such block?
 
-u8 GC_ALIGNED32(m_gatherPipe[GATHER_PIPE_SIZE*16]); //more room, for the fastmodes
+// More room for the fastmodes
+u8 GC_ALIGNED32(m_gatherPipe[GATHER_PIPE_SIZE*16]);
 
 // pipe counter
 u32 m_gatherPipeCount = 0;

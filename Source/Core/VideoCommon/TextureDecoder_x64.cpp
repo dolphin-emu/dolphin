@@ -1066,7 +1066,7 @@ void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, in
 
 						// Copy the 2-bit indices from each DXT block:
 						GC_ALIGNED16( u32 dxttmp[4] );
-						_mm_store_si128((__m128i *)dxttmp, dxt);
+						_mm_store_si128((__m128i*)dxttmp, dxt);
 
 						u32 dxt0sel = dxttmp[1];
 						u32 dxt1sel = dxttmp[3];
@@ -1206,8 +1206,8 @@ void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, in
 						// Copy the colors here:
 						GC_ALIGNED16( u32 colors0[4] );
 						GC_ALIGNED16( u32 colors1[4] );
-						_mm_store_si128((__m128i *)colors0, mmcolors0);
-						_mm_store_si128((__m128i *)colors1, mmcolors1);
+						_mm_store_si128((__m128i*)colors0, mmcolors0);
+						_mm_store_si128((__m128i*)colors1, mmcolors1);
 
 						// Row 0:
 						dst32[(width * 0) + 0] = colors0[(dxt0sel >> ((0*8)+6)) & 3];
