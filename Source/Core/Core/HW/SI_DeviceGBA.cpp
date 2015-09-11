@@ -36,8 +36,7 @@ enum EJoybusCmds
 	CMD_WRITE  = 0x15
 };
 
-const u64 BITS_PER_SECOND = 115200;
-const u64 BYTES_PER_SECOND = BITS_PER_SECOND / 8;
+const u64 BITS_PER_SECOND = 216000;
 
 u8 GetNumConnected()
 {
@@ -52,33 +51,32 @@ u8 GetNumConnected()
 
 int GetTransferTime(u8 cmd)
 {
-	u64 bytes_transferred = 0;
+	u64 bits_transferred = 8 + 1;
 
 	switch (cmd)
 	{
 	case CMD_RESET:
 	case CMD_STATUS:
 	{
-		bytes_transferred = 4;
+		bits_transferred += 24 + 1;
 		break;
 	}
 	case CMD_READ:
 	{
-		bytes_transferred = 6;
+		bits_transferred += 40 + 1;
 		break;
 	}
 	case CMD_WRITE:
 	{
-		bytes_transferred = 1;
+		bits_transferred += 40 + 1;
 		break;
 	}
 	default:
 	{
-		bytes_transferred = 1;
 		break;
 	}
 	}
-	return (int)(bytes_transferred * SystemTimers::GetTicksPerSecond() / (GetNumConnected() * BYTES_PER_SECOND));
+	return (int)(bits_transferred * SystemTimers::GetTicksPerSecond() / (GetNumConnected() * BITS_PER_SECOND));
 }
 
 static void GBAConnectionWaiter()
@@ -106,6 +104,7 @@ static void GBAConnectionWaiter()
 	{
 		if (server.accept(*new_client) == sf::Socket::Done)
 		{
+			new_client->setBlocking(false);
 			std::lock_guard<std::mutex> lk(cs_gba);
 			waiting_socks.push(std::move(new_client));
 
@@ -198,9 +197,8 @@ void GBASockServer::Disconnect()
 
 void GBASockServer::ClockSync()
 {
-	if (!clock_sync)
-		if (!GetNextClock(clock_sync))
-			return;
+	if (!clock_sync && !GetNextClock(clock_sync))
+		return;
 
 	u32 time_slice = 0;
 
@@ -233,9 +231,8 @@ void GBASockServer::ClockSync()
 
 void GBASockServer::Send(u8* si_buffer)
 {
-	if (!client)
-		if (!GetAvailableSock(client))
-			return;
+	if (!client && !GetAvailableSock(client))
+		return;
 
 	for (int i = 0; i < 5; i++)
 		send_data[i] = si_buffer[i ^ 3];
@@ -249,7 +246,6 @@ void GBASockServer::Send(u8* si_buffer)
 		(u8)send_data[3], (u8)send_data[4]);
 #endif
 
-	client->setBlocking(false);
 	sf::Socket::Status status;
 	if (cmd == CMD_WRITE)
 		status = client->send(send_data, sizeof(send_data));
@@ -267,13 +263,12 @@ void GBASockServer::Send(u8* si_buffer)
 
 int GBASockServer::Receive(u8* si_buffer)
 {
-	if (!client)
-		if (!GetAvailableSock(client))
-			return 5;
+	if (!client && !GetAvailableSock(client))
+		return -1;
 
 	size_t num_received = 0;
 	u64 transferTime = GetTransferTime((u8)send_data[0]);
-	bool block = (CoreTiming::GetTicks() - time_cmd_sent) > transferTime;
+	bool block = (CoreTiming::GetTicks() - time_cmd_sent) >= transferTime;
 	if (cmd == CMD_STATUS && !booted)
 		block = false;
 
@@ -281,18 +276,21 @@ int GBASockServer::Receive(u8* si_buffer)
 	{
 		sf::SocketSelector Selector;
 		Selector.add(*client);
-		Selector.wait(sf::milliseconds(1000));
+		Selector.wait(sf::milliseconds(200));
 	}
 
 	sf::Socket::Status recv_stat = client->receive(recv_data, sizeof(recv_data), num_received);
 	if (recv_stat == sf::Socket::Disconnected)
 	{
 		Disconnect();
-		return 5;
+		return -1;
 	}
 
 	if (recv_stat == sf::Socket::NotReady)
+	{
 		num_received = 0;
+		WARN_LOG(SERIALINTERFACE, "Remote GBA is timing out");
+	}
 
 	if (num_received > sizeof(recv_data))
 		num_received = sizeof(recv_data);
@@ -300,22 +298,11 @@ int GBASockServer::Receive(u8* si_buffer)
 	if (num_received > 0)
 	{
 #ifdef _DEBUG
-		if ((u8)send_data[0] == 0x00 || (u8)send_data[0] == 0xff)
-		{
-			WARN_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%lu)",
-				device_number,
-				(u8)recv_data[0], (u8)recv_data[1], (u8)recv_data[2],
-				(u8)recv_data[3], (u8)recv_data[4],
-				num_received);
-		}
-		else
-		{
-			ERROR_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%lu)",
-				device_number,
-				(u8)recv_data[0], (u8)recv_data[1], (u8)recv_data[2],
-				(u8)recv_data[3], (u8)recv_data[4],
-				num_received);
-		}
+		WARN_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%lu)",
+			device_number,
+			(u8)recv_data[0], (u8)recv_data[1], (u8)recv_data[2],
+			(u8)recv_data[3], (u8)recv_data[4],
+			num_received);
 #endif
 
 		for (int i = 0; i < 5; i++)
@@ -354,18 +341,17 @@ int CSIDevice_GBA::RunBuffer(u8* _pBuffer, int _iLength)
 	if (waiting_for_response && num_data_received == 0)
 	{
 		num_data_received = Receive(_pBuffer);
+		NOTICE_LOG(SERIALINTERFACE, "Received %i bytes from GBA %i", num_data_received, GetDeviceNumber());
 	}
 
-	if ((GetTransferTime(send_data[0])) > (int)(CoreTiming::GetTicks() - timestamp_sent))
-	{
-		return 0;
-	}
-	else
+	if ((GetTransferTime(send_data[0])) < (int)(CoreTiming::GetTicks() - timestamp_sent))
 	{
 		if (num_data_received != 0)
 			waiting_for_response = false;
-		return num_data_received;
+		if (num_data_received > 0)
+			return num_data_received;
 	}
+	return 0;
 }
 
 int CSIDevice_GBA::TransferInterval()
