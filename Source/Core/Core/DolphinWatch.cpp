@@ -54,7 +54,7 @@ namespace DolphinWatch {
 	}
 
 	void checkHijacks() {
-		if (!Core::IsRunning()) {
+		if (!Core::IsRunning() || Core::GetState() != Core::CORE_RUN) {
 			return;
 		}
 		for (int i = 0; i < NUM_WIIMOTES; ++i) {
