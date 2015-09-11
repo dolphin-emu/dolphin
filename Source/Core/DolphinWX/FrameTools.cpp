@@ -631,24 +631,6 @@ void CFrame::BootGame(const std::string& filename)
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
 
-	if (g_has_hmd)
-	{
-		wxMessageDialog HealthDlg(
-			this,
-			_("HEALTH & SAFETY WARNING\n\nRead and follow all warnings and instructions\nincluded with the Headset before use. Headset\n"
-			"should be calibrated for each user. Not for use by\nchildren under 7. Stop use if you experience any\n"
-			"discomfort or health reactions.\n\n"
-			"More: www.oculus.com/warnings\n\n"
-			"Do you acknowledge?\n"),
-			_("HEALTH & SAFETY WARNING"),
-			wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
-			wxDefaultPosition);
-
-		int Ret = HealthDlg.ShowModal();
-		if (Ret != wxID_YES)
-			return;
-	}
-
 	// Start filename if non empty.
 	// Start the selected ISO, or try one of the saved paths.
 	// If all that fails, ask to add a dir and don't boot
@@ -1027,6 +1009,26 @@ void CFrame::StartGame(const std::string& filename)
 		InitVR(); //Must be done before g_has_hmd is used below.
 
 		VR_RecenterHMD();
+
+#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
+		if (g_has_rift)
+		{
+			wxMessageDialog HealthDlg(
+				this,
+				_("HEALTH & SAFETY WARNING\n\nRead and follow all warnings and instructions\nincluded with the Headset before use. Headset\n"
+				"should be calibrated for each user. Not for use by\nchildren under 13. Stop use if you experience any\n"
+				"discomfort or health reactions.\n\n"
+				"More: www.oculus.com/warnings\n\n"
+				"Do you acknowledge?\n"),
+				_("HEALTH & SAFETY WARNING"),
+				wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
+				wxDefaultPosition);
+
+			int Ret = HealthDlg.ShowModal();
+			if (Ret != wxID_YES)
+				return;
+		}
+#endif
 
 		wxSize size(SConfig::GetInstance().iRenderWindowWidth,
 				SConfig::GetInstance().iRenderWindowHeight);
