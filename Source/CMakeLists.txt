@@ -1,3 +1,8 @@
+# Enable Unicode support on Win32
+if(WIN32)
+	add_definitions(-DUNICODE -D_UNICODE)
+endif()
+
 set(CMAKE_FAKELANG_CREATE_STATIC_LIBRARY "touch <TARGET>")
 if(ENABLE_PCH)
 	# This is actually a .h file, but trick cmake into compiling it as a source file
