@@ -401,8 +401,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 		}
 		else // push new one, pop oldest
 		{
-			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not "
-				"currently valid, queueing (%zu)...",
+			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, queueing (%zu)...",
 				m_EventQueue.size());
 			m_EventQueue.push_back(_event);
 			const SQueuedEvent& event = m_EventQueue.front();

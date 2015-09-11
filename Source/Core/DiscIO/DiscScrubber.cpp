@@ -133,14 +133,14 @@ size_t GetNextBlock(File::IOFile& in, u8* buffer)
 	size_t ReadBytes = 0;
 	if (m_isScrubbing && m_FreeTable[i])
 	{
-		DEBUG_LOG(DISCIO, "Freeing 0x%016llx", CurrentOffset);
+		DEBUG_LOG(DISCIO, "Freeing 0x%016" PRIx64, CurrentOffset);
 		std::fill(buffer, buffer + m_BlockSize, 0xFF);
 		in.Seek(m_BlockSize, SEEK_CUR);
 		ReadBytes = m_BlockSize;
 	}
 	else
 	{
-		DEBUG_LOG(DISCIO, "Used    0x%016llx", CurrentOffset);
+		DEBUG_LOG(DISCIO, "Used    0x%016" PRIx64, CurrentOffset);
 		in.ReadArray(buffer, m_BlockSize, &ReadBytes);
 	}
 
@@ -164,7 +164,7 @@ void MarkAsUsed(u64 _Offset, u64 _Size)
 	u64 CurrentOffset = _Offset;
 	u64 EndOffset = CurrentOffset + _Size;
 
-	DEBUG_LOG(DISCIO, "Marking 0x%016llx - 0x%016llx as used", _Offset, EndOffset);
+	DEBUG_LOG(DISCIO, "Marking 0x%016" PRIx64 " - 0x%016" PRIx64 " as used", _Offset, EndOffset);
 
 	while ((CurrentOffset < EndOffset) && (CurrentOffset < m_FileSize))
 	{

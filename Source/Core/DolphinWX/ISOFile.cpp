@@ -209,7 +209,7 @@ std::string GameListItem::CreateCacheFilename()
 
 	// Filename.extension_HashOfFolderPath_Size.cache
 	// Append hash to prevent ISO name-clashing in different folders.
-	Filename.append(StringFromFormat("%s_%x_%llx.cache",
+	Filename.append(StringFromFormat("%s_%x_%" PRIx64 ".cache",
 		extension.c_str(), HashFletcher((const u8 *)LegalPathname.c_str(), LegalPathname.size()),
 		File::GetSize(m_FileName)));
 

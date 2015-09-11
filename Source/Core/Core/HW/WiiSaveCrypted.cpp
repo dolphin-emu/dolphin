@@ -276,7 +276,7 @@ void CWiiSaveCrypted::ReadBKHDR()
 	}
 	if (m_title_id != Common::swap64(m_bk_hdr.SaveGameTitle))
 	{
-		WARN_LOG(CONSOLE, "Encrypted title (%llx) does not match unencrypted title (%llx)",
+		WARN_LOG(CONSOLE, "Encrypted title (%" PRIx64 ") does not match unencrypted title (%" PRIx64 ")",
 			m_title_id, Common::swap64(m_bk_hdr.SaveGameTitle));
 	}
 }
