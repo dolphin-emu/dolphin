@@ -137,15 +137,13 @@ bool BootCore(const std::string& _rFilename)
 		IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
 		core_section->Get("CPUThread",        &StartUp.bCPUThread, StartUp.bCPUThread);
-		if (!g_has_hmd)
-			core_section->Get("SkipIdle",         &StartUp.bSkipIdle, StartUp.bSkipIdle);
-		else
+		core_section->Get("SkipIdle",         &StartUp.bSkipIdle, StartUp.bSkipIdle);
+		if (g_has_hmd)
 			core_section_vr->Get("SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
-		// Needed for Opcode Replay.  Some games need it true, some need it false.
-		if (!g_has_hmd)
-			core_section->Get("SyncOnSkipIdle",   &StartUp.bSyncGPUOnSkipIdleHack, StartUp.bSyncGPUOnSkipIdleHack);
-		else
-			core_section_vr->Get("SyncOnSkipIdle",   &StartUp.bSyncGPUOnSkipIdleHack, StartUp.bSyncGPUOnSkipIdleHack);
+		// Needed for Virtual Reality Opcode Replay.  Some games need it true, some need it false.
+		core_section->Get("SyncOnSkipIdle",   &StartUp.bSyncGPUOnSkipIdleHack, StartUp.bSyncGPUOnSkipIdleHack);
+		if (g_has_hmd)
+			core_section_vr->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack, StartUp.bSyncGPUOnSkipIdleHack);
 		core_section->Get("SyncOnSkipIdle",   &StartUp.bSyncGPUOnSkipIdleHack, StartUp.bSyncGPUOnSkipIdleHack);
 		core_section->Get("FPRF",             &StartUp.bFPRF, StartUp.bFPRF);
 		core_section->Get("AccurateNaNs",     &StartUp.bAccurateNaNs, StartUp.bAccurateNaNs);
