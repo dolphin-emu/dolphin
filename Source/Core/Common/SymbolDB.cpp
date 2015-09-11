@@ -20,8 +20,7 @@ void SymbolDB::List()
 		          func.second.size, func.second.hash,
 		          func.second.numCalls);
 	}
-	INFO_LOG(OSHLE, "%lu functions known in this program above.",
-	         (unsigned long)functions.size());
+	INFO_LOG(OSHLE, "%zu functions known in this program above.", functions.size());
 }
 
 void SymbolDB::Clear(const char *prefix)

@@ -112,7 +112,7 @@ CISOProperties::CISOProperties(const std::string& fileName, wxWindow* parent, wx
 		u8 game_id_bytes[8];
 		if (OpenISO->GetTitleID(game_id_bytes))
 		{
-			game_id = StringFromFormat("%016llx", Common::swap64(game_id_bytes));
+			game_id = StringFromFormat("%016" PRIx64, Common::swap64(game_id_bytes));
 		}
 	}
 

@@ -62,7 +62,7 @@ static void Trace(UGeckoInstruction& instCode)
 	std::string fregs = "";
 	for (int i = 0; i < 32; i++)
 	{
-		fregs += StringFromFormat("f%02d: %08llx %08llx ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
+		fregs += StringFromFormat("f%02d: %08" PRIx64 " %08" PRIx64 " ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
 	}
 
 	std::string ppc_inst = GekkoDisassembler::Disassemble(instCode.hex, PC);
