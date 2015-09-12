@@ -55,6 +55,7 @@ void Resources::Init()
 
 	m_pixmaps.resize(NUM_ICONS);
 	m_pixmaps[DOLPHIN_LOGO].load(GIFN("Dolphin"));
+	m_pixmaps[DOLPHIN_LOGO_LARGE].load(GIFN("dolphin_logo"));
 	UpdatePixmaps();
 }
 
