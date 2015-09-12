@@ -18,6 +18,11 @@ constexpr T Clamp(const T val, const T& min, const T& max)
 	return std::max(min, std::min(max, val));
 }
 
+constexpr bool IsPow2(u32 imm)
+{
+	return (imm & (imm - 1)) == 0;
+}
+
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
 
 static const u64 DOUBLE_SIGN = 0x8000000000000000ULL,
@@ -156,8 +161,6 @@ float MathFloatVectorSum(const std::vector<float>&);
 
 #define ROUND_UP(x, a)   (((x) + (a) - 1) & ~((a) - 1))
 #define ROUND_DOWN(x, a) ((x) & ~((a) - 1))
-
-inline bool IsPow2(u32 imm) {return (imm & (imm - 1)) == 0;}
 
 // Rounds down. 0 -> undefined
 inline int IntLog2(u64 val)
