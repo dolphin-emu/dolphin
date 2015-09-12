@@ -16,7 +16,7 @@ namespace Ui
 class DGameTree;
 }
 
-class DGameTree : public QTreeWidget, public AbstractGameList
+class DGameTree final : public QTreeWidget, public AbstractGameList
 {
 	Q_OBJECT
 

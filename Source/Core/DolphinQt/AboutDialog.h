@@ -13,7 +13,7 @@ namespace Ui
 class DAboutDialog;
 }
 
-class DAboutDialog : public QDialog
+class DAboutDialog final : public QDialog
 {
 	Q_OBJECT
 

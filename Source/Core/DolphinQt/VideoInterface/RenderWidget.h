@@ -6,7 +6,7 @@
 
 #include <QWidget>
 
-class DRenderWidget : public QWidget
+class DRenderWidget final : public QWidget
 {
 	Q_OBJECT
 

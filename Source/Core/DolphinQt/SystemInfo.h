@@ -12,7 +12,7 @@ namespace Ui
 class DSystemInfo;
 }
 
-class DSystemInfo : public QDialog
+class DSystemInfo final : public QDialog
 {
 	Q_OBJECT
 
