@@ -70,10 +70,8 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(m_ui->actionIconView, &QAction::triggered, this, &DMainWindow::OnGameListStyleChanged);
 
 	connect(m_ui->actionPlay, &QAction::triggered, this, &DMainWindow::OnPlay);
-	connect(m_ui->actionPlay_mnu, &QAction::triggered, this, &DMainWindow::OnPlay);
 	connect(m_game_tracker, &DGameTracker::StartGame, this, &DMainWindow::OnPlay);
 	connect(m_ui->actionStop, &QAction::triggered, this, &DMainWindow::OnStop);
-	connect(m_ui->actionStop_mnu, &QAction::triggered, this, &DMainWindow::OnStop);
 	connect(m_ui->actionReset, &QAction::triggered, this, &DMainWindow::OnReset);
 
 	connect(m_ui->actionWebsite, &QAction::triggered, this, [&]() {
@@ -339,13 +337,11 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 	{
 		m_ui->actionPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PAUSE));
 		m_ui->actionPlay->setText(tr("Pause"));
-		m_ui->actionPlay_mnu->setText(tr("Pause"));
 	}
 	else if (is_paused || is_not_initialized)
 	{
 		m_ui->actionPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLAY));
 		m_ui->actionPlay->setText(tr("Play"));
-		m_ui->actionPlay_mnu->setText(tr("Play"));
 	}
 
 	m_ui->actionStop->setEnabled(!is_not_initialized);

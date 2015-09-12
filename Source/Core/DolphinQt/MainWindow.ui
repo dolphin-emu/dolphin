@@ -19,9 +19,6 @@
     <height>32</height>
    </size>
   </property>
-  <property name="toolButtonStyle">
-   <enum>Qt::ToolButtonTextUnderIcon</enum>
-  </property>
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>true</bool>
   </property>
@@ -32,8 +29,11 @@
      <x>0</x>
      <y>0</y>
      <width>990</width>
-     <height>19</height>
+     <height>21</height>
     </rect>
+   </property>
+   <property name="nativeMenuBar">
+    <bool>true</bool>
    </property>
    <widget class="QMenu" name="mnuFile">
     <property name="title">
@@ -49,8 +49,8 @@
     <property name="title">
      <string>E&amp;mulation</string>
     </property>
-    <addaction name="actionPlay_mnu"/>
-    <addaction name="actionStop_mnu"/>
+    <addaction name="actionPlay"/>
+    <addaction name="actionStop"/>
     <addaction name="actionReset"/>
    </widget>
    <widget class="QMenu" name="mnuOptions">
@@ -108,6 +108,9 @@
    <property name="windowTitle">
     <string>Toolbar</string>
    </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextUnderIcon</enum>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -160,10 +163,22 @@
    <property name="text">
     <string>Play</string>
    </property>
+   <property name="shortcut">
+    <string>F10</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionStop">
    <property name="text">
     <string>Stop</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionAboutQt">
@@ -214,22 +229,6 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
-   </property>
-  </action>
-  <action name="actionPlay_mnu">
-   <property name="text">
-    <string>&amp;Play</string>
-   </property>
-   <property name="shortcut">
-    <string>F10</string>
-   </property>
-  </action>
-  <action name="actionStop_mnu">
-   <property name="text">
-    <string>&amp;Stop</string>
-   </property>
-   <property name="shortcut">
-    <string>Esc</string>
    </property>
   </action>
   <action name="actionReset">
