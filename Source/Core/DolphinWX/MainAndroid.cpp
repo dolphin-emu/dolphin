@@ -578,7 +578,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfile
 {
 	std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
 	File::CreateFullPath(filename);
-	JitInterface::WriteProfileResults(filename);
+	ProfileStats prof_stats;
+	JitInterface::GetProfileResults(&prof_stats);
+	JitInterface::WriteProfileResults(prof_stats, filename);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv *env, jobject obj)

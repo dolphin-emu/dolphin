@@ -67,6 +67,4 @@ struct ProfileStats
 namespace Profiler
 {
 extern bool g_ProfileBlocks;
-
-void WriteProfileResults(const std::string& filename);
 }

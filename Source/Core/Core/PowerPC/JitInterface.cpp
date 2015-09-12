@@ -107,11 +107,8 @@ namespace JitInterface
 		return jit;
 	}
 
-	void WriteProfileResults(const std::string& filename)
+	void WriteProfileResults(const ProfileStats& prof_stats, const std::string& filename)
 	{
-		ProfileStats prof_stats;
-		GetProfileResults(&prof_stats);
-
 		File::IOFile f(filename, "w");
 		if (!f)
 		{
