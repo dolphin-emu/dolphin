@@ -23,8 +23,8 @@
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
-wxDEFINE_EVENT(WIIMOTE_UPDATE_CALLBACK, wxCommandEvent);
-wxDEFINE_EVENT(GCPAD_UPDATE_CALLBACK, wxCommandEvent);
+wxDEFINE_EVENT(INVALIDATE_BUTTON_EVENT, wxCommandEvent);
+wxDEFINE_EVENT(INVALIDATE_CONTROL_EVENT, wxCommandEvent);
 
 struct TASWiimoteReport
 {
@@ -206,8 +206,8 @@ void TASInputDlg::CreateWiiLayout(int num)
 void TASInputDlg::FinishLayout()
 {
 	Bind(wxEVT_CLOSE_WINDOW, &TASInputDlg::OnCloseWindow, this);
-	Bind(GCPAD_UPDATE_CALLBACK, &TASInputDlg::GetValuesCallback, this);
-	Bind(WIIMOTE_UPDATE_CALLBACK, &TASInputDlg::GetValuesCallback, this);
+	Bind(INVALIDATE_BUTTON_EVENT, &TASInputDlg::UpdateFromInvalidatedButton, this);
+	Bind(INVALIDATE_CONTROL_EVENT, &TASInputDlg::UpdateFromInvalidatedControl, this);
 	m_has_layout = true;
 }
 
@@ -455,7 +455,10 @@ void TASInputDlg::ResetValues()
 	for (Button* const button : m_buttons)
 	{
 		if (button != nullptr)
+		{
+			button->value = false;
 			button->checkbox->SetValue(false);
+		}
 	}
 
 	for (Control* const control : m_controls)
@@ -469,10 +472,13 @@ void TASInputDlg::ResetValues()
 	}
 	if (m_ext == 2)
 	{
-		for (Button const button : m_cc_buttons)
+		for (Button& button : m_cc_buttons)
+		{
+			button.value = false;
 			button.checkbox->SetValue(false);
+		}
 
-		for (Control* const control : m_cc_controls)
+		for (Control* control : m_cc_controls)
 		{
 			control->value = control->default_value;
 			control->slider->SetValue(control->default_value);
@@ -481,24 +487,24 @@ void TASInputDlg::ResetValues()
 	}
 }
 
-void TASInputDlg::SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, wxTextCtrl* Textbox, int CurrentValue, int center)
+void TASInputDlg::SetStickValue(Control* control, int CurrentValue, int center)
 {
 	if (CurrentValue != center)
 	{
-		*AmountPressed = CurrentValue;
-		*ActivatedByKeyboard = true;
+		control->value = CurrentValue;
+		control->set_by_keyboard = true;
 	}
-	else if (*ActivatedByKeyboard)
+	else if (control->set_by_keyboard)
 	{
-		*AmountPressed = center;
-		*ActivatedByKeyboard = false;
+		control->value = center;
+		control->set_by_keyboard = false;
 	}
 	else
 	{
 		return;
 	}
 
-	Textbox->SetValue(std::to_string(*AmountPressed));
+	InvalidateControl(control);
 }
 
 void TASInputDlg::SetSliderValue(Control* control, int CurrentValue)
@@ -507,14 +513,18 @@ void TASInputDlg::SetSliderValue(Control* control, int CurrentValue)
 	{
 		control->value = CurrentValue;
 		control->set_by_keyboard = true;
-		control->text->SetValue(std::to_string(CurrentValue));
 	}
 	else if (control->set_by_keyboard)
 	{
 		control->value = control->default_value;
 		control->set_by_keyboard = false;
-		control->text->SetValue(std::to_string(control->default_value));
 	}
+	else
+	{
+		return;
+	}
+
+	InvalidateControl(control);
 }
 
 void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
@@ -522,13 +532,18 @@ void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
 	if (CurrentState)
 	{
 		button->set_by_keyboard = true;
-		button->checkbox->SetValue(CurrentState);
 	}
 	else if (button->set_by_keyboard)
 	{
 		button->set_by_keyboard = false;
-		button->checkbox->SetValue(CurrentState);
 	}
+	else
+	{
+		return;
+	}
+
+	button->value = CurrentState;
+	InvalidateButton(button);
 }
 
 void TASInputDlg::SetWiiButtons(u16* butt)
@@ -543,11 +558,11 @@ void TASInputDlg::SetWiiButtons(u16* butt)
 
 void TASInputDlg::GetKeyBoardInput(GCPadStatus* PadStatus)
 {
-	SetStickValue(&m_main_stick.x_cont.set_by_keyboard, &m_main_stick.x_cont.value, m_main_stick.x_cont.text, PadStatus->stickX);
-	SetStickValue(&m_main_stick.y_cont.set_by_keyboard, &m_main_stick.y_cont.value, m_main_stick.y_cont.text, PadStatus->stickY);
+	SetStickValue(&m_main_stick.x_cont, PadStatus->stickX);
+	SetStickValue(&m_main_stick.y_cont, PadStatus->stickY);
 
-	SetStickValue(&m_c_stick.x_cont.set_by_keyboard, &m_c_stick.x_cont.value, m_c_stick.x_cont.text, PadStatus->substickX);
-	SetStickValue(&m_c_stick.y_cont.set_by_keyboard, &m_c_stick.y_cont.value, m_c_stick.y_cont.text, PadStatus->substickY);
+	SetStickValue(&m_c_stick.x_cont, PadStatus->substickX);
+	SetStickValue(&m_c_stick.y_cont, PadStatus->substickY);
 	SetSliderValue(&m_l_cont, PadStatus->triggerLeft);
 	SetSliderValue(&m_r_cont, PadStatus->triggerRight);
 
@@ -614,9 +629,15 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
 		}
 
 		if (m_cc_l.value == 31)
-			m_cc_buttons[10].checkbox->SetValue(true);
+		{
+			m_cc_buttons[10].value = true;
+			InvalidateButton(&m_cc_buttons[10]);
+		}
 		if (m_cc_r.value == 31)
-			m_cc_buttons[11].checkbox->SetValue(true);
+		{
+			m_cc_buttons[11].value = true;
+			InvalidateButton(&m_cc_buttons[11]);
+		}
 
 		SetSliderValue(&m_cc_l_stick.x_cont, cc.regular_data.lx);
 		SetSliderValue(&m_cc_l_stick.y_cont, cc.regular_data.ly);
@@ -630,15 +651,6 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 {
 	if (!IsShown() || !m_has_layout)
 		return;
-
-	if (!wxIsMainThread())
-	{
-		TASWiimoteReport* report = new TASWiimoteReport{ data, rptf, ext, key };
-		wxCommandEvent* evt = new wxCommandEvent(WIIMOTE_UPDATE_CALLBACK);
-		evt->SetClientData(report);
-		wxQueueEvent(this, evt);
-		return;
-	}
 
 	GetKeyBoardInput(data, rptf, ext, key);
 
@@ -777,36 +789,10 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 	}
 }
 
-void TASInputDlg::GetValuesCallback(wxCommandEvent& event)
-{
-	if (event.GetEventType() == WIIMOTE_UPDATE_CALLBACK)
-	{
-		TASWiimoteReport* report = static_cast<TASWiimoteReport*>(event.GetClientData());
-		GetValues(report->data, report->rptf, report->ext, report->key);
-		delete report;
-	}
-	else if (event.GetEventType() == GCPAD_UPDATE_CALLBACK)
-	{
-		GCPadStatus* pad = static_cast<GCPadStatus*>(event.GetClientData());
-		GetValues(pad);
-		delete pad;
-	}
-}
-
 void TASInputDlg::GetValues(GCPadStatus* PadStatus)
 {
 	if (!IsShown() || !m_has_layout)
 		return;
-
-	if (!wxIsMainThread())
-	{
-		GCPadStatus* status = new GCPadStatus(*PadStatus);
-		wxCommandEvent* evt = new wxCommandEvent(GCPAD_UPDATE_CALLBACK);
-		evt->SetClientData(status);
-		wxQueueEvent(this, evt);
-		return;
-	}
-
 
 	//TODO:: Make this instant not when polled.
 	GetKeyBoardInput(PadStatus);
@@ -875,6 +861,7 @@ void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 		{
 			int v = (value > control->range) ? control->range : value;
 			control->slider->SetValue(v);
+			control->text->ChangeValue(std::to_string(v));
 			control->value = v;
 		}
 	}
@@ -885,6 +872,7 @@ void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 		{
 			int v = (value > control->range) ? control->range : value;
 			control->slider->SetValue(v);
+			control->text->ChangeValue(std::to_string(v));
 			control->value = v;
 		}
 	}
@@ -1072,17 +1060,63 @@ void TASInputDlg::ButtonTurbo()
 		for (Button* const button : m_buttons)
 		{
 			if (button != nullptr && button->turbo_on)
-				button->checkbox->SetValue(!button->checkbox->GetValue());
+			{
+				button->value = !button->checkbox->GetValue();
+				InvalidateButton(button);
+			}
 		}
 		if (m_ext == 2)
 		{
-			for (Button const button : m_cc_buttons)
+			for (Button& button : m_cc_buttons)
 			{
 				if (button.turbo_on)
-					button.checkbox->SetValue(!button.checkbox->GetValue());
+				{
+					button.value = !button.checkbox->GetValue();
+					InvalidateButton(&button);
+				}
 			}
 		}
 	}
+}
+
+void TASInputDlg::InvalidateButton(Button* button)
+{
+	if (!wxIsMainThread())
+	{
+		wxCommandEvent* evt = new wxCommandEvent(INVALIDATE_BUTTON_EVENT, button->id);
+		evt->SetClientData(button);
+		wxQueueEvent(this, evt);
+		return;
+	}
+
+	button->checkbox->SetValue(button->value);
+}
+
+void TASInputDlg::InvalidateControl(Control* control)
+{
+	if (!wxIsMainThread())
+	{
+		wxCommandEvent* evt = new wxCommandEvent(INVALIDATE_CONTROL_EVENT, control->text_id);
+		evt->SetClientData(control);
+		wxQueueEvent(this, evt);
+		return;
+	}
+
+	control->text->SetValue(std::to_string(control->value));
+}
+
+void TASInputDlg::UpdateFromInvalidatedButton(wxCommandEvent& event)
+{
+	Button* button = static_cast<Button*>(event.GetClientData());
+	_assert_msg_(PAD, button->id == button->checkbox->GetId(), "Button ids do not match: %i != %i", button->id, button->checkbox->GetId());
+	button->checkbox->SetValue(button->value);
+}
+
+void TASInputDlg::UpdateFromInvalidatedControl(wxCommandEvent& event)
+{
+	Control* control = static_cast<Control*>(event.GetClientData());
+	_assert_msg_(PAD, control->text_id == control->text->GetId(), "Control ids do not match: %i != %i", control->text_id, control->text->GetId());
+	control->text->SetValue(std::to_string(control->value));
 }
 
 wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)

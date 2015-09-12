@@ -76,6 +76,7 @@ class TASInputDlg : public wxDialog
 		struct Button
 		{
 			wxCheckBox* checkbox;
+			bool value = false;
 			bool set_by_keyboard = false;
 			bool turbo_on = false;
 			int id;
@@ -90,12 +91,15 @@ class TASInputDlg : public wxDialog
 
 		wxBoxSizer* CreateCCLayout();
 		void FinishLayout();
-		void GetValuesCallback(wxCommandEvent& event);
-		void SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, wxTextCtrl* Textbox, int CurrentValue, int center = 128);
+		void SetStickValue(Control* stick, int CurrentValue, int center = 128);
 		void SetButtonValue(Button* button, bool CurrentState);
 		void SetSliderValue(Control* control, int CurrentValue);
 		void CreateBaseLayout();
 		void UpdateStickBitmap(Stick stick);
+		void InvalidateButton(Button* button);
+		void InvalidateControl(Control* button);
+		void UpdateFromInvalidatedButton(wxCommandEvent& event);
+		void UpdateFromInvalidatedControl(wxCommandEvent& event);
 		Stick* FindStickByID(int id);
 		Stick CreateStick(int id_stick, int xRange, int yRange, u32 defaultX, u32 defaultY, bool reverseX, bool reverseY);
 		wxStaticBoxSizer* CreateStickLayout(Stick* tempStick, const wxString& title);
