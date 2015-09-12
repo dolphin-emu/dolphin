@@ -38,8 +38,6 @@ public:
 	void OnContinue() override;
 
 private:
-	wxPanel*    m_MainPanel;
-
 	wxButton*   m_pButtonPause;
 	wxButton*   m_pButtonPauseAtNext;
 	wxButton*   m_pButtonPauseAtNextFrame;
