@@ -28,6 +28,7 @@
 
 #include "DiscIO/VolumeCreator.h"
 
+#include "UICommon/DebugInterface.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
@@ -42,6 +43,7 @@ JavaVM* g_java_vm;
 jclass g_jni_class;
 jmethodID g_jni_method_alert;
 jmethodID g_jni_method_end;
+std::unique_ptr<DebugAPI::DebugHandlerServerBase> m_debug_server;
 
 #define DOLPHIN_TAG "DolphinEmuNative"
 
@@ -559,6 +561,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
 	std::string directory = GetJString(env, jDirectory);
 	g_set_userpath = directory;
 	UICommon::SetUserDirectory(directory);
+	UICommon::Init();
+	m_debug_server = DebugAPI::InitServer();
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv *env, jobject obj)
@@ -620,6 +624,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 
 	UICommon::SetUserDirectory(g_set_userpath);
 	UICommon::Init();
+	if (!m_debug_server)
+		m_debug_server = DebugAPI::InitServer();
 
 	// No use running the loop when booting fails
 	if ( BootManager::BootCore( g_filename.c_str() ) )

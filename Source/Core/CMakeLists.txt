@@ -7,6 +7,7 @@ add_subdirectory(InputCommon)
 add_subdirectory(UICommon)
 add_subdirectory(VideoCommon)
 add_subdirectory(VideoBackends)
+add_subdirectory(DebuggerTest)
 
 if(ENABLE_QT)
 	add_subdirectory(DolphinQt)
