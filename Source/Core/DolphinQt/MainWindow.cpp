@@ -76,17 +76,17 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(m_game_tracker, &DGameTracker::StartGame, this, &DMainWindow::OnPlay);
 	connect(m_ui->actionStop, &QAction::triggered, this, &DMainWindow::OnStop);
 	connect(m_ui->actionReset, &QAction::triggered, this, &DMainWindow::OnReset);
-	connect(m_ui->actionScreenshot, &QAction::triggered, this, [&]() {
+	connect(m_ui->actionScreenshot, &QAction::triggered, this, []() {
 		Core::SaveScreenShot();
 	});
 
-	connect(m_ui->actionWebsite, &QAction::triggered, this, [&]() {
+	connect(m_ui->actionWebsite, &QAction::triggered, this, []() {
 		QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/")));
 	});
-	connect(m_ui->actionOnlineDocs, &QAction::triggered, this, [&]() {
+	connect(m_ui->actionOnlineDocs, &QAction::triggered, this, []() {
 		QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/docs/guides/")));
 	});
-	connect(m_ui->actionGitHub, &QAction::triggered, this, [&]() {
+	connect(m_ui->actionGitHub, &QAction::triggered, this, []() {
 		QDesktopServices::openUrl(QUrl(SL("https://github.com/dolphin-emu/dolphin")));
 	});
 	connect(m_ui->actionSystemInfo, &QAction::triggered, this, [&]() {
