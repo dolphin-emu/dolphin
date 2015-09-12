@@ -179,7 +179,6 @@ void GFXDebuggerPanel::CreateGUIControls()
 	m_pDumpList->Append(_("Statistics"));
 	m_pDumpList->SetSelection(0);
 
-	// Layout everything on m_MainPanel
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
 
 	wxStaticBoxSizer* const pFlowCtrlBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Flow Control"));
