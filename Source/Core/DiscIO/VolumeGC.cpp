@@ -146,7 +146,7 @@ std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
 	return image_buffer;
 }
 
-u32 CVolumeGC::GetFSTSize() const
+u64 CVolumeGC::GetFSTSize() const
 {
 	if (m_pReader == nullptr)
 		return 0;

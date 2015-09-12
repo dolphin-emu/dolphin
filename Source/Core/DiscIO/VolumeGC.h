@@ -33,7 +33,7 @@ public:
 	std::map<ELanguage, std::string> GetDescriptions() const override;
 	std::string GetCompany() const override;
 	std::vector<u32> GetBanner(int* width, int* height) const override;
-	u32 GetFSTSize() const override;
+	u64 GetFSTSize() const override;
 	std::string GetApploaderDate() const override;
 	u8 GetDiscNumber() const override;
 

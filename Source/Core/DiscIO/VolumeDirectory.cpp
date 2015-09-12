@@ -210,7 +210,7 @@ void CVolumeDirectory::SetName(const std::string& name)
 	m_diskHeader[length + 0x20] = 0;
 }
 
-u32 CVolumeDirectory::GetFSTSize() const
+u64 CVolumeDirectory::GetFSTSize() const
 {
 	return 0;
 }
