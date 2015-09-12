@@ -205,12 +205,12 @@ void CommonAsmRoutines::GenMfcr()
 }
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
-static const float GC_ALIGNED16(m_65535[4]) = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
-static const float GC_ALIGNED16(m_32767) = 32767.0f;
-static const float GC_ALIGNED16(m_m32768) = -32768.0f;
-static const float GC_ALIGNED16(m_255) = 255.0f;
-static const float GC_ALIGNED16(m_127) = 127.0f;
-static const float GC_ALIGNED16(m_m128) = -128.0f;
+alignas(16) static const float m_65535[4] = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
+alignas(16) static const float m_32767 = 32767.0f;
+alignas(16) static const float m_m32768 = -32768.0f;
+alignas(16) static const float m_255 = 255.0f;
+alignas(16) static const float m_127 = 127.0f;
+alignas(16) static const float m_m128 = -128.0f;
 
 #define QUANTIZE_OVERFLOW_SAFE
 

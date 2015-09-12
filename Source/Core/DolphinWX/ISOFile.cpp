@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
@@ -197,7 +198,22 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_Revision);
 }
 
-std::string GameListItem::CreateCacheFilename()
+bool GameListItem::IsElfOrDol() const
+{
+	const std::string name = GetName();
+	const size_t pos = name.rfind('.');
+
+	if (pos != std::string::npos)
+	{
+		std::string ext = name.substr(pos);
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		return ext == ".elf" || ext == ".dol";
+	}
+	return false;
+}
+
+std::string GameListItem::CreateCacheFilename() const
 {
 	std::string Filename, LegalPathname, extension;
 	SplitPath(m_FileName, &LegalPathname, &Filename, &extension);
@@ -206,7 +222,7 @@ std::string GameListItem::CreateCacheFilename()
 
 	// Filename.extension_HashOfFolderPath_Size.cache
 	// Append hash to prevent ISO name-clashing in different folders.
-	Filename.append(StringFromFormat("%s_%x_%llx.cache",
+	Filename.append(StringFromFormat("%s_%x_%" PRIx64 ".cache",
 		extension.c_str(), HashFletcher((const u8 *)LegalPathname.c_str(), LegalPathname.size()),
 		File::GetSize(m_FileName)));
 
@@ -324,20 +340,4 @@ const std::string GameListItem::GetWiiFSPath() const
 	delete iso;
 
 	return ret;
-}
-
-bool GameListItem::IsElfOrDol() const
-{
-	const std::string name = GetName();
-	const size_t pos = name.rfind('.');
-
-	if (pos != std::string::npos)
-	{
-		std::string ext = name.substr(pos);
-		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-
-		return ext == ".elf" ||
-		       ext == ".dol";
-	}
-	return false;
 }

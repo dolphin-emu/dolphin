@@ -46,7 +46,6 @@ public final class UserPreferences
 			editor.putString("cpuCorePref",   getConfig("Dolphin.ini", "Core", "CPUCore", "3"));
 
 		editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "True").equals("True"));
-		editor.putBoolean("fastmemPref", getConfig("Dolphin.ini", "Core", "Fastmem", "True").equals("True"));
 
 		editor.putString("gpuPref",               getConfig("Dolphin.ini", "Core", "GFXBackend", "OGL"));
 		editor.putBoolean("showFPS",              getConfig("gfx_opengl.ini", "Settings", "ShowFPS", "False").equals("True"));
@@ -138,9 +137,6 @@ public final class UserPreferences
 		// Current CPU core being used. Falls back to interpreter upon error.
 		String currentEmuCore   = prefs.getString("cpuCorePref", "0");
 
-		// Fastmem JIT core usage
-		boolean isUsingFastmem = prefs.getBoolean("fastmemPref", true);
-
 		// Current video backend being used. Falls back to software rendering upon error.
 		String currentVideoBackend = prefs.getString("gpuPref", "Software Rendering");
 
@@ -217,7 +213,6 @@ public final class UserPreferences
 		// CPU related Settings
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUCore", currentEmuCore);
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUThread", isUsingDualCore ? "True" : "False");
-		NativeLibrary.SetConfig("Dolphin.ini", "Core", "Fastmem", isUsingFastmem ? "True" : "False");
 
 		// General Video Settings
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "GFXBackend", currentVideoBackend);

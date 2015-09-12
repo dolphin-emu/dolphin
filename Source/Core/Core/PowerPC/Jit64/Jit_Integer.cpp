@@ -924,7 +924,7 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
 	if (!overflow)
 	{
 		// power of 2; just a shift
-		if (IsPow2(imm))
+		if (MathUtil::IsPow2(imm))
 		{
 			u32 shift = IntLog2(imm);
 			// use LEA if it saves an op

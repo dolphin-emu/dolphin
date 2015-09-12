@@ -44,7 +44,7 @@ public:
 	std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
 	void SetName(const std::string&);
 
-	u32 GetFSTSize() const override;
+	u64 GetFSTSize() const override;
 
 	std::string GetApploaderDate() const override;
 	EPlatform GetVolumeType() const override;

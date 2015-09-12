@@ -133,7 +133,7 @@ EcWii::EcWii()
 			}
 			else
 			{
-				ERROR_LOG(WII_IPC_ES, "Failed to read keys.bin, check it is the correct size of %08X bytes.", (unsigned int) sizeof(BootMiiKeysBin));
+				ERROR_LOG(WII_IPC_ES, "Failed to read keys.bin, check it is the correct size of %08zX bytes.", sizeof(BootMiiKeysBin));
 			}
 		}
 		else

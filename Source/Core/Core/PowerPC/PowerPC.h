@@ -57,7 +57,7 @@ struct tlb_entry
 };
 
 // This contains the entire state of the emulated PowerPC "Gekko" CPU.
-struct GC_ALIGNED64(PowerPCState)
+struct PowerPCState
 {
 	u32 gpr[32];    // General purpose registers. r1 = stack pointer.
 
@@ -108,7 +108,7 @@ struct GC_ALIGNED64(PowerPCState)
 	// The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
 	// but ps calculations are only done in 32-bit precision, and PS1 is only 32 bits.
 	// Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
-	GC_ALIGNED16(u64 ps[32][2]);
+	alignas(16) u64 ps[32][2];
 
 	u32 sr[16];  // Segment registers.
 

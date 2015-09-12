@@ -790,7 +790,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
 
 				// Use the TitleIDhex for name and/or unique ID if launching from nand folder
 				// or if it is not ascii characters (specifically sysmenu could potentially apply to other things)
-				std::string titleidstr = StringFromFormat("%016llx", ContentLoader.GetTitleID());
+				std::string titleidstr = StringFromFormat("%016" PRIx64, ContentLoader.GetTitleID());
 
 				if (m_strName.empty())
 				{

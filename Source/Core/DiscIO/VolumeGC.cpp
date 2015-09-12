@@ -144,7 +144,7 @@ std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
 	return image_buffer;
 }
 
-u32 CVolumeGC::GetFSTSize() const
+u64 CVolumeGC::GetFSTSize() const
 {
 	if (m_pReader == nullptr)
 		return 0;
@@ -229,13 +229,13 @@ bool CVolumeGC::LoadBannerFile() const
 		else
 		{
 			m_banner_file_type = BANNER_INVALID;
-			WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0lx", bannerSignature, (unsigned long)file_size);
+			WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0zx", bannerSignature, file_size);
 		}
 	}
 	else
 	{
 		m_banner_file_type = BANNER_INVALID;
-		WARN_LOG(DISCIO, "Invalid opening.bnr. Size: %0lx", (unsigned long)file_size);
+		WARN_LOG(DISCIO, "Invalid opening.bnr. Size: %0zx", file_size);
 	}
 
 	return m_banner_file_type != BANNER_INVALID;

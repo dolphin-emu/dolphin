@@ -1513,7 +1513,7 @@ void IRBuilder::WriteToFile(u64 codeHash)
 	}
 
 	FILE* const file = writer->file.GetHandle();
-	fprintf(file, "\ncode hash:%016llx\n", codeHash);
+	fprintf(file, "\ncode hash:%016" PRIx64 "\n", codeHash);
 
 	const InstLoc lastCurReadPtr = curReadPtr;
 	StartForwardPass();

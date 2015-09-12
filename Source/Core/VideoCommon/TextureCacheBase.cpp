@@ -26,9 +26,9 @@ static const int TEXTURE_KILL_THRESHOLD = 60;
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static const int FRAMECOUNT_INVALID = 0;
 
-TextureCache *g_texture_cache;
+TextureCache* g_texture_cache;
 
-GC_ALIGNED16(u8 *TextureCache::temp) = nullptr;
+alignas(16) u8* TextureCache::temp = nullptr;
 size_t TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures_by_address;
@@ -275,7 +275,7 @@ TextureCache::TCacheEntryBase* TextureCache::DoPartialTextureUpdates(TexCache::i
 					TCacheEntryBase* newentry = AllocateTexture(newconfig);
 					newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
 					newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
-					newentry->SetHashes(entry_to_update->hash);
+					newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
 					newentry->frameCount = frameCount;
 					newentry->is_efb_copy = false;
 					srcrect.right = entry_to_update->config.width;
@@ -380,7 +380,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	const unsigned int nativeH = height;
 
 	// Hash assigned to texcache entry (also used to generate filenames used for texture dumping and custom texture lookup)
-	u64 tex_hash = TEXHASH_INVALID;
+	u64 base_hash = TEXHASH_INVALID;
 	u64 full_hash = TEXHASH_INVALID;
 
 	u32 full_format = texformat;
@@ -403,16 +403,16 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		src_data = Memory::GetPointer(address);
 
 	// TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data from the low tmem bank than it should)
-	tex_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	base_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	u32 palette_size = 0;
 	if (isPaletteTexture)
 	{
 		palette_size = TexDecoder_GetPaletteSize(texformat);
-		full_hash = tex_hash ^ GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		full_hash = base_hash ^ GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	}
 	else
 	{
-		full_hash = tex_hash;
+		full_hash = base_hash;
 	}
 
 	// GPUs don't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
@@ -458,7 +458,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		{
 			// EFB copies have slightly different rules as EFB copy formats have different
 			// meanings from texture formats.
-			if ((tex_hash == entry->hash && (!isPaletteTexture || g_Config.backend_info.bSupportsPaletteConversion)) ||
+			if ((base_hash == entry->hash && (!isPaletteTexture || g_Config.backend_info.bSupportsPaletteConversion)) ||
 				IsPlayingBackFifologWithBrokenEFBCopies)
 			{
 				// TODO: We should check format/width/height/levels for EFB copies. Checking
@@ -519,7 +519,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 
 		decoded_entry->SetGeneralParameters(address, texture_size, full_format);
 		decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
-		decoded_entry->SetHashes(full_hash);
+		decoded_entry->SetHashes(base_hash, full_hash);
 		decoded_entry->frameCount = FRAMECOUNT_INVALID;
 		decoded_entry->is_efb_copy = false;
 
@@ -619,7 +619,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 
 	entry->SetGeneralParameters(address, texture_size, full_format);
 	entry->SetDimensions(nativeW, nativeH, tex_levels);
-	entry->hash = full_hash;
+	entry->SetHashes(base_hash, full_hash);
 	entry->is_efb_copy = false;
 	entry->is_custom_tex = hires_tex != nullptr;
 
@@ -1022,7 +1022,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 	entry->SetGeneralParameters(dstAddr, 0, dstFormat);
 	entry->SetDimensions(tex_w, tex_h, 1);
-	entry->SetHashes(TEXHASH_INVALID);
 
 	entry->frameCount = FRAMECOUNT_INVALID;
 	entry->SetEfbCopy(dstStride);
@@ -1030,7 +1029,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 	entry->FromRenderTarget(dst, dstFormat, dstStride, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
-	entry->hash = GetHash64(dst, (int)entry->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	u64 hash = GetHash64(dst, (int)entry->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	entry->SetHashes(hash, hash);
 
 	// Invalidate all textures that overlap the range of our efb copy.
 	// Unless our efb copy has a weird stride, then we want avoid invalidating textures which

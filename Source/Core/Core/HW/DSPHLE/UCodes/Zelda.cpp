@@ -1015,8 +1015,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
 					for (u16 j = 0; j < 8; ++j)
 						sample += (s32)buffer[i + j] * rpb.filter_coeffs[j];
 					sample >>= 15;
-					MathUtil::Clamp(&sample, -0x8000, 0x7fff);
-					buffer[i] = sample;
+					buffer[i] = MathUtil::Clamp(sample, -0x8000, 0x7FFF);
 				}
 			};
 
@@ -1445,8 +1444,8 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
 			for (size_t i = 0; i < 4; ++i)
 				dst_sample_unclamped += (s64)2 * coeffs[i] * input[i];
 			dst_sample_unclamped >>= 16;
-			MathUtil::Clamp(&dst_sample_unclamped, (s64)-0x8000, (s64)0x7fff);
-			dst_sample = (s16)dst_sample_unclamped;
+
+			dst_sample = (s16)MathUtil::Clamp<s64>(dst_sample_unclamped, -0x8000, 0x7FFF);
 
 			pos += ratio;
 		}
@@ -1696,7 +1695,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
 				yn1 * m_afc_coeffs[idx * 2] +
 				yn2 * m_afc_coeffs[idx * 2 + 1];
 			sample >>= 11;
-			MathUtil::Clamp(&sample, -0x8000, 0x7fff);
+			sample = MathUtil::Clamp(sample, -0x8000, 0x7fff);
 			*dst++ = (s16)sample;
 			yn2 = yn1;
 			yn1 = sample;

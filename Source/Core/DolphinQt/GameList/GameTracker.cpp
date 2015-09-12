@@ -27,15 +27,15 @@ DGameTracker::DGameTracker(QWidget* parent_widget)
 	: QStackedWidget(parent_widget),
 	  m_watcher(new QFileSystemWatcher(this))
 {
-	connect(m_watcher, SIGNAL(directoryChanged(QString)), this, SLOT(ScanForGames()));
+	connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, &DGameTracker::ScanForGames);
 
 	m_tree_widget = new DGameTree(this);
 	addWidget(m_tree_widget);
-	connect(m_tree_widget, SIGNAL(StartGame()), this, SIGNAL(StartGame()));
+	connect(m_tree_widget, &DGameTree::StartGame, this, &DGameTracker::StartGame);
 
 	m_grid_widget = new DGameGrid(this);
 	addWidget(m_grid_widget);
-	connect(m_grid_widget, SIGNAL(StartGame()), this, SIGNAL(StartGame()));
+	connect(m_grid_widget, &DGameGrid::StartGame, this, &DGameTracker::StartGame);
 
 	SetViewStyle(STYLE_LIST);
 }
@@ -102,6 +102,11 @@ void DGameTracker::ScanForGames()
 	}
 	if (SConfig::GetInstance().m_ListWad)
 		exts.push_back("*.wad");
+	if (SConfig::GetInstance().m_ListElfDol)
+	{
+		exts.push_back("*.dol");
+		exts.push_back("*.elf");
+	}
 
 	auto rFilenames = DoFileSearch(exts, SConfig::GetInstance().m_ISOFolder, SConfig::GetInstance().m_RecursiveISOFolder);
 	QList<GameFile*> newItems;

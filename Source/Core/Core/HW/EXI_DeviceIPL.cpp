@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -170,6 +172,21 @@ void CEXIIPL::SetCS(int _iCS)
 	}
 }
 
+void CEXIIPL::UpdateRTC()
+{
+	// Seconds between 1.1.2000 and 4.1.2008 16:00:38
+	static constexpr u32 WII_BIAS = 0x0F1114A6;
+
+	u32 rtc;
+
+	if (SConfig::GetInstance().bWii)
+		rtc = Common::swap32(GetGCTime() - WII_BIAS);
+	else
+		rtc = Common::swap32(GetGCTime());
+
+	std::memcpy(m_RTC, &rtc, sizeof(u32));
+}
+
 bool CEXIIPL::IsPresent() const
 {
 	return true;
@@ -177,9 +194,6 @@ bool CEXIIPL::IsPresent() const
 
 void CEXIIPL::TransferByte(u8& _uByte)
 {
-	// Seconds between 1.1.2000 and 4.1.2008 16:00:38
-	const u32 cWiiBias = 0x0F1114A6;
-
 	// The first 4 bytes must be the address
 	// If we haven't read it, do it now
 	if (m_uPosition <= 3)
@@ -192,17 +206,8 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		// Check if the command is complete
 		if (m_uPosition == 3)
 		{
-			// Get the time ...
-			u32 &rtc = *((u32 *)&m_RTC);
-			if (SConfig::GetInstance().bWii)
-			{
-				// Subtract Wii bias
-				rtc = Common::swap32(CEXIIPL::GetGCTime() - cWiiBias);
-			}
-			else
-			{
-				rtc = Common::swap32(CEXIIPL::GetGCTime());
-			}
+			// Get the time...
+			UpdateRTC();
 
 			// Log the command
 			std::string device_name;

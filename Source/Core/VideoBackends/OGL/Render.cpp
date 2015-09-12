@@ -438,6 +438,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
+	g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") && GLExtensions::Supports("GL_ARB_sample_shading");
 	g_Config.backend_info.bSupportsGeometryShaders = GLExtensions::Version() >= 320;
 	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object") ||
 	                                                   GLExtensions::Supports("GL_OES_texture_buffer") ||
@@ -535,28 +536,25 @@ Renderer::Renderer()
 			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
-			g_Config.backend_info.bSupportsSSAA = false; // sample shading is only supported on glsl400+
 		}
 		else if (strstr(g_ogl_config.glsl_version, "1.40"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
-			g_Config.backend_info.bSupportsSSAA = false; // sample shading is only supported on glsl400+
 		}
 		else if (strstr(g_ogl_config.glsl_version, "1.50"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_150;
-			g_Config.backend_info.bSupportsSSAA = false; // sample shading is only supported on glsl400+
 		}
 		else if (strstr(g_ogl_config.glsl_version, "3.30"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_330;
-			g_Config.backend_info.bSupportsSSAA = false; // sample shading is only supported on glsl400+
 		}
 		else
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_400;
+			g_Config.backend_info.bSupportsSSAA = true;
 		}
 
 		// Desktop OpenGL can't have the Android Extension Pack
@@ -1293,7 +1291,12 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
 	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
 	{
 		TargetRectangle leftRc, rightRc;
-		ConvertStereoRectangle(dst, leftRc, rightRc);
+
+		// Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
+		if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+			ConvertStereoRectangle(dst, rightRc, leftRc);
+		else
+			ConvertStereoRectangle(dst, leftRc, rightRc);
 
 		m_post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
 		m_post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);

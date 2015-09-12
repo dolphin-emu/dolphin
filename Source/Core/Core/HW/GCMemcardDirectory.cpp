@@ -85,7 +85,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
 		u64 file_size = gcifile.GetSize();
 		if (file_size != size + DENTRY_SIZE)
 		{
-			PanicAlertT("%s\nwas not loaded because it is an invalid GCI.\n File size (0x%llx"
+			PanicAlertT("%s\nwas not loaded because it is an invalid GCI.\n File size (0x%" PRIx64
 						") does not match the size recorded in the header (0x%x)",
 						gci.m_filename.c_str(), file_size, size + DENTRY_SIZE);
 			return NO_INDEX;

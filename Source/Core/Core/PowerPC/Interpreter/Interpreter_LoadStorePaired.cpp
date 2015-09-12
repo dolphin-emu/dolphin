@@ -53,8 +53,8 @@ template<typename SType> SType ScaleAndClamp(double ps, u32 stScale)
 	float convPS = (float)ps * m_quantizeTable[stScale];
 	float min = (float)std::numeric_limits<SType>::min();
 	float max = (float)std::numeric_limits<SType>::max();
-	MathUtil::Clamp(&convPS, min, max);
-	return (SType)convPS;
+
+	return (SType)MathUtil::Clamp(convPS, min, max);
 }
 
 template<typename T> static T ReadUnpaired(u32 addr);

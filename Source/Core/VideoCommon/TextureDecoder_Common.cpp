@@ -5,7 +5,9 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Common/Common.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/sfont.inc"
@@ -16,7 +18,7 @@ static bool TexFmt_Overlay_Center = false;
 
 // TRAM
 // STATE_TO_SAVE
-GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
+alignas(16) u8 texMem[TMEM_SIZE];
 
 int TexDecoder_GetTexelSizeInNibbles(int format)
 {

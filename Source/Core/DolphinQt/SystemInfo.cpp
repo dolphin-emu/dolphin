@@ -27,7 +27,7 @@ DSystemInfo::DSystemInfo(QWidget* parent_widget) :
 	UpdateSystemInfo();
 
 	QPushButton* btn = m_ui->buttonBox->addButton(tr("Copy"), QDialogButtonBox::ActionRole);
-	connect(btn, SIGNAL(pressed()), this, SLOT(CopyPressed()));
+	connect(btn, &QPushButton::pressed, this, &DSystemInfo::CopyPressed);
 }
 
 DSystemInfo::~DSystemInfo()
