@@ -72,7 +72,11 @@ static u32 EFB_Read(const u32 addr)
 	int x = (addr & 0xfff) >> 2;
 	int y = (addr >> 12) & 0x3ff;
 
-	if (addr & 0x00400000)
+	if (addr & 0x00800000)
+	{
+		ERROR_LOG(MEMMAP, "Unimplemented Z+Color EFB read @ 0x%08x", addr);
+	}
+	else if (addr & 0x00400000)
 	{
 		var = g_video_backend->Video_AccessEFB(PEEK_Z, x, y, 0);
 		DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i\t= 0x%08x", x, y, var);
@@ -91,7 +95,13 @@ static void EFB_Write(u32 data, u32 addr)
 	int x = (addr & 0xfff) >> 2;
 	int y = (addr >> 12) & 0x3ff;
 
-	if (addr & 0x00400000)
+	if (addr & 0x00800000)
+	{
+		// It's possible to do a z-tested write to EFB by writing a 64bit value to this address range.
+		// Not much is known, but let's at least get some loging.
+		ERROR_LOG(MEMMAP, "Unimplemented Z+Color EFB write. %08x @ 0x%08x", data, addr);
+	}
+	else if (addr & 0x00400000)
 	{
 		g_video_backend->Video_AccessEFB(POKE_Z, x, y, data);
 		DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", data, x, y);
