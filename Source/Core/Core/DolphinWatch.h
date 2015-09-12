@@ -15,24 +15,26 @@ namespace DolphinWatch {
 	using namespace std;
 	typedef uint32_t u32;
 
-	/*void Init();
-	void Shutdown();
-	void Subscribe(sockaddr_in si, u32 addr);
-	void Unsubscribe(sockaddr_in si, u32 addr);
-	void RecvLoop();
-	void SubscribeLoop();*/
-
 	struct Subscription {
 		const u32 addr;
 		u32 mode;
-		mutable u32 prev = ~0;
+		u32 prev = ~0;
 		Subscription(u32 val, u32 len) : addr(val), mode(len) {}
-		bool operator=(Subscription other) { return other.addr == addr && other.mode == mode; }
+		bool operator=(Subscription &other) { return other.addr == addr && other.mode == mode; }
+	};
+
+	struct SubscriptionMulti {
+		const u32 addr;
+		u32 size;
+		vector<u32> prev;
+		SubscriptionMulti(u32 val, u32 len) : addr(val), size(len), prev(len, ~0) {}
+		bool operator=(SubscriptionMulti &other) { return other.addr == addr && other.size == size; }
 	};
 
 	struct Client {
 		shared_ptr<sf::TcpSocket> socket;
 		vector<Subscription> subs;
+		vector<SubscriptionMulti> subsMulti;
 		bool disconnected = false;
 		stringstream buf;
 		// some stl algorithm support
@@ -48,6 +50,7 @@ namespace DolphinWatch {
 	void Init(unsigned short port);
 	void Shutdown();
 	void process(Client &client, string &line);
+	void checkSubs(Client &client);
 	void update();
 	void send(sf::TcpSocket &socket, string& data);
 
