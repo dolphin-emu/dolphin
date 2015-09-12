@@ -185,7 +185,7 @@ QString DMainWindow::RequestBootFilename()
 {
 	// If a game is already selected, just return the filename
 	if (m_game_tracker->SelectedGame() != nullptr)
-			return m_game_tracker->SelectedGame()->GetFileName();
+		return m_game_tracker->SelectedGame()->GetFileName();
 
 	return ShowFileDialog();
 }
@@ -200,8 +200,7 @@ QString DMainWindow::ShowFileDialog()
 QString DMainWindow::ShowFolderDialog()
 {
 	return QFileDialog::getExistingDirectory(this, tr("Browse for a directory to add"),
-	                                         QDir::homePath(),
-	                                         QFileDialog::ShowDirsOnly);
+		QDir::homePath(), QFileDialog::ShowDirsOnly);
 }
 
 void DMainWindow::DoStartPause()
