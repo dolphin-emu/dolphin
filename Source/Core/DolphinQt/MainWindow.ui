@@ -52,6 +52,8 @@
     <addaction name="actionPlay"/>
     <addaction name="actionStop"/>
     <addaction name="actionReset"/>
+    <addaction name="separator"/>
+    <addaction name="actionScreenshot"/>
    </widget>
    <widget class="QMenu" name="mnuOptions">
     <property name="title">
@@ -119,6 +121,7 @@
    </attribute>
    <addaction name="actionPlay"/>
    <addaction name="actionStop"/>
+   <addaction name="actionScreenshot"/>
   </widget>
   <action name="actionWebsite">
    <property name="text">
@@ -234,6 +237,14 @@
   <action name="actionReset">
    <property name="text">
     <string>&amp;Reset</string>
+   </property>
+  </action>
+  <action name="actionScreenshot">
+   <property name="text">
+    <string>Screenshot</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
  </widget>

@@ -76,6 +76,9 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(m_game_tracker, &DGameTracker::StartGame, this, &DMainWindow::OnPlay);
 	connect(m_ui->actionStop, &QAction::triggered, this, &DMainWindow::OnStop);
 	connect(m_ui->actionReset, &QAction::triggered, this, &DMainWindow::OnReset);
+	connect(m_ui->actionScreenshot, &QAction::triggered, this, [&]() {
+		Core::SaveScreenShot();
+	});
 
 	connect(m_ui->actionWebsite, &QAction::triggered, this, [&]() {
 		QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/")));
@@ -361,4 +364,5 @@ void DMainWindow::UpdateIcons()
 {
 	// Play/Pause is handled in OnCoreStateChanged().
 	m_ui->actionStop->setIcon(Resources::GetIcon(Resources::TOOLBAR_STOP));
+	m_ui->actionScreenshot->setIcon(Resources::GetIcon(Resources::TOOLBAR_SCREENSHOT));
 }
