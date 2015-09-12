@@ -754,7 +754,7 @@ void Wiimote::Update()
 	Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension, m_ext_key);
 
 	// don't send a data report if auto reporting is off
-	if (false == m_reporting_auto && data[2] >= WM_REPORT_CORE)
+	if (false == m_reporting_auto && data[1] >= WM_REPORT_CORE)
 		return;
 
 	// send data report
