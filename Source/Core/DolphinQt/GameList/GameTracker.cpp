@@ -102,6 +102,11 @@ void DGameTracker::ScanForGames()
 	}
 	if (SConfig::GetInstance().m_ListWad)
 		exts.push_back("*.wad");
+	if (SConfig::GetInstance().m_ListElfDol)
+	{
+		exts.push_back("*.dol");
+		exts.push_back("*.elf");
+	}
 
 	auto rFilenames = DoFileSearch(exts, SConfig::GetInstance().m_ISOFolder, SConfig::GetInstance().m_RecursiveISOFolder);
 	QList<GameFile*> newItems;
