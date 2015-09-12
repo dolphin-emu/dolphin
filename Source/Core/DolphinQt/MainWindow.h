@@ -44,7 +44,6 @@ private slots:
 
 	// Main toolbar
 	void OnBrowse();
-	void OnExit();
 	void OnPlay();
 	void OnReset();
 

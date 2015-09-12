@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <QActionGroup>
+#include <QCloseEvent>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -62,7 +63,9 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 			StartGame(filename);
 	});
 	connect(m_ui->actionBrowse, &QAction::triggered, this, &DMainWindow::OnBrowse);
-	connect(m_ui->actionExit, &QAction::triggered, this, &DMainWindow::OnExit);
+	connect(m_ui->actionExit, &QAction::triggered, this, [&]() {
+		close();
+	});
 
 	connect(m_ui->actionListView, &QAction::triggered, this, &DMainWindow::OnGameListStyleChanged);
 	connect(m_ui->actionTreeView, &QAction::triggered, this, &DMainWindow::OnGameListStyleChanged);
@@ -110,7 +113,10 @@ DMainWindow::~DMainWindow()
 
 void DMainWindow::closeEvent(QCloseEvent* ce)
 {
-	Stop();
+	if (!OnStop())
+		ce->ignore();
+	else
+		QMainWindow::closeEvent(ce);
 }
 
 // Emulation
@@ -231,14 +237,6 @@ void DMainWindow::OnBrowse()
 	m_game_tracker->ScanForGames();
 }
 
-void DMainWindow::OnExit()
-{
-	close();
-	if (Core::GetState() == Core::CORE_UNINITIALIZED || m_isStopping)
-		return;
-	Stop();
-}
-
 void DMainWindow::OnPlay()
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -262,9 +260,17 @@ bool DMainWindow::OnStop()
 	// Ask for confirmation in case the user accidentally clicked Stop / Escape
 	if (SConfig::GetInstance().bConfirmStop)
 	{
-		// Pause emulation
-		Core::SetState(Core::CORE_PAUSE);
-		emit CoreStateChanged(Core::CORE_PAUSE);
+		// Pause emulation if it isn't already
+		bool wasPaused = false;
+		if (Core::GetState() == Core::CORE_PAUSE)
+		{
+			wasPaused = true;
+		}
+		else
+		{
+			Core::SetState(Core::CORE_PAUSE);
+			emit CoreStateChanged(Core::CORE_PAUSE);
+		}
 
 		QMessageBox::StandardButton ret = QMessageBox::question(m_render_widget.get(), tr("Please confirm..."),
 			tr("Do you want to stop the current emulation?"),
@@ -272,7 +278,8 @@ bool DMainWindow::OnStop()
 
 		if (ret == QMessageBox::No)
 		{
-			DoStartPause();
+			if (!wasPaused)
+				DoStartPause();
 			return false;
 		}
 	}
