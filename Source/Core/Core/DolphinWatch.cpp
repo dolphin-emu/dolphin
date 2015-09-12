@@ -49,6 +49,11 @@ namespace DolphinWatch {
 		data[1] = 0x35; // mode: Core Buttons and Accelerometer with 16 Extension Bytes
 			            // because just core buttons does not work for some reason.
 		((wm_buttons*)(data + 2))->hex |= _buttons;
+		
+		// Just a suspicion, but maybe other threads could still be processing wiimote data?
+		// This report shall be the newest, and not be overwritten, so yield once for safety
+		this_thread::yield();
+
 		Core::Callback_WiimoteInterruptChannel(i_wiimote, wiimote->GetReportingChannel(), data, 4);
 
 	}
@@ -102,7 +107,7 @@ namespace DolphinWatch {
 			return;
 		}
 
-		if (cmd == "MEMSET") {
+		if (cmd == "WRITE") {
 
 			if (!Memory::IsInitialized()) {
 				NOTICE_LOG(CONSOLE, "PowerPC memory not initialized, can't execute command: %s", line.c_str());
@@ -131,7 +136,7 @@ namespace DolphinWatch {
 				NOTICE_LOG(CONSOLE, "Wrong mode for writing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
 			}
 		}
-		else if (cmd == "MEMGET") {
+		else if (cmd == "READ") {
 
 			if (!Memory::IsInitialized()) {
 				NOTICE_LOG(CONSOLE, "PowerPC memory not initialized, can't execute command: %s", line.c_str());
@@ -186,10 +191,32 @@ namespace DolphinWatch {
 
 			if (mode == 8 || mode == 16 || mode == 32) {
 				client.subs.push_back(Subscription(addr, mode));
-			} else {
+			}
+			else {
 				NOTICE_LOG(CONSOLE, "Wrong mode for subscribing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
 				return;
 			}
+
+		}
+		else if (cmd == "SUBSCRIBE_MULTI") {
+
+			u32 size, addr;
+
+			if (!(parts >> size >> addr)) {
+				// no valid parameters, skip
+				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				return;
+			}
+
+			// TODO handle overlapping subscribes etc. better. maybe by returning the mode again?
+
+			for (auto &sub : client.subsMulti) {
+				if (sub.addr == addr) {
+					return;
+				}
+			}
+
+			client.subsMulti.push_back(SubscriptionMulti(addr, size));
 
 		}
 		else if (cmd == "UNSUBSCRIBE") {
@@ -205,6 +232,24 @@ namespace DolphinWatch {
 			for (auto iter = client.subs.begin(); iter != client.subs.end(); ++iter) {
 				if (iter->addr == addr) {
 					client.subs.erase(iter);
+					return;
+				}
+			}
+
+		}
+		else if (cmd == "UNSUBSCRIBE_MULTI") {
+
+			u32 addr;
+
+			if (!(parts >> addr)) {
+				// no valid parameters, skip
+				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				return;
+			}
+
+			for (auto iter = client.subsMulti.begin(); iter != client.subsMulti.end(); ++iter) {
+				if (iter->addr == addr) {
+					client.subsMulti.erase(iter);
 					return;
 				}
 			}
@@ -285,6 +330,39 @@ namespace DolphinWatch {
 
 	}
 
+	void checkSubs(Client &client) {
+		if (!Memory::IsInitialized()) return;
+		for (auto &sub : client.subs) {
+			u32 val;
+			if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
+			else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
+			else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
+			if (val != sub.prev) {
+				sub.prev = val;
+				ostringstream message;
+				message << "MEM " << sub.addr << " " << val << endl;
+				send(*client.socket, message.str());
+			}
+		}
+		for (auto &sub : client.subsMulti) {
+			vector<u32> val(sub.size, 0);
+			for (u32 i = 0; i < sub.size; ++i) {
+				val.at(i) = PowerPC::HostRead_U8(sub.addr + i);
+			}
+			if (val != sub.prev) {
+				sub.prev = val;
+				ostringstream message;
+				message << "MEM_MULTI " << sub.addr << " ";
+				for (size_t i = 0; i < val.size(); ++i) {
+					if (i != 0) message << " ";
+					message << val.at(i);
+				}
+				message << endl;
+				send(*client.socket, message.str());
+			}
+		}
+	}
+
 	void update() {
 
 		string s;
@@ -342,18 +420,7 @@ namespace DolphinWatch {
 			}
 
 			// check subscriptions
-			if (Memory::IsInitialized()) for (auto &sub : client.subs) {
-				u32 val;
-				if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
-				else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
-				else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
-				if (val != sub.prev) {
-					sub.prev = val;
-					ostringstream message;
-					message << "MEM " << sub.addr << " " << val << endl;
-					send(*client.socket, message.str());
-				}
-			}
+			checkSubs(client);
 		}
 
 		// remove disconnected clients
