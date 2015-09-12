@@ -138,9 +138,25 @@ void DMainWindow::StartGame(const QString filename)
 	}
 	else
 	{
-		// TODO: Disable screensaver!
+		DisableScreensaver();
 		emit CoreStateChanged(Core::CORE_RUN);
 	}
+}
+
+void DMainWindow::DisableScreensaver()
+{
+#ifdef Q_OS_WIN
+	// Prevents Windows from sleeping or turning off the display
+	SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
+#endif
+}
+
+void DMainWindow::EnableScreensaver()
+{
+#ifdef Q_OS_WIN
+	// Allows Windows to sleep and turn off the display
+	SetThreadExecutionState(ES_CONTINUOUS);
+#endif
 }
 
 QString DMainWindow::RequestBootFilename()
@@ -263,8 +279,7 @@ bool DMainWindow::Stop()
 	// TODO: Show the author/description dialog here
 
 	BootManager::Stop();
-
-	// TODO: Allow screensaver again
+	EnableScreensaver();
 	// TODO: Restore original window title
 
 	// TODO:

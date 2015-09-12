@@ -68,6 +68,9 @@ private:
 	std::unique_ptr<Ui::DMainWindow> m_ui;
 	DGameTracker* m_game_tracker;
 
+	// Misc.
+	void DisableScreensaver();
+	void EnableScreensaver();
 	// Emulation
 	QString RequestBootFilename();
 	QString ShowFileDialog();
