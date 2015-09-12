@@ -362,6 +362,9 @@ void CISOProperties::CreateGUIControls()
 	// Wii Console
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Wii", "Widescreen"));
 
+	// Display
+	ForceFullscreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Force Fullscreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Display", "ForceFullscreen"));
+	
 	// Stereoscopy
 	wxBoxSizer* const sDepthPercentage = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const DepthPercentageText = new wxStaticText(m_GameConfig, wxID_ANY, _("Depth Percentage: "));
@@ -405,6 +408,10 @@ void CISOProperties::CreateGUIControls()
 	sbCoreOverrides->Add(DSPHLE, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(sGPUDeterminism, 0, wxEXPAND|wxALL, 5);
 
+	wxStaticBoxSizer* const sbDisplayOverrides =
+		new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Display"));
+	sbDisplayOverrides->Add(ForceFullscreen, 0, wxLEFT, 5);
+
 	wxStaticBoxSizer * const sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	if (OpenISO->GetVolumeType() == DiscIO::IVolume::GAMECUBE_DISC)
 	{
@@ -422,6 +429,7 @@ void CISOProperties::CreateGUIControls()
 	wxStaticBoxSizer * const sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
+	sbGameConfig->Add(sbDisplayOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbStereoOverrides, 0, wxEXPAND);
 	sConfigPage->Add(sbGameConfig, 0, wxEXPAND|wxALL, 5);
@@ -1036,6 +1044,25 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Wii", "Widescreen", EnableWideScreen);
 	SetCheckboxValueFromGameini("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
 
+	wxCheckBoxState FullscreenState = wxCHK_UNDETERMINED;
+	IniFile::Section* display_section = GameIniLocal.GetOrCreateSection("Display");
+	bool bTemp;
+	if (display_section->Get("ForceFullscreen", &bTemp))
+	{
+		if (bTemp)
+		{
+			FullscreenState = wxCHK_CHECKED;
+		}
+	}
+	if (display_section->Get("ForceWindowed", &bTemp))
+	{
+		if (bTemp)
+		{
+			FullscreenState = wxCHK_UNCHECKED;
+		}
+	}
+	ForceFullscreen->Set3StateValue(FullscreenState);
+
 	IniFile::Section* default_video = GameIniDefault.GetOrCreateSection("Video");
 
 	int iTemp;
@@ -1129,6 +1156,22 @@ bool CISOProperties::SaveGameConfig()
 	SaveGameIniValueFrom3StateCheckbox("Core", "DSPHLE", DSPHLE);
 	SaveGameIniValueFrom3StateCheckbox("Wii", "Widescreen", EnableWideScreen);
 	SaveGameIniValueFrom3StateCheckbox("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
+
+	if (ForceFullscreen->Get3StateValue() == wxCHK_UNDETERMINED)
+	{
+		GameIniLocal.DeleteKey("Display", "ForceFullscreen");
+		GameIniLocal.DeleteKey("Display", "ForceWindowed");
+	}
+	else if (ForceFullscreen->Get3StateValue() == wxCHK_CHECKED)
+	{
+		GameIniLocal.GetOrCreateSection("Display")->Set("ForceFullscreen", true);
+		GameIniLocal.DeleteKey("Display", "ForceWindowed");
+	}
+	else if (ForceFullscreen->Get3StateValue() == wxCHK_UNCHECKED)
+	{
+		GameIniLocal.GetOrCreateSection("Display")->Set("ForceWindowed", true);
+		GameIniLocal.DeleteKey("Display", "ForceFullscreen");
+	}
 
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \

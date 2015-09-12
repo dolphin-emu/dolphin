@@ -88,6 +88,10 @@ private:
 
 	wxArrayString arrayStringFor_GPUDeterminism;
 	wxChoice* GPUDeterminism;
+
+	// Wii
+	wxCheckBox* ForceFullscreen;
+
 	// Wii
 	wxCheckBox* EnableWideScreen;
 

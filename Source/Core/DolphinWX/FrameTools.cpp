@@ -364,8 +364,6 @@ wxMenuBar* CFrame::CreateMenu()
 	columnsMenu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
 	columnsMenu->Check(IDM_SHOW_STATE, SConfig::GetInstance().m_showStateColumn);
 
-
-
 	menubar->Append(viewMenu, _("&View"));
 
 	if (g_pCodeWindow)
@@ -1024,9 +1022,9 @@ void CFrame::StartGame(const std::string& filename)
 #endif
 
 	wxBeginBusyCursor();
-
-	DoFullscreen(SConfig::GetInstance().bFullscreen);
-
+	// Determine if Dolphin needs to force fullscreen. 
+	// This needs to be done before BootManager does, as it can't fullscreen the window.
+	DoAutoFullscreen(filename);
 	if (!BootManager::BootCore(filename))
 	{
 		DoFullscreen(false);
@@ -1059,6 +1057,45 @@ void CFrame::StartGame(const std::string& filename)
 	}
 
 	wxEndBusyCursor();
+}
+// Automatically decides whether Dolphin should fullscreen or not
+void CFrame::DoAutoFullscreen(const std::string& filename) {
+	bool force_fullscreen = false;
+	bool force_windowed = false;
+	SConfig& mini_startup = SConfig::GetInstance();
+	mini_startup.m_BootType = SConfig::BOOT_ISO;
+	mini_startup.m_strFilename = filename;
+	SConfig::GetInstance().m_LastFilename = filename;
+	SConfig::GetInstance().SaveSettings();
+	// This is saved separately from everything because it can be changed in SConfig::AutoSetup()
+	bool cache_bHLE_BS2 = mini_startup.bHLE_BS2;
+	if (mini_startup.AutoSetup(SConfig::BOOT_DEFAULT))
+	{
+		if (mini_startup.GetUniqueID().size() == 6)
+		{
+			IniFile game_ini = mini_startup.GetInstance().LoadGameIni();
+			IniFile::Section* display_section = game_ini.GetOrCreateSection("Display");
+			display_section->Get("ForceFullscreen", &force_fullscreen, false);
+			display_section->Get("ForceWindowed", &force_windowed, false);
+		}
+		mini_startup.bHLE_BS2 = cache_bHLE_BS2;
+	}
+
+	if (force_fullscreen || force_windowed)
+	{
+		if (force_fullscreen)
+		{
+			DoFullscreen(true);
+		}
+		if (force_windowed)
+		{
+			DoFullscreen(false);
+		}
+	}
+	else
+	{
+		DoFullscreen(SConfig::GetInstance().bFullscreen);
+	}
 }
 
 void CFrame::OnBootDrive(wxCommandEvent& event)

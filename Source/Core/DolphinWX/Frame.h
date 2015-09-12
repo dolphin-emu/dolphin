@@ -112,6 +112,7 @@ public:
 	bool RendererHasFocus();
 	bool UIHasFocus();
 	bool RendererIsFullscreen();
+	void DoAutoFullscreen(const std::string& filename);
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
