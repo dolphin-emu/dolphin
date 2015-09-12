@@ -172,6 +172,7 @@
     <ClInclude Include="GameList\GameGrid.h" />
     <ClInclude Include="GameList\GameTracker.h" />
     <ClInclude Include="GameList\GameTree.h" />
+    <ClInclude Include="Host.h" />
     <ClInclude Include="Utils\Resources.h" />
     <ClInclude Include="Utils\Utils.h" />
     <ClInclude Include="VideoInterface\RenderWidget.h" />

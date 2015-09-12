@@ -10,7 +10,14 @@
 #include "Common/MsgHandler.h"
 #include "Core/Host.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
+
+HostTitleEvent::HostTitleEvent(const std::string& title)
+	: QEvent((QEvent::Type)HostEvent::TitleEvent),
+	m_title(title)
+{
+}
 
 void Host_Message(int id)
 {
@@ -24,7 +31,7 @@ void Host_UpdateMainFrame()
 
 void Host_UpdateTitle(const std::string& title)
 {
-	// TODO
+	qApp->postEvent(g_main_window, new HostTitleEvent(title));
 }
 
 void* Host_GetRenderHandle()

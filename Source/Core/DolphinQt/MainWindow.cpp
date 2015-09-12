@@ -17,6 +17,7 @@
 #include "Core/HW/ProcessorInterface.h"
 
 #include "DolphinQt/AboutDialog.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/SystemInfo.h"
 #include "DolphinQt/Utils/Resources.h"
@@ -112,6 +113,17 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 
 DMainWindow::~DMainWindow()
 {
+}
+
+bool DMainWindow::event(QEvent* e)
+{
+	if (e->type() == HostEvent::TitleEvent)
+	{
+		HostTitleEvent* htev = (HostTitleEvent*)e;
+		m_ui->statusbar->showMessage(QString::fromStdString(htev->m_title), 1500);
+		return true;
+	}
+	return QMainWindow::event(e);
 }
 
 void DMainWindow::closeEvent(QCloseEvent* ce)

@@ -54,7 +54,8 @@ private slots:
 	void UpdateIcons();
 
 private:
-	void closeEvent(QCloseEvent* ce);
+	bool event(QEvent* e) override;
+	void closeEvent(QCloseEvent* ce) override;
 	std::unique_ptr<Ui::DMainWindow> m_ui;
 	DGameTracker* m_game_tracker;
 
