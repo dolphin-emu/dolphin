@@ -143,7 +143,11 @@ void ControllerEmu::SaveConfig(IniFile::Section *sec, const std::string& base)
 }
 
 ControllerEmu::AnalogStick::AnalogStick(const char* const _name, ControlState default_radius)
-	: ControlGroup(_name, GROUP_TYPE_STICK)
+	: AnalogStick(_name, _name, GROUP_TYPE_STICK)
+{}
+
+ControllerEmu::AnalogStick::AnalogStick(const char* const _name, const char* const _ui_name, ControlState default_radius)
+	: ControlGroup(_name, _ui_name, GROUP_TYPE_STICK)
 {
 	for (auto& named_direction : named_directions)
 		controls.emplace_back(new Input(named_direction));

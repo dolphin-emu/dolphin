@@ -100,10 +100,10 @@
     <string name="dpad_down">D-Pad Down</string>
     <string name="dpad_left">D-Pad Left</string>
     <string name="dpad_right">D-Pad Right</string>
-    <string name="main_stick_up">Main Stick Up</string>
-    <string name="main_stick_down">Main Stick Down</string>
-    <string name="main_stick_left">Main Stick Left</string>
-    <string name="main_stick_right">Main Stick Right</string>
+    <string name="main_stick_up">Control Stick Up</string>
+    <string name="main_stick_down">Control Stick Down</string>
+    <string name="main_stick_left">Control Stick Left</string>
+    <string name="main_stick_right">Control Stick Right</string>
     <string name="c_stick_up">C Stick Up</string>
     <string name="c_stick_down">C Stick Down</string>
     <string name="c_stick_left">C Stick Left</string>
