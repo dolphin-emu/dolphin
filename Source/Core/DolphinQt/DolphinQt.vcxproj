@@ -47,6 +47,7 @@
       <FixedBaseAddress>true</FixedBaseAddress>
       <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Windows</SubSystem>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
