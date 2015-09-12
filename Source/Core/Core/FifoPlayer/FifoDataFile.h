@@ -27,13 +27,13 @@ struct MemoryUpdate
 	u32 fifoPosition;
 	u32 address;
 	u32 size;
-	u8 *data;
+	u8* data;
 	Type type;
 };
 
 struct FifoFrameInfo
 {
-	u8 *fifoData;
+	u8* fifoData;
 	u32 fifoDataSize;
 
 	u32 fifoStart;
@@ -72,7 +72,7 @@ public:
 
 	bool Save(const std::string& filename);
 
-	static FifoDataFile *Load(const std::string &filename, bool flagsOnly);
+	static FifoDataFile* Load(const std::string &filename, bool flagsOnly);
 
 private:
 	enum
@@ -85,8 +85,8 @@ private:
 	void SetFlag(u32 flag, bool set);
 	bool GetFlag(u32 flag) const;
 
-	u64 WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates, File::IOFile &file);
-	static void ReadMemoryUpdates(u64 fileOffset, u32 numUpdates, std::vector<MemoryUpdate> &memUpdates, File::IOFile &file);
+	u64 WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates, File::IOFile &file);
+	static void ReadMemoryUpdates(u64 fileOffset, u32 numUpdates, std::vector<MemoryUpdate>& memUpdates, File::IOFile& file);
 
 	u32 m_BPMem[BP_MEM_SIZE];
 	u32 m_CPMem[CP_MEM_SIZE];

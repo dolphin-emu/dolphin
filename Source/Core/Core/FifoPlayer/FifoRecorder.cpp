@@ -64,7 +64,7 @@ void FifoRecorder::StopRecording()
 	m_RequestedRecordingEnd = true;
 }
 
-void FifoRecorder::WriteGPCommand(u8 *data, u32 size)
+void FifoRecorder::WriteGPCommand(u8* data, u32 size)
 {
 	if (!m_SkipNextData)
 	{
@@ -104,8 +104,8 @@ void FifoRecorder::WriteGPCommand(u8 *data, u32 size)
 
 void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, bool dynamicUpdate)
 {
-	u8 *curData;
-	u8 *newData;
+	u8* curData;
+	u8* newData;
 	if (address & 0x10000000)
 	{
 		curData = &m_ExRam[address & Memory::EXRAM_MASK];
@@ -205,7 +205,7 @@ void FifoRecorder::SetVideoMemory(u32 *bpMem, u32 *cpMem, u32 *xfMem, u32 *xfReg
 	sMutex.unlock();
 }
 
-FifoRecorder &FifoRecorder::GetInstance()
+FifoRecorder& FifoRecorder::GetInstance()
 {
 	return instance;
 }

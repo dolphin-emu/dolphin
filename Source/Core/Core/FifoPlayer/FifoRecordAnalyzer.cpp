@@ -22,7 +22,7 @@ FifoRecordAnalyzer::FifoRecordAnalyzer() :
 {
 }
 
-void FifoRecordAnalyzer::Initialize(u32 *bpMem, u32 *cpMem)
+void FifoRecordAnalyzer::Initialize(u32* bpMem, u32* cpMem)
 {
 	m_DrawingObject = false;
 
@@ -37,12 +37,12 @@ void FifoRecordAnalyzer::Initialize(u32 *bpMem, u32 *cpMem)
 	memcpy(m_CpMem.arrayStrides, cpMem + 0xB0, 16 * 4);
 }
 
-void FifoRecordAnalyzer::AnalyzeGPCommand(u8 *data)
+void FifoRecordAnalyzer::AnalyzeGPCommand(u8* data)
 {
 	DecodeOpcode(data);
 }
 
-void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
+void FifoRecordAnalyzer::DecodeOpcode(u8* data)
 {
 	int cmd = ReadFifo8(data);
 
@@ -129,7 +129,7 @@ void FifoRecordAnalyzer::ProcessLoadIndexedXf(u32 val, int array)
 	FifoRecorder::GetInstance().UseMemory(address, size * 4, MemoryUpdate::XF_DATA);
 }
 
-void FifoRecordAnalyzer::ProcessVertexArrays(u8 *data, u8 vtxAttrGroup)
+void FifoRecordAnalyzer::ProcessVertexArrays(u8* data, u8 vtxAttrGroup)
 {
 	int sizes[21];
 	FifoAnalyzer::CalculateVertexElementSizes(sizes, vtxAttrGroup, m_CpMem);
@@ -155,7 +155,7 @@ void FifoRecordAnalyzer::ProcessVertexArrays(u8 *data, u8 vtxAttrGroup)
 	}
 }
 
-void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, u8 *vertexData, int vertexSize, int numVertices)
+void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, u8* vertexData, int vertexSize, int numVertices)
 {
 	// Skip if not indexed array
 	int arrayType = (m_CpMem.vtxDesc.Hex >> (9 + (arrayIndex * 2))) & 3;
