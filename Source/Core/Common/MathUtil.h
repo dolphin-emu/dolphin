@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdlib>
 #include <vector>
 
@@ -12,20 +13,9 @@
 namespace MathUtil
 {
 template<class T>
-inline void Clamp(T* val, const T& min, const T& max)
+constexpr T Clamp(const T val, const T& min, const T& max)
 {
-	if (*val < min)
-		*val = min;
-	else if (*val > max)
-		*val = max;
-}
-
-template<class T>
-inline T Clamp(const T val, const T& min, const T& max)
-{
-	T ret = val;
-	Clamp(&ret, min, max);
-	return ret;
+	return std::max(min, std::min(max, val));
 }
 
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
@@ -143,20 +133,20 @@ struct Rectangle
 	// this Clamp.
 	void ClampLL(T x1, T y1, T x2, T y2)
 	{
-		Clamp(&left, x1, x2);
-		Clamp(&right, x1, x2);
-		Clamp(&top, y2, y1);
-		Clamp(&bottom, y2, y1);
+		left   = Clamp(left, x1, x2);
+		right  = Clamp(right, x1, x2);
+		top    = Clamp(top, y2, y1);
+		bottom = Clamp(bottom, y2, y1);
 	}
 
 	// If the rectangle is in a coordinate system with an upper-left origin,
 	// use this Clamp.
 	void ClampUL(T x1, T y1, T x2, T y2)
 	{
-		Clamp(&left, x1, x2);
-		Clamp(&right, x1, x2);
-		Clamp(&top, y1, y2);
-		Clamp(&bottom, y1, y2);
+		left   = Clamp(left, x1, x2);
+		right  = Clamp(right, x1, x2);
+		top    = Clamp(top, y1, y2);
+		bottom = Clamp(bottom, y1, y2);
 	}
 };
 
