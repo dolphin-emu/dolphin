@@ -24,7 +24,7 @@ DGameTree::DGameTree(QWidget* parent_widget) :
 	setIconSize(QSize(BANNER_WIDTH, BANNER_HEIGHT));
 	sortByColumn(COL_TITLE, Qt::AscendingOrder);
 
-	connect(this, SIGNAL(itemActivated(QTreeWidgetItem*, int)), this, SLOT(ItemActivated(QTreeWidgetItem*)));
+	connect(this, &QTreeWidget::itemActivated, this, &DGameTree::ItemActivated);
 }
 
 DGameTree::~DGameTree()
