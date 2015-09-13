@@ -177,6 +177,12 @@ void Renderer::CalculateTargetScale(int x, int y, int* scaledX, int* scaledY)
 		*scaledX = x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
 		*scaledY = y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
 	}
+
+	// TODO: Configure this with option in VR dialog, or in Graphics settings.
+	// HMD functions should be in a generic HMD class, I'm somewhat confused why they aren't. Everything's just global functions?
+	if(true) {
+		GetFovTextureSize(scaledX, scaledY);
+	}
 }
 
 // return true if target size changed

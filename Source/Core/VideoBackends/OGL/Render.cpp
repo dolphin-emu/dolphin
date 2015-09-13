@@ -2164,6 +2164,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		}
 	}
 
+	if (g_has_rift && WindowResized) {
+		// Ensure Rift framebuffer matches window size
+		VR_ConfigureHMD();
+	}
+
 	// ---------------------------------------------------------------------
 	if (!(g_has_hmd && g_ActiveConfig.bEnableVR))
 	{

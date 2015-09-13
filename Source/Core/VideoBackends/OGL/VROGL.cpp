@@ -550,11 +550,12 @@ void VR_ConfigureHMD()
 		ovrGLConfig cfg;
 		cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
 #ifdef OCULUSSDK044ORABOVE
-		cfg.OGL.Header.BackBufferSize.w = hmdDesc.Resolution.w;
-		cfg.OGL.Header.BackBufferSize.h = hmdDesc.Resolution.h;
+		// Set based on window size, not statically based on rift internals.
+		cfg.OGL.Header.BackBufferSize.w = Renderer::GetBackbufferWidth();
+		cfg.OGL.Header.BackBufferSize.h = Renderer::GetBackbufferHeight();
 #else
-		cfg.OGL.Header.RTSize.w = hmdDesc.Resolution.w;
-		cfg.OGL.Header.RTSize.h = hmdDesc.Resolution.h;
+		cfg.OGL.Header.RTSize.w = Renderer::GetBackbufferWidth();
+		cfg.OGL.Header.RTSize.h = Renderer::GetBackbufferHeight();
 #endif
 		cfg.OGL.Header.Multisample = 0;
 #ifdef _WIN32
@@ -578,6 +579,9 @@ void VR_ConfigureHMD()
 #if OVR_MAJOR_VERSION <= 4
 		if (g_Config.bChromatic)
 			caps |= ovrDistortionCap_Chromatic;
+#endif
+#ifdef __linux__
+		caps |= ovrDistortionCap_LinuxDevFullscreen;
 #endif
 		if (g_Config.bTimewarp)
 			caps |= ovrDistortionCap_TimeWarp;
