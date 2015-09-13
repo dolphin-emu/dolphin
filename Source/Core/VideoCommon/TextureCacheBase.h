@@ -114,6 +114,8 @@ public:
 		u32 CacheLinesPerRow() const;
 
 		void Zero(u8* ptr);
+
+		u64 CalculateHash() const;
 	};
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
