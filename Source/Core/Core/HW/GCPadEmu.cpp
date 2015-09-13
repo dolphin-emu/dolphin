@@ -66,8 +66,8 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 		m_buttons->controls.emplace_back(new ControlGroup::Input(named_buttons[i]));
 
 	// sticks
-	groups.emplace_back(m_main_stick = new AnalogStick(_trans("Main Stick"), DEFAULT_PAD_STICK_RADIUS));
-	groups.emplace_back(m_c_stick = new AnalogStick(_trans("C-Stick"), DEFAULT_PAD_STICK_RADIUS));
+	groups.emplace_back(m_main_stick = new AnalogStick("Main Stick", _trans("Control Stick"), DEFAULT_PAD_STICK_RADIUS));
+	groups.emplace_back(m_c_stick = new AnalogStick("C-Stick", _trans("C Stick"), DEFAULT_PAD_STICK_RADIUS));
 
 	// triggers
 	groups.emplace_back(m_triggers = new MixedTriggers(_trans("Triggers")));
@@ -161,7 +161,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_dpad, 2, "F"); // Left
 	set_control(m_dpad, 3, "H"); // Right
 
-	// C-Stick
+	// C Stick
 	set_control(m_c_stick, 0, "I"); // Up
 	set_control(m_c_stick, 1, "K"); // Down
 	set_control(m_c_stick, 2, "J"); // Left
@@ -169,7 +169,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 #ifdef _WIN32
 	set_control(m_c_stick, 4, "LCONTROL"); // Modifier
 
-	// Main Stick
+	// Control Stick
 	set_control(m_main_stick, 0, "UP");     // Up
 	set_control(m_main_stick, 1, "DOWN");   // Down
 	set_control(m_main_stick, 2, "LEFT");   // Left
@@ -179,7 +179,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 #elif __APPLE__
 	set_control(m_c_stick, 4, "Left Control"); // Modifier
 
-	// Main Stick
+	// Control Stick
 	set_control(m_main_stick, 0, "Up Arrow");    // Up
 	set_control(m_main_stick, 1, "Down Arrow");  // Down
 	set_control(m_main_stick, 2, "Left Arrow");  // Left
@@ -190,7 +190,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 
 	set_control(m_c_stick, 4, "Control_L"); // Modifier
 
-	// Main Stick
+	// Control Stick
 	set_control(m_main_stick, 0, "Up");      // Up
 	set_control(m_main_stick, 1, "Down");    // Down
 	set_control(m_main_stick, 2, "Left");    // Left

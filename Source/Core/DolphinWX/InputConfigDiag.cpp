@@ -954,7 +954,7 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 	{
 		ControlGroupBox* control_group_box = new ControlGroupBox(group.get(), parent, eventsink);
 		wxStaticBoxSizer *control_group =
-			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(group->name)));
+			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(group->ui_name)));
 		control_group->Add(control_group_box);
 
 		const size_t grp_size = group->controls.size() + group->settings.size();

@@ -185,7 +185,7 @@ u16 AcceleratorGetSample()
 				temp -= 16;
 
 			int val = (scale * temp) + ((0x400 + coef1 * acc_pb->adpcm.yn1 + coef2 * acc_pb->adpcm.yn2) >> 11);
-			MathUtil::Clamp(&val, -0x7FFF, 0x7FFF);
+			val = MathUtil::Clamp(val, -0x7FFF, 0x7FFF);
 
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = val;

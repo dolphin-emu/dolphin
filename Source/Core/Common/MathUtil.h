@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdlib>
 #include <vector>
 
@@ -17,21 +18,24 @@ inline float SignOf(float x)
 
 namespace MathUtil
 {
-template<class T>
-inline void Clamp(T* val, const T& min, const T& max)
-{
-	if (*val < min)
-		*val = min;
-	else if (*val > max)
-		*val = max;
-}
-
+#if defined(_MSC_VER) && _MSC_VER <= 1800
 template<class T>
 inline T Clamp(const T val, const T& min, const T& max)
+#else
+template<class T>
+constexpr T Clamp(const T val, const T& min, const T& max)
+#endif
 {
-	T ret = val;
-	Clamp(&ret, min, max);
-	return ret;
+	return std::max(min, std::min(max, val));
+}
+
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+inline bool IsPow2(u32 imm)
+#else
+constexpr bool IsPow2(u32 imm)
+#endif
+{
+	return (imm & (imm - 1)) == 0;
 }
 
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
@@ -149,20 +153,20 @@ struct Rectangle
 	// this Clamp.
 	void ClampLL(T x1, T y1, T x2, T y2)
 	{
-		Clamp(&left, x1, x2);
-		Clamp(&right, x1, x2);
-		Clamp(&top, y2, y1);
-		Clamp(&bottom, y2, y1);
+		left   = Clamp(left, x1, x2);
+		right  = Clamp(right, x1, x2);
+		top    = Clamp(top, y2, y1);
+		bottom = Clamp(bottom, y2, y1);
 	}
 
 	// If the rectangle is in a coordinate system with an upper-left origin,
 	// use this Clamp.
 	void ClampUL(T x1, T y1, T x2, T y2)
 	{
-		Clamp(&left, x1, x2);
-		Clamp(&right, x1, x2);
-		Clamp(&top, y1, y2);
-		Clamp(&bottom, y1, y2);
+		left   = Clamp(left, x1, x2);
+		right  = Clamp(right, x1, x2);
+		top    = Clamp(top, y1, y2);
+		bottom = Clamp(bottom, y1, y2);
 	}
 };
 
@@ -172,8 +176,6 @@ float MathFloatVectorSum(const std::vector<float>&);
 
 #define ROUND_UP(x, a)   (((x) + (a) - 1) & ~((a) - 1))
 #define ROUND_DOWN(x, a) ((x) & ~((a) - 1))
-
-inline bool IsPow2(u32 imm) {return (imm & (imm - 1)) == 0;}
 
 // Rounds down. 0 -> undefined
 inline int IntLog2(u64 val)

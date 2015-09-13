@@ -336,12 +336,9 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 					LightColor(dst->mvPosition, dst->normal[0], i, colorchan, lightCol);
 			}
 
-			int light_x = int(lightCol.x);
-			int light_y = int(lightCol.y);
-			int light_z = int(lightCol.z);
-			MathUtil::Clamp(&light_x, 0, 255);
-			MathUtil::Clamp(&light_y, 0, 255);
-			MathUtil::Clamp(&light_z, 0, 255);
+			int light_x = MathUtil::Clamp(static_cast<int>(lightCol.x), 0, 255);
+			int light_y = MathUtil::Clamp(static_cast<int>(lightCol.y), 0, 255);
+			int light_z = MathUtil::Clamp(static_cast<int>(lightCol.z), 0, 255);
 			chancolor[1] = (matcolor[1] * (light_x + (light_x >> 7))) >> 8;
 			chancolor[2] = (matcolor[2] * (light_y + (light_y >> 7))) >> 8;
 			chancolor[3] = (matcolor[3] * (light_z + (light_z >> 7))) >> 8;
@@ -373,8 +370,7 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 					LightAlpha(dst->mvPosition, dst->normal[0], i, alphachan, lightCol);
 			}
 
-			int light_a = int(lightCol);
-			MathUtil::Clamp(&light_a, 0, 255);
+			int light_a = MathUtil::Clamp(static_cast<int>(lightCol), 0, 255);
 			chancolor[0] = (matcolor[0] * (light_a + (light_a >> 7))) >> 8;
 		}
 		else

@@ -68,7 +68,7 @@ private:
 	quint64 m_file_size = 0;
 	quint64 m_volume_size = 0;
 
-	DiscIO::IVolume::ECountry m_country;
+	DiscIO::IVolume::ECountry m_country = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	DiscIO::IVolume::EPlatform m_platform;
 	u16 m_revision = 0;
 
@@ -80,7 +80,12 @@ private:
 	bool LoadFromCache();
 	void SaveToCache();
 
-	QString CreateCacheFilename();
+	bool IsElfOrDol() const;
+	QString CreateCacheFilename() const;
 
+	// Outputs to m_banner
 	void ReadBanner(const DiscIO::IVolume& volume);
+	// Outputs to m_short_names, m_long_names, m_descriptions, m_company.
+	// Returns whether a file was found, not whether it contained useful data.
+	bool ReadXML(const QString& file_path);
 };

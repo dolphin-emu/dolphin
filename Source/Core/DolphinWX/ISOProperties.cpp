@@ -195,9 +195,9 @@ CISOProperties::CISOProperties(const std::string& fileName, wxWindow* parent, wx
 
 	wxString temp = "0x" + StrToWxStr(OpenISO->GetMakerID());
 	m_MakerID->SetValue(temp);
-	m_Revision->SetValue(wxString::Format("%u", OpenISO->GetRevision()));
+	m_Revision->SetValue(StrToWxStr(std::to_string(OpenISO->GetRevision())));
 	m_Date->SetValue(StrToWxStr(OpenISO->GetApploaderDate()));
-	m_FST->SetValue(wxString::Format("%u", OpenISO->GetFSTSize()));
+	m_FST->SetValue(StrToWxStr(std::to_string(OpenISO->GetFSTSize())));
 
 	// Here we set all the info to be shown + we set the window title
 	bool wii = OpenISO->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
