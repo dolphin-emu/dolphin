@@ -8,6 +8,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include <wx/app.h>
@@ -62,7 +63,7 @@ static std::string GetLanguageString(DiscIO::IVolume::ELanguage language, std::m
 	return "";
 }
 
-GameListItem::GameListItem(const std::string& _rFileName)
+GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_map<std::string, std::string>& custom_titles)
 	: m_FileName(_rFileName)
 	, m_emu_state(0)
 	, m_FileSize(0)
@@ -135,38 +136,18 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 		if (!m_has_custom_name)
 		{
-			// Attempt to load game titles from titles.txt
-			// http://www.gametdb.com/Wii/Downloads
-			std::ifstream titlestxt;
-			OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
+			std::string game_id = m_UniqueID;
 
-			if (!titlestxt.is_open())
-				OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "wiitdb.txt", std::ios::in);
+			// Ignore publisher ID for WAD files
+			if (m_Platform == DiscIO::IVolume::WII_WAD)
+				game_id.erase(game_id.size() - 2);
 
-			if (titlestxt.is_open() && GetUniqueID().size() >= 4)
+			auto end = custom_titles.end();
+			auto it = custom_titles.find(game_id);
+			if (it != end)
 			{
-				while (!titlestxt.eof())
-				{
-					std::string line;
-
-					if (!std::getline(titlestxt, line) && titlestxt.eof())
-						break;
-
-					const size_t equals_index = line.find('=');
-					std::string game_id = m_UniqueID;
-
-					// Ignore publisher ID for WAD files
-					if (m_Platform == DiscIO::IVolume::WII_WAD)
-						game_id.erase(game_id.size() - 2);
-
-					if (line.substr(0, equals_index - 1) == game_id)
-					{
-						m_custom_name = StripSpaces(line.substr(equals_index + 1));
-						m_has_custom_name = true;
-						break;
-					}
-				}
-				titlestxt.close();
+				m_custom_name = it->second;
+				m_has_custom_name = true;
 			}
 		}
 	}

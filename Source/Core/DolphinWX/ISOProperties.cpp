@@ -99,11 +99,12 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 END_EVENT_TABLE()
 
-CISOProperties::CISOProperties(const std::string& fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
+	, OpenGameListItem(game_list_item)
 {
 	// Load ISO data
-	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
+	OpenISO = DiscIO::CreateVolumeFromFilename(OpenGameListItem.GetFileName());
 
 	// Is it really necessary to use GetTitleID if GetUniqueID fails?
 	game_id = OpenISO->GetUniqueID();
@@ -122,8 +123,6 @@ CISOProperties::CISOProperties(const std::string& fileName, wxWindow* parent, wx
 	GameIniLocal = SConfig::LoadLocalGameIni(game_id, OpenISO->GetRevision());
 
 	// Setup GUI
-	OpenGameListItem = new GameListItem(fileName);
-
 	bRefreshList = false;
 
 	CreateGUIControls();
@@ -191,7 +190,7 @@ CISOProperties::CISOProperties(const std::string& fileName, wxWindow* parent, wx
 	bool wii = OpenISO->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
 	ChangeBannerDetails(SConfig::GetInstance().GetCurrentLanguage(wii));
 
-	m_Banner->SetBitmap(OpenGameListItem->GetBitmap());
+	m_Banner->SetBitmap(OpenGameListItem.GetBitmap());
 	m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
 
 	// Filesystem browser/dumper
@@ -205,7 +204,7 @@ CISOProperties::CISOProperties(const std::string& fileName, wxWindow* parent, wx
 			{
 				for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
 				{
-					std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(fileName, group, i));
+					std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(OpenGameListItem.GetFileName(), group, i));
 					if (volume != nullptr)
 					{
 						std::unique_ptr<DiscIO::IFileSystem> file_system(DiscIO::CreateFileSystem(volume.get()));
@@ -247,7 +246,6 @@ CISOProperties::~CISOProperties()
 {
 	if (OpenISO->GetVolumeType() == DiscIO::IVolume::GAMECUBE_DISC && pFileSystem)
 		delete pFileSystem;
-	delete OpenGameListItem;
 	delete OpenISO;
 }
 
@@ -497,7 +495,7 @@ void CISOProperties::CreateGUIControls()
 	bool wii = OpenISO->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
 	DiscIO::IVolume::ELanguage preferred_language = SConfig::GetInstance().GetCurrentLanguage(wii);
 
-	std::vector<DiscIO::IVolume::ELanguage> languages = OpenGameListItem->GetLanguages();
+	std::vector<DiscIO::IVolume::ELanguage> languages = OpenGameListItem.GetLanguages();
 	int preferred_language_index = 0;
 	for (size_t i = 0; i < languages.size(); ++i)
 	{
@@ -1248,7 +1246,7 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 	u64 read_offset = 0;
 	md5_context ctx;
 
-	File::IOFile file(OpenGameListItem->GetFileName(), "rb");
+	File::IOFile file(OpenGameListItem.GetFileName(), "rb");
 	u64 game_size = file.GetSize();
 
 	wxProgressDialog progressDialog(
@@ -1497,14 +1495,14 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 
 void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 {
-	ChangeBannerDetails(OpenGameListItem->GetLanguages()[event.GetSelection()]);
+	ChangeBannerDetails(OpenGameListItem.GetLanguages()[event.GetSelection()]);
 }
 
 void CISOProperties::ChangeBannerDetails(DiscIO::IVolume::ELanguage language)
 {
-	wxString const name = StrToWxStr(OpenGameListItem->GetName(language));
-	wxString const comment = StrToWxStr(OpenGameListItem->GetDescription(language));
-	wxString const maker = StrToWxStr(OpenGameListItem->GetCompany());
+	wxString const name = StrToWxStr(OpenGameListItem.GetName(language));
+	wxString const comment = StrToWxStr(OpenGameListItem.GetDescription(language));
+	wxString const maker = StrToWxStr(OpenGameListItem.GetCompany());
 
 	// Updates the information shown in the window
 	m_Name->SetValue(name);
@@ -1512,8 +1510,8 @@ void CISOProperties::ChangeBannerDetails(DiscIO::IVolume::ELanguage language)
 	m_Maker->SetValue(maker);//dev too
 
 	std::string filename, extension;
-	SplitPath(OpenGameListItem->GetFileName(), nullptr, &filename, &extension);
+	SplitPath(OpenGameListItem.GetFileName(), nullptr, &filename, &extension);
 	// Also sets the window's title
 	SetTitle(StrToWxStr(StringFromFormat("%s%s: %s - ", filename.c_str(),
-		extension.c_str(), OpenGameListItem->GetUniqueID().c_str())) + name);
+		extension.c_str(), OpenGameListItem.GetUniqueID().c_str())) + name);
 }

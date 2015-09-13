@@ -19,6 +19,7 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
+#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/PatchAddEdit.h"
 
 class GameListItem;
@@ -58,7 +59,7 @@ struct PHackData
 class CISOProperties : public wxDialog
 {
 public:
-	CISOProperties(const std::string& fileName,
+	CISOProperties(const GameListItem& game_list_item,
 			wxWindow* parent,
 			wxWindowID id = wxID_ANY,
 			const wxString& title = _("Properties"),
@@ -215,7 +216,7 @@ private:
 	void SetRefresh(wxCommandEvent& event);
 	void OnChangeBannerLang(wxCommandEvent& event);
 
-	GameListItem* OpenGameListItem;
+	const GameListItem OpenGameListItem;
 
 	typedef std::vector<const DiscIO::SFileInfo*>::iterator fileIter;
 

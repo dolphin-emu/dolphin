@@ -9,6 +9,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <wx/bitmap.h>
 #include <wx/buffer.h>
@@ -439,6 +440,28 @@ void CGameListCtrl::ScanForISOs()
 {
 	ClearIsoFiles();
 
+	// Load custom game titles from titles.txt
+	// http://www.gametdb.com/Wii/Downloads
+	std::unordered_map<std::string, std::string> custom_title_map;
+	std::ifstream titlestxt;
+	OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
+
+	if (!titlestxt.is_open())
+		OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "wiitdb.txt", std::ios::in);
+
+	if (titlestxt.is_open())
+	{
+		std::string line;
+		while (!titlestxt.eof() && std::getline(titlestxt, line))
+		{
+			const size_t equals_index = line.find('=');
+			if (equals_index != std::string::npos)
+				custom_title_map.emplace(StripSpaces(line.substr(0, equals_index)),
+			                             StripSpaces(line.substr(equals_index + 1)));
+		}
+		titlestxt.close();
+	}
+
 	std::vector<std::string> Extensions;
 
 	if (SConfig::GetInstance().m_ListGC)
@@ -485,7 +508,7 @@ void CGameListCtrl::ScanForISOs()
 			if (dialog.WasCancelled())
 				break;
 
-			auto iso_file = std::make_unique<GameListItem>(rFilenames[i]);
+			auto iso_file = std::make_unique<GameListItem>(rFilenames[i], custom_title_map);
 
 			if (iso_file->IsValid())
 			{
@@ -580,7 +603,7 @@ void CGameListCtrl::ScanForISOs()
 
 		for (const auto& drive : drives)
 		{
-			auto gli = std::make_unique<GameListItem>(drive);
+			auto gli = std::make_unique<GameListItem>(drive, custom_title_map);
 
 			if (gli->IsValid())
 				m_ISOFiles.push_back(gli.release());
@@ -991,7 +1014,7 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	CISOProperties* ISOProperties = new CISOProperties(iso->GetFileName(), this);
+	CISOProperties* ISOProperties = new CISOProperties(*iso, this);
 	ISOProperties->Show();
 }
 
