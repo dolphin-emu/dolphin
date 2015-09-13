@@ -882,6 +882,18 @@ void VR_GetEyePos(float *posLeft, float *posRight)
 	}
 }
 
+void VR_GetFovTextureSize(int *width, int *height)
+{
+#if defined(OVR_MAJOR_VERSION)
+	if (g_has_rift)
+	{
+		ovrSizei size = ovrHmd_GetFovTextureSize(hmd, ovrEye_Left, g_eye_fov[0], 1.0f);
+		*width = size.w;
+		*height = size.h;
+	}
+#endif
+}
+
 bool VR_GetLeftHydraPos(float *pos)
 {
 	pos[0] = -0.15f;

@@ -136,6 +136,7 @@ void UpdateHeadTrackingIfNeeded();
 void VR_GetProjectionHalfTan(float &hmd_halftan);
 void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float znear, float zfar);
 void VR_GetEyePos(float *posLeft, float *posRight);
+void VR_GetFovTextureSize(int *width, int *height);
 
 void VR_SetGame(bool is_wii, bool is_nand, std::string id);
 bool VR_GetLeftHydraPos(float *pos);
@@ -230,6 +231,7 @@ extern int g_ovr_frameindex;
 #define ovrHmd_ConfigureTracking ovr_ConfigureTracking
 #define ovrHmd_RecenterPose ovr_RecenterPose
 #define ovrHmd_Destroy ovr_Destroy
+#define ovrHmd_GetFovTextureSize ovr_GetFovTextureSize
 #endif
 
 #ifdef _WIN32
