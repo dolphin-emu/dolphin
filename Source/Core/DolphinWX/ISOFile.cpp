@@ -73,6 +73,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_ImageWidth(0)
 	, m_ImageHeight(0)
 	, m_disc_number(0)
+	, m_has_custom_name(false)
 {
 	if (LoadFromCache())
 	{
@@ -130,6 +131,44 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
 		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
 		ini.GetIfExists("EmuState", "EmulationIssues", &m_issues);
+		m_has_custom_name = ini.GetIfExists("EmuState", "Title", &m_custom_name);
+
+		if (!m_has_custom_name)
+		{
+			// Attempt to load game titles from titles.txt
+			// http://www.gametdb.com/Wii/Downloads
+			std::ifstream titlestxt;
+			OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
+
+			if (!titlestxt.is_open())
+				OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "wiitdb.txt", std::ios::in);
+
+			if (titlestxt.is_open() && GetUniqueID().size() >= 4)
+			{
+				while (!titlestxt.eof())
+				{
+					std::string line;
+
+					if (!std::getline(titlestxt, line) && titlestxt.eof())
+						break;
+
+					const size_t equals_index = line.find('=');
+					std::string game_id = m_UniqueID;
+
+					// Ignore publisher ID for WAD files
+					if (m_Platform == DiscIO::IVolume::WII_WAD)
+						game_id.erase(game_id.size() - 2);
+
+					if (line.substr(0, equals_index - 1) == game_id)
+					{
+						m_custom_name = StripSpaces(line.substr(equals_index + 1));
+						m_has_custom_name = true;
+						break;
+					}
+				}
+				titlestxt.close();
+			}
+		}
 	}
 
 	if (!IsValid() && IsElfOrDol())
@@ -200,12 +239,10 @@ void GameListItem::DoState(PointerWrap &p)
 
 bool GameListItem::IsElfOrDol() const
 {
-	const std::string name = GetName();
-	const size_t pos = name.rfind('.');
-
+	const size_t pos = m_FileName.rfind('.');
 	if (pos != std::string::npos)
 	{
-		std::string ext = name.substr(pos);
+		std::string ext = m_FileName.substr(pos);
 		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
 		return ext == ".elf" || ext == ".dol";
@@ -290,17 +327,18 @@ std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
 
 std::string GameListItem::GetName() const
 {
+	if (m_has_custom_name)
+		return m_custom_name;
+
 	bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
 	std::string name = GetName(SConfig::GetInstance().GetCurrentLanguage(wii));
-	if (name.empty())
-	{
-		std::string ext;
+	if (!name.empty())
+		return name;
 
-		// No usable name, return filename (better than nothing)
-		SplitPath(GetFileName(), nullptr, &name, &ext);
-		return name + ext;
-	}
-	return name;
+	// No usable name, return filename (better than nothing)
+	std::string ext;
+	SplitPath(GetFileName(), nullptr, &name, &ext);
+	return name + ext;
 }
 
 std::vector<DiscIO::IVolume::ELanguage> GameListItem::GetLanguages() const

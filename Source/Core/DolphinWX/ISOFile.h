@@ -78,6 +78,9 @@ private:
 	int m_ImageWidth, m_ImageHeight;
 	u8 m_disc_number;
 
+	std::string m_custom_name;
+	bool m_has_custom_name;
+
 	bool LoadFromCache();
 	void SaveToCache();
 
