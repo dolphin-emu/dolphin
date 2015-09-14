@@ -333,6 +333,7 @@ void VR_BeginFrame()
 			pEyeRenderTexture[eye]->AdvanceToNextTexture();
 		}
 #else
+		ovrHmd_DismissHSWDisplay(hmd);
 		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 #endif
 	}

@@ -796,6 +796,7 @@ void VR_BeginFrame()
 			eyeRenderTexture[eye]->TextureSet->CurrentIndex = (eyeRenderTexture[eye]->TextureSet->CurrentIndex + 1) % eyeRenderTexture[eye]->TextureSet->TextureCount;
 		}
 #else
+		ovrHmd_DismissHSWDisplay(hmd);
 		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 #endif
 }
