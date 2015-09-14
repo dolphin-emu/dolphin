@@ -388,8 +388,15 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	wxString name = StrToWxStr(rISOFile.GetName());
 
+	// Attempt to load game titles from titles.txt
+	// http://www.gametdb.com/Wii/Downloads
 	std::ifstream titlestxt;
 	OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
+
+	if (!titlestxt.is_open())
+	{
+		OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "wiitdb.txt", std::ios::in);
+	}
 
 	if (titlestxt.is_open() && rISOFile.GetUniqueID().size() > 3)
 	{
@@ -400,9 +407,16 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			if (!std::getline(titlestxt, line) && titlestxt.eof())
 				break;
 
-			if (line.substr(0,rISOFile.GetUniqueID().size()) == rISOFile.GetUniqueID())
+			const size_t equals_index = line.find('=');
+			std::string game_id = rISOFile.GetUniqueID();
+
+			// Ignore publisher ID for WAD files
+			if (rISOFile.GetPlatform() == DiscIO::IVolume::WII_WAD)
+				game_id.erase(game_id.size() - 2);
+
+			if (line.substr(0, equals_index - 1) == game_id)
 			{
-				name = StrToWxStr(line.substr(rISOFile.GetUniqueID().size() + 3));
+				name = StrToWxStr(StripSpaces(line.substr(equals_index + 1)));
 				break;
 			}
 		}
