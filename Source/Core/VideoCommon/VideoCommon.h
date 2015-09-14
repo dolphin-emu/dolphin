@@ -66,12 +66,12 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 
 #define LOG_VTX()
 
-typedef enum
+enum API_TYPE
 {
 	API_OPENGL = 1,
 	API_D3D    = 2,
 	API_NONE   = 3
-} API_TYPE;
+};
 
 inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
 {
