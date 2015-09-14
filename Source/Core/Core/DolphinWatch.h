@@ -6,7 +6,7 @@
 #include "InputCommon/InputConfig.h"
 #include "Core/HW/Wiimote.h"
 
-#define WATCH_TIMEOUT 100
+#define WATCH_TIMEOUT 50 // update 20 times per second.
 #define HIJACK_TIMEOUT 500
 #define NUM_WIIMOTES 4
 
