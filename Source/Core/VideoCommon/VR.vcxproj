@@ -16,7 +16,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-	<PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -41,31 +41,32 @@
     <ClCompile Include="VR.cpp" />
     <ClCompile Include="VR920.cpp" />
     <ClCompile Include="VertexShaderManager.cpp">
-	      <ExcludedFromBuild>true</ExcludedFromBuild>
-	</ClCompile>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="VideoConfig.cpp">
-	      <ExcludedFromBuild>true</ExcludedFromBuild>
-	</ClCompile>
-	<ClCompile Include="..\VideoBackends\D3D\VRD3D.cpp">
-	      <ExcludedFromBuild>true</ExcludedFromBuild>
-	</ClCompile>
-	<ClCompile Include="..\VideoBackends\D3D\AvatarDrawer.cpp">
-	      <ExcludedFromBuild>true</ExcludedFromBuild>
-	</ClCompile>
-	<ClCompile Include="..\VideoBackends\OGL\VROGL.cpp">
-	      <ExcludedFromBuild>true</ExcludedFromBuild>
-	</ClCompile>
-	<ClCompile Include="..\DolphinWX\ConfigVR.cpp">
-	      <ExcludedFromBuild>true</ExcludedFromBuild>
-	</ClCompile>
-	<ClCompile Include="..\DolphinWX\HideObjectAddEdit.cpp">
-	      <ExcludedFromBuild>true</ExcludedFromBuild>
-	</ClCompile>
-	<ClCompile Include="..\DolphinWX\ISOProperties.cpp">
-	      <ExcludedFromBuild>true</ExcludedFromBuild>
-	</ClCompile>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\VideoBackends\D3D\VRD3D.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\VideoBackends\D3D\AvatarDrawer.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\VideoBackends\OGL\VROGL.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\DolphinWX\ConfigVR.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\DolphinWX\HideObjectAddEdit.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\DolphinWX\ISOProperties.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\VideoBackends\D3D\OculusSystemLibraryHeaderD3D11.h" />
     <ClInclude Include="OculusSystemLibraryHeader.h" />
     <ClInclude Include="MetroidVR.h" />
     <ClInclude Include="VR.h" />
