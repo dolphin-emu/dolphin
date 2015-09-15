@@ -3,81 +3,31 @@
 // Public Domain
 
 #pragma once
-#include <stdint.h>
-
 #define OCULUSSYSTEMLIBRARYHEADER
 
-#define ALIGN_TO_FOUR_BYTE_BOUNDARY __declspec(align(4))
 #define ALIGN_TO_EIGHT_BYTE_BOUNDARY __declspec(align(8))
-#ifdef _WIN64
-#define ALIGN_TO_POINTER_BOUNDARY __declspec(align(8))
-#else
-#define ALIGN_TO_POINTER_BOUNDARY __declspec(align(4))
-#endif
 
-enum TLibOvrVersion
-{
-	libovr_none = 0,
-	libovr_013,
-	libovr_014,
-	libovr_015,
-	libovr_021,
-	libovr_022,
-	libovr_023,
-	libovr_024,
-	libovr_025,
-	libovr_031,
-	libovr_032,
-	libovr_033,
-	libovr_040,
-	libovr_041,
-	libovr_042,
-	libovr_043,
-	libovr_044,
-	libovr_050,
-	libovr_060,
-	libovr_070,
-};
+#define OVR_PRODUCT_VERSION 0
+#define OVR_MAJOR_VERSION   5
+#define OVR_MINOR_VERSION   0
+#define OVR_BUILD_VERSION   0
+#define OVR_PATCH_VERSION   1
+#define OVR_BUILD_NUMBER    0
+#define OVR_VERSION_STRING "0.5.0.1"
 
-extern TLibOvrVersion g_libovr_version;
-
-#if !defined(OVR_MAJOR_VERSION)
 #define ovrHmd_None             0
 #define ovrHmd_DK1              3
 #define ovrHmd_DKHD             4
-#endif
-#if !defined(OVR_MAJOR_VERSION) || (OVR_MAJOR_VERSION >= 5)
 #define ovrHmd_CrystalCoveProto 5
-#endif
-#if !defined(OVR_MAJOR_VERSION) || (OVR_MAJOR_VERSION == 0 && OVR_MINOR_VERSION <= 3)
 #define ovrHmd_DK2              6
-#endif
-#if !defined(OVR_MAJOR_VERSION) || OVR_MAJOR_VERSION != 5
 #define ovrHmd_BlackStar        7
-#endif
-#if !defined(OVR_MAJOR_VERSION) || OVR_MAJOR_VERSION <= 4
 #define ovrHmd_CB               8
-#endif
-#if !defined(OVR_MAJOR_VERSION)
 #define ovrHmd_Other            9
-#endif
-#if !defined(OVR_MAJOR_VERSION) || OVR_MAJOR_VERSION <= 6
-#define ovrHmd_E3_2015         10
-#define ovrHmd_ES06            11
-#endif
 
-#if !defined(OVR_MAJOR_VERSION)
 #define ovrEye_Left  0
 #define ovrEye_Right 1
 #define ovrEye_Count 2
-#endif
 
-#if !defined(OVR_MAJOR_VERSION) || OVR_MAJOR_VERSION <= 6
-#define ovrHand_Left  0
-#define ovrHand_Right 1
-#endif
-
-// only ovrHmdCap_DebugDevice is supported on SDK 0.7
 #define ovrHmdCap_Present           0x0001
 #define ovrHmdCap_Available         0x0002
 #define ovrHmdCap_Captured          0x0004
@@ -142,105 +92,9 @@ extern TLibOvrVersion g_libovr_version;
 #define ovrProjection_FarClipAtInfinity 4
 #define ovrProjection_ClipRangeOpenGL   8
 
-#define ovrSuccess                               0
-#define ovrSuccess_NotVisible                 1000
-#define ovrSuccess_HMDFirmwareMismatch        4100
-#define ovrSuccess_TrackerFirmwareMismatch    4101
-#define ovrSuccess_ControllerFirmwareMismatch 4104
-#define ovrError_MemoryAllocationFailure     -1000
-#define ovrError_SocketCreationFailure       -1001
-#define ovrError_InvalidHmd                  -1002
-#define ovrError_Timeout                     -1003
-#define ovrError_NotInitialized              -1004
-#define ovrError_InvalidParameter            -1005
-#define ovrError_ServiceError                -1006
-#define ovrError_NoHmd                       -1007
-#define ovrError_Initialize                  -3000
-#define ovrError_LibLoad                     -3001
-#define ovrError_LibVersion                  -3002
-#define ovrError_ServiceConnection           -3003
-#define ovrError_ServiceVersion              -3004
-#define ovrError_IncompatibleOS              -3005
-#define ovrError_DisplayInit                 -3006
-#define ovrError_ServerStart                 -3007
-#define ovrError_Reinitialization            -3008
-#define ovrError_MismatchedAdapters          -3009
-#define ovrError_LeakingResources            -3010
-#define ovrError_ClientVersion               -3011
-#define ovrError_InvalidBundleAdjustment     -4000
-#define ovrError_USBBandwidth                -4001
-#define ovrError_USBEnumeratedSpeed          -4002
-#define ovrError_ImageSensorCommError        -4003
-#define ovrError_GeneralTrackerFailure       -4004
-#define ovrError_ExcessiveFrameTruncation    -4005
-#define ovrError_ExcessiveFrameSkipping      -4006
-#define ovrError_SyncDisconnected            -4007
-#define ovrError_TrackerMemoryReadFailure    -4008
-#define ovrError_TrackerMemoryWriteFailure   -4009
-#define ovrError_TrackerFrameTimeout         -4010
-#define ovrError_TrackerTruncatedFrame       -4011
-#define ovrError_HMDFirmwareMismatch         -4100
-#define ovrError_TrackerFirmwareMismatch     -4101
-#define ovrError_BootloaderDeviceDetected    -4102
-#define ovrError_TrackerCalibrationError     -4103
-#define ovrError_ControllerFirmwareMismatch  -4104
-#define ovrError_Incomplete                  -5000
-#define ovrError_Abandoned                   -5001
-#define ovrError_DisplayLost                 -6000
 
-#define ovrButton_A             0x00000001
-#define ovrTouch_A              ovrButton_A
-#define ovrButton_B             0x00000002
-#define ovrTouch_B              ovrButton_B
-#define ovrButton_RThumb        0x00000004
-#define ovrTouch_RThumb         ovrButton_RThumb
-#define ovrButton_RShoulder     0x00000008
-#define ovrTouch_RIndexTrigger  0x00000010
-#define ovrTouch_RIndexPointing 0x00000020
-#define ovrTouch_RThumbUp       0x00000040
-#define ovrButton_X             0x00000100
-#define ovrTouch_X              ovrButton_X
-#define ovrButton_Y             0x00000200
-#define ovrTouch_Y              ovrButton_Y
-#define ovrButton_LThumb        0x00000400
-#define ovrTouch_LThumb         ovrButton_LThumb
-#define ovrButton_LShoulder     0x00000800
-#define ovrTouch_LIndexTrigger  0x00001000
-#define ovrTouch_LIndexPointing 0x00002000
-#define ovrTouch_LThumbUp       0x00004000
-#define ovrButton_Up            0x00010000
-#define ovrButton_Down          0x00020000
-#define ovrButton_Left          0x00040000
-#define ovrButton_Right         0x00080000
-#define ovrButton_Enter         0x00100000
-#define ovrButton_Back          0x00200000
+typedef void(__cdecl *ovrLogCallback)(int level, const char *message);
 
-#define ovrControllerType_LTouch   0x01
-#define ovrControllerType_RTouch   0x02
-#define ovrControllerType_Touch    0x03
-#define ovrControllerType_All      0xff
-
-#define ovrLayerType_Disabled       0
-#define ovrLayerType_EyeFov         1
-#define ovrLayerType_EyeFovDepth    2
-#define ovrLayerType_QuadInWorld    3
-#define ovrLayerType_QuadHeadLocked 4
-#define ovrLayerType_Direct         6
-
-#define ovrLayerFlag_HighQuality               1
-#define ovrLayerFlag_TextureOriginAtBottomLeft 2
-
-#define ovrSwapTextureSetD3D11_Typeless 1
-
-#define OVR_SUCCESS(x) (x>=0)
-#define OVR_FAILURE(x) (x<0)
-
-typedef void(__cdecl *ovrLogCallback5)(int level, const char *message);
-typedef ovrLogCallback5 ovrLogCallback6;
-typedef void(__cdecl *ovrLogCallback7)(uintptr_t userData, int level, const char* message);
-typedef void *ovrLogCallback;
-
-typedef int ovrResult;
 typedef float ovrScalar;
 typedef struct { int w, h; } ovrSizei;
 typedef struct { int x, y; } ovrVector2i;
@@ -267,66 +121,9 @@ typedef struct
 	ovrVector2i WindowsPos;
 	char *DisplayDeviceName;
 	int DisplayId;
-} ovrHmdDesc5, *ovrHmd;
+} ovrHmdDesc, *ovrHmd;
 
-typedef struct ALIGN_TO_POINTER_BOUNDARY
-{
-	void *internal;
-	int Type;
-#ifdef _WIN64
-	int padding;
-#endif
-	const char *ProductName, *Manufacturer;
-	short VendorId, ProductId;
-	char SerialNumber[24];
-	short FirmwareMajor, FirmwareMinor;
-	ovrScalar CameraFrustumHFovInRadians, CameraFrustumVFovInRadians, CameraFrustumNearZInMeters, CameraFrustumFarZInMeters;
-	unsigned int HmdCaps, TrackingCaps;
-	ovrFovPort DefaultEyeFov[2], MaxEyeFov[2];
-	int EyeRenderOrder[2];
-	ovrSizei Resolution;
-} ovrHmdDesc6;
-
-typedef struct ALIGN_TO_POINTER_BOUNDARY
-{
-	int Type;
-#ifdef _WIN64
-	int padding;
-#endif
-	char ProductName[64], Manufacturer[64];
- 	short VendorId, ProductId;
-	char SerialNumber[24];
-	short FirmwareMajor, FirmwareMinor;
-	ovrScalar CameraFrustumHFovInRadians, CameraFrustumVFovInRadians, CameraFrustumNearZInMeters, CameraFrustumFarZInMeters;
-	unsigned int AvailableHmdCaps, DefaultHmdCaps, AvailableTrackingCaps, DefaultTrackingCaps;
-	ovrFovPort DefaultEyeFov[2], MaxEyeFov[2];
-	ovrSizei Resolution;
-	ovrScalar DisplayRefreshRate;
-#ifdef _WIN64
-	char padding2[4];
-#endif
-} ovrHmdDesc7;
-
-typedef struct
-{
-	void *internal;
-	int Type;
-	char ProductName[64], Manufacturer[64];
-	short VendorId, ProductId;
-	char SerialNumber[24];
-	short FirmwareMajor, FirmwareMinor;
-	ovrScalar CameraFrustumHFovInRadians, CameraFrustumVFovInRadians, CameraFrustumNearZInMeters, CameraFrustumFarZInMeters;
-	unsigned int AvailableHmdCaps, DefaultHmdCaps, AvailableTrackingCaps, DefaultTrackingCaps, HmdCaps, TrackingCaps, DistortionCaps;
-	ovrFovPort DefaultEyeFov[2], MaxEyeFov[2];
-	int EyeRenderOrder[2];
-	ovrSizei Resolution;
-	ovrScalar DisplayRefreshRate;
-	ovrVector2i WindowsPos;
-	char DisplayDeviceName[128];
-	int DisplayId;
-} ovrHmdDesc, ovrHmdDescComplete;
-
-typedef struct {
+typedef struct { 
 	int Eye;
 	ovrFovPort Fov;
 	ovrRecti DistortedViewport;
@@ -338,13 +135,7 @@ typedef struct ALIGN_TO_EIGHT_BYTE_BOUNDARY
 {
 	ovrScalar DeltaSeconds, unused;
 	double ThisFrameSeconds, TimewarpPointSeconds, NextFrameSeconds, ScanoutMidpointSeconds, EyeScanoutSeconds[2];
-} ovrFrameTiming5;
-
-typedef struct ALIGN_TO_EIGHT_BYTE_BOUNDARY
-{
-	double DisplayMidpointSeconds, FrameIntervalSeconds;
-	unsigned AppFrameIndex, DisplayFrameIndex;
-} ovrFrameTiming6;
+} ovrFrameTiming;
 
 typedef struct { ovrQuatf Orientation; ovrVector3f Position; } ovrPosef;
 
@@ -356,28 +147,12 @@ typedef struct ALIGN_TO_EIGHT_BYTE_BOUNDARY
 	double StartTime, DismissibleTime;
 } ovrHSWDisplayState;
 
-typedef struct ALIGN_TO_EIGHT_BYTE_BOUNDARY
+typedef struct
 {
 	unsigned Flags, RequestedMinorVersion;
 	ovrLogCallback LogCallback;
 	unsigned ConnectionTimeoutMS;
-	unsigned padding[3];
-} ovrInitParams, ovrInitParams5, ovrInitParams6;
-
-typedef struct ALIGN_TO_EIGHT_BYTE_BOUNDARY
-{
-	unsigned Flags, RequestedMinorVersion;
-	ovrLogCallback7 LogCallback;
-	uintptr_t UserData;
-	unsigned ConnectionTimeoutMS;
-	unsigned padding[1];
-} ovrInitParams7;
-
-typedef struct
-{
-	ovrResult Result;
-	char ErrorString[512];
-} ovrErrorInfo;
+} ovrInitParams;
 
 typedef struct
 {
@@ -401,34 +176,13 @@ typedef struct
 	int API;
 	ovrSizei TextureSize;
 	ovrRecti RenderViewport;
-} ovrTextureHeader5;
+} ovrTextureHeader;
 
 typedef struct
 {
-	ovrTextureHeader5 Header;
+	ovrTextureHeader Header;
 	void *PlatformData[8];
-} ovrTexture5;
-
-typedef struct
-{
-	int API;
-	ovrSizei TextureSize;
-} ovrTextureHeader6, ovrTextureHeader7;
-
-typedef struct
-{
-	ovrTextureHeader6 Header;
-#ifdef _WIN64
-	unsigned padding;
-#endif
-	void *PlatformData[8];
-} ovrTexture6, ovrTexture7;
-
-typedef struct ALIGN_TO_POINTER_BOUNDARY
-{
-	ovrTexture6 *Textures;
-	int TextureCount, CurrentIndex;
-} ovrSwapTextureSet;
+} ovrTexture;
 
 typedef struct
 {
@@ -436,7 +190,6 @@ typedef struct
 	ovrScalar Temperature, TimeInSeconds;
 } ovrSensorData;
 
-// unchanged from 0.5 to 0.7
 typedef struct ALIGN_TO_EIGHT_BYTE_BOUNDARY
 {
 	ovrPosef ThePose;
@@ -453,23 +206,6 @@ typedef struct
 	unsigned StatusFlags, LastCameraFrameCounter, unusued;
 } ovrTrackingState;
 
-typedef struct ALIGN_TO_EIGHT_BYTE_BOUNDARY
-{
-	ovrPoseStatef HeadPose;
-	ovrPosef CameraPose, LeveledCameraPose;
-	ovrPoseStatef HandPoses[2];
-	ovrSensorData RawSensorData;
-	unsigned StatusFlags, LastCameraFrameCounter, unusued;
-} ovrTrackingState7;
-
-typedef struct
-{
-	double TimeInSeconds;
-	unsigned ConnectedControllerTypes, Buttons, Touches;
-	ovrScalar IndexTrigger[2], HandTrigger[2];
-	ovrVector2f Thumbstick[2];
-} ovrInputState;
-
 typedef struct
 {
 	ovrVector2f ScreenPosNDC;
@@ -483,72 +219,6 @@ typedef struct
 	unsigned short *pIndexData;
 	unsigned VertexCount, IndexCount;
 } ovrDistortionMesh;
-
-typedef struct
-{
-	unsigned char platform_dependent[8];
-} ovrGraphicsLuid;
-
-typedef struct ALIGN_TO_FOUR_BYTE_BOUNDARY
-{
-	ovrScalar Projection22, Projection23, Projection32;
-} ovrTimewarpProjectionDesc;
-
-typedef struct ALIGN_TO_FOUR_BYTE_BOUNDARY
-{
-	ovrVector3f HmdToEyeViewOffset[2];
-	ovrScalar HmdSpaceToWorldScaleInMeters;
-} ovrViewScaleDesc;
-
-typedef struct ALIGN_TO_POINTER_BOUNDARY
-{
-	unsigned Type, Flags;
-} ovrLayerHeader;
-
-typedef struct ALIGN_TO_POINTER_BOUNDARY
-{
-	ovrLayerHeader Header;
-	ovrSwapTextureSet *ColorTexture[2];
-	ovrRecti Viewport[2];
-	ovrFovPort Fov[2];
-	ovrPosef RenderPose[2];
-} ovrLayerEyeFov;
-
-typedef struct ALIGN_TO_POINTER_BOUNDARY
-{
-	ovrLayerHeader Header;
-	ovrSwapTextureSet *ColorTexture[2];
-	ovrRecti Viewport[2];
-	ovrFovPort Fov[2];
-	ovrPosef RenderPose[2];
-	ovrSwapTextureSet *DepthTexture[2];
-	ovrTimewarpProjectionDesc ProjectionDesc;
-} ovrLayerEyeFovDepth;
-
-typedef struct ALIGN_TO_POINTER_BOUNDARY
-{
-	ovrLayerHeader Header;
-	ovrSwapTextureSet *ColorTexture;
-	ovrRecti Viewport;
-	ovrPosef QuadPoseCenter;
-	ovrVector2f QuadSize;
-} ovrLayerQuad;
-
-typedef struct ALIGN_TO_POINTER_BOUNDARY
-{
-	ovrLayerHeader Header;
-	ovrSwapTextureSet *ColorTexture[2];
-	ovrRecti Viewport[2];
-} ovrLayerDirect;
-
-typedef union
-{
-	ovrLayerHeader Header;
-	ovrLayerEyeFov EyeFov;
-	ovrLayerEyeFovDepth EyeFovDepth;
-	ovrLayerQuad Quad;
-	ovrLayerDirect Direct;
-} ovrLayer_Union;
 
 #ifdef _WIN32
 
@@ -586,32 +256,20 @@ typedef union
 
 typedef struct
 {
-	ovrTextureHeader5 Header;
+	ovrTextureHeader Header;
 	unsigned TexId;
-} ovrGLTextureData5;
+} ovrGLTextureData;
 
 typedef union
 {
-	ovrGLTextureData5 OGL;
-	ovrTexture5 Texture;
-} ovrGLTexture5;
+	ovrGLTextureData OGL;
+	ovrTexture Texture;
+} ovrGLTexture;
 
-typedef struct
-{
-	ovrTextureHeader6 Header;
-	unsigned TexId;
-} ovrGLTextureData6, ovrGLTextureData7;
-
-typedef union
-{
-	ovrGLTextureData6 OGL;
-	ovrTexture6 Texture;
-} ovrGLTexture6, ovrGLTexture7;
-
-typedef ovrResult(__cdecl *PFUNC_INIT)(void *InitParams);
+typedef char(__cdecl *PFUNC_INIT)(void *InitParams);
 typedef void(__cdecl *PFUNC_VOID)(void);
-typedef ovrResult(__cdecl *PFUNC_CHAR)(void);
-typedef ovrResult(__cdecl *PFUNC_CHAR_INT)(int);
+typedef char(__cdecl *PFUNC_CHAR)(void);
+typedef char(__cdecl *PFUNC_CHAR_INT)(int);
 typedef char *(__cdecl *PFUNC_PCHAR)(void);
 typedef int(__cdecl *PFUNC_INT)(void);
 typedef ovrHmd(__cdecl *PFUNC_HMD_INT)(int number);
@@ -621,13 +279,12 @@ typedef const char *(__cdecl *PFUNC_PCHAR_HMD)(ovrHmd hmd);
 typedef char(__cdecl *PFUNC_ATTACH)(ovrHmd hmd, void *hwnd, ovrRecti *dest, ovrRecti *source);
 typedef unsigned(__cdecl *PFUNC_UINT_HMD)(ovrHmd hmd);
 typedef void(__cdecl *PFUNC_HMD_UINT)(ovrHmd hmd, unsigned);
-typedef ovrResult(__cdecl *PFUNC_HMD_INT_INT)(ovrHmd hmd, unsigned supported_ovrTrackingCap, unsigned required_ovrTrackingCap);
-typedef ovrTrackingState(__cdecl *PFUNC_TRACKING_STATE)(ovrHmd hmd, double time);
+typedef char(__cdecl *PFUNC_HMD_INT_INT)(ovrHmd hmd, unsigned supported_ovrTrackingCap, unsigned required_ovrTrackingCap);
+typedef ovrTrackingState (__cdecl *PFUNC_TRACKING_STATE)(ovrHmd hmd, double time);
 typedef ovrSizei(__cdecl *PFUNC_FOV)(ovrHmd hmd, int eye, ovrFovPort tan_of_fovs, ovrScalar pixel_ratio);
 typedef char(__cdecl *PFUNC_CONFIG)(ovrHmd hmd, const ovrRenderAPIConfig *address_of_cfg_dot_Config, unsigned flags_ovrDistortionCap, const ovrFovPort *tan_of_fovs_array, ovrEyeRenderDesc *result_array);
-typedef ovrFrameTiming5(__cdecl *PFUNC_BEGIN)(ovrHmd hmd, unsigned frame_number);
-typedef ovrFrameTiming6(__cdecl *PFUNC_FRAMETIMING)(ovrHmd hmd, unsigned frame_number);
-typedef void(__cdecl *PFUNC_END)(ovrHmd hmd, const ovrPosef *render_pose_array, const ovrTexture5 *eye_texture_array);
+typedef ovrFrameTiming(__cdecl *PFUNC_BEGIN)(ovrHmd hmd, unsigned frame_number);
+typedef void(__cdecl *PFUNC_END)(ovrHmd hmd, const ovrPosef *render_pose_array, const ovrTexture *eye_texture_array);
 typedef void(__cdecl *PFUNC_EYEPOSES)(ovrHmd hmd, unsigned frame_number, const ovrVector3f *eye_offset_array_result, ovrPosef *eye_pose_array_result, ovrTrackingState *tracking_state_result);
 typedef ovrPosef(__cdecl *PFUNC_EYEPOSE)(ovrHmd hmd, int eye);
 typedef ovrEyeRenderDesc(__cdecl *PFUNC_RENDERDESC)(ovrHmd hmd, int eye, ovrFovPort tan_of_fovs);
@@ -635,6 +292,7 @@ typedef char(__cdecl *PFUNC_DISTORTIONMESH)(ovrHmd hmd, int eye, ovrFovPort tan_
 typedef char(__cdecl *PFUNC_DISTORTIONMESHDEBUG)(ovrHmd hmd, int eye, ovrFovPort tan_of_fovs, unsigned flags_ovrDistortionCap, ovrDistortionMesh *mesh_result, ovrScalar eye_relief_in_metres);
 typedef void(__cdecl *PFUNC_DESTROYMESH)(ovrDistortionMesh *mesh);
 typedef void(__cdecl *PFUNC_SCALEOFFSET)(ovrFovPort tan_of_fovs, ovrSizei size_of_texture, ovrRecti viewport, ovrVector2f *scale_and_offset_array_result);
+typedef ovrFrameTiming(__cdecl *PFUNC_FRAMETIMING)(ovrHmd hmd, unsigned frame_number);
 typedef double(__cdecl *PFUNC_DOUBLE)(void);
 typedef double(__cdecl *PFUNC_TIMEWARP)(ovrHmd hmd, int eye, ovrPosef render_pose, ovrMatrix4f *timewarp_matrices_array_result);
 typedef double(__cdecl *PFUNC_TIMEWARPDEBUG)(ovrHmd hmd, int eye, ovrPosef render_pose, ovrQuatf playerTorsoMotion, ovrMatrix4f *timewarp_matrices_array_result, double seconds_of_debug_offset);
@@ -642,69 +300,29 @@ typedef void(__cdecl *PFUNC_HMD_HSW)(ovrHmd hmd, ovrHSWDisplayState *hsw_state_r
 typedef char(__cdecl *PFUNC_CHAR_HMD)(ovrHmd hmd);
 typedef char(__cdecl *PFUNC_LATENCY)(ovrHmd hmd, unsigned char *colour_rgb_array);
 typedef double(__cdecl *PFUNC_DOUBLE_DOUBLE)(double time);
-typedef ovrMatrix4f(__cdecl *PFUNC_PROJECTION)(ovrFovPort tan_of_fovs, ovrScalar near_z, ovrScalar far_z, unsigned flags_ovrProjection);
-typedef ovrMatrix4f(__cdecl *PFUNC_ORTHO)(ovrMatrix4f projection, ovrScalar ortho_scale, ovrScalar ortho_distance, ovrScalar hmd_to_eye_horizontal_offset);
-typedef ovrTimewarpProjectionDesc(__cdecl *PFUNC_TIMEWARPPROJ)(ovrMatrix4f projection, unsigned projection_mod_flags);
-typedef char(__cdecl *PFUNC_GETBOOL)(ovrHmd hmd, const char *property, char default);
-typedef int(__cdecl *PFUNC_GETINT)(ovrHmd hmd, const char *property, int default);
-typedef ovrScalar(__cdecl *PFUNC_GETFLOAT)(ovrHmd hmd, const char *property, float default);
-typedef unsigned(__cdecl *PFUNC_GETFLOATARRAY)(ovrHmd hmd, const char *property, ovrScalar *result_array, unsigned result_array_size);
-typedef const char *(__cdecl *PFUNC_GETSTRING)(ovrHmd hmd, const char *property, const char *default);
-typedef char(__cdecl *PFUNC_SETBOOL)(ovrHmd hmd, const char *property, char new_value);
-typedef char(__cdecl *PFUNC_SETINT)(ovrHmd hmd, const char *property, int new_value);
-typedef char(__cdecl *PFUNC_SETFLOAT)(ovrHmd hmd, const char *property, ovrScalar new_value);
-typedef char(__cdecl *PFUNC_SETFLOATARRAY)(ovrHmd hmd, const char *property, const ovrScalar *new_value_array, unsigned new_value_array_size);
-typedef char(__cdecl *PFUNC_SETSTRING)(ovrHmd hmd, const char *property, const char *new_value);
-typedef int(__cdecl *PFUNC_TRACE)(int ovrloglevel, const char *message);
-
-typedef ovrResult(__cdecl *PFUNC_CREATE6)(int number, ovrHmd *hmd_pointer);
-typedef ovrResult(__cdecl *PFUNC_CREATEMIRRORD3D116)(ovrHmd hmd, void *id3d11device, const void *d3d11_texture2d_desc, ovrTexture6 **mirror_texture_result_pointer);
-typedef ovrResult(__cdecl *PFUNC_CREATESWAPD3D116)(ovrHmd hmd, void *id3d11device, const void *d3d11_texture2d_desc, ovrSwapTextureSet **swap_texture_set_result_pointer);
-
-typedef ovrResult(__cdecl *PFUNC_CREATEMIRRORGL)(ovrHmd hmd, unsigned gl_colour_format, int width, int height, ovrTexture6 **mirror_texture_result_pointer);
-typedef ovrResult(__cdecl *PFUNC_CREATESWAPGL)(ovrHmd hmd, unsigned gl_colour_format, int width, int height, ovrSwapTextureSet **swap_texture_set_result_pointer);
-typedef ovrResult(__cdecl *PFUNC_DESTROYMIRROR)(ovrHmd hmd, ovrTexture6 *mirror_texture);
-typedef ovrResult(__cdecl *PFUNC_DESTROYSWAP)(ovrHmd hmd, ovrSwapTextureSet *swap_texture_set);
-typedef ovrResult(__cdecl *PFUNC_CALC)(ovrPosef head_pose, const ovrVector3f hmd_to_eye_view_offset[2], ovrPosef out_eye_poses[2]);
-typedef void(__cdecl *PFUNC_ERRORINFO)(ovrErrorInfo *error_info_result);
-typedef ovrResult(__cdecl *PFUNC_SUBMIT)(ovrHmd hmd, unsigned frame_number, const ovrViewScaleDesc *view_scale_desc, ovrLayerHeader const * const *layer_ptr_list, unsigned layer_count);
-
-typedef ovrHmdDesc7(__cdecl *PFUNC_HMDDESC)(ovrHmd hmd);
-typedef ovrResult(__cdecl *PFUNC_CREATE7)(ovrHmd *hmd_pointer, ovrGraphicsLuid *LUID_pointer);
-typedef ovrResult(__cdecl *PFUNC_CREATEMIRRORD3D117)(ovrHmd hmd, void *id3d11device, unsigned ovrswaptexturesetd3d11_typeless_flag, const void *d3d11_texture2d_desc, ovrTexture6 **mirror_texture_result_pointer);
-typedef ovrResult(__cdecl *PFUNC_CREATESWAPD3D117)(ovrHmd hmd, void *id3d11device, unsigned ovrswaptexturesetd3d11_typeless_flag, const void *d3d11_texture2d_desc, ovrSwapTextureSet **swap_texture_set_result_pointer);
-typedef ovrResult(__cdecl *PFUNC_INPUT)(ovrHmd hmd, unsigned controller_type_mask, ovrInputState *input_state_result);
-typedef ovrResult(__cdecl *PFUNC_LOOKUP)(const char *name, void **data_result_pointer);
-typedef ovrResult(__cdecl *PFUNC_VIBE)(ovrHmd hmd, unsigned controller_types_mask, ovrScalar frequency_zero_half_or_one, ovrScalar amplitude_zero_to_one);
-typedef ovrTrackingState7(__cdecl *PFUNC_TRACKING_STATE7)(ovrHmd hmd, double time);
-typedef void(__cdecl *PFUNC_EYEPOSES7)(ovrHmd hmd, unsigned frame_number, const ovrVector3f *eye_offset_array_result, ovrPosef *eye_pose_array_result, ovrTrackingState7 *tracking_state_result);
+typedef ovrMatrix4f(__cdecl *PFUNC_PROJECTION)(ovrFovPort tan_of_fovs, float near_z, float far_z, unsigned flags_ovrProjection);
 
 // These functions will work without the DLL
 bool ovr_InitializeRenderingShimVersion(int MinorVersion);
 bool ovr_InitializeRenderingShim(void);
-ovrResult ovr_Initialize(void *initParams = nullptr);
+bool ovr_Initialize(void *initParams = nullptr);
 void ovr_Shutdown(void);
 ovrHmd ovrHmd_Create(int number);
 ovrHmd ovrHmd_CreateDebug(int version_ovrHmd);
-ovrResult ovrHmd_Create(int number, ovrHmd *hmd_pointer);
-ovrResult ovrHmd_CreateDebug(int version_ovrHmd, ovrHmd *hmd_pointer);
-ovrResult ovr_Create(ovrHmd *hmd_pointer, ovrGraphicsLuid *LUID_pointer);
 int ovrHmd_Detect(void);
 const char *ovr_GetVersionString(void);
-ovrHmdDescComplete ovr_GetHmdDesc(ovrHmd hmd);
-ovrResult ovrHmd_ConfigureTracking(ovrHmd hmd, unsigned supported_ovrTrackingCap, unsigned required_ovrTrackingCap);
-ovrResult ovrHmd_DismissHSWDisplay(ovrHmd hmd);
 
 // These functions will crash unless ovr_Initialize returned successfully
-extern PFUNC_VOID_HMD ovrHmd_RecenterPose, ovrHmd_EndFrameTiming, ovrHmd_Destroy, ovr_ResetBackOfHeadTracking, ovr_ResetMulticameraTracking;
+extern PFUNC_VOID_HMD ovrHmd_RecenterPose, ovrHmd_EndFrameTiming, ovrHmd_Destroy;
 extern PFUNC_PCHAR_HMD ovrHmd_GetLastError, ovrHmd_GetLatencyTestResult;
 extern PFUNC_ATTACH ovrHmd_AttachToWindow;
 extern PFUNC_UINT_HMD ovrHmd_GetEnabledCaps;
 extern PFUNC_HMD_UINT ovrHmd_SetEnabledCaps, ovrHmd_ResetFrameTiming;
+extern PFUNC_HMD_INT_INT ovrHmd_ConfigureTracking;
 extern PFUNC_TRACKING_STATE ovrHmd_GetTrackingState;
 extern PFUNC_FOV ovrHmd_GetFovTextureSize;
 extern PFUNC_CONFIG ovrHmd_ConfigureRendering;
-extern PFUNC_BEGIN ovrHmd_BeginFrame, ovrHmd_GetFrameTiming, ovrHmd_BeginFrameTiming;
+extern PFUNC_BEGIN ovrHmd_BeginFrame;
 extern PFUNC_END ovrHmd_EndFrame;
 extern PFUNC_EYEPOSES ovrHmd_GetEyePoses;
 extern PFUNC_EYEPOSE ovrHmd_GetHmdPosePerEye;
@@ -713,68 +331,15 @@ extern PFUNC_DISTORTIONMESH ovrHmd_CreateDistortionMesh;
 extern PFUNC_DISTORTIONMESHDEBUG ovrHmd_CreateDistortionMeshDebug;
 extern PFUNC_DESTROYMESH ovrHmd_DestroyDistortionMesh;
 extern PFUNC_SCALEOFFSET ovrHmd_GetRenderScaleAndOffset;
-extern PFUNC_FRAMETIMING ovr_GetFrameTiming;
+extern PFUNC_FRAMETIMING ovrHmd_GetFrameTiming, ovrHmd_BeginFrameTiming;
 extern PFUNC_TIMEWARP ovrHmd_GetEyeTimewarpMatrices;
 extern PFUNC_TIMEWARPDEBUG ovrHmd_GetEyeTimewarpMatricesDebug;
 extern PFUNC_DOUBLE ovr_GetTimeInSeconds;
 extern PFUNC_HMD_HSW ovrHmd_GetHSWDisplayState;
+extern PFUNC_CHAR_HMD ovrHmd_DismissHSWDisplay;
 extern PFUNC_LATENCY ovrHmd_ProcessLatencyTest, ovrHmd_GetLatencyTest2DrawColor;
 extern PFUNC_DOUBLE_DOUBLE ovr_WaitTillTime;
 extern PFUNC_PROJECTION ovrMatrix4f_Projection;
-extern PFUNC_GETBOOL ovrHmd_GetBool;
-extern PFUNC_GETFLOAT ovrHmd_GetFloat;
-extern PFUNC_GETFLOATARRAY ovrHmd_GetFloatArray;
-extern PFUNC_GETINT ovrHmd_GetInt;
-extern PFUNC_GETSTRING ovrHmd_GetString;
-extern PFUNC_SETBOOL ovrHmd_SetBool;
-extern PFUNC_SETFLOAT ovrHmd_SetFloat;
-extern PFUNC_SETFLOATARRAY ovrHmd_SetFloatArray;
-extern PFUNC_SETINT ovrHmd_SetInt;
-extern PFUNC_SETSTRING ovrHmd_SetString;
-extern PFUNC_TRACE ovr_TraceMessage;
-extern PFUNC_ORTHO ovrMatrix4f_OrthoSubProjection;
-extern PFUNC_TIMEWARPPROJ ovrTimewarpProjectionDesc_FromProjection;
-
-extern PFUNC_CREATEMIRRORGL ovrHmd_CreateMirrorTextureGL;
-extern PFUNC_CREATEMIRRORD3D116 ovrHmd_CreateMirrorTextureD3D11;
-extern PFUNC_CREATESWAPGL ovrHmd_CreateSwapTextureSetGL;
-extern PFUNC_CREATESWAPD3D116 ovrHmd_CreateSwapTextureSetD3D11;
-extern PFUNC_DESTROYMIRROR ovrHmd_DestroyMirrorTexture;
-extern PFUNC_DESTROYSWAP ovrHmd_DestroySwapTextureSet;
-extern PFUNC_CALC ovr_CalcEyePoses;
-extern PFUNC_ERRORINFO ovr_GetLastErrorInfo;
-extern PFUNC_SUBMIT ovrHmd_SubmitFrame;
-
-extern PFUNC_CREATEMIRRORD3D117 ovr_CreateMirrorTextureD3D11;
-extern PFUNC_CREATESWAPD3D117 ovr_CreateSwapTextureSetD3D11;
-extern PFUNC_INPUT ovr_GetInputState;
-extern PFUNC_LOOKUP ovr_Lookup;
-extern PFUNC_VIBE ovr_SetControllerVibration;
-extern PFUNC_TRACKING_STATE7 ovr_GetTrackingState;
-
-#define ovr_Destroy ovrHmd_Destroy
-#define ovr_ConfigureTracking ovrHmd_ConfigureTracking
-#define ovr_DestroyMirrorTexture ovrHmd_DestroyMirrorTexture
-#define ovr_DestroySwapTextureSet ovrHmd_DestroySwapTextureSet
-#define ovr_CreateMirrorTextureGL ovrHmd_CreateMirrorTextureGL
-#define ovr_CreateSwapTextureSetGL ovrHmd_CreateSwapTextureSetGL
-#define ovr_GetBool ovrHmd_GetBool
-#define ovr_GetFloat ovrHmd_GetFloat
-#define ovr_GetFloatArray ovrHmd_GetFloatArray
-#define ovr_GetInt ovrHmd_GetInt
-#define ovr_GetString ovrHmd_GetString
-#define ovr_SetBool ovrHmd_SetBool
-#define ovr_SetFloat ovrHmd_SetFloat
-#define ovr_SetFloatArray ovrHmd_SetFloatArray
-#define ovr_SetInt ovrHmd_SetInt
-#define ovr_SetString ovrHmd_SetString
-#define ovr_GetEnabledCaps ovrHmd_GetEnabledCaps
-#define ovr_SetEnabledCaps ovrHmd_SetEnabledCaps
-#define ovr_GetFovTextureSize ovrHmd_GetFovTextureSize
-#define ovr_RecenterPose ovrHmd_RecenterPose
-#define ovr_SubmitFrame ovrHmd_SubmitFrame
-#define ovr_GetRenderDesc ovrHmd_GetRenderDesc
-#define ovrHmd_GetFrameTiming6 ovr_GetFrameTiming
 
 namespace OVR
 {
@@ -831,11 +396,3 @@ namespace OVR
 	};
 
 }
-
-#define OVR_PRODUCT_VERSION 0
-#define OVR_MAJOR_VERSION   5
-#define OVR_MINOR_VERSION   0
-#define OVR_BUILD_VERSION   0
-#define OVR_PATCH_VERSION   1
-#define OVR_BUILD_NUMBER    0
-#define OVR_VERSION_STRING "0.5.0.1"
