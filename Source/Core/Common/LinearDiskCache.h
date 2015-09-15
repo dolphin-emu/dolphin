@@ -170,14 +170,15 @@ private:
 	struct Header
 	{
 		Header()
-			: id(*(u32*)"DCAC")
-			, key_t_size(sizeof(K))
+			: key_t_size(sizeof(K))
 			, value_t_size(sizeof(V))
 		{
-			memcpy(ver, scm_rev_git_str, 40);
+			// Null-terminator is intentionally not copied.
+			std::memcpy(&id, "DCAC", sizeof(u32));
+			std::memcpy(ver, scm_rev_git_str, 40);
 		}
 
-		const u32 id;
+		u32 id;
 		const u16 key_t_size, value_t_size;
 		char ver[40];
 
