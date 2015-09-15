@@ -144,7 +144,7 @@ struct VideoConfig final
 		API_TYPE APIType;
 
 		std::vector<std::string> Adapters; // for D3D
-		std::vector<std::string> AAModes;
+		std::vector<int> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
 		std::vector<std::string> AnaglyphShaders; // anaglyph shaders
 

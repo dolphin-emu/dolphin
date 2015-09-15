@@ -106,6 +106,7 @@ static wxString ws_hack_desc = wxTRANSLATE("Forces the game to output graphics f
 static wxString vsync_desc = wxTRANSLATE("Wait for vertical blanks in order to reduce tearing.\nDecreases performance if emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
 static wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique viewing angles.\nMight cause issues in a small number of games.\nOn Direct3D, setting this above 1x will also have the same effect as enabling \"Force Texture Filtering\".\n\nIf unsure, select 1x.");
 static wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis smooths out jagged edges on objects.\nHeavily increases GPU load and sometimes causes graphical issues.\n\nIf unsure, select None.");
+static wxString ssaa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by enabling supersampling anti-aliasing. This is significantly heavier on GPU load than MSAA, but will provide a much better image quality as well as applying AA to lighting and shader effects.\n\nIf unsure, leave unchecked.");
 static wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render-to-texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly increases GPU load and causes relatively few graphical issues.\n\nIf unsure, leave this checked.");
 static wxString pixel_lighting_desc = wxTRANSLATE("Calculates lighting of 3D objects per-pixel rather than per-vertex, smoothing out the appearance of lit polygons and making individual triangles less noticeable.\nRarely causes slowdowns or graphical issues.\n\nIf unsure, leave this unchecked.");
 static wxString fast_depth_calc_desc = wxTRANSLATE("Use a less accurate algorithm to calculate depth values.\nCauses issues in a few games, but can give a decent speedup depending on the game and/or your GPU.\n\nIf unsure, leave this checked.");
@@ -365,17 +366,24 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// AA
 	{
+
+	wxFlexGridSizer* const aa_sizer = new wxFlexGridSizer(3, 1, 1);
+
 	text_aamode = new wxStaticText(page_enh, wxID_ANY, _("Anti-Aliasing:"));
 	choice_aamode = CreateChoice(page_enh, vconfig.iMultisampleMode, wxGetTranslation(aa_desc));
 
-	for (const std::string& mode : vconfig.backend_info.AAModes)
-	{
-		choice_aamode->AppendString(wxGetTranslation(StrToWxStr(mode)));
-	}
+	RefreshAAList();
 
-	choice_aamode->Select(vconfig.iMultisampleMode);
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
-	szr_enh->Add(choice_aamode);
+	aa_sizer->Add(choice_aamode);
+
+	ssaa_checkbox = CreateCheckBox(page_enh, _("SSAA"), wxGetTranslation(ssaa_desc), vconfig.bSSAA);
+	ssaa_checkbox->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::OnSSAAClick, this);
+
+	aa_sizer->AddSpacer(10);
+	aa_sizer->Add(ssaa_checkbox, 0, wxTOP, 3);
+	szr_enh->Add(aa_sizer);
+
 	}
 
 	// AF
@@ -413,12 +421,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(CreateCheckBox(page_enh, _("Scaled EFB Copy"), wxGetTranslation(scaled_efb_copy_desc), vconfig.bCopyEFBScaled));
 	szr_enh->Add(CreateCheckBox(page_enh, _("Per-Pixel Lighting"), wxGetTranslation(pixel_lighting_desc), vconfig.bEnablePixelLighting));
 	szr_enh->Add(CreateCheckBox(page_enh, _("Force Texture Filtering"), wxGetTranslation(force_filtering_desc), vconfig.bForceFiltering));
-
 	szr_enh->Add(CreateCheckBox(page_enh, _("Widescreen Hack"), wxGetTranslation(ws_hack_desc), vconfig.bWidescreenHack));
 	szr_enh->Add(CreateCheckBox(page_enh, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
-
-	ssaa_checkbox = CreateCheckBox(page_enh, _("SSAA"), wxGetTranslation(aa_desc), vconfig.bSSAA);
-	szr_enh->Add(ssaa_checkbox);
 
 	wxStaticBoxSizer* const group_enh = new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Enhancements"));
 	group_enh->Add(szr_enh, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -747,4 +751,26 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
 	PostProcessingShaderConfiguration postprocessing_shader;
 	postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
 	button_config_pp->Enable(postprocessing_shader.HasOptions());
+}
+
+void VideoConfigDiag::OnSSAAClick(wxCommandEvent& event)
+{
+	// Check the checkbox status and not the config option because config hasn't changed yet.
+	vconfig.bSSAA = ssaa_checkbox->IsChecked();
+	RefreshAAList();
+}
+
+void VideoConfigDiag::RefreshAAList()
+{
+	choice_aamode->Clear();
+	const std::string& suffix = vconfig.bSSAA ? "x SSAA" : "x MSAA";
+
+	for (int mode : vconfig.backend_info.AAModes)
+	{
+		if (mode == 1)
+			choice_aamode->AppendString(_("None"));
+		else
+			choice_aamode->AppendString(std::to_string(mode) + suffix);
+	}
+	choice_aamode->SetSelection(vconfig.iMultisampleMode);
 }
