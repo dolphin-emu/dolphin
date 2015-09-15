@@ -42,19 +42,25 @@ namespace DolphinWatch {
 		wiimote->SetReportingAuto(false);
 		hijacks[i_wiimote] = HIJACK_TIMEOUT;
 
-		u8 data[4];
+		u8 data[23];
 		memset(data, 0, sizeof(data));
 
 		data[0] = 0xA1; // input (wiimote -> wii)
-		data[1] = 0x35; // mode: Core Buttons and Accelerometer with 16 Extension Bytes
+		data[1] = 0x37; // mode: Core Buttons and Accelerometer with 16 Extension Bytes
 			            // because just core buttons does not work for some reason.
 		((wm_buttons*)(data + 2))->hex |= _buttons;
-		
-		// Just a suspicion, but maybe other threads could still be processing wiimote data?
-		// This report shall be the newest, and not be overwritten, so yield once for safety
-		this_thread::yield();
 
-		Core::Callback_WiimoteInterruptChannel(i_wiimote, wiimote->GetReportingChannel(), data, 4);
+		// Only filling in button data breaks button inputs with the wii-cursor being active somehow
+
+		// Fill accelerometer with stable position
+		data[4] = 0x80;
+		data[5] = 0x80;
+		data[6] = 0x9a; // gravity
+		// Fill the rest with some data I grabbed from the actual emulated wiimote.
+		unsigned char stuff[16] = { 0x16, 0x23, 0x66, 0x7a, 0x23, 0x0c, 0x23, 0x66, 0x84, 0x23, 0x0c, 0x4c, 0x1a, 0xfb, 0xe6, 0x43 };
+		memcpy(data + 7, stuff, 16);
+
+		Core::Callback_WiimoteInterruptChannel(i_wiimote, wiimote->GetReportingChannel(), data, 23);
 
 	}
 
@@ -99,7 +105,7 @@ namespace DolphinWatch {
 		istringstream parts(line);
 		string cmd;
 
-		NOTICE_LOG(CONSOLE, "PROCESSING %s", line.c_str());
+		//NOTICE_LOG(CONSOLE, "PROCESSING %s", line.c_str());
 
 		if (!(parts >> cmd)) {
 			// no command, empty line, skip
