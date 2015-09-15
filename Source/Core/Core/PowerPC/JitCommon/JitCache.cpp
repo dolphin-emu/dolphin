@@ -9,6 +9,7 @@
 // performance hit, it's not enabled by default, but it's useful for
 // locating performance issues.
 
+#include <cstring>
 #include "disasm.h"
 
 #include "Common/CommonTypes.h"
@@ -109,8 +110,8 @@ using namespace Gen;
 	{
 		blockCodePointers[block_num] = code_ptr;
 		JitBlock &b = blocks[block_num];
-		u32* icp = GetICachePtr(b.originalAddress);
-		*icp = block_num;
+
+		std::memcpy(GetICachePtr(b.originalAddress), &block_num, sizeof(u32));
 
 		// Convert the logical address to a physical address for the block map
 		u32 pAddr = b.originalAddress & 0x1FFFFFFF;
@@ -140,19 +141,22 @@ using namespace Gen;
 		return blockCodePointers.data();
 	}
 
-	u32* JitBaseBlockCache::GetICachePtr(u32 addr)
+	u8* JitBaseBlockCache::GetICachePtr(u32 addr)
 	{
 		if (addr & JIT_ICACHE_VMEM_BIT)
-			return (u32*)(&jit->GetBlockCache()->iCacheVMEM[addr & JIT_ICACHE_MASK]);
-		else if (addr & JIT_ICACHE_EXRAM_BIT)
-			return (u32*)(&jit->GetBlockCache()->iCacheEx[addr & JIT_ICACHEEX_MASK]);
-		else
-			return (u32*)(&jit->GetBlockCache()->iCache[addr & JIT_ICACHE_MASK]);
+			return &jit->GetBlockCache()->iCacheVMEM[addr & JIT_ICACHE_MASK];
+
+		if (addr & JIT_ICACHE_EXRAM_BIT)
+			return &jit->GetBlockCache()->iCacheEx[addr & JIT_ICACHEEX_MASK];
+
+		return &jit->GetBlockCache()->iCache[addr & JIT_ICACHE_MASK];
 	}
 
 	int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr)
 	{
-		u32 inst = *GetICachePtr(addr);
+		u32 inst;
+		std::memcpy(&inst, GetICachePtr(addr), sizeof(u32));
+
 		if (inst & 0xfc000000) // definitely not a JIT block
 			return -1;
 
@@ -251,7 +255,7 @@ using namespace Gen;
 			return;
 		}
 		b.invalid = true;
-		*GetICachePtr(b.originalAddress) = JIT_ICACHE_INVALID_WORD;
+		std::memcpy(GetICachePtr(b.originalAddress), &JIT_ICACHE_INVALID_WORD, sizeof(u32));
 
 		UnlinkBlock(block_num);
 
@@ -284,7 +288,8 @@ using namespace Gen;
 			while (it2 != block_map.end() && it2->first.second < pAddr + length)
 			{
 				JitBlock &b = blocks[it2->second];
-				*GetICachePtr(b.originalAddress) = JIT_ICACHE_INVALID_WORD;
+				std::memcpy(GetICachePtr(b.originalAddress), &JIT_ICACHE_INVALID_WORD, sizeof(u32));
+
 				DestroyBlock(it2->second, true);
 				++it2;
 			}
