@@ -1,4 +1,4 @@
-Dolphin VR 4.0-8946
+Dolphin VR 4.0-9170
 (Unofficial Dolphin build with Oculus Rift and SteamVR support.)
 Open Source licence: GPL v2+
 
@@ -52,7 +52,7 @@ How to run:
 
 Optional: Copy sixense_x64.dll, iweardrv.dll, and iwrstdrv.dll into your Dolphin directory.
 
-Oculus Rift DK1 to DK2, and HTC Vive are supported. You need the Oculus 0.6 runtime installed.
+Oculus Rift DK1 to DK2, and HTC Vive are supported. You need the Oculus 0.6 or 0.7 runtime installed.
 Both Direct and Extended modes work now.
 Dolphin performs best if it is the only monitor connected to the desktop, but that
 also makes the menus more difficult to use.
