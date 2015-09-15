@@ -359,6 +359,14 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::DirectRead<u16>(&m_DisplayControlRegister.Hex),
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
 			UVIDisplayControlRegister tmpConfig(val);
+			if ((m_DisplayControlRegister.ENB ^ tmpConfig.ENB) ||
+			    tmpConfig.RST)
+			{
+				WARN_LOG(VIDEOINTERFACE,
+				         "VI-LOGGING: %04hx -> %04hx [PC: %08x Title: %02hhx%02hhx%02hhx%02hhx]",
+				         m_DisplayControlRegister.Hex, val, PC,
+				         Memory::m_pRAM[0], Memory::m_pRAM[1], Memory::m_pRAM[2], Memory::m_pRAM[3]);
+			}
 			m_DisplayControlRegister.ENB = tmpConfig.ENB;
 			m_DisplayControlRegister.NIN = tmpConfig.NIN;
 			m_DisplayControlRegister.DLR = tmpConfig.DLR;
