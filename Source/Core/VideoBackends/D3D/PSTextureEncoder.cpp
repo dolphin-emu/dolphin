@@ -152,9 +152,10 @@ void PSTextureEncoder::Encode(u8* dst, const TextureCache::TCacheEntryBase *text
 		CHECK(SUCCEEDED(hr), "map staging buffer (0x%x)", hr);
 
 		u8* src = (u8*)map.pData;
+		u32 readStride = std::min(texture_entry->CacheLinesPerRow() * 32, map.RowPitch);
 		for (unsigned int y = 0; y < texture_entry->NumBlocksY(); ++y)
 		{
-			memcpy(dst, src, texture_entry->CacheLinesPerRow() * 32);
+			memcpy(dst, src, readStride);
 			dst += texture_entry->memory_stride;
 			src += map.RowPitch;
 		}
