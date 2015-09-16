@@ -17,15 +17,16 @@
 // the only way to invalidate a region is the "icbi" instruction
 #define JIT_UNLIMITED_ICACHE
 
-#define JIT_ICACHE_SIZE 0x2000000
-#define JIT_ICACHE_MASK 0x1ffffff
-#define JIT_ICACHEEX_SIZE 0x4000000
-#define JIT_ICACHEEX_MASK 0x3ffffff
-#define JIT_ICACHE_EXRAM_BIT 0x10000000
-#define JIT_ICACHE_VMEM_BIT 0x20000000
-// this corresponds to opcode 5 which is invalid in PowerPC
-#define JIT_ICACHE_INVALID_BYTE 0x80
-#define JIT_ICACHE_INVALID_WORD 0x80808080
+static const u32 JIT_ICACHE_SIZE = 0x2000000;
+static const u32 JIT_ICACHE_MASK = 0x1ffffff;
+static const u32 JIT_ICACHEEX_SIZE = 0x4000000;
+static const u32 JIT_ICACHEEX_MASK = 0x3ffffff;
+static const u32 JIT_ICACHE_EXRAM_BIT = 0x10000000;
+static const u32 JIT_ICACHE_VMEM_BIT  = 0x20000000;
+
+// This corresponds to opcode 5 which is invalid in PowerPC
+static const u32 JIT_ICACHE_INVALID_BYTE = 0x80;
+static const u32 JIT_ICACHE_INVALID_WORD = 0x80808080;
 
 struct JitBlock
 {
@@ -116,7 +117,7 @@ class JitBaseBlockCache
 	void LinkBlock(int i);
 	void UnlinkBlock(int i);
 
-	u32* GetICachePtr(u32 addr);
+	u8* GetICachePtr(u32 addr);
 	void DestroyBlock(int block_num, bool invalidate);
 
 	// Virtual for overloaded
