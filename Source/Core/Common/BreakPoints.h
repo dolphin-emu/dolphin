@@ -79,7 +79,6 @@ public:
 
 private:
 	TBreakPoints m_BreakPoints;
-	u32 m_iBreakOnCount;
 };
 
 
