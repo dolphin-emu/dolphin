@@ -77,23 +77,19 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 			continue;
 		}
 
+		const u8* data = GetBlockData(block);
+		if (!data)
+			return false;
+
 		u32 toCopy = m_blocksize - positionInBlock;
 		if (toCopy >= remain)
 		{
-			const u8* data = GetBlockData(block);
-			if (!data)
-				return false;
-
 			// Yay, we are done!
 			memcpy(out_ptr, data + positionInBlock, (size_t)remain);
 			return true;
 		}
 		else
 		{
-			const u8* data = GetBlockData(block);
-			if (!data)
-				return false;
-
 			memcpy(out_ptr, data + positionInBlock, toCopy);
 			out_ptr += toCopy;
 			remain -= toCopy;
