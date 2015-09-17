@@ -31,6 +31,13 @@ __forceinline void TriangleDither(float& sample, float& prev_dither)
 	prev_dither = dither;
 }
 
+static constexpr u32 MAX_SAMPLES = 2048;
+static constexpr u32 INDEX_MASK = MAX_SAMPLES * 2 - 1;
+static constexpr float LOW_WATERMARK = 1280.0f;
+static constexpr float MAX_FREQ_SHIFT = 200.0f;
+static constexpr float CONTROL_FACTOR = 0.2f;
+static constexpr float CONTROL_AVG = 32.0f;
+
 class CMixer {
 public:
 	CMixer(u32 BackendSampleRate)
@@ -46,13 +53,6 @@ public:
 	{
 		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
 	}
-
-	static constexpr u32 MAX_SAMPLES = 2048;
-	static constexpr u32 INDEX_MASK = MAX_SAMPLES * 2 - 1;
-	static constexpr float LOW_WATERMARK = 1280.0f;
-	static constexpr float MAX_FREQ_SHIFT = 200.0f;
-	static constexpr float CONTROL_FACTOR = 0.2f;
-	static constexpr float CONTROL_AVG = 32.0f;
 
 	// Called from audio threads
 	u32 Mix(s16* samples, u32 numSamples, bool consider_framelimit = true);
