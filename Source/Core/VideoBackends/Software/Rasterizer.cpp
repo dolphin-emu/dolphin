@@ -7,7 +7,6 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/HwRasterizer.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWStatistics.h"
@@ -331,12 +330,6 @@ static inline void PrepareBlock(s32 blockX, s32 blockY)
 void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
 {
 	INCSTAT(swstats.thisFrame.numTrianglesDrawn);
-
-	if (g_SWVideoConfig.bHwRasterizer && !BoundingBox::active)
-	{
-		HwRasterizer::DrawTriangleFrontFace(v0, v1, v2);
-		return;
-	}
 
 	// adapted from http://devmaster.net/posts/6145/advanced-rasterization
 
