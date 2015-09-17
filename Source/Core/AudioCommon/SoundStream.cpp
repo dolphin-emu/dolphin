@@ -14,18 +14,16 @@
 #ifdef __APPLE__
 #undef BOOL
 #endif
-#include "Core/Core.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/DPL2Decoder.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/SystemTimers.h"
 
-#include "AudioCommon/AudioCommon.h"
-#include "AudioCommon/DPL2Decoder.h"
-#include "AudioCommon/SoundStream.h"
-
-#include "Common/MathUtil.h"
-
-void SoundStream::StartLogAudio(const char *filename) {
+void SoundStream::StartLogAudio(const char *filename)
+{
 	if (!m_logAudio) {
 		m_logAudio = true;
 		g_wave_writer.Start(filename, GetMixer()->GetSampleRate());
@@ -37,7 +35,8 @@ void SoundStream::StartLogAudio(const char *filename) {
 	}
 }
 
-void SoundStream::StopLogAudio() {
+void SoundStream::StopLogAudio()
+{
 	if (m_logAudio) {
 		m_logAudio = false;
 		g_wave_writer.Stop();
@@ -73,7 +72,7 @@ alignas(16) static short realtimeBuffer[SOUND_MAX_FRAME_SIZE];
 alignas(16) static soundtouch::SAMPLETYPE dpl2buffer[SOUND_MAX_FRAME_SIZE];
 alignas(16) static soundtouch::SAMPLETYPE samplebuffer[SOUND_MAX_FRAME_SIZE];
 
-float s_dither_prev[SOUND_SAMPLES_SURROUND];
+static float s_dither_prev[SOUND_SAMPLES_SURROUND];
 
 __forceinline void floatTos16(s16* dst, const float *src, u32 numsamples, u32 numchannels)
 {

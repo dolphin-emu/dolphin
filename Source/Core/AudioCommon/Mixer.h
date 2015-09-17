@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <atomic>
 #include <array>
+#include <atomic>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -18,7 +18,7 @@ const float rndrcp = 8.f / float(RAND_MAX);
 #define DITHER_NOISE ((rand() * rndrcp) - 4.f)
 
 // converts [-32768, 32767] -> [-1.0, 1.0)
-__forceinline float Signed16ToFloat(const s16 s)
+constexpr float Signed16ToFloat(const s16 s)
 {
 	return s * 0.000030517578125f;
 }
@@ -26,13 +26,12 @@ __forceinline float Signed16ToFloat(const s16 s)
 // we NEED dithering going from float -> 16bit
 __forceinline void TriangleDither(float& sample, float& prev_dither)
 {
-	float dither = DITHER_NOISE;	
+	float dither = DITHER_NOISE;
 	sample += dither - prev_dither;
 	prev_dither = dither;
 }
 
 class CMixer {
-
 public:
 	CMixer(u32 BackendSampleRate)
 		: m_dma_mixer(this, 32000)
@@ -48,23 +47,21 @@ public:
 		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
 	}
 
-	static const u32 MAX_SAMPLES = 2048;
-	static const u32 INDEX_MASK = MAX_SAMPLES * 2 - 1;
-	static const float LOW_WATERMARK;
-	static const float MAX_FREQ_SHIFT;
-	static const float CONTROL_FACTOR;
-	static const float CONTROL_AVG;
-
-	virtual ~CMixer() {}
+	static constexpr u32 MAX_SAMPLES = 2048;
+	static constexpr u32 INDEX_MASK = MAX_SAMPLES * 2 - 1;
+	static constexpr float LOW_WATERMARK = 1280.0f;
+	static constexpr float MAX_FREQ_SHIFT = 200.0f;
+	static constexpr float CONTROL_FACTOR = 0.2f;
+	static constexpr float CONTROL_AVG = 32.0f;
 
 	// Called from audio threads
 	u32 Mix(s16* samples, u32 numSamples, bool consider_framelimit = true);
 	u32 Mix(float* samples, u32 numSamples, bool consider_framelimit = true);
 	u32 AvailableSamples();
 	// Called from main thread
-	virtual void PushSamples(const s16* samples, u32 num_samples);
-	virtual void PushStreamingSamples(const s16* samples, u32 num_samples);
-	virtual void PushWiimoteSpeakerSamples(const s16* samples, u32 num_samples, u32 sample_rate);
+	void PushSamples(const s16* samples, u32 num_samples);
+	void PushStreamingSamples(const s16* samples, u32 num_samples);
+	void PushWiimoteSpeakerSamples(const s16* samples, u32 num_samples, u32 sample_rate);
 	u32 GetSampleRate() const { return m_sample_rate; }
 
 	void SetDMAInputSampleRate(u32 rate);
@@ -159,7 +156,6 @@ protected:
 	std::atomic<float> m_speed; // Current rate of the emulation (1.0 = 100% speed)
 
 private:
-
 	std::vector<float> m_output_buffer;
 	float m_l_dither_prev;
 	float m_r_dither_prev;

@@ -15,14 +15,11 @@ class NullSound final : public SoundStream
 	short realtimeBuffer[BUF_SIZE / sizeof(short)];
 
 public:
-	NullSound()
-	{}
-
 	virtual ~NullSound() {}
 
 	virtual bool Start() override;
-	virtual void SetVolume(int volume) override;
-	virtual void Stop() override;
+	virtual void SetVolume(int volume) override {};
+	virtual void Stop() override {};
 	virtual void Clear(bool mute) override;
 	static bool isValid() { return true; }
 	virtual void Update() override;

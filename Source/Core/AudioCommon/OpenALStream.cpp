@@ -5,10 +5,7 @@
 #include "AudioCommon/aldlist.h"
 #include "AudioCommon/DPL2Decoder.h"
 #include "AudioCommon/OpenALStream.h"
-#include "Core/Core.h"
 #include "Core/ConfigManager.h"
-
-
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
@@ -105,7 +102,11 @@ void OpenALStream::Clear(bool mute)
 void OpenALStream::InitializeSoundLoop()
 {
 	bool surroundsupported = SupportSurroundOutput();
+#if defined(__APPLE__) // Apple doesn't even define the AL_FORMAT_51CHN16 enum
+	format = AL_FORMAT_STEREO16;
+#else
 	format = surroundsupported ? AL_FORMAT_51CHN16 : AL_FORMAT_STEREO16;
+#endif
 	samplesize = surroundsupported ? SOUND_SAMPLES_SURROUND : SOUND_SAMPLES_STEREO;
 	ulFrequency = m_mixer->GetSampleRate();
 	numBuffers = SConfig::GetInstance().iLatency + SOUND_BUFFER_COUNT; // OpenAL requires a minimum of two buffers
@@ -118,13 +119,12 @@ void OpenALStream::InitializeSoundLoop()
 	alGenBuffers(numBuffers, (ALuint *)uiBuffers);
 	// Set the default sound volume as saved in the config file.
 	alSourcef(uiSource, AL_GAIN, fVolume);
-	s16* temp = new s16[SOUND_FRAME_SIZE * samplesize];
-	memset(temp, 0, SOUND_FRAME_SIZE * samplesize* sizeof(u16));
+	auto temp = std::make_unique<s16[]>(SOUND_FRAME_SIZE * samplesize);
+	memset(temp.get(), 0, SOUND_FRAME_SIZE * samplesize* sizeof(u16));
 	for (u8 i = 0; i < numBuffers; i++)
 	{
-		alBufferData(uiBuffers[i], format, temp, SOUND_FRAME_SIZE * samplesize* sizeof(u16), ulFrequency);
+		alBufferData(uiBuffers[i], format, temp.get(), SOUND_FRAME_SIZE * samplesize* sizeof(u16), ulFrequency);
 	}
-	delete[] temp;
 	alSourceQueueBuffers(uiSource, numBuffers, uiBuffers);
 	alSourcePlay(uiSource);
 }
@@ -157,12 +157,10 @@ void OpenALStream::WriteSamples(s16 *src, u32 numsamples)
 
 bool OpenALStream::SupportSurroundOutput()
 {
-	bool surround_capable = SConfig::GetInstance().bDPL2Decoder;
-#if defined(__APPLE__)
-	surround_capable = false;
-#endif	
-	return surround_capable;
+#if defined(__APPLE__) // Apple doesn't do surround sound.
+	return false;
+#endif
+	return SConfig::GetInstance().bDPL2Decoder;
 }
 
 #endif //HAVE_OPENAL
-

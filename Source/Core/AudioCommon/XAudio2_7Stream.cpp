@@ -9,9 +9,9 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/XAudio2_7Stream.h"
-#include "Core/Core.h"
-#include "Core/ConfigManager.h"
 #include "Common/Event.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
 
 struct StreamingVoiceContext2_7 : public IXAudio2VoiceCallback
 {
@@ -245,8 +245,7 @@ void XAudio2_7::WriteSamples(s16 *src, u32 numsamples)
 
 bool XAudio2_7::SupportSurroundOutput()
 {
-	bool surround_capable = SConfig::GetInstance().bDPL2Decoder;
-	return surround_capable;
+	return SConfig::GetInstance().bDPL2Decoder;
 }
 
 void XAudio2_7::SetVolume(int volume)

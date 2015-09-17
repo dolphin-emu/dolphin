@@ -5,9 +5,8 @@
 #include <xaudio2.h>
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/XAudio2Stream.h"
-#include "Core/Core.h"
-#include "Core/ConfigManager.h"
 #include "Common/Event.h"
+#include "Core/ConfigManager.h"
 
 struct StreamingVoiceContext : public IXAudio2VoiceCallback
 {

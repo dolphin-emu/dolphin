@@ -5,11 +5,9 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Mixer.h"
-#include "Common/Atomic.h"
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/VideoInterface.h"
 
@@ -20,11 +18,6 @@
 #include <tmmintrin.h>
 #endif
 
-const float CMixer::LOW_WATERMARK = 1280;
-const float CMixer::MAX_FREQ_SHIFT = 200;
-const float CMixer::CONTROL_FACTOR = 0.2f;
-const float CMixer::CONTROL_AVG = 32;
-
 void CMixer::LinearMixerFifo::Interpolate(u32 left_input_index, float* left_output, float* right_output)
 {
 	*left_output = (1 - m_fraction) * m_float_buffer[left_input_index & INDEX_MASK]
@@ -34,22 +27,24 @@ void CMixer::LinearMixerFifo::Interpolate(u32 left_input_index, float* left_outp
 }
 
 static const float _coeffs[] =
-{ -0.5f,  1.0f, -0.5f, 0.0f,
-   1.5f, -2.5f,  0.0f, 1.0f,
-  -1.5f,  2.0f,  0.5f, 0.0f,
-   0.5f, -0.5f,  0.0f, 0.0f };
+{
+	-0.5f,  1.0f, -0.5f,  0.0f,
+	 1.5f, -2.5f,  0.0f,  1.0f,
+	-1.5f,  2.0f,  0.5f,  0.0f,
+	 0.5f, -0.5f,  0.0f,  0.0f,
+};
 
 void CMixer::CubicMixerFifo::Interpolate(u32 left_input_index, float* left_output, float* right_output)
 {
 	const float x2 = m_fraction; // x
-	const float x1 = x2*x2;      // x^2
-	const float x0 = x1*x2;      // x^3
+	const float x1 = x2 * x2;    // x^2
+	const float x0 = x1 * x2;    // x^3
 
 	float y0 = _coeffs[0] * x0 + _coeffs[1] * x1 + _coeffs[2] * x2 + _coeffs[3];
 	float y1 = _coeffs[4] * x0 + _coeffs[5] * x1 + _coeffs[6] * x2 + _coeffs[7];
 	float y2 = _coeffs[8] * x0 + _coeffs[9] * x1 + _coeffs[10] * x2 + _coeffs[11];
 	float y3 = _coeffs[12] * x0 + _coeffs[13] * x1 + _coeffs[14] * x2 + _coeffs[15];
-	
+
 	*left_output = y0 * m_float_buffer[left_input_index & INDEX_MASK]
 		+ y1 * m_float_buffer[(left_input_index + 2) & INDEX_MASK]
 		+ y2 * m_float_buffer[(left_input_index + 4) & INDEX_MASK]
@@ -173,7 +168,7 @@ u32 CMixer::Mix(float* samples, u32 num_samples, bool consider_framelimit)
 	memset(samples, 0, num_samples * 2 * sizeof(float));
 	if (PowerPC::GetState() != PowerPC::CPU_RUNNING)
 	{
-		// Silence		
+		// Silence
 		return num_samples;
 	}
 	m_dma_mixer.Mix(samples, num_samples, consider_framelimit);
