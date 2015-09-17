@@ -5,7 +5,7 @@ set(SRCS	AudioCommon.cpp
 			SoundStream.cpp
 			NullSoundStream.cpp)
 
-set(LIBS "")
+set(LIBS "SoundTouch")
 
 if(ANDROID)
 	set(SRCS ${SRCS} OpenSLESStream.cpp)
@@ -24,7 +24,7 @@ endif(AO_FOUND)
 
 if(OPENAL_FOUND)
 	set(SRCS ${SRCS} OpenALStream.cpp aldlist.cpp)
-	set(LIBS ${LIBS} ${OPENAL_LIBRARY} SoundTouch )
+	set(LIBS ${LIBS} ${OPENAL_LIBRARY})
 endif(OPENAL_FOUND)
 
 if(PULSEAUDIO_FOUND)
