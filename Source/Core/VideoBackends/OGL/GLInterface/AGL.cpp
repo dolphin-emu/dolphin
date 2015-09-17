@@ -15,7 +15,7 @@ void cInterfaceAGL::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceAGL::Create(void *window_handle)
+bool cInterfaceAGL::Create(void *window_handle, bool core)
 {
 	cocoaWin = reinterpret_cast<NSView*>(window_handle);
 	NSSize size = [cocoaWin frame].size;
@@ -33,7 +33,7 @@ bool cInterfaceAGL::Create(void *window_handle)
 	s_backbuffer_width = size.width;
 	s_backbuffer_height = size.height;
 
-	NSOpenGLPixelFormatAttribute attr[] = { NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core, NSOpenGLPFAAccelerated, 0 };
+	NSOpenGLPixelFormatAttribute attr[] = { NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile, core ? NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy, NSOpenGLPFAAccelerated, 0 };
 	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]
 		initWithAttributes: attr];
 	if (fmt == nil)

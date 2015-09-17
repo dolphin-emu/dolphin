@@ -23,7 +23,7 @@ public:
 	void SwapInterval(int Interval) override;
 	void Swap() override;
 	void* GetFuncAddress(const std::string& name) override;
-	bool Create(void *window_handle) override;
+	bool Create(void *window_handle, bool core) override;
 	bool MakeCurrent() override;
 	bool ClearCurrent() override;
 	void Shutdown() override;
