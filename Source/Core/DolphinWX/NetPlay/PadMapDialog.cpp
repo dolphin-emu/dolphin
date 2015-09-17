@@ -12,7 +12,7 @@
 #include "DolphinWX/NetPlay/PadMapDialog.h"
 
 PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client)
-	: wxDialog(parent, wxID_ANY, _("Configure Pads"))
+	: wxDialog(parent, wxID_ANY, _("Controller Ports"))
 	, m_pad_mapping(server->GetPadMapping())
 	, m_wii_mapping(server->GetWiimoteMapping())
 	, m_player_list(client->GetPlayers())
@@ -28,7 +28,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
 	for (unsigned int i = 0; i < 4; ++i)
 	{
 		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Pad ")) + (wxChar)('0' + i))),
+		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("GC Port ")) + (wxChar)('1' + i))),
 			1, wxALIGN_CENTER_HORIZONTAL);
 
 		m_map_cbox[i] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
@@ -55,7 +55,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
 	for (unsigned int i = 0; i < 4; ++i)
 	{
 		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Wiimote ")) + (wxChar)('0' + i))),
+		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Wiimote ")) + (wxChar)('1' + i))),
 			1, wxALIGN_CENTER_HORIZONTAL);
 
 		m_map_cbox[i + 4] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
