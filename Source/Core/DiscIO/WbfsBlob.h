@@ -48,15 +48,21 @@ private:
 	u64 m_size;
 
 	u64 m_hd_sector_size;
-	u8 m_hd_sector_shift;
-	u32 m_hd_sector_count;
-
 	u64 m_wbfs_sector_size;
-	u8 m_wbfs_sector_shift;
 	u64 m_wbfs_sector_count;
 	u64 m_disc_info_size;
 
-	u8 m_disc_table[500];
+#pragma pack(1)
+	struct WbfsHeader
+	{
+		char magic[4];
+		u32 hd_sector_count;
+		u8 hd_sector_shift;
+		u8 wbfs_sector_shift;
+		u8 padding[2];
+		u8 disc_table[500];
+	} m_header;
+#pragma pack()
 
 	u16* m_wlba_table;
 	u64 m_blocks_per_disc;
