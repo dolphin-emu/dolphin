@@ -13,10 +13,6 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-// emulate CPU with unlimited instruction cache
-// the only way to invalidate a region is the "icbi" instruction
-#define JIT_UNLIMITED_ICACHE
-
 static const u32 JIT_ICACHE_SIZE = 0x2000000;
 static const u32 JIT_ICACHE_MASK = 0x1ffffff;
 static const u32 JIT_ICACHEEX_SIZE = 0x4000000;
