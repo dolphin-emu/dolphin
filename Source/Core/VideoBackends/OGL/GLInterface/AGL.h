@@ -17,7 +17,7 @@ private:
 	NSOpenGLContext *cocoaCtx;
 public:
 	void Swap();
-	bool Create(void *window_handle);
+	bool Create(void *window_handle, bool core);
 	bool MakeCurrent();
 	bool ClearCurrent();
 	void Shutdown();
