@@ -20,7 +20,6 @@ struct SWVideoConfig : NonCopyable
 	bool bHideCursor;
 	bool renderToMainframe;
 
-	bool bHwRasterizer;
 	bool bBypassXFB;
 
 	// Emulation features
