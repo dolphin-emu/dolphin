@@ -311,22 +311,6 @@ static void BuildBlock(s32 blockX, s32 blockY)
 	}
 }
 
-static inline void PrepareBlock(s32 blockX, s32 blockY)
-{
-	static s32 x = -1;
-	static s32 y = -1;
-
-	blockX &= ~(BLOCK_SIZE - 1);
-	blockY &= ~(BLOCK_SIZE - 1);
-
-	if (x != blockX || y != blockY)
-	{
-		x = blockX;
-		y = blockY;
-		BuildBlock(x, y);
-	}
-}
-
 void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
 {
 	INCSTAT(swstats.thisFrame.numTrianglesDrawn);
