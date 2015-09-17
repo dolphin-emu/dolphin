@@ -360,13 +360,13 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	const s32 DY31 = Y3 - Y1;
 
 	// Fixed-pos32 deltas
-	const s32 FDX12 = DX12 << 4;
-	const s32 FDX23 = DX23 << 4;
-	const s32 FDX31 = DX31 << 4;
+	const s32 FDX12 = DX12 * 16;
+	const s32 FDX23 = DX23 * 16;
+	const s32 FDX31 = DX31 * 16;
 
-	const s32 FDY12 = DY12 << 4;
-	const s32 FDY23 = DY23 << 4;
-	const s32 FDY31 = DY31 << 4;
+	const s32 FDY12 = DY12 * 16;
+	const s32 FDY23 = DY23 * 16;
+	const s32 FDY31 = DY31 * 16;
 
 	// Bounding rectangle
 	s32 minx = (std::min(std::min(X1, X2), X3) + 0xF) >> 4;
