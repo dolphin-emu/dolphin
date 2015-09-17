@@ -30,7 +30,7 @@ class FarCodeCache : public Gen::X64CodeBlock
 private:
 	bool m_enabled = false;
 public:
-	bool Enabled() { return m_enabled; }
+	bool Enabled() const { return m_enabled; }
 	void Init(int size) { AllocCodeSpace(size); m_enabled = true; }
 	void Shutdown() { FreeCodeSpace(); m_enabled = false; }
 };
