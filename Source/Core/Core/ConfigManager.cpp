@@ -40,7 +40,7 @@ SConfig::SConfig()
   bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
   bEnableMemcardSdWriting(true),
-  bDPL2Decoder(false), iLatency(14),
+  bDPL2Decoder(false), bTimeStretching(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
   bMMU(false), bDCBZOFF(false),
   iBBDumpPort(0),
@@ -238,6 +238,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("SelectedLanguage", SelectedLanguage);
 	core->Set("OverrideGCLang", bOverrideGCLanguage);
 	core->Set("DPL2Decoder", bDPL2Decoder);
+	core->Set("TimeStretching", bTimeStretching);
+	core->Set("WiiSpeakSupport", bWiiSpeakSupport);
 	core->Set("Latency", iLatency);
 	core->Set("MemcardAPath", m_strMemoryCardA);
 	core->Set("MemcardBPath", m_strMemoryCardB);
@@ -489,6 +491,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("SelectedLanguage",  &SelectedLanguage, 0);
 	core->Get("OverrideGCLang",    &bOverrideGCLanguage, false);
 	core->Get("DPL2Decoder",       &bDPL2Decoder, false);
+	core->Get("TimeStretching",    &bTimeStretching, false);
+	core->Get("WiiSpeakSupport",    &bWiiSpeakSupport, false);
 	core->Get("Latency",           &iLatency, 2);
 	core->Get("MemcardAPath",      &m_strMemoryCardA);
 	core->Get("MemcardBPath",      &m_strMemoryCardB);
@@ -603,6 +607,7 @@ void SConfig::LoadDefaults()
 	bMMU = false;
 	bDCBZOFF = false;
 	iBBDumpPort = -1;
+	bDoubleVideoRate = false;
 	bSyncGPU = false;
 	bFastDiscSpeed = false;
 	bEnableMemcardSdWriting = true;
@@ -610,6 +615,8 @@ void SConfig::LoadDefaults()
 	bOverrideGCLanguage = false;
 	bWii = false;
 	bDPL2Decoder = false;
+	bTimeStretching = false;
+	bWiiSpeakSupport = false;
 	iLatency = 14;
 
 	iPosX = 100;

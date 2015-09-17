@@ -2,6 +2,7 @@ set(SRCS	AudioCommon.cpp
 			DPL2Decoder.cpp
 			Mixer.cpp
 			WaveFile.cpp
+			SoundStream.cpp
 			NullSoundStream.cpp)
 
 set(LIBS "")

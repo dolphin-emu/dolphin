@@ -18,6 +18,7 @@
 #define BACKEND_ALSA        "ALSA"
 #define BACKEND_AOSOUND     "AOSound"
 #define BACKEND_COREAUDIO   "CoreAudio"
+#define BACKEND_DIRECTSOUND "DSound"
 #define BACKEND_OPENAL      "OpenAL"
 #define BACKEND_PULSEAUDIO  "Pulse"
 #define BACKEND_XAUDIO2     "XAudio2"
@@ -90,6 +91,8 @@ struct SConfig : NonCopyable
 	bool bEnableMemcardSdWriting;
 
 	bool bDPL2Decoder;
+	bool bTimeStretching;
+	bool bWiiSpeakSupport;
 	int iLatency;
 
 	bool bRunCompareServer;
@@ -98,6 +101,7 @@ struct SConfig : NonCopyable
 	bool bMMU;
 	bool bDCBZOFF;
 	int iBBDumpPort;
+	bool bDoubleVideoRate;
 	bool bFastDiscSpeed;
 
 	bool bSyncGPU;
