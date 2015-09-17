@@ -51,6 +51,11 @@ WbfsFileReader::~WbfsFileReader()
 	delete[] m_wlba_table;
 }
 
+u64 WbfsFileReader::GetDataSize() const
+{
+	return WII_SECTOR_COUNT * WII_SECTOR_SIZE;
+}
+
 bool WbfsFileReader::OpenFiles(const std::string& filename)
 {
 	m_total_files = 0;
