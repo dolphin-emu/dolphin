@@ -39,6 +39,8 @@ WbfsFileReader::WbfsFileReader(const std::string& filename)
 	m_wlba_table = new u16[m_blocks_per_disc];
 	m_files[0]->file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/, SEEK_SET);
 	m_files[0]->file.ReadBytes(m_wlba_table, m_blocks_per_disc * sizeof(u16));
+	for (size_t i = 0; i < m_blocks_per_disc; i++)
+		m_wlba_table[i] = Common::swap16(m_wlba_table[i]);
 }
 
 WbfsFileReader::~WbfsFileReader()
@@ -143,7 +145,7 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
 	u64 base_cluster = (offset >> m_wbfs_sector_shift);
 	if (base_cluster < m_blocks_per_disc)
 	{
-		u64 cluster_address = m_wbfs_sector_size * Common::swap16(m_wlba_table[base_cluster]);
+		u64 cluster_address = m_wbfs_sector_size * m_wlba_table[base_cluster];
 		u64 cluster_offset = offset & (m_wbfs_sector_size - 1);
 		u64 final_address = cluster_address + cluster_offset;
 
