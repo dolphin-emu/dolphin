@@ -836,5 +836,5 @@ enum
 	EXCEPTION_FAKE_MEMCHECK_HIT   = 0x00000200,
 };
 
-inline s32 SignExt16(s16 x) {return (s32)(s16)x;}
-inline s32 SignExt26(u32 x) {return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)(x);}
+constexpr s32 SignExt16(s16 x) {return (s32)x;}
+constexpr s32 SignExt26(u32 x) {return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)(x);}
