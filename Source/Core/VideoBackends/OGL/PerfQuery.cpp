@@ -2,8 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/OGL/GLInterfaceBase.h"
-#include "VideoBackends/OGL/GLUtil.h"
+#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLUtil.h"
+
 #include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoCommon/RenderBase.h"
 

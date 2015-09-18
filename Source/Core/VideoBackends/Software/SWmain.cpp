@@ -8,6 +8,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLUtil.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
@@ -16,9 +19,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
 
-#include "VideoBackends/OGL/GLInterfaceBase.h"
-#include "VideoBackends/OGL/GLUtil.h"
-#include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/DebugUtil.h"

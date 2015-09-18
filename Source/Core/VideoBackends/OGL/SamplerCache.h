@@ -6,7 +6,8 @@
 
 #include <map>
 
-#include "VideoBackends/OGL/GLUtil.h"
+#include "Common/GL/GLUtil.h"
+
 #include "VideoBackends/OGL/Render.h"
 
 namespace OGL

@@ -6,8 +6,9 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Common/GL/GLUtil.h"
+
 #include "VideoBackends/OGL/FramebufferManager.h"
-#include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
