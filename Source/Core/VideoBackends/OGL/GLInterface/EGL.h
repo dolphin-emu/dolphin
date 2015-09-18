@@ -26,7 +26,7 @@ public:
 	void Swap();
 	void SetMode(u32 mode) { s_opengl_mode = mode; }
 	void* GetFuncAddress(const std::string& name);
-	bool Create(void *window_handle, bool core);
+	bool Create(void *window_handle);
 	bool MakeCurrent();
 	bool ClearCurrent();
 	void Shutdown();

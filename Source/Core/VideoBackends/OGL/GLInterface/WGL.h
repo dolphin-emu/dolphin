@@ -13,7 +13,7 @@ public:
 	void SwapInterval(int Interval);
 	void Swap();
 	void* GetFuncAddress(const std::string& name);
-	bool Create(void *window_handle, bool core);
+	bool Create(void *window_handle);
 	bool MakeCurrent();
 	bool ClearCurrent();
 	void Shutdown();
