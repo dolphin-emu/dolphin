@@ -70,30 +70,30 @@ private:
 
 	int use_ctr;
 private:
-	//find a free host reg
-	Gen::X64Reg findFreeXReg();
-	Gen::X64Reg spillXReg();
-	Gen::X64Reg findSpillFreeXReg();
-	void spillXReg(Gen::X64Reg reg);
+	// Find a free host reg
+	Gen::X64Reg FindFreeXReg();
+	Gen::X64Reg SpillXReg();
+	Gen::X64Reg FindSpillFreeXReg();
+	void SpillXReg(Gen::X64Reg reg);
 
-	void movToHostReg(size_t reg, Gen::X64Reg host_reg, bool load);
-	void movToHostReg(size_t reg, bool load);
-	void rotateHostReg(size_t reg, int shift, bool emit);
-	void movToMemory(size_t reg);
-	void flushMemBackedRegs();
+	void MovToHostReg(size_t reg, Gen::X64Reg host_reg, bool load);
+	void MovToHostReg(size_t reg, bool load);
+	void RotateHostReg(size_t reg, int shift, bool emit);
+	void MovToMemory(size_t reg);
+	void FlushMemBackedRegs();
 
 public:
 	DSPJitRegCache(DSPEmitter &_emitter);
 
-	//for branching into multiple control flows
+	// For branching into multiple control flows
 	DSPJitRegCache(const DSPJitRegCache &cache);
 	DSPJitRegCache& operator=(const DSPJitRegCache &cache);
 
 	~DSPJitRegCache();
 
-	//merge must be done _before_ leaving the code branch, so we can fix
-	//up any differences in state
-	void flushRegs(DSPJitRegCache &cache, bool emit = true);
+	// Merge must be done _before_ leaving the code branch, so we can fix
+	// up any differences in state
+	void FlushRegs(DSPJitRegCache &cache, bool emit = true);
 	/* since some use cases are non-trivial, some examples:
 
 	   //this does not modify the final state of gpr
@@ -101,7 +101,7 @@ public:
 	   FixupBranch b = JCC();
 	     DSPJitRegCache c = gpr;
 	     <code using c>
-	     gpr.flushRegs(c);
+	     gpr.FlushRegs(c);
 	   SetBranchTarget(b);
 	   <code using gpr>
 
@@ -110,11 +110,11 @@ public:
 	   DSPJitRegCache c = gpr;
 	   FixupBranch b1 = JCC();
 	     <code using gpr>
-	     gpr.flushRegs(c);
+	     gpr.FlushRegs(c);
 	     FixupBranch b2 = JMP();
 	   SetBranchTarget(b1);
 	     <code using gpr>
-	     gpr.flushRegs(c);
+	     gpr.FlushRegs(c);
 	   SetBranchTarget(b2);
 	   <code using gpr>
 
@@ -127,7 +127,7 @@ public:
 	     FixupBranch b2 = JMP();
 	   SetBranchTarget(b1);
 	     <code using gpr>
-	     gpr.flushRegs(c);
+	     gpr.FlushRegs(c);
 	   SetBranchTarget(b2);
 	   <code using gpr>
 
@@ -136,43 +136,44 @@ public:
 	   u8* b = GetCodePtr();
 	     DSPJitRegCache c = gpr;
 	     <code using gpr>
-	     gpr.flushRegs(c);
+	     gpr.FlushRegs(c);
 	     JCC(b);
 	   <code using gpr>
 
 	   this all is not needed when gpr would not be used at all in the
 	   conditional branch
 	 */
-	//drop this copy without warning
-	void drop();
 
-	//prepare state so that another flushed DSPJitRegCache can take over
-	void flushRegs();
+	// Drop this copy without warning
+	void Drop();
 
-	void loadRegs(bool emit=true);//load statically allocated regs from memory
-	void saveRegs();//save statically allocated regs to memory
+	// Prepare state so that another flushed DSPJitRegCache can take over
+	void FlushRegs();
 
-	void pushRegs();//save registers before abi call
-	void popRegs();//restore registers after abi call
+	void LoadRegs(bool emit = true);// Load statically allocated regs from memory
+	void SaveRegs(); // Save statically allocated regs to memory
 
-	//returns a register with the same contents as reg that is safe
-	//to use through saveStaticRegs and for ABI-calls
-	Gen::X64Reg makeABICallSafe(Gen::X64Reg reg);
+	void PushRegs();// Save registers before ABI call
+	void PopRegs(); // Restore registers after ABI call
 
-	//gives no SCALE_RIP with abs(offset) >= 0x80000000
-	//32/64 bit writes allowed when the register has a _64 or _32 suffix
-	//only 16 bit writes allowed without any suffix.
-	void getReg(int reg, Gen::OpArg &oparg, bool load = true);
-	//done with all usages of OpArg above
-	void putReg(int reg, bool dirty = true);
+	// Returns a register with the same contents as reg that is safe
+	// to use through saveStaticRegs and for ABI-calls
+	Gen::X64Reg MakeABICallSafe(Gen::X64Reg reg);
 
-	void readReg(int sreg, Gen::X64Reg host_dreg, DSPJitSignExtend extend);
-	void writeReg(int dreg, Gen::OpArg arg);
+	// Gives no SCALE_RIP with abs(offset) >= 0x80000000
+	// 32/64 bit writes allowed when the register has a _64 or _32 suffix
+	// only 16 bit writes allowed without any suffix.
+	void GetReg(int reg, Gen::OpArg &oparg, bool load = true);
+	// Done with all usages of OpArg above
+	void PutReg(int reg, bool dirty = true);
 
-	//find a free host reg, spill if used, reserve
-	void getFreeXReg(Gen::X64Reg &reg);
-	//spill a specific host reg if used, reserve
-	void getXReg(Gen::X64Reg reg);
-	//unreserve the given host reg
-	void putXReg(Gen::X64Reg reg);
+	void ReadReg(int sreg, Gen::X64Reg host_dreg, DSPJitSignExtend extend);
+	void WriteReg(int dreg, Gen::OpArg arg);
+
+	// Find a free host reg, spill if used, reserve
+	void GetFreeXReg(Gen::X64Reg &reg);
+	// Spill a specific host reg if used, reserve
+	void GetXReg(Gen::X64Reg reg);
+	// Unreserve the given host reg
+	void PutXReg(Gen::X64Reg reg);
 };
