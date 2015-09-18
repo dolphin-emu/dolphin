@@ -8,7 +8,6 @@
 #include <EGL/egl.h>
 
 #include "Common/GL/GLInterfaceBase.h"
-#include "Core/ConfigManager.h"
 
 class cInterfaceEGL : public cInterfaceBase
 {

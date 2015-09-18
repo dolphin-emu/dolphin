@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common/GL/GLInterface/EGLAndroid.h"
-#include "Core/Host.h"
 
 EGLDisplay cInterfaceEGLAndroid::OpenDisplay()
 {

@@ -2,10 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLInterface/EGL.h"
-#include "VideoCommon/DriverDetails.h"
-#include "VideoCommon/RenderBase.h"
 
 // Show the current FPS
 void cInterfaceEGL::Swap()
@@ -14,8 +11,7 @@ void cInterfaceEGL::Swap()
 }
 void cInterfaceEGL::SwapInterval(int Interval)
 {
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENVSYNC))
-		eglSwapInterval(egl_dpy, Interval);
+	eglSwapInterval(egl_dpy, Interval);
 }
 
 void* cInterfaceEGL::GetFuncAddress(const std::string& name)
