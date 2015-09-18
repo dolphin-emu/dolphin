@@ -5,9 +5,7 @@
 #include <string>
 
 #include "Common/GL/GLInterface/GLX.h"
-
-#include "VideoCommon/RenderBase.h"
-#include "VideoCommon/VideoConfig.h"
+#include "Common/Logging/Log.h"
 
 #define GLX_CONTEXT_MAJOR_VERSION_ARB       0x2091
 #define GLX_CONTEXT_MINOR_VERSION_ARB       0x2092

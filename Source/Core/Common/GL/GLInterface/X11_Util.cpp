@@ -5,10 +5,7 @@
 #include "Common/Thread.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLInterface/X11_Util.h"
-
-#include "Core/Host.h"
-
-#include "VideoCommon/VideoConfig.h"
+#include "Common/Logging/Log.h"
 
 void cX11Window::Initialize(Display *_dpy)
 {
