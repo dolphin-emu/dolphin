@@ -18,21 +18,6 @@ static VideoBackend* s_default_backend = nullptr;
 #ifdef _WIN32
 #include <windows.h>
 
-// http://msdn.microsoft.com/en-us/library/ms725491.aspx
-static bool IsGteVista()
-{
-	OSVERSIONINFOEX osvi;
-	DWORDLONG dwlConditionMask = 0;
-
-	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-	osvi.dwMajorVersion = 6;
-
-	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL);
-
-	return VerifyVersionInfo(&osvi, VER_MAJORVERSION, dwlConditionMask) != FALSE;
-}
-
 // Nvidia drivers >= v302 will check if the application exports a global
 // variable named NvOptimusEnablement to know if it should run the app in high
 // performance graphics mode or using the IGP.
@@ -48,8 +33,7 @@ void VideoBackend::PopulateList()
 	// OGL > D3D11 > SW
 	g_available_video_backends.push_back(backends[0] = new OGL::VideoBackend);
 #ifdef _WIN32
-	if (IsGteVista())
-		g_available_video_backends.push_back(backends[1] = new DX11::VideoBackend);
+	g_available_video_backends.push_back(backends[1] = new DX11::VideoBackend);
 #endif
 	g_available_video_backends.push_back(backends[3] = new SW::VideoSoftware);
 
