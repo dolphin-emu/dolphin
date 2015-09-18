@@ -3,14 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <string>
+#include <windows.h>
 
 #include "Common/GL/GLInterface/WGL.h"
-
-#include "Core/Host.h"
-
-#include "VideoCommon/RenderBase.h"
-#include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoConfig.h"
+#include "Common/Logging/Log.h"
 
 static HDC hDC = nullptr;       // Private GDI Device Context
 static HGLRC hRC = nullptr;     // Permanent Rendering Context

@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "Common/MathUtil.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
 #ifndef _WIN32

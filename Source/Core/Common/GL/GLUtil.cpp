@@ -2,33 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/IniFile.h"
-#include "Common/StringUtil.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
-
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-
-#include "VideoBackends/OGL/Render.h"
-#include "VideoBackends/OGL/VideoBackend.h"
-
-#include "VideoCommon/VideoConfig.h"
+#include "Common/Logging/Log.h"
 
 cInterfaceBase *GLInterface;
 static GLuint attributelessVAO = 0;
 static GLuint attributelessVBO = 0;
 
-namespace OGL
-{
-
-// Draw messages on top of the screen
-unsigned int VideoBackend::PeekMessages()
-{
-	return GLInterface->PeekMessages();
-}
-
-}
 void InitInterface()
 {
 	GLInterface = HostGL_CreateGLInterface();
