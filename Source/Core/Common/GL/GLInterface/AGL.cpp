@@ -3,10 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/GL/GLInterface/AGL.h"
-
-#include "VideoCommon/RenderBase.h"
-#include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoConfig.h"
+#include "Common/Logging/Log.h"
 
 void cInterfaceAGL::Swap()
 {
