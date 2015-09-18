@@ -44,7 +44,7 @@ void cInterfaceGLX::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceGLX::Create(void *window_handle, bool core)
+bool cInterfaceGLX::Create(void *window_handle)
 {
 	dpy = XOpenDisplay(nullptr);
 	int screen = DefaultScreen(dpy);
@@ -107,13 +107,9 @@ bool cInterfaceGLX::Create(void *window_handle, bool core)
 		GLX_CONTEXT_FLAGS_ARB,         GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
 		None
 	};
-	ctx = nullptr;
-	if (core)
-	{
-		ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs);
-		XSync(dpy, False);
-	}
-	if (core && (!ctx || s_glxError))
+	ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs);
+	XSync(dpy, False);
+	if (!ctx || s_glxError)
 	{
 		int context_attribs_33[] =
 		{

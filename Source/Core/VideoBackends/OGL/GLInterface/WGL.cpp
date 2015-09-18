@@ -57,7 +57,7 @@ bool cInterfaceWGL::PeekMessages()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceWGL::Create(void *window_handle, bool core)
+bool cInterfaceWGL::Create(void *window_handle)
 {
 	if (window_handle == nullptr)
 		return false;

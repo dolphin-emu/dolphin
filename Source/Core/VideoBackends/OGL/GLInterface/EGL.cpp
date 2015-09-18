@@ -96,7 +96,7 @@ void cInterfaceEGL::DetectMode()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceEGL::Create(void *window_handle, bool core)
+bool cInterfaceEGL::Create(void *window_handle)
 {
 	const char *s;
 	EGLint egl_major, egl_minor;

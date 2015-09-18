@@ -78,7 +78,7 @@ bool VideoSoftware::Initialize(void *window_handle)
 
 	InitInterface();
 	GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-	if (!GLInterface->Create(window_handle, false))
+	if (!GLInterface->Create(window_handle))
 	{
 		INFO_LOG(VIDEO, "GLInterface::Create failed.");
 		return false;
