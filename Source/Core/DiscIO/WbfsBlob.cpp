@@ -99,7 +99,7 @@ bool WbfsFileReader::ReadHeader()
 	if (m_wbfs_sector_size < WII_SECTOR_SIZE)
 		return false;
 
-	m_blocks_per_disc = (WII_SECTOR_COUNT * WII_SECTOR_SIZE) / m_wbfs_sector_size;
+	m_blocks_per_disc = (WII_SECTOR_COUNT * WII_SECTOR_SIZE + m_wbfs_sector_size - 1) / m_wbfs_sector_size;
 	m_disc_info_size = align(WII_DISC_HEADER_SIZE + m_blocks_per_disc * sizeof(u16), m_hd_sector_size);
 
 	return m_header.disc_table[0] != 0;
