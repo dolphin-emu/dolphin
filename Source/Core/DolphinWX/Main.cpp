@@ -216,6 +216,11 @@ void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
+			wxCMD_LINE_OPTION, "w", "watch",
+			"port for starting a dolphinWatch server",
+			wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
 			wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
@@ -246,6 +251,7 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
 	m_select_audio_emulation = parser.Found("audio_emulation", &m_audio_emulation_name);
 	m_play_movie = parser.Found("movie", &m_movie_file);
 	parser.Found("user", &m_user_path);
+	m_watch_server = parser.Found("watch", &m_watch_server_port);
 
 	return true;
 }
@@ -279,7 +285,8 @@ bool DolphinApp::DolphinEmulatorDotComTextFileExists()
 void DolphinApp::AfterInit()
 {
 
-	DolphinWatch::Init(6000);
+	if (m_watch_server)
+		DolphinWatch::Init(m_watch_server_port);
 
 	if (!m_batch_mode)
 		main_frame->UpdateGameList();
@@ -370,8 +377,8 @@ void DolphinApp::OnEndSession(wxCloseEvent& event)
 
 int DolphinApp::OnExit()
 {
-
-	DolphinWatch::Shutdown();
+	if (m_watch_server)
+		DolphinWatch::Shutdown();
 
 	Core::Shutdown();
 	UICommon::Shutdown();
