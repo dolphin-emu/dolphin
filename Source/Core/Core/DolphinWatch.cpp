@@ -13,6 +13,7 @@
 #include "Core/Core.h"
 #include "Core/State.h"
 #include "Common\StringUtil.h"
+#include "AudioCommon\AudioCommon.h"
 
 namespace DolphinWatch {
 
@@ -330,6 +331,25 @@ namespace DolphinWatch {
 			State::LoadAs(file);
 
 		}
+		else if (cmd == "VOLUME") {
+
+			int v;
+
+			if (!(parts >> v)) {
+				// no valid parameters, skip
+				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				return;
+			}
+
+			if (v < 0 || v > 100) {
+				// no valid parameters, skip
+				NOTICE_LOG(CONSOLE, "Invalid volume, must be between 0 and 100: %s", line.c_str());
+				return;
+			}
+
+			setVolume(v);
+
+		}
 		else {
 			NOTICE_LOG(CONSOLE, "Unknown command: %s", cmd.c_str());
 		}
@@ -441,4 +461,10 @@ namespace DolphinWatch {
 		socket.send(message.c_str(), message.size());
 		socket.setBlocking(false);
 	}
+
+	void setVolume(int v) {
+		SConfig::GetInstance().m_Volume = v;
+		AudioCommon::UpdateSoundStream();
+	}
+
 }
