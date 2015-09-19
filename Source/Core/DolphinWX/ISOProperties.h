@@ -70,8 +70,12 @@ public:
 
 	bool bRefreshList;
 
+	// These are only public because of the ugly hack in CreateCodeDialog.cpp
 	void ActionReplayList_Load();
 	bool SaveGameConfig();
+
+	// This only exists because of the ugly hack in CreateCodeDialog.cpp
+	void AddARCode(const ActionReplay::ARCode& code);
 
 private:
 	DECLARE_EVENT_TABLE();

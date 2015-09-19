@@ -169,7 +169,7 @@ void CheatSearchTab::OnCreateARCodeClicked(wxCommandEvent&)
 
 	const u32 address = m_search_results[idx].address | ((m_search_type_size & ~1) << 24);
 
-	CreateCodeDialog arcode_dlg(this, address, ActionReplay::GetARCodes());
+	CreateCodeDialog arcode_dlg(this, address);
 	arcode_dlg.SetExtraStyle(arcode_dlg.GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
 	arcode_dlg.ShowModal();
 }

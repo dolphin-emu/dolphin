@@ -1493,6 +1493,11 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 	RemoveCheat->Disable();
 }
 
+void CISOProperties::AddARCode(const ActionReplay::ARCode& code)
+{
+	arCodes.emplace_back(code);
+}
+
 void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 {
 	ChangeBannerDetails(OpenGameListItem.GetLanguages()[event.GetSelection()]);
