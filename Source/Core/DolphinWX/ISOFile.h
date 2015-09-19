@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -17,10 +18,10 @@
 #endif
 
 class PointerWrap;
-class GameListItem : NonCopyable
+class GameListItem
 {
 public:
-	GameListItem(const std::string& _rFileName);
+	GameListItem(const std::string& _rFileName, const std::unordered_map<std::string, std::string>& custom_titles);
 	~GameListItem();
 
 	bool IsValid() const {return m_Valid;}
@@ -77,6 +78,9 @@ private:
 	std::vector<u8> m_pImage;
 	int m_ImageWidth, m_ImageHeight;
 	u8 m_disc_number;
+
+	std::string m_custom_name;
+	bool m_has_custom_name;
 
 	bool LoadFromCache();
 	void SaveToCache();

@@ -19,9 +19,9 @@ private:
 	class Key : public Input
 	{
 	public:
-		std::string GetName() const;
 		Key(IOHIDElementRef element, IOHIDDeviceRef device);
-		ControlState GetState() const;
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const IOHIDElementRef m_element;
 		const IOHIDDeviceRef  m_device;
@@ -31,10 +31,10 @@ private:
 	class Cursor : public Input
 	{
 	public:
-		std::string GetName() const;
-		bool IsDetectable() { return false; }
 		Cursor(u8 index, const float& axis, const bool positive) : m_axis(axis), m_index(index), m_positive(positive) {}
-		ControlState GetState() const;
+		std::string GetName() const override;
+		bool IsDetectable() override { return false; }
+		ControlState GetState() const override;
 	private:
 		const float& m_axis;
 		const u8     m_index;
@@ -44,9 +44,9 @@ private:
 	class Button : public Input
 	{
 	public:
-		std::string GetName() const;
 		Button(u8 index, const unsigned char& button) : m_button(button), m_index(index) {}
-		ControlState GetState() const;
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const unsigned char& m_button;
 		const u8 m_index;

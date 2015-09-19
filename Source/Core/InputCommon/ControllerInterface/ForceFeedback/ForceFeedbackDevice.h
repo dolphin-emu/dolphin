@@ -33,7 +33,7 @@ private:
 		~Force();
 
 		std::string GetName() const override;
-		void SetState(ControlState state);
+		void SetState(ControlState state) override;
 		void Update();
 		void Stop();
 	private:

@@ -22,7 +22,7 @@
 #include "VideoCommon/VideoConfig.h"
 
 static const u64 TEXHASH_INVALID = 0;
-static const int TEXTURE_KILL_THRESHOLD = 60;
+static const int TEXTURE_KILL_THRESHOLD = 64; // Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static const int FRAMECOUNT_INVALID = 0;
 
@@ -496,8 +496,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			}
 		}
 
-		// Find the entry which hasn't been used for the longest time
-		if (entry->frameCount != FRAMECOUNT_INVALID && entry->frameCount < temp_frameCount)
+		// Find the texture which hasn't been used for the longest time. Count paletted
+		// textures as the same texture here, when the texture itself is the same. This
+		// improves the performance a lot in some games that use paletted textures.
+		// Example: Sonic the Fighters (inside Sonic Gems Collection)
+		if (entry->frameCount != FRAMECOUNT_INVALID && entry->frameCount < temp_frameCount &&
+			!(isPaletteTexture && entry->base_hash == base_hash))
 		{
 			temp_frameCount = entry->frameCount;
 			oldest_entry = iter;

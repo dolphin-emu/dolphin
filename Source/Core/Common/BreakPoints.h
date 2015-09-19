@@ -77,11 +77,8 @@ public:
 	void Clear();
 	void ClearAllTemporary();
 
-	void DeleteByAddress(u32 _Address);
-
 private:
 	TBreakPoints m_BreakPoints;
-	u32 m_iBreakOnCount;
 };
 
 
@@ -133,8 +130,6 @@ public:
 	// Remove Breakpoint
 	void Remove(u32 _iAddress);
 	void Clear();
-
-	void DeleteByAddress(u32 _Address);
 
 private:
 	TWatches m_Watches;
