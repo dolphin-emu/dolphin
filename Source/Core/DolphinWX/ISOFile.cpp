@@ -139,8 +139,8 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 			std::string game_id = m_UniqueID;
 
 			// Ignore publisher ID for WAD files
-			if (m_Platform == DiscIO::IVolume::WII_WAD)
-				game_id.erase(game_id.size() - 2);
+			if (m_Platform == DiscIO::IVolume::WII_WAD && game_id.size() > 4)
+				game_id.erase(4);
 
 			auto end = custom_titles.end();
 			auto it = custom_titles.find(game_id);
