@@ -102,7 +102,7 @@ bool WbfsFileReader::ReadHeader()
 		return false;
 
 	m_blocks_per_disc = (WII_SECTOR_COUNT * WII_SECTOR_SIZE) / m_wbfs_sector_size;
-	m_disc_info_size = align(WII_DISC_HEADER_SIZE + m_blocks_per_disc * 2, m_hd_sector_size);
+	m_disc_info_size = align(WII_DISC_HEADER_SIZE + m_blocks_per_disc * sizeof(u16), m_hd_sector_size);
 
 	// Read disc table
 	m_files[0]->file.Seek(2, SEEK_CUR);
@@ -122,7 +122,7 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 		File::IOFile& data_file = SeekToCluster(offset, &read_size);
 		if (read_size == 0)
 			return false;
-		read_size = (read_size > nbytes) ? nbytes : read_size;
+		read_size = std::min(read_size, nbytes);
 
 		if (!data_file.ReadBytes(out_ptr, read_size))
 		{
