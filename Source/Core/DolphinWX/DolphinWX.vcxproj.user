@@ -7,9 +7,9 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>/d</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>/d /w 6000</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>/d</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>/d /w 6000</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

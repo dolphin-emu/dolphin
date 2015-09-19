@@ -43,12 +43,14 @@ private:
 	bool m_use_logger = false;
 	bool m_select_video_backend = false;
 	bool m_select_audio_emulation = false;
+	bool m_watch_server = false;
 	wxString m_confirm_setting;
 	wxString m_video_backend_name;
 	wxString m_audio_emulation_name;
 	wxString m_user_path;
 	wxString m_file_to_load;
 	wxString m_movie_file;
+	long m_watch_server_port;
 	std::unique_ptr<wxLocale> m_locale;
 };
 
