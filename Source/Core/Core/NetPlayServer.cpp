@@ -79,7 +79,7 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& 
 
 	if (traversal)
 	{
-		if (!EnsureTraversalClient(centralServer, centralPort))
+		if (!EnsureTraversalClient(centralServer, centralPort, port))
 			return;
 
 		g_TraversalClient->m_Client = this;

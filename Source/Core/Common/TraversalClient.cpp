@@ -318,17 +318,19 @@ std::unique_ptr<ENetHost> g_MainNetHost;
 // need to know not just what port it's on, but whether it was
 // explicitly requested.
 static std::string g_OldServer;
-static u16 g_OldPort;
+static u16 g_OldServerPort;
+static u16 g_OldListenPort;
 
-bool EnsureTraversalClient(const std::string& server, u16 port)
+bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 listen_port)
 {
 
-	if (!g_MainNetHost || !g_TraversalClient || server != g_OldServer || port != g_OldPort)
+	if (!g_MainNetHost || !g_TraversalClient || server != g_OldServer || server_port != g_OldServerPort || listen_port != g_OldListenPort)
 	{
 		g_OldServer = server;
-		g_OldPort = port ;
+		g_OldServerPort = server_port;
+		g_OldListenPort = listen_port;
 
-		ENetAddress addr = { ENET_HOST_ANY, 0 };
+		ENetAddress addr = { ENET_HOST_ANY, listen_port };
 		ENetHost* host = enet_host_create(
 			&addr, // address
 			50, // peerCount
@@ -341,7 +343,7 @@ bool EnsureTraversalClient(const std::string& server, u16 port)
 			return false;
 		}
 		g_MainNetHost.reset(host);
-		g_TraversalClient.reset(new TraversalClient(g_MainNetHost.get(), server, port));
+		g_TraversalClient.reset(new TraversalClient(g_MainNetHost.get(), server, server_port));
 	}
 	return true;
 }
