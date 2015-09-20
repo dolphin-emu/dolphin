@@ -44,7 +44,7 @@ void cInterfaceGLX::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceGLX::Create(void *window_handle)
+bool cInterfaceGLX::Create(void *window_handle, bool core)
 {
 	dpy = XOpenDisplay(nullptr);
 	int screen = DefaultScreen(dpy);
@@ -94,6 +94,9 @@ bool cInterfaceGLX::Create(void *window_handle)
 	// Get an appropriate visual
 	XVisualInfo* vi = glXGetVisualFromFBConfig(dpy, fbconfig);
 
+	s_glxError = false;
+	XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
+
 	// Create a GLX context.
 	// We try to get a 3.3 core profile, else we try it with anything we get.
 	int context_attribs[] =
@@ -104,10 +107,12 @@ bool cInterfaceGLX::Create(void *window_handle)
 		GLX_CONTEXT_FLAGS_ARB,         GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
 		None
 	};
-	s_glxError = false;
-	XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
-	ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs);
-	XSync(dpy, False);
+	ctx = nullptr;
+	if (core)
+	{
+		ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs);
+		XSync(dpy, False);
+	}
 	if (!ctx || s_glxError)
 	{
 		int context_attribs_legacy[] =
