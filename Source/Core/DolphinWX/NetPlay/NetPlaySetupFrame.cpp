@@ -360,7 +360,11 @@ void NetPlaySetupFrame::OnHost(wxCommandEvent&)
 	}
 	else
 	{
-		WxUtils::ShowErrorDialog(_("Failed to listen. Is another instance of the NetPlay server running?"));
+		if (trav && m_traversal_listen_port_enabled->IsChecked())
+			WxUtils::ShowErrorDialog(
+			    _("Failed to listen. Someone is probably already listening on the port you specified."));
+		else
+			WxUtils::ShowErrorDialog(_("Failed to listen. Is another instance of the NetPlay server running?"));
 	}
 }
 
