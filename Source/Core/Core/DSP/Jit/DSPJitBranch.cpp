@@ -69,14 +69,14 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 	DSPJitRegCache c1(emitter.gpr);
 	FixupBranch skipCode = cond == 0xe ? emitter.J_CC(CC_E,true) : emitter.J_CC((CCFlags)(CC_NE - (cond & 1)),true);
 	jitCode(opc,emitter);
-	emitter.gpr.flushRegs(c1);
+	emitter.gpr.FlushRegs(c1);
 	emitter.SetJumpTarget(skipCode);
 }
 
 static void WriteBranchExit(DSPEmitter& emitter)
 {
 	DSPJitRegCache c(emitter.gpr);
-	emitter.gpr.saveRegs();
+	emitter.gpr.SaveRegs();
 	if (DSPAnalyzer::code_flags[emitter.startAddr] & DSPAnalyzer::CODE_IDLE_SKIP)
 	{
 		emitter.MOV(16, R(EAX), Imm16(0x1000));
@@ -86,8 +86,8 @@ static void WriteBranchExit(DSPEmitter& emitter)
 		emitter.MOV(16, R(EAX), Imm16(emitter.blockSize[emitter.startAddr]));
 	}
 	emitter.JMP(emitter.returnDispatcher, true);
-	emitter.gpr.loadRegs(false);
-	emitter.gpr.flushRegs(c,false);
+	emitter.gpr.LoadRegs(false);
+	emitter.gpr.FlushRegs(c,false);
 }
 
 static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
@@ -97,7 +97,7 @@ static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
 	{
 		if (emitter.blockLinks[dest] != nullptr )
 		{
-			emitter.gpr.flushRegs();
+			emitter.gpr.FlushRegs();
 			// Check if we have enough cycles to execute the next block
 			emitter.MOV(16, R(ECX), M(&cyclesLeft));
 			emitter.CMP(16, R(ECX), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
@@ -300,7 +300,7 @@ void DSPEmitter::HandleLoop()
 	dsp_reg_load_stack(0);
 	dsp_reg_load_stack(2);
 	dsp_reg_load_stack(3);
-	gpr.flushRegs(c);
+	gpr.FlushRegs(c);
 
 	SetJumpTarget(loopUpdated);
 	SetJumpTarget(rLoopAddrG);
@@ -331,7 +331,7 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 	dsp_reg_store_stack(0);
 	MOV(16, R(RDX), Imm16(loop_pc));
 	dsp_reg_store_stack(2);
-	gpr.flushRegs(c);
+	gpr.FlushRegs(c);
 	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
 	FixupBranch exit = J(true);
 
@@ -339,7 +339,7 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 	//		dsp_skip_inst();
 	MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[dsp_imem_read(loop_pc)]->size));
 	WriteBranchExit(*this);
-	gpr.flushRegs(c,false);
+	gpr.FlushRegs(c,false);
 	SetJumpTarget(exit);
 }
 
@@ -402,7 +402,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 	MOV(16, R(RDX), Imm16(loop_pc));
 	dsp_reg_store_stack(2);
 	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 2));
-	gpr.flushRegs(c,true);
+	gpr.FlushRegs(c,true);
 	FixupBranch exit = J(true);
 
 	SetJumpTarget(cnt);
@@ -410,7 +410,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 	//		dsp_skip_inst();
 	MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[dsp_imem_read(loop_pc)]->size));
 	WriteBranchExit(*this);
-	gpr.flushRegs(c,false);
+	gpr.FlushRegs(c,false);
 	SetJumpTarget(exit);
 }
 
