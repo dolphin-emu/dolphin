@@ -401,7 +401,7 @@ void CConfigVR::CreateGUIControls()
 		// HUD 3D Items Closer (3D items drawn on the HUD, like A button in Zelda 64)
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHud3DCloser,
-				wxGetTranslation(temp_desc), 0.0f, 1.0f, 0.5f);
+				wxGetTranslation(temp_desc), 0.0f, 1.0f, 0.1f);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("HUD 3D Items Closer:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
