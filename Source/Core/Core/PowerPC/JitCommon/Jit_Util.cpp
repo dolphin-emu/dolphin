@@ -130,11 +130,11 @@ private:
 		u32 all_ones = (1ULL << sbits) - 1;
 		if ((all_ones & mask) == all_ones)
 		{
-			MoveOpArgToReg(sbits, MDisp(RSCRATCH, 0));
+			MoveOpArgToReg(sbits, MatR(RSCRATCH));
 		}
 		else
 		{
-			m_code->MOVZX(32, sbits, m_dst_reg, MDisp(RSCRATCH, 0));
+			m_code->MOVZX(32, sbits, m_dst_reg, MatR(RSCRATCH));
 			m_code->AND(32, R(m_dst_reg), Imm32(mask));
 			if (m_sign_extend)
 				m_code->MOVSX(32, sbits, m_dst_reg, R(m_dst_reg));
