@@ -238,7 +238,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
 		int endn = (nTransformMatricesChanged[1] + 3) / 4;
-		memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4], (endn - startn) * 16);
+		memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4], (endn - startn) * sizeof(float4));
 		dirty = true;
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
 	}
@@ -259,7 +259,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nPostTransformMatricesChanged[0] / 4;
 		int endn = (nPostTransformMatricesChanged[1] + 3) / 4;
-		memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4], (endn - startn) * 16);
+		memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4], (endn - startn) * sizeof(float4));
 		dirty = true;
 		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
 	}
@@ -337,9 +337,9 @@ void VertexShaderManager::SetConstants()
 		const float* norm = &xfmem.normalMatrices[3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31)];
 
 		memcpy(constants.posnormalmatrix,    pos,      3 * sizeof(float4));
-		memcpy(constants.posnormalmatrix[3], norm,     3 * sizeof(u32));
-		memcpy(constants.posnormalmatrix[4], norm + 3, 3 * sizeof(u32));
-		memcpy(constants.posnormalmatrix[5], norm + 6, 3 * sizeof(u32));
+		memcpy(constants.posnormalmatrix[3], norm,     3 * sizeof(float));
+		memcpy(constants.posnormalmatrix[4], norm + 3, 3 * sizeof(float));
+		memcpy(constants.posnormalmatrix[5], norm + 6, 3 * sizeof(float));
 		dirty = true;
 	}
 
@@ -533,7 +533,7 @@ void VertexShaderManager::SetConstants()
 			Matrix44::Set(mtxB, g_fProjectionMatrix);
 			Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
 			Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
-			memcpy(constants.projection, mtxB.data, 4*16);
+			memcpy(constants.projection, mtxB.data, 4 * sizeof(float4));
 		}
 		else
 		{
@@ -542,7 +542,7 @@ void VertexShaderManager::SetConstants()
 
 			Matrix44 correctedMtx;
 			Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-			memcpy(constants.projection, correctedMtx.data, 4*16);
+			memcpy(constants.projection, correctedMtx.data, 4 * sizeof(float4));
 		}
 
 		dirty = true;
@@ -697,7 +697,7 @@ void VertexShaderManager::TranslateView(float x, float y, float z)
 
 	Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
 
-	for (int i = 0; i < 3; i++)
+	for (size_t i = 0; i < ArraySize(result); i++)
 		s_fViewTranslationVector[i] += result[i];
 
 	bProjectionChanged = true;
