@@ -10,6 +10,7 @@
 
 class wxCheckBox;
 class wxChoice;
+class wxCommandEvent;
 class wxRadioBox;
 class wxSlider;
 class wxSpinCtrl;
@@ -33,6 +34,7 @@ private:
 	void OnVolumeSliderChanged(wxCommandEvent&);
 	void OnAudioBackendChanged(wxCommandEvent&);
 	void OnLatencySpinCtrlChanged(wxCommandEvent&);
+	void OnTimeStretchingCheckBoxChanged(wxCommandEvent&);
 
 	wxArrayString m_dsp_engine_strings;
 	wxArrayString m_audio_backend_strings;
@@ -43,4 +45,5 @@ private:
 	wxStaticText* m_volume_text;
 	wxChoice* m_audio_backend_choice;
 	wxSpinCtrl* m_audio_latency_spinctrl;
+	wxCheckBox* m_time_stretching_checkbox;
 };

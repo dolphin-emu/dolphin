@@ -39,24 +39,28 @@ void AudioConfigPane::InitializeGUI()
 	m_volume_text = new wxStaticText(this, wxID_ANY, "");
 	m_audio_backend_choice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_audio_backend_strings);
 	m_audio_latency_spinctrl = new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
+	m_time_stretching_checkbox = new wxCheckBox(this, wxID_ANY, _("Time Stretching"));
 
 	m_dsp_engine_radiobox->Bind(wxEVT_RADIOBOX, &AudioConfigPane::OnDSPEngineRadioBoxChanged, this);
 	m_dpl2_decoder_checkbox->Bind(wxEVT_CHECKBOX, &AudioConfigPane::OnDPL2DecoderCheckBoxChanged, this);
 	m_volume_slider->Bind(wxEVT_SLIDER, &AudioConfigPane::OnVolumeSliderChanged, this);
 	m_audio_backend_choice->Bind(wxEVT_CHOICE, &AudioConfigPane::OnAudioBackendChanged, this);
 	m_audio_latency_spinctrl->Bind(wxEVT_SPINCTRL, &AudioConfigPane::OnLatencySpinCtrlChanged, this);
+	m_time_stretching_checkbox->Bind(wxEVT_CHECKBOX, &AudioConfigPane::OnTimeStretchingCheckBoxChanged, this);
 
 	m_audio_backend_choice->SetToolTip(_("Changing this will have no effect while the emulator is running."));
-	m_audio_latency_spinctrl->SetToolTip(_("Sets the latency (in ms). Higher values may reduce audio crackling. OpenAL backend only."));
+	m_audio_latency_spinctrl->SetToolTip(_("Sets the latency (in ms). Higher values may reduce audio crackling."));
 #if defined(__APPLE__)
 	m_dpl2_decoder_checkbox->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OS X."));
 #else
-	m_dpl2_decoder_checkbox->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL or Pulse backends only."));
+	m_dpl2_decoder_checkbox->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround"));
 #endif
+	m_time_stretching_checkbox->SetToolTip(_("Enables Audio speed stretching to reduce artifacts in games running slower or faster than the original game."));
 
 	wxStaticBoxSizer* const dsp_engine_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Sound Settings"));
 	dsp_engine_sizer->Add(m_dsp_engine_radiobox, 0, wxALL | wxEXPAND, 5);
 	dsp_engine_sizer->Add(m_dpl2_decoder_checkbox, 0, wxALL, 5);
+	dsp_engine_sizer->Add(m_time_stretching_checkbox, 0, wxALL, 5);
 
 	wxStaticBoxSizer* const volume_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Volume"));
 	volume_sizer->Add(m_volume_slider, 1, wxLEFT | wxRIGHT, 13);
@@ -99,12 +103,11 @@ void AudioConfigPane::LoadGUIValues()
 
 	m_volume_text->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume));
 
-	m_dpl2_decoder_checkbox->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL
-		|| std::string(SConfig::GetInstance().sBackend) == BACKEND_PULSEAUDIO);
 	m_dpl2_decoder_checkbox->SetValue(startup_params.bDPL2Decoder);
 
-	m_audio_latency_spinctrl->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
 	m_audio_latency_spinctrl->SetValue(startup_params.iLatency);
+
+	m_time_stretching_checkbox->SetValue(startup_params.bTimeStretching);
 }
 
 void AudioConfigPane::RefreshGUI()
@@ -115,6 +118,7 @@ void AudioConfigPane::RefreshGUI()
 		m_audio_backend_choice->Disable();
 		m_dpl2_decoder_checkbox->Disable();
 		m_dsp_engine_radiobox->Disable();
+		m_time_stretching_checkbox->Disable();
 	}
 }
 
@@ -130,6 +134,11 @@ void AudioConfigPane::OnDPL2DecoderCheckBoxChanged(wxCommandEvent&)
 	SConfig::GetInstance().bDPL2Decoder = m_dpl2_decoder_checkbox->IsChecked();
 }
 
+void AudioConfigPane::OnTimeStretchingCheckBoxChanged(wxCommandEvent&)
+{
+	SConfig::GetInstance().bTimeStretching = m_time_stretching_checkbox->IsChecked();
+}
+
 void AudioConfigPane::OnVolumeSliderChanged(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_Volume = m_volume_slider->GetValue();
@@ -140,9 +149,6 @@ void AudioConfigPane::OnVolumeSliderChanged(wxCommandEvent& event)
 void AudioConfigPane::OnAudioBackendChanged(wxCommandEvent& event)
 {
 	m_volume_slider->Enable(SupportsVolumeChanges(WxStrToStr(m_audio_backend_choice->GetStringSelection())));
-	m_audio_latency_spinctrl->Enable(WxStrToStr(m_audio_backend_choice->GetStringSelection()) == BACKEND_OPENAL);
-	m_dpl2_decoder_checkbox->Enable(WxStrToStr(m_audio_backend_choice->GetStringSelection()) == BACKEND_OPENAL ||
-	                                WxStrToStr(m_audio_backend_choice->GetStringSelection()) == BACKEND_PULSEAUDIO);
 
 	// Don't save the translated BACKEND_NULLSOUND string
 	SConfig::GetInstance().sBackend = m_audio_backend_choice->GetSelection() ?
