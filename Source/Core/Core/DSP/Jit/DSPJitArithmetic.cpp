@@ -169,8 +169,7 @@ void DSPEmitter::cmp(const UDSPInstruction opc)
 {
 	if (FlagsNeeded())
 	{
-		X64Reg tmp1;
-		gpr.GetFreeXReg(tmp1);
+		X64Reg tmp1 = gpr.GetFreeXReg();
 //		s64 acc0 = dsp_get_long_acc(0);
 		get_long_acc(0, tmp1);
 		MOV(64, R(RAX), R(tmp1));
@@ -198,8 +197,7 @@ void DSPEmitter::cmpar(const UDSPInstruction opc)
 		u8 rreg = ((opc >> 12) & 0x1);
 		u8 sreg = (opc >> 11) & 0x1;
 
-		X64Reg tmp1;
-		gpr.GetFreeXReg(tmp1);
+		X64Reg tmp1 = gpr.GetFreeXReg();
 //		s64 sr = dsp_get_long_acc(sreg);
 		get_long_acc(sreg, tmp1);
 		MOV(64, R(RAX), R(tmp1));
@@ -228,8 +226,7 @@ void DSPEmitter::cmpi(const UDSPInstruction opc)
 	if (FlagsNeeded())
 	{
 		u8 reg  = (opc >> 8) & 0x1;
-		X64Reg tmp1;
-		gpr.GetFreeXReg(tmp1);
+		X64Reg tmp1 = gpr.GetFreeXReg();
 //		s64 val = dsp_get_long_acc(reg);
 		get_long_acc(reg, tmp1);
 		MOV(64, R(RAX), R(tmp1));
@@ -258,8 +255,7 @@ void DSPEmitter::cmpis(const UDSPInstruction opc)
 	{
 		u8 areg = (opc >> 8) & 0x1;
 //		s64 acc = dsp_get_long_acc(areg);
-		X64Reg tmp1;
-		gpr.GetFreeXReg(tmp1);
+		X64Reg tmp1 = gpr.GetFreeXReg();
 		get_long_acc(areg, tmp1);
 		MOV(64, R(RAX), R(tmp1));
 //		s64 val = (s8)opc;
@@ -527,8 +523,7 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
 //	s64 acc = dsp_get_long_acc(dreg);
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
 //	s64 ax = (s16)g_dsp.r[sreg];
@@ -562,8 +557,7 @@ void DSPEmitter::addax(const UDSPInstruction opc)
 	u8 dreg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -596,8 +590,7 @@ void DSPEmitter::add(const UDSPInstruction opc)
 {
 	u8 dreg  = (opc >> 8) & 0x1;
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc0 = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -630,8 +623,7 @@ void DSPEmitter::addp(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 8) & 0x1;
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -666,8 +658,7 @@ void DSPEmitter::addaxl(const UDSPInstruction opc)
 	u8 sreg = (opc >> 9) & 0x1;
 	u8 dreg = (opc >> 8) & 0x1;
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	u64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -701,8 +692,7 @@ void DSPEmitter::addaxl(const UDSPInstruction opc)
 void DSPEmitter::addi(const UDSPInstruction opc)
 {
 	u8 areg = (opc >> 8) & 0x1;
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(areg);
 	get_long_acc(areg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -739,8 +729,7 @@ void DSPEmitter::addis(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 8) & 0x1;
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -776,8 +765,7 @@ void DSPEmitter::incm(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 8) & 0x1;
 	s64 subtract = 0x10000;
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -808,8 +796,7 @@ void DSPEmitter::incm(const UDSPInstruction opc)
 void DSPEmitter::inc(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 8) & 0x1;
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -844,8 +831,7 @@ void DSPEmitter::subr(const UDSPInstruction opc)
 	u8 dreg = (opc >> 8) & 0x1;
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -882,8 +868,7 @@ void DSPEmitter::subax(const UDSPInstruction opc)
 	u8 dreg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -916,8 +901,7 @@ void DSPEmitter::subax(const UDSPInstruction opc)
 void DSPEmitter::sub(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 8) & 0x1;
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc1 = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -950,8 +934,7 @@ void DSPEmitter::sub(const UDSPInstruction opc)
 void DSPEmitter::subp(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 8) & 0x1;
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -985,8 +968,7 @@ void DSPEmitter::decm(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 8) & 0x01;
 	s64 subtract = 0x10000;
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
@@ -1017,8 +999,7 @@ void DSPEmitter::decm(const UDSPInstruction opc)
 void DSPEmitter::dec(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 8) & 0x01;
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));

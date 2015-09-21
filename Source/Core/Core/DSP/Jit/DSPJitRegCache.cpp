@@ -816,11 +816,10 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
 			}
 			else
 			{
-				// this works on the memory, so use reg instead
+				// This works on the memory, so use reg instead
 				// of real_reg, since it has the right loc
-				X64Reg tmp;
-				GetFreeXReg(tmp);
-				// sign extend from the bottom 8 bits.
+				X64Reg tmp = GetFreeXReg();
+				// Sign extend from the bottom 8 bits.
 				emitter.MOVSX(16, 8, tmp, regs[reg].loc);
 				emitter.MOV(16, regs[reg].loc, R(tmp));
 				PutXReg(tmp);
@@ -1028,16 +1027,18 @@ X64Reg DSPJitRegCache::FindSpillFreeXReg()
 	return reg;
 }
 
-void DSPJitRegCache::GetFreeXReg(X64Reg &reg)
+X64Reg DSPJitRegCache::GetFreeXReg()
 {
-	reg = FindSpillFreeXReg();
+	X64Reg reg = FindSpillFreeXReg();
 
 	_assert_msg_(DSPLLE, reg != INVALID_REG, "could not find register");
 	if (reg == INVALID_REG)
 	{
 		emitter.INT3();
 	}
+
 	xregs[reg].guest_reg = DSP_REG_USED;
+	return reg;
 }
 
 void DSPJitRegCache::GetXReg(X64Reg reg)
