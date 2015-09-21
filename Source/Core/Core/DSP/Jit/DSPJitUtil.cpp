@@ -20,8 +20,7 @@ void DSPEmitter::dsp_reg_stack_push(int stack_reg)
 	AND(8, R(AL), Imm8(DSP_STACK_MASK));
 	MOV(8, M(&g_dsp.reg_stack_ptr[stack_reg]), R(AL));
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	//g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r[DSP_REG_ST0 + stack_reg];
 	MOV(16, R(tmp1), M(&g_dsp.r.st[stack_reg]));
 	MOVZX(64, 8, RAX, R(AL));
@@ -37,8 +36,7 @@ void DSPEmitter::dsp_reg_stack_pop(int stack_reg)
 {
 	//g_dsp.r[DSP_REG_ST0 + stack_reg] = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]];
 	MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	MOVZX(64, 8, RAX, R(AL));
 	MOV(16, R(tmp1), MComplex(EAX, EAX, 1,
 				  PtrOffset(&g_dsp.reg_stack[stack_reg][0],nullptr)));
@@ -309,8 +307,7 @@ void DSPEmitter::increment_addr_reg(int reg)
 	gpr.PutReg(DSP_REG_WR0+reg, false);
 	gpr.GetReg(DSP_REG_AR0+reg,ar_reg);
 	MOVZX(32, 16, EAX, ar_reg);
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	//u32 nar = ar + 1;
 	MOV(32, R(tmp1), R(EAX));
 	ADD(32, R(EAX), Imm8(1));
@@ -344,8 +341,7 @@ void DSPEmitter::decrement_addr_reg(int reg)
 	gpr.GetReg(DSP_REG_AR0+reg,ar_reg);
 	MOVZX(32, 16, EAX, ar_reg);
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	// u32 nar = ar + wr;
 	// edi = nar
 	LEA(32, tmp1, MRegSum(EAX, EDX));
@@ -386,8 +382,7 @@ void DSPEmitter::increase_addr_reg(int reg, int _ix_reg)
 	gpr.GetReg(DSP_REG_AR0+reg,ar_reg);
 	MOVZX(32, 16, EAX, ar_reg);
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	//u32 nar = ar + ix;
 	//edi = nar
 	LEA(32, tmp1, MRegSum(EAX, ECX));
@@ -457,8 +452,7 @@ void DSPEmitter::decrease_addr_reg(int reg)
 
 	NOT(32, R(ECX)); //esi = ~ix
 
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	//u32 nar = ar - ix; (ar + ~ix + 1)
 	LEA(32, tmp1, MComplex(EAX, ECX, 1, 1));
 
@@ -658,8 +652,7 @@ void DSPEmitter::get_long_prod(X64Reg long_prod)
 	MOV(64, R(long_prod), prod_reg);
 	gpr.PutReg(DSP_REG_PROD_64, false);
 	//no use in keeping prod_reg any longer.
-	X64Reg tmp;
-	gpr.GetFreeXReg(tmp);
+	X64Reg tmp = gpr.GetFreeXReg();
 	MOV(64, R(tmp), R(long_prod));
 	SHL(64, R(long_prod), Imm8(64-40));//sign extend
 	SAR(64, R(long_prod), Imm8(64-40));
@@ -676,8 +669,7 @@ void DSPEmitter::get_long_prod_round_prodl(X64Reg long_prod)
 	//s64 prod = dsp_get_long_prod();
 	get_long_prod(long_prod);
 
-	X64Reg tmp;
-	gpr.GetFreeXReg(tmp);
+	X64Reg tmp = gpr.GetFreeXReg();
 	//if (prod & 0x10000) prod = (prod + 0x8000) & ~0xffff;
 	TEST(32, R(long_prod), Imm32(0x10000));
 	FixupBranch jump = J_CC(CC_Z);
@@ -700,8 +692,7 @@ void DSPEmitter::get_long_prod_round_prodl(X64Reg long_prod)
 // In: RAX = s64 val
 void DSPEmitter::set_long_prod()
 {
-	X64Reg tmp;
-	gpr.GetFreeXReg(tmp);
+	X64Reg tmp = gpr.GetFreeXReg();
 
 	MOV(64, R(tmp), Imm64(0x000000ffffffffffULL));
 	AND(64, R(RAX), R(tmp));
