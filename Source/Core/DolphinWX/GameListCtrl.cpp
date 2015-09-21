@@ -1011,8 +1011,15 @@ void CGameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED (event))
 void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 {
 	const GameListItem* iso = GetSelectedISO();
-	if (!iso)
+	DiscIO::IVolume* OpenISO = DiscIO::CreateVolumeFromFilename(iso->GetFileName());
+	
+	if (!iso || !OpenISO)
+	{
+		delete OpenISO;
+		Update();
 		return;
+	}
+	delete OpenISO;
 
 	CISOProperties* ISOProperties = new CISOProperties(*iso, this);
 	ISOProperties->Show();
