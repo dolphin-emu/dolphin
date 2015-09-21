@@ -76,9 +76,6 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 		choice_backend->Disable();
 	}
 
-	// rasterizer
-	szr_rendering->Add(new SettingCheckBox(page_general, _("Hardware rasterization"), "", vconfig.bHwRasterizer));
-
 	// xfb
 	szr_rendering->Add(new SettingCheckBox(page_general, _("Bypass XFB"), "", vconfig.bBypassXFB));
 	}

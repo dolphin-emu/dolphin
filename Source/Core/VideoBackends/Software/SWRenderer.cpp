@@ -212,8 +212,7 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
 {
 	GLInterface->Update(); // just updates the render window position and the backbuffer size
-	if (!g_SWVideoConfig.bHwRasterizer)
-		SWRenderer::DrawTexture(GetCurrentColorTexture(), fbWidth, fbHeight);
+	SWRenderer::DrawTexture(GetCurrentColorTexture(), fbWidth, fbHeight);
 
 	swstats.frameCount++;
 	SWRenderer::SwapBuffer();

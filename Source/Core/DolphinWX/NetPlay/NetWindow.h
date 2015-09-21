@@ -69,7 +69,7 @@ private:
 	void OnThread(wxThreadEvent& event);
 	void OnChangeGame(wxCommandEvent& event);
 	void OnAdjustBuffer(wxCommandEvent& event);
-	void OnConfigPads(wxCommandEvent& event);
+	void OnAssignPads(wxCommandEvent& event);
 	void OnKick(wxCommandEvent& event);
 	void OnPlayerSelect(wxCommandEvent& event);
 	void GetNetSettings(NetSettings& settings);

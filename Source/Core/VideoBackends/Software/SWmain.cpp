@@ -17,12 +17,12 @@
 #include "Core/HW/VideoInterface.h"
 
 #include "VideoBackends/OGL/GLInterfaceBase.h"
+#include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/HwRasterizer.h"
 #include "VideoBackends/Software/OpcodeDecoder.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWCommandProcessor.h"
@@ -78,7 +78,7 @@ bool VideoSoftware::Initialize(void *window_handle)
 
 	InitInterface();
 	GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-	if (!GLInterface->Create(window_handle))
+	if (!GLInterface->Create(window_handle, false))
 	{
 		INFO_LOG(VIDEO, "GLInterface::Create failed.");
 		return false;
@@ -91,7 +91,6 @@ bool VideoSoftware::Initialize(void *window_handle)
 	OpcodeDecoder::Init();
 	Clipper::Init();
 	Rasterizer::Init();
-	HwRasterizer::Init();
 	SWRenderer::Init();
 	DebugUtil::Init();
 
@@ -166,7 +165,6 @@ void VideoSoftware::EmuStateChange(EMUSTATE_CHANGE newState)
 void VideoSoftware::Shutdown()
 {
 	// TODO: should be in Video_Cleanup
-	HwRasterizer::Shutdown();
 	SWRenderer::Shutdown();
 	DebugUtil::Shutdown();
 
@@ -211,7 +209,6 @@ void VideoSoftware::Video_Prepare()
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_INIT);
 
-	HwRasterizer::Prepare();
 	SWRenderer::Prepare();
 
 	INFO_LOG(VIDEO, "Video backend initialized.");
@@ -247,14 +244,11 @@ void VideoSoftware::Video_EndField()
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
-	if (!g_SWVideoConfig.bHwRasterizer)
+	if (!g_SWVideoConfig.bBypassXFB)
 	{
-		if (!g_SWVideoConfig.bBypassXFB)
-		{
-			EfbInterface::yuv422_packed *xfb = (EfbInterface::yuv422_packed *) Memory::GetPointer(s_beginFieldArgs.xfbAddr);
+		EfbInterface::yuv422_packed *xfb = (EfbInterface::yuv422_packed *) Memory::GetPointer(s_beginFieldArgs.xfbAddr);
 
-			SWRenderer::UpdateColorTexture(xfb, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
-		}
+		SWRenderer::UpdateColorTexture(xfb, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 	}
 
 	// Ideally we would just move all the OpenGL context stuff to the CPU thread,

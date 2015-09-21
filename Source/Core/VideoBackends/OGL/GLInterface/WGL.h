@@ -13,7 +13,7 @@ public:
 	void SwapInterval(int Interval);
 	void Swap();
 	void* GetFuncAddress(const std::string& name);
-	bool Create(void *window_handle);
+	bool Create(void *window_handle, bool core);
 	bool CreateOffscreen();
 	bool MakeCurrent();
 	bool MakeCurrentOffscreen();

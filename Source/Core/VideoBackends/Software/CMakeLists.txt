@@ -5,7 +5,6 @@ set(SRCS BPMemLoader.cpp
 	   DebugUtil.cpp
 	   EfbCopy.cpp
 	   EfbInterface.cpp
-	   HwRasterizer.cpp
 	   SWmain.cpp
 	   OpcodeDecoder.cpp
 	   RasterFont.cpp

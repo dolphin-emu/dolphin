@@ -42,7 +42,6 @@
     <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="EfbCopy.cpp" />
     <ClCompile Include="EfbInterface.cpp" />
-    <ClCompile Include="HwRasterizer.cpp" />
     <ClCompile Include="OpcodeDecoder.cpp" />
     <ClCompile Include="RasterFont.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
@@ -66,7 +65,6 @@
     <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="EfbCopy.h" />
     <ClInclude Include="EfbInterface.h" />
-    <ClInclude Include="HwRasterizer.h" />
     <ClInclude Include="NativeVertexFormat.h" />
     <ClInclude Include="OpcodeDecoder.h" />
     <ClInclude Include="RasterFont.h" />

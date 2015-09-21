@@ -579,13 +579,13 @@ void JitArm64::lmw(UGeckoInstruction inst)
 			u16 remaining = off >> 12;
 			if (add)
 			{
-				ADD(WA, WA, remaining, true);
 				ADD(WA, gpr.R(a), off & 0xFFF);
+				ADD(WA, WA, remaining, true);
 			}
 			else
 			{
-				SUB(WA, WA, remaining, true);
 				SUB(WA, gpr.R(a), off & 0xFFF);
+				SUB(WA, WA, remaining, true);
 			}
 		}
 	}
@@ -667,13 +667,13 @@ void JitArm64::stmw(UGeckoInstruction inst)
 			u16 remaining = off >> 12;
 			if (add)
 			{
-				ADD(WA, WA, remaining, true);
 				ADD(WA, gpr.R(a), off & 0xFFF);
+				ADD(WA, WA, remaining, true);
 			}
 			else
 			{
-				SUB(WA, WA, remaining, true);
 				SUB(WA, gpr.R(a), off & 0xFFF);
+				SUB(WA, WA, remaining, true);
 			}
 		}
 	}

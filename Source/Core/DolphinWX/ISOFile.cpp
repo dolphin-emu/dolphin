@@ -8,6 +8,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include <wx/app.h>
@@ -62,7 +63,7 @@ static std::string GetLanguageString(DiscIO::IVolume::ELanguage language, std::m
 	return "";
 }
 
-GameListItem::GameListItem(const std::string& _rFileName)
+GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_map<std::string, std::string>& custom_titles)
 	: m_FileName(_rFileName)
 	, m_emu_state(0)
 	, m_vr_state(0)
@@ -74,6 +75,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_ImageWidth(0)
 	, m_ImageHeight(0)
 	, m_disc_number(0)
+	, m_has_custom_name(false)
 {
 	if (LoadFromCache())
 	{
@@ -133,6 +135,25 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		ini.GetIfExists("EmuState", "EmulationIssues", &m_issues);
 		ini.GetIfExists("VR", "VRStateId", &m_vr_state);
 		ini.GetIfExists("VR", "VRIssues", &m_vr_issues);
+
+		m_has_custom_name = ini.GetIfExists("EmuState", "Title", &m_custom_name);
+
+		if (!m_has_custom_name)
+		{
+			std::string game_id = m_UniqueID;
+
+			// Ignore publisher ID for WAD files
+			if (m_Platform == DiscIO::IVolume::WII_WAD && game_id.size() > 4)
+				game_id.erase(4);
+
+			auto end = custom_titles.end();
+			auto it = custom_titles.find(game_id);
+			if (it != end)
+			{
+				m_custom_name = it->second;
+				m_has_custom_name = true;
+			}
+		}
 	}
 
 	if (!IsValid() && IsElfOrDol())
@@ -203,12 +224,10 @@ void GameListItem::DoState(PointerWrap &p)
 
 bool GameListItem::IsElfOrDol() const
 {
-	const std::string name = GetName();
-	const size_t pos = name.rfind('.');
-
+	const size_t pos = m_FileName.rfind('.');
 	if (pos != std::string::npos)
 	{
-		std::string ext = name.substr(pos);
+		std::string ext = m_FileName.substr(pos);
 		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
 		return ext == ".elf" || ext == ".dol";
@@ -293,17 +312,18 @@ std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
 
 std::string GameListItem::GetName() const
 {
+	if (m_has_custom_name)
+		return m_custom_name;
+
 	bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
 	std::string name = GetName(SConfig::GetInstance().GetCurrentLanguage(wii));
-	if (name.empty())
-	{
-		std::string ext;
+	if (!name.empty())
+		return name;
 
-		// No usable name, return filename (better than nothing)
-		SplitPath(GetFileName(), nullptr, &name, &ext);
-		return name + ext;
-	}
-	return name;
+	// No usable name, return filename (better than nothing)
+	std::string ext;
+	SplitPath(GetFileName(), nullptr, &name, &ext);
+	return name + ext;
 }
 
 std::vector<DiscIO::IVolume::ELanguage> GameListItem::GetLanguages() const
