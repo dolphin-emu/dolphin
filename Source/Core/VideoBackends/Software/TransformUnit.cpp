@@ -73,7 +73,7 @@ static void MultipleVec3Ortho(const Vec3 &vec, const float *proj, Vec4 &result)
 
 void TransformPosition(const InputVertexData *src, OutputVertexData *dst)
 {
-	const float* mat = (const float*)&xfmem.posMatrices[src->posMtx * 4];
+	const float* mat = &xfmem.posMatrices[src->posMtx * 4];
 	MultiplyVec3Mat34(src->position, mat, dst->mvPosition);
 
 	if (xfmem.projection.type == GX_PERSPECTIVE)
@@ -88,7 +88,7 @@ void TransformPosition(const InputVertexData *src, OutputVertexData *dst)
 
 void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst)
 {
-	const float* mat = (const float*)&xfmem.normalMatrices[(src->posMtx & 31)  * 3];
+	const float* mat = &xfmem.normalMatrices[(src->posMtx & 31)  * 3];
 
 	if (nbt)
 	{
@@ -127,8 +127,8 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 			break;
 	}
 
-	const float *mat = (const float*)&xfmem.posMatrices[srcVertex->texMtx[coordNum] * 4];
-	Vec3 *dst = &dstVertex->texCoords[coordNum];
+	const float* mat = &xfmem.posMatrices[srcVertex->texMtx[coordNum] * 4];
+	Vec3* dst = &dstVertex->texCoords[coordNum];
 
 	if (texinfo.projection == XF_TEXPROJ_ST)
 	{
@@ -153,7 +153,7 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 
 		// normalize
 		const PostMtxInfo &postInfo = xfmem.postMtxInfo[coordNum];
-		const float *postMat = (const float*)&xfmem.postMatrices[postInfo.index * 4];
+		const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
 
 		if (specialCase)
 		{

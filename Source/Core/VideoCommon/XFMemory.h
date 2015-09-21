@@ -267,11 +267,11 @@ struct Projection
 
 struct XFMemory
 {
-	u32 posMatrices[256];           // 0x0000 - 0x00ff
+	float posMatrices[256];         // 0x0000 - 0x00ff
 	u32 unk0[768];                  // 0x0100 - 0x03ff
-	u32 normalMatrices[96];         // 0x0400 - 0x045f
+	float normalMatrices[96];       // 0x0400 - 0x045f
 	u32 unk1[160];                  // 0x0460 - 0x04ff
-	u32 postMatrices[256];          // 0x0500 - 0x05ff
+	float postMatrices[256];        // 0x0500 - 0x05ff
 	Light lights[8];                // 0x0600 - 0x067f
 	u32 unk2[2432];                 // 0x0680 - 0x0fff
 	u32 error;                      // 0x1000
