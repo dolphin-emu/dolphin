@@ -24,7 +24,7 @@ void DSPEmitter::dsp_reg_stack_push(int stack_reg)
 	//g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r[DSP_REG_ST0 + stack_reg];
 	MOV(16, R(tmp1), M(&g_dsp.r.st[stack_reg]));
 	MOVZX(64, 8, RAX, R(AL));
-	MOV(16, MComplex(EAX, EAX, 1,
+	MOV(16, MComplex(EAX, EAX, SCALE_1,
 			 PtrOffset(&g_dsp.reg_stack[stack_reg][0],nullptr)), R(tmp1));
 	gpr.PutXReg(tmp1);
 }
@@ -38,7 +38,7 @@ void DSPEmitter::dsp_reg_stack_pop(int stack_reg)
 	MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
 	X64Reg tmp1 = gpr.GetFreeXReg();
 	MOVZX(64, 8, RAX, R(AL));
-	MOV(16, R(tmp1), MComplex(EAX, EAX, 1,
+	MOV(16, R(tmp1), MComplex(EAX, EAX, SCALE_1,
 				  PtrOffset(&g_dsp.reg_stack[stack_reg][0],nullptr)));
 	MOV(16, M(&g_dsp.r.st[stack_reg]), R(tmp1));
 	gpr.PutXReg(tmp1);
@@ -414,13 +414,13 @@ void DSPEmitter::increase_addr_reg(int reg, int _ix_reg)
 		AND(32, R(EAX), R(ECX));
 
 		//if ((((nar + wr + 1) ^ nar) & dar) <= wr)
-		LEA(32, ECX, MComplex(tmp1, EDX, 1, 1));
+		LEA(32, ECX, MComplex(tmp1, EDX, SCALE_1, 1));
 		XOR(32, R(ECX), R(tmp1));
 		AND(32, R(ECX), R(EAX));
 		CMP(32, R(ECX), R(EDX));
 		FixupBranch done3 = J_CC(CC_A);
 			//nar += wr + 1;
-			LEA(32, tmp1, MComplex(tmp1, EDX, 1, 1));
+			LEA(32, tmp1, MComplex(tmp1, EDX, SCALE_1, 1));
 
 	SetJumpTarget(done);
 	SetJumpTarget(done2);
@@ -454,7 +454,7 @@ void DSPEmitter::decrease_addr_reg(int reg)
 
 	X64Reg tmp1 = gpr.GetFreeXReg();
 	//u32 nar = ar - ix; (ar + ~ix + 1)
-	LEA(32, tmp1, MComplex(EAX, ECX, 1, 1));
+	LEA(32, tmp1, MComplex(EAX, ECX, SCALE_1, 1));
 
 	//u32 dar = (nar ^ ar ^ ~ix) & ((wr | 1) << 1);
 	//eax = dar
@@ -483,13 +483,13 @@ void DSPEmitter::decrease_addr_reg(int reg)
 		AND(32, R(EAX), R(ECX));
 
 		//if ((((nar + wr + 1) ^ nar) & dar) <= wr)
-		LEA(32, ECX, MComplex(tmp1, EDX, 1, 1));
+		LEA(32, ECX, MComplex(tmp1, EDX, SCALE_1, 1));
 		XOR(32, R(ECX), R(tmp1));
 		AND(32, R(ECX), R(EAX));
 		CMP(32, R(ECX), R(EDX));
 		FixupBranch done3 = J_CC(CC_A);
 			//nar += wr + 1;
-			LEA(32, tmp1, MComplex(tmp1, EDX, 1, 1));
+			LEA(32, tmp1, MComplex(tmp1, EDX, SCALE_1, 1));
 
 	SetJumpTarget(done);
 	SetJumpTarget(done2);
@@ -513,7 +513,7 @@ void DSPEmitter::dmem_write(X64Reg value)
 	//  g_dsp.dram[addr & DSP_DRAM_MASK] = val;
 	AND(16, R(EAX), Imm16(DSP_DRAM_MASK));
 	MOV(64, R(ECX), ImmPtr(g_dsp.dram));
-	MOV(16, MComplex(ECX, EAX, 2, 0), R(value));
+	MOV(16, MComplex(ECX, EAX, SCALE_2, 0), R(value));
 
 	FixupBranch end = J(true);
 	//	else if (saddr == 0xf)
@@ -564,7 +564,7 @@ void DSPEmitter::imem_read(X64Reg address)
 	//	return g_dsp.iram[addr & DSP_IRAM_MASK];
 	AND(16, R(address), Imm16(DSP_IRAM_MASK));
 	MOV(64, R(ECX), ImmPtr(g_dsp.iram));
-	MOV(16, R(EAX), MComplex(ECX, address, 2, 0));
+	MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
 	FixupBranch end = J();
 	SetJumpTarget(irom);
@@ -572,7 +572,7 @@ void DSPEmitter::imem_read(X64Reg address)
 	//		return g_dsp.irom[addr & DSP_IROM_MASK];
 	AND(16, R(address), Imm16(DSP_IROM_MASK));
 	MOV(64, R(ECX), ImmPtr(g_dsp.irom));
-	MOV(16, R(EAX), MComplex(ECX, address, 2, 0));
+	MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
 	SetJumpTarget(end);
 }
@@ -589,7 +589,7 @@ void DSPEmitter::dmem_read(X64Reg address)
 	AND(32, R(address), Imm32(DSP_DRAM_MASK));
 	MOVZX(64, 16, address, R(address));
 	MOV(64, R(ECX), ImmPtr(g_dsp.dram));
-	MOV(16, R(EAX), MComplex(ECX, address, 2, 0));
+	MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
 	FixupBranch end = J(true);
 	SetJumpTarget(dram);
@@ -600,7 +600,7 @@ void DSPEmitter::dmem_read(X64Reg address)
 	AND(32, R(address), Imm32(DSP_COEF_MASK));
 	MOVZX(64, 16, address, R(address));
 	MOV(64, R(ECX), ImmPtr(g_dsp.coef));
-	MOV(16, R(EAX), MComplex(ECX, address, 2, 0));
+	MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
 	FixupBranch end2 = J(true);
 	SetJumpTarget(ifx);
