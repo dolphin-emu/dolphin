@@ -43,7 +43,7 @@ void Load(int slot);
 void Verify(int slot);
 
 void SaveAs(const std::string &filename, bool wait = false);
-void LoadAs(const std::string &filename);
+bool LoadAs(const std::string &filename);
 void VerifyAt(const std::string &filename);
 
 void SaveToBuffer(std::vector<u8>& buffer);
