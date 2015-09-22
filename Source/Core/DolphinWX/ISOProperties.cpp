@@ -1199,6 +1199,10 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait
 		}
 	}
 
+#ifdef _WIN32
+	wxString OpenCommand = StrToWxStr("cmd /c \"" + filename + "\"");
+	wxExecute(OpenCommand, wxEXEC_HIDE_CONSOLE);
+#else
 	wxString OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
 	if (OpenCommand.IsEmpty())
 	{
@@ -1221,6 +1225,7 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait
 
 	if (wait_until_closed)
 		bRefreshList = true; // Just in case
+#endif
 #endif
 }
 
