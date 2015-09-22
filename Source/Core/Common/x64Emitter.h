@@ -307,7 +307,7 @@ protected:
 
 public:
 	XEmitter() { code = nullptr; flags_locked = false; }
-	XEmitter(u8* code_ptr) { code = code_ptr; flags_locked = false; }
+	explicit XEmitter(u8* code_ptr) { code = code_ptr; flags_locked = false; }
 	virtual ~XEmitter() {}
 
 	void SetCodePtr(u8* ptr);
