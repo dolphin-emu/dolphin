@@ -29,12 +29,11 @@ std::vector<u32> IVolume::GetBanner(int* width, int* height) const
 	*width = 0;
 	*height = 0;
 
-	u64 TitleID = 0;
-	GetTitleID((u8*)&TitleID);
-	TitleID = Common::swap64(TitleID);
+	u64 title_id = 0;
+	GetTitleID(&title_id);
 
 	std::string file_name = StringFromFormat("%s/title/%08x/%08x/data/banner.bin",
-		File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(TitleID >> 32), (u32)TitleID);
+		File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(title_id >> 32), (u32)title_id);
 	if (!File::Exists(file_name))
 		return std::vector<u32>();
 

@@ -340,13 +340,11 @@ const std::string GameListItem::GetWiiFSPath() const
 
 	if (iso->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC)
 	{
-		u64 title = 0;
-
-		iso->GetTitleID((u8*)&title);
-		title = Common::swap64(title);
+		u64 title_id = 0;
+		iso->GetTitleID(&title_id);
 
 		const std::string path = StringFromFormat("%s/title/%08x/%08x/data/",
-				File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(title>>32), (u32)title);
+				File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(title_id >> 32), (u32)title_id);
 
 		if (!File::Exists(path))
 			File::CreateFullPath(path);

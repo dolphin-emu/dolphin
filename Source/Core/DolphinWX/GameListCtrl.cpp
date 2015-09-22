@@ -947,12 +947,11 @@ void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	u64 title;
+	u64 title_id;
 	std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(iso->GetFileName()));
-	if (volume && volume->GetTitleID((u8*)&title))
+	if (volume && volume->GetTitleID(&title_id))
 	{
-		title = Common::swap64(title);
-		CWiiSaveCrypted::ExportWiiSave(title);
+		CWiiSaveCrypted::ExportWiiSave(title_id);
 	}
 }
 

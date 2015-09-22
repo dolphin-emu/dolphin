@@ -93,11 +93,12 @@ std::string CVolumeWAD::GetMakerID() const
 	return DecodeString(temp);
 }
 
-bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
+bool CVolumeWAD::GetTitleID(u64* buffer) const
 {
-	if (!Read(m_offset + 0x01DC, 8, _pBuffer))
+	if (!Read(m_offset + 0x01DC, sizeof(u64), reinterpret_cast<u8*>(buffer)))
 		return false;
 
+	*buffer = Common::swap64(*buffer);
 	return true;
 }
 
