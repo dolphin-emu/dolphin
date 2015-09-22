@@ -67,14 +67,19 @@ std::string VideoSoftware::GetDisplayName() const
 	return "Software Renderer";
 }
 
+std::string VideoSoftware::GetConfigName() const
+{
+	return "gfx_software";
+}
+
 void VideoSoftware::ShowConfig(void *hParent)
 {
-	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_software");
+	Host_ShowVideoConfig(hParent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoSoftware::Initialize(void *window_handle)
 {
-	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
+	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + GetConfigName() + ".ini").c_str());
 
 	InitInterface();
 	GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
