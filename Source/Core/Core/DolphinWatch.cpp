@@ -328,7 +328,13 @@ namespace DolphinWatch {
 				return;
 			}
 
-			State::LoadAs(file);
+			bool success = State::LoadAs(file);
+			if (!success) {
+				ostringstream msg;
+				msg << "FAILLOAD " << file << endl;
+				send(*client.socket, msg.str());
+				NOTICE_LOG(CONSOLE, "Could not load savestate: %s", file.c_str());
+			}
 
 		}
 		else if (cmd == "VOLUME") {
