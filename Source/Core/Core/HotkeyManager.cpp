@@ -116,6 +116,12 @@ const std::string hotkey_labels[] =
 	_trans("Undo Save State"),
 	_trans("Save State"),
 	_trans("Load State"),
+
+	_trans("Toggle 3D Preset"),
+	_trans("Use 3D Preset 1"),
+	_trans("Use 3D Preset 2"),
+	_trans("Use 3D Preset 3"),
+
 };
 static_assert(NUM_HOTKEYS == sizeof(hotkey_labels) / sizeof(hotkey_labels[0]), "Wrong count of hotkey_labels");
 
