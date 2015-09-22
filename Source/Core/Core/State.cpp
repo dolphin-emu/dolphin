@@ -501,10 +501,10 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 	ret_data.swap(buffer);
 }
 
-void LoadAs(const std::string& filename)
+bool LoadAs(const std::string& filename)
 {
 	if (!Core::IsRunning())
-		return;
+		return false;
 
 	// Stop the core while we load the state
 	bool wasUnpaused = Core::PauseAndLock(true);
@@ -571,6 +571,8 @@ void LoadAs(const std::string& filename)
 
 	// resume dat core
 	Core::PauseAndLock(false, wasUnpaused);
+
+	return loadedSuccessfully;
 }
 
 void SetOnAfterLoadCallback(CallbackFunc callback)
