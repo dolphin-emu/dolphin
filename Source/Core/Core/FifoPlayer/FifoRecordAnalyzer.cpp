@@ -22,7 +22,7 @@ FifoRecordAnalyzer::FifoRecordAnalyzer() :
 {
 }
 
-void FifoRecordAnalyzer::Initialize(u32 *bpMem, u32 *cpMem)
+void FifoRecordAnalyzer::Initialize(u32* bpMem, u32* cpMem)
 {
 	m_DrawingObject = false;
 
@@ -37,12 +37,12 @@ void FifoRecordAnalyzer::Initialize(u32 *bpMem, u32 *cpMem)
 	memcpy(m_CpMem.arrayStrides, cpMem + 0xB0, 16 * 4);
 }
 
-void FifoRecordAnalyzer::AnalyzeGPCommand(u8 *data)
+void FifoRecordAnalyzer::AnalyzeGPCommand(u8* data)
 {
 	DecodeOpcode(data);
 }
 
-void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
+void FifoRecordAnalyzer::DecodeOpcode(u8* data)
 {
 	int cmd = ReadFifo8(data);
 
@@ -99,11 +99,6 @@ void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
 
 			u32 cmd2 = ReadFifo32(data);
 			BPCmd bp = FifoAnalyzer::DecodeBPCmd(cmd2, *m_BpMem);
-
-			if (bp.address == BPMEM_LOADTLUT1)
-				ProcessLoadTlut1();
-			if (bp.address == BPMEM_PRELOAD_MODE)
-				ProcessPreloadTexture();
 		}
 		break;
 
@@ -113,7 +108,6 @@ void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
 			if (!m_DrawingObject)
 			{
 				m_DrawingObject = true;
-				ProcessTexMaps();
 			}
 
 			ProcessVertexArrays(data, cmd & GX_VAT_MASK);
@@ -125,26 +119,6 @@ void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
 	}
 }
 
-void FifoRecordAnalyzer::ProcessLoadTlut1()
-{
-	u32 tlutXferCount;
-	u32 tlutMemAddr;
-	u32 memAddr;
-
-	GetTlutLoadData(tlutMemAddr, memAddr, tlutXferCount, *m_BpMem);
-
-	FifoRecorder::GetInstance().WriteMemory(memAddr, tlutXferCount, MemoryUpdate::TMEM);
-}
-
-void FifoRecordAnalyzer::ProcessPreloadTexture()
-{
-	BPS_TmemConfig& tmem_cfg = m_BpMem->tmem_config;
-	//u32 tmem_addr = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
-	u32 size = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE; // TODO: Should this be half size for RGBA8 preloads?
-
-	FifoRecorder::GetInstance().WriteMemory(tmem_cfg.preload_addr << 5, size, MemoryUpdate::TMEM);
-}
-
 void FifoRecordAnalyzer::ProcessLoadIndexedXf(u32 val, int array)
 {
 	int index = val >> 16;
@@ -152,10 +126,10 @@ void FifoRecordAnalyzer::ProcessLoadIndexedXf(u32 val, int array)
 
 	u32 address = m_CpMem.arrayBases[array] + m_CpMem.arrayStrides[array] * index;
 
-	FifoRecorder::GetInstance().WriteMemory(address, size * 4, MemoryUpdate::XF_DATA);
+	FifoRecorder::GetInstance().UseMemory(address, size * 4, MemoryUpdate::XF_DATA);
 }
 
-void FifoRecordAnalyzer::ProcessVertexArrays(u8 *data, u8 vtxAttrGroup)
+void FifoRecordAnalyzer::ProcessVertexArrays(u8* data, u8 vtxAttrGroup)
 {
 	int sizes[21];
 	FifoAnalyzer::CalculateVertexElementSizes(sizes, vtxAttrGroup, m_CpMem);
@@ -181,7 +155,7 @@ void FifoRecordAnalyzer::ProcessVertexArrays(u8 *data, u8 vtxAttrGroup)
 	}
 }
 
-void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, u8 *vertexData, int vertexSize, int numVertices)
+void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, u8* vertexData, int vertexSize, int numVertices)
 {
 	// Skip if not indexed array
 	int arrayType = (m_CpMem.vtxDesc.Hex >> (9 + (arrayIndex * 2))) & 3;
@@ -225,80 +199,5 @@ void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, u8 *vertexData, int ve
 	u32 arrayStart = m_CpMem.arrayBases[arrayIndex];
 	u32 arraySize = m_CpMem.arrayStrides[arrayIndex] * (maxIndex + 1);
 
-	FifoRecorder::GetInstance().WriteMemory(arrayStart, arraySize, MemoryUpdate::VERTEX_STREAM);
-}
-
-void FifoRecordAnalyzer::ProcessTexMaps()
-{
-	u32 writtenTexMaps = 0;
-
-	// Texture maps used in TEV indirect stages
-	for (u32 i = 0; i < m_BpMem->genMode.numindstages; ++i)
-	{
-		u32 texMap = m_BpMem->tevindref.getTexMap(i);
-
-		WriteTexMapMemory(texMap, writtenTexMaps);
-	}
-
-	// Texture maps used in TEV direct stages
-	for (u32 i = 0; i <= m_BpMem->genMode.numtevstages; ++i)
-	{
-		int stageNum2 = i >> 1;
-		int stageOdd = i & 1;
-		TwoTevStageOrders &order = m_BpMem->tevorders[stageNum2];
-		int texMap = order.getTexMap(stageOdd);
-
-		if (order.getEnable(stageOdd))
-			WriteTexMapMemory(texMap, writtenTexMaps);
-	}
-}
-
-void FifoRecordAnalyzer::WriteTexMapMemory(int texMap, u32 &writtenTexMaps)
-{
-	// Avoid rechecking the same texture map
-	u32 texMapMask = 1 << texMap;
-	if (writtenTexMaps & texMapMask)
-		return;
-
-	writtenTexMaps |= texMapMask;
-
-	FourTexUnits& texUnit = m_BpMem->tex[(texMap >> 2) & 1];
-	u8 subTexmap = texMap & 3;
-
-	TexImage0& ti0 = texUnit.texImage0[subTexmap];
-
-	u32 width = ti0.width + 1;
-	u32 height = ti0.height + 1;
-	u32 imageBase = texUnit.texImage3[subTexmap].image_base << 5;
-
-	u32 fmtWidth = TexDecoder_GetBlockWidthInTexels(ti0.format) - 1;
-	u32 fmtHeight = TexDecoder_GetBlockHeightInTexels(ti0.format) - 1;
-	int fmtDepth = TexDecoder_GetTexelSizeInNibbles(ti0.format);
-
-	// Round width and height up to the next block
-	width = (width + fmtWidth) & (~fmtWidth);
-	height = (height + fmtHeight) & (~fmtHeight);
-
-	u32 textureSize = (width * height * fmtDepth) / 2;
-
-	// TODO: mip maps
-	int mip = texUnit.texMode1[subTexmap].max_lod;
-	if ((texUnit.texMode0[subTexmap].min_filter & 3) == 0)
-		mip = 0;
-
-	while (mip)
-	{
-		width >>= 1;
-		height >>= 1;
-
-		width = std::max(width, fmtWidth);
-		height = std::max(height, fmtHeight);
-		u32 size = (width * height * fmtDepth) >> 1;
-
-		textureSize += size;
-
-		mip--;
-	}
-
-	FifoRecorder::GetInstance().WriteMemory(imageBase, textureSize, MemoryUpdate::TEXTURE_MAP);
+	FifoRecorder::GetInstance().UseMemory(arrayStart, arraySize, MemoryUpdate::VERTEX_STREAM);
 }

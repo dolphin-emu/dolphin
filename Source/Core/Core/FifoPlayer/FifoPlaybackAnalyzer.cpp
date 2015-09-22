@@ -20,7 +20,7 @@ struct CmdData
 {
 	u32 size;
 	u32 offset;
-	u8 *ptr;
+	u8* ptr;
 };
 
 FifoPlaybackAnalyzer::FifoPlaybackAnalyzer()
@@ -28,13 +28,13 @@ FifoPlaybackAnalyzer::FifoPlaybackAnalyzer()
 	FifoAnalyzer::Init();
 }
 
-void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<AnalyzedFrameInfo> &frameInfo)
+void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frameInfo)
 {
 	// Load BP memory
-	u32 *bpMem = file->GetBPMem();
+	u32* bpMem = file->GetBPMem();
 	memcpy(&m_BpMem, bpMem, sizeof(BPMemory));
 
-	u32 *cpMem = file->GetCPMem();
+	u32* cpMem = file->GetCPMem();
 	FifoAnalyzer::LoadCPReg(0x50, cpMem[0x50], m_CpMem);
 	FifoAnalyzer::LoadCPReg(0x60, cpMem[0x60], m_CpMem);
 
@@ -110,7 +110,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 	}
 }
 
-void FifoPlaybackAnalyzer::AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrameInfo &frameInfo)
+void FifoPlaybackAnalyzer::AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrameInfo& frameInfo)
 {
 	u32 begin = memUpdate.address;
 	u32 end = memUpdate.address + memUpdate.size;
@@ -152,9 +152,9 @@ void FifoPlaybackAnalyzer::AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrame
 	frameInfo.memoryUpdates.push_back(memUpdate);
 }
 
-u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
+u32 FifoPlaybackAnalyzer::DecodeCommand(u8* data)
 {
-	u8 *dataStart = data;
+	u8* dataStart = data;
 
 	int cmd = ReadFifo8(data);
 

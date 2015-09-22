@@ -12,6 +12,9 @@
 #include "Common/MathUtil.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+// Global flag to signal if FifoRecorder is active.
+extern bool g_bRecordFifoData;
+
 // These are accurate (disregarding AA modes).
 enum
 {
