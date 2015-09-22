@@ -465,20 +465,20 @@ void CGameListCtrl::ScanForISOs()
 	std::vector<std::string> Extensions;
 
 	if (SConfig::GetInstance().m_ListGC)
-		Extensions.push_back("*.gcm");
+		Extensions.push_back(".gcm");
 	if (SConfig::GetInstance().m_ListWii || SConfig::GetInstance().m_ListGC)
 	{
-		Extensions.push_back("*.iso");
-		Extensions.push_back("*.ciso");
-		Extensions.push_back("*.gcz");
-		Extensions.push_back("*.wbfs");
+		Extensions.push_back(".iso");
+		Extensions.push_back(".ciso");
+		Extensions.push_back(".gcz");
+		Extensions.push_back(".wbfs");
 	}
 	if (SConfig::GetInstance().m_ListWad)
-		Extensions.push_back("*.wad");
+		Extensions.push_back(".wad");
 	if (SConfig::GetInstance().m_ListElfDol)
 	{
-		Extensions.push_back("*.dol");
-		Extensions.push_back("*.elf");
+		Extensions.push_back(".dol");
+		Extensions.push_back(".elf");
 	}
 
 	auto rFilenames = DoFileSearch(Extensions, SConfig::GetInstance().m_ISOFolder, SConfig::GetInstance().m_RecursiveISOFolder);
