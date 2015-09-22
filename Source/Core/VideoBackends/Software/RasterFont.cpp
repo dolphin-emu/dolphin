@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-#include "VideoBackends/OGL/GLUtil.h"
+#include "Common/GL/GLUtil.h"
 #include "VideoBackends/Software/RasterFont.h"
 
 const GLubyte rasters[][13] = {

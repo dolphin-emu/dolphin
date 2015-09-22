@@ -7,7 +7,8 @@
 #include <array>
 #include <memory>
 
-#include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
+
 #include "VideoCommon/PerfQueryBase.h"
 
 namespace OGL
