@@ -9,17 +9,26 @@
 class PointerWrap;
 
 // Devices can reply with these
-#define SI_ERROR_NO_RESPONSE    0x0008 // Nothing is attached
-#define SI_ERROR_UNKNOWN        0x0040 // Unknown device is attached
-#define SI_ERROR_BUSY           0x0080 // Still detecting
+enum
+{
+	SI_ERROR_NO_RESPONSE = 0x0008, // Nothing is attached
+	SI_ERROR_UNKNOWN     = 0x0040, // Unknown device is attached
+	SI_ERROR_BUSY        = 0x0080  // Still detecting
+};
 
 // Device types
-#define SI_TYPE_MASK            0x18000000u // ???
-#define SI_TYPE_GC              0x08000000u
+enum
+{
+	SI_TYPE_MASK = 0x18000000, // ???
+	SI_TYPE_GC   = 0x08000000
+};
 
 // GC Controller types
-#define SI_GC_NOMOTOR           0x20000000u // No rumble motor
-#define SI_GC_STANDARD          0x01000000u
+enum
+{
+	SI_GC_NOMOTOR  = 0x20000000, // No rumble motor
+	SI_GC_STANDARD = 0x01000000
+};
 
 // SI Device IDs for emulator use
 enum TSIDevices
