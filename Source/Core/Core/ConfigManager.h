@@ -85,6 +85,7 @@ struct SConfig : NonCopyable
 	bool bSyncGPUOnSkipIdleHack;
 	bool bNTSC;
 	bool bForceNTSCJ;
+	bool bAutoLoadSavestate;
 	bool bHLE_BS2;
 	bool bEnableCheats;
 	bool bEnableMemcardSdWriting;

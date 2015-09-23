@@ -37,7 +37,7 @@ SConfig::SConfig()
   bJITILTimeProfiling(false), bJITILOutputIR(false),
   bFPRF(false), bAccurateNaNs(false),
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
-  bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
+  bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false), bAutoLoadSavestate(false),
   bHLE_BS2(true), bEnableCheats(false),
   bEnableMemcardSdWriting(true),
   bDPL2Decoder(false), iLatency(14),
@@ -177,6 +177,7 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 	display->Set("PAL60", bPAL60);
 	display->Set("DisableScreenSaver", bDisableScreenSaver);
 	display->Set("ForceNTSCJ", bForceNTSCJ);
+	display->Set("AutoLoadSavestate", bAutoLoadSavestate);
 }
 
 void SConfig::SaveGameListSettings(IniFile& ini)
@@ -423,6 +424,7 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
 	display->Get("PAL60",                &bPAL60,                  true);
 	display->Get("DisableScreenSaver",   &bDisableScreenSaver,     true);
 	display->Get("ForceNTSCJ",           &bForceNTSCJ,             false);
+	display->Get("AutoLoadSavestate",    &bAutoLoadSavestate,      false);
 }
 
 void SConfig::LoadGameListSettings(IniFile& ini)
