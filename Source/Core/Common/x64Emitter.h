@@ -148,7 +148,6 @@ struct OpArg
 	void WriteREX(XEmitter* emit, int opBits, int bits, int customOp = -1) const;
 	void WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W = 0) const;
 	void WriteRest(XEmitter* emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
-	void WriteFloatModRM(XEmitter* emit, FloatOp op);
 	void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg operandReg, int bits);
 
 	u64 Imm64() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM64); return (u64)offset; }
@@ -307,7 +306,7 @@ protected:
 
 public:
 	XEmitter() { code = nullptr; flags_locked = false; }
-	XEmitter(u8* code_ptr) { code = code_ptr; flags_locked = false; }
+	explicit XEmitter(u8* code_ptr) { code = code_ptr; flags_locked = false; }
 	virtual ~XEmitter() {}
 
 	void SetCodePtr(u8* ptr);
