@@ -15,7 +15,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-#include <polarssl/md5.h>
+#include <mbedtls/md5.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -1235,7 +1235,7 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 	std::string output_string;
 	std::vector<u8> data(8 * 1024 * 1024);
 	u64 read_offset = 0;
-	md5_context ctx;
+	mbedtls_md5_context ctx;
 
 	File::IOFile file(OpenGameListItem.GetFileName(), "rb");
 	u64 game_size = file.GetSize();
@@ -1250,7 +1250,7 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 		wxPD_SMOOTH
 		);
 
-	md5_starts(&ctx);
+	mbedtls_md5_starts(&ctx);
 
 	while(read_offset < game_size)
 	{
@@ -1259,12 +1259,12 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 
 		size_t read_size;
 		file.ReadArray(&data[0], data.size(), &read_size);
-		md5_update(&ctx, &data[0], read_size);
+		mbedtls_md5_update(&ctx, &data[0], read_size);
 
 		read_offset += read_size;
 	}
 
-	md5_finish(&ctx, output);
+	mbedtls_md5_finish(&ctx, output);
 
 	// Convert to hex
 	for (int a = 0; a < 16; ++a)

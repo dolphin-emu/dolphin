@@ -10,7 +10,7 @@
 #include <cstdio>
 #include <string.h>
 
-#include <polarssl/sha1.h>
+#include <mbedtls/sha1.h>
 
 #include "Common/FileUtil.h"
 #include "Common/Crypto/ec.h"
@@ -97,10 +97,10 @@ void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u
 	sprintf(name, "AP%08x%08x", (u32)(title_id >> 32), (u32)(title_id & 0xffffffff));
 	make_blanksig_ec_cert(ap_cert_out, signer, name, ap_priv, 0);
 
-	sha1(ap_cert_out + 0x80, 0x100, hash);
+	mbedtls_sha1(ap_cert_out + 0x80, 0x100, hash);
 	generate_ecdsa(ap_cert_out + 4, ap_cert_out + 34, NG_priv, hash);
 
-	sha1(data, data_size, hash);
+	mbedtls_sha1(data, data_size, hash);
 	generate_ecdsa(sig_out, sig_out + 30, ap_priv, hash);
 }
 

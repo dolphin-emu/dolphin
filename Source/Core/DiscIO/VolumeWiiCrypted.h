@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <polarssl/aes.h>
+#include <mbedtls/aes.h>
 
 #include "Common/CommonTypes.h"
 #include "DiscIO/Volume.h"
@@ -54,7 +54,7 @@ private:
 	static const unsigned int s_block_total_size  = s_block_header_size + s_block_data_size;
 
 	std::unique_ptr<IBlobReader> m_pReader;
-	std::unique_ptr<aes_context> m_AES_ctx;
+	std::unique_ptr<mbedtls_aes_context> m_AES_ctx;
 
 	u8* m_pBuffer;
 

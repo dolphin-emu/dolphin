@@ -33,11 +33,11 @@
 */
 // =============
 
-// need to include this before polarssl/aes.h,
+// need to include this before mbedtls/aes.h,
 // otherwise we may not get __STDC_FORMAT_MACROS
 #include <cinttypes>
 #include <memory>
-#include <polarssl/aes.h>
+#include <mbedtls/aes.h>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -859,10 +859,10 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8* newIV       = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 			u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
-			aes_context AES_ctx;
-			aes_setkey_enc(&AES_ctx, keyTable[keyIndex], 128);
+			mbedtls_aes_context AES_ctx;
+			mbedtls_aes_setkey_enc(&AES_ctx, keyTable[keyIndex], 128);
 			memcpy(newIV, IV, 16);
-			aes_crypt_cbc(&AES_ctx, AES_ENCRYPT, size, newIV, source, destination);
+			mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_ENCRYPT, size, newIV, source, destination);
 
 			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_ENCRYPT: Key type is not SD, data will be crap");
 		}
@@ -877,10 +877,10 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8* newIV       = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 			u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
-			aes_context AES_ctx;
-			aes_setkey_dec(&AES_ctx, keyTable[keyIndex], 128);
+			mbedtls_aes_context AES_ctx;
+			mbedtls_aes_setkey_dec(&AES_ctx, keyTable[keyIndex], 128);
 			memcpy(newIV, IV, 16);
-			aes_crypt_cbc(&AES_ctx, AES_DECRYPT, size, newIV, source, destination);
+			mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, newIV, source, destination);
 
 			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");
 		}

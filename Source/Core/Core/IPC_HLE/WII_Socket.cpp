@@ -312,18 +312,18 @@ void WiiSocket::Update(bool read, bool write, bool except)
 					case IOCTLV_NET_SSL_DOHANDSHAKE:
 					{
 
-						int ret = ssl_handshake(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx);
+						int ret = mbedtls_ssl_handshake(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx);
 						switch (ret)
 						{
 						case 0:
 							Memory::Write_U32(SSL_OK, BufferIn);
 							break;
-						case POLARSSL_ERR_NET_WANT_READ:
+						case MBEDTLS_ERR_SSL_WANT_READ:
 							Memory::Write_U32(SSL_ERR_RAGAIN, BufferIn);
 							if (!nonBlock)
 								ReturnValue = SSL_ERR_RAGAIN;
 							break;
-						case POLARSSL_ERR_NET_WANT_WRITE:
+						case MBEDTLS_ERR_SSL_WANT_WRITE:
 							Memory::Write_U32(SSL_ERR_WAGAIN, BufferIn);
 							if (!nonBlock)
 								ReturnValue = SSL_ERR_WAGAIN;
@@ -343,7 +343,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 					}
 					case IOCTLV_NET_SSL_WRITE:
 					{
-						int ret = ssl_write(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx, Memory::GetPointer(BufferOut2), BufferOutSize2);
+						int ret = mbedtls_ssl_write(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx, Memory::GetPointer(BufferOut2), BufferOutSize2);
 
 #ifdef DEBUG_SSL
 						File::IOFile("ssl_write.bin", "ab").WriteBytes(Memory::GetPointer(BufferOut2), BufferOutSize2);
@@ -357,12 +357,12 @@ void WiiSocket::Update(bool read, bool write, bool except)
 						{
 							switch (ret)
 							{
-							case POLARSSL_ERR_NET_WANT_READ:
+							case MBEDTLS_ERR_SSL_WANT_READ:
 								Memory::Write_U32(SSL_ERR_RAGAIN, BufferIn);
 								if (!nonBlock)
 									ReturnValue = SSL_ERR_RAGAIN;
 								break;
-							case POLARSSL_ERR_NET_WANT_WRITE:
+							case MBEDTLS_ERR_SSL_WANT_WRITE:
 								Memory::Write_U32(SSL_ERR_WAGAIN, BufferIn);
 								if (!nonBlock)
 									ReturnValue = SSL_ERR_WAGAIN;
@@ -376,7 +376,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 					}
 					case IOCTLV_NET_SSL_READ:
 					{
-						int ret = ssl_read(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx, Memory::GetPointer(BufferIn2), BufferInSize2);
+						int ret = mbedtls_ssl_read(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx, Memory::GetPointer(BufferIn2), BufferInSize2);
 #ifdef DEBUG_SSL
 						if (ret > 0)
 						{
@@ -392,12 +392,12 @@ void WiiSocket::Update(bool read, bool write, bool except)
 						{
 							switch (ret)
 							{
-							case POLARSSL_ERR_NET_WANT_READ:
+							case MBEDTLS_ERR_SSL_WANT_READ:
 								Memory::Write_U32(SSL_ERR_RAGAIN, BufferIn);
 								if (!nonBlock)
 									ReturnValue = SSL_ERR_RAGAIN;
 								break;
-							case POLARSSL_ERR_NET_WANT_WRITE:
+							case MBEDTLS_ERR_SSL_WANT_WRITE:
 								Memory::Write_U32(SSL_ERR_WAGAIN, BufferIn);
 								if (!nonBlock)
 									ReturnValue = SSL_ERR_WAGAIN;
