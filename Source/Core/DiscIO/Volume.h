@@ -76,7 +76,7 @@ public:
 		return Common::swap32(temp);
 	}
 
-	virtual bool GetTitleID(u8*) const { return false; }
+	virtual bool GetTitleID(u64*) const { return false; }
 	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const
 	{
 		*_sz = 0;
