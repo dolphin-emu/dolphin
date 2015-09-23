@@ -45,7 +45,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoundTouch", "..\Externals\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxWidgets", "..\Externals\wxWidgets3\build\msw\wx_base.vcxproj", "{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PolarSSL", "..\Externals\polarssl\visualc\PolarSSL.vcxproj", "{BDB6578B-0691-4E80-A46C-DF21639FD3B8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbedTLS", "..\Externals\mbedtls\mbedTLS.vcxproj", "{BDB6578B-0691-4E80-A46C-DF21639FD3B8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCMRevGen", "Core\Common\SCMRevGen.vcxproj", "{41279555-F94F-4EBC-99DE-AF863C10C5C4}"
 EndProject
