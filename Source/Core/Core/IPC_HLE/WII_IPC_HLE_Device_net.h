@@ -461,7 +461,7 @@ public:
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
@@ -469,7 +469,7 @@ public:
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress + 4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	IPCCommandResult IOCtl(u32 _CommandAddress) override
@@ -515,7 +515,7 @@ public:
 		// write return values
 		Memory::Write_U32(common_result, BufferOut);
 		Memory::Write_U32(result, _CommandAddress + 4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 private:

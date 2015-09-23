@@ -42,7 +42,7 @@ public:
 		INFO_LOG(WII_IPC_STM, "STM immediate: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		m_Active = true;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
@@ -51,7 +51,7 @@ public:
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress+4);
 		m_Active = false;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	IPCCommandResult IOCtl(u32 _CommandAddress) override
@@ -108,7 +108,7 @@ public:
 
 		// Write return value to the IPC call
 		Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 };
 
@@ -130,7 +130,7 @@ public:
 	{
 		Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 		m_Active = true;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
@@ -141,7 +141,7 @@ public:
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress+4);
 		m_Active = false;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	IPCCommandResult IOCtl(u32 _CommandAddress) override
@@ -183,7 +183,7 @@ public:
 
 		// Write return value to the IPC call, 0 means success
 		Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	// STATE_TO_SAVE

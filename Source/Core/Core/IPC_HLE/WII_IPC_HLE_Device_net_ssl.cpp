@@ -58,7 +58,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::Open(u32 _CommandAddress, u32 _Mod
 {
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	m_Active = true;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_ssl::Close(u32 _CommandAddress, bool _bForce)
@@ -68,7 +68,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::Close(u32 _CommandAddress, bool _b
 		Memory::Write_U32(0, _CommandAddress + 4);
 	}
 	m_Active = false;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
@@ -84,7 +84,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
 	         GetDeviceName().c_str(), Command,
 	         BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	Memory::Write_U32(0, _CommandAddress + 0x4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
@@ -134,7 +134,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 	if (Core::g_want_determinism)
 	{
 		Memory::Write_U32(-1, _CommandAddress + 0x4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	switch (CommandBuffer.Parameter)
@@ -402,7 +402,7 @@ _SSL_NEW_ERROR:
 		{
 			WiiSockMan &sm = WiiSockMan::GetInstance();
 			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_DOHANDSHAKE);
-			return IPC_NO_REPLY;
+			return GetNoReply();
 		}
 		else
 		{
@@ -417,7 +417,7 @@ _SSL_NEW_ERROR:
 		{
 			WiiSockMan &sm = WiiSockMan::GetInstance();
 			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_WRITE);
-			return IPC_NO_REPLY;
+			return GetNoReply();
 		}
 		else
 		{
@@ -442,7 +442,7 @@ _SSL_NEW_ERROR:
 		{
 			WiiSockMan &sm = WiiSockMan::GetInstance();
 			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_READ);
-			return IPC_NO_REPLY;
+			return GetNoReply();
 		}
 		else
 		{
@@ -515,6 +515,6 @@ _SSL_NEW_ERROR:
 	// SSL return codes are written to BufferIn
 	Memory::Write_U32(0, _CommandAddress+4);
 
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 

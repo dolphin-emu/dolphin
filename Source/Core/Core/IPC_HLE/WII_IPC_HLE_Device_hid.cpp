@@ -115,7 +115,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
 	DEBUG_LOG(WII_IPC_HID, "HID::Open");
 	m_Active = true;
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForce)
@@ -124,7 +124,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForc
 	m_Active = false;
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
@@ -132,7 +132,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 	if (Core::g_want_determinism)
 	{
 		Memory::Write_U32(-1, _CommandAddress + 0x4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	u32 Parameter     = Memory::Read_U32(_CommandAddress + 0xC);
@@ -149,7 +149,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Get Attached) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		deviceCommandAddress = _CommandAddress;
-		return IPC_NO_REPLY;
+		return GetNoReply();
 	}
 	case IOCTL_HID_OPEN:
 	{
@@ -212,7 +212,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		//          bmRequestType, bRequest, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 		// It's the async way!
-		return IPC_NO_REPLY;
+		return GetNoReply();
 	}
 	case IOCTL_HID_INTERRUPT_OUT:
 	case IOCTL_HID_INTERRUPT_IN:
@@ -243,7 +243,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		//          Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 		// It's the async way!
-		return IPC_NO_REPLY;
+		return GetNoReply();
 	}
 	case IOCTL_HID_SHUTDOWN:
 	{
@@ -276,7 +276,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
 
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 
@@ -325,7 +325,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtlV(u32 _CommandAddress)
 	#endif
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 

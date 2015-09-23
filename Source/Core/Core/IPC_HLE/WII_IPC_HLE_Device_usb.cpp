@@ -157,7 +157,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, 
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 	m_Active = true;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForce)
@@ -173,7 +173,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress,
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
@@ -320,7 +320,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress
 
 	// write return value
 	Memory::Write_U32(0, _CommandAddress + 4);
-	return { _SendReply, IPC_DEFAULT_DELAY };
+	return _SendReply ? GetDefaultReply() : GetNoReply();
 }
 
 
