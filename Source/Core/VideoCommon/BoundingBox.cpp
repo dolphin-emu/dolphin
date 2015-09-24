@@ -2,15 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-
-
-#include "VideoBackends/Software/Clipper.h"
-#include "VideoBackends/Software/Rasterizer.h"
-#include "VideoBackends/Software/SetupUnit.h"
-#include "VideoBackends/Software/TransformUnit.h"
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/BoundingBox.h"
-#include "VideoCommon/PixelShaderManager.h"
-
 
 namespace BoundingBox
 {
