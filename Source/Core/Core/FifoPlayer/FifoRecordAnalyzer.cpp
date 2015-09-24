@@ -94,12 +94,8 @@ void FifoRecordAnalyzer::DecodeOpcode(u8* data)
 		break;
 
 	case GX_LOAD_BP_REG:
-		{
-			m_DrawingObject = false;
-
-			u32 cmd2 = ReadFifo32(data);
-			BPCmd bp = FifoAnalyzer::DecodeBPCmd(cmd2, *m_BpMem);
-		}
+		m_DrawingObject = false;
+		ReadFifo32(data);
 		break;
 
 	default:
