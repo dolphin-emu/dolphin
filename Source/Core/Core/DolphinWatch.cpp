@@ -143,6 +143,31 @@ namespace DolphinWatch {
 				NOTICE_LOG(CONSOLE, "Wrong mode for writing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
 			}
 		}
+		else if (cmd == "WRITE_MULTI") {
+
+			if (!Memory::IsInitialized()) {
+				NOTICE_LOG(CONSOLE, "PowerPC memory not initialized, can't execute command: %s", line.c_str());
+				return;
+			}
+
+			u32 addr, val;
+			vector<u32> vals;
+
+			if (!(parts >> addr >> val)) {
+				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				return;
+			}
+
+			do {
+				vals.push_back(val);
+			} while ((parts >> val));
+
+			// Parsing OK
+			for (u32 v : vals) {
+				PowerPC::HostWrite_U8(v, addr);
+				addr++;
+			}
+		}
 		else if (cmd == "READ") {
 
 			if (!Memory::IsInitialized()) {
@@ -317,6 +342,7 @@ namespace DolphinWatch {
 
 			if (!Core::IsRunning()) {
 				NOTICE_LOG(CONSOLE, "Core not running, can't load savestate: %s", line.c_str());
+				sendFeedback(client, false);
 				return;
 			}
 
@@ -325,16 +351,15 @@ namespace DolphinWatch {
 			file = StripSpaces(file);
 			if (file.empty() || file.find_first_of(":?\"<> | ") != string::npos) {
 				NOTICE_LOG(CONSOLE, "Invalid filename for loading savestate: %s", line.c_str());
+				sendFeedback(client, false);
 				return;
 			}
 
 			bool success = State::LoadAs(file);
 			if (!success) {
-				ostringstream msg;
-				msg << "FAILLOAD " << file << endl;
-				send(*client.socket, msg.str());
 				NOTICE_LOG(CONSOLE, "Could not load savestate: %s", file.c_str());
 			}
+			sendFeedback(client, success);
 
 		}
 		else if (cmd == "VOLUME") {
@@ -360,6 +385,14 @@ namespace DolphinWatch {
 			NOTICE_LOG(CONSOLE, "Unknown command: %s", cmd.c_str());
 		}
 
+	}
+
+	void sendFeedback(Client &client, bool success) {
+		ostringstream msg;
+		if (success) msg << "SUCCESS";
+		else msg << "FAIL";
+		msg << endl;
+		send(*client.socket, msg.str());
 	}
 
 	void checkSubs(Client &client) {
@@ -429,6 +462,7 @@ namespace DolphinWatch {
 			else if (status == sf::Socket::Status::Done) {
 				// add nullterminator, then add to client's buffer
 				cbuf[received] = '\0';
+				NOTICE_LOG(CONSOLE, "IN %s", cbuf);
 				client.buf << cbuf;
 
 				// process the client's buffer
@@ -463,6 +497,7 @@ namespace DolphinWatch {
 	}
 
 	void send(sf::TcpSocket &socket, string &message) {
+		NOTICE_LOG(CONSOLE, "OUT %s", message.c_str());
 		socket.setBlocking(true);
 		socket.send(message.c_str(), message.size());
 		socket.setBlocking(false);

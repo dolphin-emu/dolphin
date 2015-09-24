@@ -54,6 +54,7 @@ namespace DolphinWatch {
 	void update();
 	void send(sf::TcpSocket &socket, string& data);
 	void setVolume(int v);
+	void sendFeedback(Client &client, bool success);
 
 	WiimoteEmu::Wiimote* getWiimote(int i_wiimote);
 	void sendButtons(int i_wiimote, u16 _buttons);
