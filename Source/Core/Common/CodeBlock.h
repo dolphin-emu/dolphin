@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/Assert.h"
 #include "Common/MemoryUtil.h"
 #include "Common/NonCopyable.h"
 

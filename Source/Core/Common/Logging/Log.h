@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include "Common/CommonFuncs.h"
-#include "Common/MsgHandler.h"
-
 namespace LogTypes
 {
 
@@ -101,41 +98,3 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 #define NOTICE_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LNOTICE, __VA_ARGS__) } while (0)
 #define INFO_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__) } while (0)
 #define DEBUG_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__) } while (0)
-
-#ifdef _WIN32
-#define _dbg_assert_msg_(_t_, _a_, _msg_, ...)\
-	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_)) {\
-		ERROR_LOG(_t_, _msg_, __VA_ARGS__); \
-		if (!PanicYesNo(_msg_, __VA_ARGS__)) \
-			Crash(); \
-	}
-#else
-#define _dbg_assert_msg_(_t_, _a_, _msg_, ...)\
-	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_)) {\
-		ERROR_LOG(_t_, _msg_, ##__VA_ARGS__); \
-		if (!PanicYesNo(_msg_, ##__VA_ARGS__)) \
-			Crash(); \
-	}
-#endif
-
-#ifdef _WIN32
-#define _assert_msg_(_t_, _a_, _fmt_, ...) \
-	if (!(_a_)) {\
-		if (!PanicYesNo(_fmt_, __VA_ARGS__)) \
-			Crash(); \
-	}
-#else // not win32
-#define _assert_msg_(_t_, _a_, _fmt_, ...) \
-	if (!(_a_)) {\
-		if (!PanicYesNo(_fmt_, ##__VA_ARGS__)) \
-			Crash(); \
-	}
-#endif // WIN32
-
-#define _assert_(_a_) \
-	_assert_msg_(MASTER_LOG, _a_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n\nIgnore and continue?", \
-	             __LINE__, __FILE__, __TIME__)
-
-#define _dbg_assert_(_t_, _a_) \
-	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG) \
-		_assert_(_a_)

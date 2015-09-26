@@ -10,6 +10,7 @@
 #include <cstring>
 #include <functional>
 
+#include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CodeBlock.h"
 #include "Common/CommonTypes.h"

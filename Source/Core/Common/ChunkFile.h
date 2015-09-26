@@ -24,9 +24,11 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
+#include "Common/Logging/Log.h"
 
 // ewww
 #if _LIBCPP_VERSION || __GNUC__ >= 5

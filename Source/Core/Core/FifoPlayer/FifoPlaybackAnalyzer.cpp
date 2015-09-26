@@ -2,12 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
-
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexLoader.h"
