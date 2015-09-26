@@ -225,6 +225,11 @@ IVolume::EPlatform CVolumeDirectory::GetVolumeType() const
 	return m_is_wii ? WII_DISC : GAMECUBE_DISC;
 }
 
+bool CVolumeDirectory::IsCompressed() const
+{
+	return false;
+}
+
 u64 CVolumeDirectory::GetSize() const
 {
 	return 0;

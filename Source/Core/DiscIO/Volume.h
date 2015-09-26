@@ -101,8 +101,9 @@ public:
 	virtual bool ChangePartition(u64 offset) { return false; }
 
 	virtual ECountry GetCountry() const = 0;
+	virtual bool IsCompressed() const = 0;
+	// Size of virtual disc (not always accurate)
 	virtual u64 GetSize() const = 0;
-
 	// Size on disc (compressed size)
 	virtual u64 GetRawSize() const = 0;
 

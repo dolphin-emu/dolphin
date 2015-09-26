@@ -111,7 +111,7 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
-			m_BlobCompressed = DiscIO::IsGCZBlob(_rFileName);
+			m_BlobCompressed = pVolume->IsCompressed();
 			m_disc_number = pVolume->GetDiscNumber();
 			m_Revision = pVolume->GetRevision();
 

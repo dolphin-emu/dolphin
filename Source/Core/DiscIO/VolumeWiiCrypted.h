@@ -43,6 +43,7 @@ public:
 	bool ChangePartition(u64 offset) override;
 
 	ECountry GetCountry() const override;
+	bool IsCompressed() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
 

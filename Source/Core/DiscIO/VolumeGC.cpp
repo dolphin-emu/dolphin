@@ -168,6 +168,11 @@ std::string CVolumeGC::GetApploaderDate() const
 	return DecodeString(date);
 }
 
+bool CVolumeGC::IsCompressed() const
+{
+	return m_pReader ? m_pReader->IsCompressed() : false;
+}
+
 u64 CVolumeGC::GetSize() const
 {
 	if (m_pReader)

@@ -23,6 +23,7 @@ class DriveReader : public SectorReader
 public:
 	static DriveReader* Create(const std::string& drive);
 	~DriveReader();
+	bool IsCompressed() const override { return false; }
 	u64 GetDataSize() const override { return m_size; }
 	u64 GetRawSize() const override { return m_size; }
 
