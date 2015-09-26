@@ -30,18 +30,6 @@ extern const char *netplay_dolphin_ver;
 #define UNUSED
 #endif
 
-// An inheritable class to disallow the copy constructor and operator= functions
-class NonCopyable
-{
-protected:
-	constexpr NonCopyable() = default;
-	~NonCopyable() = default;
-
-private:
-	NonCopyable(NonCopyable&) = delete;
-	NonCopyable& operator=(NonCopyable&) = delete;
-};
-
 #if defined _WIN32
 
 // Memory leak checks

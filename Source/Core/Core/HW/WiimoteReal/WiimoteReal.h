@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/FifoQueue.h"
+#include "Common/NonCopyable.h"
 #include "Common/Timer.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"

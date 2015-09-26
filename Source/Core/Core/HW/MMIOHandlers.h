@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 
 // All the templated and very repetitive MMIO-related code is isolated in this
 // file for easier reading. It mostly contains code related to handling methods
