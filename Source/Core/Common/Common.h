@@ -34,28 +34,6 @@ extern const char *netplay_dolphin_ver;
 #define UNUSED
 #endif
 
-#if defined(__GNUC__) || __clang__
-	#define EXPECT(x, y) __builtin_expect(x, y)
-	#define LIKELY(x)    __builtin_expect(!!(x), 1)
-	#define UNLIKELY(x)  __builtin_expect(!!(x), 0)
-	// Careful, wrong assumptions result in undefined behavior!
-	#define UNREACHABLE  __builtin_unreachable()
-	// Careful, wrong assumptions result in undefined behavior!
-	#define ASSUME(x)    do { if (!x) __builtin_unreachable(); } while (0)
-#else
-	#define EXPECT(x, y) (x)
-	#define LIKELY(x)    (x)
-	#define UNLIKELY(x)  (x)
-	// Careful, wrong assumptions result in undefined behavior!
-	#define UNREACHABLE  ASSUME(0)
-	#if defined(_MSC_VER)
-		// Careful, wrong assumptions result in undefined behavior!
-		#define ASSUME(x) __assume(x)
-	#else
-		#define ASSUME(x) do { void(x); } while (0)
-	#endif
-#endif
-
 // An inheritable class to disallow the copy constructor and operator= functions
 class NonCopyable
 {
