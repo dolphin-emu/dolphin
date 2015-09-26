@@ -57,6 +57,7 @@ enum SSL_IOCTL
 struct WII_SSL
 {
 	mbedtls_ssl_context ctx;
+	mbedtls_ssl_config config;
 	mbedtls_ssl_session session;
 	mbedtls_entropy_context entropy;
 	mbedtls_ctr_drbg_context ctr_drbg;

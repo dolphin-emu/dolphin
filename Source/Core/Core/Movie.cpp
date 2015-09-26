@@ -3,7 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <mutex>
-#include <mbedtls/md5.h>
+#include <mbedtls/config.h>
+#include <mbedtls/md.h>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -1350,6 +1351,8 @@ void GetSettings()
 	}
 }
 
+static const mbedtls_md_info_t* s_md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
+
 void CheckMD5()
 {
 	for (int i = 0, n = 0; i < 16; ++i)
@@ -1363,7 +1366,7 @@ void CheckMD5()
 	Core::DisplayMessage("Verifying checksum...", 2000);
 
 	unsigned char gameMD5[16];
-	mbedtls_md5_file(SConfig::GetInstance().m_strFilename.c_str(), gameMD5);
+	mbedtls_md_file(s_md5_info, SConfig::GetInstance().m_strFilename.c_str(), gameMD5);
 
 	if (memcmp(gameMD5,s_MD5,16) == 0)
 		Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
@@ -1375,7 +1378,7 @@ void GetMD5()
 {
 	Core::DisplayMessage("Calculating checksum of game file...", 2000);
 	memset(s_MD5, 0, sizeof(s_MD5));
-	mbedtls_md5_file(SConfig::GetInstance().m_strFilename.c_str(), s_MD5);
+	mbedtls_md_file(s_md5_info, SConfig::GetInstance().m_strFilename.c_str(), s_MD5);
 	Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 

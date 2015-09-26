@@ -31,6 +31,7 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl()
 			mbedtls_ssl_close_notify(&ssl.ctx);
 			mbedtls_ssl_session_free(&ssl.session);
 			mbedtls_ssl_free(&ssl.ctx);
+			mbedtls_ssl_config_free(&ssl.config);
 
 			mbedtls_x509_crt_free(&ssl.cacert);
 			mbedtls_x509_crt_free(&ssl.clicert);
@@ -149,18 +150,14 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 		{
 			int sslID = freeSSL - 1;
 			WII_SSL* ssl = &_SSL[sslID];
-			int ret = mbedtls_ssl_init(&ssl->ctx);
-			if (ret)
-			{
-				goto _SSL_NEW_ERROR;
-			}
-
+			mbedtls_ssl_init(&ssl->ctx);
 			mbedtls_entropy_init(&ssl->entropy);
 			const char* pers = "dolphin-emu";
-			ret = mbedtls_ctr_drbg_init(&ssl->ctr_drbg, mbedtls_entropy_func,
-			                    &ssl->entropy,
-			                    (const unsigned char*)pers,
-			                    strlen(pers));
+			mbedtls_ctr_drbg_init(&ssl->ctr_drbg);
+			int ret = mbedtls_ctr_drbg_seed(&ssl->ctr_drbg, mbedtls_entropy_func,
+			                                &ssl->entropy,
+			                                (const unsigned char*)pers,
+			                                strlen(pers));
 			if (ret)
 			{
 				mbedtls_ssl_free(&ssl->ctx);
@@ -168,16 +165,18 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 				goto _SSL_NEW_ERROR;
 			}
 
-			mbedtls_ssl_conf_rng(&ssl->ctx, mbedtls_ctr_drbg_random, &ssl->ctr_drbg);
+			mbedtls_ssl_config_init(&ssl->config);
+			mbedtls_ssl_config_defaults(&ssl->config, MBEDTLS_SSL_IS_CLIENT,
+			                            MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
+			mbedtls_ssl_conf_rng(&ssl->config, mbedtls_ctr_drbg_random, &ssl->ctr_drbg);
 
 			// For some reason we can't use TLSv1.2, v1.1 and below are fine!
-			mbedtls_ssl_conf_max_version(&ssl->ctx, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_2);
+			mbedtls_ssl_conf_max_version(&ssl->config, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_2);
 
 			mbedtls_ssl_set_session(&ssl->ctx, &ssl->session);
 
-			mbedtls_ssl_conf_endpoint(&ssl->ctx, MBEDTLS_SSL_IS_CLIENT);
-			mbedtls_ssl_conf_authmode(&ssl->ctx, MBEDTLS_SSL_VERIFY_NONE);
-			mbedtls_ssl_conf_renegotiation(&ssl->ctx, MBEDTLS_SSL_RENEGOTIATION_ENABLED);
+			mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_NONE);
+			mbedtls_ssl_conf_renegotiation(&ssl->config, MBEDTLS_SSL_RENEGOTIATION_ENABLED);
 
 			ssl->hostname = hostname;
 			mbedtls_ssl_set_hostname(&ssl->ctx, ssl->hostname.c_str());
@@ -210,6 +209,7 @@ _SSL_NEW_ERROR:
 			mbedtls_ssl_close_notify(&ssl->ctx);
 			mbedtls_ssl_session_free(&ssl->session);
 			mbedtls_ssl_free(&ssl->ctx);
+			mbedtls_ssl_config_free(&ssl->config);
 
 			mbedtls_entropy_free(&ssl->entropy);
 
@@ -261,7 +261,7 @@ _SSL_NEW_ERROR:
 			}
 			else
 			{
-				mbedtls_ssl_conf_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname.c_str());
+				mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 
@@ -298,7 +298,7 @@ _SSL_NEW_ERROR:
 			}
 			else
 			{
-				mbedtls_ssl_conf_own_cert(&ssl->ctx, &ssl->clicert, &ssl->pk);
+				mbedtls_ssl_conf_own_cert(&ssl->config, &ssl->clicert, &ssl->pk);
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 
@@ -328,7 +328,7 @@ _SSL_NEW_ERROR:
 			mbedtls_x509_crt_free(&ssl->clicert);
 			mbedtls_pk_free(&ssl->pk);
 
-			mbedtls_ssl_conf_own_cert(&ssl->ctx, nullptr, nullptr);
+			mbedtls_ssl_conf_own_cert(&ssl->config, nullptr, nullptr);
 			Memory::Write_U32(SSL_OK, _BufferIn);
 		}
 		else
@@ -353,7 +353,7 @@ _SSL_NEW_ERROR:
 			}
 			else
 			{
-				mbedtls_ssl_conf_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname.c_str());
+				mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);
@@ -377,9 +377,11 @@ _SSL_NEW_ERROR:
 		if (SSLID_VALID(sslID))
 		{
 			WII_SSL* ssl = &_SSL[sslID];
+			mbedtls_ssl_setup(&ssl->ctx, &ssl->config);
 			ssl->sockfd = Memory::Read_U32(BufferOut2);
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", ssl->sockfd);
-			mbedtls_ssl_set_bio(&ssl->ctx, mbedtls_net_recv, &ssl->sockfd, mbedtls_net_send, &ssl->sockfd);
+			mbedtls_ssl_set_bio(&ssl->ctx, &ssl->sockfd, mbedtls_net_send,
+			                    mbedtls_net_recv, mbedtls_net_recv_timeout);
 			Memory::Write_U32(SSL_OK, _BufferIn);
 		}
 		else
