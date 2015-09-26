@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/NonCopyable.h"
 
 #ifdef _WIN32

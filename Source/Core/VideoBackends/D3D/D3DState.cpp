@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "Common/BitSet.h"
+#include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
 
 #include "VideoBackends/D3D/D3DBase.h"

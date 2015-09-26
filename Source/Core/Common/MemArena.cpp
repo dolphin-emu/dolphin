@@ -9,7 +9,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/MemArena.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #ifdef _WIN32
 #include <windows.h>

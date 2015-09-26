@@ -13,7 +13,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"

@@ -14,7 +14,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/Crypto/ec.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ec_wii.h"
 
 static u32 default_NG_id = 0x0403AC68;

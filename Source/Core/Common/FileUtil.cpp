@@ -12,9 +12,11 @@
 #include <vector>
 #include <sys/stat.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 
 #ifdef _WIN32
 #include <commdlg.h>   // for GetSaveFileName

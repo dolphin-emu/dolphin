@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/GL/GLInterface/EGL.h"
+#include "Common/Logging/Log.h"
 
 // Show the current FPS
 void cInterfaceEGL::Swap()

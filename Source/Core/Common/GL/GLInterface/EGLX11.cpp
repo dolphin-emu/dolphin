@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/GL/GLInterface/EGLX11.h"
+#include "Common/Logging/Log.h"
 
 EGLDisplay cInterfaceEGLX11::OpenDisplay()
 {
