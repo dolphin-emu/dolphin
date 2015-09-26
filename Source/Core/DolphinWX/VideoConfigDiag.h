@@ -245,6 +245,8 @@ protected:
 	void Evt_LeaveControl(wxMouseEvent& ev);
 	void CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer);
 	void PopulatePostProcessingShaders();
+	void OnSSAAClick(wxCommandEvent& event);
+	void RefreshAAList();
 
 	wxChoice* choice_backend;
 	wxChoice* choice_adapter;
