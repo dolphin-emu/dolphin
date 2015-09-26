@@ -64,11 +64,9 @@ extern const char *netplay_dolphin_ver;
 #endif
 
 #ifdef _MSC_VER
-#define __strdup _strdup
 #define __getcwd _getcwd
 #define __chdir _chdir
 #else
-#define __strdup strdup
 #define __getcwd getcwd
 #define __chdir chdir
 #endif
