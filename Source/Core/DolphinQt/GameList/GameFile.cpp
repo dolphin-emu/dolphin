@@ -113,7 +113,7 @@ GameFile::GameFile(const QString& fileName)
 			m_volume_size = volume->GetSize();
 
 			m_unique_id = QString::fromStdString(volume->GetUniqueID());
-			m_compressed = DiscIO::IsCompressedBlob(fileName.toStdString());
+			m_compressed = DiscIO::IsGCZBlob(fileName.toStdString());
 			m_disc_number = volume->GetDiscNumber();
 			m_revision = volume->GetRevision();
 

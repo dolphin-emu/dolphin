@@ -23,11 +23,11 @@
 namespace DiscIO
 {
 
-bool IsCompressedBlob(const std::string& filename);
+bool IsGCZBlob(const std::string& filename);
 
 const u32 kBlobCookie = 0xB10BC001;
 
-// A blob file structure:
+// GCZ file structure:
 // BlobHeader
 // u64 offsetsToBlocks[n], top bit specifies whether the block is compressed, or not.
 // compressed data
