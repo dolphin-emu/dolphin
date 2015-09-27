@@ -38,7 +38,6 @@ Make AA apply instantly during gameplay if possible
 
 #include <algorithm>
 #include <cstdarg>
-#include <regex>
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
@@ -105,7 +104,11 @@ static std::vector<std::string> GetShaders(const std::string &sub_dir = "")
 	});
 	std::vector<std::string> result;
 	for (std::string path : paths)
-		result.push_back(std::regex_replace(path, std::regex("^.*/(.*)\\.glsl$"), "$1"));
+	{
+		std::string name;
+		SplitPath(path, nullptr, &name, nullptr);
+		result.push_back(name);
+	}
 	return result;
 }
 
