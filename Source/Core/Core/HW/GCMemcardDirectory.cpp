@@ -557,6 +557,13 @@ void GCMemcardDirectory::FlushToFile()
 			if (BE32(m_saves[i].m_gci_header.Gamecode) != 0xFFFFFFFF)
 			{
 				m_saves[i].m_dirty = false;
+				if (m_saves[i].m_save_data.size() == 0)
+				{
+					// The save's header has been changed but the actual save blocks haven't been read/written to
+					// skip flushing this file until actual save data is modified
+					ERROR_LOG(EXPANSIONINTERFACE, "GCI header modified without corresponding save data changes");
+					continue;
+				}
 				if (m_saves[i].m_filename.empty())
 				{
 					std::string defaultSaveName = m_SaveDirectory + m_saves[i].m_gci_header.GCI_FileName();
