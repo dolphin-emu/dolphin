@@ -36,7 +36,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x125; // Last changed in PR 2598
+static const u32 CACHE_REVISION = 0x126; // Last changed in PR 3097
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -70,7 +70,6 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 	, m_Country(DiscIO::IVolume::COUNTRY_UNKNOWN)
 	, m_Revision(0)
 	, m_Valid(false)
-	, m_BlobCompressed(false)
 	, m_ImageWidth(0)
 	, m_ImageHeight(0)
 	, m_disc_number(0)
@@ -107,11 +106,11 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 			m_company = pVolume->GetCompany();
 
 			m_Country = pVolume->GetCountry();
+			m_blob_type = pVolume->GetBlobType();
 			m_FileSize = pVolume->GetRawSize();
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
-			m_BlobCompressed = pVolume->IsCompressed();
 			m_disc_number = pVolume->GetDiscNumber();
 			m_Revision = pVolume->GetRevision();
 
@@ -157,6 +156,7 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 		m_Valid = true;
 		m_FileSize = File::GetSize(_rFileName);
 		m_Platform = DiscIO::IVolume::ELF_DOL;
+		m_blob_type = DiscIO::BlobType::DIRECTORY;
 	}
 
 	std::string path, name;
@@ -209,7 +209,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_FileSize);
 	p.Do(m_VolumeSize);
 	p.Do(m_Country);
-	p.Do(m_BlobCompressed);
+	p.Do(m_blob_type);
 	p.Do(m_pImage);
 	p.Do(m_ImageWidth);
 	p.Do(m_ImageHeight);

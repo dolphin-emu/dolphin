@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 namespace File { struct FSTEntry; }
@@ -51,7 +52,7 @@ public:
 
 	ECountry GetCountry() const override;
 
-	bool IsCompressed() const override;
+	BlobType GetBlobType() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
 
