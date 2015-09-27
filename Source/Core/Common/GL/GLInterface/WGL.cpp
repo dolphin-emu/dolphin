@@ -5,6 +5,7 @@
 #include <string>
 #include <windows.h>
 
+#include "Common/MsgHandler.h"
 #include "Common/GL/GLInterface/WGL.h"
 #include "Common/Logging/Log.h"
 

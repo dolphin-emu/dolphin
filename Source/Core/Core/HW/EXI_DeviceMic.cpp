@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #if HAVE_PORTAUDIO
 

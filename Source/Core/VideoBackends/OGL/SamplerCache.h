@@ -6,8 +6,9 @@
 
 #include <map>
 
+#include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 #include "Common/GL/GLUtil.h"
-
 #include "VideoBackends/OGL/Render.h"
 
 namespace OGL

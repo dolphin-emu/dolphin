@@ -7,11 +7,13 @@
 #include <string>
 #include <utility>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 namespace Common
 {

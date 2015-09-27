@@ -14,9 +14,11 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #ifdef _WIN32
 	#include <Windows.h>

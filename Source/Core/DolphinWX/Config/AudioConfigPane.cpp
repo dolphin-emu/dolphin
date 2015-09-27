@@ -14,6 +14,7 @@
 #include <wx/stattext.h>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinWX/WxUtils.h"

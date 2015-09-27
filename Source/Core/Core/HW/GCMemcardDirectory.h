@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/Event.h"
+#include "Common/NonCopyable.h"
 #include "Core/HW/GCMemcard.h"
 #include "DiscIO/Volume.h"
 

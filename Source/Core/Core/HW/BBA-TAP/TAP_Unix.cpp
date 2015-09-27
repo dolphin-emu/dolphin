@@ -7,6 +7,7 @@
 #endif
 
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
 

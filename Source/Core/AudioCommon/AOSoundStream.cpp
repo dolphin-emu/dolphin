@@ -6,6 +6,8 @@
 
 #include "AudioCommon/AOSoundStream.h"
 #include "AudioCommon/Mixer.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 
 #if defined(HAVE_AO) && HAVE_AO
 

@@ -10,7 +10,9 @@
 #include <set>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
+#include "Common/Logging/Log.h"
 
 #define MAX_MESSAGES 8000
 #define MAX_MSGLEN  1024

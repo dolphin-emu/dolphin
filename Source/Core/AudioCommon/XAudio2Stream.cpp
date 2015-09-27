@@ -6,6 +6,8 @@
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/XAudio2Stream.h"
 #include "Common/Event.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 
 #ifndef XAUDIO2_DLL
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path.
