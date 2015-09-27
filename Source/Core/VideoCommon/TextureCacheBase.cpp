@@ -161,7 +161,7 @@ void TextureCache::Cleanup(int _frameCount)
 				// Only remove EFB copies when they wouldn't be used anymore(changed hash), because EFB copies living on the
 				// host GPU are unrecoverable. Perform this check only every TEXTURE_KILL_THRESHOLD for performance reasons
 				if ((_frameCount - iter->second->frameCount) % TEXTURE_KILL_THRESHOLD == 1 &&
-					iter->second->hash != GetHash64(Memory::GetPointer(iter->second->addr), iter->second->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples))
+					iter->second->hash != iter->second->CalculateHash())
 				{
 					iter = FreeTexture(iter);
 				}
@@ -1050,7 +1050,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 	entry->FromRenderTarget(dst, dstFormat, dstStride, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
-	u64 hash = GetHash64(dst, (int)entry->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	u64 hash = entry->CalculateHash();
 	entry->SetHashes(hash, hash);
 
 	// Invalidate all textures that overlap the range of our efb copy.
@@ -1164,5 +1164,34 @@ void TextureCache::TCacheEntryBase::Zero(u8* ptr)
 	{
 		memset(ptr, 0, CacheLinesPerRow() * 32);
 		ptr += memory_stride;
+	}
+}
+
+u64 TextureCache::TCacheEntryBase::CalculateHash() const
+{
+	u8* ptr = Memory::GetPointer(addr);
+	if (memory_stride == CacheLinesPerRow() * 32)
+	{
+		return GetHash64(ptr, size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	}
+	else
+	{
+		u32 blocks = NumBlocksY();
+		u64 temp_hash = size_in_bytes;
+
+		u32 samples_per_row = 0;
+		if (g_ActiveConfig.iSafeTextureCache_ColorSamples != 0)
+		{
+			// Hash at least 4 samples per row to avoid hashing in a bad pattern, like just on the left side of the efb copy
+			samples_per_row = std::max(g_ActiveConfig.iSafeTextureCache_ColorSamples / blocks, 4u);
+		}
+
+		for (u32 i = 0; i < blocks; i++)
+		{
+			// Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from canceling each other out
+			temp_hash = (temp_hash * 397) ^ GetHash64(ptr, CacheLinesPerRow() * 32, samples_per_row);
+			ptr += memory_stride;
+		}
+		return temp_hash;
 	}
 }
