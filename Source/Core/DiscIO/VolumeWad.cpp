@@ -126,6 +126,11 @@ std::map<IVolume::ELanguage, std::string> CVolumeWAD::GetNames(bool prefer_long)
 	return ReadWiiNames(name_data);
 }
 
+bool CVolumeWAD::IsCompressed() const
+{
+	return m_pReader ? m_pReader->IsCompressed() : false;
+}
+
 u64 CVolumeWAD::GetSize() const
 {
 	if (m_pReader)

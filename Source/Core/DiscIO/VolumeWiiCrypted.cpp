@@ -250,6 +250,11 @@ u8 CVolumeWiiCrypted::GetDiscNumber() const
 	return disc_number;
 }
 
+bool CVolumeWiiCrypted::IsCompressed() const
+{
+	return m_pReader ? m_pReader->IsCompressed() : false;
+}
+
 u64 CVolumeWiiCrypted::GetSize() const
 {
 	if (m_pReader)

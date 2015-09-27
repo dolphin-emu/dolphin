@@ -25,7 +25,8 @@ class IBlobReader
 public:
 	virtual ~IBlobReader() {}
 
-	virtual u64 GetRawSize() const  = 0;
+	virtual bool IsCompressed() const = 0;
+	virtual u64 GetRawSize() const = 0;
 	virtual u64 GetDataSize() const = 0;
 	// NOT thread-safe - can't call this from multiple threads.
 	virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;

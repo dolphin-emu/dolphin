@@ -37,8 +37,9 @@ public:
 	std::string GetApploaderDate() const override { return ""; }
 
 	EPlatform GetVolumeType() const override;
-
 	ECountry GetCountry() const override;
+
+	bool IsCompressed() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
 
