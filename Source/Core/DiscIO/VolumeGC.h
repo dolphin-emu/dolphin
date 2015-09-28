@@ -80,7 +80,7 @@ private:
 	};
 
 	mutable BannerFileType m_banner_file_type = BANNER_NOT_LOADED;
-	mutable std::vector<u8> m_banner_file;
+	mutable GCBanner m_banner_file;
 
 	std::unique_ptr<IBlobReader> m_pReader;
 };
