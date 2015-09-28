@@ -336,15 +336,6 @@
     <ClCompile Include="HW\DSPHLE\UCodes\Zelda.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaADPCM.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaSynth.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaVoice.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
     <ClCompile Include="HW\DSPHLE\UCodes\UCodes.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
@@ -608,6 +599,9 @@
     </ClCompile>
     <ClCompile Include="HW\Wiimote.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\CachedInterpreter.cpp">
+      <Filter>PowerPC</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\JitInterface.cpp">
       <Filter>PowerPC</Filter>
@@ -1172,6 +1166,9 @@
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Gekko.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\CachedInterpreter.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitInterface.h">

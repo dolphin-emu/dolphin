@@ -8,8 +8,11 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/WbfsBlob.h"
 
 namespace DiscIO
@@ -115,8 +118,10 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
 	while (nbytes)
 	{
-		u64 read_size = 0;
+		u64 read_size;
 		File::IOFile& data_file = SeekToCluster(offset, &read_size);
+		if (read_size == 0)
+			return false;
 		read_size = (read_size > nbytes) ? nbytes : read_size;
 
 		if (!data_file.ReadBytes(out_ptr, read_size))
@@ -160,6 +165,8 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
 	}
 
 	PanicAlert("Read beyond end of disc");
+	if (available)
+		*available = 0;
 	m_files[0]->file.Seek(0, SEEK_SET);
 	return m_files[0]->file;
 }

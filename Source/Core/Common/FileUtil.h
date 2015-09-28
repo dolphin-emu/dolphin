@@ -10,7 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 
 #ifdef _WIN32
 #include "Common/StringUtil.h"
@@ -58,7 +59,7 @@ namespace File
 struct FSTEntry
 {
 	bool isDirectory;
-	u64 size;                 // File length or number of entries from children
+	u64 size;                 // File length, or for directories, recursive count of children
 	std::string physicalName; // Name on disk
 	std::string virtualName;  // Name in FST names table
 	std::vector<FSTEntry> children;

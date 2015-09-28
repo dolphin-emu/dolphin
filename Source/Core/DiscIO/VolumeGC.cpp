@@ -6,10 +6,12 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
@@ -20,8 +22,8 @@
 
 namespace DiscIO
 {
-CVolumeGC::CVolumeGC(IBlobReader* _pReader)
-	: m_pReader(_pReader)
+CVolumeGC::CVolumeGC(std::unique_ptr<IBlobReader> reader)
+	: m_pReader(std::move(reader))
 {}
 
 CVolumeGC::~CVolumeGC()
@@ -143,7 +145,7 @@ std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
 	return image_buffer;
 }
 
-u32 CVolumeGC::GetFSTSize() const
+u64 CVolumeGC::GetFSTSize() const
 {
 	if (m_pReader == nullptr)
 		return 0;
@@ -165,6 +167,11 @@ std::string CVolumeGC::GetApploaderDate() const
 		return std::string();
 
 	return DecodeString(date);
+}
+
+bool CVolumeGC::IsCompressed() const
+{
+	return m_pReader ? m_pReader->IsCompressed() : false;
 }
 
 u64 CVolumeGC::GetSize() const
@@ -228,13 +235,13 @@ bool CVolumeGC::LoadBannerFile() const
 		else
 		{
 			m_banner_file_type = BANNER_INVALID;
-			WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0lx", bannerSignature, (unsigned long)file_size);
+			WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0zx", bannerSignature, file_size);
 		}
 	}
 	else
 	{
 		m_banner_file_type = BANNER_INVALID;
-		WARN_LOG(DISCIO, "Invalid opening.bnr. Size: %0lx", (unsigned long)file_size);
+		WARN_LOG(DISCIO, "Invalid opening.bnr. Size: %0zx", file_size);
 	}
 
 	return m_banner_file_type != BANNER_INVALID;
@@ -248,7 +255,7 @@ std::map<IVolume::ELanguage, std::string> CVolumeGC::ReadMultiLanguageStrings(bo
 		return strings;
 
 	u32 number_of_languages = 0;
-	ELanguage start_language;
+	ELanguage start_language = LANGUAGE_UNKNOWN;
 	bool is_japanese = GetCountry() == ECountry::COUNTRY_JAPAN;
 
 	switch (m_banner_file_type)

@@ -128,7 +128,7 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 // to be recalculated and haven't been clobbered. Keep in mind not all instructions set
 // sufficient flags -- for example, the flags from SHL/SHR are *not* sufficient for LT/GT
 // branches, only EQ.
-void Jit64::ComputeRC(const Gen::OpArg & arg, bool needs_test, bool needs_sext)
+void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
 {
 	_assert_msg_(DYNA_REC, arg.IsSimpleReg() || arg.IsImm(), "Invalid ComputeRC operand");
 	if (arg.IsImm())
@@ -215,7 +215,7 @@ static u32 Xor(u32 a, u32 b)
 	return a ^ b;
 }
 
-void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc, bool carry)
+void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const OpArg&, const OpArg&), bool Rc, bool carry)
 {
 	bool needs_test = false;
 	gpr.Lock(d, a);
@@ -676,7 +676,11 @@ void Jit64::boolX(UGeckoInstruction inst)
 		}
 		else if (inst.SUBOP10 == 60) // andcx
 		{
-			if (a == b)
+			if (cpu_info.bBMI1 && gpr.R(b).IsSimpleReg() && !gpr.R(s).IsImm())
+			{
+				ANDN(32, gpr.RX(a), gpr.RX(b), gpr.R(s));
+			}
+			else if (a == b)
 			{
 				NOT(32, gpr.R(a));
 				AND(32, gpr.R(a), operand);
@@ -745,9 +749,16 @@ void Jit64::boolX(UGeckoInstruction inst)
 		}
 		else if (inst.SUBOP10 == 60) // andcx
 		{
-			MOV(32, gpr.R(a), gpr.R(b));
-			NOT(32, gpr.R(a));
-			AND(32, gpr.R(a), gpr.R(s));
+			if (cpu_info.bBMI1 && gpr.R(b).IsSimpleReg() && !gpr.R(s).IsImm())
+			{
+				ANDN(32, gpr.RX(a), gpr.RX(b), gpr.R(s));
+			}
+			else
+			{
+				MOV(32, gpr.R(a), gpr.R(b));
+				NOT(32, gpr.R(a));
+				AND(32, gpr.R(a), gpr.R(s));
+			}
 		}
 		else if (inst.SUBOP10 == 444) // orx
 		{
@@ -913,7 +924,7 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
 	if (!overflow)
 	{
 		// power of 2; just a shift
-		if (IsPow2(imm))
+		if (MathUtil::IsPow2(imm))
 		{
 			u32 shift = IntLog2(imm);
 			// use LEA if it saves an op

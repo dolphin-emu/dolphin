@@ -46,12 +46,9 @@ CodeBuffer::~CodeBuffer()
 	delete[] codebuffer;
 }
 
-void AnalyzeFunction2(Symbol &func);
-u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc);
-
 #define INVALID_TARGET ((u32)-1)
 
-u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
+static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 {
 	switch (instr.OPCD)
 	{
@@ -248,6 +245,10 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	//
 	// [1] https://code.google.com/p/dolphin-emu/issues/detail?id=5864#c7
 	if (b_info->type != OPTYPE_INTEGER)
+		return false;
+
+	// And it's possible a might raise an interrupt too (fcmpo/fcmpu)
+	if (a_info->type != OPTYPE_INTEGER)
 		return false;
 
 	// Check that we have no register collisions.

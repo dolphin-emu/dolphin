@@ -83,5 +83,5 @@ private:
 	std::unique_ptr<MemoryCardBase> memorycard;
 
 protected:
-	virtual void TransferByte(u8 &byte) override;
+	void TransferByte(u8& byte) override;
 };

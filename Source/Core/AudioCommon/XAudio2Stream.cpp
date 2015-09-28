@@ -6,6 +6,8 @@
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/XAudio2Stream.h"
 #include "Common/Event.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 
 #ifndef XAUDIO2_DLL
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path.
@@ -208,21 +210,6 @@ void XAudio2::SetVolume(int volume)
 
 	if (m_mastering_voice)
 		m_mastering_voice->SetVolume(m_volume);
-}
-
-void XAudio2::Update()
-{
-	//m_sound_sync_event.Set();
-
-	//static int xi = 0;
-	//if (100000 == ++xi)
-	//{
-	//    xi = 0;
-	//    XAUDIO2_PERFORMANCE_DATA perfData;
-	//    pXAudio2->GetPerformanceData(&perfData);
-	//    NOTICE_LOG(DSPHLE, "XAudio2 latency (samples): %i", perfData.CurrentLatencyInSamples);
-	//    NOTICE_LOG(DSPHLE, "XAudio2 total glitches: %i", perfData.GlitchesSinceEngineStarted);
-	//}
 }
 
 void XAudio2::Clear(bool mute)

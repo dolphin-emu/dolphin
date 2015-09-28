@@ -20,8 +20,7 @@ void SymbolDB::List()
 		          func.second.size, func.second.hash,
 		          func.second.numCalls);
 	}
-	INFO_LOG(OSHLE, "%lu functions known in this program above.",
-	         (unsigned long)functions.size());
+	INFO_LOG(OSHLE, "%zu functions known in this program above.", functions.size());
 }
 
 void SymbolDB::Clear(const char *prefix)
@@ -53,5 +52,5 @@ Symbol* SymbolDB::GetSymbolFromName(const std::string& name)
 
 void SymbolDB::AddCompleteSymbol(const Symbol &symbol)
 {
-	functions.insert(std::pair<u32, Symbol>(symbol.address, symbol));
+	functions.emplace(symbol.address, symbol);
 }

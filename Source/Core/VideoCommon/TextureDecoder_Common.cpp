@@ -5,8 +5,10 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Common/Common.h"
-
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/sfont.inc"
 #include "VideoCommon/TextureDecoder.h"
@@ -16,7 +18,7 @@ static bool TexFmt_Overlay_Center = false;
 
 // TRAM
 // STATE_TO_SAVE
-GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
+alignas(16) u8 texMem[TMEM_SIZE];
 
 int TexDecoder_GetTexelSizeInNibbles(int format)
 {
@@ -35,7 +37,6 @@ int TexDecoder_GetTexelSizeInNibbles(int format)
 	case GX_CTF_R4:    return 1;
 	case GX_CTF_RA4:   return 2;
 	case GX_CTF_RA8:   return 4;
-	case GX_CTF_YUVA8: return 8;
 	case GX_CTF_A8:    return 2;
 	case GX_CTF_R8:    return 2;
 	case GX_CTF_G8:    return 2;
@@ -48,10 +49,14 @@ int TexDecoder_GetTexelSizeInNibbles(int format)
 	case GX_TF_Z24X8:  return 8;
 
 	case GX_CTF_Z4:    return 1;
+	case GX_CTF_Z8H:   return 2;
 	case GX_CTF_Z8M:   return 2;
 	case GX_CTF_Z8L:   return 2;
+	case GX_CTF_Z16R:  return 4;
 	case GX_CTF_Z16L:  return 4;
-	default: return 1;
+	default:
+		PanicAlert("Unsupported Texture Format (%08x)! (GetTexelSizeInNibbles)", format);
+		return 1;
 	}
 }
 
@@ -88,11 +93,13 @@ int TexDecoder_GetBlockWidthInTexels(u32 format)
 	case GX_TF_Z16: return 4;
 	case GX_TF_Z24X8: return 4;
 	case GX_CTF_Z4: return 8;
+	case GX_CTF_Z8H: return 8;
 	case GX_CTF_Z8M: return 8;
 	case GX_CTF_Z8L: return 8;
+	case GX_CTF_Z16R: return 4;
 	case GX_CTF_Z16L: return 4;
 	default:
-		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockWidthInTexels)", format);
+		PanicAlert("Unsupported Texture Format (%08x)! (GetBlockWidthInTexels)", format);
 		return 8;
 	}
 }
@@ -125,11 +132,13 @@ int TexDecoder_GetBlockHeightInTexels(u32 format)
 	case GX_TF_Z16: return 4;
 	case GX_TF_Z24X8: return 4;
 	case GX_CTF_Z4: return 8;
+	case GX_CTF_Z8H: return 4;
 	case GX_CTF_Z8M: return 4;
 	case GX_CTF_Z8L: return 4;
+	case GX_CTF_Z16R: return 4;
 	case GX_CTF_Z16L: return 4;
 	default:
-		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockHeightInTexels)", format);
+		PanicAlert("Unsupported Texture Format (%08x)! (GetBlockHeightInTexels)", format);
 		return 4;
 	}
 }

@@ -78,8 +78,8 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);
 	settings->Get("MSAA", &iMultisampleMode, 0);
+	settings->Get("SSAA", &bSSAA, false);
 	settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
-	settings->Get("DstAlphaPass", &bDstAlphaPass, false);
 	settings->Get("TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
 	settings->Get("TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
 	settings->Get("WireFrame", &bWireFrame, 0);
@@ -99,6 +99,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
 	hacks->Get("BBoxEnable", &bBBoxEnable, false);
+	hacks->Get("ForceProgressive", &bForceProgressive, true);
 	hacks->Get("EFBToTextureEnable", &bSkipEFBCopyToRam, true);
 	hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
 	hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
@@ -160,6 +161,8 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
+	CHECK_SETTING("Video_Settings", "SSAA", bSSAA);
+
 	int tmp = -9000;
 	CHECK_SETTING("Video_Settings", "EFBScale", tmp); // integral
 	if (tmp != -9000)
@@ -187,7 +190,6 @@ void VideoConfig::GameIniLoad()
 		}
 	}
 
-	CHECK_SETTING("Video_Settings", "DstAlphaPass", bDstAlphaPass);
 	CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
 
 	CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
@@ -204,6 +206,7 @@ void VideoConfig::GameIniLoad()
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "BBoxEnable", bBBoxEnable);
+	CHECK_SETTING("Video_Hacks", "ForceProgressive", bForceProgressive);
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
@@ -272,11 +275,11 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("FastDepthCalc", bFastDepthCalc);
 	settings->Set("ShowEFBCopyRegions", bShowEFBCopyRegions);
 	settings->Set("MSAA", iMultisampleMode);
+	settings->Set("SSAA", bSSAA);
 	settings->Set("EFBScale", iEFBScale);
 	settings->Set("TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	settings->Set("TexFmtOverlayCenter", bTexFmtOverlayCenter);
 	settings->Set("Wireframe", bWireFrame);
-	settings->Set("DstAlphaPass", bDstAlphaPass);
 	settings->Set("DisableFog", bDisableFog);
 	settings->Set("EnableShaderDebugging", bEnableShaderDebugging);
 	settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
@@ -293,6 +296,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
 	hacks->Set("BBoxEnable", bBBoxEnable);
+	hacks->Set("ForceProgressive", bForceProgressive);
 	hacks->Set("EFBToTextureEnable", bSkipEFBCopyToRam);
 	hacks->Set("EFBScaledCopy", bCopyEFBScaled);
 	hacks->Set("EFBEmulateFormatChanges", bEFBEmulateFormatChanges);

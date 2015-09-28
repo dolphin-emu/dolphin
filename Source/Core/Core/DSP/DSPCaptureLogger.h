@@ -7,7 +7,8 @@
 #include <memory>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 
 class PCAP;
 
@@ -43,9 +44,9 @@ public:
 class DefaultDSPCaptureLogger : public DSPCaptureLogger
 {
 public:
-	virtual void LogIFXRead(u16 address, u16 read_value) override {}
-	virtual void LogIFXWrite(u16 address, u16 written_value) override {}
-	virtual void LogDMA(u16 control, u32 gc_address, u16 dsp_address,
+	void LogIFXRead(u16 address, u16 read_value) override {}
+	void LogIFXWrite(u16 address, u16 written_value) override {}
+	void LogDMA(u16 control, u32 gc_address, u16 dsp_address,
 	                    u16 length, const u8* data) override {}
 };
 
@@ -60,15 +61,15 @@ public:
 	PCAPDSPCaptureLogger(PCAP* pcap);
 	PCAPDSPCaptureLogger(std::unique_ptr<PCAP>&& pcap);
 
-	virtual void LogIFXRead(u16 address, u16 read_value) override
+	void LogIFXRead(u16 address, u16 read_value) override
 	{
 		LogIFXAccess(true, address, read_value);
 	}
-	virtual void LogIFXWrite(u16 address, u16 written_value) override
+	void LogIFXWrite(u16 address, u16 written_value) override
 	{
 		LogIFXAccess(false, address, written_value);
 	}
-	virtual void LogDMA(u16 control, u32 gc_address, u16 dsp_address,
+	void LogDMA(u16 control, u32 gc_address, u16 dsp_address,
 	                    u16 length, const u8* data) override;
 
 private:

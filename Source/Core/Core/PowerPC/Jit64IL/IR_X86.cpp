@@ -104,7 +104,7 @@ static unsigned regReadUse(RegInfo& R, InstLoc I)
 }
 
 static u64 SlotSet[1000];
-static u8 GC_ALIGNED16(FSlotSet[16*1000]);
+alignas(16) static u8 FSlotSet[16 * 1000];
 
 static OpArg regLocForSlot(RegInfo& RI, unsigned slot)
 {
@@ -760,7 +760,7 @@ static void regWriteExit(RegInfo& RI, InstLoc dest)
 }
 
 // Helper function to check floating point exceptions
-static double GC_ALIGNED16(isSNANTemp[2][2]);
+alignas(16) static double isSNANTemp[2][2];
 static bool checkIsSNAN()
 {
 	return MathUtil::IsSNAN(isSNANTemp[0][0]) || MathUtil::IsSNAN(isSNANTemp[1][0]);
@@ -1742,7 +1742,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				break;
 
 			X64Reg reg = fregURegWithMov(RI, I);
-			static const u32 GC_ALIGNED16(ssSignBits[4]) = {0x80000000};
+			alignas(16) static const u32 ssSignBits[4] = {0x80000000};
 			Jit->PXOR(reg, M(ssSignBits));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
@@ -1754,7 +1754,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				break;
 
 			X64Reg reg = fregURegWithMov(RI, I);
-			static const u64 GC_ALIGNED16(sdSignBits[2]) = {0x8000000000000000ULL};
+			alignas(16) static const u64 sdSignBits[2] = {0x8000000000000000ULL};
 			Jit->PXOR(reg, M(sdSignBits));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
@@ -1766,7 +1766,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				break;
 
 			X64Reg reg = fregURegWithMov(RI, I);
-			static const u32 GC_ALIGNED16(psSignBits[4]) = {0x80000000, 0x80000000};
+			alignas(16) static const u32 psSignBits[4] = {0x80000000, 0x80000000};
 			Jit->PXOR(reg, M(psSignBits));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
@@ -2111,7 +2111,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			FixupBranch noidle = Jit->J_CC(CC_NZ);
 
 			RI.Jit->Cleanup(); // is it needed?
-			Jit->ABI_CallFunction((void *)&PowerPC::OnIdle);
+			Jit->ABI_CallFunction((void *)&CoreTiming::Idle);
 
 			Jit->MOV(32, PPCSTATE(pc), Imm32(ibuild->GetImmValue( getOp2(I) )));
 			Jit->WriteExceptionExit();

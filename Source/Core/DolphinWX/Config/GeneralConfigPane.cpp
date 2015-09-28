@@ -22,12 +22,13 @@ GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id)
 	: wxPanel(parent, id)
 {
 	cpu_cores = {
-		{ 0, _("Interpreter (VERY slow)") },
+		{ PowerPC::CORE_INTERPRETER, _("Interpreter (slowest)") },
+		{ PowerPC::CORE_CACHEDINTERPRETER, _("Cached Interpreter (slower)") },
 #ifdef _M_X86_64
-		{ 1, _("JIT Recompiler (recommended)") },
-		{ 2, _("JITIL Recompiler (slower, experimental)") },
+		{ PowerPC::CORE_JIT64, _("JIT Recompiler (recommended)") },
+		{ PowerPC::CORE_JITIL64, _("JITIL Recompiler (slow, experimental)") },
 #elif defined(_M_ARM_64)
-		{ 4, _("Arm64 JIT (experimental)") },
+		{ PowerPC::CORE_JITARM64, _("JIT Arm64 (experimental)") },
 #endif
 	};
 

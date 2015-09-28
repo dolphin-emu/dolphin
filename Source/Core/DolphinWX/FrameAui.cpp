@@ -677,8 +677,8 @@ void CFrame::SetPaneSize()
 				H = Perspectives[ActivePerspective].Height[j];
 
 			// Check limits
-			MathUtil::Clamp<u32>(&W, 5, 95);
-			MathUtil::Clamp<u32>(&H, 5, 95);
+			W = MathUtil::Clamp<u32>(W, 5, 95);
+			H = MathUtil::Clamp<u32>(H, 5, 95);
 
 			// Convert percentages to pixel lengths
 			W = (W * iClientX) / 100;

@@ -14,9 +14,9 @@
 #include "AudioCommon/PulseAudioStream.h"
 #include "AudioCommon/XAudio2_7Stream.h"
 #include "AudioCommon/XAudio2Stream.h"
-
 #include "Common/FileUtil.h"
-
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Movie.h"
 
@@ -57,7 +57,7 @@ namespace AudioCommon
 
 		if (!g_sound_stream && NullSound::isValid())
 		{
-			WARN_LOG(DSPHLE, "Could not initialize backend %s, using %s instead.",
+			WARN_LOG(AUDIO, "Could not initialize backend %s, using %s instead.",
 				backend.c_str(), BACKEND_NULLSOUND);
 			g_sound_stream = new NullSound();
 		}
@@ -65,14 +65,19 @@ namespace AudioCommon
 		if (g_sound_stream)
 		{
 			UpdateSoundStream();
-			if (g_sound_stream->Start())
+			if (!g_sound_stream->Start())
 			{
-				if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
-					StartAudioDump();
-
-				return g_sound_stream;
+				ERROR_LOG(AUDIO, "Could not start backend %s, using %s instead",
+					  backend.c_str(), BACKEND_NULLSOUND);
+				delete g_sound_stream;
+				g_sound_stream = new NullSound();
+				g_sound_stream->Start();
 			}
-			PanicAlertT("Could not initialize backend %s.", backend.c_str());
+
+			if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
+				StartAudioDump();
+
+			return g_sound_stream;
 		}
 
 		PanicAlertT("Sound backend %s is not valid.", backend.c_str());
@@ -84,7 +89,7 @@ namespace AudioCommon
 
 	void ShutdownSoundStream()
 	{
-		INFO_LOG(DSPHLE, "Shutting down sound stream");
+		INFO_LOG(AUDIO, "Shutting down sound stream");
 
 		if (g_sound_stream)
 		{
@@ -95,7 +100,7 @@ namespace AudioCommon
 			g_sound_stream = nullptr;
 		}
 
-		INFO_LOG(DSPHLE, "Done shutting down sound stream");
+		INFO_LOG(AUDIO, "Done shutting down sound stream");
 	}
 
 	std::vector<std::string> GetSoundBackends()

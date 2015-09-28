@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
@@ -37,8 +38,6 @@ public:
 
 		void Set(const std::string& key, const std::string& newValue);
 		void Set(const std::string& key, const std::string& newValue, const std::string& defaultValue);
-
-		bool Get(const std::string& key, std::string* value, const std::string& defaultValue = NULL_STRING);
 
 		void Set(const std::string& key, u32 newValue)
 		{
@@ -76,12 +75,13 @@ public:
 
 		void Set(const std::string& key, const std::vector<std::string>& newValues);
 
-		bool Get(const std::string& key, int* value, int defaultValue = 0);
-		bool Get(const std::string& key, u32* value, u32 defaultValue = 0);
-		bool Get(const std::string& key, bool* value, bool defaultValue = false);
-		bool Get(const std::string& key, float* value, float defaultValue = false);
-		bool Get(const std::string& key, double* value, double defaultValue = false);
-		bool Get(const std::string& key, std::vector<std::string>* values);
+		bool Get(const std::string& key, std::string* value, const std::string& defaultValue = NULL_STRING) const;
+		bool Get(const std::string& key, int* value, int defaultValue = 0) const;
+		bool Get(const std::string& key, u32* value, u32 defaultValue = 0) const;
+		bool Get(const std::string& key, bool* value, bool defaultValue = false) const;
+		bool Get(const std::string& key, float* value, float defaultValue = 0.0f) const;
+		bool Get(const std::string& key, double* value, double defaultValue = 0.0) const;
+		bool Get(const std::string& key, std::vector<std::string>* values) const;
 
 		bool operator < (const Section& other) const
 		{
@@ -141,8 +141,6 @@ private:
 
 	const Section* GetSection(const std::string& section) const;
 	Section* GetSection(const std::string& section);
-	std::string* GetLine(const std::string& section, const std::string& key);
-	void CreateSection(const std::string& section);
 
 	static const std::string& NULL_STRING;
 };

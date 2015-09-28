@@ -12,6 +12,7 @@ class JitArm64AsmRoutineManager : public CommonAsmRoutinesBase, public Arm64Gen:
 private:
 	void Generate();
 	void GenerateCommon();
+	void GenMfcr();
 
 public:
 	void Init()

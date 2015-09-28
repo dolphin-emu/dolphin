@@ -119,13 +119,12 @@ void CommonAsmRoutines::GenFres()
 	MOV(32, R(RSCRATCH2), R(RSCRATCH_EXTRA));
 	AND(32, R(RSCRATCH_EXTRA), Imm32(0x7FF)); // exp
 	AND(32, R(RSCRATCH2), Imm32(0x800)); // sign
-	CMP(32, R(RSCRATCH_EXTRA), Imm32(895));
+	SUB(32, R(RSCRATCH_EXTRA), Imm32(895));
+	CMP(32, R(RSCRATCH_EXTRA), Imm32(1149 - 895));
 	// Take the complex path for very large/small exponents.
-	FixupBranch complex1 = J_CC(CC_L);
-	CMP(32, R(RSCRATCH_EXTRA), Imm32(1149));
-	FixupBranch complex2 = J_CC(CC_GE);
+	FixupBranch complex = J_CC(CC_AE); // if (exp < 895 || exp >= 1149)
 
-	SUB(32, R(RSCRATCH_EXTRA), Imm32(0x7FD));
+	SUB(32, R(RSCRATCH_EXTRA), Imm32(0x7FD - 895));
 	NEG(32, R(RSCRATCH_EXTRA));
 	OR(32, R(RSCRATCH_EXTRA), R(RSCRATCH2));
 	SHL(64, R(RSCRATCH_EXTRA), Imm8(52));	   // vali = sign | exponent
@@ -154,8 +153,7 @@ void CommonAsmRoutines::GenFres()
 	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_ZX));
 	SetJumpTarget(skip_set_fx1);
 
-	SetJumpTarget(complex1);
-	SetJumpTarget(complex2);
+	SetJumpTarget(complex);
 	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	ABI_CallFunction((void *)&MathUtil::ApproximateReciprocal);
 	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
@@ -207,12 +205,12 @@ void CommonAsmRoutines::GenMfcr()
 }
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
-static const float GC_ALIGNED16(m_65535[4]) = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
-static const float GC_ALIGNED16(m_32767) = 32767.0f;
-static const float GC_ALIGNED16(m_m32768) = -32768.0f;
-static const float GC_ALIGNED16(m_255) = 255.0f;
-static const float GC_ALIGNED16(m_127) = 127.0f;
-static const float GC_ALIGNED16(m_m128) = -128.0f;
+alignas(16) static const float m_65535[4] = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
+alignas(16) static const float m_32767 = 32767.0f;
+alignas(16) static const float m_m32768 = -32768.0f;
+alignas(16) static const float m_255 = 255.0f;
+alignas(16) static const float m_127 = 127.0f;
+alignas(16) static const float m_m128 = -128.0f;
 
 #define QUANTIZE_OVERFLOW_SAFE
 

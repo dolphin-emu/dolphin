@@ -12,10 +12,11 @@
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Common/GL/GLInterfaceBase.h"
+
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
-#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
@@ -33,11 +34,13 @@
 namespace OGL
 {
 
+static SHADER s_ColorCopyProgram;
 static SHADER s_ColorMatrixProgram;
 static SHADER s_DepthMatrixProgram;
 static GLuint s_ColorMatrixUniform;
 static GLuint s_DepthMatrixUniform;
 static GLuint s_ColorCopyPositionUniform;
+static GLuint s_ColorMatrixPositionUniform;
 static GLuint s_DepthCopyPositionUniform;
 static u32 s_ColorCbufid;
 static u32 s_DepthCbufid;
@@ -137,12 +140,55 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConf
 	return entry;
 }
 
-void TextureCache::TCacheEntry::DoPartialTextureUpdate(TCacheEntryBase* entry_, u32 x, u32 y)
+void TextureCache::TCacheEntry::CopyRectangleFromTexture(
+	const TCacheEntryBase* source,
+	const MathUtil::Rectangle<int> &srcrect,
+	const MathUtil::Rectangle<int> &dstrect)
 {
-
-	TCacheEntry* entry = (TCacheEntry*)entry_;
-
-	glCopyImageSubData(entry->texture, GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, texture, GL_TEXTURE_2D_ARRAY, 0, x, y, 0, entry->native_width, entry->native_height, 1);
+	TCacheEntry* srcentry = (TCacheEntry*)source;
+	if (srcrect.GetWidth() == dstrect.GetWidth()
+		&& srcrect.GetHeight() == dstrect.GetHeight()
+		&& g_ogl_config.bSupportsCopySubImage)
+	{
+		glCopyImageSubData(
+			srcentry->texture,
+			GL_TEXTURE_2D_ARRAY,
+			0,
+			srcrect.left,
+			srcrect.top,
+			0,
+			texture,
+			GL_TEXTURE_2D_ARRAY,
+			0,
+			dstrect.left,
+			dstrect.top,
+			0,
+			dstrect.GetWidth(),
+			dstrect.GetHeight(),
+			1);
+		return;
+	}
+	else if (!framebuffer)
+	{
+		glGenFramebuffers(1, &framebuffer);
+		FramebufferManager::SetFramebuffer(framebuffer);
+		FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, texture, 0);
+	}
+	g_renderer->ResetAPIState();
+	FramebufferManager::SetFramebuffer(framebuffer);
+	glActiveTexture(GL_TEXTURE9);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, srcentry->texture);
+	g_sampler_cache->BindLinearSampler(9);
+	glViewport(dstrect.left, dstrect.top, dstrect.GetWidth(), dstrect.GetHeight());
+	s_ColorCopyProgram.Bind();
+	glUniform4f(s_ColorCopyPositionUniform,
+		float(srcrect.left),
+		float(srcrect.top),
+		float(srcrect.GetWidth()),
+		float(srcrect.GetHeight()));
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	FramebufferManager::SetFramebuffer(0);
+	g_renderer->RestoreAPIState();
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
@@ -168,7 +214,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	TextureCache::SetStage();
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
+void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, unsigned int dstFormat, u32 dstStride,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
@@ -208,7 +254,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		if (s_ColorCbufid != cbufid)
 			glUniform4fv(s_ColorMatrixUniform, 7, colmat);
 		s_ColorCbufid = cbufid;
-		uniform_location = s_ColorCopyPositionUniform;
+		uniform_location = s_ColorMatrixPositionUniform;
 	}
 
 	TargetRectangle R = g_renderer->ConvertEFBRectangle(srcRect);
@@ -217,25 +263,20 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	if (!g_ActiveConfig.bSkipEFBCopyToRam)
+	if (g_ActiveConfig.bSkipEFBCopyToRam)
 	{
-		int encoded_size = TextureConverter::EncodeToRamFromTexture(
-			dstAddr,
+		this->Zero(dstPointer);
+	}
+	else
+	{
+		TextureConverter::EncodeToRamFromTexture(
+			dstPointer,
+			this,
 			read_texture,
 			srcFormat == PEControl::Z24,
 			isIntensity,
-			dstFormat,
 			scaleByHalf,
 			srcRect);
-
-		u8* dst = Memory::GetPointer(dstAddr);
-		u64 const new_hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
-		size_in_bytes = (u32)encoded_size;
-
-		TextureCache::MakeRangeDynamic(dstAddr, encoded_size);
-
-		hash = new_hash;
 	}
 
 	FramebufferManager::SetFramebuffer(0);
@@ -286,6 +327,16 @@ void TextureCache::SetStage()
 
 void TextureCache::CompileShaders()
 {
+	const char *pColorCopyProg =
+		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
+		"in vec3 f_uv0;\n"
+		"out vec4 ocol0;\n"
+		"\n"
+		"void main(){\n"
+		"	vec4 texcol = texture(samp9, f_uv0);\n"
+		"	ocol0 = texcol;\n"
+		"}\n";
+
 	const char *pColorMatrixProg =
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 colmat[7];\n"
@@ -306,7 +357,7 @@ void TextureCache::CompileShaders()
 		"\n"
 		"void main(){\n"
 		"	vec4 texcol = texture(samp9, vec3(f_uv0.xy, %s));\n"
-		"	int depth = clamp(int(texcol.x * 16777216.0), 0, 0xFFFFFF);\n"
+		"	int depth = int(texcol.x * 16777216.0);\n"
 
 		// Convert to Z24 format
 		"	ivec4 workspace;\n"
@@ -357,6 +408,7 @@ void TextureCache::CompileShaders()
 	const char* prefix = (GProgram == nullptr) ? "f" : "v";
 	const char* depth_layer = (g_ActiveConfig.bStereoEFBMonoDepth) ? "0.0" : "f_uv0.z";
 
+	ProgramShaderCache::CompileShader(s_ColorCopyProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), pColorCopyProg, GProgram);
 	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), pColorMatrixProg, GProgram);
 	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), StringFromFormat(pDepthMatrixProg, depth_layer).c_str(), GProgram);
 
@@ -365,7 +417,8 @@ void TextureCache::CompileShaders()
 	s_ColorCbufid = -1;
 	s_DepthCbufid = -1;
 
-	s_ColorCopyPositionUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "copy_position");
+	s_ColorCopyPositionUniform = glGetUniformLocation(s_ColorCopyProgram.glprogid, "copy_position");
+	s_ColorMatrixPositionUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "copy_position");
 	s_DepthCopyPositionUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "copy_position");
 
 	std::string palette_shader =
@@ -512,7 +565,7 @@ void TextureCache::ConvertTexture(TCacheEntryBase* _entry, TCacheEntryBase* _unc
 	memcpy(buffer.first, palette, size);
 	s_palette_stream_buffer->Unmap(size);
 	glUniform1i(s_palette_buffer_offset_uniform[format], buffer.second / 2);
-	glUniform1f(s_palette_multiplier_uniform[format], unconverted->format == 0 ? 15.0f : 255.0f);
+	glUniform1f(s_palette_multiplier_uniform[format], (unconverted->format & 0xf) == 0 ? 15.0f : 255.0f);
 	glUniform4f(s_palette_copy_position_uniform[format], 0.0f, 0.0f, (float)unconverted->config.width, (float)unconverted->config.height);
 
 	glActiveTexture(GL_TEXTURE10);

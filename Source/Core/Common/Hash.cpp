@@ -43,10 +43,10 @@ u32 HashFletcher(const u8* data_u8, size_t length)
 
 // Implementation from Wikipedia
 // Slightly slower than Fletcher above, but slightly more reliable.
-#define MOD_ADLER 65521
 // data: Pointer to the data to be summed; len is in bytes
 u32 HashAdler32(const u8* data, size_t len)
 {
+	static const u32 MOD_ADLER = 65521;
 	u32 a = 1, b = 0;
 
 	while (len)

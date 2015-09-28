@@ -24,24 +24,8 @@ void EmuCodeBlock::MemoryExceptionCheck()
 
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
-	MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
-	if (accessSize == 32)
-	{
-		BSWAP(32, reg_value);
-	}
-	else if (accessSize == 16)
-	{
-		BSWAP(32, reg_value);
-		if (signExtend)
-			SAR(32, R(reg_value), Imm8(16));
-		else
-			SHR(32, R(reg_value), Imm8(16));
-	}
-	else if (signExtend)
-	{
-		// TODO: bake 8-bit into the original load.
-		MOVSX(32, accessSize, reg_value, R(reg_value));
-	}
+	OpArg src = MComplex(RMEM, reg_addr, SCALE_1, offset);
+	LoadAndSwap(accessSize, reg_value, src, signExtend);
 }
 
 void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
@@ -84,34 +68,7 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessS
 	}
 
 	result = GetWritableCodePtr();
-	if (accessSize == 8 && signExtend)
-		MOVSX(32, accessSize, reg_value, memOperand);
-	else
-		MOVZX(64, accessSize, reg_value, memOperand);
-
-	switch (accessSize)
-	{
-	case 8:
-		_dbg_assert_(DYNA_REC, BACKPATCH_SIZE - (GetCodePtr() - result <= 0));
-		break;
-
-	case 16:
-		BSWAP(32, reg_value);
-		if (signExtend)
-			SAR(32, R(reg_value), Imm8(16));
-		else
-			SHR(32, R(reg_value), Imm8(16));
-		break;
-
-	case 32:
-		BSWAP(32, reg_value);
-		break;
-
-	case 64:
-		BSWAP(64, reg_value);
-		break;
-	}
-
+	LoadAndSwap(accessSize, reg_value, memOperand, signExtend);
 	return result;
 }
 
@@ -127,15 +84,15 @@ public:
 	{
 	}
 
-	virtual void VisitConstant(T value)
+	void VisitConstant(T value) override
 	{
 		LoadConstantToReg(8 * sizeof (T), value);
 	}
-	virtual void VisitDirect(const T* addr, u32 mask)
+	void VisitDirect(const T* addr, u32 mask) override
 	{
 		LoadAddrMaskToReg(8 * sizeof (T), addr, mask);
 	}
-	virtual void VisitComplex(const std::function<T(u32)>* lambda)
+	void VisitComplex(const std::function<T(u32)>* lambda) override
 	{
 		CallLambda(8 * sizeof (T), lambda);
 	}
@@ -173,11 +130,11 @@ private:
 		u32 all_ones = (1ULL << sbits) - 1;
 		if ((all_ones & mask) == all_ones)
 		{
-			MoveOpArgToReg(sbits, MDisp(RSCRATCH, 0));
+			MoveOpArgToReg(sbits, MatR(RSCRATCH));
 		}
 		else
 		{
-			m_code->MOVZX(32, sbits, m_dst_reg, MDisp(RSCRATCH, 0));
+			m_code->MOVZX(32, sbits, m_dst_reg, MatR(RSCRATCH));
 			m_code->AND(32, R(m_dst_reg), Imm32(mask));
 			if (m_sign_extend)
 				m_code->MOVSX(32, sbits, m_dst_reg, R(m_dst_reg));
@@ -415,17 +372,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acce
 	}
 	else if (swap)
 	{
-		if (cpu_info.bMOVBE)
-		{
-			MOVBE(accessSize, dest, reg_value.GetSimpleReg());
-		}
-		else
-		{
-			if (accessSize > 8)
-				BSWAP(accessSize, reg_value.GetSimpleReg());
-			result = GetWritableCodePtr();
-			MOV(accessSize, dest, reg_value);
-		}
+		result = SwapAndStore(accessSize, dest, reg_value.GetSimpleReg());
 	}
 	else
 	{
@@ -453,16 +400,16 @@ void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
 	switch (accessSize)
 	{
 	case 8:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite8);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite8);
 		break;
 	case 16:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite16);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite16);
 		break;
 	case 32:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite32);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite32);
 		break;
 	case 64:
-		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite64);
+		CALL(jit->GetAsmRoutines()->fifoDirectWrite64);
 		break;
 	}
 	jit->js.fifoBytesThisBlock += accessSize >> 3;
@@ -476,7 +423,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address, B
 	// fun tricks...
 	if (jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(address))
 	{
-		if (!arg.IsSimpleReg() || arg.GetSimpleReg() != RSCRATCH)
+		if (!arg.IsSimpleReg(RSCRATCH))
 			MOV(accessSize, R(RSCRATCH), arg);
 
 		UnsafeWriteGatherPipe(accessSize);
@@ -654,7 +601,7 @@ void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool 
 				MOVDDUP(output, R(output));
 		}
 	}
-	else if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
+	else if (!input.IsSimpleReg(output))
 	{
 		if (duplicate)
 			MOVDDUP(output, input);
@@ -667,7 +614,7 @@ void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool 
 void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&), void (XEmitter::*sseOp)(X64Reg, const OpArg&),
                           X64Reg regOp, const OpArg& arg1, const OpArg& arg2, bool packed, bool reversible)
 {
-	if (arg1.IsSimpleReg() && regOp == arg1.GetSimpleReg())
+	if (arg1.IsSimpleReg(regOp))
 	{
 		(this->*sseOp)(regOp, arg2);
 	}
@@ -675,7 +622,7 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
 	{
 		(this->*avxOp)(regOp, arg1.GetSimpleReg(), arg2);
 	}
-	else if (arg2.IsSimpleReg() && arg2.GetSimpleReg() == regOp)
+	else if (arg2.IsSimpleReg(regOp))
 	{
 		if (reversible)
 		{
@@ -684,7 +631,7 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
 		else
 		{
 			// The ugly case: regOp == arg2 without AVX, or with arg1 == memory
-			if (!arg1.IsSimpleReg() || arg1.GetSimpleReg() != XMM0)
+			if (!arg1.IsSimpleReg(XMM0))
 				MOVAPD(XMM0, arg1);
 			if (cpu_info.bAVX)
 			{
@@ -714,7 +661,7 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
 void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, u8), void (XEmitter::*sseOp)(X64Reg, const OpArg&, u8),
                           X64Reg regOp, const OpArg& arg1, const OpArg& arg2, u8 imm)
 {
-	if (arg1.IsSimpleReg() && regOp == arg1.GetSimpleReg())
+	if (arg1.IsSimpleReg(regOp))
 	{
 		(this->*sseOp)(regOp, arg2, imm);
 	}
@@ -722,10 +669,10 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, 
 	{
 		(this->*avxOp)(regOp, arg1.GetSimpleReg(), arg2, imm);
 	}
-	else if (arg2.IsSimpleReg() && arg2.GetSimpleReg() == regOp)
+	else if (arg2.IsSimpleReg(regOp))
 	{
 		// The ugly case: regOp == arg2 without AVX, or with arg1 == memory
-		if (!arg1.IsSimpleReg() || arg1.GetSimpleReg() != XMM0)
+		if (!arg1.IsSimpleReg(XMM0))
 			MOVAPD(XMM0, arg1);
 		if (cpu_info.bAVX)
 		{
@@ -744,8 +691,8 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, 
 	}
 }
 
-static const u64 GC_ALIGNED16(psMantissaTruncate[2]) = {0xFFFFFFFFF8000000ULL, 0xFFFFFFFFF8000000ULL};
-static const u64 GC_ALIGNED16(psRoundBit[2]) = {0x8000000, 0x8000000};
+alignas(16) static const u64 psMantissaTruncate[2] = {0xFFFFFFFFF8000000ULL, 0xFFFFFFFFF8000000ULL};
+alignas(16) static const u64 psRoundBit[2] = {0x8000000, 0x8000000};
 
 // Emulate the odd truncation/rounding that the PowerPC does on the RHS operand before
 // a single precision multiply. To be precise, it drops the low 28 bits of the mantissa,
@@ -764,21 +711,21 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg
 		}
 		else
 		{
-			if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
+			if (!input.IsSimpleReg(output))
 				MOVAPD(output, input);
 			avx_op(&XEmitter::VPAND, &XEmitter::PAND, tmp, R(output), M(psRoundBit), true, true);
 			PAND(output, M(psMantissaTruncate));
 			PADDQ(output, R(tmp));
 		}
 	}
-	else if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
+	else if (!input.IsSimpleReg(output))
 	{
 		MOVAPD(output, input);
 	}
 }
 
-static u32 GC_ALIGNED16(temp32);
-static u64 GC_ALIGNED16(temp64);
+alignas(16) static u32 temp32;
+alignas(16) static u64 temp64;
 
 // Since the following float conversion functions are used in non-arithmetic PPC float instructions,
 // they must convert floats bitexact and never flush denormals to zero or turn SNaNs into QNaNs.
@@ -793,12 +740,12 @@ static u64 GC_ALIGNED16(temp64);
 //#define MORE_ACCURATE_DOUBLETOSINGLE
 #ifdef MORE_ACCURATE_DOUBLETOSINGLE
 
-static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi64x(0, 0x7ff0000000000000);
-static const __m128i GC_ALIGNED16(double_fraction) = _mm_set_epi64x(0, 0x000fffffffffffff);
-static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0, 0x8000000000000000);
-static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi64x(0, 0x0010000000000000);
-static const __m128i GC_ALIGNED16(double_top_two_bits) = _mm_set_epi64x(0, 0xc000000000000000);
-static const __m128i GC_ALIGNED16(double_bottom_bits)  = _mm_set_epi64x(0, 0x07ffffffe0000000);
+alignas(16) static const __m128i double_exponent = _mm_set_epi64x(0, 0x7ff0000000000000);
+alignas(16) static const __m128i double_fraction = _mm_set_epi64x(0, 0x000fffffffffffff);
+alignas(16) static const __m128i double_sign_bit = _mm_set_epi64x(0, 0x8000000000000000);
+alignas(16) static const __m128i double_explicit_top_bit = _mm_set_epi64x(0, 0x0010000000000000);
+alignas(16) static const __m128i double_top_two_bits = _mm_set_epi64x(0, 0xc000000000000000);
+alignas(16) static const __m128i double_bottom_bits  = _mm_set_epi64x(0, 0x07ffffffe0000000);
 
 // This is the same algorithm used in the interpreter (and actual hardware)
 // The documentation states that the conversion of a double with an outside the
@@ -869,12 +816,12 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 #else // MORE_ACCURATE_DOUBLETOSINGLE
 
-static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0xffffffffffffffff, 0x7fffffffffffffff);
-static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0xffffffffffffffff, 0xffffffffffbfffff);
-static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi64x(0xffffffffffffffff, 0xfff7ffffffffffff);
+alignas(16) static const __m128i double_sign_bit = _mm_set_epi64x(0xffffffffffffffff, 0x7fffffffffffffff);
+alignas(16) static const __m128i single_qnan_bit = _mm_set_epi64x(0xffffffffffffffff, 0xffffffffffbfffff);
+alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(0xffffffffffffffff, 0xfff7ffffffffffff);
 
 // Smallest positive double that results in a normalized single.
-static const double GC_ALIGNED16(min_norm_single) = std::numeric_limits<float>::min();
+alignas(16) static const double min_norm_single = std::numeric_limits<float>::min();
 
 void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 {
@@ -948,9 +895,9 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 	MOVDDUP(dst, R(dst));
 }
 
-static const u64 GC_ALIGNED16(psDoubleExp[2])  = {0x7FF0000000000000ULL, 0};
-static const u64 GC_ALIGNED16(psDoubleFrac[2]) = {0x000FFFFFFFFFFFFFULL, 0};
-static const u64 GC_ALIGNED16(psDoubleNoSign[2]) = {0x7FFFFFFFFFFFFFFFULL, 0};
+alignas(16) static const u64 psDoubleExp[2]  = {0x7FF0000000000000ULL, 0};
+alignas(16) static const u64 psDoubleFrac[2] = {0x000FFFFFFFFFFFFFULL, 0};
+alignas(16) static const u64 psDoubleNoSign[2] = {0x7FFFFFFFFFFFFFFFULL, 0};
 
 // TODO: it might be faster to handle FPRF in the same way as CR is currently handled for integer, storing
 // the result of each floating point op and calculating it when needed. This is trickier than for integers
@@ -985,7 +932,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 
 		// Max exponent + no mantissa: sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
 		SetJumpTarget(notNAN);
-		LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF, MathUtil::PPC_FPCLASS_NINF));
+		LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF, MathUtil::PPC_FPCLASS_PINF));
 		continue3 = J();
 
 		SetJumpTarget(zeroExponent);
@@ -993,7 +940,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 		FixupBranch zero = J_CC(CC_Z);
 
 		// No exponent + mantissa: sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
-		LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD, MathUtil::PPC_FPCLASS_ND));
+		LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD, MathUtil::PPC_FPCLASS_PD));
 		continue4 = J();
 
 		// Zero: sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
@@ -1022,13 +969,13 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 		SetJumpTarget(infinity);
 		MOVQ_xmm(R(RSCRATCH), xmm);
 		SHR(64, R(RSCRATCH), Imm8(63));
-		LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF, MathUtil::PPC_FPCLASS_NINF));
+		LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF, MathUtil::PPC_FPCLASS_PINF));
 		continue3 = J();
 		SetJumpTarget(zeroExponent);
 		TEST(64, R(RSCRATCH), R(RSCRATCH));
 		FixupBranch zero = J_CC(CC_Z);
 		SHR(64, R(RSCRATCH), Imm8(63));
-		LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD, MathUtil::PPC_FPCLASS_ND));
+		LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD, MathUtil::PPC_FPCLASS_PD));
 		continue4 = J();
 		SetJumpTarget(zero);
 		SHR(64, R(RSCRATCH), Imm8(63));

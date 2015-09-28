@@ -308,7 +308,7 @@ EVT_MENU(IDM_SAVE_SELECTED_SLOT, CFrame::OnSaveCurrentSlot)
 EVT_MENU(IDM_LOAD_SELECTED_SLOT, CFrame::OnLoadCurrentSlot)
 
 EVT_MENU_RANGE(IDM_LOAD_SLOT_1, IDM_LOAD_SLOT_10, CFrame::OnLoadState)
-EVT_MENU_RANGE(IDM_LOAD_LAST_1, IDM_LOAD_LAST_8, CFrame::OnLoadLastState)
+EVT_MENU_RANGE(IDM_LOAD_LAST_1, IDM_LOAD_LAST_10, CFrame::OnLoadLastState)
 EVT_MENU_RANGE(IDM_SAVE_SLOT_1, IDM_SAVE_SLOT_10, CFrame::OnSaveState)
 EVT_MENU_RANGE(IDM_SELECT_SLOT_1, IDM_SELECT_SLOT_10, CFrame::OnSelectSlot)
 EVT_MENU_RANGE(IDM_FRAME_SKIP_0, IDM_FRAME_SKIP_9, CFrame::OnFrameSkip)
@@ -776,6 +776,22 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case IDM_STOPPED:
 		OnStopped();
 		break;
+
+	case IDM_FORCE_CONNECT_WIIMOTE1:
+	case IDM_FORCE_CONNECT_WIIMOTE2:
+	case IDM_FORCE_CONNECT_WIIMOTE3:
+	case IDM_FORCE_CONNECT_WIIMOTE4:
+	case IDM_FORCE_CONNECT_BALANCEBOARD:
+		ConnectWiimote(event.GetId() - IDM_FORCE_CONNECT_WIIMOTE1, true);
+		break;
+
+	case IDM_FORCE_DISCONNECT_WIIMOTE1:
+	case IDM_FORCE_DISCONNECT_WIIMOTE2:
+	case IDM_FORCE_DISCONNECT_WIIMOTE3:
+	case IDM_FORCE_DISCONNECT_WIIMOTE4:
+	case IDM_FORCE_DISCONNECT_BALANCEBOARD:
+		ConnectWiimote(event.GetId() - IDM_FORCE_DISCONNECT_WIIMOTE1, false);
+		break;
 	}
 }
 
@@ -988,6 +1004,8 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_LOAD_LAST_STATE_6: return IDM_LOAD_LAST_6;
 	case HK_LOAD_LAST_STATE_7: return IDM_LOAD_LAST_7;
 	case HK_LOAD_LAST_STATE_8: return IDM_LOAD_LAST_8;
+	case HK_LOAD_LAST_STATE_9: return IDM_LOAD_LAST_9;
+	case HK_LOAD_LAST_STATE_10: return IDM_LOAD_LAST_10;
 
 	case HK_SAVE_FIRST_STATE: return IDM_SAVE_FIRST_STATE;
 	case HK_UNDO_LOAD_STATE: return IDM_UNDO_LOAD_STATE;
@@ -1057,14 +1075,18 @@ void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controll
 	}
 }
 
-bool TASInputHasFocus()
+void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-	for (int i = 0; i < 8; ++i)
-	{
-		if (main_frame->g_TASInputDlg[i]->TASHasFocus())
-			return true;
-	}
-	return false;
+	// On OS X, we claim all keyboard events while
+	// emulation is running to avoid wxWidgets sounding
+	// the system beep for unhandled key events when
+	// receiving pad/Wiimote keypresses which take an
+	// entirely different path through the HID subsystem.
+#ifndef __APPLE__
+	// On other platforms, we leave the key event alone
+	// so it can be passed on to the windowing system.
+	event.Skip();
+#endif
 }
 
 void CFrame::OnMouse(wxMouseEvent& event)
@@ -1126,7 +1148,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::OnFocusChange(wxFocusEvent& event)
 {
-	if (SConfig::GetInstance().m_PauseOnFocusLost)
+	if (SConfig::GetInstance().m_PauseOnFocusLost && Core::IsRunningAndStarted())
 	{
 		if (RendererHasFocus())
 		{
@@ -1440,7 +1462,7 @@ void CFrame::ParseHotkeys()
 		VertexShaderManager::ResetView();
 
 	// Savestates
-	for (int i = 0; i < 10; i++)
+	for (u32 i = 0; i < State::NUM_STATES; i++)
 	{
 		if (IsHotkey(HK_LOAD_STATE_SLOT_1 + i))
 			State::Load(1 + i);

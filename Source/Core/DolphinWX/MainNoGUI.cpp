@@ -7,9 +7,11 @@
 #include <cstring>
 #include <getopt.h>
 #include <string>
+#include <unistd.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/MsgHandler.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/BootManager.h"
@@ -358,6 +360,7 @@ int main(int argc, char* argv[])
 	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		updateMainFrameEvent.Wait();
 
+	Core::Shutdown();
 	platform->Shutdown();
 	UICommon::Shutdown();
 

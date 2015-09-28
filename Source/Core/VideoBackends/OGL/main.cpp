@@ -44,6 +44,8 @@ Make AA apply instantly during gameplay if possible
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/Thread.h"
+#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
@@ -52,8 +54,6 @@ Make AA apply instantly during gameplay if possible
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
-#include "VideoBackends/OGL/GLInterfaceBase.h"
-#include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -83,6 +83,12 @@ Make AA apply instantly during gameplay if possible
 
 namespace OGL
 {
+
+// Draw messages on top of the screen
+unsigned int VideoBackend::PeekMessages()
+{
+	return GLInterface->PeekMessages();
+}
 
 std::string VideoBackend::GetName() const
 {
@@ -117,12 +123,13 @@ static void InitBackendInfo()
 	g_Config.backend_info.bSupportsGeometryShaders = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsPostProcessing = true;
+	g_Config.backend_info.bSupportsSSAA = true;
 
 	g_Config.backend_info.Adapters.clear();
 
-	// aamodes
-	const char* caamodes[] = {_trans("None"), "2x", "4x", "8x", "4x SSAA"};
-	g_Config.backend_info.AAModes.assign(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
+	// aamodes - 1 is to stay consistent with D3D (means no AA)
+	const int aamodes[] = { 1, 2, 4, 8 };
+	g_Config.backend_info.AAModes.assign(aamodes, aamodes + sizeof(aamodes)/sizeof(*aamodes));
 
 	// pp shaders
 	g_Config.backend_info.PPShaders = GetShaders("");

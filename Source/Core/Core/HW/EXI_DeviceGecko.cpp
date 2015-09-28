@@ -2,9 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+#include <thread>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/Core.h"
@@ -74,7 +76,8 @@ void GeckoSockServer::GeckoConnectionWaiter()
 
 			new_client = std::make_unique<sf::TcpSocket>();
 		}
-		SLEEP(1);
+
+		Common::SleepCurrentThread(1);
 	}
 }
 
@@ -163,13 +166,13 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 	switch (_uData >> 28)
 	{
 	case CMD_LED_OFF:
-		Core::DisplayMessage(StringFromFormat(
-			"USBGecko: No LEDs for you!"),
+		Core::DisplayMessage(
+			"USBGecko: No LEDs for you!",
 			3000);
 		break;
 	case CMD_LED_ON:
-		Core::DisplayMessage(StringFromFormat(
-			"USBGecko: A piercing blue light is now shining in your general direction"),
+		Core::DisplayMessage(
+			"USBGecko: A piercing blue light is now shining in your general direction",
 			3000);
 		break;
 

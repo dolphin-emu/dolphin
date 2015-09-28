@@ -2,11 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -132,7 +133,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 
 	memory_card_size = memorycard->GetCardId() * SIZE_TO_Mb;
 	u8 header[20] = {0};
-	memorycard->Read(0, ArraySize(header), header);
+	memorycard->Read(0, static_cast<s32>(ArraySize(header)), header);
 	SetCardFlashID(header, card_index);
 }
 

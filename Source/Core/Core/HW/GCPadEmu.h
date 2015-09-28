@@ -34,8 +34,6 @@ private:
 
 	const unsigned int m_index;
 
-	// TODO: Make constexpr when VS supports it.
-	//
 	// Default analog stick radius for GameCube controllers.
-	static const ControlState DEFAULT_PAD_STICK_RADIUS;
+	static constexpr ControlState DEFAULT_PAD_STICK_RADIUS = 1.0;
 };

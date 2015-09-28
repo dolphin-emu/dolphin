@@ -134,7 +134,8 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 	// Sanity check
 	if (*n == 0)
 		return nullptr;
-	MathUtil::Clamp(&fc[0], float(0.001), float(1));
+
+	fc[0] = MathUtil::Clamp(fc[0], 0.001f, 1.0f);
 
 	float *w = (float*)calloc(sizeof(float), *n);
 

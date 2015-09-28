@@ -1,12 +1,12 @@
 package org.dolphinemu.dolphinemu.fragments;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -57,6 +57,15 @@ public class PlatformGamesFragment extends Fragment
 		RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getActivity(),
 				getResources().getInteger(R.integer.game_grid_columns));
 		recyclerView.setLayoutManager(layoutManager);
+		recyclerView.setItemAnimator(new DefaultItemAnimator()
+		{
+			@Override
+			public boolean animateChange(RecyclerView.ViewHolder oldHolder, RecyclerView.ViewHolder newHolder, int fromX, int fromY, int toX, int toY)
+			{
+				dispatchChangeFinished(newHolder, false);
+				return true;
+			}
+		});
 
 		recyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
 
@@ -70,10 +79,9 @@ public class PlatformGamesFragment extends Fragment
 		return rootView;
 	}
 
-	@Override
-	public void onAttach(Activity activity)
+	public void refreshScreenshotAtPosition(int position)
 	{
-		super.onAttach(activity);
+		mAdapter.notifyItemChanged(position);
 	}
 
 	public void refresh()

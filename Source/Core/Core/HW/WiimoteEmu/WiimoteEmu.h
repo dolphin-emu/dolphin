@@ -121,6 +121,7 @@ public:
 	void Update();
 	void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
 	void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
+	void ConnectOnInput();
 
 	void DoState(PointerWrap& p);
 	void RealState();
@@ -239,6 +240,10 @@ private:
 		u8  play;
 		u8  unk_9;
 	} m_reg_speaker;
+
+	// limits the amount of connect requests we send when a button is pressed in disconnected state
+	u8 m_last_connect_request_counter;
+
 #pragma pack(pop)
 };
 

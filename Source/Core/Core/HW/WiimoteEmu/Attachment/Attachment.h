@@ -17,6 +17,7 @@ public:
 	Attachment(const char* const _name, WiimoteEmu::ExtensionReg& _reg);
 
 	virtual void GetState(u8* const data) {}
+	virtual bool IsButtonPressed() const { return false; }
 	void Reset();
 	std::string GetName() const override;
 
@@ -27,10 +28,9 @@ public:
 	u8 calibration[0x10];
 
 protected:
-	// TODO: Make constexpr when VS supports it.
-	//
+
 	// Default radius for attachment analog sticks.
-	static const ControlState DEFAULT_ATTACHMENT_STICK_RADIUS;
+	static constexpr ControlState DEFAULT_ATTACHMENT_STICK_RADIUS = 1.0;
 };
 
 class None : public Attachment

@@ -23,17 +23,17 @@ class IBlobReader;
 class CVolumeWiiCrypted : public IVolume
 {
 public:
-	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
+	CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
 	~CVolumeWiiCrypted();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
-	bool GetTitleID(u8* _pBuffer) const override;
-	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const override;
+	bool GetTitleID(u64* buffer) const override;
+	std::unique_ptr<u8[]> GetTMD(u32 *_sz) const override;
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
 	u16 GetRevision() const override;
 	std::string GetInternalName() const override;
 	std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
-	u32 GetFSTSize() const override;
+	u64 GetFSTSize() const override;
 	std::string GetApploaderDate() const override;
 	u8 GetDiscNumber() const override;
 
@@ -43,6 +43,7 @@ public:
 	bool ChangePartition(u64 offset) override;
 
 	ECountry GetCountry() const override;
+	bool IsCompressed() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
 

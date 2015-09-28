@@ -21,8 +21,7 @@
 #include "VideoCommon/RenderBase.h"
 
 PostProcessingConfigDiag::PostProcessingConfigDiag(wxWindow* parent, const std::string& shader)
-	: wxDialog(parent, wxID_ANY,
-		wxString::Format(_("Post Processing Shader Configuration"))),
+	: wxDialog(parent, wxID_ANY, _("Post Processing Shader Configuration")),
 	  m_shader(shader)
 {
 	// Depending on if we are running already, either use the one from the videobackend

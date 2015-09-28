@@ -250,8 +250,7 @@ void VertexManager::Flush()
 		GeometryShaderManager::SetConstants();
 		PixelShaderManager::SetConstants();
 
-		bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass &&
-						   bpmem.dstalpha.enable &&
+		bool useDstAlpha = bpmem.dstalpha.enable &&
 						   bpmem.blendmode.alphaupdate &&
 						   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 

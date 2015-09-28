@@ -1,7 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
+    // Leanback support requires >22
+    compileSdkVersion 22
     buildToolsVersion "22.0.1"
 
     lintOptions {
@@ -75,10 +76,13 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v13:22.2.0'
-    compile 'com.android.support:cardview-v7:22.2.0'
-    compile 'com.android.support:recyclerview-v7:22.2.0'
-    compile 'com.android.support:design:22.2.0'
+    compile 'com.android.support:support-v13:22.2.1'
+    compile 'com.android.support:cardview-v7:22.2.1'
+    compile 'com.android.support:recyclerview-v7:22.2.1'
+    compile 'com.android.support:design:22.2.1'
+
+    // Android TV UI libraries.
+    compile 'com.android.support:leanback-v17:22.2.1'
 
     // For showing the banner as a circle a-la Material Design Guidelines
     compile 'de.hdodenhof:circleimageview:1.2.2'
@@ -134,7 +138,11 @@ task compileNative(type: Exec, dependsOn: 'setupCMake') {
 
         executable 'make'
 
-        args buildProperties.makeArgs
+        if (buildProperties.makeArgs == null || buildProperties.makeArgs.isEmpty()) {
+            // TODO
+        } else {
+            args buildProperties.makeArgs
+        }
     } else {
         executable 'echo'
         args 'No build.properties found; skipping native build.'
@@ -144,13 +152,15 @@ task compileNative(type: Exec, dependsOn: 'setupCMake') {
 String getExecutablePath(String command) {
     def propsFile = rootProject.file("build.properties")
     def path = null
+
     if (propsFile.canRead()) {
         def buildProperties = new Properties()
         buildProperties.load(new FileInputStream(propsFile))
         println buildProperties
         path = buildProperties[command + "Path"]
     }
-    if (path == null) {
+
+    if (path == null || path.isEmpty()) {
         try {
             def stdout = new ByteArrayOutputStream()
 
@@ -164,21 +174,25 @@ String getExecutablePath(String command) {
             project.logger.error("Gradle error: Couldn't find " + command + " executable.")
         }
     }
+
     if (path != null) {
         project.logger.quiet("Gradle: Found " + command + " executuable:" + path)
     }
+
     return path
 }
 
 String getNdkPath() {
     def propsFile = rootProject.file("build.properties")
     def ndkPath = null
+
     if (propsFile.canRead()) {
         def buildProperties = new Properties()
         buildProperties.load(new FileInputStream(propsFile))
         ndkPath = buildProperties.ndkPath
     }
-    if (ndkPath == null) {
+
+    if (ndkPath == null || ndkPath.isEmpty()) {
         try {
             def stdout = new ByteArrayOutputStream()
 
@@ -194,6 +208,7 @@ String getNdkPath() {
             project.logger.error("Gradle error: Couldn't find NDK.")
         }
     }
+
     if (ndkPath != null) {
         project.logger.quiet("Gradle: Found Android NDK: " + ndkPath)
     }

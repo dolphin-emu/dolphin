@@ -8,6 +8,7 @@
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BoundingBox.h"
@@ -20,6 +21,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
@@ -205,6 +207,7 @@ static void BPWritten(const BPCmd& bp)
 			// The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in case 0x49 and 0x4a in this function
 
 			u32 destAddr = bpmem.copyTexDest << 5;
+			u32 destStride = bpmem.copyMipMapStrideChannels << 5;
 
 			EFBRectangle srcRect;
 			srcRect.left = (int)bpmem.copyTexSrcXY.x;
@@ -223,8 +226,9 @@ static void BPWritten(const BPCmd& bp)
 				if (g_ActiveConfig.bShowEFBCopyRegions)
 					stats.efb_regions.push_back(srcRect);
 
-				CopyEFB(destAddr, srcRect,
-					PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
+				// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
+				TextureCache::CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
+					bpmem.zcontrol.pixel_format, srcRect,
 					!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
 			}
 			else
@@ -241,7 +245,7 @@ static void BPWritten(const BPCmd& bp)
 				else
 					yScale = (float)bpmem.dispcopyyscale / 256.0f;
 
-				float num_xfb_lines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
+				float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
 
 				u32 height = static_cast<u32>(num_xfb_lines);
 				if (height > MAX_XFB_HEIGHT)
@@ -251,9 +255,9 @@ static void BPWritten(const BPCmd& bp)
 					height = MAX_XFB_HEIGHT;
 				}
 
-				u32 width = bpmem.copyMipMapStrideChannels << 4;
-
-				Renderer::RenderToXFB(destAddr, srcRect, width, height, s_gammaLUT[PE_copy.gamma]);
+				DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | fbStride: %u | fbHeight: %u",
+					destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom, bpmem.copyTexSrcWH.x + 1, destStride, height);
+				Renderer::RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
 			}
 
 			// Clear the rectangular region after copying it.
@@ -277,6 +281,9 @@ static void BPWritten(const BPCmd& bp)
 				addr = addr & 0x01FFFFFF;
 
 			Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
+
+			if (g_bRecordFifoData)
+				FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::TMEM);
 
 			return;
 		}
@@ -452,15 +459,16 @@ static void BPWritten(const BPCmd& bp)
 
 			BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
 			u32 src_addr = tmem_cfg.preload_addr << 5; // TODO: Should we add mask here on GC?
-			u32 size = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
+			u32 bytes_read = 0;
 			u32 tmem_addr_even = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
 
 			if (tmem_cfg.preload_tile_info.type != 3)
 			{
-				if (tmem_addr_even + size > TMEM_SIZE)
-					size = TMEM_SIZE - tmem_addr_even;
+				bytes_read = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
+				if (tmem_addr_even + bytes_read > TMEM_SIZE)
+					bytes_read = TMEM_SIZE - tmem_addr_even;
 
-				Memory::CopyFromEmu(texMem + tmem_addr_even, src_addr, size);
+				Memory::CopyFromEmu(texMem + tmem_addr_even, src_addr, bytes_read);
 			}
 			else // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
 			{
@@ -471,18 +479,19 @@ static void BPWritten(const BPCmd& bp)
 
 				for (u32 i = 0; i < tmem_cfg.preload_tile_info.count; ++i)
 				{
-					if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE ||
-					    tmem_addr_odd  + TMEM_LINE_SIZE > TMEM_SIZE)
-						return;
+					if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE || tmem_addr_odd + TMEM_LINE_SIZE > TMEM_SIZE)
+						break;
 
-					// TODO: This isn't very optimised, does a whole lot of small memcpys
-					memcpy(texMem + tmem_addr_even, src_ptr, TMEM_LINE_SIZE);
-					memcpy(texMem + tmem_addr_odd, src_ptr + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
+					memcpy(texMem + tmem_addr_even, src_ptr + bytes_read, TMEM_LINE_SIZE);
+					memcpy(texMem + tmem_addr_odd, src_ptr + bytes_read + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
 					tmem_addr_even += TMEM_LINE_SIZE;
 					tmem_addr_odd += TMEM_LINE_SIZE;
-					src_ptr += TMEM_LINE_SIZE * 2;
+					bytes_read += TMEM_LINE_SIZE * 2;
 				}
 			}
+
+			if (g_bRecordFifoData)
+				FifoRecorder::GetInstance().UseMemory(src_addr, bytes_read, MemoryUpdate::TMEM);
 		}
 		return;
 

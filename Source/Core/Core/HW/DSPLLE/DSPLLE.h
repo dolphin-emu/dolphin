@@ -18,22 +18,22 @@ class DSPLLE : public DSPEmulator
 public:
 	DSPLLE();
 
-	virtual bool Initialize(bool bWii, bool bDSPThread) override;
-	virtual void Shutdown() override;
-	virtual bool IsLLE() override { return true; }
+	bool Initialize(bool bWii, bool bDSPThread) override;
+	void Shutdown() override;
+	bool IsLLE() override { return true; }
 
-	virtual void DoState(PointerWrap &p) override;
-	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
+	void DoState(PointerWrap &p) override;
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
 
-	virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) override;
-	virtual void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short) override;
-	virtual unsigned short DSP_ReadMailBoxHigh(bool _CPUMailbox) override;
-	virtual unsigned short DSP_ReadMailBoxLow(bool _CPUMailbox) override;
-	virtual unsigned short DSP_ReadControlRegister() override;
-	virtual unsigned short DSP_WriteControlRegister(unsigned short) override;
-	virtual void DSP_Update(int cycles) override;
-	virtual void DSP_StopSoundStream() override;
-	virtual u32 DSP_UpdateRate() override;
+	void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) override;
+	void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short) override;
+	unsigned short DSP_ReadMailBoxHigh(bool _CPUMailbox) override;
+	unsigned short DSP_ReadMailBoxLow(bool _CPUMailbox) override;
+	unsigned short DSP_ReadControlRegister() override;
+	unsigned short DSP_WriteControlRegister(unsigned short) override;
+	void DSP_Update(int cycles) override;
+	void DSP_StopSoundStream() override;
+	u32 DSP_UpdateRate() override;
 
 private:
 	static void DSPThread(DSPLLE* lpParameter);

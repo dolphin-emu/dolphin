@@ -15,6 +15,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::EnqueueReply(u32 CommandAddress)
@@ -400,15 +401,14 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 		}
 		else // push new one, pop oldest
 		{
-			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not "
-				"currently valid, queueing(%lu)...",
-				(unsigned long)m_EventQueue.size());
+			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, queueing (%zu)...",
+				m_EventQueue.size());
 			m_EventQueue.push_back(_event);
 			const SQueuedEvent& event = m_EventQueue.front();
 			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x "
-				"being written from queue(%lu) to %08x...",
+				"being written from queue (%zu) to %08x...",
 				((hci_event_hdr_t*)event.m_buffer)->event,
-				(unsigned long)m_EventQueue.size()-1,
+				m_EventQueue.size()-1,
 				m_HCIEndpoint.m_address);
 			m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
 			m_HCIEndpoint.SetRetVal(event.m_size);
@@ -420,8 +420,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 	}
 	else
 	{
-		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, "
-			"queuing(%lu)...", (unsigned long)m_EventQueue.size());
+		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, queuing (%zu)...", m_EventQueue.size());
 		m_EventQueue.push_back(_event);
 	}
 }
@@ -436,9 +435,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		// an endpoint has become available, and we have a stored response.
 		const SQueuedEvent& event = m_EventQueue.front();
 		DEBUG_LOG(WII_IPC_WIIMOTE,
-			"HCI event %x being written from queue(%lu) to %08x...",
+			"HCI event %x being written from queue (%zu) to %08x...",
 			((hci_event_hdr_t*)event.m_buffer)->event,
-			(unsigned long)m_EventQueue.size()-1,
+			m_EventQueue.size()-1,
 			m_HCIEndpoint.m_address);
 		m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
 		m_HCIEndpoint.SetRetVal(event.m_size);
@@ -490,11 +489,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 	if (now - m_last_ticks > interval)
 	{
+		g_controller_interface.UpdateInput();
 		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
-			if (m_WiiMotes[i].IsConnected())
-			{
-				Wiimote::Update(i);
-			}
+			Wiimote::Update(i, m_WiiMotes[i].IsConnected());
 		m_last_ticks = now;
 	}
 

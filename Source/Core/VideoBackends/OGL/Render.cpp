@@ -17,6 +17,8 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
+#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
@@ -24,8 +26,6 @@
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
-#include "VideoBackends/OGL/GLInterfaceBase.h"
-#include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/main.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -73,9 +73,7 @@ enum MultisampleMode
 	MULTISAMPLE_2X,
 	MULTISAMPLE_4X,
 	MULTISAMPLE_8X,
-	MULTISAMPLE_SSAA_4X,
 };
-
 
 VideoConfig g_ogl_config;
 
@@ -119,14 +117,12 @@ static int GetNumMSAASamples(int MSAAMode)
 			break;
 
 		case MULTISAMPLE_4X:
-		case MULTISAMPLE_SSAA_4X:
 			samples = 4;
 			break;
 
 		case MULTISAMPLE_8X:
 			samples = 8;
 			break;
-
 		default:
 			samples = 1;
 	}
@@ -137,32 +133,6 @@ static int GetNumMSAASamples(int MSAAMode)
 	// TODO: move this to InitBackendInfo
 	OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", samples, g_ogl_config.max_samples), 10000);
 	return g_ogl_config.max_samples;
-}
-
-static void ApplySSAASettings()
-{
-	// GLES3 doesn't support SSAA
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
-	{
-		if (g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X)
-		{
-			if (g_ogl_config.bSupportSampleShading)
-			{
-				glEnable(GL_SAMPLE_SHADING_ARB);
-				GLfloat min_sample_shading_value = static_cast<GLfloat>(s_MSAASamples);
-				glMinSampleShadingARB(min_sample_shading_value);
-			}
-			else
-			{
-				// TODO: move this to InitBackendInfo
-				OSD::AddMessage("SSAA Anti Aliasing isn't supported by your GPU.", 10000);
-			}
-		}
-		else if (g_ogl_config.bSupportSampleShading)
-		{
-			glDisable(GL_SAMPLE_SHADING_ARB);
-		}
-	}
 }
 
 static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
@@ -192,10 +162,11 @@ static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLe
 	}
 	switch (severity)
 	{
-		case GL_DEBUG_SEVERITY_HIGH_ARB:   ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
-		case GL_DEBUG_SEVERITY_MEDIUM_ARB: WARN_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
-		case GL_DEBUG_SEVERITY_LOW_ARB:    WARN_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
-		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
+		case GL_DEBUG_SEVERITY_HIGH_ARB:     ERROR_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
+		case GL_DEBUG_SEVERITY_MEDIUM_ARB:   WARN_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
+		case GL_DEBUG_SEVERITY_LOW_ARB:      WARN_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
+		case GL_DEBUG_SEVERITY_NOTIFICATION: DEBUG_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
+		default:                             ERROR_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
 }
 
@@ -303,7 +274,7 @@ static void InitDriverInfo()
 			int major = 0;
 			int minor = 0;
 			int release = 0;
-			sscanf(g_ogl_config.gl_version, "%*s Mesa %d.%d.%d", &major, &minor, &release);
+			sscanf(g_ogl_config.gl_version, "%*s (Core Profile) Mesa %d.%d.%d", &major, &minor, &release);
 			version = 100*major + 10*minor + release;
 		}
 		break;
@@ -460,19 +431,24 @@ Renderer::Renderer()
 		glClearDepthf = ClearDepthf;
 	}
 
-	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
+	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended") ||
+	                                                 GLExtensions::Supports("GL_EXT_blend_func_extended");
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
 				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
+	g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") && GLExtensions::Supports("GL_ARB_sample_shading");
 	g_Config.backend_info.bSupportsGeometryShaders = GLExtensions::Version() >= 320;
-	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object");
+	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object") ||
+	                                                   GLExtensions::Supports("GL_OES_texture_buffer") ||
+	                                                   GLExtensions::Supports("GL_EXT_texture_buffer");
 	g_Config.backend_info.bSupportsClipControl = GLExtensions::Supports("GL_ARB_clip_control");
-	g_Config.backend_info.bSupportsCopySubImage = GLExtensions::Supports("GL_ARB_copy_image") ||
-	                                              GLExtensions::Supports("GL_NV_copy_image") ||
-	                                              GLExtensions::Supports("GL_EXT_copy_image") ||
-	                                              GLExtensions::Supports("GL_OES_copy_image");
+	g_ogl_config.bSupportsCopySubImage = (GLExtensions::Supports("GL_ARB_copy_image") ||
+	                                      GLExtensions::Supports("GL_NV_copy_image") ||
+	                                      GLExtensions::Supports("GL_EXT_copy_image") ||
+	                                      GLExtensions::Supports("GL_OES_copy_image")) &&
+	                                      !DriverDetails::HasBug(DriverDetails::BUG_BROKENCOPYIMAGE);
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -487,27 +463,63 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage") ||
 	                                        GLExtensions::Supports("GL_EXT_buffer_storage");
 	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
-	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
-	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
+	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") ||
+	                              GLExtensions::Supports("GL_ARB_debug_output");
+	g_ogl_config.bSupports3DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample") ||
+	                                         GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array");
+	g_ogl_config.bSupports2DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
-		if (strstr(g_ogl_config.glsl_version, "3.0"))
+		g_ogl_config.SupportedESPointSize = GLExtensions::Supports("GL_OES_geometry_point_size") ? 1 : GLExtensions::Supports("GL_EXT_geometry_point_size") ? 2 : 0;
+		g_ogl_config.SupportedESTextureBuffer = GLExtensions::Supports("VERSION_GLES_3_2") ? ES_TEXBUF_TYPE::TEXBUF_CORE :
+		                                        GLExtensions::Supports("GL_OES_texture_buffer") ? ES_TEXBUF_TYPE::TEXBUF_OES :
+		                                        GLExtensions::Supports("GL_EXT_texture_buffer") ? ES_TEXBUF_TYPE::TEXBUF_EXT : ES_TEXBUF_TYPE::TEXBUF_NONE;
+
+		if (strstr(g_ogl_config.glsl_version, "3.0") || DriverDetails::HasBug(DriverDetails::BUG_BROKENGLES31))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
 			g_ogl_config.bSupportsAEP = false;
 			g_Config.backend_info.bSupportsGeometryShaders = false;
 		}
-		else
+		else if (strstr(g_ogl_config.glsl_version, "3.1"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
 			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
 			g_Config.backend_info.bSupportsBindingLayout = true;
 			g_Config.backend_info.bSupportsEarlyZ = true;
 			g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
-			//g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_EXT_texture_buffer");
+			g_Config.backend_info.bSupportsGSInstancing = g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
+			g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
+			g_Config.backend_info.bSupportsBBox = true;
+			g_ogl_config.bSupportsMSAA = true;
+			g_ogl_config.bSupports2DTextureStorage = true;
+			if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisampleMode > 1 && !g_ogl_config.bSupports3DTextureStorage)
+			{
+				// GLES 3.1 can't support stereo rendering and MSAA
+				OSD::AddMessage("MSAA Stereo rendering isn't supported by your GPU.", 10000);
+				g_ActiveConfig.iMultisampleMode = 1;
+			}
+		}
+		else
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSLES_320;
+			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
+			g_Config.backend_info.bSupportsBindingLayout = true;
+			g_Config.backend_info.bSupportsEarlyZ = true;
+			g_Config.backend_info.bSupportsGeometryShaders = true;
+			g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
+			g_Config.backend_info.bSupportsPaletteConversion = true;
+			g_Config.backend_info.bSupportsSSAA = true;
+			g_Config.backend_info.bSupportsBBox = true;
+			g_ogl_config.bSupportsCopySubImage = true;
+			g_ogl_config.bSupportsGLBaseVertex = true;
+			g_ogl_config.bSupportsDebug = true;
+			g_ogl_config.bSupportsMSAA = true;
+			g_ogl_config.bSupports2DTextureStorage = true;
+			g_ogl_config.bSupports3DTextureStorage = true;
 		}
 	}
 	else
@@ -531,9 +543,18 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
 		}
-		else
+		else if (strstr(g_ogl_config.glsl_version, "1.50"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_150;
+		}
+		else if (strstr(g_ogl_config.glsl_version, "3.30"))
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSL_330;
+		}
+		else
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSL_400;
+			g_Config.backend_info.bSupportsSSAA = true;
 		}
 
 		// Desktop OpenGL can't have the Android Extension Pack
@@ -552,7 +573,7 @@ Renderer::Renderer()
 			glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 			glDebugMessageCallbackARB(ErrorCallback, nullptr);
 		}
-		if (LogManager::GetInstance()->IsEnabled(LogTypes::VIDEO, LogTypes::LERROR))
+		if (LogManager::GetInstance()->IsEnabled(LogTypes::HOST_GPU, LogTypes::LERROR))
 			glEnable(GL_DEBUG_OUTPUT);
 		else
 			glDisable(GL_DEBUG_OUTPUT);
@@ -600,15 +621,14 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
 			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
-			g_ogl_config.bSupportSampleShading ? "" : "SSAA ",
+			g_ActiveConfig.backend_info.bSupportsSSAA ? "" : "SSAA ",
 			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
 			g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
-			g_ActiveConfig.backend_info.bSupportsCopySubImage ? "" : "CopyImageSubData "
+			g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData "
 			);
 
 	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
-	ApplySSAASettings();
 
 	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
@@ -619,7 +639,8 @@ Renderer::Renderer()
 
 	// Handle VSync on/off
 	s_vsync = g_ActiveConfig.IsVSync();
-	GLInterface->SwapInterval(s_vsync);
+	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENVSYNC))
+		GLInterface->SwapInterval(s_vsync);
 
 	// TODO: Move these somewhere else?
 	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
@@ -1271,7 +1292,12 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
 	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
 	{
 		TargetRectangle leftRc, rightRc;
-		ConvertStereoRectangle(dst, leftRc, rightRc);
+
+		// Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
+		if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+			ConvertStereoRectangle(dst, rightRc, leftRc);
+		else
+			ConvertStereoRectangle(dst, leftRc, rightRc);
 
 		m_post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
 		m_post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
@@ -1300,7 +1326,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
 	bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
+	bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
 	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
 	const GLenum glSrcFactors[8] =
@@ -1414,7 +1440,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 {
 	if (g_ogl_config.bSupportsDebug)
 	{
-		if (LogManager::GetInstance()->IsEnabled(LogTypes::VIDEO, LogTypes::LERROR))
+		if (LogManager::GetInstance()->IsEnabled(LogTypes::HOST_GPU, LogTypes::LERROR))
 			glEnable(GL_DEBUG_OUTPUT);
 		else
 			glDisable(GL_DEBUG_OUTPUT);
@@ -1456,10 +1482,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			xfbSource = (const XFBSource*) xfbSourceList[i];
 
 			TargetRectangle drawRc;
+			TargetRectangle sourceRc;
+			sourceRc.left = xfbSource->sourceRc.left;
+			sourceRc.right = xfbSource->sourceRc.right;
+			sourceRc.top = xfbSource->sourceRc.top;
+			sourceRc.bottom = xfbSource->sourceRc.bottom;
 
 			if (g_ActiveConfig.bUseRealXFB)
 			{
 				drawRc = flipped_trc;
+				sourceRc.right -= fbStride - fbWidth;
 			}
 			else
 			{
@@ -1481,17 +1513,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				//drawRc.bottom *= vScale;
 				//drawRc.left *= hScale;
 				//drawRc.right *= hScale;
+
+				sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 			}
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
-
-			TargetRectangle sourceRc;
-			sourceRc.left = xfbSource->sourceRc.left;
-			sourceRc.right = xfbSource->sourceRc.right;
-			sourceRc.top = xfbSource->sourceRc.top;
-			sourceRc.bottom = xfbSource->sourceRc.bottom;
-
-			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
 			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
 		}
@@ -1654,19 +1680,24 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_backbuffer_height = H;
 		s_last_efb_scale = g_ActiveConfig.iEFBScale;
 	}
-
-	if (xfbchanged || WindowResized || (s_last_multisample_mode != g_ActiveConfig.iMultisampleMode) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
+	bool TargetSizeChanged = false;
+	if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+	{
+		TargetSizeChanged = true;
+	}
+	if (TargetSizeChanged || xfbchanged || WindowResized ||
+	    (s_last_multisample_mode != g_ActiveConfig.iMultisampleMode) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
 	{
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_last_multisample_mode != g_ActiveConfig.iMultisampleMode || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
+		if (TargetSizeChanged ||
+		    s_last_multisample_mode != g_ActiveConfig.iMultisampleMode || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
 		{
 			s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 			s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
-			ApplySSAASettings();
 
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
@@ -1677,35 +1708,31 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// ---------------------------------------------------------------------
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
-	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		// Reset viewport for drawing text
-		glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
+	// Reset viewport for drawing text
+	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
 
-		ShowEfbCopyRegions();
-		DrawDebugText();
+	ShowEfbCopyRegions();
+	DrawDebugText();
 
-		// Do our OSD callbacks
-		OSD::DoCallbacks(OSD::OSD_ONFRAME);
-		OSD::DrawMessages();
-	}
+	// Do our OSD callbacks
+	OSD::DoCallbacks(OSD::OSD_ONFRAME);
+	OSD::DrawMessages();
+
 	// Copy the rendered frame to the real window
 	GLInterface->Swap();
 
 	// Clear framebuffer
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
-	{
-		glClearColor(0, 0, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (s_vsync != g_ActiveConfig.IsVSync())
 	{
 		s_vsync = g_ActiveConfig.IsVSync();
-		GLInterface->SwapInterval(s_vsync);
+		if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENVSYNC))
+			GLInterface->SwapInterval(s_vsync);
 	}
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.

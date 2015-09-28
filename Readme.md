@@ -1,6 +1,6 @@
 # Dolphin - A GameCube / Wii / Triforce Emulator
 
-[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://code.google.com/p/dolphin-emu/issues/list) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu/)
+[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu/)
 
 Dolphin is an emulator for running GameCube, Wii, and Triforce games on
 Windows, Linux, OS X, and recent Android devices. It's licensed under
@@ -9,6 +9,7 @@ the terms of the GNU General Public License, version 2 or later (GPLv2+).
 Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 ## System Requirements
+### Desktop
 * OS
     * Microsoft Windows (Vista or higher).
     * Linux.
@@ -21,11 +22,22 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
     * A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0).
     * A graphics card that supports Direct3D 11 / OpenGL 4.4 is recommended.
 
-## Installation on Windows
+### Android
+* OS
+    * Android 5.0 (Lollipop) or higher.
+* Processor
+    * An ARM processor with support for 64-bit applications. (An Intel x86 processor could also work in theory, but no known x86 devices support 64-bit applications.)
+* Graphics
+    * A graphics processor that supports OpenGL ES 3.0 or higher. Performance varies heavily with [driver quality](https://dolphin-emu.org/blog/2013/09/26/dolphin-emulator-and-opengl-drivers-hall-fameshame/).
+    * A graphics processor that supports standard desktop OpenGL features is recommended for best performance.
+
+Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
+
+## Building for Windows
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2013 is a hard requirement since previous versions don't support
-many C++ features that we use. Other compilers might be able to build Dolphin
-on Windows but have not been tested and are not recommended to be used.
+Visual Studio 2015 is a hard requirement. Other compilers might be able to
+build Dolphin on Windows but have not been tested and are not recommended to
+be used.
 
 An installer can be created by using the `Installer_win32.nsi` and
 `Installer_x64.nsi` scripts in the Installer directory. This will require the
@@ -33,7 +45,7 @@ Nullsoft Scriptable Install System (NSIS) to be installed. Creating an
 installer is not necessary to run Dolphin since the Build directory contains
 a working Dolphin distribution.
 
-## Installation on Linux and OS X
+## Building for Linux and OS X
 Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
@@ -49,30 +61,38 @@ On OS X, an application bundle will be created in `./Binaries`.
 
 On Linux, it's strongly recommended to perform a global installation via `sudo make install`.
 
-## Installation on Android
-Dolphin requires [Android Studio](http://developer.android.com/tools/studio/index.html) to build
-the Android UI. Import the Gradle project located in `./Source/Android`, and then execute the
-Gradle task `assembleDebug` to build, or `installDebug` to install the UI onto a connected device.
+## Building for Android
 
-In order to launch the app, you must build and include the native Dolphin libraries into the UI project.
-(Building native code requires the [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html).)
-Android Studio will do this for you if you create `Source/Android/build.properties`, and place the
-following inside:
+These instructions assume familiarity with Android development. If you do not have an
+Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
+
+If using Android Studio, import the Gradle project located in `./Source/Android`. 
+
+Android apps are compiled using a build system called Gradle. Dolphin's native component,
+however, is compiled using CMake. The Gradle script will attempt to run a CMake build
+automatically while building the Java code, if you create the file `Source/Android/build.properties`,
+and place the following inside:
 
 ```
-makeArgs=<make-args>
+# Specifies arguments for the 'make' command. Can be blank.
+makeArgs=
+
+# The path to your machine's Git executable. Will autodetect if blank (on Linux only).
+gitPath=
+
+# The path to the CMake executable. Will autodetect if blank (on Linux only).
+cmakePath=
+
+# The path to the extracted NDK package. Will autodetect if blank (on Linux only).
+ndkPath=
 ```
 
-Replace `<make-args>` with any arguments you want to pass to `make`. If you need to use a specific
-version of git, cmake, or the NDK, you can also add `gitPath=<path>`, `cmakePath=<path>` or
-`ndkPath=<path>`, replacing `<path>` with the actual paths. Otherwise, these will be found
-automatically. Then execute the `assembleDebug` or `installDebug` task corresponding to the
-hardware platform you are targeting. For example, to deploy to a Nexus 9, which runs the AArch64
-architecture, execute `installArm_64Debug`. A list of available tasks can be found in Android
-Studio in the Gradle tray, located at the top-right corner of the IDE by default.
+If you prefer, you can run the CMake step manually, and it will copy the resulting
+binary into the correct location for inclusion in the Android APK.
 
-The native libraries will be compiled, and copied into `./Source/Android/app/libs`. Android Studio
-and Gradle will include any libraries in that folder into the APK at build time.
+Execute the Gradle task `assembleArm_64Debug` to build, or `installArm_64Debug` to
+install the application onto a connected device. If other ABIs are eventually supported,
+execute the tasks corresponding to the desired ABI.
 
 ## Uninstalling
 When Dolphin has been installed with the NSIS installer, you can uninstall

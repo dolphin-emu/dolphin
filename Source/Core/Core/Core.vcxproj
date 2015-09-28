@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -16,7 +16,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -108,9 +108,6 @@
     <ClCompile Include="HW\DSPHLE\UCodes\INIT.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\ROM.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\Zelda.cpp" />
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaADPCM.cpp" />
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaSynth.cpp" />
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaVoice.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPDebugInterface.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPLLE.cpp" />
@@ -242,6 +239,7 @@
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp" />
     <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp" />
     <ClCompile Include="PowerPC\JitCommon\TrampolineCache.cpp" />
+    <ClCompile Include="PowerPC\CachedInterpreter.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
     <ClCompile Include="PowerPC\MMU.cpp" />
     <ClCompile Include="PowerPC\PowerPC.cpp" />
@@ -425,6 +423,7 @@
     <ClInclude Include="PowerPC\JitCommon\JitCache.h" />
     <ClInclude Include="PowerPC\JitCommon\Jit_Util.h" />
     <ClInclude Include="PowerPC\JitCommon\TrampolineCache.h" />
+    <ClInclude Include="PowerPC\CachedInterpreter.h" />
     <ClInclude Include="PowerPC\JitInterface.h" />
     <ClInclude Include="PowerPC\PowerPC.h" />
     <ClInclude Include="PowerPC\PPCAnalyst.h" />

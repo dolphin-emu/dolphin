@@ -8,10 +8,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#ifndef __has_feature
-#define __has_feature(x) 0
-#endif
-
 // Git version number
 extern const char *scm_desc_str;
 extern const char *scm_branch_str;
@@ -34,52 +30,10 @@ extern const char *netplay_dolphin_ver;
 #define UNUSED
 #endif
 
-#if defined(__GNUC__) || __clang__
-	#define EXPECT(x, y) __builtin_expect(x, y)
-	#define LIKELY(x)    __builtin_expect(!!(x), 1)
-	#define UNLIKELY(x)  __builtin_expect(!!(x), 0)
-	// Careful, wrong assumptions result in undefined behavior!
-	#define UNREACHABLE  __builtin_unreachable()
-	// Careful, wrong assumptions result in undefined behavior!
-	#define ASSUME(x)    do { if (!x) __builtin_unreachable(); } while (0)
-#else
-	#define EXPECT(x, y) (x)
-	#define LIKELY(x)    (x)
-	#define UNLIKELY(x)  (x)
-	// Careful, wrong assumptions result in undefined behavior!
-	#define UNREACHABLE  ASSUME(0)
-	#if defined(_MSC_VER)
-		// Careful, wrong assumptions result in undefined behavior!
-		#define ASSUME(x) __assume(x)
-	#else
-		#define ASSUME(x) do { void(x); } while (0)
-	#endif
-#endif
-
-// An inheritable class to disallow the copy constructor and operator= functions
-class NonCopyable
-{
-protected:
-	NonCopyable() {}
-	NonCopyable(const NonCopyable&&) {}
-	void operator=(const NonCopyable&&) {}
-private:
-	NonCopyable(NonCopyable&);
-	NonCopyable& operator=(NonCopyable& other);
-};
-
 #if defined _WIN32
 
 // Memory leak checks
 	#define CHECK_HEAP_INTEGRITY()
-
-// Alignment
-	#define GC_ALIGNED16(x) __declspec(align(16)) x
-	#define GC_ALIGNED32(x) __declspec(align(32)) x
-	#define GC_ALIGNED64(x) __declspec(align(64)) x
-	#define GC_ALIGNED128(x) __declspec(align(128)) x
-	#define GC_ALIGNED16_DECL(x) __declspec(align(16)) x
-	#define GC_ALIGNED64_DECL(x) __declspec(align(64)) x
 
 // Since they are always around on Windows
 	#define HAVE_WX 1
@@ -107,20 +61,12 @@ private:
 #define MAX_PATH PATH_MAX
 
 #define __forceinline inline __attribute__((always_inline))
-#define GC_ALIGNED16(x) __attribute__((aligned(16))) x
-#define GC_ALIGNED32(x) __attribute__((aligned(32))) x
-#define GC_ALIGNED64(x) __attribute__((aligned(64))) x
-#define GC_ALIGNED128(x) __attribute__((aligned(128))) x
-#define GC_ALIGNED16_DECL(x) __attribute__((aligned(16))) x
-#define GC_ALIGNED64_DECL(x) __attribute__((aligned(64))) x
 #endif
 
 #ifdef _MSC_VER
-#define __strdup _strdup
 #define __getcwd _getcwd
 #define __chdir _chdir
 #else
-#define __strdup strdup
 #define __getcwd getcwd
 #define __chdir chdir
 #endif
@@ -145,8 +91,3 @@ enum EMUSTATE_CHANGE
 	EMUSTATE_CHANGE_PAUSE,
 	EMUSTATE_CHANGE_STOP
 };
-
-#include "Common/CommonTypes.h" // IWYU pragma: export
-#include "Common/CommonFuncs.h" // IWYU pragma: export // NOLINT
-#include "Common/MsgHandler.h" // IWYU pragma: export
-#include "Common/Logging/Log.h" // IWYU pragma: export

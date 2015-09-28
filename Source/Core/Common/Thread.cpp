@@ -6,6 +6,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
 #ifdef __APPLE__
 #include <mach/mach.h>
 #elif defined BSD4_4 || defined __FreeBSD__

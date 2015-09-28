@@ -49,11 +49,12 @@ public:
 		// common members
 		u32 addr;
 		u32 size_in_bytes;
-		u64 hash;
+		u64 base_hash;
+		u64 hash; // for paletted textures, hash = base_hash ^ palette_hash
 		u32 format;
 		bool is_efb_copy;
 		bool is_custom_tex;
-		u32 copyMipMapStrideChannels;
+		u32 memory_stride;
 
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int native_levels;
@@ -76,12 +77,16 @@ public:
 			native_width = _native_width;
 			native_height = _native_height;
 			native_levels = _native_levels;
+			memory_stride = _native_width;
 		}
 
-		void SetHashes(u64 _hash)
+		void SetHashes(u64 _base_hash, u64 _hash)
 		{
+			base_hash = _base_hash;
 			hash = _hash;
 		}
+
+		void SetEfbCopy(u32 stride);
 
 		TCacheEntryBase(const TCacheEntryConfig& c) : config(c) {}
 		virtual ~TCacheEntryBase();
@@ -89,20 +94,28 @@ public:
 		virtual void Bind(unsigned int stage) = 0;
 		virtual bool Save(const std::string& filename, unsigned int level) = 0;
 
-		virtual void DoPartialTextureUpdate(TCacheEntryBase* entry, u32 x, u32 y) = 0;
+		virtual void CopyRectangleFromTexture(
+			const TCacheEntryBase* source,
+			const MathUtil::Rectangle<int> &srcrect,
+			const MathUtil::Rectangle<int> &dstrect) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
-		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
+		virtual void FromRenderTarget(u8* dst, unsigned int dstFormat, u32 dstStride,
 			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 			const float *colmat) = 0;
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
-		void DoPartialTextureUpdates();
-
 		bool IsEfbCopy() const { return is_efb_copy; }
+
+		u32 NumBlocksY() const;
+		u32 CacheLinesPerRow() const;
+
+		void Zero(u8* ptr);
+
+		u64 CalculateHash() const;
 	};
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
@@ -114,7 +127,6 @@ public:
 	static void Cleanup(int _frameCount);
 
 	static void Invalidate();
-	static void MakeRangeDynamic(u32 start_address, u32 size);
 
 	virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 
@@ -124,8 +136,8 @@ public:
 	static TCacheEntryBase* Load(const u32 stage);
 	static void UnbindTextures();
 	static void BindTextures();
-	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
-		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
+		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 	static void RequestInvalidateTextureCache();
 
@@ -134,13 +146,13 @@ public:
 protected:
 	TextureCache();
 
-	static GC_ALIGNED16(u8 *temp);
+	alignas(16) static u8* temp;
 	static size_t temp_size;
 
 private:
 	typedef std::multimap<u64, TCacheEntryBase*> TexCache;
 	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
-
+	static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter);
 	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
 	static void CheckTempSize(size_t required_size);
 

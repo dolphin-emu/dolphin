@@ -41,12 +41,12 @@ void PathConfigPane::InitializeGUI()
 
 	m_default_iso_filepicker = new wxFilePickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose a default ISO:"),
 		_("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") + wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad|%s", wxGetTranslation(wxALL_FILES)),
-		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
-	m_dvd_root_dirpicker = new wxDirPickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
+		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN | wxFLP_SMALL);
+	m_dvd_root_dirpicker = new wxDirPickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL | wxDIRP_SMALL);
 	m_apploader_path_filepicker = new wxFilePickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose file to use as apploader: (applies to discs constructed from directories only)"),
 		_("apploader (.img)") + wxString::Format("|*.img|%s", wxGetTranslation(wxALL_FILES)),
-		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
-	m_nand_root_dirpicker = new wxDirPickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose a NAND root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
+		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN | wxFLP_SMALL);
+	m_nand_root_dirpicker = new wxDirPickerCtrl(this, wxID_ANY, wxEmptyString, _("Choose a NAND root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL | wxDIRP_SMALL);
 
 	m_iso_paths_listbox->Bind(wxEVT_LISTBOX, &PathConfigPane::OnISOPathSelectionChanged, this);
 	m_recursive_iso_paths_checkbox->Bind(wxEVT_CHECKBOX, &PathConfigPane::OnRecursiveISOCheckBoxChanged, this);

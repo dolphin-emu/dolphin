@@ -127,5 +127,11 @@ void Turntable::GetState(u8* const data)
 		);
 }
 
+bool Turntable::IsButtonPressed() const
+{
+	u16 buttons = 0;
+	m_buttons->GetState(&buttons, turntable_button_bitmasks);
+	return buttons != 0;
+}
 
 }

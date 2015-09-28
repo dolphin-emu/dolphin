@@ -12,6 +12,9 @@
 #include "Common/MathUtil.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+// Global flag to signal if FifoRecorder is active.
+extern bool g_bRecordFifoData;
+
 // These are accurate (disregarding AA modes).
 enum
 {
@@ -19,9 +22,10 @@ enum
 	EFB_HEIGHT = 528,
 };
 
-// XFB width is decided by EFB copy operation. The VI can do horizontal
-// scaling (TODO: emulate).
-const u32 MAX_XFB_WIDTH = EFB_WIDTH;
+// Max XFB width is 720. You can only copy out 640 wide areas of efb to XFB
+// so you need multiple copies to do the full width.
+// The VI can do horizontal scaling (TODO: emulate).
+const u32 MAX_XFB_WIDTH = 720;
 
 // Although EFB height is 528, 574-line XFB's can be created either with
 // vertical scaling by the EFB copy operation or copying to multiple XFB's
@@ -65,12 +69,12 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 
 #define LOG_VTX()
 
-typedef enum
+enum API_TYPE
 {
 	API_OPENGL = 1,
 	API_D3D    = 2,
 	API_NONE   = 3
-} API_TYPE;
+};
 
 inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
 {

@@ -4,12 +4,16 @@
 
 #include <cstddef>
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
@@ -18,8 +22,8 @@
 
 namespace DiscIO
 {
-CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
-	: m_pReader(_pReader), m_offset(0), m_tmd_offset(0), m_opening_bnr_offset(0),
+CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader)
+	: m_pReader(std::move(reader)), m_offset(0), m_tmd_offset(0), m_opening_bnr_offset(0),
 	m_hdr_size(0), m_cert_size(0), m_tick_size(0), m_tmd_size(0), m_data_size(0)
 {
 	// Source: http://wiibrew.org/wiki/WAD_files
@@ -91,11 +95,12 @@ std::string CVolumeWAD::GetMakerID() const
 	return DecodeString(temp);
 }
 
-bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
+bool CVolumeWAD::GetTitleID(u64* buffer) const
 {
-	if (!Read(m_offset + 0x01DC, 8, _pBuffer))
+	if (!Read(m_offset + 0x01DC, sizeof(u64), reinterpret_cast<u8*>(buffer)))
 		return false;
 
+	*buffer = Common::swap64(*buffer);
 	return true;
 }
 
@@ -119,6 +124,11 @@ std::map<IVolume::ELanguage, std::string> CVolumeWAD::GetNames(bool prefer_long)
 	if (!Read(m_opening_bnr_offset + 0x9C, NAMES_TOTAL_BYTES, name_data.data()))
 		return std::map<IVolume::ELanguage, std::string>();
 	return ReadWiiNames(name_data);
+}
+
+bool CVolumeWAD::IsCompressed() const
+{
+	return m_pReader ? m_pReader->IsCompressed() : false;
 }
 
 u64 CVolumeWAD::GetSize() const

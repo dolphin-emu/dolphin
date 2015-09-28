@@ -5,7 +5,9 @@
 #include <cstddef>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include <polarssl/aes.h>
 #include <polarssl/sha1.h>
@@ -25,9 +27,9 @@
 namespace DiscIO
 {
 
-CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
+CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset,
 									 const unsigned char* _pVolumeKey)
-	: m_pReader(_pReader),
+	: m_pReader(std::move(reader)),
 	m_AES_ctx(new aes_context),
 	m_pBuffer(nullptr),
 	m_VolumeOffset(_VolumeOffset),
@@ -44,7 +46,7 @@ bool CVolumeWiiCrypted::ChangePartition(u64 offset)
 	m_LastDecryptedBlockOffset = -1;
 
 	u8 volume_key[16];
-	DiscIO::VolumeKeyForParition(*m_pReader, offset, volume_key);
+	DiscIO::VolumeKeyForPartition(*m_pReader, offset, volume_key);
 	aes_setkey_dec(m_AES_ctx.get(), volume_key, 128);
 	return true;
 }
@@ -105,11 +107,15 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
 	return true;
 }
 
-bool CVolumeWiiCrypted::GetTitleID(u8* _pBuffer) const
+bool CVolumeWiiCrypted::GetTitleID(u64* buffer) const
 {
 	// Tik is at m_VolumeOffset size 0x2A4
 	// TitleID offset in tik is 0x1DC
-	return Read(m_VolumeOffset + 0x1DC, 8, _pBuffer, false);
+	if (!Read(m_VolumeOffset + 0x1DC, sizeof(u64), reinterpret_cast<u8*>(buffer), false))
+		return false;
+
+	*buffer = Common::swap64(*buffer);
+	return true;
 }
 
 std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *size) const
@@ -206,7 +212,7 @@ std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetNames(bool prefe
 	return ReadWiiNames(opening_bnr);
 }
 
-u32 CVolumeWiiCrypted::GetFSTSize() const
+u64 CVolumeWiiCrypted::GetFSTSize() const
 {
 	if (m_pReader == nullptr)
 		return 0;
@@ -216,7 +222,7 @@ u32 CVolumeWiiCrypted::GetFSTSize() const
 	if (!Read(0x428, 0x4, (u8*)&size, true))
 		return 0;
 
-	return Common::swap32(size);
+	return (u64)Common::swap32(size) << 2;
 }
 
 std::string CVolumeWiiCrypted::GetApploaderDate() const
@@ -242,6 +248,11 @@ u8 CVolumeWiiCrypted::GetDiscNumber() const
 	u8 disc_number;
 	m_pReader->Read(6, 1, &disc_number);
 	return disc_number;
+}
+
+bool CVolumeWiiCrypted::IsCompressed() const
+{
+	return m_pReader ? m_pReader->IsCompressed() : false;
 }
 
 u64 CVolumeWiiCrypted::GetSize() const

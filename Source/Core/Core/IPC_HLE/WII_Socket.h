@@ -47,6 +47,8 @@ typedef struct pollfd pollfd_t;
 #include <string>
 #include <unordered_map>
 
+#include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
@@ -192,7 +194,7 @@ private:
 public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();
-	void operator=(WiiSocket const&); // Don't implement
+	void operator=(WiiSocket const&) = delete;
 
 };
 

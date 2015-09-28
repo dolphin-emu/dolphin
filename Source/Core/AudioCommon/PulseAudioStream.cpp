@@ -6,6 +6,7 @@
 #include "AudioCommon/PulseAudioStream.h"
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 
 namespace
@@ -163,7 +164,8 @@ void PulseAudio::StateCallback(pa_context* c)
 void PulseAudio::UnderflowCallback(pa_stream* s)
 {
 	m_pa_ba.tlength += BUFFER_SAMPLES * m_channels * m_bytespersample;
-	pa_stream_set_buffer_attr(s, &m_pa_ba, nullptr, nullptr);
+	pa_operation* op = pa_stream_set_buffer_attr(s, &m_pa_ba, nullptr, nullptr);
+	pa_operation_unref(op);
 
 	WARN_LOG(AUDIO, "pulseaudio underflow, new latency: %d bytes", m_pa_ba.tlength);
 }

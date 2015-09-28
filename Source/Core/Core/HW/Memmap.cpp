@@ -8,6 +8,8 @@
 // However, if a JITed instruction (for example lwz) wants to access a bad memory area that call
 // may be redirected here (for example to Read_U32()).
 
+#include <cstring>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemArena.h"
@@ -253,7 +255,7 @@ void CopyFromEmu(void* data, u32 address, size_t size)
 {
 	if (!ValidCopyRange(address, size))
 	{
-		PanicAlert("Invalid range in CopyFromEmu. %lx bytes from 0x%08x", (unsigned long)size, address);
+		PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
 		return;
 	}
 	memcpy(data, GetPointer(address), size);
@@ -263,7 +265,7 @@ void CopyToEmu(u32 address, const void* data, size_t size)
 {
 	if (!ValidCopyRange(address, size))
 	{
-		PanicAlert("Invalid range in CopyToEmu. %lx bytes to 0x%08x", (unsigned long)size, address);
+		PanicAlert("Invalid range in CopyToEmu. %zx bytes to 0x%08x", size, address);
 		return;
 	}
 	memcpy(GetPointer(address), data, size);
@@ -341,27 +343,30 @@ void Write_U8(u8 value, u32 address)
 
 void Write_U16(u16 value, u32 address)
 {
-	*(u16*)GetPointer(address) = Common::swap16(value);
+	u16 swapped_value = Common::swap16(value);
+	std::memcpy(GetPointer(address), &swapped_value, sizeof(u16));
 }
 
 void Write_U32(u32 value, u32 address)
 {
-	*(u32*)GetPointer(address) = Common::swap32(value);
+	u32 swapped_value = Common::swap32(value);
+	std::memcpy(GetPointer(address), &swapped_value, sizeof(u32));
 }
 
 void Write_U64(u64 value, u32 address)
 {
-	*(u64*)GetPointer(address) = Common::swap64(value);
+	u64 swapped_value = Common::swap64(value);
+	std::memcpy(GetPointer(address), &swapped_value, sizeof(u64));
 }
 
 void Write_U32_Swap(u32 value, u32 address)
 {
-	*(u32*)GetPointer(address) = value;
+	std::memcpy(GetPointer(address), &value, sizeof(u32));
 }
 
 void Write_U64_Swap(u64 value, u32 address)
 {
-	*(u64*)GetPointer(address) = value;
+	std::memcpy(GetPointer(address), &value, sizeof(u64));
 }
 
 }  // namespace

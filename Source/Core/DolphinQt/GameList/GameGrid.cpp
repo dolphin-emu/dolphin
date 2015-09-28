@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "ui_GameGrid.h"
+#include <memory>
 
-#include "Common/StdMakeUnique.h"
+#include "ui_GameGrid.h"
 
 #include "DolphinQt/GameList/GameGrid.h"
 
@@ -22,7 +22,7 @@ DGameGrid::DGameGrid(QWidget* parent_widget) :
 	m_ui->setupUi(this);
 	SetViewStyle(STYLE_GRID);
 
-	connect(this, SIGNAL(itemActivated(QListWidgetItem*)), this, SIGNAL(StartGame()));
+	connect(this, &QListWidget::itemActivated, this, &DGameGrid::StartGame);
 }
 
 DGameGrid::~DGameGrid()

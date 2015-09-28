@@ -308,6 +308,8 @@ wxMenuBar* CFrame::CreateMenu()
 	platformMenu->Check(IDM_LIST_GC, SConfig::GetInstance().m_ListGC);
 	platformMenu->AppendCheckItem(IDM_LIST_WAD, _("Show Wad"));
 	platformMenu->Check(IDM_LIST_WAD, SConfig::GetInstance().m_ListWad);
+	platformMenu->AppendCheckItem(IDM_LIST_ELFDOL, _("Show Elf/Dol"));
+	platformMenu->Check(IDM_LIST_ELFDOL, SConfig::GetInstance().m_ListElfDol);
 
 	wxMenu *regionMenu = new wxMenu;
 	viewMenu->AppendSubMenu(regionMenu, _("Show Regions"));
@@ -489,6 +491,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_LOAD_LAST_STATE_6:
 		case HK_LOAD_LAST_STATE_7:
 		case HK_LOAD_LAST_STATE_8:
+		case HK_LOAD_LAST_STATE_9:
+		case HK_LOAD_LAST_STATE_10:
 			Label = wxString::Format(_("Last %i"),
 				Id - HK_LOAD_LAST_STATE_1 + 1);
 			break;
@@ -550,7 +554,6 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	ToolBar->AddSeparator();
 	WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES,        _("Config"),      m_Bitmaps[Toolbar_ConfigMain],  _("Configure..."));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND,  _("Graphics"),    m_Bitmaps[Toolbar_ConfigGFX],   _("Graphics settings"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_AUDIO,        _("Audio"),       m_Bitmaps[Toolbar_ConfigAudio], _("Audio settings"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_CONTROLLERS,  _("Controllers"), m_Bitmaps[Toolbar_Controller],  _("Controller settings"));
 }
 
@@ -594,7 +597,6 @@ void CFrame::InitBitmaps()
 	m_Bitmaps[Toolbar_Pause      ].LoadFile(dir + "pause.png",      wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_ConfigMain ].LoadFile(dir + "config.png",     wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_ConfigGFX  ].LoadFile(dir + "graphics.png",   wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigAudio].LoadFile(dir + "audio.png",      wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Controller ].LoadFile(dir + "classic.png",    wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Screenshot ].LoadFile(dir + "screenshot.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_FullScreen ].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
@@ -1045,6 +1047,7 @@ void CFrame::StartGame(const std::string& filename)
 
 		m_RenderParent->SetFocus();
 
+		wxTheApp->Bind(wxEVT_KEY_DOWN,     &CFrame::OnKeyDown,     this);
 		wxTheApp->Bind(wxEVT_RIGHT_DOWN,   &CFrame::OnMouse,       this);
 		wxTheApp->Bind(wxEVT_RIGHT_UP,     &CFrame::OnMouse,       this);
 		wxTheApp->Bind(wxEVT_MIDDLE_DOWN,  &CFrame::OnMouse,       this);
@@ -1151,7 +1154,9 @@ void CFrame::DoStop()
 				wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
 				wxDefaultPosition);
 
+			HotkeyManagerEmu::Enable(false);
 			int Ret = m_StopDlg.ShowModal();
+			HotkeyManagerEmu::Enable(true);
 			if (Ret != wxID_YES)
 			{
 				Core::SetState(state);
@@ -1295,29 +1300,37 @@ void CFrame::OnReset(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 {
 	CConfigMain ConfigMain(this);
+	HotkeyManagerEmu::Enable(false);
 	if (ConfigMain.ShowModal() == wxID_OK)
 		m_GameListCtrl->Update();
+	HotkeyManagerEmu::Enable(true);
 	UpdateGUI();
 }
 
 void CFrame::OnConfigGFX(wxCommandEvent& WXUNUSED (event))
 {
+	HotkeyManagerEmu::Enable(false);
 	if (g_video_backend)
 		g_video_backend->ShowConfig(this);
+	HotkeyManagerEmu::Enable(true);
 }
 
 void CFrame::OnConfigAudio(wxCommandEvent& WXUNUSED (event))
 {
 	CConfigMain ConfigMain(this);
 	ConfigMain.SetSelectedTab(CConfigMain::ID_AUDIOPAGE);
+	HotkeyManagerEmu::Enable(false);
 	if (ConfigMain.ShowModal() == wxID_OK)
 		m_GameListCtrl->Update();
+	HotkeyManagerEmu::Enable(true);
 }
 
 void CFrame::OnConfigControllers(wxCommandEvent& WXUNUSED (event))
 {
 	ControllerConfigDiag config_dlg(this);
+	HotkeyManagerEmu::Enable(false);
 	config_dlg.ShowModal();
+	HotkeyManagerEmu::Enable(true);
 }
 
 void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
@@ -1362,7 +1375,9 @@ void CFrame::OnHelp(wxCommandEvent& event)
 	case wxID_ABOUT:
 		{
 			AboutDolphin frame(this);
+			HotkeyManagerEmu::Enable(false);
 			frame.ShowModal();
+			HotkeyManagerEmu::Enable(true);
 		}
 		break;
 	case IDM_HELP_WEBSITE:
@@ -1422,7 +1437,9 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 {
 	CMemcardManager MemcardManager(this);
+	HotkeyManagerEmu::Enable(false);
 	MemcardManager.ShowModal();
+	HotkeyManagerEmu::Enable(true);
 }
 
 void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED (event))
@@ -1889,6 +1906,9 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	case IDM_LIST_WAD:
 		SConfig::GetInstance().m_ListWad = event.IsChecked();
+		break;
+	case IDM_LIST_ELFDOL:
+		SConfig::GetInstance().m_ListElfDol = event.IsChecked();
 		break;
 	case IDM_LIST_JAP:
 		SConfig::GetInstance().m_ListJap = event.IsChecked();

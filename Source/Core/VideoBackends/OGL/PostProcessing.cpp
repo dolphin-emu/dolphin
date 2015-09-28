@@ -6,8 +6,9 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Common/GL/GLUtil.h"
+
 #include "VideoBackends/OGL/FramebufferManager.h"
-#include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
@@ -18,15 +19,6 @@
 
 namespace OGL
 {
-
-static const char s_vertex_workaround_shader[] =
-	"in vec4 rawpos;\n"
-	"out vec2 uv0;\n"
-	"uniform vec4 src_rect;\n"
-	"void main(void) {\n"
-	"	gl_Position = vec4(rawpos.xy, 0.0, 1.0);\n"
-	"	uv0 = rawpos.zw * src_rect.zw + src_rect.xy;\n"
-	"}\n";
 
 static const char s_vertex_shader[] =
 	"out vec2 uv0;\n"
@@ -41,24 +33,11 @@ OpenGLPostProcessing::OpenGLPostProcessing()
 	: m_initialized(false)
 {
 	CreateHeader();
-
-	m_attribute_workaround = DriverDetails::HasBug(DriverDetails::BUG_BROKENATTRIBUTELESS);
-	if (m_attribute_workaround)
-	{
-		glGenBuffers(1, &m_attribute_vbo);
-		glGenVertexArrays(1, &m_attribute_vao);
-	}
 }
 
 OpenGLPostProcessing::~OpenGLPostProcessing()
 {
 	m_shader.Destroy();
-
-	if (m_attribute_workaround)
-	{
-		glDeleteBuffers(1, &m_attribute_vbo);
-		glDeleteVertexArrays(1, &m_attribute_vao);
-	}
 }
 
 void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle dst,
@@ -70,10 +49,7 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 
 	glViewport(dst.left, dst.bottom, dst.GetWidth(), dst.GetHeight());
 
-	if (m_attribute_workaround)
-		glBindVertexArray(m_attribute_vao);
-	else
-		OpenGL_BindAttributelessVAO();
+	OpenGL_BindAttributelessVAO();
 
 	m_shader.Bind();
 
@@ -174,9 +150,6 @@ void OpenGLPostProcessing::ApplyShader()
 
 	const char* vertex_shader = s_vertex_shader;
 
-	if (m_attribute_workaround)
-		vertex_shader = s_vertex_workaround_shader;
-
 	// and compile it
 	if (!ProgramShaderCache::CompileShader(m_shader, vertex_shader, code.c_str()))
 	{
@@ -191,23 +164,6 @@ void OpenGLPostProcessing::ApplyShader()
 	m_uniform_time = glGetUniformLocation(m_shader.glprogid, "time");
 	m_uniform_src_rect = glGetUniformLocation(m_shader.glprogid, "src_rect");
 	m_uniform_layer = glGetUniformLocation(m_shader.glprogid, "layer");
-
-	if (m_attribute_workaround)
-	{
-		GLfloat vertices[] = {
-			-1.f, -1.f, 0.f, 0.f,
-			 1.f, -1.f, 1.f, 0.f,
-			-1.f,  1.f, 0.f, 1.f,
-			 1.f,  1.f, 1.f, 1.f,
-		};
-
-		glBindBuffer(GL_ARRAY_BUFFER, m_attribute_vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-		glBindVertexArray(m_attribute_vao);
-		glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-		glVertexAttribPointer(SHADER_POSITION_ATTRIB, 4, GL_FLOAT, 0, 0, nullptr);
-	}
 
 	for (const auto& it : m_config.GetOptions())
 	{

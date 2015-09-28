@@ -358,6 +358,12 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 		data &= (data & 0xff) ^ 0xff;
 		goto write_to_register;
 
+	case BBA_TXFIFOCNT:
+	case BBA_TXFIFOCNT+1:
+		// Ignore all writes to BBA_TXFIFOCNT
+		transfer.address += size;
+		return;
+
 write_to_register:
 	default:
 		for (int i = size - 1; i >= 0; i--)

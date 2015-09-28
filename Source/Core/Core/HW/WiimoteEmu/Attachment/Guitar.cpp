@@ -100,4 +100,13 @@ void Guitar::GetState(u8* const data)
 	gdata->bt ^= 0xFFFF;
 }
 
+bool Guitar::IsButtonPressed() const
+{
+	u16 buttons = 0;
+	m_buttons->GetState(&buttons, guitar_button_bitmasks);
+	m_frets->GetState(&buttons, guitar_fret_bitmasks);
+	m_strum->GetState(&buttons, guitar_strum_bitmasks);
+	return buttons != 0;
+}
+
 }

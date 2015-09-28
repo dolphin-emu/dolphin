@@ -113,7 +113,7 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
 				size_t numFile = entry.children.size();
-				INFO_LOG(WII_IPC_FILEIO, "\t%lu files found", (unsigned long)numFile);
+				INFO_LOG(WII_IPC_FILEIO, "\t%zu files found", numFile);
 
 				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}

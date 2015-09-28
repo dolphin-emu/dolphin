@@ -19,7 +19,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
@@ -55,7 +57,7 @@ CompressedBlobReader::CompressedBlobReader(const std::string& filename) : m_file
 
 CompressedBlobReader* CompressedBlobReader::Create(const std::string& filename)
 {
-	if (IsCompressedBlob(filename))
+	if (IsGCZBlob(filename))
 		return new CompressedBlobReader(filename);
 	else
 		return nullptr;
@@ -148,7 +150,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 {
 	bool scrubbing = false;
 
-	if (IsCompressedBlob(infile))
+	if (IsGCZBlob(infile))
 	{
 		PanicAlertT("\"%s\" is already compressed! Cannot compress it further.", infile.c_str());
 		return false;
@@ -330,7 +332,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 
 bool DecompressBlobToFile(const std::string& infile, const std::string& outfile, CompressCB callback, void* arg)
 {
-	if (!IsCompressedBlob(infile))
+	if (!IsGCZBlob(infile))
 	{
 		PanicAlertT("File not compressed");
 		return false;
@@ -400,7 +402,7 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 	return true;
 }
 
-bool IsCompressedBlob(const std::string& filename)
+bool IsGCZBlob(const std::string& filename)
 {
 	File::IOFile f(filename, "rb");
 

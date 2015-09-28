@@ -35,7 +35,8 @@ import org.dolphinemu.dolphinemu.services.AssetCopyService;
  */
 public final class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
 {
-	private static final int REQUEST_ADD_DIRECTORY = 1;
+	public static final int REQUEST_ADD_DIRECTORY = 1;
+	public static final int REQUEST_EMULATE_GAME = 2;
 
 	/**
 	 * It is important to keep track of loader ID separately from platform ID (see Game.java)
@@ -115,15 +116,30 @@ public final class MainActivity extends AppCompatActivity implements LoaderManag
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent result)
 	{
-		// If the user picked a file, as opposed to just backing out.
-		if (resultCode == RESULT_OK)
+		switch (requestCode)
 		{
-			// Sanity check to make sure the Activity that just returned was the AddDirectoryActivity;
-			// other activities might use this callback in the future (don't forget to change Javadoc!)
-			if (requestCode == REQUEST_ADD_DIRECTORY)
-			{
-				refreshFragment();
-			}
+			case REQUEST_ADD_DIRECTORY:
+				// If the user picked a file, as opposed to just backing out.
+				if (resultCode == RESULT_OK)
+				{
+					// Sanity check to make sure the Activity that just returned was the AddDirectoryActivity;
+					// other activities might use this callback in the future (don't forget to change Javadoc!)
+					if (requestCode == REQUEST_ADD_DIRECTORY)
+					{
+						refreshFragment();
+					}
+				}
+				break;
+
+			case REQUEST_EMULATE_GAME:
+				// Invalidate Picasso image so that the new screenshot is animated in.
+				PlatformGamesFragment fragment = getPlatformFragment(mViewPager.getCurrentItem());
+
+				if (fragment != null)
+				{
+					fragment.refreshScreenshotAtPosition(resultCode);
+				}
+				break;
 		}
 	}
 
@@ -211,7 +227,7 @@ public final class MainActivity extends AppCompatActivity implements LoaderManag
 						GameProvider.URI_GAME,                        // URI of table to query
 						null,                                        // Return all columns
 						GameDatabase.KEY_GAME_PLATFORM + " = ?",    // Select by platform
-						new String[]{Integer.toString(id)},    // Platform id is Loader id minus 1
+						new String[]{Integer.toString(id)},    // Platform id is Loader id
 						GameDatabase.KEY_GAME_TITLE + " asc"        // Sort by game name, ascending order
 				);
 

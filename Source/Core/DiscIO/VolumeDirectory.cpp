@@ -10,10 +10,12 @@
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/FileBlob.h"
 #include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
@@ -210,7 +212,7 @@ void CVolumeDirectory::SetName(const std::string& name)
 	m_diskHeader[length + 0x20] = 0;
 }
 
-u32 CVolumeDirectory::GetFSTSize() const
+u64 CVolumeDirectory::GetFSTSize() const
 {
 	return 0;
 }
@@ -223,6 +225,11 @@ std::string CVolumeDirectory::GetApploaderDate() const
 IVolume::EPlatform CVolumeDirectory::GetVolumeType() const
 {
 	return m_is_wii ? WII_DISC : GAMECUBE_DISC;
+}
+
+bool CVolumeDirectory::IsCompressed() const
+{
+	return false;
 }
 
 u64 CVolumeDirectory::GetSize() const
@@ -467,10 +474,10 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 
 		// write entry to virtual disk
 		_dbg_assert_(DVDINTERFACE, m_virtualDisk.find(dataOffset) == m_virtualDisk.end());
-		m_virtualDisk.insert(make_pair(dataOffset, entry.physicalName));
+		m_virtualDisk.emplace(dataOffset, entry.physicalName);
 
 		// 4 byte aligned
-		dataOffset = ROUND_UP(dataOffset + entry.size, 0x8000ull);
+		dataOffset = ROUND_UP(dataOffset + std::max<u64>(entry.size, 1ull), 0x8000ull);
 	}
 }
 

@@ -188,6 +188,7 @@ bool NetPlayClient::Connect()
 	if (enet_host_service(m_client, &netEvent, 5000) > 0 && netEvent.type == ENET_EVENT_TYPE_RECEIVE)
 	{
 		rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
+		enet_packet_destroy(netEvent.packet);
 	}
 	else
 	{
@@ -381,6 +382,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> g_NetPlaySettings.m_CPUcore;
 			packet >> g_NetPlaySettings.m_SelectedLanguage;
 			packet >> g_NetPlaySettings.m_OverrideGCLanguage;
+			packet >> g_NetPlaySettings.m_ProgressiveScan;
+			packet >> g_NetPlaySettings.m_PAL60;
 			packet >> g_NetPlaySettings.m_DSPEnableJIT;
 			packet >> g_NetPlaySettings.m_DSPHLE;
 			packet >> g_NetPlaySettings.m_WriteToMemcard;
@@ -615,17 +618,15 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 }
 
 // called from ---GUI--- thread
-void NetPlayClient::GetPlayers(std::vector<const Player *> &player_list)
+std::vector<const Player*> NetPlayClient::GetPlayers()
 {
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-	std::map<PlayerId, Player>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for (; i != e; ++i)
-	{
-		const Player *player = &(i->second);
-		player_list.push_back(player);
-	}
+	std::vector<const Player*> players;
+
+	for (const auto& pair : m_players)
+		players.push_back(&pair.second);
+
+	return players;
 }
 
 

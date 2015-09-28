@@ -24,20 +24,21 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
+#include "Common/Logging/Log.h"
 
 // ewww
 #if _LIBCPP_VERSION || __GNUC__ >= 5
 #define IsTriviallyCopyable(T) std::is_trivially_copyable<typename std::remove_volatile<T>::type>::value
 #elif __GNUC__
 #define IsTriviallyCopyable(T) std::has_trivial_copy_constructor<T>::value
-#elif _MSC_VER >= 1800
-// work around bug
-#define IsTriviallyCopyable(T) (std::is_trivially_copyable<T>::value || std::is_pod<T>::value)
-#elif defined(_MSC_VER)
-#define IsTriviallyCopyable(T) std::has_trivial_copy<T>::value
+#elif _MSC_VER
+// (shuffle2) see https://github.com/dolphin-emu/dolphin/pull/2218
+#define IsTriviallyCopyable(T) 1
 #else
 #error No version of is_trivially_copyable
 #endif

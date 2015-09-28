@@ -27,7 +27,8 @@
  */
 
 #include "AudioCommon/aldlist.h"
-#include "Common/Common.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #ifdef _WIN32
 #include "../../../Externals/OpenAL/include/al.h"
 #include "../../../Externals/OpenAL/include/alc.h"
@@ -335,7 +336,7 @@ s32 ALDeviceList::GetNextFilteredDevice()
 }
 
 /*
- * Internal function to detemine max number of Sources that can be generated
+ * Internal function to determine max number of Sources that can be generated
  */
 u32 ALDeviceList::GetMaxNumSources()
 {

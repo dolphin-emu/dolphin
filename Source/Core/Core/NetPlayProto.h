@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI_Device.h"
+
+#define NETPLAY_VERSION  "Dolphin NetPlay 2015-06-24"
 
 struct NetSettings
 {
@@ -14,6 +17,8 @@ struct NetSettings
 	int m_CPUcore;
 	int m_SelectedLanguage;
 	bool m_OverrideGCLanguage;
+	bool m_ProgressiveScan;
+	bool m_PAL60;
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
 	bool m_WriteToMemcard;
@@ -23,17 +28,12 @@ struct NetSettings
 };
 
 extern NetSettings g_NetPlaySettings;
+extern u64 g_netplay_initial_gctime;
 
 struct Rpt : public std::vector<u8>
 {
 	u16 channel;
 };
-
-typedef std::vector<u8> NetWiimote;
-
-#define NETPLAY_VERSION  "Dolphin NetPlay 2015-06-14"
-
-extern u64 g_netplay_initial_gctime;
 
 // messages
 enum
@@ -68,17 +68,19 @@ enum
 	NP_MSG_SYNC_GC_SRAM = 0xF0,
 };
 
-typedef u8  MessageId;
-typedef u8  PlayerId;
-typedef s8  PadMapping;
-typedef u32 FrameNum;
-
 enum
 {
 	CON_ERR_SERVER_FULL = 1,
 	CON_ERR_GAME_RUNNING = 2,
 	CON_ERR_VERSION_MISMATCH = 3
 };
+
+using NetWiimote = std::vector<u8>;
+using MessageId  = u8;
+using PlayerId   = u8;
+using FrameNum   = u32;
+using PadMapping = s8;
+using PadMappingArray = std::array<PadMapping, 4>;
 
 namespace NetPlay
 {

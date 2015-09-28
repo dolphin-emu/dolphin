@@ -25,10 +25,10 @@
 
 enum AspectMode
 {
-	ASPECT_AUTO       = 0,
-	ASPECT_FORCE_16_9 = 1,
-	ASPECT_FORCE_4_3  = 2,
-	ASPECT_STRETCH    = 3,
+	ASPECT_AUTO        = 0,
+	ASPECT_ANALOG_WIDE = 1,
+	ASPECT_ANALOG      = 2,
+	ASPECT_STRETCH     = 3,
 };
 
 enum EFBScale
@@ -75,6 +75,7 @@ struct VideoConfig final
 
 	// Enhancements
 	int iMultisampleMode;
+	bool bSSAA;
 	int iEFBScale;
 	bool bForceFiltering;
 	int iMaxAnisotropy;
@@ -95,7 +96,6 @@ struct VideoConfig final
 
 	// Render
 	bool bWireFrame;
-	bool bDstAlphaPass;
 	bool bDisableFog;
 
 	// Utility
@@ -112,6 +112,7 @@ struct VideoConfig final
 	bool bEFBAccessEnable;
 	bool bPerfQueriesEnable;
 	bool bBBoxEnable;
+	bool bForceProgressive;
 
 	bool bEFBEmulateFormatChanges;
 	bool bSkipEFBCopyToRam;
@@ -143,7 +144,7 @@ struct VideoConfig final
 		API_TYPE APIType;
 
 		std::vector<std::string> Adapters; // for D3D
-		std::vector<std::string> AAModes;
+		std::vector<int> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
 		std::vector<std::string> AnaglyphShaders; // anaglyph shaders
 
@@ -160,7 +161,7 @@ struct VideoConfig final
 		bool bSupportsPostProcessing;
 		bool bSupportsPaletteConversion;
 		bool bSupportsClipControl; // Needed by VertexShaderGen, so must stay in VideoCommon
-		bool bSupportsCopySubImage; // Needed for partial texture updates
+		bool bSupportsSSAA;
 	} backend_info;
 
 	// Utility

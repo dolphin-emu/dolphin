@@ -39,7 +39,7 @@ SConfig::SConfig()
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
-  bEnableMemcardSaving(true),
+  bEnableMemcardSdWriting(true),
   bDPL2Decoder(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
   bMMU(false), bDCBZOFF(false),
@@ -185,6 +185,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 
 	gamelist->Set("ListDrives", m_ListDrives);
 	gamelist->Set("ListWad", m_ListWad);
+	gamelist->Set("ListElfDol", m_ListElfDol);
 	gamelist->Set("ListWii", m_ListWii);
 	gamelist->Set("ListGC", m_ListGC);
 	gamelist->Set("ListJap", m_ListJap);
@@ -264,6 +265,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
 	core->Set("GameCubeAdapter", m_GameCubeAdapter);
 	core->Set("AdapterRumble", m_AdapterRumble);
+	core->Set("PerfMapDir", m_perfDir);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -283,6 +285,7 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 
 	dsp->Set("EnableJIT", m_DSPEnableJIT);
 	dsp->Set("DumpAudio", m_DumpAudio);
+	dsp->Set("DumpUCode", m_DumpUCode);
 	dsp->Set("Backend", sBackend);
 	dsp->Set("Volume", m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
@@ -428,6 +431,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 
 	gamelist->Get("ListDrives",        &m_ListDrives,  false);
 	gamelist->Get("ListWad",           &m_ListWad,     true);
+	gamelist->Get("ListElfDol",        &m_ListElfDol,  true);
 	gamelist->Get("ListWii",           &m_ListWii,     true);
 	gamelist->Get("ListGC",            &m_ListGC,      true);
 	gamelist->Get("ListJap",           &m_ListJap,     true);
@@ -520,8 +524,9 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
 	core->Get("GFXBackend",                &m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_strGPUDeterminismMode, "auto");
-	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
+	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             false);
 	core->Get("AdapterRumble",             &m_AdapterRumble,                               true);
+	core->Get("PerfMapDir",                &m_perfDir, "");
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
@@ -541,6 +546,7 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 
 	dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
 	dsp->Get("DumpAudio", &m_DumpAudio, false);
+	dsp->Get("DumpUCode", &m_DumpUCode, false);
 #if defined __linux__ && HAVE_ALSA
 	dsp->Get("Backend", &sBackend, BACKEND_ALSA);
 #elif defined __APPLE__
@@ -599,7 +605,7 @@ void SConfig::LoadDefaults()
 	iBBDumpPort = -1;
 	bSyncGPU = false;
 	bFastDiscSpeed = false;
-	bEnableMemcardSaving = true;
+	bEnableMemcardSdWriting = true;
 	SelectedLanguage = 0;
 	bOverrideGCLanguage = false;
 	bWii = false;
@@ -621,6 +627,7 @@ void SConfig::LoadDefaults()
 	bJITIntegerOff = false;
 	bJITPairedOff = false;
 	bJITSystemRegistersOff = false;
+	bJITBranchOff = false;
 
 	m_strName = "NONE";
 	m_strUniqueID = "00000000";

@@ -17,6 +17,7 @@
 
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
@@ -220,8 +221,6 @@ void RemoveWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
 bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
 
 WiimoteScanner::WiimoteScanner()
-	: m_run_thread()
-	, m_want_wiimotes()
 {
 	init_lib();
 }
@@ -252,7 +251,7 @@ void WiimoteScanner::Update()
 	// Some hacks that allows disconnects to be detected before connections are handled
 	// workaround for Wiimote 1 moving to slot 2 on temporary disconnect
 	if (forgot_some)
-		SLEEP(100);
+		Common::SleepCurrentThread(100);
 }
 
 // Find and connect Wiimotes.
@@ -315,12 +314,8 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	}
 
 	SetupDiDestroyDeviceInfoList(device_info);
-
-	// Don't mind me, just a random sleep to fix stuff on Windows
-	//if (!wiimotes.empty())
-	//    SLEEP(2000);
-
 }
+
 int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, size_t size, int attempts)
 {
 	OVERLAPPED hid_overlap_write = OVERLAPPED();

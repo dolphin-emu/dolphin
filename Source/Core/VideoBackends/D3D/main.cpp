@@ -84,7 +84,6 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsPostProcessing = false;
 	g_Config.backend_info.bSupportsPaletteConversion = true;
 	g_Config.backend_info.bSupportsClipControl = true;
-	g_Config.backend_info.bSupportsCopySubImage = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -107,16 +106,10 @@ void InitBackendInfo()
 		{
 			std::string samples;
 			std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
+			// First iteration will be 1. This equals no AA.
 			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
-				if (i == 0)
-					samples = _trans("None");
-				else if (modes[i].Quality)
-					samples = StringFromFormat(_trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
-				else
-					samples = StringFromFormat(_trans("%d samples"), modes[i].Count);
-
-				g_Config.backend_info.AAModes.push_back(samples);
+				g_Config.backend_info.AAModes.push_back(modes[i].Count);
 			}
 
 			bool shader_model_5_supported = (DX11::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
@@ -129,6 +122,9 @@ void InitBackendInfo()
 
 			// Requires the instance attribute (only available in shader model 5)
 			g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
+
+			// Sample shading requires shader model 5
+			g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
 		}
 		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
 		ad->Release();

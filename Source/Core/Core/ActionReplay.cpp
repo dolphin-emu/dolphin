@@ -229,16 +229,14 @@ static void LogInfo(const char *format, ...)
 	{
 		if (LogManager::GetMaxLevel() >= LogTypes::LINFO || logSelf)
 		{
-			char* temp = (char*)alloca(strlen(format)+512);
 			va_list args;
 			va_start(args, format);
-			CharArrayFromFormatV(temp, 512, format, args);
+			std::string text = StringFromFormatV(format, args);
 			va_end(args);
-			INFO_LOG(ACTIONREPLAY, "%s", temp);
+			INFO_LOG(ACTIONREPLAY, "%s", text.c_str());
 
 			if (logSelf)
 			{
-				std::string text = temp;
 				text += '\n';
 				arLog.push_back(text);
 			}
@@ -256,7 +254,7 @@ ARCode GetARCode(size_t index)
 	if (index > arCodes.size())
 	{
 		PanicAlertT("GetARCode: Index is greater than "
-			"ar code list size %lu", (unsigned long)index);
+			"ar code list size %zu", index);
 		return ARCode();
 	}
 	return arCodes[index];
@@ -267,7 +265,7 @@ void SetARCode_IsActive(bool active, size_t index)
 	if (index > arCodes.size())
 	{
 		PanicAlertT("SetARCode_IsActive: Index is greater than "
-			"ar code list size %lu", (unsigned long)index);
+			"ar code list size %zu", index);
 		return;
 	}
 	arCodes[index].active = active;

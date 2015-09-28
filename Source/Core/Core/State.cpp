@@ -66,7 +66,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 44; // Last changed in PR 2464
+static const u32 STATE_VERSION = 47; // Last changed in PR 3045
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -257,9 +257,12 @@ static std::map<double, int> GetSavedStates()
 			if (ReadHeader(filename, header))
 			{
 				double d = Common::Timer::GetDoubleTime() - header.time;
+
 				// increase time until unique value is obtained
-				while (m.find(d) != m.end()) d += .001;
-				m.insert(std::pair<double,int>(d, i));
+				while (m.find(d) != m.end())
+					d += .001;
+
+				m.emplace(d, i);
 			}
 		}
 	}

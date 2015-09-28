@@ -6,6 +6,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/Thread.h"
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/NativeVertexFormat.h"
@@ -56,7 +57,7 @@ void GFXDebuggerCheckAndPause(bool update)
 		while ( GFXDebuggerPauseFlag )
 		{
 			if (update) GFXDebuggerUpdateScreen();
-			SLEEP(5);
+			Common::SleepCurrentThread(5);
 		}
 		g_pdebugger->OnContinue();
 	}
@@ -81,7 +82,7 @@ void GFXDebuggerBase::DumpPixelShader(const std::string& path)
 	const std::string filename = StringFromFormat("%sdump_ps.txt", path.c_str());
 
 	std::string output;
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+	bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 	if (!useDstAlpha)
 	{
 		output = "Destination alpha disabled:\n";

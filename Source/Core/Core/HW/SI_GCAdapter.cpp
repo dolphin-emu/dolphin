@@ -146,11 +146,13 @@ void Init()
 	if (ret)
 	{
 		ERROR_LOG(SERIALINTERFACE, "libusb_init failed with error: %d", ret);
+		s_libusb_driver_not_supported = true;
 		Shutdown();
 	}
 	else
 	{
-		StartScanThread();
+		if (SConfig::GetInstance().m_GameCubeAdapter)
+			StartScanThread();
 	}
 }
 
@@ -235,6 +237,7 @@ static bool CheckDeviceAccess(libusb_device* device)
 				if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
 					s_libusb_driver_not_supported = true;
 			}
+			return false;
 		}
 		else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
 		{

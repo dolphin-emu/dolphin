@@ -39,6 +39,7 @@ enum EState
 
 bool Init();
 void Stop();
+void Shutdown();
 
 std::string StopMessage(bool, const std::string&);
 
@@ -52,7 +53,7 @@ void SetState(EState _State);
 EState GetState();
 
 void SaveScreenShot();
-void SaveScreenShot(std::string name);
+void SaveScreenShot(const std::string& name);
 
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 

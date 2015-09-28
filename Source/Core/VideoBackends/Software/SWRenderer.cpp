@@ -9,13 +9,16 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLUtil.h"
+
 #include "Core/Core.h"
-#include "VideoBackends/OGL/GLInterfaceBase.h"
-#include "VideoBackends/OGL/GLUtil.h"
+
 #include "VideoBackends/Software/RasterFont.h"
 #include "VideoBackends/Software/SWCommandProcessor.h"
 #include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/SWStatistics.h"
+
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
@@ -211,8 +214,7 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
 {
 	GLInterface->Update(); // just updates the render window position and the backbuffer size
-	if (!g_SWVideoConfig.bHwRasterizer)
-		SWRenderer::DrawTexture(GetCurrentColorTexture(), fbWidth, fbHeight);
+	SWRenderer::DrawTexture(GetCurrentColorTexture(), fbWidth, fbHeight);
 
 	swstats.frameCount++;
 	SWRenderer::SwapBuffer();

@@ -11,7 +11,6 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Intrinsics.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
@@ -288,23 +287,6 @@ void JitIL::Shutdown()
 	farcode.Shutdown();
 }
 
-
-void JitIL::WriteCallInterpreter(UGeckoInstruction inst)
-{
-	if (js.isLastInstruction)
-	{
-		MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
-		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
-	}
-	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
-	ABI_CallFunctionC((void*)instr, inst.hex);
-	if (js.isLastInstruction)
-	{
-		MOV(32, R(RSCRATCH), PPCSTATE(npc));
-		WriteRfiExitDestInOpArg(R(RSCRATCH));
-	}
-}
-
 void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
 {
 	ibuild.EmitFallBackToInterpreter(
@@ -392,7 +374,7 @@ void JitIL::WriteExit(u32 destination)
 	b->linkData.push_back(linkData);
 }
 
-void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
+void JitIL::WriteExitDestInOpArg(const OpArg& arg)
 {
 	MOV(32, PPCSTATE(pc), arg);
 	Cleanup();
@@ -404,7 +386,7 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 	JMP(asm_routines.dispatcher, true);
 }
 
-void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
+void JitIL::WriteRfiExitDestInOpArg(const OpArg& arg)
 {
 	MOV(32, PPCSTATE(pc), arg);
 	MOV(32, PPCSTATE(npc), arg);
@@ -473,7 +455,7 @@ void JitIL::Trace()
 
 void JitIL::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 || farcode.GetSpaceLeft() < 0x10000 || blocks.IsFull() ||
+	if (IsAlmostFull() || farcode.IsAlmostFull() || blocks.IsFull() ||
 		SConfig::GetInstance().bJITNoBlockCache)
 	{
 		ClearCache();

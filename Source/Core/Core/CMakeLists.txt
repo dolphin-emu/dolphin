@@ -74,9 +74,6 @@ set(SRCS	ActionReplay.cpp
 			HW/DSPHLE/UCodes/ROM.cpp
 			HW/DSPHLE/UCodes/UCodes.cpp
 			HW/DSPHLE/UCodes/Zelda.cpp
-			HW/DSPHLE/UCodes/ZeldaADPCM.cpp
-			HW/DSPHLE/UCodes/ZeldaSynth.cpp
-			HW/DSPHLE/UCodes/ZeldaVoice.cpp
 			HW/DSPHLE/MailHandler.cpp
 			HW/DSPHLE/DSPHLE.cpp
 			HW/DSPLLE/DSPDebugInterface.cpp
@@ -171,6 +168,7 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/JitCommon/JitAsmCommon.cpp
 			PowerPC/JitCommon/JitBase.cpp
 			PowerPC/JitCommon/JitCache.cpp
+			PowerPC/CachedInterpreter.cpp
 			PowerPC/JitILCommon/IR.cpp
 			PowerPC/JitILCommon/JitILBase_Branch.cpp
 			PowerPC/JitILCommon/JitILBase_LoadStore.cpp

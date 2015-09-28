@@ -56,6 +56,14 @@ FramebufferManager::FramebufferManager()
 {
 	m_target_width = Renderer::GetTargetWidth();
 	m_target_height = Renderer::GetTargetHeight();
+	if (m_target_height < 1)
+	{
+		m_target_height = 1;
+	}
+	if (m_target_width < 1)
+	{
+		m_target_width = 1;
+	}
 	DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
 
 	ID3D11Texture2D* buf;
@@ -159,10 +167,11 @@ FramebufferManager::~FramebufferManager()
 	SAFE_RELEASE(m_efb.resolved_depth_tex);
 }
 
-void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
+void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
 	u8* dst = Memory::GetPointer(xfbAddr);
-	s_xfbEncoder.Encode(dst, fbWidth, fbHeight, sourceRc, Gamma);
+	// below div2 due to dx using pixel width
+	s_xfbEncoder.Encode(dst, fbStride/2, fbHeight, sourceRc, Gamma);
 }
 
 XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)

@@ -3,29 +3,14 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <string>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
-#include "Core/Boot/Boot_DOL.h"
-#include "Core/HLE/HLE.h"
 #include "Core/HLE/HLE_Misc.h"
-#include "Core/HLE/HLE_OS.h"
-#include "Core/HW/Memmap.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCCache.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/SignatureDB.h"
-
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/VolumeCreator.h"
-
-#include "VideoCommon/TextureCacheBase.h"
 
 namespace HLE_Misc
 {

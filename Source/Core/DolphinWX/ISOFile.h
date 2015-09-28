@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -17,10 +18,10 @@
 #endif
 
 class PointerWrap;
-class GameListItem : NonCopyable
+class GameListItem
 {
 public:
-	GameListItem(const std::string& _rFileName);
+	GameListItem(const std::string& _rFileName, const std::unordered_map<std::string, std::string>& custom_titles);
 	~GameListItem();
 
 	bool IsValid() const {return m_Valid;}
@@ -42,7 +43,8 @@ public:
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
 	// 0 is the first disc, 1 is the second disc
-	u8 GetDiscNumber() const {return m_disc_number;}
+	u8 GetDiscNumber() const { return m_disc_number; }
+
 #if defined(HAVE_WX) && HAVE_WX
 	const wxBitmap& GetBitmap() const {return m_Bitmap;}
 #endif
@@ -77,10 +79,19 @@ private:
 	int m_ImageWidth, m_ImageHeight;
 	u8 m_disc_number;
 
+	std::string m_custom_name;
+	bool m_has_custom_name;
+
 	bool LoadFromCache();
 	void SaveToCache();
 
-	std::string CreateCacheFilename();
+	bool IsElfOrDol() const;
+	std::string CreateCacheFilename() const;
 
-	void ReadBanner(const DiscIO::IVolume& volume);
+	// Outputs to m_pImage
+	void ReadVolumeBanner(const DiscIO::IVolume& volume);
+	// Outputs to m_Bitmap
+	bool ReadPNGBanner(const std::string& path);
+
+	static wxBitmap ScaleBanner(wxImage* image);
 };

@@ -32,29 +32,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	_assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
 
-	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENIVECSHIFTS))
-	{
-		// Add functions to do shifts on scalars and ivecs.
-		// This is included in the vertex shader for lighting shader generation.
-		out.Write("int ilshift(int a, int b) { return a << b; }\n"
-		          "int irshift(int a, int b) { return a >> b; }\n"
-
-		          "int2 ilshift(int2 a, int2 b) { return int2(a.x << b.x, a.y << b.y); }\n"
-		          "int2 ilshift(int2 a, int b) { return int2(a.x << b, a.y << b); }\n"
-		          "int2 irshift(int2 a, int2 b) { return int2(a.x >> b.x, a.y >> b.y); }\n"
-		          "int2 irshift(int2 a, int b) { return int2(a.x >> b, a.y >> b); }\n"
-
-		          "int3 ilshift(int3 a, int3 b) { return int3(a.x << b.x, a.y << b.y, a.z << b.z); }\n"
-		          "int3 ilshift(int3 a, int b) { return int3(a.x << b, a.y << b, a.z << b); }\n"
-		          "int3 irshift(int3 a, int3 b) { return int3(a.x >> b.x, a.y >> b.y, a.z >> b.z); }\n"
-		          "int3 irshift(int3 a, int b) { return int3(a.x >> b, a.y >> b, a.z >> b); }\n"
-
-		          "int4 ilshift(int4 a, int4 b) { return int4(a.x << b.x, a.y << b.y, a.z << b.z, a.w << b.w); }\n"
-		          "int4 ilshift(int4 a, int b) { return int4(a.x << b, a.y << b, a.z << b, a.w << b); }\n"
-		          "int4 irshift(int4 a, int4 b) { return int4(a.x >> b.x, a.y >> b.y, a.z >> b.z, a.w >> b.w); }\n"
-		          "int4 irshift(int4 a, int b) { return int4(a.x >> b, a.y >> b, a.z >> b, a.w >> b); }\n\n");
-	}
-
 	out.Write("%s", s_lighting_struct);
 
 	// uniforms
@@ -100,7 +77,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("out VertexData {\n");
-			GenerateVSOutputMembers<T>(out, api_type, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
+			GenerateVSOutputMembers<T>(out, api_type, GetInterpolationQualifier(api_type, false, true));
 			out.Write("} vs;\n");
 		}
 		else
@@ -110,17 +87,17 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			{
 				if (i < xfmem.numTexGen.numTexGens)
 				{
-					out.Write("centroid out float3 uv%d;\n", i);
+					out.Write("%s out float3 uv%d;\n", GetInterpolationQualifier(api_type), i);
 				}
 			}
-			out.Write("centroid out float4 clipPos;\n");
+			out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(api_type));
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("centroid out float3 Normal;\n");
-				out.Write("centroid out float3 WorldPos;\n");
+				out.Write("%s out float3 Normal;\n", GetInterpolationQualifier(api_type));
+				out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier(api_type));
 			}
-			out.Write("centroid out float4 colors_0;\n");
-			out.Write("centroid out float4 colors_1;\n");
+			out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier(api_type));
+			out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier(api_type));
 		}
 
 		out.Write("void main()\n{\n");
@@ -156,22 +133,12 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
 	{
-		if (is_writing_shadercode && (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS) && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS)))
-		{
-			// This'll cause issues, but  it can't be helped
-			out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[0], rawpos), dot(" I_TRANSFORMMATRICES"[1], rawpos), dot(" I_TRANSFORMMATRICES"[2], rawpos), 1);\n");
-			if (components & VB_HAS_NRMALL)
-				out.Write("float3 N0 = " I_NORMALMATRICES"[0].xyz, N1 = " I_NORMALMATRICES"[1].xyz, N2 = " I_NORMALMATRICES"[2].xyz;\n");
-		}
-		else
-		{
-			out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");
+		out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");
 
-			if (components & VB_HAS_NRMALL)
-			{
-				out.Write("int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
-				out.Write("float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
-			}
+		if (components & VB_HAS_NRMALL)
+		{
+			out.Write("int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
+			out.Write("float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
 		}
 
 		if (components & VB_HAS_NRM0)
@@ -241,7 +208,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		switch (texinfo.sourcerow)
 		{
 		case XF_SRCGEOM_INROW:
-			_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
+			// The following assert was triggered in Super Smash Bros. Project M 3.6.
+			//_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 			out.Write("coord = rawpos;\n"); // pos.w is 1
 			break;
 		case XF_SRCNORMAL_INROW:
@@ -291,7 +259,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				}
 				else
 				{
-					_assert_(0); // should have normals
+					// The following assert was triggered in House of the Dead Overkill and Star Wars Rogue Squadron 2
+					//_assert_(0); // should have normals
 					uid_data->texMtxInfo[i].embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
 					out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
 				}

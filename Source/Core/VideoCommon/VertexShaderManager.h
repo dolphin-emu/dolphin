@@ -28,7 +28,7 @@ public:
 	static void SetTexMatrixChangedB(u32 value);
 	static void SetViewportChanged();
 	static void SetProjectionChanged();
-	static void SetMaterialColorChanged(int index, u32 color);
+	static void SetMaterialColorChanged(int index);
 
 	static void TranslateView(float x, float y, float z = 0.0f);
 	static void RotateView(float x, float y);

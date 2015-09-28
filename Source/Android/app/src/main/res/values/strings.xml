@@ -66,6 +66,7 @@
     <string name="overlay_slot3">Slot 3</string>
     <string name="overlay_slot4">Slot 4</string>
     <string name="overlay_slot5">Slot 5</string>
+    <string name="overlay_slot6">Slot 6</string>
 
     <!-- Input Config Fragment -->
     <string name="input_settings">Input</string>
@@ -99,10 +100,10 @@
     <string name="dpad_down">D-Pad Down</string>
     <string name="dpad_left">D-Pad Left</string>
     <string name="dpad_right">D-Pad Right</string>
-    <string name="main_stick_up">Main Stick Up</string>
-    <string name="main_stick_down">Main Stick Down</string>
-    <string name="main_stick_left">Main Stick Left</string>
-    <string name="main_stick_right">Main Stick Right</string>
+    <string name="main_stick_up">Control Stick Up</string>
+    <string name="main_stick_down">Control Stick Down</string>
+    <string name="main_stick_left">Control Stick Left</string>
+    <string name="main_stick_right">Control Stick Right</string>
     <string name="c_stick_up">C Stick Up</string>
     <string name="c_stick_down">C Stick Down</string>
     <string name="c_stick_left">C Stick Left</string>
@@ -135,6 +136,7 @@
 
     <!-- CPU Preference Fragment -->
     <string name="interpreter">Interpreter</string>
+    <string name="cached_interpreter">Cached Interpreter</string>
     <string name="jit64_recompiler">JIT64 Recompiler</string>
     <string name="jitil_recompiler">JITIL Recompiler</string>
     <string name="jit_arm_recompiler">JIT ARM Recompiler</string>

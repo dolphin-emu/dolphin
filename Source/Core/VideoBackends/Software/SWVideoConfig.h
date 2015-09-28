@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 
 #define STATISTICS 1
 
@@ -20,7 +21,6 @@ struct SWVideoConfig : NonCopyable
 	bool bHideCursor;
 	bool renderToMainframe;
 
-	bool bHwRasterizer;
 	bool bBypassXFB;
 
 	// Emulation features

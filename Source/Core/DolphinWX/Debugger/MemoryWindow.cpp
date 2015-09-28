@@ -79,7 +79,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	//      wxSize(20, 100), 0, nullptr, wxLB_SORT);
 	//sizerLeft->Add(symbols, 1, wxEXPAND);
 	memview = new CMemoryView(di, this);
-	memview->dataType = 0;
+
 	//sizerBig->Add(sizerLeft, 1, wxEXPAND);
 	sizerBig->Add(memview, 20, wxEXPAND);
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
@@ -281,24 +281,21 @@ void CMemoryWindow::U8(wxCommandEvent& event)
 {
 	chk16->SetValue(0);
 	chk32->SetValue(0);
-	memview->dataType = 0;
-	memview->Refresh();
+	memview->SetDataType(MemoryDataType::U8);
 }
 
 void CMemoryWindow::U16(wxCommandEvent& event)
 {
 	chk8->SetValue(0);
 	chk32->SetValue(0);
-	memview->dataType = 1;
-	memview->Refresh();
+	memview->SetDataType(MemoryDataType::U16);
 }
 
 void CMemoryWindow::U32(wxCommandEvent& event)
 {
 	chk16->SetValue(0);
 	chk8->SetValue(0);
-	memview->dataType = 2;
-	memview->Refresh();
+	memview->SetDataType(MemoryDataType::U32);
 }
 
 void CMemoryWindow::onSearch(wxCommandEvent& event)

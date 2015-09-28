@@ -4,7 +4,12 @@
 
 #include <cstdio>
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
 #include "Common/Logging/ConsoleListener.h"
+#include "Common/Logging/Log.h"
 
 ConsoleListener::ConsoleListener()
 {

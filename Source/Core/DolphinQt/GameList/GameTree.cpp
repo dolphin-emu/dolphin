@@ -2,12 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "ui_GameTree.h"
 
-#include "Common/StdMakeUnique.h"
-
 #include "DolphinQt/GameList/GameTree.h"
-
 #include "DolphinQt/Utils/Resources.h"
 #include "DolphinQt/Utils/Utils.h"
 
@@ -25,7 +24,7 @@ DGameTree::DGameTree(QWidget* parent_widget) :
 	setIconSize(QSize(BANNER_WIDTH, BANNER_HEIGHT));
 	sortByColumn(COL_TITLE, Qt::AscendingOrder);
 
-	connect(this, SIGNAL(itemActivated(QTreeWidgetItem*, int)), this, SLOT(ItemActivated(QTreeWidgetItem*)));
+	connect(this, &QTreeWidget::itemActivated, this, &DGameTree::ItemActivated);
 }
 
 DGameTree::~DGameTree()

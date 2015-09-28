@@ -43,7 +43,6 @@ private slots:
 	void OnCoreStateChanged(Core::EState state);
 
 	// Main toolbar
-	void OnOpen();
 	void OnBrowse();
 	void OnExit();
 	void OnPlay();
@@ -51,14 +50,6 @@ private slots:
 
 	// View menu
 	void OnGameListStyleChanged();
-
-	// Help menu
-	void OnOpenWebsite();
-	void OnOpenDocs();
-	void OnOpenGitHub();
-	void OnOpenSystemInfo();
-	void OnOpenAbout();
-	void OnOpenAboutQt();
 
 	// Misc.
 	void UpdateIcons();
@@ -68,6 +59,9 @@ private:
 	std::unique_ptr<Ui::DMainWindow> m_ui;
 	DGameTracker* m_game_tracker;
 
+	// Misc.
+	void DisableScreensaver();
+	void EnableScreensaver();
 	// Emulation
 	QString RequestBootFilename();
 	QString ShowFileDialog();

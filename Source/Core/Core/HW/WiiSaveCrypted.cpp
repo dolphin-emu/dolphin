@@ -11,19 +11,22 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 #include <polarssl/aes.h>
 #include <polarssl/md5.h>
 #include <polarssl/sha1.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Common/Crypto/ec.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/HW/WiiSaveCrypted.h"
 
@@ -88,7 +91,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 			}
 		}
 	}
-	SuccessAlertT("Found %u save files", (unsigned int)titles.size());
+	SuccessAlertT("Found %zu save files", titles.size());
 	u32 success = 0;
 	for (const u64& title : titles)
 	{
@@ -97,7 +100,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 			success++;
 		delete export_save;
 	}
-	SuccessAlertT("Sucessfully exported %u saves to %s", success,
+	SuccessAlertT("Successfully exported %u saves to %s", success,
 		(File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
 }
 

@@ -217,7 +217,7 @@ static void ReadDataFromFifo(u32 readPtr)
 		size_t existing_len = s_video_buffer_write_ptr - s_video_buffer_read_ptr;
 		if (len > (size_t)(FIFO_SIZE - existing_len))
 		{
-			PanicAlert("FIFO out of bounds (existing %lu + new %lu > %lu)", (unsigned long) existing_len, (unsigned long) len, (unsigned long) FIFO_SIZE);
+			PanicAlert("FIFO out of bounds (existing %zu + new %zu > %lu)", existing_len, len, (unsigned long) FIFO_SIZE);
 			return;
 		}
 		memmove(s_video_buffer, s_video_buffer_read_ptr, existing_len);
@@ -254,7 +254,7 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
 		size_t existing_len = write_ptr - s_video_buffer_pp_read_ptr;
 		if (len > (size_t)(FIFO_SIZE - existing_len))
 		{
-			PanicAlert("FIFO out of bounds (existing %lu + new %lu > %lu)", (unsigned long) existing_len, (unsigned long) len, (unsigned long) FIFO_SIZE);
+			PanicAlert("FIFO out of bounds (existing %zu + new %zu > %lu)", existing_len, len, (unsigned long) FIFO_SIZE);
 			return;
 		}
 	}

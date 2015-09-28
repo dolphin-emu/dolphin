@@ -6,6 +6,7 @@
 
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 
 enum { BUF_SIZE = 32*1024 };

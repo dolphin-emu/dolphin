@@ -62,11 +62,9 @@ public:
 	void CreateMenu(const SConfig& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
 	void CreateMenuOptions(wxMenu *pMenu);
 	void CreateMenuSymbols(wxMenuBar *pMenuBar);
-	void RecreateToolbar(wxToolBar*);
 	void PopulateToolbar(wxToolBar* toolBar);
 	void UpdateButtonStates();
 	void OpenPages();
-	void UpdateManager();
 
 	// Menu bar
 	void ToggleCodeWindow(bool bShow);

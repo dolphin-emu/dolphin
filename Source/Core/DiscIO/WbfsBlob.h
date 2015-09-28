@@ -19,6 +19,7 @@ class WbfsFileReader : public IBlobReader
 public:
 	static WbfsFileReader* Create(const std::string& filename);
 
+	bool IsCompressed() const override { return true; }
 	u64 GetDataSize() const override { return m_size; }
 	u64 GetRawSize() const override { return m_size; }
 	bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;

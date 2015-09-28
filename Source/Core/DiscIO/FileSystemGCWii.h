@@ -21,16 +21,17 @@ class CFileSystemGCWii : public IFileSystem
 public:
 	CFileSystemGCWii(const IVolume* _rVolume);
 	virtual ~CFileSystemGCWii();
-	virtual bool IsValid() const override { return m_Valid; }
-	virtual u64 GetFileSize(const std::string& _rFullPath) override;
-	virtual const std::vector<SFileInfo>& GetFileList() override;
-	virtual const std::string GetFileName(u64 _Address) override;
-	virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize, u64 _OffsetInFile) override;
-	virtual bool ExportFile(const std::string& _rFullPath, const std::string&_rExportFilename) override;
-	virtual bool ExportApploader(const std::string& _rExportFolder) const override;
-	virtual bool ExportDOL(const std::string& _rExportFolder) const override;
-	virtual bool GetBootDOL(u8* &buffer, u32 DolSize) const override;
-	virtual u32 GetBootDOLSize() const override;
+
+	bool IsValid() const override { return m_Valid; }
+	u64 GetFileSize(const std::string& _rFullPath) override;
+	const std::vector<SFileInfo>& GetFileList() override;
+	const std::string GetFileName(u64 _Address) override;
+	u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize, u64 _OffsetInFile) override;
+	bool ExportFile(const std::string& _rFullPath, const std::string&_rExportFilename) override;
+	bool ExportApploader(const std::string& _rExportFolder) const override;
+	bool ExportDOL(const std::string& _rExportFolder) const override;
+	bool GetBootDOL(u8* &buffer, u32 DolSize) const override;
+	u32 GetBootDOLSize() const override;
 
 private:
 	bool m_Initialized;

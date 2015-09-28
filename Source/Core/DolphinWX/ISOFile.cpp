@@ -2,11 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include <wx/app.h>
@@ -61,15 +63,18 @@ static std::string GetLanguageString(DiscIO::IVolume::ELanguage language, std::m
 	return "";
 }
 
-GameListItem::GameListItem(const std::string& _rFileName)
+GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_map<std::string, std::string>& custom_titles)
 	: m_FileName(_rFileName)
 	, m_emu_state(0)
 	, m_FileSize(0)
+	, m_Country(DiscIO::IVolume::COUNTRY_UNKNOWN)
 	, m_Revision(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
 	, m_ImageWidth(0)
 	, m_ImageHeight(0)
+	, m_disc_number(0)
+	, m_has_custom_name(false)
 {
 	if (LoadFromCache())
 	{
@@ -83,7 +88,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
 			if (volume != nullptr)
 			{
-				ReadBanner(*volume);
+				ReadVolumeBanner(*volume);
 				if (!m_pImage.empty())
 					SaveToCache();
 			}
@@ -106,11 +111,11 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
-			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName);
+			m_BlobCompressed = pVolume->IsCompressed();
 			m_disc_number = pVolume->GetDiscNumber();
 			m_Revision = pVolume->GetRevision();
 
-			ReadBanner(*pVolume);
+			ReadVolumeBanner(*pVolume);
 
 			delete pVolume;
 
@@ -127,26 +132,55 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
 		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
 		ini.GetIfExists("EmuState", "EmulationIssues", &m_issues);
+		m_has_custom_name = ini.GetIfExists("EmuState", "Title", &m_custom_name);
+
+		if (!m_has_custom_name)
+		{
+			std::string game_id = m_UniqueID;
+
+			// Ignore publisher ID for WAD files
+			if (m_Platform == DiscIO::IVolume::WII_WAD && game_id.size() > 4)
+				game_id.erase(4);
+
+			auto end = custom_titles.end();
+			auto it = custom_titles.find(game_id);
+			if (it != end)
+			{
+				m_custom_name = it->second;
+				m_has_custom_name = true;
+			}
+		}
 	}
 
+	if (!IsValid() && IsElfOrDol())
+	{
+		m_Valid = true;
+		m_FileSize = File::GetSize(_rFileName);
+		m_Platform = DiscIO::IVolume::ELF_DOL;
+	}
+
+	std::string path, name;
+	SplitPath(m_FileName, &path, &name, nullptr);
+
+	// A bit like the Homebrew Channel icon, except there can be multiple files in a folder with their own icons.
+	// Useful for those who don't want to have a Homebrew Channel-style folder structure.
+	if (ReadPNGBanner(path + name + ".png"))
+		return;
+
+	// Homebrew Channel icon. Typical for DOLs and ELFs, but can be also used with volumes.
+	if (ReadPNGBanner(path + "icon.png"))
+		return;
+
+	// Volume banner. Typical for everything that isn't a DOL or ELF.
 	if (!m_pImage.empty())
 	{
-		wxImage Image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
-		double Scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
-		// Note: This uses nearest neighbor, which subjectively looks a lot
-		// better for GC banners than smooth scaling.
-		Image.Rescale(DVD_BANNER_WIDTH * Scale, DVD_BANNER_HEIGHT * Scale);
-#ifdef __APPLE__
-		m_Bitmap = wxBitmap(Image, -1, Scale);
-#else
-		m_Bitmap = wxBitmap(Image, -1);
-#endif
+		wxImage image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
+		m_Bitmap = ScaleBanner(&image);
+		return;
 	}
-	else
-	{
-		// default banner
-		m_Bitmap.LoadFile(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
-	}
+
+	// Fallback in case no banner is available.
+	ReadPNGBanner(File::GetThemeDir(SConfig::GetInstance().theme_name) + "nobanner.png");
 }
 
 GameListItem::~GameListItem()
@@ -184,7 +218,20 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_Revision);
 }
 
-std::string GameListItem::CreateCacheFilename()
+bool GameListItem::IsElfOrDol() const
+{
+	const size_t pos = m_FileName.rfind('.');
+	if (pos != std::string::npos)
+	{
+		std::string ext = m_FileName.substr(pos);
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		return ext == ".elf" || ext == ".dol";
+	}
+	return false;
+}
+
+std::string GameListItem::CreateCacheFilename() const
 {
 	std::string Filename, LegalPathname, extension;
 	SplitPath(m_FileName, &LegalPathname, &Filename, &extension);
@@ -202,7 +249,8 @@ std::string GameListItem::CreateCacheFilename()
 	return fullname;
 }
 
-void GameListItem::ReadBanner(const DiscIO::IVolume& volume)
+// Outputs to m_pImage
+void GameListItem::ReadVolumeBanner(const DiscIO::IVolume& volume)
 {
 	std::vector<u32> Buffer = volume.GetBanner(&m_ImageWidth, &m_ImageHeight);
 	u32* pData = Buffer.data();
@@ -214,6 +262,32 @@ void GameListItem::ReadBanner(const DiscIO::IVolume& volume)
 		m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >> 8;
 		m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >> 0;
 	}
+}
+
+// Outputs to m_Bitmap
+bool GameListItem::ReadPNGBanner(const std::string& path)
+{
+	if (!File::Exists(path))
+		return false;
+
+	wxImage image;
+	image.LoadFile(StrToWxStr(path), wxBITMAP_TYPE_PNG);
+	m_Bitmap = ScaleBanner(&image);
+	return true;
+}
+
+wxBitmap GameListItem::ScaleBanner(wxImage* image)
+{
+	double scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
+	// Note: This uses nearest neighbor, which subjectively looks a lot
+	// better for GC banners than smooth scaling.
+	// TODO: Make scaling less bad for Homebrew Channel banners.
+	image->Rescale(DVD_BANNER_WIDTH * scale, DVD_BANNER_HEIGHT * scale);
+#ifdef __APPLE__
+	return wxBitmap(*image, -1, scale);
+#else
+	return wxBitmap(*image, -1);
+#endif
 }
 
 std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) const
@@ -234,14 +308,18 @@ std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
 
 std::string GameListItem::GetName() const
 {
+	if (m_has_custom_name)
+		return m_custom_name;
+
 	bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
 	std::string name = GetName(SConfig::GetInstance().GetCurrentLanguage(wii));
-	if (name.empty())
-	{
-		// No usable name, return filename (better than nothing)
-		SplitPath(GetFileName(), nullptr, &name, nullptr);
-	}
-	return name;
+	if (!name.empty())
+		return name;
+
+	// No usable name, return filename (better than nothing)
+	std::string ext;
+	SplitPath(GetFileName(), nullptr, &name, &ext);
+	return name + ext;
 }
 
 std::vector<DiscIO::IVolume::ELanguage> GameListItem::GetLanguages() const
@@ -262,13 +340,11 @@ const std::string GameListItem::GetWiiFSPath() const
 
 	if (iso->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC)
 	{
-		u64 title = 0;
-
-		iso->GetTitleID((u8*)&title);
-		title = Common::swap64(title);
+		u64 title_id = 0;
+		iso->GetTitleID(&title_id);
 
 		const std::string path = StringFromFormat("%s/title/%08x/%08x/data/",
-				File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(title>>32), (u32)title);
+				File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(title_id >> 32), (u32)title_id);
 
 		if (!File::Exists(path))
 			File::CreateFullPath(path);
@@ -282,4 +358,3 @@ const std::string GameListItem::GetWiiFSPath() const
 
 	return ret;
 }
-

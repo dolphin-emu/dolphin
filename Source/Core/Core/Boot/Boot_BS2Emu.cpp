@@ -229,7 +229,7 @@ bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 
 		if (!settingsFileHandle.WriteBytes(gen.GetData(), SettingsHandler::SETTINGS_SIZE))
 		{
-			PanicAlertT("SetupWiiMemory: Cant create setting.txt file");
+			PanicAlertT("SetupWiiMemory: Can't create setting.txt file");
 			return false;
 		}
 		// Write the 256 byte setting.txt to memory.
@@ -240,7 +240,7 @@ bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 
 	/*
 	Set hardcoded global variables to Wii memory. These are partly collected from
-	Wiibrew. These values are needed for the games to function correctly. A few
+	WiiBrew. These values are needed for the games to function correctly. A few
 	values in this region will also be placed here by the game as it boots.
 	They are:
 	0x80000038  Start of FST
@@ -315,7 +315,7 @@ bool CBoot::EmulatedBS2_Wii()
 {
 	INFO_LOG(BOOT, "Faking Wii BS2...");
 
-	// setup Wii memory
+	// Setup Wii memory
 	DiscIO::IVolume::ECountry country_code = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	if (DVDInterface::VolumeIsValid())
 		country_code = DVDInterface::GetVolume().GetCountry();

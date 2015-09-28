@@ -15,9 +15,8 @@ namespace MMIO { class Mapping; }
 
 enum FieldType
 {
-	FIELD_PROGRESSIVE = 0,
-	FIELD_UPPER,
-	FIELD_LOWER
+	FIELD_ODD = 0,
+	FIELD_EVEN = 1,
 };
 
 enum EFBAccessType
@@ -161,5 +160,4 @@ public:
 
 protected:
 	void InitializeShared();
-	void InvalidState();
 };

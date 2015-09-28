@@ -131,10 +131,10 @@ float RegCache::ScoreRegister(X64Reg xr)
 X64Reg RegCache::GetFreeXReg()
 {
 	size_t aCount;
-	const int* aOrder = GetAllocationOrder(aCount);
+	const X64Reg* aOrder = GetAllocationOrder(&aCount);
 	for (size_t i = 0; i < aCount; i++)
 	{
-		X64Reg xr = (X64Reg)aOrder[i];
+		X64Reg xr = aOrder[i];
 		if (!xregs[xr].locked && xregs[xr].free)
 		{
 			return xr;
@@ -226,9 +226,9 @@ void GPRRegCache::SetImmediate32(size_t preg, u32 immValue)
 	regs[preg].location = Imm32(immValue);
 }
 
-const int* GPRRegCache::GetAllocationOrder(size_t& count)
+const X64Reg* GPRRegCache::GetAllocationOrder(size_t* count)
 {
-	static const int allocationOrder[] =
+	static const X64Reg allocationOrder[] =
 	{
 		// R12, when used as base register, for example in a LEA, can generate bad code! Need to look into this.
 #ifdef _WIN32
@@ -237,17 +237,17 @@ const int* GPRRegCache::GetAllocationOrder(size_t& count)
 		R12, R13, R14, R15, RSI, RDI, R8, R9, R10, R11, RCX
 #endif
 	};
-	count = sizeof(allocationOrder) / sizeof(const int);
+	*count = sizeof(allocationOrder) / sizeof(X64Reg);
 	return allocationOrder;
 }
 
-const int* FPURegCache::GetAllocationOrder(size_t& count)
+const X64Reg* FPURegCache::GetAllocationOrder(size_t* count)
 {
-	static const int allocationOrder[] =
+	static const X64Reg allocationOrder[] =
 	{
 		XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5
 	};
-	count = sizeof(allocationOrder) / sizeof(int);
+	*count = sizeof(allocationOrder) / sizeof(X64Reg);
 	return allocationOrder;
 }
 
@@ -289,7 +289,7 @@ void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
 			LoadRegister(i, xr);
 		for (size_t j = 0; j < regs.size(); j++)
 		{
-			if (i != j && regs[j].location.IsSimpleReg() && regs[j].location.GetSimpleReg() == xr)
+			if (i != j && regs[j].location.IsSimpleReg(xr))
 			{
 				Crash();
 			}
@@ -364,10 +364,10 @@ void FPURegCache::StoreRegister(size_t preg, const OpArg& newLoc)
 
 void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
 {
-	for (unsigned int i = 0; i < xregs.size(); i++)
+	for (size_t i = 0; i < xregs.size(); i++)
 	{
 		if (xregs[i].locked)
-			PanicAlert("Someone forgot to unlock X64 reg %u", i);
+			PanicAlert("Someone forgot to unlock X64 reg %zu", i);
 	}
 
 	for (unsigned int i : regsToFlush)
@@ -395,7 +395,7 @@ int RegCache::NumFreeRegisters()
 {
 	int count = 0;
 	size_t aCount;
-	const int* aOrder = GetAllocationOrder(aCount);
+	const X64Reg* aOrder = GetAllocationOrder(&aCount);
 	for (size_t i = 0; i < aCount; i++)
 		if (!xregs[aOrder[i]].locked && xregs[aOrder[i]].free)
 			count++;

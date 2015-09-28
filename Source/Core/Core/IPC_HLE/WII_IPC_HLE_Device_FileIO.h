@@ -28,7 +28,7 @@ public:
 	IPCCommandResult IOCtl(u32 _CommandAddress) override;
 	void DoState(PointerWrap &p) override;
 
-	File::IOFile OpenFile();
+	void OpenFile();
 
 private:
 	enum
@@ -75,4 +75,5 @@ private:
 	u32 m_SeekPos;
 
 	std::string m_filepath;
+	std::shared_ptr<File::IOFile> m_file;
 };

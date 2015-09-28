@@ -231,25 +231,37 @@ void Jit64::Shutdown()
 	farcode.Shutdown();
 }
 
-// This is only called by FallBackToInterpreter() in this file. It will execute an instruction with the interpreter functions.
-void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
+void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush();
 	fpr.Flush();
-	if (js.isLastInstruction)
+	if (js.op->opinfo->flags & FL_ENDBLOCK)
 	{
 		MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
 		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
 	}
-	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
+	Interpreter::Instruction instr = GetInterpreterOp(inst);
 	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunctionC((void*)instr, inst.hex);
 	ABI_PopRegistersAndAdjustStack({}, 0);
-}
-
-void Jit64::FallBackToInterpreter(UGeckoInstruction _inst)
-{
-	WriteCallInterpreter(_inst.hex);
+	if (js.op->opinfo->flags & FL_ENDBLOCK)
+	{
+		if (js.isLastInstruction)
+		{
+			MOV(32, R(RSCRATCH), PPCSTATE(npc));
+			MOV(32, PPCSTATE(pc), R(RSCRATCH));
+			WriteExceptionExit();
+		}
+		else
+		{
+			MOV(32, R(RSCRATCH), PPCSTATE(npc));
+			CMP(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
+			FixupBranch c = J_CC(CC_Z);
+			MOV(32, PPCSTATE(pc), R(RSCRATCH));
+			WriteExceptionExit();
+			SetJumpTarget(c);
+		}
+	}
 }
 
 void Jit64::HLEFunction(UGeckoInstruction _inst)
@@ -306,7 +318,7 @@ bool Jit64::Cleanup()
 	if (MMCR0.Hex || MMCR1.Hex)
 	{
 		ABI_PushRegistersAndAdjustStack({}, 0);
-		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
+		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst, js.numFloatingPointInst);
 		ABI_PopRegistersAndAdjustStack({}, 0);
 		did_something = true;
 	}
@@ -490,9 +502,7 @@ void Jit64::Trace()
 
 void Jit64::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 ||
-	    farcode.GetSpaceLeft() < 0x10000 ||
-	    trampolines.GetSpaceLeft() < 0x10000 ||
+	if (IsAlmostFull() || farcode.IsAlmostFull() || trampolines.IsAlmostFull() ||
 	    blocks.IsFull() ||
 	    SConfig::GetInstance().bJITNoBlockCache ||
 	    m_clear_cache_asap)
@@ -552,8 +562,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
-	jit->js.numLoadStoreInst = 0;
-	jit->js.numFloatingPointInst = 0;
+	js.numLoadStoreInst = 0;
+	js.numFloatingPointInst = 0;
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -665,7 +675,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 
 		// Gather pipe writes using a non-immediate address are discovered by profiling.
-		bool gatherPipeIntCheck = jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end();
+		bool gatherPipeIntCheck = js.fifoWriteAddresses.find(ops[i].address) != js.fifoWriteAddresses.end();
 
 		// Gather pipe writes using an immediate address are explicitly tracked.
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
@@ -839,10 +849,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				fpr.StoreFromRegister(j);
 
 			if (opinfo->flags & FL_LOADSTORE)
-				++jit->js.numLoadStoreInst;
+				++js.numLoadStoreInst;
 
 			if (opinfo->flags & FL_USE_FPU)
-				++jit->js.numFloatingPointInst;
+				++js.numFloatingPointInst;
 		}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)

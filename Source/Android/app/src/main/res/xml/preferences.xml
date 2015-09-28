@@ -7,7 +7,7 @@
 
         <!-- CPU Settings -->
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="dualCorePref"
             android:summary="@string/dual_core_descrip"
             android:title="@string/dual_core"/>
@@ -18,12 +18,6 @@
             android:title="@string/cpu_core"
             android:entries="@array/string_emu_cores"
             android:entryValues="@array/int_emu_cores"/>
-
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="fastmemPref"
-            android:summary="@string/fastmem_desc"
-            android:title="@string/fastmem"/>
 
     </PreferenceCategory>
 
@@ -569,6 +563,317 @@
             </PreferenceScreen>
         </PreferenceScreen>
 
+        <!-- Wiimote Bindings -->
+        <PreferenceScreen
+            android:key="wiimote_bindings"
+            android:title="@string/wiimote_bindings">
+
+            <PreferenceScreen
+                android:key="wiimote_bindings_4"
+                android:title="@string/controller_0">
+
+                <CheckBoxPreference
+                    android:key="enableWiimote1"
+                    android:title="@string/enable_wiimote"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteA_4"
+                    android:summary="%s"
+                    android:title="@string/button_a"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteB_4"
+                    android:summary="%s"
+                    android:title="@string/button_b"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteMinus_4"
+                    android:summary="%s"
+                    android:title="@string/button_minus"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimotePlus_4"
+                    android:summary="%s"
+                    android:title="@string/button_plus"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteHome_4"
+                    android:summary="%s"
+                    android:title="@string/button_home"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="Wiimote1_4"
+                    android:summary="%s"
+                    android:title="@string/button_one"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="Wiimote2_4"
+                    android:summary="%s"
+                    android:title="@string/button_two"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteUp_4"
+                    android:summary="%s"
+                    android:title="@string/dpad_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteDown_4"
+                    android:summary="%s"
+                    android:title="@string/dpad_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteLeft_4"
+                    android:summary="%s"
+                    android:title="@string/dpad_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteRight_4"
+                    android:summary="%s"
+                    android:title="@string/dpad_right"/>
+
+            </PreferenceScreen>
+
+            <PreferenceScreen
+                android:key="wiimote_bindings_5"
+                android:title="@string/controller_1">
+
+                <CheckBoxPreference
+                    android:key="enableWiimote2"
+                    android:title="@string/enable_wiimote"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteA_5"
+                    android:summary="%s"
+                    android:title="@string/button_a"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteB_5"
+                    android:summary="%s"
+                    android:title="@string/button_b"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteMinus_5"
+                    android:summary="%s"
+                    android:title="@string/button_minus"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimotePlus_5"
+                    android:summary="%s"
+                    android:title="@string/button_plus"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteHome_5"
+                    android:summary="%s"
+                    android:title="@string/button_home"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="Wiimote2_5"
+                    android:summary="%s"
+                    android:title="@string/button_one"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="Wiimote2_5"
+                    android:summary="%s"
+                    android:title="@string/button_two"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteUp_5"
+                    android:summary="%s"
+                    android:title="@string/dpad_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteDown_5"
+                    android:summary="%s"
+                    android:title="@string/dpad_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteLeft_5"
+                    android:summary="%s"
+                    android:title="@string/dpad_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteRight_5"
+                    android:summary="%s"
+                    android:title="@string/dpad_right"/>
+
+            </PreferenceScreen>
+
+            <PreferenceScreen
+                android:key="wiimote_bindings_6"
+                android:title="@string/controller_2">
+
+                <CheckBoxPreference
+                    android:key="enableWiimote3"
+                    android:title="@string/enable_wiimote"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteA_6"
+                    android:summary="%s"
+                    android:title="@string/button_a"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteB_6"
+                    android:summary="%s"
+                    android:title="@string/button_b"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteMinus_6"
+                    android:summary="%s"
+                    android:title="@string/button_minus"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimotePlus_6"
+                    android:summary="%s"
+                    android:title="@string/button_plus"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteHome_6"
+                    android:summary="%s"
+                    android:title="@string/button_home"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="Wiimote3_6"
+                    android:summary="%s"
+                    android:title="@string/button_one"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="Wiimote2_6"
+                    android:summary="%s"
+                    android:title="@string/button_two"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteUp_6"
+                    android:summary="%s"
+                    android:title="@string/dpad_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteDown_6"
+                    android:summary="%s"
+                    android:title="@string/dpad_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteLeft_6"
+                    android:summary="%s"
+                    android:title="@string/dpad_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteRight_6"
+                    android:summary="%s"
+                    android:title="@string/dpad_right"/>
+
+            </PreferenceScreen>
+
+            <PreferenceScreen
+                android:key="wiimote_bindings_7"
+                android:title="@string/controller_3">
+
+                <CheckBoxPreference
+                    android:key="enableWiimote4"
+                    android:title="@string/enable_wiimote"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteA_7"
+                    android:summary="%s"
+                    android:title="@string/button_a"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteB_7"
+                    android:summary="%s"
+                    android:title="@string/button_b"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteMinus_7"
+                    android:summary="%s"
+                    android:title="@string/button_minus"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimotePlus_7"
+                    android:summary="%s"
+                    android:title="@string/button_plus"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteHome_7"
+                    android:summary="%s"
+                    android:title="@string/button_home"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="Wiimote4_7"
+                    android:summary="%s"
+                    android:title="@string/button_one"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="Wiimote2_7"
+                    android:summary="%s"
+                    android:title="@string/button_two"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteUp_7"
+                    android:summary="%s"
+                    android:title="@string/dpad_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteDown_7"
+                    android:summary="%s"
+                    android:title="@string/dpad_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteLeft_7"
+                    android:summary="%s"
+                    android:title="@string/dpad_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteRight_7"
+                    android:summary="%s"
+                    android:title="@string/dpad_right"/>
+
+            </PreferenceScreen>
+
+        </PreferenceScreen>
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -718,12 +1023,6 @@
 
             <!-- Other Hacks -->
             <PreferenceCategory android:title="@string/other">
-
-                <CheckBoxPreference
-                    android:defaultValue="false"
-                    android:key="disableDestinationAlpha"
-                    android:summary="@string/disable_destination_alpha_descrip"
-                    android:title="@string/disable_destination_alpha"/>
 
                 <CheckBoxPreference
                     android:defaultValue="true"

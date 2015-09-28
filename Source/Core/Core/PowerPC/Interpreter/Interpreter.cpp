@@ -2,9 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <assert.h>
 #include <cinttypes>
 #include <string>
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 #include "Core/Host.h"
@@ -25,12 +28,12 @@ namespace
 bool Interpreter::m_EndBlock;
 
 // function tables
-Interpreter::_interpreterInstruction Interpreter::m_opTable[64];
-Interpreter::_interpreterInstruction Interpreter::m_opTable4[1024];
-Interpreter::_interpreterInstruction Interpreter::m_opTable19[1024];
-Interpreter::_interpreterInstruction Interpreter::m_opTable31[1024];
-Interpreter::_interpreterInstruction Interpreter::m_opTable59[32];
-Interpreter::_interpreterInstruction Interpreter::m_opTable63[1024];
+Interpreter::Instruction Interpreter::m_opTable[64];
+Interpreter::Instruction Interpreter::m_opTable4[1024];
+Interpreter::Instruction Interpreter::m_opTable19[1024];
+Interpreter::Instruction Interpreter::m_opTable31[1024];
+Interpreter::Instruction Interpreter::m_opTable59[32];
+Interpreter::Instruction Interpreter::m_opTable63[1024];
 
 void Interpreter::RunTable4(UGeckoInstruction _inst)  { m_opTable4 [_inst.SUBOP10](_inst); }
 void Interpreter::RunTable19(UGeckoInstruction _inst) { m_opTable19[_inst.SUBOP10](_inst); }
@@ -287,6 +290,13 @@ void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 	std::string disasm = GekkoDisassembler::Disassemble(PowerPC::HostRead_U32(last_pc), last_pc);
 	NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm.c_str());
 	Dolphin_Debugger::PrintCallstack();
+	NOTICE_LOG(POWERPC, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
+	for (int i = 0; i < 32; i += 4)
+		NOTICE_LOG(POWERPC, "r%d: 0x%08x r%d: 0x%08x r%d:0x%08x r%d: 0x%08x",
+			i, rGPR[i],
+			i + 1, rGPR[i + 1],
+			i + 2, rGPR[i + 2],
+			i + 3, rGPR[i + 3]);
 	_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
 }
 
