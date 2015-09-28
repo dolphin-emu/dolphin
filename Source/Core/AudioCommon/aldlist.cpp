@@ -26,6 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <cstring>
+
 #include "AudioCommon/aldlist.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"

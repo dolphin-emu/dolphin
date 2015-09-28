@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstdio>
+#include <cstring>
 
 #ifndef _WIN32
 #include <unistd.h>

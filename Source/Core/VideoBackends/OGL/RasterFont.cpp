@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Common/Common.h"
 #include "Common/GL/GLUtil.h"
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"

@@ -5,8 +5,8 @@
 #pragma once
 
 #include <atomic>
+#include <cstring>
 #include <mutex>
-#include <string>
 
 #include "AudioCommon/WaveFile.h"
 
