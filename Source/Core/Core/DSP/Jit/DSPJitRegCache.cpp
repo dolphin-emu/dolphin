@@ -348,7 +348,7 @@ void DSPJitRegCache::FlushRegs()
 
 		_assert_msg_(DSPLLE,
 		             !regs[i].loc.IsSimpleReg(),
-		             "register %u is still a simple reg", static_cast<u32>(i));
+		             "register %zu is still a simple reg", i);
 	}
 
 	_assert_msg_(DSPLLE,
@@ -434,7 +434,7 @@ void DSPJitRegCache::SaveRegs()
 
 		_assert_msg_(DSPLLE,
 		             !regs[i].loc.IsSimpleReg(),
-		             "register %u is still a simple reg", static_cast<u32>(i));
+		             "register %zu is still a simple reg", i);
 	}
 
 	emitter.MOV(64, R(RBP), M(&ebp_store));
@@ -453,7 +453,7 @@ void DSPJitRegCache::PushRegs()
 
 		_assert_msg_(DSPLLE,
 		             !regs[i].loc.IsSimpleReg(),
-		             "register %u is still a simple reg", static_cast<u32>(i));
+		             "register %zu is still a simple reg", i);
 	}
 
 	int push_count = 0;
@@ -481,7 +481,7 @@ void DSPJitRegCache::PushRegs()
 		_assert_msg_(DSPLLE,
 		             xregs[i].guest_reg == DSP_REG_NONE ||
 		             xregs[i].guest_reg == DSP_REG_STATIC,
-		             "register %u is still used", static_cast<u32>(i));
+		             "register %zu is still used", i);
 	}
 
 	emitter.MOV(64, R(RBP), M(&ebp_store));
@@ -542,11 +542,11 @@ X64Reg DSPJitRegCache::MakeABICallSafe(X64Reg reg)
 void DSPJitRegCache::MovToHostReg(size_t reg, X64Reg host_reg, bool load)
 {
 	_assert_msg_(DSPLLE, reg < regs.size(),
-	             "bad register name %u", static_cast<u32>(reg));
+	             "bad register name %zu", reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
-	             "register %u is proxy for %d", static_cast<u32>(reg), regs[reg].parentReg);
+	             "register %zu is proxy for %d", reg, regs[reg].parentReg);
 	_assert_msg_(DSPLLE, !regs[reg].used,
-	             "moving to host reg in use guest reg %u", static_cast<u32>(reg));
+	             "moving to host reg in use guest reg %zu", reg);
 	X64Reg old_reg = regs[reg].loc.GetSimpleReg();
 	if (old_reg == host_reg)
 	{
@@ -588,11 +588,11 @@ void DSPJitRegCache::MovToHostReg(size_t reg, X64Reg host_reg, bool load)
 void DSPJitRegCache::MovToHostReg(size_t reg, bool load)
 {
 	_assert_msg_(DSPLLE, reg < regs.size(),
-	             "bad register name %u", static_cast<u32>(reg));
+	             "bad register name %zu", reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
-	             "register %u is proxy for %d", static_cast<u32>(reg), regs[reg].parentReg);
+	             "register %zu is proxy for %d", reg, regs[reg].parentReg);
 	_assert_msg_(DSPLLE, !regs[reg].used,
-	             "moving to host reg in use guest reg %u", static_cast<u32>(reg));
+	             "moving to host reg in use guest reg %zu", reg);
 
 	if (regs[reg].loc.IsSimpleReg())
 	{
@@ -620,13 +620,13 @@ void DSPJitRegCache::MovToHostReg(size_t reg, bool load)
 void DSPJitRegCache::RotateHostReg(size_t reg, int shift, bool emit)
 {
 	_assert_msg_(DSPLLE, reg < regs.size(),
-	             "bad register name %u", static_cast<u32>(reg));
+	             "bad register name %zu", reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
-	             "register %u is proxy for %d", static_cast<u32>(reg), regs[reg].parentReg);
+	             "register %zu is proxy for %d", reg, regs[reg].parentReg);
 	_assert_msg_(DSPLLE, regs[reg].loc.IsSimpleReg(),
-	             "register %u is not a simple reg", static_cast<u32>(reg));
+	             "register %zu is not a simple reg", reg);
 	_assert_msg_(DSPLLE, !regs[reg].used,
-	             "rotating in use guest reg %u", static_cast<u32>(reg));
+	             "rotating in use guest reg %zu", reg);
 
 	if (shift > regs[reg].shift && emit)
 	{
@@ -664,11 +664,11 @@ void DSPJitRegCache::RotateHostReg(size_t reg, int shift, bool emit)
 void DSPJitRegCache::MovToMemory(size_t reg)
 {
 	_assert_msg_(DSPLLE, reg < regs.size(),
-		     "bad register name %u", static_cast<u32>(reg));
+		     "bad register name %zu", reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
-		     "register %u is proxy for %d", static_cast<u32>(reg), regs[reg].parentReg);
+		     "register %zu is proxy for %d", reg, regs[reg].parentReg);
 	_assert_msg_(DSPLLE, !regs[reg].used,
-		     "moving to memory in use guest reg %u", static_cast<u32>(reg));
+		     "moving to memory in use guest reg %zu", reg);
 
 	if (regs[reg].used)
 	{
