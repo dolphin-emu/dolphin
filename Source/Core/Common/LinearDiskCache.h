@@ -72,8 +72,8 @@ public:
 			K key;
 
 			V *value = nullptr;
-			u32 value_size;
-			u32 entry_number;
+			u32 value_size = 0;
+			u32 entry_number = 0;
 
 			std::fstream::pos_type last_pos = m_file.tellg();
 
