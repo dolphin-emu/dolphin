@@ -84,8 +84,8 @@ void DoState(PointerWrap &p)
 	p.Do(m_XFBInfoBottom);
 	p.Do(m_3DFBInfoTop);
 	p.Do(m_3DFBInfoBottom);
-	p.DoArray(m_InterruptRegister, 4);
-	p.DoArray(m_LatchRegister, 2);
+	p.DoArray(m_InterruptRegister);
+	p.DoArray(m_LatchRegister);
 	p.Do(m_PictureConfiguration);
 	p.DoPOD(m_HorizontalScaling);
 	p.Do(m_FilterCoefTables);

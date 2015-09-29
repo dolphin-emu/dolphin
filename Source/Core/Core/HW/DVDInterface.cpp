@@ -293,7 +293,7 @@ void DoState(PointerWrap &p)
 {
 	p.DoPOD(m_DISR);
 	p.DoPOD(m_DICVR);
-	p.DoArray(m_DICMDBUF, 3);
+	p.DoArray(m_DICMDBUF);
 	p.Do(m_DIMAR);
 	p.Do(m_DILENGTH);
 	p.Do(m_DICR);
