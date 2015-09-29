@@ -26,7 +26,7 @@ void FPSCounter::LogRenderTimeToFile(u64 val)
 	m_bench_file << val << std::endl;
 }
 
-int FPSCounter::Update()
+void FPSCounter::Update()
 {
 	if (m_update_time.GetTimeDifference() >= FPS_REFRESH_INTERVAL)
 	{
@@ -43,5 +43,4 @@ int FPSCounter::Update()
 	}
 
 	m_counter++;
-	return m_fps;
 }

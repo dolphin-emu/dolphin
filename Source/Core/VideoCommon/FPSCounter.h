@@ -14,10 +14,9 @@ public:
 	// Initializes the FPS counter.
 	FPSCounter();
 
-	// Called when a frame is rendered. Returns the value to be displayed on
-	// screen as the FPS counter (updated every second).
-	int Update();
-	
+	// Called when a frame is rendered (updated every second).
+	void Update();
+
 	unsigned int GetFPS() const { return m_fps; }
 
 private:
