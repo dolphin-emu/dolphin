@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "Common/Logging/Log.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/FileBlob.h"
 #include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
@@ -227,9 +228,12 @@ IVolume::EPlatform CVolumeDirectory::GetVolumeType() const
 	return m_is_wii ? WII_DISC : GAMECUBE_DISC;
 }
 
-bool CVolumeDirectory::IsCompressed() const
+BlobType CVolumeDirectory::GetBlobType() const
 {
-	return false;
+	// VolumeDirectory isn't actually a blob, but it sort of acts
+	// like one, so it makes sense that it has its own blob type.
+	// It should be made into a proper blob in the future.
+	return BlobType::DIRECTORY;
 }
 
 u64 CVolumeDirectory::GetSize() const

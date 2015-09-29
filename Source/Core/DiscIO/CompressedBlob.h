@@ -49,7 +49,7 @@ public:
 	static CompressedBlobReader* Create(const std::string& filename);
 	~CompressedBlobReader();
 	const CompressedBlobHeader &GetHeader() const { return m_header; }
-	bool IsCompressed() const override { return true; }
+	BlobType GetBlobType() const override { return BlobType::GCZ; }
 	u64 GetDataSize() const override { return m_header.data_size; }
 	u64 GetRawSize() const override { return m_file_size; }
 	u64 GetBlockCompressedSize(u64 block_num) const;

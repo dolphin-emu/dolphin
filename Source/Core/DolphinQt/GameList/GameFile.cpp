@@ -26,7 +26,7 @@
 #include "DolphinQt/GameList/GameFile.h"
 #include "DolphinQt/Utils/Utils.h"
 
-static const u32 CACHE_REVISION = 0x00C; // Last changed in PR 2993
+static const u32 CACHE_REVISION = 0x00D; // Last changed in PR 3097
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
 
 static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<DiscIO::IVolume::ELanguage, std::string> strings)
@@ -109,11 +109,11 @@ GameFile::GameFile(const QString& fileName)
 			m_company = QString::fromStdString(volume->GetCompany());
 
 			m_country = volume->GetCountry();
+			m_blob_type = volume->GetBlobType();
 			m_file_size = volume->GetRawSize();
 			m_volume_size = volume->GetSize();
 
 			m_unique_id = QString::fromStdString(volume->GetUniqueID());
-			m_compressed = volume->IsCompressed();
 			m_disc_number = volume->GetDiscNumber();
 			m_revision = volume->GetRevision();
 
@@ -181,6 +181,7 @@ bool GameFile::LoadFromCache()
 
 	u32 country;
 	u32 platform;
+	u32 blob_type;
 	QMap<u8, QString> short_names;
 	QMap<u8, QString> long_names;
 	QMap<u8, QString> descriptions;
@@ -189,16 +190,17 @@ bool GameFile::LoadFromCache()
 	       >> descriptions
 	       >> m_company
 	       >> m_unique_id
+	       >> blob_type
 	       >> m_file_size
 	       >> m_volume_size
 	       >> country
 	       >> m_banner
-	       >> m_compressed
 	       >> platform
 	       >> m_disc_number
 	       >> m_revision;
 	m_country = (DiscIO::IVolume::ECountry)country;
 	m_platform = (DiscIO::IVolume::EPlatform)platform;
+	m_blob_type = (DiscIO::BlobType)blob_type;
 	m_short_names = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(short_names);
 	m_long_names = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(long_names);
 	m_descriptions = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(descriptions);
@@ -231,11 +233,11 @@ void GameFile::SaveToCache()
 	       << CastLocalizedStrings<u8>(m_descriptions)
 	       << m_company
 	       << m_unique_id
+	       << (u32)m_blob_type
 	       << m_file_size
 	       << m_volume_size
 	       << (u32)m_country
 	       << m_banner
-	       << m_compressed
 	       << (u32)m_platform
 	       << m_disc_number
 	       << m_revision;

@@ -862,10 +862,9 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 
 			if (platform == DiscIO::IVolume::GAMECUBE_DISC || platform == DiscIO::IVolume::WII_DISC)
 			{
-				if (selected_iso->IsCompressed())
+				if (selected_iso->GetBlobType() == DiscIO::BlobType::GCZ)
 					popupMenu.Append(IDM_COMPRESS_ISO, _("Decompress ISO..."));
-				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" &&
-				         selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
+				else if (selected_iso->GetBlobType() == DiscIO::BlobType::PLAIN)
 					popupMenu.Append(IDM_COMPRESS_ISO, _("Compress ISO..."));
 
 				wxMenuItem* changeDiscItem = popupMenu.Append(IDM_LIST_CHANGE_DISC, _("Change &Disc"));
@@ -1152,6 +1151,7 @@ void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
+	bool is_compressed = iso->GetBlobType() == DiscIO::BlobType::GCZ;
 	wxString path;
 
 	std::string FileName, FilePath, FileExtension;
@@ -1159,7 +1159,7 @@ void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 
 	do
 	{
-		if (iso->IsCompressed())
+		if (is_compressed)
 		{
 			wxString FileType;
 			if (iso->GetPlatform() == DiscIO::IVolume::WII_DISC)
@@ -1200,7 +1200,7 @@ void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 
 	{
 	wxProgressDialog dialog(
-		iso->IsCompressed() ? _("Decompressing ISO") : _("Compressing ISO"),
+		is_compressed ? _("Decompressing ISO") : _("Compressing ISO"),
 		_("Working..."),
 		1000,
 		this,
@@ -1211,7 +1211,7 @@ void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 		);
 
 
-	if (iso->IsCompressed())
+	if (is_compressed)
 		all_good = DiscIO::DecompressBlobToFile(iso->GetFileName(),
 				WxStrToStr(path), &CompressCB, &dialog);
 	else

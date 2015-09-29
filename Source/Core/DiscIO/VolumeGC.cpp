@@ -169,9 +169,9 @@ std::string CVolumeGC::GetApploaderDate() const
 	return DecodeString(date);
 }
 
-bool CVolumeGC::IsCompressed() const
+BlobType CVolumeGC::GetBlobType() const
 {
-	return m_pReader ? m_pReader->IsCompressed() : false;
+	return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
 }
 
 u64 CVolumeGC::GetSize() const

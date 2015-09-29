@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for Wad files ---
@@ -18,8 +19,6 @@
 
 namespace DiscIO
 {
-
-class IBlobReader;
 
 class CVolumeWAD : public IVolume
 {
@@ -39,7 +38,7 @@ public:
 	EPlatform GetVolumeType() const override;
 	ECountry GetCountry() const override;
 
-	bool IsCompressed() const override;
+	BlobType GetBlobType() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
 
