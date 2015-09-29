@@ -48,21 +48,31 @@ void AlsaSound::Update()
 void AlsaSound::SoundLoop()
 {
 	Common::SetCurrentThreadName("Audio thread - alsa");
-	while (m_thread_status.load() == ALSAThreadStatus::RUNNING)
+	while (m_thread_status.load() != ALSAThreadStatus::STOPPING)
 	{
-		std::unique_lock<std::mutex> lock(cv_m);
-		cv.wait(lock, [this]{return !m_muted || m_thread_status.load() != ALSAThreadStatus::RUNNING;});
-
-		m_mixer->Mix(mix_buffer, frames_to_deliver);
-		int rc = snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
-		if (rc == -EPIPE)
+		while (m_thread_status.load() == ALSAThreadStatus::RUNNING)
 		{
-			// Underrun
-			snd_pcm_prepare(handle);
+			m_mixer->Mix(mix_buffer, frames_to_deliver);
+			int rc = snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
+			if (rc == -EPIPE)
+			{
+				// Underrun
+				snd_pcm_prepare(handle);
+			}
+			else if (rc < 0)
+			{
+				ERROR_LOG(AUDIO, "writei fail: %s", snd_strerror(rc));
+			}
 		}
-		else if (rc < 0)
+		if (m_thread_status.load() == ALSAThreadStatus::PAUSED)
 		{
-			ERROR_LOG(AUDIO, "writei fail: %s", snd_strerror(rc));
+			snd_pcm_drop(handle); // Stop sound output
+
+			// Block until thread status changes.
+			std::unique_lock<std::mutex> lock(cv_m);
+			cv.wait(lock, [this]{ return m_thread_status.load() != ALSAThreadStatus::PAUSED; });
+
+			snd_pcm_prepare(handle); // resume sound output
 		}
 	}
 	AlsaShutdown();
@@ -73,18 +83,8 @@ void AlsaSound::SoundLoop()
 void AlsaSound::Clear(bool muted)
 {
 	m_muted = muted;
-	if (m_muted)
-	{
-		std::lock_guard<std::mutex> lock(cv_m);
-		snd_pcm_drop(handle);
-	}
-	else
-	{
-		std::unique_lock<std::mutex> lock(cv_m);
-		snd_pcm_prepare(handle);
-		lock.unlock();
-		cv.notify_one();
-	}
+	m_thread_status.store(muted ? ALSAThreadStatus::PAUSED : ALSAThreadStatus::RUNNING);
+	cv.notify_one(); // Notify thread that status has changed
 }
 
 bool AlsaSound::AlsaInit()
