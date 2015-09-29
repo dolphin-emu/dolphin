@@ -13,9 +13,6 @@
 #define FPS_REFRESH_INTERVAL 1000
 
 FPSCounter::FPSCounter()
-	: m_fps(0)
-	, m_counter(0)
-	, m_fps_last_counter(0)
 {
 	m_update_time.Update();
 	m_render_time.Update();

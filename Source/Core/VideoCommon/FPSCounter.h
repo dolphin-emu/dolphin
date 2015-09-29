@@ -21,9 +21,9 @@ public:
 	unsigned int GetFPS() const { return m_fps; }
 
 private:
-	unsigned int m_fps;
-	unsigned int m_counter;
-	unsigned int m_fps_last_counter;
+	unsigned int m_fps = 0;
+	unsigned int m_counter = 0;
+	unsigned int m_fps_last_counter = 0;
 	Common::Timer m_update_time;
 
 	Common::Timer m_render_time;
