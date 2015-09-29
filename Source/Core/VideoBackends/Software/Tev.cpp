@@ -818,7 +818,6 @@ void Tev::DoState(PointerWrap &p)
 	p.DoArray(TexColor);
 	p.DoArray(RasColor);
 	p.DoArray(StageKonst);
-	p.DoArray(Zero16);
 
 	p.DoArray(FixedConstants);
 	p.Do(AlphaBump);
