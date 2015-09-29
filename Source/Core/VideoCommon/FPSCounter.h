@@ -11,16 +11,17 @@
 class FPSCounter
 {
 public:
-	unsigned int m_fps;
-
 	// Initializes the FPS counter.
 	FPSCounter();
 
 	// Called when a frame is rendered. Returns the value to be displayed on
 	// screen as the FPS counter (updated every second).
 	int Update();
+	
+	unsigned int GetFPS() const { return m_fps; }
 
 private:
+	unsigned int m_fps;
 	unsigned int m_counter;
 	unsigned int m_fps_last_counter;
 	Common::Timer m_update_time;
