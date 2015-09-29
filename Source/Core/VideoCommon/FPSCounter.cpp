@@ -10,7 +10,7 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/VideoConfig.h"
 
-#define FPS_REFRESH_INTERVAL 1000
+static constexpr u64 FPS_REFRESH_INTERVAL = 1000;
 
 FPSCounter::FPSCounter()
 {
