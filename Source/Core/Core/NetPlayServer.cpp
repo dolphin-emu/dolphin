@@ -904,7 +904,11 @@ bool NetPlayServer::initUPnP()
 	memset(&m_upnp_data, 0, sizeof(IGDdatas));
 
 	// Find all UPnP devices
+#ifdef UPNPDISCOVER_HAS_TTL
+	UPNPDev *devlist = upnpDiscover(2000, nullptr, nullptr, 0, 0, 2, &upnperror);
+#else
 	UPNPDev *devlist = upnpDiscover(2000, nullptr, nullptr, 0, 0, &upnperror);
+#endif
 	if (!devlist)
 	{
 		WARN_LOG(NETPLAY, "An error occured trying to discover UPnP devices.");
