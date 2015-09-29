@@ -125,8 +125,8 @@ static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
 
 	if (bytes.size() != size_in_bytes)
 	{
-		ERROR_LOG(DSPLLE, "%s has a wrong size (%u, expected %u)",
-		          filename.c_str(), (u32)bytes.size(), size_in_bytes);
+		ERROR_LOG(DSPLLE, "%s has a wrong size (%zu, expected %u)",
+		          filename.c_str(), bytes.size(), size_in_bytes);
 		return false;
 	}
 
