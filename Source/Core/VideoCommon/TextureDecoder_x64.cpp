@@ -6,7 +6,6 @@
 #include <cmath>
 
 #include "Common/Common.h"
-//#include "VideoCommon.h" // to get debug logs
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 
