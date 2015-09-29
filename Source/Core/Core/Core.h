@@ -41,6 +41,9 @@ bool Init();
 void Stop();
 void Shutdown();
 
+void DeclareAsCPUThread();
+void UndeclareAsCPUThread();
+
 std::string StopMessage(bool, const std::string&);
 
 bool IsRunning();
