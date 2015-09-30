@@ -9,21 +9,11 @@
 #include "Common/Thread.h"
 #include "Common/Logging/Log.h"
 
-#define FRAME_COUNT_MIN 256
-#define BUFFER_SIZE_MAX 8192
-#define BUFFER_SIZE_BYTES (BUFFER_SIZE_MAX*2*2)
-
 AlsaSound::AlsaSound()
 	: m_thread_status(ALSAThreadStatus::STOPPED)
 	, handle(nullptr)
 	, frames_to_deliver(FRAME_COUNT_MIN)
 {
-	mix_buffer = new u8[BUFFER_SIZE_BYTES];
-}
-
-AlsaSound::~AlsaSound()
-{
-	delete [] mix_buffer;
 }
 
 bool AlsaSound::Start()
@@ -63,7 +53,7 @@ void AlsaSound::SoundLoop()
 		std::unique_lock<std::mutex> lock(cv_m);
 		cv.wait(lock, [this]{return !m_muted || m_thread_status.load() != ALSAThreadStatus::RUNNING;});
 
-		m_mixer->Mix(reinterpret_cast<short *>(mix_buffer), frames_to_deliver);
+		m_mixer->Mix(mix_buffer, frames_to_deliver);
 		int rc = snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
 		if (rc == -EPIPE)
 		{
@@ -145,7 +135,7 @@ bool AlsaSound::AlsaInit()
 		return false;
 	}
 
-	err = snd_pcm_hw_params_set_channels(handle, hwparams, 2);
+	err = snd_pcm_hw_params_set_channels(handle, hwparams, CHANNEL_COUNT);
 	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Channels count not available: %s\n", snd_strerror(err));
@@ -156,7 +146,7 @@ bool AlsaSound::AlsaInit()
 	err = snd_pcm_hw_params_set_periods_max(handle, hwparams, &periods, &dir);
 	if (err < 0)
 	{
-		ERROR_LOG(AUDIO, "Cannot set Minimum periods: %s\n", snd_strerror(err));
+		ERROR_LOG(AUDIO, "Cannot set maximum periods per buffer: %s\n", snd_strerror(err));
 		return false;
 	}
 
@@ -164,7 +154,7 @@ bool AlsaSound::AlsaInit()
 	err = snd_pcm_hw_params_set_buffer_size_max(handle, hwparams, &buffer_size_max);
 	if (err < 0)
 	{
-		ERROR_LOG(AUDIO, "Cannot set minimum buffer size: %s\n", snd_strerror(err));
+		ERROR_LOG(AUDIO, "Cannot set maximum buffer size: %s\n", snd_strerror(err));
 		return false;
 	}
 
