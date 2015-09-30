@@ -279,10 +279,7 @@ bool GameListItem::ReadPNGBanner(const std::string& path)
 wxBitmap GameListItem::ScaleBanner(wxImage* image)
 {
 	double scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
-	// Note: This uses nearest neighbor, which subjectively looks a lot
-	// better for GC banners than smooth scaling.
-	// TODO: Make scaling less bad for Homebrew Channel banners.
-	image->Rescale(DVD_BANNER_WIDTH * scale, DVD_BANNER_HEIGHT * scale);
+	image->Rescale(DVD_BANNER_WIDTH * scale, DVD_BANNER_HEIGHT * scale, wxIMAGE_QUALITY_HIGH);
 #ifdef __APPLE__
 	return wxBitmap(*image, -1, scale);
 #else
