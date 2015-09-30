@@ -174,6 +174,12 @@ public:
 		DoVoid(x, count * sizeof(T));
 	}
 
+	template <typename T, std::size_t N>
+	void DoArray(T (&arr)[N])
+	{
+		DoArray(arr, static_cast<u32>(N));
+	}
+
 	void Do(Common::Flag& flag)
 	{
 		bool s = flag.IsSet();

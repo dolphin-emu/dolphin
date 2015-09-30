@@ -518,7 +518,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				u32 count = size;
 				while (count > 65536)
 				{
-					p.DoArray(&buf[0], 65536);
+					p.DoArray(buf);
 					handle.WriteArray(&buf[0], 65536);
 					count -= 65536;
 				}
@@ -562,7 +562,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				while (count > 65536)
 				{
 					handle.ReadArray(&buf[0], 65536);
-					p.DoArray(&buf[0], 65536);
+					p.DoArray(buf);
 					count -= 65536;
 				}
 				handle.ReadArray(&buf[0], count);

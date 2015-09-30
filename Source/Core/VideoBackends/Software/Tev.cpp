@@ -812,28 +812,27 @@ void Tev::SetRegColor(int reg, int comp, bool konst, s16 color)
 
 void Tev::DoState(PointerWrap &p)
 {
-	p.DoArray(Reg, sizeof(Reg));
+	p.DoArray(Reg);
 
-	p.DoArray(KonstantColors, sizeof(KonstantColors));
-	p.DoArray(TexColor,4);
-	p.DoArray(RasColor,4);
-	p.DoArray(StageKonst,4);
-	p.DoArray(Zero16,4);
+	p.DoArray(KonstantColors);
+	p.DoArray(TexColor);
+	p.DoArray(RasColor);
+	p.DoArray(StageKonst);
 
-	p.DoArray(FixedConstants,9);
+	p.DoArray(FixedConstants);
 	p.Do(AlphaBump);
-	p.DoArray(IndirectTex, sizeof(IndirectTex));
+	p.DoArray(IndirectTex);
 	p.Do(TexCoord);
 
-	p.DoArray(m_BiasLUT,4);
-	p.DoArray(m_ScaleLShiftLUT,4);
-	p.DoArray(m_ScaleRShiftLUT,4);
+	p.DoArray(m_BiasLUT);
+	p.DoArray(m_ScaleLShiftLUT);
+	p.DoArray(m_ScaleRShiftLUT);
 
-	p.DoArray(Position,3);
-	p.DoArray(Color, sizeof(Color));
-	p.DoArray(Uv, 8);
-	p.DoArray(IndirectLod,4);
-	p.DoArray(IndirectLinear,4);
-	p.DoArray(TextureLod,16);
-	p.DoArray(TextureLinear,16);
+	p.DoArray(Position);
+	p.DoArray(Color);
+	p.DoArray(Uv);
+	p.DoArray(IndirectLod);
+	p.DoArray(IndirectLinear);
+	p.DoArray(TextureLod);
+	p.DoArray(TextureLinear);
 }
