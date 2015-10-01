@@ -3,6 +3,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
@@ -115,33 +118,20 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 
 	memset(&g_dsp.r,0,sizeof(g_dsp.r));
 
-	for (int i = 0; i < 4; i++)
-	{
-		g_dsp.reg_stack_ptr[i] = 0;
-		for (int j = 0; j < DSP_STACK_DEPTH; j++)
-		{
-			g_dsp.reg_stack[i][j] = 0;
-		}
-	}
+	std::fill(std::begin(g_dsp.reg_stack_ptr), std::end(g_dsp.reg_stack_ptr), 0);
+
+	for (size_t i = 0; i < ArraySize(g_dsp.reg_stack); i++)
+		std::fill(std::begin(g_dsp.reg_stack[i]), std::end(g_dsp.reg_stack[i]), 0);
 
 	// Fill IRAM with HALT opcodes.
-	for (int i = 0; i < DSP_IRAM_SIZE; i++)
-	{
-		g_dsp.iram[i] = 0x0021; // HALT opcode
-	}
+	std::fill(g_dsp.iram, g_dsp.iram + DSP_IRAM_SIZE, 0x0021);
 
 	// Just zero out DRAM.
-	for (int i = 0; i < DSP_DRAM_SIZE; i++)
-	{
-		g_dsp.dram[i] = 0;
-	}
+	std::fill(g_dsp.dram, g_dsp.dram + DSP_DRAM_SIZE, 0);
 
 	// Copied from a real console after the custom UCode has been loaded.
 	// These are the indexing wrapping registers.
-	g_dsp.r.wr[0] = 0xffff;
-	g_dsp.r.wr[1] = 0xffff;
-	g_dsp.r.wr[2] = 0xffff;
-	g_dsp.r.wr[3] = 0xffff;
+	std::fill(std::begin(g_dsp.r.wr), std::end(g_dsp.r.wr), 0xffff);
 
 	g_dsp.r.sr |= SR_INT_ENABLE;
 	g_dsp.r.sr |= SR_EXT_INT_ENABLE;
@@ -184,10 +174,7 @@ void DSPCore_Reset()
 {
 	g_dsp.pc = DSP_RESET_VECTOR;
 
-	g_dsp.r.wr[0] = 0xffff;
-	g_dsp.r.wr[1] = 0xffff;
-	g_dsp.r.wr[2] = 0xffff;
-	g_dsp.r.wr[3] = 0xffff;
+	std::fill(std::begin(g_dsp.r.wr), std::end(g_dsp.r.wr), 0xffff);
 
 	DSPAnalyzer::Analyze();
 }
