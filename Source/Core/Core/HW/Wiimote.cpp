@@ -153,11 +153,10 @@ unsigned int GetAttached()
 // input/output: ptr: [Description Needed]
 // input: mode        [Description needed]
 //
-void DoState(u8 **ptr, PointerWrap::Mode mode)
+void DoState(PointerWrap& p)
 {
 	// TODO:
 
-	PointerWrap p(ptr, mode);
 	for (unsigned int i=0; i<MAX_BBMOTES; ++i)
 		((WiimoteEmu::Wiimote*)s_config.controllers[i])->DoState(p);
 }

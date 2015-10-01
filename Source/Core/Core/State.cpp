@@ -164,7 +164,7 @@ static std::string DoState(PointerWrap& p)
 	p.DoMarker("video_backend");
 
 	if (SConfig::GetInstance().bWii)
-		Wiimote::DoState(p.GetPPtr(), p.GetMode());
+		Wiimote::DoState(p);
 	p.DoMarker("Wiimote");
 
 	PowerPC::DoState(p);
