@@ -268,9 +268,9 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 		}
 	}
 
-	wiimote_group->Add(wiimote_control_section, 0, wxEXPAND | wxALL);
+	wiimote_group->Add(wiimote_control_section, 0, wxEXPAND);
 	wiimote_group->AddSpacer(5);
-	wiimote_group->Add(CreateBalanceBoardSizer(), 0, wxEXPAND | wxALL);
+	wiimote_group->Add(CreateBalanceBoardSizer(), 0, wxEXPAND);
 	wiimote_group->AddSpacer(5);
 	wiimote_group->Add(CreateRealWiimoteSizer(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM);
 	wiimote_group->AddSpacer(5);
@@ -326,7 +326,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
 	continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
 
 	real_wiimotes_sizer->Add(continuous_scanning, 0, wxALIGN_CENTER_VERTICAL);
-	real_wiimotes_sizer->AddStretchSpacer(1);
+	real_wiimotes_sizer->AddStretchSpacer();
 	real_wiimotes_sizer->Add(refresh_btn, 0, wxALL | wxALIGN_CENTER, 5);
 
 	real_wiimotes_group->Add(real_wiimotes_sizer, 0, wxEXPAND);
@@ -408,7 +408,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGeneralWiimoteSettingsSizer()
 
 	wxGridSizer* const general_wiimote_sizer = new wxGridSizer(1, 5, 5);
 	general_wiimote_sizer->Add(WiimoteMotor);
-	general_wiimote_sizer->Add(wiimote_speaker, 0);
+	general_wiimote_sizer->Add(wiimote_speaker);
 
 	general_sizer->Add(choice_sizer);
 	general_sizer->Add(general_wiimote_sizer);
