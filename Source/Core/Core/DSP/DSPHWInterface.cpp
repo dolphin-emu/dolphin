@@ -21,10 +21,7 @@ static void gdsp_do_dma();
 
 void gdsp_ifx_init()
 {
-	for (int i = 0; i < 256; i++)
-	{
-		g_dsp.ifx_regs[i] = 0;
-	}
+	g_dsp.ifx_regs.fill(0);
 
 	g_dsp.mbox[0].store(0);
 	g_dsp.mbox[1].store(0);

@@ -242,7 +242,7 @@ struct SDSP
 	std::atomic<u32> mbox[2];
 
 	// Accelerator / DMA / other hardware registers. Not GPRs.
-	u16 ifx_regs[256];
+	std::array<u16, 256> ifx_regs;
 
 	// When state saving, all of the above can just be memcpy'd into the save state.
 	// The below needs special handling.
