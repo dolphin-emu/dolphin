@@ -7,8 +7,8 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
-
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/sfont.inc"
 #include "VideoCommon/TextureDecoder.h"

@@ -11,6 +11,7 @@
 #include <polarssl/aes.h>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for encrypted Wii images ---
@@ -18,15 +19,13 @@
 namespace DiscIO
 {
 
-class IBlobReader;
-
 class CVolumeWiiCrypted : public IVolume
 {
 public:
 	CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
 	~CVolumeWiiCrypted();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
-	bool GetTitleID(u8* _pBuffer) const override;
+	bool GetTitleID(u64* buffer) const override;
 	std::unique_ptr<u8[]> GetTMD(u32 *_sz) const override;
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
@@ -43,6 +42,7 @@ public:
 	bool ChangePartition(u64 offset) override;
 
 	ECountry GetCountry() const override;
+	BlobType GetBlobType() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
 

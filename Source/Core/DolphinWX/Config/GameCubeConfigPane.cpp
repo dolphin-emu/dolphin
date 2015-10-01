@@ -13,6 +13,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"

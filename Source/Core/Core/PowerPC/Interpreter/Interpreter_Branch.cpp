@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"

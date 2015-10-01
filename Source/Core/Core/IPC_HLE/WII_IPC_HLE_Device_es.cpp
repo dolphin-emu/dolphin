@@ -115,8 +115,7 @@ void CWII_IPC_HLE_Device_es::OpenInternal()
 	{
 		// blindly grab the titleID from the disc - it's unencrypted at:
 		// offset 0x0F8001DC and 0x0F80044C
-		DVDInterface::GetVolume().GetTitleID((u8*)&m_TitleID);
-		m_TitleID = Common::swap64(m_TitleID);
+		DVDInterface::GetVolume().GetTitleID(&m_TitleID);
 	}
 	else
 	{
@@ -1108,8 +1107,8 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 {
 	u64 titleID = 0xDEADBEEFDEADBEEFull;
 	u64 tmdTitleID = Common::swap64(*(u64*)(_pTMD+0x18c));
-	DVDInterface::GetVolume().GetTitleID((u8*)&titleID);
-	if (Common::swap64(titleID) != tmdTitleID)
+	DVDInterface::GetVolume().GetTitleID(&titleID);
+	if (titleID != tmdTitleID)
 	{
 		return -1;
 	}

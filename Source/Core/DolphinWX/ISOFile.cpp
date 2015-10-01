@@ -36,7 +36,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x125; // Last changed in PR 2598
+static const u32 CACHE_REVISION = 0x126; // Last changed in PR 3097
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -71,7 +71,6 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 	, m_Country(DiscIO::IVolume::COUNTRY_UNKNOWN)
 	, m_Revision(0)
 	, m_Valid(false)
-	, m_BlobCompressed(false)
 	, m_ImageWidth(0)
 	, m_ImageHeight(0)
 	, m_disc_number(0)
@@ -108,11 +107,11 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 			m_company = pVolume->GetCompany();
 
 			m_Country = pVolume->GetCountry();
+			m_blob_type = pVolume->GetBlobType();
 			m_FileSize = pVolume->GetRawSize();
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
-			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName);
 			m_disc_number = pVolume->GetDiscNumber();
 			m_Revision = pVolume->GetRevision();
 
@@ -161,6 +160,7 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 		m_Valid = true;
 		m_FileSize = File::GetSize(_rFileName);
 		m_Platform = DiscIO::IVolume::ELF_DOL;
+		m_blob_type = DiscIO::BlobType::DIRECTORY;
 	}
 
 	std::string path, name;
@@ -213,7 +213,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_FileSize);
 	p.Do(m_VolumeSize);
 	p.Do(m_Country);
-	p.Do(m_BlobCompressed);
+	p.Do(m_blob_type);
 	p.Do(m_pImage);
 	p.Do(m_ImageWidth);
 	p.Do(m_ImageHeight);
@@ -344,13 +344,11 @@ const std::string GameListItem::GetWiiFSPath() const
 
 	if (iso->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC)
 	{
-		u64 title = 0;
-
-		iso->GetTitleID((u8*)&title);
-		title = Common::swap64(title);
+		u64 title_id = 0;
+		iso->GetTitleID(&title_id);
 
 		const std::string path = StringFromFormat("%s/title/%08x/%08x/data/",
-				File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(title>>32), (u32)title);
+				File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(title_id >> 32), (u32)title_id);
 
 		if (!File::Exists(path))
 			File::CreateFullPath(path);

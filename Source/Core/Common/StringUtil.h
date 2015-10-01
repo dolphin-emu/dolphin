@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 std::string StringFromFormatV(const char* format, va_list args);
 

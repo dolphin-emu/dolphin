@@ -118,16 +118,7 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
 	// Load ISO data
 	OpenISO = DiscIO::CreateVolumeFromFilename(OpenGameListItem.GetFileName());
 
-	// Is it really necessary to use GetTitleID if GetUniqueID fails?
 	game_id = OpenISO->GetUniqueID();
-	if (game_id.empty())
-	{
-		u8 game_id_bytes[8];
-		if (OpenISO->GetTitleID(game_id_bytes))
-		{
-			game_id = StringFromFormat("%016" PRIx64, Common::swap64(game_id_bytes));
-		}
-	}
 
 	// Load game INIs
 	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";

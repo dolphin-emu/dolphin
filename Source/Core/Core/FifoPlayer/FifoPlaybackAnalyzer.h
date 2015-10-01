@@ -22,7 +22,7 @@ class FifoPlaybackAnalyzer
 public:
 	FifoPlaybackAnalyzer();
 
-	void AnalyzeFrames(FifoDataFile *file, std::vector<AnalyzedFrameInfo> &frameInfo);
+	void AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frameInfo);
 
 private:
 	struct MemoryRange
@@ -31,9 +31,9 @@ private:
 		u32 end;
 	};
 
-	void AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrameInfo &frameInfo);
+	void AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrameInfo& frameInfo);
 
-	u32 DecodeCommand(u8 *data);
+	u32 DecodeCommand(u8* data);
 
 	void StoreEfbCopyRegion();
 	void StoreWrittenRegion(u32 address, u32 size);

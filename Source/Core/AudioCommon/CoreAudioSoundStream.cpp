@@ -5,6 +5,7 @@
 #include <CoreServices/CoreServices.h>
 
 #include "AudioCommon/CoreAudioSoundStream.h"
+#include "Common/Logging/Log.h"
 
 OSStatus CoreAudioSound::callback(void *inRefCon,
 	AudioUnitRenderActionFlags *ioActionFlags,

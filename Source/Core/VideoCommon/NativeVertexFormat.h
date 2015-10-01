@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <cstring>
 #include <functional> // for hash
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Hash.h"
+#include "Common/NonCopyable.h"
 
 // m_components
 enum

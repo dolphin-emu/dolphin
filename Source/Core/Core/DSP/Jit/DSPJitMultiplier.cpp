@@ -100,8 +100,7 @@ void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
 	{
 		// mixed support ON (u16)axl.0  * (s16)axh.1
 //		prod = a * (s16)b;
-		X64Reg tmp;
-		gpr.GetFreeXReg(tmp);
+		X64Reg tmp = gpr.GetFreeXReg();
 		MOV(64, R(tmp), R(RAX));
 		MOVZX(64, 16, RAX, R(RCX));
 		IMUL(64, R(tmp));
@@ -247,8 +246,7 @@ void DSPEmitter::addpaxz(const UDSPInstruction opc)
 	u8 sreg = (opc >> 9) & 0x1;
 
 //	s64 ax = dsp_get_long_acx(sreg);
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	get_long_acx(sreg, tmp1);
 	MOV(64, R(RDX), R(tmp1));
 //	s64 res = prod + (ax & ~0xffff);
@@ -431,8 +429,7 @@ void DSPEmitter::mulxac(const UDSPInstruction opc)
 	u8 sreg = (opc >> 12) & 0x1;
 
 //	s64 acc = dsp_get_long_acc(rreg) + dsp_get_long_prod();
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	get_long_acc(rreg, tmp1);
 	get_long_prod();
 	ADD(64, R(tmp1), R(RAX));
@@ -469,8 +466,7 @@ void DSPEmitter::mulxmv(const UDSPInstruction opc)
 	u8 sreg = (opc >> 12) & 0x1;
 
 //	s64 acc = dsp_get_long_prod();
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	get_long_prod(tmp1);
 //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	dsp_op_read_reg(DSP_REG_AXL0 + sreg*2, RCX, SIGN);
@@ -506,8 +502,7 @@ void DSPEmitter::mulxmvz(const UDSPInstruction opc)
 	u8 sreg = (opc >> 12) & 0x1;
 
 //	s64 acc = dsp_get_long_prod_round_prodl();
-	X64Reg tmp1;
-	gpr.GetFreeXReg(tmp1);
+	X64Reg tmp1 = gpr.GetFreeXReg();
 	get_long_prod_round_prodl(tmp1);
 //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	dsp_op_read_reg(DSP_REG_AXL0 + sreg*2, RCX, SIGN);

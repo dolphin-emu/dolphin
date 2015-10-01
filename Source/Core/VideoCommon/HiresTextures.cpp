@@ -84,11 +84,11 @@ void HiresTexture::Update()
 	std::string szDir = StringFromFormat("%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode.c_str());
 
 	std::vector<std::string> Extensions {
-		"*.png",
-		"*.bmp",
-		"*.tga",
-		"*.dds",
-		"*.jpg" // Why not? Could be useful for large photo-like textures
+		".png",
+		".bmp",
+		".tga",
+		".dds",
+		".jpg" // Why not? Could be useful for large photo-like textures
 	};
 
 	auto rFilenames = DoFileSearch(Extensions, {szDir}, /*recursive*/ true);

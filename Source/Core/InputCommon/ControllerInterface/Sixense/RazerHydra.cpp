@@ -7,6 +7,7 @@
 	#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
 #endif
 #include "Common/Common.h"
+#include "Common/Logging/LogManager.h"
 #include "InputCommon/ControllerInterface/Sixense/RazerHydra.h"
 
 namespace RazerHydra

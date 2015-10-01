@@ -107,11 +107,15 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
 	return true;
 }
 
-bool CVolumeWiiCrypted::GetTitleID(u8* _pBuffer) const
+bool CVolumeWiiCrypted::GetTitleID(u64* buffer) const
 {
 	// Tik is at m_VolumeOffset size 0x2A4
 	// TitleID offset in tik is 0x1DC
-	return Read(m_VolumeOffset + 0x1DC, 8, _pBuffer, false);
+	if (!Read(m_VolumeOffset + 0x1DC, sizeof(u64), reinterpret_cast<u8*>(buffer), false))
+		return false;
+
+	*buffer = Common::swap64(*buffer);
+	return true;
 }
 
 std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *size) const
@@ -244,6 +248,11 @@ u8 CVolumeWiiCrypted::GetDiscNumber() const
 	u8 disc_number;
 	m_pReader->Read(6, 1, &disc_number);
 	return disc_number;
+}
+
+BlobType CVolumeWiiCrypted::GetBlobType() const
+{
+	return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
 }
 
 u64 CVolumeWiiCrypted::GetSize() const

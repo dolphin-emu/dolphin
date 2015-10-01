@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/IniFile.h"
+#include "Common/NonCopyable.h"
 #include "Common/SysConf.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/SI_Device.h"

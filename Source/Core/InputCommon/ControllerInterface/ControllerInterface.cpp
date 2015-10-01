@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/Thread.h"
+#include "Common/Logging/Log.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #ifdef CIFACE_USE_OSVR

@@ -20,6 +20,18 @@
 #include <tmmintrin.h>
 #endif
 
+CMixer::CMixer(unsigned int BackendSampleRate)
+	: m_dma_mixer(this, 32000)
+	, m_streaming_mixer(this, 48000)
+	, m_wiimote_speaker_mixer(this, 3000)
+	, m_sampleRate(BackendSampleRate)
+	, m_log_dtk_audio(false)
+	, m_log_dsp_audio(false)
+	, m_speed(0)
+{
+	INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
+}
+
 // Executed from sound stream thread
 unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
 {

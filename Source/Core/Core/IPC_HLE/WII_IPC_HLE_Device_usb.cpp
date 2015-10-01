@@ -131,7 +131,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.DoPOD(m_HCIEndpoint);
 	p.DoPOD(m_ACLEndpoint);
 	p.Do(m_last_ticks);
-	p.DoArray(m_PacketCount,MAX_BBMOTES);
+	p.DoArray(m_PacketCount);
 	p.Do(m_ScanEnable);
 	p.Do(m_EventQueue);
 	m_acl_pool.DoState(p);

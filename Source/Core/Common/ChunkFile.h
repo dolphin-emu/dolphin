@@ -24,9 +24,12 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
+#include "Common/Logging/Log.h"
 
 // ewww
 #if _LIBCPP_VERSION || __GNUC__ >= 5
@@ -169,6 +172,12 @@ public:
 	{
 		static_assert(IsTriviallyCopyable(T), "Only sane for trivially copyable types");
 		DoVoid(x, count * sizeof(T));
+	}
+
+	template <typename T, std::size_t N>
+	void DoArray(T (&arr)[N])
+	{
+		DoArray(arr, static_cast<u32>(N));
 	}
 
 	void Do(Common::Flag& flag)

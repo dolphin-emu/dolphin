@@ -9,6 +9,7 @@
 
 #include <Windows.h>
 
+#include "Common/Assert.h"
 #include "Common/Common.h"
 #include "VideoCommon/VR920.h"
 

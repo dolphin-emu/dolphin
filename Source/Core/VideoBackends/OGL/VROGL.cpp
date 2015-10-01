@@ -3,12 +3,12 @@
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
-#include "VideoBackends/OGL/GLInterface/WGL.h"
+#include "Common/GL/GLInterface/WGL.h"
 #else
-#include "VideoBackends/OGL/GLInterface/GLX.h"
+#include "Common/GL/GLInterface/GLX.h"
 #endif
 
-#include "VideoBackends/OGL/GLUtil.h"
+#include "Common/GL/GLUtil.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/Render.h"

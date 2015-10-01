@@ -33,7 +33,7 @@ namespace EfbInterface
 
 	void DoState(PointerWrap &p)
 	{
-		p.DoArray(efb, EFB_WIDTH*EFB_HEIGHT*6);
+		p.DoArray(efb);
 	}
 
 	static void SetPixelAlphaOnly(u32 offset, u8 a)

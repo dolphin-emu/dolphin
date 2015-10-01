@@ -58,7 +58,7 @@ bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &t
 bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 {
 	if (code1.size() != code2.size())
-		printf("Size difference! 1=%i 2=%i\n", (int)code1.size(), (int)code2.size());
+		printf("Size difference! 1=%zu 2=%zu\n", code1.size(), code2.size());
 	u32 count_equal = 0;
 	const int min_size = std::min<int>((int)code1.size(), (int)code2.size());
 

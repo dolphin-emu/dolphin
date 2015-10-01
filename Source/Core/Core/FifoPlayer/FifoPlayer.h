@@ -87,15 +87,15 @@ public:
 private:
 	FifoPlayer();
 
-	void WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo &info);
-	void WriteFramePart(u32 dataStart, u32 dataEnd, u32 &nextMemUpdate, const FifoFrameInfo &frame, const AnalyzedFrameInfo &info);
+	void WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo &info);
+	void WriteFramePart(u32 dataStart, u32 dataEnd, u32 &nextMemUpdate, const FifoFrameInfo& frame, const AnalyzedFrameInfo& info);
 
 	void WriteAllMemoryUpdates();
 	void WriteMemory(const MemoryUpdate &memUpdate);
 
 	// writes a range of data to the fifo
 	// start and end must be relative to frame's fifo data so elapsed cycles are figured correctly
-	void WriteFifo(u8 *data, u32 start, u32 end);
+	void WriteFifo(u8* data, u32 start, u32 end);
 
 	void SetupFifo();
 
@@ -131,7 +131,7 @@ private:
 	CallbackFunc m_FileLoadedCb;
 	CallbackFunc m_FrameWrittenCb;
 
-	FifoDataFile *m_File;
+	FifoDataFile* m_File;
 
 	std::vector<AnalyzedFrameInfo> m_FrameInfo;
 };

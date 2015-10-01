@@ -26,6 +26,7 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"

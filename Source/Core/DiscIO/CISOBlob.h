@@ -36,6 +36,7 @@ class CISOFileReader : public IBlobReader
 public:
 	static CISOFileReader* Create(const std::string& filename);
 
+	BlobType GetBlobType() const override { return BlobType::CISO; }
 	u64 GetDataSize() const override;
 	u64 GetRawSize() const override;
 	bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;

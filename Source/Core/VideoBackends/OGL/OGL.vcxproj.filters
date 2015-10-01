@@ -13,12 +13,6 @@
     <Filter Include="Render">
       <UniqueIdentifier>{696df73b-378e-4399-8f21-999b65d78dcd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GLExtensions">
-      <UniqueIdentifier>{4366f285-ded5-48c9-9464-03fb46174526}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GLInterface">
-      <UniqueIdentifier>{1734a626-f6e2-41b1-8753-43447bed39af}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeVertexFormat.cpp">
@@ -26,9 +20,6 @@
     </ClCompile>
     <ClCompile Include="VertexManager.cpp">
       <Filter>Decoder</Filter>
-    </ClCompile>
-    <ClCompile Include="GLUtil.cpp">
-      <Filter>GLUtil</Filter>
     </ClCompile>
     <ClCompile Include="TextureConverter.cpp">
       <Filter>GLUtil</Filter>
@@ -62,23 +53,11 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SamplerCache.cpp" />
-    <ClCompile Include="GLExtensions\GLExtensions.cpp">
-      <Filter>GLExtensions</Filter>
-    </ClCompile>
-    <ClCompile Include="GLInterface\GLInterface.cpp">
-      <Filter>GLInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="GLInterface\WGL.cpp">
-      <Filter>GLInterface</Filter>
-    </ClCompile>
     <ClCompile Include="VROGL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VertexManager.h">
       <Filter>Decoder</Filter>
-    </ClInclude>
-    <ClInclude Include="GLUtil.h">
-      <Filter>GLUtil</Filter>
     </ClInclude>
     <ClInclude Include="TextureConverter.h">
       <Filter>GLUtil</Filter>
@@ -113,96 +92,6 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="SamplerCache.h" />
     <ClInclude Include="VideoBackend.h" />
-    <ClInclude Include="GLExtensions\ARB_blend_func_extended.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_buffer_storage.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_debug_output.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_draw_elements_base_vertex.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_ES2_compatibility.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_framebuffer_object.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_get_program_binary.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_map_buffer_range.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_sample_shading.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_sampler_objects.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_sync.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_uniform_buffer_object.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_vertex_array_object.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_viewport_array.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\gl_1_1.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\gl_1_2.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\gl_1_3.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\gl_1_4.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\gl_1_5.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\gl_2_0.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\gl_3_0.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\gl_3_1.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\gl_3_2.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\gl_common.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\GLExtensions.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\NV_occlusion_query_samples.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\NV_primitive_restart.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\KHR_debug.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
-    <ClInclude Include="GLInterface\WGL.h">
-      <Filter>GLInterface</Filter>
-    </ClInclude>
-    <ClInclude Include="GLExtensions\ARB_clip_control.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
     <ClInclude Include="VROGL.h" />
   </ItemGroup>
   <ItemGroup>

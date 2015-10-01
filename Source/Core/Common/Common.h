@@ -8,10 +8,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#ifndef __has_feature
-#define __has_feature(x) 0
-#endif
-
 // Git version number
 extern const char *scm_desc_str;
 extern const char *scm_branch_str;
@@ -33,46 +29,6 @@ extern const char *netplay_dolphin_ver;
 // Not sure MSVC even checks this...
 #define UNUSED
 #endif
-
-#if defined(__GNUC__) || __clang__
-	#define EXPECT(x, y) __builtin_expect(x, y)
-	#define LIKELY(x)    __builtin_expect(!!(x), 1)
-	#define UNLIKELY(x)  __builtin_expect(!!(x), 0)
-	// Careful, wrong assumptions result in undefined behavior!
-	#define UNREACHABLE  __builtin_unreachable()
-	// Careful, wrong assumptions result in undefined behavior!
-	#define ASSUME(x)    do { if (!x) __builtin_unreachable(); } while (0)
-#else
-	#define EXPECT(x, y) (x)
-	#define LIKELY(x)    (x)
-	#define UNLIKELY(x)  (x)
-	// Careful, wrong assumptions result in undefined behavior!
-	#define UNREACHABLE  ASSUME(0)
-	#if defined(_MSC_VER)
-		// Careful, wrong assumptions result in undefined behavior!
-		#define ASSUME(x) __assume(x)
-	#else
-		#define ASSUME(x) do { void(x); } while (0)
-	#endif
-#endif
-
-// An inheritable class to disallow the copy constructor and operator= functions
-class NonCopyable
-{
-protected:
-#if defined(_MSC_VER) && _MSC_VER <= 1800
-	NonCopyable() {}
-	NonCopyable(const NonCopyable&&) {}
-	void operator=(const NonCopyable&&) {}
-#else
-	constexpr NonCopyable() = default;
-#endif
-	~NonCopyable() = default;
-
-private:
-	NonCopyable(NonCopyable&) = delete;
-	NonCopyable& operator=(NonCopyable&) = delete;
-};
 
 #if defined _WIN32
 
@@ -122,11 +78,9 @@ private:
 #endif
 
 #ifdef _MSC_VER
-#define __strdup _strdup
 #define __getcwd _getcwd
 #define __chdir _chdir
 #else
-#define __strdup strdup
 #define __getcwd getcwd
 #define __chdir chdir
 #endif
@@ -151,8 +105,3 @@ enum EMUSTATE_CHANGE
 	EMUSTATE_CHANGE_PAUSE,
 	EMUSTATE_CHANGE_STOP
 };
-
-#include "Common/CommonTypes.h" // IWYU pragma: export
-#include "Common/CommonFuncs.h" // IWYU pragma: export // NOLINT
-#include "Common/MsgHandler.h" // IWYU pragma: export
-#include "Common/Logging/Log.h" // IWYU pragma: export

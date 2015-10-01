@@ -843,7 +843,7 @@ bool RunCode(const ARCode &arcode)
 	current_code = &arcode;
 
 	LogInfo("Code Name: %s", arcode.name.c_str());
-	LogInfo("Number of codes: %i", arcode.ops.size());
+	LogInfo("Number of codes: %zu", arcode.ops.size());
 
 	for (const AREntry& entry : arcode.ops)
 	{

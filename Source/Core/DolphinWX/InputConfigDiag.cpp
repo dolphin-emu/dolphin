@@ -172,7 +172,7 @@ void InputConfigDialog::UpdateProfileComboBox()
 	pname += PROFILES_PATH;
 	pname += m_config.profile_name;
 
-	std::vector<std::string> sv = DoFileSearch({"*.ini"}, {pname});
+	std::vector<std::string> sv = DoFileSearch({".ini"}, {pname});
 
 	wxArrayString strs;
 	for (const std::string& filename : sv)

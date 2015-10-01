@@ -10,14 +10,13 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for GC disc images ---
 
 namespace DiscIO
 {
-
-class IBlobReader;
 
 class CVolumeGC : public IVolume
 {
@@ -39,6 +38,7 @@ public:
 
 	EPlatform GetVolumeType() const override;
 	ECountry GetCountry() const override;
+	BlobType GetBlobType() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
 
@@ -79,7 +79,7 @@ private:
 	};
 
 	mutable BannerFileType m_banner_file_type = BANNER_NOT_LOADED;
-	mutable std::vector<u8> m_banner_file;
+	mutable GCBanner m_banner_file;
 
 	std::unique_ptr<IBlobReader> m_pReader;
 };

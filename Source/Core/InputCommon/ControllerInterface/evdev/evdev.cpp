@@ -7,6 +7,7 @@
 #include <map>
 #include <unistd.h>
 
+#include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "InputCommon/ControllerInterface/evdev/evdev.h"
 

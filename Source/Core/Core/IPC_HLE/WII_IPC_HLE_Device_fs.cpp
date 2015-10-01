@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -263,7 +264,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			fs.Free_INodes    = 0x146B;
 			fs.Used_Inodes    = 0x0394;
 
-			*(NANDStat*)Memory::GetPointer(_BufferOut) = fs;
+			std::memcpy(Memory::GetPointer(_BufferOut), &fs, sizeof(NANDStat));
 
 			return FS_RESULT_OK;
 		}
@@ -517,7 +518,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				u32 count = size;
 				while (count > 65536)
 				{
-					p.DoArray(&buf[0], 65536);
+					p.DoArray(buf);
 					handle.WriteArray(&buf[0], 65536);
 					count -= 65536;
 				}
@@ -561,7 +562,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				while (count > 65536)
 				{
 					handle.ReadArray(&buf[0], 65536);
-					p.DoArray(&buf[0], 65536);
+					p.DoArray(buf);
 					count -= 65536;
 				}
 				handle.ReadArray(&buf[0], count);

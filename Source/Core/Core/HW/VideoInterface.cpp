@@ -4,6 +4,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
@@ -84,8 +85,8 @@ void DoState(PointerWrap &p)
 	p.Do(m_XFBInfoBottom);
 	p.Do(m_3DFBInfoTop);
 	p.Do(m_3DFBInfoBottom);
-	p.DoArray(m_InterruptRegister, 4);
-	p.DoArray(m_LatchRegister, 2);
+	p.DoArray(m_InterruptRegister);
+	p.DoArray(m_LatchRegister);
 	p.Do(m_PictureConfiguration);
 	p.DoPOD(m_HorizontalScaling);
 	p.Do(m_FilterCoefTables);
@@ -286,7 +287,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	// MMIOs with unimplemented writes that trigger warnings.
 	mmio->Register(base | VI_VERTICAL_BEAM_POSITION,
 		MMIO::ComplexRead<u16>([](u32) {
-			return (s_half_line_count + 1) / 2;
+			return 1 + (s_half_line_count-1) / 2;
 		}),
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
 			WARN_LOG(VIDEOINTERFACE, "Changing vertical beam position to 0x%04x - not documented or implemented yet", val);
@@ -294,7 +295,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	);
 	mmio->Register(base | VI_HORIZONTAL_BEAM_POSITION,
 		MMIO::ComplexRead<u16>([](u32) {
-			return static_cast<u16>(m_HTiming0.HLW * (CoreTiming::GetTicks() - s_ticks_last_line_start) / GetTicksPerHalfLine());
+			u16 value = static_cast<u16>(1 +  m_HTiming0.HLW * (CoreTiming::GetTicks() - s_ticks_last_line_start) / (GetTicksPerHalfLine()));
+			return MathUtil::Clamp(value, static_cast<u16>(1), static_cast<u16>(m_HTiming0.HLW * 2));
 		}),
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
 			WARN_LOG(VIDEOINTERFACE, "Changing horizontal beam position to 0x%04x - not documented or implemented yet", val);
@@ -630,7 +632,7 @@ void Update()
 
 	for (UVIInterruptRegister& reg : m_InterruptRegister)
 	{
-		if (s_half_line_count == 2 * reg.VCT)
+		if (s_half_line_count + 1 == 2 * reg.VCT)
 		{
 			reg.IR_INT = 1;
 		}

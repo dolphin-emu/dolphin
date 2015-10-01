@@ -139,8 +139,8 @@ TEST(BitField, Alignment)
 
 	GC_ALIGNED16(OddlyAlignedTestStruct test_struct);
 	TestUnion& object = test_struct.obj;
-	static_assert(alignof(decltype(test_struct.obj.signed_1bit)) == 1,
-		"Incorrect variable alignment");
+	//static_assert(alignof(decltype(test_struct.obj.signed_1bit)) == 1,
+	//	"Incorrect variable alignment");
 
 	for (u64 val : table)
 	{

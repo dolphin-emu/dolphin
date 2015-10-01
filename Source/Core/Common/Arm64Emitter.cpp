@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Common/Arm64Emitter.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 

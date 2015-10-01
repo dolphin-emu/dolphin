@@ -38,12 +38,13 @@ Make AA apply instantly during gameplay if possible
 
 #include <algorithm>
 #include <cstdarg>
-#include <regex>
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/Thread.h"
+#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
@@ -52,8 +53,6 @@ Make AA apply instantly during gameplay if possible
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
-#include "VideoBackends/OGL/GLInterfaceBase.h"
-#include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -85,6 +84,12 @@ Make AA apply instantly during gameplay if possible
 namespace OGL
 {
 
+// Draw messages on top of the screen
+unsigned int VideoBackend::PeekMessages()
+{
+	return GLInterface->PeekMessages();
+}
+
 std::string VideoBackend::GetName() const
 {
 	return "OGL";
@@ -100,13 +105,17 @@ std::string VideoBackend::GetDisplayName() const
 
 static std::vector<std::string> GetShaders(const std::string &sub_dir = "")
 {
-	std::vector<std::string> paths = DoFileSearch({"*.glsl"}, {
+	std::vector<std::string> paths = DoFileSearch({".glsl"}, {
 		File::GetUserPath(D_SHADERS_IDX) + sub_dir,
 		File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir
 	});
 	std::vector<std::string> result;
 	for (std::string path : paths)
-		result.push_back(std::regex_replace(path, std::regex("^.*/(.*)\\.glsl$"), "$1"));
+	{
+		std::string name;
+		SplitPath(path, nullptr, &name, nullptr);
+		result.push_back(name);
+	}
 	return result;
 }
 
@@ -122,9 +131,9 @@ static void InitBackendInfo()
 
 	g_Config.backend_info.Adapters.clear();
 
-	// aamodes
-	const char* caamodes[] = {_trans("None"), "2x MSAA", "4x MSAA", "8x MSAA"};
-	g_Config.backend_info.AAModes.assign(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
+	// aamodes - 1 is to stay consistent with D3D (means no AA)
+	const int aamodes[] = { 1, 2, 4, 8 };
+	g_Config.backend_info.AAModes.assign(aamodes, aamodes + sizeof(aamodes)/sizeof(*aamodes));
 
 	// pp shaders
 	g_Config.backend_info.PPShaders = GetShaders("");
