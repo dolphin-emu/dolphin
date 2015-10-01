@@ -28,7 +28,7 @@ private:
 	// EXI Status Register - "Channel Parameter Register"
 	union UEXI_STATUS
 	{
-		u32 Hex;
+		u32 Hex = 0;
 		// DO NOT obey the warning and give this struct a name. Things will fail.
 		struct
 		{
@@ -48,8 +48,9 @@ private:
 			        u32 ROMDIS  : 1; // ROM Disable
 			u32                 :18;
 		};
-		UEXI_STATUS() { Hex = 0; }
-		UEXI_STATUS(u32 _hex) { Hex = _hex; }
+
+		constexpr UEXI_STATUS() = default;
+		constexpr UEXI_STATUS(u32 hex) : Hex(hex) {}
 	};
 
 	// EXI Control Register

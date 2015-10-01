@@ -82,15 +82,15 @@ union UARAMCount
 // Blocks are 32 bytes.
 union UAudioDMAControl
 {
-	u16 Hex;
+	u16 Hex = 0;
 	struct
 	{
 		u16 NumBlocks  : 15;
 		u16 Enable     : 1;
 	};
 
-	UAudioDMAControl(u16 _Hex = 0) : Hex(_Hex)
-	{}
+	constexpr UAudioDMAControl() = default;
+	constexpr UAudioDMAControl(u16 hex) : Hex(hex) {}
 };
 
 // AudioDMA

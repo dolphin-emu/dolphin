@@ -106,7 +106,7 @@ enum
 // DI Status Register
 union UDISR
 {
-	u32 Hex;
+	u32 Hex = 0;
 	struct
 	{
 		u32 BREAK      :  1; // Stop the Device + Interrupt
@@ -118,14 +118,15 @@ union UDISR
 		u32 BRKINT     :  1; // w 1: clear brkint
 		u32            : 25;
 	};
-	UDISR() {Hex = 0;}
-	UDISR(u32 _hex) {Hex = _hex;}
+
+	constexpr UDISR() = default;
+	constexpr UDISR(u32 hex) : Hex(hex) {}
 };
 
 // DI Cover Register
 union UDICVR
 {
-	u32 Hex;
+	u32 Hex = 0;
 	struct
 	{
 		u32 CVR        :  1; // 0: Cover closed  1: Cover open
@@ -133,8 +134,9 @@ union UDICVR
 		u32 CVRINT     :  1; // r 1: Interrupt requested w 1: Interrupt clear
 		u32            : 29;
 	};
-	UDICVR() {Hex = 0;}
-	UDICVR(u32 _hex) {Hex = _hex;}
+
+	constexpr UDICVR() = default;
+	constexpr UDICVR(u32 hex) : Hex(hex) {}
 };
 
 union UDICMDBUF
@@ -209,14 +211,15 @@ union UDIIMMBUF
 // DI Config Register
 union UDICFG
 {
-	u32 Hex;
+	u32 Hex = 0;
 	struct
 	{
 		u32 CONFIG : 8;
 		u32        : 24;
 	};
-	UDICFG() {Hex = 0;}
-	UDICFG(u32 _hex) {Hex = _hex;}
+
+	constexpr UDICFG() = default;
+	constexpr UDICFG(u32 hex) : Hex(hex) {}
 };
 
 struct DVDReadCommand

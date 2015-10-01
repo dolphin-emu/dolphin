@@ -43,7 +43,7 @@ protected:
 
 	union UCommand
 	{
-		u32 Hex;
+		u32 Hex = 0;
 		struct
 		{
 			u32 Parameter1 : 8;
@@ -51,8 +51,9 @@ protected:
 			u32 Command    : 8;
 			u32            : 8;
 		};
-		UCommand()            {Hex = 0;}
-		UCommand(u32 _iValue) {Hex = _iValue;}
+
+		constexpr UCommand() = default;
+		constexpr UCommand(u32 hex) : Hex(hex) {}
 	};
 
 	enum EButtonCombo

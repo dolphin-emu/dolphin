@@ -31,7 +31,7 @@ enum
 #define DSP_CONTROL_MASK 0x0C07
 union UDSPControl
 {
-	u16 Hex;
+	u16 Hex = 0;
 	struct
 	{
 		// DSP Control
@@ -53,7 +53,9 @@ union UDSPControl
 		u16 DSPInit : 1; // DSPInit() writes to this flag
 		u16 pad : 4;
 	};
-	UDSPControl(u16 _Hex = 0) : Hex(_Hex) {}
+
+	constexpr UDSPControl() = default;
+	constexpr UDSPControl(u16 hex) : Hex(hex) {}
 };
 
 extern UDSPControl g_dspState;
