@@ -2,13 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#if !__clang__ && __GNUC__ == 4 && __GNUC_MINOR__ < 9
-#error <regex> is broken in GCC < 4.9; please upgrade
-#endif
-
 #include <algorithm>
 #include <functional>
-#include <regex>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -37,20 +32,17 @@ static std::vector<std::string> FileSearchWithTest(const std::vector<std::string
 	return result;
 }
 
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& globs, const std::vector<std::string>& directories, bool recursive)
+std::vector<std::string> DoFileSearch(const std::vector<std::string>& exts, const std::vector<std::string>& directories, bool recursive)
 {
-	std::string regex_str = "^(";
-	for (const auto& str : globs)
-	{
-		if (regex_str.size() != 2)
-			regex_str += "|";
-		// convert glob to regex
-		regex_str += std::regex_replace(std::regex_replace(str, std::regex("\\."), "\\."), std::regex("\\*"), ".*");
-	}
-	regex_str += ")$";
-	std::regex regex(regex_str, std::regex_constants::icase);
+	bool accept_all = std::find(exts.begin(), exts.end(), "") != exts.end();
 	return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
-		return std::regex_match(entry.virtualName, regex);
+		if (accept_all)
+			return true;
+		std::string name = entry.virtualName;
+		std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+		return std::any_of(exts.begin(), exts.end(), [&](const std::string& ext) {
+			return name.length() >= ext.length() && name.compare(name.length() - ext.length(), ext.length(), ext) == 0;
+		});
 	});
 }
 
