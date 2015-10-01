@@ -4,6 +4,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
@@ -36,7 +37,9 @@ static bool VerifyRoms()
 	{
 		u32 hash_irom; // dsp_rom.bin
 		u32 hash_drom; // dsp_coef.bin
-	} KNOWN_ROMS[] = {
+	};
+
+	static const std::array<DspRomHashes, 4> known_roms = {{
 		// Official Nintendo ROM
 		{ 0x66f334fe, 0xf3b93527 },
 
@@ -49,17 +52,17 @@ static bool VerifyRoms()
 
 		// above with improved resampling coefficients
 		{ 0xd9907f71, 0xdb6880c1 }
-	};
+	}};
 
 	u32 hash_irom = HashAdler32((u8*)g_dsp.irom, DSP_IROM_BYTE_SIZE);
 	u32 hash_drom = HashAdler32((u8*)g_dsp.coef, DSP_COEF_BYTE_SIZE);
 	int rom_idx = -1;
 
-	for (u32 i = 0; i < sizeof (KNOWN_ROMS) / sizeof (KNOWN_ROMS[0]); ++i)
+	for (size_t i = 0; i < known_roms.size(); ++i)
 	{
-		DspRomHashes& rom = KNOWN_ROMS[i];
+		const DspRomHashes& rom = known_roms[i];
 		if (hash_irom == rom.hash_irom && hash_drom == rom.hash_drom)
-			rom_idx = i;
+			rom_idx = static_cast<int>(i);
 	}
 
 	if (rom_idx < 0)
