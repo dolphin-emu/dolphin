@@ -85,7 +85,7 @@ void Color_ReadDirect_32b_888x(VertexLoader* loader)
 }
 void Color_ReadDirect_16b_565(VertexLoader* loader)
 {
-	SetCol565(loader, DataReadU16());
+	SetCol565(loader, DataRead<u16>());
 }
 void Color_ReadDirect_16b_4444(VertexLoader* loader)
 {
