@@ -142,6 +142,11 @@ void ControllerEmu::SaveConfig(IniFile::Section *sec, const std::string& base)
 		ctrlGroup->SaveConfig(sec, defdev, base);
 }
 
+void ControllerEmu::ControlGroup::SetControlExpression(int index, const std::string& expression)
+{
+	controls.at(index)->control_ref->expression = expression;
+}
+
 ControllerEmu::AnalogStick::AnalogStick(const char* const _name, ControlState default_radius)
 	: AnalogStick(_name, _name, GROUP_TYPE_STICK)
 {}
