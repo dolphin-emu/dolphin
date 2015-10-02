@@ -16,6 +16,8 @@ public:
 	void GetInput(GCPadStatus* const pad);
 	void SetOutput(const ControlState strength);
 
+	void SetForcedInput(GCPadStatus* const pad);
+
 	bool GetMicButton() const;
 
 	std::string GetName() const override;
@@ -31,6 +33,8 @@ private:
 	MixedTriggers* m_triggers;
 	ControlGroup*  m_rumble;
 	ControlGroup*  m_options;
+
+	GCPadStatus    m_forced_input;
 
 	const unsigned int m_index;
 

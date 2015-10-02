@@ -5,10 +5,13 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/InputConfig.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/GCPadEmu.h"
+#include "Core/HW/GCPad.h"
 
 #define WATCH_TIMEOUT 50 // update 20 times per second.
 #define HIJACK_TIMEOUT 500
 #define NUM_WIIMOTES 4
+#define NUM_GCPADS 4
 
 namespace DolphinWatch {
 
@@ -57,7 +60,9 @@ namespace DolphinWatch {
 	void sendFeedback(Client &client, bool success);
 
 	WiimoteEmu::Wiimote* getWiimote(int i_wiimote);
-	void sendButtons(int i_wiimote, u16 _buttons);
+	GCPad* getGCPad(int i_pad);
+	void sendButtonsWii(int i_wiimote, u16 _buttons);
+	void sendButtonsGC(int i_pad, u16 _buttons);
 	void checkHijacks();
 
 }

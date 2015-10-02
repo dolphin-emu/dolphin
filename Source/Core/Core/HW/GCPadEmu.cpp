@@ -91,6 +91,14 @@ std::string GCPad::GetName() const
 
 void GCPad::GetInput(GCPadStatus* const pad)
 {
+
+	// if there is valid forced input, this controller is hijacked
+	// just return that then
+	if (m_forced_input.err == PadError::PAD_ERR_NONE) {
+		memcpy(pad, &m_forced_input, sizeof(m_forced_input));
+		return;
+	}
+
 	ControlState x, y, triggers[2];
 
 	// buttons
@@ -121,6 +129,11 @@ void GCPad::GetInput(GCPadStatus* const pad)
 void GCPad::SetOutput(const ControlState strength)
 {
 	m_rumble->controls[0]->control_ref->State(strength);
+}
+
+void GCPad::SetForcedInput(GCPadStatus* const pad)
+{
+	memcpy(&m_forced_input, pad, sizeof(GCPadStatus));
 }
 
 void GCPad::LoadDefaults(const ControllerInterface& ciface)
