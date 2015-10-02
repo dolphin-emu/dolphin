@@ -79,20 +79,21 @@ enum
 
 union UVIVerticalTimingRegister
 {
-	u16 Hex;
+	u16 Hex = 0;
 	struct
 	{
 		u16 EQU : 4; // Equalization pulse in half lines
 		u16 ACV : 10; // Active video in lines per field (seems always zero)
 		u16     : 2;
 	};
-	UVIVerticalTimingRegister(u16 _hex) { Hex = _hex;}
-	UVIVerticalTimingRegister() { Hex = 0;}
+
+	constexpr UVIVerticalTimingRegister() = default;
+	constexpr UVIVerticalTimingRegister(u16 hex) : Hex(hex) {}
 };
 
 union UVIDisplayControlRegister
 {
-	u16 Hex;
+	u16 Hex = 0;
 	struct
 	{
 		u16 ENB : 1; // Enables video timing generation and data request
@@ -104,8 +105,9 @@ union UVIDisplayControlRegister
 		u16 FMT : 2; // 0: NTSC, 1: PAL, 2: MPAL, 3: Debug
 		u16     : 6;
 	};
-	UVIDisplayControlRegister(u16 _hex) { Hex = _hex;}
-	UVIDisplayControlRegister() { Hex = 0;}
+
+	constexpr UVIDisplayControlRegister() = default;
+	constexpr UVIDisplayControlRegister(u16 hex) : Hex(hex) {}
 };
 
 union UVIHorizontalTiming0
@@ -223,7 +225,7 @@ union PictureConfigurationRegister
 
 union UVIHorizontalScaling
 {
-	u16 Hex;
+	u16 Hex = 0;
 	struct
 	{
 		u16 STP   : 9; // Horizontal stepping size (U1.8 Scaler Value) (0x160 Works for 320)
@@ -231,8 +233,9 @@ union UVIHorizontalScaling
 		u16 HS_EN : 1; // Enable Horizontal Scaling
 		u16       : 3;
 	};
-	UVIHorizontalScaling(u16 _hex) { Hex = _hex;}
-	UVIHorizontalScaling() { Hex = 0;}
+
+	constexpr UVIHorizontalScaling() = default;
+	constexpr UVIHorizontalScaling(u16 hex) : Hex(hex) {}
 };
 
 // Used for tables 0-2

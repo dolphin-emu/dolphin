@@ -87,9 +87,10 @@ union UPECtrlReg
 		u16 PEFinish       : 1; // write only
 		u16                : 12;
 	};
-	u16 Hex;
-	UPECtrlReg() {Hex = 0; }
-	UPECtrlReg(u16 _hex) {Hex = _hex; }
+	u16 Hex = 0;
+
+	constexpr UPECtrlReg() = default;
+	constexpr UPECtrlReg(u16 hex) : Hex(hex) {}
 };
 
 // STATE_TO_SAVE

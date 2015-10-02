@@ -81,9 +81,10 @@ union UCPStatusReg
 		u16 Breakpoint           : 1;
 		u16                      : 11;
 	};
-	u16 Hex;
-	UCPStatusReg() {Hex = 0; }
-	UCPStatusReg(u16 _hex) {Hex = _hex; }
+	u16 Hex = 0;
+
+	constexpr UCPStatusReg() = default;
+	constexpr UCPStatusReg(u16 hex) : Hex(hex) {}
 };
 
 // Fifo Control Register
@@ -99,9 +100,10 @@ union UCPCtrlReg
 		u16 BPInt                  : 1;
 		u16                        : 10;
 	};
-	u16 Hex;
-	UCPCtrlReg() {Hex = 0; }
-	UCPCtrlReg(u16 _hex) {Hex = _hex; }
+	u16 Hex = 0;
+
+	constexpr UCPCtrlReg() = default;
+	constexpr UCPCtrlReg(u16 hex) : Hex(hex) {}
 };
 
 // Fifo Clear Register
@@ -114,9 +116,10 @@ union UCPClearReg
 		u16 ClearMetrices      : 1;
 		u16                    : 13;
 	};
-	u16 Hex;
-	UCPClearReg() {Hex = 0; }
-	UCPClearReg(u16 _hex) {Hex = _hex; }
+	u16 Hex = 0;
+
+	constexpr UCPClearReg() = default;
+	constexpr UCPClearReg(u16 hex) : Hex(hex) {}
 };
 
 // Init

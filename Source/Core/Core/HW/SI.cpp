@@ -130,7 +130,7 @@ union USIPoll
 // SI Communication Control Status Register
 union USIComCSR
 {
-	u32 Hex;
+	u32 Hex = 0;
 	struct
 	{
 		u32 TSTART     : 1; // write: start transfer  read: transfer status
@@ -150,14 +150,15 @@ union USIComCSR
 		u32 TCINTMSK   : 1; // Transfer Complete Interrupt Mask
 		u32 TCINT      : 1; // Transfer Complete Interrupt
 	};
-	USIComCSR() {Hex = 0;}
-	USIComCSR(u32 _hex) {Hex = _hex;}
+
+	constexpr USIComCSR() = default;
+	constexpr USIComCSR(u32 hex) : Hex(hex) {}
 };
 
 // SI Status Register
 union USIStatusReg
 {
-	u32 Hex;
+	u32 Hex = 0;
 	struct
 	{
 		u32 UNRUN3  : 1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
@@ -190,8 +191,9 @@ union USIStatusReg
 		u32         : 1;
 		u32 WR      : 1; // (RW) write 1 start copy, read 0 copy done
 	};
-	USIStatusReg() {Hex = 0;}
-	USIStatusReg(u32 _hex) {Hex = _hex;}
+
+	constexpr USIStatusReg() = default;
+	constexpr USIStatusReg(u32 hex) : Hex(hex) {}
 };
 
 // SI EXI Clock Count

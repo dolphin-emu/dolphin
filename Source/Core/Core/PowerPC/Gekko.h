@@ -15,10 +15,10 @@
 
 union UGeckoInstruction
 {
-	u32 hex;
+	u32 hex = 0;
 
-	UGeckoInstruction(u32 _hex) : hex(_hex) {}
-	UGeckoInstruction() : hex(0) {}
+	constexpr UGeckoInstruction() = default;
+	constexpr UGeckoInstruction(u32 hex_) : hex(hex_) {}
 
 	struct
 	{
@@ -322,10 +322,10 @@ union UGQR
 	BitField<16, 3, EQuantizeType> ld_type;
 	BitField<24, 6, u32> ld_scale;
 
-	u32 Hex;
+	u32 Hex = 0;
 
-	UGQR(u32 _hex) { Hex = _hex; }
-	UGQR()         { Hex = 0;  }
+	constexpr UGQR() = default;
+	constexpr UGQR(u32 hex) : Hex(hex) {}
 };
 
 // FPU Register
@@ -357,10 +357,10 @@ union UReg_XER
 		u32 OV         : 1;
 		u32 SO         : 1;
 	};
-	u32 Hex;
+	u32 Hex = 0;
 
-	UReg_XER(u32 _hex) { Hex = _hex; }
-	UReg_XER()         { Hex = 0; }
+	constexpr UReg_XER() = default;
+	constexpr UReg_XER(u32 hex) : Hex(hex) {}
 };
 
 // Machine State Register
@@ -389,10 +389,10 @@ union UReg_MSR
 		u32 POW     : 1;
 		u32 res     : 13;
 	};
-	u32 Hex;
+	u32 Hex = 0;
 
-	UReg_MSR(u32 _hex) { Hex = _hex; }
-	UReg_MSR()         { Hex = 0; }
+	constexpr UReg_MSR() = default;
+	constexpr UReg_MSR(u32 hex) : Hex(hex) {}
 };
 
 #define FPRF_SHIFT 12
@@ -486,10 +486,10 @@ union UReg_FPSCR
 		// Exception summary (sticky)
 		u32 FX      : 1;
 	};
-	u32 Hex;
+	u32 Hex = 0;
 
-	UReg_FPSCR(u32 _hex) { Hex = _hex; }
-	UReg_FPSCR()         { Hex = 0;}
+	constexpr UReg_FPSCR() = default;
+	constexpr UReg_FPSCR(u32 hex) : Hex(hex) {}
 };
 
 // Hardware Implementation-Dependent Register 0
@@ -551,10 +551,10 @@ union UReg_HID2
 		u32 WPE     : 1;
 		u32 LSQE    : 1;
 	};
-	u32 Hex;
+	u32 Hex = 0;
 
-	UReg_HID2(u32 _hex) { Hex = _hex; }
-	UReg_HID2()         { Hex = 0; }
+	constexpr UReg_HID2() = default;
+	constexpr UReg_HID2(u32 hex) : Hex(hex) {}
 };
 
 // Hardware Implementation-Dependent Register 4
@@ -574,10 +574,10 @@ union UReg_HID4
 		u32 L2FM  : 2;
 		u32       : 1;
 	};
-	u32 Hex;
+	u32 Hex = 0;
 
-	UReg_HID4(u32 _hex) { Hex = _hex; }
-	UReg_HID4()         { Hex = 0; }
+	constexpr UReg_HID4() = default;
+	constexpr UReg_HID4(u32 hex) : Hex(hex) {}
 };
 
 // SPR1 - Page Table format
@@ -637,10 +637,10 @@ union UReg_WPAR
 		u32         : 4;
 		u32 GB_ADDR : 27;
 	};
-	u32 Hex;
+	u32 Hex = 0;
 
-	UReg_WPAR(u32 _hex) { Hex = _hex; }
-	UReg_WPAR()         { Hex = 0; }
+	constexpr UReg_WPAR() = default;
+	constexpr UReg_WPAR(u32 hex) : Hex(hex) {}
 };
 
 // Direct Memory Access Upper register
@@ -651,10 +651,10 @@ union UReg_DMAU
 		u32 DMA_LEN_U : 5;
 		u32 MEM_ADDR  : 27;
 	};
-	u32 Hex;
+	u32 Hex = 0;
 
-	UReg_DMAU(u32 _hex) { Hex = _hex; }
-	UReg_DMAU()         { Hex = 0; }
+	constexpr UReg_DMAU() = default;
+	constexpr UReg_DMAU(u32 hex) : Hex(hex) {}
 };
 
 // Direct Memory Access Lower (DMAL) register
@@ -668,10 +668,10 @@ union UReg_DMAL
 		u32 DMA_LD    : 1;
 		u32 LC_ADDR   : 27;
 	};
-	u32 Hex;
+	u32 Hex = 0;
 
-	UReg_DMAL(u32 _hex) { Hex = _hex; }
-	UReg_DMAL()         { Hex = 0; }
+	constexpr UReg_DMAL() = default;
+	constexpr UReg_DMAL(u32 hex) : Hex(hex) {}
 };
 
 union UReg_BAT_Up
@@ -684,10 +684,10 @@ union UReg_BAT_Up
 		u32      : 4;
 		u32 BEPI : 15;
 	};
-	u32 Hex;
+	u32 Hex = 0;
 
-	UReg_BAT_Up(u32 _hex) { Hex = _hex; }
-	UReg_BAT_Up()         { Hex = 0; }
+	constexpr UReg_BAT_Up() = default;
+	constexpr UReg_BAT_Up(u32 hex) : Hex(hex) {}
 };
 
 union UReg_BAT_Lo
@@ -700,10 +700,10 @@ union UReg_BAT_Lo
 		u32      : 10;
 		u32 BRPN : 15; // Physical Block Number
 	};
-	u32 Hex;
+	u32 Hex = 0;
 
-	UReg_BAT_Lo(u32 _hex) { Hex = _hex; }
-	UReg_BAT_Lo()         { Hex = 0; }
+	constexpr UReg_BAT_Lo() = default;
+	constexpr UReg_BAT_Lo(u32 hex) : Hex(hex) {}
 };
 
 union UReg_PTE

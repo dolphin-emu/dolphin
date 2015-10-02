@@ -75,8 +75,9 @@ enum
 // AI Control Register
 union AICR
 {
-	AICR() { hex = 0;}
-	AICR(u32 _hex) { hex = _hex;}
+	constexpr AICR() = default;
+	constexpr AICR(u32 hex_) : hex(hex_) {}
+
 	struct
 	{
 		u32 PSTAT    : 1;  // sample counter/playback enable
@@ -89,20 +90,21 @@ union AICR
 		u32 AIDFR    : 1;  // AID Frequency (0=48khz 1=32khz)
 		u32          :25;
 	};
-	u32 hex;
+	u32 hex = 0;
 };
 
 // AI Volume Register
 union AIVR
 {
-	AIVR() { hex = 0;}
+	constexpr AIVR() = default;
+
 	struct
 	{
 		u32 left  : 8;
 		u32 right : 8;
 		u32       :16;
 	};
-	u32 hex;
+	u32 hex = 0;
 };
 
 // STATE_TO_SAVE
