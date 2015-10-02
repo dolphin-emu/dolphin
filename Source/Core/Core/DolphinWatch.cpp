@@ -9,11 +9,12 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/InputConfig.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/Core.h"
 #include "Core/State.h"
 #include "Common\StringUtil.h"
 #include "AudioCommon\AudioCommon.h"
+#include "HW\ProcessorInterface.h"
+#include "InputCommon\GCPadStatus.h"
 
 namespace DolphinWatch {
 
@@ -26,13 +27,18 @@ namespace DolphinWatch {
 	static thread thr;
 	static atomic<bool> running=true;
 
-	static int hijacks[NUM_WIIMOTES];
+	static int hijacksWii[NUM_WIIMOTES];
+	static int hijacksGC[NUM_GCPADS];
 
 	WiimoteEmu::Wiimote* getWiimote(int i_wiimote) {
 		return ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->controllers.at(i_wiimote));
 	}
 
-	void sendButtons(int i_wiimote, u16 _buttons) {
+	GCPad* getGCPad(int i_pad) {
+		return ((GCPad*)Pad::GetConfig()->controllers.at(i_pad));
+	}
+
+	void sendButtonsWii(int i_wiimote, u16 _buttons) {
 		if (!Core::IsRunning()) {
 			// TODO error
 			return;
@@ -41,7 +47,7 @@ namespace DolphinWatch {
 
 		// disable reports from actual wiimote for a while, aka hijack for a while
 		wiimote->SetReportingAuto(false);
-		hijacks[i_wiimote] = HIJACK_TIMEOUT;
+		hijacksWii[i_wiimote] = HIJACK_TIMEOUT;
 
 		u8 data[23];
 		memset(data, 0, sizeof(data));
@@ -65,16 +71,56 @@ namespace DolphinWatch {
 
 	}
 
+	void sendButtonsGC(int i_pad, u16 _buttons, float stickX, float stickY, float substickX, float substickY) {
+		//NOTICE_LOG(CONSOLE, "GC INPUT %d %f %f %f %f", _buttons, stickX, stickY, substickX, substickY);
+		if (!Core::IsRunning()) {
+			// TODO error
+			return;
+		}
+
+		if (stickX < -1 || stickX > 1 ||
+			stickY < -1 || stickY > 1 ||
+			substickX < -1 || substickX > 1 ||
+			substickY < -1 || substickY > 1) {
+			// TODO error
+			return;
+		}
+
+		GCPad* pad = getGCPad(i_pad);
+
+		GCPadStatus status;
+		status.err = PadError::PAD_ERR_NONE;
+		// neutral joystick positions
+		status.stickX = GCPadStatus::MAIN_STICK_CENTER_X + int(stickX * GCPadStatus::MAIN_STICK_RADIUS);
+		status.stickY = GCPadStatus::MAIN_STICK_CENTER_Y + int(stickY * GCPadStatus::MAIN_STICK_RADIUS);
+		status.substickX = GCPadStatus::C_STICK_CENTER_X + int(substickX * GCPadStatus::C_STICK_RADIUS);
+		status.substickY = GCPadStatus::C_STICK_CENTER_Y + int(substickY * GCPadStatus::C_STICK_RADIUS);
+		status.button = _buttons;
+
+		pad->SetForcedInput(&status);
+		hijacksGC[i_pad] = HIJACK_TIMEOUT;
+	}
+
 	void checkHijacks() {
 		if (!Core::IsRunning() || Core::GetState() != Core::CORE_RUN) {
 			return;
 		}
 		for (int i = 0; i < NUM_WIIMOTES; ++i) {
-			if (hijacks[i] <= 0) continue;
-			hijacks[i] -= WATCH_TIMEOUT;
-			if (hijacks[i] <= 0) {
-				hijacks[i] = 0;
+			if (hijacksWii[i] <= 0) continue;
+			hijacksWii[i] -= WATCH_TIMEOUT;
+			if (hijacksWii[i] <= 0) {
+				hijacksWii[i] = 0;
 				getWiimote(i)->SetReportingAuto(true);
+			}
+		}
+		for (int i = 0; i < NUM_GCPADS; ++i) {
+			if (hijacksGC[i] <= 0) continue;
+			hijacksGC[i] -= WATCH_TIMEOUT;
+			if (hijacksGC[i] <= 0) {
+				hijacksGC[i] = 0;
+				GCPadStatus status;
+				status.err = PadError::PAD_ERR_NO_CONTROLLER;
+				getGCPad(i)->SetForcedInput(&status);
 			}
 		}
 	}
@@ -84,7 +130,8 @@ namespace DolphinWatch {
 		// avoid threads or complicated select()'s, just poll in update.
 		server.setBlocking(false);
 
-		memset(hijacks, 0, sizeof(hijacks));
+		memset(hijacksWii, 0, sizeof(hijacksWii));
+		memset(hijacksGC, 0, sizeof(hijacksGC));
 
 		thr = thread([]() {
 			while (running) {
@@ -287,11 +334,11 @@ namespace DolphinWatch {
 			}
 
 		}
-		else if (cmd == "BUTTONSTATES") {
+		else if (cmd == "BUTTONSTATES_WII") {
 
 			int i_wiimote;
 			u16 states;
-			
+
 			if (!(parts >> i_wiimote >> states)) {
 				// no valid parameters, skip
 				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
@@ -303,7 +350,27 @@ namespace DolphinWatch {
 				return;
 			}
 
-			sendButtons(i_wiimote, states);
+			sendButtonsWii(i_wiimote, states);
+
+		}
+		else if (cmd == "BUTTONSTATES_GC") {
+
+			int i_pad;
+			u16 states;
+			float sx, sy, ssx, ssy;
+
+			if (!(parts >> i_pad >> states >> sx >> sy >> ssx >> ssy)) {
+				// no valid parameters, skip
+				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				return;
+			}
+
+			if (i_pad >= NUM_GCPADS) {
+				NOTICE_LOG(CONSOLE, "Invalid GCPad number %d in: %s", i_pad, line.c_str());
+				return;
+			}
+
+			sendButtonsGC(i_pad, states, sx, sy, ssx, ssy);
 
 		}
 		else if (cmd == "PAUSE") {
@@ -319,6 +386,13 @@ namespace DolphinWatch {
 				return;
 			}
 			Core::SetState(Core::CORE_RUN);
+		}
+		else if (cmd == "RESET") {
+			if (!Core::IsRunning()) {
+				NOTICE_LOG(CONSOLE, "Core not running, can't reset: %s", line.c_str());
+				return;
+			}
+			ProcessorInterface::ResetButton_Tap();
 		}
 		else if (cmd == "SAVE") {
 
@@ -462,7 +536,7 @@ namespace DolphinWatch {
 			else if (status == sf::Socket::Status::Done) {
 				// add nullterminator, then add to client's buffer
 				cbuf[received] = '\0';
-				NOTICE_LOG(CONSOLE, "IN %s", cbuf);
+				//NOTICE_LOG(CONSOLE, "IN %s", cbuf);
 				client.buf << cbuf;
 
 				// process the client's buffer
@@ -497,7 +571,7 @@ namespace DolphinWatch {
 	}
 
 	void send(sf::TcpSocket &socket, string &message) {
-		NOTICE_LOG(CONSOLE, "OUT %s", message.c_str());
+		//NOTICE_LOG(CONSOLE, "OUT %s", message.c_str());
 		socket.setBlocking(true);
 		socket.send(message.c_str(), message.size());
 		socket.setBlocking(false);
