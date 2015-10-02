@@ -23,8 +23,8 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 {
 	// Buttons
 	NSDictionary *buttonDict = @{
-		@kIOHIDElementTypeKey      : [NSNumber numberWithInteger: kIOHIDElementTypeInput_Button],
-		@kIOHIDElementUsagePageKey : [NSNumber numberWithInteger: kHIDPage_Button]
+		@kIOHIDElementTypeKey      : @(kIOHIDElementTypeInput_Button),
+		@kIOHIDElementUsagePageKey : @(kHIDPage_Button)
 	};
 
 	CFArrayRef buttons = IOHIDDeviceCopyMatchingElements(m_device,
@@ -45,7 +45,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 
 	// Axes
 	NSDictionary *axisDict = @{
-		@kIOHIDElementTypeKey : [NSNumber numberWithInteger: kIOHIDElementTypeInput_Misc]
+		@kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Misc)
 	};
 
 	CFArrayRef axes = IOHIDDeviceCopyMatchingElements(m_device,
