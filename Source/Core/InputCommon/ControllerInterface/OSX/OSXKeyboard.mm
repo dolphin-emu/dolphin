@@ -23,9 +23,9 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index, void *win
 	// This class should only recieve Keyboard or Keypad devices
 	// Now, filter on just the buttons we can handle sanely
 	NSDictionary *matchingElements = @{
-		@kIOHIDElementTypeKey : [NSNumber numberWithInteger: kIOHIDElementTypeInput_Button],
-		@kIOHIDElementMinKey  : [NSNumber numberWithInteger: 0],
-		@kIOHIDElementMaxKey  : [NSNumber numberWithInteger: 1]
+		@kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Button),
+		@kIOHIDElementMinKey  : @0,
+		@kIOHIDElementMaxKey  : @1
 	};
 
 	CFArrayRef elements = IOHIDDeviceCopyMatchingElements(m_device,
