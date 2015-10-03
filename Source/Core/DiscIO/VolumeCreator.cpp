@@ -34,33 +34,6 @@ enum EDiscType
 	DISC_TYPE_WAD
 };
 
-class CBlobBigEndianReader
-{
-public:
-	CBlobBigEndianReader(IBlobReader& _rReader) : m_rReader(_rReader) {}
-
-	u32 Read32(u64 _Offset)
-	{
-		u32 Temp;
-		m_rReader.Read(_Offset, 4, (u8*)&Temp);
-		return Common::swap32(Temp);
-	}
-	u16 Read16(u64 _Offset)
-	{
-		u16 Temp;
-		m_rReader.Read(_Offset, 2, (u8*)&Temp);
-		return Common::swap16(Temp);
-	}
-	u8 Read8(u64 _Offset)
-	{
-		u8 Temp;
-		m_rReader.Read(_Offset, 1, &Temp);
-		return Temp;
-	}
-private:
-	IBlobReader& m_rReader;
-};
-
 static const unsigned char s_master_key[16] = {
 	0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,
 	0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7

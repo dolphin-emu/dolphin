@@ -18,22 +18,6 @@
 namespace DiscIO
 {
 
-class CBlobBigEndianReader
-{
-public:
-	CBlobBigEndianReader(DiscIO::IBlobReader& _rReader) : m_rReader(_rReader) {}
-
-	u32 Read32(u64 _Offset)
-	{
-		u32 Temp;
-		m_rReader.Read(_Offset, 4, (u8*)&Temp);
-		return(Common::swap32(Temp));
-	}
-
-private:
-	DiscIO::IBlobReader& m_rReader;
-};
-
 WiiWAD::WiiWAD(const std::string& name)
 {
 	std::unique_ptr<IBlobReader> reader(DiscIO::CreateBlobReader(name));

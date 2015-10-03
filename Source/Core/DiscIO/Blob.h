@@ -17,6 +17,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
 namespace DiscIO
@@ -75,6 +76,36 @@ private:
 	int m_blocksize;
 	std::array<std::vector<u8>, CACHE_SIZE> m_cache;
 	std::array<u64, CACHE_SIZE> m_cache_tags;
+};
+
+class CBlobBigEndianReader
+{
+public:
+	CBlobBigEndianReader(IBlobReader& reader) : m_reader(reader) {}
+
+	u32 Read32(u64 offset) const
+	{
+		u32 temp;
+		m_reader.Read(offset, sizeof(u32), reinterpret_cast<u8*>(&temp));
+		return Common::swap32(temp);
+	}
+
+	u16 Read16(u64 offset) const
+	{
+		u16 temp;
+		m_reader.Read(offset, sizeof(u16), reinterpret_cast<u8*>(&temp));
+		return Common::swap16(temp);
+	}
+
+	u8 Read8(u64 offset) const
+	{
+		u8 temp;
+		m_reader.Read(offset, sizeof(u8), &temp);
+		return temp;
+	}
+
+private:
+	IBlobReader& m_reader;
 };
 
 // Factory function - examines the path to choose the right type of IBlobReader, and returns one.
