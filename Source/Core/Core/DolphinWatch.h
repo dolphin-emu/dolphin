@@ -7,6 +7,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/GCPad.h"
+#include "DolphinWX\Frame.h"
 
 #define WATCH_TIMEOUT 50 // update 20 times per second.
 #define HIJACK_TIMEOUT 500
@@ -50,7 +51,7 @@ namespace DolphinWatch {
 		Client(const Client& other) { socket = other.socket; }
 	};
 
-	void Init(unsigned short port);
+	void Init(unsigned short port, CFrame* main_frame);
 	void Shutdown();
 	void process(Client &client, string &line);
 	void checkSubs(Client &client);

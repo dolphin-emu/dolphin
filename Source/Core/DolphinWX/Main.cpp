@@ -286,7 +286,7 @@ void DolphinApp::AfterInit()
 {
 
 	if (m_watch_server)
-		DolphinWatch::Init(m_watch_server_port);
+		DolphinWatch::Init(m_watch_server_port, GetCFrame());
 
 	if (!m_batch_mode)
 		main_frame->UpdateGameList();
