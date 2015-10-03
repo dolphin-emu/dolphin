@@ -75,7 +75,7 @@ public:
 
 	void SetLevel(LogTypes::LOG_LEVELS level) { m_level = level; }
 
-	bool HasListeners() const { return m_listener_ids; }
+	bool HasListeners() const { return bool(m_listener_ids); }
 
 	typedef class BitSet32::Iterator iterator;
 	iterator begin() const { return m_listener_ids.begin(); }
