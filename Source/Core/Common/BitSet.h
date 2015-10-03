@@ -164,8 +164,8 @@ public:
 	BitSet& operator|=(BitSet other) { return *this = *this | other; }
 	BitSet& operator&=(BitSet other) { return *this = *this & other; }
 	BitSet& operator^=(BitSet other) { return *this = *this ^ other; }
-	operator u32() = delete;
-	operator bool() { return m_val != 0; }
+	operator u32() const = delete;
+	operator bool() const { return m_val != 0; }
 
 	// Warning: Even though on modern CPUs this is a single fast instruction,
 	// Dolphin's official builds do not currently assume POPCNT support on x86,
