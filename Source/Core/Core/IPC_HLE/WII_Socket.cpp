@@ -24,13 +24,14 @@
 char* WiiSockMan::DecodeError(s32 ErrorCode)
 {
 #ifdef _WIN32
+	// NOT THREAD SAFE
 	static char Message[1024];
-	// If this program was multi-threaded, we'd want to use FORMAT_MESSAGE_ALLOCATE_BUFFER
-	// instead of a static buffer here.
-	// (And of course, free the buffer when we were done with it)
-	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
-		FORMAT_MESSAGE_MAX_WIDTH_MASK, nullptr, ErrorCode,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)Message, 1024, nullptr);
+
+	FormatMessageA(
+		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
+		nullptr, ErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), Message,
+		sizeof(Message), nullptr);
+
 	return Message;
 #else
 	return strerror(ErrorCode);
