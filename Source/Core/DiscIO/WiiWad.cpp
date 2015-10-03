@@ -64,27 +64,17 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 {
 	CBlobBigEndianReader ReaderBig(_rReader);
 
-	// get header size
-	u32 HeaderSize = ReaderBig.Read32(0);
-	if (HeaderSize != 0x20)
-	{
-		_dbg_assert_msg_(BOOT, (HeaderSize==0x20), "WiiWAD: Header size != 0x20");
-		return false;
-	}
-
-	// get header
-	u8 Header[0x20];
-	_rReader.Read(0, HeaderSize, Header);
-	u32 HeaderType = ReaderBig.Read32(0x4);
-	if ((0x49730000 != HeaderType) && (0x69620000 != HeaderType))
+	if (!IsWiiWAD(ReaderBig))
 		return false;
 
-	m_CertificateChainSize    = ReaderBig.Read32(0x8);
-	u32 Reserved              = ReaderBig.Read32(0xC);
-	m_TicketSize              = ReaderBig.Read32(0x10);
-	m_TMDSize                 = ReaderBig.Read32(0x14);
-	m_DataAppSize             = ReaderBig.Read32(0x18);
-	m_FooterSize              = ReaderBig.Read32(0x1C);
+	u32 Reserved;
+	if (!ReaderBig.ReadSwapped(0x8, &m_CertificateChainSize) ||
+	    !ReaderBig.ReadSwapped(0xC, &Reserved) ||
+	    !ReaderBig.ReadSwapped(0x10, &m_TicketSize) ||
+	    !ReaderBig.ReadSwapped(0x14, &m_TMDSize) ||
+	    !ReaderBig.ReadSwapped(0x18, &m_DataAppSize) ||
+	    !ReaderBig.ReadSwapped(0x1C, &m_FooterSize))
+		return false;
 
 	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG)
 		_dbg_assert_msg_(BOOT, Reserved==0x00, "WiiWAD: Reserved must be 0x00");
@@ -99,5 +89,13 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 	return true;
 }
 
-} // namespace end
+bool WiiWAD::IsWiiWAD(const DiscIO::CBlobBigEndianReader& reader)
+{
+	u32 header_size = 0;
+	u32 header_type = 0;
+	reader.ReadSwapped(0x0, &header_size);
+	reader.ReadSwapped(0x4, &header_type);
+	return header_size == 0x20 && (header_type == 0x49730000 || header_type == 0x69620000);
+}
 
+} // namespace end

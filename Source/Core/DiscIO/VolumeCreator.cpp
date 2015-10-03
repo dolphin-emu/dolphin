@@ -87,8 +87,6 @@ std::unique_ptr<IVolume> CreateVolumeFromDirectory(const std::string& directory,
 
 void VolumeKeyForPartition(IBlobReader& _rReader, u64 offset, u8* VolumeKey)
 {
-	CBlobBigEndianReader Reader(_rReader);
-
 	u8 SubKey[16];
 	_rReader.Read(offset + 0x1bf, 16, SubKey);
 
@@ -96,16 +94,17 @@ void VolumeKeyForPartition(IBlobReader& _rReader, u64 offset, u8* VolumeKey)
 	memset(IV, 0, 16);
 	_rReader.Read(offset + 0x44c, 8, IV);
 
-	bool usingKoreanKey = false;
 	// Issue: 6813
 	// Magic value is at partition's offset + 0x1f1 (1byte)
 	// If encrypted with the Korean key, the magic value would be 1
 	// Otherwise it is zero
-	if (Reader.Read8(0x3) == 'K' && Reader.Read8(offset + 0x1f1) == 1)
-		usingKoreanKey = true;
+	u8 using_korean_key = 0;
+	_rReader.Read(offset + 0x1f1, sizeof(u8), &using_korean_key);
+	u8 region = 0;
+	_rReader.Read(0x3, sizeof(u8), &region);
 
 	mbedtls_aes_context AES_ctx;
-	mbedtls_aes_setkey_dec(&AES_ctx, (usingKoreanKey ? s_master_key_korean : s_master_key), 128);
+	mbedtls_aes_setkey_dec(&AES_ctx, (using_korean_key == 1 && region == 'K' ? s_master_key_korean : s_master_key), 128);
 
 	mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, 16, IV, SubKey, VolumeKey);
 }
@@ -114,15 +113,23 @@ static std::unique_ptr<IVolume> CreateVolumeFromCryptedWiiImage(std::unique_ptr<
 {
 	CBlobBigEndianReader big_endian_reader(*reader);
 
-	u32 numPartitions = big_endian_reader.Read32(0x40000 + (partition_group * 8));
-	u64 PartitionsOffset = (u64)big_endian_reader.Read32(0x40000 + (partition_group * 8) + 4) << 2;
+	u32 num_partitions;
+	if (!big_endian_reader.ReadSwapped(0x40000 + (partition_group * 8), &num_partitions))
+		return nullptr;
 
 	// Check if we're looking for a valid partition
-	if ((int)volume_number != -1 && volume_number > numPartitions)
+	if ((int)volume_number != -1 && volume_number > num_partitions)
 		return nullptr;
+
+	u32 partitions_offset_unshifted;
+	if (!big_endian_reader.ReadSwapped(0x40000 + (partition_group * 8) + 4, &partitions_offset_unshifted))
+		return nullptr;
+	u64 partitions_offset = (u64)partitions_offset_unshifted << 2;
 
 	struct SPartition
 	{
+		SPartition(u64 offset, u32 type) : offset(offset), type(type) {}
+
 		u64 offset;
 		u32 type;
 	};
@@ -138,12 +145,14 @@ static std::unique_ptr<IVolume> CreateVolumeFromCryptedWiiImage(std::unique_ptr<
 	// Read all partitions
 	for (SPartitionGroup& group : partition_groups)
 	{
-		for (u32 i = 0; i < numPartitions; i++)
+		for (u32 i = 0; i < num_partitions; i++)
 		{
-			SPartition partition;
-			partition.offset = ((u64)big_endian_reader.Read32(PartitionsOffset + (i * 8) + 0)) << 2;
-			partition.type   = big_endian_reader.Read32(PartitionsOffset + (i * 8) + 4);
-			group.partitions.push_back(partition);
+			u32 partition_offset, partition_type;
+			if (big_endian_reader.ReadSwapped(partitions_offset + (i * 8) + 0, &partition_offset) &&
+			    big_endian_reader.ReadSwapped(partitions_offset + (i * 8) + 4, &partition_type))
+			{
+				group.partitions.emplace_back((u64)partition_offset << 2, partition_type);
+			}
 		}
 	}
 
@@ -168,12 +177,12 @@ static std::unique_ptr<IVolume> CreateVolumeFromCryptedWiiImage(std::unique_ptr<
 EDiscType GetDiscType(IBlobReader& _rReader)
 {
 	CBlobBigEndianReader Reader(_rReader);
-	u32 WiiMagic = Reader.Read32(0x18);
-	u32 WiiContainerMagic = Reader.Read32(0x60);
-	u32 WADMagic = Reader.Read32(0x02);
-	u32 GCMagic = Reader.Read32(0x1C);
 
 	// Check for Wii
+	u32 WiiMagic = 0;
+	Reader.ReadSwapped(0x18, &WiiMagic);
+	u32 WiiContainerMagic = 0;
+	Reader.ReadSwapped(0x60, &WiiContainerMagic);
 	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic != 0)
 		return DISC_TYPE_WII;
 	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic == 0)
@@ -181,10 +190,14 @@ EDiscType GetDiscType(IBlobReader& _rReader)
 
 	// Check for WAD
 	// 0x206962 for boot2 wads
+	u32 WADMagic = 0;
+	Reader.ReadSwapped(0x02, &WADMagic);
 	if (WADMagic == 0x00204973 || WADMagic == 0x00206962)
 		return DISC_TYPE_WAD;
 
 	// Check for GC
+	u32 GCMagic = 0;
+	Reader.ReadSwapped(0x1C, &GCMagic);
 	if (GCMagic == 0xC2339F3D)
 		return DISC_TYPE_GC;
 

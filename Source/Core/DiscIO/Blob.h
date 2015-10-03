@@ -83,25 +83,14 @@ class CBlobBigEndianReader
 public:
 	CBlobBigEndianReader(IBlobReader& reader) : m_reader(reader) {}
 
-	u32 Read32(u64 offset) const
+	template <typename T>
+	bool ReadSwapped(u64 offset, T* buffer) const
 	{
-		u32 temp;
-		m_reader.Read(offset, sizeof(u32), reinterpret_cast<u8*>(&temp));
-		return Common::swap32(temp);
-	}
-
-	u16 Read16(u64 offset) const
-	{
-		u16 temp;
-		m_reader.Read(offset, sizeof(u16), reinterpret_cast<u8*>(&temp));
-		return Common::swap16(temp);
-	}
-
-	u8 Read8(u64 offset) const
-	{
-		u8 temp;
-		m_reader.Read(offset, sizeof(u8), &temp);
-		return temp;
+		T temp;
+		if (!m_reader.Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp)))
+			return false;
+		*buffer = Common::FromBigEndian(temp);
+		return true;
 	}
 
 private:
