@@ -231,7 +231,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	ENetPacket* epack;
 	do
 	{
-		epack = enet_peer_receive(socket, 0);
+		epack = enet_peer_receive(socket, nullptr);
 	} while (epack == nullptr);
 	rpac.append(epack->data, epack->dataLength);
 
