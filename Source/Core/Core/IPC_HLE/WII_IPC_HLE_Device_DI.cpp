@@ -16,31 +16,25 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
 
-static CWII_IPC_HLE_Device_di* g_di_pointer;
 static int ioctl_callback;
 
 static void IOCtlCallback(u64 userdata, int cycles_late)
 {
-	if (g_di_pointer != nullptr)
-		g_di_pointer->FinishIOCtl((DVDInterface::DIInterruptType)userdata);
+	std::shared_ptr<IWII_IPC_HLE_Device> di = WII_IPC_HLE_Interface::GetDeviceByName("/dev/di");
+	if (di)
+		std::static_pointer_cast<CWII_IPC_HLE_Device_di>(di)->FinishIOCtl((DVDInterface::DIInterruptType)userdata);
 
-	// If g_di_pointer == nullptr, IOS was probably shut down,
-	// so the command shouldn't be completed
+	// If di == nullptr, IOS was probably shut down, so the command shouldn't be completed
 }
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
-	if (g_di_pointer == nullptr)
-		ERROR_LOG(WII_IPC_DVD, "Trying to run two DI devices at once. IOCtl may not behave as expected.");
-
-	g_di_pointer = this;
 	ioctl_callback = CoreTiming::RegisterEvent("IOCtlCallbackDI", IOCtlCallback);
 }
 
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 {
-	g_di_pointer = nullptr;
 }
 
 void CWII_IPC_HLE_Device_di::DoState(PointerWrap& p)
