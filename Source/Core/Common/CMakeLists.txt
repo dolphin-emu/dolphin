@@ -32,8 +32,15 @@ set(SRCS BreakPoints.cpp
          x64Emitter.cpp
          Crypto/bn.cpp
          Crypto/ec.cpp
-         Logging/ConsoleListenerNix.cpp
          Logging/LogManager.cpp)
+
+if(ANDROID)
+	set(SRCS ${SRCS}
+	         Logging/ConsoleListenerDroid.cpp)
+else()
+	set(SRCS ${SRCS}
+	         Logging/ConsoleListenerNix.cpp)
+endif()
 
 set(LIBS enet)
 if(_M_ARM_64)

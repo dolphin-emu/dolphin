@@ -9,9 +9,6 @@
 #include <set>
 #include <string>
 
-#ifdef ANDROID
-#include <android/log.h>
-#endif
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
@@ -133,9 +130,6 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	                                   file, line,
 	                                   LogTypes::LOG_LEVEL_TO_CHAR[(int)level],
 	                                   log->GetShortName().c_str(), temp);
-#ifdef ANDROID
-	__android_log_write(ANDROID_LOG_INFO, "Dolphinemu", msg.c_str());
-#endif
 
 	for (auto listener_id : *log)
 		m_listeners[listener_id]->Log(level, msg.c_str());
