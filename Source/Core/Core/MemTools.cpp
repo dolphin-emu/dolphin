@@ -57,7 +57,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 		}
 
 	case EXCEPTION_STACK_OVERFLOW:
-		MessageBox(0, _T("Stack overflow!"), 0,0);
+		MessageBox(nullptr, _T("Stack overflow!"), nullptr, 0);
 		return EXCEPTION_CONTINUE_SEARCH;
 
 	case EXCEPTION_ILLEGAL_INSTRUCTION:

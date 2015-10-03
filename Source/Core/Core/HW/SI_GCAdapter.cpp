@@ -94,7 +94,7 @@ static void ScanThreadFunc()
 	s_libusb_hotplug_enabled = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG) != 0;
 	if (s_libusb_hotplug_enabled)
 	{
-		if (libusb_hotplug_register_callback(s_libusb_context, (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED | LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT), LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback, NULL, &s_hotplug_handle) != LIBUSB_SUCCESS)
+		if (libusb_hotplug_register_callback(s_libusb_context, (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED | LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT), LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback, nullptr, &s_hotplug_handle) != LIBUSB_SUCCESS)
 			s_libusb_hotplug_enabled = false;
 		if (s_libusb_hotplug_enabled)
 			NOTICE_LOG(SERIALINTERFACE, "Using libUSB hotplug detection");

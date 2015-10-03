@@ -244,7 +244,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 				}
 				else
 				{
-					int ret = (s32)accept(fd, nullptr, 0);
+					int ret = (s32)accept(fd, nullptr, nullptr);
 					ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_ACCEPT", true);
 				}
 
