@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Core/HW/Memmap.h"

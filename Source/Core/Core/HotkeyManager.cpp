@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
 

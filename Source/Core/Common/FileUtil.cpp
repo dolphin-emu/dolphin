@@ -12,6 +12,7 @@
 #include <vector>
 #include <sys/stat.h>
 
+#include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"

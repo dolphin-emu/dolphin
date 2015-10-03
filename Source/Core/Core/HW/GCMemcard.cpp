@@ -4,7 +4,7 @@
 
 #include <algorithm>
 #include <cinttypes>
-#include <string>
+#include <cstring>
 
 #include "Common/ColorUtil.h"
 #include "Common/FileUtil.h"
