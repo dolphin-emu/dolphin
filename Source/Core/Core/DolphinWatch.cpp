@@ -15,6 +15,7 @@
 #include "AudioCommon\AudioCommon.h"
 #include "HW\ProcessorInterface.h"
 #include "InputCommon\GCPadStatus.h"
+#include "BootManager.h"
 
 namespace DolphinWatch {
 
@@ -29,6 +30,7 @@ namespace DolphinWatch {
 
 	static int hijacksWii[NUM_WIIMOTES];
 	static int hijacksGC[NUM_GCPADS];
+	static CFrame* main_frame;
 
 	WiimoteEmu::Wiimote* getWiimote(int i_wiimote) {
 		return ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->controllers.at(i_wiimote));
@@ -125,7 +127,8 @@ namespace DolphinWatch {
 		}
 	}
 
-	void Init(unsigned short port) {
+	void Init(unsigned short port, CFrame* main_frame) {
+		DolphinWatch::main_frame = main_frame;
 		server.listen(port);
 		// avoid threads or complicated select()'s, just poll in update.
 		server.setBlocking(false);
@@ -404,7 +407,7 @@ namespace DolphinWatch {
 			string file;
 			getline(parts, file);
 			file = StripSpaces(file);
-			if (file.empty() || file.find_first_of(":?\"<> | ") != string::npos) {
+			if (file.empty() || file.find_first_of("?\"<>|") != string::npos) {
 				NOTICE_LOG(CONSOLE, "Invalid filename for saving savestate: %s", line.c_str());
 				return;
 			}
@@ -423,7 +426,7 @@ namespace DolphinWatch {
 			string file;
 			getline(parts, file);
 			file = StripSpaces(file);
-			if (file.empty() || file.find_first_of(":?\"<> | ") != string::npos) {
+			if (file.empty() || file.find_first_of("?\"<>|") != string::npos) {
 				NOTICE_LOG(CONSOLE, "Invalid filename for loading savestate: %s", line.c_str());
 				sendFeedback(client, false);
 				return;
@@ -454,6 +457,22 @@ namespace DolphinWatch {
 
 			setVolume(v);
 
+		}
+		else if (cmd == "STOP") {
+			BootManager::Stop();
+		}
+		else if (cmd == "BOOT") {
+			string file;
+			getline(parts, file);
+			file = StripSpaces(file);
+			if (file.empty() || file.find_first_of("?\"<>|") != string::npos) {
+				NOTICE_LOG(CONSOLE, "Invalid filename for booting game: %s", line.c_str());
+				sendFeedback(client, false);
+				return;
+			}
+
+			main_frame->BootGame(file);
+			//sendFeedback(client, BootManager::BootCore(file));
 		}
 		else {
 			NOTICE_LOG(CONSOLE, "Unknown command: %s", cmd.c_str());
