@@ -71,11 +71,14 @@ public:
 
 	// decrypt parameter must be false if not reading a Wii disc
 	virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const = 0;
-	virtual u32 Read32(u64 _Offset, bool decrypt) const
+	template <typename T>
+	bool ReadSwapped(u64 offset, T* buffer, bool decrypt) const
 	{
-		u32 temp;
-		Read(_Offset, sizeof(u32), (u8*)&temp, decrypt);
-		return Common::swap32(temp);
+		T temp;
+		if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp), decrypt))
+			return false;
+		*buffer = Common::FromBigEndian(temp);
+		return true;
 	}
 
 	virtual bool GetTitleID(u64*) const { return false; }
