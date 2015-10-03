@@ -60,6 +60,6 @@ private:
 	std::mutex cv_m;
 
 	snd_pcm_t *handle;
-	int frames_to_deliver;
+	unsigned int frames_to_deliver;
 #endif
 };
