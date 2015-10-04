@@ -35,10 +35,6 @@ enum IPCCommandType : u32
 	IPC_REP_ASYNC  = 8
 };
 
-extern const u32 IPC_DEFAULT_DELAY;
-extern const IPCCommandResult IPC_NO_REPLY;
-extern const IPCCommandResult IPC_DEFAULT_REPLY;
-
 namespace WII_IPC_HLE_Interface
 {
 
