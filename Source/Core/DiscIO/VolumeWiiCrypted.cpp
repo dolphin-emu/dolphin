@@ -139,6 +139,12 @@ std::vector<u8> CVolumeWiiCrypted::GetTMD() const
   return buffer;
 }
 
+u64 CVolumeWiiCrypted::OffsetToRawOffset(u64 offset) const
+{
+  return m_VolumeOffset + m_dataOffset + (offset / s_block_data_size * s_block_total_size) +
+         (offset % s_block_data_size);
+}
+
 std::string CVolumeWiiCrypted::GetUniqueID() const
 {
   if (m_pReader == nullptr)
