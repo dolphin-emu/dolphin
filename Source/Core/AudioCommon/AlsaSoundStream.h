@@ -46,6 +46,7 @@ private:
 	enum class ALSAThreadStatus
 	{
 		RUNNING,
+		PAUSED,
 		STOPPING,
 		STOPPED,
 	};
