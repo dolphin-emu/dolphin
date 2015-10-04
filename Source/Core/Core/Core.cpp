@@ -263,7 +263,7 @@ void Stop()  // - Hammertime!
 	PowerPC::Stop();
 
 	// Kick it if it's waiting (code stepping wait loop)
-	CCPU::StepOpcode();
+	CPU::StepOpcode();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -344,7 +344,7 @@ static void CpuThread()
 	#endif
 
 	// Enter CPU run loop. When we leave it - we are done.
-	CCPU::Run();
+	CPU::Run();
 
 	s_is_started = false;
 
@@ -606,11 +606,11 @@ void SetState(EState _State)
 	switch (_State)
 	{
 	case CORE_PAUSE:
-		CCPU::EnableStepping(true);  // Break
+		CPU::EnableStepping(true);  // Break
 		Wiimote::Pause();
 		break;
 	case CORE_RUN:
-		CCPU::EnableStepping(false);
+		CPU::EnableStepping(false);
 		Wiimote::Resume();
 		break;
 	default:
@@ -626,10 +626,10 @@ EState GetState()
 
 	if (s_hardware_initialized)
 	{
-		if (CCPU::IsStepping())
+		if (CPU::IsStepping())
 			return CORE_PAUSE;
-		else
-			return CORE_RUN;
+
+		return CORE_RUN;
 	}
 
 	return CORE_UNINITIALIZED;
@@ -707,7 +707,7 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 		return true;
 
 	// first pause or unpause the CPU
-	bool wasUnpaused = CCPU::PauseAndLock(doLock, unpauseOnUnlock);
+	bool wasUnpaused = CPU::PauseAndLock(doLock, unpauseOnUnlock);
 	ExpansionInterface::PauseAndLock(doLock, unpauseOnUnlock);
 
 	// audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
