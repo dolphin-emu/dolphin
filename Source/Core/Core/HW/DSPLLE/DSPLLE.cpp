@@ -74,7 +74,7 @@ void DSPLLE::DoState(PointerWrap &p)
 	}
 
 	p.Do(g_dsp.step_counter);
-	p.Do(g_dsp.ifx_regs);
+	p.DoArray(g_dsp.ifx_regs);
 	p.Do(g_dsp.mbox[0]);
 	p.Do(g_dsp.mbox[1]);
 	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
