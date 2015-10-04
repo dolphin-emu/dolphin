@@ -97,10 +97,10 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 
 	//currently these settings are not saved in global config, so we could've initialized them directly
-	for (int i = 0; i < oStereoPresets.size(); ++i)
+	for (size_t i = 0; i < oStereoPresets.size(); ++i)
 	{
-		enhancements->Get(StringFromFormat("StereoConvergence_%d", i), &oStereoPresets[i].depth, iStereoConvergence);
-		enhancements->Get(StringFromFormat("StereoDepth_%d", i), &oStereoPresets[i].convergence, iStereoDepth);
+		enhancements->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
+		enhancements->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
 	}
 	enhancements->Get("StereoActivePreset", &iStereoActivePreset, 0);
 	iStereoConvergence = oStereoPresets[iStereoActivePreset].convergence;
@@ -212,10 +212,10 @@ void VideoConfig::GameIniLoad()
 
 	//these are not overrides, they are per-game settings, hence no warning
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
-	for (int i = 0; i < oStereoPresets.size(); ++i)
+	for (size_t i = 0; i < oStereoPresets.size(); ++i)
 	{
-		enhancements->Get(StringFromFormat("StereoConvergence_%d", i), &oStereoPresets[i].depth, iStereoConvergence);
-		enhancements->Get(StringFromFormat("StereoDepth_%d", i), &oStereoPresets[i].convergence, iStereoDepth);
+		enhancements->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
+		enhancements->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
 	}
 	enhancements->Get("StereoActivePreset", &iStereoActivePreset, 0);
 	iStereoConvergence = oStereoPresets[iStereoActivePreset].convergence;
