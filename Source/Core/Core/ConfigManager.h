@@ -15,7 +15,7 @@
 #include "DiscIO/Volume.h"
 
 // DSP Backend Types
-#define BACKEND_NULLSOUND   _trans("No audio output")
+#define BACKEND_NULLSOUND   "No audio output"
 #define BACKEND_ALSA        "ALSA"
 #define BACKEND_AOSOUND     "AOSound"
 #define BACKEND_COREAUDIO   "CoreAudio"

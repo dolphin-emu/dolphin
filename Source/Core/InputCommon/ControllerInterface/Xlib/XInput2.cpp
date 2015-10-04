@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstring>
 #include <X11/XKBlib.h>
+#include <cstdlib>
 
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 

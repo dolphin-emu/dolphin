@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "InputCommon/ControllerEmu.h"
+#include "Common/Common.h"
 
 void ControllerEmu::UpdateReferences(ControllerInterface& devi)
 {

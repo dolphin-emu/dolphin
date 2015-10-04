@@ -22,12 +22,12 @@
 #include <IOKit/storage/IOCDMedia.h>
 #include <IOKit/storage/IOMedia.h>
 #include <paths.h>
-#else
+#elif __unix ||__unix__ 
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#endif // WIN32
+#endif
 
 #ifdef __linux__
 #include <linux/cdrom.h>
@@ -208,7 +208,7 @@ std::vector<std::string> cdio_get_devices()
 // Returns true if device is a cdrom/dvd drive
 bool cdio_is_cdrom(std::string device)
 {
-#ifndef _WIN32
+#ifdef _WIN32
 	// Resolve symbolic links. This allows symbolic links to valid
 	// drives to be passed from the command line with the -e flag.
 	char resolved_path[MAX_PATH];
