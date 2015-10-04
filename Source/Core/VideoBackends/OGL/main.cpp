@@ -102,6 +102,11 @@ std::string VideoBackend::GetDisplayName() const
 		return "OpenGL";
 }
 
+std::string VideoBackend::GetConfigName() const
+{
+	return "gfx_opengl";
+}
+
 static std::vector<std::string> GetShaders(const std::string &sub_dir = "")
 {
 	std::vector<std::string> paths = DoFileSearch({".glsl"}, {
@@ -143,7 +148,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 {
 	if (!s_BackendInitialized)
 		InitBackendInfo();
-	Host_ShowVideoConfig(_hParent, GetDisplayName(), "gfx_opengl");
+	Host_ShowVideoConfig(_hParent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoBackend::Initialize(void *window_handle)
@@ -153,7 +158,7 @@ bool VideoBackend::Initialize(void *window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
+	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + GetConfigName() + ".ini");
 	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();

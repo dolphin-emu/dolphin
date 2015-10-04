@@ -64,6 +64,11 @@ std::string VideoBackend::GetDisplayName() const
 	return "Direct3D";
 }
 
+std::string VideoBackend::GetConfigName() const
+{
+	return "gfx_dx11";
+}
+
 void InitBackendInfo()
 {
 	HRESULT hr = DX11::D3D::LoadDXGI();
@@ -142,7 +147,7 @@ void InitBackendInfo()
 void VideoBackend::ShowConfig(void *hParent)
 {
 	InitBackendInfo();
-	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_dx11");
+	Host_ShowVideoConfig(hParent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoBackend::Initialize(void *window_handle)
@@ -155,7 +160,7 @@ bool VideoBackend::Initialize(void *window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_dx11.ini");
+	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + GetConfigName() + ".ini");
 	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();
