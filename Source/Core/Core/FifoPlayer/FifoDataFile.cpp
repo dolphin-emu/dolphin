@@ -202,8 +202,8 @@ FifoDataFile* FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 
 void FifoDataFile::PadFile(size_t numBytes, File::IOFile& file)
 {
-	const u8 zero = 0;
-	fwrite(&zero, sizeof(zero), numBytes, file.GetHandle());
+	for (size_t i = 0; i < numBytes; ++i)
+		fputc(0, file.GetHandle());
 }
 
 void FifoDataFile::SetFlag(u32 flag, bool set)
