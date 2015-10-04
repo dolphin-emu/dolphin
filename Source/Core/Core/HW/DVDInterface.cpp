@@ -28,6 +28,7 @@
 
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
+#include "DiscIO/VolumeWiiCrypted.h"
 
 static const double PI = 3.14159265358979323846264338328;
 
@@ -38,7 +39,7 @@ static const u32 BUFFER_TRANSFER_RATE = 1024 * 1024 * 16;
 // Disc access time measured in milliseconds
 static const u32 DISC_ACCESS_TIME_MS = 50;
 
-// The size of a Wii disc layer in bytes (is this correct?)
+// The size of the first Wii disc layer in bytes
 static const u64 WII_DISC_LAYER_SIZE = 4699979776;
 
 // By knowing the disc read speed at two locations defined here,
@@ -247,6 +248,7 @@ static bool s_stop_at_track_end = false;
 static int  s_finish_execute_command = 0;
 static int  s_dtk = 0;
 
+static u64 s_last_decrypted_block;
 static u64 s_last_read_offset;
 static u64 s_last_read_time;
 
@@ -268,7 +270,8 @@ void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF);
 bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length, bool decrypt,
                         int callback_event_type, DIInterruptType* interrupt_type, u64* ticks_until_completion);
 
-u64 SimulateDiscReadTime(u64 offset, u32 length);
+u64 SimulateDiscReadTimeWii(u64 offset, u32 length, bool decrypt);
+u64 SimulateDiscReadTime(u64 offset, u64 length);
 s64 CalculateRawDiscReadTime(u64 offset, s64 length);
 
 void DoState(PointerWrap &p)
@@ -293,6 +296,7 @@ void DoState(PointerWrap &p)
 	p.Do(s_current_start);
 	p.Do(s_current_length);
 
+	p.Do(s_last_decrypted_block);
 	p.Do(s_last_read_offset);
 	p.Do(s_last_read_time);
 
@@ -402,6 +406,7 @@ void Init()
 	s_stream = false;
 	s_stop_at_track_end = false;
 
+	s_last_decrypted_block = 0;
 	s_last_read_offset = 0;
 	s_last_read_time = 0;
 
@@ -672,7 +677,7 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
 		// An optional hack to speed up loading times
 		*ticks_until_completion = output_length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
 	else
-		*ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
+		*ticks_until_completion = SimulateDiscReadTimeWii(DVD_offset, DVD_length, decrypt);
 
 	DVDThread::StartRead(DVD_offset, output_address, DVD_length, decrypt,
 	                     callback_event_type, (int)*ticks_until_completion);
@@ -1266,11 +1271,55 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 		CoreTiming::ScheduleEvent((int)ticks_until_completion, callback_event_type, interrupt_type);
 }
 
+// This function calls SimulateDiscReadTime and also performs
+// some extra handling when decrypting Wii partition data.
+u64 SimulateDiscReadTimeWii(u64 offset, u32 length, bool decrypt)
+{
+	u64 end_offset = offset + length;
+
+	// When decrypting, we need to translate Wii partition offsets to DVD offsets.
+	// We also need to align offsets to the Wii partition block size, 32 KiB.
+	if (decrypt)
+	{
+		static const u64 WII_BLOCK_SIZE = DiscIO::CVolumeWiiCrypted::s_block_total_size;
+		offset = ROUND_DOWN(s_inserted_volume->OffsetToRawOffset(offset), WII_BLOCK_SIZE);
+
+		if (length == 0)
+		{
+			end_offset = offset;
+		}
+		else
+		{
+			end_offset = ROUND_UP(s_inserted_volume->OffsetToRawOffset(end_offset), WII_BLOCK_SIZE);
+
+			// This simulates IOS having a 32 KiB buffer where it keeps
+			// the last decrypted block, avoiding to re-decrypt it.
+			// This behavior is an unconfirmed guess.
+			if (s_last_decrypted_block == offset)
+				offset += WII_BLOCK_SIZE;
+
+			s_last_decrypted_block = end_offset - WII_BLOCK_SIZE;
+		}
+	}
+
+	return SimulateDiscReadTime(offset, end_offset - offset);
+}
+
 // Simulates the timing aspects of reading data from a disc.
 // Returns the amount of ticks needed to finish executing the command,
 // and sets some state that is used the next time this function runs.
-u64 SimulateDiscReadTime(u64 offset, u32 length)
+u64 SimulateDiscReadTime(u64 offset, u64 length)
 {
+	// Data from a DVD can only be used once an entire ECC block has been read,
+	// so we align the offsets to the size of an ECC block, 32 KiB. This is the
+	// same size as for a Wii partition block, most likely not by coincidence.
+	static const u64 ECC_BLOCK_SIZE = 32768;
+	u64 end_offset = offset + length;
+	u64 buffer_start_for_next_read = ROUND_DOWN(end_offset, ECC_BLOCK_SIZE);
+	offset = ROUND_DOWN(offset, ECC_BLOCK_SIZE);
+	end_offset = (length == 0) ? offset : ROUND_UP(end_offset, ECC_BLOCK_SIZE);
+	u64 aligned_length = end_offset - offset;
+
 	// The drive buffers 1 MiB (?) of data after every read request;
 	// if a read request is covered by this buffer (or if it's
 	// faster to wait for the data to be buffered), the drive
@@ -1298,14 +1347,14 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 	u64 ticks_until_completion;
 
 	// Number of ticks it takes to seek and read directly from the disk.
-	u64 disk_read_duration = CalculateRawDiscReadTime(offset, length) +
+	u64 disk_read_duration = CalculateRawDiscReadTime(offset, aligned_length) +
 		SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
 
 	// Assume unbuffered read if the read we are performing asks for data >
 	// 1MB past the end of the last read *or* asks for data before the last
 	// read. It assumes the buffer is only used when reading small amounts
 	// forward.
-	if (offset + length > s_last_read_offset + 1024 * 1024 || offset < s_last_read_offset)
+	if (end_offset > s_last_read_offset + 1024 * 1024 || offset < s_last_read_offset)
 	{
 		// No buffer; just use the simple seek time + read time.
 		DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes",
@@ -1316,13 +1365,13 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 	else
 	{
 		// Possibly buffered; use the buffer if it saves time.
-		// It's not proven that the buffer actually behaves like this, but
-		// it appears to be a decent approximation.
+		// It's not proven that the buffer actually behaves like this,
+		// but it appears to be a decent approximation.
 
 		// Time at which the buffer will contain the data we need.
 		u64 buffer_fill_time = s_last_read_time +
 		                       CalculateRawDiscReadTime(s_last_read_offset,
-		                       offset + length - s_last_read_offset);
+		                       end_offset - s_last_read_offset);
 		// Number of ticks it takes to transfer the data from the buffer to memory.
 		u64 buffer_read_duration = length *
 			(SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
@@ -1349,7 +1398,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 		}
 	}
 
-	s_last_read_offset = ROUND_DOWN(offset + length - 2048, 2048);
+	s_last_read_offset = buffer_start_for_next_read;
 
 	return ticks_until_completion;
 }
@@ -1364,10 +1413,15 @@ s64 CalculateRawDiscReadTime(u64 offset, s64 length)
 	// but since reads only span a small part of the disc, it's insignificant.
 	u64 average_offset = offset + (length / 2);
 
-	// Here, addresses on the second layer of Wii discs are replaced with equivalent
-	// addresses on the first layer so that the speed calculation works correctly.
-	// This is wrong for reads spanning two layers, but those should be rare.
+	// Offsets on layers beyond layer 1 are replaced with equivalent offsets
+	// on layer 1 so that the speed calculation will work correctly.
+	// Layer 2 starts where layer 1 ends and goes backwards.
+	// This code also supports layers beyond layer 2,
+	// but discs with that many layers don't exist in reality.
+	bool layer_goes_backwards = (average_offset / WII_DISC_LAYER_SIZE) % 2 == 1;
 	average_offset %= WII_DISC_LAYER_SIZE;
+	if (layer_goes_backwards)
+		average_offset = WII_DISC_LAYER_SIZE - average_offset;
 
 	// The area on the disc between position 1 and the arbitrary position X is:
 	// LOCATION_X_SPEED * LOCATION_X_SPEED * pi - AREA_UP_TO_LOCATION_1

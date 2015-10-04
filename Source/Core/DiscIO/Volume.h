@@ -82,6 +82,7 @@ public:
 
 	virtual bool GetTitleID(u64*) const { return false; }
 	virtual std::vector<u8> GetTMD() const { return {}; }
+	virtual u64 OffsetToRawOffset(u64 offset) const { return offset; }
 	virtual std::string GetUniqueID() const = 0;
 	virtual std::string GetMakerID() const = 0;
 	virtual u16 GetRevision() const = 0;
