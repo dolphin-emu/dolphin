@@ -110,6 +110,7 @@
     <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="Profiler.h" />
+    <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="StringUtil.h" />
