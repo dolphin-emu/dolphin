@@ -1331,7 +1331,7 @@ void GetSettings()
 
 		file_irom.ReadArray(irom.data(), DSP_IROM_SIZE);
 		file_irom.Close();
-		for (int i = 0; i < DSP_IROM_SIZE; ++i)
+		for (u32 i = 0; i < DSP_IROM_SIZE; ++i)
 			irom[i] = Common::swap16(irom[i]);
 
 		std::vector<u16> coef(DSP_COEF_SIZE);
@@ -1339,7 +1339,7 @@ void GetSettings()
 
 		file_coef.ReadArray(coef.data(), DSP_COEF_SIZE);
 		file_coef.Close();
-		for (int i = 0; i < DSP_COEF_SIZE; ++i)
+		for (u32 i = 0; i < DSP_COEF_SIZE; ++i)
 			coef[i] = Common::swap16(coef[i]);
 		s_DSPiromHash = HashAdler32((u8*)irom.data(), DSP_IROM_BYTE_SIZE);
 		s_DSPcoefHash = HashAdler32((u8*)coef.data(), DSP_COEF_BYTE_SIZE);
