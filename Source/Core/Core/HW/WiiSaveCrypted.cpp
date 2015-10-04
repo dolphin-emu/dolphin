@@ -14,9 +14,9 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <polarssl/aes.h>
-#include <polarssl/md5.h>
-#include <polarssl/sha1.h>
+#include <mbedtls/aes.h>
+#include <mbedtls/md5.h>
+#include <mbedtls/sha1.h>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
@@ -112,7 +112,7 @@ CWiiSaveCrypted::CWiiSaveCrypted(const std::string& filename, u64 title_id)
 
 	if (!title_id) // Import
 	{
-		aes_setkey_dec(&m_aes_ctx, s_sd_key, 128);
+		mbedtls_aes_setkey_dec(&m_aes_ctx, s_sd_key, 128);
 		m_valid = true;
 		ReadHDR();
 		ReadBKHDR();
@@ -129,7 +129,7 @@ CWiiSaveCrypted::CWiiSaveCrypted(const std::string& filename, u64 title_id)
 	}
 	else
 	{
-		aes_setkey_enc(&m_aes_ctx, s_sd_key, 128);
+		mbedtls_aes_setkey_enc(&m_aes_ctx, s_sd_key, 128);
 
 		if (getPaths(true))
 		{
@@ -159,7 +159,7 @@ void CWiiSaveCrypted::ReadHDR()
 	}
 	data_file.Close();
 
-	aes_crypt_cbc(&m_aes_ctx, AES_DECRYPT, HEADER_SZ, m_sd_iv, (const u8*)&m_encrypted_header,
+	mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, HEADER_SZ, m_sd_iv, (const u8*)&m_encrypted_header,
 		(u8*)&m_header);
 	u32 banner_size = Common::swap32(m_header.hdr.BannerSize);
 	if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
@@ -176,7 +176,7 @@ void CWiiSaveCrypted::ReadHDR()
 	u8 md5_calc[16];
 	memcpy(md5_file, m_header.hdr.Md5, 0x10);
 	memcpy(m_header.hdr.Md5, s_md5_blanker, 0x10);
-	md5((u8*)&m_header, HEADER_SZ, md5_calc);
+	mbedtls_md5((u8*)&m_header, HEADER_SZ, md5_calc);
 	if (memcmp(md5_file, md5_calc, 0x10))
 	{
 		ERROR_LOG(CONSOLE, "MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64,
@@ -224,10 +224,10 @@ void CWiiSaveCrypted::WriteHDR()
 	m_header.BNR[7] &= ~1;
 
 	u8 md5_calc[16];
-	md5((u8*)&m_header, HEADER_SZ, md5_calc);
+	mbedtls_md5((u8*)&m_header, HEADER_SZ, md5_calc);
 	memcpy(m_header.hdr.Md5, md5_calc, 0x10);
 
-	aes_crypt_cbc(&m_aes_ctx, AES_ENCRYPT, HEADER_SZ, m_sd_iv, (const u8*)&m_header,
+	mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_ENCRYPT, HEADER_SZ, m_sd_iv, (const u8*)&m_header,
 		(u8*)&m_encrypted_header);
 
 	File::IOFile data_file(m_encrypted_save_path, "wb");
@@ -367,7 +367,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 				}
 
 				memcpy(m_iv, file_hdr_tmp.IV, 0x10);
-				aes_crypt_cbc(&m_aes_ctx, AES_DECRYPT, file_size_rounded, m_iv,
+				mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, file_size_rounded, m_iv,
 					(const u8*)&file_data_enc[0], &file_data[0]);
 
 				if (!File::Exists(file_path_full) ||
@@ -457,7 +457,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 				m_valid = false;
 			}
 
-			aes_crypt_cbc(&m_aes_ctx, AES_ENCRYPT, file_size_rounded,
+			mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_ENCRYPT, file_size_rounded,
 				file_hdr_tmp.IV, (const u8*)&file_data[0], &file_data_enc[0]);
 
 			File::IOFile fpData_bin(m_encrypted_save_path, "ab");
@@ -511,7 +511,7 @@ void CWiiSaveCrypted::do_sig()
 	sprintf(name, "AP%08x%08x", 1, 2);
 	make_ec_cert(ap_cert, ap_sig, signer, name, ap_priv, 0);
 
-	sha1(ap_cert + 0x80, 0x100, hash);
+	mbedtls_sha1(ap_cert + 0x80, 0x100, hash);
 	generate_ecdsa(ap_sig, ap_sig + 30, ng_priv, hash);
 	make_ec_cert(ap_cert, ap_sig, signer, name, ap_priv, 0);
 
@@ -532,8 +532,8 @@ void CWiiSaveCrypted::do_sig()
 		return;
 	}
 
-	sha1(data.get(), data_size, hash);
-	sha1(hash, 20, hash);
+	mbedtls_sha1(data.get(), data_size, hash);
+	mbedtls_sha1(hash, 20, hash);
 
 	data_file.Open(m_encrypted_save_path, "ab");
 	if (!data_file)
