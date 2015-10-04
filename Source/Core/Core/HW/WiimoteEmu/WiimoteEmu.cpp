@@ -893,53 +893,51 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
 	ControllerEmu::LoadDefaults(ciface);
 
-	#define set_control(group, num, str) (group)->controls[num]->control_ref->expression = (str)
-
 	// Buttons
 #if defined HAVE_X11 && HAVE_X11
-	set_control(m_buttons, 0, "Click 1"); // A
-	set_control(m_buttons, 1, "Click 3"); // B
+	m_buttons->SetControlExpression(0, "Click 1"); // A
+	m_buttons->SetControlExpression(1, "Click 3"); // B
 #else
-	set_control(m_buttons, 0, "Click 0"); // A
-	set_control(m_buttons, 1, "Click 1"); // B
+	m_buttons->SetControlExpression(0, "Click 0"); // A
+	m_buttons->SetControlExpression(1, "Click 1"); // B
 #endif
-	set_control(m_buttons, 2, "1"); // 1
-	set_control(m_buttons, 3, "2"); // 2
-	set_control(m_buttons, 4, "Q"); // -
-	set_control(m_buttons, 5, "E"); // +
+	m_buttons->SetControlExpression(2, "1"); // 1
+	m_buttons->SetControlExpression(3, "2"); // 2
+	m_buttons->SetControlExpression(4, "Q"); // -
+	m_buttons->SetControlExpression(5, "E"); // +
 
 #ifdef _WIN32
-	set_control(m_buttons, 6, "!LMENU & RETURN"); // Home
+	m_buttons->SetControlExpression(6, "!LMENU & RETURN"); // Home
 #else
-	set_control(m_buttons, 6, "!`Alt_L` & Return"); // Home
+	m_buttons->SetControlExpression(6, "!`Alt_L` & Return"); // Home
 #endif
 
 	// Shake
-	for (size_t i = 0; i != 3; ++i)
-		set_control(m_shake, i, "Click 2");
+	for (int i = 0; i < 3; ++i)
+		m_shake->SetControlExpression(i, "Click 2");
 
 	// IR
-	set_control(m_ir, 0, "Cursor Y-");
-	set_control(m_ir, 1, "Cursor Y+");
-	set_control(m_ir, 2, "Cursor X-");
-	set_control(m_ir, 3, "Cursor X+");
+	m_ir->SetControlExpression(0, "Cursor Y-");
+	m_ir->SetControlExpression(1, "Cursor Y+");
+	m_ir->SetControlExpression(2, "Cursor X-");
+	m_ir->SetControlExpression(3, "Cursor X+");
 
 	// DPad
 #ifdef _WIN32
-	set_control(m_dpad, 0, "UP");    // Up
-	set_control(m_dpad, 1, "DOWN");  // Down
-	set_control(m_dpad, 2, "LEFT");  // Left
-	set_control(m_dpad, 3, "RIGHT"); // Right
+	m_dpad->SetControlExpression(0, "UP");    // Up
+	m_dpad->SetControlExpression(1, "DOWN");  // Down
+	m_dpad->SetControlExpression(2, "LEFT");  // Left
+	m_dpad->SetControlExpression(3, "RIGHT"); // Right
 #elif __APPLE__
-	set_control(m_dpad, 0, "Up Arrow");    // Up
-	set_control(m_dpad, 1, "Down Arrow");  // Down
-	set_control(m_dpad, 2, "Left Arrow");  // Left
-	set_control(m_dpad, 3, "Right Arrow"); // Right
+	m_dpad->SetControlExpression(0, "Up Arrow");    // Up
+	m_dpad->SetControlExpression(1, "Down Arrow");  // Down
+	m_dpad->SetControlExpression(2, "Left Arrow");  // Left
+	m_dpad->SetControlExpression(3, "Right Arrow"); // Right
 #else
-	set_control(m_dpad, 0, "Up");    // Up
-	set_control(m_dpad, 1, "Down");  // Down
-	set_control(m_dpad, 2, "Left");  // Left
-	set_control(m_dpad, 3, "Right"); // Right
+	m_dpad->SetControlExpression(0, "Up");    // Up
+	m_dpad->SetControlExpression(1, "Down");  // Down
+	m_dpad->SetControlExpression(2, "Left");  // Left
+	m_dpad->SetControlExpression(3, "Right"); // Right
 #endif
 
 	// ugly stuff
