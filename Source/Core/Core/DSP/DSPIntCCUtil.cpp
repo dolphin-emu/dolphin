@@ -108,42 +108,42 @@ void Update_SR_LZ(bool value)
 
 inline int GetMultiplyModifier()
 {
-	return (g_dsp.r.sr & SR_MUL_MODIFY)?1:2;
+	return (g_dsp.r.sr & SR_MUL_MODIFY) ? 1 : 2;
 }
 
-inline bool isCarry()
+static bool IsCarry()
 {
-	return (g_dsp.r.sr & SR_CARRY) ? true : false;
+	return (g_dsp.r.sr & SR_CARRY) != 0;
 }
 
-inline bool isOverflow()
+static bool IsOverflow()
 {
-	return (g_dsp.r.sr & SR_OVERFLOW) ? true : false;
+	return (g_dsp.r.sr & SR_OVERFLOW) != 0;
 }
 
-inline bool isOverS32()
+static bool IsOverS32()
 {
-	return (g_dsp.r.sr & SR_OVER_S32) ? true : false;
+	return (g_dsp.r.sr & SR_OVER_S32) != 0;
 }
 
-inline bool isLess()
+static bool IsLess()
 {
 	return (!(g_dsp.r.sr & SR_OVERFLOW) != !(g_dsp.r.sr & SR_SIGN));
 }
 
-inline bool isZero()
+static bool IsZero()
 {
-	return (g_dsp.r.sr & SR_ARITH_ZERO) ? true : false;
+	return (g_dsp.r.sr & SR_ARITH_ZERO) != 0;
 }
 
-inline bool isLogicZero()
+static bool IsLogicZero()
 {
-	return (g_dsp.r.sr & SR_LOGIC_ZERO) ? true : false;
+	return (g_dsp.r.sr & SR_LOGIC_ZERO) != 0;
 }
 
-inline bool isConditionA()
+static bool IsConditionA()
 {
-	return (((g_dsp.r.sr & SR_OVER_S32) || (g_dsp.r.sr & SR_TOP2BITS)) && !(g_dsp.r.sr & SR_ARITH_ZERO)) ? true : false;
+	return (((g_dsp.r.sr & SR_OVER_S32) || (g_dsp.r.sr & SR_TOP2BITS)) && !(g_dsp.r.sr & SR_ARITH_ZERO)) != 0;
 }
 
 //see DSPCore.h for flags
@@ -154,35 +154,35 @@ bool CheckCondition(u8 _Condition)
 	case 0xf: // Always true.
 		return true;
 	case 0x0: // GE - Greater Equal
-		return !isLess();
+		return !IsLess();
 	case 0x1: // L - Less
-		return isLess();
+		return IsLess();
 	case 0x2: // G - Greater
-		return !isLess() && !isZero();
+		return !IsLess() && !IsZero();
 	case 0x3: // LE - Less Equal
-		return isLess() || isZero();
+		return IsLess() || IsZero();
 	case 0x4: // NZ - Not Zero
-		return !isZero();
+		return !IsZero();
 	case 0x5: // Z - Zero
-		return isZero();
+		return IsZero();
 	case 0x6: // NC - Not carry
-		return !isCarry();
+		return !IsCarry();
 	case 0x7: // C - Carry
-		return isCarry();
+		return IsCarry();
 	case 0x8: // ? - Not over s32
-		return !isOverS32();
+		return !IsOverS32();
 	case 0x9: // ? - Over s32
-		return isOverS32();
+		return IsOverS32();
 	case 0xa: // ?
-		return isConditionA();
+		return IsConditionA();
 	case 0xb: // ?
-		return !isConditionA();
+		return !IsConditionA();
 	case 0xc: // LNZ  - Logic Not Zero
-		return !isLogicZero();
+		return !IsLogicZero();
 	case 0xd: // LZ - Logic Zero
-		return isLogicZero();
+		return IsLogicZero();
 	case 0xe: // 0 - Overflow
-		return isOverflow();
+		return IsOverflow();
 	default:
 		return true;
 	}
