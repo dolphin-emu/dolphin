@@ -2,8 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
 #include "Core/HW/BBA-TAP/TAP_Win32.h"
@@ -152,8 +153,8 @@ bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 {
 	auto const device_path = USERMODEDEVICEDIR + device_guid + TAPSUFFIX;
 
-	adapter = CreateFile(device_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, 0);
+	adapter = CreateFile(device_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
+		OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, nullptr);
 
 	if (adapter == INVALID_HANDLE_VALUE)
 	{
@@ -249,7 +250,7 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 	ZeroMemory(&overlap, sizeof(overlap));
 
 	// WriteFile will always return false because the TAP handle is async
-	WriteFile(mHAdapter, frame, size, NULL, &overlap);
+	WriteFile(mHAdapter, frame, size, nullptr, &overlap);
 
 	DWORD res = GetLastError();
 	if (res != ERROR_IO_PENDING)

@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #ifndef _WIN32
 #include <unistd.h>
 #endif
 
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
 

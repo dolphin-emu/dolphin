@@ -23,11 +23,11 @@
 namespace DiscIO
 {
 
-bool IsCompressedBlob(const std::string& filename);
+bool IsGCZBlob(const std::string& filename);
 
 const u32 kBlobCookie = 0xB10BC001;
 
-// A blob file structure:
+// GCZ file structure:
 // BlobHeader
 // u64 offsetsToBlocks[n], top bit specifies whether the block is compressed, or not.
 // compressed data
@@ -49,6 +49,7 @@ public:
 	static CompressedBlobReader* Create(const std::string& filename);
 	~CompressedBlobReader();
 	const CompressedBlobHeader &GetHeader() const { return m_header; }
+	BlobType GetBlobType() const override { return BlobType::GCZ; }
 	u64 GetDataSize() const override { return m_header.data_size; }
 	u64 GetRawSize() const override { return m_file_size; }
 	u64 GetBlockCompressedSize(u64 block_num) const;

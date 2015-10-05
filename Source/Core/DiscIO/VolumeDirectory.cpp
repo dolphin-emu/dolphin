@@ -10,10 +10,13 @@
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/FileBlob.h"
 #include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
@@ -223,6 +226,14 @@ std::string CVolumeDirectory::GetApploaderDate() const
 IVolume::EPlatform CVolumeDirectory::GetVolumeType() const
 {
 	return m_is_wii ? WII_DISC : GAMECUBE_DISC;
+}
+
+BlobType CVolumeDirectory::GetBlobType() const
+{
+	// VolumeDirectory isn't actually a blob, but it sort of acts
+	// like one, so it makes sense that it has its own blob type.
+	// It should be made into a proper blob in the future.
+	return BlobType::DIRECTORY;
 }
 
 u64 CVolumeDirectory::GetSize() const
@@ -470,7 +481,7 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 		m_virtualDisk.emplace(dataOffset, entry.physicalName);
 
 		// 4 byte aligned
-		dataOffset = ROUND_UP(dataOffset + entry.size, 0x8000ull);
+		dataOffset = ROUND_UP(dataOffset + std::max<u64>(entry.size, 1ull), 0x8000ull);
 	}
 }
 

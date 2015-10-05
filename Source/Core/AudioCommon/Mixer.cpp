@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Mixer.h"
 #include "Common/CPUDetect.h"
@@ -17,6 +19,18 @@
 #if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
 #include <tmmintrin.h>
 #endif
+
+CMixer::CMixer(unsigned int BackendSampleRate)
+	: m_dma_mixer(this, 32000)
+	, m_streaming_mixer(this, 48000)
+	, m_wiimote_speaker_mixer(this, 3000)
+	, m_sampleRate(BackendSampleRate)
+	, m_log_dtk_audio(false)
+	, m_log_dsp_audio(false)
+	, m_speed(0)
+{
+	INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
+}
 
 // Executed from sound stream thread
 unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)

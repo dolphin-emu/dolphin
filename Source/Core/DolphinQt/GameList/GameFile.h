@@ -10,6 +10,7 @@
 
 #include <string>
 
+#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
@@ -34,9 +35,14 @@ public:
 	const QString GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const { return m_country; }
 	DiscIO::IVolume::EPlatform GetPlatform() const { return m_platform; }
+	DiscIO::BlobType GetBlobType() const { m_blob_type; }
 	const QString GetIssues() const { return m_issues; }
 	int GetEmuState() const { return m_emu_state; }
-	bool IsCompressed() const { return m_compressed; }
+	bool IsCompressed() const
+	{
+		return m_blob_type == DiscIO::BlobType::GCZ || m_blob_type == DiscIO::BlobType::CISO ||
+		       m_blob_type == DiscIO::BlobType::WBFS;
+	}
 	u64 GetFileSize() const { return m_file_size; }
 	u64 GetVolumeSize() const { return m_volume_size; }
 	// 0 is the first disc, 1 is the second disc
@@ -68,11 +74,11 @@ private:
 
 	DiscIO::IVolume::ECountry m_country = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	DiscIO::IVolume::EPlatform m_platform;
+	DiscIO::BlobType m_blob_type;
 	u16 m_revision = 0;
 
 	QPixmap m_banner;
 	bool m_valid = false;
-	bool m_compressed = false;
 	u8 m_disc_number = 0;
 
 	bool LoadFromCache();

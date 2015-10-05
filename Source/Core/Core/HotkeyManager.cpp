@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
 
@@ -116,6 +117,12 @@ const std::string hotkey_labels[] =
 	_trans("Undo Save State"),
 	_trans("Save State"),
 	_trans("Load State"),
+
+	_trans("Toggle 3D Preset"),
+	_trans("Use 3D Preset 1"),
+	_trans("Use 3D Preset 2"),
+	_trans("Use 3D Preset 3"),
+
 };
 static_assert(NUM_HOTKEYS == sizeof(hotkey_labels) / sizeof(hotkey_labels[0]), "Wrong count of hotkey_labels");
 
@@ -260,48 +267,50 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 	const std::string CTRL = "(!`Alt_L` & !(`Shift_L` | `Shift_R`) & (`Control_L` | `Control_R` ))";
 #endif
 
-	#define set_control(num, str)  (m_keys[(num) / 32])->controls[(num) % 32]->control_ref->expression = (str)
+	auto set_key_expression = [this](int index, const std::string& expression) {
+		m_keys[index / 32]->controls[index % 32]->control_ref->expression = expression;
+	};
 
 	// General hotkeys
-	set_control(HK_OPEN, CTRL + " & O");
-	set_control(HK_PLAY_PAUSE, "`F10`");
+	set_key_expression(HK_OPEN, CTRL + " & O");
+	set_key_expression(HK_PLAY_PAUSE, "`F10`");
 #ifdef _WIN32
-	set_control(HK_STOP, "ESCAPE");
-	set_control(HK_FULLSCREEN, ALT + " & RETURN");
+	set_key_expression(HK_STOP, "ESCAPE");
+	set_key_expression(HK_FULLSCREEN, ALT + " & RETURN");
 #else
-	set_control(HK_STOP, "Escape");
-	set_control(HK_FULLSCREEN, ALT + " & Return");
+	set_key_expression(HK_STOP, "Escape");
+	set_key_expression(HK_FULLSCREEN, ALT + " & Return");
 #endif
-	set_control(HK_SCREENSHOT, NON + " & `F9`");
-	set_control(HK_WIIMOTE1_CONNECT, ALT + " & `F5`");
-	set_control(HK_WIIMOTE2_CONNECT, ALT + " & `F6`");
-	set_control(HK_WIIMOTE3_CONNECT, ALT + " & `F7`");
-	set_control(HK_WIIMOTE4_CONNECT, ALT + " & `F8`");
-	set_control(HK_BALANCEBOARD_CONNECT, ALT + " & `F9`");
+	set_key_expression(HK_SCREENSHOT, NON + " & `F9`");
+	set_key_expression(HK_WIIMOTE1_CONNECT, ALT + " & `F5`");
+	set_key_expression(HK_WIIMOTE2_CONNECT, ALT + " & `F6`");
+	set_key_expression(HK_WIIMOTE3_CONNECT, ALT + " & `F7`");
+	set_key_expression(HK_WIIMOTE4_CONNECT, ALT + " & `F8`");
+	set_key_expression(HK_BALANCEBOARD_CONNECT, ALT + " & `F9`");
 #ifdef _WIN32
-	set_control(HK_TOGGLE_THROTTLE, "TAB");
+	set_key_expression(HK_TOGGLE_THROTTLE, "TAB");
 #else
-	set_control(HK_TOGGLE_THROTTLE, "Tab");
+	set_key_expression(HK_TOGGLE_THROTTLE, "Tab");
 #endif
 
 	// Freelook
-	set_control(HK_FREELOOK_DECREASE_SPEED, SHIFT + " & `1`");
-	set_control(HK_FREELOOK_INCREASE_SPEED, SHIFT + " & `2`");
-	set_control(HK_FREELOOK_RESET_SPEED, SHIFT + " & F");
-	set_control(HK_FREELOOK_UP, SHIFT + " & E");
-	set_control(HK_FREELOOK_DOWN, SHIFT + " & Q");
-	set_control(HK_FREELOOK_LEFT, SHIFT + " & A");
-	set_control(HK_FREELOOK_RIGHT, SHIFT + " & D");
-	set_control(HK_FREELOOK_ZOOM_IN, SHIFT + " & W");
-	set_control(HK_FREELOOK_ZOOM_OUT, SHIFT + " & S");
-	set_control(HK_FREELOOK_RESET, SHIFT + " & R");
+	set_key_expression(HK_FREELOOK_DECREASE_SPEED, SHIFT + " & `1`");
+	set_key_expression(HK_FREELOOK_INCREASE_SPEED, SHIFT + " & `2`");
+	set_key_expression(HK_FREELOOK_RESET_SPEED, SHIFT + " & F");
+	set_key_expression(HK_FREELOOK_UP, SHIFT + " & E");
+	set_key_expression(HK_FREELOOK_DOWN, SHIFT + " & Q");
+	set_key_expression(HK_FREELOOK_LEFT, SHIFT + " & A");
+	set_key_expression(HK_FREELOOK_RIGHT, SHIFT + " & D");
+	set_key_expression(HK_FREELOOK_ZOOM_IN, SHIFT + " & W");
+	set_key_expression(HK_FREELOOK_ZOOM_OUT, SHIFT + " & S");
+	set_key_expression(HK_FREELOOK_RESET, SHIFT + " & R");
 
 	// Savestates
 	for (int i = 0; i < 8; i++)
 	{
-		set_control(HK_LOAD_STATE_SLOT_1 + i, StringFromFormat((NON + " & `F%d`").c_str(), i + 1));
-		set_control(HK_SAVE_STATE_SLOT_1 + i, StringFromFormat((SHIFT + " & `F%d`").c_str(), i + 1));
+		set_key_expression(HK_LOAD_STATE_SLOT_1 + i, StringFromFormat((NON + " & `F%d`").c_str(), i + 1));
+		set_key_expression(HK_SAVE_STATE_SLOT_1 + i, StringFromFormat((SHIFT + " & `F%d`").c_str(), i + 1));
 	}
-	set_control(HK_UNDO_LOAD_STATE, NON + " & `F12`");
-	set_control(HK_UNDO_SAVE_STATE, SHIFT + " & `F12`");
+	set_key_expression(HK_UNDO_LOAD_STATE, NON + " & `F12`");
+	set_key_expression(HK_UNDO_SAVE_STATE, SHIFT + " & `F12`");
 }

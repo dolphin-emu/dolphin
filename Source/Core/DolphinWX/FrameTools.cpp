@@ -845,10 +845,7 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 		// Core is initialized and emulator is running
 		if (UseDebugger)
 		{
-			if (CCPU::IsStepping())
-				CCPU::EnableStepping(false);
-			else
-				CCPU::EnableStepping(true);  // Break
+			CPU::EnableStepping(!CPU::IsStepping());
 
 			wxThread::Sleep(20);
 			g_pCodeWindow->JumpToAddress(PC);
@@ -1956,7 +1953,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_ListDrives = event.IsChecked();
 		break;
 	case IDM_PURGE_CACHE:
-		std::vector<std::string> rFilenames = DoFileSearch({"*.cache"}, {File::GetUserPath(D_CACHE_IDX)});
+		std::vector<std::string> rFilenames = DoFileSearch({".cache"}, {File::GetUserPath(D_CACHE_IDX)});
 
 		for (const std::string& rFilename : rFilenames)
 		{

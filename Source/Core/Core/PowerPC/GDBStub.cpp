@@ -247,7 +247,7 @@ static void gdb_read_command()
 	}
 	else if (c == 0x03)
 	{
-		CCPU::Break();
+		CPU::Break();
 		gdb_signal(SIGTRAP);
 		return;
 	}

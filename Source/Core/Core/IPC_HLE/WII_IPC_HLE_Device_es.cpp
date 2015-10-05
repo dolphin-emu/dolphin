@@ -33,11 +33,11 @@
 */
 // =============
 
-// need to include this before polarssl/aes.h,
+// need to include this before mbedtls/aes.h,
 // otherwise we may not get __STDC_FORMAT_MACROS
 #include <cinttypes>
 #include <memory>
-#include <polarssl/aes.h>
+#include <mbedtls/aes.h>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -115,8 +115,7 @@ void CWII_IPC_HLE_Device_es::OpenInternal()
 	{
 		// blindly grab the titleID from the disc - it's unencrypted at:
 		// offset 0x0F8001DC and 0x0F80044C
-		DVDInterface::GetVolume().GetTitleID((u8*)&m_TitleID);
-		m_TitleID = Common::swap64(m_TitleID);
+		DVDInterface::GetVolume().GetTitleID(&m_TitleID);
 	}
 	else
 	{
@@ -181,7 +180,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 	if (m_Active)
 		INFO_LOG(WII_IPC_ES, "Device was re-opened.");
 	m_Active = true;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
@@ -202,7 +201,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
@@ -282,7 +281,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID %08X", ec.getNgId());
 			Memory::Write_U32(ec.getNgId(), Buffer.PayloadBuffer[0].m_Address);
 			Memory::Write_U32(0, _CommandAddress + 0x4);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -312,7 +311,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i",
 				(u32)(TitleID>>32), (u32)TitleID, rNANDContent.IsValid() ? NumberOfPrivateContent : (u32)rNANDContent.GetContentSize());
 
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -340,7 +339,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					rNANDCOntent.GetContentSize());
 			}
 
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -358,7 +357,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x", (u32)(TitleID>>32), (u32)TitleID, Index, CFD);
 
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -372,7 +371,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			Memory::Write_U32(CFD, _CommandAddress + 0x4);
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
 
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -389,7 +388,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			if (itr == m_ContentAccessMap.end())
 			{
 				Memory::Write_U32(-1, _CommandAddress + 0x4);
-				return IPC_DEFAULT_REPLY;
+				return GetDefaultReply();
 			}
 			SContentAccess& rContent = itr->second;
 
@@ -431,7 +430,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)", CFD, Addr, Size, rContent.m_Position, rContent.m_pContent->m_Index);
 
 			Memory::Write_U32(Size, _CommandAddress + 0x4);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -448,14 +447,14 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			if (itr == m_ContentAccessMap.end())
 			{
 				Memory::Write_U32(-1, _CommandAddress + 0x4);
-				return IPC_DEFAULT_REPLY;
+				return GetDefaultReply();
 			}
 
 			delete itr->second.m_pFile;
 			m_ContentAccessMap.erase(itr);
 
 			Memory::Write_U32(0, _CommandAddress + 0x4);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -472,7 +471,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			if (itr == m_ContentAccessMap.end())
 			{
 				Memory::Write_U32(-1, _CommandAddress + 0x4);
-				return IPC_DEFAULT_REPLY;
+				return GetDefaultReply();
 			}
 			SContentAccess& rContent = itr->second;
 
@@ -494,7 +493,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_SEEKCONTENT: CFD %x, Address 0x%x, Mode %i -> Pos %i", CFD, Addr, Mode, rContent.m_Position);
 
 			Memory::Write_U32(rContent.m_Position, _CommandAddress + 0x4);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -544,7 +543,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -567,7 +566,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLES: Number of titles returned %i", Count);
 			Memory::Write_U32(0, _CommandAddress + 0x4);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -614,7 +613,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			Memory::Write_U32(ViewCount, Buffer.PayloadBuffer[0].m_Address);
 			Memory::Write_U32(retVal, _CommandAddress + 0x4);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -678,7 +677,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)", (u32)(TitleID >> 32), (u32)TitleID, maxViews);
 
 			Memory::Write_U32(retVal, _CommandAddress + 0x4);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -704,7 +703,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)", (u32)(TitleID >> 32), (u32)TitleID, TMDViewCnt);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -744,7 +743,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -752,7 +751,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		Memory::Write_U32(0, Buffer.PayloadBuffer[1].m_Address);
 		Memory::Write_U32(0, _CommandAddress + 0x4);
 		WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETCONSUMPTION:%d", Memory::Read_U32(_CommandAddress+4));
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 
 	case IOCTL_ES_DELETETICKET:
 		{
@@ -806,7 +805,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)", (u32)(TitleID >> 32), (u32)TitleID, TMDCnt);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 	case IOCTL_ES_GETSTOREDTMD:
@@ -847,7 +846,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x (buffer size: %i)", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
-			return IPC_DEFAULT_REPLY;
+			return GetDefaultReply();
 		}
 		break;
 
@@ -860,10 +859,10 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8* newIV       = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 			u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
-			aes_context AES_ctx;
-			aes_setkey_enc(&AES_ctx, keyTable[keyIndex], 128);
+			mbedtls_aes_context AES_ctx;
+			mbedtls_aes_setkey_enc(&AES_ctx, keyTable[keyIndex], 128);
 			memcpy(newIV, IV, 16);
-			aes_crypt_cbc(&AES_ctx, AES_ENCRYPT, size, newIV, source, destination);
+			mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_ENCRYPT, size, newIV, source, destination);
 
 			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_ENCRYPT: Key type is not SD, data will be crap");
 		}
@@ -878,10 +877,10 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8* newIV       = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 			u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
-			aes_context AES_ctx;
-			aes_setkey_dec(&AES_ctx, keyTable[keyIndex], 128);
+			mbedtls_aes_context AES_ctx;
+			mbedtls_aes_setkey_dec(&AES_ctx, keyTable[keyIndex], 128);
 			memcpy(newIV, IV, 16);
-			aes_crypt_cbc(&AES_ctx, AES_DECRYPT, size, newIV, source, destination);
+			mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, newIV, source, destination);
 
 			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");
 		}
@@ -1004,7 +1003,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			// Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
 			// involves restarting IOS; IOS generates two acknowledgements in a row.
 			WII_IPC_HLE_Interface::EnqueueCommandAcknowledgement(_CommandAddress, 0);
-			return IPC_NO_REPLY;
+			return GetNoReply();
 		}
 		break;
 
@@ -1013,7 +1012,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		//if the IOS didn't find the Korean keys and 0 if it does. 0 leads to a error 003
 		WARN_LOG(WII_IPC_ES,"IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
 		Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT , _CommandAddress + 0x4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 
 	case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
 		{
@@ -1069,7 +1068,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 	// Write return value (0 means OK)
 	Memory::Write_U32(0, _CommandAddress + 0x4);
 
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 const DiscIO::INANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 _TitleID)
@@ -1100,8 +1099,8 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 {
 	u64 titleID = 0xDEADBEEFDEADBEEFull;
 	u64 tmdTitleID = Common::swap64(*(u64*)(_pTMD+0x18c));
-	DVDInterface::GetVolume().GetTitleID((u8*)&titleID);
-	if (Common::swap64(titleID) != tmdTitleID)
+	DVDInterface::GetVolume().GetTitleID(&titleID);
+	if (titleID != tmdTitleID)
 	{
 		return -1;
 	}

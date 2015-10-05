@@ -21,7 +21,6 @@ class AlsaSound final : public SoundStream
 #if defined(HAVE_ALSA) && HAVE_ALSA
 public:
 	AlsaSound();
-	virtual ~AlsaSound();
 
 	bool Start() override;
 	void SoundLoop() override;
@@ -35,9 +34,19 @@ public:
 	}
 
 private:
+	// maximum number of frames the buffer can hold
+	static constexpr size_t BUFFER_SIZE_MAX = 8192;
+
+	// minimum number of frames to deliver in one transfer
+	static constexpr u32 FRAME_COUNT_MIN = 256;
+
+	// number of channels per frame
+	static constexpr u32 CHANNEL_COUNT = 2;
+
 	enum class ALSAThreadStatus
 	{
 		RUNNING,
+		PAUSED,
 		STOPPING,
 		STOPPED,
 	};
@@ -45,13 +54,13 @@ private:
 	bool AlsaInit();
 	void AlsaShutdown();
 
-	u8 *mix_buffer;
+	s16 mix_buffer[BUFFER_SIZE_MAX * CHANNEL_COUNT];
 	std::thread thread;
 	std::atomic<ALSAThreadStatus> m_thread_status;
 	std::condition_variable cv;
 	std::mutex cv_m;
 
 	snd_pcm_t *handle;
-	int frames_to_deliver;
+	unsigned int frames_to_deliver;
 #endif
 };

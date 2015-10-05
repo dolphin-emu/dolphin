@@ -51,6 +51,14 @@ enum StereoMode
 	STEREO_3DVISION
 };
 
+constexpr int STEREOSCOPY_PRESETS_NUM = 3;
+
+struct StereoscopyPreset final
+{
+	int depth;
+	int convergence;
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -84,6 +92,8 @@ struct VideoConfig final
 	int iStereoDepth;
 	int iStereoConvergence;
 	bool bStereoSwapEyes;
+	std::array<StereoscopyPreset, STEREOSCOPY_PRESETS_NUM> oStereoPresets;
+	int iStereoActivePreset;
 
 	// Information
 	bool bShowFPS;
@@ -144,7 +154,7 @@ struct VideoConfig final
 		API_TYPE APIType;
 
 		std::vector<std::string> Adapters; // for D3D
-		std::vector<std::string> AAModes;
+		std::vector<int> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
 		std::vector<std::string> AnaglyphShaders; // anaglyph shaders
 

@@ -129,7 +129,7 @@ IBlobReader* CreateBlobReader(const std::string& filename)
 	if (IsWbfsBlob(filename))
 		return WbfsFileReader::Create(filename);
 
-	if (IsCompressedBlob(filename))
+	if (IsGCZBlob(filename))
 		return CompressedBlobReader::Create(filename);
 
 	if (IsCISOBlob(filename))

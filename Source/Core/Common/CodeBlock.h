@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/Assert.h"
 #include "Common/MemoryUtil.h"
+#include "Common/NonCopyable.h"
 
 // Everything that needs to generate code should inherit from this.
 // You get memory management for free, plus, you can use all emitter functions without

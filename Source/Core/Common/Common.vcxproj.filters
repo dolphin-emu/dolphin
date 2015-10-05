@@ -7,6 +7,15 @@
     <Filter Include="Logging">
       <UniqueIdentifier>{c54973ce-5723-491c-ac23-41cea3565b05}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GL">
+      <UniqueIdentifier>{3bcf0d33-06a7-4eb6-bf2d-bc5273f551a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GL\GLInterface">
+      <UniqueIdentifier>{79bb235a-a0ea-42e2-af6e-532088e5e253}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GL\GLExtensions">
+      <UniqueIdentifier>{c1d6f1fe-5ec5-406d-84f2-ed64d733d2c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Atomic.h" />
@@ -44,6 +53,7 @@
     <ClInclude Include="Network.h" />
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="Profiler.h" />
+    <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="StringUtil.h" />
@@ -74,6 +84,111 @@
     <ClInclude Include="JitRegister.h" />
     <ClInclude Include="TraversalClient.h" />
     <ClInclude Include="TraversalProto.h" />
+    <ClInclude Include="GL\GLUtil.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_blend_func_extended.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_buffer_storage.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_clip_control.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_copy_image.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_debug_output.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_draw_elements_base_vertex.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_ES2_compatibility.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_framebuffer_object.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_get_program_binary.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_map_buffer_range.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_sample_shading.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_sampler_objects.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_sync.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_texture_multisample.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_texture_storage_multisample.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_uniform_buffer_object.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_vertex_array_object.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_viewport_array.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_1_1.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_1_2.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_1_3.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_1_4.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_1_5.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_2_0.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_3_0.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_3_1.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_3_2.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_common.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\GLExtensions.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\KHR_debug.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\NV_occlusion_query_samples.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\NV_primitive_restart.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLInterface\WGL.h">
+      <Filter>GL\GLInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLInterfaceBase.h">
+      <Filter>GL\GLInterface</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />
@@ -121,6 +236,18 @@
     <ClCompile Include="TraversalClient.cpp" />
     <ClCompile Include="Logging\ConsoleListenerWin.cpp">
       <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="GL\GLUtil.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="GL\GLExtensions\GLExtensions.cpp">
+      <Filter>GL\GLExtensions</Filter>
+    </ClCompile>
+    <ClCompile Include="GL\GLInterface\WGL.cpp">
+      <Filter>GL\GLInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="GL\GLInterface\GLInterface.cpp">
+      <Filter>GL\GLInterface</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

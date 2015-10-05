@@ -162,7 +162,7 @@ void InterfaceConfigPane::LoadGUIValues()
 
 void InterfaceConfigPane::LoadThemes()
 {
-	auto sv = DoFileSearch({"*"}, {
+	auto sv = DoFileSearch({""}, {
 		File::GetUserPath(D_THEMES_IDX),
 		File::GetSysDirectory() + THEMES_DIR
 	}, /*recursive*/ false);

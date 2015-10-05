@@ -7,9 +7,11 @@
 #include <algorithm>
 #include <string>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
+#include "Common/NonCopyable.h"
 #include "Common/StringUtil.h"
 
 #include "Core/HW/EXI_DeviceIPL.h"

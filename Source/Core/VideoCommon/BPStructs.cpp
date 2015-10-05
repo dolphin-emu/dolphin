@@ -8,6 +8,7 @@
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BoundingBox.h"
@@ -281,6 +282,9 @@ static void BPWritten(const BPCmd& bp)
 
 			Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
 
+			if (g_bRecordFifoData)
+				FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::TMEM);
+
 			return;
 		}
 	case BPMEM_FOGRANGE: // Fog Settings Control
@@ -455,15 +459,16 @@ static void BPWritten(const BPCmd& bp)
 
 			BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
 			u32 src_addr = tmem_cfg.preload_addr << 5; // TODO: Should we add mask here on GC?
-			u32 size = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
+			u32 bytes_read = 0;
 			u32 tmem_addr_even = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
 
 			if (tmem_cfg.preload_tile_info.type != 3)
 			{
-				if (tmem_addr_even + size > TMEM_SIZE)
-					size = TMEM_SIZE - tmem_addr_even;
+				bytes_read = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
+				if (tmem_addr_even + bytes_read > TMEM_SIZE)
+					bytes_read = TMEM_SIZE - tmem_addr_even;
 
-				Memory::CopyFromEmu(texMem + tmem_addr_even, src_addr, size);
+				Memory::CopyFromEmu(texMem + tmem_addr_even, src_addr, bytes_read);
 			}
 			else // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
 			{
@@ -474,18 +479,19 @@ static void BPWritten(const BPCmd& bp)
 
 				for (u32 i = 0; i < tmem_cfg.preload_tile_info.count; ++i)
 				{
-					if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE ||
-					    tmem_addr_odd  + TMEM_LINE_SIZE > TMEM_SIZE)
-						return;
+					if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE || tmem_addr_odd + TMEM_LINE_SIZE > TMEM_SIZE)
+						break;
 
-					// TODO: This isn't very optimised, does a whole lot of small memcpys
-					memcpy(texMem + tmem_addr_even, src_ptr, TMEM_LINE_SIZE);
-					memcpy(texMem + tmem_addr_odd, src_ptr + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
+					memcpy(texMem + tmem_addr_even, src_ptr + bytes_read, TMEM_LINE_SIZE);
+					memcpy(texMem + tmem_addr_odd, src_ptr + bytes_read + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
 					tmem_addr_even += TMEM_LINE_SIZE;
 					tmem_addr_odd += TMEM_LINE_SIZE;
-					src_ptr += TMEM_LINE_SIZE * 2;
+					bytes_read += TMEM_LINE_SIZE * 2;
 				}
 			}
+
+			if (g_bRecordFifoData)
+				FifoRecorder::GetInstance().UseMemory(src_addr, bytes_read, MemoryUpdate::TMEM);
 		}
 		return;
 

@@ -57,10 +57,6 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 
 #include "Core/PowerPC/PowerPC.h"
 
-const u32 IPC_DEFAULT_DELAY = SystemTimers::GetTicksPerSecond() / 4000;	// 250 us
-const IPCCommandResult IPC_NO_REPLY = { false, 0 };
-const IPCCommandResult IPC_DEFAULT_REPLY = { true, IPC_DEFAULT_DELAY };
-
 namespace WII_IPC_HLE_Interface
 {
 
@@ -353,7 +349,7 @@ void DoState(PointerWrap &p)
 
 void ExecuteCommand(u32 _Address)
 {
-	IPCCommandResult result = IPC_NO_REPLY;
+	IPCCommandResult result = IWII_IPC_HLE_Device::GetNoReply();
 
 	IPCCommandType Command = static_cast<IPCCommandType>(Memory::Read_U32(_Address));
 	s32 DeviceID = Memory::Read_U32(_Address + 8);
@@ -392,7 +388,7 @@ void ExecuteCommand(u32 _Address)
 				if (j == ES_MAX_COUNT)
 				{
 					Memory::Write_U32(FS_EESEXHAUSTED, _Address + 4);
-					result = IPC_DEFAULT_REPLY;
+					result = IWII_IPC_HLE_Device::GetDefaultReply();
 				}
 			}
 			else if (DeviceName.find("/dev/") == 0)
@@ -410,7 +406,7 @@ void ExecuteCommand(u32 _Address)
 				{
 					WARN_LOG(WII_IPC_HLE, "Unimplemented device: %s", DeviceName.c_str());
 					Memory::Write_U32(FS_ENOENT, _Address+4);
-					result = IPC_DEFAULT_REPLY;
+					result = IWII_IPC_HLE_Device::GetDefaultReply();
 				}
 			}
 			else
@@ -429,7 +425,7 @@ void ExecuteCommand(u32 _Address)
 		else
 		{
 			Memory::Write_U32(FS_EFDEXHAUSTED, _Address + 4);
-			result = IPC_DEFAULT_REPLY;
+			result = IWII_IPC_HLE_Device::GetDefaultReply();
 		}
 		break;
 	}
@@ -452,7 +448,7 @@ void ExecuteCommand(u32 _Address)
 		else
 		{
 			Memory::Write_U32(FS_EINVAL, _Address + 4);
-			result = IPC_DEFAULT_REPLY;
+			result = IWII_IPC_HLE_Device::GetDefaultReply();
 		}
 		break;
 	}
@@ -465,7 +461,7 @@ void ExecuteCommand(u32 _Address)
 		else
 		{
 			Memory::Write_U32(FS_EINVAL, _Address + 4);
-			result = IPC_DEFAULT_REPLY;
+			result = IWII_IPC_HLE_Device::GetDefaultReply();
 		}
 		break;
 	}
@@ -478,7 +474,7 @@ void ExecuteCommand(u32 _Address)
 		else
 		{
 			Memory::Write_U32(FS_EINVAL, _Address + 4);
-			result = IPC_DEFAULT_REPLY;
+			result = IWII_IPC_HLE_Device::GetDefaultReply();
 		}
 		break;
 	}
@@ -491,7 +487,7 @@ void ExecuteCommand(u32 _Address)
 		else
 		{
 			Memory::Write_U32(FS_EINVAL, _Address + 4);
-			result = IPC_DEFAULT_REPLY;
+			result = IWII_IPC_HLE_Device::GetDefaultReply();
 		}
 		break;
 	}

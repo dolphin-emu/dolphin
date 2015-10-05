@@ -28,6 +28,11 @@ FifoDataFile::~FifoDataFile()
 	}
 }
 
+bool FifoDataFile::HasBrokenEFBCopies() const
+{
+	return version < 2;
+}
+
 void FifoDataFile::SetIsWii(bool isWii)
 {
 	SetFlag(FLAG_IS_WII, isWii);
@@ -38,7 +43,7 @@ bool FifoDataFile::GetIsWii() const
 	return GetFlag(FLAG_IS_WII);
 }
 
-void FifoDataFile::AddFrame(const FifoFrameInfo &frameInfo)
+void FifoDataFile::AddFrame(const FifoFrameInfo& frameInfo)
 {
 	m_Frames.push_back(frameInfo);
 }
@@ -126,7 +131,7 @@ bool FifoDataFile::Save(const std::string& filename)
 	return true;
 }
 
-FifoDataFile *FifoDataFile::Load(const std::string &filename, bool flagsOnly)
+FifoDataFile* FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 {
 	File::IOFile file;
 	file.Open(filename, "rb");
@@ -214,7 +219,7 @@ bool FifoDataFile::GetFlag(u32 flag) const
 	return !!(m_Flags & flag);
 }
 
-u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates, File::IOFile &file)
+u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates, File::IOFile& file)
 {
 	// Add space for memory update list
 	u64 updateListOffset = file.Tell();
@@ -244,7 +249,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates
 	return updateListOffset;
 }
 
-void FifoDataFile::ReadMemoryUpdates(u64 fileOffset, u32 numUpdates, std::vector<MemoryUpdate> &memUpdates, File::IOFile &file)
+void FifoDataFile::ReadMemoryUpdates(u64 fileOffset, u32 numUpdates, std::vector<MemoryUpdate>& memUpdates, File::IOFile& file)
 {
 	memUpdates.resize(numUpdates);
 
@@ -255,7 +260,7 @@ void FifoDataFile::ReadMemoryUpdates(u64 fileOffset, u32 numUpdates, std::vector
 		FileMemoryUpdate srcUpdate;
 		file.ReadBytes(&srcUpdate, sizeof(FileMemoryUpdate));
 
-		MemoryUpdate &dstUpdate = memUpdates[i];
+		MemoryUpdate& dstUpdate = memUpdates[i];
 		dstUpdate.address = srcUpdate.address;
 		dstUpdate.fifoPosition = srcUpdate.fifoPosition;
 		dstUpdate.size = srcUpdate.dataSize;

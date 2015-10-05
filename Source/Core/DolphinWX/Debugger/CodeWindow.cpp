@@ -283,11 +283,11 @@ void CCodeWindow::OnCallsListChange(wxCommandEvent& event)
 
 void CCodeWindow::SingleStep()
 {
-	if (CCPU::IsStepping())
+	if (CPU::IsStepping())
 	{
 		PowerPC::breakpoints.ClearAllTemporary();
 		JitInterface::InvalidateICache(PC, 4, true);
-		CCPU::StepOpcode(&sync_event);
+		CPU::StepOpcode(&sync_event);
 		wxThread::Sleep(20);
 		// need a short wait here
 		JumpToAddress(PC);
@@ -297,14 +297,14 @@ void CCodeWindow::SingleStep()
 
 void CCodeWindow::StepOver()
 {
-	if (CCPU::IsStepping())
+	if (CPU::IsStepping())
 	{
 		UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
 		if (inst.LK)
 		{
 			PowerPC::breakpoints.ClearAllTemporary();
 			PowerPC::breakpoints.Add(PC + 4, true);
-			CCPU::EnableStepping(false);
+			CPU::EnableStepping(false);
 			JumpToAddress(PC);
 			Update();
 		}
@@ -321,7 +321,7 @@ void CCodeWindow::StepOver()
 
 void CCodeWindow::StepOut()
 {
-	if (CCPU::IsStepping())
+	if (CPU::IsStepping())
 	{
 		PowerPC::breakpoints.ClearAllTemporary();
 
@@ -365,7 +365,7 @@ void CCodeWindow::StepOut()
 
 void CCodeWindow::ToggleBreakpoint()
 {
-	if (CCPU::IsStepping())
+	if (CPU::IsStepping())
 	{
 		if (codeview) codeview->ToggleBreakpoint(codeview->GetSelection());
 		Update();
@@ -700,7 +700,7 @@ void CCodeWindow::UpdateButtonStates()
 {
 	bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
 	bool Pause = (Core::GetState() == Core::CORE_PAUSE);
-	bool Stepping = CCPU::IsStepping();
+	bool Stepping = CPU::IsStepping();
 	wxToolBar* ToolBar = GetToolBar();
 
 	// Toolbar

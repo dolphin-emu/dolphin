@@ -91,21 +91,21 @@ void DGameTracker::ScanForGames()
 	std::vector<std::string> exts;
 	if (SConfig::GetInstance().m_ListGC)
 	{
-		exts.push_back("*.gcm");
-		exts.push_back("*.gcz");
+		exts.push_back(".gcm");
+		exts.push_back(".gcz");
 	}
 	if (SConfig::GetInstance().m_ListWii || SConfig::GetInstance().m_ListGC)
 	{
-		exts.push_back("*.iso");
-		exts.push_back("*.ciso");
-		exts.push_back("*.wbfs");
+		exts.push_back(".iso");
+		exts.push_back(".ciso");
+		exts.push_back(".wbfs");
 	}
 	if (SConfig::GetInstance().m_ListWad)
-		exts.push_back("*.wad");
+		exts.push_back(".wad");
 	if (SConfig::GetInstance().m_ListElfDol)
 	{
-		exts.push_back("*.dol");
-		exts.push_back("*.elf");
+		exts.push_back(".dol");
+		exts.push_back(".elf");
 	}
 
 	auto rFilenames = DoFileSearch(exts, SConfig::GetInstance().m_ISOFolder, SConfig::GetInstance().m_RecursiveISOFolder);

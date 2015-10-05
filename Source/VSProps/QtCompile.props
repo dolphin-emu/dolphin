@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="UserMacros">
-    <QTDIRDefault>$(ExternalsDir)Qt\Qt5.4.0\5.4\msvc2013_64_opengl\</QTDIRDefault>
-    <QTDIR Condition="Exists('$(QTDIRDefault)') And '$(QTDIR)'==''">$(QTDIRDefault)</QTDIR>
+    <QTDIRDefault>$(ExternalsDir)Qt\Qt5.5.0\5.5\msvc2015_64_opengl\</QTDIRDefault>
+    <QTDIR Condition="Exists('$(QTDIRDefault)') And ('$(QTDIR)'=='' Or !Exists('$(QTDIR)'))">$(QTDIRDefault)</QTDIR>
     <QTDIR Condition="Exists('$(QTDIR)') And !HasTrailingSlash('$(QTDIR)')">$(QTDIR)\</QTDIR>
     <QtDirValid>false</QtDirValid>
     <QtDirValid Condition="Exists('$(QTDIR)')">true</QtDirValid>
@@ -36,7 +36,7 @@
       -->
     </Link>
   </ItemDefinitionGroup>
-  
+
   <!--Passes all .qrc files to rcc and puts output in the build directory-->
   <ItemGroup>
     <ResFiles Include="$(MSBuildProjectDirectory)\**\*.qrc" />
@@ -51,11 +51,11 @@
     <MakeDir Directories="$(QtToolOutDir)" />
     <Exec Command="&quot;$(QtBinDir)rcc.exe&quot; &quot;%(ResFiles.FullPath)&quot; -o &quot;$(QtToolOutDir)qrc_%(ResFiles.Filename).h&quot;" />
   </Target>
-  
+
   <Target Name="QtResourceClean">
     <Delete Files="@(ResFiles->'$(QtToolOutDir)qrc_%(Filename).h')" />
   </Target>
-  
+
   <!--Passes all .ui files to uic and puts output in the build directory-->
   <ItemGroup>
     <UiFiles Include="$(MSBuildProjectDirectory)\**\*.ui" />
@@ -70,11 +70,11 @@
     <MakeDir Directories="$(QtToolOutDir)" />
     <Exec Command="&quot;$(QtBinDir)uic.exe&quot; &quot;%(UiFiles.FullPath)&quot; -o &quot;$(QtToolOutDir)ui_%(UiFiles.Filename).h&quot;" />
   </Target>
-  
+
   <Target Name="QtUiClean">
     <Delete Files="@(UiFiles->'$(QtToolOutDir)ui_%(Filename).h')" />
   </Target>
-  
+
   <!--Compile files needed to MOC and output in the build directory-->
   <!--TODO find a way to autocreate from ClCompile settings-->
   <PropertyGroup>
@@ -89,7 +89,7 @@
         in order to prevent the trailing slash from escaping the doublequote after value replacement.
         -->
     <MocIncludes>"-I$(QtIncludeDir)QtWidgets" "-I$(QtIncludeDir)QtGui" "-I$(QtIncludeDir)QtCore" "-I$(QtIncludeDir) " "-I$(QtToolOutDir) " -I.</MocIncludes>
-    <MocIncludes>"-I$(ExternalsDir)xxhash" "-I$(ExternalsDir)zlib" "-I$(ExternalsDir)SOIL" "-I$(ExternalsDir)SFML\include" "-I$(ExternalsDir)portaudio\include" "-I$(ExternalsDir)polarssl\include" "-I$(ExternalsDir)miniupnpc\src" "-I$(ExternalsDir)LZO" "-I$(ExternalsDir)libusbx\libusb" "-I$(ExternalsDir)libpng" "-I$(ExternalsDir)GL" "-I$(ExternalsDir)Bochs_disasm" "-I$(ExternalsDir) " "-I$(CoreDir) " $(MocIncludes)</MocIncludes>
+    <MocIncludes>"-I$(ExternalsDir)xxhash" "-I$(ExternalsDir)zlib" "-I$(ExternalsDir)SOIL" "-I$(ExternalsDir)SFML\include" "-I$(ExternalsDir)portaudio\include" "-I$(ExternalsDir)mbedtls\include" "-I$(ExternalsDir)miniupnpc\src" "-I$(ExternalsDir)LZO" "-I$(ExternalsDir)libusbx\libusb" "-I$(ExternalsDir)libpng" "-I$(ExternalsDir)GL" "-I$(ExternalsDir)Bochs_disasm" "-I$(ExternalsDir) " "-I$(CoreDir) " $(MocIncludes)</MocIncludes>
   </PropertyGroup>
   <Target Name="QtMoc"
     BeforeTargets="ClCompile"
@@ -101,14 +101,14 @@
     <MakeDir Directories="$(QtToolOutDir)" />
     <Exec Command="&quot;$(QtBinDir)moc.exe&quot; &quot;%(QtMoc.FullPath)&quot; -o &quot;$(QtToolOutDir)moc_%(QtMoc.Filename).cpp&quot; -f%(QtMoc.Filename)%(QtMoc.Extension) $(MocDefines) $(MocIncludes)" />
   </Target>
-  
+
   <ItemGroup>
     <MocOutputs Include="$(QtToolOutDir)moc_*.cpp" />
   </ItemGroup>
   <Target Name="QtMocClean">
     <Delete Files="@(MocOutputs)" />
   </Target>
-  
+
   <!--Expose the new targets to VS-->
   <ItemGroup>
     <PropertyPageSchema Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
@@ -122,11 +122,10 @@
       <Targets>QtMoc</Targets>
     </AvailableItemName>
   </ItemGroup>
-  
+
   <!--Copy the needed dlls-->
   <ItemGroup>
-    <IcuDlls Include="icudt53;icuin53;icuuc53" />
-    <QtLibNames Include="@(IcuDlls);Qt5Core$(QtLibSuffix);Qt5Gui$(QtLibSuffix);Qt5Widgets$(QtLibSuffix)" />
+    <QtLibNames Include="Qt5Core$(QtLibSuffix);Qt5Gui$(QtLibSuffix);Qt5Widgets$(QtLibSuffix)" />
     <QtDlls Include="@(QtLibNames -> '$(QtBinDir)%(Identity).dll')" />
     <!--Filter plugins to copy based on the observation that all debug versions end in "d"-->
     <QtAllPlugins Include="$(QtPluginsDir)**\*$(QtLibSuffix).dll" />

@@ -74,7 +74,7 @@ void DSPLLE::DoState(PointerWrap &p)
 	}
 
 	p.Do(g_dsp.step_counter);
-	p.Do(g_dsp.ifx_regs);
+	p.DoArray(g_dsp.ifx_regs);
 	p.Do(g_dsp.mbox[0]);
 	p.Do(g_dsp.mbox[1]);
 	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
@@ -125,8 +125,8 @@ static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
 
 	if (bytes.size() != size_in_bytes)
 	{
-		ERROR_LOG(DSPLLE, "%s has a wrong size (%u, expected %u)",
-		          filename.c_str(), (u32)bytes.size(), size_in_bytes);
+		ERROR_LOG(DSPLLE, "%s has a wrong size (%zu, expected %u)",
+		          filename.c_str(), bytes.size(), size_in_bytes);
 		return false;
 	}
 
@@ -249,19 +249,19 @@ u16 DSPLLE::DSP_ReadControlRegister()
 
 u16 DSPLLE::DSP_ReadMailBoxHigh(bool _CPUMailbox)
 {
-	return gdsp_mbox_read_h(_CPUMailbox ? GDSP_MBOX_CPU : GDSP_MBOX_DSP);
+	return gdsp_mbox_read_h(_CPUMailbox ? MAILBOX_CPU : MAILBOX_DSP);
 }
 
 u16 DSPLLE::DSP_ReadMailBoxLow(bool _CPUMailbox)
 {
-	return gdsp_mbox_read_l(_CPUMailbox ? GDSP_MBOX_CPU : GDSP_MBOX_DSP);
+	return gdsp_mbox_read_l(_CPUMailbox ? MAILBOX_CPU : MAILBOX_DSP);
 }
 
 void DSPLLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, u16 _uHighMail)
 {
 	if (_CPUMailbox)
 	{
-		if (gdsp_mbox_peek(GDSP_MBOX_CPU) & 0x80000000)
+		if (gdsp_mbox_peek(MAILBOX_CPU) & 0x80000000)
 		{
 			ERROR_LOG(DSPLLE, "Mailbox isnt empty ... strange");
 		}
@@ -273,7 +273,7 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, u16 _uHighMail)
 		}
 #endif
 
-		gdsp_mbox_write_h(GDSP_MBOX_CPU, _uHighMail);
+		gdsp_mbox_write_h(MAILBOX_CPU, _uHighMail);
 	}
 	else
 	{
@@ -285,7 +285,7 @@ void DSPLLE::DSP_WriteMailBoxLow(bool _CPUMailbox, u16 _uLowMail)
 {
 	if (_CPUMailbox)
 	{
-		gdsp_mbox_write_l(GDSP_MBOX_CPU, _uLowMail);
+		gdsp_mbox_write_l(MAILBOX_CPU, _uLowMail);
 	}
 	else
 	{

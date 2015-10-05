@@ -146,7 +146,7 @@ public:
 		if (std::numeric_limits<T>::is_signed)
 		{
 			std::size_t shift = 8 * sizeof(T) - bits;
-			return (T)(((storage & GetMask()) << (shift - position)) >> shift);
+			return (T)((storage << (shift - position)) >> shift);
 		}
 		else
 		{
@@ -173,7 +173,7 @@ private:
 
 	__forceinline StorageType GetMask() const
 	{
-		return ((~(StorageTypeU)0) >> (8 * sizeof(T) - bits)) << position;
+		return (((StorageTypeU)~0) >> (8 * sizeof(T) - bits)) << position;
 	}
 
 	StorageType storage;

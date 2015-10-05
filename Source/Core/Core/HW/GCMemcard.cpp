@@ -4,10 +4,12 @@
 
 #include <algorithm>
 #include <cinttypes>
-#include <string>
+#include <cstring>
 
 #include "Common/ColorUtil.h"
 #include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/GCMemcard.h"
 
 static void ByteSwap(u8 *valueA, u8 *valueB)

@@ -16,31 +16,25 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
 
-static CWII_IPC_HLE_Device_di* g_di_pointer;
 static int ioctl_callback;
 
 static void IOCtlCallback(u64 userdata, int cycles_late)
 {
-	if (g_di_pointer != nullptr)
-		g_di_pointer->FinishIOCtl((DVDInterface::DIInterruptType)userdata);
+	std::shared_ptr<IWII_IPC_HLE_Device> di = WII_IPC_HLE_Interface::GetDeviceByName("/dev/di");
+	if (di)
+		std::static_pointer_cast<CWII_IPC_HLE_Device_di>(di)->FinishIOCtl((DVDInterface::DIInterruptType)userdata);
 
-	// If g_di_pointer == nullptr, IOS was probably shut down,
-	// so the command shouldn't be completed
+	// If di == nullptr, IOS was probably shut down, so the command shouldn't be completed
 }
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
-	if (g_di_pointer == nullptr)
-		ERROR_LOG(WII_IPC_DVD, "Trying to run two DI devices at once. IOCtl may not behave as expected.");
-
-	g_di_pointer = this;
 	ioctl_callback = CoreTiming::RegisterEvent("IOCtlCallbackDI", IOCtlCallback);
 }
 
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 {
-	g_di_pointer = nullptr;
 }
 
 void CWII_IPC_HLE_Device_di::DoState(PointerWrap& p)
@@ -53,7 +47,7 @@ IPCCommandResult CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 {
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 	m_Active = true;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
@@ -61,7 +55,7 @@ IPCCommandResult CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
@@ -78,9 +72,9 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 	if (ready_to_execute)
 		StartIOCtl(_CommandAddress);
 
-	// DVDInterface handles the timing, and we handle the reply,
-	// so WII_IPC_HLE shouldn't do any of that.
-	return IPC_NO_REPLY;
+	// DVDInterface handles the timing and we handle the reply,
+	// so WII_IPC_HLE shouldn't handle anything.
+	return GetNoReply();
 }
 
 void CWII_IPC_HLE_Device_di::StartIOCtl(u32 command_address)
@@ -181,5 +175,5 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }

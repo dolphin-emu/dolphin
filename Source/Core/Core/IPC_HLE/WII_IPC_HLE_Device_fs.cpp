@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -16,10 +17,6 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
 static Common::replace_v replacements;
-
-// ~1/1000th of a second is too short and causes hangs in Wii Party
-// Play it safe at 1/500th
-static const IPCCommandResult IPC_FS_REPLY = { true, SystemTimers::GetTicksPerSecond() / 500 };
 
 CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -41,7 +38,7 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	m_Active = true;
-	return IPC_FS_REPLY;
+	return GetFSReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_fs::Close(u32 _CommandAddress, bool _bForce)
@@ -50,7 +47,7 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::Close(u32 _CommandAddress, bool _bForce
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return IPC_FS_REPLY;
+	return GetFSReply();
 }
 
 // Get total filesize of contents of a directory (recursive)
@@ -217,7 +214,7 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 	Memory::Write_U32(ReturnValue, _CommandAddress+4);
 
-	return IPC_FS_REPLY;
+	return GetFSReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress)
@@ -238,7 +235,7 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress)
 	u32 ReturnValue = ExecuteCommand(Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
 
-	return IPC_FS_REPLY;
+	return GetFSReply();
 }
 
 s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
@@ -263,7 +260,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			fs.Free_INodes    = 0x146B;
 			fs.Used_Inodes    = 0x0394;
 
-			*(NANDStat*)Memory::GetPointer(_BufferOut) = fs;
+			std::memcpy(Memory::GetPointer(_BufferOut), &fs, sizeof(NANDStat));
 
 			return FS_RESULT_OK;
 		}
@@ -517,7 +514,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				u32 count = size;
 				while (count > 65536)
 				{
-					p.DoArray(&buf[0], 65536);
+					p.DoArray(buf);
 					handle.WriteArray(&buf[0], 65536);
 					count -= 65536;
 				}
@@ -561,7 +558,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				while (count > 65536)
 				{
 					handle.ReadArray(&buf[0], 65536);
-					p.DoArray(&buf[0], 65536);
+					p.DoArray(buf);
 					count -= 65536;
 				}
 				handle.ReadArray(&buf[0], count);

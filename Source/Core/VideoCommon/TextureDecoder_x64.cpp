@@ -6,19 +6,12 @@
 #include <cmath>
 
 #include "Common/Common.h"
-//#include "VideoCommon.h" // to get debug logs
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
-
-// This avoids a harmless warning from a system header in Clang;
-// see http://llvm.org/bugs/show_bug.cgi?id=16093
-#if defined(__clang__) && (__clang_major__ * 100 + __clang_minor__ < 304)
-#pragma clang diagnostic ignored "-Wshadow"
-#endif
 
 // GameCube/Wii texture decoder
 

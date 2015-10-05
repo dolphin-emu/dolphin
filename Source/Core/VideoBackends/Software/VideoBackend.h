@@ -19,6 +19,7 @@ class VideoSoftware : public VideoBackend
 
 	std::string GetName() const override;
 	std::string GetDisplayName() const override;
+	std::string GetConfigName() const override;
 
 	void EmuStateChange(EMUSTATE_CHANGE newState) override;
 

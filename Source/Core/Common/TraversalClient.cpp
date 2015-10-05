@@ -1,7 +1,9 @@
 // This file is public domain, in case it's useful to anyone. -comex
 
+#include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
+#include "Common/Logging/Log.h"
 
 static void GetRandomishBytes(u8* buf, size_t size)
 {

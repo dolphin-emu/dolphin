@@ -455,7 +455,7 @@
     <ProjectReference Include="$(ExternalsDir)miniupnpc\miniupnpc.vcxproj">
       <Project>{31643fdb-1bb8-4965-9de7-000fc88d35ae}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)polarssl\visualc\PolarSSL.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)portaudio\build\portaudio.vcxproj">

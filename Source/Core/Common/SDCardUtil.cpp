@@ -39,9 +39,11 @@
 #include <ctime>
 #include <string>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/SDCardUtil.h"
+#include "Common/Logging/Log.h"
 
 #ifndef _WIN32
 #include <unistd.h> // for unlink()

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/FPURoundMode.h"
 #include "Core/HW/GPFifo.h"

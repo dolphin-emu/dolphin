@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/BitSet.h"
+#include "Common/Common.h"
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"

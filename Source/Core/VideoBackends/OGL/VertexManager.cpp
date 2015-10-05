@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"

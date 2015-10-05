@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 
 #define STATISTICS 1
 

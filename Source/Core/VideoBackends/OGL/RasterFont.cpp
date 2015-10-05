@@ -4,7 +4,9 @@
 
 #include <vector>
 
-#include "VideoBackends/OGL/GLUtil.h"
+#include "Common/Common.h"
+#include "Common/GL/GLUtil.h"
+
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/RasterFont.h"
 

@@ -58,7 +58,7 @@ namespace Clipper
 
 	void DoState(PointerWrap &p)
 	{
-		p.DoArray(m_ViewOffset,2);
+		p.DoArray(m_ViewOffset);
 		for (auto& ClippedVertice : ClippedVertices)
 			ClippedVertice.DoState(p);
 	}

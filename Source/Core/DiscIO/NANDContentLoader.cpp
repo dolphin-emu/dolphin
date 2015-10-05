@@ -10,11 +10,12 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <polarssl/aes.h>
+#include <mbedtls/aes.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
@@ -278,10 +279,10 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 }
 void CNANDContentLoader::AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest)
 {
-	aes_context AES_ctx;
+	mbedtls_aes_context AES_ctx;
 
-	aes_setkey_dec(&AES_ctx, _pKey, 128);
-	aes_crypt_cbc(&AES_ctx, AES_DECRYPT, _Size, _IV, _pSrc, _pDest);
+	mbedtls_aes_setkey_dec(&AES_ctx, _pKey, 128);
+	mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, _Size, _IV, _pSrc, _pDest);
 }
 
 void CNANDContentLoader::GetKeyFromTicket(u8* pTicket, u8* pTicketKey)

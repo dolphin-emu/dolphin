@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Common.h"
 #include "Core/HW/GCKeyboardEmu.h"
 #include "InputCommon/KeyboardStatus.h"
 
@@ -264,185 +265,183 @@ void GCKeyboard::GetInput(KeyboardStatus* const kb)
 
 void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)
 {
-	#define set_control(group, num, str)  (group)->controls[num]->control_ref->expression = (str)
-
 	ControllerEmu::LoadDefaults(ciface);
 
 	// Buttons
-	set_control(m_keys0x, 5, "A");
-	set_control(m_keys0x, 6, "B");
-	set_control(m_keys0x, 7, "C");
-	set_control(m_keys0x, 8, "D");
-	set_control(m_keys0x, 9, "E");
-	set_control(m_keys0x, 10, "F");
-	set_control(m_keys0x, 11, "G");
-	set_control(m_keys0x, 12, "H");
-	set_control(m_keys0x, 13, "I");
-	set_control(m_keys0x, 14, "J");
-	set_control(m_keys0x, 15, "K");
-	set_control(m_keys1x, 0, "L");
-	set_control(m_keys1x, 1, "M");
-	set_control(m_keys1x, 2, "N");
-	set_control(m_keys1x, 3, "O");
-	set_control(m_keys1x, 4, "P");
-	set_control(m_keys1x, 5, "Q");
-	set_control(m_keys1x, 6, "R");
-	set_control(m_keys1x, 7, "S");
-	set_control(m_keys1x, 8, "T");
-	set_control(m_keys1x, 9, "U");
-	set_control(m_keys1x, 10, "V");
-	set_control(m_keys1x, 11, "W");
-	set_control(m_keys1x, 12, "X");
-	set_control(m_keys1x, 13, "Y");
-	set_control(m_keys1x, 14, "Z");
+	m_keys0x->SetControlExpression(5, "A");
+	m_keys0x->SetControlExpression(6, "B");
+	m_keys0x->SetControlExpression(7, "C");
+	m_keys0x->SetControlExpression(8, "D");
+	m_keys0x->SetControlExpression(9, "E");
+	m_keys0x->SetControlExpression(10, "F");
+	m_keys0x->SetControlExpression(11, "G");
+	m_keys0x->SetControlExpression(12, "H");
+	m_keys0x->SetControlExpression(13, "I");
+	m_keys0x->SetControlExpression(14, "J");
+	m_keys0x->SetControlExpression(15, "K");
+	m_keys1x->SetControlExpression(0, "L");
+	m_keys1x->SetControlExpression(1, "M");
+	m_keys1x->SetControlExpression(2, "N");
+	m_keys1x->SetControlExpression(3, "O");
+	m_keys1x->SetControlExpression(4, "P");
+	m_keys1x->SetControlExpression(5, "Q");
+	m_keys1x->SetControlExpression(6, "R");
+	m_keys1x->SetControlExpression(7, "S");
+	m_keys1x->SetControlExpression(8, "T");
+	m_keys1x->SetControlExpression(9, "U");
+	m_keys1x->SetControlExpression(10, "V");
+	m_keys1x->SetControlExpression(11, "W");
+	m_keys1x->SetControlExpression(12, "X");
+	m_keys1x->SetControlExpression(13, "Y");
+	m_keys1x->SetControlExpression(14, "Z");
 
-	set_control(m_keys1x, 15, "1");
-	set_control(m_keys2x, 0, "2");
-	set_control(m_keys2x, 1, "3");
-	set_control(m_keys2x, 2, "4");
-	set_control(m_keys2x, 3, "5");
-	set_control(m_keys2x, 4, "6");
-	set_control(m_keys2x, 5, "7");
-	set_control(m_keys2x, 6, "8");
-	set_control(m_keys2x, 7, "9");
-	set_control(m_keys2x, 8, "0");
+	m_keys1x->SetControlExpression(15, "1");
+	m_keys2x->SetControlExpression(0, "2");
+	m_keys2x->SetControlExpression(1, "3");
+	m_keys2x->SetControlExpression(2, "4");
+	m_keys2x->SetControlExpression(3, "5");
+	m_keys2x->SetControlExpression(4, "6");
+	m_keys2x->SetControlExpression(5, "7");
+	m_keys2x->SetControlExpression(6, "8");
+	m_keys2x->SetControlExpression(7, "9");
+	m_keys2x->SetControlExpression(8, "0");
 
-	set_control(m_keys3x, 5, "F1");
-	set_control(m_keys3x, 6, "F2");
-	set_control(m_keys3x, 7, "F3");
-	set_control(m_keys3x, 8, "F4");
-	set_control(m_keys3x, 9, "F5");
-	set_control(m_keys3x, 10, "F6");
-	set_control(m_keys3x, 11, "F7");
-	set_control(m_keys3x, 12, "F8");
-	set_control(m_keys3x, 13, "F9");
-	set_control(m_keys3x, 14, "F10");
-	set_control(m_keys3x, 15, "F11");
-	set_control(m_keys4x, 0, "F12");
+	m_keys3x->SetControlExpression(5, "F1");
+	m_keys3x->SetControlExpression(6, "F2");
+	m_keys3x->SetControlExpression(7, "F3");
+	m_keys3x->SetControlExpression(8, "F4");
+	m_keys3x->SetControlExpression(9, "F5");
+	m_keys3x->SetControlExpression(10, "F6");
+	m_keys3x->SetControlExpression(11, "F7");
+	m_keys3x->SetControlExpression(12, "F8");
+	m_keys3x->SetControlExpression(13, "F9");
+	m_keys3x->SetControlExpression(14, "F10");
+	m_keys3x->SetControlExpression(15, "F11");
+	m_keys4x->SetControlExpression(0, "F12");
 
 #ifdef _WIN32
-	set_control(m_keys0x, 0, "HOME");
-	set_control(m_keys0x, 1, "END");
-	set_control(m_keys0x, 2, "PRIOR");
-	set_control(m_keys0x, 3, "NEXT");
-	set_control(m_keys0x, 4, "SCROLL");
+	m_keys0x->SetControlExpression(0, "HOME");
+	m_keys0x->SetControlExpression(1, "END");
+	m_keys0x->SetControlExpression(2, "PRIOR");
+	m_keys0x->SetControlExpression(3, "NEXT");
+	m_keys0x->SetControlExpression(4, "SCROLL");
 
-	set_control(m_keys2x, 9, "MINUS");
-	set_control(m_keys2x, 10, "GRAVE");
-	set_control(m_keys2x, 11, "SYSRQ");
-	set_control(m_keys2x, 12, "APOSTROPHE");
-	set_control(m_keys2x, 13, "LBRACKET");
-	set_control(m_keys2x, 14, "EQUALS");
-	set_control(m_keys2x, 15, "MULTIPLY");
-	set_control(m_keys3x, 0, "RBRACKET");
-	set_control(m_keys3x, 1, "COMMA");
-	set_control(m_keys3x, 2, "PERIOD");
-	set_control(m_keys3x, 3, "SLASH");
-	set_control(m_keys3x, 4, "BACKSLASH");
+	m_keys2x->SetControlExpression(9, "MINUS");
+	m_keys2x->SetControlExpression(10, "GRAVE");
+	m_keys2x->SetControlExpression(11, "SYSRQ");
+	m_keys2x->SetControlExpression(12, "APOSTROPHE");
+	m_keys2x->SetControlExpression(13, "LBRACKET");
+	m_keys2x->SetControlExpression(14, "EQUALS");
+	m_keys2x->SetControlExpression(15, "MULTIPLY");
+	m_keys3x->SetControlExpression(0, "RBRACKET");
+	m_keys3x->SetControlExpression(1, "COMMA");
+	m_keys3x->SetControlExpression(2, "PERIOD");
+	m_keys3x->SetControlExpression(3, "SLASH");
+	m_keys3x->SetControlExpression(4, "BACKSLASH");
 
-	set_control(m_keys4x, 1, "ESCAPE");
-	set_control(m_keys4x, 2, "INSERT");
-	set_control(m_keys4x, 3, "DELETE");
-	set_control(m_keys4x, 4, "SEMICOLON");
-	set_control(m_keys4x, 5, "BACK");
-	set_control(m_keys4x, 6, "TAB");
-	set_control(m_keys4x, 7, "CAPITAL");
-	set_control(m_keys4x, 8, "LSHIFT");
-	set_control(m_keys4x, 9, "RSHIFT");
-	set_control(m_keys4x, 10, "LCONTROL");
-	set_control(m_keys4x, 11, "RMENU");
-	set_control(m_keys4x, 12, "LWIN");
-	set_control(m_keys4x, 13, "SPACE");
-	set_control(m_keys4x, 14, "RWIN");
-	set_control(m_keys4x, 15, "MENU");
+	m_keys4x->SetControlExpression(1, "ESCAPE");
+	m_keys4x->SetControlExpression(2, "INSERT");
+	m_keys4x->SetControlExpression(3, "DELETE");
+	m_keys4x->SetControlExpression(4, "SEMICOLON");
+	m_keys4x->SetControlExpression(5, "BACK");
+	m_keys4x->SetControlExpression(6, "TAB");
+	m_keys4x->SetControlExpression(7, "CAPITAL");
+	m_keys4x->SetControlExpression(8, "LSHIFT");
+	m_keys4x->SetControlExpression(9, "RSHIFT");
+	m_keys4x->SetControlExpression(10, "LCONTROL");
+	m_keys4x->SetControlExpression(11, "RMENU");
+	m_keys4x->SetControlExpression(12, "LWIN");
+	m_keys4x->SetControlExpression(13, "SPACE");
+	m_keys4x->SetControlExpression(14, "RWIN");
+	m_keys4x->SetControlExpression(15, "MENU");
 
-	set_control(m_keys5x, 0, "LEFT");
-	set_control(m_keys5x, 1, "DOWN");
-	set_control(m_keys5x, 2, "UP");
-	set_control(m_keys5x, 3, "RIGHT");
-	set_control(m_keys5x, 4, "RETURN");
+	m_keys5x->SetControlExpression(0, "LEFT");
+	m_keys5x->SetControlExpression(1, "DOWN");
+	m_keys5x->SetControlExpression(2, "UP");
+	m_keys5x->SetControlExpression(3, "RIGHT");
+	m_keys5x->SetControlExpression(4, "RETURN");
 #elif __APPLE__
-	set_control(m_keys0x, 0, "Home");
-	set_control(m_keys0x, 1, "End");
-	set_control(m_keys0x, 2, "Page Up");
-	set_control(m_keys0x, 3, "Page Down");
-	set_control(m_keys0x, 4, ""); // Scroll lock
+	m_keys0x->SetControlExpression(0, "Home");
+	m_keys0x->SetControlExpression(1, "End");
+	m_keys0x->SetControlExpression(2, "Page Up");
+	m_keys0x->SetControlExpression(3, "Page Down");
+	m_keys0x->SetControlExpression(4, ""); // Scroll lock
 
-	set_control(m_keys2x, 9, "-");
-	set_control(m_keys2x, 10, "Paragraph");
-	set_control(m_keys2x, 11, ""); // Print Scr
-	set_control(m_keys2x, 12, "'");
-	set_control(m_keys2x, 13, "[");
-	set_control(m_keys2x, 14, "=");
-	set_control(m_keys2x, 15, "Keypad *");
-	set_control(m_keys3x, 0, "]");
-	set_control(m_keys3x, 1, ",");
-	set_control(m_keys3x, 2, ".");
-	set_control(m_keys3x, 3, "/");
-	set_control(m_keys3x, 4, "\\");
+	m_keys2x->SetControlExpression(9, "-");
+	m_keys2x->SetControlExpression(10, "Paragraph");
+	m_keys2x->SetControlExpression(11, ""); // Print Scr
+	m_keys2x->SetControlExpression(12, "'");
+	m_keys2x->SetControlExpression(13, "[");
+	m_keys2x->SetControlExpression(14, "=");
+	m_keys2x->SetControlExpression(15, "Keypad *");
+	m_keys3x->SetControlExpression(0, "]");
+	m_keys3x->SetControlExpression(1, ",");
+	m_keys3x->SetControlExpression(2, ".");
+	m_keys3x->SetControlExpression(3, "/");
+	m_keys3x->SetControlExpression(4, "\\");
 
-	set_control(m_keys4x, 1, "Escape");
-	set_control(m_keys4x, 2, "Insert");
-	set_control(m_keys4x, 3, "Delete");
-	set_control(m_keys4x, 4, ";");
-	set_control(m_keys4x, 5, "Backspace");
-	set_control(m_keys4x, 6, "Tab");
-	set_control(m_keys4x, 7, "Caps Lock");
-	set_control(m_keys4x, 8, "Left Shift");
-	set_control(m_keys4x, 9, "Right Shift");
-	set_control(m_keys4x, 10, "Left Control");
-	set_control(m_keys4x, 11, "Right Alt");
-	set_control(m_keys4x, 12, "Left Command");
-	set_control(m_keys4x, 13, "Space");
-	set_control(m_keys4x, 14, "Right Command");
-	set_control(m_keys4x, 15, ""); // Menu
+	m_keys4x->SetControlExpression(1, "Escape");
+	m_keys4x->SetControlExpression(2, "Insert");
+	m_keys4x->SetControlExpression(3, "Delete");
+	m_keys4x->SetControlExpression(4, ";");
+	m_keys4x->SetControlExpression(5, "Backspace");
+	m_keys4x->SetControlExpression(6, "Tab");
+	m_keys4x->SetControlExpression(7, "Caps Lock");
+	m_keys4x->SetControlExpression(8, "Left Shift");
+	m_keys4x->SetControlExpression(9, "Right Shift");
+	m_keys4x->SetControlExpression(10, "Left Control");
+	m_keys4x->SetControlExpression(11, "Right Alt");
+	m_keys4x->SetControlExpression(12, "Left Command");
+	m_keys4x->SetControlExpression(13, "Space");
+	m_keys4x->SetControlExpression(14, "Right Command");
+	m_keys4x->SetControlExpression(15, ""); // Menu
 
-	set_control(m_keys5x, 0, "Left Arrow");
-	set_control(m_keys5x, 1, "Down Arrow");
-	set_control(m_keys5x, 2, "Up Arrow");
-	set_control(m_keys5x, 3, "Right Arrow");
-	set_control(m_keys5x, 4, "Return");
+	m_keys5x->SetControlExpression(0, "Left Arrow");
+	m_keys5x->SetControlExpression(1, "Down Arrow");
+	m_keys5x->SetControlExpression(2, "Up Arrow");
+	m_keys5x->SetControlExpression(3, "Right Arrow");
+	m_keys5x->SetControlExpression(4, "Return");
 #else // linux
-	set_control(m_keys0x, 0, "Home");
-	set_control(m_keys0x, 1, "End");
-	set_control(m_keys0x, 2, "Prior");
-	set_control(m_keys0x, 3, "Next");
-	set_control(m_keys0x, 4, "Scroll_Lock");
+	m_keys0x->SetControlExpression(0, "Home");
+	m_keys0x->SetControlExpression(1, "End");
+	m_keys0x->SetControlExpression(2, "Prior");
+	m_keys0x->SetControlExpression(3, "Next");
+	m_keys0x->SetControlExpression(4, "Scroll_Lock");
 
-	set_control(m_keys2x, 9, "minus");
-	set_control(m_keys2x, 10, "grave");
-	set_control(m_keys2x, 11, "Print");
-	set_control(m_keys2x, 12, "apostrophe");
-	set_control(m_keys2x, 13, "bracketleft");
-	set_control(m_keys2x, 14, "equal");
-	set_control(m_keys2x, 15, "KP_Multiply");
-	set_control(m_keys3x, 0, "bracketright");
-	set_control(m_keys3x, 1, "comma");
-	set_control(m_keys3x, 2, "period");
-	set_control(m_keys3x, 3, "slash");
-	set_control(m_keys3x, 4, "backslash");
+	m_keys2x->SetControlExpression(9, "minus");
+	m_keys2x->SetControlExpression(10, "grave");
+	m_keys2x->SetControlExpression(11, "Print");
+	m_keys2x->SetControlExpression(12, "apostrophe");
+	m_keys2x->SetControlExpression(13, "bracketleft");
+	m_keys2x->SetControlExpression(14, "equal");
+	m_keys2x->SetControlExpression(15, "KP_Multiply");
+	m_keys3x->SetControlExpression(0, "bracketright");
+	m_keys3x->SetControlExpression(1, "comma");
+	m_keys3x->SetControlExpression(2, "period");
+	m_keys3x->SetControlExpression(3, "slash");
+	m_keys3x->SetControlExpression(4, "backslash");
 
-	set_control(m_keys4x, 1, "Escape");
-	set_control(m_keys4x, 2, "Insert");
-	set_control(m_keys4x, 3, "Delete");
-	set_control(m_keys4x, 4, "semicolon");
-	set_control(m_keys4x, 5, "BackSpace");
-	set_control(m_keys4x, 6, "Tab");
-	set_control(m_keys4x, 7, "Caps_Lock");
-	set_control(m_keys4x, 8, "Shift_L");
-	set_control(m_keys4x, 9, "Shift_R");
-	set_control(m_keys4x, 10, "Control_L");
-	set_control(m_keys4x, 11, "Alt_R");
-	set_control(m_keys4x, 12, "Super_L");
-	set_control(m_keys4x, 13, "space");
-	set_control(m_keys4x, 14, "Super_R");
-	set_control(m_keys4x, 15, "Menu");
+	m_keys4x->SetControlExpression(1, "Escape");
+	m_keys4x->SetControlExpression(2, "Insert");
+	m_keys4x->SetControlExpression(3, "Delete");
+	m_keys4x->SetControlExpression(4, "semicolon");
+	m_keys4x->SetControlExpression(5, "BackSpace");
+	m_keys4x->SetControlExpression(6, "Tab");
+	m_keys4x->SetControlExpression(7, "Caps_Lock");
+	m_keys4x->SetControlExpression(8, "Shift_L");
+	m_keys4x->SetControlExpression(9, "Shift_R");
+	m_keys4x->SetControlExpression(10, "Control_L");
+	m_keys4x->SetControlExpression(11, "Alt_R");
+	m_keys4x->SetControlExpression(12, "Super_L");
+	m_keys4x->SetControlExpression(13, "space");
+	m_keys4x->SetControlExpression(14, "Super_R");
+	m_keys4x->SetControlExpression(15, "Menu");
 
-	set_control(m_keys5x, 0, "Left");
-	set_control(m_keys5x, 1, "Down");
-	set_control(m_keys5x, 2, "Up");
-	set_control(m_keys5x, 3, "Right");
-	set_control(m_keys5x, 4, "Return");
+	m_keys5x->SetControlExpression(0, "Left");
+	m_keys5x->SetControlExpression(1, "Down");
+	m_keys5x->SetControlExpression(2, "Up");
+	m_keys5x->SetControlExpression(3, "Right");
+	m_keys5x->SetControlExpression(4, "Return");
 #endif
 
 }

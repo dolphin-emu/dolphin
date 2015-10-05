@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -66,7 +67,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 47; // Last changed in PR 3045
+static const u32 STATE_VERSION = 48; // Last changed in PR 3108
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -280,8 +281,20 @@ struct CompressAndDumpState_args
 static void CompressAndDumpState(CompressAndDumpState_args save_args)
 {
 	std::lock_guard<std::mutex> lk(*save_args.buffer_mutex);
-	if (!save_args.wait)
+
+	// ScopeGuard is used here to ensure that g_compressAndDumpStateSyncEvent.Set()
+	// will be called and that it will happen after the IOFile is closed.
+	// Both ScopeGuard's and IOFile's finalization occur at respective object destruction time.
+	// As Local (stack) objects are destructed in the reverse order of construction and "ScopeGuard on_exit"
+	// is created before the "IOFile f", it is guaranteed that the file will be finalized before
+	// the ScopeGuard's finalization (i.e. "g_compressAndDumpStateSyncEvent.Set()" call).
+	Common::ScopeGuard on_exit([]()
+	{
 		g_compressAndDumpStateSyncEvent.Set();
+	});
+	// If it is not required to wait, we call finalizer early (and it won't be called again at destruction).
+	if (!save_args.wait)
+		on_exit.Exit();
 
 	const u8* const buffer_data = &(*(save_args.buffer_vector))[0];
 	const size_t buffer_size = (save_args.buffer_vector)->size();
@@ -313,7 +326,6 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 	if (!f)
 	{
 		Core::DisplayMessage("Could not save state", 2000);
-		g_compressAndDumpStateSyncEvent.Set();
 		return;
 	}
 
@@ -361,7 +373,6 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 	}
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 2000);
-	g_compressAndDumpStateSyncEvent.Set();
 }
 
 void SaveAs(const std::string& filename, bool wait)
@@ -481,7 +492,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
 		if (!f.ReadBytes(&buffer[0], size))
 		{
-			PanicAlert("wtf? reading bytes: %i", (int)size);
+			PanicAlert("wtf? reading bytes: %zu", size);
 			return;
 		}
 	}

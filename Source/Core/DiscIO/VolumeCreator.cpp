@@ -9,11 +9,11 @@
 #include <utility>
 #include <vector>
 
-#include <polarssl/aes.h>
+#include <mbedtls/aes.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -139,10 +139,10 @@ void VolumeKeyForPartition(IBlobReader& _rReader, u64 offset, u8* VolumeKey)
 	if (Reader.Read8(0x3) == 'K' && Reader.Read8(offset + 0x1f1) == 1)
 		usingKoreanKey = true;
 
-	aes_context AES_ctx;
-	aes_setkey_dec(&AES_ctx, (usingKoreanKey ? s_master_key_korean : s_master_key), 128);
+	mbedtls_aes_context AES_ctx;
+	mbedtls_aes_setkey_dec(&AES_ctx, (usingKoreanKey ? s_master_key_korean : s_master_key), 128);
 
-	aes_crypt_cbc(&AES_ctx, AES_DECRYPT, 16, IV, SubKey, VolumeKey);
+	mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, 16, IV, SubKey, VolumeKey);
 }
 
 static IVolume* CreateVolumeFromCryptedWiiImage(std::unique_ptr<IBlobReader> reader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum)

@@ -2,10 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "AudioCommon/DPL2Decoder.h"
 #include "AudioCommon/PulseAudioStream.h"
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 
 namespace

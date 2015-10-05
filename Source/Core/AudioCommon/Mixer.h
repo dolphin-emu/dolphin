@@ -5,8 +5,8 @@
 #pragma once
 
 #include <atomic>
+#include <cstring>
 #include <mutex>
-#include <string>
 
 #include "AudioCommon/WaveFile.h"
 
@@ -19,21 +19,10 @@
 #define CONTROL_FACTOR  0.2f // in freq_shift per fifo size offset
 #define CONTROL_AVG     32
 
-class CMixer {
-
+class CMixer
+{
 public:
-	CMixer(unsigned int BackendSampleRate)
-		: m_dma_mixer(this, 32000)
-		, m_streaming_mixer(this, 48000)
-		, m_wiimote_speaker_mixer(this, 3000)
-		, m_sampleRate(BackendSampleRate)
-		, m_log_dtk_audio(0)
-		, m_log_dsp_audio(0)
-		, m_speed(0)
-	{
-		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
-	}
-
+	CMixer(unsigned int BackendSampleRate);
 	virtual ~CMixer() {}
 
 	// Called from audio threads

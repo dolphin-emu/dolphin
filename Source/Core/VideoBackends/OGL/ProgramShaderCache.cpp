@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 

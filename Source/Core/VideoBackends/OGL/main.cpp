@@ -38,12 +38,13 @@ Make AA apply instantly during gameplay if possible
 
 #include <algorithm>
 #include <cstdarg>
-#include <regex>
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/Thread.h"
+#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
@@ -52,8 +53,6 @@ Make AA apply instantly during gameplay if possible
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
-#include "VideoBackends/OGL/GLInterfaceBase.h"
-#include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -84,6 +83,12 @@ Make AA apply instantly during gameplay if possible
 namespace OGL
 {
 
+// Draw messages on top of the screen
+unsigned int VideoBackend::PeekMessages()
+{
+	return GLInterface->PeekMessages();
+}
+
 std::string VideoBackend::GetName() const
 {
 	return "OGL";
@@ -97,15 +102,24 @@ std::string VideoBackend::GetDisplayName() const
 		return "OpenGL";
 }
 
+std::string VideoBackend::GetConfigName() const
+{
+	return "gfx_opengl";
+}
+
 static std::vector<std::string> GetShaders(const std::string &sub_dir = "")
 {
-	std::vector<std::string> paths = DoFileSearch({"*.glsl"}, {
+	std::vector<std::string> paths = DoFileSearch({".glsl"}, {
 		File::GetUserPath(D_SHADERS_IDX) + sub_dir,
 		File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir
 	});
 	std::vector<std::string> result;
 	for (std::string path : paths)
-		result.push_back(std::regex_replace(path, std::regex("^.*/(.*)\\.glsl$"), "$1"));
+	{
+		std::string name;
+		SplitPath(path, nullptr, &name, nullptr);
+		result.push_back(name);
+	}
 	return result;
 }
 
@@ -121,9 +135,9 @@ static void InitBackendInfo()
 
 	g_Config.backend_info.Adapters.clear();
 
-	// aamodes
-	const char* caamodes[] = {_trans("None"), "2x MSAA", "4x MSAA", "8x MSAA"};
-	g_Config.backend_info.AAModes.assign(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
+	// aamodes - 1 is to stay consistent with D3D (means no AA)
+	const int aamodes[] = { 1, 2, 4, 8 };
+	g_Config.backend_info.AAModes.assign(aamodes, aamodes + sizeof(aamodes)/sizeof(*aamodes));
 
 	// pp shaders
 	g_Config.backend_info.PPShaders = GetShaders("");
@@ -134,7 +148,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 {
 	if (!s_BackendInitialized)
 		InitBackendInfo();
-	Host_ShowVideoConfig(_hParent, GetDisplayName(), "gfx_opengl");
+	Host_ShowVideoConfig(_hParent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoBackend::Initialize(void *window_handle)
@@ -144,7 +158,7 @@ bool VideoBackend::Initialize(void *window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
+	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + GetConfigName() + ".ini");
 	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();

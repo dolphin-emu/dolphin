@@ -2,10 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Assert.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
-
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexLoader_Position.h"
@@ -19,34 +19,34 @@ void Init()
 	VertexLoader_Normal::Init();
 }
 
-u8 ReadFifo8(u8 *&data)
+u8 ReadFifo8(u8*& data)
 {
 	u8 value = data[0];
 	data += 1;
 	return value;
 }
 
-u16 ReadFifo16(u8 *&data)
+u16 ReadFifo16(u8*& data)
 {
 	u16 value = Common::swap16(data);
 	data += 2;
 	return value;
 }
 
-u32 ReadFifo32(u8 *&data)
+u32 ReadFifo32(u8*& data)
 {
 	u32 value = Common::swap32(data);
 	data += 4;
 	return value;
 }
 
-void InitBPMemory(BPMemory *bpMem)
+void InitBPMemory(BPMemory* bpMem)
 {
 	memset(bpMem, 0, sizeof(BPMemory));
 	bpMem->bpMask = 0x00FFFFFF;
 }
 
-BPCmd DecodeBPCmd(u32 value, const BPMemory &bpMem)
+BPCmd DecodeBPCmd(u32 value, const BPMemory& bpMem)
 {
 	//handle the mask register
 	int opcode = value >> 24;
@@ -59,7 +59,7 @@ BPCmd DecodeBPCmd(u32 value, const BPMemory &bpMem)
 	return bp;
 }
 
-void LoadBPReg(const BPCmd &bp, BPMemory &bpMem)
+void LoadBPReg(const BPCmd& bp, BPMemory& bpMem)
 {
 	((u32*)&bpMem)[bp.address] = bp.newvalue;
 
@@ -68,19 +68,7 @@ void LoadBPReg(const BPCmd &bp, BPMemory &bpMem)
 		bpMem.bpMask = 0xFFFFFF;
 }
 
-void GetTlutLoadData(u32 &tlutAddr, u32 &memAddr, u32 &tlutXferCount, BPMemory &bpMem)
-{
-	tlutAddr = (bpMem.tmem_config.tlut_dest & 0x3FF) << 9;
-	tlutXferCount = (bpMem.tmem_config.tlut_dest & 0x1FFC00) >> 5;
-
-	// TODO - figure out a cleaner way.
-	if (SConfig::GetInstance().bWii)
-		memAddr = bpMem.tmem_config.tlut_src << 5;
-	else
-		memAddr = (bpMem.tmem_config.tlut_src & 0xFFFFF) << 5;
-}
-
-void LoadCPReg(u32 subCmd, u32 value, CPMemory &cpMem)
+void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)
 {
 	switch (subCmd & 0xF0)
 	{
@@ -119,7 +107,7 @@ void LoadCPReg(u32 subCmd, u32 value, CPMemory &cpMem)
 	}
 }
 
-u32 CalculateVertexSize(int vatIndex, const CPMemory &cpMem)
+u32 CalculateVertexSize(int vatIndex, const CPMemory& cpMem)
 {
 	u32 vertexSize = 0;
 
@@ -132,7 +120,7 @@ u32 CalculateVertexSize(int vatIndex, const CPMemory &cpMem)
 	return vertexSize;
 }
 
-void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMem)
+void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory& cpMem)
 {
 	const TVtxDesc &vtxDesc = cpMem.vtxDesc;
 	const VAT &vtxAttr = cpMem.vtxAttr[vatIndex];

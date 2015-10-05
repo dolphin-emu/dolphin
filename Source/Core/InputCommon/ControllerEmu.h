@@ -154,6 +154,8 @@ public:
 		virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 		virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 
+		void SetControlExpression(int index, const std::string& expression);
+
 		const std::string     name;
 		const std::string     ui_name;
 		const unsigned int    type;
