@@ -658,7 +658,7 @@ std::string GetCurrentDir()
 				GetLastErrorMsg().c_str());
 		return nullptr;
 	}
-	std::string strDir = std::string(dir);
+	std::string strDir = dir;
 	free(dir);
 	return strDir;
 }
