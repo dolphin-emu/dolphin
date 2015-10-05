@@ -652,15 +652,14 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 // Returns the current directory
 std::string GetCurrentDir()
 {
-	char *dir;
-	// Get the current working directory (getcwd uses malloc)
-	if (!(dir = __getcwd(nullptr, 0)))
+	char* dir=(char*) malloc(PATH_MAX*sizeof(char));
+	if (!(getcwd(dir, PATH_MAX)))
 	{
 		ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s",
 				GetLastErrorMsg().c_str());
 		return nullptr;
 	}
-	std::string strDir = dir;
+	std::string strDir = std::string(dir);
 	free(dir);
 	return strDir;
 }
@@ -668,7 +667,7 @@ std::string GetCurrentDir()
 // Sets the current directory to the given directory
 bool SetCurrentDir(const std::string &directory)
 {
-	return __chdir(directory.c_str()) == 0;
+	return chdir(directory.c_str()) == 0;
 }
 
 std::string CreateTempDir()

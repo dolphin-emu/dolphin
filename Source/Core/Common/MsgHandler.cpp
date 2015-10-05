@@ -11,6 +11,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/Common.h"
 
 bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style);
 static MsgAlertHandler msg_handler = DefaultMsgHandler;

@@ -4,7 +4,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-
+#include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"

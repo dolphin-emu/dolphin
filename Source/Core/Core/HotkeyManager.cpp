@@ -8,6 +8,7 @@
 #include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
+#include "Common/Common.h"
 
 const std::string hotkey_labels[] =
 {

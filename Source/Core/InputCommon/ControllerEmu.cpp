@@ -5,6 +5,7 @@
 #include <memory>
 #include "Common/Common.h"
 #include "InputCommon/ControllerEmu.h"
+#include "Common/Common.h"
 
 void ControllerEmu::UpdateReferences(ControllerInterface& devi)
 {

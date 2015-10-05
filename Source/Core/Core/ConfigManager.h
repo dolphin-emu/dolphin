@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Common.h"
 #include "Common/IniFile.h"
 #include "Common/NonCopyable.h"
 #include "Common/SysConf.h"
