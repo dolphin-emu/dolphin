@@ -49,7 +49,6 @@ bool wxStaticText::Create(wxWindow *parent,
 
     // as we didn't pass the correct label to MSWCreateControl(), it didn't set
     // the initial size correctly -- do it now
-    InvalidateBestSize();
     SetInitialSize(size);
 
     // NOTE: if the label contains ampersand characters which are interpreted as
@@ -68,7 +67,7 @@ WXDWORD wxStaticText::MSWGetStyle(long style, WXDWORD *exstyle) const
     //
     // note that both wxALIGN_LEFT and SS_LEFT are equal to 0 so we shouldn't
     // test for them using & operator
-    if ( style & wxALIGN_CENTRE )
+    if ( style & wxALIGN_CENTRE_HORIZONTAL )
         msStyle |= SS_CENTER;
     else if ( style & wxALIGN_RIGHT )
         msStyle |= SS_RIGHT;
@@ -76,18 +75,14 @@ WXDWORD wxStaticText::MSWGetStyle(long style, WXDWORD *exstyle) const
         msStyle |= SS_LEFT;
 
 #ifdef SS_ENDELLIPSIS
-    // this style is necessary to receive mouse events
-    // Win NT and later have the SS_ENDELLIPSIS style which is useful to us:
-    if (wxGetOsVersion() == wxOS_WINDOWS_NT)
-    {
-        // for now, add the SS_ENDELLIPSIS style if wxST_ELLIPSIZE_END is given;
-        // we may need to remove it later in ::SetLabel() if the given label
-        // has newlines
-        if ( style & wxST_ELLIPSIZE_END )
-            msStyle |= SS_ENDELLIPSIS;
-    }
+    // for now, add the SS_ENDELLIPSIS style if wxST_ELLIPSIZE_END is given;
+    // we may need to remove it later in ::SetLabel() if the given label
+    // has newlines
+    if ( style & wxST_ELLIPSIZE_END )
+        msStyle |= SS_ENDELLIPSIS;
 #endif // SS_ENDELLIPSIS
 
+    // this style is necessary to receive mouse events
     msStyle |= SS_NOTIFY;
 
     return msStyle;
@@ -104,11 +99,6 @@ wxSize wxStaticText::DoGetBestClientSize() const
 
     wxCoord widthTextMax, heightTextTotal;
     dc.GetMultiLineTextExtent(GetLabelText(), &widthTextMax, &heightTextTotal);
-
-#ifdef __WXWINCE__
-    if ( widthTextMax )
-        widthTextMax += 2;
-#endif // __WXWINCE__
 
     // This extra pixel is a hack we use to ensure that a wxStaticText
     // vertically centered around the same position as a wxTextCtrl shows its
@@ -154,8 +144,7 @@ void wxStaticText::SetLabel(const wxString& label)
 {
 #ifdef SS_ENDELLIPSIS
     long styleReal = ::GetWindowLong(GetHwnd(), GWL_STYLE);
-    if ( HasFlag(wxST_ELLIPSIZE_END) &&
-          wxGetOsVersion() == wxOS_WINDOWS_NT )
+    if ( HasFlag(wxST_ELLIPSIZE_END) )
     {
         // adding SS_ENDELLIPSIS or SS_ENDELLIPSIS "disables" the correct
         // newline handling in static texts: the newlines in the labels are
@@ -186,31 +175,22 @@ void wxStaticText::SetLabel(const wxString& label)
 #endif // SS_ENDELLIPSIS
         DoSetLabel(GetEllipsizedLabel());
 
-    // adjust the size of the window to fit to the label unless autoresizing is
-    // disabled
-    if ( !HasFlag(wxST_NO_AUTORESIZE) &&
-         !IsEllipsized() )  // if ellipsize is ON, then we don't want to get resized!
+    InvalidateBestSize();
+
+    if ( !IsEllipsized() )  // if ellipsize is ON, then we don't want to get resized!
     {
-        InvalidateBestSize();
-        DoSetSize(wxDefaultCoord, wxDefaultCoord, wxDefaultCoord, wxDefaultCoord,
-                  wxSIZE_AUTO_WIDTH | wxSIZE_AUTO_HEIGHT);
+        AutoResizeIfNecessary();
     }
 }
 
 bool wxStaticText::SetFont(const wxFont& font)
 {
-    bool ret = wxControl::SetFont(font);
+    if ( !wxControl::SetFont(font) )
+        return false;
 
-    // adjust the size of the window to fit to the label unless autoresizing is
-    // disabled
-    if ( !HasFlag(wxST_NO_AUTORESIZE) )
-    {
-        InvalidateBestSize();
-        DoSetSize(wxDefaultCoord, wxDefaultCoord, wxDefaultCoord, wxDefaultCoord,
-                  wxSIZE_AUTO_WIDTH | wxSIZE_AUTO_HEIGHT);
-    }
+    AutoResizeIfNecessary();
 
-    return ret;
+    return true;
 }
 
 // for wxST_ELLIPSIZE_* support:

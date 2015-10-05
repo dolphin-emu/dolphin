@@ -54,7 +54,7 @@ WX_DEFINE_USER_EXPORTED_OBJARRAY(wxDynamicLibraryDetailsArray)
 // ---------------------------------------------------------------------------
 
 // for MSW/Unix it is defined in platform-specific file
-#if !(defined(__WINDOWS__) || defined(__UNIX__)) || defined(__EMX__)
+#if !(defined(__WINDOWS__) || defined(__UNIX__))
 
 wxDllType wxDynamicLibrary::GetProgramHandle()
 {
@@ -82,15 +82,7 @@ bool wxDynamicLibrary::Load(const wxString& libnameOrig, int flags)
         }
     }
 
-    // different ways to load a shared library
-    //
-    // FIXME: should go to the platform-specific files!
-#if defined(__WXPM__) || defined(__EMX__)
-    char err[256] = "";
-    DosLoadModule(err, sizeof(err), libname.c_str(), &m_handle);
-#else // this should be the only remaining branch eventually
     m_handle = RawLoad(libname, flags);
-#endif
 
     if ( m_handle == 0 && !(flags & wxDL_QUIET) )
     {
@@ -104,36 +96,12 @@ bool wxDynamicLibrary::Load(const wxString& libnameOrig, int flags)
     return IsLoaded();
 }
 
-// for MSW and Unix this is implemented in the platform-specific file
-//
-// TODO: move the rest to os2/dlpm.cpp and mac/dlmac.cpp!
-#if (!defined(__WINDOWS__) && !defined(__UNIX__)) || defined(__EMX__)
-
-/* static */
-void wxDynamicLibrary::Unload(wxDllType handle)
-{
-#if defined(__OS2__) || defined(__EMX__)
-    DosFreeModule( handle );
-#else
-    #error  "runtime shared lib support not implemented"
-#endif
-}
-
-#endif // !(__WINDOWS__ || __UNIX__)
-
 void *wxDynamicLibrary::DoGetSymbol(const wxString &name, bool *success) const
 {
     wxCHECK_MSG( IsLoaded(), NULL,
                  wxT("Can't load symbol from unloaded library") );
 
-    void    *symbol = 0;
-
-    wxUnusedVar(symbol);
-#if defined(__WXPM__) || defined(__EMX__)
-    DosQueryProcAddr( m_handle, 1L, name.c_str(), (PFN*)symbol );
-#else
-    symbol = RawGetSymbol(m_handle, name);
-#endif
+    void *symbol = RawGetSymbol(m_handle, name);
 
     if ( success )
         *success = symbol != NULL;
@@ -165,7 +133,7 @@ void *wxDynamicLibrary::GetSymbol(const wxString& name, bool *success) const
 wxString wxDynamicLibrary::GetDllExt(wxDynamicLibraryCategory cat)
 {
     wxUnusedVar(cat);
-#if defined(__WINDOWS__) || defined(__WXPM__) || defined(__EMX__)
+#if defined(__WINDOWS__)
     return ".dll";
 #elif defined(__HPUX__)
     return ".sl";
@@ -192,7 +160,7 @@ wxDynamicLibrary::CanonicalizeName(const wxString& name,
     wxString nameCanonic;
 
     // under Unix the library names usually start with "lib" prefix, add it
-#if defined(__UNIX__) && !defined(__EMX__)
+#if defined(__UNIX__)
     switch ( cat )
     {
         case wxDL_LIBRARY:
@@ -230,7 +198,7 @@ wxString wxDynamicLibrary::CanonicalizePluginName(const wxString& name,
         suffix = wxString(wxT("_")) + suffix;
 
 #define WXSTRINGIZE(x)  #x
-#if defined(__UNIX__) && !defined(__EMX__)
+#if defined(__UNIX__)
     #if (wxMINOR_VERSION % 2) == 0
         #define wxDLLVER(x,y,z) "-" WXSTRINGIZE(x) "." WXSTRINGIZE(y)
     #else
@@ -255,8 +223,6 @@ wxString wxDynamicLibrary::CanonicalizePluginName(const wxString& name,
         suffix << wxT("_gcc");
     #elif defined(__VISUALC__)
         suffix << wxT("_vc");
-    #elif defined(__WATCOMC__)
-        suffix << wxT("_wat");
     #elif defined(__BORLANDC__)
         suffix << wxT("_bcc");
     #endif

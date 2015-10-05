@@ -13,8 +13,8 @@
 
 class WXDLLIMPEXP_CORE wxRadioButton: public wxControl
 {
-  DECLARE_DYNAMIC_CLASS(wxRadioButton)
- protected:
+    wxDECLARE_DYNAMIC_CLASS(wxRadioButton);
+
 public:
     inline wxRadioButton() {}
     inline wxRadioButton(wxWindow *parent, wxWindowID id,
@@ -61,10 +61,10 @@ WXDLLIMPEXP_DATA_CORE(extern const wxChar) wxBitmapRadioButtonNameStr[];
 
 class WXDLLIMPEXP_CORE wxBitmapRadioButton: public wxRadioButton
 {
-  DECLARE_DYNAMIC_CLASS(wxBitmapRadioButton)
- protected:
+  wxDECLARE_DYNAMIC_CLASS(wxBitmapRadioButton);
+protected:
   wxBitmap *theButtonBitmap;
- public:
+public:
   inline wxBitmapRadioButton() { theButtonBitmap = NULL; }
   inline wxBitmapRadioButton(wxWindow *parent, wxWindowID id,
            const wxBitmap *label,

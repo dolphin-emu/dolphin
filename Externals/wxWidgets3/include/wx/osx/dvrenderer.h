@@ -83,12 +83,9 @@ public:
                                   const wxDataViewItem& item,
                                   unsigned col);
 
-    // called to ensure that the given attribute will be used for rendering the
-    // next cell (which had been already associated with this renderer before)
-    virtual void OSXApplyAttr(const wxDataViewItemAttr& attr);
-
-    // called to set the state of the next cell to be rendered
-    virtual void OSXApplyEnabled(bool enabled);
+protected:
+    virtual void SetAttr(const wxDataViewItemAttr& attr) wxOVERRIDE;
+    virtual void SetEnabled(bool enabled) wxOVERRIDE;
 #endif // Cocoa
 
 private:
@@ -104,7 +101,7 @@ private:
     // value that is going to be rendered
     wxVariant m_value;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewRenderer)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewRenderer);
 };
 
 #endif // _WX_OSX_DVRENDERER_H_

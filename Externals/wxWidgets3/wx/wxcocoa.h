@@ -1269,6 +1269,7 @@
 
 #define wxUSE_COMPILER_TLS 1
 #define wxUSE_PREFERENCES_EDITOR 1
+#define wxUSE_STD_CONTAINERS_COMPATIBLY 1
 
 #endif /* __WX_SETUP_H__ */
 

@@ -90,21 +90,13 @@ bool IsTransparent(unsigned char a)
 // wxPNGHandler implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxPNGHandler,wxImageHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPNGHandler,wxImageHandler);
 
 #if wxUSE_STREAMS
 
 #ifndef PNGLINKAGEMODE
     #ifdef PNGAPI
         #define PNGLINKAGEMODE PNGAPI
-    #elif defined(__WATCOMC__)
-        // we need an explicit cdecl for Watcom, at least according to
-        //
-        // http://sf.net/tracker/index.php?func=detail&aid=651492&group_id=9863&atid=109863
-        //
-        // more testing is needed for this however, please remove this comment
-        // if you can confirm that my fix works with Watcom 11
-        #define PNGLINKAGEMODE cdecl
     #else
         #define PNGLINKAGEMODE LINKAGEMODE
     #endif
@@ -387,12 +379,12 @@ void CopyDataFromPNG(wxImage *image,
                         // using the mask at all
                         wxASSERT_MSG( IsOpaque(a), wxT("logic error") );
 
-                        // fall through
+                        wxFALLTHROUGH;
 
                     case Transparency_Alpha:
                         if ( alpha )
                             *alpha++ = a;
-                        // fall through
+                        wxFALLTHROUGH;
 
                     case Transparency_None:
                         *ptrDst++ = g;
@@ -466,12 +458,12 @@ void CopyDataFromPNG(wxImage *image,
                             }
                         }
 
-                        // fall through
+                        wxFALLTHROUGH;
 
                     case Transparency_Alpha:
                         if ( alpha )
                             *alpha++ = a;
-                        // fall through
+                        wxFALLTHROUGH;
 
                     case Transparency_None:
                         *ptrDst++ = r;
@@ -612,7 +604,7 @@ wxPNGHandler::LoadFile(wxImage *image,
         {
             default:
                 wxLogWarning(_("Unknown PNG resolution unit %d"), unitType);
-                // fall through
+                wxFALLTHROUGH;
 
             case PNG_RESOLUTION_UNKNOWN:
                 image->SetOption(wxIMAGE_OPTION_RESOLUTIONX, resX);
@@ -1004,7 +996,7 @@ bool wxPNGHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbos
             {
                 default:
                     wxFAIL_MSG( wxT("unknown wxPNG_TYPE_XXX") );
-                    // fall through
+                    wxFALLTHROUGH;
 
                 case wxPNG_TYPE_COLOUR:
                     *pData++ = clr.red;

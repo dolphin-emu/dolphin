@@ -55,11 +55,35 @@ bool wxStaticText::Create(wxWindow *parent,
 
     GtkJustification justify;
     if ( style & wxALIGN_CENTER_HORIZONTAL )
-      justify = GTK_JUSTIFY_CENTER;
+    {
+#ifndef __WXGTK3__
+        // This looks like a bug in GTK+ and seems to be fixed in GTK+3, but
+        // using non-default justification with default ellipsize mode doesn't
+        // work: the justification is just ignored. In practice, alignment is
+        // more important, so turn on ellipsize mode even if it was not
+        // specified to make it work if necessary.
+        if ( !(style & wxST_ELLIPSIZE_MASK) )
+            style |= wxST_ELLIPSIZE_MIDDLE;
+#endif // GTK+ 2
+
+        justify = GTK_JUSTIFY_CENTER;
+    }
     else if ( style & wxALIGN_RIGHT )
-      justify = GTK_JUSTIFY_RIGHT;
-    else
-      justify = GTK_JUSTIFY_LEFT;
+    {
+#ifndef __WXGTK3__
+        // As above, we need to use a non-default ellipsize mode for the
+        // alignment to have any effect.
+        if ( !(style & wxST_ELLIPSIZE_MASK) )
+            style |= wxST_ELLIPSIZE_START;
+#endif // GTK+ 2
+
+        justify = GTK_JUSTIFY_RIGHT;
+    }
+    else // must be wxALIGN_LEFT which is 0
+    {
+        // No need to play games with wxST_ELLIPSIZE_XXX.
+        justify = GTK_JUSTIFY_LEFT;
+    }
 
     if (GetLayoutDirection() == wxLayout_RightToLeft)
     {
@@ -93,6 +117,13 @@ bool wxStaticText::Create(wxWindow *parent,
     m_parent->DoAddChild( this );
 
     PostCreation(size);
+
+#ifndef __WXGTK3__
+    // GtkLabel does its layout based on its size-request, rather than its
+    // actual size. The size-request may not always get set, specifically if
+    // the initial size is fully specified. So make sure it's set here.
+    gtk_widget_set_size_request(m_widget, m_width, m_height);
+#endif
 
     return true;
 }

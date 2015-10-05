@@ -77,7 +77,7 @@ public:
     bool IsOk() const { return m_isOk; }
 
 protected:
-    virtual void OnStackFrame(const wxStackFrame& frame);
+    virtual void OnStackFrame(const wxStackFrame& frame) wxOVERRIDE;
 
     wxXmlNode *m_nodeStack;
     bool m_isOk;
@@ -234,12 +234,7 @@ wxDebugReport::~wxDebugReport()
 
     if ( !m_dir.empty() )
     {
-        // Temp fix: what should this be? eVC++ doesn't like wxRmDir
-#ifdef __WXWINCE__
-        if ( wxRmdir(m_dir.fn_str()) != 0 )
-#else
         if ( wxRmDir(m_dir.fn_str()) != 0 )
-#endif
         {
             wxLogSysError(_("Failed to clean up debug report directory \"%s\""),
                           m_dir.c_str());

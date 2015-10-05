@@ -71,9 +71,9 @@ protected:
 #if defined(__WXDFB__) || \
     defined(__WXMAC__) || \
     defined(__WXGTK__) || \
-    defined(__WXCOCOA__) || \
     defined(__WXMOTIF__) || \
-    defined(__WXX11__)
+    defined(__WXX11__) || \
+    defined(__WXQT__)
     #define wxUSE_BITMAP_BASE 1
 #else
     #define wxUSE_BITMAP_BASE 0
@@ -100,8 +100,8 @@ public:
 };
 
 
-// All ports except wxMSW and wxOS2 use wxBitmapHandler and wxBitmapBase as
-// base class for wxBitmapHandler; wxMSW and wxOS2 use wxGDIImageHandler as
+// All ports except wxMSW use wxBitmapHandler and wxBitmapBase as
+// base class for wxBitmapHandler; wxMSW uses wxGDIImageHandler as
 // base class since it allows some code reuse there.
 #if wxUSE_BITMAP_BASE
 
@@ -146,7 +146,7 @@ private:
     wxString      m_extension;
     wxBitmapType  m_type;
 
-    DECLARE_ABSTRACT_CLASS(wxBitmapHandler)
+    wxDECLARE_ABSTRACT_CLASS(wxBitmapHandler);
 };
 
 // ----------------------------------------------------------------------------
@@ -254,7 +254,7 @@ public:
 protected:
     static wxList sm_handlers;
 
-    DECLARE_ABSTRACT_CLASS(wxBitmapBase)
+    wxDECLARE_ABSTRACT_CLASS(wxBitmapBase);
 };
 
 #endif // wxUSE_BITMAP_BASE
@@ -287,12 +287,9 @@ protected:
 #elif defined(__WXMAC__)
     #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_PICT_RESOURCE
     #include "wx/osx/bitmap.h"
-#elif defined(__WXCOCOA__)
-    #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_BMP_RESOURCE
-    #include "wx/cocoa/bitmap.h"
-#elif defined(__WXPM__)
-    #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_BMP_RESOURCE
-    #include "wx/os2/bitmap.h"
+#elif defined(__WXQT__)
+    #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_XPM
+    #include "wx/qt/bitmap.h"
 #endif
 
 #if wxUSE_IMAGE
@@ -305,13 +302,7 @@ wxBitmap::
 #endif
 ConvertToDisabled(unsigned char brightness) const
 {
-    // XXX comex: scale support
-    wxImage disabledImage = ConvertToImage().ConvertToDisabled(brightness);
-    #ifdef __APPLE__
-    return wxBitmap(disabledImage, -1, GetScaleFactor());
-    #else
-    return disabledImage;
-    #endif
+    return ConvertToImage().ConvertToDisabled(brightness);
 }
 #endif // wxUSE_IMAGE
 

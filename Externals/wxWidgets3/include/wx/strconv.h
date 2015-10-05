@@ -16,14 +16,6 @@
 #include "wx/chartype.h"
 #include "wx/buffer.h"
 
-#ifdef __DIGITALMARS__
-#include "typeinfo.h"
-#endif
-
-#if defined(__VISAGECPP__) && __IBMCPP__ >= 400
-#  undef __BSEXCPT__
-#endif
-
 #include <stdlib.h>
 
 class WXDLLIMPEXP_FWD_BASE wxString;
@@ -183,13 +175,13 @@ public:
 class WXDLLIMPEXP_BASE wxMBConvLibc : public wxMBConv
 {
 public:
-    virtual size_t MB2WC(wchar_t *outputBuf, const char *psz, size_t outputSize) const;
-    virtual size_t WC2MB(char *outputBuf, const wchar_t *psz, size_t outputSize) const;
+    virtual size_t MB2WC(wchar_t *outputBuf, const char *psz, size_t outputSize) const wxOVERRIDE;
+    virtual size_t WC2MB(char *outputBuf, const wchar_t *psz, size_t outputSize) const wxOVERRIDE;
 
-    virtual wxMBConv *Clone() const { return new wxMBConvLibc; }
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxMBConvLibc; }
 
 #if wxUSE_UNICODE_UTF8
-    virtual bool IsUTF8() const { return wxLocaleIsUtf8; }
+    virtual bool IsUTF8() const wxOVERRIDE { return wxLocaleIsUtf8; }
 #endif
 };
 
@@ -213,27 +205,27 @@ public:
     }
     virtual ~wxConvBrokenFileNames() { delete m_conv; }
 
-    virtual size_t MB2WC(wchar_t *out, const char *in, size_t outLen) const
+    virtual size_t MB2WC(wchar_t *out, const char *in, size_t outLen) const wxOVERRIDE
     {
         return m_conv->MB2WC(out, in, outLen);
     }
 
-    virtual size_t WC2MB(char *out, const wchar_t *in, size_t outLen) const
+    virtual size_t WC2MB(char *out, const wchar_t *in, size_t outLen) const wxOVERRIDE
     {
         return m_conv->WC2MB(out, in, outLen);
     }
 
-    virtual size_t GetMBNulLen() const
+    virtual size_t GetMBNulLen() const wxOVERRIDE
     {
         // cast needed to call a private function
         return m_conv->GetMBNulLen();
     }
 
 #if wxUSE_UNICODE_UTF8
-    virtual bool IsUTF8() const { return m_conv->IsUTF8(); }
+    virtual bool IsUTF8() const wxOVERRIDE { return m_conv->IsUTF8(); }
 #endif
 
-    virtual wxMBConv *Clone() const { return new wxConvBrokenFileNames(*this); }
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxConvBrokenFileNames(*this); }
 
 private:
     // the conversion object we forward to
@@ -257,11 +249,11 @@ public:
     // (assuming it's ok to copy the shift state -- not really sure about it)
 
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = wxNO_LEN) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
 
-    virtual wxMBConv *Clone() const { return new wxMBConvUTF7; }
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxMBConvUTF7; }
 
 private:
     // UTF-7 decoder/encoder may be in direct mode or in shifted mode after a
@@ -344,16 +336,16 @@ public:
     // compiler-generated default ctor and other methods are ok
 
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = wxNO_LEN) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
 
-    virtual wxMBConv *Clone() const { return new wxMBConvStrictUTF8(); }
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxMBConvStrictUTF8(); }
 
 #if wxUSE_UNICODE_UTF8
     // NB: other mapping modes are not, strictly speaking, UTF-8, so we can't
     //     take the shortcut in that case
-    virtual bool IsUTF8() const { return true; }
+    virtual bool IsUTF8() const wxOVERRIDE { return true; }
 #endif
 };
 
@@ -370,16 +362,16 @@ public:
     wxMBConvUTF8(int options = MAP_INVALID_UTF8_NOT) : m_options(options) { }
 
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = wxNO_LEN) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
 
-    virtual wxMBConv *Clone() const { return new wxMBConvUTF8(m_options); }
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxMBConvUTF8(m_options); }
 
 #if wxUSE_UNICODE_UTF8
     // NB: other mapping modes are not, strictly speaking, UTF-8, so we can't
     //     take the shortcut in that case
-    virtual bool IsUTF8() const { return m_options == MAP_INVALID_UTF8_NOT; }
+    virtual bool IsUTF8() const wxOVERRIDE { return m_options == MAP_INVALID_UTF8_NOT; }
 #endif
 
 private:
@@ -395,7 +387,7 @@ class WXDLLIMPEXP_BASE wxMBConvUTF16Base : public wxMBConv
 public:
     enum { BYTES_PER_CHAR = 2 };
 
-    virtual size_t GetMBNulLen() const { return BYTES_PER_CHAR; }
+    virtual size_t GetMBNulLen() const wxOVERRIDE { return BYTES_PER_CHAR; }
 
 protected:
     // return the length of the buffer using srcLen if it's not wxNO_LEN and
@@ -413,10 +405,10 @@ class WXDLLIMPEXP_BASE wxMBConvUTF16LE : public wxMBConvUTF16Base
 {
 public:
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = wxNO_LEN) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
-    virtual wxMBConv *Clone() const { return new wxMBConvUTF16LE; }
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxMBConvUTF16LE; }
 };
 
 // ----------------------------------------------------------------------------
@@ -427,10 +419,10 @@ class WXDLLIMPEXP_BASE wxMBConvUTF16BE : public wxMBConvUTF16Base
 {
 public:
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = wxNO_LEN) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
-    virtual wxMBConv *Clone() const { return new wxMBConvUTF16BE; }
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxMBConvUTF16BE; }
 };
 
 // ----------------------------------------------------------------------------
@@ -442,7 +434,7 @@ class WXDLLIMPEXP_BASE wxMBConvUTF32Base : public wxMBConv
 public:
     enum { BYTES_PER_CHAR = 4 };
 
-    virtual size_t GetMBNulLen() const { return BYTES_PER_CHAR; }
+    virtual size_t GetMBNulLen() const wxOVERRIDE { return BYTES_PER_CHAR; }
 
 protected:
     // this is similar to wxMBConvUTF16Base method with the same name except
@@ -459,10 +451,10 @@ class WXDLLIMPEXP_BASE wxMBConvUTF32LE : public wxMBConvUTF32Base
 {
 public:
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = wxNO_LEN) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
-    virtual wxMBConv *Clone() const { return new wxMBConvUTF32LE; }
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxMBConvUTF32LE; }
 };
 
 // ----------------------------------------------------------------------------
@@ -473,10 +465,10 @@ class WXDLLIMPEXP_BASE wxMBConvUTF32BE : public wxMBConvUTF32Base
 {
 public:
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = wxNO_LEN) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
-    virtual wxMBConv *Clone() const { return new wxMBConvUTF32BE; }
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxMBConvUTF32BE; }
 };
 
 // ----------------------------------------------------------------------------
@@ -499,16 +491,16 @@ public:
     wxCSConv& operator=(const wxCSConv& conv);
 
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = wxNO_LEN) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
-    virtual size_t GetMBNulLen() const;
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
+    virtual size_t GetMBNulLen() const wxOVERRIDE;
 
 #if wxUSE_UNICODE_UTF8
-    virtual bool IsUTF8() const;
+    virtual bool IsUTF8() const wxOVERRIDE;
 #endif
 
-    virtual wxMBConv *Clone() const { return new wxCSConv(*this); }
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxCSConv(*this); }
 
     void Clear();
 
@@ -635,7 +627,7 @@ extern WXDLLIMPEXP_DATA_BASE(wxMBConv *) wxConvUI;
     #define wxFNCONV(name) wxConvFileName->cWX2MB(name)
     #define wxFNSTRINGCAST wxMBSTRINGCAST
 #else
-#if defined( __WXOSX_OR_COCOA__ ) && wxMBFILES
+#if defined(__WXOSX__) && wxMBFILES
     #define wxFNCONV(name) wxConvFileName->cWC2MB( wxConvLocal.cWX2WC(name) )
 #else
     #define wxFNCONV(name) name

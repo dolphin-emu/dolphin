@@ -70,7 +70,7 @@ public:
 
 private:
     // implement wxTextEntry pure virtual method
-    virtual wxWindow *GetEditableWindow() { return this; }
+    virtual wxWindow *GetEditableWindow() wxOVERRIDE { return this; }
 };
 
 

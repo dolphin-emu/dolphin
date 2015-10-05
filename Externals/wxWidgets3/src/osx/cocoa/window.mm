@@ -192,7 +192,7 @@ NSRect wxOSXGetFrameForControl( wxWindowMac* window , const wxPoint& pos , const
     const UCKeyboardLayout *keyboardLayout = (const UCKeyboardLayout*)CFDataGetBytePtr(uchr);
     if (keyboardLayout) {
         UInt32 deadKeyState = 0;
-        UniCharCount maxStringLength = 255;
+        const UniCharCount maxStringLength = 255;
         UniCharCount actualStringLength = 0;
         UniChar unicodeString[maxStringLength];
         
@@ -232,6 +232,10 @@ long wxOSXTranslateCocoaKey( NSEvent* event, int eventType )
             {
                 switch ( [s characterAtIndex:0] )
                 {
+                    // numpad enter key End-of-text character ETX U+0003
+                    case 3:
+                        retval = WXK_NUMPAD_ENTER;
+                        break;
                     // backspace key
                     case 0x7F :
                     case 8 :
@@ -345,9 +349,6 @@ long wxOSXTranslateCocoaKey( NSEvent* event, int eventType )
             case 69: // +
                 retval = WXK_NUMPAD_ADD;
                 break;
-            case 76: // Enter
-                retval = WXK_NUMPAD_ENTER;
-                break;
             case 65: // .
                 retval = WXK_NUMPAD_DECIMAL;
                 break;
@@ -455,6 +456,14 @@ void wxWidgetCocoaImpl::SetupKeyEvent(wxKeyEvent &wxevent , NSEvent * nsEvent, N
                 break ;
         }
     }
+    else
+    {
+        long keycode = wxOSXTranslateCocoaKey( nsEvent, wxEVT_CHAR );
+        if ( (keycode > 0 && keycode < WXK_SPACE) || keycode == WXK_DELETE || keycode >= WXK_START )
+        {
+            keyval = keycode;
+        }
+    }
 
     if ( !keyval )
     {
@@ -559,6 +568,9 @@ void wxWidgetCocoaImpl::SetupMouseEvent( wxMouseEvent &wxevent , NSEvent * nsEve
             break;
     }
 
+    // Remember value of g_lastButton for later click count adjustment
+    UInt32 prevLastButton = g_lastButton;
+
     // a control click is interpreted as a right click
     bool thisButtonIsFakeRight = false ;
     if ( button == 0 && (modifiers & NSControlKeyMask) )
@@ -566,10 +578,6 @@ void wxWidgetCocoaImpl::SetupMouseEvent( wxMouseEvent &wxevent , NSEvent * nsEve
         button = 1 ;
         thisButtonIsFakeRight = true ;
     }
-
-    // otherwise we report double clicks by connecting a left click with a ctrl-left click
-    if ( clickCount > 1 && button != g_lastButton )
-        clickCount = 1 ;
 
     // we must make sure that our synthetic 'right' button corresponds in
     // mouse down, moved and mouse up, and does not deliver a right down and left up
@@ -591,6 +599,22 @@ void wxWidgetCocoaImpl::SetupMouseEvent( wxMouseEvent &wxevent , NSEvent * nsEve
     else if ( g_lastButton == 1 && g_lastButtonWasFakeRight )
         button = g_lastButton ;
 
+    // Adjust click count when clicking with different buttons,
+    // otherwise we report double clicks by connecting a left click with a ctrl-left click
+    switch (eventType)
+    {
+        case NSLeftMouseDown :
+        case NSRightMouseDown :
+        case NSOtherMouseDown :
+        case NSLeftMouseUp :
+        case NSRightMouseUp :
+        case NSOtherMouseUp :
+            clickCount = [nsEvent clickCount];
+            if ( clickCount > 1 && button != prevLastButton )
+                clickCount = 1 ;
+        break;
+    }
+
     // Adjust the chord mask to remove the primary button and add the
     // secondary button.  It is possible that the secondary button is
     // already pressed, e.g. on a mouse connected to a laptop, but this
@@ -611,7 +635,6 @@ void wxWidgetCocoaImpl::SetupMouseEvent( wxMouseEvent &wxevent , NSEvent * nsEve
         case NSLeftMouseDown :
         case NSRightMouseDown :
         case NSOtherMouseDown :
-            clickCount = [nsEvent clickCount];
             switch ( button )
             {
                 case 0 :
@@ -634,7 +657,6 @@ void wxWidgetCocoaImpl::SetupMouseEvent( wxMouseEvent &wxevent , NSEvent * nsEve
         case NSLeftMouseUp :
         case NSRightMouseUp :
         case NSOtherMouseUp :
-            clickCount = [nsEvent clickCount];
             switch ( button )
             {
                 case 0 :
@@ -661,39 +683,15 @@ void wxWidgetCocoaImpl::SetupMouseEvent( wxMouseEvent &wxevent , NSEvent * nsEve
 
             wxevent.SetEventType( wxEVT_MOUSEWHEEL ) ;
 
-            if ( UMAGetSystemVersion() >= 0x1070 )
+            if ( [nsEvent hasPreciseScrollingDeltas] )
             {
-                if ( [nsEvent hasPreciseScrollingDeltas] )
-                {
-                    deltaX = [nsEvent scrollingDeltaX];
-                    deltaY = [nsEvent scrollingDeltaY];
-                }
-                else
-                {
-                    deltaX = [nsEvent scrollingDeltaX] * 10;
-                    deltaY = [nsEvent scrollingDeltaY] * 10;
-                }
+                deltaX = [nsEvent scrollingDeltaX];
+                deltaY = [nsEvent scrollingDeltaY];
             }
             else
             {
-                const EventRef cEvent = (EventRef) [nsEvent eventRef];
-                // see http://developer.apple.com/qa/qa2005/qa1453.html
-                // for more details on why we have to look for the exact type
-                
-                bool isMouseScrollEvent = false;
-                if ( cEvent )
-                    isMouseScrollEvent = ::GetEventKind(cEvent) == kEventMouseScroll;
-                
-                if ( isMouseScrollEvent )
-                {
-                    deltaX = [nsEvent deviceDeltaX];
-                    deltaY = [nsEvent deviceDeltaY];
-                }
-                else
-                {
-                    deltaX = ([nsEvent deltaX] * 10);
-                    deltaY = ([nsEvent deltaY] * 10);
-                }
+                deltaX = [nsEvent scrollingDeltaX] * 10;
+                deltaY = [nsEvent scrollingDeltaY] * 10;
             }
             
             wxevent.m_wheelDelta = 10;
@@ -728,6 +726,12 @@ void wxWidgetCocoaImpl::SetupMouseEvent( wxMouseEvent &wxevent , NSEvent * nsEve
         case NSMouseMoved :
             wxevent.SetEventType( wxEVT_MOTION ) ;
             break;
+        
+        case NSEventTypeMagnify:
+            wxevent.SetEventType( wxEVT_MAGNIFY );
+            wxevent.m_magnification = [nsEvent magnification];
+            break;
+            
         default :
             break ;
     }
@@ -788,7 +792,7 @@ void wxWidgetCocoaImpl::SetupMouseEvent( wxMouseEvent &wxevent , NSEvent * nsEve
     [_lastToolTipOwner mouseEntered:fakeEvent];
 }
 
-- (void)setToolTip:(NSString *)string;
+- (void)setToolTip:(NSString *)string
 {
     if (string)
     {
@@ -848,6 +852,15 @@ void wxWidgetCocoaImpl::SetupMouseEvent( wxMouseEvent &wxevent , NSEvent * nsEve
     if ( viewimpl && viewimpl->IsUserPane() && viewimpl->GetWXPeer() )
         return viewimpl->GetWXPeer()->AcceptsFocus();
     return NO;
+}
+
+- (NSView *)hitTest:(NSPoint)aPoint;
+{
+    wxWidgetCocoaImpl* viewimpl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( self );
+    if ( viewimpl && viewimpl->GetWXPeer() && !viewimpl->GetWXPeer()->IsEnabled() )
+        return nil;
+
+    return [super hitTest:aPoint];
 }
 
 @end // wxNSView
@@ -1127,13 +1140,36 @@ void wxOSX_controlDoubleAction(NSView* self, SEL _cmd, id sender)
     impl->controlDoubleAction(self, _cmd, sender);
 }
 
-unsigned int wxWidgetCocoaImpl::draggingEntered(void* s, WXWidget WXUNUSED(slf), void *WXUNUSED(_cmd))
+#if wxUSE_DRAG_AND_DROP
+
+namespace
+{
+
+unsigned int wxOnDraggingEnteredOrUpdated(wxWidgetCocoaImpl* viewImpl,
+    void *s, bool entered)
 {
     id <NSDraggingInfo>sender = (id <NSDraggingInfo>) s;
     NSPasteboard *pboard = [sender draggingPasteboard];
+    /*
+    sourceDragMask contains a flag field with drag operations permitted by
+    the source:
+    NSDragOperationCopy = 1,
+    NSDragOperationLink = 2,
+    NSDragOperationGeneric = 4,
+    NSDragOperationPrivate = 8,
+    NSDragOperationMove = 16,
+    NSDragOperationDelete = 32
+
+    By default, pressing modifier keys changes sourceDragMask:
+    Control ANDs it with NSDragOperationLink (2)
+    Option ANDs it with NSDragOperationCopy (1)
+    Command ANDs it with NSDragOperationGeneric (4)
+
+    The end result can be a mask that's 0 (NSDragOperationNone).
+    */
     NSDragOperation sourceDragMask = [sender draggingSourceOperationMask];
 
-    wxWindow* wxpeer = GetWXPeer();
+    wxWindow* wxpeer = viewImpl->GetWXPeer();
     if ( wxpeer == NULL )
         return NSDragOperationNone;
 
@@ -1141,21 +1177,46 @@ unsigned int wxWidgetCocoaImpl::draggingEntered(void* s, WXWidget WXUNUSED(slf),
     if ( target == NULL )
         return NSDragOperationNone;
 
-    wxDragResult result = wxDragNone;
-    NSPoint nspoint = [m_osxView convertPoint:[sender draggingLocation] fromView:nil];
-    wxPoint pt = wxFromNSPoint( m_osxView, nspoint );
+    NSPoint nspoint = [viewImpl->GetWXWidget() convertPoint:[sender draggingLocation] fromView:nil];
+    wxPoint pt = wxFromNSPoint( viewImpl->GetWXWidget(), nspoint );
 
-    if ( sourceDragMask & NSDragOperationLink )
-        result = wxDragLink;
-    else if ( sourceDragMask & NSDragOperationCopy )
-        result = wxDragCopy;
-    else if ( sourceDragMask & NSDragOperationMove )
+    /*
+    Convert the incoming mask to wxDragResult. This is a lossy conversion
+    because wxDragResult contains a single value and not a flag field.
+    When dragging the bottom part of the DND sample ("Drag text from here!")
+    sourceDragMask contains copy, link, generic, and private flags. Formerly
+    this would result in wxDragLink which is not what is expected for text.
+    Give precedence to the move and copy flag instead.
+
+    TODO:
+    In order to respect wxDrag_DefaultMove, access to dnd.mm's
+    DropSourceDelegate will be needed which contains the wxDrag value used.
+    (The draggingSource method of sender points to a DropSourceDelegate* ).
+    */
+    wxDragResult result = wxDragNone;
+
+    if (sourceDragMask & NSDragOperationMove)
         result = wxDragMove;
+    else if ( sourceDragMask & NSDragOperationCopy
+        || sourceDragMask & NSDragOperationGeneric)
+        result = wxDragCopy;
+    else if (sourceDragMask & NSDragOperationLink)
+        result = wxDragLink;
 
     PasteboardRef pboardRef;
     PasteboardCreate((CFStringRef)[pboard name], &pboardRef);
     target->SetCurrentDragPasteboard(pboardRef);
-    result = target->OnEnter(pt.x, pt.y, result);
+    if (entered)
+    {
+        // Drag entered
+        result = target->OnEnter(pt.x, pt.y, result);
+    }
+    else
+    {
+        // Drag updated
+        result = target->OnDragOver(pt.x, pt.y, result);
+    }
+
     CFRelease(pboardRef);
 
     NSDragOperation nsresult = NSDragOperationNone;
@@ -1163,14 +1224,27 @@ unsigned int wxWidgetCocoaImpl::draggingEntered(void* s, WXWidget WXUNUSED(slf),
     {
         case wxDragLink:
             nsresult = NSDragOperationLink;
+            break;
+
         case wxDragMove:
             nsresult = NSDragOperationMove;
+            break;
+
         case wxDragCopy:
             nsresult = NSDragOperationCopy;
+            break;
+
         default :
             break;
     }
     return nsresult;
+}
+
+} // anonymous namespace
+
+unsigned int wxWidgetCocoaImpl::draggingEntered(void* s, WXWidget WXUNUSED(slf), void *WXUNUSED(_cmd))
+{
+    return wxOnDraggingEnteredOrUpdated(this, s, true /*entered*/);
 }
 
 void wxWidgetCocoaImpl::draggingExited(void* s, WXWidget WXUNUSED(slf), void *WXUNUSED(_cmd))
@@ -1195,48 +1269,7 @@ void wxWidgetCocoaImpl::draggingExited(void* s, WXWidget WXUNUSED(slf), void *WX
 
 unsigned int wxWidgetCocoaImpl::draggingUpdated(void* s, WXWidget WXUNUSED(slf), void *WXUNUSED(_cmd))
 {
-    id <NSDraggingInfo>sender = (id <NSDraggingInfo>) s;
-    NSPasteboard *pboard = [sender draggingPasteboard];
-    NSDragOperation sourceDragMask = [sender draggingSourceOperationMask];
-
-    wxWindow* wxpeer = GetWXPeer();
-    if ( wxpeer == NULL )
-        return NSDragOperationNone;
-
-    wxDropTarget* target = wxpeer->GetDropTarget();
-    if ( target == NULL )
-        return NSDragOperationNone;
-
-    wxDragResult result = wxDragNone;
-    NSPoint nspoint = [m_osxView convertPoint:[sender draggingLocation] fromView:nil];
-    wxPoint pt = wxFromNSPoint( m_osxView, nspoint );
-
-    if ( sourceDragMask & NSDragOperationLink )
-        result = wxDragLink;
-    else if ( sourceDragMask & NSDragOperationCopy )
-        result = wxDragCopy;
-    else if ( sourceDragMask & NSDragOperationMove )
-        result = wxDragMove;
-    
-    PasteboardRef pboardRef;
-    PasteboardCreate((CFStringRef)[pboard name], &pboardRef);
-    target->SetCurrentDragPasteboard(pboardRef);
-    result = target->OnDragOver(pt.x, pt.y, result);
-    CFRelease(pboardRef);
-
-    NSDragOperation nsresult = NSDragOperationNone;
-    switch (result )
-    {
-        case wxDragLink:
-            nsresult = NSDragOperationLink;
-        case wxDragMove:
-            nsresult = NSDragOperationMove;
-        case wxDragCopy:
-            nsresult = NSDragOperationCopy;
-        default :
-            break;
-    }
-    return nsresult;
+    return wxOnDraggingEnteredOrUpdated(this, s, false /*updated*/);
 }
 
 bool wxWidgetCocoaImpl::performDragOperation(void* s, WXWidget WXUNUSED(slf), void *WXUNUSED(_cmd))
@@ -1252,12 +1285,13 @@ bool wxWidgetCocoaImpl::performDragOperation(void* s, WXWidget WXUNUSED(slf), vo
     NSPoint nspoint = [m_osxView convertPoint:[sender draggingLocation] fromView:nil];
     wxPoint pt = wxFromNSPoint( m_osxView, nspoint );
 
-    if ( sourceDragMask & NSDragOperationLink )
-        result = wxDragLink;
-    else if ( sourceDragMask & NSDragOperationCopy )
-        result = wxDragCopy;
-    else if ( sourceDragMask & NSDragOperationMove )
+    if (sourceDragMask & NSDragOperationMove)
         result = wxDragMove;
+    else if ( sourceDragMask & NSDragOperationCopy
+        || sourceDragMask & NSDragOperationGeneric)
+        result = wxDragCopy;
+    else if (sourceDragMask & NSDragOperationLink)
+        result = wxDragLink;
 
     PasteboardRef pboardRef;
     PasteboardCreate((CFStringRef)[pboard name], &pboardRef);
@@ -1270,6 +1304,7 @@ bool wxWidgetCocoaImpl::performDragOperation(void* s, WXWidget WXUNUSED(slf), vo
 
     return result != wxDragNone;
 }
+#endif // wxUSE_DRAG_AND_DROP
 
 void wxWidgetCocoaImpl::mouseEvent(WX_NSEvent event, WXWidget slf, void *_cmd)
 {
@@ -1292,8 +1327,12 @@ void wxWidgetCocoaImpl::mouseEvent(WX_NSEvent event, WXWidget slf, void *_cmd)
             superimpl(slf, (SEL)_cmd, event);
             
             // super of built-ins keeps the mouse up, as wx expects this event, we have to synthesize it
-            // only trigger if at this moment the mouse is already up
-            if ( [ event type]  == NSLeftMouseDown && !wxGetMouseState().LeftIsDown() )
+            // only trigger if at this moment the mouse is already up, and the control is still existing after the event has
+            // been handled (we do this by looking up the native NSView's peer from the hash map, that way we are sure the info
+            // is current - even when the instance memory of ourselves may have been freed ...
+            
+            wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( slf );
+            if ( [ event type]  == NSLeftMouseDown && !wxGetMouseState().LeftIsDown() && impl != NULL )
             {
                 wxMouseEvent wxevent(wxEVT_LEFT_DOWN);
                 SetupMouseEvent(wxevent , event) ;
@@ -1348,6 +1387,9 @@ bool wxWidgetCocoaImpl::SetupCursor(WX_NSEvent event)
 
 void wxWidgetCocoaImpl::keyEvent(WX_NSEvent event, WXWidget slf, void *_cmd)
 {
+    if ( !m_wxPeer->IsEnabled() )
+        return;
+
     if ( [event type] == NSKeyDown )
     {
         // there are key equivalents that are not command-combos and therefore not handled by cocoa automatically, 
@@ -1388,26 +1430,7 @@ void wxWidgetCocoaImpl::insertText(NSString* text, WXWidget slf, void *_cmd)
         {
             // If we don't have a corresponding key event (e.g. IME-composed
             // characters), send wxEVT_CHAR without sending wxEVT_KEY_DOWN.
-            for (NSUInteger i = 0; i < [text length]; ++i)
-            {
-                wxKeyEvent wxevent(wxEVT_CHAR);
-                wxevent.m_shiftDown = wxevent.m_controlDown = wxevent.m_altDown = wxevent.m_metaDown = false;
-                wxevent.m_rawCode = 0;
-                wxevent.m_rawFlags = 0;
-                wxevent.SetTimestamp();
-                unichar aunichar = [text characterAtIndex:i];
-#if wxUSE_UNICODE
-                wxevent.m_uniChar = aunichar;
-#endif
-                wxevent.m_keyCode = aunichar < 0x80 ? aunichar : WXK_NONE;
-                wxWindowMac* peer = GetWXPeer();
-                if ( peer )
-                {
-                    wxevent.SetEventObject(peer);
-                    wxevent.SetId(peer->GetId());
-                }
-                result = GetWXPeer()->OSXHandleKeyEvent(wxevent) || result;
-            }
+            result = DoHandleCharEvent(NULL,text);
         }
     }
     if ( !result )
@@ -1431,15 +1454,9 @@ void wxWidgetCocoaImpl::doCommandBySelector(void* sel, WXWidget slf, void* _cmd)
         {
             // Generate wxEVT_CHAR if wxEVT_KEY_DOWN is not handled.
 
-            long keycode = wxOSXTranslateCocoaKey( m_lastKeyDownEvent, wxEVT_CHAR );
-
             wxKeyEvent wxevent2(wxevent) ;
             wxevent2.SetEventType(wxEVT_CHAR);
             SetupKeyEvent( wxevent2, m_lastKeyDownEvent );
-            if ( (keycode > 0 && keycode < WXK_SPACE) || keycode == WXK_DELETE || keycode >= WXK_START )
-            {
-                wxevent2.m_keyCode = keycode;
-            }
             GetWXPeer()->OSXHandleKeyEvent(wxevent2);
         }
     }
@@ -1494,15 +1511,9 @@ bool wxWidgetCocoaImpl::acceptsFirstResponder(WXWidget slf, void *_cmd)
 bool wxWidgetCocoaImpl::becomeFirstResponder(WXWidget slf, void *_cmd)
 {
     wxOSX_FocusHandlerPtr superimpl = (wxOSX_FocusHandlerPtr) [[slf superclass] instanceMethodForSelector:(SEL)_cmd];
-    // get the current focus before running becomeFirstResponder
-    NSView* otherView = FindFocus();
-
-    wxWidgetImpl* otherWindow = FindFromWXWidget(otherView);
     BOOL r = superimpl(slf, (SEL)_cmd);
     if ( r )
-    {
-        DoNotifyFocusEvent( true, otherWindow );
-    }
+        DoNotifyFocusSet();
 
     return r;
 }
@@ -1511,23 +1522,13 @@ bool wxWidgetCocoaImpl::resignFirstResponder(WXWidget slf, void *_cmd)
 {
     wxOSX_FocusHandlerPtr superimpl = (wxOSX_FocusHandlerPtr) [[slf superclass] instanceMethodForSelector:(SEL)_cmd];
     BOOL r = superimpl(slf, (SEL)_cmd);
- 
-    NSResponder * responder = wxNonOwnedWindowCocoaImpl::GetNextFirstResponder();
-    NSView* otherView = wxOSXGetViewFromResponder(responder);
-
-    wxWidgetImpl* otherWindow = FindBestFromWXWidget(otherView);
     
-    // It doesn't make sense to notify about the loss of focus if it's the same
-    // control in the end, and just a different subview
-    if ( otherWindow == this )
-        return r;
-    
-    // NSTextViews have an editor as true responder, therefore the might get the
-    // resign notification if their editor takes over, don't trigger any event then
+    // wxNSTextFields and wxNSComboBoxes have an editor as real responder, therefore they get
+    // a resign notification when their editor takes over, don't trigger  event here, the control
+    // gets a controlTextDidEndEditing notification which will send a focus kill.
     if ( r && !m_hasEditor)
-    {
-        DoNotifyFocusEvent( false, otherWindow );
-    }
+        DoNotifyFocusLost();
+
     return r;
 }
 
@@ -1576,20 +1577,23 @@ void wxWidgetCocoaImpl::drawRect(void* rect, WXWidget slf, void *WXUNUSED(_cmd))
     wxRegion clearRgn;
     if ( tlwParent->GetWindowStyle() & wxFRAME_SHAPED )
     {
-        if ( isTopLevel )
-            clearRgn = updateRgn;
-
-        int xoffset = 0, yoffset = 0;
         wxRegion rgn = tlwParent->GetShape();
-        wxpeer->MacRootWindowToWindow( &xoffset, &yoffset );
-        rgn.Offset( xoffset, yoffset );
-        updateRgn.Intersect(rgn);
-
-        if ( isTopLevel )
+        if ( rgn.IsOk() )
         {
-            // Exclude the window shape from the region to be cleared below.
-            rgn.Xor(wxpeer->GetSize());
-            clearRgn.Intersect(rgn);
+            if ( isTopLevel )
+                clearRgn = updateRgn;
+
+            int xoffset = 0, yoffset = 0;
+            wxpeer->MacRootWindowToWindow( &xoffset, &yoffset );
+            rgn.Offset( xoffset, yoffset );
+            updateRgn.Intersect(rgn);
+
+            if ( isTopLevel )
+            {
+                // Exclude the window shape from the region to be cleared below.
+                rgn.Xor(wxpeer->GetSize());
+                clearRgn.Intersect(rgn);
+            }
         }
     }
     
@@ -1750,6 +1754,8 @@ void wxOSXCocoaClassAddWXMethods(Class c)
     wxOSX_CLASS_ADD_METHOD(c, @selector(scrollWheel:), (IMP) wxOSX_mouseEvent, "v@:@" )
     wxOSX_CLASS_ADD_METHOD(c, @selector(mouseEntered:), (IMP) wxOSX_mouseEvent, "v@:@" )
     wxOSX_CLASS_ADD_METHOD(c, @selector(mouseExited:), (IMP) wxOSX_mouseEvent, "v@:@" )
+        
+    wxOSX_CLASS_ADD_METHOD(c, @selector(magnifyWithEvent:), (IMP)wxOSX_mouseEvent, "v@:@")
 
     wxOSX_CLASS_ADD_METHOD(c, @selector(cursorUpdate:), (IMP) wxOSX_cursorUpdate, "v@:@" )
 
@@ -1799,7 +1805,7 @@ void wxOSXCocoaClassAddWXMethods(Class c)
 // C++ implementation class
 //
 
-IMPLEMENT_DYNAMIC_CLASS( wxWidgetCocoaImpl , wxWidgetImpl )
+wxIMPLEMENT_DYNAMIC_CLASS(wxWidgetCocoaImpl , wxWidgetImpl);
 
 wxWidgetCocoaImpl::wxWidgetCocoaImpl( wxWindowMac* peer , WXWidget w, bool isRootControl, bool isUserPane ) :
     wxWidgetImpl( peer, isRootControl, isUserPane )
@@ -1834,6 +1840,9 @@ void wxWidgetCocoaImpl::Init()
 
 wxWidgetCocoaImpl::~wxWidgetCocoaImpl()
 {
+    if ( GetWXPeer() && GetWXPeer()->IsFrozen() )
+        [[m_osxView window] enableFlushWindow];
+    
     RemoveAssociations( this );
 
     if ( !IsRootControl() )
@@ -1859,13 +1868,8 @@ void wxWidgetCocoaImpl::SetVisibility( bool visible )
 
 double wxWidgetCocoaImpl::GetContentScaleFactor() const
 {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
     NSWindow* tlw = [m_osxView window];
-    if ( [ tlw respondsToSelector:@selector(backingScaleFactor) ] )
-        return [tlw backingScaleFactor];
-    else
-#endif
-        return 1.0;
+    return [tlw backingScaleFactor];
 }
 
 // ----------------------------------------------------------------------------
@@ -1873,7 +1877,7 @@ double wxWidgetCocoaImpl::GetContentScaleFactor() const
 // ----------------------------------------------------------------------------
 
 // define a delegate used to refresh the window during animation
-@interface wxNSAnimationDelegate : NSObject wxOSX_10_6_AND_LATER(<NSAnimationDelegate>)
+@interface wxNSAnimationDelegate : NSObject <NSAnimationDelegate>
 {
     wxWindow *m_win;
     bool m_isDone;
@@ -2351,6 +2355,7 @@ bool wxWidgetCocoaImpl::SetFocus()
     return true;
 }
 
+#if wxUSE_DRAG_AND_DROP
 void wxWidgetCocoaImpl::SetDropTarget(wxDropTarget* target)
 {
     [m_osxView unregisterDraggedTypes];
@@ -2372,6 +2377,7 @@ void wxWidgetCocoaImpl::SetDropTarget(wxDropTarget* target)
         CFRelease(typesarray);
     }
 }
+#endif // wxUSE_DRAG_AND_DROP
 
 void wxWidgetCocoaImpl::RemoveFromParent()
 {
@@ -2589,6 +2595,9 @@ void wxWidgetCocoaImpl::Enable( bool enable )
 
     if ( [targetView respondsToSelector:@selector(setEnabled:) ] )
         [targetView setEnabled:enable];
+
+    if ( !enable && HasFocus() )
+        m_wxPeer->Navigate();
 }
 
 void wxWidgetCocoaImpl::PulseGauge()
@@ -2707,16 +2716,48 @@ void wxWidgetCocoaImpl::InstallEventHandler( WXWidget control )
 bool wxWidgetCocoaImpl::DoHandleCharEvent(NSEvent *event, NSString *text)
 {
     bool result = false;
-    
-    for (NSUInteger i = 0; i < [text length]; ++i)
+    wxWindowMac* peer = GetWXPeer();
+    int length = [text length];
+    if ( peer )
     {
-        wxKeyEvent wxevent(wxEVT_CHAR);
-        unichar c = [text characterAtIndex:i];
-        SetupKeyEvent( wxevent, event, [NSString stringWithCharacters:&c length:1]);
+        const wxString str = wxCFStringRef([text retain]).AsString();
+        for ( wxString::const_iterator it = str.begin();
+              it != str.end();
+              ++it )
+        {
+            wxKeyEvent wxevent(wxEVT_CHAR);
+            
+            // if we have exactly one character resulting from the event, then
+            // set the corresponding modifiers and raw data from the nsevent
+            // otherwise leave these at defaults, as they probably would be incorrect
+            // anyway (IME input)
+            
+            if ( event != nil && length == 1)
+            {
+                SetupKeyEvent(wxevent,event,text);
+            }
+            else
+            {
+                wxevent.m_shiftDown = wxevent.m_controlDown = wxevent.m_altDown = wxevent.m_metaDown = false;
+                wxevent.m_rawCode = 0;
+                wxevent.m_rawFlags = 0;
 
-        result = GetWXPeer()->OSXHandleKeyEvent(wxevent) || result;
+                const wxChar aunichar = *it;
+#if wxUSE_UNICODE
+                wxevent.m_uniChar = aunichar;
+#endif
+                wxevent.m_keyCode = aunichar < 0x80 ? aunichar : WXK_NONE;
+                
+                wxevent.SetEventObject(peer);
+                wxevent.SetId(peer->GetId());
+
+                if ( event )
+                    wxevent.SetTimestamp( (int)([event timestamp] * 1000) ) ;
+            }
+            
+            result = peer->OSXHandleKeyEvent(wxevent) || result;
+        }
     }
-    
     return result;
 }
 
@@ -2764,6 +2805,30 @@ bool wxWidgetCocoaImpl::DoHandleMouseEvent(NSEvent *event)
     (void)SetupCursor(event);
 
     return result;
+}
+
+void wxWidgetCocoaImpl::DoNotifyFocusSet()
+{
+    NSResponder* responder = wxNonOwnedWindowCocoaImpl::GetFormerFirstResponder();
+    NSView* otherView = wxOSXGetViewFromResponder(responder);
+    wxWidgetImpl* otherWindow = FindFromWXWidget(otherView);
+    
+    // It doesn't make sense to notify about the focus set if it's the same
+    // control in the end, and just a different subview
+    if ( otherWindow != this )
+        DoNotifyFocusEvent(true, otherWindow);
+}
+
+void wxWidgetCocoaImpl::DoNotifyFocusLost()
+{
+    NSResponder * responder = wxNonOwnedWindowCocoaImpl::GetNextFirstResponder();
+    NSView* otherView = wxOSXGetViewFromResponder(responder);
+    wxWidgetImpl* otherWindow = FindBestFromWXWidget(otherView);
+    
+    // It doesn't make sense to notify about the loss of focus if it's the same
+    // control in the end, and just a different subview
+    if ( otherWindow != this )
+        DoNotifyFocusEvent( false, otherWindow );
 }
 
 void wxWidgetCocoaImpl::DoNotifyFocusEvent(bool receivedFocus, wxWidgetImpl* otherWindow)

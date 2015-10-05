@@ -48,10 +48,6 @@
 #if defined(__WINDOWS__)
     #include "wx/msw/private.h"
 #endif  //windows.h
-#if defined(__WXPM__)
-    #define INCL_DOS
-    #include <os2.h>
-#endif
 
 #include  <stdlib.h>
 #include  <ctype.h>
@@ -59,10 +55,6 @@
 // ----------------------------------------------------------------------------
 // constants
 // ----------------------------------------------------------------------------
-
-#ifndef MAX_PATH
-    #define MAX_PATH 512
-#endif
 
 #define FILECONF_TRACE_MASK wxT("fileconf")
 
@@ -324,7 +316,7 @@ wxFileName wxFileConfig::GetLocalFile(const wxString& szFile, int style)
 // ----------------------------------------------------------------------------
 // ctor
 // ----------------------------------------------------------------------------
-IMPLEMENT_ABSTRACT_CLASS(wxFileConfig, wxConfigBase)
+wxIMPLEMENT_ABSTRACT_CLASS(wxFileConfig, wxConfigBase);
 
 void wxFileConfig::Init()
 {
@@ -2060,7 +2052,7 @@ static wxString FilterOutValue(const wxString& str)
           c = wxT('"');
           break;
         }
-        //else: fall through
+        wxFALLTHROUGH;
 
       default:
         strResult += str[n];

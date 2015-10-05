@@ -32,7 +32,7 @@
 
 #if wxUSE_SPINCTRL
 
-IMPLEMENT_DYNAMIC_CLASS(wxSpinDoubleEvent, wxNotifyEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSpinDoubleEvent, wxNotifyEvent);
 
 // There are port-specific versions for the wxSpinCtrl, so exclude the
 // contents of this file in those cases
@@ -110,10 +110,10 @@ public:
     wxSpinCtrlGenericBase *m_spin;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(wxSpinCtrlTextGeneric, wxTextCtrl)
+wxBEGIN_EVENT_TABLE(wxSpinCtrlTextGeneric, wxTextCtrl)
     EVT_CHAR(wxSpinCtrlTextGeneric::OnChar)
 
     // Forward the text events to wxSpinCtrl itself adjusting them slightly in
@@ -126,7 +126,7 @@ BEGIN_EVENT_TABLE(wxSpinCtrlTextGeneric, wxTextCtrl)
     EVT_TEXT_ENTER(wxID_ANY, wxSpinCtrlTextGeneric::OnTextEvent)
 
     EVT_KILL_FOCUS(wxSpinCtrlTextGeneric::OnKillFocus)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // wxSpinCtrlButtonGeneric: spin button used by spin control
@@ -156,13 +156,13 @@ public:
     wxSpinCtrlGenericBase *m_spin;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(wxSpinCtrlButtonGeneric, wxSpinButton)
+wxBEGIN_EVENT_TABLE(wxSpinCtrlButtonGeneric, wxSpinButton)
     EVT_SPIN_UP(  wxID_ANY, wxSpinCtrlButtonGeneric::OnSpinButton)
     EVT_SPIN_DOWN(wxID_ANY, wxSpinCtrlButtonGeneric::OnSpinButton)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // wxSpinCtrlGenericBase
@@ -210,7 +210,18 @@ bool wxSpinCtrlGenericBase::Create(wxWindow *parent,
     m_max   = max;
     m_increment = increment;
 
-    m_textCtrl   = new wxSpinCtrlTextGeneric(this, value, style);
+    // the string value overrides the numeric one (for backwards compatibility
+    // reasons and also because it is simpler to specify the string value which
+    // comes much sooner in the list of arguments and leave the initial
+    // parameter unspecified)
+    if ( !value.empty() )
+    {
+        double d;
+        if ( DoTextToValue(value, &d) )
+            m_value = d;
+    }
+
+    m_textCtrl   = new wxSpinCtrlTextGeneric(this, DoValueToText(m_value), style);
     m_spinButton = new wxSpinCtrlButtonGeneric(this, style);
 
 #if wxUSE_TOOLTIPS
@@ -219,20 +230,6 @@ bool wxSpinCtrlGenericBase::Create(wxWindow *parent,
 #endif // wxUSE_TOOLTIPS
 
     m_spin_value = m_spinButton->GetValue();
-
-    // the string value overrides the numeric one (for backwards compatibility
-    // reasons and also because it is simpler to satisfy the string value which
-    // comes much sooner in the list of arguments and leave the initial
-    // parameter unspecified)
-    if ( !value.empty() )
-    {
-        double d;
-        if ( DoTextToValue(value, &d) )
-        {
-            m_value = d;
-            m_textCtrl->ChangeValue(DoValueToText(m_value));
-        }
-    }
 
     SetInitialSize(size);
     Move(pos);
@@ -353,32 +350,6 @@ bool wxSpinCtrlGenericBase::Show(bool show)
     return true;
 }
 
-#if wxUSE_TOOLTIPS
-void wxSpinCtrlGenericBase::DoSetToolTip(wxToolTip *tip)
-{
-    // Notice that we must check for the subcontrols not being NULL (as they
-    // could be if we were created with the default ctor and this is called
-    // before Create() for some reason) and that we can't call SetToolTip(tip)
-    // because this would take ownership of the wxToolTip object (twice).
-    if ( m_textCtrl )
-    {
-        if ( tip )
-            m_textCtrl->SetToolTip(tip->GetTip());
-        else
-            m_textCtrl->SetToolTip(NULL);
-    }
-
-    if ( m_spinButton )
-    {
-        if( tip )
-            m_spinButton->SetToolTip(tip->GetTip());
-        else
-            m_spinButton->SetToolTip(NULL);
-    }
-
-    wxWindowBase::DoSetToolTip(tip);
-}
-#endif // wxUSE_TOOLTIPS
 
 bool wxSpinCtrlGenericBase::SetBackgroundColour(const wxColour& colour)
 {
@@ -395,14 +366,18 @@ bool wxSpinCtrlGenericBase::SetBackgroundColour(const wxColour& colour)
 // Handle sub controls events
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxSpinCtrlGenericBase, wxSpinCtrlBase)
+wxBEGIN_EVENT_TABLE(wxSpinCtrlGenericBase, wxSpinCtrlBase)
     EVT_CHAR(wxSpinCtrlGenericBase::OnTextChar)
     EVT_KILL_FOCUS(wxSpinCtrlGenericBase::OnTextLostFocus)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxSpinCtrlGenericBase::OnSpinButton(wxSpinEvent& event)
 {
     event.Skip();
+
+    // Pressing the spin button should also give the focus to the text part of
+    // the control, at least this is how the native control behaves under MSW.
+    SetFocus();
 
     // Sync the textctrl since the user expects that the button will modify
     // what they see in the textctrl.
@@ -676,7 +651,7 @@ wxString wxSpinCtrl::DoValueToText(double val)
 
         default:
             wxFAIL_MSG( wxS("Unsupported spin control base") );
-            // Fall through
+            wxFALLTHROUGH;
 
         case 10:
             return wxString::Format("%ld", static_cast<long>(val));
@@ -689,7 +664,7 @@ wxString wxSpinCtrl::DoValueToText(double val)
 // wxSpinCtrlDouble
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxSpinCtrlDouble, wxSpinCtrlGenericBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSpinCtrlDouble, wxSpinCtrlGenericBase);
 
 void wxSpinCtrlDouble::DoSendEvent()
 {

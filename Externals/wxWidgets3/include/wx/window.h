@@ -54,9 +54,16 @@
 // Otherwise wx itself must ensure that when the parent is disabled its
 // children are disabled too, and their initial state is restored when the
 // parent is enabled back.
-#if defined(__WXMSW__) || defined(__WXPM__)
+#if defined(__WXMSW__)
     // must do everything ourselves
     #undef wxHAS_NATIVE_ENABLED_MANAGEMENT
+#elif defined(__WXOSX__)
+    #if wxOSX_USE_CARBON
+        #define wxHAS_NATIVE_ENABLED_MANAGEMENT
+    #else
+        // must do everything ourselves
+        #undef wxHAS_NATIVE_ENABLED_MANAGEMENT
+    #endif
 #else
     #define wxHAS_NATIVE_ENABLED_MANAGEMENT
 #endif
@@ -67,7 +74,6 @@
 
 class WXDLLIMPEXP_FWD_CORE wxCaret;
 class WXDLLIMPEXP_FWD_CORE wxControl;
-class WXDLLIMPEXP_FWD_CORE wxCursor;
 class WXDLLIMPEXP_FWD_CORE wxDC;
 class WXDLLIMPEXP_FWD_CORE wxDropTarget;
 class WXDLLIMPEXP_FWD_CORE wxLayoutConstraints;
@@ -230,7 +236,7 @@ public:
 
         // window id uniquely identifies the window among its siblings unless
         // it is wxID_ANY which means "don't care"
-    void SetId( wxWindowID winid ) { m_windowId = winid; }
+    virtual void SetId( wxWindowID winid ) { m_windowId = winid; }
     wxWindowID GetId() const { return m_windowId; }
 
         // generate a unique id (or count of them consecutively), returns a
@@ -402,8 +408,6 @@ public:
 
     wxDEPRECATED_MSG("use GetEffectiveMinSize() instead")
     wxSize GetBestFittingSize() const;
-    wxDEPRECATED_MSG("use GetEffectiveMinSize() instead")
-    wxSize GetAdjustedMinSize() const;
 
         // A 'Smart' SetSize that will fill in default size values with 'best'
         // size.  Sets the minsize to what was passed in.
@@ -527,9 +531,8 @@ public:
 
     // returns the magnification of the content of this window
     // eg 2.0 for a window on a retina screen
-    virtual double GetContentScaleFactor() const
-    { return 1.0; }
-    
+    virtual double GetContentScaleFactor() const;
+
     // return the size of the left/right and top/bottom borders in x and y
     // components of the result respectively
     virtual wxSize GetWindowBorderSize() const;
@@ -876,13 +879,10 @@ public:
     bool HandleWindowEvent(wxEvent& event) const;
 
         // disable wxEvtHandler double-linked list mechanism:
-    virtual void SetNextHandler(wxEvtHandler *handler);
-    virtual void SetPreviousHandler(wxEvtHandler *handler);
+    virtual void SetNextHandler(wxEvtHandler *handler) wxOVERRIDE;
+    virtual void SetPreviousHandler(wxEvtHandler *handler) wxOVERRIDE;
 
 
-    // Watcom doesn't allow reducing access with using access declaration, see
-    // #10749
-#ifndef __WATCOMC__
 protected:
 
     // NOTE: we change the access specifier of the following wxEvtHandler functions
@@ -903,7 +903,6 @@ protected:
     using wxEvtHandler::ProcessPendingEvents;
     using wxEvtHandler::AddPendingEvent;
     using wxEvtHandler::QueueEvent;
-#endif // __WATCOMC__
 
 public:
 
@@ -949,8 +948,39 @@ public:
 #endif // wxUSE_HOTKEY
 
 
-    // dialog units translations
-    // -------------------------
+    // translation between different units
+    // -----------------------------------
+
+        // DPI-independent pixels, or DIPs, are pixel values for the standard
+        // 96 DPI display, they are scaled to take the current resolution into
+        // account (i.e. multiplied by the same factor as returned by
+        // GetContentScaleFactor()) if necessary for the current platform.
+        //
+        // Currently the conversion factor is the same for all windows but this
+        // will change with the monitor-specific resolution support in the
+        // future, so prefer using the non-static member functions.
+        //
+        // Similarly, currently in practice the factor is the same in both
+        // horizontal and vertical directions, but this could, in principle,
+        // change too, so prefer using the overloads taking wxPoint or wxSize.
+
+    static wxSize FromDIP(const wxSize& sz, const wxWindowBase* w);
+    static wxPoint FromDIP(const wxPoint& pt, const wxWindowBase* w)
+    {
+        const wxSize sz = FromDIP(wxSize(pt.x, pt.y), w);
+        return wxPoint(sz.x, sz.y);
+    }
+    static int FromDIP(int d, const wxWindowBase* w)
+    {
+        return FromDIP(wxSize(d, 0), w).x;
+    }
+
+    wxSize FromDIP(const wxSize& sz) const { return FromDIP(sz, this); }
+    wxPoint FromDIP(const wxPoint& pt) const { return FromDIP(pt, this); }
+    int FromDIP(int d) const { return FromDIP(d, this); }
+
+
+        // Dialog units are based on the size of the current font.
 
     wxPoint ConvertPixelsToDialog( const wxPoint& pt ) const;
     wxPoint ConvertDialogToPixels( const wxPoint& pt ) const;
@@ -1310,7 +1340,7 @@ public:
 
 #if wxUSE_TOOLTIPS
         // the easiest way to set a tooltip for a window is to use this method
-    void SetToolTip( const wxString &tip );
+    void SetToolTip( const wxString &tip ) { DoSetToolTipText(tip); }
         // attach a tooltip to the window, pointer can be NULL to remove
         // existing tooltip
     void SetToolTip( wxToolTip *tip ) { DoSetToolTip(tip); }
@@ -1330,7 +1360,7 @@ public:
     bool CopyToolTip(wxToolTip *tip);
 #else // !wxUSE_TOOLTIPS
         // make it much easier to compile apps in an environment
-        // that doesn't support tooltips, such as PocketPC
+        // that doesn't support tooltips
     void SetToolTip(const wxString & WXUNUSED(tip)) { }
     void UnsetToolTip() { }
 #endif // wxUSE_TOOLTIPS/!wxUSE_TOOLTIPS
@@ -1525,8 +1555,8 @@ protected:
                     const wxString& name);
 
     // event handling specific to wxWindow
-    virtual bool TryBefore(wxEvent& event);
-    virtual bool TryAfter(wxEvent& event);
+    virtual bool TryBefore(wxEvent& event) wxOVERRIDE;
+    virtual bool TryAfter(wxEvent& event) wxOVERRIDE;
 
     enum WindowOrder
     {
@@ -1785,6 +1815,7 @@ protected:
     virtual void DoCentre(int dir);
 
 #if wxUSE_TOOLTIPS
+    virtual void DoSetToolTipText( const wxString &tip );
     virtual void DoSetToolTip( wxToolTip *tip );
 #endif // wxUSE_TOOLTIPS
 
@@ -1839,9 +1870,9 @@ private:
     unsigned int m_freezeCount;
 
 
-    DECLARE_ABSTRACT_CLASS(wxWindowBase)
+    wxDECLARE_ABSTRACT_CLASS(wxWindowBase);
     wxDECLARE_NO_COPY_CLASS(wxWindowBase);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 
@@ -1889,6 +1920,9 @@ inline void wxWindowBase::SetInitialBestSize(const wxSize& size)
         #define wxWindowGTK wxWindow
     #endif // wxUniv
     #include "wx/gtk/window.h"
+    #ifdef __WXGTK3__
+        #define wxHAVE_DPI_INDEPENDENT_PIXELS
+    #endif
 #elif defined(__WXGTK__)
     #ifdef __WXUNIVERSAL__
         #define wxWindowNative wxWindowGTK
@@ -1913,20 +1947,14 @@ inline void wxWindowBase::SetInitialBestSize(const wxSize& size)
         #define wxWindowMac wxWindow
     #endif // wxUniv
     #include "wx/osx/window.h"
-#elif defined(__WXCOCOA__)
+    #define wxHAVE_DPI_INDEPENDENT_PIXELS
+#elif defined(__WXQT__)
     #ifdef __WXUNIVERSAL__
-        #define wxWindowNative wxWindowCocoa
+        #define wxWindowNative wxWindowQt
     #else // !wxUniv
-        #define wxWindowCocoa wxWindow
+        #define wxWindowQt wxWindow
     #endif // wxUniv
-    #include "wx/cocoa/window.h"
-#elif defined(__WXPM__)
-    #ifdef __WXUNIVERSAL__
-        #define wxWindowNative wxWindowOS2
-    #else // !wxUniv
-        #define wxWindowOS2 wxWindow
-    #endif // wxUniv/!wxUniv
-    #include "wx/os2/window.h"
+    #include "wx/qt/window.h"
 #endif
 
 // for wxUniversal, we now derive the real wxWindow from wxWindow<platform>,
@@ -1949,6 +1977,18 @@ inline wxWindow *wxWindowBase::GetGrandParent() const
     return m_parent ? m_parent->GetParent() : NULL;
 }
 
+#ifdef wxHAVE_DPI_INDEPENDENT_PIXELS
+
+// FromDIP() becomes trivial in this case, so make it inline to avoid overhead.
+/* static */
+inline wxSize
+wxWindowBase::FromDIP(const wxSize& sz, const wxWindowBase* WXUNUSED(w))
+{
+    return sz;
+}
+
+#endif // wxHAVE_DPI_INDEPENDENT_PIXELS
+
 // ----------------------------------------------------------------------------
 // global functions
 // ----------------------------------------------------------------------------
@@ -1965,11 +2005,6 @@ extern WXDLLIMPEXP_CORE wxWindow *wxGetActiveWindow();
 
 // get the (first) top level parent window
 WXDLLIMPEXP_CORE wxWindow* wxGetTopLevelParent(wxWindow *win);
-
-#if WXWIN_COMPATIBILITY_2_6
-    wxDEPRECATED_MSG("use wxWindow::NewControlId() instead")
-    inline wxWindowID NewControlId() { return wxWindowBase::NewControlId(); }
-#endif // WXWIN_COMPATIBILITY_2_6
 
 #if wxUSE_ACCESSIBILITY
 // ----------------------------------------------------------------------------

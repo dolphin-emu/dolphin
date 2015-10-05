@@ -16,7 +16,7 @@ WXDLLIMPEXP_DATA_CORE(extern const char) wxControlNameStr[];
 // General item class
 class WXDLLIMPEXP_CORE wxControl : public wxControlBase
 {
-    DECLARE_ABSTRACT_CLASS(wxControl)
+    wxDECLARE_ABSTRACT_CLASS(wxControl);
 
 public:
    wxControl();

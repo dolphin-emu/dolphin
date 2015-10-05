@@ -40,7 +40,7 @@ void wxGenericStaticBitmap::OnPaint(wxPaintEvent& WXUNUSED(event))
 // under OSX_cocoa is a define, avoid duplicate info
 #ifndef wxGenericStaticBitmap
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericStaticBitmap, wxStaticBitmapBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericStaticBitmap, wxStaticBitmapBase);
 
 #endif
 

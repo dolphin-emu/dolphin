@@ -56,12 +56,8 @@ protected:
 
 #if defined(__WINDOWS__)
     #include "wx/msw/sound.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/sound.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/sound.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/sound.h"
 #elif defined(__UNIX__)
     #include "wx/unix/sound.h"
 #endif

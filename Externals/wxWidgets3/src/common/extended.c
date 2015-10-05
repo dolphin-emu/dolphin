@@ -6,24 +6,12 @@
 ** Created:     11/24/04
 *****************************************************************************/
 
-
-#if defined(_WIN32_WCE)
-    /* eVC cause warnings in its own headers: stdlib.h and winnt.h */
-    #pragma warning (disable:4115)
-    #pragma warning (disable:4214)
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <limits.h>
 #include <string.h>
 #include "wx/defs.h"
-
-#if defined(_WIN32_WCE)
-    #pragma warning (default:4115)
-    #pragma warning (default:4214)
-#endif
 
 #if wxUSE_APPLE_IEEE
 

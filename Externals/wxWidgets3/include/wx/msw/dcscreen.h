@@ -25,7 +25,7 @@ public:
         GetDeviceSize(w, h);
     }
 
-    DECLARE_CLASS(wxScreenDCImpl)
+    wxDECLARE_CLASS(wxScreenDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxScreenDCImpl);
 };
 

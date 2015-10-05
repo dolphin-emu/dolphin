@@ -35,16 +35,16 @@ public:
                 long style = wxSP_VERTICAL,
                 const wxString& name = wxSPIN_BUTTON_NAME);
 
-    virtual int GetValue() const;
-    virtual void SetValue( int value );
-    virtual void SetRange( int minVal, int maxVal );
-    virtual int GetMin() const;
-    virtual int GetMax() const;
+    virtual int GetValue() const wxOVERRIDE;
+    virtual void SetValue( int value ) wxOVERRIDE;
+    virtual void SetRange( int minVal, int maxVal ) wxOVERRIDE;
+    virtual int GetMin() const wxOVERRIDE;
+    virtual int GetMax() const wxOVERRIDE;
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
-    virtual bool Enable( bool enable = true );
+    virtual bool Enable( bool enable = true ) wxOVERRIDE;
 
     // implementation
     int m_pos;
@@ -53,13 +53,13 @@ protected:
     void GtkDisableEvents() const;
     void GtkEnableEvents() const;
 
-    virtual wxSize DoGetBestSize() const;
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const wxOVERRIDE;
 
 private:
     typedef wxSpinButtonBase base_type;
 
-    DECLARE_DYNAMIC_CLASS(wxSpinButton)
+    wxDECLARE_DYNAMIC_CLASS(wxSpinButton);
 };
 
 #endif // _WX_GTK_SPINBUTT_H_

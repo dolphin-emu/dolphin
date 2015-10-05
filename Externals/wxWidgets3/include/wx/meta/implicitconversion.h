@@ -29,28 +29,18 @@
 namespace wxPrivate
 {
 
-// Helper macro to define a constant inside a template class: it's needed
-// because MSVC6 doesn't support initializing static integer members but the
-// usual workaround of using enums instead doesn't work for Borland (at least
-// in template classes).
-#ifdef __VISUALC6__
-    #define wxDEFINE_CLASS_INT_CONST(name, value) enum { name = value }
-#else
-    #define wxDEFINE_CLASS_INT_CONST(name, value) static const int name = value
-#endif
-
 template<typename T>
 struct TypeHierarchy
 {
     // consider unknown types (e.g. objects, pointers) to be of highest
     // level, always convert to them if they occur
-    wxDEFINE_CLASS_INT_CONST( level, 9999 );
+    static const int level = 9999;
 };
 
 #define WX_TYPE_HIERARCHY_LEVEL(level_num, type)        \
     template<> struct TypeHierarchy<type>               \
     {                                                   \
-        wxDEFINE_CLASS_INT_CONST( level, level_num );   \
+        static const int level = level_num;             \
     }
 
 WX_TYPE_HIERARCHY_LEVEL( 1, char);

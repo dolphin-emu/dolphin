@@ -81,28 +81,47 @@ void WXGLDestroyPixelFormat( WXGLPixelFormat pixelFormat )
 WXGLPixelFormat WXGLChoosePixelFormat(const int *attribList)
 {
     NSOpenGLPixelFormatAttribute data[512];
-    const NSOpenGLPixelFormatAttribute defaultAttribs[] =
+
+    unsigned p = 0;
+    data[p++] = NSOpenGLPFAMinimumPolicy; // make _SIZE tags behave more like GLX
+
+    // Test if we support hardware acceleration, we always want to use it if it
+    // is available and, apparently, in spite of the Apple docs explicitly
+    // saying the contrary:
+    //
+    //  If present, this attribute indicates that only hardware-accelerated
+    //  renderers are considered. If not present, accelerated renderers are
+    //  still preferred.
+    //
+    // hardware acceleration is not always used without it, so we do need to
+    // specify it. But we shouldn't do it if acceleration is really not
+    // available.
+    const NSOpenGLPixelFormatAttribute
+        attrsAccel[] = { NSOpenGLPFAAccelerated, 0 };
+    if ( WXGLPixelFormat testFormat = [[NSOpenGLPixelFormat alloc]
+                                       initWithAttributes: attrsAccel] )
     {
-        NSOpenGLPFADoubleBuffer,
-        NSOpenGLPFAMinimumPolicy,
-        NSOpenGLPFAColorSize,(NSOpenGLPixelFormatAttribute)8,
-        NSOpenGLPFAAlphaSize,(NSOpenGLPixelFormatAttribute)0,
-        NSOpenGLPFADepthSize,(NSOpenGLPixelFormatAttribute)8,
-        NSOpenGLPFAAccelerated, // use hardware accelerated context
-        (NSOpenGLPixelFormatAttribute)nil
-    };
+        // Hardware acceleration is available, use it.
+        data[p++] = NSOpenGLPFAAccelerated;
+        [testFormat release];
+    }
 
     const NSOpenGLPixelFormatAttribute *attribs;
     if ( !attribList )
     {
-        attribs = defaultAttribs;
+        // Default attributes
+        data[p++] = NSOpenGLPFADoubleBuffer;
+        data[p++] = NSOpenGLPFAColorSize;
+        data[p++] = (NSOpenGLPixelFormatAttribute)8;
+        data[p++] = NSOpenGLPFAAlphaSize;
+        data[p++] = (NSOpenGLPixelFormatAttribute)0;
+        data[p++] = NSOpenGLPFADepthSize;
+        data[p++] = (NSOpenGLPixelFormatAttribute)8;
+        data[p] = 0;
+        attribs = data;
     }
     else
     {
-        unsigned p = 0;
-        data[p++] = NSOpenGLPFAMinimumPolicy; // make _SIZE tags behave more like GLX
-        data[p++] = NSOpenGLPFAAccelerated; // use hardware accelerated context
-
         for ( unsigned arg = 0; attribList[arg] !=0 && p < WXSIZEOF(data); )
         {
             switch ( attribList[arg++] )
@@ -213,10 +232,19 @@ WXGLPixelFormat WXGLChoosePixelFormat(const int *attribList)
                     data[p++] = NSOpenGLPFASamples;
                     data[p++] = (NSOpenGLPixelFormatAttribute) attribList[arg++];
                     break;
+
+                case WX_GL_CORE_PROFILE:
+                    data[p++] = NSOpenGLPFAOpenGLProfile;
+                    // request an OpenGL core profile
+                    // will use the highest available OpenGL version
+                    // which will be at least 3.2
+                    data[p++] = NSOpenGLProfileVersion3_2Core;
+
+                    break;
             }
         }
 
-        data[p] = (NSOpenGLPixelFormatAttribute)nil;
+        data[p] = 0;
 
         attribs = data;
     }

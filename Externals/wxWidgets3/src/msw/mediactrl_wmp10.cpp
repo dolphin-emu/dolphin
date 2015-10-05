@@ -82,12 +82,6 @@
 // Other defines
 //---------------------------------------------------------------------------
 
-// disable "cast truncates constant value" for VARIANT_BOOL values
-// passed as parameters in VC6
-#ifdef _MSC_VER
-#pragma warning (disable:4310)
-#endif
-
 // error logger for HRESULTS (nothing really now)
 #define wxWMP10LOG(x)
 
@@ -677,7 +671,7 @@ public:
     wxEvtHandler* m_evthandler;
 
     friend class wxWMP10MediaEvtHandler;
-    DECLARE_DYNAMIC_CLASS(wxWMP10MediaBackend)
+    wxDECLARE_DYNAMIC_CLASS(wxWMP10MediaBackend);
 };
 
 #ifndef WXTEST_ATL
@@ -713,7 +707,7 @@ private:
 //
 //---------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxWMP10MediaBackend, wxMediaBackend)
+wxIMPLEMENT_DYNAMIC_CLASS(wxWMP10MediaBackend, wxMediaBackend);
 
 //---------------------------------------------------------------------------
 // wxWMP10MediaBackend Constructor
@@ -1460,65 +1454,5 @@ void wxWMP10MediaEvtHandler::OnActiveX(wxActiveXEvent& event)
 // file is not discarded by the linker.
 #include "wx/link.h"
 wxFORCE_LINK_THIS_MODULE(wxmediabackend_wmp10)
-
-#if 0 // Windows Media Player Mobile 9 hacks
-
-//------------------WMP Mobile 9 hacks-----------------------------------
-// It was mentioned in the introduction that while there was no official
-// programming interface on WMP mobile 9
-// (SmartPhone/Pocket PC 2003 emulator etc.)
-// there were some windows message hacks that are able to get
-// you playing a file through WMP.
-//
-// Here are those hacks. They do indeed "work" as expected - just call
-// SendMessage with one of those myterious values laid out in
-// Peter Foot's Friday, May 21, 2004 Blog Post on the issue.
-// (He says they are in a registery section entitled "Pendant Bus")
-//
-// How do you play a certain file? Simply calling "start [file]" or
-// wxWinCEExecute([file]) should do the trick
-
-bool wxWinCEExecute(const wxString& path, int nShowStyle = SW_SHOWNORMAL)
-{
-    WinStruct<SHELLEXECUTEINFO> sei;
-    sei.lpFile = path.c_str();
-    sei.lpVerb = wxT("open");
-    sei.nShow = nShowStyle;
-
-    ::ShellExecuteEx(&sei);
-
-    return ((int) sei.hInstApp) > 32;
-}
-
-bool MyApp::OnInit()
-{
-    HWND hwnd = ::FindWindow(TEXT("WMP for Mobile Devices"), TEXT("Windows Media"));
-    if(!hwnd)
-    {
-        if( wxWinCEExecute(wxT("\\Windows\\wmplayer.exe"), SW_MINIMIZE) )
-        {
-            hwnd = ::FindWindow(TEXT("WMP for Mobile Devices"), TEXT("Windows Media"));
-        }
-    }
-
-    if(hwnd)
-    {
-        // hide wmp window
-        ::SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0,
-                       SWP_NOMOVE|SWP_NOSIZE|SWP_HIDEWINDOW);
-
-        // Stop         == 32970
-        // Prev Track   == 32971
-        // Next Track   == 32972
-        // Shuffle      == 32973
-        // Repeat       == 32974
-        // Vol Up       == 32975
-        // Vol Down     == 32976
-        // Play         == 32978
-        ::SendMessage(hwnd, 32978, NULL, 0);
-    }
-}
-
-#endif // WMP mobile 9 hacks
 
 #endif // wxUSE_MEDIACTRL && wxUSE_ACTIVEX

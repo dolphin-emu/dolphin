@@ -32,8 +32,23 @@
 
 #include "wx/log.h"
 #include "wx/scopeguard.h"
+#include "wx/vector.h"
+#include "wx/hashmap.h"
 
 #include "wx/osx/private.h"
+
+struct wxModalSessionStackElement
+{
+    WXWindow        dummyWindow;
+    void*           modalSession;
+};
+
+typedef wxVector<wxModalSessionStackElement> wxModalSessionStack;
+
+WX_DECLARE_HASH_MAP(wxGUIEventLoop*, wxModalSessionStack*, wxPointerHash, wxPointerEqual,
+                    wxModalSessionStackMap);
+
+static wxModalSessionStackMap gs_modalSessionStackMap;
 
 // ============================================================================
 // wxEventLoop implementation
@@ -110,6 +125,7 @@ wxGUIEventLoop::wxGUIEventLoop()
 
 wxGUIEventLoop::~wxGUIEventLoop()
 {
+    wxASSERT( gs_modalSessionStackMap.find( this ) == gs_modalSessionStackMap.end() );
     wxASSERT( m_modalSession == nil );
     wxASSERT( m_dummyWindow == nil );
     wxASSERT( m_modalNestedLevel == 0 );
@@ -202,19 +218,18 @@ int wxGUIEventLoop::DoDispatchTimeout(unsigned long timeout)
             {
                 if ( [[NSApplication sharedApplication]
                         nextEventMatchingMask: NSAnyEventMask
-                        untilDate: nil
+                        untilDate: [NSDate dateWithTimeIntervalSinceNow: timeout/1000.0]
                         inMode: NSDefaultRunLoopMode
                         dequeue: NO] != nil )
                     return 1;
                 
                 return -1;
             }
-                
             case NSRunStoppedResponse:
             case NSRunAbortedResponse:
                 return -1;
             default:
-                wxFAIL_MSG("unknown response code");
+                // nested native loops may return other codes here, just ignore them
                 break;
         }
         return -1;
@@ -223,7 +238,7 @@ int wxGUIEventLoop::DoDispatchTimeout(unsigned long timeout)
     {        
         NSEvent *event = [NSApp
                     nextEventMatchingMask:NSAnyEventMask
-                    untilDate:[NSDate dateWithTimeIntervalSinceNow: timeout/1000]
+                    untilDate:[NSDate dateWithTimeIntervalSinceNow: timeout/1000.0]
                     inMode:NSDefaultRunLoopMode
                     dequeue: YES];
         
@@ -397,6 +412,8 @@ wxModalEventLoop::wxModalEventLoop(WXWindow modalNativeWindow)
 
 // END move into a evtloop_osx.cpp
 
+#define OSX_USE_MODAL_SESSION 1
+
 void wxModalEventLoop::OSXDoRun()
 {
     wxMacAutoreleasePool pool;
@@ -412,8 +429,18 @@ void wxModalEventLoop::OSXDoRun()
             [NSApp sendEvent:event];
         }
     }
-    
-    [NSApp runModalForWindow:m_modalNativeWindow];
+#if OSX_USE_MODAL_SESSION
+    if ( m_modalWindow )
+    {
+        BeginModalSession(m_modalWindow);
+        wxCFEventLoop::OSXDoRun();
+        EndModalSession();
+    }
+    else
+#endif
+    {
+        [NSApp runModalForWindow:m_modalNativeWindow];
+    }
 }
 
 void wxModalEventLoop::OSXDoStop()
@@ -421,58 +448,38 @@ void wxModalEventLoop::OSXDoStop()
     [NSApp abortModal];
 }
 
-// we need our own version of ProcessIdle here in order to
-// avoid deletion of pending objects, because ProcessIdle is running
-// to soon and ends up in destroying the object too early, ie before
-// a stack allocated instance is removed resulting in double deletes
-bool wxModalEventLoop::ProcessIdle()
-{
-    bool needMore = false;
-    if ( wxTheApp )
-    {
-        // synthesize an idle event and check if more of them are needed
-        wxIdleEvent event;
-        event.SetEventObject(wxTheApp);
-        wxTheApp->ProcessEvent(event);
-        
-#if wxUSE_LOG
-        // flush the logged messages if any (do this after processing the events
-        // which could have logged new messages)
-        wxLog::FlushActive();
-#endif
-        needMore = event.MoreRequested();
-        
-        wxWindowList::compatibility_iterator node = wxTopLevelWindows.GetFirst();
-        while (node)
-        {
-            wxWindow* win = node->GetData();
-            
-            // Don't send idle events to the windows that are about to be destroyed
-            // anyhow, this is wasteful and unexpected.
-            if ( !wxPendingDelete.Member(win) && win->SendIdleEvents(event) )
-                needMore = true;
-            node = node->GetNext();
-        }
-        
-        wxUpdateUIEvent::ResetUpdateTime();
-
-    }
-    return needMore;
-}
-
 void wxGUIEventLoop::BeginModalSession( wxWindow* modalWindow )
 {
     WXWindow nsnow = nil;
 
-    if ( m_modalNestedLevel > 0 )
+    m_modalNestedLevel++;
+    if ( m_modalNestedLevel > 1 )
     {
-        wxASSERT_MSG( m_modalWindow == modalWindow, "Nested Modal Sessions must be based on same window");
-        m_modalNestedLevel++;
-        return;
+        wxModalSessionStack* stack = NULL;
+        
+        if ( m_modalNestedLevel == 2 )
+        {
+            stack = new wxModalSessionStack;
+            gs_modalSessionStackMap[this] = stack;
+        }
+        else
+        {
+            stack = gs_modalSessionStackMap[this];
+        }
+        
+        wxModalSessionStackElement element;
+        element.dummyWindow = m_dummyWindow;
+        element.modalSession = m_modalSession;
+        
+        stack->push_back(element);
+        
+        // shortcut if nothing changed in this level
+        
+        if ( m_modalWindow == modalWindow )
+            return;
     }
     
     m_modalWindow = modalWindow;
-    m_modalNestedLevel = 1;
     
     if ( modalWindow )
     {
@@ -494,8 +501,8 @@ void wxGUIEventLoop::BeginModalSession( wxWindow* modalWindow )
                                  backing:NSBackingStoreBuffered
                                    defer:YES
          ];
-        [nsnow orderOut:nil];
         m_dummyWindow = nsnow;
+        [nsnow orderOut:nil];
     }
     m_modalSession = [NSApp beginModalSessionForWindow:nsnow];
     wxASSERT_MSG(m_modalSession != NULL, "modal session couldn't be started");
@@ -507,7 +514,8 @@ void wxGUIEventLoop::EndModalSession()
     
     wxASSERT_MSG(m_modalNestedLevel > 0, "incorrect modal nesting level");
     
-    if ( --m_modalNestedLevel == 0 )
+    --m_modalNestedLevel;
+    if ( m_modalNestedLevel == 0 )
     {
         [NSApp endModalSession:(NSModalSession)m_modalSession];
         m_modalSession = nil;
@@ -515,6 +523,32 @@ void wxGUIEventLoop::EndModalSession()
         {
             [m_dummyWindow release];
             m_dummyWindow = nil;
+        }
+    }
+    else
+    {
+        wxModalSessionStack* stack = gs_modalSessionStackMap[this];
+        wxModalSessionStackElement element = stack->back();
+        stack->pop_back();
+        
+        if( m_modalNestedLevel == 1 )
+        {
+            gs_modalSessionStackMap.erase(this);
+            delete stack;
+        }
+        
+        if ( m_modalSession != element.modalSession )
+        {
+            [NSApp endModalSession:(NSModalSession)m_modalSession];
+            m_modalSession = element.modalSession;
+        }
+        
+        if ( m_dummyWindow != element.dummyWindow )
+        {
+            if ( element.dummyWindow )
+                [element.dummyWindow release];
+
+            m_dummyWindow = element.dummyWindow;
         }
     }
 }

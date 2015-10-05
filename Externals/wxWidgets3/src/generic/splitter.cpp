@@ -43,7 +43,7 @@ wxDEFINE_EVENT( wxEVT_SPLITTER_SASH_POS_CHANGING, wxSplitterEvent );
 wxDEFINE_EVENT( wxEVT_SPLITTER_DOUBLECLICKED, wxSplitterEvent );
 wxDEFINE_EVENT( wxEVT_SPLITTER_UNSPLIT, wxSplitterEvent );
 
-IMPLEMENT_DYNAMIC_CLASS(wxSplitterWindow, wxWindow)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSplitterWindow, wxWindow);
 
 /*
     TODO PROPERTIES
@@ -54,9 +54,9 @@ IMPLEMENT_DYNAMIC_CLASS(wxSplitterWindow, wxWindow)
         orientation
 */
 
-IMPLEMENT_DYNAMIC_CLASS(wxSplitterEvent, wxNotifyEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSplitterEvent, wxNotifyEvent);
 
-BEGIN_EVENT_TABLE(wxSplitterWindow, wxWindow)
+wxBEGIN_EVENT_TABLE(wxSplitterWindow, wxWindow)
     EVT_PAINT(wxSplitterWindow::OnPaint)
     EVT_SIZE(wxSplitterWindow::OnSize)
     EVT_MOUSE_EVENTS(wxSplitterWindow::OnMouseEvent)
@@ -65,7 +65,7 @@ BEGIN_EVENT_TABLE(wxSplitterWindow, wxWindow)
 #if defined( __WXMSW__ ) || defined( __WXMAC__)
     EVT_SET_CURSOR(wxSplitterWindow::OnSetCursor)
 #endif // wxMSW
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 static bool IsLive(wxSplitterWindow* wnd)
 {

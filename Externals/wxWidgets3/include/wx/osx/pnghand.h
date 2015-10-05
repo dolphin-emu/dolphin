@@ -17,7 +17,7 @@
 
 class WXDLLIMPEXP_CORE wxPNGFileHandler: public wxBitmapHandler
 {
-  DECLARE_DYNAMIC_CLASS(wxPNGFileHandler)
+  wxDECLARE_DYNAMIC_CLASS(wxPNGFileHandler);
 public:
   inline wxPNGFileHandler(void)
   {

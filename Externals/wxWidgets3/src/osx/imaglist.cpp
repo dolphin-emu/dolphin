@@ -22,7 +22,7 @@
     #include "wx/image.h"
 #endif
 
-IMPLEMENT_DYNAMIC_CLASS(wxImageList, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxImageList, wxObject);
 
 
 wxImageList::wxImageList( int width, int height, bool mask, int initialCount )

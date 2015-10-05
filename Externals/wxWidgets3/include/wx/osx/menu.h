@@ -65,7 +65,6 @@ protected:
     // that are expected in the app menu
     void DoRearrange() ;
 
-    bool DoHandleMenuEvent( wxEvent& evt );
     virtual wxMenuItem* DoAppend(wxMenuItem *item);
     virtual wxMenuItem* DoInsert(size_t pos, wxMenuItem *item);
     virtual wxMenuItem* DoRemove(wxMenuItem *item);
@@ -92,7 +91,7 @@ private:
 
     wxMenuImpl* m_peer;
 
-    DECLARE_DYNAMIC_CLASS(wxMenu)
+    wxDECLARE_DYNAMIC_CLASS(wxMenu);
 };
 
 #if wxOSX_USE_COCOA_OR_CARBON
@@ -160,6 +159,11 @@ public:
 
 
     static WXHMENU MacGetWindowMenuHMenu() { return s_macWindowMenuHandle ; }
+    
+    virtual void DoGetPosition(int *x, int *y) const;
+    virtual void DoGetSize(int *width, int *height) const;
+    virtual void DoGetClientSize(int *width, int *height) const;
+
 protected:
     // common part of all ctors
     void Init();
@@ -174,7 +178,7 @@ private:
     wxMenu* m_rootMenu;
     wxMenu* m_appleMenu;
 
-    DECLARE_DYNAMIC_CLASS(wxMenuBar)
+    wxDECLARE_DYNAMIC_CLASS(wxMenuBar);
 };
 
 #endif

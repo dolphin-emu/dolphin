@@ -149,8 +149,8 @@ assertEquals(const wxString& expected,
 
 CPPUNIT_NS_END
 
-// define an assertEquals() overload for the given types, this is a helper and
-// shouldn't be used directly because of VC6 complications, see below
+// define an assertEquals() overload for the given types, this is a helper used
+// by WX_CPPUNIT_ALLOW_EQUALS_TO_INT() below
 #define WX_CPPUNIT_ASSERT_EQUALS(T1, T2)                                      \
     inline void                                                               \
     assertEquals(T1 expected,                                                 \
@@ -169,30 +169,11 @@ CPPUNIT_NS_END
 
 // this macro allows us to specify (usually literal) ints as expected values
 // for functions returning integral types different from "int"
-//
-// FIXME-VC6: due to incorrect resolution of overloaded/template functions in
-//            this compiler (it basically doesn't use the template version at
-//            all if any overloaded function matches partially even if none of
-//            them matches fully) we also need to provide extra overloads
-
-#ifdef __VISUALC6__
-    #define WX_CPPUNIT_ALLOW_EQUALS_TO_INT(T) \
-        CPPUNIT_NS_BEGIN \
-            WX_CPPUNIT_ASSERT_EQUALS(int, T) \
-            WX_CPPUNIT_ASSERT_EQUALS(T, int) \
-            WX_CPPUNIT_ASSERT_EQUALS(T, T) \
-        CPPUNIT_NS_END
-
-    CPPUNIT_NS_BEGIN
-        WX_CPPUNIT_ASSERT_EQUALS(int, int)
+#define WX_CPPUNIT_ALLOW_EQUALS_TO_INT(T) \
+    CPPUNIT_NS_BEGIN \
+        WX_CPPUNIT_ASSERT_EQUALS(int, T) \
+        WX_CPPUNIT_ASSERT_EQUALS(T, int) \
     CPPUNIT_NS_END
-#else // !VC6
-    #define WX_CPPUNIT_ALLOW_EQUALS_TO_INT(T) \
-        CPPUNIT_NS_BEGIN \
-            WX_CPPUNIT_ASSERT_EQUALS(int, T) \
-            WX_CPPUNIT_ASSERT_EQUALS(T, int) \
-        CPPUNIT_NS_END
-#endif // VC6/!VC6
 
 WX_CPPUNIT_ALLOW_EQUALS_TO_INT(long)
 WX_CPPUNIT_ALLOW_EQUALS_TO_INT(short)
@@ -253,28 +234,6 @@ inline std::ostream& operator<<(std::ostream& o, const wxString& s)
 }
 
 #endif // !wxUSE_STD_IOSTREAM
-
-// VC6 doesn't provide overloads for operator<<(__int64) in its stream classes
-// so do it ourselves
-#if defined(__VISUALC6__) && defined(wxLongLong_t)
-
-#include "wx/longlong.h"
-
-inline std::ostream& operator<<(std::ostream& ostr, wxLongLong_t ll)
-{
-    ostr << wxLongLong(ll).ToString();
-
-    return ostr;
-}
-
-inline std::ostream& operator<<(std::ostream& ostr, unsigned wxLongLong_t llu)
-{
-    ostr << wxULongLong(llu).ToString();
-
-    return ostr;
-}
-
-#endif // VC6 && wxLongLong_t
 
 ///////////////////////////////////////////////////////////////////////////////
 // Some more compiler warning tweaking and auto linking.

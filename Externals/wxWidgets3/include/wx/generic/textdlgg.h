@@ -72,8 +72,8 @@ public:
     wxTextValidator* GetTextValidator() { return (wxTextValidator*)m_textctrl->GetValidator(); }
 #endif // wxUSE_VALIDATORS
 
-    virtual bool TransferDataToWindow();
-    virtual bool TransferDataFromWindow();
+    virtual bool TransferDataToWindow() wxOVERRIDE;
+    virtual bool TransferDataFromWindow() wxOVERRIDE;
 
     // implementation only
     void OnOK(wxCommandEvent& event);
@@ -84,8 +84,8 @@ protected:
     long        m_dialogStyle;
 
 private:
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxTextEntryDialog)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS(wxTextEntryDialog);
     wxDECLARE_NO_COPY_CLASS(wxTextEntryDialog);
 };
 
@@ -96,14 +96,27 @@ private:
 class WXDLLIMPEXP_CORE wxPasswordEntryDialog : public wxTextEntryDialog
 {
 public:
+    wxPasswordEntryDialog() { }
     wxPasswordEntryDialog(wxWindow *parent,
                       const wxString& message,
                       const wxString& caption = wxGetPasswordFromUserPromptStr,
                       const wxString& value = wxEmptyString,
                       long style = wxTextEntryDialogStyle,
-                      const wxPoint& pos = wxDefaultPosition);
+                      const wxPoint& pos = wxDefaultPosition)
+    {
+        Create(parent, message, caption, value, style, pos);
+    }
+
+    bool Create(wxWindow *parent,
+                const wxString& message,
+                const wxString& caption = wxGetPasswordFromUserPromptStr,
+                const wxString& value = wxEmptyString,
+                long style = wxTextEntryDialogStyle,
+                const wxPoint& pos = wxDefaultPosition);
+
+
 private:
-    DECLARE_DYNAMIC_CLASS(wxPasswordEntryDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxPasswordEntryDialog);
     wxDECLARE_NO_COPY_CLASS(wxPasswordEntryDialog);
 };
 

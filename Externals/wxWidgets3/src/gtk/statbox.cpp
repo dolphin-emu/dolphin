@@ -158,8 +158,22 @@ wxStaticBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 
 void wxStaticBox::GetBordersForSizer(int *borderTop, int *borderOther) const
 {
-    *borderTop = GetCharHeight();
-    *borderOther = GetCharWidth()/2;
+    GtkAllocation alloc, child_alloc;
+    gtk_widget_get_allocation(m_widget, &alloc);
+    const int w_save = alloc.width;
+    const int h_save = alloc.height;
+    if (alloc.width < 50) alloc.width = 50;
+    if (alloc.height < 50) alloc.height = 50;
+    gtk_widget_set_allocation(m_widget, &alloc);
+
+    GTK_FRAME_GET_CLASS(m_widget)->compute_child_allocation(GTK_FRAME(m_widget), &child_alloc);
+
+    alloc.width = w_save;
+    alloc.height = h_save;
+    gtk_widget_set_allocation(m_widget, &alloc);
+
+    *borderTop = child_alloc.y - alloc.y;
+    *borderOther = child_alloc.x - alloc.x;
 }
 
 #endif // wxUSE_STATBOX

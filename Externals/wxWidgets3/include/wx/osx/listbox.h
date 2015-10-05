@@ -172,8 +172,8 @@ private:
     friend class wxMacDataBrowserListControl;
 #endif // Carbon
 
-    DECLARE_DYNAMIC_CLASS(wxListBox)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxListBox);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_LISTBOX_H_

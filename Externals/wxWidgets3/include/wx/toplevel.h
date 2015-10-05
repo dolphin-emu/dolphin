@@ -84,37 +84,8 @@ class WXDLLIMPEXP_FWD_CORE wxTopLevelWindowBase;
     #define wxTINY_CAPTION_VERT     wxTINY_CAPTION
 #endif
 
-#if WXWIN_COMPATIBILITY_2_6
-
-    // deprecated versions defined for compatibility reasons
-    #define wxRESIZE_BOX            wxMAXIMIZE_BOX
-    #define wxTHICK_FRAME           wxRESIZE_BORDER
-
-    // obsolete styles, unused any more
-    #define wxDIALOG_MODAL          0
-    #define wxDIALOG_MODELESS       0
-    #define wxNO_3D                 0
-    #define wxUSER_COLOURS          0
-
-#endif // WXWIN_COMPATIBILITY_2_6
-
 // default style
-//
-// under Windows CE (at least when compiling with eVC 4) we should create
-// top level windows without any styles at all for them to appear
-// "correctly", i.e. as full screen windows with a "hide" button (same as
-// "close" but round instead of squared and just hides the applications
-// instead of closing it) in the title bar
-#if defined(__WXWINCE__)
-    #if defined(__SMARTPHONE__)
-        #define wxDEFAULT_FRAME_STYLE (wxMAXIMIZE)
-    #elif defined(__WINCE_STANDARDSDK__)
-        #define wxDEFAULT_FRAME_STYLE (wxMAXIMIZE|wxCLOSE_BOX)
-    #else
-        #define wxDEFAULT_FRAME_STYLE (wxNO_BORDER)
-    #endif
-#else // !__WXWINCE__
-    #define wxDEFAULT_FRAME_STYLE \
+#define wxDEFAULT_FRAME_STYLE \
             (wxSYSTEM_MENU | \
              wxRESIZE_BORDER | \
              wxMINIMIZE_BOX | \
@@ -122,7 +93,6 @@ class WXDLLIMPEXP_FWD_CORE wxTopLevelWindowBase;
              wxCLOSE_BOX | \
              wxCAPTION | \
              wxCLIP_CHILDREN)
-#endif
 
 
 // Dialogs are created in a special way
@@ -196,6 +166,11 @@ public:
     // set the frame icons
     virtual void SetIcons(const wxIconBundle& icons) { m_icons = icons; }
 
+    virtual bool EnableFullScreenView(bool WXUNUSED(enable) = true)
+    {
+        return false;
+    }
+
     // maximize the window to cover entire screen
     virtual bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) = 0;
 
@@ -214,7 +189,9 @@ public:
     virtual wxString GetTitle() const = 0;
 
     // enable/disable close button [x]
-    virtual bool EnableCloseButton(bool WXUNUSED(enable) ) { return false; }
+    virtual bool EnableCloseButton(bool WXUNUSED(enable) = true) { return false; }
+    virtual bool EnableMaximizeButton(bool WXUNUSED(enable) = true) { return false; }
+    virtual bool EnableMinimizeButton(bool WXUNUSED(enable) = true) { return false; }
 
     // Attracts the users attention to this window if the application is
     // inactive (should be called when a background event occurs)
@@ -231,12 +208,6 @@ public:
     // notice that the window is still closed prior to the application exit and
     // so it can still veto it even if it returns false from here
     virtual bool ShouldPreventAppExit() const { return true; }
-
-
-#if defined(__SMARTPHONE__)
-    virtual void SetLeftMenu(int id = wxID_ANY, const wxString& label = wxEmptyString, wxMenu *subMenu = NULL) = 0;
-    virtual void SetRightMenu(int id = wxID_ANY, const wxString& label = wxEmptyString, wxMenu *subMenu = NULL) = 0;
-#endif // __SMARTPHONE__
 
     // centre the window on screen: this is just a shortcut
     void CentreOnScreen(int dir = wxBOTH) { DoCentre(dir | wxCENTRE_ON_SCREEN); }
@@ -273,9 +244,9 @@ public:
     // -------------------------------
 
     // override some base class virtuals
-    virtual bool Destroy();
-    virtual bool IsTopLevel() const { return true; }
-    virtual bool IsTopNavigationDomain() const { return true; }
+    virtual bool Destroy() wxOVERRIDE;
+    virtual bool IsTopLevel() const wxOVERRIDE { return true; }
+    virtual bool IsTopNavigationDomain() const wxOVERRIDE { return true; }
     virtual bool IsVisible() const { return IsShown(); }
 
     // event handlers
@@ -290,36 +261,29 @@ public:
     void OnActivate(wxActivateEvent &WXUNUSED(event)) { }
 
     // do the window-specific processing after processing the update event
-    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event) ;
+    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event) wxOVERRIDE ;
 
     // a different API for SetSizeHints
-    virtual void SetMinSize(const wxSize& minSize);
-    virtual void SetMaxSize(const wxSize& maxSize);
+    virtual void SetMinSize(const wxSize& minSize) wxOVERRIDE;
+    virtual void SetMaxSize(const wxSize& maxSize) wxOVERRIDE;
 
     virtual void OSXSetModified(bool modified) { m_modified = modified; }
     virtual bool OSXIsModified() const { return m_modified; }
 
     virtual void SetRepresentedFilename(const wxString& WXUNUSED(filename)) { }
 
-#if wxUSE_MENUS || wxUSE_TOOLBAR
-    // show help text for the currently selected menu or toolbar item
-    // (typically in the status bar) or hide it and restore the status bar text
-    // originally shown before the menu was opened if show == false
-    virtual void DoGiveHelp(const wxString& WXUNUSED(text), bool WXUNUSED(show))  {}
-#endif
-
 protected:
     // the frame client to screen translation should take account of the
     // toolbar which may shift the origin of the client area
-    virtual void DoClientToScreen(int *x, int *y) const;
-    virtual void DoScreenToClient(int *x, int *y) const;
+    virtual void DoClientToScreen(int *x, int *y) const wxOVERRIDE;
+    virtual void DoScreenToClient(int *x, int *y) const wxOVERRIDE;
 
     // add support for wxCENTRE_ON_SCREEN
-    virtual void DoCentre(int dir);
+    virtual void DoCentre(int dir) wxOVERRIDE;
 
     // no need to do client to screen translation to get our position in screen
     // coordinates: this is already the case
-    virtual void DoGetScreenPosition(int *x, int *y) const
+    virtual void DoGetScreenPosition(int *x, int *y) const wxOVERRIDE
     {
         DoGetPosition(x, y);
     }
@@ -355,7 +319,7 @@ protected:
     bool m_modified;
 
     wxDECLARE_NO_COPY_CLASS(wxTopLevelWindowBase);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 
@@ -378,15 +342,12 @@ protected:
 #elif defined(__WXMAC__)
     #include "wx/osx/toplevel.h"
     #define wxTopLevelWindowNative wxTopLevelWindowMac
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/toplevel.h"
-    #define wxTopLevelWindowNative wxTopLevelWindowCocoa
-#elif defined(__WXPM__)
-    #include "wx/os2/toplevel.h"
-    #define wxTopLevelWindowNative wxTopLevelWindowOS2
 #elif defined(__WXMOTIF__)
     #include "wx/motif/toplevel.h"
     #define wxTopLevelWindowNative wxTopLevelWindowMotif
+#elif defined(__WXQT__)
+    #include "wx/qt/toplevel.h"
+#define wxTopLevelWindowNative wxTopLevelWindowQt
 #endif
 
 #ifdef __WXUNIVERSAL__
@@ -409,7 +370,7 @@ protected:
         {
         }
 
-        DECLARE_DYNAMIC_CLASS_NO_COPY(wxTopLevelWindow)
+        wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxTopLevelWindow);
     };
 #endif // __WXUNIVERSAL__/!__WXUNIVERSAL__
 

@@ -33,7 +33,7 @@ class WXDLLIMPEXP_CORE wxComboBox :
 #endif
                 wxComboBoxBase>
 {
-    DECLARE_DYNAMIC_CLASS(wxComboBox)
+    wxDECLARE_DYNAMIC_CLASS(wxComboBox);
 
  public:
     virtual ~wxComboBox();

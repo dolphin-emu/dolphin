@@ -57,7 +57,7 @@
 // the functions using wxDataObject in wxClipboard
 //#define wxUSE_DATAOBJ wxUSE_DRAG_AND_DROP
 
-#if wxUSE_OLE && !defined(__WXWINCE__)
+#if wxUSE_OLE
     // use OLE clipboard
     #define wxUSE_OLE_CLIPBOARD 1
 #else // !wxUSE_DATAOBJ
@@ -156,7 +156,7 @@ bool wxIsClipboardFormatAvailable(wxDataFormat dataFormat)
         case CF_BITMAP:
             return ::IsClipboardFormatAvailable(CF_DIB) != 0;
 
-#if wxUSE_ENH_METAFILE && !defined(__WXWINCE__)
+#if wxUSE_ENH_METAFILE
         case CF_METAFILEPICT:
             return ::IsClipboardFormatAvailable(CF_ENHMETAFILE) != 0;
 #endif // wxUSE_ENH_METAFILE
@@ -231,7 +231,7 @@ bool wxSetClipboardData(wxDataFormat dataFormat,
     // VZ: I'm told that this code works, but it doesn't seem to work for me
     //     and, anyhow, I'd be highly surprised if it did. So I leave it here
     //     but IMNSHO it is completely broken.
-#if wxUSE_METAFILE && !defined(wxMETAFILE_IS_ENH) && !defined(__WXWINCE__)
+#if wxUSE_METAFILE && !defined(wxMETAFILE_IS_ENH)
         case wxDF_METAFILE:
             {
                 wxMetafile *wxMF = (wxMetafile *)data;
@@ -250,7 +250,7 @@ bool wxSetClipboardData(wxDataFormat dataFormat,
             }
 #endif // wxUSE_METAFILE
 
-#if wxUSE_ENH_METAFILE && !defined(__WXWINCE__)
+#if wxUSE_ENH_METAFILE
         case wxDF_ENHMETAFILE:
             {
                 wxEnhMetaFile *emf = (wxEnhMetaFile *)data;
@@ -296,8 +296,7 @@ bool wxSetClipboardData(wxDataFormat dataFormat,
                 handle = SetClipboardData(dataFormat, hGlobalMemory);
                 break;
             }
-            // Only tested with Visual C++ 6.0 so far
-#if defined(__VISUALC__)
+
         case wxDF_HTML:
             {
                 char* html = (char *)data;
@@ -365,7 +364,6 @@ bool wxSetClipboardData(wxDataFormat dataFormat,
                 delete [] buf;
                 break;
             }
-#endif
     }
 
     if ( handle == 0 )
@@ -384,7 +382,6 @@ void *wxGetClipboardData(wxDataFormat dataFormat, long *len)
 
     switch ( dataFormat )
     {
-#ifndef __WXWINCE__
         case wxDF_BITMAP:
             {
                 BITMAP bm;
@@ -429,7 +426,6 @@ void *wxGetClipboardData(wxDataFormat dataFormat, long *len)
                 retval = wxBM;
                 break;
             }
-#endif
         case wxDF_METAFILE:
         case CF_SYLK:
         case CF_DIF:
@@ -521,7 +517,7 @@ bool wxGetClipboardFormatName(wxDataFormat dataFormat,
 // wxClipboard
 // ---------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxClipboard, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxClipboard, wxObject);
 
 wxClipboard::wxClipboard()
 {
@@ -835,7 +831,6 @@ bool wxClipboard::GetData( wxDataObject& data )
                 formatEtc.tymed = TYMED_GDI;
                 break;
 
-#ifndef __WXWINCE__
             case CF_METAFILEPICT:
                 formatEtc.tymed = TYMED_MFPICT;
                 break;
@@ -843,7 +838,6 @@ bool wxClipboard::GetData( wxDataObject& data )
             case CF_ENHMETAFILE:
                 formatEtc.tymed = TYMED_ENHMF;
                 break;
-#endif
 
             default:
                 formatEtc.tymed = TYMED_HGLOBAL;

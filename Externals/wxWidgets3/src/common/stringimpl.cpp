@@ -34,30 +34,10 @@
 
 #include <ctype.h>
 
-#ifndef __WXWINCE__
-    #include <errno.h>
-#endif
+#include <errno.h>
 
 #include <string.h>
 #include <stdlib.h>
-
-// allocating extra space for each string consumes more memory but speeds up
-// the concatenation operations (nLen is the current string's length)
-// NB: EXTRA_ALLOC must be >= 0!
-#define EXTRA_ALLOC       (19 - nLen % 16)
-
-
-// string handling functions used by wxString:
-#if wxUSE_UNICODE_UTF8
-    #define wxStringMemcpy   memcpy
-    #define wxStringMemcmp   memcmp
-    #define wxStringMemchr   memchr
-#else
-    #define wxStringMemcpy   wxTmemcpy
-    #define wxStringMemcmp   wxTmemcmp
-    #define wxStringMemchr   wxTmemchr
-#endif
-
 
 // ---------------------------------------------------------------------------
 // static class variables definition
@@ -81,6 +61,22 @@ const wxStringCharType WXDLLIMPEXP_BASE *wxEmptyStringImpl = "";
 const wxChar WXDLLIMPEXP_BASE *wxEmptyString = wxT("");
 
 #else
+
+// allocating extra space for each string consumes more memory but speeds up
+// the concatenation operations (nLen is the current string's length)
+// NB: EXTRA_ALLOC must be >= 0!
+#define EXTRA_ALLOC       (19 - nLen % 16)
+
+// string handling functions used by wxString:
+#if wxUSE_UNICODE_UTF8
+    #define wxStringMemcpy   memcpy
+    #define wxStringMemcmp   memcmp
+    #define wxStringMemchr   memchr
+#else
+    #define wxStringMemcpy   wxTmemcpy
+    #define wxStringMemcmp   wxTmemcmp
+    #define wxStringMemchr   wxTmemchr
+#endif
 
 // for an empty string, GetStringData() will return this address: this
 // structure has the same layout as wxStringData and it's data() method will

@@ -127,7 +127,7 @@ wxBase64Decode(void *dst_, size_t dstLen,
             case WSP:
                 if ( mode == wxBase64DecodeMode_SkipWS )
                     continue;
-                // fall through
+                wxFALLTHROUGH;
 
             case INV:
                 if ( mode == wxBase64DecodeMode_Relaxed )

@@ -36,10 +36,10 @@
 // wxNumValidatorBase implementation
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxNumValidatorBase, wxValidator)
+wxBEGIN_EVENT_TABLE(wxNumValidatorBase, wxValidator)
     EVT_CHAR(wxNumValidatorBase::OnChar)
     EVT_KILL_FOCUS(wxNumValidatorBase::OnKillFocus)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 int wxNumValidatorBase::GetFormatFlags() const
 {

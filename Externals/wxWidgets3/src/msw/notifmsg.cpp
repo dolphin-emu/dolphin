@@ -341,6 +341,7 @@ wxBalloonNotifMsgImpl::DoShow(const wxString& title,
         // first place.
         delete ms_icon;
         ms_icon = NULL;
+        ms_refCountIcon = 0;
 
         return false;
     }
@@ -451,7 +452,7 @@ bool wxNotificationMessage::Show(int timeout)
 {
     if ( !m_impl )
     {
-        if ( !ms_alwaysUseGeneric && wxTheApp->GetShell32Version() >= 500 )
+        if ( !ms_alwaysUseGeneric )
         {
             if ( timeout == Timeout_Never )
                 m_impl = new wxManualNotifMsgImpl(GetParent());

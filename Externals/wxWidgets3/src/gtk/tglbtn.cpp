@@ -22,6 +22,7 @@
 
 #include <gtk/gtk.h>
 #include "wx/gtk/private.h"
+#include "wx/gtk/private/list.h"
 
 extern bool      g_blockEventsOnDrag;
 
@@ -45,7 +46,7 @@ wxDEFINE_EVENT( wxEVT_TOGGLEBUTTON, wxCommandEvent );
 // wxBitmapToggleButton
 // ------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxBitmapToggleButton, wxToggleButton)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBitmapToggleButton, wxToggleButton);
 
 bool wxBitmapToggleButton::Create(wxWindow *parent, wxWindowID id,
                             const wxBitmap &bitmap, const wxPoint &pos,
@@ -74,7 +75,7 @@ bool wxBitmapToggleButton::Create(wxWindow *parent, wxWindowID id,
 // wxToggleButton
 // ------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxToggleButton, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxToggleButton, wxControl);
 
 bool wxToggleButton::Create(wxWindow *parent, wxWindowID id,
                             const wxString &label, const wxPoint &pos,
@@ -213,7 +214,23 @@ GtkLabel *wxToggleButton::GTKGetLabel() const
 void wxToggleButton::DoApplyWidgetStyle(GtkRcStyle *style)
 {
     GTKApplyStyle(m_widget, style);
-    GTKApplyStyle(gtk_bin_get_child(GTK_BIN(m_widget)), style);
+    GtkWidget* child = gtk_bin_get_child(GTK_BIN(m_widget));
+    GTKApplyStyle(child, style);
+
+    // for buttons with images, the path to the label is (at least in 2.12)
+    // GtkButton -> GtkAlignment -> GtkHBox -> GtkLabel
+    if ( GTK_IS_ALIGNMENT(child) )
+    {
+        GtkWidget* box = gtk_bin_get_child(GTK_BIN(child));
+        if ( GTK_IS_BOX(box) )
+        {
+            wxGtkList list(gtk_container_get_children(GTK_CONTAINER(box)));
+            for (GList* item = list; item; item = item->next)
+            {
+                GTKApplyStyle(GTK_WIDGET(item->data), style);
+            }
+        }
+    }
 }
 
 // Get the "best" size for this control.

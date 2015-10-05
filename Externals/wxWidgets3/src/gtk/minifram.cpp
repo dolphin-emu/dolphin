@@ -16,7 +16,6 @@
 #ifndef WX_PRECOMP
     #include "wx/settings.h"
     #include "wx/dcclient.h"
-    #include "wx/image.h"
 #endif
 
 #ifdef __WXGTK3__
@@ -38,28 +37,6 @@ extern bool        g_blockEventsOnScroll;
 //-----------------------------------------------------------------------------
 // "expose_event" of m_mainWidget
 //-----------------------------------------------------------------------------
-
-// StepColour() it a utility function that simply darkens
-// or lightens a color, based on the specified percentage
-static wxColor StepColour(const wxColor& c, int percent)
-{
-    int r = c.Red(), g = c.Green(), b = c.Blue();
-    return wxColour((unsigned char)wxMin((r*percent)/100,255),
-                    (unsigned char)wxMin((g*percent)/100,255),
-                    (unsigned char)wxMin((b*percent)/100,255));
-}
-
-static wxColor LightContrastColour(const wxColour& c)
-{
-    int amount = 120;
-
-    // if the color is especially dark, then
-    // make the contrast even lighter
-    if (c.Red() < 128 && c.Green() < 128 && c.Blue() < 128)
-        amount = 160;
-
-    return StepColour(c, amount);
-}
 
 extern "C" {
 #ifdef __WXGTK3__
@@ -114,7 +91,7 @@ static gboolean expose_event(GtkWidget* widget, GdkEventExpose* gdk_event, wxMin
     {
         dc.SetFont( *wxSMALL_FONT );
 
-        wxBrush brush( LightContrastColour( wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT) ) );
+        wxBrush brush(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
         dc.SetBrush( brush );
         dc.SetPen( *wxTRANSPARENT_PEN );
         dc.DrawRectangle( win->m_miniEdge-1,
@@ -122,11 +99,15 @@ static gboolean expose_event(GtkWidget* widget, GdkEventExpose* gdk_event, wxMin
                           win->m_width - (2*(win->m_miniEdge-1)),
                           15  );
 
-        dc.SetTextForeground( *wxWHITE );
+        const wxColour textColor = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
+        dc.SetTextForeground(textColor);
         dc.DrawText( win->GetTitle(), 6, 4 );
 
         if (style & wxCLOSE_BOX)
+        {
+            dc.SetTextBackground(textColor);
             dc.DrawBitmap( win->m_closeButton, win->m_width-18, 3, true );
+        }
     }
 
     return false;
@@ -243,8 +224,6 @@ gtk_window_button_release_callback(GtkWidget* widget, GdkEventButton* gdk_event,
     gdk_window_get_origin(gtk_widget_get_window(widget), &org_x, &org_y);
     x += org_x - win->m_diffX;
     y += org_y - win->m_diffY;
-    win->m_x = x;
-    win->m_y = y;
     gtk_window_move( GTK_WINDOW(win->m_widget), x, y );
 
     return TRUE;
@@ -304,7 +283,6 @@ gtk_window_motion_notify_callback( GtkWidget *widget, GdkEventMotion *gdk_event,
                gdk_window_set_cursor(gtk_widget_get_window(widget), gdk_cursor_new(GDK_BOTTOM_RIGHT_CORNER));
             else
                gdk_window_set_cursor(gtk_widget_get_window(widget), NULL);
-            win->GTKUpdateCursor(false);
         }
         return TRUE;
     }
@@ -317,8 +295,6 @@ gtk_window_motion_notify_callback( GtkWidget *widget, GdkEventMotion *gdk_event,
     gdk_window_get_origin(gtk_widget_get_window(widget), &org_x, &org_y);
     x += org_x - win->m_diffX;
     y += org_y - win->m_diffY;
-    win->m_x = x;
-    win->m_y = y;
     gtk_window_move( GTK_WINDOW(win->m_widget), x, y );
 
     return TRUE;
@@ -335,7 +311,7 @@ static unsigned char close_bits[]={
     0x07, 0xf0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxMiniFrame,wxFrame)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMiniFrame, wxFrame);
 
 wxMiniFrame::~wxMiniFrame()
 {
@@ -407,10 +383,8 @@ bool wxMiniFrame::Create( wxWindow *parent, wxWindowID id, const wxString &title
 
     if (m_miniTitle && (style & wxCLOSE_BOX))
     {
-        wxImage img = wxBitmap((const char*)close_bits, 16, 16).ConvertToImage();
-        img.Replace(0,0,0,123,123,123);
-        img.SetMaskColour(123,123,123);
-        m_closeButton = wxBitmap( img );
+        m_closeButton = wxBitmap((const char*)close_bits, 16, 16);
+        m_closeButton.SetMask(new wxMask(m_closeButton));
     }
 
     /* these are called when the borders are drawn */

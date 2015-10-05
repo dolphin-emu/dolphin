@@ -20,7 +20,7 @@
 // wxColourData
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxColourData, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxColourData, wxObject);
 
 wxColourData::wxColourData()
 {

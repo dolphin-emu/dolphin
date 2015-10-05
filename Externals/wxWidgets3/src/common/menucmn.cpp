@@ -56,7 +56,7 @@ wxBEGIN_FLAGS( wxMenuStyle )
 wxFLAGS_MEMBER(wxMENU_TEAROFF)
 wxEND_FLAGS( wxMenuStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxMenu, wxEvtHandler, "wx/menu.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxMenu, wxEvtHandler, "wx/menu.h");
 wxCOLLECTION_TYPE_INFO( wxMenuItem *, wxMenuItemList ) ;
 
 #if wxUSE_EXTENDED_RTTI    
@@ -108,7 +108,7 @@ wxIMPLEMENT_DYNAMIC_CLASS_XTI_CALLBACK(wxMenuBar, wxWindow, "wx/menu.h", \
 #if wxUSE_EXTENDED_RTTI    
 WX_DEFINE_LIST( wxMenuInfoHelperList )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxMenuInfoHelper, wxObject, "wx/menu.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxMenuInfoHelper, wxObject, "wx/menu.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxMenuInfoHelper)
 wxREADONLY_PROPERTY( Menu, wxMenu*, GetMenu, wxEMPTY_PARAMETER_VALUE, \
@@ -324,12 +324,10 @@ void wxMenuItemBase::SetHelp(const wxString& str)
     }
 }
 
-#ifndef __WXPM__
 wxString wxMenuItemBase::GetLabelText(const wxString& text)
 {
     return wxStripMenuCodes(text);
 }
-#endif
 
 #if WXWIN_COMPATIBILITY_2_8
 wxString wxMenuItemBase::GetLabelFromText(const wxString& text)
@@ -643,37 +641,72 @@ void wxMenuBase::UpdateUI(wxEvtHandler* source)
 bool wxMenuBase::SendEvent(int itemid, int checked)
 {
     wxCommandEvent event(wxEVT_MENU, itemid);
-    event.SetEventObject(this);
     event.SetInt(checked);
 
-    wxWindow* const win = GetWindow();
-    wxMenuBar* const mb = GetMenuBar();
+    return DoProcessEvent(this, event, GetWindow());
+}
 
-    // Try the menu's event handler first
-    wxEvtHandler *handler = GetEventHandler();
-    if ( handler )
+/* static */
+bool wxMenuBase::DoProcessEvent(wxMenuBase* menu, wxEvent& event, wxWindow* win)
+{
+    event.SetEventObject(menu);
+
+    if ( menu )
     {
-        // Indicate to the event processing code that we're going to pass this
-        // event to another handler if it's not processed here to prevent it
-        // from passing the event to wxTheApp: this will be done below if we do
-        // have the associated window.
-        if ( win || mb )
-            event.SetWillBeProcessedAgain();
+        wxMenuBar* const mb = menu->GetMenuBar();
 
-        if ( handler->SafelyProcessEvent(event) )
-            return true;
+        // Try the menu's event handler first
+        wxEvtHandler *handler = menu->GetEventHandler();
+        if ( handler )
+        {
+            // Indicate to the event processing code that we're going to pass
+            // this event to another handler if it's not processed here to
+            // prevent it from passing the event to wxTheApp: this will be done
+            // below if we do have the associated window.
+            if ( win || mb )
+                event.SetWillBeProcessedAgain();
+
+            if ( handler->SafelyProcessEvent(event) )
+                return true;
+        }
+
+        // If this menu is part of the menu bar, try the event there. this
+        if ( mb )
+        {
+            if ( mb->HandleWindowEvent(event) )
+                return true;
+
+            // If this already propagated it upwards to the window containing
+            // the menu bar, we don't have to handle it in this window again
+            // below.
+            if ( event.ShouldPropagate() )
+                return false;
+        }
     }
-
-    // If this menu is part of the menu bar, process the event there: this will
-    // also propagate it upwards to the window containing the menu bar.
-    if ( mb )
-        return mb->HandleWindowEvent(event);
 
     // Try the window the menu was popped up from.
     if ( win )
         return win->HandleWindowEvent(event);
 
     // Not processed.
+    return false;
+}
+
+/* static */
+bool
+wxMenuBase::ProcessMenuEvent(wxMenu* menu, wxMenuEvent& event, wxWindow* win)
+{
+    // Try to process the event in the usual places first.
+    if ( DoProcessEvent(menu, event, win) )
+        return true;
+
+    // But the menu events should also reach the TLW parent if they were not
+    // processed before so, as it's not a command event and hence doesn't
+    // bubble up by default, send it there explicitly if not done yet.
+    wxWindow* const tlw = wxGetTopLevelParent(win);
+    if ( tlw != win && tlw->HandleWindowEvent(event) )
+        return true;
+
     return false;
 }
 

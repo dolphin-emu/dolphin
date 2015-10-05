@@ -26,13 +26,11 @@
 
 #include "wx/osx/private.h"
 
-#include <vector>
-
 // forward decls
 
 class wxListWidgetCocoaImpl;
 
-@interface wxNSTableDataSource : NSObject wxOSX_10_6_AND_LATER(<NSTableViewDataSource>)
+@interface wxNSTableDataSource : NSObject <NSTableViewDataSource>
 {
     wxListWidgetCocoaImpl* impl;
 }
@@ -52,7 +50,7 @@ class wxListWidgetCocoaImpl;
 
 @end
 
-@interface wxNSTableView : NSTableView wxOSX_10_6_AND_LATER(<NSTableViewDelegate>)
+@interface wxNSTableView : NSTableView <NSTableViewDelegate>
 {
 }
 
@@ -106,44 +104,44 @@ public :
     ~wxListWidgetCocoaImpl();
 
     virtual wxListWidgetColumn*     InsertTextColumn( unsigned pos, const wxString& title, bool editable = false,
-                                wxAlignment just = wxALIGN_LEFT , int defaultWidth = -1)  ;
+                                wxAlignment just = wxALIGN_LEFT , int defaultWidth = -1) wxOVERRIDE  ;
     virtual wxListWidgetColumn*     InsertCheckColumn( unsigned pos , const wxString& title, bool editable = false,
-                                wxAlignment just = wxALIGN_LEFT , int defaultWidth =  -1)  ;
+                                wxAlignment just = wxALIGN_LEFT , int defaultWidth =  -1) wxOVERRIDE  ;
 
     // add and remove
 
-    virtual void            ListDelete( unsigned int n ) ;
-    virtual void            ListInsert( unsigned int n ) ;
-    virtual void            ListClear() ;
+    virtual void            ListDelete( unsigned int n ) wxOVERRIDE ;
+    virtual void            ListInsert( unsigned int n ) wxOVERRIDE ;
+    virtual void            ListClear() wxOVERRIDE ;
 
     // selecting
 
-    virtual void            ListDeselectAll();
+    virtual void            ListDeselectAll() wxOVERRIDE;
 
-    virtual void            ListSetSelection( unsigned int n, bool select, bool multi ) ;
-    virtual int             ListGetSelection() const ;
+    virtual void            ListSetSelection( unsigned int n, bool select, bool multi ) wxOVERRIDE ;
+    virtual int             ListGetSelection() const wxOVERRIDE ;
 
-    virtual int             ListGetSelections( wxArrayInt& aSelections ) const ;
+    virtual int             ListGetSelections( wxArrayInt& aSelections ) const wxOVERRIDE ;
 
-    virtual bool            ListIsSelected( unsigned int n ) const ;
+    virtual bool            ListIsSelected( unsigned int n ) const wxOVERRIDE ;
 
     // display
 
-    virtual void            ListScrollTo( unsigned int n ) ;
+    virtual void            ListScrollTo( unsigned int n ) wxOVERRIDE ;
 
     // accessing content
 
-    virtual unsigned int    ListGetCount() const ;
-    virtual int             DoListHitTest( const wxPoint& inpoint ) const;
+    virtual unsigned int    ListGetCount() const wxOVERRIDE ;
+    virtual int             DoListHitTest( const wxPoint& inpoint ) const wxOVERRIDE;
 
     int                     ListGetColumnType( int col )
     {
         return col;
     }
-    virtual void            UpdateLine( unsigned int n, wxListWidgetColumn* col = NULL ) ;
-    virtual void            UpdateLineToEnd( unsigned int n);
+    virtual void            UpdateLine( unsigned int n, wxListWidgetColumn* col = NULL ) wxOVERRIDE ;
+    virtual void            UpdateLineToEnd( unsigned int n) wxOVERRIDE;
 
-    virtual void            controlDoubleAction(WXWidget slf, void* _cmd, void *sender);
+    virtual void            controlDoubleAction(WXWidget slf, void* _cmd, void *sender) wxOVERRIDE;
 
     
 protected :
@@ -186,20 +184,20 @@ public :
 
     virtual ~wxNSTableViewCellValue() {}
 
-    virtual void Set( CFStringRef v )
+    virtual void Set( CFStringRef v ) wxOVERRIDE
     {
         value = [[(NSString*)v retain] autorelease];
     }
-    virtual void Set( const wxString& value )
+    virtual void Set( const wxString& value ) wxOVERRIDE
     {
         Set( (CFStringRef) wxCFStringRef( value ) );
     }
-    virtual void Set( int v )
+    virtual void Set( int v ) wxOVERRIDE
     {
         value = [NSNumber numberWithInt:v];
     }
 
-    virtual int GetIntValue() const
+    virtual int GetIntValue() const wxOVERRIDE
     {
         if ( [value isKindOfClass:[NSNumber class]] )
             return [ (NSNumber*) value intValue ];
@@ -207,7 +205,7 @@ public :
         return 0;
     }
 
-    virtual wxString GetStringValue() const
+    virtual wxString GetStringValue() const wxOVERRIDE
     {
         if ( [value isKindOfClass:[NSString class]] )
             return wxCFStringRef::AsString( (NSString*) value );

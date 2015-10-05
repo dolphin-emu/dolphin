@@ -50,12 +50,12 @@
 // ----------------------------------------------------------------------------
 
 
-BEGIN_EVENT_TABLE(wxVListBoxComboPopup, wxVListBox)
+wxBEGIN_EVENT_TABLE(wxVListBoxComboPopup, wxVListBox)
     EVT_MOTION(wxVListBoxComboPopup::OnMouseMove)
     EVT_KEY_DOWN(wxVListBoxComboPopup::OnKey)
     EVT_CHAR(wxVListBoxComboPopup::OnChar)
     EVT_LEFT_UP(wxVListBoxComboPopup::OnLeftClick)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 void wxVListBoxComboPopup::Init()
@@ -877,8 +877,8 @@ void wxVListBoxComboPopup::Populate( const wxArrayString& choices )
 // ----------------------------------------------------------------------------
 
 
-BEGIN_EVENT_TABLE(wxOwnerDrawnComboBox, wxComboCtrl)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(wxOwnerDrawnComboBox, wxComboCtrl)
+wxEND_EVENT_TABLE()
 
 void wxOwnerDrawnComboBox::Init()
 {

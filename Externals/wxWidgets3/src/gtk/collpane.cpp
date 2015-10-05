@@ -34,7 +34,7 @@ const char wxCollapsiblePaneNameStr[] = "collapsiblePane";
 
 wxDEFINE_EVENT( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEvent );
 
-IMPLEMENT_DYNAMIC_CLASS(wxCollapsiblePaneEvent, wxCommandEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxCollapsiblePaneEvent, wxCommandEvent);
 
 // ============================================================================
 // implementation
@@ -163,11 +163,11 @@ void wxCollapsiblePane::AddChildGTK(wxWindowGTK* child)
 // wxCollapsiblePane
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxCollapsiblePane, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxCollapsiblePane, wxControl);
 
-BEGIN_EVENT_TABLE(wxCollapsiblePane, wxCollapsiblePaneBase)
+wxBEGIN_EVENT_TABLE(wxCollapsiblePane, wxCollapsiblePaneBase)
     EVT_SIZE(wxCollapsiblePane::OnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 bool wxCollapsiblePane::Create(wxWindow *parent,
                                wxWindowID id,
@@ -271,7 +271,9 @@ void wxCollapsiblePane::OnSize(wxSizeEvent &ev)
 
     // here we need to resize the pane window otherwise, even if the GtkExpander container
     // is expanded or shrunk, the pane window won't be updated!
-    m_pPane->SetSize(ev.GetSize().x, ev.GetSize().y - m_szCollapsed.y);
+    int h = ev.GetSize().y - m_szCollapsed.y;
+    if (h < 0) h = 0;
+    m_pPane->SetSize(ev.GetSize().x, h);
 
     // we need to explicitly call m_pPane->Layout() or else it won't correctly relayout
     // (even if SetAutoLayout(true) has been called on it!)

@@ -57,9 +57,9 @@ public:
     bool WasSkipped() const;
 
     // Must provide overload to avoid hiding it (and warnings about it)
-    virtual void Update() { wxDialog::Update(); }
+    virtual void Update() wxOVERRIDE { wxDialog::Update(); }
 
-    virtual bool Show( bool show = true );
+    virtual bool Show( bool show = true ) wxOVERRIDE;
 
     // This enum is an implementation detail and should not be used
     // by user code.
@@ -134,7 +134,7 @@ protected:
     // the maximum value
     int m_maximum;
 
-#if defined(__WXMSW__ ) || defined(__WXPM__)
+#if defined(__WXMSW__)
     // the factor we use to always keep the value in 16 bit range as the native
     // control only supports ranges from 0 to 65,535
     size_t m_factor;
@@ -195,11 +195,9 @@ private:
     // skip some portion
     bool m_skip;
 
-#if !defined(__SMARTPHONE__)
     // the abort and skip buttons (or NULL if none)
     wxButton *m_btnAbort;
     wxButton *m_btnSkip;
-#endif
 
     // saves the time when elapsed time was updated so there is only one
     // update per second
@@ -222,7 +220,7 @@ private:
     wxEventLoop *m_tempEventLoop;
 
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxGenericProgressDialog);
 };
 

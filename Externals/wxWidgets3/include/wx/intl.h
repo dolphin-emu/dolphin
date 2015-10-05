@@ -214,6 +214,17 @@ public:
     static wxString GetInfo(wxLocaleInfo index,
                             wxLocaleCategory cat = wxLOCALE_CAT_DEFAULT);
 
+    // Same as GetInfo() but uses current locale at the OS level to retrieve
+    // the information. Normally it should be the same as the one used by
+    // GetInfo() but there are two exceptions: the most important one is that
+    // if no locale had been set, GetInfo() would fall back to "C" locale,
+    // while this one uses the default OS locale. Another, more rare, one is
+    // that some locales might not supported by the OS.
+    //
+    // Currently this is the same as GetInfo() under non-MSW platforms.
+    static wxString GetOSInfo(wxLocaleInfo index,
+                              wxLocaleCategory cat = wxLOCALE_CAT_DEFAULT);
+
     // return true if the locale was set successfully
     bool IsOk() const { return m_pszOldLocale != NULL; }
 

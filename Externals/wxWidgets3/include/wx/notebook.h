@@ -90,7 +90,7 @@ private:
     bool m_selected;
     int m_imageId;
     
-    DECLARE_DYNAMIC_CLASS(wxNotebookPageInfo)
+    wxDECLARE_DYNAMIC_CLASS(wxNotebookPageInfo);
 };
 
 WX_DECLARE_EXPORTED_LIST(wxNotebookPageInfo, wxNotebookPageInfoList );
@@ -125,7 +125,7 @@ public:
 
 
     // implement some base class functions
-    virtual wxSize CalcSizeFromPage(const wxSize& sizePage) const;
+    virtual wxSize CalcSizeFromPage(const wxSize& sizePage) const wxOVERRIDE;
 
     // On platforms that support it, get the theme page background colour, else invalid colour
     virtual wxColour GetThemeBackgroundColour() const { return wxNullColour; }
@@ -142,7 +142,7 @@ public:
 
     // wxBookCtrlBase overrides this method to return false but we do need
     // focus because we have tabs
-    virtual bool AcceptsFocus() const { return wxControl::AcceptsFocus(); }
+    virtual bool AcceptsFocus() const wxOVERRIDE { return wxControl::AcceptsFocus(); }
 
 #if wxUSE_EXTENDED_RTTI    
     // XTI accessors
@@ -193,10 +193,8 @@ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_NOTEBOOK_PAGE_CHANGING, wxBook
     #include  "wx/gtk1/notebook.h"
 #elif defined(__WXMAC__)
     #include  "wx/osx/notebook.h"
-#elif defined(__WXCOCOA__)
-    #include  "wx/cocoa/notebook.h"
-#elif defined(__WXPM__)
-    #include  "wx/os2/notebook.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/notebook.h"
 #endif
 
 // old wxEVT_COMMAND_* constants

@@ -1,8 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Name:        wx/msw/debughlp.h
 // Purpose:     wraps dbghelp.h standard file
-// Author:      Vadim Zeitlin
-// Modified by:
+// Author:      Vadim Zeitlin, Suzumizaki-kimitaka
 // Created:     2005-01-08 (extracted from msw/crashrpt.cpp)
 // Copyright:   (c) 2003-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
@@ -14,33 +13,139 @@
 #include "wx/dynlib.h"
 
 #include "wx/msw/wrapwin.h"
-#ifndef __WXWINCE__
 #include <imagehlp.h>
-#endif // __WXWINCE__
 #include "wx/msw/private.h"
 
-// All known versions of imagehlp.h define API_VERSION_NUMBER but it's not
-// documented, so deal with the possibility that it's not defined just in case.
-#ifndef API_VERSION_NUMBER
-    #define API_VERSION_NUMBER 0
-#endif
-
-// wxUSE_DBGHELP is a bit special as it is not defined in wx/setup.h and we try
-// to auto-detect whether we should be using debug help API or not ourselves
-// below. However if the auto-detection fails, you can always predefine it as 0
-// to avoid even trying.
+// wxUSE_DBGHELP can be predefined on the compiler command line to force using
+// dbghelp.dll even if it's not detected or, on the contrary, avoid using even
+// if it's available.
 #ifndef wxUSE_DBGHELP
-    // The version of imagehlp.h from VC6 (7) is too old and is missing some
-    // required symbols while the version from VC7 (9) is good enough. As we
-    // don't know anything about version 8, don't use it unless we can test it.
-    #if API_VERSION_NUMBER >= 9
-        #define wxUSE_DBGHELP 1
+    // The only compiler which is known to have the necessary headers is MSVC.
+    #ifdef __VISUALC__
+        // MSVC7.1 shipped with API v9 and we don't support anything earlier
+        // anyhow.
+        #if API_VERSION_NUMBER >= 9
+            #define wxUSE_DBGHELP 1
+        #else
+            #define wxUSE_DBGHELP 0
+        #endif
     #else
         #define wxUSE_DBGHELP 0
     #endif
 #endif
 
 #if wxUSE_DBGHELP
+
+/*
+
+The table below shows which functions are exported by dbghelp.dll.
+
+On 64 bit Windows, there seems to be no difference between 32bit dll and 64bit
+one. Vista-64 and Win8-64 look the same, but "Ex" and "ExW" versions exist only
+in Windows 8.
+
+Note that SymGetLineFromAddrW and EnumerateLoadedModulesW DON'T exist at all.
+
+function | Windows     | XP-32 Vista-64 Win8-64
+SymEnumSymbolsW            n/a     v       v
+SymFromAddrW               n/a     v       v
+SymInitializeW             n/a     v       v
+
+SymEnumSymbols              v      v       v
+SymFromAddr                 v      v       v
+SymInitialize               v      v       v
+
+SymGetLineFromAddrW64      n/a     v       v
+SymGetLineFromAddr64        v      v       v
+SymGetLineFromAddrW        n/a    n/a     n/a
+SymGetLineFromAddr          v      v       v
+
+EnumerateLoadedModulesW64  n/a     v       v
+EnumerateLoadedModules64    v      v       v
+EnumerateLoadedModulesW    n/a    n/a     n/a
+EnumerateLoadedModules      v      v       v
+
+*/
+
+// It's not really clear whether API v10 is used by anything as VC8 still used
+// v9, just as MSVC7.1, while VC9 already used v11, but provide support for it
+// just in case.
+#if API_VERSION_NUMBER < 10/*{{{*/
+
+typedef BOOL
+(CALLBACK *PENUMLOADED_MODULES_CALLBACKW64)(PWSTR ModuleName,
+                                            DWORD64 ModuleBase,
+                                            ULONG ModuleSize,
+                                            PVOID UserContext);
+
+typedef struct _IMAGEHLP_LINEW64
+{
+    DWORD    SizeOfStruct;
+    PVOID    Key;
+    DWORD    LineNumber;
+    PWSTR    FileName;
+    DWORD64  Address;
+} IMAGEHLP_LINEW64, *PIMAGEHLP_LINEW64;
+
+typedef struct _SYMBOL_INFOW
+{
+    ULONG       SizeOfStruct;
+    ULONG       TypeIndex;
+    ULONG64     Reserved[2];
+    ULONG       Index;
+    ULONG       Size;
+    ULONG64     ModBase;
+    ULONG       Flags;
+    ULONG64     Value;
+    ULONG64     Address;
+    ULONG       Register;
+    ULONG       Scope;
+    ULONG       Tag;
+    ULONG       NameLen;
+    ULONG       MaxNameLen;
+    WCHAR       Name[1];
+} SYMBOL_INFOW, *PSYMBOL_INFOW;
+
+typedef BOOL
+(CALLBACK *PSYM_ENUMERATESYMBOLS_CALLBACKW)(PSYMBOL_INFOW pSymInfo,
+                                            ULONG SymbolSize,
+                                            PVOID UserContext);
+
+typedef BOOL
+(CALLBACK *PSYM_ENUMERATESYMBOLS_CALLBACK)(PSYMBOL_INFO pSymInfo,
+                                           ULONG SymbolSize,
+                                           PVOID UserContext);
+
+#endif // API_VERSION_NUMBER < 10/*}}}*/
+
+// wx-prefixed types map to either the ANSI or Unicode ("W") version depending
+// on the build of wx itself.
+#ifdef UNICODE
+    #define wxPSYM_ENUMERATESYMBOLS_CALLBACK PSYM_ENUMERATESYMBOLS_CALLBACKW
+#else // !UNICODE
+    #define wxPSYM_ENUMERATESYMBOLS_CALLBACK PSYM_ENUMERATESYMBOLS_CALLBACK
+#endif // UNICODE/!UNICODE
+
+// This one could be already defined by wx/msw/stackwalk.h
+#ifndef wxSYMBOL_INFO
+    #ifdef UNICODE
+        #define wxSYMBOL_INFO SYMBOL_INFOW
+    #else // !UNICODE
+        #define wxSYMBOL_INFO SYMBOL_INFO
+    #endif // UNICODE/!UNICODE
+#endif // !defined(wxSYMBOL_INFO)
+
+typedef wxSYMBOL_INFO* wxPSYMBOL_INFO;
+
+// This differs from PENUMLOADED_MODULES_CALLBACK[W]64 in that it always uses
+// "const" for its first argument when the SDK used to pass a non-const string
+// here until API_VERSION_NUMBER==11, so we can't just define it as an existing
+// typedef.
+typedef BOOL
+(CALLBACK *wxPENUMLOADED_MODULES_CALLBACK)(const wxChar* moduleName,
+                                           DWORD64 moduleBase,
+                                           ULONG moduleSize,
+                                           void *userContext);
 
 // ----------------------------------------------------------------------------
 // wxDbgHelpDLL: dynamically load dbghelp.dll functions
@@ -141,30 +246,60 @@ public:
     // function types
     typedef DWORD (WINAPI *SymGetOptions_t)();
     typedef DWORD (WINAPI *SymSetOptions_t)(DWORD);
-    typedef BOOL (WINAPI *SymInitialize_t)(HANDLE, LPSTR, BOOL);
+    typedef BOOL (WINAPI *SymInitialize_t)(HANDLE, LPCSTR, BOOL);
+    typedef BOOL (WINAPI *SymInitializeW_t)(HANDLE, LPCWSTR, BOOL);
     typedef BOOL (WINAPI *StackWalk_t)(DWORD, HANDLE, HANDLE, LPSTACKFRAME,
                                        LPVOID, PREAD_PROCESS_MEMORY_ROUTINE,
                                        PFUNCTION_TABLE_ACCESS_ROUTINE,
                                        PGET_MODULE_BASE_ROUTINE,
                                        PTRANSLATE_ADDRESS_ROUTINE);
     typedef BOOL (WINAPI *SymFromAddr_t)(HANDLE, DWORD64, PDWORD64, PSYMBOL_INFO);
+    typedef BOOL (WINAPI *SymFromAddrW_t)(HANDLE, DWORD64, PDWORD64, PSYMBOL_INFOW);
     typedef LPVOID (WINAPI *SymFunctionTableAccess_t)(HANDLE, DWORD_PTR);
     typedef DWORD_PTR (WINAPI *SymGetModuleBase_t)(HANDLE, DWORD_PTR);
-    typedef BOOL (WINAPI *SymGetLineFromAddr_t)(HANDLE, DWORD_PTR,
+    typedef BOOL (WINAPI *SymGetLineFromAddr_t)(HANDLE, DWORD,
                                                 PDWORD, PIMAGEHLP_LINE);
+    typedef BOOL (WINAPI *SymGetLineFromAddr64_t)(HANDLE, DWORD64,
+                                                  PDWORD, PIMAGEHLP_LINE64);
+    typedef BOOL (WINAPI *SymGetLineFromAddrW64_t)(HANDLE, DWORD64,
+                                                   PDWORD, PIMAGEHLP_LINEW64);
     typedef BOOL (WINAPI *SymSetContext_t)(HANDLE, PIMAGEHLP_STACK_FRAME,
                                            PIMAGEHLP_CONTEXT);
     typedef BOOL (WINAPI *SymEnumSymbols_t)(HANDLE, ULONG64, PCSTR,
-                                            PSYM_ENUMERATESYMBOLS_CALLBACK, PVOID);
+                                            PSYM_ENUMERATESYMBOLS_CALLBACK,
+                                            const PVOID);
+    typedef BOOL (WINAPI *SymEnumSymbolsW_t)(HANDLE, ULONG64, PCWSTR,
+                                             PSYM_ENUMERATESYMBOLS_CALLBACKW,
+                                             const PVOID);
     typedef BOOL (WINAPI *SymGetTypeInfo_t)(HANDLE, DWORD64, ULONG,
                                             IMAGEHLP_SYMBOL_TYPE_INFO, PVOID);
     typedef BOOL (WINAPI *SymCleanup_t)(HANDLE);
     typedef BOOL (WINAPI *EnumerateLoadedModules_t)(HANDLE, PENUMLOADED_MODULES_CALLBACK, PVOID);
+    typedef BOOL (WINAPI *EnumerateLoadedModules64_t)(HANDLE, PENUMLOADED_MODULES_CALLBACK64, PVOID);
+    typedef BOOL (WINAPI *EnumerateLoadedModulesW64_t)(HANDLE, PENUMLOADED_MODULES_CALLBACKW64, PVOID);
     typedef BOOL (WINAPI *MiniDumpWriteDump_t)(HANDLE, DWORD, HANDLE,
                                                MINIDUMP_TYPE,
                                                CONST PMINIDUMP_EXCEPTION_INFORMATION,
                                                CONST PMINIDUMP_USER_STREAM_INFORMATION,
                                                CONST PMINIDUMP_CALLBACK_INFORMATION);
+
+    // Higher level functions selecting the right debug help library function
+    // to call: for CallFoo(), it can be Foo(), Foo64(), FooW() or FooW64()
+    // depending on the build options and function availability.
+    //
+    // They also provide more convenient to use wx-specific API, e.g. work with
+    // wxString instead of char/wchar_t pointers and omit the arguments we
+    // don't need.
+    static BOOL CallSymInitialize(HANDLE, BOOL);
+    static BOOL CallEnumerateLoadedModules(HANDLE, wxPENUMLOADED_MODULES_CALLBACK, PVOID);
+    static BOOL CallSymFromAddr(HANDLE, DWORD64,
+                                size_t* offset, wxString* name);
+    static BOOL CallSymGetLineFromAddr(HANDLE, DWORD64,
+                                       wxString* fileName, size_t* line);
+    static BOOL CallSymEnumSymbols(HANDLE hProcess,
+                                   ULONG64 baseOfDll,
+                                   wxPSYM_ENUMERATESYMBOLS_CALLBACK callback,
+                                   const PVOID callbackParam);
 
     // The macro called by wxDO_FOR_ALL_SYM_FUNCS() below takes 2 arguments:
     // the name of the function in the program code, which never has "64"
@@ -186,26 +321,56 @@ public:
     #define wxSYM_CALL_64(what, name)  what(name, name)
 #endif
 
-    #define wxDO_FOR_ALL_SYM_FUNCS(what)                                      \
-        wxSYM_CALL_64(what, StackWalk);                                       \
-        wxSYM_CALL_64(what, SymFunctionTableAccess);                          \
-        wxSYM_CALL_64(what, SymGetModuleBase);                                \
-        wxSYM_CALL_64(what, SymGetLineFromAddr);                              \
-        wxSYM_CALL_64(what, EnumerateLoadedModules);                          \
-                                                                              \
-        wxSYM_CALL(what, SymGetOptions);                                      \
-        wxSYM_CALL(what, SymSetOptions);                                      \
-        wxSYM_CALL(what, SymInitialize);                                      \
-        wxSYM_CALL(what, SymFromAddr);                                        \
-        wxSYM_CALL(what, SymSetContext);                                      \
-        wxSYM_CALL(what, SymEnumSymbols);                                     \
-        wxSYM_CALL(what, SymGetTypeInfo);                                     \
-        wxSYM_CALL(what, SymCleanup);                                         \
+    #define wxSYM_CALL_ALWAYS_W(what, name)  what(name ## W, name ## W)
+
+    #define wxSYM_CALL_ALTERNATIVES(what, name)                \
+        what(name, name);                                      \
+        what(name ## 64, name ## 64);                          \
+        what(name ## W64, name ## W64)
+
+    #define wxDO_FOR_ALL_SYM_FUNCS_REQUIRED_PUBLIC(what)       \
+        wxSYM_CALL_64(what, StackWalk);                        \
+        wxSYM_CALL_64(what, SymFunctionTableAccess);           \
+        wxSYM_CALL_64(what, SymGetModuleBase);                 \
+                                                               \
+        wxSYM_CALL(what, SymGetOptions);                       \
+        wxSYM_CALL(what, SymSetOptions);                       \
+        wxSYM_CALL(what, SymSetContext);                       \
+        wxSYM_CALL(what, SymGetTypeInfo);                      \
+        wxSYM_CALL(what, SymCleanup);                          \
         wxSYM_CALL(what, MiniDumpWriteDump)
+
+    #define wxDO_FOR_ALL_SYM_FUNCS_REQUIRED_PRIVATE(what)      \
+        wxSYM_CALL(what, SymInitialize);                       \
+        wxSYM_CALL(what, SymFromAddr);                         \
+        wxSYM_CALL(what, SymEnumSymbols)
+
+    #define wxDO_FOR_ALL_SYM_FUNCS_REQUIRED(what)              \
+        wxDO_FOR_ALL_SYM_FUNCS_REQUIRED_PRIVATE(what);         \
+        wxDO_FOR_ALL_SYM_FUNCS_REQUIRED_PUBLIC(what)
+
+    // Alternation will work when the following functions are not found,
+    // therefore they are not included in REQUIRED version.
+    #define wxDO_FOR_ALL_SYM_FUNCS_OPTIONAL(what)              \
+        wxSYM_CALL_ALTERNATIVES(what, SymGetLineFromAddr);     \
+        wxSYM_CALL_ALTERNATIVES(what, EnumerateLoadedModules); \
+        wxSYM_CALL_ALWAYS_W(what, SymInitialize);              \
+        wxSYM_CALL_ALWAYS_W(what, SymFromAddr);                \
+        wxSYM_CALL_ALWAYS_W(what, SymEnumSymbols)
+
+    #define wxDO_FOR_ALL_SYM_FUNCS(what)                       \
+        wxDO_FOR_ALL_SYM_FUNCS_REQUIRED(what);                 \
+        wxDO_FOR_ALL_SYM_FUNCS_OPTIONAL(what)
 
     #define wxDECLARE_SYM_FUNCTION(func, name) static func ## _t func
 
-    wxDO_FOR_ALL_SYM_FUNCS(wxDECLARE_SYM_FUNCTION);
+    wxDO_FOR_ALL_SYM_FUNCS_REQUIRED_PUBLIC(wxDECLARE_SYM_FUNCTION);
+
+private:
+    wxDO_FOR_ALL_SYM_FUNCS_REQUIRED_PRIVATE(wxDECLARE_SYM_FUNCTION);
+    wxDO_FOR_ALL_SYM_FUNCS_OPTIONAL(wxDECLARE_SYM_FUNCTION);
+
+public:
 
     #undef wxDECLARE_SYM_FUNCTION
 
@@ -219,10 +384,10 @@ public:
     static void LogError(const wxChar *func);
 
     // return textual representation of the value of given symbol
-    static wxString DumpSymbol(PSYMBOL_INFO pSymInfo, void *pVariable);
+    static wxString DumpSymbol(wxPSYMBOL_INFO pSymInfo, void *pVariable);
 
     // return the name of the symbol with given type index
-    static wxString GetSymbolName(PSYMBOL_INFO pSymInfo);
+    static wxString GetSymbolName(wxPSYMBOL_INFO pSymInfo);
 
 private:
     // dereference the given symbol, i.e. return symbol which is not a
@@ -232,17 +397,20 @@ private:
     // dereferenced the symbol
     //
     // return the tag of the dereferenced symbol
-    static SymbolTag DereferenceSymbol(PSYMBOL_INFO pSymInfo, void **ppData);
+    static SymbolTag DereferenceSymbol(wxPSYMBOL_INFO pSymInfo, void **ppData);
 
-    static wxString DumpField(PSYMBOL_INFO pSymInfo,
+    static wxString DumpField(wxPSYMBOL_INFO pSymInfo,
                               void *pVariable,
                               unsigned level);
 
     static wxString DumpBaseType(BasicType bt, DWORD64 length, void *pVariable);
 
-    static wxString DumpUDT(PSYMBOL_INFO pSymInfo,
+    static wxString DumpUDT(wxPSYMBOL_INFO pSymInfo,
                             void *pVariable,
                             unsigned level = 0);
+
+    static bool BindDbgHelpFunctions(const wxDynamicLibrary& dllDbgHelp);
+    static bool DoInit();
 };
 
 #endif // wxUSE_DBGHELP

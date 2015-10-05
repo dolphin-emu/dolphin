@@ -34,7 +34,7 @@
 // unified title and toolbar constant - not in Tiger headers, so we duplicate it here
 #define kWindowUnifiedTitleAndToolbarAttribute (1 << 7)
 
-IMPLEMENT_DYNAMIC_CLASS( wxNonOwnedWindowCarbonImpl , wxNonOwnedWindowImpl )
+wxIMPLEMENT_DYNAMIC_CLASS(wxNonOwnedWindowCarbonImpl , wxNonOwnedWindowImpl);
 
 WXWindow wxNonOwnedWindowCarbonImpl::GetWXWindow() const
 {
@@ -1534,6 +1534,11 @@ void wxNonOwnedWindowCarbonImpl::Maximize(bool maximize)
 bool wxNonOwnedWindowCarbonImpl::IsFullScreen() const
 {
     return m_macFullScreenData != NULL ;
+}
+
+bool wxNonOwnedWindowCarbonImpl::EnableFullScreenView(bool WXUNUSED(enable))
+{
+    return false;
 }
 
 bool wxNonOwnedWindowCarbonImpl::ShowFullScreen(bool show, long style)

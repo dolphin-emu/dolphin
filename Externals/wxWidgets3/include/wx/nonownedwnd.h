@@ -62,13 +62,13 @@ public:
     // ------------------------------
 
     virtual void AdjustForParentClientOrigin(int& WXUNUSED(x), int& WXUNUSED(y),
-                                             int WXUNUSED(sizeFlags) = 0) const
+                                             int WXUNUSED(sizeFlags) = 0) const wxOVERRIDE
     {
         // Non owned windows positions don't need to be adjusted for parent
         // client area origin so simply do nothing here.
     }
 
-    virtual void InheritAttributes()
+    virtual void InheritAttributes() wxOVERRIDE
     {
         // Non owned windows don't inherit attributes from their parent window
         // (if the parent frame is red, it doesn't mean that all dialogs shown
@@ -100,7 +100,7 @@ protected:
     #include "wx/gtk/nonownedwnd.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/nonownedwnd.h"
-#elif defined(__WXMSW__) && !defined(__WXWINCE__)
+#elif defined(__WXMSW__)
     #include "wx/msw/nonownedwnd.h"
 #else
     // No special class needed in other ports, they can derive both wxTLW and

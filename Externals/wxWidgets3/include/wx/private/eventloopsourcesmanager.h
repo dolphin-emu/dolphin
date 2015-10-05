@@ -13,13 +13,17 @@
 // For pulling in the value of wxUSE_EVENTLOOP_SOURCE
 #include "wx/evtloop.h"
 
+#if wxUSE_EVENTLOOP_SOURCE
+
 class WXDLLIMPEXP_BASE wxEventLoopSourcesManagerBase
 {
 public:
-#if wxUSE_EVENTLOOP_SOURCE
     virtual wxEventLoopSource*
     AddSourceForFD(int fd, wxEventLoopSourceHandler *handler, int flags) = 0;
-#endif
+
+    virtual ~wxEventLoopSourcesManagerBase() { }
 };
+
+#endif // wxUSE_EVENTLOOP_SOURCE
 
 #endif // _WX_PRIVATE_EVENTLOOPSOURCESMANAGER_H_

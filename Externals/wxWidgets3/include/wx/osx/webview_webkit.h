@@ -12,10 +12,9 @@
 #ifndef _WX_WEBKIT_H
 #define _WX_WEBKIT_H
 
-#include "wx/setup.h"
+#include "wx/defs.h"
 
-#if wxUSE_WEBVIEW && wxUSE_WEBVIEW_WEBKIT && (defined(__WXOSX_COCOA__) \
-                                          ||  defined(__WXOSX_CARBON__))
+#if wxUSE_WEBVIEW && wxUSE_WEBVIEW_WEBKIT && defined(__WXOSX__) 
 
 #include "wx/control.h"
 #include "wx/webview.h"
@@ -146,11 +145,12 @@ public:
     void OnMouseEvents(wxMouseEvent &event);
 
     bool m_busy;
+    bool m_nextNavigationIsNewWindow;
 
 protected:
     virtual void DoSetPage(const wxString& html, const wxString& baseUrl);
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     void MacVisibilityChanged();
 
 private:
@@ -158,7 +158,7 @@ private:
     wxWindowID m_windowID;
     wxString m_pageTitle;
 
-    wxObjCID m_webView;
+    OSXWebViewPtr m_webView;
 
     // we may use this later to setup our own mouse events,
     // so leave it in for now.

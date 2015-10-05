@@ -46,7 +46,7 @@ class WXDLLIMPEXP_CORE wxGauge: public wxGaugeBase
     void Pulse();
 
  protected:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxGauge)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxGauge);
 };
 
 #endif

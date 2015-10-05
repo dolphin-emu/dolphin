@@ -20,33 +20,10 @@
 #if wxUSE_CONTROLS
 
 #include "wx/window.h"      // base class
+#include "wx/gdicmn.h"      // wxEllipsize...
 
 extern WXDLLIMPEXP_DATA_CORE(const char) wxControlNameStr[];
 
-
-// ----------------------------------------------------------------------------
-// Ellipsize() constants
-// ----------------------------------------------------------------------------
-
-enum wxEllipsizeFlags
-{
-    wxELLIPSIZE_FLAGS_NONE = 0,
-    wxELLIPSIZE_FLAGS_PROCESS_MNEMONICS = 1,
-    wxELLIPSIZE_FLAGS_EXPAND_TABS = 2,
-
-    wxELLIPSIZE_FLAGS_DEFAULT = wxELLIPSIZE_FLAGS_PROCESS_MNEMONICS |
-                                wxELLIPSIZE_FLAGS_EXPAND_TABS
-};
-
-// NB: Don't change the order of these values, they're the same as in
-//     PangoEllipsizeMode enum.
-enum wxEllipsizeMode
-{
-    wxELLIPSIZE_NONE,
-    wxELLIPSIZE_START,
-    wxELLIPSIZE_MIDDLE,
-    wxELLIPSIZE_END
-};
 
 // ----------------------------------------------------------------------------
 // wxControl is the base class for all controls
@@ -71,7 +48,7 @@ public:
     int GetAlignment() const { return m_windowStyle & wxALIGN_MASK; }
 
     // set label with mnemonics
-    virtual void SetLabel(const wxString& label)
+    virtual void SetLabel(const wxString& label) wxOVERRIDE
     {
         m_labelOrig = label;
 
@@ -82,7 +59,7 @@ public:
 
     // return the original string, as it was passed to SetLabel()
     // (i.e. with wx-style mnemonics)
-    virtual wxString GetLabel() const { return m_labelOrig; }
+    virtual wxString GetLabel() const wxOVERRIDE { return m_labelOrig; }
 
     // set label text (mnemonics will be escaped)
     virtual void SetLabelText(const wxString& text)
@@ -119,7 +96,7 @@ public:
     // controls by default inherit the colours of their parents, if a
     // particular control class doesn't want to do it, it can override
     // ShouldInheritColours() to return false
-    virtual bool ShouldInheritColours() const { return true; }
+    virtual bool ShouldInheritColours() const wxOVERRIDE { return true; }
 
 
     // WARNING: this doesn't work for all controls nor all platforms!
@@ -128,10 +105,10 @@ public:
     // if the button was clicked)
     virtual void Command(wxCommandEvent &event);
 
-    virtual bool SetFont(const wxFont& font);
+    virtual bool SetFont(const wxFont& font) wxOVERRIDE;
 
     // wxControl-specific processing after processing the update event
-    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event);
+    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event) wxOVERRIDE;
 
     wxSize GetSizeFromTextSize(int xlen, int ylen = -1) const
         { return DoGetSizeFromTextSize(xlen, ylen); }
@@ -176,7 +153,7 @@ public:
 
 protected:
     // choose the default border for this window
-    virtual wxBorder GetDefaultBorder() const;
+    virtual wxBorder GetDefaultBorder() const wxOVERRIDE;
 
     // creates the control (calls wxWindowBase::CreateBase inside) and adds it
     // to the list of parents children
@@ -236,10 +213,8 @@ protected:
     #include "wx/gtk1/control.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/control.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/control.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/control.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/control.h"
 #endif
 
 #endif // wxUSE_CONTROLS

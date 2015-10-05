@@ -36,7 +36,7 @@
 // The platform-specific locale type
 // If wxXLocale_t is not defined, then only "C" locale support is provided
 #ifdef wxHAS_XLOCALE_SUPPORT
-    #if wxCHECK_VISUALC_VERSION(8) && !defined(__WXWINCE__)
+    #if wxCHECK_VISUALC_VERSION(8)
         typedef _locale_t wxXLocale_t;
         #define wxXLOCALE_IDENT(name) _ ## name
     #elif defined(HAVE_LOCALE_T)
@@ -76,8 +76,10 @@ public:
     // Construct an uninitialized locale
     wxXLocale() { m_locale = NULL; }
 
+#if wxUSE_INTL
     // Construct from a symbolic language constant
     wxXLocale(wxLanguage lang);
+#endif
 
     // Construct from the given language string
     wxXLocale(const char *loc) { Init(loc); }
@@ -148,8 +150,8 @@ public:
     }
 
     // Default copy ctor, assignment operator and dtor are ok (or would be if
-    // we didn't use DECLARE_NO_COPY_CLASS() for consistency with the xlocale
-    // version)
+    // we didn't use wxDECLARE_NO_COPY_CLASS() for consistency with the
+    // xlocale version)
 
 
     // Get the global "C" locale object

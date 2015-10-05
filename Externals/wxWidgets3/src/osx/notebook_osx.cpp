@@ -29,13 +29,13 @@
 // check that the page index is valid
 #define IS_VALID_PAGE(nPage) ((nPage) < GetPageCount())
 
-BEGIN_EVENT_TABLE(wxNotebook, wxBookCtrlBase)
+wxBEGIN_EVENT_TABLE(wxNotebook, wxBookCtrlBase)
     EVT_NOTEBOOK_PAGE_CHANGED(wxID_ANY, wxNotebook::OnSelChange)
 
     EVT_SIZE(wxNotebook::OnSize)
     EVT_SET_FOCUS(wxNotebook::OnSetFocus)
     EVT_NAVIGATION_KEY(wxNotebook::OnNavigationKey)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 bool wxNotebook::Create( wxWindow *parent,
     wxWindowID id,

@@ -195,11 +195,10 @@ static void tree_entry_destroy_cb(wxTreeEntry* entry,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_listbox_sort_callback(GtkTreeModel * WXUNUSED(model),
-                                      GtkTreeIter  *a,
-                                      GtkTreeIter  *b,
-                                      wxListBox    *listbox)
+static int
+sort_callback(GtkTreeModel*, GtkTreeIter* a, GtkTreeIter* b, void* data)
 {
+    wxListBox* listbox = static_cast<wxListBox*>(data);
     wxTreeEntry* entry1 = GetEntry(listbox->m_liststore, a, listbox);
     wxCHECK_MSG(entry1, 0, wxT("Could not get first entry"));
 
@@ -218,18 +217,16 @@ static gint gtk_listbox_sort_callback(GtkTreeModel * WXUNUSED(model),
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gboolean gtk_listbox_searchequal_callback(GtkTreeModel * WXUNUSED(model),
-                                                 gint WXUNUSED(column),
-                                                 const gchar* key,
-                                                 GtkTreeIter* iter,
-                                                 wxListBox* listbox)
+static gboolean
+search_callback(GtkTreeModel*, int, const char* key, GtkTreeIter* iter, void* data)
 {
+    wxListBox* listbox = static_cast<wxListBox*>(data);
     wxTreeEntry* entry = GetEntry(listbox->m_liststore, iter, listbox);
-    wxCHECK_MSG(entry, 0, wxT("Could not get entry"));
+    wxCHECK_MSG(entry, true, "could not get entry");
 
-    wxGtkString keycollatekey(g_utf8_collate_key(key, -1));
+    wxGtkString keyc(g_utf8_collate_key(key, -1));
 
-    return strcmp(keycollatekey, wx_tree_entry_get_collate_key(entry)) != 0;
+    return strncmp(keyc, wx_tree_entry_get_collate_key(entry), strlen(keyc));
 }
 }
 
@@ -327,10 +324,7 @@ bool wxListBox::Create( wxWindow *parent, wxWindowID id,
     // NB: If this is enabled a doubleclick event (activate) gets sent
     //     on a successful search
     gtk_tree_view_set_search_column(m_treeview, WXLISTBOX_DATACOLUMN);
-    gtk_tree_view_set_search_equal_func(m_treeview,
-       (GtkTreeViewSearchEqualFunc) gtk_listbox_searchequal_callback,
-                                        this,
-                                        NULL);
+    gtk_tree_view_set_search_equal_func(m_treeview, search_callback, this, NULL);
 
     gtk_tree_view_set_enable_search(m_treeview, FALSE);
 
@@ -365,7 +359,7 @@ bool wxListBox::Create( wxWindow *parent, wxWindowID id,
         // Set the sort callback
         gtk_tree_sortable_set_sort_func(GTK_TREE_SORTABLE(m_liststore),
                                         WXLISTBOX_DATACOLUMN,
-                   (GtkTreeIterCompareFunc) gtk_listbox_sort_callback,
+                                        sort_callback,
                                         this, //userdata
                                         NULL //"destroy notifier"
                                        );
@@ -466,8 +460,12 @@ int wxListBox::DoInsertOneItem(const wxString& item, unsigned int pos)
 #else
     int entryCol = 0;
 #endif
-    gtk_list_store_insert_with_values(m_liststore, NULL, pos, entryCol, entry, -1);
+    GtkTreeIter iter;
+    gtk_list_store_insert_with_values(m_liststore, &iter, pos, entryCol, entry, -1);
     g_object_unref(entry);
+
+    if (HasFlag(wxLB_SORT))
+        pos = GTKGetIndexFor(iter);
 
     return pos;
 }
@@ -646,7 +644,7 @@ void wxListBox::GTKOnSelectionChanged()
     else // single selection
     {
         const int item = GetSelection();
-        if ( DoChangeSingleSelection(item) )
+        if (item >= 0 && DoChangeSingleSelection(item))
             SendEvent(wxEVT_LISTBOX, item, true);
     }
 }

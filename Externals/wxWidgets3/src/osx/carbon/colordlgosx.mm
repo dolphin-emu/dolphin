@@ -28,9 +28,9 @@
 // ============================================================================
 
 //Mac OSX 10.2+ only
-#if USE_NATIVE_FONT_DIALOG_FOR_MACOSX
+#if USE_NATIVE_FONT_DIALOG_FOR_MACOSX && wxUSE_COLOURDLG
 
-IMPLEMENT_DYNAMIC_CLASS(wxColourDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxColourDialog, wxDialog);
 
 #include "wx/osx/private.h"
 
@@ -41,7 +41,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxColourDialog, wxDialog)
 // wxCPWCDelegate - Window Closed delegate
 // ---------------------------------------------------------------------------
 
-@interface wxCPWCDelegate : NSObject wxOSX_10_6_AND_LATER(<NSWindowDelegate>)
+@interface wxCPWCDelegate : NSObject <NSWindowDelegate>
 {
     bool m_bIsClosed;
 }

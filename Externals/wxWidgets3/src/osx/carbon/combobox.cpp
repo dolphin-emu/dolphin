@@ -140,17 +140,17 @@ protected:
 private:
     wxComboBox *m_cb;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(wxComboBoxText, wxTextCtrl)
+wxBEGIN_EVENT_TABLE(wxComboBoxText, wxTextCtrl)
     EVT_KEY_DOWN(wxComboBoxText::OnKeyDown)
     EVT_CHAR(wxComboBoxText::OnChar)
     EVT_KEY_UP(wxComboBoxText::OnKeyUp)
     EVT_SET_FOCUS(wxComboBoxText::OnFocus)
     EVT_KILL_FOCUS(wxComboBoxText::OnFocus)
     EVT_TEXT(wxID_ANY, wxComboBoxText::OnText)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 class wxComboBoxChoice : public wxChoice
 {
@@ -208,12 +208,12 @@ private:
 
     friend class wxComboBox;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(wxComboBoxChoice, wxChoice)
+wxBEGIN_EVENT_TABLE(wxComboBoxChoice, wxChoice)
     EVT_CHOICE(wxID_ANY, wxComboBoxChoice::OnChoice)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxComboBox::~wxComboBox()
 {

@@ -167,7 +167,7 @@ wxCreateDevNames(const wxString& driverName,
     return hDev;
 }
 
-IMPLEMENT_CLASS(wxWindowsPrintNativeData, wxPrintNativeDataBase)
+wxIMPLEMENT_CLASS(wxWindowsPrintNativeData, wxPrintNativeDataBase);
 
 wxWindowsPrintNativeData::wxWindowsPrintNativeData()
 {
@@ -413,6 +413,13 @@ void wxWindowsPrintNativeData::InitializeDevMode(const wxString& printerName, Wi
                 NULL,            // these are not used.
                 0 );             // Zero returns buffer size.
 
+            // Some buggy printer drivers (see #16274 which claims that Kyocera
+            // PCL6 driver does this) seem to return a too small value from
+            // DocumentProperties(), resulting in a crash because when we call
+            // it with DM_OUT_BUFFER below, memory beyond the allocated buffer
+            // is overwritten. So add a bit of extra memory to work around this.
+            dwNeeded += 1024;
+
             LPDEVMODE tempDevMode = static_cast<LPDEVMODE>( GlobalAlloc( GMEM_FIXED | GMEM_ZEROINIT, dwNeeded ) );
 
             // Step 2:
@@ -444,11 +451,7 @@ void wxWindowsPrintNativeData::InitializeDevMode(const wxString& printerName, Wi
         PRINTDLG pd;
 
         memset(&pd, 0, sizeof(PRINTDLG));
-#ifdef __WXWINCE__
-        pd.cbStruct    = sizeof(PRINTDLG);
-#else
         pd.lStructSize    = sizeof(PRINTDLG);
-#endif
 
         pd.hwndOwner      = NULL;
         pd.hDevMode       = NULL; // Will be created by PrintDlg
@@ -693,7 +696,7 @@ bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
 // wxPrintDialog
 // ---------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(wxWindowsPrintDialog, wxPrintDialogBase)
+wxIMPLEMENT_CLASS(wxWindowsPrintDialog, wxPrintDialogBase);
 
 wxWindowsPrintDialog::wxWindowsPrintDialog(wxWindow *p, wxPrintDialogData* data)
 {
@@ -922,7 +925,7 @@ bool wxWindowsPrintDialog::ConvertFromNative( wxPrintDialogData &data )
 // wxWidnowsPageSetupDialog
 // ---------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(wxWindowsPageSetupDialog, wxPageSetupDialogBase)
+wxIMPLEMENT_CLASS(wxWindowsPageSetupDialog, wxPageSetupDialogBase);
 
 wxWindowsPageSetupDialog::wxWindowsPageSetupDialog()
 {

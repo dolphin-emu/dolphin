@@ -79,6 +79,8 @@ protected:
 #if defined(__WXGTK20__) && !defined(__WXUNIVERSAL__)
     #include "wx/gtk/clrpicker.h"
     #define wxColourPickerWidget      wxColourButton
+#elif defined(__WXQT__) && !defined(__WXUNIVERSAL__)
+    #include "wx/qt/clrpicker.h"
 #else
     #include "wx/generic/clrpickerg.h"
     #define wxColourPickerWidget      wxGenericColourButton
@@ -134,20 +136,20 @@ public:         // public API
 public:        // internal functions
 
     // update the button colour to match the text control contents
-    void UpdatePickerFromTextCtrl();
+    void UpdatePickerFromTextCtrl() wxOVERRIDE;
 
     // update the text control to match the button's colour
-    void UpdateTextCtrlFromPicker();
+    void UpdateTextCtrlFromPicker() wxOVERRIDE;
 
     // event handler for our picker
     void OnColourChange(wxColourPickerEvent &);
 
 protected:
-    virtual long GetPickerStyle(long style) const
+    virtual long GetPickerStyle(long style) const wxOVERRIDE
         { return (style & wxCLRP_SHOW_LABEL); }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxColourPickerCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxColourPickerCtrl);
 };
 
 
@@ -173,12 +175,12 @@ public:
 
 
     // default copy ctor, assignment operator and dtor are ok
-    virtual wxEvent *Clone() const { return new wxColourPickerEvent(*this); }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxColourPickerEvent(*this); }
 
 private:
     wxColour m_colour;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxColourPickerEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxColourPickerEvent);
 };
 
 // ----------------------------------------------------------------------------

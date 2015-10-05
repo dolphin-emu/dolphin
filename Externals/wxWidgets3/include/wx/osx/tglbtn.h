@@ -48,7 +48,7 @@ protected:
     virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
 
 private:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxToggleButton)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxToggleButton);
 };
 
 
@@ -78,7 +78,7 @@ public:
                 const wxString& name = wxCheckBoxNameStr);
 
 private:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxBitmapToggleButton)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxBitmapToggleButton);
 };
 
 #endif // _WX_TOGGLEBUTTON_H_

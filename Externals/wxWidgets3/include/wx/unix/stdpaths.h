@@ -37,17 +37,17 @@ public:
 
 
     // implement base class pure virtuals
-    virtual wxString GetExecutablePath() const;
-    virtual wxString GetConfigDir() const;
-    virtual wxString GetUserConfigDir() const;
-    virtual wxString GetDataDir() const;
-    virtual wxString GetLocalDataDir() const;
-    virtual wxString GetUserDataDir() const;
-    virtual wxString GetPluginsDir() const;
+    virtual wxString GetExecutablePath() const wxOVERRIDE;
+    virtual wxString GetConfigDir() const wxOVERRIDE;
+    virtual wxString GetUserConfigDir() const wxOVERRIDE;
+    virtual wxString GetDataDir() const wxOVERRIDE;
+    virtual wxString GetLocalDataDir() const wxOVERRIDE;
+    virtual wxString GetUserDataDir() const wxOVERRIDE;
+    virtual wxString GetPluginsDir() const wxOVERRIDE;
     virtual wxString GetLocalizedResourcesDir(const wxString& lang,
-                                              ResourceCat category) const;
+                                              ResourceCat category) const wxOVERRIDE;
 #ifndef __VMS
-    virtual wxString GetDocumentsDir() const;
+    virtual wxString GetUserDir(Dir userDir) const wxOVERRIDE;
 #endif
 
 protected:

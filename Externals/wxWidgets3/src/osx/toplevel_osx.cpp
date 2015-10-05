@@ -50,8 +50,8 @@
 // wxTopLevelWindowMac implementation
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxTopLevelWindowMac, wxTopLevelWindowBase)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(wxTopLevelWindowMac, wxTopLevelWindowBase)
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // wxTopLevelWindowMac creation
@@ -190,6 +190,11 @@ void wxTopLevelWindowMac::ShowWithoutActivating()
     SendSizeEvent();
 }
 
+bool wxTopLevelWindowMac::EnableFullScreenView(bool enable)
+{
+    return m_nowpeer->EnableFullScreenView(enable);
+}
+
 bool wxTopLevelWindowMac::ShowFullScreen(bool show, long style)
 {
     return m_nowpeer->ShowFullScreen(show, style);
@@ -198,6 +203,33 @@ bool wxTopLevelWindowMac::ShowFullScreen(bool show, long style)
 bool wxTopLevelWindowMac::IsFullScreen() const
 {
     return m_nowpeer->IsFullScreen();
+}
+
+bool wxTopLevelWindowMac::EnableCloseButton(bool enable)
+{
+    // Unlike in wxMSW, wxSYSTEM_MENU is not sufficient to show
+    // a close button unless combined with one of the resize buttons.
+    if ( HasFlag(wxCLOSE_BOX) )
+        return m_nowpeer->EnableCloseButton( enable);
+
+    return false;
+}
+
+bool wxTopLevelWindowMac::EnableMaximizeButton(bool enable)
+{
+    // Both wxRESIZE_BORDER and wxMAXIMIZE_BOX create a resize border and
+    // add a maximize button.
+    if ( HasFlag(wxMAXIMIZE_BOX) || HasFlag(wxRESIZE_BORDER) )
+        return m_nowpeer->EnableMaximizeButton( enable);
+    return false;
+}
+
+bool wxTopLevelWindowMac::EnableMinimizeButton(bool enable)
+{
+    if ( HasFlag(wxMINIMIZE_BOX) )
+        return m_nowpeer->EnableMinimizeButton( enable);
+
+    return false;
 }
 
 void wxTopLevelWindowMac::RequestUserAttention(int flags)
@@ -223,4 +255,13 @@ bool wxTopLevelWindowMac::OSXIsModified() const
 void wxTopLevelWindowMac::SetRepresentedFilename(const wxString& filename)
 {
     m_nowpeer->SetRepresentedFilename(filename);
+}
+
+void wxTopLevelWindowMac::OSXSetIconizeState(bool iconize)
+{
+    if ( iconize != m_iconized )
+    {
+        m_iconized = iconize;
+        (void)SendIconizeEvent(iconize);
+    }
 }

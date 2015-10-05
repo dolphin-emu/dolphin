@@ -67,74 +67,74 @@ public:
     // implement base class pure virtuals
     // ----------------------------------
 
-    virtual unsigned int GetCount() const;
+    virtual unsigned int GetCount() const wxOVERRIDE;
 
-    virtual unsigned int GetIndent() const { return m_indent; }
-    virtual void SetIndent(unsigned int indent);
+    virtual unsigned int GetIndent() const wxOVERRIDE { return m_indent; }
+    virtual void SetIndent(unsigned int indent) wxOVERRIDE;
 
 
-    virtual void SetImageList(wxImageList *imageList);
-    virtual void SetStateImageList(wxImageList *imageList);
+    virtual void SetImageList(wxImageList *imageList) wxOVERRIDE;
+    virtual void SetStateImageList(wxImageList *imageList) wxOVERRIDE;
 
-    virtual wxString GetItemText(const wxTreeItemId& item) const;
+    virtual wxString GetItemText(const wxTreeItemId& item) const wxOVERRIDE;
     virtual int GetItemImage(const wxTreeItemId& item,
-                     wxTreeItemIcon which = wxTreeItemIcon_Normal) const;
-    virtual wxTreeItemData *GetItemData(const wxTreeItemId& item) const;
-    virtual wxColour GetItemTextColour(const wxTreeItemId& item) const;
-    virtual wxColour GetItemBackgroundColour(const wxTreeItemId& item) const;
-    virtual wxFont GetItemFont(const wxTreeItemId& item) const;
+                     wxTreeItemIcon which = wxTreeItemIcon_Normal) const wxOVERRIDE;
+    virtual wxTreeItemData *GetItemData(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual wxColour GetItemTextColour(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual wxColour GetItemBackgroundColour(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual wxFont GetItemFont(const wxTreeItemId& item) const wxOVERRIDE;
 
-    virtual void SetItemText(const wxTreeItemId& item, const wxString& text);
+    virtual void SetItemText(const wxTreeItemId& item, const wxString& text) wxOVERRIDE;
     virtual void SetItemImage(const wxTreeItemId& item,
                               int image,
-                              wxTreeItemIcon which = wxTreeItemIcon_Normal);
-    virtual void SetItemData(const wxTreeItemId& item, wxTreeItemData *data);
+                              wxTreeItemIcon which = wxTreeItemIcon_Normal) wxOVERRIDE;
+    virtual void SetItemData(const wxTreeItemId& item, wxTreeItemData *data) wxOVERRIDE;
 
-    virtual void SetItemHasChildren(const wxTreeItemId& item, bool has = true);
-    virtual void SetItemBold(const wxTreeItemId& item, bool bold = true);
-    virtual void SetItemDropHighlight(const wxTreeItemId& item, bool highlight = true);
-    virtual void SetItemTextColour(const wxTreeItemId& item, const wxColour& col);
-    virtual void SetItemBackgroundColour(const wxTreeItemId& item, const wxColour& col);
-    virtual void SetItemFont(const wxTreeItemId& item, const wxFont& font);
+    virtual void SetItemHasChildren(const wxTreeItemId& item, bool has = true) wxOVERRIDE;
+    virtual void SetItemBold(const wxTreeItemId& item, bool bold = true) wxOVERRIDE;
+    virtual void SetItemDropHighlight(const wxTreeItemId& item, bool highlight = true) wxOVERRIDE;
+    virtual void SetItemTextColour(const wxTreeItemId& item, const wxColour& col) wxOVERRIDE;
+    virtual void SetItemBackgroundColour(const wxTreeItemId& item, const wxColour& col) wxOVERRIDE;
+    virtual void SetItemFont(const wxTreeItemId& item, const wxFont& font) wxOVERRIDE;
 
-    virtual bool IsVisible(const wxTreeItemId& item) const;
-    virtual bool ItemHasChildren(const wxTreeItemId& item) const;
-    virtual bool IsExpanded(const wxTreeItemId& item) const;
-    virtual bool IsSelected(const wxTreeItemId& item) const;
-    virtual bool IsBold(const wxTreeItemId& item) const;
+    virtual bool IsVisible(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual bool ItemHasChildren(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual bool IsExpanded(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual bool IsSelected(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual bool IsBold(const wxTreeItemId& item) const wxOVERRIDE;
 
     virtual size_t GetChildrenCount(const wxTreeItemId& item,
-                                    bool recursively = true) const;
+                                    bool recursively = true) const wxOVERRIDE;
 
     // navigation
     // ----------
 
-    virtual wxTreeItemId GetRootItem() const { return m_anchor; }
-    virtual wxTreeItemId GetSelection() const
+    virtual wxTreeItemId GetRootItem() const wxOVERRIDE { return m_anchor; }
+    virtual wxTreeItemId GetSelection() const wxOVERRIDE
     {
         wxASSERT_MSG( !HasFlag(wxTR_MULTIPLE),
                        wxT("must use GetSelections() with this control") );
 
         return m_current;
     }
-    virtual size_t GetSelections(wxArrayTreeItemIds&) const;
-    virtual wxTreeItemId GetFocusedItem() const { return m_current; }
+    virtual size_t GetSelections(wxArrayTreeItemIds&) const wxOVERRIDE;
+    virtual wxTreeItemId GetFocusedItem() const wxOVERRIDE { return m_current; }
 
-    virtual void ClearFocusedItem();
-    virtual void SetFocusedItem(const wxTreeItemId& item);
+    virtual void ClearFocusedItem() wxOVERRIDE;
+    virtual void SetFocusedItem(const wxTreeItemId& item) wxOVERRIDE;
 
-    virtual wxTreeItemId GetItemParent(const wxTreeItemId& item) const;
+    virtual wxTreeItemId GetItemParent(const wxTreeItemId& item) const wxOVERRIDE;
     virtual wxTreeItemId GetFirstChild(const wxTreeItemId& item,
-                                       wxTreeItemIdValue& cookie) const;
+                                       wxTreeItemIdValue& cookie) const wxOVERRIDE;
     virtual wxTreeItemId GetNextChild(const wxTreeItemId& item,
-                                      wxTreeItemIdValue& cookie) const;
-    virtual wxTreeItemId GetLastChild(const wxTreeItemId& item) const;
-    virtual wxTreeItemId GetNextSibling(const wxTreeItemId& item) const;
-    virtual wxTreeItemId GetPrevSibling(const wxTreeItemId& item) const;
+                                      wxTreeItemIdValue& cookie) const wxOVERRIDE;
+    virtual wxTreeItemId GetLastChild(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual wxTreeItemId GetNextSibling(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual wxTreeItemId GetPrevSibling(const wxTreeItemId& item) const wxOVERRIDE;
 
-    virtual wxTreeItemId GetFirstVisibleItem() const;
-    virtual wxTreeItemId GetNextVisible(const wxTreeItemId& item) const;
-    virtual wxTreeItemId GetPrevVisible(const wxTreeItemId& item) const;
+    virtual wxTreeItemId GetFirstVisibleItem() const wxOVERRIDE;
+    virtual wxTreeItemId GetNextVisible(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual wxTreeItemId GetPrevVisible(const wxTreeItemId& item) const wxOVERRIDE;
 
 
     // operations
@@ -142,41 +142,41 @@ public:
 
     virtual wxTreeItemId AddRoot(const wxString& text,
                          int image = -1, int selectedImage = -1,
-                         wxTreeItemData *data = NULL);
+                         wxTreeItemData *data = NULL) wxOVERRIDE;
 
-    virtual void Delete(const wxTreeItemId& item);
-    virtual void DeleteChildren(const wxTreeItemId& item);
-    virtual void DeleteAllItems();
+    virtual void Delete(const wxTreeItemId& item) wxOVERRIDE;
+    virtual void DeleteChildren(const wxTreeItemId& item) wxOVERRIDE;
+    virtual void DeleteAllItems() wxOVERRIDE;
 
-    virtual void Expand(const wxTreeItemId& item);
-    virtual void Collapse(const wxTreeItemId& item);
-    virtual void CollapseAndReset(const wxTreeItemId& item);
-    virtual void Toggle(const wxTreeItemId& item);
+    virtual void Expand(const wxTreeItemId& item) wxOVERRIDE;
+    virtual void Collapse(const wxTreeItemId& item) wxOVERRIDE;
+    virtual void CollapseAndReset(const wxTreeItemId& item) wxOVERRIDE;
+    virtual void Toggle(const wxTreeItemId& item) wxOVERRIDE;
 
-    virtual void Unselect();
-    virtual void UnselectAll();
-    virtual void SelectItem(const wxTreeItemId& item, bool select = true);
-    virtual void SelectChildren(const wxTreeItemId& parent);
+    virtual void Unselect() wxOVERRIDE;
+    virtual void UnselectAll() wxOVERRIDE;
+    virtual void SelectItem(const wxTreeItemId& item, bool select = true) wxOVERRIDE;
+    virtual void SelectChildren(const wxTreeItemId& parent) wxOVERRIDE;
 
-    virtual void EnsureVisible(const wxTreeItemId& item);
-    virtual void ScrollTo(const wxTreeItemId& item);
+    virtual void EnsureVisible(const wxTreeItemId& item) wxOVERRIDE;
+    virtual void ScrollTo(const wxTreeItemId& item) wxOVERRIDE;
 
     virtual wxTextCtrl *EditLabel(const wxTreeItemId& item,
-                          wxClassInfo* textCtrlClass = wxCLASSINFO(wxTextCtrl));
-    virtual wxTextCtrl *GetEditControl() const;
+                          wxClassInfo* textCtrlClass = wxCLASSINFO(wxTextCtrl)) wxOVERRIDE;
+    virtual wxTextCtrl *GetEditControl() const wxOVERRIDE;
     virtual void EndEditLabel(const wxTreeItemId& item,
-                              bool discardChanges = false);
+                              bool discardChanges = false) wxOVERRIDE;
 
-    virtual void EnableBellOnNoMatch(bool on = true);
+    virtual void EnableBellOnNoMatch(bool on = true) wxOVERRIDE;
 
-    virtual void SortChildren(const wxTreeItemId& item);
+    virtual void SortChildren(const wxTreeItemId& item) wxOVERRIDE;
 
     // items geometry
     // --------------
 
     virtual bool GetBoundingRect(const wxTreeItemId& item,
                                  wxRect& rect,
-                                 bool textOnly = false) const;
+                                 bool textOnly = false) const wxOVERRIDE;
 
 
     // this version specific methods
@@ -191,20 +191,15 @@ public:
 
     wxTreeItemId GetNext(const wxTreeItemId& item) const;
 
-#if WXWIN_COMPATIBILITY_2_6
-    // use EditLabel() instead
-    void Edit( const wxTreeItemId& item ) { EditLabel(item); }
-#endif // WXWIN_COMPATIBILITY_2_6
-
     // implementation only from now on
 
     // overridden base class virtuals
-    virtual bool SetBackgroundColour(const wxColour& colour);
-    virtual bool SetForegroundColour(const wxColour& colour);
+    virtual bool SetBackgroundColour(const wxColour& colour) wxOVERRIDE;
+    virtual bool SetForegroundColour(const wxColour& colour) wxOVERRIDE;
 
-    virtual void Refresh(bool eraseBackground = true, const wxRect *rect = NULL);
+    virtual void Refresh(bool eraseBackground = true, const wxRect *rect = NULL) wxOVERRIDE;
 
-    virtual bool SetFont( const wxFont &font );
+    virtual bool SetFont( const wxFont &font ) wxOVERRIDE;
     virtual void SetWindowStyle(const long styles);
 
     // callbacks
@@ -216,9 +211,9 @@ public:
     void OnMouse( wxMouseEvent &event );
     void OnGetToolTip( wxTreeEvent &event );
     void OnSize( wxSizeEvent &event );
-    void OnInternalIdle( );
+    void OnInternalIdle( ) wxOVERRIDE;
 
-    virtual wxVisualAttributes GetDefaultAttributes() const
+    virtual wxVisualAttributes GetDefaultAttributes() const wxOVERRIDE
     {
         return GetClassDefaultAttributes(GetWindowVariant());
     }
@@ -286,7 +281,7 @@ protected:
     void Init();
 
     // overridden wxWindow methods
-    virtual void DoThaw();
+    virtual void DoThaw() wxOVERRIDE;
 
     // misc helpers
     void SendDeleteEvent(wxGenericTreeItem *itemBeingDeleted);
@@ -299,21 +294,21 @@ protected:
                       bool unselect_others = true,
                       bool extended_select = false);
 
-    virtual int DoGetItemState(const wxTreeItemId& item) const;
-    virtual void DoSetItemState(const wxTreeItemId& item, int state);
+    virtual int DoGetItemState(const wxTreeItemId& item) const wxOVERRIDE;
+    virtual void DoSetItemState(const wxTreeItemId& item, int state) wxOVERRIDE;
 
     virtual wxTreeItemId DoInsertItem(const wxTreeItemId& parent,
                                       size_t previous,
                                       const wxString& text,
                                       int image,
                                       int selectedImage,
-                                      wxTreeItemData *data);
+                                      wxTreeItemData *data) wxOVERRIDE;
     virtual wxTreeItemId DoInsertAfter(const wxTreeItemId& parent,
                                        const wxTreeItemId& idPrevious,
                                        const wxString& text,
                                        int image = -1, int selImage = -1,
-                                       wxTreeItemData *data = NULL);
-    virtual wxTreeItemId DoTreeHitTest(const wxPoint& point, int& flags) const;
+                                       wxTreeItemData *data = NULL) wxOVERRIDE;
+    virtual wxTreeItemId DoTreeHitTest(const wxPoint& point, int& flags) const wxOVERRIDE;
 
     // called by wxTextTreeCtrl when it marks itself for deletion
     void ResetTextControl();
@@ -353,15 +348,15 @@ protected:
 
     void DoDirtyProcessing();
 
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
 private:
     // Reset the state of the last find (i.e. keyboard incremental search)
     // operation.
     void ResetFindState();
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxGenericTreeCtrl)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS(wxGenericTreeCtrl);
     wxDECLARE_NO_COPY_CLASS(wxGenericTreeCtrl);
 };
 
@@ -373,7 +368,7 @@ private:
 
 class WXDLLIMPEXP_CORE wxTreeCtrl: public wxGenericTreeCtrl
 {
-    DECLARE_DYNAMIC_CLASS(wxTreeCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxTreeCtrl);
 
 public:
     wxTreeCtrl() {}

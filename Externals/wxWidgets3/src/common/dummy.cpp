@@ -26,7 +26,3 @@
 #ifdef __WINDOWS__
     #include "wx/msw/msvcrt.h"
 #endif
-
-#ifdef __VISAGECPP__
-    char wxDummyChar = 0;
-#endif

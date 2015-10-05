@@ -166,12 +166,12 @@ protected:
 private:
     wxComboBox *m_cb;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(wxComboBoxText, wxTextCtrl)
+wxBEGIN_EVENT_TABLE(wxComboBoxText, wxTextCtrl)
     EVT_CHAR( wxComboBoxText::OnChar)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 class wxComboBoxChoice : public wxChoice
 {
@@ -204,12 +204,12 @@ protected:
 private:
     wxComboBox *m_cb;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(wxComboBoxChoice, wxChoice)
+wxBEGIN_EVENT_TABLE(wxComboBoxChoice, wxChoice)
     EVT_CHOICE(wxID_ANY, wxComboBoxChoice::OnChoice)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxComboBox::~wxComboBox()
 {

@@ -44,12 +44,12 @@ public:
                 const wxString& name = wxStatusBarNameStr);
 
     // implement base class methods
-    virtual void SetStatusWidths(int n, const int widths_field[]);
-    virtual bool GetFieldRect(int i, wxRect& rect) const;
-    virtual void SetMinHeight(int height);
+    virtual void SetStatusWidths(int n, const int widths_field[]) wxOVERRIDE;
+    virtual bool GetFieldRect(int i, wxRect& rect) const wxOVERRIDE;
+    virtual void SetMinHeight(int height) wxOVERRIDE;
 
-    virtual int GetBorderX() const { return m_borderX; }
-    virtual int GetBorderY() const { return m_borderY; }
+    virtual int GetBorderX() const wxOVERRIDE { return m_borderX; }
+    virtual int GetBorderY() const wxOVERRIDE { return m_borderY; }
 
 
     // implementation only (not part of wxStatusBar public API):
@@ -57,7 +57,7 @@ public:
     int GetFieldFromPoint(const wxPoint& point) const;
 
 protected:
-    virtual void DoUpdateStatusText(int number);
+    virtual void DoUpdateStatusText(int number) wxOVERRIDE;
 
     // event handlers
     void OnPaint(wxPaintEvent& event);
@@ -103,14 +103,14 @@ protected:
     wxPen             m_mediumShadowPen;
     wxPen             m_hilightPen;
 
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
 private:
     // Update m_lastClientSize and m_widthsAbs from the current size.
     void DoUpdateFieldWidths();
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxStatusBarGeneric)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxStatusBarGeneric);
 };
 
 #endif // wxUSE_STATUSBAR

@@ -127,11 +127,13 @@ void wxButtonCocoaImpl::SetPressedBitmap( const wxBitmap& bitmap )
 {
     NSButton* button = GetNSButton();
     [button setAlternateImage: bitmap.GetNSImage()];
+#if wxUSE_TOGGLEBTN
     if ( GetWXPeer()->IsKindOf(wxCLASSINFO(wxToggleButton)) )
     {
         [button setButtonType:NSToggleButton];
     }
     else
+#endif
     {
         [button setButtonType:NSMomentaryChangeButton];
     }
@@ -157,19 +159,24 @@ void wxButtonCocoaImpl::GetLayoutInset(int &left , int &top , int &right, int &b
             case NSRegularControlSize:
                 left = right = 6;
                 top = 4;
-                bottom = 8;
+                bottom = 7;
                 break;
             case NSSmallControlSize:
                 left = right = 5;
                 top = 4;
-                bottom = 7;
+                bottom = 6;
                 break;
             case NSMiniControlSize:
                 left = right = 1;
                 top = 0;
-                bottom = 2;
+                bottom = 1;
                 break;
         }
+    }
+    else if ( [GetNSButton() bezelStyle] == NSSmallSquareBezelStyle )
+    {
+        left = right = 0;
+        top = bottom = 1;
     }
 }
 
@@ -237,7 +244,7 @@ SetBezelStyleFromBorderFlags(NSButton *v,
                 break;
 
             case wxBORDER_SIMPLE:
-                bezel = NSShadowlessSquareBezelStyle;
+                bezel = NSSmallSquareBezelStyle;
                 break;
 
             case wxBORDER_SUNKEN:
@@ -247,14 +254,14 @@ SetBezelStyleFromBorderFlags(NSButton *v,
 
             default:
                 wxFAIL_MSG( "Unknown border style" );
-                // fall through
+                wxFALLTHROUGH;
 
             case 0:
             case wxBORDER_STATIC:
             case wxBORDER_RAISED:
             case wxBORDER_THEME:
                 bezel = isSimpleText ? NSRoundedBezelStyle
-                                     : NSRegularSquareBezelStyle;
+                                     : NSSmallSquareBezelStyle;
                 break;
         }
 
@@ -354,155 +361,3 @@ wxWidgetImplType* wxWidgetImpl::CreateBitmapButton( wxWindowMac* wxpeer,
 }
 
 #endif // wxUSE_BMPBUTTON
-
-//
-// wxDisclosureButton implementation
-//
-
-@interface wxDisclosureNSButton : NSButton
-{
-
-    BOOL isOpen;
-}
-
-- (void) updateImage;
-
-- (void) toggle;
-
-+ (NSImage *)rotateImage: (NSImage *)image;
-
-@end
-
-static const char * disc_triangle_xpm[] = {
-"10 9 4 1",
-"   c None",
-".  c #737373",
-"+  c #989898",
-"-  c #c6c6c6",
-" .-       ",
-" ..+-     ",
-" ....+    ",
-" ......-  ",
-" .......- ",
-" ......-  ",
-" ....+    ",
-" ..+-     ",
-" .-       ",
-};
-
-@implementation wxDisclosureNSButton
-
-+ (void)initialize
-{
-    static BOOL initialized = NO;
-    if (!initialized)
-    {
-        initialized = YES;
-        wxOSXCocoaClassAddWXMethods( self );
-    }
-}
-
-- (id) initWithFrame:(NSRect) frame
-{
-    self = [super initWithFrame:frame];
-    isOpen = NO;
-    [self setImagePosition:NSImageLeft];
-    [self updateImage];
-    return self;
-}
-
-- (int) intValue
-{
-    return isOpen ? 1 : 0;
-}
-
-- (void) setIntValue: (int) v
-{
-    isOpen = ( v != 0 );
-    [self updateImage];
-}
-
-- (void) toggle
-{
-    isOpen = !isOpen;
-    [self updateImage];
-}
-
-wxCFRef<NSImage*> downArray ;
-
-- (void) updateImage
-{
-    static wxBitmap trianglebm(disc_triangle_xpm);
-    if ( downArray.get() == NULL )
-    {
-        downArray.reset( [[wxDisclosureNSButton rotateImage:trianglebm.GetNSImage()] retain] );
-    }
-
-    if ( isOpen )
-        [self setImage:(NSImage*)downArray.get()];
-    else
-        [self setImage:trianglebm.GetNSImage()];
-}
-
-+ (NSImage *)rotateImage: (NSImage *)image
-{
-    NSSize imageSize = [image size];
-    NSSize newImageSize = NSMakeSize(imageSize.height, imageSize.width);
-    NSImage* newImage = [[NSImage alloc] initWithSize: newImageSize];
-
-    [newImage lockFocus];
-
-    NSAffineTransform* tm = [NSAffineTransform transform];
-    [tm translateXBy:newImageSize.width/2 yBy:newImageSize.height/2];
-    [tm rotateByDegrees:-90];
-    [tm translateXBy:-newImageSize.width/2 yBy:-newImageSize.height/2];
-    [tm concat];
-
-
-    [image drawInRect:NSMakeRect(0,0,newImageSize.width, newImageSize.height)
-        fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-
-    [newImage unlockFocus];
-    return [newImage autorelease];
-}
-
-@end
-
-class wxDisclosureTriangleCocoaImpl : public wxWidgetCocoaImpl
-{
-public :
-    wxDisclosureTriangleCocoaImpl(wxWindowMac* peer , WXWidget w) :
-        wxWidgetCocoaImpl(peer, w)
-    {
-    }
-
-    ~wxDisclosureTriangleCocoaImpl()
-    {
-    }
-
-    virtual void controlAction(WXWidget slf, void* _cmd, void *sender)
-    {
-        wxDisclosureNSButton* db = (wxDisclosureNSButton*)m_osxView;
-        [db toggle];
-        wxWidgetCocoaImpl::controlAction(slf, _cmd, sender );
-    }
-};
-
-wxWidgetImplType* wxWidgetImpl::CreateDisclosureTriangle( wxWindowMac* wxpeer,
-                                    wxWindowMac* WXUNUSED(parent),
-                                    wxWindowID winid,
-                                    const wxString& label,
-                                    const wxPoint& pos,
-                                    const wxSize& size,
-                                    long style,
-                                    long WXUNUSED(extraStyle))
-{
-    NSRect r = wxOSXGetFrameForControl( wxpeer, pos , size ) ;
-    wxDisclosureNSButton* v = [[wxDisclosureNSButton alloc] initWithFrame:r];
-    if ( !label.empty() )
-        [v setTitle:wxCFStringRef(label).AsNSString()];
-
-    SetBezelStyleFromBorderFlags(v, style, winid, label);
-
-    return new wxDisclosureTriangleCocoaImpl( wxpeer, v );
-}

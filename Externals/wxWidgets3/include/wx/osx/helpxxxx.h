@@ -18,7 +18,7 @@
 
 class WXDLLIMPEXP_CORE wxXXXXHelpController: public wxHelpControllerBase
 {
-  DECLARE_CLASS(wxXXXXHelpController)
+  wxDECLARE_CLASS(wxXXXXHelpController);
 
  public:
   wxXXXXHelpController();

@@ -75,7 +75,7 @@ public:
     {
     }
 
-    virtual void SetDateTime(const wxDateTime& dt)
+    virtual void SetDateTime(const wxDateTime& dt) wxOVERRIDE
     {
         wxDateTime dtFrom, dtTo;
         
@@ -85,12 +85,12 @@ public:
             [View() setDateValue: NSDateFromWX(dt)];
     }
 
-    virtual wxDateTime GetDateTime() const
+    virtual wxDateTime GetDateTime() const wxOVERRIDE
     {
         return NSDateToWX([View() dateValue]);
     }
 
-    virtual void SetDateRange(const wxDateTime& dt1, const wxDateTime& dt2)
+    virtual void SetDateRange(const wxDateTime& dt1, const wxDateTime& dt2) wxOVERRIDE
     {
         // Note that passing nil is ok here so we don't need to test for the
         // dates validity.
@@ -98,7 +98,7 @@ public:
         [View() setMaxDate: NSDateFromWX(dt2)];
     }
 
-    virtual bool GetDateRange(wxDateTime* dt1, wxDateTime* dt2)
+    virtual bool GetDateRange(wxDateTime* dt1, wxDateTime* dt2) wxOVERRIDE
     {
         bool hasLimits = false;
         if ( dt1 )
@@ -118,13 +118,33 @@ public:
 
     virtual void controlAction(WXWidget WXUNUSED(slf),
                                void* WXUNUSED(cmd),
-                               void* WXUNUSED(sender))
+                               void* WXUNUSED(sender)) wxOVERRIDE
     {
         wxWindow* const wxpeer = GetWXPeer();
         if ( wxpeer )
         {
             static_cast<wxDateTimePickerCtrl*>(wxpeer)->
                 OSXGenerateEvent(GetDateTime());
+        }
+    }
+
+    virtual void Enable(bool enable = true)
+    {
+        wxNSDatePicker* const nsdatePicker = View();
+
+        [nsdatePicker setEnabled: enable];
+
+        if ( enable )
+        {
+            wxWindow* const wxpeer = GetWXPeer();
+            if ( wxpeer )
+                [nsdatePicker setTextColor: wxpeer->GetForegroundColour().OSXGetNSColor()];
+            else
+                [nsdatePicker setTextColor: [NSColor controlTextColor]];
+        }
+        else
+        {
+            [nsdatePicker setTextColor: [NSColor disabledControlTextColor]];
         }
     }
 
@@ -170,9 +190,16 @@ wxDateTimeWidgetImpl::CreateDateTimePicker(wxDateTimePickerCtrl* wxpeer,
 
     [v setDatePickerStyle: NSTextFieldAndStepperDatePickerStyle];
 
+    // Avoid a disabled looking transparent background for the text cells.
+    [v setDrawsBackground: YES];
+
     if ( dt.IsValid() )
     {
         [v setDateValue: NSDateFromWX(dt)];
+    }
+    else
+    {
+        [v setDateValue: [NSDate date]];
     }
 
     wxDateTimeWidgetImpl* c = new wxDateTimeWidgetCocoaImpl(wxpeer, v);

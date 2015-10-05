@@ -9,17 +9,13 @@
 #ifndef _WX_GTK_CURSOR_H_
 #define _WX_GTK_CURSOR_H_
 
-#include "wx/gdiobj.h"
-#include "wx/gdicmn.h"
-
-class WXDLLIMPEXP_FWD_CORE wxColour;
 class WXDLLIMPEXP_FWD_CORE wxImage;
 
 //-----------------------------------------------------------------------------
 // wxCursor
 //-----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_CORE wxCursor : public wxGDIObject
+class WXDLLIMPEXP_CORE wxCursor : public wxCursorBase
 {
 public:
     wxCursor();
@@ -37,6 +33,9 @@ public:
               int hotSpotX = -1, int hotSpotY = -1,
               const char maskBits[] = NULL,
               const wxColour* fg = NULL, const wxColour* bg = NULL);
+
+    virtual wxPoint GetHotSpot() const wxOVERRIDE;
+
     virtual ~wxCursor();
 
     // implementation
@@ -49,11 +48,11 @@ protected:
     void InitFromImage(const wxImage& image);
 #endif
 
-    virtual wxGDIRefData *CreateGDIRefData() const;
-    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const;
+    virtual wxGDIRefData *CreateGDIRefData() const wxOVERRIDE;
+    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const wxOVERRIDE;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxCursor)
+    wxDECLARE_DYNAMIC_CLASS(wxCursor);
 };
 
 #endif // _WX_GTK_CURSOR_H_

@@ -326,7 +326,7 @@ void wxOSXIPhoneClassAddWXMethods(Class c)
 
 @end
 
-IMPLEMENT_DYNAMIC_CLASS( wxWidgetIPhoneImpl , wxWidgetImpl )
+wxIMPLEMENT_DYNAMIC_CLASS(wxWidgetIPhoneImpl , wxWidgetImpl);
 
 wxWidgetIPhoneImpl::wxWidgetIPhoneImpl( wxWindowMac* peer , WXWidget w, bool isRootControl, bool isUserPane ) :
     wxWidgetImpl( peer, isRootControl, isUserPane ), m_osxView(w)

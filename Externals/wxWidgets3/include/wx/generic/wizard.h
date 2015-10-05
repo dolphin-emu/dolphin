@@ -46,13 +46,13 @@ public:
     virtual ~wxWizard();
 
     // implement base class pure virtuals
-    virtual bool RunWizard(wxWizardPage *firstPage);
-    virtual wxWizardPage *GetCurrentPage() const;
-    virtual void SetPageSize(const wxSize& size);
-    virtual wxSize GetPageSize() const;
-    virtual void FitToPage(const wxWizardPage *firstPage);
-    virtual wxSizer *GetPageAreaSizer() const;
-    virtual void SetBorder(int border);
+    virtual bool RunWizard(wxWizardPage *firstPage) wxOVERRIDE;
+    virtual wxWizardPage *GetCurrentPage() const wxOVERRIDE;
+    virtual void SetPageSize(const wxSize& size) wxOVERRIDE;
+    virtual wxSize GetPageSize() const wxOVERRIDE;
+    virtual void FitToPage(const wxWizardPage *firstPage) wxOVERRIDE;
+    virtual wxSizer *GetPageAreaSizer() const wxOVERRIDE;
+    virtual void SetBorder(int border) wxOVERRIDE;
 
     /// set/get bitmap
     const wxBitmap& GetBitmap() const { return m_bitmap; }
@@ -74,7 +74,7 @@ public:
     virtual void DoCreateControls();
 
     // Do the adaptation
-    virtual bool DoLayoutAdaptation();
+    virtual bool DoLayoutAdaptation() wxOVERRIDE;
 
     // Set/get bitmap background colour
     void SetBitmapBackgroundColour(const wxColour& colour) { m_bitmapBackgroundColour = colour; }
@@ -124,6 +124,7 @@ protected:
 
     // wizard state
     wxWizardPage *m_page;       // the current page or NULL
+    wxWizardPage *m_firstpage;  // the page RunWizard started on or NULL
     wxBitmap      m_bitmap;     // the default bitmap to show
 
     // wizard controls
@@ -160,8 +161,8 @@ protected:
 
     friend class wxWizardSizer;
 
-    DECLARE_DYNAMIC_CLASS(wxWizard)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxWizard);
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxWizard);
 };
 

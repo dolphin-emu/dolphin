@@ -80,7 +80,7 @@ static wxString BundleRelativeURLToPath(CFURLRef relativeURL)
 {
     CFURLRef absoluteURL = CFURLCopyAbsoluteURL(relativeURL);
     wxCHECK_MSG(absoluteURL, wxEmptyString, wxT("Failed to resolve relative URL to absolute URL"));
-    CFStringRef cfStrPath = CFURLCopyFileSystemPath(absoluteURL,kDefaultPathStyle);
+    wxCFStringRef cfStrPath( CFURLCopyFileSystemPath(absoluteURL,kDefaultPathStyle) );
     CFRelease(absoluteURL);
     return wxCFStringRef::AsStringWithNormalizationFormC(cfStrPath);
 }
@@ -96,17 +96,62 @@ wxString wxStandardPathsCF::GetFromFunc(wxCFURLRef (*func)(wxCFBundleRef)) const
     return ret;
 }
 
-wxString wxStandardPathsCF::GetDocumentsDir() const
+wxString wxStandardPathsCF::GetUserDir(Dir userDir) const
 {
 #if defined( __WXMAC__ ) && wxOSX_USE_CARBON
+    OSType folderType;
+    switch (userDir)
+    {
+        case Dir_Desktop:
+            folderType = kDesktopFolderType;
+            break;
+        case Dir_Downloads:
+            folderType = kDownloadsFolderType;
+            break;
+        case Dir_Music:
+            folderType = kMusicDocumentsFolderType;
+            break;
+        case Dir_Pictures:
+            folderType = kPictureDocumentsFolderType;
+            break;
+        case Dir_Videos:
+            folderType = kMovieDocumentsFolderType;
+            break;
+        default:
+            folderType = kDocumentsFolderType;
+            break;
+    }
+
     return wxMacFindFolderNoSeparator
         (
         kUserDomain,
-        kDocumentsFolderType,
+        folderType,
         kCreateFolder
         );
 #else
-    return wxFileName::GetHomeDir() + wxT("/Documents");
+    wxString userDirName;
+    switch (userDir)
+    {
+        case Dir_Desktop:
+            userDirName = "Desktop";
+            break;
+        case Dir_Downloads:
+            userDirName = "Downloads";
+            break;
+        case Dir_Music:
+            userDirName = "Music";
+            break;
+        case Dir_Pictures:
+            userDirName = "Pictures";
+            break;
+        case Dir_Videos:
+            userDirName = "Movies";
+            break;
+        default:
+            userDirName = "Documents";
+            break;
+    }
+    return wxFileName::GetHomeDir() + "/" + userDirName;
 #endif
 }
 

@@ -92,7 +92,7 @@ private:
 
     wxMenuItemImpl* m_peer;
 
-    DECLARE_DYNAMIC_CLASS(wxMenuItem)
+    wxDECLARE_DYNAMIC_CLASS(wxMenuItem);
 };
 
 #endif  //_MENUITEM_H

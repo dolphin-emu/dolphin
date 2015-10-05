@@ -79,7 +79,7 @@ static HWND GetSuitableHWND(wxWindow *win)
 }
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxCHMHelpController, wxHelpControllerBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxCHMHelpController, wxHelpControllerBase);
 
 bool wxCHMHelpController::Initialize(const wxString& filename)
 {

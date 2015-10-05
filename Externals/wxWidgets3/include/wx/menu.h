@@ -309,6 +309,13 @@ public:
     // the checked parameter may have boolean value or -1 for uncheckable items
     bool SendEvent(int itemid, int checked = -1);
 
+    // called to dispatch a wxMenuEvent to the right recipients, menu pointer
+    // can be NULL if we failed to find the associated menu (this happens at
+    // least in wxMSW for the events from the system menus)
+    static
+    bool ProcessMenuEvent(wxMenu* menu, wxMenuEvent& event, wxWindow* win);
+
+
     // compatibility: these functions are deprecated, use the new ones instead
     // -----------------------------------------------------------------------
 
@@ -388,6 +395,12 @@ protected:
 
     static bool      ms_locked;
 
+
+private:
+    // Common part of SendEvent() and ProcessMenuEvent(): sends the event to
+    // its intended recipients, returns true if it was processed.
+    static bool DoProcessEvent(wxMenuBase* menu, wxEvent& event, wxWindow* win);
+
     wxDECLARE_NO_COPY_CLASS(wxMenuBase);
 };
 
@@ -416,8 +429,8 @@ public:
 private:
     wxMenu *m_menu;
     wxString m_title;
-    
-    DECLARE_DYNAMIC_CLASS(wxMenuInfoHelper)
+
+    wxDECLARE_DYNAMIC_CLASS(wxMenuInfoHelper);
 };
 
 WX_DECLARE_EXPORTED_LIST(wxMenuInfoHelper, wxMenuInfoHelperList );
@@ -528,17 +541,17 @@ public:
     virtual void Detach();
 
     // need to override these ones to avoid virtual function hiding
-    virtual bool Enable(bool enable = true) { return wxWindow::Enable(enable); }
-    virtual void SetLabel(const wxString& s) { wxWindow::SetLabel(s); }
-    virtual wxString GetLabel() const { return wxWindow::GetLabel(); }
+    virtual bool Enable(bool enable = true) wxOVERRIDE { return wxWindow::Enable(enable); }
+    virtual void SetLabel(const wxString& s) wxOVERRIDE { wxWindow::SetLabel(s); }
+    virtual wxString GetLabel() const wxOVERRIDE { return wxWindow::GetLabel(); }
 
     // don't want menu bars to accept the focus by tabbing to them
-    virtual bool AcceptsFocusFromKeyboard() const { return false; }
+    virtual bool AcceptsFocusFromKeyboard() const wxOVERRIDE { return false; }
 
     // update all menu item states in all menus
     virtual void UpdateMenus();
 
-    virtual bool CanBeOutsideClientArea() const { return true; }
+    virtual bool CanBeOutsideClientArea() const wxOVERRIDE { return true; }
 
 #if wxUSE_EXTENDED_RTTI    
     // XTI helpers:
@@ -589,10 +602,8 @@ protected:
     #include "wx/gtk1/menu.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/menu.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/menu.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/menu.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/menu.h"
 #endif
 #endif // wxUSE_BASE_CLASSES_ONLY/!wxUSE_BASE_CLASSES_ONLY
 

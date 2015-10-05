@@ -34,12 +34,6 @@
 #include "wx/wfstream.h"
 #include "wx/msw/private.h"
 
-// Windows headers
-#ifdef __WXWINCE__
-#include <winbase.h>
-#include <winreg.h>
-#endif
-
 // other std headers
 #include  <stdlib.h>      // for _MAX_PATH
 
@@ -372,14 +366,7 @@ bool wxRegKey::GetKeyInfo(size_t *pnSubKeys,
 
   #define REG_PARAM(name) &dw##name
 #else // Win32
-  // Old gcc headers incorrectly prototype RegQueryInfoKey() as taking
-  // size_t but normally we need a cast, even when sizeof(size_t) is the same
-  // as sizeof(DWORD).
-  #if defined(__GNUWIN32_OLD__) && !defined(__CYGWIN10__)
-    #define REG_PARAM(name) pn##name
-  #else
-    #define REG_PARAM(name)   (LPDWORD)(pn##name)
-  #endif
+  #define REG_PARAM(name)   (LPDWORD)(pn##name)
 #endif
 
 
@@ -981,7 +968,7 @@ bool wxRegKey::QueryValue(const wxString& szValue, wxMemoryBuffer& buffer) const
 
 bool wxRegKey::QueryValue(const wxString& szValue,
                           wxString& strValue,
-                          bool WXUNUSED_IN_WINCE(raw)) const
+                          bool raw) const
 {
     if ( CONST_CAST Open(Read) )
     {
@@ -1002,15 +989,29 @@ bool wxRegKey::QueryValue(const wxString& szValue,
             }
             else
             {
-                m_dwLastError = RegQueryValueEx((HKEY) m_hKey,
-                                                RegValueStr(szValue),
-                                                RESERVED,
-                                                &dwType,
-                                                (RegString)(wxChar*)wxStringBuffer(strValue, dwSize),
-                                                &dwSize);
+                // extra scope for wxStringBufferLength
+                {
+                    // We need length in characters, not bytes.
+                    DWORD chars = dwSize / sizeof(wxChar);
+
+                    wxStringBufferLength strBuf(strValue, chars);
+                    m_dwLastError = RegQueryValueEx((HKEY) m_hKey,
+                                                    RegValueStr(szValue),
+                                                    RESERVED,
+                                                    &dwType,
+                                                    (RegString)(wxChar*)strBuf,
+                                                    &dwSize);
+
+                    // The returned string may or not be NUL-terminated,
+                    // exclude the trailing NUL if it's there (which is
+                    // typically the case but is not guaranteed to always be).
+                    if ( strBuf[chars - 1] == '\0' )
+                        chars--;
+
+                    strBuf.SetLength(chars);
+                }
 
                 // expand the var expansions in the string unless disabled
-#ifndef __WXWINCE__
                 if ( (dwType == REG_EXPAND_SZ) && !raw )
                 {
                     DWORD dwExpSize = ::ExpandEnvironmentStrings(strValue.t_str(), NULL, 0);
@@ -1030,8 +1031,6 @@ bool wxRegKey::QueryValue(const wxString& szValue,
                         wxLogLastError(wxT("ExpandEnvironmentStrings"));
                     }
                 }
-#endif
-                // __WXWINCE__
             }
 
             if ( m_dwLastError == ERROR_SUCCESS )
@@ -1144,13 +1143,7 @@ bool wxRegKey::GetNextKey(wxString& strKeyName, long& lIndex) const
 
   wxChar szKeyName[_MAX_PATH + 1];
 
-#ifdef __WXWINCE__
-  DWORD sizeName = WXSIZEOF(szKeyName);
-  m_dwLastError = RegEnumKeyEx((HKEY) m_hKey, lIndex++, szKeyName, & sizeName,
-      0, NULL, NULL, NULL);
-#else
   m_dwLastError = RegEnumKey((HKEY) m_hKey, lIndex++, szKeyName, WXSIZEOF(szKeyName));
-#endif
 
   if ( m_dwLastError != ERROR_SUCCESS ) {
     if ( m_dwLastError == ERROR_NO_MORE_ITEMS ) {

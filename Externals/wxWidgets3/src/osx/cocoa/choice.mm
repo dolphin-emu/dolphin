@@ -63,7 +63,7 @@ public:
     {
     }
     
-    void GetLayoutInset(int &left , int &top , int &right, int &bottom) const
+    void GetLayoutInset(int &left , int &top , int &right, int &bottom) const wxOVERRIDE
     {
         left = top = right = bottom = 0;
         NSControlSize size = NSRegularControlSize;
@@ -81,12 +81,12 @@ public:
             case NSRegularControlSize:
                 left = right = 3;
                 top = 2;
-                bottom = 4;
+                bottom = 3;
                 break;
             case NSSmallControlSize:
                 left = right = 3;
                 top = 1;
-                bottom = 4;
+                bottom = 3;
                 break;
             case NSMiniControlSize:
                 left = 1;

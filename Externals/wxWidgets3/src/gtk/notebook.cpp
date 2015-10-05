@@ -127,9 +127,9 @@ void wxNotebook::AddChildGTK(wxWindowGTK* child)
 // wxNotebook
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxNotebook, wxBookCtrlBase)
+wxBEGIN_EVENT_TABLE(wxNotebook, wxBookCtrlBase)
     EVT_NAVIGATION_KEY(wxNotebook::OnNavigationKey)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxNotebook::Init()
 {
@@ -429,7 +429,9 @@ bool wxNotebook::InsertPage( size_t position,
     pageData->m_imageIndex = imageId;
 
     pageData->m_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+#ifndef __WXGTK3__
     gtk_container_set_border_width(GTK_CONTAINER(pageData->m_box), 2);
+#endif
 
     pageData->m_image = NULL;
     if (imageId != -1)
@@ -594,7 +596,9 @@ GdkWindow *wxNotebook::GTKGetWindow(wxArrayGdkWindows& windows) const
 {
     windows.push_back(gtk_widget_get_window(m_widget));
 #ifdef __WXGTK3__
-    // no access to internal GdkWindows
+    GdkWindow* window = GTKFindWindow(m_widget);
+    if (window)
+        windows.push_back(window);
 #else
     windows.push_back(GTK_NOTEBOOK(m_widget)->event_window);
 #endif

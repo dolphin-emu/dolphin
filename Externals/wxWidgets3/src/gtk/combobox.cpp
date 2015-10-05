@@ -64,7 +64,7 @@ gtkcombobox_popupshown_callback(GObject *WXUNUSED(gobject),
 // wxComboBox
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxComboBox, wxChoice)
+wxBEGIN_EVENT_TABLE(wxComboBox, wxChoice)
     EVT_CHAR(wxComboBox::OnChar)
 
     EVT_MENU(wxID_CUT, wxComboBox::OnCut)
@@ -82,7 +82,7 @@ BEGIN_EVENT_TABLE(wxComboBox, wxChoice)
     EVT_UPDATE_UI(wxID_REDO, wxComboBox::OnUpdateRedo)
     EVT_UPDATE_UI(wxID_CLEAR, wxComboBox::OnUpdateDelete)
     EVT_UPDATE_UI(wxID_SELECTALL, wxComboBox::OnUpdateSelectAll)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxComboBox::~wxComboBox()
 {
@@ -278,8 +278,7 @@ GtkWidget* wxComboBox::GetConnectWidget()
 GdkWindow* wxComboBox::GTKGetWindow(wxArrayGdkWindows& /* windows */) const
 {
 #ifdef __WXGTK3__
-    // no access to internal GdkWindows
-    return NULL;
+    return GTKFindWindow(GTK_WIDGET(GetEntry()));
 #else
     return gtk_entry_get_text_window(GetEntry());
 #endif
@@ -294,6 +293,17 @@ wxComboBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 #else
     return GetDefaultAttributesFromGTKWidget(gtk_combo_box_entry_new(), true);
 #endif
+}
+
+void wxComboBox::Clear()
+{
+    // Do not call wxTextEntry::Clear() here as it's implemented in terms of
+    // virtual SetValue() and so would call our own overridden version of this
+    // method, which wouldn't do the right thing in wxCB_READONLY case.
+    //
+    // Clear the text directly to avoid this.
+    wxTextEntry::SetValue(wxString());
+    wxItemContainer::Clear();
 }
 
 void wxComboBox::SetValue(const wxString& value)

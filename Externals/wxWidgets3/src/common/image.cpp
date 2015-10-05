@@ -130,7 +130,7 @@ wxImageRefData::~wxImageRefData()
 
 #define M_IMGDATA static_cast<wxImageRefData*>(m_refData)
 
-IMPLEMENT_DYNAMIC_CLASS(wxImage, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxImage, wxObject);
 
 bool wxImage::Create(const char* const* xpmData)
 {
@@ -769,9 +769,9 @@ wxImage wxImage::ResampleBilinear(int width, int height) const
 
             // result lines
 
-            dst_data[0] = static_cast<unsigned char>(r1 * dy1 + r2 * dy);
-            dst_data[1] = static_cast<unsigned char>(g1 * dy1 + g2 * dy);
-            dst_data[2] = static_cast<unsigned char>(b1 * dy1 + b2 * dy);
+            dst_data[0] = static_cast<unsigned char>(r1 * dy1 + r2 * dy + .5);
+            dst_data[1] = static_cast<unsigned char>(g1 * dy1 + g2 * dy + .5);
+            dst_data[2] = static_cast<unsigned char>(b1 * dy1 + b2 * dy + .5);
             dst_data += 3;
 
             if ( src_alpha )
@@ -2040,6 +2040,8 @@ void wxImage::ClearAlpha()
 {
     wxCHECK_RET( HasAlpha(), wxT("image already doesn't have an alpha channel") );
 
+    AllocExclusive();
+
     if ( !M_IMGDATA->m_staticAlpha )
         free( M_IMGDATA->m_alpha );
 
@@ -2375,15 +2377,17 @@ static wxImage LoadImageFromResource(const wxString &name, wxBitmapType type)
         }
         else
         {
-            ICONINFO info;
-            if ( !::GetIconInfo(hIcon, &info) )
-            {
-                wxLogLastError(wxT("GetIconInfo"));
+            AutoIconInfo info;
+            if ( !info.GetFrom(hIcon) )
                 return wxImage();
-            }
 
             hBitmap.Init(info.hbmColor);
             hMask.Init(info.hbmMask);
+
+            // Reset the fields to prevent them from being destroyed, we took
+            // ownership of them.
+            info.hbmColor =
+            info.hbmMask = 0;
         }
     }
     else if ( type == wxBITMAP_TYPE_CUR_RESOURCE )
@@ -3105,7 +3109,7 @@ void wxImage::RotateHue(double angle)
 // wxImageHandler
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxImageHandler,wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxImageHandler, wxObject);
 
 #if wxUSE_STREAMS
 int wxImageHandler::GetImageCount( wxInputStream& stream )
@@ -3214,8 +3218,8 @@ wxImageHistogram::FindFirstUnusedColour(unsigned char *r,
                                         unsigned char *g,
                                         unsigned char *b,
                                         unsigned char r2,
-                                        unsigned char b2,
-                                        unsigned char g2) const
+                                        unsigned char g2,
+                                        unsigned char b2) const
 {
     unsigned long key = MakeKey(r2, g2, b2);
 
@@ -3257,8 +3261,8 @@ wxImage::FindFirstUnusedColour(unsigned char *r,
                                unsigned char *g,
                                unsigned char *b,
                                unsigned char r2,
-                               unsigned char b2,
-                               unsigned char g2) const
+                               unsigned char g2,
+                               unsigned char b2) const
 {
     wxImageHistogram histogram;
 
@@ -3646,14 +3650,14 @@ wxImage wxImage::Rotate(double angle,
 
 class wxImageModule: public wxModule
 {
-DECLARE_DYNAMIC_CLASS(wxImageModule)
+    wxDECLARE_DYNAMIC_CLASS(wxImageModule);
 public:
     wxImageModule() {}
-    bool OnInit() { wxImage::InitStandardHandlers(); return true; }
-    void OnExit() { wxImage::CleanUpHandlers(); }
+    bool OnInit() wxOVERRIDE { wxImage::InitStandardHandlers(); return true; }
+    void OnExit() wxOVERRIDE { wxImage::CleanUpHandlers(); }
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxImageModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxImageModule, wxModule);
 
 
 #endif // wxUSE_IMAGE

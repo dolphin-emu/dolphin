@@ -23,7 +23,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_TEXTCTRL && !(defined(__SMARTPHONE__) && defined(__WXWINCE__))
+#if wxUSE_TEXTCTRL
 
 #ifndef WX_PRECOMP
     #include "wx/textctrl.h"
@@ -40,6 +40,8 @@
     #include "wx/wxcrtvararg.h"
 #endif
 
+#include "wx/scopedptr.h"
+#include "wx/stack.h"
 #include "wx/sysopt.h"
 
 #if wxUSE_CLIPBOARD
@@ -52,31 +54,19 @@
 
 #include "wx/msw/private.h"
 #include "wx/msw/winundef.h"
-#include "wx/msw/mslu.h"
 
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef __WXWINCE__
 #include <sys/types.h>
-#endif
 
 #if wxUSE_RICHEDIT
-
-// old mingw32 has richedit stuff directly in windows.h and doesn't have
-// richedit.h at all
-#if !defined(__GNUWIN32_OLD__) || defined(__CYGWIN10__)
     #include <richedit.h>
-#endif
-
+    #include <richole.h>
+    #include "wx/msw/ole/oleutils.h"
 #endif // wxUSE_RICHEDIT
 
 #include "wx/msw/missing.h"
-
-// FIXME-VC6: This seems to be only missing from VC6 headers.
-#ifndef SPI_GETCARETWIDTH
-    #define SPI_GETCARETWIDTH 0x2006
-#endif
 
 #if wxUSE_DRAG_AND_DROP && wxUSE_RICHEDIT
 
@@ -86,6 +76,25 @@ static wxDropTarget *
     wxRICHTEXT_DEFAULT_DROPTARGET = reinterpret_cast<wxDropTarget *>(1);
 
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_RICHEDIT
+
+#if wxUSE_OLE
+// This must be the last header included to only affect the DEFINE_GUID()
+// occurrences below but not any GUIDs declared in the standard files included
+// above.
+#include <initguid.h>
+
+namespace
+{
+
+// Normally the IRichEditOleCallback interface and its IID are defined in
+// richole.h header file included in the platform SDK but MinGW doesn't
+// have the IID symbol (but does have the interface). Work around it by
+// defining it ourselves.
+DEFINE_GUID(wxIID_IRichEditOleCallback,
+    0x00020d03, 0x0000, 0x0000, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
+
+} // anonymous namespace
+#endif // wxUSE_OLE
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -125,7 +134,7 @@ private:
     static bool             ms_inkEditLibLoadAttemped;
 #endif
 
-    DECLARE_DYNAMIC_CLASS(wxRichEditModule)
+    wxDECLARE_DYNAMIC_CLASS(wxRichEditModule);
 };
 
 HINSTANCE wxRichEditModule::ms_hRichEdit[Version_Max] = { NULL, NULL, NULL };
@@ -135,7 +144,74 @@ wxDynamicLibrary wxRichEditModule::ms_inkEditLib;
 bool             wxRichEditModule::ms_inkEditLibLoadAttemped = false;
 #endif
 
-IMPLEMENT_DYNAMIC_CLASS(wxRichEditModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxRichEditModule, wxModule);
+
+#if wxUSE_OLE
+
+extern wxMenu *wxCurrentPopupMenu;
+
+class wxTextCtrlOleCallback : public IRichEditOleCallback
+{
+public:
+    wxTextCtrlOleCallback(wxTextCtrl *text) : m_textCtrl(text), m_menu(NULL) {}
+    virtual ~wxTextCtrlOleCallback() { DeleteContextMenuObject(); }
+
+    STDMETHODIMP ContextSensitiveHelp(BOOL WXUNUSED(enterMode)) { return E_NOTIMPL; }
+    STDMETHODIMP DeleteObject(LPOLEOBJECT WXUNUSED(oleobj)) { return E_NOTIMPL; }
+    STDMETHODIMP GetClipboardData(CHARRANGE* WXUNUSED(chrg), DWORD WXUNUSED(reco), LPDATAOBJECT* WXUNUSED(dataobj)) { return E_NOTIMPL; }
+    STDMETHODIMP GetDragDropEffect(BOOL WXUNUSED(drag), DWORD WXUNUSED(grfKeyState), LPDWORD WXUNUSED(effect)) { return E_NOTIMPL; }
+    STDMETHODIMP GetInPlaceContext(LPOLEINPLACEFRAME* WXUNUSED(frame), LPOLEINPLACEUIWINDOW* WXUNUSED(doc), LPOLEINPLACEFRAMEINFO WXUNUSED(frameInfo)) { return E_NOTIMPL; }
+    STDMETHODIMP GetNewStorage(LPSTORAGE *WXUNUSED(stg)) { return E_NOTIMPL; }
+    STDMETHODIMP QueryAcceptData(LPDATAOBJECT WXUNUSED(dataobj), CLIPFORMAT* WXUNUSED(format), DWORD WXUNUSED(reco), BOOL WXUNUSED(really), HGLOBAL WXUNUSED(hMetaPict)) { return E_NOTIMPL; }
+    STDMETHODIMP QueryInsertObject(LPCLSID WXUNUSED(clsid), LPSTORAGE WXUNUSED(stg), LONG WXUNUSED(cp)) { return E_NOTIMPL; }
+    STDMETHODIMP ShowContainerUI(BOOL WXUNUSED(show)) { return E_NOTIMPL; }
+
+    STDMETHODIMP GetContextMenu(WORD WXUNUSED(seltype), LPOLEOBJECT WXUNUSED(oleobj), CHARRANGE* WXUNUSED(chrg), HMENU *menu)
+    {
+        // 'menu' will be shown and destroyed by the caller. We need to keep
+        // its wx counterpart, the wxMenu instance, around until it is
+        // dismissed, though, so store it in m_menu and destroy sometime later.
+        DeleteContextMenuObject();
+        m_menu = m_textCtrl->MSWCreateContextMenu();
+        *menu = m_menu->GetHMenu();
+
+        // Make wx handle events from the popup menu correctly:
+        m_menu->SetInvokingWindow(m_textCtrl);
+        wxCurrentPopupMenu = m_menu;
+
+        m_menu->UpdateUI();
+
+        return S_OK;
+    }
+
+    DECLARE_IUNKNOWN_METHODS;
+
+private:
+    void DeleteContextMenuObject()
+    {
+        if ( m_menu )
+        {
+            m_menu->MSWDetachHMENU();
+            if ( wxCurrentPopupMenu == m_menu )
+                wxCurrentPopupMenu = NULL;
+            wxDELETE(m_menu);
+        }
+    }
+
+    wxTextCtrl *m_textCtrl;
+    wxMenu *m_menu;
+
+    wxDECLARE_NO_COPY_CLASS(wxTextCtrlOleCallback);
+};
+
+BEGIN_IID_TABLE(wxTextCtrlOleCallback)
+    ADD_IID(Unknown)
+    ADD_RAW_IID(wxIID_IRichEditOleCallback)
+END_IID_TABLE;
+
+IMPLEMENT_IUNKNOWN_METHODS(wxTextCtrlOleCallback)
+
+#endif // wxUSE_OLE
 
 #endif // wxUSE_RICHEDIT
 
@@ -173,18 +249,29 @@ private:
     wxDECLARE_NO_COPY_CLASS(UpdatesCountFilter);
 };
 
+namespace
+{
+
+// This stack stores the length of the text being currently inserted into the
+// current control.
+//
+// It is used to pass information from DoWriteText() to AdjustSpaceLimit()
+// and is global as text can only be inserted into a few text controls at a
+// time (but possibly more than into one, if wxEVT_TEXT event handler does
+// something that results in another text control update), and we don't want to
+// waste space in every wxTextCtrl object for this field unnecessarily.
+wxStack<int> gs_lenOfInsertedText;
+
+} // anonymous namespace
+
 // ----------------------------------------------------------------------------
 // event tables and other macros
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
+wxBEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
     EVT_CHAR(wxTextCtrl::OnChar)
     EVT_KEY_DOWN(wxTextCtrl::OnKeyDown)
     EVT_DROP_FILES(wxTextCtrl::OnDropFiles)
-
-#if wxUSE_RICHEDIT
-    EVT_CONTEXT_MENU(wxTextCtrl::OnContextMenu)
-#endif
 
     EVT_MENU(wxID_CUT, wxTextCtrl::OnCut)
     EVT_MENU(wxID_COPY, wxTextCtrl::OnCopy)
@@ -203,7 +290,7 @@ BEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
     EVT_UPDATE_UI(wxID_SELECTALL, wxTextCtrl::OnUpdateSelectAll)
 
     EVT_SET_FOCUS(wxTextCtrl::OnSetFocus)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
@@ -277,12 +364,8 @@ bool wxTextCtrl::Create(wxWindow *parent,
 // returns true if the platform should explicitly apply a theme border
 bool wxTextCtrl::CanApplyThemeBorder() const
 {
-#ifdef __WXWINCE__
-    return false;
-#else
     // Standard text control already handles theming
     return ((GetWindowStyle() & (wxTE_RICH|wxTE_RICH2)) != 0);
-#endif
 }
 
 bool wxTextCtrl::MSWCreateText(const wxString& value,
@@ -294,12 +377,6 @@ bool wxTextCtrl::MSWCreateText(const wxString& value,
 
     // do create the control - either an EDIT or RICHEDIT
     wxString windowClass = wxT("EDIT");
-
-#if defined(__POCKETPC__) || defined(__SMARTPHONE__)
-    // A control that capitalizes the first letter
-    if ( HasFlag(wxTE_CAPITALIZE) )
-        windowClass = wxT("CAPEDIT");
-#endif
 
 #if wxUSE_RICHEDIT
     if ( m_windowStyle & wxTE_AUTO_URL )
@@ -476,6 +553,17 @@ bool wxTextCtrl::MSWCreateText(const wxString& value,
         }
 
         ::SendMessage(GetHwnd(), EM_SETEVENTMASK, 0, mask);
+
+        bool contextMenuConnected = false;
+#if wxUSE_OLE
+        if ( m_verRichEdit >= 4 )
+        {
+            wxTextCtrlOleCallback *cb = new wxTextCtrlOleCallback(this);
+            contextMenuConnected = ::SendMessage(GetHwnd(), EM_SETOLECALLBACK, 0, (LPARAM)cb) != 0;
+        }
+#endif
+        if ( !contextMenuConnected )
+            Connect(wxEVT_CONTEXT_MENU, wxContextMenuEventHandler(wxTextCtrl::OnContextMenu));
     }
     else
 #endif // wxUSE_RICHEDIT
@@ -492,7 +580,6 @@ bool wxTextCtrl::MSWCreateText(const wxString& value,
         SetBackgroundColour(GetClassDefaultAttributes().colBg);
     }
 
-#ifndef __WXWINCE__
     // Without this, if we pass the size in the constructor and then don't change it,
     // the themed borders will be drawn incorrectly.
     SetWindowPos(GetHwnd(), NULL, 0, 0, 0, 0,
@@ -528,7 +615,6 @@ bool wxTextCtrl::MSWCreateText(const wxString& value,
 
         ::SendMessage(GetHwnd(), EM_SETMARGINS, wParam, lParam);
     }
-#endif // !__WXWINCE__
 
     return true;
 }
@@ -886,7 +972,7 @@ void wxTextCtrl::DoSetValue(const wxString& value, int flags)
     }
 }
 
-#if wxUSE_RICHEDIT && (!wxUSE_UNICODE || wxUSE_UNICODE_MSLU)
+#if wxUSE_RICHEDIT && !wxUSE_UNICODE
 
 // TODO: using memcpy() would improve performance a lot for big amounts of text
 
@@ -948,20 +1034,11 @@ wxRichEditStreamOut(DWORD_PTR dwCookie, BYTE *buf, LONG cb, LONG *pcb)
 }
 
 
-#if wxUSE_UNICODE_MSLU
-    #define UNUSED_IF_MSLU(param)
-#else
-    #define UNUSED_IF_MSLU(param) param
-#endif
-
 bool
 wxTextCtrl::StreamIn(const wxString& value,
-                     wxFontEncoding UNUSED_IF_MSLU(encoding),
+                     wxFontEncoding encoding,
                      bool selectionOnly)
 {
-#if wxUSE_UNICODE_MSLU
-    const wchar_t *wpc = value.c_str();
-#else // !wxUSE_UNICODE_MSLU
     wxCSConv conv(encoding);
 
     const size_t len = conv.MB2WC(NULL, value.mb_str(), value.length());
@@ -973,7 +1050,6 @@ wxTextCtrl::StreamIn(const wxString& value,
     wchar_t *wpc = wchBuf.data();
 
     conv.MB2WC(wpc, value.mb_str(), len + 1);
-#endif // wxUSE_UNICODE_MSLU
 
     // finally, stream it in the control
     EDITSTREAM eds;
@@ -1003,8 +1079,6 @@ wxTextCtrl::StreamIn(const wxString& value,
 
     return true;
 }
-
-#if !wxUSE_UNICODE_MSLU
 
 wxString
 wxTextCtrl::StreamOut(wxFontEncoding encoding, bool selectionOnly) const
@@ -1057,8 +1131,6 @@ wxTextCtrl::StreamOut(wxFontEncoding encoding, bool selectionOnly) const
     return out;
 }
 
-#endif // !wxUSE_UNICODE_MSLU
-
 #endif // wxUSE_RICHEDIT
 
 void wxTextCtrl::WriteText(const wxString& value)
@@ -1087,15 +1159,6 @@ void wxTextCtrl::DoWriteText(const wxString& value, int flags)
             GetSelection(&start, &end);
             SetStyle(start, end, m_defaultStyle);
         }
-
-#if wxUSE_UNICODE_MSLU
-        // RichEdit doesn't have Unicode version of EM_REPLACESEL on Win9x,
-        // but EM_STREAMIN works
-        if ( wxUsingUnicowsDll() && GetRichVersion() > 1 )
-        {
-           done = StreamIn(valueDos, wxFONTENCODING_SYSTEM, selectionOnly);
-        }
-#endif // wxUSE_UNICODE_MSLU
 
 #if !wxUSE_UNICODE
         // next check if the text we're inserting must be shown in a non
@@ -1137,9 +1200,30 @@ void wxTextCtrl::DoWriteText(const wxString& value, int flags)
 
         UpdatesCountFilter ucf(m_updatesCount);
 
+        // Remember the length of the text we're inserting so that
+        // AdjustSpaceLimit() could adjust the limit to be big enough for it:
+        // and also signal us whether it did it by resetting it to 0.
+        gs_lenOfInsertedText.push(valueDos.length());
+
         ::SendMessage(GetHwnd(), selectionOnly ? EM_REPLACESEL : WM_SETTEXT,
                       // EM_REPLACESEL takes 1 to indicate the operation should be redoable
                       selectionOnly ? 1 : 0, wxMSW_CONV_LPARAM(valueDos));
+
+        const int lenActuallyInserted = gs_lenOfInsertedText.top();
+        gs_lenOfInsertedText.pop();
+
+        if ( lenActuallyInserted == -1 )
+        {
+            // Text size limit has been hit and added text has been truncated.
+            // But the max length has been increased by the EN_MAXTEXT message
+            // handler, which also reset the top of the lengths stack to -1),
+            // so we should be able to set it successfully now if we try again.
+            if ( selectionOnly )
+                Undo();
+
+            ::SendMessage(GetHwnd(), selectionOnly ? EM_REPLACESEL : WM_SETTEXT,
+                          selectionOnly ? 1 : 0, wxMSW_CONV_LPARAM(valueDos));
+        }
 
         if ( !ucf.GotUpdate() && (flags & SetValue_SendEvent) )
         {
@@ -1174,8 +1258,6 @@ void wxTextCtrl::Clear()
     }
 }
 
-#ifdef __WIN32__
-
 bool wxTextCtrl::EmulateKeyPress(const wxKeyEvent& event)
 {
     SetFocus();
@@ -1190,8 +1272,6 @@ bool wxTextCtrl::EmulateKeyPress(const wxKeyEvent& event)
     // in the control - this should work in 99% of cases
     return GetValue().length() != lenOld;
 }
-
-#endif // __WIN32__
 
 // ----------------------------------------------------------------------------
 // Accessors
@@ -1340,23 +1420,6 @@ void wxTextCtrl::DoSetSelection(long from, long to, int flags)
         }
 #endif // wxUSE_RICHEDIT
     }
-}
-
-// ----------------------------------------------------------------------------
-// Working with files
-// ----------------------------------------------------------------------------
-
-bool wxTextCtrl::DoLoadFile(const wxString& file, int fileType)
-{
-    if ( wxTextCtrlBase::DoLoadFile(file, fileType) )
-    {
-        // update the size limit if needed
-        AdjustSpaceLimit();
-
-        return true;
-    }
-
-    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -1713,6 +1776,37 @@ void wxTextCtrl::SetMaxLength(unsigned long len)
 }
 
 // ----------------------------------------------------------------------------
+// RTL support
+// ----------------------------------------------------------------------------
+
+void wxTextCtrl::SetLayoutDirection(wxLayoutDirection dir)
+{
+    // We only need to handle this specifically for plain EDIT controls, rich
+    // edit ones behave like any other window.
+    if ( IsRich() )
+    {
+        wxTextCtrlBase::SetLayoutDirection(dir);
+    }
+    else
+    {
+        if ( wxUpdateEditLayoutDirection(GetHwnd(), dir) )
+        {
+            // Update text layout by forcing the control to redo it, a simple
+            // Refresh() is not enough.
+            SendSizeEvent();
+            Refresh();
+        }
+    }
+}
+
+wxLayoutDirection wxTextCtrl::GetLayoutDirection() const
+{
+    // Just as above, we need to handle plain EDIT controls specially.
+    return IsRich() ? wxTextCtrlBase::GetLayoutDirection()
+                    : wxGetEditLayoutDirection(GetHwnd());
+}
+
+// ----------------------------------------------------------------------------
 // Undo/redo
 // ----------------------------------------------------------------------------
 
@@ -1862,13 +1956,13 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
     {
         case WXK_RETURN:
             {
-                wxCommandEvent event(wxEVT_TEXT_ENTER, m_windowId);
-                InitCommandEvent(event);
-                event.SetString(GetValue());
-                if ( HandleWindowEvent(event) )
-                if ( !HasFlag(wxTE_MULTILINE) )
-                    return;
-                //else: multiline controls need Enter for themselves
+                wxCommandEvent evt(wxEVT_TEXT_ENTER, m_windowId);
+                InitCommandEvent(evt);
+                evt.SetString(GetValue());
+                if ( HandleWindowEvent(evt) )
+                    if ( !HasFlag(wxTE_MULTILINE) )
+                        return;
+                    //else: multiline controls need Enter for themselves
             }
             break;
 
@@ -2119,8 +2213,32 @@ bool wxTextCtrl::AdjustSpaceLimit()
     unsigned int len = ::GetWindowTextLength(GetHwnd());
     if ( len >= limit )
     {
-        // increment in 32Kb chunks
-        SetMaxLength(len + 0x8000);
+        unsigned long increaseBy;
+
+        // We need to increase the size of the buffer and to avoid increasing
+        // it too many times make sure that we make it at least big enough to
+        // fit all the text we are currently inserting into the control, if
+        // we're inserting any, i.e. if we're called from DoWriteText().
+        if ( !gs_lenOfInsertedText.empty() )
+        {
+            increaseBy = gs_lenOfInsertedText.top();
+
+            // Indicate to the caller that we increased the limit.
+            gs_lenOfInsertedText.top() = -1;
+        }
+        else // Not inserting text, must be text actually typed by user.
+        {
+            increaseBy = 0;
+        }
+
+        // But also increase it by at least 32KB chunks -- again, to avoid
+        // doing it too often -- and round it up to 32KB in any case.
+        if ( increaseBy < 0x8000 )
+            increaseBy = 0x8000;
+        else
+            increaseBy = (increaseBy + 0x7fff) & ~0x7fff;
+
+        SetMaxLength(len + increaseBy);
     }
 
     // we changed the limit
@@ -2269,32 +2387,6 @@ void wxTextCtrl::OnUpdateSelectAll(wxUpdateUIEvent& event)
     event.Enable( !IsEmpty() );
 }
 
-void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
-{
-#if wxUSE_RICHEDIT
-    if (IsRich())
-    {
-        if (!m_privateContextMenu)
-        {
-            m_privateContextMenu = new wxMenu;
-            m_privateContextMenu->Append(wxID_UNDO, _("&Undo"));
-            m_privateContextMenu->Append(wxID_REDO, _("&Redo"));
-            m_privateContextMenu->AppendSeparator();
-            m_privateContextMenu->Append(wxID_CUT, _("Cu&t"));
-            m_privateContextMenu->Append(wxID_COPY, _("&Copy"));
-            m_privateContextMenu->Append(wxID_PASTE, _("&Paste"));
-            m_privateContextMenu->Append(wxID_CLEAR, _("&Delete"));
-            m_privateContextMenu->AppendSeparator();
-            m_privateContextMenu->Append(wxID_SELECTALL, _("Select &All"));
-        }
-        PopupMenu(m_privateContextMenu);
-        return;
-    }
-    else
-#endif
-    event.Skip();
-}
-
 void wxTextCtrl::OnSetFocus(wxFocusEvent& event)
 {
     // be sure the caret remains invisible if the user had hidden it
@@ -2308,6 +2400,34 @@ void wxTextCtrl::OnSetFocus(wxFocusEvent& event)
 
 // the rest of the file only deals with the rich edit controls
 #if wxUSE_RICHEDIT
+
+void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
+{
+    if (IsRich())
+    {
+        if (!m_privateContextMenu)
+            m_privateContextMenu = MSWCreateContextMenu();
+        PopupMenu(m_privateContextMenu);
+        return;
+    }
+    else
+        event.Skip();
+}
+
+wxMenu *wxTextCtrl::MSWCreateContextMenu()
+{
+    wxMenu *m = new wxMenu;
+    m->Append(wxID_UNDO, _("&Undo"));
+    m->Append(wxID_REDO, _("&Redo"));
+    m->AppendSeparator();
+    m->Append(wxID_CUT, _("Cu&t"));
+    m->Append(wxID_COPY, _("&Copy"));
+    m->Append(wxID_PASTE, _("&Paste"));
+    m->Append(wxID_CLEAR, _("&Delete"));
+    m->AppendSeparator();
+    m->Append(wxID_SELECTALL, _("Select &All"));
+    return m;
+}
 
 // ----------------------------------------------------------------------------
 // EN_LINK processing
@@ -2469,6 +2589,11 @@ bool wxTextCtrl::SetForegroundColour(const wxColour& colour)
 
 bool wxTextCtrl::SetFont(const wxFont& font)
 {
+    // Native text control sends EN_CHANGE when the font changes, producing
+    // a wxEVT_TEXT event as if the user changed the value. This is not
+    // the case, so supress the event.
+    wxEventBlocker block(this, wxEVT_TEXT);
+
     if ( !wxTextCtrlBase::SetFont(font) )
         return false;
 
@@ -2522,7 +2647,7 @@ bool wxTextCtrl::MSWSetCharFormat(const wxTextAttr& style, long start, long end)
         //     but using it doesn't seem to hurt neither so leaving it for now
 
         cf.dwMask |= CFM_FACE | CFM_SIZE | CFM_CHARSET |
-                     CFM_ITALIC | CFM_BOLD | CFM_UNDERLINE;
+                     CFM_ITALIC | CFM_BOLD | CFM_UNDERLINE | CFM_STRIKEOUT;
 
         // fill in data from LOGFONT but recalculate lfHeight because we need
         // the real height in twips and not the negative number which
@@ -2555,8 +2680,10 @@ bool wxTextCtrl::MSWSetCharFormat(const wxTextAttr& style, long start, long end)
         {
             cf.dwEffects |= CFE_UNDERLINE;
         }
-
-        // strikeout fonts are not supported by wxWidgets
+        if ( lf.lfStrikeOut )
+        {
+            cf.dwEffects |= CFE_STRIKEOUT;
+        }
     }
 
     if ( style.HasTextColour() )
@@ -2665,9 +2792,27 @@ bool wxTextCtrl::MSWSetParaFormat(const wxTextAttr& style, long start, long end)
     }
 
 #if wxUSE_RICHEDIT2
+    if ( style.HasParagraphSpacingAfter() )
+    {
+        pf.dwMask |= PFM_SPACEAFTER;
+
+        // Convert from 1/10 mm to TWIPS
+        pf.dySpaceAfter = (int) (((double) style.GetParagraphSpacingAfter()) * mm2twips / 10.0) ;
+    }
+
+    if ( style.HasParagraphSpacingBefore() )
+    {
+        pf.dwMask |= PFM_SPACEBEFORE;
+
+        // Convert from 1/10 mm to TWIPS
+        pf.dySpaceBefore = (int) (((double) style.GetParagraphSpacingBefore()) * mm2twips / 10.0) ;
+    }
+#endif // wxUSE_RICHEDIT2
+
+#if wxUSE_RICHEDIT2
     if ( m_verRichEdit > 1 )
     {
-        if ( wxTheApp->GetLayoutDirection() == wxLayout_RightToLeft )
+        if ( GetLayoutDirection() == wxLayout_RightToLeft )
         {
             // Use RTL paragraphs in RTL mode to get proper layout
             pf.dwMask |= PFM_RTLPARA;
@@ -2982,4 +3127,4 @@ bool wxRichEditModule::LoadInkEdit()
 
 #endif // wxUSE_RICHEDIT
 
-#endif // wxUSE_TEXTCTRL && !(__SMARTPHONE__ && __WXWINCE__)
+#endif // wxUSE_TEXTCTRL

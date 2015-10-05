@@ -254,7 +254,7 @@ static void wxFreePoolGC( GdkGC *gc )
 // wxWindowDC
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxWindowDCImpl, wxGTKDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxWindowDCImpl, wxGTKDCImpl);
 
 wxWindowDCImpl::wxWindowDCImpl( wxDC *owner ) :
    wxGTKDCImpl( owner )
@@ -663,6 +663,16 @@ void wxWindowDCImpl::DoDrawEllipticArc( wxCoord x, wxCoord y, wxCoord width, wxC
     {
         wxCoord start = wxCoord(sa * 64.0);
         wxCoord end = wxCoord((ea-sa) * 64.0);
+        // We want to draw always in the counter-clokwise direction.
+        if (end < 0)
+        {
+            end = end % (360*64) + 360*64;
+        }
+        // If end angle equals start engle we want to draw a full ellipse.
+        if (end == 0)
+        {
+            end = 360*64;
+        }
 
         if ( m_brush.IsNonTransparent() )
         {
@@ -1199,9 +1209,8 @@ void wxWindowDCImpl::DoDrawBitmap( const wxBitmap &bitmap,
         gdk_gc_set_clip_region(use_gc, clipRegion);
 
         // Notice that we can only release the mask now, we can't do it before
-        // the calls to gdk_draw_xxx() above as they crash with X error with
-        // GTK+ up to 2.20.1 (i.e. it works with 2.20 but is known to not work
-        // with 2.16.1 and below).
+        // the calls to gdk_draw_xxx() above as they crash with BadPixmap X
+        // error with GTK+ 2.16 and earlier.
         if (mask_new)
             g_object_unref(mask_new);
     }
@@ -1311,6 +1320,7 @@ bool wxWindowDCImpl::DoBlit( wxCoord xdest, wxCoord ydest,
 
     GdkGC* const use_gc = m_penGC;
 
+    GdkPixmap* mask_new = NULL;
     if (mask)
     {
         int srcMask_x = src_x;
@@ -1320,7 +1330,6 @@ bool wxWindowDCImpl::DoBlit( wxCoord xdest, wxCoord ydest,
             srcMask_x = source->LogicalToDeviceX(xsrcMask);
             srcMask_y = source->LogicalToDeviceY(ysrcMask);
         }
-        GdkPixmap* mask_new = NULL;
         if (isScaled)
         {
             mask = ScaleMask(mask, srcMask_x, srcMask_y,
@@ -1343,8 +1352,6 @@ bool wxWindowDCImpl::DoBlit( wxCoord xdest, wxCoord ydest,
         }
         gdk_gc_set_clip_mask(use_gc, mask);
         gdk_gc_set_clip_origin(use_gc, dst_x - srcMask_x, dst_y - srcMask_y);
-        if (mask_new)
-            g_object_unref(mask_new);
     }
 
     GdkPixmap* pixmap = NULL;
@@ -1385,7 +1392,12 @@ bool wxWindowDCImpl::DoBlit( wxCoord xdest, wxCoord ydest,
     if (pixmap)
         g_object_unref(pixmap);
     if (mask)
+    {
         gdk_gc_set_clip_region(use_gc, clipRegion);
+        // see comment at end of DoDrawBitmap()
+        if (mask_new)
+            g_object_unref(mask_new);
+    }
 
     return true;
 }
@@ -2015,7 +2027,7 @@ int wxWindowDCImpl::GetDepth() const
 // wxClientDCImpl
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxClientDCImpl, wxWindowDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxClientDCImpl, wxWindowDCImpl);
 
 wxClientDCImpl::wxClientDCImpl( wxDC *owner )
           : wxWindowDCImpl( owner )
@@ -2047,7 +2059,7 @@ void wxClientDCImpl::DoGetSize(int *width, int *height) const
 // wxPaintDCImpl
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxPaintDCImpl, wxClientDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxPaintDCImpl, wxClientDCImpl);
 
 // Limit the paint region to the window size. Sometimes
 // the paint region is too big, and this risks X11 errors
@@ -2108,14 +2120,14 @@ wxPaintDCImpl::wxPaintDCImpl( wxDC *owner, wxWindow *win )
 class wxDCModule : public wxModule
 {
 public:
-    bool OnInit();
-    void OnExit();
+    bool OnInit() wxOVERRIDE;
+    void OnExit() wxOVERRIDE;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxDCModule)
+    wxDECLARE_DYNAMIC_CLASS(wxDCModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxDCModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDCModule, wxModule);
 
 bool wxDCModule::OnInit()
 {

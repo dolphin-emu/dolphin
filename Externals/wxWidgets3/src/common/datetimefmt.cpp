@@ -50,9 +50,7 @@
 
 #ifdef __WINDOWS__
     #include <winnls.h>
-    #ifndef __WXWINCE__
-        #include <locale.h>
-    #endif
+    #include <locale.h>
 #endif
 
 #include "wx/datetime.h"
@@ -282,10 +280,7 @@ wxDateTime
 ParseFormatAt(wxString::const_iterator& p,
               const wxString::const_iterator& end,
               const wxString& fmt,
-              // FIXME-VC6: using wxString() instead of wxEmptyString in the
-              //            line below results in error C2062: type 'class
-              //            wxString (__cdecl *)(void)' unexpected
-              const wxString& fmtAlt = wxEmptyString)
+              const wxString& fmtAlt = wxString())
 {
     const wxString str(p, end);
     wxString::const_iterator endParse;
@@ -319,22 +314,46 @@ wxString wxDateTime::Format(const wxString& formatp, const TimeZone& tz) const
 
     wxString format = formatp;
 #ifdef __WXOSX__
-    format.Replace("%c",wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT));
-    format.Replace("%x",wxLocale::GetInfo(wxLOCALE_SHORT_DATE_FMT));
-    format.Replace("%X",wxLocale::GetInfo(wxLOCALE_TIME_FMT));
+    if ( format.Contains("%c") )
+        format.Replace("%c", wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT));
+    if ( format.Contains("%x") )
+        format.Replace("%x", wxLocale::GetInfo(wxLOCALE_SHORT_DATE_FMT));
+    if ( format.Contains("%X") )
+        format.Replace("%X", wxLocale::GetInfo(wxLOCALE_TIME_FMT));
 #endif
     // we have to use our own implementation if the date is out of range of
-    // strftime() or if we use non standard specifiers (notice that "%z" is
-    // special because it is de facto standard under Unix but is not supported
-    // under Windows)
+    // strftime()
 #ifdef wxHAS_STRFTIME
     time_t time = GetTicks();
 
-    if ( (time != (time_t)-1) && !wxStrstr(format, wxT("%l"))
+    bool canUseStrftime = time != (time_t)-1;
+
+    // We also can't use strftime() if we use non standard specifier: either
+    // our own extension "%l" or one of "%g", "%G", "%V", "%z" which are POSIX
+    // but not supported under Windows.
+    for ( wxString::const_iterator p = format.begin();
+          canUseStrftime && p != format.end();
+          ++p )
+    {
+        if ( *p != '%' )
+            continue;
+
+        // set the default format
+        switch ( (*++p).GetValue() )
+        {
+            case 'l':
 #ifdef __WINDOWS__
-            && !wxStrstr(format, wxT("%z"))
-#endif
-       )
+            case 'g':
+            case 'G':
+            case 'V':
+            case 'z':
+#endif // __WINDOWS__
+                canUseStrftime = false;
+                break;
+        }
+    }
+
+    if ( canUseStrftime )
     {
         // use strftime()
         struct tm tmstruct;
@@ -351,7 +370,7 @@ wxString wxDateTime::Format(const wxString& formatp, const TimeZone& tz) const
         {
             time += (int)tz.GetOffset();
 
-#if defined(__VMS__) || defined(__WATCOMC__) // time is unsigned so avoid warning
+#if defined(__VMS__) // time is unsigned so avoid warning
             int time2 = (int) time;
             if ( time2 >= 0 )
 #else
@@ -408,6 +427,7 @@ wxString wxDateTime::Format(const wxString& formatp, const TimeZone& tz) const
         switch ( (*++p).GetValue() )
         {
             case wxT('Y'):               // year has 4 digits
+            case wxT('G'):               // (and ISO week year too)
             case wxT('z'):               // time zone as well
                 fmt = wxT("%04d");
                 break;
@@ -579,6 +599,14 @@ wxString wxDateTime::Format(const wxString& formatp, const TimeZone& tz) const
                     res += wxString::Format(fmt, tm.mday);
                     break;
 
+                case wxT('g'):      // 2-digit week-based year
+                    res += wxString::Format(fmt, GetWeekBasedYear() % 100);
+                    break;
+
+                case wxT('G'):       // week-based year with century
+                    res += wxString::Format(fmt, GetWeekBasedYear());
+                    break;
+
                 case wxT('H'):       // hour in 24h format (00-23)
                     res += wxString::Format(fmt, tm.hour);
                     break;
@@ -624,6 +652,7 @@ wxString wxDateTime::Format(const wxString& formatp, const TimeZone& tz) const
                     res += wxString::Format(fmt, GetWeekOfYear(Sunday_First, tz));
                     break;
 
+                case wxT('V'):       // ISO week number
                 case wxT('W'):       // week number in the year (Monday 1st week day)
                     res += wxString::Format(fmt, GetWeekOfYear(Monday_First, tz));
                     break;
@@ -712,7 +741,7 @@ wxString wxDateTime::Format(const wxString& formatp, const TimeZone& tz) const
                     // no, it wasn't the width
                     wxFAIL_MSG(wxT("unknown format specifier"));
 
-                    // fall through and just copy it nevertheless
+                    wxFALLTHROUGH;
 
                 case wxT('%'):       // a percent sign
                     res += *p;
@@ -938,7 +967,14 @@ wxDateTime::ParseRfc822Date(const wxString& date, wxString::const_iterator *end)
 
     // the spec was correct, construct the date from the values we found
     Set(day, mon, year, hour, min, sec);
-    MakeFromTimezone(TimeZone::Make(offset*SEC_PER_MIN));
+
+    // As always, dealing with the time zone is the most interesting part: we
+    // can't just use MakeFromTimeZone() here because it wouldn't handle the
+    // DST correctly because the TZ specified in the string is DST-invariant
+    // and so we have to manually shift to the UTC first and then convert to
+    // the local TZ.
+    *this -= wxTimeSpan::Minutes(offset);
+    MakeFromUTC();
 
     if ( end )
         *end = p;
@@ -1495,7 +1531,7 @@ wxDateTime::ParseFormat(const wxString& date,
             case 0:             // the end of string
                 wxFAIL_MSG(wxT("unexpected format end"));
 
-                // fall through
+                wxFALLTHROUGH;
 
             default:            // not a known format spec
                 return false;
@@ -2098,8 +2134,7 @@ wxDateTime::ParseTime(const wxString& time, wxString::const_iterator *end)
         const wxString timeString = wxGetTranslation(stdTimes[n].name);
         if ( timeString.CmpNoCase(wxString(time, timeString.length())) == 0 )
         {
-            // casts required by DigitalMars
-            Set(stdTimes[n].hour, wxDateTime_t(0), wxDateTime_t(0));
+            Set(stdTimes[n].hour, 0, 0);
 
             if ( end )
                 *end = time.begin() + timeString.length();
@@ -2262,7 +2297,7 @@ wxString wxTimeSpan::Format(const wxString& format) const
             {
                 default:
                     wxFAIL_MSG( wxT("invalid format character") );
-                    // fall through
+                    wxFALLTHROUGH;
 
                 case wxT('%'):
                     str += ch;

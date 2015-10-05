@@ -20,17 +20,6 @@
 #include "wx/osx/core/cfstring.h"
 #include "wx/osx/core/cfdataref.h"
 
-// Define helper macros allowing to insert small snippets of code to be
-// compiled for high enough OS X version only: this shouldn't be abused for
-// anything big but it's handy for e.g. specifying OS X 10.6-only protocols in
-// the Objective C classes declarations when they're not supported under the
-// previous versions
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-    #define wxOSX_10_6_AND_LATER(x) x
-#else
-    #define wxOSX_10_6_AND_LATER(x)
-#endif
-
 // platform specific Clang analyzer support
 #ifndef NS_RETURNS_RETAINED
 #   if WX_HAS_CLANG_FEATURE(attribute_ns_returns_retained)
@@ -53,8 +42,6 @@
 // Carbon functions are currently still used in wxOSX/Cocoa too (including
 // wxBase part of it).
 #include <Carbon/Carbon.h>
-
-WXDLLIMPEXP_BASE long UMAGetSystemVersion() ;
 
 void WXDLLIMPEXP_CORE wxMacStringToPascal( const wxString&from , unsigned char * to );
 wxString WXDLLIMPEXP_CORE wxMacMakeStringFromPascal( const unsigned char * from );
@@ -179,7 +166,7 @@ public :
 protected :
     wxMenuItem* m_peer;
 
-    DECLARE_ABSTRACT_CLASS(wxMenuItemImpl)
+    wxDECLARE_ABSTRACT_CLASS(wxMenuItemImpl);
 } ;
 
 class wxMenuImpl : public wxObject
@@ -202,13 +189,18 @@ public :
     wxMenu* GetWXPeer() { return m_peer ; }
 
     virtual void PopUp( wxWindow *win, int x, int y ) = 0;
+    
+    virtual void GetMenuBarDimensions(int &x, int &y, int &width, int &height) const
+    {
+        x = y = width = height = -1;
+    }
 
     static wxMenuImpl* Create( wxMenu* peer, const wxString& title );
     static wxMenuImpl* CreateRootMenu( wxMenu* peer );
 protected :
     wxMenu* m_peer;
 
-    DECLARE_ABSTRACT_CLASS(wxMenuItemImpl)
+    wxDECLARE_ABSTRACT_CLASS(wxMenuItemImpl);
 } ;
 #endif
 
@@ -313,7 +305,7 @@ public :
     virtual void        SetBitmap( const wxBitmap& bitmap ) = 0;
     virtual void        SetBitmapPosition( wxDirection dir ) = 0;
     virtual void        SetupTabs( const wxNotebook& WXUNUSED(notebook) ) {}
-    virtual int         TabHitTest( const wxPoint & WXUNUSED(pt), long *flags ) {*flags=1; return -1;};
+    virtual int         TabHitTest( const wxPoint & WXUNUSED(pt), long *flags ) {*flags=1; return -1;}
     virtual void        GetBestRect( wxRect *r ) const = 0;
     virtual bool        IsEnabled() const = 0;
     virtual void        Enable( bool enable ) = 0;
@@ -563,7 +555,7 @@ protected :
     bool                m_needsFrame;
     bool                m_shouldSendEvents;
 
-    DECLARE_ABSTRACT_CLASS(wxWidgetImpl)
+    wxDECLARE_ABSTRACT_CLASS(wxWidgetImpl);
 };
 
 //
@@ -855,6 +847,10 @@ public :
 
     virtual void SetTitle( const wxString& title, wxFontEncoding encoding ) = 0;
 
+    virtual bool EnableCloseButton(bool enable) = 0;
+    virtual bool EnableMaximizeButton(bool enable) = 0;
+    virtual bool EnableMinimizeButton(bool enable) = 0;
+
     virtual bool IsMaximized() const = 0;
 
     virtual bool IsIconized() const= 0;
@@ -866,6 +862,8 @@ public :
     virtual bool IsFullScreen() const= 0;
 
     virtual void ShowWithoutActivating() { Show(true); }
+
+    virtual bool EnableFullScreenView(bool enable) = 0;
 
     virtual bool ShowFullScreen(bool show, long style)= 0;
 
@@ -906,7 +904,7 @@ public :
     virtual void RestoreWindowLevel() {}
 protected :
     wxNonOwnedWindow*   m_wxPeer;
-    DECLARE_ABSTRACT_CLASS(wxNonOwnedWindowImpl)
+    wxDECLARE_ABSTRACT_CLASS(wxNonOwnedWindowImpl);
 };
 
 #endif // wxUSE_GUI

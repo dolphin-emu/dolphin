@@ -256,7 +256,7 @@ void wxMacListBoxItem::Notification(wxMacDataItemBrowserControl *owner ,
     }
 }
 
-IMPLEMENT_DYNAMIC_CLASS( wxMacDataBrowserListControl , wxMacDataItemBrowserControl )
+wxIMPLEMENT_DYNAMIC_CLASS(wxMacDataBrowserListControl, wxMacDataItemBrowserControl);
 
 wxMacDataBrowserListControl::wxMacDataBrowserListControl( wxWindow *peer, const wxPoint& pos, const wxSize& size, long style)
     : wxMacDataItemBrowserControl( peer, pos, size, style )

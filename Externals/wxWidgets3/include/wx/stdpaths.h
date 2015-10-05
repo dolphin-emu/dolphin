@@ -49,6 +49,15 @@ public:
         AppInfo_VendorName = 2   // the vendor name
     };
 
+    enum Dir
+    {
+        Dir_Documents,
+        Dir_Desktop,
+        Dir_Downloads,
+        Dir_Music,
+        Dir_Pictures,
+        Dir_Videos
+    };
 
     // return the global standard paths object
     static wxStandardPaths& Get();
@@ -130,7 +139,10 @@ public:
     //
     // C:\Documents and Settings\username\My Documents under Windows,
     // $HOME under Unix and ~/Documents under Mac
-    virtual wxString GetDocumentsDir() const;
+    virtual wxString GetDocumentsDir() const
+    {
+        return GetUserDir(Dir_Documents);
+    }
 
     // return the directory for the documents files used by this application:
     // it's a subdirectory of GetDocumentsDir() constructed using the
@@ -140,6 +152,7 @@ public:
     // return the temporary directory for the current user
     virtual wxString GetTempDir() const;
 
+    virtual wxString GetUserDir(Dir userDir) const;
 
     // virtual dtor for the base class
     virtual ~wxStandardPathsBase();
@@ -174,12 +187,12 @@ protected:
     #if defined(__WINDOWS__)
         #include "wx/msw/stdpaths.h"
         #define wxHAS_NATIVE_STDPATHS
+    #elif defined(__WXOSX_COCOA__) || defined(__WXOSX_IPHONE__)
+        #include "wx/osx/cocoa/stdpaths.h"
+        #define wxHAS_NATIVE_STDPATHS
     // We want CoreFoundation paths on both CarbonLib and Darwin (for all ports)
     #elif defined(__WXMAC__) || defined(__DARWIN__)
         #include "wx/osx/core/stdpaths.h"
-        #define wxHAS_NATIVE_STDPATHS
-    #elif defined(__OS2__)
-        #include "wx/os2/stdpaths.h"
         #define wxHAS_NATIVE_STDPATHS
     #elif defined(__UNIX__)
         #include "wx/unix/stdpaths.h"
@@ -208,7 +221,7 @@ public:
     virtual wxString GetLocalDataDir() const { return m_prefix; }
     virtual wxString GetUserDataDir() const { return m_prefix; }
     virtual wxString GetPluginsDir() const { return m_prefix; }
-    virtual wxString GetDocumentsDir() const { return m_prefix; }
+    virtual wxString GetUserDir(Dir WXUNUSED(userDir)) const { return m_prefix; }
 
 protected:
     // Ctor is protected because wxStandardPaths::Get() should always be used

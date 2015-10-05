@@ -30,7 +30,7 @@
 extern WXDLLEXPORT_DATA(const char) wxFileDialogNameStr[] = "filedlg";
 extern WXDLLEXPORT_DATA(const char) wxFileSelectorPromptStr[] = "Select a file";
 extern WXDLLEXPORT_DATA(const char) wxFileSelectorDefaultWildcardStr[] =
-#if defined(__WXMSW__) || defined(__OS2__)
+#if defined(__WXMSW__)
     "*.*"
 #else // Unix/Mac
     "*"
@@ -41,7 +41,7 @@ extern WXDLLEXPORT_DATA(const char) wxFileSelectorDefaultWildcardStr[] =
 // wxFileDialogBase
 //----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxFileDialogBase, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFileDialogBase, wxDialog);
 
 void wxFileDialogBase::Init()
 {
@@ -132,19 +132,6 @@ bool wxFileDialogBase::Create(wxWindow *parent,
     return true;
 }
 
-#if WXWIN_COMPATIBILITY_2_6
-long wxFileDialogBase::GetStyle() const
-{
-    return GetWindowStyle();
-}
-
-void wxFileDialogBase::SetStyle(long style)
-{
-    SetWindowStyle(style);
-}
-#endif // WXWIN_COMPATIBILITY_2_6
-
-
 wxString wxFileDialogBase::AppendExtension(const wxString &filePath,
                                            const wxString &extensionList)
 {
@@ -213,7 +200,12 @@ void wxFileDialogBase::SetPath(const wxString& path)
     wxString ext;
     wxFileName::SplitPath(path, &m_dir, &m_fileName, &ext);
     if ( !ext.empty() )
+    {
+        SetFilterIndexFromExt(ext);
+
         m_fileName << wxT('.') << ext;
+    }
+
     m_path = path;
 }
 
@@ -227,6 +219,30 @@ void wxFileDialogBase::SetFilename(const wxString& name)
 {
     m_fileName = name;
     m_path = wxFileName(m_dir, m_fileName).GetFullPath();
+}
+
+void wxFileDialogBase::SetFilterIndexFromExt(const wxString& ext)
+{
+    // if filter is of form "All files (*)|*|..." set correct filter index
+    if ( !ext.empty() && m_wildCard.find(wxT('|')) != wxString::npos )
+    {
+        int filterIndex = -1;
+
+        wxArrayString descriptions, filters;
+        // don't care about errors, handled already by wxFileDialog
+        (void)wxParseCommonDialogsFilter(m_wildCard, descriptions, filters);
+        for (size_t n=0; n<filters.GetCount(); n++)
+        {
+            if (filters[n].Contains(ext))
+            {
+                filterIndex = n;
+                break;
+            }
+        }
+
+        if (filterIndex >= 0)
+            SetFilterIndex(filterIndex);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -263,26 +279,7 @@ wxString wxFileSelector(const wxString& title,
                             defaultFileName, filter2,
                             flags, wxPoint(x, y));
 
-    // if filter is of form "All files (*)|*|..." set correct filter index
-    if ( !defaultExtension.empty() && filter2.find(wxT('|')) != wxString::npos )
-    {
-        int filterIndex = 0;
-
-        wxArrayString descriptions, filters;
-        // don't care about errors, handled already by wxFileDialog
-        (void)wxParseCommonDialogsFilter(filter2, descriptions, filters);
-        for (size_t n=0; n<filters.GetCount(); n++)
-        {
-            if (filters[n].Contains(defaultExtension))
-            {
-                filterIndex = n;
-                break;
-            }
-        }
-
-        if (filterIndex > 0)
-            fileDialog.SetFilterIndex(filterIndex);
-    }
+    fileDialog.SetFilterIndexFromExt(defaultExtension);
 
     wxString filename;
     if ( fileDialog.ShowModal() == wxID_OK )
@@ -394,18 +391,5 @@ WXDLLEXPORT wxString wxSaveFileSelector(const wxString& what,
 //----------------------------------------------------------------------------
 // wxDirDialogBase
 //----------------------------------------------------------------------------
-
-#if WXWIN_COMPATIBILITY_2_6
-long wxDirDialogBase::GetStyle() const
-{
-    return GetWindowStyle();
-}
-
-void wxDirDialogBase::SetStyle(long style)
-{
-    SetWindowStyle(style);
-}
-#endif // WXWIN_COMPATIBILITY_2_6
-
 
 #endif // wxUSE_FILEDLG

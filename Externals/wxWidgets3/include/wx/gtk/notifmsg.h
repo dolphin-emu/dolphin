@@ -32,8 +32,8 @@ public:
     virtual ~wxNotificationMessage();
 
 
-    virtual bool Show(int timeout = Timeout_Auto);
-    virtual bool Close();
+    virtual bool Show(int timeout = Timeout_Auto) wxOVERRIDE;
+    virtual bool Close() wxOVERRIDE;
 
     // Set the name of the icon to use, overriding the default icon determined
     // by the flags. Call with empty string to reset custom icon.

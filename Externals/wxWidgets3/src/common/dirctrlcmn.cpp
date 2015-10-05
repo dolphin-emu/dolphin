@@ -62,7 +62,7 @@ wxBEGIN_FLAGS( wxGenericDirCtrlStyle )
     wxFLAGS_MEMBER(wxDIRCTRL_SHOW_FILTERS)
 wxEND_FLAGS( wxGenericDirCtrlStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxGenericDirCtrl, wxControl, "wx/dirctrl.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxGenericDirCtrl, wxControl, "wx/dirctrl.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxGenericDirCtrl)
     wxHIDE_PROPERTY( Children )

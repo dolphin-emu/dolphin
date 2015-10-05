@@ -57,18 +57,18 @@ public:
     // if you're passing a reference to a validator.
     // Another possibility is to always pass a pointer to a new validator
     // (so the calling code can use a copy constructor of the relevant class).
-    virtual wxObject *Clone() const { return new wxGenericValidator(*this); }
+    virtual wxObject *Clone() const wxOVERRIDE { return new wxGenericValidator(*this); }
     bool Copy(const wxGenericValidator& val);
 
     // Called when the value in the window must be validated: this is not used
     // by this class
-    virtual bool Validate(wxWindow * WXUNUSED(parent)) { return true; }
+    virtual bool Validate(wxWindow * WXUNUSED(parent)) wxOVERRIDE { return true; }
 
     // Called to transfer data to the window
-    virtual bool TransferToWindow();
+    virtual bool TransferToWindow() wxOVERRIDE;
 
     // Called to transfer data to the window
-    virtual bool TransferFromWindow();
+    virtual bool TransferFromWindow() wxOVERRIDE;
 
 protected:
     void Initialize();
@@ -85,7 +85,7 @@ protected:
     double*     m_pDouble;
 
 private:
-    DECLARE_CLASS(wxGenericValidator)
+    wxDECLARE_CLASS(wxGenericValidator);
     wxDECLARE_NO_ASSIGN_CLASS(wxGenericValidator);
 };
 

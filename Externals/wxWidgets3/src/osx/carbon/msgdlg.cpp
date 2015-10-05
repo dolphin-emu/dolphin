@@ -22,7 +22,7 @@
 #include "wx/osx/uma.h"
 
 
-IMPLEMENT_CLASS(wxMessageDialog, wxDialog)
+wxIMPLEMENT_CLASS(wxMessageDialog, wxDialog);
 
 
 wxMessageDialog::wxMessageDialog(wxWindow *parent,
@@ -160,7 +160,7 @@ int wxMessageDialog::ShowModal()
         wxCFStringRef cfCancelString( GetCancelLabel().c_str(), GetFont().GetEncoding() );
 
         wxCFStringRef cfTitle( msgtitle, GetFont().GetEncoding() );
-        wxCFStringRef cfText = msgtext.IsEmpty() ? NULL : wxCFStringRef( msgtext, GetFont().GetEncoding() );
+        wxCFStringRef cfText = msgtext.IsEmpty() ? wxCFStringRef() : wxCFStringRef( msgtext, GetFont().GetEncoding() );
 
         param.movable = true;
         param.flags = 0;

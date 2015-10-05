@@ -24,7 +24,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_SNGLINST_CHECKER && defined(__WIN32__)
+#if wxUSE_SNGLINST_CHECKER
 
 #ifndef WX_PRECOMP
     #include "wx/string.h"

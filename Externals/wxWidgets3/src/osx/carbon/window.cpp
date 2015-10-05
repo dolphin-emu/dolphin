@@ -787,7 +787,7 @@ void wxMacControl::InstallEventHandler( WXWidget control )
         GetEventTypeCount(eventList), eventList, GetWXPeer(), NULL);
 }
 
-IMPLEMENT_DYNAMIC_CLASS( wxMacControl , wxWidgetImpl )
+wxIMPLEMENT_DYNAMIC_CLASS(wxMacControl, wxWidgetImpl);
 
 wxMacControl::wxMacControl()
 {

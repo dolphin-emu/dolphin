@@ -64,7 +64,7 @@ protected:
     wxIcon               m_icon;
     wxString             m_strTooltip;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxTaskBarIcon)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxTaskBarIcon);
 };
 
 #endif // _WX_TASKBAR_H_

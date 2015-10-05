@@ -32,7 +32,7 @@
     #include "PLStringFuncs.h"
 #endif
 
-IMPLEMENT_CLASS(wxFileDialog, wxFileDialogBase)
+wxIMPLEMENT_CLASS(wxFileDialog, wxFileDialogBase);
 
 // the data we need to pass to our standard file hook routine
 // includes a pointer to the dialog, a pointer to the standard

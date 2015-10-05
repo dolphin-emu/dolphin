@@ -71,8 +71,7 @@ public:
     bool GetColour() const { return m_colour; }
     wxDuplexMode GetDuplex() const { return m_duplexMode; }
     wxPaperSize GetPaperId() const { return m_paperId; }
-    const wxSize& GetPaperSize() const { return m_paperSize; } // Not used yet: confusable with paper size
-                                                                      // in wxPageSetupDialogData
+    const wxSize& GetPaperSize() const { return m_paperSize; }
     wxPrintQuality GetQuality() const { return m_printQuality; }
     wxPrintBin GetBin() const { return m_bin; }
     wxPrintMode GetPrintMode() const { return m_printMode; }
@@ -138,7 +137,7 @@ private:
     wxPrintNativeDataBase  *m_nativeData;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxPrintData)
+    wxDECLARE_DYNAMIC_CLASS(wxPrintData);
 };
 
 /*
@@ -213,7 +212,7 @@ private:
     wxPrintData     m_printData;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxPrintDialogData)
+    wxDECLARE_DYNAMIC_CLASS(wxPrintDialogData);
 };
 
 /*
@@ -302,7 +301,7 @@ private:
     wxPrintData     m_printData;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxPageSetupDialogData)
+    wxDECLARE_DYNAMIC_CLASS(wxPageSetupDialogData);
 };
 
 #endif // wxUSE_PRINTING_ARCHITECTURE

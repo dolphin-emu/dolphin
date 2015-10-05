@@ -35,16 +35,16 @@
 // event table
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxTopLevelWindowBase, wxWindow)
+wxBEGIN_EVENT_TABLE(wxTopLevelWindowBase, wxWindow)
     EVT_CLOSE(wxTopLevelWindowBase::OnCloseWindow)
     EVT_SIZE(wxTopLevelWindowBase::OnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
 // ============================================================================
 
-IMPLEMENT_ABSTRACT_CLASS(wxTopLevelWindow, wxWindow)
+wxIMPLEMENT_ABSTRACT_CLASS(wxTopLevelWindow, wxWindow);
 
 // ----------------------------------------------------------------------------
 // construction/destruction
@@ -101,6 +101,16 @@ wxTopLevelWindowBase::~wxTopLevelWindowBase()
 
 bool wxTopLevelWindowBase::Destroy()
 {
+    // We can't delay the destruction if our parent is being already destroyed
+    // as we will be deleted anyhow during its destruction and the pointer
+    // stored in wxPendingDelete would become invalid, so just delete ourselves
+    // immediately in this case.
+    if ( wxWindow* parent = GetParent() )
+    {
+        if ( parent->IsBeingDeleted() )
+            return wxNonOwnedWindow::Destroy();
+    }
+
     // delayed destruction: the frame will be deleted during the next idle
     // loop iteration
     if ( !wxPendingDelete.Member(this) )
@@ -136,6 +146,14 @@ bool wxTopLevelWindowBase::IsLastBeforeExit() const
     // first of all, automatically exiting the app on last window close can be
     // completely disabled at wxTheApp level
     if ( !wxTheApp || !wxTheApp->GetExitOnFrameDelete() )
+        return false;
+
+    // second, never terminate the application after closing a child TLW
+    // because this would close its parent unexpectedly -- notice that this
+    // check is not redundant with the loop below, as the parent might return
+    // false from its ShouldPreventAppExit() -- except if the child is being
+    // deleted as part of the parent destruction
+    if ( GetParent() && !GetParent()->IsBeingDeleted() )
         return false;
 
     wxWindowList::const_iterator i;
@@ -325,11 +343,7 @@ void wxTopLevelWindowBase::DoClientToScreen(int *x, int *y) const
 
 bool wxTopLevelWindowBase::IsAlwaysMaximized() const
 {
-#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
-    return true;
-#else
     return false;
-#endif
 }
 
 // ----------------------------------------------------------------------------

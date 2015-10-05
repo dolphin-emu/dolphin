@@ -46,12 +46,6 @@
 // macros and constants
 // ----------------------------------------------------------------------------
 
-#ifdef __WIN32__
-    #define _EXPORT
-#else
-    #define _EXPORT _export
-#endif
-
 #if wxUSE_UNICODE
     #define DDE_CP      CP_WINUNICODE
 #else
@@ -71,14 +65,15 @@ static wxDDEConnection *DDEFindConnection(HCONV hConv);
 static void DDEDeleteConnection(HCONV hConv);
 static wxDDEServer *DDEFindServer(const wxString& s);
 
-extern "C" HDDEDATA EXPENTRY _EXPORT _DDECallback(WORD wType,
-                                                  WORD wFmt,
-                                                  HCONV hConv,
-                                                  HSZ hsz1,
-                                                  HSZ hsz2,
-                                                  HDDEDATA hData,
-                                                  DWORD lData1,
-                                                  DWORD lData2);
+extern "C" HDDEDATA EXPENTRY
+_DDECallback(WORD wType,
+             WORD wFmt,
+             HCONV hConv,
+             HSZ hsz1,
+             HSZ hsz2,
+             HDDEDATA hData,
+             DWORD lData1,
+             DWORD lData2);
 
 // Add topic name to atom table before using in conversations
 static HSZ DDEAddAtom(const wxString& string);
@@ -129,17 +124,17 @@ public:
     void OnExit() { wxDDECleanUp(); }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxDDEModule)
+    wxDECLARE_DYNAMIC_CLASS(wxDDEModule);
 };
 
 // ----------------------------------------------------------------------------
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxDDEServer, wxServerBase)
-IMPLEMENT_DYNAMIC_CLASS(wxDDEClient, wxClientBase)
-IMPLEMENT_DYNAMIC_CLASS(wxDDEConnection, wxConnectionBase)
-IMPLEMENT_DYNAMIC_CLASS(wxDDEModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDDEServer, wxServerBase);
+wxIMPLEMENT_DYNAMIC_CLASS(wxDDEClient, wxClientBase);
+wxIMPLEMENT_DYNAMIC_CLASS(wxDDEConnection, wxConnectionBase);
+wxIMPLEMENT_DYNAMIC_CLASS(wxDDEModule, wxModule);
 
 // ============================================================================
 // implementation
@@ -777,7 +772,7 @@ bool wxDDEConnection::DoAdvise(const wxString& item,
 
 #define DDERETURN HDDEDATA
 
-HDDEDATA EXPENTRY _EXPORT
+HDDEDATA EXPENTRY
 _DDECallback(WORD wType,
              WORD wFmt,
              HCONV hConv,

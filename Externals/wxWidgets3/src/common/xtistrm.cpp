@@ -315,7 +315,7 @@ void wxObjectWriter::WriteOneProperty( const wxObject *obj, const wxClassInfo* c
                     wx_dynamic_cast(const wxEnumTypeInfo*,  pi->GetTypeInfo() );
                 if ( eti )
                 {
-                    eti->ConvertFromLong( wxANY_AS(value, long ), value );
+                    eti->ConvertFromLong( value.As<long >(), value );
                 }
                 else
                 {

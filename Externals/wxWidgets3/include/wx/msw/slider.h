@@ -91,6 +91,8 @@ public:
     virtual bool Show(bool show = true);
     virtual bool Enable(bool show = true);
     virtual bool SetFont(const wxFont& font);
+    virtual bool SetForegroundColour(const wxColour& colour);
+    virtual bool SetBackgroundColour(const wxColour& colour);
 
     virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const;
 
@@ -118,8 +120,14 @@ protected:
     virtual void DoMoveWindow(int x, int y, int width, int height);
     virtual wxSize DoGetBestSize() const;
 
+    WXHBRUSH DoMSWControlColor(WXHDC pDC, wxColour colBg, WXHWND hWnd) wxOVERRIDE;
+
+
     // the labels windows, if any
     wxSubwindows  *m_labels;
+
+    // Last background brush we returned from DoMSWControlColor(), see there.
+    WXHBRUSH m_hBrushBg;
 
     int           m_rangeMin;
     int           m_rangeMax;
@@ -134,7 +142,7 @@ protected:
     // Platform-specific implementation of SetTickFreq
     virtual void DoSetTickFreq(int freq);
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxSlider)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxSlider);
 };
 
 #endif // _WX_SLIDER_H_

@@ -39,12 +39,13 @@
 #include "wx/imaglist.h"
 #include "wx/renderer.h"
 #include "wx/generic/private/listctrl.h"
+#include "wx/generic/private/widthcalc.h"
 
 #ifdef __WXMAC__
     #include "wx/osx/private.h"
 #endif
 
-#if defined(__WXMSW__) && !defined(__WXWINCE__) && !defined(__WXUNIVERSAL__)
+#if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
     #define "wx/msw/wrapwin.h"
 #endif
 
@@ -930,10 +931,10 @@ void wxListLineData::ReverseHighlight( void )
 //  wxListHeaderWindow
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxListHeaderWindow,wxWindow)
+wxBEGIN_EVENT_TABLE(wxListHeaderWindow,wxWindow)
     EVT_PAINT         (wxListHeaderWindow::OnPaint)
     EVT_MOUSE_EVENTS  (wxListHeaderWindow::OnMouse)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxListHeaderWindow::Init()
 {
@@ -1110,7 +1111,7 @@ void wxListHeaderWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
         {
             default:
                 wxFAIL_MSG( wxT("unknown list item format") );
-                // fall through
+                wxFALLTHROUGH;
 
             case wxLIST_FORMAT_LEFT:
                 xAligned = x;
@@ -1387,11 +1388,11 @@ void wxListFindTimer::Notify()
 // wxListTextCtrlWrapper (internal)
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxListTextCtrlWrapper, wxEvtHandler)
+wxBEGIN_EVENT_TABLE(wxListTextCtrlWrapper, wxEvtHandler)
     EVT_CHAR           (wxListTextCtrlWrapper::OnChar)
     EVT_KEY_UP         (wxListTextCtrlWrapper::OnKeyUp)
     EVT_KILL_FOCUS     (wxListTextCtrlWrapper::OnKillFocus)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxListTextCtrlWrapper::wxListTextCtrlWrapper(wxListMainWindow *owner,
                                              wxTextCtrl *text,
@@ -1420,6 +1421,13 @@ wxListTextCtrlWrapper::wxListTextCtrlWrapper(wxListMainWindow *owner,
 
 void wxListTextCtrlWrapper::EndEdit(EndReason reason)
 {
+    if( m_aboutToFinish )
+    {
+        // We already called Finish which cannot be called
+        // more than once.
+        return;
+    }
+
     m_aboutToFinish = true;
 
     switch ( reason )
@@ -1525,6 +1533,7 @@ void wxListTextCtrlWrapper::OnKillFocus( wxFocusEvent &event )
 {
     if ( !m_aboutToFinish )
     {
+        m_aboutToFinish = true;
         if ( !AcceptChanges() )
             m_owner->OnRenameCancelled( m_itemEdited );
 
@@ -1539,7 +1548,7 @@ void wxListTextCtrlWrapper::OnKillFocus( wxFocusEvent &event )
 //  wxListMainWindow
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxListMainWindow, wxWindow)
+wxBEGIN_EVENT_TABLE(wxListMainWindow, wxWindow)
   EVT_PAINT          (wxListMainWindow::OnPaint)
   EVT_MOUSE_EVENTS   (wxListMainWindow::OnMouse)
   EVT_CHAR_HOOK      (wxListMainWindow::OnCharHook)
@@ -1550,7 +1559,7 @@ BEGIN_EVENT_TABLE(wxListMainWindow, wxWindow)
   EVT_KILL_FOCUS     (wxListMainWindow::OnKillFocus)
   EVT_SCROLLWIN      (wxListMainWindow::OnScroll)
   EVT_CHILD_FOCUS    (wxListMainWindow::OnChildFocus)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxListMainWindow::Init()
 {
@@ -1927,6 +1936,13 @@ void wxListMainWindow::RefreshLines( size_t lineFrom, size_t lineTo )
         size_t visibleFrom, visibleTo;
         GetVisibleLinesRange(&visibleFrom, &visibleTo);
 
+        if ( lineFrom > visibleTo || lineTo < visibleFrom )
+        {
+            // None of these lines are currently visible at all, don't bother
+            // doing anything.
+            return;
+        }
+
         if ( lineFrom < visibleFrom )
             lineFrom = visibleFrom;
         if ( lineTo > visibleTo )
@@ -2250,6 +2266,17 @@ wxTextCtrl *wxListMainWindow::EditLabel(long item, wxClassInfo* textControlClass
     wxTextCtrl * const text = (wxTextCtrl *)textControlClass->CreateObject();
     m_textctrlWrapper = new wxListTextCtrlWrapper(this, text, item);
     return m_textctrlWrapper->GetText();
+}
+
+bool wxListMainWindow::EndEditLabel(bool cancel)
+{
+    if (!m_textctrlWrapper)
+    {
+        return false;
+    }
+
+    m_textctrlWrapper->EndEdit(cancel ? wxListTextCtrlWrapper::End_Discard : wxListTextCtrlWrapper::End_Accept);
+    return true;
 }
 
 void wxListMainWindow::OnRenameTimer()
@@ -2622,7 +2649,7 @@ void wxListMainWindow::MoveToItem(size_t item)
         if (rect.y + rect.height + 5 > view_y + client_h)
             GetListCtrl()->Scroll( -1, (rect.y + rect.height - client_h + hLine) / hLine );
 
-#ifdef __WXMAC__
+#if defined(__WXMAC__) || defined(__WXUNIVERSAL__)
         // At least on Mac the visible lines value will get reset inside of
         // Scroll *before* it actually scrolls the window because of the
         // Update() that happens there, so it will still have the wrong value.
@@ -2630,6 +2657,7 @@ void wxListMainWindow::MoveToItem(size_t item)
         // next paint event.  I would expect this problem to show up in wxGTK
         // too but couldn't duplicate it there.  Perhaps the order of events
         // is different...  --Robin
+        // Same in wxUniv/X11
         ResetVisibleLinesRange();
 #endif
     }
@@ -2672,7 +2700,7 @@ bool wxListMainWindow::ScrollList(int WXUNUSED(dx), int dy)
 
     GetListCtrl()->Scroll(-1, top + dy / hLine);
 
-#ifdef __WXMAC__
+#if defined(__WXMAC__) || defined(__WXUNIVERSAL__)
     // see comment in MoveToItem() for why we do this
     ResetVisibleLinesRange();
 #endif
@@ -3167,6 +3195,35 @@ void wxListMainWindow::SetColumn( int col, const wxListItem &item )
     m_headerWidth = 0;
 }
 
+class wxListCtrlMaxWidthCalculator : public wxMaxWidthCalculatorBase
+{
+public:
+    wxListCtrlMaxWidthCalculator(wxListMainWindow *listmain, unsigned int column)
+        : wxMaxWidthCalculatorBase(column),
+          m_listmain(listmain)
+    {
+    }
+
+    virtual void UpdateWithRow(int row) wxOVERRIDE
+    {
+        wxListLineData *line = m_listmain->GetLine( row );
+        wxListItemDataList::compatibility_iterator n = line->m_items.Item( GetColumn() );
+
+        wxCHECK_RET( n, wxS("no subitem?") );
+
+        wxListItemData* const itemData = n->GetData();
+
+        wxListItem item;
+        itemData->GetItem(item);
+
+        UpdateWithWidth(m_listmain->GetItemWidthWithImage(&item));
+    }
+
+private:
+    wxListMainWindow* const m_listmain;
+};
+
+
 void wxListMainWindow::SetColumnWidth( int col, int width )
 {
     wxCHECK_RET( col >= 0 && col < GetColumnCount(),
@@ -3188,48 +3245,42 @@ void wxListMainWindow::SetColumnWidth( int col, int width )
 
     size_t count = GetItemCount();
 
-    if (width == wxLIST_AUTOSIZE_USEHEADER)
+    if ( width == wxLIST_AUTOSIZE_USEHEADER || width == wxLIST_AUTOSIZE )
     {
-        width = ComputeMinHeaderWidth(column);
-    }
-    else if ( width == wxLIST_AUTOSIZE )
-    {
-        width = ComputeMinHeaderWidth(column);
+        wxListCtrlMaxWidthCalculator calculator(this, col);
 
-        if ( !IsVirtual() )
+        calculator.UpdateWithWidth(AUTOSIZE_COL_MARGIN);
+
+        if ( width == wxLIST_AUTOSIZE_USEHEADER )
+            calculator.UpdateWithWidth(ComputeMinHeaderWidth(column));
+
+        //  if the cached column width isn't valid then recalculate it
+        wxColWidthInfo* const pWidthInfo = m_aColWidths.Item(col);
+        if ( pWidthInfo->bNeedsUpdate )
         {
-            wxClientDC dc(this);
-            dc.SetFont( GetFont() );
+            size_t first_visible, last_visible;
+            GetVisibleLinesRange(&first_visible, &last_visible);
 
-            int max = AUTOSIZE_COL_MARGIN;
-
-            //  if the cached column width isn't valid then recalculate it
-            if (m_aColWidths.Item(col)->bNeedsUpdate)
-            {
-                for (size_t i = 0; i < count; i++)
-                {
-                    wxListLineData *line = GetLine( i );
-                    wxListItemDataList::compatibility_iterator n = line->m_items.Item( col );
-
-                    wxCHECK_RET( n, wxT("no subitem?") );
-
-                    wxListItemData *itemData = n->GetData();
-                    wxListItem      item;
-
-                    itemData->GetItem(item);
-                    int itemWidth = GetItemWidthWithImage(&item);
-                    if (itemWidth > max)
-                        max = itemWidth;
-                }
-
-                m_aColWidths.Item(col)->bNeedsUpdate = false;
-                m_aColWidths.Item(col)->nMaxWidth = max;
-            }
-
-            max = m_aColWidths.Item(col)->nMaxWidth + AUTOSIZE_COL_MARGIN;
-            if ( width < max )
-                width = max;
+            calculator.ComputeBestColumnWidth(count, first_visible, last_visible);
+            pWidthInfo->nMaxWidth = calculator.GetMaxWidth();
+            pWidthInfo->bNeedsUpdate = false;
         }
+        else
+        {
+            calculator.UpdateWithWidth(pWidthInfo->nMaxWidth);
+        }
+
+        // expand the last column to fit the client size
+        // only for AUTOSIZE_USEHEADER to mimic MSW behaviour
+        int margin = 0;
+        if ( (width == wxLIST_AUTOSIZE_USEHEADER) && (col == GetColumnCount() - 1) )
+        {
+            margin = GetClientSize().GetX();
+            for ( int i = 0; i < col && margin > 0; ++i )
+                margin -= m_columns.Item(i)->GetData()->GetWidth();
+        }
+
+        width = wxMax(margin, calculator.GetMaxWidth() + AUTOSIZE_COL_MARGIN);
     }
 
     column->SetWidth( width );
@@ -3296,8 +3347,12 @@ void wxListMainWindow::SetItem( wxListItem &item )
             //  update the Max Width Cache if needed
             int width = GetItemWidthWithImage(&item);
 
-            if (width > m_aColWidths.Item(item.m_col)->nMaxWidth)
-                m_aColWidths.Item(item.m_col)->nMaxWidth = width;
+            wxColWidthInfo* const pWidthInfo = m_aColWidths.Item(item.m_col);
+            if ( width > pWidthInfo->nMaxWidth )
+            {
+                pWidthInfo->nMaxWidth = width;
+                pWidthInfo->bNeedsUpdate = true;
+            }
         }
     }
 
@@ -3940,8 +3995,9 @@ void wxListMainWindow::DeleteItem( long lindex )
 
             itemWidth = GetItemWidthWithImage(&item);
 
-            if (itemWidth >= m_aColWidths.Item(i)->nMaxWidth)
-                m_aColWidths.Item(i)->bNeedsUpdate = true;
+            wxColWidthInfo *pWidthInfo = m_aColWidths.Item(i);
+            if ( itemWidth >= pWidthInfo->nMaxWidth )
+                pWidthInfo->bNeedsUpdate = true;
         }
 
         ResetVisibleLinesRange();
@@ -4014,6 +4070,13 @@ void wxListMainWindow::DeleteColumn( int col )
 
 void wxListMainWindow::DoDeleteAllItems()
 {
+    // We will need to update all columns if any items are inserted again.
+    if ( InReportView() )
+    {
+        for ( size_t i = 0; i < m_aColWidths.GetCount(); i++ )
+            m_aColWidths.Item(i)->bNeedsUpdate = true;
+    }
+
     if ( IsEmpty() )
         // nothing to do - in particular, don't send the event
         return;
@@ -4036,13 +4099,7 @@ void wxListMainWindow::DoDeleteAllItems()
     }
 
     if ( InReportView() )
-    {
         ResetVisibleLinesRange();
-        for (size_t i = 0; i < m_aColWidths.GetCount(); i++)
-        {
-            m_aColWidths.Item(i)->bNeedsUpdate = true;
-        }
-    }
 
     m_lines.Clear();
 }
@@ -4206,7 +4263,10 @@ void wxListMainWindow::InsertItem( wxListItem &item )
         int width = GetItemWidthWithImage(&item);
         item.SetWidth(width);
         if (width > pWidthInfo->nMaxWidth)
+        {
             pWidthInfo->nMaxWidth = width;
+            pWidthInfo->bNeedsUpdate = true;
+        }
     }
 
     wxListLineData *line = new wxListLineData(this);
@@ -4252,7 +4312,7 @@ long wxListMainWindow::InsertColumn( long col, const wxListItem &item )
         if (item.m_width == wxLIST_AUTOSIZE_USEHEADER)
             column->SetWidth(ComputeMinHeaderWidth(column));
 
-        wxColWidthInfo *colWidthInfo = new wxColWidthInfo();
+        wxColWidthInfo *colWidthInfo = new wxColWidthInfo(0, IsVirtual());
 
         bool insert = (col >= 0) && ((size_t)col < m_columns.GetCount());
         if ( insert )
@@ -4477,12 +4537,12 @@ wxListMainWindow::PrefixFindItem(size_t idParent,
 // wxGenericListCtrl
 // -------------------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericListCtrl, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericListCtrl, wxControl);
 
-BEGIN_EVENT_TABLE(wxGenericListCtrl,wxListCtrlBase)
+wxBEGIN_EVENT_TABLE(wxGenericListCtrl,wxListCtrlBase)
   EVT_SIZE(wxGenericListCtrl::OnSize)
   EVT_SCROLLWIN(wxGenericListCtrl::OnScroll)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxGenericListCtrl::Init()
 {
@@ -4595,7 +4655,7 @@ wxBorder wxGenericListCtrl::GetDefaultBorder() const
     return wxBORDER_THEME;
 }
 
-#if defined(__WXMSW__) && !defined(__WXWINCE__) && !defined(__WXUNIVERSAL__)
+#if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
 WXLRESULT wxGenericListCtrl::MSWWindowProc(WXUINT nMsg,
                                        WXWPARAM wParam,
                                        WXLPARAM lParam)
@@ -4875,13 +4935,6 @@ wxSize wxGenericListCtrl::GetItemSpacing() const
     return wxSize(spacing, spacing);
 }
 
-#if WXWIN_COMPATIBILITY_2_6
-int wxGenericListCtrl::GetItemSpacing( bool isSmall ) const
-{
-    return m_mainWin->GetItemSpacing( isSmall );
-}
-#endif // WXWIN_COMPATIBILITY_2_6
-
 void wxGenericListCtrl::SetItemTextColour( long item, const wxColour &col )
 {
     wxListItem info;
@@ -5055,6 +5108,11 @@ wxTextCtrl *wxGenericListCtrl::EditLabel(long item,
                                          wxClassInfo* textControlClass)
 {
     return m_mainWin->EditLabel( item, textControlClass );
+}
+
+bool wxGenericListCtrl::EndEditLabel(bool cancel)
+{
+    return m_mainWin->EndEditLabel(cancel);
 }
 
 wxTextCtrl *wxGenericListCtrl::GetEditControl() const

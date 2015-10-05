@@ -34,9 +34,6 @@
 // ============================================================================
 
 
-#include "wx/cocoa/autorelease.h"
-#include "wx/cocoa/string.h"
-
 #if wxOSX_USE_EXPERIMENTAL_FONTDIALOG
 
 #import <Foundation/Foundation.h>
@@ -146,7 +143,7 @@ int RunMixedFontDialog(wxFontDialog* dialog)
 #endif
     int retval = wxID_CANCEL ;
 
-    wxAutoNSAutoreleasePool pool;
+    wxMacAutoreleasePool pool;
 
     // setting up the ok/cancel buttons
     NSFontPanel* fontPanel = [NSFontPanel sharedFontPanel] ;
@@ -161,8 +158,8 @@ int RunMixedFontDialog(wxFontDialog* dialog)
     [fontPanel setFloatingPanel:NO] ;
     [[fontPanel standardWindowButton:NSWindowCloseButton] setEnabled:NO] ;
 
-    wxMacFontPanelAccView* accessoryView = (wxMacFontPanelAccView*) [fontPanel accessoryView] ;
-    if ( accessoryView == nil)
+    wxMacFontPanelAccView* accessoryView = nil;
+    if ( [fontPanel accessoryView] == nil || [[fontPanel accessoryView] class] != [wxMacFontPanelAccView class] )
     {
         NSRect rectBox = NSMakeRect( 0 , 0 , 192 , 40 );
         accessoryView = [[wxMacFontPanelAccView alloc] initWithFrame:rectBox];
@@ -170,6 +167,10 @@ int RunMixedFontDialog(wxFontDialog* dialog)
         [accessoryView release];
 
         [fontPanel setDefaultButtonCell:[[accessoryView okButton] cell]] ;
+    }
+    else
+    {
+        accessoryView = (wxMacFontPanelAccView*)[fontPanel accessoryView];
     }
 
     [accessoryView resetFlags];
@@ -201,14 +202,14 @@ int RunMixedFontDialog(wxFontDialog* dialog)
     if( FPIsFontPanelVisible())
         FPShowHideFontPanel() ;
 #else
+    // we must pick the selection before closing, otherwise a native textcontrol interferes
+    NSFont* theFont = [fontPanel panelConvertFont:[NSFont userFontOfSize:0]];
     [fontPanel close];
 #endif
 
     if ( [accessoryView closedWithOk])
     {
 #if wxOSX_USE_COCOA
-        NSFont* theFont = [fontPanel panelConvertFont:[NSFont userFontOfSize:0]];
-
         fontdata.m_chosenFont = wxFont( theFont );
 
         //Get the shared color panel along with the chosen color and set the chosen color
@@ -229,7 +230,7 @@ int RunMixedFontDialog(wxFontDialog* dialog)
 
 #if USE_NATIVE_FONT_DIALOG_FOR_MACOSX
 
-IMPLEMENT_DYNAMIC_CLASS(wxFontDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFontDialog, wxDialog);
 
 // Cocoa headers
 
@@ -402,8 +403,8 @@ bool wxFontDialog::Create(wxWindow *parent)
             [[NSFontManager sharedFontManager] fontWithFamily:
                                                     wxNSStringWithWxString(thewxfont.GetFaceName())
                                             traits:theMask
-                                            weight:thewxfont.GetWeight() == wxBOLD ? 9 :
-                                                    thewxfont.GetWeight() == wxLIGHT ? 0 : 5
+                                            weight:thewxfont.GetWeight() == wxFONTWEIGHT_BOLD ? 9 :
+                                                    thewxfont.GetWeight() == wxFONTWEIGHT_LIGHT ? 0 : 5
                                             size: (float)(thewxfont.GetPointSize())
             ];
 
@@ -530,8 +531,8 @@ int wxFontDialog::ShowModal()
     m_fontData.m_chosenFont.SetFaceName(wxStringWithNSString([theFont familyName]));
     m_fontData.m_chosenFont.SetPointSize(theFontSize);
     m_fontData.m_chosenFont.SetStyle(theTraits & NSItalicFontMask ? wxFONTSTYLE_ITALIC : 0);
-    m_fontData.m_chosenFont.SetWeight(theFontWeight < 5 ? wxLIGHT :
-                                    theFontWeight >= 9 ? wxBOLD : wxNORMAL);
+    m_fontData.m_chosenFont.SetWeight(theFontWeight < 5 ? wxFONTWEIGHT_LIGHT :
+                                    theFontWeight >= 9 ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
 
     //Get the shared color panel along with the chosen color and set the chosen color
     NSColor* theColor = [[theColorPanel color] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];

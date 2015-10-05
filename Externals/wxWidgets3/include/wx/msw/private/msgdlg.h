@@ -18,10 +18,7 @@
 // by the task dialogs only. Also notice that task dialogs are available for
 // Unicode applications only.
 #if defined(TD_WARNING_ICON) && wxUSE_UNICODE
-// (shuffle2) This is turned off because as of wxW svn r70933,
-//  there is a bug with the wxPD_AUTO_HIDE style which can cause a non-dolphin
-//  window to come to the foreground after auto-closing of the TaskDialog.
-//    #define wxHAS_MSW_TASKDIALOG
+    #define wxHAS_MSW_TASKDIALOG
 #endif
 
 // Provides methods for creating a task dialog.
@@ -59,7 +56,7 @@ namespace wxMSWMessageDialog
         wxString btnCancelLabel;
         wxString btnHelpLabel;
 
-        // Will create a task dialog with it's paremeters for it's creation
+        // Will create a task dialog with it's parameters for it's creation
         // stored in the provided TASKDIALOGCONFIG parameter.
         // NOTE: The wxMSWTaskDialogConfig object needs to remain accessible
         // during the subsequent call to TaskDialogIndirect().

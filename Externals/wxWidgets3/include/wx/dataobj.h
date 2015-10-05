@@ -83,10 +83,8 @@ public:
     #include "wx/x11/dataform.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/dataform.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/dataform.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/dataform.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/dataform.h"
 #endif
 
 // the value for default argument to some functions (corresponds to
@@ -171,10 +169,8 @@ public:
     #include "wx/gtk1/dataobj.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/dataobj.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/dataobj.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/dataobj.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/dataobj.h"
 #endif
 
 // ----------------------------------------------------------------------------
@@ -225,20 +221,20 @@ public:
 
     // implement base class pure virtuals
     // ----------------------------------
-    virtual wxDataFormat GetPreferredFormat(wxDataObjectBase::Direction WXUNUSED(dir) = Get) const
+    virtual wxDataFormat GetPreferredFormat(wxDataObjectBase::Direction WXUNUSED(dir) = Get) const wxOVERRIDE
         { return m_format; }
-    virtual size_t GetFormatCount(wxDataObjectBase::Direction WXUNUSED(dir) = Get) const
+    virtual size_t GetFormatCount(wxDataObjectBase::Direction WXUNUSED(dir) = Get) const wxOVERRIDE
         { return 1; }
     virtual void GetAllFormats(wxDataFormat *formats,
-                               wxDataObjectBase::Direction WXUNUSED(dir) = Get) const
+                               wxDataObjectBase::Direction WXUNUSED(dir) = Get) const wxOVERRIDE
         { *formats = m_format; }
-    virtual size_t GetDataSize(const wxDataFormat& WXUNUSED(format)) const
+    virtual size_t GetDataSize(const wxDataFormat& WXUNUSED(format)) const wxOVERRIDE
         { return GetDataSize(); }
     virtual bool GetDataHere(const wxDataFormat& WXUNUSED(format),
-                             void *buf) const
+                             void *buf) const wxOVERRIDE
         { return GetDataHere(buf); }
     virtual bool SetData(const wxDataFormat& WXUNUSED(format),
-                         size_t len, const void *buf)
+                         size_t len, const void *buf) wxOVERRIDE
         { return SetData(len, buf); }
 
 private:
@@ -286,12 +282,12 @@ public:
 
     // implement base class pure virtuals
     // ----------------------------------
-    virtual wxDataFormat GetPreferredFormat(wxDataObjectBase::Direction dir = Get) const;
-    virtual size_t GetFormatCount(wxDataObjectBase::Direction dir = Get) const;
-    virtual void GetAllFormats(wxDataFormat *formats, wxDataObjectBase::Direction dir = Get) const;
-    virtual size_t GetDataSize(const wxDataFormat& format) const;
-    virtual bool GetDataHere(const wxDataFormat& format, void *buf) const;
-    virtual bool SetData(const wxDataFormat& format, size_t len, const void *buf);
+    virtual wxDataFormat GetPreferredFormat(wxDataObjectBase::Direction dir = Get) const wxOVERRIDE;
+    virtual size_t GetFormatCount(wxDataObjectBase::Direction dir = Get) const wxOVERRIDE;
+    virtual void GetAllFormats(wxDataFormat *formats, wxDataObjectBase::Direction dir = Get) const wxOVERRIDE;
+    virtual size_t GetDataSize(const wxDataFormat& format) const wxOVERRIDE;
+    virtual bool GetDataHere(const wxDataFormat& format, void *buf) const wxOVERRIDE;
+    virtual bool SetData(const wxDataFormat& format, size_t len, const void *buf) wxOVERRIDE;
 #if defined(__WXMSW__)
     virtual const void* GetSizeFromBuffer( const void* buffer, size_t* size,
                                            const wxDataFormat& format );
@@ -326,7 +322,7 @@ private:
 // ----------------------------------------------------------------------------
 
 #if wxUSE_UNICODE
-    #if defined(__WXGTK20__)
+    #if defined(__WXGTK20__) || defined(__WXX11__)
         #define wxNEEDS_UTF8_FOR_TEXT_DATAOBJ
     #elif defined(__WXMAC__)
         #define wxNEEDS_UTF16_FOR_TEXT_DATAOBJ
@@ -350,20 +346,20 @@ public:
     virtual wxString GetHTML() const { return m_html; }
     virtual void SetHTML(const wxString& html) { m_html = html; }
     
-    virtual size_t GetDataSize() const;
-    virtual bool GetDataHere(void *buf) const;
-    virtual bool SetData(size_t len, const void *buf);
+    virtual size_t GetDataSize() const wxOVERRIDE;
+    virtual bool GetDataHere(void *buf) const wxOVERRIDE;
+    virtual bool SetData(size_t len, const void *buf) wxOVERRIDE;
     
     // Must provide overloads to avoid hiding them (and warnings about it)
-    virtual size_t GetDataSize(const wxDataFormat&) const
+    virtual size_t GetDataSize(const wxDataFormat&) const wxOVERRIDE
     {
         return GetDataSize();
     }
-    virtual bool GetDataHere(const wxDataFormat&, void *buf) const
+    virtual bool GetDataHere(const wxDataFormat&, void *buf) const wxOVERRIDE
     {
         return GetDataHere(buf);
     }
-    virtual bool SetData(const wxDataFormat&, size_t len, const void *buf)
+    virtual bool SetData(const wxDataFormat&, size_t len, const void *buf) wxOVERRIDE
     {
         return SetData(len, buf);
     }
@@ -400,17 +396,17 @@ public:
 
     // some platforms have 2 and not 1 format for text data
 #if defined(wxNEEDS_UTF8_FOR_TEXT_DATAOBJ) || defined(wxNEEDS_UTF16_FOR_TEXT_DATAOBJ)
-    virtual size_t GetFormatCount(Direction WXUNUSED(dir) = Get) const { return 2; }
+    virtual size_t GetFormatCount(Direction WXUNUSED(dir) = Get) const wxOVERRIDE { return 2; }
     virtual void GetAllFormats(wxDataFormat *formats,
-                               wxDataObjectBase::Direction WXUNUSED(dir) = Get) const;
+                               wxDataObjectBase::Direction WXUNUSED(dir) = Get) const wxOVERRIDE;
 
-    virtual size_t GetDataSize() const { return GetDataSize(GetPreferredFormat()); }
-    virtual bool GetDataHere(void *buf) const { return GetDataHere(GetPreferredFormat(), buf); }
-    virtual bool SetData(size_t len, const void *buf) { return SetData(GetPreferredFormat(), len, buf); }
+    virtual size_t GetDataSize() const wxOVERRIDE { return GetDataSize(GetPreferredFormat()); }
+    virtual bool GetDataHere(void *buf) const wxOVERRIDE { return GetDataHere(GetPreferredFormat(), buf); }
+    virtual bool SetData(size_t len, const void *buf) wxOVERRIDE { return SetData(GetPreferredFormat(), len, buf); }
 
-    size_t GetDataSize(const wxDataFormat& format) const;
-    bool GetDataHere(const wxDataFormat& format, void *pBuf) const;
-    bool SetData(const wxDataFormat& format, size_t nLen, const void* pBuf);
+    size_t GetDataSize(const wxDataFormat& format) const wxOVERRIDE;
+    bool GetDataHere(const wxDataFormat& format, void *pBuf) const wxOVERRIDE;
+    bool SetData(const wxDataFormat& format, size_t nLen, const void* pBuf) wxOVERRIDE;
 #else // !wxNEEDS_UTF{8,16}_FOR_TEXT_DATAOBJ
     virtual size_t GetDataSize() const;
     virtual bool GetDataHere(void *buf) const;
@@ -520,19 +516,19 @@ public:
 
     // implement base class pure virtuals
     // ----------------------------------
-    virtual size_t GetDataSize() const;
-    virtual bool GetDataHere(void *buf) const;
-    virtual bool SetData(size_t size, const void *buf);
+    virtual size_t GetDataSize() const wxOVERRIDE;
+    virtual bool GetDataHere(void *buf) const wxOVERRIDE;
+    virtual bool SetData(size_t size, const void *buf) wxOVERRIDE;
     // Must provide overloads to avoid hiding them (and warnings about it)
-    virtual size_t GetDataSize(const wxDataFormat&) const
+    virtual size_t GetDataSize(const wxDataFormat&) const wxOVERRIDE
     {
         return GetDataSize();
     }
-    virtual bool GetDataHere(const wxDataFormat&, void *buf) const
+    virtual bool GetDataHere(const wxDataFormat&, void *buf) const wxOVERRIDE
     {
         return GetDataHere(buf);
     }
-    virtual bool SetData(const wxDataFormat&, size_t len, const void *buf)
+    virtual bool SetData(const wxDataFormat&, size_t len, const void *buf) wxOVERRIDE
     {
         return SetData(len, buf);
     }
@@ -564,10 +560,8 @@ private:
         #include "wx/motif/dataobj2.h"
     #elif defined(__WXMAC__)
         #include "wx/osx/dataobj2.h"
-    #elif defined(__WXCOCOA__)
-        #include "wx/cocoa/dataobj2.h"
-    #elif defined(__WXPM__)
-        #include "wx/os2/dataobj2.h"
+    #elif defined(__WXQT__)
+        #include "wx/qt/dataobj2.h"
     #endif
 
     // wxURLDataObject is simply wxTextDataObject with a different name

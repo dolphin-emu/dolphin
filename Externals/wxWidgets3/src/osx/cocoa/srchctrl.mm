@@ -101,7 +101,7 @@ public :
     ~wxNSSearchFieldControl();
 
     // search field options
-    virtual void ShowSearchButton( bool show )
+    virtual void ShowSearchButton( bool show ) wxOVERRIDE
     {
         if ( show )
             [m_searchFieldCell resetSearchButtonCell];
@@ -110,12 +110,12 @@ public :
         [m_searchField setNeedsDisplay:YES];
     }
 
-    virtual bool IsSearchButtonVisible() const
+    virtual bool IsSearchButtonVisible() const wxOVERRIDE
     {
         return [m_searchFieldCell searchButtonCell] != nil;
     }
 
-    virtual void ShowCancelButton( bool show )
+    virtual void ShowCancelButton( bool show ) wxOVERRIDE
     {
         if ( show )
             [m_searchFieldCell resetCancelButtonCell];
@@ -124,12 +124,12 @@ public :
         [m_searchField setNeedsDisplay:YES];
     }
 
-    virtual bool IsCancelButtonVisible() const
+    virtual bool IsCancelButtonVisible() const wxOVERRIDE
     {
         return [m_searchFieldCell cancelButtonCell] != nil;
     }
 
-    virtual void SetSearchMenu( wxMenu* menu )
+    virtual void SetSearchMenu( wxMenu* menu ) wxOVERRIDE
     {
         if ( menu )
             [m_searchFieldCell setSearchMenuTemplate:menu->GetHMenu()];
@@ -138,24 +138,24 @@ public :
         [m_searchField setNeedsDisplay:YES];
     }
 
-    virtual void SetDescriptiveText(const wxString& text)
+    virtual void SetDescriptiveText(const wxString& text) wxOVERRIDE
     {
         [m_searchFieldCell setPlaceholderString:
             wxCFStringRef( text , m_wxPeer->GetFont().GetEncoding() ).AsNSString()];
     }
 
-    virtual bool SetFocus()
+    virtual bool SetFocus() wxOVERRIDE
     {
        return  wxNSTextFieldControl::SetFocus();
     }
 
-    void controlAction( WXWidget WXUNUSED(slf), void *WXUNUSED(_cmd), void *WXUNUSED(sender))
+    void controlAction( WXWidget WXUNUSED(slf), void *WXUNUSED(_cmd), void *WXUNUSED(sender)) wxOVERRIDE
     {
         wxSearchCtrl* wxpeer = (wxSearchCtrl*) GetWXPeer();
         if ( wxpeer )
         {
             NSString *searchString = [m_searchField stringValue];
-            if ( searchString == nil )
+            if ( searchString == nil || !searchString.length )
             {
                 wxpeer->HandleSearchFieldCancelHit();
             }
@@ -165,7 +165,25 @@ public :
             }
         }
     }
-    
+
+    virtual void SetCentredLook( bool centre )
+    {
+        SEL sel = @selector(setCenteredLook:);
+        if ( [m_searchFieldCell respondsToSelector: sel] )
+        {
+            // all this avoids xcode parsing warnings when using
+            // [m_searchFieldCell setCenteredLook:NO];
+            NSMethodSignature* signature =
+            [NSSearchFieldCell instanceMethodSignatureForSelector:sel];
+            NSInvocation* invocation =
+            [NSInvocation invocationWithMethodSignature: signature];
+            [invocation setTarget: m_searchFieldCell];
+            [invocation setSelector:sel];
+            [invocation setArgument:&centre atIndex:2];
+            [invocation invoke];
+        }
+    }
+
 private:
     wxNSSearchField* m_searchField;
     NSSearchFieldCell* m_searchFieldCell;
@@ -186,12 +204,17 @@ wxWidgetImplType* wxWidgetImpl::CreateSearchControl( wxSearchCtrl* wxpeer,
 {
     NSRect r = wxOSXGetFrameForControl( wxpeer, pos , size ) ;
     wxNSSearchField* v = [[wxNSSearchField alloc] initWithFrame:r];
+
+    // Make it behave consistently with the single line wxTextCtrl
+    [[v cell] setScrollable:YES];
+
     [[v cell] setSendsWholeSearchString:YES];
     // per wx default cancel is not shown
     [[v cell] setCancelButtonCell:nil];
 
     wxNSSearchFieldControl* c = new wxNSSearchFieldControl( wxpeer, v );
     c->SetNeedsFrame( false );
+    c->SetCentredLook( false );
     c->SetStringValue( str );
     return c;
 }

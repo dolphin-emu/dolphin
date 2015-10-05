@@ -71,31 +71,21 @@ int wxDisplayDepth()
 {
     int theDepth = 0;
     
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
-    if ( UMAGetSystemVersion() >= 0x1060 ) 
-    {
-        CGDisplayModeRef currentMode = CGDisplayCopyDisplayMode(kCGDirectMainDisplay);
-        CFStringRef encoding = CGDisplayModeCopyPixelEncoding(currentMode);
-        
-        if(CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
-            theDepth = 32;
-        else if(CFStringCompare(encoding, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
-            theDepth = 16;
-        else if(CFStringCompare(encoding, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
-            theDepth = 8;
-        else
-            theDepth = 32; // some reasonable default
-
-        CFRelease(encoding);
-        CGDisplayModeRelease(currentMode);
-    }
+    CGDisplayModeRef currentMode = CGDisplayCopyDisplayMode(kCGDirectMainDisplay);
+    CFStringRef encoding = CGDisplayModeCopyPixelEncoding(currentMode);
+    
+    if(CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+        theDepth = 32;
+    else if(CFStringCompare(encoding, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+        theDepth = 16;
+    else if(CFStringCompare(encoding, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+        theDepth = 8;
     else
-#endif
-    {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
-        theDepth = (int) CGDisplayBitsPerPixel(CGMainDisplayID());
-#endif
-    }
+        theDepth = 32; // some reasonable default
+
+    CFRelease(encoding);
+    CGDisplayModeRelease(currentMode);
+
     return theDepth;
 }
 
@@ -274,7 +264,7 @@ CGColorRef wxMacCreateCGColorFromHITheme( ThemeBrush brush )
 void wxMacStringToPascal( const wxString&from , unsigned char * to )
 {
     wxCharBuffer buf = from.mb_str( wxConvLocal );
-    int len = strlen(buf);
+    size_t len = buf.length();
 
     if ( len > 255 )
         len = 255;

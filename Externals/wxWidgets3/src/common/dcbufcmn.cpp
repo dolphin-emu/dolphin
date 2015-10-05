@@ -33,8 +33,8 @@
 // implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxBufferedDC,wxMemoryDC)
-IMPLEMENT_ABSTRACT_CLASS(wxBufferedPaintDC,wxBufferedDC)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBufferedDC, wxMemoryDC);
+wxIMPLEMENT_ABSTRACT_CLASS(wxBufferedPaintDC, wxBufferedDC);
 
 // ----------------------------------------------------------------------------
 // wxSharedDCBufferManager: helper class maintaining backing store bitmap
@@ -45,8 +45,8 @@ class wxSharedDCBufferManager : public wxModule
 public:
     wxSharedDCBufferManager() { }
 
-    virtual bool OnInit() { return true; }
-    virtual void OnExit() { wxDELETE(ms_buffer); }
+    virtual bool OnInit() wxOVERRIDE { return true; }
+    virtual void OnExit() wxOVERRIDE { wxDELETE(ms_buffer); }
 
     static wxBitmap* GetBuffer(int w, int h)
     {
@@ -90,13 +90,13 @@ private:
     static wxBitmap *ms_buffer;
     static bool ms_usingSharedBuffer;
 
-    DECLARE_DYNAMIC_CLASS(wxSharedDCBufferManager)
+    wxDECLARE_DYNAMIC_CLASS(wxSharedDCBufferManager);
 };
 
 wxBitmap* wxSharedDCBufferManager::ms_buffer = NULL;
 bool wxSharedDCBufferManager::ms_usingSharedBuffer = false;
 
-IMPLEMENT_DYNAMIC_CLASS(wxSharedDCBufferManager, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSharedDCBufferManager, wxModule);
 
 // ============================================================================
 // wxBufferedDC

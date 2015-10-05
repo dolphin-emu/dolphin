@@ -48,14 +48,14 @@
 // event table
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxNotebook, wxBookCtrlBase)
+wxBEGIN_EVENT_TABLE(wxNotebook, wxBookCtrlBase)
     EVT_NOTEBOOK_PAGE_CHANGED(wxID_ANY, wxNotebook::OnSelChange)
     EVT_SIZE(wxNotebook::OnSize)
     EVT_PAINT(wxNotebook::OnPaint)
     EVT_MOUSE_EVENTS(wxNotebook::OnMouseEvent)
     EVT_SET_FOCUS(wxNotebook::OnSetFocus)
     EVT_NAVIGATION_KEY(wxNotebook::OnNavigationKey)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
@@ -74,7 +74,7 @@ WX_DECLARE_HASH_MAP(wxNotebookPage*, int, wxPointerHash, wxPointerEqual,
 // This reuses wxTabView to draw the tabs.
 class WXDLLEXPORT wxNotebookTabView: public wxTabView
 {
-DECLARE_DYNAMIC_CLASS(wxNotebookTabView)
+    wxDECLARE_DYNAMIC_CLASS(wxNotebookTabView);
 public:
     wxNotebookTabView(wxNotebook* notebook, long style = wxTAB_STYLE_DRAW_BOX | wxTAB_STYLE_COLOUR_INTERIOR);
     virtual ~wxNotebookTabView(void);
@@ -673,7 +673,7 @@ wxRect wxNotebook::GetAvailableClientSize()
  * wxNotebookTabView
  */
 
-IMPLEMENT_CLASS(wxNotebookTabView, wxTabView)
+wxIMPLEMENT_CLASS(wxNotebookTabView, wxTabView);
 
 wxNotebookTabView::wxNotebookTabView(wxNotebook *notebook, long style)
     : wxTabView(style), m_nextid(1)

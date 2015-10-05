@@ -83,7 +83,7 @@ static PMResolution *GetSupportedResolutions(PMPrinter printer, UInt32 *count)
 
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxOSXPrintData, wxPrintNativeDataBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxOSXPrintData, wxPrintNativeDataBase);
 
 bool wxOSXPrintData::IsOk() const
 {
@@ -198,8 +198,18 @@ void wxOSXPrintData::TransferPaperInfoFrom( const wxPrintData &data )
                     wxString id, name(wxT("Custom paper"));
                     id.Printf(wxT("wxPaperCustom%dx%d"), papersize.x, papersize.y);
 
-                    PMPaperCreateCustom(printer, wxCFStringRef( id, wxFont::GetDefaultEncoding() ), wxCFStringRef( name, wxFont::GetDefaultEncoding() ),
-                                            papersize.x, papersize.y, &margins, &paper);
+                    if ( PMPaperCreateCustom
+                         (
+                            printer,
+                            wxCFStringRef(id, wxFont::GetDefaultEncoding()),
+                            wxCFStringRef(name, wxFont::GetDefaultEncoding()),
+                            papersize.x, papersize.y,
+                            &margins,
+                            &paper
+                         ) )
+                    {
+                        bestPaper = paper;
+                    }
                 }
                 if ( bestPaper != kPMNoData )
                 {
@@ -412,7 +422,7 @@ bool wxOSXPrintData::TransferTo( wxPrintData &data )
     return true ;
 }
 
-void wxOSXPrintData::TransferFrom( wxPageSetupDialogData *WXUNUSED(data) )
+void wxOSXPrintData::TransferFrom( const wxPageSetupDialogData *WXUNUSED(data) )
 {
     // should we setup the page rect here ?
     // since MacOS sometimes has two same paper rects with different
@@ -492,7 +502,7 @@ void wxOSXPrintData::TransferTo( wxPrintDialogData* data )
     }
 }
 
-void wxOSXPrintData::TransferFrom( wxPrintDialogData* data )
+void wxOSXPrintData::TransferFrom( const wxPrintDialogData* data )
 {
     // Respect the value of m_printAllPages
     if ( data->GetAllPages() )
@@ -526,7 +536,7 @@ wxPrintNativeDataBase* wxOSXCreatePrintData()
 * Printer
 */
 
-IMPLEMENT_DYNAMIC_CLASS(wxMacPrinter, wxPrinterBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMacPrinter, wxPrinterBase);
 
 wxMacPrinter::wxMacPrinter(wxPrintDialogData *data):
 wxPrinterBase(data)
@@ -627,9 +637,20 @@ bool wxMacPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt)
     }
 
     // Only set min and max, because from and to will be
-    // set by the user
+    // set by the user if prompted for the print dialog above
     m_printDialogData.SetMinPage(minPage);
     m_printDialogData.SetMaxPage(maxPage);
+
+    // Set from and to pages if bypassing the print dialog
+    if ( !prompt )
+    {
+        m_printDialogData.SetFromPage(fromPage);
+        
+        if( m_printDialogData.GetAllPages() )
+            m_printDialogData.SetToPage(maxPage);
+        else
+            m_printDialogData.SetToPage(toPage);
+    }
 
     printout->OnBeginPrinting();
 
@@ -711,7 +732,7 @@ bool wxMacPrinter::Setup(wxWindow *WXUNUSED(parent))
 * Print preview
 */
 
-IMPLEMENT_CLASS(wxMacPrintPreview, wxPrintPreviewBase)
+wxIMPLEMENT_CLASS(wxMacPrintPreview, wxPrintPreviewBase);
 
 wxMacPrintPreview::wxMacPrintPreview(wxPrintout *printout,
                                      wxPrintout *printoutForPrinting,
@@ -793,7 +814,7 @@ void wxMacPrintPreview::DetermineScaling(void)
 
 #if wxOSX_USE_CARBON
 
-IMPLEMENT_DYNAMIC_CLASS(wxOSXCarbonPrintData, wxOSXPrintData)
+wxIMPLEMENT_DYNAMIC_CLASS(wxOSXCarbonPrintData, wxOSXPrintData);
 
 wxOSXCarbonPrintData::wxOSXCarbonPrintData()
 {

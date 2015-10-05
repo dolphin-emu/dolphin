@@ -73,7 +73,7 @@ protected:
 private:
     wxArchiveNotifier *m_notifier;
 
-    DECLARE_ABSTRACT_CLASS(wxArchiveEntry)
+    wxDECLARE_ABSTRACT_CLASS(wxArchiveEntry);
 };
 
 
@@ -99,7 +99,7 @@ public:
 
     wxArchiveEntry *GetNextEntry()  { return DoGetNextEntry(); }
 
-    virtual char Peek()             { return wxInputStream::Peek(); }
+    virtual char Peek() wxOVERRIDE  { return wxInputStream::Peek(); }
 
 protected:
     wxArchiveInputStream(wxInputStream& stream, wxMBConv& conv);
@@ -181,11 +181,7 @@ void _wxSetArchiveIteratorValue(
     val = std::make_pair(X(entry->GetInternalName()), Y(entry));
 }
 
-#if defined _MSC_VER && _MSC_VER < 1300
-template <class Arc, class T = Arc::entry_type*>
-#else
 template <class Arc, class T = typename Arc::entry_type*>
-#endif
 class wxArchiveIterator
 {
 public:
@@ -374,7 +370,7 @@ private:
     static wxArchiveClassFactory *sm_first;
     wxArchiveClassFactory *m_next;
 
-    DECLARE_ABSTRACT_CLASS(wxArchiveClassFactory)
+    wxDECLARE_ABSTRACT_CLASS(wxArchiveClassFactory);
 };
 
 #endif // wxUSE_STREAMS && wxUSE_ARCHIVE_STREAMS

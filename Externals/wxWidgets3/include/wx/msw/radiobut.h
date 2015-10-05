@@ -11,7 +11,9 @@
 #ifndef _WX_RADIOBUT_H_
 #define _WX_RADIOBUT_H_
 
-class WXDLLIMPEXP_CORE wxRadioButton: public wxControl
+#include "wx/msw/ownerdrawnbutton.h"
+
+class WXDLLIMPEXP_CORE wxRadioButton : public wxMSWOwnerDrawnButton<wxControl>
 {
 public:
     // ctors and creation functions
@@ -47,6 +49,7 @@ public:
     // implementation only from now on
     virtual bool MSWCommand(WXUINT param, WXWORD id);
     virtual void Command(wxCommandEvent& event);
+
     virtual bool HasTransparentBackground() { return true; }
 
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
@@ -55,16 +58,24 @@ protected:
     virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
     virtual wxSize DoGetBestSize() const;
 
+    // Implement wxMSWOwnerDrawnButtonBase methods.
+    virtual int MSWGetButtonStyle() const wxOVERRIDE;
+    virtual void MSWOnButtonResetOwnerDrawn() wxOVERRIDE;
+    virtual int MSWGetButtonCheckedFlag() const wxOVERRIDE;
+    virtual void
+        MSWDrawButtonBitmap(wxDC& dc, const wxRect& rect, int flags) wxOVERRIDE;
+
+
 private:
     // common part of all ctors
     void Init();
+
 
     // we need to store the state internally as the result of GetValue()
     // sometimes gets out of sync in WM_COMMAND handler
     bool m_isChecked;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxRadioButton)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxRadioButton);
 };
 
-#endif
-    // _WX_RADIOBUT_H_
+#endif // _WX_RADIOBUT_H_

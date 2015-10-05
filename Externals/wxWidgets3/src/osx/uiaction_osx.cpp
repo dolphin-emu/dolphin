@@ -46,7 +46,7 @@ CGEventType CGEventTypeForMouseButton(int button, bool isDown)
         // want to check for invalid parameters so assert first
         default:
             wxFAIL_MSG("Unsupported button passed in.");
-            // fall back to the only known remaining case
+            wxFALLTHROUGH;// fall back to the only known remaining case
 
         case wxMOUSE_BTN_MIDDLE:
             return isDown ? kCGEventOtherMouseDown : kCGEventOtherMouseUp;
@@ -69,7 +69,7 @@ CGEventType CGEventTypeForMouseDrag(int button)
             // want to check for invalid parameters so assert first
         default:
             wxFAIL_MSG("Unsupported button passed in.");
-            // fall back to the only known remaining case
+            wxFALLTHROUGH;// fall back to the only known remaining case
             
         case wxMOUSE_BTN_MIDDLE:
             return kCGEventOtherMouseDragged;
@@ -92,7 +92,7 @@ CGMouseButton CGButtonForMouseButton(int button)
             // want to check for invalid parameters so assert first
         default:
             wxFAIL_MSG("Unsupported button passed in.");
-            // fall back to the only known remaining case
+            wxFALLTHROUGH;// fall back to the only known remaining case
             
         case wxMOUSE_BTN_MIDDLE:
             return kCGMouseButtonCenter;

@@ -18,22 +18,11 @@
 //       <tr1/type_traits>, while GCC 4.3 and later have it in <type_traits>.
 //
 
-// This macro declares something called "value" inside a class declaration.
-//
-// It has to be used because VC6 doesn't handle initialization of the static
-// variables in the class declaration itself while BCC5.82 doesn't understand
-// enums (it compiles the template fine but can't use it later)
-#if defined(__VISUALC__) && !wxCHECK_VISUALC_VERSION(7)
-    #define wxDEFINE_TEMPLATE_BOOL_VALUE(val) enum { value = val }
-#else
-    #define wxDEFINE_TEMPLATE_BOOL_VALUE(val) static const bool value = val
-#endif
-
 // Helper to decide if an object of type T is POD (Plain Old Data)
 template<typename T>
 struct wxIsPod
 {
-    wxDEFINE_TEMPLATE_BOOL_VALUE(false);
+    static const bool value = false;
 };
 
 // Macro to add wxIsPod<T> specialization for given type that marks it
@@ -41,7 +30,7 @@ struct wxIsPod
 #define WX_DECLARE_TYPE_POD(type)                           \
     template<> struct wxIsPod<type>                         \
     {                                                       \
-        wxDEFINE_TEMPLATE_BOOL_VALUE(true);                 \
+        static const bool value = true;                     \
     };
 
 WX_DECLARE_TYPE_POD(bool)
@@ -64,11 +53,6 @@ WX_DECLARE_TYPE_POD(wxLongLong_t)
 WX_DECLARE_TYPE_POD(wxULongLong_t)
 #endif
 
-// Visual C++ 6.0 can't compile partial template specializations and as this is
-// only an optimization, we can live with pointers not being recognized as
-// POD types under VC6
-#if !defined(__VISUALC__) || wxCHECK_VISUALC_VERSION(7)
-
 // pointers are Plain Old Data:
 template<typename T>
 struct wxIsPod<T*>
@@ -81,7 +65,5 @@ struct wxIsPod<const T*>
 {
     static const bool value = true;
 };
-
-#endif // !VC++ < 7
 
 #endif // _WX_META_POD_H_

@@ -21,7 +21,7 @@
 // wxIcon
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxIcon, wxBitmap)
+wxIMPLEMENT_DYNAMIC_CLASS(wxIcon, wxBitmap);
 
 wxIcon::wxIcon(const char* const* bits) :
     wxBitmap( bits )

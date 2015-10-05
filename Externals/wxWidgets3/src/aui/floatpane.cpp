@@ -35,7 +35,7 @@
 #include "wx/msw/private.h"
 #endif
 
-IMPLEMENT_CLASS(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass)
+wxIMPLEMENT_CLASS(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass);
 
 wxAuiFloatingFrame::wxAuiFloatingFrame(wxWindow* parent,
                 wxAuiManager* owner_mgr,
@@ -352,14 +352,14 @@ bool wxAuiFloatingFrame::isMouseDown()
 }
 
 
-BEGIN_EVENT_TABLE(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass)
+wxBEGIN_EVENT_TABLE(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass)
     EVT_SIZE(wxAuiFloatingFrame::OnSize)
     EVT_MOVE(wxAuiFloatingFrame::OnMoveEvent)
     EVT_MOVING(wxAuiFloatingFrame::OnMoveEvent)
     EVT_CLOSE(wxAuiFloatingFrame::OnClose)
     EVT_IDLE(wxAuiFloatingFrame::OnIdle)
     EVT_ACTIVATE(wxAuiFloatingFrame::OnActivate)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 #endif // wxUSE_AUI

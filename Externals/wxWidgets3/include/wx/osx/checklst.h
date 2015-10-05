@@ -86,8 +86,8 @@ protected:
     void Init();
 
 private:
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxCheckListBox)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS(wxCheckListBox);
 };
 
 #endif // _WX_MAC_CHECKLST_H_

@@ -99,7 +99,7 @@ wxFLAGS_MEMBER(wxTE_CHARWRAP)
 wxFLAGS_MEMBER(wxTE_WORDWRAP)
 wxEND_FLAGS( wxTextCtrlStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxTextCtrl, wxControl, "wx/textctrl.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxTextCtrl, wxControl, "wx/textctrl.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxTextCtrl)
 wxEVENT_PROPERTY( TextUpdated, wxEVT_TEXT, wxCommandEvent )
@@ -122,14 +122,14 @@ wxCONSTRUCTOR_6( wxTextCtrl, wxWindow*, Parent, wxWindowID, Id, \
                 long, WindowStyle)
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxTextUrlEvent, wxCommandEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTextUrlEvent, wxCommandEvent);
 
 wxDEFINE_EVENT( wxEVT_TEXT, wxCommandEvent );
 wxDEFINE_EVENT( wxEVT_TEXT_ENTER, wxCommandEvent );
 wxDEFINE_EVENT( wxEVT_TEXT_URL, wxTextUrlEvent );
 wxDEFINE_EVENT( wxEVT_TEXT_MAXLEN, wxCommandEvent );
 
-IMPLEMENT_ABSTRACT_CLASS(wxTextCtrlBase, wxControl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxTextCtrlBase, wxControl);
 
 // ============================================================================
 // wxTextAttr implementation
@@ -390,6 +390,12 @@ bool wxTextAttr::EqPartial(const wxTextAttr& attr, bool weakTest) const
         return false;
 
     if ((HasPageBreak() != attr.HasPageBreak()))
+         return false;
+
+    if ((GetFlags() & wxTEXT_ATTR_AVOID_PAGE_BREAK_BEFORE) != (attr.GetFlags() & wxTEXT_ATTR_AVOID_PAGE_BREAK_BEFORE))
+         return false;
+
+    if ((GetFlags() & wxTEXT_ATTR_AVOID_PAGE_BREAK_AFTER) != (attr.GetFlags() & wxTEXT_ATTR_AVOID_PAGE_BREAK_AFTER))
          return false;
 
     if (HasTextEffects() && attr.HasTextEffects())
@@ -703,6 +709,18 @@ bool wxTextAttr::Apply(const wxTextAttr& style, const wxTextAttr* compareWith)
     {
         if (!(compareWith && compareWith->HasPageBreak()))
             destStyle.SetPageBreak();
+    }
+
+    if (style.GetFlags() & wxTEXT_ATTR_AVOID_PAGE_BREAK_BEFORE)
+    {
+        if (!(compareWith && (compareWith->GetFlags() & wxTEXT_ATTR_AVOID_PAGE_BREAK_BEFORE)))
+            destStyle.SetFlags(destStyle.GetFlags()|wxTEXT_ATTR_AVOID_PAGE_BREAK_BEFORE);
+    }
+
+    if (style.GetFlags() & wxTEXT_ATTR_AVOID_PAGE_BREAK_AFTER)
+    {
+        if (!(compareWith && (compareWith->GetFlags() & wxTEXT_ATTR_AVOID_PAGE_BREAK_AFTER)))
+            destStyle.SetFlags(destStyle.GetFlags()|wxTEXT_ATTR_AVOID_PAGE_BREAK_AFTER);
     }
 
     if (style.HasTextEffects())
@@ -1159,14 +1177,6 @@ bool wxTextCtrlBase::EmulateKeyPress(const wxKeyEvent& event)
 // ----------------------------------------------------------------------------
 // Other miscellaneous stuff
 // ----------------------------------------------------------------------------
-
-bool wxTextCtrlBase::SetHint(const wxString& hint)
-{
-    wxCHECK_MSG( IsSingleLine(), false,
-                 wxS("Hints can only be set for single line text controls") );
-
-    return wxTextEntry::SetHint(hint);
-}
 
 // do the window-specific processing after processing the update event
 void wxTextCtrlBase::DoUpdateWindowUI(wxUpdateUIEvent& event)

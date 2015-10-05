@@ -22,9 +22,6 @@
     #pragma hdrstop
 #endif
 
-// This class can't be implemented and hence is not used under Win CE.
-#ifndef __WXWINCE__
-
 #ifndef WX_PRECOMP
     #include "wx/dcclient.h"
     #include "wx/frame.h"       // Only for wxFRAME_SHAPED.
@@ -179,5 +176,3 @@ wxNonOwnedWindow::~wxNonOwnedWindow()
 }
 
 #endif // wxUSE_GRAPHICS_CONTEXT/!wxUSE_GRAPHICS_CONTEXT
-
-#endif // !__WXWINCE__

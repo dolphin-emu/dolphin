@@ -73,7 +73,7 @@ protected:
     void OnActivate(wxActivateEvent& event);
     void OnKillFocus(wxFocusEvent& event);
 #else // wxUSE_POPUPWIN
-    virtual void OnDismiss();
+    virtual void OnDismiss() wxOVERRIDE;
 #endif // wxUSE_POPUPWIN/!wxUSE_POPUPWIN
 
 private:
@@ -85,7 +85,7 @@ private:
     wxTipWindow** m_windowPtr;
     wxRect m_rectBound;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 
     friend class wxTipWindowView;
 

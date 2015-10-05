@@ -171,7 +171,7 @@ protected:
     wxBitmapType m_type;
 
 private:
-    DECLARE_CLASS(wxImageHandler)
+    wxDECLARE_CLASS(wxImageHandler);
 };
 
 //-----------------------------------------------------------------------------
@@ -588,8 +588,8 @@ protected:
     // note that index must be multiplied by 3 when using it with RGB array
     long XYToIndex(int x, int y) const;
 
-    virtual wxObjectRefData* CreateRefData() const;
-    virtual wxObjectRefData* CloneRefData(const wxObjectRefData* data) const;
+    virtual wxObjectRefData* CreateRefData() const wxOVERRIDE;
+    virtual wxObjectRefData* CloneRefData(const wxObjectRefData* data) const wxOVERRIDE;
 
 private:
     friend class WXDLLIMPEXP_FWD_CORE wxImageHandler;
@@ -622,7 +622,7 @@ private:
     bool DoSave(wxImageHandler& handler, wxOutputStream& stream) const;
 #endif // wxUSE_STREAMS
 
-    DECLARE_DYNAMIC_CLASS(wxImage)
+    wxDECLARE_DYNAMIC_CLASS(wxImage);
 };
 
 

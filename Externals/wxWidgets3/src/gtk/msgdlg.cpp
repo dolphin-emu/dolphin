@@ -31,15 +31,7 @@
 #include "wx/gtk/private/mnemonics.h"
 #include "wx/gtk/private/dialogcount.h"
 
-#if wxUSE_LIBHILDON
-    #include <hildon-widgets/hildon-note.h>
-#endif // wxUSE_LIBHILDON
-
-#if wxUSE_LIBHILDON2
-    #include <hildon/hildon.h>
-#endif // wxUSE_LIBHILDON2
-
-IMPLEMENT_CLASS(wxMessageDialog, wxDialog)
+wxIMPLEMENT_CLASS(wxMessageDialog, wxDialog);
 
 wxMessageDialog::wxMessageDialog(wxWindow *parent,
                                  const wxString& message,
@@ -48,7 +40,7 @@ wxMessageDialog::wxMessageDialog(wxWindow *parent,
                                  const wxPoint& WXUNUSED(pos))
                : wxMessageDialogBase
                  (
-                    GetParentForModalDialog(parent, style),
+                    parent,
                     message,
                     caption,
                     style
@@ -99,43 +91,6 @@ void wxMessageDialog::GTKCreateMsgDialog()
 {
     GtkWindow * const parent = m_parent ? GTK_WINDOW(m_parent->m_widget) : NULL;
 
-#if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
-    const char *stockIcon = "";
-
-    switch ( GetEffectiveIcon() )
-    {
-        case wxICON_ERROR:
-            stockIcon = "qgn_note_gene_syserror";
-            break;
-
-        case wxICON_WARNING:
-            stockIcon = "qgn_note_gene_syswarning";
-            break;
-
-        case wxICON_QUESTION:
-            stockIcon = "qgn_note_confirm";
-            break;
-
-        case wxICON_INFORMATION:
-            stockIcon = "qgn_note_info";
-            break;
-    }
-
-    // there is no generic note creation function in public API so we have no
-    // choice but to use g_object_new() directly
-    m_widget = (GtkWidget *)g_object_new
-               (
-                HILDON_TYPE_NOTE,
-#if wxUSE_LIBHILDON
-                "note_type", HILDON_NOTE_CONFIRMATION_BUTTON_TYPE,
-#else // wxUSE_LIBHILDON
-                "note_type", HILDON_NOTE_TYPE_CONFIRMATION_BUTTON,
-#endif // wxUSE_LIBHILDON /wxUSE_LIBHILDON2
-                "description", (const char *)GetFullMessage().utf8_str(),
-                "icon", stockIcon,
-                NULL
-               );
-#else // !wxUSE_LIBHILDON && !wxUSE_LIBHILDON2
     GtkMessageType type = GTK_MESSAGE_ERROR;
     GtkButtonsType buttons = GTK_BUTTONS_NONE;
 
@@ -195,7 +150,6 @@ void wxMessageDialog::GTKCreateMsgDialog()
             (const char *)wxGTK_CONV(m_extendedMessage)
         );
     }
-#endif // wxUSE_LIBHILDON || wxUSE_LIBHILDON2/!wxUSE_LIBHILDON && !wxUSE_LIBHILDON2
 
     g_object_ref(m_widget);
 
@@ -210,14 +164,8 @@ void wxMessageDialog::GTKCreateMsgDialog()
     }
 
     // we need to add buttons manually if we use custom labels or always for
-    // Yes/No/Cancel dialog as GTK+ doesn't support it natively and when using
-    // Hildon we add all the buttons manually as it doesn't support too many of
-    // the combinations we may have
-#if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
-    static const bool addButtons = true;
-#else // !wxUSE_LIBHILDON
+    // Yes/No/Cancel dialog as GTK+ doesn't support it natively
     const bool addButtons = buttons == GTK_BUTTONS_NONE;
-#endif // wxUSE_LIBHILDON/!wxUSE_LIBHILDON
 
 
     if ( addButtons )
@@ -277,18 +225,16 @@ int wxMessageDialog::ShowModal()
 {
     WX_HOOK_MODAL_DIALOG();
 
-    // break the mouse capture as it would interfere with modal dialog (see
-    // wxDialog::ShowModal)
-    wxWindow * const win = wxWindow::GetCapture();
-    if ( win )
-        win->GTKReleaseMouseAndNotify();
-
     if ( !m_widget )
     {
         GTKCreateMsgDialog();
         wxCHECK_MSG( m_widget, wxID_CANCEL,
                      wxT("failed to create GtkMessageDialog") );
     }
+
+    // break the mouse capture as it would interfere with modal dialog (see
+    // wxDialog::ShowModal)
+    GTKReleaseMouseAndNotify();
 
     // This should be necessary, but otherwise the
     // parent TLW will disappear..

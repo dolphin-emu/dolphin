@@ -25,10 +25,10 @@
 
 #include "wx/osx/private.h"
 
-BEGIN_EVENT_TABLE(wxFrame, wxFrameBase)
+wxBEGIN_EVENT_TABLE(wxFrame, wxFrameBase)
   EVT_ACTIVATE(wxFrame::OnActivate)
   EVT_SYS_COLOUR_CHANGED(wxFrame::OnSysColourChanged)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 #define WX_MAC_STATUSBAR_HEIGHT 18
 
@@ -53,13 +53,6 @@ bool wxFrame::Create(wxWindow *parent,
         return false;
 
     return true;
-}
-
-wxFrame::~wxFrame()
-{
-    SendDestroyEvent();
-
-    DeleteAllBars();
 }
 
 // get the origin of the client area in the client coordinates
@@ -356,12 +349,12 @@ void wxFrame::PositionToolBar()
 
     wxTopLevelWindow::DoGetClientSize( &cw , &ch );
 
-    int statusX = 0 ;
-    int statusY = 0 ;
-
 #if wxUSE_STATUSBAR
     if (GetStatusBar() && GetStatusBar()->IsShown())
     {
+        int statusX = 0 ;
+        int statusY = 0 ;
+
         GetStatusBar()->GetSize(&statusX, &statusY);
         ch -= statusY;
     }

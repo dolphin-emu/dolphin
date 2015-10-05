@@ -9,8 +9,6 @@
 #ifndef _WX_GTK_TOOLBAR_H_
 #define _WX_GTK_TOOLBAR_H_
 
-#if wxUSE_TOOLBAR
-
 typedef struct _GtkTooltips GtkTooltips;
 
 // ----------------------------------------------------------------------------
@@ -26,7 +24,7 @@ public:
                wxWindowID id,
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
-               long style = wxTB_HORIZONTAL,
+               long style = wxTB_DEFAULT_STYLE,
                const wxString& name = wxToolBarNameStr )
     {
         Init();
@@ -38,21 +36,21 @@ public:
                  wxWindowID id,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
-                 long style = wxTB_HORIZONTAL,
+                 long style = wxTB_DEFAULT_STYLE,
                  const wxString& name = wxToolBarNameStr );
 
     virtual ~wxToolBar();
 
-    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const;
+    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const wxOVERRIDE;
 
-    virtual void SetToolShortHelp(int id, const wxString& helpString);
+    virtual void SetToolShortHelp(int id, const wxString& helpString) wxOVERRIDE;
 
-    virtual void SetWindowStyleFlag( long style );
+    virtual void SetWindowStyleFlag( long style ) wxOVERRIDE;
 
-    virtual void SetToolNormalBitmap(int id, const wxBitmap& bitmap);
-    virtual void SetToolDisabledBitmap(int id, const wxBitmap& bitmap);
+    virtual void SetToolNormalBitmap(int id, const wxBitmap& bitmap) wxOVERRIDE;
+    virtual void SetToolDisabledBitmap(int id, const wxBitmap& bitmap) wxOVERRIDE;
 
-    virtual bool Realize();
+    virtual bool Realize() wxOVERRIDE;
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
@@ -64,41 +62,41 @@ public:
                                           wxItemKind kind = wxITEM_NORMAL,
                                           wxObject *clientData = NULL,
                                           const wxString& shortHelpString = wxEmptyString,
-                                          const wxString& longHelpString = wxEmptyString);
+                                          const wxString& longHelpString = wxEmptyString) wxOVERRIDE;
     virtual wxToolBarToolBase *CreateTool(wxControl *control,
-                                          const wxString& label);
+                                          const wxString& label) wxOVERRIDE;
 
     // implementation from now on
     // --------------------------
 
+    GtkToolbar* GTKGetToolbar() const { return m_toolbar; }
+
 protected:
     // choose the default border for this window
-    virtual wxBorder GetDefaultBorder() const { return wxBORDER_DEFAULT; }
+    virtual wxBorder GetDefaultBorder() const wxOVERRIDE { return wxBORDER_DEFAULT; }
 
-    virtual wxSize DoGetBestSize() const;
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const wxOVERRIDE;
 
     // implement base class pure virtuals
-    virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool);
-    virtual bool DoDeleteTool(size_t pos, wxToolBarToolBase *tool);
+    virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool) wxOVERRIDE;
+    virtual bool DoDeleteTool(size_t pos, wxToolBarToolBase *tool) wxOVERRIDE;
 
-    virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable);
-    virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle);
-    virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle);
+    virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable) wxOVERRIDE;
+    virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle) wxOVERRIDE;
+    virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle) wxOVERRIDE;
 
 private:
     void Init();
     void GtkSetStyle();
     GSList* GetRadioGroup(size_t pos);
-    virtual void AddChildGTK(wxWindowGTK* child);
+    virtual void AddChildGTK(wxWindowGTK* child) wxOVERRIDE;
 
     GtkToolbar* m_toolbar;
     GtkTooltips* m_tooltips;
 
-    DECLARE_DYNAMIC_CLASS(wxToolBar)
+    wxDECLARE_DYNAMIC_CLASS(wxToolBar);
 };
-
-#endif // wxUSE_TOOLBAR
 
 #endif
     // _WX_GTK_TOOLBAR_H_

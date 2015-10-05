@@ -56,13 +56,13 @@ wxGLContext::~wxGLContext()
 // wxGLCanvas
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(wxGLCanvas, wxWindow)
+wxIMPLEMENT_CLASS(wxGLCanvas, wxWindow);
 
-BEGIN_EVENT_TABLE(wxGLCanvas, wxWindow)
+wxBEGIN_EVENT_TABLE(wxGLCanvas, wxWindow)
 #if wxOSX_USE_CARBON
     EVT_SIZE(wxGLCanvas::OnSize)
 #endif
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxGLCanvas::wxGLCanvas(wxWindow *parent,
                        wxWindowID id,

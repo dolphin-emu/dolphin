@@ -10,24 +10,6 @@
 #ifndef _WX_MISSING_H_
 #define _WX_MISSING_H_
 
-/*
- * The following are required for VC++ 6.
- */
-
-// Needed by cursor.cpp
-#ifndef IDC_HAND
-    #define IDC_HAND MAKEINTRESOURCE(32649)
-#endif
-
-// Needed by strconv.cpp
-#ifndef WC_NO_BEST_FIT_CHARS
-    #define WC_NO_BEST_FIT_CHARS 0x400
-#endif
-
-#ifndef WM_CONTEXTMENU
-    #define WM_CONTEXTMENU      0x007B
-#endif
-
 #ifndef WM_CHANGEUISTATE
     #define WM_CHANGEUISTATE    0x0127
 #endif
@@ -46,6 +28,10 @@
 
 #ifndef DT_HIDEPREFIX
     #define DT_HIDEPREFIX 0x00100000
+#endif
+
+#ifndef DSS_HIDEPREFIX
+    #define DSS_HIDEPREFIX  0x0200
 #endif
 
 // Needed by toplevel.cpp
@@ -155,74 +141,6 @@
 #define QS_ALLPOSTMESSAGE 0
 #endif
 
-/*
- * The following are required for VC++ 5 when the PSDK is not available.
- */
-
-#if defined __VISUALC__ && __VISUALC__ <= 1100
-
-#ifndef VER_NT_WORKSTATION
-
-typedef struct _OSVERSIONINFOEXA {
-    DWORD dwOSVersionInfoSize;
-    DWORD dwMajorVersion;
-    DWORD dwMinorVersion;
-    DWORD dwBuildNumber;
-    DWORD dwPlatformId;
-    CHAR szCSDVersion[128];
-    WORD wServicePackMajor;
-    WORD wServicePackMinor;
-    WORD wSuiteMask;
-    BYTE wProductType;
-    BYTE wReserved;
-} OSVERSIONINFOEXA, *POSVERSIONINFOEXA, *LPOSVERSIONINFOEXA;
-typedef struct _OSVERSIONINFOEXW {
-    DWORD dwOSVersionInfoSize;
-    DWORD dwMajorVersion;
-    DWORD dwMinorVersion;
-    DWORD dwBuildNumber;
-    DWORD dwPlatformId;
-    WCHAR szCSDVersion[128];
-    WORD wServicePackMajor;
-    WORD wServicePackMinor;
-    WORD wSuiteMask;
-    BYTE wProductType;
-    BYTE wReserved;
-} OSVERSIONINFOEXW, *POSVERSIONINFOEXW, *LPOSVERSIONINFOEXW;
-
-#ifdef UNICODE
-typedef OSVERSIONINFOW OSVERSIONINFO,*POSVERSIONINFO,*LPOSVERSIONINFO;
-typedef OSVERSIONINFOEXW OSVERSIONINFOEX,*POSVERSIONINFOEX,*LPOSVERSIONINFOEX;
-#else
-typedef OSVERSIONINFOA OSVERSIONINFO,*POSVERSIONINFO,*LPOSVERSIONINFO;
-typedef OSVERSIONINFOEXA OSVERSIONINFOEX,*POSVERSIONINFOEX,*LPOSVERSIONINFOEX;
-#endif
-
-#endif // defined VER_NT_WORKSTATION
-
-#ifndef CP_SYMBOL
-    #define CP_SYMBOL 42
-#endif
-
-// NMLVCUSTOMDRAW originally didn't have the iSubItem member. It was added
-// with IE4, as was IPN_FIRST which is used as a test :-(.
-//
-#ifndef IPN_FIRST
-
-typedef struct wxtagNMLVCUSTOMDRAW_ {
-    NMCUSTOMDRAW nmcd;
-    COLORREF     clrText;
-    COLORREF     clrTextBk;
-    int          iSubItem;
-} wxNMLVCUSTOMDRAW_, *wxLPNMLVCUSTOMDRAW_;
-
-#define NMLVCUSTOMDRAW wxNMLVCUSTOMDRAW_
-#define LPNMLVCUSTOMDRAW wxLPNMLVCUSTOMDRAW_
-
-#endif // defined IPN_FIRST
-
-#endif // defined __VISUALC__ && __VISUALC__ <= 1100
-
 // ----------------------------------------------------------------------------
 // menu stuff
 // ----------------------------------------------------------------------------
@@ -258,8 +176,7 @@ typedef struct wxtagNMLVCUSTOMDRAW_ {
     #define LVS_EX_FULLROWSELECT 0x00000020
 #endif
 
-// LVS_EX_LABELTIP is not supported by Windows CE, don't define it there
-#if !defined(LVS_EX_LABELTIP) && !defined(__WXWINCE__)
+#if !defined(LVS_EX_LABELTIP)
     #define LVS_EX_LABELTIP 0x00004000
 #endif
 
@@ -329,180 +246,7 @@ typedef struct wxtagNMLVCUSTOMDRAW_ {
 #endif
 
  /*
-  * The following are required for BC++ 5.5 (none at present.)
-  */
-
- /*
-  * The following are specifically required for Digital Mars C++
-  */
-
-#ifdef __DMC__
-
-#ifndef VER_NT_WORKSTATION
-typedef struct _OSVERSIONINFOEX {
-    DWORD dwOSVersionInfoSize;
-    DWORD dwMajorVersion;
-    DWORD dwMinorVersion;
-    DWORD dwBuildNumber;
-    DWORD dwPlatformId;
-    TCHAR szCSDVersion[ 128 ];
-    WORD  wServicePackMajor;
-    WORD  wServicePackMinor;
-    WORD  wSuiteMask;
-    BYTE  wProductType;
-    BYTE  wReserved;
-} OSVERSIONINFOEX;
-#endif // !defined(VER_NT_WORKSTATION)
-
-#ifndef _TrackMouseEvent
-    #define _TrackMouseEvent TrackMouseEvent
-#endif
-
-#ifndef LVM_SETEXTENDEDLISTVIEWSTYLE
-    #define LVM_SETEXTENDEDLISTVIEWSTYLE (0x1000 + 54)
-#endif
-
-#ifndef LVM_GETSUBITEMRECT
-    #define LVM_GETSUBITEMRECT           (0x1000 + 56)
-#endif
-
-#ifndef LVCF_IMAGE
-    #define LVCF_IMAGE             0x0010
-#endif
-
-#ifndef Header_GetItemRect
-    #define Header_GetItemRect(w,i,r) \
-            (BOOL)SendMessage((w),HDM_GETITEMRECT,(WPARAM)(i),(LPARAM)(r))
-#endif
-
-#ifndef HDM_GETITEMRECT
-    #define HDM_GETITEMRECT (HDM_FIRST+7)
-#endif
-
-#ifndef ListView_GetHeader
-    #define ListView_GetHeader(w) (HWND)SendMessage((w),LVM_GETHEADER,0,0)
-#endif
-
-#ifndef ListView_GetSubItemRect
-    #define ListView_GetSubItemRect(w, i, s, c, p) (HWND)SendMessage(w,LVM_GETSUBITEMRECT,i, ((p) ? ((((LPRECT)(p))->top = s), (((LPRECT)(p))->left = c), (LPARAM)(p)) : (LPARAM)(LPRECT)NULL))
-#endif
-
-#ifndef LVM_GETHEADER
-    #define LVM_GETHEADER (LVM_FIRST+31)
-#endif
-
-#ifndef HDLAYOUT
-    #define HDLAYOUT HD_LAYOUT
-#endif
-
-#ifndef HDITEM
-    #define HDITEM HD_ITEM
-#endif
-
-#ifndef NMHEADER
-    #define NMHEADER HD_NOTIFY
-#endif
-
-#ifndef HDS_DRAGDROP
-    #define HDS_DRAGDROP 0x0040
-#endif
-#ifndef HDS_FULLDRAG
-    #define HDS_FULLDRAG 0x0080
-#endif
-
-
-#ifndef HDN_BEGINDRAG
-    #define HDN_BEGINDRAG (HDN_FIRST - 11)
-#endif
-
-#ifndef HDN_ENDDRAG
-    #define HDN_ENDDRAG (HDN_FIRST - 10)
-#endif
-
-#ifndef LVSICF_NOSCROLL
-    #define LVSICF_NOINVALIDATEALL  0x0001
-    #define LVSICF_NOSCROLL         0x0002
-#endif
-
-#ifndef CP_SYMBOL
-    #define CP_SYMBOL 42
-#endif
-
-// ----------------------------------------------------------------------------
-// wxDisplay
-// ----------------------------------------------------------------------------
-
-// The windows headers with Digital Mars lack some typedefs.
-// typedef them as my_XXX and then #define to rename to XXX in case
-// a newer version of Digital Mars fixes the headers
-// (or up to date PSDK is in use with older version)
-// also we use any required definition (MONITOR_DEFAULTTONULL) to recognize
-// whether whole missing block needs to be included
-
-#ifndef MONITOR_DEFAULTTONULL
-
-    #define HMONITOR_DECLARED
-    DECLARE_HANDLE(HMONITOR);
-    typedef BOOL(CALLBACK* my_MONITORENUMPROC)(HMONITOR,HDC,LPRECT,LPARAM);
-    #define MONITORENUMPROC my_MONITORENUMPROC
-    typedef struct my_tagMONITORINFO {
-        DWORD cbSize;
-        RECT rcMonitor;
-        RECT rcWork;
-        DWORD dwFlags;
-    } my_MONITORINFO,*my_LPMONITORINFO;
-    #define MONITORINFO my_MONITORINFO
-    #define LPMONITORINFO my_LPMONITORINFO
-
-    typedef struct my_MONITORINFOEX : public my_tagMONITORINFO
-    {
-        TCHAR       szDevice[CCHDEVICENAME];
-    } my_MONITORINFOEX, *my_LPMONITORINFOEX;
-    #define MONITORINFOEX my_MONITORINFOEX
-    #define LPMONITORINFOEX my_LPMONITORINFOEX
-
-    #ifndef MONITOR_DEFAULTTONULL
-        #define MONITOR_DEFAULTTONULL 0
-    #endif // MONITOR_DEFAULTTONULL
-
-    #ifndef MONITORINFOF_PRIMARY
-        #define MONITORINFOF_PRIMARY 1
-    #endif // MONITORINFOF_PRIMARY
-
-    #ifndef DDENUM_ATTACHEDSECONDARYDEVICES
-        #define DDENUM_ATTACHEDSECONDARYDEVICES 1
-    #endif
-
-#endif // MONITOR_DEFAULTTONULL
-
-// ----------------------------------------------------------------------------
-// Tree control
-// ----------------------------------------------------------------------------
-
-#ifndef TVIS_FOCUSED
-    #define TVIS_FOCUSED            0x0001
-#endif
-
-#ifndef TVS_CHECKBOXES
-    #define TVS_CHECKBOXES          0x0100
-#endif
-
-#ifndef TVITEM
-    #define TVITEM TV_ITEM
-#endif
-
-#endif
-    // DMC++
-
- /*
-  * The following are specifically required for OpenWatcom C++ (none at present)
-  */
-
-#if defined(__WATCOMC__)
-#endif
-
- /*
-  * The following are specifically required for MinGW (none at present)
+  * The following are specifically required for MinGW.
   */
 
 #if defined (__MINGW32__)
@@ -522,8 +266,7 @@ typedef struct
 
 #endif
 
-//Various defines that will be needed by mingw and possibly VC++6
-//Used by the webview library
+// Various defines used by the webview library that are needed by mingw 
 
 #ifndef DISPID_COMMANDSTATECHANGE
 #define DISPID_COMMANDSTATECHANGE 105
@@ -655,29 +398,6 @@ typedef struct
 
 #ifndef MUI_LANGUAGE_NAME
 #define MUI_LANGUAGE_NAME 0x8
-#endif
-
-//We need to check if we are using MinGW or mingw-w64 as their
-//definitions are different
-
-#ifdef __MINGW32__
-#include <_mingw.h>
-#endif
-
-#ifdef __MINGW32_TOOLCHAIN__
-typedef enum CommandStateChangeConstants {
-    CSC_UPDATECOMMANDS = (int) 0xFFFFFFFF,
-    CSC_NAVIGATEFORWARD = 0x1,
-    CSC_NAVIGATEBACK = 0x2
-} CommandStateChangeConstants;
-#endif
-
- /*
-  * In addition to the declarations for VC++, the following are required for WinCE
-  */
-
-#ifdef __WXWINCE__
-    #include "wx/msw/wince/missing.h"
 #endif
 
  /*

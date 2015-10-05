@@ -193,6 +193,13 @@ static inline void wx_gtk_cell_renderer_get_padding(GtkCellRenderer* cell, gint*
 }
 #define gtk_cell_renderer_get_padding wx_gtk_cell_renderer_get_padding
 
+static inline void wx_gtk_cell_renderer_set_padding(GtkCellRenderer* cell, gint xpad, gint ypad)
+{
+    cell->xpad = xpad;
+    cell->ypad = ypad;
+}
+#define gtk_cell_renderer_set_padding wx_gtk_cell_renderer_set_padding
+
 static inline void wx_gtk_widget_get_allocation(GtkWidget* widget, GtkAllocation* allocation)
 {
     *allocation = widget->allocation;
@@ -297,6 +304,12 @@ static inline void wx_gtk_widget_set_allocation(GtkWidget* widget, const GtkAllo
     widget->allocation = *allocation;
 }
 #define gtk_widget_set_allocation wx_gtk_widget_set_allocation
+
+static inline gboolean wx_gtk_widget_is_toplevel(GtkWidget* widget)
+{
+    return GTK_WIDGET_TOPLEVEL(widget);
+}
+#define gtk_widget_is_toplevel wx_gtk_widget_is_toplevel
 
 // ----------------------------------------------------------------------------
 // the following were introduced in GTK+ 2.20
@@ -510,6 +523,10 @@ static inline void wx_gtk_widget_get_preferred_size(GtkWidget* widget, GtkRequis
     gtk_widget_size_request(widget, req);
 }
 #define gtk_widget_get_preferred_size wx_gtk_widget_get_preferred_size
+
+// There is no equivalent in GTK+ 2, but it's not needed there anyhow as the
+// backend is determined at compile time in that version.
+#define GDK_IS_X11_DISPLAY(dpy) true
 
 #endif // !__WXGTK3__
 #endif // _WX_GTK_PRIVATE_COMPAT_H_

@@ -34,7 +34,7 @@
 // implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericFontButton, wxButton)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericFontButton, wxButton);
 
 // ----------------------------------------------------------------------------
 // wxGenericFontButton
@@ -62,9 +62,10 @@ bool wxGenericFontButton::Create( wxWindow *parent, wxWindowID id,
             wxCommandEventHandler(wxGenericFontButton::OnButtonClick),
             NULL, this);
 
+    InitFontData();
+
     m_selectedFont = initial.IsOk() ? initial : *wxNORMAL_FONT;
     UpdateFont();
-    InitFontData();
 
     return true;
 }

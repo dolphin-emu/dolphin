@@ -105,7 +105,7 @@ public:
     // and changing the split mode.
     // Does nothing and returns false if the window is already split.
     // A sashPosition of 0 means choose a default sash position,
-    // negative sashPosition specifies the size of right/lower pane as it's
+    // negative sashPosition specifies the size of right/lower pane as its
     // absolute value rather than the size of left/upper pane.
     virtual bool SplitVertically(wxWindow *window1,
                                  wxWindow *window2,
@@ -202,7 +202,7 @@ public:
     void OnSize(wxSizeEvent& event);
 
     // In live mode, resize child windows in idle time
-    void OnInternalIdle();
+    void OnInternalIdle() wxOVERRIDE;
 
     // Draws the sash
     virtual void DrawSash(wxDC& dc);
@@ -274,7 +274,7 @@ protected:
 
     // return the best size of the splitter equal to best sizes of its
     // subwindows
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
 
     wxSplitMode m_splitMode;
@@ -301,8 +301,8 @@ protected:
     bool        m_isHot:1;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxSplitterWindow)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxSplitterWindow);
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxSplitterWindow);
 };
 
@@ -370,7 +370,7 @@ public:
         return m_data.pt.y;
     }
 
-    virtual wxEvent *Clone() const { return new wxSplitterEvent(*this); }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxSplitterEvent(*this); }
 
 private:
     friend class WXDLLIMPEXP_FWD_CORE wxSplitterWindow;
@@ -386,7 +386,7 @@ private:
         } pt;               // position of double click for DCLICK event
     } m_data;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxSplitterEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxSplitterEvent);
 };
 
 typedef void (wxEvtHandler::*wxSplitterEventFunction)(wxSplitterEvent&);

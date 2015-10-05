@@ -22,15 +22,7 @@
     #pragma hdrstop
 #endif
 
-#ifndef wxUSE_LIBHILDON
-    #define wxUSE_LIBHILDON 0
-#endif
-
-#ifndef wxUSE_LIBHILDON2
-    #define wxUSE_LIBHILDON2 0
-#endif
-
-#if wxUSE_NOTIFICATION_MESSAGE && (!wxUSE_LIBHILDON || !wxUSE_LIBHILDON2)
+#if wxUSE_NOTIFICATION_MESSAGE
 
 #ifndef WX_PRECOMP
     #include "wx/dialog.h"
@@ -42,8 +34,8 @@
 #include "wx/artprov.h"
 
 // even if the platform has the native implementation, we still normally want
-// to use the generic one (unless it's totally unsuitable for the target UI as
-// is the case of Hildon) because it may provide more features, so include
+// to use the generic one (unless it's totally unsuitable for the target UI)
+// because it may provide more features, so include
 // wx/generic/notifmsg.h to get wxGenericNotificationMessage declaration even
 // if wx/notifmsg.h only declares wxNotificationMessage itself (if it already
 // uses the generic version, the second inclusion will do no harm)
@@ -83,7 +75,7 @@ private:
     wxTimer m_timer;
 
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxNotificationMessageDialog);
 };
 
@@ -91,11 +83,11 @@ private:
 // wxNotificationMessageDialog implementation
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxNotificationMessageDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxNotificationMessageDialog, wxDialog)
     EVT_CLOSE(wxNotificationMessageDialog::OnClose)
 
     EVT_TIMER(wxID_ANY, wxNotificationMessageDialog::OnTimer)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxNotificationMessageDialog::wxNotificationMessageDialog(wxWindow *parent,
                                                          const wxString& text,
@@ -241,4 +233,4 @@ bool wxGenericNotificationMessage::Close()
     return true;
 }
 
-#endif // wxUSE_NOTIFICATION_MESSAGE && (!wxUSE_LIBHILDON || !wxUSE_LIBHILDON2)
+#endif // wxUSE_NOTIFICATION_MESSAGE

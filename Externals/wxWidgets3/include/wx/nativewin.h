@@ -12,11 +12,13 @@
 
 #include "wx/toplevel.h"
 
-// this symbol can be tested in the user code to see if the current wx port has
-// support for creating wxNativeContainerWindow from native windows
+// These symbols can be tested in the user code to see if the current wx port
+// has support for creating wxNativeContainerWindow and wxNativeWindow from
+// native windows.
 //
-// be optimistic by default, we undefine it below if we don't have it finally
+// Be optimistic by default, we undefine them below if necessary.
 #define wxHAS_NATIVE_CONTAINER_WINDOW
+#define wxHAS_NATIVE_WINDOW
 
 // we define the following typedefs for each of the platform supporting native
 // windows wrapping:
@@ -28,16 +30,16 @@
 //    window, i.e. HWND/GdkNativeWindow/NSWindow (so it's the same as above for
 //    all platforms except GTK where we also can work with Window/XID)
 //
-// later we'll also have
-//
-//  - wxNativeWindowHandle for child windows (which will be wrapped by
-//    wxNativeWindow<T> class), it is HWND/GtkWidget*/ControlRef
+//  - wxNativeWindowHandle for child windows, i.e. HWND/GtkWidget*/NSControl
 #if defined(__WXMSW__)
     #include "wx/msw/wrapwin.h"
 
     typedef HWND wxNativeContainerWindowId;
     typedef HWND wxNativeContainerWindowHandle;
+    typedef HWND wxNativeWindowHandle;
 #elif defined(__WXGTK__)
+    #include <gtk/gtk.h>
+
     // GdkNativeWindow is guint32 under GDK/X11 and gpointer under GDK/WIN32
     #ifdef __UNIX__
         typedef unsigned long wxNativeContainerWindowId;
@@ -45,10 +47,50 @@
         typedef void *wxNativeContainerWindowId;
     #endif
     typedef GdkWindow *wxNativeContainerWindowHandle;
+    typedef GtkWidget *wxNativeWindowHandle;
+#elif defined(__WXOSX_COCOA__)
+    typedef NSView *wxNativeWindowHandle;
+
+    // no support for using native TLWs yet
+    #undef wxHAS_NATIVE_CONTAINER_WINDOW
 #else
     // no support for using native windows under this platform yet
     #undef wxHAS_NATIVE_CONTAINER_WINDOW
+    #undef wxHAS_NATIVE_WINDOW
 #endif
+
+#ifdef wxHAS_NATIVE_WINDOW
+
+// ----------------------------------------------------------------------------
+// wxNativeWindow: for using native windows inside wxWidgets windows
+// ----------------------------------------------------------------------------
+
+class WXDLLIMPEXP_CORE wxNativeWindow : public wxWindow
+{
+public:
+    // Default ctor, Create() must be called later to really create the window.
+    wxNativeWindow() { }
+
+    // Create a window from an existing native window handle.
+    //
+    // Notice that this ctor doesn't take the usual pos and size parameters,
+    // they're taken from the window handle itself.
+    //
+    // Use GetHandle() to check if the creation was successful, it will return
+    // 0 if the handle was invalid.
+    wxNativeWindow(wxWindow* parent, wxWindowID winid, wxNativeWindowHandle handle)
+    {
+        Create(parent, winid, handle);
+    }
+
+    // Same as non-default ctor, but with a return code.
+    bool Create(wxWindow* parent, wxWindowID winid, wxNativeWindowHandle handle);
+
+private:
+    wxDECLARE_NO_COPY_CLASS(wxNativeWindow);
+};
+
+#endif // wxHAS_NATIVE_WINDOW
 
 #ifdef wxHAS_NATIVE_CONTAINER_WINDOW
 
@@ -92,55 +134,55 @@ public:
 
 
     // provide (trivial) implementation of the base class pure virtuals
-    virtual void SetTitle(const wxString& WXUNUSED(title))
+    virtual void SetTitle(const wxString& WXUNUSED(title)) wxOVERRIDE
     {
         wxFAIL_MSG( "not implemented for native windows" );
     }
 
-    virtual wxString GetTitle() const
+    virtual wxString GetTitle() const wxOVERRIDE
     {
         wxFAIL_MSG( "not implemented for native windows" );
 
         return wxString();
     }
 
-    virtual void Maximize(bool WXUNUSED(maximize) = true)
+    virtual void Maximize(bool WXUNUSED(maximize) = true) wxOVERRIDE
     {
         wxFAIL_MSG( "not implemented for native windows" );
     }
 
-    virtual bool IsMaximized() const
+    virtual bool IsMaximized() const wxOVERRIDE
     {
         wxFAIL_MSG( "not implemented for native windows" );
 
         return false;
     }
 
-    virtual void Iconize(bool WXUNUSED(iconize) = true)
+    virtual void Iconize(bool WXUNUSED(iconize) = true) wxOVERRIDE
     {
         wxFAIL_MSG( "not implemented for native windows" );
     }
 
-    virtual bool IsIconized() const
+    virtual bool IsIconized() const wxOVERRIDE
     {
         // this is called by wxGTK implementation so don't assert
         return false;
     }
 
-    virtual void Restore()
+    virtual void Restore() wxOVERRIDE
     {
         wxFAIL_MSG( "not implemented for native windows" );
     }
 
     virtual bool ShowFullScreen(bool WXUNUSED(show),
-                                long WXUNUSED(style) = wxFULLSCREEN_ALL)
+                                long WXUNUSED(style) = wxFULLSCREEN_ALL) wxOVERRIDE
     {
         wxFAIL_MSG( "not implemented for native windows" );
 
         return false;
     }
 
-    virtual bool IsFullScreen() const
+    virtual bool IsFullScreen() const wxOVERRIDE
     {
         wxFAIL_MSG( "not implemented for native windows" );
 
@@ -148,7 +190,7 @@ public:
     }
 
 #ifdef __WXMSW__
-    virtual bool IsShown() const;
+    virtual bool IsShown() const wxOVERRIDE;
 #endif // __WXMSW__
 
     // this is an implementation detail: called when the native window is

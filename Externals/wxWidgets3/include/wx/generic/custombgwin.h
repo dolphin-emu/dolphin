@@ -11,6 +11,9 @@
 #define _WX_GENERIC_CUSTOMBGWIN_H_
 
 #include "wx/bitmap.h"
+#include "wx/dc.h"
+#include "wx/event.h"
+#include "wx/window.h"
 
 // A helper to avoid template bloat: this class contains all type-independent
 // code of wxCustomBackgroundWindow<> below.

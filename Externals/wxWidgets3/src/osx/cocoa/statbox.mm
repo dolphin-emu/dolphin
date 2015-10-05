@@ -39,7 +39,7 @@ namespace
         {
         }
 
-        virtual void SetLabel( const wxString& title, wxFontEncoding encoding )
+        virtual void SetLabel( const wxString& title, wxFontEncoding encoding ) wxOVERRIDE
         {
             if (title.empty())
                 [GetNSBox() setTitlePosition:NSNoTitle];
@@ -71,6 +71,9 @@ wxWidgetImplType* wxWidgetImpl::CreateGroupBox( wxWindowMac* wxpeer,
 {
     NSRect r = wxOSXGetFrameForControl( wxpeer, pos , size ) ;
     wxNSBox* v = [[wxNSBox alloc] initWithFrame:r];
+    NSSize margin = { 0.0, 0.0 };
+    [v setContentViewMargins: margin];
+    [v sizeToFit];
     wxStaticBoxCocoaImpl* c = new wxStaticBoxCocoaImpl( wxpeer, v );
 #if !wxOSX_USE_NATIVE_FLIPPED
     c->SetFlipped(false);

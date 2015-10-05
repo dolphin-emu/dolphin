@@ -146,7 +146,7 @@ public:
     const wxString& GetCompressedFileName() const { return m_zipfile; }
 
 protected:
-    virtual bool DoProcess();
+    virtual bool DoProcess() wxOVERRIDE;
 
 private:
     // user-specified file directory/base name, use defaults if empty
@@ -176,7 +176,7 @@ public:
                         const wxString& curl = wxT("curl"));
 
 protected:
-    virtual bool DoProcess();
+    virtual bool DoProcess() wxOVERRIDE;
 
     // this function may be overridden in a derived class to show the output
     // from curl: this may be an HTML page or anything else that the server
@@ -237,7 +237,7 @@ class WXDLLIMPEXP_QA wxDebugReportPreviewStd : public wxDebugReportPreview
 public:
     wxDebugReportPreviewStd() { }
 
-    virtual bool Show(wxDebugReport& dbgrpt) const;
+    virtual bool Show(wxDebugReport& dbgrpt) const wxOVERRIDE;
 };
 
 #endif // wxUSE_GUI

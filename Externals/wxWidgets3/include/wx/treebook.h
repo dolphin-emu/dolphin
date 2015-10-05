@@ -74,7 +74,7 @@ public:
                             wxWindow *page,
                             const wxString& text,
                             bool bSelect = false,
-                            int imageId = NO_IMAGE);
+                            int imageId = NO_IMAGE) wxOVERRIDE;
 
     // Inserts a new sub-page to the end of children of the page at given pos.
     virtual bool InsertSubPage(size_t pos,
@@ -87,7 +87,7 @@ public:
     virtual bool AddPage(wxWindow *page,
                          const wxString& text,
                          bool bSelect = false,
-                         int imageId = NO_IMAGE);
+                         int imageId = NO_IMAGE) wxOVERRIDE;
 
     // Adds a new child-page to the last top-level page inserted.
     // Useful when constructing 1 level tree structure.
@@ -99,7 +99,7 @@ public:
     // Deletes the page and ALL its children. Could trigger page selection
     // change in a case when selected page is removed. In that case its parent
     // is selected (or the next page if no parent).
-    virtual bool DeletePage(size_t pos);
+    virtual bool DeletePage(size_t pos) wxOVERRIDE;
 
 
     // Tree operations
@@ -126,23 +126,23 @@ public:
     // Standard operations inherited from wxBookCtrlBase
     // -------------------------------------------------
 
-    virtual bool SetPageText(size_t n, const wxString& strText);
-    virtual wxString GetPageText(size_t n) const;
-    virtual int GetPageImage(size_t n) const;
-    virtual bool SetPageImage(size_t n, int imageId);
-    virtual int SetSelection(size_t n) { return DoSetSelection(n, SetSelection_SendEvent); }
-    virtual int ChangeSelection(size_t n) { return DoSetSelection(n); }
-    virtual int HitTest(const wxPoint& pt, long *flags = NULL) const;
-    virtual void SetImageList(wxImageList *imageList);
+    virtual bool SetPageText(size_t n, const wxString& strText) wxOVERRIDE;
+    virtual wxString GetPageText(size_t n) const wxOVERRIDE;
+    virtual int GetPageImage(size_t n) const wxOVERRIDE;
+    virtual bool SetPageImage(size_t n, int imageId) wxOVERRIDE;
+    virtual int SetSelection(size_t n) wxOVERRIDE { return DoSetSelection(n, SetSelection_SendEvent); }
+    virtual int ChangeSelection(size_t n) wxOVERRIDE { return DoSetSelection(n); }
+    virtual int HitTest(const wxPoint& pt, long *flags = NULL) const wxOVERRIDE;
+    virtual void SetImageList(wxImageList *imageList) wxOVERRIDE;
     virtual void AssignImageList(wxImageList *imageList);
-    virtual bool DeleteAllPages();
+    virtual bool DeleteAllPages() wxOVERRIDE;
 
 protected:
     // Implementation of a page removal. See DeletPage for comments.
-    wxTreebookPage *DoRemovePage(size_t pos);
+    wxTreebookPage *DoRemovePage(size_t pos) wxOVERRIDE;
 
     // This subclass of wxBookCtrlBase accepts NULL page pointers (empty pages)
-    virtual bool AllowNullPage() const { return true; }
+    virtual bool AllowNullPage() const wxOVERRIDE { return true; }
 
     // event handlers
     void OnTreeSelectionChange(wxTreeEvent& event);
@@ -181,7 +181,7 @@ private:
                          int imageId = NO_IMAGE);
 
     // Sets selection in the tree control and updates the page being shown.
-    int DoSetSelection(size_t pos, int flags = 0);
+    int DoSetSelection(size_t pos, int flags = 0) wxOVERRIDE;
 
     // Returns currently shown page. In a case when selected the node
     // has empty (NULL) page finds first (sub)child with not-empty page.
@@ -219,8 +219,8 @@ private:
     size_t DoInternalGetPageCount() const { return m_treeIds.GetCount(); }
 
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxTreebook)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxTreebook);
 };
 
 

@@ -33,9 +33,9 @@ public:
                 long style = 0,
                 const wxString &name = wxStaticTextNameStr );
 
-    void SetLabel( const wxString &label );
+    void SetLabel( const wxString &label ) wxOVERRIDE;
 
-    bool SetFont( const wxFont &font );
+    bool SetFont( const wxFont &font ) wxOVERRIDE;
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
@@ -44,15 +44,15 @@ public:
     // --------------
 
 protected:
-    virtual bool GTKWidgetNeedsMnemonic() const;
-    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w);
+    virtual bool GTKWidgetNeedsMnemonic() const wxOVERRIDE;
+    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w) wxOVERRIDE;
 
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
-    virtual wxString DoGetLabel() const;
-    virtual void DoSetLabel(const wxString& str);
+    virtual wxString DoGetLabel() const wxOVERRIDE;
+    virtual void DoSetLabel(const wxString& str) wxOVERRIDE;
 #if wxUSE_MARKUP
-    virtual bool DoSetLabelMarkup(const wxString& markup);
+    virtual bool DoSetLabelMarkup(const wxString& markup) wxOVERRIDE;
 #endif // wxUSE_MARKUP
 
 private:
@@ -62,7 +62,7 @@ private:
     void GTKDoSetLabel(GTKLabelSetter setter, const wxString& label);
 
 
-    DECLARE_DYNAMIC_CLASS(wxStaticText)
+    wxDECLARE_DYNAMIC_CLASS(wxStaticText);
 };
 
 #endif

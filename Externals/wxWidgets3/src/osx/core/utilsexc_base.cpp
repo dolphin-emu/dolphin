@@ -53,19 +53,7 @@ extern WXDLLIMPEXP_BASE wxSocketManager *wxOSXSocketManagerCF;
 wxSocketManager *wxOSXSocketManagerCF = NULL;
 #endif // wxUSE_SOCKETS
 
-#if ( !wxUSE_GUI && !wxOSX_USE_IPHONE ) || wxOSX_USE_COCOA_OR_CARBON
-
-// have a fast version for mac code that returns the version as a return value
-
-long UMAGetSystemVersion()
-{
-    static SInt32 sUMASystemVersion = 0 ;
-    if ( sUMASystemVersion == 0 )
-    {
-        verify_noerr(Gestalt(gestaltSystemVersion, &sUMASystemVersion));
-    }
-    return sUMASystemVersion ;
-}
+#if wxOSX_USE_CARBON
 
 // our OS version is the same in non GUI and GUI cases
 wxOperatingSystemId wxGetOsVersion(int *majorVsn, int *minorVsn)
@@ -82,16 +70,6 @@ wxOperatingSystemId wxGetOsVersion(int *majorVsn, int *minorVsn)
     if ( minorVsn != NULL )
         *minorVsn = min;
 
-#if 0
-    SInt32 theSystem;
-    Gestalt(gestaltSystemVersion, &theSystem);
-
-    if ( majorVsn != NULL )
-        *majorVsn = (theSystem >> 8);
-
-    if ( minorVsn != NULL )
-        *minorVsn = (theSystem & 0xFF);
-#endif
     return wxOS_MAC_OSX_DARWIN;
 }
 
@@ -106,6 +84,10 @@ wxString wxGetOsDescription()
             wxString::FromAscii(name.release).c_str(),
             wxString::FromAscii(name.machine).c_str());
 }
+
+#endif // wxOSX_USE_CARBON
+
+#if ( !wxUSE_GUI && !wxOSX_USE_IPHONE ) || wxOSX_USE_COCOA_OR_CARBON
 
 //===========================================================================
 //  IMPLEMENTATION

@@ -86,13 +86,13 @@
 #   endif
 #endif /* wxUSE_TASKBARICON_BALLOONS */
 
-#ifndef wxUSE_UNICODE_MSLU
-#    ifdef wxABORT_ON_CONFIG_ERROR
-#        error "wxUSE_UNICODE_MSLU must be defined."
-#    else
-#        define wxUSE_UNICODE_MSLU 0
-#    endif
-#endif  /* wxUSE_UNICODE_MSLU */
+#ifndef wxUSE_TASKBARBUTTON
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_TASKBARBUTTON must be defined."
+#   else
+#       define wxUSE_TASKBARBUTTON 0
+#   endif
+#endif /* wxUSE_TASKBARBUTTON */
 
 #ifndef wxUSE_UXTHEME
 #    ifdef wxABORT_ON_CONFIG_ERROR
@@ -103,40 +103,29 @@
 #endif  /* wxUSE_UXTHEME */
 
 /*
- * We don't want to give an error if wxUSE_UNICODE_MSLU is enabled but
- * wxUSE_UNICODE is not as this would make it impossible to simply set the
- * former in wx/setup.h as then the library wouldn't compile in non-Unicode
- * configurations, so instead simply unset it silently when it doesn't make
- * sense.
+ * Unfortunately we can't use compiler TLS support if the library can be used
+ * inside a dynamically loaded DLL under Windows XP, as this can result in hard
+ * to diagnose crashes due to the bugs in Windows TLS support, see #13116.
+ *
+ * So we disable it unless we can be certain that the code will never run under
+ * XP, as is the case if we're using a compiler which doesn't support XP such
+ * as MSVC 11+, unless it's used with the special "_xp" toolset, in which case
+ * _USING_V110_SDK71_ is defined.
+ *
+ * However defining wxUSE_COMPILER_TLS as 2 overrides this safety check, see
+ * the comments in wx/setup.h.
  */
-#if wxUSE_UNICODE_MSLU && !wxUSE_UNICODE
-#   undef wxUSE_UNICODE_MSLU
-#   define wxUSE_UNICODE_MSLU 0
+#if wxUSE_COMPILER_TLS == 1
+    #if !wxCHECK_VISUALC_VERSION(11) || defined(_USING_V110_SDK71_)
+        #undef wxUSE_COMPILER_TLS
+        #define wxUSE_COMPILER_TLS 0
+    #endif
 #endif
 
 
 /*
  * disable the settings which don't work for some compilers
  */
-
-#ifndef wxUSE_NORLANDER_HEADERS
-#   if ( wxCHECK_WATCOM_VERSION(1,0) || defined(__WINE__) ) || \
-       ((defined(__MINGW32__) || defined(__CYGWIN__)) && ((__GNUC__>2) ||((__GNUC__==2) && (__GNUC_MINOR__>=95))))
-#       define wxUSE_NORLANDER_HEADERS 1
-#   else
-#       define wxUSE_NORLANDER_HEADERS 0
-#   endif
-#endif
-
-/*
- * See WINVER definition in wx/msw/wrapwin.h for the explanation of this test
- * logic.
- */
-#if (defined(__VISUALC__) && (__VISUALC__ < 1300)) && \
-        (!defined(WINVER) || WINVER < 0x0500)
-#   undef wxUSE_TASKBARICON_BALLOONS
-#   define wxUSE_TASKBARICON_BALLOONS 0
-#endif
 
 /*
  * All of the settings below require SEH support (__try/__catch) and can't work
@@ -175,27 +164,6 @@
 
 #endif /* __GNUWIN32__ */
 
-/* wxUSE_MFC is not defined when using configure as it doesn't make sense for
-   gcc or mingw32 anyhow */
-#ifndef wxUSE_MFC
-    #define wxUSE_MFC 0
-#endif /* !defined(wxUSE_MFC) */
-
-/* MFC duplicates these operators */
-#if wxUSE_MFC
-#   undef  wxUSE_GLOBAL_MEMORY_OPERATORS
-#   define wxUSE_GLOBAL_MEMORY_OPERATORS   0
-
-#   undef  wxUSE_DEBUG_NEW_ALWAYS
-#   define wxUSE_DEBUG_NEW_ALWAYS          0
-#endif /* wxUSE_MFC */
-
-#if (defined(__GNUWIN32__) && !wxUSE_NORLANDER_HEADERS)
-    /* GnuWin32 doesn't have appropriate headers for e.g. IUnknown. */
-#   undef wxUSE_DRAG_AND_DROP
-#   define wxUSE_DRAG_AND_DROP 0
-#endif
-
 #if !wxUSE_OWNER_DRAWN && !defined(__WXUNIVERSAL__)
 #   undef wxUSE_CHECKLISTBOX
 #   define wxUSE_CHECKLISTBOX 0
@@ -211,17 +179,6 @@
 #       endif
 #   endif
 #endif
-
-/*
-   Win64-specific checks.
- */
-#ifdef __WIN64__
-#   if wxUSE_STACKWALKER
-#       undef wxUSE_CRASHREPORT
-#       define wxUSE_CRASHREPORT 0
-#   endif
-#endif /* __WIN64__ */
-
 
 /*
    Compiler-specific checks.
@@ -244,19 +201,6 @@
 
 #endif /* __BORLANDC__ */
 
-/* DMC++ doesn't have definitions for date picker control, so use generic control
- */
-#ifdef __DMC__
-#   if wxUSE_DATEPICKCTRL
-#       undef wxUSE_DATEPICKCTRL_GENERIC
-#       undef wxUSE_DATEPICKCTRL
-#   endif
-#   define wxUSE_DATEPICKCTRL 0
-#   define wxUSE_DATEPICKCTRL_GENERIC 1
-#endif
-
-
-
 /*
    un/redefine the options which we can't compile (after checking that they're
    defined
@@ -266,12 +210,17 @@
 #       undef wxUSE_ACTIVEX
 #       define wxUSE_ACTIVEX 0
 #   endif /* wxUSE_ACTIVEX */
-
-#   if wxUSE_UNICODE_MSLU
-#       undef wxUSE_UNICODE_MSLU
-#       define wxUSE_UNICODE_MSLU 0
-#   endif /* wxUSE_UNICODE_MSLU */
 #endif /* __WINE__ */
+
+/*
+    Currently wxUSE_GRAPHICS_CONTEXT is only enabled with MSVC by default, so
+    only check for wxUSE_ACTIVITYINDICATOR dependency on it if it can be
+    enabled, otherwise turn the latter off to allow the library to compile.
+ */
+#if !wxUSE_GRAPHICS_CONTEXT && !defined(_MSC_VER)
+#   undef wxUSE_ACTIVITYINDICATOR
+#   define wxUSE_ACTIVITYINDICATOR 0
+#endif /* !wxUSE_ACTIVITYINDICATOR && !_MSC_VER */
 
 
 /* check settings consistency for MSW-specific ones */
@@ -303,6 +252,17 @@
 #       endif
 #   endif
 #endif /* !wxUSE_VARIANT */
+
+#if !wxUSE_DATAOBJ
+#   if wxUSE_OLE
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxUSE_OLE requires wxDataObject"
+#       else
+#           undef wxUSE_OLE
+#           define wxUSE_OLE 0
+#       endif
+#   endif
+#endif /* !wxUSE_DATAOBJ */
 
 #if !wxUSE_DYNAMIC_LOADER
 #    if wxUSE_MS_HTML_HELP
@@ -405,6 +365,15 @@
 #       endif
 #   endif
 #endif /* !wxUSE_ACTIVEX */
+
+#if wxUSE_ACTIVITYINDICATOR && !wxUSE_GRAPHICS_CONTEXT
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_ACTIVITYINDICATOR requires wxGraphicsContext"
+#   else
+#       undef wxUSE_ACTIVITYINDICATOR
+#       define wxUSE_ACTIVITYINDICATOR 0
+#   endif
+#endif /* wxUSE_ACTIVITYINDICATOR */
 
 #if !wxUSE_THREADS
 #   if wxUSE_FSWATCHER

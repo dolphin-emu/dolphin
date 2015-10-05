@@ -53,10 +53,10 @@ class wxWizardSizer : public wxSizer
 public:
     wxWizardSizer(wxWizard *owner);
 
-    virtual wxSizerItem *Insert(size_t index, wxSizerItem *item);
+    virtual wxSizerItem *Insert(size_t index, wxSizerItem *item) wxOVERRIDE;
 
-    virtual void RecalcSizes();
-    virtual wxSize CalcMin();
+    virtual void RecalcSizes() wxOVERRIDE;
+    virtual wxSize CalcMin() wxOVERRIDE;
 
     // get the max size of all wizard pages
     wxSize GetMaxChildSize();
@@ -88,7 +88,7 @@ wxDEFINE_EVENT( wxEVT_WIZARD_FINISHED, wxWizardEvent );
 wxDEFINE_EVENT( wxEVT_WIZARD_HELP, wxWizardEvent );
 wxDEFINE_EVENT( wxEVT_WIZARD_PAGE_SHOWN, wxWizardEvent );
 
-BEGIN_EVENT_TABLE(wxWizard, wxDialog)
+wxBEGIN_EVENT_TABLE(wxWizard, wxDialog)
     EVT_BUTTON(wxID_CANCEL, wxWizard::OnCancel)
     EVT_BUTTON(wxID_BACKWARD, wxWizard::OnBackOrNext)
     EVT_BUTTON(wxID_FORWARD, wxWizard::OnBackOrNext)
@@ -99,9 +99,9 @@ BEGIN_EVENT_TABLE(wxWizard, wxDialog)
     EVT_WIZARD_CANCEL(wxID_ANY, wxWizard::OnWizEvent)
     EVT_WIZARD_FINISHED(wxID_ANY, wxWizard::OnWizEvent)
     EVT_WIZARD_HELP(wxID_ANY, wxWizard::OnWizEvent)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
-IMPLEMENT_DYNAMIC_CLASS(wxWizard, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxWizard, wxDialog);
 
 /*
     TODO PROPERTIES :
@@ -110,9 +110,9 @@ IMPLEMENT_DYNAMIC_CLASS(wxWizard, wxDialog)
         title
 */
 
-IMPLEMENT_ABSTRACT_CLASS(wxWizardPage, wxPanel)
-IMPLEMENT_DYNAMIC_CLASS(wxWizardPageSimple, wxWizardPage)
-IMPLEMENT_DYNAMIC_CLASS(wxWizardEvent, wxNotifyEvent)
+wxIMPLEMENT_ABSTRACT_CLASS(wxWizardPage, wxPanel);
+wxIMPLEMENT_DYNAMIC_CLASS(wxWizardPageSimple, wxWizardPage);
+wxIMPLEMENT_DYNAMIC_CLASS(wxWizardEvent, wxNotifyEvent);
 
 // ============================================================================
 // implementation
@@ -271,6 +271,7 @@ void wxWizard::Init()
 {
     m_posWizard = wxDefaultPosition;
     m_page = NULL;
+    m_firstpage = NULL;
     m_btnPrev = m_btnNext = NULL;
     m_statbmp = NULL;
     m_sizerBmpAndPage = NULL;
@@ -410,7 +411,7 @@ void wxWizard::AddButtonRow(wxBoxSizer *mainColumn)
         mainColumn->Add(
             buttonRow,
             0, // Vertically unstretchable
-            wxGROW|wxALIGN_CENTRE
+            wxEXPAND
             );
     else
 #endif
@@ -620,7 +621,7 @@ bool wxWizard::ShowPage(wxWizardPage *page, bool goingForward)
 
 
     // and update the buttons state
-    m_btnPrev->Enable(HasPrevPage(m_page));
+    m_btnPrev->Enable(m_page != m_firstpage);
 
     const bool hasNext = HasNextPage(m_page);
     const wxString label = hasNext ? _("&Next >") : _("&Finish");
@@ -686,6 +687,8 @@ void wxWizard::DoWizardLayout()
 bool wxWizard::RunWizard(wxWizardPage *firstPage)
 {
     wxCHECK_MSG( firstPage, false, wxT("can't run empty wizard") );
+
+    m_firstpage = firstPage;
 
     // can't return false here because there is no old page
     (void)ShowPage(firstPage, true /* forward */);

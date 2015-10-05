@@ -23,10 +23,6 @@
 #include "wx/msw/private/dc.h"
 #include "wx/msw/wrapcctl.h"            // for HIMAGELIST
 
-#ifndef DSS_HIDEPREFIX
-#define DSS_HIDEPREFIX  0x0200
-#endif
-
 // ----------------------------------------------------------------------------
 // constants for base class
 // ----------------------------------------------------------------------------

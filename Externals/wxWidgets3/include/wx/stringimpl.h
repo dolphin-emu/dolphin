@@ -87,13 +87,6 @@ extern WXDLLIMPEXP_DATA_BASE(const wxStringCharType*) wxEmptyStringImpl;
     #undef wxUSE_STD_STRING
     #define wxUSE_STD_STRING 1
 
-    // the versions of std::string included with gcc 2.95 and VC6 (for which
-    // _MSC_VER == 1200) and eVC4 (_MSC_VER == 1201) lack clear() method
-    #if (defined(__GNUG__) && (__GNUG__ < 3)) || \
-        !wxCHECK_VISUALC_VERSION(7) || defined(__EVC4__)
-        #define wxSTRING_BASE_HASNT_CLEAR
-    #endif
-
     typedef wxStdString wxStringImpl;
 #else // if !wxUSE_STL_BASED_WXSTRING
 
@@ -122,7 +115,7 @@ struct WXDLLIMPEXP_BASE wxStringData
   void  Lock()   { if ( !IsEmpty() ) nRefs++;                    }
 
   // VC++ will refuse to inline Unlock but profiling shows that it is wrong
-#if defined(__VISUALC__) && (__VISUALC__ >= 1200)
+#if defined(__VISUALC__)
   __forceinline
 #endif
   // VC++ free must take place in same DLL as allocation when using non dll
@@ -334,7 +327,7 @@ public:
       { return wxStdString(c_str(), length()); }
 #endif
 
-#if defined(__VISUALC__) && (__VISUALC__ >= 1200)
+#if defined(__VISUALC__)
     // disable warning about Unlock() below not being inlined (first, it
     // seems to be inlined nevertheless and second, even if it isn't, there
     // is nothing we can do about this
@@ -348,7 +341,7 @@ public:
       GetStringData()->Unlock();
   }
 
-#if defined(__VISUALC__) && (__VISUALC__ >= 1200)
+#if defined(__VISUALC__)
     #pragma warning(pop)
 #endif
 

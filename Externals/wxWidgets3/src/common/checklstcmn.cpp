@@ -83,7 +83,7 @@ wxBEGIN_FLAGS( wxCheckListBoxStyle )
 
 wxEND_FLAGS( wxCheckListBoxStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxCheckListBox, wxListBox, "wx/checklst.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxCheckListBox, wxListBox, "wx/checklst.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxCheckListBox)
     wxEVENT_PROPERTY( Toggle, wxEVT_CHECKLISTBOX, wxCommandEvent )

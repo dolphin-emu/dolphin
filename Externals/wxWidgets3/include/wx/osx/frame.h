@@ -43,8 +43,6 @@ public:
                 long style = wxDEFAULT_FRAME_STYLE,
                 const wxString& name = wxFrameNameStr);
 
-    virtual ~wxFrame();
-
     // implementation only from now on
     // -------------------------------
 
@@ -110,8 +108,8 @@ protected:
 
     virtual bool        MacIsChildOfClientArea( const wxWindow* child ) const ;
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxFrame)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS(wxFrame);
 };
 
 #endif

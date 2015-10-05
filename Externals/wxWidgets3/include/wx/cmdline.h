@@ -27,6 +27,7 @@ enum wxCmdLineSplitType
 
 #if wxUSE_CMDLINE_PARSER
 
+class WXDLLIMPEXP_FWD_BASE wxCmdLineParser;
 class WXDLLIMPEXP_FWD_BASE wxDateTime;
 
 // ----------------------------------------------------------------------------
@@ -92,6 +93,90 @@ struct wxCmdLineEntryDesc
 // the list of wxCmdLineEntryDesc objects should be terminated with this one
 #define wxCMD_LINE_DESC_END \
         { wxCMD_LINE_NONE, NULL, NULL, NULL, wxCMD_LINE_VAL_NONE, 0x0 }
+
+// ----------------------------------------------------------------------------
+// wxCmdLineArg contains the value for one command line argument
+// ----------------------------------------------------------------------------
+
+class WXDLLIMPEXP_BASE wxCmdLineArg
+{
+public:
+    virtual ~wxCmdLineArg() {}
+
+    virtual double GetDoubleVal() const = 0;
+    virtual long GetLongVal() const = 0;
+    virtual const wxString& GetStrVal() const = 0;
+#if wxUSE_DATETIME
+    virtual const wxDateTime& GetDateVal() const = 0;
+#endif // wxUSE_DATETIME
+
+    virtual bool IsNegated() const = 0;
+
+    virtual wxCmdLineEntryType GetKind() const = 0;
+    virtual wxString GetShortName() const = 0;
+    virtual wxString GetLongName() const = 0;
+    virtual wxCmdLineParamType GetType() const = 0;
+};
+
+// ----------------------------------------------------------------------------
+// wxCmdLineArgs is a container of command line arguments actually parsed and
+// allows enumerating them using the standard iterator-based approach.
+// ----------------------------------------------------------------------------
+
+class WXDLLIMPEXP_BASE wxCmdLineArgs
+{
+public:
+    class WXDLLIMPEXP_BASE const_iterator
+    {
+    public:
+        typedef int difference_type;
+        typedef wxCmdLineArg value_type;
+        typedef const wxCmdLineArg* pointer;
+        typedef const wxCmdLineArg& reference;
+
+// We avoid dependency on standard library by default but if we do use
+// std::string, then it's ok to use iterator tags as well.
+#if wxUSE_STD_STRING
+        typedef std::bidirectional_iterator_tag iterator_category;
+#endif // wx_USE_STD_STRING
+
+        const_iterator() : m_parser(NULL), m_index(0) {}
+        reference operator *() const;
+        pointer operator ->() const;
+        const_iterator &operator ++ ();
+        const_iterator operator ++ (int);
+        const_iterator &operator -- ();
+        const_iterator operator -- (int);
+
+        bool operator == (const const_iterator &other) const {
+            return m_parser==other.m_parser && m_index==other.m_index;
+        }
+        bool operator != (const const_iterator &other) const {
+            return !operator==(other);
+        }
+
+    private:
+        const_iterator (const wxCmdLineParser& parser, size_t index)
+            : m_parser(&parser), m_index(index) {
+        }
+
+        const wxCmdLineParser* m_parser;
+        size_t m_index;
+
+        friend class wxCmdLineArgs;
+    };
+
+    wxCmdLineArgs (const wxCmdLineParser& parser) : m_parser(parser) {}
+
+    const_iterator begin() const { return const_iterator(m_parser, 0); }
+    const_iterator end() const { return const_iterator(m_parser, size()); }
+
+    size_t size() const;
+
+private:
+    const wxCmdLineParser& m_parser;
+    wxDECLARE_NO_ASSIGN_CLASS(wxCmdLineArgs);
+};
 
 // ----------------------------------------------------------------------------
 // wxCmdLineParser is a class for parsing command line.
@@ -263,6 +348,9 @@ public:
     // gets the value of Nth parameter (as string only for now)
     wxString GetParam(size_t n = 0u) const;
 
+    // returns a reference to the container of all command line arguments
+    wxCmdLineArgs GetArguments() const { return wxCmdLineArgs(*this); }
+
     // Resets switches and options
     void Reset();
 
@@ -277,6 +365,8 @@ private:
 
     struct wxCmdLineParserData *m_data;
 
+    friend class wxCmdLineArgs;
+    friend class wxCmdLineArgs::const_iterator;
     wxDECLARE_NO_COPY_CLASS(wxCmdLineParser);
 };
 

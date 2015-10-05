@@ -300,8 +300,8 @@ private:
     friend class wxSocketReadGuard;
     friend class wxSocketWriteGuard;
 
+    wxDECLARE_CLASS(wxSocketBase);
     wxDECLARE_NO_COPY_CLASS(wxSocketBase);
-    DECLARE_CLASS(wxSocketBase)
 };
 
 
@@ -320,8 +320,8 @@ public:
 
     bool WaitForAccept(long seconds = -1, long milliseconds = 0);
 
+    wxDECLARE_CLASS(wxSocketServer);
     wxDECLARE_NO_COPY_CLASS(wxSocketServer);
-    DECLARE_CLASS(wxSocketServer)
 };
 
 
@@ -359,8 +359,8 @@ private:
     int m_initialRecvBufferSize;
     int m_initialSendBufferSize;
 
+    wxDECLARE_CLASS(wxSocketClient);
     wxDECLARE_NO_COPY_CLASS(wxSocketClient);
-    DECLARE_CLASS(wxSocketClient)
 };
 
 
@@ -388,8 +388,8 @@ public:
      */
 
 private:
+    wxDECLARE_CLASS(wxDatagramSocket);
     wxDECLARE_NO_COPY_CLASS(wxDatagramSocket);
-    DECLARE_CLASS(wxDatagramSocket)
 };
 
 
@@ -410,14 +410,14 @@ public:
         { return (wxSocketBase *) GetEventObject(); }
     void *GetClientData() const { return m_clientData; }
 
-    virtual wxEvent *Clone() const { return new wxSocketEvent(*this); }
-    virtual wxEventCategory GetEventCategory() const { return wxEVT_CATEGORY_SOCKET; }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxSocketEvent(*this); }
+    virtual wxEventCategory GetEventCategory() const wxOVERRIDE { return wxEVT_CATEGORY_SOCKET; }
 
 public:
     wxSocketNotify  m_event;
     void           *m_clientData;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxSocketEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxSocketEvent);
 };
 
 

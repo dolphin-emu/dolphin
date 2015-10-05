@@ -674,11 +674,13 @@
     <ClCompile Include="..\..\src\aui\floatpane.cpp" />
     <ClCompile Include="..\..\src\aui\framemanager.cpp" />
     <ClCompile Include="..\..\src\aui\tabart.cpp" />
+	<ClCompile Include="..\..\src\aui\tabartmsw.cpp" />
     <ClCompile Include="..\..\src\aui\tabmdi.cpp" />
     <ClCompile Include="..\..\src\common\accelcmn.cpp" />
     <ClCompile Include="..\..\src\common\accesscmn.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+	<ClCompile Include="..\..\src\common\addremovectrl.cpp" />
     <ClCompile Include="..\..\src\common\affinematrix2d.cpp" />
     <ClCompile Include="..\..\src\common\anidecod.cpp" />
     <ClCompile Include="..\..\src\common\animatecmn.cpp" />
@@ -990,6 +992,7 @@
     </ClCompile>
     <ClCompile Include="..\..\src\common\zipstrm.cpp" />
     <ClCompile Include="..\..\src\common\zstream.cpp" />
+	<ClCompile Include="..\..\src\generic\activityindicator.cpp" />
     <ClCompile Include="..\..\src\generic\aboutdlgg.cpp" />
     <ClCompile Include="..\..\src\generic\animateg.cpp" />
     <ClCompile Include="..\..\src\generic\bannerwindow.cpp" />
@@ -1005,6 +1008,7 @@
     <ClCompile Include="..\..\src\generic\choicdgg.cpp" />
     <ClCompile Include="..\..\src\generic\clrpickerg.cpp" />
     <ClCompile Include="..\..\src\generic\collpaneg.cpp" />
+	<ClCompile Include="..\..\src\generic\collheaderctrlg.cpp" />
     <ClCompile Include="..\..\src\generic\colrdlgg.cpp" />
     <ClCompile Include="..\..\src\generic\combog.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -1101,6 +1105,7 @@
     <ClCompile Include="..\..\src\msw\accel.cpp" />
     <ClCompile Include="..\..\src\msw\anybutton.cpp" />
     <ClCompile Include="..\..\src\msw\app.cpp" />
+	<ClCompile Include="..\..\src\msw\appprogress.cpp" />
     <ClCompile Include="..\..\src\msw\artmsw.cpp" />
     <ClCompile Include="..\..\src\msw\basemsw.cpp" />
     <ClCompile Include="..\..\src\msw\bitmap.cpp" />
@@ -1120,9 +1125,7 @@
     <ClCompile Include="..\..\src\msw\combobox.cpp" />
     <ClCompile Include="..\..\src\msw\commandlinkbutton.cpp" />
     <ClCompile Include="..\..\src\msw\control.cpp" />
-    <ClCompile Include="..\..\src\msw\crashrpt.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\..\src\msw\crashrpt.cpp"/>
     <ClCompile Include="..\..\src\msw\cursor.cpp" />
     <ClCompile Include="..\..\src\msw\data.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -1170,6 +1173,7 @@
     <ClCompile Include="..\..\src\msw\gdiplus.cpp" />
     <ClCompile Include="..\..\src\msw\glcanvas.cpp" />
     <ClCompile Include="..\..\src\msw\graphics.cpp" />
+	<ClCompile Include="..\..\src\msw\graphicsd2d.cpp" />
     <ClCompile Include="..\..\src\msw\headerctrl.cpp" />
     <ClCompile Include="..\..\src\msw\helpbest.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -1209,7 +1213,6 @@
     <ClCompile Include="..\..\src\msw\mimetype.cpp" />
     <ClCompile Include="..\..\src\msw\minifram.cpp" />
     <ClCompile Include="..\..\src\msw\msgdlg.cpp" />
-    <ClCompile Include="..\..\src\msw\mslu.cpp" />
     <ClCompile Include="..\..\src\msw\nativdlg.cpp" />
     <ClCompile Include="..\..\src\msw\nativewin.cpp" />
     <ClCompile Include="..\..\src\msw\nonownedwnd.cpp" />
@@ -1230,7 +1233,6 @@
     <ClCompile Include="..\..\src\msw\palette.cpp" />
     <ClCompile Include="..\..\src\msw\panel.cpp" />
     <ClCompile Include="..\..\src\msw\pen.cpp" />
-    <ClCompile Include="..\..\src\msw\penwin.cpp" />
     <ClCompile Include="..\..\src\msw\popupwin.cpp" />
     <ClCompile Include="..\..\src\msw\power.cpp" />
     <ClCompile Include="..\..\src\msw\printdlg.cpp" />
@@ -1259,7 +1261,9 @@
     <ClCompile Include="..\..\src\msw\stattext.cpp" />
     <ClCompile Include="..\..\src\msw\statusbar.cpp" />
     <ClCompile Include="..\..\src\msw\stdpaths.cpp" />
+	<ClCompile Include="..\..\src\msw\systhemectrl.cpp" />
     <ClCompile Include="..\..\src\msw\taskbar.cpp" />
+	<ClCompile Include="..\..\src\msw\taskbarbutton.cpp" />
     <ClCompile Include="..\..\src\msw\textctrl.cpp" />
     <ClCompile Include="..\..\src\msw\textentry.cpp" />
     <ClCompile Include="..\..\src\msw\textmeasure.cpp" />

@@ -41,9 +41,9 @@ wxDEFINE_EVENT( wxEVT_TASKBAR_BALLOON_TIMEOUT, wxTaskBarIconEvent );
 wxDEFINE_EVENT( wxEVT_TASKBAR_BALLOON_CLICK, wxTaskBarIconEvent );
 
 
-BEGIN_EVENT_TABLE(wxTaskBarIconBase, wxEvtHandler)
+wxBEGIN_EVENT_TABLE(wxTaskBarIconBase, wxEvtHandler)
     EVT_TASKBAR_CLICK(wxTaskBarIconBase::OnRightButtonDown)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxTaskBarIconBase::OnRightButtonDown(wxTaskBarIconEvent& WXUNUSED(event))
 {

@@ -58,7 +58,7 @@
 // and under 10.4, we are not getting a 'close' event however...
 #define wxOSX_USE_NEEDSUPDATE_HOOK 1
 
-@interface wxNSMenuController : NSObject wxOSX_10_6_AND_LATER(<NSMenuDelegate>)
+@interface wxNSMenuController : NSObject <NSMenuDelegate>
 {
 }
 
@@ -140,9 +140,6 @@
 
 @interface NSApplication(MissingAppleMenuCall)
 - (void)setAppleMenu:(NSMenu *)menu;
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
-- (void)setHelpMenu:(NSMenu* )menu;
-#endif
 @end
 
 class wxMenuCocoaImpl : public wxMenuImpl
@@ -165,7 +162,7 @@ public :
 
     virtual ~wxMenuCocoaImpl();
 
-    virtual void InsertOrAppend(wxMenuItem *pItem, size_t pos)
+    virtual void InsertOrAppend(wxMenuItem *pItem, size_t pos) wxOVERRIDE
     {
         NSMenuItem* nsmenuitem = (NSMenuItem*) pItem->GetPeer()->GetHMenuItem();
         // make sure a call of SetSubMenu is also reflected (occurring after Create)
@@ -188,12 +185,12 @@ public :
             [m_osxMenu insertItem:nsmenuitem atIndex:pos];
     }
 
-    virtual void Remove( wxMenuItem *pItem )
+    virtual void Remove( wxMenuItem *pItem ) wxOVERRIDE
     {
         [m_osxMenu removeItem:(NSMenuItem*) pItem->GetPeer()->GetHMenuItem()];
     }
 
-    virtual void MakeRoot()
+    virtual void MakeRoot() wxOVERRIDE
     {
         wxMenu* peer = GetWXPeer();
         
@@ -230,13 +227,13 @@ public :
     {
     }
 
-    virtual void SetTitle( const wxString& text )
+    virtual void SetTitle( const wxString& text ) wxOVERRIDE
     {
         wxCFStringRef cfText(text);
         [m_osxMenu setTitle:cfText.AsNSString()];
     }
 
-    virtual void PopUp( wxWindow *win, int x, int y )
+    virtual void PopUp( wxWindow *win, int x, int y ) wxOVERRIDE
     {
         win->ScreenToClient( &x , &y ) ;
         NSView *view = win->GetPeer()->GetWXWidget();
@@ -253,8 +250,17 @@ public :
         [popUpButtonCell performClickWithFrame:frame inView:view];
         [popUpButtonCell release];
     }
-
-    WXHMENU GetHMenu() { return m_osxMenu; }
+    
+    virtual void GetMenuBarDimensions(int &x, int &y, int &width, int &height) const wxOVERRIDE
+    {
+        NSRect r = [(NSScreen*)[[NSScreen screens] objectAtIndex:0] frame];
+        height = [m_osxMenu menuBarHeight];
+        x = r.origin.x;
+        y = r.origin.y;
+        width = r.size.width;
+    }
+    
+    WXHMENU GetHMenu() wxOVERRIDE { return m_osxMenu; }
 
     static wxMenuImpl* Create( wxMenu* peer, const wxString& title );
     static wxMenuImpl* CreateRootMenu( wxMenu* peer );

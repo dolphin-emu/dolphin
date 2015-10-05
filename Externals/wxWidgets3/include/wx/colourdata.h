@@ -45,7 +45,7 @@ public:
     wxColour        m_custColours[NUM_CUSTOM];
     bool            m_chooseFull;
 
-    DECLARE_DYNAMIC_CLASS(wxColourData)
+    wxDECLARE_DYNAMIC_CLASS(wxColourData);
 };
 
 #endif // _WX_COLOURDATA_H_

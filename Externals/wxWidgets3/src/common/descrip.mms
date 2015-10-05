@@ -2,7 +2,7 @@
 #                                                                            *
 # Make file for VMS                                                          *
 # Author : J.Jansen (joukj@hrem.nano.tudelft.nl)                             *
-# Date : 19 September 2013                                                   *
+# Date : 11 March 2015                                                       *
 #                                                                            *
 #*****************************************************************************
 .first
@@ -47,7 +47,7 @@ LEX=flex
 .suffixes : .cpp
 
 .cpp.obj :
-	cxx $(CXXFLAGS)$(CXX_DEFINE) $(MMS$TARGET_NAME).cpp
+	cxx /object=$(MMS$TARGET_NAME).obj $(CXX_DEFINE) $(MMS$TARGET_NAME).cpp
 .c.obj :
 	cc $(CFLAGS)$(CC_DEFINE) $(MMS$TARGET_NAME).c
 
@@ -225,7 +225,8 @@ OBJECTS3=listctrlcmn.obj,socketiohandler.obj,fdiodispatcher.obj,\
 		spinbtncmn.obj,scrolbarcmn.obj,colourdata.obj,fontdata.obj,\
 		valnum.obj,numformatter.obj,markupparser.obj,\
 		affinematrix2d.obj,richtooltipcmn.obj,persist.obj,time.obj,\
-		textmeasurecmn.obj,modalhook.obj,threadinfo.obj
+		textmeasurecmn.obj,modalhook.obj,threadinfo.obj,\
+		addremovectrl.obj
 
 OBJECTS_MOTIF=radiocmn.obj,combocmn.obj
 
@@ -552,7 +553,7 @@ hash.obj : hash.cpp
 hashmap.obj : hashmap.cpp
 helpbase.obj : helpbase.cpp
 http.obj : http.cpp
-	cxx$(CXXFLAGS)$(CXX_DEFINE)/warn=disable=(UNSCOMZER)/obj=http.obj \
+	cxx$(CXX_DEFINE)/warn=disable=(UNSCOMZER)/obj=http.obj \
 	http.cpp
 hyperlnkcmn.obj : hyperlnkcmn.cpp
 iconbndl.obj : iconbndl.cpp
@@ -590,7 +591,7 @@ platinfo.obj : platinfo.cpp
 popupcmn.obj : popupcmn.cpp
 prntbase.obj : prntbase.cpp
 process.obj : process.cpp
-	cxx $(CXXFLAGS)$(CXX_DEFINE)/warn=disable=(UNSCOMZER) process.cpp
+	cxx /object=process.obj$(CXX_DEFINE)/warn=disable=(UNSCOMZER) process.cpp
 protocol.obj : protocol.cpp
 quantize.obj : quantize.cpp
 radiocmn.obj : radiocmn.cpp
@@ -667,7 +668,7 @@ srchcmn.obj : srchcmn.cpp
 textentrycmn.obj : textentrycmn.cpp
 filectrlcmn.obj : filectrlcmn.cpp
 cairo.obj : cairo.cpp
-	cxx$(CXXFLAGS)$(CXX_DEFINE)/obj=cairo.obj cairo.cpp
+	cxx$(CXX_DEFINE)/obj=cairo.obj cairo.cpp
 overlaycmn.obj : overlaycmn.cpp
 windowid.obj : windowid.cpp
 calctrlcmn.obj : calctrlcmn.cpp
@@ -719,3 +720,4 @@ time.obj : time.cpp
 textmeasurecmn.obj : textmeasurecmn.cpp
 modalhook.obj : modalhook.cpp
 threadinfo.obj : threadinfo.cpp
+addremovectrl.obj : addremovectrl.cpp

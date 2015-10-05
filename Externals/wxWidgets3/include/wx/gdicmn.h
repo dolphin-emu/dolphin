@@ -155,11 +155,35 @@ enum wxStockCursor
     #define wxCURSOR_CLOSED_HAND    wxCURSOR_HAND
 #endif
 
+// ----------------------------------------------------------------------------
+// Ellipsize() constants
+// ----------------------------------------------------------------------------
+
+enum wxEllipsizeFlags
+{
+    wxELLIPSIZE_FLAGS_NONE = 0,
+    wxELLIPSIZE_FLAGS_PROCESS_MNEMONICS = 1,
+    wxELLIPSIZE_FLAGS_EXPAND_TABS = 2,
+
+    wxELLIPSIZE_FLAGS_DEFAULT = wxELLIPSIZE_FLAGS_PROCESS_MNEMONICS |
+    wxELLIPSIZE_FLAGS_EXPAND_TABS
+};
+
+// NB: Don't change the order of these values, they're the same as in
+//     PangoEllipsizeMode enum.
+enum wxEllipsizeMode
+{
+    wxELLIPSIZE_NONE,
+    wxELLIPSIZE_START,
+    wxELLIPSIZE_MIDDLE,
+    wxELLIPSIZE_END
+};
+
 // ---------------------------------------------------------------------------
 // macros
 // ---------------------------------------------------------------------------
 
-#if defined(__WINDOWS__) || defined(__WXPM__)
+#if defined(__WINDOWS__)
     #define wxHAS_IMAGES_IN_RESOURCES
 #endif
 
@@ -174,9 +198,6 @@ enum wxStockCursor
  */
 
 #ifdef __WINDOWS__
-    // Load from a resource
-    #define wxICON(X) wxIcon(wxT(#X))
-#elif defined(__WXPM__)
     // Load from a resource
     #define wxICON(X) wxIcon(wxT(#X))
 #elif defined(__WXDFB__)
@@ -194,6 +215,9 @@ enum wxStockCursor
 #elif defined(__WXX11__)
     // Initialize from an included XPM
     #define wxICON(X) wxIcon( X##_xpm )
+#elif defined(__WXQT__)
+    // Initialize from an included XPM
+    #define wxICON(X) wxIcon( X##_xpm )
 #else
     // This will usually mean something on any platform
     #define wxICON(X) wxIcon(wxT(#X))
@@ -203,14 +227,13 @@ enum wxStockCursor
    under Unix bitmaps live in XPMs and under Windows they're in ressources.
  */
 
-#if defined(__WINDOWS__) || defined(__WXPM__)
+#if defined(__WINDOWS__)
     #define wxBITMAP(name) wxBitmap(wxT(#name), wxBITMAP_TYPE_BMP_RESOURCE)
 #elif defined(__WXGTK__)   || \
       defined(__WXMOTIF__) || \
       defined(__WXX11__)   || \
       defined(__WXMAC__)   || \
-      defined(__WXDFB__)   || \
-      defined(__WXCOCOA__)
+      defined(__WXDFB__)
     // Initialize from an included XPM
     #define wxBITMAP(name) wxBitmap(name##_xpm)
 #else // other platforms
@@ -808,13 +831,6 @@ public:
     // return true if the rectangle 'rect' is (not strictly) inside this rect
     bool Contains(const wxRect& rect) const;
 
-#if WXWIN_COMPATIBILITY_2_6
-    // use Contains() instead
-    wxDEPRECATED( bool Inside(int x, int y) const );
-    wxDEPRECATED( bool Inside(const wxPoint& pt) const );
-    wxDEPRECATED( bool Inside(const wxRect& rect) const );
-#endif // WXWIN_COMPATIBILITY_2_6
-
     // return true if the rectangles have a non empty intersection
     bool Intersects(const wxRect& rect) const;
 
@@ -861,16 +877,6 @@ WXDLLIMPEXP_CORE wxRect operator+(const wxRect& r1, const wxRect& r2);
 // intersections of two rectangles
 WXDLLIMPEXP_CORE wxRect operator*(const wxRect& r1, const wxRect& r2);
 
-
-
-
-#if WXWIN_COMPATIBILITY_2_6
-inline bool wxRect::Inside(int cx, int cy) const { return Contains(cx, cy); }
-inline bool wxRect::Inside(const wxPoint& pt) const { return Contains(pt); }
-inline bool wxRect::Inside(const wxRect& rect) const { return Contains(rect); }
-#endif // WXWIN_COMPATIBILITY_2_6
-
-
 // define functions which couldn't be defined above because of declarations
 // order
 inline void wxSize::IncBy(const wxPoint& pt) { IncBy(pt.x, pt.y); }
@@ -905,18 +911,6 @@ public:
 
     // add a new colour to the database
     void AddColour(const wxString& name, const wxColour& colour);
-
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated, use Find() instead
-    wxDEPRECATED( wxColour *FindColour(const wxString& name) );
-#endif // WXWIN_COMPATIBILITY_2_6
-
-
-#ifdef __WXPM__
-    // PM keeps its own type of colour table
-    long*                           m_palTable;
-    size_t                          m_nSize;
-#endif
 
 private:
     // load the database with the built in colour values when called for the

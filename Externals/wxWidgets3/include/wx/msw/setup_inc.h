@@ -8,34 +8,37 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // ----------------------------------------------------------------------------
-// Windows-only settings
+// Graphics backends choices for Windows
 // ----------------------------------------------------------------------------
 
-// Set wxUSE_UNICODE_MSLU to 1 if you're compiling wxWidgets in Unicode mode
-// and want to run your programs under Windows 9x and not only NT/2000/XP.
-// This setting enables use of unicows.dll from MSLU (MS Layer for Unicode, see
-// http://www.microsoft.com/globaldev/handson/dev/mslu_announce.mspx). Note
-// that you will have to modify the makefiles to include unicows.lib import
-// library as the first library (see installation instructions in install.txt
-// to learn how to do it when building the library or samples).
+// The options here are only taken into account if wxUSE_GRAPHICS_CONTEXT is 1.
+
+// Enable support for GDI+-based implementation of wxGraphicsContext.
 //
-// If your compiler doesn't have unicows.lib, you can get a version of it at
-// http://libunicows.sourceforge.net
+// Default is 1.
 //
-// Default is 0
+// Recommended setting: 1 if you need to support XP, as Direct2D is not
+// available there.
+#define wxUSE_GRAPHICS_GDIPLUS wxUSE_GRAPHICS_CONTEXT
+
+// Enable support for Direct2D-based implementation of wxGraphicsContext.
 //
-// Recommended setting: 0 (1 if you want to deploy Unicode apps on 9x systems)
-#ifndef wxUSE_UNICODE_MSLU
-    #define wxUSE_UNICODE_MSLU 0
+// Default is 1 for compilers which support it, i.e. VC10+ currently. If you
+// use an earlier MSVC version or another compiler and installed the necessary
+// SDK components manually, you need to change this setting.
+//
+// Recommended setting: 1 for faster and better quality graphics under Windows
+// 7 and later systems (if wxUSE_GRAPHICS_GDIPLUS is also enabled, earlier
+// systems will fall back on using GDI+).
+#if defined(_MSC_VER) && _MSC_VER >= 1600
+    #define wxUSE_GRAPHICS_DIRECT2D wxUSE_GRAPHICS_CONTEXT
+#else
+    #define wxUSE_GRAPHICS_DIRECT2D 0
 #endif
 
-// Set this to 1 if you want to use wxWidgets and MFC in the same program. This
-// will override some other settings (see below)
-//
-// Default is 0.
-//
-// Recommended setting: 0 unless you really have to use MFC
-#define wxUSE_MFC           0
+// ----------------------------------------------------------------------------
+// Windows-only settings
+// ----------------------------------------------------------------------------
 
 // Set this to 1 for generic OLE support: this is required for drag-and-drop,
 // clipboard, OLE Automation. Only set it to 0 if your compiler is very old and
@@ -117,6 +120,15 @@
 //
 // Recommended setting: 1, set to 0 for a tiny library size reduction
 #define wxUSE_TASKBARICON_BALLOONS 1
+
+// Set this to 1 to enable following functionality added in Windows 7: thumbnail
+// representations, thumbnail toolbars, notification and status overlays,
+// progress indicators and jump lists.
+//
+// Default is 1.
+//
+// Recommended setting: 1, set to 0 for a tiny library size reduction
+#define wxUSE_TASKBARBUTTON 1
 
 // Set to 1 to compile MS Windows XP theme engine support
 #define wxUSE_UXTHEME           1

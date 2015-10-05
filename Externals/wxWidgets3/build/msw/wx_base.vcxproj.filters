@@ -1997,6 +1997,9 @@
     <ClCompile Include="..\..\src\aui\tabart.cpp">
       <Filter>AUI</Filter>
     </ClCompile>
+	<ClCompile Include="..\..\src\aui\tabartmsw.cpp">
+      <Filter>AUI</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\aui\tabmdi.cpp">
       <Filter>AUI</Filter>
     </ClCompile>
@@ -2007,6 +2010,9 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\common\accesscmn.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+	<ClCompile Include="..\..\src\common\addremovectrl.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\common\affinematrix2d.cpp">
@@ -2741,6 +2747,9 @@
     <ClCompile Include="..\..\src\common\zstream.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+	<ClCompile Include="..\..\src\generic\activityindicator.cpp">
+      <Filter>Generic</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\generic\aboutdlgg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
@@ -2772,6 +2781,9 @@
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\collpaneg.cpp">
+      <Filter>Generic</Filter>
+    </ClCompile>
+	<ClCompile Include="..\..\src\generic\collheaderctrlg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\colrdlgg.cpp">
@@ -2990,6 +3002,9 @@
     <ClCompile Include="..\..\src\msw\app.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
+	<ClCompile Include="..\..\src\msw\appprogress.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\artmsw.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
@@ -3159,6 +3174,9 @@
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\graphics.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
+	<ClCompile Include="..\..\src\msw\graphicsd2d.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\headerctrl.cpp">
@@ -3347,7 +3365,13 @@
     <ClCompile Include="..\..\src\msw\stdpaths.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
+	<ClCompile Include="..\..\src\msw\systhemectrl.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\taskbar.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
+	<ClCompile Include="..\..\src\msw\taskbarbutton.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\textctrl.cpp">

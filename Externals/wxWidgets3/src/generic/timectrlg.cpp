@@ -26,6 +26,7 @@
 
 #ifndef WX_PRECOMP
     #include "wx/textctrl.h"
+    #include "wx/utils.h"           // wxMax()
 #endif // WX_PRECOMP
 
 #include "wx/timectrl.h"
@@ -42,7 +43,7 @@
 #include "wx/spinbutt.h"
 
 #ifndef wxHAS_NATIVE_TIMEPICKERCTRL
-    IMPLEMENT_DYNAMIC_CLASS(wxTimePickerCtrl, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTimePickerCtrl, wxControl);
 #endif
 
 // ----------------------------------------------------------------------------
@@ -85,7 +86,11 @@ public:
         // nice to add support to "%k" and "%l" (hours with leading blanks
         // instead of zeros) too as this is the most common unsupported case in
         // practice.
+#if wxUSE_XLOCALE
         m_useAMPM = wxLocale::GetInfo(wxLOCALE_TIME_FMT).Contains("%p");
+#else
+        m_useAMPM = false;
+#endif
 
         m_text->Connect
                 (
@@ -409,6 +414,7 @@ private:
 
             case Field_Max:
                 wxFAIL_MSG( "Invalid field" );
+                return;
         }
 
         UpdateText();
@@ -657,7 +663,7 @@ void wxTimePickerCtrlGeneric::DoMoveWindow(int x, int y, int width, int height)
         return;
 
     const int widthBtn = m_impl->m_btn->GetSize().x;
-    const int widthText = width - widthBtn - HMARGIN_TEXT_SPIN;
+    const int widthText = wxMax(width - widthBtn - HMARGIN_TEXT_SPIN, 0);
 
     m_impl->m_text->SetSize(0, 0, widthText, height);
     m_impl->m_btn->SetSize(widthText + HMARGIN_TEXT_SPIN, 0, widthBtn, height);

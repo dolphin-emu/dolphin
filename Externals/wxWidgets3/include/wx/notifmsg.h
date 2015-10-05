@@ -132,8 +132,6 @@ private:
  */
 #if defined(__WXGTK__) && wxUSE_LIBNOTIFY
     #include "wx/gtk/notifmsg.h"
-#elif defined(__WXGTK__) && (wxUSE_LIBHILDON || wxUSE_LIBHILDON2)
-    #include "wx/gtk/hildon/notifmsg.h"
 #elif defined(__WXMSW__) && wxUSE_TASKBARICON && wxUSE_TASKBARICON_BALLOONS
     #include "wx/msw/notifmsg.h"
 #else

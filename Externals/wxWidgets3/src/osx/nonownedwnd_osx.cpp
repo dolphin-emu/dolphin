@@ -91,7 +91,7 @@ void wxNonOwnedWindowImpl::Associate( WXWindow window, wxNonOwnedWindowImpl *imp
 // wxNonOwnedWindow creation
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS( wxNonOwnedWindowImpl , wxObject )
+wxIMPLEMENT_ABSTRACT_CLASS(wxNonOwnedWindowImpl, wxObject);
 
 wxNonOwnedWindow *wxNonOwnedWindow::s_macDeactivateWindow = NULL;
 
@@ -550,6 +550,14 @@ bool wxNonOwnedWindow::DoSetPathShape(const wxGraphicsPath& path)
     bmp.SetMask(new wxMask(bmp, *wxBLACK));
 
     return DoSetRegionShape(wxRegion(bmp));
+}
+
+void
+wxNonOwnedWindow::OSXHandleMiniaturize(double WXUNUSED(timestampsec),
+                                       bool miniaturized)
+{
+    if ( wxTopLevelWindowMac* top = (wxTopLevelWindowMac*) MacGetTopLevelWindow() )
+        top->OSXSetIconizeState(miniaturized);
 }
 
 #endif // wxUSE_GRAPHICS_CONTEXT

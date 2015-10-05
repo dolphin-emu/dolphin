@@ -77,7 +77,7 @@ public:
     virtual ~wxHIDJoystick();
 
     bool Create(int nWhich);
-    virtual void BuildCookies(CFArrayRef Array);
+    virtual void BuildCookies(CFArrayRef Array) wxOVERRIDE;
     void MakeCookies(CFArrayRef Array);
     IOHIDElementCookie* GetCookies();
     IOHIDQueueInterface** GetQueue();
@@ -95,7 +95,7 @@ class wxJoystickThread : public wxThread
 {
 public:
     wxJoystickThread(wxHIDJoystick* hid, int joystick);
-    void* Entry();
+    void* Entry() wxOVERRIDE;
     static void HIDCallback(void* target, IOReturn res, void* context, void* sender);
 
 private:
@@ -133,7 +133,7 @@ void wxGetIntFromCFDictionary(CFTypeRef cfDict, CFStringRef key, int* pOut)
 //
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-IMPLEMENT_DYNAMIC_CLASS(wxJoystick, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxJoystick, wxObject);
 
 //---------------------------------------------------------------------------
 // wxJoystick Constructor
@@ -187,6 +187,14 @@ wxPoint wxJoystick::GetPosition() const
     if (m_thread) pos = m_thread->m_lastposition;
     return pos;
 }
+int wxJoystick::GetPosition(unsigned int axis) const
+{
+    wxCHECK_MSG(axis < (unsigned)GetNumberAxes(), 0, "Invalid joystick axis");
+    if (m_thread)
+        return m_thread->m_axe[axis];
+    return 0;
+
+}
 int wxJoystick::GetZPosition() const
 {
     if (m_thread)
@@ -223,6 +231,14 @@ int wxJoystick::GetButtonState() const
     if (m_thread)
         return m_thread->m_buttons;
     return 0;
+}
+
+bool wxJoystick::GetButtonState(unsigned int id) const
+{
+    if (id > sizeof(int) * 8)
+        return false;
+
+    return (GetButtonState() & (1 << id)) != 0;
 }
 
 //---------------------------------------------------------------------------

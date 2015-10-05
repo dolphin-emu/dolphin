@@ -37,9 +37,9 @@
 class wxSoundBackendSDLNotification : public wxEvent
 {
 public:
-    DECLARE_DYNAMIC_CLASS(wxSoundBackendSDLNotification)
+    wxDECLARE_DYNAMIC_CLASS(wxSoundBackendSDLNotification);
     wxSoundBackendSDLNotification();
-    wxEvent *Clone() const { return new wxSoundBackendSDLNotification(*this); }
+    wxEvent *Clone() const wxOVERRIDE { return new wxSoundBackendSDLNotification(*this); }
 };
 
 typedef void (wxEvtHandler::*wxSoundBackendSDLNotificationFunction)
@@ -54,7 +54,7 @@ wxDECLARE_EVENT(wxEVT_SOUND_BACKEND_SDL_NOTIFICATION, wxSoundBackendSDLNotificat
                               wxEVENT_HANDLER_CAST( wxSoundBackendSDLNotificationFunction, func ), \
                               NULL ),
 
-IMPLEMENT_DYNAMIC_CLASS(wxSoundBackendSDLNotification, wxEvtHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSoundBackendSDLNotification, wxEvtHandler);
 wxDEFINE_EVENT( wxEVT_SOUND_BACKEND_SDL_NOTIFICATION, wxSoundBackendSDLNotification );
 
 wxSoundBackendSDLNotification::wxSoundBackendSDLNotification()
@@ -114,12 +114,12 @@ private:
     }
     wxSoundBackendSDL *m_backend;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(wxSoundBackendSDLEvtHandler, wxEvtHandler)
+wxBEGIN_EVENT_TABLE(wxSoundBackendSDLEvtHandler, wxEvtHandler)
     EVT_SOUND_BACKEND_SDL_NOTIFICATON(wxSoundBackendSDLEvtHandler::OnNotify)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxSoundBackendSDL::~wxSoundBackendSDL()
 {

@@ -68,7 +68,7 @@ wxBEGIN_FLAGS( wxBitmapButtonStyle )
     wxFLAGS_MEMBER(wxBU_BOTTOM)
 wxEND_FLAGS( wxBitmapButtonStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxBitmapButton, wxButton, "wx/bmpbuttn.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxBitmapButton, wxButton, "wx/bmpbuttn.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxBitmapButton)
     wxPROPERTY_FLAGS( WindowStyle, wxBitmapButtonStyle, long, \

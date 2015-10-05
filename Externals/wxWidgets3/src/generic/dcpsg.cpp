@@ -235,7 +235,7 @@ static const char wxPostScriptHeaderReencodeISO2[] =
 //-------------------------------------------------------------------------------
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxPostScriptDC, wxDC)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPostScriptDC, wxDC);
 
 wxPostScriptDC::wxPostScriptDC()
               : wxDC(new wxPostScriptDCImpl(this))
@@ -246,9 +246,6 @@ wxPostScriptDC::wxPostScriptDC(const wxPrintData& printData)
               : wxDC(new wxPostScriptDCImpl(this, printData))
 {
 }
-
-// conversion
-static const double RAD2DEG  = 180.0 / M_PI;
 
 // we don't want to use only 72 dpi from PS print
 static const int DPI = 600;
@@ -261,7 +258,7 @@ static const double DEV2PS = 72.0 / 600.0;
 #define YLOG2DEVREL(x)  ((double)(LogicalToDeviceYRel(x)) * DEV2PS)
 
 
-IMPLEMENT_ABSTRACT_CLASS(wxPostScriptDCImpl, wxDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxPostScriptDCImpl, wxDCImpl);
 
 //-------------------------------------------------------------------------------
 
@@ -468,10 +465,10 @@ void wxPostScriptDCImpl::DoDrawArc (wxCoord x1, wxCoord y1, wxCoord x2, wxCoord 
     {
         alpha1 = (x1 - xc == 0) ?
             (y1 - yc < 0) ? 90.0 : -90.0 :
-                -atan2(double(y1-yc), double(x1-xc)) * RAD2DEG;
+                wxRadToDeg(-atan2(double(y1-yc), double(x1-xc)));
         alpha2 = (x2 - xc == 0) ?
             (y2 - yc < 0) ? 90.0 : -90.0 :
-                -atan2(double(y2-yc), double(x2-xc)) * RAD2DEG;
+                wxRadToDeg(-atan2(double(y2-yc), double(x2-xc)));
     }
     while (alpha1 <= 0)   alpha1 += 360;
     while (alpha2 <= 0)   alpha2 += 360; // adjust angles to be between
@@ -1041,8 +1038,8 @@ void wxPostScriptDCImpl::SetFont( const wxFont& font )
 
     m_font = font;
 
-    int Style = m_font.GetStyle();
-    int Weight = m_font.GetWeight();
+    wxFontStyle Style = m_font.GetStyle();
+    wxFontWeight Weight = m_font.GetWeight();
 
     const char *name;
     switch (m_font.GetFamily())
@@ -1050,16 +1047,16 @@ void wxPostScriptDCImpl::SetFont( const wxFont& font )
         case wxTELETYPE:
         case wxMODERN:
         {
-            if (Style == wxITALIC)
+            if (Style == wxFONTSTYLE_ITALIC)
             {
-                if (Weight == wxBOLD)
+                if (Weight == wxFONTWEIGHT_BOLD)
                     name = "/Courier-BoldOblique";
                 else
                     name = "/Courier-Oblique";
             }
             else
             {
-                if (Weight == wxBOLD)
+                if (Weight == wxFONTWEIGHT_BOLD)
                     name = "/Courier-Bold";
                 else
                     name = "/Courier";
@@ -1068,16 +1065,16 @@ void wxPostScriptDCImpl::SetFont( const wxFont& font )
         }
         case wxROMAN:
         {
-            if (Style == wxITALIC)
+            if (Style == wxFONTSTYLE_ITALIC)
             {
-                if (Weight == wxBOLD)
+                if (Weight == wxFONTWEIGHT_BOLD)
                     name = "/Times-BoldItalic";
                 else
                     name = "/Times-Italic";
             }
             else
             {
-                if (Weight == wxBOLD)
+                if (Weight == wxFONTWEIGHT_BOLD)
                     name = "/Times-Bold";
                 else
                     name = "/Times-Roman";
@@ -1092,16 +1089,16 @@ void wxPostScriptDCImpl::SetFont( const wxFont& font )
         case wxSWISS:
         default:
         {
-            if (Style == wxITALIC)
+            if (Style == wxFONTSTYLE_ITALIC)
             {
-                if (Weight == wxBOLD)
+                if (Weight == wxFONTWEIGHT_BOLD)
                     name = "/Helvetica-BoldOblique";
                 else
                     name = "/Helvetica-Oblique";
             }
             else
             {
-                if (Weight == wxBOLD)
+                if (Weight == wxFONTWEIGHT_BOLD)
                     name = "/Helvetica-Bold";
                 else
                     name = "/Helvetica";
@@ -2092,7 +2089,7 @@ void wxPostScriptDCImpl::DoGetTextExtent(const wxString& string,
     /      dc.StartDoc("Test");
     /      dc.StartPage();
     /      wxCoord w,h;
-    /      dc.SetFont(new wxFont(10, wxROMAN, wxNORMAL, wxNORMAL));
+    /      dc.SetFont(new wxFontInfo(10).Family(wxFONTFAMILY_ROMAN));
     /      dc.GetTextExtent("Hallo",&w,&h);
     /      dc.EndPage();
     /      dc.EndDoc();
@@ -2135,17 +2132,17 @@ void wxPostScriptDCImpl::DoGetTextExtent(const wxString& string,
             case wxMODERN:
             case wxTELETYPE:
             {
-                if ((Style == wxITALIC) && (Weight == wxBOLD)) name = wxT("CourBoO.afm");
-                else if ((Style != wxITALIC) && (Weight == wxBOLD)) name = wxT("CourBo.afm");
-                else if ((Style == wxITALIC) && (Weight != wxBOLD)) name = wxT("CourO.afm");
+                if ((Style == wxFONTSTYLE_ITALIC) && (Weight == wxFONTWEIGHT_BOLD)) name = wxT("CourBoO.afm");
+                else if ((Style != wxFONTSTYLE_ITALIC) && (Weight == wxFONTWEIGHT_BOLD)) name = wxT("CourBo.afm");
+                else if ((Style == wxFONTSTYLE_ITALIC) && (Weight != wxFONTWEIGHT_BOLD)) name = wxT("CourO.afm");
                 else name = wxT("Cour.afm");
                 break;
             }
             case wxROMAN:
             {
-                if ((Style == wxITALIC) && (Weight == wxBOLD)) name = wxT("TimesBoO.afm");
-                else if ((Style != wxITALIC) && (Weight == wxBOLD)) name = wxT("TimesBo.afm");
-                else if ((Style == wxITALIC) && (Weight != wxBOLD)) name = wxT("TimesO.afm");
+                if ((Style == wxFONTSTYLE_ITALIC) && (Weight == wxFONTWEIGHT_BOLD)) name = wxT("TimesBoO.afm");
+                else if ((Style != wxFONTSTYLE_ITALIC) && (Weight == wxFONTWEIGHT_BOLD)) name = wxT("TimesBo.afm");
+                else if ((Style == wxFONTSTYLE_ITALIC) && (Weight != wxFONTWEIGHT_BOLD)) name = wxT("TimesO.afm");
                 else name = wxT("TimesRo.afm");
                 break;
             }
@@ -2157,9 +2154,9 @@ void wxPostScriptDCImpl::DoGetTextExtent(const wxString& string,
             case wxSWISS:
             default:
             {
-                if ((Style == wxITALIC) && (Weight == wxBOLD)) name = wxT("HelvBoO.afm");
-                else if ((Style != wxITALIC) && (Weight == wxBOLD)) name = wxT("HelvBo.afm");
-                else if ((Style == wxITALIC) && (Weight != wxBOLD)) name = wxT("HelvO.afm");
+                if ((Style == wxFONTSTYLE_ITALIC) && (Weight == wxFONTWEIGHT_BOLD)) name = wxT("HelvBoO.afm");
+                else if ((Style != wxFONTSTYLE_ITALIC) && (Weight == wxFONTWEIGHT_BOLD)) name = wxT("HelvBo.afm");
+                else if ((Style == wxFONTSTYLE_ITALIC) && (Weight != wxFONTWEIGHT_BOLD)) name = wxT("HelvO.afm");
                 else name = wxT("Helv.afm");
                 break;
             }

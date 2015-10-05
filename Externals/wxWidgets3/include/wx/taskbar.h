@@ -43,7 +43,7 @@ class WXDLLIMPEXP_ADV wxTaskBarIconBase : public wxEvtHandler
 public:
     wxTaskBarIconBase() { }
 
-#if defined(__WXGTK__) || defined(__WXX11__) || defined(__WXMOTIF__)
+#if defined(__WXGTK__) || defined(__WXX11__) || defined(__WXMOTIF__) || defined(__WXQT__)
     static bool IsAvailable();
 #else
     static bool IsAvailable() { return true; }
@@ -66,7 +66,7 @@ private:
     // default events handling, calls CreatePopupMenu:
     void OnRightButtonDown(wxTaskBarIconEvent& event);
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxTaskBarIconBase);
 };
 
@@ -83,8 +83,8 @@ private:
     #include "wx/unix/taskbarx11.h"
 #elif defined (__WXMAC__)
     #include "wx/osx/taskbarosx.h"
-#elif defined (__WXCOCOA__)
-    #include "wx/cocoa/taskbar.h"
+#elif defined (__WXQT__)
+    #include "wx/qt/taskbar.h"
 #endif
 
 // ----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ public:
         SetEventObject(tbIcon);
     }
 
-    virtual wxEvent *Clone() const { return new wxTaskBarIconEvent(*this); }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxTaskBarIconEvent(*this); }
 
 private:
     wxDECLARE_NO_ASSIGN_CLASS(wxTaskBarIconEvent);

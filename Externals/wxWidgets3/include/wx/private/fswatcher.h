@@ -84,8 +84,16 @@ public:
 
     virtual bool RemoveAll()
     {
+        bool ret = true;
+        for ( wxFSWatchEntries::iterator it = m_watches.begin();
+              it != m_watches.end();
+              ++it )
+        {
+            if ( !DoRemove(it->second) )
+               ret = false;
+        }
         m_watches.clear();
-        return true;
+        return ret;
     }
 
     // Check whether any filespec matches the file's ext (if present)

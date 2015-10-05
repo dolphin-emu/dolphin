@@ -19,7 +19,7 @@ class wxMimeTypesManagerImpl
 {
 public :
     //kinda kooky but in wxMimeTypesManager::EnsureImpl it doesn't call
-    //intialize, so we do it ourselves
+    //initialize, so we do it ourselves
     wxMimeTypesManagerImpl() : m_hIC(NULL) { Initialize(); }
     ~wxMimeTypesManagerImpl() { ClearData(); }
 

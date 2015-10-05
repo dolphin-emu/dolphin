@@ -37,9 +37,7 @@
 #include "wx/fontutil.h"
 #include "wx/fontmap.h"
 
-#ifndef __WXWINCE__
-    #include "wx/sysopt.h"
-#endif
+#include "wx/sysopt.h"
 
 #include "wx/scopeguard.h"
 #include "wx/tokenzr.h"
@@ -149,7 +147,8 @@ public:
             {
                 // cache the face name, it shouldn't change unless the family
                 // does and wxNativeFontInfo::SetFamily() resets the face name
-                const_cast<wxFontRefData *>(this)->SetFaceName(facename);
+                // Don't call this->SetFaceName(), because it deletes the HFONT.
+                const_cast<wxNativeFontInfo &>(m_nativeFontInfo).SetFaceName(facename);
             }
         }
 
@@ -359,7 +358,7 @@ void wxFontRefData::Init(int pointSize,
     if ( m_sizeUsingPixels )
         SetPixelSize(pixelSize);
     else
-        SetPointSize(pointSize);
+        SetPointSize(pointSize == -1 ? wxNORMAL_FONT->GetPointSize() : pointSize);
 
     SetStyle(style);
     SetWeight(weight);
@@ -385,7 +384,8 @@ void wxFontRefData::Init(const wxNativeFontInfo& info, WXHFONT hFont)
     m_hFont = (HFONT)hFont;
     m_nativeFontInfo = info;
 
-    // TODO: m_sizeUsingPixels?
+    // size of native fonts is expressed in pixels
+    m_sizeUsingPixels = true;
 }
 
 wxFontRefData::~wxFontRefData()
@@ -430,13 +430,9 @@ void wxNativeFontInfo::Init()
     // DEFAULT_QUALITY but some fonts (e.g. "Terminal 6pt") are not available
     // then so we allow to set a global option to choose between quality and
     // wider font selection
-#ifdef __WXWINCE__
-    lf.lfQuality = CLEARTYPE_QUALITY;
-#else
     lf.lfQuality = wxSystemOptions::GetOptionInt("msw.font.no-proof-quality")
                     ? DEFAULT_QUALITY
                     : PROOF_QUALITY;
-#endif
 }
 
 int wxNativeFontInfo::GetPointSize() const
@@ -840,7 +836,7 @@ bool wxFont::DoCreate(int pointSize,
 
     // wxDEFAULT is a valid value for the font size too so we must treat it
     // specially here (otherwise the size would be 70 == wxDEFAULT value)
-    if ( pointSize == wxDEFAULT || pointSize == -1 )
+    if ( pointSize == wxDEFAULT )
     {
         pointSize = wxNORMAL_FONT->GetPointSize();
     }

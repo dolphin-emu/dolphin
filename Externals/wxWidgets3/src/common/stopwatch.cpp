@@ -59,20 +59,26 @@ struct PerfCounter
         init = false;
     }
 
-    bool CanBeUsed() const
-    {
-        return freq.QuadPart != 0;
-    }
-
     wxCRIT_SECT_DECLARE_MEMBER(cs);
     LARGE_INTEGER freq;
     bool init;
-} gs_perfCounter;
+};
+
+// Return the global perf counter state.
+//
+// This is wrapped in a function to avoid initialization order problems,
+// otherwise simply creating a global wxStopWatch variable could crash because
+// it would be using a (possibly) still uninitialized critical section.
+PerfCounter& GetPerfCounterState()
+{
+    static PerfCounter s_perfCounter;
+
+    return s_perfCounter;
+}
 
 #endif // __WINDOWS__
 
 const int MILLISECONDS_PER_SECOND = 1000;
-const int MICROSECONDS_PER_MILLISECOND = 1000;
 const int MICROSECONDS_PER_SECOND = 1000*1000;
 
 } // anonymous namespace
@@ -80,23 +86,13 @@ const int MICROSECONDS_PER_SECOND = 1000*1000;
 void wxStopWatch::DoStart()
 {
 #ifdef __WINDOWS__
-    if ( !gs_perfCounter.init )
+    PerfCounter& perfCounter = GetPerfCounterState();
+    if ( !perfCounter.init )
     {
-        wxCRIT_SECT_LOCKER(lock, gs_perfCounter.cs);
-        ::QueryPerformanceFrequency(&gs_perfCounter.freq);
+        wxCRIT_SECT_LOCKER(lock, perfCounter.cs);
+        ::QueryPerformanceFrequency(&perfCounter.freq);
 
-        // Just a sanity check: it's not supposed to happen but verify that
-        // ::QueryPerformanceCounter() succeeds so that we can really use it.
-        LARGE_INTEGER counter;
-        if ( !::QueryPerformanceCounter(&counter) )
-        {
-            wxLogDebug("QueryPerformanceCounter() unexpected failed (%s), "
-                       "will not use it.", wxSysErrorMsg());
-
-            gs_perfCounter.freq.QuadPart = 0;
-        }
-
-        gs_perfCounter.init = true;
+        perfCounter.init = true;
     }
 #endif // __WINDOWS__
 
@@ -108,11 +104,8 @@ wxLongLong wxStopWatch::GetClockFreq() const
 #ifdef __WINDOWS__
     // Under MSW we use the high resolution performance counter timer which has
     // its own frequency (usually related to the CPU clock speed).
-    if ( gs_perfCounter.CanBeUsed() )
-        return gs_perfCounter.freq.QuadPart;
-#endif // __WINDOWS__
-
-#ifdef HAVE_GETTIMEOFDAY
+    return GetPerfCounterState().freq.QuadPart;
+#elif defined(HAVE_GETTIMEOFDAY)
     // With gettimeofday() we can have nominally microsecond precision and
     // while this is not the case in practice, it's still better than
     // millisecond.
@@ -120,7 +113,7 @@ wxLongLong wxStopWatch::GetClockFreq() const
 #else // !HAVE_GETTIMEOFDAY
     // Currently milliseconds are used everywhere else.
     return MILLISECONDS_PER_SECOND;
-#endif // HAVE_GETTIMEOFDAY/!HAVE_GETTIMEOFDAY
+#endif // __WINDOWS__/HAVE_GETTIMEOFDAY/else
 }
 
 void wxStopWatch::Start(long t0)
@@ -137,19 +130,14 @@ void wxStopWatch::Start(long t0)
 wxLongLong wxStopWatch::GetCurrentClockValue() const
 {
 #ifdef __WINDOWS__
-    if ( gs_perfCounter.CanBeUsed() )
-    {
-        LARGE_INTEGER counter;
-        ::QueryPerformanceCounter(&counter);
-        return counter.QuadPart;
-    }
-#endif // __WINDOWS__
-
-#ifdef HAVE_GETTIMEOFDAY
+    LARGE_INTEGER counter;
+    ::QueryPerformanceCounter(&counter);
+    return counter.QuadPart;
+#elif defined(HAVE_GETTIMEOFDAY)
     return wxGetUTCTimeUSec();
 #else // !HAVE_GETTIMEOFDAY
     return wxGetUTCTimeMillis();
-#endif // HAVE_GETTIMEOFDAY/!HAVE_GETTIMEOFDAY
+#endif // __WINDOWS__/HAVE_GETTIMEOFDAY/else
 }
 
 wxLongLong wxStopWatch::TimeInMicro() const

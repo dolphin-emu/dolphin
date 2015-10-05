@@ -51,14 +51,14 @@ enum MDI_MENU_ID
 // wxGenericMDIParentFrame
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericMDIParentFrame, wxFrame)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericMDIParentFrame, wxFrame);
 
-BEGIN_EVENT_TABLE(wxGenericMDIParentFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(wxGenericMDIParentFrame, wxFrame)
     EVT_CLOSE(wxGenericMDIParentFrame::OnClose)
 #if wxUSE_MENUS
     EVT_MENU(wxID_ANY, wxGenericMDIParentFrame::OnWindowMenu)
 #endif
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxGenericMDIParentFrame::Init()
 {
@@ -379,13 +379,13 @@ bool wxGenericMDIParentFrame::ProcessEvent(wxEvent& event)
 // wxGenericMDIChildFrame
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericMDIChildFrame, wxFrame)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericMDIChildFrame, wxFrame);
 
-BEGIN_EVENT_TABLE(wxGenericMDIChildFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(wxGenericMDIChildFrame, wxFrame)
     EVT_MENU_HIGHLIGHT_ALL(wxGenericMDIChildFrame::OnMenuHighlight)
 
     EVT_CLOSE(wxGenericMDIChildFrame::OnClose)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxGenericMDIChildFrame::Init()
 {
@@ -525,7 +525,7 @@ bool wxGenericMDIChildFrame::TryAfter(wxEvent& event)
 // wxGenericMDIClientWindow
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericMDIClientWindow, wxWindow)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericMDIClientWindow, wxWindow);
 
 bool
 wxGenericMDIClientWindow::CreateGenericClient(wxWindow *parent)

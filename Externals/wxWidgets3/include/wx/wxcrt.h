@@ -16,8 +16,8 @@
 #include "wx/string.h"
 
 #ifndef __WX_SETUP_H__
-// For non-configure builds assume vsscanf is available, if not Visual C or DMC
-#if !defined (__VISUALC__) && !defined (__DMC__)
+// For non-configure builds assume vsscanf is available, if not Visual C
+#if !defined (__VISUALC__)
     #define HAVE_VSSCANF 1
 #endif
 #endif
@@ -464,9 +464,8 @@ WX_STRCMP_FUNC(wxStricmp, wxCRT_StricmpA, wxCRT_StricmpW, wxStricmp_String)
 // the template's implementation uses overloaded function declared later (see
 // the wxStrcoll() call in wxStrcoll_String<T>()), so we have to
 // forward-declare the template and implement it below WX_STRCMP_FUNC. OTOH,
-// this fails to compile with VC6, so don't do it for VC. It also causes
-// problems with GCC visibility in newer GCC versions.
-#if !(defined(__VISUALC__) || (wxCHECK_GCC_VERSION(3,5) && !wxCHECK_GCC_VERSION(4,7))) || defined(__clang__)
+// this causes problems with GCC visibility in newer GCC versions.
+#if !(wxCHECK_GCC_VERSION(3,5) && !wxCHECK_GCC_VERSION(4,7)) || defined(__clang__)
     #define wxNEEDS_DECL_BEFORE_TEMPLATE
 #endif
 
@@ -907,9 +906,6 @@ WX_STRTOX_FUNC(wxULongLong_t, wxStrtoull, wxCRT_StrtoullA, wxCRT_StrtoullW)
 #undef WX_STRTOX_FUNC
 
 
-// there is no command interpreter under CE, hence no system()
-#ifndef __WXWINCE__
-
 // mingw32 doesn't provide _tsystem() even though it provides other stdlib.h
 // functions in their wide versions
 #ifdef wxCRT_SystemW
@@ -917,8 +913,6 @@ inline int wxSystem(const wxString& str) { return wxCRT_SystemW(str.wc_str()); }
 #else
 inline int wxSystem(const wxString& str) { return wxCRT_SystemA(str.mb_str()); }
 #endif
-
-#endif // !__WXWINCE__/__WXWINCE__
 
 inline char* wxGetenv(const char *name) { return wxCRT_GetenvA(name); }
 inline wchar_t* wxGetenv(const wchar_t *name) { return wxCRT_GetenvW(name); }

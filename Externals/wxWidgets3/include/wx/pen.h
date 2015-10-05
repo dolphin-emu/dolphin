@@ -109,10 +109,8 @@ public:
     #include "wx/dfb/pen.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/pen.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/pen.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/pen.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/pen.h"
 #endif
 
 class WXDLLIMPEXP_CORE wxPenList: public wxGDIObjListBase
@@ -122,14 +120,9 @@ public:
                            int width = 1,
                            wxPenStyle style = wxPENSTYLE_SOLID);
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
+    wxDEPRECATED_MSG("use wxPENSTYLE_XXX constants")
     wxPen *FindOrCreatePen(const wxColour& colour, int width, int style)
         { return FindOrCreatePen(colour, width, (wxPenStyle)style); }
-#endif
-#if WXWIN_COMPATIBILITY_2_6
-    wxDEPRECATED( void AddPen(wxPen*) );
-    wxDEPRECATED( void RemovePen(wxPen*) );
-#endif
 };
 
 extern WXDLLIMPEXP_DATA_CORE(wxPenList*)   wxThePenList;
@@ -140,25 +133,24 @@ extern WXDLLIMPEXP_DATA_CORE(wxPenList*)   wxThePenList;
 //
 // to compile without warnings which it would otherwise provoke from some
 // compilers as it compares elements of different enums
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
 
 // Unfortunately some compilers have ambiguity issues when enum comparisons are
 // overloaded so we have to disable the overloads in this case, see
 // wxCOMPILER_NO_OVERLOAD_ON_ENUM definition in wx/platform.h for more details.
 #ifndef wxCOMPILER_NO_OVERLOAD_ON_ENUM
 
+wxDEPRECATED_MSG("use wxPENSTYLE_XXX constants")
 inline bool operator==(wxPenStyle s, wxDeprecatedGUIConstants t)
 {
     return static_cast<int>(s) == static_cast<int>(t);
 }
 
+wxDEPRECATED_MSG("use wxPENSTYLE_XXX constants")
 inline bool operator!=(wxPenStyle s, wxDeprecatedGUIConstants t)
 {
-    return !(s == t);
+    return static_cast<int>(s) != static_cast<int>(t);
 }
 
 #endif // wxCOMPILER_NO_OVERLOAD_ON_ENUM
-
-#endif // FUTURE_WXWIN_COMPATIBILITY_3_0
 
 #endif // _WX_PEN_H_BASE_

@@ -27,6 +27,7 @@
     #include "wx/string.h"
     #include "wx/log.h"
     #include "wx/intl.h"
+    #include "wx/math.h"
     #include "wx/frame.h"
     #include "wx/window.h"
     #include "wx/control.h"
@@ -41,6 +42,7 @@
     #include "wx/statusbr.h"
     #include "wx/toolbar.h"
     #include "wx/dcclient.h"
+    #include "wx/dcscreen.h"
     #include "wx/scrolbar.h"
     #include "wx/layout.h"
     #include "wx/sizer.h"
@@ -97,18 +99,22 @@ bool IsInCaptureStack(wxWindowBase* win);
 
 } // wxMouseCapture
 
+// We consider 96 DPI to be the standard value, this is correct at least for
+// MSW, but could conceivably need adjustment for the other platforms.
+static const int BASELINE_DPI = 96;
+
 // ----------------------------------------------------------------------------
 // static data
 // ----------------------------------------------------------------------------
 
 
-IMPLEMENT_ABSTRACT_CLASS(wxWindowBase, wxEvtHandler)
+wxIMPLEMENT_ABSTRACT_CLASS(wxWindowBase, wxEvtHandler);
 
 // ----------------------------------------------------------------------------
 // event table
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxWindowBase, wxEvtHandler)
+wxBEGIN_EVENT_TABLE(wxWindowBase, wxEvtHandler)
     EVT_SYS_COLOUR_CHANGED(wxWindowBase::OnSysColourChanged)
     EVT_INIT_DIALOG(wxWindowBase::OnInitDialog)
     EVT_MIDDLE_DOWN(wxWindowBase::OnMiddleClick)
@@ -118,7 +124,7 @@ BEGIN_EVENT_TABLE(wxWindowBase, wxEvtHandler)
 #endif // wxUSE_HELP
 
     EVT_SIZE(wxWindowBase::InternalOnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation of the common functionality of the wxWindow class
@@ -251,7 +257,7 @@ wxCONSTRUCTOR_DUMMY(wxWindow)
 #else
 
 #ifndef __WXUNIVERSAL__
-IMPLEMENT_DYNAMIC_CLASS(wxWindow, wxWindowBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxWindow, wxWindowBase);
 #endif
 
 #endif
@@ -791,6 +797,17 @@ wxSize wxWindowBase::DoGetBestSize() const
     return best;
 }
 
+double wxWindowBase::GetContentScaleFactor() const
+{
+    // Currently we don't support per-monitor DPI, so it's useless to construct
+    // a DC associated with this window, just use the global value.
+    //
+    // We also use just the vertical component of the DPI because it's the one
+    // that counts most and, in practice, it's equal to the horizontal one
+    // anyhow.
+    return double(wxScreenDC().GetPPI().y) / BASELINE_DPI;
+}
+
 // helper of GetWindowBorderSize(): as many ports don't implement support for
 // wxSYS_BORDER/EDGE_X/Y metrics in their wxSystemSettings, use hard coded
 // fallbacks in this case
@@ -1017,15 +1034,15 @@ void wxWindowBase::DoSetWindowVariant( wxWindowVariant variant )
             break;
 
         case wxWINDOW_VARIANT_SMALL:
-            size = wxRound(size * 3.0 / 4.0);
+            size = wxRound(size / 1.2);
             break;
 
         case wxWINDOW_VARIANT_MINI:
-            size = wxRound(size * 2.0 / 3.0);
+            size = wxRound(size / (1.2 * 1.2));
             break;
 
         case wxWINDOW_VARIANT_LARGE:
-            size = wxRound(size * 5.0 / 4.0);
+            size = wxRound(size * 1.2);
             break;
 
         default:
@@ -1569,17 +1586,7 @@ wxWindowBase::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
     wxVisualAttributes attrs;
     attrs.font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     attrs.colFg = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-
-    // On Smartphone/PocketPC, wxSYS_COLOUR_WINDOW is a better reflection of
-    // the usual background colour than wxSYS_COLOUR_BTNFACE.
-    // It's a pity that wxSYS_COLOUR_WINDOW isn't always a suitable background
-    // colour on other platforms.
-
-#if defined(__WXWINCE__) && (defined(__SMARTPHONE__) || defined(__POCKETPC__))
-    attrs.colBg = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-#else
     attrs.colBg = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-#endif
     return attrs;
 }
 
@@ -1912,23 +1919,20 @@ wxWindow *wxFindWindowRecursively(const wxWindow *parent,
                                   long id,
                                   wxFindWindowCmp cmp)
 {
-    if ( parent )
-    {
-        // see if this is the one we're looking for
-        if ( (*cmp)(parent, label, id) )
-            return (wxWindow *)parent;
+    // see if this is the one we're looking for
+    if ( (*cmp)(parent, label, id) )
+        return (wxWindow *)parent;
 
-        // It wasn't, so check all its children
-        for ( wxWindowList::compatibility_iterator node = parent->GetChildren().GetFirst();
-              node;
-              node = node->GetNext() )
-        {
-            // recursively check each child
-            wxWindow *win = (wxWindow *)node->GetData();
-            wxWindow *retwin = wxFindWindowRecursively(win, label, id, cmp);
-            if (retwin)
-                return retwin;
-        }
+    // It wasn't, so check all its children
+    for ( wxWindowList::compatibility_iterator node = parent->GetChildren().GetFirst();
+          node;
+          node = node->GetNext() )
+    {
+        // recursively check each child
+        wxWindow *win = (wxWindow *)node->GetData();
+        wxWindow *retwin = wxFindWindowRecursively(win, label, id, cmp);
+        if (retwin)
+            return retwin;
     }
 
     // Not found
@@ -2096,12 +2100,12 @@ bool wxWindowBase::Validate()
         {
         }
 
-        virtual bool OnDo(wxValidator* validator)
+        virtual bool OnDo(wxValidator* validator) wxOVERRIDE
         {
             return validator->Validate(m_win);
         }
 
-        virtual bool OnRecurse(wxWindow* child)
+        virtual bool OnRecurse(wxWindow* child) wxOVERRIDE
         {
             return child->Validate();
         }
@@ -2124,7 +2128,7 @@ bool wxWindowBase::TransferDataToWindow()
         {
         }
 
-        virtual bool OnDo(wxValidator* validator)
+        virtual bool OnDo(wxValidator* validator) wxOVERRIDE
         {
             if ( !validator->TransferToWindow() )
             {
@@ -2139,7 +2143,7 @@ bool wxWindowBase::TransferDataToWindow()
             return true;
         }
 
-        virtual bool OnRecurse(wxWindow* child)
+        virtual bool OnRecurse(wxWindow* child) wxOVERRIDE
         {
             return child->TransferDataToWindow();
         }
@@ -2162,12 +2166,12 @@ bool wxWindowBase::TransferDataFromWindow()
         {
         }
 
-        virtual bool OnDo(wxValidator* validator)
+        virtual bool OnDo(wxValidator* validator) wxOVERRIDE
         {
             return validator->TransferFromWindow();
         }
 
-        virtual bool OnRecurse(wxWindow* child)
+        virtual bool OnRecurse(wxWindow* child) wxOVERRIDE
         {
             return child->TransferDataFromWindow();
         }
@@ -2282,7 +2286,7 @@ wxString wxWindowBase::GetToolTipText() const
     return m_tooltip ? m_tooltip->GetTip() : wxString();
 }
 
-void wxWindowBase::SetToolTip( const wxString &tip )
+void wxWindowBase::DoSetToolTipText( const wxString &tip )
 {
     // don't create the new tooltip if we already have one
     if ( m_tooltip )
@@ -2462,12 +2466,21 @@ void wxWindowBase::SetSizerAndFit(wxSizer *sizer, bool deleteOld)
 
 void wxWindowBase::SetContainingSizer(wxSizer* sizer)
 {
-    // adding a window to a sizer twice is going to result in fatal and
-    // hard to debug problems later because when deleting the second
-    // associated wxSizerItem we're going to dereference a dangling
-    // pointer; so try to detect this as early as possible
-    wxASSERT_MSG( !sizer || m_containingSizer != sizer,
-                  wxT("Adding a window to the same sizer twice?") );
+    // Adding a window to another sizer if it's already managed by one would
+    // result in crashes later because one of the two sizers won't be notified
+    // about the window destruction and so will use a dangling pointer when it
+    // is destroyed itself. As such problems are hard to debug, don't allow
+    // them to happen in the first place.
+    if ( sizer )
+    {
+        // This would be caught by the check below too, but give a more clear
+        // error message in this case.
+        wxASSERT_MSG( m_containingSizer != sizer,
+                      wxS("Adding a window to the same sizer twice?") );
+
+        wxCHECK_RET( !m_containingSizer,
+                     wxS("Adding a window already in a sizer, detach it first!") );
+    }
 
     m_containingSizer = sizer;
 }
@@ -2848,8 +2861,24 @@ void wxWindowBase::OnInternalIdle()
 }
 
 // ----------------------------------------------------------------------------
-// dialog units translations
+// DPI-independent pixels and dialog units translations
 // ----------------------------------------------------------------------------
+
+#ifndef wxHAVE_DPI_INDEPENDENT_PIXELS
+
+/* static */
+wxSize
+wxWindowBase::FromDIP(const wxSize& sz, const wxWindowBase* WXUNUSED(w))
+{
+    const wxSize dpi = wxScreenDC().GetPPI();
+
+    // Take care to not scale -1 because it has a special meaning of
+    // "unspecified" which should be preserved.
+    return wxSize(sz.x == -1 ? -1 : wxMulDivInt32(sz.x, dpi.x, BASELINE_DPI),
+                  sz.y == -1 ? -1 : wxMulDivInt32(sz.y, dpi.y, BASELINE_DPI));
+}
+
+#endif // !wxHAVE_DPI_INDEPENDENT_PIXELS
 
 // Windows' computes dialog units using average character width over upper-
 // and lower-case ASCII alphabet and not using the average character width
@@ -3560,7 +3589,7 @@ public:
     DragAcceptFilesTarget(wxWindowBase *win) : m_win(win) {}
 
     virtual bool OnDropFiles(wxCoord x, wxCoord y,
-                             const wxArrayString& filenames)
+                             const wxArrayString& filenames) wxOVERRIDE
     {
         wxDropFilesEvent event(wxEVT_DROP_FILES,
                                filenames.size(),

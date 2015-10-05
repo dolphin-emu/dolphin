@@ -20,7 +20,7 @@
 // wxMemoryDCImpl
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxMemoryDCImpl,wxPaintDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxMemoryDCImpl, wxPaintDCImpl);
 
 
 wxMemoryDCImpl::wxMemoryDCImpl( wxMemoryDC *owner )
@@ -86,6 +86,8 @@ void wxMemoryDCImpl::DoSelect( const wxBitmap& bitmap )
             CGContextSetFillColorSpace( bmCtx, genericColorSpace );
             CGContextSetStrokeColorSpace( bmCtx, genericColorSpace );
             SetGraphicsContext( wxGraphicsContext::CreateFromNative( bmCtx ) );
+            if (m_graphicContext)
+                m_graphicContext->EnableOffset(true);
         }
         m_ok = (m_graphicContext != NULL) ;
     }

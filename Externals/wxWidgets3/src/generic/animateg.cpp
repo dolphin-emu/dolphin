@@ -40,7 +40,7 @@ wxAnimationDecoderList wxAnimation::sm_handlers;
 // wxAnimation
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxAnimation, wxAnimationBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxAnimation, wxAnimationBase);
 #define M_ANIMDATA      static_cast<wxAnimationDecoder*>(m_refData)
 
 wxSize wxAnimation::GetSize() const
@@ -250,26 +250,26 @@ void wxAnimation::CleanUpHandlers()
 
 class wxAnimationModule: public wxModule
 {
-DECLARE_DYNAMIC_CLASS(wxAnimationModule)
+    wxDECLARE_DYNAMIC_CLASS(wxAnimationModule);
 public:
     wxAnimationModule() {}
-    bool OnInit() { wxAnimation::InitStandardHandlers(); return true; }
-    void OnExit() { wxAnimation::CleanUpHandlers(); }
+    bool OnInit() wxOVERRIDE { wxAnimation::InitStandardHandlers(); return true; }
+    void OnExit() wxOVERRIDE { wxAnimation::CleanUpHandlers(); }
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxAnimationModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxAnimationModule, wxModule);
 
 
 // ----------------------------------------------------------------------------
 // wxAnimationCtrl
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(wxAnimationCtrl, wxAnimationCtrlBase)
-BEGIN_EVENT_TABLE(wxAnimationCtrl, wxAnimationCtrlBase)
+wxIMPLEMENT_CLASS(wxAnimationCtrl, wxAnimationCtrlBase);
+wxBEGIN_EVENT_TABLE(wxAnimationCtrl, wxAnimationCtrlBase)
     EVT_PAINT(wxAnimationCtrl::OnPaint)
     EVT_SIZE(wxAnimationCtrl::OnSize)
     EVT_TIMER(wxID_ANY, wxAnimationCtrl::OnTimer)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxAnimationCtrl::Init()
 {
@@ -358,7 +358,7 @@ void wxAnimationCtrl::SetInactiveBitmap(const wxBitmap &bmp)
     // (which uses the bitmap's mask), our background colour would be used for
     // transparent areas - and that's not what we want (at least for
     // consistency with the GTK version)
-    if ( bmp.GetMask() != NULL && GetParent() != NULL )
+    if ( bmp.IsOk() && bmp.GetMask() != NULL && GetParent() != NULL )
         SetBackgroundColour(GetParent()->GetBackgroundColour());
 
     wxAnimationCtrlBase::SetInactiveBitmap(bmp);

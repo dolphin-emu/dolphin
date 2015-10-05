@@ -44,6 +44,10 @@
     #define DateTime_SetSystemtime DateTime_SetSystemTime
 #endif
 
+#ifndef DTM_GETIDEALSIZE
+    #define DTM_GETIDEALSIZE 0x100f
+#endif
+
 // ============================================================================
 // wxDateTimePickerCtrl implementation
 // ============================================================================
@@ -108,34 +112,48 @@ wxDateTime wxDateTimePickerCtrl::GetValue() const
 
 wxSize wxDateTimePickerCtrl::DoGetBestSize() const
 {
-    wxClientDC dc(const_cast<wxDateTimePickerCtrl *>(this));
+    // Since Vista, the control can compute its best size itself, just ask it.
+    wxSize size;
+    if ( wxGetWinVersion() >= wxWinVersion_Vista )
+    {
+        SIZE idealSize;
+        ::SendMessage(m_hWnd, DTM_GETIDEALSIZE, 0, (LPARAM)&idealSize);
 
-    // Use the same native format as the underlying native control.
+        size = wxSize(idealSize.cx, idealSize.cy);
+    }
+    else // Windows XP
+    {
+        wxClientDC dc(const_cast<wxDateTimePickerCtrl *>(this));
+
+        // Use the same native format as the underlying native control.
 #if wxUSE_INTL
-    wxString s = wxDateTime::Now().Format(wxLocale::GetInfo(MSWGetFormat()));
+        wxString s = wxDateTime::Now().Format(wxLocale::GetOSInfo(MSWGetFormat()));
 #else // !wxUSE_INTL
-    wxString s("XXX-YYY-ZZZZ");
+        wxString s("XXX-YYY-ZZZZ");
 #endif // wxUSE_INTL/!wxUSE_INTL
 
-    // the best size for the control is bigger than just the string
-    // representation of the current value because the control must accommodate
-    // any date and while the widths of all digits are usually about the same,
-    // the width of the month string varies a lot, so try to account for it
-    s += wxT("WW");
+        // the best size for the control is bigger than just the string
+        // representation of the current value because the control must accommodate
+        // any date and while the widths of all digits are usually about the same,
+        // the width of the month string varies a lot, so try to account for it
+        s += wxS("W");
 
-    int x, y;
-    dc.GetTextExtent(s, &x, &y);
+        size = dc.GetTextExtent(s);
 
-    // account for the drop-down arrow or spin arrows
-    x += wxSystemSettings::GetMetric(wxSYS_HSCROLL_ARROW_X);
+        // account for the drop-down arrow or spin arrows
+        size.x += wxSystemSettings::GetMetric(wxSYS_HSCROLL_ARROW_X);
+    }
 
-    // and for the checkbox if we have it
+    // We need to account for the checkbox, if we have one, ourselves as
+    // DTM_GETIDEALSIZE doesn't seem to take it into account, at least under
+    // Windows 7.
     if ( MSWAllowsNone() )
-        x += 3*GetCharWidth();
+        size.x += 3*GetCharWidth();
 
-    wxSize best(x, EDIT_HEIGHT_FROM_CHAR_HEIGHT(y));
-    CacheBestSize(best);
-    return best;
+    // In any case, adjust the height to be the same as for the text controls.
+    size.y = EDIT_HEIGHT_FROM_CHAR_HEIGHT(size.y);
+
+    return size;
 }
 
 bool

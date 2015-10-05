@@ -62,7 +62,7 @@ public:
     wxString    m_paperName;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxPrintPaperType)
+    wxDECLARE_DYNAMIC_CLASS(wxPrintPaperType);
 };
 
 WX_DECLARE_STRING_HASH_MAP(wxPrintPaperType*, wxStringToPrintPaperTypeHashMap);
@@ -111,7 +111,7 @@ public:
 private:
     wxStringToPrintPaperTypeHashMap* m_map;
     wxPrintPaperTypeList* m_list;
-    // DECLARE_DYNAMIC_CLASS(wxPrintPaperDatabase)
+    //wxDECLARE_DYNAMIC_CLASS(wxPrintPaperDatabase);
 };
 
 extern WXDLLIMPEXP_DATA_CORE(wxPrintPaperDatabase*) wxThePrintPaperDatabase;

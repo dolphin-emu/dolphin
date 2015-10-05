@@ -43,25 +43,11 @@
 #include "wx/progdlg.h"
 #include "wx/evtloop.h"
 
-// ---------------------------------------------------------------------------
-// macros
-// ---------------------------------------------------------------------------
-
-/* Macro for avoiding #ifdefs when value have to be different depending on size of
-   device we display on - take it from something like wxDesktopPolicy in the future
- */
-
-#if defined(__SMARTPHONE__)
-    #define wxLARGESMALL(large,small) small
-#else
-    #define wxLARGESMALL(large,small) large
-#endif
-
 // ----------------------------------------------------------------------------
 // constants
 // ----------------------------------------------------------------------------
 
-#define LAYOUT_MARGIN wxLARGESMALL(8,2)
+#define LAYOUT_MARGIN 8
 
 static const int wxID_SKIP = 32000;  // whatever
 
@@ -69,12 +55,12 @@ static const int wxID_SKIP = 32000;  // whatever
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxGenericProgressDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxGenericProgressDialog, wxDialog)
     EVT_BUTTON(wxID_CANCEL, wxGenericProgressDialog::OnCancel)
     EVT_BUTTON(wxID_SKIP, wxGenericProgressDialog::OnSkip)
 
     EVT_CLOSE(wxGenericProgressDialog::OnClose)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // wxGenericProgressDialog implementation
@@ -112,10 +98,8 @@ void wxGenericProgressDialog::Init()
 
     m_skip = false;
 
-#if !defined(__SMARTPHONE__)
     m_btnAbort =
     m_btnSkip = NULL;
-#endif
 
     m_display_estimated =
     m_last_timeupdate =
@@ -191,21 +175,18 @@ bool wxGenericProgressDialog::Create( const wxString& title,
     }
 #endif // wxMSW
 
-#if defined(__SMARTPHONE__)
-    SetLeftMenu();
-#endif
-
     m_state = HasPDFlag(wxPD_CAN_ABORT) ? Continue : Uncancelable;
 
     // top-level sizerTop
     wxSizer * const sizerTop = new wxBoxSizer(wxVERTICAL);
 
     m_msg = new wxStaticText(this, wxID_ANY, message);
-    sizerTop->Add(m_msg, 0, wxLEFT | wxTOP, 2*LAYOUT_MARGIN);
+    sizerTop->Add(m_msg, 0, wxLEFT | wxRIGHT | wxTOP, 2*LAYOUT_MARGIN);
 
     int gauge_style = wxGA_HORIZONTAL;
     if ( style & wxPD_SMOOTH )
         gauge_style |= wxGA_SMOOTH;
+    gauge_style |= wxGA_PROGRESS;
 
 #ifdef __WXMSW__
     maximum /= m_factor;
@@ -257,45 +238,40 @@ bool wxGenericProgressDialog::Create( const wxString& title,
     }
     sizerTop->Add(sizerLabels, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, LAYOUT_MARGIN);
 
-#if defined(__SMARTPHONE__)
-    if ( HasPDFlag(wxPD_CAN_SKIP) )
-        SetRightMenu(wxID_SKIP, _("Skip"));
-    if ( HasPDFlag(wxPD_CAN_ABORT) )
-        SetLeftMenu(wxID_CANCEL);
-#else
     m_btnAbort =
     m_btnSkip = NULL;
 
     wxBoxSizer *buttonSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    // Windows dialogs usually have buttons in the lower right corner
-    const int sizerFlags =
-#if defined(__WXMSW__) || defined(__WXPM__) || defined(__WXOSX__)
-                           wxALIGN_RIGHT | wxALL
-#else // !MSW
-                           wxALIGN_CENTER_HORIZONTAL | wxBOTTOM | wxTOP
-#endif // MSW/!MSW
-                           ;
+    const int borderFlags =
+#if defined(__WXMSW__) || defined(__WXOSX__)
+        wxALL
+#else
+        wxBOTTOM | wxTOP
+#endif
+        ;
+
+    const wxSizerFlags sizerFlags
+        = wxSizerFlags().Border(borderFlags, LAYOUT_MARGIN);
 
     if ( HasPDFlag(wxPD_CAN_SKIP) )
     {
         m_btnSkip = new wxButton(this, wxID_SKIP, _("&Skip"));
 
-        buttonSizer->Add(m_btnSkip, 0, sizerFlags, LAYOUT_MARGIN);
+        buttonSizer->Add(m_btnSkip, sizerFlags);
     }
 
     if ( HasPDFlag(wxPD_CAN_ABORT) )
     {
         m_btnAbort = new wxButton(this, wxID_CANCEL);
 
-        buttonSizer->Add(m_btnAbort, 0, sizerFlags, LAYOUT_MARGIN);
+        buttonSizer->Add(m_btnAbort, sizerFlags);
     }
 
     if ( !HasPDFlag(wxPD_CAN_SKIP | wxPD_CAN_ABORT) )
         buttonSizer->AddSpacer(LAYOUT_MARGIN);
 
-    sizerTop->Add(buttonSizer, 0, sizerFlags, LAYOUT_MARGIN );
-#endif // __SMARTPHONE__/!__SMARTPHONE__
+    sizerTop->Add(buttonSizer, sizerFlags);
 
     SetSizerAndFit(sizerTop);
 
@@ -399,13 +375,9 @@ wxGenericProgressDialog::CreateLabel(const wxString& text, wxSizer *sizer)
     wxStaticText *value = new wxStaticText(this, wxID_ANY, _("unknown"));
 
     // select placement most native or nice on target GUI
-#if defined(__SMARTPHONE__)
-    // value and time to the left in two rows
-    sizer->Add(label, 1, wxALIGN_LEFT);
-    sizer->Add(value, 1, wxALIGN_LEFT);
-#elif defined(__WXMSW__) || defined(__WXPM__) || defined(__WXMAC__) || defined(__WXGTK20__)
+#if defined(__WXMSW__) || defined(__WXMAC__) || defined(__WXGTK20__)
     // value and time centered in one row
-    sizer->Add(label, 1, wxLARGESMALL(wxALIGN_RIGHT,wxALIGN_LEFT) | wxTOP | wxRIGHT, LAYOUT_MARGIN);
+    sizer->Add(label, 1, wxALIGN_RIGHT | wxTOP | wxRIGHT, LAYOUT_MARGIN);
     sizer->Add(value, 1, wxALIGN_LEFT | wxTOP, LAYOUT_MARGIN);
 #else
     // value and time to the right in one row
@@ -620,7 +592,7 @@ void wxGenericProgressDialog::SetMaximum(int maximum)
 {
     m_maximum = maximum;
 
-#if defined(__WXMSW__) || defined(__WXPM__)
+#if defined(__WXMSW__)
     // we can't have values > 65,536 in the progress control under Windows, so
     // scale everything down
     m_factor = m_maximum / 65536 + 1;
@@ -768,15 +740,8 @@ void wxGenericProgressDialog::EnableSkip(bool enable)
 {
     if ( HasPDFlag(wxPD_CAN_SKIP) )
     {
-#ifdef __SMARTPHONE__
-        if(enable)
-            SetRightMenu(wxID_SKIP, _("Skip"));
-        else
-            SetRightMenu();
-#else
         if(m_btnSkip)
             m_btnSkip->Enable(enable);
-#endif
     }
 }
 
@@ -784,15 +749,8 @@ void wxGenericProgressDialog::EnableAbort(bool enable)
 {
     if( HasPDFlag(wxPD_CAN_ABORT) )
     {
-#ifdef __SMARTPHONE__
-        if(enable)
-            SetLeftMenu(wxID_CANCEL); // stock buttons makes Cancel label
-        else
-            SetLeftMenu();
-#else
         if(m_btnAbort)
             m_btnAbort->Enable(enable);
-#endif
     }
 }
 
@@ -800,15 +758,11 @@ void wxGenericProgressDialog::EnableClose()
 {
     if(HasPDFlag(wxPD_CAN_ABORT))
     {
-#ifdef __SMARTPHONE__
-        SetLeftMenu(wxID_CANCEL, _("Close"));
-#else
         if(m_btnAbort)
         {
             m_btnAbort->Enable();
             m_btnAbort->SetLabel(_("Close"));
         }
-#endif
     }
 }
 

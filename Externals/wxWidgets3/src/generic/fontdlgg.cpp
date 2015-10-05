@@ -57,12 +57,12 @@ public:
 
 private:
     void OnPaint(wxPaintEvent& event);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(wxFontPreviewer, wxWindow)
+wxBEGIN_EVENT_TABLE(wxFontPreviewer, wxWindow)
     EVT_PAINT(wxFontPreviewer::OnPaint)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxFontPreviewer::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
@@ -94,11 +94,11 @@ static const wxChar *wxFontWeightIntToString(int weight)
 {
     switch (weight)
     {
-        case wxLIGHT:
+        case wxFONTWEIGHT_LIGHT:
             return wxT("Light");
-        case wxBOLD:
+        case wxFONTWEIGHT_BOLD:
             return wxT("Bold");
-        case wxNORMAL:
+        case wxFONTWEIGHT_NORMAL:
         default:
             return wxT("Normal");
     }
@@ -108,11 +108,11 @@ static const wxChar *wxFontStyleIntToString(int style)
 {
     switch (style)
     {
-        case wxITALIC:
+        case wxFONTSTYLE_ITALIC:
             return wxT("Italic");
-        case wxSLANT:
+        case wxFONTSTYLE_SLANT:
             return wxT("Slant");
-        case wxNORMAL:
+        case wxFONTSTYLE_NORMAL:
             default:
             return wxT("Normal");
     }
@@ -122,71 +122,71 @@ static const wxChar *wxFontFamilyIntToString(int family)
 {
     switch (family)
     {
-        case wxROMAN:
+        case wxFONTFAMILY_ROMAN:
             return wxT("Roman");
-        case wxDECORATIVE:
+        case wxFONTFAMILY_DECORATIVE:
             return wxT("Decorative");
-        case wxMODERN:
+        case wxFONTFAMILY_MODERN:
             return wxT("Modern");
-        case wxSCRIPT:
+        case wxFONTFAMILY_SCRIPT:
             return wxT("Script");
-        case wxTELETYPE:
+        case wxFONTFAMILY_TELETYPE:
             return wxT("Teletype");
-        case wxSWISS:
+        case wxFONTFAMILY_SWISS:
         default:
             return wxT("Swiss");
     }
 }
 
-static int wxFontFamilyStringToInt(const wxString& family)
+static wxFontFamily wxFontFamilyStringToInt(const wxString& family)
 {
     if (family.empty())
-        return wxSWISS;
+        return wxFONTFAMILY_SWISS;
 
     if (wxStrcmp(family, wxT("Roman")) == 0)
-        return wxROMAN;
+        return wxFONTFAMILY_ROMAN;
     else if (wxStrcmp(family, wxT("Decorative")) == 0)
-        return wxDECORATIVE;
+        return wxFONTFAMILY_DECORATIVE;
     else if (wxStrcmp(family, wxT("Modern")) == 0)
-        return wxMODERN;
+        return wxFONTFAMILY_MODERN;
     else if (wxStrcmp(family, wxT("Script")) == 0)
-        return wxSCRIPT;
+        return wxFONTFAMILY_SCRIPT;
     else if (wxStrcmp(family, wxT("Teletype")) == 0)
-        return wxTELETYPE;
-    else return wxSWISS;
+        return wxFONTFAMILY_TELETYPE;
+    else return wxFONTFAMILY_SWISS;
 }
 
-static int wxFontStyleStringToInt(const wxString& style)
+static wxFontStyle wxFontStyleStringToInt(const wxString& style)
 {
     if (style.empty())
-        return wxNORMAL;
+        return wxFONTSTYLE_NORMAL;
     if (wxStrcmp(style, wxT("Italic")) == 0)
-        return wxITALIC;
+        return wxFONTSTYLE_ITALIC;
     else if (wxStrcmp(style, wxT("Slant")) == 0)
-        return wxSLANT;
+        return wxFONTSTYLE_SLANT;
     else
-        return wxNORMAL;
+        return wxFONTSTYLE_NORMAL;
 }
 
-static int wxFontWeightStringToInt(const wxString& weight)
+static wxFontWeight wxFontWeightStringToInt(const wxString& weight)
 {
     if (weight.empty())
-        return wxNORMAL;
+        return wxFONTWEIGHT_NORMAL;
     if (wxStrcmp(weight, wxT("Bold")) == 0)
-        return wxBOLD;
+        return wxFONTWEIGHT_BOLD;
     else if (wxStrcmp(weight, wxT("Light")) == 0)
-        return wxLIGHT;
+        return wxFONTWEIGHT_LIGHT;
     else
-        return wxNORMAL;
+        return wxFONTWEIGHT_NORMAL;
 }
 
 //-----------------------------------------------------------------------------
 // wxGenericFontDialog
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericFontDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericFontDialog, wxDialog);
 
-BEGIN_EVENT_TABLE(wxGenericFontDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxGenericFontDialog, wxDialog)
     EVT_CHECKBOX(wxID_FONT_UNDERLINE, wxGenericFontDialog::OnChangeFont)
     EVT_CHOICE(wxID_FONT_STYLE, wxGenericFontDialog::OnChangeFont)
     EVT_CHOICE(wxID_FONT_WEIGHT, wxGenericFontDialog::OnChangeFont)
@@ -199,7 +199,7 @@ BEGIN_EVENT_TABLE(wxGenericFontDialog, wxDialog)
     EVT_CHOICE(wxID_FONT_SIZE, wxGenericFontDialog::OnChangeFont)
 #endif
     EVT_CLOSE(wxGenericFontDialog::OnCloseWindow)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 #define NUM_COLS 48
@@ -543,9 +543,9 @@ void wxGenericFontDialog::CreateWidgets()
 
 void wxGenericFontDialog::InitializeFont()
 {
-    int fontFamily = wxSWISS;
-    int fontWeight = wxNORMAL;
-    int fontStyle = wxNORMAL;
+    wxFontFamily fontFamily = wxFONTFAMILY_SWISS;
+    wxFontWeight fontWeight = wxFONTWEIGHT_NORMAL;
+    wxFontStyle fontStyle = wxFONTSTYLE_NORMAL;
     int fontSize = 12;
     bool fontUnderline = false;
 
@@ -574,9 +574,9 @@ void wxGenericFontDialog::DoChangeFont()
 {
     if (!m_useEvents) return;
 
-    int fontFamily = wxFontFamilyStringToInt(m_familyChoice->GetStringSelection());
-    int fontWeight = wxFontWeightStringToInt(m_weightChoice->GetStringSelection());
-    int fontStyle = wxFontStyleStringToInt(m_styleChoice->GetStringSelection());
+    wxFontFamily fontFamily = wxFontFamilyStringToInt(m_familyChoice->GetStringSelection());
+    wxFontWeight fontWeight = wxFontWeightStringToInt(m_weightChoice->GetStringSelection());
+    wxFontStyle fontStyle = wxFontStyleStringToInt(m_styleChoice->GetStringSelection());
 #if USE_SPINCTRL_FOR_POINT_SIZE
     wxSpinCtrl* fontSizeCtrl = wxDynamicCast(FindWindow(wxID_FONT_SIZE), wxSpinCtrl);
     int fontSize = fontSizeCtrl->GetValue();

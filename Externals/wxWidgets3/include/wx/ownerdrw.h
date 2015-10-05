@@ -135,8 +135,6 @@ private:
 
 #if defined(__WXMSW__)
     #include "wx/msw/ownerdrw.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/ownerdrw.h"
 #endif
 
 #endif // wxUSE_OWNER_DRAWN

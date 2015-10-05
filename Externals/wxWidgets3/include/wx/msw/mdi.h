@@ -91,6 +91,7 @@ public:
     // Responds to colour changes
     void OnSysColourChanged(wxSysColourChangedEvent& event);
 
+    void OnActivate(wxActivateEvent& event);
     void OnSize(wxSizeEvent& event);
     void OnIconized(wxIconizeEvent& event);
 
@@ -103,9 +104,10 @@ public:
     virtual bool MSWTranslateMessage(WXMSG* msg);
 
 #if wxUSE_MENUS
-    // override wxFrameBase function to also look in the active child menu bar
-    // and the "Window" menu
+    // override the menu-relayed methods to also look in the active child menu
+    // bar and the "Window" menu
     virtual wxMenuItem *FindItemInMenuBar(int menuId) const;
+    virtual wxMenu* MSWFindMenuFromHMENU(WXHMENU hMenu);
 #endif // wxUSE_MENUS
 
 protected:
@@ -144,11 +146,15 @@ private:
     // return the number of child frames we currently have (maybe 0)
     int GetChildFramesCount() const;
 
+    // if true, indicates whether the event wasn't really processed even though
+    // it was "handled", see OnActivate() and HandleActivate()
+    bool m_activationNotHandled;
+
 
     friend class WXDLLIMPEXP_FWD_CORE wxMDIChildFrame;
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxMDIParentFrame)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS(wxMDIParentFrame);
     wxDECLARE_NO_COPY_CLASS(wxMDIParentFrame);
 };
 
@@ -225,11 +231,10 @@ protected:
     void Init();
 
 private:
-    bool m_needsInitialShow; // Show must be called in idle time after Creation
     bool m_needsResize; // flag which tells us to artificially resize the frame
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxMDIChildFrame)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxMDIChildFrame);
 };
 
 // ---------------------------------------------------------------------------
@@ -258,8 +263,8 @@ protected:
     int m_scrollX, m_scrollY;
 
 private:
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxMDIClientWindow)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxMDIClientWindow);
 };
 
 #endif // _WX_MSW_MDI_H_
