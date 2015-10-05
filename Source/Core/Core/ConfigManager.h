@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Common.h"
 #include "Common/IniFile.h"
 #include "Common/NonCopyable.h"
 #include "Common/SysConf.h"
@@ -15,7 +16,7 @@
 #include "DiscIO/Volume.h"
 
 // DSP Backend Types
-#define BACKEND_NULLSOUND   "No audio output"
+#define BACKEND_NULLSOUND   _trans("No audio output")
 #define BACKEND_ALSA        "ALSA"
 #define BACKEND_AOSOUND     "AOSound"
 #define BACKEND_COREAUDIO   "CoreAudio"
