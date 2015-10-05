@@ -81,7 +81,8 @@ static s32 TranslateErrorCode(s32 native_error, bool isRW)
 	}
 }
 
-s32 WiiSockMan::GetNetErrorCode(s32 ret, const std::string& caller, bool isRW)
+// Don't use string! (see https://github.com/dolphin-emu/dolphin/pull/3143)
+s32 WiiSockMan::GetNetErrorCode(s32 ret, const char* caller, bool isRW)
 {
 #ifdef _WIN32
 	s32 errorCode = WSAGetLastError();
@@ -96,7 +97,7 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, const std::string& caller, bool isRW)
 	}
 
 	INFO_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d",
-		caller.c_str(), errorCode, DecodeError(errorCode), ret);
+		caller, errorCode, DecodeError(errorCode), ret);
 
 	s32 ReturnValue = TranslateErrorCode(errorCode, isRW);
 	WiiSockMan::GetInstance().SetLastNetError(ReturnValue);
