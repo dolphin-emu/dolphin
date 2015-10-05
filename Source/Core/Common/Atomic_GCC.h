@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h" 
 
 // Atomic operations are performed in a single step by the CPU. It is
 // impossible for other threads to see the operation "half-done."
@@ -24,7 +25,6 @@
 
 namespace Common
 {
-typedef unsigned int u32;
   
 inline void AtomicAdd(volatile u32& target, u32 value)
 {

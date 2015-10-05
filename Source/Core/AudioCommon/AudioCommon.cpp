@@ -35,9 +35,9 @@ namespace AudioCommon
 		std::string backend = SConfig::GetInstance().sBackend;
 		if (backend == BACKEND_OPENAL && OpenALStream::isValid())
 			g_sound_stream = new OpenALStream();
-		else if (backend.c_str() == BACKEND_NULLSOUND && NullSound::isValid())
+		else if (backend.compare(BACKEND_NULLSOUND)==0 && NullSound::isValid())
 			g_sound_stream = new NullSound();
-		else if (backend.c_str() == BACKEND_XAUDIO2)
+		else if (backend.compare(BACKEND_XAUDIO2)==0)
 		{
 			if (XAudio2::isValid())
 				g_sound_stream = new XAudio2();
