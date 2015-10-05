@@ -106,11 +106,6 @@ void Update_SR_LZ(bool value)
 		g_dsp.r.sr &= ~SR_LOGIC_ZERO;
 }
 
-inline int GetMultiplyModifier()
-{
-	return (g_dsp.r.sr & SR_MUL_MODIFY) ? 1 : 2;
-}
-
 static bool IsCarry()
 {
 	return (g_dsp.r.sr & SR_CARRY) != 0;
