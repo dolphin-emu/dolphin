@@ -25,7 +25,7 @@
 
 namespace Common
 {
-  
+
 inline void AtomicAdd(volatile u32& target, u32 value)
 {
 	__sync_add_and_fetch(&target, value);
