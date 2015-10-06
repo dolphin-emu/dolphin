@@ -2,6 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
+#include <cstdlib>
+
 #include "Common/GL/GLInterface/EGL.h"
 #include "Common/Logging/Log.h"
 
