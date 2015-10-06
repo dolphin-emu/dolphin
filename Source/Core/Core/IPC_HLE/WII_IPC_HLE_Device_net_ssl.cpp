@@ -381,7 +381,7 @@ _SSL_NEW_ERROR:
 			ssl->sockfd = Memory::Read_U32(BufferOut2);
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", ssl->sockfd);
 			mbedtls_ssl_set_bio(&ssl->ctx, &ssl->sockfd, mbedtls_net_send,
-			                    mbedtls_net_recv, mbedtls_net_recv_timeout);
+			                    mbedtls_net_recv, nullptr);
 			Memory::Write_U32(SSL_OK, _BufferIn);
 		}
 		else
