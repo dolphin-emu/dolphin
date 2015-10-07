@@ -650,6 +650,7 @@ void CFrame::BootGame(const std::string& filename)
 			}
 		}
 	}
+	NOTICE_LOG(CONSOLE, "Booting %s", bootfile.c_str());
 	if (!bootfile.empty())
 	{
 		StartGame(bootfile);

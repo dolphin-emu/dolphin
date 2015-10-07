@@ -16,6 +16,8 @@
 #include "HW\ProcessorInterface.h"
 #include "InputCommon\GCPadStatus.h"
 #include "BootManager.h"
+#include "Core\HW\DVDInterface.h"
+#include "Core\Host.h"
 
 namespace DolphinWatch {
 
@@ -25,8 +27,9 @@ namespace DolphinWatch {
 	static vector<Client> clients;
 	static char cbuf[1024];
 
-	static thread thr;
+	static thread thrMemory, thrRecv;
 	static atomic<bool> running=true;
+	static mutex client_mtx;
 
 	static int hijacksWii[NUM_WIIMOTES];
 	static int hijacksGC[NUM_GCPADS];
@@ -74,7 +77,6 @@ namespace DolphinWatch {
 	}
 
 	void sendButtonsGC(int i_pad, u16 _buttons, float stickX, float stickY, float substickX, float substickY) {
-		//NOTICE_LOG(CONSOLE, "GC INPUT %d %f %f %f %f", _buttons, stickX, stickY, substickX, substickY);
 		if (!Core::IsRunning()) {
 			// TODO error
 			return;
@@ -130,24 +132,71 @@ namespace DolphinWatch {
 	void Init(unsigned short port, CFrame* main_frame) {
 		DolphinWatch::main_frame = main_frame;
 		server.listen(port);
-		// avoid threads or complicated select()'s, just poll in update.
-		server.setBlocking(false);
 
 		memset(hijacksWii, 0, sizeof(hijacksWii));
 		memset(hijacksGC, 0, sizeof(hijacksGC));
 
-		thr = thread([]() {
+		// thread to monitor memory
+		thrMemory = thread([]() {
 			while (running) {
-				update();
+				{
+					lock_guard<mutex> locked(client_mtx);
+					for (Client& client : clients) {
+						// check subscriptions
+						checkSubs(client);
+					}
+				}
 				Sleep(WATCH_TIMEOUT);
 				checkHijacks();
 			}
 		});
+
+		// thread to handle incoming data.
+		thrRecv = thread([]() {
+			while (running) {
+				poll();
+			}
+		});
+	}
+
+	void poll() {
+		sf::SocketSelector selector;
+		{
+			lock_guard<mutex> locked(client_mtx);
+			selector.add(server);
+			for (Client& client : clients) {
+				selector.add(*client.socket);
+			}
+		}
+		bool timeout = !selector.wait(sf::seconds(1));
+		lock_guard<mutex> locked(client_mtx);
+		if (!timeout) {
+			for (Client& client : clients) {
+				if (selector.isReady(*client.socket)) {
+					// poll incoming data from clients, then process
+					pollClient(client);
+				}
+			}
+			if (selector.isReady(server)) {
+				// poll for new clients
+				auto socket = make_shared<sf::TcpSocket>();
+				if (server.accept(*socket) == sf::Socket::Done) {
+					Client client(socket);
+					clients.push_back(client);
+				}
+			}
+		}
+		// remove disconnected clients
+		auto new_end = remove_if(clients.begin(), clients.end(), [](Client& c) {
+			return c.disconnected;
+		});
+		clients.erase(new_end, clients.end());
 	}
 
 	void Shutdown() {
 		running = false;
-		if (thr.joinable()) thr.join();
+		if (thrMemory.joinable()) thrMemory.join();
+		if (thrRecv.joinable()) thrRecv.join();
 		// socket closing is implicit for sfml library during destruction
 	}
 
@@ -478,20 +527,35 @@ namespace DolphinWatch {
 
 		}
 		else if (cmd == "STOP") {
-			BootManager::Stop();
+			//BootManager::Stop();
+			Core::Stop();
+			//main_frame->UpdateGUI();
 		}
-		else if (cmd == "BOOT") {
+		else if (cmd == "INSERT") {
 			string file;
 			getline(parts, file);
 			file = StripSpaces(file);
 			if (file.empty() || file.find_first_of("?\"<>|") != string::npos) {
-				NOTICE_LOG(CONSOLE, "Invalid filename for booting game: %s", line.c_str());
-				sendFeedback(client, false);
+				NOTICE_LOG(CONSOLE, "Invalid filename for iso/discfile to insert: %s", line.c_str());
+				//sendFeedback(client, false);
 				return;
 			}
 
-			main_frame->BootGame(file);
-			//sendFeedback(client, BootManager::BootCore(file));
+			//main_frame->BootGame(file);
+			//Host_UpdateMainFrame();
+			//wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PLAY);
+			//main_frame->GetEventHandler()->AddPendingEvent(event);
+			//main_frame->UpdateGUI();
+			//Host_UpdateMainFrame();
+			//Host_NotifyMapLoaded();
+			//Core::SetState(Core::EState::CORE_UNINITIALIZED);
+			//DVDInterface::SetDiscInside(false);
+			//DVDInterface::Shutdown();
+			DVDInterface::ChangeDisc(file);
+			//Core::Stop();
+			//BootManager::Stop();
+			//BootManager::BootCore(file);
+			//sendFeedback(client, true);
 		}
 		else {
 			NOTICE_LOG(CONSOLE, "Unknown command: %s", cmd.c_str());
@@ -509,7 +573,7 @@ namespace DolphinWatch {
 
 	void checkSubs(Client &client) {
 		if (!Memory::IsInitialized()) return;
-		for (auto &sub : client.subs) {
+		for (Subscription& sub : client.subs) {
 			u32 val;
 			if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
 			else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
@@ -521,7 +585,7 @@ namespace DolphinWatch {
 				send(*client.socket, message.str());
 			}
 		}
-		for (auto &sub : client.subsMulti) {
+		for (SubscriptionMulti& sub : client.subsMulti) {
 			vector<u32> val(sub.size, 0);
 			for (u32 i = 0; i < sub.size; ++i) {
 				val.at(i) = PowerPC::HostRead_U8(sub.addr + i);
@@ -540,79 +604,53 @@ namespace DolphinWatch {
 		}
 	}
 
-	void update() {
+	void pollClient(Client& client) {
+		// clean the client's buffer.
+		// By default a stringbuffer keeps already read data.
+		// a deque would do what we want, by not keeping that data, but then we would not have
+		// access to nice stream-features like <</>> operators and getline(), so we do this manually.
 
 		string s;
+		client.buf.clear(); // reset eol flag
+		getline(client.buf, s, '\0'); // read everything
+		client.buf.clear(); // reset eol flag again
+		client.buf.str(""); // empty stringstream
+		client.buf << s; // insert rest at beginning again
 
-		// poll for new clients, nonblocking
-		auto socket = make_shared<sf::TcpSocket>();
-		if (server.accept(*socket) == sf::Socket::Done) {
-			socket->setBlocking(false);
-			Client client(socket);
-			clients.push_back(client);
+		size_t received = 0;
+		auto status = client.socket->receive(cbuf, sizeof(cbuf) - 1, received);
+		if (status == sf::Socket::Status::Disconnected || status == sf::Socket::Status::Error) {
+			client.disconnected = true;
 		}
+		else if (status == sf::Socket::Status::Done) {
+			// add nullterminator, then add to client's buffer
+			cbuf[received] = '\0';
+			//NOTICE_LOG(CONSOLE, "IN %s", cbuf);
+			client.buf << cbuf;
 
-		// poll incoming data from clients, then process
-		for (Client &client : clients) {
+			// process the client's buffer
+			size_t posg = 0;
+			while (getline(client.buf, s)) {
+				if (client.buf.eof()) {
+					client.buf.clear();
+					client.buf.seekg(posg);
+					break;
+				}
+				posg = client.buf.tellg();
 
-			// clean the client's buffer.
-			// By default a stringbuffer keeps already read data.
-			// a deque would do what we want, by not keeping that data, but then we would not have
-			// access to nice stream-features like <</>> operators and getline(), so we do this manually.
-
-			client.buf.clear(); // reset eol flag
-			getline(client.buf, s, '\0'); // read everything
-			client.buf.clear(); // reset eol flag again
-			client.buf.str(""); // empty stringstream
-			client.buf << s; // insert rest at beginning again
-
-			size_t received = 0;
-			auto status = client.socket->receive(cbuf, sizeof(cbuf) - 1, received);
-			if (status == sf::Socket::Status::Disconnected || status == sf::Socket::Status::Error) {
-				client.disconnected = true;
-			}
-			else if (status == sf::Socket::Status::Done) {
-				// add nullterminator, then add to client's buffer
-				cbuf[received] = '\0';
-				//NOTICE_LOG(CONSOLE, "IN %s", cbuf);
-				client.buf << cbuf;
-
-				// process the client's buffer
-				size_t posg = 0;
-				while (getline(client.buf, s)) {
-					if (client.buf.eof()) {
-						client.buf.clear();
-						client.buf.seekg(posg);
-						break;
-					}
-					posg = client.buf.tellg();
-
-					// Might contain semicolons to further split several commands.
-					// Doing that ensures that those commands are executed at once / in the same emulated frame.
-					string s2;
-					istringstream subcmds(s);
-					while (getline(subcmds, s2, ';')) {
-						if (!s2.empty()) process(client, s2);
-					}
+				// Might contain semicolons to further split several commands.
+				// Doing that ensures that those commands are executed at once / in the same emulated frame.
+				string s2;
+				istringstream subcmds(s);
+				while (getline(subcmds, s2, ';')) {
+					if (!s2.empty()) process(client, s2);
 				}
 			}
-
-			// check subscriptions
-			checkSubs(client);
 		}
-
-		// remove disconnected clients
-		auto new_end = remove_if(clients.begin(), clients.end(), [](Client &c) {
-			return c.disconnected;
-		});
-		clients.erase(new_end, clients.end());
 	}
 
-	void send(sf::TcpSocket &socket, string &message) {
-		//NOTICE_LOG(CONSOLE, "OUT %s", message.c_str());
-		socket.setBlocking(true);
+	void send(sf::TcpSocket& socket, string& message) {
 		socket.send(message.c_str(), message.size());
-		socket.setBlocking(false);
 	}
 
 	void setVolume(int v) {
