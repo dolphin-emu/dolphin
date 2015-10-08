@@ -134,7 +134,7 @@ static void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 // aaaa aaaa aaaa aaaa
 // Jump to addressA if condition cc has been met. Set program counter to
 // address represented by value that follows this "jmp" instruction.
-// NOTE: Cannot use Default(opc) here because of the need to write branch exit
+// NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::jcc(const UDSPInstruction opc)
 {
 	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 2));
@@ -154,7 +154,7 @@ static void r_jmprcc(const UDSPInstruction opc, DSPEmitter& emitter)
 // JMPcc $R
 // 0001 0111 rrr0 cccc
 // Jump to address; set program counter to a value from register $R.
-// NOTE: Cannot use Default(opc) here because of the need to write branch exit
+// NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::jmprcc(const UDSPInstruction opc)
 {
 	MOV(16, M(&g_dsp.pc), Imm16(compilePC + 1));
@@ -181,7 +181,7 @@ static void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 // Call function if condition cc has been met. Push program counter of
 // instruction following "call" to $st0. Set program counter to address
 // represented by value that follows this "call" instruction.
-// NOTE: Cannot use Default(opc) here because of the need to write branch exit
+// NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::call(const UDSPInstruction opc)
 {
 	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 2));
@@ -203,7 +203,7 @@ static void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 // Call function if condition cc has been met. Push program counter of
 // instruction following "call" to call stack $st0. Set program counter to
 // register $R.
-// NOTE: Cannot use Default(opc) here because of the need to write branch exit
+// NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::callr(const UDSPInstruction opc)
 {
 	MOV(16, M(&g_dsp.pc), Imm16(compilePC + 1));
@@ -218,7 +218,7 @@ static void r_ifcc(const UDSPInstruction opc, DSPEmitter& emitter)
 // IFcc
 // 0000 0010 0111 cccc
 // Execute following opcode if the condition has been met.
-// NOTE: Cannot use Default(opc) here because of the need to write branch exit
+// NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::ifcc(const UDSPInstruction opc)
 {
 	MOV(16, M(&g_dsp.pc), Imm16((compilePC + 1) + opTable[dsp_imem_read(compilePC + 1)]->size));
@@ -238,7 +238,7 @@ static void r_ret(const UDSPInstruction opc, DSPEmitter& emitter)
 // 0000 0010 1101 cccc
 // Return from subroutine if condition cc has been met. Pops stored PC
 // from call stack $st0 and sets $pc to this location.
-// NOTE: Cannot use Default(opc) here because of the need to write branch exit
+// NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::ret(const UDSPInstruction opc)
 {
 	MOV(16, M(&g_dsp.pc), Imm16(compilePC + 1));
