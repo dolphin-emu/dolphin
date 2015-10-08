@@ -63,19 +63,28 @@ void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
 {
 	const std::string filename = File::GetUserPath(D_WIIROOT_IDX) + "/sd.raw";
 	m_Card.Open(filename, "r+b");
+	if (m_Card)
+		return;
+	
+	WARN_LOG(WII_IPC_SD, "Failed to open SD Card image, trying read-only access...");
+	m_Card.Open(filename, "rb");
+	if (m_Card)
+	{
+		SConfig::GetInstance().bEnableMemcardSdWriting = false;
+		return;
+	}
+	
+	WARN_LOG(WII_IPC_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
+	if (SDCardCreate(128, filename))
+	{
+		WARN_LOG(WII_IPC_SD, "Successfully created %s", filename.c_str());
+		m_Card.Open(filename, "r+b");
+	}
 	if (!m_Card)
 	{
-		WARN_LOG(WII_IPC_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
-		if (SDCardCreate(128, filename))
-		{
-			WARN_LOG(WII_IPC_SD, "Successfully created %s", filename.c_str());
-			m_Card.Open(filename, "r+b");
-		}
-		if (!m_Card)
-		{
-			ERROR_LOG(WII_IPC_SD, "Could not open SD Card image or create a new one, are you running from a read-only directory?");
-		}
+		ERROR_LOG(WII_IPC_SD, "Could not open SD Card image or create a new one, are you running from a read-only directory?");
 	}
+	
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
