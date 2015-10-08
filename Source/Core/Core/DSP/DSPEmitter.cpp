@@ -108,7 +108,7 @@ bool DSPEmitter::FlagsNeeded()
 		return false;
 }
 
-void DSPEmitter::Default(UDSPInstruction inst)
+void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
 {
 	if (opTable[inst]->reads_pc)
 	{
@@ -172,7 +172,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	// Main instruction
 	if (!opTable[inst]->jitFunc)
 	{
-		Default(inst);
+		FallBackToInterpreter(inst);
 		INFO_LOG(DSPLLE, "Instruction not JITed(main part): %04x\n", inst);
 	}
 	else
