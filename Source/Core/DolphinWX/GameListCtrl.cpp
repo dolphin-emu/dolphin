@@ -361,51 +361,80 @@ static wxString NiceSizeFormat(u64 _size)
 	return StrToWxStr(StringFromFormat("%s %s", value.c_str(), unit_symbols[unit]));
 }
 
+// Update the column content of the item at _Index
+void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
+{
+	GameListItem& rISOFile = *m_ISOFiles[_Index];
+
+	switch(column)
+	{
+		case COLUMN_PLATFORM:
+		{
+			SetItemColumnImage(_Index, COLUMN_PLATFORM,
+			                   m_PlatformImageIndex[rISOFile.GetPlatform()]);
+			break;
+		}
+		case COLUMN_BANNER:
+		{
+			int ImageIndex = -1;
+
+			if (rISOFile.GetBitmap().IsOk())
+				ImageIndex = m_imageListSmall->Add(rISOFile.GetBitmap());
+
+			SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
+			break;
+		}
+		case COLUMN_TITLE:
+		{
+			wxString name = StrToWxStr(rISOFile.GetName());
+			int disc_number = rISOFile.GetDiscNumber() + 1;
+
+			if (disc_number > 1 &&
+			    name.Lower().find(wxString::Format("disc %i", disc_number)) == std::string::npos &&
+			    name.Lower().find(wxString::Format("disc%i", disc_number)) == std::string::npos)
+			{
+				name = wxString::Format(_("%s (Disc %i)"), name.c_str(), disc_number);
+			}
+
+			SetItem(_Index, COLUMN_TITLE, name, -1);
+			break;
+		}
+		case COLUMN_MAKER:
+			SetItem(_Index, COLUMN_MAKER, StrToWxStr(rISOFile.GetCompany()), -1);
+			break;
+		case COLUMN_EMULATION_STATE:
+			SetItemColumnImage(_Index, COLUMN_EMULATION_STATE,
+			                   m_EmuStateImageIndex[rISOFile.GetEmuState()]);
+			break;
+		case COLUMN_COUNTRY:
+			SetItemColumnImage(_Index, COLUMN_COUNTRY,
+			                   m_FlagImageIndex[rISOFile.GetCountry()]);
+			break;
+		case COLUMN_SIZE:
+			SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
+			break;
+		case COLUMN_ID:
+			SetItem(_Index, COLUMN_ID, rISOFile.GetUniqueID(), -1);
+			break;
+	}
+}
+
 void CGameListCtrl::InsertItemInReportView(long _Index)
 {
 	// When using wxListCtrl, there is no hope of per-column text colors.
 	// But for reference, here are the old colors that were used: (BGR)
 	// title: 0xFF0000
 	// company: 0x007030
-	int ImageIndex = -1;
-
-	GameListItem& rISOFile = *m_ISOFiles[_Index];
 
 	// Insert a first row with nothing in it, that will be used as the Index
 	long ItemIndex = InsertItem(_Index, wxEmptyString);
 
-	// Insert the platform's image in the first (visible) column
-	SetItemColumnImage(_Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.GetPlatform()]);
-
-	if (rISOFile.GetBitmap().IsOk())
-		ImageIndex = m_imageListSmall->Add(rISOFile.GetBitmap());
-
-	// Set the game's banner in the second column
-	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
-
-	wxString name = StrToWxStr(rISOFile.GetName());
-
-	int disc_number = rISOFile.GetDiscNumber() + 1;
-	if (disc_number > 1 && name.Lower().find(wxString::Format("disc %i", disc_number)) == std::string::npos
-	                    && name.Lower().find(wxString::Format("disc%i", disc_number)) == std::string::npos)
+	// Iterate over all columns and fill them with content if they are visible
+	for (int i = 1; i < NUMBER_OF_COLUMN; i++)
 	{
-		name = wxString::Format(_("%s (Disc %i)"), name.c_str(), disc_number);
+		if (GetColumnWidth(i) != 0)
+			UpdateItemAtColumn(_Index, i);
 	}
-
-	SetItem(_Index, COLUMN_TITLE, name, -1);
-	SetItem(_Index, COLUMN_MAKER, StrToWxStr(rISOFile.GetCompany()), -1);
-
-	// Emulation state
-	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[rISOFile.GetEmuState()]);
-
-	// Country
-	SetItemColumnImage(_Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
-
-	// File size
-	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
-
-	// Game ID
-	SetItem(_Index, COLUMN_ID, rISOFile.GetUniqueID(), -1);
 
 	// Background color
 	SetBackgroundColor();
@@ -1270,7 +1299,9 @@ void CGameListCtrl::AutomaticColumnWidth()
 			if (SConfig::GetInstance().m_showMakerColumn)
 			{
 				SetColumnWidth(COLUMN_TITLE, resizable / 2);
-				SetColumnWidth(COLUMN_MAKER, resizable / 2);
+
+				// If the maker column has been autohidden, we need to show it again
+				ShowColumn(COLUMN_MAKER, resizable / 2);
 			}
 			else
 			{
@@ -1280,9 +1311,43 @@ void CGameListCtrl::AutomaticColumnWidth()
 		else
 		{
 			SetColumnWidth(COLUMN_TITLE, resizable);
-			SetColumnWidth(COLUMN_MAKER, 0);
+			HideColumn(COLUMN_MAKER);
 		}
 	}
+}
+
+// Fills a previously hidden column with items. Acts
+// as a SetColumnWidth if width is nonzero.
+void CGameListCtrl::ShowColumn(int column, int width)
+{
+	// Fill the column with items if it was hidden
+	if (GetColumnWidth(column) == 0)
+	{
+		for (int i = 0; i < GetItemCount(); i++)
+		{
+			UpdateItemAtColumn(i, column);
+		}
+	}
+	SetColumnWidth(column, width);
+}
+
+// Hide the passed column from the gamelist.
+// It is not enough to set the width to zero because this leads to
+// graphical glitches where the content of the hidden column is
+// squeezed into the next column. Therefore we need to clear the
+// items, too.
+void CGameListCtrl::HideColumn(int column)
+{
+	// Do nothing if the column is already hidden
+	if (GetColumnWidth(column) == 0)
+		return;
+
+	// Remove the items from the column
+	for (int i = 0; i < GetItemCount(); i++)
+	{
+		SetItem(i, column, "", -1);
+	}
+	SetColumnWidth(column, 0);
 }
 
 void CGameListCtrl::UnselectAll()

@@ -74,6 +74,7 @@ private:
 	wxSize lastpos;
 	wxEmuStateTip *toolTip;
 	void InitBitmaps();
+	void UpdateItemAtColumn(long _Index, int column);
 	void InsertItemInReportView(long _Index);
 	void SetBackgroundColor();
 	void ScanForISOs();
@@ -100,6 +101,8 @@ private:
 
 	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();
+	void ShowColumn(int column, int width);
+	void HideColumn(int column);
 	void UnselectAll();
 
 	static size_t m_currentItem;
