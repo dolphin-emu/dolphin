@@ -14,7 +14,7 @@ void SWOGLWindow::Init(void *window_handle)
 {
 	InitInterface();
 	GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-	if (!GLInterface->Create(window_handle, false))
+	if (!GLInterface->Create(window_handle))
 	{
 		INFO_LOG(VIDEO, "GLInterface::Create failed.");
 	}
@@ -42,39 +42,47 @@ void SWOGLWindow::Prepare()
 		ERROR_LOG(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
 		return;
 	}
+	else if (GLExtensions::Version() < 310)
+	{
+		ERROR_LOG(VIDEO, "OpenGL Version %d detected, but at least 3.1 is required.", GLExtensions::Version());
+		return;
+	}
 
-	static const char *fragShaderText =
-		"#ifdef GL_ES\n"
-		"precision highp float;\n"
-		"#endif\n"
-		"varying vec2 TexCoordOut;\n"
+	std::string frag_shader =
+		"in vec2 TexCoord;\n"
+		"out vec4 ColorOut;\n"
 		"uniform sampler2D Texture;\n"
 		"void main() {\n"
-		"	gl_FragColor = texture2D(Texture, TexCoordOut);\n"
-		"}\n";
-	static const char *vertShaderText =
-		"#ifdef GL_ES\n"
-		"precision highp float;\n"
-		"#endif\n"
-		"attribute vec4 pos;\n"
-		"attribute vec2 TexCoordIn;\n "
-		"varying vec2 TexCoordOut;\n "
-		"void main() {\n"
-		"	gl_Position = pos;\n"
-		"	TexCoordOut = TexCoordIn;\n"
+		"	ColorOut = texture2D(Texture, TexCoord);\n"
 		"}\n";
 
-	m_image_program = OpenGL_CompileProgram(vertShaderText, fragShaderText);
+	std::string vertex_shader =
+		"out vec2 TexCoord;\n"
+		"void main() {\n"
+		"	vec2 rawpos = vec2(gl_VertexID & 1, (gl_VertexID & 2) >> 1);\n"
+		"	gl_Position = vec4(rawpos * 2.0 - 1.0, 0.0, 1.0);\n"
+		"	TexCoord = vec2(rawpos.x, -rawpos.y);\n"
+		"}\n";
+
+	std::string header =
+		GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL ?
+			"#version 140\n"
+		:
+			"#version 300 es\n"
+			"precision highp float;\n";
+
+	m_image_program = OpenGL_CompileProgram(header + vertex_shader, header + frag_shader);
 
 	glUseProgram(m_image_program);
 
-	m_uni_tex = glGetUniformLocation(m_image_program, "Texture");
-	m_attr_pos = glGetAttribLocation(m_image_program, "pos");
-	m_attr_tex = glGetAttribLocation(m_image_program, "TexCoordIn");
-
-	glUniform1i(m_uni_tex, 0);
+	glUniform1i(glGetUniformLocation(m_image_program, "Texture"), 0);
 
 	glGenTextures(1, &m_image_texture);
+	glBindTexture(GL_TEXTURE_2D, m_image_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	glGenVertexArrays(1, &m_image_vao);
 }
 
 void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
@@ -97,32 +105,13 @@ void SWOGLWindow::ShowImage(u8* data, int stride, int width, int height, float a
 	glBindTexture(GL_TEXTURE_2D, m_image_texture);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
-	//glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, stride / 4);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glUseProgram(m_image_program);
-	static const GLfloat verts[4][2] = {
-		{ -1, -1}, // Left top
-		{ -1,  1}, // left bottom
-		{  1,  1}, // right bottom
-		{  1, -1} // right top
-	};
-	static const GLfloat texverts[4][2] = {
-		{0, 1},
-		{0, 0},
-		{1, 0},
-		{1, 1}
-	};
 
-	glVertexAttribPointer(m_attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-	glVertexAttribPointer(m_attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
-	glEnableVertexAttribArray(m_attr_pos);
-	glEnableVertexAttribArray(m_attr_tex);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glDisableVertexAttribArray(m_attr_pos);
-	glDisableVertexAttribArray(m_attr_tex);
+	glBindVertexArray(m_image_vao);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 // TODO: implement OSD
 //	for (TextData& text : m_text)

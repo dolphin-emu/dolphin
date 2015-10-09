@@ -41,6 +41,5 @@ private:
 
 	bool m_init {false};
 
-	u32 m_image_program, m_image_texture;
-	int m_attr_pos, m_attr_tex, m_uni_tex;
+	u32 m_image_program, m_image_texture, m_image_vao;
 };
