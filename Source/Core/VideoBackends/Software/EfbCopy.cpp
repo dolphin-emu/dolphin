@@ -5,15 +5,13 @@
 #include "Common/GL/GLInterfaceBase.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
-#include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbCopy.h"
 #include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/SWCommandProcessor.h"
 #include "VideoBackends/Software/SWRenderer.h"
-#include "VideoBackends/Software/SWStatistics.h"
-#include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/TextureEncoder.h"
+
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Fifo.h"
 
 static const float s_gammaLUT[] =
@@ -33,31 +31,9 @@ namespace EfbCopy
 		INFO_LOG(VIDEO, "xfbaddr: %x, fbwidth: %i, fbheight: %i, source: (%i, %i, %i, %i), Gamma %f",
 				 xfbAddr, fbWidth, fbHeight, sourceRc.top, sourceRc.left, sourceRc.bottom, sourceRc.right, Gamma);
 
-		if (!g_SWVideoConfig.bBypassXFB)
-		{
-			EfbInterface::yuv422_packed* xfb_in_ram = (EfbInterface::yuv422_packed *) Memory::GetPointer(xfbAddr);
+		EfbInterface::yuv422_packed* xfb_in_ram = (EfbInterface::yuv422_packed*) Memory::GetPointer(xfbAddr);
 
-			EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma);
-		}
-		else
-		{
-			// Ask SWRenderer for the next color texture
-			u8 *colorTexture = SWRenderer::GetNextColorTexture();
-
-			EfbInterface::BypassXFB(colorTexture, fbWidth, fbHeight, sourceRc, Gamma);
-
-			// Tell SWRenderer we are now finished with it.
-			SWRenderer::SwapColorTexture();
-
-			// FifoPlayer is broken and never calls BeginFrame/EndFrame.
-			// Hence, we manually force a swap now. This emulates the behavior
-			// of hardware backends with XFB emulation disabled.
-			// TODO: Fix FifoPlayer by making proper use of VideoInterface!
-			//       This requires careful synchronization since GPU commands
-			//       are processed on a different thread than VI commands.
-			SWRenderer::Swap(fbWidth, fbHeight);
-			DebugUtil::OnFrameEnd(fbWidth, fbHeight);
-		}
+		EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma);
 	}
 
 	static void CopyToRam()
@@ -67,7 +43,7 @@ namespace EfbCopy
 		TextureEncoder::Encode(dest_ptr);
 	}
 
-	static void ClearEfb()
+	void ClearEfb()
 	{
 		u32 clearColor = (bpmem.clearcolorAR & 0xff) << 24 | bpmem.clearcolorGB << 8 | (bpmem.clearcolorAR & 0xff00) >> 8;
 
@@ -127,11 +103,6 @@ namespace EfbCopy
 			else
 			{
 				CopyToRam(); // FIXME: should use the rectangle we have already created above
-			}
-
-			if (bpmem.triggerEFBCopy.clear)
-			{
-				ClearEfb();
 			}
 		}
 	}

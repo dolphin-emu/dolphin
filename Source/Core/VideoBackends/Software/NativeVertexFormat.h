@@ -77,16 +77,4 @@ struct OutputVertexData
 		#undef LINTERP
 		#undef LINTERP_INT
 	}
-	void DoState(PointerWrap &p)
-	{
-		mvPosition.DoState(p);
-		p.Do(projectedPosition);
-		screenPosition.DoState(p);
-		for (auto& vec : normal)
-			vec.DoState(p);
-		p.DoArray(color, sizeof color);
-		for (auto& vec : texCoords)
-			vec.DoState(p);
-	}
-
 };

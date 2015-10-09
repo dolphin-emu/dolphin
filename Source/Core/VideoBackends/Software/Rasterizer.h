@@ -25,12 +25,6 @@ namespace Rasterizer
 		float f0;
 
 		float GetValue(float dx, float dy) { return f0 + (dfdx * dx) + (dfdy * dy); }
-		void DoState(PointerWrap &p)
-		{
-			p.Do(dfdx);
-			p.Do(dfdy);
-			p.Do(f0);
-		}
 	};
 
 	struct RasterBlockPixel
@@ -47,6 +41,4 @@ namespace Rasterizer
 		s32 TextureLod[16];
 		bool TextureLinear[16];
 	};
-
-	void DoState(PointerWrap &p);
 }

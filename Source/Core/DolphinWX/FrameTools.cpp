@@ -76,8 +76,6 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#include "VideoBackends/Software/SWVideoConfig.h"
-
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 

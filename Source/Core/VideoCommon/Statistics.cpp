@@ -8,6 +8,7 @@
 #include "Common/StringUtil.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 
 Statistics stats;
 
@@ -27,6 +28,21 @@ void Statistics::SwapDL()
 std::string Statistics::ToString()
 {
 	std::string str;
+
+	if (g_ActiveConfig.backend_info.APIType == API_TYPE::API_NONE)
+	{
+		str += StringFromFormat("Objects:            %i\n", stats.thisFrame.numDrawnObjects);
+		str += StringFromFormat("Vertices Loaded:    %i\n", stats.thisFrame.numVerticesLoaded);
+		str += StringFromFormat("Triangles Input:    %i\n", stats.thisFrame.numTrianglesIn);
+		str += StringFromFormat("Triangles Rejected: %i\n", stats.thisFrame.numTrianglesRejected);
+		str += StringFromFormat("Triangles Culled:   %i\n", stats.thisFrame.numTrianglesCulled);
+		str += StringFromFormat("Triangles Clipped:  %i\n", stats.thisFrame.numTrianglesClipped);
+		str += StringFromFormat("Triangles Drawn:    %i\n", stats.thisFrame.numTrianglesDrawn);
+		str += StringFromFormat("Rasterized Pix:     %i\n", stats.thisFrame.rasterizedPixels);
+		str += StringFromFormat("TEV Pix In:         %i\n", stats.thisFrame.tevPixelsIn);
+		str += StringFromFormat("TEV Pix Out:        %i\n", stats.thisFrame.tevPixelsOut);
+	}
+
 	str += StringFromFormat("Textures created: %i\n", stats.numTexturesCreated);
 	str += StringFromFormat("Textures uploaded: %i\n", stats.numTexturesUploaded);
 	str += StringFromFormat("Textures alive: %i\n", stats.numTexturesAlive);

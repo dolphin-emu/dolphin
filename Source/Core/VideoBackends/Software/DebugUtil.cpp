@@ -8,18 +8,16 @@
 
 #include "Core/ConfigManager.h"
 
-#include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/SWCommandProcessor.h"
 #include "VideoBackends/Software/SWRenderer.h"
-#include "VideoBackends/Software/SWStatistics.h"
-#include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/TextureSampler.h"
 
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/ImageWrite.h"
-
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DebugUtil
 {
@@ -109,7 +107,7 @@ void DumpActiveTextures()
 		{
 			SaveTexture(StringFromFormat("%star%i_ind%i_map%i_mip%i.png",
 						File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-						swstats.thisFrame.numDrawnObjects, stageNum, texmap, mip), texmap, mip);
+						stats.thisFrame.numDrawnObjects, stageNum, texmap, mip), texmap, mip);
 		}
 	}
 
@@ -126,7 +124,7 @@ void DumpActiveTextures()
 		{
 			SaveTexture(StringFromFormat("%star%i_stage%i_map%i_mip%i.png",
 						File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-						swstats.thisFrame.numDrawnObjects, stageNum, texmap, mip), texmap, mip);
+						stats.thisFrame.numDrawnObjects, stageNum, texmap, mip), texmap, mip);
 		}
 	}
 }
@@ -152,13 +150,6 @@ static void DumpEfb(const std::string& filename)
 
 	TextureToPng(data, EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);
 	delete[] data;
-}
-
-
-
-static void DumpColorTexture(const std::string& filename, u32 width, u32 height)
-{
-	TextureToPng(SWRenderer::GetCurrentColorTexture(), width * 4, filename, width, height, true);
 }
 
 void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char *name)
@@ -202,7 +193,7 @@ void OnObjectBegin()
 {
 	if (!g_bSkipCurrentFrame)
 	{
-		if (g_SWVideoConfig.bDumpTextures && swstats.thisFrame.numDrawnObjects >= g_SWVideoConfig.drawStart && swstats.thisFrame.numDrawnObjects < g_SWVideoConfig.drawEnd)
+		if (g_ActiveConfig.bDumpTextures && stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart && stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
 			DumpActiveTextures();
 	}
 }
@@ -211,10 +202,10 @@ void OnObjectEnd()
 {
 	if (!g_bSkipCurrentFrame)
 	{
-		if (g_SWVideoConfig.bDumpObjects && swstats.thisFrame.numDrawnObjects >= g_SWVideoConfig.drawStart && swstats.thisFrame.numDrawnObjects < g_SWVideoConfig.drawEnd)
+		if (g_ActiveConfig.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart && stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
 			DumpEfb(StringFromFormat("%sobject%i.png",
 						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-						swstats.thisFrame.numDrawnObjects));
+						stats.thisFrame.numDrawnObjects));
 
 		for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
 		{
@@ -223,7 +214,7 @@ void OnObjectEnd()
 				DrawnToBuffer[i] = false;
 				std::string filename = StringFromFormat("%sobject%i_%s(%i).png",
 					File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-					swstats.thisFrame.numDrawnObjects, ObjectBufferName[i], i - BufferBase[i]);
+					stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i - BufferBase[i]);
 
 				TextureToPng((u8*)ObjectBuffer[i], EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);
 				memset(ObjectBuffer[i], 0, EFB_WIDTH * EFB_HEIGHT * sizeof(u32));
@@ -231,20 +222,7 @@ void OnObjectEnd()
 			}
 		}
 
-		swstats.thisFrame.numDrawnObjects++;
-	}
-}
-
-// If frame dumping is enabled, dump whatever is drawn to the screen.
-void OnFrameEnd(u32 width, u32 height)
-{
-	if (!g_bSkipCurrentFrame)
-	{
-		if (SConfig::GetInstance().m_DumpFrames)
-		{
-			DumpColorTexture(StringFromFormat("%sframe%i_color.png",
-					File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), swstats.frameCount), width, height);
-		}
+		stats.thisFrame.numDrawnObjects++;
 	}
 }
 

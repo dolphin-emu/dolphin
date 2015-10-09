@@ -257,6 +257,7 @@ struct CPState final
 	BitSet32 attr_dirty;
 	bool bases_dirty;
 	VertexLoaderBase* vertex_loaders[8];
+	int last_id;
 };
 
 class PointerWrap;

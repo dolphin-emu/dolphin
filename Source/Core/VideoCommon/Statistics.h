@@ -52,6 +52,17 @@ struct Statistics
 		int bytesVertexStreamed;
 		int bytesIndexStreamed;
 		int bytesUniformStreamed;
+
+		int numTrianglesClipped;
+		int numTrianglesIn;
+		int numTrianglesRejected;
+		int numTrianglesCulled;
+		int numDrawnObjects;
+		int rasterizedPixels;
+		int numTrianglesDrawn;
+		int numVerticesLoaded;
+		int tevPixelsIn;
+		int tevPixelsOut;
 	};
 	ThisFrame thisFrame;
 	void ResetFrame();

@@ -10,35 +10,30 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 
-#include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/EfbCopy.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWRenderer.h"
-#include "VideoBackends/Software/SWStatistics.h"
 
+#include "VideoCommon/BoundingBox.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoConfig.h"
 
 static u8 *s_xfbColorTexture[2];
 static int s_currentColorTexture = 0;
 
-static std::atomic<bool> s_bScreenshot;
-static std::mutex s_criticalScreenshot;
-static std::string s_sScreenshotName;
-
-void SWRenderer::Init()
-{
-	s_bScreenshot.store(false);
-}
-
-void SWRenderer::Shutdown()
+SWRenderer::~SWRenderer()
 {
 	delete[] s_xfbColorTexture[0];
 	delete[] s_xfbColorTexture[1];
 }
 
-void SWRenderer::Prepare()
+void SWRenderer::Init()
 {
 	s_xfbColorTexture[0] = new u8[MAX_XFB_WIDTH * MAX_XFB_HEIGHT * 4];
 	s_xfbColorTexture[1] = new u8[MAX_XFB_WIDTH * MAX_XFB_HEIGHT * 4];
@@ -46,42 +41,15 @@ void SWRenderer::Prepare()
 	s_currentColorTexture = 0;
 }
 
-void SWRenderer::SetScreenshot(const char *_szFilename)
+void SWRenderer::Shutdown()
 {
-	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-	s_sScreenshotName = _szFilename;
-	s_bScreenshot.store(true);
+	g_Config.bRunning = false;
+	UpdateActiveConfig();
 }
 
-void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
+void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 color)
 {
 	SWOGLWindow::s_instance->PrintText(pstr, left, top, color);
-}
-
-void SWRenderer::DrawDebugText()
-{
-	std::string debugtext;
-
-	if (g_SWVideoConfig.bShowStats)
-	{
-		debugtext += StringFromFormat("Objects:            %i\n", swstats.thisFrame.numDrawnObjects);
-		debugtext += StringFromFormat("Primitives:         %i\n", swstats.thisFrame.numPrimatives);
-		debugtext += StringFromFormat("Vertices Loaded:    %i\n", swstats.thisFrame.numVerticesLoaded);
-
-		debugtext += StringFromFormat("Triangles Input:    %i\n", swstats.thisFrame.numTrianglesIn);
-		debugtext += StringFromFormat("Triangles Rejected: %i\n", swstats.thisFrame.numTrianglesRejected);
-		debugtext += StringFromFormat("Triangles Culled:   %i\n", swstats.thisFrame.numTrianglesCulled);
-		debugtext += StringFromFormat("Triangles Clipped:  %i\n", swstats.thisFrame.numTrianglesClipped);
-		debugtext += StringFromFormat("Triangles Drawn:    %i\n", swstats.thisFrame.numTrianglesDrawn);
-
-		debugtext += StringFromFormat("Rasterized Pix:     %i\n", swstats.thisFrame.rasterizedPixels);
-		debugtext += StringFromFormat("TEV Pix In:         %i\n", swstats.thisFrame.tevPixelsIn);
-		debugtext += StringFromFormat("TEV Pix Out:        %i\n", swstats.thisFrame.tevPixelsOut);
-	}
-
-	// Render a shadow, and then the text.
-	SWRenderer::RenderText(debugtext.c_str(), 21, 21, 0xDD000000);
-	SWRenderer::RenderText(debugtext.c_str(), 20, 20, 0xFFFFFF00);
 }
 
 u8* SWRenderer::GetNextColorTexture()
@@ -138,16 +106,42 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 }
 
 // Called on the GPU thread
-void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
+void SWRenderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
-	// Save screenshot
-	if (s_bScreenshot.load())
+	if (!g_bSkipCurrentFrame)
 	{
-		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		TextureToPng(GetCurrentColorTexture(), fbWidth * 4, s_sScreenshotName, fbWidth, fbHeight, false);
-		// Reset settings
-		s_sScreenshotName.clear();
-		s_bScreenshot.store(false);
+
+		if (g_ActiveConfig.bUseXFB)
+		{
+			EfbInterface::yuv422_packed* xfb = (EfbInterface::yuv422_packed*) Memory::GetPointer(xfbAddr);
+			UpdateColorTexture(xfb, fbWidth, fbHeight);
+		}
+		else
+		{
+			EfbInterface::BypassXFB(GetCurrentColorTexture(), fbWidth, fbHeight, rc, Gamma);
+		}
+
+		// Save screenshot
+		if (s_bScreenshot)
+		{
+			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+
+			if (TextureToPng(GetCurrentColorTexture(), fbWidth * 4, s_sScreenshotName, fbWidth, fbHeight, false))
+				OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
+
+			// Reset settings
+			s_sScreenshotName.clear();
+			s_bScreenshot = false;
+			s_screenshotCompleted.Set();
+		}
+
+		if (SConfig::GetInstance().m_DumpFrames)
+		{
+			static int frame_index = 0;
+			TextureToPng(GetCurrentColorTexture(), fbWidth * 4, StringFromFormat("%sframe%i_color.png",
+					File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), frame_index), fbWidth, fbHeight, true);
+			frame_index++;
+		}
 	}
 
 	OSD::DoCallbacks(OSD::CallbackType::OnFrame);
@@ -156,7 +150,57 @@ void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
 
 	SWOGLWindow::s_instance->ShowImage(GetCurrentColorTexture(), fbWidth * 4, fbWidth, fbHeight, 1.0);
 
-	swstats.frameCount++;
-	swstats.ResetFrame();
-	Core::Callback_VideoCopiedToXFB(true); // FIXME: should this function be called FrameRendered?
+	UpdateActiveConfig();
+}
+
+u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
+{
+	u32 value = 0;
+
+	switch (type)
+	{
+	case PEEK_Z:
+	{
+		value = EfbInterface::GetDepth(x, y);
+		break;
+	}
+	case PEEK_COLOR:
+	{
+		u32 color = 0;
+		EfbInterface::GetColor(x, y, (u8*)&color);
+
+		// rgba to argb
+		value = (color >> 8) | (color & 0xff) << 24;
+		break;
+	}
+	default:
+		break;
+	}
+
+	return value;
+}
+
+u16 SWRenderer::BBoxRead(int index)
+{
+	return BoundingBox::coords[index];
+}
+
+void SWRenderer::BBoxWrite(int index, u16 value)
+{
+	BoundingBox::coords[index] = value;
+}
+
+TargetRectangle SWRenderer::ConvertEFBRectangle(const EFBRectangle& rc)
+{
+	TargetRectangle result;
+	result.left   = rc.left;
+	result.top    = rc.top;
+	result.right  = rc.right;
+	result.bottom = rc.bottom;
+	return result;
+}
+
+void SWRenderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
+{
+	EfbCopy::ClearEfb();
 }

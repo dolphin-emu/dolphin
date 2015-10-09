@@ -6,45 +6,42 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
-#include "VideoBackends/Software/CPMemLoader.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 
 #include "VideoCommon/VertexLoaderBase.h"
+#include "VideoCommon/VertexManagerBase.h"
 
-class PointerWrap;
 class SetupUnit;
 
-class SWVertexLoader
+class SWVertexLoader : public VertexManagerBase
 {
-	u32 m_VertexSize;
+public:
+	SWVertexLoader();
+	~SWVertexLoader();
 
-	VAT* m_CurrentVat;
+	NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
+
+protected:
+	virtual void ResetBuffer(u32 stride);
+	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
+private:
+	void vFlush(bool useDstAlpha) override;
+	std::vector<u8> LocalVBuffer;
+	std::vector<u16> LocalIBuffer;
 
 	InputVertexData m_Vertex;
 
-	void ParseVertex(const PortableVertexDeclaration& vdec);
+	void ParseVertex(const PortableVertexDeclaration& vdec, int index);
 
 	SetupUnit *m_SetupUnit;
 
 	bool m_TexGenSpecialCase;
 
-	std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoaderBase>> m_VertexLoaderMap;
-	std::vector<u8> m_LoadedVertices;
-	VertexLoaderBase* m_CurrentLoader;
-
-	u8 m_attributeIndex;
-
 public:
-	SWVertexLoader();
-	~SWVertexLoader();
 
 	void SetFormat(u8 attributeIndex, u8 primitiveType);
-
-	u32 GetVertexSize() { return m_VertexSize; }
-
-	void LoadVertex();
-	void DoState(PointerWrap &p);
 };

@@ -136,6 +136,15 @@ struct VideoConfig final
 	// Debugging
 	bool bEnableShaderDebugging;
 
+	// VideoSW Debugging
+	int drawStart;
+	int drawEnd;
+	bool bZComploc;
+	bool bZFreeze;
+	bool bDumpObjects;
+	bool bDumpTevStages;
+	bool bDumpTevTextureFetches;
+
 	// Static config per API
 	// TODO: Move this out of VideoConfig
 	struct

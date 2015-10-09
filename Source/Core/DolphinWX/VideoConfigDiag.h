@@ -65,8 +65,6 @@ private:
 	T& m_setting;
 };
 
-typedef IntegerSetting<u32> U32Setting;
-
 class SettingChoice : public wxChoice
 {
 public:
