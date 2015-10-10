@@ -575,7 +575,7 @@ namespace EfbInterface
 			for (u16 x = left; x < right; x++)
 			{
 				GetColor(x, y, colorPtr);
-				texturePtr[textureAddress++] = Common::swap32(color);
+				texturePtr[textureAddress++] = Common::swap32(color | 0xFF);
 			}
 		}
 	}
