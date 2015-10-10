@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <mbedtls/error.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -314,6 +315,12 @@ void WiiSocket::Update(bool read, bool write, bool except)
           {
             mbedtls_ssl_context* ctx = &CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx;
             int ret = mbedtls_ssl_handshake(ctx);
+            if (ret)
+            {
+              char error_buffer[256] = "";
+              mbedtls_strerror(ret, error_buffer, sizeof(error_buffer));
+              ERROR_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE: %s", error_buffer);
+            }
             switch (ret)
             {
             case 0:
@@ -331,21 +338,26 @@ void WiiSocket::Update(bool read, bool write, bool except)
               break;
             case MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:
             {
-              int flags = ctx->session_negotiate->verify_result;
-              if (flags & MBEDTLS_X509_BADCERT_CN_MISMATCH)
-                ret = SSL_ERR_VCOMMONNAME;
-              else if (flags & MBEDTLS_X509_BADCERT_NOT_TRUSTED)
-                ret = SSL_ERR_VROOTCA;
-              else if (flags & MBEDTLS_X509_BADCERT_REVOKED)
-                ret = SSL_ERR_VCHAIN;
-              else if (flags & MBEDTLS_X509_BADCERT_EXPIRED ||
-                       flags & MBEDTLS_X509_BADCERT_FUTURE)
-                ret = SSL_ERR_VDATE;
+              char error_buffer[256] = "";
+              int res = mbedtls_ssl_get_verify_result(ctx);
+              mbedtls_x509_crt_verify_info(error_buffer, sizeof(error_buffer), "", res);
+              ERROR_LOG(WII_IPC_SSL, "MBEDTLS_ERR_X509_CERT_VERIFY_FAILED (verify_result = %d): %s",
+                        res, error_buffer);
+
+              if (res & MBEDTLS_X509_BADCERT_CN_MISMATCH)
+                res = SSL_ERR_VCOMMONNAME;
+              else if (res & MBEDTLS_X509_BADCERT_NOT_TRUSTED)
+                res = SSL_ERR_VROOTCA;
+              else if (res & MBEDTLS_X509_BADCERT_REVOKED)
+                res = SSL_ERR_VCHAIN;
+              else if (res & MBEDTLS_X509_BADCERT_EXPIRED || res & MBEDTLS_X509_BADCERT_FUTURE)
+                res = SSL_ERR_VDATE;
               else
-                ret = SSL_ERR_FAILED;
-              Memory::Write_U32(ret, BufferIn);
+                res = SSL_ERR_FAILED;
+
+              Memory::Write_U32(res, BufferIn);
               if (!nonBlock)
-                ReturnValue = ret;
+                ReturnValue = res;
               break;
             }
             default:
