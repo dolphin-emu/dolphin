@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/BPMemLoader.h"
@@ -15,21 +16,9 @@
 #include "VideoBackends/Software/XFMemLoader.h"
 #include "VideoCommon/BoundingBox.h"
 
-
 #define BLOCK_SIZE 2
 
 #define CLAMP(x, a, b) (x>b)?b:(x<a)?a:x
-
-// returns approximation of log2(f) in s28.4
-// results are close enough to use for LOD
-static inline s32 FixedLog2(float f)
-{
-	u32 *x = (u32*)&f;
-	s32 logInt = ((*x & 0x7F800000) >> 19) - 2032; // integer part
-	s32 logFract = (*x & 0x007fffff) >> 19; // approximate fractional part
-
-	return logInt + logFract;
-}
 
 namespace Rasterizer
 {
@@ -81,6 +70,19 @@ void Init()
 	// TODO: This is just a guess!
 	ZSlope.dfdx = ZSlope.dfdy = 0.f;
 	ZSlope.f0 = 1.f;
+}
+
+// Returns approximation of log2(f) in s28.4
+// results are close enough to use for LOD
+static s32 FixedLog2(float f)
+{
+	u32 x;
+	std::memcpy(&x, &f, sizeof(u32));
+
+	s32 logInt = ((x & 0x7F800000) >> 19) - 2032; // integer part
+	s32 logFract = (x & 0x007fffff) >> 19; // approximate fractional part
+
+	return logInt + logFract;
 }
 
 static inline int iround(float x)
