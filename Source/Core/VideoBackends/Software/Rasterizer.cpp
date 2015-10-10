@@ -119,7 +119,7 @@ void SetTevReg(int reg, int comp, bool konst, s16 color)
 	tev.SetRegColor(reg, comp, konst, color);
 }
 
-inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
+static void Draw(s32 x, s32 y, s32 xi, s32 yi)
 {
 	INCSTAT(swstats.thisFrame.rasterizedPixels);
 
