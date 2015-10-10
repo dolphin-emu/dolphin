@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <string>
 
@@ -43,9 +44,10 @@ void Init(const std::string& perf_dir)
 	s_agent = op_open_agent();
 #endif
 
-	if (!perf_dir.empty())
+	if (!perf_dir.empty() || getenv("PERF_BUILDID_DIR"))
 	{
-		std::string filename = StringFromFormat("%s/perf-%d.map", perf_dir.data(), getpid());
+		std::string dir = perf_dir.empty() ? "/tmp" : perf_dir;
+		std::string filename = StringFromFormat("%s/perf-%d.map", dir.data(), getpid());
 		s_perf_map_file.Open(filename, "w");
 		// Disable buffering in order to avoid missing some mappings
 		// if the event of a crash:
