@@ -18,8 +18,6 @@
 
 #define BLOCK_SIZE 2
 
-#define CLAMP(x, a, b) (x>b)?b:(x<a)?a:x
-
 namespace Rasterizer
 {
 static Slope ZSlope;
@@ -249,11 +247,12 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
 
 	*linear = ((lod > 0 && (tm0.min_filter & 4)) || (lod <= 0 && tm0.mag_filter));
 
-	// order of checks matters
-	// should be:
-	// if lod > max then max
-	// else if lod < min then min
-	lod = CLAMP(lod, (s32)tm1.min_lod, (s32)tm1.max_lod);
+	// NOTE: The order of comparisons for this clamp check matters.
+	if (lod > static_cast<s32>(tm1.max_lod))
+		lod = static_cast<s32>(tm1.max_lod);
+	else if (lod < static_cast<s32>(tm1.min_lod))
+		lod = static_cast<s32>(tm1.min_lod);
+
 	*lodp = lod;
 }
 
