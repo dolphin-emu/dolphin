@@ -16,10 +16,10 @@
 #include "VideoBackends/Software/XFMemLoader.h"
 #include "VideoCommon/BoundingBox.h"
 
-#define BLOCK_SIZE 2
-
 namespace Rasterizer
 {
+static constexpr int BLOCK_SIZE = 2;
+
 static Slope ZSlope;
 static Slope WSlope;
 static Slope ColorSlopes[2][4];
