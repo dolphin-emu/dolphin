@@ -210,13 +210,13 @@ static void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, fl
 
 static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoord)
 {
-	FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
-	u8 subTexmap = texmap & 3;
+	const FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
+	const u8 subTexmap = texmap & 3;
 
 	// LOD calculation requires data from the texture mode for bias, etc.
 	// it does not seem to use the actual texture size
-	TexMode0& tm0 = texUnit.texMode0[subTexmap];
-	TexMode1& tm1 = texUnit.texMode1[subTexmap];
+	const TexMode0& tm0 = texUnit.texMode0[subTexmap];
+	const TexMode1& tm1 = texUnit.texMode1[subTexmap];
 
 	float sDelta, tDelta;
 	if (tm0.diag_lod)
@@ -301,7 +301,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 	for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++)
 	{
 		int stageOdd = i&1;
-		TwoTevStageOrders &order = bpmem.tevorders[i >> 1];
+		const TwoTevStageOrders& order = bpmem.tevorders[i >> 1];
 		if (order.getEnable(stageOdd))
 		{
 			u32 texmap = order.getTexMap(stageOdd);
