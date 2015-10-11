@@ -91,7 +91,7 @@ void EmulateShake(AccelData* const accel
 	// shake is a bitfield of X,Y,Z shake button states
 	static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
 	unsigned int shake = 0;
-	buttons_group->GetState( &shake, btns );
+	buttons_group->GetState(&shake, btns);
 
 	for (int i = 0; i != 3; ++i)
 	{
@@ -248,7 +248,7 @@ void Wiimote::Reset()
 	m_adpcm_state.step = 127;
 }
 
-Wiimote::Wiimote( const unsigned int index )
+Wiimote::Wiimote(const unsigned int index)
 	: m_index(index)
 	, ir_sin(0)
 	, ir_cos(1)
@@ -259,7 +259,7 @@ Wiimote::Wiimote( const unsigned int index )
 	// buttons
 	groups.emplace_back(m_buttons = new Buttons("Buttons"));
 	for (auto& named_button : named_buttons)
-		m_buttons->controls.emplace_back(new ControlGroup::Input( named_button));
+		m_buttons->controls.emplace_back(new ControlGroup::Input(named_button));
 
 	// ir
 	groups.emplace_back(m_ir = new Cursor(_trans("IR")));
@@ -297,7 +297,7 @@ Wiimote::Wiimote( const unsigned int index )
 		m_dpad->controls.emplace_back(new ControlGroup::Input(named_direction));
 
 	// options
-	groups.emplace_back( m_options = new ControlGroup(_trans("Options")));
+	groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
 	m_options->settings.emplace_back(new ControlGroup::BackgroundInputSetting(_trans("Background Input")));
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Sideways Wiimote"), false));
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
@@ -770,8 +770,6 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 	if (99 == _channelID)
 	{
 		// Wiimote disconnected
-		//PanicAlert( "Wiimote Disconnected" );
-
 		// reset eeprom/register/reporting mode
 		Reset();
 		return;

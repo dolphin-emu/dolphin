@@ -235,7 +235,7 @@ public:
 
 		while (true)
 		{
-			u8 shouldExist = (list_cur ? 1 : 0);
+			u8 shouldExist = !!list_cur;
 			Do(shouldExist);
 			if (shouldExist == 1)
 			{
