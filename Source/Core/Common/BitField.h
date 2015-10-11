@@ -159,6 +159,16 @@ public:
 		return Value();
 	}
 
+	constexpr std::size_t size() const
+	{
+		return bits;
+	}
+
+	constexpr std::size_t offset() const
+	{
+		return position;
+	}
+
 private:
 	// StorageType is T for non-enum types and the underlying type of T if
 	// T is an enumeration. Note that T is wrapped within an enable_if in the
