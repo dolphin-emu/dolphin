@@ -281,20 +281,95 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			}\n"
 		"		}\n");
 
-	// TODO: Alpha combiner (we should make the code above more generic)
+	// Alpha combiner
+	// TODO: we should make the above code slightly more generic instead of just copy/pasting
+	out.Write(
+		"		// Alpha Combiner\n"
+		"		{\n");
+	out.Write("\t\t\tuint a = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.a).c_str());
+	out.Write("\t\t\tuint b = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.b).c_str());
+	out.Write("\t\t\tuint c = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.c).c_str());
+	out.Write("\t\t\tuint d = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.d).c_str());
+
+	out.Write("\t\t\tuint bias = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.bias).c_str());
+	out.Write("\t\t\tbool op = bool(%s);\n", BitfieldExtract("ac", TevStageCombiner().alphaC.op).c_str());
+	out.Write("\t\t\tbool _clamp = bool(%s);\n", BitfieldExtract("ac", TevStageCombiner().alphaC.clamp).c_str());
+	out.Write("\t\t\tuint shift = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.shift).c_str());
+	out.Write("\t\t\tuint dest = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.dest).c_str());
+
+	out.Write(
+		"\n"
+		"			int A = AlphaInput[a] & 255;\n"
+		"			int B = AlphaInput[b] & 255;\n"
+		"			int C = AlphaInput[c] & 255;\n"
+		"			int D = AlphaInput[d]; // 10 bits + sign\n" // TODO: do we need to sign extend?
+		"\n"
+		"			int result;\n"
+		"			if(bias != 3) { // Normal mode\n"
+		"				// Lerp A and B with C\n"
+		"				C += C >> 7; // Scale C from 0..255 to 0..256\n"
+		"				int lerp = (A << 8) + (B - A)*C;\n"
+		"				if (shift != 3) {\n"
+		"					lerp = lerp << shift;\n"
+		"					lerp = lerp + (op ? 127 : 128);\n"
+		"				}\n"
+		"				result = lerp >> 8;\n"
+		"\n"
+		"				// Add/Subtract D (and bias)\n"
+		"				if (bias == 1) result += 128;\n"
+		"				else if (bias == 2) result -= 128;\n"
+		"				if(!op) // Add\n"
+		"					result = D + result;\n"
+		"				else // Subtract\n"
+		"					result = D - result;\n"
+		"\n"
+		"				// Most of the Shift was moved inside the lerp for improved percision\n"
+		"				// But we still do the divide by 2 here\n"
+		"				if (shift == 3)\n"
+		"					result = result >> 1;\n"
+		"			} else { // Compare mode\n"
+		"				// Not implemented\n" // Not Implemented
+		"				result = 255;\n"
+		"			}\n"
+		"\n"
+		"			// Clamp result\n"
+		"			if (_clamp)\n"
+		"				result = clamp(result, 0, 255);\n"
+		"			else\n"
+		"				result = clamp(result, -1024, 1023);\n"
+		"\n"
+		"			if (stage == num_stages) { // If this is the last stage\n"
+		"				// Write result to output\n"
+		"				TevResult.a = result;\n"
+		"			} else {\n"
+		"				// Write result to the correct input register of the next stage\n"
+		"				AlphaInput[dest] = result;\n"
+		"			}\n"
+		"		}\n");
 
 	out.Write(
 		"	} // Main tev loop\n"
-		"\n"
-		"	TevResult.a = 255;\n"
-		"	float4 newColor = float4(TevResult) / 255.0;\n"
 		"\n");
 
 	// TODO: Fog, Depth textures
 
+
 	out.Write(
-		"	ocol0 = newColor; //float4(TevResult) / 255.0;\n"
-		"}\n");
+		"	ocol0 = float4(TevResult) / 255.0;\n"
+		"\n");
+	// Use dual-source color blending to perform dst alpha in a single pass
+	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+	{
+		// Colors will be blended against the alpha from ocol1 and
+		// the alpha from ocol0 will be written to the framebuffer.
+		out.Write(
+			"	// dual source blending\n"
+			"	ocol1 = float4(TevResult) / 255.0;\n"
+			"	ocol0.a = float(" I_ALPHA".a) / 255.0;\n"
+			"\n");
+	}
+
+	out.Write("}");
 
 	return out;
 }
