@@ -375,15 +375,15 @@ static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
 				break;
 			}
 
-			NGCADPCM::InitFilter();
+			StreamADPCM::InitFilter();
 		}
 
-		u8 tempADPCM[NGCADPCM::ONE_BLOCK_SIZE];
+		u8 tempADPCM[StreamADPCM::ONE_BLOCK_SIZE];
 		// TODO: What if we can't read from AudioPos?
 		s_inserted_volume->Read(AudioPos, sizeof(tempADPCM), tempADPCM, false);
 		AudioPos += sizeof(tempADPCM);
-		NGCADPCM::DecodeBlock(tempPCM + samples_processed * 2, tempADPCM);
-		samples_processed += NGCADPCM::SAMPLES_PER_BLOCK;
+		StreamADPCM::DecodeBlock(tempPCM + samples_processed * 2, tempADPCM);
+		samples_processed += StreamADPCM::SAMPLES_PER_BLOCK;
 	} while (samples_processed < num_samples);
 	for (unsigned i = 0; i < samples_processed * 2; ++i)
 	{
@@ -1184,7 +1184,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 						CurrentStart = NextStart;
 						CurrentLength = NextLength;
 						AudioPos = CurrentStart;
-						NGCADPCM::InitFilter();
+						StreamADPCM::InitFilter();
 						g_bStream = true;
 					}
 				}
