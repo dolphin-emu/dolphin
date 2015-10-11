@@ -292,7 +292,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	}
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, ApiType);
+	GenerateVSOutputMembers<T>(out, ApiType, xfmem.numTexGen.numTexGens);
 	out.Write("};\n");
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
@@ -349,7 +349,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("in VertexData {\n");
-			GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(ApiType, true, true));
+			GenerateVSOutputMembers<T>(out, ApiType, xfmem.numTexGen.numTexGens, GetInterpolationQualifier(ApiType, true, true));
 
 			if (g_ActiveConfig.iStereoMode > 0)
 				out.Write("\tflat int layer;\n");
@@ -379,7 +379,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			for (unsigned int i = 0; i < numTexgen; ++i)
-				out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
+				out.Write("\tfloat3 uv%d = tex[%d];\n", i, i);
 		}
 
 		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");

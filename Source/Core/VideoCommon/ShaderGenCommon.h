@@ -242,33 +242,37 @@ static void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifi
 }
 
 template<class T>
-static inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier = nullptr)
+static inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 num_texgens, const char* qualifier = nullptr)
 {
 	DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
 	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
 	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 
-	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-		DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
+	//for (unsigned int i = 0; i < 8; ++i)
+	if (num_texgens != 0)
+	{
+		std::string tex = StringFromFormat("tex[%d]", num_texgens);
+		DefineOutputMember(object, api_type, qualifier, "float3", tex.c_str(), -1, "TEXCOORD", 0);
+	}
 
-	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
+	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", num_texgens);
 
 	if (g_ActiveConfig.bEnablePixelLighting)
 	{
-		DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
-		DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 2);
+		DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD", num_texgens + 1);
+		DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD", num_texgens + 2);
 	}
 }
 
 template<class T>
-static inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
+static inline void AssignVSOutputMembers(T& object, u32 num_texgens, const char* a, const char* b)
 {
 	object.Write("\t%s.pos = %s.pos;\n", a, b);
 	object.Write("\t%s.colors_0 = %s.colors_0;\n", a, b);
 	object.Write("\t%s.colors_1 = %s.colors_1;\n", a, b);
 
-	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-		object.Write("\t%s.tex%d = %s.tex%d;\n", a, i, b, i);
+	for (unsigned int i = 0; i < num_texgens; ++i)
+		object.Write("\t%s.tex[%d] = %s.tex[%d];\n", a, i, b, i);
 
 	object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
 
