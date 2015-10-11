@@ -279,7 +279,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
 				if (components & (VB_HAS_TEXMTXIDX0<<i))
 				{
-					out.Write("int tmp = int(tex[%d].z);\n", i);
+					out.Write("int tmp = int(tex%d.z);\n", i);
 					if (texinfo.projection == XF_TEXPROJ_STQ)
 						out.Write("o.tex[%d].xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), dot(coord, " I_TRANSFORMMATRICES"[tmp+2]));\n", i);
 					else
