@@ -175,8 +175,12 @@ inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 texgens, b
 	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
 	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 
-	for (unsigned int i = 0; i < texgens; ++i)
-		DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
+	//for (unsigned int i = 0; i < 8; ++i)
+	if (texgens != 0)
+	{
+		std::string tex = StringFromFormat("tex[%d]", texgens);
+		DefineOutputMember(object, api_type, qualifier, "float3", tex.c_str(), -1, "TEXCOORD", 0);
+	}
 
 	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", texgens);
 
@@ -195,7 +199,7 @@ inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 t
 	object.Write("\t%s.colors_1 = %s.colors_1;\n", a, b);
 
 	for (unsigned int i = 0; i < texgens; ++i)
-		object.Write("\t%s.tex%d = %s.tex%d;\n", a, i, b, i);
+		object.Write("\t%s.tex[%d] = %s.tex[%d];\n", a, i, b, i);
 
 	object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
 
