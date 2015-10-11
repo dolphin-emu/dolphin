@@ -10,7 +10,7 @@ namespace UberShader
 static char text[32768];
 
 template<typename T>
-constexpr std::string BitfieldExtract(const std::string &source, T type)
+std::string BitfieldExtract(const std::string &source, T type)
 {
 	return StringFromFormat("bitfieldExtract(%s, %u, %u)", source.c_str(), type.offset(), type.size());
 }
