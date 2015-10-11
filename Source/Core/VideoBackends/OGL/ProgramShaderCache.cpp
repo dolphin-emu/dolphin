@@ -18,9 +18,8 @@
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexShaderManager.h"
-
 #include "VideoCommon/UberShaderPixel.h"
+#include "VideoCommon/VertexShaderManager.h"
 
 namespace OGL
 {

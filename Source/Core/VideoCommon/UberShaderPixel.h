@@ -6,6 +6,7 @@
 
 #include "VideoCommon/PixelShaderGen.h"
 
-namespace UberShader {
+namespace UberShader
+{
 	ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per_pixel_depth);
 }

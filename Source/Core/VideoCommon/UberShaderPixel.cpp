@@ -10,7 +10,7 @@ namespace UberShader
 static char text[32768];
 
 template<typename T>
-std::string bitfieldExtract(std::string source, T type)
+constexpr std::string BitfieldExtract(const std::string &source, T type)
 {
 	return StringFromFormat("bitfieldExtract(%s, %u, %u)", source.c_str(), type.offset(), type.size());
 }
@@ -157,7 +157,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	int4 TevResult = " I_COLORS"[0];\n"
 		"\n");
 
-	out.Write("	uint num_stages = %s;\n", bitfieldExtract("bpmem_genmode", bpmem.genMode.numtevstages).c_str());
+	out.Write("	uint num_stages = %s;\n", BitfieldExtract("bpmem_genmode", bpmem.genMode.numtevstages).c_str());
 
 	out.Write(
 		"	// Main tev loop\n"
@@ -175,7 +175,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"		// Set Ras for stage\n"
 		"		int4 ras;\n"
-		"		switch (%s) {\n", bitfieldExtract("order", bpmem.tevorders[0].colorchan0).c_str());
+		"		switch (%s) {\n", BitfieldExtract("order", bpmem.tevorders[0].colorchan0).c_str());
 	out.Write(
 		"		case 0: // Color 0\n"
 		"			ras = icolors_0;\n"
@@ -200,16 +200,16 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"		// Color Combiner\n"
 		"		{\n");
-	out.Write("\t\t\tuint a = %s;\n", bitfieldExtract("cc", bpmem.combiners[0].colorC.a).c_str());
-	out.Write("\t\t\tuint b = %s;\n", bitfieldExtract("cc", bpmem.combiners[0].colorC.b).c_str());
-	out.Write("\t\t\tuint c = %s;\n", bitfieldExtract("cc", bpmem.combiners[0].colorC.c).c_str());
-	out.Write("\t\t\tuint d = %s;\n", bitfieldExtract("cc", bpmem.combiners[0].colorC.d).c_str());
+	out.Write("\t\t\tuint a = %s;\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.a).c_str());
+	out.Write("\t\t\tuint b = %s;\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.b).c_str());
+	out.Write("\t\t\tuint c = %s;\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.c).c_str());
+	out.Write("\t\t\tuint d = %s;\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.d).c_str());
 
-	out.Write("\t\t\tuint bias = %s;\n",  bitfieldExtract("cc", bpmem.combiners[0].colorC.bias).c_str());
-	out.Write("\t\t\tbool op = bool(%s);\n",    bitfieldExtract("cc", bpmem.combiners[0].colorC.op).c_str());
-	out.Write("\t\t\tbool _clamp = bool(%s);\n", bitfieldExtract("cc", bpmem.combiners[0].colorC.clamp).c_str());
-	out.Write("\t\t\tuint shift = %s;\n", bitfieldExtract("cc", bpmem.combiners[0].colorC.shift).c_str());
-	out.Write("\t\t\tuint dest = %s;\n",  bitfieldExtract("cc", bpmem.combiners[0].colorC.dest).c_str());
+	out.Write("\t\t\tuint bias = %s;\n",  BitfieldExtract("cc", bpmem.combiners[0].colorC.bias).c_str());
+	out.Write("\t\t\tbool op = bool(%s);\n",    BitfieldExtract("cc", bpmem.combiners[0].colorC.op).c_str());
+	out.Write("\t\t\tbool _clamp = bool(%s);\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.clamp).c_str());
+	out.Write("\t\t\tuint shift = %s;\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.shift).c_str());
+	out.Write("\t\t\tuint dest = %s;\n",  BitfieldExtract("cc", bpmem.combiners[0].colorC.dest).c_str());
 
 	out.Write(
 		"\n"
@@ -260,7 +260,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"				ColorInput[dest<<1] = result;\n"
 		"			}\n"
 		"		}\n");
-		
+
 	// TODO: Alpha combiner (we should make the code above more generic)
 
 	out.Write(
