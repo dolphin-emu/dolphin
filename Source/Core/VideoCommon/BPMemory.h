@@ -11,15 +11,14 @@
 
 #pragma pack(4)
 
-enum
-{
+enum {
   BPMEM_GENMODE = 0x00,
-  BPMEM_DISPLAYCOPYFILTER = 0x01,  // 0x01 + 4
-  BPMEM_IND_MTXA = 0x06,           // 0x06 + (3 * 3)
-  BPMEM_IND_MTXB = 0x07,           // 0x07 + (3 * 3)
-  BPMEM_IND_MTXC = 0x08,           // 0x08 + (3 * 3)
+  BPMEM_DISPLAYCOPYFILTER = 0x01, // 0x01 + 4
+  BPMEM_IND_MTXA = 0x06,          // 0x06 + (3 * 3)
+  BPMEM_IND_MTXB = 0x07,          // 0x07 + (3 * 3)
+  BPMEM_IND_MTXC = 0x08,          // 0x08 + (3 * 3)
   BPMEM_IND_IMASK = 0x0F,
-  BPMEM_IND_CMD = 0x10,  // 0x10 + 16
+  BPMEM_IND_CMD = 0x10, // 0x10 + 16
   BPMEM_SCISSORTL = 0x20,
   BPMEM_SCISSORBR = 0x21,
   BPMEM_LINEPTWIDTH = 0x22,
@@ -28,9 +27,9 @@ enum
   BPMEM_RAS1_SS0 = 0x25,
   BPMEM_RAS1_SS1 = 0x26,
   BPMEM_IREF = 0x27,
-  BPMEM_TREF = 0x28,      // 0x28 + 8
-  BPMEM_SU_SSIZE = 0x30,  // 0x30 + (2 * 8)
-  BPMEM_SU_TSIZE = 0x31,  // 0x31 + (2 * 8)
+  BPMEM_TREF = 0x28,     // 0x28 + 8
+  BPMEM_SU_SSIZE = 0x30, // 0x30 + (2 * 8)
+  BPMEM_SU_TSIZE = 0x31, // 0x31 + (2 * 8)
   BPMEM_ZMODE = 0x40,
   BPMEM_BLENDMODE = 0x41,
   BPMEM_CONSTANTALPHA = 0x42,
@@ -66,25 +65,25 @@ enum
   BPMEM_PERF1 = 0x67,
   BPMEM_FIELDMODE = 0x68,
   BPMEM_BUSCLOCK1 = 0x69,
-  BPMEM_TX_SETMODE0 = 0x80,     // 0x80 + 4
-  BPMEM_TX_SETMODE1 = 0x84,     // 0x84 + 4
-  BPMEM_TX_SETIMAGE0 = 0x88,    // 0x88 + 4
-  BPMEM_TX_SETIMAGE1 = 0x8C,    // 0x8C + 4
-  BPMEM_TX_SETIMAGE2 = 0x90,    // 0x90 + 4
-  BPMEM_TX_SETIMAGE3 = 0x94,    // 0x94 + 4
-  BPMEM_TX_SETTLUT = 0x98,      // 0x98 + 4
-  BPMEM_TX_SETMODE0_4 = 0xA0,   // 0xA0 + 4
-  BPMEM_TX_SETMODE1_4 = 0xA4,   // 0xA4 + 4
-  BPMEM_TX_SETIMAGE0_4 = 0xA8,  // 0xA8 + 4
-  BPMEM_TX_SETIMAGE1_4 = 0xAC,  // 0xA4 + 4
-  BPMEM_TX_SETIMAGE2_4 = 0xB0,  // 0xB0 + 4
-  BPMEM_TX_SETIMAGE3_4 = 0xB4,  // 0xB4 + 4
-  BPMEM_TX_SETTLUT_4 = 0xB8,    // 0xB8 + 4
-  BPMEM_TEV_COLOR_ENV = 0xC0,   // 0xC0 + (2 * 16)
-  BPMEM_TEV_ALPHA_ENV = 0xC1,   // 0xC1 + (2 * 16)
-  BPMEM_TEV_COLOR_RA = 0xE0,    // 0xE0 + (2 * 4)
-  BPMEM_TEV_COLOR_BG = 0xE1,    // 0xE1 + (2 * 4)
-  BPMEM_FOGRANGE = 0xE8,        // 0xE8 + 6
+  BPMEM_TX_SETMODE0 = 0x80,    // 0x80 + 4
+  BPMEM_TX_SETMODE1 = 0x84,    // 0x84 + 4
+  BPMEM_TX_SETIMAGE0 = 0x88,   // 0x88 + 4
+  BPMEM_TX_SETIMAGE1 = 0x8C,   // 0x8C + 4
+  BPMEM_TX_SETIMAGE2 = 0x90,   // 0x90 + 4
+  BPMEM_TX_SETIMAGE3 = 0x94,   // 0x94 + 4
+  BPMEM_TX_SETTLUT = 0x98,     // 0x98 + 4
+  BPMEM_TX_SETMODE0_4 = 0xA0,  // 0xA0 + 4
+  BPMEM_TX_SETMODE1_4 = 0xA4,  // 0xA4 + 4
+  BPMEM_TX_SETIMAGE0_4 = 0xA8, // 0xA8 + 4
+  BPMEM_TX_SETIMAGE1_4 = 0xAC, // 0xA4 + 4
+  BPMEM_TX_SETIMAGE2_4 = 0xB0, // 0xB0 + 4
+  BPMEM_TX_SETIMAGE3_4 = 0xB4, // 0xB4 + 4
+  BPMEM_TX_SETTLUT_4 = 0xB8,   // 0xB8 + 4
+  BPMEM_TEV_COLOR_ENV = 0xC0,  // 0xC0 + (2 * 16)
+  BPMEM_TEV_ALPHA_ENV = 0xC1,  // 0xC1 + (2 * 16)
+  BPMEM_TEV_COLOR_RA = 0xE0,   // 0xE0 + (2 * 4)
+  BPMEM_TEV_COLOR_BG = 0xE1,   // 0xE1 + (2 * 4)
+  BPMEM_FOGRANGE = 0xE8,       // 0xE8 + 6
   BPMEM_FOGPARAM0 = 0xEE,
   BPMEM_FOGBMAGNITUDE = 0xEF,
   BPMEM_FOGBEXPONENT = 0xF0,
@@ -93,23 +92,16 @@ enum
   BPMEM_ALPHACOMPARE = 0xF3,
   BPMEM_BIAS = 0xF4,
   BPMEM_ZTEX2 = 0xF5,
-  BPMEM_TEV_KSEL = 0xF6,  // 0xF6 + 8
+  BPMEM_TEV_KSEL = 0xF6, // 0xF6 + 8
   BPMEM_BP_MASK = 0xFE,
 };
 
 // Tev/combiner things
 
 // TEV scaling type
-enum : u32
-{
-  TEVSCALE_1 = 0,
-  TEVSCALE_2 = 1,
-  TEVSCALE_4 = 2,
-  TEVDIVIDE_2 = 3
-};
+enum : u32 { TEVSCALE_1 = 0, TEVSCALE_2 = 1, TEVSCALE_4 = 2, TEVDIVIDE_2 = 3 };
 
-enum : u32
-{
+enum : u32 {
   TEVCMP_R8 = 0,
   TEVCMP_GR16 = 1,
   TEVCMP_BGR24 = 2,
@@ -117,8 +109,7 @@ enum : u32
 };
 
 // TEV combiner operator
-enum : u32
-{
+enum : u32 {
   TEVOP_ADD = 0,
   TEVOP_SUB = 1,
   TEVCMP_R8_GT = 8,
@@ -134,8 +125,7 @@ enum : u32
 };
 
 // TEV color combiner input
-enum : u32
-{
+enum : u32 {
   TEVCOLORARG_CPREV = 0,
   TEVCOLORARG_APREV = 1,
   TEVCOLORARG_C0 = 2,
@@ -155,8 +145,7 @@ enum : u32
 };
 
 // TEV alpha combiner input
-enum : u32
-{
+enum : u32 {
   TEVALPHAARG_APREV = 0,
   TEVALPHAARG_A0 = 1,
   TEVALPHAARG_A1 = 2,
@@ -168,33 +157,20 @@ enum : u32
 };
 
 // TEV output registers
-enum : u32
-{
-  GX_TEVPREV = 0,
-  GX_TEVREG0 = 1,
-  GX_TEVREG1 = 2,
-  GX_TEVREG2 = 3
-};
+enum : u32 { GX_TEVPREV = 0, GX_TEVREG0 = 1, GX_TEVREG1 = 2, GX_TEVREG2 = 3 };
 
 // Z-texture formats
-enum : u32
-{
+enum : u32 {
   TEV_ZTEX_TYPE_U8 = 0,
   TEV_ZTEX_TYPE_U16 = 1,
   TEV_ZTEX_TYPE_U24 = 2
 };
 
 // Z texture operator
-enum : u32
-{
-  ZTEXTURE_DISABLE = 0,
-  ZTEXTURE_ADD = 1,
-  ZTEXTURE_REPLACE = 2
-};
+enum : u32 { ZTEXTURE_DISABLE = 0, ZTEXTURE_ADD = 1, ZTEXTURE_REPLACE = 2 };
 
 // TEV bias value
-enum : u32
-{
+enum : u32 {
   TEVBIAS_ZERO = 0,
   TEVBIAS_ADDHALF = 1,
   TEVBIAS_SUBHALF = 2,
@@ -202,17 +178,10 @@ enum : u32
 };
 
 // Indirect texture format
-enum : u32
-{
-  ITF_8 = 0,
-  ITF_5 = 1,
-  ITF_4 = 2,
-  ITF_3 = 3
-};
+enum : u32 { ITF_8 = 0, ITF_5 = 1, ITF_4 = 2, ITF_3 = 3 };
 
 // Indirect texture bias
-enum : u32
-{
+enum : u32 {
   ITB_NONE = 0,
   ITB_S = 1,
   ITB_T = 2,
@@ -224,17 +193,10 @@ enum : u32
 };
 
 // Indirect texture bump alpha
-enum : u32
-{
-  ITBA_OFF = 0,
-  ITBA_S = 1,
-  ITBA_T = 2,
-  ITBA_U = 3
-};
+enum : u32 { ITBA_OFF = 0, ITBA_S = 1, ITBA_T = 2, ITBA_U = 3 };
 
 // Indirect texture wrap value
-enum : u32
-{
+enum : u32 {
   ITW_OFF = 0,
   ITW_256 = 1,
   ITW_128 = 2,
@@ -245,90 +207,81 @@ enum : u32
 };
 
 union IND_MTXA {
-  struct
-  {
+  struct {
     s32 ma : 11;
     s32 mb : 11;
-    u32 s0 : 2;  // bits 0-1 of scale factor
+    u32 s0 : 2; // bits 0-1 of scale factor
     u32 rid : 8;
   };
   u32 hex;
 };
 
 union IND_MTXB {
-  struct
-  {
+  struct {
     s32 mc : 11;
     s32 md : 11;
-    u32 s1 : 2;  // bits 2-3 of scale factor
+    u32 s1 : 2; // bits 2-3 of scale factor
     u32 rid : 8;
   };
   u32 hex;
 };
 
 union IND_MTXC {
-  struct
-  {
+  struct {
     s32 me : 11;
     s32 mf : 11;
-    u32 s2 : 2;  // bits 4-5 of scale factor
+    u32 s2 : 2; // bits 4-5 of scale factor
     u32 rid : 8;
   };
   u32 hex;
 };
 
-struct IND_MTX
-{
+struct IND_MTX {
   IND_MTXA col0;
   IND_MTXB col1;
   IND_MTXC col2;
 };
 
 union IND_IMASK {
-  struct
-  {
+  struct {
     u32 mask : 24;
     u32 rid : 8;
   };
   u32 hex;
 };
 
-struct TevStageCombiner
-{
+struct TevStageCombiner {
   union ColorCombiner {
-    struct  // abc=8bit,d=10bit
-    {
-      u32 d : 4;  // TEVSELCC_X
-      u32 c : 4;  // TEVSELCC_X
-      u32 b : 4;  // TEVSELCC_X
-      u32 a : 4;  // TEVSELCC_X
+    // abc=8bit,d=10bit
+    BitField<0, 4, u32> d;  // TEVSELCC_X
+    BitField<4, 4, u32> c;  // TEVSELCC_X
+    BitField<8, 4, u32> b;  // TEVSELCC_X
+    BitField<12, 4, u32> a; // TEVSELCC_X
 
-      u32 bias : 2;
-      u32 op : 1;
-      u32 clamp : 1;
+    BitField<16, 2, u32> bias;
+    BitField<18, 1, u32> op;
+    BitField<19, 1, u32> clamp;
 
-      u32 shift : 2;
-      u32 dest : 2;  // 1,2,3
-    };
+    BitField<20, 2, u32> shift;
+    BitField<22, 2, u32> dest; // 1,2,3
+
     u32 hex;
   };
   union AlphaCombiner {
-    struct
-    {
-      u32 rswap : 2;
-      u32 tswap : 2;
-      u32 d : 3;  // TEVSELCA_
-      u32 c : 3;  // TEVSELCA_
-      u32 b : 3;  // TEVSELCA_
-      u32 a : 3;  // TEVSELCA_
+    BitField<0, 2, u32> rswap;
+    BitField<2, 2, u32> tswap;
+    BitField<4, 3, u32> d;  // TEVSELCA_
+    BitField<7, 3, u32> c;  // TEVSELCA_
+    BitField<10, 3, u32> b; // TEVSELCA_
+    BitField<13, 3, u32> a; // TEVSELCA_
 
-      u32 bias : 2;  // GXTevBias
-      u32 op : 1;
-      u32 clamp : 1;
+    BitField<16, 2, u32> bias; // GXTevBias
+    BitField<18, 1, u32> op;
+    BitField<19, 1, u32> clamp;
 
-      u32 shift : 2;
-      u32 dest : 2;  // 1,2,3
-    };
+    BitField<20, 2, u32> shift;
+    BitField<22, 2, u32> dest; // 1,2,3
+
     u32 hex;
   };
 
@@ -346,23 +299,24 @@ struct TevStageCombiner
 //  GXSetTevIndirect(tevstage+2, indstage, 0, 0, 0, 0, 0, 1, 0, 0)
 
 union TevStageIndirect {
-  struct
-  {
-    u32 bt : 2;          // Indirect tex stage ID
-    u32 fmt : 2;         // Format: ITF_X
-    u32 bias : 3;        // ITB_X
-    u32 bs : 2;          // ITBA_X, indicates which coordinate will become the 'bump alpha'
-    u32 mid : 4;         // Matrix ID to multiply offsets with
-    u32 sw : 3;          // ITW_X, wrapping factor for S of regular coord
-    u32 tw : 3;          // ITW_X, wrapping factor for T of regular coord
-    u32 lb_utclod : 1;   // Use modified or unmodified texture coordinates for LOD computation
-    u32 fb_addprev : 1;  // 1 if the texture coordinate results from the previous TEV stage should
-                         // be added
+  struct {
+    u32 bt : 2;   // Indirect tex stage ID
+    u32 fmt : 2;  // Format: ITF_X
+    u32 bias : 3; // ITB_X
+    u32 bs : 2;   // ITBA_X, indicates which coordinate will become the 'bump
+                  // alpha'
+    u32 mid : 4;  // Matrix ID to multiply offsets with
+    u32 sw : 3;   // ITW_X, wrapping factor for S of regular coord
+    u32 tw : 3;   // ITW_X, wrapping factor for T of regular coord
+    u32 lb_utclod : 1; // Use modified or unmodified texture coordinates for LOD
+                       // computation
+    u32 fb_addprev : 1; // 1 if the texture coordinate results from the previous
+                        // TEV stage should
+                        // be added
     u32 pad0 : 3;
     u32 rid : 8;
   };
-  struct
-  {
+  struct {
     u32 hex : 21;
     u32 unused : 11;
   };
@@ -373,37 +327,35 @@ union TevStageIndirect {
 };
 
 union TwoTevStageOrders {
-  struct
-  {
-    u32 texmap0 : 3;  // Indirect tex stage texmap
-    u32 texcoord0 : 3;
-    u32 enable0 : 1;     // 1 if should read from texture
-    u32 colorchan0 : 3;  // RAS1_CC_X
+  BitField<0, 3, u32> texmap0; // Indirect tex stage texmap
+  BitField<3, 3, u32> texcoord0;
+  BitField<6, 1, u32> enable0;    // 1 if should read from texture
+  BitField<7, 3, u32> colorchan0; // RAS1_CC_X
 
-    u32 pad0 : 2;
+  BitField<12, 3, u32> texmap1;
+  BitField<15, 3, u32> texcoord1;
+  BitField<18, 1, u32> enable1;    // 1 if should read from texture
+  BitField<19, 3, u32> colorchan1; // RAS1_CC_X
 
-    u32 texmap1 : 3;
-    u32 texcoord1 : 3;
-    u32 enable1 : 1;     // 1 if should read from texture
-    u32 colorchan1 : 3;  // RAS1_CC_X
+  BitField<24, 8, u32> rid;
 
-    u32 pad1 : 2;
-    u32 rid : 8;
-  };
   u32 hex;
-  int getTexMap(int i) const { return i ? texmap1 : texmap0; }
-  int getTexCoord(int i) const { return i ? texcoord1 : texcoord0; }
-  int getEnable(int i) const { return i ? enable1 : enable0; }
-  int getColorChan(int i) const { return i ? colorchan1 : colorchan0; }
+  u32 getTexMap(int i) const { return i ? texmap1.Value() : texmap0.Value(); }
+  u32 getTexCoord(int i) const {
+    return i ? texcoord1.Value() : texcoord0.Value();
+  }
+  u32 getEnable(int i) const { return i ? enable1.Value() : enable0.Value(); }
+  u32 getColorChan(int i) const {
+    return i ? colorchan1.Value() : colorchan0.Value();
+  }
 };
 
 union TEXSCALE {
-  struct
-  {
-    u32 ss0 : 4;  // Indirect tex stage 0, 2^(-ss0)
-    u32 ts0 : 4;  // Indirect tex stage 0
-    u32 ss1 : 4;  // Indirect tex stage 1
-    u32 ts1 : 4;  // Indirect tex stage 1
+  struct {
+    u32 ss0 : 4; // Indirect tex stage 0, 2^(-ss0)
+    u32 ts0 : 4; // Indirect tex stage 0
+    u32 ss1 : 4; // Indirect tex stage 1
+    u32 ts1 : 4; // Indirect tex stage 1
     u32 pad : 8;
     u32 rid : 8;
   };
@@ -411,10 +363,9 @@ union TEXSCALE {
 };
 
 union RAS1_IREF {
-  struct
-  {
-    u32 bi0 : 3;  // Indirect tex stage 0 ntexmap
-    u32 bc0 : 3;  // Indirect tex stage 0 ntexcoord
+  struct {
+    u32 bi0 : 3; // Indirect tex stage 0 ntexmap
+    u32 bc0 : 3; // Indirect tex stage 0 ntexcoord
     u32 bi1 : 3;
     u32 bc1 : 3;
     u32 bi2 : 3;
@@ -432,15 +383,9 @@ union RAS1_IREF {
 // Texture structs
 
 union TexMode0 {
-  enum TextureFilter : u32
-  {
-    TEXF_NONE = 0,
-    TEXF_POINT = 1,
-    TEXF_LINEAR = 2
-  };
+  enum TextureFilter : u32 { TEXF_NONE = 0, TEXF_POINT = 1, TEXF_LINEAR = 2 };
 
-  struct
-  {
+  struct {
     u32 wrap_s : 2;
     u32 wrap_t : 2;
     u32 mag_filter : 1;
@@ -454,38 +399,35 @@ union TexMode0 {
   u32 hex;
 };
 union TexMode1 {
-  struct
-  {
+  struct {
     u32 min_lod : 8;
     u32 max_lod : 8;
   };
   u32 hex;
 };
 union TexImage0 {
-  struct
-  {
-    u32 width : 10;   // Actually w-1
-    u32 height : 10;  // Actually h-1
+  struct {
+    u32 width : 10;  // Actually w-1
+    u32 height : 10; // Actually h-1
     u32 format : 4;
   };
   u32 hex;
 };
 union TexImage1 {
-  struct
-  {
-    u32 tmem_even : 15;  // TMEM line index for even LODs
+  struct {
+    u32 tmem_even : 15; // TMEM line index for even LODs
     u32 cache_width : 3;
     u32 cache_height : 3;
-    u32 image_type : 1;  // 1 if this texture is managed manually (0 means we'll autofetch the
-                         // texture data whenever it changes)
+    u32 image_type : 1; // 1 if this texture is managed manually (0 means we'll
+                        // autofetch the
+                        // texture data whenever it changes)
   };
   u32 hex;
 };
 
 union TexImage2 {
-  struct
-  {
-    u32 tmem_odd : 15;  // tmem line index for odd LODs
+  struct {
+    u32 tmem_odd : 15; // tmem line index for odd LODs
     u32 cache_width : 3;
     u32 cache_height : 3;
   };
@@ -493,15 +435,13 @@ union TexImage2 {
 };
 
 union TexImage3 {
-  struct
-  {
-    u32 image_base : 24;  // address in memory >> 5 (was 20 for GC)
+  struct {
+    u32 image_base : 24; // address in memory >> 5 (was 20 for GC)
   };
   u32 hex;
 };
 union TexTLUT {
-  struct
-  {
+  struct {
     u32 tmem_offset : 10;
     u32 tlut_format : 2;
   };
@@ -509,24 +449,21 @@ union TexTLUT {
 };
 
 union ZTex1 {
-  struct
-  {
+  struct {
     u32 bias : 24;
   };
   u32 hex;
 };
 
 union ZTex2 {
-  struct
-  {
-    u32 type : 2;  // TEV_Z_TYPE_X
-    u32 op : 2;    // GXZTexOp
+  struct {
+    u32 type : 2; // TEV_Z_TYPE_X
+    u32 op : 2;   // GXZTexOp
   };
   u32 hex;
 };
 
-struct FourTexUnits
-{
+struct FourTexUnits {
   TexMode0 texMode0[4];
   TexMode1 texMode1[4];
   TexImage0 texImage0[4];
@@ -540,18 +477,17 @@ struct FourTexUnits
 // Geometry/other structs
 
 union GenMode {
-  enum CullMode : u32
-  {
+  enum CullMode : u32 {
     CULL_NONE = 0,
-    CULL_BACK = 1,   // cull back-facing primitives
-    CULL_FRONT = 2,  // cull front-facing primitives
-    CULL_ALL = 3,    // cull all primitives
+    CULL_BACK = 1,  // cull back-facing primitives
+    CULL_FRONT = 2, // cull front-facing primitives
+    CULL_ALL = 3,   // cull all primitives
   };
 
   BitField<0, 4, u32> numtexgens;
   BitField<4, 3, u32> numcolchans;
   // 1 bit unused?
-  BitField<8, 1, u32> flat_shading;  // unconfirmed
+  BitField<8, 1, u32> flat_shading; // unconfirmed
   BitField<9, 1, u32> multisampling;
   BitField<10, 4, u32> numtevstages;
   BitField<14, 2, CullMode> cullmode;
@@ -562,29 +498,26 @@ union GenMode {
 };
 
 union LPSize {
-  struct
-  {
-    u32 linesize : 8;   // in 1/6th pixels
-    u32 pointsize : 8;  // in 1/6th pixels
+  struct {
+    u32 linesize : 8;  // in 1/6th pixels
+    u32 pointsize : 8; // in 1/6th pixels
     u32 lineoff : 3;
     u32 pointoff : 3;
-    u32 lineaspect : 1;  // interlacing: adjust for pixels having AR of 1/2
+    u32 lineaspect : 1; // interlacing: adjust for pixels having AR of 1/2
     u32 padding : 1;
   };
   u32 hex;
 };
 
 union X12Y12 {
-  struct
-  {
+  struct {
     u32 y : 12;
     u32 x : 12;
   };
   u32 hex;
 };
 union X10Y10 {
-  struct
-  {
+  struct {
     u32 x : 10;
     u32 y : 10;
   };
@@ -594,22 +527,20 @@ union X10Y10 {
 // Framebuffer/pixel stuff (incl fog)
 
 union BlendMode {
-  enum BlendFactor : u32
-  {
+  enum BlendFactor : u32 {
     ZERO = 0,
     ONE = 1,
-    SRCCLR = 2,             // for dst factor
-    INVSRCCLR = 3,          // for dst factor
-    DSTCLR = SRCCLR,        // for src factor
-    INVDSTCLR = INVSRCCLR,  // for src factor
+    SRCCLR = 2,            // for dst factor
+    INVSRCCLR = 3,         // for dst factor
+    DSTCLR = SRCCLR,       // for src factor
+    INVDSTCLR = INVSRCCLR, // for src factor
     SRCALPHA = 4,
     INVSRCALPHA = 5,
     DSTALPHA = 6,
     INVDSTALPHA = 7
   };
 
-  enum LogicOp : u32
-  {
+  enum LogicOp : u32 {
     CLEAR = 0,
     AND = 1,
     AND_REVERSE = 2,
@@ -642,21 +573,19 @@ union BlendMode {
 };
 
 union FogParam0 {
-  struct
-  {
+  struct {
     u32 mantissa : 11;
     u32 exponent : 8;
     u32 sign : 1;
   };
 
-  float GetA()
-  {
+  float GetA() {
     union {
       u32 i;
       float f;
     } dummy;
     dummy.i = ((u32)sign << 31) | ((u32)exponent << 23) |
-              ((u32)mantissa << 12);  // scale mantissa from 11 to 23 bits
+              ((u32)mantissa << 12); // scale mantissa from 11 to 23 bits
     return dummy.f;
   }
 
@@ -664,24 +593,21 @@ union FogParam0 {
 };
 
 union FogParam3 {
-  struct
-  {
-    u32 c_mant : 11;
-    u32 c_exp : 8;
-    u32 c_sign : 1;
-    u32 proj : 1;  // 0 - perspective, 1 - orthographic
-    u32 fsel : 3;  // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
-  };
+  BitField<0, 11, u32> c_mant;
+  BitField<11, 8, u32> c_exp;
+  BitField<19, 1, u32> c_sign;
+  BitField<20, 1, u32> proj; // 0 - perspective, 1 - orthographic
+  BitField<21, 3, u32> fsel; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 -
+                             // backward exp, 7 - backward exp2
 
   // amount to subtract from eyespacez after range adjustment
-  float GetC()
-  {
+  float GetC() {
     union {
       u32 i;
       float f;
     } dummy;
-    dummy.i = ((u32)c_sign << 31) | ((u32)c_exp << 23) |
-              ((u32)c_mant << 12);  // scale mantissa from 11 to 23 bits
+    dummy.i = (c_sign.Value() << 31) | (c_exp.Value() << 23) |
+              (c_mant.Value() << 12); // scale mantissa from 11 to 23 bits
     return dummy.f;
   }
 
@@ -689,57 +615,44 @@ union FogParam3 {
 };
 
 union FogRangeKElement {
-  struct
-  {
-    u32 HI : 12;
-    u32 LO : 12;
-    u32 regid : 8;
-  };
+  BitField<0, 12, u32> HI;
+  BitField<12, 12, u32> LO;
+  BitField<24, 8, u32> regid;
 
   // TODO: Which scaling coefficient should we use here? This is just a guess!
-  float GetValue(int i) { return (i ? HI : LO) / 256.f; }
+  float GetValue(int i) { return (i ? HI.Value() : LO.Value()) / 256.f; }
   u32 HEX;
 };
 
-struct FogRangeParams
-{
+struct FogRangeParams {
   union RangeBase {
-    struct
-    {
-      u32 Center : 10;  // viewport center + 342
-      u32 Enabled : 1;
-      u32 unused : 13;
-      u32 regid : 8;
-    };
+    BitField<0, 10, u32> Center; // viewport center + 342
+    BitField<10, 1, u32> Enabled;
+    BitField<24, 8, u32> regid;
     u32 hex;
   };
   RangeBase Base;
   FogRangeKElement K[5];
 };
 // final eq: ze = A/(B_MAG - (Zs>>B_SHF));
-struct FogParams
-{
+struct FogParams {
   FogParam0 a;
   u32 b_magnitude;
-  u32 b_shift;  // b's exp + 1?
+  u32 b_shift; // b's exp + 1?
   FogParam3 c_proj_fsel;
 
   union FogColor {
-    struct
-    {
-      u32 b : 8;
-      u32 g : 8;
-      u32 r : 8;
-    };
+    BitField<0, 8, u32> b;
+    BitField<8, 8, u32> g;
+    BitField<16, 8, u32> r;
     u32 hex;
   };
 
-  FogColor color;  // 0:b 8:g 16:r - nice!
+  FogColor color; // 0:b 8:g 16:r - nice!
 };
 
 union ZMode {
-  enum CompareMode : u32
-  {
+  enum CompareMode : u32 {
     NEVER = 0,
     LESS = 1,
     EQUAL = 2,
@@ -758,25 +671,21 @@ union ZMode {
 };
 
 union ConstantAlpha {
-  struct
-  {
-    u32 alpha : 8;
-    u32 enable : 1;
-  };
+  BitField<0, 8, u32> alpha;
+  BitField<8, 1, u32> enable;
   u32 hex;
 };
 
 union FieldMode {
-  struct
-  {
-    u32 texLOD : 1;  // adjust vert tex LOD computation to account for interlacing
+  struct {
+    u32 texLOD : 1; // adjust vert tex LOD computation to account for
+                    // interlacing
   };
   u32 hex;
 };
 
 union FieldMask {
-  struct
-  {
+  struct {
     // If bit is not set, do not write field to EFB
     u32 odd : 1;
     u32 even : 1;
@@ -785,8 +694,7 @@ union FieldMask {
 };
 
 union PEControl {
-  enum PixelFormat : u32
-  {
+  enum PixelFormat : u32 {
     RGB8_Z24 = 0,
     RGBA6_Z24 = 1,
     RGB565_Z16 = 2,
@@ -795,11 +703,10 @@ union PEControl {
     U8 = 5,
     V8 = 6,
     YUV420 = 7,
-    INVALID_FMT = 0xffffffff,  // Used by Dolphin to represent a missing value.
+    INVALID_FMT = 0xffffffff, // Used by Dolphin to represent a missing value.
   };
 
-  enum DepthFormat : u32
-  {
+  enum DepthFormat : u32 {
     ZLINEAR = 0,
     ZNEAR = 1,
     ZMID = 2,
@@ -822,8 +729,7 @@ union PEControl {
 // Texture coordinate stuff
 
 union TCInfo {
-  struct
-  {
+  struct {
     u32 scale_minus_1 : 16;
     u32 range_bias : 1;
     u32 cylindric_wrap : 1;
@@ -833,8 +739,7 @@ union TCInfo {
   };
   u32 hex;
 };
-struct TCoordInfo
-{
+struct TCoordInfo {
   TCInfo s;
   TCInfo t;
 };
@@ -862,24 +767,20 @@ union TevReg {
 };
 
 union TevKSel {
-  struct
-  {
-    u32 swap1 : 2;
-    u32 swap2 : 2;
-    u32 kcsel0 : 5;
-    u32 kasel0 : 5;
-    u32 kcsel1 : 5;
-    u32 kasel1 : 5;
-  };
+  BitField<0, 2, u32> swap1;
+  BitField<2, 2, u32> swap2;
+  BitField<4, 5, u32> kcsel0;
+  BitField<9, 5, u32> kcsel1;
+  BitField<14, 5, u32> kasel0;
+  BitField<19, 5, u32> kasel1;
   u32 hex;
 
-  int getKC(int i) { return i ? kcsel1 : kcsel0; }
-  int getKA(int i) { return i ? kasel1 : kasel0; }
+  u32 getKC(int i) { return i ? kcsel1.Value() : kcsel0.Value(); }
+  u32 getKA(int i) { return i ? kasel1.Value() : kasel0.Value(); }
 };
 
 union AlphaTest {
-  enum CompareMode : u32
-  {
+  enum CompareMode : u32 {
     NEVER = 0,
     LESS = 1,
     EQUAL = 2,
@@ -890,13 +791,7 @@ union AlphaTest {
     ALWAYS = 7
   };
 
-  enum Op : u32
-  {
-    AND = 0,
-    OR = 1,
-    XOR = 2,
-    XNOR = 3
-  };
+  enum Op : u32 { AND = 0, OR = 1, XOR = 2, XNOR = 3 };
 
   BitField<0, 8, u32> ref0;
   BitField<8, 8, u32> ref1;
@@ -906,17 +801,14 @@ union AlphaTest {
 
   u32 hex;
 
-  enum TEST_RESULT
-  {
+  enum TEST_RESULT {
     UNDETERMINED = 0,
     FAIL = 1,
     PASS = 2,
   };
 
-  __forceinline TEST_RESULT TestResult() const
-  {
-    switch (logic)
-    {
+  __forceinline TEST_RESULT TestResult() const {
+    switch (logic) {
     case AND:
       if (comp0 == ALWAYS && comp1 == ALWAYS)
         return PASS;
@@ -932,16 +824,20 @@ union AlphaTest {
       break;
 
     case XOR:
-      if ((comp0 == ALWAYS && comp1 == NEVER) || (comp0 == NEVER && comp1 == ALWAYS))
+      if ((comp0 == ALWAYS && comp1 == NEVER) ||
+          (comp0 == NEVER && comp1 == ALWAYS))
         return PASS;
-      if ((comp0 == ALWAYS && comp1 == ALWAYS) || (comp0 == NEVER && comp1 == NEVER))
+      if ((comp0 == ALWAYS && comp1 == ALWAYS) ||
+          (comp0 == NEVER && comp1 == NEVER))
         return FAIL;
       break;
 
     case XNOR:
-      if ((comp0 == ALWAYS && comp1 == NEVER) || (comp0 == NEVER && comp1 == ALWAYS))
+      if ((comp0 == ALWAYS && comp1 == NEVER) ||
+          (comp0 == NEVER && comp1 == ALWAYS))
         return FAIL;
-      if ((comp0 == ALWAYS && comp1 == ALWAYS) || (comp0 == NEVER && comp1 == NEVER))
+      if ((comp0 == ALWAYS && comp1 == ALWAYS) ||
+          (comp0 == NEVER && comp1 == NEVER))
         return PASS;
       break;
 
@@ -955,37 +851,42 @@ union AlphaTest {
 union UPE_Copy {
   u32 Hex;
 
-  BitField<0, 1, u32> clamp0;               // if set clamp top
-  BitField<1, 1, u32> clamp1;               // if set clamp bottom
-  BitField<2, 1, u32> yuv;                  // if set, color conversion from RGB to YUV
-  BitField<3, 4, u32> target_pixel_format;  // realformat is (fmt/2)+((fmt&1)*8).... for some reason
-                                            // the msb is the lsb (pattern: cycling right shift)
-  BitField<7, 2, u32> gamma;  // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
-  BitField<9, 1, u32>
-      half_scale;  // "mipmap" filter... 0 = no filter (scale 1:1) ; 1 = box filter (scale 2:1)
-  BitField<10, 1, u32> scale_invert;  // if set vertical scaling is on
+  BitField<0, 1, u32> clamp0; // if set clamp top
+  BitField<1, 1, u32> clamp1; // if set clamp bottom
+  BitField<2, 1, u32> yuv;    // if set, color conversion from RGB to YUV
+  BitField<3, 4, u32> target_pixel_format; // realformat is
+                                           // (fmt/2)+((fmt&1)*8).... for some
+                                           // reason
+  // the msb is the lsb (pattern: cycling right shift)
+  BitField<7, 2, u32>
+      gamma; // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
+  BitField<9, 1, u32> half_scale;    // "mipmap" filter... 0 = no filter (scale
+                                     // 1:1) ; 1 = box filter (scale 2:1)
+  BitField<10, 1, u32> scale_invert; // if set vertical scaling is on
   BitField<11, 1, u32> clear;
-  BitField<12, 2, u32> frame_to_field;  // 0 progressive ; 1 is reserved ; 2 = interlaced (even
-                                        // lines) ; 3 = interlaced 1 (odd lines)
+  BitField<12, 2, u32>
+      frame_to_field; // 0 progressive ; 1 is reserved ; 2 = interlaced (even
+                      // lines) ; 3 = interlaced 1 (odd lines)
   BitField<14, 1, u32> copy_to_xfb;
-  BitField<15, 1, u32> intensity_fmt;  // if set, is an intensity format (I4,I8,IA4,IA8)
-  BitField<16, 1, u32>
-      auto_conv;  // if 0 automatic color conversion by texture format and pixel type
+  BitField<15, 1, u32>
+      intensity_fmt; // if set, is an intensity format (I4,I8,IA4,IA8)
+  BitField<16, 1, u32> auto_conv; // if 0 automatic color conversion by texture
+                                  // format and pixel type
 
-  u32 tp_realFormat() { return target_pixel_format / 2 + (target_pixel_format & 1) * 8; }
+  u32 tp_realFormat() {
+    return target_pixel_format / 2 + (target_pixel_format & 1) * 8;
+  }
 };
 
 union BPU_PreloadTileInfo {
   u32 hex;
-  struct
-  {
+  struct {
     u32 count : 15;
     u32 type : 2;
   };
 };
 
-struct BPS_TmemConfig
-{
+struct BPS_TmemConfig {
   u32 preload_addr;
   u32 preload_tmem_even;
   u32 preload_tmem_odd;
@@ -997,82 +898,87 @@ struct BPS_TmemConfig
 
 // All of BP memory
 
-struct BPCmd
-{
+struct BPCmd {
   int address;
   int changes;
   int newvalue;
 };
 
-struct BPMemory
-{
+struct BPMemory {
   GenMode genMode;
-  u32 display_copy_filter[4];  // 01-04
-  u32 unknown;                 // 05
-  // indirect matrices (set by GXSetIndTexMtx, selected by TevStageIndirect::mid)
+  u32 display_copy_filter[4]; // 01-04
+  u32 unknown;                // 05
+  // indirect matrices (set by GXSetIndTexMtx, selected by
+  // TevStageIndirect::mid)
   // abc form a 2x3 offset matrix, there's 3 such matrices
   // the 3 offset matrices can either be indirect type, S-type, or T-type
   // 6bit scale factor s is distributed across IND_MTXA/B/C.
   // before using matrices scale by 2^-(s-17)
-  IND_MTX indmtx[3];               // 06-0e GXSetIndTexMtx, 2x3 matrices
-  IND_IMASK imask;                 // 0f
-  TevStageIndirect tevind[16];     // 10 GXSetTevIndirect
-  X12Y12 scissorTL;                // 20
-  X12Y12 scissorBR;                // 21
-  LPSize lineptwidth;              // 22 line and point width
-  u32 sucounter;                   // 23
-  u32 rascounter;                  // 24
-  TEXSCALE texscale[2];            // 25-26 GXSetIndTexCoordScale
-  RAS1_IREF tevindref;             // 27 GXSetIndTexOrder
-  TwoTevStageOrders tevorders[8];  // 28-2F
-  TCoordInfo texcoords[8];         // 0x30 s,t,s,t,s,t,s,t...
-  ZMode zmode;                     // 40
-  BlendMode blendmode;             // 41
-  ConstantAlpha dstalpha;          // 42
-  PEControl zcontrol;              // 43 GXSetZCompLoc, GXPixModeSync
-  FieldMask fieldmask;             // 44
-  u32 drawdone;                    // 45, bit1=1 if end of list
-  u32 unknown5;                    // 46 clock?
-  u32 petoken;                     // 47
-  u32 petokenint;                  // 48
-  X10Y10 copyTexSrcXY;             // 49
-  X10Y10 copyTexSrcWH;             // 4a
-  u32 copyTexDest;                 // 4b// 4b == CopyAddress (GXDispCopy and GXTexCopy use it)
-  u32 unknown6;                    // 4c
-  u32 copyMipMapStrideChannels;  // 4d usually set to 4 when dest is single channel, 8 when dest is
-                                 // 2 channel, 16 when dest is RGBA
-  // also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do with
+  IND_MTX indmtx[3];              // 06-0e GXSetIndTexMtx, 2x3 matrices
+  IND_IMASK imask;                // 0f
+  TevStageIndirect tevind[16];    // 10 GXSetTevIndirect
+  X12Y12 scissorTL;               // 20
+  X12Y12 scissorBR;               // 21
+  LPSize lineptwidth;             // 22 line and point width
+  u32 sucounter;                  // 23
+  u32 rascounter;                 // 24
+  TEXSCALE texscale[2];           // 25-26 GXSetIndTexCoordScale
+  RAS1_IREF tevindref;            // 27 GXSetIndTexOrder
+  TwoTevStageOrders tevorders[8]; // 28-2F
+  TCoordInfo texcoords[8];        // 0x30 s,t,s,t,s,t,s,t...
+  ZMode zmode;                    // 40
+  BlendMode blendmode;            // 41
+  ConstantAlpha dstalpha;         // 42
+  PEControl zcontrol;             // 43 GXSetZCompLoc, GXPixModeSync
+  FieldMask fieldmask;            // 44
+  u32 drawdone;                   // 45, bit1=1 if end of list
+  u32 unknown5;                   // 46 clock?
+  u32 petoken;                    // 47
+  u32 petokenint;                 // 48
+  X10Y10 copyTexSrcXY;            // 49
+  X10Y10 copyTexSrcWH;            // 4a
+  u32 copyTexDest; // 4b// 4b == CopyAddress (GXDispCopy and GXTexCopy use it)
+  u32 unknown6;    // 4c
+  u32 copyMipMapStrideChannels; // 4d usually set to 4 when dest is single
+                                // channel, 8 when dest is
+                                // 2 channel, 16 when dest is RGBA
+  // also, doubles whenever mipmap box filter option is set (excent on RGBA).
+  // Probably to do with
   // number of bytes to look at when smoothing
-  u32 dispcopyyscale;              // 4e
-  u32 clearcolorAR;                // 4f
-  u32 clearcolorGB;                // 50
-  u32 clearZValue;                 // 51
-  UPE_Copy triggerEFBCopy;         // 52
-  u32 copyfilter[2];               // 53,54
-  u32 boundbox0;                   // 55
-  u32 boundbox1;                   // 56
-  u32 unknown7[2];                 // 57,58
-  X10Y10 scissorOffset;            // 59
-  u32 unknown8[6];                 // 5a,5b,5c,5d, 5e,5f
-  BPS_TmemConfig tmem_config;      // 60-66
-  u32 metric;                      // 67
-  FieldMode fieldmode;             // 68
-  u32 unknown10[7];                // 69-6F
-  u32 unknown11[16];               // 70-7F
-  FourTexUnits tex[2];             // 80-bf
-  TevStageCombiner combiners[16];  // 0xC0-0xDF
-  TevReg tevregs[4];               // 0xE0
-  FogRangeParams fogRange;         // 0xE8
-  FogParams fog;                   // 0xEE,0xEF,0xF0,0xF1,0xF2
-  AlphaTest alpha_test;            // 0xF3
-  ZTex1 ztex1;                     // 0xf4,0xf5
+  u32 dispcopyyscale;             // 4e
+  u32 clearcolorAR;               // 4f
+  u32 clearcolorGB;               // 50
+  u32 clearZValue;                // 51
+  UPE_Copy triggerEFBCopy;        // 52
+  u32 copyfilter[2];              // 53,54
+  u32 boundbox0;                  // 55
+  u32 boundbox1;                  // 56
+  u32 unknown7[2];                // 57,58
+  X10Y10 scissorOffset;           // 59
+  u32 unknown8[6];                // 5a,5b,5c,5d, 5e,5f
+  BPS_TmemConfig tmem_config;     // 60-66
+  u32 metric;                     // 67
+  FieldMode fieldmode;            // 68
+  u32 unknown10[7];               // 69-6F
+  u32 unknown11[16];              // 70-7F
+  FourTexUnits tex[2];            // 80-bf
+  TevStageCombiner combiners[16]; // 0xC0-0xDF
+  TevReg tevregs[4];              // 0xE0
+  FogRangeParams fogRange;        // 0xE8
+  FogParams fog;                  // 0xEE,0xEF,0xF0,0xF1,0xF2
+  AlphaTest alpha_test;           // 0xF3
+  ZTex1 ztex1;                    // 0xf4,0xf5
   ZTex2 ztex2;
-  TevKSel tevksel[8];  // 0xf6,0xf7,f8,f9,fa,fb,fc,fd
-  u32 bpMask;          // 0xFE
-  u32 unknown18;       // ff
+  TevKSel tevksel[8]; // 0xf6,0xf7,f8,f9,fa,fb,fc,fd
+  u32 bpMask;         // 0xFE
+  u32 unknown18;      // ff
 
-  bool UseEarlyDepthTest() const { return zcontrol.early_ztest && zmode.testenable; }
-  bool UseLateDepthTest() const { return !zcontrol.early_ztest && zmode.testenable; }
+  bool UseEarlyDepthTest() const {
+    return zcontrol.early_ztest && zmode.testenable;
+  }
+  bool UseLateDepthTest() const {
+    return !zcontrol.early_ztest && zmode.testenable;
+  }
 };
 
 #pragma pack()
@@ -1082,4 +988,4 @@ extern BPMemory bpmem;
 void LoadBPReg(u32 value0);
 void LoadBPRegPreprocess(u32 value0);
 
-void GetBPRegInfo(const u8* data, std::string* name, std::string* desc);
+void GetBPRegInfo(const u8 *data, std::string *name, std::string *desc);
