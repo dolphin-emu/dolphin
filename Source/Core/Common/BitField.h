@@ -159,6 +159,9 @@ public:
 		return Value();
 	}
 
+	static const unsigned int size = bits;
+	static const unsigned int offset = position;
+
 private:
 	// StorageType is T for non-enum types and the underlying type of T if
 	// T is an enumeration. Note that T is wrapped within an enable_if in the
