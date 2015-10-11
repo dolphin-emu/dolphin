@@ -228,8 +228,8 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
 		newentry.shader.strgprog = gcode.GetBuffer();
 	}
 
-//#if defined(_DEBUG) || defined(DEBUGFAST)
-	if (true || g_ActiveConfig.iLog & CONF_SAVESHADERS)
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
 	{
 		static int counter = 0;
 		std::string filename =  StringFromFormat("%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
@@ -244,7 +244,7 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
 			SaveData(filename, gcode.GetBuffer());
 		}
 	}
-//#endif
+#endif
 
 	if (!CompileShader(newentry.shader, vcode.GetBuffer(), pcode.GetBuffer(), gcode.GetBuffer()))
 	{
