@@ -391,10 +391,10 @@ struct TevStageCombiner
 		BitField<24, 8, u32> rid;
 
 		u32 hex;
-		u32 getTexMap(int i) { return i ? u32(texmap1) : u32(texmap0); }
-		u32 getTexCoord(int i) { return i ? u32(texcoord1) : u32(texcoord0); }
-		u32 getEnable(int i) { return i ? u32(enable1) : u32(enable0); }
-		u32 getColorChan(int i) { return i ? u32(colorchan1) : u32(colorchan0); }
+		u32 getTexMap(int i) { return i ? texmap1.Value() : texmap0.Value(); }
+		u32 getTexCoord(int i) { return i ? texcoord1.Value() : texcoord0.Value(); }
+		u32 getEnable(int i) { return i ? enable1.Value() : enable0.Value(); }
+		u32 getColorChan(int i) { return i ? colorchan1.Value() : colorchan0.Value(); }
 	};
 
 union TEXSCALE
