@@ -327,45 +327,31 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
 	return out;
 }
 
-static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n, API_TYPE ApiType);
-static void WriteTevRegular(ShaderCode& out, const char* components, int bias, int op, int clamp, int shift);
-static void SampleTexture(ShaderCode& out, const char *texcoords, const char *texswap, int texmap, bool stereo, API_TYPE ApiType);
-static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
-static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
-
-ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, const pixel_shader_uid_data *uid_data)
+void WritePixelShaderCommonHeader(ShaderCode& out, API_TYPE ApiType)
 {
-	ShaderCode out;
-
-	u32 numStages = uid_data->genMode_numtevstages + 1;
-
-	out.Write("//Pixel Shader for TEV stages\n");
-	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
-	          numStages, uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
-
 	// dot product for integer vectors
 	out.Write("int idot(int3 x, int3 y)\n"
-	          "{\n"
-	          "\tint3 tmp = x * y;\n"
-	          "\treturn tmp.x + tmp.y + tmp.z;\n"
-	          "}\n");
+			  "{\n"
+			  "\tint3 tmp = x * y;\n"
+			  "\treturn tmp.x + tmp.y + tmp.z;\n"
+			  "}\n");
 
 	out.Write("int idot(int4 x, int4 y)\n"
-	          "{\n"
-	          "\tint4 tmp = x * y;\n"
-	          "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
-	          "}\n\n");
+			  "{\n"
+			  "\tint4 tmp = x * y;\n"
+			  "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
+			  "}\n\n");
 
 	// rounding + casting to integer at once in a single function
 	out.Write("int  iround(float  x) { return int (round(x)); }\n"
-	          "int2 iround(float2 x) { return int2(round(x)); }\n"
-	          "int3 iround(float3 x) { return int3(round(x)); }\n"
-	          "int4 iround(float4 x) { return int4(round(x)); }\n\n");
+			  "int2 iround(float2 x) { return int2(round(x)); }\n"
+			  "int3 iround(float3 x) { return int3(round(x)); }\n"
+			  "int4 iround(float4 x) { return int4(round(x)); }\n\n");
 
 	out.Write("int  itrunc(float  x) { return int (trunc(x)); }\n"
-	          "int2 itrunc(float2 x) { return int2(trunc(x)); }\n"
-	          "int3 itrunc(float3 x) { return int3(trunc(x)); }\n"
-	          "int4 itrunc(float4 x) { return int4(trunc(x)); }\n\n");
+			  "int2 itrunc(float2 x) { return int2(trunc(x)); }\n"
+			  "int3 itrunc(float3 x) { return int3(trunc(x)); }\n"
+			  "int4 itrunc(float4 x) { return int4(trunc(x)); }\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -402,6 +388,25 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
 		"\tfloat4 " I_ZSLOPE";\n"
 		"\tfloat4 " I_EFBSCALE";\n"
 		"};\n");
+}
+
+static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n, API_TYPE ApiType);
+static void WriteTevRegular(ShaderCode& out, const char* components, int bias, int op, int clamp, int shift);
+static void SampleTexture(ShaderCode& out, const char *texcoords, const char *texswap, int texmap, bool stereo, API_TYPE ApiType);
+static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
+static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
+
+ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, const pixel_shader_uid_data *uid_data)
+{
+	ShaderCode out;
+
+	u32 numStages = uid_data->genMode_numtevstages + 1;
+
+	out.Write("//Pixel Shader for TEV stages\n");
+	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
+	          numStages, uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
+
+	WritePixelShaderCommonHeader(out, ApiType); // Stuff that is shared between ubershaders and pixelgen.
 
 	if (uid_data->per_pixel_lighting)
 	{

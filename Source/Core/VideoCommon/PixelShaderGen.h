@@ -123,5 +123,6 @@ struct pixel_shader_uid_data
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 
+void WritePixelShaderCommonHeader(ShaderCode& out, API_TYPE ApiType);
 ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, const pixel_shader_uid_data* uid_data);
 PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode);

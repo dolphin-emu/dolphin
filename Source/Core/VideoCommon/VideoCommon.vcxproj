@@ -80,6 +80,7 @@
     <ClCompile Include="PixelShaderManager.cpp" />
     <ClCompile Include="PostProcessing.cpp" />
     <ClCompile Include="RenderBase.cpp" />
+    <ClCompile Include="UberShaderPixel.cpp" />
     <ClCompile Include="Statistics.cpp" />
     <ClCompile Include="GeometryShaderGen.cpp" />
     <ClCompile Include="GeometryShaderManager.cpp" />
@@ -119,6 +120,7 @@
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
     <ClInclude Include="FramebufferManagerBase.h" />
+    <ClInclude Include="UberShaderPixel.h" />
     <ClInclude Include="HiresTextures.h" />
     <ClInclude Include="ImageWrite.h" />
     <ClInclude Include="IndexGenerator.h" />

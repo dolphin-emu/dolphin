@@ -158,6 +158,9 @@
     <ClCompile Include="GeometryShaderManager.cpp">
       <Filter>Shader Managers</Filter>
     </ClCompile>
+    <ClCompile Include="UberShaderPixel.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -301,6 +304,9 @@
     </ClInclude>
     <ClInclude Include="GeometryShaderManager.h">
       <Filter>Shader Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="UberShaderPixel.h">
+      <Filter>Shader Generators</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
