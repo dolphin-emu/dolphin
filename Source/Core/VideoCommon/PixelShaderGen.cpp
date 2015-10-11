@@ -824,7 +824,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       const char* tevIndAlphaSel[] = {"", "x", "y", "z"};
       const char* tevIndAlphaMask[] = {"248", "224", "240",
                                        "248"};  // 0b11111000, 0b11100000, 0b11110000, 0b11111000
-      out.Write("alphabump = iindtex%d.%s & %s;\n", tevind.bt, tevIndAlphaSel[tevind.bs],
+      out.Write("alphabump = iindtex%d.%s & %s;\n", tevind.bt.Value(), tevIndAlphaSel[tevind.bs],
                 tevIndAlphaMask[tevind.fmt]);
     }
     else
@@ -836,7 +836,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     {
       // format
       const char* tevIndFmtMask[] = {"255", "31", "15", "7"};
-      out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, tevind.bt, tevIndFmtMask[tevind.fmt]);
+      out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, tevind.bt.Value(),
+                tevIndFmtMask[tevind.fmt]);
 
       // bias - TODO: Check if this needs to be this complicated..
       const char* tevIndBiasField[] = {"",  "x",  "y",  "xy",

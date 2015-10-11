@@ -158,7 +158,8 @@ static void BPWritten(const BPCmd& bp)
     }
     return;
   case BPMEM_CONSTANTALPHA:  // Set Destination Alpha
-    PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
+    PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha.Value(),
+             bpmem.dstalpha.enable.Value());
     if (bp.changes & 0xFF)
       PixelShaderManager::SetDestAlpha();
     if (bp.changes & 0x100)
@@ -322,7 +323,7 @@ static void BPWritten(const BPCmd& bp)
     }
     return;
   case BPMEM_BIAS:  // BIAS
-    PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);
+    PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias.Value());
     if (bp.changes)
       PixelShaderManager::SetZTextureBias();
     return;
@@ -1281,7 +1282,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                          "Tex sel: %d\n",
                          (data[0] - BPMEM_TEV_ALPHA_ENV) / 2, tevin[ac.a], tevin[ac.b], tevin[ac.c],
                          tevin[ac.d], tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp],
-                         tevscale[ac.shift], tevout[ac.dest], ac.rswap, ac.tswap);
+                         tevscale[ac.shift], tevout[ac.dest], ac.rswap.Value(), ac.tswap.Value());
     break;
   }
 
