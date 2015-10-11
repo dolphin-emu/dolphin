@@ -100,6 +100,8 @@ static void BPWritten(const BPCmd& bp)
              (u32)bpmem.genMode.cullmode, (u32)bpmem.genMode.numindstages,
              (u32)bpmem.genMode.zfreeze);
 
+    PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
+
     // Only call SetGenerationMode when cull mode changes.
     if (bp.changes & 0xC000)
       SetGenerationMode();
@@ -595,6 +597,7 @@ static void BPWritten(const BPCmd& bp)
   // -------------------------
   case BPMEM_TREF:
   case BPMEM_TREF + 4:
+    PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
     return;
   // ----------------------
   // Set wrap size
@@ -726,6 +729,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_TEV_ALPHA_ENV + 28:
   case BPMEM_TEV_COLOR_ENV + 30:  // Texture Environment 16
   case BPMEM_TEV_ALPHA_ENV + 30:
+    PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
     return;
   default:
     break;

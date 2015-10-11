@@ -6,7 +6,8 @@
 
 #include "Common/CommonTypes.h"
 
-// all constant buffer attributes must be 16 bytes aligned, so this are the only allowed components:
+// all constant buffer attributes must be 16 bytes aligned, so this are the only
+// allowed components:
 typedef float float4[4];
 typedef u32 uint4[4];
 typedef s32 int4[4];
@@ -52,4 +53,12 @@ struct GeometryShaderConstants
   float4 stereoparams;
   float4 lineptparams;
   int4 texoffset;
+};
+
+struct UberShaderConstants
+{
+  uint4 genmode;        // only 0 used
+  uint4 tevorder[8];    // only 0 of each element used
+  uint4 combiners[16];  // 0 and 1 used.
+  float4 debug;
 };

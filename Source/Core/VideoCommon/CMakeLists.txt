@@ -28,6 +28,7 @@ set(SRCS	AsyncRequests.cpp
 			TextureCacheBase.cpp
 			TextureConversionShader.cpp
 			TextureDecoder_Common.cpp
+			UberShaderPixel.cpp
 			VertexLoader.cpp
 			VertexLoaderBase.cpp
 			VertexLoaderManager.cpp

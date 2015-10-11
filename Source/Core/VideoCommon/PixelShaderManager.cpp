@@ -17,6 +17,7 @@ bool PixelShaderManager::s_bFogRangeAdjustChanged;
 bool PixelShaderManager::s_bViewPortChanged;
 
 PixelShaderConstants PixelShaderManager::constants;
+UberShaderConstants PixelShaderManager::more_constants;
 bool PixelShaderManager::dirty;
 
 void PixelShaderManager::Init()
@@ -68,18 +69,21 @@ void PixelShaderManager::SetConstants()
     // TODO: try to split both registers and move this logic to the shader
     if (!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled == 1)
     {
-      // bpmem.fogRange.Base.Center : center of the viewport in x axis. observation:
+      // bpmem.fogRange.Base.Center : center of the viewport in x axis.
+      // observation:
       // bpmem.fogRange.Base.Center = realcenter + 342;
       int center = ((u32)bpmem.fogRange.Base.Center) - 342;
       // normalize center to make calculations easy
       float ScreenSpaceCenter = center / (2.0f * xfmem.viewport.wd);
       ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
-      // bpmem.fogRange.K seems to be  a table of precalculated coefficients for the adjust factor
+      // bpmem.fogRange.K seems to be  a table of precalculated coefficients for
+      // the adjust factor
       // observations: bpmem.fogRange.K[0].LO appears to be the lowest value and
       // bpmem.fogRange.K[4].HI the largest
       // they always seems to be larger than 256 so my theory is :
       // they are the coefficients from the center to the border of the screen
-      // so to simplify I use the hi coefficient as K in the shader taking 256 as the scale
+      // so to simplify I use the hi coefficient as K in the shader taking 256
+      // as the scale
       // TODO: Shouldn't this be EFBToScaledXf?
       constants.fogf[0][0] = ScreenSpaceCenter;
       constants.fogf[0][1] = (float)Renderer::EFBToScaledX((int)(2.0f * xfmem.viewport.wd));
@@ -141,7 +145,8 @@ void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
   float rwidth = 1.0f / (width * 128.0f);
   float rheight = 1.0f / (height * 128.0f);
 
-  // TODO: move this check out to callee. There we could just call this function on texture changes
+  // TODO: move this check out to callee. There we could just call this function
+  // on texture changes
   // or better, use textureSize() in glsl
   if (constants.texdims[texmapid][0] != rwidth || constants.texdims[texmapid][1] != rheight)
     dirty = true;
@@ -159,8 +164,8 @@ void PixelShaderManager::SetZTextureBias()
 void PixelShaderManager::SetViewportChanged()
 {
   s_bViewPortChanged = true;
-  s_bFogRangeAdjustChanged =
-      true;  // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
+  s_bFogRangeAdjustChanged = true;  // TODO: Shouldn't be necessary with an
+                                    // accurate fog range adjust implementation
 }
 
 void PixelShaderManager::SetEfbScaleChanged()
@@ -283,6 +288,32 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
     return;
 
   s_bFogRangeAdjustChanged = true;
+}
+
+void PixelShaderManager::UpdateBP(u32 bp, u32 newValue)
+{
+  // TODO: think of a less totally hacky way of doing this.
+  if (bp == 0)
+  {
+    more_constants.genmode[0] = newValue;
+    dirty = true;
+  }
+  else if (bp >= 0x28 && bp < 0x30)
+  {
+    u32 order = bp - 0x28;
+    more_constants.tevorder[order][0] = newValue;
+    dirty = true;
+  }
+  else if (bp >= 0xc0 && bp < 0xe0)
+  {
+    u32 comb = bp - 0xc0;
+    more_constants.combiners[comb >> 1][comb & 1] = newValue;
+    dirty = true;
+  }
+  more_constants.debug[0] = 1.0;
+  more_constants.debug[1] = 1.0;
+  more_constants.debug[2] = 1.0;
+  more_constants.debug[3] = 1.0;
 }
 
 void PixelShaderManager::DoState(PointerWrap& p)
