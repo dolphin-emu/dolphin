@@ -893,8 +893,8 @@ union TevKSel
 	BitField<0,  2, u32> swap1;
 	BitField<2,  2, u32> swap2;
 	BitField<4,  5, u32> kcsel0;
-	BitField<9,  5, u32> kcsel1;
-	BitField<14, 5, u32> kasel0;
+	BitField<9,  5, u32> kasel0;
+	BitField<14, 5, u32> kcsel1;
 	BitField<19, 5, u32> kasel1;
 	u32 hex;
 
