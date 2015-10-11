@@ -302,41 +302,37 @@ struct TevStageCombiner
 {
 	union ColorCombiner
 	{
-		struct  //abc=8bit,d=10bit
-		{
-			u32 d : 4; // TEVSELCC_X
-			u32 c : 4; // TEVSELCC_X
-			u32 b : 4; // TEVSELCC_X
-			u32 a : 4; // TEVSELCC_X
+		//abc=8bit,d=10bit
+		BitField<0,  4, u32> d; // TEVSELCC_X
+		BitField<4,  4, u32> c; // TEVSELCC_X
+		BitField<8,  4, u32> b; // TEVSELCC_X
+		BitField<12, 4, u32> a; // TEVSELCC_X
 
-			u32 bias : 2;
-			u32 op : 1;
-			u32 clamp : 1;
+		BitField<16, 2, u32> bias;
+		BitField<18, 1, u32> op;
+		BitField<19, 1, u32> clamp;
 
-			u32 shift : 2;
-			u32 dest : 2;  //1,2,3
+		BitField<20, 2, u32> shift;
+		BitField<22, 2, u32> dest; //1,2,3
 
-		};
 		u32 hex;
 	};
 	union AlphaCombiner
 	{
-		struct
-		{
-			u32 rswap : 2;
-			u32 tswap : 2;
-			u32 d : 3; // TEVSELCA_
-			u32 c : 3; // TEVSELCA_
-			u32 b : 3; // TEVSELCA_
-			u32 a : 3; // TEVSELCA_
+		BitField<0,  2, u32> rswap;
+		BitField<2,  2, u32> tswap;
+		BitField<4,  3, u32> d; // TEVSELCA_
+		BitField<7,  3, u32> c; // TEVSELCA_
+		BitField<10, 3, u32> b; // TEVSELCA_
+		BitField<13, 3, u32> a; // TEVSELCA_
 
-			u32 bias : 2; //GXTevBias
-			u32 op : 1;
-			u32 clamp : 1;
+		BitField<16, 2, u32> bias; //GXTevBias
+		BitField<18, 1, u32> op;
+		BitField<19, 1, u32> clamp;
 
-			u32 shift : 2;
-			u32 dest : 2;  //1,2,3
-		};
+		BitField<20, 2, u32> shift;
+		BitField<22, 2, u32> dest; //1,2,3
+
 		u32 hex;
 	};
 
@@ -382,28 +378,23 @@ struct TevStageCombiner
 
 	union TwoTevStageOrders
 	{
-		struct
-		{
-			u32 texmap0    : 3; // Indirect tex stage texmap
-			u32 texcoord0  : 3;
-			u32 enable0    : 1; // 1 if should read from texture
-			u32 colorchan0 : 3; // RAS1_CC_X
+		BitField<0,  3, u32> texmap0; // Indirect tex stage texmap
+		BitField<3,  3, u32> texcoord0;
+		BitField<6,  1, u32> enable0; // 1 if should read from texture
+		BitField<7,  3, u32> colorchan0; // RAS1_CC_X
 
-			u32 pad0       : 2;
+		BitField<12, 3, u32> texmap1;
+		BitField<15, 3, u32> texcoord1;
+		BitField<18, 1, u32> enable1; // 1 if should read from texture
+		BitField<19, 3, u32> colorchan1; // RAS1_CC_X
 
-			u32 texmap1    : 3;
-			u32 texcoord1  : 3;
-			u32 enable1    : 1; // 1 if should read from texture
-			u32 colorchan1 : 3; // RAS1_CC_X
+		BitField<24, 8, u32> rid;
 
-			u32 pad1       : 2;
-			u32 rid        : 8;
-		};
 		u32 hex;
-		int getTexMap(int i){return i?texmap1:texmap0;}
-		int getTexCoord(int i){return i?texcoord1:texcoord0;}
-		int getEnable(int i){return i?enable1:enable0;}
-		int getColorChan(int i){return i?colorchan1:colorchan0;}
+		u32 getTexMap(int i) { return i ? u32(texmap1) : u32(texmap0); }
+		u32 getTexCoord(int i) { return i ? u32(texcoord1) : u32(texcoord0); }
+		u32 getEnable(int i) { return i ? u32(enable1) : u32(enable0); }
+		u32 getColorChan(int i) { return i ? u32(colorchan1) : u32(colorchan0); }
 	};
 
 union TEXSCALE
