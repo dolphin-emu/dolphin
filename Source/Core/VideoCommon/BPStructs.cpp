@@ -44,20 +44,28 @@ static void BPWritten(const BPCmd& bp)
   /*
   ----------------------------------------------------------------------------------------------------------------
   Purpose: Writes to the BP registers
-  Called: At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
-  How It Works: First the pipeline is flushed then update the bpmem with the new value.
-          Some of the BP cases have to call certain functions while others just update the bpmem.
-          some bp cases check the changes variable, because they might not have to be updated all
+  Called: At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode()
+  > LoadBPReg
+  How It Works: First the pipeline is flushed then update the bpmem with the new
+  value.
+          Some of the BP cases have to call certain functions while others just
+  update the bpmem.
+          some bp cases check the changes variable, because they might not have
+  to be updated all
   the time
-  NOTE: it seems not all bp cases like checking changes, so calling if (bp.changes == 0 ? false :
+  NOTE: it seems not all bp cases like checking changes, so calling if
+  (bp.changes == 0 ? false :
   true)
       had to be ditched and the games seem to work fine with out it.
-  NOTE2: Yet Another GameCube Documentation calls them Bypass Raster State Registers but possibly
+  NOTE2: Yet Another GameCube Documentation calls them Bypass Raster State
+  Registers but possibly
   completely wrong
   NOTE3: This controls the register groups: RAS1/2, SU, TF, TEV, C/Z, PEC
-  TODO: Turn into function table. The (future) DisplayList (DL) jit can then call the functions
+  TODO: Turn into function table. The (future) DisplayList (DL) jit can then
+  call the functions
   directly,
-      getting rid of dynamic dispatch. Unfortunately, few games use DLs properly - most\
+      getting rid of dynamic dispatch. Unfortunately, few games use DLs properly
+  - most\
       just stuff geometry in them and don't put state changes there
   ----------------------------------------------------------------------------------------------------------------
   */
@@ -85,7 +93,8 @@ static void BPWritten(const BPCmd& bp)
   switch (bp.address)
   {
   case BPMEM_GENMODE:  // Set the Generation Mode
-    PRIM_LOG("genmode: texgen=%d, col=%d, multisampling=%d, tev=%d, cullmode=%d, ind=%d, zfeeze=%d",
+    PRIM_LOG("genmode: texgen=%d, col=%d, multisampling=%d, tev=%d, "
+             "cullmode=%d, ind=%d, zfeeze=%d",
              (u32)bpmem.genMode.numtexgens, (u32)bpmem.genMode.numcolchans,
              (u32)bpmem.genMode.multisampling, (u32)bpmem.genMode.numtevstages + 1,
              (u32)bpmem.genMode.cullmode, (u32)bpmem.genMode.numindstages,
@@ -136,7 +145,8 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_BLENDMODE:  // Blending Control
     if (bp.changes & 0xFFFF)
     {
-      PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d",
+      PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, "
+               "sub=%d, mode=%d",
                (int)bpmem.blendmode.blendenable, (int)bpmem.blendmode.logicopenable,
                (int)bpmem.blendmode.colorupdate, (int)bpmem.blendmode.alphaupdate,
                (int)bpmem.blendmode.dstfactor, (int)bpmem.blendmode.srcfactor,
@@ -167,9 +177,11 @@ static void BPWritten(const BPCmd& bp)
       SetBlendMode();
     return;
 
-  // This is called when the game is done drawing the new frame (eg: like in DX: Begin(); Draw();
+  // This is called when the game is done drawing the new frame (eg: like in DX:
+  // Begin(); Draw();
   // End();)
-  // Triggers an interrupt on the PPC side so that the game knows when the GPU has finished drawing.
+  // Triggers an interrupt on the PPC side so that the game knows when the GPU
+  // has finished drawing.
   // Tokens are similar.
   case BPMEM_SETDRAWDONE:
     switch (bp.newvalue & 0xFF)
@@ -197,79 +209,91 @@ static void BPWritten(const BPCmd& bp)
     return;
 
   // ------------------------
-  // EFB copy command. This copies a rectangle from the EFB to either RAM in a texture format or to
+  // EFB copy command. This copies a rectangle from the EFB to either RAM in a
+  // texture format or to
   // XFB as YUYV.
-  // It can also optionally clear the EFB while copying from it. To emulate this, we of course copy
+  // It can also optionally clear the EFB while copying from it. To emulate
+  // this, we of course copy
   // first and clear afterwards.
-  case BPMEM_TRIGGER_EFB_COPY:  // Copy EFB Region or Render to the XFB or Clear the screen.
-  {
-    // The bottom right is within the rectangle
-    // The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in case 0x49 and 0x4a in
-    // this function
-
-    u32 destAddr = bpmem.copyTexDest << 5;
-    u32 destStride = bpmem.copyMipMapStrideChannels << 5;
-
-    EFBRectangle srcRect;
-    srcRect.left = (int)bpmem.copyTexSrcXY.x;
-    srcRect.top = (int)bpmem.copyTexSrcXY.y;
-
-    // Here Width+1 like Height, otherwise some textures are corrupted already since the native
-    // resolution.
-    // TODO: What's the behavior of out of bound access?
-    srcRect.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
-    srcRect.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
-
-    UPE_Copy PE_copy = bpmem.triggerEFBCopy;
-
-    // Check if we are to copy from the EFB or draw to the XFB
-    if (PE_copy.copy_to_xfb == 0)
+  case BPMEM_TRIGGER_EFB_COPY:  // Copy EFB Region or Render to the XFB or Clear
+                                // the screen.
     {
-      // bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer
-      // (Zbuffer uses 24-bit Format)
-      TextureCacheBase::CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
-                                                  bpmem.zcontrol.pixel_format, srcRect,
-                                                  !!PE_copy.intensity_fmt, !!PE_copy.half_scale);
-    }
-    else
-    {
-      // We should be able to get away with deactivating the current bbox tracking
-      // here. Not sure if there's a better spot to put this.
-      // the number of lines copied is determined by the y scale * source efb height
+      // The bottom right is within the rectangle
+      // The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in
+      // case 0x49 and 0x4a in
+      // this function
 
-      BoundingBox::active = false;
+      u32 destAddr = bpmem.copyTexDest << 5;
+      u32 destStride = bpmem.copyMipMapStrideChannels << 5;
 
-      float yScale;
-      if (PE_copy.scale_invert)
-        yScale = 256.0f / (float)bpmem.dispcopyyscale;
-      else
-        yScale = (float)bpmem.dispcopyyscale / 256.0f;
+      EFBRectangle srcRect;
+      srcRect.left = (int)bpmem.copyTexSrcXY.x;
+      srcRect.top = (int)bpmem.copyTexSrcXY.y;
 
-      float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
+      // Here Width+1 like Height, otherwise some textures are corrupted already
+      // since the native
+      // resolution.
+      // TODO: What's the behavior of out of bound access?
+      srcRect.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
+      srcRect.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
-      u32 height = static_cast<u32>(num_xfb_lines);
-      if (height > MAX_XFB_HEIGHT)
+      UPE_Copy PE_copy = bpmem.triggerEFBCopy;
+
+      // Check if we are to copy from the EFB or draw to the XFB
+      if (PE_copy.copy_to_xfb == 0)
       {
-        INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines: %d (%f)", height, num_xfb_lines);
-        height = MAX_XFB_HEIGHT;
+        // bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants
+        // to
+        // copy from ZBuffer
+        // (Zbuffer uses 24-bit Format)
+        TextureCacheBase::CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
+                                                    bpmem.zcontrol.pixel_format, srcRect,
+                                                    !!PE_copy.intensity_fmt, !!PE_copy.half_scale);
+      }
+      else
+      {
+        // We should be able to get away with deactivating the current bbox
+        // tracking
+        // here. Not sure if there's a better spot to put this.
+        // the number of lines copied is determined by the y scale * source efb
+        // height
+
+        BoundingBox::active = false;
+
+        float yScale;
+        if (PE_copy.scale_invert)
+          yScale = 256.0f / (float)bpmem.dispcopyyscale;
+        else
+          yScale = (float)bpmem.dispcopyyscale / 256.0f;
+
+        float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
+
+        u32 height = static_cast<u32>(num_xfb_lines);
+        if (height > MAX_XFB_HEIGHT)
+        {
+          INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines: %d (%f)", height,
+                   num_xfb_lines);
+          height = MAX_XFB_HEIGHT;
+        }
+
+        DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} "
+                         "| fbWidth: %u | "
+                         "fbStride: %u | fbHeight: %u",
+                  destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
+                  bpmem.copyTexSrcWH.x + 1, destStride, height);
+        Renderer::RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
       }
 
-      DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | "
-                       "fbStride: %u | fbHeight: %u",
-                destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
-                bpmem.copyTexSrcWH.x + 1, destStride, height);
-      Renderer::RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
-    }
+      // Clear the rectangular region after copying it.
+      if (PE_copy.clear)
+      {
+        ClearScreen(srcRect);
+      }
 
-    // Clear the rectangular region after copying it.
-    if (PE_copy.clear)
-    {
-      ClearScreen(srcRect);
+      return;
     }
-
-    return;
-  }
-  case BPMEM_LOADTLUT0:  // This one updates bpmem.tlutXferSrc, no need to do anything here.
+  case BPMEM_LOADTLUT0:  // This one updates bpmem.tlutXferSrc, no need to do
+                         // anything here.
     return;
   case BPMEM_LOADTLUT1:  // Load a Texture Look Up Table
   {
@@ -277,7 +301,8 @@ static void BPWritten(const BPCmd& bp)
     u32 tlutXferCount = (bp.newvalue & 0x1FFC00) >> 5;
     u32 addr = bpmem.tmem_config.tlut_src << 5;
 
-    // The GameCube ignores the upper bits of this address. Some games (WW, MKDD) set them.
+    // The GameCube ignores the upper bits of this address. Some games (WW,
+    // MKDD) set them.
     if (!SConfig::GetInstance().bWii)
       addr = addr & 0x01FFFFFF;
 
@@ -334,11 +359,13 @@ static void BPWritten(const BPCmd& bp)
   }
     return;
   // ----------------------------------
-  // Display Copy Filtering Control - GX_SetCopyFilter(u8 aa,u8 sample_pattern[12][2],u8 vf,u8
+  // Display Copy Filtering Control - GX_SetCopyFilter(u8 aa,u8
+  // sample_pattern[12][2],u8 vf,u8
   // vfilter[7])
   // Fields: Destination, Frame2Field, Gamma, Source
   // ----------------------------------
-  case BPMEM_DISPLAYCOPYFILTER:      // if (aa) { use sample_pattern } else { use 666666 }
+  case BPMEM_DISPLAYCOPYFILTER:      // if (aa) { use sample_pattern } else { use
+                                     // 666666 }
   case BPMEM_DISPLAYCOPYFILTER + 1:  // if (aa) { use sample_pattern } else { use 666666 }
   case BPMEM_DISPLAYCOPYFILTER + 2:  // if (aa) { use sample_pattern } else { use 666666 }
   case BPMEM_DISPLAYCOPYFILTER + 3:  // if (aa) { use sample_pattern } else { use 666666 }
@@ -402,8 +429,10 @@ static void BPWritten(const BPCmd& bp)
     OnPixelFormatChange();
     if (bp.changes & 7)
     {
-      SetBlendMode();  // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
-      g_renderer->SetColorMask();  // alpha writing needs to be disabled if the new pixel format
+      SetBlendMode();              // dual source could be activated by changing to
+                                   // PIXELFMT_RGBA6_Z24
+      g_renderer->SetColorMask();  // alpha writing needs to be disabled if the
+                                   // new pixel format
                                    // doesn't have an alpha channel
     }
     return;
@@ -442,7 +471,8 @@ static void BPWritten(const BPCmd& bp)
     return;
 
   case BPMEM_CLEAR_PIXEL_PERF:
-    // GXClearPixMetric writes 0xAAA here, Sunshine alternates this register between values 0x000
+    // GXClearPixMetric writes 0xAAA here, Sunshine alternates this register
+    // between values 0x000
     // and 0xAAA
     if (PerfQueryBase::ShouldEmulate())
       g_perf_query->ResetQuery();
@@ -454,11 +484,13 @@ static void BPWritten(const BPCmd& bp)
     return;
 
   case BPMEM_PRELOAD_MODE:  // Set to 0 when GX_TexModeSync() is called.
-    // if this is different from 0, manual TMEM management is used (GX_PreloadEntireTexture).
+    // if this is different from 0, manual TMEM management is used
+    // (GX_PreloadEntireTexture).
     if (bp.newvalue != 0)
     {
       // TODO: Not quite sure if this is completely correct (likely not)
-      // NOTE: libogc's implementation of GX_PreloadEntireTexture seems flawed, so it's not
+      // NOTE: libogc's implementation of GX_PreloadEntireTexture seems flawed,
+      // so it's not
       // necessarily a good reference for RE'ing this feature.
 
       BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
@@ -478,7 +510,8 @@ static void BPWritten(const BPCmd& bp)
       {
         u8* src_ptr = Memory::GetPointer(src_addr);
 
-        // AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for
+        // AR and GB tiles are stored in separate TMEM banks => can't use a
+        // single memcpy for
         // everything
         u32 tmem_addr_odd = tmem_cfg.preload_tmem_odd * TMEM_LINE_SIZE;
 
@@ -508,8 +541,10 @@ static void BPWritten(const BPCmd& bp)
   // NOTE: Each of these registers actually maps to two variables internally.
   //       There's a bit that specifies which one is currently written to.
   //
-  // NOTE: Some games write only to the RA register (or only to the BG register).
-  //       We may not assume that the unwritten register holds a valid value, hence
+  // NOTE: Some games write only to the RA register (or only to the BG
+  // register).
+  //       We may not assume that the unwritten register holds a valid value,
+  //       hence
   //       both component pairs need to be loaded individually.
   case BPMEM_TEV_COLOR_RA:
   case BPMEM_TEV_COLOR_RA + 2:
@@ -587,7 +622,8 @@ static void BPWritten(const BPCmd& bp)
     }
     return;
   // ------------------------
-  // BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS,
+  // BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp,
+  // MaxAnsio, LODBIAS,
   // DiagLoad, Min Filter, Mag Filter, Wrap T, S
   // BPMEM_TX_SETMODE1 - (LOD Stuff) - Max LOD, Min LOD
   // ------------------------
@@ -600,9 +636,11 @@ static void BPWritten(const BPCmd& bp)
     return;
   // --------------------------------------------
   // BPMEM_TX_SETIMAGE0 - Texture width, height, format
-  // BPMEM_TX_SETIMAGE1 - even LOD address in TMEM - Image Type, Cache Height, Cache Width, TMEM
+  // BPMEM_TX_SETIMAGE1 - even LOD address in TMEM - Image Type, Cache Height,
+  // Cache Width, TMEM
   // Offset
-  // BPMEM_TX_SETIMAGE2 - odd LOD address in TMEM - Cache Height, Cache Width, TMEM Offset
+  // BPMEM_TX_SETIMAGE2 - odd LOD address in TMEM - Cache Height, Cache Width,
+  // TMEM Offset
   // BPMEM_TX_SETIMAGE3 - Address of Texture in main memory
   // --------------------------------------------
   case BPMEM_TX_SETIMAGE0:
@@ -616,7 +654,8 @@ static void BPWritten(const BPCmd& bp)
     return;
   // -------------------------------
   // Set a TLUT
-  // BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
+  // BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM
+  // high bank > > 5)
   // -------------------------------
   case BPMEM_TX_SETTLUT:
   case BPMEM_TX_SETTLUT_4:
@@ -650,8 +689,10 @@ static void BPWritten(const BPCmd& bp)
     return;
   // --------------------------------------------------
   // Set Color/Alpha of a Tev
-  // BPMEM_TEV_COLOR_ENV - Dest, Shift, Clamp, Sub, Bias, Sel A, Sel B, Sel C, Sel D
-  // BPMEM_TEV_ALPHA_ENV - Dest, Shift, Clamp, Sub, Bias, Sel A, Sel B, Sel C, Sel D, T Swap, R Swap
+  // BPMEM_TEV_COLOR_ENV - Dest, Shift, Clamp, Sub, Bias, Sel A, Sel B, Sel C,
+  // Sel D
+  // BPMEM_TEV_ALPHA_ENV - Dest, Shift, Clamp, Sub, Bias, Sel A, Sel B, Sel C,
+  // Sel D, T Swap, R Swap
   // --------------------------------------------------
   case BPMEM_TEV_COLOR_ENV:  // Texture Environment 1
   case BPMEM_TEV_ALPHA_ENV:
@@ -738,7 +779,8 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
   u32 cmddata = Common::swap32(*(u32*)data) & 0xFFFFFF;
   switch (cmd)
   {
-// Macro to set the register name and make sure it was written correctly via compile time assertion
+// Macro to set the register name and make sure it was written correctly via
+// compile time assertion
 #define SetRegName(reg)                                                                            \
   *name = #reg;                                                                                    \
   (void)(reg);
@@ -749,7 +791,8 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     break;
 
   case BPMEM_DISPLAYCOPYFILTER:  // 0x01
-    // TODO: This is actually the sample pattern used for copies from an antialiased EFB
+    // TODO: This is actually the sample pattern used for copies from an
+    // antialiased EFB
     SetRegName(BPMEM_DISPLAYCOPYFILTER);
     // TODO: Description
     break;
@@ -1328,7 +1371,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                          "Tex sel: %d\n",
                          (data[0] - BPMEM_TEV_ALPHA_ENV) / 2, tevin[ac.a], tevin[ac.b], tevin[ac.c],
                          tevin[ac.d], tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp],
-                         tevscale[ac.shift], tevout[ac.dest], ac.rswap, ac.tswap);
+                         tevscale[ac.shift], tevout[ac.dest], ac.rswap.Value(), ac.tswap.Value());
     break;
   }
 
@@ -1430,7 +1473,8 @@ void BPReload()
 {
   // restore anything that goes straight to the renderer.
   // let's not risk actually replaying any writes.
-  // note that PixelShaderManager is already covered since it has its own DoState.
+  // note that PixelShaderManager is already covered since it has its own
+  // DoState.
   SetGenerationMode();
   SetScissor();
   SetDepthMode();

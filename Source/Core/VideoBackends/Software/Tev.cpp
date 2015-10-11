@@ -507,7 +507,8 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 
   s32 indtevtrans[2] = {0, 0};
 
-  // matrix multiply - results might overflow, but we don't care since we only use the lower 24 bits
+  // matrix multiply - results might overflow, but we don't care since we only
+  // use the lower 24 bits
   // of the result.
   int indmtxid = indirect.mid & 3;
   if (indmtxid)
@@ -531,7 +532,8 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
                        3;
       break;
     case 4:  // s matrix
-      // s is S17.7, matrix elements are divided by 256, output is S17.7, so divide by 256. - TODO:
+      // s is S17.7, matrix elements are divided by 256, output is S17.7, so
+      // divide by 256. - TODO:
       // Maybe, since s is actually stored as S24, we should divide by 256*64?
       shift = (17 - scale);
       indtevtrans[0] = s * indcoord[0] / 256;
@@ -763,15 +765,20 @@ void Tev::Draw()
 
     if (bpmem.fogRange.Base.Enabled)
     {
-      // TODO: This is untested and should definitely be checked against real hw.
-      // - No idea if offset is really normalized against the viewport width or against the
+      // TODO: This is untested and should definitely be checked against real
+      // hw.
+      // - No idea if offset is really normalized against the viewport width or
+      // against the
       // projection matrix or yet something else
       // - scaling of the "k" coefficient isn't clear either.
 
-      // First, calculate the offset from the viewport center (normalized to 0..1)
-      float offset = (Position[0] - (bpmem.fogRange.Base.Center - 342)) / (float)xfmem.viewport.wd;
+      // First, calculate the offset from the viewport center (normalized to
+      // 0..1)
+      float offset =
+          (Position[0] - (s32(bpmem.fogRange.Base.Center) - 342)) / (float)xfmem.viewport.wd;
 
-      // Based on that, choose the index such that points which are far away from the z-axis use the
+      // Based on that, choose the index such that points which are far away
+      // from the z-axis use the
       // 10th "k" value and such that central points use the first value.
       float floatindex = 9.f - std::abs(offset) * 9.f;
       floatindex = (floatindex < 0.f) ? 0.f : (floatindex > 9.f) ?
@@ -781,16 +788,19 @@ void Tev::Draw()
       // Get the two closest integer indices, look up the corresponding samples
       int indexlower = (int)floor(floatindex);
       int indexupper = indexlower + 1;
-      // Look up coefficient... Seems like multiplying by 4 makes Fortune Street work properly (fog
+      // Look up coefficient... Seems like multiplying by 4 makes Fortune Street
+      // work properly (fog
       // is too strong without the factor)
       float klower = bpmem.fogRange.K[indexlower / 2].GetValue(indexlower % 2) * 4.f;
       float kupper = bpmem.fogRange.K[indexupper / 2].GetValue(indexupper % 2) * 4.f;
 
-      // linearly interpolate the samples and multiple ze by the resulting adjustment factor
+      // linearly interpolate the samples and multiple ze by the resulting
+      // adjustment factor
       float factor = indexupper - floatindex;
       float k = klower * factor + kupper * (1.f - factor);
       float x_adjust = sqrt(offset * offset + k * k) / k;
-      ze *= x_adjust;  // NOTE: This is basically dividing by a cosine (hidden behind
+      ze *= x_adjust;  // NOTE: This is basically dividing by a cosine (hidden
+                       // behind
                        // GXInitFogAdjTable): 1/cos = c/b = sqrt(a^2+b^2)/b
     }
 
@@ -829,7 +839,8 @@ void Tev::Draw()
   bool late_ztest = !bpmem.zcontrol.early_ztest || !g_ActiveConfig.bZComploc;
   if (late_ztest && bpmem.zmode.testenable)
   {
-    // TODO: Check against hw if these values get incremented even if depth testing is disabled
+    // TODO: Check against hw if these values get incremented even if depth
+    // testing is disabled
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT);
 
     if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
