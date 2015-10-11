@@ -53,3 +53,11 @@ struct GeometryShaderConstants
 	float4 lineptparams;
 	int4 texoffset;
 };
+
+struct UberShaderConstants
+{
+	uint4 genmode; // only 0 used
+	uint4 tevorder[8]; // only 0 of each element used
+	uint4 combiners[16]; // 0 and 1 used.
+	float4 debug;
+};
