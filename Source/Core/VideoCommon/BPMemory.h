@@ -890,18 +890,16 @@ union TevReg
 
 union TevKSel
 {
-	struct {
-		u32 swap1 : 2;
-		u32 swap2 : 2;
-		u32 kcsel0 : 5;
-		u32 kasel0 : 5;
-		u32 kcsel1 : 5;
-		u32 kasel1 : 5;
-	};
+	BitField<0,  2, u32> swap1;
+	BitField<2,  2, u32> swap2;
+	BitField<4,  5, u32> kcsel0;
+	BitField<9,  5, u32> kcsel1;
+	BitField<14, 5, u32> kasel0;
+	BitField<19, 5, u32> kasel1;
 	u32 hex;
 
-	int getKC(int i) {return i?kcsel1:kcsel0;}
-	int getKA(int i) {return i?kasel1:kasel0;}
+	u32 getKC(int i) { return i ? kcsel1.Value() : kcsel0.Value(); }
+	u32 getKA(int i) { return i ? kasel1.Value() : kasel0.Value(); }
 };
 
 union AlphaTest
