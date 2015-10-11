@@ -348,6 +348,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			} else {\n"
 		"				// Write result to the correct input register of the next stage\n"
 		"				AlphaInput[dest] = result;\n"
+		"				ColorInput[(dest << 1) + 1] = int3(result);\n"
 		"			}\n"
 		"		}\n");
 
