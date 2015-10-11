@@ -350,29 +350,7 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode) {
   return out;
 }
 
-static void WriteStage(ShaderCode &out, const pixel_shader_uid_data *uid_data,
-                       int n, API_TYPE ApiType);
-static void WriteTevRegular(ShaderCode &out, const char *components, int bias,
-                            int op, int clamp, int shift);
-static void SampleTexture(ShaderCode &out, const char *texcoords,
-                          const char *texswap, int texmap, bool stereo,
-                          API_TYPE ApiType);
-static void WriteAlphaTest(ShaderCode &out,
-                           const pixel_shader_uid_data *uid_data,
-                           API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode,
-                           bool per_pixel_depth);
-static void WriteFog(ShaderCode &out, const pixel_shader_uid_data *uid_data);
-
-ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
-                                   const pixel_shader_uid_data *uid_data) {
-  ShaderCode out;
-
-  u32 numStages = uid_data->genMode_numtevstages + 1;
-
-  out.Write("//Pixel Shader for TEV stages\n");
-  out.Write("//%i TEV stages, %i texgens, %i IND stages\n", numStages,
-            uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
-
+void WritePixelShaderCommonHeader(ShaderCode &out, API_TYPE ApiType) {
   // dot product for integer vectors
   out.Write("int idot(int3 x, int3 y)\n"
             "{\n"
@@ -429,6 +407,34 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
             "\tfloat4 " I_ZSLOPE ";\n"
             "\tfloat4 " I_EFBSCALE ";\n"
             "};\n");
+}
+
+static void WriteStage(ShaderCode &out, const pixel_shader_uid_data *uid_data,
+                       int n, API_TYPE ApiType);
+static void WriteTevRegular(ShaderCode &out, const char *components, int bias,
+                            int op, int clamp, int shift);
+static void SampleTexture(ShaderCode &out, const char *texcoords,
+                          const char *texswap, int texmap, bool stereo,
+                          API_TYPE ApiType);
+static void WriteAlphaTest(ShaderCode &out,
+                           const pixel_shader_uid_data *uid_data,
+                           API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode,
+                           bool per_pixel_depth);
+static void WriteFog(ShaderCode &out, const pixel_shader_uid_data *uid_data);
+
+ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
+                                   const pixel_shader_uid_data *uid_data) {
+  ShaderCode out;
+
+  u32 numStages = uid_data->genMode_numtevstages + 1;
+
+  out.Write("//Pixel Shader for TEV stages\n");
+  out.Write("//%i TEV stages, %i texgens, %i IND stages\n", numStages,
+            uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
+
+  WritePixelShaderCommonHeader(
+      out,
+      ApiType); // Stuff that is shared between ubershaders and pixelgen.
 
   if (uid_data->per_pixel_lighting) {
     out.Write("%s", s_lighting_struct);

@@ -6,13 +6,13 @@
 
 #include "Common/CommonTypes.h"
 
-// all constant buffer attributes must be 16 bytes aligned, so this are the only allowed components:
+// all constant buffer attributes must be 16 bytes aligned, so this are the only
+// allowed components:
 typedef float float4[4];
 typedef u32 uint4[4];
 typedef s32 int4[4];
 
-struct PixelShaderConstants
-{
+struct PixelShaderConstants {
   int4 colors[4];
   int4 kcolors[4];
   int4 alpha;
@@ -27,13 +27,11 @@ struct PixelShaderConstants
   float4 efbscale;
 };
 
-struct VertexShaderConstants
-{
+struct VertexShaderConstants {
   float4 posnormalmatrix[6];
   float4 projection[4];
   int4 materials[4];
-  struct Light
-  {
+  struct Light {
     int4 color;
     float4 cosatt;
     float4 distatt;
@@ -47,9 +45,15 @@ struct VertexShaderConstants
   float4 pixelcentercorrection;
 };
 
-struct GeometryShaderConstants
-{
+struct GeometryShaderConstants {
   float4 stereoparams;
   float4 lineptparams;
   int4 texoffset;
+};
+
+struct UberShaderConstants {
+  uint4 genmode;       // only 0 used
+  uint4 tevorder[8];   // only 0 of each element used
+  uint4 combiners[16]; // 0 and 1 used.
+  float4 debug;
 };

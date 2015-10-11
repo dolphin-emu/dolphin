@@ -10,15 +10,14 @@
 class PointerWrap;
 
 // The non-API dependent parts.
-class PixelShaderManager
-{
+class PixelShaderManager {
 public:
   static void Init();
   static void Dirty();
   static void Shutdown();
-  static void DoState(PointerWrap& p);
+  static void DoState(PointerWrap &p);
 
-  static void SetConstants();  // sets pixel shader constants
+  static void SetConstants(); // sets pixel shader constants
 
   // constant management
   // Some of these functions grab the constant values from global state,
@@ -39,8 +38,10 @@ public:
   static void SetFogColorChanged();
   static void SetFogParamChanged();
   static void SetFogRangeAdjustChanged();
+  static void UpdateBP(u32 addr, u32 newValue);
 
   static PixelShaderConstants constants;
+  static UberShaderConstants more_constants;
   static bool dirty;
 
   static bool s_bFogRangeAdjustChanged;

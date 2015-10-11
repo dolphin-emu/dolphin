@@ -17,10 +17,10 @@ bool PixelShaderManager::s_bFogRangeAdjustChanged;
 bool PixelShaderManager::s_bViewPortChanged;
 
 PixelShaderConstants PixelShaderManager::constants;
+UberShaderConstants PixelShaderManager::more_constants;
 bool PixelShaderManager::dirty;
 
-void PixelShaderManager::Init()
-{
+void PixelShaderManager::Init() {
   memset(&constants, 0, sizeof(constants));
 
   // Init any intial constants which aren't zero when bpmem is zero.
@@ -44,8 +44,7 @@ void PixelShaderManager::Init()
   dirty = true;
 }
 
-void PixelShaderManager::Dirty()
-{
+void PixelShaderManager::Dirty() {
   // This function is called after a savestate is loaded.
   // Any constants that can changed based on settings should be re-calculated
   s_bFogRangeAdjustChanged = true;
@@ -56,37 +55,34 @@ void PixelShaderManager::Dirty()
   dirty = true;
 }
 
-void PixelShaderManager::Shutdown()
-{
-}
+void PixelShaderManager::Shutdown() {}
 
-void PixelShaderManager::SetConstants()
-{
-  if (s_bFogRangeAdjustChanged)
-  {
+void PixelShaderManager::SetConstants() {
+  if (s_bFogRangeAdjustChanged) {
     // set by two components, so keep changed flag here
     // TODO: try to split both registers and move this logic to the shader
-    if (!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled == 1)
-    {
-      // bpmem.fogRange.Base.Center : center of the viewport in x axis. observation:
+    if (!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled == 1) {
+      // bpmem.fogRange.Base.Center : center of the viewport in x axis.
+      // observation:
       // bpmem.fogRange.Base.Center = realcenter + 342;
       int center = ((u32)bpmem.fogRange.Base.Center) - 342;
       // normalize center to make calculations easy
       float ScreenSpaceCenter = center / (2.0f * xfmem.viewport.wd);
       ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
-      // bpmem.fogRange.K seems to be  a table of precalculated coefficients for the adjust factor
+      // bpmem.fogRange.K seems to be  a table of precalculated coefficients for
+      // the adjust factor
       // observations: bpmem.fogRange.K[0].LO appears to be the lowest value and
       // bpmem.fogRange.K[4].HI the largest
       // they always seems to be larger than 256 so my theory is :
       // they are the coefficients from the center to the border of the screen
-      // so to simplify I use the hi coefficient as K in the shader taking 256 as the scale
+      // so to simplify I use the hi coefficient as K in the shader taking 256
+      // as the scale
       // TODO: Shouldn't this be EFBToScaledXf?
       constants.fogf[0][0] = ScreenSpaceCenter;
-      constants.fogf[0][1] = (float)Renderer::EFBToScaledX((int)(2.0f * xfmem.viewport.wd));
+      constants.fogf[0][1] =
+          (float)Renderer::EFBToScaledX((int)(2.0f * xfmem.viewport.wd));
       constants.fogf[0][2] = bpmem.fogRange.K[4].HI / 256.0f;
-    }
-    else
-    {
+    } else {
       constants.fogf[0][0] = 0;
       constants.fogf[0][1] = 1;
       constants.fogf[0][2] = 1;
@@ -96,8 +92,7 @@ void PixelShaderManager::SetConstants()
     s_bFogRangeAdjustChanged = false;
   }
 
-  if (s_bViewPortChanged)
-  {
+  if (s_bViewPortChanged) {
     constants.zbias[1][0] = (u32)xfmem.viewport.farZ;
     constants.zbias[1][1] = (u32)xfmem.viewport.zRange;
     dirty = true;
@@ -105,81 +100,73 @@ void PixelShaderManager::SetConstants()
   }
 }
 
-void PixelShaderManager::SetTevColor(int index, int component, s32 value)
-{
-  auto& c = constants.colors[index];
+void PixelShaderManager::SetTevColor(int index, int component, s32 value) {
+  auto &c = constants.colors[index];
   c[component] = value;
   dirty = true;
 
   PRIM_LOG("tev color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
 }
 
-void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value)
-{
-  auto& c = constants.kcolors[index];
+void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value) {
+  auto &c = constants.kcolors[index];
   c[component] = value;
   dirty = true;
 
   PRIM_LOG("tev konst color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
 }
 
-void PixelShaderManager::SetAlpha()
-{
+void PixelShaderManager::SetAlpha() {
   constants.alpha[0] = bpmem.alpha_test.ref0;
   constants.alpha[1] = bpmem.alpha_test.ref1;
   dirty = true;
 }
 
-void PixelShaderManager::SetDestAlpha()
-{
+void PixelShaderManager::SetDestAlpha() {
   constants.alpha[3] = bpmem.dstalpha.alpha;
   dirty = true;
 }
 
-void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
-{
+void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height) {
   float rwidth = 1.0f / (width * 128.0f);
   float rheight = 1.0f / (height * 128.0f);
 
-  // TODO: move this check out to callee. There we could just call this function on texture changes
+  // TODO: move this check out to callee. There we could just call this function
+  // on texture changes
   // or better, use textureSize() in glsl
-  if (constants.texdims[texmapid][0] != rwidth || constants.texdims[texmapid][1] != rheight)
+  if (constants.texdims[texmapid][0] != rwidth ||
+      constants.texdims[texmapid][1] != rheight)
     dirty = true;
 
   constants.texdims[texmapid][0] = rwidth;
   constants.texdims[texmapid][1] = rheight;
 }
 
-void PixelShaderManager::SetZTextureBias()
-{
+void PixelShaderManager::SetZTextureBias() {
   constants.zbias[1][3] = bpmem.ztex1.bias;
   dirty = true;
 }
 
-void PixelShaderManager::SetViewportChanged()
-{
+void PixelShaderManager::SetViewportChanged() {
   s_bViewPortChanged = true;
-  s_bFogRangeAdjustChanged =
-      true;  // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
+  s_bFogRangeAdjustChanged = true; // TODO: Shouldn't be necessary with an
+                                   // accurate fog range adjust implementation
 }
 
-void PixelShaderManager::SetEfbScaleChanged()
-{
+void PixelShaderManager::SetEfbScaleChanged() {
   constants.efbscale[0] = 1.0f / Renderer::EFBToScaledXf(1);
   constants.efbscale[1] = 1.0f / Renderer::EFBToScaledYf(1);
   dirty = true;
 }
 
-void PixelShaderManager::SetZSlope(float dfdx, float dfdy, float f0)
-{
+void PixelShaderManager::SetZSlope(float dfdx, float dfdy, float f0) {
   constants.zslope[0] = dfdx;
   constants.zslope[1] = dfdy;
   constants.zslope[2] = f0;
   dirty = true;
 }
 
-void PixelShaderManager::SetIndTexScaleChanged(bool high)
-{
+void PixelShaderManager::SetIndTexScaleChanged(bool high) {
   constants.indtexscale[high][0] = bpmem.texscale[high].ss0;
   constants.indtexscale[high][1] = bpmem.texscale[high].ts0;
   constants.indtexscale[high][2] = bpmem.texscale[high].ss1;
@@ -187,8 +174,7 @@ void PixelShaderManager::SetIndTexScaleChanged(bool high)
   dirty = true;
 }
 
-void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
-{
+void PixelShaderManager::SetIndMatrixChanged(int matrixidx) {
   int scale = ((u32)bpmem.indmtx[matrixidx].col0.s0 << 0) |
               ((u32)bpmem.indmtx[matrixidx].col1.s1 << 2) |
               ((u32)bpmem.indmtx[matrixidx].col2.s2 << 4);
@@ -211,10 +197,8 @@ void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
            bpmem.indmtx[matrixidx].col1.md, bpmem.indmtx[matrixidx].col2.mf);
 }
 
-void PixelShaderManager::SetZTextureTypeChanged()
-{
-  switch (bpmem.ztex2.type)
-  {
+void PixelShaderManager::SetZTextureTypeChanged() {
+  switch (bpmem.ztex2.type) {
   case TEV_ZTEX_TYPE_U8:
     constants.zbias[0][0] = 0;
     constants.zbias[0][1] = 0;
@@ -239,16 +223,14 @@ void PixelShaderManager::SetZTextureTypeChanged()
   dirty = true;
 }
 
-void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
-{
-  TCoordInfo& tc = bpmem.texcoords[texmapid];
+void PixelShaderManager::SetTexCoordChanged(u8 texmapid) {
+  TCoordInfo &tc = bpmem.texcoords[texmapid];
   constants.texdims[texmapid][2] = (float)(tc.s.scale_minus_1 + 1) * 128.0f;
   constants.texdims[texmapid][3] = (float)(tc.t.scale_minus_1 + 1) * 128.0f;
   dirty = true;
 }
 
-void PixelShaderManager::SetFogColorChanged()
-{
+void PixelShaderManager::SetFogColorChanged() {
   if (g_ActiveConfig.bDisableFog)
     return;
 
@@ -258,17 +240,13 @@ void PixelShaderManager::SetFogColorChanged()
   dirty = true;
 }
 
-void PixelShaderManager::SetFogParamChanged()
-{
-  if (!g_ActiveConfig.bDisableFog)
-  {
+void PixelShaderManager::SetFogParamChanged() {
+  if (!g_ActiveConfig.bDisableFog) {
     constants.fogf[1][0] = bpmem.fog.a.GetA();
     constants.fogi[1] = bpmem.fog.b_magnitude;
     constants.fogf[1][2] = bpmem.fog.c_proj_fsel.GetC();
     constants.fogi[3] = bpmem.fog.b_shift;
-  }
-  else
-  {
+  } else {
     constants.fogf[1][0] = 0.f;
     constants.fogi[1] = 1;
     constants.fogf[1][2] = 0.f;
@@ -277,23 +255,40 @@ void PixelShaderManager::SetFogParamChanged()
   dirty = true;
 }
 
-void PixelShaderManager::SetFogRangeAdjustChanged()
-{
+void PixelShaderManager::SetFogRangeAdjustChanged() {
   if (g_ActiveConfig.bDisableFog)
     return;
 
   s_bFogRangeAdjustChanged = true;
 }
 
-void PixelShaderManager::DoState(PointerWrap& p)
-{
+void PixelShaderManager::UpdateBP(u32 bp, u32 newValue) {
+  // TODO: think of a less totally hacky way of doing this.
+  if (bp == 0) {
+    more_constants.genmode[0] = newValue;
+    dirty = true;
+  } else if (bp >= 0x28 && bp < 0x30) {
+    u32 order = bp - 0x28;
+    more_constants.tevorder[order][0] = newValue;
+    dirty = true;
+  } else if (bp >= 0xc0 && bp < 0xe0) {
+    u32 comb = bp - 0xc0;
+    more_constants.combiners[comb >> 1][comb & 1] = newValue;
+    dirty = true;
+  }
+  more_constants.debug[0] = 1.0;
+  more_constants.debug[1] = 1.0;
+  more_constants.debug[2] = 1.0;
+  more_constants.debug[3] = 1.0;
+}
+
+void PixelShaderManager::DoState(PointerWrap &p) {
   p.Do(s_bFogRangeAdjustChanged);
   p.Do(s_bViewPortChanged);
 
   p.Do(constants);
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
+  if (p.GetMode() == PointerWrap::MODE_READ) {
     // Fixup the current state from global GPU state
     // NOTE: This requires that all GPU memory has been loaded already.
     Dirty();
