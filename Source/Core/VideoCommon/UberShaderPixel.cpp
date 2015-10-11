@@ -37,9 +37,10 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"layout(std140, binding = 4) uniform UBERBlock {\n"
 		"	uint	bpmem_genmode;\n"
 		"	uint	bpmem_tevorder[8];\n"
-	//	"	uint	bpmem_tevksel[8];\n"
 		"	uint2	bpmem_combiners[16];\n"
-		"   float4  debug;\n"
+		"	uint	bpmem_tevksel[8];\n"
+		"	int4   konstLookup[32];\n"
+		"	float4  debug;\n"
 		"};\n");
 
 	// TODO: Per pixel lighting (not really needed)
@@ -170,7 +171,27 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			order = order >> 16;\n"
 		"\n");
 
-	// TODO: like all of Texturing and Konst
+	// TODO: like all of Texturing
+	out.Write("\t\t// TODO: Like all of Texturing\n\n");
+
+	out.Write(
+		"		// Set Konst for stage\n"
+		"		uint tevksel = bpmem_tevksel[stage>>1];\n"
+		"		int4 konst;\n"
+		"		if ((stage & 1) == 0)\n"
+		"			konst = int4(konstLookup[%s].rgb, konstLookup[%s]);\n",
+		BitfieldExtract("tevksel", bpmem.tevksel[0].kcsel0).c_str(),
+		BitfieldExtract("tevksel", bpmem.tevksel[0].kasel0).c_str());
+	out.Write(
+		"		else\n"
+		"			konst = int4(konstLookup[%s].rgb, konstLookup[%s]);\n\n",
+		BitfieldExtract("tevksel", bpmem.tevksel[0].kcsel1).c_str(),
+		BitfieldExtract("tevksel", bpmem.tevksel[0].kasel1).c_str());
+	out.Write(
+		"		ColorInput[8] = konst.rgb;\n"
+		"		ColorInput[9] = konst.aaa;\n"
+		"		AlphaInput[4] = konst.a;\n"
+		"\n");
 
 	out.Write(
 		"		// Set Ras for stage\n"
@@ -192,6 +213,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"		default:\n"
 		"			ras = int4(0);\n"
 		"		}\n"
+		"		// TODO: color channel swapping\n"
 		"		ColorInput[10] = ras.rgb;\n"
 		"		ColorInput[11] = ras.aaa;\n"
 		"		AlphaInput[5]  = ras.a;\n"
