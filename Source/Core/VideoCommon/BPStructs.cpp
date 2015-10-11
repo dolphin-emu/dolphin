@@ -454,6 +454,7 @@ static void BPWritten(const BPCmd &bp) {
    * 3 BC0 - Ind. Tex Stage 0 NTexCoord
    * 0 BI0 - Ind. Tex Stage 0 NTexMap */
   case BPMEM_IREF:
+    return;
 
   case BPMEM_TEV_KSEL:     // Texture Environment Swap Mode Table 0
   case BPMEM_TEV_KSEL + 1: // Texture Environment Swap Mode Table 1
@@ -463,11 +464,13 @@ static void BPWritten(const BPCmd &bp) {
   case BPMEM_TEV_KSEL + 5: // Texture Environment Swap Mode Table 5
   case BPMEM_TEV_KSEL + 6: // Texture Environment Swap Mode Table 6
   case BPMEM_TEV_KSEL + 7: // Texture Environment Swap Mode Table 7
+    PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
+    return;
 
   /* This Register can be used to limit to which bits of BP registers is
-   * actually written to. The mask is only valid for the next BP write,
-   * and will reset itself afterwards. It's handled as a special case in
-   * LoadBPReg. */
+         * actually written to. The mask is only valid for the next BP write,
+         * and will reset itself afterwards. It's handled as a special case in
+         * LoadBPReg. */
   case BPMEM_BP_MASK:
 
   case BPMEM_IND_IMASK: // Index Mask ?
