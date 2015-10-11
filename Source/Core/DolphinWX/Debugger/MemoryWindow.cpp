@@ -13,6 +13,7 @@
 #include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/srchctrl.h>
 #include <wx/textctrl.h>
 
 #include "Common/CommonTypes.h"
@@ -48,8 +49,6 @@ enum
 };
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
-	EVT_TEXT(IDM_MEM_ADDRBOX,       CMemoryWindow::OnAddrBoxChange)
-	EVT_TEXT_ENTER(IDM_VALBOX,      CMemoryWindow::SetMemoryValueFromValBox)
 	EVT_LISTBOX(IDM_SYMBOLLIST,     CMemoryWindow::OnSymbolListChange)
 	EVT_HOST_COMMAND(wxID_ANY,      CMemoryWindow::OnHostMessage)
 	EVT_BUTTON(IDM_SETVALBUTTON,    CMemoryWindow::SetMemoryValue)
@@ -68,50 +67,54 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 		const wxPoint& pos, const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, pos, size, style, name)
 {
-	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer* sizerRight = new wxBoxSizer(wxVERTICAL);
-	// Didn't see anything useful in the left part
-	//wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
-
 	DebugInterface* di = &PowerPC::debug_interface;
 
-	//symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition,
-	//      wxSize(20, 100), 0, nullptr, wxLB_SORT);
-	//sizerLeft->Add(symbols, 1, wxEXPAND);
 	memview = new CMemoryView(di, this);
 
-	//sizerBig->Add(sizerLeft, 1, wxEXPAND);
-	sizerBig->Add(memview, 20, wxEXPAND);
-	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
-	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_MEM_ADDRBOX, ""));
-	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER));
-	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set Value")));
+	addrbox = new wxSearchCtrl(this, IDM_MEM_ADDRBOX);
+	addrbox->Bind(wxEVT_TEXT, &CMemoryWindow::OnAddrBoxChange, this);
+	addrbox->SetDescriptiveText(_("Search Address"));
 
-	sizerRight->AddSpacer(5);
-	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _("Dump MRAM")));
-	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _("Dump EXRAM")));
+	valbox = new wxTextCtrl(this, IDM_VALBOX, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	valbox->Bind(wxEVT_TEXT_ENTER, &CMemoryWindow::SetMemoryValueFromValBox, this);
 
+	wxGridSizer* const search_sizer = new wxGridSizer(1);
+	search_sizer->Add(addrbox);
+	search_sizer->Add(valbox, 0, wxEXPAND);
+	search_sizer->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set Value")));
+
+	wxGridSizer* const dump_sizer = new wxGridSizer(1);
+	dump_sizer->Add(new wxButton(this, IDM_DUMP_MEMORY, _("Dump MRAM")), 0, wxEXPAND);
+	dump_sizer->Add(new wxButton(this, IDM_DUMP_MEM2, _("Dump EXRAM")), 0, wxEXPAND);
 	if (!SConfig::GetInstance().bMMU)
-		sizerRight->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("Dump FakeVMEM")));
+		dump_sizer->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("Dump FakeVMEM")), 0, wxEXPAND);
 
-	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
-
+	wxStaticBoxSizer* const sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
 	sizerSearchType->Add(btnSearch = new wxButton(this, IDM_SEARCH, _("Search")));
 	sizerSearchType->Add(chkAscii = new wxCheckBox(this, IDM_ASCII, "Ascii "));
 	sizerSearchType->Add(chkHex = new wxCheckBox(this, IDM_HEX, _("Hex")));
-	sizerRight->Add(sizerSearchType);
-	wxStaticBoxSizer* sizerDataTypes = new wxStaticBoxSizer(wxVERTICAL, this, _("Data Type"));
 
+	wxStaticBoxSizer* const sizerDataTypes = new wxStaticBoxSizer(wxVERTICAL, this, _("Data Type"));
 	sizerDataTypes->SetMinSize(74, 40);
 	sizerDataTypes->Add(chk8 = new wxCheckBox(this, IDM_U8, "U8"));
 	sizerDataTypes->Add(chk16 = new wxCheckBox(this, IDM_U16, "U16"));
 	sizerDataTypes->Add(chk32 = new wxCheckBox(this, IDM_U32, "U32"));
+
+	wxBoxSizer* const sizerRight = new wxBoxSizer(wxVERTICAL);
+	sizerRight->Add(search_sizer);
+	sizerRight->AddSpacer(5);
+	sizerRight->Add(dump_sizer);
+	sizerRight->Add(sizerSearchType);
 	sizerRight->Add(sizerDataTypes);
+
+	wxBoxSizer* const sizerBig = new wxBoxSizer(wxHORIZONTAL);
+	sizerBig->Add(memview, 20, wxEXPAND);
+	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
+
 	SetSizer(sizerBig);
 	chkHex->SetValue(1); //Set defaults
 	chk8->SetValue(1);
 
-	//sizerLeft->Fit(this);
 	sizerRight->Fit(this);
 	sizerBig->Fit(this);
 }

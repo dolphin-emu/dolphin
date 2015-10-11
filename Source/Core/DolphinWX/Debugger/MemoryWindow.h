@@ -12,6 +12,7 @@ class IniFile;
 class wxButton;
 class wxCheckBox;
 class wxListBox;
+class wxSearchCtrl;
 class wxTextCtrl;
 
 class CMemoryWindow : public wxPanel
@@ -60,6 +61,6 @@ private:
 	CMemoryView* memview;
 	wxListBox* symbols;
 
-	wxTextCtrl* addrbox;
+	wxSearchCtrl* addrbox;
 	wxTextCtrl* valbox;
 };
