@@ -25,6 +25,7 @@
 #include <wx/progdlg.h>
 #include <wx/settings.h>
 #include <wx/tipwin.h>
+#include <wx/wxcrt.h>
 
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
@@ -95,10 +96,19 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 					return t * (iso1->GetRevision() > iso2->GetRevision() ? 1 : -1);
 				if (iso1->GetDiscNumber() != iso2->GetDiscNumber())
 					return t * (iso1->GetDiscNumber() > iso2->GetDiscNumber() ? 1 : -1);
+
+				wxString iso1_filename = wxFileNameFromPath(iso1->GetFileName());
+				wxString iso2_filename = wxFileNameFromPath(iso2->GetFileName());
+
+				if (iso1_filename != iso2_filename)
+					return t * wxStricmp(iso1_filename, iso2_filename);
 			}
 			return strcasecmp(iso1->GetName().c_str(), iso2->GetName().c_str()) * t;
 		case CGameListCtrl::COLUMN_MAKER:
 			return strcasecmp(iso1->GetCompany().c_str(), iso2->GetCompany().c_str()) * t;
+		case CGameListCtrl::COLUMN_FILENAME:
+			return wxStricmp(wxFileNameFromPath(iso1->GetFileName()),
+			                 wxFileNameFromPath(iso2->GetFileName())) * t;
 		case CGameListCtrl::COLUMN_ID:
 			return strcasecmp(iso1->GetUniqueID().c_str(), iso2->GetUniqueID().c_str()) * t;
 		case CGameListCtrl::COLUMN_COUNTRY:
@@ -265,6 +275,7 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_TITLE, _("Title"));
 
 		InsertColumn(COLUMN_MAKER, _("Maker"));
+		InsertColumn(COLUMN_FILENAME, _("File"));
 		InsertColumn(COLUMN_ID, _("ID"));
 		InsertColumn(COLUMN_COUNTRY, "");
 		InsertColumn(COLUMN_SIZE, _("Size"));
@@ -282,6 +293,7 @@ void CGameListCtrl::Update()
 		SetColumnWidth(COLUMN_BANNER, SConfig::GetInstance().m_showBannerColumn ? 96 + platform_padding : 0);
 		SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
 		SetColumnWidth(COLUMN_MAKER, SConfig::GetInstance().m_showMakerColumn ? 150 + platform_padding : 0);
+		SetColumnWidth(COLUMN_FILENAME, SConfig::GetInstance().m_showFileNameColumn ? 100 + platform_padding : 0);
 		SetColumnWidth(COLUMN_ID, SConfig::GetInstance().m_showIDColumn ? 75 + platform_padding : 0);
 		SetColumnWidth(COLUMN_COUNTRY, SConfig::GetInstance().m_showRegionColumn ? 32 + platform_padding : 0);
 		SetColumnWidth(COLUMN_EMULATION_STATE, SConfig::GetInstance().m_showStateColumn ? 50 + platform_padding : 0);
@@ -401,6 +413,10 @@ void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
 		}
 		case COLUMN_MAKER:
 			SetItem(_Index, COLUMN_MAKER, StrToWxStr(rISOFile.GetCompany()), -1);
+			break;
+		case COLUMN_FILENAME:
+			SetItem(_Index, COLUMN_FILENAME,
+			        wxFileNameFromPath(rISOFile.GetFileName()), -1);
 			break;
 		case COLUMN_EMULATION_STATE:
 			SetItemColumnImage(_Index, COLUMN_EMULATION_STATE,
@@ -644,7 +660,9 @@ void CGameListCtrl::ScanForISOs()
 
 void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 {
-	if (event.GetColumn() != COLUMN_TITLE && event.GetColumn() != COLUMN_MAKER)
+	const int column_id = event.GetColumn();
+
+	if (column_id != COLUMN_TITLE && column_id != COLUMN_MAKER && column_id != COLUMN_FILENAME)
 		event.Veto();
 }
 
@@ -1294,14 +1312,27 @@ void CGameListCtrl::AutomaticColumnWidth()
 			+ GetColumnWidth(COLUMN_EMULATION_STATE));
 
 		// We hide the Maker column if the window is too small
-		if (resizable > 400)
+		// Use ShowColumn() instead of SetColumnWidth because
+		// the maker column may have been autohidden and the
+		// therefore the content needs to be restored.
+		if (resizable > 425)
 		{
-			if (SConfig::GetInstance().m_showMakerColumn)
+			if (SConfig::GetInstance().m_showMakerColumn &&
+			    SConfig::GetInstance().m_showFileNameColumn)
+			{
+				SetColumnWidth(COLUMN_TITLE, resizable / 3);
+				ShowColumn(COLUMN_MAKER, resizable / 3);
+				SetColumnWidth(COLUMN_FILENAME, resizable / 3);
+			}
+			else if (SConfig::GetInstance().m_showMakerColumn)
 			{
 				SetColumnWidth(COLUMN_TITLE, resizable / 2);
-
-				// If the maker column has been autohidden, we need to show it again
 				ShowColumn(COLUMN_MAKER, resizable / 2);
+			}
+			else if (SConfig::GetInstance().m_showFileNameColumn)
+			{
+				SetColumnWidth(COLUMN_TITLE, resizable / 2);
+				SetColumnWidth(COLUMN_FILENAME, resizable / 2);
 			}
 			else
 			{
@@ -1310,7 +1341,15 @@ void CGameListCtrl::AutomaticColumnWidth()
 		}
 		else
 		{
-			SetColumnWidth(COLUMN_TITLE, resizable);
+			if (SConfig::GetInstance().m_showFileNameColumn)
+			{
+				SetColumnWidth(COLUMN_TITLE, resizable / 2);
+				SetColumnWidth(COLUMN_FILENAME, resizable / 2);
+			}
+			else
+			{
+				SetColumnWidth(COLUMN_TITLE, resizable);
+			}
 			HideColumn(COLUMN_MAKER);
 		}
 	}
