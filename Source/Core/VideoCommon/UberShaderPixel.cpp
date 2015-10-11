@@ -52,41 +52,41 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		if (per_pixel_depth)
 			out.Write("#define depth gl_FragDepth\n");
 
-		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-		{
+		//if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		//{
 			out.Write("in VertexData {\n");
 			GenerateVSOutputMembers(out, ApiType, numTexgen, false, GetInterpolationQualifier(ApiType, true, true));
 
-			if (g_ActiveConfig.iStereoMode > 0)
-				out.Write("\tflat int layer;\n");
+			//if (g_ActiveConfig.iStereoMode > 0)
+			//	out.Write("\tflat int layer;\n");
 
 			out.Write("};\n");
-		}
-		else
-		{
-			out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
-			out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
+		//}
+		//else
+		//{
+		//	out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
+		//	out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
 			// compute window position if needed because binding semantic WPOS is not widely supported
 			// Let's set up attributes
-			for (unsigned int i = 0; i < numTexgen; ++i)
-			{
-				out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(ApiType, msaa, ssaa), i);
-			}
-			out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
-			if (g_ActiveConfig.bEnablePixelLighting)
-			{
-				out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
-				out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
-			}
-		}
+		//	for (unsigned int i = 0; i < numTexgen; ++i)
+		//	{
+		//		out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(ApiType, msaa, ssaa), i);
+		//	}
+		//	out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
+		//	if (g_ActiveConfig.bEnablePixelLighting)
+		//	{
+		//		out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
+		//		out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
+		//	}
+		//}
 
 		out.Write("void main()\n{\n");
 
-		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-		{
-			for (unsigned int i = 0; i < numTexgen; ++i)
-				out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
-		}
+		//if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		//{
+		//	for (unsigned int i = 0; i < numTexgen; ++i)
+		//		out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
+		//}
 
 		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 	}

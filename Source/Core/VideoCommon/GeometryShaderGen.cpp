@@ -236,7 +236,7 @@ ShaderCode GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType, cons
 		for (unsigned int i = 0; i < uid_data->numTexGens; ++i)
 		{
 			out.Write("\tif (((" I_TEXOFFSET"[0] >> %d) & 0x1) != 0)\n", i);
-			out.Write("\t\tr.tex%d.x += texOffset;\n", i);
+			out.Write("\t\tr.tex[%d].x += texOffset;\n", i);
 		}
 		out.Write("\t}\n");
 
@@ -261,9 +261,9 @@ ShaderCode GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType, cons
 		for (unsigned int i = 0; i < uid_data->numTexGens; ++i)
 		{
 			out.Write("\tif (((" I_TEXOFFSET"[1] >> %d) & 0x1) != 0) {\n", i);
-			out.Write("\t\tll.tex%d.xy += float2(0,1) * texOffset;\n", i);
-			out.Write("\t\tlr.tex%d.xy += texOffset;\n", i);
-			out.Write("\t\tur.tex%d.xy += float2(1,0) * texOffset;\n", i);
+			out.Write("\t\tll.tex[%d].xy += float2(0,1) * texOffset;\n", i);
+			out.Write("\t\tlr.tex[%d].xy += texOffset;\n", i);
+			out.Write("\t\tur.tex[%d].xy += float2(1,0) * texOffset;\n", i);
 			out.Write("\t}\n");
 		}
 		out.Write("\t}\n");

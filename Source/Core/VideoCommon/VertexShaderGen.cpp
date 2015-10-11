@@ -184,7 +184,7 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
 		{
 			u32 hastexmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0<<i));
 			if ((uid_data->components & (VB_HAS_UV0<<i)) || hastexmtx)
-				out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
+				out.Write("  float%d tex[%d] : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
 		}
 		if (uid_data->components & VB_HAS_POSMTXIDX)
 			out.Write("  int posmtx : BLENDINDICES,\n");
@@ -302,40 +302,40 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
 				{
 					// transform the light dir into tangent space
 					out.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(texinfo.embosslightshift));
-					out.Write("o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n", i, texinfo.embosssourceshift);
+					out.Write("o.tex[%d].xyz = o.tex[%d].xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n", i, texinfo.embosssourceshift);
 				}
 				else
 				{
 					// The following assert was triggered in House of the Dead Overkill and Star Wars Rogue Squadron 2
 					//_assert_(0); // should have normals
-					out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
+					out.Write("o.tex[%d].xyz = o.tex[%d].xyz;\n", i, texinfo.embosssourceshift);
 				}
 
 				break;
 			case XF_TEXGEN_COLOR_STRGBC0:
 				_assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
-				out.Write("o.tex%d.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
+				out.Write("o.tex[%d].xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
 				break;
 			case XF_TEXGEN_COLOR_STRGBC1:
 				_assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
-				out.Write("o.tex%d.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
+				out.Write("o.tex[%d].xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
 				break;
 			case XF_TEXGEN_REGULAR:
 			default:
 				if (uid_data->components & (VB_HAS_TEXMTXIDX0<<i))
 				{
-					out.Write("int tmp = int(tex%d.z);\n", i);
+					out.Write("int tmp = int(tex[%d].z);\n", i);
 					if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
-						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), dot(coord, " I_TRANSFORMMATRICES"[tmp+2]));\n", i);
+						out.Write("o.tex[%d].xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), dot(coord, " I_TRANSFORMMATRICES"[tmp+2]));\n", i);
 					else
-						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), 1);\n", i);
+						out.Write("o.tex[%d].xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), 1);\n", i);
 				}
 				else
 				{
 					if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
-						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]));\n", i, 3*i, 3*i+1, 3*i+2);
+						out.Write("o.tex[%d].xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]));\n", i, 3*i, 3*i+1, 3*i+2);
 					else
-						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), 1);\n", i, 3*i, 3*i+1);
+						out.Write("o.tex[%d].xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), 1);\n", i, 3*i, 3*i+1);
 				}
 				break;
 		}
@@ -351,10 +351,10 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
 			          postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
 
 			if (postInfo.normalize)
-				out.Write("o.tex%d.xyz = normalize(o.tex%d.xyz);\n", i, i);
+				out.Write("o.tex[%d].xyz = normalize(o.tex[%d].xyz);\n", i, i);
 
 			// multiply by postmatrix
-			out.Write("o.tex%d.xyz = float3(dot(P0.xyz, o.tex%d.xyz) + P0.w, dot(P1.xyz, o.tex%d.xyz) + P1.w, dot(P2.xyz, o.tex%d.xyz) + P2.w);\n", i, i, i, i);
+			out.Write("o.tex[%d].xyz = float3(dot(P0.xyz, o.tex[%d].xyz) + P0.w, dot(P1.xyz, o.tex[%d].xyz) + P1.w, dot(P2.xyz, o.tex[%d].xyz) + P2.w);\n", i, i, i, i);
 		}
 
 		out.Write("}\n");
@@ -417,7 +417,7 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
 			// TODO: Pass interface blocks between shader stages even if geometry shaders
 			// are not supported, however that will require at least OpenGL 3.2 support.
 			for (unsigned int i = 0; i < uid_data->numTexGens; ++i)
-				out.Write("uv%d.xyz = o.tex%d;\n", i, i);
+				out.Write("uv%d.xyz = o.tex[%d];\n", i, i);
 			out.Write("clipPos = o.clipPos;\n");
 			if (uid_data->pixel_lighting)
 			{
