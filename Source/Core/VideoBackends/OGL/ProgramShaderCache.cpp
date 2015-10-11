@@ -92,11 +92,14 @@ void SHADER::SetProgramVariables()
 		if (UBERBlock_id != -1)
 			glUniformBlockBinding(glprogid, UBERBlock_id, 4);
 
-		// Bind Texture Sampler
+		// Bind Texture Samplers
 		for (int a = 0; a <= 9; ++a)
 		{
-			char name[8];
-			snprintf(name, 8, "samp%d", a);
+			char name[10];
+			if (a < 8)
+				snprintf(name, 8, "samp[%d]", a);
+			else
+				snprintf(name, 8, "samp%d", a);
 
 			// Still need to get sampler locations since we aren't binding them statically in the shaders
 			int loc = glGetUniformLocation(glprogid, name);
