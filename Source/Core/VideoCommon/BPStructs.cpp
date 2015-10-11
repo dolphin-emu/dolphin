@@ -1296,7 +1296,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 			                         "Tex sel: %d\n",
 			                         (data[0] - BPMEM_TEV_ALPHA_ENV)/2, tevin[ac.a], tevin[ac.b], tevin[ac.c], tevin[ac.d],
 			                         tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp], tevscale[ac.shift], tevout[ac.dest],
-			                         ac.rswap, ac.tswap);
+			                         ac.rswap.Value(), ac.tswap.Value());
 			break;
 		}
 
