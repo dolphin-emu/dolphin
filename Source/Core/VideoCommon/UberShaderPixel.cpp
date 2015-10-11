@@ -51,42 +51,16 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 
     if (per_pixel_depth)
       out.Write("#define depth gl_FragDepth\n");
-
-    // if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    //{
     out.Write("in VertexData {\n");
     GenerateVSOutputMembers(out, ApiType, numTexgen, false, GetInterpolationQualifier(msaa, ssaa));
 
-    // if (g_ActiveConfig.iStereoMode > 0)
-    //	out.Write("\tflat int layer;\n");
+    // TODO: Stereo Mode
 
-    out.Write("};\n");
-    //}
-    // else
-    //{
-    //	out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
-    //	out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
-    // compute window position if needed because binding semantic WPOS is not widely supported
-    // Let's set up attributes
-    //	for (unsigned int i = 0; i < numTexgen; ++i)
-    //	{
-    //		out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(ApiType, msaa, ssaa), i);
-    //	}
-    //	out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
-    //	if (g_ActiveConfig.bEnablePixelLighting)
-    //	{
-    //		out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
-    //		out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
-    //	}
-    //}
+    out.Write("};\n\n");
+
+    // TODO: Add support for OpenGL without geometery shaders back in.
 
     out.Write("void main()\n{\n");
-
-    // if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    //{
-    //	for (unsigned int i = 0; i < numTexgen; ++i)
-    //		out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
-    //}
 
     out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
   }
@@ -169,8 +143,38 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
             "			order = order >> %d;\n\n",
             TwoTevStageOrders().enable1.offset - TwoTevStageOrders().enable0.offset);
 
-  // TODO: like all of Texturing
-  out.Write("\t\t// TODO: Like all of Texturing\n\n");
+  // TODO: Indirect Texturing
+  out.Write("\t\t// TODO: Indirect textures\n\n");
+
+  // Disable texturing when there are no texgens (for now)
+  if (numTexgen != 0)
+  {
+    out.Write("		// Sample texture for stage\n"
+              "		int4 texColor;\n"
+              "		if((order & %du) != 0u) {\n",
+              1 << TwoTevStageOrders().enable0.offset);
+    out.Write("			// Texture is enabled\n"
+              "			uint sampler_num = %s;\n",
+              BitfieldExtract("order", TwoTevStageOrders().texmap0).c_str());
+    out.Write("			uint tex_coord = %s;\n",
+              BitfieldExtract("order", TwoTevStageOrders().texcoord0).c_str());
+    out.Write("\n"
+              "			// TODO: there is an optional perspective divide here (not to mention all of "
+              "indirect)\n"
+              "			int2 fixedPoint_uv = itrunc(tex[tex_coord].xy * " I_TEXDIMS
+              "[sampler_num].zw * 128.0);\n"
+              "			float2 uv = (float2(fixedPoint_uv) / 128.0) * " I_TEXDIMS "[sampler_num].xy;\n"
+              "			texColor = int4(texture(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n"
+              "		} else {\n"
+              "			// Texture is disabled\n"
+              "			texColor = int4(255, 255, 255, 255);\n"
+              "		}\n"
+              "		// TODO: color channel swapping\n"
+              "		ColorInput[8] = texColor.rgb;\n"
+              "		ColorInput[9] = texColor.aaa;\n"
+              "		AlphaInput[4] = texColor.a;\n"
+              "\n");
+  }
 
   out.Write("		// Set Konst for stage\n"
             "		uint tevksel = bpmem_tevksel[stage>>1];\n"
@@ -183,9 +187,8 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
             "			konst = int4(konstLookup[%s].rgb, konstLookup[%s]);\n\n",
             BitfieldExtract("tevksel", bpmem.tevksel[0].kcsel1).c_str(),
             BitfieldExtract("tevksel", bpmem.tevksel[0].kasel1).c_str());
-  out.Write("		ColorInput[8] = konst.rgb;\n"
-            "		ColorInput[9] = konst.aaa;\n"
-            "		AlphaInput[4] = konst.a;\n"
+  out.Write("		ColorInput[14] = konst.rgb;\n"
+            "		AlphaInput[6] = konst.a;\n"
             "\n");
 
   out.Write("		// Set Ras for stage\n"
