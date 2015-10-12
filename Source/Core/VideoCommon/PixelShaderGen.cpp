@@ -217,19 +217,14 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (ApiType == API_OPENGL)
 	{
-		// Declare samplers
-		for (int i = 0; i < 8; ++i)
-			out.Write("SAMPLER_BINDING(%d) uniform sampler2DArray samp%d;\n", i, i);
+		out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
 	}
 	else // D3D
 	{
 		// Declare samplers
-		for (int i = 0; i < 8; ++i)
-			out.Write("sampler samp%d : register(s%d);\n", i, i);
-
+		out.Write("SamplerState samp[8] : register(s0);\n");
 		out.Write("\n");
-		for (int i = 0; i < 8; ++i)
-			out.Write("Texture2DArray Tex%d : register(t%d);\n", i, i);
+		out.Write("Texture2DArray Tex[8] : register(t0);\n");
 	}
 	out.Write("\n");
 
@@ -1000,9 +995,9 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 
 	if (ApiType == API_D3D)
-		out.Write("iround(255.0 * Tex%d.Sample(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0", texswap);
+		out.Write("iround(255.0 * Tex[%d].Sample(samp[%d], float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0", texswap);
 	else
-		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0", texswap);
+		out.Write("iround(255.0 * texture(samp[%d], float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0", texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
