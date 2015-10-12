@@ -20,19 +20,31 @@ namespace DolphinWatch {
 	typedef uint32_t u32;
 
 	struct Subscription {
-		const u32 addr;
+		u32 addr;
 		u32 mode;
 		u32 prev = ~0;
 		Subscription(u32 val, u32 len) : addr(val), mode(len) {}
-		bool operator=(Subscription other) { return other.addr == addr && other.mode == mode; }
+		bool operator==(const Subscription& other) const { return other.addr == addr && other.mode == mode; }
+		Subscription& operator=(const Subscription& other) {
+			addr = other.addr;
+			mode = other.mode;
+			prev = other.prev;
+			return *this;
+		}
 	};
 
 	struct SubscriptionMulti {
-		const u32 addr;
+		u32 addr;
 		u32 size;
 		vector<u32> prev;
 		SubscriptionMulti(u32 val, u32 len) : addr(val), size(len), prev(len, ~0) {}
-		bool operator=(SubscriptionMulti other) { return other.addr == addr && other.size == size; }
+		bool operator==(const SubscriptionMulti& other) const { return other.addr == addr && other.size == size; }
+		SubscriptionMulti& operator=(const SubscriptionMulti& other) {
+			addr = other.addr;
+			size = other.size;
+			prev = other.prev;
+			return *this;
+		}
 	};
 
 	struct Client {
@@ -42,13 +54,27 @@ namespace DolphinWatch {
 		bool disconnected = false;
 		stringstream buf;
 		// some stl algorithm support
-		bool operator=(Client other) {
+		bool operator==(const Client& other) const {
 			return socket->getRemoteAddress() == other.socket->getRemoteAddress()
 			&& socket->getRemotePort() == other.socket->getRemotePort();
 		}
 		Client(shared_ptr<sf::TcpSocket> sock) : socket(sock) {}
 		// explicit copy semantics for smart pointer socket and stringstream
-		Client(const Client& other) { socket = other.socket; }
+		Client(const Client& other) {
+			socket = other.socket;
+			buf = stringstream();
+			buf << other.buf.rdbuf();
+		}
+		// operator= gets implicitly deleted with copy operator overwritten
+		Client& operator=(const Client& other) {
+			socket = other.socket;
+			subs = other.subs;
+			subsMulti = other.subsMulti;
+			disconnected = other.disconnected;
+			buf = stringstream();
+			buf << other.buf.rdbuf();
+			return *this;
+		}
 	};
 
 	void Init(unsigned short port, CFrame* main_frame);
