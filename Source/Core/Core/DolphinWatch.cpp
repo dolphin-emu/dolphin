@@ -1,7 +1,6 @@
 
 #include <thread>
 #include <atomic>
-#include <Windows.h>
 
 #include "DolphinWatch.h"
 #include "Common/Logging/LogManager.h"
@@ -11,13 +10,14 @@
 #include "InputCommon/InputConfig.h"
 #include "Core/Core.h"
 #include "Core/State.h"
-#include "Common\StringUtil.h"
-#include "AudioCommon\AudioCommon.h"
-#include "HW\ProcessorInterface.h"
-#include "InputCommon\GCPadStatus.h"
+#include "Common/StringUtil.h"
+#include "Common/Thread.h"
+#include "AudioCommon/AudioCommon.h"
+#include "HW/ProcessorInterface.h"
+#include "InputCommon/GCPadStatus.h"
 #include "BootManager.h"
-#include "Core\HW\DVDInterface.h"
-#include "Core\Host.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/Host.h"
 
 namespace DolphinWatch {
 
@@ -146,7 +146,7 @@ namespace DolphinWatch {
 						checkSubs(client);
 					}
 				}
-				Sleep(WATCH_TIMEOUT);
+				Common::SleepCurrentThread(WATCH_TIMEOUT);
 				checkHijacks();
 			}
 		});
@@ -549,9 +549,9 @@ namespace DolphinWatch {
 			//Host_UpdateMainFrame();
 			//Host_NotifyMapLoaded();
 			//Core::SetState(Core::EState::CORE_UNINITIALIZED);
-			//DVDInterface::SetDiscInside(false);
+			DVDInterface::SetDiscInside(false);
 			//DVDInterface::Shutdown();
-			DVDInterface::ChangeDisc(file);
+			//DVDInterface::ChangeDisc(file);
 			//Core::Stop();
 			//BootManager::Stop();
 			//BootManager::BootCore(file);
