@@ -29,7 +29,7 @@
 
 // Valgrind doesn't support MAP_32BIT.
 // Uncomment the following line to be able to run Dolphin in Valgrind.
-//#undef MAP_32BIT
+#undef MAP_32BIT
 
 #if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
 #include <unistd.h>
