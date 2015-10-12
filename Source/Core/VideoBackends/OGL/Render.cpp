@@ -400,6 +400,13 @@ Renderer::Renderer()
 	// OpenGL ES 3.1 supports it implicitly without an extension
 	g_Config.backend_info.bSupportsBindingLayout = GLExtensions::Supports("GL_ARB_shading_language_420pack");
 
+	// Desktop OpenGL supports bitfield manulipation if it supports shader5
+	// OpenGL ES 3.1 supports it implicitly without an extension
+	g_Config.backend_info.bSupportsBitfield = GLExtensions::Supports("GL_ARB_gpu_shader5");
+
+	// OpenGL ES 3.1 and later also support this.
+	g_Config.backend_info.bSupportsDynamicSamplerIndexing = GLExtensions::Version() >= 400;
+
 	g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
 	g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
 	g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
@@ -447,6 +454,8 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsBBox = true;
 			g_ogl_config.bSupportsMSAA = true;
 			g_ogl_config.bSupports2DTextureStorage = true;
+			g_Config.backend_info.bSupportsBitfield = true;
+			g_Config.backend_info.bSupportsDynamicSamplerIndexing = true;
 			if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisamples > 1 && !g_ogl_config.bSupports3DTextureStorage)
 			{
 				// GLES 3.1 can't support stereo rendering and MSAA
@@ -471,6 +480,8 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsMSAA = true;
 			g_ogl_config.bSupports2DTextureStorage = true;
 			g_ogl_config.bSupports3DTextureStorage = true;
+			g_Config.backend_info.bSupportsBitfield = true;
+			g_Config.backend_info.bSupportsDynamicSamplerIndexing = true;
 		}
 	}
 	else

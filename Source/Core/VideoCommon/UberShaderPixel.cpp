@@ -35,13 +35,49 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	uint	bpmem_tevorder[8];\n"
 		"	uint2	bpmem_combiners[16];\n"
 		"	uint	bpmem_tevksel[8];\n"
-		"	int4   konstLookup[32];\n"
+		"	int4	konstLookup[32];\n"
 		"	float4  debug;\n"
 		"};\n");
 
 	// TODO: Per pixel lighting (not really needed)
 
 	// TODO: early depth tests (we will need multiple shaders)
+
+	if (!g_ActiveConfig.backend_info.bSupportsBitfield)
+	{
+		out.Write(
+			"uint bitfieldExtract(uint val, int off, int size) {\n"
+			"	// This built-in function is only support in OpenGL 4.0 and ES 3.1\n"
+			"	// Hopefully the shader compiler will get our meaning and emit the right instruction\n"
+			"	uint mask = uint((1 << size) - 1);\n"
+			"	return uint(val >> off) & mask;\n"
+			"}\n\n");
+	}
+
+	if (g_ActiveConfig.backend_info.bSupportsDynamicSamplerIndexing)
+	{
+		out.Write(
+			"int4 sampleTexture(uint sampler_num, float2 uv) {\n"
+			"	return int4(texture(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n"
+			"}\n\n");
+	}
+	else
+	{
+		out.Write(
+			"int4 sampleTexture(uint sampler_num, float2 uv) {\n"
+			"	// This is messy, but OpenGl 3.3 and ES 3.0 doesn't support dynamic indexing of the sampler array\n"
+			"	// With any luck the shader compiler will optimise this if the hardware supports dynamic indexing.\n"
+			"	switch(sampler_num & 0x7u) {\n");
+		for (int i=0; i < 8; i++)
+		{
+			out.Write(
+			"	case %du:\n"
+			"		return int4(texture(samp[%d], float3(uv, 0.0)) * 255.0);\n", i, i);
+		}
+		out.Write(
+			"	}\n"
+			"}\n\n");
+	}
 
 	if (ApiType == API_OPENGL)
 	{
@@ -133,7 +169,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 
 	out.Write(
 		"	// Main tev loop\n"
-		"	for(uint stage=0; stage <= num_stages; stage++)\n"
+		"	for(uint stage = 0u; stage <= num_stages; stage++)\n"
 		"	{\n"
 		"		uint cc = bpmem_combiners[stage].x;\n"
 		"		uint ac = bpmem_combiners[stage].y;\n"
@@ -161,7 +197,8 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			// TODO: there is an optional perspective divide here (not to mention all of indirect)\n"
 		"			int2 fixedPoint_uv = itrunc(tex[tex_coord].xy * " I_TEXDIMS"[sampler_num].zw * 128.0);\n"
 		"			float2 uv = (float2(fixedPoint_uv) / 128.0) * " I_TEXDIMS"[sampler_num].xy;\n"
-		"			texColor = int4(texture(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n"
+	    "\n"
+		"			texColor = sampleTexture(sampler_num, uv);\n"
 		"		} else {\n"
 		"			// Texture is disabled\n"
 		"			texColor = int4(255, 255, 255, 255);\n"
@@ -177,7 +214,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"		// Set Konst for stage\n"
 		"		uint tevksel = bpmem_tevksel[stage>>1];\n"
 		"		int4 konst;\n"
-		"		if ((stage & 1) == 0)\n"
+		"		if ((stage & 1u) == 0u)\n"
 		"			konst = int4(konstLookup[%s].rgb, konstLookup[%s]);\n",
 		BitfieldExtract("tevksel", bpmem.tevksel[0].kcsel0).c_str(),
 		BitfieldExtract("tevksel", bpmem.tevksel[0].kasel0).c_str());
@@ -196,16 +233,16 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"		int4 ras;\n"
 		"		switch (%s) {\n", BitfieldExtract("order", TwoTevStageOrders().colorchan0).c_str());
 	out.Write(
-		"		case 0: // Color 0\n"
+		"		case 0u: // Color 0\n"
 		"			ras = icolors_0;\n"
 		"			break;\n"
-		"		case 1: // Color 1\n"
+		"		case 1u: // Color 1\n"
 		"			ras = icolors_1;\n"
 		"			break;\n"
-		"		case 5: // Alpha Bump\n"
+		"		case 5u: // Alpha Bump\n"
 		"			ras = int4(AlphaBump);\n"
 		"			break;\n"
-		"		case 6: // Normalzied Alpha Bump\n"
+		"		case 6u: // Normalzied Alpha Bump\n"
 		"			ras = int4(AlphaBump | AlphaBump >> 5);\n"
 		"			break;\n"
 		"		default:\n"
@@ -239,19 +276,19 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			int3 D = ColorInput[d]; // 10 bits + sign\n" // TODO: do we need to sign extend?
 		"\n"
 		"			int3 result;\n"
-		"			if(bias != 3) { // Normal mode\n"
+		"			if(bias != 3u) { // Normal mode\n"
 		"				// Lerp A and B with C\n"
 		"				C += C >> 7; // Scale C from 0..255 to 0..256\n"
 		"				int3 lerp = (A << 8) + (B - A)*C;\n"
-		"				if (shift != 3) {\n"
+		"				if (shift != 3u) {\n"
 		"					lerp = lerp << shift;\n"
 		"					lerp = lerp + (op ? 127 : 128);\n"
 		"				}\n"
 		"				result = lerp >> 8;\n"
 		"\n"
 		"				// Add/Subtract D (and bias)\n"
-		"				if (bias == 1) result += 128;\n"
-		"				else if (bias == 2) result -= 128;\n"
+		"				if (bias == 1u) result += 128;\n"
+		"				else if (bias == 2u) result -= 128;\n"
 		"				if(!op) // Add\n"
 		"					result = D + result;\n"
 		"				else // Subtract\n"
@@ -259,7 +296,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"\n"
 		"				// Most of the Shift was moved inside the lerp for improved percision\n"
 		"				// But we still do the divide by 2 here\n"
-		"				if (shift == 3)\n"
+		"				if (shift == 3u)\n"
 		"					result = result >> 1;\n"
 		"			} else { // Compare mode\n"
 		"				// Not implemented\n" // Not Implemented
@@ -305,19 +342,19 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			int D = AlphaInput[d]; // 10 bits + sign\n" // TODO: do we need to sign extend?
 		"\n"
 		"			int result;\n"
-		"			if(bias != 3) { // Normal mode\n"
+		"			if(bias != 3u) { // Normal mode\n"
 		"				// Lerp A and B with C\n"
 		"				C += C >> 7; // Scale C from 0..255 to 0..256\n"
 		"				int lerp = (A << 8) + (B - A)*C;\n"
-		"				if (shift != 3) {\n"
+		"				if (shift != 3u) {\n"
 		"					lerp = lerp << shift;\n"
 		"					lerp = lerp + (op ? 127 : 128);\n"
 		"				}\n"
 		"				result = lerp >> 8;\n"
 		"\n"
 		"				// Add/Subtract D (and bias)\n"
-		"				if (bias == 1) result += 128;\n"
-		"				else if (bias == 2) result -= 128;\n"
+		"				if (bias == 1u) result += 128;\n"
+		"				else if (bias == 2u) result -= 128;\n"
 		"				if(!op) // Add\n"
 		"					result = D + result;\n"
 		"				else // Subtract\n"
@@ -325,7 +362,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"\n"
 		"				// Most of the Shift was moved inside the lerp for improved percision\n"
 		"				// But we still do the divide by 2 here\n"
-		"				if (shift == 3)\n"
+		"				if (shift == 3u)\n"
 		"					result = result >> 1;\n"
 		"			} else { // Compare mode\n"
 		"				// Not implemented\n" // Not Implemented
@@ -344,7 +381,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			} else {\n"
 		"				// Write result to the correct input register of the next stage\n"
 		"				AlphaInput[dest] = result;\n"
-		"				ColorInput[(dest << 1) + 1] = int3(result);\n"
+		"				ColorInput[(dest << 1) + 1u] = int3(result);\n"
 		"			}\n"
 		"		}\n");
 
