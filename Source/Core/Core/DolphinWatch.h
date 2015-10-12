@@ -24,7 +24,7 @@ namespace DolphinWatch {
 		u32 mode;
 		u32 prev = ~0;
 		Subscription(u32 val, u32 len) : addr(val), mode(len) {}
-		bool operator=(Subscription &other) { return other.addr == addr && other.mode == mode; }
+		bool operator=(Subscription other) { return other.addr == addr && other.mode == mode; }
 	};
 
 	struct SubscriptionMulti {
@@ -32,7 +32,7 @@ namespace DolphinWatch {
 		u32 size;
 		vector<u32> prev;
 		SubscriptionMulti(u32 val, u32 len) : addr(val), size(len), prev(len, ~0) {}
-		bool operator=(SubscriptionMulti &other) { return other.addr == addr && other.size == size; }
+		bool operator=(SubscriptionMulti other) { return other.addr == addr && other.size == size; }
 	};
 
 	struct Client {

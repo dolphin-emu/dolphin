@@ -201,7 +201,7 @@ namespace DolphinWatch {
 		// socket closing is implicit for sfml library during destruction
 	}
 
-	void Process(Client &client, string &line) {
+	void Process(Client& client, string& line) {
 		// turn line into another stream
 		istringstream parts(line);
 		string cmd;
@@ -300,7 +300,8 @@ namespace DolphinWatch {
 
 			ostringstream message;
 			message << "MEM " << addr << " " << val << endl;
-			Send(*(client.socket), message.str());
+			std::string messagestr = message.str();
+			Send(*(client.socket), messagestr);
 
 		}
 		else if (cmd == "SUBSCRIBE") {
@@ -315,7 +316,7 @@ namespace DolphinWatch {
 
 			// TODO handle overlapping subscribes etc. better. maybe by returning the mode again?
 
-			for (auto &sub : client.subs) {
+			for (Subscription& sub : client.subs) {
 				if (sub.addr == addr) {
 					return;
 				}
@@ -342,7 +343,7 @@ namespace DolphinWatch {
 
 			// TODO handle overlapping subscribes etc. better. maybe by returning the mode again?
 
-			for (auto &sub : client.subsMulti) {
+			for (SubscriptionMulti& sub : client.subsMulti) {
 				if (sub.addr == addr) {
 					return;
 				}
@@ -545,15 +546,16 @@ namespace DolphinWatch {
 
 	}
 
-	void SendFeedback(Client &client, bool success) {
+	void SendFeedback(Client& client, bool success) {
 		ostringstream msg;
 		if (success) msg << "SUCCESS";
 		else msg << "FAIL";
 		msg << endl;
-		Send(*(client.socket), msg.str());
+		std::string messagestr = msg.str();
+		Send(*(client.socket), messagestr);
 	}
 
-	void CheckSubs(Client &client) {
+	void CheckSubs(Client& client) {
 		if (!Memory::IsInitialized()) return;
 		for (Subscription& sub : client.subs) {
 			u32 val;
@@ -564,7 +566,8 @@ namespace DolphinWatch {
 				sub.prev = val;
 				ostringstream message;
 				message << "MEM " << sub.addr << " " << val << endl;
-				Send(*(client.socket), message.str());
+				std::string messagestr = message.str();
+				Send(*(client.socket), messagestr);
 			}
 		}
 		for (SubscriptionMulti& sub : client.subsMulti) {
@@ -581,7 +584,8 @@ namespace DolphinWatch {
 					message << val.at(i);
 				}
 				message << endl;
-				Send(*(client.socket), message.str());
+				std::string messagestr = message.str();
+				Send(*(client.socket), messagestr);
 			}
 		}
 	}
@@ -601,10 +605,10 @@ namespace DolphinWatch {
 
 		size_t received = 0;
 		auto status = client.socket->receive(cbuf, sizeof(cbuf) - 1, received);
-		if (status == sf::Socket::Status::Disconnected || status == sf::Socket::Status::Error) {
+		if ((status == sf::Socket::Disconnected) || (status == sf::Socket::Error)) {
 			client.disconnected = true;
 		}
-		else if (status == sf::Socket::Status::Done) {
+		else if (status == sf::Socket::Done) {
 			// add nullterminator, then add to client's buffer
 			cbuf[received] = '\0';
 			//NOTICE_LOG(CONSOLE, "IN %s", cbuf);
