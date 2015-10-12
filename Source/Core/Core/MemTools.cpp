@@ -21,6 +21,9 @@
 #ifdef __FreeBSD__
 #include <signal.h>
 #endif
+#ifndef _WIN32
+#include <unistd.h> // Needed for _POSIX_VERSION
+#endif
 
 namespace EMM
 {

@@ -70,7 +70,6 @@ public:
 
 	void SetMode(Mode mode_) { mode = mode_; }
 	Mode GetMode() const { return mode; }
-	u8** GetPPtr() { return ptr; }
 
 	template <typename K, class V>
 	void Do(std::map<K, V>& x)
@@ -235,7 +234,7 @@ public:
 
 		while (true)
 		{
-			u8 shouldExist = (list_cur ? 1 : 0);
+			u8 shouldExist = !!list_cur;
 			Do(shouldExist);
 			if (shouldExist == 1)
 			{

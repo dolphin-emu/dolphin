@@ -57,6 +57,7 @@
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
 #include "Core/Boot/Boot.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -1237,8 +1238,8 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 	u64 read_offset = 0;
 	mbedtls_md5_context ctx;
 
-	File::IOFile file(OpenGameListItem.GetFileName(), "rb");
-	u64 game_size = file.GetSize();
+	std::unique_ptr<DiscIO::IBlobReader> file(DiscIO::CreateBlobReader(OpenGameListItem.GetFileName()));
+	u64 game_size = file->GetDataSize();
 
 	wxProgressDialog progressDialog(
 		_("Computing MD5 checksum"),
@@ -1254,13 +1255,14 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 
 	while(read_offset < game_size)
 	{
-		if (!progressDialog.Update((int)((double)read_offset / (double)game_size * 1000), _("Computing MD5 checksum")))
+		if (!progressDialog.Update((int)((double)read_offset / (double)game_size * 1000)))
 			return;
 
-		size_t read_size;
-		file.ReadArray(&data[0], data.size(), &read_size);
-		mbedtls_md5_update(&ctx, &data[0], read_size);
+		size_t read_size = std::min((u64)data.size(), game_size - read_offset);
+		if (!file->Read(read_offset, read_size, data.data()))
+			return;
 
+		mbedtls_md5_update(&ctx, data.data(), read_size);
 		read_offset += read_size;
 	}
 

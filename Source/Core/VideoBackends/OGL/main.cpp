@@ -136,8 +136,7 @@ static void InitBackendInfo()
 	g_Config.backend_info.Adapters.clear();
 
 	// aamodes - 1 is to stay consistent with D3D (means no AA)
-	const int aamodes[] = { 1, 2, 4, 8 };
-	g_Config.backend_info.AAModes.assign(aamodes, aamodes + sizeof(aamodes)/sizeof(*aamodes));
+	g_Config.backend_info.AAModes = { 1, 2, 4, 8 };
 
 	// pp shaders
 	g_Config.backend_info.PPShaders = GetShaders("");

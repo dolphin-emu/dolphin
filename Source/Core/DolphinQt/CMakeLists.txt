@@ -83,4 +83,6 @@ if(APPLE)
 			DEPENDS ${BUNDLE_PATH}/Contents/Resources/Sys
 			)
 	endif()
+else()
+	install(TARGETS ${DOLPHINQT_BINARY} RUNTIME DESTINATION ${bindir})
 endif()

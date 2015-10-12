@@ -36,7 +36,7 @@ public:
 
 	bool FlagsNeeded();
 
-	void Default(UDSPInstruction inst);
+	void FallBackToInterpreter(UDSPInstruction inst);
 
 	// CC Util
 	void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
