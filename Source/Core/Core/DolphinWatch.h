@@ -53,18 +53,18 @@ namespace DolphinWatch {
 
 	void Init(unsigned short port, CFrame* main_frame);
 	void Shutdown();
-	void process(Client& client, string& line);
-	void checkSubs(Client& client);
-	void pollClient(Client& client);
-	void poll();
-	void send(sf::TcpSocket& socket, string& data);
-	void setVolume(int v);
-	void sendFeedback(Client& client, bool success);
+	void Process(Client& client, string& line);
+	void CheckSubs(Client& client);
+	void PollClient(Client& client);
+	void Poll();
+	void Send(sf::TcpSocket& socket, string& message);
+	void SetVolume(int v);
+	void SendFeedback(Client& client, bool success);
 
-	WiimoteEmu::Wiimote* getWiimote(int i_wiimote);
-	GCPad* getGCPad(int i_pad);
-	void sendButtonsWii(int i_wiimote, u16 _buttons);
-	void sendButtonsGC(int i_pad, u16 _buttons);
-	void checkHijacks();
+	WiimoteEmu::Wiimote* GetWiimote(int i_wiimote);
+	GCPad* GetGCPad(int i_pad);
+	void SendButtonsWii(int i_wiimote, u16 _buttons);
+	void SendButtonsGC(int i_pad, u16 _buttons);
+	void CheckHijacks();
 
 }

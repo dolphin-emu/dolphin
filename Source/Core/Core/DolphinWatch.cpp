@@ -28,27 +28,27 @@ namespace DolphinWatch {
 	static char cbuf[1024];
 
 	static thread thrMemory, thrRecv;
-	static atomic<bool> running=true;
+	static atomic<bool> running;
 	static mutex client_mtx;
 
 	static int hijacksWii[NUM_WIIMOTES];
 	static int hijacksGC[NUM_GCPADS];
 	static CFrame* main_frame;
 
-	WiimoteEmu::Wiimote* getWiimote(int i_wiimote) {
+	WiimoteEmu::Wiimote* GetWiimote(int i_wiimote) {
 		return ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->controllers.at(i_wiimote));
 	}
 
-	GCPad* getGCPad(int i_pad) {
+	GCPad* GetGCPad(int i_pad) {
 		return ((GCPad*)Pad::GetConfig()->controllers.at(i_pad));
 	}
 
-	void sendButtonsWii(int i_wiimote, u16 _buttons) {
+	void SendButtonsWii(int i_wiimote, u16 _buttons) {
 		if (!Core::IsRunning()) {
 			// TODO error
 			return;
 		}
-		WiimoteEmu::Wiimote* wiimote = getWiimote(i_wiimote);
+		WiimoteEmu::Wiimote* wiimote = GetWiimote(i_wiimote);
 
 		// disable reports from actual wiimote for a while, aka hijack for a while
 		wiimote->SetReportingAuto(false);
@@ -76,7 +76,7 @@ namespace DolphinWatch {
 
 	}
 
-	void sendButtonsGC(int i_pad, u16 _buttons, float stickX, float stickY, float substickX, float substickY) {
+	void SendButtonsGC(int i_pad, u16 _buttons, float stickX, float stickY, float substickX, float substickY) {
 		if (!Core::IsRunning()) {
 			// TODO error
 			return;
@@ -90,7 +90,7 @@ namespace DolphinWatch {
 			return;
 		}
 
-		GCPad* pad = getGCPad(i_pad);
+		GCPad* pad = GetGCPad(i_pad);
 
 		GCPadStatus status;
 		status.err = PadError::PAD_ERR_NONE;
@@ -105,7 +105,7 @@ namespace DolphinWatch {
 		hijacksGC[i_pad] = HIJACK_TIMEOUT;
 	}
 
-	void checkHijacks() {
+	void CheckHijacks() {
 		if (!Core::IsRunning() || Core::GetState() != Core::CORE_RUN) {
 			return;
 		}
@@ -114,7 +114,7 @@ namespace DolphinWatch {
 			hijacksWii[i] -= WATCH_TIMEOUT;
 			if (hijacksWii[i] <= 0) {
 				hijacksWii[i] = 0;
-				getWiimote(i)->SetReportingAuto(true);
+				GetWiimote(i)->SetReportingAuto(true);
 			}
 		}
 		for (int i = 0; i < NUM_GCPADS; ++i) {
@@ -124,13 +124,14 @@ namespace DolphinWatch {
 				hijacksGC[i] = 0;
 				GCPadStatus status;
 				status.err = PadError::PAD_ERR_NO_CONTROLLER;
-				getGCPad(i)->SetForcedInput(&status);
+				GetGCPad(i)->SetForcedInput(&status);
 			}
 		}
 	}
 
-	void Init(unsigned short port, CFrame* main_frame) {
-		DolphinWatch::main_frame = main_frame;
+	void Init(unsigned short port, CFrame* _main_frame) {
+		running = true;
+		main_frame = _main_frame;
 		server.listen(port);
 
 		memset(hijacksWii, 0, sizeof(hijacksWii));
@@ -143,23 +144,23 @@ namespace DolphinWatch {
 					lock_guard<mutex> locked(client_mtx);
 					for (Client& client : clients) {
 						// check subscriptions
-						checkSubs(client);
+						CheckSubs(client);
 					}
 				}
 				Common::SleepCurrentThread(WATCH_TIMEOUT);
-				checkHijacks();
+				CheckHijacks();
 			}
 		});
 
 		// thread to handle incoming data.
 		thrRecv = thread([]() {
 			while (running) {
-				poll();
+				Poll();
 			}
 		});
 	}
 
-	void poll() {
+	void Poll() {
 		sf::SocketSelector selector;
 		{
 			lock_guard<mutex> locked(client_mtx);
@@ -174,7 +175,7 @@ namespace DolphinWatch {
 			for (Client& client : clients) {
 				if (selector.isReady(*client.socket)) {
 					// poll incoming data from clients, then process
-					pollClient(client);
+					PollClient(client);
 				}
 			}
 			if (selector.isReady(server)) {
@@ -200,7 +201,7 @@ namespace DolphinWatch {
 		// socket closing is implicit for sfml library during destruction
 	}
 
-	void process(Client &client, string &line) {
+	void Process(Client &client, string &line) {
 		// turn line into another stream
 		istringstream parts(line);
 		string cmd;
@@ -299,7 +300,7 @@ namespace DolphinWatch {
 
 			ostringstream message;
 			message << "MEM " << addr << " " << val << endl;
-			send(*client.socket, message.str());
+			Send(*(client.socket), message.str());
 
 		}
 		else if (cmd == "SUBSCRIBE") {
@@ -402,7 +403,7 @@ namespace DolphinWatch {
 				return;
 			}
 
-			sendButtonsWii(i_wiimote, states);
+			SendButtonsWii(i_wiimote, states);
 
 		}
 		else if (cmd == "BUTTONSTATES_GC") {
@@ -422,7 +423,7 @@ namespace DolphinWatch {
 				return;
 			}
 
-			sendButtonsGC(i_pad, states, sx, sy, ssx, ssy);
+			SendButtonsGC(i_pad, states, sx, sy, ssx, ssy);
 
 		}
 		else if (cmd == "PAUSE") {
@@ -468,7 +469,7 @@ namespace DolphinWatch {
 
 			if (!Core::IsRunning()) {
 				NOTICE_LOG(CONSOLE, "Core not running, can't load savestate: %s", line.c_str());
-				sendFeedback(client, false);
+				SendFeedback(client, false);
 				return;
 			}
 
@@ -477,7 +478,7 @@ namespace DolphinWatch {
 			file = StripSpaces(file);
 			if (file.empty() || file.find_first_of("?\"<>|") != string::npos) {
 				NOTICE_LOG(CONSOLE, "Invalid filename for loading savestate: %s", line.c_str());
-				sendFeedback(client, false);
+				SendFeedback(client, false);
 				return;
 			}
 
@@ -485,7 +486,7 @@ namespace DolphinWatch {
 			if (!success) {
 				NOTICE_LOG(CONSOLE, "Could not load savestate: %s", file.c_str());
 			}
-			sendFeedback(client, success);
+			SendFeedback(client, success);
 
 		}
 		else if (cmd == "VOLUME") {
@@ -523,7 +524,7 @@ namespace DolphinWatch {
 				return;
 			}
 
-			setVolume(v);
+			SetVolume(v);
 
 		}
 		else if (cmd == "STOP") {
@@ -549,9 +550,9 @@ namespace DolphinWatch {
 			//Host_UpdateMainFrame();
 			//Host_NotifyMapLoaded();
 			//Core::SetState(Core::EState::CORE_UNINITIALIZED);
-			DVDInterface::SetDiscInside(false);
+			//DVDInterface::SetDiscInside(false);
 			//DVDInterface::Shutdown();
-			//DVDInterface::ChangeDisc(file);
+			DVDInterface::ChangeDisc(file);
 			//Core::Stop();
 			//BootManager::Stop();
 			//BootManager::BootCore(file);
@@ -563,15 +564,15 @@ namespace DolphinWatch {
 
 	}
 
-	void sendFeedback(Client &client, bool success) {
+	void SendFeedback(Client &client, bool success) {
 		ostringstream msg;
 		if (success) msg << "SUCCESS";
 		else msg << "FAIL";
 		msg << endl;
-		send(*client.socket, msg.str());
+		Send(*(client.socket), msg.str());
 	}
 
-	void checkSubs(Client &client) {
+	void CheckSubs(Client &client) {
 		if (!Memory::IsInitialized()) return;
 		for (Subscription& sub : client.subs) {
 			u32 val;
@@ -582,7 +583,7 @@ namespace DolphinWatch {
 				sub.prev = val;
 				ostringstream message;
 				message << "MEM " << sub.addr << " " << val << endl;
-				send(*client.socket, message.str());
+				Send(*(client.socket), message.str());
 			}
 		}
 		for (SubscriptionMulti& sub : client.subsMulti) {
@@ -599,12 +600,12 @@ namespace DolphinWatch {
 					message << val.at(i);
 				}
 				message << endl;
-				send(*client.socket, message.str());
+				Send(*(client.socket), message.str());
 			}
 		}
 	}
 
-	void pollClient(Client& client) {
+	void PollClient(Client& client) {
 		// clean the client's buffer.
 		// By default a stringbuffer keeps already read data.
 		// a deque would do what we want, by not keeping that data, but then we would not have
@@ -643,17 +644,17 @@ namespace DolphinWatch {
 				string s2;
 				istringstream subcmds(s);
 				while (getline(subcmds, s2, ';')) {
-					if (!s2.empty()) process(client, s2);
+					if (!s2.empty()) Process(client, s2);
 				}
 			}
 		}
 	}
 
-	void send(sf::TcpSocket& socket, string& message) {
+	void Send(sf::TcpSocket& socket, string& message) {
 		socket.send(message.c_str(), message.size());
 	}
 
-	void setVolume(int v) {
+	void SetVolume(int v) {
 		SConfig::GetInstance().m_Volume = v;
 		AudioCommon::UpdateSoundStream();
 	}
