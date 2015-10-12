@@ -573,7 +573,7 @@ void ProgramShaderCache::CreateHeader()
 		"%s\n" // msaa
 		"%s\n" // Sampler binding
 		"%s\n" // storage buffer
-		"%s\n" // shader5
+		"%s\n" // gpu_shader5
 		"%s\n" // SSAA
 		"%s\n" // Geometry point size
 		"%s\n" // AEP
