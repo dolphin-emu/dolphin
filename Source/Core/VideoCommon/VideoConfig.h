@@ -172,6 +172,10 @@ struct VideoConfig final {
     bool bSupportsClipControl; // Needed by VertexShaderGen, so must stay in
                                // VideoCommon
     bool bSupportsSSAA;
+    bool
+        bSupportsBitfield; // Needed by UberShaders, so must stay in VideoCommon
+    bool bSupportsDynamicSamplerIndexing; // Needed by UberShaders, so must stay
+                                          // in VideoCommon
   } backend_info;
 
   // Utility
