@@ -326,7 +326,7 @@ void PixelShaderManager::UpdateBP(u32 bp, u32 newValue)
 	// TODO: think of a less totally hacky way of doing this.
 	if (bp == 0)
 	{
-		more_constants.genmode[0] = newValue;
+		more_constants.genmode = newValue;
 		dirty = true;
 	}
 	else if (bp >= 0x28 && bp < 0x30)
@@ -339,6 +339,11 @@ void PixelShaderManager::UpdateBP(u32 bp, u32 newValue)
 	{
 		u32 comb = bp - 0xc0;
 		more_constants.combiners[comb >> 1][comb & 1] = newValue;
+		dirty = true;
+	}
+	else if (bp == 0xf3)
+	{
+		more_constants.alphaTest = newValue;
 		dirty = true;
 	}
 	else if (bp >= 0xf8)
