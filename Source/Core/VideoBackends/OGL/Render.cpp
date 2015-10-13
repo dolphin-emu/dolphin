@@ -460,8 +460,10 @@ Renderer::Renderer() {
   g_Config.backend_info.bSupportsDynamicSamplerIndexing =
       GLExtensions::Version() >= 400;
 
+  // Tempoarally disable opengl's shader cache, so it stops messing me up.
+  // TODO: Remember to re-enable this.
   g_ogl_config.bSupportsGLSLCache =
-      GLExtensions::Supports("GL_ARB_get_program_binary");
+      false; // GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory =
       GLExtensions::Supports("GL_AMD_pinned_memory");
   g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
