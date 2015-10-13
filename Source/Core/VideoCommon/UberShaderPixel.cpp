@@ -95,7 +95,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 			"	// This is messy, but DirectX, OpenGl 3.3 and Opengl ES 3.0 doesn't support dynamic indexing of the sampler array\n"
 			"	// With any luck the shader compiler will optimise this if the hardware supports dynamic indexing.\n"
 			"	switch(sampler_num & 0x7u) {\n");
-		for (int i=0; i < 8; i++)
+		for (int i = 0; i < 8; i++)
 		{
 			if (ApiType == API_OPENGL) out.Write(
 				"	case %du: return int4(texture(samp[%d], float3(uv, 0.0)) * 255.0);\n", i, i);
@@ -164,6 +164,109 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	}\n"
 		"}\n\n");
 
+	// =================
+	//   Input Selects
+	// =================
+	out.Write(
+		"struct State {\n"
+		"	int4 Reg[4];\n"
+		"	int4 RasColor;\n"
+		"	int4 TexColor;\n"
+		"	int4 KonstColor;\n"
+		"};\n"
+		"\n"
+		"int3 selectColorInput(State s, uint index) {\n"
+		"	switch (index &15) {\n"
+		"	case 0u: // prev.rgb\n"
+		"		return s.Reg[0].rgb;\n"
+		"	case 1u: // prev.aaa\n"
+		"		return s.Reg[0].aaa;\n"
+		"	case 2u: // c0.rgb\n"
+		"		return s.Reg[1].rgb;\n"
+		"	case 3u: // c0.aaa\n"
+		"		return s.Reg[1].aaa;\n"
+		"	case 4u: // c1.rgb\n"
+		"		return s.Reg[2].rgb;\n"
+		"	case 5u: // c1.aaa\n"
+		"		return s.Reg[2].aaa;\n"
+		"	case 6u: // c2.rgb\n"
+		"		return s.Reg[3].rgb;\n"
+		"	case 7u: // c2.aaa\n"
+		"		return s.Reg[3].aaa;\n"
+		"	case 8u:\n"
+		"		return s.TexColor.rgb;\n"
+		"	case 9u:\n"
+		"		return s.TexColor.aaa;\n"
+		"	case 10u:\n"
+		"		return s.RasColor.rgb;\n"
+		"	case 11u:\n"
+		"		return s.RasColor.aaa;\n"
+		"	case 12u: // One\n"
+		"		return int3(255, 255, 255);\n"
+		"	case 13u: // Half\n"
+		"		return int3(128, 128, 128);\n"
+		"	case 14u:\n"
+		"		return s.KonstColor.rgb;\n"
+		"	case 15u: // Zero\n"
+		"		return int3(0, 0, 0);\n"
+		"	}\n"
+		"}\n"
+		"int selectAlphaInput(State s, uint index) {\n"
+		"	switch (index &7) {\n"
+		"	case 0u: // prev.a\n"
+		"		return s.Reg[0].a;\n"
+		"	case 1u: // c0.a\n"
+		"		return s.Reg[1].a;\n"
+		"	case 2u: // c1.a\n"
+		"		return s.Reg[2].a;\n"
+		"	case 3u: // c2.a\n"
+		"		return s.Reg[3].a;\n"
+		"	case 4u:\n"
+		"		return s.TexColor.a;\n"
+		"	case 5u:\n"
+		"		return s.RasColor.a;\n"
+		"	case 6u:\n"
+		"		return s.KonstColor.a;\n"
+		"	case 7u: // Zero\n"
+		"		return 0;\n"
+		"	}\n"
+		"}\n"
+		"\n"
+		"void setRegColor(inout State s, uint index, int3 color) {\n"
+		"	switch (index &3) {\n"
+		"	case 0u: // prev\n"
+		"		s.Reg[0].rgb = color;\n"
+		"		break;\n"
+		"	case 1u: // c0\n"
+		"		s.Reg[1].rgb = color;\n"
+		"		break;\n"
+		"	case 2u: // c1\n"
+		"		s.Reg[2].rgb = color;\n"
+		"		break;\n"
+		"	case 3u: // c2\n"
+		"		s.Reg[3].rgb = color;\n"
+		"		break;\n"
+		"	}\n"
+		"}\n"
+		"\n"
+		"void setRegAlpha(inout State s, uint index, int alpha) {\n"
+		"	switch (index &3) {\n"
+		"	case 0u: // prev\n"
+		"		s.Reg[0].a = alpha;\n"
+		"		break;\n"
+		"	case 1u: // c0\n"
+		"		s.Reg[1].a = alpha;\n"
+		"		break;\n"
+		"	case 2u: // c1\n"
+		"		s.Reg[2].a = alpha;\n"
+		"		break;\n"
+		"	case 3u: // c2\n"
+		"		s.Reg[3].a = alpha;\n"
+		"		break;\n"
+		"	}\n"
+		"}\n"
+		"\n");
+
 	if (ApiType == API_OPENGL)
 	{
 		out.Write("out vec4 ocol0;\n");
@@ -210,47 +313,23 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		out.Write("        ) {\n");
 	}
 
-	// input lookup arrays
-	out.Write(
-		"	int3 ColorInput[16];\n"
-		"	// ColorInput initial state:\n"
-		"	ColorInput[0]  = " I_COLORS"[0].rgb;\n"
-		"	ColorInput[1]  = " I_COLORS"[0].aaa;\n"
-		"	ColorInput[2]  = " I_COLORS"[1].rgb;\n"
-		"	ColorInput[3]  = " I_COLORS"[1].aaa;\n"
-		"	ColorInput[4]  = " I_COLORS"[2].rgb;\n"
-		"	ColorInput[5]  = " I_COLORS"[2].aaa;\n"
-		"	ColorInput[6]  = " I_COLORS"[3].rgb;\n"
-		"	ColorInput[7]  = " I_COLORS"[3].aaa;\n"
-		"	ColorInput[8]  = int3(0, 0, 0); // TexColor.rgb (uninitilized)\n"
-		"	ColorInput[9]  = int3(0, 0, 0); // TexColor.aaa (uninitilized)\n"
-		"	ColorInput[10] = int3(0, 0, 0); // RasColor.rgb (uninitilized)\n"
-		"	ColorInput[11] = int3(0, 0, 0); // RasColor.aaa (uninitilized)\n"
-		"	ColorInput[12] = int3(255, 255, 255); // One constant\n"
-		"	ColorInput[13] = int3(128, 128, 128); // Half constant\n"
-		"	ColorInput[14] = int3(0, 0, 0); // KonstColor.rgb (unititilized)\n"
-		"	ColorInput[15] = int3(0, 0, 0); // Zero constant\n"
-		"\n"
-		"	int AlphaInput[8];\n"
-		"	// AlphaInput's intial state:\n"
-		"	AlphaInput[0] = " I_COLORS"[0].a;\n"
-		"	AlphaInput[1] = " I_COLORS"[1].a;\n"
-		"	AlphaInput[2] = " I_COLORS"[2].a;\n"
-		"	AlphaInput[3] = " I_COLORS"[3].a;\n"
-		"	AlphaInput[4] = 0; // TexColor.a (uninitilized)\n"
-		"	AlphaInput[5] = 0; // RasColor.a (uninitilized)\n"
-		"	AlphaInput[6] = 0; // KostColor.a (uninitilized)\n"
-		"	AlphaInput[7] = 0; // Zero constant\n"
-		"\n");
-
 	out.Write(
 		"	int AlphaBump = 0;\n"
 		"	int4 icolors_0 = int4(colors_0 * 255.0);\n"
 		"	int4 icolors_1 = int4(colors_1 * 255.0);\n"
-		"	int4 TevResult = " I_COLORS"[0];\n"
+		"	int4 TevResult;\n"
+		"	State s;\n"
+		"	s.TexColor = int4(0, 0, 0, 0);\n"
+		"	s.RasColor = int4(0, 0, 0, 0);\n"
+		"	s.KonstColor = int4(0, 0, 0, 0);\n"
 		"\n");
+	for (int i = 0; i < 4; i++) out.Write(
+		"	s.Reg[%d] = " I_COLORS"[%d];\n", i, i);
 
-	out.Write("	uint num_stages = %s;\n", BitfieldExtract("bpmem_genmode", bpmem.genMode.numtevstages).c_str());
+
+	out.Write(
+		"\n"
+		"	uint num_stages = %s;\n\n", BitfieldExtract("bpmem_genmode", bpmem.genMode.numtevstages).c_str());
 
 	out.Write(
 		"	// Main tev loop\n");
@@ -292,28 +371,24 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			texColor = int4(255, 255, 255, 255);\n"
 		"		}\n"
 		"		// TODO: color channel swapping\n"
-		"		ColorInput[8] = texColor.rgb;\n"
-		"		ColorInput[9] = texColor.aaa;\n"
-		"		AlphaInput[4] = texColor.a;\n"
+		"		s.TexColor = texColor;\n"
 		"\n");
 	}
 
 	out.Write(
 		"		// Set Konst for stage\n"
+		"		// TODO: a switch case might be better here than an dynamically indexed uniform lookup\n"
 		"		uint tevksel = bpmem_tevksel[stage>>1];\n"
-		"		int4 konst;\n"
 		"		if ((stage & 1u) == 0u)\n"
-		"			konst = int4(konstLookup[%s].rgb, konstLookup[%s].a);\n",
+		"			s.KonstColor = int4(konstLookup[%s].rgb, konstLookup[%s].a);\n",
 		BitfieldExtract("tevksel", bpmem.tevksel[0].kcsel0).c_str(),
 		BitfieldExtract("tevksel", bpmem.tevksel[0].kasel0).c_str());
 	out.Write(
 		"		else\n"
-		"			konst = int4(konstLookup[%s].rgb, konstLookup[%s].a);\n\n",
+		"			s.KonstColor = int4(konstLookup[%s].rgb, konstLookup[%s].a);\n\n",
 		BitfieldExtract("tevksel", bpmem.tevksel[0].kcsel1).c_str(),
 		BitfieldExtract("tevksel", bpmem.tevksel[0].kasel1).c_str());
 	out.Write(
-		"		ColorInput[14] = konst.rgb;\n"
-		"		AlphaInput[6] = konst.a;\n"
 		"\n");
 
 	out.Write(
@@ -339,9 +414,8 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			break;\n"
 		"		}\n"
 		"		// TODO: color channel swapping\n"
-		"		ColorInput[10] = ras.rgb;\n"
-		"		ColorInput[11] = ras.aaa;\n"
-		"		AlphaInput[5]  = ras.a;\n"
+		"		s.RasColor = ras;\n"
+		"\n"
 		"\n");
 
 	out.Write(
@@ -360,34 +434,33 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 
 	out.Write(
 		"\n"
-		"			int3 A = ColorInput[a] & int3(255, 255, 255);\n"
-		"			int3 B = ColorInput[b] & int3(255, 255, 255);\n"
-		"			int3 C = ColorInput[c] & int3(255, 255, 255);\n"
-		"			int3 D = ColorInput[d]; // 10 bits + sign\n" // TODO: do we need to sign extend?
+		"			int3 A = selectColorInput(s, a) & int3(255, 255, 255);\n"
+		"			int3 B = selectColorInput(s, b) & int3(255, 255, 255);\n"
+		"			int3 C = selectColorInput(s, c) & int3(255, 255, 255);\n"
+		"			int3 D = selectColorInput(s, d);  // 10 bits + sign\n" // TODO: do we need to sign extend?
 		"\n"
-		"			int3 result;\n"
+		"			int3 color;\n"
 		"			if(bias != 3u) { // Normal mode\n"
-		"				result.r = tevLerp(A.r, B.r, C.r, D.r, bias, op, shift);\n"
-		"				result.g = tevLerp(A.g, B.g, C.g, D.g, bias, op, shift);\n"
-		"				result.b = tevLerp(A.b, B.b, C.b, D.b, bias, op, shift);\n"
+		"				color.r = tevLerp(A.r, B.r, C.r, D.r, bias, op, shift);\n"
+		"				color.g = tevLerp(A.g, B.g, C.g, D.g, bias, op, shift);\n"
+		"				color.b = tevLerp(A.b, B.b, C.b, D.b, bias, op, shift);\n"
 		"			} else { // Compare mode\n"
 		"				// Not implemented\n" // Not Implemented
-		"				result = int3(255, 0, 0);\n"
+		"				color = int3(255, 0, 0);\n"
 		"			}\n"
 		"\n"
 		"			// Clamp result\n"
 		"			if (_clamp)\n"
-		"				result = clamp(result, 0, 255);\n"
+		"				color = clamp(color, 0, 255);\n"
 		"			else\n"
-		"				result = clamp(result, -1024, 1023);\n"
+		"				color = clamp(color, -1024, 1023);\n"
 		"\n"
 		"			if (stage == num_stages) { // If this is the last stage\n"
 		"				// Write result to output\n"
-		"				TevResult.rgb = result;\n"
-		"				//break;\n"
+		"				TevResult.rgb = color;\n"
 		"			} else {\n"
 		"				// Write result to the correct input register of the next stage\n"
-		"				ColorInput[dest<<1] = result;\n"
+		"				setRegColor(s, dest, color);\n"
 		"			}\n"
 		"		}\n");
 
@@ -409,32 +482,31 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 
 	out.Write(
 		"\n"
-		"			int A = AlphaInput[a] & 255;\n"
-		"			int B = AlphaInput[b] & 255;\n"
-		"			int C = AlphaInput[c] & 255;\n"
-		"			int D = AlphaInput[d]; // 10 bits + sign\n" // TODO: do we need to sign extend?
+		"			int A = selectAlphaInput(s, a) & 255;\n"
+		"			int B = selectAlphaInput(s, b) & 255;\n"
+		"			int C = selectAlphaInput(s, c) & 255;\n"
+		"			int D = selectAlphaInput(s, d); // 10 bits + sign\n" // TODO: do we need to sign extend?
 		"\n"
-		"			int result;\n"
+		"			int alpha;\n"
 		"			if(bias != 3u) { // Normal mode\n"
-		"				result = tevLerp(A, B, C, D, bias, op, shift);\n"
+		"				alpha = tevLerp(A, B, C, D, bias, op, shift);\n"
 		"			} else { // Compare mode\n"
 		"				// Not implemented\n" // Not Implemented
-		"				result = 255;\n"
+		"				alpha = 255;\n"
 		"			}\n"
 		"\n"
 		"			// Clamp result\n"
 		"			if (_clamp)\n"
-		"				result = clamp(result, 0, 255);\n"
+		"				alpha = clamp(alpha, 0, 255);\n"
 		"			else\n"
-		"				result = clamp(result, -1024, 1023);\n"
+		"				alpha = clamp(alpha, -1024, 1023);\n"
 		"\n"
 		"			if (stage == num_stages) { // If this is the last stage\n"
 		"				// Write result to output\n"
-		"				TevResult.a = result;\n"
+		"				TevResult.a = alpha;\n"
 		"			} else {\n"
 		"				// Write result to the correct input register of the next stage\n"
-		"				AlphaInput[dest] = result;\n"
-		"				ColorInput[(dest << 1) + 1u] = int3(result, result, result);\n"
+		"				setRegAlpha(s, dest, alpha);\n"
 		"			}\n"
 		"		}\n");
 
