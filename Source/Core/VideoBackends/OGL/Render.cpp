@@ -460,7 +460,9 @@ Renderer::Renderer()
 	// OpenGL ES 3.1 and later also support this.
 	g_Config.backend_info.bSupportsDynamicSamplerIndexing = GLExtensions::Version() >= 400;
 
-	g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
+	// Tempoarally disable opengl's shader cache, so it stops messing me up.
+	// TODO: Remember to re-enable this.
+	g_ogl_config.bSupportsGLSLCache = false; //GLExtensions::Supports("GL_ARB_get_program_binary");
 	g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
 	g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
 	g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex") ||
