@@ -36,13 +36,10 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-namespace DX11
-{
-unsigned int VideoBackend::PeekMessages()
-{
+namespace DX11 {
+unsigned int VideoBackend::PeekMessages() {
   MSG msg;
-  while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-  {
+  while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
     if (msg.message == WM_QUIT)
       return FALSE;
     TranslateMessage(&msg);
@@ -51,23 +48,15 @@ unsigned int VideoBackend::PeekMessages()
   return TRUE;
 }
 
-std::string VideoBackend::GetName() const
-{
-  return "D3D";
-}
+std::string VideoBackend::GetName() const { return "D3D"; }
 
-std::string VideoBackend::GetDisplayName() const
-{
-  return "Direct3D 11";
-}
+std::string VideoBackend::GetDisplayName() const { return "Direct3D 11"; }
 
-void InitBackendInfo()
-{
+void InitBackendInfo() {
   HRESULT hr = DX11::D3D::LoadDXGI();
   if (SUCCEEDED(hr))
     hr = DX11::D3D::LoadD3D();
-  if (FAILED(hr))
-  {
+  if (FAILED(hr)) {
     DX11::D3D::UnloadDXGI();
     return;
   }
@@ -82,38 +71,39 @@ void InitBackendInfo()
   g_Config.backend_info.bSupportsPostProcessing = false;
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
+  g_Config.backend_info.bSupportsBitfield = false;
+  g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
 
-  IDXGIFactory* factory;
-  IDXGIAdapter* ad;
-  hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+  IDXGIFactory *factory;
+  IDXGIAdapter *ad;
+  hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void **)&factory);
   if (FAILED(hr))
     PanicAlert("Failed to create IDXGIFactory object");
 
   // adapters
   g_Config.backend_info.Adapters.clear();
   g_Config.backend_info.AAModes.clear();
-  while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) !=
-         DXGI_ERROR_NOT_FOUND)
-  {
+  while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(),
+                               &ad) != DXGI_ERROR_NOT_FOUND) {
     const size_t adapter_index = g_Config.backend_info.Adapters.size();
 
     DXGI_ADAPTER_DESC desc;
     ad->GetDesc(&desc);
 
     // TODO: These don't get updated on adapter change, yet
-    if (adapter_index == g_Config.iAdapter)
-    {
+    if (adapter_index == g_Config.iAdapter) {
       std::string samples;
       std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
       // First iteration will be 1. This equals no AA.
-      for (unsigned int i = 0; i < modes.size(); ++i)
-      {
+      for (unsigned int i = 0; i < modes.size(); ++i) {
         g_Config.backend_info.AAModes.push_back(modes[i].Count);
       }
 
-      bool shader_model_5_supported = (DX11::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
+      bool shader_model_5_supported =
+          (DX11::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
 
-      // Requires the earlydepthstencil attribute (only available in shader model 5)
+      // Requires the earlydepthstencil attribute (only available in shader
+      // model 5)
       g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
 
       // Requires full UAV functionality (only available in shader model 5)
@@ -138,14 +128,12 @@ void InitBackendInfo()
   DX11::D3D::UnloadD3D();
 }
 
-void VideoBackend::ShowConfig(void* hParent)
-{
+void VideoBackend::ShowConfig(void *hParent) {
   InitBackendInfo();
   Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_dx11");
 }
 
-bool VideoBackend::Initialize(void* window_handle)
-{
+bool VideoBackend::Initialize(void *window_handle) {
   if (window_handle == nullptr)
     return false;
 
@@ -170,8 +158,7 @@ bool VideoBackend::Initialize(void* window_handle)
   return true;
 }
 
-void VideoBackend::Video_Prepare()
-{
+void VideoBackend::Video_Prepare() {
   // internal interfaces
   g_renderer = std::make_unique<Renderer>(m_window_handle);
   g_texture_cache = std::make_unique<TextureCache>();
@@ -199,13 +186,11 @@ void VideoBackend::Video_Prepare()
   Host_Message(WM_USER_CREATE);
 }
 
-void VideoBackend::Shutdown()
-{
+void VideoBackend::Shutdown() {
   m_initialized = false;
 
   // TODO: should be in Video_Cleanup
-  if (g_renderer)
-  {
+  if (g_renderer) {
     // VideoCommon
     Fifo::Shutdown();
     CommandProcessor::Shutdown();
@@ -229,7 +214,5 @@ void VideoBackend::Shutdown()
   }
 }
 
-void VideoBackend::Video_Cleanup()
-{
-}
+void VideoBackend::Video_Cleanup() {}
 }
