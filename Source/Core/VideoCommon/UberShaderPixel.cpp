@@ -128,7 +128,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	if (shift == 3u)\n"
 		"		result = result >> 1;\n"
 		"	return result;\n"
-		"}");
+		"}\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
