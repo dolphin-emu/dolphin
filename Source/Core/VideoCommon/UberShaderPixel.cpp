@@ -50,16 +50,24 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 
 	// TODO: early depth tests (we will need multiple shaders)
 
+	// ==============================================
+	//  BitfieldExtract for APIs which don't have it
+	// ==============================================
+
 	if (!g_ActiveConfig.backend_info.bSupportsBitfield)
 	{
 		out.Write(
 			"uint bitfieldExtract(uint val, int off, int size) {\n"
-			"	// This built-in function is only support in OpenGL 4.0 and ES 3.1\n"
-			"	// Hopefully the shader compiler will get our meaning and emit the right instruction\n"
+			"	// This built-in function is only support in OpenGL 4.0+ and ES 3.1+\n"
+			"	// Microsoft's HLSL compiler automatically optimises this to a bitfield extract instruction.\n"
 			"	uint mask = uint((1 << size) - 1);\n"
 			"	return uint(val >> off) & mask;\n"
 			"}\n\n");
 	}
+
+	// =====================
+	//   Texture Sampling
+	// =====================
 
 	if (g_ActiveConfig.backend_info.bSupportsDynamicSamplerIndexing)
 	{
@@ -91,6 +99,36 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 			"	}\n"
 			"}\n\n");
 	}
+
+	// ==========
+	//    Lerp
+	// ==========
+
+	out.Write(
+		"// One channel worth of TEV's Linear Interpolate, plus bias, add/subtract and scale\n"
+		"int tevLerp(int A, int B, int C, int D, uint bias, bool op, uint shift) {\n"
+		"	C += C >> 7; // Scale C from 0..255 to 0..256\n"
+		"	int lerp = (A << 8) + (B - A)*C;\n"
+		"	if (shift != 3u) {\n"
+		"		lerp = lerp << shift;\n"
+		"		lerp = lerp + (op ? 127 : 128);\n"
+		"	}\n"
+		"	int result = lerp >> 8;\n"
+		"\n"
+		"	// Add/Subtract D (and bias)\n"
+		"	if (bias == 1u) result += 128;\n"
+		"	else if (bias == 2u) result -= 128;\n"
+		"	if(!op) // Add\n"
+		"		result = D + result;\n"
+		"	else // Subtract\n"
+		"		result = D - result;\n"
+		"\n"
+		"	// Most of the Shift was moved inside the lerp for improved percision\n"
+		"	// But we still do the divide by 2 here\n"
+		"	if (shift == 3u)\n"
+		"		result = result >> 1;\n"
+		"	return result;\n"
+		"}");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -295,27 +333,9 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"\n"
 		"			int3 result;\n"
 		"			if(bias != 3u) { // Normal mode\n"
-		"				// Lerp A and B with C\n"
-		"				C += C >> 7; // Scale C from 0..255 to 0..256\n"
-		"				int3 lerp = (A << 8) + (B - A)*C;\n"
-		"				if (shift != 3u) {\n"
-		"					lerp = lerp << shift;\n"
-		"					lerp = lerp + (op ? 127 : 128);\n"
-		"				}\n"
-		"				result = lerp >> 8;\n"
-		"\n"
-		"				// Add/Subtract D (and bias)\n"
-		"				if (bias == 1u) result += 128;\n"
-		"				else if (bias == 2u) result -= 128;\n"
-		"				if(!op) // Add\n"
-		"					result = D + result;\n"
-		"				else // Subtract\n"
-		"					result = D - result;\n"
-		"\n"
-		"				// Most of the Shift was moved inside the lerp for improved percision\n"
-		"				// But we still do the divide by 2 here\n"
-		"				if (shift == 3u)\n"
-		"					result = result >> 1;\n"
+		"				result.r = tevLerp(A.r, B.r, C.r, D.r, bias, op, shift);\n"
+		"				result.g = tevLerp(A.g, B.g, C.g, D.g, bias, op, shift);\n"
+		"				result.b = tevLerp(A.b, B.b, C.b, D.b, bias, op, shift);\n"
 		"			} else { // Compare mode\n"
 		"				// Not implemented\n" // Not Implemented
 		"				result = int3(255, 0, 0);\n"
@@ -362,27 +382,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"\n"
 		"			int result;\n"
 		"			if(bias != 3u) { // Normal mode\n"
-		"				// Lerp A and B with C\n"
-		"				C += C >> 7; // Scale C from 0..255 to 0..256\n"
-		"				int lerp = (A << 8) + (B - A)*C;\n"
-		"				if (shift != 3u) {\n"
-		"					lerp = lerp << shift;\n"
-		"					lerp = lerp + (op ? 127 : 128);\n"
-		"				}\n"
-		"				result = lerp >> 8;\n"
-		"\n"
-		"				// Add/Subtract D (and bias)\n"
-		"				if (bias == 1u) result += 128;\n"
-		"				else if (bias == 2u) result -= 128;\n"
-		"				if(!op) // Add\n"
-		"					result = D + result;\n"
-		"				else // Subtract\n"
-		"					result = D - result;\n"
-		"\n"
-		"				// Most of the Shift was moved inside the lerp for improved percision\n"
-		"				// But we still do the divide by 2 here\n"
-		"				if (shift == 3u)\n"
-		"					result = result >> 1;\n"
+		"				result = tevLerp(A, B, C, D, bias, op, shift);\n"
 		"			} else { // Compare mode\n"
 		"				// Not implemented\n" // Not Implemented
 		"				result = 255;\n"
