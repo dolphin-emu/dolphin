@@ -506,25 +506,6 @@ namespace DolphinWatch {
 				return;
 			}
 
-			setVolume(v);
-
-		}
-		else if (cmd == "VOLUME") {
-
-			int v;
-
-			if (!(parts >> v)) {
-				// no valid parameters, skip
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
-				return;
-			}
-
-			if (v < 0 || v > 100) {
-				// no valid parameters, skip
-				NOTICE_LOG(CONSOLE, "Invalid volume, must be between 0 and 100: %s", line.c_str());
-				return;
-			}
-
 			SetVolume(v);
 
 		}
