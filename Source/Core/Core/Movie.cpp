@@ -3,7 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <mutex>
-#include <polarssl/md5.h>
+#include <mbedtls/config.h>
+#include <mbedtls/md.h>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -1331,7 +1332,7 @@ void GetSettings()
 
 		file_irom.ReadArray(irom.data(), DSP_IROM_SIZE);
 		file_irom.Close();
-		for (int i = 0; i < DSP_IROM_SIZE; ++i)
+		for (u32 i = 0; i < DSP_IROM_SIZE; ++i)
 			irom[i] = Common::swap16(irom[i]);
 
 		std::vector<u16> coef(DSP_COEF_SIZE);
@@ -1339,7 +1340,7 @@ void GetSettings()
 
 		file_coef.ReadArray(coef.data(), DSP_COEF_SIZE);
 		file_coef.Close();
-		for (int i = 0; i < DSP_COEF_SIZE; ++i)
+		for (u32 i = 0; i < DSP_COEF_SIZE; ++i)
 			coef[i] = Common::swap16(coef[i]);
 		s_DSPiromHash = HashAdler32((u8*)irom.data(), DSP_IROM_BYTE_SIZE);
 		s_DSPcoefHash = HashAdler32((u8*)coef.data(), DSP_COEF_BYTE_SIZE);
@@ -1350,6 +1351,8 @@ void GetSettings()
 		s_DSPcoefHash = 0;
 	}
 }
+
+static const mbedtls_md_info_t* s_md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
 
 void CheckMD5()
 {
@@ -1364,7 +1367,7 @@ void CheckMD5()
 	Core::DisplayMessage("Verifying checksum...", 2000);
 
 	unsigned char gameMD5[16];
-	md5_file(SConfig::GetInstance().m_strFilename.c_str(), gameMD5);
+	mbedtls_md_file(s_md5_info, SConfig::GetInstance().m_strFilename.c_str(), gameMD5);
 
 	if (memcmp(gameMD5,s_MD5,16) == 0)
 		Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
@@ -1376,7 +1379,7 @@ void GetMD5()
 {
 	Core::DisplayMessage("Calculating checksum of game file...", 2000);
 	memset(s_MD5, 0, sizeof(s_MD5));
-	md5_file(SConfig::GetInstance().m_strFilename.c_str(), s_MD5);
+	mbedtls_md_file(s_md5_info, SConfig::GetInstance().m_strFilename.c_str(), s_MD5);
 	Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 

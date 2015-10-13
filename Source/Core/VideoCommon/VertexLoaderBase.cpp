@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <vector>
 
+#include "Common/Common.h"
 #include "Common/StringUtil.h"
 
 #include "VideoCommon/VertexLoader.h"

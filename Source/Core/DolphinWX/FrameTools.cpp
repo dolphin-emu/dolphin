@@ -855,10 +855,7 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 		// Core is initialized and emulator is running
 		if (UseDebugger)
 		{
-			if (CCPU::IsStepping())
-				CCPU::EnableStepping(false);
-			else
-				CCPU::EnableStepping(true);  // Break
+			CPU::EnableStepping(!CPU::IsStepping());
 
 			wxThread::Sleep(20);
 			g_pCodeWindow->JumpToAddress(PC);

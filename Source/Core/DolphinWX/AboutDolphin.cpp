@@ -129,7 +129,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 
 	wxBoxSizer* const sFooter = new wxBoxSizer(wxVERTICAL);
 	sFooter->AddSpacer(15);
-	sFooter->Add(Copyright, 0, wxALIGN_BOTTOM | wxALIGN_CENTER);
+	sFooter->Add(Copyright, 0, wxALIGN_BOTTOM | wxALIGN_CENTER_HORIZONTAL);
 	sFooter->AddSpacer(5);
 
 	wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);

@@ -75,6 +75,7 @@ public:
 
 	virtual std::string GetName() const = 0;
 	virtual std::string GetDisplayName() const { return GetName(); }
+	virtual std::string GetConfigName() const = 0;
 
 	virtual void ShowConfig(void*) = 0;
 

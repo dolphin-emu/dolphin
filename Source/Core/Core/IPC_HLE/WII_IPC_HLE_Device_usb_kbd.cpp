@@ -39,7 +39,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mod
 	//m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, nullptr));
 	Memory::Write_U32(m_DeviceID, _CommandAddress+4);
 	m_Active = true;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
@@ -50,7 +50,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _b
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
@@ -59,7 +59,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	DumpCommands(_CommandAddress, 10, LogTypes::WII_IPC_STM, LogTypes::LDEBUG);
 #endif
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
@@ -73,7 +73,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(0, _CommandAddress + 0x4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)

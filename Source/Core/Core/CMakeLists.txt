@@ -245,7 +245,7 @@ if(LIBUSB_FOUND)
 	        	       	HW/SI_GCAdapter.cpp)
 endif(LIBUSB_FOUND)
 
-set(LIBS ${LIBS} ${POLARSSL_LIBRARY})
+set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
 
 if(WIN32)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
@@ -268,7 +268,7 @@ if(PORTAUDIO_FOUND)
 endif(PORTAUDIO_FOUND)
 
 if(OPROFILE_FOUND)
-	set(LIBS ${LIBS} opagent bfd)
+	set(LIBS ${LIBS} ${OPROFILE_LIBRARIES})
 endif(OPROFILE_FOUND)
 
 if(GDBSTUB)

@@ -62,6 +62,18 @@ enum TGameCamera
 	CAMERA_NONE
 };
 
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+#define STEREOSCOPY_PRESETS_NUM 3
+#else
+constexpr int STEREOSCOPY_PRESETS_NUM = 3;
+#endif
+
+struct StereoscopyPreset final
+{
+	int depth;
+	int convergence;
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -100,6 +112,8 @@ struct VideoConfig final
 	int iStereoDepth;
 	int iStereoConvergence;
 	bool bStereoSwapEyes;
+	std::array<StereoscopyPreset, STEREOSCOPY_PRESETS_NUM> oStereoPresets;
+	int iStereoActivePreset;
 
 	// Information
 	bool bShowFPS;

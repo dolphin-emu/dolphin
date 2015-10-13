@@ -42,7 +42,7 @@ void Resume();
 void Pause();
 
 unsigned int GetAttached();
-void DoState(u8 **ptr, PointerWrap::Mode mode);
+void DoState(PointerWrap& p);
 void EmuStateChange(EMUSTATE_CHANGE newState);
 InputConfig* GetConfig();
 

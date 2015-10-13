@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -119,25 +120,22 @@ bool Nunchuk::IsButtonPressed() const
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 {
-	// ugly macroooo
-	#define set_control(group, num, str)  (group)->controls[num]->control_ref->expression = (str)
-
 	// Stick
-	set_control(m_stick, 0, "W"); // up
-	set_control(m_stick, 1, "S"); // down
-	set_control(m_stick, 2, "A"); // left
-	set_control(m_stick, 3, "D"); // right
+	m_stick->SetControlExpression(0, "W"); // up
+	m_stick->SetControlExpression(1, "S"); // down
+	m_stick->SetControlExpression(2, "A"); // left
+	m_stick->SetControlExpression(3, "D"); // right
 
 	// Buttons
 #ifdef _WIN32
-	set_control(m_buttons, 0, "LCONTROL");  // C
-	set_control(m_buttons, 1, "LSHIFT");    // Z
+	m_buttons->SetControlExpression(0, "LCONTROL");  // C
+	m_buttons->SetControlExpression(1, "LSHIFT");    // Z
 #elif __APPLE__
-	set_control(m_buttons, 0, "Left Control"); // C
-	set_control(m_buttons, 1, "Left Shift");   // Z
+	m_buttons->SetControlExpression(0, "Left Control"); // C
+	m_buttons->SetControlExpression(1, "Left Shift");   // Z
 #else
-	set_control(m_buttons, 0, "Control_L"); // C
-	set_control(m_buttons, 1, "Shift_L");   // Z
+	m_buttons->SetControlExpression(0, "Control_L"); // C
+	m_buttons->SetControlExpression(1, "Shift_L");   // Z
 #endif
 }
 

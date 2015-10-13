@@ -66,7 +66,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u
 	INFO_LOG(WII_IPC_WC24, "NET_KD_REQ: Open");
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 	m_Active = true;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::Close(u32 _CommandAddress, bool _bForce)
@@ -75,7 +75,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::Close(u32 _CommandAddress, 
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
@@ -205,7 +205,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 
@@ -349,7 +349,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::Open(u32 _CommandAddress, u
 	INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Open");
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 	m_Active = true;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::Close(u32 _CommandAddress, bool _bForce)
@@ -358,7 +358,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::Close(u32 _CommandAddress, 
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
@@ -427,7 +427,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		Memory::Write_U32(common_result, CommandBuffer.PayloadBuffer.at(common_vector).m_Address + 4);
 	}
 	Memory::Write_U32(return_value, _CommandAddress + 4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 // **********************************************************************************
@@ -446,7 +446,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::Open(u32 CommandAddress, u3
 	INFO_LOG(WII_IPC_NET, "NET_WD_COMMAND: Open");
 	Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
 	m_Active = true;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::Close(u32 CommandAddress, bool Force)
@@ -455,7 +455,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::Close(u32 CommandAddress, b
 	if (!Force)
 		Memory::Write_U32(0, CommandAddress + 4);
 	m_Active = false;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 // This is just for debugging / playing around.
@@ -548,7 +548,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 	}
 
 	Memory::Write_U32(return_value, CommandAddress + 4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 // **********************************************************************************
@@ -574,7 +574,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::Open(u32 _CommandAddress, u32 _
 	INFO_LOG(WII_IPC_NET, "NET_IP_TOP: Open");
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	m_Active = true;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::Close(u32 _CommandAddress, bool _bForce)
@@ -583,7 +583,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::Close(u32 _CommandAddress, bool
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 static int inet_pton(const char* src, unsigned char* dst)
@@ -647,7 +647,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 	if (Core::g_want_determinism)
 	{
 		Memory::Write_U32(-1, _CommandAddress + 4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 
@@ -708,7 +708,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		u32 fd = Memory::Read_U32(BufferIn);
 		WiiSockMan &sm = WiiSockMan::GetInstance();
 		sm.DoSock(fd, _CommandAddress, (NET_IOCTL)Command);
-		return IPC_NO_REPLY;
+		return GetNoReply();
 	}
 	/////////////////////////////////////////////////////////////
 	//                  TODO: Tidy all below                   //
@@ -1171,7 +1171,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 
@@ -1347,7 +1347,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		u32 fd = Memory::Read_U32(_BufferIn2);
 		WiiSockMan &sm = WiiSockMan::GetInstance();
 		sm.DoSock(fd, CommandAddress, IOCTLV_SO_SENDTO);
-		return IPC_NO_REPLY;
+		return GetNoReply();
 		break;
 	}
 	case IOCTLV_SO_RECVFROM:
@@ -1355,7 +1355,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		u32 fd = Memory::Read_U32(_BufferIn);
 		WiiSockMan &sm = WiiSockMan::GetInstance();
 		sm.DoSock(fd, CommandAddress, IOCTLV_SO_RECVFROM);
-		return IPC_NO_REPLY;
+		return GetNoReply();
 		break;
 	}
 	case IOCTLV_SO_GETADDRINFO:
@@ -1532,8 +1532,9 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, CommandAddress + 4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
+
 u32 CWII_IPC_HLE_Device_net_ip_top::Update()
 {
 	WiiSockMan::GetInstance().Update();

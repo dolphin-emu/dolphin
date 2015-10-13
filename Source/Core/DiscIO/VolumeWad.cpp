@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstddef>
+#include <cstring>
 #include <map>
 #include <memory>
 #include <string>

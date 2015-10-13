@@ -47,7 +47,7 @@ namespace HW
 		DSP::Init(SConfig::GetInstance().bDSPHLE);
 		DVDInterface::Init();
 		GPFifo::Init();
-		CCPU::Init(SConfig::GetInstance().iCPUCore);
+		CPU::Init(SConfig::GetInstance().iCPUCore);
 		SystemTimers::Init();
 
 		if (SConfig::GetInstance().bWii)
@@ -63,7 +63,7 @@ namespace HW
 	void Shutdown()
 	{
 		SystemTimers::Shutdown();
-		CCPU::Shutdown();
+		CPU::Shutdown();
 		ExpansionInterface::Shutdown();
 		DVDInterface::Shutdown();
 		DSP::Shutdown();

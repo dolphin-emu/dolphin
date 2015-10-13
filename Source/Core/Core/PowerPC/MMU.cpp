@@ -453,7 +453,7 @@ static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(address);
 	if (mc)
 	{
-		if (CCPU::IsStepping())
+		if (CPU::IsStepping())
 		{
 			// Disable when stepping so that resume works.
 			return;
@@ -462,7 +462,7 @@ static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
 		bool pause = mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
 		if (pause)
 		{
-			CCPU::Break();
+			CPU::Break();
 			// Fake a DSI so that all the code that tests for it in order to skip
 			// the rest of the instruction will apply.  (This means that
 			// watchpoints will stop the emulator before the offending load/store,

@@ -58,7 +58,7 @@ void DoState(PointerWrap &p)
 	p.Do(interruptWaiting);
 
 	// Is this right?
-	p.DoArray(g_video_buffer_read_ptr,writePos);
+	p.DoArray(g_video_buffer_read_ptr, writePos);
 }
 
 static void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)

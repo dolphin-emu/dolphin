@@ -191,6 +191,16 @@ void VideoConfig::Load(const std::string& ini_file)
 	if ((g_has_rift || g_has_steamvr) && backend_info.bSupportsGeometryShaders)
 		iStereoMode = STEREO_OCULUS;
 
+	//currently these settings are not saved in global config, so we could've initialized them directly
+	for (size_t i = 0; i < oStereoPresets.size(); ++i)
+	{
+		enhancements->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
+		enhancements->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
+	}
+	enhancements->Get("StereoActivePreset", &iStereoActivePreset, 0);
+	iStereoConvergence = oStereoPresets[iStereoActivePreset].convergence;
+	iStereoDepth = oStereoPresets[iStereoActivePreset].depth;
+
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
 	hacks->Get("BBoxEnable", &bBBoxEnable, false);
@@ -410,6 +420,17 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "StereoDepth", iStereoDepth);
 	CHECK_SETTING("Video_Enhancements", "StereoConvergence", iStereoConvergence);
 	CHECK_SETTING("Video_Enhancements", "StereoSwapEyes", bStereoSwapEyes);
+
+	//these are not overrides, they are per-game settings, hence no warning
+	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
+	for (size_t i = 0; i < oStereoPresets.size(); ++i)
+	{
+		enhancements->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
+		enhancements->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
+	}
+	enhancements->Get("StereoActivePreset", &iStereoActivePreset, 0);
+	iStereoConvergence = oStereoPresets[iStereoActivePreset].convergence;
+	iStereoDepth = oStereoPresets[iStereoActivePreset].depth;
 
 	CHECK_SETTING("Video_Stereoscopy", "StereoEFBMonoDepth", bStereoEFBMonoDepth);
 	CHECK_SETTING("Video_Stereoscopy", "StereoDepthPercentage", iStereoDepthPercentage);

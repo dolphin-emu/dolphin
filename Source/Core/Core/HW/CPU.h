@@ -4,46 +4,46 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
-
 namespace Common {
 	class Event;
 }
 
-class CCPU
+namespace CPU
 {
-public:
-	// init
-	static void Init(int cpu_core);
 
-	// shutdown
-	static void Shutdown();
+// Init
+void Init(int cpu_core);
 
-	// starts the CPU
-	static void Run();
+// Shutdown
+void Shutdown();
 
-	// causes shutdown
-	static void Stop();
-	// Reset
-	static void Reset();
+// Starts the CPU
+void Run();
 
-	// StepOpcode (Steps one Opcode)
-	static void StepOpcode(Common::Event *event = nullptr);
+// Causes shutdown
+void Stop();
 
-	// Enable or Disable Stepping
-	static void EnableStepping(const bool _bStepping);
+// Reset
+void Reset();
 
-	// break, same as EnableStepping(true).
-	static void Break();
+// StepOpcode (Steps one Opcode)
+void StepOpcode(Common::Event* event = nullptr);
 
-	// is stepping ?
-	static bool IsStepping();
+// Enable or Disable Stepping
+void EnableStepping(bool stepping);
 
-	// waits until is stepping and is ready for a command (paused and fully idle), and acquires a lock on that state.
-	// or, if doLock is false, releases a lock on that state and optionally re-disables stepping.
-	// calls must be balanced and non-recursive (once with doLock true, then once with doLock false).
-	// intended (but not required) to be called from another thread,
-	// e.g. when the GUI thread wants to make sure everything is paused so that it can create a savestate.
-	// the return value is whether the CPU was unpaused before the call.
-	static bool PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
-};
+// Break, same as EnableStepping(true).
+void Break();
+
+// Is stepping ?
+bool IsStepping();
+
+// Waits until is stepping and is ready for a command (paused and fully idle), and acquires a lock on that state.
+// or, if doLock is false, releases a lock on that state and optionally re-disables stepping.
+// calls must be balanced and non-recursive (once with doLock true, then once with doLock false).
+// intended (but not required) to be called from another thread,
+// e.g. when the GUI thread wants to make sure everything is paused so that it can create a savestate.
+// the return value is whether the CPU was unpaused before the call.
+bool PauseAndLock(bool do_lock, bool unpause_on_unlock = true);
+
+}

@@ -11,10 +11,10 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 ## System Requirements
 ### Desktop
 * OS
-    * Windows (7 SP1 or higher).
+    * Windows (7 SP1 or higher is officially supported, but Vista SP2 might also work).
     * Linux.
     * OS X (10.9 Mavericks or higher).
-    * Unix-like systems other than Linux might work but are not officially supported.
+    * Unix-like systems other than Linux are not officially supported but might work.
 * Processor
     * A CPU with SSE2 support.
     * A modern CPU (3 GHz and Dual Core, not older than 2008) is highly recommended.

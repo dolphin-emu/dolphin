@@ -85,7 +85,7 @@ static void ReadXFData(u32 iBufferSize)
 
 	u32 pData[16];
 	for (int i = 0; i < streamSize; i++)
-		pData[i] = DataReadU32();
+		pData[i] = DataRead<u32>();
 	SWLoadXFReg(streamSize, streamAddress, pData);
 
 	// return to normal command processing
@@ -120,7 +120,7 @@ static void DecodeStandard(u32 bufferSize)
 {
 	_assert_msg_(VIDEO, CommandRunnable(bufferSize), "Underflow during standard opcode decoding");
 
-	int Cmd = DataReadU8();
+	int Cmd = DataRead<u8>();
 
 	if (Cmd == GX_NOP)
 		return;
@@ -148,15 +148,15 @@ static void DecodeStandard(u32 bufferSize)
 
 	case GX_LOAD_CP_REG: //0x08
 		{
-			u32 SubCmd = DataReadU8();
-			u32 Value = DataReadU32();
+			u32 SubCmd = DataRead<u8>();
+			u32 Value = DataRead<u32>();
 			SWLoadCPReg(SubCmd, Value);
 		}
 		break;
 
 	case GX_LOAD_XF_REG:
 		{
-			u32 Cmd2 = DataReadU32();
+			u32 Cmd2 = DataRead<u32>();
 			streamSize = ((Cmd2 >> 16) & 15) + 1;
 			streamAddress = Cmd2 & 0xFFFF;
 			currentFunction = ReadXFData;
@@ -166,22 +166,22 @@ static void DecodeStandard(u32 bufferSize)
 		break;
 
 	case GX_LOAD_INDX_A: //used for position matrices
-		SWLoadIndexedXF(DataReadU32(), 0xC);
+		SWLoadIndexedXF(DataRead<u32>(), 0xC);
 		break;
 	case GX_LOAD_INDX_B: //used for normal matrices
-		SWLoadIndexedXF(DataReadU32(), 0xD);
+		SWLoadIndexedXF(DataRead<u32>(), 0xD);
 		break;
 	case GX_LOAD_INDX_C: //used for postmatrices
-		SWLoadIndexedXF(DataReadU32(), 0xE);
+		SWLoadIndexedXF(DataRead<u32>(), 0xE);
 		break;
 	case GX_LOAD_INDX_D: //used for lights
-		SWLoadIndexedXF(DataReadU32(), 0xF);
+		SWLoadIndexedXF(DataRead<u32>(), 0xF);
 		break;
 
 	case GX_CMD_CALL_DL:
 		{
-			u32 dwAddr  = DataReadU32();
-			u32 dwCount = DataReadU32();
+			u32 dwAddr  = DataRead<u32>();
+			u32 dwCount = DataRead<u32>();
 			ExecuteDisplayList(dwAddr, dwCount);
 		}
 		break;
@@ -196,7 +196,7 @@ static void DecodeStandard(u32 bufferSize)
 
 	case GX_LOAD_BP_REG: //0x61
 		{
-			u32 cmd = DataReadU32();
+			u32 cmd = DataRead<u32>();
 			SWLoadBPReg(cmd);
 		}
 		break;
@@ -210,7 +210,7 @@ static void DecodeStandard(u32 bufferSize)
 			vertexLoader.SetFormat(vatIndex, primitiveType);
 
 			// switch to primitive processing
-			streamSize = DataReadU16();
+			streamSize = DataRead<u16>();
 			currentFunction = DecodePrimitiveStream;
 			minCommandSize = vertexLoader.GetVertexSize();
 			readOpcode = false;
@@ -249,7 +249,7 @@ bool CommandRunnable(u32 iBufferSize)
 
 	if (readOpcode)
 	{
-		u8 Cmd = DataPeek8(0);
+		u8 Cmd = DataPeek<u8>(0);
 		u32 minSize = 1;
 
 		switch (Cmd)

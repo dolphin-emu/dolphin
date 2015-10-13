@@ -44,7 +44,7 @@ CISOFileReader* CISOFileReader::Create(const std::string& filename)
 
 u64 CISOFileReader::GetDataSize() const
 {
-	return GetRawSize();
+	return CISO_MAP_SIZE * m_block_size;
 }
 
 u64 CISOFileReader::GetRawSize() const

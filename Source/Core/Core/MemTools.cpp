@@ -21,6 +21,9 @@
 #ifdef __FreeBSD__
 #include <signal.h>
 #endif
+#ifndef _WIN32
+#include <unistd.h> // Needed for _POSIX_VERSION
+#endif
 
 namespace EMM
 {
@@ -57,7 +60,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 		}
 
 	case EXCEPTION_STACK_OVERFLOW:
-		MessageBox(0, _T("Stack overflow!"), 0,0);
+		MessageBox(nullptr, _T("Stack overflow!"), nullptr, 0);
 		return EXCEPTION_CONTINUE_SEARCH;
 
 	case EXCEPTION_ILLEGAL_INSTRUCTION:

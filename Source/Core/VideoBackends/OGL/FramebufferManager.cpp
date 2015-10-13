@@ -8,6 +8,7 @@
 #include "Common/GL/GLInterface/GLX.h"
 #endif
 
+#include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Core/HW/Memmap.h"

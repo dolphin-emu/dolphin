@@ -10,6 +10,7 @@
 #include <wx/listbox.h>
 #include <wx/menu.h>
 #include <wx/panel.h>
+#include <wx/srchctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/textdlg.h>
@@ -83,12 +84,11 @@ CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame *pare
 
 	m_aui_toolbar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORIZONTAL | wxAUI_TB_PLAIN_BACKGROUND);
 
-	wxTextCtrl* const address_textctrl = new wxTextCtrl(m_aui_toolbar, IDM_ADDRBOX);
-	address_textctrl->Bind(wxEVT_TEXT, &CCodeWindow::OnAddrBoxChange, this);
+	wxSearchCtrl* const address_searchctrl = new wxSearchCtrl(m_aui_toolbar, IDM_ADDRBOX);
+	address_searchctrl->Bind(wxEVT_TEXT, &CCodeWindow::OnAddrBoxChange, this);
+	address_searchctrl->SetDescriptiveText(_("Search Address"));
 
-	m_aui_toolbar->AddControl(new wxStaticText(m_aui_toolbar, wxID_ANY, _("Address Search:")));
-	m_aui_toolbar->AddSpacer(5);
-	m_aui_toolbar->AddControl(address_textctrl);
+	m_aui_toolbar->AddControl(address_searchctrl);
 	m_aui_toolbar->Realize();
 
 	m_aui_manager.SetManagedWindow(this);
@@ -225,7 +225,7 @@ void CCodeWindow::OnCodeViewChange(wxCommandEvent &event)
 
 void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 {
-	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)m_aui_toolbar->FindControl(IDM_ADDRBOX);
+	wxSearchCtrl* pAddrCtrl = (wxSearchCtrl*)m_aui_toolbar->FindControl(IDM_ADDRBOX);
 
 	// Trim leading and trailing whitespace.
 	wxString txt = pAddrCtrl->GetValue().Trim().Trim(false);
@@ -240,7 +240,7 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 
 	if (success)
 		pAddrCtrl->SetBackgroundColour(wxNullColour);
-	else
+	else if (!txt.empty())
 		pAddrCtrl->SetBackgroundColour(*wxRED);
 
 	pAddrCtrl->Refresh();
@@ -283,11 +283,11 @@ void CCodeWindow::OnCallsListChange(wxCommandEvent& event)
 
 void CCodeWindow::SingleStep()
 {
-	if (CCPU::IsStepping())
+	if (CPU::IsStepping())
 	{
 		PowerPC::breakpoints.ClearAllTemporary();
 		JitInterface::InvalidateICache(PC, 4, true);
-		CCPU::StepOpcode(&sync_event);
+		CPU::StepOpcode(&sync_event);
 		wxThread::Sleep(20);
 		// need a short wait here
 		JumpToAddress(PC);
@@ -297,14 +297,14 @@ void CCodeWindow::SingleStep()
 
 void CCodeWindow::StepOver()
 {
-	if (CCPU::IsStepping())
+	if (CPU::IsStepping())
 	{
 		UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
 		if (inst.LK)
 		{
 			PowerPC::breakpoints.ClearAllTemporary();
 			PowerPC::breakpoints.Add(PC + 4, true);
-			CCPU::EnableStepping(false);
+			CPU::EnableStepping(false);
 			JumpToAddress(PC);
 			Update();
 		}
@@ -321,7 +321,7 @@ void CCodeWindow::StepOver()
 
 void CCodeWindow::StepOut()
 {
-	if (CCPU::IsStepping())
+	if (CPU::IsStepping())
 	{
 		PowerPC::breakpoints.ClearAllTemporary();
 
@@ -365,7 +365,7 @@ void CCodeWindow::StepOut()
 
 void CCodeWindow::ToggleBreakpoint()
 {
-	if (CCPU::IsStepping())
+	if (CPU::IsStepping())
 	{
 		if (codeview) codeview->ToggleBreakpoint(codeview->GetSelection());
 		Update();
@@ -700,7 +700,7 @@ void CCodeWindow::UpdateButtonStates()
 {
 	bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
 	bool Pause = (Core::GetState() == Core::CORE_PAUSE);
-	bool Stepping = CCPU::IsStepping();
+	bool Stepping = CPU::IsStepping();
 	wxToolBar* ToolBar = GetToolBar();
 
 	// Toolbar

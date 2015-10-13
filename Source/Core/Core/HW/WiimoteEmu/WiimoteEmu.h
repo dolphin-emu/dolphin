@@ -111,13 +111,6 @@ void EmulateSwing(AccelData* const accel
 	 , ControllerEmu::Force* const tilt_group
 	 , const bool sideways = false, const bool upright = false);
 
-inline double trim(double a)
-{
-	if (a<=0) return 0;
-	if (a>=255) return 255;
-	return a;
-}
-
 // Convert a float with values between 0 and 255 into a 10bit integer. 
 inline u32 trim10bit(double a)
 {

@@ -182,7 +182,7 @@ void Wiimote::SendAck(u8 _reportID, u8 err)
 	ack->reportID = _reportID;
 	ack->errorID = err;
 
-	Core::Callback_WiimoteInterruptChannel( m_index, m_reporting_channel, data, sizeof(data));
+	Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
 }
 
 void Wiimote::HandleExtensionSwap()

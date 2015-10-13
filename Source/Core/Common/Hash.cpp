@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 #include "Common/CommonFuncs.h"
 #include "Common/CPUDetect.h"
 #include "Common/Hash.h"
