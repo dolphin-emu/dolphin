@@ -414,15 +414,16 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
 
 void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type)
 {
-	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL, components);
+	//GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL, components);
+	UberShader::GetPixelShaderUid(uid->puid, dstAlphaMode);
 	GetVertexShaderUid(uid->vuid, components, API_OPENGL);
 	GetGeometryShaderUid(uid->guid, primitive_type, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
-		PixelShaderCode pcode;
-		GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
-		pixel_uid_checker.AddToIndexAndCheck(pcode, uid->puid, "Pixel", "p");
+		//PixelShaderCode pcode;
+		//GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
+		//pixel_uid_checker.AddToIndexAndCheck(pcode, uid->puid, "Pixel", "p");
 
 		VertexShaderCode vcode;
 		GenerateVertexShaderCode(vcode, components, API_OPENGL);

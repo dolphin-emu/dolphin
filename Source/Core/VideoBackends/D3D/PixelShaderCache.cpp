@@ -27,10 +27,10 @@ namespace DX11
 
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
-PixelShaderUid PixelShaderCache::last_uid;
-UidChecker<PixelShaderUid,PixelShaderCode> PixelShaderCache::pixel_uid_checker;
+UberShader::PixelShaderUid PixelShaderCache::last_uid;
+UidChecker<UberShader::PixelShaderUid,PixelShaderCode> PixelShaderCache::pixel_uid_checker;
 
-LinearDiskCache<PixelShaderUid, u8> g_ps_disk_cache;
+LinearDiskCache<UberShader::PixelShaderUid, u8> g_ps_disk_cache;
 
 ID3D11PixelShader* s_ColorMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
@@ -430,10 +430,10 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 }
 
 // this class will load the precompiled shaders into our cache
-class PixelShaderCacheInserter : public LinearDiskCacheReader<PixelShaderUid, u8>
+class PixelShaderCacheInserter : public LinearDiskCacheReader<UberShader::PixelShaderUid, u8>
 {
 public:
-	void Read(const PixelShaderUid &key, const u8* value, u32 value_size)
+	void Read(const UberShader::PixelShaderUid &key, const u8* value, u32 value_size)
 	{
 		PixelShaderCache::InsertByteCode(key, value, value_size);
 	}
@@ -544,13 +544,13 @@ void PixelShaderCache::Shutdown()
 
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
-	PixelShaderUid uid;
-	GetPixelShaderUid(uid, dstAlphaMode, API_D3D, components);
+	UberShader::PixelShaderUid uid;
+	UberShader::GetPixelShaderUid(uid, dstAlphaMode);
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
-		PixelShaderCode code;
-		GeneratePixelShaderCode(code, dstAlphaMode, API_D3D, components);
-		pixel_uid_checker.AddToIndexAndCheck(code, uid, "Pixel", "p");
+		//PixelShaderCode code;
+		//GeneratePixelShaderCode(code, dstAlphaMode, API_D3D, components);
+		//pixel_uid_checker.AddToIndexAndCheck(code, uid, "Pixel", "p");
 	}
 
 	// Check if the shader is already set
@@ -604,7 +604,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	return success;
 }
 
-bool PixelShaderCache::InsertByteCode(const PixelShaderUid &uid, const void* bytecode, unsigned int bytecodelen)
+bool PixelShaderCache::InsertByteCode(const UberShader::PixelShaderUid &uid, const void* bytecode, unsigned int bytecodelen)
 {
 	ID3D11PixelShader* shader = D3D::CreatePixelShaderFromByteCode(bytecode, bytecodelen);
 	if (shader == nullptr)

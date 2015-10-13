@@ -11,6 +11,7 @@
 
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/VertexShaderGen.h"
 
 namespace OGL
@@ -20,7 +21,7 @@ class SHADERUID
 {
 public:
 	VertexShaderUid vuid;
-	PixelShaderUid puid;
+	UberShader::PixelShaderUid puid;
 	GeometryShaderUid guid;
 
 	SHADERUID() {}
