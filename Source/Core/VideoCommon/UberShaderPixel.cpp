@@ -29,8 +29,11 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write("};\n");
 
 	// TEV constants
+	if (ApiType == API_OPENGL) out.Write(
+		"layout(std140, binding = 4) uniform UBERBlock {\n");
+	else out.Write(
+		"cbuffer UBERBlock : register(b1) {\n");
 	out.Write(
-		"layout(std140, binding = 4) uniform UBERBlock {\n"
 		"	uint	bpmem_genmode;\n"
 		"	uint	bpmem_tevorder[8];\n"
 		"	uint2	bpmem_combiners[16];\n"
@@ -56,23 +59,29 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 
 	if (g_ActiveConfig.backend_info.bSupportsDynamicSamplerIndexing)
 	{
+		// Doesn't look like directx supports this. Oh well the code path is here just incase it supports this in the future.
 		out.Write(
-			"int4 sampleTexture(uint sampler_num, float2 uv) {\n"
-			"	return int4(texture(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n"
+			"int4 sampleTexture(uint sampler_num, float2 uv) {\n");
+		if (ApiType == API_OPENGL) out.Write(
+			"	return int4(texture(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n");
+		else if (ApiType == API_D3D) out.Write(
+			"	return int4(Tex[sampler_num].Sample(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n");
+		out.Write(
 			"}\n\n");
 	}
 	else
 	{
 		out.Write(
 			"int4 sampleTexture(uint sampler_num, float2 uv) {\n"
-			"	// This is messy, but OpenGl 3.3 and ES 3.0 doesn't support dynamic indexing of the sampler array\n"
+			"	// This is messy, but DirectX, OpenGl 3.3 and Opengl ES 3.0 doesn't support dynamic indexing of the sampler array\n"
 			"	// With any luck the shader compiler will optimise this if the hardware supports dynamic indexing.\n"
 			"	switch(sampler_num & 0x7u) {\n");
 		for (int i=0; i < 8; i++)
 		{
-			out.Write(
-			"	case %du:\n"
-			"		return int4(texture(samp[%d], float3(uv, 0.0)) * 255.0);\n", i, i);
+			if (ApiType == API_OPENGL) out.Write(
+				"	case %du: return int4(texture(samp[%d], float3(uv, 0.0)) * 255.0);\n", i, i);
+			else if (ApiType == API_D3D) out.Write(
+				"	case %du: return int4(Tex[%d].Sample(samp[%d], float3(uv, 0.0)) * 255.0);\n", i, i, i);
 		}
 		out.Write(
 			"	}\n"
@@ -112,8 +121,8 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		out.Write("  in %s float4 colors_1 : COLOR1\n", GetInterpolationQualifier(ApiType, msaa, ssaa));
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
-		for (unsigned int i = 0; i < numTexgen; ++i)
-			out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", GetInterpolationQualifier(ApiType, msaa, ssaa), i, i);
+		if (numTexgen > 0)
+			out.Write(",\n  in %s float3 tex[%d] : TEXCOORD0", GetInterpolationQualifier(ApiType, msaa, ssaa), numTexgen);
 		out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(ApiType, msaa, ssaa), numTexgen);
 		if (g_ActiveConfig.bEnablePixelLighting)
 		{
@@ -168,7 +177,10 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write("	uint num_stages = %s;\n", BitfieldExtract("bpmem_genmode", bpmem.genMode.numtevstages).c_str());
 
 	out.Write(
-		"	// Main tev loop\n"
+		"	// Main tev loop\n");
+	if (ApiType == API_D3D) out.Write(
+		"	[loop]\n"); // Tell DirectX we don't want this loop unrolled.
+	out.Write(
 		"	for(uint stage = 0u; stage <= num_stages; stage++)\n"
 		"	{\n"
 		"		uint cc = bpmem_combiners[stage].x;\n"
@@ -215,12 +227,12 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"		uint tevksel = bpmem_tevksel[stage>>1];\n"
 		"		int4 konst;\n"
 		"		if ((stage & 1u) == 0u)\n"
-		"			konst = int4(konstLookup[%s].rgb, konstLookup[%s]);\n",
+		"			konst = int4(konstLookup[%s].rgb, konstLookup[%s].a);\n",
 		BitfieldExtract("tevksel", bpmem.tevksel[0].kcsel0).c_str(),
 		BitfieldExtract("tevksel", bpmem.tevksel[0].kasel0).c_str());
 	out.Write(
 		"		else\n"
-		"			konst = int4(konstLookup[%s].rgb, konstLookup[%s]);\n\n",
+		"			konst = int4(konstLookup[%s].rgb, konstLookup[%s].a);\n\n",
 		BitfieldExtract("tevksel", bpmem.tevksel[0].kcsel1).c_str(),
 		BitfieldExtract("tevksel", bpmem.tevksel[0].kasel1).c_str());
 	out.Write(
@@ -240,13 +252,15 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			ras = icolors_1;\n"
 		"			break;\n"
 		"		case 5u: // Alpha Bump\n"
-		"			ras = int4(AlphaBump);\n"
+		"			ras = int4(AlphaBump, AlphaBump, AlphaBump, AlphaBump);\n"
 		"			break;\n"
 		"		case 6u: // Normalzied Alpha Bump\n"
-		"			ras = int4(AlphaBump | AlphaBump >> 5);\n"
+		"			int normalized = AlphaBump | AlphaBump >> 5;\n"
+		"			ras = int4(normalized, normalized, normalized, normalized);\n"
 		"			break;\n"
 		"		default:\n"
-		"			ras = int4(0);\n"
+		"			ras = int4(0, 0, 0, 0);\n"
+		"			break;\n"
 		"		}\n"
 		"		// TODO: color channel swapping\n"
 		"		ColorInput[10] = ras.rgb;\n"
@@ -312,6 +326,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			if (stage == num_stages) { // If this is the last stage\n"
 		"				// Write result to output\n"
 		"				TevResult.rgb = result;\n"
+		"				//break;\n"
 		"			} else {\n"
 		"				// Write result to the correct input register of the next stage\n"
 		"				ColorInput[dest<<1] = result;\n"
@@ -381,7 +396,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			} else {\n"
 		"				// Write result to the correct input register of the next stage\n"
 		"				AlphaInput[dest] = result;\n"
-		"				ColorInput[(dest << 1) + 1u] = int3(result);\n"
+		"				ColorInput[(dest << 1) + 1u] = int3(result, result, result);\n"
 		"			}\n"
 		"		}\n");
 

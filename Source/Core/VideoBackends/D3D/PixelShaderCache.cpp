@@ -19,6 +19,7 @@
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -39,6 +40,7 @@ ID3D11PixelShader* s_DepthResolveProgram = nullptr;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
 ID3D11Buffer* pscbuf = nullptr;
+ID3D11Buffer* uber_bufffer = nullptr;
 
 const char clear_program_code[] = {
 	"void main(\n"
@@ -444,9 +446,14 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 		D3D::context->Map(pscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
 		D3D::context->Unmap(pscbuf, 0);
+
+		// Again, this is hacky.
+		D3D::context->Map(uber_bufffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		memcpy(map.pData, &PixelShaderManager::more_constants, sizeof(UberShaderConstants));
+		D3D::context->Unmap(uber_bufffer, 0);
 		PixelShaderManager::dirty = false;
 
-		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants));
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants) + sizeof(UberShaderConstants));
 	}
 	return pscbuf;
 }
@@ -468,6 +475,13 @@ void PixelShaderCache::Init()
 	D3D::device->CreateBuffer(&cbdesc, nullptr, &pscbuf);
 	CHECK(pscbuf!=nullptr, "Create pixel shader constant buffer");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)pscbuf, "pixel shader constant buffer used to emulate the GX pipeline");
+
+	// Second constant buffer for ubershaders
+	unsigned int ubsize = ROUND_UP(sizeof(UberShaderConstants), 16); // must be a multiple of 16
+	D3D11_BUFFER_DESC uber_desc = CD3D11_BUFFER_DESC(ubsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+	D3D::device->CreateBuffer(&uber_desc, nullptr, &uber_bufffer);
+	CHECK(uber_bufffer != nullptr, "Create ubershader constant buffer");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)uber_bufffer, "pixel shader constant buffer used for Ubershader emulation of TEV.");
 
 	// used when drawing clear quads
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code);
@@ -584,7 +598,8 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 	}
 
 	// Need to compile a new shader
-	ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D, uid.GetUidData());
+	//ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D, uid.GetUidData());
+	ShaderCode code = UberShader::GenPixelShader(dstAlphaMode, API_D3D, false, g_ActiveConfig.iMultisamples > 1, g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA);
 
 	D3DBlob* pbytecode;
 	if (!D3D::CompilePixelShader(code.GetBuffer(), &pbytecode))
