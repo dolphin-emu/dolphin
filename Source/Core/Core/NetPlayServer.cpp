@@ -904,7 +904,7 @@ bool NetPlayServer::initUPnP()
 	memset(&m_upnp_data, 0, sizeof(IGDdatas));
 
 	// Find all UPnP devices
-#ifdef UPNPDISCOVER_HAS_TTL
+#if MINIUPNPC_API_VERSION >= 14
 	UPNPDev *devlist = upnpDiscover(2000, nullptr, nullptr, 0, 0, 2, &upnperror);
 #else
 	UPNPDev *devlist = upnpDiscover(2000, nullptr, nullptr, 0, 0, &upnperror);
