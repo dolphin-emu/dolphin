@@ -56,7 +56,9 @@ struct GeometryShaderConstants
 
 struct UberShaderConstants
 {
-	uint4 genmode; // .x
+	u32 genmode; // .x
+	u32 alphaTest; // .y
+	u32 pad0[2];
 	uint4 tevorder[8]; // .x
 	uint4 combiners[16]; // .xy
 	int4 tevksel[8]; // .x
