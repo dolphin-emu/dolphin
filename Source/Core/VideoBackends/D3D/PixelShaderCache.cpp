@@ -519,7 +519,10 @@ void PixelShaderCache::Init()
 	std::string cache_filename = StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
 			SConfig::GetInstance().m_strUniqueID.c_str());
 	PixelShaderCacheInserter inserter;
-	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
+
+	// Temporally disable DirectX's Pixel Shader cache, so it stops messing me up while testing.
+	// TODO: Rembmer to add this back in before merging to master.
+	//g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 
 	if (g_Config.bEnableShaderDebugging)
 		Clear();
