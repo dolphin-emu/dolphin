@@ -314,6 +314,7 @@ static void BPWritten(const BPCmd& bp)
 		         (int)bpmem.alpha_test.ref0, (int)bpmem.alpha_test.ref1,
 		         (int)bpmem.alpha_test.comp0, (int)bpmem.alpha_test.comp1,
 		         (int)bpmem.alpha_test.logic);
+		PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
 		if (bp.changes & 0xFFFF)
 			PixelShaderManager::SetAlpha();
 		if (bp.changes)
