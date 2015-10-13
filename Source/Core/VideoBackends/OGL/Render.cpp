@@ -453,12 +453,10 @@ Renderer::Renderer()
 	// OpenGL ES 3.1 supports it implicitly without an extension
 	g_Config.backend_info.bSupportsBindingLayout = GLExtensions::Supports("GL_ARB_shading_language_420pack");
 
-	// Desktop OpenGL supports bitfield manulipation if it supports shader5
-	// OpenGL ES 3.1 supports it implicitly without an extension
+	// Desktop OpenGL supports bitfield manulipation and dynamic sampler indexing if it supports shader5
+	// OpenGL ES 3.1 supports these implicitly without an extension
 	g_Config.backend_info.bSupportsBitfield = GLExtensions::Supports("GL_ARB_gpu_shader5");
-
-	// OpenGL ES 3.1 and later also support this.
-	g_Config.backend_info.bSupportsDynamicSamplerIndexing = GLExtensions::Version() >= 400;
+	g_Config.backend_info.bSupportsDynamicSamplerIndexing = GLExtensions::Supports("GL_ARB_gpu_shader5");
 
 	// Tempoarally disable opengl's shader cache, so it stops messing me up.
 	// TODO: Remember to re-enable this.
