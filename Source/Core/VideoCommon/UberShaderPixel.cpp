@@ -10,7 +10,7 @@ namespace UberShader
 static char text[32768];
 
 template<typename T>
-std::string BitfieldExtract(const std::string &source, T type)
+std::string BitfieldExtract(const std::string& source, T type)
 {
 	return StringFromFormat("bitfieldExtract(%s, %u, %u)", source.c_str(), u32(type.offset()), u32(type.size()));
 }
@@ -357,7 +357,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			}\n"
 		"		}\n");
 
-	// Alpha combiner 
+	// Alpha combiner
 	// TODO: we should make the above code slightly more generic instead of just copy/pasting
 	out.Write(
 		"		// Alpha Combiner\n"
