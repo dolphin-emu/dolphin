@@ -683,20 +683,17 @@ union FogParam0
 
 union FogParam3
 {
-	struct
-	{
-		u32 c_mant : 11;
-		u32 c_exp  : 8;
-		u32 c_sign : 1;
-		u32 proj   : 1; // 0 - perspective, 1 - orthographic
-		u32 fsel   : 3; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
-	};
+	BitField<0, 11, u32> c_mant;
+	BitField<11, 8, u32> c_exp;
+	BitField<19, 1, u32> c_sign;
+	BitField<20, 1, u32> proj; // 0 - perspective, 1 - orthographic
+	BitField<21, 3, u32> fsel; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
 
 	// amount to subtract from eyespacez after range adjustment
 	float GetC()
 	{
 		union { u32 i; float f; } dummy;
-		dummy.i = ((u32)c_sign << 31) | ((u32)c_exp << 23) | ((u32)c_mant << 12); // scale mantissa from 11 to 23 bits
+		dummy.i = (c_sign.Value() << 31) | (c_exp.Value() << 23) | (c_mant.Value() << 12); // scale mantissa from 11 to 23 bits
 		return dummy.f;
 	}
 
@@ -705,15 +702,12 @@ union FogParam3
 
 union FogRangeKElement
 {
-	struct
-	{
-		u32 HI : 12;
-		u32 LO : 12;
-		u32 regid : 8;
-	};
+	BitField<0, 12, u32> HI;
+	BitField<12, 12, u32> LO;
+	BitField<24, 8, u32> regid;
 
 	// TODO: Which scaling coefficient should we use here? This is just a guess!
-	float GetValue(int i) { return (i ? HI : LO) / 256.f; }
+	float GetValue(int i) { return (i ? HI.Value() : LO.Value()) / 256.f; }
 	u32 HEX;
 };
 
@@ -721,13 +715,9 @@ struct FogRangeParams
 {
 	union RangeBase
 	{
-		struct
-		{
-			u32 Center  : 10; // viewport center + 342
-			u32 Enabled : 1;
-			u32 unused  : 13;
-			u32 regid   : 8;
-		};
+		BitField<0, 10, u32> Center; // viewport center + 342
+		BitField<10, 1, u32> Enabled;
+		BitField<24, 8, u32> regid;
 		u32 hex;
 	};
 	RangeBase Base;
@@ -743,12 +733,9 @@ struct FogParams
 
 	union FogColor
 	{
-		struct
-		{
-			u32 b  : 8;
-			u32 g  : 8;
-			u32 r  : 8;
-		};
+		BitField<0,  8, u32> b;
+		BitField<8,  8, u32> g;
+		BitField<16, 8, u32> r;
 		u32 hex;
 	};
 
