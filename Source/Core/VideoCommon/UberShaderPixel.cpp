@@ -521,13 +521,13 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	// TODO: Optimise the value of bpmem_alphatest so it's zero when there is no test to do?
 	out.Write(
 		"	// Alpha Test\n"
-		"	bool comp0 = alphaCompare(TevResult.a, " I_ALPHA".r, %s);\n", BitfieldExtract("bpmem_alphaTest", bpmem.alpha_test.comp0).c_str());
+		"	bool comp0 = alphaCompare(TevResult.a, " I_ALPHA".r, %s);\n", BitfieldExtract("bpmem_alphaTest", AlphaTest().comp0).c_str());
 	out.Write(
-		"	bool comp1 = alphaCompare(TevResult.a, " I_ALPHA".g, %s);\n", BitfieldExtract("bpmem_alphaTest", bpmem.alpha_test.comp1).c_str());
+		"	bool comp1 = alphaCompare(TevResult.a, " I_ALPHA".g, %s);\n", BitfieldExtract("bpmem_alphaTest", AlphaTest().comp1).c_str());
 	out.Write(
 		"\n"
 		"	// These if statements are written weirdly to work around intel and qualcom bugs with handling booleans.\n"
-		"	switch (%s) {\n", BitfieldExtract("bpmem_alphaTest", bpmem.alpha_test.logic).c_str());
+		"	switch (%s) {\n", BitfieldExtract("bpmem_alphaTest", AlphaTest().logic).c_str());
 	out.Write(
 		"	case 0u: // AND\n"
 		"		if (comp0 && comp1) break; else discard; break;\n"
