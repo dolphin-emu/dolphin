@@ -317,6 +317,12 @@ void PixelShaderManager::UpdateBP(u32 bp, u32 newValue) {
     u32 comb = bp - 0xc0;
     more_constants.combiners[comb >> 1][comb & 1] = newValue;
     dirty = true;
+  } else if (bp == 0xe8) {
+    more_constants.fogRangeBase = newValue;
+    dirty = true;
+  } else if (bp == 0xf1) {
+    more_constants.fogParam3 = newValue;
+    dirty = true;
   } else if (bp == 0xf3) {
     more_constants.alphaTest = newValue;
     dirty = true;
