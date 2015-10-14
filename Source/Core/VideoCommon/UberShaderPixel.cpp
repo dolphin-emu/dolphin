@@ -46,6 +46,8 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"	uint	bpmem_genmode;\n"
 		"	uint	bpmem_alphaTest;\n"
+		"	uint	bpmem_fogParam3;\n"
+		"	uint	bpmem_fogRangeBase;\n"
 		"	uint	bpmem_tevorder[8];\n"
 		"	uint2	bpmem_combiners[16];\n"
 		"	uint	bpmem_tevksel[8];\n"
@@ -364,7 +366,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			// TODO: there is an optional perspective divide here (not to mention all of indirect)\n"
 		"			int2 fixedPoint_uv = itrunc(tex[tex_coord].xy * " I_TEXDIMS"[sampler_num].zw * 128.0);\n"
 		"			float2 uv = (float2(fixedPoint_uv) / 128.0) * " I_TEXDIMS"[sampler_num].xy;\n"
-	    "\n"
+		"\n"
 		"			texColor = sampleTexture(sampler_num, uv);\n"
 		"		} else {\n"
 		"			// Texture is disabled\n"
@@ -426,11 +428,11 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write("\t\t\tuint c = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.c).c_str());
 	out.Write("\t\t\tuint d = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.d).c_str());
 
-	out.Write("\t\t\tuint bias = %s;\n",  BitfieldExtract("cc", TevStageCombiner().colorC.bias).c_str());
-	out.Write("\t\t\tbool op = bool(%s);\n",    BitfieldExtract("cc", TevStageCombiner().colorC.op).c_str());
+	out.Write("\t\t\tuint bias = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.bias).c_str());
+	out.Write("\t\t\tbool op = bool(%s);\n", BitfieldExtract("cc", TevStageCombiner().colorC.op).c_str());
 	out.Write("\t\t\tbool _clamp = bool(%s);\n", BitfieldExtract("cc", TevStageCombiner().colorC.clamp).c_str());
 	out.Write("\t\t\tuint shift = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.shift).c_str());
-	out.Write("\t\t\tuint dest = %s;\n",  BitfieldExtract("cc", TevStageCombiner().colorC.dest).c_str());
+	out.Write("\t\t\tuint dest = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.dest).c_str());
 
 	out.Write(
 		"\n"
@@ -515,7 +517,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	} // Main tev loop\n"
 		"\n");
 
-	// TODO: Fog, Depth textures
+	// TODO: Depth textures
 
 	// TODO: Optimise the value of bpmem_alphatest so it's zero when there is no test to do?
 	out.Write(
@@ -537,6 +539,66 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	case 3u: // XNOR\n"
 		"		if (comp0 == comp1) break; else discard; break;\n"
 		"	}\n");
+
+	// FIXME: Fog is implemented the same as ShaderGen, but ShaderGen's fog is all hacks.
+	//        Should be fixed point, and should not make guesses about Range-Based adjustments.
+	out.Write(
+		"	// Fog\n"
+		"	uint fog_function = %s;\n", BitfieldExtract("bpmem_fogParam3", FogParam3().fsel).c_str());
+	out.Write(
+		"	if (fog_function != 0u) {\n"
+		"		// TODO: This all needs to be converted from float to fixed point\n"
+		"\n"
+		"		// TODO: zCoord is hardcoded to fast depth with no zfreeze\n"
+		"		int zCoord = " I_ZBIAS"[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y));\n"
+		"\n"
+		"		float ze;\n"
+		"		if (%s == 0u) {\n", BitfieldExtract("bpmem_fogParam3", FogParam3().proj).c_str());
+	out.Write(
+		"			// perspective\n"
+		"			// ze = A/(B - (Zs >> B_SHF)\n"
+		"			ze = (" I_FOGF"[1].x * 16777216.0) / float(" I_FOGI".y - (zCoord >> " I_FOGI".w));\n"
+		"		} else {\n"
+		"			// orthographic\n"
+		"			// ze = a*Zs    (here, no B_SHF)\n"
+		"			ze = " I_FOGF"[1].x * float(zCoord) / 16777216.0;\n"
+		"		}\n"
+		"\n"
+		"		if (bool(%s)) {\n", BitfieldExtract("bpmem_fogRangeBase", FogRangeParams::RangeBase().Enabled).c_str());
+	out.Write(
+		"			// x_adjust = sqrt((x-center)^2 + k^2)/k\n"
+		"			// ze *= x_adjust\n"
+		"			// TODO Instead of this theoretical calculation, we should use the\n"
+		"			//      coefficient table given in the fog range BP registers!\n"
+		"			float x_adjust = (2.0 * (rawpos.x / " I_FOGF"[0].y)) - 1.0 - " I_FOGF"[0].x; \n"
+		"			x_adjust = sqrt(x_adjust * x_adjust + " I_FOGF"[0].z * " I_FOGF"[0].z) / " I_FOGF"[0].z;\n"
+		"			ze *= x_adjust;\n"
+		"		}\n"
+		"\n"
+		"		float fog = clamp(ze - " I_FOGF"[1].z, 0.0, 1.0);\n"
+		"\n"
+		"		if (fog_function > 3u) {\n"
+		"			switch (fog_function) {\n"
+		"			case 4u:\n"
+		"				fog = 1.0 - exp2(-8.0 * fog);\n"
+		"				break;\n"
+		"			case 5u:\n"
+		"				fog = 1.0 - exp2(-8.0 * fog * fog);\n"
+		"				break;\n"
+		"			case 6u:\n"
+		"				fog = exp2(-8.0 * (1.0 - fog));\n"
+		"				break;\n"
+		"			case 7u:\n"
+		"				fog = 1.0 - fog;\n"
+		"				fog = exp2(-8.0 * fog * fog);\n"
+		"				break;\n"
+		"			}\n"
+		"		}\n"
+		"\n"
+		"		int ifog = iround(fog * 256.0);\n"
+		"		TevResult.rgb = (TevResult.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n"
+		"	}\n"
+		"\n");
 
 	out.Write(
 		"	ocol0 = float4(TevResult) / 255.0;\n"

@@ -58,10 +58,11 @@ struct UberShaderConstants
 {
 	u32 genmode; // .x
 	u32 alphaTest; // .y
-	u32 pad0[2];
+	u32 fogParam3; // .z
+	u32 fogRangeBase; // .w
 	uint4 tevorder[8]; // .x
 	uint4 combiners[16]; // .xy
-	int4 tevksel[8]; // .x
+	uint4 tevksel[8]; // .x
 	int4 konst[32]; // .rgba
 	float4 debug;
 };
