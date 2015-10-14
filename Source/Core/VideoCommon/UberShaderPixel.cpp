@@ -12,7 +12,7 @@ static char text[32768];
 template<typename T>
 std::string BitfieldExtract(const std::string& source, T type)
 {
-	return StringFromFormat("bitfieldExtract(%s, %u, %u)", source.c_str(), u32(type.offset()), u32(type.size()));
+	return StringFromFormat("bitfieldExtract(%s, %u, %u)", source.c_str(), u32(type.offset), u32(type.size));
 }
 
 void GetPixelShaderUid(PixelShaderUid & shaderuid, DSTALPHA_MODE dstAlphaMode)
@@ -330,7 +330,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 
 	out.Write(
 		"\n"
-		"	uint num_stages = %s;\n\n", BitfieldExtract("bpmem_genmode", bpmem.genMode.numtevstages).c_str());
+		"	uint num_stages = %s;\n\n", BitfieldExtract("bpmem_genmode", GenMode().numtevstages).c_str());
 
 	out.Write(
 		"	// Main tev loop\n");
@@ -343,7 +343,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"		uint ac = bpmem_combiners[stage].y;\n"
 		"		uint order = bpmem_tevorder[stage>>1];\n"
 		"		if ((stage & 1u) == 1u)\n"
-		"			order = order >> %d;\n\n", bpmem.tevorders[0].enable1.offset() - bpmem.tevorders[0].enable0.offset());
+		"			order = order >> %d;\n\n", TwoTevStageOrders().enable1.offset - TwoTevStageOrders().enable0.offset);
 
 	// TODO: Indirect Texturing
 	out.Write("\t\t// TODO: Indirect textures\n\n");
@@ -395,7 +395,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"		// Set Ras for stage\n"
 		"		int4 ras;\n"
-		"		switch (%s) {\n", BitfieldExtract("order", bpmem.tevorders[0].colorchan0).c_str());
+		"		switch (%s) {\n", BitfieldExtract("order", TwoTevStageOrders().colorchan0).c_str());
 	out.Write(
 		"		case 0u: // Color 0\n"
 		"			ras = icolors_0;\n"
@@ -422,16 +422,16 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"		// Color Combiner\n"
 		"		{\n");
-	out.Write("\t\t\tuint a = %s;\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.a).c_str());
-	out.Write("\t\t\tuint b = %s;\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.b).c_str());
-	out.Write("\t\t\tuint c = %s;\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.c).c_str());
-	out.Write("\t\t\tuint d = %s;\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.d).c_str());
+	out.Write("\t\t\tuint a = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.a).c_str());
+	out.Write("\t\t\tuint b = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.b).c_str());
+	out.Write("\t\t\tuint c = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.c).c_str());
+	out.Write("\t\t\tuint d = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.d).c_str());
 
-	out.Write("\t\t\tuint bias = %s;\n",  BitfieldExtract("cc", bpmem.combiners[0].colorC.bias).c_str());
-	out.Write("\t\t\tbool op = bool(%s);\n",    BitfieldExtract("cc", bpmem.combiners[0].colorC.op).c_str());
-	out.Write("\t\t\tbool _clamp = bool(%s);\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.clamp).c_str());
-	out.Write("\t\t\tuint shift = %s;\n", BitfieldExtract("cc", bpmem.combiners[0].colorC.shift).c_str());
-	out.Write("\t\t\tuint dest = %s;\n",  BitfieldExtract("cc", bpmem.combiners[0].colorC.dest).c_str());
+	out.Write("\t\t\tuint bias = %s;\n",  BitfieldExtract("cc", TevStageCombiner().colorC.bias).c_str());
+	out.Write("\t\t\tbool op = bool(%s);\n",    BitfieldExtract("cc", TevStageCombiner().colorC.op).c_str());
+	out.Write("\t\t\tbool _clamp = bool(%s);\n", BitfieldExtract("cc", TevStageCombiner().colorC.clamp).c_str());
+	out.Write("\t\t\tuint shift = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.shift).c_str());
+	out.Write("\t\t\tuint dest = %s;\n",  BitfieldExtract("cc", TevStageCombiner().colorC.dest).c_str());
 
 	out.Write(
 		"\n"
