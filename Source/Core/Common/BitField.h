@@ -159,15 +159,8 @@ public:
 		return Value();
 	}
 
-	constexpr std::size_t size() const
-	{
-		return bits;
-	}
-
-	constexpr std::size_t offset() const
-	{
-		return position;
-	}
+	static const unsigned int size = bits;
+	static const unsigned int offset = position;
 
 private:
 	// StorageType is T for non-enum types and the underlying type of T if
