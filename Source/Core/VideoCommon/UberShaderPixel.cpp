@@ -95,7 +95,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 			"int4 sampleTexture(uint sampler_num, float2 uv) {\n"
 			"	// This is messy, but DirectX, OpenGl 3.3 and Opengl ES 3.0 doesn't support dynamic indexing of the sampler array\n"
 			"	// With any luck the shader compiler will optimise this if the hardware supports dynamic indexing.\n"
-			"	switch(sampler_num & 0x7u) {\n");
+			"	switch(sampler_num) {\n");
 		for (int i = 0; i < 8; i++)
 		{
 			if (ApiType == API_OPENGL) out.Write(
@@ -145,7 +145,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"// Helper function for Alpha Test\n"
 		"bool alphaCompare(int a, int b, uint compare) {\n"
-		"	switch (compare & 7u) {\n"
+		"	switch (compare) {\n"
 		"	case 0u: // NEVER\n"
 		"		return false;\n"
 		"	case 1u: // LESS\n"
@@ -177,7 +177,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"};\n"
 		"\n"
 		"int3 selectColorInput(State s, uint index) {\n"
-		"	switch (index &15) {\n"
+		"	switch (index) {\n"
 		"	case 0u: // prev.rgb\n"
 		"		return s.Reg[0].rgb;\n"
 		"	case 1u: // prev.aaa\n"
@@ -213,7 +213,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	}\n"
 		"}\n"
 		"int selectAlphaInput(State s, uint index) {\n"
-		"	switch (index &7) {\n"
+		"	switch (index) {\n"
 		"	case 0u: // prev.a\n"
 		"		return s.Reg[0].a;\n"
 		"	case 1u: // c0.a\n"
@@ -234,7 +234,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"}\n"
 		"\n"
 		"void setRegColor(inout State s, uint index, int3 color) {\n"
-		"	switch (index &3) {\n"
+		"	switch (index) {\n"
 		"	case 0u: // prev\n"
 		"		s.Reg[0].rgb = color;\n"
 		"		break;\n"
@@ -251,7 +251,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"}\n"
 		"\n"
 		"void setRegAlpha(inout State s, uint index, int alpha) {\n"
-		"	switch (index &3) {\n"
+		"	switch (index) {\n"
 		"	case 0u: // prev\n"
 		"		s.Reg[0].a = alpha;\n"
 		"		break;\n"
@@ -335,7 +335,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"	// Main tev loop\n");
 	if (ApiType == API_D3D) out.Write(
-		"	[loop]\n"); // Tell DirectX we don't want this loop unrolled.
+		"	[loop]\n"); // Tell DirectX we don't want this loop unrolled (it crashes if it tries to)
 	out.Write(
 		"	for(uint stage = 0u; stage <= num_stages; stage++)\n"
 		"	{\n"
@@ -505,6 +505,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			if (stage == num_stages) { // If this is the last stage\n"
 		"				// Write result to output\n"
 		"				TevResult.a = alpha;\n"
+		"				break;\n"
 		"			} else {\n"
 		"				// Write result to the correct input register of the next stage\n"
 		"				setRegAlpha(s, dest, alpha);\n"
