@@ -28,7 +28,7 @@ namespace DX11
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
 UberShader::PixelShaderUid PixelShaderCache::last_uid;
-UidChecker<UberShader::PixelShaderUid,PixelShaderCode> PixelShaderCache::pixel_uid_checker;
+UidChecker<UberShader::PixelShaderUid,ShaderCode> PixelShaderCache::pixel_uid_checker;
 
 LinearDiskCache<UberShader::PixelShaderUid, u8> g_ps_disk_cache;
 
@@ -548,7 +548,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	UberShader::GetPixelShaderUid(uid, dstAlphaMode);
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
-		//PixelShaderCode code;
+		//ShaderCode code;
 		//GeneratePixelShaderCode(code, dstAlphaMode, API_D3D, components);
 		//pixel_uid_checker.AddToIndexAndCheck(code, uid, "Pixel", "p");
 	}
@@ -578,7 +578,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	}
 
 	// Need to compile a new shader
-	PixelShaderCode code;
+	ShaderCode code;
 	//GeneratePixelShaderCode(code, dstAlphaMode, API_D3D, components);
 	code = UberShader::GenPixelShader(dstAlphaMode, API_D3D, false);
 

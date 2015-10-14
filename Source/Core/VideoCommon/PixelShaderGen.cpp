@@ -1163,13 +1163,13 @@ void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_T
 	GeneratePixelShader<PixelShaderUid>(object, dstAlphaMode, ApiType, components);
 }
 
-void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void GeneratePixelShaderCode(ShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	GeneratePixelShader<PixelShaderCode>(object, dstAlphaMode, ApiType, components);
+	GeneratePixelShader<ShaderCode>(object, dstAlphaMode, ApiType, components);
 }
 
-void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void GetPixelShaderConstantProfile(ShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	GeneratePixelShader<PixelShaderConstantProfile>(object, dstAlphaMode, ApiType, components);
+	GeneratePixelShader<ShaderConstantProfile>(object, dstAlphaMode, ApiType, components);
 }
 

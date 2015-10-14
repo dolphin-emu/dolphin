@@ -57,7 +57,7 @@ private:
 	static const PSCacheEntry* last_entry;
 	static UberShader::PixelShaderUid last_uid;
 
-	static UidChecker<UberShader::PixelShaderUid,PixelShaderCode> pixel_uid_checker;
+	static UidChecker<UberShader::PixelShaderUid,ShaderCode> pixel_uid_checker;
 };
 
 }  // namespace DX11
