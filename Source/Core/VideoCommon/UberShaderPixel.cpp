@@ -470,16 +470,16 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"		// Alpha Combiner\n"
 		"		{\n");
-	out.Write("\t\t\tuint a = %s;\n", BitfieldExtract("ac", bpmem.combiners[0].alphaC.a).c_str());
-	out.Write("\t\t\tuint b = %s;\n", BitfieldExtract("ac", bpmem.combiners[0].alphaC.b).c_str());
-	out.Write("\t\t\tuint c = %s;\n", BitfieldExtract("ac", bpmem.combiners[0].alphaC.c).c_str());
-	out.Write("\t\t\tuint d = %s;\n", BitfieldExtract("ac", bpmem.combiners[0].alphaC.d).c_str());
+	out.Write("\t\t\tuint a = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.a).c_str());
+	out.Write("\t\t\tuint b = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.b).c_str());
+	out.Write("\t\t\tuint c = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.c).c_str());
+	out.Write("\t\t\tuint d = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.d).c_str());
 
-	out.Write("\t\t\tuint bias = %s;\n", BitfieldExtract("ac", bpmem.combiners[0].alphaC.bias).c_str());
-	out.Write("\t\t\tbool op = bool(%s);\n", BitfieldExtract("ac", bpmem.combiners[0].alphaC.op).c_str());
-	out.Write("\t\t\tbool _clamp = bool(%s);\n", BitfieldExtract("ac", bpmem.combiners[0].alphaC.clamp).c_str());
-	out.Write("\t\t\tuint shift = %s;\n", BitfieldExtract("ac", bpmem.combiners[0].alphaC.shift).c_str());
-	out.Write("\t\t\tuint dest = %s;\n", BitfieldExtract("ac", bpmem.combiners[0].alphaC.dest).c_str());
+	out.Write("\t\t\tuint bias = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.bias).c_str());
+	out.Write("\t\t\tbool op = bool(%s);\n", BitfieldExtract("ac", TevStageCombiner().alphaC.op).c_str());
+	out.Write("\t\t\tbool _clamp = bool(%s);\n", BitfieldExtract("ac", TevStageCombiner().alphaC.clamp).c_str());
+	out.Write("\t\t\tuint shift = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.shift).c_str());
+	out.Write("\t\t\tuint dest = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.dest).c_str());
 
 	out.Write(
 		"\n"
