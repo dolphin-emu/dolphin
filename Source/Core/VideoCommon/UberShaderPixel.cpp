@@ -354,12 +354,12 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"		// Sample texture for stage\n"
 		"		int4 texColor;\n"
-		"		if((order & %du) != 0u) {\n", 1 << bpmem.tevorders[0].enable0.offset());
+		"		if((order & %du) != 0u) {\n", 1 << TwoTevStageOrders().enable0.offset);
 	out.Write(
 		"			// Texture is enabled\n"
-		"			uint sampler_num = %s;\n", BitfieldExtract("order", bpmem.tevorders[0].texmap0).c_str());
+		"			uint sampler_num = %s;\n", BitfieldExtract("order", TwoTevStageOrders().texmap0).c_str());
 	out.Write(
-		"			uint tex_coord = %s;\n", BitfieldExtract("order", bpmem.tevorders[0].texcoord0).c_str());
+		"			uint tex_coord = %s;\n", BitfieldExtract("order", TwoTevStageOrders().texcoord0).c_str());
 	out.Write(
 		"\n"
 		"			// TODO: there is an optional perspective divide here (not to mention all of indirect)\n"
