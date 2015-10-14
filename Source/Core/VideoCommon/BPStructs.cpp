@@ -316,6 +316,7 @@ static void BPWritten(const BPCmd& bp)
     return;
   }
   case BPMEM_FOGRANGE:  // Fog Settings Control
+    PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
   case BPMEM_FOGRANGE + 1:
   case BPMEM_FOGRANGE + 2:
   case BPMEM_FOGRANGE + 3:
@@ -330,6 +331,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_FOGPARAM3:
     if (bp.changes)
       PixelShaderManager::SetFogParamChanged();
+    PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
     return;
   case BPMEM_FOGCOLOR:  // Fog Color
     if (bp.changes)
