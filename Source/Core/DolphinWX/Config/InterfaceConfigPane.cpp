@@ -99,6 +99,7 @@ void InterfaceConfigPane::InitializeGUI()
 	m_confirm_stop_checkbox     = new wxCheckBox(this, wxID_ANY, _("Confirm on Stop"));
 	m_panic_handlers_checkbox   = new wxCheckBox(this, wxID_ANY, _("Use Panic Handlers"));
 	m_osd_messages_checkbox     = new wxCheckBox(this, wxID_ANY, _("On-Screen Display Messages"));
+	m_simple_title_checkbox     = new wxCheckBox(this, wxID_ANY, _("Use simpler window title for emulation window"));
 	m_pause_focus_lost_checkbox = new wxCheckBox(this, wxID_ANY, _("Pause on Focus Lost"));
 	m_interface_lang_choice     = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_interface_lang_strings);
 	m_theme_choice              = new wxChoice(this, wxID_ANY);
@@ -106,6 +107,7 @@ void InterfaceConfigPane::InitializeGUI()
 	m_confirm_stop_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnConfirmStopCheckBoxChanged, this);
 	m_panic_handlers_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnPanicHandlersCheckBoxChanged, this);
 	m_osd_messages_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnOSDMessagesCheckBoxChanged, this);
+	m_simple_title_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnSimpleTitleCheckBoxChanged, this);
 	m_pause_focus_lost_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnPauseOnFocusLostCheckBoxChanged, this);
 	m_interface_lang_choice->Bind(wxEVT_CHOICE, &InterfaceConfigPane::OnInterfaceLanguageChoiceChanged, this);
 	m_theme_choice->Bind(wxEVT_CHOICE, &InterfaceConfigPane::OnThemeSelected, this);
@@ -113,6 +115,7 @@ void InterfaceConfigPane::InitializeGUI()
 	m_confirm_stop_checkbox->SetToolTip(_("Show a confirmation box before stopping a game."));
 	m_panic_handlers_checkbox->SetToolTip(_("Show a message box when a potentially serious error has occurred.\nDisabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all."));
 	m_osd_messages_checkbox->SetToolTip(_("Display messages over the emulation screen area.\nThese messages include memory card writes, video backend and CPU information, and JIT cache clearing."));
+	m_simple_title_checkbox->SetToolTip(_("Makes the emulation window use a simple, constant window title. Fixes some issues with applications that track windows by their names."));
 	m_pause_focus_lost_checkbox->SetToolTip(_("Pauses the emulator when focus is taken away from the emulation window."));
 	m_interface_lang_choice->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
@@ -129,6 +132,7 @@ void InterfaceConfigPane::InitializeGUI()
 	main_static_box_sizer->Add(m_confirm_stop_checkbox, 0, wxALL, 5);
 	main_static_box_sizer->Add(m_panic_handlers_checkbox, 0, wxALL, 5);
 	main_static_box_sizer->Add(m_osd_messages_checkbox, 0, wxALL, 5);
+	main_static_box_sizer->Add(m_simple_title_checkbox, 0, wxALL, 5);
 	main_static_box_sizer->Add(m_pause_focus_lost_checkbox, 0, wxALL, 5);
 	main_static_box_sizer->Add(theme_sizer, 0, wxEXPAND | wxALL, 5);
 	main_static_box_sizer->Add(language_sizer, 0, wxEXPAND | wxALL, 5);
@@ -146,6 +150,8 @@ void InterfaceConfigPane::LoadGUIValues()
 	m_confirm_stop_checkbox->SetValue(startup_params.bConfirmStop);
 	m_panic_handlers_checkbox->SetValue(startup_params.bUsePanicHandlers);
 	m_osd_messages_checkbox->SetValue(startup_params.bOnScreenDisplayMessages);
+	m_simple_title_checkbox->SetValue(startup_params.bSimpleWindowTitle);
+	
 	m_pause_focus_lost_checkbox->SetValue(SConfig::GetInstance().m_PauseOnFocusLost);
 
 	for (size_t i = 0; i < sizeof(language_ids) / sizeof(wxLanguage); i++)
@@ -194,6 +200,11 @@ void InterfaceConfigPane::OnPanicHandlersCheckBoxChanged(wxCommandEvent& event)
 void InterfaceConfigPane::OnOSDMessagesCheckBoxChanged(wxCommandEvent& event)
 {
 	SConfig::GetInstance().bOnScreenDisplayMessages = m_osd_messages_checkbox->IsChecked();
+}
+
+void InterfaceConfigPane::OnSimpleTitleCheckBoxChanged(wxCommandEvent& event)
+{
+	SConfig::GetInstance().bSimpleWindowTitle = m_simple_title_checkbox->IsChecked();
 }
 
 void InterfaceConfigPane::OnInterfaceLanguageChoiceChanged(wxCommandEvent& event)

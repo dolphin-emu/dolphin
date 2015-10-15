@@ -112,7 +112,7 @@ struct SConfig : NonCopyable
 	bool bWii;
 
 	// Interface settings
-	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;
+	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages, bSimpleWindowTitle;
 	std::string theme_name;
 
 	// Display settings

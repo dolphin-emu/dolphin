@@ -705,6 +705,10 @@ void CFrame::UpdateTitle(const std::string &str)
 		GetStatusBar()->SetStatusText(str, 0);
 		m_RenderFrame->SetTitle(scm_rev_str);
 	}
+	else if (SConfig::GetInstance().bSimpleWindowTitle)
+	{
+		m_RenderFrame->SetTitle("Dolphin Emulation Window");
+	}
 	else
 	{
 		std::string titleStr = StringFromFormat("%s | %s", scm_rev_str, str.c_str());
