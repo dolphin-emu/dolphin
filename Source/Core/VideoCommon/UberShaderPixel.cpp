@@ -110,9 +110,9 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 			"}\n\n");
 	}
 
-	// ==========
-	//    Lerp
-	// ==========
+	// ======================
+	//   TEV's Special Lerp
+	// ======================
 
 	out.Write(
 		"// One channel worth of TEV's Linear Interpolate, plus bias, add/subtract and scale\n"
@@ -138,6 +138,36 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	if (shift == 3u)\n"
 		"		result = result >> 1;\n"
 		"	return result;\n"
+		"}\n\n");
+
+	// =======================
+	//   TEV's Color Compare
+	// =======================
+
+	out.Write(
+		"// Implements operations 0-5 of tev's compare mode,\n"
+		"// which are common to both color and alpha channels\n"
+		"bool tevCompare(uint op, int3 color_A, int3 color_B) {\n"
+		"	switch (op) {\n"
+		"	case 0u: // TEVCMP_R8_GT\n"
+		"		return (color_A.r > color_B.r);\n"
+		"	case 1u: // TEVCMP_R8_EQ\n"
+		"		return (color_A.r == color_B.r);\n"
+		"	case 2u: // TEVCMP_GR16_GT\n"
+		"		int A_16 = (color_A.r | (color_A.g << 8));\n"
+		"		int B_16 = (color_B.r | (color_B.g << 8));\n"
+		"		return A_16 > B_16;\n"
+		"	case 3u: // TEVCMP_GR16_EQ\n"
+		"		return (color_A.r == color_B.r && color_A.g == color_B.g);\n"
+		"	case 4u: // TEVCMP_BGR24_GT\n"
+		"		int A_24 = (color_A.r | (color_A.g << 8) | (color_A.b << 16));\n"
+		"		int B_24 = (color_B.r | (color_B.g << 8) | (color_B.b << 16));\n"
+		"		return A_24 > B_24;\n"
+		"	case 5u: // TEVCMP_BGR24_EQ\n"
+		"		return (color_A.r == color_B.r && color_A.g == color_B.g && color_A.b == color_B.b);\n"
+		"	default:\n"
+		"		return false;\n"
+		"	}\n"
 		"}\n\n");
 
 	// =================
@@ -170,6 +200,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	// =================
 	//   Input Selects
 	// =================
+
 	out.Write(
 		"struct State {\n"
 		"	int4 Reg[4];\n"
@@ -418,42 +449,57 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"		}\n"
 		"		// TODO: color channel swapping\n"
 		"		s.RasColor = ras;\n"
-		"\n"
 		"\n");
 
 	out.Write(
-		"		// Color Combiner\n"
-		"		{\n");
-	out.Write("\t\t\tuint a = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.a).c_str());
-	out.Write("\t\t\tuint b = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.b).c_str());
-	out.Write("\t\t\tuint c = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.c).c_str());
-	out.Write("\t\t\tuint d = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.d).c_str());
+		"		// This is the Meat of TEV\n"
+		"		{\n"
+		"			// Color Combiner\n");
+	out.Write("\t\t\tuint color_a = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.a).c_str());
+	out.Write("\t\t\tuint color_b = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.b).c_str());
+	out.Write("\t\t\tuint color_c = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.c).c_str());
+	out.Write("\t\t\tuint color_d = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.d).c_str());
 
-	out.Write("\t\t\tuint bias = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.bias).c_str());
-	out.Write("\t\t\tbool op = bool(%s);\n", BitfieldExtract("cc", TevStageCombiner().colorC.op).c_str());
-	out.Write("\t\t\tbool _clamp = bool(%s);\n", BitfieldExtract("cc", TevStageCombiner().colorC.clamp).c_str());
-	out.Write("\t\t\tuint shift = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.shift).c_str());
-	out.Write("\t\t\tuint dest = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.dest).c_str());
+	out.Write("\t\t\tuint color_bias = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.bias).c_str());
+	out.Write("\t\t\tbool color_op = bool(%s);\n", BitfieldExtract("cc", TevStageCombiner().colorC.op).c_str());
+	out.Write("\t\t\tbool color_clamp = bool(%s);\n", BitfieldExtract("cc", TevStageCombiner().colorC.clamp).c_str());
+	out.Write("\t\t\tuint color_shift = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.shift).c_str());
+	out.Write("\t\t\tuint color_dest = %s;\n", BitfieldExtract("cc", TevStageCombiner().colorC.dest).c_str());
 
 	out.Write(
+		"			uint color_compare_op = color_shift << 1 | uint(color_op);\n"
 		"\n"
-		"			int3 A = selectColorInput(s, a) & int3(255, 255, 255);\n"
-		"			int3 B = selectColorInput(s, b) & int3(255, 255, 255);\n"
-		"			int3 C = selectColorInput(s, c) & int3(255, 255, 255);\n"
-		"			int3 D = selectColorInput(s, d);  // 10 bits + sign\n" // TODO: do we need to sign extend?
+		"			int3 color_A = selectColorInput(s, color_a) & int3(255, 255, 255);\n"
+		"			int3 color_B = selectColorInput(s, color_b) & int3(255, 255, 255);\n"
+		"			int3 color_C = selectColorInput(s, color_c) & int3(255, 255, 255);\n"
+		"			int3 color_D = selectColorInput(s, color_d);  // 10 bits + sign\n" // TODO: do we need to sign extend?
 		"\n"
 		"			int3 color;\n"
-		"			if(bias != 3u) { // Normal mode\n"
-		"				color.r = tevLerp(A.r, B.r, C.r, D.r, bias, op, shift);\n"
-		"				color.g = tevLerp(A.g, B.g, C.g, D.g, bias, op, shift);\n"
-		"				color.b = tevLerp(A.b, B.b, C.b, D.b, bias, op, shift);\n"
+		"			if(color_bias != 3u) { // Normal mode\n"
+		"				color.r = tevLerp(color_A.r, color_B.r, color_C.r, color_D.r, color_bias, color_op, color_shift);\n"
+		"				color.g = tevLerp(color_A.g, color_B.g, color_C.g, color_D.g, color_bias, color_op, color_shift);\n"
+		"				color.b = tevLerp(color_A.b, color_B.b, color_C.b, color_D.b, color_bias, color_op, color_shift);\n"
 		"			} else { // Compare mode\n"
-		"				// Not implemented\n" // Not Implemented
-		"				color = int3(255, 0, 0);\n"
+		"				// op 6 and 7 do a select per color channel\n"
+		"				if (color_compare_op == 6u) {\n"
+		"					// TEVCMP_RGB8_GT\n"
+		"					color.r = (color_A.r > color_B.r) ? color_D.r : 0;\n"
+		"					color.g = (color_A.g > color_B.g) ? color_D.g : 0;\n"
+		"					color.b = (color_A.b > color_B.b) ? color_D.b : 0;\n"
+		"				} else if (color_compare_op == 7u) {\n"
+		"					// TEVCMP_RGB8_EQ\n"
+		"					color.r = (color_A.r == color_B.r) ? color_D.r : 0;\n"
+		"					color.g = (color_A.g == color_B.g) ? color_D.g : 0;\n"
+		"					color.b = (color_A.b == color_B.b) ? color_D.b : 0;\n"
+		"				} else {\n"
+		"					// The remaining ops do one compare which selects all 3 channels\n"
+		"					color = tevCompare(color_compare_op, color_A, color_B) ? color_C : int3(0, 0, 0);\n"
+		"				}\n"
+		"				color = color_D + color;\n"
 		"			}\n"
 		"\n"
 		"			// Clamp result\n"
-		"			if (_clamp)\n"
+		"			if (color_clamp)\n"
 		"				color = clamp(color, 0, 255);\n"
 		"			else\n"
 		"				color = clamp(color, -1024, 1023);\n"
@@ -463,43 +509,56 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"				TevResult.rgb = color;\n"
 		"			} else {\n"
 		"				// Write result to the correct input register of the next stage\n"
-		"				setRegColor(s, dest, color);\n"
+		"				setRegColor(s, color_dest, color);\n"
 		"			}\n"
-		"		}\n");
+		"\n");
 
 	// Alpha combiner
-	// TODO: we should make the above code slightly more generic instead of just copy/pasting
 	out.Write(
-		"		// Alpha Combiner\n"
-		"		{\n");
-	out.Write("\t\t\tuint a = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.a).c_str());
-	out.Write("\t\t\tuint b = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.b).c_str());
-	out.Write("\t\t\tuint c = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.c).c_str());
-	out.Write("\t\t\tuint d = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.d).c_str());
+		"		// Alpha Combiner\n");
+	out.Write("\t\t\tuint alpha_a = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.a).c_str());
+	out.Write("\t\t\tuint alpha_b = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.b).c_str());
+	out.Write("\t\t\tuint alpha_c = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.c).c_str());
+	out.Write("\t\t\tuint alpha_d = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.d).c_str());
 
-	out.Write("\t\t\tuint bias = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.bias).c_str());
-	out.Write("\t\t\tbool op = bool(%s);\n", BitfieldExtract("ac", TevStageCombiner().alphaC.op).c_str());
-	out.Write("\t\t\tbool _clamp = bool(%s);\n", BitfieldExtract("ac", TevStageCombiner().alphaC.clamp).c_str());
-	out.Write("\t\t\tuint shift = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.shift).c_str());
-	out.Write("\t\t\tuint dest = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.dest).c_str());
+	out.Write("\t\t\tuint alpha_bias = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.bias).c_str());
+	out.Write("\t\t\tbool alpha_op = bool(%s);\n", BitfieldExtract("ac", TevStageCombiner().alphaC.op).c_str());
+	out.Write("\t\t\tbool alpha_clamp = bool(%s);\n", BitfieldExtract("ac", TevStageCombiner().alphaC.clamp).c_str());
+	out.Write("\t\t\tuint alpha_shift = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.shift).c_str());
+	out.Write("\t\t\tuint alpha_dest = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.dest).c_str());
 
 	out.Write(
+		"			uint alpha_compare_op = alpha_shift << 1 | uint(alpha_op);\n"
 		"\n"
-		"			int A = selectAlphaInput(s, a) & 255;\n"
-		"			int B = selectAlphaInput(s, b) & 255;\n"
-		"			int C = selectAlphaInput(s, c) & 255;\n"
-		"			int D = selectAlphaInput(s, d); // 10 bits + sign\n" // TODO: do we need to sign extend?
+		"			int alpha_A;"
+		"			int alpha_B;"
+		"			if (alpha_bias != 3u || alpha_compare_op > 5u) {\n"
+		"				// Small optimisation here: alpha_A and alpha_B are unused by compare ops 0-5\n"
+		"				alpha_A = selectAlphaInput(s, alpha_a) & 255;\n"
+		"				alpha_B = selectAlphaInput(s, alpha_b) & 255;\n"
+		"			};\n"
+		"			int alpha_C = selectAlphaInput(s, alpha_c) & 255;\n"
+		"			int alpha_D = selectAlphaInput(s, alpha_d); // 10 bits + sign\n" // TODO: do we need to sign extend?
 		"\n"
 		"			int alpha;\n"
-		"			if(bias != 3u) { // Normal mode\n"
-		"				alpha = tevLerp(A, B, C, D, bias, op, shift);\n"
+		"			if(alpha_bias != 3u) { // Normal mode\n"
+		"				alpha = tevLerp(alpha_A, alpha_B, alpha_C, alpha_D, alpha_bias, alpha_op, alpha_shift);\n"
 		"			} else { // Compare mode\n"
-		"				// Not implemented\n" // Not Implemented
-		"				alpha = 255;\n"
+		"				if (alpha_compare_op == 6u) {\n"
+		"					// TEVCMP_A8_GT\n"
+		"					alpha = (alpha_A > alpha_B) ? alpha_C : 0;\n"
+		"				} else if (alpha_compare_op == 7u) {\n"
+		"					// TEVCMP_A8_EQ\n"
+		"					alpha = (alpha_A == alpha_B) ? alpha_C : 0;\n"
+		"				} else {\n"
+		"					// All remaining alpha compare ops actually compare the color channels\n"
+		"					alpha = tevCompare(alpha_compare_op, color_A, color_B) ? alpha_C : 0;\n"
+		"				}\n"
+		"				alpha = alpha_D + alpha;\n"
 		"			}\n"
 		"\n"
 		"			// Clamp result\n"
-		"			if (_clamp)\n"
+		"			if (alpha_clamp)\n"
 		"				alpha = clamp(alpha, 0, 255);\n"
 		"			else\n"
 		"				alpha = clamp(alpha, -1024, 1023);\n"
@@ -510,7 +569,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"				break;\n"
 		"			} else {\n"
 		"				// Write result to the correct input register of the next stage\n"
-		"				setRegAlpha(s, dest, alpha);\n"
+		"				setRegAlpha(s, alpha_dest, alpha);\n"
 		"			}\n"
 		"		}\n");
 
