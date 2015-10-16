@@ -132,15 +132,21 @@ void OpenALStream::SoundLoop()
 	Common::SetCurrentThreadName("Audio thread - openal");
 
 	bool surround_capable = SConfig::GetInstance().bDPL2Decoder;
-#if defined(__APPLE__)
 	bool float32_capable = false;
+	bool fixed32_capable = false;
+
+#if defined(__APPLE__)
 	const ALenum AL_FORMAT_STEREO_FLOAT32 = 0;
-	// OS X does not have the alext AL_FORMAT_51CHN32 yet.
+	const ALenum AL_FORMAT_STEREO32 = 0;
+	// OS X does not have the alext AL_FORMAT_51CHN32 or AL_FORMAT_51CHN16 yet.
 	surround_capable = false;
 	const ALenum AL_FORMAT_51CHN32 = 0;
 	const ALenum AL_FORMAT_51CHN16 = 0;
+#elif defined (_WIN32)
+	// Only Windows supports AL_FORMAT_STEREO32 alext for now.
+#define AL_FORMAT_STEREO32 0x1203
 #else
-	bool float32_capable = true;
+	const ALenum AL_FORMAT_STEREO32 = 0
 #endif
 
 	u32 ulFrequency = m_mixer->GetSampleRate();
@@ -149,18 +155,31 @@ void OpenALStream::SoundLoop()
 	memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
 	uiSource = 0;
 
-	// Checks if a X-Fi is being used. If it is, disable FLOAT32 support as this sound card has no support for it even though it reports it does.
+	if (alIsExtensionPresent("AL_EXT_float32"))
+		float32_capable = true;
+
 	if (strstr(alGetString(AL_RENDERER), "X-Fi"))
-		float32_capable = false;
+		fixed32_capable = true;
+
+	// Reset errors before querying for them or we get false positives
+	ALenum err = alGetError();
 
 	// Generate some AL Buffers for streaming
 	alGenBuffers(numBuffers, (ALuint *)uiBuffers);
 	// Generate a Source to playback the Buffers
 	alGenSources(1, &uiSource);
 
+	err = alGetError();
+	if (err != 0)
+	{
+		WARN_LOG(AUDIO, "Error generating buffers: %08x", err);
+	}
+
 	// Short Silence
 	if (float32_capable)
 		memset(sampleBuffer, 0, OAL_MAX_SAMPLES * numBuffers * FRAME_SURROUND_FLOAT);
+	else if (fixed32_capable)
+		memset(sampleBuffer, 0, OAL_MAX_SAMPLES * numBuffers * FRAME_SURROUND_INT32);
 	else
 		memset(sampleBuffer, 0, OAL_MAX_SAMPLES * numBuffers * FRAME_SURROUND_SHORT);
 
@@ -172,12 +191,19 @@ void OpenALStream::SoundLoop()
 		{
 			if (float32_capable)
 				alBufferData(uiBuffers[i], AL_FORMAT_51CHN32, sampleBuffer, 4 * FRAME_SURROUND_FLOAT, ulFrequency);
+			else if (fixed32_capable)
+				alBufferData(uiBuffers[i], AL_FORMAT_51CHN32, sampleBuffer, 4 * FRAME_SURROUND_INT32, ulFrequency);
 			else
 				alBufferData(uiBuffers[i], AL_FORMAT_51CHN16, sampleBuffer, 4 * FRAME_SURROUND_SHORT, ulFrequency);
 		}
 		else
 		{
-			alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, 4 * FRAME_STEREO_SHORT, ulFrequency);
+			if (float32_capable)
+				alBufferData(uiBuffers[i], AL_FORMAT_STEREO_FLOAT32, realtimeBuffer, 4 * FRAME_STEREO_FLOAT, ulFrequency);
+			if (fixed32_capable)
+				alBufferData(uiBuffers[i], AL_FORMAT_STEREO32, realtimeBuffer, 4 * FRAME_STEREO_INT32, ulFrequency);
+			else
+				alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, 4 * FRAME_STEREO_SHORT, ulFrequency);
 		}
 	}
 	alSourceQueueBuffers(uiSource, numBuffers, uiBuffers);
@@ -260,7 +286,7 @@ void OpenALStream::SoundLoop()
 			if (iBuffersFilled == 0)
 			{
 				alSourceUnqueueBuffers(uiSource, iBuffersProcessed, uiBufferTemp);
-				ALenum err = alGetError();
+				err = alGetError();
 				if (err != 0)
 				{
 					ERROR_LOG(AUDIO, "Error unqueuing buffers: %08x", err);
@@ -285,16 +311,41 @@ void OpenALStream::SoundLoop()
 				{
 					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
 				}
+				else if (fixed32_capable)
+				{
+					int surround_int32[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
+
+					for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
+					{
+						// For some reason the DPL2 decoder outputs samples bigger than 1. Most are close to 2.5 and some go up to 8. How to deal with this? Hard clamping here, we need to fix the decoder or implement a limiter.
+						if (dpl2[i] >= 1)
+							surround_int32[i] = INT_MAX;
+						else if (dpl2[i] <= -1)
+							surround_int32[i] = INT_MIN;
+						else
+							surround_int32[i] = (int)((float)dpl2[i] * (1 << 31));
+					}
+
+					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, surround_int32, nSamples * FRAME_SURROUND_INT32, ulFrequency);
+				}
 				else
 				{
 					short surround_short[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
 					for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
-						surround_short[i] = (short)((float)dpl2[i] * (1 << 15));
+					{
+						// For some reason the DPL2 decoder outputs samples bigger than 1. Most are close to 2.5 and some go up to 8. How to deal with this? Hard clamping here, we need to fix the decoder or implement a limiter.
+						if (dpl2[i] >= 1)
+							surround_short[i] = SHRT_MAX;
+						else if (dpl2[i] <= -1)
+							surround_short[i] = SHRT_MIN;
+						else
+							surround_short[i] = (int)((float)dpl2[i] * (1 << 15));
+					}
 
 					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN16, surround_short, nSamples * FRAME_SURROUND_SHORT, ulFrequency);
 				}
 
-				ALenum err = alGetError();
+				err = alGetError();
 				if (err == AL_INVALID_ENUM)
 				{
 					// 5.1 is not supported by the host, fallback to stereo
@@ -312,7 +363,7 @@ void OpenALStream::SoundLoop()
 				if (float32_capable)
 				{
 					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO_FLOAT32, sampleBuffer, nSamples * FRAME_STEREO_FLOAT, ulFrequency);
-					ALenum err = alGetError();
+					err = alGetError();
 					if (err == AL_INVALID_ENUM)
 					{
 						float32_capable = false;
@@ -322,12 +373,25 @@ void OpenALStream::SoundLoop()
 						ERROR_LOG(AUDIO, "Error occurred while buffering float32 data: %08x", err);
 					}
 				}
+				else if (fixed32_capable)
+				{
+					int stereo_int32[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
+
+					for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
+					{
+						// Clamping is not necessary here, samples are always between (-1,1)
+						stereo_int32[i] = (int)((float)sampleBuffer[i] * (1 << 31));
+					}
+
+					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO32, stereo_int32, nSamples * FRAME_STEREO_INT32, ulFrequency);
+				}
 
 				else
 				{
 					// Convert the samples from float to short
 					short stereo[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
 					for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
+						// Clamping is not necessary here, samples are always between (-1,1) 
 						stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
 
 					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * FRAME_STEREO_SHORT, ulFrequency);
@@ -335,7 +399,7 @@ void OpenALStream::SoundLoop()
 			}
 
 			alSourceQueueBuffers(uiSource, 1, &uiBufferTemp[iBuffersFilled]);
-			ALenum err = alGetError();
+			err = alGetError();
 			if (err != 0)
 			{
 				ERROR_LOG(AUDIO, "Error queuing buffers: %08x", err);
