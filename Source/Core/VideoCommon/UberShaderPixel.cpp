@@ -110,6 +110,27 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	}
 
 	// ======================
+	//   Arbatary Swizzling
+	// ======================
+
+	out.Write(
+		"int4 Swizzle(uint s, int4 color) {\n"
+		"	// AKA: Color Channel Swapping\n"
+		"\n"
+		"	int4 ret;\n");
+	out.Write(
+		"	ret.r = color[%s];\n", BitfieldExtract("bpmem_tevksel[s * 2u]", TevKSel().swap1).c_str());
+	out.Write(
+		"	ret.g = color[%s];\n", BitfieldExtract("bpmem_tevksel[s * 2u]", TevKSel().swap2).c_str());
+	out.Write(
+		"	ret.b = color[%s];\n", BitfieldExtract("bpmem_tevksel[s * 2u + 1u]", TevKSel().swap1).c_str());
+	out.Write(
+		"	ret.a = color[%s];\n", BitfieldExtract("bpmem_tevksel[s * 2u + 1u]", TevKSel().swap2).c_str());
+	out.Write(
+		"	return ret;\n"
+		"}\n");
+
+	// ======================
 	//   TEV's Special Lerp
 	// ======================
 
@@ -385,7 +406,6 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	{
 	out.Write(
 		"		// Sample texture for stage\n"
-		"		int4 texColor;\n"
 		"		if((order & %du) != 0u) {\n", 1 << TwoTevStageOrders().enable0.offset);
 	out.Write(
 		"			// Texture is enabled\n"
@@ -398,18 +418,21 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			int2 fixedPoint_uv = itrunc(tex[tex_coord].xy * " I_TEXDIMS"[sampler_num].zw * 128.0);\n"
 		"			float2 uv = (float2(fixedPoint_uv) / 128.0) * " I_TEXDIMS"[sampler_num].xy;\n"
 		"\n"
-		"			texColor = sampleTexture(sampler_num, uv);\n"
+		"			int4 color = sampleTexture(sampler_num, uv);\n"
+		"\n"
+		"			uint swap = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.tswap).c_str());
+	out.Write(
+		"			s.TexColor = Swizzle(swap, color);\n");
+	out.Write(
 		"		} else {\n"
 		"			// Texture is disabled\n"
-		"			texColor = int4(255, 255, 255, 255);\n"
+		"			s.TexColor = int4(255, 255, 255, 255);\n"
 		"		}\n"
-		"		// TODO: color channel swapping\n"
-		"		s.TexColor = texColor;\n"
 		"\n");
 	}
 
 	out.Write(
-		"		// Set Konst for stage\n"
+		"		// Select Konst for stage\n"
 		"		// TODO: a switch case might be better here than an dynamically indexed uniform lookup\n"
 		"		uint tevksel = bpmem_tevksel[stage>>1];\n"
 		"		if ((stage & 1u) == 0u)\n"
@@ -425,29 +448,23 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"\n");
 
 	out.Write(
-		"		// Set Ras for stage\n"
-		"		int4 ras;\n"
-		"		switch (%s) {\n", BitfieldExtract("order", TwoTevStageOrders().colorchan0).c_str());
+		"		// Select Ras for stage\n"
+		"		uint ras = %s;\n", BitfieldExtract("order", TwoTevStageOrders().colorchan0).c_str());
 	out.Write(
-		"		case 0u: // Color 0\n"
-		"			ras = icolors_0;\n"
-		"			break;\n"
-		"		case 1u: // Color 1\n"
-		"			ras = icolors_1;\n"
-		"			break;\n"
-		"		case 5u: // Alpha Bump\n"
-		"			ras = int4(AlphaBump, AlphaBump, AlphaBump, AlphaBump);\n"
-		"			break;\n"
-		"		case 6u: // Normalzied Alpha Bump\n"
+		"		if (ras < 2u) { // Lighting Channel 0 or 1\n"
+		"			int4 color = (ras == 0u) ? icolors_0 : icolors_1;\n"
+		"			uint swap = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.rswap).c_str());
+	out.Write(
+		"			s.RasColor = Swizzle(swap, color);\n");
+	out.Write(
+		"		} else if (ras == 5u) { // Alpha Bumb\n"
+		"			s.RasColor = int4(AlphaBump, AlphaBump, AlphaBump, AlphaBump);\n"
+		"		} else if (ras == 6u) { // Normalzied Alpha Bump\n"
 		"			int normalized = AlphaBump | AlphaBump >> 5;\n"
-		"			ras = int4(normalized, normalized, normalized, normalized);\n"
-		"			break;\n"
-		"		default:\n"
-		"			ras = int4(0, 0, 0, 0);\n"
-		"			break;\n"
+		"			s.RasColor = int4(normalized, normalized, normalized, normalized);\n"
+		"		} else {\n"
+		"			s.RasColor = int4(0, 0, 0, 0);\n"
 		"		}\n"
-		"		// TODO: color channel swapping\n"
-		"		s.RasColor = ras;\n"
 		"\n");
 
 	out.Write(

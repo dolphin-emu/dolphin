@@ -356,9 +356,9 @@ void PixelShaderManager::UpdateBP(u32 bp, u32 newValue)
 		more_constants.alphaTest = newValue;
 		dirty = true;
 	}
-	else if (bp >= 0xf8)
+	else if (bp >= 0xf6 && bp < 0xfe)
 	{
-		u32 ksel = bp - 0xf8;
+		u32 ksel = bp - 0xf6;
 		more_constants.tevksel[ksel][0] = newValue;
 		dirty = true;
 	}
