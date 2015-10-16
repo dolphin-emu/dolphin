@@ -84,9 +84,9 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		out.Write(
 			"int4 sampleTexture(uint sampler_num, float2 uv) {\n");
 		if (ApiType == API_OPENGL) out.Write(
-			"	return int4(texture(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n");
+			"	return iround(texture(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n");
 		else if (ApiType == API_D3D) out.Write(
-			"	return int4(Tex[sampler_num].Sample(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n");
+			"	return iround(Tex[sampler_num].Sample(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n");
 		out.Write(
 			"}\n\n");
 	}
@@ -372,8 +372,8 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 
 	out.Write(
 		"	int AlphaBump = 0;\n"
-		"	int4 icolors_0 = int4(colors_0 * 255.0);\n"
-		"	int4 icolors_1 = int4(colors_1 * 255.0);\n"
+		"	int4 icolors_0 = iround(colors_0 * 255.0);\n"
+		"	int4 icolors_1 = iround(colors_1 * 255.0);\n"
 		"	int4 TevResult;\n"
 		"	State s;\n"
 		"	s.TexColor = int4(0, 0, 0, 0);\n"
