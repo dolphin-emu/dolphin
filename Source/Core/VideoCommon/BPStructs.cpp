@@ -171,6 +171,7 @@ static void BPWritten(const BPCmd &bp) {
     }
     return;
   case BPMEM_CONSTANTALPHA: // Set Destination Alpha
+    PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
     PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha,
              bpmem.dstalpha.enable);
     if (bp.changes & 0xFF)
