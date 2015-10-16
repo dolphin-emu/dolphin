@@ -21,24 +21,6 @@ DSPHLE::DSPHLE()
 {
 }
 
-// Mailbox utility
-struct DSPState
-{
-	u32 CPUMailbox;
-	u32 DSPMailbox;
-
-	void Reset()
-	{
-		CPUMailbox = 0x00000000;
-		DSPMailbox = 0x00000000;
-	}
-
-	DSPState()
-	{
-		Reset();
-	}
-};
-
 bool DSPHLE::Initialize(bool bWii, bool bDSPThread)
 {
 	m_bWii = bWii;
