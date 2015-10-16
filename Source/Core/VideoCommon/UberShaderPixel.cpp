@@ -419,7 +419,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"\n"
 		"			// TODO: there is an optional perspective divide here (not to mention all of indirect)\n"
-		"			int2 fixedPoint_uv = itrunc(tex[tex_coord].xy * " I_TEXDIMS"[sampler_num].zw * 128.0);\n"
+		"			int2 fixedPoint_uv = itrunc(tex[tex_coord].xy * " I_TEXDIMS"[tex_coord].zw * 128.0);\n"
 		"			float2 uv = (float2(fixedPoint_uv) / 128.0) * " I_TEXDIMS"[sampler_num].xy;\n"
 		"\n"
 		"			int4 color = sampleTexture(sampler_num, uv);\n"
