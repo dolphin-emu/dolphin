@@ -184,7 +184,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	out.Write("//Pixel Shader for TEV stages\n");
 	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
-		numStages, numTexgen, bpmem.genMode.numindstages);
+		numStages, numTexgen, bpmem.genMode.numindstages.Value());
 
 	uid_data->dstAlphaMode = dstAlphaMode;
 	uid_data->genMode_numindstages = bpmem.genMode.numindstages;
