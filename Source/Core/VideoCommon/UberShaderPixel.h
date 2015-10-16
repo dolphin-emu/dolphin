@@ -14,9 +14,8 @@ struct pixel_ubershader_uid_data
 	// Nice and simple
 
 	// This is the current state, not to be confused with the final state.
-	// Currently: 16 diffrent ubershaders
+	// Currently: 8 diffrent ubershaders
 	u32 numTexgens : 3;
-	u32 dualSourceBlending : 1;
 
 	u32 NumValues() const { return 1; }
 };

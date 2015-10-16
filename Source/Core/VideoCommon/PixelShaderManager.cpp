@@ -335,6 +335,11 @@ void PixelShaderManager::UpdateBP(u32 bp, u32 newValue)
 		more_constants.tevorder[order][0] = newValue;
 		dirty = true;
 	}
+	else if (bp == 0x42)
+	{
+		more_constants.dstalpha = newValue;
+		dirty = true;
+	}
 	else if (bp >= 0xc0 && bp < 0xe0)
 	{
 		u32 comb = bp - 0xc0;
