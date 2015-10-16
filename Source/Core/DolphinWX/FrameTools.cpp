@@ -1468,7 +1468,7 @@ void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
 {
-	BootGame(Common::GetTitleContentPath(TITLEID_SYSMENU));
+	BootGame(Common::GetTitleContentPath(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT));
 }
 
 void CFrame::OnInstallWAD(wxCommandEvent& event)
@@ -1524,7 +1524,7 @@ void CFrame::UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem)
 		WiiMenuItem = GetMenuBar()->FindItem(IDM_LOAD_WII_MENU);
 	}
 
-	const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
+	const DiscIO::CNANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT);
 	if (SysMenu_Loader.IsValid())
 	{
 		int sysmenuVersion = SysMenu_Loader.GetTitleVersion();
@@ -1755,7 +1755,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_SAVE_STATE)->Enable(Initialized);
 	// Misc
 	GetMenuBar()->FindItem(IDM_CHANGE_DISC)->Enable(Initialized);
-	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid())
+	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT).IsValid())
 		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 
 	// Tools

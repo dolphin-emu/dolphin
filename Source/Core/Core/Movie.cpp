@@ -491,7 +491,7 @@ bool BeginRecordingInput(int controllers)
 		// TODO: find a way to GetTitleDataPath() from Movie::Init()
 		if (SConfig::GetInstance().bWii)
 		{
-			if (File::Exists(Common::GetTitleDataPath(g_titleID) + "banner.bin"))
+			if (File::Exists(Common::GetTitleDataPath(g_titleID, Common::FROM_SESSION_ROOT) + "banner.bin"))
 				Movie::g_bClearSave = false;
 			else
 				Movie::g_bClearSave = true;
