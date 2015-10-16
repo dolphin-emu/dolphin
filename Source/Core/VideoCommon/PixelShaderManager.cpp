@@ -16,6 +16,7 @@ bool PixelShaderManager::s_bFogRangeAdjustChanged;
 bool PixelShaderManager::s_bViewPortChanged;
 
 PixelShaderConstants PixelShaderManager::constants;
+UberShaderConstants PixelShaderManager::more_constants;
 bool PixelShaderManager::dirty;
 
 void PixelShaderManager::Init()
@@ -39,6 +40,36 @@ void PixelShaderManager::Init()
 	SetTexCoordChanged(5);
 	SetTexCoordChanged(6);
 	SetTexCoordChanged(7);
+
+	// fixed Konstants
+	for(int component = 0; component < 4; component++)
+	{
+		more_constants.konst[0][component] = 255; // 1
+		more_constants.konst[1][component] = 223; // 7/8
+		more_constants.konst[2][component] = 191; // 3/4
+		more_constants.konst[3][component] = 159; // 5/8
+		more_constants.konst[4][component] = 128; // 1/2
+		more_constants.konst[5][component] = 96;  // 3/8
+		more_constants.konst[6][component] = 64;  // 1/4
+		more_constants.konst[7][component] = 32;  // 1/8
+
+		// Invalid Konstants (reads as zero on hardware)
+		more_constants.konst[8][component]  = 0;
+		more_constants.konst[9][component]  = 0;
+		more_constants.konst[10][component] = 0;
+		more_constants.konst[11][component] = 0;
+
+		// Annoyingly, alpha reads zero values for the .rgb colors (offically defined as invalid)
+		// If it wasn't for this, we could just use one of the first 3 colunms instead of
+		// wasting an entire 4th column just for alpha.
+		if (component == 3)
+		{
+			more_constants.konst[12][component] = 0;
+			more_constants.konst[13][component] = 0;
+			more_constants.konst[14][component] = 0;
+			more_constants.konst[15][component] = 0;
+		}
+	}
 
 	dirty = true;
 }
@@ -117,6 +148,16 @@ void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value)
 	auto& c = constants.kcolors[index];
 	c[component] = value;
 	dirty = true;
+
+	// Konst for ubershaders. We build the whole array on cpu so the gpu can do a single indirect access.
+	if (component != 3) // Alpha doesn't included in the .rgb konsts
+		more_constants.konst[index + 12][component] = value;
+
+	// .rrrr .gggg .bbbb .aaaa konsts
+	more_constants.konst[index + 16 + component * 4][0] = value;
+	more_constants.konst[index + 16 + component * 4][1] = value;
+	more_constants.konst[index + 16 + component * 4][2] = value;
+	more_constants.konst[index + 16 + component * 4][3] = value;
 
 	PRIM_LOG("tev konst color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
 }
@@ -278,6 +319,49 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
 		return;
 
 	s_bFogRangeAdjustChanged = true;
+}
+
+void PixelShaderManager::UpdateBP(u32 bp, u32 newValue)
+{
+	// TODO: think of a less totally hacky way of doing this.
+	if (bp == 0)
+	{
+		more_constants.genmode = newValue;
+		dirty = true;
+	}
+	else if (bp >= 0x28 && bp < 0x30)
+	{
+		u32 order = bp - 0x28;
+		more_constants.tevorder[order][0] = newValue;
+		dirty = true;
+	}
+	else if (bp >= 0xc0 && bp < 0xe0)
+	{
+		u32 comb = bp - 0xc0;
+		more_constants.combiners[comb >> 1][comb & 1] = newValue;
+		dirty = true;
+	}
+	else if (bp == 0xe8)
+	{
+		more_constants.fogRangeBase = newValue;
+		dirty = true;
+	}
+	else if (bp == 0xf1)
+	{
+		more_constants.fogParam3 = newValue;
+		dirty = true;
+	}
+	else if (bp == 0xf3)
+	{
+		more_constants.alphaTest = newValue;
+		dirty = true;
+	}
+	else if (bp >= 0xf8)
+	{
+		u32 ksel = bp - 0xf8;
+		more_constants.tevksel[ksel][0] = newValue;
+		dirty = true;
+	}
 }
 
 void PixelShaderManager::DoState(PointerWrap &p)

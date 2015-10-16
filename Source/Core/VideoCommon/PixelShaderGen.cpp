@@ -165,55 +165,31 @@ template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_dat
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data);
 
 template<class T>
-static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void WritePixelShaderCommonHeader(T& out, API_TYPE ApiType)
 {
-	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
-	pixel_shader_uid_data dummy_data;
-	pixel_shader_uid_data* uid_data = out.template GetUidData<pixel_shader_uid_data>();
-	if (uid_data == nullptr)
-		uid_data = &dummy_data;
-
-	out.SetBuffer(text);
-	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-
-	if (is_writing_shadercode)
-		text[sizeof(text) - 1] = 0x7C;  // canary
-
-	unsigned int numStages = bpmem.genMode.numtevstages + 1;
-	unsigned int numTexgen = bpmem.genMode.numtexgens;
-
-	out.Write("//Pixel Shader for TEV stages\n");
-	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
-		numStages, numTexgen, bpmem.genMode.numindstages);
-
-	uid_data->dstAlphaMode = dstAlphaMode;
-	uid_data->genMode_numindstages = bpmem.genMode.numindstages;
-	uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
-	uid_data->genMode_numtexgens = bpmem.genMode.numtexgens;
-
 	// dot product for integer vectors
 	out.Write("int idot(int3 x, int3 y)\n"
-	          "{\n"
-	          "\tint3 tmp = x * y;\n"
-	          "\treturn tmp.x + tmp.y + tmp.z;\n"
-	          "}\n");
+			  "{\n"
+			  "\tint3 tmp = x * y;\n"
+			  "\treturn tmp.x + tmp.y + tmp.z;\n"
+			  "}\n");
 
 	out.Write("int idot(int4 x, int4 y)\n"
-	          "{\n"
-	          "\tint4 tmp = x * y;\n"
-	          "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
-	          "}\n\n");
+			  "{\n"
+			  "\tint4 tmp = x * y;\n"
+			  "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
+			  "}\n\n");
 
 	// rounding + casting to integer at once in a single function
 	out.Write("int  iround(float  x) { return int (round(x)); }\n"
-	          "int2 iround(float2 x) { return int2(round(x)); }\n"
-	          "int3 iround(float3 x) { return int3(round(x)); }\n"
-	          "int4 iround(float4 x) { return int4(round(x)); }\n\n");
+			  "int2 iround(float2 x) { return int2(round(x)); }\n"
+			  "int3 iround(float3 x) { return int3(round(x)); }\n"
+			  "int4 iround(float4 x) { return int4(round(x)); }\n\n");
 
 	out.Write("int  itrunc(float  x) { return int (trunc(x)); }\n"
-	          "int2 itrunc(float2 x) { return int2(trunc(x)); }\n"
-	          "int3 itrunc(float3 x) { return int3(trunc(x)); }\n"
-	          "int4 itrunc(float4 x) { return int4(trunc(x)); }\n\n");
+			  "int2 itrunc(float2 x) { return int2(trunc(x)); }\n"
+			  "int3 itrunc(float3 x) { return int3(trunc(x)); }\n"
+			  "int4 itrunc(float4 x) { return int4(trunc(x)); }\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -251,22 +227,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		"\tfloat4 " I_EFBSCALE";\n"
 		"};\n");
 
-	if (g_ActiveConfig.bEnablePixelLighting)
-	{
-		out.Write("%s", s_lighting_struct);
-
-		if (ApiType == API_OPENGL)
-		{
-			out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
-		}
-		else
-		{
-			out.Write("cbuffer VSBlock : register(b1) {\n");
-		}
-		out.Write(s_shader_uniforms);
-		out.Write("};\n");
-	}
-
 	if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
 	{
 		if (ApiType == API_OPENGL)
@@ -284,9 +244,55 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 				);
 		}
 	}
+}
+
+template<class T>
+static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+{
+	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
+	pixel_shader_uid_data dummy_data;
+	pixel_shader_uid_data* uid_data = out.template GetUidData<pixel_shader_uid_data>();
+	if (uid_data == nullptr)
+		uid_data = &dummy_data;
+
+	out.SetBuffer(text);
+	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
+
+	if (is_writing_shadercode)
+		text[sizeof(text) - 1] = 0x7C;  // canary
+
+	unsigned int numStages = bpmem.genMode.numtevstages + 1;
+	unsigned int numTexgen = bpmem.genMode.numtexgens;
+
+	out.Write("//Pixel Shader for TEV stages\n");
+	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
+		numStages, numTexgen, bpmem.genMode.numindstages);
+
+	WritePixelShaderCommonHeader(out, ApiType);
+
+	uid_data->dstAlphaMode = dstAlphaMode;
+	uid_data->genMode_numindstages = bpmem.genMode.numindstages;
+	uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
+	uid_data->genMode_numtexgens = bpmem.genMode.numtexgens;
+
+	if (g_ActiveConfig.bEnablePixelLighting)
+	{
+		out.Write("%s", s_lighting_struct);
+
+		if (ApiType == API_OPENGL)
+		{
+			out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
+		}
+		else
+		{
+			out.Write("cbuffer VSBlock : register(b1) {\n");
+		}
+		out.Write(s_shader_uniforms);
+		out.Write("};\n");
+	}
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, ApiType);
+	GenerateVSOutputMembers<T>(out, ApiType, xfmem.numTexGen.numTexGens);
 	out.Write("};\n");
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
@@ -343,7 +349,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("in VertexData {\n");
-			GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(ApiType, true, true));
+			GenerateVSOutputMembers<T>(out, ApiType, xfmem.numTexGen.numTexGens, GetInterpolationQualifier(ApiType, true, true));
 
 			if (g_ActiveConfig.iStereoMode > 0)
 				out.Write("\tflat int layer;\n");
@@ -373,7 +379,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			for (unsigned int i = 0; i < numTexgen; ++i)
-				out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
+				out.Write("\tfloat3 uv%d = tex[%d];\n", i, i);
 		}
 
 		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
@@ -1157,13 +1163,13 @@ void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_T
 	GeneratePixelShader<PixelShaderUid>(object, dstAlphaMode, ApiType, components);
 }
 
-void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void GeneratePixelShaderCode(ShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	GeneratePixelShader<PixelShaderCode>(object, dstAlphaMode, ApiType, components);
+	GeneratePixelShader<ShaderCode>(object, dstAlphaMode, ApiType, components);
 }
 
-void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void GetPixelShaderConstantProfile(ShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	GeneratePixelShader<PixelShaderConstantProfile>(object, dstAlphaMode, ApiType, components);
+	GeneratePixelShader<ShaderConstantProfile>(object, dstAlphaMode, ApiType, components);
 }
 

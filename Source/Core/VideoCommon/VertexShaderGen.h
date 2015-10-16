@@ -59,7 +59,6 @@ struct vertex_shader_uid_data
 #pragma pack()
 
 typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
-typedef ShaderCode VertexShaderCode; // TODO: Obsolete..
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type);
-void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type);
+void GenerateVertexShaderCode(ShaderCode& object, u32 components, API_TYPE api_type);

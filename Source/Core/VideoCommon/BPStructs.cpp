@@ -95,6 +95,8 @@ static void BPWritten(const BPCmd& bp)
 		         (u32)bpmem.genMode.multisampling, (u32)bpmem.genMode.numtevstages+1, (u32)bpmem.genMode.cullmode,
 		         (u32)bpmem.genMode.numindstages, (u32)bpmem.genMode.zfreeze);
 
+		PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
+
 		// Only call SetGenerationMode when cull mode changes.
 		if (bp.changes & 0xC000)
 			SetGenerationMode();
@@ -288,6 +290,7 @@ static void BPWritten(const BPCmd& bp)
 			return;
 		}
 	case BPMEM_FOGRANGE: // Fog Settings Control
+		PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
 	case BPMEM_FOGRANGE+1:
 	case BPMEM_FOGRANGE+2:
 	case BPMEM_FOGRANGE+3:
@@ -302,6 +305,7 @@ static void BPWritten(const BPCmd& bp)
 	case BPMEM_FOGPARAM3:
 		if (bp.changes)
 			PixelShaderManager::SetFogParamChanged();
+		PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
 		return;
 	case BPMEM_FOGCOLOR: // Fog Color
 		if (bp.changes)
@@ -312,6 +316,7 @@ static void BPWritten(const BPCmd& bp)
 		         (int)bpmem.alpha_test.ref0, (int)bpmem.alpha_test.ref1,
 		         (int)bpmem.alpha_test.comp0, (int)bpmem.alpha_test.comp1,
 		         (int)bpmem.alpha_test.logic);
+		PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
 		if (bp.changes & 0xFFFF)
 			PixelShaderManager::SetAlpha();
 		if (bp.changes)
@@ -419,6 +424,7 @@ static void BPWritten(const BPCmd& bp)
 	 * 3 BC0 - Ind. Tex Stage 0 NTexCoord
 	 * 0 BI0 - Ind. Tex Stage 0 NTexMap */
 	case BPMEM_IREF:
+		return;
 
 	case BPMEM_TEV_KSEL:   // Texture Environment Swap Mode Table 0
 	case BPMEM_TEV_KSEL+1: // Texture Environment Swap Mode Table 1
@@ -428,6 +434,8 @@ static void BPWritten(const BPCmd& bp)
 	case BPMEM_TEV_KSEL+5: // Texture Environment Swap Mode Table 5
 	case BPMEM_TEV_KSEL+6: // Texture Environment Swap Mode Table 6
 	case BPMEM_TEV_KSEL+7: // Texture Environment Swap Mode Table 7
+		PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
+		return;
 
 	/* This Register can be used to limit to which bits of BP registers is
 	 * actually written to. The mask is only valid for the next BP write,
@@ -554,6 +562,7 @@ static void BPWritten(const BPCmd& bp)
 	// -------------------------
 	case BPMEM_TREF:
 	case BPMEM_TREF+4:
+		PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
 		return;
 	// ----------------------
 	// Set wrap size
@@ -677,6 +686,7 @@ static void BPWritten(const BPCmd& bp)
 	case BPMEM_TEV_ALPHA_ENV+28:
 	case BPMEM_TEV_COLOR_ENV+30: // Texture Environment 16
 	case BPMEM_TEV_ALPHA_ENV+30:
+		PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
 		return;
 	default:
 		break;
@@ -1272,7 +1282,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 			                         "Tex sel: %d\n",
 			                         (data[0] - BPMEM_TEV_ALPHA_ENV)/2, tevin[ac.a], tevin[ac.b], tevin[ac.c], tevin[ac.d],
 			                         tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp], tevscale[ac.shift], tevout[ac.dest],
-			                         ac.rswap, ac.tswap);
+			                         ac.rswap.Value(), ac.tswap.Value());
 			break;
 		}
 

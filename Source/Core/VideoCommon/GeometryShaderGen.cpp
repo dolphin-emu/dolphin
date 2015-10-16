@@ -85,7 +85,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, ApiType);
+	GenerateVSOutputMembers<T>(out, ApiType, xfmem.numTexGen.numTexGens);
 	out.Write("};\n");
 
 	if (ApiType == API_OPENGL)
@@ -94,11 +94,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 			out.Write("#define InstanceID gl_InvocationID\n");
 
 		out.Write("in VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(ApiType, true, true));
+		GenerateVSOutputMembers<T>(out, ApiType, xfmem.numTexGen.numTexGens, GetInterpolationQualifier(ApiType, true, true));
 		out.Write("} vs[%d];\n", vertex_in);
 
 		out.Write("out VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(ApiType, false, true));
+		GenerateVSOutputMembers<T>(out, ApiType, xfmem.numTexGen.numTexGens, GetInterpolationQualifier(ApiType, false, true));
 
 		if (g_ActiveConfig.iStereoMode > 0)
 			out.Write("\tflat int layer;\n");
@@ -136,8 +136,8 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		if (ApiType == API_OPENGL)
 		{
 			out.Write("\tVS_OUTPUT start, end;\n");
-			AssignVSOutputMembers(out, "start", "vs[0]");
-			AssignVSOutputMembers(out, "end", "vs[1]");
+			AssignVSOutputMembers(out, xfmem.numTexGen.numTexGens, "start", "vs[0]");
+			AssignVSOutputMembers(out, xfmem.numTexGen.numTexGens, "end", "vs[1]");
 		}
 		else
 		{
@@ -168,7 +168,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		if (ApiType == API_OPENGL)
 		{
 			out.Write("\tVS_OUTPUT center;\n");
-			AssignVSOutputMembers(out, "center", "vs[0]");
+			AssignVSOutputMembers(out, xfmem.numTexGen.numTexGens, "center", "vs[0]");
 		}
 		else
 		{
@@ -198,7 +198,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	if (ApiType == API_OPENGL)
 	{
 		out.Write("\tVS_OUTPUT f;\n");
-		AssignVSOutputMembers(out, "f", "vs[i]");
+		AssignVSOutputMembers(out, xfmem.numTexGen.numTexGens, "f", "vs[i]");
 	}
 	else
 	{
@@ -236,7 +236,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 		{
 			out.Write("\tif (((" I_TEXOFFSET"[0] >> %d) & 0x1) != 0)\n", i);
-			out.Write("\t\tr.tex%d.x += texOffset;\n", i);
+			out.Write("\t\tr.tex[%d].x += texOffset;\n", i);
 		}
 		out.Write("\t}\n");
 
@@ -261,9 +261,9 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 		{
 			out.Write("\tif (((" I_TEXOFFSET"[1] >> %d) & 0x1) != 0) {\n", i);
-			out.Write("\t\tll.tex%d.xy += float2(0,1) * texOffset;\n", i);
-			out.Write("\t\tlr.tex%d.xy += texOffset;\n", i);
-			out.Write("\t\tur.tex%d.xy += float2(1,0) * texOffset;\n", i);
+			out.Write("\t\tll.tex[%d].xy += float2(0,1) * texOffset;\n", i);
+			out.Write("\t\tlr.tex[%d].xy += texOffset;\n", i);
+			out.Write("\t\tur.tex[%d].xy += float2(1,0) * texOffset;\n", i);
 			out.Write("\t}\n");
 		}
 		out.Write("\t}\n");
@@ -303,7 +303,7 @@ static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool
 	if (ApiType == API_OPENGL)
 	{
 		out.Write("\tgl_Position = %s.pos;\n", vertex);
-		AssignVSOutputMembers(out, "ps", vertex);
+		AssignVSOutputMembers(out, xfmem.numTexGen.numTexGens, "ps", vertex);
 	}
 	else
 	{

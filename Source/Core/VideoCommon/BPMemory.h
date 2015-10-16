@@ -302,41 +302,37 @@ struct TevStageCombiner
 {
 	union ColorCombiner
 	{
-		struct  //abc=8bit,d=10bit
-		{
-			u32 d : 4; // TEVSELCC_X
-			u32 c : 4; // TEVSELCC_X
-			u32 b : 4; // TEVSELCC_X
-			u32 a : 4; // TEVSELCC_X
+		//abc=8bit,d=10bit
+		BitField<0,  4, u32> d; // TEVSELCC_X
+		BitField<4,  4, u32> c; // TEVSELCC_X
+		BitField<8,  4, u32> b; // TEVSELCC_X
+		BitField<12, 4, u32> a; // TEVSELCC_X
 
-			u32 bias : 2;
-			u32 op : 1;
-			u32 clamp : 1;
+		BitField<16, 2, u32> bias;
+		BitField<18, 1, u32> op;
+		BitField<19, 1, u32> clamp;
 
-			u32 shift : 2;
-			u32 dest : 2;  //1,2,3
+		BitField<20, 2, u32> shift;
+		BitField<22, 2, u32> dest; //1,2,3
 
-		};
 		u32 hex;
 	};
 	union AlphaCombiner
 	{
-		struct
-		{
-			u32 rswap : 2;
-			u32 tswap : 2;
-			u32 d : 3; // TEVSELCA_
-			u32 c : 3; // TEVSELCA_
-			u32 b : 3; // TEVSELCA_
-			u32 a : 3; // TEVSELCA_
+		BitField<0,  2, u32> rswap;
+		BitField<2,  2, u32> tswap;
+		BitField<4,  3, u32> d; // TEVSELCA_
+		BitField<7,  3, u32> c; // TEVSELCA_
+		BitField<10, 3, u32> b; // TEVSELCA_
+		BitField<13, 3, u32> a; // TEVSELCA_
 
-			u32 bias : 2; //GXTevBias
-			u32 op : 1;
-			u32 clamp : 1;
+		BitField<16, 2, u32> bias; //GXTevBias
+		BitField<18, 1, u32> op;
+		BitField<19, 1, u32> clamp;
 
-			u32 shift : 2;
-			u32 dest : 2;  //1,2,3
-		};
+		BitField<20, 2, u32> shift;
+		BitField<22, 2, u32> dest; //1,2,3
+
 		u32 hex;
 	};
 
@@ -382,28 +378,23 @@ struct TevStageCombiner
 
 	union TwoTevStageOrders
 	{
-		struct
-		{
-			u32 texmap0    : 3; // Indirect tex stage texmap
-			u32 texcoord0  : 3;
-			u32 enable0    : 1; // 1 if should read from texture
-			u32 colorchan0 : 3; // RAS1_CC_X
+		BitField<0,  3, u32> texmap0; // Indirect tex stage texmap
+		BitField<3,  3, u32> texcoord0;
+		BitField<6,  1, u32> enable0; // 1 if should read from texture
+		BitField<7,  3, u32> colorchan0; // RAS1_CC_X
 
-			u32 pad0       : 2;
+		BitField<12, 3, u32> texmap1;
+		BitField<15, 3, u32> texcoord1;
+		BitField<18, 1, u32> enable1; // 1 if should read from texture
+		BitField<19, 3, u32> colorchan1; // RAS1_CC_X
 
-			u32 texmap1    : 3;
-			u32 texcoord1  : 3;
-			u32 enable1    : 1; // 1 if should read from texture
-			u32 colorchan1 : 3; // RAS1_CC_X
+		BitField<24, 8, u32> rid;
 
-			u32 pad1       : 2;
-			u32 rid        : 8;
-		};
 		u32 hex;
-		int getTexMap(int i){return i?texmap1:texmap0;}
-		int getTexCoord(int i){return i?texcoord1:texcoord0;}
-		int getEnable(int i){return i?enable1:enable0;}
-		int getColorChan(int i){return i?colorchan1:colorchan0;}
+		u32 getTexMap(int i) { return i ? texmap1.Value() : texmap0.Value(); }
+		u32 getTexCoord(int i) { return i ? texcoord1.Value() : texcoord0.Value(); }
+		u32 getEnable(int i) { return i ? enable1.Value() : enable0.Value(); }
+		u32 getColorChan(int i) { return i ? colorchan1.Value() : colorchan0.Value(); }
 	};
 
 union TEXSCALE
@@ -692,20 +683,17 @@ union FogParam0
 
 union FogParam3
 {
-	struct
-	{
-		u32 c_mant : 11;
-		u32 c_exp  : 8;
-		u32 c_sign : 1;
-		u32 proj   : 1; // 0 - perspective, 1 - orthographic
-		u32 fsel   : 3; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
-	};
+	BitField<0, 11, u32> c_mant;
+	BitField<11, 8, u32> c_exp;
+	BitField<19, 1, u32> c_sign;
+	BitField<20, 1, u32> proj; // 0 - perspective, 1 - orthographic
+	BitField<21, 3, u32> fsel; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
 
 	// amount to subtract from eyespacez after range adjustment
 	float GetC()
 	{
 		union { u32 i; float f; } dummy;
-		dummy.i = ((u32)c_sign << 31) | ((u32)c_exp << 23) | ((u32)c_mant << 12); // scale mantissa from 11 to 23 bits
+		dummy.i = (c_sign.Value() << 31) | (c_exp.Value() << 23) | (c_mant.Value() << 12); // scale mantissa from 11 to 23 bits
 		return dummy.f;
 	}
 
@@ -714,15 +702,12 @@ union FogParam3
 
 union FogRangeKElement
 {
-	struct
-	{
-		u32 HI : 12;
-		u32 LO : 12;
-		u32 regid : 8;
-	};
+	BitField<0, 12, u32> HI;
+	BitField<12, 12, u32> LO;
+	BitField<24, 8, u32> regid;
 
 	// TODO: Which scaling coefficient should we use here? This is just a guess!
-	float GetValue(int i) { return (i ? HI : LO) / 256.f; }
+	float GetValue(int i) { return (i ? HI.Value() : LO.Value()) / 256.f; }
 	u32 HEX;
 };
 
@@ -730,13 +715,9 @@ struct FogRangeParams
 {
 	union RangeBase
 	{
-		struct
-		{
-			u32 Center  : 10; // viewport center + 342
-			u32 Enabled : 1;
-			u32 unused  : 13;
-			u32 regid   : 8;
-		};
+		BitField<0, 10, u32> Center; // viewport center + 342
+		BitField<10, 1, u32> Enabled;
+		BitField<24, 8, u32> regid;
 		u32 hex;
 	};
 	RangeBase Base;
@@ -752,12 +733,9 @@ struct FogParams
 
 	union FogColor
 	{
-		struct
-		{
-			u32 b  : 8;
-			u32 g  : 8;
-			u32 r  : 8;
-		};
+		BitField<0,  8, u32> b;
+		BitField<8,  8, u32> g;
+		BitField<16, 8, u32> r;
 		u32 hex;
 	};
 
@@ -899,18 +877,16 @@ union TevReg
 
 union TevKSel
 {
-	struct {
-		u32 swap1 : 2;
-		u32 swap2 : 2;
-		u32 kcsel0 : 5;
-		u32 kasel0 : 5;
-		u32 kcsel1 : 5;
-		u32 kasel1 : 5;
-	};
+	BitField<0,  2, u32> swap1;
+	BitField<2,  2, u32> swap2;
+	BitField<4,  5, u32> kcsel0;
+	BitField<9,  5, u32> kasel0;
+	BitField<14, 5, u32> kcsel1;
+	BitField<19, 5, u32> kasel1;
 	u32 hex;
 
-	int getKC(int i) {return i?kcsel1:kcsel0;}
-	int getKA(int i) {return i?kasel1:kasel0;}
+	u32 getKC(int i) { return i ? kcsel1.Value() : kcsel0.Value(); }
+	u32 getKA(int i) { return i ? kasel1.Value() : kasel0.Value(); }
 };
 
 union AlphaTest
