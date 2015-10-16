@@ -110,6 +110,16 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 			"}\n\n");
 	}
 
+	// =======================
+	//   Color Channel Swaps
+	// =======================
+	out.Write(
+		"// One channel worth of color swaps\n"
+		"int Swap(uint swap, int4 color) {\n"
+		"	// We are hoping the driver will compile this down to 3 select staments\n"
+		"	return (swap & 2u) == 0u ? ((swap & 1u) == 0u ? color.r : color.g) : ((swap & 1u) == 0u ? color.b : color.a);\n"
+		"}\n");
+
 	// ======================
 	//   TEV's Special Lerp
 	// ======================
@@ -399,18 +409,32 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			int2 fixedPoint_uv = itrunc(tex[tex_coord].xy * " I_TEXDIMS"[sampler_num].zw * 128.0);\n"
 		"			float2 uv = (float2(fixedPoint_uv) / 128.0) * " I_TEXDIMS"[sampler_num].xy;\n"
 		"\n"
-		"			texColor = sampleTexture(sampler_num, uv);\n"
+		"			int4 color = sampleTexture(sampler_num, uv);\n"
+		"\n"
+		"			uint swap = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.tswap).c_str());
+	out.Write(
+		//"			s.TexColor.r = Swap(0, color);\n");
+		"			s.TexColor.r = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2]", TevKSel().swap1).c_str());
+	out.Write(
+		//"			s.TexColor.g = Swap(1, color);\n");
+		"			s.TexColor.g = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2]", TevKSel().swap2).c_str());
+	out.Write(
+		//"			swap = swap + 1;\n"
+		//"			s.TexColor.b = Swap(2, color);\n");
+		"			s.TexColor.b = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2+1]", TevKSel().swap1).c_str());
+	out.Write(
+		//"			s.TexColor.a = Swap(3, color);\n");
+		"			s.TexColor.a = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2+1]", TevKSel().swap2).c_str());
+	out.Write(
 		"		} else {\n"
 		"			// Texture is disabled\n"
-		"			texColor = int4(255, 255, 255, 255);\n"
+		"			s.TexColor = int4(255, 255, 255, 255);\n"
 		"		}\n"
-		"		// TODO: color channel swapping\n"
-		"		s.TexColor = texColor;\n"
 		"\n");
 	}
 
 	out.Write(
-		"		// Set Konst for stage\n"
+		"		// Select Konst for stage\n"
 		"		// TODO: a switch case might be better here than an dynamically indexed uniform lookup\n"
 		"		uint tevksel = bpmem_tevksel[stage>>1];\n"
 		"		if ((stage & 1u) == 0u)\n"
@@ -426,29 +450,34 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"\n");
 
 	out.Write(
-		"		// Set Ras for stage\n"
-		"		int4 ras;\n"
-		"		switch (%s) {\n", BitfieldExtract("order", TwoTevStageOrders().colorchan0).c_str());
+		"		// Select Ras for stage\n"
+		"		uint ras = %s;\n", BitfieldExtract("order", TwoTevStageOrders().colorchan0).c_str());
 	out.Write(
-		"		case 0u: // Color 0\n"
-		"			ras = icolors_0;\n"
-		"			break;\n"
-		"		case 1u: // Color 1\n"
-		"			ras = icolors_1;\n"
-		"			break;\n"
-		"		case 5u: // Alpha Bump\n"
-		"			ras = int4(AlphaBump, AlphaBump, AlphaBump, AlphaBump);\n"
-		"			break;\n"
-		"		case 6u: // Normalzied Alpha Bump\n"
+		"		if (ras < 2u) { // Lighting Channel 0 or 1\n"
+		"			int4 color = ras == 0 ? icolors_0 : icolors_1;\n"
+		"			uint swap = %s << 1;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.rswap).c_str());
+	out.Write(
+		//"			s.RasColor.r = Swap(0, color);\n");
+		"			s.RasColor.r = Swap(%s, color);\n", BitfieldExtract("bpmem_tevksel[swap]", TevKSel().swap1).c_str());
+	out.Write(
+		//"			s.RasColor.g = Swap(1, color);\n");
+		"			s.RasColor.g = Swap(%s, color);\n", BitfieldExtract("bpmem_tevksel[swap]", TevKSel().swap2).c_str());
+	out.Write(
+		"			swap = swap + 1;\n"
+		//"			s.RasColor.b = Swap(2, color);\n");
+		"			s.RasColor.b = Swap(%s, color);\n", BitfieldExtract("bpmem_tevksel[swap]", TevKSel().swap1).c_str());
+	out.Write(
+		//"			s.RasColor.a = Swap(3, color);\n");
+		"			s.RasColor.a = Swap(%s, color);\n", BitfieldExtract("bpmem_tevksel[swap]", TevKSel().swap2).c_str());
+	out.Write(
+		"		} else if (ras == 5u) { // Alpha Bumb\n"
+		"			s.RasColor = int4(AlphaBump, AlphaBump, AlphaBump, AlphaBump);\n"
+		"		} else if (ras == 6u) { // Normalzied Alpha Bump\n"
 		"			int normalized = AlphaBump | AlphaBump >> 5;\n"
-		"			ras = int4(normalized, normalized, normalized, normalized);\n"
-		"			break;\n"
-		"		default:\n"
-		"			ras = int4(0, 0, 0, 0);\n"
-		"			break;\n"
+		"			s.RasColor = int4(normalized, normalized, normalized, normalized);\n"
+		"		} else {\n"
+		"			s.RasColor = int4(0, 0, 0, 0);\n"
 		"		}\n"
-		"		// TODO: color channel swapping\n"
-		"		s.RasColor = ras;\n"
 		"\n");
 
 	out.Write(
