@@ -17,12 +17,9 @@
 
 class CMailHandler;
 
-inline bool ExramRead(u32 address)
+constexpr bool ExramRead(u32 address)
 {
-	if (address & 0x10000000)
-		return true;
-	else
-		return false;
+	return (address & 0x10000000) != 0;
 }
 
 inline u8 HLEMemory_Read_U8(u32 address)
