@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 
 project(miniupnpc C)
-set(MINIUPNPC_VERSION 1.7)
-set(MINIUPNPC_API_VERSION 9)
+set(MINIUPNPC_VERSION 1.9)
+set(MINIUPNPC_API_VERSION 14)
 
 if(UNIX)
 	add_definitions(-DMINIUPNPC_SET_SOCKET_TIMEOUT)
@@ -24,9 +24,10 @@ set(SRCS	src/igd_desc_parse.c
 			src/miniupnpc.c
 			src/minixml.c
 			src/minisoap.c
+			src/minissdpc.c
 			src/miniwget.c
-			src/upnpc.c
 			src/upnpcommands.c
+			src/upnpdev.c
 			src/upnpreplyparse.c
 			src/upnperrors.c
 			src/connecthostport.c
