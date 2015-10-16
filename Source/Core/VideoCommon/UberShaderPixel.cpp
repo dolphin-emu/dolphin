@@ -414,17 +414,17 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"			uint swap = %s;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.tswap).c_str());
 	out.Write(
 		//"			s.TexColor.r = Swap(0, color);\n");
-		"			s.TexColor.r = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2]", TevKSel().swap1).c_str());
+		"			s.TexColor.r = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2u]", TevKSel().swap1).c_str());
 	out.Write(
 		//"			s.TexColor.g = Swap(1, color);\n");
-		"			s.TexColor.g = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2]", TevKSel().swap2).c_str());
+		"			s.TexColor.g = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2u]", TevKSel().swap2).c_str());
 	out.Write(
 		//"			swap = swap + 1;\n"
 		//"			s.TexColor.b = Swap(2, color);\n");
-		"			s.TexColor.b = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2+1]", TevKSel().swap1).c_str());
+		"			s.TexColor.b = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2u+1u]", TevKSel().swap1).c_str());
 	out.Write(
 		//"			s.TexColor.a = Swap(3, color);\n");
-		"			s.TexColor.a = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2+1]", TevKSel().swap2).c_str());
+		"			s.TexColor.a = Swap(3u-%s, color);\n", BitfieldExtract("bpmem_tevksel[swap*2u+1u]", TevKSel().swap2).c_str());
 	out.Write(
 		"		} else {\n"
 		"			// Texture is disabled\n"
@@ -454,7 +454,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"		uint ras = %s;\n", BitfieldExtract("order", TwoTevStageOrders().colorchan0).c_str());
 	out.Write(
 		"		if (ras < 2u) { // Lighting Channel 0 or 1\n"
-		"			int4 color = ras == 0 ? icolors_0 : icolors_1;\n"
+		"			int4 color = (ras == 0u) ? icolors_0 : icolors_1;\n"
 		"			uint swap = %s << 1;\n", BitfieldExtract("ac", TevStageCombiner().alphaC.rswap).c_str());
 	out.Write(
 		//"			s.RasColor.r = Swap(0, color);\n");
@@ -463,7 +463,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		//"			s.RasColor.g = Swap(1, color);\n");
 		"			s.RasColor.g = Swap(%s, color);\n", BitfieldExtract("bpmem_tevksel[swap]", TevKSel().swap2).c_str());
 	out.Write(
-		"			swap = swap + 1;\n"
+		"			swap = swap + 1u;\n"
 		//"			s.RasColor.b = Swap(2, color);\n");
 		"			s.RasColor.b = Swap(%s, color);\n", BitfieldExtract("bpmem_tevksel[swap]", TevKSel().swap1).c_str());
 	out.Write(
