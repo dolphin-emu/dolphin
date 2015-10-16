@@ -142,6 +142,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	if (shift != 3u) {\n"
 		"		lerp = lerp << shift;\n"
 		"		lerp = lerp + (op ? 127 : 128);\n"
+		"		D = D << shift;\n"
 		"	}\n"
 		"	int result = lerp >> 8;\n"
 		"\n"
