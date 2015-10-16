@@ -215,7 +215,9 @@ extern ovrHmd hmd;
 extern ovrHmdDesc hmdDesc;
 extern ovrFovPort g_eye_fov[2];
 extern ovrEyeRenderDesc g_eye_render_desc[2];
+#if OVR_MAJOR_VERSION <= 7
 extern ovrFrameTiming g_rift_frame_timing;
+#endif
 extern ovrPosef g_eye_poses[2], g_front_eye_poses[2];
 extern int g_ovr_frameindex;
 #endif

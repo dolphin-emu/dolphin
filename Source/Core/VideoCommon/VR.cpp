@@ -36,7 +36,9 @@ ovrHmd hmd = nullptr;
 ovrHmdDesc hmdDesc;
 ovrFovPort g_best_eye_fov[2], g_eye_fov[2], g_last_eye_fov[2];
 ovrEyeRenderDesc g_eye_render_desc[2];
+#if OVR_MAJOR_VERSION <= 7
 ovrFrameTiming g_rift_frame_timing;
+#endif
 ovrPosef g_eye_poses[2], g_front_eye_poses[2];
 int g_ovr_frameindex;
 #if OVR_MAJOR_VERSION >= 7
@@ -367,7 +369,9 @@ return false;
 bool InitOculusVR()
 {
 #ifdef OVR_MAJOR_VERSION
+#if OVR_MAJOR_VERSION <= 7
 	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
+#endif
 
 #if OVR_MAJOR_VERSION >= 7
 	ovr_Initialize(nullptr);
@@ -575,7 +579,9 @@ void VR_GetEyePoses()
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
 #else
 		ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
-#if OVR_MAJOR_VERSION >= 7
+#if OVR_MAJOR_VERSION >= 8
+		ovr_GetEyePoses(hmd, g_ovr_frameindex, false, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#elif OVR_MAJOR_VERSION >= 7
 		ovr_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
 #else
 		ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
@@ -633,7 +639,9 @@ void UpdateOculusHeadTracking()
 	g_vr_lock.unlock();
 #else
 	ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
-#if OVR_MAJOR_VERSION >= 7
+#if OVR_MAJOR_VERSION >= 8
+	ovr_GetEyePoses(hmd, g_ovr_frameindex, false, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#elif OVR_MAJOR_VERSION >= 7
 	ovr_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
 #else
 	ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);

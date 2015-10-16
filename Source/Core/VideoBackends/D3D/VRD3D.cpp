@@ -326,7 +326,9 @@ void VR_BeginFrame()
 		RecreateMirrorTextureIfNeeded();
 		++g_ovr_frameindex;
 		// On Oculus SDK 0.6.0 and above, we get the frame timing manually, then swap each eye texture 
+#if OVR_MAJOR_VERSION <= 7
 		g_rift_frame_timing = ovrHmd_GetFrameTiming(hmd, 0);
+#endif
 		for (int eye = 0; eye < 2; eye++)
 		{
 			// Increment to use next texture, just before writing
@@ -464,8 +466,8 @@ void VR_DrawTimewarpFrame()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
-		ovrFrameTiming frameTime;
 #if OVR_MAJOR_VERSION <= 5
+		ovrFrameTiming frameTime;
 		frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 		//const ovrTexture* new_eye_texture = new ovrTexture(FramebufferManager::m_eye_texture[0].Texture);
 		//ovrD3D11Texture new_eye_texture;
@@ -479,8 +481,11 @@ void VR_DrawTimewarpFrame()
 		ovrHmd_EndFrame(hmd, g_eye_poses, &g_eye_texture[0].Texture);
 #else
 		++g_ovr_frameindex;
+#if OVR_MAJOR_VERSION <= 7
 		// On Oculus SDK 0.6.0 and above, we get the frame timing manually, then swap each eye texture 
+		ovrFrameTiming frameTime;
 		frameTime = ovrHmd_GetFrameTiming(hmd, 0);
+#endif
 
 		//ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
 		Sleep(1);
