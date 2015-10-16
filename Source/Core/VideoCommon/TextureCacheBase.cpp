@@ -471,7 +471,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	while (iter != iter_range.second)
 	{
 		TCacheEntryBase* entry = iter->second;
-		if (entry->IsEfbCopy())
+		// Do not load strided EFB copies, they are not meant to be used directly
+		if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
+			entry->memory_stride == entry->CacheLinesPerRow() * 32)
 		{
 			// EFB copies have slightly different rules as EFB copy formats have different
 			// meanings from texture formats.
@@ -517,8 +519,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		// textures as the same texture here, when the texture itself is the same. This
 		// improves the performance a lot in some games that use paletted textures.
 		// Example: Sonic the Fighters (inside Sonic Gems Collection)
+		// Skip EFB copies here, so they can be used for partial texture updates
 		if (entry->frameCount != FRAMECOUNT_INVALID && entry->frameCount < temp_frameCount &&
-			!(isPaletteTexture && entry->base_hash == base_hash))
+			!entry->IsEfbCopy() && !(isPaletteTexture && entry->base_hash == base_hash))
 		{
 			temp_frameCount = entry->frameCount;
 			oldest_entry = iter;
