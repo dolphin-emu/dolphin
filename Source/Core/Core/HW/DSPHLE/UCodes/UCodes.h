@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include <cstring>
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
-
 #include "Core/HW/Memmap.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 
@@ -35,18 +35,26 @@ inline u8 HLEMemory_Read_U8(u32 address)
 
 inline u16 HLEMemory_Read_U16(u32 address)
 {
+	u16 value;
+
 	if (ExramRead(address))
-		return Common::swap16(*(u16*)&Memory::m_pEXRAM[address & Memory::EXRAM_MASK]);
+		std::memcpy(&value, &Memory::m_pEXRAM[address & Memory::EXRAM_MASK], sizeof(u16));
 	else
-		return Common::swap16(*(u16*)&Memory::m_pRAM[address & Memory::RAM_MASK]);
+		std::memcpy(&value, &Memory::m_pRAM[address & Memory::RAM_MASK], sizeof(u16));
+
+	return Common::swap16(value);
 }
 
 inline u32 HLEMemory_Read_U32(u32 address)
 {
+	u32 value;
+
 	if (ExramRead(address))
-		return Common::swap32(*(u32*)&Memory::m_pEXRAM[address & Memory::EXRAM_MASK]);
+		std::memcpy(&value, &Memory::m_pEXRAM[address & Memory::EXRAM_MASK], sizeof(u32));
 	else
-		return Common::swap32(*(u32*)&Memory::m_pRAM[address & Memory::RAM_MASK]);
+		std::memcpy(&value, &Memory::m_pRAM[address & Memory::RAM_MASK], sizeof(u32));
+
+	return Common::swap32(value);
 }
 
 inline void* HLEMemory_Get_Pointer(u32 address)
