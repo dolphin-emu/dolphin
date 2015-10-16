@@ -18,6 +18,7 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
 	PixelShaderUid out;
 	pixel_ubershader_uid_data* uid = out.GetUidData<pixel_ubershader_uid_data>();
 	uid->numTexgens = xfmem.numTexGen.numTexGens;
+	uid->EarlyDepth = bpmem.zcontrol.early_ztest && g_ActiveConfig.backend_info.bSupportsEarlyZ;
 
 	return out;
 }
@@ -321,6 +322,15 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	}\n"
 		"}\n"
 		"\n");
+
+	bool early_depth = (bpmem.zcontrol.early_ztest == 1) && g_ActiveConfig.backend_info.bSupportsEarlyZ;
+	if (early_depth)
+	{
+		if (ApiType == API_OPENGL)
+			out.Write("FORCE_EARLY_Z;\n");
+		else
+			out.Write("[earlydepthstencil]\n");
+	}
 
 	if (ApiType == API_OPENGL)
 	{
