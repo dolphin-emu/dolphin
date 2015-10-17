@@ -13,7 +13,11 @@ struct PatchInfo {
 	u32 rva;
 	u32 length;
 } static const s_patches[] = {
+	// 10.0.10240.16384 (th1.150709-1700)
 	{ L"ucrtbase.dll", 0xF61ED, 0x6AE7B, 5 },
+	// 10.0.10137.0 (th1.150602-2238)
+	{ L"ucrtbase.dll", 0xF8B5E, 0x63ED6, 2 },
+	// 10.0.10150.0 (th1.150616-1659)
 	{ L"ucrtbased.dll", 0x1C1915 , 0x91905, 5 },
 };
 
