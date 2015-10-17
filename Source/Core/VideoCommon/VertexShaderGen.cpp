@@ -83,11 +83,11 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		else
 		{
 			// Let's set up attributes
-			for (size_t i = 0; i < 8; ++i)
+			for (u32 i = 0; i < 8; ++i)
 			{
 				if (i < xfmem.numTexGen.numTexGens)
 				{
-					out.Write("%s out float3 uv%d;\n", GetInterpolationQualifier(api_type), i);
+					out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(api_type), i);
 				}
 			}
 			out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(api_type));
