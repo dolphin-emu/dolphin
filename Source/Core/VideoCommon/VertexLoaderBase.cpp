@@ -6,7 +6,9 @@
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderBase.h"
