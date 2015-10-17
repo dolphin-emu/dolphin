@@ -78,7 +78,6 @@ void ReadFromVolume(u64 _Offset, u64 _Length, u32& _Buffer, bool _Decrypt);
 void ReadFromVolume(u64 _Offset, u64 _Length, u64& _Buffer, bool _Decrypt);
 bool ParseDisc();
 bool ParsePartitionData(SPartition& _rPartition);
-u32 GetDOLSize(u64 _DOLOffset);
 
 
 bool SetupScrub(const std::string& filename, int block_size)
@@ -294,7 +293,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 
 		// DOL
 		ReadFromVolume(0x420, 4, _rPartition.Header.DOLOffset, true);
-		_rPartition.Header.DOLSize = GetDOLSize(_rPartition.Header.DOLOffset);
+		_rPartition.Header.DOLSize = filesystem->GetBootDOLSize(_rPartition.Header.DOLOffset);
 		MarkAsUsedE(_rPartition.Offset
 			+ _rPartition.Header.DataOffset
 			, _rPartition.Header.DOLOffset
@@ -325,31 +324,6 @@ bool ParsePartitionData(SPartition& _rPartition)
 	m_Disc = OldVolume;
 
 	return ParsedOK;
-}
-
-u32 GetDOLSize(u64 _DOLOffset)
-{
-	u32 offset = 0, size = 0, max = 0;
-
-	// Iterate through the 7 code segments
-	for (u8 i = 0; i < 7; i++)
-	{
-		ReadFromVolume(_DOLOffset + 0x00 + i * 4, 4, offset, true);
-		ReadFromVolume(_DOLOffset + 0x90 + i * 4, 4, size, true);
-		if (offset + size > max)
-			max = offset + size;
-	}
-
-	// Iterate through the 11 data segments
-	for (u8 i = 0; i < 11; i++)
-	{
-		ReadFromVolume(_DOLOffset + 0x1c + i * 4, 4, offset, true);
-		ReadFromVolume(_DOLOffset + 0xac + i * 4, 4, size, true);
-		if (offset + size > max)
-			max = offset + size;
-	}
-
-	return max;
 }
 
 } // namespace DiscScrubber
