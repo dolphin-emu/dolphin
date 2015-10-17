@@ -312,10 +312,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 		for (SFileInfo file : filesystem->GetFileList())
 		{
 			DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
-			// Just 1byte for directory? - it will end up reserving a cluster this way
-			if (file.m_NameOffset & 0x1000000)
-				MarkAsUsedE(_rPartition.Offset + _rPartition.Header.DataOffset, file.m_Offset, 1);
-			else
+			if ((file.m_NameOffset & 0x1000000) == 0)
 				MarkAsUsedE(_rPartition.Offset + _rPartition.Header.DataOffset, file.m_Offset, file.m_FileSize);
 		}
 	}
