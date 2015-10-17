@@ -306,14 +306,30 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// Most importantly, it was not possible to write to the depth buffer without also writing
 		// a color value (unless color writing was disabled altogether).
 
-		// OpenGL has a flag which allows the driver to still update the depth buffer if alpha
-		// test fails. The driver isn't required to do this, but I (degasus) assume all of them do
-		// because it's the much faster code path for the GPU.
+		// OpenGL 4.2 actually provides two extensions which can force an early z test:
+		//  * ARB_image_load_store has 'layout(early_fragment_tests)' which forces the driver to do z and stencil tests early.
+		//  * ARB_conservative_depth has 'layout(depth_unchanged) which signals to the driver that it can make optimisations
+		//    which assume the pixel shader won't update the depth buffer.
+
+		// early_fragment_tests is the best option, as it requires the driver to do early-z and defines early-z excatly as
+		// we expect, with discard causing the shader to exit with only the depth buffer updated.
+
+		// Conservative depth's 'depth_unchanged' only hints to the driver that an early-z optimistaion can be made and
+		// doesn't define what will happen if we discard the fragment. But the way modern graphics hardware is implemented
+		// means it is not unreasonable to expect the the same behaviour as early_fragment_tests.
+		// We can also assume that if a driver has gone out of it's way to support conservative depth and not image_load_store
+		// as required by OpenGL 4.2 that it will be doing the optimisation.
+		// If the driver doesn't actually do an early z optimisation, ZCompLoc will be broken and depth will only be written
+		// if the alpha test passes.
+
+		// We support Conservative as a fallback, because many drivers based on Mesa haven't implemented all of the
+		// ARB_image_load_store extension yet.
 
 		// D3D11 also has a way to force the driver to enable early-z, so we're fine here.
 		if(ApiType == API_OPENGL)
 		{
-			out.Write("layout(early_fragment_tests) in;\n");
+			 // This is a #define which signals whatever early-z method the driver supports.
+			out.Write("FORCE_EARLY_Z; \n");
 		}
 		else
 		{
