@@ -122,8 +122,8 @@
     </Link>
     <!--Link Base:Application-->
     <Link Condition="'$(ConfigurationType)'=='Application'">
-      <!--See Common/EnableXSaveWorkaround.cpp-->
-      <ForceSymbolReferences>XSaveWorkaround</ForceSymbolReferences>
+      <!--See Common/ucrtFreadWorkaround.cpp-->
+      <ForceSymbolReferences>ucrtFreadWorkaround</ForceSymbolReferences>
     </Link>
     <Lib>
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
