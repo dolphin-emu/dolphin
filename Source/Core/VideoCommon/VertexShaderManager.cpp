@@ -443,9 +443,9 @@ void VertexShaderManager::SetConstants()
 			{
 				bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
 				if (AspectIs16_9(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
-					g_aspect_wide = true; // Projection is 16:9 and viewport is 4:3, we are rendering an anamorphic widescreen picture
+					Core::g_aspect_wide = true; // Projection is 16:9 and viewport is 4:3, we are rendering an anamorphic widescreen picture
 				else if (AspectIs4_3(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
-					g_aspect_wide = false; // Project and viewports are both 4:3, we are rendering a normal image.
+					Core::g_aspect_wide = false; // Project and viewports are both 4:3, we are rendering a normal image.
 			}
 
 			SETSTAT_FT(stats.gproj_0,  g_fProjectionMatrix[0]);
