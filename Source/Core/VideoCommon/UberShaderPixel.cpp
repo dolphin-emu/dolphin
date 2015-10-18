@@ -18,7 +18,7 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
 	PixelShaderUid out;
 	pixel_ubershader_uid_data* uid = out.GetUidData<pixel_ubershader_uid_data>();
 	uid->numTexgens = xfmem.numTexGen.numTexGens;
-	uid->EarlyDepth = bpmem.zcontrol.early_ztest;
+	uid->EarlyDepth = bpmem.zcontrol.early_ztest && !bpmem.genMode.zfreeze;
 
 	return out;
 }
@@ -49,7 +49,8 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	uint	bpmem_fogParam3;\n"
 		"	uint	bpmem_fogRangeBase;\n"
 		"	uint	bpmem_dstalpha;\n"
-		"	uint	bpmem_ztex2;\n"
+		"	uint	bpmem_ztex2;\n" // TODO: We only use two bits out of this
+		"	uint	bpmem_zcontrol;\n" // TODO: We only use one bit out of this
 		"	uint	bpmem_tevorder[8];\n"
 		"	uint2	bpmem_combiners[16];\n"
 		"	uint	bpmem_tevksel[8];\n"
@@ -324,7 +325,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"}\n"
 		"\n");
 
-	bool early_depth = (bpmem.zcontrol.early_ztest == 1);
+	bool early_depth = bpmem.zcontrol.early_ztest == 1 && !bpmem.genMode.zfreeze;
 	if (early_depth && g_ActiveConfig.backend_info.bSupportsEarlyZ)
 	{
 		if (ApiType == API_OPENGL)
@@ -633,13 +634,44 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	// TODO: zCoord is hardcoded to fast depth with no zfreeze\n");
 	if (ApiType == API_D3D)
 		out.Write(
-		"	uint zCoord = uint((1.0 - rawpos.z) * 16777216.0);\n");
+		"	int zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
 	else
 		out.Write(
-		"	uint zCoord = uint(rawpos.z * 16777216.0);\n");
+		"	int zCoord = int(rawpos.z * 16777216.0);\n");
 	out.Write(
 		"	zCoord = clamp(zCoord, 0, 0xFFFFFF);\n"
 		"\n");
+
+	// ===========
+	//   ZFreeze
+	// ===========
+
+	if (!early_depth) { // Zfreeze forces early depth off
+		out.Write(
+			"	// ZFreeze\n"
+			"	if ((bpmem_genmode & %du) != 0u) {\n", 1 << GenMode().zfreeze.offset);
+		out.Write(
+			"		float2 screenpos = rawpos.xy * " I_EFBSCALE".xy;\n");
+		if(ApiType == API_OPENGL)
+			out.Write(
+			"		// Opengl has reversed vertical screenspace coordiantes\n"
+			"		screenpos.y = 528.0 - screenpos.y;\n");
+
+		out.Write(
+			"		zCoord = int(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y);\n"
+			"\n"
+			"		// If early depth is enabled, write to zbuffer before depth textures\n"
+			"		if ((bpmem_zcontrol & %du) != 0u)\n", 1 << PEControl().early_ztest.offset);
+		if (ApiType == API_D3D)
+			out.Write(
+					"	depth = 1.0 - float(zCoord) / 16777216.0;\n");
+		else
+			out.Write(
+					"	depth = float(zCoord) / 16777216.0;\n");
+		out.Write(
+			"	}\n"
+			"\n");
+	}
 
 	// =================
 	//   Depth Texture
@@ -650,24 +682,26 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	uint ztex_op = %s;\n", BitfieldExtract("bpmem_ztex2", ZTex2().op).c_str());
 	out.Write(
 		"	if (ztex_op != 0u) {\n"
-		"		uint ztex = uint(" I_ZBIAS"[1].w); // fixed bias\n"
+		"		int ztex = int(" I_ZBIAS"[1].w); // fixed bias\n"
 		"\n"
 		"		// Whatever texture was in our last stage, it's now our depth texture\n"
-		"		ztex += uint(idot(s.TexColor.xyzw, " I_ZBIAS"[0].xyzw));\n"
+		"		ztex += idot(s.TexColor.xyzw, " I_ZBIAS"[0].xyzw);\n"
 		"		if (ztex_op == 1u)\n"
 		"			ztex += zCoord;\n"
 		"		zCoord = clamp(ztex, 0, 0xFFFFFF);\n"
 		"	}\n"
-		"\n"
-		"	// write back per-pixel depth\n");
+		"\n");
 
 	if (!early_depth) {
+		out.Write(
+			"	// If early depth isn't enabled, we write to the zbuffer here\n"
+			"	if ((bpmem_zcontrol & %du) == 0u)\n", 1 << PEControl().early_ztest.offset);
 		if (ApiType == API_D3D)
 			out.Write(
-			"	depth = 1.0 - float(zCoord) / 16777216.0;\n");
+			"		depth = 1.0 - float(zCoord) / 16777216.0;\n");
 		else
 			out.Write(
-			"	depth = float(zCoord) / 16777216.0;\n");
+			"		depth = float(zCoord) / 16777216.0;\n");
 	}
 
 	// =========
