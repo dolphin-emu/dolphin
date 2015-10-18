@@ -23,7 +23,8 @@ class SHADERUID
 {
 public:
 	VertexShaderUid vuid;
-	UberShader::PixelShaderUid puid;
+	PixelShaderUid puid;
+	//UberShader::PixelShaderUid puid;
 	GeometryShaderUid guid;
 
 	bool operator <(const SHADERUID& r) const

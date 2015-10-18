@@ -27,9 +27,11 @@ namespace DX11
 
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
-UberShader::PixelShaderUid PixelShaderCache::last_uid;
+PixelShaderUid PixelShaderCache::last_uid;
+//UberShader::PixelShaderUid PixelShaderCache::last_uid;
 
-LinearDiskCache<UberShader::PixelShaderUid, u8> g_ps_disk_cache;
+LinearDiskCache<PixelShaderUid, u8> g_ps_disk_cache;
+//LinearDiskCache<UberShader::PixelShaderUid, u8> g_ps_disk_cache;
 
 ID3D11PixelShader* s_ColorMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
@@ -459,10 +461,10 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 }
 
 // this class will load the precompiled shaders into our cache
-class PixelShaderCacheInserter : public LinearDiskCacheReader<UberShader::PixelShaderUid, u8>
+class PixelShaderCacheInserter : public LinearDiskCacheReader<PixelShaderUid, u8>
 {
 public:
-	void Read(const UberShader::PixelShaderUid &key, const u8* value, u32 value_size)
+	void Read(const PixelShaderUid &key, const u8* value, u32 value_size)
 	{
 		PixelShaderCache::InsertByteCode(key, value, value_size);
 	}
@@ -574,7 +576,8 @@ void PixelShaderCache::Shutdown()
 
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 {
-	UberShader::PixelShaderUid uid = UberShader::GetPixelShaderUid(dstAlphaMode);
+	PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode);
+	//UberShader::PixelShaderUid uid = UberShader::GetPixelShaderUid(dstAlphaMode);
 
 	// Check if the shader is already set
 	if (last_entry)
@@ -601,8 +604,8 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 	}
 
 	// Need to compile a new shader
-	//ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D, uid.GetUidData());
-	ShaderCode code = UberShader::GenPixelShader(dstAlphaMode, API_D3D, false, g_ActiveConfig.iMultisamples > 1, g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA);
+	ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D, uid.GetUidData());
+	//ShaderCode code = UberShader::GenPixelShader(dstAlphaMode, API_D3D, false, g_ActiveConfig.iMultisamples > 1, g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA);
 
 	D3DBlob* pbytecode;
 	if (!D3D::CompilePixelShader(code.GetBuffer(), &pbytecode))
@@ -626,7 +629,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 	return success;
 }
 
-bool PixelShaderCache::InsertByteCode(const UberShader::PixelShaderUid &uid, const void* bytecode, unsigned int bytecodelen)
+bool PixelShaderCache::InsertByteCode(const PixelShaderUid &uid, const void* bytecode, unsigned int bytecodelen)
 {
 	ID3D11PixelShader* shader = D3D::CreatePixelShaderFromByteCode(bytecode, bytecodelen);
 	if (shader == nullptr)

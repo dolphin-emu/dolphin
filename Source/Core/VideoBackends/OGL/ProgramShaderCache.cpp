@@ -214,8 +214,8 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
 	newentry.in_cache = 0;
 
 	ShaderCode vcode = GenerateVertexShaderCode(API_OPENGL, uid.vuid.GetUidData());
-	//ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, uid.puid.GetUidData());
-	ShaderCode pcode = UberShader::GenPixelShader(dstAlphaMode, API_OPENGL, false, g_ActiveConfig.iMultisamples > 1, g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA);
+	ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, uid.puid.GetUidData());
+	//ShaderCode pcode = UberShader::GenPixelShader(dstAlphaMode, API_OPENGL, false, g_ActiveConfig.iMultisamples > 1, g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA);
 	ShaderCode gcode;
 
 	if (g_ActiveConfig.backend_info.bSupportsGeometryShaders && !uid.guid.GetUidData()->IsPassthrough())
@@ -397,8 +397,8 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
 
 void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type)
 {
-	//uid->puid = GetPixelShaderUid(dstAlphaMode);
-	uid->puid = UberShader::GetPixelShaderUid(dstAlphaMode);
+	uid->puid = GetPixelShaderUid(dstAlphaMode);
+	//uid->puid = UberShader::GetPixelShaderUid(dstAlphaMode);
 	uid->vuid = GetVertexShaderUid();
 	uid->guid = GetGeometryShaderUid(primitive_type);
 }
