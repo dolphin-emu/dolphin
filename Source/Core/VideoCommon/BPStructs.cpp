@@ -166,7 +166,7 @@ static void BPWritten(const BPCmd& bp)
 		return;
 	case BPMEM_CONSTANTALPHA: // Set Destination Alpha
 		PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
-		PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
+		PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha.Value(), bpmem.dstalpha.enable.Value());
 		if (bp.changes & 0xFF)
 			PixelShaderManager::SetDestAlpha();
 		if (bp.changes & 0x100)
@@ -321,7 +321,7 @@ static void BPWritten(const BPCmd& bp)
 			g_renderer->SetColorMask();
 		return;
 	case BPMEM_BIAS: // BIAS
-		PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);
+		PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias.Value());
 		if (bp.changes)
 			PixelShaderManager::SetZTextureBias();
 		return;
