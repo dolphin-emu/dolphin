@@ -246,60 +246,69 @@ TextureCache::TCacheEntryBase* TextureCache::DoPartialTextureUpdates(TexCache::i
 			&& entry->frameCount == FRAMECOUNT_INVALID
 			&& entry->memory_stride == numBlocksX * block_size)
 		{
-			u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
-			u32 block_x = block_offset % numBlocksX;
-			u32 block_y = block_offset / numBlocksX;
-
-			u32 x = block_x * block_width;
-			u32 y = block_y * block_height;
-			MathUtil::Rectangle<int> srcrect, dstrect;
-			srcrect.left = 0;
-			srcrect.top = 0;
-			dstrect.left = 0;
-			dstrect.top = 0;
-			if (entry_need_scaling)
+			if (entry->hash == entry->CalculateHash())
 			{
-				entry_need_scaling = false;
-				u32 w = entry_to_update->native_width * entry->config.width / entry->native_width;
-				u32 h = entry_to_update->native_height * entry->config.height / entry->native_height;
-				u32 max = g_renderer->GetMaxTextureSize();
-				if (max < w || max < h)
+				u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
+				u32 block_x = block_offset % numBlocksX;
+				u32 block_y = block_offset / numBlocksX;
+
+				u32 x = block_x * block_width;
+				u32 y = block_y * block_height;
+				MathUtil::Rectangle<int> srcrect, dstrect;
+				srcrect.left = 0;
+				srcrect.top = 0;
+				dstrect.left = 0;
+				dstrect.top = 0;
+				if (entry_need_scaling)
 				{
-					iter++;
-					continue;
+					entry_need_scaling = false;
+					u32 w = entry_to_update->native_width * entry->config.width / entry->native_width;
+					u32 h = entry_to_update->native_height * entry->config.height / entry->native_height;
+					u32 max = g_renderer->GetMaxTextureSize();
+					if (max < w || max < h)
+					{
+						iter++;
+						continue;
+					}
+					if (entry_to_update->config.width != w || entry_to_update->config.height != h)
+					{
+						TextureCache::TCacheEntryConfig newconfig;
+						newconfig.width = w;
+						newconfig.height = h;
+						newconfig.rendertarget = true;
+						TCacheEntryBase* newentry = AllocateTexture(newconfig);
+						newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
+						newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
+						newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
+						newentry->frameCount = frameCount;
+						newentry->is_efb_copy = false;
+						srcrect.right = entry_to_update->config.width;
+						srcrect.bottom = entry_to_update->config.height;
+						dstrect.right = w;
+						dstrect.bottom = h;
+						newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
+						entry_to_update = newentry;
+						u64 key = iter_t->first;
+						iter_t = FreeTexture(iter_t);
+						textures_by_address.emplace(key, entry_to_update);
+					}
 				}
-				if (entry_to_update->config.width != w || entry_to_update->config.height != h)
-				{
-					TextureCache::TCacheEntryConfig newconfig;
-					newconfig.width = w;
-					newconfig.height = h;
-					newconfig.rendertarget = true;
-					TCacheEntryBase* newentry = AllocateTexture(newconfig);
-					newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
-					newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
-					newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
-					newentry->frameCount = frameCount;
-					newentry->is_efb_copy = false;
-					srcrect.right = entry_to_update->config.width;
-					srcrect.bottom = entry_to_update->config.height;
-					dstrect.right = w;
-					dstrect.bottom = h;
-					newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
-					entry_to_update = newentry;
-					u64 key = iter_t->first;
-					iter_t = FreeTexture(iter_t);
-					textures_by_address.emplace(key, entry_to_update);
-				}
+				srcrect.right = entry->config.width;
+				srcrect.bottom = entry->config.height;
+				dstrect.left = x * entry_to_update->config.width / entry_to_update->native_width;
+				dstrect.top = y * entry_to_update->config.height / entry_to_update->native_height;
+				dstrect.right = (x + entry->native_width) * entry_to_update->config.width / entry_to_update->native_width;
+				dstrect.bottom = (y + entry->native_height) * entry_to_update->config.height / entry_to_update->native_height;
+				entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
+				// Mark the texture update as used, so it isn't applied more than once
+				entry->frameCount = frameCount;
 			}
-			srcrect.right = entry->config.width;
-			srcrect.bottom = entry->config.height;
-			dstrect.left = x * entry_to_update->config.width / entry_to_update->native_width;
-			dstrect.top = y * entry_to_update->config.height / entry_to_update->native_height;
-			dstrect.right = (x + entry->native_width) * entry_to_update->config.width / entry_to_update->native_width;
-			dstrect.bottom = (y + entry->native_height) * entry_to_update->config.height / entry_to_update->native_height;
-			entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
-			// Mark the texture update as used, so it isn't applied more than once
-			entry->frameCount = frameCount;
+			else
+			{
+				// If the hash does not match, this EFB copy will not be used for anything, so remove it
+				iter = FreeTexture(iter);
+				continue;
+			}
 		}
 		++iter;
 	}
