@@ -18,7 +18,7 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
 	PixelShaderUid out;
 	pixel_ubershader_uid_data* uid = out.GetUidData<pixel_ubershader_uid_data>();
 	uid->numTexgens = xfmem.numTexGen.numTexGens;
-	uid->EarlyDepth = bpmem.zcontrol.early_ztest && g_ActiveConfig.backend_info.bSupportsEarlyZ;
+	uid->EarlyDepth = bpmem.zcontrol.early_ztest;
 
 	return out;
 }
@@ -49,6 +49,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	uint	bpmem_fogParam3;\n"
 		"	uint	bpmem_fogRangeBase;\n"
 		"	uint	bpmem_dstalpha;\n"
+		"	uint	bpmem_ztex2;\n"
 		"	uint	bpmem_tevorder[8];\n"
 		"	uint2	bpmem_combiners[16];\n"
 		"	uint	bpmem_tevksel[8];\n"
@@ -323,8 +324,8 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"}\n"
 		"\n");
 
-	bool early_depth = (bpmem.zcontrol.early_ztest == 1) && g_ActiveConfig.backend_info.bSupportsEarlyZ;
-	if (early_depth)
+	bool early_depth = (bpmem.zcontrol.early_ztest == 1);
+	if (early_depth && g_ActiveConfig.backend_info.bSupportsEarlyZ)
 	{
 		if (ApiType == API_OPENGL)
 			out.Write("FORCE_EARLY_Z;\n");
@@ -338,7 +339,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 			"out vec4 ocol0;\n"
 			"out vec4 ocol1;\n");
 
-		if (per_pixel_depth)
+		if (!early_depth)
 			out.Write("#define depth gl_FragDepth\n");
 
 		out.Write("in VertexData {\n");
@@ -360,7 +361,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 			"void main(\n"
 			"	out float4 ocol0 : SV_Target0,\n"
 			"	out float4 ocol1 : SV_Target1,\n"
-			"	%s\n", per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
+			"	%s\n", !early_depth ? "\n  out float depth : SV_Depth," : "");
 		out.Write(
 			"	in float4 rawpos : SV_Position,\n");
 
@@ -607,8 +608,6 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	} // Main tev loop\n"
 		"\n");
 
-	// TODO: Depth textures
-
 	// TODO: Optimise the value of bpmem_alphatest so it's zero when there is no test to do?
 	out.Write(
 		"	// Alpha Test\n"
@@ -630,6 +629,51 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"		if (comp0 == comp1) break; else discard; break;\n"
 		"	}\n");
 
+	out.Write(
+		"	// TODO: zCoord is hardcoded to fast depth with no zfreeze\n");
+	if (ApiType == API_D3D)
+		out.Write(
+		"	uint zCoord = uint((1.0 - rawpos.z) * 16777216.0);\n");
+	else
+		out.Write(
+		"	uint zCoord = uint(rawpos.z * 16777216.0);\n");
+	out.Write(
+		"	zCoord = clamp(zCoord, 0, 0xFFFFFF);\n"
+		"\n");
+
+	// =================
+	//   Depth Texture
+	// =================
+
+	out.Write(
+		"	// Depth Texture\n"
+		"	uint ztex_op = %s;\n", BitfieldExtract("bpmem_ztex2", ZTex2().op).c_str());
+	out.Write(
+		"	if (ztex_op != 0u) {\n"
+		"		uint ztex = uint(" I_ZBIAS"[1].w); // fixed bias\n"
+		"\n"
+		"		// Whatever texture was in our last stage, it's now our depth texture\n"
+		"		ztex += uint(idot(s.TexColor.xyzw, " I_ZBIAS"[0].xyzw));\n"
+		"		if (ztex_op == 1u)\n"
+		"			ztex += zCoord;\n"
+		"		zCoord = clamp(ztex, 0, 0xFFFFFF);\n"
+		"	}\n"
+		"\n"
+		"	// write back per-pixel depth\n");
+
+	if (!early_depth) {
+		if (ApiType == API_D3D)
+			out.Write(
+			"	depth = 1.0 - float(zCoord) / 16777216.0;\n");
+		else
+			out.Write(
+			"	depth = float(zCoord) / 16777216.0;\n");
+	}
+
+	// =========
+	//    Fog
+	// =========
+
 	// FIXME: Fog is implemented the same as ShaderGen, but ShaderGen's fog is all hacks.
 	//        Should be fixed point, and should not make guesses about Range-Based adjustments.
 	out.Write(
@@ -638,10 +682,6 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	out.Write(
 		"	if (fog_function != 0u) {\n"
 		"		// TODO: This all needs to be converted from float to fixed point\n"
-		"\n"
-		"		// TODO: zCoord is hardcoded to fast depth with no zfreeze\n"
-		"		int zCoord = " I_ZBIAS"[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y));\n"
-		"\n"
 		"		float ze;\n"
 		"		if (%s == 0u) {\n", BitfieldExtract("bpmem_fogParam3", FogParam3().proj).c_str());
 	out.Write(

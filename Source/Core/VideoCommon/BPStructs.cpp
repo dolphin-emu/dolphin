@@ -327,6 +327,7 @@ static void BPWritten(const BPCmd& bp)
 		return;
 	case BPMEM_ZTEX2: // Z Texture type
 		{
+			PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
 			if (bp.changes & 3)
 				PixelShaderManager::SetZTextureTypeChanged();
 			#if defined(_DEBUG) || defined(DEBUGFAST)
