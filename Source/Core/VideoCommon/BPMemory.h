@@ -519,20 +519,14 @@ union TexTLUT
 
 union ZTex1
 {
-	struct
-	{
-		u32 bias : 24;
-	};
+	BitField <0, 24, u32> bias;
 	u32 hex;
 };
 
 union ZTex2
 {
-	struct
-	{
-		u32 type : 2; // TEV_Z_TYPE_X
-		u32 op : 2; // GXZTexOp
-	};
+	BitField<0, 2, u32> type; // TEV_Z_TYPE_X
+	BitField<2, 2, u32> op; // GXZTexOp
 	u32 hex;
 };
 
