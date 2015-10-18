@@ -554,19 +554,20 @@ void ProgramShaderCache::CreateHeader()
 	break;
 	}
 
-	const char* earlyz_string = "";
-	if (!is_glsles && g_ActiveConfig.backend_info.bSupportsEarlyZ)
+	std::string earlyz_string = "";
+	if (g_ActiveConfig.backend_info.bSupportsEarlyZ)
 	{
 		if (g_ogl_config.bSupportsEarlyFragmentTests)
 		{
-			earlyz_string = "#extension GL_ARB_shader_image_load_store : enable\n"
-			                "#define FORCE_EARLY_Z layout(early_fragment_tests) in\n";
+			earlyz_string = "#define FORCE_EARLY_Z layout(early_fragment_tests) in\n";
+			if (!is_glsles) // GLES supports this by default
+				earlyz_string += "#extension GL_ARB_shader_image_load_store : enable\n";
 		}
 		else if(g_ogl_config.bSupportsConservativeDepth)
 		{
 			// See PixelShaderGen for details about this fallback.
-			earlyz_string = "#extension GL_ARB_conservative_depth : enable\n"
-			                "#define FORCE_EARLY_Z layout(depth_unchanged) out float gl_FragDepth\n";
+			earlyz_string = "#define FORCE_EARLY_Z layout(depth_unchanged) out float gl_FragDepth\n";
+			earlyz_string += "#extension GL_ARB_conservative_depth : enable\n";
 		}
 	}
 
@@ -610,7 +611,7 @@ void ProgramShaderCache::CreateHeader()
 
 		, GetGLSLVersionString().c_str()
 		, v < GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
-		, earlyz_string
+		, earlyz_string.c_str()
 		, (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ? "#extension GL_ARB_shading_language_420pack : enable" : ""
 		, (g_ogl_config.bSupportsMSAA && v < GLSL_150) ? "#extension GL_ARB_texture_multisample : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "#define SAMPLER_BINDING(x) layout(binding = x)" : "#define SAMPLER_BINDING(x)"
