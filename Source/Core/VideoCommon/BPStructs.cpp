@@ -355,7 +355,6 @@ static void BPWritten(const BPCmd& bp)
     return;
   case BPMEM_ZTEX2:  // Z Texture type
   {
-    PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
     if (bp.changes & 3)
       PixelShaderManager::SetZTextureTypeChanged();
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -433,6 +432,7 @@ static void BPWritten(const BPCmd& bp)
     return;
 
   case BPMEM_ZCOMPARE:  // Set the Z-Compare and EFB pixel format
+    PixelShaderManager::UpdateBP(bp.address, bp.newvalue);
     OnPixelFormatChange();
     if (bp.changes & 7)
     {
