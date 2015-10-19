@@ -32,56 +32,6 @@ enum DSPJitSignExtend
 
 class DSPJitRegCache
 {
-private:
-	struct X64CachedReg
-	{
-		size_t guest_reg; //including DSPJitRegSpecial
-		bool pushed;
-	};
-
-	struct DynamicReg
-	{
-		Gen::OpArg loc;
-		void *mem;
-		size_t size;
-		bool dirty;
-		bool used;
-		int last_use_ctr;
-		int parentReg;
-		int shift;//current shift if parentReg == DSP_REG_NONE
-		          //otherwise the shift this part can be found at
-		Gen::X64Reg host_reg;
-/* TODO:
-   + drop sameReg
-   + add parentReg
-   + add shift:
-     - if parentReg != DSP_REG_NONE, this is the shift where this
-       register is found in the parentReg
-     - if parentReg == DSP_REG_NONE, this is the current shift _state_
- */
-	};
-
-	std::array<DynamicReg, 37> regs;
-	std::array<X64CachedReg, 16> xregs;
-
-	DSPEmitter &emitter;
-	bool temporary;
-	bool merged;
-
-	int use_ctr;
-private:
-	// Find a free host reg
-	Gen::X64Reg FindFreeXReg();
-	Gen::X64Reg SpillXReg();
-	Gen::X64Reg FindSpillFreeXReg();
-	void SpillXReg(Gen::X64Reg reg);
-
-	void MovToHostReg(size_t reg, Gen::X64Reg host_reg, bool load);
-	void MovToHostReg(size_t reg, bool load);
-	void RotateHostReg(size_t reg, int shift, bool emit);
-	void MovToMemory(size_t reg);
-	void FlushMemBackedRegs();
-
 public:
 	DSPJitRegCache(DSPEmitter &_emitter);
 
@@ -176,4 +126,54 @@ public:
 	void GetXReg(Gen::X64Reg reg);
 	// Unreserve the given host reg
 	void PutXReg(Gen::X64Reg reg);
+
+private:
+	struct X64CachedReg
+	{
+		size_t guest_reg; // Including DSPJitRegSpecial
+		bool pushed;
+	};
+
+	struct DynamicReg
+	{
+		Gen::OpArg loc;
+		void *mem;
+		size_t size;
+		bool dirty;
+		bool used;
+		int last_use_ctr;
+		int parentReg;
+		int shift; // Current shift if parentReg == DSP_REG_NONE
+		           // otherwise the shift this part can be found at
+		Gen::X64Reg host_reg;
+
+		// TODO:
+		// + drop sameReg
+		// + add parentReg
+		// + add shift:
+		//   - if parentReg != DSP_REG_NONE, this is the shift where this
+		//     register is found in the parentReg
+		//   - if parentReg == DSP_REG_NONE, this is the current shift _state_
+	};
+
+	// Find a free host reg
+	Gen::X64Reg FindFreeXReg();
+	Gen::X64Reg SpillXReg();
+	Gen::X64Reg FindSpillFreeXReg();
+	void SpillXReg(Gen::X64Reg reg);
+
+	void MovToHostReg(size_t reg, Gen::X64Reg host_reg, bool load);
+	void MovToHostReg(size_t reg, bool load);
+	void RotateHostReg(size_t reg, int shift, bool emit);
+	void MovToMemory(size_t reg);
+	void FlushMemBackedRegs();
+
+	std::array<DynamicReg, 37> regs;
+	std::array<X64CachedReg, 16> xregs;
+
+	DSPEmitter& emitter;
+	bool temporary;
+	bool merged;
+
+	int use_ctr;
 };
