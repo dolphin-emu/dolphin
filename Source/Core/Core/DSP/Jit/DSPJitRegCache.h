@@ -168,6 +168,8 @@ private:
 	void MovToMemory(size_t reg);
 	void FlushMemBackedRegs();
 
+	static const std::array<Gen::X64Reg, 15> m_allocation_order;
+
 	std::array<DynamicReg, 37> regs;
 	std::array<X64CachedReg, 16> xregs;
 

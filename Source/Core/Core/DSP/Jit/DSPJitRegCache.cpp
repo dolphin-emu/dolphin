@@ -10,6 +10,12 @@
 
 using namespace Gen;
 
+// Ordered in order of prefered use.
+// Not all of these are actually available
+const std::array<X64Reg, 15> DSPJitRegCache::m_allocation_order = {{
+	R8, R9, R10, R11, R12, R13, R14, R15, RSI, RDI, RBX, RCX, RDX, RAX, RBP
+}};
+
 static void* GetRegisterPointer(size_t reg)
 {
 	switch (reg)
@@ -943,17 +949,11 @@ void DSPJitRegCache::WriteReg(int dreg, OpArg arg)
 	PutReg(dreg, true);
 }
 
-//ordered in order of prefered use
-//not all of these are actually available
-static X64Reg alloc_order[] = {
-	R8,R9,R10,R11,R12,R13,R14,R15,RSI,RDI,RBX,RCX,RDX,RAX,RBP
-};
-
 X64Reg DSPJitRegCache::SpillXReg()
 {
 	int max_use_ctr_diff = 0;
 	X64Reg least_recent_use_reg = INVALID_REG;
-	for (X64Reg reg : alloc_order)
+	for (X64Reg reg : m_allocation_order)
 	{
 		if (xregs[reg].guest_reg <= DSP_REG_MAX_MEM_BACKED &&
 		    !regs[xregs[reg].guest_reg].used)
@@ -974,7 +974,7 @@ X64Reg DSPJitRegCache::SpillXReg()
 	}
 
 	//just choose one.
-	for (X64Reg reg : alloc_order)
+	for (X64Reg reg : m_allocation_order)
 	{
 		if (xregs[reg].guest_reg <= DSP_REG_MAX_MEM_BACKED &&
 		    !regs[xregs[reg].guest_reg].used)
@@ -1007,13 +1007,14 @@ void DSPJitRegCache::SpillXReg(X64Reg reg)
 
 X64Reg DSPJitRegCache::FindFreeXReg()
 {
-	for (X64Reg x : alloc_order)
+	for (X64Reg x : m_allocation_order)
 	{
 		if (xregs[x].guest_reg == DSP_REG_NONE)
 		{
 			return x;
 		}
 	}
+
 	return INVALID_REG;
 }
 
