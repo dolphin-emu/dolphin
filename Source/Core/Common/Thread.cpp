@@ -135,7 +135,7 @@ void SetCurrentThreadName(const char* szThreadName)
 	pthread_setname_np(szThreadName);
 #elif defined __FreeBSD__
 	pthread_set_name_np(pthread_self(), szThreadName);
-#else
+#elif !defined(__HAIKU__)
 	pthread_setname_np(pthread_self(), szThreadName);
 #endif
 #ifdef USE_VTUNE

@@ -36,7 +36,11 @@ typedef struct pollfd pollfd_t;
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
+#ifdef __HAIKU__
+#include <fcntl.h>
+#else
 #include <sys/fcntl.h>
+#endif
 #include <netinet/in.h>
 #include <errno.h>
 #endif

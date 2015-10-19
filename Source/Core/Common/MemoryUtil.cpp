@@ -22,6 +22,8 @@
 #include <sys/types.h>
 #if defined __APPLE__ || defined __FreeBSD__
 #include <sys/sysctl.h>
+#elif defined __HAIKU__
+#include <OS.h>
 #else
 #include <sys/sysinfo.h>
 #endif
@@ -261,6 +263,10 @@ size_t MemPhysical()
 	size_t length = sizeof(size_t);
 	sysctl(mib, 2, &physical_memory, &length, NULL, 0);
 	return physical_memory;
+#elif defined __HAIKU__
+	system_info sysinfo;
+	get_system_info(&sysinfo);
+	return (size_t)(sysinfo.max_pages * B_PAGE_SIZE);
 #else
 	struct sysinfo memInfo;
 	sysinfo (&memInfo);

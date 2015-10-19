@@ -450,7 +450,7 @@ if(NOT ANDROID)
 
 	set(USE_X11 0)
 
-	if(UNIX AND NOT APPLE)
+	if(UNIX AND NOT APPLE AND NOT HAIKU)
 		include(FindX11)
 		if(TRY_X11 AND X11_FOUND)
 			set(USE_X11 1)
