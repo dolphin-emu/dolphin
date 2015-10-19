@@ -101,7 +101,9 @@ void PSTextureEncoder::Encode(u8* dst, const TextureCache::TCacheEntryBase *text
 
 	// Set up all the state for EFB encoding
 	{
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(texture_entry->CacheLinesPerRow() * 8), FLOAT(texture_entry->NumBlocksY()));
+		const u32 words_per_row = texture_entry->BytesPerRow() / sizeof(u32);
+
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(words_per_row), FLOAT(texture_entry->NumBlocksY()));
 		D3D::context->RSSetViewports(1, &vp);
 
 		EFBRectangle fullSrcRect;
@@ -143,7 +145,7 @@ void PSTextureEncoder::Encode(u8* dst, const TextureCache::TCacheEntryBase *text
 			VertexShaderCache::GetSimpleInputLayout());
 
 		// Copy to staging buffer
-		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, texture_entry->CacheLinesPerRow() * 8, texture_entry->NumBlocksY(), 1);
+		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, words_per_row, texture_entry->NumBlocksY(), 1);
 		D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
 
 		// Transfer staging buffer to GameCube/Wii RAM
@@ -152,7 +154,7 @@ void PSTextureEncoder::Encode(u8* dst, const TextureCache::TCacheEntryBase *text
 		CHECK(SUCCEEDED(hr), "map staging buffer (0x%x)", hr);
 
 		u8* src = (u8*)map.pData;
-		u32 readStride = std::min(texture_entry->CacheLinesPerRow() * 32, map.RowPitch);
+		u32 readStride = std::min(texture_entry->BytesPerRow(), map.RowPitch);
 		for (unsigned int y = 0; y < texture_entry->NumBlocksY(); ++y)
 		{
 			memcpy(dst, src, readStride);

@@ -482,7 +482,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		TCacheEntryBase* entry = iter->second;
 		// Do not load strided EFB copies, they are not meant to be used directly
 		if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
-			entry->memory_stride == entry->CacheLinesPerRow() * 32)
+			entry->memory_stride == entry->BytesPerRow())
 		{
 			// EFB copies have slightly different rules as EFB copy formats have different
 			// meanings from texture formats.
@@ -1068,7 +1068,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	// Invalidate all textures that overlap the range of our efb copy.
 	// Unless our efb copy has a weird stride, then we want avoid invalidating textures which
 	// we might be able to do a partial texture update on.
-	if (entry->memory_stride == entry->CacheLinesPerRow() * 32)
+	if (entry->memory_stride == entry->BytesPerRow())
 	{
 		TexCache::iterator iter = textures_by_address.begin();
 		while (iter != textures_by_address.end())
@@ -1093,7 +1093,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		u32 address = dstAddr;
 		for (u32 i = 0; i < entry->NumBlocksY(); i++)
 		{
-			FifoRecorder::GetInstance().UseMemory(address, entry->CacheLinesPerRow() * 32, MemoryUpdate::TEXTURE_MAP, true);
+			FifoRecorder::GetInstance().UseMemory(address, entry->BytesPerRow(), MemoryUpdate::TEXTURE_MAP, true);
 			address += entry->memory_stride;
 		}
 	}
@@ -1136,18 +1136,19 @@ TextureCache::TexCache::iterator TextureCache::FreeTexture(TexCache::iterator it
 	return textures_by_address.erase(iter);
 }
 
-u32 TextureCache::TCacheEntryBase::CacheLinesPerRow() const
+u32 TextureCache::TCacheEntryBase::BytesPerRow() const
 {
-	u32 blockW = TexDecoder_GetBlockWidthInTexels(format);
-	// Round up source height to multiple of block size
-	u32 actualWidth = ROUND_UP(native_width, blockW);
+	const u32 blockW = TexDecoder_GetBlockWidthInTexels(format);
 
-	u32 numBlocksX = actualWidth / blockW;
+	// Round up source height to multiple of block size
+	const u32 actualWidth = ROUND_UP(native_width, blockW);
+
+	const u32 numBlocksX = actualWidth / blockW;
 
 	// RGBA takes two cache lines per block; all others take one
-	if (format == GX_TF_RGBA8)
-		numBlocksX = numBlocksX * 2;
-	return numBlocksX;
+	const u32 bytes_per_block = format == GX_TF_RGBA8 ? 64 : 32;
+
+	return numBlocksX * bytes_per_block;
 }
 
 u32 TextureCache::TCacheEntryBase::NumBlocksY() const
@@ -1164,7 +1165,7 @@ void TextureCache::TCacheEntryBase::SetEfbCopy(u32 stride)
 	is_efb_copy = true;
 	memory_stride = stride;
 
-	_assert_msg_(VIDEO, memory_stride >= CacheLinesPerRow(), "Memory stride is too small");
+	_assert_msg_(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");
 
 	size_in_bytes = memory_stride * NumBlocksY();
 }
@@ -1174,7 +1175,7 @@ void TextureCache::TCacheEntryBase::Zero(u8* ptr)
 {
 	for (u32 i = 0; i < NumBlocksY(); i++)
 	{
-		memset(ptr, 0, CacheLinesPerRow() * 32);
+		memset(ptr, 0, BytesPerRow());
 		ptr += memory_stride;
 	}
 }
@@ -1182,7 +1183,7 @@ void TextureCache::TCacheEntryBase::Zero(u8* ptr)
 u64 TextureCache::TCacheEntryBase::CalculateHash() const
 {
 	u8* ptr = Memory::GetPointer(addr);
-	if (memory_stride == CacheLinesPerRow() * 32)
+	if (memory_stride == BytesPerRow())
 	{
 		return GetHash64(ptr, size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	}
@@ -1201,7 +1202,7 @@ u64 TextureCache::TCacheEntryBase::CalculateHash() const
 		for (u32 i = 0; i < blocks; i++)
 		{
 			// Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from canceling each other out
-			temp_hash = (temp_hash * 397) ^ GetHash64(ptr, CacheLinesPerRow() * 32, samples_per_row);
+			temp_hash = (temp_hash * 397) ^ GetHash64(ptr, BytesPerRow(), samples_per_row);
 			ptr += memory_stride;
 		}
 		return temp_hash;
