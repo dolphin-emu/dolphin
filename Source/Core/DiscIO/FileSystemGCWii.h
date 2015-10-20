@@ -46,6 +46,8 @@ public:
   std::string GetName() const override;
   std::string GetPath() const override;
 
+  bool IsValid(u64 fst_size, const FileInfoGCWii& parent_directory) const;
+
 protected:
   uintptr_t GetAddress() const override;
   FileInfo& operator++() override;
@@ -71,6 +73,8 @@ private:
   // Returns one of the three properties of this FST entry.
   // Read the comments in EntryProperty for details.
   u32 Get(EntryProperty entry_property) const;
+  // Returns the name offset, excluding the directory identification byte
+  u64 GetNameOffset() const;
 
   const u8* m_fst;
   u8 m_offset_shift;
