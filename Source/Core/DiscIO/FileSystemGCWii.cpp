@@ -96,18 +96,7 @@ u32 CFileInfoGCWii::GetRawOffset() const
 
 u32 CFileInfoGCWii::GetSize() const
 {
-  u32 result = Get(2);
-
-  if (IsDirectory() && result <= m_index)
-  {
-    // For directories, GetSize is supposed to return the index of the next entry.
-    // If a file system is malformed and instead has an index that isn't after this one,
-    // we act as if the directory is empty to avoid strange behavior.
-    ERROR_LOG(DISCIO, "Invalid folder end in file system");
-    return m_index + 1;
-  }
-
-  return result;
+  return Get(2);
 }
 
 u64 CFileInfoGCWii::GetOffset() const
@@ -125,12 +114,16 @@ u32 CFileInfoGCWii::GetTotalChildren() const
   return GetSize() - (m_index + 1);
 }
 
+u64 CFileInfoGCWii::GetNameOffset() const
+{
+  return static_cast<u64>(FST_ENTRY_SIZE) * m_total_file_infos + (GetRawNameOffset() & 0xFFFFFF);
+}
+
 std::string CFileInfoGCWii::GetName() const
 {
   // TODO: Should we really always use SHIFT-JIS?
   // Some names in Pikmin (NTSC-U) don't make sense without it, but is it correct?
-  return SHIFTJISToUTF8(reinterpret_cast<const char*>(m_fst + FST_ENTRY_SIZE * m_total_file_infos +
-                                                      (GetRawNameOffset() & 0xFFFFFF)));
+  return SHIFTJISToUTF8(reinterpret_cast<const char*>(m_fst + GetNameOffset()));
 }
 
 std::string CFileInfoGCWii::GetPath() const
@@ -142,36 +135,58 @@ std::string CFileInfoGCWii::GetPath() const
   if (IsDirectory())
   {
     // The index of the parent directory is available through GetRawOffset().
-
-    if (GetRawOffset() >= m_index)
-    {
-      // The index of the parent directory is supposed to be smaller than
-      // the current index. If an FST is malformed and breaks that rule,
-      // there's a risk that parent directory pointers form a loop.
-      // To avoid stack overflows, this method returns.
-      ERROR_LOG(DISCIO, "Invalid parent offset in file system");
-      return "";
-    }
     return CFileInfoGCWii(*this, GetRawOffset()).GetPath() + GetName() + "/";
   }
   else
   {
     // The parent directory can be found by searching backwards
-    // for a directory that contains this file.
-
+    // for a directory that contains this file. The search cannot fail,
+    // because the root directory at index 0 contains all files.
     CFileInfoGCWii potential_parent(*this, m_index - 1);
     while (!(potential_parent.IsDirectory() && potential_parent.GetSize() > m_index))
-    {
-      if (potential_parent.m_index == 0)
-      {
-        // This can happen if an FST has a root with a size that's too small
-        ERROR_LOG(DISCIO, "The parent of %s couldn't be found", GetName().c_str());
-        return "";
-      }
       potential_parent = CFileInfoGCWii(*this, potential_parent.m_index - 1);
-    }
     return potential_parent.GetPath() + GetName();
   }
+}
+
+bool CFileInfoGCWii::IsValid(u64 fst_size, const CFileInfoGCWii& parent_directory) const
+{
+  if (GetNameOffset() >= fst_size)
+  {
+    ERROR_LOG(DISCIO, "Impossibly large name offset in file system");
+    return false;
+  }
+
+  if (IsDirectory())
+  {
+    if (GetRawOffset() != parent_directory.m_index)
+    {
+      ERROR_LOG(DISCIO, "Incorrect parent offset in file system");
+      return false;
+    }
+
+    u32 size = GetSize();
+
+    if (size <= m_index)
+    {
+      ERROR_LOG(DISCIO, "Impossibly small directory size in file system");
+      return false;
+    }
+
+    if (size > parent_directory.GetSize())
+    {
+      ERROR_LOG(DISCIO, "Impossibly large directory size in file system");
+      return false;
+    }
+
+    for (const IFileInfo& child : *this)
+    {
+      if (!reinterpret_cast<const CFileInfoGCWii&>(child).IsValid(fst_size, *this))
+        return false;
+    }
+  }
+
+  return true;
 }
 
 CFileSystemGCWii::CFileSystemGCWii(const IVolume* _rVolume)
@@ -226,8 +241,20 @@ CFileSystemGCWii::CFileSystemGCWii(const IVolume* _rVolume)
     return;
   }
 
-  // If we haven't returned yet, everything succeeded
-  m_Valid = true;
+  if (FST_ENTRY_SIZE * m_root.GetSize() > fst_size)
+  {
+    ERROR_LOG(DISCIO, "File system has too many entries for its size");
+    return;
+  }
+
+  // If the FST's final byte isn't 0, CFileInfoGCWii::GetName() can read past the end
+  if (m_file_system_table[fst_size - 1] != 0)
+  {
+    ERROR_LOG(DISCIO, "File system does not end with a null byte");
+    return;
+  }
+
+  m_Valid = m_root.IsValid(fst_size, m_root);
 }
 
 CFileSystemGCWii::~CFileSystemGCWii()

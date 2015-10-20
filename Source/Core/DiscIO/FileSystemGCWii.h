@@ -47,6 +47,8 @@ public:
   std::string GetName() const override;
   std::string GetPath() const override;
 
+  bool IsValid(u64 fst_size, const CFileInfoGCWii& parent_directory) const;
+
 protected:
   const void* GetAddress() const override;
 
@@ -57,6 +59,7 @@ private:
   u32 GetRawNameOffset() const;
   // For directories, returns the index of the parent directory (or 0 if root)
   u32 GetRawOffset() const;
+  u64 GetNameOffset() const;
 
   const u8* m_fst;
   bool m_wii;
