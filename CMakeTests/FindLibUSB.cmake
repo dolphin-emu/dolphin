@@ -23,7 +23,13 @@ elseif (NOT LIBUSB_FOUND)
        /usr/local/include
     )
 
-    find_library(LIBUSB_LIBRARIES NAMES usb-1.0
+    if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+        set(LIBUSB_LIBRARY "usb")
+    else()
+        set(LIBUSB_LIBRARY "usb-1.0")
+    endif()
+
+    find_library(LIBUSB_LIBRARIES NAMES ${LIBUSB_LIBRARY}
        PATHS
        ${LIBUSB_PKG_LIBRARY_DIRS}
        /usr/lib
