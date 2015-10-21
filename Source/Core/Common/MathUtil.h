@@ -122,14 +122,16 @@ struct Rectangle
 	T right{};
 	T bottom{};
 
-	Rectangle()
-	{ }
+	constexpr Rectangle() = default;
 
-	Rectangle(T theLeft, T theTop, T theRight, T theBottom)
+	constexpr Rectangle(T theLeft, T theTop, T theRight, T theBottom)
 		: left(theLeft), top(theTop), right(theRight), bottom(theBottom)
-	{ }
+	{}
 
-	bool operator==(const Rectangle& r) { return left==r.left && top==r.top && right==r.right && bottom==r.bottom; }
+	constexpr bool operator==(const Rectangle& r) const
+	{
+		return left == r.left && top == r.top && right == r.right && bottom == r.bottom;
+	}
 
 	T GetWidth() const { return abs(right - left); }
 	T GetHeight() const { return abs(bottom - top); }
