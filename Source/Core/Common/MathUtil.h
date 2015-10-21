@@ -117,10 +117,10 @@ double ApproximateReciprocal(double val);
 template<class T>
 struct Rectangle
 {
-	T left;
-	T top;
-	T right;
-	T bottom;
+	T left{};
+	T top{};
+	T right{};
+	T bottom{};
 
 	Rectangle()
 	{ }
