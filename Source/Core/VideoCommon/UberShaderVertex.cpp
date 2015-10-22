@@ -151,11 +151,14 @@ ShaderCode GenVertexShader(API_TYPE ApiType)
 
 	// TODO: Texture Coordinates
 
-	// Zero tex coords (if you don't assign to them, you get random data in opengl.)
+	// Simple Texture coord code: each texcoordX is hardcoded to texgenX
 	for (u32 i = 0; i < numTexgen; i++)
 	{
-		out.Write(
-			"	o.tex[%i] = float3(0.0, 0.0, 1.0);\n", i);
+		out.Write("	{\n");
+		out.Write("		// This UV generation code is overly simplied, texCoord %i is not hardwired to texgen %i\n", i, i);
+		out.Write("		float4 coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n", i, i);
+		out.Write("		o.tex[%d].xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), 1);\n", i, 3 * i, 3 * i + 1);
+		out.Write("	}\n");
 	}
 	// clipPos/w needs to be done in pixel shader, not here
 	out.Write("	o.clipPos = o.pos;\n");
