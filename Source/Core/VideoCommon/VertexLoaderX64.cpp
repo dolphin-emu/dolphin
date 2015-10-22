@@ -311,6 +311,7 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format)
 		case FORMAT_16B_4444:
 			//                   RRRRGGGG BBBBAAAA
 			// AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
+			INT3();
 			LoadAndSwap(16, scratch1, data);
 			if (cpu_info.bBMI2)
 			{
