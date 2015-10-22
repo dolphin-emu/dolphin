@@ -161,6 +161,9 @@
     <ClCompile Include="UberShaderPixel.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="UberShaderVertex.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -306,6 +309,9 @@
       <Filter>Shader Managers</Filter>
     </ClInclude>
     <ClInclude Include="UberShaderPixel.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="UberShaderVertex.h">
       <Filter>Shader Generators</Filter>
     </ClInclude>
   </ItemGroup>

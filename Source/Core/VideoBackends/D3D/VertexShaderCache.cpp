@@ -16,6 +16,7 @@
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/UberShaderVertex.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
 
@@ -62,7 +63,7 @@ public:
 	void Read(const VertexShaderUid &key, const u8* value, u32 value_size)
 	{
 		D3DBlob* blob = new D3DBlob(value_size, value);
-		VertexShaderCache::InsertByteCode(key, blob);
+		//VertexShaderCache::InsertByteCode(key, blob);
 		blob->Release();
 
 	}
@@ -207,7 +208,8 @@ bool VertexShaderCache::SetShader()
 		return (entry.shader != nullptr);
 	}
 
-	ShaderCode code = GenerateVertexShaderCode(API_D3D, uid.GetUidData());
+	//ShaderCode code = GenerateVertexShaderCode(API_D3D, uid.GetUidData());
+	ShaderCode code = UberShader::GenVertexShader(API_D3D);
 
 	D3DBlob* pbytecode = nullptr;
 	D3D::CompileVertexShader(code.GetBuffer(), &pbytecode);

@@ -34,6 +34,8 @@ public:
 	static void RotateView(float x, float y);
 	static void ResetView();
 
+	static void SetVertexFormat(u32 components);
+
 	// data: 3 floats representing the X, Y and Z vertex model coordinates and the posmatrix index.
 	// out:  4 floats which will be initialized with the corresponding clip space coordinates
 	// NOTE: g_fProjectionMatrix must be up to date when this is called

@@ -158,6 +158,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 			loader->m_native_vertex_format = native.get();
 		}
 		state->vertex_loaders[vtx_attr_group] = loader;
+		VertexShaderManager::SetVertexFormat(loader->m_native_components);
 		state->attr_dirty[vtx_attr_group] = false;
 	} else {
 		loader = state->vertex_loaders[vtx_attr_group];

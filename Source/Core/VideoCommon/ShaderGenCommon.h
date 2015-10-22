@@ -270,4 +270,5 @@ static const char s_shader_uniforms[] =
 	"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
 	"\tfloat4 " I_NORMALMATRICES"[32];\n"
 	"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
-	"\tfloat4 " I_PIXELCENTERCORRECTION";\n";
+	"\tfloat4 " I_PIXELCENTERCORRECTION";\n"
+	"\tuint    components;\n";

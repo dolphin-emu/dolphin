@@ -63,66 +63,77 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
 	memset(m_elems, 0, sizeof(m_elems));
 	const AttributeFormat* format = &_vtx_decl.position;
 
+		m_elems[m_num_elems].SemanticName = "POSITION";
+		m_elems[m_num_elems].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	if (format->enable)
 	{
-		m_elems[m_num_elems].SemanticName = "POSITION";
 		m_elems[m_num_elems].AlignedByteOffset = format->offset;
 		m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
+	}
 		m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 		++m_num_elems;
-	}
 
 	for (int i = 0; i < 3; i++)
 	{
 		format = &_vtx_decl.normals[i];
-		if (format->enable)
-		{
+
 			m_elems[m_num_elems].SemanticName = "NORMAL";
 			m_elems[m_num_elems].SemanticIndex = i;
+			m_elems[m_num_elems].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		if (format->enable)
+		{
 			m_elems[m_num_elems].AlignedByteOffset = format->offset;
 			m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
+		}
 			m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			++m_num_elems;
-		}
 	}
 
 	for (int i = 0; i < 2; i++)
 	{
 		format = &_vtx_decl.colors[i];
-		if (format->enable)
-		{
+
 			m_elems[m_num_elems].SemanticName = "COLOR";
 			m_elems[m_num_elems].SemanticIndex = i;
+			m_elems[m_num_elems].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		if (format->enable)
+		{
 			m_elems[m_num_elems].AlignedByteOffset = format->offset;
 			m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
+		}
 			m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			++m_num_elems;
-		}
 	}
 
 	for (int i = 0; i < 8; i++)
 	{
 		format = &_vtx_decl.texcoords[i];
-		if (format->enable)
-		{
+
 			m_elems[m_num_elems].SemanticName = "TEXCOORD";
 			m_elems[m_num_elems].SemanticIndex = i;
+			m_elems[m_num_elems].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		if (format->enable)
+		{
 			m_elems[m_num_elems].AlignedByteOffset = format->offset;
 			m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
+		}
+
 			m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			++m_num_elems;
-		}
 	}
 
 	format = &_vtx_decl.posmtx;
+
+		m_elems[m_num_elems].SemanticName = "BLENDINDICES";
+		m_elems[m_num_elems].Format = DXGI_FORMAT_R8_UINT;
 	if (format->enable)
 	{
-		m_elems[m_num_elems].SemanticName = "BLENDINDICES";
 		m_elems[m_num_elems].AlignedByteOffset = format->offset;
 		m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
+	}
 		m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 		++m_num_elems;
-	}
+
 }
 
 void D3DVertexFormat::SetupVertexPointers()

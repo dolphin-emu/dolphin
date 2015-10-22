@@ -45,6 +45,8 @@ struct VertexShaderConstants
 	float4 normalmatrices[32];
 	float4 posttransformmatrices[64];
 	float4 pixelcentercorrection;
+	u32    components;
+	u32    pad[3];
 };
 
 struct GeometryShaderConstants

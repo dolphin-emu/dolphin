@@ -732,6 +732,14 @@ void VertexShaderManager::ResetView()
 	bProjectionChanged = true;
 }
 
+void VertexShaderManager::SetVertexFormat(u32 components)
+{
+	if (components != constants.components) {
+		constants.components = components;
+		dirty = true;
+	}
+}
+
 void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
 {
 	const float* world_matrix = &xfmem.posMatrices[(MtxIdx & 0x3f) * 4];
