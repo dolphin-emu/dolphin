@@ -815,32 +815,32 @@ void ARM64XEmitter::EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64
 	Write32((size << 30) | (0b111 << 27) | (op << 22) | ((imm & 0x1FF) << 12) | (Rn << 5) | Rt);
 }
 
-static inline bool IsInRangeImm19(s64 distance)
+static constexpr bool IsInRangeImm19(s64 distance)
 {
 	return (distance >= -0x40000 && distance <= 0x3FFFF);
 }
 
-static inline bool IsInRangeImm14(s64 distance)
+static constexpr bool IsInRangeImm14(s64 distance)
 {
 	return (distance >= -0x2000 && distance <= 0x1FFF);
 }
 
-static inline bool IsInRangeImm26(s64 distance)
+static constexpr bool IsInRangeImm26(s64 distance)
 {
 	return (distance >= -0x2000000 && distance <= 0x1FFFFFF);
 }
 
-static inline u32 MaskImm19(s64 distance)
+static constexpr u32 MaskImm19(s64 distance)
 {
 	return distance & 0x7FFFF;
 }
 
-static inline u32 MaskImm14(s64 distance)
+static constexpr u32 MaskImm14(s64 distance)
 {
 	return distance & 0x3FFF;
 }
 
-static inline u32 MaskImm26(s64 distance)
+static constexpr u32 MaskImm26(s64 distance)
 {
 	return distance & 0x3FFFFFF;
 }

@@ -81,19 +81,19 @@ enum ARM64Reg
 	INVALID_REG = 0xFFFFFFFF
 };
 
-inline bool Is64Bit(ARM64Reg reg) { return (reg & 0x20) != 0; }
-inline bool IsSingle(ARM64Reg reg) { return (reg & 0xC0) == 0x40; }
-inline bool IsDouble(ARM64Reg reg) { return (reg & 0xC0) == 0x80; }
-inline bool IsScalar(ARM64Reg reg) { return IsSingle(reg) || IsDouble(reg); }
-inline bool IsQuad(ARM64Reg reg) { return (reg & 0xC0) == 0xC0; }
-inline bool IsVector(ARM64Reg reg) { return (reg & 0xC0) != 0; }
-inline bool IsGPR(ARM64Reg reg) { return (int)reg < 0x40; }
+constexpr bool Is64Bit(ARM64Reg reg)  { return (reg & 0x20) != 0; }
+constexpr bool IsSingle(ARM64Reg reg) { return (reg & 0xC0) == 0x40; }
+constexpr bool IsDouble(ARM64Reg reg) { return (reg & 0xC0) == 0x80; }
+constexpr bool IsScalar(ARM64Reg reg) { return IsSingle(reg) || IsDouble(reg); }
+constexpr bool IsQuad(ARM64Reg reg)   { return (reg & 0xC0) == 0xC0; }
+constexpr bool IsVector(ARM64Reg reg) { return (reg & 0xC0) != 0; }
+constexpr bool IsGPR(ARM64Reg reg)    { return static_cast<int>(reg) < 0x40; }
 
-inline ARM64Reg DecodeReg(ARM64Reg reg) { return (ARM64Reg)(reg & 0x1F); }
-inline ARM64Reg EncodeRegTo64(ARM64Reg reg) { return (ARM64Reg)(reg | 0x20); }
-inline ARM64Reg EncodeRegToSingle(ARM64Reg reg) { return (ARM64Reg)(DecodeReg(reg) + S0); }
-inline ARM64Reg EncodeRegToDouble(ARM64Reg reg) { return (ARM64Reg)((reg & ~0xC0) | 0x80); }
-inline ARM64Reg EncodeRegToQuad(ARM64Reg reg) { return (ARM64Reg)(reg | 0xC0); }
+constexpr ARM64Reg DecodeReg(ARM64Reg reg)         { return static_cast<ARM64Reg>(reg & 0x1F); }
+constexpr ARM64Reg EncodeRegTo64(ARM64Reg reg)     { return static_cast<ARM64Reg>(reg | 0x20); }
+constexpr ARM64Reg EncodeRegToSingle(ARM64Reg reg) { return static_cast<ARM64Reg>(DecodeReg(reg) + S0); }
+constexpr ARM64Reg EncodeRegToDouble(ARM64Reg reg) { return static_cast<ARM64Reg>((reg & ~0xC0) | 0x80); }
+constexpr ARM64Reg EncodeRegToQuad(ARM64Reg reg)   { return static_cast<ARM64Reg>(reg | 0xC0); }
 
 // For AND/TST/ORR/EOR etc
 bool IsImmLogical(uint64_t value, unsigned int width, unsigned int *n, unsigned int *imm_s, unsigned int *imm_r);
