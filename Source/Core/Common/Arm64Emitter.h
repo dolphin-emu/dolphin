@@ -359,11 +359,7 @@ private:
 	void EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
 protected:
-	inline void Write32(u32 value)
-	{
-		*(u32*)m_code = value;
-		m_code += 4;
-	}
+	void Write32(u32 value);
 
 public:
 	ARM64XEmitter()
