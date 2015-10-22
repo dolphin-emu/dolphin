@@ -74,8 +74,8 @@ static SPartitionGroup PartitionGroup[4];
 
 void MarkAsUsed(u64 _Offset, u64 _Size);
 void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size);
-void ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt);
-void ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt);
+bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt);
+bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt);
 bool ParseDisc();
 bool ParsePartitionData(SPartition& _rPartition);
 
@@ -192,16 +192,18 @@ void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size)
 }
 
 // Helper functions for reading the BE volume
-void ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt)
+bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt)
 {
-	s_disc->Read(_Offset, sizeof(u32), (u8*)&_Buffer, _Decrypt);
-	_Buffer = Common::swap32(_Buffer);
+	return s_disc->ReadSwapped(_Offset, &_Buffer, _Decrypt);
 }
-void ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt)
+
+bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt)
 {
-	s_disc->Read(_Offset, sizeof(u32), (u8*)&_Buffer, _Decrypt);
-	_Buffer = Common::swap32((u32)_Buffer);
-	_Buffer <<= 2;
+	u32 temp_buffer;
+	if (!s_disc->ReadSwapped(_Offset, &temp_buffer, _Decrypt))
+		return false;
+	_Buffer = static_cast<u64>(temp_buffer) << 2;
+	return true;
 }
 
 bool ParseDisc()
@@ -211,8 +213,9 @@ bool ParseDisc()
 
 	for (int x = 0; x < 4; x++)
 	{
-		ReadFromVolume(0x40000 + (x * 8) + 0, PartitionGroup[x].numPartitions, false);
-		ReadFromVolume(0x40000 + (x * 8) + 4, PartitionGroup[x].PartitionsOffset, false);
+		if (!ReadFromVolume(0x40000 + (x * 8) + 0, PartitionGroup[x].numPartitions, false) ||
+		    !ReadFromVolume(0x40000 + (x * 8) + 4, PartitionGroup[x].PartitionsOffset, false))
+			return false;
 
 		// Read all partitions
 		for (u32 i = 0; i < PartitionGroup[x].numPartitions; i++)
@@ -222,16 +225,16 @@ bool ParseDisc()
 			Partition.GroupNumber = x;
 			Partition.Number = i;
 
-			ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 0, Partition.Offset, false);
-			ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 4, Partition.Type, false);
-
-			ReadFromVolume(Partition.Offset + 0x2a4, Partition.Header.TMDSize, false);
-			ReadFromVolume(Partition.Offset + 0x2a8, Partition.Header.TMDOffset, false);
-			ReadFromVolume(Partition.Offset + 0x2ac, Partition.Header.CertChainSize, false);
-			ReadFromVolume(Partition.Offset + 0x2b0, Partition.Header.CertChainOffset, false);
-			ReadFromVolume(Partition.Offset + 0x2b4, Partition.Header.H3Offset, false);
-			ReadFromVolume(Partition.Offset + 0x2b8, Partition.Header.DataOffset, false);
-			ReadFromVolume(Partition.Offset + 0x2bc, Partition.Header.DataSize, false);
+			if (!ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 0, Partition.Offset, false) ||
+			    !ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 4, Partition.Type, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2a4, Partition.Header.TMDSize, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2a8, Partition.Header.TMDOffset, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2ac, Partition.Header.CertChainSize, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2b0, Partition.Header.CertChainOffset, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2b4, Partition.Header.H3Offset, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2b8, Partition.Header.DataOffset, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2bc, Partition.Header.DataSize, false))
+				return false;
 
 			PartitionGroup[x].PartitionsVec.push_back(Partition);
 		}
@@ -286,8 +289,8 @@ bool ParsePartitionData(SPartition& partition)
 	{
 		// Mark things as used which are not in the filesystem
 		// Header, Header Information, Apploader
-		ReadFromVolume(0x2440 + 0x14, partition.Header.ApploaderSize, true);
-		ReadFromVolume(0x2440 + 0x18, partition.Header.ApploaderTrailerSize, true);
+		parsed_ok = parsed_ok && ReadFromVolume(0x2440 + 0x14, partition.Header.ApploaderSize, true);
+		parsed_ok = parsed_ok && ReadFromVolume(0x2440 + 0x18, partition.Header.ApploaderTrailerSize, true);
 		MarkAsUsedE(partition.Offset
 			+ partition.Header.DataOffset
 			, 0
@@ -296,16 +299,17 @@ bool ParsePartitionData(SPartition& partition)
 			+ partition.Header.ApploaderTrailerSize);
 
 		// DOL
-		ReadFromVolume(0x420, partition.Header.DOLOffset, true);
+		partition.Header.DOLOffset = filesystem->GetBootDOLOffset();
 		partition.Header.DOLSize = filesystem->GetBootDOLSize(partition.Header.DOLOffset);
+		parsed_ok = parsed_ok && partition.Header.DOLOffset && partition.Header.DOLSize;
 		MarkAsUsedE(partition.Offset
 			+ partition.Header.DataOffset
 			, partition.Header.DOLOffset
 			, partition.Header.DOLSize);
 
 		// FST
-		ReadFromVolume(0x424, partition.Header.FSTOffset, true);
-		ReadFromVolume(0x428, partition.Header.FSTSize, true);
+		parsed_ok = parsed_ok && ReadFromVolume(0x424, partition.Header.FSTOffset, true);
+		parsed_ok = parsed_ok && ReadFromVolume(0x428, partition.Header.FSTSize, true);
 		MarkAsUsedE(partition.Offset
 			+ partition.Header.DataOffset
 			, partition.Header.FSTOffset
