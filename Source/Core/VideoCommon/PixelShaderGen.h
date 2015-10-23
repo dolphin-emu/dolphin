@@ -31,7 +31,7 @@ struct pixel_shader_uid_data
 	u32 nIndirectStagesUsed : 4;
 	u32 stereo : 1;
 
-	u32 genMode_numtexgens : 4;
+	u32 genMode_numtexgens : 3;
 	u32 genMode_numtevstages : 4;
 	u32 genMode_numindstages : 3;
 	u32 alpha_test_comp0 : 3;
@@ -47,12 +47,13 @@ struct pixel_shader_uid_data
 	u32 forced_early_z : 1;
 	u32 early_ztest : 1;
 	u32 bounding_box : 1;
+	u32 pad : 1;
 
 	// TODO: 29 bits of padding is a waste. Can we free up some bits elseware?
 	u32 zfreeze : 1;
 	u32 msaa : 1;
 	u32 ssaa : 1;
-	u32 pad : 29;
+	u32 pad2 : 29;
 
 	u32 texMtxInfo_n_projection : 8; // 8x1 bit
 	u32 tevindref_bi0 : 3;

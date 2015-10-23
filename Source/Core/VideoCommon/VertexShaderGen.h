@@ -33,11 +33,11 @@ struct vertex_shader_uid_data
 	u32 NumValues() const { return sizeof(vertex_shader_uid_data); }
 
 	u32 components           : 23;
-	u32 numTexGens           : 4;
+	u32 numTexGens           : 3;
 	u32 numColorChans        : 2;
 	u32 dualTexTrans_enabled : 1;
 	u32 pixel_lighting       : 1;
-	u32 pad                  : 1;
+	u32 pad                  : 2;
 
 	u32 texMtxInfo_n_projection : 16; // Stored separately to guarantee that the texMtxInfo struct is 8 bits wide
 	struct {

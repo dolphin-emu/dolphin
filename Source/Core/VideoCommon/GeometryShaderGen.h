@@ -16,7 +16,7 @@ struct geometry_shader_uid_data
 	bool IsPassthrough() const { return primitive_type == PRIMITIVE_TRIANGLES && !stereo && !wireframe; }
 
 	u32 stereo : 1;
-	u32 numTexGens : 4;
+	u32 numTexGens : 3;
 	u32 pixel_lighting : 1;
 	u32 primitive_type : 2;
 	u32 wireframe : 1;
