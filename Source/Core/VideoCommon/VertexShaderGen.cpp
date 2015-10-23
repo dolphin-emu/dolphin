@@ -187,14 +187,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		else
 			out.Write("o.colors_1 = o.colors_0;\n");
 	}
-	// special case if only pos and tex coord 0 and tex coord input is AB11
-	// donko - this has caused problems in some games. removed for now.
-	bool texGenSpecialCase = false;
-	/*bool texGenSpecialCase =
-		((g_main_cp_state.vtx_desc.Hex & 0x60600L) == g_main_cp_state.vtx_desc.Hex) && // only pos and tex coord 0
-		(g_main_cp_state.vtx_desc.Tex0Coord != NOT_PRESENT) &&
-		(xfmem.texcoords[0].texmtxinfo.inputform == XF_TEXINPUT_AB11);
-		*/
 
 	// transform texcoords
 	out.Write("float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n");
@@ -308,24 +300,12 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				"float4 P2 = " I_POSTTRANSFORMMATRICES"[%d];\n",
 				postidx & 0x3f, (postidx + 1) & 0x3f, (postidx + 2) & 0x3f);
 
-			if (texGenSpecialCase)
-			{
-				// no normalization
-				// q of input is 1
-				// q of output is unknown
+			uid_data->postMtxInfo[i].normalize = xfmem.postMtxInfo[i].normalize;
+			if (postInfo.normalize)
+				out.Write("o.tex%d.xyz = normalize(o.tex%d.xyz);\n", i, i);
 
-				// multiply by postmatrix
-				out.Write("o.tex%d.xyz = float3(dot(P0.xy, o.tex%d.xy) + P0.z + P0.w, dot(P1.xy, o.tex%d.xy) + P1.z + P1.w, 0.0);\n", i, i, i);
-			}
-			else
-			{
-				uid_data->postMtxInfo[i].normalize = xfmem.postMtxInfo[i].normalize;
-				if (postInfo.normalize)
-					out.Write("o.tex%d.xyz = normalize(o.tex%d.xyz);\n", i, i);
-
-				// multiply by postmatrix
-				out.Write("o.tex%d.xyz = float3(dot(P0.xyz, o.tex%d.xyz) + P0.w, dot(P1.xyz, o.tex%d.xyz) + P1.w, dot(P2.xyz, o.tex%d.xyz) + P2.w);\n", i, i, i, i);
-			}
+			// multiply by postmatrix
+			out.Write("o.tex%d.xyz = float3(dot(P0.xyz, o.tex%d.xyz) + P0.w, dot(P1.xyz, o.tex%d.xyz) + P1.w, dot(P2.xyz, o.tex%d.xyz) + P2.w);\n", i, i, i, i);
 		}
 
 		out.Write("}\n");
