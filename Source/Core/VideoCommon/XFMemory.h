@@ -210,7 +210,7 @@ union NumTexGen
 {
 	struct
 	{
-		u32 numTexGens : 4;
+		u32 numTexGens : 3;
 	};
 	u32 hex;
 };

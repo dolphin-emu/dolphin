@@ -131,7 +131,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
 			break;
 
 		case XFMEM_SETNUMTEXGENS: // GXSetNumTexGens
-			if (xfmem.numTexGen.numTexGens != (newValue & 15))
+			if (xfmem.numTexGen.numTexGens != (newValue & 7))
 				VertexManager::Flush();
 			break;
 

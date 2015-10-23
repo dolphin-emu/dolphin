@@ -571,7 +571,8 @@ union GenMode
 		CULL_ALL = 3, // cull all primitives
 	};
 
-	BitField< 0,4,u32> numtexgens;
+	BitField< 0,3,u32> numtexgens;
+	// 1 bit unused?
 	BitField< 4,3,u32> numcolchans;
 	// 1 bit unused?
 	BitField< 8,1,u32> flat_shading; // unconfirmed
