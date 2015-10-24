@@ -484,9 +484,22 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
 			entry->memory_stride == entry->CacheLinesPerRow() * 32)
 		{
+			u64 efb_hash = base_hash;
+			u32 texture_stride = (expandedWidth / bsw) * 32;
+
+			if (texformat == 6)
+				texture_stride = texture_stride * 2;
+
+			// Normally the above hash is fine, but some games (like Sonic Riders: Zero Gravity) do an efb copy which is
+			// smaller than the texture it ultimatlly tries to use (640x480 copy into a 1024x512 texture in this case)
+			// We need to make sure we hash the same number of bytes that we did during the efb copy.
+			if (texture_size != entry->size_in_bytes)
+				efb_hash = GetHash64(src_data, entry->size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
 			// EFB copies have slightly different rules as EFB copy formats have different
 			// meanings from texture formats.
-			if ((base_hash == entry->hash && (!isPaletteTexture || g_Config.backend_info.bSupportsPaletteConversion)) ||
+			if ((efb_hash == entry->hash && texture_stride == entry->memory_stride &&
+				(!isPaletteTexture || g_Config.backend_info.bSupportsPaletteConversion)) ||
 				IsPlayingBackFifologWithBrokenEFBCopies)
 			{
 				// TODO: We should check format/width/height/levels for EFB copies. Checking
@@ -1164,7 +1177,7 @@ void TextureCache::TCacheEntryBase::SetEfbCopy(u32 stride)
 	is_efb_copy = true;
 	memory_stride = stride;
 
-	_assert_msg_(VIDEO, memory_stride >= CacheLinesPerRow(), "Memory stride is too small");
+	_assert_msg_(VIDEO, memory_stride >= CacheLinesPerRow() * 32, "Memory stride is too small.");
 
 	size_in_bytes = memory_stride * NumBlocksY();
 }
