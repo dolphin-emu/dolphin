@@ -27,6 +27,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
+#include "Core/LED.h"
 #include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
@@ -466,6 +467,8 @@ void EmuThread()
 
 	AudioCommon::InitSoundStream();
 
+	LED::Start();
+
 	// The hardware is initialized.
 	s_hardware_initialized = true;
 
@@ -556,6 +559,8 @@ void EmuThread()
 
 	if (core_parameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
+
+	LED::Stop();
 
 	FileMon::Close();
 

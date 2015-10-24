@@ -35,6 +35,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HotkeyManager.h"
+#include "Core/LED.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/HW/DVDInterface.h"
@@ -499,6 +500,8 @@ CFrame::CFrame(wxFrame* parent,
 	// check if game is running
 	InitControllers();
 
+	LED::Initialize();
+
 	m_poll_hotkey_timer.SetOwner(this);
 	Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this);
 	m_poll_hotkey_timer.Start(1000 / 60, wxTIMER_CONTINUOUS);
@@ -506,6 +509,8 @@ CFrame::CFrame(wxFrame* parent,
 // Destructor
 CFrame::~CFrame()
 {
+	LED::Shutdown();
+
 	Wiimote::Shutdown();
 	Keyboard::Shutdown();
 	Pad::Shutdown();
