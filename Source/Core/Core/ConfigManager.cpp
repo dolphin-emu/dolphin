@@ -35,7 +35,7 @@ SConfig::SConfig()
   bJITPairedOff(false), bJITSystemRegistersOff(false),
   bJITBranchOff(false),
   bJITILTimeProfiling(false), bJITILOutputIR(false),
-  bFPRF(false), bAccurateNaNs(false),
+  bFPRF(false), bAccurateNaNs(false), iTimingVariance(40),
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
@@ -221,6 +221,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	IniFile::Section* core = ini.GetOrCreateSection("Core");
 
 	core->Set("HLE_BS2", bHLE_BS2);
+	core->Set("TimingVariance", iTimingVariance);
 	core->Set("CPUCore", iCPUCore);
 	core->Set("Fastmem", bFastmem);
 	core->Set("CPUThread", bCPUThread);
@@ -479,6 +480,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 #endif
 	core->Get("Fastmem",           &bFastmem,      true);
 	core->Get("DSPHLE",            &bDSPHLE,       true);
+	core->Get("TimingVariance",    &iTimingVariance, 40);
 	core->Get("CPUThread",         &bCPUThread,    true);
 	core->Get("SkipIdle",          &bSkipIdle,     true);
 	core->Get("SyncOnSkipIdle",    &bSyncGPUOnSkipIdleHack, true);
@@ -592,6 +594,7 @@ void SConfig::LoadDefaults()
 	#endif
 
 	iCPUCore = PowerPC::CORE_JIT64;
+	iTimingVariance = 40;
 	bCPUThread = false;
 	bSkipIdle = false;
 	bSyncGPUOnSkipIdleHack = true;
