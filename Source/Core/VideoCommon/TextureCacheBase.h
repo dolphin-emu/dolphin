@@ -111,7 +111,7 @@ public:
 		bool IsEfbCopy() const { return is_efb_copy; }
 
 		u32 NumBlocksY() const;
-		u32 CacheLinesPerRow() const;
+		u32 BytesPerRow() const;
 
 		void Zero(u8* ptr);
 

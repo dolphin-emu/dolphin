@@ -22,8 +22,6 @@ namespace SWRenderer
 	u8* GetCurrentColorTexture();
 	void SwapColorTexture();
 	void UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight);
-	void DrawTexture(u8 *texture, int width, int height);
 
 	void Swap(u32 fbWidth, u32 fbHeight);
-	void SwapBuffer();
 }

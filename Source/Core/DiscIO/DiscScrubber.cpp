@@ -74,11 +74,10 @@ static SPartitionGroup PartitionGroup[4];
 
 void MarkAsUsed(u64 _Offset, u64 _Size);
 void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size);
-void ReadFromVolume(u64 _Offset, u64 _Length, u32& _Buffer, bool _Decrypt);
-void ReadFromVolume(u64 _Offset, u64 _Length, u64& _Buffer, bool _Decrypt);
+void ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt);
+void ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt);
 bool ParseDisc();
 bool ParsePartitionData(SPartition& _rPartition);
-u32 GetDOLSize(u64 _DOLOffset);
 
 
 bool SetupScrub(const std::string& filename, int block_size)
@@ -193,14 +192,14 @@ void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size)
 }
 
 // Helper functions for reading the BE volume
-void ReadFromVolume(u64 _Offset, u64 _Length, u32& _Buffer, bool _Decrypt)
+void ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt)
 {
-	m_Disc->Read(_Offset, _Length, (u8*)&_Buffer, _Decrypt);
+	m_Disc->Read(_Offset, sizeof(u32), (u8*)&_Buffer, _Decrypt);
 	_Buffer = Common::swap32(_Buffer);
 }
-void ReadFromVolume(u64 _Offset, u64 _Length, u64& _Buffer, bool _Decrypt)
+void ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt)
 {
-	m_Disc->Read(_Offset, _Length, (u8*)&_Buffer, _Decrypt);
+	m_Disc->Read(_Offset, sizeof(u32), (u8*)&_Buffer, _Decrypt);
 	_Buffer = Common::swap32((u32)_Buffer);
 	_Buffer <<= 2;
 }
@@ -212,8 +211,8 @@ bool ParseDisc()
 
 	for (int x = 0; x < 4; x++)
 	{
-		ReadFromVolume(0x40000 + (x * 8) + 0, 4, PartitionGroup[x].numPartitions, false);
-		ReadFromVolume(0x40000 + (x * 8) + 4, 4, PartitionGroup[x].PartitionsOffset, false);
+		ReadFromVolume(0x40000 + (x * 8) + 0, PartitionGroup[x].numPartitions, false);
+		ReadFromVolume(0x40000 + (x * 8) + 4, PartitionGroup[x].PartitionsOffset, false);
 
 		// Read all partitions
 		for (u32 i = 0; i < PartitionGroup[x].numPartitions; i++)
@@ -223,16 +222,16 @@ bool ParseDisc()
 			Partition.GroupNumber = x;
 			Partition.Number = i;
 
-			ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 0, 4, Partition.Offset, false);
-			ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 4, 4, Partition.Type, false);
+			ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 0, Partition.Offset, false);
+			ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 4, Partition.Type, false);
 
-			ReadFromVolume(Partition.Offset + 0x2a4, 4, Partition.Header.TMDSize, false);
-			ReadFromVolume(Partition.Offset + 0x2a8, 4, Partition.Header.TMDOffset, false);
-			ReadFromVolume(Partition.Offset + 0x2ac, 4, Partition.Header.CertChainSize, false);
-			ReadFromVolume(Partition.Offset + 0x2b0, 4, Partition.Header.CertChainOffset, false);
-			ReadFromVolume(Partition.Offset + 0x2b4, 4, Partition.Header.H3Offset, false);
-			ReadFromVolume(Partition.Offset + 0x2b8, 4, Partition.Header.DataOffset, false);
-			ReadFromVolume(Partition.Offset + 0x2bc, 4, Partition.Header.DataSize, false);
+			ReadFromVolume(Partition.Offset + 0x2a4, Partition.Header.TMDSize, false);
+			ReadFromVolume(Partition.Offset + 0x2a8, Partition.Header.TMDOffset, false);
+			ReadFromVolume(Partition.Offset + 0x2ac, Partition.Header.CertChainSize, false);
+			ReadFromVolume(Partition.Offset + 0x2b0, Partition.Header.CertChainOffset, false);
+			ReadFromVolume(Partition.Offset + 0x2b4, Partition.Header.H3Offset, false);
+			ReadFromVolume(Partition.Offset + 0x2b8, Partition.Header.DataOffset, false);
+			ReadFromVolume(Partition.Offset + 0x2bc, Partition.Header.DataSize, false);
 
 			PartitionGroup[x].PartitionsVec.push_back(Partition);
 		}
@@ -286,8 +285,8 @@ bool ParsePartitionData(SPartition& _rPartition)
 	{
 		// Mark things as used which are not in the filesystem
 		// Header, Header Information, Apploader
-		ReadFromVolume(0x2440 + 0x14, 4, _rPartition.Header.ApploaderSize, true);
-		ReadFromVolume(0x2440 + 0x18, 4, _rPartition.Header.ApploaderTrailerSize, true);
+		ReadFromVolume(0x2440 + 0x14, _rPartition.Header.ApploaderSize, true);
+		ReadFromVolume(0x2440 + 0x18, _rPartition.Header.ApploaderTrailerSize, true);
 		MarkAsUsedE(_rPartition.Offset
 			+ _rPartition.Header.DataOffset
 			, 0
@@ -296,16 +295,16 @@ bool ParsePartitionData(SPartition& _rPartition)
 			+ _rPartition.Header.ApploaderTrailerSize);
 
 		// DOL
-		ReadFromVolume(0x420, 4, _rPartition.Header.DOLOffset, true);
-		_rPartition.Header.DOLSize = GetDOLSize(_rPartition.Header.DOLOffset);
+		ReadFromVolume(0x420, _rPartition.Header.DOLOffset, true);
+		_rPartition.Header.DOLSize = filesystem->GetBootDOLSize(_rPartition.Header.DOLOffset);
 		MarkAsUsedE(_rPartition.Offset
 			+ _rPartition.Header.DataOffset
 			, _rPartition.Header.DOLOffset
 			, _rPartition.Header.DOLSize);
 
 		// FST
-		ReadFromVolume(0x424, 4, _rPartition.Header.FSTOffset, true);
-		ReadFromVolume(0x428, 4, _rPartition.Header.FSTSize, true);
+		ReadFromVolume(0x424, _rPartition.Header.FSTOffset, true);
+		ReadFromVolume(0x428, _rPartition.Header.FSTSize, true);
 		MarkAsUsedE(_rPartition.Offset
 			+ _rPartition.Header.DataOffset
 			, _rPartition.Header.FSTOffset
@@ -328,31 +327,6 @@ bool ParsePartitionData(SPartition& _rPartition)
 	m_Disc = OldVolume;
 
 	return ParsedOK;
-}
-
-u32 GetDOLSize(u64 _DOLOffset)
-{
-	u32 offset = 0, size = 0, max = 0;
-
-	// Iterate through the 7 code segments
-	for (u8 i = 0; i < 7; i++)
-	{
-		ReadFromVolume(_DOLOffset + 0x00 + i * 4, 4, offset, true);
-		ReadFromVolume(_DOLOffset + 0x90 + i * 4, 4, size, true);
-		if (offset + size > max)
-			max = offset + size;
-	}
-
-	// Iterate through the 11 data segments
-	for (u8 i = 0; i < 11; i++)
-	{
-		ReadFromVolume(_DOLOffset + 0x1c + i * 4, 4, offset, true);
-		ReadFromVolume(_DOLOffset + 0xac + i * 4, 4, size, true);
-		if (offset + size > max)
-			max = offset + size;
-	}
-
-	return max;
 }
 
 } // namespace DiscScrubber

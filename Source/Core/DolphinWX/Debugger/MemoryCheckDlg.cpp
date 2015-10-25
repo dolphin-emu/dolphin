@@ -23,7 +23,7 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
 	: wxDialog(parent, wxID_ANY, _("Memory Check"))
 	, m_parent(parent)
 {
-	Bind(wxEVT_BUTTON, &MemoryCheckDlg::OnOK, this);
+	Bind(wxEVT_BUTTON, &MemoryCheckDlg::OnOK, this, wxID_OK);
 
 	m_pEditStartAddress = new wxTextCtrl(this, wxID_ANY, "");
 	m_pEditEndAddress = new wxTextCtrl(this, wxID_ANY, "");

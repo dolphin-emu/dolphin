@@ -232,7 +232,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 		wiimote_label[i] = new wxStaticText(this, wxID_ANY, wiimote_str);
 		wiimote_source_ch[i] = new wxChoice(this, source_ctrl_id, wxDefaultPosition, wxDefaultSize, src_choices.size(), src_choices.data());
 		wiimote_source_ch[i]->Bind(wxEVT_CHOICE, &ControllerConfigDiag::SelectSource, this);
-		wiimote_configure_bt[i] = new wxButton(this, config_bt_id, _("Configure"));
+		wiimote_configure_bt[i] = new wxButton(this, config_bt_id, _("Configure"), wxDefaultPosition, wxSize(80, 25));
 		wiimote_configure_bt[i]->Bind(wxEVT_BUTTON, &ControllerConfigDiag::ConfigEmulatedWiimote, this);
 
 		// Disable controller type selection for certain circumstances.
@@ -268,9 +268,9 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 		}
 	}
 
-	wiimote_group->Add(wiimote_control_section, 0, wxEXPAND | wxALL);
+	wiimote_group->Add(wiimote_control_section, 0, wxEXPAND);
 	wiimote_group->AddSpacer(5);
-	wiimote_group->Add(CreateBalanceBoardSizer(), 0, wxEXPAND | wxALL);
+	wiimote_group->Add(CreateBalanceBoardSizer(), 0, wxEXPAND);
 	wiimote_group->AddSpacer(5);
 	wiimote_group->Add(CreateRealWiimoteSizer(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM);
 	wiimote_group->AddSpacer(5);
@@ -326,7 +326,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
 	continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
 
 	real_wiimotes_sizer->Add(continuous_scanning, 0, wxALIGN_CENTER_VERTICAL);
-	real_wiimotes_sizer->AddStretchSpacer(1);
+	real_wiimotes_sizer->AddStretchSpacer();
 	real_wiimotes_sizer->Add(refresh_btn, 0, wxALL | wxALIGN_CENTER, 5);
 
 	real_wiimotes_group->Add(real_wiimotes_sizer, 0, wxEXPAND);
@@ -408,7 +408,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGeneralWiimoteSettingsSizer()
 
 	wxGridSizer* const general_wiimote_sizer = new wxGridSizer(1, 5, 5);
 	general_wiimote_sizer->Add(WiimoteMotor);
-	general_wiimote_sizer->Add(wiimote_speaker, 0);
+	general_wiimote_sizer->Add(wiimote_speaker);
 
 	general_sizer->Add(choice_sizer);
 	general_sizer->Add(general_wiimote_sizer);

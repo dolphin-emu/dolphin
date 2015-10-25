@@ -193,8 +193,11 @@ extern int skipped_opcode_replay_count;
 //extern std::vector<u32> CPReadPointer_log;
 //extern std::vector<u32> CPBreakpoint_log;
 
+
 extern std::mutex g_vr_lock;
-extern std::atomic<u32> g_drawn_vr;
+namespace Core {
+	extern std::atomic<u32> g_drawn_vr;
+}
 
 extern bool debug_nextScene;
 

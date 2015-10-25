@@ -43,11 +43,11 @@
     <ClCompile Include="EfbCopy.cpp" />
     <ClCompile Include="EfbInterface.cpp" />
     <ClCompile Include="OpcodeDecoder.cpp" />
-    <ClCompile Include="RasterFont.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
     <ClCompile Include="SetupUnit.cpp" />
     <ClCompile Include="SWCommandProcessor.cpp" />
     <ClCompile Include="SWmain.cpp" />
+    <ClCompile Include="SWOGLWindow.cpp" />
     <ClCompile Include="SWRenderer.cpp" />
     <ClCompile Include="SWStatistics.cpp" />
     <ClCompile Include="SWVertexLoader.cpp" />
@@ -67,10 +67,10 @@
     <ClInclude Include="EfbInterface.h" />
     <ClInclude Include="NativeVertexFormat.h" />
     <ClInclude Include="OpcodeDecoder.h" />
-    <ClInclude Include="RasterFont.h" />
     <ClInclude Include="Rasterizer.h" />
     <ClInclude Include="SetupUnit.h" />
     <ClInclude Include="SWCommandProcessor.h" />
+    <ClInclude Include="SWOGLWindow.h" />
     <ClInclude Include="SWRenderer.h" />
     <ClInclude Include="SWStatistics.h" />
     <ClInclude Include="SWVertexLoader.h" />

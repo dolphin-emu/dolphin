@@ -64,8 +64,6 @@ typedef std::map<u32, std::shared_ptr<IWII_IPC_HLE_Device>> TDeviceMap;
 static TDeviceMap g_DeviceMap;
 
 // STATE_TO_SAVE
-typedef std::map<u32, std::string> TFileNameMap;
-
 #define IPC_MAX_FDS 0x18
 #define ES_MAX_COUNT 2
 static std::shared_ptr<IWII_IPC_HLE_Device> g_FdMap[IPC_MAX_FDS];

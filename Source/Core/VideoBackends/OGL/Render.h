@@ -50,6 +50,8 @@ struct VideoConfig
 	ES_TEXBUF_TYPE SupportedESTextureBuffer;
 	bool bSupports2DTextureStorage;
 	bool bSupports3DTextureStorage;
+	bool bSupportsEarlyFragmentTests;
+	bool bSupportsConservativeDepth;
 
 	const char* gl_vendor;
 	const char* gl_renderer;

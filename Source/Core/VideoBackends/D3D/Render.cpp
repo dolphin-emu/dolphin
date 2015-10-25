@@ -944,7 +944,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
 			VR_PresentHMDFrame();
-			g_drawn_vr++;
+			Core::g_drawn_vr++;
 
 			// VR Synchronous Timewarp
 			static int real_frame_count_for_timewarp = 0;
@@ -1001,7 +1001,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraTimewarpedFrames; ++i)
 			{
 				VR_DrawTimewarpFrame();
-				g_drawn_vr++;
+				Core::g_drawn_vr++;
 			}
 
 		}

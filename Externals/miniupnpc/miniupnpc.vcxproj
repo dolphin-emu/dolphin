@@ -36,14 +36,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClInclude Include="src\bsdqueue.h" />
     <ClInclude Include="src\codelength.h" />
     <ClInclude Include="src\connecthostport.h" />
-    <ClInclude Include="src\declspec.h" />
     <ClInclude Include="src\igd_desc_parse.h" />
     <ClInclude Include="src\minisoap.h" />
     <ClInclude Include="src\minissdpc.h" />
     <ClInclude Include="src\miniupnpc.h" />
+    <ClInclude Include="src\miniupnpc_declspec.h" />
     <ClInclude Include="src\miniupnpcstrings.h" />
     <ClInclude Include="src\miniupnpctypes.h" />
     <ClInclude Include="src\miniwget.h" />
@@ -51,6 +50,7 @@
     <ClInclude Include="src\portlistingparse.h" />
     <ClInclude Include="src\receivedata.h" />
     <ClInclude Include="src\upnpcommands.h" />
+    <ClInclude Include="src\upnpdev.h" />
     <ClInclude Include="src\upnperrors.h" />
     <ClInclude Include="src\upnpreplyparse.h" />
   </ItemGroup>
@@ -58,19 +58,20 @@
     <ClCompile Include="src\connecthostport.c" />
     <ClCompile Include="src\igd_desc_parse.c" />
     <ClCompile Include="src\minisoap.c" />
+    <ClCompile Include="src\minissdpc.c" />
     <ClCompile Include="src\miniupnpc.c" />
     <ClCompile Include="src\miniwget.c" />
     <ClCompile Include="src\minixml.c" />
     <ClCompile Include="src\portlistingparse.c" />
     <ClCompile Include="src\receivedata.c" />
     <ClCompile Include="src\upnpcommands.c" />
+    <ClCompile Include="src\upnpdev.c" />
     <ClCompile Include="src\upnperrors.c" />
     <ClCompile Include="src\upnpreplyparse.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LICENSE" />
     <None Include="README" />
-    <None Include="src\miniupnpc.def" />
     <None Include="VERSION" />
   </ItemGroup>
   <ItemGroup>

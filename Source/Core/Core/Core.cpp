@@ -91,13 +91,13 @@
 #define ThreadLocalStorage __thread
 #endif
 
+namespace Core
+{
+
 // TODO: ugly, remove
 bool g_aspect_wide;
 
 std::atomic<u32> g_drawn_vr = 0;
-
-namespace Core
-{
 
 bool g_want_determinism;
 

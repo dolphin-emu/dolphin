@@ -246,60 +246,69 @@ TextureCache::TCacheEntryBase* TextureCache::DoPartialTextureUpdates(TexCache::i
 			&& entry->frameCount == FRAMECOUNT_INVALID
 			&& entry->memory_stride == numBlocksX * block_size)
 		{
-			u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
-			u32 block_x = block_offset % numBlocksX;
-			u32 block_y = block_offset / numBlocksX;
-
-			u32 x = block_x * block_width;
-			u32 y = block_y * block_height;
-			MathUtil::Rectangle<int> srcrect, dstrect;
-			srcrect.left = 0;
-			srcrect.top = 0;
-			dstrect.left = 0;
-			dstrect.top = 0;
-			if (entry_need_scaling)
+			if (entry->hash == entry->CalculateHash())
 			{
-				entry_need_scaling = false;
-				u32 w = entry_to_update->native_width * entry->config.width / entry->native_width;
-				u32 h = entry_to_update->native_height * entry->config.height / entry->native_height;
-				u32 max = g_renderer->GetMaxTextureSize();
-				if (max < w || max < h)
+				u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
+				u32 block_x = block_offset % numBlocksX;
+				u32 block_y = block_offset / numBlocksX;
+
+				u32 x = block_x * block_width;
+				u32 y = block_y * block_height;
+				MathUtil::Rectangle<int> srcrect, dstrect;
+				srcrect.left = 0;
+				srcrect.top = 0;
+				dstrect.left = 0;
+				dstrect.top = 0;
+				if (entry_need_scaling)
 				{
-					iter++;
-					continue;
+					entry_need_scaling = false;
+					u32 w = entry_to_update->native_width * entry->config.width / entry->native_width;
+					u32 h = entry_to_update->native_height * entry->config.height / entry->native_height;
+					u32 max = g_renderer->GetMaxTextureSize();
+					if (max < w || max < h)
+					{
+						iter++;
+						continue;
+					}
+					if (entry_to_update->config.width != w || entry_to_update->config.height != h)
+					{
+						TextureCache::TCacheEntryConfig newconfig;
+						newconfig.width = w;
+						newconfig.height = h;
+						newconfig.rendertarget = true;
+						TCacheEntryBase* newentry = AllocateTexture(newconfig);
+						newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
+						newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
+						newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
+						newentry->frameCount = frameCount;
+						newentry->is_efb_copy = false;
+						srcrect.right = entry_to_update->config.width;
+						srcrect.bottom = entry_to_update->config.height;
+						dstrect.right = w;
+						dstrect.bottom = h;
+						newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
+						entry_to_update = newentry;
+						u64 key = iter_t->first;
+						iter_t = FreeTexture(iter_t);
+						textures_by_address.emplace(key, entry_to_update);
+					}
 				}
-				if (entry_to_update->config.width != w || entry_to_update->config.height != h)
-				{
-					TextureCache::TCacheEntryConfig newconfig;
-					newconfig.width = w;
-					newconfig.height = h;
-					newconfig.rendertarget = true;
-					TCacheEntryBase* newentry = AllocateTexture(newconfig);
-					newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
-					newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
-					newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
-					newentry->frameCount = frameCount;
-					newentry->is_efb_copy = false;
-					srcrect.right = entry_to_update->config.width;
-					srcrect.bottom = entry_to_update->config.height;
-					dstrect.right = w;
-					dstrect.bottom = h;
-					newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
-					entry_to_update = newentry;
-					u64 key = iter_t->first;
-					iter_t = FreeTexture(iter_t);
-					textures_by_address.emplace(key, entry_to_update);
-				}
+				srcrect.right = entry->config.width;
+				srcrect.bottom = entry->config.height;
+				dstrect.left = x * entry_to_update->config.width / entry_to_update->native_width;
+				dstrect.top = y * entry_to_update->config.height / entry_to_update->native_height;
+				dstrect.right = (x + entry->native_width) * entry_to_update->config.width / entry_to_update->native_width;
+				dstrect.bottom = (y + entry->native_height) * entry_to_update->config.height / entry_to_update->native_height;
+				entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
+				// Mark the texture update as used, so it isn't applied more than once
+				entry->frameCount = frameCount;
 			}
-			srcrect.right = entry->config.width;
-			srcrect.bottom = entry->config.height;
-			dstrect.left = x * entry_to_update->config.width / entry_to_update->native_width;
-			dstrect.top = y * entry_to_update->config.height / entry_to_update->native_height;
-			dstrect.right = (x + entry->native_width) * entry_to_update->config.width / entry_to_update->native_width;
-			dstrect.bottom = (y + entry->native_height) * entry_to_update->config.height / entry_to_update->native_height;
-			entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
-			// Mark the texture update as used, so it isn't applied more than once
-			entry->frameCount = frameCount;
+			else
+			{
+				// If the hash does not match, this EFB copy will not be used for anything, so remove it
+				iter = FreeTexture(iter);
+				continue;
+			}
 		}
 		++iter;
 	}
@@ -478,7 +487,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	while (iter != iter_range.second)
 	{
 		TCacheEntryBase* entry = iter->second;
-		if (entry->IsEfbCopy())
+		// Do not load strided EFB copies, they are not meant to be used directly
+		if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
+			entry->memory_stride == entry->BytesPerRow())
 		{
 			// EFB copies have slightly different rules as EFB copy formats have different
 			// meanings from texture formats.
@@ -524,8 +535,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		// textures as the same texture here, when the texture itself is the same. This
 		// improves the performance a lot in some games that use paletted textures.
 		// Example: Sonic the Fighters (inside Sonic Gems Collection)
+		// Skip EFB copies here, so they can be used for partial texture updates
 		if (entry->frameCount != FRAMECOUNT_INVALID && entry->frameCount < temp_frameCount &&
-			!(isPaletteTexture && entry->base_hash == base_hash))
+			!entry->IsEfbCopy() && !(isPaletteTexture && entry->base_hash == base_hash))
 		{
 			temp_frameCount = entry->frameCount;
 			oldest_entry = iter;
@@ -1067,7 +1079,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	// Invalidate all textures that overlap the range of our efb copy.
 	// Unless our efb copy has a weird stride, then we want avoid invalidating textures which
 	// we might be able to do a partial texture update on.
-	if (entry->memory_stride == entry->CacheLinesPerRow() * 32)
+	if (entry->memory_stride == entry->BytesPerRow())
 	{
 		TexCache::iterator iter = textures_by_address.begin();
 		while (iter != textures_by_address.end())
@@ -1092,7 +1104,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		u32 address = dstAddr;
 		for (u32 i = 0; i < entry->NumBlocksY(); i++)
 		{
-			FifoRecorder::GetInstance().UseMemory(address, entry->CacheLinesPerRow() * 32, MemoryUpdate::TEXTURE_MAP, true);
+			FifoRecorder::GetInstance().UseMemory(address, entry->BytesPerRow(), MemoryUpdate::TEXTURE_MAP, true);
 			address += entry->memory_stride;
 		}
 	}
@@ -1135,18 +1147,19 @@ TextureCache::TexCache::iterator TextureCache::FreeTexture(TexCache::iterator it
 	return textures_by_address.erase(iter);
 }
 
-u32 TextureCache::TCacheEntryBase::CacheLinesPerRow() const
+u32 TextureCache::TCacheEntryBase::BytesPerRow() const
 {
-	u32 blockW = TexDecoder_GetBlockWidthInTexels(format);
-	// Round up source height to multiple of block size
-	u32 actualWidth = ROUND_UP(native_width, blockW);
+	const u32 blockW = TexDecoder_GetBlockWidthInTexels(format);
 
-	u32 numBlocksX = actualWidth / blockW;
+	// Round up source height to multiple of block size
+	const u32 actualWidth = ROUND_UP(native_width, blockW);
+
+	const u32 numBlocksX = actualWidth / blockW;
 
 	// RGBA takes two cache lines per block; all others take one
-	if (format == GX_TF_RGBA8)
-		numBlocksX = numBlocksX * 2;
-	return numBlocksX;
+	const u32 bytes_per_block = format == GX_TF_RGBA8 ? 64 : 32;
+
+	return numBlocksX * bytes_per_block;
 }
 
 u32 TextureCache::TCacheEntryBase::NumBlocksY() const
@@ -1163,7 +1176,7 @@ void TextureCache::TCacheEntryBase::SetEfbCopy(u32 stride)
 	is_efb_copy = true;
 	memory_stride = stride;
 
-	_assert_msg_(VIDEO, memory_stride >= CacheLinesPerRow(), "Memory stride is too small");
+	_assert_msg_(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");
 
 	size_in_bytes = memory_stride * NumBlocksY();
 }
@@ -1173,7 +1186,7 @@ void TextureCache::TCacheEntryBase::Zero(u8* ptr)
 {
 	for (u32 i = 0; i < NumBlocksY(); i++)
 	{
-		memset(ptr, 0, CacheLinesPerRow() * 32);
+		memset(ptr, 0, BytesPerRow());
 		ptr += memory_stride;
 	}
 }
@@ -1181,7 +1194,7 @@ void TextureCache::TCacheEntryBase::Zero(u8* ptr)
 u64 TextureCache::TCacheEntryBase::CalculateHash() const
 {
 	u8* ptr = Memory::GetPointer(addr);
-	if (memory_stride == CacheLinesPerRow() * 32)
+	if (memory_stride == BytesPerRow())
 	{
 		return GetHash64(ptr, size_in_bytes, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	}
@@ -1200,7 +1213,7 @@ u64 TextureCache::TCacheEntryBase::CalculateHash() const
 		for (u32 i = 0; i < blocks; i++)
 		{
 			// Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from canceling each other out
-			temp_hash = (temp_hash * 397) ^ GetHash64(ptr, CacheLinesPerRow() * 32, samples_per_row);
+			temp_hash = (temp_hash * 397) ^ GetHash64(ptr, BytesPerRow(), samples_per_row);
 			ptr += memory_stride;
 		}
 		return temp_hash;

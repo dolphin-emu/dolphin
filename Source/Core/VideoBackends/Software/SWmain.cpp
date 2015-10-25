@@ -8,9 +8,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
-#include "Common/GL/GLInterfaceBase.h"
-#include "Common/GL/GLUtil.h"
-#include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
@@ -26,6 +23,7 @@
 #include "VideoBackends/Software/OpcodeDecoder.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVertexLoader.h"
@@ -81,13 +79,7 @@ bool VideoSoftware::Initialize(void *window_handle)
 {
 	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + GetConfigName() + ".ini").c_str());
 
-	InitInterface();
-	GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-	if (!GLInterface->Create(window_handle, false))
-	{
-		INFO_LOG(VIDEO, "GLInterface::Create failed.");
-		return false;
-	}
+	SWOGLWindow::Init(window_handle);
 
 	InitBPMemory();
 	InitXFMemory();
@@ -105,7 +97,7 @@ bool VideoSoftware::Initialize(void *window_handle)
 bool VideoSoftware::InitializeOtherThread(void *window_handle, std::thread *video_thread)
 {
 	m_video_thread = video_thread;
-	if (!GLInterface->Create(window_handle))
+	//if (!GLInterface->Create(window_handle))
 	{
 		INFO_LOG(VIDEO, "GLInterface::Create failed.");
 		return false;
@@ -176,41 +168,30 @@ void VideoSoftware::Shutdown()
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
 
-	GLInterface->ShutdownOffscreen();
+	SWOGLWindow::Shutdown();
+	//GLInterface->ShutdownOffscreen();
 }
 
 void VideoSoftware::ShutdownOtherThread()
 {
-	GLInterface->Shutdown();
-	delete GLInterface;
-	GLInterface = nullptr;
+	//GLInterface->Shutdown();
+	//delete GLInterface;
+	//GLInterface = nullptr;
 }
 
 void VideoSoftware::Video_Cleanup()
 {
-	GLInterface->ClearCurrentOffscreen();
+	//GLInterface->ClearCurrentOffscreen();
 }
 
 void VideoSoftware::Video_CleanupOtherThread()
 {
-	GLInterface->ClearCurrent();
+	//GLInterface->ClearCurrent();
 }
 
 // This is called after Video_Initialize() from the Core
 void VideoSoftware::Video_Prepare()
 {
-	GLInterface->MakeCurrentOffscreen();
-
-	// Init extension support.
-	if (!GLExtensions::Init())
-	{
-		ERROR_LOG(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
-		return;
-	}
-
-	// Handle VSync on/off
-	GLInterface->SwapInterval(VSYNC_ENABLED);
-
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_INIT);
 
@@ -221,7 +202,7 @@ void VideoSoftware::Video_Prepare()
 
 void VideoSoftware::Video_PrepareOtherThread()
 {
-	GLInterface->MakeCurrent();
+	//GLInterface->MakeCurrent();
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -397,7 +378,7 @@ void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
 // Draw messages on top of the screen
 unsigned int VideoSoftware::PeekMessages()
 {
-	return GLInterface->PeekMessages();
+	return SWOGLWindow::s_instance->PeekMessages();
 }
 
 }

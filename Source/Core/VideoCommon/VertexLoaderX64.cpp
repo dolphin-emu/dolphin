@@ -314,34 +314,24 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format)
 			LoadAndSwap(16, scratch1, data);
 			if (cpu_info.bBMI2)
 			{
-				MOV(32, R(scratch3), Imm32(0x0F0F0F0F));
-				PDEP(32, scratch2, scratch1, R(scratch3));
-				MOV(32, R(scratch3), Imm32(0xF0F0F0F0));
-				PDEP(32, scratch1, scratch1, R(scratch3));
+				MOV(32, R(scratch2), Imm32(0x0F0F0F0F));
+				PDEP(32, scratch1, scratch1, R(scratch2));
 			}
 			else
 			{
-				MOV(32, R(scratch3), R(scratch1));
-				SHL(32, R(scratch1), Imm8(12));
-				AND(32, R(scratch1), Imm32(0x0F000000));
 				MOV(32, R(scratch2), R(scratch1));
-
-				MOV(32, R(scratch1), R(scratch3));
 				SHL(32, R(scratch1), Imm8(8));
-				AND(32, R(scratch1), Imm32(0x000F0000));
-				OR(32, R(scratch2), R(scratch1));
+				OR(32, R(scratch1), R(scratch2));
+				AND(32, R(scratch1), Imm32(0x00FF00FF));
 
-				MOV(32, R(scratch1), R(scratch3));
+				MOV(32, R(scratch2), R(scratch1));
 				SHL(32, R(scratch1), Imm8(4));
-				AND(32, R(scratch1), Imm32(0x00000F00));
-				OR(32, R(scratch2), R(scratch1));
+				OR(32, R(scratch1), R(scratch2));
+				AND(32, R(scratch1), Imm32(0x0F0F0F0F));
 
-				AND(32, R(scratch3), Imm8(0x0F));
-				OR(32, R(scratch2), R(scratch3));
-
-				MOV(32, R(scratch1), R(scratch2));
-				SHL(32, R(scratch1), Imm8(4));
 			}
+			MOV(32, R(scratch2), R(scratch1));
+			SHL(32, R(scratch1), Imm8(4));
 			OR(32, R(scratch1), R(scratch2));
 			SwapAndStore(32, MDisp(dst_reg, m_dst_ofs), scratch1);
 			load_bytes = 2;

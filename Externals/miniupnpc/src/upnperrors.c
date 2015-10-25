@@ -1,4 +1,4 @@
-/* $Id: upnperrors.c,v 1.6 2012/03/15 01:02:03 nanard Exp $ */
+/* $Id: upnperrors.c,v 1.5 2011/04/10 11:19:36 nanard Exp $ */
 /* Project : miniupnp
  * Author : Thomas BERNARD
  * copyright (c) 2007 Thomas Bernard
@@ -23,6 +23,9 @@ const char * strupnperror(int err)
 		break;
 	case UPNPCOMMAND_INVALID_ARGS:
 		s = "Miniupnpc Invalid Arguments";
+		break;
+	case UPNPCOMMAND_INVALID_RESPONSE:
+		s = "Miniupnpc Invalid response";
 		break;
 	case UPNPDISCOVER_SOCKET_ERROR:
 		s = "Miniupnpc Socket error";

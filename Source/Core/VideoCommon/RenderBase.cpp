@@ -450,7 +450,7 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	// Don't know if there is a better place for this code so there isn't a 1 frame delay
 	if (g_ActiveConfig.bWidescreenHack)
 	{
-		float source_aspect = VideoInterface::GetAspectRatio(g_aspect_wide);
+		float source_aspect = VideoInterface::GetAspectRatio(Core::g_aspect_wide);
 		float target_aspect;
 
 		switch (g_ActiveConfig.iAspectRatio)
@@ -504,7 +504,7 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(false);
 			break;
 		default:
-			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(g_aspect_wide);
+			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(Core::g_aspect_wide);
 			break;
 	}
 
@@ -540,7 +540,7 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 			Ratio = (4.0f / 3.0f) / VideoInterface::GetAspectRatio(false);
 			break;
 		default:
-			Ratio = (!g_aspect_wide ? (4.0f / 3.0f) : (16.0f / 9.0f)) / VideoInterface::GetAspectRatio(g_aspect_wide);
+			Ratio = (!Core::g_aspect_wide ? (4.0f / 3.0f) : (16.0f / 9.0f)) / VideoInterface::GetAspectRatio(Core::g_aspect_wide);
 			break;
 		}
 		if (Ratio <= 1.0f)

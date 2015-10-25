@@ -16,7 +16,7 @@ void InitInterface()
 	GLInterface = HostGL_CreateGLInterface();
 }
 
-GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShader)
+GLuint OpenGL_CompileProgram(const std::string& vertexShader, const std::string& fragmentShader)
 {
 	// generate objects
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -24,7 +24,8 @@ GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShade
 	GLuint programID = glCreateProgram();
 
 	// compile vertex shader
-	glShaderSource(vertexShaderID, 1, &vertexShader, nullptr);
+	const char* shader = vertexShader.c_str();
+	glShaderSource(vertexShaderID, 1, &shader, nullptr);
 	glCompileShader(vertexShaderID);
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
 	GLint Result = GL_FALSE;
@@ -35,22 +36,23 @@ GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShade
 
 	if (Result && stringBufferUsage)
 	{
-		ERROR_LOG(VIDEO, "GLSL vertex shader warnings:\n%s%s", stringBuffer, vertexShader);
+		ERROR_LOG(VIDEO, "GLSL vertex shader warnings:\n%s%s", stringBuffer, vertexShader.c_str());
 	}
 	else if (!Result)
 	{
-		ERROR_LOG(VIDEO, "GLSL vertex shader error:\n%s%s", stringBuffer, vertexShader);
+		ERROR_LOG(VIDEO, "GLSL vertex shader error:\n%s%s", stringBuffer, vertexShader.c_str());
 	}
 	else
 	{
-		DEBUG_LOG(VIDEO, "GLSL vertex shader compiled:\n%s", vertexShader);
+		DEBUG_LOG(VIDEO, "GLSL vertex shader compiled:\n%s", vertexShader.c_str());
 	}
 
 	bool shader_errors = !Result;
 #endif
 
 	// compile fragment shader
-	glShaderSource(fragmentShaderID, 1, &fragmentShader, nullptr);
+	shader = fragmentShader.c_str();
+	glShaderSource(fragmentShaderID, 1, &shader, nullptr);
 	glCompileShader(fragmentShaderID);
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
 	glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &Result);
@@ -58,15 +60,15 @@ GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShade
 
 	if (Result && stringBufferUsage)
 	{
-		ERROR_LOG(VIDEO, "GLSL fragment shader warnings:\n%s%s", stringBuffer, fragmentShader);
+		ERROR_LOG(VIDEO, "GLSL fragment shader warnings:\n%s%s", stringBuffer, fragmentShader.c_str());
 	}
 	else if (!Result)
 	{
-		ERROR_LOG(VIDEO, "GLSL fragment shader error:\n%s%s", stringBuffer, fragmentShader);
+		ERROR_LOG(VIDEO, "GLSL fragment shader error:\n%s%s", stringBuffer, fragmentShader.c_str());
 	}
 	else
 	{
-		DEBUG_LOG(VIDEO, "GLSL fragment shader compiled:\n%s", fragmentShader);
+		DEBUG_LOG(VIDEO, "GLSL fragment shader compiled:\n%s", fragmentShader.c_str());
 	}
 
 	shader_errors |= !Result;
@@ -82,11 +84,11 @@ GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShade
 
 	if (Result && stringBufferUsage)
 	{
-		ERROR_LOG(VIDEO, "GLSL linker warnings:\n%s%s%s", stringBuffer, vertexShader, fragmentShader);
+		ERROR_LOG(VIDEO, "GLSL linker warnings:\n%s%s%s", stringBuffer, vertexShader.c_str(), fragmentShader.c_str());
 	}
 	else if (!Result && !shader_errors)
 	{
-		ERROR_LOG(VIDEO, "GLSL linker error:\n%s%s%s", stringBuffer, vertexShader, fragmentShader);
+		ERROR_LOG(VIDEO, "GLSL linker error:\n%s%s%s", stringBuffer, vertexShader.c_str(), fragmentShader.c_str());
 	}
 #endif
 

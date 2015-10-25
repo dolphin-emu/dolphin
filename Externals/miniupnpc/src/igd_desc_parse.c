@@ -1,8 +1,8 @@
-/* $Id: igd_desc_parse.c,v 1.14 2011/04/11 09:19:24 nanard Exp $ */
+/* $Id: igd_desc_parse.c,v 1.17 2015/09/15 13:30:04 nanard Exp $ */
 /* Project : miniupnp
  * http://miniupnp.free.fr/
  * Author : Thomas Bernard
- * Copyright (c) 2005-2010 Thomas Bernard
+ * Copyright (c) 2005-2015 Thomas Bernard
  * This software is subject to the conditions detailed in the
  * LICENCE file provided in this distribution. */
 
@@ -15,7 +15,9 @@
 void IGDstartelt(void * d, const char * name, int l)
 {
 	struct IGDdatas * datas = (struct IGDdatas *)d;
-	memcpy( datas->cureltname, name, l);
+	if(l >= MINIUPNPC_URL_MAXSIZE)
+		l = MINIUPNPC_URL_MAXSIZE-1;
+	memcpy(datas->cureltname, name, l);
 	datas->cureltname[l] = '\0';
 	datas->level++;
 	if( (l==7) && !memcmp(name, "service", l) ) {
@@ -25,6 +27,8 @@ void IGDstartelt(void * d, const char * name, int l)
 		datas->tmp.servicetype[0] = '\0';
 	}
 }
+
+#define COMPARE(str, cstr) (0==memcmp(str, cstr, sizeof(cstr) - 1))
 
 /* End element handler :
  * update nesting level counter and update parser state if
@@ -36,23 +40,16 @@ void IGDendelt(void * d, const char * name, int l)
 	/*printf("endelt %2d %.*s\n", datas->level, l, name);*/
 	if( (l==7) && !memcmp(name, "service", l) )
 	{
-		/*
-		if( datas->state < 1
-			&& !strcmp(datas->servicetype,
-				//	"urn:schemas-upnp-org:service:WANIPConnection:1") )
-				"urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1"))
-			datas->state ++;
-		*/
-		if(0==strcmp(datas->tmp.servicetype,
-				"urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1")) {
+		if(COMPARE(datas->tmp.servicetype,
+		           "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:")) {
 			memcpy(&datas->CIF, &datas->tmp, sizeof(struct IGDdatas_service));
-		} else if(0==strcmp(datas->tmp.servicetype,
-				"urn:schemas-upnp-org:service:WANIPv6FirewallControl:1")) {
+		} else if(COMPARE(datas->tmp.servicetype,
+			                "urn:schemas-upnp-org:service:WANIPv6FirewallControl:")) {
 			memcpy(&datas->IPv6FC, &datas->tmp, sizeof(struct IGDdatas_service));
-		} else if(0==strcmp(datas->tmp.servicetype,
-				"urn:schemas-upnp-org:service:WANIPConnection:1")
-				 || 0==strcmp(datas->tmp.servicetype,
-				"urn:schemas-upnp-org:service:WANPPPConnection:1") ) {
+		} else if(COMPARE(datas->tmp.servicetype,
+		                  "urn:schemas-upnp-org:service:WANIPConnection:")
+		         || COMPARE(datas->tmp.servicetype,
+		                    "urn:schemas-upnp-org:service:WANPPPConnection:") ) {
 			if(datas->first.servicetype[0] == '\0') {
 				memcpy(&datas->first, &datas->tmp, sizeof(struct IGDdatas_service));
 			} else {
@@ -93,6 +90,7 @@ void IGDdata(void * d, const char * data, int l)
 	}
 }
 
+#ifdef DEBUG
 void printIGD(struct IGDdatas * d)
 {
 	printf("urlbase = '%s'\n", d->urlbase);
@@ -121,5 +119,5 @@ void printIGD(struct IGDdatas * d)
 	printf(" eventSubURL = '%s'\n", d->IPv6FC.eventsuburl);
 	printf(" SCPDURL = '%s'\n", d->IPv6FC.scpdurl);
 }
-
+#endif /* DEBUG */
 

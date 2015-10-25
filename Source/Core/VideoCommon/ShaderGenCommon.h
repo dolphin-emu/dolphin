@@ -32,8 +32,11 @@ public:
 	 * Can be used like printf.
 	 * @note In the ShaderCode implementation, this does indeed write the parameter string to an internal buffer. However, you're free to do whatever you like with the parameter.
 	 */
-	template<typename... Args>
-	void Write(const char*, Args...) {}
+	void Write(const char*, ...)
+#ifdef __GNUC__
+	__attribute__((format(printf, 2, 3)))
+#endif
+	{}
 
 	/*
 	 * Returns a read pointer to the internal buffer.
@@ -116,6 +119,9 @@ public:
 	}
 
 	void Write(const char* fmt, ...)
+#ifdef __GNUC__
+	__attribute__((format(printf, 2, 3)))
+#endif
 	{
 		va_list arglist;
 		va_start(arglist, fmt);
