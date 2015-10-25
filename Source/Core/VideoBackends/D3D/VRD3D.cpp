@@ -79,6 +79,7 @@ OculusTexture *pEyeRenderTexture[2];
 ovrRecti       eyeRenderViewport[2];
 ovrTexture    *mirrorTexture = nullptr;
 int mirror_width = 0, mirror_height = 0;
+D3D11_TEXTURE2D_DESC texdesc = {};
 #endif
 
 #endif
@@ -168,7 +169,6 @@ void RecreateMirrorTextureIfNeeded()
 		if (!g_ActiveConfig.bNoMirrorToWindow)
 		{
 			// Create a mirror to see on the monitor.
-			D3D11_TEXTURE2D_DESC texdesc;
 			texdesc.ArraySize = 1;
 			texdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 			texdesc.Width = w;
