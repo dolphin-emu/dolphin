@@ -279,7 +279,7 @@ void EncodeToRamFromTexture(u8 *dest_ptr, const TextureCache::TCacheEntryBase *t
 		source.left, source.top, texture_entry->native_width, bScaleByHalf ? 2 : 1);
 
 	EncodeToRamUsingShader(source_texture,
-		dest_ptr, texture_entry->CacheLinesPerRow() * 32, texture_entry->NumBlocksY(),
+		dest_ptr, texture_entry->BytesPerRow(), texture_entry->NumBlocksY(),
 		texture_entry->memory_stride, bScaleByHalf > 0 && !bFromZBuffer);
 }
 
