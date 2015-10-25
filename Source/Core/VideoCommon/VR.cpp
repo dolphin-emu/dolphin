@@ -636,22 +636,27 @@ void UpdateOculusHeadTracking()
 	g_vr_lock.lock();
 	g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 	g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
+	OVR::Posef pose = g_eye_poses[ovrEye_Left];
 	g_vr_lock.unlock();
 #else
 	ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
 #if OVR_MAJOR_VERSION >= 8
-	ovr_GetEyePoses(hmd, g_ovr_frameindex, false, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+	double display_time = ovr_GetPredictedDisplayTime(hmd, g_ovr_frameindex);
+	ovrTrackingState state = ovr_GetTrackingState(hmd, display_time, false);
+	ovr_CalcEyePoses(state.HeadPose.ThePose, useHmdToEyeViewOffset, g_eye_poses);
+	OVR::Posef pose = state.HeadPose.ThePose;
 #elif OVR_MAJOR_VERSION >= 7
 	ovr_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+	OVR::Posef pose = g_eye_poses[ovrEye_Left];
 #else
 	ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+	OVR::Posef pose = g_eye_poses[ovrEye_Left];
 #endif
 #endif
 	//ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
 	//if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
 	{
 		//OVR::Posef pose = ss.HeadPose.ThePose;
-		OVR::Posef pose = g_eye_poses[ovrEye_Left];
 		float yaw = 0.0f, pitch = 0.0f, roll = 0.0f;
 		pose.Rotation.GetEulerAngles<OVR::Axis_Y, OVR::Axis_X, OVR::Axis_Z>(&yaw, &pitch, &roll);
 
