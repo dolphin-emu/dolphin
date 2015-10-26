@@ -34,6 +34,12 @@
     <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <Lib>
+      <AdditionalDependencies>LogitechLEDLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ExternalsDir)Logitech\Lib\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ActionReplay.cpp" />
     <ClCompile Include="ARDecrypt.cpp" />
@@ -194,7 +200,7 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
     <ClCompile Include="IPC_HLE\WII_Socket.cpp" />
-    <ClCompile Include="LEDStub.cpp" />
+    <ClCompile Include="LEDWin.cpp" />
     <ClCompile Include="MemTools.cpp" />
     <ClCompile Include="Movie.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
