@@ -18,6 +18,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/LED.h"
 #include "Core/State.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
@@ -345,6 +346,7 @@ int main(int argc, char* argv[])
 	UICommon::Init();
 
 	platform->Init();
+	LED::Initialize();
 
 	if (!BootManager::BootCore(argv[optind]))
 	{
@@ -362,6 +364,7 @@ int main(int argc, char* argv[])
 
 	Core::Shutdown();
 	platform->Shutdown();
+	LED::Shutdown();
 	UICommon::Shutdown();
 
 	delete platform;
