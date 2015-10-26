@@ -468,7 +468,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupports3DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample") ||
 	                                         GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array");
 	g_ogl_config.bSupports2DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample");
-	g_ogl_config.bSupportsEarlyFragmentTests = false; //GLExtensions::Supports("GL_ARB_shader_image_load_store");
+	g_ogl_config.bSupportsEarlyFragmentTests = false; // GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_ogl_config.bSupportsConservativeDepth = GLExtensions::Supports("GL_ARB_conservative_depth");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
