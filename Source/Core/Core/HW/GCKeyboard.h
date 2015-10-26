@@ -18,6 +18,6 @@ void LoadConfig();
 
 InputConfig* GetConfig();
 
-void GetStatus(u8 _port, KeyboardStatus* _pKeyboardStatus);
+void GetStatus(u8 port, KeyboardStatus* keyboard_status);
 
 }

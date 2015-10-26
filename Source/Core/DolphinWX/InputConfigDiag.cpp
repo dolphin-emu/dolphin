@@ -170,7 +170,7 @@ void InputConfigDialog::UpdateProfileComboBox()
 {
 	std::string pname(File::GetUserPath(D_CONFIG_IDX));
 	pname += PROFILES_PATH;
-	pname += m_config.profile_name;
+	pname += m_config.GetProfileName();
 
 	std::vector<std::string> sv = DoFileSearch({".ini"}, {pname});
 
@@ -652,7 +652,7 @@ void GamepadPage::GetProfilePath(std::string& path)
 
 		path = File::GetUserPath(D_CONFIG_IDX);
 		path += PROFILES_PATH;
-		path += m_config.profile_name;
+		path += m_config.GetProfileName();
 		path += '/';
 		path += WxStrToStr(profile_cbox->GetValue());
 		path += ".ini";
@@ -984,14 +984,14 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 		Add(stacked_groups, 0, /*wxEXPAND|*/wxBOTTOM|wxRIGHT, 5);
 }
 
-GamepadPage::GamepadPage(wxWindow* parent, InputConfig& config, const unsigned int pad_num, InputConfigDialog* const config_dialog)
+GamepadPage::GamepadPage(wxWindow* parent, InputConfig& config, const int pad_num, InputConfigDialog* const config_dialog)
 	: wxPanel(parent, wxID_ANY)
-	,controller(config.controllers[pad_num])
+	, controller(config.GetController(pad_num))
 	, m_config_dialog(config_dialog)
 	, m_config(config)
 {
 
-	wxBoxSizer* control_group_sizer = new ControlGroupsSizer(m_config.controllers[pad_num], this, this, &control_groups);
+	wxBoxSizer* control_group_sizer = new ControlGroupsSizer(controller, this, this, &control_groups);
 
 	wxStaticBoxSizer* profile_sbox = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Profile"));
 
@@ -1060,7 +1060,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
 	m_pad_notebook = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);
 	GamepadPage* gp = new GamepadPage(m_pad_notebook, m_config, tab_num, this);
 	m_padpages.push_back(gp);
-	m_pad_notebook->AddPage(gp, wxString::Format("%s [%u]", wxGetTranslation(StrToWxStr(m_config.gui_name)), 1 + tab_num));
+	m_pad_notebook->AddPage(gp, wxString::Format("%s [%u]", wxGetTranslation(StrToWxStr(m_config.GetGUIName())), 1 + tab_num));
 
 	m_pad_notebook->SetSelection(0);
 

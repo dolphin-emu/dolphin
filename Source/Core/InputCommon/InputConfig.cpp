@@ -2,10 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/CommonPaths.h"
+#include <vector>
+
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
+#include "InputCommon/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 bool InputConfig::LoadConfig(bool isGC)
 {
@@ -52,25 +57,25 @@ bool InputConfig::LoadConfig(bool isGC)
 		}
 	}
 
-	if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + ini_name + ".ini"))
+	if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini"))
 	{
 		int n = 0;
-		for (ControllerEmu* pad : controllers)
+		for (auto& controller : m_controllers)
 		{
 			// Load settings from ini
 			if (useProfile[n])
 			{
 				IniFile profile_ini;
 				profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini");
-				pad->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
+				controller->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
 			}
 			else
 			{
-				pad->LoadConfig(inifile.GetOrCreateSection(pad->GetName()));
+				controller->LoadConfig(inifile.GetOrCreateSection(controller->GetName()));
 			}
 
 			// Update refs
-			pad->UpdateReferences(g_controller_interface);
+			controller->UpdateReferences(g_controller_interface);
 
 			// Next profile
 			n++;
@@ -79,21 +84,36 @@ bool InputConfig::LoadConfig(bool isGC)
 	}
 	else
 	{
-		controllers[0]->LoadDefaults(g_controller_interface);
-		controllers[0]->UpdateReferences(g_controller_interface);
+		m_controllers[0]->LoadDefaults(g_controller_interface);
+		m_controllers[0]->UpdateReferences(g_controller_interface);
 		return false;
 	}
 }
 
 void InputConfig::SaveConfig()
 {
-	std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + ini_name + ".ini";
+	std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini";
 
 	IniFile inifile;
 	inifile.Load(ini_filename);
 
-	for (ControllerEmu* pad : controllers)
-		pad->SaveConfig(inifile.GetOrCreateSection(pad->GetName()));
+	for (auto& controller : m_controllers)
+		controller->SaveConfig(inifile.GetOrCreateSection(controller->GetName()));
 
 	inifile.Save(ini_filename);
+}
+
+ControllerEmu* InputConfig::GetController(int index)
+{
+	return m_controllers.at(index).get();
+}
+
+void InputConfig::ClearControllers()
+{
+	m_controllers.clear();
+}
+
+bool InputConfig::ControllersNeedToBeCreated() const
+{
+	return m_controllers.empty();
 }

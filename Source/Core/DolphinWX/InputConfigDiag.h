@@ -200,7 +200,7 @@ class GamepadPage : public wxPanel
 	friend class ControlDialog;
 
 public:
-	GamepadPage(wxWindow* parent, InputConfig& config, const unsigned int pad_num, InputConfigDialog* const config_dialog);
+	GamepadPage(wxWindow* parent, InputConfig& config, const int pad_num, InputConfigDialog* const config_dialog);
 
 	void UpdateGUI();
 
