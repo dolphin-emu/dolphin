@@ -437,7 +437,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
 	g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") && GLExtensions::Supports("GL_ARB_sample_shading");
-	g_Config.backend_info.bSupportsGeometryShaders = false; //GLExtensions::Version() >= 320;
+	g_Config.backend_info.bSupportsGeometryShaders = GLExtensions::Version() >= 320;
 	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object") ||
 	                                                   GLExtensions::Supports("GL_OES_texture_buffer") ||
 	                                                   GLExtensions::Supports("GL_EXT_texture_buffer");
@@ -468,7 +468,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupports3DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample") ||
 	                                         GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array");
 	g_ogl_config.bSupports2DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample");
-	g_ogl_config.bSupportsEarlyFragmentTests = GLExtensions::Supports("GL_ARB_shader_image_load_store");
+	g_ogl_config.bSupportsEarlyFragmentTests = false; //GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_ogl_config.bSupportsConservativeDepth = GLExtensions::Supports("GL_ARB_conservative_depth");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
