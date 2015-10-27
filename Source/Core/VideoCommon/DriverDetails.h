@@ -58,32 +58,6 @@ namespace DriverDetails
 	// This'll ensure we know exactly what the issue is.
 	enum Bug
 	{
-		// Bug: No Dynamic UBO array object access
-		// Affected Devices: Qualcomm/Adreno
-		// Started Version: 14
-		// Ended Version: 95
-		// Accessing UBO array members dynamically causes the Adreno shader compiler to crash
-		// Errors out with "Internal Error"
-		// With v53 video drivers, dynamic member access "works." It works to the extent that it doesn't crash.
-		// With v95 drivers everything works as it should.
-		BUG_NODYNUBOACCESS = 0,
-		// Bug: Centroid is broken in shaders
-		// Affected devices: Qualcomm/Adreno
-		// Started Version: 14
-		// Ended Version: 53
-		// Centroid in/out, used in the shaders, is used for multisample buffers to get the texel correctly
-		// When MSAA is disabled, it acts like a regular in/out
-		// Tends to cause the driver to render full white or black
-		BUG_BROKENCENTROID,
-		// Bug: INFO_LOG_LENGTH broken
-		// Affected devices: Qualcomm/Adreno
-		// Started Version: ? (Noticed on v14)
-		// Ended Version: 53
-		// When compiling a shader, it is important that when it fails,
-		// you first get the length of the information log prior to grabbing it.
-		// This allows you to allocate an array to store all of the log
-		// Adreno devices /always/ return 0 when querying GL_INFO_LOG_LENGTH
-		// They also max out at 1024 bytes(1023 characters + null terminator) for the log
 		BUG_BROKENINFOLOG,
 		// Bug: UBO buffer offset broken
 		// Affected devices: all mesa drivers
@@ -104,22 +78,6 @@ namespace DriverDetails
 		// Please see issue #6105 on Google Code. Let's hope buffer storage solves this issues.
 		// TODO: Detect broken drivers.
 		BUG_BROKENPINNEDMEMORY,
-		// Bug: Entirely broken UBOs
-		// Affected devices: Qualcomm/Adreno
-		// Started Version: ? (Noticed on v45)
-		// Ended Version: 53
-		// Uniform buffers are entirely broken on Qualcomm drivers with v45
-		// Trying to use the uniform buffers causes a malloc to fail inside the driver
-		// To be safe, blanket drivers from v41 - v45
-		BUG_ANNIHILATEDUBOS,
-		// Bug : Can't draw on screen text and clear correctly.
-		// Affected devices: Qualcomm/Adreno
-		// Started Version: ?
-		// Ended Version: 53
-		// Current code for drawing on screen text and clearing the framebuffer doesn't work on Adreno
-		// Drawing on screen text causes the whole screen to swizzle in a terrible fashion
-		// Clearing the framebuffer causes one to never see a frame.
-		BUG_BROKENSWAP,
 		// Bug: glBufferSubData/glMapBufferRange stalls + OOM
 		// Affected devices: Adreno a3xx/Mali-t6xx
 		// Started Version: -1
@@ -128,12 +86,6 @@ namespace DriverDetails
 		// The driver stalls in each instance no matter what you do
 		// Apparently Mali and Adreno share code in this regard since it was wrote by the same person.
 		BUG_BROKENBUFFERSTREAM,
-		// Bug: GLSL ES 3.0 textureSize causes abort
-		// Affected devices: Adreno a3xx
-		// Started Version: -1 (Noticed in v53)
-		// Ended Version: 66
-		// If a shader includes a textureSize function call then the shader compiler will call abort()
-		BUG_BROKENTEXTURESIZE,
 		// Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams
 		// Affected devices: GeForce 4xx+
 		// Started Version: -1
@@ -169,14 +121,6 @@ namespace DriverDetails
 		// It works for all the buffer types we use except GL_ELEMENT_ARRAY_BUFFER.
 		// Causes complete blackscreen issues.
 		BUG_INTELBROKENBUFFERSTORAGE,
-		// Bug: Qualcomm has broken attributeless rendering
-		// Affected devices: Adreno
-		// Started Version: -1
-		// Ended Version: v66 (07-09-2014 dev version), v95 shipping
-		// Qualcomm has had attributeless rendering broken forever
-		// This was fixed in a v66 development version, the first shipping driver version with the release was v95.
-		// To be safe, make v95 the minimum version to work around this issue
-		BUG_BROKENATTRIBUTELESS,
 		// Bug: Qualcomm has broken boolean negation
 		// Affected devices: Adreno
 		// Started Version: -1
@@ -202,38 +146,30 @@ namespace DriverDetails
 		// if (cond == false)
 		BUG_BROKENNEGATEDBOOLEAN,
 
-		// Bug: Qualcomm has broken ivec to scalar and ivec to ivec bitshifts
+		// Bug: glCopyImageSubData doesn't work on i965
+		// Started Version: -1
+		// Ended Version: 10.6.4
+		// Mesa meta misses to disable the scissor test.
+		BUG_BROKENCOPYIMAGE,
+
+		// Bug: Qualcomm has broken OpenGL ES 3.1 support
 		// Affected devices: Adreno
 		// Started Version: -1
-		// Ended Version: 46 (TODO: Test more devices, the real end is currently unknown)
-		// Qualcomm has broken integer vector to integer bitshifts, and integer vector to integer vector bitshifts
-		// A compilation error is generated when trying to compile the shaders.
-		//
-		// For example:
-		//	Broken on Qualcomm:
-		//		ivec4 ab = ivec4(1,1,1,1);
-		//		ab <<= 2;
-		//
-		//	Working on Qualcomm:
-		//		ivec4 ab = ivec4(1,1,1,1);
-		//		ab.x <<= 2;
-		//		ab.y <<= 2;
-		//		ab.z <<= 2;
-		//		ab.w <<= 2;
-		//
-		//	Broken on Qualcomm:
-		//		ivec4 ab = ivec4(1,1,1,1);
-		//		ivec4 cd = ivec4(1,2,3,4);
-		//		ab <<= cd;
-		//
-		//	Working on Qualcomm:
-		//		ivec4 ab = ivec4(1,1,1,1);
-		//		ivec4 cd = ivec4(1,2,3,4);
-		//		ab.x <<= cd.x;
-		//		ab.y <<= cd.y;
-		//		ab.z <<= cd.z;
-		//		ab.w <<= cd.w;
-		BUG_BROKENIVECSHIFTS,
+		// Ended Version: -1
+		// This isn't fully researched, but at the very least Qualcomm doesn't implement Geometry shader features fully.
+		// Until each bug is fully investigated, just disable GLES 3.1 entirely on these devices.
+		BUG_BROKENGLES31,
+
+		// Bug: ARM Mali managed to break disabling vsync
+		// Affected Devices: Mali
+		// Started Version: r5p0-rev2
+		// Ended Version: -1
+		// If we disable vsync with eglSwapInterval(dpy, 0) then the screen will stop showing new updates after a handful of swaps.
+		// This was noticed on a Samsung Galaxy S6 with its Android 5.1.1 update.
+		// The default Android 5.0 image didn't encounter this issue.
+		// We can't actually detect what the driver version is on Android, so until the driver version lands that displays the version in
+		// the GL_VERSION string, we will have to force vsync to be enabled at all times.
+		BUG_BROKENVSYNC,
 	};
 
 	// Initializes our internal vendor, device family, and driver version

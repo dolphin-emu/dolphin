@@ -4,6 +4,7 @@
 
 #include <type_traits>
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Position.h"
@@ -24,7 +25,7 @@ float PosScale(float val, float scale)
 }
 
 template <typename T, int N>
-void LOADERDECL Pos_ReadDirect(VertexLoader* loader)
+void Pos_ReadDirect(VertexLoader* loader)
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
 	auto const scale = loader->m_posScale;
@@ -45,7 +46,7 @@ void LOADERDECL Pos_ReadDirect(VertexLoader* loader)
 }
 
 template <typename I, typename T, int N>
-void LOADERDECL Pos_ReadIndex(VertexLoader* loader)
+void Pos_ReadIndex(VertexLoader* loader)
 {
 	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 	static_assert(N <= 3, "N > 3 is not sane!");

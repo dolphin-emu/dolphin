@@ -126,7 +126,7 @@ public:
 		WARN_LOG(WII_IPC_HLE, "%s does not support Open()", m_Name.c_str());
 		Memory::Write_U32(FS_ENOENT, _CommandAddress + 4);
 		m_Active = true;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce = false)
@@ -135,10 +135,10 @@ public:
 		if (!_bForce)
 			Memory::Write_U32(FS_EINVAL, _CommandAddress + 4);
 		m_Active = false;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
-#define UNIMPLEMENTED_CMD(cmd) WARN_LOG(WII_IPC_HLE, "%s does not support "#cmd"()", m_Name.c_str()); return IPC_DEFAULT_REPLY;
+#define UNIMPLEMENTED_CMD(cmd) WARN_LOG(WII_IPC_HLE, "%s does not support "#cmd"()", m_Name.c_str()); return GetDefaultReply();
 	virtual IPCCommandResult Seek(u32)   { UNIMPLEMENTED_CMD(Seek) }
 	virtual IPCCommandResult Read(u32)   { UNIMPLEMENTED_CMD(Read) }
 	virtual IPCCommandResult Write(u32)  { UNIMPLEMENTED_CMD(Write) }
@@ -150,6 +150,11 @@ public:
 
 	virtual bool IsHardware() { return m_Hardware; }
 	virtual bool IsOpened() { return m_Active; }
+
+	// Returns an IPCCommandResult for a reply that takes 250 us (arbitrarily chosen value)
+	static IPCCommandResult GetDefaultReply() { return { true, SystemTimers::GetTicksPerSecond() / 4000 }; }
+	// Returns an IPCCommandResult with no reply. Useful for async commands that will generate a reply later
+	static IPCCommandResult GetNoReply() { return { false, 0 }; }
 
 	std::string m_Name;
 protected:
@@ -228,7 +233,7 @@ public:
 		WARN_LOG(WII_IPC_HLE, "%s faking Open()", m_Name.c_str());
 		Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
 		m_Active = true;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 	IPCCommandResult Close(u32 CommandAddress, bool bForce = false) override
 	{
@@ -236,19 +241,19 @@ public:
 		if (!bForce)
 			Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
 		m_Active = false;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	IPCCommandResult IOCtl(u32 CommandAddress) override
 	{
 		WARN_LOG(WII_IPC_HLE, "%s faking IOCtl()", m_Name.c_str());
 		Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 	IPCCommandResult IOCtlV(u32 CommandAddress) override
 	{
 		WARN_LOG(WII_IPC_HLE, "%s faking IOCtlV()", m_Name.c_str());
 		Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 };

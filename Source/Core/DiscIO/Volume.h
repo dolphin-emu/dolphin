@@ -12,6 +12,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "DiscIO/Blob.h"
 
 namespace DiscIO
 {
@@ -24,6 +25,7 @@ public:
 		GAMECUBE_DISC = 0,
 		WII_DISC,
 		WII_WAD,
+		ELF_DOL,
 		NUMBER_OF_PLATFORMS
 	};
 
@@ -75,7 +77,7 @@ public:
 		return Common::swap32(temp);
 	}
 
-	virtual bool GetTitleID(u8*) const { return false; }
+	virtual bool GetTitleID(u64*) const { return false; }
 	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const
 	{
 		*_sz = 0;
@@ -89,7 +91,7 @@ public:
 	virtual std::map<ELanguage, std::string> GetDescriptions() const { return std::map<ELanguage, std::string>(); }
 	virtual std::string GetCompany() const { return std::string(); }
 	virtual std::vector<u32> GetBanner(int* width, int* height) const;
-	virtual u32 GetFSTSize() const = 0;
+	virtual u64 GetFSTSize() const = 0;
 	virtual std::string GetApploaderDate() const = 0;
 	// 0 is the first disc, 1 is the second disc
 	virtual u8 GetDiscNumber() const { return 0; }
@@ -100,8 +102,9 @@ public:
 	virtual bool ChangePartition(u64 offset) { return false; }
 
 	virtual ECountry GetCountry() const = 0;
+	virtual BlobType GetBlobType() const = 0;
+	// Size of virtual disc (not always accurate)
 	virtual u64 GetSize() const = 0;
-
 	// Size on disc (compressed size)
 	virtual u64 GetRawSize() const = 0;
 

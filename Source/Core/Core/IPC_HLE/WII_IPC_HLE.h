@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -34,10 +35,6 @@ enum IPCCommandType : u32
 	IPC_REP_ASYNC  = 8
 };
 
-static const u32 IPC_DEFAULT_DELAY = SystemTimers::GetTicksPerSecond() / 4000;	// 250 us
-static const IPCCommandResult IPC_NO_REPLY = { false, 0 };
-static const IPCCommandResult IPC_DEFAULT_REPLY = { true, IPC_DEFAULT_DELAY };
-
 namespace WII_IPC_HLE_Interface
 {
 
@@ -63,10 +60,10 @@ void ES_DIVerify(u8 *_pTMD, u32 _sz);
 void SDIO_EventNotify();
 
 
-IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName);
+std::shared_ptr<IWII_IPC_HLE_Device> CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName);
 
-IWII_IPC_HLE_Device* GetDeviceByName(const std::string& _rDeviceName);
-IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID);
+std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& _rDeviceName);
+std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 _ID);
 int getFreeDeviceId();
 
 // Update

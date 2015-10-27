@@ -888,7 +888,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	const bool windowResized = CheckForResize();
 	const bool fullscreen = g_ActiveConfig.bFullscreen && !g_ActiveConfig.bBorderlessFullscreen &&
-		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain;
+		!SConfig::GetInstance().bRenderToMain;
 
 	bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
@@ -929,7 +929,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// Resize the back buffers NOW to avoid flickering
-	if (xfbchanged ||
+	if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) ||
+		xfbchanged ||
 		windowResized ||
 		fullscreen_changed ||
 		s_last_efb_scale != g_ActiveConfig.iEFBScale ||
@@ -969,7 +970,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		s_last_efb_scale = g_ActiveConfig.iEFBScale;
 		s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
-		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 		PixelShaderManager::SetEfbScaleChanged();
 
@@ -1077,7 +1077,7 @@ void Renderer::SetGenerationMode()
 
 void Renderer::SetDepthMode()
 {
-	gx_state.zmode = bpmem.zmode;
+	gx_state.zmode.hex = bpmem.zmode.hex;
 }
 
 void Renderer::SetLogicOpMode()

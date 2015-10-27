@@ -1,4 +1,4 @@
-/* $Id: miniupnpctypes.h,v 1.2 2012/09/27 15:42:10 nanard Exp $ */
+/* $Id: miniupnpctypes.h,v 1.1 2011/02/15 11:10:40 nanard Exp $ */
 /* Miniupnp project : http://miniupnp.free.fr/ or http://miniupnp.tuxfamily.org
  * Author : Thomas Bernard
  * Copyright (c) 2011 Thomas Bernard

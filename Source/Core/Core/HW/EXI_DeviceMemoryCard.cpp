@@ -2,11 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
-#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -117,7 +118,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	// Disney Sports : Soccer GDKEA4
 	// Use a 16Mb (251 block) memory card for these games
 	bool useMC251;
-	IniFile gameIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
+	IniFile gameIni = SConfig::GetInstance().LoadGameIni();
 	gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &useMC251, false);
 	u16 sizeMb = useMC251 ? MemCard251Mb : MemCard2043Mb;
 
@@ -132,19 +133,19 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 
 	memory_card_size = memorycard->GetCardId() * SIZE_TO_Mb;
 	u8 header[20] = {0};
-	memorycard->Read(0, ArraySize(header), header);
+	memorycard->Read(0, static_cast<s32>(ArraySize(header)), header);
 	SetCardFlashID(header, card_index);
 }
 
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
 	DiscIO::IVolume::ECountry country_code = DiscIO::IVolume::COUNTRY_UNKNOWN;
-	auto strUniqueID = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
+	auto strUniqueID = SConfig::GetInstance().m_strUniqueID;
 
 	u32 CurrentGameId = 0;
 	if (strUniqueID == TITLEID_SYSMENU_STRING)
 	{
-		const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, false);
+		const DiscIO::CNANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT);
 		if (SysMenu_Loader.IsValid())
 		{
 			country_code = DiscIO::CountrySwitch(SysMenu_Loader.GetCountryChar());
@@ -169,7 +170,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 	case DiscIO::IVolume::COUNTRY_UNKNOWN:
 	{
 		// The current game's region is not passed down to the EXI device level.
-		// Usually, we can retrieve the region from SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueId.
+		// Usually, we can retrieve the region from SConfig::GetInstance().m_strUniqueId.
 		// The Wii System Menu requires a lookup based on the version number.
 		// This is not possible in some cases ( e.g. FIFO logs, homebrew elf/dol files).
 		// Instead, we then lookup the region from the memory card name
@@ -177,7 +178,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 		// For now take advantage of this.
 		// Future options:
 		// 			Set memory card directory path in the checkMemcardPath function.
-		// 	or		Add region to SConfig::GetInstance().m_LocalCoreStartupParameter.
+		// 	or		Add region to SConfig::GetInstance().
 		// 	or		Pass region down to the EXI device creation.
 
 		std::string memcardFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;

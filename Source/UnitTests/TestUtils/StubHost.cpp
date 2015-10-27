@@ -7,8 +7,8 @@
 
 #include <string>
 
+#include "Common/GL/GLInterfaceBase.h"
 #include "Core/Host.h"
-#include "VideoBackends/OGL/GLInterfaceBase.h"
 
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}

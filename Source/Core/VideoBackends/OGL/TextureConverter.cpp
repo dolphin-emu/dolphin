@@ -6,6 +6,7 @@
 
 #include <string>
 
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
@@ -121,7 +122,7 @@ static void CreatePrograms()
 			// We switch top/bottom here. TODO: move this to screen blit.
 		"	ivec2 ts = textureSize(samp9, 0);\n"
 		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x>>1, ts.y-uv.y-1), 0);\n"
-		"	float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
+		"	float y = mix(c0.r, c0.b, (uv.x & 1) == 1);\n"
 		"	float yComp = 1.164 * (y - 0.0625);\n"
 		"	float uComp = c0.g - 0.5;\n"
 		"	float vComp = c0.a - 0.5;\n"
@@ -213,12 +214,12 @@ void Shutdown()
 	s_texConvFrameBuffer[1] = 0;
 }
 
+// dst_line_size, writeStride in bytes
+
 static void EncodeToRamUsingShader(GLuint srcTexture,
-						u8* destAddr, int dstWidth, int dstHeight, int readStride,
-						bool linearFilter)
+						u8* destAddr, u32 dst_line_size, u32 dstHeight,
+						u32 writeStride, bool linearFilter)
 {
-
-
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
@@ -234,19 +235,13 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	else
 		g_sampler_cache->BindNearestSampler(9);
 
-	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
+	glViewport(0, 0, (GLsizei)(dst_line_size / 4), (GLsizei)dstHeight);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	// .. and then read back the results.
-	// TODO: make this less slow.
+	int dstSize = dst_line_size * dstHeight;
 
-	int writeStride = bpmem.copyMipMapStrideChannels * 32;
-	int dstSize = dstWidth*dstHeight*4;
-	int readHeight = readStride / dstWidth / 4; // 4 bytes per pixel
-	int readLoops = dstHeight / readHeight;
-
-	if (writeStride != readStride && readLoops > 1)
+	if ((writeStride != dst_line_size) && (dstHeight > 1))
 	{
 		// writing to a texture of a different size
 		// also copy more then one block line, so the different strides matters
@@ -255,13 +250,13 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 		// CPU overhead because of the pbo
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, s_PBO);
 		glBufferData(GL_PIXEL_PACK_BUFFER, dstSize, nullptr, GL_STREAM_READ);
-		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+		glReadPixels(0, 0, (GLsizei)(dst_line_size / 4), (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
 		u8* pbo = (u8*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, dstSize, GL_MAP_READ_BIT);
 
-		for (int i = 0; i < readLoops; i++)
+		for (size_t i = 0; i < dstHeight; ++i)
 		{
-			memcpy(destAddr, pbo, readStride);
-			pbo += readStride;
+			memcpy(destAddr, pbo, dst_line_size);
+			pbo += dst_line_size;
 			destAddr += writeStride;
 		}
 
@@ -270,66 +265,25 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	}
 	else
 	{
-		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+		glReadPixels(0, 0, (GLsizei)(dst_line_size / 4), (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 	}
 }
 
-int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
+void EncodeToRamFromTexture(u8 *dest_ptr, const TextureCache::TCacheEntryBase *texture_entry,
+                            GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, int bScaleByHalf, const EFBRectangle& source)
 {
-	u32 format = copyfmt;
-
-	if (bFromZBuffer)
-	{
-		format |= _GX_TF_ZTF;
-		if (copyfmt == 11)
-			format = GX_TF_Z16;
-		else if (format < GX_TF_Z8 || format > GX_TF_Z24X8)
-			format |= _GX_TF_CTF;
-	}
-	else
-	{
-		if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
-			format |= _GX_TF_CTF;
-	}
-
-	SHADER& texconv_shader = GetOrCreateEncodingShader(format);
-
-	u8 *dest_ptr = Memory::GetPointer(address);
-
-	int width = (source.right - source.left) >> bScaleByHalf;
-	int height = (source.bottom - source.top) >> bScaleByHalf;
-
-	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
-
-	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
-	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;
-
-	// only copy on cache line boundaries
-	// extra pixels are copied but not displayed in the resulting texture
-	s32 expandedWidth = (width + blkW) & (~blkW);
-	s32 expandedHeight = (height + blkH) & (~blkH);
+	SHADER& texconv_shader = GetOrCreateEncodingShader(texture_entry->format);
 
 	texconv_shader.Bind();
-	glUniform4i(s_encodingUniforms[format],
-		source.left, source.top,
-		expandedWidth, bScaleByHalf ? 2 : 1);
-
-	unsigned int numBlocksX = expandedWidth / TexDecoder_GetBlockWidthInTexels(format);
-	unsigned int numBlocksY = expandedHeight / TexDecoder_GetBlockHeightInTexels(format);
-	unsigned int cacheLinesPerRow;
-	if ((format & 0x0f) == 6)
-		cacheLinesPerRow = numBlocksX * 2;
-	else
-		cacheLinesPerRow = numBlocksX;
+	glUniform4i(s_encodingUniforms[texture_entry->format],
+		source.left, source.top, texture_entry->native_width, bScaleByHalf ? 2 : 1);
 
 	EncodeToRamUsingShader(source_texture,
-		dest_ptr, cacheLinesPerRow * 8, numBlocksY, cacheLinesPerRow * 32,
-		bScaleByHalf > 0 && !bFromZBuffer);
-	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
-
+		dest_ptr, texture_entry->CacheLinesPerRow() * 32, texture_entry->NumBlocksY(),
+		texture_entry->memory_stride, bScaleByHalf > 0 && !bFromZBuffer);
 }
 
-void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)
+void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, u32 dstWidth, u32 dstStride, u32 dstHeight)
 {
 	g_renderer->ResetAPIState();
 
@@ -341,7 +295,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	// We enable linear filtering, because the GameCube does filtering in the vertical direction when
 	// yscale is enabled.
 	// Otherwise we get jaggies when a game uses yscaling (most PAL games)
-	EncodeToRamUsingShader(srcTexture, destAddr, dstWidth / 2, dstHeight, dstWidth*dstHeight*2, true);
+	EncodeToRamUsingShader(srcTexture, destAddr, dstWidth * 2, dstHeight, dstStride, true);
 	FramebufferManager::SetFramebuffer(0);
 	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
@@ -371,7 +325,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, srcAddr);
 	g_sampler_cache->BindNearestSampler(9);
 
 	glViewport(0, 0, srcWidth, srcHeight);

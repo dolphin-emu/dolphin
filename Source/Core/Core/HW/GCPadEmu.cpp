@@ -2,11 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Common.h"
 #include "Core/Host.h"
 #include "Core/HW/GCPadEmu.h"
-
-// TODO: Move to header file when VS supports constexpr.
-const ControlState GCPad::DEFAULT_PAD_STICK_RADIUS = 1.0;
 
 static const u16 button_bitmasks[] =
 {
@@ -63,8 +61,8 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 		m_buttons->controls.emplace_back(new ControlGroup::Input(named_buttons[i]));
 
 	// sticks
-	groups.emplace_back(m_main_stick = new AnalogStick(_trans("Main Stick"), DEFAULT_PAD_STICK_RADIUS));
-	groups.emplace_back(m_c_stick = new AnalogStick(_trans("C-Stick"), DEFAULT_PAD_STICK_RADIUS));
+	groups.emplace_back(m_main_stick = new AnalogStick("Main Stick", _trans("Control Stick"), DEFAULT_PAD_STICK_RADIUS));
+	groups.emplace_back(m_c_stick = new AnalogStick("C-Stick", _trans("C Stick"), DEFAULT_PAD_STICK_RADIUS));
 
 	// triggers
 	groups.emplace_back(m_triggers = new MixedTriggers(_trans("Triggers")));
@@ -127,21 +125,19 @@ void GCPad::SetOutput(const ControlState strength)
 
 void GCPad::LoadDefaults(const ControllerInterface& ciface)
 {
-	#define set_control(group, num, str)  (group)->controls[num]->control_ref->expression = (str)
-
 	ControllerEmu::LoadDefaults(ciface);
 
 	// Buttons
-	set_control(m_buttons, 0, "X"); // A
-	set_control(m_buttons, 1, "Z"); // B
-	set_control(m_buttons, 2, "C"); // X
-	set_control(m_buttons, 3, "S"); // Y
-	set_control(m_buttons, 4, "D"); // Z
+	m_buttons->SetControlExpression(0, "X"); // A
+	m_buttons->SetControlExpression(1, "Z"); // B
+	m_buttons->SetControlExpression(2, "C"); // X
+	m_buttons->SetControlExpression(3, "S"); // Y
+	m_buttons->SetControlExpression(4, "D"); // Z
 #ifdef _WIN32
-	set_control(m_buttons, 5, "!LMENU & RETURN"); // Start
+	m_buttons->SetControlExpression(5, "!LMENU & RETURN"); // Start
 #else
 	// OS X/Linux
-	set_control(m_buttons, 5, "!`Alt_L` & Return"); // Start
+	m_buttons->SetControlExpression(5, "!`Alt_L` & Return"); // Start
 #endif
 
 	// stick modifiers to 50 %
@@ -149,51 +145,51 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 	m_c_stick->controls[4]->control_ref->range = 0.5f;
 
 	// D-Pad
-	set_control(m_dpad, 0, "T"); // Up
-	set_control(m_dpad, 1, "G"); // Down
-	set_control(m_dpad, 2, "F"); // Left
-	set_control(m_dpad, 3, "H"); // Right
+	m_dpad->SetControlExpression(0, "T"); // Up
+	m_dpad->SetControlExpression(1, "G"); // Down
+	m_dpad->SetControlExpression(2, "F"); // Left
+	m_dpad->SetControlExpression(3, "H"); // Right
 
-	// C-Stick
-	set_control(m_c_stick, 0, "I"); // Up
-	set_control(m_c_stick, 1, "K"); // Down
-	set_control(m_c_stick, 2, "J"); // Left
-	set_control(m_c_stick, 3, "L"); // Right
+	// C Stick
+	m_c_stick->SetControlExpression(0, "I"); // Up
+	m_c_stick->SetControlExpression(1, "K"); // Down
+	m_c_stick->SetControlExpression(2, "J"); // Left
+	m_c_stick->SetControlExpression(3, "L"); // Right
 #ifdef _WIN32
-	set_control(m_c_stick, 4, "LCONTROL"); // Modifier
+	m_c_stick->SetControlExpression(4, "LCONTROL"); // Modifier
 
-	// Main Stick
-	set_control(m_main_stick, 0, "UP");     // Up
-	set_control(m_main_stick, 1, "DOWN");   // Down
-	set_control(m_main_stick, 2, "LEFT");   // Left
-	set_control(m_main_stick, 3, "RIGHT");  // Right
-	set_control(m_main_stick, 4, "LSHIFT"); // Modifier
+	// Control Stick
+	m_main_stick->SetControlExpression(0, "UP");     // Up
+	m_main_stick->SetControlExpression(1, "DOWN");   // Down
+	m_main_stick->SetControlExpression(2, "LEFT");   // Left
+	m_main_stick->SetControlExpression(3, "RIGHT");  // Right
+	m_main_stick->SetControlExpression(4, "LSHIFT"); // Modifier
 
 #elif __APPLE__
-	set_control(m_c_stick, 4, "Left Control"); // Modifier
+	m_c_stick->SetControlExpression(4, "Left Control"); // Modifier
 
-	// Main Stick
-	set_control(m_main_stick, 0, "Up Arrow");    // Up
-	set_control(m_main_stick, 1, "Down Arrow");  // Down
-	set_control(m_main_stick, 2, "Left Arrow");  // Left
-	set_control(m_main_stick, 3, "Right Arrow"); // Right
-	set_control(m_main_stick, 4, "Left Shift");  // Modifier
+	// Control Stick
+	m_main_stick->SetControlExpression(0, "Up Arrow");    // Up
+	m_main_stick->SetControlExpression(1, "Down Arrow");  // Down
+	m_main_stick->SetControlExpression(2, "Left Arrow");  // Left
+	m_main_stick->SetControlExpression(3, "Right Arrow"); // Right
+	m_main_stick->SetControlExpression(4, "Left Shift");  // Modifier
 #else
 	// not sure if these are right
 
-	set_control(m_c_stick, 4, "Control_L"); // Modifier
+	m_c_stick->SetControlExpression(4, "Control_L"); // Modifier
 
-	// Main Stick
-	set_control(m_main_stick, 0, "Up");      // Up
-	set_control(m_main_stick, 1, "Down");    // Down
-	set_control(m_main_stick, 2, "Left");    // Left
-	set_control(m_main_stick, 3, "Right");   // Right
-	set_control(m_main_stick, 4, "Shift_L"); // Modifier
+	// Control Stick
+	m_main_stick->SetControlExpression(0, "Up");      // Up
+	m_main_stick->SetControlExpression(1, "Down");    // Down
+	m_main_stick->SetControlExpression(2, "Left");    // Left
+	m_main_stick->SetControlExpression(3, "Right");   // Right
+	m_main_stick->SetControlExpression(4, "Shift_L"); // Modifier
 #endif
 
 	// Triggers
-	set_control(m_triggers, 0, "Q"); // L
-	set_control(m_triggers, 1, "W"); // R
+	m_triggers->SetControlExpression(0, "Q"); // L
+	m_triggers->SetControlExpression(1, "W"); // R
 }
 
 bool GCPad::GetMicButton() const

@@ -14,7 +14,6 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerPanel.h"
 #include "VideoCommon/Debugger.h"
@@ -180,7 +179,6 @@ void GFXDebuggerPanel::CreateGUIControls()
 	m_pDumpList->Append(_("Statistics"));
 	m_pDumpList->SetSelection(0);
 
-	// Layout everything on m_MainPanel
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
 
 	wxStaticBoxSizer* const pFlowCtrlBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Flow Control"));
@@ -269,7 +267,7 @@ void GFXDebuggerPanel::OnPauseAtNextFrameButton(wxCommandEvent& event)
 void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 {
 	std::string dump_path = File::GetUserPath(D_DUMP_IDX) + "Debug/" +
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID + "/";
+		SConfig::GetInstance().m_strUniqueID + "/";
 	if (!File::CreateFullPath(dump_path))
 		return;
 

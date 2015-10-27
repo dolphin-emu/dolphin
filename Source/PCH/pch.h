@@ -67,8 +67,8 @@
 
 #ifdef _WIN32
 
-#if _MSC_FULL_VER < 180030723
-#error Please update your build environment to VS2013 with Update 3 or later!
+#if _MSC_FULL_VER < 190023026
+#error Please update your build environment to Visual Studio 2015 or later!
 #endif
 
 #include <Windows.h>

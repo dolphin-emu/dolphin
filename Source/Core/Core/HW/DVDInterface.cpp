@@ -11,6 +11,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -292,7 +293,7 @@ void DoState(PointerWrap &p)
 {
 	p.DoPOD(m_DISR);
 	p.DoPOD(m_DICVR);
-	p.DoArray(m_DICMDBUF, 3);
+	p.DoArray(m_DICMDBUF);
 	p.Do(m_DIMAR);
 	p.Do(m_DILENGTH);
 	p.Do(m_DICR);
@@ -374,15 +375,15 @@ static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
 				break;
 			}
 
-			NGCADPCM::InitFilter();
+			StreamADPCM::InitFilter();
 		}
 
-		u8 tempADPCM[NGCADPCM::ONE_BLOCK_SIZE];
+		u8 tempADPCM[StreamADPCM::ONE_BLOCK_SIZE];
 		// TODO: What if we can't read from AudioPos?
 		s_inserted_volume->Read(AudioPos, sizeof(tempADPCM), tempADPCM, false);
 		AudioPos += sizeof(tempADPCM);
-		NGCADPCM::DecodeBlock(tempPCM + samples_processed * 2, tempADPCM);
-		samples_processed += NGCADPCM::SAMPLES_PER_BLOCK;
+		StreamADPCM::DecodeBlock(tempPCM + samples_processed * 2, tempADPCM);
+		samples_processed += StreamADPCM::SAMPLES_PER_BLOCK;
 	} while (samples_processed < num_samples);
 	for (unsigned i = 0; i < samples_processed * 2; ++i)
 	{
@@ -506,7 +507,7 @@ void EjectDiscCallback(u64 userdata, int cyclesLate)
 
 void InsertDiscCallback(u64 userdata, int cyclesLate)
 {
-	std::string& SavedFileName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename;
+	std::string& SavedFileName = SConfig::GetInstance().m_strFilename;
 	std::string *_FileName = (std::string *)userdata;
 
 	if (!SetVolumeName(*_FileName))
@@ -703,7 +704,7 @@ DVDReadCommand ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_le
 		DVD_length = output_length;
 	}
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
+	if (SConfig::GetInstance().bFastDiscSpeed)
 		// An optional hack to speed up loading times
 		*ticks_until_completion = output_length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
 	else
@@ -1183,7 +1184,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 						CurrentStart = NextStart;
 						CurrentLength = NextLength;
 						AudioPos = CurrentStart;
-						NGCADPCM::InitFilter();
+						StreamADPCM::InitFilter();
 						g_bStream = true;
 					}
 				}
@@ -1397,7 +1398,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 		}
 	}
 
-	g_last_read_offset = (offset + length - 2048) & ~2047;
+	g_last_read_offset = ROUND_DOWN(offset + length - 2048, 2048);
 
 	return ticks_until_completion;
 }

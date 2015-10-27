@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 // Atomic operations are performed in a single step by the CPU. It is
 // impossible for other threads to see the operation "half-done."
@@ -49,19 +50,6 @@ inline void AtomicOr(volatile u32& target, u32 value)
 {
 	__sync_or_and_fetch(&target, value);
 }
-
-// Support clang versions older than 3.4.
-#if __clang__ && !__has_feature(cxx_atomic)
-template <typename T>
-_Atomic(T)* ToC11Atomic(volatile T* loc)
-{
-	return (_Atomic(T)*) loc;
-}
-
-#define __atomic_load_n(p, m) __c11_atomic_load(ToC11Atomic(p), m)
-#define __atomic_store_n(p, v, m) __c11_atomic_store(ToC11Atomic(p), v, m)
-#define __atomic_exchange_n(p, v, m) __c11_atomic_exchange(ToC11Atomic(p), v, m)
-#endif
 
 #ifndef __ATOMIC_RELAXED
 #error __ATOMIC_RELAXED not defined; your compiler version is too old.

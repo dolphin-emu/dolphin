@@ -18,6 +18,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/NonCopyable.h"
 
 class PCAP final : public NonCopyable
 {

@@ -80,13 +80,6 @@ void EmulateSwing(AccelData* const accel
 	 , ControllerEmu::Force* const tilt_group
 	 , const bool sideways = false, const bool upright = false);
 
-inline double trim(double a)
-{
-	if (a<=0) return 0;
-	if (a>=255) return 255;
-	return a;
-}
-
 enum
 {
 	ACCEL_ZERO_G = 0x80,
@@ -121,6 +114,7 @@ public:
 	void Update();
 	void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
 	void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
+	void ConnectOnInput();
 
 	void DoState(PointerWrap& p);
 	void RealState();
@@ -239,6 +233,10 @@ private:
 		u8  play;
 		u8  unk_9;
 	} m_reg_speaker;
+
+	// limits the amount of connect requests we send when a button is pressed in disconnected state
+	u8 m_last_connect_request_counter;
+
 #pragma pack(pop)
 };
 

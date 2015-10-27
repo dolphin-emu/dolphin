@@ -56,11 +56,7 @@ public:
 	}
 
 private:
-	// We are not using std::atomic_bool here because MSVC sucks as of VC++
-	// 2013 and does not implement the std::atomic_bool(bool) constructor.
-	//
-	// Re-evaluate next time we upgrade that piece of shit.
-	std::atomic<bool> m_val;
+	std::atomic_bool m_val;
 };
 
 }  // namespace Common

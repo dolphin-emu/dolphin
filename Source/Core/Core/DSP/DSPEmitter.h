@@ -33,11 +33,10 @@ public:
 	void CompileDispatcher();
 	Block CompileStub();
 	void Compile(u16 start_addr);
-	void ClearCallFlag();
 
 	bool FlagsNeeded();
 
-	void Default(UDSPInstruction inst);
+	void FallBackToInterpreter(UDSPInstruction inst);
 
 	// CC Util
 	void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
@@ -62,7 +61,6 @@ public:
 	void dmem_write_imm(u16 addr, Gen::X64Reg value);
 
 	// Ext command helpers
-	void pushExtValueFromReg(u16 dreg, u16 sreg);
 	void popExtValueToReg();
 	void pushExtValueFromMem(u16 dreg, u16 sreg);
 	void pushExtValueFromMem2(u16 dreg, u16 sreg);

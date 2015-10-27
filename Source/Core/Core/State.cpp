@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -66,7 +67,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 44; // Last changed in PR 2464
+static const u32 STATE_VERSION = 48; // Last changed in PR 3108
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -162,8 +163,8 @@ static std::string DoState(PointerWrap& p)
 	g_video_backend->DoState(p);
 	p.DoMarker("video_backend");
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-		Wiimote::DoState(p.GetPPtr(), p.GetMode());
+	if (SConfig::GetInstance().bWii)
+		Wiimote::DoState(p);
 	p.DoMarker("Wiimote");
 
 	PowerPC::DoState(p);
@@ -257,9 +258,12 @@ static std::map<double, int> GetSavedStates()
 			if (ReadHeader(filename, header))
 			{
 				double d = Common::Timer::GetDoubleTime() - header.time;
+
 				// increase time until unique value is obtained
-				while (m.find(d) != m.end()) d += .001;
-				m.insert(std::pair<double,int>(d, i));
+				while (m.find(d) != m.end())
+					d += .001;
+
+				m.emplace(d, i);
 			}
 		}
 	}
@@ -277,8 +281,20 @@ struct CompressAndDumpState_args
 static void CompressAndDumpState(CompressAndDumpState_args save_args)
 {
 	std::lock_guard<std::mutex> lk(*save_args.buffer_mutex);
-	if (!save_args.wait)
+
+	// ScopeGuard is used here to ensure that g_compressAndDumpStateSyncEvent.Set()
+	// will be called and that it will happen after the IOFile is closed.
+	// Both ScopeGuard's and IOFile's finalization occur at respective object destruction time.
+	// As Local (stack) objects are destructed in the reverse order of construction and "ScopeGuard on_exit"
+	// is created before the "IOFile f", it is guaranteed that the file will be finalized before
+	// the ScopeGuard's finalization (i.e. "g_compressAndDumpStateSyncEvent.Set()" call).
+	Common::ScopeGuard on_exit([]()
+	{
 		g_compressAndDumpStateSyncEvent.Set();
+	});
+	// If it is not required to wait, we call finalizer early (and it won't be called again at destruction).
+	if (!save_args.wait)
+		on_exit.Exit();
 
 	const u8* const buffer_data = &(*(save_args.buffer_vector))[0];
 	const size_t buffer_size = (save_args.buffer_vector)->size();
@@ -310,13 +326,12 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 	if (!f)
 	{
 		Core::DisplayMessage("Could not save state", 2000);
-		g_compressAndDumpStateSyncEvent.Set();
 		return;
 	}
 
 	// Setting up the header
 	StateHeader header;
-	memcpy(header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
+	memcpy(header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
 	header.size = g_use_compression ? (u32)buffer_size : 0;
 	header.time = Common::Timer::GetDoubleTime();
 
@@ -358,7 +373,6 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 	}
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 2000);
-	g_compressAndDumpStateSyncEvent.Set();
 }
 
 void SaveAs(const std::string& filename, bool wait)
@@ -434,7 +448,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 	StateHeader header;
 	f.ReadArray(&header, 1);
 
-	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6))
+	if (memcmp(SConfig::GetInstance().GetUniqueID().c_str(), header.gameID, 6))
 	{
 		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %.*s)",
 			6, header.gameID), 2000);
@@ -478,7 +492,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
 		if (!f.ReadBytes(&buffer[0], size))
 		{
-			PanicAlert("wtf? reading bytes: %i", (int)size);
+			PanicAlert("wtf? reading bytes: %zu", size);
 			return;
 		}
 	}
@@ -613,7 +627,7 @@ void Shutdown()
 static std::string MakeStateFilename(int number)
 {
 	return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX).c_str(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), number);
+		SConfig::GetInstance().GetUniqueID().c_str(), number);
 }
 
 void Save(int slot, bool wait)

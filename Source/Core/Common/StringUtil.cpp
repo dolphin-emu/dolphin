@@ -14,9 +14,11 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #ifdef _WIN32
 	#include <Windows.h>
@@ -113,7 +115,7 @@ std::string StringFromFormat(const char* format, ...)
 	va_start(args, format);
 	std::string res = StringFromFormatV(format, args);
 	va_end(args);
-	return std::move(res);
+	return res;
 }
 
 std::string StringFromFormatV(const char* format, va_list args)
@@ -139,7 +141,7 @@ std::string StringFromFormatV(const char* format, va_list args)
 	std::string temp = buf;
 	free(buf);
 #endif
-	return std::move(temp);
+	return temp;
 }
 
 // For Debugging. Read out an u8 array.

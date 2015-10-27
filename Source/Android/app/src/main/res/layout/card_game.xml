@@ -20,7 +20,7 @@
             android:id="@+id/image_game_screen"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:transitionName="image_game_screen"
+            android:transitionName="image_game_screenshot"
             android:layout_weight="1"
             tools:src="@drawable/placeholder_screenshot"
             tools:scaleType="centerCrop"/>
@@ -33,7 +33,6 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginTop="16dp"
-            android:layout_toStartOf="@+id/button_details"
             android:ellipsize="end"
             android:lines="1"
             android:maxLines="1"

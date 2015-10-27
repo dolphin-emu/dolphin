@@ -1,11 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="DiscScrubber">
       <UniqueIdentifier>{3873659a-9a30-4a58-af9e-8dad7d7eb627}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="FileHandler">
-      <UniqueIdentifier>{324d4b72-d25b-4c83-bd61-6c9e85e59895}</UniqueIdentifier>
     </Filter>
     <Filter Include="FileSystem">
       <UniqueIdentifier>{bd7dbc22-b233-4f82-a369-034f04133b73}</UniqueIdentifier>

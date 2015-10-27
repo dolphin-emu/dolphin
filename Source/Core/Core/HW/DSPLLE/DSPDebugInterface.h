@@ -12,26 +12,27 @@
 class DSPDebugInterface final : public DebugInterface
 {
 public:
-	DSPDebugInterface(){}
-	virtual std::string Disassemble(unsigned int address) override;
-	virtual void GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size) override;
-	virtual int GetInstructionSize(int instruction) override { return 1; }
-	virtual bool IsAlive() override;
-	virtual bool IsBreakpoint(unsigned int address) override;
-	virtual void SetBreakpoint(unsigned int address) override;
-	virtual void ClearBreakpoint(unsigned int address) override;
-	virtual void ClearAllBreakpoints() override;
-	virtual void ToggleBreakpoint(unsigned int address) override;
-	virtual void ClearAllMemChecks() override;
-	virtual bool IsMemCheck(unsigned int address) override;
-	virtual void ToggleMemCheck(unsigned int address) override;
-	virtual unsigned int ReadMemory(unsigned int address) override;
-	virtual unsigned int ReadInstruction(unsigned int address) override;
-	virtual unsigned int GetPC() override;
-	virtual void SetPC(unsigned int address) override;
-	virtual void Step() override {}
-	virtual void RunToBreakpoint() override;
-	virtual void InsertBLR(unsigned int address, unsigned int value) override;
-	virtual int GetColor(unsigned int address) override;
-	virtual std::string GetDescription(unsigned int address) override;
+	DSPDebugInterface() {}
+
+	std::string Disassemble(unsigned int address) override;
+	void GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size) override;
+	int GetInstructionSize(int instruction) override { return 1; }
+	bool IsAlive() override;
+	bool IsBreakpoint(unsigned int address) override;
+	void SetBreakpoint(unsigned int address) override;
+	void ClearBreakpoint(unsigned int address) override;
+	void ClearAllBreakpoints() override;
+	void ToggleBreakpoint(unsigned int address) override;
+	void ClearAllMemChecks() override;
+	bool IsMemCheck(unsigned int address) override;
+	void ToggleMemCheck(unsigned int address) override;
+	unsigned int ReadMemory(unsigned int address) override;
+	unsigned int ReadInstruction(unsigned int address) override;
+	unsigned int GetPC() override;
+	void SetPC(unsigned int address) override;
+	void Step() override {}
+	void RunToBreakpoint() override;
+	void InsertBLR(unsigned int address, unsigned int value) override;
+	int GetColor(unsigned int address) override;
+	std::string GetDescription(unsigned int address) override;
 };

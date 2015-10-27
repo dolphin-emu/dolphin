@@ -2,18 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
 
-// Should be moved in to the Jit class
-typedef void (Jit64::*_Instruction) (UGeckoInstruction instCode);
-
-static _Instruction dynaOpTable[64];
-static _Instruction dynaOpTable4[1024];
-static _Instruction dynaOpTable19[1024];
-static _Instruction dynaOpTable31[1024];
-static _Instruction dynaOpTable59[32];
-static _Instruction dynaOpTable63[1024];
+static Jit64::Instruction dynaOpTable[64];
+static Jit64::Instruction dynaOpTable4[1024];
+static Jit64::Instruction dynaOpTable19[1024];
+static Jit64::Instruction dynaOpTable31[1024];
+static Jit64::Instruction dynaOpTable59[32];
+static Jit64::Instruction dynaOpTable63[1024];
 void Jit64::DynaRunTable4(UGeckoInstruction _inst)  {(this->*dynaOpTable4 [_inst.SUBOP10])(_inst);}
 void Jit64::DynaRunTable19(UGeckoInstruction _inst) {(this->*dynaOpTable19[_inst.SUBOP10])(_inst);}
 void Jit64::DynaRunTable31(UGeckoInstruction _inst) {(this->*dynaOpTable31[_inst.SUBOP10])(_inst);}
@@ -23,8 +21,7 @@ void Jit64::DynaRunTable63(UGeckoInstruction _inst) {(this->*dynaOpTable63[_inst
 struct GekkoOPTemplate
 {
 	int opcode;
-	_Instruction Inst;
-	//GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
+	Jit64::Instruction Inst;
 };
 
 static GekkoOPTemplate primarytable[] =
@@ -163,7 +160,6 @@ static GekkoOPTemplate table19[] =
 	{0,   &Jit64::mcrf},                  // mcrf
 
 	{50,  &Jit64::rfi},                   // rfi
-	{18,  &Jit64::FallBackToInterpreter}, // rfid
 };
 
 
@@ -218,11 +214,11 @@ static GekkoOPTemplate table31[] =
 	{824, &Jit64::srawix},                 // srawix
 	{24,  &Jit64::slwx},                   // slwx
 
-	{54,   &Jit64::FallBackToInterpreter}, // dcbst
-	{86,   &Jit64::FallBackToInterpreter}, // dcbf
-	{246,  &Jit64::dcbt },                 // dcbtst
-	{278,  &Jit64::dcbt },                 // dcbt
-	{470,  &Jit64::FallBackToInterpreter}, // dcbi
+	{54,   &Jit64::dcbx},                  // dcbst
+	{86,   &Jit64::dcbx},                  // dcbf
+	{246,  &Jit64::dcbt},                  // dcbtst
+	{278,  &Jit64::dcbt},                  // dcbt
+	{470,  &Jit64::dcbx},                  // dcbi
 	{758,  &Jit64::DoNothing},             // dcba
 	{1014, &Jit64::dcbz},                  // dcbz
 
@@ -300,14 +296,13 @@ static GekkoOPTemplate table31[] =
 
 	{4,   &Jit64::twX},                    // tw
 	{598, &Jit64::DoNothing},              // sync
-	{982, &Jit64::icbi},                   // icbi
+	{982, &Jit64::FallBackToInterpreter},  // icbi
 
 	// Unused instructions on GC
 	{310, &Jit64::FallBackToInterpreter},  // eciwx
 	{438, &Jit64::FallBackToInterpreter},  // ecowx
 	{854, &Jit64::DoNothing},              // eieio
 	{306, &Jit64::FallBackToInterpreter},  // tlbie
-	{370, &Jit64::FallBackToInterpreter},  // tlbia
 	{566, &Jit64::DoNothing},              // tlbsync
 };
 
@@ -316,7 +311,6 @@ static GekkoOPTemplate table59[] =
 	{18, &Jit64::fp_arith},              // fdivsx
 	{20, &Jit64::fp_arith},              // fsubsx
 	{21, &Jit64::fp_arith},              // faddsx
-//	{22, &Jit64::FallBackToInterpreter},   // fsqrtsx
 	{24, &Jit64::fresx},                 // fresx
 	{25, &Jit64::fp_arith},              // fmulsx
 	{28, &Jit64::fmaddXX},               // fmsubsx
@@ -337,12 +331,12 @@ static GekkoOPTemplate table63[] =
 	{40,  &Jit64::fsign},                 // fnegx
 	{12,  &Jit64::frspx},                 // frspx
 
-	{64,  &Jit64::FallBackToInterpreter}, // mcrfs
-	{583, &Jit64::FallBackToInterpreter}, // mffsx
-	{70,  &Jit64::FallBackToInterpreter}, // mtfsb0x
-	{38,  &Jit64::FallBackToInterpreter}, // mtfsb1x
-	{134, &Jit64::FallBackToInterpreter}, // mtfsfix
-	{711, &Jit64::FallBackToInterpreter}, // mtfsfx
+	{64,  &Jit64::mcrfs},                 // mcrfs
+	{583, &Jit64::mffsx},                 // mffsx
+	{70,  &Jit64::mtfsb0x},               // mtfsb0x
+	{38,  &Jit64::mtfsb1x},               // mtfsb1x
+	{134, &Jit64::mtfsfix},               // mtfsfix
+	{711, &Jit64::mtfsfx},                // mtfsfx
 };
 
 static GekkoOPTemplate table63_2[] =
@@ -350,7 +344,6 @@ static GekkoOPTemplate table63_2[] =
 	{18, &Jit64::fp_arith},              // fdivx
 	{20, &Jit64::fp_arith},              // fsubx
 	{21, &Jit64::fp_arith},              // faddx
-	{22, &Jit64::FallBackToInterpreter}, // fsqrtx
 	{23, &Jit64::fselx},                 // fselx
 	{25, &Jit64::fp_arith},              // fmulx
 	{26, &Jit64::frsqrtex},              // frsqrtex

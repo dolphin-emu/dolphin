@@ -17,6 +17,7 @@
 #include <vector>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/eventfilter.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
@@ -83,6 +84,36 @@ public:
 	ControllerEmu::ControlGroup::Setting* const setting;
 };
 
+class InputEventFilter : public wxEventFilter
+{
+public:
+	InputEventFilter()
+	{
+		wxEvtHandler::AddFilter(this);
+	}
+
+	~InputEventFilter()
+	{
+		wxEvtHandler::RemoveFilter(this);
+	}
+
+	int FilterEvent(wxEvent& event) override;
+
+	void BlockEvents(bool block) { m_block = block; }
+
+private:
+	static bool ShouldCatchEventType(wxEventType type)
+	{
+		return type == wxEVT_KEY_DOWN || type == wxEVT_KEY_UP ||
+			type == wxEVT_CHAR || type == wxEVT_CHAR_HOOK ||
+			type == wxEVT_LEFT_DOWN || type == wxEVT_LEFT_UP ||
+			type == wxEVT_MIDDLE_DOWN || type == wxEVT_MIDDLE_UP ||
+			type == wxEVT_RIGHT_DOWN || type == wxEVT_RIGHT_UP;
+	}
+
+	bool m_block = false;
+};
+
 class GamepadPage;
 
 class ControlDialog : public wxDialog
@@ -120,6 +151,7 @@ private:
 	wxSlider*          range_slider;
 	wxStaticText*      m_bound_label;
 	wxStaticText*      m_error_label;
+	InputEventFilter   m_event_filter;
 	ciface::Core::DeviceQualifier m_devq;
 };
 
@@ -209,7 +241,9 @@ private:
 
 	ControlDialog*           m_control_dialog;
 	InputConfigDialog* const m_config_dialog;
-	InputConfig& m_config;
+	InputConfig&             m_config;
+	InputEventFilter         m_event_filter;
+
 	bool DetectButton(ControlButton* button);
 	bool m_iterate = false;
 };

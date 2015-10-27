@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CDUtils.h"
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 

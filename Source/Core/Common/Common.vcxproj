@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -16,7 +16,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -35,6 +35,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClInclude Include="Assert.h" />
     <ClInclude Include="Atomic.h" />
     <ClInclude Include="Atomic_GCC.h" />
     <ClInclude Include="Atomic_Win32.h" />
@@ -61,6 +62,41 @@
     <ClInclude Include="Flag.h" />
     <ClInclude Include="FPURoundMode.h" />
     <ClInclude Include="GekkoDisassembler.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_blend_func_extended.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_buffer_storage.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_clip_control.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_copy_image.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_debug_output.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_draw_elements_base_vertex.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_ES2_compatibility.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_framebuffer_object.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_get_program_binary.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_map_buffer_range.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_sampler_objects.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_sample_shading.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_sync.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_texture_multisample.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_texture_storage_multisample.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_uniform_buffer_object.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_vertex_array_object.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_viewport_array.h" />
+    <ClInclude Include="GL\GLExtensions\GLExtensions.h" />
+    <ClInclude Include="GL\GLExtensions\gl_1_1.h" />
+    <ClInclude Include="GL\GLExtensions\gl_1_2.h" />
+    <ClInclude Include="GL\GLExtensions\gl_1_3.h" />
+    <ClInclude Include="GL\GLExtensions\gl_1_4.h" />
+    <ClInclude Include="GL\GLExtensions\gl_1_5.h" />
+    <ClInclude Include="GL\GLExtensions\gl_2_0.h" />
+    <ClInclude Include="GL\GLExtensions\gl_3_0.h" />
+    <ClInclude Include="GL\GLExtensions\gl_3_1.h" />
+    <ClInclude Include="GL\GLExtensions\gl_3_2.h" />
+    <ClInclude Include="GL\GLExtensions\gl_common.h" />
+    <ClInclude Include="GL\GLExtensions\KHR_debug.h" />
+    <ClInclude Include="GL\GLExtensions\NV_occlusion_query_samples.h" />
+    <ClInclude Include="GL\GLExtensions\NV_primitive_restart.h" />
+    <ClInclude Include="GL\GLInterfaceBase.h" />
+    <ClInclude Include="GL\GLInterface\WGL.h" />
+    <ClInclude Include="GL\GLUtil.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
@@ -71,11 +107,12 @@
     <ClInclude Include="MsgHandler.h" />
     <ClInclude Include="NandPaths.h" />
     <ClInclude Include="Network.h" />
+    <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="Profiler.h" />
+    <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
-    <ClInclude Include="StdMakeUnique.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="SymbolDB.h" />
     <ClInclude Include="SysConf.h" />
@@ -100,6 +137,10 @@
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
+    <ClCompile Include="GL\GLExtensions\GLExtensions.cpp" />
+    <ClCompile Include="GL\GLInterface\GLInterface.cpp" />
+    <ClCompile Include="GL\GLInterface\WGL.cpp" />
+    <ClCompile Include="GL\GLUtil.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="JitRegister.cpp" />
@@ -121,13 +162,13 @@
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TraversalClient.cpp" />
+    <ClCompile Include="ucrtFreadWorkaround.cpp" />
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="x64ABI.cpp" />
     <ClCompile Include="x64Analyzer.cpp" />
     <ClCompile Include="x64CPUDetect.cpp" />
     <ClCompile Include="x64Emitter.cpp" />
     <ClCompile Include="x64FPURoundMode.cpp" />
-    <ClCompile Include="XSaveWorkaround.cpp" />
     <ClCompile Include="Crypto\bn.cpp" />
     <ClCompile Include="Crypto\ec.cpp" />
     <ClCompile Include="Logging\LogManager.cpp" />
@@ -139,7 +180,7 @@
     <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
       <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)polarssl\visualc\PolarSSL.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
     </ProjectReference>
     <ProjectReference Include="SCMRevGen.vcxproj">

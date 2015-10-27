@@ -31,6 +31,8 @@
 
 // Milliseconds between msgQueue flushes to wxTextCtrl
 #define UPDATETIME 200
+// Max size of msgQueue, old messages will be discarded when there are too many.
+#define MSGQUEUE_MAX_SIZE 100
 
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 		const wxSize& size, long style, const wxString& name)
@@ -279,10 +281,28 @@ void CLogWindow::UpdateLog()
 
 	m_LogTimer.Stop();
 
-	std::lock_guard<std::mutex> lk(m_LogSection);
-	while (!msgQueue.empty())
+	// This function runs on the main gui thread, and needs to finish in a finite time otherwise
+	// the GUI will lock up, which could be an issue if new messages are flooding in faster than
+	// this function can render them to the screen.
+	// So we limit this function to processing MSGQUEUE_MAX_SIZE messages each time it's called.
+	for (int num = 0; num < MSGQUEUE_MAX_SIZE; num++)
 	{
-		switch (msgQueue.front().first)
+		u8 log_level;
+		wxString log_msg;
+
+		// We can't hold this mutex while calling Wx functions, due to deadlocks
+		{
+			std::lock_guard<std::mutex> lk(m_LogSection);
+
+			if (msgQueue.empty())
+				break;
+
+			log_level = msgQueue.front().first;
+			log_msg = std::move(msgQueue.front().second);
+			msgQueue.pop();
+		}
+
+		switch (log_level)
 		{
 			case LogTypes::LOG_LEVELS::LERROR:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
@@ -309,15 +329,13 @@ void CLogWindow::UpdateLog()
 				break;
 		}
 
-		if (msgQueue.front().second.size())
+		if (log_msg.size())
 		{
 			int i = m_Log->GetLastPosition();
-			m_Log->AppendText(msgQueue.front().second);
+			m_Log->AppendText(log_msg);
 			// White timestamp
 			m_Log->SetStyle(i, i + 9, wxTextAttr(*wxWHITE));
 		}
-
-		msgQueue.pop();
 	}
 
 	m_LogTimer.Start();
@@ -327,7 +345,7 @@ void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
 {
 	std::lock_guard<std::mutex> lk(m_LogSection);
 
-	if (msgQueue.size() >= 100)
+	if (msgQueue.size() >= MSGQUEUE_MAX_SIZE)
 		msgQueue.pop();
 
 	msgQueue.push(std::make_pair(u8(level), StrToWxStr(text)));

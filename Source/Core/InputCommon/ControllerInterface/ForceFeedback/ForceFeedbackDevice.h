@@ -29,10 +29,11 @@ private:
 	class Force : public Output
 	{
 	public:
-		std::string GetName() const;
 		Force(const std::string& name, LPDIRECTINPUTEFFECT iface);
 		~Force();
-		void SetState(ControlState state);
+
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
 		void Update();
 		void Stop();
 	private:

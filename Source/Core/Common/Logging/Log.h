@@ -17,7 +17,6 @@ enum LOG_TYPE
 	COMMON,
 	CONSOLE,
 	DISCIO,
-	FILEMON,
 	DSPHLE,
 	DSPLLE,
 	DSP_MAIL,
@@ -25,20 +24,22 @@ enum LOG_TYPE
 	DVDINTERFACE,
 	DYNA_REC,
 	EXPANSIONINTERFACE,
+	FILEMON,
 	GDB_STUB,
-	POWERPC,
 	GPFIFO,
-	OSHLE,
+	HOST_GPU,
 	MASTER_LOG,
 	MEMMAP,
 	MEMCARD_MANAGER,
+	NETPLAY,
+	OSHLE,
 	OSREPORT,
 	PAD,
-	PROCESSORINTERFACE,
 	PIXELENGINE,
+	PROCESSORINTERFACE,
+	POWERPC,
 	SERIALINTERFACE,
 	SP1,
-	STREAMINGINTERFACE,
 	VIDEO,
 	VIDEOINTERFACE,
 	WII_IPC,
@@ -48,13 +49,12 @@ enum LOG_TYPE
 	WII_IPC_HID,
 	WII_IPC_HLE,
 	WII_IPC_NET,
-	WII_IPC_WC24,
-	WII_IPC_SSL,
 	WII_IPC_SD,
+	WII_IPC_SSL,
 	WII_IPC_STM,
+	WII_IPC_WC24,
 	WII_IPC_WIIMOTE,
 	WIIMOTE,
-	NETPLAY,
 
 	NUMBER_OF_LOGS // Must be last
 };
@@ -87,63 +87,14 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 #endif // loglevel
 #endif // logging
 
-#ifdef GEKKO
-#define GENERIC_LOG(t, v, ...)
-#else
 // Let the compiler optimize this out
 #define GENERIC_LOG(t, v, ...) { \
 	if (v <= MAX_LOGLEVEL) \
 		GenericLog(v, t, __FILE__, __LINE__, __VA_ARGS__); \
 	}
-#endif
 
 #define ERROR_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__) } while (0)
 #define WARN_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__) } while (0)
 #define NOTICE_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LNOTICE, __VA_ARGS__) } while (0)
 #define INFO_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__) } while (0)
 #define DEBUG_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__) } while (0)
-
-#define _dbg_assert_(_t_, _a_) \
-	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_)) {\
-		ERROR_LOG(_t_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n\nIgnore and continue?", \
-				   __LINE__, __FILE__, __TIME__); \
-		if (!PanicYesNo("*** Assertion (see log)***\n")) \
-			Crash(); \
-	}
-
-#ifdef _WIN32
-#define _dbg_assert_msg_(_t_, _a_, _msg_, ...)\
-	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_)) {\
-		ERROR_LOG(_t_, _msg_, __VA_ARGS__); \
-		if (!PanicYesNo(_msg_, __VA_ARGS__)) \
-			Crash(); \
-	}
-#else
-#define _dbg_assert_msg_(_t_, _a_, _msg_, ...)\
-	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_)) {\
-		ERROR_LOG(_t_, _msg_, ##__VA_ARGS__); \
-		if (!PanicYesNo(_msg_, ##__VA_ARGS__)) \
-			Crash(); \
-	}
-#endif
-
-
-#define _assert_(_a_) _dbg_assert_(MASTER_LOG, _a_)
-
-#ifndef GEKKO
-#ifdef _WIN32
-#define _assert_msg_(_t_, _a_, _fmt_, ...) \
-	if (!(_a_)) {\
-		if (!PanicYesNo(_fmt_, __VA_ARGS__)) \
-			Crash(); \
-	}
-#else // not win32
-#define _assert_msg_(_t_, _a_, _fmt_, ...) \
-	if (!(_a_)) {\
-		if (!PanicYesNo(_fmt_, ##__VA_ARGS__)) \
-			Crash(); \
-	}
-#endif // WIN32
-#else // GEKKO
-#define _assert_msg_(_t_, _a_, _fmt_, ...)
-#endif

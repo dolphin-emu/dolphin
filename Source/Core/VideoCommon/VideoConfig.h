@@ -25,10 +25,10 @@
 
 enum AspectMode
 {
-	ASPECT_AUTO       = 0,
-	ASPECT_FORCE_16_9 = 1,
-	ASPECT_FORCE_4_3  = 2,
-	ASPECT_STRETCH    = 3,
+	ASPECT_AUTO        = 0,
+	ASPECT_ANALOG_WIDE = 1,
+	ASPECT_ANALOG      = 2,
+	ASPECT_STRETCH     = 3,
 };
 
 enum EFBScale
@@ -40,8 +40,6 @@ enum EFBScale
 	SCALE_1_5X,
 	SCALE_2X,
 	SCALE_2_5X,
-	SCALE_3X,
-	SCALE_4X,
 };
 
 enum StereoMode
@@ -51,6 +49,14 @@ enum StereoMode
 	STEREO_TAB,
 	STEREO_ANAGLYPH,
 	STEREO_3DVISION
+};
+
+constexpr int STEREOSCOPY_PRESETS_NUM = 3;
+
+struct StereoscopyPreset final
+{
+	int depth;
+	int convergence;
 };
 
 // NEVER inherit from this class.
@@ -77,6 +83,7 @@ struct VideoConfig final
 
 	// Enhancements
 	int iMultisampleMode;
+	bool bSSAA;
 	int iEFBScale;
 	bool bForceFiltering;
 	int iMaxAnisotropy;
@@ -85,6 +92,8 @@ struct VideoConfig final
 	int iStereoDepth;
 	int iStereoConvergence;
 	bool bStereoSwapEyes;
+	std::array<StereoscopyPreset, STEREOSCOPY_PRESETS_NUM> oStereoPresets;
+	int iStereoActivePreset;
 
 	// Information
 	bool bShowFPS;
@@ -97,7 +106,6 @@ struct VideoConfig final
 
 	// Render
 	bool bWireFrame;
-	bool bDstAlphaPass;
 	bool bDisableFog;
 
 	// Utility
@@ -114,6 +122,7 @@ struct VideoConfig final
 	bool bEFBAccessEnable;
 	bool bPerfQueriesEnable;
 	bool bBBoxEnable;
+	bool bForceProgressive;
 
 	bool bEFBEmulateFormatChanges;
 	bool bSkipEFBCopyToRam;
@@ -145,7 +154,7 @@ struct VideoConfig final
 		API_TYPE APIType;
 
 		std::vector<std::string> Adapters; // for D3D
-		std::vector<std::string> AAModes;
+		std::vector<int> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
 		std::vector<std::string> AnaglyphShaders; // anaglyph shaders
 
@@ -162,6 +171,7 @@ struct VideoConfig final
 		bool bSupportsPostProcessing;
 		bool bSupportsPaletteConversion;
 		bool bSupportsClipControl; // Needed by VertexShaderGen, so must stay in VideoCommon
+		bool bSupportsSSAA;
 	} backend_info;
 
 	// Utility

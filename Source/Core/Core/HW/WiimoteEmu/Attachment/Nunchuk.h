@@ -16,7 +16,8 @@ class Nunchuk : public Attachment
 public:
 	Nunchuk(WiimoteEmu::ExtensionReg& _reg);
 
-	virtual void GetState(u8* const data) override;
+	void GetState(u8* const data) override;
+	bool IsButtonPressed() const override;
 
 	enum
 	{

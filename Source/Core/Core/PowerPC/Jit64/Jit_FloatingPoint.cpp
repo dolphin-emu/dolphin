@@ -10,12 +10,12 @@
 
 using namespace Gen;
 
-static const u64 GC_ALIGNED16(psSignBits[2])      = {0x8000000000000000ULL, 0x0000000000000000ULL};
-static const u64 GC_ALIGNED16(psSignBits2[2])     = {0x8000000000000000ULL, 0x8000000000000000ULL};
-static const u64 GC_ALIGNED16(psAbsMask[2])       = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
-static const u64 GC_ALIGNED16(psAbsMask2[2])      = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-static const u64 GC_ALIGNED16(psGeneratedQNaN[2]) = {0x7FF8000000000000ULL, 0x7FF8000000000000ULL};
-static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
+alignas(16) static const u64 psSignBits[2]      = {0x8000000000000000ULL, 0x0000000000000000ULL};
+alignas(16) static const u64 psSignBits2[2]     = {0x8000000000000000ULL, 0x8000000000000000ULL};
+alignas(16) static const u64 psAbsMask[2]       = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
+alignas(16) static const u64 psAbsMask2[2]      = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+alignas(16) static const u64 psGeneratedQNaN[2] = {0x7FF8000000000000ULL, 0x7FF8000000000000ULL};
+alignas(16) static const double half_qnan_and_s32_max[2] = {0x7FFFFFFF, -0x80000};
 
 X64Reg Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
                         void (XEmitter::*sseOp)(X64Reg, const OpArg&), bool packed, bool preserve_inputs, bool roundRHS)
@@ -51,7 +51,7 @@ void Jit64::SetFPRFIfNeeded(X64Reg xmm)
 	// As far as we know, the games that use this flag only need FPRF for fmul and fmadd, but
 	// FPRF is fast enough in JIT that we might as well just enable it for every float instruction
 	// if the FPRF flag is set.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF && js.op->wantsFPRF)
+	if (SConfig::GetInstance().bFPRF && js.op->wantsFPRF)
 		SetFPRF(xmm);
 }
 
@@ -65,7 +65,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
 	// Dragon Ball: Revenge of King Piccolo requires generated NaNs
 	// to be positive, so we'll have to handle them manually.
 
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bAccurateNaNs)
+	if (!SConfig::GetInstance().bAccurateNaNs)
 	{
 		if (xmm_out != xmm)
 			MOVAPD(xmm_out, R(xmm));
@@ -186,7 +186,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 		packed = false;
 
 	bool round_input = single && !jit->js.op->fprIsSingle[inst.FC];
-	bool preserve_inputs = SConfig::GetInstance().m_LocalCoreStartupParameter.bAccurateNaNs;
+	bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
 
 	X64Reg dest = INVALID_REG;
 	switch (inst.SUBOP5)
@@ -460,7 +460,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 
 void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-	bool fprf = SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF && js.op->wantsFPRF;
+	bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
 	//bool ordered = !!(inst.SUBOP10 & 32);
 	int a = inst.FA;
 	int b = inst.FB;
@@ -633,7 +633,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
 	fpr.Lock(b, d);
 	fpr.BindToRegister(d);
 	MOVAPD(XMM0, fpr.R(b));
-	CALL((void *)asm_routines.frsqrte);
+	CALL(asm_routines.frsqrte);
 	MOVSD(fpr.R(d), XMM0);
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
@@ -650,10 +650,10 @@ void Jit64::fresx(UGeckoInstruction inst)
 
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d);
 	MOVAPD(XMM0, fpr.R(b));
-	CALL((void *)asm_routines.fres);
-	MOVSD(fpr.R(d), XMM0);
+	fpr.BindToRegister(d, false);
+	CALL(asm_routines.fres);
+	MOVDDUP(fpr.RX(d), R(XMM0));
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 	gpr.UnlockAllX();

@@ -11,8 +11,6 @@
 class PointerWrap;
 namespace MMIO { class Mapping; }
 
-extern bool MT;
-
 namespace CommandProcessor
 {
 

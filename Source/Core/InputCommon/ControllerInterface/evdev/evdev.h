@@ -51,12 +51,11 @@ private:
 	{
 	public:
 		std::string GetName() const override;
-		ForceFeedback(u16 type, libevdev* dev) : m_type(type), m_dev(dev), m_id(-1) { m_fd = libevdev_get_fd(dev); }
+		ForceFeedback(u16 type, libevdev* dev) : m_type(type), m_id(-1) { m_fd = libevdev_get_fd(dev); }
 		~ForceFeedback();
 		void SetState(ControlState state) override;
 	private:
 		const u16 m_type;
-		libevdev* m_dev;
 		int m_fd;
 		int m_id;
 	};

@@ -63,8 +63,6 @@ public:
 	{
 		switch (type)
 		{
-		case TOK_INVALID:
-			return "Invalid";
 		case TOK_DISCARD:
 			return "Discard";
 		case TOK_EOF:
@@ -83,7 +81,11 @@ public:
 			return "+";
 		case TOK_CONTROL:
 			return "Device(" + (std::string)qualifier + ")";
+		case TOK_INVALID:
+			break;
 		}
+
+		return "Invalid";
 	}
 };
 
@@ -254,22 +256,22 @@ public:
 
 	ControlExpression(ControlQualifier qualifier_, Device::Control *control_) : qualifier(qualifier_), control(control_) {}
 
-	virtual ControlState GetValue() override
+	ControlState GetValue() override
 	{
 		return control->ToInput()->GetGatedState();
 	}
 
-	virtual void SetValue(ControlState value) override
+	void SetValue(ControlState value) override
 	{
 		control->ToOutput()->SetGatedState(value);
 	}
 
-	virtual int CountNumControls() override
+	int CountNumControls() override
 	{
 		return 1;
 	}
 
-	virtual operator std::string() override
+	operator std::string() override
 	{
 		return "`" + (std::string)qualifier + "`";
 	}
@@ -289,7 +291,7 @@ public:
 		delete rhs;
 	}
 
-	virtual ControlState GetValue() override
+	ControlState GetValue() override
 	{
 		ControlState lhsValue = lhs->GetValue();
 		ControlState rhsValue = rhs->GetValue();
@@ -307,7 +309,7 @@ public:
 		}
 	}
 
-	virtual void SetValue(ControlState value) override
+	void SetValue(ControlState value) override
 	{
 		// Don't do anything special with the op we have.
 		// Treat "A & B" the same as "A | B".
@@ -315,12 +317,12 @@ public:
 		rhs->SetValue(value);
 	}
 
-	virtual int CountNumControls() override
+	int CountNumControls() override
 	{
 		return lhs->CountNumControls() + rhs->CountNumControls();
 	}
 
-	virtual operator std::string() override
+	operator std::string() override
 	{
 		return OpName(op) + "(" + (std::string)(*lhs) + ", " + (std::string)(*rhs) + ")";
 	}
@@ -338,7 +340,7 @@ public:
 		delete inner;
 	}
 
-	virtual ControlState GetValue() override
+	ControlState GetValue() override
 	{
 		ControlState value = inner->GetValue();
 		switch (op)
@@ -351,7 +353,7 @@ public:
 		}
 	}
 
-	virtual void SetValue(ControlState value) override
+	void SetValue(ControlState value) override
 	{
 		switch (op)
 		{
@@ -364,12 +366,12 @@ public:
 		}
 	}
 
-	virtual int CountNumControls() override
+	int CountNumControls() override
 	{
 		return inner->CountNumControls();
 	}
 
-	virtual operator std::string() override
+	operator std::string() override
 	{
 		return OpName(op) + "(" + (std::string)(*inner) + ")";
 	}

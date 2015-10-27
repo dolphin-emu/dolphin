@@ -115,35 +115,25 @@ template<std::size_t position, std::size_t bits, typename T>
 struct BitField
 {
 private:
-#ifndef _WIN32
 	// This constructor might be considered ambiguous:
 	// Would it initialize the storage or just the bitfield?
 	// Hence, delete it. Use the assignment operator to set bitfield values!
-	// MSVC 2013 Intellisense complains that this declaration isn't allowed
-	// in a union member, so disable it on Windows.
 	BitField(T val) = delete;
-#endif
 
 public:
 	// Force default constructor to be created
 	// so that we can use this within unions
 	BitField() = default;
 
-#ifndef _WIN32
 	// We explicitly delete the copy assignment operator here, because the
 	// default copy assignment would copy the full storage value, rather than
 	// just the bits relevant to this particular bit field.
 	// Ideally, we would just implement the copy assignment to copy only the
 	// relevant bits, but this requires compiler support for unrestricted
 	// unions.
-	// MSVC 2013 has no support for this, hence we disable this code on
-	// Windows (so that the default copy assignment operator will be used).
-	// For any C++11 conformant compiler we delete the operator to make sure
-	// we never use this inappropriate operator to begin with.
 	// TODO: Implement this operator properly once all target compilers
 	// support unrestricted unions.
 	BitField& operator=(const BitField&) = delete;
-#endif
 
 	__forceinline BitField& operator=(T val)
 	{
@@ -156,7 +146,7 @@ public:
 		if (std::numeric_limits<T>::is_signed)
 		{
 			std::size_t shift = 8 * sizeof(T) - bits;
-			return (T)(((storage & GetMask()) << (shift - position)) >> shift);
+			return (T)((storage << (shift - position)) >> shift);
 		}
 		else
 		{
@@ -183,7 +173,7 @@ private:
 
 	__forceinline StorageType GetMask() const
 	{
-		return ((~(StorageTypeU)0) >> (8 * sizeof(T) - bits)) << position;
+		return (((StorageTypeU)~0) >> (8 * sizeof(T) - bits)) << position;
 	}
 
 	StorageType storage;

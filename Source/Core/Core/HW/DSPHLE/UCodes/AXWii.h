@@ -11,9 +11,8 @@ class AXWiiUCode : public AXUCode
 public:
 	AXWiiUCode(DSPHLE *dsphle, u32 crc);
 	virtual ~AXWiiUCode();
-	u32 GetUpdateMs() override;
 
-	virtual void DoState(PointerWrap &p) override;
+	void DoState(PointerWrap &p) override;
 
 protected:
 	// Additional AUX buffers
@@ -55,7 +54,7 @@ protected:
 	// but this gives better precision and nicer code.
 	void GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals);
 
-	virtual void HandleCommandList() override;
+	void HandleCommandList() override;
 
 	void SetupProcessing(u32 init_addr);
 	void AddToLR(u32 val_addr, bool neg);

@@ -2,8 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
 #include "Core/HW/BBA-TAP/TAP_Win32.h"
@@ -87,15 +88,19 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 	LONG status;
 	HKEY control_net_key;
 	DWORD len;
-	int i = 0;
-	bool found_all = false;
+	DWORD cSubKeys = 0;
 
-	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ, &control_net_key);
+	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ | KEY_QUERY_VALUE, &control_net_key);
 
 	if (status != ERROR_SUCCESS)
 		return false;
 
-	while (!found_all)
+	status = RegQueryInfoKey(control_net_key, nullptr, nullptr, nullptr, &cSubKeys, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+
+	if (status != ERROR_SUCCESS)
+		return false;
+
+	for (DWORD i = 0; i < cSubKeys; i++)
 	{
 		TCHAR enum_name[256];
 		TCHAR connection_string[256];
@@ -108,10 +113,8 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 		status = RegEnumKeyEx(control_net_key, i, enum_name,
 			&len, nullptr, nullptr, nullptr, nullptr);
 
-		if (status == ERROR_NO_MORE_ITEMS)
-			break;
-		else if (status != ERROR_SUCCESS)
-			return false;
+		if (status != ERROR_SUCCESS)
+			continue;
 
 		_sntprintf(connection_string, sizeof(connection_string),
 			_T("%s\\%s\\Connection"), NETWORK_CONNECTIONS_KEY, enum_name);
@@ -127,36 +130,31 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 
 			if (status != ERROR_SUCCESS || name_type != REG_SZ)
 			{
-				return false;
+				continue;
 			}
 			else
 			{
 				if (IsTAPDevice(enum_name))
 				{
 					guids.push_back(enum_name);
-					//found_all = true;
 				}
 			}
 
 			RegCloseKey(connection_key);
 		}
-		i++;
 	}
 
 	RegCloseKey(control_net_key);
 
-	//if (!found_all)
-		//return false;
-
-	return true;
+	return !guids.empty();
 }
 
 bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 {
 	auto const device_path = USERMODEDEVICEDIR + device_guid + TAPSUFFIX;
 
-	adapter = CreateFile(device_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, 0);
+	adapter = CreateFile(device_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
+		OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, nullptr);
 
 	if (adapter == INVALID_HANDLE_VALUE)
 	{
@@ -187,7 +185,7 @@ bool CEXIETHERNET::Activate()
 		if (Win32TAPHelper::OpenTAP(mHAdapter, device_guids.at(i)))
 		{
 			INFO_LOG(SP1, "OPENED %s", device_guids.at(i).c_str());
-			i = device_guids.size();
+			break;
 		}
 	}
 	if (mHAdapter == INVALID_HANDLE_VALUE)
@@ -248,19 +246,16 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 	DEBUG_LOG(SP1, "SendFrame %x\n%s",
 		size, ArrayToString(frame, size, 0x10).c_str());
 
-	DWORD numBytesWrit;
 	OVERLAPPED overlap;
 	ZeroMemory(&overlap, sizeof(overlap));
 
-	if (!WriteFile(mHAdapter, frame, size, &numBytesWrit, &overlap))
-	{
-		DWORD res = GetLastError();
-		ERROR_LOG(SP1, "Failed to send packet with error 0x%X", res);
-	}
+	// WriteFile will always return false because the TAP handle is async
+	WriteFile(mHAdapter, frame, size, nullptr, &overlap);
 
-	if (numBytesWrit != size)
+	DWORD res = GetLastError();
+	if (res != ERROR_IO_PENDING)
 	{
-		ERROR_LOG(SP1, "BBA SendFrame %i only got %i bytes sent!", size, numBytesWrit);
+		ERROR_LOG(SP1, "Failed to send packet with error 0x%X", res);
 	}
 
 	// Always report the packet as being sent successfully, even though it might be a lie
@@ -310,19 +305,25 @@ bool CEXIETHERNET::RecvStart()
 	DWORD res = ReadFile(mHAdapter, mRecvBuffer, BBA_RECV_SIZE,
 		(LPDWORD)&mRecvBufferLength, &mReadOverlapped);
 
-	if (!res && (GetLastError() != ERROR_IO_PENDING))
+	if (res)
 	{
-		// error occurred
+		// Since the read is synchronous here, complete immediately
+		RecvHandlePacket();
+		return true;
+	}
+	else
+	{
+		DWORD err = GetLastError();
+		if (err == ERROR_IO_PENDING)
+		{
+			return true;
+		}
+
+		// Unexpected error
+		ERROR_LOG(SP1, "Failed to recieve packet with error 0x%X", err);
 		return false;
 	}
 
-	if (res)
-	{
-		// Completed immediately
-		RecvHandlePacket();
-	}
-
-	return true;
 }
 
 void CEXIETHERNET::RecvStop()
@@ -332,6 +333,9 @@ void CEXIETHERNET::RecvStop()
 
 	UnregisterWaitEx(mHReadWait, INVALID_HANDLE_VALUE);
 
-	CloseHandle(mHRecvEvent);
-	mHRecvEvent = INVALID_HANDLE_VALUE;
+	if (mHRecvEvent != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle(mHRecvEvent);
+		mHRecvEvent = INVALID_HANDLE_VALUE;
+	}
 }

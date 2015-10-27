@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cctype>
+#include <cstring>
 #include <ctime>
 
 #include "Common/Network.h"

@@ -27,7 +27,8 @@ enum
 	CORE_JIT64,
 	CORE_JITIL64,
 	CORE_JITARM,
-	CORE_JITARM64
+	CORE_JITARM64,
+	CORE_CACHEDINTERPRETER,
 };
 
 enum CoreMode
@@ -56,7 +57,7 @@ struct tlb_entry
 };
 
 // This contains the entire state of the emulated PowerPC "Gekko" CPU.
-struct GC_ALIGNED64(PowerPCState)
+struct PowerPCState
 {
 	u32 gpr[32];    // General purpose registers. r1 = stack pointer.
 
@@ -107,7 +108,7 @@ struct GC_ALIGNED64(PowerPCState)
 	// The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
 	// but ps calculations are only done in 32-bit precision, and PS1 is only 32 bits.
 	// Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
-	GC_ALIGNED16(u64 ps[32][2]);
+	alignas(16) u64 ps[32][2];
 
 	u32 sr[16];  // Segment registers.
 
@@ -162,8 +163,6 @@ volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern d
 
 u32 CompactCR();
 void ExpandCR(u32 cr);
-
-void OnIdle();
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 

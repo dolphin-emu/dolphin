@@ -247,7 +247,7 @@ static void gdb_read_command()
 	}
 	else if (c == 0x03)
 	{
-		CCPU::Break();
+		CPU::Break();
 		gdb_signal(SIGTRAP);
 		return;
 	}
@@ -809,7 +809,7 @@ void gdb_init_local(const char *socket)
 {
 	unlink(socket);
 
-	sockaddr_un addr = {}
+	sockaddr_un addr = {};
 	addr.sun_family = AF_UNIX;
 	strcpy(addr.sun_path, socket);
 

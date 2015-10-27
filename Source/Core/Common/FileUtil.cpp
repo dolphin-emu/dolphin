@@ -12,9 +12,12 @@
 #include <vector>
 #include <sys/stat.h>
 
+#include "Common/Common.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 
 #ifdef _WIN32
 #include <commdlg.h>   // for GetSaveFileName
@@ -499,6 +502,7 @@ FSTEntry ScanDirectoryTree(const std::string &directory, bool recursive)
 					entry = ScanDirectoryTree(physical_name, true);
 				else
 					entry.size = 0;
+				parent_entry.size += entry.size;
 			}
 			else
 			{
@@ -731,8 +735,12 @@ std::string& GetExeDirectory()
 	if (DolphinPath.empty())
 	{
 		TCHAR Dolphin_exe_Path[2048];
+		TCHAR Dolphin_exe_Clean_Path[MAX_PATH];
 		GetModuleFileName(nullptr, Dolphin_exe_Path, 2048);
-		DolphinPath = TStrToUTF8(Dolphin_exe_Path);
+		if (_tfullpath(Dolphin_exe_Clean_Path, Dolphin_exe_Path, MAX_PATH) != nullptr)
+			DolphinPath = TStrToUTF8(Dolphin_exe_Clean_Path);
+		else
+			DolphinPath = TStrToUTF8(Dolphin_exe_Path);
 		DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
 	}
 	return DolphinPath;

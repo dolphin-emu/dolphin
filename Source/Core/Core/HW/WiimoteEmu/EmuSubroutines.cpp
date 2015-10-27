@@ -181,7 +181,7 @@ void Wiimote::SendAck(u8 _reportID)
 	ack->reportID = _reportID;
 	ack->errorID = 0;
 
-	Core::Callback_WiimoteInterruptChannel( m_index, m_reporting_channel, data, sizeof(data));
+	Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
 }
 
 void Wiimote::HandleExtensionSwap()
@@ -591,7 +591,7 @@ void Wiimote::DoState(PointerWrap& p)
 	p.Do(m_status);
 	p.Do(m_adpcm_state);
 	p.Do(m_ext_key);
-	p.DoArray(m_eeprom, sizeof(m_eeprom));
+	p.DoArray(m_eeprom);
 	p.Do(m_reg_motion_plus);
 	p.Do(m_reg_ir);
 	p.Do(m_reg_ext);

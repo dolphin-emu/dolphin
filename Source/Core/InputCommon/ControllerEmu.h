@@ -145,13 +145,19 @@ public:
 			}
 		};
 
-		ControlGroup(const std::string& _name, const unsigned int _type = GROUP_TYPE_OTHER) : name(_name), type(_type) {}
+		ControlGroup(const std::string& _name, const unsigned int _type = GROUP_TYPE_OTHER)
+			: name(_name), ui_name(_name), type(_type) {}
+		ControlGroup(const std::string& _name, const std::string& _ui_name, const unsigned int _type = GROUP_TYPE_OTHER)
+			: name(_name), ui_name(_ui_name), type(_type) {}
 		virtual ~ControlGroup() {}
 
 		virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 		virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 
+		void SetControlExpression(int index, const std::string& expression);
+
 		const std::string     name;
+		const std::string     ui_name;
 		const unsigned int    type;
 
 		std::vector<std::unique_ptr<Control>> controls;
@@ -164,6 +170,7 @@ public:
 	public:
 		// The GameCube controller and Wiimote attachments have a different default radius
 		AnalogStick(const char* const _name, ControlState default_radius);
+		AnalogStick(const char* const _name, const char* const _ui_name, ControlState default_radius);
 
 		void GetState(ControlState* const x, ControlState* const y)
 		{
@@ -424,6 +431,7 @@ public:
 		~Extension() {}
 
 		void GetState(u8* const data);
+		bool IsButtonPressed() const;
 
 		std::vector<std::unique_ptr<ControllerEmu>> attachments;
 

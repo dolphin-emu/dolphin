@@ -43,7 +43,7 @@ public:
 
 	virtual ~ConstantHandlingMethod() {}
 
-	virtual void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const
+	void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
 	{
 		v.VisitConstant(value_);
 	}
@@ -66,7 +66,8 @@ class NopHandlingMethod : public WriteHandlingMethod<T>
 public:
 	NopHandlingMethod() {}
 	virtual ~NopHandlingMethod() {}
-	virtual void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const
+
+	void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const override
 	{
 		v.VisitNop();
 	}
@@ -91,12 +92,12 @@ public:
 
 	virtual ~DirectHandlingMethod() {}
 
-	virtual void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const
+	void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
 	{
 		v.VisitDirect(addr_, mask_);
 	}
 
-	virtual void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const
+	void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const override
 	{
 		v.VisitDirect(addr_, mask_);
 	}
@@ -146,12 +147,12 @@ public:
 
 	virtual ~ComplexHandlingMethod() {}
 
-	virtual void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const
+	void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
 	{
 		v.VisitComplex(&read_lambda_);
 	}
 
-	virtual void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const
+	void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const override
 	{
 		v.VisitComplex(&write_lambda_);
 	}
@@ -194,8 +195,8 @@ template <typename T>
 ReadHandlingMethod<T>* InvalidRead()
 {
 	return ComplexRead<T>([](u32 addr) {
-		ERROR_LOG(MEMMAP, "Trying to read%d from an invalid MMIO (addr=%08x)",
-			8 * (int)(sizeof (T)), addr);
+		ERROR_LOG(MEMMAP, "Trying to read %zu bytes from an invalid MMIO (addr=%08x)",
+			8 * sizeof(T), addr);
 		return -1;
 	});
 }
@@ -203,8 +204,8 @@ template <typename T>
 WriteHandlingMethod<T>* InvalidWrite()
 {
 	return ComplexWrite<T>([](u32 addr, T val) {
-		ERROR_LOG(MEMMAP, "Trying to write%d to an invalid MMIO (addr=%08x, val=%08x)",
-			8 * (int)(sizeof (T)), addr, (u32)val);
+		ERROR_LOG(MEMMAP, "Trying to write %zu bytes to an invalid MMIO (addr=%08x, val=%08x)",
+			8 * sizeof(T), addr, (u32)val);
 	});
 }
 
@@ -300,17 +301,17 @@ void ReadHandler<T>::ResetMethod(ReadHandlingMethod<T>* method)
 	{
 		std::function<T(u32)> ret;
 
-		virtual void VisitConstant(T value)
+		void VisitConstant(T value) override
 		{
 			ret = [value](u32) { return value; };
 		}
 
-		virtual void VisitDirect(const T* addr, u32 mask)
+		void VisitDirect(const T* addr, u32 mask) override
 		{
 			ret = [addr, mask](u32) { return *addr & mask; };
 		}
 
-		virtual void VisitComplex(const std::function<T(u32)>* lambda)
+		void VisitComplex(const std::function<T(u32)>* lambda) override
 		{
 			ret = *lambda;
 		}
@@ -356,17 +357,17 @@ void WriteHandler<T>::ResetMethod(WriteHandlingMethod<T>* method)
 	{
 		std::function<void(u32, T)> ret;
 
-		virtual void VisitNop()
+		void VisitNop() override
 		{
 			ret = [](u32, T) {};
 		}
 
-		virtual void VisitDirect(T* ptr, u32 mask)
+		void VisitDirect(T* ptr, u32 mask) override
 		{
 			ret = [ptr, mask](u32, T val) { *ptr = val & mask; };
 		}
 
-		virtual void VisitComplex(const std::function<void(u32, T)>* lambda)
+		void VisitComplex(const std::function<void(u32, T)>* lambda) override
 		{
 			ret = *lambda;
 		}

@@ -12,7 +12,6 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Host.h"
 #include "Core/PatchEngine.h"
 #include "Core/Boot/Boot.h"
@@ -75,12 +74,12 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
 	std::string title_id_str;
 	size_t name_begin_index;
 
-	SCoreStartupParameter& _StartupPara = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& _StartupPara = SConfig::GetInstance();
 	switch (_StartupPara.m_BootType)
 	{
-	case SCoreStartupParameter::BOOT_WII_NAND:
+	case SConfig::BOOT_WII_NAND:
 	{
-		const DiscIO::INANDContentLoader& Loader =
+		const DiscIO::CNANDContentLoader& Loader =
 				DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
 		if (Loader.IsValid())
 		{
@@ -92,8 +91,8 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
 		break;
 	}
 
-	case SCoreStartupParameter::BOOT_ELF:
-	case SCoreStartupParameter::BOOT_DOL:
+	case SConfig::BOOT_ELF:
+	case SConfig::BOOT_DOL:
 		// Strip the .elf/.dol file extension and directories before the name
 		name_begin_index = _StartupPara.m_strFilename.find_last_of("/") + 1;
 		if ((_StartupPara.m_strFilename.find_last_of("\\") + 1) > name_begin_index)
@@ -220,21 +219,19 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
 bool CBoot::BootUp()
 {
-	SCoreStartupParameter& _StartupPara =
-	SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& _StartupPara = SConfig::GetInstance();
 
 	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
 
 	g_symbolDB.Clear();
 
 	// PAL Wii uses NTSC framerate and linecount in 60Hz modes
-	const bool bPAL60 = _StartupPara.bWii && SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60");
-	VideoInterface::Preset(_StartupPara.bNTSC || bPAL60);
+	VideoInterface::Preset(_StartupPara.bNTSC || (_StartupPara.bWii && _StartupPara.bPAL60));
 
 	switch (_StartupPara.m_BootType)
 	{
 	// GCM and Wii
-	case SCoreStartupParameter::BOOT_ISO:
+	case SConfig::BOOT_ISO:
 	{
 		DVDInterface::SetVolumeName(_StartupPara.m_strFilename);
 		DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
@@ -299,7 +296,7 @@ bool CBoot::BootUp()
 	}
 
 	// DOL
-	case SCoreStartupParameter::BOOT_DOL:
+	case SConfig::BOOT_DOL:
 	{
 		CDolLoader dolLoader(_StartupPara.m_strFilename);
 		if (!dolLoader.IsValid())
@@ -366,7 +363,7 @@ bool CBoot::BootUp()
 	}
 
 	// ELF
-	case SCoreStartupParameter::BOOT_ELF:
+	case SConfig::BOOT_ELF:
 	{
 		// load image or create virtual drive from directory
 		if (!_StartupPara.m_strDVDRoot.empty())
@@ -402,7 +399,7 @@ bool CBoot::BootUp()
 	}
 
 	// Wii WAD
-	case SCoreStartupParameter::BOOT_WII_NAND:
+	case SConfig::BOOT_WII_NAND:
 		Boot_WiiWAD(_StartupPara.m_strFilename);
 
 		if (LoadMapFromFilename())
@@ -419,7 +416,7 @@ bool CBoot::BootUp()
 
 
 	// Bootstrap 2 (AKA: Initial Program Loader, "BIOS")
-	case SCoreStartupParameter::BOOT_BS2:
+	case SConfig::BOOT_BS2:
 	{
 		DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
 		if (Load_BS2(_StartupPara.m_strBootROM))
@@ -434,7 +431,7 @@ bool CBoot::BootUp()
 		break;
 	}
 
-	case SCoreStartupParameter::BOOT_DFF:
+	case SConfig::BOOT_DFF:
 		// do nothing
 		break;
 
@@ -446,7 +443,7 @@ bool CBoot::BootUp()
 	}
 
 	// HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code handler
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	if (!SConfig::GetInstance().bEnableCheats)
 	{
 		HLE::Patch(0x80001800, "HBReload");
 		Memory::CopyToEmu(0x00001804, "STUBHAXX", 8);

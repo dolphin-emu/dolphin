@@ -4,29 +4,20 @@
 
 #pragma once
 
-#ifdef _WIN32
-#define SLEEP(x) Sleep(x)
-#else
-#include <unistd.h>
-#define SLEEP(x) usleep(x*1000)
-#endif
-
 #ifdef __APPLE__
 #include <libkern/OSByteOrder.h>
 #endif
 
 #include <cstddef>
 #include <string>
-#include <type_traits>
 #include "Common/CommonTypes.h"
 
 // Will fail to compile on a non-array:
-// TODO: make this a function when constexpr is available
-template <typename T>
-struct ArraySizeImpl : public std::extent<T>
-{ static_assert(std::is_array<T>::value, "is array"); };
-
-#define ArraySize(x) ArraySizeImpl<decltype(x)>::value
+template <typename T, size_t N>
+constexpr size_t ArraySize(T (&arr)[N])
+{
+	return N;
+}
 
 #define b2(x)   (   (x) | (   (x) >> 1) )
 #define b4(x)   ( b2(x) | ( b2(x) >> 2) )
@@ -45,9 +36,7 @@ struct ArraySizeImpl : public std::extent<T>
 #endif
 
 // go to debugger mode
-	#ifdef GEKKO
-		#define Crash()
-	#elif defined _M_X86
+	#ifdef _M_X86
 		#define Crash() {asm ("int $3");}
 	#else
 		#define Crash() { exit(1); }
@@ -88,7 +77,6 @@ inline u64 _rotr64(u64 x, unsigned int shift)
 	#define strcasecmp _stricmp
 	#define strncasecmp _strnicmp
 	#define unlink _unlink
-	#define snprintf _snprintf
 	#define vscprintf _vscprintf
 
 // 64 bit offsets for Windows
@@ -104,12 +92,6 @@ extern "C"
 	__declspec(dllimport) void __stdcall DebugBreak(void);
 }
 	#define Crash() {DebugBreak();}
-
-	#if (_MSC_VER > 1800)
-	#error alignof compat can be removed
-	#else
-	#define alignof(x) __alignof(x)
-	#endif
 #endif // WIN32 ndef
 
 // Generic function to get last error message.

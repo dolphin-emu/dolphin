@@ -146,7 +146,7 @@ const char depth_matrix_program[] = {
 	" in float4 pos : SV_Position,\n"
 	" in float3 uv0 : TEXCOORD0){\n"
 	"	float4 texcol = Tex0.Sample(samp0,uv0);\n"
-	"	int depth = clamp(int((1.0 - texcol.x) * 16777216.0), 0, 0xFFFFFF);\n"
+	"	int depth = int((1.0 - texcol.x) * 16777216.0);\n"
 
 	// Convert to Z24 format
 	"	int4 workspace;\n"
@@ -180,7 +180,7 @@ const char depth_matrix_program_msaa[] = {
 	"	for(int i = 0; i < SAMPLES; ++i)\n"
 	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
 	"	texcol /= SAMPLES;\n"
-	"	int depth = clamp(int((1.0 - texcol.x) * 16777216.0), 0, 0xFFFFFF);\n"
+	"	int depth = int((1.0 - texcol.x) * 16777216.0);\n"
 
 	// Convert to Z24 format
 	"	int4 workspace;\n"
@@ -474,7 +474,7 @@ void PixelShaderCache::Init()
 	SETSTAT(stats.numPixelShadersAlive, 0);
 
 	std::string cache_filename = StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+			SConfig::GetInstance().m_strUniqueID.c_str());
 	PixelShaderCacheInserter inserter;
 	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 

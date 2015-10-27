@@ -8,8 +8,11 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/WbfsBlob.h"
 
 namespace DiscIO
@@ -36,6 +39,8 @@ WbfsFileReader::WbfsFileReader(const std::string& filename)
 	m_wlba_table = new u16[m_blocks_per_disc];
 	m_files[0]->file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/, SEEK_SET);
 	m_files[0]->file.ReadBytes(m_wlba_table, m_blocks_per_disc * sizeof(u16));
+	for (size_t i = 0; i < m_blocks_per_disc; i++)
+		m_wlba_table[i] = Common::swap16(m_wlba_table[i]);
 }
 
 WbfsFileReader::~WbfsFileReader()
@@ -44,6 +49,11 @@ WbfsFileReader::~WbfsFileReader()
 		delete entry;
 
 	delete[] m_wlba_table;
+}
+
+u64 WbfsFileReader::GetDataSize() const
+{
+	return WII_SECTOR_COUNT * WII_SECTOR_SIZE;
 }
 
 bool WbfsFileReader::OpenFiles(const std::string& filename)
@@ -78,37 +88,26 @@ bool WbfsFileReader::OpenFiles(const std::string& filename)
 
 bool WbfsFileReader::ReadHeader()
 {
-	m_files[0]->file.Seek(4, SEEK_SET);
-
 	// Read hd size info
-	m_files[0]->file.ReadBytes(&m_hd_sector_count, 4);
-	m_hd_sector_count = Common::swap32(m_hd_sector_count);
+	m_files[0]->file.ReadBytes(&m_header, sizeof(WbfsHeader));
+	m_header.hd_sector_count = Common::swap32(m_header.hd_sector_count);
 
-	m_files[0]->file.ReadBytes(&m_hd_sector_shift, 1);
-	m_hd_sector_size = 1ull << m_hd_sector_shift;
+	m_hd_sector_size = 1ull << m_header.hd_sector_shift;
 
-	if (m_size != (m_hd_sector_count * m_hd_sector_size))
+	if (m_size != (m_header.hd_sector_count * m_hd_sector_size))
 		return false;
 
 	// Read wbfs cluster info
-	m_files[0]->file.ReadBytes(&m_wbfs_sector_shift, 1);
-	m_wbfs_sector_size = 1ull << m_wbfs_sector_shift;
+	m_wbfs_sector_size = 1ull << m_header.wbfs_sector_shift;
 	m_wbfs_sector_count = m_size / m_wbfs_sector_size;
 
 	if (m_wbfs_sector_size < WII_SECTOR_SIZE)
 		return false;
 
-	m_blocks_per_disc = (WII_SECTOR_COUNT * WII_SECTOR_SIZE) / m_wbfs_sector_size;
-	m_disc_info_size = align(WII_DISC_HEADER_SIZE + m_blocks_per_disc * 2, m_hd_sector_size);
+	m_blocks_per_disc = (WII_SECTOR_COUNT * WII_SECTOR_SIZE + m_wbfs_sector_size - 1) / m_wbfs_sector_size;
+	m_disc_info_size = align(WII_DISC_HEADER_SIZE + m_blocks_per_disc * sizeof(u16), m_hd_sector_size);
 
-	// Read disc table
-	m_files[0]->file.Seek(2, SEEK_CUR);
-	m_files[0]->file.ReadBytes(m_disc_table, 500);
-
-	if (m_disc_table[0] == 0)
-		return false;
-
-	return true;
+	return m_header.disc_table[0] != 0;
 }
 
 bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
@@ -119,7 +118,7 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 		File::IOFile& data_file = SeekToCluster(offset, &read_size);
 		if (read_size == 0)
 			return false;
-		read_size = (read_size > nbytes) ? nbytes : read_size;
+		read_size = std::min(read_size, nbytes);
 
 		if (!data_file.ReadBytes(out_ptr, read_size))
 		{
@@ -137,10 +136,10 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 
 File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
 {
-	u64 base_cluster = (offset >> m_wbfs_sector_shift);
+	u64 base_cluster = (offset >> m_header.wbfs_sector_shift);
 	if (base_cluster < m_blocks_per_disc)
 	{
-		u64 cluster_address = m_wbfs_sector_size * Common::swap16(m_wlba_table[base_cluster]);
+		u64 cluster_address = m_wbfs_sector_size * m_wlba_table[base_cluster];
 		u64 cluster_offset = offset & (m_wbfs_sector_size - 1);
 		u64 final_address = cluster_address + cluster_offset;
 

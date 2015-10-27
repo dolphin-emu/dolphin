@@ -1,24 +1,23 @@
 set(SRCS BPMemLoader.cpp
-	   Clipper.cpp
-	   SWCommandProcessor.cpp
 	   CPMemLoader.cpp
+	   Clipper.cpp
 	   DebugUtil.cpp
 	   EfbCopy.cpp
 	   EfbInterface.cpp
-	   HwRasterizer.cpp
-	   SWmain.cpp
 	   OpcodeDecoder.cpp
-	   RasterFont.cpp
 	   Rasterizer.cpp
+	   SWCommandProcessor.cpp
+	   SWOGLWindow.cpp
 	   SWRenderer.cpp
-	   SetupUnit.cpp
 	   SWStatistics.cpp
+	   SWVertexLoader.cpp
+	   SWVideoConfig.cpp
+	   SWmain.cpp
+	   SetupUnit.cpp
 	   Tev.cpp
 	   TextureEncoder.cpp
 	   TextureSampler.cpp
 	   TransformUnit.cpp
-	   SWVertexLoader.cpp
-	   SWVideoConfig.cpp
 	   XFMemLoader.cpp)
 
 set(LIBS videocommon

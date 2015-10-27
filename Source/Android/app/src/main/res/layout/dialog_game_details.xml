@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_height="match_parent"
              android:layout_width="match_parent"
@@ -113,17 +114,20 @@
             android:gravity="center_vertical"
             tools:text="Nintendo"/>
 
-        <ImageButton
+        <android.support.design.widget.FloatingActionButton
             android:id="@+id/button_launch"
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_alignBottom="@+id/image_game_screen"
             android:layout_alignEnd="@+id/text_game_title"
             android:layout_marginBottom="-28dp"
-            android:background="@drawable/oval_ripple_accent"
             android:src="@drawable/ic_play"
             android:stateListAnimator="@anim/button_elevation"
-            android:elevation="4dp"/>
+            app:rippleColor="?android:colorPrimaryDark"
+            app:borderWidth="0dp"
+            app:elevation="6dp"
+            app:pressedTranslationZ="12dp"
+            />
     </RelativeLayout>
 
 

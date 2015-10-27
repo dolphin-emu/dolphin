@@ -5,10 +5,10 @@
 #pragma once
 
 #include <string>
-#include <polarssl/ctr_drbg.h>
-#include <polarssl/entropy.h>
-#include <polarssl/net.h>
-#include <polarssl/ssl.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/net.h>
+#include <mbedtls/ssl.h>
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
@@ -56,13 +56,14 @@ enum SSL_IOCTL
 
 struct WII_SSL
 {
-	ssl_context ctx;
-	ssl_session session;
-	entropy_context entropy;
-	ctr_drbg_context ctr_drbg;
-	x509_crt cacert;
-	x509_crt clicert;
-	pk_context pk;
+	mbedtls_ssl_context ctx;
+	mbedtls_ssl_config config;
+	mbedtls_ssl_session session;
+	mbedtls_entropy_context entropy;
+	mbedtls_ctr_drbg_context ctr_drbg;
+	mbedtls_x509_crt cacert;
+	mbedtls_x509_crt clicert;
+	mbedtls_pk_context pk;
 	int sockfd;
 	std::string hostname;
 	bool active;
@@ -76,11 +77,11 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ssl();
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
-	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
 	int GetSSLFreeID() const;
 

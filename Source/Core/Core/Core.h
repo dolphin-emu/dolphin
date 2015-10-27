@@ -16,11 +16,11 @@
 
 #include "Common/CommonTypes.h"
 
-// TODO: ugly, remove
-extern bool g_aspect_wide;
-
 namespace Core
 {
+
+// TODO: ugly, remove
+extern bool g_aspect_wide;
 
 extern bool g_want_determinism;
 
@@ -53,6 +53,7 @@ void SetState(EState _State);
 EState GetState();
 
 void SaveScreenShot();
+void SaveScreenShot(const std::string& name);
 
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 

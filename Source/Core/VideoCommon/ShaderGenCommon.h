@@ -32,8 +32,11 @@ public:
 	 * Can be used like printf.
 	 * @note In the ShaderCode implementation, this does indeed write the parameter string to an internal buffer. However, you're free to do whatever you like with the parameter.
 	 */
-	template<typename... Args>
-	void Write(const char*, Args...) {}
+	void Write(const char*, ...)
+#ifdef __GNUC__
+	__attribute__((format(printf, 2, 3)))
+#endif
+	{}
 
 	/*
 	 * Returns a read pointer to the internal buffer.
@@ -116,6 +119,9 @@ public:
 	}
 
 	void Write(const char* fmt, ...)
+#ifdef __GNUC__
+	__attribute__((format(printf, 2, 3)))
+#endif
 	{
 		va_list arglist;
 		va_start(arglist, fmt);
@@ -277,6 +283,29 @@ static inline void AssignVSOutputMembers(T& object, const char* a, const char* b
 		object.Write("\t%s.Normal = %s.Normal;\n", a, b);
 		object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
 	}
+}
+
+// We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the
+// pixel shader will be executed for each pixel which has at least one passed sample.
+// So there may be rendered pixels where the center of the pixel isn't in the primitive.
+// As the pixel shader usually renders at the center of the pixel, this position may be
+// outside the primitive. This will lead to sampling outside the texture, sign changes, ...
+// As a workaround, we interpolate at the centroid of the coveraged pixel, which
+// is always inside the primitive.
+// Without MSAA, this flag is defined to have no effect.
+static inline const char* GetInterpolationQualifier(API_TYPE api_type, bool in = true, bool in_out = false)
+{
+	if (!g_ActiveConfig.iMultisampleMode)
+		return "";
+
+	if (!g_ActiveConfig.bSSAA)
+	{
+		if (in_out && api_type == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsBindingLayout)
+			return in ? "centroid in" : "centroid out";
+		return "centroid";
+	}
+
+	return "sample";
 }
 
 // Constant variable names

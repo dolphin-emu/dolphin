@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 
@@ -22,42 +23,42 @@
 u8* g_video_buffer_read_ptr;
 u8* g_vertex_manager_write_ptr;
 
-static void LOADERDECL PosMtx_ReadDirect_UByte(VertexLoader* loader)
+static void PosMtx_ReadDirect_UByte(VertexLoader* loader)
 {
-	u32 posmtx = DataReadU8() & 0x3f;
+	u32 posmtx = DataRead<u8>() & 0x3f;
 	if (loader->m_counter < 3)
 		VertexLoaderManager::position_matrix_index[loader->m_counter] = posmtx;
 	DataWrite<u32>(posmtx);
 	PRIM_LOG("posmtx: %d, ", posmtx);
 }
 
-static void LOADERDECL TexMtx_ReadDirect_UByte(VertexLoader* loader)
+static void TexMtx_ReadDirect_UByte(VertexLoader* loader)
 {
-	loader->m_curtexmtx[loader->m_texmtxread] = DataReadU8() & 0x3f;
+	loader->m_curtexmtx[loader->m_texmtxread] = DataRead<u8>() & 0x3f;
 
 	PRIM_LOG("texmtx%d: %d, ", loader->m_texmtxread, loader->m_curtexmtx[loader->m_texmtxread]);
 	loader->m_texmtxread++;
 }
 
-static void LOADERDECL TexMtx_Write_Float(VertexLoader* loader)
+static void TexMtx_Write_Float(VertexLoader* loader)
 {
 	DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
-static void LOADERDECL TexMtx_Write_Float2(VertexLoader* loader)
+static void TexMtx_Write_Float2(VertexLoader* loader)
 {
 	DataWrite(0.f);
 	DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
-static void LOADERDECL TexMtx_Write_Float3(VertexLoader* loader)
+static void TexMtx_Write_Float3(VertexLoader* loader)
 {
 	DataWrite(0.f);
 	DataWrite(0.f);
 	DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
-static void LOADERDECL SkipVertex(VertexLoader* loader)
+static void SkipVertex(VertexLoader* loader)
 {
 	if (loader->m_vertexSkip)
 	{

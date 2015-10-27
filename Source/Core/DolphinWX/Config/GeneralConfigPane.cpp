@@ -22,12 +22,13 @@ GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id)
 	: wxPanel(parent, id)
 {
 	cpu_cores = {
-		{ 0, _("Interpreter (VERY slow)") },
+		{ PowerPC::CORE_INTERPRETER, _("Interpreter (slowest)") },
+		{ PowerPC::CORE_CACHEDINTERPRETER, _("Cached Interpreter (slower)") },
 #ifdef _M_X86_64
-		{ 1, _("JIT Recompiler (recommended)") },
-		{ 2, _("JITIL Recompiler (slower, experimental)") },
+		{ PowerPC::CORE_JIT64, _("JIT Recompiler (recommended)") },
+		{ PowerPC::CORE_JITIL64, _("JITIL Recompiler (slow, experimental)") },
 #elif defined(_M_ARM_64)
-		{ 4, _("Arm64 JIT (experimental)") },
+		{ PowerPC::CORE_JITARM64, _("JIT Arm64 (experimental)") },
 #endif
 	};
 
@@ -89,7 +90,7 @@ void GeneralConfigPane::InitializeGUI()
 
 void GeneralConfigPane::LoadGUIValues()
 {
-	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SConfig& startup_params = SConfig::GetInstance();
 
 	m_dual_core_checkbox->SetValue(startup_params.bCPUThread);
 	m_idle_skip_checkbox->SetValue(startup_params.bSkipIdle);
@@ -121,22 +122,22 @@ void GeneralConfigPane::OnDualCoreCheckBoxChanged(wxCommandEvent& event)
 	if (Core::IsRunning())
 		return;
 
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = m_dual_core_checkbox->IsChecked();
+	SConfig::GetInstance().bCPUThread = m_dual_core_checkbox->IsChecked();
 }
 
 void GeneralConfigPane::OnIdleSkipCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = m_idle_skip_checkbox->IsChecked();
+	SConfig::GetInstance().bSkipIdle = m_idle_skip_checkbox->IsChecked();
 }
 
 void GeneralConfigPane::OnCheatCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = m_cheats_checkbox->IsChecked();
+	SConfig::GetInstance().bEnableCheats = m_cheats_checkbox->IsChecked();
 }
 
 void GeneralConfigPane::OnForceNTSCJCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ = m_force_ntscj_checkbox->IsChecked();
+	SConfig::GetInstance().bForceNTSCJ = m_force_ntscj_checkbox->IsChecked();
 }
 
 void GeneralConfigPane::OnFrameLimitChoiceChanged(wxCommandEvent& event)
@@ -151,9 +152,9 @@ void GeneralConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)
 	if (main_frame->g_pCodeWindow)
 	{
 
-		bool using_interp = (SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore == PowerPC::CORE_INTERPRETER);
+		bool using_interp = (SConfig::GetInstance().iCPUCore == PowerPC::CORE_INTERPRETER);
 		main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER, using_interp);
 	}
 
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = cpu_cores[selection].CPUid;
+	SConfig::GetInstance().iCPUCore = cpu_cores[selection].CPUid;
 }

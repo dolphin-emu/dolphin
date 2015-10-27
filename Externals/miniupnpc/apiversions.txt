@@ -1,7 +1,47 @@
-$Id: apiversions.txt,v 1.2 2013/03/29 14:45:09 nanard Exp $
+$Id: apiversions.txt,v 1.7 2015/07/23 20:40:08 nanard Exp $
 
 Differences in API between miniUPnPc versions
 
+API version 14
+miniupnpc.h
+  add ttl argument to upnpDiscover() upnpDiscoverAll() upnpDiscoverDevice()
+  upnpDiscoverDevices()
+  getDevicesFromMiniSSDPD() :
+    connectToMiniSSDPD() / disconnectFromMiniSSDPD()
+    requestDevicesFromMiniSSDPD() / receiveDevicesFromMiniSSDPD()
+
+API version 13
+miniupnpc.h:
+  add searchalltype param to upnpDiscoverDevices() function
+  updated macro :
+    #define MINIUPNPC_API_VERSION  13
+
+API version 12
+miniupnpc.h :
+  add upnpDiscoverAll() / upnpDiscoverDevice() / upnpDiscoverDevices()
+    functions
+  updated macros :
+    #define MINIUPNPC_API_VERSION  12
+
+API version 11
+
+upnpreplyparse.h / portlistingparse.h :
+  removed usage of sys/queue.h / bsdqueue.h
+
+miniupnpc.h:
+  updated macros :
+    #define MINIUPNPC_API_VERSION  11
+
+====================== miniUPnPc version 1.9 ======================
+API version 10
+
+upnpcommands.h:
+  added argument remoteHost to UPNP_GetSpecificPortMappingEntry()
+
+miniupnpc.h:
+  updated macros :
+    #define MINIUPNPC_VERSION      "1.9"
+    #define MINIUPNPC_API_VERSION  10
 
 ====================== miniUPnPc version 1.8 ======================
 API version 9

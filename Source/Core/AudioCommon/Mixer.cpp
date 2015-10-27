@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Mixer.h"
 #include "Common/CPUDetect.h"
@@ -17,6 +19,18 @@
 #if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
 #include <tmmintrin.h>
 #endif
+
+CMixer::CMixer(unsigned int BackendSampleRate)
+	: m_dma_mixer(this, 32000)
+	, m_streaming_mixer(this, 48000)
+	, m_wiimote_speaker_mixer(this, 3000)
+	, m_sampleRate(BackendSampleRate)
+	, m_log_dtk_audio(false)
+	, m_log_dsp_audio(false)
+	, m_speed(0)
+{
+	INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
+}
 
 // Executed from sound stream thread
 unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
@@ -65,16 +79,14 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac) >> 16;
 		sampleL = (sampleL * lvolume) >> 8;
 		sampleL += samples[currentSample + 1];
-		MathUtil::Clamp(&sampleL, -32767, 32767);
-		samples[currentSample + 1] = sampleL;
+		samples[currentSample + 1] = MathUtil::Clamp(sampleL, -32767, 32767);
 
 		s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
 		s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
 		int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac) >> 16;
 		sampleR = (sampleR * rvolume) >> 8;
 		sampleR += samples[currentSample];
-		MathUtil::Clamp(&sampleR, -32767, 32767);
-		samples[currentSample] = sampleR;
+		samples[currentSample] = MathUtil::Clamp(sampleR, -32767, 32767);
 
 		m_frac += ratio;
 		indexR += 2 * (u16)(m_frac >> 16);
@@ -89,11 +101,10 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	s[1] = (s[1] * lvolume) >> 8;
 	for (; currentSample < numSamples * 2; currentSample += 2)
 	{
-		int sampleR = s[0] + samples[currentSample];
-		MathUtil::Clamp(&sampleR, -32767, 32767);
-		samples[currentSample] = sampleR;
-		int sampleL = s[1] + samples[currentSample + 1];
-		MathUtil::Clamp(&sampleL, -32767, 32767);
+		int sampleR = MathUtil::Clamp(s[0] + samples[currentSample + 0], -32767, 32767);
+		int sampleL = MathUtil::Clamp(s[1] + samples[currentSample + 1], -32767, 32767);
+
+		samples[currentSample + 0] = sampleR;
 		samples[currentSample + 1] = sampleL;
 	}
 
@@ -155,14 +166,14 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 {
 	m_dma_mixer.PushSamples(samples, num_samples);
 	if (m_log_dsp_audio)
-		g_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples);
+		m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples);
 }
 
 void CMixer::PushStreamingSamples(const short *samples, unsigned int num_samples)
 {
 	m_streaming_mixer.PushSamples(samples, num_samples);
 	if (m_log_dtk_audio)
-		g_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples);
+		m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples);
 }
 
 void CMixer::PushWiimoteSpeakerSamples(const short *samples, unsigned int num_samples, unsigned int sample_rate)
@@ -201,6 +212,64 @@ void CMixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
 void CMixer::SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume)
 {
 	m_wiimote_speaker_mixer.SetVolume(lvolume, rvolume);
+}
+
+void CMixer::StartLogDTKAudio(const std::string& filename)
+{
+	if (!m_log_dtk_audio)
+	{
+		m_log_dtk_audio = true;
+		m_wave_writer_dtk.Start(filename, 48000);
+		m_wave_writer_dtk.SetSkipSilence(false);
+		NOTICE_LOG(AUDIO, "Starting DTK Audio logging");
+	}
+	else
+	{
+		WARN_LOG(AUDIO, "DTK Audio logging has already been started");
+	}
+}
+
+void CMixer::StopLogDTKAudio()
+{
+	if (m_log_dtk_audio)
+	{
+		m_log_dtk_audio = false;
+		m_wave_writer_dtk.Stop();
+		NOTICE_LOG(AUDIO, "Stopping DTK Audio logging");
+	}
+	else
+	{
+		WARN_LOG(AUDIO, "DTK Audio logging has already been stopped");
+	}
+}
+
+void CMixer::StartLogDSPAudio(const std::string& filename)
+{
+	if (!m_log_dsp_audio)
+	{
+		m_log_dsp_audio = true;
+		m_wave_writer_dsp.Start(filename, 32000);
+		m_wave_writer_dsp.SetSkipSilence(false);
+		NOTICE_LOG(AUDIO, "Starting DSP Audio logging");
+	}
+	else
+	{
+		WARN_LOG(AUDIO, "DSP Audio logging has already been started");
+	}
+}
+
+void CMixer::StopLogDSPAudio()
+{
+	if (m_log_dsp_audio)
+	{
+		m_log_dsp_audio = false;
+		m_wave_writer_dsp.Stop();
+		NOTICE_LOG(AUDIO, "Stopping DSP Audio logging");
+	}
+	else
+	{
+		WARN_LOG(AUDIO, "DSP Audio logging has already been stopped");
+	}
 }
 
 void CMixer::MixerFifo::SetInputSampleRate(unsigned int rate)

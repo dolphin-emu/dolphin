@@ -20,10 +20,10 @@ private:
 	class Button : public Input
 	{
 	public:
-		std::string GetName() const;
 		Button(IOHIDElementRef element, IOHIDDeviceRef device)
 			: m_element(element), m_device(device) {}
-		ControlState GetState() const;
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const IOHIDElementRef m_element;
 		const IOHIDDeviceRef  m_device;
@@ -37,9 +37,10 @@ private:
 			positive = 0,
 			negative
 		};
-		std::string GetName() const;
+
 		Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction dir);
-		ControlState GetState() const;
+		std::string GetName() const override;
+		ControlState GetState() const override;
 
 	private:
 		const IOHIDElementRef m_element;
@@ -60,9 +61,10 @@ private:
 			down,
 			left
 		};
-		std::string GetName() const;
+
 		Hat(IOHIDElementRef element, IOHIDDeviceRef device, direction dir);
-		ControlState GetState() const;
+		std::string GetName() const override;
+		ControlState GetState() const override;
 
 	private:
 		const IOHIDElementRef m_element;
@@ -75,9 +77,9 @@ public:
 	Joystick(IOHIDDeviceRef device, std::string name, int index);
 	~Joystick();
 
-	std::string GetName() const;
-	std::string GetSource() const;
-	int GetId() const;
+	std::string GetName() const override;
+	std::string GetSource() const override;
+	int GetId() const override;
 
 private:
 	const IOHIDDeviceRef m_device;

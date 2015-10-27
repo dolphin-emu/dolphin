@@ -3,13 +3,18 @@
 // Refer to the license.txt file included.
 
 #include <cstddef>
+#include <cstring>
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
@@ -18,8 +23,8 @@
 
 namespace DiscIO
 {
-CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
-	: m_pReader(_pReader), m_offset(0), m_tmd_offset(0), m_opening_bnr_offset(0),
+CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader)
+	: m_pReader(std::move(reader)), m_offset(0), m_tmd_offset(0), m_opening_bnr_offset(0),
 	m_hdr_size(0), m_cert_size(0), m_tick_size(0), m_tmd_size(0), m_data_size(0)
 {
 	// Source: http://wiibrew.org/wiki/WAD_files
@@ -70,36 +75,33 @@ IVolume::ECountry CVolumeWAD::GetCountry() const
 
 std::string CVolumeWAD::GetUniqueID() const
 {
-	std::string temp = GetMakerID();
-
-	char GameCode[8];
+	char GameCode[6];
 	if (!Read(m_offset + 0x01E0, 4, (u8*)GameCode))
 		return "0";
 
+	std::string temp = GetMakerID();
 	GameCode[4] = temp.at(0);
 	GameCode[5] = temp.at(1);
-	GameCode[6] = 0;
 
-	return GameCode;
+	return DecodeString(GameCode);
 }
 
 std::string CVolumeWAD::GetMakerID() const
 {
-	char temp[3] = {1};
+	char temp[2] = {1};
 	// Some weird channels use 0x0000 in place of the MakerID, so we need a check there
 	if (!Read(0x198 + m_tmd_offset, 2, (u8*)temp) || temp[0] == 0 || temp[1] == 0)
 		return "00";
 
-	temp[2] = 0;
-
-	return temp;
+	return DecodeString(temp);
 }
 
-bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
+bool CVolumeWAD::GetTitleID(u64* buffer) const
 {
-	if (!Read(m_offset + 0x01DC, 8, _pBuffer))
+	if (!Read(m_offset + 0x01DC, sizeof(u64), reinterpret_cast<u8*>(buffer)))
 		return false;
 
+	*buffer = Common::swap64(*buffer);
 	return true;
 }
 
@@ -123,6 +125,11 @@ std::map<IVolume::ELanguage, std::string> CVolumeWAD::GetNames(bool prefer_long)
 	if (!Read(m_opening_bnr_offset + 0x9C, NAMES_TOTAL_BYTES, name_data.data()))
 		return std::map<IVolume::ELanguage, std::string>();
 	return ReadWiiNames(name_data);
+}
+
+BlobType CVolumeWAD::GetBlobType() const
+{
+	return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
 }
 
 u64 CVolumeWAD::GetSize() const

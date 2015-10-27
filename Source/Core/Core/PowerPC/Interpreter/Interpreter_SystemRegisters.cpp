@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/FPURoundMode.h"
 #include "Core/HW/GPFifo.h"
@@ -448,11 +450,10 @@ void Interpreter::mcrfs(UGeckoInstruction _inst)
 void Interpreter::mffsx(UGeckoInstruction _inst)
 {
 	// load from FPSCR
-	// This may or may not be accurate - but better than nothing, I guess
 	// TODO(ector): grab all overflow flags etc and set them in FPSCR
 
 	UpdateFPSCR();
-	riPS0(_inst.FD) = (u64)FPSCR.Hex;
+	riPS0(_inst.FD) = 0xFFF8000000000000 | FPSCR.Hex;
 
 	if (_inst.Rc)
 		PanicAlert("mffsx: inst_.Rc");

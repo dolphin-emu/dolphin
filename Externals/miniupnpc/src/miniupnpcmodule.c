@@ -1,12 +1,12 @@
-/* $Id: miniupnpcmodule.c,v 1.21 2012/08/29 07:51:30 nanard Exp $*/
+/* $Id: miniupnpcmodule.c,v 1.24 2014/06/10 09:48:11 nanard Exp $*/
 /* Project : miniupnp
  * Author : Thomas BERNARD
  * website : http://miniupnp.tuxfamily.org/
- * copyright (c) 2007-2012 Thomas Bernard
+ * copyright (c) 2007-2014 Thomas Bernard
  * This software is subjet to the conditions detailed in the
  * provided LICENCE file. */
 #include <Python.h>
-#define STATICLIB
+#define MINIUPNP_STATICLIB
 #include "structmember.h"
 #include "miniupnpc.h"
 #include "upnpcommands.h"
@@ -58,17 +58,42 @@ static PyMemberDef UPnP_members[] = {
 	{"multicastif", T_STRING, offsetof(UPnPObject, multicastif),
 	 0, "IP of the network interface to be used for multicast operations"
 	},
-	{"minissdpdsocket", T_STRING, offsetof(UPnPObject, multicastif),
+	{"minissdpdsocket", T_STRING, offsetof(UPnPObject, minissdpdsocket),
 	 0, "path of the MiniSSDPd unix socket"
 	},
 	{NULL}
 };
+
+
+static int UPnP_init(UPnPObject *self, PyObject *args, PyObject *kwds)
+{
+	char* multicastif = NULL;
+	char* minissdpdsocket = NULL;
+	static char *kwlist[] = {
+		"multicastif", "minissdpdsocket", "discoverdelay", NULL
+	};
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|zzI", kwlist, 
+					&multicastif,
+					&minissdpdsocket,
+					&self->discoverdelay))
+		return -1; 
+
+	if(multicastif)
+		self->multicastif = strdup(multicastif);
+	if(minissdpdsocket)
+		self->minissdpdsocket = strdup(minissdpdsocket);
+
+	return 0;
+}
 
 static void
 UPnPObject_dealloc(UPnPObject *self)
 {
 	freeUPNPDevlist(self->devlist);
 	FreeUPNPUrls(&self->urls);
+	free(self->multicastif);
+	free(self->minissdpdsocket);
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -85,10 +110,11 @@ UPnP_discover(UPnPObject *self)
 	}
 	Py_BEGIN_ALLOW_THREADS
 	self->devlist = upnpDiscover((int)self->discoverdelay/*timeout in ms*/,
-	                             0/* multicast if*/,
-	                             0/*minissdpd socket*/,
-								 0/*sameport flag*/,
+	                             self->multicastif,
+	                             self->minissdpdsocket,
+	                             0/*sameport flag*/,
 	                             0/*ip v6*/,
+	                             2/* TTL */,
 	                             0/*error */);
 	Py_END_ALLOW_THREADS
 	/* Py_RETURN_NONE ??? */
@@ -265,6 +291,42 @@ Py_END_ALLOW_THREADS
 	}
 }
 
+/* AddAnyPortMapping(externalPort, protocol, internalHost, internalPort, desc,
+ *                   remoteHost)
+ * protocol is 'UDP' or 'TCP' */
+static PyObject *
+UPnP_addanyportmapping(UPnPObject *self, PyObject *args)
+{
+	char extPort[6];
+	unsigned short ePort;
+	char inPort[6];
+	unsigned short iPort;
+	char reservedPort[6];
+	const char * proto;
+	const char * host;
+	const char * desc;
+	const char * remoteHost;
+	const char * leaseDuration = "0";
+	int r;
+	if (!PyArg_ParseTuple(args, "HssHss", &ePort, &proto, &host, &iPort, &desc, &remoteHost))
+        return NULL;
+Py_BEGIN_ALLOW_THREADS
+	sprintf(extPort, "%hu", ePort);
+	sprintf(inPort, "%hu", iPort);
+	r = UPNP_AddAnyPortMapping(self->urls.controlURL, self->data.first.servicetype,
+	                           extPort, inPort, host, desc, proto,
+	                           remoteHost, leaseDuration, reservedPort);
+Py_END_ALLOW_THREADS
+	if(r==UPNPCOMMAND_SUCCESS) {
+		return Py_BuildValue("i", atoi(reservedPort));
+	} else {
+		/* TODO: have our own exception type ! */
+		PyErr_SetString(PyExc_Exception, strupnperror(r));
+		return NULL;
+	}
+}
+
+
 /* DeletePortMapping(extPort, proto, removeHost='')
  * proto = 'UDP', 'TCP' */
 static PyObject *
@@ -281,6 +343,37 @@ Py_BEGIN_ALLOW_THREADS
 	sprintf(extPort, "%hu", ePort);
 	r = UPNP_DeletePortMapping(self->urls.controlURL, self->data.first.servicetype,
 	                           extPort, proto, remoteHost);
+Py_END_ALLOW_THREADS
+	if(r==UPNPCOMMAND_SUCCESS) {
+		Py_RETURN_TRUE;
+	} else {
+		/* TODO: have our own exception type ! */
+		PyErr_SetString(PyExc_Exception, strupnperror(r));
+		return NULL;
+	}
+}
+
+/* DeletePortMappingRange(extPort, proto, removeHost='')
+ * proto = 'UDP', 'TCP' */
+static PyObject *
+UPnP_deleteportmappingrange(UPnPObject *self, PyObject *args)
+{
+	char extPortStart[6];
+	unsigned short ePortStart;
+	char extPortEnd[6];
+	unsigned short ePortEnd;
+	const char * proto;
+	unsigned char manage;
+	char manageStr[1];
+	int r;
+	if(!PyArg_ParseTuple(args, "HHsb", &ePortStart, &ePortEnd, &proto, &manage))
+		return NULL;
+Py_BEGIN_ALLOW_THREADS
+	sprintf(extPortStart, "%hu", ePortStart);
+	sprintf(extPortEnd, "%hu", ePortEnd);
+	sprintf(manageStr, "%hhu", manage);
+	r = UPNP_DeletePortMappingRange(self->urls.controlURL, self->data.first.servicetype,
+					extPortStart, extPortEnd, proto, manageStr);
 Py_END_ALLOW_THREADS
 	if(r==UPNPCOMMAND_SUCCESS) {
 		Py_RETURN_TRUE;
@@ -310,7 +403,7 @@ Py_END_ALLOW_THREADS
 	}
 }
 
-/* GetSpecificPortMapping(ePort, proto)
+/* GetSpecificPortMapping(ePort, proto, remoteHost='')
  * proto = 'UDP' or 'TCP' */
 static PyObject *
 UPnP_getspecificportmapping(UPnPObject *self, PyObject *args)
@@ -318,13 +411,14 @@ UPnP_getspecificportmapping(UPnPObject *self, PyObject *args)
 	char extPort[6];
 	unsigned short ePort;
 	const char * proto;
+	const char * remoteHost = "";
 	char intClient[40];
 	char intPort[6];
 	unsigned short iPort;
 	char desc[80];
 	char enabled[4];
 	char leaseDuration[16];
-	if(!PyArg_ParseTuple(args, "Hs", &ePort, &proto))
+	if(!PyArg_ParseTuple(args, "Hs|z", &ePort, &proto, &remoteHost))
 		return NULL;
 	extPort[0] = '\0'; intClient[0] = '\0'; intPort[0] = '\0';
 	desc[0] = '\0'; enabled[0] = '\0'; leaseDuration[0] = '\0';
@@ -332,7 +426,7 @@ Py_BEGIN_ALLOW_THREADS
 	sprintf(extPort, "%hu", ePort);
 	UPNP_GetSpecificPortMappingEntry(self->urls.controlURL,
 	                                 self->data.first.servicetype,
-									 extPort, proto,
+									 extPort, proto, remoteHost,
 									 intClient, intPort,
 	                                 desc, enabled, leaseDuration);
 Py_END_ALLOW_THREADS
@@ -428,8 +522,14 @@ static PyMethodDef UPnP_methods[] = {
 	{"addportmapping", (PyCFunction)UPnP_addportmapping, METH_VARARGS,
 	 "add a port mapping"
 	},
+	{"addanyportmapping", (PyCFunction)UPnP_addanyportmapping, METH_VARARGS,
+	 "add a port mapping, IGD to select alternative if necessary"
+	},
 	{"deleteportmapping", (PyCFunction)UPnP_deleteportmapping, METH_VARARGS,
 	 "delete a port mapping"
+	},
+	{"deleteportmappingrange", (PyCFunction)UPnP_deleteportmappingrange, METH_VARARGS,
+	 "delete a range of port mappings"
 	},
 	{"getportmappingnumberofentries", (PyCFunction)UPnP_getportmappingnumberofentries, METH_NOARGS,
 	 "-- non standard --"
@@ -480,7 +580,7 @@ static PyTypeObject UPnPType = {
     0,                         /* tp_descr_get */
     0,                         /* tp_descr_set */
     0,                         /* tp_dictoffset */
-    0,/*(initproc)UPnP_init,*/      /* tp_init */
+    (initproc)UPnP_init,       /* tp_init */
     0,                         /* tp_alloc */
 #ifndef _WIN32
     PyType_GenericNew,/*UPnP_new,*/      /* tp_new */
@@ -525,7 +625,11 @@ initminiupnpc(void)
     UPnPType.tp_new = PyType_GenericNew;
 #endif
     if (PyType_Ready(&UPnPType) < 0)
+#if PY_MAJOR_VERSION >= 3
+        return 0;
+#else
         return;
+#endif
 
 #if PY_MAJOR_VERSION >= 3
     m = PyModule_Create(&moduledef);
@@ -536,7 +640,7 @@ initminiupnpc(void)
 
     Py_INCREF(&UPnPType);
     PyModule_AddObject(m, "UPnP", (PyObject *)&UPnPType);
-    
+
 #if PY_MAJOR_VERSION >= 3
     return m;
 #endif

@@ -8,10 +8,12 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
+#include "Common/Logging/Log.h"
 
 SysConf::SysConf()
 	: m_IsValid(false)

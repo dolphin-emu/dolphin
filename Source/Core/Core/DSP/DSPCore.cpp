@@ -3,6 +3,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <array>
+
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
@@ -33,7 +37,9 @@ static bool VerifyRoms()
 	{
 		u32 hash_irom; // dsp_rom.bin
 		u32 hash_drom; // dsp_coef.bin
-	} KNOWN_ROMS[] = {
+	};
+
+	static const std::array<DspRomHashes, 4> known_roms = {{
 		// Official Nintendo ROM
 		{ 0x66f334fe, 0xf3b93527 },
 
@@ -42,18 +48,21 @@ static bool VerifyRoms()
 
 		// delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
 		// IPL/Card/GBA still broken)
-		{ 0xd9907f71, 0xb019c2fb }
-	};
+		{ 0xd9907f71, 0xb019c2fb },
+
+		// above with improved resampling coefficients
+		{ 0xd9907f71, 0xdb6880c1 }
+	}};
 
 	u32 hash_irom = HashAdler32((u8*)g_dsp.irom, DSP_IROM_BYTE_SIZE);
 	u32 hash_drom = HashAdler32((u8*)g_dsp.coef, DSP_COEF_BYTE_SIZE);
 	int rom_idx = -1;
 
-	for (u32 i = 0; i < sizeof (KNOWN_ROMS) / sizeof (KNOWN_ROMS[0]); ++i)
+	for (size_t i = 0; i < known_roms.size(); ++i)
 	{
-		DspRomHashes& rom = KNOWN_ROMS[i];
+		const DspRomHashes& rom = known_roms[i];
 		if (hash_irom == rom.hash_irom && hash_drom == rom.hash_drom)
-			rom_idx = i;
+			rom_idx = static_cast<int>(i);
 	}
 
 	if (rom_idx < 0)
@@ -69,7 +78,7 @@ static bool VerifyRoms()
 		DSPHost::OSD_AddMessage("You are using an old free DSP ROM made by the Dolphin Team.", 6000);
 		DSPHost::OSD_AddMessage("Only games using the Zelda UCode will work correctly.", 6000);
 	}
-	else if (rom_idx == 2)
+	else if (rom_idx == 2 || rom_idx == 3)
 	{
 		DSPHost::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
 		DSPHost::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
@@ -112,33 +121,20 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 
 	memset(&g_dsp.r,0,sizeof(g_dsp.r));
 
-	for (int i = 0; i < 4; i++)
-	{
-		g_dsp.reg_stack_ptr[i] = 0;
-		for (int j = 0; j < DSP_STACK_DEPTH; j++)
-		{
-			g_dsp.reg_stack[i][j] = 0;
-		}
-	}
+	std::fill(std::begin(g_dsp.reg_stack_ptr), std::end(g_dsp.reg_stack_ptr), 0);
+
+	for (size_t i = 0; i < ArraySize(g_dsp.reg_stack); i++)
+		std::fill(std::begin(g_dsp.reg_stack[i]), std::end(g_dsp.reg_stack[i]), 0);
 
 	// Fill IRAM with HALT opcodes.
-	for (int i = 0; i < DSP_IRAM_SIZE; i++)
-	{
-		g_dsp.iram[i] = 0x0021; // HALT opcode
-	}
+	std::fill(g_dsp.iram, g_dsp.iram + DSP_IRAM_SIZE, 0x0021);
 
 	// Just zero out DRAM.
-	for (int i = 0; i < DSP_DRAM_SIZE; i++)
-	{
-		g_dsp.dram[i] = 0;
-	}
+	std::fill(g_dsp.dram, g_dsp.dram + DSP_DRAM_SIZE, 0);
 
 	// Copied from a real console after the custom UCode has been loaded.
 	// These are the indexing wrapping registers.
-	g_dsp.r.wr[0] = 0xffff;
-	g_dsp.r.wr[1] = 0xffff;
-	g_dsp.r.wr[2] = 0xffff;
-	g_dsp.r.wr[3] = 0xffff;
+	std::fill(std::begin(g_dsp.r.wr), std::end(g_dsp.r.wr), 0xffff);
 
 	g_dsp.r.sr |= SR_INT_ENABLE;
 	g_dsp.r.sr |= SR_EXT_INT_ENABLE;
@@ -181,10 +177,7 @@ void DSPCore_Reset()
 {
 	g_dsp.pc = DSP_RESET_VECTOR;
 
-	g_dsp.r.wr[0] = 0xffff;
-	g_dsp.r.wr[1] = 0xffff;
-	g_dsp.r.wr[2] = 0xffff;
-	g_dsp.r.wr[3] = 0xffff;
+	std::fill(std::begin(g_dsp.r.wr), std::end(g_dsp.r.wr), 0xffff);
 
 	DSPAnalyzer::Analyze();
 }

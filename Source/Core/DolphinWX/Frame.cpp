@@ -34,7 +34,6 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
@@ -147,7 +146,7 @@ bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
 	std::string internal_game_id(game_id_length, ' ');
 	file.read(&internal_game_id[0], game_id_length);
 
-	return internal_game_id == SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
+	return internal_game_id == SConfig::GetInstance().GetUniqueID();
 }
 
 #ifdef _WIN32
@@ -160,7 +159,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 			{
 				case SC_SCREENSAVE:
 				case SC_MONITORPOWER:
-					if (Core::GetState() == Core::CORE_RUN && SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+					if (Core::GetState() == Core::CORE_RUN && SConfig::GetInstance().bDisableScreenSaver)
 						break;
 				default:
 					return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
@@ -175,7 +174,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 				break;
 
 			case WM_USER_SETCURSOR:
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+				if (SConfig::GetInstance().bHideCursor &&
 					main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
 					SetCursor(wxCURSOR_BLANK);
 				else
@@ -208,7 +207,7 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 		// Some backends don't support exclusive fullscreen, so we
 		// can't tell exactly when exclusive mode is activated.
 		if (!g_Config.backend_info.bSupportsExclusiveFullscreen)
-			OSD::AddMessage("Enabled exclusive fullscreen.");
+			OSD::AddMessage("Entered exclusive fullscreen.");
 	}
 #endif
 
@@ -309,7 +308,7 @@ EVT_MENU(IDM_SAVE_SELECTED_SLOT, CFrame::OnSaveCurrentSlot)
 EVT_MENU(IDM_LOAD_SELECTED_SLOT, CFrame::OnLoadCurrentSlot)
 
 EVT_MENU_RANGE(IDM_LOAD_SLOT_1, IDM_LOAD_SLOT_10, CFrame::OnLoadState)
-EVT_MENU_RANGE(IDM_LOAD_LAST_1, IDM_LOAD_LAST_8, CFrame::OnLoadLastState)
+EVT_MENU_RANGE(IDM_LOAD_LAST_1, IDM_LOAD_LAST_10, CFrame::OnLoadLastState)
 EVT_MENU_RANGE(IDM_SAVE_SLOT_1, IDM_SAVE_SLOT_10, CFrame::OnSaveState)
 EVT_MENU_RANGE(IDM_SELECT_SLOT_1, IDM_SELECT_SLOT_10, CFrame::OnSelectSlot)
 EVT_MENU_RANGE(IDM_FRAME_SKIP_0, IDM_FRAME_SKIP_9, CFrame::OnFrameSkip)
@@ -393,7 +392,7 @@ CFrame::CFrame(wxFrame* parent,
 	// Debugger class
 	if (UseDebugger)
 	{
-		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, IDM_CODE_WINDOW);
+		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance(), this, IDM_CODE_WINDOW);
 		LoadIniPerspectives();
 		g_pCodeWindow->Load();
 	}
@@ -562,16 +561,16 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			if (SConfig::GetInstance().bRenderToMain)
 				m_RenderParent->SetFocus();
 
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+			if (SConfig::GetInstance().bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
 				m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		}
 		else
 		{
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			if (SConfig::GetInstance().bHideCursor)
 				m_RenderParent->SetCursor(wxNullCursor);
 		}
 	}
@@ -642,10 +641,10 @@ void CFrame::OnMove(wxMoveEvent& event)
 	event.Skip();
 
 	if (!IsMaximized() &&
-		!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
+		!(SConfig::GetInstance().bRenderToMain && RendererIsFullscreen()))
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = GetPosition().x;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = GetPosition().y;
+		SConfig::GetInstance().iPosX = GetPosition().x;
+		SConfig::GetInstance().iPosY = GetPosition().y;
 	}
 }
 
@@ -654,13 +653,13 @@ void CFrame::OnResize(wxSizeEvent& event)
 	event.Skip();
 
 	if (!IsMaximized() &&
-		!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()) &&
+		!(SConfig::GetInstance().bRenderToMain && RendererIsFullscreen()) &&
 		!(Core::GetState() != Core::CORE_UNINITIALIZED &&
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize))
+			SConfig::GetInstance().bRenderToMain &&
+			SConfig::GetInstance().bRenderWindowAutoSize))
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
+		SConfig::GetInstance().iWidth = GetSize().GetWidth();
+		SConfig::GetInstance().iHeight = GetSize().GetHeight();
 	}
 
 	// Make sure the logger pane is a sane size
@@ -700,7 +699,7 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 
 void CFrame::UpdateTitle(const std::string &str)
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+	if (SConfig::GetInstance().bRenderToMain &&
 	    SConfig::GetInstance().m_InterfaceStatusbar)
 	{
 		GetStatusBar()->SetStatusText(str, 0);
@@ -754,7 +753,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case WM_USER_CREATE:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		if (SConfig::GetInstance().bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
 
@@ -777,13 +776,29 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case IDM_STOPPED:
 		OnStopped();
 		break;
+
+	case IDM_FORCE_CONNECT_WIIMOTE1:
+	case IDM_FORCE_CONNECT_WIIMOTE2:
+	case IDM_FORCE_CONNECT_WIIMOTE3:
+	case IDM_FORCE_CONNECT_WIIMOTE4:
+	case IDM_FORCE_CONNECT_BALANCEBOARD:
+		ConnectWiimote(event.GetId() - IDM_FORCE_CONNECT_WIIMOTE1, true);
+		break;
+
+	case IDM_FORCE_DISCONNECT_WIIMOTE1:
+	case IDM_FORCE_DISCONNECT_WIIMOTE2:
+	case IDM_FORCE_DISCONNECT_WIIMOTE3:
+	case IDM_FORCE_DISCONNECT_WIIMOTE4:
+	case IDM_FORCE_DISCONNECT_BALANCEBOARD:
+		ConnectWiimote(event.GetId() - IDM_FORCE_DISCONNECT_WIIMOTE1, false);
+		break;
 	}
 }
 
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
 	if (!Core::IsRunning() ||
-			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize ||
+			!SConfig::GetInstance().bRenderWindowAutoSize ||
 			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
 		return;
 
@@ -791,7 +806,7 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 	m_RenderFrame->GetClientSize(&old_width, &old_height);
 
 	// Add space for the log/console/debugger window
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+	if (SConfig::GetInstance().bRenderToMain &&
 			(SConfig::GetInstance().m_InterfaceLogWindow ||
 			 SConfig::GetInstance().m_InterfaceLogConfigWindow) &&
 			!m_Mgr->GetPane("Pane 1").IsFloating())
@@ -989,6 +1004,8 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_LOAD_LAST_STATE_6: return IDM_LOAD_LAST_6;
 	case HK_LOAD_LAST_STATE_7: return IDM_LOAD_LAST_7;
 	case HK_LOAD_LAST_STATE_8: return IDM_LOAD_LAST_8;
+	case HK_LOAD_LAST_STATE_9: return IDM_LOAD_LAST_9;
+	case HK_LOAD_LAST_STATE_10: return IDM_LOAD_LAST_10;
 
 	case HK_SAVE_FIRST_STATE: return IDM_SAVE_FIRST_STATE;
 	case HK_UNDO_LOAD_STATE: return IDM_UNDO_LOAD_STATE;
@@ -1056,16 +1073,6 @@ void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controll
 	{
 		main_frame->g_TASInputDlg[controllerID + 4]->GetValues(data, rptf, ext, key);
 	}
-}
-
-bool TASInputHasFocus()
-{
-	for (int i = 0; i < 8; ++i)
-	{
-		if (main_frame->g_TASInputDlg[i]->TASHasFocus())
-			return true;
-	}
-	return false;
 }
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
@@ -1148,7 +1155,7 @@ void CFrame::OnFocusChange(wxFocusEvent& event)
 			if (Core::GetState() == Core::CORE_PAUSE)
 			{
 				Core::SetState(Core::CORE_RUN);
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+				if (SConfig::GetInstance().bHideCursor)
 					m_RenderParent->SetCursor(wxCURSOR_BLANK);
 			}
 		}
@@ -1157,7 +1164,7 @@ void CFrame::OnFocusChange(wxFocusEvent& event)
 			if (Core::GetState() == Core::CORE_RUN)
 			{
 				Core::SetState(Core::CORE_PAUSE);
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+				if (SConfig::GetInstance().bHideCursor)
 					m_RenderParent->SetCursor(wxNullCursor);
 				Core::UpdateTitle();
 			}
@@ -1203,7 +1210,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	}
 #endif
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	if (SConfig::GetInstance().bRenderToMain)
 	{
 		if (enable_fullscreen)
 		{
@@ -1355,20 +1362,13 @@ void CFrame::ParseHotkeys()
 		WiimoteId = 4;
 
 	// Actually perform the Wiimote connection or disconnection
-	if (WiimoteId >= 0 && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (WiimoteId >= 0 && SConfig::GetInstance().bWii)
 	{
 		wxCommandEvent evt;
 		evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);
 		OnConnectWiimote(evt);
 	}
 
-	if (IsHotkey(HK_TOGGLE_IR))
-	{
-		OSDChoice = 1;
-		// Toggle native resolution
-		if (++g_Config.iEFBScale > SCALE_4X)
-			g_Config.iEFBScale = SCALE_AUTO;
-	}
 	if (IsHotkey(HK_INCREASE_IR))
 	{
 		OSDChoice = 1;
@@ -1377,8 +1377,8 @@ void CFrame::ParseHotkeys()
 	if (IsHotkey(HK_DECREASE_IR))
 	{
 		OSDChoice = 1;
-		if (--g_Config.iEFBScale < SCALE_1X)
-			g_Config.iEFBScale = SCALE_1X;
+		if (--g_Config.iEFBScale < SCALE_AUTO)
+			g_Config.iEFBScale = SCALE_AUTO;
 	}
 	if (IsHotkey(HK_TOGGLE_AR))
 	{
@@ -1416,29 +1416,73 @@ void CFrame::ParseHotkeys()
 	{
 		State::Load(g_saveSlot);
 	}
-	if (IsHotkey(HK_DECREASE_DEPTH, true))
+
+	auto savePreset = [](const std::string& param, int value)
+	{
+		IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
+		localIni.GetOrCreateSection("Enhancements")->Set(
+			StringFromFormat("Stereo%s_%d", param.c_str(), g_Config.iStereoActivePreset),
+			value);
+		std::string iniFileName = File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini";
+		OSD::AddMessage(StringFromFormat("%s: %d", param.c_str(), value) , 1000);
+		localIni.Save(iniFileName);
+	};
+
+	if (IsHotkey(HK_DECREASE_DEPTH))
 	{
 		if (--g_Config.iStereoDepth < 0)
 			g_Config.iStereoDepth = 0;
+		g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth = g_Config.iStereoDepth;
+		savePreset("Depth", g_Config.iStereoDepth);
 	}
-	if (IsHotkey(HK_INCREASE_DEPTH, true))
+	if (IsHotkey(HK_INCREASE_DEPTH))
 	{
 		if (++g_Config.iStereoDepth > 100)
 			g_Config.iStereoDepth = 100;
+		g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth = g_Config.iStereoDepth;
+		savePreset("Depth", g_Config.iStereoDepth);
 	}
-	if (IsHotkey(HK_DECREASE_CONVERGENCE, true))
+	if (IsHotkey(HK_DECREASE_CONVERGENCE))
 	{
 		g_Config.iStereoConvergence -= 5;
 		if (g_Config.iStereoConvergence < 0)
 			g_Config.iStereoConvergence = 0;
+		g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence = g_Config.iStereoConvergence;
+		savePreset("Convergence", g_Config.iStereoConvergence);
 	}
-	if (IsHotkey(HK_INCREASE_CONVERGENCE, true))
+	if (IsHotkey(HK_INCREASE_CONVERGENCE))
 	{
 		g_Config.iStereoConvergence += 5;
 		if (g_Config.iStereoConvergence > 500)
 			g_Config.iStereoConvergence = 500;
+		g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence = g_Config.iStereoConvergence;
+		savePreset("Convergence", g_Config.iStereoConvergence);
 	}
 
+	if (IsHotkey(HK_SWITCH_STEREOSCOPY_PRESET))
+	{
+		g_Config.iStereoActivePreset = !g_Config.iStereoActivePreset;
+		g_Config.iStereoConvergence = g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence;
+		g_Config.iStereoDepth = g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth;
+	}
+	if (IsHotkey(HK_USE_STEREOSCOPY_PRESET_0))
+	{
+		g_Config.iStereoActivePreset = 0;
+		g_Config.iStereoConvergence = g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence;
+		g_Config.iStereoDepth = g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth;
+	}
+	if (IsHotkey(HK_USE_STEREOSCOPY_PRESET_1))
+	{
+		g_Config.iStereoActivePreset = 1;
+		g_Config.iStereoConvergence = g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence;
+		g_Config.iStereoDepth = g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth;
+	}
+	if (IsHotkey(HK_USE_STEREOSCOPY_PRESET_2))
+	{
+		g_Config.iStereoActivePreset = 2;
+		g_Config.iStereoConvergence = g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence;
+		g_Config.iStereoDepth = g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth;
+	}
 	static float debugSpeed = 1.0f;
 	if (IsHotkey(HK_FREELOOK_DECREASE_SPEED, true))
 		debugSpeed /= 1.1f;
@@ -1462,7 +1506,7 @@ void CFrame::ParseHotkeys()
 		VertexShaderManager::ResetView();
 
 	// Savestates
-	for (int i = 0; i < 10; i++)
+	for (u32 i = 0; i < State::NUM_STATES; i++)
 	{
 		if (IsHotkey(HK_LOAD_STATE_SLOT_1 + i))
 			State::Load(1 + i);

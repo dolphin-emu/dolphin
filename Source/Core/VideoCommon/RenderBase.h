@@ -17,6 +17,7 @@
 #include <mutex>
 #include <string>
 
+#include "Common/Event.h"
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
 #include "VideoCommon/BPMemory.h"
@@ -108,7 +109,7 @@ public:
 
 	virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) = 0;
 	virtual void ReinterpretPixelData(unsigned int convtype) = 0;
-	static void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidth, u32 fbHeight, float Gamma = 1.0f);
+	static void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight, float Gamma = 1.0f);
 
 	virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) = 0;
 	virtual void PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data);
@@ -132,6 +133,8 @@ public:
 	PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor; }
 	// Max height/width
 	virtual int GetMaxTextureSize() = 0;
+
+	static Common::Event s_screenshotCompleted;
 
 protected:
 

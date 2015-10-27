@@ -50,8 +50,8 @@
 
 #define FALLBACK_IF(cond) do { if (cond) { FallBackToInterpreter(inst); return; } } while (0)
 
-#define JITDISABLE(setting) FALLBACK_IF(SConfig::GetInstance().m_LocalCoreStartupParameter.bJITOff || \
-                                        SConfig::GetInstance().m_LocalCoreStartupParameter.setting)
+#define JITDISABLE(setting) FALLBACK_IF(SConfig::GetInstance().bJITOff || \
+                                        SConfig::GetInstance().setting)
 
 class JitBase : public CPUCoreBase
 {

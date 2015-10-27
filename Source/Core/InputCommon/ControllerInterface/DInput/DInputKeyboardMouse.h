@@ -32,9 +32,9 @@ private:
 	class Key : public Input
 	{
 	public:
-		std::string GetName() const;
-		Key(u8 index, const BYTE& key) : m_index(index), m_key(key) {}
-		ControlState GetState() const;
+		Key(u8 index, const BYTE& key) : m_key(key), m_index(index) {}
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const BYTE& m_key;
 		const u8 m_index;
@@ -43,9 +43,9 @@ private:
 	class Button : public Input
 	{
 	public:
-		std::string GetName() const;
-		Button(u8 index, const BYTE& button) : m_index(index), m_button(button) {}
-		ControlState GetState() const;
+		Button(u8 index, const BYTE& button) : m_button(button), m_index(index) {}
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const BYTE& m_button;
 		const u8 m_index;
@@ -54,9 +54,9 @@ private:
 	class Axis : public Input
 	{
 	public:
-		std::string GetName() const;
-		Axis(u8 index, const LONG& axis, LONG range) : m_index(index), m_axis(axis), m_range(range) {}
-		ControlState GetState() const;
+		Axis(u8 index, const LONG& axis, LONG range) : m_axis(axis), m_range(range), m_index(index) {}
+		std::string GetName() const override;
+		ControlState GetState() const override;
 	private:
 		const LONG& m_axis;
 		const LONG m_range;
@@ -66,10 +66,10 @@ private:
 	class Cursor : public Input
 	{
 	public:
-		std::string GetName() const;
-		bool IsDetectable() { return false; }
-		Cursor(u8 index, const ControlState& axis, const bool positive) : m_index(index), m_axis(axis), m_positive(positive) {}
-		ControlState GetState() const;
+		Cursor(u8 index, const ControlState& axis, const bool positive) :  m_axis(axis), m_index(index), m_positive(positive) {}
+		std::string GetName() const override;
+		bool IsDetectable() override { return false; }
+		ControlState GetState() const override;
 	private:
 		const ControlState& m_axis;
 		const u8 m_index;
@@ -82,9 +82,9 @@ public:
 	KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device);
 	~KeyboardMouse();
 
-	std::string GetName() const;
-	int GetId() const;
-	std::string GetSource() const;
+	std::string GetName() const override;
+	int GetId() const override;
+	std::string GetSource() const override;
 
 private:
 	const LPDIRECTINPUTDEVICE8 m_kb_device;

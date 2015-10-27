@@ -61,6 +61,7 @@ public final class AssetCopyService extends IntentService
 		// Always copy over the GCPad config in case of change or corruption.
 		// Not a user configurable file.
 		copyAsset("GCPadNew.ini", ConfigDir + File.separator + "GCPadNew.ini");
+		copyAsset("WiimoteNew.ini", ConfigDir + File.separator + "WiimoteNew.ini");
 
 		// Load the configuration keys set in the Dolphin ini and gfx ini files
 		// into the application's shared preferences.

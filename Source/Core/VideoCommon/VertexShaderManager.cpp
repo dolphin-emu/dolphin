@@ -4,11 +4,15 @@
 
 #include <cfloat>
 #include <cmath>
+#include <cstring>
 #include <sstream>
 
 #include "Common/BitSet.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/RenderBase.h"
@@ -20,7 +24,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-static float GC_ALIGNED16(g_fProjectionMatrix[16]);
+alignas(16) static float g_fProjectionMatrix[16];
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
@@ -85,6 +89,23 @@ static float PHackValue(std::string sValue)
 
 	delete[] c;
 	return f;
+}
+
+// Due to the BT.601 standard which the GameCube is based on being a compromise
+// between PAL and NTSC, neither standard gets square pixels. They are each off
+// by ~9% in opposite directions.
+// Just in case any game decides to take this into account, we do both these
+// tests with a large amount of slop.
+static bool AspectIs4_3(float width, float height)
+{
+	float aspect = fabsf(width / height);
+	return fabsf(aspect - 4.0f / 3.0f) < 4.0f / 3.0f * 0.11; // within 11% of 4:3
+}
+
+static bool AspectIs16_9(float width, float height)
+{
+	float aspect = fabsf(width / height);
+	return fabsf(aspect - 16.0f / 9.0f) < 16.0f / 9.0f * 0.11; // within 11% of 16:9
 }
 
 void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
@@ -217,7 +238,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
 		int endn = (nTransformMatricesChanged[1] + 3) / 4;
-		memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4], (endn - startn) * 16);
+		memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4], (endn - startn) * sizeof(float4));
 		dirty = true;
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
 	}
@@ -238,7 +259,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nPostTransformMatricesChanged[0] / 4;
 		int endn = (nPostTransformMatricesChanged[1] + 3) / 4;
-		memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4], (endn - startn) * 16);
+		memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4], (endn - startn) * sizeof(float4));
 		dirty = true;
 		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
 	}
@@ -312,30 +333,30 @@ void VertexShaderManager::SetConstants()
 	{
 		bPosNormalMatrixChanged = false;
 
-		const float *pos = (const float *)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
-		const float *norm = (const float *)xfmem.normalMatrices + 3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31);
+		const float* pos  = &xfmem.posMatrices[g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4];
+		const float* norm = &xfmem.normalMatrices[3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31)];
 
-		memcpy(constants.posnormalmatrix,    pos,    3*16);
-		memcpy(constants.posnormalmatrix[3], norm,   12);
-		memcpy(constants.posnormalmatrix[4], norm+3, 12);
-		memcpy(constants.posnormalmatrix[5], norm+6, 12);
+		memcpy(constants.posnormalmatrix,    pos,      3 * sizeof(float4));
+		memcpy(constants.posnormalmatrix[3], norm,     3 * sizeof(float));
+		memcpy(constants.posnormalmatrix[4], norm + 3, 3 * sizeof(float));
+		memcpy(constants.posnormalmatrix[5], norm + 6, 3 * sizeof(float));
 		dirty = true;
 	}
 
 	if (bTexMatricesChanged[0])
 	{
 		bTexMatricesChanged[0] = false;
-		const float *fptrs[] =
+		const float* pos_matrix_ptrs[] =
 		{
-			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4]
+			&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4],
+			&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4],
+			&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4],
+			&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4]
 		};
 
-		for (int i = 0; i < 4; ++i)
+		for (size_t i = 0; i < ArraySize(pos_matrix_ptrs); ++i)
 		{
-			memcpy(constants.texmatrices[3 * i], fptrs[i], 3 * 16);
+			memcpy(constants.texmatrices[3 * i], pos_matrix_ptrs[i], 3 * sizeof(float4));
 		}
 		dirty = true;
 	}
@@ -343,16 +364,16 @@ void VertexShaderManager::SetConstants()
 	if (bTexMatricesChanged[1])
 	{
 		bTexMatricesChanged[1] = false;
-		const float *fptrs[] = {
-			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4]
+		const float* pos_matrix_ptrs[] = {
+			&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4],
+			&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4],
+			&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4],
+			&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4]
 		};
 
-		for (int i = 0; i < 4; ++i)
+		for (size_t i = 0; i < ArraySize(pos_matrix_ptrs); ++i)
 		{
-			memcpy(constants.texmatrices[3*i + 12], fptrs[i], 3*16);
+			memcpy(constants.texmatrices[3*i + 12], pos_matrix_ptrs[i], 3 * sizeof(float4));
 		}
 		dirty = true;
 	}
@@ -416,6 +437,16 @@ void VertexShaderManager::SetConstants()
 			// I (neobrain) don't think his conjecture is true and thus reverted his change.
 			g_fProjectionMatrix[14] = -1.0f;
 			g_fProjectionMatrix[15] = 0.0f;
+
+			// Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
+			if (!SConfig::GetInstance().bWii)
+			{
+				bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
+				if (AspectIs16_9(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+					Core::g_aspect_wide = true; // Projection is 16:9 and viewport is 4:3, we are rendering an anamorphic widescreen picture
+				else if (AspectIs4_3(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+					Core::g_aspect_wide = false; // Project and viewports are both 4:3, we are rendering a normal image.
+			}
 
 			SETSTAT_FT(stats.gproj_0,  g_fProjectionMatrix[0]);
 			SETSTAT_FT(stats.gproj_1,  g_fProjectionMatrix[1]);
@@ -502,7 +533,7 @@ void VertexShaderManager::SetConstants()
 			Matrix44::Set(mtxB, g_fProjectionMatrix);
 			Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
 			Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
-			memcpy(constants.projection, mtxB.data, 4*16);
+			memcpy(constants.projection, mtxB.data, 4 * sizeof(float4));
 		}
 		else
 		{
@@ -511,7 +542,7 @@ void VertexShaderManager::SetConstants()
 
 			Matrix44 correctedMtx;
 			Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-			memcpy(constants.projection, correctedMtx.data, 4*16);
+			memcpy(constants.projection, correctedMtx.data, 4 * sizeof(float4));
 		}
 
 		dirty = true;
@@ -654,7 +685,7 @@ void VertexShaderManager::SetProjectionChanged()
 	bProjectionChanged = true;
 }
 
-void VertexShaderManager::SetMaterialColorChanged(int index, u32 color)
+void VertexShaderManager::SetMaterialColorChanged(int index)
 {
 	nMaterialsChanged[index] = true;
 }
@@ -666,7 +697,7 @@ void VertexShaderManager::TranslateView(float x, float y, float z)
 
 	Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
 
-	for (int i = 0; i < 3; i++)
+	for (size_t i = 0; i < ArraySize(result); i++)
 		s_fViewTranslationVector[i] += result[i];
 
 	bProjectionChanged = true;
@@ -703,16 +734,18 @@ void VertexShaderManager::ResetView()
 
 void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
 {
-	const float* world_matrix = (const float*)xfmem.posMatrices + (MtxIdx & 0x3f) * 4;
-	// We use the projection matrix calculated by vertexShaderManager, because it
+	const float* world_matrix = &xfmem.posMatrices[(MtxIdx & 0x3f) * 4];
+
+	// We use the projection matrix calculated by VertexShaderManager, because it
 	// includes any free look transformations.
 	// Make sure VertexManager::SetConstants() has been called first.
 	const float* proj_matrix = &g_fProjectionMatrix[0];
 
-	float t[3];
-	t[0] = data[0] * world_matrix[0] + data[1] * world_matrix[1] + data[2] * world_matrix[2] + world_matrix[3];
-	t[1] = data[0] * world_matrix[4] + data[1] * world_matrix[5] + data[2] * world_matrix[6] + world_matrix[7];
-	t[2] = data[0] * world_matrix[8] + data[1] * world_matrix[9] + data[2] * world_matrix[10] + world_matrix[11];
+	const float t[3] = {
+		data[0] * world_matrix[0] + data[1] * world_matrix[1] + data[2] * world_matrix[2] + world_matrix[3],
+		data[0] * world_matrix[4] + data[1] * world_matrix[5] + data[2] * world_matrix[6] + world_matrix[7],
+		data[0] * world_matrix[8] + data[1] * world_matrix[9] + data[2] * world_matrix[10] + world_matrix[11]
+	};
 
 	out[0] = t[0] * proj_matrix[0] + t[1] * proj_matrix[1] + t[2] * proj_matrix[2] + proj_matrix[3];
 	out[1] = t[0] * proj_matrix[4] + t[1] * proj_matrix[5] + t[2] * proj_matrix[6] + proj_matrix[7];

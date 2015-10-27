@@ -58,7 +58,7 @@ void DoState(PointerWrap &p)
 	p.Do(interruptWaiting);
 
 	// Is this right?
-	p.DoArray(g_video_buffer_read_ptr,writePos);
+	p.DoArray(g_video_buffer_read_ptr, writePos);
 }
 
 static void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
@@ -106,7 +106,7 @@ void Shutdown()
 
 void RunGpu()
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+	if (!SConfig::GetInstance().bCPUThread)
 	{
 		// We are going to do FP math on the main thread so have to save the current state
 		FPURoundMode::SaveSIMDState();
@@ -289,7 +289,7 @@ static void SetStatus()
 	if (interrupt != interruptSet.load() && !interruptWaiting.load())
 	{
 		u64 userdata = interrupt?1:0;
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		if (SConfig::GetInstance().bCPUThread)
 		{
 			interruptWaiting.store(true);
 			SWCommandProcessor::UpdateInterruptsFromVideoBackend(userdata);

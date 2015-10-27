@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/Arm64Emitter.h"
+#include "Common/JitRegister.h"
 
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
@@ -94,6 +95,8 @@ void JitArm64AsmRoutineManager::Generate()
 	ABI_PopRegisters(regs_to_save);
 	RET(X30);
 
+	JitRegister::Register(enterCode, GetCodePtr(), "JIT_Dispatcher");
+
 	GenerateCommon();
 
 	FlushIcache();
@@ -112,6 +115,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	ARM64Reg scale_reg = X0;
 	ARM64FloatEmitter float_emit(this);
 
+	const u8* start = GetCodePtr();
 	const u8* loadPairedIllegal = GetCodePtr();
 		BRK(100);
 	const u8* loadPairedFloatTwo = GetCodePtr();
@@ -242,6 +246,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		RET(X30);
 	}
 
+	JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
+
 	pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
 	ReserveCodeSpace(16 * sizeof(u8*));
 
@@ -264,6 +270,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	pairedLoadQuantized[15] = loadPairedS16One;
 
 	// Stores
+	start = GetCodePtr();
 	const u8* storePairedIllegal = GetCodePtr();
 		BRK(0x101);
 	const u8* storePairedFloat;
@@ -291,9 +298,10 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1, 0);
+
 			float_emit.FCVTZU(32, D0, D0);
-			float_emit.XTN(16, D0, D0);
-			float_emit.XTN(8, D0, D0);
+			float_emit.UQXTN(16, D0, D0);
+			float_emit.UQXTN(8, D0, D0);
 		};
 
 		storePairedU8 = GetCodePtr();
@@ -318,9 +326,10 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1, 0);
+
 			float_emit.FCVTZS(32, D0, D0);
-			float_emit.XTN(16, D0, D0);
-			float_emit.XTN(8, D0, D0);
+			float_emit.SQXTN(16, D0, D0);
+			float_emit.SQXTN(8, D0, D0);
 		};
 
 		storePairedS8 = GetCodePtr();
@@ -346,8 +355,9 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1, 0);
+
 			float_emit.FCVTZU(32, D0, D0);
-			float_emit.XTN(16, D0, D0);
+			float_emit.UQXTN(16, D0, D0);
 			float_emit.REV16(8, D0, D0);
 		};
 
@@ -373,8 +383,9 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1, 0);
+
 			float_emit.FCVTZS(32, D0, D0);
-			float_emit.XTN(16, D0, D0);
+			float_emit.SQXTN(16, D0, D0);
 			float_emit.REV16(8, D0, D0);
 		};
 
@@ -415,9 +426,10 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1);
+
 			float_emit.FCVTZU(32, D0, D0);
-			float_emit.XTN(16, D0, D0);
-			float_emit.XTN(8, D0, D0);
+			float_emit.UQXTN(16, D0, D0);
+			float_emit.UQXTN(8, D0, D0);
 		};
 
 		storeSingleU8 = GetCodePtr();
@@ -441,9 +453,10 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1);
+
 			float_emit.FCVTZS(32, D0, D0);
-			float_emit.XTN(16, D0, D0);
-			float_emit.XTN(8, D0, D0);
+			float_emit.SQXTN(16, D0, D0);
+			float_emit.SQXTN(8, D0, D0);
 		};
 
 		storeSingleS8 = GetCodePtr();
@@ -467,8 +480,9 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1);
+
 			float_emit.FCVTZU(32, D0, D0);
-			float_emit.XTN(16, D0, D0);
+			float_emit.UQXTN(16, D0, D0);
 		};
 
 		storeSingleU16 = GetCodePtr();
@@ -493,8 +507,9 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 			ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
 			float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
 			float_emit.FMUL(32, D0, D0, D1);
+
 			float_emit.FCVTZS(32, D0, D0);
-			float_emit.XTN(16, D0, D0);
+			float_emit.SQXTN(16, D0, D0);
 		};
 
 		storeSingleS16 = GetCodePtr();
@@ -510,6 +525,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		MOVI2R(X2, (u64)&PowerPC::Write_U16);
 		BR(X2);
 	}
+
+	JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
 
 	pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
 	ReserveCodeSpace(32 * sizeof(u8*));
@@ -552,4 +569,47 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	pairedStoreQuantized[30] = storeSingleS8Slow;
 	pairedStoreQuantized[31] = storeSingleS16Slow;
 
+	mfcr = AlignCode16();
+	GenMfcr();
+}
+
+void JitArm64AsmRoutineManager::GenMfcr()
+{
+	// Input: Nothing
+	// Returns: W0
+	// Clobbers: X1, X2
+	const u8* start = GetCodePtr();
+	for (int i = 0; i < 8; i++)
+	{
+		LDR(INDEX_UNSIGNED, X1, X29, PPCSTATE_OFF(cr_val) + 8 * i);
+
+		// SO
+		if (i == 0)
+		{
+			UBFX(X0, X1, 61, 1);
+		}
+		else
+		{
+			ORR(W0, WZR, W0, ArithOption(W0, ST_LSL, 4));
+			UBFX(X2, X1, 61, 1);
+			ORR(X0, X0, X2);
+		}
+
+		// EQ
+		ORR(W2, W0, 32 - 1, 0); // W0 | 1<<1
+		CMP(W1, WZR);
+		CSEL(W0, W2, W0, CC_EQ);
+
+		// GT
+		ORR(W2, W0, 32 - 2, 0); // W0 | 1<<2
+		CMP(X1, ZR);
+		CSEL(W0, W2, W0, CC_GT);
+
+		// LT
+		UBFX(X2, X1, 62, 1);
+		ORR(W0, W0, W2, ArithOption(W2, ST_LSL, 3));
+	}
+
+	RET(X30);
+	JitRegister::Register(start, GetCodePtr(), "JIT_Mfcr");
 }

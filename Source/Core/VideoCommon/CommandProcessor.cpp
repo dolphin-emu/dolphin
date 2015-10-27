@@ -48,7 +48,7 @@ static std::atomic<bool> s_interrupt_finish_waiting;
 
 static bool IsOnThread()
 {
-	return SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+	return SConfig::GetInstance().bCPUThread;
 }
 
 static void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)

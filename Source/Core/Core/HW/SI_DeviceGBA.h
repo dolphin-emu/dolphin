@@ -48,11 +48,11 @@ public:
 	CSIDevice_GBA(SIDevices device, int _iDeviceNumber);
 	~CSIDevice_GBA();
 
-	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
-	virtual int TransferInterval() override;
+	int RunBuffer(u8* _pBuffer, int _iLength) override;
+	int TransferInterval() override;
 
-	virtual bool GetData(u32& _Hi, u32& _Low) override { return false; }
-	virtual void SendCommand(u32 _Cmd, u8 _Poll) override {}
+	bool GetData(u32& _Hi, u32& _Low) override { return false; }
+	void SendCommand(u32 _Cmd, u8 _Poll) override {}
 
 private:
 	u8 send_data[5];

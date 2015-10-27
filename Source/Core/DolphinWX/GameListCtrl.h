@@ -96,7 +96,6 @@ private:
 	void OnCompressISO(wxCommandEvent& event);
 	void OnMultiCompressISO(wxCommandEvent& event);
 	void OnMultiDecompressISO(wxCommandEvent& event);
-	void OnInstallWAD(wxCommandEvent& event);
 	void OnChangeDisc(wxCommandEvent& event);
 
 	void CompressSelection(bool _compress);

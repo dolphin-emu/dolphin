@@ -34,7 +34,6 @@
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Host.h"
 #include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
@@ -309,6 +308,8 @@ wxMenuBar* CFrame::CreateMenu()
 	platformMenu->Check(IDM_LIST_GC, SConfig::GetInstance().m_ListGC);
 	platformMenu->AppendCheckItem(IDM_LIST_WAD, _("Show Wad"));
 	platformMenu->Check(IDM_LIST_WAD, SConfig::GetInstance().m_ListWad);
+	platformMenu->AppendCheckItem(IDM_LIST_ELFDOL, _("Show Elf/Dol"));
+	platformMenu->Check(IDM_LIST_ELFDOL, SConfig::GetInstance().m_ListElfDol);
 
 	wxMenu *regionMenu = new wxMenu;
 	viewMenu->AppendSubMenu(regionMenu, _("Show Regions"));
@@ -369,7 +370,7 @@ wxMenuBar* CFrame::CreateMenu()
 
 	if (g_pCodeWindow)
 	{
-		g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, menubar);
+		g_pCodeWindow->CreateMenu(SConfig::GetInstance(), menubar);
 	}
 
 	// Help menu
@@ -490,6 +491,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_LOAD_LAST_STATE_6:
 		case HK_LOAD_LAST_STATE_7:
 		case HK_LOAD_LAST_STATE_8:
+		case HK_LOAD_LAST_STATE_9:
+		case HK_LOAD_LAST_STATE_10:
 			Label = wxString::Format(_("Last %i"),
 				Id - HK_LOAD_LAST_STATE_1 + 1);
 			break;
@@ -551,7 +554,6 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	ToolBar->AddSeparator();
 	WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES,        _("Config"),      m_Bitmaps[Toolbar_ConfigMain],  _("Configure..."));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND,  _("Graphics"),    m_Bitmaps[Toolbar_ConfigGFX],   _("Graphics settings"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_AUDIO,        _("Audio"),       m_Bitmaps[Toolbar_ConfigAudio], _("Audio settings"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_CONTROLLERS,  _("Controllers"), m_Bitmaps[Toolbar_Controller],  _("Controller settings"));
 }
 
@@ -585,7 +587,7 @@ void CFrame::RecreateToolbar()
 
 void CFrame::InitBitmaps()
 {
-	auto const dir = StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
+	auto const dir = StrToWxStr(File::GetThemeDir(SConfig::GetInstance().theme_name));
 
 	m_Bitmaps[Toolbar_FileOpen   ].LoadFile(dir + "open.png",       wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Refresh    ].LoadFile(dir + "refresh.png",    wxBITMAP_TYPE_PNG);
@@ -595,7 +597,6 @@ void CFrame::InitBitmaps()
 	m_Bitmaps[Toolbar_Pause      ].LoadFile(dir + "pause.png",      wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_ConfigMain ].LoadFile(dir + "config.png",     wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_ConfigGFX  ].LoadFile(dir + "graphics.png",   wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigAudio].LoadFile(dir + "audio.png",      wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Controller ].LoadFile(dir + "classic.png",    wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Screenshot ].LoadFile(dir + "screenshot.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_FullScreen ].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
@@ -615,7 +616,7 @@ void CFrame::InitBitmaps()
 void CFrame::BootGame(const std::string& filename)
 {
 	std::string bootfile = filename;
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SConfig& StartUp = SConfig::GetInstance();
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
@@ -721,7 +722,7 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 			g_TASInputDlg[i]->SetTitle(wxString::Format(_("TAS Input - Controller %d"), i + 1));
 		}
 
-		if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU && !(Core::IsRunning() && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii))
+		if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU && !(Core::IsRunning() && !SConfig::GetInstance().bWii))
 		{
 			g_TASInputDlg[i+4]->CreateWiiLayout(i);
 			g_TASInputDlg[i+4]->Show();
@@ -844,10 +845,7 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 		// Core is initialized and emulator is running
 		if (UseDebugger)
 		{
-			if (CCPU::IsStepping())
-				CCPU::EnableStepping(false);
-			else
-				CCPU::EnableStepping(true);  // Break
+			CPU::EnableStepping(!CPU::IsStepping());
 
 			wxThread::Sleep(20);
 			g_pCodeWindow->JumpToAddress(PC);
@@ -889,8 +887,8 @@ void CFrame::OnRenderParentMove(wxMoveEvent& event)
 	if (Core::GetState() != Core::CORE_UNINITIALIZED &&
 		!RendererIsFullscreen() && !m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = m_RenderFrame->GetPosition().x;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = m_RenderFrame->GetPosition().y;
+		SConfig::GetInstance().iRenderWindowXPos = m_RenderFrame->GetPosition().x;
+		SConfig::GetInstance().iRenderWindowYPos = m_RenderFrame->GetPosition().y;
 	}
 	event.Skip();
 }
@@ -900,12 +898,12 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		int width, height;
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+		if (!SConfig::GetInstance().bRenderToMain &&
 			!RendererIsFullscreen() && !m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
 		{
 			m_RenderFrame->GetClientSize(&width, &height);
-			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
-			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
+			SConfig::GetInstance().iRenderWindowWidth = width;
+			SConfig::GetInstance().iRenderWindowHeight = height;
 		}
 		m_LogWindow->Refresh();
 		m_LogWindow->Update();
@@ -916,12 +914,12 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 void CFrame::ToggleDisplayMode(bool bFullscreen)
 {
 #ifdef _WIN32
-	if (bFullscreen && SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution != "Auto")
+	if (bFullscreen && SConfig::GetInstance().strFullscreenResolution != "Auto")
 	{
 		DEVMODE dmScreenSettings;
 		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
 		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
+		sscanf(SConfig::GetInstance().strFullscreenResolution.c_str(),
 				"%dx%d", &dmScreenSettings.dmPelsWidth, &dmScreenSettings.dmPelsHeight);
 		dmScreenSettings.dmBitsPerPel = 32;
 		dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
@@ -935,7 +933,7 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 		ChangeDisplaySettings(nullptr, CDS_FULLSCREEN);
 	}
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution != "Auto")
+	if (SConfig::GetInstance().strFullscreenResolution != "Auto")
 		m_XRRConfig->ToggleDisplayMode(bFullscreen);
 #endif
 }
@@ -951,7 +949,7 @@ void CFrame::StartGame(const std::string& filename)
 		m_ToolBar->EnableTool(IDM_PLAY, false);
 	GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	if (SConfig::GetInstance().bRenderToMain)
 	{
 		// Game has been started, hide the game list
 		m_GameListCtrl->Disable();
@@ -959,7 +957,7 @@ void CFrame::StartGame(const std::string& filename)
 
 		m_RenderParent = m_Panel;
 		m_RenderFrame = this;
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
+		if (SConfig::GetInstance().bKeepWindowOnTop)
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
 		else
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
@@ -972,8 +970,8 @@ void CFrame::StartGame(const std::string& filename)
 	}
 	else
 	{
-		wxPoint position(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
+		wxPoint position(SConfig::GetInstance().iRenderWindowXPos,
+				SConfig::GetInstance().iRenderWindowYPos);
 #ifdef __APPLE__
 		// On OS X, the render window's title bar is not visible,
 		// and the window therefore not easily moved, when the
@@ -982,8 +980,8 @@ void CFrame::StartGame(const std::string& filename)
 			position = wxDefaultPosition;
 #endif
 
-		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+		wxSize size(SConfig::GetInstance().iRenderWindowWidth,
+				SConfig::GetInstance().iRenderWindowHeight);
 #ifdef _WIN32
 		// Out of desktop check
 		int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
@@ -994,7 +992,7 @@ void CFrame::StartGame(const std::string& filename)
 			position.x = position.y = wxDefaultCoord;
 #endif
 		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position);
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
+		if (SConfig::GetInstance().bKeepWindowOnTop)
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
 		else
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
@@ -1024,13 +1022,13 @@ void CFrame::StartGame(const std::string& filename)
 
 	wxBeginBusyCursor();
 
-	DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
+	DoFullscreen(SConfig::GetInstance().bFullscreen);
 
 	if (!BootManager::BootCore(filename))
 	{
 		DoFullscreen(false);
 		// Destroy the renderer frame when not rendering to main
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+		if (!SConfig::GetInstance().bRenderToMain)
 			m_RenderFrame->Destroy();
 		m_RenderParent = nullptr;
 		m_bGameLoading = false;
@@ -1039,7 +1037,7 @@ void CFrame::StartGame(const std::string& filename)
 	else
 	{
 #if defined(HAVE_X11) && HAVE_X11
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+	if (SConfig::GetInstance().bDisableScreenSaver)
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), true);
 #endif
@@ -1095,14 +1093,14 @@ void CFrame::DoPause()
 	if (Core::GetState() == Core::CORE_RUN)
 	{
 		Core::SetState(Core::CORE_PAUSE);
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		if (SConfig::GetInstance().bHideCursor)
 			m_RenderParent->SetCursor(wxNullCursor);
 		Core::UpdateTitle();
 	}
 	else
 	{
 		Core::SetState(Core::CORE_RUN);
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+		if (SConfig::GetInstance().bHideCursor &&
 				RendererHasFocus())
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 	}
@@ -1130,7 +1128,7 @@ void CFrame::DoStop()
 		wxMutexGuiEnter();
 #endif
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
+		if (SConfig::GetInstance().bConfirmStop)
 		{
 			// Exit fullscreen to ensure it does not cover the stop dialog.
 			DoFullscreen(false);
@@ -1141,7 +1139,7 @@ void CFrame::DoStop()
 			// If exclusive fullscreen is not enabled then we can pause the emulation
 			// before we've exited fullscreen. If not then we need to exit fullscreen first.
 			if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
-				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+				SConfig::GetInstance().bRenderToMain)
 			{
 				Core::SetState(Core::CORE_PAUSE);
 			}
@@ -1201,7 +1199,7 @@ void CFrame::OnStopped()
 	m_confirmStop = false;
 
 #if defined(HAVE_X11) && HAVE_X11
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+	if (SConfig::GetInstance().bDisableScreenSaver)
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), false);
 #endif
@@ -1216,10 +1214,10 @@ void CFrame::OnStopped()
 	wxTheApp->Unbind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
 	wxTheApp->Unbind(wxEVT_MIDDLE_UP,   &CFrame::OnMouse, this);
 	wxTheApp->Unbind(wxEVT_MOTION,      &CFrame::OnMouse, this);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+	if (SConfig::GetInstance().bHideCursor)
 		m_RenderParent->SetCursor(wxNullCursor);
 	DoFullscreen(false);
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	if (!SConfig::GetInstance().bRenderToMain)
 	{
 		m_RenderFrame->Destroy();
 	}
@@ -1249,10 +1247,10 @@ void CFrame::OnStopped()
 		Close(true);
 
 	// If using auto size with render to main, reset the application size.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize)
-		SetSize(SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth,
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight);
+	if (SConfig::GetInstance().bRenderToMain &&
+		SConfig::GetInstance().bRenderWindowAutoSize)
+		SetSize(SConfig::GetInstance().iWidth,
+		SConfig::GetInstance().iHeight);
 
 	m_GameListCtrl->Enable();
 	m_GameListCtrl->Show();
@@ -1470,7 +1468,7 @@ void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
 {
-	BootGame(Common::GetTitleContentPath(TITLEID_SYSMENU));
+	BootGame(Common::GetTitleContentPath(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT));
 }
 
 void CFrame::OnInstallWAD(wxCommandEvent& event)
@@ -1526,7 +1524,7 @@ void CFrame::UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem)
 		WiiMenuItem = GetMenuBar()->FindItem(IDM_LOAD_WII_MENU);
 	}
 
-	const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
+	const DiscIO::CNANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT);
 	if (SysMenu_Loader.IsValid())
 	{
 		int sysmenuVersion = SysMenu_Loader.GetTitleVersion();
@@ -1556,7 +1554,7 @@ void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::ConnectWiimote(int wm_idx, bool connect)
 {
-	if (Core::IsRunning() && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (Core::IsRunning() && SConfig::GetInstance().bWii)
 	{
 		bool was_unpaused = Core::PauseAndLock(true);
 		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
@@ -1584,13 +1582,13 @@ void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+	SConfig::GetInstance().bCPUThread = !SConfig::GetInstance().bCPUThread;
 	SConfig::GetInstance().SaveSettings();
 }
 
 void CFrame::OnToggleSkipIdle(wxCommandEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = !SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
+	SConfig::GetInstance().bSkipIdle = !SConfig::GetInstance().bSkipIdle;
 	SConfig::GetInstance().SaveSettings();
 }
 
@@ -1714,7 +1712,7 @@ void CFrame::UpdateGUI()
 	bool Running         = Core::GetState() == Core::CORE_RUN;
 	bool Paused          = Core::GetState() == Core::CORE_PAUSE;
 	bool Stopping        = Core::GetState() == Core::CORE_STOPPING;
-	bool RunningWii      = Initialized && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	bool RunningWii      = Initialized && SConfig::GetInstance().bWii;
 
 	// Make sure that we have a toolbar
 	if (m_ToolBar)
@@ -1757,11 +1755,11 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_SAVE_STATE)->Enable(Initialized);
 	// Misc
 	GetMenuBar()->FindItem(IDM_CHANGE_DISC)->Enable(Initialized);
-	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid())
+	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT).IsValid())
 		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 
 	// Tools
-	GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
+	GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().bEnableCheats);
 
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(RunningWii);
@@ -1813,7 +1811,7 @@ void CFrame::UpdateGUI()
 		if (m_GameListCtrl->IsEnabled())
 		{
 			// Prepare to load Default ISO, enable play button
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO.empty())
+			if (!SConfig::GetInstance().m_strDefaultISO.empty())
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
@@ -1881,7 +1879,7 @@ void CFrame::UpdateGUI()
 	// Update non-modal windows
 	if (g_CheatsWindow)
 	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+		if (SConfig::GetInstance().bEnableCheats)
 			g_CheatsWindow->UpdateGUI();
 		else
 			g_CheatsWindow->Close();
@@ -1905,6 +1903,9 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	case IDM_LIST_WAD:
 		SConfig::GetInstance().m_ListWad = event.IsChecked();
+		break;
+	case IDM_LIST_ELFDOL:
+		SConfig::GetInstance().m_ListElfDol = event.IsChecked();
 		break;
 	case IDM_LIST_JAP:
 		SConfig::GetInstance().m_ListJap = event.IsChecked();
@@ -1952,7 +1953,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_ListDrives = event.IsChecked();
 		break;
 	case IDM_PURGE_CACHE:
-		std::vector<std::string> rFilenames = DoFileSearch({"*.cache"}, {File::GetUserPath(D_CACHE_IDX)});
+		std::vector<std::string> rFilenames = DoFileSearch({".cache"}, {File::GetUserPath(D_CACHE_IDX)});
 
 		for (const std::string& rFilename : rFilenames)
 		{

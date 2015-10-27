@@ -8,7 +8,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
-#include "Common/StdMakeUnique.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/PatchEngine.h"
@@ -50,7 +49,7 @@ struct StateFlags
 
 bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {
-	std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_STATE);
+	std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + WII_STATE);
 
 	if (File::Exists(state_filename))
 	{
@@ -76,13 +75,13 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 		state_file.WriteBytes(&state, sizeof(StateFlags));
 	}
 
-	const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
+	const DiscIO::CNANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
 	if (!ContentLoader.IsValid())
 		return false;
 
 	u64 titleID = ContentLoader.GetTitleID();
 	// create data directory
-	File::CreateFullPath(Common::GetTitleDataPath(titleID));
+	File::CreateFullPath(Common::GetTitleDataPath(titleID, Common::FROM_SESSION_ROOT));
 
 	if (titleID == TITLEID_SYSMENU)
 		HLE_IPC_CreateVirtualFATFilesystem();

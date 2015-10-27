@@ -394,9 +394,9 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult IOCtl(u32 _CommandAddress) override;
 
 private:
 	enum
@@ -457,22 +457,22 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_kd_time()
 	{}
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress + 4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override
+	IPCCommandResult IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn  = Memory::Read_U32(_CommandAddress + 0x10);
@@ -515,7 +515,7 @@ public:
 		// write return values
 		Memory::Write_U32(common_result, BufferOut);
 		Memory::Write_U32(result, _CommandAddress + 4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 private:
@@ -601,19 +601,17 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ip_top();
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
-	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
-	virtual u32 Update() override;
+	u32 Update() override;
 
 private:
 #ifdef _WIN32
 	WSADATA InitData;
 #endif
-	u32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
-	u32 ExecuteCommandV(SIOCtlVBuffer& CommandBuffer);
 };
 
 // **********************************************************************************
@@ -625,9 +623,9 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
 private:
 	enum
@@ -653,9 +651,9 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_wd_command();
 
-	virtual IPCCommandResult Open(u32 CommandAddress, u32 Mode) override;
-	virtual IPCCommandResult Close(u32 CommandAddress, bool Force) override;
-	virtual IPCCommandResult IOCtlV(u32 CommandAddress) override;
+	IPCCommandResult Open(u32 CommandAddress, u32 Mode) override;
+	IPCCommandResult Close(u32 CommandAddress, bool Force) override;
+	IPCCommandResult IOCtlV(u32 CommandAddress) override;
 
 private:
 	enum

@@ -5,27 +5,12 @@
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="SystemInfo.cpp" />
     <ClCompile Include="Utils\Resources.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Utils\Utils.cpp">
       <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="SystemInfo.cpp" />
-    <ClCompile Include="VideoInterface\RenderWidget.cpp">
-      <Filter>VideoInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp">
-      <Filter>Generated Files</Filter>
     </ClCompile>
     <ClCompile Include="GameList\GameFile.cpp">
       <Filter>GameList</Filter>
@@ -39,6 +24,18 @@
     <ClCompile Include="GameList\GameTree.cpp">
       <Filter>GameList</Filter>
     </ClCompile>
+    <ClCompile Include="VideoInterface\RenderWidget.cpp">
+      <Filter>VideoInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(QtMocOutPrefix)GameGrid.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
@@ -48,12 +45,19 @@
     <ClCompile Include="$(QtMocOutPrefix)GameTree.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="SystemInfo.h" />
     <QtMoc Include="VideoInterface\RenderWidget.h" />
+    <QtMoc Include="GameList\GameFile.h" />
+    <QtMoc Include="GameList\GameGrid.h" />
+    <QtMoc Include="GameList\GameTracker.h" />
+    <QtMoc Include="GameList\GameTree.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />

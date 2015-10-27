@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -88,12 +90,12 @@ CEXIIPL::CEXIIPL() :
 	m_FontsLoaded(false)
 {
 	// Determine region
-	m_bNTSC = SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC;
+	m_bNTSC = SConfig::GetInstance().bNTSC;
 
 	// Create the IPL
 	m_pIPL = (u8*)AllocateMemoryPages(ROM_SIZE);
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2)
+	if (SConfig::GetInstance().bHLE_BS2)
 	{
 		// Copy header
 		memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, m_bNTSC ? sizeof(iplverNTSC) : sizeof(iplverPAL));
@@ -105,7 +107,7 @@ CEXIIPL::CEXIIPL() :
 	else
 	{
 		// Load whole ROM dump
-		LoadFileToIPL(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strBootROM, 0);
+		LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0);
 		// Descramble the encrypted section (contains BS1 and BS2)
 		Descrambler(m_pIPL + 0x100, 0x1aff00);
 		INFO_LOG(BOOT, "Loaded bootrom: %s", m_pIPL); // yay for null-terminated strings ;p
@@ -115,7 +117,7 @@ CEXIIPL::CEXIIPL() :
 	memset(m_RTC, 0, sizeof(m_RTC));
 
 	// We Overwrite language selection here since it's possible on the GC to change the language as you please
-	g_SRAM.lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	g_SRAM.lang = SConfig::GetInstance().SelectedLanguage;
 	FixSRAMChecksums();
 
 	WriteProtectMemory(m_pIPL, ROM_SIZE);
@@ -128,8 +130,15 @@ CEXIIPL::~CEXIIPL()
 	m_pIPL = nullptr;
 
 	// SRAM
-	File::IOFile file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM, "wb");
-	file.WriteArray(&g_SRAM, 1);
+	if (!g_SRAM_netplay_initialized)
+	{
+		File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
+		file.WriteArray(&g_SRAM, 1);
+	}
+	else
+	{
+		g_SRAM_netplay_initialized = false;
+	}
 }
 void CEXIIPL::DoState(PointerWrap &p)
 {
@@ -163,6 +172,21 @@ void CEXIIPL::SetCS(int _iCS)
 	}
 }
 
+void CEXIIPL::UpdateRTC()
+{
+	// Seconds between 1.1.2000 and 4.1.2008 16:00:38
+	static constexpr u32 WII_BIAS = 0x0F1114A6;
+
+	u32 rtc;
+
+	if (SConfig::GetInstance().bWii)
+		rtc = Common::swap32(GetGCTime() - WII_BIAS);
+	else
+		rtc = Common::swap32(GetGCTime());
+
+	std::memcpy(m_RTC, &rtc, sizeof(u32));
+}
+
 bool CEXIIPL::IsPresent() const
 {
 	return true;
@@ -170,9 +194,6 @@ bool CEXIIPL::IsPresent() const
 
 void CEXIIPL::TransferByte(u8& _uByte)
 {
-	// Seconds between 1.1.2000 and 4.1.2008 16:00:38
-	const u32 cWiiBias = 0x0F1114A6;
-
 	// The first 4 bytes must be the address
 	// If we haven't read it, do it now
 	if (m_uPosition <= 3)
@@ -185,17 +206,8 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		// Check if the command is complete
 		if (m_uPosition == 3)
 		{
-			// Get the time ...
-			u32 &rtc = *((u32 *)&m_RTC);
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-			{
-				// Subtract Wii bias
-				rtc = Common::swap32(CEXIIPL::GetGCTime() - cWiiBias);
-			}
-			else
-			{
-				rtc = Common::swap32(CEXIIPL::GetGCTime());
-			}
+			// Get the time...
+			UpdateRTC();
 
 			// Log the command
 			std::string device_name;

@@ -24,9 +24,6 @@
 
 namespace Common {
 
-// Windows uses a specific implementation because std::condition_variable has
-// terrible performance for this kind of workload with MSVC++ 2013.
-#ifndef _WIN32
 class Event final
 {
 public:
@@ -76,39 +73,5 @@ private:
 	std::condition_variable m_condvar;
 	std::mutex m_mutex;
 };
-#else
-class Event final
-{
-public:
-	void Set()
-	{
-		m_event.set();
-	}
-
-	void Wait()
-	{
-		m_event.wait();
-		m_event.reset();
-	}
-
-	template<class Rep, class Period>
-	bool WaitFor(const std::chrono::duration<Rep, Period>& rel_time)
-	{
-		bool signaled = m_event.wait(
-			(u32)std::chrono::duration_cast<std::chrono::milliseconds>(rel_time).count()
-			) == 0;
-		m_event.reset();
-		return signaled;
-	}
-
-	void Reset()
-	{
-		m_event.reset();
-	}
-
-private:
-	concurrency::event m_event;
-};
-#endif
 
 }  // namespace Common

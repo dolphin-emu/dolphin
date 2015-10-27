@@ -28,6 +28,17 @@ function GetGitExe()
 		{}
 	}
 
+	// last try - msysgit not in path (vs2015 default)
+	msyspath = "\\Git\\cmd\\git.exe";
+	gitexe = wshShell.ExpandEnvironmentStrings("%PROGRAMFILES(x86)%") + msyspath;
+	if (oFS.FileExists(gitexe)) {
+		return gitexe;
+	}
+	gitexe = wshShell.ExpandEnvironmentStrings("%PROGRAMFILES%") + msyspath;
+	if (oFS.FileExists(gitexe)) {
+		return gitexe;
+	}
+
 	WScript.Echo("Cannot find git or git.cmd, check your PATH:\n" +
 		wshShell.ExpandEnvironmentStrings("%PATH%"));
 	WScript.Quit(1);

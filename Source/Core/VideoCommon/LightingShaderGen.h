@@ -253,10 +253,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			}
 		}
 		object.Write("lacc = clamp(lacc, 0, 255);\n");
-		if (DriverDetails::HasBug(DriverDetails::BUG_BROKENIVECSHIFTS))
-			object.Write("%s%d = float4(irshift((mat * (lacc + irshift(lacc, 7))), 8)) / 255.0;\n", dest, j);
-		else
-			object.Write("%s%d = float4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n", dest, j);
+		object.Write("%s%d = float4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n", dest, j);
 		object.Write("}\n");
 	}
 }

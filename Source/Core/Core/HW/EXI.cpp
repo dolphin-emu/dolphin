@@ -16,6 +16,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 SRAM g_SRAM;
+bool g_SRAM_netplay_initialized = false;
 
 namespace ExpansionInterface
 {
@@ -30,7 +31,11 @@ static void UpdateInterruptsCallback(u64 userdata, int cycles_late);
 
 void Init()
 {
-	InitSRAM();
+	if (!g_SRAM_netplay_initialized)
+	{
+		InitSRAM();
+	}
+
 	for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
 		g_Channels[i] = new CEXIChannel(i);
 

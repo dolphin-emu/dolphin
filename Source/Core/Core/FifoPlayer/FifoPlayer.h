@@ -13,6 +13,33 @@ class FifoDataFile;
 struct MemoryUpdate;
 struct AnalyzedFrameInfo;
 
+// Story time:
+// When FifoRecorder was created, efb copies weren't really used or they used efb2tex which ignored
+// the underlying memory, so FifoRecorder didn't do anything special about the memory backing efb
+// copies. This means the memory underlying efb copies go treated like regular textures and was
+// baked into the fifo log. If you recorded with efb2ram on, the result of efb2ram would be baked
+// into the fifo. If you recorded with efb2tex or efb off, random data would be included in the fifo
+// log.
+// Later the behaviour of efb2tex was changed to zero the underlying memory and check the hash of that.
+// But this broke a whole lot of fifologs due to the following sequence of events:
+//    1. fifoplayer would trigger the efb copy
+//    2. Texture cache would zero the memory backing the texture and hash it.
+//    3. Time passes.
+//    4. fifoplayer would encounter the drawcall using the efb copy
+//    5. fifoplayer would overwrite the memory backing the efb copy back to it's state when recording.
+//    6. Texture cache would hash the memory and see that the hash no-longer matches
+//    7. Texture cache would load whatever data was now in memory as a texture either a baked in
+//       efb2ram copy from recording time or just random data.
+//    8. The output of fifoplayer would be wrong.
+
+// To keep compatibility with old fifologs, we have this flag which signals texture cache to not bother
+// hashing the memory and just assume the hash matched.
+// At a later point proper efb copy support should be added to fiforecorder and this flag will change
+// based on the version of the .dff file, but until then it will always be true when a fifolog is playing.
+
+// Shitty global to fix a shitty problem
+extern bool IsPlayingBackFifologWithBrokenEFBCopies;
+
 class FifoPlayer
 {
 public:
@@ -60,15 +87,15 @@ public:
 private:
 	FifoPlayer();
 
-	void WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo &info);
-	void WriteFramePart(u32 dataStart, u32 dataEnd, u32 &nextMemUpdate, const FifoFrameInfo &frame, const AnalyzedFrameInfo &info);
+	void WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo &info);
+	void WriteFramePart(u32 dataStart, u32 dataEnd, u32 &nextMemUpdate, const FifoFrameInfo& frame, const AnalyzedFrameInfo& info);
 
 	void WriteAllMemoryUpdates();
 	void WriteMemory(const MemoryUpdate &memUpdate);
 
 	// writes a range of data to the fifo
 	// start and end must be relative to frame's fifo data so elapsed cycles are figured correctly
-	void WriteFifo(u8 *data, u32 start, u32 end);
+	void WriteFifo(u8* data, u32 start, u32 end);
 
 	void SetupFifo();
 
@@ -104,7 +131,7 @@ private:
 	CallbackFunc m_FileLoadedCb;
 	CallbackFunc m_FrameWrittenCb;
 
-	FifoDataFile *m_File;
+	FifoDataFile* m_File;
 
 	std::vector<AnalyzedFrameInfo> m_FrameInfo;
 };

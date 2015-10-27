@@ -17,6 +17,7 @@
 
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
@@ -220,8 +221,6 @@ void RemoveWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
 bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
 
 WiimoteScanner::WiimoteScanner()
-	: m_run_thread()
-	, m_want_wiimotes()
 {
 	init_lib();
 }
@@ -252,7 +251,7 @@ void WiimoteScanner::Update()
 	// Some hacks that allows disconnects to be detected before connections are handled
 	// workaround for Wiimote 1 moving to slot 2 on temporary disconnect
 	if (forgot_some)
-		SLEEP(100);
+		Common::SleepCurrentThread(100);
 }
 
 // Find and connect Wiimotes.
@@ -315,12 +314,8 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	}
 
 	SetupDiDestroyDeviceInfoList(device_info);
-
-	// Don't mind me, just a random sleep to fix stuff on Windows
-	//if (!wiimotes.empty())
-	//    SLEEP(2000);
-
 }
+
 int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, size_t size, int attempts)
 {
 	OVERLAPPED hid_overlap_write = OVERLAPPED();
@@ -545,7 +540,7 @@ bool WiimoteWindows::ConnectInternal()
 
 	if (m_dev_handle == INVALID_HANDLE_VALUE)
 	{
-		m_dev_handle = 0;
+		m_dev_handle = nullptr;
 		return false;
 	}
 
@@ -596,7 +591,7 @@ void WiimoteWindows::DisconnectInternal()
 		return;
 
 	CloseHandle(m_dev_handle);
-	m_dev_handle = 0;
+	m_dev_handle = nullptr;
 
 #ifdef SHARE_WRITE_WIIMOTES
 	std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
@@ -606,7 +601,7 @@ void WiimoteWindows::DisconnectInternal()
 
 WiimoteWindows::WiimoteWindows(const std::basic_string<TCHAR>& path) : m_devicepath(path)
 {
-	m_dev_handle = 0;
+	m_dev_handle = nullptr;
 	m_stack = MSBT_STACK_UNKNOWN;
 
 	m_hid_overlap_read = OVERLAPPED();
@@ -625,7 +620,7 @@ WiimoteWindows::~WiimoteWindows()
 
 bool WiimoteWindows::IsConnected() const
 {
-	return m_dev_handle != 0;
+	return m_dev_handle != nullptr;
 }
 
 // positive = read packet

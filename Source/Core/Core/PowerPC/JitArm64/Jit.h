@@ -90,6 +90,7 @@ public:
 	void cmpi(UGeckoInstruction inst);
 	void cmpli(UGeckoInstruction inst);
 	void rlwinmx(UGeckoInstruction inst);
+	void rlwnmx(UGeckoInstruction inst);
 	void srawix(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
 	void addic(UGeckoInstruction inst);
@@ -97,6 +98,14 @@ public:
 	void addzex(UGeckoInstruction inst);
 	void subfx(UGeckoInstruction inst);
 	void addcx(UGeckoInstruction inst);
+	void slwx(UGeckoInstruction inst);
+	void srwx(UGeckoInstruction inst);
+	void rlwimix(UGeckoInstruction inst);
+	void subfex(UGeckoInstruction inst);
+	void subfcx(UGeckoInstruction inst);
+	void subfic(UGeckoInstruction inst);
+	void addex(UGeckoInstruction inst);
+	void divwux(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
@@ -110,13 +119,17 @@ public:
 	void mfspr(UGeckoInstruction inst);
 	void mftb(UGeckoInstruction inst);
 	void mtspr(UGeckoInstruction inst);
+	void crXXX(UGeckoInstruction inst);
+	void mfcr(UGeckoInstruction inst);
+	void mtcrf(UGeckoInstruction inst);
 
 	// LoadStore
-	void icbi(UGeckoInstruction inst);
 	void lXX(UGeckoInstruction inst);
 	void stX(UGeckoInstruction inst);
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);
+	void dcbt(UGeckoInstruction inst);
+	void dcbz(UGeckoInstruction inst);
 
 	// LoadStore floating point
 	void lfXX(UGeckoInstruction inst);
@@ -142,6 +155,11 @@ public:
 	void fselx(UGeckoInstruction inst);
 	void fsubsx(UGeckoInstruction inst);
 	void fsubx(UGeckoInstruction inst);
+	void fcmpx(UGeckoInstruction inst);
+	void frspx(UGeckoInstruction inst);
+	void fctiwzx(UGeckoInstruction inst);
+	void fdivx(UGeckoInstruction inst);
+	void fdivsx(UGeckoInstruction inst);
 
 	// Paired
 	void ps_abs(UGeckoInstruction inst);
@@ -174,6 +192,40 @@ public:
 	void psq_st(UGeckoInstruction inst);
 
 private:
+
+	struct SlowmemHandler
+	{
+		ARM64Reg dest_reg;
+		ARM64Reg addr_reg;
+		BitSet32 gprs;
+		BitSet32 fprs;
+		u32 flags;
+		bool operator< (const SlowmemHandler& rhs) const
+		{
+			if (dest_reg < rhs.dest_reg) return true;
+			if (dest_reg > rhs.dest_reg) return false;
+			if (addr_reg < rhs.addr_reg) return true;
+			if (addr_reg > rhs.addr_reg) return false;
+			if (gprs < rhs.gprs) return true;
+			if (gprs > rhs.gprs) return false;
+			if (fprs < rhs.fprs) return true;
+			if (fprs > rhs.fprs) return false;
+			if (flags < rhs.flags) return true;
+			if (flags > rhs.flags) return false;
+
+			return false;
+		}
+	};
+
+	struct FastmemArea
+	{
+		u32 length;
+		const u8* slowmem_code;
+	};
+
+	// <Fastmem fault location, slowmem handler location>
+	std::map<const u8*, FastmemArea> m_fault_to_handler;
+	std::map<SlowmemHandler, const u8*> m_handler_to_loc;
 	Arm64GPRCache gpr;
 	Arm64FPRCache fpr;
 
@@ -184,16 +236,36 @@ private:
 
 	ARM64FloatEmitter m_float_emit;
 
+	Arm64Gen::ARM64CodeBlock farcode;
+	u8* nearcode; // Backed up when we switch to far code.
+
+	// Do we support cycle counter profiling?
+	bool m_supports_cycle_counter;
+
+	void EmitResetCycleCounters();
+	void EmitGetCycles(Arm64Gen::ARM64Reg reg);
+
+	// Simple functions to switch between near and far code emitting
+	void SwitchToFarCode()
+	{
+		nearcode = GetWritableCodePtr();
+		SetCodePtrUnsafe(farcode.GetWritableCodePtr());
+	}
+
+	void SwitchToNearCode()
+	{
+		farcode.SetCodePtrUnsafe(GetWritableCodePtr());
+		SetCodePtrUnsafe(nearcode);
+	}
+
 	// Dump a memory range of code
 	void DumpCode(const u8* start, const u8* end);
 
-	// The key is the backpatch flags
-	std::map<u32, BackPatchInfo> m_backpatch_info;
-
 	// Backpatching routines
 	bool DisasmLoadStore(const u8* ptr, u32* flags, Arm64Gen::ARM64Reg* reg);
-	void InitBackpatch();
-	u32 EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem, bool do_padding, Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr);
+	void EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
+		Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr,
+		BitSet32 gprs_to_push = BitSet32(0), BitSet32 fprs_to_push = BitSet32(0));
 	// Loadstore routines
 	void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
 	void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
@@ -201,6 +273,7 @@ private:
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b);
 
 	void DoDownCount();
+	void Cleanup();
 
 	// Profiling
 	void BeginTimeProfile(JitBlock* b);
@@ -210,12 +283,13 @@ private:
 	void WriteExit(u32 destination);
 	void WriteExceptionExit(Arm64Gen::ARM64Reg dest);
 	void WriteExceptionExit();
+	void WriteExternalExceptionExit(ARM64Reg dest);
 	void WriteExitDestInR(Arm64Gen::ARM64Reg dest);
 
 	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
-	void ComputeRC(Arm64Gen::ARM64Reg reg, int crf = 0);
-	void ComputeRC(u32 imm, int crf = 0);
+	void ComputeRC(Arm64Gen::ARM64Reg reg, int crf = 0, bool needs_sext = true);
+	void ComputeRC(u64 imm, int crf = 0, bool needs_sext = true);
 	void ComputeCarry(bool Carry);
 	void ComputeCarry();
 

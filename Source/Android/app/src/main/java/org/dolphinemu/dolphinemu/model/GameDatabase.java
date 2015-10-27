@@ -188,12 +188,27 @@ public final class GameDatabase extends SQLiteOpenHelper
 									name = filePath.substring(filePath.lastIndexOf("/") + 1);
 								}
 
-								ContentValues game = Game.asContentValues(NativeLibrary.GetPlatform(filePath),
+								String gameId = NativeLibrary.GetGameId(filePath);
+
+								// If the game's ID field is empty, use the filename without extension.
+								if (gameId.isEmpty())
+								{
+									gameId = filePath.substring(filePath.lastIndexOf("/") + 1, filePath.lastIndexOf("."));
+								}
+
+								// If the game's platform field is empty, file under Wiiware. // TODO Something less dum
+								int platform = NativeLibrary.GetPlatform(filePath);
+								if (platform == -1)
+								{
+									platform = Game.PLATFORM_WII_WARE;
+								}
+
+								ContentValues game = Game.asContentValues(platform,
 										name,
 										NativeLibrary.GetDescription(filePath).replace("\n", " "),
 										NativeLibrary.GetCountry(filePath),
 										filePath,
-										NativeLibrary.GetGameId(filePath),
+										gameId,
 										NativeLibrary.GetCompany(filePath));
 
 								// Try to update an existing game first.

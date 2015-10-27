@@ -44,13 +44,13 @@ namespace HW
 		ProcessorInterface::Init();
 		ExpansionInterface::Init(); // Needs to be initialized before Memory
 		Memory::Init();
-		DSP::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE);
+		DSP::Init(SConfig::GetInstance().bDSPHLE);
 		DVDInterface::Init();
 		GPFifo::Init();
-		CCPU::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore);
+		CPU::Init(SConfig::GetInstance().iCPUCore);
 		SystemTimers::Init();
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		if (SConfig::GetInstance().bWii)
 		{
 			Common::InitializeWiiRoot(Core::g_want_determinism);
 			DiscIO::cUIDsys::AccessInstance().UpdateLocation();
@@ -63,7 +63,7 @@ namespace HW
 	void Shutdown()
 	{
 		SystemTimers::Shutdown();
-		CCPU::Shutdown();
+		CPU::Shutdown();
 		ExpansionInterface::Shutdown();
 		DVDInterface::Shutdown();
 		DSP::Shutdown();
@@ -71,7 +71,7 @@ namespace HW
 		SerialInterface::Shutdown();
 		AudioInterface::Shutdown();
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		if (SConfig::GetInstance().bWii)
 		{
 			WII_IPCInterface::Shutdown();
 			WII_IPC_HLE_Interface::Shutdown();
@@ -103,7 +103,7 @@ namespace HW
 		AudioInterface::DoState(p);
 		p.DoMarker("AudioInterface");
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		if (SConfig::GetInstance().bWii)
 		{
 			WII_IPCInterface::DoState(p);
 			p.DoMarker("WII_IPCInterface");

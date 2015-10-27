@@ -14,6 +14,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/CachedInterpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -44,7 +45,7 @@ namespace JitInterface
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
-		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+		bMMU = SConfig::GetInstance().bMMU;
 		bFakeVMEM = !bMMU;
 
 		CPUCoreBase *ptr = nullptr;
@@ -63,6 +64,10 @@ namespace JitInterface
 			ptr = new JitArm64();
 			break;
 		#endif
+		case PowerPC::CORE_CACHEDINTERPRETER:
+			ptr = new CachedInterpreter();
+			break;
+
 		default:
 			PanicAlert("Unrecognizable cpu_core: %d", core);
 			jit = nullptr;
@@ -89,6 +94,9 @@ namespace JitInterface
 			JitArm64Tables::InitTables();
 			break;
 		#endif
+		case PowerPC::CORE_CACHEDINTERPRETER:
+			// has no tables
+			break;
 		default:
 			PanicAlert("Unrecognizable cpu_core: %d", core);
 			break;
@@ -110,14 +118,14 @@ namespace JitInterface
 			PanicAlert("Failed to open %s", filename.c_str());
 			return;
 		}
-		fprintf(f.GetHandle(), "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
+		fprintf(f.GetHandle(), "origAddr\tblkName\trunCount\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
 		for (auto& stat : prof_stats.block_stats)
 		{
 			std::string name = g_symbolDB.GetDescription(stat.addr);
 			double percent = 100.0 * (double)stat.cost / (double)prof_stats.cost_sum;
 			double timePercent = 100.0 * (double)stat.tick_counter / (double)prof_stats.timecost_sum;
-			fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t%" PRIu64 "\t%.2f\t%.2f\t%.2f\t%i\n",
-					stat.addr, name.c_str(), stat.cost,
+			fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%.2f\t%.2f\t%.2f\t%i\n",
+					stat.addr, name.c_str(), stat.run_count, stat.cost,
 					stat.tick_counter, percent, timePercent,
 					(double)stat.tick_counter*1000.0/(double)prof_stats.countsPerSec, stat.block_size);
 		}
@@ -125,14 +133,14 @@ namespace JitInterface
 
 	void GetProfileResults(ProfileStats* prof_stats)
 	{
+		// Can't really do this with no jit core available
+		if (!jit)
+			return;
+
 		prof_stats->cost_sum = 0;
 		prof_stats->timecost_sum = 0;
 		prof_stats->block_stats.clear();
 		prof_stats->block_stats.reserve(jit->GetBlockCache()->GetNumBlocks());
-
-		// Can't really do this with no jit core available
-		if (!jit)
-			return;
 
 		Core::EState old_state = Core::GetState();
 		if (old_state == Core::CORE_RUN)
@@ -148,7 +156,8 @@ namespace JitInterface
 			// Todo: tweak.
 			if (block->runCount >= 1)
 				prof_stats->block_stats.emplace_back(i, block->originalAddress,
-				                                        cost, timecost, block->codeSize);
+				                                     cost, timecost,
+				                                     block->runCount, block->codeSize);
 			prof_stats->cost_sum += cost;
 			prof_stats->timecost_sum += timecost;
 		}
@@ -194,8 +203,7 @@ namespace JitInterface
 
 		JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
 
-		*code = (const u8*)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
-
+		*code = block->checkedEntry;
 		*code_size = block->codeSize;
 		*address = block->originalAddress;
 		return 0;
@@ -203,6 +211,12 @@ namespace JitInterface
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx)
 	{
+		// Prevent nullptr dereference on a crash with no JIT present
+		if (!jit)
+		{
+			return false;
+		}
+
 		return jit->HandleFault(access_address, ctx);
 	}
 

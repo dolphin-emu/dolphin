@@ -2,12 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include <thread>
 
 #include "AudioCommon/aldlist.h"
 #include "AudioCommon/DPL2Decoder.h"
 #include "AudioCommon/OpenALStream.h"
 #include "Common/Thread.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
@@ -129,22 +131,27 @@ void OpenALStream::SoundLoop()
 {
 	Common::SetCurrentThreadName("Audio thread - openal");
 
-	bool surround_capable = SConfig::GetInstance().m_LocalCoreStartupParameter.bDPL2Decoder;
+	bool surround_capable = SConfig::GetInstance().bDPL2Decoder;
 #if defined(__APPLE__)
 	bool float32_capable = false;
 	const ALenum AL_FORMAT_STEREO_FLOAT32 = 0;
 	// OS X does not have the alext AL_FORMAT_51CHN32 yet.
 	surround_capable = false;
 	const ALenum AL_FORMAT_51CHN32 = 0;
+	const ALenum AL_FORMAT_51CHN16 = 0;
 #else
 	bool float32_capable = true;
 #endif
 
 	u32 ulFrequency = m_mixer->GetSampleRate();
-	numBuffers = SConfig::GetInstance().m_LocalCoreStartupParameter.iLatency + 2; // OpenAL requires a minimum of two buffers
+	numBuffers = SConfig::GetInstance().iLatency + 2; // OpenAL requires a minimum of two buffers
 
 	memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
 	uiSource = 0;
+
+	// Checks if a X-Fi is being used. If it is, disable FLOAT32 support as this sound card has no support for it even though it reports it does.
+	if (strstr(alGetString(AL_RENDERER), "X-Fi"))
+		float32_capable = false;
 
 	// Generate some AL Buffers for streaming
 	alGenBuffers(numBuffers, (ALuint *)uiBuffers);
@@ -152,14 +159,26 @@ void OpenALStream::SoundLoop()
 	alGenSources(1, &uiSource);
 
 	// Short Silence
-	memset(sampleBuffer, 0, OAL_MAX_SAMPLES * numBuffers * FRAME_SURROUND_FLOAT);
+	if (float32_capable)
+		memset(sampleBuffer, 0, OAL_MAX_SAMPLES * numBuffers * FRAME_SURROUND_FLOAT);
+	else
+		memset(sampleBuffer, 0, OAL_MAX_SAMPLES * numBuffers * FRAME_SURROUND_SHORT);
+
 	memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * FRAME_STEREO_SHORT);
+
 	for (int i = 0; i < numBuffers; i++)
 	{
 		if (surround_capable)
-			alBufferData(uiBuffers[i], AL_FORMAT_51CHN32, sampleBuffer, 4 * FRAME_SURROUND_FLOAT, ulFrequency);
+		{
+			if (float32_capable)
+				alBufferData(uiBuffers[i], AL_FORMAT_51CHN32, sampleBuffer, 4 * FRAME_SURROUND_FLOAT, ulFrequency);
+			else
+				alBufferData(uiBuffers[i], AL_FORMAT_51CHN16, sampleBuffer, 4 * FRAME_SURROUND_SHORT, ulFrequency);
+		}
 		else
+		{
 			alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, 4 * FRAME_STEREO_SHORT, ulFrequency);
+		}
 	}
 	alSourceQueueBuffers(uiSource, numBuffers, uiBuffers);
 	alSourcePlay(uiSource);
@@ -252,6 +271,7 @@ void OpenALStream::SoundLoop()
 			{
 				float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
 				DPL2Decode(sampleBuffer, nSamples, dpl2);
+
 				// zero-out the subwoofer channel - DPL2Decode generates a pretty
 				// good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
 				// AL_FORMAT_50CHN32 to make this super-explicit.
@@ -260,7 +280,20 @@ void OpenALStream::SoundLoop()
 				{
 					dpl2[i*SURROUND_CHANNELS + 3 /*sub/lfe*/] = 0.0f;
 				}
-				alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
+
+				if (float32_capable)
+				{
+					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
+				}
+				else
+				{
+					short surround_short[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
+					for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
+						surround_short[i] = (short)((float)dpl2[i] * (1 << 15));
+
+					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN16, surround_short, nSamples * FRAME_SURROUND_SHORT, ulFrequency);
+				}
+
 				ALenum err = alGetError();
 				if (err == AL_INVALID_ENUM)
 				{

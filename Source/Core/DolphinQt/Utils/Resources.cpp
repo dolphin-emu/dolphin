@@ -40,7 +40,7 @@ void Resources::Init()
 	m_regions[DiscIO::IVolume::COUNTRY_WORLD].load(GIFN("Flag_Europe")); // Uses European flag as a placeholder
 	m_regions[DiscIO::IVolume::COUNTRY_UNKNOWN].load(GIFN("Flag_Unknown"));
 
-	m_platforms.resize(3);
+	m_platforms.resize(4);
 	m_platforms[0].load(GIFN("Platform_Gamecube"));
 	m_platforms[1].load(GIFN("Platform_Wii"));
 	m_platforms[2].load(GIFN("Platform_Wad"));
@@ -55,12 +55,13 @@ void Resources::Init()
 
 	m_pixmaps.resize(NUM_ICONS);
 	m_pixmaps[DOLPHIN_LOGO].load(GIFN("Dolphin"));
+	m_pixmaps[DOLPHIN_LOGO_LARGE].load(GIFN("dolphin_logo"));
 	UpdatePixmaps();
 }
 
 void Resources::UpdatePixmaps()
 {
-	QString dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
+	QString dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
 	m_pixmaps[TOOLBAR_OPEN].load(GIFN("open"));
 	m_pixmaps[TOOLBAR_REFRESH].load(GIFN("refresh"));
 	m_pixmaps[TOOLBAR_BROWSE].load(GIFN("browse"));
@@ -70,14 +71,14 @@ void Resources::UpdatePixmaps()
 	m_pixmaps[TOOLBAR_FULLSCREEN].load(GIFN("fullscreen"));
 	m_pixmaps[TOOLBAR_SCREENSHOT].load(GIFN("screenshot"));
 	m_pixmaps[TOOLBAR_CONFIGURE].load(GIFN("config"));
-	m_pixmaps[TOOLBAR_PLUGIN_GFX].load(GIFN("graphics"));
-	m_pixmaps[TOOLBAR_PLUGIN_DSP].load(GIFN("dsp"));
-	m_pixmaps[TOOLBAR_PLUGIN_GCPAD].load(GIFN("gcpad"));
-	m_pixmaps[TOOLBAR_PLUGIN_WIIMOTE].load(GIFN("wiimote"));
+	m_pixmaps[TOOLBAR_GRAPHICS].load(GIFN("graphics"));
+	m_pixmaps[TOOLBAR_CONTROLLERS].load(GIFN("classic"));
 	m_pixmaps[TOOLBAR_HELP].load(GIFN("nobanner")); // TODO
 	// TODO: toolbar[MEMCARD];
 	// TODO: toolbar[HOTKEYS];
 	m_pixmaps[BANNER_MISSING].load(GIFN("nobanner"));
+	// TODO: Make this consistent with the other files
+	m_platforms[3].load(GIFN("fileplatform"));
 }
 
 QString Resources::GetImageFilename(QString name, QString dir)

@@ -1,4 +1,4 @@
-/* $Id: receivedata.h,v 1.4 2012/09/27 15:42:10 nanard Exp $ */
+/* $Id: receivedata.h,v 1.3 2012/06/23 22:34:47 nanard Exp $ */
 /* Project: miniupnp
  * http://miniupnp.free.fr/ or http://miniupnp.tuxfamily.org/
  * Author: Thomas Bernard

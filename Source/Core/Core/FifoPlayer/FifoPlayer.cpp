@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <mutex>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -15,8 +16,11 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/BPMemory.h"
+
+bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
 FifoPlayer::~FifoPlayer()
 {
@@ -60,6 +64,8 @@ bool FifoPlayer::Play()
 	if (m_File->GetFrameCount() == 0)
 		return false;
 
+	IsPlayingBackFifologWithBrokenEFBCopies = m_File->HasBrokenEFBCopies();
+
 	m_CurrentFrame = m_FrameRangeStart;
 
 	LoadMemory();
@@ -98,6 +104,8 @@ bool FifoPlayer::Play()
 			}
 		}
 	}
+
+	IsPlayingBackFifologWithBrokenEFBCopies = false;
 
 	return true;
 }
@@ -146,7 +154,7 @@ void FifoPlayer::SetFrameRangeEnd(u32 end)
 	}
 }
 
-FifoPlayer &FifoPlayer::GetInstance()
+FifoPlayer& FifoPlayer::GetInstance()
 {
 	static FifoPlayer instance;
 	return instance;
@@ -163,13 +171,13 @@ FifoPlayer::FifoPlayer() :
 	m_FrameWrittenCb(nullptr),
 	m_File(nullptr)
 {
-	m_Loop = SConfig::GetInstance().m_LocalCoreStartupParameter.bLoopFifoReplay;
+	m_Loop = SConfig::GetInstance().bLoopFifoReplay;
 }
 
-void FifoPlayer::WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo &info)
+void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
 	// Core timing information
-	m_CyclesPerFrame = SystemTimers::GetTicksPerSecond() / 60;
+	m_CyclesPerFrame = SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
 	m_ElapsedCycles = 0;
 	m_FrameFifoSize = frame.fifoDataSize;
 
@@ -225,9 +233,9 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo 
 	FlushWGP();
 }
 
-void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32 &nextMemUpdate, const FifoFrameInfo &frame, const AnalyzedFrameInfo &info)
+void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate, const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
-	u8 *data = frame.fifoData;
+	u8* data = frame.fifoData;
 
 	while (nextMemUpdate < frame.memoryUpdates.size() && dataStart < dataEnd)
 	{
@@ -282,7 +290,7 @@ void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 	memcpy(mem, memUpdate.data, memUpdate.size);
 }
 
-void FifoPlayer::WriteFifo(u8 *data, u32 start, u32 end)
+void FifoPlayer::WriteFifo(u8* data, u32 start, u32 end)
 {
 	u32 written = start;
 	u32 lastBurstEnd = end - 1;
@@ -445,7 +453,7 @@ void FifoPlayer::LoadXFReg(u16 reg, u32 value)
 	GPFifo::Write32(value);
 }
 
-void FifoPlayer::LoadXFMem16(u16 address, u32 *data)
+void FifoPlayer::LoadXFMem16(u16 address, u32* data)
 {
 	// Loads 16 * 4 bytes in xf memory starting at address
 	GPFifo::Write8(0x10); // load XF reg

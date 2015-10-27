@@ -18,6 +18,7 @@ using namespace Arm64Gen;
 void JitArm64::sc(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	gpr.Flush(FlushMode::FLUSH_ALL);
 	fpr.Flush(FlushMode::FLUSH_ALL);
@@ -38,6 +39,7 @@ void JitArm64::sc(UGeckoInstruction inst)
 void JitArm64::rfi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	gpr.Flush(FlushMode::FLUSH_ALL);
 	fpr.Flush(FlushMode::FLUSH_ALL);
@@ -78,6 +80,7 @@ void JitArm64::rfi(UGeckoInstruction inst)
 void JitArm64::bx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	gpr.Flush(FlushMode::FLUSH_ALL);
 	fpr.Flush(FlushMode::FLUSH_ALL);
@@ -115,6 +118,7 @@ void JitArm64::bx(UGeckoInstruction inst)
 void JitArm64::bcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	ARM64Reg WA = gpr.GetReg();
 	FixupBranch pCTRDontBranch;
@@ -137,6 +141,10 @@ void JitArm64::bcx(UGeckoInstruction inst)
 		pConditionDontBranch = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
 		                                        !(inst.BO_2 & BO_BRANCH_IF_TRUE));
 	}
+
+	FixupBranch far = B();
+	SwitchToFarCode();
+	SetJumpTarget(far);
 
 	if (inst.LK)
 	{
@@ -157,6 +165,8 @@ void JitArm64::bcx(UGeckoInstruction inst)
 
 	WriteExit(destination);
 
+	SwitchToNearCode();
+
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
@@ -173,45 +183,42 @@ void JitArm64::bcx(UGeckoInstruction inst)
 void JitArm64::bcctrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
+
+	// Rare condition seen in (just some versions of?) Nintendo's NES Emulator
+	// BO_2 == 001zy -> b if false
+	// BO_2 == 011zy -> b if true
+	FALLBACK_IF(!(inst.BO_2 & BO_DONT_CHECK_CONDITION));
 
 	// bcctrx doesn't decrement and/or test CTR
 	_assert_msg_(DYNA_REC, inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
 
-	if (inst.BO_2 & BO_DONT_CHECK_CONDITION)
+	// BO_2 == 1z1zz -> b always
+
+	//NPC = CTR & 0xfffffffc;
+	gpr.Flush(FlushMode::FLUSH_ALL);
+	fpr.Flush(FlushMode::FLUSH_ALL);
+
+	if (inst.LK_3)
 	{
-		// BO_2 == 1z1zz -> b always
-
-		//NPC = CTR & 0xfffffffc;
-		gpr.Flush(FlushMode::FLUSH_ALL);
-		fpr.Flush(FlushMode::FLUSH_ALL);
-
-		if (inst.LK_3)
-		{
-			ARM64Reg WB = gpr.GetReg();
-			u32 Jumpto = js.compilerPC + 4;
-			MOVI2R(WB, Jumpto);
-			STR(INDEX_UNSIGNED, WB, X29, PPCSTATE_OFF(spr[SPR_LR]));
-			gpr.Unlock(WB);
-		}
-
-		ARM64Reg WA = gpr.GetReg();
-
-		LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_CTR]));
-		AND(WA, WA, 30, 29); // Wipe the bottom 2 bits.
-		WriteExitDestInR(WA);
+		ARM64Reg WB = gpr.GetReg();
+		u32 Jumpto = js.compilerPC + 4;
+		MOVI2R(WB, Jumpto);
+		STR(INDEX_UNSIGNED, WB, X29, PPCSTATE_OFF(spr[SPR_LR]));
+		gpr.Unlock(WB);
 	}
-	else
-	{
-		// Rare condition seen in (just some versions of?) Nintendo's NES Emulator
-		// BO_2 == 001zy -> b if false
-		// BO_2 == 011zy -> b if true
-		_assert_msg_(DYNA_REC, false, "Haven't implemented rare form of bcctrx yet");
-	}
+
+	ARM64Reg WA = gpr.GetReg();
+
+	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_CTR]));
+	AND(WA, WA, 30, 29); // Wipe the bottom 2 bits.
+	WriteExitDestInR(WA);
 }
 
 void JitArm64::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(bJITBranchOff);
 
 	ARM64Reg WA = gpr.GetReg();
 	FixupBranch pCTRDontBranch;
@@ -234,6 +241,10 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 		                                        !(inst.BO_2 & BO_BRANCH_IF_TRUE));
 	}
 
+	FixupBranch far = B();
+	SwitchToFarCode();
+	SetJumpTarget(far);
+
 	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_LR]));
 	AND(WA, WA, 30, 29); // Wipe the bottom 2 bits.
 
@@ -250,6 +261,8 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 	fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
 
 	WriteExitDestInR(WA);
+
+	SwitchToNearCode();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );

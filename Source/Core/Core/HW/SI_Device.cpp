@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceAMBaseboard.h"
 #include "Core/HW/SI_DeviceDanceMat.h"

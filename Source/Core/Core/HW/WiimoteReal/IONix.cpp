@@ -2,6 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
@@ -36,8 +39,7 @@ private:
 };
 
 WiimoteScanner::WiimoteScanner()
-	: m_want_wiimotes()
-	, device_id(-1)
+	: device_id(-1)
 	, device_sock(-1)
 {
 	// Get the id of the first Bluetooth device.

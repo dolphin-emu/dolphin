@@ -47,6 +47,8 @@ typedef struct pollfd pollfd_t;
 #include <string>
 #include <unordered_map>
 
+#include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
@@ -192,14 +194,14 @@ private:
 public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();
-	void operator=(WiiSocket const&); // Don't implement
+	void operator=(WiiSocket const&) = delete;
 
 };
 
 class WiiSockMan : public ::NonCopyable
 {
 public:
-	static s32 GetNetErrorCode(s32 ret, const std::string& caller, bool isRW);
+	static s32 GetNetErrorCode(s32 ret, const char* caller, bool isRW);
 	static char* DecodeError(s32 ErrorCode);
 
 	static WiiSockMan& GetInstance()

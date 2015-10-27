@@ -21,21 +21,18 @@ static void gdsp_do_dma();
 
 void gdsp_ifx_init()
 {
-	for (int i = 0; i < 256; i++)
-	{
-		g_dsp.ifx_regs[i] = 0;
-	}
+	g_dsp.ifx_regs.fill(0);
 
-	g_dsp.mbox[0].store(0);
-	g_dsp.mbox[1].store(0);
+	g_dsp.mbox[MAILBOX_CPU].store(0);
+	g_dsp.mbox[MAILBOX_DSP].store(0);
 }
 
-u32 gdsp_mbox_peek(u8 mbx)
+u32 gdsp_mbox_peek(Mailbox mbx)
 {
 	return g_dsp.mbox[mbx].load();
 }
 
-void gdsp_mbox_write_h(u8 mbx, u16 val)
+void gdsp_mbox_write_h(Mailbox mbx, u16 val)
 {
 	const u32 old_value = g_dsp.mbox[mbx].load(std::memory_order_acquire);
 	const u32 new_value = (old_value & 0xffff) | (val << 16);
@@ -43,7 +40,7 @@ void gdsp_mbox_write_h(u8 mbx, u16 val)
 	g_dsp.mbox[mbx].store(new_value & ~0x80000000, std::memory_order_release);
 }
 
-void gdsp_mbox_write_l(u8 mbx, u16 val)
+void gdsp_mbox_write_l(Mailbox mbx, u16 val)
 {
 	const u32 old_value = g_dsp.mbox[mbx].load(std::memory_order_acquire);
 	const u32 new_value = (old_value & ~0xffff) | val;
@@ -51,18 +48,16 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 	g_dsp.mbox[mbx].store(new_value | 0x80000000, std::memory_order_release);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (mbx == GDSP_MBOX_DSP)
-	{
-		INFO_LOG(DSP_MAIL, "DSP(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
-	} else {
-		INFO_LOG(DSP_MAIL, "CPU(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_CPU), g_dsp.pc);
-	}
+	if (mbx == MAILBOX_DSP)
+		INFO_LOG(DSP_MAIL, "DSP(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_DSP), g_dsp.pc);
+	else
+		INFO_LOG(DSP_MAIL, "CPU(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_CPU), g_dsp.pc);
 #endif
 }
 
-u16 gdsp_mbox_read_h(u8 mbx)
+u16 gdsp_mbox_read_h(Mailbox mbx)
 {
-	if (init_hax && mbx)
+	if (init_hax && mbx == MAILBOX_DSP)
 	{
 		return 0x8054;
 	}
@@ -70,12 +65,12 @@ u16 gdsp_mbox_read_h(u8 mbx)
 	return (u16)(g_dsp.mbox[mbx].load() >> 16); // TODO: mask away the top bit?
 }
 
-u16 gdsp_mbox_read_l(u8 mbx)
+u16 gdsp_mbox_read_l(Mailbox mbx)
 {
 	const u32 value = g_dsp.mbox[mbx].load(std::memory_order_acquire);
 	g_dsp.mbox[mbx].store(value & ~0x80000000, std::memory_order_release);
 
-	if (init_hax && mbx)
+	if (init_hax && mbx == MAILBOX_DSP)
 	{
 		init_hax = false;
 		DSPCore_Reset();
@@ -83,12 +78,10 @@ u16 gdsp_mbox_read_l(u8 mbx)
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (mbx == GDSP_MBOX_DSP)
-	{
-		INFO_LOG(DSP_MAIL, "DSP(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
-	} else {
-		INFO_LOG(DSP_MAIL, "CPU(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_CPU), g_dsp.pc);
-	}
+	if (mbx == MAILBOX_DSP)
+		INFO_LOG(DSP_MAIL, "DSP(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_DSP), g_dsp.pc);
+	else
+		INFO_LOG(DSP_MAIL, "CPU(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_CPU), g_dsp.pc);
 #endif
 
 	return (u16)value;
@@ -108,18 +101,18 @@ void gdsp_ifx_write(u32 addr, u32 val)
 			break;
 
 		case DSP_DMBH:
-			gdsp_mbox_write_h(GDSP_MBOX_DSP, val);
+			gdsp_mbox_write_h(MAILBOX_DSP, val);
 			break;
 
 		case DSP_DMBL:
-			gdsp_mbox_write_l(GDSP_MBOX_DSP, val);
+			gdsp_mbox_write_l(MAILBOX_DSP, val);
 			break;
 
 		case DSP_CMBH:
-			return gdsp_mbox_write_h(GDSP_MBOX_CPU, val);
+			return gdsp_mbox_write_h(MAILBOX_CPU, val);
 
 		case DSP_CMBL:
-			return gdsp_mbox_write_l(GDSP_MBOX_CPU, val);
+			return gdsp_mbox_write_l(MAILBOX_CPU, val);
 
 		case DSP_DSBL:
 			g_dsp.ifx_regs[DSP_DSBL] = val;
@@ -178,16 +171,16 @@ static u16 _gdsp_ifx_read(u16 addr)
 	switch (addr & 0xff)
 	{
 		case DSP_DMBH:
-			return gdsp_mbox_read_h(GDSP_MBOX_DSP);
+			return gdsp_mbox_read_h(MAILBOX_DSP);
 
 		case DSP_DMBL:
-			return gdsp_mbox_read_l(GDSP_MBOX_DSP);
+			return gdsp_mbox_read_l(MAILBOX_DSP);
 
 		case DSP_CMBH:
-			return gdsp_mbox_read_h(GDSP_MBOX_CPU);
+			return gdsp_mbox_read_h(MAILBOX_CPU);
 
 		case DSP_CMBL:
-			return gdsp_mbox_read_l(GDSP_MBOX_CPU);
+			return gdsp_mbox_read_l(MAILBOX_CPU);
 
 		case DSP_DSCR:
 			return g_dsp.ifx_regs[addr & 0xFF];

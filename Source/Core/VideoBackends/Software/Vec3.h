@@ -150,15 +150,14 @@ public:
 
 	bool operator==(const Vec3 &other) const
 	{
-		if (x == other.x && y == other.y && z == other.z)
-			return true;
-		else
-			return false;
+		return x == other.x && y == other.y && z == other.z;
 	}
 
 	void SetZero()
 	{
-		memset((void*)this, 0, sizeof(float) * 3);
+		x = 0.0f;
+		y = 0.0f;
+		z = 0.0f;
 	}
 
 	void DoState(PointerWrap &p)

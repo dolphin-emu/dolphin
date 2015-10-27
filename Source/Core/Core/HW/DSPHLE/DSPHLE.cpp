@@ -21,24 +21,6 @@ DSPHLE::DSPHLE()
 {
 }
 
-// Mailbox utility
-struct DSPState
-{
-	u32 CPUMailbox;
-	u32 DSPMailbox;
-
-	void Reset()
-	{
-		CPUMailbox = 0x00000000;
-		DSPMailbox = 0x00000000;
-	}
-
-	DSPState()
-	{
-		Reset();
-	}
-};
-
 bool DSPHLE::Initialize(bool bWii, bool bDSPThread)
 {
 	m_bWii = bWii;
@@ -75,10 +57,8 @@ void DSPHLE::DSP_Update(int cycles)
 u32 DSPHLE::DSP_UpdateRate()
 {
 	// AX HLE uses 3ms (Wii) or 5ms (GC) timing period
-	if (m_pUCode != nullptr)
-		return (SystemTimers::GetTicksPerSecond() / 1000) * m_pUCode->GetUpdateMs();
-	else
-		return SystemTimers::GetTicksPerSecond() / 1000;
+	// But to be sure, just update the HLE every ms.
+	return SystemTimers::GetTicksPerSecond() / 1000;
 }
 
 void DSPHLE::SendMailToDSP(u32 _uMail)

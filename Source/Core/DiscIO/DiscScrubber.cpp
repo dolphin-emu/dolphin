@@ -12,6 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/DiscScrubber.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -310,7 +311,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 		// Go through the filesystem and mark entries as used
 		for (SFileInfo file : filesystem->GetFileList())
 		{
-			DEBUG_LOG(DISCIO, file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
+			DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
 			// Just 1byte for directory? - it will end up reserving a cluster this way
 			if (file.m_NameOffset & 0x1000000)
 				MarkAsUsedE(_rPartition.Offset + _rPartition.Header.DataOffset, file.m_Offset, 1);

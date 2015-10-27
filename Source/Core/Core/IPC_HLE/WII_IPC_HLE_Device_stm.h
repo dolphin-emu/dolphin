@@ -37,24 +37,24 @@ public:
 	virtual ~CWII_IPC_HLE_Device_stm_immediate()
 	{}
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		m_Active = true;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Close");
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress+4);
 		m_Active = false;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override
+	IPCCommandResult IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
@@ -108,7 +108,7 @@ public:
 
 		// Write return value to the IPC call
 		Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 };
 
@@ -126,14 +126,14 @@ public:
 	{
 	}
 
-	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 		m_Active = true;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
-	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
 	{
 		m_EventHookAddress = 0;
 
@@ -141,10 +141,10 @@ public:
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress+4);
 		m_Active = false;
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
-	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override
+	IPCCommandResult IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
@@ -183,7 +183,7 @@ public:
 
 		// Write return value to the IPC call, 0 means success
 		Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-		return IPC_DEFAULT_REPLY;
+		return GetDefaultReply();
 	}
 
 	// STATE_TO_SAVE

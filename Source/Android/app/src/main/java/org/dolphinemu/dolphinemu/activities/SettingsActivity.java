@@ -1,15 +1,15 @@
 package org.dolphinemu.dolphinemu.activities;
 
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import org.dolphinemu.dolphinemu.fragments.SettingsFragment;
 import org.dolphinemu.dolphinemu.services.SettingsSaveService;
 
-public final class SettingsActivity extends Activity
+public final class SettingsActivity extends AppCompatActivity
 {
 	@Override
 	protected void onCreate(Bundle savedInstanceState)

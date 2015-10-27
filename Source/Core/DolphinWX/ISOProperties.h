@@ -5,8 +5,10 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 #include <wx/dialog.h>
 #include <wx/treebase.h>
@@ -17,6 +19,7 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
+#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/PatchAddEdit.h"
 
 class GameListItem;
@@ -36,8 +39,13 @@ namespace Gecko { class CodeConfigPanel; }
 class WiiPartition final : public wxTreeItemData
 {
 public:
-	DiscIO::IVolume *Partition;
-	DiscIO::IFileSystem *FileSystem;
+	WiiPartition(std::unique_ptr<DiscIO::IVolume> partition, std::unique_ptr<DiscIO::IFileSystem> file_system)
+		: Partition(std::move(partition)), FileSystem(std::move(file_system))
+	{
+	}
+
+	std::unique_ptr<DiscIO::IVolume> Partition;
+	std::unique_ptr<DiscIO::IFileSystem> FileSystem;
 };
 
 struct PHackData
@@ -51,7 +59,7 @@ struct PHackData
 class CISOProperties : public wxDialog
 {
 public:
-	CISOProperties(const std::string fileName,
+	CISOProperties(const GameListItem& game_list_item,
 			wxWindow* parent,
 			wxWindowID id = wxID_ANY,
 			const wxString& title = _("Properties"),
@@ -208,7 +216,7 @@ private:
 	void SetRefresh(wxCommandEvent& event);
 	void OnChangeBannerLang(wxCommandEvent& event);
 
-	GameListItem* OpenGameListItem;
+	const GameListItem OpenGameListItem;
 
 	typedef std::vector<const DiscIO::SFileInfo*>::iterator fileIter;
 

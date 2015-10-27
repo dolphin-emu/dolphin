@@ -73,6 +73,12 @@ private:
 	void OnGameCubeAdapter(wxCommandEvent& event)
 	{
 		SConfig::GetInstance().m_GameCubeAdapter = event.IsChecked();
+#ifdef __LIBUSB__
+		if (event.IsChecked())
+			SI_GCAdapter::StartScanThread();
+		else
+			SI_GCAdapter::StopScanThread();
+#endif
 		event.Skip();
 	}
 	void OnAdapterRumble(wxCommandEvent& event)

@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "VideoBackends/OGL/GLUtil.h"
+#include "Common/GL/GLUtil.h"
+
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 
@@ -97,7 +98,7 @@ private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override;
 	void GetTargetSize(unsigned int *width, unsigned int *height) override;
 
-	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
+	void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
 
 	static int m_targetWidth;
 	static int m_targetHeight;

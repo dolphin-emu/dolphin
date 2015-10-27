@@ -3,8 +3,14 @@
 // Refer to the license.txt file included.
 
 #include <cstdio>
+#include <cstring>
+
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #include "Common/Logging/ConsoleListener.h"
+#include "Common/Logging/Log.h"
 
 ConsoleListener::ConsoleListener()
 {

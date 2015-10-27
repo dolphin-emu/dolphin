@@ -114,22 +114,22 @@ void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size
 // input:    _number: [Description needed]
 // output:   none
 //
-void Update(int _number)
+void Update(int _number, bool _connected)
 {
-	//PanicAlert( "Wiimote_Update" );
-
-	// if we are on the next input cycle, update output and input
-	static int _last_number = 4;
-	if (_number <= _last_number)
+	if (_connected)
 	{
-		g_controller_interface.UpdateInput();
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+			((WiimoteEmu::Wiimote*)s_config.controllers[_number])->Update();
+		else
+			WiimoteReal::Update(_number);
 	}
-	_last_number = _number;
-
-	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
-		((WiimoteEmu::Wiimote*)s_config.controllers[_number])->Update();
 	else
-		WiimoteReal::Update(_number);
+	{
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+			((WiimoteEmu::Wiimote*)s_config.controllers[_number])->ConnectOnInput();
+		if (WIIMOTE_SRC_REAL & g_wiimote_sources[_number])
+			WiimoteReal::ConnectOnInput(_number);
+	}
 }
 
 // __________________________________________________________________________________________________
@@ -153,11 +153,10 @@ unsigned int GetAttached()
 // input/output: ptr: [Description Needed]
 // input: mode        [Description needed]
 //
-void DoState(u8 **ptr, PointerWrap::Mode mode)
+void DoState(PointerWrap& p)
 {
 	// TODO:
 
-	PointerWrap p(ptr, mode);
 	for (unsigned int i=0; i<MAX_BBMOTES; ++i)
 		((WiimoteEmu::Wiimote*)s_config.controllers[i])->DoState(p);
 }

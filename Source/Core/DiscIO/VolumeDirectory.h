@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 namespace File { struct FSTEntry; }
@@ -44,13 +45,14 @@ public:
 	std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
 	void SetName(const std::string&);
 
-	u32 GetFSTSize() const override;
+	u64 GetFSTSize() const override;
 
 	std::string GetApploaderDate() const override;
 	EPlatform GetVolumeType() const override;
 
 	ECountry GetCountry() const override;
 
+	BlobType GetBlobType() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
 

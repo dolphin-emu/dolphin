@@ -6,19 +6,12 @@
 #include <cmath>
 
 #include "Common/Common.h"
-//#include "VideoCommon.h" // to get debug logs
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
-
-// This avoids a harmless warning from a system header in Clang;
-// see http://llvm.org/bugs/show_bug.cgi?id=16093
-#if defined(__clang__) && (__clang_major__ * 100 + __clang_minor__ < 304)
-#pragma clang diagnostic ignored "-Wshadow"
-#endif
 
 // GameCube/Wii texture decoder
 
@@ -1065,8 +1058,8 @@ void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, in
 						const __m128i dxt = _mm_loadu_si128((__m128i *)(src + sizeof(struct DXTBlock) * 2 * xStep));
 
 						// Copy the 2-bit indices from each DXT block:
-						GC_ALIGNED16( u32 dxttmp[4] );
-						_mm_store_si128((__m128i *)dxttmp, dxt);
+						alignas(16) u32 dxttmp[4];
+						_mm_store_si128((__m128i*)dxttmp, dxt);
 
 						u32 dxt0sel = dxttmp[1];
 						u32 dxt1sel = dxttmp[3];
@@ -1204,10 +1197,10 @@ void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, in
 						u32 *dst32 = ( dst + (y + z*4) * width + x );
 
 						// Copy the colors here:
-						GC_ALIGNED16( u32 colors0[4] );
-						GC_ALIGNED16( u32 colors1[4] );
-						_mm_store_si128((__m128i *)colors0, mmcolors0);
-						_mm_store_si128((__m128i *)colors1, mmcolors1);
+						alignas(16) u32 colors0[4];
+						alignas(16) u32 colors1[4];
+						_mm_store_si128((__m128i*)colors0, mmcolors0);
+						_mm_store_si128((__m128i*)colors1, mmcolors1);
 
 						// Row 0:
 						dst32[(width * 0) + 0] = colors0[(dxt0sel >> ((0*8)+6)) & 3];

@@ -19,6 +19,8 @@
 
 static Common::replace_v replacements;
 
+static std::map <std::string, std::weak_ptr<File::IOFile>> openFiles;
+
 // This is used by several of the FileIO and /dev/fs functions
 std::string HLE_IPC_BuildFilename(std::string path_wii)
 {
@@ -39,7 +41,7 @@ std::string HLE_IPC_BuildFilename(std::string path_wii)
 void HLE_IPC_CreateVirtualFATFilesystem()
 {
 	const int cdbSize = 0x01400000;
-	const std::string cdbPath = Common::GetTitleDataPath(TITLEID_SYSMENU) + "cdb.vff";
+	const std::string cdbPath = Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + "cdb.vff";
 	if ((int)File::GetSize(cdbPath) < cdbSize)
 	{
 		// cdb.vff is a virtual Fat filesystem created on first launch of sysmenu
@@ -73,6 +75,7 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std:
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false) // not a real hardware
 	, m_Mode(0)
 	, m_SeekPos(0)
+	, m_file()
 {
 	Common::ReadReplacements(replacements);
 }
@@ -86,11 +89,14 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bF
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_Name.c_str(), m_DeviceID);
 	m_Mode = 0;
 
+	// Let go of our pointer to the file, it will automatically close if we are the last handle accessing it.
+	m_file.reset();
+
 	// Close always return 0 for success
 	if (_CommandAddress && !_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
@@ -113,6 +119,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode
 	if (File::Exists(m_filepath) && !File::IsDirectory(m_filepath))
 	{
 		INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s == %08X)", m_Name.c_str(), Modes[_Mode], _Mode);
+		OpenFile();
 		ReturnValue = m_DeviceID;
 	}
 	else
@@ -124,30 +131,50 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode
 	if (_CommandAddress)
 		Memory::Write_U32(ReturnValue, _CommandAddress+4);
 	m_Active = true;
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
-File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
+// This isn't theadsafe, but it's only called from the CPU thread.
+void CWII_IPC_HLE_Device_FileIO::OpenFile()
 {
-	const char* open_mode = "";
+	// On the wii, all file operations are strongly ordered.
+	// If a game opens the same file twice (or 8 times, looking at you PokePark Wii)
+	// and writes to one file handle, it will be able to immediately read the written
+	// data from the other handle.
+	// On 'real' operating systems, there are various buffers and caches meaning
+	// applications doing such naughty things will not get expected results.
 
-	switch (m_Mode)
+	// So we fix this by catching any attempts to open the same file twice and
+	// only opening one file. Accesses to a single file handle are ordered.
+	//
+	// Hall of Shame:
+	//    - PokePark Wii (gets stuck on the loading screen of Pikachu falling)
+	//    - PokePark 2 (Also gets stuck while loading)
+	//    - Wii System Menu (Can't access the system settings, gets stuck on blank screen)
+	//    - The Beatles: Rock Band (saving doesn't work)
+
+	// Check if the file has already been opened.
+	auto search = openFiles.find(m_Name);
+	if (search != openFiles.end())
 	{
-	case ISFS_OPEN_READ:
-		open_mode = "rb";
-		break;
-
-	case ISFS_OPEN_WRITE:
-	case ISFS_OPEN_RW:
-		open_mode = "r+b";
-		break;
-
-	default:
-		PanicAlert("FileIO: Unknown open mode : 0x%02x", m_Mode);
-		break;
+		m_file = search->second.lock(); // Lock a shared pointer to use.
 	}
+	else
+	{
+		std::string path = m_Name;
+		// This code will be called when all references to the shared pointer below have been removed.
+		auto deleter = [path](File::IOFile* ptr)
+		{
+			delete ptr; // IOFile's deconstructor closes the file.
+			openFiles.erase(path); // erase the weak pointer from the list of open files.
+		};
 
-	return File::IOFile(m_filepath, open_mode);
+		// All files are opened read/write. Actual access rights will be controlled per handle by the read/write functions below
+		m_file = std::shared_ptr<File::IOFile>(new File::IOFile(m_filepath, "r+b"), deleter); // Use the custom deleter from above.
+
+		// Store a weak pointer to our newly opened file in the cache.
+		openFiles[path] = std::weak_ptr<File::IOFile>(m_file);
+	}
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
@@ -156,11 +183,11 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	const s32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
 	const s32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
 
-	if (auto file = OpenFile())
+	if (m_file->IsOpen())
 	{
 		ReturnValue = FS_RESULT_FATAL;
 
-		const s32 fileSize = (s32) file.GetSize();
+		const s32 fileSize = (s32) m_file->GetSize();
 		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), fileSize);
 
 		switch (Mode)
@@ -211,7 +238,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	}
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
@@ -221,7 +248,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 	const u32 Size    = Memory::Read_U32(_CommandAddress + 0x10);
 
 
-	if (auto file = OpenFile())
+	if (m_file->IsOpen())
 	{
 		if (m_Mode == ISFS_OPEN_WRITE)
 		{
@@ -230,9 +257,9 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 		else
 		{
 			INFO_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address, m_Name.c_str());
-			file.Seek(m_SeekPos, SEEK_SET);
-			ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, file.GetHandle());
-			if (ReturnValue != Size && ferror(file.GetHandle()))
+			m_file->Seek(m_SeekPos, SEEK_SET); // File might be opened twice, need to seek before we read
+			ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, m_file->GetHandle());
+			if (ReturnValue != Size && ferror(m_file->GetHandle()))
 			{
 				ReturnValue = FS_EACCESS;
 			}
@@ -250,7 +277,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
@@ -259,7 +286,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 	const u32 Address = Memory::Read_U32(_CommandAddress + 0xC); // Write data from this memory address
 	const u32 Size    = Memory::Read_U32(_CommandAddress + 0x10);
 
-	if (auto file = OpenFile())
+	if (m_file->IsOpen())
 	{
 		if (m_Mode == ISFS_OPEN_READ)
 		{
@@ -268,8 +295,8 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 		else
 		{
 			INFO_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", Size, Address, m_Name.c_str());
-			file.Seek(m_SeekPos, SEEK_SET);
-			if (file.WriteBytes(Memory::GetPointer(Address), Size))
+			m_file->Seek(m_SeekPos, SEEK_SET); // File might be opened twice, need to seek before we write
+			if (m_file->WriteBytes(Memory::GetPointer(Address), Size))
 			{
 				ReturnValue = Size;
 				m_SeekPos += Size;
@@ -283,7 +310,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
@@ -299,9 +326,9 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 	{
 	case ISFS_IOCTL_GETFILESTATS:
 		{
-			if (auto file = OpenFile())
+			if (m_file->IsOpen())
 			{
-				u32 m_FileLength = (u32)file.GetSize();
+				u32 m_FileLength = (u32)m_file->GetSize();
 
 				const u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 				INFO_LOG(WII_IPC_FILEIO, "  File: %s, Length: %i, Pos: %i", m_Name.c_str(), m_FileLength, m_SeekPos);
@@ -326,7 +353,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
-	return IPC_DEFAULT_REPLY;
+	return GetDefaultReply();
 }
 
 void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
@@ -337,4 +364,9 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 	p.Do(m_SeekPos);
 
 	m_filepath = HLE_IPC_BuildFilename(m_Name);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		OpenFile();
+	}
 }

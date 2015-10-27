@@ -10,6 +10,8 @@
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/XAudio2_7Stream.h"
 #include "Common/Event.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 
 struct StreamingVoiceContext2_7 : public IXAudio2VoiceCallback
 {
@@ -196,21 +198,6 @@ void XAudio2_7::SetVolume(int volume)
 
 	if (m_mastering_voice)
 		m_mastering_voice->SetVolume(m_volume);
-}
-
-void XAudio2_7::Update()
-{
-	//m_sound_sync_event.Set();
-
-	//static int xi = 0;
-	//if (100000 == ++xi)
-	//{
-	//    xi = 0;
-	//    XAUDIO2_PERFORMANCE_DATA perfData;
-	//    pXAudio2->GetPerformanceData(&perfData);
-	//    NOTICE_LOG(DSPHLE, "XAudio2_7 latency (samples): %i", perfData.CurrentLatencyInSamples);
-	//    NOTICE_LOG(DSPHLE, "XAudio2_7 total glitches: %i", perfData.GlitchesSinceEngineStarted);
-	//}
 }
 
 void XAudio2_7::Clear(bool mute)

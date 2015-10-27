@@ -172,7 +172,7 @@ void InputConfigDialog::UpdateProfileComboBox()
 	pname += PROFILES_PATH;
 	pname += m_config.profile_name;
 
-	std::vector<std::string> sv = DoFileSearch({"*.ini"}, {pname});
+	std::vector<std::string> sv = DoFileSearch({".ini"}, {pname});
 
 	wxArrayString strs;
 	for (const std::string& filename : sv)
@@ -492,6 +492,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 	ciface::Core::Device* const dev = g_controller_interface.FindDevice(m_devq);
 	if (dev)
 	{
+		m_event_filter.BlockEvents(true);
 		btn->SetLabel(_("[ waiting ]"));
 
 		// This makes the "waiting" text work on Linux. true (only if needed) prevents crash on Windows
@@ -504,6 +505,10 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 			SelectControl(ctrl->GetName());
 
 		btn->SetLabel(lbl);
+
+		// This lets the input events be sent to the filter and discarded before unblocking
+		wxTheApp->Yield(true);
+		m_event_filter.BlockEvents(false);
 	}
 }
 
@@ -531,6 +536,7 @@ bool GamepadPage::DetectButton(ControlButton* button)
 	ciface::Core::Device* const dev = g_controller_interface.FindDevice(controller->default_device);
 	if (dev)
 	{
+		m_event_filter.BlockEvents(true);
 		button->SetLabel(_("[ waiting ]"));
 
 		// This makes the "waiting" text work on Linux. true (only if needed) prevents crash on Windows
@@ -548,6 +554,10 @@ bool GamepadPage::DetectButton(ControlButton* button)
 			g_controller_interface.UpdateReference(button->control_reference, controller->default_device);
 			success = true;
 		}
+
+		// This lets the input events be sent to the filter and discarded before unblocking
+		wxTheApp->Yield(true);
+		m_event_filter.BlockEvents(false);
 	}
 
 	UpdateGUI();
@@ -946,7 +956,7 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 	{
 		ControlGroupBox* control_group_box = new ControlGroupBox(group.get(), parent, eventsink);
 		wxStaticBoxSizer *control_group =
-			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(group->name)));
+			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(group->ui_name)));
 		control_group->Add(control_group_box);
 
 		const size_t grp_size = group->controls.size() + group->settings.size();
@@ -1071,4 +1081,15 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
 	m_update_timer.SetOwner(this);
 	Bind(wxEVT_TIMER, &InputConfigDialog::UpdateBitmaps, this);
 	m_update_timer.Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
+}
+
+int InputEventFilter::FilterEvent(wxEvent& event)
+{
+	if (m_block && ShouldCatchEventType(event.GetEventType()))
+	{
+		event.StopPropagation();
+		return Event_Processed;
+	}
+
+	return Event_Skip;
 }

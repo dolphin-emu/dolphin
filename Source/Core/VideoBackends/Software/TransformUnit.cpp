@@ -73,7 +73,7 @@ static void MultipleVec3Ortho(const Vec3 &vec, const float *proj, Vec4 &result)
 
 void TransformPosition(const InputVertexData *src, OutputVertexData *dst)
 {
-	const float* mat = (const float*)&xfmem.posMatrices[src->posMtx * 4];
+	const float* mat = &xfmem.posMatrices[src->posMtx * 4];
 	MultiplyVec3Mat34(src->position, mat, dst->mvPosition);
 
 	if (xfmem.projection.type == GX_PERSPECTIVE)
@@ -88,7 +88,7 @@ void TransformPosition(const InputVertexData *src, OutputVertexData *dst)
 
 void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst)
 {
-	const float* mat = (const float*)&xfmem.normalMatrices[(src->posMtx & 31)  * 3];
+	const float* mat = &xfmem.normalMatrices[(src->posMtx & 31)  * 3];
 
 	if (nbt)
 	{
@@ -127,8 +127,8 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 			break;
 	}
 
-	const float *mat = (const float*)&xfmem.posMatrices[srcVertex->texMtx[coordNum] * 4];
-	Vec3 *dst = &dstVertex->texCoords[coordNum];
+	const float* mat = &xfmem.posMatrices[srcVertex->texMtx[coordNum] * 4];
+	Vec3* dst = &dstVertex->texCoords[coordNum];
 
 	if (texinfo.projection == XF_TEXPROJ_ST)
 	{
@@ -153,7 +153,7 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 
 		// normalize
 		const PostMtxInfo &postInfo = xfmem.postMtxInfo[coordNum];
-		const float *postMat = (const float*)&xfmem.postMatrices[postInfo.index * 4];
+		const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
 
 		if (specialCase)
 		{
@@ -188,13 +188,6 @@ struct LightPointer
 	Vec3 pos;
 	Vec3 dir;
 };
-
-static inline void AddIntegerColor(const u8 *src, Vec3 &dst)
-{
-	dst.x += src[1];
-	dst.y += src[2];
-	dst.z += src[3];
-}
 
 static inline void AddScaledIntegerColor(const u8 *src, float scale, Vec3 &dst)
 {
@@ -343,12 +336,9 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 					LightColor(dst->mvPosition, dst->normal[0], i, colorchan, lightCol);
 			}
 
-			int light_x = int(lightCol.x);
-			int light_y = int(lightCol.y);
-			int light_z = int(lightCol.z);
-			MathUtil::Clamp(&light_x, 0, 255);
-			MathUtil::Clamp(&light_y, 0, 255);
-			MathUtil::Clamp(&light_z, 0, 255);
+			int light_x = MathUtil::Clamp(static_cast<int>(lightCol.x), 0, 255);
+			int light_y = MathUtil::Clamp(static_cast<int>(lightCol.y), 0, 255);
+			int light_z = MathUtil::Clamp(static_cast<int>(lightCol.z), 0, 255);
 			chancolor[1] = (matcolor[1] * (light_x + (light_x >> 7))) >> 8;
 			chancolor[2] = (matcolor[2] * (light_y + (light_y >> 7))) >> 8;
 			chancolor[3] = (matcolor[3] * (light_z + (light_z >> 7))) >> 8;
@@ -380,8 +370,7 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 					LightAlpha(dst->mvPosition, dst->normal[0], i, alphachan, lightCol);
 			}
 
-			int light_a = int(lightCol);
-			MathUtil::Clamp(&light_a, 0, 255);
+			int light_a = MathUtil::Clamp(static_cast<int>(lightCol), 0, 255);
 			chancolor[0] = (matcolor[0] * (light_a + (light_a >> 7))) >> 8;
 		}
 		else

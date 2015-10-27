@@ -12,6 +12,7 @@ class IniFile;
 class wxButton;
 class wxCheckBox;
 class wxListBox;
+class wxSearchCtrl;
 class wxTextCtrl;
 
 class CMemoryWindow : public wxPanel
@@ -42,7 +43,6 @@ private:
 	void onAscii(wxCommandEvent& event);
 	void onHex(wxCommandEvent& event);
 	void OnSymbolListChange(wxCommandEvent& event);
-	void OnCallstackListChange(wxCommandEvent& event);
 	void OnAddrBoxChange(wxCommandEvent& event);
 	void OnHostMessage(wxCommandEvent& event);
 	void SetMemoryValueFromValBox(wxCommandEvent& event);
@@ -61,7 +61,6 @@ private:
 	CMemoryView* memview;
 	wxListBox* symbols;
 
-	wxButton* buttonGo;
-	wxTextCtrl* addrbox;
+	wxSearchCtrl* addrbox;
 	wxTextCtrl* valbox;
 };

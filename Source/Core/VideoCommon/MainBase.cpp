@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Common.h"
 #include "Common/Event.h"
 #include "Core/ConfigManager.h"
 
@@ -35,7 +36,7 @@ static volatile struct
 
 void VideoBackendHardware::EmuStateChange(EMUSTATE_CHANGE newState)
 {
-	EmulatorState((newState == EMUSTATE_CHANGE_PLAY) ? true : false);
+	EmulatorState(newState == EMUSTATE_CHANGE_PLAY);
 }
 
 // Enter and exit the video loop

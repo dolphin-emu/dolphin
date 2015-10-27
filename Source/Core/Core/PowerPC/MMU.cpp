@@ -72,7 +72,11 @@ static u32 EFB_Read(const u32 addr)
 	int x = (addr & 0xfff) >> 2;
 	int y = (addr >> 12) & 0x3ff;
 
-	if (addr & 0x00400000)
+	if (addr & 0x00800000)
+	{
+		ERROR_LOG(MEMMAP, "Unimplemented Z+Color EFB read @ 0x%08x", addr);
+	}
+	else if (addr & 0x00400000)
 	{
 		var = g_video_backend->Video_AccessEFB(PEEK_Z, x, y, 0);
 		DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i\t= 0x%08x", x, y, var);
@@ -91,7 +95,13 @@ static void EFB_Write(u32 data, u32 addr)
 	int x = (addr & 0xfff) >> 2;
 	int y = (addr >> 12) & 0x3ff;
 
-	if (addr & 0x00400000)
+	if (addr & 0x00800000)
+	{
+		// It's possible to do a z-tested write to EFB by writing a 64bit value to this address range.
+		// Not much is known, but let's at least get some loging.
+		ERROR_LOG(MEMMAP, "Unimplemented Z+Color EFB write. %08x @ 0x%08x", data, addr);
+	}
+	else if (addr & 0x00400000)
 	{
 		g_video_backend->Video_AccessEFB(POKE_Z, x, y, data);
 		DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", data, x, y);
@@ -386,7 +396,7 @@ TryReadInstResult TryReadInstruction(u32 address)
 	if (UReg_MSR(MSR).IR)
 	{
 		// TODO: Use real translation.
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & Memory::ADDR_MASK_MEM1))
+		if (SConfig::GetInstance().bMMU && (address & Memory::ADDR_MASK_MEM1))
 		{
 			u32 tlb_addr = TranslateAddress<FLAG_OPCODE>(address);
 			if (tlb_addr == 0)
@@ -443,7 +453,7 @@ static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(address);
 	if (mc)
 	{
-		if (CCPU::IsStepping())
+		if (CPU::IsStepping())
 		{
 			// Disable when stepping so that resume works.
 			return;
@@ -452,7 +462,7 @@ static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
 		bool pause = mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
 		if (pause)
 		{
-			CCPU::Break();
+			CPU::Break();
 			// Fake a DSI so that all the code that tests for it in order to skip
 			// the rest of the instruction will apply.  (This means that
 			// watchpoints will stop the emulator before the offending load/store,
@@ -627,6 +637,7 @@ std::string HostGetString(u32 address, size_t size)
 		u8 res = HostRead_U8(address);
 		if (!res)
 			break;
+		s += static_cast<char>(res);
 		++address;
 	} while (size == 0 || s.length() < size);
 	return s;
@@ -886,9 +897,9 @@ union UPTE2
 static void GenerateDSIException(u32 effectiveAddress, bool write)
 {
 	// DSI exceptions are only supported in MMU mode.
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	if (!SConfig::GetInstance().bMMU)
 	{
-		PanicAlert("Invalid %s to 0x%08x, PC = 0x%08x ", write ? "Write to" : "Read from", effectiveAddress, PC);
+		PanicAlert("Invalid %s 0x%08x, PC = 0x%08x ", write ? "write to" : "read from", effectiveAddress, PC);
 		return;
 	}
 

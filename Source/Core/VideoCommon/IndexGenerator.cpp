@@ -4,6 +4,7 @@
 
 #include <cstddef>
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
