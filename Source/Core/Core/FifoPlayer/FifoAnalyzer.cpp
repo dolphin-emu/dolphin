@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Common/Assert.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -109,15 +111,10 @@ void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)
 
 u32 CalculateVertexSize(int vatIndex, const CPMemory& cpMem)
 {
-	u32 vertexSize = 0;
-
 	int sizes[21];
 	CalculateVertexElementSizes(sizes, vatIndex, cpMem);
 
-	for (auto& size : sizes)
-		vertexSize += size;
-
-	return vertexSize;
+	return std::accumulate(std::begin(sizes), std::end(sizes), 0U);
 }
 
 void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory& cpMem)
