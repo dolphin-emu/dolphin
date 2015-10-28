@@ -1291,7 +1291,6 @@ void CFrame::ParseHotkeys()
 			case HK_CHANGE_DISC:
 			case HK_REFRESH_LIST:
 			case HK_RESET:
-			case HK_FRAME_ADVANCE:
 			case HK_START_RECORDING:
 			case HK_PLAY_RECORDING:
 			case HK_EXPORT_RECORDING:
@@ -1333,6 +1332,8 @@ void CFrame::ParseHotkeys()
 	// Pause and Unpause
 	if (IsHotkey(HK_PLAY_PAUSE))
 		DoPause();
+	// Frame advance
+	HandleFrameSkipHotkeys();
 	// Stop
 	if (IsHotkey(HK_STOP))
 		DoStop();
@@ -1531,3 +1532,61 @@ void CFrame::ParseHotkeys()
 	if (IsHotkey(HK_UNDO_SAVE_STATE))
 		State::UndoSaveState();
 }
+
+void CFrame::HandleFrameSkipHotkeys()
+{
+	static const int MAX_FRAME_SKIP_DELAY = 60;
+	static int frameStepCount = 0;
+	static const int FRAME_STEP_DELAY = 30;
+	static int holdFrameStepDelay = 1;
+	static int holdFrameStepDelayCount = 0;
+	static bool holdFrameStep = false;
+
+	if (IsHotkey(HK_FRAME_ADVANCE_DECREASE_SPEED))
+	{
+		++holdFrameStepDelay;
+		if (holdFrameStepDelay > MAX_FRAME_SKIP_DELAY)
+			holdFrameStepDelay = MAX_FRAME_SKIP_DELAY;
+	}
+	else if (IsHotkey(HK_FRAME_ADVANCE_INCREASE_SPEED))
+	{
+		--holdFrameStepDelay;
+		if (holdFrameStepDelay < 0)
+			holdFrameStepDelay = 0;
+	}
+	else if (IsHotkey(HK_FRAME_ADVANCE_RESET_SPEED))
+	{
+		holdFrameStepDelay = 1;
+	}
+	else if (IsHotkey(HK_FRAME_ADVANCE, true))
+	{
+		if (holdFrameStepDelayCount < holdFrameStepDelay && holdFrameStep)
+			++holdFrameStepDelayCount;
+
+		if ((frameStepCount == 0 || frameStepCount == FRAME_STEP_DELAY) && !holdFrameStep)
+		{
+			wxCommandEvent evt;
+			evt.SetId(IDM_FRAMESTEP);
+			CFrame::OnFrameStep(evt);
+			if (holdFrameStepDelay > 0 && frameStepCount == 0)
+				holdFrameStep = true;
+		}
+
+		if (frameStepCount < FRAME_STEP_DELAY)
+			++frameStepCount;
+
+		if (frameStepCount == FRAME_STEP_DELAY && holdFrameStep && holdFrameStepDelayCount >= holdFrameStepDelay)
+		{
+			holdFrameStep = false;
+			holdFrameStepDelayCount = 0;
+		}
+	}
+	else if (frameStepCount > 0)
+	{
+		// Reset values of frame advance to default
+		frameStepCount = 0;
+		holdFrameStep = false;
+		holdFrameStepDelayCount = 0;
+	}
+}
+
