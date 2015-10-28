@@ -541,6 +541,11 @@ if(ENABLE_EVDEV)
 	endif()
 endif()
 
+if(UNIX)
+	message("Using named pipes as controller inputs")
+	add_definitions(-DUSE_PIPES=1)
+endif()
+
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
 #
