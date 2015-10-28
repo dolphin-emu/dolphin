@@ -207,7 +207,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		case XF_SRCNORMAL_INROW:
 			if (components & VB_HAS_NRM0)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
+				// The following assert was triggered in Project M 3.6, with Jigglypuff's Fairy Wing outfit
+				//_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 				out.Write("coord = float4(rawnorm0.xyz, 1.0);\n");
 			}
 			break;
