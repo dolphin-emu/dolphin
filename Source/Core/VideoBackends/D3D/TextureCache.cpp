@@ -240,7 +240,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, unsigned int dstFormat
 	if (g_ActiveConfig.bSkipEFBCopyToRam)
 		this->Zero(dst);
 	else
-		g_encoder->Encode(dst, this, srcFormat, srcRect, isIntensity, scaleByHalf);
+		g_encoder->Encode(dst, format, native_width, BytesPerRow(), NumBlocksY(), memory_stride, srcFormat, srcRect, isIntensity, scaleByHalf);
 }
 
 const char palette_shader[] =
