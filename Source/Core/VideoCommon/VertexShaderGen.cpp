@@ -399,7 +399,7 @@ void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_ty
 	GenerateVertexShader<VertexShaderUid>(object, components, api_type);
 }
 
-void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type)
+void GenerateVertexShaderCode(ShaderCode& object, u32 components, API_TYPE api_type)
 {
-	GenerateVertexShader<VertexShaderCode>(object, components, api_type);
+	GenerateVertexShader<ShaderCode>(object, components, api_type);
 }

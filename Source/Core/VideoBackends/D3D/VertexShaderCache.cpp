@@ -24,7 +24,7 @@ namespace DX11 {
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 VertexShaderUid VertexShaderCache::last_uid;
-UidChecker<VertexShaderUid,VertexShaderCode> VertexShaderCache::vertex_uid_checker;
+UidChecker<VertexShaderUid, ShaderCode> VertexShaderCache::vertex_uid_checker;
 
 static ID3D11VertexShader* SimpleVertexShader = nullptr;
 static ID3D11VertexShader* ClearVertexShader = nullptr;
@@ -190,7 +190,7 @@ bool VertexShaderCache::SetShader(u32 components)
 	GetVertexShaderUid(uid, components, API_D3D);
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
-		VertexShaderCode code;
+		ShaderCode code;
 		GenerateVertexShaderCode(code, components, API_D3D);
 		vertex_uid_checker.AddToIndexAndCheck(code, uid, "Vertex", "v");
 	}
@@ -216,7 +216,7 @@ bool VertexShaderCache::SetShader(u32 components)
 		return (entry.shader != nullptr);
 	}
 
-	VertexShaderCode code;
+	ShaderCode code;
 	GenerateVertexShaderCode(code, components, API_D3D);
 
 	D3DBlob* pbytecode = nullptr;
