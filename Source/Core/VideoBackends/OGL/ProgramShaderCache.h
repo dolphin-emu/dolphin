@@ -86,10 +86,8 @@ public:
 		}
 	};
 
-	typedef std::map<SHADERUID, PCacheEntry> PCache;
 
 	static PCacheEntry GetShaderProgram();
-	static GLuint GetCurrentProgram();
 	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type);
 	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type);
 
@@ -108,6 +106,7 @@ private:
 		void Read(const SHADERUID &key, const u8 *value, u32 value_size) override;
 	};
 
+	typedef std::map<SHADERUID, PCacheEntry> PCache;
 	static PCache pshaders;
 	static PCacheEntry* last_entry;
 	static SHADERUID last_uid;

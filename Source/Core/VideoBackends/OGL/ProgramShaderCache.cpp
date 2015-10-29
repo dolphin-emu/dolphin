@@ -176,11 +176,6 @@ void ProgramShaderCache::UploadConstants()
 	}
 }
 
-GLuint ProgramShaderCache::GetCurrentProgram()
-{
-	return CurrentProgram;
-}
-
 SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type)
 {
 	SHADERUID uid;
