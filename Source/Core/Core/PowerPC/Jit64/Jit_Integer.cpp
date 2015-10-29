@@ -128,6 +128,8 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 // to be recalculated and haven't been clobbered. Keep in mind not all instructions set
 // sufficient flags -- for example, the flags from SHL/SHR are *not* sufficient for LT/GT
 // branches, only EQ.
+// The flags from any instruction that may set OF (such as ADD/SUB) can not be used for
+// LT/GT either.
 void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
 {
 	_assert_msg_(DYNA_REC, arg.IsSimpleReg() || arg.IsImm(), "Invalid ComputeRC operand");
@@ -217,7 +219,7 @@ static u32 Xor(u32 a, u32 b)
 
 void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const OpArg&, const OpArg&), bool Rc, bool carry)
 {
-	bool needs_test = false;
+	bool needs_test = doop == Add;
 	gpr.Lock(d, a);
 	// Be careful; addic treats r0 as r0, but addi treats r0 as zero.
 	if (a || binary || carry)
@@ -237,7 +239,6 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 			gpr.BindToRegister(d, false);
 			if (doop == Add && gpr.R(a).IsSimpleReg() && !carry)
 			{
-				needs_test = true;
 				LEA(32, gpr.RX(d), MDisp(gpr.RX(a), value));
 			}
 			else
@@ -899,7 +900,7 @@ void Jit64::subfx(UGeckoInstruction inst)
 			GenerateOverflow();
 	}
 	if (inst.Rc)
-		ComputeRC(gpr.R(d), false);
+		ComputeRC(gpr.R(d));
 	gpr.UnlockAll();
 }
 
@@ -1261,7 +1262,6 @@ void Jit64::addx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
-	bool needs_test = false;
 
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
 	{
@@ -1284,7 +1284,6 @@ void Jit64::addx(UGeckoInstruction inst)
 		gpr.Lock(a, b, d);
 		gpr.BindToRegister(d, false);
 		LEA(32, gpr.RX(d), MRegSum(gpr.RX(a), gpr.RX(b)));
-		needs_test = true;
 	}
 	else
 	{
@@ -1296,7 +1295,7 @@ void Jit64::addx(UGeckoInstruction inst)
 			GenerateOverflow();
 	}
 	if (inst.Rc)
-		ComputeRC(gpr.R(d), needs_test);
+		ComputeRC(gpr.R(d));
 	gpr.UnlockAll();
 }
 
@@ -1361,7 +1360,7 @@ void Jit64::arithXex(UGeckoInstruction inst)
 	}
 	FinalizeCarryOverflow(inst.OE, invertedCarry);
 	if (inst.Rc)
-		ComputeRC(gpr.R(d), false);
+		ComputeRC(gpr.R(d));
 	gpr.UnlockAll();
 }
 
@@ -1400,7 +1399,7 @@ void Jit64::arithcx(UGeckoInstruction inst)
 
 	FinalizeCarryOverflow(inst.OE, !add);
 	if (inst.Rc)
-		ComputeRC(gpr.R(d), false);
+		ComputeRC(gpr.R(d));
 	gpr.UnlockAll();
 }
 
