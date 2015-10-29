@@ -101,10 +101,8 @@ public:
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
-		virtual void FromRenderTarget(u8* dst, unsigned int dstFormat, u32 dstStride,
-			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
-			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat) = 0;
+		virtual void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+			bool scaleByHalf, unsigned int cbufid, const float *colmat) = 0;
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
@@ -112,8 +110,6 @@ public:
 
 		u32 NumBlocksY() const;
 		u32 BytesPerRow() const;
-
-		void Zero(u8* ptr);
 
 		u64 CalculateHash() const;
 	};

@@ -269,7 +269,7 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	}
 }
 
-void EncodeToRamFromTexture(u8 *dest_ptr, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+void EncodeToRamFromTexture(u8* dest_ptr, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
                             PEControl::PixelFormat srcFormat, bool bIsIntensityFmt, int bScaleByHalf, const EFBRectangle& source)
 {
 	g_renderer->ResetAPIState();
