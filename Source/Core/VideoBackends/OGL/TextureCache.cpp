@@ -264,6 +264,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, unsigned int ds
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+	FramebufferManager::SetFramebuffer(0);
+	g_renderer->RestoreAPIState();
+
 	if (g_ActiveConfig.bSkipEFBCopyToRam)
 	{
 		this->Zero(dstPointer);
@@ -277,16 +280,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, unsigned int ds
 			BytesPerRow(),
 			NumBlocksY(),
 			memory_stride,
-			read_texture,
-			srcFormat == PEControl::Z24,
+			srcFormat,
 			isIntensity,
 			scaleByHalf,
 			srcRect);
 	}
-
-	FramebufferManager::SetFramebuffer(0);
-
-	g_renderer->RestoreAPIState();
 }
 
 TextureCache::TextureCache()
