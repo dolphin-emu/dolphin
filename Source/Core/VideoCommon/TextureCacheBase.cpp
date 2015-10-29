@@ -1050,6 +1050,25 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
 	entry->FromRenderTarget(dst, dstFormat, dstStride, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
+	if (g_ActiveConfig.bSkipEFBCopyToRam)
+	{
+		entry->Zero(dst);
+	}
+	else
+	{
+		g_texture_cache->CopyEFB(
+			dst,
+			entry->format,
+			entry->native_width,
+			entry->BytesPerRow(),
+			entry->NumBlocksY(),
+			entry->memory_stride,
+			srcFormat,
+			srcRect,
+			isIntensity,
+			scaleByHalf);
+	}
+
 	u64 hash = entry->CalculateHash();
 	entry->SetHashes(hash, hash);
 

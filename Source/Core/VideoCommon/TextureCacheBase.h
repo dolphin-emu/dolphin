@@ -130,6 +130,10 @@ public:
 
 	virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 
+	virtual void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+		bool isIntensity, bool scaleByHalf) = 0;
+
 	virtual void CompileShaders() = 0; // currently only implemented by OGL
 	virtual void DeleteShaders() = 0; // currently only implemented by OGL
 

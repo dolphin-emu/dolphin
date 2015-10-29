@@ -266,25 +266,23 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, unsigned int ds
 
 	FramebufferManager::SetFramebuffer(0);
 	g_renderer->RestoreAPIState();
+}
 
-	if (g_ActiveConfig.bSkipEFBCopyToRam)
-	{
-		this->Zero(dstPointer);
-	}
-	else
-	{
-		TextureConverter::EncodeToRamFromTexture(
-			dstPointer,
-			format,
-			native_width,
-			BytesPerRow(),
-			NumBlocksY(),
-			memory_stride,
-			srcFormat,
-			isIntensity,
-			scaleByHalf,
-			srcRect);
-	}
+void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+		bool isIntensity, bool scaleByHalf)
+{
+	TextureConverter::EncodeToRamFromTexture(
+		dst,
+		format,
+		native_width,
+		bytes_per_row,
+		num_blocks_y,
+		memory_stride,
+		srcFormat,
+		isIntensity,
+		scaleByHalf,
+		srcRect);
 }
 
 TextureCache::TextureCache()

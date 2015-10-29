@@ -236,11 +236,13 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, unsigned int dstFormat
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 	g_renderer->RestoreAPIState();
+}
 
-	if (g_ActiveConfig.bSkipEFBCopyToRam)
-		this->Zero(dst);
-	else
-		g_encoder->Encode(dst, format, native_width, BytesPerRow(), NumBlocksY(), memory_stride, srcFormat, srcRect, isIntensity, scaleByHalf);
+void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+	bool isIntensity, bool scaleByHalf)
+{
+	g_encoder->Encode(dst, format, native_width, bytes_per_row, num_blocks_y, memory_stride, srcFormat, srcRect, isIntensity, scaleByHalf);
 }
 
 const char palette_shader[] =
