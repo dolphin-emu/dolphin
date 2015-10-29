@@ -269,18 +269,18 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	}
 }
 
-void EncodeToRamFromTexture(u8 *dest_ptr, const TextureCache::TCacheEntryBase *texture_entry,
+void EncodeToRamFromTexture(u8 *dest_ptr, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
                             GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, int bScaleByHalf, const EFBRectangle& source)
 {
-	SHADER& texconv_shader = GetOrCreateEncodingShader(texture_entry->format);
+	SHADER& texconv_shader = GetOrCreateEncodingShader(format);
 
 	texconv_shader.Bind();
-	glUniform4i(s_encodingUniforms[texture_entry->format],
-		source.left, source.top, texture_entry->native_width, bScaleByHalf ? 2 : 1);
+	glUniform4i(s_encodingUniforms[format],
+		source.left, source.top, native_width, bScaleByHalf ? 2 : 1);
 
 	EncodeToRamUsingShader(source_texture,
-		dest_ptr, texture_entry->BytesPerRow(), texture_entry->NumBlocksY(),
-		texture_entry->memory_stride, bScaleByHalf > 0 && !bFromZBuffer);
+		dest_ptr, bytes_per_row, num_blocks_y,
+		memory_stride, bScaleByHalf > 0 && !bFromZBuffer);
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, u32 dstWidth, u32 dstStride, u32 dstHeight)

@@ -272,7 +272,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, unsigned int ds
 	{
 		TextureConverter::EncodeToRamFromTexture(
 			dstPointer,
-			this,
+			format,
+			native_width,
+			BytesPerRow(),
+			NumBlocksY(),
+			memory_stride,
 			read_texture,
 			srcFormat == PEControl::Z24,
 			isIntensity,
