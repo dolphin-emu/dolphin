@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
   <Type Name="BitField&lt;*,*,*&gt;">
-    <DisplayString Condition="$T2 == 1">{(storage &amp; (1 &lt;&lt; $T1)) != 0}</DisplayString>
-    <DisplayString>{(storage &gt;&gt; $T1) &amp; ((1 &lt;&lt; $T2) - 1)}</DisplayString>
+    <DisplayString Condition="$T2 == 1"><![CDATA[{(storage & (1 << $T1)) != 0}]]></DisplayString>
+    <DisplayString><![CDATA[{(storage >> $T1) & ((1 << $T2) - 1)}]]></DisplayString>
     <Expand>
       <Item Name="Offset">$T1</Item>
       <Item Name="Size">$T2</Item>
