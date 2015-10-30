@@ -197,7 +197,7 @@ void CGameListCtrl::InitBitmaps()
 	m_PlatformImageIndex[0] = m_imageListSmall->Add(wxBitmap(Platform_Gamecube_xpm));
 	m_PlatformImageIndex[1] = m_imageListSmall->Add(wxBitmap(Platform_Wii_xpm));
 	m_PlatformImageIndex[2] = m_imageListSmall->Add(wxBitmap(Platform_Wad_xpm));
-	m_PlatformImageIndex[3] = m_imageListSmall->Add(wxBitmap(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().theme_name) + "fileplatform.png"), wxBITMAP_TYPE_PNG));
+	m_PlatformImageIndex[3] = m_imageListSmall->Add(wxBitmap(StrToWxStr(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + "Platform_File.png"), wxBITMAP_TYPE_PNG));
 
 	m_EmuStateImageIndex.resize(6);
 	m_EmuStateImageIndex[0] = m_imageListSmall->Add(wxBitmap(rating_0));

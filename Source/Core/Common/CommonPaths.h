@@ -69,6 +69,7 @@
 #define SHADERS_DIR         "Shaders"
 #define WII_SYSCONF_DIR     "shared2" DIR_SEP "sys"
 #define WII_WC24CONF_DIR    "shared2" DIR_SEP "wc24"
+#define RESOURCES_DIR       "Resources"
 #define THEMES_DIR          "Themes"
 #define ANAGLYPH_DIR        "Anaglyph"
 #define PIPES_DIR           "Pipes"
