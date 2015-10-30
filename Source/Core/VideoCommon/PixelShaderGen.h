@@ -114,9 +114,8 @@ struct pixel_shader_uid_data
 #pragma pack()
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
-typedef ShaderCode PixelShaderCode; // TODO: Obsolete
 typedef ShaderConstantProfile PixelShaderConstantProfile; // TODO: Obsolete
 
-void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
+void GeneratePixelShaderCode(ShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
