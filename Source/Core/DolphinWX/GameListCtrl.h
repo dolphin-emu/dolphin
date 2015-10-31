@@ -107,4 +107,5 @@ private:
 	static size_t m_numberItem;
 	static bool CompressCB(const std::string& text, float percent, void* arg);
 	static bool MultiCompressCB(const std::string& text, float percent, void* arg);
+	static bool WiiCompressWarning();
 };
