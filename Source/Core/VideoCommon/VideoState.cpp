@@ -54,7 +54,7 @@ static void DoState(PointerWrap &p)
 	GeometryShaderManager::DoState(p);
 	p.DoMarker("GeometryShaderManager");
 
-	VertexManager::DoState(p);
+	VertexManagerBase::DoState(p);
 	p.DoMarker("VertexManager");
 
 	BoundingBox::DoState(p);

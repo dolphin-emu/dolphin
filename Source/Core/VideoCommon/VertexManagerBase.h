@@ -27,7 +27,7 @@ struct Slope
 	bool dirty;
 };
 
-class VertexManager
+class VertexManagerBase
 {
 private:
 	static const u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float)*3;                 // 3 pos
@@ -41,9 +41,9 @@ public:
 	// We may convert triangle-fans to triangle-lists, almost 3x as many indices.
 	static const u32 MAXIBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * 3);
 
-	VertexManager();
+	VertexManagerBase();
 	// needs to be virtual for DX11's dtor
-	virtual ~VertexManager();
+	virtual ~VertexManagerBase();
 
 	static DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
 	static void FlushData(u32 count, u32 stride);
@@ -82,4 +82,4 @@ private:
 	virtual void DestroyDeviceObjects() {}
 };
 
-extern VertexManager *g_vertex_manager;
+extern VertexManagerBase* g_vertex_manager;
