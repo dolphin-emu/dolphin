@@ -188,7 +188,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (loader->m_native_vertex_format != s_current_vtx_fmt ||
 	    loader->m_native_components != g_current_components)
 	{
-		VertexManager::Flush();
+		VertexManagerBase::Flush();
 	}
 	s_current_vtx_fmt = loader->m_native_vertex_format;
 	g_current_components = loader->m_native_components;
@@ -197,14 +197,14 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	// They still need to go through vertex loading, because we need to calculate a zfreeze refrence slope.
 	bool cullall = (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5);
 
-	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
+	DataReader dst = VertexManagerBase::PrepareForAdditionalData(primitive, count,
 			loader->m_native_vtx_decl.stride, cullall);
 
 	count = loader->RunVertices(src, dst, count);
 
 	IndexGenerator::AddIndices(primitive, count);
 
-	VertexManager::FlushData(count, loader->m_native_vtx_decl.stride);
+	VertexManagerBase::FlushData(count, loader->m_native_vtx_decl.stride);
 
 	ADDSTAT(stats.thisFrame.numPrims, count);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
