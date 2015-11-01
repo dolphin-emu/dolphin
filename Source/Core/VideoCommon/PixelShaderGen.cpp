@@ -14,6 +14,7 @@
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"  // for texture projection mode
@@ -165,8 +166,9 @@ template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_dat
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data);
 
 template<class T>
-static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
+	const u32 components = VertexLoaderManager::g_current_components;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
 	pixel_shader_uid_data* uid_data = out.template GetUidData<pixel_shader_uid_data>();
@@ -1168,18 +1170,17 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 	out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
 }
 
-void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
-	GeneratePixelShader<PixelShaderUid>(object, dstAlphaMode, ApiType, components);
+	GeneratePixelShader<PixelShaderUid>(object, dstAlphaMode, ApiType);
 }
 
-void GeneratePixelShaderCode(ShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void GeneratePixelShaderCode(ShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
-	GeneratePixelShader<ShaderCode>(object, dstAlphaMode, ApiType, components);
+	GeneratePixelShader<ShaderCode>(object, dstAlphaMode, ApiType);
 }
 
-void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
-	GeneratePixelShader<PixelShaderConstantProfile>(object, dstAlphaMode, ApiType, components);
+	GeneratePixelShader<PixelShaderConstantProfile>(object, dstAlphaMode, ApiType);
 }
-

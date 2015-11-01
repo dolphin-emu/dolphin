@@ -151,16 +151,14 @@ void VertexManager::Draw(u32 stride)
 
 void VertexManager::vFlush(bool useDstAlpha)
 {
-	u32 components = VertexLoaderManager::GetCurrentVertexFormat()->m_components;
-
 	if (!PixelShaderCache::SetShader(
-		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE, components))
+		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		return;
 	}
 
-	if (!VertexShaderCache::SetShader(components))
+	if (!VertexShaderCache::SetShader())
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		return;
