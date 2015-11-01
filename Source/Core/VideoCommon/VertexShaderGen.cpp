@@ -9,14 +9,16 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 
 static char text[16768];
 
 template<class T>
-static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
+static inline void GenerateVertexShader(T& out, API_TYPE api_type)
 {
+	const u32 components = VertexLoaderManager::g_current_components;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	vertex_shader_uid_data dummy_data;
 	vertex_shader_uid_data* uid_data = out.template GetUidData<vertex_shader_uid_data>();
@@ -394,12 +396,12 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	}
 }
 
-void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type)
+void GetVertexShaderUid(VertexShaderUid& object, API_TYPE api_type)
 {
-	GenerateVertexShader<VertexShaderUid>(object, components, api_type);
+	GenerateVertexShader<VertexShaderUid>(object, api_type);
 }
 
-void GenerateVertexShaderCode(ShaderCode& object, u32 components, API_TYPE api_type)
+void GenerateVertexShaderCode(ShaderCode& object, API_TYPE api_type)
 {
-	GenerateVertexShader<ShaderCode>(object, components, api_type);
+	GenerateVertexShader<ShaderCode>(object, api_type);
 }

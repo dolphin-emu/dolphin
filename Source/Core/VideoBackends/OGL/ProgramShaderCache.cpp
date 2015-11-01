@@ -176,10 +176,10 @@ void ProgramShaderCache::UploadConstants()
 	}
 }
 
-SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type)
+SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_type)
 {
 	SHADERUID uid;
-	GetShaderId(&uid, dstAlphaMode, components, primitive_type);
+	GetShaderId(&uid, dstAlphaMode, primitive_type);
 
 	// Check if the shader is already set
 	if (last_entry)
@@ -214,8 +214,8 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components
 	ShaderCode vcode;
 	ShaderCode pcode;
 	ShaderCode gcode;
-	GenerateVertexShaderCode(vcode, components, API_OPENGL);
-	GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
+	GenerateVertexShaderCode(vcode, API_OPENGL);
+	GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL);
 	if (g_ActiveConfig.backend_info.bSupportsGeometryShaders && !uid.guid.GetUidData()->IsPassthrough())
 		GenerateGeometryShaderCode(gcode, primitive_type, API_OPENGL);
 
@@ -396,20 +396,20 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
 	return result;
 }
 
-void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type)
+void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type)
 {
-	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL, components);
-	GetVertexShaderUid(uid->vuid, components, API_OPENGL);
+	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL);
+	GetVertexShaderUid(uid->vuid, API_OPENGL);
 	GetGeometryShaderUid(uid->guid, primitive_type, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
 		ShaderCode pcode;
-		GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
+		GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL);
 		pixel_uid_checker.AddToIndexAndCheck(pcode, uid->puid, "Pixel", "p");
 
 		ShaderCode vcode;
-		GenerateVertexShaderCode(vcode, components, API_OPENGL);
+		GenerateVertexShaderCode(vcode, API_OPENGL);
 		vertex_uid_checker.AddToIndexAndCheck(vcode, uid->vuid, "Vertex", "v");
 
 		ShaderCode gcode;
