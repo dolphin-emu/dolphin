@@ -1080,6 +1080,9 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 			if (!iso->IsCompressed() && _compress)
 			{
+				if (iso->GetPlatform() == DiscIO::IVolume::WII_DISC && !WiiCompressWarning())
+					return;
+
 				std::string FileName, FileExt;
 				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
 				m_currentFilename = FileName;
@@ -1093,7 +1096,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				if (File::Exists(OutputFileName) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
-								StrToWxStr(OutputFileName)),
+							StrToWxStr(OutputFileName)),
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1121,7 +1124,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				if (File::Exists(OutputFileName) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
-								StrToWxStr(OutputFileName)),
+							StrToWxStr(OutputFileName)),
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1178,6 +1181,9 @@ void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 		}
 		else
 		{
+			if (iso->GetPlatform() == DiscIO::IVolume::WII_DISC && !WiiCompressWarning())
+				return;
+
 			path = wxFileSelector(
 					_("Save compressed GCM/ISO"),
 					StrToWxStr(FilePath),
@@ -1291,4 +1297,11 @@ void CGameListCtrl::UnselectAll()
 	{
 		SetItemState(i, 0, wxLIST_STATE_SELECTED);
 	}
+}
+bool CGameListCtrl::WiiCompressWarning()
+{
+	return wxMessageBox(
+			_("Compressing a Wii disc image will irreversibly change the compressed copy by removing padding data. Your disc image will still work. Continue?"),
+			_("Warning"),
+			wxYES_NO) == wxYES;
 }
