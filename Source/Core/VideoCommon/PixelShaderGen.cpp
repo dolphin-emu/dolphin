@@ -313,13 +313,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		//  * ARB_conservative_depth has 'layout(depth_unchanged) which signals to the driver that it can make optimisations
 		//    which assume the pixel shader won't update the depth buffer.
 
-		// early_fragment_tests is the best option, as it requires the driver to do early-z and defines early-z excatly as
+		// early_fragment_tests is the best option, as it requires the driver to do early-z and defines early-z exactly as
 		// we expect, with discard causing the shader to exit with only the depth buffer updated.
 
-		// Conservative depth's 'depth_unchanged' only hints to the driver that an early-z optimistaion can be made and
+		// Conservative depth's 'depth_unchanged' only hints to the driver that an early-z optimisation can be made and
 		// doesn't define what will happen if we discard the fragment. But the way modern graphics hardware is implemented
 		// means it is not unreasonable to expect the the same behaviour as early_fragment_tests.
-		// We can also assume that if a driver has gone out of it's way to support conservative depth and not image_load_store
+		// We can also assume that if a driver has gone out of its way to support conservative depth and not image_load_store
 		// as required by OpenGL 4.2 that it will be doing the optimisation.
 		// If the driver doesn't actually do an early z optimisation, ZCompLoc will be broken and depth will only be written
 		// if the alpha test passes.
