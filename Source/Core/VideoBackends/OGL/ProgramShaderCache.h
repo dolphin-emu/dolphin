@@ -88,8 +88,8 @@ public:
 
 
 	static PCacheEntry GetShaderProgram();
-	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type);
-	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type);
+	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_type);
+	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type);
 
 	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode, const char* gcode = nullptr);
 	static GLuint CompileSingleShader(GLuint type, const char *code);
