@@ -31,7 +31,7 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
   <!--
     This is a re-implementation of the abstract bitfield class' algrothm (in BitField.h)
-    for visual studio to use for pretty-printing during debugging.
+    for Visual Studio to use for pretty-printing during debugging.
   -->
   <Type Name="BitField&lt;*,*,*&gt;">
     <DisplayString Condition="$T2 == 1"><![CDATA[{(storage & (1 << $T1)) != 0}]]></DisplayString>
