@@ -37,7 +37,7 @@ void Resources::Init()
 	m_regions[DiscIO::IVolume::COUNTRY_RUSSIA].load(GIFN("Flag_Russia"));
 	m_regions[DiscIO::IVolume::COUNTRY_SPAIN].load(GIFN("Flag_Spain"));
 	m_regions[DiscIO::IVolume::COUNTRY_TAIWAN].load(GIFN("Flag_Taiwan"));
-	m_regions[DiscIO::IVolume::COUNTRY_WORLD].load(GIFN("Flag_Europe")); // Uses European flag as a placeholder
+	m_regions[DiscIO::IVolume::COUNTRY_WORLD].load(GIFN("Flag_International"));
 	m_regions[DiscIO::IVolume::COUNTRY_UNKNOWN].load(GIFN("Flag_Unknown"));
 
 	m_platforms.resize(4);
