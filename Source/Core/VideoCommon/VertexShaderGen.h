@@ -60,5 +60,5 @@ struct vertex_shader_uid_data
 
 typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
 
-void GetVertexShaderUid(VertexShaderUid& object, API_TYPE api_type);
-void GenerateVertexShaderCode(ShaderCode& object, API_TYPE api_type);
+VertexShaderUid GetVertexShaderUid(API_TYPE api_type);
+ShaderCode GenerateVertexShaderCode(API_TYPE api_type);

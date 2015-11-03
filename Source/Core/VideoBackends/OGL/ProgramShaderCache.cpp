@@ -211,13 +211,11 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
 	last_entry = &newentry;
 	newentry.in_cache = 0;
 
-	ShaderCode vcode;
-	ShaderCode pcode;
+	ShaderCode vcode = GenerateVertexShaderCode(API_OPENGL);
+	ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL);
 	ShaderCode gcode;
-	GenerateVertexShaderCode(vcode, API_OPENGL);
-	GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL);
 	if (g_ActiveConfig.backend_info.bSupportsGeometryShaders && !uid.guid.GetUidData()->IsPassthrough())
-		GenerateGeometryShaderCode(gcode, primitive_type, API_OPENGL);
+		gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
@@ -398,22 +396,19 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
 
 void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type)
 {
-	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL);
-	GetVertexShaderUid(uid->vuid, API_OPENGL);
-	GetGeometryShaderUid(uid->guid, primitive_type, API_OPENGL);
+	uid->puid = GetPixelShaderUid(dstAlphaMode, API_OPENGL);
+	uid->vuid = GetVertexShaderUid(API_OPENGL);
+	uid->guid = GetGeometryShaderUid(primitive_type, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
-		ShaderCode pcode;
-		GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL);
+		ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL);
 		pixel_uid_checker.AddToIndexAndCheck(pcode, uid->puid, "Pixel", "p");
 
-		ShaderCode vcode;
-		GenerateVertexShaderCode(vcode, API_OPENGL);
+		ShaderCode vcode = GenerateVertexShaderCode(API_OPENGL);
 		vertex_uid_checker.AddToIndexAndCheck(vcode, uid->vuid, "Vertex", "v");
 
-		ShaderCode gcode;
-		GenerateGeometryShaderCode(gcode, primitive_type, API_OPENGL);
+		ShaderCode gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL);
 		geometry_uid_checker.AddToIndexAndCheck(gcode, uid->guid, "Geometry", "g");
 	}
 }
