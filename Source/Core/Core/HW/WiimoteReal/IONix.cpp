@@ -15,6 +15,7 @@
 
 namespace WiimoteReal
 {
+extern Wiimote* g_wiimotes[MAX_BBMOTES];
 
 class WiimoteLinux final : public Wiimote
 {
@@ -29,6 +30,7 @@ protected:
 	void IOWakeup() override;
 	int IORead(u8* buf) override;
 	int IOWrite(u8 const* buf, size_t len) override;
+	char* Address() override;
 
 private:
 	bdaddr_t m_bdaddr;   // Bluetooth address
@@ -82,9 +84,17 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	inquiry_info scan_infos[max_infos] = {};
 	auto* scan_infos_ptr = scan_infos;
 	found_board = nullptr;
+	// query in limited IAC - liac - using code from hcitool
+	// http://www.netmite.com/android/mydroid/external/bluez/utils/tools/hcitool.c
+	int l;
+	uint8_t lap[3] = { 0x33, 0x8b, 0x9e };
+	l = 0x9e8b00;
+	lap[0] = (l & 0xff);
+	lap[1] = (l >> 8) & 0xff;
+	lap[2] = (l >> 16) & 0xff;
 
 	// Scan for Bluetooth devices
-	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, nullptr, &scan_infos_ptr, IREQ_CACHE_FLUSH);
+	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, lap, &scan_infos_ptr, IREQ_CACHE_FLUSH);
 	if (found_devices < 0)
 	{
 		ERROR_LOG(WIIMOTE, "Error searching for Bluetooth devices.");
@@ -114,11 +124,11 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 			// TODO: do this
 
 			// Determine if this Wiimote has already been found.
-			//for (int j = 0; j < MAX_WIIMOTES && new_wiimote; ++j)
-			//{
-			//	if (wm[j] && bacmp(&scan_infos[i].bdaddr,&wm[j]->bdaddr) == 0)
-			//		new_wiimote = false;
-			//}
+			for (int j = 0; j < MAX_BBMOTES && new_wiimote; ++j)
+			{
+				if (g_wiimotes[j] && bacmp(&scan_infos[i].bdaddr,strtoba(g_wiimotes[j]->Address())) == 0)
+					new_wiimote = false;
+			}
 
 			if (new_wiimote)
 			{
@@ -278,4 +288,10 @@ int WiimoteLinux::IOWrite(u8 const* buf, size_t len)
 	return write(m_int_sock, buf, (int)len);
 }
 
-}; // WiimoteReal
+char* WiimoteLinux::Address()
+{
+	return batostr(&m_bdaddr);
+}
+
+};
+ // WiimoteReal

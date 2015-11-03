@@ -62,6 +62,7 @@ public:
 	// these are called from the Wiimote's thread.
 	virtual bool ConnectInternal() = 0;
 	virtual void DisconnectInternal() = 0;
+	virtual char* Address() = 0;
 
 	bool Connect();
 
