@@ -22,18 +22,18 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-VertexManager *g_vertex_manager;
+VertexManagerBase* g_vertex_manager;
 
-u8 *VertexManager::s_pCurBufferPointer;
-u8 *VertexManager::s_pBaseBufferPointer;
-u8 *VertexManager::s_pEndBufferPointer;
+u8* VertexManagerBase::s_pCurBufferPointer;
+u8* VertexManagerBase::s_pBaseBufferPointer;
+u8* VertexManagerBase::s_pEndBufferPointer;
 
-PrimitiveType VertexManager::current_primitive_type;
+PrimitiveType VertexManagerBase::current_primitive_type;
 
-Slope VertexManager::s_zslope;
+Slope VertexManagerBase::s_zslope;
 
-bool VertexManager::s_is_flushed;
-bool VertexManager::s_cull_all;
+bool VertexManagerBase::s_is_flushed;
+bool VertexManagerBase::s_cull_all;
 
 static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS
@@ -46,22 +46,22 @@ static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_POINTS,    // GX_DRAW_POINTS
 };
 
-VertexManager::VertexManager()
+VertexManagerBase::VertexManagerBase()
 {
 	s_is_flushed = true;
 	s_cull_all = false;
 }
 
-VertexManager::~VertexManager()
+VertexManagerBase::~VertexManagerBase()
 {
 }
 
-u32 VertexManager::GetRemainingSize()
+u32 VertexManagerBase::GetRemainingSize()
 {
 	return (u32)(s_pEndBufferPointer - s_pCurBufferPointer);
 }
 
-DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall)
+DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall)
 {
 	// The SSE vertex loader can write up to 4 bytes past the end
 	u32 const needed_vertex_bytes = count * stride + 4;
@@ -99,12 +99,12 @@ DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32
 	return DataReader(s_pCurBufferPointer, s_pEndBufferPointer);
 }
 
-void VertexManager::FlushData(u32 count, u32 stride)
+void VertexManagerBase::FlushData(u32 count, u32 stride)
 {
 	s_pCurBufferPointer += count * stride;
 }
 
-u32 VertexManager::GetRemainingIndices(int primitive)
+u32 VertexManagerBase::GetRemainingIndices(int primitive)
 {
 	u32 index_len = MAXIBUFFERSIZE - IndexGenerator::GetIndexLen();
 
@@ -162,7 +162,7 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 	}
 }
 
-void VertexManager::Flush()
+void VertexManagerBase::Flush()
 {
 	if (s_is_flushed)
 		return;
@@ -251,8 +251,8 @@ void VertexManager::Flush()
 		PixelShaderManager::SetConstants();
 
 		bool useDstAlpha = bpmem.dstalpha.enable &&
-						   bpmem.blendmode.alphaupdate &&
-						   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+		                   bpmem.blendmode.alphaupdate &&
+		                   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
 		if (PerfQueryBase::ShouldEmulate())
 			g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
@@ -270,13 +270,13 @@ void VertexManager::Flush()
 	s_cull_all = false;
 }
 
-void VertexManager::DoState(PointerWrap& p)
+void VertexManagerBase::DoState(PointerWrap& p)
 {
 	p.Do(s_zslope);
 	g_vertex_manager->vDoState(p);
 }
 
-void VertexManager::CalculateZSlope(NativeVertexFormat* format)
+void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
 {
 	float out[12];
 	float viewOffset[2] = { xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,

@@ -657,7 +657,7 @@ void VertexShaderManager::SetTexMatrixChangedA(u32 Value)
 {
 	if (g_main_cp_state.matrix_index_a.Hex != Value)
 	{
-		VertexManager::Flush();
+		VertexManagerBase::Flush();
 		if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value & 0x3f))
 			bPosNormalMatrixChanged = true;
 		bTexMatricesChanged[0] = true;
@@ -669,7 +669,7 @@ void VertexShaderManager::SetTexMatrixChangedB(u32 Value)
 {
 	if (g_main_cp_state.matrix_index_b.Hex != Value)
 	{
-		VertexManager::Flush();
+		VertexManagerBase::Flush();
 		bTexMatricesChanged[1] = true;
 		g_main_cp_state.matrix_index_b.Hex = Value;
 	}
@@ -738,7 +738,7 @@ void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u3
 
 	// We use the projection matrix calculated by VertexShaderManager, because it
 	// includes any free look transformations.
-	// Make sure VertexManager::SetConstants() has been called first.
+	// Make sure VertexShaderManager::SetConstants() has been called first.
 	const float* proj_matrix = &g_fProjectionMatrix[0];
 
 	const float t[3] = {
