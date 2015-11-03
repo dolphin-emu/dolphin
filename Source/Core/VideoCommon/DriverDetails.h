@@ -58,7 +58,6 @@ namespace DriverDetails
 	// This'll ensure we know exactly what the issue is.
 	enum Bug
 	{
-		BUG_BROKENINFOLOG,
 		// Bug: UBO buffer offset broken
 		// Affected devices: all mesa drivers
 		// Started Version: 9.0 (mesa doesn't support ubo before)

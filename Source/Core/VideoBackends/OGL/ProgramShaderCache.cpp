@@ -351,9 +351,6 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
 	GLsizei length = 0;
 	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
 
-	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENINFOLOG))
-		length = 1024;
-
 	if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
 	{
 		GLsizei charsWritten;
