@@ -13,7 +13,9 @@
 #include "Core/HW/EXI_DeviceMic.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SystemTimers.h"
+#include "Logging/Log.h"
 
+#include <cstring>
 #include <portaudio.h>
 
 void CEXIMic::StreamLog(const char *msg)

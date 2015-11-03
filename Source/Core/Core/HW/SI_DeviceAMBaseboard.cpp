@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstdio>
 #include <cstring>
 
 #include "Common/MsgHandler.h"
