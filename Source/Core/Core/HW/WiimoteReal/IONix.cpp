@@ -85,10 +85,10 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	auto* scan_infos_ptr = scan_infos;
 	found_board = nullptr;
 	// query in limited IAC - liac - using code from hcitool
-	// http://www.netmite.com/android/mydroid/external/bluez/utils/tools/hcitool.c
+	// utils/tools/hcitool.c
 	int l;
 	uint8_t lap[3] = { 0x33, 0x8b, 0x9e };
-	l = 0x9e8b00;
+	l = 0x9e8b00; // LIAC (https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
 	lap[0] = (l & 0xff);
 	lap[1] = (l >> 8) & 0xff;
 	lap[2] = (l >> 16) & 0xff;
@@ -121,11 +121,10 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 		{
 			bool new_wiimote = true;
 
-			// TODO: do this
-
 			// Determine if this Wiimote has already been found.
 			for (int j = 0; j < MAX_BBMOTES && new_wiimote; ++j)
 			{
+				// compare this address with the stored addresses in our global array
 				if (g_wiimotes[j] && bacmp(&scan_infos[i].bdaddr,strtoba(g_wiimotes[j]->Address())) == 0)
 					new_wiimote = false;
 			}
