@@ -16,8 +16,9 @@
 static char text[16768];
 
 template<class T>
-static inline void GenerateVertexShader(T& out, API_TYPE api_type)
+static inline T GenerateVertexShader(API_TYPE api_type)
 {
+	T out;
 	const u32 components = VertexLoaderManager::g_current_components;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	vertex_shader_uid_data dummy_data;
@@ -394,14 +395,16 @@ static inline void GenerateVertexShader(T& out, API_TYPE api_type)
 		if (text[sizeof(text) - 1] != 0x7C)
 			PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
 	}
+
+	return out;
 }
 
-void GetVertexShaderUid(VertexShaderUid& object, API_TYPE api_type)
+VertexShaderUid GetVertexShaderUid(API_TYPE api_type)
 {
-	GenerateVertexShader<VertexShaderUid>(object, api_type);
+	return GenerateVertexShader<VertexShaderUid>(api_type);
 }
 
-void GenerateVertexShaderCode(ShaderCode& object, API_TYPE api_type)
+ShaderCode GenerateVertexShaderCode(API_TYPE api_type)
 {
-	GenerateVertexShader<ShaderCode>(object, api_type);
+	return GenerateVertexShader<ShaderCode>(api_type);
 }

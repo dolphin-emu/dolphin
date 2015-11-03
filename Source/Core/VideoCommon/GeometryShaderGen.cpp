@@ -30,8 +30,9 @@ template<class T> static inline void EmitVertex(T& out, const char* vertex, API_
 template<class T> static inline void EndPrimitive(T& out, API_TYPE ApiType);
 
 template<class T>
-static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE ApiType)
+static inline T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 {
+	T out;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	geometry_shader_uid_data dummy_data;
 	geometry_shader_uid_data* uid_data = out.template GetUidData<geometry_shader_uid_data>();
@@ -292,6 +293,8 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		if (text[sizeof(text) - 1] != 0x7C)
 			PanicAlert("GeometryShader generator - buffer too small, canary has been eaten!");
 	}
+
+	return out;
 }
 
 template<class T>
@@ -327,12 +330,12 @@ static inline void EndPrimitive(T& out, API_TYPE ApiType)
 		out.Write("\toutput.RestartStrip();\n");
 }
 
-void GetGeometryShaderUid(GeometryShaderUid& object, u32 primitive_type, API_TYPE ApiType)
+GeometryShaderUid GetGeometryShaderUid(u32 primitive_type, API_TYPE ApiType)
 {
-	GenerateGeometryShader<GeometryShaderUid>(object, primitive_type, ApiType);
+	return GenerateGeometryShader<GeometryShaderUid>(primitive_type, ApiType);
 }
 
-void GenerateGeometryShaderCode(ShaderCode& object, u32 primitive_type, API_TYPE ApiType)
+ShaderCode GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType)
 {
-	GenerateGeometryShader<ShaderCode>(object, primitive_type, ApiType);
+	return GenerateGeometryShader<ShaderCode>(primitive_type, ApiType);
 }
