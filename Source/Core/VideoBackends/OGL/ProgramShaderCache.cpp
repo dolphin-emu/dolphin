@@ -40,7 +40,7 @@ UidChecker<PixelShaderUid, ShaderCode> ProgramShaderCache::pixel_uid_checker;
 UidChecker<VertexShaderUid, ShaderCode> ProgramShaderCache::vertex_uid_checker;
 UidChecker<GeometryShaderUid, ShaderCode> ProgramShaderCache::geometry_uid_checker;
 
-static char s_glsl_header[1024] = "";
+static std::string s_glsl_header = "";
 
 static std::string GetGLSLVersionString()
 {
@@ -91,14 +91,10 @@ void SHADER::SetProgramVariables()
 		// Bind Texture Samplers
 		for (int a = 0; a <= 9; ++a)
 		{
-			char name[10];
-			if (a < 8)
-				snprintf(name, 8, "samp[%d]", a);
-			else
-				snprintf(name, 8, "samp%d", a);
+			std::string name = StringFromFormat(a < 8 ? "samp[%d]" : "samp%d", a);
 
 			// Still need to get sampler locations since we aren't binding them statically in the shaders
-			int loc = glGetUniformLocation(glprogid, name);
+			int loc = glGetUniformLocation(glprogid, name.c_str());
 			if (loc != -1)
 				glUniform1i(loc, a);
 		}
@@ -129,9 +125,8 @@ void SHADER::SetProgramBindings()
 
 	for (int i = 0; i < 8; i++)
 	{
-		char attrib_name[8];
-		snprintf(attrib_name, 8, "tex%d", i);
-		glBindAttribLocation(glprogid, SHADER_TEXTURE0_ATTRIB+i, attrib_name);
+		std::string attrib_name = StringFromFormat("tex%d", i);
+		glBindAttribLocation(glprogid, SHADER_TEXTURE0_ATTRIB+i, attrib_name.c_str());
 	}
 }
 
@@ -344,7 +339,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
 {
 	GLuint result = glCreateShader(type);
 
-	const char *src[] = {s_glsl_header, code};
+	const char *src[] = {s_glsl_header.c_str(), code};
 
 	glShaderSource(result, 2, src, nullptr);
 	glCompileShader(result);
@@ -566,7 +561,7 @@ void ProgramShaderCache::CreateHeader()
 		}
 	}
 
-	snprintf(s_glsl_header, sizeof(s_glsl_header),
+	s_glsl_header = StringFromFormat(
 		"%s\n"
 		"%s\n" // ubo
 		"%s\n" // early-z
