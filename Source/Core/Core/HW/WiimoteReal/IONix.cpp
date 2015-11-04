@@ -15,13 +15,13 @@
 
 namespace WiimoteReal
 {
-extern Wiimote* g_wiimotes[MAX_BBMOTES];
 
 class WiimoteLinux final : public Wiimote
 {
 public:
 	WiimoteLinux(bdaddr_t bdaddr);
 	~WiimoteLinux() override;
+	const bdaddr_t& Address() const;
 
 protected:
 	bool ConnectInternal() override;
@@ -30,7 +30,6 @@ protected:
 	void IOWakeup() override;
 	int IORead(u8* buf) override;
 	int IOWrite(u8 const* buf, size_t len) override;
-	char* Address() override;
 
 private:
 	bdaddr_t m_bdaddr;   // Bluetooth address
@@ -86,12 +85,10 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	found_board = nullptr;
 	// query in limited IAC - liac - using code from hcitool
 	// utils/tools/hcitool.c
-	int l;
-	uint8_t lap[3] = { 0x33, 0x8b, 0x9e };
-	l = 0x9e8b00; // LIAC (https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
-	lap[0] = (l & 0xff);
-	lap[1] = (l >> 8) & 0xff;
-	lap[2] = (l >> 16) & 0xff;
+	const int liac_value = 0x9e8b00; // LIAC (https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
+	uint8_t lap[3] = { (liac_value & 0xff),
+			   (liac_value >> 8) & 0xff,
+			   (liac_value >> 16) & 0xff };
 
 	// Scan for Bluetooth devices
 	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, lap, &scan_infos_ptr, IREQ_CACHE_FLUSH);
@@ -125,7 +122,10 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 			for (int j = 0; j < MAX_BBMOTES && new_wiimote; ++j)
 			{
 				// compare this address with the stored addresses in our global array
-				if (g_wiimotes[j] && bacmp(&scan_infos[i].bdaddr,strtoba(g_wiimotes[j]->Address())) == 0)
+				// static_cast is OK here, since we're only ever going to have this subclass in g_wiimotes
+				// on Linux (and likewise, only WiimoteWindows on Windows, etc) 
+				auto connected_wiimote = static_cast<WiimoteLinux*>(g_wiimotes[j]);
+				if (connected_wiimote && bacmp(&scan_infos[i].bdaddr,&connected_wiimote->Address()) == 0)
 					new_wiimote = false;
 			}
 
@@ -172,6 +172,11 @@ WiimoteLinux::~WiimoteLinux()
 	Shutdown();
 	close(m_wakeup_pipe_w);
 	close(m_wakeup_pipe_r);
+}
+
+const bdaddr_t& WiimoteLinux::Address() const
+{
+	return m_bdaddr;
 }
 
 // Connect to a Wiimote with a known address.
@@ -285,11 +290,6 @@ int WiimoteLinux::IORead(u8* buf)
 int WiimoteLinux::IOWrite(u8 const* buf, size_t len)
 {
 	return write(m_int_sock, buf, (int)len);
-}
-
-char* WiimoteLinux::Address()
-{
-	return batostr(&m_bdaddr);
 }
 
 };

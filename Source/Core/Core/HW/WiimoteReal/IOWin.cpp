@@ -201,7 +201,6 @@ protected:
 	void IOWakeup() override;
 	int IORead(u8* buf) override;
 	int IOWrite(u8 const* buf, size_t len) override;
-	char* Address() override;
 
 private:
 	std::basic_string<TCHAR> m_devicepath; // Unique Wiimote reference
@@ -789,10 +788,6 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 int WiimoteWindows::IOWrite(const u8* buf, size_t len)
 {
 	return _IOWrite(m_dev_handle, m_hid_overlap_write, m_stack, buf, len, nullptr);
-}
-char* WiimoteWindows::Address()
-{
-        return m_devicepath.c_str();
 }
 
 // invokes callback for each found Wiimote Bluetooth device
