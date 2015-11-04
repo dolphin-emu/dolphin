@@ -166,8 +166,9 @@ template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_dat
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data);
 
 template<class T>
-static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
+static inline T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
+	T out;
 	const u32 components = VertexLoaderManager::g_current_components;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
@@ -667,6 +668,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (text[sizeof(text) - 1] != 0x7C)
 			PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
 	}
+
+	return out;
 }
 
 
@@ -1170,17 +1173,12 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 	out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
 }
 
-void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
+PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
-	GeneratePixelShader<PixelShaderUid>(object, dstAlphaMode, ApiType);
+	return GeneratePixelShader<PixelShaderUid>(dstAlphaMode, ApiType);
 }
 
-void GeneratePixelShaderCode(ShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
+ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
-	GeneratePixelShader<ShaderCode>(object, dstAlphaMode, ApiType);
-}
-
-void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
-{
-	GeneratePixelShader<PixelShaderConstantProfile>(object, dstAlphaMode, ApiType);
+	return GeneratePixelShader<ShaderCode>(dstAlphaMode, ApiType);
 }
