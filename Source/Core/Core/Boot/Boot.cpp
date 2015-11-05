@@ -79,7 +79,7 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
 	{
 	case SConfig::BOOT_WII_NAND:
 	{
-		const DiscIO::INANDContentLoader& Loader =
+		const DiscIO::CNANDContentLoader& Loader =
 				DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
 		if (Loader.IsValid())
 		{

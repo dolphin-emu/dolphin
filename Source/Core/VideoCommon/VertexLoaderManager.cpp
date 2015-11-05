@@ -32,6 +32,7 @@ u32 position_matrix_index[3];
 typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexFormatMap;
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
+u32 g_current_components;
 
 typedef std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoaderBase>> VertexLoaderMap;
 static std::mutex s_vertex_loader_map_lock;
@@ -71,7 +72,7 @@ void UpdateVertexArrayPointers()
 	for (int i = 0; i < 12; i++)
 	{
 		// Only update the array base if the vertex description states we are going to use it.
-		if (g_main_cp_state.vtx_desc.GetVertexArrayStatus(i) >= 0x2)
+		if (g_main_cp_state.vtx_desc.GetVertexArrayStatus(i) & MASK_INDEXED)
 			cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
 	}
 
@@ -153,7 +154,6 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 			{
 				native.reset(g_vertex_manager->CreateNativeVertexFormat());
 				native->Initialize(format);
-				native->m_components = loader->m_native_components;
 			}
 			loader->m_native_vertex_format = native.get();
 		}
@@ -185,22 +185,26 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		return size;
 
 	// If the native vertex format changed, force a flush.
-	if (loader->m_native_vertex_format != s_current_vtx_fmt)
-		VertexManager::Flush();
+	if (loader->m_native_vertex_format != s_current_vtx_fmt ||
+	    loader->m_native_components != g_current_components)
+	{
+		VertexManagerBase::Flush();
+	}
 	s_current_vtx_fmt = loader->m_native_vertex_format;
+	g_current_components = loader->m_native_components;
 
 	// if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
 	// They still need to go through vertex loading, because we need to calculate a zfreeze refrence slope.
 	bool cullall = (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5);
 
-	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
+	DataReader dst = VertexManagerBase::PrepareForAdditionalData(primitive, count,
 			loader->m_native_vtx_decl.stride, cullall);
 
 	count = loader->RunVertices(src, dst, count);
 
 	IndexGenerator::AddIndices(primitive, count);
 
-	VertexManager::FlushData(count, loader->m_native_vtx_decl.stride);
+	VertexManagerBase::FlushData(count, loader->m_native_vtx_decl.stride);
 
 	ADDSTAT(stats.thisFrame.numPrims, count);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);

@@ -32,6 +32,7 @@ public:
 	bool ExportDOL(const std::string& _rExportFolder) const override;
 	bool GetBootDOL(u8* &buffer, u32 DolSize) const override;
 	u32 GetBootDOLSize() const override;
+	u32 GetBootDOLSize(u64 dol_offset) const override;
 
 private:
 	bool m_Initialized;

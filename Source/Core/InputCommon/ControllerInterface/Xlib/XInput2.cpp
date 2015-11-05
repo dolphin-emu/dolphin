@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <X11/XKBlib.h>
 

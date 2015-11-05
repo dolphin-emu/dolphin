@@ -223,9 +223,6 @@ static void BPWritten(const BPCmd& bp)
 			// Check if we are to copy from the EFB or draw to the XFB
 			if (PE_copy.copy_to_xfb == 0)
 			{
-				if (g_ActiveConfig.bShowEFBCopyRegions)
-					stats.efb_regions.push_back(srcRect);
-
 				// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 				TextureCache::CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
 					bpmem.zcontrol.pixel_format, srcRect,
@@ -726,8 +723,9 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 {
 	const char* no_yes[2] = { "No", "Yes" };
 
+	u8 cmd = data[0];
 	u32 cmddata = Common::swap32(*(u32*)data) & 0xFFFFFF;
-	switch (data[0])
+	switch (cmd)
 	{
 	 // Macro to set the register name and make sure it was written correctly via compile time assertion
 	#define SetRegName(reg) \
@@ -1128,8 +1126,16 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 	case BPMEM_TX_SETIMAGE0_4+1:
 	case BPMEM_TX_SETIMAGE0_4+2:
 	case BPMEM_TX_SETIMAGE0_4+3:
-		SetRegName(BPMEM_TX_SETIMAGE0);
-		// TODO: Description
+		{
+			SetRegName(BPMEM_TX_SETIMAGE0);
+			int texnum = (cmd < BPMEM_TX_SETIMAGE0_4) ? cmd - BPMEM_TX_SETIMAGE0 : cmd - BPMEM_TX_SETIMAGE0_4 + 4;
+			TexImage0 teximg; teximg.hex = cmddata;
+			*desc = StringFromFormat("Texture Unit: %i\n"
+			                         "Width: %i\n"
+			                         "Height: %i\n"
+			                         "Format: %x\n",
+			                         texnum, teximg.width+1, teximg.height+1, teximg.format);
+		}
 		break;
 
 	case BPMEM_TX_SETIMAGE1: // 0x8C
@@ -1140,8 +1146,17 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 	case BPMEM_TX_SETIMAGE1_4+1:
 	case BPMEM_TX_SETIMAGE1_4+2:
 	case BPMEM_TX_SETIMAGE1_4+3:
-		SetRegName(BPMEM_TX_SETIMAGE1);
-		// TODO: Description
+		{
+			SetRegName(BPMEM_TX_SETIMAGE1);
+			int texnum = (cmd < BPMEM_TX_SETIMAGE1_4) ? cmd - BPMEM_TX_SETIMAGE1 : cmd - BPMEM_TX_SETIMAGE1_4 + 4;
+			TexImage1 teximg; teximg.hex = cmddata;
+			*desc = StringFromFormat("Texture Unit: %i\n"
+			                         "Even TMEM Offset: %x\n"
+			                         "Even TMEM Width: %i\n"
+			                         "Even TMEM Height: %i\n"
+			                         "Cache is manually managed: %s\n",
+			                         texnum, teximg.tmem_even, teximg.cache_width, teximg.cache_height, no_yes[teximg.image_type]);
+		}
 		break;
 
 	case BPMEM_TX_SETIMAGE2: // 0x90
@@ -1152,8 +1167,16 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 	case BPMEM_TX_SETIMAGE2_4+1:
 	case BPMEM_TX_SETIMAGE2_4+2:
 	case BPMEM_TX_SETIMAGE2_4+3:
-		SetRegName(BPMEM_TX_SETIMAGE2);
-		// TODO: Description
+		{
+			SetRegName(BPMEM_TX_SETIMAGE2);
+			int texnum = (cmd < BPMEM_TX_SETIMAGE2_4) ? cmd - BPMEM_TX_SETIMAGE2 : cmd - BPMEM_TX_SETIMAGE2_4 + 4;
+			TexImage2 teximg; teximg.hex = cmddata;
+			*desc = StringFromFormat("Texture Unit: %i\n"
+			                         "Odd TMEM Offset: %x\n"
+			                         "Odd TMEM Width: %i\n"
+			                         "Odd TMEM Height: %i\n",
+			                         texnum, teximg.tmem_odd, teximg.cache_width, teximg.cache_height);
+		}
 		break;
 
 	case BPMEM_TX_SETIMAGE3: // 0x94
@@ -1166,8 +1189,9 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 	case BPMEM_TX_SETIMAGE3_4+3:
 		{
 			SetRegName(BPMEM_TX_SETIMAGE3);
+			int texnum = (cmd < BPMEM_TX_SETIMAGE3_4) ? cmd - BPMEM_TX_SETIMAGE3 : cmd - BPMEM_TX_SETIMAGE3_4 + 4;
 			TexImage3 teximg; teximg.hex = cmddata;
-			*desc = StringFromFormat("Source address (32 byte aligned): 0x%06X", teximg.image_base << 5);
+			*desc = StringFromFormat("Texture %i source address (32 byte aligned): 0x%06X", texnum, teximg.image_base << 5);
 		}
 		break;
 

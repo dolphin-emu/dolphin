@@ -6,7 +6,9 @@
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderBase.h"
@@ -148,9 +150,9 @@ public:
 			else
 			{
 				ERROR_LOG(VIDEO, "Can't compare vertex loaders that expect different vertex formats!");
-				ERROR_LOG(VIDEO, "a: m_VertexSize %d, m_native_components 0x%08x, stride %d\n",
+				ERROR_LOG(VIDEO, "a: m_VertexSize %d, m_native_components 0x%08x, stride %d",
 				                 a->m_VertexSize, a->m_native_components, a->m_native_vtx_decl.stride);
-				ERROR_LOG(VIDEO, "b: m_VertexSize %d, m_native_components 0x%08x, stride %d\n",
+				ERROR_LOG(VIDEO, "b: m_VertexSize %d, m_native_components 0x%08x, stride %d",
 				                 b->m_VertexSize, b->m_native_components, b->m_native_vtx_decl.stride);
 			}
 		}

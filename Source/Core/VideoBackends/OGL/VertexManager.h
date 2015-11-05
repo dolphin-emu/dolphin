@@ -26,7 +26,7 @@ namespace OGL
 
 // Handles the OpenGL details of drawing lots of vertices quickly.
 // Other functionality is moving out.
-class VertexManager : public ::VertexManager
+class VertexManager : public VertexManagerBase
 {
 public:
 	VertexManager();

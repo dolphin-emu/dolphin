@@ -162,13 +162,13 @@
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TraversalClient.cpp" />
+    <ClCompile Include="ucrtFreadWorkaround.cpp" />
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="x64ABI.cpp" />
     <ClCompile Include="x64Analyzer.cpp" />
     <ClCompile Include="x64CPUDetect.cpp" />
     <ClCompile Include="x64Emitter.cpp" />
     <ClCompile Include="x64FPURoundMode.cpp" />
-    <ClCompile Include="XSaveWorkaround.cpp" />
     <ClCompile Include="Crypto\bn.cpp" />
     <ClCompile Include="Crypto\ec.cpp" />
     <ClCompile Include="Logging\LogManager.cpp" />
@@ -186,6 +186,9 @@
     <ProjectReference Include="SCMRevGen.vcxproj">
       <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="BitField.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -33,7 +33,6 @@ private:
 	void OnEndSession(wxCloseEvent& event);
 	void InitLanguageSupport();
 	void AfterInit();
-	static bool DolphinEmulatorDotComTextFileExists();
 
 	bool m_batch_mode = false;
 	bool m_confirm_stop = false;

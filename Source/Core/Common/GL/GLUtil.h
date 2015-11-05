@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
 #ifndef _WIN32
@@ -14,7 +16,7 @@
 void InitInterface();
 
 // Helpers
-GLuint OpenGL_CompileProgram(const char *vertexShader, const char *fragmentShader);
+GLuint OpenGL_CompileProgram(const std::string& vertexShader, const std::string& fragmentShader);
 
 // Creates and deletes a VAO and VBO suitable for attributeless rendering.
 // Called by the Renderer.

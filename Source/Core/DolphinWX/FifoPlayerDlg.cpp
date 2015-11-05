@@ -595,7 +595,7 @@ void FifoPlayerDlg::OnFrameListSelectionChanged(wxCommandEvent& event)
 	{
 		size_t num_objects = player.GetAnalyzedFrameInfo(event.GetInt()).objectStarts.size();
 		for (size_t i = 0; i < num_objects; ++i)
-			m_objectsList->Append(wxString::Format("Object %u", (u32)i));
+			m_objectsList->Append(wxString::Format(_("Object %zu"), i));
 	}
 
 	// Update object list
@@ -858,7 +858,7 @@ void FifoPlayerDlg::UpdateAnalyzerGui()
 
 		for (size_t i = 0; i < num_frames; ++i)
 		{
-			m_framesList->Append(wxString::Format("Frame %u", (u32)i));
+			m_framesList->Append(wxString::Format(_("Frame %zu"), i));
 		}
 
 		wxCommandEvent ev = wxCommandEvent(wxEVT_LISTBOX);
@@ -872,7 +872,7 @@ wxString FifoPlayerDlg::CreateFileFrameCountLabel() const
 	FifoDataFile *file = FifoPlayer::GetInstance().GetFile();
 
 	if (file)
-		return CreateIntegerLabel(file->GetFrameCount(), _("Frame"));
+		return wxString::Format(_("%u frames"), file->GetFrameCount());
 
 	return _("No file loaded");
 }
@@ -882,7 +882,7 @@ wxString FifoPlayerDlg::CreateCurrentFrameLabel() const
 	FifoDataFile *file = FifoPlayer::GetInstance().GetFile();
 
 	if (file)
-		return _("Frame ") + wxString::Format("%u", FifoPlayer::GetInstance().GetCurrentFrameNum());
+		return wxString::Format(_("Frame %u"), FifoPlayer::GetInstance().GetCurrentFrameNum());
 
 	return wxEmptyString;
 }
@@ -892,7 +892,7 @@ wxString FifoPlayerDlg::CreateFileObjectCountLabel() const
 	FifoDataFile *file = FifoPlayer::GetInstance().GetFile();
 
 	if (file)
-		return CreateIntegerLabel(FifoPlayer::GetInstance().GetFrameObjectCount(), _("Object"));
+		return wxString::Format(_("%u objects"), FifoPlayer::GetInstance().GetFrameObjectCount());
 
 	return wxEmptyString;
 }
@@ -907,7 +907,7 @@ wxString FifoPlayerDlg::CreateRecordingFifoSizeLabel() const
 		for (size_t i = 0; i < file->GetFrameCount(); ++i)
 			fifoBytes += file->GetFrame(i).fifoDataSize;
 
-		return CreateIntegerLabel(fifoBytes, _("FIFO Byte"));
+		return wxString::Format(_("%zu FIFO bytes"), fifoBytes);
 	}
 
 	return _("No recorded file");
@@ -927,7 +927,7 @@ wxString FifoPlayerDlg::CreateRecordingMemSizeLabel() const
 				memBytes += memUpdate.size;
 		}
 
-		return CreateIntegerLabel(memBytes, _("Memory Byte"));
+		return wxString::Format(_("%zu memory bytes"), memBytes);
 	}
 
 	return wxEmptyString;
@@ -938,21 +938,9 @@ wxString FifoPlayerDlg::CreateRecordingFrameCountLabel() const
 	FifoDataFile *file = FifoRecorder::GetInstance().GetRecordedFile();
 
 	if (file)
-	{
-		size_t numFrames = file->GetFrameCount();
-		return CreateIntegerLabel(numFrames, _("Frame"));
-	}
+		return wxString::Format(_("%u frames"), file->GetFrameCount());
 
 	return wxEmptyString;
-}
-
-wxString FifoPlayerDlg::CreateIntegerLabel(size_t size, const wxString& label) const
-{
-	wxString postfix;
-	if (size != 1)
-		postfix = _("s");
-
-	return wxString::Format("%u ", (u32)size) + label + postfix;
 }
 
 bool FifoPlayerDlg::GetSaveButtonEnabled() const

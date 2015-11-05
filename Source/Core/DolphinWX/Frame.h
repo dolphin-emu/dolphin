@@ -211,6 +211,7 @@ private:
 	wxAuiNotebook * GetNotebookFromId(u32 NBId);
 	int GetNotebookCount();
 	wxAuiNotebook *CreateEmptyNotebook();
+	void HandleFrameSkipHotkeys();
 
 	// Perspectives
 	void AddRemoveBlankPage();

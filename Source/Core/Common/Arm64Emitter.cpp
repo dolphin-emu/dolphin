@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 #include <vector>
 
 #include "Common/Arm64Emitter.h"
@@ -310,6 +311,12 @@ const u8* ARM64XEmitter::AlignCodePage()
 	if (c)
 		ReserveCodeSpace(4096-c);
 	return m_code;
+}
+
+void ARM64XEmitter::Write32(u32 value)
+{
+	std::memcpy(m_code, &value, sizeof(u32));
+	m_code += sizeof(u32);
 }
 
 void ARM64XEmitter::FlushIcache()
@@ -815,32 +822,32 @@ void ARM64XEmitter::EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64
 	Write32((size << 30) | (0b111 << 27) | (op << 22) | ((imm & 0x1FF) << 12) | (Rn << 5) | Rt);
 }
 
-static inline bool IsInRangeImm19(s64 distance)
+static constexpr bool IsInRangeImm19(s64 distance)
 {
 	return (distance >= -0x40000 && distance <= 0x3FFFF);
 }
 
-static inline bool IsInRangeImm14(s64 distance)
+static constexpr bool IsInRangeImm14(s64 distance)
 {
 	return (distance >= -0x2000 && distance <= 0x1FFF);
 }
 
-static inline bool IsInRangeImm26(s64 distance)
+static constexpr bool IsInRangeImm26(s64 distance)
 {
 	return (distance >= -0x2000000 && distance <= 0x1FFFFFF);
 }
 
-static inline u32 MaskImm19(s64 distance)
+static constexpr u32 MaskImm19(s64 distance)
 {
 	return distance & 0x7FFFF;
 }
 
-static inline u32 MaskImm14(s64 distance)
+static constexpr u32 MaskImm14(s64 distance)
 {
 	return distance & 0x3FFF;
 }
 
-static inline u32 MaskImm26(s64 distance)
+static constexpr u32 MaskImm26(s64 distance)
 {
 	return distance & 0x3FFFFFF;
 }

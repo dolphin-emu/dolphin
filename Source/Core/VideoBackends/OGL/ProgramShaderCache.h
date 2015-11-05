@@ -86,12 +86,10 @@ public:
 		}
 	};
 
-	typedef std::map<SHADERUID, PCacheEntry> PCache;
 
 	static PCacheEntry GetShaderProgram();
-	static GLuint GetCurrentProgram();
-	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type);
-	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type);
+	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_type);
+	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type);
 
 	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode, const char* gcode = nullptr);
 	static GLuint CompileSingleShader(GLuint type, const char *code);
@@ -108,13 +106,14 @@ private:
 		void Read(const SHADERUID &key, const u8 *value, u32 value_size) override;
 	};
 
+	typedef std::map<SHADERUID, PCacheEntry> PCache;
 	static PCache pshaders;
 	static PCacheEntry* last_entry;
 	static SHADERUID last_uid;
 
-	static UidChecker<PixelShaderUid,PixelShaderCode> pixel_uid_checker;
-	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
-	static UidChecker<GeometryShaderUid,ShaderCode> geometry_uid_checker;
+	static UidChecker<PixelShaderUid, ShaderCode> pixel_uid_checker;
+	static UidChecker<VertexShaderUid, ShaderCode> vertex_uid_checker;
+	static UidChecker<GeometryShaderUid, ShaderCode> geometry_uid_checker;
 
 	static u32 s_ubo_buffer_size;
 	static s32 s_ubo_align;

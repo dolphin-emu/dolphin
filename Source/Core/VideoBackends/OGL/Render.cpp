@@ -78,10 +78,6 @@ VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
-static GLuint s_ShowEFBCopyRegions_VBO = 0;
-static GLuint s_ShowEFBCopyRegions_VAO = 0;
-static SHADER s_ShowEFBCopyRegions;
-
 static RasterFont* s_pfont = nullptr;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
@@ -321,7 +317,6 @@ Renderer::Renderer()
 	OSDInternalW = 0;
 	OSDInternalH = 0;
 
-	s_ShowEFBCopyRegions_VBO = 0;
 	s_blendMode = 0;
 
 	bool bSuccess = true;
@@ -434,7 +429,6 @@ Renderer::Renderer()
 	                                                 GLExtensions::Supports("GL_EXT_blend_func_extended");
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
 				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
-	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
 	g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") && GLExtensions::Supports("GL_ARB_sample_shading");
@@ -469,6 +463,8 @@ Renderer::Renderer()
 	g_ogl_config.bSupports3DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample") ||
 	                                         GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array");
 	g_ogl_config.bSupports2DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample");
+	g_ogl_config.bSupportsEarlyFragmentTests = GLExtensions::Supports("GL_ARB_shader_image_load_store");
+	g_ogl_config.bSupportsConservativeDepth = GLExtensions::Supports("GL_ARB_conservative_depth");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
@@ -488,7 +484,7 @@ Renderer::Renderer()
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
 			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
 			g_Config.backend_info.bSupportsBindingLayout = true;
-			g_Config.backend_info.bSupportsEarlyZ = true;
+			g_ogl_config.bSupportsEarlyFragmentTests = true;
 			g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
 			g_Config.backend_info.bSupportsGSInstancing = g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
 			g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
@@ -507,7 +503,7 @@ Renderer::Renderer()
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_320;
 			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
 			g_Config.backend_info.bSupportsBindingLayout = true;
-			g_Config.backend_info.bSupportsEarlyZ = true;
+			g_ogl_config.bSupportsEarlyFragmentTests = true;
 			g_Config.backend_info.bSupportsGeometryShaders = true;
 			g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
 			g_Config.backend_info.bSupportsPaletteConversion = true;
@@ -533,13 +529,15 @@ Renderer::Renderer()
 		else if (strstr(g_ogl_config.glsl_version, "1.30"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
-			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+			g_ogl_config.bSupportsEarlyFragmentTests = false; // layout keyword is only supported on glsl150+
+			g_ogl_config.bSupportsConservativeDepth = false; // layout keyword is only supported on glsl150+
 			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
 		}
 		else if (strstr(g_ogl_config.glsl_version, "1.40"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
-			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+			g_ogl_config.bSupportsEarlyFragmentTests = false; // layout keyword is only supported on glsl150+
+			g_ogl_config.bSupportsConservativeDepth = false; // layout keyword is only supported on glsl150+
 			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
 		}
 		else if (strstr(g_ogl_config.glsl_version, "1.50"))
@@ -559,6 +557,9 @@ Renderer::Renderer()
 		// Desktop OpenGL can't have the Android Extension Pack
 		g_ogl_config.bSupportsAEP = false;
 	}
+
+	// Either method can do early-z tests. See PixelShaderGen for details.
+	g_Config.backend_info.bSupportsEarlyZ = g_ogl_config.bSupportsEarlyFragmentTests || g_ogl_config.bSupportsConservativeDepth;
 
 	if (g_ogl_config.bSupportsDebug)
 	{
@@ -712,13 +713,8 @@ void Renderer::Shutdown()
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
 
-	glDeleteBuffers(1, &s_ShowEFBCopyRegions_VBO);
-	glDeleteVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
-	s_ShowEFBCopyRegions_VBO = 0;
-
 	delete s_pfont;
 	s_pfont = nullptr;
-	s_ShowEFBCopyRegions.Destroy();
 
 	delete m_post_processor;
 	m_post_processor = nullptr;
@@ -736,153 +732,7 @@ void Renderer::Init()
 
 	s_pfont = new RasterFont();
 
-	ProgramShaderCache::CompileShader(s_ShowEFBCopyRegions,
-		"in vec2 rawpos;\n"
-		"in vec3 color0;\n"
-		"out vec4 c;\n"
-		"void main(void) {\n"
-		"	gl_Position = vec4(rawpos, 0.0, 1.0);\n"
-		"	c = vec4(color0, 1.0);\n"
-		"}\n",
-		"in vec4 c;\n"
-		"out vec4 ocol0;\n"
-		"void main(void) {\n"
-		"	ocol0 = c;\n"
-		"}\n");
-
 	OpenGL_CreateAttributelessVAO();
-
-	// creating buffers
-	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);
-	glGenVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
-	glBindVertexArray( s_ShowEFBCopyRegions_VAO );
-	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*5, nullptr);
-	glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB);
-	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)nullptr+2);
-}
-
-// Create On-Screen-Messages
-void Renderer::ShowEfbCopyRegions()
-{
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
-	{
-		// Set Line Size
-		glLineWidth(3.0f);
-
-		// 2*Coords + 3*Color
-		GLsizeiptr length = stats.efb_regions.size() * sizeof(GLfloat) * (2 + 3) * 2 * 6;
-		glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
-		glBufferData(GL_ARRAY_BUFFER, length, nullptr, GL_STREAM_DRAW);
-		GLfloat *Vertices = (GLfloat*)glMapBufferRange(GL_ARRAY_BUFFER, 0, length, GL_MAP_WRITE_BIT);
-
-		// Draw EFB copy regions rectangles
-		int a = 0;
-		GLfloat color[3] = {0.0f, 1.0f, 1.0f};
-
-		for (const EFBRectangle& rect : stats.efb_regions)
-		{
-			GLfloat halfWidth = EFB_WIDTH / 2.0f;
-			GLfloat halfHeight = EFB_HEIGHT / 2.0f;
-			GLfloat x =  (GLfloat) -1.0f + ((GLfloat)rect.left / halfWidth);
-			GLfloat y =  (GLfloat) 1.0f - ((GLfloat)rect.top / halfHeight);
-			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)rect.right / halfWidth);
-			GLfloat y2 = (GLfloat) 1.0f - ((GLfloat)rect.bottom / halfHeight);
-
-			Vertices[a++] = x;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-			Vertices[a++] = x2;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-
-			Vertices[a++] = x2;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-			Vertices[a++] = x2;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-
-			Vertices[a++] = x2;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-			Vertices[a++] = x;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-
-			Vertices[a++] = x;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-			Vertices[a++] = x;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-
-			Vertices[a++] = x;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-			Vertices[a++] = x2;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-
-			Vertices[a++] = x2;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-			Vertices[a++] = x;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-
-			// TO DO: build something nicer here
-			GLfloat temp = color[0];
-			color[0] = color[1];
-			color[1] = color[2];
-			color[2] = temp;
-		}
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-
-		s_ShowEFBCopyRegions.Bind();
-		glBindVertexArray(s_ShowEFBCopyRegions_VAO);
-		GLsizei count = static_cast<GLsizei>(stats.efb_regions.size() * 2*6);
-		glDrawArrays(GL_LINES, 0, count);
-
-		// Clear stored regions
-		stats.efb_regions.clear();
-	}
 }
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
@@ -1713,7 +1563,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Reset viewport for drawing text
 	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
 
-	ShowEfbCopyRegions();
 	DrawDebugText();
 
 	// Do our OSD callbacks

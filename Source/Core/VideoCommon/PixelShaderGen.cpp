@@ -14,6 +14,7 @@
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"  // for texture projection mode
@@ -165,8 +166,10 @@ template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_dat
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data);
 
 template<class T>
-static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+static inline T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
+	T out;
+	const u32 components = VertexLoaderManager::g_current_components;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
 	pixel_shader_uid_data* uid_data = out.template GetUidData<pixel_shader_uid_data>();
@@ -184,7 +187,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	out.Write("//Pixel Shader for TEV stages\n");
 	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
-		numStages, numTexgen, bpmem.genMode.numindstages);
+		numStages, numTexgen, bpmem.genMode.numindstages.Value());
 
 	uid_data->dstAlphaMode = dstAlphaMode;
 	uid_data->genMode_numindstages = bpmem.genMode.numindstages;
@@ -306,14 +309,30 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// Most importantly, it was not possible to write to the depth buffer without also writing
 		// a color value (unless color writing was disabled altogether).
 
-		// OpenGL has a flag which allows the driver to still update the depth buffer if alpha
-		// test fails. The driver isn't required to do this, but I (degasus) assume all of them do
-		// because it's the much faster code path for the GPU.
+		// OpenGL 4.2 actually provides two extensions which can force an early z test:
+		//  * ARB_image_load_store has 'layout(early_fragment_tests)' which forces the driver to do z and stencil tests early.
+		//  * ARB_conservative_depth has 'layout(depth_unchanged) which signals to the driver that it can make optimisations
+		//    which assume the pixel shader won't update the depth buffer.
+
+		// early_fragment_tests is the best option, as it requires the driver to do early-z and defines early-z exactly as
+		// we expect, with discard causing the shader to exit with only the depth buffer updated.
+
+		// Conservative depth's 'depth_unchanged' only hints to the driver that an early-z optimisation can be made and
+		// doesn't define what will happen if we discard the fragment. But the way modern graphics hardware is implemented
+		// means it is not unreasonable to expect the the same behaviour as early_fragment_tests.
+		// We can also assume that if a driver has gone out of its way to support conservative depth and not image_load_store
+		// as required by OpenGL 4.2 that it will be doing the optimisation.
+		// If the driver doesn't actually do an early z optimisation, ZCompLoc will be broken and depth will only be written
+		// if the alpha test passes.
+
+		// We support Conservative as a fallback, because many drivers based on Mesa haven't implemented all of the
+		// ARB_image_load_store extension yet.
 
 		// D3D11 also has a way to force the driver to enable early-z, so we're fine here.
 		if(ApiType == API_OPENGL)
 		{
-			out.Write("layout(early_fragment_tests) in;\n");
+			 // This is a #define which signals whatever early-z method the driver supports.
+			out.Write("FORCE_EARLY_Z; \n");
 		}
 		else
 		{
@@ -649,6 +668,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (text[sizeof(text) - 1] != 0x7C)
 			PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
 	}
+
+	return out;
 }
 
 
@@ -896,7 +917,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 
 		int mode = (cc.shift<<1)|cc.op;
 		out.Write("   tevin_d.rgb + ");
-		out.Write(function_table[mode]);
+		out.Write("%s", function_table[mode]);
 	}
 	if (cc.clamp)
 		out.Write(", int3(0,0,0), int3(255,255,255))");
@@ -926,7 +947,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 
 		int mode = (ac.shift<<1)|ac.op;
 		out.Write("   tevin_d.a + ");
-		out.Write(function_table[mode]);
+		out.Write("%s", function_table[mode]);
 	}
 	if (ac.clamp)
 		out.Write(", 0, 255)");
@@ -1152,18 +1173,12 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 	out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
 }
 
-void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
-	GeneratePixelShader<PixelShaderUid>(object, dstAlphaMode, ApiType, components);
+	return GeneratePixelShader<PixelShaderUid>(dstAlphaMode, ApiType);
 }
 
-void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
-	GeneratePixelShader<PixelShaderCode>(object, dstAlphaMode, ApiType, components);
+	return GeneratePixelShader<ShaderCode>(dstAlphaMode, ApiType);
 }
-
-void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
-{
-	GeneratePixelShader<PixelShaderConstantProfile>(object, dstAlphaMode, ApiType, components);
-}
-

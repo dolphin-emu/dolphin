@@ -189,6 +189,8 @@
     <ClInclude Include="GL\GLInterfaceBase.h">
       <Filter>GL\GLInterface</Filter>
     </ClInclude>
+    <ClInclude Include="Assert.h" />
+    <ClInclude Include="NonCopyable.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />
@@ -230,7 +232,6 @@
     <ClCompile Include="Logging\LogManager.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
-    <ClCompile Include="XSaveWorkaround.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="JitRegister.cpp" />
     <ClCompile Include="TraversalClient.cpp" />
@@ -249,8 +250,12 @@
     <ClCompile Include="GL\GLInterface\GLInterface.cpp">
       <Filter>GL\GLInterface</Filter>
     </ClCompile>
+    <ClCompile Include="ucrtFreadWorkaround.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="BitField.natvis" />
   </ItemGroup>
 </Project>
