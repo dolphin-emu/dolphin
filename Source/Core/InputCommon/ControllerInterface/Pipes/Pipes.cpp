@@ -111,15 +111,13 @@ void PipeDevice::UpdateInput()
 		bytes_read = read(m_fd, buf, sizeof buf);
 	}
 	std::size_t newline = m_buf.find("\n");
-	std::size_t erase_until = 0;
 	while (newline != std::string::npos)
 	{
 		std::string command = m_buf.substr(0, newline);
 		ParseCommand(command);
-		erase_until = newline + 1;
-		newline = m_buf.find("\n", erase_until);
+		m_buf.erase(0, newline + 1);
+		newline = m_buf.find("\n");
 	}
-	m_buf.erase(0, erase_until);
 }
 
 void PipeDevice::AddAxis(const std::string& name, double value)
@@ -166,7 +164,7 @@ void PipeDevice::ParseCommand(const std::string& command)
 			double value = strtod(tokens[2].c_str(), nullptr);
 			SetAxis(tokens[1], (value / 2.0) + 0.5);
 		}
-		else
+		else if (tokens.size() == 4)
 		{
 			double x = strtod(tokens[2].c_str(), nullptr);
 			double y = strtod(tokens[3].c_str(), nullptr);
