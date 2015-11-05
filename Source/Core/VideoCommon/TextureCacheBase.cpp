@@ -40,8 +40,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::bound_textures[8];
 
 TextureCacheBase::BackupConfig TextureCacheBase::backup_config;
 
-static bool invalidate_texture_cache_requested;
-
 TextureCacheBase::TCacheEntryBase::~TCacheEntryBase()
 {
 }
@@ -67,13 +65,6 @@ TextureCacheBase::TextureCacheBase()
 	HiresTexture::Init();
 
 	SetHash64Function();
-
-	invalidate_texture_cache_requested = false;
-}
-
-void TextureCacheBase::RequestInvalidateTextureCache()
-{
-	invalidate_texture_cache_requested = true;
 }
 
 void TextureCacheBase::Invalidate()
@@ -116,14 +107,11 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
 		if (config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
 			config.bTexFmtOverlayEnable != backup_config.s_texfmt_overlay ||
 			config.bTexFmtOverlayCenter != backup_config.s_texfmt_overlay_center ||
-			config.bHiresTextures != backup_config.s_hires_textures ||
-			invalidate_texture_cache_requested)
+			config.bHiresTextures != backup_config.s_hires_textures)
 		{
 			g_texture_cache->Invalidate();
 
 			TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
-
-			invalidate_texture_cache_requested = false;
 		}
 
 		if ((config.iStereoMode > 0) != backup_config.s_stereo_3d ||

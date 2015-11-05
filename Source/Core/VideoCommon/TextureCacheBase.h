@@ -139,8 +139,6 @@ public:
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
 		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
-	static void RequestInvalidateTextureCache();
-
 	virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) = 0;
 
 protected:
