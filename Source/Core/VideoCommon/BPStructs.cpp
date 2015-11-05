@@ -223,9 +223,6 @@ static void BPWritten(const BPCmd& bp)
 			// Check if we are to copy from the EFB or draw to the XFB
 			if (PE_copy.copy_to_xfb == 0)
 			{
-				if (g_ActiveConfig.bShowEFBCopyRegions)
-					stats.efb_regions.push_back(srcRect);
-
 				// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 				TextureCache::CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
 					bpmem.zcontrol.pixel_format, srcRect,
