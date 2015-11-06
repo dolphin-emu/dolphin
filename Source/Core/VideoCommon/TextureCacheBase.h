@@ -17,7 +17,7 @@
 
 struct VideoConfig;
 
-class TextureCache
+class TextureCacheBase
 {
 public:
 	struct TCacheEntryConfig
@@ -35,7 +35,7 @@ public:
 
 		struct Hasher : std::hash<u64>
 		{
-			size_t operator()(const TextureCache::TCacheEntryConfig& c) const
+			size_t operator()(const TextureCacheBase::TCacheEntryConfig& c) const
 			{
 				u64 id = (u64)c.rendertarget << 63 | (u64)c.layers << 48 | (u64)c.levels << 32 | (u64)c.height << 16 | (u64)c.width;
 				return std::hash<u64>::operator()(id);
@@ -118,7 +118,7 @@ public:
 		u64 CalculateHash() const;
 	};
 
-	virtual ~TextureCache(); // needs virtual for DX11 dtor
+	virtual ~TextureCacheBase(); // needs virtual for DX11 dtor
 
 	static void OnConfigChanged(VideoConfig& config);
 
@@ -139,12 +139,10 @@ public:
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
 		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
-	static void RequestInvalidateTextureCache();
-
 	virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) = 0;
 
 protected:
-	TextureCache();
+	TextureCacheBase();
 
 	alignas(16) static u8* temp;
 	static size_t temp_size;
@@ -180,4 +178,4 @@ private:
 	} backup_config;
 };
 
-extern TextureCache *g_texture_cache;
+extern TextureCacheBase* g_texture_cache;
