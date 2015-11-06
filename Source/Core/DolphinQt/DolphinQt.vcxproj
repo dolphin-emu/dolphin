@@ -82,6 +82,7 @@
     <ClCompile Include="GameList\GameTracker.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="Host.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
