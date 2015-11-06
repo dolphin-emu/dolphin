@@ -145,7 +145,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, expanded_width, level, usage);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
+TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
 	if (config.rendertarget)
 	{
