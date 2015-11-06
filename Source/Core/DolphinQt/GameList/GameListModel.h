@@ -7,8 +7,8 @@
 #include <QAbstractTableModel>
 #include <QString>
 
-#include "DolphinQt/GameList/GameTracker.h"
 #include "DolphinQt/GameList/GameFile.h"
+#include "DolphinQt/GameList/GameTracker.h"
 
 class GameListModel final : public QAbstractTableModel
 {

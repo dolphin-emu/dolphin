@@ -13,8 +13,8 @@
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "DiscIO/VolumeCreator.h"
-#include "DolphinQt/GameList/GameFile.h"
 #include "DolphinQt/Resources.h"
+#include "DolphinQt/GameList/GameFile.h"
 
 static const int CACHE_VERSION = 1;
 static const int DATASTREAM_VERSION = QDataStream::Qt_5_5;

@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <QMutexLocker>
-#include <QDebug>
 
 #include "Core/Host.h"
 #include "DolphinQt/Host.h"

@@ -2,10 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <QDebug>
-
-#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/Resources.h"
+#include "DolphinQt/GameList/GameListModel.h"
 
 GameListModel::GameListModel(QObject* parent)
 	: QAbstractTableModel(parent)
@@ -55,7 +53,7 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
 {
 	if (orientation == Qt::Vertical || role != Qt::DisplayRole)
 		return QVariant();
-	
+
 	switch (section)
 	{
 		case COL_TITLE: return QVariant(tr("Title"));
