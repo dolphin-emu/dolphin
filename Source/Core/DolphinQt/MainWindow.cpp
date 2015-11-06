@@ -1,362 +1,235 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <memory>
-#include <QActionGroup>
-#include <QDesktopServices>
+#include <QAction>
+#include <QDir>
+#include <QFile>
 #include <QFileDialog>
+#include <QIcon>
+#include <QMenu>
+#include <QMenuBar>
 #include <QMessageBox>
-#include <QUrl>
 
-#include "ui_MainWindow.h"
-
+#include "Common/FileUtil.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/ProcessorInterface.h"
-
-#include "DolphinQt/AboutDialog.h"
+#include "Core/Core.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
-#include "DolphinQt/SystemInfo.h"
-#include "DolphinQt/Utils/Resources.h"
-#include "DolphinQt/Utils/Utils.h"
+#include "DolphinQt/Resources.h"
+#include "UICommon/UICommon.h"
 
-#include "VideoCommon/VideoConfig.h"
-
-// The "g_main_window" object as defined in MainWindow.h
-DMainWindow* g_main_window = nullptr;
-
-DMainWindow::DMainWindow(QWidget* parent_widget)
-	: QMainWindow(parent_widget)
+MainWindow::MainWindow() : QMainWindow(nullptr)
 {
-	m_ui = std::make_unique<Ui::DMainWindow>();
-	m_ui->setupUi(this);
-
+	UICommon::SetUserDirectory("");
+	UICommon::CreateDirectories();
+	UICommon::Init();
 	Resources::Init();
-	UpdateIcons();
-	setWindowIcon(Resources::GetIcon(Resources::DOLPHIN_LOGO));
 
-	// Create the GameList
-	m_game_tracker = new DGameTracker(this);
-	m_ui->centralWidget->addWidget(m_game_tracker);
-	m_game_tracker->ScanForGames();
-	m_game_tracker->SelectLastBootedGame();
+	MakeToolBar();
+	MakeGameList();
+	MakeRenderWidget();
+	MakeStack();
+	MakeMenus();
 
-	// Setup the GameList style switching actions
-	QActionGroup* gamelistGroup = new QActionGroup(this);
-	gamelistGroup->addAction(m_ui->actionListView);
-	gamelistGroup->addAction(m_ui->actionTreeView);
-	gamelistGroup->addAction(m_ui->actionGridView);
-	gamelistGroup->addAction(m_ui->actionIconView);
-
-	// TODO: save/load this from user prefs!
-	m_ui->actionListView->setChecked(true);
-	OnGameListStyleChanged();
-
-	// Connect all the signals/slots
-	connect(this, &DMainWindow::CoreStateChanged, this, &DMainWindow::OnCoreStateChanged);
-
-	connect(m_ui->actionOpen, &QAction::triggered, this, [&]() {
-		QString filename = ShowFileDialog();
-		if (!filename.isNull())
-			StartGame(filename);
-	});
-	connect(m_ui->actionBrowse, &QAction::triggered, this, &DMainWindow::OnBrowse);
-	connect(m_ui->actionExit, &QAction::triggered, this, &DMainWindow::OnExit);
-
-	connect(m_ui->actionListView, &QAction::triggered, this, &DMainWindow::OnGameListStyleChanged);
-	connect(m_ui->actionTreeView, &QAction::triggered, this, &DMainWindow::OnGameListStyleChanged);
-	connect(m_ui->actionGridView, &QAction::triggered, this, &DMainWindow::OnGameListStyleChanged);
-	connect(m_ui->actionIconView, &QAction::triggered, this, &DMainWindow::OnGameListStyleChanged);
-
-	connect(m_ui->actionPlay, &QAction::triggered, this, &DMainWindow::OnPlay);
-	connect(m_ui->actionPlay_mnu, &QAction::triggered, this, &DMainWindow::OnPlay);
-	connect(m_game_tracker, &DGameTracker::StartGame, this, &DMainWindow::OnPlay);
-	connect(m_ui->actionStop, &QAction::triggered, this, &DMainWindow::OnStop);
-	connect(m_ui->actionStop_mnu, &QAction::triggered, this, &DMainWindow::OnStop);
-	connect(m_ui->actionReset, &QAction::triggered, this, &DMainWindow::OnReset);
-
-	connect(m_ui->actionWebsite, &QAction::triggered, this, [&]() {
-		QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/")));
-	});
-	connect(m_ui->actionOnlineDocs, &QAction::triggered, this, [&]() {
-		QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/docs/guides/")));
-	});
-	connect(m_ui->actionGitHub, &QAction::triggered, this, [&]() {
-		QDesktopServices::openUrl(QUrl(SL("https://github.com/dolphin-emu/dolphin")));
-	});
-	connect(m_ui->actionSystemInfo, &QAction::triggered, this, [&]() {
-		DSystemInfo* dlg = new DSystemInfo(this);
-		dlg->open();
-	});
-	connect(m_ui->actionAbout, &QAction::triggered, this, [&]() {
-		DAboutDialog* dlg = new DAboutDialog(this);
-		dlg->open();
-	});
-	connect(m_ui->actionAboutQt, &QAction::triggered, this, [&]() {
-		QApplication::aboutQt();
-	});
-
-	// Update GUI items
-	emit CoreStateChanged(Core::CORE_UNINITIALIZED);
-
-	// Platform-specific stuff
-#ifdef Q_OS_MACX
-	m_ui->toolbar->setMovable(false);
-#endif
+	setWindowTitle(tr("Dolphin"));
+	setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
 }
 
-DMainWindow::~DMainWindow()
+MainWindow::~MainWindow()
 {
+	BootManager::Stop();
+	Core::Shutdown();
+	UICommon::Shutdown();
 }
 
-void DMainWindow::closeEvent(QCloseEvent* ce)
+void MainWindow::MakeMenus()
 {
-	Stop();
+	QMenu* file_menu = menuBar()->addMenu(tr("File"));
+	file_menu->addAction(tr("Open"), this, SLOT(Open()));
+	file_menu->addAction(tr("Exit"), this, SLOT(close()));
+
+	menuBar()->addMenu(tr("Emulation"));
+	menuBar()->addMenu(tr("Movie"));
+	menuBar()->addMenu(tr("Options"));
+	menuBar()->addMenu(tr("Tools"));
+
+	QMenu* view_menu = menuBar()->addMenu(tr("View"));
+	QActionGroup* list_group = new QActionGroup(this);
+	view_menu->addSection(tr("List Type"));
+	list_group->setExclusive(true);
+
+	QAction* set_table = list_group->addAction(view_menu->addAction(tr("Table")));
+	QAction* set_list = list_group->addAction(view_menu->addAction(tr("List")));
+
+	set_table->setCheckable(true);
+	set_table->setChecked(true);
+	set_list->setCheckable(true);
+
+	connect(set_table, &QAction::triggered, m_game_list, &GameList::SetTableView);
+	connect(set_list, &QAction::triggered, m_game_list, &GameList::SetListView);
+
+	menuBar()->addMenu(tr("Help"));
 }
 
-// Emulation
-
-void DMainWindow::StartGame(const QString filename)
+void MainWindow::MakeToolBar()
 {
-	m_render_widget = std::make_unique<DRenderWidget>();
-	m_render_widget->setWindowTitle(tr("Dolphin")); // TODO
-	m_render_widget->setWindowIcon(windowIcon());
+	setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+	m_tool_bar = addToolBar(tr("ToolBar"));
+	m_tool_bar->setMovable(false);
+	m_tool_bar->setFloatable(false);
 
-	if (SConfig::GetInstance().bFullscreen)
+	PopulateToolBar();
+}
+
+void MainWindow::MakeGameList()
+{
+	m_game_list = new GameList(this);
+	connect(m_game_list, &GameList::GameSelected, this, &MainWindow::Play);
+}
+
+void MainWindow::MakeRenderWidget()
+{
+	m_render_widget = new QWidget;
+	m_render_widget->setAttribute(Qt::WA_OpaquePaintEvent, true);
+	m_render_widget->setAttribute(Qt::WA_NoSystemBackground, true);
+}
+
+void MainWindow::MakeStack()
+{
+	m_stack = new QStackedWidget;
+	m_stack->setMinimumSize(800, 600);
+	m_stack->addWidget(m_game_list);
+	m_stack->addWidget(m_render_widget);
+	setCentralWidget(m_stack);
+}
+
+void MainWindow::PopulateToolBar()
+{
+	m_tool_bar->clear();
+
+	QString dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
+	m_tool_bar->addAction(QIcon(dir + tr("open.png")), tr("Open"), this, SLOT(Open()));
+	m_tool_bar->addAction(QIcon(dir + tr("browse.png")), tr("Browse"), this, SLOT(Browse()));
+
+	m_tool_bar->addSeparator();
+
+	QAction* play_action = m_tool_bar->addAction(QIcon(dir + tr("play.png")), tr("Play"), this, SLOT(Play()));
+	connect(this, &MainWindow::EmulationStarted, [=](){ play_action->setEnabled(false); });
+	connect(this, &MainWindow::EmulationPaused, [=](){ play_action->setEnabled(true); });
+	connect(this, &MainWindow::EmulationStopped, [=](){ play_action->setEnabled(true); });
+
+	QAction* pause_action = m_tool_bar->addAction(QIcon(dir + tr("pause.png")), tr("Pause"), this, SLOT(Pause()));
+	pause_action->setEnabled(false);
+	connect(this, &MainWindow::EmulationStarted, [=](){ pause_action->setEnabled(true); });
+	connect(this, &MainWindow::EmulationPaused, [=](){ pause_action->setEnabled(false); });
+	connect(this, &MainWindow::EmulationStopped, [=](){ pause_action->setEnabled(false); });
+
+	QAction* stop_action = m_tool_bar->addAction(QIcon(dir + tr("stop.png")), tr("Stop"), this, SLOT(Stop()));
+	stop_action->setEnabled(false);
+	connect(this, &MainWindow::EmulationStarted, [=](){ stop_action->setEnabled(true); });
+	connect(this, &MainWindow::EmulationPaused, [=](){ stop_action->setEnabled(true); });
+	connect(this, &MainWindow::EmulationStopped, [=](){ stop_action->setEnabled(false); });
+
+	m_tool_bar->addAction(QIcon(dir + tr("fullscreen.png")), tr("Full Screen"))->setEnabled(false);
+	m_tool_bar->addAction(QIcon(dir + tr("screenshot.png")), tr("Screen Shot"))->setEnabled(false);
+	m_tool_bar->addSeparator();
+	m_tool_bar->addAction(QIcon(dir + tr("config.png")), tr("Settings"))->setEnabled(false);
+	m_tool_bar->addAction(QIcon(dir + tr("graphics.png")), tr("Graphics"))->setEnabled(false);
+	m_tool_bar->addAction(QIcon(dir + tr("classic.png")), tr("Controllers"))->setEnabled(false);
+}
+
+void MainWindow::Open()
+{
+	QString file = QFileDialog::getOpenFileName(this,
+			tr("Select a File"),
+			QDir::currentPath(),
+			tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.wbfs *.ciso *.gcz *.wad);;"
+			   "All Files (*)"));
+	if (!file.isEmpty())
+		StartGame(file);
+}
+
+void MainWindow::Browse()
+{
+	QString dir = QFileDialog::getExistingDirectory(this,
+			tr("Select a Directory"),
+			QDir::currentPath());
+	if (!dir.isEmpty())
 	{
-		m_render_widget->setWindowFlags(m_render_widget->windowFlags() | Qt::BypassWindowManagerHint);
-		g_Config.bFullscreen = !g_Config.bBorderlessFullscreen;
-		m_render_widget->showFullScreen();
-	}
-	else
-	{
-		m_ui->centralWidget->addWidget(m_render_widget.get());
-		m_ui->centralWidget->setCurrentWidget(m_render_widget.get());
-
-		if (SConfig::GetInstance().bRenderWindowAutoSize)
+		std::vector<std::string>& iso_folders = SConfig::GetInstance().m_ISOFolder;
+		auto found = std::find(iso_folders.begin(), iso_folders.end(), dir.toStdString());
+		if (found == iso_folders.end())
 		{
-			// Resize main window to fit render
-			m_render_widget->setMinimumSize(SConfig::GetInstance().iRenderWindowWidth,
-				SConfig::GetInstance().iRenderWindowHeight);
-			qApp->processEvents(); // Force a redraw so the window has time to resize
-			m_render_widget->setMinimumSize(0, 0); // Allow the widget to scale down
-		}
-		m_render_widget->adjustSize();
-	}
-
-	if (!BootManager::BootCore(filename.toStdString()))
-	{
-		QMessageBox::critical(this, tr("Fatal error"), tr("Failed to init Core"), QMessageBox::Ok);
-		if (SConfig::GetInstance().bFullscreen)
-			m_render_widget->close();
-		else
-			m_ui->centralWidget->removeWidget(m_render_widget.get());
-		m_render_widget.reset();
-	}
-	else
-	{
-		DisableScreensaver();
-		emit CoreStateChanged(Core::CORE_RUN);
-	}
-}
-
-void DMainWindow::DisableScreensaver()
-{
-#ifdef Q_OS_WIN
-	// Prevents Windows from sleeping or turning off the display
-	SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
-#endif
-}
-
-void DMainWindow::EnableScreensaver()
-{
-#ifdef Q_OS_WIN
-	// Allows Windows to sleep and turn off the display
-	SetThreadExecutionState(ES_CONTINUOUS);
-#endif
-}
-
-QString DMainWindow::RequestBootFilename()
-{
-	// If a game is already selected, just return the filename
-	if (m_game_tracker->SelectedGame() != nullptr)
-			return m_game_tracker->SelectedGame()->GetFileName();
-
-	return ShowFileDialog();
-}
-
-QString DMainWindow::ShowFileDialog()
-{
-	return QFileDialog::getOpenFileName(this, tr("Open File"), QString(),
-		tr("All supported ROMs (%1);;All files (*)")
-		.arg(SL("*.gcm *.iso *.ciso *.gcz *.wbfs *.elf *.dol *.dff *.tmd *.wad")));
-}
-
-QString DMainWindow::ShowFolderDialog()
-{
-	return QFileDialog::getExistingDirectory(this, tr("Browse for a directory to add"),
-	                                         QDir::homePath(),
-	                                         QFileDialog::ShowDirsOnly);
-}
-
-void DMainWindow::DoStartPause()
-{
-	if (Core::GetState() == Core::CORE_RUN)
-	{
-		Core::SetState(Core::CORE_PAUSE);
-		emit CoreStateChanged(Core::CORE_PAUSE);
-	}
-	else
-	{
-		Core::SetState(Core::CORE_RUN);
-		emit CoreStateChanged(Core::CORE_RUN);
-	}
-	if (SConfig::GetInstance().bHideCursor)
-		m_render_widget->setCursor(Qt::BlankCursor);
-}
-
-void DMainWindow::OnBrowse()
-{
-	std::string path = ShowFolderDialog().toStdString();
-	std::vector<std::string>& iso_folder = SConfig::GetInstance().m_ISOFolder;
-	if (!path.empty())
-	{
-		auto itResult = std::find(iso_folder.begin(), iso_folder.end(), path);
-
-		if (itResult == iso_folder.end())
-		{
-			iso_folder.push_back(path);
+			iso_folders.push_back(dir.toStdString());
 			SConfig::GetInstance().SaveSettings();
 		}
 	}
-	m_game_tracker->ScanForGames();
 }
 
-void DMainWindow::OnExit()
+void MainWindow::Play()
 {
-	close();
-	if (Core::GetState() == Core::CORE_UNINITIALIZED || m_isStopping)
-		return;
-	Stop();
-}
-
-void DMainWindow::OnPlay()
-{
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	// If we're in a paused game, start it up again.
+	// Otherwise, play the selected game, if there is one.
+	// If not, play the last played game.
+	if (Core::GetState() == Core::CORE_PAUSE)
 	{
-		DoStartPause();
+		Core::SetState(Core::CORE_RUN);
+		emit EmulationStarted();
 	}
 	else
 	{
-		// initialize Core and boot the game
-		QString filename = RequestBootFilename();
-		if (!filename.isNull())
-			StartGame(filename);
-	}
-}
-
-bool DMainWindow::OnStop()
-{
-	if (Core::GetState() == Core::CORE_UNINITIALIZED || m_isStopping)
-		return true;
-
-	// Ask for confirmation in case the user accidentally clicked Stop / Escape
-	if (SConfig::GetInstance().bConfirmStop)
-	{
-		// Pause emulation
-		Core::SetState(Core::CORE_PAUSE);
-		emit CoreStateChanged(Core::CORE_PAUSE);
-
-		QMessageBox::StandardButton ret = QMessageBox::question(m_render_widget.get(), tr("Please confirm..."),
-			tr("Do you want to stop the current emulation?"),
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-
-		if (ret == QMessageBox::No)
+		QString selection = m_game_list->GetSelectedGame();
+		if (selection.length() > 0)
 		{
-			DoStartPause();
-			return false;
+			StartGame(selection);
+		}
+		else
+		{
+			QString path = QString::fromStdString(SConfig::GetInstance().m_LastFilename);
+			if (QFile::exists(path))
+				StartGame(path);
 		}
 	}
-
-	return Stop();
 }
 
-bool DMainWindow::Stop()
+void MainWindow::Pause()
 {
-	m_isStopping = true;
-
-	// TODO: Movie stuff
-	// TODO: Show the author/description dialog here
-
-	BootManager::Stop();
-	EnableScreensaver();
-	// TODO: Restore original window title
-
-	// TODO:
-	// If batch mode was specified on the command-line, exit now.
-	//if (m_bBatchMode)
-	//	Close(true);
-
-	if (SConfig::GetInstance().bFullscreen)
-		m_render_widget->close();
-	else
-		m_ui->centralWidget->removeWidget(m_render_widget.get());
-	m_render_widget.reset();
-
-	emit CoreStateChanged(Core::CORE_UNINITIALIZED);
-	m_isStopping = false;
-	return true;
+	Core::SetState(Core::CORE_PAUSE);
+	emit EmulationPaused();
 }
 
-void DMainWindow::OnReset()
+void MainWindow::Stop()
 {
-	// TODO: Movie needs to be reset here
-	ProcessorInterface::ResetButton_Tap();
-}
-
-void DMainWindow::OnGameListStyleChanged()
-{
-	if (m_ui->actionListView->isChecked())
-		m_game_tracker->SetViewStyle(STYLE_LIST);
-	else if (m_ui->actionTreeView->isChecked())
-		m_game_tracker->SetViewStyle(STYLE_TREE);
-	else if (m_ui->actionGridView->isChecked())
-		m_game_tracker->SetViewStyle(STYLE_GRID);
-	else if (m_ui->actionIconView->isChecked())
-		m_game_tracker->SetViewStyle(STYLE_ICON);
-}
-
-void DMainWindow::OnCoreStateChanged(Core::EState state)
-{
-	bool is_not_initialized = (state == Core::CORE_UNINITIALIZED);
-	bool is_running = (state == Core::CORE_RUN);
-	bool is_paused = (state == Core::CORE_PAUSE);
-
-	// Update the toolbar
-	m_ui->actionPlay->setEnabled(is_not_initialized || is_running || is_paused);
-	if (is_running)
+	bool stop = true;
+	if (SConfig::GetInstance().bConfirmStop)
 	{
-		m_ui->actionPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PAUSE));
-		m_ui->actionPlay->setText(tr("Pause"));
-		m_ui->actionPlay_mnu->setText(tr("Pause"));
+		// We can pause while this is happening.
+		QMessageBox::StandardButton confirm;
+		confirm = QMessageBox::question(this, tr("Confirm"), tr("Stop emulation?"));
+		stop = (confirm == QMessageBox::Yes);
 	}
-	else if (is_paused || is_not_initialized)
+	if (stop)
 	{
-		m_ui->actionPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLAY));
-		m_ui->actionPlay->setText(tr("Play"));
-		m_ui->actionPlay_mnu->setText(tr("Play"));
+		BootManager::Stop();
+		m_stack->setCurrentWidget(m_game_list);
+		emit EmulationStopped();
 	}
-
-	m_ui->actionStop->setEnabled(!is_not_initialized);
-	m_ui->actionOpen->setEnabled(is_not_initialized);
-	m_game_tracker->setEnabled(is_not_initialized);
 }
 
-// Update all the icons used in DMainWindow with fresh ones from
-// "Resources". Call this function after changing the icon theme.
-void DMainWindow::UpdateIcons()
+void MainWindow::StartGame(QString path)
 {
-	// Play/Pause is handled in OnCoreStateChanged().
-	m_ui->actionStop->setIcon(Resources::GetIcon(Resources::TOOLBAR_STOP));
+	Host::GetInstance()->SetRenderHandle((void*) m_render_widget->winId());
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		BootManager::Stop();
+	if (!BootManager::BootCore(path.toStdString()))
+	{
+		QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
+		return;
+	}
+	m_stack->setCurrentWidget(m_render_widget);
+	emit EmulationStarted();
 }

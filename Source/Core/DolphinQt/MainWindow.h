@@ -1,77 +1,53 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include <memory>
 #include <QMainWindow>
+#include <QStackedWidget>
+#include <QString>
+#include <QToolBar>
 
-#include "Core/Core.h"
+#include "DolphinQt/GameList/GameList.h"
 
-#include "DolphinQt/GameList/GameTracker.h"
-#include "DolphinQt/VideoInterface/RenderWidget.h"
-
-// Predefinitions
-namespace Ui
-{
-class DMainWindow;
-}
-
-class DMainWindow : public QMainWindow
+class MainWindow final : public QMainWindow
 {
 	Q_OBJECT
 
 public:
-	explicit DMainWindow(QWidget* parent_widget = nullptr);
-	~DMainWindow();
+	explicit MainWindow();
+	~MainWindow();
 
-	// DRenderWidget
-	bool RenderWidgetHasFocus() const { return m_render_widget->isActiveWindow(); }
-	DRenderWidget* GetRenderWidget() { return m_render_widget.get(); }
+	QWidget* GetRenderWidget() const { return m_render_widget; }
 
 signals:
-	void CoreStateChanged(Core::EState state);
-
-public slots:
-	// Main toolbar (also used by DRenderWidget)
-	bool OnStop();
+	void EmulationStarted();
+	void EmulationPaused();
+	void EmulationStopped();
 
 private slots:
-	// Emulation
-	void StartGame(const QString filename);
-	void OnCoreStateChanged(Core::EState state);
-
-	// Main toolbar
-	void OnBrowse();
-	void OnExit();
-	void OnPlay();
-	void OnReset();
-
-	// View menu
-	void OnGameListStyleChanged();
-
-	// Misc.
-	void UpdateIcons();
+	void Open();
+	void Browse();
+	void Play();
+	void Pause();
+	void Stop();
 
 private:
-	void closeEvent(QCloseEvent* ce);
-	std::unique_ptr<Ui::DMainWindow> m_ui;
-	DGameTracker* m_game_tracker;
+	void MakeMenus();
+	void MakeToolBar();
+	void MakeStack();
+	void MakeGameList();
+	void MakeRenderWidget();
 
-	// Misc.
-	void DisableScreensaver();
-	void EnableScreensaver();
-	// Emulation
-	QString RequestBootFilename();
-	QString ShowFileDialog();
-	QString ShowFolderDialog();
-	void DoStartPause();
-	bool Stop();
+	void PopulateToolBar();
 
-	std::unique_ptr<DRenderWidget> m_render_widget;
-	bool m_isStopping = false;
+	void StartGame(QString path);
+
+	QStackedWidget* m_stack;
+	QToolBar* m_tool_bar;
+	GameList* m_game_list;
+	QWidget* m_render_widget;
 };
 
-// Pointer to the only instance of DMainWindow, used by Host_*
-extern DMainWindow* g_main_window;
+extern MainWindow* g_main_window;
