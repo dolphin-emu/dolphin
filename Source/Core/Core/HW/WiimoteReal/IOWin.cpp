@@ -642,28 +642,25 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 
 		if (ERROR_IO_PENDING == read_err)
 		{
-			auto const wait_result = WaitForSingleObject(hid_overlap_read.hEvent, INFINITE);
-
-			// In case the event was signalled by IOWakeup before the read completed, cancel it.
-			CancelIo(dev_handle);
-
-			if (WAIT_FAILED == wait_result)
-			{
-				WARN_LOG(WIIMOTE, "A wait error occurred on reading from Wiimote %i.", index + 1);
-			}
-
-			if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, FALSE))
+			if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, TRUE))
 			{
 				auto const overlapped_err = GetLastError();
 
+				// In case it was aborted by someone else
 				if (ERROR_OPERATION_ABORTED == overlapped_err)
 				{
-					// It was.
 					return -1;
 				}
 
 				WARN_LOG(WIIMOTE, "GetOverlappedResult error %d on Wiimote %i.", overlapped_err, index + 1);
 				return 0;
+			}
+			// If IOWakeup sets the event so GetOverlappedResult returns prematurely, but the request is still pending
+			else if (hid_overlap_read.Internal == STATUS_PENDING)
+			{
+				// Don't forget to cancel it.
+				CancelIo(dev_handle);
+				return -1;
 			}
 		}
 		else
