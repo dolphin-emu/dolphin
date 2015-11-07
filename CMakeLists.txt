@@ -312,6 +312,12 @@ if(WIN32)
 	add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 endif(WIN32)
 
+# Add an option to build relocatable binaries on Linux
+# The Sys folder will need to be copied to the Binaries folder.
+if(UNIX)
+	add_definitions(-DLINUX_LOCAL_DEV=0)
+endif(UNIX)
+
 # Dolphin requires threads.
 # The Apple build may not need an explicit flag because one of the
 # frameworks may already provide it.
