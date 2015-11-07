@@ -35,8 +35,8 @@ bool FifoPlayer::Open(const std::string& filename)
 
 	if (m_File)
 	{
-		FifoPlaybackAnalyzer analyzer;
-		analyzer.AnalyzeFrames(m_File, m_FrameInfo);
+		FifoAnalyzer::Init();
+		FifoPlaybackAnalyzer::AnalyzeFrames(m_File, m_FrameInfo);
 
 		m_FrameRangeEnd = m_File->GetFrameCount();
 	}

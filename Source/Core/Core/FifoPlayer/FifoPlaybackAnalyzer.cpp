@@ -22,26 +22,37 @@ struct CmdData
 	u8* ptr;
 };
 
-FifoPlaybackAnalyzer::FifoPlaybackAnalyzer()
+struct MemoryRange
 {
-	FifoAnalyzer::Init();
-}
+	u32 begin;
+	u32 end;
+};
+
+static std::vector<MemoryRange> s_WrittenMemory;
+static BPMemory s_BpMem;
+static FifoAnalyzer::CPMemory s_CpMem;
+static bool s_DrawingObject;
+
+static void AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrameInfo& frameInfo);
+static u32 DecodeCommand(u8* data);
+static void StoreEfbCopyRegion();
+static void StoreWrittenRegion(u32 address, u32 size);
 
 void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frameInfo)
 {
 	// Load BP memory
 	u32* bpMem = file->GetBPMem();
-	memcpy(&m_BpMem, bpMem, sizeof(BPMemory));
+	memcpy(&s_BpMem, bpMem, sizeof(BPMemory));
 
 	u32* cpMem = file->GetCPMem();
-	FifoAnalyzer::LoadCPReg(0x50, cpMem[0x50], m_CpMem);
-	FifoAnalyzer::LoadCPReg(0x60, cpMem[0x60], m_CpMem);
+	FifoAnalyzer::LoadCPReg(0x50, cpMem[0x50], s_CpMem);
+	FifoAnalyzer::LoadCPReg(0x60, cpMem[0x60], s_CpMem);
 
 	for (int i = 0; i < 8; ++i)
 	{
-		FifoAnalyzer::LoadCPReg(0x70 + i, cpMem[0x70 + i], m_CpMem);
-		FifoAnalyzer::LoadCPReg(0x80 + i, cpMem[0x80 + i], m_CpMem);
-		FifoAnalyzer::LoadCPReg(0x90 + i, cpMem[0x90 + i], m_CpMem);
+		FifoAnalyzer::LoadCPReg(0x70 + i, cpMem[0x70 + i], s_CpMem);
+		FifoAnalyzer::LoadCPReg(0x80 + i, cpMem[0x80 + i], s_CpMem);
+		FifoAnalyzer::LoadCPReg(0x90 + i, cpMem[0x90 + i], s_CpMem);
 	}
 
 	frameInfo.clear();
@@ -52,7 +63,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file, std::vector<Analyze
 		const FifoFrameInfo& frame = file->GetFrame(frameIdx);
 		AnalyzedFrameInfo& analyzed = frameInfo[frameIdx];
 
-		m_DrawingObject = false;
+		s_DrawingObject = false;
 
 		u32 cmdStart = 0;
 		u32 nextMemUpdate = 0;
@@ -71,7 +82,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file, std::vector<Analyze
 				++nextMemUpdate;
 			}
 
-			bool wasDrawing = m_DrawingObject;
+			bool wasDrawing = s_DrawingObject;
 
 			u32 cmdSize = DecodeCommand(&frame.fifoData[cmdStart]);
 
@@ -93,9 +104,9 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file, std::vector<Analyze
 				return;
 			}
 
-			if (wasDrawing != m_DrawingObject)
+			if (wasDrawing != s_DrawingObject)
 			{
-				if (m_DrawingObject)
+				if (s_DrawingObject)
 					analyzed.objectStarts.push_back(cmdStart);
 				else
 					analyzed.objectEnds.push_back(cmdStart);
@@ -109,13 +120,13 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file, std::vector<Analyze
 	}
 }
 
-void FifoPlaybackAnalyzer::AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrameInfo& frameInfo)
+static void AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrameInfo& frameInfo)
 {
 	u32 begin = memUpdate.address;
 	u32 end = memUpdate.address + memUpdate.size;
 
 	// Remove portions of memUpdate that overlap with memory ranges that have been written by the GP
-	for (const auto& range : m_WrittenMemory)
+	for (const auto& range : s_WrittenMemory)
 	{
 		if (range.begin < end &&
 		    range.end > begin)
@@ -151,7 +162,7 @@ void FifoPlaybackAnalyzer::AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrame
 	frameInfo.memoryUpdates.push_back(memUpdate);
 }
 
-u32 FifoPlaybackAnalyzer::DecodeCommand(u8* data)
+static u32 DecodeCommand(u8* data)
 {
 	u8* dataStart = data;
 
@@ -166,17 +177,17 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8* data)
 
 	case GX_LOAD_CP_REG:
 		{
-			m_DrawingObject = false;
+			s_DrawingObject = false;
 
 			u32 cmd2 = ReadFifo8(data);
 			u32 value = ReadFifo32(data);
-			FifoAnalyzer::LoadCPReg(cmd2, value, m_CpMem);
+			FifoAnalyzer::LoadCPReg(cmd2, value, s_CpMem);
 		}
 		break;
 
 	case GX_LOAD_XF_REG:
 		{
-			m_DrawingObject = false;
+			s_DrawingObject = false;
 
 			u32 cmd2 = ReadFifo32(data);
 			u8 streamSize = ((cmd2 >> 16) & 15) + 1;
@@ -189,7 +200,7 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8* data)
 	case GX_LOAD_INDX_B:
 	case GX_LOAD_INDX_C:
 	case GX_LOAD_INDX_D:
-		m_DrawingObject = false;
+		s_DrawingObject = false;
 		data += 4;
 		break;
 
@@ -202,12 +213,12 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8* data)
 
 	case GX_LOAD_BP_REG:
 		{
-			m_DrawingObject = false;
+			s_DrawingObject = false;
 
 			u32 cmd2 = ReadFifo32(data);
-			BPCmd bp = FifoAnalyzer::DecodeBPCmd(cmd2, m_BpMem);
+			BPCmd bp = FifoAnalyzer::DecodeBPCmd(cmd2, s_BpMem);
 
-			FifoAnalyzer::LoadBPReg(bp, m_BpMem);
+			FifoAnalyzer::LoadBPReg(bp, s_BpMem);
 
 			if (bp.address == BPMEM_TRIGGER_EFB_COPY)
 			{
@@ -219,10 +230,10 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8* data)
 	default:
 		if (cmd & 0x80)
 		{
-			m_DrawingObject = true;
+			s_DrawingObject = true;
 
 			u32 vtxAttrGroup = cmd & GX_VAT_MASK;
-			int vertexSize = FifoAnalyzer::CalculateVertexSize(vtxAttrGroup, m_CpMem);
+			int vertexSize = FifoAnalyzer::CalculateVertexSize(vtxAttrGroup, s_CpMem);
 
 			u16 streamSize = ReadFifo16(data);
 
@@ -239,12 +250,12 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8* data)
 	return (u32)(data - dataStart);
 }
 
-void FifoPlaybackAnalyzer::StoreEfbCopyRegion()
+static void StoreEfbCopyRegion()
 {
-	UPE_Copy peCopy = m_BpMem.triggerEFBCopy;
+	UPE_Copy peCopy = s_BpMem.triggerEFBCopy;
 
 	u32 copyfmt = peCopy.tp_realFormat();
-	bool bFromZBuffer = m_BpMem.zcontrol.pixel_format == PEControl::Z24;
+	bool bFromZBuffer = s_BpMem.zcontrol.pixel_format == PEControl::Z24;
 	u32 address = bpmem.copyTexDest << 5;
 
 	u32 format = copyfmt;
@@ -272,8 +283,8 @@ void FifoPlaybackAnalyzer::StoreEfbCopyRegion()
 			format |= _GX_TF_CTF;
 	}
 
-	int width = (m_BpMem.copyTexSrcWH.x + 1) >> peCopy.half_scale;
-	int height = (m_BpMem.copyTexSrcWH.y + 1) >> peCopy.half_scale;
+	int width = (s_BpMem.copyTexSrcWH.x + 1) >> peCopy.half_scale;
+	int height = (s_BpMem.copyTexSrcWH.y + 1) >> peCopy.half_scale;
 
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;
@@ -286,13 +297,13 @@ void FifoPlaybackAnalyzer::StoreEfbCopyRegion()
 	StoreWrittenRegion(address, sizeInBytes);
 }
 
-void FifoPlaybackAnalyzer::StoreWrittenRegion(u32 address, u32 size)
+static void StoreWrittenRegion(u32 address, u32 size)
 {
 	u32 end = address + size;
-	auto newRangeIter = m_WrittenMemory.end();
+	auto newRangeIter = s_WrittenMemory.end();
 
 	// Search for overlapping memory regions and expand them to include the new region
-	for (auto iter = m_WrittenMemory.begin(); iter != m_WrittenMemory.end();)
+	for (auto iter = s_WrittenMemory.begin(); iter != s_WrittenMemory.end();)
 	{
 		MemoryRange &range = *iter;
 
@@ -300,7 +311,7 @@ void FifoPlaybackAnalyzer::StoreWrittenRegion(u32 address, u32 size)
 		{
 			// range at iterator and new range overlap
 
-			if (newRangeIter == m_WrittenMemory.end())
+			if (newRangeIter == s_WrittenMemory.end())
 			{
 				// Expand range to include the written region
 				range.begin = std::min(address, range.begin);
@@ -317,7 +328,7 @@ void FifoPlaybackAnalyzer::StoreWrittenRegion(u32 address, u32 size)
 				used.end = std::max(used.end, range.end);
 
 				// Remove this entry
-				iter = m_WrittenMemory.erase(iter);
+				iter = s_WrittenMemory.erase(iter);
 			}
 		}
 		else
@@ -326,12 +337,12 @@ void FifoPlaybackAnalyzer::StoreWrittenRegion(u32 address, u32 size)
 		}
 	}
 
-	if (newRangeIter == m_WrittenMemory.end())
+	if (newRangeIter == s_WrittenMemory.end())
 	{
 		MemoryRange range;
 		range.begin = address;
 		range.end = end;
 
-		m_WrittenMemory.push_back(range);
+		s_WrittenMemory.push_back(range);
 	}
 }
