@@ -18,4 +18,7 @@ namespace FifoRecordAnalyzer
 	// Assumes data contains all information for the command
 	// Calls FifoRecorder::UseMemory
 	void AnalyzeGPCommand(u8* data);
+
+	void ProcessLoadIndexedXf(u32 val, int array);
+	void WriteVertexArray(int arrayIndex, u8* vertexData, int vertexSize, int numVertices);
 };

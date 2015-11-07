@@ -20,4 +20,6 @@ struct AnalyzedFrameInfo
 namespace FifoPlaybackAnalyzer
 {
 	void AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frameInfo);
+
+	void StoreEfbCopyRegion();
 };

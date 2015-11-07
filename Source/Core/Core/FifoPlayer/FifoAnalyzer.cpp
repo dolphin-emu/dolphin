@@ -8,6 +8,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
+#include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
+#include "Core/FifoPlayer/FifoRecordAnalyzer.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexLoader_Position.h"
@@ -15,6 +18,10 @@
 
 namespace FifoAnalyzer
 {
+
+bool s_DrawingObject;
+BPMemory s_BpMem;
+FifoAnalyzer::CPMemory s_CpMem;
 
 void Init()
 {
@@ -40,6 +47,123 @@ u32 ReadFifo32(u8*& data)
 	u32 value = Common::swap32(data);
 	data += 4;
 	return value;
+}
+
+u32 AnalyzeCommand(u8* data, DecodeMode mode)
+{
+	u8* dataStart = data;
+
+	int cmd = ReadFifo8(data);
+
+	switch (cmd)
+	{
+	case GX_NOP:
+	case 0x44:
+	case GX_CMD_INVL_VC:
+		break;
+
+	case GX_LOAD_CP_REG:
+	{
+		s_DrawingObject = false;
+
+		u32 cmd2 = ReadFifo8(data);
+		u32 value = ReadFifo32(data);
+		LoadCPReg(cmd2, value, s_CpMem);
+		break;
+	}
+
+	case GX_LOAD_XF_REG:
+	{
+		s_DrawingObject = false;
+
+		u32 cmd2 = ReadFifo32(data);
+		u8 streamSize = ((cmd2 >> 16) & 15) + 1;
+
+		data += streamSize * 4;
+		break;
+	}
+
+	case GX_LOAD_INDX_A:
+	case GX_LOAD_INDX_B:
+	case GX_LOAD_INDX_C:
+	case GX_LOAD_INDX_D:
+	{
+		s_DrawingObject = false;
+
+		int array = 0xc + (cmd - GX_LOAD_INDX_A) / 8;
+		u32 value = ReadFifo32(data);
+
+		if (mode == DECODE_RECORD)
+			FifoRecordAnalyzer::ProcessLoadIndexedXf(value, array);
+		break;
+	}
+
+	case GX_CMD_CALL_DL:
+		// The recorder should have expanded display lists into the fifo stream and skipped the call to start them
+		// That is done to make it easier to track where memory is updated
+		_assert_(false);
+		data += 8;
+		break;
+
+	case GX_LOAD_BP_REG:
+	{
+		s_DrawingObject = false;
+		u32 cmd2 = ReadFifo32(data);
+
+		if (mode == DECODE_PLAYBACK)
+		{
+			BPCmd bp = DecodeBPCmd(cmd2, s_BpMem);
+
+			LoadBPReg(bp, s_BpMem);
+
+			if (bp.address == BPMEM_TRIGGER_EFB_COPY)
+			{
+				FifoPlaybackAnalyzer::StoreEfbCopyRegion();
+			}
+		}
+		break;
+	}
+
+	default:
+		if (cmd & 0x80)
+		{
+			s_DrawingObject = true;
+
+			int sizes[21];
+			FifoAnalyzer::CalculateVertexElementSizes(sizes, cmd & GX_VAT_MASK, s_CpMem);
+
+			// Determine offset of each element that might be a vertex array
+			// The first 9 elements are never vertex arrays so we just accumulate their sizes.
+			int offsets[12];
+			int offset = std::accumulate(&sizes[0], &sizes[9], 0u);
+			for (int i = 0; i < 12; ++i)
+			{
+				offsets[i] = offset;
+				offset += sizes[i + 9];
+			}
+
+			int vertexSize = offset;
+			int numVertices = ReadFifo16(data);
+
+			if (mode == DECODE_RECORD && numVertices > 0)
+			{
+				for (int i = 0; i < 12; ++i)
+				{
+					FifoRecordAnalyzer::WriteVertexArray(i, data + offsets[i], vertexSize, numVertices);
+				}
+			}
+
+			data += numVertices * vertexSize;
+		}
+		else
+		{
+			PanicAlert("FifoPlayer: Unknown Opcode (0x%x).\n", cmd);
+			return 0;
+		}
+		break;
+	}
+
+	return (u32)(data - dataStart);
 }
 
 void InitBPMemory(BPMemory* bpMem)
@@ -107,14 +231,6 @@ void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)
 		cpMem.arrayStrides[subCmd & 0xF] = value & 0xFF;
 		break;
 	}
-}
-
-u32 CalculateVertexSize(int vatIndex, const CPMemory& cpMem)
-{
-	int sizes[21];
-	CalculateVertexElementSizes(sizes, vatIndex, cpMem);
-
-	return std::accumulate(std::begin(sizes), std::end(sizes), 0U);
 }
 
 void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory& cpMem)

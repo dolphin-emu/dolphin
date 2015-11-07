@@ -29,13 +29,8 @@ struct MemoryRange
 };
 
 static std::vector<MemoryRange> s_WrittenMemory;
-static BPMemory s_BpMem;
-static FifoAnalyzer::CPMemory s_CpMem;
-static bool s_DrawingObject;
 
 static void AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrameInfo& frameInfo);
-static u32 DecodeCommand(u8* data);
-static void StoreEfbCopyRegion();
 static void StoreWrittenRegion(u32 address, u32 size);
 
 void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frameInfo)
@@ -84,7 +79,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file, std::vector<Analyze
 
 			bool wasDrawing = s_DrawingObject;
 
-			u32 cmdSize = DecodeCommand(&frame.fifoData[cmdStart]);
+			u32 cmdSize = FifoAnalyzer::AnalyzeCommand(&frame.fifoData[cmdStart], DECODE_PLAYBACK);
 
 #if LOG_FIFO_CMDS
 			CmdData cmdData;
@@ -162,95 +157,7 @@ static void AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrameInfo& frameInfo
 	frameInfo.memoryUpdates.push_back(memUpdate);
 }
 
-static u32 DecodeCommand(u8* data)
-{
-	u8* dataStart = data;
-
-	int cmd = ReadFifo8(data);
-
-	switch (cmd)
-	{
-	case GX_NOP:
-	case 0x44:
-	case GX_CMD_INVL_VC:
-		break;
-
-	case GX_LOAD_CP_REG:
-		{
-			s_DrawingObject = false;
-
-			u32 cmd2 = ReadFifo8(data);
-			u32 value = ReadFifo32(data);
-			FifoAnalyzer::LoadCPReg(cmd2, value, s_CpMem);
-		}
-		break;
-
-	case GX_LOAD_XF_REG:
-		{
-			s_DrawingObject = false;
-
-			u32 cmd2 = ReadFifo32(data);
-			u8 streamSize = ((cmd2 >> 16) & 15) + 1;
-
-			data += streamSize * 4;
-		}
-		break;
-
-	case GX_LOAD_INDX_A:
-	case GX_LOAD_INDX_B:
-	case GX_LOAD_INDX_C:
-	case GX_LOAD_INDX_D:
-		s_DrawingObject = false;
-		data += 4;
-		break;
-
-	case GX_CMD_CALL_DL:
-		// The recorder should have expanded display lists into the fifo stream and skipped the call to start them
-		// That is done to make it easier to track where memory is updated
-		_assert_(false);
-		data += 8;
-		break;
-
-	case GX_LOAD_BP_REG:
-		{
-			s_DrawingObject = false;
-
-			u32 cmd2 = ReadFifo32(data);
-			BPCmd bp = FifoAnalyzer::DecodeBPCmd(cmd2, s_BpMem);
-
-			FifoAnalyzer::LoadBPReg(bp, s_BpMem);
-
-			if (bp.address == BPMEM_TRIGGER_EFB_COPY)
-			{
-				StoreEfbCopyRegion();
-			}
-		}
-		break;
-
-	default:
-		if (cmd & 0x80)
-		{
-			s_DrawingObject = true;
-
-			u32 vtxAttrGroup = cmd & GX_VAT_MASK;
-			int vertexSize = FifoAnalyzer::CalculateVertexSize(vtxAttrGroup, s_CpMem);
-
-			u16 streamSize = ReadFifo16(data);
-
-			data += streamSize * vertexSize;
-		}
-		else
-		{
-			PanicAlert("FifoPlayer: Unknown Opcode (0x%x).\nAborting frame analysis.\n", cmd);
-			return 0;
-		}
-		break;
-	}
-
-	return (u32)(data - dataStart);
-}
-
-static void StoreEfbCopyRegion()
+void FifoPlaybackAnalyzer::StoreEfbCopyRegion()
 {
 	UPE_Copy peCopy = s_BpMem.triggerEFBCopy;
 

@@ -15,11 +15,6 @@
 
 using namespace FifoAnalyzer;
 
-static bool s_DrawingObject;
-FifoAnalyzer::CPMemory s_CpMem;
-
-static void DecodeOpcode(u8* data);
-static void ProcessLoadIndexedXf(u32 val, int array);
 static void ProcessVertexArrays(u8* data, u8 vtxAttrGroup);
 static void WriteVertexArray(int arrayIndex, u8* vertexData, int vertexSize, int numVertices);
 
@@ -38,83 +33,10 @@ void FifoRecordAnalyzer::Initialize(u32* cpMem)
 
 void FifoRecordAnalyzer::AnalyzeGPCommand(u8* data)
 {
-	DecodeOpcode(data);
+	FifoAnalyzer::AnalyzeCommand(data, DECODE_RECORD);
 }
 
-static void DecodeOpcode(u8* data)
-{
-	int cmd = ReadFifo8(data);
-
-	switch (cmd)
-	{
-	case GX_NOP:
-	case 0x44:
-	case GX_CMD_INVL_VC:
-		break;
-
-	case GX_LOAD_CP_REG:
-		{
-			s_DrawingObject = false;
-
-			u32 cmd2 = ReadFifo8(data);
-			u32 value = ReadFifo32(data);
-			FifoAnalyzer::LoadCPReg(cmd2, value, s_CpMem);
-		}
-
-		break;
-
-	case GX_LOAD_XF_REG:
-		s_DrawingObject = false;
-		break;
-
-	case GX_LOAD_INDX_A:
-		s_DrawingObject = false;
-		ProcessLoadIndexedXf(ReadFifo32(data), 0xc);
-		break;
-	case GX_LOAD_INDX_B:
-		s_DrawingObject = false;
-		ProcessLoadIndexedXf(ReadFifo32(data), 0xd);
-		break;
-	case GX_LOAD_INDX_C:
-		s_DrawingObject = false;
-		ProcessLoadIndexedXf(ReadFifo32(data), 0xe);
-		break;
-	case GX_LOAD_INDX_D:
-		s_DrawingObject = false;
-		ProcessLoadIndexedXf(ReadFifo32(data), 0xf);
-		break;
-
-	case GX_CMD_CALL_DL:
-		{
-			// The recorder should have expanded display lists into the fifo stream and skipped the call to start them
-			// That is done to make it easier to track where memory is updated
-			_assert_(false);
-		}
-		break;
-
-	case GX_LOAD_BP_REG:
-		s_DrawingObject = false;
-		ReadFifo32(data);
-		break;
-
-	default:
-		if (cmd & 0x80)
-		{
-			if (!s_DrawingObject)
-			{
-				s_DrawingObject = true;
-			}
-
-			ProcessVertexArrays(data, cmd & GX_VAT_MASK);
-		}
-		else
-		{
-			PanicAlert("FifoRecordAnalyzer: Unknown Opcode (0x%x).\n", cmd);
-		}
-	}
-}
-
-static void ProcessLoadIndexedXf(u32 val, int array)
+void FifoRecordAnalyzer::ProcessLoadIndexedXf(u32 val, int array)
 {
 	int index = val >> 16;
 	int size = ((val >> 12) & 0xF) + 1;
@@ -124,33 +46,7 @@ static void ProcessLoadIndexedXf(u32 val, int array)
 	FifoRecorder::GetInstance().UseMemory(address, size * 4, MemoryUpdate::XF_DATA);
 }
 
-static void ProcessVertexArrays(u8* data, u8 vtxAttrGroup)
-{
-	int sizes[21];
-	FifoAnalyzer::CalculateVertexElementSizes(sizes, vtxAttrGroup, s_CpMem);
-
-	// Determine offset of each element from start of vertex data
-	int offsets[12];
-	int offset = 0;
-	for (int i = 0; i < 12; ++i)
-	{
-		offsets[i] = offset;
-		offset += sizes[i + 9];
-	}
-
-	int vertexSize = offset;
-	int numVertices = ReadFifo16(data);
-
-	if (numVertices > 0)
-	{
-		for (int i = 0; i < 12; ++i)
-		{
-			WriteVertexArray(i, data + offsets[i], vertexSize, numVertices);
-		}
-	}
-}
-
-static void WriteVertexArray(int arrayIndex, u8* vertexData, int vertexSize, int numVertices)
+void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, u8* vertexData, int vertexSize, int numVertices)
 {
 	// Skip if not indexed array
 	int arrayType = (s_CpMem.vtxDesc.Hex >> (9 + (arrayIndex * 2))) & 3;
