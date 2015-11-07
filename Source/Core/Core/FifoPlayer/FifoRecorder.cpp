@@ -68,7 +68,7 @@ void FifoRecorder::WriteGPCommand(u8* data, u32 size)
 {
 	if (!m_SkipNextData)
 	{
-		m_RecordAnalyzer.AnalyzeGPCommand(data);
+		FifoRecordAnalyzer::AnalyzeGPCommand(data);
 
 		// Copy data to buffer
 		size_t currentSize = m_FifoData.size();
@@ -200,7 +200,7 @@ void FifoRecorder::SetVideoMemory(u32 *bpMem, u32 *cpMem, u32 *xfMem, u32 *xfReg
 		memcpy(m_File->GetXFRegs(), xfRegs, xfRegsCopySize * 4);
 	}
 
-	m_RecordAnalyzer.Initialize(bpMem, cpMem);
+	FifoRecordAnalyzer::Initialize(cpMem);
 
 	sMutex.unlock();
 }

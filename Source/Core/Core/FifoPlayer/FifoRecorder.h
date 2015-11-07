@@ -65,5 +65,4 @@ private:
 	std::vector<u8> m_FifoData;
 	std::vector<u8> m_Ram;
 	std::vector<u8> m_ExRam;
-	FifoRecordAnalyzer m_RecordAnalyzer;
 };
