@@ -21,7 +21,6 @@ namespace FifoAnalyzer
 	void InitBPMemory(BPMemory* bpMem);
 	BPCmd DecodeBPCmd(u32 value, const BPMemory &bpMem);
 	void LoadBPReg(const BPCmd& bp, BPMemory &bpMem);
-	void GetTlutLoadData(u32& tlutAddr, u32 &memAddr, u32 &tlutXferCount, BPMemory &bpMem);
 
 	struct CPMemory
 	{
