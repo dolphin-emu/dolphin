@@ -65,7 +65,14 @@ void FifoRecordAnalyzer::DecodeOpcode(u8* data)
 		break;
 
 	case GX_LOAD_XF_REG:
-		m_DrawingObject = false;
+		{
+			m_DrawingObject = false;
+
+			u32 cmd2 = ReadFifo32(data);
+			u8 streamSize = ((cmd2 >> 16) & 15) + 1;
+
+			data += streamSize * 4;
+		}
 		break;
 
 	case GX_LOAD_INDX_A:
