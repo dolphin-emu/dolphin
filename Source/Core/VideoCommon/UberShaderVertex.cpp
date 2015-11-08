@@ -37,25 +37,17 @@ ShaderCode GenVertexShader(API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 	{
 		out.Write("in float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
-		if (components & VB_HAS_POSMTXIDX)
-			out.Write("in int posmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
-		if (components & VB_HAS_NRM0)
-			out.Write("in float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
-		if (components & VB_HAS_NRM1)
-			out.Write("in float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
-		if (components & VB_HAS_NRM2)
-			out.Write("in float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
+		out.Write("in int posmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		out.Write("in float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
+		out.Write("in float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
+		out.Write("in float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
 
-		if (components & VB_HAS_COL0)
-			out.Write("in float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
-		if (components & VB_HAS_COL1)
-			out.Write("in float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
+		out.Write("in float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
+		out.Write("in float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
 
 		for (int i = 0; i < 8; ++i)
 		{
-			u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0 << i));
-			if ((components & (VB_HAS_UV0 << i)) || hastexmtx)
-				out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
+			out.Write("in float3 tex%d; // ATTR%d,\n", i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
 		// TODO: No Geometery shader fallback.
@@ -159,6 +151,12 @@ ShaderCode GenVertexShader(API_TYPE ApiType)
 
 	// TODO: Texture Coordinates
 
+	// Zero tex coords (if you don't assign to them, you get random data in opengl.)
+	for (u32 i = 0; i < numTexgen; i++)
+	{
+		out.Write(
+			"	o.tex[%i] = float3(0.0, 0.0, 1.0);\n", i);
+	}
 	// clipPos/w needs to be done in pixel shader, not here
 	out.Write("	o.clipPos = o.pos;\n");
 

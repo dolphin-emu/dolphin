@@ -20,6 +20,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/UberShaderPixel.h"
+#include "VideoCommon/UberShaderVertex.h"
 #include "VideoCommon/VertexShaderManager.h"
 
 namespace OGL
@@ -213,7 +214,8 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
 	last_entry = &newentry;
 	newentry.in_cache = 0;
 
-	ShaderCode vcode = GenerateVertexShaderCode(API_OPENGL, uid.vuid.GetUidData());
+	//ShaderCode vcode = GenerateVertexShaderCode(API_OPENGL, uid.vuid.GetUidData());
+	ShaderCode vcode = UberShader::GenVertexShader(API_OPENGL);
 	ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, uid.puid.GetUidData());
 	//ShaderCode pcode = UberShader::GenPixelShader(dstAlphaMode, API_OPENGL, false, g_ActiveConfig.iMultisamples > 1, g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA);
 	ShaderCode gcode;
