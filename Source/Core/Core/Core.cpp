@@ -45,6 +45,9 @@
 #include "Core/HW/HW.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
+#if defined(__LIBUSB__) || defined(_WIN32)
+#include "Core/HW/SI_GCAdapter.h"
+#endif
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
@@ -274,6 +277,9 @@ void Stop()  // - Hammertime!
 
 		g_video_backend->Video_ExitLoop();
 	}
+#if defined(__LIBUSB__) || defined(_WIN32)
+	SI_GCAdapter::ResetRumble();
+#endif
 }
 
 void DeclareAsCPUThread()
@@ -608,6 +614,9 @@ void SetState(EState _State)
 	case CORE_PAUSE:
 		CPU::EnableStepping(true);  // Break
 		Wiimote::Pause();
+#if defined(__LIBUSB__) || defined(_WIN32)
+		SI_GCAdapter::ResetRumble();
+#endif
 		break;
 	case CORE_RUN:
 		CPU::EnableStepping(false);
@@ -716,6 +725,9 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	// video has to come after CPU, because CPU thread can wait for video thread (s_efbAccessRequested).
 	g_video_backend->PauseAndLock(doLock, unpauseOnUnlock);
 
+#if defined(__LIBUSB__) || defined(_WIN32)
+	SI_GCAdapter::ResetRumble();
+#endif
 	return wasUnpaused;
 }
 

@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <libusb.h>
 #include <mutex>
 
@@ -295,6 +296,7 @@ static void AddGCAdapter(libusb_device* device)
 	s_detected = true;
 	if (s_detect_callback != nullptr)
 		s_detect_callback();
+	ResetRumble();
 }
 
 void Shutdown()
@@ -396,6 +398,23 @@ void Input(int chan, GCPadStatus* pad)
 			pad->triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
 		}
 	}
+}
+
+void ResetRumble()
+{
+	if (!SConfig::GetInstance().m_GameCubeAdapter)
+		return;
+	if (s_handle == nullptr || !s_detected)
+		return;
+
+	std::fill(std::begin(s_controller_rumble), std::end(s_controller_rumble), 0);
+
+	unsigned char rumble[5] = {0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2], s_controller_rumble[3]};
+
+	int size = 0;
+	libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
+
+	DEBUG_LOG(SERIALINTERFACE, "Rumble state reset");
 }
 
 void Output(int chan, u8 rumble_command)
