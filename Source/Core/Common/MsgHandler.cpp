@@ -35,7 +35,7 @@ void RegisterStringTranslator(StringTranslator translator)
 // enable/disable the alert handler
 void SetEnableAlert(bool enable)
 {
-	AlertEnabled = enable;
+	//AlertEnabled = enable;
 }
 
 // This is the first stop for gui alerts where the log is updated and the
