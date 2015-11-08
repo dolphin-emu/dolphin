@@ -68,7 +68,9 @@ void FifoRecorder::WriteGPCommand(u8* data, u32 size)
 {
 	if (!m_SkipNextData)
 	{
-		FifoRecordAnalyzer::AnalyzeGPCommand(data);
+		// Assumes data contains all information for the command
+		// Calls FifoRecorder::UseMemory
+		FifoAnalyzer::AnalyzeCommand(data, FifoAnalyzer::DECODE_RECORD);
 
 		// Copy data to buffer
 		size_t currentSize = m_FifoData.size();

@@ -31,11 +31,6 @@ void FifoRecordAnalyzer::Initialize(u32* cpMem)
 	memcpy(s_CpMem.arrayStrides, cpMem + 0xB0, 16 * 4);
 }
 
-void FifoRecordAnalyzer::AnalyzeGPCommand(u8* data)
-{
-	FifoAnalyzer::AnalyzeCommand(data, DECODE_RECORD);
-}
-
 void FifoRecordAnalyzer::ProcessLoadIndexedXf(u32 val, int array)
 {
 	int index = val >> 16;
