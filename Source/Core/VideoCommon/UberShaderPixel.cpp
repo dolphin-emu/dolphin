@@ -13,6 +13,16 @@ std::string BitfieldExtract(const std::string& source, T type)
 	return StringFromFormat("bitfieldExtract(%s, %u, %u)", source.c_str(), type.offset, type.size);
 }
 
+PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
+{
+	PixelShaderUid out;
+	pixel_ubershader_uid_data* uid = out.GetUidData<pixel_ubershader_uid_data>();
+	uid->numTexgens = xfmem.numTexGen.numTexGens;
+	uid->dualSourceBlending = dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND;
+
+	return out;
+}
+
 ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per_pixel_depth, bool msaa, bool ssaa)
 {
 	ShaderCode out;

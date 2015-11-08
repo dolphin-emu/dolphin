@@ -397,7 +397,8 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
 
 void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type)
 {
-	uid->puid = GetPixelShaderUid(dstAlphaMode);
+	//uid->puid = GetPixelShaderUid(dstAlphaMode);
+	uid->puid = UberShader::GetPixelShaderUid(dstAlphaMode);
 	uid->vuid = GetVertexShaderUid();
 	uid->guid = GetGeometryShaderUid(primitive_type);
 }
