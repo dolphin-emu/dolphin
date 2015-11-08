@@ -20,7 +20,6 @@ namespace FifoAnalyzer
 {
 
 bool s_DrawingObject;
-BPMemory s_BpMem;
 FifoAnalyzer::CPMemory s_CpMem;
 
 void Init()
@@ -109,18 +108,6 @@ u32 AnalyzeCommand(u8* data, DecodeMode mode)
 	{
 		s_DrawingObject = false;
 		u32 cmd2 = ReadFifo32(data);
-
-		if (mode == DECODE_PLAYBACK)
-		{
-			BPCmd bp = DecodeBPCmd(cmd2, s_BpMem);
-
-			LoadBPReg(bp, s_BpMem);
-
-			if (bp.address == BPMEM_TRIGGER_EFB_COPY)
-			{
-				FifoPlaybackAnalyzer::StoreEfbCopyRegion();
-			}
-		}
 		break;
 	}
 
@@ -170,28 +157,6 @@ void InitBPMemory(BPMemory* bpMem)
 {
 	memset(bpMem, 0, sizeof(BPMemory));
 	bpMem->bpMask = 0x00FFFFFF;
-}
-
-BPCmd DecodeBPCmd(u32 value, const BPMemory& bpMem)
-{
-	//handle the mask register
-	int opcode = value >> 24;
-	int oldval = ((u32*)&bpMem)[opcode];
-	int newval = (oldval & ~bpMem.bpMask) | (value & bpMem.bpMask);
-	int changes = (oldval ^ newval) & 0xFFFFFF;
-
-	BPCmd bp = {opcode, changes, newval};
-
-	return bp;
-}
-
-void LoadBPReg(const BPCmd& bp, BPMemory& bpMem)
-{
-	((u32*)&bpMem)[bp.address] = bp.newvalue;
-
-	//reset the mask register
-	if (bp.address != 0xFE)
-		bpMem.bpMask = 0xFFFFFF;
 }
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)

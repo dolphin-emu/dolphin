@@ -25,11 +25,6 @@ namespace FifoAnalyzer
 
 	u32 AnalyzeCommand(u8* data, DecodeMode mode);
 
-	// TODO- move to video common
-	void InitBPMemory(BPMemory* bpMem);
-	BPCmd DecodeBPCmd(u32 value, const BPMemory &bpMem);
-	void LoadBPReg(const BPCmd& bp, BPMemory &bpMem);
-
 	struct CPMemory
 	{
 		TVtxDesc vtxDesc;
@@ -43,6 +38,5 @@ namespace FifoAnalyzer
 	void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory& cpMem);
 
 	extern bool s_DrawingObject;
-	extern BPMemory s_BpMem;
 	extern FifoAnalyzer::CPMemory s_CpMem;
 }
