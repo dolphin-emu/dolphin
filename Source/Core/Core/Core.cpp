@@ -63,12 +63,16 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+//---------------------------------------------------
 // This can mostly be removed when we move to VS2015
 // to use the thread_local keyword
+//---------------------------------------------------
 #ifdef _MSC_VER
 #define ThreadLocalStorage __declspec(thread)
 #elif defined __ANDROID__ || defined __APPLE__
+//--------------------------------------------------------
 // This will most likely have to stay, to support android
+//--------------------------------------------------------
 #include <pthread.h>
 #else // Everything besides VS and Android
 #define ThreadLocalStorage __thread
@@ -82,7 +86,9 @@ bool g_aspect_wide;
 
 bool g_want_determinism;
 
+//------------------------------
 // Declarations and definitions
+//------------------------------
 static Common::Timer s_timer;
 static std::atomic<u32> s_drawn_frame;
 static std::atomic<u32> s_drawn_video;
@@ -90,7 +96,9 @@ static std::atomic<u32> s_drawn_video;
 // Function forwarding
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
+//-----------------------
 // Function declarations
+//-----------------------
 void EmuThread();
 
 static bool s_is_stopping = false;
@@ -136,8 +144,9 @@ void FrameUpdateOnCPUThread()
 		NetPlayClient::SendTimeBase();
 }
 
+//------------------------------------
 // Display messages and return values
-
+//------------------------------------
 // Formatted stop message
 std::string StopMessage(bool main_thread, const std::string& message)
 {
@@ -201,8 +210,10 @@ bool IsGPUThread()
 	}
 }
 
-// This is called from the GUI thread. See the booting call schedule in
-// BootManager.cpp
+//--------------------------------------------------
+// This is called from the GUI thread.
+// See the booting call schedule in BootManager.cpp
+//--------------------------------------------------
 bool Init()
 {
 	const SConfig& _CoreParameter = SConfig::GetInstance();
@@ -244,8 +255,10 @@ bool Init()
 	return true;
 }
 
+//------------------------
 // Called from GUI thread
-void Stop()  // - Hammertime!
+//------------------------
+void Stop() // - Hammertime!
 {
 	if (GetState() == CORE_STOPPING)
 		return;
@@ -300,7 +313,10 @@ static void UndeclareAsCPUThread()
 #endif
 }
 
-// Create the CPU thread, which is a CPU + Video thread in Single Core mode.
+//----------------------------------------------------
+// Create the CPU thread,
+// which is a CPU + Video thread in Single Core mode.
+//----------------------------------------------------
 static void CpuThread()
 {
 	DeclareAsCPUThread();
@@ -390,9 +406,12 @@ static void FifoPlayerThread()
 	return;
 }
 
+//------------------------------------------
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
-// See the BootManager.cpp file description for a complete call schedule.
+// See the BootManager.cpp file description
+// for a complete call schedule.
+//------------------------------------------
 void EmuThread()
 {
 	const SConfig& core_parameter = SConfig::GetInstance();
@@ -599,8 +618,9 @@ void EmuThread()
 		s_on_stopped_callback();
 }
 
+//------------------------------
 // Set or get the running state
-
+//------------------------------
 void SetState(EState _State)
 {
 	switch (_State)
@@ -718,8 +738,10 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	return wasUnpaused;
 }
 
+//----------------------------------------
 // Apply Frame Limit and Display FPS info
 // This should only be called from VI
+//----------------------------------------
 void VideoThrottle()
 {
 	// Update info per second
@@ -737,9 +759,11 @@ void VideoThrottle()
 	s_drawn_video++;
 }
 
+//---------------------------------------------
 // Executed from GPU thread
 // reports if a frame should be skipped or not
 // depending on the framelimit set
+//---------------------------------------------
 bool ShouldSkipFrame(int skipped)
 {
 	const u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1)
@@ -751,7 +775,9 @@ bool ShouldSkipFrame(int skipped)
 	return fps_slow;
 }
 
+//-----------------------------------------
 // --- Callbacks for backends / engine ---
+//-----------------------------------------
 
 // Should be called from GPU thread when a frame is drawn
 void Callback_VideoCopiedToXFB(bool video_update)
