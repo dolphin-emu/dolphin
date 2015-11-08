@@ -40,6 +40,8 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 
 	delete m_File;
 
+	FifoAnalyzer::Init();
+
 	m_File = new FifoDataFile;
 	std::fill(m_Ram.begin(), m_Ram.end(), 0);
 	std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
