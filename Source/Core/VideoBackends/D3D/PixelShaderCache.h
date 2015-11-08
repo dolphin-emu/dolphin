@@ -8,6 +8,7 @@
 #include <map>
 
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/UberShaderPixel.h"
 
 enum DSTALPHA_MODE;
 
@@ -23,7 +24,7 @@ public:
   static void Clear();
   static void Shutdown();
   static bool SetShader(DSTALPHA_MODE dstAlphaMode);  // TODO: Should be renamed to LoadShader
-  static bool InsertByteCode(const PixelShaderUid& uid, const void* bytecode,
+  static bool InsertByteCode(const UberShader::PixelShaderUid& uid, const void* bytecode,
                              unsigned int bytecodelen);
 
   static ID3D11PixelShader* GetActiveShader() { return last_entry->shader; }
@@ -49,11 +50,11 @@ private:
     void Destroy() { SAFE_RELEASE(shader); }
   };
 
-  typedef std::map<PixelShaderUid, PSCacheEntry> PSCache;
+  typedef std::map<UberShader::PixelShaderUid, PSCacheEntry> PSCache;
 
   static PSCache PixelShaders;
   static const PSCacheEntry* last_entry;
-  static PixelShaderUid last_uid;
+  static UberShader::PixelShaderUid last_uid;
 };
 
 }  // namespace DX11
