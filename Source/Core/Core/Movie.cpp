@@ -315,7 +315,7 @@ void SetReadOnly(bool bEnabled)
 void FrameSkipping()
 {
   // Frameskipping will desync movie playback
-  if (!IsMovieActive() || NetPlay::IsNetPlayRunning())
+  if (!Core::g_want_determinism)
   {
     std::lock_guard<std::mutex> lk(cs_frameSkip);
 
