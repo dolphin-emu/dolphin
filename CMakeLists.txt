@@ -315,7 +315,10 @@ endif(WIN32)
 # Add an option to build relocatable binaries on Linux
 # The Sys folder will need to be copied to the Binaries folder.
 if(UNIX)
-	add_definitions(-DLINUX_LOCAL_DEV=0)
+	option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
+	if(LINUX_LOCAL_DEV)
+		add_definitions('-DLINUX_LOCAL_DEV')
+	endif(LINUX_LOCAL_DEV)
 endif(UNIX)
 
 # Dolphin requires threads.
