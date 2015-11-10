@@ -1018,6 +1018,11 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 					unhandled_events &= ~map[1];
 				}
 
+				// IOS does not complain about POLLHUP being passed in;
+				// even though it shouldn't be, according to Parlane.
+				// Winsock errors out, so we need to mask it out.
+				ufds[i].events &= ~POLLHUP;
+
 				DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_POLL(%d) "
 					"Sock: %08x, Unknown: %08x, Events: %08x, "
 					"NativeEvents: %08x",
