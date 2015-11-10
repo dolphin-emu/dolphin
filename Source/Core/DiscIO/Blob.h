@@ -72,7 +72,6 @@ private:
 	int m_blocksize;
 	u8* m_cache[CACHE_SIZE];
 	u64 m_cache_tags[CACHE_SIZE];
-	int m_cache_age[CACHE_SIZE];
 };
 
 // Factory function - examines the path to choose the right type of IBlobReader, and returns one.
