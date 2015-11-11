@@ -728,12 +728,12 @@ std::string GetBundleDirectory()
 }
 #endif
 
-#ifdef _WIN32
 std::string& GetExeDirectory()
 {
 	static std::string DolphinPath;
 	if (DolphinPath.empty())
 	{
+#ifdef _WIN32
 		TCHAR Dolphin_exe_Path[2048];
 		TCHAR Dolphin_exe_Clean_Path[MAX_PATH];
 		GetModuleFileName(nullptr, Dolphin_exe_Path, 2048);
@@ -742,10 +742,20 @@ std::string& GetExeDirectory()
 		else
 			DolphinPath = TStrToUTF8(Dolphin_exe_Path);
 		DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
+#else
+		char Dolphin_exe_Path[PATH_MAX];
+		ssize_t len = ::readlink("/proc/self/exe", Dolphin_exe_Path, sizeof(Dolphin_exe_Path));
+		if (len == -1 || len == sizeof(Dolphin_exe_Path))
+		{
+			len = 0;
+		}
+		Dolphin_exe_Path[len] = '\0';
+		DolphinPath = Dolphin_exe_Path;
+		DolphinPath = DolphinPath.substr(0, DolphinPath.rfind('/'));
+#endif
 	}
 	return DolphinPath;
 }
-#endif
 
 std::string GetSysDirectory()
 {
@@ -753,7 +763,7 @@ std::string GetSysDirectory()
 
 #if defined (__APPLE__)
 	sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
-#elif defined (_WIN32)
+#elif defined (_WIN32) || defined (LINUX_LOCAL_DEV)
 	sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
 #else
 	sysDir = SYSDATA_DIR;
