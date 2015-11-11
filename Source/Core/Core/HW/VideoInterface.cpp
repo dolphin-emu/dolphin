@@ -548,6 +548,15 @@ static void BeginField(FieldType field)
 
 	u32 xfbAddr;
 
+	if (field == FieldType::FIELD_EVEN)
+	{
+		xfbAddr = GetXFBAddressBottom();
+	}
+	else
+	{
+		xfbAddr = GetXFBAddressTop();
+	}
+
 	if (interlaced_xfb && g_ActiveConfig.bForceProgressive) {
 		// Strictly speaking, in interlaced mode, we're only supposed to read
 		// half of the lines of the XFB, and use that to display a field; the
@@ -558,24 +567,12 @@ static void BeginField(FieldType field)
 		// videos in Metroid Prime don't render correctly using this hack.
 		fbStride /= 2;
 		fbHeight *= 2;
-		if (m_VBlankTimingOdd.PRB < m_VBlankTimingEven.PRB)
-		{
-			xfbAddr = GetXFBAddressTop();
+
+		if ((field == FieldType::FIELD_ODD) && (m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1)) {
+			xfbAddr -= (fbStride*2);
 		}
-		else
-		{
-			xfbAddr = GetXFBAddressBottom();
-		}
-	}
-	else
-	{
-		if (field == FieldType::FIELD_EVEN)
-		{
-			xfbAddr = GetXFBAddressTop();
-		}
-		else
-		{
-			xfbAddr = GetXFBAddressBottom();
+		if ((field == FieldType::FIELD_EVEN) && (m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1)) {
+			xfbAddr -= (fbStride*2);
 		}
 	}
 
