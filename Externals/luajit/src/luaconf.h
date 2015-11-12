@@ -18,7 +18,7 @@
 ** In Windows, any exclamation mark ('!') in the path is replaced by the
 ** path of the directory of the executable file of the current process.
 */
-#define LUA_LDIR	"!\\lua\\"
+#define LUA_LDIR	"!\\Sys\\Lua\\"
 #define LUA_CDIR	"!\\"
 #define LUA_PATH_DEFAULT \
   ".\\?.lua;" LUA_LDIR"?.lua;" LUA_LDIR"?\\init.lua;"
@@ -93,8 +93,8 @@
 #define LUA_MAXCAPTURES	32	/* Max. pattern captures. */
 
 /* Compatibility with older library function names. */
-#define LUA_COMPAT_MOD		/* OLD: math.mod, NEW: math.fmod */
-#define LUA_COMPAT_GFIND	/* OLD: string.gfind, NEW: string.gmatch */
+//#define LUA_COMPAT_MOD		/* OLD: math.mod, NEW: math.fmod */
+//#define LUA_COMPAT_GFIND	/* OLD: string.gfind, NEW: string.gmatch */
 
 /* Configuration for the frontend (the luajit executable). */
 #if defined(luajit_c)

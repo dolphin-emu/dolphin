@@ -39,3 +39,7 @@ The following files have been added:
   luajit-minilua.vcxproj -- Builds minilua, which is used to generate files for buildvm.exe
   *.vcxproj.filters      -- Sorts the various files in the above projects into nice subdirectories. 
   various *.rule files   -- Empty files to trigger the generation of files by msbuild.
+
+The following files have been changed:
+  src/luaconf.h          -- Default search directory has been changed. A few compatablity features
+                            have been disabled.
