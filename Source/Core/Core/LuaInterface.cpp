@@ -6,7 +6,7 @@
 
 #include "Core/LuaInterface.h"
 
-#include "LuaJit/src/lua.hpp"
+#include "lua.hpp"
 
 
 
@@ -61,6 +61,6 @@ void Init()
 }
 } // Lua
 
-extern "C" __declspec(dllexport) int RandomFunction(int x) {
+API_EXPORT int RandomFunction(int x) {
 	return Lua::square(x);
 }

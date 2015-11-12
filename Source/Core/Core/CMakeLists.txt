@@ -9,6 +9,7 @@ set(SRCS	ActionReplay.cpp
 			GeckoCodeConfig.cpp
 			GeckoCode.cpp
 			HotkeyManager.cpp
+			LuaInterface.cpp
 			MemTools.cpp
 			Movie.cpp
 			NetPlayClient.cpp
@@ -227,6 +228,7 @@ set(LIBS
 	discio
 	enet
 	inputcommon
+	luajit
 	${LZO}
 	sfml-network
 	sfml-system
