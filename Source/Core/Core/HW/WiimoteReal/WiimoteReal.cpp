@@ -338,10 +338,10 @@ void Wiimote::ConnectOnInput()
 	}
 }
 
-void Wiimote::Prepare(int _index)
+void Wiimote::Prepare()
 {
-	m_index = _index;
 	m_need_prepare.store(true);
+	IOWakeup();
 }
 
 bool Wiimote::PrepareOnThread()
@@ -523,8 +523,11 @@ void WiimoteScanner::ThreadFunc()
 	NOTICE_LOG(WIIMOTE, "Wiimote scanning has stopped.");
 }
 
-bool Wiimote::Connect()
+bool Wiimote::Connect(int index)
 {
+	m_index = index;
+	m_need_prepare.store(true);
+
 	if (!m_run_thread.load())
 	{
 		m_thread_ready.store(false);
@@ -603,6 +606,11 @@ void Wiimote::ThreadFunc()
 	}
 
 	DisconnectInternal();
+}
+
+int Wiimote::GetIndex() const
+{
+	return m_index;
 }
 
 void LoadSettings()
@@ -725,9 +733,8 @@ static bool TryToConnectWiimoteN(Wiimote* wm, unsigned int i)
 {
 	if (WIIMOTE_SRC_REAL & g_wiimote_sources[i] && !g_wiimotes[i])
 	{
-		if (wm->Connect())
+		if (wm->Connect(i))
 		{
-			wm->Prepare(i);
 			NOTICE_LOG(WIIMOTE, "Connected to Wiimote %i.", i + 1);
 			g_wiimotes[i] = wm;
 			Host_ConnectWiimote(i, true);
@@ -840,7 +847,7 @@ void Refresh()
 		{
 			if (g_wiimotes[i])
 			{
-				g_wiimotes[i]->Prepare(i);
+				g_wiimotes[i]->Prepare();
 			}
 		}
 

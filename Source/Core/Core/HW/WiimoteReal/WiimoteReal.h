@@ -60,12 +60,12 @@ public:
 	virtual bool ConnectInternal() = 0;
 	virtual void DisconnectInternal() = 0;
 
-	bool Connect();
+	bool Connect(int index);
 
 	// TODO: change to something like IsRelevant
 	virtual bool IsConnected() const = 0;
 
-	void Prepare(int index);
+	void Prepare();
 	bool PrepareOnThread();
 
 	void DisableDataReporting();
@@ -74,10 +74,11 @@ public:
 
 	void QueueReport(u8 rpt_id, const void* data, unsigned int size);
 
-	int m_index;
+	int GetIndex() const;
 
 protected:
 	Wiimote();
+	int m_index;
 	Report m_last_input_report;
 	u16 m_channel;
 	u8 m_last_connect_request_counter;
