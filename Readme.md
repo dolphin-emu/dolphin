@@ -61,6 +61,8 @@ On OS X, an application bundle will be created in `./Binaries`.
 
 On Linux, it's strongly recommended to perform a global installation via `sudo make install`.
 
+On Arch Linux, there is an AUR package availble [here](https://aur.archlinux.org/packages/dolphin-emu-git/)
+
 ## Building for Android
 
 These instructions assume familiarity with Android development. If you do not have an
