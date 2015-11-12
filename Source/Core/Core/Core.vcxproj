@@ -447,6 +447,9 @@
     <ProjectReference Include="$(ExternalsDir)libusb\libusb_static_2013.vcxproj">
       <Project>{349ee8f9-7d25-4909-aaf5-ff3fade72187}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)luajit\luajit.vcxproj">
+      <Project>{F41F978E-4164-4B23-B734-64742A1A0D30}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)LZO\LZO.vcxproj">
       <Project>{ab993f38-c31d-4897-b139-a620c42bc565}</Project>
     </ProjectReference>

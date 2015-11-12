@@ -164,7 +164,9 @@
     <DataDirFiles Include="$(DolphinRootDir)Data\**\*.*" />
     <ExternalDlls Include="$(ExternalsDir)OpenAL\$(PlatformName)\*.dll" />
     <BinaryFiles Include="$(TargetPath)" />
-    <AllInputFiles Include="@(DataDirFiles);@(ExternalDlls);@(BinaryFiles)" />
+	<JitLuaFiles Include="$(ExternalsDir)luajit\src\jit\*.lua" />
+	<JitLuaFiles Include="$(BuildRootDir)$(Platform)\$(Configuration)\LuaJIT\vmdef.lua" />
+    <AllInputFiles Include="@(DataDirFiles);@(JitLuaFiles);@(ExternalDlls);@(BinaryFiles)" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameList\GameFile.h" />
@@ -179,6 +181,8 @@
   <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(I_AM_BUILDACUS)'==''">
     <Message Text="Copying Data directory..." Importance="High" />
     <Copy SourceFiles="@(DataDirFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)').Ticks)" />
+	<Message Text="Copying .lua files..." Importance="High" />
+    <Copy SourceFiles="@(JitLuaFiles)" DestinationFolder="$(BinaryOutputDir)Sys\Lua\jit" Condition="!Exists('$(BinaryOutputDir)Sys\Lua\jit\%(Filename)%(JitLuaFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)Sys\Lua\jit\%(Filename)%(JitLuaFiles.Extension)').Ticks)" />
     <Message Text="Copying External .dlls" Importance="High" />
     <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(BinaryOutputDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)').Ticks)" />
     <Message Text="Copy: @(BinaryFiles) -&gt; $(BinaryOutputDir)" Importance="High" />

@@ -1,0 +1,281 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F41F978E-4164-4B23-B734-64742A1A0D30}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\Source\VSProps\Base.props" />
+    <Import Project="..\..\Source\VSProps\ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <LuaJitDir>$(BuildRootDir)$(Platform)\$(Configuration)\LuaJIT\</LuaJitDir>
+    <AllLib>src\lib_base.c src\lib_math.c src\lib_bit.c src\lib_string.c src\lib_table.c src\lib_io.c src\lib_os.c src\lib_package.c src\lib_debug.c src\lib_jit.c src\lib_ffi.c</AllLib>
+    <AllLibSemicolonSeperated>src\lib_base.c;src\lib_math.c;src\lib_bit.c;src\lib_string.c;src\lib_table.c;src\lib_io.c;src\lib_os.c;src\lib_package.c;src\lib_debug.c;src\lib_jit.c;src\lib_ffi.c</AllLibSemicolonSeperated>
+    <BuildVmInputs>$(LuaJitDir)\buildvm_arch.h</BuildVmInputs>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(LuaJitDir)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Debug'">
+		_CRT_SECURE_NO_DEPRECATE;LUAJIT_ENABLE_LUA52COMPAT;LUA_USE_ASSERT;LUA_USE_APICHECK;%(PreprocessorDefinitions)
+	  </PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">
+		_CRT_SECURE_NO_DEPRECATE;LUAJIT_ENABLE_LUA52COMPAT;%(PreprocessorDefinitions)
+	  </PreprocessorDefinitions>
+    </ClCompile>
+    <LuaLib>
+      <Visible>true</Visible>
+    </LuaLib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="src\lj_vm.obj.rule">
+      <Message>Generating lj_vm.obj</Message>
+      <Command>$(LuaJitDir)\buildvm.exe -m peobj -o $(LuaJitDir)\lj_vm.obj</Command>
+      <AdditionalInputs>$(LuaJitDir)\buildvm.exe</AdditionalInputs>
+      <Outputs>$(LuaJitDir)\lj_vm.obj</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="src\lj_bcdef.h.rule">
+      <Message>Generating lj_bcdef.h</Message>
+      <Command>$(LuaJitDir)\buildvm.exe -m bcdef -o $(LuaJitDir)\lj_bcdef.h $(AllLib)</Command>
+      <AdditionalInputs>$(LuaJitDir)\buildvm.exe;$(AllLibSemicolonSeperated)</AdditionalInputs>
+      <Outputs>$(LuaJitDir)\lj_bcdef.h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="src\lj_ffdef.h.rule">
+      <Message>Generating lj_ffdef.h</Message>
+      <Command>$(LuaJitDir)\buildvm.exe -m ffdef -o $(LuaJitDir)\lj_ffdef.h $(AllLib)</Command>
+      <AdditionalInputs>$(LuaJitDir)\buildvm.exe;$(AllLibSemicolonSeperated)</AdditionalInputs>
+      <Outputs>$(LuaJitDir)\lj_ffdef.h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="src\lj_libdef.h.rule">
+      <Message>Generating lj_libdef.h</Message>
+      <Command>$(LuaJitDir)\buildvm.exe -m libdef -o $(LuaJitDir)\lj_libdef.h $(AllLib)</Command>
+      <AdditionalInputs>$(LuaJitDir)\buildvm.exe;$(AllLibSemicolonSeperated)</AdditionalInputs>
+      <Outputs>$(LuaJitDir)\lj_libdef.h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="src\lj_recdef.h.rule">
+      <Message>Generating lj_recdef.h</Message>
+      <Command>$(LuaJitDir)\buildvm.exe -m recdef -o $(LuaJitDir)\lj_recdef.h $(AllLib)</Command>
+      <AdditionalInputs>$(LuaJitDir)\buildvm.exe;$(AllLibSemicolonSeperated)</AdditionalInputs>
+      <Outputs>$(LuaJitDir)\lj_recdef.h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="src\jit\vmdef.lua.rule">
+      <Message>Generating vmdef.lua</Message>
+      <Command>$(LuaJitDir)\buildvm.exe -m vmdef -o $(LuaJitDir)\vmdef.lua $(AllLib)</Command>
+      <AdditionalInputs>$(LuaJitDir)\buildvm.exe;$(AllLibSemicolonSeperated)</AdditionalInputs>
+      <Outputs>$(LuaJitDir)\vmdef.lua</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="src\lj_folddef.h.rule">
+      <Message>Generating lj_folddef.h</Message>
+      <Command>$(LuaJitDir)\buildvm.exe -m folddef -o $(LuaJitDir)\lj_folddef.h src\lj_opt_fold.c</Command>
+      <AdditionalInputs>$(LuaJitDir)\buildvm.exe;lj_opt_fold.c</AdditionalInputs>
+      <Outputs>$(LuaJitDir)\lj_folddef.h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(LuaJitDir)\lj_bcdef.h" />
+    <ClInclude Include="$(LuaJitDir)\lj_ffdef.h" />
+    <ClInclude Include="$(LuaJitDir)\lj_libdef.h" />
+    <ClInclude Include="$(LuaJitDir)\lj_recdef.h" />
+    <ClInclude Include="$(LuaJitDir)\lj_folddef.h" />
+    <ClInclude Include="src\lauxlib.h" />
+    <ClInclude Include="src\luajit.h" />
+    <ClInclude Include="src\lualib.h" />
+    <None Include="$(LuaJitDir)\vmdef.lua" />
+    <None Include="ClassDiagram.cd" />
+    <None Include="src\jit\bc.lua" />
+    <None Include="src\jit\bcsave.lua" />
+    <None Include="src\jit\dis_arm.lua" />
+    <None Include="src\jit\dis_mips.lua" />
+    <None Include="src\jit\dis_mipsel.lua" />
+    <None Include="src\jit\dis_ppc.lua" />
+    <None Include="src\jit\dis_x64.lua" />
+    <None Include="src\jit\dis_x86.lua" />
+    <None Include="src\jit\dump.lua" />
+    <None Include="src\jit\p.lua" />
+    <None Include="src\jit\v.lua" />
+    <None Include="src\jit\zone.lua" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\lib_aux.c" />
+    <ClCompile Include="src\lib_base.c" />
+    <ClCompile Include="src\lib_bit.c" />
+    <ClCompile Include="src\lib_debug.c" />
+    <ClCompile Include="src\lib_ffi.c" />
+    <ClCompile Include="src\lib_init.c" />
+    <ClCompile Include="src\lib_io.c" />
+    <ClCompile Include="src\lib_jit.c" />
+    <ClCompile Include="src\lib_math.c" />
+    <ClCompile Include="src\lib_os.c" />
+    <ClCompile Include="src\lib_package.c" />
+    <ClCompile Include="src\lib_string.c" />
+    <ClCompile Include="src\lib_table.c" />
+    <ClCompile Include="src\lj_alloc.c" />
+    <ClCompile Include="src\lj_api.c" />
+    <ClCompile Include="src\lj_asm.c" />
+    <ClCompile Include="src\lj_bc.c" />
+    <ClCompile Include="src\lj_bcread.c" />
+    <ClCompile Include="src\lj_bcwrite.c" />
+    <ClCompile Include="src\lj_buf.c" />
+    <ClCompile Include="src\lj_carith.c" />
+    <ClCompile Include="src\lj_ccall.c" />
+    <ClCompile Include="src\lj_ccallback.c" />
+    <ClCompile Include="src\lj_cconv.c" />
+    <ClCompile Include="src\lj_cdata.c" />
+    <ClCompile Include="src\lj_char.c" />
+    <ClCompile Include="src\lj_clib.c" />
+    <ClCompile Include="src\lj_cparse.c" />
+    <ClCompile Include="src\lj_crecord.c" />
+    <ClCompile Include="src\lj_ctype.c" />
+    <ClCompile Include="src\lj_debug.c" />
+    <ClCompile Include="src\lj_dispatch.c" />
+    <ClCompile Include="src\lj_err.c" />
+    <ClCompile Include="src\lj_ffrecord.c" />
+    <ClCompile Include="src\lj_func.c" />
+    <ClCompile Include="src\lj_gc.c" />
+    <ClCompile Include="src\lj_gdbjit.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\lj_ir.c" />
+    <ClCompile Include="src\lj_lex.c" />
+    <ClCompile Include="src\lj_lib.c" />
+    <ClCompile Include="src\lj_load.c" />
+    <ClCompile Include="src\lj_mcode.c" />
+    <ClCompile Include="src\lj_meta.c" />
+    <ClCompile Include="src\lj_obj.c" />
+    <ClCompile Include="src\lj_opt_dce.c" />
+    <ClCompile Include="src\lj_opt_fold.c" />
+    <ClCompile Include="src\lj_opt_loop.c" />
+    <ClCompile Include="src\lj_opt_mem.c" />
+    <ClCompile Include="src\lj_opt_narrow.c" />
+    <ClCompile Include="src\lj_opt_sink.c" />
+    <ClCompile Include="src\lj_opt_split.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\lj_parse.c" />
+    <ClCompile Include="src\lj_profile.c" />
+    <ClCompile Include="src\lj_record.c" />
+    <ClCompile Include="src\lj_snap.c" />
+    <ClCompile Include="src\lj_state.c" />
+    <ClCompile Include="src\lj_str.c" />
+    <ClCompile Include="src\lj_strfmt.c" />
+    <ClCompile Include="src\lj_strscan.c" />
+    <ClCompile Include="src\lj_tab.c" />
+    <ClCompile Include="src\lj_trace.c" />
+    <ClCompile Include="src\lj_udata.c" />
+    <ClCompile Include="src\lj_vmevent.c" />
+    <ClCompile Include="src\lj_vmmath.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)LuaJit\LuaJIT-buildvm.vcxproj">
+      <Project>{B30092BB-DCEF-48AE-9776-2A5144582E53}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\lj_alloc.h" />
+    <ClInclude Include="src\lj_arch.h" />
+    <ClInclude Include="src\lj_asm.h" />
+    <ClInclude Include="src\lj_asm_arm.h" />
+    <ClInclude Include="src\lj_asm_mips.h" />
+    <ClInclude Include="src\lj_asm_ppc.h" />
+    <ClInclude Include="src\lj_asm_x86.h" />
+    <ClInclude Include="src\lj_bc.h" />
+    <ClInclude Include="src\lj_bcdump.h" />
+    <ClInclude Include="src\lj_buf.h" />
+    <ClInclude Include="src\lj_carith.h" />
+    <ClInclude Include="src\lj_ccall.h" />
+    <ClInclude Include="src\lj_ccallback.h" />
+    <ClInclude Include="src\lj_cconv.h" />
+    <ClInclude Include="src\lj_cdata.h" />
+    <ClInclude Include="src\lj_char.h" />
+    <ClInclude Include="src\lj_clib.h" />
+    <ClInclude Include="src\lj_cparse.h" />
+    <ClInclude Include="src\lj_crecord.h" />
+    <ClInclude Include="src\lj_ctype.h" />
+    <ClInclude Include="src\lj_debug.h" />
+    <ClInclude Include="src\lj_def.h" />
+    <ClInclude Include="src\lj_dispatch.h" />
+    <ClInclude Include="src\lj_emit_arm.h" />
+    <ClInclude Include="src\lj_emit_mips.h" />
+    <ClInclude Include="src\lj_emit_ppc.h" />
+    <ClInclude Include="src\lj_emit_x86.h" />
+    <ClInclude Include="src\lj_err.h" />
+    <ClInclude Include="src\lj_errmsg.h" />
+    <ClInclude Include="src\lj_ff.h" />
+    <ClInclude Include="src\lj_ffrecord.h" />
+    <ClInclude Include="src\lj_frame.h" />
+    <ClInclude Include="src\lj_func.h" />
+    <ClInclude Include="src\lj_gc.h" />
+    <ClInclude Include="src\lj_gdbjit.h" />
+    <ClInclude Include="src\lj_ir.h" />
+    <ClInclude Include="src\lj_ircall.h" />
+    <ClInclude Include="src\lj_iropt.h" />
+    <ClInclude Include="src\lj_jit.h" />
+    <ClInclude Include="src\lj_lex.h" />
+    <ClInclude Include="src\lj_lib.h" />
+    <ClInclude Include="src\lj_mcode.h" />
+    <ClInclude Include="src\lj_meta.h" />
+    <ClInclude Include="src\lj_obj.h" />
+    <ClInclude Include="src\lj_parse.h" />
+    <ClInclude Include="src\lj_profile.h" />
+    <ClInclude Include="src\lj_record.h" />
+    <ClInclude Include="src\lj_snap.h" />
+    <ClInclude Include="src\lj_state.h" />
+    <ClInclude Include="src\lj_str.h" />
+    <ClInclude Include="src\lj_strfmt.h" />
+    <ClInclude Include="src\lj_strscan.h" />
+    <ClInclude Include="src\lj_tab.h" />
+    <ClInclude Include="src\lj_target.h" />
+    <ClInclude Include="src\lj_target_arm.h" />
+    <ClInclude Include="src\lj_target_arm64.h" />
+    <ClInclude Include="src\lj_target_mips.h" />
+    <ClInclude Include="src\lj_target_ppc.h" />
+    <ClInclude Include="src\lj_target_x86.h" />
+    <ClInclude Include="src\lj_trace.h" />
+    <ClInclude Include="src\lj_traceerr.h" />
+    <ClInclude Include="src\lj_udata.h" />
+    <ClInclude Include="src\lj_vm.h" />
+    <ClInclude Include="src\lj_vmevent.h" />
+    <ClInclude Include="src\lua.h" />
+    <ClInclude Include="src\luaconf.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <LuaLib Include="src\jit\*.lua" />
+    <LuaLib Include="$(LuaJitDir)\vmdef.lua" />
+  </ItemGroup>
+  <Target Name="AfterBuild" Inputs="@(LuaLib)" Outputs="@(LuaLib -> '$(BinaryOutputDir)\Sys\Lua\%(Filename)%(Extension)')">
+    <Message Text="Copying .lua files to Sys\Lua..." Importance="High" />
+    <Copy SourceFiles="@(LuaLib)" DestinationFolder="$(BinaryOutputDir)\Sys\Lua" />
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
