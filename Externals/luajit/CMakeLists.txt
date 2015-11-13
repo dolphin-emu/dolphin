@@ -114,7 +114,7 @@ if (_M_X86_64)
 	set (DASM_FLAGS -D P64 -D JIT -D FFI)
 elseif (_M_ARM_64)
 	set (DASM_ARCH arm64)
-	set (DASM_FLAGS -D P64 -D JIT -D FFI)
+	set (DASM_FLAGS -D P64 -D FFI)
 else()
 	# Actually other platforms such as PPC or MIPS are supported
 	# just not by this build file, or Dolphin's main Jit.
