@@ -58,43 +58,32 @@
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
-    <QtUi Include="GameList\*.ui" />
   </ItemGroup>
   <!--MOC files need to be listed. Perhaps scan for Q_OBJECT in the future? (like automoc)-->
   <!--NOTE: When adding moc'd files, you must list the outputs in the following ItemGroup!-->
   <ItemGroup>
-    <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="MainWindow.h" />
-    <QtMoc Include="SystemInfo.h" />
-    <QtMoc Include="VideoInterface\RenderWidget.h" />
-    <QtMoc Include="GameList\GameFile.h" />
-    <QtMoc Include="GameList\GameGrid.h" />
+    <QtMoc Include="Host.h" />
+    <QtMoc Include="Resources.h" />
+    <QtMoc Include="GameList\GameList.h" />
+    <QtMoc Include="GameList\GameListModel.h" />
     <QtMoc Include="GameList\GameTracker.h" />
-    <QtMoc Include="GameList\GameTree.h" />
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
-    <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GameGrid.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GameTree.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
-    <ClCompile Include="GameList\GameGrid.cpp" />
+    <ClCompile Include="GameList\GameList.cpp" />
+    <ClCompile Include="GameList\GameListModel.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
-    <ClCompile Include="GameList\GameTree.cpp" />
-    <ClCompile Include="SystemInfo.cpp" />
-    <ClCompile Include="Utils\Resources.cpp" />
-    <ClCompile Include="Utils\Utils.cpp" />
-    <ClCompile Include="VideoInterface\RenderWidget.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="MainWindow.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
   <!--
@@ -168,15 +157,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameList\GameFile.h" />
-    <ClInclude Include="GameList\GameGrid.h" />
+    <ClInclude Include="GameList\GameList.h" />
+    <ClInclude Include="GameList\GameListModel.h" />
     <ClInclude Include="GameList\GameTracker.h" />
-    <ClInclude Include="GameList\GameTree.h" />
-    <ClInclude Include="Utils\Resources.h" />
-    <ClInclude Include="Utils\Utils.h" />
-    <ClInclude Include="VideoInterface\RenderWidget.h" />
   </ItemGroup>
   <!--Disable copying to binary dir for now on the buildbot to prevent packaging of the outputs-->
-  <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(I_AM_BUILDACUS)'==''">
+  <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Data directory..." Importance="High" />
     <Copy SourceFiles="@(DataDirFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)').Ticks)" />
     <Message Text="Copying External .dlls" Importance="High" />

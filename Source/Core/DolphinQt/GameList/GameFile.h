@@ -1,95 +1,93 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <QDateTime>
 #include <QMap>
 #include <QPixmap>
 #include <QString>
 
-#include <string>
-
-#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 
-#include "DolphinQt/Utils/Resources.h"
-
+// TODO replace this with a struct and some static functions.
+// TODO cache
+// TODO elf/dol and Homebrew XML files
 class GameFile final
 {
 public:
-	GameFile(const QString& fileName);
-	GameFile(const std::string& fileName) : GameFile(QString::fromStdString(fileName)) {}
+	explicit GameFile(QString path);
 
-	bool IsValid() const { return m_valid; }
-	QString GetFileName() { return m_file_name; }
-	QString GetFolderName() { return m_folder_name; }
-	QString GetName(bool prefer_long, DiscIO::IVolume::ELanguage language) const;
-	QString GetName(bool prefer_long) const;
-	QString GetDescription(DiscIO::IVolume::ELanguage language) const;
-	QString GetDescription() const;
-	QString GetCompany() const { return m_company; }
-	u16 GetRevision() const { return m_revision; }
-	const QString GetUniqueID() const { return m_unique_id; }
-	const QString GetWiiFSPath() const;
-	DiscIO::IVolume::ECountry GetCountry() const { return m_country; }
+	bool IsValid()            const { return m_valid; }
+
+	// These will be properly initialized before we try to load the file.
+	QString GetPath()         const { return m_path; }
+	QString GetFileName()     const { return m_file_name; }
+	QString GetFolder()       const { return m_folder; }
+
+	// The rest will not.
+	QString GetUniqueID()     const { return m_unique_id; }
+	QString GetMakerID()      const { return m_maker_id; }
+	u16 GetRevision()         const { return m_revision; }
+	QString GetInternalName() const { return m_internal_name; }
+	QString GetCompany()      const { return m_company; }
+	u8 GetDiscNumber()        const { return m_disc_number; }
+	u64 GetRawSize()          const { return m_raw_size; }
+	QPixmap GetBanner()       const { return m_banner; }
+	QString GetIssues()       const { return m_issues; }
+	int GetRating()           const { return m_rating; }
+
 	DiscIO::IVolume::EPlatform GetPlatform() const { return m_platform; }
-	DiscIO::BlobType GetBlobType() const { m_blob_type; }
-	const QString GetIssues() const { return m_issues; }
-	int GetEmuState() const { return m_emu_state; }
-	bool IsCompressed() const
-	{
-		return m_blob_type == DiscIO::BlobType::GCZ || m_blob_type == DiscIO::BlobType::CISO ||
-		       m_blob_type == DiscIO::BlobType::WBFS;
-	}
-	u64 GetFileSize() const { return m_file_size; }
-	u64 GetVolumeSize() const { return m_volume_size; }
-	// 0 is the first disc, 1 is the second disc
-	u8 GetDiscNumber() const { return m_disc_number; }
-	const QPixmap GetBitmap() const
-	{
-		if (m_banner.isNull())
-			return Resources::GetPixmap(Resources::BANNER_MISSING);
+	DiscIO::IVolume::ECountry GetCountry()   const { return m_country; }
+	DiscIO::BlobType GetBlobType()           const { return m_blob_type; }
 
-		return m_banner;
+	DiscIO::IVolume::ELanguage GetLanguage() const;
+	QString GetShortName() const { return GetShortName(GetLanguage()); }
+	QString GetShortName(DiscIO::IVolume::ELanguage lang) const
+	{
+		return m_short_names[lang];
+	}
+
+	QString GetLongName() const { return GetLongName(GetLanguage()); }
+	QString GetLongName(DiscIO::IVolume::ELanguage lang) const
+	{
+		return m_long_names[lang];
+	}
+
+	QString GetDescription() const { return GetDescription(GetLanguage()); }
+	QString GetDescription(DiscIO::IVolume::ELanguage lang) const
+	{
+		return m_descriptions[lang];
 	}
 
 private:
-	QString m_file_name;
-	QString m_folder_name;
+	QString GetCacheFileName() const;
+	void ReadBanner(const DiscIO::IVolume& volume);
+	bool TryLoadCache();
+	bool TryLoadFile();
+	void SaveCache();
 
+	bool m_valid;
+	QString m_path;
+	QString m_file_name;
+	QString m_folder;
+	QDateTime m_last_modified;
+
+	QString m_unique_id;
+	QString m_maker_id;
+	u16 m_revision;
+	QString m_internal_name;
 	QMap<DiscIO::IVolume::ELanguage, QString> m_short_names;
 	QMap<DiscIO::IVolume::ELanguage, QString> m_long_names;
 	QMap<DiscIO::IVolume::ELanguage, QString> m_descriptions;
 	QString m_company;
-
-	QString m_unique_id;
-
-	QString m_issues;
-	int m_emu_state = 0;
-
-	quint64 m_file_size = 0;
-	quint64 m_volume_size = 0;
-
-	DiscIO::IVolume::ECountry m_country = DiscIO::IVolume::COUNTRY_UNKNOWN;
+	u8 m_disc_number;
 	DiscIO::IVolume::EPlatform m_platform;
+	DiscIO::IVolume::ECountry m_country;
 	DiscIO::BlobType m_blob_type;
-	u16 m_revision = 0;
-
+	u64 m_raw_size;
 	QPixmap m_banner;
-	bool m_valid = false;
-	u8 m_disc_number = 0;
-
-	bool LoadFromCache();
-	void SaveToCache();
-
-	bool IsElfOrDol() const;
-	QString CreateCacheFilename() const;
-
-	// Outputs to m_banner
-	void ReadBanner(const DiscIO::IVolume& volume);
-	// Outputs to m_short_names, m_long_names, m_descriptions, m_company.
-	// Returns whether a file was found, not whether it contained useful data.
-	bool ReadXML(const QString& file_path);
+	QString m_issues;
+	int m_rating;
 };

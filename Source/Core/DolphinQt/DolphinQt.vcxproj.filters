@@ -1,63 +1,31 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="SystemInfo.cpp" />
-    <ClCompile Include="Utils\Resources.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\Utils.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
+    <ClCompile Include="Resources.cpp" />
     <ClCompile Include="GameList\GameFile.cpp">
       <Filter>GameList</Filter>
     </ClCompile>
-    <ClCompile Include="GameList\GameGrid.cpp">
+    <ClCompile Include="GameList\GameList.cpp">
       <Filter>GameList</Filter>
     </ClCompile>
     <ClCompile Include="GameList\GameTracker.cpp">
       <Filter>GameList</Filter>
     </ClCompile>
-    <ClCompile Include="GameList\GameTree.cpp">
+    <ClCompile Include="GameList\GameListModel.cpp">
       <Filter>GameList</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoInterface\RenderWidget.cpp">
-      <Filter>VideoInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)GameGrid.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)GameTree.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp">
-      <Filter>Generated Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="Host.h" />
     <QtMoc Include="MainWindow.h" />
-    <QtMoc Include="SystemInfo.h" />
-    <QtMoc Include="VideoInterface\RenderWidget.h" />
+    <QtMoc Include="Resources.h" />
     <QtMoc Include="GameList\GameFile.h" />
-    <QtMoc Include="GameList\GameGrid.h" />
+    <QtMoc Include="GameList\GameList.h" />
     <QtMoc Include="GameList\GameTracker.h" />
-    <QtMoc Include="GameList\GameTree.h" />
+    <QtMoc Include="GameList\GameListModel.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
@@ -69,12 +37,6 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="VideoInterface">
-      <UniqueIdentifier>{2497846c-00eb-4f1c-b437-2d32eac9027c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Utils">
-      <UniqueIdentifier>{730f2ae7-a686-4bc8-bb49-b4f8bd240329}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Generated Files">
       <UniqueIdentifier>{c18a1fb3-64ff-4249-b808-d73a56ea3a2d}</UniqueIdentifier>
     </Filter>
@@ -83,25 +45,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Utils\Resources.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\Utils.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoInterface\RenderWidget.h">
-      <Filter>VideoInterface</Filter>
-    </ClInclude>
     <ClInclude Include="GameList\GameFile.h">
       <Filter>GameList</Filter>
     </ClInclude>
-    <ClInclude Include="GameList\GameGrid.h">
+    <ClInclude Include="GameList\GameList.h">
       <Filter>GameList</Filter>
     </ClInclude>
     <ClInclude Include="GameList\GameTracker.h">
       <Filter>GameList</Filter>
     </ClInclude>
-    <ClInclude Include="GameList\GameTree.h">
+    <ClInclude Include="GameList\GameListModel.h">
       <Filter>GameList</Filter>
     </ClInclude>
   </ItemGroup>

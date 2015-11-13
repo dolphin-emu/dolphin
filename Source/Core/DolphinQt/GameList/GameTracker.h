@@ -1,68 +1,66 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <QFileSystemWatcher>
-#include <QList>
-#include <QMap>
-#include <QStackedWidget>
+#include <QSet>
+#include <QSharedPointer>
+#include <QString>
+#include <QStringList>
+#include <QThread>
 
 #include "DolphinQt/GameList/GameFile.h"
+#include "DolphinQt/GameList/GameTracker.h"
 
-// Predefinitions
-class DGameGrid;
-class DGameTree;
+class GameLoader;
 
-enum GameListStyle
-{
-	STYLE_LIST,
-	STYLE_TREE,
-	STYLE_GRID,
-	STYLE_ICON
-};
-
-class AbstractGameList
-{
-public:
-	virtual GameFile* SelectedGame() = 0;
-	virtual void SelectGame(GameFile* game) = 0;
-
-	virtual void SetViewStyle(GameListStyle newStyle) = 0;
-
-	virtual void AddGame(GameFile* item) = 0;
-	void AddGames(QList<GameFile*> items);
-
-	virtual void RemoveGame(GameFile* item) = 0;
-	void RemoveGames(QList<GameFile*> items);
-};
-
-class DGameTracker : public QStackedWidget
+// Watches directories and loads GameFiles in a separate thread.
+// To use this, just add directories using AddDirectory, and listen for the
+// GameLoaded and GameRemoved signals.
+class GameTracker final : public QFileSystemWatcher
 {
 	Q_OBJECT
 
 public:
-	DGameTracker(QWidget* parent_widget = nullptr);
-	~DGameTracker();
-
-	GameListStyle ViewStyle() const { return m_current_style; }
-	void SetViewStyle(GameListStyle newStyle);
-
-	GameFile* SelectedGame();
-	void SelectLastBootedGame();
-
-signals:
-	void StartGame();
+	explicit GameTracker(QObject* parent = nullptr);
+	~GameTracker();
 
 public slots:
-	void ScanForGames();
+	void AddDirectory(QString dir);
+
+signals:
+	void GameLoaded(QSharedPointer<GameFile> game);
+	void GameRemoved(QString path);
+
+	void PathChanged(QString path);
 
 private:
-	QMap<QString, GameFile*> m_games;
-	QFileSystemWatcher* m_watcher;
+	void UpdateDirectory(QString dir);
+	void UpdateFile(QString path);
+	void GenerateFilters();
 
-	GameListStyle m_current_style;
-	DGameGrid* m_grid_widget = nullptr;
-	DGameTree* m_tree_widget = nullptr;
+	QSet<QString> m_tracked_files;
+	QStringList m_filters;
+	QThread m_loader_thread;
+	GameLoader* m_loader;
 };
+
+class GameLoader : public QObject
+{
+	Q_OBJECT
+
+public slots:
+	void LoadGame(QString path)
+	{
+		GameFile* game = new GameFile(path);
+		if (game->IsValid())
+			emit GameLoaded(QSharedPointer<GameFile>(game));
+	}
+
+signals:
+	void GameLoaded(QSharedPointer<GameFile> game);
+};
+
+Q_DECLARE_METATYPE(QSharedPointer<GameFile>)
