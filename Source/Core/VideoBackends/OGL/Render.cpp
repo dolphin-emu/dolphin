@@ -751,8 +751,8 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 	TargetRectangle result;
 	result.left   = EFBToScaledX(rc.left);
 	result.top    = EFBToScaledY(EFB_HEIGHT - rc.top);
-	result.right  = EFBToScaledX(rc.right);
-	result.bottom = EFBToScaledY(EFB_HEIGHT - rc.bottom);
+	result.right  = EFBToScaledX(rc.right + 1) - 1;
+	result.bottom = EFBToScaledY(EFB_HEIGHT - rc.bottom - 1) + 1;
 	return result;
 }
 
