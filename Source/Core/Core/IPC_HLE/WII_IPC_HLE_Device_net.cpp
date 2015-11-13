@@ -980,172 +980,178 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 	}
 
 	case IOCTL_SO_POLL:
+	{
+		// Map Wii/native poll events types
+		struct
 		{
-			// Map Wii/native poll events types
-			unsigned int mapping[][2] = {
-				{ POLLIN, 0x0001 },
-				{ POLLOUT, 0x0008 },
-				{ POLLHUP, 0x0040 },
-			};
+			int native;
+			int wii;
+		} mapping[] =
+		{
+			{ POLLRDNORM,  0x0001 },
+			{ POLLRDBAND,  0x0002 },
+			{ POLLPRI,     0x0004 },
+			{ POLLWRNORM,  0x0008 },
+			{ POLLWRBAND,  0x0010 },
+			{ POLLERR,     0x0020 },
+			{ POLLHUP,     0x0040 },
+			{ POLLNVAL,    0x0080 },
+		};
 
-			u32 unknown = Memory::Read_U32(BufferIn);
-			u32 timeout = Memory::Read_U32(BufferIn + 4);
+		u32 unknown = Memory::Read_U32(BufferIn);
+		u32 timeout = Memory::Read_U32(BufferIn + 4);
 
-			int nfds = BufferOutSize / 0xc;
-			if (nfds == 0)
-				ERROR_LOG(WII_IPC_NET, "Hidden POLL");
+		int nfds = BufferOutSize / 0xc;
+		if (nfds == 0)
+			ERROR_LOG(WII_IPC_NET, "Hidden POLL");
 
-			pollfd_t* ufds = (pollfd_t*)malloc(sizeof(pollfd_t) * nfds);
-			if (ufds == nullptr)
+		std::vector<pollfd_t> ufds(nfds);
+
+		for (int i = 0; i < nfds; ++i)
+		{
+			ufds[i].fd = Memory::Read_U32(BufferOut + 0xc*i);          //fd
+			int events = Memory::Read_U32(BufferOut + 0xc*i + 4);      //events
+			ufds[i].revents = Memory::Read_U32(BufferOut + 0xc*i + 8); //revents
+
+			// Translate Wii to native events
+			int unhandled_events = events;
+			ufds[i].events = 0;
+			for (auto& map : mapping)
 			{
-				ReturnValue = -1;
-				break;
+				if (events & map.wii)
+					ufds[i].events |= map.native;
+				unhandled_events &= ~map.wii;
 			}
+			DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_POLL(%d) "
+				"Sock: %08x, Unknown: %08x, Events: %08x, "
+				"NativeEvents: %08x",
+				i, ufds[i].fd, unknown, events, ufds[i].events
+			);
 
-			for (int i = 0; i < nfds; ++i)
-			{
-				ufds[i].fd = Memory::Read_U32(BufferOut + 0xc*i);          //fd
-				int events = Memory::Read_U32(BufferOut + 0xc*i + 4);      //events
-				ufds[i].revents = Memory::Read_U32(BufferOut + 0xc*i + 8); //revents
+			// Do not pass return-only events to the native poll
+			ufds[i].events &= ~(POLLERR | POLLHUP | POLLNVAL);
 
-				// Translate Wii to native events
-				int unhandled_events = events;
-				ufds[i].events = 0;
-				for (auto& map : mapping)
-				{
-					if (events & map[1])
-						ufds[i].events |= map[0];
-					unhandled_events &= ~map[1];
-				}
-
-				DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_POLL(%d) "
-					"Sock: %08x, Unknown: %08x, Events: %08x, "
-					"NativeEvents: %08x",
-					i, ufds[i].fd, unknown, events, ufds[i].events
-				);
-
-				if (unhandled_events)
-					ERROR_LOG(WII_IPC_NET, "SO_POLL: unhandled Wii event types: %04x", unhandled_events);
-			}
-
-			int ret = poll(ufds, nfds, timeout);
-			ret = WiiSockMan::GetNetErrorCode(ret, "SO_POLL", false);
-
-			for (int i = 0; i < nfds; ++i)
-			{
-
-				// Translate native to Wii events
-				int revents = 0;
-				for (auto& map : mapping)
-				{
-					if (ufds[i].revents & map[0])
-						revents |= map[1];
-				}
-
-				// No need to change fd or events as they are input only.
-				//Memory::Write_U32(ufds[i].fd, BufferOut + 0xc*i); //fd
-				//Memory::Write_U32(events, BufferOut + 0xc*i + 4); //events
-				Memory::Write_U32(revents, BufferOut + 0xc*i + 8);  //revents
-
-				DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_POLL socket %d revents %08X events %08X", i, revents, ufds[i].events);
-			}
-			free(ufds);
-
-			ReturnValue = ret;
-			break;
+			if (unhandled_events)
+				ERROR_LOG(WII_IPC_NET, "SO_POLL: unhandled Wii event types: %04x", unhandled_events);
 		}
+
+		int ret = poll(ufds.data(), nfds, timeout);
+		ret = WiiSockMan::GetNetErrorCode(ret, "SO_POLL", false);
+
+		for (int i = 0; i < nfds; ++i)
+		{
+
+			// Translate native to Wii events
+			int revents = 0;
+			for (auto& map : mapping)
+			{
+				if (ufds[i].revents & map.native)
+					revents |= map.wii;
+			}
+
+			// No need to change fd or events as they are input only.
+			//Memory::Write_U32(ufds[i].fd, BufferOut + 0xc*i); //fd
+			//Memory::Write_U32(events, BufferOut + 0xc*i + 4); //events
+			Memory::Write_U32(revents, BufferOut + 0xc*i + 8);  //revents
+
+			DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_POLL socket %d wevents %08X events %08X revents %08X", i, revents, ufds[i].events, ufds[i].revents);
+		}
+
+		ReturnValue = ret;
+		break;
+	}
 
 	case IOCTL_SO_GETHOSTBYNAME:
+	{
+		if (BufferOutSize != 0x460)
 		{
-			if (BufferOutSize != 0x460)
+			ERROR_LOG(WII_IPC_NET, "Bad buffer size for IOCTL_SO_GETHOSTBYNAME");
+			ReturnValue = -1;
+			break;
+		}
+
+		std::string hostname = Memory::GetString(BufferIn);
+		hostent* remoteHost = gethostbyname(hostname.c_str());
+
+		INFO_LOG(WII_IPC_NET, "IOCTL_SO_GETHOSTBYNAME "
+			"Address: %s, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			hostname.c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize);
+
+		if (remoteHost)
+		{
+			for (int i = 0; remoteHost->h_aliases[i]; ++i)
 			{
-				ERROR_LOG(WII_IPC_NET, "Bad buffer size for IOCTL_SO_GETHOSTBYNAME");
+				INFO_LOG(WII_IPC_NET, "alias%i:%s", i, remoteHost->h_aliases[i]);
+			}
+
+			for (int i = 0; remoteHost->h_addr_list[i]; ++i)
+			{
+				u32 ip = Common::swap32(*(u32*)(remoteHost->h_addr_list[i]));
+				std::string ip_s = StringFromFormat("%i.%i.%i.%i", ip >> 24, (ip >> 16) & 0xff, (ip >> 8) & 0xff, ip & 0xff);
+				DEBUG_LOG(WII_IPC_NET, "addr%i:%s", i, ip_s.c_str());
+			}
+
+			Memory::Memset(BufferOut, 0, BufferOutSize);
+
+			// Host name; located immediately after struct
+			static const u32 GETHOSTBYNAME_STRUCT_SIZE = 0x10;
+			static const u32 GETHOSTBYNAME_IP_LIST_OFFSET = 0x110;
+			// Limit host name length to avoid buffer overflow.
+			u32 name_length = (u32)strlen(remoteHost->h_name) + 1;
+			if (name_length > (GETHOSTBYNAME_IP_LIST_OFFSET - GETHOSTBYNAME_STRUCT_SIZE))
+			{
+				ERROR_LOG(WII_IPC_NET, "Hostname too long in IOCTL_SO_GETHOSTBYNAME");
 				ReturnValue = -1;
 				break;
 			}
+			Memory::CopyToEmu(BufferOut + GETHOSTBYNAME_STRUCT_SIZE, remoteHost->h_name, name_length);
+			Memory::Write_U32(BufferOut + GETHOSTBYNAME_STRUCT_SIZE, BufferOut);
 
-			std::string hostname = Memory::GetString(BufferIn);
-			hostent* remoteHost = gethostbyname(hostname.c_str());
-
-			INFO_LOG(WII_IPC_NET, "IOCTL_SO_GETHOSTBYNAME "
-				"Address: %s, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-				hostname.c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize);
-
-			if (remoteHost)
+			// IP address list; located at offset 0x110.
+			u32 num_ip_addr = 0;
+			while (remoteHost->h_addr_list[num_ip_addr])
+				num_ip_addr++;
+			// Limit number of IP addresses to avoid buffer overflow.
+			// (0x460 - 0x340) / sizeof(pointer) == 72
+			static const u32 GETHOSTBYNAME_MAX_ADDRESSES = 71;
+			num_ip_addr = std::min(num_ip_addr, GETHOSTBYNAME_MAX_ADDRESSES);
+			for (u32 i = 0; i < num_ip_addr; ++i)
 			{
-				for (int i = 0; remoteHost->h_aliases[i]; ++i)
-				{
-					INFO_LOG(WII_IPC_NET, "alias%i:%s", i, remoteHost->h_aliases[i]);
-				}
-
-				for (int i = 0; remoteHost->h_addr_list[i]; ++i)
-				{
-					u32 ip = Common::swap32(*(u32*)(remoteHost->h_addr_list[i]));
-					std::string ip_s = StringFromFormat("%i.%i.%i.%i", ip >> 24, (ip >> 16) & 0xff, (ip >> 8) & 0xff, ip & 0xff);
-					DEBUG_LOG(WII_IPC_NET, "addr%i:%s", i, ip_s.c_str());
-				}
-
-				Memory::Memset(BufferOut, 0, BufferOutSize);
-
-				// Host name; located immediately after struct
-				static const u32 GETHOSTBYNAME_STRUCT_SIZE = 0x10;
-				static const u32 GETHOSTBYNAME_IP_LIST_OFFSET = 0x110;
-				// Limit host name length to avoid buffer overflow.
-				u32 name_length = (u32)strlen(remoteHost->h_name) + 1;
-				if (name_length > (GETHOSTBYNAME_IP_LIST_OFFSET - GETHOSTBYNAME_STRUCT_SIZE))
-				{
-					ERROR_LOG(WII_IPC_NET, "Hostname too long in IOCTL_SO_GETHOSTBYNAME");
-					ReturnValue = -1;
-					break;
-				}
-				Memory::CopyToEmu(BufferOut + GETHOSTBYNAME_STRUCT_SIZE, remoteHost->h_name, name_length);
-				Memory::Write_U32(BufferOut + GETHOSTBYNAME_STRUCT_SIZE, BufferOut);
-
-				// IP address list; located at offset 0x110.
-				u32 num_ip_addr = 0;
-				while (remoteHost->h_addr_list[num_ip_addr])
-					num_ip_addr++;
-				// Limit number of IP addresses to avoid buffer overflow.
-				// (0x460 - 0x340) / sizeof(pointer) == 72
-				static const u32 GETHOSTBYNAME_MAX_ADDRESSES = 71;
-				num_ip_addr = std::min(num_ip_addr, GETHOSTBYNAME_MAX_ADDRESSES);
-				for (u32 i = 0; i < num_ip_addr; ++i)
-				{
-					u32 addr = BufferOut + GETHOSTBYNAME_IP_LIST_OFFSET + i * 4;
-					Memory::Write_U32_Swap(*(u32*)(remoteHost->h_addr_list[i]), addr);
-				}
-
-				// List of pointers to IP addresses; located at offset 0x340.
-				// This must be exact: PPC code to convert the struct hardcodes
-				// this offset.
-				static const u32 GETHOSTBYNAME_IP_PTR_LIST_OFFSET = 0x340;
-				Memory::Write_U32(BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET, BufferOut + 12);
-				for (u32 i = 0; i < num_ip_addr; ++i)
-				{
-					u32 addr = BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + i * 4;
-					Memory::Write_U32(BufferOut + GETHOSTBYNAME_IP_LIST_OFFSET + i * 4, addr);
-				}
-				Memory::Write_U32(0, BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + num_ip_addr * 4);
-
-				// Aliases - empty. (Hardware doesn't return anything.)
-				Memory::Write_U32(BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + num_ip_addr * 4, BufferOut + 4);
-
-				// Returned struct must be ipv4.
-				_assert_msg_(WII_IPC_NET,
-					remoteHost->h_addrtype == AF_INET && remoteHost->h_length == sizeof(u32),
-					"returned host info is not IPv4");
-				Memory::Write_U16(AF_INET, BufferOut + 8);
-				Memory::Write_U16(sizeof(u32), BufferOut + 10);
-
-				ReturnValue = 0;
-			}
-			else
-			{
-				ReturnValue = -1;
+				u32 addr = BufferOut + GETHOSTBYNAME_IP_LIST_OFFSET + i * 4;
+				Memory::Write_U32_Swap(*(u32*)(remoteHost->h_addr_list[i]), addr);
 			}
 
-			break;
+			// List of pointers to IP addresses; located at offset 0x340.
+			// This must be exact: PPC code to convert the struct hardcodes
+			// this offset.
+			static const u32 GETHOSTBYNAME_IP_PTR_LIST_OFFSET = 0x340;
+			Memory::Write_U32(BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET, BufferOut + 12);
+			for (u32 i = 0; i < num_ip_addr; ++i)
+			{
+				u32 addr = BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + i * 4;
+				Memory::Write_U32(BufferOut + GETHOSTBYNAME_IP_LIST_OFFSET + i * 4, addr);
+			}
+			Memory::Write_U32(0, BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + num_ip_addr * 4);
+
+			// Aliases - empty. (Hardware doesn't return anything.)
+			Memory::Write_U32(BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + num_ip_addr * 4, BufferOut + 4);
+
+			// Returned struct must be ipv4.
+			_assert_msg_(WII_IPC_NET,
+				remoteHost->h_addrtype == AF_INET && remoteHost->h_length == sizeof(u32),
+				"returned host info is not IPv4");
+			Memory::Write_U16(AF_INET, BufferOut + 8);
+			Memory::Write_U16(sizeof(u32), BufferOut + 10);
+
+			ReturnValue = 0;
 		}
+		else
+		{
+			ReturnValue = -1;
+		}
+
+		break;
+	}
 
 	case IOCTL_SO_ICMPCANCEL:
 		ERROR_LOG(WII_IPC_NET, "IOCTL_SO_ICMPCANCEL");
