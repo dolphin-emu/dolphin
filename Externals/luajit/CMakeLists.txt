@@ -117,6 +117,7 @@ elseif (_M_ARM_64)
 	set (DASM_FLAGS -D P64 -D FFI -D DUALNUM)
 	add_definitions (-DLUAJIT_NUMMODE=2)
 	set (TARGET_ARCH -DLUAJIT_TARGET=LUAJIT_ARCH_ARM64)
+	set (CMAKE_VERBOSE_MAKEFILE ON)
 else()
 	# Actually other platforms such as PPC or MIPS are supported
 	# just not by this build file, or Dolphin's main Jit.
