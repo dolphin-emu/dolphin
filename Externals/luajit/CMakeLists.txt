@@ -167,7 +167,7 @@ macro (generate_source name mode)
 	set (GEN_SRCS ${GEN_SRCS} ${GEN_SRC})
 	add_custom_command (OUTPUT ${GEN_SRC}
 		COMMAND ${TOOL_BINARY_DIR}/buildvm -m ${mode} -o ${GEN_SRC} ${ARGN}
-		DEPENDS buildvm ${ARGN}
+		DEPENDS ${TOOL_BINARY_DIR}/buildvm ${ARGN}
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		COMMENT "Generating buildvm output: ${name}")
 endmacro ()
