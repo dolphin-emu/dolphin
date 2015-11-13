@@ -66,9 +66,9 @@ endif ()
 # Some architectures (e.g. PPC) can use either single-number (1) or
 # dual-number (2) mode. Uncomment one of these lines to override the
 # default mode. Please see LJ_ARCH_NUMMODE in lj_arch.h for details.
-if (DEFINED LUAJIT_NUMMODE)
-	add_definitions (-DLUAJIT_NUMMODE=${LUAJIT_NUMMODE})
-endif ()
+#if (DEFINED LUAJIT_NUMMODE)
+	#add_definitions (-DLUAJIT_NUMMODE=${LUAJIT_NUMMODE})
+#endif ()
 
 # Makefile: Debugging support
 # Note that most of these are NOT suitable for benchmarking or release mode!
@@ -114,7 +114,9 @@ if (_M_X86_64)
 	set (DASM_FLAGS -D P64 -D JIT -D FFI)
 elseif (_M_ARM_64)
 	set (DASM_ARCH arm64)
-	set (DASM_FLAGS -D P64 -D FFI)
+	set (DASM_FLAGS -D P64 -D FFI -D DUALNUM)
+	add_definitions (-DLUAJIT_NUMMODE=2)
+	set (TARGET_ARCH -DLUAJIT_TARGET=LUAJIT_ARCH_ARM64)
 else()
 	# Actually other platforms such as PPC or MIPS are supported
 	# just not by this build file, or Dolphin's main Jit.
