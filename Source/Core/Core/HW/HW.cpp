@@ -56,27 +56,27 @@ namespace HW
 			DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 			DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 			WII_IPCInterface::Init();
-			WII_IPC_HLE_Interface::Init();
+			WII_IPC_HLE_Interface::Init(); // Depends on Memory
 		}
 	}
 
 	void Shutdown()
 	{
+		if (SConfig::GetInstance().bWii)
+		{
+			WII_IPC_HLE_Interface::Shutdown(); // Depends on Memory
+			WII_IPCInterface::Shutdown();
+			Common::ShutdownWiiRoot();
+		}
+
 		SystemTimers::Shutdown();
 		CPU::Shutdown();
-		ExpansionInterface::Shutdown();
 		DVDInterface::Shutdown();
 		DSP::Shutdown();
 		Memory::Shutdown();
+		ExpansionInterface::Shutdown();
 		SerialInterface::Shutdown();
 		AudioInterface::Shutdown();
-
-		if (SConfig::GetInstance().bWii)
-		{
-			WII_IPCInterface::Shutdown();
-			WII_IPC_HLE_Interface::Shutdown();
-			Common::ShutdownWiiRoot();
-		}
 
 		State::Shutdown();
 		CoreTiming::Shutdown();
