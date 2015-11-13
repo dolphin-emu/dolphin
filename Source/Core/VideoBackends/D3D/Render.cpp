@@ -313,7 +313,14 @@ bool Renderer::CheckForResize()
 
 void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
-	TargetRectangle trc = ConvertEFBRectangle(rc);
+	TargetRectangle trc = [&rc]() {
+		TargetRectangle result;
+		result.left   = EFBToScaledX(rc.left);
+		result.top    = EFBToScaledY(rc.top);
+		result.right  = EFBToScaledX(rc.right + 1) - 1;
+		result.bottom = EFBToScaledY(rc.bottom + 1) - 1;
+		return result;
+	}();
 	D3D::context->RSSetScissorRects(1, trc.AsRECT());
 }
 

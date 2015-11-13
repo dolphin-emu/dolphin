@@ -768,7 +768,14 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // therefore the width and height are (scissorBR + 1) - scissorTL
 void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
-	TargetRectangle trc = g_renderer->ConvertEFBRectangle(rc);
+	TargetRectangle trc = [&rc]() {
+		TargetRectangle result;
+		result.left   = EFBToScaledX(rc.left);
+		result.top    = EFBToScaledY(EFB_HEIGHT - rc.top);
+		result.right  = EFBToScaledX(rc.right + 1) - 1;
+		result.bottom = EFBToScaledY(EFB_HEIGHT - rc.bottom - 1) + 1;
+		return result;
+	}();
 	glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
 }
 
