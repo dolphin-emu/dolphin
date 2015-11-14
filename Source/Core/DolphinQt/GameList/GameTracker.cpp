@@ -51,9 +51,11 @@ void GameTracker::UpdateDirectory(QString dir)
 		QString path = QFileInfo(it.next()).canonicalFilePath();
 		if (!m_tracked_files.contains(path))
 		{
-			m_tracked_files.insert(path);
-			addPath(path);
-			emit PathChanged(path);
+			if (addPath(path))
+			{
+				m_tracked_files.insert(path);
+				emit PathChanged(path);
+			}
 		}
 	}
 }
@@ -64,16 +66,16 @@ void GameTracker::UpdateFile(QString file)
 	{
 		emit PathChanged(file);
 	}
-	else
+	else if (removePath(file))
 	{
 		m_tracked_files.remove(file);
-		removePath(file);
 		emit GameRemoved(file);
 	}
 }
 
 void GameTracker::GenerateFilters()
 {
+	m_filters.clear();
 	if (SConfig::GetInstance().m_ListGC)
 		m_filters << tr("*.gcm");
 	if (SConfig::GetInstance().m_ListWii || SConfig::GetInstance().m_ListGC)

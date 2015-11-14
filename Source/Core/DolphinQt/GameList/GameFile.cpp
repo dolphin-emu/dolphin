@@ -28,7 +28,7 @@ static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLanguageMap(
 	return result;
 }
 
-GameFile::GameFile(QString path)
+GameFile::GameFile(QString path) : m_path(path)
 {
 	m_valid = false;
 
@@ -36,7 +36,6 @@ GameFile::GameFile(QString path)
 	if (!info.exists() || !info.isReadable())
 		return;
 
-	m_path = info.canonicalFilePath();
 	m_file_name = info.fileName();
 	m_folder = info.dir().dirName();
 	m_last_modified = info.lastModified();
