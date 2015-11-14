@@ -43,8 +43,7 @@
      </property>
      <property name="text">
       <string>Branch: %1
-Revision: %2
-Compiled: %3 @ %4</string>
+Revision: %2</string>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
