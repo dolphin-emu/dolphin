@@ -24,26 +24,18 @@
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
-	UICommon::SetUserDirectory("");
-	UICommon::CreateDirectories();
-	UICommon::Init();
-	Resources::Init();
+	setWindowTitle(tr("Dolphin"));
+	setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
 
 	MakeToolBar();
 	MakeGameList();
 	MakeRenderWidget();
 	MakeStack();
 	MakeMenus();
-
-	setWindowTitle(tr("Dolphin"));
-	setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
 }
 
 MainWindow::~MainWindow()
 {
-	BootManager::Stop();
-	Core::Shutdown();
-	UICommon::Shutdown();
 }
 
 void MainWindow::MakeMenus()
