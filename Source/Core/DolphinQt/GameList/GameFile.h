@@ -12,7 +12,6 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 
 #include "DolphinQt/Utils/Resources.h"
 

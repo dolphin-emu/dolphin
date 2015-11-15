@@ -28,8 +28,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Boot/Boot.h"
 
-#include "DiscIO/CompressedBlob.h"
-#include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
