@@ -7,6 +7,7 @@ set(SRCS
 	Main.cpp
 	MainWindow.cpp
 	Host.cpp
+	RenderWidget.cpp
 	Resources.cpp
 	GameList/GameFile.cpp
 	GameList/GameList.cpp

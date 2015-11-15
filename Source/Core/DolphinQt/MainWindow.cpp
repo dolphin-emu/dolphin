@@ -19,6 +19,7 @@
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
+#include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/Resources.h"
 #include "UICommon/UICommon.h"
 
@@ -36,6 +37,7 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
 
 MainWindow::~MainWindow()
 {
+	m_render_widget->deleteLater();
 }
 
 void MainWindow::MakeMenus()
@@ -85,9 +87,10 @@ void MainWindow::MakeGameList()
 
 void MainWindow::MakeRenderWidget()
 {
-	m_render_widget = new QWidget;
-	m_render_widget->setAttribute(Qt::WA_OpaquePaintEvent, true);
-	m_render_widget->setAttribute(Qt::WA_NoSystemBackground, true);
+	m_render_widget = new RenderWidget;
+	connect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::Stop);
+	m_render_widget->hide();
+	m_rendering_to_main = false;
 }
 
 void MainWindow::MakeStack()
@@ -95,7 +98,6 @@ void MainWindow::MakeStack()
 	m_stack = new QStackedWidget;
 	m_stack->setMinimumSize(800, 600);
 	m_stack->addWidget(m_game_list);
-	m_stack->addWidget(m_render_widget);
 	setCentralWidget(m_stack);
 }
 
@@ -166,7 +168,8 @@ void MainWindow::Play()
 {
 	// If we're in a paused game, start it up again.
 	// Otherwise, play the selected game, if there is one.
-	// If not, play the last played game.
+	// Otherwise, play the last played game, if there is one.
+	// Otherwise, prompt for a new game.
 	if (Core::GetState() == Core::CORE_PAUSE)
 	{
 		Core::SetState(Core::CORE_RUN);
@@ -184,6 +187,8 @@ void MainWindow::Play()
 			QString path = QString::fromStdString(SConfig::GetInstance().m_LastFilename);
 			if (QFile::exists(path))
 				StartGame(path);
+			else
+				Open();
 		}
 	}
 }
@@ -194,34 +199,69 @@ void MainWindow::Pause()
 	emit EmulationPaused();
 }
 
-void MainWindow::Stop()
+bool MainWindow::Stop()
 {
 	bool stop = true;
 	if (SConfig::GetInstance().bConfirmStop)
 	{
-		// We can pause while this is happening.
+		// We could pause the game here and resume it if they say no.
 		QMessageBox::StandardButton confirm;
-		confirm = QMessageBox::question(this, tr("Confirm"), tr("Stop emulation?"));
+		confirm = QMessageBox::question(m_render_widget, tr("Confirm"), tr("Stop emulation?"));
 		stop = (confirm == QMessageBox::Yes);
 	}
 	if (stop)
 	{
 		BootManager::Stop();
-		m_stack->setCurrentWidget(m_game_list);
+		if (m_rendering_to_main)
+		{
+			// Remove the widget from the stack and reparent it to nullptr, so that it can draw
+			// itself in a new window if it wants. Disconnect the title updates.
+			m_stack->removeWidget(m_render_widget);
+			m_render_widget->setParent(nullptr);
+			m_rendering_to_main = false;
+			disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
+			setWindowTitle(tr("Dolphin"));
+		}
+		m_render_widget->hide();
 		emit EmulationStopped();
 	}
+	return stop;
 }
 
 void MainWindow::StartGame(QString path)
 {
-	Host::GetInstance()->SetRenderHandle((void*) m_render_widget->winId());
+	// If we're running, only start a new game once we've stopped the last.
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-		BootManager::Stop();
+		if (!Stop())
+			return;
+	// Boot up, show an error if it fails to load the game.
 	if (!BootManager::BootCore(path.toStdString()))
 	{
 		QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
 		return;
 	}
-	m_stack->setCurrentWidget(m_render_widget);
+	if (SConfig::GetInstance().bRenderToMain)
+	{
+		// If we're rendering to main, add it to the stack and update our title when necessary.
+		m_rendering_to_main = true;
+		m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
+		connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
+	}
+	else
+	{
+		// Otherwise, just show it.
+		m_rendering_to_main = false;
+		if (SConfig::GetInstance().bFullscreen)
+		{
+			m_render_widget->showFullScreen();
+		}
+		else
+		{
+			m_render_widget->setFixedSize(
+					SConfig::GetInstance().iRenderWindowWidth,
+					SConfig::GetInstance().iRenderWindowHeight);
+			m_render_widget->show();
+		}
+	}
 	emit EmulationStarted();
 }

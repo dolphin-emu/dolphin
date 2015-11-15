@@ -4,6 +4,7 @@
 
 #include <QMutexLocker>
 
+#include "Common/Common.h"
 #include "Core/Host.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
@@ -34,13 +35,39 @@ void Host::SetRenderHandle(void* handle)
 	m_render_handle = handle;
 }
 
-void Host_Message(int id) {}
+bool Host::GetRenderFocus()
+{
+	QMutexLocker locker(&m_lock);
+	return m_render_focus;
+}
 
-void Host_UpdateMainFrame() {}
+void Host::SetRenderFocus(bool focus)
+{
+	QMutexLocker locker(&m_lock);
+	m_render_focus = focus;
+}
+
+bool Host::GetRenderFullscreen()
+{
+	QMutexLocker locker(&m_lock);
+	return m_render_fullscreen;
+}
+
+void Host::SetRenderFullscreen(bool fullscreen)
+{
+	QMutexLocker locker(&m_lock);
+	m_render_fullscreen = fullscreen;
+}
+
+void Host_Message(int id)
+{
+	if (id == WM_USER_STOP)
+		emit Host::GetInstance()->RequestStop();
+}
 
 void Host_UpdateTitle(const std::string& title)
 {
-	emit Host::GetInstance()->TitleUpdated(QString::fromStdString(title));
+	emit Host::GetInstance()->RequestTitle(QString::fromStdString(title));
 }
 
 void* Host_GetRenderHandle()
@@ -48,27 +75,27 @@ void* Host_GetRenderHandle()
 	return Host::GetInstance()->GetRenderHandle();
 }
 
-void Host_RequestRenderWindowSize(int w, int h) {}
+bool Host_RendererHasFocus()
+{
+	return Host::GetInstance()->GetRenderFocus();
+}
 
-bool Host_RendererHasFocus() { return false; }
+bool Host_RendererIsFullscreen() {
+	return Host::GetInstance()->GetRenderFullscreen();
+}
 
-bool Host_UIHasFocus() { return false; }
-
-bool Host_RendererIsFullscreen() { return false; }
-
+// We ignore these, and their purpose should be questioned individually.
+// In particular, RequestRenderWindowSize, RequestFullscreen, and
+// UpdateMainFrame should almost certainly be removed.
+void Host_UpdateMainFrame() {}
 void Host_RequestFullscreen(bool enable) {}
-
+void Host_RequestRenderWindowSize(int w, int h) {}
+bool Host_UIHasFocus() { return false; }
 void Host_NotifyMapLoaded() {}
-
 void Host_UpdateDisasmDialog() {}
-
 void Host_SetStartupDebuggingParameters() {}
-
 void Host_SetWiiMoteConnectionState(int state) {}
-
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
-
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
                           const std::string& config_name) {}
-
 void Host_RefreshDSPDebuggerWindow() {}

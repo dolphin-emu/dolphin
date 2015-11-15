@@ -9,6 +9,7 @@
 #include <QString>
 #include <QToolBar>
 
+#include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/GameList/GameList.h"
 
 class MainWindow final : public QMainWindow
@@ -18,8 +19,6 @@ class MainWindow final : public QMainWindow
 public:
 	explicit MainWindow();
 	~MainWindow();
-
-	QWidget* GetRenderWidget() const { return m_render_widget; }
 
 signals:
 	void EmulationStarted();
@@ -31,7 +30,7 @@ private slots:
 	void Browse();
 	void Play();
 	void Pause();
-	void Stop();
+	bool Stop();
 
 private:
 	void MakeMenus();
@@ -47,7 +46,8 @@ private:
 	QStackedWidget* m_stack;
 	QToolBar* m_tool_bar;
 	GameList* m_game_list;
-	QWidget* m_render_widget;
+	RenderWidget* m_render_widget;
+	bool m_rendering_to_main;
 };
 
 extern MainWindow* g_main_window;
