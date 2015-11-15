@@ -146,3 +146,16 @@ void GameFile::SaveCache()
 	// TODO
 }
 
+// This needs to be done carefully since this is showed in the game list.
+QString GameFile::GetLongName() const
+{
+	// Try the settings language, then English, then just pick one.
+	if (m_long_names.isEmpty())
+		return QString();
+	DiscIO::IVolume::ELanguage current_lang = GetLanguage();
+	if (m_long_names.contains(current_lang))
+		return m_long_names[current_lang];
+	if (m_long_names.contains(DiscIO::IVolume::LANGUAGE_ENGLISH))
+		return m_long_names[DiscIO::IVolume::LANGUAGE_ENGLISH];
+	return m_long_names.first();
+}

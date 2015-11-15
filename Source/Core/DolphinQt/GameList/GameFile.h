@@ -49,7 +49,7 @@ public:
 		return m_short_names[lang];
 	}
 
-	QString GetLongName() const { return GetLongName(GetLanguage()); }
+	QString GetLongName() const;
 	QString GetLongName(DiscIO::IVolume::ELanguage lang) const
 	{
 		return m_long_names[lang];
