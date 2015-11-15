@@ -243,17 +243,8 @@ void GameFile::SaveToCache()
 
 bool GameFile::IsElfOrDol() const
 {
-	const std::string name = m_file_name.toStdString();
-	const size_t pos = name.rfind('.');
-
-	if (pos != std::string::npos)
-	{
-		std::string ext = name.substr(pos);
-		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-
-		return ext == ".elf" || ext == ".dol";
-	}
-	return false;
+	return m_file_name.endsWith(QStringLiteral(".elf"), Qt::CaseInsensitive) ||
+	       m_file_name.endsWith(QStringLiteral(".dol"), Qt::CaseInsensitive);
 }
 
 QString GameFile::CreateCacheFilename() const
