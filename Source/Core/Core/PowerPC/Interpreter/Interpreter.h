@@ -286,7 +286,8 @@ public:
 	static void RunTable59(UGeckoInstruction _instCode);
 	static void RunTable63(UGeckoInstruction _instCode);
 
-	static u32 Helper_Carry(u32 _uValue1, u32 _uValue2);
+	static u32 Helper_Carry(u32 a, u32 b, u32 c);
+	static u32 Helper_Overflow(u32 a, u32 b, u32 c);
 
 private:
 	// flag helper

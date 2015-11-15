@@ -384,6 +384,20 @@ inline int GetXER_SO()
 
 inline void SetXER_SO(int value)
 {
+	PowerPC::ppcState.xer_so_ov &= ~2;
+	PowerPC::ppcState.xer_so_ov |= value << 1;
+}
+
+inline int GetOverflow()
+{
+	return PowerPC::ppcState.xer_so_ov & 1;
+}
+
+inline void SetOverflow(int value)
+{
+	PowerPC::ppcState.xer_so_ov &= ~1;
+	PowerPC::ppcState.xer_so_ov |= value;
+	// update SO, too
 	PowerPC::ppcState.xer_so_ov |= value << 1;
 }
 
