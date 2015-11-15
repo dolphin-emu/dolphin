@@ -63,8 +63,9 @@
   <!--NOTE: When adding moc'd files, you must list the outputs in the following ItemGroup!-->
   <ItemGroup>
     <QtMoc Include="MainWindow.h" />
-    <QtMoc Include="Host.h" />
     <QtMoc Include="Resources.h" />
+    <QtMoc Include="Host.h" />
+    <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="GameList\GameList.h" />
     <QtMoc Include="GameList\GameListModel.h" />
     <QtMoc Include="GameList\GameTracker.h" />
@@ -81,6 +82,7 @@
     <ClCompile Include="GameList\GameListModel.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
     <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="Main.cpp" />
