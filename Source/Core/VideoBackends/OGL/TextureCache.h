@@ -42,10 +42,8 @@ private:
 		void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) override;
 
-		void FromRenderTarget(u8 *dst, unsigned int dstFormat, u32 dstStride,
-			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
-			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat) override;
+		void FromRenderTarget(u8 *dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+			bool scaleByHalf, unsigned int cbufid, const float *colmat) override;
 
 		void Bind(unsigned int stage) override;
 		bool Save(const std::string& filename, unsigned int level) override;
@@ -55,6 +53,10 @@ private:
 
 	TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 	void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) override;
+
+	void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+		bool isIntensity, bool scaleByHalf) override;
 
 	void CompileShaders() override;
 	void DeleteShaders() override;

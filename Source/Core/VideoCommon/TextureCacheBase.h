@@ -101,10 +101,8 @@ public:
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
-		virtual void FromRenderTarget(u8* dst, unsigned int dstFormat, u32 dstStride,
-			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
-			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat) = 0;
+		virtual void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+			bool scaleByHalf, unsigned int cbufid, const float *colmat) = 0;
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
@@ -112,8 +110,6 @@ public:
 
 		u32 NumBlocksY() const;
 		u32 BytesPerRow() const;
-
-		void Zero(u8* ptr);
 
 		u64 CalculateHash() const;
 	};
@@ -129,6 +125,10 @@ public:
 	static void Invalidate();
 
 	virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
+
+	virtual void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+		bool isIntensity, bool scaleByHalf) = 0;
 
 	virtual void CompileShaders() = 0; // currently only implemented by OGL
 	virtual void DeleteShaders() = 0; // currently only implemented by OGL
