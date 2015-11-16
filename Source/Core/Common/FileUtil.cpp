@@ -728,12 +728,12 @@ std::string GetBundleDirectory()
 }
 #endif
 
-#ifdef _WIN32
 std::string& GetExeDirectory()
 {
 	static std::string DolphinPath;
 	if (DolphinPath.empty())
 	{
+#ifdef _WIN32
 		TCHAR Dolphin_exe_Path[2048];
 		TCHAR Dolphin_exe_Clean_Path[MAX_PATH];
 		GetModuleFileName(nullptr, Dolphin_exe_Path, 2048);
@@ -742,10 +742,20 @@ std::string& GetExeDirectory()
 		else
 			DolphinPath = TStrToUTF8(Dolphin_exe_Path);
 		DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
+#else
+		char Dolphin_exe_Path[PATH_MAX];
+		ssize_t len = ::readlink("/proc/self/exe", Dolphin_exe_Path, sizeof(Dolphin_exe_Path));
+		if (len == -1 || len == sizeof(Dolphin_exe_Path))
+		{
+			len = 0;
+		}
+		Dolphin_exe_Path[len] = '\0';
+		DolphinPath = Dolphin_exe_Path;
+		DolphinPath = DolphinPath.substr(0, DolphinPath.rfind('/'));
+#endif
 	}
 	return DolphinPath;
 }
-#endif
 
 std::string GetSysDirectory()
 {
@@ -753,7 +763,7 @@ std::string GetSysDirectory()
 
 #if defined (__APPLE__)
 	sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
-#elif defined (_WIN32)
+#elif defined (_WIN32) || defined (LINUX_LOCAL_DEV)
 	sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
 #else
 	sysDir = SYSDATA_DIR;
@@ -776,7 +786,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
 		s_user_paths[D_GAMESETTINGS_IDX]   = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
 		s_user_paths[D_MAPS_IDX]           = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
 		s_user_paths[D_CACHE_IDX]          = s_user_paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
-		s_user_paths[D_SHADERCACHE_IDX]    = s_user_paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP;
+		s_user_paths[D_SHADERCACHE_IDX]    = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
 		s_user_paths[D_SHADERS_IDX]        = s_user_paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
 		s_user_paths[D_STATESAVES_IDX]     = s_user_paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
 		s_user_paths[D_SCREENSHOTS_IDX]    = s_user_paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
@@ -799,12 +809,20 @@ static void RebuildUserDirectories(unsigned int dir_index)
 		s_user_paths[F_ARAMDUMP_IDX]       = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
 		s_user_paths[F_FAKEVMEMDUMP_IDX]   = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
 		s_user_paths[F_GCSRAM_IDX]         = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
+
+		// The shader cache has moved to the cache directory, so remove the old one.
+		// TODO: remove that someday.
+		File::DeleteDirRecursively(s_user_paths[D_USER_IDX] + SHADERCACHE_LEGACY_DIR DIR_SEP);
 		break;
 
 	case D_CONFIG_IDX:
 		s_user_paths[F_DOLPHINCONFIG_IDX]  = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
 		s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
 		s_user_paths[F_LOGGERCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+		break;
+
+	case D_CACHE_IDX:
+		s_user_paths[D_SHADERCACHE_IDX]    = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
 		break;
 
 	case D_GCUSER_IDX:

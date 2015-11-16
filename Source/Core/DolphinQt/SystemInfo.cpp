@@ -51,7 +51,6 @@ void DSystemInfo::UpdateSystemInfo()
 
 	sysinfo += SL("\nDolphin\n===========================\n");
 	sysinfo += SL("SCM: branch %1, rev %2\n").arg(SC(scm_branch_str)).arg(SC(scm_rev_git_str));
-	sysinfo += SL("Compiled: %1, %2\n").arg(SL(__DATE__)).arg(SL(__TIME__));
 
 	sysinfo += SL("\nGUI\n===========================\n");
 	sysinfo += SL("Compiled for Qt: %1\n").arg(SL(QT_VERSION_STR));

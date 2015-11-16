@@ -145,7 +145,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, expanded_width, level, usage);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
+TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
 	if (config.rendertarget)
 	{
@@ -184,10 +184,8 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConf
 	}
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, unsigned int dstFormat, u32 dstStride,
-	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
-	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-	const float *colmat)
+void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+	bool scaleByHalf, unsigned int cbufid, const float *colmat)
 {
 	g_renderer->ResetAPIState();
 
@@ -236,11 +234,13 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, unsigned int dstFormat
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 	g_renderer->RestoreAPIState();
+}
 
-	if (g_ActiveConfig.bSkipEFBCopyToRam)
-		this->Zero(dst);
-	else
-		g_encoder->Encode(dst, this, srcFormat, srcRect, isIntensity, scaleByHalf);
+void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+	bool isIntensity, bool scaleByHalf)
+{
+	g_encoder->Encode(dst, format, native_width, bytes_per_row, num_blocks_y, memory_stride, srcFormat, srcRect, isIntensity, scaleByHalf);
 }
 
 const char palette_shader[] =

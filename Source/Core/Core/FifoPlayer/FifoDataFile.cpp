@@ -150,7 +150,7 @@ FifoDataFile* FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 	FifoDataFile* dataFile = new FifoDataFile;
 
 	dataFile->m_Flags = header.flags;
-	dataFile->m_Version = header.min_loader_version;
+	dataFile->m_Version = header.file_version;
 
 	if (flagsOnly)
 	{

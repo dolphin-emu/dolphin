@@ -225,7 +225,6 @@ std::string Timer::GetTimeFormatted()
 }
 
 // Returns a timestamp with decimals for precise time comparisons
-// ----------------
 double Timer::GetDoubleTime()
 {
 #ifdef _WIN32
@@ -245,7 +244,7 @@ double Timer::GetDoubleTime()
 	// sure that we are detecting actual actions, perhaps 60 seconds is
 	// enough really, but I leave a year of seconds anyway, in case the
 	// user's clock is incorrect or something like that.
-	TmpSeconds = TmpSeconds - (38 * 365 * 24 * 60 * 60);
+	TmpSeconds = TmpSeconds - DOUBLE_TIME_OFFSET;
 
 	// Make a smaller integer that fits in the double
 	u32 Seconds = (u32)TmpSeconds;
@@ -259,6 +258,18 @@ double Timer::GetDoubleTime()
 	double TmpTime = Seconds + ms;
 
 	return TmpTime;
+}
+
+// Formats a timestamp from GetDoubleTime() into a date and time string
+std::string Timer::GetDateTimeFormatted(double time)
+{
+	// revert adjustments from GetDoubleTime() to get a normal Unix timestamp again
+	time_t seconds = (time_t)time + DOUBLE_TIME_OFFSET;
+	tm* localTime = localtime(&seconds);
+
+	char tmp[32] = {};
+	strftime(tmp, sizeof(tmp), "%x %X", localTime);
+	return tmp;
 }
 
 } // Namespace Common

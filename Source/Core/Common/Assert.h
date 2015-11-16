@@ -37,8 +37,8 @@
 #endif
 
 #define _assert_(_a_) \
-	_assert_msg_(MASTER_LOG, _a_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n\nIgnore and continue?", \
-	             __LINE__, __FILE__, __TIME__)
+	_assert_msg_(MASTER_LOG, _a_, "Error...\n\n  Line: %d\n  File: %s\n\nIgnore and continue?", \
+	             __LINE__, __FILE__)
 
 #define _dbg_assert_(_t_, _a_) \
 	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG) \

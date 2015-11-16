@@ -112,14 +112,6 @@ IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii,
 	return nullptr;
 }
 
-bool IsVolumeWadFile(const IVolume *_rVolume)
-{
-	u32 MagicWord = 0;
-	_rVolume->Read(0x02, 4, (u8*)&MagicWord, false);
-
-	return (Common::swap32(MagicWord) == 0x00204973 || Common::swap32(MagicWord) == 0x00206962);
-}
-
 void VolumeKeyForPartition(IBlobReader& _rReader, u64 offset, u8* VolumeKey)
 {
 	CBlobBigEndianReader Reader(_rReader);

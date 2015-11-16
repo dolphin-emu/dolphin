@@ -20,8 +20,7 @@
 
 #include "Core/ConfigManager.h"
 
-#include "DiscIO/CompressedBlob.h"
-#include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeCreator.h"
 
 #include "DolphinQt/GameList/GameFile.h"
 #include "DolphinQt/Utils/Utils.h"

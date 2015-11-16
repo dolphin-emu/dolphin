@@ -115,31 +115,5 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 	return true;
 }
 
-bool WiiWAD::IsWiiWAD(const std::string& name)
-{
-	std::unique_ptr<IBlobReader> blob_reader(DiscIO::CreateBlobReader(name));
-	if (blob_reader == nullptr)
-		return false;
-
-	CBlobBigEndianReader big_endian_reader(*blob_reader);
-	bool result = false;
-
-	// check for Wii wad
-	if (big_endian_reader.Read32(0x00) == 0x20)
-	{
-		u32 wad_type = big_endian_reader.Read32(0x04);
-		switch (wad_type)
-		{
-		case 0x49730000:
-		case 0x69620000:
-			result = true;
-		}
-	}
-
-	return result;
-}
-
-
-
 } // namespace end
 

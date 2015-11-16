@@ -12,7 +12,6 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 
 #include "DolphinQt/Utils/Resources.h"
 
@@ -35,7 +34,7 @@ public:
 	const QString GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const { return m_country; }
 	DiscIO::IVolume::EPlatform GetPlatform() const { return m_platform; }
-	DiscIO::BlobType GetBlobType() const { m_blob_type; }
+	DiscIO::BlobType GetBlobType() const { return m_blob_type; }
 	const QString GetIssues() const { return m_issues; }
 	int GetEmuState() const { return m_emu_state; }
 	bool IsCompressed() const

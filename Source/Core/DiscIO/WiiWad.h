@@ -34,8 +34,6 @@ public:
 	u8* GetDataApp() const { return m_pDataApp; }
 	u8* GetFooter() const { return m_pFooter; }
 
-	static bool IsWiiWAD(const std::string& _rName);
-
 private:
 
 	bool m_Valid;

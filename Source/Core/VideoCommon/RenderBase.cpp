@@ -88,7 +88,7 @@ Renderer::Renderer()
 	, bLastFrameDumped(false)
 {
 	UpdateActiveConfig();
-	TextureCache::OnConfigChanged(g_ActiveConfig);
+	TextureCacheBase::OnConfigChanged(g_ActiveConfig);
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	bAVIDumping = false;

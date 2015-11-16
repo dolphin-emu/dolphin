@@ -50,11 +50,9 @@ public:
 	virtual bool ExportApploader(const std::string& _rExportFolder) const = 0;
 	virtual bool ExportDOL(const std::string& _rExportFolder) const = 0;
 	virtual const std::string GetFileName(u64 _Address) = 0;
-	virtual bool GetBootDOL(u8* &buffer, u32 DolSize) const = 0;
 	virtual u32 GetBootDOLSize() const = 0;
 	virtual u32 GetBootDOLSize(u64 dol_offset) const = 0;
 
-	virtual const IVolume *GetVolume() const { return m_rVolume; }
 protected:
 	const IVolume *m_rVolume;
 };

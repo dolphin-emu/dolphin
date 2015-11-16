@@ -145,9 +145,7 @@ std::string GetSysDirectory();
 std::string GetBundleDirectory();
 #endif
 
-#ifdef _WIN32
 std::string &GetExeDirectory();
-#endif
 
 bool WriteStringToFile(const std::string& str, const std::string& filename);
 bool ReadFileToString(const std::string& filename, std::string& str);
