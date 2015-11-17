@@ -253,6 +253,9 @@ static inline bool ValidCopyRange(u32 address, size_t size)
 
 void CopyFromEmu(void* data, u32 address, size_t size)
 {
+	if (size == 0)
+		return;
+
 	if (!ValidCopyRange(address, size))
 	{
 		PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
@@ -263,6 +266,9 @@ void CopyFromEmu(void* data, u32 address, size_t size)
 
 void CopyToEmu(u32 address, const void* data, size_t size)
 {
+	if (size == 0)
+		return;
+
 	if (!ValidCopyRange(address, size))
 	{
 		PanicAlert("Invalid range in CopyToEmu. %zx bytes to 0x%08x", size, address);
@@ -273,11 +279,12 @@ void CopyToEmu(u32 address, const void* data, size_t size)
 
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 {
+	if (_iLength == 0)
+		return;
+
 	u8* ptr = GetPointer(_Address);
 	if (ptr != nullptr)
-	{
-		memset(ptr,_iValue,_iLength);
-	}
+		memset(ptr, _iValue, _iLength);
 }
 
 std::string GetString(u32 em_address, size_t size)
