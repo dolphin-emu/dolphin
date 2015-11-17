@@ -315,6 +315,9 @@
     <ClCompile Include="HW\DVDInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClCompile>
+    <ClCompile Include="HW\DVDThread.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClCompile>
     <ClCompile Include="HW\DSPHLE\UCodes\AX.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
@@ -848,6 +851,9 @@
       <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\DVDInterface.h">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DVDThread.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\UCodes\AX.h">

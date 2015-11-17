@@ -59,7 +59,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 
 	// It's possible to boot DOL and ELF files without a disc inserted
 	if (DVDInterface::VolumeIsValid())
-		DVDInterface::DVDRead(/*offset*/0x00000000, /*address*/0x00000000, 0x20, false); // write disc info
+		DVDRead(/*offset*/0x00000000, /*address*/0x00000000, 0x20, false); // write disc info
 
 	PowerPC::HostWrite_U32(0x0D15EA5E, 0x80000020); // Booted from bootrom. 0xE5207C22 = booted from jtag
 	PowerPC::HostWrite_U32(Memory::REALRAM_SIZE, 0x80000028); // Physical Memory Size (24MB on retail)
@@ -98,7 +98,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 		INFO_LOG(BOOT, "GC BS2: Not running apploader!");
 		return false;
 	}
-	DVDInterface::DVDRead(iAppLoaderOffset + 0x20, 0x01200000, iAppLoaderSize, false);
+	DVDRead(iAppLoaderOffset + 0x20, 0x01200000, iAppLoaderSize, false);
 
 	// Setup pointers like real BS2 does
 	if (SConfig::GetInstance().bNTSC)
@@ -149,7 +149,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 		u32 iDVDOffset  = PowerPC::Read_U32(0x8130000c);
 
 		INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
-		DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength, false);
+		DVDRead(iDVDOffset, iRamAddress, iLength, false);
 
 	} while (PowerPC::ppcState.gpr[3] != 0x00);
 
@@ -256,7 +256,7 @@ bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 
 	// When booting a WAD or the system menu, there will probably not be a disc inserted
 	if (DVDInterface::VolumeIsValid())
-		DVDInterface::DVDRead(0x00000000, 0x00000000, 0x20, false); // Game Code
+		DVDRead(0x00000000, 0x00000000, 0x20, false);           // Game Code
 
 	Memory::Write_U32(0x0D15EA5E, 0x00000020);                  // Another magic word
 	Memory::Write_U32(0x00000001, 0x00000024);                  // Unknown
@@ -333,10 +333,10 @@ bool CBoot::EmulatedBS2_Wii()
 	if (DVDInterface::VolumeIsValid() && DVDInterface::GetVolume().GetVolumeType() == DiscIO::IVolume::WII_DISC)
 	{
 		// This is some kind of consistency check that is compared to the 0x00
-		// values as the game boots. This location keep the 4 byte ID for as long
+		// values as the game boots. This location keeps the 4 byte ID for as long
 		// as the game is running. The 6 byte ID at 0x00 is overwritten sometime
 		// after this check during booting.
-		DVDInterface::DVDRead(0, 0x3180, 4, true);
+		DVDRead(0, 0x3180, 4, true);
 
 		// Set up MSR and the BAT SPR registers.
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
@@ -376,7 +376,7 @@ bool CBoot::EmulatedBS2_Wii()
 			ERROR_LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");
 			return false;
 		}
-		DVDInterface::DVDRead(iAppLoaderOffset + 0x20, 0x01200000, iAppLoaderSize, true);
+		DVDRead(iAppLoaderOffset + 0x20, 0x01200000, iAppLoaderSize, true);
 
 		//call iAppLoaderEntry
 		DEBUG_LOG(BOOT, "Call iAppLoaderEntry");
@@ -414,7 +414,7 @@ bool CBoot::EmulatedBS2_Wii()
 			u32 iDVDOffset  = PowerPC::Read_U32(0x8130000c) << 2;
 
 			INFO_LOG(BOOT, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
-			DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength, true);
+			DVDRead(iDVDOffset, iRamAddress, iLength, true);
 		} while (PowerPC::ppcState.gpr[3] != 0x00);
 
 		// iAppLoaderClose

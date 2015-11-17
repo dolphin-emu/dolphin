@@ -247,8 +247,8 @@ bool AreMemoryBreakpointsActivated()
 static inline bool ValidCopyRange(u32 address, size_t size)
 {
 	return (GetPointer(address) != nullptr &&
-	        GetPointer(address + u32(size)) != nullptr &&
-	        size < EXRAM_SIZE); // Make sure we don't have a range spanning seperate 2 banks
+	        GetPointer(address + u32(size) - 1) != nullptr &&
+	        size < EXRAM_SIZE); // Make sure we don't have a range spanning 2 separate banks
 }
 
 void CopyFromEmu(void* data, u32 address, size_t size)
