@@ -25,6 +25,9 @@
 namespace DiscIO
 {
 
+const size_t CVolumeDirectory::MAX_NAME_LENGTH;
+const size_t CVolumeDirectory::MAX_ID_LENGTH;
+
 CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 								   const std::string& _rApploader, const std::string& _rDOL)
 	: m_totalNameSize(0)
@@ -41,15 +44,11 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	SetName("Default name");
 
 	if (_bIsWii)
-	{
 		SetDiskTypeWii();
-	}
 	else
-	{
 		SetDiskTypeGC();
-	}
 
-	// Don't load the dol if we've no apploader...
+	// Don't load the DOL if we don't have an apploader
 	if (SetApploader(_rApploader))
 		SetDOL(_rDOL);
 
@@ -62,8 +61,7 @@ CVolumeDirectory::~CVolumeDirectory()
 
 bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 {
-	std::string directoryName = ExtractDirectoryName(_rDirectory);
-	return File::IsDirectory(directoryName);
+	return File::IsDirectory(ExtractDirectoryName(_rDirectory));
 }
 
 bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
@@ -134,9 +132,7 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
 
 		if (fileOffset < fileSize)
 		{
-			u64 fileBytes = fileSize - fileOffset;
-			if (_Length < fileBytes)
-				fileBytes = _Length;
+			u64 fileBytes = std::min(fileSize - fileOffset, _Length);
 
 			if (!reader->Read(fileOffset, fileBytes, _pBuffer))
 				return false;
@@ -160,24 +156,17 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
 
 std::string CVolumeDirectory::GetUniqueID() const
 {
-	static const size_t ID_LENGTH = 6;
-	return std::string(m_diskHeader.begin(), m_diskHeader.begin() + ID_LENGTH);
+	return std::string(m_diskHeader.begin(), m_diskHeader.begin() + MAX_ID_LENGTH);
 }
 
 void CVolumeDirectory::SetUniqueID(const std::string& id)
 {
-	size_t length = id.length();
-	if (length > 6)
-		length = 6;
-
-	memcpy(m_diskHeader.data(), id.c_str(), length);
+	memcpy(m_diskHeader.data(), id.c_str(), std::min(id.length(), MAX_ID_LENGTH));
 }
 
 IVolume::ECountry CVolumeDirectory::GetCountry() const
 {
-	u8 country_code = m_diskHeader[3];
-
-	return CountrySwitch(country_code);
+	return CountrySwitch(m_diskHeader[3]);
 }
 
 std::string CVolumeDirectory::GetMakerID() const
@@ -196,19 +185,15 @@ std::string CVolumeDirectory::GetInternalName() const
 
 std::map<IVolume::ELanguage, std::string> CVolumeDirectory::GetNames(bool prefer_long) const
 {
-	std::map<IVolume::ELanguage, std::string> names;
 	std::string name = GetInternalName();
-	if (!name.empty())
-		names[IVolume::ELanguage::LANGUAGE_UNKNOWN] = name;
-	return names;
+	if (name.empty())
+		return { { } };
+	return { { IVolume::LANGUAGE_UNKNOWN, name } };
 }
 
 void CVolumeDirectory::SetName(const std::string& name)
 {
-	size_t length = name.length();
-	if (length > MAX_NAME_LENGTH)
-	    length = MAX_NAME_LENGTH;
-
+	size_t length = std::min(name.length(), MAX_NAME_LENGTH);
 	memcpy(&m_diskHeader[0x20], name.c_str(), length);
 	m_diskHeader[length + 0x20] = 0;
 }
@@ -273,10 +258,7 @@ std::string CVolumeDirectory::ExtractDirectoryName(const std::string& _rDirector
 
 void CVolumeDirectory::SetDiskTypeWii()
 {
-	m_diskHeader[0x18] = 0x5d;
-	m_diskHeader[0x19] = 0x1c;
-	m_diskHeader[0x1a] = 0x9e;
-	m_diskHeader[0x1b] = 0xa3;
+	Write32(0x5d1c9ea3, 0x18, &m_diskHeader);
 	memset(&m_diskHeader[0x1c], 0, 4);
 
 	m_is_wii = true;
@@ -286,10 +268,7 @@ void CVolumeDirectory::SetDiskTypeWii()
 void CVolumeDirectory::SetDiskTypeGC()
 {
 	memset(&m_diskHeader[0x18], 0, 4);
-	m_diskHeader[0x1c] = 0xc2;
-	m_diskHeader[0x1d] = 0x33;
-	m_diskHeader[0x1e] = 0x9f;
-	m_diskHeader[0x1f] = 0x3d;
+	Write32(0xc2339f3d, 0x1c, &m_diskHeader);
 
 	m_is_wii = false;
 	m_addressShift = 0;
@@ -396,9 +375,7 @@ void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, const
 
 	if (srcOffset < _SrcLength)
 	{
-		u64 srcBytes = _SrcLength - srcOffset;
-		if (_Length < srcBytes)
-			srcBytes = _Length;
+		u64 srcBytes = std::min(_SrcLength - srcOffset, _Length);
 
 		memcpy(_pBuffer, _Src + srcOffset, (size_t)srcBytes);
 
@@ -410,15 +387,9 @@ void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, const
 
 void CVolumeDirectory::PadToAddress(u64 _StartAddress, u64& _Address, u64& _Length, u8*& _pBuffer) const
 {
-	if (_StartAddress <= _Address)
-		return;
-
-	u64 padBytes = _StartAddress - _Address;
-	if (padBytes > _Length)
-		padBytes = _Length;
-
-	if (_Length > 0)
+	if (_StartAddress > _Address && _Length > 0)
 	{
+		u64 padBytes = std::min(_StartAddress - _Address, _Length);
 		memset(_pBuffer, 0, (size_t)padBytes);
 		_Length -= padBytes;
 		_pBuffer += padBytes;
