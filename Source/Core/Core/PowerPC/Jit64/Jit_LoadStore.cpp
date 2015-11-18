@@ -415,7 +415,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	// FIXME: Work out why the AGP disc writes out of bounds
 	if (!SConfig::GetInstance().bWii)
 		AND(32, R(RSCRATCH), Imm32(Memory::RAM_MASK));
-	PXOR(XMM0, R(XMM0));
+	XORPS(XMM0, R(XMM0));
 	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
 	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
 	SetJumpTarget(exit);

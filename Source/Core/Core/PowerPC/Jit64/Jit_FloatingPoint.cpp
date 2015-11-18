@@ -139,18 +139,18 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
 			SwitchToFarCode();
 				SetJumpTarget(handle_nan);
 				MOVAPD(tmp, R(clobber));
-				PANDN(clobber, R(xmm));
-				PAND(tmp, M(psGeneratedQNaN));
-				POR(tmp, R(clobber));
+				ANDNPD(clobber, R(xmm));
+				ANDPD(tmp, M(psGeneratedQNaN));
+				ORPD(tmp, R(clobber));
 				MOVAPD(xmm, R(tmp));
 				for (u32 x : inputs)
 				{
 					MOVAPD(clobber, fpr.R(x));
 					CMPPD(clobber, R(clobber), CMP_ORD);
 					MOVAPD(tmp, R(clobber));
-					PANDN(clobber, fpr.R(x));
-					PAND(xmm, R(tmp));
-					POR(xmm, R(clobber));
+					ANDNPD(clobber, fpr.R(x));
+					ANDPD(xmm, R(tmp));
+					ORPD(xmm, R(clobber));
 				}
 				FixupBranch done = J(true);
 			SwitchToNearCode();
@@ -331,7 +331,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 				ADDSD(XMM1, fpr.R(b));
 		}
 		if (inst.SUBOP5 == 31) //nmadd
-			PXOR(XMM1, M(packed ? psSignBits2 : psSignBits));
+			XORPD(XMM1, M(packed ? psSignBits2 : psSignBits));
 	}
 	fpr.BindToRegister(d, !single);
 	if (single)
@@ -365,13 +365,13 @@ void Jit64::fsign(UGeckoInstruction inst)
 	switch (inst.SUBOP10)
 	{
 	case 40: // neg
-		avx_op(&XEmitter::VPXOR, &XEmitter::PXOR, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits), packed);
+		avx_op(&XEmitter::VXORPD, &XEmitter::XORPD, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits), packed);
 		break;
 	case 136: // nabs
-		avx_op(&XEmitter::VPOR, &XEmitter::POR, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits), packed);
+		avx_op(&XEmitter::VORPD, &XEmitter::ORPD, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits), packed);
 		break;
 	case 264: // abs
-		avx_op(&XEmitter::VPAND, &XEmitter::PAND, fpr.RX(d), src, M(packed ? psAbsMask2 : psAbsMask), packed);
+		avx_op(&XEmitter::VANDPD, &XEmitter::ANDPD, fpr.RX(d), src, M(packed ? psAbsMask2 : psAbsMask), packed);
 		break;
 	default:
 		PanicAlert("fsign bleh");
@@ -394,7 +394,7 @@ void Jit64::fselx(UGeckoInstruction inst)
 	bool packed = inst.OPCD == 4; // ps_sel
 
 	fpr.Lock(a, b, c, d);
-	PXOR(XMM0, R(XMM0));
+	XORPD(XMM0, R(XMM0));
 	// This condition is very tricky; there's only one right way to handle both the case of
 	// negative/positive zero and NaN properly.
 	// (a >= -0.0 ? c : b) transforms into (0 > a ? b : c), hence the NLE.
@@ -411,9 +411,9 @@ void Jit64::fselx(UGeckoInstruction inst)
 	else
 	{
 		MOVAPD(XMM1, R(XMM0));
-		PAND(XMM0, fpr.R(b));
-		PANDN(XMM1, fpr.R(c));
-		POR(XMM1, R(XMM0));
+		ANDPD(XMM0, fpr.R(b));
+		ANDNPD(XMM1, fpr.R(c));
+		ORPD(XMM1, R(XMM0));
 	}
 
 	fpr.BindToRegister(d, !packed);
