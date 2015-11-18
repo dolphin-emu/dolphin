@@ -345,7 +345,7 @@ wxMenuBar* CFrame::CreateMenu()
 
 	viewMenu->AppendCheckItem(IDM_LIST_DRIVES, _("Show Drives"));
 	viewMenu->Check(IDM_LIST_DRIVES, SConfig::GetInstance().m_ListDrives);
-	viewMenu->Append(IDM_PURGE_CACHE, _("Purge Cache"));
+	viewMenu->Append(IDM_PURGE_GAME_LIST_CACHE, _("Purge Game List Cache"));
 
 	wxMenu *columnsMenu = new wxMenu;
 	viewMenu->AppendSubMenu(columnsMenu, _("Select Columns"));
@@ -1953,7 +1953,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 	case IDM_LIST_DRIVES:
 		SConfig::GetInstance().m_ListDrives = event.IsChecked();
 		break;
-	case IDM_PURGE_CACHE:
+	case IDM_PURGE_GAME_LIST_CACHE:
 		std::vector<std::string> rFilenames = DoFileSearch({".cache"}, {File::GetUserPath(D_CACHE_IDX)});
 
 		for (const std::string& rFilename : rFilenames)
