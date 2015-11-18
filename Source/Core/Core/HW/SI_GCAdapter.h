@@ -13,6 +13,7 @@ namespace SI_GCAdapter
 
 void Init();
 void Reset();
+void ResetRumble();
 void Setup();
 void Shutdown();
 void SetAdapterCallback(std::function<void(void)> func);
