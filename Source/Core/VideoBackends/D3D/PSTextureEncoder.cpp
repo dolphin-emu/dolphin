@@ -106,11 +106,7 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(words_per_row), FLOAT(num_blocks_y));
 		D3D::context->RSSetViewports(1, &vp);
 
-		EFBRectangle fullSrcRect;
-		fullSrcRect.left = 0;
-		fullSrcRect.top = 0;
-		fullSrcRect.right = EFB_WIDTH;
-		fullSrcRect.bottom = EFB_HEIGHT;
+		constexpr EFBRectangle fullSrcRect(0, 0, EFB_WIDTH, EFB_HEIGHT);
 		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
 
 		D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
