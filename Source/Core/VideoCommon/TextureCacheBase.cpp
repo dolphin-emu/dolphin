@@ -409,16 +409,22 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 		additional_mips_size += TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
 	}
 
-	// If we are recording a FifoLog, keep track of what memory we read.
-	// FifiRecorder does it's own memory modification tracking independant of the texture hashing below.
-	if (g_bRecordFifoData && !from_tmem)
-		FifoRecorder::GetInstance().UseMemory(address, texture_size + additional_mips_size, MemoryUpdate::TEXTURE_MAP);
-
 	const u8* src_data;
 	if (from_tmem)
 		src_data = &texMem[bpmem.tex[stage / 4].texImage1[stage % 4].tmem_even * TMEM_LINE_SIZE];
 	else
 		src_data = Memory::GetPointer(address);
+
+	if (!src_data)
+	{
+		ERROR_LOG(VIDEO, "Trying to use an invalid texture address 0x%8x", address);
+		return nullptr;
+	}
+
+	// If we are recording a FifoLog, keep track of what memory we read.
+	// FifiRecorder does it's own memory modification tracking independant of the texture hashing below.
+	if (g_bRecordFifoData && !from_tmem)
+		FifoRecorder::GetInstance().UseMemory(address, texture_size + additional_mips_size, MemoryUpdate::TEXTURE_MAP);
 
 	// TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data from the low tmem bank than it should)
 	base_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
