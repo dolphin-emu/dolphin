@@ -465,6 +465,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupports2DTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage_multisample");
 	g_ogl_config.bSupportsEarlyFragmentTests = GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_ogl_config.bSupportsConservativeDepth = GLExtensions::Supports("GL_ARB_conservative_depth");
+	g_ogl_config.bSupportsAniso = GLExtensions::Supports("GL_EXT_texture_filter_anisotropic");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{

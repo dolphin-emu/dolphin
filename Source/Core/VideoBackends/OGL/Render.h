@@ -52,6 +52,7 @@ struct VideoConfig
 	bool bSupports3DTextureStorage;
 	bool bSupportsEarlyFragmentTests;
 	bool bSupportsConservativeDepth;
+	bool bSupportsAniso;
 
 	const char* gl_vendor;
 	const char* gl_renderer;
