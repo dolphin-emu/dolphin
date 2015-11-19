@@ -16,9 +16,7 @@
 #include "Common/NonCopyable.h"
 #include "Common/Timer.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteRealBase.h"
-#include "InputCommon/InputConfig.h"
 
 class PointerWrap;
 
@@ -29,7 +27,6 @@ namespace WiimoteReal
 
 class Wiimote : NonCopyable
 {
-friend class WiimoteEmu::Wiimote;
 public:
 	virtual ~Wiimote() {}
 	// This needs to be called in derived destructors!

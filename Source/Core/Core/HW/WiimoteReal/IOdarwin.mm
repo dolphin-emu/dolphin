@@ -1,6 +1,8 @@
 #define BLUETOOTH_VERSION_USE_CURRENT
 
 #include "Common/Common.h"
+#include "Common/Logging/Log.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 @interface SearchBT: NSObject {
