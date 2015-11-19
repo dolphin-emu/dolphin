@@ -36,11 +36,7 @@ constexpr size_t ArraySize(T (&arr)[N])
 #endif
 
 // go to debugger mode
-	#ifdef _M_X86
-		#define Crash() {asm ("int $3");}
-	#else
-		#define Crash() { exit(1); }
-	#endif
+#define Crash() { __builtin_trap(); }
 
 // GCC 4.8 defines all the rotate functions now
 // Small issue with GCC's lrotl/lrotr intrinsics is they are still 32bit while we require 64bit
