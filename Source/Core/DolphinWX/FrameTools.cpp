@@ -171,7 +171,7 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu *slotSelectMenu = new wxMenu;
 	emulationMenu->Append(IDM_LOAD_STATE, _("&Load State"), loadMenu);
 	emulationMenu->Append(IDM_SAVE_STATE, _("Sa&ve State"), saveMenu);
-	emulationMenu->Append(IDM_SELECT_SLOT, _("Select State slot"), slotSelectMenu);
+	emulationMenu->Append(IDM_SELECT_SLOT, _("Select State Slot"), slotSelectMenu);
 
 	saveMenu->Append(IDM_SAVE_STATE_FILE, GetMenuLabel(HK_SAVE_STATE_FILE));
 	saveMenu->Append(IDM_SAVE_SELECTED_SLOT, GetMenuLabel(HK_SAVE_STATE_SLOT_SELECTED));
@@ -248,7 +248,7 @@ wxMenuBar* CFrame::CreateMenu()
 	toolsMenu->Append(IDM_MENU_INSTALL_WAD, _("Install WAD"));
 	UpdateWiiMenuChoice(toolsMenu->Append(IDM_LOAD_WII_MENU, "Dummy string to keep wxw happy"));
 
-	toolsMenu->Append(IDM_FIFOPLAYER, _("Fifo Player"));
+	toolsMenu->Append(IDM_FIFOPLAYER, _("FIFO Player"));
 
 	toolsMenu->AppendSeparator();
 	wxMenu* wiimoteMenu = new wxMenu;
@@ -265,7 +265,7 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu* viewMenu = new wxMenu;
 	viewMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _("Show &Toolbar"));
 	viewMenu->Check(IDM_TOGGLE_TOOLBAR, SConfig::GetInstance().m_InterfaceToolbar);
-	viewMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _("Show &Statusbar"));
+	viewMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _("Show &Status Bar"));
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
 	viewMenu->AppendSeparator();
 	viewMenu->AppendCheckItem(IDM_LOG_WINDOW, _("Show &Log"));
@@ -306,9 +306,9 @@ wxMenuBar* CFrame::CreateMenu()
 	platformMenu->Check(IDM_LIST_WII, SConfig::GetInstance().m_ListWii);
 	platformMenu->AppendCheckItem(IDM_LIST_GC, _("Show GameCube"));
 	platformMenu->Check(IDM_LIST_GC, SConfig::GetInstance().m_ListGC);
-	platformMenu->AppendCheckItem(IDM_LIST_WAD, _("Show Wad"));
+	platformMenu->AppendCheckItem(IDM_LIST_WAD, _("Show WAD"));
 	platformMenu->Check(IDM_LIST_WAD, SConfig::GetInstance().m_ListWad);
-	platformMenu->AppendCheckItem(IDM_LIST_ELFDOL, _("Show Elf/Dol"));
+	platformMenu->AppendCheckItem(IDM_LIST_ELFDOL, _("Show ELF/DOL"));
 	platformMenu->Check(IDM_LIST_ELFDOL, SConfig::GetInstance().m_ListElfDol);
 
 	wxMenu *regionMenu = new wxMenu;
@@ -550,8 +550,8 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	ToolBar->AddSeparator();
 	WxUtils::AddToolbarButton(ToolBar, IDM_PLAY,                _("Play"),        m_Bitmaps[Toolbar_Play],        _("Play"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_STOP,                _("Stop"),        m_Bitmaps[Toolbar_Stop],        _("Stop"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_TOGGLE_FULLSCREEN,   _("FullScr"),     m_Bitmaps[Toolbar_FullScreen],  _("Toggle Fullscreen"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_SCREENSHOT,          _("ScrShot"),     m_Bitmaps[Toolbar_Screenshot],  _("Take Screenshot"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_TOGGLE_FULLSCREEN,   _("FullScr"),     m_Bitmaps[Toolbar_FullScreen],  _("Toggle fullscreen"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_SCREENSHOT,          _("ScrShot"),     m_Bitmaps[Toolbar_Screenshot],  _("Take screenshot"));
 	ToolBar->AddSeparator();
 	WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES,        _("Config"),      m_Bitmaps[Toolbar_ConfigMain],  _("Configure..."));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND,  _("Graphics"),    m_Bitmaps[Toolbar_ConfigGFX],   _("Graphics settings"));
