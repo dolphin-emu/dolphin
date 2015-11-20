@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
@@ -37,7 +38,8 @@
 #endif
 
 #define _assert_(_a_) \
-	_assert_msg_(MASTER_LOG, _a_, "Error...\n\n  Line: %d\n  File: %s\n\nIgnore and continue?", \
+	_assert_msg_(MASTER_LOG, _a_, \
+	             _trans("An error occurred.\n\n  Line: %d\n  File: %s\n\nIgnore and continue?"), \
 	             __LINE__, __FILE__)
 
 #define _dbg_assert_(_t_, _a_) \
