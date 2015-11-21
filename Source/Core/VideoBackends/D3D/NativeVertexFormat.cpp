@@ -20,16 +20,15 @@ class D3DVertexFormat : public NativeVertexFormat
 	ID3D11InputLayout* m_layout;
 
 public:
-	D3DVertexFormat() : m_num_elems(0), m_layout(nullptr) {}
+	D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
 	~D3DVertexFormat() { SAFE_RELEASE(m_layout); }
 
-	void Initialize(const PortableVertexDeclaration &_vtx_decl);
 	void SetupVertexPointers();
 };
 
-NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
+NativeVertexFormat* VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-	return new D3DVertexFormat();
+	return new D3DVertexFormat(vtx_decl);
 }
 
 static const DXGI_FORMAT d3d_format_lookup[5*4*2] =
@@ -57,9 +56,10 @@ DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
 	return retval;
 }
 
-void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
+D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
+ : m_num_elems(0), m_layout(nullptr)
 {
-	vtx_decl = _vtx_decl;
+	this->vtx_decl = _vtx_decl;
 	memset(m_elems, 0, sizeof(m_elems));
 	const AttributeFormat* format = &_vtx_decl.position;
 
