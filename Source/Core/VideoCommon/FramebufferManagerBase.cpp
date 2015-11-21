@@ -59,7 +59,7 @@ const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr
 		m_realXFBSource = nullptr;
 	}
 
-	if (!m_realXFBSource)
+	if (!m_realXFBSource && g_framebuffer_manager)
 		m_realXFBSource = g_framebuffer_manager->CreateXFBSource(fbWidth, fbHeight, 1);
 
 	if (!m_realXFBSource)
@@ -121,13 +121,21 @@ const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbA
 void FramebufferManagerBase::CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 {
 	if (g_ActiveConfig.bUseRealXFB)
-		g_framebuffer_manager->CopyToRealXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
+	{
+		if (g_framebuffer_manager)
+			g_framebuffer_manager->CopyToRealXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
+	}
 	else
+	{
 		CopyToVirtualXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
+	}
 }
 
 void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 {
+	if (!g_framebuffer_manager)
+		return;
+
 	VirtualXFBListType::iterator vxfb = FindVirtualXFB(xfbAddr, sourceRc.GetWidth(), fbHeight);
 
 	if (m_virtualXFBList.end() == vxfb)
