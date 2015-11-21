@@ -62,6 +62,9 @@ const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr
 	if (!m_realXFBSource)
 		m_realXFBSource = g_framebuffer_manager->CreateXFBSource(fbWidth, fbHeight, 1);
 
+	if (!m_realXFBSource)
+		return nullptr;
+
 	m_realXFBSource->srcAddr = xfbAddr;
 
 	m_realXFBSource->srcWidth = MAX_XFB_WIDTH;
@@ -160,6 +163,9 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbStride, u32 fbH
 	if (!vxfb->xfbSource)
 	{
 		vxfb->xfbSource = g_framebuffer_manager->CreateXFBSource(target_width, target_height, m_EFBLayers);
+		if (!vxfb->xfbSource)
+			return;
+
 		vxfb->xfbSource->texWidth = target_width;
 		vxfb->xfbSource->texHeight = target_height;
 	}
