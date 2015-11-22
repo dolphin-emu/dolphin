@@ -349,7 +349,7 @@ ID3D11PixelShader* PixelShaderCache::GetColorCopyProgram(bool multisampled)
 		std::string buf = StringFromFormat(color_copy_program_code_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
 		s_ColorCopyProgram[1] = D3D::CompileAndCreatePixelShader(buf);
 		CHECK(s_ColorCopyProgram[1]!=nullptr, "Create color copy MSAA pixel shader");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ColorCopyProgram[1], "color copy MSAA pixel shader");
+		D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(s_ColorCopyProgram[1]), "color copy MSAA pixel shader");
 		return s_ColorCopyProgram[1];
 	}
 }
@@ -370,7 +370,7 @@ ID3D11PixelShader* PixelShaderCache::GetColorMatrixProgram(bool multisampled)
 		std::string buf = StringFromFormat(color_matrix_program_code_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
 		s_ColorMatrixProgram[1] = D3D::CompileAndCreatePixelShader(buf);
 		CHECK(s_ColorMatrixProgram[1]!=nullptr, "Create color matrix MSAA pixel shader");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ColorMatrixProgram[1], "color matrix MSAA pixel shader");
+		D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(s_ColorMatrixProgram[1]), "color matrix MSAA pixel shader");
 		return s_ColorMatrixProgram[1];
 	}
 }
@@ -391,7 +391,7 @@ ID3D11PixelShader* PixelShaderCache::GetDepthMatrixProgram(bool multisampled)
 		std::string buf = StringFromFormat(depth_matrix_program_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
 		s_DepthMatrixProgram[1] = D3D::CompileAndCreatePixelShader(buf);
 		CHECK(s_DepthMatrixProgram[1]!=nullptr, "Create depth matrix MSAA pixel shader");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)s_DepthMatrixProgram[1], "depth matrix MSAA pixel shader");
+		D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(s_DepthMatrixProgram[1]), "depth matrix MSAA pixel shader");
 		return s_DepthMatrixProgram[1];
 	}
 }
@@ -438,32 +438,32 @@ void PixelShaderCache::Init()
 	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	D3D::device->CreateBuffer(&cbdesc, nullptr, &pscbuf);
 	CHECK(pscbuf!=nullptr, "Create pixel shader constant buffer");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)pscbuf, "pixel shader constant buffer used to emulate the GX pipeline");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(pscbuf), "pixel shader constant buffer used to emulate the GX pipeline");
 
 	// used when drawing clear quads
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code);
 	CHECK(s_ClearProgram!=nullptr, "Create clear pixel shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "clear pixel shader");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(s_ClearProgram), "clear pixel shader");
 
 	// used for anaglyph stereoscopy
 	s_AnaglyphProgram = D3D::CompileAndCreatePixelShader(anaglyph_program_code);
 	CHECK(s_AnaglyphProgram != nullptr, "Create anaglyph pixel shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_AnaglyphProgram, "anaglyph pixel shader");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(s_AnaglyphProgram), "anaglyph pixel shader");
 
 	// used when copying/resolving the color buffer
 	s_ColorCopyProgram[0] = D3D::CompileAndCreatePixelShader(color_copy_program_code);
 	CHECK(s_ColorCopyProgram[0]!=nullptr, "Create color copy pixel shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ColorCopyProgram[0], "color copy pixel shader");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(s_ColorCopyProgram[0]), "color copy pixel shader");
 
 	// used for color conversion
 	s_ColorMatrixProgram[0] = D3D::CompileAndCreatePixelShader(color_matrix_program_code);
 	CHECK(s_ColorMatrixProgram[0]!=nullptr, "Create color matrix pixel shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ColorMatrixProgram[0], "color matrix pixel shader");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(s_ColorMatrixProgram[0]), "color matrix pixel shader");
 
 	// used for depth copy
 	s_DepthMatrixProgram[0] = D3D::CompileAndCreatePixelShader(depth_matrix_program);
 	CHECK(s_DepthMatrixProgram[0]!=nullptr, "Create depth matrix pixel shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_DepthMatrixProgram[0], "depth matrix pixel shader");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(s_DepthMatrixProgram[0]), "depth matrix pixel shader");
 
 	Clear();
 
@@ -590,7 +590,7 @@ bool PixelShaderCache::InsertByteCode(const PixelShaderUid &uid, const void* byt
 		return false;
 
 	// TODO: Somehow make the debug name a bit more specific
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a pixel shader of PixelShaderCache");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(shader), "a pixel shader of PixelShaderCache");
 
 	// Make an entry in the table
 	PSCacheEntry newentry;

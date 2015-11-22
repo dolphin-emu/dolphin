@@ -77,7 +77,7 @@ int BBox::Get(int index)
 	HRESULT hr = D3D::context->Map(s_bbox_staging_buffer, 0, D3D11_MAP_READ, 0, &map);
 	if (SUCCEEDED(hr))
 	{
-		data = ((s32*)map.pData)[index];
+		data = static_cast<s32*>(map.pData)[index];
 	}
 	D3D::context->Unmap(s_bbox_staging_buffer, 0);
 	return data;

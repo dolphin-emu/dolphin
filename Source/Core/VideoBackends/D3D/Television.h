@@ -30,7 +30,7 @@ public:
 	void Submit(u32 xfbAddr, u32 stride, u32 width, u32 height);
 
 	// Render the current state of the TV.
-	void Render();
+	void Render() const;
 
 private:
 

@@ -270,7 +270,7 @@ void XFBEncoder::Shutdown()
 	SAFE_RELEASE(m_out);
 }
 
-void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcRect, float gamma)
+void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcRect, float gamma) const
 {
 	HRESULT hr;
 
@@ -346,11 +346,11 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
 	// Transfer staging buffer to GameCube/Wii RAM
 
-	D3D11_MAPPED_SUBRESOURCE map = { 0 };
+	D3D11_MAPPED_SUBRESOURCE map = { nullptr };
 	hr = D3D::context->Map(m_outStage, 0, D3D11_MAP_READ, 0, &map);
 	CHECK(SUCCEEDED(hr), "map staging buffer");
 
-	u8* src = (u8*)map.pData;
+	u8* src = static_cast<u8*>(map.pData);
 	for (unsigned int y = 0; y < height; ++y)
 	{
 		memcpy(dst, src, 2*width);

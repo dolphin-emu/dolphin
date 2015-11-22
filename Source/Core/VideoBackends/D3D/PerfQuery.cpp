@@ -99,7 +99,7 @@ void PerfQuery::FlushOne()
 	}
 
 	// NOTE: Reported pixel metrics should be referenced to native resolution
-	m_results[entry.query_type] += (u32)(result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight());
+	m_results[entry.query_type] += static_cast<u32>(result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight());
 
 	m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
 	--m_query_count;
@@ -124,7 +124,7 @@ void PerfQuery::WeakFlush()
 		if (hr == S_OK)
 		{
 			// NOTE: Reported pixel metrics should be referenced to native resolution
-			m_results[entry.query_type] += (u32)(result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight());
+			m_results[entry.query_type] += static_cast<u32>(result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight());
 
 			m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
 			--m_query_count;

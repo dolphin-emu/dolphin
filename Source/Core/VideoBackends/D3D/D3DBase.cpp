@@ -64,7 +64,7 @@ HRESULT LoadDXGI()
 		--dxgi_dll_ref;
 		return E_FAIL;
 	}
-	PCreateDXGIFactory = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory");
+	PCreateDXGIFactory = reinterpret_cast<CREATEDXGIFACTORY>(GetProcAddress(hDXGIDll, "CreateDXGIFactory"));
 	if (PCreateDXGIFactory == nullptr) MessageBoxA(nullptr, "GetProcAddress failed for CreateDXGIFactory!", "Critical error", MB_OK | MB_ICONERROR);
 
 	return S_OK;
@@ -82,10 +82,10 @@ HRESULT LoadD3D()
 		--d3d_dll_ref;
 		return E_FAIL;
 	}
-	PD3D11CreateDevice = (D3D11CREATEDEVICE)GetProcAddress(hD3DDll, "D3D11CreateDevice");
+	PD3D11CreateDevice = reinterpret_cast<D3D11CREATEDEVICE>(GetProcAddress(hD3DDll, "D3D11CreateDevice"));
 	if (PD3D11CreateDevice == nullptr) MessageBoxA(nullptr, "GetProcAddress failed for D3D11CreateDevice!", "Critical error", MB_OK | MB_ICONERROR);
 
-	PD3D11CreateDeviceAndSwapChain = (D3D11CREATEDEVICEANDSWAPCHAIN)GetProcAddress(hD3DDll, "D3D11CreateDeviceAndSwapChain");
+	PD3D11CreateDeviceAndSwapChain = reinterpret_cast<D3D11CREATEDEVICEANDSWAPCHAIN>(GetProcAddress(hD3DDll, "D3D11CreateDeviceAndSwapChain"));
 	if (PD3D11CreateDeviceAndSwapChain == nullptr) MessageBoxA(nullptr, "GetProcAddress failed for D3D11CreateDeviceAndSwapChain!", "Critical error", MB_OK | MB_ICONERROR);
 
 	return S_OK;
@@ -114,9 +114,9 @@ HRESULT LoadD3DCompiler()
 		}
 	}
 
-	PD3DReflect = (D3DREFLECT)GetProcAddress(hD3DCompilerDll, "D3DReflect");
+	PD3DReflect = reinterpret_cast<D3DREFLECT>(GetProcAddress(hD3DCompilerDll, "D3DReflect"));
 	if (PD3DReflect == nullptr) MessageBoxA(nullptr, "GetProcAddress failed for D3DReflect!", "Critical error", MB_OK | MB_ICONERROR);
-	PD3DCompile = (pD3DCompile)GetProcAddress(hD3DCompilerDll, "D3DCompile");
+	PD3DCompile = reinterpret_cast<pD3DCompile>(GetProcAddress(hD3DCompilerDll, "D3DCompile"));
 	if (PD3DCompile == nullptr) MessageBoxA(nullptr, "GetProcAddress failed for D3DCompile!", "Critical error", MB_OK | MB_ICONERROR);
 
 	return S_OK;
@@ -228,7 +228,7 @@ HRESULT Create(HWND wnd)
 	IDXGIFactory* factory;
 	IDXGIAdapter* adapter;
 	IDXGIOutput* output;
-	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&factory));
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 
 	hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
@@ -258,7 +258,7 @@ HRESULT Create(HWND wnd)
 
 	// get supported AA modes
 	aa_modes = EnumAAModes(adapter);
-	if (g_Config.iMultisampleMode >= (int)aa_modes.size())
+	if (g_Config.iMultisampleMode >= static_cast<int>(aa_modes.size()))
 	{
 		g_Config.iMultisampleMode = 0;
 		UpdateActiveConfig();
@@ -301,10 +301,10 @@ HRESULT Create(HWND wnd)
 											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
 											&featlevel, &context);
 		// Debugbreak on D3D error
-		if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&debug)))
+		if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debug))))
 		{
 			ID3D11InfoQueue* infoQueue = nullptr;
-			if (SUCCEEDED(debug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&infoQueue)))
+			if (SUCCEEDED(debug->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void**>(&infoQueue))))
 			{
 				infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
 				infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
@@ -348,13 +348,13 @@ HRESULT Create(HWND wnd)
 	hr = factory->MakeWindowAssociation(wnd, DXGI_MWA_NO_WINDOW_CHANGES);
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 
-	SetDebugObjectName((ID3D11DeviceChild*)context, "device context");
+	SetDebugObjectName(static_cast<ID3D11DeviceChild*>(context), "device context");
 	SAFE_RELEASE(factory);
 	SAFE_RELEASE(output);
 	SAFE_RELEASE(adapter);
 
 	ID3D11Texture2D* buf;
-	hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
+	hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, reinterpret_cast<void**>(&buf));
 	if (FAILED(hr))
 	{
 		MessageBox(wnd, _T("Failed to get swapchain buffer"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
@@ -366,8 +366,8 @@ HRESULT Create(HWND wnd)
 	backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
 	SAFE_RELEASE(buf);
 	CHECK(backbuf!=nullptr, "Create back buffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
+	SetDebugObjectName(static_cast<ID3D11DeviceChild*>(backbuf->GetTex()), "backbuffer texture");
+	SetDebugObjectName(static_cast<ID3D11DeviceChild*>(backbuf->GetRTV()), "backbuffer render target view");
 
 	context->OMSetRenderTargets(1, &backbuf->GetRTV(), nullptr);
 
@@ -485,11 +485,11 @@ void Reset()
 	GetClientRect(hWnd, &client);
 	xres = client.right - client.left;
 	yres = client.bottom - client.top;
-	D3D::swapchain->ResizeBuffers(1, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	swapchain->ResizeBuffers(1, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
 	// recreate back buffer texture
 	ID3D11Texture2D* buf;
-	HRESULT hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
+	HRESULT hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, reinterpret_cast<void**>(&buf));
 	if (FAILED(hr))
 	{
 		MessageBox(hWnd, _T("Failed to get swapchain buffer"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
@@ -501,8 +501,8 @@ void Reset()
 	backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
 	SAFE_RELEASE(buf);
 	CHECK(backbuf!=nullptr, "Create back buffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
+	SetDebugObjectName(static_cast<ID3D11DeviceChild*>(backbuf->GetTex()), "backbuffer texture");
+	SetDebugObjectName(static_cast<ID3D11DeviceChild*>(backbuf->GetRTV()), "backbuffer render target view");
 }
 
 bool BeginFrame()
@@ -529,7 +529,7 @@ void EndFrame()
 void Present()
 {
 	// TODO: Is 1 the correct value for vsyncing?
-	swapchain->Present((UINT)g_ActiveConfig.IsVSync(), 0);
+	swapchain->Present(static_cast<UINT>(g_ActiveConfig.IsVSync()), 0);
 }
 
 HRESULT SetFullscreenState(bool enable_fullscreen)

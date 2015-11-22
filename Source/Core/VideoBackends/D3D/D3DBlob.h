@@ -16,16 +16,16 @@ class D3DBlob
 {
 public:
 	// memory will be copied into an own buffer
-	D3DBlob(unsigned int blob_size, const u8* init_data = nullptr);
+	explicit D3DBlob(unsigned int blob_size, const u8* init_data = nullptr);
 
 	// d3dblob will be AddRef'd
-	D3DBlob(ID3D10Blob* d3dblob);
+	explicit D3DBlob(ID3D10Blob* d3dblob);
 
 	void AddRef();
 	unsigned int Release();
 
 	unsigned int Size() const;
-	u8* Data();
+	u8* Data() const;
 
 private:
 	~D3DBlob();

@@ -137,17 +137,17 @@ void GeometryShaderCache::Init()
 	D3D11_BUFFER_DESC gbdesc = CD3D11_BUFFER_DESC(gbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	HRESULT hr = D3D::device->CreateBuffer(&gbdesc, nullptr, &gscbuf);
 	CHECK(hr == S_OK, "Create geometry shader constant buffer (size=%u)", gbsize);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)gscbuf, "geometry shader constant buffer used to emulate the GX pipeline");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(gscbuf), "geometry shader constant buffer used to emulate the GX pipeline");
 
 	// used when drawing clear quads
 	ClearGeometryShader = D3D::CompileAndCreateGeometryShader(clear_shader_code);
 	CHECK(ClearGeometryShader != nullptr, "Create clear geometry shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearGeometryShader, "clear geometry shader");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(ClearGeometryShader), "clear geometry shader");
 
 	// used for buffer copy
 	CopyGeometryShader = D3D::CompileAndCreateGeometryShader(copy_shader_code);
 	CHECK(CopyGeometryShader != nullptr, "Create copy geometry shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)CopyGeometryShader, "copy geometry shader");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(CopyGeometryShader), "copy geometry shader");
 
 	Clear();
 
@@ -259,7 +259,7 @@ bool GeometryShaderCache::InsertByteCode(const GeometryShaderUid &uid, const voi
 		return false;
 
 	// TODO: Somehow make the debug name a bit more specific
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a pixel shader of GeometryShaderCache");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(shader), "a pixel shader of GeometryShaderCache");
 
 	// Make an entry in the table
 	GSCacheEntry newentry;

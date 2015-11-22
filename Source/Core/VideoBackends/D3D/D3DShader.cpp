@@ -19,7 +19,7 @@ namespace D3D
 ID3D11VertexShader* CreateVertexShaderFromByteCode(const void* bytecode, unsigned int len)
 {
 	ID3D11VertexShader* v_shader;
-	HRESULT hr = D3D::device->CreateVertexShader(bytecode, len, nullptr, &v_shader);
+	HRESULT hr = device->CreateVertexShader(bytecode, len, nullptr, &v_shader);
 	if (FAILED(hr))
 		return nullptr;
 
@@ -37,7 +37,7 @@ bool CompileVertexShader(const std::string& code, D3DBlob** blob)
 #else
 	UINT flags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY|D3D10_SHADER_OPTIMIZATION_LEVEL3|D3D10_SHADER_SKIP_VALIDATION;
 #endif
-	HRESULT hr = PD3DCompile(code.c_str(), code.length(), nullptr, nullptr, nullptr, "main", D3D::VertexShaderVersionString(),
+	HRESULT hr = PD3DCompile(code.c_str(), code.length(), nullptr, nullptr, nullptr, "main", VertexShaderVersionString(),
 							flags, 0, &shaderBuffer, &errorBuffer);
 	if (errorBuffer)
 	{
@@ -72,7 +72,7 @@ bool CompileVertexShader(const std::string& code, D3DBlob** blob)
 ID3D11GeometryShader* CreateGeometryShaderFromByteCode(const void* bytecode, unsigned int len)
 {
 	ID3D11GeometryShader* g_shader;
-	HRESULT hr = D3D::device->CreateGeometryShader(bytecode, len, nullptr, &g_shader);
+	HRESULT hr = device->CreateGeometryShader(bytecode, len, nullptr, &g_shader);
 	if (FAILED(hr))
 		return nullptr;
 
@@ -90,7 +90,7 @@ bool CompileGeometryShader(const std::string& code, D3DBlob** blob, const D3D_SH
 #else
 	UINT flags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY|D3D10_SHADER_OPTIMIZATION_LEVEL3|D3D10_SHADER_SKIP_VALIDATION;
 #endif
-	HRESULT hr = PD3DCompile(code.c_str(), code.length(), nullptr, pDefines, nullptr, "main", D3D::GeometryShaderVersionString(),
+	HRESULT hr = PD3DCompile(code.c_str(), code.length(), nullptr, pDefines, nullptr, "main", GeometryShaderVersionString(),
 							flags, 0, &shaderBuffer, &errorBuffer);
 
 	if (errorBuffer)
@@ -126,7 +126,7 @@ bool CompileGeometryShader(const std::string& code, D3DBlob** blob, const D3D_SH
 ID3D11PixelShader* CreatePixelShaderFromByteCode(const void* bytecode, unsigned int len)
 {
 	ID3D11PixelShader* p_shader;
-	HRESULT hr = D3D::device->CreatePixelShader(bytecode, len, nullptr, &p_shader);
+	HRESULT hr = device->CreatePixelShader(bytecode, len, nullptr, &p_shader);
 	if (FAILED(hr))
 	{
 		PanicAlert("CreatePixelShaderFromByteCode failed at %s %d\n", __FILE__, __LINE__);
@@ -146,7 +146,7 @@ bool CompilePixelShader(const std::string& code, D3DBlob** blob, const D3D_SHADE
 #else
 	UINT flags = D3D10_SHADER_OPTIMIZATION_LEVEL3;
 #endif
-	HRESULT hr = PD3DCompile(code.c_str(), code.length(), nullptr, pDefines, nullptr, "main", D3D::PixelShaderVersionString(),
+	HRESULT hr = PD3DCompile(code.c_str(), code.length(), nullptr, pDefines, nullptr, "main", PixelShaderVersionString(),
 							flags, 0, &shaderBuffer, &errorBuffer);
 
 	if (errorBuffer)

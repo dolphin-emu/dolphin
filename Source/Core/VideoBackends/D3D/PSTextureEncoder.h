@@ -48,7 +48,7 @@ private:
 
 	typedef unsigned int ComboKey; // Key for a shader combination
 
-	ComboKey MakeComboKey(unsigned int dstFormat,
+	static ComboKey MakeComboKey(unsigned int dstFormat,
 		PEControl::PixelFormat srcFormat, bool isIntensity, bool scaleByHalf)
 	{
 		return (dstFormat << 4) | (static_cast<int>(srcFormat) << 2) | (isIntensity ? (1<<1) : 0)

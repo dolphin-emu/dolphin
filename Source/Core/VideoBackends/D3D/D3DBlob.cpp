@@ -18,8 +18,8 @@ D3DBlob::D3DBlob(unsigned int blob_size, const u8* init_data) : ref(1), size(blo
 D3DBlob::D3DBlob(ID3D10Blob* d3dblob) : ref(1)
 {
 	blob = d3dblob;
-	data = (u8*)blob->GetBufferPointer();
-	size = (unsigned int)blob->GetBufferSize();
+	data = static_cast<u8*>(blob->GetBufferPointer());
+	size = static_cast<unsigned int>(blob->GetBufferSize());
 	d3dblob->AddRef();
 }
 
@@ -49,7 +49,7 @@ unsigned int D3DBlob::Size() const
 	return size;
 }
 
-u8* D3DBlob::Data()
+u8* D3DBlob::Data() const
 {
 	return data;
 }

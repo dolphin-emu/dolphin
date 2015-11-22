@@ -43,7 +43,7 @@ void VertexManager::CreateDeviceObjects()
 	{
 		m_buffers[i] = nullptr;
 		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, nullptr, &m_buffers[i])), "Failed to create buffer.");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_buffers[i], "Buffer of VertexManager");
+		D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(m_buffers[i]), "Buffer of VertexManager");
 	}
 
 	m_currentBuffer = 0;
@@ -129,11 +129,11 @@ void VertexManager::Draw(u32 stride)
 	{
 		case PRIMITIVE_POINTS:
 			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-			((DX11::Renderer*)g_renderer)->ApplyCullDisable();
+			static_cast<Renderer*>(g_renderer)->ApplyCullDisable();
 			break;
 		case PRIMITIVE_LINES:
 			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-			((DX11::Renderer*)g_renderer)->ApplyCullDisable();
+			static_cast<Renderer*>(g_renderer)->ApplyCullDisable();
 			break;
 		case PRIMITIVE_TRIANGLES:
 			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -146,7 +146,7 @@ void VertexManager::Draw(u32 stride)
 	INCSTAT(stats.thisFrame.numDrawCalls);
 
 	if (current_primitive_type != PRIMITIVE_TRIANGLES)
-		((DX11::Renderer*)g_renderer)->RestoreCull();
+		static_cast<Renderer*>(g_renderer)->RestoreCull();
 }
 
 void VertexManager::vFlush(bool useDstAlpha)

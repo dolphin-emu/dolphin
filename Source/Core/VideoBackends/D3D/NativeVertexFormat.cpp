@@ -49,10 +49,10 @@ static const DXGI_FORMAT d3d_format_lookup[5*4*2] =
 
 DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
 {
-	DXGI_FORMAT retval = d3d_format_lookup[(int)t + 5*(size-1) + 5*4*(int)integer];
+	DXGI_FORMAT retval = d3d_format_lookup[static_cast<int>(t) + 5*(size-1) + 5*4*static_cast<int>(integer)];
 	if (retval == DXGI_FORMAT_UNKNOWN)
 	{
-		PanicAlert("VarToD3D: Invalid type/size combo %i , %i, %i", (int)t, size, (int)integer);
+		PanicAlert("VarToD3D: Invalid type/size combo %i , %i, %i", static_cast<int>(t), size, (int)integer);
 	}
 	return retval;
 }
@@ -132,13 +132,13 @@ void D3DVertexFormat::SetupVertexPointers()
 		// CreateInputLayout requires a shader input, but it only looks at the
 		// signature of the shader, so we don't need to recompute it if the shader
 		// changes.
-		D3DBlob* vs_bytecode = DX11::VertexShaderCache::GetActiveShaderBytecode();
+		D3DBlob* vs_bytecode = VertexShaderCache::GetActiveShaderBytecode();
 
-		HRESULT hr = DX11::D3D::device->CreateInputLayout(m_elems, m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &m_layout);
+		HRESULT hr = D3D::device->CreateInputLayout(m_elems, m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &m_layout);
 		if (FAILED(hr)) PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
-		DX11::D3D::SetDebugObjectName((ID3D11DeviceChild*)m_layout, "input layout used to emulate the GX pipeline");
+		D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(m_layout), "input layout used to emulate the GX pipeline");
 	}
-	DX11::D3D::stateman->SetInputLayout(m_layout);
+	D3D::stateman->SetInputLayout(m_layout);
 }
 
 } // namespace DX11
