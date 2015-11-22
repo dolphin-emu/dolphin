@@ -93,28 +93,26 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 	}
 	else
 	{
-		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_rFileName);
+		std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
 
-		if (pVolume != nullptr)
+		if (volume != nullptr)
 		{
-			m_Platform = pVolume->GetVolumeType();
+			m_Platform = volume->GetVolumeType();
 
-			m_names = pVolume->GetNames(true);
-			m_descriptions = pVolume->GetDescriptions();
-			m_company = pVolume->GetCompany();
+			m_names = volume->GetNames(true);
+			m_descriptions = volume->GetDescriptions();
+			m_company = volume->GetCompany();
 
-			m_Country = pVolume->GetCountry();
-			m_blob_type = pVolume->GetBlobType();
-			m_FileSize = pVolume->GetRawSize();
-			m_VolumeSize = pVolume->GetSize();
+			m_Country = volume->GetCountry();
+			m_blob_type = volume->GetBlobType();
+			m_FileSize = volume->GetRawSize();
+			m_VolumeSize = volume->GetSize();
 
-			m_UniqueID = pVolume->GetUniqueID();
-			m_disc_number = pVolume->GetDiscNumber();
-			m_Revision = pVolume->GetRevision();
+			m_UniqueID = volume->GetUniqueID();
+			m_disc_number = volume->GetDiscNumber();
+			m_Revision = volume->GetRevision();
 
-			ReadVolumeBanner(*pVolume);
-
-			delete pVolume;
+			ReadVolumeBanner(*volume);
 
 			m_Valid = true;
 			SaveToCache();
@@ -330,7 +328,7 @@ std::vector<DiscIO::IVolume::ELanguage> GameListItem::GetLanguages() const
 
 const std::string GameListItem::GetWiiFSPath() const
 {
-	DiscIO::IVolume *iso = DiscIO::CreateVolumeFromFilename(m_FileName);
+	std::unique_ptr<DiscIO::IVolume> iso(DiscIO::CreateVolumeFromFilename(m_FileName));
 	std::string ret;
 
 	if (iso == nullptr)
@@ -352,7 +350,6 @@ const std::string GameListItem::GetWiiFSPath() const
 		else
 			ret = path;
 	}
-	delete iso;
 
 	return ret;
 }
