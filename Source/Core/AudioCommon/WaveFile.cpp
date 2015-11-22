@@ -66,7 +66,7 @@ bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRa
 
 	// We are now at offset 44
 	if (file.Tell() != 44)
-		PanicAlert("Wrong offset: %lld", (long long)file.Tell());
+		PanicAlert("Wrong offset: %lld", static_cast<long long>(file.Tell()));
 
 	return true;
 }
@@ -141,8 +141,8 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count)
 	for (u32 i = 0; i < count; i++)
 	{
 		//Flip the audio channels from RL to LR
-		conv_buffer[2 * i] = Common::swap16((u16)sample_data[2 * i + 1]);
-		conv_buffer[2 * i + 1] = Common::swap16((u16)sample_data[2 * i]);
+		conv_buffer[2 * i] = Common::swap16(static_cast<u16>(sample_data[2 * i + 1]));
+		conv_buffer[2 * i + 1] = Common::swap16(static_cast<u16>(sample_data[2 * i]));
 	}
 
 	file.WriteBytes(conv_buffer, count * 4);

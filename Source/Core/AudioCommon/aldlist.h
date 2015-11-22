@@ -34,12 +34,12 @@ private:
 public:
 	ALDeviceList();
 	~ALDeviceList();
-	s32 GetNumDevices();
+	s32 GetNumDevices() const;
 	char* GetDeviceName(s32 index);
 	void GetDeviceVersion(s32 index, s32* major, s32* minor);
 	u32 GetMaxNumSources(s32 index);
 	bool IsExtensionSupported(s32 index, char* szExtName);
-	s32 GetDefaultDevice();
+	s32 GetDefaultDevice() const;
 	void FilterDevicesMinVer(s32 major, s32 minor);
 	void FilterDevicesMaxVer(s32 major, s32 minor);
 	void FilterDevicesExtension(char* szExtName);
@@ -48,5 +48,5 @@ public:
 	s32 GetNextFilteredDevice();
 
 private:
-	u32 GetMaxNumSources();
+	static u32 GetMaxNumSources();
 };

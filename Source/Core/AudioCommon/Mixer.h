@@ -22,7 +22,7 @@
 class CMixer
 {
 public:
-	CMixer(unsigned int BackendSampleRate);
+	explicit CMixer(unsigned int BackendSampleRate);
 	virtual ~CMixer() {}
 
 	// Called from audio threads
