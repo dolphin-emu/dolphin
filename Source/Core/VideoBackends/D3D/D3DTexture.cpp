@@ -18,7 +18,7 @@ void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned 
 	if (usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
-		D3D::context->Map(pTexture, level, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		context->Map(pTexture, level, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		if (4 * pitch == map.RowPitch)
 		{
 			memcpy(map.pData, buffer, map.RowPitch * height);
@@ -26,14 +26,14 @@ void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned 
 		else
 		{
 			for (unsigned int y = 0; y < height; ++y)
-				memcpy((u8*)map.pData + y * map.RowPitch, (u32*)buffer + y * pitch, 4 * pitch);
+				memcpy(static_cast<u8*>(map.pData) + y * map.RowPitch, (u32*)buffer + y * pitch, 4 * pitch);
 		}
-		D3D::context->Unmap(pTexture, level);
+		context->Unmap(pTexture, level);
 	}
 	else
 	{
 		D3D11_BOX dest_region = CD3D11_BOX(0, 0, 0, width, height, 1);
-		D3D::context->UpdateSubresource(pTexture, level, &dest_region, buffer, 4*pitch, 4*pitch*height);
+		context->UpdateSubresource(pTexture, level, &dest_region, buffer, 4*pitch, 4*pitch*height);
 	}
 }
 
@@ -46,11 +46,11 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 
 	D3D11_CPU_ACCESS_FLAG cpuflags;
 	if (usage == D3D11_USAGE_STAGING)
-		cpuflags = (D3D11_CPU_ACCESS_FLAG)((int)D3D11_CPU_ACCESS_WRITE|(int)D3D11_CPU_ACCESS_READ);
+		cpuflags = static_cast<D3D11_CPU_ACCESS_FLAG>(static_cast<int>(D3D11_CPU_ACCESS_WRITE)|static_cast<int>(D3D11_CPU_ACCESS_READ));
 	else if (usage == D3D11_USAGE_DYNAMIC)
 		cpuflags = D3D11_CPU_ACCESS_WRITE;
 	else
-		cpuflags = (D3D11_CPU_ACCESS_FLAG)0;
+		cpuflags = static_cast<D3D11_CPU_ACCESS_FLAG>(0);
 	D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(fmt, width, height, slices, levels, bind, usage, cpuflags);
 	hr = D3D::device->CreateTexture2D(&texdesc, data, &pTexture);
 	if (FAILED(hr))
@@ -59,7 +59,7 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 		return nullptr;
 	}
 
-	D3DTexture2D* ret = new D3DTexture2D(pTexture, bind);
+	auto ret = new D3DTexture2D(pTexture, bind);
 	SAFE_RELEASE(pTexture);
 	return ret;
 }
@@ -87,11 +87,11 @@ ID3D11DepthStencilView* &D3DTexture2D::GetDSV() { return dsv; }
 
 D3DTexture2D::D3DTexture2D(ID3D11Texture2D* texptr, D3D11_BIND_FLAG bind,
 							DXGI_FORMAT srv_format, DXGI_FORMAT dsv_format, DXGI_FORMAT rtv_format, bool multisampled)
-							: ref(1), tex(texptr), srv(nullptr), rtv(nullptr), dsv(nullptr)
+							: tex(texptr), srv(nullptr), rtv(nullptr), dsv(nullptr), ref(1)
 {
-	D3D11_SRV_DIMENSION srv_dim = multisampled ? D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY : D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-	D3D11_DSV_DIMENSION dsv_dim = multisampled ? D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY : D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-	D3D11_RTV_DIMENSION rtv_dim = multisampled ? D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+	auto srv_dim = multisampled ? D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY : D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+	auto dsv_dim = multisampled ? D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY : D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+	auto rtv_dim = multisampled ? D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = CD3D11_SHADER_RESOURCE_VIEW_DESC(srv_dim, srv_format);
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc = CD3D11_DEPTH_STENCIL_VIEW_DESC(dsv_dim, dsv_format);
 	D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = CD3D11_RENDER_TARGET_VIEW_DESC(rtv_dim, rtv_format);

@@ -9,8 +9,6 @@
 #include <dxgi.h>
 #include <vector>
 
-#include "Common/Common.h"
-
 namespace DX11
 {
 

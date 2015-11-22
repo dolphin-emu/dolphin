@@ -40,17 +40,17 @@ namespace D3D
 
 	inline ID3D11VertexShader* CompileAndCreateVertexShader(D3DBlob* code)
 	{
-		return CompileAndCreateVertexShader((const char*)code->Data());
+		return CompileAndCreateVertexShader(reinterpret_cast<const char*>(code->Data()));
 	}
 
 	inline ID3D11GeometryShader* CompileAndCreateGeometryShader(D3DBlob* code, const D3D_SHADER_MACRO* pDefines = nullptr)
 	{
-		return CompileAndCreateGeometryShader((const char*)code->Data(), pDefines);
+		return CompileAndCreateGeometryShader(reinterpret_cast<const char*>(code->Data()), pDefines);
 	}
 
 	inline ID3D11PixelShader* CompileAndCreatePixelShader(D3DBlob* code)
 	{
-		return CompileAndCreatePixelShader((const char*)code->Data());
+		return CompileAndCreatePixelShader(reinterpret_cast<const char*>(code->Data()));
 	}
 }
 
