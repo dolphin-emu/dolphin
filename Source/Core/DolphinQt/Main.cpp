@@ -60,6 +60,7 @@ int main(int argc, char* argv[])
 
 	int retcode = app.exec();
 	delete g_main_window;
+	Core::Shutdown();
 	UICommon::Shutdown();
 	return retcode;
 }

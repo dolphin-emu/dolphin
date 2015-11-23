@@ -83,6 +83,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Host.h" />
     <ClInclude Include="Utils\Resources.h">
       <Filter>Utils</Filter>
     </ClInclude>
