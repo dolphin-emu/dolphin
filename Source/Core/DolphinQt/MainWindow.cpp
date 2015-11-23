@@ -80,6 +80,7 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(m_ui->actionScreenshot, &QAction::triggered, this, []() {
 		Core::SaveScreenShot();
 	});
+	connect(m_ui->actionFullscreen, &QAction::triggered, this, &DMainWindow::OnFullscreen);
 
 	connect(m_ui->actionWebsite, &QAction::triggered, this, []() {
 		QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/")));
@@ -142,13 +143,7 @@ void DMainWindow::StartGame(const QString filename)
 	m_render_widget->setWindowTitle(tr("Dolphin")); // TODO
 	m_render_widget->setWindowIcon(windowIcon());
 
-	if (SConfig::GetInstance().bFullscreen)
-	{
-		m_render_widget->setWindowFlags(m_render_widget->windowFlags() | Qt::BypassWindowManagerHint);
-		g_Config.bFullscreen = !g_Config.bBorderlessFullscreen;
-		m_render_widget->showFullScreen();
-	}
-	else
+	if (SConfig::GetInstance().bRenderToMain)
 	{
 		m_ui->centralWidget->addWidget(m_render_widget.get());
 		m_ui->centralWidget->setCurrentWidget(m_render_widget.get());
@@ -163,6 +158,13 @@ void DMainWindow::StartGame(const QString filename)
 		}
 		m_render_widget->adjustSize();
 	}
+	else
+		m_render_widget->showNormal();
+
+	g_Config.bFullscreen = false;
+	g_Config.bBorderlessFullscreen = true; //non borderless is not yet implemented.
+	if (SConfig::GetInstance().bFullscreen)
+		OnFullscreen();
 
 	if (!BootManager::BootCore(filename.toStdString()))
 	{
@@ -254,15 +256,40 @@ void DMainWindow::OnBrowse()
 void DMainWindow::OnPlay()
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
 		DoStartPause();
-	}
 	else
 	{
 		// initialize Core and boot the game
 		QString filename = RequestBootFilename();
 		if (!filename.isNull())
 			StartGame(filename);
+	}
+}
+
+// do not call when game is not running as m_render_widget is not instantiated
+void DMainWindow::OnFullscreen()
+{
+	if (SConfig::GetInstance().bRenderToMain)
+	{
+		g_Config.bFullscreen = !g_Config.bFullscreen;
+		if (g_Config.bFullscreen)
+		{
+			m_ui->centralWidget->removeWidget(m_render_widget.get());
+			m_render_widget->setParent(0);
+			m_render_widget->showFullScreen();
+		}
+		else
+		{
+			m_ui->centralWidget->addWidget(m_render_widget.get());
+			m_ui->centralWidget->setCurrentWidget(m_render_widget.get());
+		}
+	}
+	else
+	{
+		if (m_render_widget->isFullScreen())
+			m_render_widget->showNormal();
+		else
+			m_render_widget->showFullScreen();
 	}
 }
 
@@ -367,6 +394,7 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 
 	m_ui->actionStop->setEnabled(!is_not_initialized);
 	m_ui->actionOpen->setEnabled(is_not_initialized);
+	m_ui->actionFullscreen->setEnabled(!is_not_initialized);
 	m_game_tracker->setEnabled(is_not_initialized);
 }
 
@@ -377,4 +405,5 @@ void DMainWindow::UpdateIcons()
 	// Play/Pause is handled in OnCoreStateChanged().
 	m_ui->actionStop->setIcon(Resources::GetIcon(Resources::TOOLBAR_STOP));
 	m_ui->actionScreenshot->setIcon(Resources::GetIcon(Resources::TOOLBAR_SCREENSHOT));
+	m_ui->actionFullscreen->setIcon(Resources::GetIcon(Resources::TOOLBAR_FULLSCREEN));
 }

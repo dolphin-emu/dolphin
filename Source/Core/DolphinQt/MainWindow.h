@@ -41,6 +41,7 @@ private slots:
 	// Emulation
 	void StartGame(const QString filename);
 	void OnCoreStateChanged(Core::EState state);
+	void OnFullscreen();
 
 	// Main toolbar
 	void OnBrowse();
