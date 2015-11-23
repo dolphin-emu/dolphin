@@ -1568,12 +1568,16 @@ void CFrame::HandleFrameSkipHotkeys()
 			wxCommandEvent evt;
 			evt.SetId(IDM_FRAMESTEP);
 			CFrame::OnFrameStep(evt);
-			if (holdFrameStepDelay > 0 && frameStepCount == 0)
+			if (holdFrameStepDelay > 0)
 				holdFrameStep = true;
 		}
 
 		if (frameStepCount < FRAME_STEP_DELAY)
+		{
 			++frameStepCount;
+			if (holdFrameStep)
+				holdFrameStep = false;
+		}
 
 		if (frameStepCount == FRAME_STEP_DELAY && holdFrameStep && holdFrameStepDelayCount >= holdFrameStepDelay)
 		{
