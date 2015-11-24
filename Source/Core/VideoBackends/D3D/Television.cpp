@@ -139,7 +139,7 @@ void Television::Submit(u32 xfbAddr, u32 stride, u32 width, u32 height)
 	D3D::context->UpdateSubresource(m_yuyvTexture, 0, &box, yuyvSrc, 2 * stride, 2 * stride * height);
 }
 
-void Television::Render()
+void Television::Render() const
 {
 	if (g_ActiveConfig.bUseRealXFB && g_ActiveConfig.bUseXFB)
 	{

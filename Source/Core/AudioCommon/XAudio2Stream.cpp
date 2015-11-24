@@ -28,8 +28,8 @@ public:
 
 	~StreamingVoiceContext();
 
-	void StreamingVoiceContext::Stop();
-	void StreamingVoiceContext::Play();
+	void StreamingVoiceContext::Stop() const;
+	void StreamingVoiceContext::Play() const;
 
 	STDMETHOD_(void, OnVoiceError) (THIS_ void* pBufferContext, HRESULT Error) {}
 	STDMETHOD_(void, OnVoiceProcessingPassStart) (UINT32) {}
@@ -100,13 +100,13 @@ StreamingVoiceContext::~StreamingVoiceContext()
 	}
 }
 
-void StreamingVoiceContext::Stop()
+void StreamingVoiceContext::Stop() const
 {
 	if (m_source_voice)
 		m_source_voice->Stop();
 }
 
-void StreamingVoiceContext::Play()
+void StreamingVoiceContext::Play() const
 {
 	if (m_source_voice)
 		m_source_voice->Start();
@@ -145,7 +145,7 @@ bool XAudio2::InitLibrary()
 
 	if (!PXAudio2Create)
 	{
-		PXAudio2Create = (XAudio2Create_t)::GetProcAddress(m_xaudio2_dll, "XAudio2Create");
+		PXAudio2Create = reinterpret_cast<XAudio2Create_t>(::GetProcAddress(m_xaudio2_dll, "XAudio2Create"));
 		if (!PXAudio2Create)
 		{
 			::FreeLibrary(m_xaudio2_dll);
@@ -177,7 +177,7 @@ bool XAudio2::Start()
 
 	// callback doesn't seem to run on a specific CPU anyways
 	IXAudio2* xaudptr;
-	if (FAILED(hr = ((XAudio2Create_t)PXAudio2Create)(&xaudptr, 0, XAUDIO2_DEFAULT_PROCESSOR)))
+	if (FAILED(hr = (static_cast<XAudio2Create_t>(PXAudio2Create))(&xaudptr, 0, XAUDIO2_DEFAULT_PROCESSOR)))
 	{
 		PanicAlert("XAudio2 init failed: %#X", hr);
 		Stop();
@@ -197,8 +197,7 @@ bool XAudio2::Start()
 	// Volume
 	m_mastering_voice->SetVolume(m_volume);
 
-	m_voice_context = std::unique_ptr<StreamingVoiceContext>
-		(new StreamingVoiceContext(m_xaudio2.get(), m_mixer.get(), m_sound_sync_event));
+	m_voice_context = std::make_unique<StreamingVoiceContext>(m_xaudio2.get(), m_mixer.get(), m_sound_sync_event);
 
 	return true;
 }
@@ -206,7 +205,7 @@ bool XAudio2::Start()
 void XAudio2::SetVolume(int volume)
 {
 	//linear 1- .01
-	m_volume = (float)volume / 100.f;
+	m_volume = static_cast<float>(volume) / 100.f;
 
 	if (m_mastering_voice)
 		m_mastering_voice->SetVolume(m_volume);

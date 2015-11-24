@@ -96,11 +96,11 @@ static T FIRFilter(const T *buf, int pos, int len, int count, const float *coeff
 */
 static void Hamming(int n, float* w)
 {
-	float k = float(2*M_PI/((float)(n - 1))); // 2*pi/(N-1)
+	float k = float(2*M_PI/static_cast<float>(n - 1)); // 2*pi/(N-1)
 
 	// Calculate window coefficients
 	for (int i = 0; i < n; i++)
-		*w++ = float(0.54 - 0.46*cos(k*(float)i));
+		*w++ = float(0.54 - 0.46*cos(k*static_cast<float>(i)));
 }
 
 /******************************************************************************
@@ -126,7 +126,7 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 	unsigned int  end = ((*n + 1) >> 1) - o; // Loop end
 
 	float k1 = 2 * float(M_PI);              // 2*pi*fc1
-	float k2 = 0.5f * (float)(1 - o);        // Constant used if the filter has even length
+	float k2 = 0.5f * static_cast<float>(1 - o);        // Constant used if the filter has even length
 	float g = 0.0f;                          // Gain
 	float t1;                                // Temporary variables
 	float fc1;                               // Cutoff frequencies
@@ -137,7 +137,7 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 
 	fc[0] = MathUtil::Clamp(fc[0], 0.001f, 1.0f);
 
-	float *w = (float*)calloc(sizeof(float), *n);
+	float *w = static_cast<float*>(calloc(sizeof(float), *n));
 
 	// Get window coefficients
 	Hamming(*n, w);
@@ -162,7 +162,7 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 	// Create filter
 	for (u32 i = 0; i < end; i++)
 	{
-		t1 = (float)(i + 1) - k2;
+		t1 = static_cast<float>(i + 1) - k2;
 		w[end - i - 1] = w[*n - end + i] = float(w[end - i - 1] * sin(k1 * t1)/(M_PI * t1)); // Sinc
 		g += 2*w[end - i - 1]; // Total gain in filter
 	}
@@ -266,10 +266,10 @@ static void MatrixDecode(const float *in, const int k, const int il,
 	/* Matrix */
 	l_agc = in[il] * PassiveLock(*_adapt_l_gain);
 	r_agc = in[ir] * PassiveLock(*_adapt_r_gain);
-	_cf[k] = (l_agc + r_agc) * (float)M_SQRT1_2;
+	_cf[k] = (l_agc + r_agc) * static_cast<float>(M_SQRT1_2);
 	if (decode_rear)
 	{
-		_lr[kr] = _rr[kr] = (l_agc - r_agc) * (float)M_SQRT1_2;
+		_lr[kr] = _rr[kr] = (l_agc - r_agc) * static_cast<float>(M_SQRT1_2);
 		// Stereo rear channel is steered with the same AGC steering as
 		// the decoding matrix. Note this requires a fast updating AGC
 		// at the order of 20 ms (which is the case here).
@@ -278,8 +278,8 @@ static void MatrixDecode(const float *in, const int k, const int il,
 	}
 
 	/*** AXIS NO. 2: (Lt + Rt, Lt - Rt) -> (L, R) ***/
-	lpr = (in[il] + in[ir]) * (float)M_SQRT1_2;
-	lmr = (in[il] - in[ir]) * (float)M_SQRT1_2;
+	lpr = (in[il] + in[ir]) * static_cast<float>(M_SQRT1_2);
+	lmr = (in[il] - in[ir]) * static_cast<float>(M_SQRT1_2);
 	/* AGC adaption */
 	d_gain = fabs(lmr_unlim_gain - *_adapt_lmr_gain);
 	f = d_gain * (1.0f / MATAGCTRIG);
@@ -289,8 +289,8 @@ static void MatrixDecode(const float *in, const int k, const int il,
 	/* Matrix */
 	lpr_agc = lpr * PassiveLock(*_adapt_lpr_gain);
 	lmr_agc = lmr * PassiveLock(*_adapt_lmr_gain);
-	_lf[k] = (lpr_agc + lmr_agc) * (float)M_SQRT1_2;
-	_rf[k] = (lpr_agc - lmr_agc) * (float)M_SQRT1_2;
+	_lf[k] = (lpr_agc + lmr_agc) * static_cast<float>(M_SQRT1_2);
+	_rf[k] = (lpr_agc - lmr_agc) * static_cast<float>(M_SQRT1_2);
 
 	/*** CENTER FRONT CANCELLATION ***/
 	// A heuristic approach exploits that Lt + Rt gain contains the

@@ -96,7 +96,7 @@ void SetupDeviceObjects()
 	data.pSysMem = colmat;
 	hr = D3D::device->CreateBuffer(&cbdesc, &data, &access_efb_cbuf);
 	CHECK(hr==S_OK, "Create constant buffer for Renderer::AccessEFB");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)access_efb_cbuf, "constant buffer for Renderer::AccessEFB");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(access_efb_cbuf), "constant buffer for Renderer::AccessEFB");
 
 	D3D11_DEPTH_STENCIL_DESC ddesc;
 	ddesc.DepthEnable      = FALSE;
@@ -114,9 +114,9 @@ void SetupDeviceObjects()
 	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ZERO;
 	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[2]);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[0], "depth state for Renderer::ClearScreen (depth buffer disabled)");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[1], "depth state for Renderer::ClearScreen (depth buffer enabled, writing enabled)");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[2], "depth state for Renderer::ClearScreen (depth buffer enabled, writing disabled)");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(cleardepthstates[0]), "depth state for Renderer::ClearScreen (depth buffer disabled)");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(cleardepthstates[1]), "depth state for Renderer::ClearScreen (depth buffer enabled, writing enabled)");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(cleardepthstates[2]), "depth state for Renderer::ClearScreen (depth buffer enabled, writing disabled)");
 
 	D3D11_BLEND_DESC blenddesc;
 	blenddesc.AlphaToCoverageEnable = FALSE;
@@ -131,7 +131,7 @@ void SetupDeviceObjects()
 	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	hr = D3D::device->CreateBlendState(&blenddesc, &resetblendstate);
 	CHECK(hr==S_OK, "Create blend state for Renderer::ResetAPIState");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetblendstate, "blend state for Renderer::ResetAPIState");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(resetblendstate), "blend state for Renderer::ResetAPIState");
 
 	clearblendstates[0] = resetblendstate;
 	resetblendstate->AddRef();
@@ -156,12 +156,12 @@ void SetupDeviceObjects()
 	ddesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 	hr = D3D::device->CreateDepthStencilState(&ddesc, &resetdepthstate);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ResetAPIState");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetdepthstate, "depth stencil state for Renderer::ResetAPIState");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(resetdepthstate), "depth stencil state for Renderer::ResetAPIState");
 
 	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
 	hr = D3D::device->CreateRasterizerState(&rastdesc, &resetraststate);
 	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ResetAPIState");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(resetraststate), "rasterizer state for Renderer::ResetAPIState");
 
 	s_screenshot_texture = nullptr;
 }
@@ -195,7 +195,7 @@ void CreateScreenshotTexture(const TargetRectangle& rc)
 	D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, rc.GetWidth(), rc.GetHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
 	HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, nullptr, &s_screenshot_texture);
 	CHECK(hr==S_OK, "Create screenshot staging texture");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(s_screenshot_texture), "staging screenshot texture");
 }
 
 void Create3DVisionTexture(int width, int height)
@@ -205,7 +205,7 @@ void Create3DVisionTexture(int width, int height)
 	D3D11_SUBRESOURCE_DATA sysData;
 	sysData.SysMemPitch = 4 * width * 2;
 	sysData.pSysMem = new u8[(height + 1) * sysData.SysMemPitch];
-	LPNVSTEREOIMAGEHEADER header = (LPNVSTEREOIMAGEHEADER)((u8*)sysData.pSysMem + height * sysData.SysMemPitch);
+	LPNVSTEREOIMAGEHEADER header = reinterpret_cast<LPNVSTEREOIMAGEHEADER>((u8*)sysData.pSysMem + height * sysData.SysMemPitch);
 	header->dwSignature = NVSTEREO_IMAGE_SIGNATURE;
 	header->dwWidth = width * 2;
 	header->dwHeight = height + 1;
@@ -218,7 +218,7 @@ void Create3DVisionTexture(int width, int height)
 
 Renderer::Renderer(void *&window_handle)
 {
-	D3D::Create((HWND)window_handle);
+	D3D::Create(static_cast<HWND>(window_handle));
 
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
@@ -261,7 +261,7 @@ Renderer::Renderer(void *&window_handle)
 	D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), ClearColor);
 	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
 
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)s_target_width, (float)s_target_height);
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, static_cast<float>(s_target_width), static_cast<float>(s_target_height));
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	D3D::BeginFrame();
@@ -277,8 +277,8 @@ Renderer::~Renderer()
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-	D3D::font.DrawTextScaled((float)(left+1), (float)(top+1), 20.f, 0.0f, color & 0xFF000000, text);
-	D3D::font.DrawTextScaled((float)left, (float)top, 20.f, 0.0f, color, text);
+	D3D::font.DrawTextScaled(static_cast<float>(left+1), static_cast<float>(top+1), 20.f, 0.0f, color & 0xFF000000, text);
+	D3D::font.DrawTextScaled(static_cast<float>(left), static_cast<float>(top), 20.f, 0.0f, color, text);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -301,8 +301,8 @@ bool Renderer::CheckForResize()
 	int client_height = rcWindow.bottom - rcWindow.top;
 
 	// Sanity check
-	if ((client_width != Renderer::GetBackbufferWidth() ||
-		client_height != Renderer::GetBackbufferHeight()) &&
+	if ((client_width != GetBackbufferWidth() ||
+		client_height != GetBackbufferHeight()) &&
 		client_width >= 4 && client_height >= 4)
 	{
 		return true;
@@ -383,13 +383,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
 		D3D::context->RSSetViewports(1, &vp);
-		D3D::stateman->SetPixelConstants(0, access_efb_cbuf);
+		D3D::stateman->SetPixelConstants(nullptr, access_efb_cbuf);
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), nullptr);
 		D3D::SetPointCopySampler();
 		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
 								&RectToLock,
-								Renderer::GetTargetWidth(),
-								Renderer::GetTargetHeight(),
+								GetTargetWidth(),
+								GetTargetHeight(),
 								PixelShaderCache::GetColorCopyProgram(true),
 								VertexShaderCache::GetSimpleVertexShader(),
 								VertexShaderCache::GetSimpleInputLayout());
@@ -407,16 +407,16 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
 
 		// depth buffer is inverted in the d3d backend
-		float val = 1.0f - *(float*)map.pData;
+		float val = 1.0f - *static_cast<float*>(map.pData);
 		u32 ret = 0;
 		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 		{
 			// if Z is in 16 bit format you must return a 16 bit integer
-			ret = MathUtil::Clamp<u32>((u32)(val * 65536.0f), 0, 0xFFFF);
+			ret = MathUtil::Clamp<u32>(static_cast<u32>(val * 65536.0f), 0, 0xFFFF);
 		}
 		else
 		{
-			ret = MathUtil::Clamp<u32>((u32)(val * 16777216.0f), 0, 0xFFFFFF);
+			ret = MathUtil::Clamp<u32>(static_cast<u32>(val * 16777216.0f), 0, 0xFFFFFF);
 		}
 		D3D::context->Unmap(read_tex, 0);
 
@@ -433,7 +433,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
 		u32 ret = 0;
 		if (map.pData)
-			ret = *(u32*)map.pData;
+			ret = *static_cast<u32*>(map.pData);
 		D3D::context->Unmap(read_tex, 0);
 
 		// check what to do with the alpha channel (GX_PokeAlphaRead)
@@ -463,15 +463,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
 		ResetAPIState();
 
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(GetTargetWidth()), static_cast<float>(GetTargetHeight()));
 		D3D::context->RSSetViewports(1, &vp);
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), nullptr);
 		D3D::drawColorQuad(rgbaColor, 0.f,
-		                  (float)RectToLock.left   * 2.f / GetTargetWidth()  - 1.f,
-		                - (float)RectToLock.top    * 2.f / GetTargetHeight() + 1.f,
-		                  (float)RectToLock.right  * 2.f / GetTargetWidth()  - 1.f,
-		                - (float)RectToLock.bottom * 2.f / GetTargetHeight() + 1.f);
+		                  static_cast<float>(RectToLock.left)   * 2.f / GetTargetWidth()  - 1.f,
+		                - static_cast<float>(RectToLock.top)    * 2.f / GetTargetHeight() + 1.f,
+		                  static_cast<float>(RectToLock.right)  * 2.f / GetTargetWidth()  - 1.f,
+		                - static_cast<float>(RectToLock.bottom) * 2.f / GetTargetHeight() + 1.f);
 
 		RestoreAPIState();
 	}
@@ -483,7 +483,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::stateman->PushBlendState(clearblendstates[3]);
 		D3D::stateman->PushDepthState(cleardepthstates[1]);
 
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight(),
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(GetTargetWidth()), static_cast<float>(GetTargetHeight()),
 			1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
 			1.0f - MathUtil::Clamp<float>((xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f)), 0.0f, 16777215.0f) / 16777216.0f);
 		D3D::context->RSSetViewports(1, &vp);
@@ -491,10 +491,10 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
 			FramebufferManager::GetEFBDepthTexture()->GetDSV());
 		D3D::drawColorQuad(0, 1.0f - float(poke_data & 0xFFFFFF) / 16777216.0f,
-		                  (float)RectToLock.left   * 2.f / GetTargetWidth()  - 1.f,
-		                - (float)RectToLock.top    * 2.f / GetTargetHeight() + 1.f,
-		                  (float)RectToLock.right  * 2.f / GetTargetWidth()  - 1.f,
-		                - (float)RectToLock.bottom * 2.f / GetTargetHeight() + 1.f);
+		                  static_cast<float>(RectToLock.left)   * 2.f / GetTargetWidth()  - 1.f,
+		                - static_cast<float>(RectToLock.top)    * 2.f / GetTargetHeight() + 1.f,
+		                  static_cast<float>(RectToLock.right)  * 2.f / GetTargetWidth()  - 1.f,
+		                - static_cast<float>(RectToLock.bottom) * 2.f / GetTargetHeight() + 1.f);
 
 		D3D::stateman->PopDepthState();
 		D3D::stateman->PopBlendState();
@@ -523,10 +523,10 @@ void Renderer::SetViewport()
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	float X = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff);
-	float Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
-	float Wd = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
-	float Ht = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+	float X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff);
+	float Y = EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
+	float Wd = EFBToScaledXf(2.0f * xfmem.viewport.wd);
+	float Ht = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
 	if (Wd < 0.0f)
 	{
 		X += Wd;
@@ -566,7 +566,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	// Update the view port for clearing the picture
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight(), 0.f, 1.f);
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(static_cast<float>(targetRc.left), static_cast<float>(targetRc.top), static_cast<float>(targetRc.GetWidth()), static_cast<float>(targetRc.GetHeight()), 0.f, 1.f);
 	D3D::context->RSSetViewports(1, &vp);
 
 	// Color is passed in bgra mode so we need to convert it to rgba
@@ -596,7 +596,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	// convert data and set the target texture as our new EFB
 	g_renderer->ResetAPIState();
 
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetTargetWidth(), (float)g_renderer->GetTargetHeight());
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, static_cast<float>(g_renderer->GetTargetWidth()), static_cast<float>(g_renderer->GetTargetHeight()));
 	D3D::context->RSSetViewports(1, &vp);
 
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV(), nullptr);
@@ -650,7 +650,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 	else
 	{
-		gx_state.blend.blend_enable = (u32)bpmem.blendmode.blendenable;
+		gx_state.blend.blend_enable = static_cast<u32>(bpmem.blendmode.blendenable);
 		if (bpmem.blendmode.blendenable)
 		{
 			gx_state.blend.blend_op = D3D11_BLEND_OP_ADD;
@@ -667,12 +667,12 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 
 	// copy back buffer to system memory
 	D3D11_BOX box = CD3D11_BOX(rc.left, rc.top, 0, rc.right, rc.bottom, 1);
-	D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0, &box);
+	D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0, static_cast<ID3D11Resource*>(D3D::GetBackBuffer()->GetTex()), 0, &box);
 
 	D3D11_MAPPED_SUBRESOURCE map;
 	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 
-	bool saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, rc.GetWidth(), rc.GetHeight(), false);
+	bool saved_png = TextureToPng(static_cast<u8*>(map.pData), map.RowPitch, filename, rc.GetWidth(), rc.GetHeight(), false);
 
 	D3D::context->Unmap(s_screenshot_texture, 0);
 
@@ -746,7 +746,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
 	{
 		// TODO: Television should be used to render Virtual XFB mode as well.
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight());
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(static_cast<float>(targetRc.left), static_cast<float>(targetRc.top), static_cast<float>(targetRc.GetWidth()), static_cast<float>(targetRc.GetHeight()));
 		D3D::context->RSSetViewports(1, &vp);
 
 		s_television.Submit(xfbAddr, fbStride, fbWidth, fbHeight);
@@ -759,19 +759,19 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		// draw each xfb source
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
-			xfbSource = (const XFBSource*)xfbSourceList[i];
+			xfbSource = static_cast<const XFBSource*>(xfbSourceList[i]);
 
 			TargetRectangle drawRc;
 
 			// use virtual xfb with offset
 			int xfbHeight = xfbSource->srcHeight;
 			int xfbWidth = xfbSource->srcWidth;
-			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
+			int hOffset = (static_cast<s32>(xfbSource->srcAddr) - static_cast<s32>(xfbAddr)) / (static_cast<s32>(fbStride) * 2);
 
-			drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / (s32)fbHeight;
-			drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / (s32)fbHeight;
-			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
-			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
+			drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / static_cast<s32>(fbHeight);
+			drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / static_cast<s32>(fbHeight);
+			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / static_cast<s32>(fbStride)) / 2;
+			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / static_cast<s32>(fbStride)) / 2;
 
 			// The following code disables auto stretch.  Kept for reference.
 			// scale draw area for a 1 to 1 pixel mapping with the draw target
@@ -785,10 +785,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			TargetRectangle sourceRc;
 			sourceRc.left = 0;
 			sourceRc.top = 0;
-			sourceRc.right = (int)xfbSource->texWidth;
-			sourceRc.bottom = (int)xfbSource->texHeight;
+			sourceRc.right = static_cast<int>(xfbSource->texWidth);
+			sourceRc.bottom = static_cast<int>(xfbSource->texHeight);
 
-			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
+			sourceRc.right -= EFBToScaledX(fbStride - fbWidth);
 
 			BlitScreen(sourceRc, drawRc, xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight, Gamma);
 		}
@@ -820,7 +820,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			CreateScreenshotTexture(GetTargetRectangle());
 
 		D3D11_BOX box = CD3D11_BOX(GetTargetRectangle().left, GetTargetRectangle().top, 0, GetTargetRectangle().right, GetTargetRectangle().bottom, 1);
-		D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0, &box);
+		D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0, static_cast<ID3D11Resource*>(D3D::GetBackBuffer()->GetTex()), 0, &box);
 		if (!bLastFrameDumped)
 		{
 			s_recordWidth = GetTargetRectangle().GetWidth();
@@ -849,7 +849,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				w = s_recordWidth;
 				h = s_recordHeight;
 			}
-			formatBufferDump((u8*)map.pData, &frame_data[0], s_recordWidth, s_recordHeight, map.RowPitch);
+			formatBufferDump(static_cast<u8*>(map.pData), &frame_data[0], s_recordWidth, s_recordHeight, map.RowPitch);
 			AVIDump::AddFrame(&frame_data[0], GetTargetRectangle().GetWidth(), GetTargetRectangle().GetHeight());
 			D3D::context->Unmap(s_screenshot_texture, 0);
 		}
@@ -870,10 +870,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// Reset viewport for drawing text
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(GetBackbufferWidth()), static_cast<float>(GetBackbufferHeight()));
 	D3D::context->RSSetViewports(1, &vp);
 
-	Renderer::DrawDebugText();
+	DrawDebugText();
 
 	OSD::DrawMessages();
 	D3D::EndFrame();
@@ -1193,15 +1193,15 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 	}
 	else
 	{
-		gx_state.sampler[stage].min_filter = (u32)tm0.min_filter;
-		gx_state.sampler[stage].mag_filter = (u32)tm0.mag_filter;
+		gx_state.sampler[stage].min_filter = static_cast<u32>(tm0.min_filter);
+		gx_state.sampler[stage].mag_filter = static_cast<u32>(tm0.mag_filter);
 	}
 
-	gx_state.sampler[stage].wrap_s = (u32)tm0.wrap_s;
-	gx_state.sampler[stage].wrap_t = (u32)tm0.wrap_t;
-	gx_state.sampler[stage].max_lod = (u32)tm1.max_lod;
-	gx_state.sampler[stage].min_lod = (u32)tm1.min_lod;
-	gx_state.sampler[stage].lod_bias = (s32)tm0.lod_bias;
+	gx_state.sampler[stage].wrap_s = static_cast<u32>(tm0.wrap_s);
+	gx_state.sampler[stage].wrap_t = static_cast<u32>(tm0.wrap_t);
+	gx_state.sampler[stage].max_lod = static_cast<u32>(tm1.max_lod);
+	gx_state.sampler[stage].min_lod = static_cast<u32>(tm1.min_lod);
+	gx_state.sampler[stage].lod_bias = static_cast<s32>(tm0.lod_bias);
 
 	// custom textures may have higher resolution, so disable the max_lod
 	if (custom_tex)
@@ -1217,7 +1217,7 @@ void Renderer::SetInterlacingMode()
 
 int Renderer::GetMaxTextureSize()
 {
-	return DX11::D3D::GetMaxTextureSize();
+	return D3D::GetMaxTextureSize();
 }
 
 u16 Renderer::BBoxRead(int index)
@@ -1266,8 +1266,8 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 		TargetRectangle leftRc, rightRc;
 		ConvertStereoRectangle(dst, leftRc, rightRc);
 
-		D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)leftRc.left, (float)leftRc.top, (float)leftRc.GetWidth(), (float)leftRc.GetHeight());
-		D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)rightRc.left, (float)rightRc.top, (float)rightRc.GetWidth(), (float)rightRc.GetHeight());
+		D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT(static_cast<float>(leftRc.left), static_cast<float>(leftRc.top), static_cast<float>(leftRc.GetWidth()), static_cast<float>(leftRc.GetHeight()));
+		D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT(static_cast<float>(rightRc.left), static_cast<float>(rightRc.top), static_cast<float>(rightRc.GetWidth()), static_cast<float>(rightRc.GetHeight()));
 
 		D3D::context->RSSetViewports(1, &leftVp);
 		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
@@ -1280,8 +1280,8 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 		if (!s_3d_vision_texture)
 			Create3DVisionTexture(s_backbuffer_width, s_backbuffer_height);
 
-		D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)dst.left, (float)dst.top, (float)dst.GetWidth(), (float)dst.GetHeight());
-		D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)(dst.left + s_backbuffer_width), (float)dst.top, (float)dst.GetWidth(), (float)dst.GetHeight());
+		D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT(static_cast<float>(dst.left), static_cast<float>(dst.top), static_cast<float>(dst.GetWidth()), static_cast<float>(dst.GetHeight()));
+		D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT(static_cast<float>(dst.left + s_backbuffer_width), static_cast<float>(dst.top), static_cast<float>(dst.GetWidth()), static_cast<float>(dst.GetHeight()));
 
 		// Render to staging texture which is double the width of the backbuffer
 		D3D::context->OMSetRenderTargets(1, &s_3d_vision_texture->GetRTV(), nullptr);
@@ -1302,7 +1302,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 	}
 	else
 	{
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)dst.left, (float)dst.top, (float)dst.GetWidth(), (float)dst.GetHeight());
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(static_cast<float>(dst.left), static_cast<float>(dst.top), static_cast<float>(dst.GetWidth()), static_cast<float>(dst.GetHeight()));
 		D3D::context->RSSetViewports(1, &vp);
 		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, (g_Config.iStereoMode == STEREO_ANAGLYPH) ? PixelShaderCache::GetAnaglyphProgram() : PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma);
 	}

@@ -71,7 +71,7 @@ void SetDebugObjectName(T resource, const char* name)
 		"resource must be convertible to ID3D11DeviceChild*");
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (resource)
-		resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
+		resource->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name ? strlen(name) : 0), name);
 #endif
 }
 

@@ -159,9 +159,9 @@ ALDeviceList::~ALDeviceList()
 /*
  * Returns the number of devices in the complete device list
  */
-s32 ALDeviceList::GetNumDevices()
+s32 ALDeviceList::GetNumDevices() const
 {
-	return (s32)vDeviceInfo.size();
+	return static_cast<s32>(vDeviceInfo.size());
 }
 
 /*
@@ -170,7 +170,7 @@ s32 ALDeviceList::GetNumDevices()
 char * ALDeviceList::GetDeviceName(s32 index)
 {
 	if (index < GetNumDevices())
-		return (char *)vDeviceInfo[index].strDeviceName.c_str();
+		return const_cast<char *>(vDeviceInfo[index].strDeviceName.c_str());
 	else
 		return nullptr;
 }
@@ -225,7 +225,7 @@ bool ALDeviceList::IsExtensionSupported(s32 index, char *szExtName)
 /*
  * returns the index of the default device in the complete device list
  */
-s32 ALDeviceList::GetDefaultDevice()
+s32 ALDeviceList::GetDefaultDevice() const
 {
 	return defaultDeviceIndex;
 }

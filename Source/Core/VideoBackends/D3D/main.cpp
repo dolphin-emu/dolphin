@@ -44,7 +44,7 @@ namespace DX11
 unsigned int VideoBackend::PeekMessages()
 {
 	MSG msg;
-	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 	{
 		if (msg.message == WM_QUIT)
 			return FALSE;
@@ -71,11 +71,11 @@ std::string VideoBackend::GetConfigName() const
 
 void InitBackendInfo()
 {
-	HRESULT hr = DX11::D3D::LoadDXGI();
-	if (SUCCEEDED(hr)) hr = DX11::D3D::LoadD3D();
+	HRESULT hr = D3D::LoadDXGI();
+	if (SUCCEEDED(hr)) hr = D3D::LoadD3D();
 	if (FAILED(hr))
 	{
-		DX11::D3D::UnloadDXGI();
+		D3D::UnloadDXGI();
 		return;
 	}
 
@@ -92,14 +92,14 @@ void InitBackendInfo()
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
-	hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&factory));
 	if (FAILED(hr))
 		PanicAlert("Failed to create IDXGIFactory object");
 
 	// adapters
 	g_Config.backend_info.Adapters.clear();
 	g_Config.backend_info.AAModes.clear();
-	while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
+	while (factory->EnumAdapters(static_cast<UINT>(g_Config.backend_info.Adapters.size()), &ad) != DXGI_ERROR_NOT_FOUND)
 	{
 		const size_t adapter_index = g_Config.backend_info.Adapters.size();
 
@@ -110,14 +110,14 @@ void InitBackendInfo()
 		if (adapter_index == g_Config.iAdapter)
 		{
 			std::string samples;
-			std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
+			std::vector<DXGI_SAMPLE_DESC> modes = D3D::EnumAAModes(ad);
 			// First iteration will be 1. This equals no AA.
 			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
 				g_Config.backend_info.AAModes.push_back(modes[i].Count);
 			}
 
-			bool shader_model_5_supported = (DX11::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
+			bool shader_model_5_supported = (D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
 
 			// Requires the earlydepthstencil attribute (only available in shader model 5)
 			g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
@@ -140,8 +140,8 @@ void InitBackendInfo()
 	g_Config.backend_info.PPShaders.clear();
 	g_Config.backend_info.AnaglyphShaders.clear();
 
-	DX11::D3D::UnloadDXGI();
-	DX11::D3D::UnloadD3D();
+	D3D::UnloadDXGI();
+	D3D::UnloadD3D();
 }
 
 void VideoBackend::ShowConfig(void *hParent)

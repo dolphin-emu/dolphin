@@ -23,7 +23,7 @@ namespace DX11
 
 static TextureEncoder* g_encoder = nullptr;
 const size_t MAX_COPY_BUFFERS = 32;
-ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
+ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { nullptr };
 
 TextureCache::TCacheEntry::~TCacheEntry()
 {
@@ -67,7 +67,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 		hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 		if (SUCCEEDED(hr))
 		{
-			saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, desc.Width, desc.Height);
+			saved_png = TextureToPng(static_cast<u8*>(map.pData), map.RowPitch, filename, desc.Width, desc.Height);
 			D3D::context->Unmap(pNewTexture, 0);
 		}
 		SAFE_RELEASE(pNewTexture);
@@ -142,7 +142,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {
-	D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, expanded_width, level, usage);
+	D3D::ReplaceRGBATexture2D(texture->GetTex(), temp, width, height, expanded_width, level, usage);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
@@ -150,13 +150,13 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 	if (config.rendertarget)
 	{
 		return new TCacheEntry(config, D3DTexture2D::Create(config.width, config.height,
-			(D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET | (int)D3D11_BIND_SHADER_RESOURCE),
+			static_cast<D3D11_BIND_FLAG>(static_cast<int>(D3D11_BIND_RENDER_TARGET) | static_cast<int>(D3D11_BIND_SHADER_RESOURCE)),
 			D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, config.layers));
 	}
 	else
 	{
 		D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
-		D3D11_CPU_ACCESS_FLAG cpu_access = (D3D11_CPU_ACCESS_FLAG)0;
+		D3D11_CPU_ACCESS_FLAG cpu_access = static_cast<D3D11_CPU_ACCESS_FLAG>(0);
 
 		if (config.levels == 1)
 		{
@@ -175,8 +175,8 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 		entry->usage = usage;
 
 		// TODO: better debug names
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetTex(), "a texture of the TextureCache");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");
+		D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(entry->texture->GetTex()), "a texture of the TextureCache");
+		D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(entry->texture->GetSRV()), "shader resource view of a texture of the TextureCache");
 
 		SAFE_RELEASE(pTexture);
 
@@ -190,7 +190,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 	g_renderer->ResetAPIState();
 
 	// stretch picture with increased internal resolution
-	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)config.width, (float)config.height);
+	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, static_cast<float>(config.width), static_cast<float>(config.height));
 	D3D::context->RSSetViewports(1, &vp);
 
 	// set transformation
@@ -201,7 +201,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 		data.pSysMem = colmat;
 		HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &efbcopycbuf[cbufid]);
 		CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbufid);
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
+		D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(efbcopycbuf[cbufid]), "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 	}
 	D3D::stateman->SetPixelConstants(efbcopycbuf[cbufid]);
 
@@ -328,7 +328,7 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
 	g_renderer->ResetAPIState();
 
 	// stretch picture with increased internal resolution
-	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)unconverted->config.width, (float)unconverted->config.height);
+	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, static_cast<float>(unconverted->config.width), static_cast<float>(unconverted->config.height));
 	D3D::context->RSSetViewports(1, &vp);
 
 	D3D11_BOX box{ 0, 0, 0, 512, 1, 1 };
@@ -397,7 +397,7 @@ TextureCache::TextureCache()
 	const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(16, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
 	hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &palette_uniform);
 	CHECK(SUCCEEDED(hr), "Create palette decoder constant buffer");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)palette_uniform, "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
+	D3D::SetDebugObjectName(static_cast<ID3D11DeviceChild*>(palette_uniform), "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 }
 
 TextureCache::~TextureCache()

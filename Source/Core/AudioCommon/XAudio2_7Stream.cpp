@@ -28,8 +28,8 @@ public:
 
 	~StreamingVoiceContext2_7();
 
-	void StreamingVoiceContext2_7::Stop();
-	void StreamingVoiceContext2_7::Play();
+	void StreamingVoiceContext2_7::Stop() const;
+	void StreamingVoiceContext2_7::Play() const;
 
 	STDMETHOD_(void, OnVoiceError) (THIS_ void* pBufferContext, HRESULT Error) {}
 	STDMETHOD_(void, OnVoiceProcessingPassStart) (UINT32) {}
@@ -100,13 +100,13 @@ StreamingVoiceContext2_7::~StreamingVoiceContext2_7()
 	}
 }
 
-void StreamingVoiceContext2_7::Stop()
+void StreamingVoiceContext2_7::Stop() const
 {
 	if (m_source_voice)
 		m_source_voice->Stop();
 }
 
-void StreamingVoiceContext2_7::Play()
+void StreamingVoiceContext2_7::Play() const
 {
 	if (m_source_voice)
 		m_source_voice->Start();
@@ -146,6 +146,7 @@ bool XAudio2_7::InitLibrary()
 }
 
 XAudio2_7::XAudio2_7()
+
 	: m_mastering_voice(nullptr)
 	, m_volume(1.0f)
 	, m_cleanup_com(SUCCEEDED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
@@ -185,8 +186,7 @@ bool XAudio2_7::Start()
 	// Volume
 	m_mastering_voice->SetVolume(m_volume);
 
-	m_voice_context = std::unique_ptr<StreamingVoiceContext2_7>
-		(new StreamingVoiceContext2_7(m_xaudio2.get(), m_mixer.get(), m_sound_sync_event));
+	m_voice_context = std::make_unique<StreamingVoiceContext2_7>(m_xaudio2.get(), m_mixer.get(), m_sound_sync_event);
 
 	return true;
 }
@@ -194,7 +194,7 @@ bool XAudio2_7::Start()
 void XAudio2_7::SetVolume(int volume)
 {
 	//linear 1- .01
-	m_volume = (float)volume / 100.f;
+	m_volume = static_cast<float>(volume) / 100.f;
 
 	if (m_mastering_voice)
 		m_mastering_voice->SetVolume(m_volume);

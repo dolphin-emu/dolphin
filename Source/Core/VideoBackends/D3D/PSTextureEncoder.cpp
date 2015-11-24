@@ -145,11 +145,11 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 		D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
 
 		// Transfer staging buffer to GameCube/Wii RAM
-		D3D11_MAPPED_SUBRESOURCE map = { 0 };
+		D3D11_MAPPED_SUBRESOURCE map = { nullptr };
 		hr = D3D::context->Map(m_outStage, 0, D3D11_MAP_READ, 0, &map);
 		CHECK(SUCCEEDED(hr), "map staging buffer (0x%x)", hr);
 
-		u8* src = (u8*)map.pData;
+		u8* src = static_cast<u8*>(map.pData);
 		u32 readStride = std::min(bytes_per_row, map.RowPitch);
 		for (unsigned int y = 0; y < num_blocks_y; ++y)
 		{

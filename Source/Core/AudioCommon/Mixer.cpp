@@ -47,7 +47,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	u32 indexR = m_indexR.load();
 	u32 indexW = m_indexW.load();
 
-	float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);
+	float numLeft = static_cast<float>(((indexW - indexR) & INDEX_MASK) / 2);
 	m_numLeftI = (numLeft + m_numLeftI*(CONTROL_AVG-1)) / CONTROL_AVG;
 	float offset = (m_numLeftI - LOW_WATERMARK) * CONTROL_FACTOR;
 	if (offset > MAX_FREQ_SHIFT) offset = MAX_FREQ_SHIFT;
@@ -64,7 +64,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
 	}
 
-	const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);
+	const u32 ratio = static_cast<u32>(65536.0f * aid_sample_rate / static_cast<float>(m_mixer->m_sampleRate));
 
 	s32 lvolume = m_LVolume.load();
 	s32 rvolume = m_RVolume.load();
@@ -76,20 +76,20 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 
 		s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); //current
 		s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
-		int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac) >> 16;
+		int sampleL = ((l1 << 16) + (l2 - l1) * static_cast<u16>(m_frac)) >> 16;
 		sampleL = (sampleL * lvolume) >> 8;
 		sampleL += samples[currentSample + 1];
 		samples[currentSample + 1] = MathUtil::Clamp(sampleL, -32767, 32767);
 
 		s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
 		s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
-		int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac) >> 16;
+		int sampleR = ((r1 << 16) + (r2 - r1) * static_cast<u16>(m_frac)) >> 16;
 		sampleR = (sampleR * rvolume) >> 8;
 		sampleR += samples[currentSample];
 		samples[currentSample] = MathUtil::Clamp(sampleR, -32767, 32767);
 
 		m_frac += ratio;
-		indexR += 2 * (u16)(m_frac >> 16);
+		indexR += 2 * static_cast<u16>(m_frac >> 16);
 		m_frac &= 0xffff;
 	}
 

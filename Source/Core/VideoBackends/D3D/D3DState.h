@@ -80,7 +80,7 @@ namespace D3D
 template<typename T> class AutoState
 {
 public:
-	AutoState(const T* object);
+	explicit AutoState(const T* object);
 	AutoState(const AutoState<T> &source);
 	~AutoState();
 
@@ -196,7 +196,7 @@ public:
 
 	void SetPixelShaderDynamic(ID3D11PixelShader* shader, ID3D11ClassInstance * const * classInstances, u32 classInstancesCount)
 	{
-		D3D::context->PSSetShader(shader, classInstances, classInstancesCount);
+		context->PSSetShader(shader, classInstances, classInstancesCount);
 		m_current.pixelShader = shader;
 		m_pending.pixelShader = shader;
 	}
