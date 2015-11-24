@@ -15,9 +15,8 @@ namespace DX11
 namespace D3D
 {
 
-void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width, unsigned int height, unsigned int expanded_width, unsigned int level, D3D11_USAGE usage)
+void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width, unsigned int height, unsigned int src_pitch, unsigned int level, D3D11_USAGE usage)
 {
-	unsigned int src_pitch = 4 * expanded_width;
 	if (usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
@@ -32,7 +31,7 @@ void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned 
 			// pitch to what the driver returns, so copy whichever is smaller.
 			unsigned int copy_size = std::min(src_pitch, map.RowPitch);
 			for (unsigned int y = 0; y < height; ++y)
-				memcpy((u8*)map.pData + y * map.RowPitch, (u8*)buffer + y * src_pitch, copy_size);
+				memcpy((u8*)map.pData + y * map.RowPitch, buffer + y * src_pitch, copy_size);
 		}
 		D3D::context->Unmap(pTexture, level);
 	}
