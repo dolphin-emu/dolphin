@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "VideoBackends/D3D/D3DBase.h"
@@ -13,27 +15,31 @@ namespace DX11
 namespace D3D
 {
 
-void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width, unsigned int height, unsigned int pitch, unsigned int level, D3D11_USAGE usage)
+void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width, unsigned int height, unsigned int expanded_width, unsigned int level, D3D11_USAGE usage)
 {
+	unsigned int src_pitch = 4 * expanded_width;
 	if (usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(pTexture, level, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		if (4 * pitch == map.RowPitch)
+		if (src_pitch == map.RowPitch)
 		{
 			memcpy(map.pData, buffer, map.RowPitch * height);
 		}
 		else
 		{
+			// Source row size is aligned to texture block size. This can result in a different
+			// pitch to what the driver returns, so copy whichever is smaller.
+			unsigned int copy_size = std::min(src_pitch, map.RowPitch);
 			for (unsigned int y = 0; y < height; ++y)
-				memcpy((u8*)map.pData + y * map.RowPitch, (u32*)buffer + y * pitch, 4 * pitch);
+				memcpy((u8*)map.pData + y * map.RowPitch, (u8*)buffer + y * src_pitch, copy_size);
 		}
 		D3D::context->Unmap(pTexture, level);
 	}
 	else
 	{
 		D3D11_BOX dest_region = CD3D11_BOX(0, 0, 0, width, height, 1);
-		D3D::context->UpdateSubresource(pTexture, level, &dest_region, buffer, 4*pitch, 4*pitch*height);
+		D3D::context->UpdateSubresource(pTexture, level, &dest_region, buffer, src_pitch, src_pitch * height);
 	}
 }
 
