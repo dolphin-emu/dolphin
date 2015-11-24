@@ -167,7 +167,7 @@ inline void swap<8>(u8* data)
 template <typename T>
 inline T FromBigEndian(T data)
 {
-	//static_assert(std::is_arithmetic<T>::value, "function only makes sense with arithmetic types");
+	static_assert(std::is_arithmetic<T>::value, "function only makes sense with arithmetic types");
 
 	swap<sizeof(data)>(reinterpret_cast<u8*>(&data));
 	return data;
