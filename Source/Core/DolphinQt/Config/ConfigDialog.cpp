@@ -5,12 +5,12 @@
 #include <memory>
 #include <QActionGroup>
 
+#include "ui_ConfigDialog.h"
+
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
-
-#include "ui_ConfigDialog.h"
 
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/Config/ConfigDialog.h"
@@ -68,10 +68,10 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	connect(m_ui->SPINBOX, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this]() -> void CALLBACK)
 
 	// UI signals/slots
-	cAction(actionPageGeneral,		{ m_ui->realCentralWidget->setCurrentIndex(0); });
-	cAction(actionPageGraphics,		{ m_ui->realCentralWidget->setCurrentIndex(1); });
-	cAction(actionPageAudio,		{ m_ui->realCentralWidget->setCurrentIndex(2); });
-	cAction(actionPageControllers,	{ m_ui->realCentralWidget->setCurrentIndex(3); });
+	cAction(actionPageGeneral,     { m_ui->realCentralWidget->setCurrentIndex(0); });
+	cAction(actionPageGraphics,    { m_ui->realCentralWidget->setCurrentIndex(1); });
+	cAction(actionPageAudio,       { m_ui->realCentralWidget->setCurrentIndex(2); });
+	cAction(actionPageControllers, { m_ui->realCentralWidget->setCurrentIndex(3); });
 
 	/* Settings signals/slots */
 	// General - Basic
@@ -91,10 +91,10 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	});
 	cSpin(sbFramelimit, { SCGI.m_Framelimit = (m_ui->sbFramelimit->value() / 5) + 1; });
 	// General - Interface
-	cCheck(chkConfirmStop,		{ SCGI.bConfirmStop = m_ui->chkConfirmStop->isChecked(); });
-	cCheck(chkPanicHandlers,	{ SCGI.bUsePanicHandlers = m_ui->chkPanicHandlers->isChecked(); });
-	cCheck(chkOSDMessages,		{ SCGI.bOnScreenDisplayMessages = m_ui->chkOSDMessages->isChecked(); });
-	cCheck(chkPauseFocusLost,	{ SCGI.m_PauseOnFocusLost = m_ui->chkPauseFocusLost->isChecked(); });
+	cCheck(chkConfirmStop,    { SCGI.bConfirmStop = m_ui->chkConfirmStop->isChecked(); });
+	cCheck(chkPanicHandlers,  { SCGI.bUsePanicHandlers = m_ui->chkPanicHandlers->isChecked(); });
+	cCheck(chkOSDMessages,    { SCGI.bOnScreenDisplayMessages = m_ui->chkOSDMessages->isChecked(); });
+	cCheck(chkPauseFocusLost, { SCGI.m_PauseOnFocusLost = m_ui->chkPauseFocusLost->isChecked(); });
 	cCombo(cmbTheme, {
 		SCGI.theme_name = m_ui->cmbTheme->currentText().toStdString();
 		Resources::Init();
