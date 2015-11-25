@@ -38,6 +38,9 @@ public slots:
 	// Main toolbar (also used by DRenderWidget)
 	bool OnStop();
 
+	// Misc.
+	void UpdateIcons();
+
 private slots:
 	// Emulation
 	void StartGame(const QString filename);
@@ -50,9 +53,6 @@ private slots:
 
 	// View menu
 	void OnGameListStyleChanged();
-
-	// Misc.
-	void UpdateIcons();
 
 private:
 	bool event(QEvent* e) override;

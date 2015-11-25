@@ -8,6 +8,7 @@
 #include <QMainWindow>
 
 // Predefinitions
+class QAbstractButton;
 namespace Ui
 {
 class DConfigDialog;
@@ -25,4 +26,5 @@ private:
 	std::unique_ptr<Ui::DConfigDialog> m_ui;
 
 	void UpdateIcons();
+	void LoadSettings();
 };
