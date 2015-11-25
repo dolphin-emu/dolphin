@@ -77,7 +77,7 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	// General - Basic
 	cCheck(chkDualcore, { SCGI.bCPUThread = m_ui->chkDualcore->isChecked();	});
 	cCheck(chkIdleSkip, { SCGI.bSkipIdle = m_ui->chkIdleSkip->isChecked(); });
-	cCheck(chkCheats,	{ SCGI.bEnableCheats = m_ui->chkCheats->isChecked(); });
+	cCheck(chkCheats,   { SCGI.bEnableCheats = m_ui->chkCheats->isChecked(); });
 	cCombo(cmbFramelimit, {
 		unsigned int framelimit = m_ui->cmbFramelimit->currentIndex();
 		if (framelimit == 2)
@@ -89,7 +89,12 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 			m_ui->sbFramelimit->setEnabled(false);
 		SCGI.m_Framelimit = framelimit;
 	});
-	cSpin(sbFramelimit, { SCGI.m_Framelimit = (m_ui->sbFramelimit->value() / 5) + 1; });
+	cSpin(sbFramelimit, {
+		int valmod5 = m_ui->sbFramelimit->value() % 5;
+		if (valmod5 != 0)
+			m_ui->sbFramelimit->setValue(m_ui->sbFramelimit->value() - valmod5);
+		SCGI.m_Framelimit = (m_ui->sbFramelimit->value() / 5) + 1;
+	});
 	// General - Interface
 	cCheck(chkConfirmStop,    { SCGI.bConfirmStop = m_ui->chkConfirmStop->isChecked(); });
 	cCheck(chkPanicHandlers,  { SCGI.bUsePanicHandlers = m_ui->chkPanicHandlers->isChecked(); });
