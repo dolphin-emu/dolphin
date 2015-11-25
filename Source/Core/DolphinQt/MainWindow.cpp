@@ -38,6 +38,9 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	UpdateIcons();
 	setWindowIcon(Resources::GetIcon(Resources::DOLPHIN_LOGO));
 
+	// Config dialog init
+	m_config_dialog = new DConfigDialog(this);
+
 	// Create the GameList
 	m_game_tracker = new DGameTracker(this);
 	m_ui->centralWidget->addWidget(m_game_tracker);
@@ -79,6 +82,10 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(m_ui->actionReset, &QAction::triggered, this, &DMainWindow::OnReset);
 	connect(m_ui->actionScreenshot, &QAction::triggered, this, []() {
 		Core::SaveScreenShot();
+	});
+
+	connect(m_ui->actionConfig, &QAction::triggered, this, [this]() {
+		m_config_dialog->show();
 	});
 
 	connect(m_ui->actionWebsite, &QAction::triggered, this, []() {
@@ -377,4 +384,5 @@ void DMainWindow::UpdateIcons()
 	// Play/Pause is handled in OnCoreStateChanged().
 	m_ui->actionStop->setIcon(Resources::GetIcon(Resources::TOOLBAR_STOP));
 	m_ui->actionScreenshot->setIcon(Resources::GetIcon(Resources::TOOLBAR_SCREENSHOT));
+	m_ui->actionConfig->setIcon(Resources::GetIcon(Resources::TOOLBAR_CONFIGURE));
 }

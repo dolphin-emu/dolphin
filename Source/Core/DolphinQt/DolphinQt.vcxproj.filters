@@ -48,6 +48,12 @@
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="Config\ConfigDialog.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)ConfigDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
@@ -58,11 +64,15 @@
     <QtMoc Include="GameList\GameGrid.h" />
     <QtMoc Include="GameList\GameTracker.h" />
     <QtMoc Include="GameList\GameTree.h" />
+    <QtMoc Include="Config\ConfigDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
     <QtUi Include="GameList\*.ui">
       <Filter>GameList</Filter>
+    </QtUi>
+    <QtUi Include="Config\*.ui">
+      <Filter>Config</Filter>
     </QtUi>
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +90,9 @@
     </Filter>
     <Filter Include="GameList">
       <UniqueIdentifier>{be9925db-448c-46d8-a5a3-fb957490d3ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{b590fde1-618c-4693-89f0-286566daaac5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +117,9 @@
     </ClInclude>
     <ClInclude Include="GameList\GameTree.h">
       <Filter>GameList</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\ConfigDialog.h">
+      <Filter>Config</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

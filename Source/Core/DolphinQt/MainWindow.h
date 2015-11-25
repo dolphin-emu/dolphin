@@ -9,6 +9,7 @@
 
 #include "Core/Core.h"
 
+#include "DolphinQt/Config/ConfigDialog.h"
 #include "DolphinQt/GameList/GameTracker.h"
 #include "DolphinQt/VideoInterface/RenderWidget.h"
 
@@ -58,6 +59,7 @@ private:
 	void closeEvent(QCloseEvent* ce) override;
 	std::unique_ptr<Ui::DMainWindow> m_ui;
 	DGameTracker* m_game_tracker;
+	DConfigDialog* m_config_dialog;
 
 	// Misc.
 	void DisableScreensaver();

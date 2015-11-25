@@ -55,15 +55,11 @@
     <addaction name="separator"/>
     <addaction name="actionScreenshot"/>
    </widget>
-   <widget class="QMenu" name="mnuOptions">
-    <property name="title">
-     <string>Optio&amp;ns</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="mnuTools">
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionConfig"/>
    </widget>
    <widget class="QMenu" name="mnuView">
     <property name="title">
@@ -101,7 +97,6 @@
    <addaction name="mnuView"/>
    <addaction name="mnuEmulation"/>
    <addaction name="mnuMovie"/>
-   <addaction name="mnuOptions"/>
    <addaction name="mnuTools"/>
    <addaction name="mnuHelp"/>
   </widget>
@@ -122,6 +117,8 @@
    <addaction name="actionPlay"/>
    <addaction name="actionStop"/>
    <addaction name="actionScreenshot"/>
+   <addaction name="separator"/>
+   <addaction name="actionConfig"/>
   </widget>
   <action name="actionWebsite">
    <property name="text">
@@ -245,6 +242,11 @@
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionConfig">
+   <property name="text">
+    <string>&amp;Config</string>
    </property>
   </action>
  </widget>
