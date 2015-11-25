@@ -72,6 +72,7 @@ void Resources::UpdatePixmaps()
 	m_pixmaps[TOOLBAR_SCREENSHOT].load(GIFN("screenshot"));
 	m_pixmaps[TOOLBAR_CONFIGURE].load(GIFN("config"));
 	m_pixmaps[TOOLBAR_GRAPHICS].load(GIFN("graphics"));
+	m_pixmaps[TOOLBAR_AUDIO].load(GIFN("audio"));
 	m_pixmaps[TOOLBAR_CONTROLLERS].load(GIFN("classic"));
 	m_pixmaps[TOOLBAR_HELP].load(GIFN("nobanner")); // TODO
 	// TODO: toolbar[MEMCARD];
