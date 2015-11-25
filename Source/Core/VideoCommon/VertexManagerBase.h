@@ -50,7 +50,7 @@ public:
 
 	static void Flush();
 
-	virtual ::NativeVertexFormat* CreateNativeVertexFormat() = 0;
+	virtual NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
 
 	static void DoState(PointerWrap& p);
 

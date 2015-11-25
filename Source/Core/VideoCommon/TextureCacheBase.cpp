@@ -265,20 +265,23 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 						newconfig.height = h;
 						newconfig.rendertarget = true;
 						TCacheEntryBase* newentry = AllocateTexture(newconfig);
-						newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
-						newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
-						newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
-						newentry->frameCount = frameCount;
-						newentry->is_efb_copy = false;
-						srcrect.right = entry_to_update->config.width;
-						srcrect.bottom = entry_to_update->config.height;
-						dstrect.right = w;
-						dstrect.bottom = h;
-						newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
-						entry_to_update = newentry;
-						u64 key = iter_t->first;
-						iter_t = FreeTexture(iter_t);
-						textures_by_address.emplace(key, entry_to_update);
+						if (newentry)
+						{
+							newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
+							newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
+							newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
+							newentry->frameCount = frameCount;
+							newentry->is_efb_copy = false;
+							srcrect.right = entry_to_update->config.width;
+							srcrect.bottom = entry_to_update->config.height;
+							dstrect.right = w;
+							dstrect.bottom = h;
+							newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
+							entry_to_update = newentry;
+							u64 key = iter_t->first;
+							iter_t = FreeTexture(iter_t);
+							textures_by_address.emplace(key, entry_to_update);
+						}
 					}
 				}
 				srcrect.right = entry->config.width;
@@ -544,15 +547,18 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 		config.layers = FramebufferManagerBase::GetEFBLayers();
 		TCacheEntryBase *decoded_entry = AllocateTexture(config);
 
-		decoded_entry->SetGeneralParameters(address, texture_size, full_format);
-		decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
-		decoded_entry->SetHashes(base_hash, full_hash);
-		decoded_entry->frameCount = FRAMECOUNT_INVALID;
-		decoded_entry->is_efb_copy = false;
+		if (decoded_entry)
+		{
+			decoded_entry->SetGeneralParameters(address, texture_size, full_format);
+			decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
+			decoded_entry->SetHashes(base_hash, full_hash);
+			decoded_entry->frameCount = FRAMECOUNT_INVALID;
+			decoded_entry->is_efb_copy = false;
 
-		g_texture_cache->ConvertTexture(decoded_entry, entry, &texMem[tlutaddr], (TlutFormat)tlutfmt);
-		textures_by_address.emplace((u64)address, decoded_entry);
-		return ReturnEntry(stage, decoded_entry);
+			g_texture_cache->ConvertTexture(decoded_entry, entry, &texMem[tlutaddr], (TlutFormat)tlutfmt);
+			textures_by_address.emplace((u64)address, decoded_entry);
+			return ReturnEntry(stage, decoded_entry);
+		}
 	}
 
 	// Search the texture cache for normal textures by hash
@@ -611,6 +617,21 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 		}
 	}
 
+	// how many levels the allocated texture shall have
+	const u32 texLevels = hires_tex ? (u32)hires_tex->m_levels.size() : tex_levels;
+
+	// create the entry/texture
+	TCacheEntryConfig config;
+	config.width = width;
+	config.height = height;
+	config.levels = texLevels;
+
+	TCacheEntryBase* entry = AllocateTexture(config);
+	GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
+
+	if (!entry)
+		return nullptr;
+
 	if (!hires_tex)
 	{
 		if (!(texformat == GX_TF_RGBA8 && from_tmem))
@@ -624,18 +645,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 			TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
 		}
 	}
-
-	// how many levels the allocated texture shall have
-	const u32 texLevels = hires_tex ? (u32)hires_tex->m_levels.size() : tex_levels;
-
-	// create the entry/texture
-	TCacheEntryConfig config;
-	config.width = width;
-	config.height = height;
-	config.levels = texLevels;
-
-	TCacheEntryBase* entry = AllocateTexture(config);
-	GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 
 	iter = textures_by_address.emplace((u64)address, entry);
 	if (g_ActiveConfig.iSafeTextureCache_ColorSamples == 0 ||
@@ -1120,26 +1129,29 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
 		TCacheEntryBase* entry = AllocateTexture(config);
 
-		entry->SetGeneralParameters(dstAddr, 0, dstFormat);
-		entry->SetDimensions(tex_w, tex_h, 1);
-
-		entry->frameCount = FRAMECOUNT_INVALID;
-		entry->SetEfbCopy(dstStride);
-		entry->is_custom_tex = false;
-
-		entry->FromRenderTarget(dst, srcFormat, srcRect, scaleByHalf, cbufid, colmat);
-
-		u64 hash = entry->CalculateHash();
-		entry->SetHashes(hash, hash);
-
-		if (g_ActiveConfig.bDumpEFBTarget)
+		if (entry)
 		{
-			static int count = 0;
-			entry->Save(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-				count++), 0);
-		}
+			entry->SetGeneralParameters(dstAddr, 0, dstFormat);
+			entry->SetDimensions(tex_w, tex_h, 1);
 
-		textures_by_address.emplace((u64)dstAddr, entry);
+			entry->frameCount = FRAMECOUNT_INVALID;
+			entry->SetEfbCopy(dstStride);
+			entry->is_custom_tex = false;
+
+			entry->FromRenderTarget(dst, srcFormat, srcRect, scaleByHalf, cbufid, colmat);
+
+			u64 hash = entry->CalculateHash();
+			entry->SetHashes(hash, hash);
+
+			if (g_ActiveConfig.bDumpEFBTarget)
+			{
+				static int count = 0;
+				entry->Save(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+					count++), 0);
+			}
+
+			textures_by_address.emplace((u64)dstAddr, entry);
+		}
 	}
 }
 
@@ -1155,6 +1167,9 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::AllocateTexture(const TCach
 	else
 	{
 		entry = g_texture_cache->CreateTexture(config);
+		if (!entry)
+			return nullptr;
+
 		INCSTAT(stats.numTexturesCreated);
 	}
 
