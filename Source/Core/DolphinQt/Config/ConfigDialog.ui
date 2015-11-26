@@ -31,7 +31,7 @@
       </property>
       <widget class="QTabWidget" name="pgGeneral">
        <property name="currentIndex">
-        <number>0</number>
+        <number>5</number>
        </property>
        <widget class="QWidget" name="tabBasic">
         <attribute name="title">
@@ -767,28 +767,7 @@ May not work for all games.</string>
            </property>
            <layout class="QGridLayout" name="gridLayout_7">
             <item row="0" column="1">
-             <widget class="QComboBox" name="cmbCpuEngine">
-              <item>
-               <property name="text">
-                <string>Interpreter (slowest)</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Cached Interpreter (slower)</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>JIT Recompiler (recommended)</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>JITIL Recompiler (slow, experimental)</string>
-               </property>
-              </item>
-             </widget>
+             <widget class="QComboBox" name="cmbCpuEngine"/>
             </item>
             <item row="0" column="0">
              <widget class="QLabel" name="lblCpuEngine">
@@ -820,7 +799,7 @@ May not work for all games.</string>
              </spacer>
             </item>
             <item row="1" column="0" colspan="3">
-             <widget class="QGroupBox" name="gbCpuClockOverride">
+             <widget class="QGroupBox" name="gbCpuOverclock">
               <property name="title">
                <string>CPU clock override</string>
               </property>

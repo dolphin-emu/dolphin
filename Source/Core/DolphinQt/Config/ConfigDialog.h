@@ -26,5 +26,7 @@ private:
 	std::unique_ptr<Ui::DConfigDialog> m_ui;
 
 	void UpdateIcons();
+	void InitStaticData();
+	void SetupSlots();
 	void LoadSettings();
 };

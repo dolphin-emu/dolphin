@@ -11,6 +11,7 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/Config/ConfigDialog.h"
@@ -42,7 +43,7 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	m_ui->toolbar->insertWidget(m_ui->actionPageGeneral, leftSpacer);
 	m_ui->toolbar->addWidget(rightSpacer);
 
-	// Populate combos & etc.
+	// Populate combos (that don't change) & etc.
 	auto sv = DoFileSearch({""}, {
 		File::GetUserPath(D_THEMES_IDX),
 		File::GetSysDirectory() + THEMES_DIR
@@ -54,9 +55,45 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 		m_ui->cmbTheme->insertItem(m_ui->cmbTheme->count(), QString::fromStdString(name + ext));
 	}
 
+	InitStaticData();
 	LoadSettings();
+	SetupSlots();
+}
+DConfigDialog::~DConfigDialog()
+{
+}
 
-// Helper macros for signal/slot creation
+void DConfigDialog::UpdateIcons()
+{
+	m_ui->actionPageGeneral->setIcon(Resources::GetIcon(Resources::TOOLBAR_CONFIGURE));
+	m_ui->actionPageGraphics->setIcon(Resources::GetIcon(Resources::TOOLBAR_GRAPHICS));
+	m_ui->actionPageAudio->setIcon(Resources::GetIcon(Resources::TOOLBAR_AUDIO));
+	m_ui->actionPageControllers->setIcon(Resources::GetIcon(Resources::TOOLBAR_CONTROLLERS));
+}
+
+// Static data (translation-specific mappings to enums, etc.)
+static QMap<int, QString> s_cpu_engines;
+
+void DConfigDialog::InitStaticData()
+{
+	s_cpu_engines = {
+		 { PowerPC::CORE_INTERPRETER, tr("Interpreter (slowest)") },
+		 { PowerPC::CORE_CACHEDINTERPRETER, tr("Cached Interpreter (slower)") },
+		 #ifdef _M_X86_64
+		 { PowerPC::CORE_JIT64, tr("JIT Recompiler (recommended)") },
+		 { PowerPC::CORE_JITIL64, tr("JITIL Recompiler (slow, experimental)") },
+		 #elif defined(_M_ARM_64)
+		 { PowerPC::CORE_JITARM64, tr("JIT Arm64 (experimental)") },
+		 #endif
+	};
+	m_ui->cmbCpuEngine->clear();
+	for (QString str : s_cpu_engines.values())
+		m_ui->cmbCpuEngine->insertItem(m_ui->cmbCpuEngine->count(), str);
+}
+
+void DConfigDialog::SetupSlots()
+{
+	// Helper macros for signal/slot creation
 #define SCGI SConfig::GetInstance()
 #define cAction(ACTION, CALLBACK) \
 	connect(m_ui->ACTION, &QAction::triggered, [this]() -> void CALLBACK)
@@ -64,6 +101,8 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	connect(m_ui->COMBO, &QComboBox::currentTextChanged, [this]() -> void CALLBACK)
 #define cCheck(CHECKBOX, CALLBACK) \
 	connect(m_ui->CHECKBOX, &QCheckBox::stateChanged, [this]() -> void CALLBACK)
+#define cGbCheck(CHECKBOX, CALLBACK) \
+	connect(m_ui->CHECKBOX, &QGroupBox::toggled, [this]() -> void CALLBACK)
 #define cSpin(SPINBOX, CALLBACK) \
 	connect(m_ui->SPINBOX, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this]() -> void CALLBACK)
 
@@ -75,7 +114,7 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 
 	/* Settings signals/slots */
 	// General - Basic
-	cCheck(chkDualcore, { SCGI.bCPUThread = m_ui->chkDualcore->isChecked();	});
+	cCheck(chkDualcore, { SCGI.bCPUThread = m_ui->chkDualcore->isChecked(); });
 	cCheck(chkIdleSkip, { SCGI.bSkipIdle = m_ui->chkIdleSkip->isChecked(); });
 	cCheck(chkCheats,   { SCGI.bEnableCheats = m_ui->chkCheats->isChecked(); });
 	cCombo(cmbFramelimit, {
@@ -88,7 +127,7 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 		else
 			m_ui->sbFramelimit->setEnabled(false);
 		SCGI.m_Framelimit = framelimit;
-	});
+		});
 	cSpin(sbFramelimit, {
 		int valmod5 = m_ui->sbFramelimit->value() % 5;
 		if (valmod5 != 0)
@@ -106,9 +145,12 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 		g_main_window->UpdateIcons();
 		UpdateIcons();
 	});
-}
-DConfigDialog::~DConfigDialog()
-{
+	// General - GameCube
+	// General - Wii
+	// General - Advanced
+	cCheck(chkForceNTSCJ,  { SCGI.bForceNTSCJ = m_ui->chkForceNTSCJ->isChecked(); });
+	cCombo(cmbCpuEngine,   { SCGI.iCPUCore = s_cpu_engines.key(m_ui->cmbCpuEngine->currentText()); });
+	cGbCheck(gbCpuOverclock, { SCGI.m_OCEnable = m_ui->gbCpuOverclock->isChecked(); });
 }
 
 void DConfigDialog::LoadSettings()
@@ -132,14 +174,10 @@ void DConfigDialog::LoadSettings()
 	m_ui->chkOSDMessages->setChecked(sconf.bOnScreenDisplayMessages);
 	m_ui->chkPauseFocusLost->setChecked(sconf.m_PauseOnFocusLost);
 	m_ui->cmbTheme->setCurrentText(QString::fromStdString(sconf.theme_name));
+	// General - GameCube
+	// General - Wii
 	// General - Advanced
-	//m_force_ntscj_checkbox->setChecked(sconf.bForceNTSCJ);
-}
-
-void DConfigDialog::UpdateIcons()
-{
-	m_ui->actionPageGeneral->setIcon(Resources::GetIcon(Resources::TOOLBAR_CONFIGURE));
-	m_ui->actionPageGraphics->setIcon(Resources::GetIcon(Resources::TOOLBAR_GRAPHICS));
-	m_ui->actionPageAudio->setIcon(Resources::GetIcon(Resources::TOOLBAR_AUDIO));
-	m_ui->actionPageControllers->setIcon(Resources::GetIcon(Resources::TOOLBAR_CONTROLLERS));
+	m_ui->chkForceNTSCJ->setChecked(sconf.bForceNTSCJ);
+	m_ui->cmbCpuEngine->setCurrentText(s_cpu_engines.value(sconf.iCPUCore));
+	m_ui->gbCpuOverclock->setChecked(sconf.m_OCEnable);
 }
