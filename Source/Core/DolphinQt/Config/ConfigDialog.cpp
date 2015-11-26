@@ -4,8 +4,9 @@
 
 #include <memory>
 #include <QActionGroup>
+#include <QFileDialog>
 #include <QSysInfo>
-#include <windows.h>
+#include <QStandardPaths>
 
 #include "ui_ConfigDialog.h"
 
@@ -151,6 +152,32 @@ void DConfigDialog::SetupSlots()
 	});
 	// General - GameCube
 	// General - Wii
+	// General - Paths
+	cCheck(chkSearchSubfolders, { SCGI.m_RecursiveISOFolder = m_ui->chkSearchSubfolders->isChecked(); });
+	connect(m_ui->listDirectories, &QListWidget::currentRowChanged, [this](int row) -> void {
+		if (row == -1)
+			m_ui->btnRemoveDirectory->setEnabled(false);
+		else
+			m_ui->btnRemoveDirectory->setEnabled(true);
+	});
+	connect(m_ui->btnAddDirectory, &QPushButton::pressed, [this]() -> void {
+		QString path = QFileDialog::getExistingDirectory(this, tr("Select directory"),
+			QStandardPaths::writableLocation(QStandardPaths::HomeLocation), QFileDialog::ShowDirsOnly);
+#ifdef Q_OS_WIN
+		path.replace(QStringLiteral("/"), QStringLiteral("\\"));
+#endif
+		m_ui->listDirectories->insertItem(m_ui->listDirectories->count(), path);
+		SCGI.m_ISOFolder.push_back(path.toStdString());
+	});
+	connect(m_ui->btnRemoveDirectory, &QPushButton::pressed, [this]() -> void {
+		QListWidgetItem* i = m_ui->listDirectories->takeItem(m_ui->listDirectories->currentRow());
+		SCGI.m_ISOFolder.erase(std::remove(SCGI.m_ISOFolder.begin(), SCGI.m_ISOFolder.end(),
+			i->text().toStdString()), SCGI.m_ISOFolder.end());
+		delete i;
+	});
+	connect(m_ui->fcDefaultROM, &DFileChooser::changed, [this]() -> void {
+		SCGI.m_strDefaultISO = m_ui->fcDefaultROM->path().toStdString();
+	});
 	// General - Advanced
 	cCheck(chkForceNTSCJ, { SCGI.bForceNTSCJ = m_ui->chkForceNTSCJ->isChecked(); });
 	cCheck(chkDualcore,   { SCGI.bCPUThread = m_ui->chkDualcore->isChecked(); });
@@ -187,6 +214,15 @@ void DConfigDialog::LoadSettings()
 	m_ui->cmbTheme->setCurrentText(QString::fromStdString(sconf.theme_name));
 	// General - GameCube
 	// General - Wii
+	// General - Paths
+	for (const std::string& folder : sconf.m_ISOFolder)
+		m_ui->listDirectories->insertItem(m_ui->listDirectories->count(),
+			QString::fromStdString(folder));
+	m_ui->chkSearchSubfolders->setChecked(sconf.m_RecursiveISOFolder);
+	m_ui->fcDefaultROM->setPath(QString::fromStdString(sconf.m_strDefaultISO));
+	m_ui->fcDVDRoot->setPath(QString::fromStdString(sconf.m_strDVDRoot));
+	m_ui->fcApploader->setPath(QString::fromStdString(sconf.m_strApploader));
+	m_ui->fcWiiNandRoot->setPath(QString::fromStdString(sconf.m_NANDPath));
 	// General - Advanced
 	m_ui->chkForceNTSCJ->setChecked(sconf.bForceNTSCJ);
 	m_ui->chkDualcore->setChecked(sconf.bCPUThread);

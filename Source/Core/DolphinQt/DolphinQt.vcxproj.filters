@@ -54,6 +54,12 @@
     <ClCompile Include="$(QtMocOutPrefix)ConfigDialog.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="Config\FileChooserWidget.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)FileChooserWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
@@ -64,7 +70,7 @@
     <QtMoc Include="GameList\GameGrid.h" />
     <QtMoc Include="GameList\GameTracker.h" />
     <QtMoc Include="GameList\GameTree.h" />
-    <QtMoc Include="Config\ConfigDialog.h" />
+    <QtMoc Include="Config\FileChooserWidget.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
@@ -74,6 +80,17 @@
     <QtUi Include="Config\*.ui">
       <Filter>Config</Filter>
     </QtUi>
+    <QtUi Include="*.ui" />
+    <QtUi Include="*.ui" />
+    <QtUi Include="GameList\*.ui" />
+    <QtUi Include="*.ui" />
+    <QtUi Include="*.ui" />
+    <QtUi Include="GameList\*.ui" />
+    <QtUi Include="Config\FileChooserWidget.ui" />
+    <QtUi Include="Config\ConfigDialog.ui">
+      <Filter>Config</Filter>
+    </QtUi>
+    <QtUi Include="Config\FileChooserWidget.ui" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
@@ -119,6 +136,9 @@
       <Filter>GameList</Filter>
     </ClInclude>
     <ClInclude Include="Config\ConfigDialog.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\FileChooserWidget.h">
       <Filter>Config</Filter>
     </ClInclude>
   </ItemGroup>

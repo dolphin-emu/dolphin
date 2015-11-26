@@ -619,10 +619,10 @@ May not work for all games.</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout">
          <item row="1" column="1">
-          <widget class="QWidget" name="fcDefaultROM" native="true"/>
+          <widget class="DFileChooser" name="fcDefaultROM" native="true"/>
          </item>
          <item row="2" column="1">
-          <widget class="QWidget" name="fcDVDRoot" native="true"/>
+          <widget class="DFileChooser" name="fcDVDRoot" native="true"/>
          </item>
          <item row="0" column="0" colspan="2">
           <widget class="QGroupBox" name="gbDirectories">
@@ -684,6 +684,9 @@ May not work for all games.</string>
            <property name="text">
             <string>Apploader:</string>
            </property>
+           <property name="buddy">
+            <cstring>fcApploader</cstring>
+           </property>
           </widget>
          </item>
          <item row="2" column="0">
@@ -696,6 +699,9 @@ May not work for all games.</string>
            </property>
            <property name="text">
             <string>DVD root:</string>
+           </property>
+           <property name="buddy">
+            <cstring>fcDVDRoot</cstring>
            </property>
           </widget>
          </item>
@@ -710,6 +716,9 @@ May not work for all games.</string>
            <property name="text">
             <string>Default ROM:</string>
            </property>
+           <property name="buddy">
+            <cstring>fcDefaultROM</cstring>
+           </property>
           </widget>
          </item>
          <item row="4" column="0">
@@ -723,13 +732,16 @@ May not work for all games.</string>
            <property name="text">
             <string>Wii NAND root:</string>
            </property>
+           <property name="buddy">
+            <cstring>fcWiiNandRoot</cstring>
+           </property>
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QWidget" name="fcApploader" native="true"/>
+          <widget class="DFileChooser" name="fcApploader" native="true"/>
          </item>
          <item row="4" column="1">
-          <widget class="QWidget" name="fcWiiNandRoot" native="true"/>
+          <widget class="DFileChooser" name="fcWiiNandRoot" native="true"/>
          </item>
         </layout>
        </widget>
@@ -932,207 +944,8 @@ Provides major speed improvements on most modern PCs, but can cause occasional c
    </layout>
   </widget>
   <widget class="QToolBar" name="toolbar">
-   <property name="palette">
-    <palette>
-     <active>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Button">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Midlight">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Dark">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Mid">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Text">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ButtonText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </active>
-     <inactive>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Button">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Midlight">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Dark">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Mid">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Text">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ButtonText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </inactive>
-     <disabled>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Button">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Midlight">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Dark">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Mid">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Text">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ButtonText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </disabled>
-    </palette>
-   </property>
    <property name="contextMenuPolicy">
-    <enum>Qt::NoContextMenu</enum>
+    <enum>Qt::CustomContextMenu</enum>
    </property>
    <property name="autoFillBackground">
     <bool>true</bool>
@@ -1193,6 +1006,14 @@ Provides major speed improvements on most modern PCs, but can cause occasional c
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DFileChooser</class>
+   <extends>QWidget</extends>
+   <header>DolphinQt/Config/FileChooserWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

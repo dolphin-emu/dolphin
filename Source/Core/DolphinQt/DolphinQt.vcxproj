@@ -69,7 +69,8 @@
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="SystemInfo.h" />
     <QtMoc Include="VideoInterface\RenderWidget.h" />
-	<QtMoc Include="Config\ConfigDialog.h" />
+    <QtMoc Include="Config\ConfigDialog.h" />
+	<QtMoc Include="Config\FileChooserWidget.h" />
     <QtMoc Include="GameList\GameFile.h" />
     <QtMoc Include="GameList\GameGrid.h" />
     <QtMoc Include="GameList\GameTracker.h" />
@@ -82,10 +83,12 @@
     <ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ConfigDialog.cpp" />
+	<ClCompile Include="$(QtMocOutPrefix)FileChooserWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameGrid.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTree.cpp" />
     <ClCompile Include="Config\ConfigDialog.cpp" />
+    <ClCompile Include="Config\FileChooserWidget.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
     <ClCompile Include="GameList\GameGrid.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
@@ -173,6 +176,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config\ConfigDialog.h" />
+    <ClInclude Include="Config\FileChooserWidget.h" />
     <ClInclude Include="GameList\GameFile.h" />
     <ClInclude Include="GameList\GameGrid.h" />
     <ClInclude Include="GameList\GameTracker.h" />

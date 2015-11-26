@@ -13,6 +13,7 @@ set(SRCS
 	MainWindow.h
 	SystemInfo.cpp
 	Config/ConfigDialog.cpp
+	Config/FileChooserWidget.cpp
 	GameList/GameFile.cpp
 	GameList/GameGrid.cpp
 	GameList/GameTracker.cpp
@@ -27,6 +28,7 @@ set(UIS
 	MainWindow.ui
 	SystemInfo.ui
 	Config/ConfigDialog.ui
+	Config/FileChooserWidget.ui
 	GameList/GameGrid.ui
 	GameList/GameTree.ui
 	)
