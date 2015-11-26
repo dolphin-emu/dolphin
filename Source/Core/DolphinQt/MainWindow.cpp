@@ -21,7 +21,6 @@
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/SystemInfo.h"
 #include "DolphinQt/Utils/Resources.h"
-#include "DolphinQt/Utils/Utils.h"
 
 #include "VideoCommon/VideoConfig.h"
 
@@ -82,13 +81,13 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	});
 
 	connect(m_ui->actionWebsite, &QAction::triggered, this, []() {
-		QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/")));
+		QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/")));
 	});
 	connect(m_ui->actionOnlineDocs, &QAction::triggered, this, []() {
-		QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/docs/guides/")));
+		QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides/")));
 	});
 	connect(m_ui->actionGitHub, &QAction::triggered, this, []() {
-		QDesktopServices::openUrl(QUrl(SL("https://github.com/dolphin-emu/dolphin")));
+		QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
 	});
 	connect(m_ui->actionSystemInfo, &QAction::triggered, this, [&]() {
 		DSystemInfo* dlg = new DSystemInfo(this);
@@ -209,7 +208,7 @@ QString DMainWindow::ShowFileDialog()
 {
 	return QFileDialog::getOpenFileName(this, tr("Open File"), QString(),
 		tr("All supported ROMs (%1);;All files (*)")
-		.arg(SL("*.gcm *.iso *.ciso *.gcz *.wbfs *.elf *.dol *.dff *.tmd *.wad")));
+		.arg(QStringLiteral("*.gcm *.iso *.ciso *.gcz *.wbfs *.elf *.dol *.dff *.tmd *.wad")));
 }
 
 QString DMainWindow::ShowFolderDialog()

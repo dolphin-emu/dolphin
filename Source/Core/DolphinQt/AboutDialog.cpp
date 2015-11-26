@@ -12,7 +12,6 @@
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Utils/Resources.h"
-#include "DolphinQt/Utils/Utils.h"
 
 DAboutDialog::DAboutDialog(QWidget* parent_widget)
 	: QDialog(parent_widget)
@@ -23,13 +22,14 @@ DAboutDialog::DAboutDialog(QWidget* parent_widget)
 
 	m_ui = std::make_unique<Ui::DAboutDialog>();
 	m_ui->setupUi(this);
-	m_ui->lblGitRev->setText(SC(scm_desc_str));
-	m_ui->lblGitInfo->setText(m_ui->lblGitInfo->text().arg(SC(scm_branch_str), SC(scm_rev_git_str)));
-	m_ui->lblFinePrint->setText(m_ui->lblFinePrint->text().arg(SL("2015")));
+	m_ui->lblGitRev->setText(QString::fromUtf8(scm_desc_str));
+	m_ui->lblGitInfo->setText(m_ui->lblGitInfo->text().arg(QString::fromUtf8(scm_branch_str),
+		QString::fromUtf8(scm_rev_git_str)));
+	m_ui->lblFinePrint->setText(m_ui->lblFinePrint->text().arg(QStringLiteral("2015")));
 	m_ui->lblLicenseAuthorsSupport->setText(m_ui->lblLicenseAuthorsSupport->text()
-		.arg(SL("https://github.com/dolphin-emu/dolphin/blob/master/license.txt"))
-		.arg(SL("https://github.com/dolphin-emu/dolphin/graphs/contributors"))
-		.arg(SL("https://forums.dolphin-emu.org/")));
+		.arg(QStringLiteral("https://github.com/dolphin-emu/dolphin/blob/master/license.txt"))
+		.arg(QStringLiteral("https://github.com/dolphin-emu/dolphin/graphs/contributors"))
+		.arg(QStringLiteral("https://forums.dolphin-emu.org/")));
 	m_ui->lblLogo->setPixmap(Resources::GetPixmap(Resources::DOLPHIN_LOGO_LARGE));
 }
 
