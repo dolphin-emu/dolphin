@@ -9,88 +9,84 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/Utils/Resources.h"
-#include "DolphinQt/Utils/Utils.h"
 
 QVector<QPixmap> Resources::m_platforms;
 QVector<QPixmap> Resources::m_regions;
 QVector<QPixmap> Resources::m_ratings;
 QVector<QPixmap> Resources::m_pixmaps;
 
-// Wrapper for GetImageFilename() so you don't have to to call it directly
-#define GIFN(file) GetImageFilename(SL(file), dir)
-
 void Resources::Init()
 {
 	QString dir = QString::fromStdString(File::GetSysDirectory() + "Resources/");
 
 	m_regions.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
-	m_regions[DiscIO::IVolume::COUNTRY_JAPAN].load(GIFN("Flag_Japan"));
-	m_regions[DiscIO::IVolume::COUNTRY_EUROPE].load(GIFN("Flag_Europe"));
-	m_regions[DiscIO::IVolume::COUNTRY_USA].load(GIFN("Flag_USA"));
+	m_regions[DiscIO::IVolume::COUNTRY_JAPAN].load(GetImageFilename("Flag_Japan", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_EUROPE].load(GetImageFilename("Flag_Europe", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_USA].load(GetImageFilename("Flag_USA", dir));
 
-	m_regions[DiscIO::IVolume::COUNTRY_AUSTRALIA].load(GIFN("Flag_Australia"));
-	m_regions[DiscIO::IVolume::COUNTRY_FRANCE].load(GIFN("Flag_France"));
-	m_regions[DiscIO::IVolume::COUNTRY_GERMANY].load(GIFN("Flag_Germany"));
-	m_regions[DiscIO::IVolume::COUNTRY_ITALY].load(GIFN("Flag_Italy"));
-	m_regions[DiscIO::IVolume::COUNTRY_KOREA].load(GIFN("Flag_Korea"));
-	m_regions[DiscIO::IVolume::COUNTRY_NETHERLANDS].load(GIFN("Flag_Netherlands"));
-	m_regions[DiscIO::IVolume::COUNTRY_RUSSIA].load(GIFN("Flag_Russia"));
-	m_regions[DiscIO::IVolume::COUNTRY_SPAIN].load(GIFN("Flag_Spain"));
-	m_regions[DiscIO::IVolume::COUNTRY_TAIWAN].load(GIFN("Flag_Taiwan"));
-	m_regions[DiscIO::IVolume::COUNTRY_WORLD].load(GIFN("Flag_International"));
-	m_regions[DiscIO::IVolume::COUNTRY_UNKNOWN].load(GIFN("Flag_Unknown"));
+	m_regions[DiscIO::IVolume::COUNTRY_AUSTRALIA].load(GetImageFilename("Flag_Australia", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_FRANCE].load(GetImageFilename("Flag_France", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_GERMANY].load(GetImageFilename("Flag_Germany", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_ITALY].load(GetImageFilename("Flag_Italy", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_KOREA].load(GetImageFilename("Flag_Korea", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_NETHERLANDS].load(GetImageFilename("Flag_Netherlands", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_RUSSIA].load(GetImageFilename("Flag_Russia", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_SPAIN].load(GetImageFilename("Flag_Spain", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_TAIWAN].load(GetImageFilename("Flag_Taiwan", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_WORLD].load(GetImageFilename("Flag_International", dir));
+	m_regions[DiscIO::IVolume::COUNTRY_UNKNOWN].load(GetImageFilename("Flag_Unknown", dir));
 
 	m_platforms.resize(4);
-	m_platforms[0].load(GIFN("Platform_Gamecube"));
-	m_platforms[1].load(GIFN("Platform_Wii"));
-	m_platforms[2].load(GIFN("Platform_Wad"));
+	m_platforms[0].load(GetImageFilename("Platform_Gamecube", dir));
+	m_platforms[1].load(GetImageFilename("Platform_Wii", dir));
+	m_platforms[2].load(GetImageFilename("Platform_Wad", dir));
 
 	m_ratings.resize(6);
-	m_ratings[0].load(GIFN("rating0"));
-	m_ratings[1].load(GIFN("rating1"));
-	m_ratings[2].load(GIFN("rating2"));
-	m_ratings[3].load(GIFN("rating3"));
-	m_ratings[4].load(GIFN("rating4"));
-	m_ratings[5].load(GIFN("rating5"));
+	m_ratings[0].load(GetImageFilename("rating0", dir));
+	m_ratings[1].load(GetImageFilename("rating1", dir));
+	m_ratings[2].load(GetImageFilename("rating2", dir));
+	m_ratings[3].load(GetImageFilename("rating3", dir));
+	m_ratings[4].load(GetImageFilename("rating4", dir));
+	m_ratings[5].load(GetImageFilename("rating5", dir));
 
 	m_pixmaps.resize(NUM_ICONS);
-	m_pixmaps[DOLPHIN_LOGO].load(GIFN("Dolphin"));
-	m_pixmaps[DOLPHIN_LOGO_LARGE].load(GIFN("dolphin_logo"));
+	m_pixmaps[DOLPHIN_LOGO].load(GetImageFilename("Dolphin", dir));
+	m_pixmaps[DOLPHIN_LOGO_LARGE].load(GetImageFilename("dolphin_logo", dir));
 	UpdatePixmaps();
 }
 
 void Resources::UpdatePixmaps()
 {
 	QString dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
-	m_pixmaps[TOOLBAR_OPEN].load(GIFN("open"));
-	m_pixmaps[TOOLBAR_REFRESH].load(GIFN("refresh"));
-	m_pixmaps[TOOLBAR_BROWSE].load(GIFN("browse"));
-	m_pixmaps[TOOLBAR_PLAY].load(GIFN("play"));
-	m_pixmaps[TOOLBAR_STOP].load(GIFN("stop"));
-	m_pixmaps[TOOLBAR_PAUSE].load(GIFN("pause"));
-	m_pixmaps[TOOLBAR_FULLSCREEN].load(GIFN("fullscreen"));
-	m_pixmaps[TOOLBAR_SCREENSHOT].load(GIFN("screenshot"));
-	m_pixmaps[TOOLBAR_CONFIGURE].load(GIFN("config"));
-	m_pixmaps[TOOLBAR_GRAPHICS].load(GIFN("graphics"));
-	m_pixmaps[TOOLBAR_CONTROLLERS].load(GIFN("classic"));
-	m_pixmaps[TOOLBAR_HELP].load(GIFN("nobanner")); // TODO
+	m_pixmaps[TOOLBAR_OPEN].load(GetImageFilename("open", dir));
+	m_pixmaps[TOOLBAR_REFRESH].load(GetImageFilename("refresh", dir));
+	m_pixmaps[TOOLBAR_BROWSE].load(GetImageFilename("browse", dir));
+	m_pixmaps[TOOLBAR_PLAY].load(GetImageFilename("play", dir));
+	m_pixmaps[TOOLBAR_STOP].load(GetImageFilename("stop", dir));
+	m_pixmaps[TOOLBAR_PAUSE].load(GetImageFilename("pause", dir));
+	m_pixmaps[TOOLBAR_FULLSCREEN].load(GetImageFilename("fullscreen", dir));
+	m_pixmaps[TOOLBAR_SCREENSHOT].load(GetImageFilename("screenshot", dir));
+	m_pixmaps[TOOLBAR_CONFIGURE].load(GetImageFilename("config", dir));
+	m_pixmaps[TOOLBAR_GRAPHICS].load(GetImageFilename("graphics", dir));
+	m_pixmaps[TOOLBAR_CONTROLLERS].load(GetImageFilename("classic", dir));
+	m_pixmaps[TOOLBAR_HELP].load(GetImageFilename("nobanner", dir)); // TODO
 	// TODO: toolbar[MEMCARD];
 	// TODO: toolbar[HOTKEYS];
-	m_pixmaps[BANNER_MISSING].load(GIFN("nobanner"));
+	m_pixmaps[BANNER_MISSING].load(GetImageFilename("nobanner", dir));
 	// TODO: Make this consistent with the other files
-	m_platforms[3].load(GIFN("fileplatform"));
+	m_platforms[3].load(GetImageFilename("fileplatform", dir));
 }
 
-QString Resources::GetImageFilename(QString name, QString dir)
+QString Resources::GetImageFilename(const char* name, QString dir)
 {
+	QString fileName = QString::fromUtf8(name);
 	if (qApp->devicePixelRatio() >= 2)
 	{
-		QString fileName = name;
-		fileName.prepend(dir).append(SL("@2x.png"));
+		fileName.prepend(dir).append(QStringLiteral("@2x.png"));
 		if (QFile::exists(fileName))
 			return fileName;
 	}
-	return name.prepend(dir).append(SL(".png"));
+	return fileName.prepend(dir).append(QStringLiteral(".png"));
 }
 
 QPixmap& Resources::GetRegionPixmap(DiscIO::IVolume::ECountry region)
