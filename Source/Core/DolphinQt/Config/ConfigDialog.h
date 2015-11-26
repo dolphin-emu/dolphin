@@ -29,4 +29,6 @@ private:
 	void InitStaticData();
 	void SetupSlots();
 	void LoadSettings();
+
+	void UpdateCpuOCLabel();
 };

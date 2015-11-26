@@ -31,22 +31,41 @@
       </property>
       <widget class="QTabWidget" name="pgGeneral">
        <property name="currentIndex">
-        <number>5</number>
+        <number>4</number>
        </property>
        <widget class="QWidget" name="tabBasic">
         <attribute name="title">
          <string>Basic</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="4" column="0">
-          <spacer name="verticalSpacer">
+         <item row="3" column="1">
+          <widget class="QComboBox" name="cmbFramelimit">
+           <item>
+            <property name="text">
+             <string>Off</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Auto</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Manual</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <spacer name="horizontalSpacer">
            <property name="orientation">
-            <enum>Qt::Vertical</enum>
+            <enum>Qt::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>40</height>
+             <width>40</width>
+             <height>20</height>
             </size>
            </property>
           </spacer>
@@ -65,25 +84,6 @@
            <property name="buddy">
             <cstring>cmbFramelimit</cstring>
            </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QComboBox" name="cmbFramelimit">
-           <item>
-            <property name="text">
-             <string>Off</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Auto</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Manual</string>
-            </property>
-           </item>
           </widget>
          </item>
          <item row="3" column="2">
@@ -111,19 +111,6 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="3">
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
          <item row="2" column="0" colspan="4">
           <widget class="QCheckBox" name="chkCheats">
            <property name="toolTip">
@@ -133,6 +120,19 @@
             <string>Enable cheats</string>
            </property>
           </widget>
+         </item>
+         <item row="5" column="0">
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -738,7 +738,7 @@ May not work for all games.</string>
          <string>Advanced</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="3" column="0">
+         <item row="4" column="0">
           <widget class="QLabel" name="lblCpuEngine">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -754,10 +754,34 @@ May not work for all games.</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
+         <item row="4" column="1">
           <widget class="QComboBox" name="cmbCpuEngine"/>
          </item>
-         <item row="0" column="0" colspan="3">
+         <item row="6" column="0">
+          <spacer name="verticalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="3" column="0" colspan="2">
+          <widget class="QCheckBox" name="chkIdleSkip">
+           <property name="toolTip">
+            <string>Attempt to detect and skip wait-loops.
+If unsure, leave this checked.</string>
+           </property>
+           <property name="text">
+            <string>Enable idle skipping</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="2">
           <widget class="QCheckBox" name="chkForceNTSCJ">
            <property name="toolTip">
             <string>Forces NTSC-J mode for using the Japanese ROM font.
@@ -768,7 +792,20 @@ If left unchecked, Dolphin defaults to NTSC-U and automatically enables this set
            </property>
           </widget>
          </item>
-         <item row="4" column="0" colspan="2">
+         <item row="4" column="2">
+          <spacer name="horizontalSpacer_7">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="5" column="0" colspan="3">
           <widget class="QGroupBox" name="gbCpuOverclock">
            <property name="title">
             <string>CPU clock override</string>
@@ -781,12 +818,15 @@ If left unchecked, Dolphin defaults to NTSC-U and automatically enables this set
            </property>
            <layout class="QGridLayout" name="gridLayout_6">
             <item row="0" column="0">
-             <widget class="QSlider" name="slCpuClockSpeed">
+             <widget class="QSlider" name="slCpuOCFactor">
               <property name="minimum">
-               <number>6</number>
+               <number>0</number>
               </property>
               <property name="maximum">
-               <number>125</number>
+               <number>150</number>
+              </property>
+              <property name="value">
+               <number>100</number>
               </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -794,14 +834,14 @@ If left unchecked, Dolphin defaults to NTSC-U and automatically enables this set
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QLabel" name="lblCpuClockSpeed">
+             <widget class="QLabel" name="lblCpuOCFactor">
               <property name="buddy">
-               <cstring>slCpuClockSpeed</cstring>
+               <cstring>slCpuOCFactor</cstring>
               </property>
              </widget>
             </item>
             <item row="1" column="0" colspan="2">
-             <widget class="QLabel" name="lblCpuClockInfo">
+             <widget class="QLabel" name="lblCpuOverclockInfo">
               <property name="text">
                <string>Higher values can make variable-framerate games run at a higher framerate, at the expense of CPU. Lower values can make variable-framerate games run at a lower framerate, saving CPU.
 
@@ -824,20 +864,7 @@ WARNING: Changing this from the default (100%) can and will break games and caus
            </layout>
           </widget>
          </item>
-         <item row="5" column="0">
-          <spacer name="verticalSpacer_5">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="1" column="0" colspan="2">
+         <item row="2" column="0" colspan="2">
           <widget class="QCheckBox" name="chkDualcore">
            <property name="toolTip">
             <string>Splits the CPU and GPU threads so they can be run on separate cores.
@@ -845,17 +872,6 @@ Provides major speed improvements on most modern PCs, but can cause occasional c
            </property>
            <property name="text">
             <string>Enable dual core</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" colspan="2">
-          <widget class="QCheckBox" name="chkIdleSkip">
-           <property name="toolTip">
-            <string>Attempt to detect and skip wait-loops.
-If unsure, leave this checked.</string>
-           </property>
-           <property name="text">
-            <string>Enable idle skipping</string>
            </property>
           </widget>
          </item>

@@ -39,7 +39,7 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 
 #ifdef Q_OS_WIN
 	// "Unified titlebar and toolbar" effect
-	if (QSysInfo::WindowsVersion >= QSysInfo::WV_WINDOWS8
+	if (QSysInfo::WindowsVersion == QSysInfo::WV_WINDOWS10)
 	{
 		QPalette pal = m_ui->toolbar->palette();
 		pal.setColor(QPalette::Button, Qt::white);
@@ -109,6 +109,8 @@ void DConfigDialog::SetupSlots()
 	connect(m_ui->CHECKBOX, &QGroupBox::toggled, [this]() -> void CALLBACK)
 #define cSpin(SPINBOX, CALLBACK) \
 	connect(m_ui->SPINBOX, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this]() -> void CALLBACK)
+#define cSlider(SLIDER, CALLBACK) \
+	connect(m_ui->SLIDER, &QSlider::valueChanged, [this]() -> void CALLBACK)
 
 	// UI signals/slots
 	cAction(actionPageGeneral,     { m_ui->realCentralWidget->setCurrentIndex(0); });
@@ -150,11 +152,18 @@ void DConfigDialog::SetupSlots()
 	// General - GameCube
 	// General - Wii
 	// General - Advanced
-	cCheck(chkForceNTSCJ,  { SCGI.bForceNTSCJ = m_ui->chkForceNTSCJ->isChecked(); });
-	cCheck(chkDualcore, { SCGI.bCPUThread = m_ui->chkDualcore->isChecked(); });
-	cCheck(chkIdleSkip, { SCGI.bSkipIdle = m_ui->chkIdleSkip->isChecked(); });
-	cCombo(cmbCpuEngine,   { SCGI.iCPUCore = s_cpu_engines.key(m_ui->cmbCpuEngine->currentText()); });
-	cGbCheck(gbCpuOverclock, { SCGI.m_OCEnable = m_ui->gbCpuOverclock->isChecked(); });
+	cCheck(chkForceNTSCJ, { SCGI.bForceNTSCJ = m_ui->chkForceNTSCJ->isChecked(); });
+	cCheck(chkDualcore,   { SCGI.bCPUThread = m_ui->chkDualcore->isChecked(); });
+	cCheck(chkIdleSkip,   { SCGI.bSkipIdle = m_ui->chkIdleSkip->isChecked(); });
+	cCombo(cmbCpuEngine,  { SCGI.iCPUCore = s_cpu_engines.key(m_ui->cmbCpuEngine->currentText()); });
+	cGbCheck(gbCpuOverclock, {
+		SCGI.m_OCEnable = m_ui->gbCpuOverclock->isChecked();
+		UpdateCpuOCLabel();
+	});
+	cSlider(slCpuOCFactor, {
+		SCGI.m_OCFactor = std::exp2f((m_ui->slCpuOCFactor->value() - 100.f) / 25.f);
+		UpdateCpuOCLabel();
+	});
 }
 
 void DConfigDialog::LoadSettings()
@@ -184,4 +193,14 @@ void DConfigDialog::LoadSettings()
 	m_ui->chkIdleSkip->setChecked(sconf.bSkipIdle);
 	m_ui->cmbCpuEngine->setCurrentText(s_cpu_engines.value(sconf.iCPUCore));
 	m_ui->gbCpuOverclock->setChecked(sconf.m_OCEnable);
+	m_ui->slCpuOCFactor->setValue((int)(std::log2f(sconf.m_OCFactor) * 25.f + 100.f + 0.5f));
+	UpdateCpuOCLabel();
+}
+
+void DConfigDialog::UpdateCpuOCLabel()
+{
+	bool wii = SCGI.bWii;
+	int percent = (int)(std::roundf(SCGI.m_OCFactor * 100.f));
+	int clock = (int)(std::roundf(SCGI.m_OCFactor * (wii ? 729.f : 486.f)));
+	m_ui->lblCpuOCFactor->setText(QStringLiteral("%1% (%2 MHz)").arg(percent).arg(clock));
 }
