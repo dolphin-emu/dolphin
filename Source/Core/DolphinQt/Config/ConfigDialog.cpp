@@ -5,8 +5,8 @@
 #include <memory>
 #include <QActionGroup>
 #include <QFileDialog>
-#include <QSysInfo>
 #include <QStandardPaths>
+#include <QSysInfo>
 
 #include "ui_ConfigDialog.h"
 
