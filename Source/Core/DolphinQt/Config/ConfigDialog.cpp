@@ -4,6 +4,8 @@
 
 #include <memory>
 #include <QActionGroup>
+#include <QSysInfo>
+#include <windows.h>
 
 #include "ui_ConfigDialog.h"
 
@@ -16,7 +18,6 @@
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/Config/ConfigDialog.h"
 #include "DolphinQt/Utils/Resources.h"
-#include "DolphinQt/Utils/Utils.h"
 
 DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	: QMainWindow(parent_widget)
@@ -36,12 +37,15 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	ag->addAction(m_ui->actionPageAudio);
 	ag->addAction(m_ui->actionPageControllers);
 
-	QWidget* leftSpacer = new QWidget(m_ui->toolbar);
-	QWidget* rightSpacer = new QWidget(m_ui->toolbar);
-	leftSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	rightSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	m_ui->toolbar->insertWidget(m_ui->actionPageGeneral, leftSpacer);
-	m_ui->toolbar->addWidget(rightSpacer);
+#ifdef Q_OS_WIN
+	// "Unified titlebar and toolbar" effect
+	if (QSysInfo::WindowsVersion >= QSysInfo::WV_WINDOWS8
+	{
+		QPalette pal = m_ui->toolbar->palette();
+		pal.setColor(QPalette::Button, Qt::white);
+		m_ui->toolbar->setPalette(pal);
+	}
+#endif
 
 	// Populate combos (that don't change) & etc.
 	auto sv = DoFileSearch({""}, {
@@ -114,8 +118,6 @@ void DConfigDialog::SetupSlots()
 
 	/* Settings signals/slots */
 	// General - Basic
-	cCheck(chkDualcore, { SCGI.bCPUThread = m_ui->chkDualcore->isChecked(); });
-	cCheck(chkIdleSkip, { SCGI.bSkipIdle = m_ui->chkIdleSkip->isChecked(); });
 	cCheck(chkCheats,   { SCGI.bEnableCheats = m_ui->chkCheats->isChecked(); });
 	cCombo(cmbFramelimit, {
 		unsigned int framelimit = m_ui->cmbFramelimit->currentIndex();
@@ -149,6 +151,8 @@ void DConfigDialog::SetupSlots()
 	// General - Wii
 	// General - Advanced
 	cCheck(chkForceNTSCJ,  { SCGI.bForceNTSCJ = m_ui->chkForceNTSCJ->isChecked(); });
+	cCheck(chkDualcore, { SCGI.bCPUThread = m_ui->chkDualcore->isChecked(); });
+	cCheck(chkIdleSkip, { SCGI.bSkipIdle = m_ui->chkIdleSkip->isChecked(); });
 	cCombo(cmbCpuEngine,   { SCGI.iCPUCore = s_cpu_engines.key(m_ui->cmbCpuEngine->currentText()); });
 	cGbCheck(gbCpuOverclock, { SCGI.m_OCEnable = m_ui->gbCpuOverclock->isChecked(); });
 }
@@ -158,8 +162,6 @@ void DConfigDialog::LoadSettings()
 	const SConfig& sconf = SConfig::GetInstance();
 
 	// General - Basic
-	m_ui->chkDualcore->setChecked(sconf.bCPUThread);
-	m_ui->chkIdleSkip->setChecked(sconf.bSkipIdle);
 	m_ui->chkCheats->setChecked(sconf.bEnableCheats);
 	m_ui->cmbFramelimit->setCurrentIndex(sconf.m_Framelimit);
 	if (sconf.m_Framelimit > 1)
@@ -178,6 +180,8 @@ void DConfigDialog::LoadSettings()
 	// General - Wii
 	// General - Advanced
 	m_ui->chkForceNTSCJ->setChecked(sconf.bForceNTSCJ);
+	m_ui->chkDualcore->setChecked(sconf.bCPUThread);
+	m_ui->chkIdleSkip->setChecked(sconf.bSkipIdle);
 	m_ui->cmbCpuEngine->setCurrentText(s_cpu_engines.value(sconf.iCPUCore));
 	m_ui->gbCpuOverclock->setChecked(sconf.m_OCEnable);
 }
