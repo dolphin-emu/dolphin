@@ -9,6 +9,7 @@
 
 #include "Core/Core.h"
 
+#include "DolphinQt/Config/ConfigDialog.h"
 #include "DolphinQt/GameList/GameTracker.h"
 #include "DolphinQt/VideoInterface/RenderWidget.h"
 
@@ -37,6 +38,9 @@ public slots:
 	// Main toolbar (also used by DRenderWidget)
 	bool OnStop();
 
+	// Misc.
+	void UpdateIcons();
+
 private slots:
 	// Emulation
 	void StartGame(const QString filename);
@@ -50,14 +54,12 @@ private slots:
 	// View menu
 	void OnGameListStyleChanged();
 
-	// Misc.
-	void UpdateIcons();
-
 private:
 	bool event(QEvent* e) override;
 	void closeEvent(QCloseEvent* ce) override;
 	std::unique_ptr<Ui::DMainWindow> m_ui;
 	DGameTracker* m_game_tracker;
+	DConfigDialog* m_config_dialog;
 
 	// Misc.
 	void DisableScreensaver();
