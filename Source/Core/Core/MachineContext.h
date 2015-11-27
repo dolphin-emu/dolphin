@@ -34,7 +34,7 @@
 		#define CTX_R15 R15
 		#define CTX_RIP Rip
 	#else
-		#error No context definition for OS
+		#error No context definition for machine
 	#endif
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
 	// for modules:
@@ -63,7 +63,7 @@
 		#define CTX_R15 __r15
 		#define CTX_RIP __rip
 	#else
-		#error No context definition for OS
+		#error No context definition for machine
 	#endif
 #elif defined(__APPLE__)
 	#include <signal.h>
@@ -114,7 +114,7 @@
 		#define CTX_SP sp
 		#define CTX_PC pc
 	#else
-		#warning No context definition for OS
+		#warning No context definition for machine
 	#endif
 #elif defined(__NetBSD__)
 	#include <ucontext.h>
@@ -138,7 +138,7 @@
 		#define CTX_R15 __gregs[_REG_R15]
 		#define CTX_RIP __gregs[_REG_RIP]
 	#else
-		#error No context definition for OS
+		#error No context definition for machine
 	#endif
 #elif defined(__FreeBSD__)
 	#include <ucontext.h>
@@ -162,8 +162,34 @@
 		#define CTX_R15 mc_r15
 		#define CTX_RIP mc_rip
 	#else
-		#error No context definition for OS
+		#error No context definition for machine
 	#endif
+#elif defined(__HAIKU__)
+	#include <signal.h>
+	typedef mcontext_t SContext;
+	#if _M_X86_64
+		#define CTX_RAX rax
+		#define CTX_RBX rbx
+		#define CTX_RCX rcx
+		#define CTX_RDX rdx
+		#define CTX_RDI rdi
+		#define CTX_RSI rsi
+		#define CTX_RBP rbp
+		#define CTX_RSP rsp
+		#define CTX_R8  r8
+		#define CTX_R9  r9
+		#define CTX_R10 r10
+		#define CTX_R11 r11
+		#define CTX_R12 r12
+		#define CTX_R13 r13
+		#define CTX_R14 r14
+		#define CTX_R15 r15
+		#define CTX_RIP rip
+	#else
+		#error No context definition for machine
+	#endif
+#else
+	#error No context definition for OS
 #endif
 
 #if _M_X86_64

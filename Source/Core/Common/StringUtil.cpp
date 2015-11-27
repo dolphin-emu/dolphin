@@ -28,7 +28,7 @@
 	#include <errno.h>
 #endif
 
-#if !defined(_WIN32) && !defined(ANDROID)
+#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__)
 static locale_t GetCLocale()
 {
 	static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
@@ -88,11 +88,11 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 		c_locale = _create_locale(LC_ALL, ".1252");
 	writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
 #else
-	#if !defined(ANDROID)
+	#if !defined(ANDROID) && !defined(__HAIKU__)
 	locale_t previousLocale = uselocale(GetCLocale());
 	#endif
 	writtenCount = vsnprintf(out, outsize, format, args);
-	#if !defined(ANDROID)
+	#if !defined(ANDROID) && !defined(__HAIKU__)
 	uselocale(previousLocale);
 	#endif
 #endif
@@ -129,12 +129,12 @@ std::string StringFromFormatV(const char* format, va_list args)
 	std::string temp = buf;
 	delete[] buf;
 #else
-	#if !defined(ANDROID)
+	#if !defined(ANDROID) && !defined(__HAIKU__)
 	locale_t previousLocale = uselocale(GetCLocale());
 	#endif
 	if (vasprintf(&buf, format, args) < 0)
 		ERROR_LOG(COMMON, "Unable to allocate memory for string");
-	#if !defined(ANDROID)
+	#if !defined(ANDROID) && !defined(__HAIKU__)
 	uselocale(previousLocale);
 	#endif
 
