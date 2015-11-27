@@ -7,7 +7,6 @@
 #include <wx/arrstr.h>
 #include <wx/panel.h>
 #include "Common/CommonTypes.h"
-#include "DiscIO/Volume.h"
 
 class wxCheckBox;
 class wxChoice;
@@ -28,8 +27,6 @@ private:
 	void OnConnectKeyboardCheckBoxChanged(wxCommandEvent&);
 	void OnSystemLanguageChoiceChanged(wxCommandEvent&);
 	void OnAspectRatioChoiceChanged(wxCommandEvent&);
-
-	static u8 GetSADRCountryCode(DiscIO::IVolume::ELanguage language);
 
 	wxArrayString m_system_language_strings;
 	wxArrayString m_aspect_ratio_strings;

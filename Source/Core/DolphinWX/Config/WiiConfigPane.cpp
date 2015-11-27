@@ -11,9 +11,10 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "DiscIO/Volume.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Config/WiiConfigPane.h"
+
+#include "UICommon/UICommon.h"
 
 WiiConfigPane::WiiConfigPane(wxWindow* parent, wxWindowID id)
 	: wxPanel(parent, id)
@@ -129,7 +130,7 @@ void WiiConfigPane::OnSystemLanguageChoiceChanged(wxCommandEvent& event)
 {
 	DiscIO::IVolume::ELanguage wii_system_lang = (DiscIO::IVolume::ELanguage)m_system_language_choice->GetSelection();
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
-	u8 country_code = GetSADRCountryCode(wii_system_lang);
+	u8 country_code = UICommon::GetSADRCountryCode(wii_system_lang);
 
 	if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
 		WxUtils::ShowErrorDialog(_("Failed to update country code in SYSCONF"));
@@ -138,37 +139,4 @@ void WiiConfigPane::OnSystemLanguageChoiceChanged(wxCommandEvent& event)
 void WiiConfigPane::OnAspectRatioChoiceChanged(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.AR", m_aspect_ratio_choice->GetSelection());
-}
-
-// Change from IPL.LNG value to IPL.SADR country code.
-// http://wiibrew.org/wiki/Country_Codes
-u8 WiiConfigPane::GetSADRCountryCode(DiscIO::IVolume::ELanguage language)
-{
-	switch (language)
-	{
-	case DiscIO::IVolume::LANGUAGE_JAPANESE:
-		return 1;   // Japan
-	case DiscIO::IVolume::LANGUAGE_ENGLISH:
-		return 49;  // USA
-	case DiscIO::IVolume::LANGUAGE_GERMAN:
-		return 78;  // Germany
-	case DiscIO::IVolume::LANGUAGE_FRENCH:
-		return 77;  // France
-	case DiscIO::IVolume::LANGUAGE_SPANISH:
-		return 105; // Spain
-	case DiscIO::IVolume::LANGUAGE_ITALIAN:
-		return 83;  // Italy
-	case DiscIO::IVolume::LANGUAGE_DUTCH:
-		return 94;  // Netherlands
-	case DiscIO::IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
-	case DiscIO::IVolume::LANGUAGE_TRADITIONAL_CHINESE:
-		return 157; // China
-	case DiscIO::IVolume::LANGUAGE_KOREAN:
-		return 136; // Korea
-	case DiscIO::IVolume::LANGUAGE_UNKNOWN:
-		break;
-	}
-
-	PanicAlert("Invalid language. Defaulting to Japanese.");
-	return 1;
 }

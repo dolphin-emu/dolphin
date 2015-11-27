@@ -185,4 +185,38 @@ void SetUserDirectory(const std::string& custom_path)
 	File::SetUserPath(D_USER_IDX, user_path);
 }
 
+
+// Change from IPL.LNG value to IPL.SADR country code.
+// http://wiibrew.org/wiki/Country_Codes
+u8 GetSADRCountryCode(DiscIO::IVolume::ELanguage language)
+{
+	switch (language)
+	{
+	case DiscIO::IVolume::LANGUAGE_JAPANESE:
+		return 1;   // Japan
+	case DiscIO::IVolume::LANGUAGE_ENGLISH:
+		return 49;  // USA
+	case DiscIO::IVolume::LANGUAGE_GERMAN:
+		return 78;  // Germany
+	case DiscIO::IVolume::LANGUAGE_FRENCH:
+		return 77;  // France
+	case DiscIO::IVolume::LANGUAGE_SPANISH:
+		return 105; // Spain
+	case DiscIO::IVolume::LANGUAGE_ITALIAN:
+		return 83;  // Italy
+	case DiscIO::IVolume::LANGUAGE_DUTCH:
+		return 94;  // Netherlands
+	case DiscIO::IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
+	case DiscIO::IVolume::LANGUAGE_TRADITIONAL_CHINESE:
+		return 157; // China
+	case DiscIO::IVolume::LANGUAGE_KOREAN:
+		return 136; // Korea
+	case DiscIO::IVolume::LANGUAGE_UNKNOWN:
+		break;
+	}
+
+	PanicAlert("Invalid language. Defaulting to Japanese.");
+	return 1;
+}
+
 } // namespace UICommon

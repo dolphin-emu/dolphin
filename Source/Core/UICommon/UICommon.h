@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "DiscIO/Volume.h"
+
 namespace UICommon
 {
 
@@ -12,5 +14,7 @@ void Shutdown();
 
 void CreateDirectories();
 void SetUserDirectory(const std::string& custom_path);
+
+u8 GetSADRCountryCode(DiscIO::IVolume::ELanguage language);
 
 } // namespace UICommon
