@@ -23,7 +23,7 @@
    <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="vlRoot">
     <item>
      <widget class="QStackedWidget" name="realCentralWidget">
       <property name="currentIndex">
@@ -31,13 +31,13 @@
       </property>
       <widget class="QTabWidget" name="pgGeneral">
        <property name="currentIndex">
-        <number>3</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tabBasic">
         <attribute name="title">
          <string>Basic</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout">
+        <layout class="QGridLayout" name="glTabBasic">
          <item row="3" column="1">
           <widget class="QComboBox" name="cmbFramelimit">
            <item>
@@ -58,7 +58,7 @@
           </widget>
          </item>
          <item row="3" column="3">
-          <spacer name="horizontalSpacer">
+          <spacer name="hs0">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -122,7 +122,7 @@
           </widget>
          </item>
          <item row="5" column="0">
-          <spacer name="verticalSpacer">
+          <spacer name="vs0">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -140,9 +140,9 @@
         <attribute name="title">
          <string>Interface</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout">
+        <layout class="QGridLayout" name="glTabInterface">
          <item row="6" column="2">
-          <spacer name="verticalSpacer_2">
+          <spacer name="vs1">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -173,7 +173,7 @@
           </widget>
          </item>
          <item row="4" column="3">
-          <spacer name="horizontalSpacer_2">
+          <spacer name="hs1">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -275,13 +275,13 @@ These messages include memory card writes, video backend and CPU information, an
         <attribute name="title">
          <string>GameCube</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout">
+        <layout class="QGridLayout" name="glTabGameCube">
          <item row="0" column="0">
           <widget class="QGroupBox" name="gbGCIplSettings">
            <property name="title">
             <string>IPL settings</string>
            </property>
-           <layout class="QGridLayout" name="gridLayout_2">
+           <layout class="QGridLayout" name="glIPLSettings">
             <item row="1" column="1">
              <widget class="QComboBox" name="cmbGCIplLang">
               <property name="toolTip">
@@ -353,7 +353,7 @@ These messages include memory card writes, video backend and CPU information, an
              </widget>
             </item>
             <item row="1" column="2">
-             <spacer name="horizontalSpacer_3">
+             <spacer name="hs2">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -373,7 +373,7 @@ These messages include memory card writes, video backend and CPU information, an
            <property name="title">
             <string>Device settings</string>
            </property>
-           <layout class="QGridLayout" name="gridLayout_3">
+           <layout class="QGridLayout" name="glGCDeviceSettings">
             <item row="1" column="2">
              <widget class="QToolButton" name="btnGCSlotB">
               <property name="enabled">
@@ -468,7 +468,7 @@ These messages include memory card writes, video backend and CPU information, an
              </widget>
             </item>
             <item row="1" column="3">
-             <spacer name="horizontalSpacer_4">
+             <spacer name="hs3">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -484,7 +484,7 @@ These messages include memory card writes, video backend and CPU information, an
           </widget>
          </item>
          <item row="2" column="0">
-          <spacer name="verticalSpacer_3">
+          <spacer name="vs2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -502,13 +502,13 @@ These messages include memory card writes, video backend and CPU information, an
         <attribute name="title">
          <string>Wii</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout">
+        <layout class="QGridLayout" name="glTabWii">
          <item row="1" column="0">
           <widget class="QGroupBox" name="gbWiiDeviceSettings">
            <property name="title">
             <string>Device settings</string>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <layout class="QVBoxLayout" name="vlWiiDeviceSettings">
             <item>
              <widget class="QCheckBox" name="chkWiiSDCard">
               <property name="toolTip">
@@ -537,7 +537,7 @@ These messages include memory card writes, video backend and CPU information, an
            <property name="title">
             <string>Misc. settings</string>
            </property>
-           <layout class="QGridLayout" name="gridLayout_4">
+           <layout class="QGridLayout" name="glWiiMiscSettings">
             <item row="2" column="1">
              <widget class="QComboBox" name="cmbWiiAR">
               <item>
@@ -642,7 +642,7 @@ These messages include memory card writes, video backend and CPU information, an
              </widget>
             </item>
             <item row="2" column="2">
-             <spacer name="horizontalSpacer_5">
+             <spacer name="hs4">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -679,7 +679,7 @@ May not work for all games.</string>
           </widget>
          </item>
          <item row="2" column="0">
-          <spacer name="verticalSpacer_4">
+          <spacer name="vs3">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -697,7 +697,7 @@ May not work for all games.</string>
         <attribute name="title">
          <string>Paths</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout">
+        <layout class="QGridLayout" name="glTabPaths">
          <item row="1" column="1">
           <widget class="DFileChooser" name="fcDefaultROM" native="true"/>
          </item>
@@ -709,9 +709,9 @@ May not work for all games.</string>
            <property name="title">
             <string>Directories</string>
            </property>
-           <layout class="QGridLayout" name="gridLayout_5">
+           <layout class="QGridLayout" name="glDirectories">
             <item row="2" column="2">
-             <spacer name="horizontalSpacer_6">
+             <spacer name="hs5">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -833,7 +833,7 @@ May not work for all games.</string>
         <attribute name="title">
          <string>Advanced</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout">
+        <layout class="QGridLayout" name="glTabAdvanced">
          <item row="4" column="0">
           <widget class="QLabel" name="lblCpuEngine">
            <property name="sizePolicy">
@@ -854,7 +854,7 @@ May not work for all games.</string>
           <widget class="QComboBox" name="cmbCpuEngine"/>
          </item>
          <item row="6" column="0">
-          <spacer name="verticalSpacer_5">
+          <spacer name="vs4">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -889,7 +889,7 @@ If left unchecked, Dolphin defaults to NTSC-U and automatically enables this set
           </widget>
          </item>
          <item row="4" column="2">
-          <spacer name="horizontalSpacer_7">
+          <spacer name="hs6">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -1004,7 +1004,229 @@ Provides major speed improvements on most modern PCs, but can cause occasional c
        </widget>
       </widget>
       <widget class="QWidget" name="pgAudio">
-       <layout class="QGridLayout" name="gridLayout"/>
+       <layout class="QGridLayout" name="glAudio">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item row="0" column="3" rowspan="5">
+         <widget class="QGroupBox" name="gbVolume">
+          <property name="title">
+           <string>Volume</string>
+          </property>
+          <layout class="QGridLayout" name="glVolume">
+           <item row="0" column="1">
+            <widget class="QSlider" name="slVolume">
+             <property name="minimum">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
+             </property>
+             <property name="value">
+              <number>100</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <spacer name="hs7">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="0" column="2">
+            <spacer name="hs8">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="3" column="0" colspan="3">
+            <widget class="QLabel" name="lblVolume">
+             <property name="text">
+              <string notr="true">100%</string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::PlainText</enum>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="buddy">
+              <cstring>slVolume</cstring>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="cmbAudioBackend">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Changing this will have no effect while the emulator is running.</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="sbLatency">
+          <property name="toolTip">
+           <string>Sets the latency (in ms). Higher values may reduce audio crackling. OpenAL backend only.</string>
+          </property>
+          <property name="suffix">
+           <string comment="milliseconds">ms</string>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>30</number>
+          </property>
+          <property name="value">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QComboBox" name="cmbDSPEngine">
+          <item>
+           <property name="text">
+            <string>DSP HLE (very fast)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>DSP LLE recompiler (fast)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>DSP LLE interpreter (slow)</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="lblDSPEngine">
+          <property name="text">
+           <string>DSP engine:</string>
+          </property>
+          <property name="buddy">
+           <cstring>cmbDSPEngine</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lblLatency">
+          <property name="text">
+           <string>Latency:</string>
+          </property>
+          <property name="buddy">
+           <cstring>sbLatency</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="lblAudioBackend">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Audio backend:</string>
+          </property>
+          <property name="buddy">
+           <cstring>cmbAudioBackend</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <spacer name="vs5">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <widget class="QCheckBox" name="chkDPL2">
+          <property name="toolTip">
+           <string>Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL or Pulse backends only.</string>
+          </property>
+          <property name="text">
+           <string>Dolby Pro Logic II decoder</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <spacer name="vs6">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="2">
+         <spacer name="hs9">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </widget>
       <widget class="QTabWidget" name="pgControllers">
        <property name="currentIndex">

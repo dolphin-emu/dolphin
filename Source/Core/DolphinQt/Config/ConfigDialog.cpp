@@ -11,6 +11,7 @@
 
 #include "ui_ConfigDialog.h"
 
+#include "AudioCommon/AudioCommon.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
@@ -68,6 +69,8 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	m_ui->fcDVDRoot->setFormat(true, QStringLiteral(""));
 	m_ui->fcApploader->setFormat(false, QStringLiteral("Apploader (*.img)"));
 	m_ui->fcWiiNandRoot->setFormat(true, QStringLiteral(""));
+	for (const std::string& backend : AudioCommon::GetSoundBackends())
+		m_ui->cmbAudioBackend->insertItem(m_ui->cmbAudioBackend->count(), QString::fromStdString(backend));
 
 	InitStaticData();
 	LoadSettings();
@@ -264,6 +267,19 @@ void DConfigDialog::SetupSlots()
 		SCGI.m_OCFactor = std::exp2f((m_ui->slCpuOCFactor->value() - 100.f) / 25.f);
 		UpdateCpuOCLabel();
 	});
+	// Audio
+	cCombo(cmbAudioBackend, { AudioBackendChanged(); });
+	cSpin(sbLatency, { SCGI.iLatency = m_ui->sbLatency->value(); });
+	cCheck(chkDPL2, { SCGI.bDPL2Decoder = m_ui->chkDPL2->isChecked(); });
+	cCombo(cmbDSPEngine, {
+		SCGI.bDSPHLE = m_ui->cmbDSPEngine->currentIndex() == 0;
+		SCGI.m_DSPEnableJIT = m_ui->cmbDSPEngine->currentIndex() == 1;
+		AudioCommon::UpdateSoundStream();
+	});
+	cSlider(slVolume, {
+		m_ui->lblVolume->setText(QStringLiteral("%1%").arg(m_ui->slVolume->value()));
+		SCGI.m_Volume = m_ui->slVolume->value();
+	});
 }
 
 void DConfigDialog::LoadSettings()
@@ -326,6 +342,16 @@ void DConfigDialog::LoadSettings()
 	m_ui->gbCpuOverclock->setChecked(sconf.m_OCEnable);
 	m_ui->slCpuOCFactor->setValue((int)(std::log2f(sconf.m_OCFactor) * 25.f + 100.f + 0.5f));
 	UpdateCpuOCLabel();
+	// Audio
+	m_ui->cmbAudioBackend->setCurrentText(QString::fromStdString(sconf.sBackend));
+	AudioBackendChanged();
+	m_ui->sbLatency->setValue(sconf.iLatency);
+	m_ui->chkDPL2->setChecked(sconf.bDPL2Decoder);
+	if (sconf.bDSPHLE)
+		m_ui->cmbDSPEngine->setCurrentIndex(0);
+	else
+		m_ui->cmbDSPEngine->setCurrentIndex(sconf.m_DSPEnableJIT ? 1 : 2);
+	m_ui->slVolume->setValue(SCGI.m_Volume);
 }
 
 void DConfigDialog::UpdateCpuOCLabel()
@@ -351,4 +377,15 @@ void DConfigDialog::ChooseSlotPath(int device)
 		else if (device == 1)
 			SCGI.m_strMemoryCardB = path.toStdString();
 	}
+}
+
+void DConfigDialog::AudioBackendChanged()
+{
+	std::string backend = m_ui->cmbAudioBackend->currentText().toStdString();
+	m_ui->gbVolume->setEnabled(backend == BACKEND_COREAUDIO ||
+		backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2);
+	m_ui->sbLatency->setEnabled(backend == BACKEND_OPENAL);
+	m_ui->chkDPL2->setEnabled(backend == BACKEND_OPENAL || backend == BACKEND_PULSEAUDIO);
+	SCGI.sBackend = backend;
+	AudioCommon::UpdateSoundStream();
 }

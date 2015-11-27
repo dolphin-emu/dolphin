@@ -32,4 +32,5 @@ private:
 
 	void UpdateCpuOCLabel();
 	void ChooseSlotPath(int device);
+	void AudioBackendChanged();
 };

@@ -248,6 +248,9 @@
    <property name="text">
     <string>&amp;Config</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
  </widget>
  <resources/>
