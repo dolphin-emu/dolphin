@@ -31,7 +31,7 @@
       </property>
       <widget class="QTabWidget" name="pgGeneral">
        <property name="currentIndex">
-        <number>4</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="tabBasic">
         <attribute name="title">
@@ -284,19 +284,43 @@ These messages include memory card writes, video backend and CPU information, an
            <layout class="QGridLayout" name="gridLayout_2">
             <item row="1" column="1">
              <widget class="QComboBox" name="cmbGCIplLang">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
               <property name="toolTip">
                <string>Sets the GameCube system language.</string>
               </property>
+              <item>
+               <property name="text">
+                <string>English</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>German</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>French</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Spanish</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Italian</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Dutch</string>
+               </property>
+              </item>
              </widget>
             </item>
             <item row="2" column="0" colspan="2">
-             <widget class="QCheckBox" name="chkGCOverrideNTSCLang">
+             <widget class="QCheckBox" name="chkGCOverrideLang">
               <property name="toolTip">
                <string>Lets the system language be set to values that games were not designed for. This can allow the use of extra translations for a few games, but can also lead to text display issues.</string>
               </property>
@@ -351,9 +375,12 @@ These messages include memory card writes, video backend and CPU information, an
            </property>
            <layout class="QGridLayout" name="gridLayout_3">
             <item row="1" column="2">
-             <widget class="QPushButton" name="btnGCSlotB">
+             <widget class="QToolButton" name="btnGCSlotB">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -375,7 +402,7 @@ These messages include memory card writes, video backend and CPU information, an
                </sizepolicy>
               </property>
               <property name="text">
-               <string notr="true">SP1:</string>
+               <string notr="true">Serial Port 1:</string>
               </property>
               <property name="buddy">
                <cstring>cmbGCSP1</cstring>
@@ -425,9 +452,12 @@ These messages include memory card writes, video backend and CPU information, an
              <widget class="QComboBox" name="cmbGCSlotB"/>
             </item>
             <item row="0" column="2">
-             <widget class="QPushButton" name="btnGCSlotA">
+             <widget class="QToolButton" name="btnGCSlotA">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -738,7 +768,11 @@ May not work for all games.</string>
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="DFileChooser" name="fcApploader" native="true"/>
+          <widget class="DFileChooser" name="fcApploader" native="true">
+           <property name="toolTip">
+            <string>File to use as apploader: (applies to discs constructed from directories only).</string>
+           </property>
+          </widget>
          </item>
          <item row="4" column="1">
           <widget class="DFileChooser" name="fcWiiNandRoot" native="true"/>

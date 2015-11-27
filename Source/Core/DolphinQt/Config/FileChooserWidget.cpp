@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <QFileDialog>
+#include <QFileInfo>
 
 #include "ui_FileChooserWidget.h"
 
@@ -16,8 +17,15 @@ DFileChooser::DFileChooser(QWidget* parent_widget)
 	m_ui->setupUi(this);
 
 	connect(m_ui->btnBrowse, &QToolButton::pressed, [this]() -> void {
-		QString path = QFileDialog::getOpenFileName(this, tr("Choose path"),
-			QStringLiteral(""), QStringLiteral("All files (*)"));
+		QString path;
+		if (m_folder)
+			path = QFileDialog::getExistingDirectory(this, tr("Choose directory"),
+				m_ui->lePath->text());
+		else
+			path = QFileDialog::getOpenFileName(this, tr("Choose file"),
+				QFileInfo(m_ui->lePath->text()).absoluteDir().path(), m_filter);
+		if (path.isEmpty())
+			return;
 		m_ui->lePath->setText(path);
 		emit changed();
 	});

@@ -48,7 +48,7 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	}
 #endif
 
-	// Populate combos (that don't change) & etc.
+	// Populate controls (that aren't translation-specific) & etc.
 	auto sv = DoFileSearch({""}, {
 		File::GetUserPath(D_THEMES_IDX),
 		File::GetSysDirectory() + THEMES_DIR
@@ -59,6 +59,11 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 		SplitPath(filename, nullptr, &name, &ext);
 		m_ui->cmbTheme->insertItem(m_ui->cmbTheme->count(), QString::fromStdString(name + ext));
 	}
+	m_ui->fcDefaultROM->setFormat(false, tr("All supported ROMs (%1);;All files (*)")
+		.arg(QStringLiteral("*.gcm *.iso *.ciso *.gcz *.wbfs *.elf *.dol *.dff *.tmd *.wad")));
+	m_ui->fcDVDRoot->setFormat(true, QStringLiteral(""));
+	m_ui->fcApploader->setFormat(false, QStringLiteral("Apploader (*.img)"));
+	m_ui->fcWiiNandRoot->setFormat(true, QStringLiteral(""));
 
 	InitStaticData();
 	LoadSettings();
@@ -78,6 +83,7 @@ void DConfigDialog::UpdateIcons()
 
 // Static data (translation-specific mappings to enums, etc.)
 static QMap<int, QString> s_cpu_engines;
+static QMap<TEXIDevices, QString> s_exi_devices;
 
 void DConfigDialog::InitStaticData()
 {
@@ -92,8 +98,27 @@ void DConfigDialog::InitStaticData()
 		 #endif
 	};
 	m_ui->cmbCpuEngine->clear();
-	for (QString str : s_cpu_engines.values())
-		m_ui->cmbCpuEngine->insertItem(m_ui->cmbCpuEngine->count(), str);
+	m_ui->cmbCpuEngine->insertItems(0, s_cpu_engines.values());
+
+	s_exi_devices = {
+		{ EXIDEVICE_NONE, tr("<Nothing>") },
+		{ EXIDEVICE_DUMMY, tr("Dummy") },
+
+		{ EXIDEVICE_MEMORYCARD, tr("Memory Card") },
+		{ EXIDEVICE_MEMORYCARDFOLDER, tr("GCI Folder") },
+		{ EXIDEVICE_MIC, tr("Mic") },
+		{ EXIDEVICE_ETH, QStringLiteral("BBA") },
+		{ EXIDEVICE_AGP, QStringLiteral("Advance Game Port") },
+		{ EXIDEVICE_AM_BASEBOARD, tr("AM-Baseboard") },
+		{ EXIDEVICE_GECKO, QStringLiteral("USBGecko") }
+	};
+	m_ui->cmbGCSlotA->clear();
+	m_ui->cmbGCSlotA->insertItems(0, s_exi_devices.values());
+	m_ui->cmbGCSlotB->clear();
+	m_ui->cmbGCSlotB->insertItems(0, s_exi_devices.values());
+	m_ui->cmbGCSP1->clear();
+	m_ui->cmbGCSP1->insertItems(0, { tr("<Nothing>"), tr("Dummy"),
+		QStringLiteral("BBA"), tr("AM-Baseboard") });
 }
 
 void DConfigDialog::SetupSlots()
@@ -151,6 +176,26 @@ void DConfigDialog::SetupSlots()
 		UpdateIcons();
 	});
 	// General - GameCube
+	cCheck(chkGCSkipBios, { SCGI.bHLE_BS2 = m_ui->chkGCSkipBios->isChecked(); });
+	cCheck(chkGCOverrideLang, { SCGI.bOverrideGCLanguage = m_ui->chkGCOverrideLang->isChecked(); });
+	cCombo(cmbGCIplLang, { SCGI.SelectedLanguage = m_ui->cmbGCIplLang->currentIndex(); });
+	cCombo(cmbGCSlotA, {
+		int device = SCGI.m_EXIDevice[0] = s_exi_devices.key(m_ui->cmbGCSlotA->currentText());
+		if (device != EXIDEVICE_MEMORYCARD && device != EXIDEVICE_AGP)
+			m_ui->btnGCSlotA->setEnabled(false);
+		else
+			m_ui->btnGCSlotA->setEnabled(true);
+	});
+	connect(m_ui->btnGCSlotA, &QToolButton::pressed, [this]() -> void { ChooseSlotPath(0); });
+	cCombo(cmbGCSlotB, {
+		int device = SCGI.m_EXIDevice[1] = s_exi_devices.key(m_ui->cmbGCSlotB->currentText());
+		if (device != EXIDEVICE_MEMORYCARD && device != EXIDEVICE_AGP)
+			m_ui->btnGCSlotB->setEnabled(false);
+		else
+			m_ui->btnGCSlotB->setEnabled(true);
+	});
+	connect(m_ui->btnGCSlotB, &QToolButton::pressed, [this]() -> void { ChooseSlotPath(1); });
+	cCombo(cmbGCSP1, { SCGI.m_EXIDevice[2] = s_exi_devices.key(m_ui->cmbGCSP1->currentText()); });
 	// General - Wii
 	// General - Paths
 	cCheck(chkSearchSubfolders, { SCGI.m_RecursiveISOFolder = m_ui->chkSearchSubfolders->isChecked(); });
@@ -176,8 +221,13 @@ void DConfigDialog::SetupSlots()
 		delete i;
 	});
 	connect(m_ui->fcDefaultROM, &DFileChooser::changed, [this]() -> void {
-		SCGI.m_strDefaultISO = m_ui->fcDefaultROM->path().toStdString();
-	});
+		SCGI.m_strDefaultISO = m_ui->fcDefaultROM->path().toStdString(); });
+	connect(m_ui->fcDVDRoot, &DFileChooser::changed, [this]() -> void {
+		SCGI.m_strDVDRoot = m_ui->fcDVDRoot->path().toStdString(); });
+	connect(m_ui->fcApploader, &DFileChooser::changed, [this]() -> void {
+		SCGI.m_strApploader = m_ui->fcApploader->path().toStdString(); });
+	connect(m_ui->fcWiiNandRoot, &DFileChooser::changed, [this]() -> void {
+		SCGI.m_NANDPath = m_ui->fcWiiNandRoot->path().toStdString(); });
 	// General - Advanced
 	cCheck(chkForceNTSCJ, { SCGI.bForceNTSCJ = m_ui->chkForceNTSCJ->isChecked(); });
 	cCheck(chkDualcore,   { SCGI.bCPUThread = m_ui->chkDualcore->isChecked(); });
@@ -213,6 +263,22 @@ void DConfigDialog::LoadSettings()
 	m_ui->chkPauseFocusLost->setChecked(sconf.m_PauseOnFocusLost);
 	m_ui->cmbTheme->setCurrentText(QString::fromStdString(sconf.theme_name));
 	// General - GameCube
+	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
+		!File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
+		!File::Exists(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + JAP_DIR + DIR_SEP GC_IPL) &&
+		!File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + JAP_DIR + DIR_SEP GC_IPL) &&
+		!File::Exists(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + EUR_DIR + DIR_SEP GC_IPL) &&
+		!File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + EUR_DIR + DIR_SEP GC_IPL))
+	{
+		m_ui->chkGCSkipBios->setEnabled(false);
+		m_ui->chkGCSkipBios->setToolTip(tr("Put BIOS roms in User/GC/{region}."));
+	}
+	m_ui->chkGCSkipBios->setChecked(sconf.bHLE_BS2);
+	m_ui->cmbGCIplLang->setCurrentIndex(sconf.SelectedLanguage);
+	m_ui->chkGCOverrideLang->setChecked(sconf.bOverrideGCLanguage);
+	m_ui->cmbGCSlotA->setCurrentText(s_exi_devices.value(sconf.m_EXIDevice[0]));
+	m_ui->cmbGCSlotB->setCurrentText(s_exi_devices.value(sconf.m_EXIDevice[1]));
+	m_ui->cmbGCSP1->setCurrentText(s_exi_devices.value(sconf.m_EXIDevice[2]));
 	// General - Wii
 	// General - Paths
 	for (const std::string& folder : sconf.m_ISOFolder)
@@ -239,4 +305,21 @@ void DConfigDialog::UpdateCpuOCLabel()
 	int percent = (int)(std::roundf(SCGI.m_OCFactor * 100.f));
 	int clock = (int)(std::roundf(SCGI.m_OCFactor * (wii ? 729.f : 486.f)));
 	m_ui->lblCpuOCFactor->setText(QStringLiteral("%1% (%2 MHz)").arg(percent).arg(clock));
+}
+
+void DConfigDialog::ChooseSlotPath(int device)
+{
+	const std::string& oldPath = (device == 0) ? SCGI.m_strMemoryCardA : SCGI.m_strMemoryCardB;
+	QString filter = (SCGI.m_EXIDevice[device] == EXIDEVICE_MEMORYCARD) ?
+		tr("GameCube Memory Cards (%1)").arg(QStringLiteral("*.raw *.gcp")) :
+		tr("Game Boy Advance Carts (%1)").arg(QStringLiteral("*.gba"));
+	QString path = QFileDialog::getOpenFileName(this, tr("Choose file"),
+		QFileInfo(QString::fromStdString(oldPath)).absoluteDir().path(), filter);
+	if (!path.isEmpty())
+	{
+		if (device == 0)
+			SCGI.m_strMemoryCardA = path.toStdString();
+		else if (device == 1)
+			SCGI.m_strMemoryCardB = path.toStdString();
+	}
 }

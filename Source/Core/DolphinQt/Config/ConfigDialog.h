@@ -31,4 +31,5 @@ private:
 	void LoadSettings();
 
 	void UpdateCpuOCLabel();
+	void ChooseSlotPath(int device);
 };
