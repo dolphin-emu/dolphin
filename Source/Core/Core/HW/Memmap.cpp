@@ -282,9 +282,12 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 	if (_iLength == 0)
 		return;
 
-	u8* ptr = GetPointer(_Address);
-	if (ptr != nullptr)
-		memset(ptr, _iValue, _iLength);
+	if (!ValidCopyRange(_Address, _iLength))
+	{
+		PanicAlert("Invalid range in Memset. %zx bytes at 0x%08x", _iLength, _Address);
+		return;
+	}
+	memset(GetPointer(_Address), _iValue, _iLength);
 }
 
 std::string GetString(u32 em_address, size_t size)
