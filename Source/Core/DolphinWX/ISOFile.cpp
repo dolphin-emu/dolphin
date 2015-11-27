@@ -176,7 +176,7 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 	}
 
 	// Fallback in case no banner is available.
-	ReadPNGBanner(File::GetThemeDir(SConfig::GetInstance().theme_name) + "nobanner.png");
+	ReadPNGBanner(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + "nobanner.png");
 }
 
 GameListItem::~GameListItem()

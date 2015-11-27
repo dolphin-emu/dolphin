@@ -4,6 +4,7 @@
 
 #include <QStringList>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Resources.h"
@@ -15,13 +16,13 @@ QList<QPixmap> Resources::m_misc;
 
 void Resources::Init()
 {
-	QString sys_dir = QString::fromStdString(File::GetSysDirectory() + "Resources/");
+	QString sys_dir = QString::fromStdString(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP);
 
 	QStringList platforms{
 		QStringLiteral("Platform_Gamecube.png"),
 		QStringLiteral("Platform_Wii.png"),
 		QStringLiteral("Platform_Wad.png"),
-		QStringLiteral("Platform_Wii.png")
+		QStringLiteral("Platform_File.png")
 	};
 	for (QString platform : platforms)
 		m_platforms.append(QPixmap(platform.prepend(sys_dir)));
@@ -56,10 +57,9 @@ void Resources::Init()
 	for (QString rating : ratings)
 		m_ratings.append(QPixmap(rating.prepend(sys_dir)));
 
-	QString theme_dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
-	m_misc.append(QPixmap(QStringLiteral("nobanner.png").prepend(theme_dir)));
-	m_misc.append(QPixmap(QStringLiteral("dolphin_logo.png").prepend(theme_dir)));
-	m_misc.append(QPixmap(QStringLiteral("Dolphin.png").prepend(theme_dir)));
+	m_misc.append(QPixmap(QStringLiteral("nobanner.png").prepend(sys_dir)));
+	m_misc.append(QPixmap(QStringLiteral("dolphin_logo.png").prepend(sys_dir)));
+	m_misc.append(QPixmap(QStringLiteral("Dolphin.png").prepend(sys_dir)));
 }
 
 QPixmap Resources::GetPlatform(int platform)

@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QFile>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 
@@ -17,7 +18,7 @@ QVector<QPixmap> Resources::m_pixmaps;
 
 void Resources::Init()
 {
-	QString dir = QString::fromStdString(File::GetSysDirectory() + "Resources/");
+	QString dir = QString::fromStdString(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP);
 
 	m_regions.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
 	m_regions[DiscIO::IVolume::COUNTRY_JAPAN].load(GetImageFilename("Flag_Japan", dir));
@@ -40,6 +41,7 @@ void Resources::Init()
 	m_platforms[0].load(GetImageFilename("Platform_Gamecube", dir));
 	m_platforms[1].load(GetImageFilename("Platform_Wii", dir));
 	m_platforms[2].load(GetImageFilename("Platform_Wad", dir));
+	m_platforms[3].load(GetImageFilename("Platform_File", dir));
 
 	m_ratings.resize(6);
 	m_ratings[0].load(GetImageFilename("rating0", dir));
@@ -52,6 +54,7 @@ void Resources::Init()
 	m_pixmaps.resize(NUM_ICONS);
 	m_pixmaps[DOLPHIN_LOGO].load(GetImageFilename("Dolphin", dir));
 	m_pixmaps[DOLPHIN_LOGO_LARGE].load(GetImageFilename("dolphin_logo", dir));
+	m_pixmaps[BANNER_MISSING].load(GetImageFilename("nobanner", dir));
 	UpdatePixmaps();
 }
 
@@ -69,12 +72,9 @@ void Resources::UpdatePixmaps()
 	m_pixmaps[TOOLBAR_CONFIGURE].load(GetImageFilename("config", dir));
 	m_pixmaps[TOOLBAR_GRAPHICS].load(GetImageFilename("graphics", dir));
 	m_pixmaps[TOOLBAR_CONTROLLERS].load(GetImageFilename("classic", dir));
-	m_pixmaps[TOOLBAR_HELP].load(GetImageFilename("nobanner", dir)); // TODO
+	m_pixmaps[TOOLBAR_HELP].load(GetImageFilename("config", dir)); // TODO
 	// TODO: toolbar[MEMCARD];
 	// TODO: toolbar[HOTKEYS];
-	m_pixmaps[BANNER_MISSING].load(GetImageFilename("nobanner", dir));
-	// TODO: Make this consistent with the other files
-	m_platforms[3].load(GetImageFilename("fileplatform", dir));
 }
 
 QString Resources::GetImageFilename(const char* name, QString dir)
