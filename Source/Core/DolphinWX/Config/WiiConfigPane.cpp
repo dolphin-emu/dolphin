@@ -11,6 +11,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "DiscIO/Volume.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Config/WiiConfigPane.h"
 
