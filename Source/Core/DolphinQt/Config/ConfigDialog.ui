@@ -31,7 +31,7 @@
       </property>
       <widget class="QTabWidget" name="pgGeneral">
        <property name="currentIndex">
-        <number>2</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="tabBasic">
         <attribute name="title">
@@ -589,6 +589,56 @@ These messages include memory card writes, video backend and CPU information, an
               <property name="toolTip">
                <string>Sets the Wii system language.&quot;</string>
               </property>
+              <item>
+               <property name="text">
+                <string>Japanese</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>English</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>German</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>French</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Spanish</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Italian</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Dutch</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Simplified Chinese</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Traditional Chinese</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Korean</string>
+               </property>
+              </item>
              </widget>
             </item>
             <item row="2" column="2">

@@ -185,7 +185,6 @@ void SetUserDirectory(const std::string& custom_path)
 	File::SetUserPath(D_USER_IDX, user_path);
 }
 
-
 // Change from IPL.LNG value to IPL.SADR country code.
 // http://wiibrew.org/wiki/Country_Codes
 u8 GetSADRCountryCode(DiscIO::IVolume::ELanguage language)

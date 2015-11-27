@@ -5,6 +5,7 @@
 #include <memory>
 #include <QActionGroup>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QStandardPaths>
 #include <QSysInfo>
 
@@ -14,11 +15,14 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/Config/ConfigDialog.h"
 #include "DolphinQt/Utils/Resources.h"
+
+#include "UICommon/UICommon.h"
 
 DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	: QMainWindow(parent_widget)
@@ -197,6 +201,25 @@ void DConfigDialog::SetupSlots()
 	connect(m_ui->btnGCSlotB, &QToolButton::pressed, [this]() -> void { ChooseSlotPath(1); });
 	cCombo(cmbGCSP1, { SCGI.m_EXIDevice[2] = s_exi_devices.key(m_ui->cmbGCSP1->currentText()); });
 	// General - Wii
+	cCheck(chkWiiScreensaver, { SCGI.m_SYSCONF->SetData("IPL.SSV", m_ui->chkWiiScreensaver->isChecked()); });
+	cCheck(chkWiiPAL60, {
+		SCGI.bPAL60 = m_ui->chkWiiPAL60->isChecked();
+		SCGI.m_SYSCONF->SetData("IPL.E60", m_ui->chkWiiPAL60->isChecked());
+	});
+	cCombo(cmbWiiAR, { SCGI.m_SYSCONF->SetData("IPL.AR", m_ui->cmbWiiAR->currentIndex()); });
+	cCombo(cmbWiiLang, {
+		DiscIO::IVolume::ELanguage wii_system_lang = (DiscIO::IVolume::ELanguage)m_ui->cmbWiiLang->currentIndex();
+		SCGI.m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
+		u8 country_code = UICommon::GetSADRCountryCode(wii_system_lang);
+		if (!SCGI.m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
+			QMessageBox::critical(this, tr("Error"), tr("Failed to update country code in SYSCONF"),
+				QMessageBox::Ok, QMessageBox::NoButton);
+	});
+	cCheck(chkWiiSDCard, {
+		SCGI.m_WiiSDCard = m_ui->chkWiiSDCard->isChecked();
+		WII_IPC_HLE_Interface::SDIO_EventNotify();
+	});
+	cCheck(chkWiiUSBKeyboard, { SCGI.m_WiiKeyboard = m_ui->chkWiiUSBKeyboard->isChecked(); });
 	// General - Paths
 	cCheck(chkSearchSubfolders, { SCGI.m_RecursiveISOFolder = m_ui->chkSearchSubfolders->isChecked(); });
 	connect(m_ui->listDirectories, &QListWidget::currentRowChanged, [this](int row) -> void {
@@ -280,6 +303,12 @@ void DConfigDialog::LoadSettings()
 	m_ui->cmbGCSlotB->setCurrentText(s_exi_devices.value(sconf.m_EXIDevice[1]));
 	m_ui->cmbGCSP1->setCurrentText(s_exi_devices.value(sconf.m_EXIDevice[2]));
 	// General - Wii
+	m_ui->chkWiiScreensaver->setChecked(!!sconf.m_SYSCONF->GetData<u8>("IPL.SSV"));
+	m_ui->chkWiiPAL60->setChecked(sconf.bPAL60);
+	m_ui->cmbWiiAR->setCurrentIndex(sconf.m_SYSCONF->GetData<u8>("IPL.AR"));
+	m_ui->cmbWiiLang->setCurrentIndex(sconf.m_SYSCONF->GetData<u8>("IPL.LNG"));
+	m_ui->chkWiiSDCard->setChecked(sconf.m_WiiSDCard);
+	m_ui->chkWiiUSBKeyboard->setChecked(sconf.m_WiiKeyboard);
 	// General - Paths
 	for (const std::string& folder : sconf.m_ISOFolder)
 		m_ui->listDirectories->insertItem(m_ui->listDirectories->count(),
