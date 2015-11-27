@@ -216,15 +216,12 @@ void GameListItem::DoState(PointerWrap &p)
 
 bool GameListItem::IsElfOrDol() const
 {
-	const size_t pos = m_FileName.rfind('.');
-	if (pos != std::string::npos)
-	{
-		std::string ext = m_FileName.substr(pos);
-		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+	if (m_FileName.size() < 4)
+		return false;
 
-		return ext == ".elf" || ext == ".dol";
-	}
-	return false;
+	std::string name_end = m_FileName.substr(m_FileName.size() - 4);
+	std::transform(name_end.begin(), name_end.end(), name_end.begin(), ::tolower);
+	return name_end == ".elf" || name_end == ".dol";
 }
 
 std::string GameListItem::CreateCacheFilename() const
