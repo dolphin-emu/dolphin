@@ -27,6 +27,7 @@ enum
 {
 	IDM_WATCHADDRESS,
 	IDM_VIEWMEMORY,
+	IDM_VIEWCODE
 };
 
 static const char *special_reg_names[] = {
@@ -268,6 +269,7 @@ void CRegisterView::OnMouseDownR(wxGridEvent& event)
 	wxMenu menu;
 	menu.Append(IDM_WATCHADDRESS, _("Add to &watch"));
 	menu.Append(IDM_VIEWMEMORY, _("View &memory"));
+	menu.Append(IDM_VIEWCODE, _("View &code"));
 	PopupMenu(&menu);
 }
 
@@ -289,6 +291,10 @@ void CRegisterView::OnPopupMenu(wxCommandEvent& event)
 	case IDM_VIEWMEMORY:
 		if (memory_window)
 			memory_window->JumpToAddress(m_selectedAddress);
+		Refresh();
+		break;
+	case IDM_VIEWCODE:
+		code_window->JumpToAddress(m_selectedAddress);
 		Refresh();
 		break;
 	}
