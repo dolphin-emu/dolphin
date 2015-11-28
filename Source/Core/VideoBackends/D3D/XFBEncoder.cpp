@@ -247,8 +247,7 @@ void XFBEncoder::Init()
 	// Create EFB texture sampler
 
 	D3D11_SAMPLER_DESC sd = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
-	// FIXME: Should we really use point sampling here?
-	sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	sd.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
 	hr = D3D::device->CreateSamplerState(&sd, &m_efbSampler);
 	CHECK(SUCCEEDED(hr), "create xfb encode texture sampler");
 	D3D::SetDebugObjectName(m_efbSampler, "xfb encoder texture sampler");

@@ -104,6 +104,7 @@ private:
 
 	static unsigned int m_target_width;
 	static unsigned int m_target_height;
+	static ID3D11DepthStencilState* m_depth_resolve_depth_state;
 };
 
 }  // namespace DX11

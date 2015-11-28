@@ -96,6 +96,14 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 
 	HRESULT hr;
 
+	// Resolve MSAA targets before copying.
+	ID3D11ShaderResourceView* pEFB = (srcFormat == PEControl::Z24) ?
+			FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
+			// FIXME: Instead of resolving EFB, it would be better to pick out a
+			// single sample from each pixel. The game may break if it isn't
+			// expecting the blurred edges around multisampled shapes.
+			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+
 	// Reset API
 	g_renderer->ResetAPIState();
 
@@ -110,13 +118,6 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
 
 		D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
-
-		ID3D11ShaderResourceView* pEFB = (srcFormat == PEControl::Z24) ?
-			FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
-			// FIXME: Instead of resolving EFB, it would be better to pick out a
-			// single sample from each pixel. The game may break if it isn't
-			// expecting the blurred edges around multisampled shapes.
-			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
 
 		EFBEncodeParams params;
 		params.SrcLeft = srcRect.left;
