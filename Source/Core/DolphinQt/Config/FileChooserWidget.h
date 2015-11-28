@@ -21,9 +21,9 @@ public:
 	explicit DFileChooser(QWidget* parent_widget = nullptr);
 	~DFileChooser();
 
-	inline void setFormat(bool folder, QString filter) { m_folder = folder; m_filter = filter; }
+	void setFormat(bool folder, const QString& filter) { m_folder = folder; m_filter = filter; }
 
-	void setPath(QString path);
+	void setPath(const QString& path);
 	QString path();
 
 signals:

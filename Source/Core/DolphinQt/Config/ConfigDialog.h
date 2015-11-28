@@ -7,6 +7,8 @@
 #include <memory>
 #include <QMainWindow>
 
+#include "Core/ConfigManager.h"
+
 // Predefinitions
 class QAbstractButton;
 namespace Ui
@@ -22,8 +24,12 @@ public:
 	explicit DConfigDialog(QWidget* parent_widget = nullptr);
 	~DConfigDialog();
 
+protected:
+	void eventFilter(QObject* watched, QEvent* event);
+
 private:
 	std::unique_ptr<Ui::DConfigDialog> m_ui;
+	SConfig& m_conf;
 
 	void UpdateIcons();
 	void InitStaticData();

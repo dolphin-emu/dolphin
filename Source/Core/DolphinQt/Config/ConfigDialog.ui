@@ -27,7 +27,7 @@
     <item>
      <widget class="QStackedWidget" name="realCentralWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QTabWidget" name="pgGeneral">
        <property name="currentIndex">
@@ -982,25 +982,262 @@ Provides major speed improvements on most modern PCs, but can cause occasional c
         <attribute name="title">
          <string>General</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout"/>
+        <layout class="QGridLayout" name="glGfxGeneral">
+         <item row="0" column="3">
+          <spacer name="hs11">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="lblGfxBackend">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Backend:</string>
+           </property>
+           <property name="buddy">
+            <cstring>cmbGfxBackend</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <spacer name="vs7">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="0" column="1">
+          <widget class="QComboBox" name="cmbGfxBackend"/>
+         </item>
+         <item row="0" column="2">
+          <spacer name="hs10">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="1" column="0" colspan="3">
+          <widget class="QGroupBox" name="gbDisplay">
+           <property name="title">
+            <string>Display</string>
+           </property>
+           <layout class="QGridLayout" name="glGfxDisplay">
+            <item row="2" column="0">
+             <widget class="QCheckBox" name="chkVSync">
+              <property name="toolTip">
+               <string>Wait for vertical blanks in order to reduce tearing.
+Decreases performance if emulation speed is below 100%.
+
+If unsure, leave this unchecked.</string>
+              </property>
+              <property name="text">
+               <string>V-sync</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="cmbGfxAR">
+              <property name="toolTip">
+               <string>Select what aspect ratio to use when rendering:
+Auto: Use the native aspect ratio
+Force 16:9: Mimic an analog TV with a widescreen aspect ratio.
+Force 4:3: Mimic a standard 4:3 analog TV.
+Stretch to Window: Stretch the picture to the window size.
+
+If unsure, select Auto.</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QComboBox" name="cmbFullscreenRes">
+              <property name="toolTip">
+               <string>Selects the display resolution used in fullscreen mode.
+This should always be bigger than or equal to the internal resolution. Performance impact is negligible.
+
+If unsure, select auto.</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="lblFullscreenRes">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Fullscreen resolution:</string>
+              </property>
+              <property name="buddy">
+               <cstring>cmbFullscreenRes</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="lblGfxAR">
+              <property name="text">
+               <string>Aspect ratio:</string>
+              </property>
+              <property name="buddy">
+               <cstring>cmbGfxAR</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <spacer name="hs12">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="2" column="1" colspan="2">
+             <widget class="QCheckBox" name="chkFullscreen">
+              <property name="toolTip">
+               <string>Enable this if you want the whole screen to be used for rendering.
+If this is disabled, a render window will be created instead.
+
+If unsure, leave this unchecked.</string>
+              </property>
+              <property name="text">
+               <string>Use fullscreen</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="3">
+          <widget class="QGroupBox" name="gbGfxOther">
+           <property name="title">
+            <string>Other</string>
+           </property>
+           <layout class="QGridLayout" name="glGfxOther">
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="chkAutoAdjustWindSize">
+              <property name="toolTip">
+               <string>Automatically adjusts the window size to your internal resolution.
+
+If unsure, leave this unchecked.</string>
+              </property>
+              <property name="text">
+               <string>Auto adjust window size</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QCheckBox" name="chkHideCursor">
+              <property name="toolTip">
+               <string>Hides the mouse cursor if it's on top of the emulation window.
+
+If unsure, leave this unchecked.</string>
+              </property>
+              <property name="text">
+               <string>Hide mouse cursor</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="chkShowFPS">
+              <property name="toolTip">
+               <string>Show the number of frames rendered per second as a measure of emulation speed.
+
+If unsure, leave this unchecked.</string>
+              </property>
+              <property name="text">
+               <string>Show FPS</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="chkLogRenderTime">
+              <property name="toolTip">
+               <string>Log the render time of every frame to User/Logs/render_time.txt. Use this feature when you want to measure the performance of Dolphin.
+
+If unsure, leave this unchecked.</string>
+              </property>
+              <property name="text">
+               <string>Log render time to file</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QCheckBox" name="chkModalRenderWindow">
+              <property name="toolTip">
+               <string>Keep the game window on top of all other windows.
+
+If unsure, leave this unchecked.</string>
+              </property>
+              <property name="text">
+               <string>Keep window on top</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QCheckBox" name="chkRenderToMain">
+              <property name="toolTip">
+               <string>Enable this if you want to use the main Dolphin window for rendering rather than a separate render window.
+
+If unsure, leave this unchecked.</string>
+              </property>
+              <property name="text">
+               <string>Render to main window</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </widget>
        <widget class="QWidget" name="tabEnhancements">
         <attribute name="title">
          <string>Enhancements</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout"/>
+        <layout class="QGridLayout" name="glGfxEnhancements"/>
        </widget>
        <widget class="QWidget" name="tabHacks">
         <attribute name="title">
          <string>Hacks</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout"/>
+        <layout class="QGridLayout" name="glGfxHacks"/>
        </widget>
-       <widget class="QWidget" name="tabAdvanced">
+       <widget class="QWidget" name="tabGfxAdvanced">
         <attribute name="title">
          <string>Advanced</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout"/>
+        <layout class="QGridLayout" name="glGfxAdvanced"/>
        </widget>
       </widget>
       <widget class="QWidget" name="pgAudio">

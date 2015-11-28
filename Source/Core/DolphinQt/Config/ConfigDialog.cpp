@@ -26,7 +26,8 @@
 #include "UICommon/UICommon.h"
 
 DConfigDialog::DConfigDialog(QWidget* parent_widget)
-	: QMainWindow(parent_widget)
+	: QMainWindow(parent_widget),
+	m_conf(SConfig::GetInstance())
 {
 	setWindowModality(Qt::WindowModal);
 	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -35,6 +36,17 @@ DConfigDialog::DConfigDialog(QWidget* parent_widget)
 	m_ui = std::make_unique<Ui::DConfigDialog>();
 	m_ui->setupUi(this);
 	UpdateIcons();
+#if defined(_WIN32)
+	m_ui->cmbGfxBackend->setToolTip(tr("Selects what graphics API to use internally.\nThe software renderer "
+		"is extremely slow and only useful for debugging, so you'll want to use either Direct3D or OpenGL. "
+		"Different games and different GPUs will behave differently on each backend, so for the best "
+		"emulation experience it's recommended to try both and choose the one that's less problematic.\n\n"
+		"If unsure, select OpenGL."));
+#else
+	m_ui->cmbGfxBackend->setToolTip(tr("Selects what graphics API to use internally.\nThe software renderer "
+		"is extremely slow and only useful for debugging, so unless you have a reason to use it you'll want "
+		"to select OpenGL here.\n\nIf unsure, select OpenGL."));
+#endif
 
 	// Create action group
 	QActionGroup* ag = new QActionGroup(this);
@@ -88,6 +100,11 @@ void DConfigDialog::UpdateIcons()
 	m_ui->actionPageControllers->setIcon(Resources::GetIcon(Resources::TOOLBAR_CONTROLLERS));
 }
 
+void DConfigDialog::eventFilter(QObject* watched, QEvent* event)
+{
+	// TODO
+}
+
 // Static data (translation-specific mappings to enums, etc.)
 static QMap<int, QString> s_cpu_engines;
 static QMap<TEXIDevices, QString> s_exi_devices;
@@ -131,7 +148,6 @@ void DConfigDialog::InitStaticData()
 void DConfigDialog::SetupSlots()
 {
 	// Helper macros for signal/slot creation
-#define SCGI SConfig::GetInstance()
 #define cAction(ACTION, CALLBACK) \
 	connect(m_ui->ACTION, &QAction::triggered, [this]() -> void CALLBACK)
 #define cCombo(COMBO, CALLBACK) \
@@ -153,7 +169,7 @@ void DConfigDialog::SetupSlots()
 
 	/* Settings signals/slots */
 	// General - Basic
-	cCheck(chkCheats,   { SCGI.bEnableCheats = m_ui->chkCheats->isChecked(); });
+	cCheck(chkCheats,   { m_conf.bEnableCheats = m_ui->chkCheats->isChecked(); });
 	cCombo(cmbFramelimit, {
 		unsigned int framelimit = m_ui->cmbFramelimit->currentIndex();
 		if (framelimit == 2)
@@ -163,31 +179,31 @@ void DConfigDialog::SetupSlots()
 		}
 		else
 			m_ui->sbFramelimit->setEnabled(false);
-		SCGI.m_Framelimit = framelimit;
+		m_conf.m_Framelimit = framelimit;
 		});
 	cSpin(sbFramelimit, {
 		int valmod5 = m_ui->sbFramelimit->value() % 5;
 		if (valmod5 != 0)
 			m_ui->sbFramelimit->setValue(m_ui->sbFramelimit->value() - valmod5);
-		SCGI.m_Framelimit = (m_ui->sbFramelimit->value() / 5) + 1;
+		m_conf.m_Framelimit = (m_ui->sbFramelimit->value() / 5) + 1;
 	});
 	// General - Interface
-	cCheck(chkConfirmStop,    { SCGI.bConfirmStop = m_ui->chkConfirmStop->isChecked(); });
-	cCheck(chkPanicHandlers,  { SCGI.bUsePanicHandlers = m_ui->chkPanicHandlers->isChecked(); });
-	cCheck(chkOSDMessages,    { SCGI.bOnScreenDisplayMessages = m_ui->chkOSDMessages->isChecked(); });
-	cCheck(chkPauseFocusLost, { SCGI.m_PauseOnFocusLost = m_ui->chkPauseFocusLost->isChecked(); });
+	cCheck(chkConfirmStop,    { m_conf.bConfirmStop = m_ui->chkConfirmStop->isChecked(); });
+	cCheck(chkPanicHandlers,  { m_conf.bUsePanicHandlers = m_ui->chkPanicHandlers->isChecked(); });
+	cCheck(chkOSDMessages,    { m_conf.bOnScreenDisplayMessages = m_ui->chkOSDMessages->isChecked(); });
+	cCheck(chkPauseFocusLost, { m_conf.m_PauseOnFocusLost = m_ui->chkPauseFocusLost->isChecked(); });
 	cCombo(cmbTheme, {
-		SCGI.theme_name = m_ui->cmbTheme->currentText().toStdString();
+		m_conf.theme_name = m_ui->cmbTheme->currentText().toStdString();
 		Resources::Init();
 		g_main_window->UpdateIcons();
 		UpdateIcons();
 	});
 	// General - GameCube
-	cCheck(chkGCSkipBios, { SCGI.bHLE_BS2 = m_ui->chkGCSkipBios->isChecked(); });
-	cCheck(chkGCOverrideLang, { SCGI.bOverrideGCLanguage = m_ui->chkGCOverrideLang->isChecked(); });
-	cCombo(cmbGCIplLang, { SCGI.SelectedLanguage = m_ui->cmbGCIplLang->currentIndex(); });
+	cCheck(chkGCSkipBios, { m_conf.bHLE_BS2 = m_ui->chkGCSkipBios->isChecked(); });
+	cCheck(chkGCOverrideLang, { m_conf.bOverrideGCLanguage = m_ui->chkGCOverrideLang->isChecked(); });
+	cCombo(cmbGCIplLang, { m_conf.SelectedLanguage = m_ui->cmbGCIplLang->currentIndex(); });
 	cCombo(cmbGCSlotA, {
-		int device = SCGI.m_EXIDevice[0] = s_exi_devices.key(m_ui->cmbGCSlotA->currentText());
+		int device = m_conf.m_EXIDevice[0] = s_exi_devices.key(m_ui->cmbGCSlotA->currentText());
 		if (device != EXIDEVICE_MEMORYCARD && device != EXIDEVICE_AGP)
 			m_ui->btnGCSlotA->setEnabled(false);
 		else
@@ -195,36 +211,36 @@ void DConfigDialog::SetupSlots()
 	});
 	connect(m_ui->btnGCSlotA, &QToolButton::pressed, [this]() -> void { ChooseSlotPath(0); });
 	cCombo(cmbGCSlotB, {
-		int device = SCGI.m_EXIDevice[1] = s_exi_devices.key(m_ui->cmbGCSlotB->currentText());
+		int device = m_conf.m_EXIDevice[1] = s_exi_devices.key(m_ui->cmbGCSlotB->currentText());
 		if (device != EXIDEVICE_MEMORYCARD && device != EXIDEVICE_AGP)
 			m_ui->btnGCSlotB->setEnabled(false);
 		else
 			m_ui->btnGCSlotB->setEnabled(true);
 	});
 	connect(m_ui->btnGCSlotB, &QToolButton::pressed, [this]() -> void { ChooseSlotPath(1); });
-	cCombo(cmbGCSP1, { SCGI.m_EXIDevice[2] = s_exi_devices.key(m_ui->cmbGCSP1->currentText()); });
+	cCombo(cmbGCSP1, { m_conf.m_EXIDevice[2] = s_exi_devices.key(m_ui->cmbGCSP1->currentText()); });
 	// General - Wii
-	cCheck(chkWiiScreensaver, { SCGI.m_SYSCONF->SetData("IPL.SSV", m_ui->chkWiiScreensaver->isChecked()); });
+	cCheck(chkWiiScreensaver, { m_conf.m_SYSCONF->SetData("IPL.SSV", m_ui->chkWiiScreensaver->isChecked()); });
 	cCheck(chkWiiPAL60, {
-		SCGI.bPAL60 = m_ui->chkWiiPAL60->isChecked();
-		SCGI.m_SYSCONF->SetData("IPL.E60", m_ui->chkWiiPAL60->isChecked());
+		m_conf.bPAL60 = m_ui->chkWiiPAL60->isChecked();
+		m_conf.m_SYSCONF->SetData("IPL.E60", m_ui->chkWiiPAL60->isChecked());
 	});
-	cCombo(cmbWiiAR, { SCGI.m_SYSCONF->SetData("IPL.AR", m_ui->cmbWiiAR->currentIndex()); });
+	cCombo(cmbWiiAR, { m_conf.m_SYSCONF->SetData("IPL.AR", m_ui->cmbWiiAR->currentIndex()); });
 	cCombo(cmbWiiLang, {
 		DiscIO::IVolume::ELanguage wii_system_lang = (DiscIO::IVolume::ELanguage)m_ui->cmbWiiLang->currentIndex();
-		SCGI.m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
+		m_conf.m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
 		u8 country_code = UICommon::GetSADRCountryCode(wii_system_lang);
-		if (!SCGI.m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
+		if (!m_conf.m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
 			QMessageBox::critical(this, tr("Error"), tr("Failed to update country code in SYSCONF"),
 				QMessageBox::Ok, QMessageBox::NoButton);
 	});
 	cCheck(chkWiiSDCard, {
-		SCGI.m_WiiSDCard = m_ui->chkWiiSDCard->isChecked();
+		m_conf.m_WiiSDCard = m_ui->chkWiiSDCard->isChecked();
 		WII_IPC_HLE_Interface::SDIO_EventNotify();
 	});
-	cCheck(chkWiiUSBKeyboard, { SCGI.m_WiiKeyboard = m_ui->chkWiiUSBKeyboard->isChecked(); });
+	cCheck(chkWiiUSBKeyboard, { m_conf.m_WiiKeyboard = m_ui->chkWiiUSBKeyboard->isChecked(); });
 	// General - Paths
-	cCheck(chkSearchSubfolders, { SCGI.m_RecursiveISOFolder = m_ui->chkSearchSubfolders->isChecked(); });
+	cCheck(chkSearchSubfolders, { m_conf.m_RecursiveISOFolder = m_ui->chkSearchSubfolders->isChecked(); });
 	connect(m_ui->listDirectories, &QListWidget::currentRowChanged, [this](int row) -> void {
 		if (row == -1)
 			m_ui->btnRemoveDirectory->setEnabled(false);
@@ -238,47 +254,48 @@ void DConfigDialog::SetupSlots()
 		path.replace(QStringLiteral("/"), QStringLiteral("\\"));
 #endif
 		m_ui->listDirectories->insertItem(m_ui->listDirectories->count(), path);
-		SCGI.m_ISOFolder.push_back(path.toStdString());
+		m_conf.m_ISOFolder.push_back(path.toStdString());
 	});
 	connect(m_ui->btnRemoveDirectory, &QPushButton::pressed, [this]() -> void {
 		QListWidgetItem* i = m_ui->listDirectories->takeItem(m_ui->listDirectories->currentRow());
-		SCGI.m_ISOFolder.erase(std::remove(SCGI.m_ISOFolder.begin(), SCGI.m_ISOFolder.end(),
-			i->text().toStdString()), SCGI.m_ISOFolder.end());
+		m_conf.m_ISOFolder.erase(std::remove(m_conf.m_ISOFolder.begin(), m_conf.m_ISOFolder.end(),
+			i->text().toStdString()), m_conf.m_ISOFolder.end());
 		delete i;
 	});
 	connect(m_ui->fcDefaultROM, &DFileChooser::changed, [this]() -> void {
-		SCGI.m_strDefaultISO = m_ui->fcDefaultROM->path().toStdString(); });
+		m_conf.m_strDefaultISO = m_ui->fcDefaultROM->path().toStdString(); });
 	connect(m_ui->fcDVDRoot, &DFileChooser::changed, [this]() -> void {
-		SCGI.m_strDVDRoot = m_ui->fcDVDRoot->path().toStdString(); });
+		m_conf.m_strDVDRoot = m_ui->fcDVDRoot->path().toStdString(); });
 	connect(m_ui->fcApploader, &DFileChooser::changed, [this]() -> void {
-		SCGI.m_strApploader = m_ui->fcApploader->path().toStdString(); });
+		m_conf.m_strApploader = m_ui->fcApploader->path().toStdString(); });
 	connect(m_ui->fcWiiNandRoot, &DFileChooser::changed, [this]() -> void {
-		SCGI.m_NANDPath = m_ui->fcWiiNandRoot->path().toStdString(); });
+		m_conf.m_NANDPath = m_ui->fcWiiNandRoot->path().toStdString(); });
 	// General - Advanced
-	cCheck(chkForceNTSCJ, { SCGI.bForceNTSCJ = m_ui->chkForceNTSCJ->isChecked(); });
-	cCheck(chkDualcore,   { SCGI.bCPUThread = m_ui->chkDualcore->isChecked(); });
-	cCheck(chkIdleSkip,   { SCGI.bSkipIdle = m_ui->chkIdleSkip->isChecked(); });
-	cCombo(cmbCpuEngine,  { SCGI.iCPUCore = s_cpu_engines.key(m_ui->cmbCpuEngine->currentText()); });
+	cCheck(chkForceNTSCJ, { m_conf.bForceNTSCJ = m_ui->chkForceNTSCJ->isChecked(); });
+	cCheck(chkDualcore,   { m_conf.bCPUThread = m_ui->chkDualcore->isChecked(); });
+	cCheck(chkIdleSkip,   { m_conf.bSkipIdle = m_ui->chkIdleSkip->isChecked(); });
+	cCombo(cmbCpuEngine,  { m_conf.iCPUCore = s_cpu_engines.key(m_ui->cmbCpuEngine->currentText()); });
 	cGbCheck(gbCpuOverclock, {
-		SCGI.m_OCEnable = m_ui->gbCpuOverclock->isChecked();
+		m_conf.m_OCEnable = m_ui->gbCpuOverclock->isChecked();
 		UpdateCpuOCLabel();
 	});
 	cSlider(slCpuOCFactor, {
-		SCGI.m_OCFactor = std::exp2f((m_ui->slCpuOCFactor->value() - 100.f) / 25.f);
+		m_conf.m_OCFactor = std::exp2f((m_ui->slCpuOCFactor->value() - 100.f) / 25.f);
 		UpdateCpuOCLabel();
 	});
+	// Graphics - General
 	// Audio
 	cCombo(cmbAudioBackend, { AudioBackendChanged(); });
-	cSpin(sbLatency, { SCGI.iLatency = m_ui->sbLatency->value(); });
-	cCheck(chkDPL2, { SCGI.bDPL2Decoder = m_ui->chkDPL2->isChecked(); });
+	cSpin(sbLatency, { m_conf.iLatency = m_ui->sbLatency->value(); });
+	cCheck(chkDPL2, { m_conf.bDPL2Decoder = m_ui->chkDPL2->isChecked(); });
 	cCombo(cmbDSPEngine, {
-		SCGI.bDSPHLE = m_ui->cmbDSPEngine->currentIndex() == 0;
-		SCGI.m_DSPEnableJIT = m_ui->cmbDSPEngine->currentIndex() == 1;
+		m_conf.bDSPHLE = m_ui->cmbDSPEngine->currentIndex() == 0;
+		m_conf.m_DSPEnableJIT = m_ui->cmbDSPEngine->currentIndex() == 1;
 		AudioCommon::UpdateSoundStream();
 	});
 	cSlider(slVolume, {
 		m_ui->lblVolume->setText(QStringLiteral("%1%").arg(m_ui->slVolume->value()));
-		SCGI.m_Volume = m_ui->slVolume->value();
+		m_conf.m_Volume = m_ui->slVolume->value();
 	});
 }
 
@@ -351,21 +368,20 @@ void DConfigDialog::LoadSettings()
 		m_ui->cmbDSPEngine->setCurrentIndex(0);
 	else
 		m_ui->cmbDSPEngine->setCurrentIndex(sconf.m_DSPEnableJIT ? 1 : 2);
-	m_ui->slVolume->setValue(SCGI.m_Volume);
+	m_ui->slVolume->setValue(m_conf.m_Volume);
 }
 
 void DConfigDialog::UpdateCpuOCLabel()
 {
-	bool wii = SCGI.bWii;
-	int percent = (int)(std::roundf(SCGI.m_OCFactor * 100.f));
-	int clock = (int)(std::roundf(SCGI.m_OCFactor * (wii ? 729.f : 486.f)));
+	int percent = (int)(std::roundf(m_conf.m_OCFactor * 100.f));
+	int clock = (int)(std::roundf(m_conf.m_OCFactor * (m_conf.bWii ? 729.f : 486.f)));
 	m_ui->lblCpuOCFactor->setText(QStringLiteral("%1% (%2 MHz)").arg(percent).arg(clock));
 }
 
 void DConfigDialog::ChooseSlotPath(int device)
 {
-	const std::string& oldPath = (device == 0) ? SCGI.m_strMemoryCardA : SCGI.m_strMemoryCardB;
-	QString filter = (SCGI.m_EXIDevice[device] == EXIDEVICE_MEMORYCARD) ?
+	const std::string& oldPath = (device == 0) ? m_conf.m_strMemoryCardA : m_conf.m_strMemoryCardB;
+	QString filter = (m_conf.m_EXIDevice[device] == EXIDEVICE_MEMORYCARD) ?
 		tr("GameCube Memory Cards (%1)").arg(QStringLiteral("*.raw *.gcp")) :
 		tr("Game Boy Advance Carts (%1)").arg(QStringLiteral("*.gba"));
 	QString path = QFileDialog::getOpenFileName(this, tr("Choose file"),
@@ -373,9 +389,9 @@ void DConfigDialog::ChooseSlotPath(int device)
 	if (!path.isEmpty())
 	{
 		if (device == 0)
-			SCGI.m_strMemoryCardA = path.toStdString();
+			m_conf.m_strMemoryCardA = path.toStdString();
 		else if (device == 1)
-			SCGI.m_strMemoryCardB = path.toStdString();
+			m_conf.m_strMemoryCardB = path.toStdString();
 	}
 }
 
@@ -386,6 +402,6 @@ void DConfigDialog::AudioBackendChanged()
 		backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2);
 	m_ui->sbLatency->setEnabled(backend == BACKEND_OPENAL);
 	m_ui->chkDPL2->setEnabled(backend == BACKEND_OPENAL || backend == BACKEND_PULSEAUDIO);
-	SCGI.sBackend = backend;
+	m_conf.sBackend = backend;
 	AudioCommon::UpdateSoundStream();
 }

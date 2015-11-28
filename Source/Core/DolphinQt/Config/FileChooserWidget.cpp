@@ -37,7 +37,7 @@ DFileChooser::~DFileChooser()
 {
 }
 
-void DFileChooser::setPath(QString path)
+void DFileChooser::setPath(const QString& path)
 {
 	m_ui->lePath->setText(path);
 }
