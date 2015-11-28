@@ -63,7 +63,7 @@ struct DTMHeader
 {
 	u8 filetype[4];         // Unique Identifier (always "DTM"0x1A)
 
-	u8 gameID[6];           // The Game ID
+	char gameID[6];         // The Game ID
 	bool bWii;              // Wii game
 
 	u8  numControllers;     // The number of connected controllers (1-4)
