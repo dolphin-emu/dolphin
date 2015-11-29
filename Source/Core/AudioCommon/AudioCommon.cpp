@@ -26,10 +26,17 @@ SoundStream* g_sound_stream = nullptr;
 
 static bool s_audio_dump_start = false;
 
+const std::map<std::string, std::pair<int, int> > AudioCommon::FILTER_PRESETS = {
+	{ FILTER_SINC_7PT, std::pair<int, int>{7, 512} },
+	{ FILTER_SINC_13PT, std::pair<int, int>{13, 65536} },
+	{ FILTER_SINC_27PT, std::pair<int, int>{27, 65536} },
+};
+
 namespace AudioCommon
 {
 	static const int AUDIO_VOLUME_MIN = 0;
 	static const int AUDIO_VOLUME_MAX = 100;
+	
 
 	SoundStream* InitSoundStream()
 	{

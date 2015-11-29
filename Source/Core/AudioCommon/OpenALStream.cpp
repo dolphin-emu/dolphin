@@ -164,7 +164,7 @@ void OpenALStream::SoundLoop()
 	else
 		memset(sampleBuffer, 0, OAL_MAX_SAMPLES * numBuffers * FRAME_SURROUND_SHORT);
 
-	memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * FRAME_STEREO_SHORT);
+	memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * FRAME_STEREO_FLOAT);
 
 	for (int i = 0; i < numBuffers; i++)
 	{
@@ -177,7 +177,7 @@ void OpenALStream::SoundLoop()
 		}
 		else
 		{
-			alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, 4 * FRAME_STEREO_SHORT, ulFrequency);
+			alBufferData(uiBuffers[i], AL_FORMAT_STEREO_FLOAT32, realtimeBuffer, 4 * FRAME_STEREO_FLOAT, ulFrequency);
 		}
 	}
 	alSourceQueueBuffers(uiSource, numBuffers, uiBuffers);
@@ -206,24 +206,24 @@ void OpenALStream::SoundLoop()
 	while (m_run_thread.load())
 	{
 		// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
-		const u32 stereo_16_bit_size = 4;
+		const u32 stereo_float_bit_size = 8;
 		const u32 dma_length = 32;
-		const u64 ais_samples_per_second = 48000 * stereo_16_bit_size;
-		u64 audio_dma_period = SystemTimers::GetTicksPerSecond() / (AudioInterface::GetAIDSampleRate() * stereo_16_bit_size / dma_length);
+		const u64 ais_samples_per_second = 48000 * stereo_float_bit_size;
+		u64 audio_dma_period = SystemTimers::GetTicksPerSecond() / (AudioInterface::GetAIDSampleRate() * stereo_float_bit_size / dma_length);
 		u64 num_samples_to_render = (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
 
-		unsigned int numSamples = (unsigned int)num_samples_to_render;
-		unsigned int minSamples = surround_capable ? 240 : 0; // DPL2 accepts 240 samples minimum (FWRDURATION)
+		u32 numSamples = (u32)num_samples_to_render;
+		u32 minSamples = surround_capable ? 240 : 0; // DPL2 accepts 240 samples minimum (FWRDURATION)
 
 		numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
 		numSamples = m_mixer->Mix(realtimeBuffer, numSamples, false);
 
 		// Convert the samples from short to float
-		float dest[OAL_MAX_SAMPLES * STEREO_CHANNELS];
-		for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
-			dest[i] = (float)realtimeBuffer[i] / (1 << 15);
+		//float dest[OAL_MAX_SAMPLES * STEREO_CHANNELS];
+		//for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
+		//	dest[i] = (float)realtimeBuffer[i] / (1 << 15);
 
-		soundTouch.putSamples(dest, numSamples);
+		soundTouch.putSamples(realtimeBuffer, numSamples);
 
 		if (iBuffersProcessed == iBuffersFilled)
 		{

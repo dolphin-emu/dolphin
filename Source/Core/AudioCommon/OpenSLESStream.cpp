@@ -29,7 +29,7 @@ static CMixer *g_mixer;
 #define BUFFER_SIZE_IN_SAMPLES (BUFFER_SIZE / 2)
 
 // Double buffering.
-static short buffer[2][BUFFER_SIZE];
+static float buffer[2][BUFFER_SIZE];
 static int curBuffer = 0;
 
 static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
@@ -38,7 +38,7 @@ static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 	assert(nullptr == context);
 
 	// Render to the fresh buffer
-	g_mixer->Mix(reinterpret_cast<short *>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
+	g_mixer->Mix(reinterpret_cast<float *>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
 	SLresult result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer[curBuffer], sizeof(buffer[0]));
 	curBuffer ^= 1; // Switch buffer
 
@@ -64,14 +64,15 @@ bool OpenSLESStream::Start()
 	assert(SL_RESULT_SUCCESS == result);
 
 	SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
-	SLDataFormat_PCM format_pcm = {
-		SL_DATAFORMAT_PCM,
+	SLDataFormat_PCM_EX format_pcm = {
+		SL_DATAFORMAT_PCM_EX,
 		2,
 		m_mixer->GetSampleRate() * 1000,
-		SL_PCMSAMPLEFORMAT_FIXED_16,
-		SL_PCMSAMPLEFORMAT_FIXED_16,
+		SL_PCMSAMPLEFORMAT_FIXED_32,
+		SL_PCMSAMPLEFORMAT_FIXED_32,
 		SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
-		SL_BYTEORDER_LITTLEENDIAN
+		SL_BYTEORDER_LITTLEENDIAN,
+		SL_PCM_REPRESENTATION_FLOAT
 	};
 
 	SLDataSource audioSrc = {&loc_bufq, &format_pcm};

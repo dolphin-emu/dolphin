@@ -96,8 +96,8 @@ bool PulseAudio::PulseInit()
 	pa_channel_map* channel_map_p = nullptr; // auto channel map
 	if (m_stereo)
 	{
-		ss.format = PA_SAMPLE_S16LE;
-		m_bytespersample = sizeof(s16);
+		ss.format = PA_SAMPLE_FLOAT32LE;
+		m_bytespersample = sizeof(float);
 	}
 	else
 	{
@@ -188,26 +188,26 @@ void PulseAudio::WriteCallback(pa_stream* s, size_t length)
 	if (m_stereo)
 	{
 		// use the raw s16 stereo mix
-		m_mixer->Mix((s16*) buffer, frames);
+		m_mixer->Mix((float*) buffer, frames);
 	}
 	else
 	{
 		// get a floating point mix
-		s16 s16buffer_stereo[frames * 2];
-		m_mixer->Mix(s16buffer_stereo, frames); // implicitly mixes to 16-bit stereo
+		float buffer_stereo[frames * 2];
+		m_mixer->Mix(buffer_stereo, frames); // implicitly mixes to 16-bit stereo
 
-		float floatbuffer_stereo[frames * 2];
+		//float floatbuffer_stereo[frames * 2];
 		// s16 to float
-		for (int i=0; i < frames * 2; ++i)
+		/*for (int i=0; i < frames * 2; ++i)
 		{
 			floatbuffer_stereo[i] = s16buffer_stereo[i] / float(1 << 15);
-		}
+		}*/
 
 		if (m_channels == 5) // Extract dpl2/5.0 Surround
 		{
 			float floatbuffer_6chan[frames * 6];
 			// DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
-			DPL2Decode(floatbuffer_stereo, frames, floatbuffer_6chan);
+			DPL2Decode(buffer_stereo, frames, floatbuffer_6chan);
 
 			// Discard the subwoofer channel - DPL2Decode generates a pretty
 			// good 5.0 but not a good 5.1 output.
