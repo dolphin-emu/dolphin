@@ -5,25 +5,6 @@
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/GameList/GameListModel.h"
 
-static QString FormatSize(qint64 size)
-{
-	QStringList units{
-		QStringLiteral("KB"),
-		QStringLiteral("MB"),
-		QStringLiteral("GB"),
-		QStringLiteral("TB")
-	};
-	QStringListIterator i(units);
-	QString unit = QStringLiteral("B");
-	double num = (double) size;
-	while (num > 1024.0 && i.hasNext())
-	{
-		unit = i.next();
-		num /= 1024.0;
-	}
-	return QStringLiteral("%1 %2").arg(QString::number(num, 'f', 1)).arg(unit);
-}
-
 GameListModel::GameListModel(QObject* parent)
 	: QAbstractTableModel(parent)
 {
@@ -38,46 +19,22 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
 		return QVariant();
 
 	QSharedPointer<GameFile> game = m_games[index.row()];
-	if (index.column() == COL_PLATFORM && role == Qt::DecorationRole)
-		return QVariant(Resources::GetPlatform(game->GetPlatform()));
-	else if (index.column() == COL_PLATFORM && role == Qt::DisplayRole)
-		return QVariant(game->GetPlatform());
-
-	else if (index.column() == COL_TITLE && role == Qt::DecorationRole)
-		return QVariant(game->GetBanner());
-	else if (index.column() == COL_TITLE && role == Qt::DisplayRole)
-		return QVariant(game->GetLongName());
-
-	else if (index.column() == COL_ID && role == Qt::DisplayRole)
-		return QVariant(game->GetUniqueID());
-
-	else if (index.column() == COL_DESCRIPTION && role == Qt::DisplayRole)
-		return QVariant(game->GetDescription());
-
-	else if (index.column() == COL_MAKER && role == Qt::DisplayRole)
-		return QVariant(game->GetCompany());
-
-	// FIXME this sorts lexicographically, not by size.
-	else if (index.column() == COL_SIZE && role == Qt::DisplayRole)
-		return QVariant(FormatSize(game->GetFileSize()));
-
-	else if (index.column() == COL_COUNTRY && role == Qt::DecorationRole)
-		return QVariant(Resources::GetCountry(game->GetCountry()));
-	else if (index.column() == COL_COUNTRY && role == Qt::DisplayRole)
-		return QVariant(game->GetCountry());
-
-	else if (index.column() == COL_RATING && role == Qt::DecorationRole)
-		return QVariant(Resources::GetRating(game->GetRating()));
-	else if (index.column() == COL_RATING && role == Qt::DisplayRole)
-		return QVariant(game->GetRating());
-
-	else if (index.column() == COL_LARGE_ICON && role == Qt::DecorationRole)
-		return QVariant(game->GetBanner().scaled(144, 48));
-	else if (index.column() == COL_LARGE_ICON && role == Qt::DisplayRole)
-		return QVariant(game->GetLongName());
-
-	else
-		return QVariant();
+	if (role == Qt::DisplayRole)
+	{
+		switch (index.column())
+		{
+		case COL_PLATFORM:    return game->GetPlatform();
+		case COL_BANNER:      return game->GetBanner();
+		case COL_TITLE:       return game->GetLongName();
+		case COL_ID:          return game->GetUniqueID();
+		case COL_DESCRIPTION: return game->GetDescription();
+		case COL_MAKER:       return game->GetCompany();
+		case COL_SIZE:        return game->GetFileSize();
+		case COL_COUNTRY:     return game->GetCountry();
+		case COL_RATING:      return game->GetRating();
+		}
+	}
+	return QVariant();
 }
 
 QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -87,14 +44,15 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
 
 	switch (section)
 	{
-		case COL_TITLE: return QVariant(tr("Title"));
-		case COL_ID: return QVariant(tr("ID"));
-		case COL_DESCRIPTION: return QVariant(tr("Description"));
-		case COL_MAKER: return QVariant(tr("Maker"));
-		case COL_SIZE: return QVariant(tr("Size"));
-		case COL_RATING: return QVariant(tr("Quality"));
-		default: return QVariant();
+	case COL_TITLE:       return tr("Title");
+	case COL_ID:          return tr("ID");
+	case COL_BANNER:      return tr("Banner");
+	case COL_DESCRIPTION: return tr("Description");
+	case COL_MAKER:       return tr("Maker");
+	case COL_SIZE:        return tr("Size");
+	case COL_RATING:      return tr("Quality");
 	}
+	return QVariant();
 }
 
 int GameListModel::rowCount(const QModelIndex& parent) const

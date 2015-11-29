@@ -6,12 +6,14 @@
 
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/GameList/GameList.h"
+#include "DolphinQt2/GameList/GameListProxyModel.h"
 
 GameList::GameList(QWidget* parent): QStackedWidget(parent)
 {
 	m_model = new GameListModel(this);
-	m_proxy = new QSortFilterProxyModel(this);
+	m_proxy = new GameListProxyModel(this);
 	m_proxy->setSourceModel(m_model);
+	m_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
 
 	MakeTableView();
 	MakeListView();
@@ -36,31 +38,25 @@ void GameList::MakeTableView()
 	m_table->setSortingEnabled(true);
 	m_table->setCurrentIndex(QModelIndex());
 
-	// These fixed column widths make it so that the DisplayRole is cut
-	// off, which lets us see the icon but sort by the actual value.
-	// It's a bit of a hack. To do it right we need to subclass
-	// QSortFilterProxyModel and not show those items.
+	// FIXME These icon image are overly wide and should be cut down to size,
+	// then we can remove these lines.
 	m_table->setColumnWidth(GameListModel::COL_PLATFORM, 52);
 	m_table->setColumnWidth(GameListModel::COL_COUNTRY, 38);
 	m_table->setColumnWidth(GameListModel::COL_RATING, 52);
+
+	// This column is for the icon view. Hide it.
 	m_table->setColumnHidden(GameListModel::COL_LARGE_ICON, true);
 
-	m_table->horizontalHeader()->setSectionResizeMode(
-			GameListModel::COL_PLATFORM, QHeaderView::Fixed);
-	m_table->horizontalHeader()->setSectionResizeMode(
-			GameListModel::COL_COUNTRY, QHeaderView::Fixed);
-	m_table->horizontalHeader()->setSectionResizeMode(
-			GameListModel::COL_ID, QHeaderView::ResizeToContents);
-	m_table->horizontalHeader()->setSectionResizeMode(
-			GameListModel::COL_TITLE, QHeaderView::Stretch);
-	m_table->horizontalHeader()->setSectionResizeMode(
-			GameListModel::COL_MAKER, QHeaderView::ResizeToContents);
-	m_table->horizontalHeader()->setSectionResizeMode(
-			GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
-	m_table->horizontalHeader()->setSectionResizeMode(
-			GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
-	m_table->horizontalHeader()->setSectionResizeMode(
-			GameListModel::COL_RATING, QHeaderView::Fixed);
+	QHeaderView* header = m_table->horizontalHeader();
+	header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);
+	header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::Fixed);
+	header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
+	header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::ResizeToContents);
+	header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Stretch);
+	header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Stretch);
+	header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
+	header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
+	header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::Fixed);
 }
 
 void GameList::MakeListView()

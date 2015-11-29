@@ -71,6 +71,7 @@ void MainWindow::AddTableColumnsMenu(QMenu* view_menu)
 	QStringList col_names{
 		tr("Platform"),
 		tr("ID"),
+		tr("Banner"),
 		tr("Title"),
 		tr("Description"),
 		tr("Maker"),
@@ -78,12 +79,13 @@ void MainWindow::AddTableColumnsMenu(QMenu* view_menu)
 		tr("Country"),
 		tr("Quality")
 	};
-	// TODO we'll need to update SConfig with another column. Then we can clean this
-	// up significantly.
+	// TODO we'll need to update SConfig with the extra columns. Then we can
+	// clean this up significantly.
 	QList<bool> show_cols{
 		SConfig::GetInstance().m_showSystemColumn,
 		SConfig::GetInstance().m_showIDColumn,
 		SConfig::GetInstance().m_showBannerColumn,
+		true,
 		false,
 		SConfig::GetInstance().m_showMakerColumn,
 		SConfig::GetInstance().m_showSizeColumn,
