@@ -910,7 +910,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 		case 8: // R8
 			colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
 			cbufid = 15;
-			dstFormat |= _GX_TF_CTF;
+			dstFormat = GX_CTF_R8;
 			break;
 
 		case 2: // RA4
@@ -1047,8 +1047,11 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 		}
 	}
 
-	u32 blockH = TexDecoder_GetBlockHeightInTexels(dstFormat);
-	const u32 blockW = TexDecoder_GetBlockWidthInTexels(dstFormat);
+	// Get the base (in memory) format of this efb copy.
+	int baseFormat = TexDecoder_GetEfbCopyBaseFormat(dstFormat);
+
+	u32 blockH = TexDecoder_GetBlockHeightInTexels(baseFormat);
+	const u32 blockW = TexDecoder_GetBlockWidthInTexels(baseFormat);
 
 	// Round up source height to multiple of block size
 	u32 actualHeight = ROUND_UP(tex_h, blockH);
@@ -1058,7 +1061,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 	const u32 num_blocks_x = actualWidth / blockW;
 
 	// RGBA takes two cache lines per block; all others take one
-	const u32 bytes_per_block = dstFormat == GX_TF_RGBA8 ? 64 : 32;
+	const u32 bytes_per_block = baseFormat == GX_TF_RGBA8 ? 64 : 32;
 
 	u32 bytes_per_row = num_blocks_x * bytes_per_block;
 
@@ -1131,7 +1134,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
 		if (entry)
 		{
-			entry->SetGeneralParameters(dstAddr, 0, dstFormat);
+			entry->SetGeneralParameters(dstAddr, 0, baseFormat);
 			entry->SetDimensions(tex_w, tex_h, 1);
 
 			entry->frameCount = FRAMECOUNT_INVALID;

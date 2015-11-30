@@ -67,6 +67,7 @@ public:
 
 		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format)
 		{
+			_dbg_assert_msg_(VIDEO, _format < 0x10, "You shouldn't use dolphin's \"Extra\" texture formats in a texture cache entry");
 			addr = _addr;
 			size_in_bytes = _size;
 			format = _format;
