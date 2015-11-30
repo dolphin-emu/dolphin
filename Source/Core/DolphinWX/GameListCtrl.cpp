@@ -1075,7 +1075,9 @@ void CGameListCtrl::CompressSelection(bool _compress)
 		for (u32 i = 0; i < m_numberItem; i++)
 		{
 			const GameListItem* iso = GetSelectedISO();
-			if (iso->GetPlatform() == DiscIO::IVolume::WII_WAD || iso->GetFileName().rfind(".wbfs") != std::string::npos)
+			if (iso->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC && iso->GetPlatform() != DiscIO::IVolume::WII_DISC)
+				continue;
+			if (iso->GetBlobType() != DiscIO::BlobType::PLAIN && iso->GetBlobType() != DiscIO::BlobType::GCZ)
 				continue;
 
 			if (!iso->IsCompressed() && _compress)
