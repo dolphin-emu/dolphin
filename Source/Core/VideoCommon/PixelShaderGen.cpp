@@ -564,7 +564,7 @@ static inline T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 		// Opengl has reversed vertical screenspace coordiantes
 		if (ApiType == API_OPENGL)
-			out.Write("\tscreenpos.y = %i - screenpos.y;\n", EFB_HEIGHT);
+			out.Write("\tscreenpos.y = %i.0 - screenpos.y;\n", EFB_HEIGHT);
 
 		out.Write("\tint zCoord = int(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y);\n");
 	}
