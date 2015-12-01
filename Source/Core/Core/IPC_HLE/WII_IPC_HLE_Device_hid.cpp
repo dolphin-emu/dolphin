@@ -471,7 +471,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 			{
 				// too many devices to handle.
 				ERROR_LOG(WII_IPC_HID, "Exhausted device list, you have way too many usb devices plugged in."
-				"Or it might be our fault. Let us know at https://code.google.com/p/dolphin-emu/issues/entry?template=Defect%%20report");
+				"Or it might be our fault. Let us know at https://bugs.dolphin-emu.org/projects/emulator/issues/new");
 				OffsetBuffer = OffsetStart;
 				continue;
 			}
