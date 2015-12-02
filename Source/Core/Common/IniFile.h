@@ -46,12 +46,12 @@ public:
 
 		void Set(const std::string& key, float newValue)
 		{
-			Set(key, StringFromFormat("%f", newValue));
+			Set(key, StringFromFormat("%#.9g", newValue));
 		}
 
 		void Set(const std::string& key, double newValue)
 		{
-			Set(key, StringFromFormat("%f", newValue));
+			Set(key, StringFromFormat("%#.17g", newValue));
 		}
 
 		void Set(const std::string& key, int newValue)
