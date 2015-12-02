@@ -47,6 +47,11 @@ public final class UserPreferences
 
 		editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "True").equals("True"));
 
+		editor.putString("WiimoteExtension_4", getConfig("WiimoteNew.ini", "Wiimote1", "Extension", "None"));
+		editor.putString("WiimoteExtension_5", getConfig("WiimoteNew.ini", "Wiimote2", "Extension", "None"));
+		editor.putString("WiimoteExtension_6", getConfig("WiimoteNew.ini", "Wiimote3", "Extension", "None"));
+		editor.putString("WiimoteExtension_7", getConfig("WiimoteNew.ini", "Wiimote4", "Extension", "None"));
+
 		editor.putString("gpuPref",               getConfig("Dolphin.ini", "Core", "GFXBackend", "OGL"));
 		editor.putBoolean("showFPS",              getConfig("gfx_opengl.ini", "Settings", "ShowFPS", "False").equals("True"));
 		editor.putBoolean("drawOnscreenControls", getConfig("Dolphin.ini", "Android", "ScreenControls", "True").equals("True"));
@@ -135,7 +140,13 @@ public final class UserPreferences
 		boolean isUsingDualCore = prefs.getBoolean("dualCorePref", true);
 
 		// Current CPU core being used. Falls back to interpreter upon error.
-		String currentEmuCore   = prefs.getString("cpuCorePref", "0");
+		String currentEmuCore = prefs.getString("cpuCorePref", "0");
+
+		// Current wiimote extension setup. Falls back to no extension upon error.
+		String WiimoteExtension_4 = prefs.getString("WiimoteExtension_4", "None");
+		String WiimoteExtension_5 = prefs.getString("WiimoteExtension_5", "None");
+		String WiimoteExtension_6 = prefs.getString("WiimoteExtension_6", "None");
+		String WiimoteExtension_7 = prefs.getString("WiimoteExtension_7", "None");
 
 		// Current video backend being used. Falls back to software rendering upon error.
 		String currentVideoBackend = prefs.getString("gpuPref", "Software Rendering");
@@ -213,6 +224,12 @@ public final class UserPreferences
 		// CPU related Settings
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUCore", currentEmuCore);
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUThread", isUsingDualCore ? "True" : "False");
+		
+		// Wiimote Extension Settings
+		NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension", WiimoteExtension_4);
+		NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote2", "Extension", WiimoteExtension_5);
+		NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote3", "Extension", WiimoteExtension_6);
+		NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote4", "Extension", WiimoteExtension_7);
 
 		// General Video Settings
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "GFXBackend", currentVideoBackend);
