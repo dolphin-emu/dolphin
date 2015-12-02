@@ -576,6 +576,14 @@
                     android:key="enableWiimote1"
                     android:title="@string/enable_wiimote"/>
 
+                <ListPreference
+                    android:defaultValue="None"
+                    android:entries="@array/wiimoteExtEntries"
+                    android:entryValues="@array/wiimoteExtValues"
+                    android:key="WiimoteExtension_4"
+                    android:summary="@string/wiimote_extensions_descrip"
+                    android:title="@string/wiimote_extensions"/>
+
                 <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                     android:dependency="enableWiimote1"
                     android:key="WiimoteA_4"
@@ -642,6 +650,611 @@
                     android:summary="%s"
                     android:title="@string/dpad_right"/>
 
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteIRUp_4"
+                    android:summary="%s"
+                    android:title="@string/ir_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteIRDown_4"
+                    android:summary="%s"
+                    android:title="@string/ir_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteIRLeft_4"
+                    android:summary="%s"
+                    android:title="@string/ir_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteIRRight_4"
+                    android:summary="%s"
+                    android:title="@string/ir_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteIRForward_4"
+                    android:summary="%s"
+                    android:title="@string/ir_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteIRBackward_4"
+                    android:summary="%s"
+                    android:title="@string/ir_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteIRHide_4"
+                    android:summary="%s"
+                    android:title="@string/ir_hide"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteSwingUp_4"
+                    android:summary="%s"
+                    android:title="@string/swing_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteSwingDown_4"
+                    android:summary="%s"
+                    android:title="@string/swing_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteSwingLeft_4"
+                    android:summary="%s"
+                    android:title="@string/swing_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteSwingRight_4"
+                    android:summary="%s"
+                    android:title="@string/swing_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteSwingForward_4"
+                    android:summary="%s"
+                    android:title="@string/swing_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteSwingBackward_4"
+                    android:summary="%s"
+                    android:title="@string/swing_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteTiltForward_4"
+                    android:summary="%s"
+                    android:title="@string/tilt_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteTiltBackward_4"
+                    android:summary="%s"
+                    android:title="@string/tilt_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteTiltLeft_4"
+                    android:summary="%s"
+                    android:title="@string/tilt_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteTiltRight_4"
+                    android:summary="%s"
+                    android:title="@string/tilt_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteShakeX_4"
+                    android:summary="%s"
+                    android:title="@string/shake_x"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteShakeY_4"
+                    android:summary="%s"
+                    android:title="@string/shake_y"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote1"
+                    android:key="WiimoteShakeZ_4"
+                    android:summary="%s"
+                    android:title="@string/shake_z"/>
+
+                <!-- Nunchuk Bindings -->
+                <PreferenceScreen
+                    android:dependency="enableWiimote1"
+                    android:key="ExtNunchuk_4"
+                    android:title="@string/show_nunchuk">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukC_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_button_c"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukZ_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_button_z"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukUp_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukDown_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukLeft_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukRight_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingUp_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingDown_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingLeft_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingRight_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingForward_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_forward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingBackward_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_backward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltForward_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_forward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltBackward_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_backward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltLeft_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltRight_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeX_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_x"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeY_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_y"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeZ_4"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_z"/>
+
+                </PreferenceScreen>
+
+                <!-- Classic Bindings -->
+                <PreferenceScreen
+                    android:dependency="enableWiimote1"
+                    android:key="ExtClassic_4"
+                    android:title="@string/show_classic">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicA_4"
+                        android:summary="%s"
+                        android:title="@string/classic_button_a"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicB_4"
+                        android:summary="%s"
+                        android:title="@string/classic_button_b"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicX_4"
+                        android:summary="%s"
+                        android:title="@string/classic_button_x"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicY_4"
+                        android:summary="%s"
+                        android:title="@string/classic_button_y"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicMinus_4"
+                        android:summary="%s"
+                        android:title="@string/classic_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicPlus_4"
+                        android:summary="%s"
+                        android:title="@string/classic_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicHome_4"
+                        android:summary="%s"
+                        android:title="@string/classic_button_home"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicZL_4"
+                        android:summary="%s"
+                        android:title="@string/classic_button_zl"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicZR_4"
+                        android:summary="%s"
+                        android:title="@string/classic_button_zr"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicUp_4"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicDown_4"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeft_4"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRight_4"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickUp_4"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickDown_4"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickLeft_4"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickRight_4"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickUp_4"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickDown_4"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickLeft_4"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickRight_4"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicTriggerL_4"
+                        android:summary="%s"
+                        android:title="@string/classic_trigger_l"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicTriggerR_4"
+                        android:summary="%s"
+                        android:title="@string/classic_trigger_r"/>
+
+                </PreferenceScreen>
+
+                <!-- Guitar Bindings -->
+                <PreferenceScreen
+                    android:dependency="enableWiimote1"
+                    android:key="ExtGuitar_4"
+                    android:title="@string/show_guitar">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarMinus_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarPlus_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarGreen_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_green"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarRed_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_red"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarYellow_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_yellow"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarBlue_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_blue"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarOrange_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_orange"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarStrumUp_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_strum_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarStrumDown_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_strum_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarUp_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarDown_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarLeft_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarRight_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarWhammy_4"
+                        android:summary="%s"
+                        android:title="@string/guitar_whammy_bar"/>
+
+                </PreferenceScreen>
+
+                <!-- Drums Bindings -->
+                <PreferenceScreen
+                    android:dependency="enableWiimote1"
+                    android:key="ExtDrums_4"
+                    android:title="@string/show_drums">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsMinus_4"
+                        android:summary="%s"
+                        android:title="@string/drums_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsPlus_4"
+                        android:summary="%s"
+                        android:title="@string/drums_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsRed_4"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_red"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsYellow_4"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_yellow"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsBlue_4"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_blue"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsGreen_4"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_green"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsOrange_4"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_orange"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsBass_4"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_bass"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsUp_4"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsDown_4"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsLeft_4"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsRight_4"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_right"/>
+
+                </PreferenceScreen>
+
+                <!-- Turntable Bindings -->
+                <PreferenceScreen
+                    android:dependency="enableWiimote1"
+                    android:key="ExtTurntable_4"
+                    android:title="@string/show_turntable">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableGreenLeft_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_green_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRedLeft_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_red_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableBlueLeft_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_blue_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableGreenRight_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_green_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRedRight_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_red_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableBlueRight_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_blue_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableMinus_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntablePlus_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableHome_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_home"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableEuphoria_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_euphoria"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeftLeft_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_left_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeftRight_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_left_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRightLeft_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_right_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRightRight_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_right_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableUp_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableDown_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeft_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRight_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableEffDial_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_effect_dial"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableCrossLeft_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_crossfade_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableCrossRight_4"
+                        android:summary="%s"
+                        android:title="@string/turntable_crossfade_right"/>
+
+                </PreferenceScreen>
+
             </PreferenceScreen>
 
             <PreferenceScreen
@@ -651,6 +1264,14 @@
                 <CheckBoxPreference
                     android:key="enableWiimote2"
                     android:title="@string/enable_wiimote"/>
+
+                <ListPreference
+                    android:defaultValue="None"
+                    android:entries="@array/wiimoteExtEntries"
+                    android:entryValues="@array/wiimoteExtValues"
+                    android:key="WiimoteExtension_5"
+                    android:summary="@string/wiimote_extensions_descrip"
+                    android:title="@string/wiimote_extensions"/>
 
                 <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                     android:dependency="enableWiimote2"
@@ -684,7 +1305,7 @@
 
                 <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                     android:dependency="enableWiimote2"
-                    android:key="Wiimote2_5"
+                    android:key="Wiimote1_5"
                     android:summary="%s"
                     android:title="@string/button_one"/>
 
@@ -718,6 +1339,606 @@
                     android:summary="%s"
                     android:title="@string/dpad_right"/>
 
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteIRUp_5"
+                    android:summary="%s"
+                    android:title="@string/ir_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteIRDown_5"
+                    android:summary="%s"
+                    android:title="@string/ir_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteIRLeft_5"
+                    android:summary="%s"
+                    android:title="@string/ir_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteIRRight_5"
+                    android:summary="%s"
+                    android:title="@string/ir_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteIRForward_5"
+                    android:summary="%s"
+                    android:title="@string/ir_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteIRBackward_5"
+                    android:summary="%s"
+                    android:title="@string/ir_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteIRHide_5"
+                    android:summary="%s"
+                    android:title="@string/ir_hide"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteSwingUp_5"
+                    android:summary="%s"
+                    android:title="@string/swing_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteSwingDown_5"
+                    android:summary="%s"
+                    android:title="@string/swing_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteSwingLeft_5"
+                    android:summary="%s"
+                    android:title="@string/swing_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteSwingRight_5"
+                    android:summary="%s"
+                    android:title="@string/swing_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteSwingForward_5"
+                    android:summary="%s"
+                    android:title="@string/swing_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteSwingBackward_5"
+                    android:summary="%s"
+                    android:title="@string/swing_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteTiltForward_5"
+                    android:summary="%s"
+                    android:title="@string/tilt_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteTiltBackward_5"
+                    android:summary="%s"
+                    android:title="@string/tilt_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteTiltLeft_5"
+                    android:summary="%s"
+                    android:title="@string/tilt_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteTiltRight_5"
+                    android:summary="%s"
+                    android:title="@string/tilt_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteShakeX_5"
+                    android:summary="%s"
+                    android:title="@string/shake_x"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteShakeY_5"
+                    android:summary="%s"
+                    android:title="@string/shake_y"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote2"
+                    android:key="WiimoteShakeZ_5"
+                    android:summary="%s"
+                    android:title="@string/shake_z"/>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote2"
+                    android:key="ExtNunchuk_5"
+                    android:title="@string/show_nunchuk">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukC_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_button_c"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukZ_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_button_z"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukUp_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukDown_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukLeft_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukRight_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingUp_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingDown_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingLeft_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingRight_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingForward_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_forward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingBackward_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_backward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltForward_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_forward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltBackward_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_backward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltLeft_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltRight_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeX_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_x"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeY_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_y"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeZ_5"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_z"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote2"
+                    android:key="ExtClassic_5"
+                    android:title="@string/show_classic">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicA_5"
+                        android:summary="%s"
+                        android:title="@string/classic_button_a"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicB_5"
+                        android:summary="%s"
+                        android:title="@string/classic_button_b"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicX_5"
+                        android:summary="%s"
+                        android:title="@string/classic_button_x"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicY_5"
+                        android:summary="%s"
+                        android:title="@string/classic_button_y"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicMinus_5"
+                        android:summary="%s"
+                        android:title="@string/classic_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicPlus_5"
+                        android:summary="%s"
+                        android:title="@string/classic_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicHome_5"
+                        android:summary="%s"
+                        android:title="@string/classic_button_home"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicZL_5"
+                        android:summary="%s"
+                        android:title="@string/classic_button_zl"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicZR_5"
+                        android:summary="%s"
+                        android:title="@string/classic_button_zr"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicUp_5"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicDown_5"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeft_5"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRight_5"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickUp_5"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickDown_5"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickLeft_5"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickRight_5"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickUp_5"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickDown_5"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickLeft_5"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickRight_5"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicTriggerL_5"
+                        android:summary="%s"
+                        android:title="@string/classic_trigger_l"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicTriggerR_5"
+                        android:summary="%s"
+                        android:title="@string/classic_trigger_r"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote2"
+                    android:key="ExtGuitar_5"
+                    android:title="@string/show_guitar">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarMinus_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarPlus_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarGreen_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_green"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarRed_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_red"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarYellow_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_yellow"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarBlue_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_blue"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarOrange_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_orange"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarStrumUp_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_strum_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarStrumDown_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_strum_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarUp_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarDown_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarLeft_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarRight_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarWhammy_5"
+                        android:summary="%s"
+                        android:title="@string/guitar_whammy_bar"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote2"
+                    android:key="ExtDrums_5"
+                    android:title="@string/show_drums">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsMinus_5"
+                        android:summary="%s"
+                        android:title="@string/drums_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsPlus_5"
+                        android:summary="%s"
+                        android:title="@string/drums_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsRed_5"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_red"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsYellow_5"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_yellow"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsBlue_5"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_blue"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsGreen_5"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_green"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsOrange_5"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_orange"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsBass_5"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_bass"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsUp_5"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsDown_5"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsLeft_5"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsRight_5"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_right"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote2"
+                    android:key="ExtTurntable_5"
+                    android:title="@string/show_turntable">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableGreenLeft_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_green_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRedLeft_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_red_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableBlueLeft_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_blue_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableGreenRight_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_green_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRedRight_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_red_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableBlueRight_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_blue_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableMinus_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntablePlus_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableHome_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_home"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableEuphoria_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_euphoria"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeftLeft_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_left_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeftRight_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_left_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRightLeft_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_right_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRightRight_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_right_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableUp_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableDown_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeft_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRight_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableEffDial_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_effect_dial"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableCrossLeft_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_crossfade_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableCrossRight_5"
+                        android:summary="%s"
+                        android:title="@string/turntable_crossfade_right"/>
+
+                </PreferenceScreen>
+
             </PreferenceScreen>
 
             <PreferenceScreen
@@ -727,6 +1948,14 @@
                 <CheckBoxPreference
                     android:key="enableWiimote3"
                     android:title="@string/enable_wiimote"/>
+
+                <ListPreference
+                    android:defaultValue="None"
+                    android:entries="@array/wiimoteExtEntries"
+                    android:entryValues="@array/wiimoteExtValues"
+                    android:key="WiimoteExtension_6"
+                    android:summary="@string/wiimote_extensions_descrip"
+                    android:title="@string/wiimote_extensions"/>
 
                 <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                     android:dependency="enableWiimote3"
@@ -760,7 +1989,7 @@
 
                 <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                     android:dependency="enableWiimote3"
-                    android:key="Wiimote3_6"
+                    android:key="Wiimote1_6"
                     android:summary="%s"
                     android:title="@string/button_one"/>
 
@@ -794,6 +2023,606 @@
                     android:summary="%s"
                     android:title="@string/dpad_right"/>
 
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteIRUp_6"
+                    android:summary="%s"
+                    android:title="@string/ir_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteIRDown_6"
+                    android:summary="%s"
+                    android:title="@string/ir_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteIRLeft_6"
+                    android:summary="%s"
+                    android:title="@string/ir_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteIRRight_6"
+                    android:summary="%s"
+                    android:title="@string/ir_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteIRForward_6"
+                    android:summary="%s"
+                    android:title="@string/ir_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteIRBackward_6"
+                    android:summary="%s"
+                    android:title="@string/ir_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteIRHide_6"
+                    android:summary="%s"
+                    android:title="@string/ir_hide"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteSwingUp_6"
+                    android:summary="%s"
+                    android:title="@string/swing_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteSwingDown_6"
+                    android:summary="%s"
+                    android:title="@string/swing_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteSwingLeft_6"
+                    android:summary="%s"
+                    android:title="@string/swing_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteSwingRight_6"
+                    android:summary="%s"
+                    android:title="@string/swing_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteSwingForward_6"
+                    android:summary="%s"
+                    android:title="@string/swing_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteSwingBackward_6"
+                    android:summary="%s"
+                    android:title="@string/swing_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteTiltForward_6"
+                    android:summary="%s"
+                    android:title="@string/tilt_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteTiltBackward_6"
+                    android:summary="%s"
+                    android:title="@string/tilt_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteTiltLeft_6"
+                    android:summary="%s"
+                    android:title="@string/tilt_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteTiltRight_6"
+                    android:summary="%s"
+                    android:title="@string/tilt_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteShakeX_6"
+                    android:summary="%s"
+                    android:title="@string/shake_x"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteShakeY_6"
+                    android:summary="%s"
+                    android:title="@string/shake_y"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote3"
+                    android:key="WiimoteShakeZ_6"
+                    android:summary="%s"
+                    android:title="@string/shake_z"/>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote3"
+                    android:key="ExtNunchuk_6"
+                    android:title="@string/show_nunchuk">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukC_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_button_c"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukZ_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_button_z"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukUp_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukDown_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukLeft_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukRight_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingUp_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingDown_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingLeft_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingRight_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingForward_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_forward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingBackward_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_backward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltForward_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_forward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltBackward_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_backward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltLeft_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltRight_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeX_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_x"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeY_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_y"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeZ_6"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_z"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote3"
+                    android:key="ExtClassic_6"
+                    android:title="@string/show_classic">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicA_6"
+                        android:summary="%s"
+                        android:title="@string/classic_button_a"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicB_6"
+                        android:summary="%s"
+                        android:title="@string/classic_button_b"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicX_6"
+                        android:summary="%s"
+                        android:title="@string/classic_button_x"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicY_6"
+                        android:summary="%s"
+                        android:title="@string/classic_button_y"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicMinus_6"
+                        android:summary="%s"
+                        android:title="@string/classic_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicPlus_6"
+                        android:summary="%s"
+                        android:title="@string/classic_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicHome_6"
+                        android:summary="%s"
+                        android:title="@string/classic_button_home"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicZL_6"
+                        android:summary="%s"
+                        android:title="@string/classic_button_zl"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicZR_6"
+                        android:summary="%s"
+                        android:title="@string/classic_button_zr"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicUp_6"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicDown_6"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeft_6"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRight_6"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickUp_6"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickDown_6"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickLeft_6"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickRight_6"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickUp_6"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickDown_6"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickLeft_6"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickRight_6"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicTriggerL_6"
+                        android:summary="%s"
+                        android:title="@string/classic_trigger_l"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicTriggerR_6"
+                        android:summary="%s"
+                        android:title="@string/classic_trigger_r"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote3"
+                    android:key="ExtGuitar_6"
+                    android:title="@string/show_guitar">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarMinus_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarPlus_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarGreen_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_green"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarRed_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_red"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarYellow_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_yellow"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarBlue_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_blue"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarOrange_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_orange"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarStrumUp_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_strum_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarStrumDown_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_strum_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarUp_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarDown_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarLeft_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarRight_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarWhammy_6"
+                        android:summary="%s"
+                        android:title="@string/guitar_whammy_bar"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote3"
+                    android:key="ExtDrums_6"
+                    android:title="@string/show_drums">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsMinus_6"
+                        android:summary="%s"
+                        android:title="@string/drums_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsPlus_6"
+                        android:summary="%s"
+                        android:title="@string/drums_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsRed_6"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_red"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsYellow_6"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_yellow"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsBlue_6"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_blue"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsGreen_6"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_green"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsOrange_6"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_orange"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsBass_6"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_bass"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsUp_6"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsDown_6"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsLeft_6"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsRight_6"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_right"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote3"
+                    android:key="ExtTurntable_6"
+                    android:title="@string/show_turntable">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableGreenLeft_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_green_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRedLeft_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_red_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableBlueLeft_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_blue_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableGreenRight_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_green_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRedRight_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_red_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableBlueRight_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_blue_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableMinus_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntablePlus_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableHome_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_home"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableEuphoria_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_euphoria"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeftLeft_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_left_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeftRight_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_left_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRightLeft_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_right_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRightRight_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_right_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableUp_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableDown_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeft_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRight_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableEffDial_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_effect_dial"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableCrossLeft_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_crossfade_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableCrossRight_6"
+                        android:summary="%s"
+                        android:title="@string/turntable_crossfade_right"/>
+
+                </PreferenceScreen>
+
             </PreferenceScreen>
 
             <PreferenceScreen
@@ -803,6 +2632,14 @@
                 <CheckBoxPreference
                     android:key="enableWiimote4"
                     android:title="@string/enable_wiimote"/>
+
+                <ListPreference
+                    android:defaultValue="None"
+                    android:entries="@array/wiimoteExtEntries"
+                    android:entryValues="@array/wiimoteExtValues"
+                    android:key="WiimoteExtension_7"
+                    android:summary="@string/wiimote_extensions_descrip"
+                    android:title="@string/wiimote_extensions"/>
 
                 <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                     android:dependency="enableWiimote4"
@@ -836,7 +2673,7 @@
 
                 <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                     android:dependency="enableWiimote4"
-                    android:key="Wiimote4_7"
+                    android:key="Wiimote1_7"
                     android:summary="%s"
                     android:title="@string/button_one"/>
 
@@ -869,6 +2706,606 @@
                     android:key="WiimoteRight_7"
                     android:summary="%s"
                     android:title="@string/dpad_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteIRUp_7"
+                    android:summary="%s"
+                    android:title="@string/ir_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteIRDown_7"
+                    android:summary="%s"
+                    android:title="@string/ir_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteIRLeft_7"
+                    android:summary="%s"
+                    android:title="@string/ir_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteIRRight_7"
+                    android:summary="%s"
+                    android:title="@string/ir_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteIRForward_7"
+                    android:summary="%s"
+                    android:title="@string/ir_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteIRBackward_7"
+                    android:summary="%s"
+                    android:title="@string/ir_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteIRHide_7"
+                    android:summary="%s"
+                    android:title="@string/ir_hide"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteSwingUp_7"
+                    android:summary="%s"
+                    android:title="@string/swing_up"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteSwingDown_7"
+                    android:summary="%s"
+                    android:title="@string/swing_down"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteSwingLeft_7"
+                    android:summary="%s"
+                    android:title="@string/swing_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteSwingRight_7"
+                    android:summary="%s"
+                    android:title="@string/swing_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteSwingForward_7"
+                    android:summary="%s"
+                    android:title="@string/swing_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteSwingBackward_7"
+                    android:summary="%s"
+                    android:title="@string/swing_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteTiltForward_7"
+                    android:summary="%s"
+                    android:title="@string/tilt_forward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteTiltBackward_7"
+                    android:summary="%s"
+                    android:title="@string/tilt_backward"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteTiltLeft_7"
+                    android:summary="%s"
+                    android:title="@string/tilt_left"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteTiltRight_7"
+                    android:summary="%s"
+                    android:title="@string/tilt_right"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteShakeX_7"
+                    android:summary="%s"
+                    android:title="@string/shake_x"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteShakeY_7"
+                    android:summary="%s"
+                    android:title="@string/shake_y"/>
+
+                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                    android:dependency="enableWiimote4"
+                    android:key="WiimoteShakeZ_7"
+                    android:summary="%s"
+                    android:title="@string/shake_z"/>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote4"
+                    android:key="ExtClassic_7"
+                    android:title="@string/show_nunchuk">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukC_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_button_c"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukZ_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_button_z"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukUp_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukDown_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukLeft_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukRight_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingUp_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingDown_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingLeft_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingRight_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingForward_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_forward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukSwingBackward_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_swing_backward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltForward_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_forward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltBackward_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_backward"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltLeft_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukTiltRight_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_tilt_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeX_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_x"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeY_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_y"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="NunchukShakeZ_7"
+                        android:summary="%s"
+                        android:title="@string/nunchuk_shake_z"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote4"
+                    android:key="ExtClassic_7"
+                    android:title="@string/show_classic">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicA_7"
+                        android:summary="%s"
+                        android:title="@string/classic_button_a"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicB_7"
+                        android:summary="%s"
+                        android:title="@string/classic_button_b"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicX_7"
+                        android:summary="%s"
+                        android:title="@string/classic_button_x"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicY_7"
+                        android:summary="%s"
+                        android:title="@string/classic_button_y"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicMinus_7"
+                        android:summary="%s"
+                        android:title="@string/classic_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicPlus_7"
+                        android:summary="%s"
+                        android:title="@string/classic_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicHome_7"
+                        android:summary="%s"
+                        android:title="@string/classic_button_home"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicZL_7"
+                        android:summary="%s"
+                        android:title="@string/classic_button_zl"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicZR_7"
+                        android:summary="%s"
+                        android:title="@string/classic_button_zr"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicUp_7"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicDown_7"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeft_7"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRight_7"
+                        android:summary="%s"
+                        android:title="@string/classic_dpad_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickUp_7"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickDown_7"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickLeft_7"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicLeftStickRight_7"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_left_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickUp_7"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickDown_7"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickLeft_7"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicRightStickRight_7"
+                        android:summary="%s"
+                        android:title="@string/classic_stick_right_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicTriggerL_7"
+                        android:summary="%s"
+                        android:title="@string/classic_trigger_l"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="ClassicTriggerR_7"
+                        android:summary="%s"
+                        android:title="@string/classic_trigger_r"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote4"
+                    android:key="ExtGuitar_7"
+                    android:title="@string/show_guitar">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarMinus_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarPlus_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarGreen_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_green"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarRed_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_red"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarYellow_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_yellow"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarBlue_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_blue"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarOrange_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_fret_orange"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarStrumUp_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_strum_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarStrumDown_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_strum_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarUp_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarDown_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarLeft_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarRight_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="GuitarWhammy_7"
+                        android:summary="%s"
+                        android:title="@string/guitar_whammy_bar"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote4"
+                    android:key="ExtDrums_7"
+                    android:title="@string/show_drums">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsMinus_7"
+                        android:summary="%s"
+                        android:title="@string/drums_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsPlus_7"
+                        android:summary="%s"
+                        android:title="@string/drums_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsRed_7"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_red"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsYellow_7"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_yellow"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsBlue_7"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_blue"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsGreen_7"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_green"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsOrange_7"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_orange"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsBass_7"
+                        android:summary="%s"
+                        android:title="@string/drums_pad_bass"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsUp_7"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsDown_7"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsLeft_7"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="DrumsRight_7"
+                        android:summary="%s"
+                        android:title="@string/drums_stick_right"/>
+
+                </PreferenceScreen>
+
+                <PreferenceScreen
+                    android:dependency="enableWiimote4"
+                    android:key="ExtTurntable_7"
+                    android:title="@string/show_turntable">
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableGreenLeft_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_green_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRedLeft_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_red_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableBlueLeft_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_blue_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableGreenRight_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_green_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRedRight_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_red_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableBlueRight_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_blue_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableMinus_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_minus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntablePlus_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_plus"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableHome_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_home"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableEuphoria_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_button_euphoria"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeftLeft_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_left_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeftRight_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_left_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRightLeft_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_right_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRightRight_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_table_right_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableUp_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_up"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableDown_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_down"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableLeft_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableRight_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_stick_right"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableEffDial_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_effect_dial"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableCrossLeft_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_crossfade_left"/>
+
+                    <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                        android:key="TurntableCrossRight_7"
+                        android:summary="%s"
+                        android:title="@string/turntable_crossfade_right"/>
+
+                </PreferenceScreen>
 
             </PreferenceScreen>
 

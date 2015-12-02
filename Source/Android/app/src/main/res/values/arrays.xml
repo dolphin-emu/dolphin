@@ -80,6 +80,24 @@
     <string-array name="videoBackendValuesNoGLES3" translatable="false">
         <item>Software Renderer</item>
     </string-array>
+
+    <!-- Wiimote extensions -->
+    <string-array name="wiimoteExtEntries" translatable="false">
+	<item>"None"</item>
+	<item>"Nunchuk"</item>
+	<item>"Classic"</item>
+	<item>"Guitar"</item>
+	<item>"Drums"</item>
+	<item>"Turntable"</item>
+    </string-array>
+    <string-array name="wiimoteExtValues" translatable="false">
+	<item>None</item>
+	<item>Nunchuk</item>
+	<item>Classic</item>
+	<item>Guitar</item>
+	<item>Drums</item>
+	<item>Turntable</item>
+    </string-array>
     
     <!-- EFB Copy Method Preference -->
     <string-array name="efbCopyMethodEntries" translatable="false">
