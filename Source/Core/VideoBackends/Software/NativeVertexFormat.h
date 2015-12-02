@@ -37,12 +37,12 @@ struct OutputVertexData
 		ALP_C
 	};
 
-	Vec3 mvPosition;
-	Vec4 projectedPosition;
-	Vec3 screenPosition;
-	Vec3 normal[3];
-	u8 color[2][4];
-	Vec3 texCoords[8];
+	Vec3 mvPosition = {};
+	Vec4 projectedPosition = {};
+	Vec3 screenPosition = {};
+	Vec3 normal[3] = {};
+	u8 color[2][4] = {};
+	Vec3 texCoords[8] = {};
 
 	void Lerp(float t, OutputVertexData *a, OutputVertexData *b)
 	{

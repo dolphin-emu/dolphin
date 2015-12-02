@@ -633,6 +633,7 @@ void SConfig::LoadDefaults()
 
 	m_strName = "NONE";
 	m_strUniqueID = "00000000";
+	m_revision = 0;
 }
 static const char* GetRegionOfCountry(DiscIO::IVolume::ECountry country)
 {
