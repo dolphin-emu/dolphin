@@ -265,6 +265,8 @@ private:
 	void CommandVendorSpecific_FC4C(u8* _Input, u32 _Size);
 	void CommandVendorSpecific_FC4F(u8* _Input, u32 _Size);
 
+	static void DisplayDisconnectMessage(const int wiimoteNumber, const int reason);
+
 	// Debugging
 	void LOG_LinkKey(const u8* _pLinkKey);
 
