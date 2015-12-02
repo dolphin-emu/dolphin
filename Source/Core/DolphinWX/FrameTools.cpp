@@ -355,6 +355,8 @@ wxMenuBar* CFrame::CreateMenu()
 	columnsMenu->Check(IDM_SHOW_BANNER, SConfig::GetInstance().m_showBannerColumn);
 	columnsMenu->AppendCheckItem(IDM_SHOW_MAKER, _("Maker"));
 	columnsMenu->Check(IDM_SHOW_MAKER, SConfig::GetInstance().m_showMakerColumn);
+	columnsMenu->AppendCheckItem(IDM_SHOW_FILENAME, _("File Name"));
+	columnsMenu->Check(IDM_SHOW_FILENAME, SConfig::GetInstance().m_showFileNameColumn);
 	columnsMenu->AppendCheckItem(IDM_SHOW_ID, _("Game ID"));
 	columnsMenu->Check(IDM_SHOW_ID, SConfig::GetInstance().m_showIDColumn);
 	columnsMenu->AppendCheckItem(IDM_SHOW_REGION, _("Region"));
@@ -2004,6 +2006,9 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
 		break;
 	case IDM_SHOW_MAKER:
 		SConfig::GetInstance().m_showMakerColumn = !SConfig::GetInstance().m_showMakerColumn;
+		break;
+	case IDM_SHOW_FILENAME:
+		SConfig::GetInstance().m_showFileNameColumn = !SConfig::GetInstance().m_showFileNameColumn;
 		break;
 	case IDM_SHOW_ID:
 		SConfig::GetInstance().m_showIDColumn = !SConfig::GetInstance().m_showIDColumn;
