@@ -1879,7 +1879,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DisplayDisconnectMessage(const int wii
 {
 	// TODO: If someone wants to be fancy we could also figure out what the values for pDiscon->reason mean
 	// and display things like "Wiimote %i disconnected due to inactivity!" etc.
-	Core::DisplayMessage(StringFromFormat(_trans("Wiimote %i disconnected by emulated software"), wiimoteNumber), 3000);
+	Core::DisplayMessage(StringFromFormat("Wiimote %i disconnected by emulated software", wiimoteNumber), 3000);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::LOG_LinkKey(const u8* _pLinkKey)
