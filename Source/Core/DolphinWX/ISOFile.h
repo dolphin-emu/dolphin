@@ -65,6 +65,7 @@ private:
 	std::string m_company;
 
 	std::string m_UniqueID;
+	u64 m_title_id;
 
 	std::string m_issues;
 	int m_emu_state;
@@ -95,7 +96,7 @@ private:
 	std::string CreateCacheFilename() const;
 
 	// Outputs to m_pImage
-	void ReadVolumeBanner(const DiscIO::IVolume& volume);
+	void ReadVolumeBanner(const std::vector<u32>& buffer, int width, int height);
 	// Outputs to m_Bitmap
 	bool ReadPNGBanner(const std::string& path);
 

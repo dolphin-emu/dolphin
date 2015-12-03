@@ -34,7 +34,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x126; // Last changed in PR 3097
+static const u32 CACHE_REVISION = 0x127; // Last changed in PR 3309
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -63,6 +63,7 @@ static std::string GetLanguageString(DiscIO::IVolume::ELanguage language, std::m
 
 GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_map<std::string, std::string>& custom_titles)
 	: m_FileName(_rFileName)
+	, m_title_id(0)
 	, m_emu_state(0)
 	, m_FileSize(0)
 	, m_Country(DiscIO::IVolume::COUNTRY_UNKNOWN)
@@ -82,13 +83,10 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 		// if a banner has become available after the cache was made.
 		if (m_pImage.empty())
 		{
-			std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
-			if (volume != nullptr)
-			{
-				ReadVolumeBanner(*volume);
-				if (!m_pImage.empty())
-					SaveToCache();
-			}
+			std::vector<u32> buffer = DiscIO::IVolume::GetWiiBanner(&m_ImageWidth, &m_ImageHeight, m_title_id);
+			ReadVolumeBanner(buffer, m_ImageWidth, m_ImageHeight);
+			if (!m_pImage.empty())
+				SaveToCache();
 		}
 	}
 	else
@@ -109,10 +107,12 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 			m_VolumeSize = volume->GetSize();
 
 			m_UniqueID = volume->GetUniqueID();
+			volume->GetTitleID(&m_title_id);
 			m_disc_number = volume->GetDiscNumber();
 			m_Revision = volume->GetRevision();
 
-			ReadVolumeBanner(*volume);
+			std::vector<u32> buffer = volume->GetBanner(&m_ImageWidth, &m_ImageHeight);
+			ReadVolumeBanner(buffer, m_ImageWidth, m_ImageHeight);
 
 			m_Valid = true;
 			SaveToCache();
@@ -202,6 +202,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_descriptions);
 	p.Do(m_company);
 	p.Do(m_UniqueID);
+	p.Do(m_title_id);
 	p.Do(m_FileSize);
 	p.Do(m_VolumeSize);
 	p.Do(m_Country);
@@ -243,17 +244,14 @@ std::string GameListItem::CreateCacheFilename() const
 }
 
 // Outputs to m_pImage
-void GameListItem::ReadVolumeBanner(const DiscIO::IVolume& volume)
+void GameListItem::ReadVolumeBanner(const std::vector<u32>& buffer, int width, int height)
 {
-	std::vector<u32> Buffer = volume.GetBanner(&m_ImageWidth, &m_ImageHeight);
-	u32* pData = Buffer.data();
-	m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
-
-	for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
+	m_pImage.resize(width * height * 3);
+	for (int i = 0; i < width * height; i++)
 	{
-		m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
-		m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >> 8;
-		m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >> 0;
+		m_pImage[i * 3 + 0] = (buffer[i] & 0xFF0000) >> 16;
+		m_pImage[i * 3 + 1] = (buffer[i] & 0x00FF00) >> 8;
+		m_pImage[i * 3 + 2] = (buffer[i] & 0x0000FF) >> 0;
 	}
 }
 

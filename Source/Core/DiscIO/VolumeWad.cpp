@@ -127,6 +127,18 @@ std::map<IVolume::ELanguage, std::string> CVolumeWAD::GetNames(bool prefer_long)
 	return ReadWiiNames(name_data);
 }
 
+std::vector<u32> CVolumeWAD::GetBanner(int* width, int* height) const
+{
+	*width = 0;
+	*height = 0;
+
+	u64 title_id;
+	if (!GetTitleID(&title_id))
+		return std::vector<u32>();
+
+	return GetWiiBanner(width, height, title_id);
+}
+
 BlobType CVolumeWAD::GetBlobType() const
 {
 	return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
