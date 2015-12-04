@@ -74,7 +74,7 @@ namespace DriverDetails
 		// Pinned memory is disabled for index buffer as the AMD driver (the only one with pinned memory support) seems
 		// to be broken. We just get flickering/black rendering when using pinned memory here -- degasus - 2013/08/20
 		// This bug only happens when paired with base_vertex.
-		// Please see issue #6105 on Google Code. Let's hope buffer storage solves this issues.
+		// Please see issue #6105. Let's hope buffer storage solves this issue.
 		// TODO: Detect broken drivers.
 		BUG_BROKENPINNEDMEMORY,
 		// Bug: glBufferSubData/glMapBufferRange stalls + OOM
