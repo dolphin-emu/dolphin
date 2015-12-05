@@ -178,7 +178,7 @@ static inline T GenerateVertexShader(API_TYPE api_type)
 		if (components & VB_HAS_COL0)
 			out.Write("o.colors_0 = color0;\n");
 		else
-			out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
+			out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 1.0);\n");
 	}
 
 	GenerateLightingShader<T>(out, uid_data->lighting, components, "color", "o.colors_");
