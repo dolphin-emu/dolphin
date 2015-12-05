@@ -21,6 +21,12 @@ void SetupUnit::Init(u8 primitiveType)
 	m_VertWritePointer = m_VertPointer[0];
 }
 
+OutputVertexData* SetupUnit::GetVertex()
+{
+	memset(m_VertWritePointer, 0, sizeof(*m_VertWritePointer));
+	return m_VertWritePointer;
+}
+
 void SetupUnit::SetupVertex()
 {
 	switch (m_PrimType)

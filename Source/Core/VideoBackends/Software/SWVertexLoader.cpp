@@ -34,6 +34,8 @@ SWVertexLoader::~SWVertexLoader()
 
 void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
+	memset(&m_Vertex, 0, sizeof(m_Vertex));
+
 	m_attributeIndex = attributeIndex;
 
 	VertexLoaderUID uid(g_main_cp_state.vtx_desc, g_main_cp_state.vtx_attr[m_attributeIndex]);
