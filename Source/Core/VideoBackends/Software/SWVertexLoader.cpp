@@ -34,6 +34,9 @@ SWVertexLoader::~SWVertexLoader()
 
 void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
+	// Super Mario Sunshine requires those to be zero for those debug boxes.
+	memset(&m_Vertex.color, 0, sizeof(m_Vertex.color));
+
 	m_attributeIndex = attributeIndex;
 
 	VertexLoaderUID uid(g_main_cp_state.vtx_desc, g_main_cp_state.vtx_attr[m_attributeIndex]);
