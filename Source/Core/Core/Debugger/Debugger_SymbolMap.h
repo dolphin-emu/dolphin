@@ -22,7 +22,7 @@ struct CallstackEntry
 bool GetCallstack(std::vector<CallstackEntry> &output);
 void PrintCallstack();
 void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level);
-void PrintDataBuffer(LogTypes::LOG_TYPE _Log, u8* _pData, size_t _Size, const std::string& _title);
+void PrintDataBuffer(LogTypes::LOG_TYPE type, const u8* data, size_t size, const std::string& title);
 void AddAutoBreakpoints();
 
 
