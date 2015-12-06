@@ -12,6 +12,10 @@
 #include <windows.h>
 // The following Windows headers must be included AFTER windows.h.
 #include <BluetoothAPIs.h> //NOLINT
+#include <Cfgmgr32.h>      //NOLINT
+// initguid.h must be included before Devpkey.h
+#include <initguid.h>      //NOLINT
+#include <Devpkey.h>       //NOLINT
 #include <dbt.h>           //NOLINT
 #include <setupapi.h>      //NOLINT
 
@@ -255,6 +259,95 @@ void WiimoteScanner::Update()
 		Common::SleepCurrentThread(100);
 }
 
+// Moves up one node in the device tree and returns its device info data along with an info set only including that device for further processing
+// See https://msdn.microsoft.com/en-us/library/windows/hardware/ff549417(v=vs.85).aspx
+static bool GetParentDevice(const DEVINST & child_device_instance, HDEVINFO *parent_device_info, PSP_DEVINFO_DATA parent_device_data)
+{
+	ULONG status;
+	ULONG problem_number;
+	CONFIGRET result;
+
+	// Check if that device instance has device node present
+	result = CM_Get_DevNode_Status(&status, &problem_number, child_device_instance, 0);
+	if (result != CR_SUCCESS)
+	{
+		return false;
+	}
+
+	DEVINST parent_device;
+
+	// Get the device instance of the parent
+	result = CM_Get_Parent(&parent_device, child_device_instance, 0);
+	if (result != CR_SUCCESS)
+	{
+		return false;
+	}
+
+	std::vector<WCHAR> parent_device_id(MAX_DEVICE_ID_LEN);;
+
+	// Get the device id of the parent, required to open the device info
+	result = CM_Get_Device_ID(parent_device, parent_device_id.data(), (ULONG)parent_device_id.size(), 0);
+	if (result != CR_SUCCESS)
+	{
+		return false;
+	}
+
+	// Create a new empty device info set for the device info data
+	(*parent_device_info) = SetupDiCreateDeviceInfoList(NULL, NULL);
+
+	// Open the device info data of the parent and put it in the emtpy info set
+	if (!SetupDiOpenDeviceInfo((*parent_device_info), parent_device_id.data(), NULL, 0, parent_device_data))
+	{
+		SetupDiDestroyDeviceInfoList(parent_device_info);
+		return false;
+	}
+
+	return true;
+}
+
+std::wstring GetDeviceProperty(const HDEVINFO & device_info, const PSP_DEVINFO_DATA device_data, const DEVPROPKEY * requested_property)
+{
+	DWORD required_size = 0;
+	DEVPROPTYPE device_property_type;
+
+	SetupDiGetDeviceProperty(device_info, device_data, requested_property, &device_property_type, nullptr, 0, &required_size, 0);
+
+	std::vector<BYTE> unicode_buffer(required_size, 0);
+
+	BOOL result = SetupDiGetDeviceProperty(device_info, device_data, requested_property, &device_property_type, unicode_buffer.data(), required_size, nullptr, 0);
+	if (!result)
+	{
+		return std::wstring();
+	}
+
+	return std::wstring((PWCHAR)unicode_buffer.data());
+}
+
+// The enumerated device nodes/instances are "empty" PDO's that act as interfaces for the HID Class Driver.
+// Since those PDO's normaly don't have a FDO and therefore no driver loaded, we need to move one device node up in the device tree.
+// Then check the provider of the device driver, which will be "Microsoft" in case of the default HID Class Driver 
+// or "TOSHIBA" in case of the Toshiba Bluetooth Stack, because it provides its own Class Driver.
+static bool CheckForToshibaStack(const DEVINST & hid_interface_device_instance)
+{
+	HDEVINFO parent_device_info = nullptr;
+	SP_DEVINFO_DATA parent_device_data;
+	ZeroMemory(&parent_device_data, sizeof(SP_DEVINFO_DATA));
+	parent_device_data.cbSize = sizeof(SP_DEVINFO_DATA);
+
+	if (GetParentDevice(hid_interface_device_instance, &parent_device_info, &parent_device_data))
+	{
+		std::wstring class_driver_provider = GetDeviceProperty(parent_device_info, &parent_device_data, &DEVPKEY_Device_DriverProvider);
+
+		SetupDiDestroyDeviceInfoList(parent_device_info);
+
+		return (class_driver_provider == L"TOSHIBA");
+	}
+
+	DEBUG_LOG(WIIMOTE, "Unable to detect class driver provider!");
+
+	return false;
+}
+
 // Find and connect Wiimotes.
 // Does not replace already found Wiimotes even if they are disconnected.
 // wm is an array of max_wiimotes Wiimotes
@@ -289,14 +382,21 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 		detail_data = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(len);
 		detail_data->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
+		SP_DEVINFO_DATA device_info_data;
+		ZeroMemory(&device_info_data, sizeof(SP_DEVINFO_DATA));
+		device_info_data.cbSize = sizeof(SP_DEVINFO_DATA);
+
 		// Query the data for this device
-		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, nullptr, nullptr))
+		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, nullptr, &device_info_data))
 		{
 			std::basic_string<TCHAR> device_path(detail_data->DevicePath);
 			Wiimote* wm = new WiimoteWindows(device_path);
-			bool real_wiimote = false, is_bb = false;
+			bool real_wiimote = false;
+			bool is_bb = false;
+			bool IsUsingToshibaStack = CheckForToshibaStack(device_info_data.DevInst);
 
 			CheckDeviceType(device_path, real_wiimote, is_bb);
+
 			if (is_bb)
 			{
 				found_board = wm;
