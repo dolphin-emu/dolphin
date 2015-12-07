@@ -2,6 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
+#include <memory>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
@@ -24,7 +27,7 @@ namespace ExpansionInterface
 static int changeDevice;
 static int updateInterrupts;
 
-static CEXIChannel *g_Channels[MAX_EXI_CHANNELS];
+static std::array<std::unique_ptr<CEXIChannel>, MAX_EXI_CHANNELS> g_Channels;
 
 static void ChangeDeviceCallback(u64 userdata, int cyclesLate);
 static void UpdateInterruptsCallback(u64 userdata, int cycles_late);
@@ -37,7 +40,7 @@ void Init()
 	}
 
 	for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
-		g_Channels[i] = new CEXIChannel(i);
+		g_Channels[i] = std::make_unique<CEXIChannel>(i);
 
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
 	{
@@ -60,10 +63,7 @@ void Init()
 void Shutdown()
 {
 	for (auto& channel : g_Channels)
-	{
-		delete channel;
-		channel = nullptr;
-	}
+		channel.reset();
 }
 
 void DoState(PointerWrap &p)
@@ -98,7 +98,7 @@ static void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 	u8 type = (u8)(userdata >> 16);
 	u8 num = (u8)userdata;
 
-	g_Channels[channel]->AddDevice((TEXIDevices)type, num);
+	g_Channels.at(channel)->AddDevice((TEXIDevices)type, num);
 }
 
 void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 device_num)
@@ -111,7 +111,7 @@ void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 devi
 
 CEXIChannel* GetChannel(u32 index)
 {
-	return g_Channels[index];
+	return g_Channels.at(index).get();
 }
 
 IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
