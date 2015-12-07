@@ -1,6 +1,8 @@
 #define BLUETOOTH_VERSION_USE_CURRENT
 
 #include "Common/Common.h"
+#include "Common/Logging/Log.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 @interface SearchBT: NSObject {
@@ -516,13 +518,13 @@ void WiimoteDarwinHid::RemoveCallback(void* context, IOReturn result, void*)
 
 	if (length > MAX_PAYLOAD) {
 		WARN_LOG(WIIMOTE, "Dropping packet for Wiimote %i, too large",
-				wm->m_index + 1);
+				wm->GetIndex() + 1);
 		return;
 	}
 
 	if (wm->m_inputlen != -1) {
 		WARN_LOG(WIIMOTE, "Dropping packet for Wiimote %i, queue full",
-				wm->m_index + 1);
+				wm->GetIndex() + 1);
 		return;
 	}
 
@@ -554,7 +556,7 @@ void WiimoteDarwinHid::RemoveCallback(void* context, IOReturn result, void*)
 		return;
 	}
 
-	WARN_LOG(WIIMOTE, "Lost channel to Wiimote %i", wm->m_index + 1);
+	WARN_LOG(WIIMOTE, "Lost channel to Wiimote %i", wm->GetIndex() + 1);
 
 	wm->DisconnectInternal();
 }

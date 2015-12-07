@@ -52,6 +52,7 @@ struct VideoConfig
 	bool bSupports3DTextureStorage;
 	bool bSupportsEarlyFragmentTests;
 	bool bSupportsConservativeDepth;
+	bool bSupportsAniso;
 
 	const char* gl_vendor;
 	const char* gl_renderer;
@@ -81,10 +82,6 @@ public:
 	void SetSamplerState(int stage, int texindex, bool custom_tex) override;
 	void SetInterlacingMode() override;
 	void SetViewport() override;
-
-	// TODO: Implement and use these
-	void ApplyState(bool bUseDstAlpha) override {}
-	void RestoreState() override {}
 
 	void RenderText(const std::string& text, int left, int top, u32 color) override;
 	void FlipImageData(u8 *data, int w, int h, int pixel_width = 3);

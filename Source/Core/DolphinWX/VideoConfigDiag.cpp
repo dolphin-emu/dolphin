@@ -18,6 +18,7 @@
 #include <wx/slider.h>
 #include <wx/stattext.h>
 
+#include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
@@ -105,8 +106,7 @@ static wxString ar_desc = wxTRANSLATE("Select what aspect ratio to use when rend
 static wxString ws_hack_desc = wxTRANSLATE("Forces the game to output graphics for any aspect ratio.\nUse with \"Aspect Ratio\" set to \"Force 16:9\" to force 4:3-only games to run at 16:9.\nRarely produces good results and often partially breaks graphics and game UIs.\nUnnecessary (and detrimental) if using any AR/Gecko-code widescreen patches.\n\nIf unsure, leave this unchecked.");
 static wxString vsync_desc = wxTRANSLATE("Wait for vertical blanks in order to reduce tearing.\nDecreases performance if emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
 static wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique viewing angles.\nMight cause issues in a small number of games.\nOn Direct3D, setting this above 1x will also have the same effect as enabling \"Force Texture Filtering\".\n\nIf unsure, select 1x.");
-static wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis smooths out jagged edges on objects.\nHeavily increases GPU load and sometimes causes graphical issues.\n\nIf unsure, select None.");
-static wxString ssaa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by enabling supersampling anti-aliasing. This is significantly heavier on GPU load than MSAA, but will provide a much better image quality as well as applying AA to lighting and shader effects.\n\nIf unsure, leave unchecked.");
+static wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics. This smooths out jagged edges on objects.\nIncreases GPU load and sometimes causes graphical issues. SSAA is significantly more demanding than MSAA, but provides top quality geometry anti-aliasing and also applies anti-aliasing to lighting, shader effects, and textures.\n\nIf unsure, select None.");
 static wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render-to-texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly increases GPU load and causes relatively few graphical issues.\n\nIf unsure, leave this checked.");
 static wxString pixel_lighting_desc = wxTRANSLATE("Calculates lighting of 3D objects per-pixel rather than per-vertex, smoothing out the appearance of lit polygons and making individual triangles less noticeable.\nRarely causes slowdowns or graphical issues.\n\nIf unsure, leave this unchecked.");
 static wxString fast_depth_calc_desc = wxTRANSLATE("Use a less accurate algorithm to calculate depth values.\nCauses issues in a few games, but can give a decent speedup depending on the game and/or your GPU.\n\nIf unsure, leave this checked.");
@@ -366,22 +366,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// AA
 	{
 
-	wxFlexGridSizer* const aa_sizer = new wxFlexGridSizer(3, 1, 1);
-
 	text_aamode = new wxStaticText(page_enh, wxID_ANY, _("Anti-Aliasing:"));
-	choice_aamode = CreateChoice(page_enh, vconfig.iMultisampleMode, wxGetTranslation(aa_desc));
-
-	RefreshAAList();
+	choice_aamode = new wxChoice(page_enh, wxID_ANY);
+	RegisterControl(choice_aamode, wxGetTranslation(aa_desc));
+	PopulateAAList();
+	choice_aamode->Bind(wxEVT_CHOICE, &VideoConfigDiag::OnAAChanged, this);
 
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
-	aa_sizer->Add(choice_aamode);
-
-	ssaa_checkbox = CreateCheckBox(page_enh, _("SSAA"), wxGetTranslation(ssaa_desc), vconfig.bSSAA);
-	ssaa_checkbox->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::OnSSAAClick, this);
-
-	aa_sizer->AddSpacer(10);
-	aa_sizer->Add(ssaa_checkbox, 0, wxTOP, 3);
-	szr_enh->Add(aa_sizer);
+	szr_enh->Add(choice_aamode);
 
 	}
 
@@ -751,24 +743,55 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
 	button_config_pp->Enable(postprocessing_shader.HasOptions());
 }
 
-void VideoConfigDiag::OnSSAAClick(wxCommandEvent& event)
+void VideoConfigDiag::PopulateAAList()
 {
-	// Check the checkbox status and not the config option because config hasn't changed yet.
-	vconfig.bSSAA = ssaa_checkbox->IsChecked();
-	RefreshAAList();
-}
+	const std::vector<int>& aa_modes = vconfig.backend_info.AAModes;
+	const bool supports_ssaa = vconfig.backend_info.bSupportsSSAA;
+	m_msaa_modes = 0;
 
-void VideoConfigDiag::RefreshAAList()
-{
-	choice_aamode->Clear();
-	const std::string& suffix = vconfig.bSSAA ? "x SSAA" : "x MSAA";
-
-	for (int mode : vconfig.backend_info.AAModes)
+	for (int mode : aa_modes)
 	{
 		if (mode == 1)
+		{
 			choice_aamode->AppendString(_("None"));
+			_assert_msg_(VIDEO, !supports_ssaa || m_msaa_modes == 0, "SSAA setting won't work correctly");
+		}
 		else
-			choice_aamode->AppendString(std::to_string(mode) + suffix);
+		{
+			choice_aamode->AppendString(std::to_string(mode) + "x MSAA");
+			++m_msaa_modes;
+		}
 	}
-	choice_aamode->SetSelection(vconfig.iMultisampleMode);
+
+	if (supports_ssaa)
+	{
+		for (int mode : aa_modes)
+		{
+			if (mode != 1)
+				choice_aamode->AppendString(std::to_string(mode) + "x SSAA");
+		}
+	}
+
+	int selected_mode_index = vconfig.iMultisampleMode;
+
+	// Don't go out of range
+	if (selected_mode_index >= aa_modes.size())
+		return;
+
+	// Select one of the SSAA modes at the end of the list if SSAA is enabled
+	if (supports_ssaa && vconfig.bSSAA && aa_modes[selected_mode_index] != 1)
+		selected_mode_index += m_msaa_modes;
+
+	choice_aamode->SetSelection(selected_mode_index);
+}
+
+void VideoConfigDiag::OnAAChanged(wxCommandEvent& ev)
+{
+	int mode = ev.GetInt();
+	ev.Skip();
+
+	vconfig.bSSAA = mode > m_msaa_modes;
+	mode -= vconfig.bSSAA * m_msaa_modes;
+
+	vconfig.iMultisampleMode = mode;
 }

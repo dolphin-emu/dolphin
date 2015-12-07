@@ -93,28 +93,26 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 	}
 	else
 	{
-		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_rFileName);
+		std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
 
-		if (pVolume != nullptr)
+		if (volume != nullptr)
 		{
-			m_Platform = pVolume->GetVolumeType();
+			m_Platform = volume->GetVolumeType();
 
-			m_names = pVolume->GetNames(true);
-			m_descriptions = pVolume->GetDescriptions();
-			m_company = pVolume->GetCompany();
+			m_names = volume->GetNames(true);
+			m_descriptions = volume->GetDescriptions();
+			m_company = volume->GetCompany();
 
-			m_Country = pVolume->GetCountry();
-			m_blob_type = pVolume->GetBlobType();
-			m_FileSize = pVolume->GetRawSize();
-			m_VolumeSize = pVolume->GetSize();
+			m_Country = volume->GetCountry();
+			m_blob_type = volume->GetBlobType();
+			m_FileSize = volume->GetRawSize();
+			m_VolumeSize = volume->GetSize();
 
-			m_UniqueID = pVolume->GetUniqueID();
-			m_disc_number = pVolume->GetDiscNumber();
-			m_Revision = pVolume->GetRevision();
+			m_UniqueID = volume->GetUniqueID();
+			m_disc_number = volume->GetDiscNumber();
+			m_Revision = volume->GetRevision();
 
-			ReadVolumeBanner(*pVolume);
-
-			delete pVolume;
+			ReadVolumeBanner(*volume);
 
 			m_Valid = true;
 			SaveToCache();
@@ -178,7 +176,7 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 	}
 
 	// Fallback in case no banner is available.
-	ReadPNGBanner(File::GetThemeDir(SConfig::GetInstance().theme_name) + "nobanner.png");
+	ReadPNGBanner(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + "nobanner.png");
 }
 
 GameListItem::~GameListItem()
@@ -218,15 +216,12 @@ void GameListItem::DoState(PointerWrap &p)
 
 bool GameListItem::IsElfOrDol() const
 {
-	const size_t pos = m_FileName.rfind('.');
-	if (pos != std::string::npos)
-	{
-		std::string ext = m_FileName.substr(pos);
-		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+	if (m_FileName.size() < 4)
+		return false;
 
-		return ext == ".elf" || ext == ".dol";
-	}
-	return false;
+	std::string name_end = m_FileName.substr(m_FileName.size() - 4);
+	std::transform(name_end.begin(), name_end.end(), name_end.begin(), ::tolower);
+	return name_end == ".elf" || name_end == ".dol";
 }
 
 std::string GameListItem::CreateCacheFilename() const
@@ -276,13 +271,14 @@ bool GameListItem::ReadPNGBanner(const std::string& path)
 
 wxBitmap GameListItem::ScaleBanner(wxImage* image)
 {
-	double scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
-	// Note: This uses nearest neighbor, which subjectively looks a lot
-	// better for GC banners than smooth scaling.
-	// TODO: Make scaling less bad for Homebrew Channel banners.
-	image->Rescale(DVD_BANNER_WIDTH * scale, DVD_BANNER_HEIGHT * scale);
+	const double gui_scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
+	const double target_width = DVD_BANNER_WIDTH * gui_scale;
+	const double target_height = DVD_BANNER_HEIGHT * gui_scale;
+	const double banner_scale = std::min(target_width / image->GetWidth(), target_height / image->GetHeight());
+	image->Rescale(image->GetWidth() * banner_scale, image->GetHeight() * banner_scale, wxIMAGE_QUALITY_HIGH);
+	image->Resize(wxSize(target_width, target_height), wxPoint(), 0xFF, 0xFF, 0xFF);
 #ifdef __APPLE__
-	return wxBitmap(*image, -1, scale);
+	return wxBitmap(*image, -1, gui_scale);
 #else
 	return wxBitmap(*image, -1);
 #endif
@@ -330,7 +326,7 @@ std::vector<DiscIO::IVolume::ELanguage> GameListItem::GetLanguages() const
 
 const std::string GameListItem::GetWiiFSPath() const
 {
-	DiscIO::IVolume *iso = DiscIO::CreateVolumeFromFilename(m_FileName);
+	std::unique_ptr<DiscIO::IVolume> iso(DiscIO::CreateVolumeFromFilename(m_FileName));
 	std::string ret;
 
 	if (iso == nullptr)
@@ -352,7 +348,6 @@ const std::string GameListItem::GetWiiFSPath() const
 		else
 			ret = path;
 	}
-	delete iso;
 
 	return ret;
 }

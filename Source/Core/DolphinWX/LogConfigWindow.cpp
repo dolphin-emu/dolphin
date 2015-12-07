@@ -170,9 +170,9 @@ void LogConfigWindow::OnWriteFileChecked(wxCommandEvent& event)
 		if (m_checks->IsChecked(i))
 		{
 			if (m_writeFile)
-				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
+				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
 			else
-				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
+				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
 		}
 	}
 }
@@ -185,9 +185,9 @@ void LogConfigWindow::OnWriteConsoleChecked(wxCommandEvent& event)
 		if (m_checks->IsChecked(i))
 		{
 			if (m_writeConsole)
-				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
+				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::CONSOLE_LISTENER);
 			else
-				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
+				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::CONSOLE_LISTENER);
 		}
 	}
 }
@@ -200,9 +200,9 @@ void LogConfigWindow::OnWriteWindowChecked(wxCommandEvent& event)
 		if (m_checks->IsChecked(i))
 		{
 			if (m_writeWindow)
-				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogWindow);
+				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
 			else
-				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogWindow);
+				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
 		}
 	}
 }
@@ -226,17 +226,17 @@ void LogConfigWindow::ToggleLog(int _logType, bool enable)
 	if (enable)
 	{
 		if (m_writeWindow)
-			m_LogManager->AddListener(logType, (LogListener *)m_LogWindow);
+			m_LogManager->AddListener(logType, LogListener::LOG_WINDOW_LISTENER);
 		if (m_writeFile)
-			m_LogManager->AddListener(logType, m_LogManager->GetFileListener());
+			m_LogManager->AddListener(logType, LogListener::FILE_LISTENER);
 		if (m_writeConsole)
-			m_LogManager->AddListener(logType, m_LogManager->GetConsoleListener());
+			m_LogManager->AddListener(logType, LogListener::CONSOLE_LISTENER);
 	}
 	else
 	{
-		m_LogManager->RemoveListener(logType, (LogListener *)m_LogWindow);
-		m_LogManager->RemoveListener(logType, m_LogManager->GetFileListener());
-		m_LogManager->RemoveListener(logType, m_LogManager->GetConsoleListener());
+		m_LogManager->RemoveListener(logType, LogListener::LOG_WINDOW_LISTENER);
+		m_LogManager->RemoveListener(logType, LogListener::FILE_LISTENER);
+		m_LogManager->RemoveListener(logType, LogListener::CONSOLE_LISTENER);
 	}
 }
 

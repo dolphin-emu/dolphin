@@ -9,9 +9,6 @@
 #include <set>
 #include <string>
 
-#ifdef ANDROID
-#include <android/log.h>
-#endif
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
@@ -83,8 +80,8 @@ LogManager::LogManager()
 	m_Log[LogTypes::WII_IPC_WC24]       = new LogContainer("WII_IPC_WC24",    "WII IPC WC24");
 	m_Log[LogTypes::WII_IPC_WIIMOTE]    = new LogContainer("WII_IPC_WIIMOTE", "WII IPC WIIMOTE");
 
-	m_fileLog = new FileLogListener(File::GetUserPath(F_MAINLOG_IDX));
-	m_consoleLog = new ConsoleListener();
+	RegisterListener(LogListener::FILE_LISTENER, new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
+	RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
@@ -101,25 +98,20 @@ LogManager::LogManager()
 		logs->Get(container->GetShortName(), &enable, false);
 		container->SetEnable(enable);
 		if (enable && write_file)
-			container->AddListener(m_fileLog);
+			container->AddListener(LogListener::FILE_LISTENER);
 		if (enable && write_console)
-			container->AddListener(m_consoleLog);
+			container->AddListener(LogListener::CONSOLE_LISTENER);
 	}
 }
 
 LogManager::~LogManager()
 {
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-	{
-		m_logManager->RemoveListener((LogTypes::LOG_TYPE)i, m_fileLog);
-		m_logManager->RemoveListener((LogTypes::LOG_TYPE)i, m_consoleLog);
-	}
-
 	for (LogContainer* container : m_Log)
 		delete container;
 
-	delete m_fileLog;
-	delete m_consoleLog;
+	// The log window listener pointer is owned by the GUI code.
+	delete m_listeners[LogListener::CONSOLE_LISTENER];
+	delete m_listeners[LogListener::FILE_LISTENER];
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
@@ -138,10 +130,9 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	                                   file, line,
 	                                   LogTypes::LOG_LEVEL_TO_CHAR[(int)level],
 	                                   log->GetShortName().c_str(), temp);
-#ifdef ANDROID
-	__android_log_write(ANDROID_LOG_INFO, "Dolphinemu", msg.c_str());
-#endif
-	log->Trigger(level, msg.c_str());
+
+	for (auto listener_id : *log)
+		m_listeners[listener_id]->Log(level, msg.c_str());
 }
 
 void LogManager::Init()
@@ -161,29 +152,6 @@ LogContainer::LogContainer(const std::string& shortName, const std::string& full
 	  m_enable(enable),
 	  m_level(LogTypes::LWARNING)
 {
-}
-
-// LogContainer
-void LogContainer::AddListener(LogListener *listener)
-{
-	std::lock_guard<std::mutex> lk(m_listeners_lock);
-	m_listeners.insert(listener);
-}
-
-void LogContainer::RemoveListener(LogListener *listener)
-{
-	std::lock_guard<std::mutex> lk(m_listeners_lock);
-	m_listeners.erase(listener);
-}
-
-void LogContainer::Trigger(LogTypes::LOG_LEVELS level, const char *msg)
-{
-	std::lock_guard<std::mutex> lk(m_listeners_lock);
-
-	for (LogListener* listener : m_listeners)
-	{
-		listener->Log(level, msg);
-	}
 }
 
 FileLogListener::FileLogListener(const std::string& filename)

@@ -23,7 +23,6 @@
 #include "DiscIO/VolumeCreator.h"
 
 #include "DolphinQt/GameList/GameFile.h"
-#include "DolphinQt/Utils/Utils.h"
 
 static const u32 CACHE_REVISION = 0x00D; // Last changed in PR 3097
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
@@ -66,7 +65,7 @@ static QString GetLanguageString(DiscIO::IVolume::ELanguage language, QMap<DiscI
 	if (!strings.empty())
 		return strings.cbegin().value();
 
-	return SL("");
+	return QStringLiteral("");
 }
 
 GameFile::GameFile(const QString& fileName)
@@ -147,12 +146,12 @@ GameFile::GameFile(const QString& fileName)
 	// files with the same name as the main file is provided as an alternative for those who want to have
 	// multiple files in one folder instead of having a Homebrew Channel-style folder structure.
 
-	if (!ReadXML(directory.filePath(info.baseName() + SL(".xml"))))
-		ReadXML(directory.filePath(SL("meta.xml")));
+	if (!ReadXML(directory.filePath(info.baseName() + QStringLiteral(".xml"))))
+		ReadXML(directory.filePath(QStringLiteral("meta.xml")));
 
-	QImage banner(directory.filePath(info.baseName() + SL(".png")));
+	QImage banner(directory.filePath(info.baseName() + QStringLiteral(".png")));
 	if (banner.isNull())
-		banner.load(directory.filePath(SL("icon.png")));
+		banner.load(directory.filePath(QStringLiteral("icon.png")));
 	if (!banner.isNull())
 		m_banner = QPixmap::fromImage(banner);
 }
@@ -244,17 +243,8 @@ void GameFile::SaveToCache()
 
 bool GameFile::IsElfOrDol() const
 {
-	const std::string name = m_file_name.toStdString();
-	const size_t pos = name.rfind('.');
-
-	if (pos != std::string::npos)
-	{
-		std::string ext = name.substr(pos);
-		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-
-		return ext == ".elf" || ext == ".dol";
-	}
-	return false;
+	return m_file_name.endsWith(QStringLiteral(".elf"), Qt::CaseInsensitive) ||
+	       m_file_name.endsWith(QStringLiteral(".dol"), Qt::CaseInsensitive);
 }
 
 QString GameFile::CreateCacheFilename() const
@@ -263,7 +253,7 @@ QString GameFile::CreateCacheFilename() const
 	SplitPath(m_file_name.toStdString(), &pathname, &filename, &extension);
 
 	if (filename.empty())
-		return SL(""); // must be a disc drive
+		return QStringLiteral(""); // must be a disc drive
 
 	// Filename.extension_HashOfFolderPath_Size.cache
 	// Append hash to prevent ISO name-clashing in different folders.
@@ -306,21 +296,21 @@ bool GameFile::ReadXML(const QString& file_path)
 		return false;
 
 	QXmlStreamReader reader(&file);
-	if (reader.readNextStartElement() && reader.name() == SL("app"))
+	if (reader.readNextStartElement() && reader.name() == QStringLiteral("app"))
 	{
 		while (reader.readNextStartElement())
 		{
 			QStringRef name = reader.name();
-			if (name == SL("name"))
+			if (name == QStringLiteral("name"))
 			{
 				m_short_names = { { DiscIO::IVolume::LANGUAGE_UNKNOWN, reader.readElementText() } };
 				m_long_names = m_short_names;
 			}
-			else if (name == SL("short_description"))
+			else if (name == QStringLiteral("short_description"))
 			{
 				m_descriptions = { { DiscIO::IVolume::LANGUAGE_UNKNOWN, reader.readElementText() } };
 			}
-			else if (name == SL("coder"))
+			else if (name == QStringLiteral("coder"))
 			{
 				m_company = reader.readElementText();
 			}

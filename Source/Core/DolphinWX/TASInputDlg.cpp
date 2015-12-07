@@ -142,7 +142,7 @@ void TASInputDlg::CreateWiiLayout(int num)
 
 	if (Core::IsRunning())
 	{
-		m_ext = ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->controllers[num])->CurrentExtension();
+		m_ext = static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(num))->CurrentExtension();
 	}
 	else
 	{

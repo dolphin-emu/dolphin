@@ -11,7 +11,6 @@
 
 #include "MainWindow.h"
 
-#include "DolphinQt/Utils/Utils.h"
 #include "UICommon/UICommon.h"
 
 static bool IsOsSupported()
@@ -28,11 +27,11 @@ static bool IsOsSupported()
 static QString LowestSupportedOsVersion()
 {
 #ifdef Q_OS_OSX
-	return SL("Mac OS X 10.9");
+	return QStringLiteral("Mac OS X 10.9");
 #elif defined(Q_OS_WIN)
-	return SL("Windows Vista SP2");
+	return QStringLiteral("Windows Vista SP2");
 #else
-	return SL("Unknown");
+	return QStringLiteral("Unknown");
 #endif
 }
 
@@ -60,6 +59,7 @@ int main(int argc, char* argv[])
 
 	int retcode = app.exec();
 	delete g_main_window;
+	Core::Shutdown();
 	UICommon::Shutdown();
 	return retcode;
 }

@@ -18,7 +18,7 @@ namespace Ui
 class DMainWindow;
 }
 
-class DMainWindow : public QMainWindow
+class DMainWindow final : public QMainWindow
 {
 	Q_OBJECT
 
@@ -44,7 +44,6 @@ private slots:
 
 	// Main toolbar
 	void OnBrowse();
-	void OnExit();
 	void OnPlay();
 	void OnReset();
 
@@ -55,7 +54,8 @@ private slots:
 	void UpdateIcons();
 
 private:
-	void closeEvent(QCloseEvent* ce);
+	bool event(QEvent* e) override;
+	void closeEvent(QCloseEvent* ce) override;
 	std::unique_ptr<Ui::DMainWindow> m_ui;
 	DGameTracker* m_game_tracker;
 

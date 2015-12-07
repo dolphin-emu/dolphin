@@ -455,8 +455,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
 			m_samples_aux3
 		}};
 
-		if (!ReadPB(pb_addr, pb))
-			break;
+		ReadPB(pb_addr, pb);
 
 		u16 num_updates[3];
 		u16 updates[1024];

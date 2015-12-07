@@ -46,6 +46,7 @@ public:
 		COLUMN_BANNER,
 		COLUMN_TITLE,
 		COLUMN_MAKER,
+		COLUMN_FILENAME,
 		COLUMN_ID,
 		COLUMN_COUNTRY,
 		COLUMN_SIZE,
@@ -74,6 +75,7 @@ private:
 	wxSize lastpos;
 	wxEmuStateTip *toolTip;
 	void InitBitmaps();
+	void UpdateItemAtColumn(long _Index, int column);
 	void InsertItemInReportView(long _Index);
 	void SetBackgroundColor();
 	void ScanForISOs();
@@ -100,6 +102,8 @@ private:
 
 	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();
+	void ShowColumn(int column, int width);
+	void HideColumn(int column);
 	void UnselectAll();
 
 	static size_t m_currentItem;

@@ -77,5 +77,5 @@ extern std::unique_ptr<TraversalClient> g_TraversalClient;
 // the NetHost connected to the TraversalClient.
 extern std::unique_ptr<ENetHost> g_MainNetHost;
 // Create g_TraversalClient and g_MainNetHost if necessary.
-bool EnsureTraversalClient(const std::string& server, u16 port);
+bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 listen_port = 0);
 void ReleaseTraversalClient();

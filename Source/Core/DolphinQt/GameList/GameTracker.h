@@ -38,7 +38,7 @@ public:
 	void RemoveGames(QList<GameFile*> items);
 };
 
-class DGameTracker : public QStackedWidget
+class DGameTracker final : public QStackedWidget
 {
 	Q_OBJECT
 

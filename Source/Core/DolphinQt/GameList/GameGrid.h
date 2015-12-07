@@ -16,7 +16,7 @@ namespace Ui
 class DGameGrid;
 }
 
-class DGameGrid : public QListWidget, public AbstractGameList
+class DGameGrid final : public QListWidget, public AbstractGameList
 {
 	Q_OBJECT
 

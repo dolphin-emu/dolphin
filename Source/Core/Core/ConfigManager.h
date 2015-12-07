@@ -232,6 +232,7 @@ struct SConfig : NonCopyable
 	bool m_showSystemColumn;
 	bool m_showBannerColumn;
 	bool m_showMakerColumn;
+	bool m_showFileNameColumn;
 	bool m_showIDColumn;
 	bool m_showRegionColumn;
 	bool m_showSizeColumn;

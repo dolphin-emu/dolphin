@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <vector>
@@ -293,7 +294,17 @@ TextureCache::TextureCache()
 
 	if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
 	{
-		s_palette_stream_buffer = StreamBuffer::Create(GL_TEXTURE_BUFFER, 1024*1024);
+		s32 buffer_size = 1024 * 1024;
+		s32 max_buffer_size = 0;
+
+		// The minimum MAX_TEXTURE_BUFFER_SIZE that the spec mandates
+		// is 65KB, we are asking for a 1MB buffer here.
+		// Make sure to check the maximum size and if it is below 1MB
+		// then use the maximum the hardware supports instead.
+		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &max_buffer_size);
+		buffer_size = std::min(buffer_size, max_buffer_size);
+
+		s_palette_stream_buffer = StreamBuffer::Create(GL_TEXTURE_BUFFER, buffer_size);
 		glGenTextures(1, &s_palette_resolv_texture);
 		glBindTexture(GL_TEXTURE_BUFFER, s_palette_resolv_texture);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, s_palette_stream_buffer->m_buffer);

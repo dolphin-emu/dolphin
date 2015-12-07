@@ -297,7 +297,7 @@ EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
 EVT_MENU_RANGE(IDM_LOG_WINDOW, IDM_VIDEO_WINDOW, CFrame::OnToggleWindow)
 EVT_MENU_RANGE(IDM_SHOW_SYSTEM, IDM_SHOW_STATE, CFrame::OnChangeColumnsVisible)
 
-EVT_MENU(IDM_PURGE_CACHE, CFrame::GameListChanged)
+EVT_MENU(IDM_PURGE_GAME_LIST_CACHE, CFrame::GameListChanged)
 
 EVT_MENU(IDM_SAVE_FIRST_STATE, CFrame::OnSaveFirstState)
 EVT_MENU(IDM_UNDO_LOAD_STATE, CFrame::OnUndoLoadState)
@@ -1422,6 +1422,70 @@ void CFrame::ParseHotkeys()
 		State::Load(g_saveSlot);
 	}
 
+	if (IsHotkey(HK_TOGGLE_STEREO_SBS))
+	{
+		if (g_Config.iStereoMode != STEREO_SBS)
+		{
+			// Current implementation of anaglyph stereoscopy uses a
+			// post-processing shader. Thus the shader needs to be to be
+			// turned off when selecting other stereoscopy modes.
+			if (g_Config.sPostProcessingShader == "dubois")
+			{
+				g_Config.sPostProcessingShader = "";
+			}
+			g_Config.iStereoMode = STEREO_SBS;
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+		}
+	}
+	if (IsHotkey(HK_TOGGLE_STEREO_TAB))
+	{
+		if (g_Config.iStereoMode != STEREO_TAB)
+		{
+			if (g_Config.sPostProcessingShader == "dubois")
+			{
+				g_Config.sPostProcessingShader = "";
+			}
+			g_Config.iStereoMode = STEREO_TAB;
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+		}
+	}
+	if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
+	{
+		if (g_Config.iStereoMode != STEREO_ANAGLYPH)
+		{
+			// Setting the anaglyph mode also requires a specific
+			// post-processing shader to be activated.
+			g_Config.iStereoMode = STEREO_ANAGLYPH;
+			g_Config.sPostProcessingShader = "dubois";
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+			g_Config.sPostProcessingShader = "";
+		}
+	}
+	if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
+	{
+		if (g_Config.iStereoMode != STEREO_3DVISION)
+		{
+			if (g_Config.sPostProcessingShader == "dubois")
+			{
+				g_Config.sPostProcessingShader = "";
+			}
+			g_Config.iStereoMode = STEREO_3DVISION;
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+		}
+	}
+
 	auto savePreset = [](const std::string& param, int value)
 	{
 		IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
@@ -1572,12 +1636,16 @@ void CFrame::HandleFrameSkipHotkeys()
 			wxCommandEvent evt;
 			evt.SetId(IDM_FRAMESTEP);
 			CFrame::OnFrameStep(evt);
-			if (holdFrameStepDelay > 0 && frameStepCount == 0)
+			if (holdFrameStepDelay > 0)
 				holdFrameStep = true;
 		}
 
 		if (frameStepCount < FRAME_STEP_DELAY)
+		{
 			++frameStepCount;
+			if (holdFrameStep)
+				holdFrameStep = false;
+		}
 
 		if (frameStepCount == FRAME_STEP_DELAY && holdFrameStep && holdFrameStepDelayCount >= holdFrameStepDelay)
 		{

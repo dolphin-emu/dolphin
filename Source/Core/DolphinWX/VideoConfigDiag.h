@@ -193,7 +193,6 @@ protected:
 		// Anti-aliasing
 		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
-		ssaa_checkbox->Enable(vconfig.backend_info.bSupportsSSAA && vconfig.iMultisampleMode > 0);
 
 
 		// XFB
@@ -245,8 +244,8 @@ protected:
 	void Evt_LeaveControl(wxMouseEvent& ev);
 	void CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer);
 	void PopulatePostProcessingShaders();
-	void OnSSAAClick(wxCommandEvent& event);
-	void RefreshAAList();
+	void PopulateAAList();
+	void OnAAChanged(wxCommandEvent& ev);
 
 	wxChoice* choice_backend;
 	wxChoice* choice_adapter;
@@ -256,8 +255,7 @@ protected:
 	wxStaticText* label_adapter;
 
 	wxStaticText* text_aamode;
-	SettingChoice* choice_aamode;
-	wxCheckBox* ssaa_checkbox;
+	wxChoice* choice_aamode;
 
 	wxStaticText* label_display_resolution;
 
@@ -280,4 +278,6 @@ protected:
 
 	VideoConfig &vconfig;
 	std::string ininame;
+
+	int m_msaa_modes;
 };

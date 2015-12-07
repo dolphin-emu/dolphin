@@ -243,7 +243,7 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	// interrupt is *not* a possible swap candidate: see [1] for an example of
 	// a crash caused by this error.
 	//
-	// [1] https://code.google.com/p/dolphin-emu/issues/detail?id=5864#c7
+	// [1] https://bugs.dolphin-emu.org/issues/5864#note-7
 	if (b_info->type != OPTYPE_INTEGER)
 		return false;
 

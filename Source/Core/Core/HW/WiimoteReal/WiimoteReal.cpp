@@ -14,8 +14,10 @@
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "InputCommon/InputConfig.h"
 
 #include "SFML/Network.hpp"
 
@@ -153,7 +155,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 
 	auto const data = static_cast<const u8*>(_data);
 	Report rpt(data, data + size);
-	WiimoteEmu::Wiimote *const wm = (WiimoteEmu::Wiimote*)::Wiimote::GetConfig()->controllers[m_index];
+	WiimoteEmu::Wiimote* const wm = static_cast<WiimoteEmu::Wiimote*>(::Wiimote::GetConfig()->GetController(m_index));
 
 	// Convert output DATA packets to SET_REPORT packets.
 	// Nintendo Wiimotes work without this translation, but 3rd
@@ -336,10 +338,10 @@ void Wiimote::ConnectOnInput()
 	}
 }
 
-void Wiimote::Prepare(int _index)
+void Wiimote::Prepare()
 {
-	m_index = _index;
 	m_need_prepare.store(true);
+	IOWakeup();
 }
 
 bool Wiimote::PrepareOnThread()
@@ -348,7 +350,8 @@ bool Wiimote::PrepareOnThread()
 	u8 static const mode_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REPORT_MODE, 0, WM_REPORT_CORE};
 
 	// Set the active LEDs and turn on rumble.
-	u8 static const led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_LEDS, u8(WIIMOTE_LED_1 << (m_index%WIIMOTE_BALANCE_BOARD) | 0x1)};
+	u8 static led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_LEDS, 0};
+	led_report[2] = u8(WIIMOTE_LED_1 << (m_index%WIIMOTE_BALANCE_BOARD) | 0x1);
 
 	// Turn off rumble
 	u8 static const rumble_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_RUMBLE, 0};
@@ -382,7 +385,7 @@ void Wiimote::EmuStop()
 
 void Wiimote::EmuResume()
 {
-	WiimoteEmu::Wiimote *const wm = (WiimoteEmu::Wiimote*)::Wiimote::GetConfig()->controllers[m_index];
+	WiimoteEmu::Wiimote* const wm = static_cast<WiimoteEmu::Wiimote*>(::Wiimote::GetConfig()->GetController(m_index));
 
 	m_last_input_report.clear();
 
@@ -520,8 +523,11 @@ void WiimoteScanner::ThreadFunc()
 	NOTICE_LOG(WIIMOTE, "Wiimote scanning has stopped.");
 }
 
-bool Wiimote::Connect()
+bool Wiimote::Connect(int index)
 {
+	m_index = index;
+	m_need_prepare.store(true);
+
 	if (!m_run_thread.load())
 	{
 		m_thread_ready.store(false);
@@ -600,6 +606,11 @@ void Wiimote::ThreadFunc()
 	}
 
 	DisconnectInternal();
+}
+
+int Wiimote::GetIndex() const
+{
+	return m_index;
 }
 
 void LoadSettings()
@@ -722,9 +733,8 @@ static bool TryToConnectWiimoteN(Wiimote* wm, unsigned int i)
 {
 	if (WIIMOTE_SRC_REAL & g_wiimote_sources[i] && !g_wiimotes[i])
 	{
-		if (wm->Connect())
+		if (wm->Connect(i))
 		{
-			wm->Prepare(i);
 			NOTICE_LOG(WIIMOTE, "Connected to Wiimote %i.", i + 1);
 			g_wiimotes[i] = wm;
 			Host_ConnectWiimote(i, true);
@@ -837,7 +847,7 @@ void Refresh()
 		{
 			if (g_wiimotes[i])
 			{
-				g_wiimotes[i]->Prepare(i);
+				g_wiimotes[i]->Prepare();
 			}
 		}
 

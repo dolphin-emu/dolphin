@@ -78,31 +78,17 @@ union AXBuffers
 };
 
 // Read a PB from MRAM/ARAM
-bool ReadPB(u32 addr, PB_TYPE& pb)
+void ReadPB(u32 addr, PB_TYPE& pb)
 {
 	u16* dst = (u16*)&pb;
-	const u16* src = (const u16*)Memory::GetPointer(addr);
-	if (!src)
-		return false;
-
-	for (u32 i = 0; i < sizeof (pb) / sizeof (u16); ++i)
-		dst[i] = Common::swap16(src[i]);
-
-	return true;
+	Memory::CopyFromEmuSwapped<u16>(dst, addr, sizeof(pb));
 }
 
 // Write a PB back to MRAM/ARAM
-bool WritePB(u32 addr, const PB_TYPE& pb)
+void WritePB(u32 addr, const PB_TYPE& pb)
 {
 	const u16* src = (const u16*)&pb;
-	u16* dst = (u16*)Memory::GetPointer(addr);
-	if (!dst)
-		return false;
-
-	for (u32 i = 0; i < sizeof (pb) / sizeof (u16); ++i)
-		dst[i] = Common::swap16(src[i]);
-
-	return true;
+	Memory::CopyToEmuSwapped<u16>(addr, src, sizeof(pb));
 }
 
 #if 0

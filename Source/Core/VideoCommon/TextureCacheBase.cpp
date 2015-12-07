@@ -265,20 +265,23 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 						newconfig.height = h;
 						newconfig.rendertarget = true;
 						TCacheEntryBase* newentry = AllocateTexture(newconfig);
-						newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
-						newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
-						newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
-						newentry->frameCount = frameCount;
-						newentry->is_efb_copy = false;
-						srcrect.right = entry_to_update->config.width;
-						srcrect.bottom = entry_to_update->config.height;
-						dstrect.right = w;
-						dstrect.bottom = h;
-						newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
-						entry_to_update = newentry;
-						u64 key = iter_t->first;
-						iter_t = FreeTexture(iter_t);
-						textures_by_address.emplace(key, entry_to_update);
+						if (newentry)
+						{
+							newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
+							newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
+							newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
+							newentry->frameCount = frameCount;
+							newentry->is_efb_copy = false;
+							srcrect.right = entry_to_update->config.width;
+							srcrect.bottom = entry_to_update->config.height;
+							dstrect.right = w;
+							dstrect.bottom = h;
+							newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
+							entry_to_update = newentry;
+							u64 key = iter_t->first;
+							iter_t = FreeTexture(iter_t);
+							textures_by_address.emplace(key, entry_to_update);
+						}
 					}
 				}
 				srcrect.right = entry->config.width;
@@ -409,16 +412,22 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 		additional_mips_size += TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
 	}
 
-	// If we are recording a FifoLog, keep track of what memory we read.
-	// FifiRecorder does it's own memory modification tracking independant of the texture hashing below.
-	if (g_bRecordFifoData && !from_tmem)
-		FifoRecorder::GetInstance().UseMemory(address, texture_size + additional_mips_size, MemoryUpdate::TEXTURE_MAP);
-
 	const u8* src_data;
 	if (from_tmem)
 		src_data = &texMem[bpmem.tex[stage / 4].texImage1[stage % 4].tmem_even * TMEM_LINE_SIZE];
 	else
 		src_data = Memory::GetPointer(address);
+
+	if (!src_data)
+	{
+		ERROR_LOG(VIDEO, "Trying to use an invalid texture address 0x%8x", address);
+		return nullptr;
+	}
+
+	// If we are recording a FifoLog, keep track of what memory we read.
+	// FifiRecorder does it's own memory modification tracking independant of the texture hashing below.
+	if (g_bRecordFifoData && !from_tmem)
+		FifoRecorder::GetInstance().UseMemory(address, texture_size + additional_mips_size, MemoryUpdate::TEXTURE_MAP);
 
 	// TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data from the low tmem bank than it should)
 	base_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
@@ -538,15 +547,18 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 		config.layers = FramebufferManagerBase::GetEFBLayers();
 		TCacheEntryBase *decoded_entry = AllocateTexture(config);
 
-		decoded_entry->SetGeneralParameters(address, texture_size, full_format);
-		decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
-		decoded_entry->SetHashes(base_hash, full_hash);
-		decoded_entry->frameCount = FRAMECOUNT_INVALID;
-		decoded_entry->is_efb_copy = false;
+		if (decoded_entry)
+		{
+			decoded_entry->SetGeneralParameters(address, texture_size, full_format);
+			decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
+			decoded_entry->SetHashes(base_hash, full_hash);
+			decoded_entry->frameCount = FRAMECOUNT_INVALID;
+			decoded_entry->is_efb_copy = false;
 
-		g_texture_cache->ConvertTexture(decoded_entry, entry, &texMem[tlutaddr], (TlutFormat)tlutfmt);
-		textures_by_address.emplace((u64)address, decoded_entry);
-		return ReturnEntry(stage, decoded_entry);
+			g_texture_cache->ConvertTexture(decoded_entry, entry, &texMem[tlutaddr], (TlutFormat)tlutfmt);
+			textures_by_address.emplace((u64)address, decoded_entry);
+			return ReturnEntry(stage, decoded_entry);
+		}
 	}
 
 	// Search the texture cache for normal textures by hash
@@ -605,6 +617,21 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 		}
 	}
 
+	// how many levels the allocated texture shall have
+	const u32 texLevels = hires_tex ? (u32)hires_tex->m_levels.size() : tex_levels;
+
+	// create the entry/texture
+	TCacheEntryConfig config;
+	config.width = width;
+	config.height = height;
+	config.levels = texLevels;
+
+	TCacheEntryBase* entry = AllocateTexture(config);
+	GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
+
+	if (!entry)
+		return nullptr;
+
 	if (!hires_tex)
 	{
 		if (!(texformat == GX_TF_RGBA8 && from_tmem))
@@ -618,18 +645,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 			TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
 		}
 	}
-
-	// how many levels the allocated texture shall have
-	const u32 texLevels = hires_tex ? (u32)hires_tex->m_levels.size() : tex_levels;
-
-	// create the entry/texture
-	TCacheEntryConfig config;
-	config.width = width;
-	config.height = height;
-	config.levels = texLevels;
-
-	TCacheEntryBase* entry = AllocateTexture(config);
-	GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 
 	iter = textures_by_address.emplace((u64)address, entry);
 	if (g_ActiveConfig.iSafeTextureCache_ColorSamples == 0 ||
@@ -895,7 +910,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 		case 8: // R8
 			colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
 			cbufid = 15;
-			dstFormat |= _GX_TF_CTF;
+			dstFormat = GX_CTF_R8;
 			break;
 
 		case 2: // RA4
@@ -1032,8 +1047,11 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 		}
 	}
 
-	u32 blockH = TexDecoder_GetBlockHeightInTexels(dstFormat);
-	const u32 blockW = TexDecoder_GetBlockWidthInTexels(dstFormat);
+	// Get the base (in memory) format of this efb copy.
+	int baseFormat = TexDecoder_GetEfbCopyBaseFormat(dstFormat);
+
+	u32 blockH = TexDecoder_GetBlockHeightInTexels(baseFormat);
+	const u32 blockW = TexDecoder_GetBlockWidthInTexels(baseFormat);
 
 	// Round up source height to multiple of block size
 	u32 actualHeight = ROUND_UP(tex_h, blockH);
@@ -1043,7 +1061,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 	const u32 num_blocks_x = actualWidth / blockW;
 
 	// RGBA takes two cache lines per block; all others take one
-	const u32 bytes_per_block = dstFormat == GX_TF_RGBA8 ? 64 : 32;
+	const u32 bytes_per_block = baseFormat == GX_TF_RGBA8 ? 64 : 32;
 
 	u32 bytes_per_row = num_blocks_x * bytes_per_block;
 
@@ -1114,26 +1132,29 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
 		TCacheEntryBase* entry = AllocateTexture(config);
 
-		entry->SetGeneralParameters(dstAddr, 0, dstFormat);
-		entry->SetDimensions(tex_w, tex_h, 1);
-
-		entry->frameCount = FRAMECOUNT_INVALID;
-		entry->SetEfbCopy(dstStride);
-		entry->is_custom_tex = false;
-
-		entry->FromRenderTarget(dst, srcFormat, srcRect, scaleByHalf, cbufid, colmat);
-
-		u64 hash = entry->CalculateHash();
-		entry->SetHashes(hash, hash);
-
-		if (g_ActiveConfig.bDumpEFBTarget)
+		if (entry)
 		{
-			static int count = 0;
-			entry->Save(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-				count++), 0);
-		}
+			entry->SetGeneralParameters(dstAddr, 0, baseFormat);
+			entry->SetDimensions(tex_w, tex_h, 1);
 
-		textures_by_address.emplace((u64)dstAddr, entry);
+			entry->frameCount = FRAMECOUNT_INVALID;
+			entry->SetEfbCopy(dstStride);
+			entry->is_custom_tex = false;
+
+			entry->FromRenderTarget(dst, srcFormat, srcRect, scaleByHalf, cbufid, colmat);
+
+			u64 hash = entry->CalculateHash();
+			entry->SetHashes(hash, hash);
+
+			if (g_ActiveConfig.bDumpEFBTarget)
+			{
+				static int count = 0;
+				entry->Save(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+					count++), 0);
+			}
+
+			textures_by_address.emplace((u64)dstAddr, entry);
+		}
 	}
 }
 
@@ -1149,6 +1170,9 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::AllocateTexture(const TCach
 	else
 	{
 		entry = g_texture_cache->CreateTexture(config);
+		if (!entry)
+			return nullptr;
+
 		INCSTAT(stats.numTexturesCreated);
 	}
 

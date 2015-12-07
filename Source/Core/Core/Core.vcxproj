@@ -116,6 +116,7 @@
     <ClCompile Include="HW\DSPLLE\DSPLLETools.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPSymbols.cpp" />
     <ClCompile Include="HW\DVDInterface.cpp" />
+    <ClCompile Include="HW\DVDThread.cpp" />
     <ClCompile Include="HW\EXI.cpp" />
     <ClCompile Include="HW\EXI_Channel.cpp" />
     <ClCompile Include="HW\EXI_Device.cpp" />
@@ -327,6 +328,7 @@
     <ClInclude Include="HW\DSPLLE\DSPLLETools.h" />
     <ClInclude Include="HW\DSPLLE\DSPSymbols.h" />
     <ClInclude Include="HW\DVDInterface.h" />
+    <ClInclude Include="HW\DVDThread.h" />
     <ClInclude Include="HW\EXI.h" />
     <ClInclude Include="HW\EXI_Channel.h" />
     <ClInclude Include="HW\EXI_Device.h" />

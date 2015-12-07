@@ -10,7 +10,9 @@
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/l2cap.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteReal

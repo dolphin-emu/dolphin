@@ -22,26 +22,22 @@ InputConfig* GetConfig()
 
 void Shutdown()
 {
-	std::vector<ControllerEmu*>::const_iterator
-		i = s_config.controllers.begin(),
-		e = s_config.controllers.end();
-	for ( ; i!=e; ++i )
-		delete *i;
-	s_config.controllers.clear();
+	s_config.ClearControllers();
 
 	g_controller_interface.Shutdown();
 }
 
-// if plugin isn't initialized, init and load config
 void Initialize(void* const hwnd)
 {
-	if (s_config.controllers.empty())
+	if (s_config.ControllersNeedToBeCreated())
+	{
 		for (unsigned int i = 0; i < 4; ++i)
-			s_config.controllers.push_back(new GCKeyboard(i));
+			s_config.CreateController<GCKeyboard>(i);
+	}
 
 	g_controller_interface.Initialize(hwnd);
 
-	// load the saved controller config
+	// Load the saved controller config
 	s_config.LoadConfig(true);
 }
 
@@ -50,13 +46,13 @@ void LoadConfig()
 	s_config.LoadConfig(true);
 }
 
-void GetStatus(u8 _port, KeyboardStatus* _pKeyboardStatus)
+void GetStatus(u8 port, KeyboardStatus* keyboard_status)
 {
-	memset(_pKeyboardStatus, 0, sizeof(*_pKeyboardStatus));
-	_pKeyboardStatus->err = PAD_ERR_NONE;
+	memset(keyboard_status, 0, sizeof(*keyboard_status));
+	keyboard_status->err = PAD_ERR_NONE;
 
-	// get input
-	((GCKeyboard*)s_config.controllers[_port])->GetInput(_pKeyboardStatus);
+	// Get input
+	static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput(keyboard_status);
 }
 
 }

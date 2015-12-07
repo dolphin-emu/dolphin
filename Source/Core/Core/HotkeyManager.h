@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include "InputCommon/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
 
 enum Hotkey
@@ -61,6 +62,11 @@ enum Hotkey
 	HK_FREELOOK_ZOOM_IN,
 	HK_FREELOOK_ZOOM_OUT,
 	HK_FREELOOK_RESET,
+
+	HK_TOGGLE_STEREO_SBS,
+	HK_TOGGLE_STEREO_TAB,
+	HK_TOGGLE_STEREO_ANAGLYPH,
+	HK_TOGGLE_STEREO_3DVISION,
 
 	HK_DECREASE_DEPTH,
 	HK_INCREASE_DEPTH,

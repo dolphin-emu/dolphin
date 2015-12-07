@@ -244,40 +244,60 @@ bool AreMemoryBreakpointsActivated()
 #endif
 }
 
-static inline bool ValidCopyRange(u32 address, size_t size)
+static inline u8* GetPointerForRange(u32 address, size_t size)
 {
-	return (GetPointer(address) != nullptr &&
-	        GetPointer(address + u32(size)) != nullptr &&
-	        size < EXRAM_SIZE); // Make sure we don't have a range spanning seperate 2 banks
+	// Make sure we don't have a range spanning 2 separate banks
+	if (size >= EXRAM_SIZE)
+		return nullptr;
+
+	// Check that the beginning and end of the range are valid
+	u8* pointer = GetPointer(address);
+	if (!pointer || !GetPointer(address + u32(size) - 1))
+		return nullptr;
+
+	return pointer;
 }
 
 void CopyFromEmu(void* data, u32 address, size_t size)
 {
-	if (!ValidCopyRange(address, size))
+	if (size == 0)
+		return;
+
+	void* pointer = GetPointerForRange(address, size);
+	if (!pointer)
 	{
 		PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
 		return;
 	}
-	memcpy(data, GetPointer(address), size);
+	memcpy(data, pointer, size);
 }
 
 void CopyToEmu(u32 address, const void* data, size_t size)
 {
-	if (!ValidCopyRange(address, size))
+	if (size == 0)
+		return;
+
+	void* pointer = GetPointerForRange(address, size);
+	if (!pointer)
 	{
 		PanicAlert("Invalid range in CopyToEmu. %zx bytes to 0x%08x", size, address);
 		return;
 	}
-	memcpy(GetPointer(address), data, size);
+	memcpy(pointer, data, size);
 }
 
-void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
+void Memset(u32 address, u8 value, size_t size)
 {
-	u8* ptr = GetPointer(_Address);
-	if (ptr != nullptr)
+	if (size == 0)
+		return;
+
+	void* pointer = GetPointerForRange(address, size);
+	if (!pointer)
 	{
-		memset(ptr,_iValue,_iLength);
+		PanicAlert("Invalid range in Memset. %zx bytes at 0x%08x", size, address);
+		return;
 	}
+	memset(pointer, value, size);
 }
 
 std::string GetString(u32 em_address, size_t size)

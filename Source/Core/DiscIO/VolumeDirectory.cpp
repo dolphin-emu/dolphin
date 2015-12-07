@@ -17,7 +17,6 @@
 #include "Common/MathUtil.h"
 #include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
-#include "DiscIO/FileBlob.h"
 #include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDirectory.h"
@@ -124,11 +123,11 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
 		u64 fileOffset = _Offset - fileIter->first;
 		const std::string fileName = fileIter->second;
 
-		std::unique_ptr<PlainFileReader> reader(PlainFileReader::Create(fileName));
-		if (reader == nullptr)
+		File::IOFile file(fileName, "rb");
+		if (!file)
 			return false;
 
-		u64 fileSize = reader->GetDataSize();
+		u64 fileSize = file.GetSize();
 
 		FileMon::CheckFile(fileName, fileSize);
 
@@ -138,7 +137,9 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
 			if (_Length < fileBytes)
 				fileBytes = _Length;
 
-			if (!reader->Read(fileOffset, fileBytes, _pBuffer))
+			if (!file.Seek(fileOffset, SEEK_SET))
+				return false;
+			if (!file.ReadBytes(_pBuffer, fileBytes))
 				return false;
 
 			_Length  -= fileBytes;
