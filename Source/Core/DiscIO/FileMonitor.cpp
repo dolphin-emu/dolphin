@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -25,8 +26,8 @@
 namespace FileMon
 {
 
-static DiscIO::IVolume *OpenISO = nullptr;
-static DiscIO::IFileSystem *pFileSystem = nullptr;
+static std::unique_ptr<DiscIO::IVolume> s_open_iso;
+static std::unique_ptr<DiscIO::IFileSystem> s_filesystem;
 static std::string ISOFile = "", CurrentFile = "";
 static bool FileAccess = true;
 
@@ -61,26 +62,18 @@ bool IsSoundFile(const std::string& filename)
 void ReadFileSystem(const std::string& filename)
 {
 	// Should have an actual Shutdown procedure or something
-	if (OpenISO != nullptr)
-	{
-		delete OpenISO;
-		OpenISO = nullptr;
-	}
-	if (pFileSystem != nullptr)
-	{
-		delete pFileSystem;
-		pFileSystem = nullptr;
-	}
+	s_open_iso.reset();
+	s_filesystem.reset();
 
-	OpenISO = DiscIO::CreateVolumeFromFilename(filename);
-	if (!OpenISO)
+	s_open_iso = DiscIO::CreateVolumeFromFilename(filename);
+	if (!s_open_iso)
 		return;
 
-	if (OpenISO->GetVolumeType() != DiscIO::IVolume::WII_WAD)
+	if (s_open_iso->GetVolumeType() != DiscIO::IVolume::WII_WAD)
 	{
-		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
+		s_filesystem = DiscIO::CreateFileSystem(s_open_iso.get());
 
-		if (!pFileSystem)
+		if (!s_filesystem)
 			return;
 	}
 
@@ -130,7 +123,7 @@ void FindFilename(u64 offset)
 	if (!FileAccess)
 		return;
 
-	if (!pFileSystem || ISOFile != SConfig::GetInstance().m_LastFilename)
+	if (!s_filesystem || ISOFile != SConfig::GetInstance().m_LastFilename)
 	{
 		FileAccess = false;
 		ReadFileSystem(SConfig::GetInstance().m_LastFilename);
@@ -139,27 +132,18 @@ void FindFilename(u64 offset)
 		return;
 	}
 
-	const std::string filename = pFileSystem->GetFileName(offset);
+	const std::string filename = s_filesystem->GetFileName(offset);
 
 	if (filename.empty())
 		return;
 
-	CheckFile(filename, pFileSystem->GetFileSize(filename));
+	CheckFile(filename, s_filesystem->GetFileSize(filename));
 }
 
 void Close()
 {
-	if (OpenISO != nullptr)
-	{
-		delete OpenISO;
-		OpenISO = nullptr;
-	}
-
-	if (pFileSystem != nullptr)
-	{
-		delete pFileSystem;
-		pFileSystem = nullptr;
-	}
+	s_open_iso.reset();
+	s_filesystem.reset();
 
 	ISOFile = "";
 	CurrentFile = "";

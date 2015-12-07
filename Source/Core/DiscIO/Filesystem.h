@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -57,6 +56,6 @@ protected:
 	const IVolume *m_rVolume;
 };
 
-IFileSystem* CreateFileSystem(const IVolume *_rVolume);
+std::unique_ptr<IFileSystem> CreateFileSystem(const IVolume* volume);
 
 } // namespace

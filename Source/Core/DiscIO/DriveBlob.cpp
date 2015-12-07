@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -84,15 +85,12 @@ DriveReader::~DriveReader()
 #endif
 }
 
-DriveReader* DriveReader::Create(const std::string& drive)
+std::unique_ptr<DriveReader> DriveReader::Create(const std::string& drive)
 {
-	DriveReader* reader = new DriveReader(drive);
+	auto reader = std::unique_ptr<DriveReader>(new DriveReader(drive));
 
 	if (!reader->IsOK())
-	{
-		delete reader;
-		return nullptr;
-	}
+		reader.reset();
 
 	return reader;
 }

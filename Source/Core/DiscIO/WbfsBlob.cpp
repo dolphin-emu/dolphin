@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -167,19 +168,14 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
 	return m_files[0]->file;
 }
 
-WbfsFileReader* WbfsFileReader::Create(const std::string& filename)
+std::unique_ptr<WbfsFileReader> WbfsFileReader::Create(const std::string& filename)
 {
-	WbfsFileReader* reader = new WbfsFileReader(filename);
+	auto reader = std::unique_ptr<WbfsFileReader>(new WbfsFileReader(filename));
 
-	if (reader->IsGood())
-	{
-		return reader;
-	}
-	else
-	{
-		delete reader;
-		return nullptr;
-	}
+	if (!reader->IsGood())
+		reader.reset();
+
+	return reader;
 }
 
 bool IsWbfsBlob(const std::string& filename)

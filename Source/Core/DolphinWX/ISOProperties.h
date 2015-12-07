@@ -80,8 +80,8 @@ public:
 private:
 	DECLARE_EVENT_TABLE();
 
-	DiscIO::IVolume *OpenISO;
-	DiscIO::IFileSystem *pFileSystem;
+	std::unique_ptr<DiscIO::IVolume> m_open_iso;
+	std::unique_ptr<DiscIO::IFileSystem> m_filesystem;
 
 	std::vector<PatchEngine::Patch> onFrame;
 	std::vector<ActionReplay::ARCode> arCodes;

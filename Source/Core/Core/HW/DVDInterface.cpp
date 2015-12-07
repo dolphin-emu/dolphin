@@ -429,14 +429,14 @@ const DiscIO::IVolume& GetVolume()
 bool SetVolumeName(const std::string& disc_path)
 {
 	DVDThread::WaitUntilIdle();
-	s_inserted_volume = std::unique_ptr<DiscIO::IVolume>(DiscIO::CreateVolumeFromFilename(disc_path));
+	s_inserted_volume = DiscIO::CreateVolumeFromFilename(disc_path);
 	return VolumeIsValid();
 }
 
 bool SetVolumeDirectory(const std::string& full_path, bool is_wii, const std::string& apploader_path, const std::string& DOL_path)
 {
 	DVDThread::WaitUntilIdle();
-	s_inserted_volume = std::unique_ptr<DiscIO::IVolume>(DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, DOL_path));
+	s_inserted_volume = DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, DOL_path);
 	return VolumeIsValid();
 }
 

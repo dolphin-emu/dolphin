@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -29,17 +30,15 @@ CISOFileReader::CISOFileReader(std::FILE* file)
 		m_ciso_map[idx] = (1 == header.map[idx]) ? count++ : UNUSED_BLOCK_ID;
 }
 
-CISOFileReader* CISOFileReader::Create(const std::string& filename)
+std::unique_ptr<CISOFileReader> CISOFileReader::Create(const std::string& filename)
 {
 	if (IsCISOBlob(filename))
 	{
 		File::IOFile f(filename, "rb");
-		return new CISOFileReader(f.ReleaseHandle());
+		return std::unique_ptr<CISOFileReader>(new CISOFileReader(f.ReleaseHandle()));
 	}
-	else
-	{
-		return nullptr;
-	}
+
+	return nullptr;
 }
 
 u64 CISOFileReader::GetDataSize() const
