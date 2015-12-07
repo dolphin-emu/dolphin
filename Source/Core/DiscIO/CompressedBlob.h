@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -46,7 +47,7 @@ struct CompressedBlobHeader // 32 bytes
 class CompressedBlobReader : public SectorReader
 {
 public:
-	static CompressedBlobReader* Create(const std::string& filename);
+	static std::unique_ptr<CompressedBlobReader> Create(const std::string& filename);
 	~CompressedBlobReader();
 	const CompressedBlobHeader &GetHeader() const { return m_header; }
 	BlobType GetBlobType() const override { return BlobType::GCZ; }

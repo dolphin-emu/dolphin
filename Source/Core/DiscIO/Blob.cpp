@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <memory>
 #include <string>
 
 #include "Common/CDUtils.h"
@@ -114,7 +115,7 @@ bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *
 	return true;
 }
 
-IBlobReader* CreateBlobReader(const std::string& filename)
+std::unique_ptr<IBlobReader> CreateBlobReader(const std::string& filename)
 {
 	if (cdio_is_cdrom(filename))
 		return DriveReader::Create(filename);

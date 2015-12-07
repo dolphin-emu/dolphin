@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -17,7 +18,9 @@ namespace DiscIO
 class WbfsFileReader : public IBlobReader
 {
 public:
-	static WbfsFileReader* Create(const std::string& filename);
+	~WbfsFileReader();
+
+	static std::unique_ptr<WbfsFileReader> Create(const std::string& filename);
 
 	BlobType GetBlobType() const override { return BlobType::WBFS; }
 
@@ -31,7 +34,6 @@ public:
 
 private:
 	WbfsFileReader(const std::string& filename);
-	~WbfsFileReader();
 
 	bool OpenFiles(const std::string& filename);
 	bool ReadHeader();

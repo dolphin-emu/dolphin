@@ -55,12 +55,12 @@ CompressedBlobReader::CompressedBlobReader(const std::string& filename) : m_file
 	memset(m_zlib_buffer, 0, m_zlib_buffer_size);
 }
 
-CompressedBlobReader* CompressedBlobReader::Create(const std::string& filename)
+std::unique_ptr<CompressedBlobReader> CompressedBlobReader::Create(const std::string& filename)
 {
 	if (IsGCZBlob(filename))
-		return new CompressedBlobReader(filename);
-	else
-		return nullptr;
+		return std::unique_ptr<CompressedBlobReader>(new CompressedBlobReader(filename));
+
+	return nullptr;
 }
 
 CompressedBlobReader::~CompressedBlobReader()

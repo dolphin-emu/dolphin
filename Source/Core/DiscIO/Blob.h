@@ -14,6 +14,7 @@
 // detect whether the file is a compressed blob, or just a big hunk of data, or a drive, and
 // automatically do the right thing.
 
+#include <memory>
 #include <string>
 #include "Common/CommonTypes.h"
 
@@ -75,7 +76,7 @@ private:
 };
 
 // Factory function - examines the path to choose the right type of IBlobReader, and returns one.
-IBlobReader* CreateBlobReader(const std::string& filename);
+std::unique_ptr<IBlobReader> CreateBlobReader(const std::string& filename);
 
 typedef bool (*CompressCB)(const std::string& text, float percent, void* arg);
 
