@@ -36,11 +36,11 @@ namespace DolphinWatch {
 	static CFrame* main_frame;
 
 	WiimoteEmu::Wiimote* GetWiimote(int i_wiimote) {
-		return ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->controllers.at(i_wiimote));
+		return ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->GetController(i_wiimote));
 	}
 
 	GCPad* GetGCPad(int i_pad) {
-		return ((GCPad*)Pad::GetConfig()->controllers.at(i_pad));
+		return ((GCPad*)Pad::GetConfig()->GetController(i_pad));
 	}
 
 	void SendButtonsWii(int i_wiimote, u16 _buttons) {
@@ -636,6 +636,7 @@ namespace DolphinWatch {
 	}
 
 	void Send(sf::TcpSocket& socket, string& message) {
+		//NOTICE_LOG(CONSOLE, "SENDING %s", message.c_str());
 		socket.send(message.c_str(), message.size());
 	}
 
