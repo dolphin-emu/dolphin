@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
 #include <jni.h>
@@ -9,14 +10,16 @@
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include <EGL/egl.h>
-#include "../DiscIO/Volume.h"
+
 #include "Android/ButtonManager.h"
+
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
+
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -27,6 +30,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
 #include "UICommon/UICommon.h"
@@ -327,7 +331,9 @@ static u64 GetFileSize(std::string filename)
 	if (volume == nullptr)
 		return -1;
 
-	return volume->GetSize();
+	u64 size = volume->GetSize();
+	__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Size: %" PRIu64, size);
+	return size;
 }
 
 static std::string GetJString(JNIEnv *env, jstring jstr)
