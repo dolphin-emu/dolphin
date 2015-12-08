@@ -305,6 +305,11 @@ Wiimote::Wiimote(const unsigned int index)
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Speaker Pan"), 0, -127, 127));
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Battery"), 95.0 / 100, 0, 255));
 
+	// hotkeys
+	groups.emplace_back(m_hotkeys = new Buttons(_trans("Hotkeys")));
+	m_hotkeys->controls.emplace_back(new ControlGroup::Input(_trans("Sideways Wiimote")));
+	m_hotkeys->controls.emplace_back(new ControlGroup::Input(_trans("Upright Wiimote")));
+
 	// TODO: This value should probably be re-read if SYSCONF gets changed
 	m_sensor_bar_on_top = SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR") != 0;
 
@@ -629,6 +634,8 @@ void Wiimote::Update()
 	if (Step())
 		return;
 
+	static ControlState s_sideways_toggle_last = 0.0, s_upright_toggle_last = 0.0;
+
 	u8 data[MAX_PAYLOAD];
 	memset(data, 0, sizeof(data));
 
@@ -741,6 +748,18 @@ void Wiimote::Update()
 				}
 			}
 		}
+
+		const ControlState sideways_toggle_pressed = m_hotkeys->controls[0]->control_ref->State();
+		const ControlState upright_toggle_pressed = m_hotkeys->controls[1]->control_ref->State();
+
+		if (sideways_toggle_pressed > s_sideways_toggle_last)
+			m_options->settings[1]->value = !(m_options->settings[1]->value);
+
+		if (upright_toggle_pressed > s_upright_toggle_last)
+			m_options->settings[2]->value = !(m_options->settings[2]->value);
+		
+		s_sideways_toggle_last = sideways_toggle_pressed;
+		s_upright_toggle_last = upright_toggle_pressed;
 
 		Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension, m_ext_key);
 	}
