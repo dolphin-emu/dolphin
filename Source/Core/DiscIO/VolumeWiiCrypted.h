@@ -7,7 +7,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 #include <mbedtls/aes.h>
 
 #include "Common/CommonTypes.h"
@@ -46,8 +45,6 @@ public:
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
 
-
-
 private:
 	static const unsigned int s_block_header_size = 0x0400;
 	static const unsigned int s_block_data_size   = 0x7C00;
@@ -55,8 +52,6 @@ private:
 
 	std::unique_ptr<IBlobReader> m_pReader;
 	std::unique_ptr<mbedtls_aes_context> m_AES_ctx;
-
-	u8* m_pBuffer;
 
 	u64 m_VolumeOffset;
 	u64 m_dataOffset;
