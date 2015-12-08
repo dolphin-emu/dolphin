@@ -40,7 +40,7 @@ void AdvancedConfigPane::InitializeGUI()
 	clock_override_description->Wrap(400);
 
 	wxBoxSizer* const clock_override_checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-	clock_override_checkbox_sizer->Add(m_clock_override_checkbox);
+	clock_override_checkbox_sizer->Add(m_clock_override_checkbox, 1, wxALL, 5);
 
 	wxBoxSizer* const clock_override_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
 	clock_override_slider_sizer->Add(m_clock_override_slider, 1, wxALL, 5);
