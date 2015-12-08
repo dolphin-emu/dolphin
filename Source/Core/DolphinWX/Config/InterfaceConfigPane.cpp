@@ -7,6 +7,7 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/gbsizer.h>
 #include <wx/language.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -116,22 +117,18 @@ void InterfaceConfigPane::InitializeGUI()
 	m_pause_focus_lost_checkbox->SetToolTip(_("Pauses the emulator when focus is taken away from the emulation window."));
 	m_interface_lang_choice->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
-	wxBoxSizer* const language_sizer = new wxBoxSizer(wxHORIZONTAL);
-	language_sizer->Add(new wxStaticText(this, wxID_ANY, _("Language:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	language_sizer->Add(m_interface_lang_choice, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-
-	wxBoxSizer* const theme_sizer = new wxBoxSizer(wxHORIZONTAL);
-	theme_sizer->Add(new wxStaticText(this, wxID_ANY, _("Theme:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	theme_sizer->Add(m_theme_choice, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	theme_sizer->AddStretchSpacer();
+	wxGridBagSizer* const language_and_theme_grid_sizer = new wxGridBagSizer();
+	language_and_theme_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Language:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	language_and_theme_grid_sizer->Add(m_interface_lang_choice, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+	language_and_theme_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Theme:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	language_and_theme_grid_sizer->Add(m_theme_choice, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
 
 	wxStaticBoxSizer* const main_static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Interface Settings"));
 	main_static_box_sizer->Add(m_confirm_stop_checkbox, 0, wxALL, 5);
 	main_static_box_sizer->Add(m_panic_handlers_checkbox, 0, wxALL, 5);
 	main_static_box_sizer->Add(m_osd_messages_checkbox, 0, wxALL, 5);
 	main_static_box_sizer->Add(m_pause_focus_lost_checkbox, 0, wxALL, 5);
-	main_static_box_sizer->Add(theme_sizer, 0, wxEXPAND | wxALL, 5);
-	main_static_box_sizer->Add(language_sizer, 0, wxEXPAND | wxALL, 5);
+	main_static_box_sizer->Add(language_and_theme_grid_sizer, 0, wxEXPAND | wxALL, 0);
 
 	wxBoxSizer* const main_box_sizer = new wxBoxSizer(wxVERTICAL);
 	main_box_sizer->Add(main_static_box_sizer, 0, wxEXPAND | wxALL, 5);
