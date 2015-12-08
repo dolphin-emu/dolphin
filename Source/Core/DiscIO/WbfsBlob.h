@@ -49,7 +49,7 @@ private:
 		u64 size;
 	};
 
-	std::vector<file_entry*> m_files;
+	std::vector<std::unique_ptr<file_entry>> m_files;
 
 	u32 m_total_files;
 	u64 m_size;
@@ -71,7 +71,7 @@ private:
 	} m_header;
 #pragma pack()
 
-	u16* m_wlba_table;
+	std::vector<u16> m_wlba_table;
 	u64 m_blocks_per_disc;
 
 	bool m_good;

@@ -29,7 +29,7 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	: m_totalNameSize(0)
 	, m_dataStartAddress(-1)
 	, m_diskHeader(DISKHEADERINFO_ADDRESS)
-	, m_diskHeaderInfo(new SDiskHeaderInfo())
+	, m_diskHeaderInfo(std::make_unique<SDiskHeaderInfo>())
 	, m_fst_address(0)
 	, m_dol_address(0)
 {

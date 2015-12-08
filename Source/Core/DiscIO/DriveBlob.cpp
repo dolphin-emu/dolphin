@@ -2,10 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -33,16 +35,14 @@ DriveReader::DriveReader(const std::string& drive)
 		// Do a test read to make sure everything is OK, since it seems you can get
 		// handles to empty drives.
 		DWORD not_used;
-		u8 *buffer = new u8[m_blocksize];
-		if (!ReadFile(m_disc_handle, buffer, m_blocksize, (LPDWORD)&not_used, nullptr))
+		std::vector<u8> buffer(m_blocksize);
+		if (!ReadFile(m_disc_handle, buffer.data(), m_blocksize, &not_used, nullptr))
 		{
-			delete [] buffer;
 			// OK, something is wrong.
 			CloseHandle(m_disc_handle);
 			m_disc_handle = INVALID_HANDLE_VALUE;
 			return;
 		}
-		delete [] buffer;
 
 	#ifdef _LOCKDRIVE // Do we want to lock the drive?
 		// Lock the compact disc in the CD-ROM drive to prevent accidental
@@ -97,32 +97,33 @@ std::unique_ptr<DriveReader> DriveReader::Create(const std::string& drive)
 
 void DriveReader::GetBlock(u64 block_num, u8* out_ptr)
 {
-	u8* const lpSector = new u8[m_blocksize];
+	std::vector<u8> sector(m_blocksize);
+
 #ifdef _WIN32
-	u32 NotUsed;
 	u64 offset = m_blocksize * block_num;
 	LONG off_low = (LONG)offset & 0xFFFFFFFF;
 	LONG off_high = (LONG)(offset >> 32);
+	DWORD not_used;
 	SetFilePointer(m_disc_handle, off_low, &off_high, FILE_BEGIN);
-	if (!ReadFile(m_disc_handle, lpSector, m_blocksize, (LPDWORD)&NotUsed, nullptr))
+	if (!ReadFile(m_disc_handle, sector.data(), m_blocksize, &not_used, nullptr))
 		PanicAlertT("Disc Read Error");
 #else
 	m_file.Seek(m_blocksize * block_num, SEEK_SET);
-	m_file.ReadBytes(lpSector, m_blocksize);
+	m_file.ReadBytes(sector.data(), m_blocksize);
 #endif
-	memcpy(out_ptr, lpSector, m_blocksize);
-	delete[] lpSector;
+
+	std::copy(sector.begin(), sector.end(), out_ptr);
 }
 
 bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* out_ptr)
 {
 #ifdef _WIN32
-	u32 NotUsed;
 	u64 offset = m_blocksize * block_num;
 	LONG off_low = (LONG)offset & 0xFFFFFFFF;
 	LONG off_high = (LONG)(offset >> 32);
+	DWORD not_used;
 	SetFilePointer(m_disc_handle, off_low, &off_high, FILE_BEGIN);
-	if (!ReadFile(m_disc_handle, out_ptr, (DWORD)(m_blocksize * num_blocks), (LPDWORD)&NotUsed, nullptr))
+	if (!ReadFile(m_disc_handle, out_ptr, (DWORD)(m_blocksize * num_blocks), &not_used, nullptr))
 	{
 		PanicAlertT("Disc Read Error");
 		return false;

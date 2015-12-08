@@ -16,6 +16,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -59,13 +60,12 @@ private:
 	CompressedBlobReader(const std::string& filename);
 
 	CompressedBlobHeader m_header;
-	u64* m_block_pointers;
-	u32* m_hashes;
+	std::vector<u64> m_block_pointers;
+	std::vector<u32> m_hashes;
 	int m_data_offset;
 	File::IOFile m_file;
 	u64 m_file_size;
-	u8* m_zlib_buffer;
-	int m_zlib_buffer_size;
+	std::vector<u8> m_zlib_buffer;
 	std::string m_file_name;
 };
 

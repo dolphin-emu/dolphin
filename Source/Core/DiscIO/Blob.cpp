@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -26,35 +27,26 @@ namespace DiscIO
 
 void SectorReader::SetSectorSize(int blocksize)
 {
-	for (int i = 0; i < CACHE_SIZE; i++)
-	{
-		m_cache[i] = new u8[blocksize];
-		m_cache_tags[i] = (u64)(s64) - 1;
-	}
+	for (auto& cache_entry : m_cache)
+		cache_entry.resize(blocksize);
+
+	m_cache_tags.fill(std::numeric_limits<u64>::max());
 	m_blocksize = blocksize;
 }
 
 SectorReader::~SectorReader()
 {
-	for (u8*& block : m_cache)
-	{
-		delete [] block;
-	}
 }
 
-const u8 *SectorReader::GetBlockData(u64 block_num)
+const std::vector<u8>& SectorReader::GetBlockData(u64 block_num)
 {
 	// TODO : Expand usage of the cache to more than one block :P
 	if (m_cache_tags[0] == block_num)
-	{
 		return m_cache[0];
-	}
-	else
-	{
-		GetBlock(block_num, m_cache[0]);
-		m_cache_tags[0] = block_num;
-		return m_cache[0];
-	}
+
+	GetBlock(block_num, m_cache[0].data());
+	m_cache_tags[0] = block_num;
+	return m_cache[0];
 }
 
 bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
@@ -78,22 +70,20 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 			continue;
 		}
 
-		const u8* data = GetBlockData(block);
-		if (!data)
-			return false;
+		const std::vector<u8>& data = GetBlockData(block);
 
-		u32 toCopy = m_blocksize - positionInBlock;
-		if (toCopy >= remain)
+		u32 to_copy = m_blocksize - positionInBlock;
+		if (to_copy >= remain)
 		{
 			// Yay, we are done!
-			memcpy(out_ptr, data + positionInBlock, (size_t)remain);
+			std::copy(data.begin() + positionInBlock, data.begin() + positionInBlock + remain, out_ptr);
 			return true;
 		}
 		else
 		{
-			memcpy(out_ptr, data + positionInBlock, toCopy);
-			out_ptr += toCopy;
-			remain -= toCopy;
+			std::copy(data.begin() + positionInBlock, data.begin() + positionInBlock + to_copy, out_ptr);
+			out_ptr += to_copy;
+			remain -= to_copy;
 			positionInBlock = 0;
 			block++;
 		}
@@ -102,14 +92,14 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 	return true;
 }
 
-bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr)
+bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* out_ptr)
 {
 	for (u64 i = 0; i < num_blocks; i++)
 	{
-		const u8 *data = GetBlockData(block_num + i);
-		if (!data)
-			return false;
-		memcpy(out_ptr + i * m_blocksize, data, m_blocksize);
+		const std::vector<u8>& data = GetBlockData(block_num + i);
+		const u64 offset = i * m_blocksize;
+
+		std::copy(data.begin(), data.end(), out_ptr + offset);
 	}
 
 	return true;
