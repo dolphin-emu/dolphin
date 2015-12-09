@@ -329,6 +329,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	u32 b = inst.FB, d = inst.FD;
 
