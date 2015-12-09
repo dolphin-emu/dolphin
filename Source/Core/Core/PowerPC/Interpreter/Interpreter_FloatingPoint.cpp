@@ -280,6 +280,9 @@ void Interpreter::frspx(UGeckoInstruction inst)  // round to single
 	FPSCR.FR = fabs(rounded) > fabs(b);
 	UpdateFPRF(rounded);
 	rPS0(inst.FD) = rPS1(inst.FD) = rounded;
+
+	if (inst.Rc)
+		Helper_UpdateCR1();
 }
 
 
