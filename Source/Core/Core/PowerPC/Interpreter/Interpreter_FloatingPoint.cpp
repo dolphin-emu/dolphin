@@ -172,7 +172,7 @@ void Interpreter::fctiwx(UGeckoInstruction _inst)
 	// based on HW tests
 	// FPRF is not affected
 	riPS0(_inst.FD) = 0xfff8000000000000ull | value;
-	if (value == 0 && ( (*(u64*)&b) & DOUBLE_SIGN ))
+	if (value == 0 && std::signbit(b))
 		riPS0(_inst.FD) |= 0x100000000ull;
 	if (_inst.Rc)
 		Helper_UpdateCR1();
@@ -218,7 +218,7 @@ void Interpreter::fctiwzx(UGeckoInstruction _inst)
 	// based on HW tests
 	// FPRF is not affected
 	riPS0(_inst.FD) = 0xfff8000000000000ull | value;
-	if (value == 0 && ( (*(u64*)&b) & DOUBLE_SIGN ))
+	if (value == 0 && std::signbit(b))
 		riPS0(_inst.FD) |= 0x100000000ull;
 	if (_inst.Rc)
 		Helper_UpdateCR1();
