@@ -350,53 +350,42 @@ void JitArm64::fcmpx(UGeckoInstruction inst)
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 
-	ARM64Reg WA = gpr.GetReg();
-	ARM64Reg XA = EncodeRegTo64(WA);
-
-	FixupBranch pNaN1, pNaN2, pNaN3, pLesser, pGreater;
+	FixupBranch pLesser, pGreater, 
 	FixupBranch continue1, continue2, continue3;
-	ORR(XA, ZR, 32, 0, true);
 
 	if (a != b)
 	{
 		m_float_emit.FCMP(EncodeRegToDouble(VA), EncodeRegToDouble(VA));
 
 		// if (B != B) or (A != A), goto NaN's jump target
-		pNaN1 = B(CC_NEQ);
+		FALLBACK_IF(CC_NEQ);
 
 		m_float_emit.FCMP(EncodeRegToDouble(VB), EncodeRegToDouble(VB));
 
-		pNaN2 = B(CC_NEQ);
+		FALLBACK_IF(CC_NEQ);
 	}
 
 	m_float_emit.FCMP(EncodeRegToDouble(VA), EncodeRegToDouble(VB));
 
 	if (a == b)
-		pNaN3 = B(CC_NEQ);
+		FALLBACK_IF(CC_NEQ);
+
+	ARM64Reg WA = gpr.GetReg();
+	ARM64Reg XA = EncodeRegTo64(WA);
+
+	ORR(XA, ZR, 32, 0, true);
 
 	if (a != b)
 	{
 		// if B > A goto Greater's jump target
 		pGreater = B(CC_GT);
 		// if B < A, goto Lesser's jump target
-		pLesser = B(CC_MI);
+		pLesser = B(CC_LT);
 	}
 
 	ORR(XA, XA, 64 - 63, 0, true);
+
 	continue1 = B();
-
-	if (a != b)
-	{
-		SetJumpTarget(pNaN1);
-		SetJumpTarget(pNaN2);
-	}
-	else
-	{
-		SetJumpTarget(pNaN3);
-	}
-
-	ORR(XA, XA, 64 - 61, 0, true);
-	ORR(XA, XA, 0, 0, true);
 
 	if (a != b)
 	{
@@ -408,11 +397,11 @@ void JitArm64::fcmpx(UGeckoInstruction inst)
 		continue3 = B();
 
 		SetJumpTarget(pLesser);
-		ORR(XA, XA, 64 - 62, 1, true);
-		ORR(XA, XA, 0, 0, true);
+		ORR(XA, XA, 64 - 62, 0, true);
 	}
 
 	SetJumpTarget(continue1);
+
 	if (a != b)
 	{
 		SetJumpTarget(continue2);
@@ -444,6 +433,7 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 	m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
 	m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), ROUND_Z);
 	m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
+
 	fpr.Unlock(V0);
 }
 
