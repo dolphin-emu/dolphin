@@ -35,6 +35,7 @@ void JitArm64::ps_add(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
 
@@ -51,6 +52,7 @@ void JitArm64::ps_div(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
 
@@ -67,6 +69,7 @@ void JitArm64::ps_madd(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
@@ -88,6 +91,7 @@ void JitArm64::ps_madds0(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
@@ -110,6 +114,7 @@ void JitArm64::ps_madds1(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
@@ -222,6 +227,7 @@ void JitArm64::ps_mul(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
 
@@ -238,6 +244,7 @@ void JitArm64::ps_muls0(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
 
@@ -257,6 +264,7 @@ void JitArm64::ps_muls1(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
 
@@ -276,6 +284,7 @@ void JitArm64::ps_msub(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
@@ -326,6 +335,7 @@ void JitArm64::ps_nmadd(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
@@ -348,6 +358,7 @@ void JitArm64::ps_nmsub(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
@@ -370,6 +381,7 @@ void JitArm64::ps_res(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 b = inst.FB, d = inst.FD;
 
@@ -413,6 +425,7 @@ void JitArm64::ps_sub(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
 
@@ -429,6 +442,7 @@ void JitArm64::ps_sum0(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
@@ -459,6 +473,7 @@ void JitArm64::ps_sum1(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
