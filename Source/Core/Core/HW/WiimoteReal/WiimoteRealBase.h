@@ -53,11 +53,11 @@
 #define WIIMOTE_DEFAULT_TIMEOUT  1000
 
 #ifdef _WIN32
-// Available bluetooth stacks for Windows.
-enum win_bt_stack_t
+// Different methods to send data Wiimote on Windows depending on OS and Bluetooth Stack
+enum WinWriteMethod
 {
-	MSBT_STACK_UNKNOWN,
-	MSBT_STACK_MS,
-	MSBT_STACK_BLUESOLEIL
+	WWM_WRITE_FILE_LARGEST_REPORT_SIZE,
+	WWM_WRITE_FILE_ACTUAL_REPORT_SIZE,
+	WWM_SET_OUTPUT_REPORT
 };
 #endif
