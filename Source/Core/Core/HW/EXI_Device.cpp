@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/ChunkFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -89,54 +91,54 @@ public:
 
 
 // F A C T O R Y
-IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
+std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 {
-	IEXIDevice* result = nullptr;
+	std::unique_ptr<IEXIDevice> result;
 
 	switch (device_type)
 	{
 	case EXIDEVICE_DUMMY:
-		result = new CEXIDummy("Dummy");
+		result = std::make_unique<CEXIDummy>("Dummy");
 		break;
 
 	case EXIDEVICE_MEMORYCARD:
 	case EXIDEVICE_MEMORYCARDFOLDER:
 	{
 		bool gci_folder = (device_type == EXIDEVICE_MEMORYCARDFOLDER);
-		result = new CEXIMemoryCard(channel_num, gci_folder);
+		result = std::make_unique<CEXIMemoryCard>(channel_num, gci_folder);
 		break;
 	}
 	case EXIDEVICE_MASKROM:
-		result = new CEXIIPL();
+		result = std::make_unique<CEXIIPL>();
 		break;
 
 	case EXIDEVICE_AD16:
-		result = new CEXIAD16();
+		result = std::make_unique<CEXIAD16>();
 		break;
 
 	case EXIDEVICE_MIC:
-		result = new CEXIMic(channel_num);
+		result = std::make_unique<CEXIMic>(channel_num);
 		break;
 
 	case EXIDEVICE_ETH:
-		result = new CEXIETHERNET();
+		result = std::make_unique<CEXIETHERNET>();
 		break;
 
 	case EXIDEVICE_AM_BASEBOARD:
-		result = new CEXIAMBaseboard();
+		result = std::make_unique<CEXIAMBaseboard>();
 		break;
 
 	case EXIDEVICE_GECKO:
-		result = new CEXIGecko();
+		result = std::make_unique<CEXIGecko>();
 		break;
 
 	case EXIDEVICE_AGP:
-		result = new CEXIAgp(channel_num);
+		result = std::make_unique<CEXIAgp>(channel_num);
 		break;
 
 	case EXIDEVICE_NONE:
 	default:
-		result = new IEXIDevice();
+		result = std::make_unique<IEXIDevice>();
 		break;
 	}
 
