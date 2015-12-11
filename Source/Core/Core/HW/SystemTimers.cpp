@@ -197,12 +197,12 @@ static void ThrottleCallback(u64 last_time, int cyclesLate)
 	const SConfig& config = SConfig::GetInstance();
 	bool frame_limiter = config.m_Framelimit && !Core::GetIsFramelimiterTempDisabled();
 	u32 next_event = GetTicksPerSecond()/1000;
-	if (SConfig::GetInstance().m_Framelimit > 1)
+	if (config.m_Framelimit > 1)
 	{
-		next_event = next_event * (SConfig::GetInstance().m_Framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
+		next_event = next_event * (config.m_Framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
 	}
 
-	const int max_fallback = 40; // 40 ms for one frame on 25 fps games
+	const int max_fallback = config.iTimingVariance;
 	if (frame_limiter && abs(diff) > max_fallback)
 	{
 		DEBUG_LOG(COMMON, "system too %s, %d ms skipped", diff<0 ? "slow" : "fast", abs(diff) - max_fallback);
