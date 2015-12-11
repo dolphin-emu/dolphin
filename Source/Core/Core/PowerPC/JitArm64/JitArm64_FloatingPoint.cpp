@@ -350,7 +350,7 @@ void JitArm64::fcmpx(UGeckoInstruction inst)
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 
-	FixupBranch pLesser, pGreater, 
+	FixupBranch pLesser, pGreater;
 	FixupBranch continue1, continue2, continue3;
 
 	if (a != b)
