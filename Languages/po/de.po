@@ -100,7 +100,7 @@ msgstr ""
 "wurde nicht geladen, da der interne Dateiname mit der bereits geladenen "
 "Datei\n"
 "%s\n"
-"ident ist."
+"identisch ist."
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:88
 #, c-format
@@ -110,6 +110,10 @@ msgid ""
 " File size (0x%<PRIx64>) does not match the size recorded in the header (0x"
 "%x)"
 msgstr ""
+"%s\n"
+"wurde nicht geladen, da GCI ungültig ist..\n"
+" Dateigröße (0x%<PRIx64>) stimmt nicht mit der vom Header aufgezeichneten überein (0x"
+"%x)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:79
 #, fuzzy, c-format
@@ -122,7 +126,7 @@ msgstr ""
 "wurde nicht geladen, da der interne Dateiname mit der bereits geladenen "
 "Datei\n"
 "%s\n"
-"ident ist."
+"identisch ist."
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:118
 #, fuzzy, c-format
@@ -202,6 +206,8 @@ msgid ""
 "%s is not a directory, failed to move to *.original.\n"
 " Verify your write permissions or move the file outside of Dolphin"
 msgstr ""
+"%s ist kein Verzeichnis. *.original konnte nicht verschoben werden.\n"
+" Überprüfen deine Schreibrechte oder verschieben Sie die Datei in einen Verzeichnis außerhalb von Dolphin"
 
 #: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:214
 #, c-format
@@ -242,7 +248,7 @@ msgstr "&Audioeinstellungen"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:132
 msgid "&Boot from DVD Backup..."
-msgstr ""
+msgstr "&Von der DVD-Sicherung starten..."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:282
 msgid "&Breakpoints"
@@ -379,7 +385,7 @@ msgstr "&Ansicht"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:281
 msgid "&Watch"
-msgstr ""
+msgstr "&Ansehen"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:380
 msgid "&Website"
@@ -496,7 +502,7 @@ msgstr "<Nichts>"
 
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:72
 msgid "<System Language>"
-msgstr ""
+msgstr "<Systemsprache>"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:291
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:347
@@ -513,6 +519,8 @@ msgid ""
 "A supported Bluetooth device could not be found.\n"
 "You must manually connect your Wiimotes."
 msgstr ""
+"Ein unterstütztes Bluetooth-Gerät konnte nicht gefunden werden.\n"
+"Du musst deinen Wiimote manuell verbinden.
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:118
 msgid ""
@@ -673,7 +681,7 @@ msgstr "Hinzufügen..."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:290
 msgid "Address"
-msgstr ""
+msgstr "Adresse"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:850
 msgid "Adjust the analog control pressure required to activate buttons."
@@ -732,7 +740,7 @@ msgstr "Anti-Aliasing:"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:477
 msgid "Apploader Date:"
-msgstr ""
+msgstr "Apploader Datum:"
 
 #: Source/Core/DiscIO/VolumeDirectory.cpp:311
 msgid "Apploader is the wrong size...is it really an apploader?"
@@ -802,6 +810,8 @@ msgid ""
 "Attempt to detect and skip wait-loops.\n"
 "If unsure, leave this checked."
 msgstr ""
+"Es wird versucht Warteschleifen zu erkennen und zu überspringen.\n"
+"Im Zweifel aktiviert lassen."
 
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:72
 msgid "Audio"
@@ -853,7 +863,7 @@ msgstr ""
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:531
 msgid "BAT incorrect. Dolphin will now exit"
-msgstr ""
+msgstr "BAT ist falsch. Dolphin wird beendet"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:764
 msgid "BP register "
@@ -992,7 +1002,7 @@ msgstr "Tasten"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:80
 msgid "Bypass XFB"
-msgstr ""
+msgstr "XFB umgehen"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -1081,7 +1091,7 @@ msgstr "Wechseln"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:870
 msgid "Change &Disc"
-msgstr ""
+msgstr "Disc &wechseln"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:400
 msgid "Change &Disc..."
@@ -1110,7 +1120,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:50
 msgid "Changing this will have no effect while the emulator is running."
-msgstr ""
+msgstr "Die Änderung zeigt bei laufende Emulation keine Wirkung."
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:137
 msgid "Chat"
@@ -1331,7 +1341,7 @@ msgstr "Wiimote 4 verbinden"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:255
 msgid "Connect Wiimotes"
-msgstr ""
+msgstr "Wiimotes verbinden"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1562
 msgid "Connected"
@@ -1723,7 +1733,7 @@ msgstr "Deaktivieren"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:527
 msgid "Disable Bounding Box"
-msgstr ""
+msgstr "Hüllkörper deaktivieren"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:425
 msgid "Disable Fog"
@@ -1750,6 +1760,10 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Deaktiviert die Emulation von Hüllkörpern.\n"
+"Dadurch wird die GPU Leistung deutlich verbessert, jedoch werden einige Spiele unspielbar.\n"
+"\n"
+"Im Zweifel aktiviert lassen."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:612
 msgid "Disc"
@@ -1819,7 +1833,7 @@ msgstr "Dolphin-FIFO"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1347
 msgid "Dolphin Hotkeys"
-msgstr ""
+msgstr "Dolphin Hotkeys"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:95
 msgid "Dolphin NetPlay"
@@ -1899,7 +1913,7 @@ msgstr "Frames dumpen"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:101
 msgid "Dump Objects"
-msgstr ""
+msgstr "Objekte dumpen"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:109
 msgid "Dump TEV Stages"
@@ -1907,7 +1921,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:110
 msgid "Dump Texture Fetches"
-msgstr ""
+msgstr "Texture-Anfragen dumpen"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:100
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:563
@@ -1920,6 +1934,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Decodierte Texturen werden unter User/Dump/Textures/<Spielkennung>/ gespeichert.\n"
+"\n"
+"Im Zweifel deaktiviert lassen."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:134
 msgid ""
@@ -2130,6 +2147,8 @@ msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OS "
 "X."
 msgstr ""
+"Aktiviert die Emualtion von Dolby Pro Logic II mit 5.1 Surround. Unter OS X"
+"nicht verfügbar."
 
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:55
 msgid ""
@@ -2784,7 +2803,7 @@ msgstr "Vollbild"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:279
 msgid "Fullscreen Resolution:"
-msgstr ""
+msgstr "Vollbild-Auflösung:"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "GBA"
@@ -3100,6 +3119,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Jegliche Anfrage von der CPU das EFB zu lesen oder schreiben wird ignoriert.\n"
+"Die Emulationsgeschwindigkeit wird in machen Spielen verbessert. Es können "
+"jedoch Spiel relevante Features oder graphische Effekte deaktiviert werden.\n"
+"\n"
+"Im Zweifel deaktiviert lassen."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:115
 msgid ""
@@ -3131,16 +3155,20 @@ msgid ""
 "Imported file has gsc extension\n"
 "but does not have a correct header."
 msgstr ""
+"Die imported Datei hat eine gsc-Erweiterung,\n"
+"jedoch nicht den richtigen Header."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:447
 msgid "Imported file has invalid length."
-msgstr ""
+msgstr "Die importierte Datei hat eine ungültige Länge."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:456
 msgid ""
 "Imported file has sav extension\n"
 "but does not have a correct header."
 msgstr ""
+"Die imported Datei hat eine gsc-Erweiterung,\n"
+"jedoch nicht den richtigen Header."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:379
 msgid "In Game"
@@ -3152,7 +3180,7 @@ msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:67
 msgid "Increase Depth"
-msgstr ""
+msgstr "Tiefe erhöhen"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Increase Frame limit"
@@ -3160,7 +3188,7 @@ msgstr "Bildbegrenzung erhöhen"
 
 #: Source/Core/Core/HotkeyManager.cpp:45
 msgid "Increase IR"
-msgstr ""
+msgstr "IR erhöhen"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:322
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:45
@@ -3258,7 +3286,7 @@ msgstr "Intro"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:467
 msgid "Invalid bat.map or dir entry."
-msgstr ""
+msgstr "Ungültige bat.map oder Verzeichnis-Eintrag."
 
 #: Source/Core/Core/CoreTiming.cpp:455
 #, c-format
@@ -3271,11 +3299,11 @@ msgstr "Ungültige Datei"
 
 #: Source/Core/Core/NetPlayClient.cpp:807
 msgid "Invalid host"
-msgstr ""
+msgstr "Ungültige Host"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:566
 msgid "Invalid index"
-msgstr ""
+msgstr "Ungültige Index"
 
 #: Source/Core/Core/Movie.cpp:841
 msgid "Invalid recording file"
@@ -3295,7 +3323,7 @@ msgstr "Ungültiger Suchbegriff (nur gerade Zeichenlängen werden unterstützt)"
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:73
 msgid "Invalid value."
-msgstr ""
+msgstr "Ungültiger Wert."
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:53
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:36
