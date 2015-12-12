@@ -233,6 +233,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
 	core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
 	core->Set("SyncGpuOverclock", fSyncGpuOverclock);
+	core->Set("FPRF", bFPRF);
+	core->Set("AccurateNaNs", bAccurateNaNs);
 	core->Set("DefaultISO", m_strDefaultISO);
 	core->Set("DVDRoot", m_strDVDRoot);
 	core->Set("Apploader", m_strApploader);
@@ -522,6 +524,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("SyncGpuOverclock",          &fSyncGpuOverclock, 1.0);
 	core->Get("FastDiscSpeed",             &bFastDiscSpeed,    false);
 	core->Get("DCBZ",                      &bDCBZOFF,          false);
+	core->Get("FPRF",                      &bFPRF,             false);
+	core->Get("AccurateNaNs",              &bAccurateNaNs,     false);
 	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
 	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
 	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
