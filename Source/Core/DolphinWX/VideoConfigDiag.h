@@ -279,5 +279,5 @@ protected:
 	VideoConfig &vconfig;
 	std::string ininame;
 
-	int m_msaa_modes;
+	size_t m_msaa_modes;
 };

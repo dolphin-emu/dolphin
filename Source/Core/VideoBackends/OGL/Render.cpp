@@ -66,14 +66,6 @@ static int OSDInternalW, OSDInternalH;
 namespace OGL
 {
 
-enum MultisampleMode
-{
-	MULTISAMPLE_OFF,
-	MULTISAMPLE_2X,
-	MULTISAMPLE_4X,
-	MULTISAMPLE_8X,
-};
-
 VideoConfig g_ogl_config;
 
 // Declarations and definitions
@@ -82,7 +74,7 @@ static RasterFont* s_pfont = nullptr;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
-static int s_last_multisample_mode = 0;
+static int s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
 
@@ -97,38 +89,6 @@ static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static bool s_efbCacheIsCleared = false;
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
-
-static int GetNumMSAASamples(int MSAAMode)
-{
-	int samples;
-	switch (MSAAMode)
-	{
-		case MULTISAMPLE_OFF:
-			samples = 1;
-			break;
-
-		case MULTISAMPLE_2X:
-			samples = 2;
-			break;
-
-		case MULTISAMPLE_4X:
-			samples = 4;
-			break;
-
-		case MULTISAMPLE_8X:
-			samples = 8;
-			break;
-		default:
-			samples = 1;
-	}
-
-	if (samples <= g_ogl_config.max_samples)
-		return samples;
-
-	// TODO: move this to InitBackendInfo
-	OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", samples, g_ogl_config.max_samples), 10000);
-	return g_ogl_config.max_samples;
-}
 
 static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
@@ -492,11 +452,11 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsBBox = true;
 			g_ogl_config.bSupportsMSAA = true;
 			g_ogl_config.bSupports2DTextureStorage = true;
-			if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisampleMode > 1 && !g_ogl_config.bSupports3DTextureStorage)
+			if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisamples > 1 && !g_ogl_config.bSupports3DTextureStorage)
 			{
 				// GLES 3.1 can't support stereo rendering and MSAA
 				OSD::AddMessage("MSAA Stereo rendering isn't supported by your GPU.", 10000);
-				g_ActiveConfig.iMultisampleMode = 1;
+				g_ActiveConfig.iMultisamples = 1;
 			}
 		}
 		else
@@ -628,8 +588,8 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData "
 			);
 
-	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
-	s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
+	s_last_multisamples = g_ActiveConfig.iMultisamples;
+	s_MSAASamples = s_last_multisamples;
 
 	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
@@ -1536,18 +1496,24 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		TargetSizeChanged = true;
 	}
 	if (TargetSizeChanged || xfbchanged || WindowResized ||
-	    (s_last_multisample_mode != g_ActiveConfig.iMultisampleMode) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
+	    (s_last_multisamples != g_ActiveConfig.iMultisamples) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
 	{
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 		if (TargetSizeChanged ||
-		    s_last_multisample_mode != g_ActiveConfig.iMultisampleMode || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
+		    s_last_multisamples != g_ActiveConfig.iMultisamples || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
 		{
 			s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
-			s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
-			s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
+			s_last_multisamples = g_ActiveConfig.iMultisamples;
+			s_MSAASamples = s_last_multisamples;
+
+			if (s_MSAASamples > 1 && s_MSAASamples > g_ogl_config.max_samples)
+			{
+				s_MSAASamples = g_ogl_config.max_samples;
+				OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", s_last_multisamples, g_ogl_config.max_samples), 10000);
+			}
 
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,

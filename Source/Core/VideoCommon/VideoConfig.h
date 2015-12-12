@@ -82,7 +82,7 @@ struct VideoConfig final
 	bool bUseRealXFB;
 
 	// Enhancements
-	int iMultisampleMode;
+	int iMultisamples;
 	bool bSSAA;
 	int iEFBScale;
 	bool bForceFiltering;

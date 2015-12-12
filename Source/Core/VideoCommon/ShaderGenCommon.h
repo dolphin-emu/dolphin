@@ -295,7 +295,7 @@ static inline void AssignVSOutputMembers(T& object, const char* a, const char* b
 // Without MSAA, this flag is defined to have no effect.
 static inline const char* GetInterpolationQualifier(API_TYPE api_type, bool in = true, bool in_out = false)
 {
-	if (!g_ActiveConfig.iMultisampleMode)
+	if (g_ActiveConfig.iMultisamples <= 1)
 		return "";
 
 	if (!g_ActiveConfig.bSSAA)
