@@ -2056,6 +2056,8 @@ namespace GLExtensions
 		{
 			if (tmp[0] == '!')
 				result &= !m_extension_list[tmp.erase(0, 1)];
+			else if (tmp[0] == '|')
+				result |= m_extension_list[tmp.erase(0, 1)];
 			else
 				result &= m_extension_list[tmp];
 		}
