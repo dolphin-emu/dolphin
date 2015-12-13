@@ -41,7 +41,6 @@ struct VideoConfig
 	bool bSupportsGLBufferStorage;
 	bool bSupportsMSAA;
 	GLSL_VERSION eSupportedGLSLVersion;
-	bool bSupportOGL31;
 	bool bSupportViewportFloat;
 	bool bSupportsAEP;
 	bool bSupportsDebug;
