@@ -73,9 +73,7 @@ bool cInterfaceWGL::Create(void *window_handle, bool core)
 
 	m_window_handle = window_handle_reified;
 
-#ifdef _WIN32
 	dllHandle = LoadLibrary(TEXT("OpenGL32.dll"));
-#endif
 
 	PIXELFORMATDESCRIPTOR pfd =         // pfd Tells Windows How We Want Things To Be
 	{
@@ -174,6 +172,7 @@ void cInterfaceWGL::Shutdown()
 		ERROR_LOG(VIDEO, "Attempt to release device context failed.");
 		hDC = nullptr;
 	}
+	FreeLibrary(dllHandle);
 }
 
 
