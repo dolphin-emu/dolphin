@@ -63,7 +63,8 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 	case 0x42f64ac4: // Luigi's Mansion - US
 	case 0x56d36052: // Super Mario Sunshine - US
 	case 0x6c3f6f94: // Zelda TP Wii - US
-	case 0xeaeb38cc: // Pikmin 1/2 New Play Control Wii - US
+	case 0xb7eb9a9c: // Pikmin 1 New Play Control Wii - US
+	case 0xeaeb38cc: // Pikmin 2 New Play Control Wii - US
 		return new ZeldaUCode(dsphle, crc);
 
 	case 0x2ea36ce6: // Some Wii demos
