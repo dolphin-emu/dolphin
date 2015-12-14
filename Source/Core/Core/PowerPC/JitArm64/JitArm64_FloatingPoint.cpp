@@ -346,78 +346,73 @@ void JitArm64::fcmpx(UGeckoInstruction inst)
 	JITDISABLE(bJITFloatingPointOff);
 
 	u32 a = inst.FA, b = inst.FB;
-	int crf = inst.CRFD;
 
 	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 
-	ARM64Reg WA = gpr.GetReg();
-	ARM64Reg XA = EncodeRegTo64(WA);
-
-	FixupBranch pNaN1, pNaN2, pNaN3, pLesser, pGreater;
-	FixupBranch continue1, continue2, continue3;
-	ORR(XA, ZR, 32, 0, true);
+	FixupBranch pLesser, pGreater;
 
 	if (a != b)
 	{
 		m_float_emit.FCMP(EncodeRegToDouble(VA), EncodeRegToDouble(VA));
 
-		// if (B != B) or (A != A), goto NaN's jump target
-		pNaN1 = B(CC_NEQ);
+		// if (B != B) or (A != A), Fall back to interpreter
+		if (CC_NEQ)
+		{
+			FALLBACK_IF(true);
+		}
 
 		m_float_emit.FCMP(EncodeRegToDouble(VB), EncodeRegToDouble(VB));
 
-		pNaN2 = B(CC_NEQ);
+		if (CC_NEQ)
+		{
+			FALLBACK_IF(true);
+		}
 	}
 
 	m_float_emit.FCMP(EncodeRegToDouble(VA), EncodeRegToDouble(VB));
 
 	if (a == b)
-		pNaN3 = B(CC_NEQ);
+	{
+		if (CC_NEQ)
+		{
+			FALLBACK_IF(true);
+		}
+	}
+
+	int crf = inst.CRFD;
+
+	ARM64Reg WA = gpr.GetReg();
+	ARM64Reg XA = EncodeRegTo64(WA);
+
+	FixupBranch continue1;
+
+	ORR(XA, ZR, 32, 0, true);
 
 	if (a != b)
 	{
 		// if B > A goto Greater's jump target
 		pGreater = B(CC_GT);
 		// if B < A, goto Lesser's jump target
-		pLesser = B(CC_MI);
+		pLesser = B(CC_LT);
 	}
 
 	ORR(XA, XA, 64 - 63, 0, true);
-	continue1 = B();
 
 	if (a != b)
 	{
-		SetJumpTarget(pNaN1);
-		SetJumpTarget(pNaN2);
-	}
-	else
-	{
-		SetJumpTarget(pNaN3);
-	}
-
-	ORR(XA, XA, 64 - 61, 0, true);
-	ORR(XA, XA, 0, 0, true);
-
-	if (a != b)
-	{
-		continue2 = B();
-
 		SetJumpTarget(pGreater);
 		ORR(XA, XA, 0, 0, true);
 
-		continue3 = B();
+		continue1 = B();
 
 		SetJumpTarget(pLesser);
-		ORR(XA, XA, 64 - 62, 1, true);
-		ORR(XA, XA, 0, 0, true);
+		ORR(XA, XA, 64 - 62, 0, true);
 	}
 
-	SetJumpTarget(continue1);
 	if (a != b)
 	{
-		SetJumpTarget(continue2);
-		SetJumpTarget(continue3);
+		SetJumpTarget(continue1);
 	}
 
 	STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
@@ -445,6 +440,7 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 	m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
 	m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), ROUND_Z);
 	m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
+
 	fpr.Unlock(V0);
 }
 
