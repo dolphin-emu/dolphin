@@ -54,6 +54,10 @@ enum ZeldaUCodeFlag
 
 	// If set, command 0C is used for an unknown purpose. TODO: rename.
 	WEIRD_CMD_0C = 0x00000200,
+
+	// If set, command 0D (unknown purpose) is combined with the render command,
+	// which as such takes two more command arguments. TODO: rename.
+	COMBINED_CMD_0D = 0x00000400,
 };
 
 static const std::map<u32, u32> UCODE_FLAGS = {
@@ -89,7 +93,9 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	// Super Mario Galaxy.
 	// Super Mario Galaxy 2.
 	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
-	// Pikmin 1/2 New Play Control.
+	// Pikmin 1 New Play Control.
+	{ 0xB7EB9A9C, NO_ARAM | MAKE_DOLBY_LOUDER | COMBINED_CMD_0D },
+	// Pikmin 2 New Play Control.
 	{ 0xEAEB38CC, NO_ARAM | MAKE_DOLBY_LOUDER },
 
 	// TODO: Other games that use this UCode (exhaustive list):
@@ -454,6 +460,14 @@ void ZeldaUCode::RunPendingCommands()
 			m_renderer.SetOutputVolume(cmd_mail & 0xFFFF);
 			m_renderer.SetOutputLeftBufferAddr(Read32());
 			m_renderer.SetOutputRightBufferAddr(Read32());
+
+			if (m_flags & COMBINED_CMD_0D)
+			{
+				// Ignore the two values which are equivalent to arguments passed to
+				// command 0D.
+				Read32();
+				Read32();
+			}
 
 			m_rendering_curr_frame = 0;
 			m_rendering_curr_voice = 0;
