@@ -102,7 +102,7 @@ public:
 
 	void fp_arith_s(UGeckoInstruction inst);
 
-	void fcmpx(UGeckoInstruction inst);
+	void fcmpX(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
 
 	void cmpXX(UGeckoInstruction inst);

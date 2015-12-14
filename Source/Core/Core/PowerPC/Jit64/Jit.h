@@ -214,7 +214,7 @@ public:
 
 	void fp_arith(UGeckoInstruction inst);
 
-	void fcmpx(UGeckoInstruction inst);
+	void fcmpX(UGeckoInstruction inst);
 	void fctiwx(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
 	void frspx(UGeckoInstruction inst);

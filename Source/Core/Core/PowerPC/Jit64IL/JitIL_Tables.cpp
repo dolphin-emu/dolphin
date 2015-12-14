@@ -323,8 +323,8 @@ static GekkoOPTemplate table59[] =
 static GekkoOPTemplate table63[] =
 {
 	{264, &JitIL::fsign},                 //"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{32,  &JitIL::fcmpx},                 //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{0,   &JitIL::fcmpx},                 //"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{32,  &JitIL::fcmpX},                 //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{0,   &JitIL::fcmpX},                 //"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{14,  &JitIL::FallBackToInterpreter}, //"fctiwx",  OPTYPE_FPU, FL_RC_BIT_F}},
 	{15,  &JitIL::FallBackToInterpreter}, //"fctiwzx", OPTYPE_FPU, FL_RC_BIT_F}},
 	{72,  &JitIL::fmrx},                  //"fmrx",    OPTYPE_FPU, FL_RC_BIT_F}},

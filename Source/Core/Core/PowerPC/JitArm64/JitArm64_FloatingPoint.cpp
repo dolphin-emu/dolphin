@@ -340,7 +340,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
 	m_float_emit.FCVT(64, 32, EncodeRegToDouble(VD), EncodeRegToDouble(VD));
 }
 
-void JitArm64::fcmpx(UGeckoInstruction inst)
+void JitArm64::fcmpX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
