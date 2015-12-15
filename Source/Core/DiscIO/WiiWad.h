@@ -12,6 +12,7 @@ namespace DiscIO
 {
 
 class IBlobReader;
+class CBlobBigEndianReader;
 
 class WiiWAD
 {
@@ -52,6 +53,7 @@ private:
 
 	u8* CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset);
 	bool ParseWAD(DiscIO::IBlobReader& _rReader);
+	static bool IsWiiWAD(const DiscIO::CBlobBigEndianReader& reader);
 };
 
 }

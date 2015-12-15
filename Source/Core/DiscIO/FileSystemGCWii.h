@@ -30,7 +30,7 @@ public:
 	bool ExportFile(const std::string& _rFullPath, const std::string&_rExportFilename) override;
 	bool ExportApploader(const std::string& _rExportFolder) const override;
 	bool ExportDOL(const std::string& _rExportFolder) const override;
-	u32 GetBootDOLSize() const override;
+	u64 GetBootDOLOffset() const override;
 	u32 GetBootDOLSize(u64 dol_offset) const override;
 
 private:

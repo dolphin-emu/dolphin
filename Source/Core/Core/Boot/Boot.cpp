@@ -60,17 +60,18 @@ void CBoot::Load_FST(bool _bIsWii)
 	if (_bIsWii)
 		shift = 2;
 
-	u32 fstOffset  = volume.Read32(0x0424, _bIsWii) << shift;
-	u32 fstSize    = volume.Read32(0x0428, _bIsWii) << shift;
-	u32 maxFstSize = volume.Read32(0x042c, _bIsWii) << shift;
+	u32 fst_offset, fst_size, max_fst_size;
+	volume.ReadSwapped(0x0424, &fst_offset, _bIsWii);
+	volume.ReadSwapped(0x0428, &fst_size, _bIsWii);
+	volume.ReadSwapped(0x042c, &max_fst_size, _bIsWii);
 
-	u32 arenaHigh = ROUND_DOWN(0x817FFFFF - maxFstSize, 0x20);
-	Memory::Write_U32(arenaHigh, 0x00000034);
+	u32 arena_high = ROUND_DOWN(0x817FFFFF - (max_fst_size << shift), 0x20);
+	Memory::Write_U32(arena_high, 0x00000034);
 
 	// load FST
-	DVDRead(fstOffset, arenaHigh, fstSize, _bIsWii);
-	Memory::Write_U32(arenaHigh, 0x00000038);
-	Memory::Write_U32(maxFstSize, 0x0000003c);
+	DVDRead(fst_offset << shift, arena_high, fst_size << shift, _bIsWii);
+	Memory::Write_U32(arena_high, 0x00000038);
+	Memory::Write_U32(max_fst_size << shift, 0x0000003c);
 }
 
 void CBoot::UpdateDebugger_MapLoaded()
