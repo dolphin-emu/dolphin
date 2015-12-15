@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/BPMemLoader.h"
@@ -15,24 +16,10 @@
 #include "VideoBackends/Software/XFMemLoader.h"
 #include "VideoCommon/BoundingBox.h"
 
-
-#define BLOCK_SIZE 2
-
-#define CLAMP(x, a, b) (x>b)?b:(x<a)?a:x
-
-// returns approximation of log2(f) in s28.4
-// results are close enough to use for LOD
-static inline s32 FixedLog2(float f)
-{
-	u32 *x = (u32*)&f;
-	s32 logInt = ((*x & 0x7F800000) >> 19) - 2032; // integer part
-	s32 logFract = (*x & 0x007fffff) >> 19; // approximate fractional part
-
-	return logInt + logFract;
-}
-
 namespace Rasterizer
 {
+static constexpr int BLOCK_SIZE = 2;
+
 static Slope ZSlope;
 static Slope WSlope;
 static Slope ColorSlopes[2][4];
@@ -83,6 +70,19 @@ void Init()
 	ZSlope.f0 = 1.f;
 }
 
+// Returns approximation of log2(f) in s28.4
+// results are close enough to use for LOD
+static s32 FixedLog2(float f)
+{
+	u32 x;
+	std::memcpy(&x, &f, sizeof(u32));
+
+	s32 logInt = ((x & 0x7F800000) >> 19) - 2032; // integer part
+	s32 logFract = (x & 0x007fffff) >> 19; // approximate fractional part
+
+	return logInt + logFract;
+}
+
 static inline int iround(float x)
 {
 	int t = (int)x;
@@ -119,7 +119,7 @@ void SetTevReg(int reg, int comp, bool konst, s16 color)
 	tev.SetRegColor(reg, comp, konst, color);
 }
 
-inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
+static void Draw(s32 x, s32 y, s32 xi, s32 yi)
 {
 	INCSTAT(swstats.thisFrame.rasterizedPixels);
 
@@ -210,13 +210,13 @@ static void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, fl
 
 static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoord)
 {
-	FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
-	u8 subTexmap = texmap & 3;
+	const FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
+	const u8 subTexmap = texmap & 3;
 
 	// LOD calculation requires data from the texture mode for bias, etc.
 	// it does not seem to use the actual texture size
-	TexMode0& tm0 = texUnit.texMode0[subTexmap];
-	TexMode1& tm1 = texUnit.texMode1[subTexmap];
+	const TexMode0& tm0 = texUnit.texMode0[subTexmap];
+	const TexMode1& tm1 = texUnit.texMode1[subTexmap];
 
 	float sDelta, tDelta;
 	if (tm0.diag_lod)
@@ -247,11 +247,12 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
 
 	*linear = ((lod > 0 && (tm0.min_filter & 4)) || (lod <= 0 && tm0.mag_filter));
 
-	// order of checks matters
-	// should be:
-	// if lod > max then max
-	// else if lod < min then min
-	lod = CLAMP(lod, (s32)tm1.min_lod, (s32)tm1.max_lod);
+	// NOTE: The order of comparisons for this clamp check matters.
+	if (lod > static_cast<s32>(tm1.max_lod))
+		lod = static_cast<s32>(tm1.max_lod);
+	else if (lod < static_cast<s32>(tm1.min_lod))
+		lod = static_cast<s32>(tm1.min_lod);
+
 	*lodp = lod;
 }
 
@@ -300,7 +301,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 	for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++)
 	{
 		int stageOdd = i&1;
-		TwoTevStageOrders &order = bpmem.tevorders[i >> 1];
+		const TwoTevStageOrders& order = bpmem.tevorders[i >> 1];
 		if (order.getEnable(stageOdd))
 		{
 			u32 texmap = order.getTexMap(stageOdd);
