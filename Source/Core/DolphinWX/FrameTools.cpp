@@ -1804,6 +1804,7 @@ void CFrame::UpdateGUI()
 				m_ToolBar->InsertTool(position, IDM_PLAY, _("Play"), m_Bitmaps[Toolbar_Play],
 				                      wxNullBitmap, wxITEM_NORMAL, _("Play"));
 			}
+			m_ToolBar->Realize();
 		}
 	}
 
