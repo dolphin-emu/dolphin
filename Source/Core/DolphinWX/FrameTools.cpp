@@ -1792,17 +1792,19 @@ void CFrame::UpdateGUI()
 
 		if (PlayTool)
 		{
+			int position = m_ToolBar->GetToolPos(IDM_PLAY);
+
 			if (Running)
 			{
-				PlayTool->SetLabel(_("Pause"));
-				PlayTool->SetShortHelp(_("Pause"));
-				m_ToolBar->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
+				m_ToolBar->DeleteTool(IDM_PLAY);
+				m_ToolBar->InsertTool(position, IDM_PLAY, _("Pause"), m_Bitmaps[Toolbar_Pause],
+				                      wxNullBitmap, wxITEM_NORMAL, _("Pause"));
 			}
 			else
 			{
-				PlayTool->SetLabel(_("Play"));
-				PlayTool->SetShortHelp(_("Play"));
-				m_ToolBar->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
+				m_ToolBar->DeleteTool(IDM_PLAY);
+				m_ToolBar->InsertTool(position, IDM_PLAY, _("Play"), m_Bitmaps[Toolbar_Play],
+				                      wxNullBitmap, wxITEM_NORMAL, _("Play"));
 			}
 		}
 	}
