@@ -77,8 +77,8 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 {
 	// TODO(Omega): Maybe dump FIFO to file on this error
-	PanicAlert(
-	    "GFX FIFO: Unknown Opcode (0x%02x @ %p, preprocessing=%s).\n"
+	PanicAlertT(
+	    "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).\n"
 	    "This means one of the following:\n"
 	    "* The emulated GPU got desynced, disabling dual core can help\n"
 	    "* Command stream corrupted by some spurious memory bug\n"
@@ -88,7 +88,7 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 	    "Dolphin will now likely crash or hang. Enjoy." ,
 	    cmd_byte,
 	    buffer,
-	    preprocess ? "yes" : "no");
+	    preprocess ? "preprocess=true" : "preprocess=false");
 
 	{
 		SCPFifoStruct &fifo = CommandProcessor::fifo;

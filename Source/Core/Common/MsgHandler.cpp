@@ -38,6 +38,11 @@ void SetEnableAlert(bool enable)
 	AlertEnabled = enable;
 }
 
+std::string GetTranslation(const char* string)
+{
+	return str_translator(string);
+}
+
 // This is the first stop for gui alerts where the log is updated and the
 // correct window is shown
 bool MsgAlert(bool yes_no, int Style, const char* format, ...)

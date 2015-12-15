@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -452,11 +453,11 @@ std::string GetInfoStringOfSlot(int slot)
 {
 	std::string filename = MakeStateFilename(slot);
 	if (!File::Exists(filename))
-		return "Empty";
+		return GetStringT("Empty");
 
 	State::StateHeader header;
 	if (!ReadHeader(filename, header))
-		return "Unknown";
+		return GetStringT("Unknown");
 
 	return Common::Timer::GetDateTimeFormatted(header.time);
 }

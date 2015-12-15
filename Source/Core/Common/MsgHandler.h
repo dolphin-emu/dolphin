@@ -22,6 +22,7 @@ typedef std::string (*StringTranslator)(const char* text);
 void RegisterMsgAlertHandler(MsgAlertHandler handler);
 void RegisterStringTranslator(StringTranslator translator);
 
+std::string GetTranslation(const char* string);
 bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 #ifdef __GNUC__
 	__attribute__((format(printf, 3, 4)))
@@ -41,6 +42,8 @@ void SetEnableAlert(bool enable);
 	#define PanicYesNoT(format, ...) MsgAlert(true, WARNING, format, __VA_ARGS__)
 	#define AskYesNoT(format, ...) MsgAlert(true, QUESTION, format, __VA_ARGS__)
 	#define CriticalAlertT(format, ...) MsgAlert(false, CRITICAL, format, __VA_ARGS__)
+
+	#define GetStringT(string) GetTranslation(string)
 #else
 	#define SuccessAlert(format, ...) MsgAlert(false, INFORMATION, format, ##__VA_ARGS__)
 	#define PanicAlert(format, ...) MsgAlert(false, WARNING, format, ##__VA_ARGS__)
@@ -53,4 +56,6 @@ void SetEnableAlert(bool enable);
 	#define PanicYesNoT(format, ...) MsgAlert(true, WARNING, format, ##__VA_ARGS__)
 	#define AskYesNoT(format, ...) MsgAlert(true, QUESTION, format, ##__VA_ARGS__)
 	#define CriticalAlertT(format, ...) MsgAlert(false, CRITICAL, format, ##__VA_ARGS__)
+
+	#define GetStringT(string) GetTranslation(string)
 #endif

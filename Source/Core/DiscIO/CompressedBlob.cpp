@@ -182,7 +182,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 		return false;
 	}
 
-	callback("Files opened, ready to compress.", 0, arg);
+	callback(GetStringT("Files opened, ready to compress."), 0, arg);
 
 	CompressedBlobHeader header;
 	header.magic_cookie = kBlobCookie;
@@ -219,7 +219,8 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 			if (inpos != 0)
 				ratio = (int)(100 * position / inpos);
 
-			std::string temp = StringFromFormat("%i of %i blocks. Compression ratio %i%%", i, header.num_blocks, ratio);
+			std::string temp = StringFromFormat(GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(),
+			                                    i, header.num_blocks, ratio);
 			bool was_cancelled = !callback(temp, (float)i / (float)header.num_blocks, arg);
 			if (was_cancelled)
 			{
@@ -312,7 +313,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 
 	if (success)
 	{
-		callback("Done compressing disc image.", 1.0f, arg);
+		callback(GetStringT("Done compressing disc image."), 1.0f, arg);
 	}
 	return success;
 }
@@ -355,7 +356,7 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 	{
 		if (i % progress_monitor == 0)
 		{
-			bool was_cancelled = !callback("Unpacking", (float)i / (float)num_buffers, arg);
+			bool was_cancelled = !callback(GetStringT("Unpacking"), (float)i / (float)num_buffers, arg);
 			if (was_cancelled)
 			{
 				success = false;
