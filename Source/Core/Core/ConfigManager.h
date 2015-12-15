@@ -196,8 +196,7 @@ struct SConfig : NonCopyable
 
 	// interface language
 	int m_InterfaceLanguage;
-	// framelimit choose
-	unsigned int m_Framelimit;
+	float m_EmulationSpeed;
 	bool m_OCEnable;
 	float m_OCFactor;
 	// other interface settings

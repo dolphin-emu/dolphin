@@ -1404,16 +1404,30 @@ void CFrame::ParseHotkeys()
 		OSDChoice = 4;
 		g_Config.bDisableFog = !g_Config.bDisableFog;
 	}
-	Core::SetIsFramelimiterTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
-	if (IsHotkey(HK_DECREASE_FRAME_LIMIT))
+	Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
+	if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
 	{
-		if (--SConfig::GetInstance().m_Framelimit > 0x19)
-			SConfig::GetInstance().m_Framelimit = 0x19;
+		OSDChoice = 5;
+
+		if (SConfig::GetInstance().m_EmulationSpeed <= 0.0f)
+			SConfig::GetInstance().m_EmulationSpeed = 1.0f;
+		else if (SConfig::GetInstance().m_EmulationSpeed >= 0.2f)
+			SConfig::GetInstance().m_EmulationSpeed -= 0.1f;
+		else
+			SConfig::GetInstance().m_EmulationSpeed = 0.1f;
+
+		if (SConfig::GetInstance().m_EmulationSpeed >= 0.95f && SConfig::GetInstance().m_EmulationSpeed <= 1.05f)
+			SConfig::GetInstance().m_EmulationSpeed = 1.0f;
 	}
-	if (IsHotkey(HK_INCREASE_FRAME_LIMIT))
+	if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
 	{
-		if (++SConfig::GetInstance().m_Framelimit > 0x19)
-			SConfig::GetInstance().m_Framelimit = 0;
+		OSDChoice = 5;
+
+		if (SConfig::GetInstance().m_EmulationSpeed > 0.0f)
+			SConfig::GetInstance().m_EmulationSpeed += 0.1f;
+
+		if (SConfig::GetInstance().m_EmulationSpeed >= 0.95f && SConfig::GetInstance().m_EmulationSpeed <= 1.05f)
+			SConfig::GetInstance().m_EmulationSpeed = 1.0f;
 	}
 	if (IsHotkey(HK_SAVE_STATE_SLOT_SELECTED))
 	{
