@@ -20,7 +20,7 @@ static const u32 NUM_STATES = 10;
 
 struct StateHeader
 {
-	u8 gameID[6];
+	char gameID[6];
 	u32 size;
 	double time;
 };
