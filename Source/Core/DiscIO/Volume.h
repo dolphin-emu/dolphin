@@ -94,7 +94,7 @@ public:
 	virtual std::map<ELanguage, std::string> GetNames(bool prefer_long) const = 0;
 	virtual std::map<ELanguage, std::string> GetDescriptions() const { return std::map<ELanguage, std::string>(); }
 	virtual std::string GetCompany() const { return std::string(); }
-	virtual std::vector<u32> GetBanner(int* width, int* height) const;
+	virtual std::vector<u32> GetBanner(int* width, int* height) const = 0;
 	virtual u64 GetFSTSize() const = 0;
 	virtual std::string GetApploaderDate() const = 0;
 	// 0 is the first disc, 1 is the second disc
@@ -111,6 +111,8 @@ public:
 	virtual u64 GetSize() const = 0;
 	// Size on disc (compressed size)
 	virtual u64 GetRawSize() const = 0;
+
+	static std::vector<u32> GetWiiBanner(int* width, int* height, u64 title_id);
 
 protected:
 	template <u32 N>

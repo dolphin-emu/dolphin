@@ -172,7 +172,8 @@ IVolume::ECountry CVolumeDirectory::GetCountry() const
 
 std::string CVolumeDirectory::GetMakerID() const
 {
-	return "VOID";
+	// Not implemented
+	return "00";
 }
 
 std::string CVolumeDirectory::GetInternalName() const
@@ -192,6 +193,14 @@ std::map<IVolume::ELanguage, std::string> CVolumeDirectory::GetNames(bool prefer
 	return { { IVolume::LANGUAGE_UNKNOWN, name } };
 }
 
+std::vector<u32> CVolumeDirectory::GetBanner(int* width, int* height) const
+{
+	// Not implemented
+	*width = 0;
+	*height = 0;
+	return std::vector<u32>();
+}
+
 void CVolumeDirectory::SetName(const std::string& name)
 {
 	size_t length = std::min(name.length(), MAX_NAME_LENGTH);
@@ -201,11 +210,13 @@ void CVolumeDirectory::SetName(const std::string& name)
 
 u64 CVolumeDirectory::GetFSTSize() const
 {
+	// Not implemented
 	return 0;
 }
 
 std::string CVolumeDirectory::GetApploaderDate() const
 {
+	// Not implemented
 	return "VOID";
 }
 
@@ -224,12 +235,14 @@ BlobType CVolumeDirectory::GetBlobType() const
 
 u64 CVolumeDirectory::GetSize() const
 {
+	// Not implemented
 	return 0;
 }
 
 u64 CVolumeDirectory::GetRawSize() const
 {
-	return GetSize();
+	// Not implemented
+	return 0;
 }
 
 std::string CVolumeDirectory::ExtractDirectoryName(const std::string& _rDirectory)
