@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -57,4 +58,4 @@ public:
 	TEXIDevices m_deviceType;
 };
 
-IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);
+std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, const int channel_num);
