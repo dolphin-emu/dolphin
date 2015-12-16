@@ -393,6 +393,7 @@ add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 # externals.
 include(CheckLib)
 include(CheckCXXSourceRuns)
+include(FindGettext)
 
 if(NOT ANDROID)
 

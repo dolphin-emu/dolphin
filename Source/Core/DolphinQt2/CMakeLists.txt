@@ -13,6 +13,7 @@ set(SRCS
 	Settings.cpp
 	ToolBar.cpp
 	Config/PathDialog.cpp
+	Translator.cpp
 	GameList/GameFile.cpp
 	GameList/GameList.cpp
 	GameList/GameListModel.cpp
