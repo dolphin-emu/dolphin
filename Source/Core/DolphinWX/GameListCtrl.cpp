@@ -1081,20 +1081,26 @@ void CGameListCtrl::OnMultiDecompressISO(wxCommandEvent& /*event*/)
 
 void CGameListCtrl::CompressSelection(bool _compress)
 {
-	const std::vector<const GameListItem*> selected_items = GetAllSelectedISOs();
-
-	// If any Wii discs are going to be compressed, show the Wii compression warning once
-	if (_compress)
+	std::vector<const GameListItem*> items_to_compress;
+	bool wii_compression_warning_accepted = false;
+	for (const GameListItem* iso : GetAllSelectedISOs())
 	{
-		for (const GameListItem* iso : selected_items)
+		// Don't include items that we can't do anything with
+		if (iso->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC && iso->GetPlatform() != DiscIO::IVolume::WII_DISC)
+			continue;
+		if (iso->GetBlobType() != DiscIO::BlobType::PLAIN && iso->GetBlobType() != DiscIO::BlobType::GCZ)
+			continue;
+
+		items_to_compress.push_back(iso);
+
+		// Show the Wii compression warning if it's relevant and it hasn't been shown already
+		if (!wii_compression_warning_accepted && _compress &&
+		    !iso->IsCompressed() && iso->GetPlatform() == DiscIO::IVolume::WII_DISC)
 		{
-			if (!iso->IsCompressed() && iso->GetPlatform() == DiscIO::IVolume::WII_DISC)
-			{
-				if (WiiCompressWarning())
-					break;
-				else
-					return;
-			}
+			if (WiiCompressWarning())
+				wii_compression_warning_accepted = true;
+			else
+				return;
 		}
 	}
 
@@ -1120,15 +1126,10 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			wxPD_SMOOTH
 			);
 
-		CompressionProgress progress(0, GetSelectedItemCount(), "", &progressDialog);
+		CompressionProgress progress(0, items_to_compress.size(), "", &progressDialog);
 
-		for (const GameListItem* iso : selected_items)
+		for (const GameListItem* iso : items_to_compress)
 		{
-			if (iso->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC && iso->GetPlatform() != DiscIO::IVolume::WII_DISC)
-				continue;
-			if (iso->GetBlobType() != DiscIO::BlobType::PLAIN && iso->GetBlobType() != DiscIO::BlobType::GCZ)
-				continue;
-
 			if (!iso->IsCompressed() && _compress)
 			{
 				std::string FileName;
