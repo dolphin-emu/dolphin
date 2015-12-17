@@ -921,7 +921,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 	}
 }
 
-const GameListItem * CGameListCtrl::GetSelectedISO()
+const GameListItem* CGameListCtrl::GetSelectedISO() const
 {
 	if (m_ISOFiles.size() == 0)
 	{
@@ -935,20 +935,21 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 	{
 		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (item == wxNOT_FOUND)
-		{
 			return nullptr;
-		}
-		else
-		{
-			// Here is a little workaround for multiselections:
-			// when > 1 item is selected, return info on the first one
-			// and deselect it so the next time GetSelectedISO() is called,
-			// the next item's info is returned
-			if (GetSelectedItemCount() > 1)
-				SetItemState(item, 0, wxLIST_STATE_SELECTED);
+		return m_ISOFiles[GetItemData(item)];
+	}
+}
 
-			return m_ISOFiles[GetItemData(item)];
-		}
+std::vector<const GameListItem*> CGameListCtrl::GetAllSelectedISOs() const
+{
+	std::vector<const GameListItem*> result;
+	long item = -1;
+	while (true)
+	{
+		item = GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+		if (item == wxNOT_FOUND)
+			return result;
+		result.push_back(m_ISOFiles[GetItemData(item)]);
 	}
 }
 
@@ -1032,32 +1033,15 @@ void CGameListCtrl::OnSetDefaultISO(wxCommandEvent& event)
 
 void CGameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED (event))
 {
-	if (GetSelectedItemCount() == 1)
-	{
-		const GameListItem* iso = GetSelectedISO();
-		if (!iso)
-			return;
-		if (wxMessageBox(_("Are you sure you want to delete this file?  It will be gone forever!"),
-					_("Warning"), wxYES_NO | wxICON_EXCLAMATION) == wxYES)
-		{
-			File::Delete(iso->GetFileName());
-			Update();
-		}
-	}
-	else
-	{
-		if (wxMessageBox(_("Are you sure you want to delete these files?\nThey will be gone forever!"),
-					_("Warning"), wxYES_NO | wxICON_EXCLAMATION) == wxYES)
-		{
-			int selected = GetSelectedItemCount();
+	const wxString message = GetSelectedItemCount() == 1 ?
+			_("Are you sure you want to delete this file? It will be gone forever!") :
+			_("Are you sure you want to delete these files? They will be gone forever!");
 
-			for (int i = 0; i < selected; i++)
-			{
-				const GameListItem* iso = GetSelectedISO();
-				File::Delete(iso->GetFileName());
-			}
-			Update();
-		}
+	if (wxMessageBox(message, _("Warning"), wxYES_NO | wxICON_EXCLAMATION) == wxYES)
+	{
+		for (const GameListItem* iso : GetAllSelectedISOs())
+			File::Delete(iso->GetFileName());
+		Update();
 	}
 }
 
@@ -1125,11 +1109,12 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			wxPD_SMOOTH
 			);
 
+		// These two variables are used when the progress dialog is updated
 		m_currentItem = 0;
 		m_numberItem = GetSelectedItemCount();
-		for (u32 i = 0; i < m_numberItem; i++)
+
+		for (const GameListItem* iso : GetAllSelectedISOs())
 		{
-			const GameListItem* iso = GetSelectedISO();
 			if (iso->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC && iso->GetPlatform() != DiscIO::IVolume::WII_DISC)
 				continue;
 			if (iso->GetBlobType() != DiscIO::BlobType::PLAIN && iso->GetBlobType() != DiscIO::BlobType::GCZ)
@@ -1142,6 +1127,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 				std::string FileName, FileExt;
 				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
+				// Update the file name in the progress dialog
 				m_currentFilename = FileName;
 				FileName.append(".gcz");
 
@@ -1167,6 +1153,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			{
 				std::string FileName, FileExt;
 				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
+				// Update the file name in the progress dialog
 				m_currentFilename = FileName;
 				if (iso->GetPlatform() == DiscIO::IVolume::WII_DISC)
 					FileName.append(".iso");
@@ -1189,6 +1176,8 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				all_good &= DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
 						OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
 			}
+
+			// Update the progress in the progress dialog
 			m_currentItem++;
 		}
 	}
