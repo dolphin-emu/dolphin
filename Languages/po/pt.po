@@ -1,6 +1,6 @@
 # Translation of dolphin-emu.pot to LANGUAGE
 # Copyright (C) 2003-2013
-# This file is distributed under the same license as the dolphin-emu package.
+# This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
 # João Frade <100nome.portugal@gmail.com>, 2013
@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-15 19:36+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
+"POT-Creation-Date: 2015-12-17 02:03+0000\n"
+"PO-Revision-Date: 2015-12-15 19:36+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
-"Language-Team: Portuguese (http://www.transifex.com/projects/p/dolphin-emu/"
+"Language-Team: Portuguese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/pt/)\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
@@ -194,24 +194,24 @@ msgstr "%u Blocos livres; %u Entradas de directórios livres"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:875
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:941
-#, fuzzy, c-format
+#, c-format
 msgid "%u frames"
-msgstr "Depositar Quadros"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:895
-#, fuzzy, c-format
+#, c-format
 msgid "%u objects"
-msgstr "Objecto"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:910
-#, fuzzy, c-format
+#, c-format
 msgid "%zu FIFO bytes"
-msgstr "FIFO Byte"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:930
-#, fuzzy, c-format
+#, c-format
 msgid "%zu memory bytes"
-msgstr "Byte de Memória"
+msgstr ""
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:597
 msgid "&& AND"
@@ -246,9 +246,8 @@ msgid "&Controller Settings"
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:908
-#, fuzzy
 msgid "&Delete File..."
-msgstr "&Eliminar ISO..."
+msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:930
 msgid "&Delete selected ISOs..."
@@ -509,9 +508,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
-#, fuzzy
 msgid "AM Baseboard"
-msgstr "AM-Baseboard"
+msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:54
 msgid "AM-Baseboard"
@@ -1024,9 +1022,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:26
-#, fuzzy
 msgid "Cached Interpreter (slower)"
-msgstr "Interpretador DSP LLE (lento)"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:111
 msgid ""
@@ -1207,9 +1204,8 @@ msgid "Code Info"
 msgstr "Info de Código"
 
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:52
-#, fuzzy
 msgid "Code:"
-msgstr "Código:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:27
 msgid "Code: "
@@ -1335,14 +1331,12 @@ msgid "Control"
 msgstr "Controlo"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:64
-#, fuzzy
 msgid "Control Stick"
-msgstr "Stick circular"
+msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:15
-#, fuzzy
 msgid "Controller Ports"
-msgstr "Controlo"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:560
 msgid "Controller settings"
@@ -1490,15 +1484,11 @@ msgid "Crop"
 msgstr "Recortar"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:138
-#, fuzzy
 msgid ""
 "Crop the picture from its native aspect ratio to 4:3 or 16:9.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Corta a imagem de 4:3 para 5:4 ou de 16:9 para 16:10.\n"
-"\n"
-"em caso de dúvida, mantenha esta opção desactivada."
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:53
 msgid "Crossfade"
@@ -1685,11 +1675,8 @@ msgid "Direct Connect"
 msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:130
-#, fuzzy
 msgid "Directory checksum and directory backup checksum failed"
 msgstr ""
-"Verificação de pasta falhou\n"
-" e verificação da cópia de segurança de pasta falhou"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:505
 msgid "Disable"
@@ -1830,9 +1817,8 @@ msgid "Dolphin was unable to complete the requested action."
 msgstr ""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:316
-#, fuzzy
 msgid "Done compressing disc image."
-msgstr "A descomprimir ISO"
+msgstr ""
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:50
 #: Source/Core/InputCommon/ControllerEmu.cpp:195
@@ -2424,9 +2410,9 @@ msgstr ""
 "(0x6000-0x7FFF)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:672
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read data from GCI file %s"
-msgstr "Falha ao ler ID único da imagem do disco"
+msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:99
 msgid ""
@@ -2487,9 +2473,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:278
-#, fuzzy
 msgid "File"
-msgstr "&Ficheiro"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:81
 msgid "File Info"
@@ -2520,13 +2505,11 @@ msgstr ""
 "ou não tem uma extensão válida"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:47
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "File has the extension \"%s\".\n"
 "Valid extensions are (.raw/.gcp)"
 msgstr ""
-"O ficheiro tem a extensão \"%s\"\n"
-"as extensões válidas são (.raw/.gcp)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:430
 msgid "File is not recognized as a memcard"
@@ -2543,9 +2526,8 @@ msgid "File write failed"
 msgstr ""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:185
-#, fuzzy
 msgid "Files opened, ready to compress."
-msgstr "Ficheiro não comprimido"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:598
 msgid "Filesystem"
@@ -2624,13 +2606,10 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:35
-#, fuzzy
 msgid ""
 "Format as ASCII (NTSC\\PAL)?\n"
 "Choose no for Shift JIS (NTSC-J)"
 msgstr ""
-"Formatar como ascii (NTSC\\PAL)?\n"
-"Escolha não para sjis (NTSC-J)"
 
 #: Source/Core/InputCommon/ControllerEmu.cpp:198
 msgid "Forward"
@@ -2651,33 +2630,30 @@ msgid "Found %zu save files"
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:885
-#, fuzzy, c-format
+#, c-format
 msgid "Frame %u"
-msgstr "Quadro"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:861
-#, fuzzy, c-format
+#, c-format
 msgid "Frame %zu"
-msgstr "Quadro"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:22
 msgid "Frame Advance"
 msgstr "Avançar Quadro"
 
 #: Source/Core/Core/HotkeyManager.cpp:23
-#, fuzzy
 msgid "Frame Advance Decrease Speed"
-msgstr "Avançar Quadro"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:24
-#, fuzzy
 msgid "Frame Advance Increase Speed"
-msgstr "Avançar Quadro"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:25
-#, fuzzy
 msgid "Frame Advance Reset Speed"
-msgstr "Avançar Quadro"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:562
 msgid "Frame Dumps use FFV1"
@@ -2779,9 +2755,8 @@ msgid "GBA"
 msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:31
-#, fuzzy
 msgid "GC Port "
-msgstr "Port :"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:542
 msgid "GCI File(*.gci)"
@@ -2908,9 +2883,9 @@ msgid "Germany"
 msgstr ""
 
 #: Source/Core/Core/ActionReplay.cpp:256
-#, fuzzy, c-format
+#, c-format
 msgid "GetARCode: Index is greater than ar code list size %zu"
-msgstr "GetARCode: Index é maior que o tamanho da lista de código %lu"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:559
 msgid "Graphics"
@@ -3246,9 +3221,8 @@ msgid "Internal Resolution:"
 msgstr "Resolução Interna:"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:25
-#, fuzzy
 msgid "Interpreter (slowest)"
-msgstr "Interpretador DSP LLE (lento)"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:375
 msgid "Intro"
@@ -3468,9 +3442,8 @@ msgid "Load State Last 1"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:122
-#, fuzzy
 msgid "Load State Last 10"
-msgstr "Carregar Estado Slot 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Load State Last 2"
@@ -3501,9 +3474,8 @@ msgid "Load State Last 8"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:121
-#, fuzzy
 msgid "Load State Last 9"
-msgstr "Carregar Estado Slot 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Load State Slot 1"
@@ -3682,9 +3654,8 @@ msgid "Memory Card"
 msgstr "Cartão de memória"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:105
-#, fuzzy
 msgid "Memory Card Manager"
-msgstr "Cartão de memória"
+msgstr ""
 
 #: Source/Core/Core/ConfigManager.cpp:894
 #, c-format
@@ -4023,9 +3994,9 @@ msgid "Nvidia 3D Vision"
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:598
-#, fuzzy, c-format
+#, c-format
 msgid "Object %zu"
-msgstr "Objecto"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:117
 msgid "Object Range"
@@ -4300,9 +4271,8 @@ msgid "Properties"
 msgstr "Propriedades"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:348
-#, fuzzy
 msgid "Purge Game List Cache"
-msgstr "Limpar Cache"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:75
 msgid "Put BIOS roms in User/GC/{region}."
@@ -4666,14 +4636,13 @@ msgid "Select Columns"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:527
-#, fuzzy, c-format
+#, c-format
 msgid "Select Slot %i - %s"
-msgstr "Seleccionar janelas flutuantes"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:174
-#, fuzzy
 msgid "Select State Slot"
-msgstr "Guardar Estado Slot 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:99
 msgid "Select State Slot 1"
@@ -4749,7 +4718,6 @@ msgid "Select the state to save"
 msgstr "Seleccione o estado para gravar"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:105
-#, fuzzy
 msgid ""
 "Select what aspect ratio to use when rendering:\n"
 "Auto: Use the native aspect ratio\n"
@@ -4759,13 +4727,6 @@ msgid ""
 "\n"
 "If unsure, select Auto."
 msgstr ""
-"Seleccione qual a proporção para usar ao renderizar:\n"
-"Auto: Utilizar a proporção nativa\n"
-"Forçar 16:9: Estica a imagem para uma proporção 16:9.\n"
-"Forçar 4:3: Estica a imagem para uma proporção 4:3.\n"
-"Ajustar à janela: Ajusta a imagem para o tamanho da janela independentemente "
-"da sua proporção.\n"
-"Em caso de dúvida, seleccione Automático."
 
 #: Source/Core/InputCommon/InputConfig.cpp:53
 msgid "Selected controller profile does not exist"
@@ -4854,9 +4815,9 @@ msgid "Set as default Memcard %c"
 msgstr "Definir como cartão de memória padrão %c"
 
 #: Source/Core/Core/ActionReplay.cpp:267
-#, fuzzy, c-format
+#, c-format
 msgid "SetARCode_IsActive: Index is greater than ar code list size %zu"
-msgstr "SetARCode_IsActive:O Index é maior que a lista de códigos ar %lu"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
 msgid "Sets the GameCube system language."
@@ -4897,9 +4858,8 @@ msgid "Show &Log"
 msgstr "Mostrar &Relatório"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:268
-#, fuzzy
 msgid "Show &Status Bar"
-msgstr "Mostrar &Barra de estado"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:266
 msgid "Show &Toolbar"
@@ -4918,9 +4878,8 @@ msgid "Show Drives"
 msgstr "Mostrar Unidades"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:311
-#, fuzzy
 msgid "Show ELF/DOL"
-msgstr "Mostrar Plataformas"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:311
 msgid "Show FPS"
@@ -5011,9 +4970,8 @@ msgid "Show Unknown"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:309
-#, fuzzy
 msgid "Show WAD"
-msgstr "Mostrar Wad"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:305
 msgid "Show Wii"
@@ -5113,9 +5071,9 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:467
 #: Source/Core/DolphinWX/FrameTools.cpp:481
-#, fuzzy, c-format
+#, c-format
 msgid "Slot %i - %s"
-msgstr "Slot %i"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:81
 msgid "Slot A"
@@ -5287,9 +5245,9 @@ msgid "Subtract"
 msgstr "Subtrair"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:103
-#, fuzzy, c-format
+#, c-format
 msgid "Successfully exported %u saves to %s"
-msgstr "Ficheiros extraídos com sucesso para %s"
+msgstr ""
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:56
 #, c-format
@@ -5376,9 +5334,8 @@ msgid "Take Screenshot"
 msgstr "Tirar Screenshot"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:556
-#, fuzzy
 msgid "Take screenshot"
-msgstr "Tirar Screenshot"
+msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "TaruKonga (Bongos)"
@@ -5634,24 +5591,20 @@ msgid "Toggle 3D Anaglyph"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:130
-#, fuzzy
 msgid "Toggle 3D Preset"
-msgstr "Alternar Ecrã Inteiro"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:67
-#, fuzzy
 msgid "Toggle 3D Side-by-side"
-msgstr "Alternar Ecrã Inteiro"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:68
-#, fuzzy
 msgid "Toggle 3D Top-bottom"
-msgstr "Alternar Ecrã Inteiro"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:70
-#, fuzzy
 msgid "Toggle 3D Vision"
-msgstr "Alternar Ecrã Inteiro"
+msgstr ""
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:61
 msgid "Toggle All Log Types"
@@ -5682,9 +5635,8 @@ msgid "Toggle Pause"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:555
-#, fuzzy
 msgid "Toggle fullscreen"
-msgstr "Alternar Ecrã Inteiro"
+msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:339
 msgid "Top"
@@ -5909,9 +5861,8 @@ msgid "Value (double)"
 msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:292
-#, fuzzy
 msgid "Value (float)"
-msgstr "Valor: "
+msgstr ""
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:76
 msgid "Value:"
@@ -6095,14 +6046,12 @@ msgid "Wii NAND Root:"
 msgstr "Raiz de NAND Wii:"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1494
-#, fuzzy
 msgid "Wii WAD files (*.wad)"
-msgstr "Ficheiros de jogo guardado Wii (*.bin)|*.bin"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1454
-#, fuzzy
 msgid "Wii save files (*.bin)"
-msgstr "Ficheiros de jogo guardado Wii (*.bin)|*.bin"
+msgstr ""
 
 #: Source/Core/DiscIO/WiiWad.cpp:55
 msgid "WiiWAD: Could not read from file"
@@ -6293,60 +6242,3 @@ msgstr "wxExecute devolveu -1 quando a aplicação executou!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| OU"
-
-#~ msgid "%d samples"
-#~ msgstr "%d amostras"
-
-#~ msgid "%d samples (quality level %d)"
-#~ msgstr "%d amostras (nível de qualidade %d)"
-
-#~ msgid "C-Stick"
-#~ msgstr "C-Stick"
-
-#~ msgid "Configure Pads"
-#~ msgstr "Configuração de Comandos"
-
-#~ msgid "Could not initialize backend %s."
-#~ msgstr "Não foi possível iniciar o backend %s."
-
-#~ msgid "Fifo Player"
-#~ msgstr "Reprodutor Fifo"
-
-#~ msgid "Frame"
-#~ msgstr "Quadro"
-
-#~ msgid "Insert Encrypted or Decrypted code here..."
-#~ msgstr "Insira o código criptográfado ou \"descriptografado\" aqui..."
-
-#~ msgid ""
-#~ "Memory Card Manager WARNING-Make backups before using, should be fixed "
-#~ "but could mangle stuff!"
-#~ msgstr ""
-#~ "Gestor de Cartões de memória AVISO-Faça cópias de segurança antes de "
-#~ "utilizar, deve estar corrigido mas também pode danificar!"
-
-#~ msgid "Pad "
-#~ msgstr "Comando"
-
-#~ msgid "Previous Value"
-#~ msgstr "Valor anterior"
-
-#~ msgid "Search Filter"
-#~ msgstr "Filtro de Pesquisa"
-
-#~ msgid "Show EFB Copy Regions"
-#~ msgstr "Mostrar Regiões de Cópia EFB"
-
-#~ msgid ""
-#~ "[BROKEN]\n"
-#~ "Highlight regions the EFB was copied from.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "[Inactivo]\n"
-#~ "Destaca as regiões de onde o EFB foi copiado.\n"
-#~ "\n"
-#~ "Em caso de dúvida, mantenha esta opção desactivada."
-
-#~ msgid "s"
-#~ msgstr "s"
