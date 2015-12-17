@@ -469,10 +469,16 @@ static u32 GetTicksPerOddField()
 
 float GetAspectRatio(bool wide)
 {
-	u32 multiplier = static_cast<u32>(m_PictureConfiguration.STD / m_PictureConfiguration.WPL);
-	int height = (multiplier * m_VerticalTimingRegister.ACV);
-	int width = ((2 * m_HTiming0.HLW) - (m_HTiming0.HLW - m_HTiming1.HBS640)
-		- m_HTiming1.HBE640);
+	u32 height = m_VerticalTimingRegister.ACV;
+	u32 width = 2 * m_HTiming1.HBS640 - m_HTiming1.HBE640;
+
+	// this is a hack for modes that emit half the lines of a full frame
+	// e.g. doublestrike and interlaced
+	if (m_VerticalTimingRegister.EQU < 10)
+	{
+		height <<= 1;
+	}
+
 	float pixelAR;
 	if (m_DisplayControlRegister.FMT == 1)
 	{
