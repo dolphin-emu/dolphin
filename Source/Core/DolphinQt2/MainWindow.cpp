@@ -10,6 +10,8 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QDesktopServices>
+#include <QUrl>
 
 #include "Common/FileUtil.h"
 #include "Core/BootManager.h"
@@ -40,19 +42,94 @@ MainWindow::~MainWindow()
 void MainWindow::MakeMenus()
 {
 	MakeFileMenu();
-	menuBar()->addMenu(tr("Emulation"));
-	menuBar()->addMenu(tr("Movie"));
-	menuBar()->addMenu(tr("Options"));
-	menuBar()->addMenu(tr("Tools"));
+	MakeEmulationMenu();
+	MakeMovieMenu();
+	MakeOptionsMenu();
+	MakeToolsMenu();
 	MakeViewMenu();
-	menuBar()->addMenu(tr("Help"));
+	MakeHelpMenu();
 }
 
 void MainWindow::MakeFileMenu()
 {
 	QMenu* file_menu = menuBar()->addMenu(tr("File"));
-	file_menu->addAction(tr("Open"), this, SLOT(Open()));
-	file_menu->addAction(tr("Exit"), this, SLOT(close()));
+	file_menu->addAction(tr("Open..."), this, SLOT(Open()));
+	file_menu->addAction(tr("Browse for ISOs..."), this, SLOT(Browse()));
+	file_menu->addAction(tr("Exit"), this, SLOT(Close()));
+}
+
+void MainWindow::MakeEmulationMenu()
+{
+	QMenu* emulation_menu = menuBar()->addMenu(tr("Emulation"));
+	emulation_menu->addAction(tr("Play"), this, SLOT(Play()));
+
+	QAction* stop_menu = emulation_menu->addAction(tr("Stop"), this, SLOT(Stop()));
+	stop_menu->setEnabled(false);
+	connect(this, &MainWindow::EmulationStarted, [=](){ stop_menu->setEnabled(true); });
+	connect(this, &MainWindow::EmulationPaused, [=](){ stop_menu->setEnabled(true); });
+	connect(this, &MainWindow::EmulationStopped, [=](){ stop_menu->setEnabled(false); });
+
+	QAction* reset_menu = emulation_menu->addAction(tr("Reset"), this, SLOT(Reset()));
+	reset_menu->setEnabled(false);
+	connect(this, &MainWindow::EmulationStarted, [=](){ reset_menu->setEnabled(true); });
+	connect(this, &MainWindow::EmulationPaused, [=](){ reset_menu->setEnabled(true); });
+	connect(this, &MainWindow::EmulationStopped, [=](){ reset_menu->setEnabled(false); });
+	
+	//TODO implement the below menu functions, set disabled for now
+	emulation_menu->addSeparator();
+	emulation_menu->addAction(tr("Fullscreen"))->setEnabled(false);
+	emulation_menu->addAction(tr("Frame Advance"))->setEnabled(false);
+	emulation_menu->addMenu(tr("Frame Skipping"))->setEnabled(false);
+	emulation_menu->addSeparator();
+	emulation_menu->addAction(tr("Take Screenshot"))->setEnabled(false);
+	emulation_menu->addSeparator();
+	emulation_menu->addAction(tr("Load State"))->setEnabled(false);
+	emulation_menu->addAction(tr("Save State"))->setEnabled(false);
+	emulation_menu->addMenu(tr("Select State Slot"))->setEnabled(false);
+}
+
+void MainWindow::MakeMovieMenu()
+{
+	QMenu* movie_menu = menuBar()->addMenu(tr("Movie"));
+	//TODO implement the below menu functions, set disabled for now
+	movie_menu->addAction(tr("Start Recording Input"))->setEnabled(false);
+	movie_menu->addAction(tr("Play Input Recording..."))->setEnabled(false);
+	movie_menu->addAction(tr("Export Recording..."))->setEnabled(false);
+	movie_menu->addAction(tr("Read-Only Mode"))->setEnabled(false);
+	movie_menu->addAction(tr("TAS Input"))->setEnabled(false);
+	movie_menu->addSeparator();
+	movie_menu->addAction(tr("Pause at End of Movie"))->setEnabled(false);
+	movie_menu->addAction(tr("Show Lag Counter"))->setEnabled(false);
+	movie_menu->addAction(tr("Show Frame Counter"))->setEnabled(false);
+	movie_menu->addAction(tr("Show Input Display"))->setEnabled(false);
+	movie_menu->addSeparator();
+	movie_menu->addAction(tr("Dump Frames"))->setEnabled(false);
+	movie_menu->addAction(tr("Dump Audio"))->setEnabled(false);
+}
+
+void MainWindow::MakeOptionsMenu()
+{
+	QMenu* options_menu = menuBar()->addMenu(tr("Options"));
+	options_menu->addAction(tr("Graphics Settings"))->setEnabled(false);
+	options_menu->addAction(tr("Audio Settings"))->setEnabled(false);
+	options_menu->addAction(tr("Controller Settings"))->setEnabled(false);
+	options_menu->addAction(tr("Hotkey Settings"))->setEnabled(false);
+}
+
+void MainWindow::MakeToolsMenu()
+{
+	QMenu* tools_menu = menuBar()->addMenu(tr("Tools"));
+	//TODO implement the below menu functions, set disabled for now
+	tools_menu->addAction(tr("Memcard Manager (GC)"))->setEnabled(false);
+	tools_menu->addAction(tr("Import Wii Saves"))->setEnabled(false);
+	tools_menu->addAction(tr("Export All Wii Saves"))->setEnabled(false);
+	tools_menu->addAction(tr("Cheat Manager"))->setEnabled(false);
+	tools_menu->addAction(tr("Start NetPlay"))->setEnabled(false);
+	tools_menu->addAction(tr("Install WAD"))->setEnabled(false);
+	tools_menu->addAction(tr("Load Wii System Menu"))->setEnabled(false);
+	tools_menu->addAction(tr("Fifo Player"))->setEnabled(false);
+	tools_menu->addSeparator();
+	tools_menu->addMenu(tr("Connect Wiimotes"))->setEnabled(false);
 }
 
 void MainWindow::MakeViewMenu()
@@ -60,6 +137,14 @@ void MainWindow::MakeViewMenu()
 	QMenu* view_menu = menuBar()->addMenu(tr("View"));
 	AddTableColumnsMenu(view_menu);
 	AddListTypePicker(view_menu);
+}
+
+void MainWindow::MakeHelpMenu()
+{
+	QMenu* help_menu = menuBar()->addMenu(tr("Help"));
+	help_menu->addAction(tr("Website"), this, SLOT(Website()));
+	help_menu->addAction(tr("Online Documentation"), this, SLOT(Documentation()));
+	help_menu->addAction(tr("GitHub Repository"), this, SLOT(GitHub()));
 }
 
 void MainWindow::AddTableColumnsMenu(QMenu* view_menu)
@@ -343,6 +428,21 @@ void MainWindow::FullScreen()
 void MainWindow::ScreenShot()
 {
 	Core::SaveScreenShot();
+}
+
+void MainWindow::Website()
+{
+	QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/")));
+}
+
+void MainWindow::Documentation()
+{
+	QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides/")));
+}
+
+void MainWindow::GitHub()
+{
+	QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
 }
 
 void MainWindow::StartGame(QString path)
