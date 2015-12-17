@@ -470,6 +470,12 @@ static u32 GetTicksPerOddField()
 float GetAspectRatio(bool wide)
 {
 	u32 multiplier = static_cast<u32>(m_PictureConfiguration.STD / m_PictureConfiguration.WPL);
+
+	// if this is doublestrike mode, each field has an even amount of halflines and
+	// it's effectively double the height
+	if (((GetHalfLinesPerEvenField() & 1) == 0) && ((GetHalfLinesPerOddField() & 1) == 0)) {
+		multiplier *= 2;
+	}
 	int height = (multiplier * m_VerticalTimingRegister.ACV);
 	int width = ((2 * m_HTiming0.HLW) - (m_HTiming0.HLW - m_HTiming1.HBS640)
 		- m_HTiming1.HBE640);
