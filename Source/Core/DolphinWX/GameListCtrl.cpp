@@ -53,9 +53,19 @@
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
-size_t CGameListCtrl::m_currentItem = 0;
-size_t CGameListCtrl::m_numberItem = 0;
-std::string CGameListCtrl::m_currentFilename;
+struct CompressionProgress final
+{
+public:
+	CompressionProgress(int items_done_, int items_total_, const std::string& current_filename_, wxProgressDialog* dialog_)
+		: items_done(items_done_), items_total(items_total_), current_filename(current_filename_), dialog(dialog_)
+	{ }
+
+	int items_done;
+	int items_total;
+	std::string current_filename;
+	wxProgressDialog* dialog;
+};
+
 static bool sorted = false;
 
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
@@ -1067,12 +1077,14 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 
 bool CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void* arg)
 {
-	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
-	wxString textString(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
-				m_currentFilename.c_str(), (int)m_currentItem + 1,
-				(int)m_numberItem, text.c_str())));
+	CompressionProgress* progress = reinterpret_cast<CompressionProgress*>(arg);
 
-	return ((wxProgressDialog*)arg)->Update((int)(percent * 1000), textString);
+	float total_percent = ((float)progress->items_done + percent) / (float)progress->items_total;
+	wxString text_string(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
+				progress->current_filename.c_str(), progress->items_done + 1,
+				progress->items_total, text.c_str())));
+
+	return progress->dialog->Update(total_percent * progress->dialog->GetRange(), text_string);
 }
 
 void CGameListCtrl::OnMultiCompressISO(wxCommandEvent& /*event*/)
@@ -1118,7 +1130,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 		wxProgressDialog progressDialog(
 			_compress ? _("Compressing ISO") : _("Decompressing ISO"),
 			_("Working..."),
-			1000,
+			1000, // Arbitrary number that's larger than the dialog's width in pixels
 			this,
 			wxPD_APP_MODAL |
 			wxPD_CAN_ABORT |
@@ -1126,9 +1138,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			wxPD_SMOOTH
 			);
 
-		// These two variables are used when the progress dialog is updated
-		m_currentItem = 0;
-		m_numberItem = GetSelectedItemCount();
+		CompressionProgress progress(0, GetSelectedItemCount(), "", &progressDialog);
 
 		for (const GameListItem* iso : selected_items)
 		{
@@ -1139,10 +1149,9 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 			if (!iso->IsCompressed() && _compress)
 			{
-				std::string FileName, FileExt;
-				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
-				// Update the file name in the progress dialog
-				m_currentFilename = FileName;
+				std::string FileName;
+				SplitPath(iso->GetFileName(), nullptr, &FileName, nullptr);
+				progress.current_filename = FileName;
 				FileName.append(".gcz");
 
 				std::string OutputFileName;
@@ -1161,14 +1170,13 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				all_good &= DiscIO::CompressFileToBlob(iso->GetFileName(),
 						OutputFileName,
 						(iso->GetPlatform() == DiscIO::IVolume::WII_DISC) ? 1 : 0,
-						16384, &MultiCompressCB, &progressDialog);
+						16384, &MultiCompressCB, &progress);
 			}
 			else if (iso->IsCompressed() && !_compress)
 			{
-				std::string FileName, FileExt;
-				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
-				// Update the file name in the progress dialog
-				m_currentFilename = FileName;
+				std::string FileName;
+				SplitPath(iso->GetFileName(), nullptr, &FileName, nullptr);
+				progress.current_filename = FileName;
 				if (iso->GetPlatform() == DiscIO::IVolume::WII_DISC)
 					FileName.append(".iso");
 				else
@@ -1188,11 +1196,10 @@ void CGameListCtrl::CompressSelection(bool _compress)
 					continue;
 
 				all_good &= DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
-						OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
+						OutputFileName.c_str(), &MultiCompressCB, &progress);
 			}
 
-			// Update the progress in the progress dialog
-			m_currentItem++;
+			progress.items_done++;
 		}
 	}
 
