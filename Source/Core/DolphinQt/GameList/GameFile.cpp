@@ -109,8 +109,13 @@ GameFile::GameFile(const QString& fileName)
 			m_file_size = volume->GetRawSize();
 			m_volume_size = volume->GetSize();
 
+			// A temporary variable is necessary here to convert between
+			// quint64 (needed by GameFile's cache code) and u64 (needed by GetTitleID)
+			u64 title_id;
+			volume->GetTitleID(&title_id);
+			m_title_id = title_id;
+
 			m_unique_id = QString::fromStdString(volume->GetUniqueID());
-			volume->GetTitleID(&m_title_id);
 			m_disc_number = volume->GetDiscNumber();
 			m_revision = volume->GetRevision();
 
