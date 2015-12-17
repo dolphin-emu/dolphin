@@ -1,6 +1,6 @@
 # Translation of dolphin-emu.pot to LANGUAGE
 # Copyright (C) 2003-2013
-# This file is distributed under the same license as the dolphin-emu package.
+# This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
 # nikolassj, 2011
@@ -8,10 +8,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-15 19:36+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
+"POT-Creation-Date: 2015-12-17 02:03+0000\n"
+"PO-Revision-Date: 2015-12-15 19:36+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
-"Language-Team: Serbian (http://www.transifex.com/projects/p/dolphin-emu/"
+"Language-Team: Serbian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/sr/)\n"
 "Language: sr\n"
 "MIME-Version: 1.0\n"
@@ -246,9 +246,8 @@ msgid "&Controller Settings"
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:908
-#, fuzzy
 msgid "&Delete File..."
-msgstr "&Obrisi ISO..."
+msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:930
 msgid "&Delete selected ISOs..."
@@ -1181,9 +1180,8 @@ msgid "Code Info"
 msgstr "Informacija o kodu "
 
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:52
-#, fuzzy
 msgid "Code:"
-msgstr "Kod:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:27
 msgid "Code: "
@@ -1309,14 +1307,12 @@ msgid "Control"
 msgstr "Kontrola"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:64
-#, fuzzy
 msgid "Control Stick"
-msgstr "Kontrola"
+msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:15
-#, fuzzy
 msgid "Controller Ports"
-msgstr "Kontrola"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:560
 msgid "Controller settings"
@@ -2402,9 +2398,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:278
-#, fuzzy
 msgid "File"
-msgstr "&Fajl"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:81
 msgid "File Info"
@@ -2683,9 +2678,8 @@ msgid "GBA"
 msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:31
-#, fuzzy
 msgid "GC Port "
-msgstr "Port :"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:542
 msgid "GCI File(*.gci)"
@@ -3362,9 +3356,8 @@ msgid "Load State Last 1"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:122
-#, fuzzy
 msgid "Load State Last 10"
-msgstr "Ucitaj State Slot 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Load State Last 2"
@@ -3395,9 +3388,8 @@ msgid "Load State Last 8"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:121
-#, fuzzy
 msgid "Load State Last 9"
-msgstr "Ucitaj State Slot 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Load State Slot 1"
@@ -3576,9 +3568,8 @@ msgid "Memory Card"
 msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:105
-#, fuzzy
 msgid "Memory Card Manager"
-msgstr "&Memorijska kartica (Meneger za GC)"
+msgstr ""
 
 #: Source/Core/Core/ConfigManager.cpp:894
 #, c-format
@@ -4543,9 +4534,8 @@ msgid "Select Slot %i - %s"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:174
-#, fuzzy
 msgid "Select State Slot"
-msgstr "Snimaj State Slot 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:99
 msgid "Select State Slot 1"
@@ -5515,9 +5505,8 @@ msgid "Toggle Pause"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:555
-#, fuzzy
 msgid "Toggle fullscreen"
-msgstr "&Pun Ekran"
+msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:339
 msgid "Top"
@@ -6109,9 +6098,3 @@ msgstr ""
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| ILI"
-
-#~ msgid "C-Stick"
-#~ msgstr "C-Stick"
-
-#~ msgid "Search Filter"
-#~ msgstr "Trazi Filter"

@@ -1,6 +1,6 @@
 # Translation of dolphin-emu.pot to LANGUAGE
 # Copyright (C) 2003-2013
-# This file is distributed under the same license as the dolphin-emu package.
+# This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
 # nakee <nakeee@gmail.com>, 2011
@@ -9,11 +9,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-15 19:36+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
+"POT-Creation-Date: 2015-12-17 02:03+0000\n"
+"PO-Revision-Date: 2015-12-15 19:36+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
-"Language-Team: Hebrew (http://www.transifex.com/projects/p/dolphin-emu/"
-"language/he/)\n"
+"Language-Team: Hebrew (http://www.transifex.com/delroth/dolphin-emu/language/"
+"he/)\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2390,9 +2390,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:278
-#, fuzzy
 msgid "File"
-msgstr "&קובץ"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:81
 msgid "File Info"
@@ -5498,9 +5497,8 @@ msgid "Toggle Pause"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:555
-#, fuzzy
 msgid "Toggle fullscreen"
-msgstr "&מסך מלא"
+msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:339
 msgid "Top"

@@ -1,6 +1,6 @@
 # Translation of dolphin-emu.pot to LANGUAGE
 # Copyright (C) 2003-2013
-# This file is distributed under the same license as the dolphin-emu package.
+# This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
 # H.Khakbiz <hamed.khakbiz@gmail.com>, 2011
@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-15 19:36+0000\n"
-"PO-Revision-Date: 2015-06-10 07:28+0000\n"
+"POT-Creation-Date: 2015-12-17 02:03+0000\n"
+"PO-Revision-Date: 2015-12-15 19:36+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
-"Language-Team: Persian (http://www.transifex.com/projects/p/dolphin-emu/"
+"Language-Team: Persian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/fa/)\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
@@ -142,31 +142,25 @@ msgid "%s already exists, overwrite?"
 msgstr "%s وجود دارد، بازنویسی شود؟"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:58
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
 "Card file size is invalid (0x%x bytes)"
 msgstr ""
-"%s بارگذاری بعنوان کارت حافظه با شکست مواجه شد \n"
-"حجم فایل کارت نامعتبر است (0x%x بایت)"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:73
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
 "Card size is invalid (0x%x bytes)"
 msgstr ""
-"%s بارگذاری بعنوان کارت حافظه با شکست مواجه شد \n"
-"حجم کارت حافظه نامعتبر است (0x%x بایت)"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:53
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
 "File is not large enough to be a valid memory card file (0x%x bytes)"
 msgstr ""
-"%s بارگذاری بعنوان کارت حافظه با شکست مواجه شد \n"
-"فایل به اندازه کافی بزرگ نیست که یک فایل کارت حافظه معتبر باشد (0x%x بایت)"
 
 #: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:220
 #, c-format
@@ -202,24 +196,24 @@ msgstr "%u بلوک های آزاد; %u ورودی های پوشه آزاد"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:875
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:941
-#, fuzzy, c-format
+#, c-format
 msgid "%u frames"
-msgstr "نسخه برداری فریم ها"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:895
-#, fuzzy, c-format
+#, c-format
 msgid "%u objects"
-msgstr "شیی"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:910
-#, fuzzy, c-format
+#, c-format
 msgid "%zu FIFO bytes"
-msgstr "بایت فیفو"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:930
-#, fuzzy, c-format
+#, c-format
 msgid "%zu memory bytes"
-msgstr "بایت حافظه"
+msgstr ""
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:597
 msgid "&& AND"
@@ -254,9 +248,8 @@ msgid "&Controller Settings"
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:908
-#, fuzzy
 msgid "&Delete File..."
-msgstr "&حذف آیزو..."
+msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:930
 msgid "&Delete selected ISOs..."
@@ -517,9 +510,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
-#, fuzzy
 msgid "AM Baseboard"
-msgstr "بُردِ مادر ای ام"
+msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:54
 msgid "AM-Baseboard"
@@ -1032,9 +1024,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:26
-#, fuzzy
 msgid "Cached Interpreter (slower)"
-msgstr "مفسر سطح پائین پردازشگر صدای دلفین (کند)"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:111
 msgid ""
@@ -1215,9 +1206,8 @@ msgid "Code Info"
 msgstr "مشخصات کد"
 
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:52
-#, fuzzy
 msgid "Code:"
-msgstr "کد:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:27
 msgid "Code: "
@@ -1343,14 +1333,12 @@ msgid "Control"
 msgstr "کنترل"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:64
-#, fuzzy
 msgid "Control Stick"
-msgstr "استیک دایره"
+msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:15
-#, fuzzy
 msgid "Controller Ports"
-msgstr "کنترل"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:560
 msgid "Controller settings"
@@ -1498,15 +1486,11 @@ msgid "Crop"
 msgstr "حذف قسمتی از تصوير"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:138
-#, fuzzy
 msgid ""
 "Crop the picture from its native aspect ratio to 4:3 or 16:9.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"حذف قسمتی از تصویر از ۴:۳ به ۵:۴ یا از ۱۶:۹ به ۱۶:۱۰.\n"
-"\n"
-"اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:53
 msgid "Crossfade"
@@ -1693,11 +1677,8 @@ msgid "Direct Connect"
 msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:130
-#, fuzzy
 msgid "Directory checksum and directory backup checksum failed"
 msgstr ""
-"چک سام پوشه با شکست مواجه شد\n"
-" و چک سام بکاپ پوشه با شکست مواجه شد"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:505
 msgid "Disable"
@@ -1839,9 +1820,8 @@ msgid "Dolphin was unable to complete the requested action."
 msgstr "دلفین نتوانست عمل خواسته شده را تکمیل کند."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:316
-#, fuzzy
 msgid "Done compressing disc image."
-msgstr "در حال ناهمفشرده کردن آیزو"
+msgstr ""
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:50
 #: Source/Core/InputCommon/ControllerEmu.cpp:195
@@ -2437,9 +2417,9 @@ msgstr ""
 "(0x6000-0x7FFF)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:672
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read data from GCI file %s"
-msgstr "خواندن %s با شکست مواجه شد"
+msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:99
 msgid ""
@@ -2501,9 +2481,8 @@ msgstr ""
 "همگاه سازی مجدد مهلک. خروج نمایش. (خطا در ویموت پخش: %u !=%u, بایت %u.)%s"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:278
-#, fuzzy
 msgid "File"
-msgstr "&فایل"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:81
 msgid "File Info"
@@ -2534,13 +2513,11 @@ msgstr ""
 "یا دارای پسوند معتبر نیست"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:47
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "File has the extension \"%s\".\n"
 "Valid extensions are (.raw/.gcp)"
 msgstr ""
-"فایل پسوند \"%s\" دارد\n"
-"پسوند های معتبر عبارتند از (.raw/,gcp)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:430
 msgid "File is not recognized as a memcard"
@@ -2557,9 +2534,8 @@ msgid "File write failed"
 msgstr ""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:185
-#, fuzzy
 msgid "Files opened, ready to compress."
-msgstr "فایل فشرده نیست"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:598
 msgid "Filesystem"
@@ -2638,13 +2614,10 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:35
-#, fuzzy
 msgid ""
 "Format as ASCII (NTSC\\PAL)?\n"
 "Choose no for Shift JIS (NTSC-J)"
 msgstr ""
-"قالب بندی بعنوان اسکی (NTSC\\PAL)?\n"
-"انتخاب پاسخ منفی برای SJIS (NTSC-J)"
 
 #: Source/Core/InputCommon/ControllerEmu.cpp:198
 msgid "Forward"
@@ -2665,33 +2638,30 @@ msgid "Found %zu save files"
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:885
-#, fuzzy, c-format
+#, c-format
 msgid "Frame %u"
-msgstr "فریم"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:861
-#, fuzzy, c-format
+#, c-format
 msgid "Frame %zu"
-msgstr "فریم"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:22
 msgid "Frame Advance"
 msgstr "پيشروى فریم"
 
 #: Source/Core/Core/HotkeyManager.cpp:23
-#, fuzzy
 msgid "Frame Advance Decrease Speed"
-msgstr "پيشروى فریم"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:24
-#, fuzzy
 msgid "Frame Advance Increase Speed"
-msgstr "پيشروى فریم"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:25
-#, fuzzy
 msgid "Frame Advance Reset Speed"
-msgstr "پيشروى فریم"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:562
 msgid "Frame Dumps use FFV1"
@@ -2793,9 +2763,8 @@ msgid "GBA"
 msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:31
-#, fuzzy
 msgid "GC Port "
-msgstr "درگاه :"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:542
 msgid "GCI File(*.gci)"
@@ -2922,9 +2891,9 @@ msgid "Germany"
 msgstr ""
 
 #: Source/Core/Core/ActionReplay.cpp:256
-#, fuzzy, c-format
+#, c-format
 msgid "GetARCode: Index is greater than ar code list size %zu"
-msgstr "گرفتن کد اکشن ریپلی: فهرست بزرگتر از سایز لیست است %lu"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:559
 msgid "Graphics"
@@ -3259,9 +3228,8 @@ msgid "Internal Resolution:"
 msgstr "وضوح داخلی:"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:25
-#, fuzzy
 msgid "Interpreter (slowest)"
-msgstr "مفسر سطح پائین پردازشگر صدای دلفین (کند)"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:375
 msgid "Intro"
@@ -3484,9 +3452,8 @@ msgid "Load State Last 1"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:122
-#, fuzzy
 msgid "Load State Last 10"
-msgstr "بارگذاری وضعیت - شکاف ۱"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Load State Last 2"
@@ -3517,9 +3484,8 @@ msgid "Load State Last 8"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:121
-#, fuzzy
 msgid "Load State Last 9"
-msgstr "بارگذاری وضعیت - شکاف ۱"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Load State Slot 1"
@@ -3698,9 +3664,8 @@ msgid "Memory Card"
 msgstr "کارت حافظه"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:105
-#, fuzzy
 msgid "Memory Card Manager"
-msgstr "کارت حافظه"
+msgstr ""
 
 #: Source/Core/Core/ConfigManager.cpp:894
 #, c-format
@@ -3720,9 +3685,8 @@ msgstr ""
 "آیا مایل هستید فایل قبلی را به مکان جدید کپی کنید؟\n"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:87
-#, fuzzy
 msgid "Memory card file size does not match the header size"
-msgstr "سایز کارت حافظه با سرخط تطابق ندارد"
+msgstr ""
 
 #: Source/Core/Core/HW/GCMemcardRaw.cpp:180
 #, c-format
@@ -4040,9 +4004,9 @@ msgid "Nvidia 3D Vision"
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:598
-#, fuzzy, c-format
+#, c-format
 msgid "Object %zu"
-msgstr "شیی"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:117
 msgid "Object Range"
@@ -4317,9 +4281,8 @@ msgid "Properties"
 msgstr "خواص"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:348
-#, fuzzy
 msgid "Purge Game List Cache"
-msgstr "پاکسازی حافظه ميانى"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:75
 msgid "Put BIOS roms in User/GC/{region}."
@@ -4683,14 +4646,13 @@ msgid "Select Columns"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:527
-#, fuzzy, c-format
+#, c-format
 msgid "Select Slot %i - %s"
-msgstr "انتخاب پنجره های شناور"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:174
-#, fuzzy
 msgid "Select State Slot"
-msgstr "ذخیره وضعیت - شکاف ۱"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:99
 msgid "Select State Slot 1"
@@ -4766,7 +4728,6 @@ msgid "Select the state to save"
 msgstr "انتخاب وضعیت برای ذخیره"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:105
-#, fuzzy
 msgid ""
 "Select what aspect ratio to use when rendering:\n"
 "Auto: Use the native aspect ratio\n"
@@ -4776,14 +4737,6 @@ msgid ""
 "\n"
 "If unsure, select Auto."
 msgstr ""
-"انتخاب کنید زمانی که پردازش تصویر انجام می شود کدام نسبت طول به عرض استفاده "
-"شود:\n"
-"اتوماتیک: نسبت طول به عرض معین استفاده می شود\n"
-"۱۶:۹ به اجبار: کشیدن تصویر به نسبت طول به عرض ۱۶:۹.\n"
-"۴:۳ به اجبار: کشیدن تصویر به نسبت طول به عرض ۴:۳.\n"
-"کشیدن به پنجره: کشیدن تصویر به اندازه پنجره.\n"
-"\n"
-"اگر در این مورد اطمینان ندارید، اتوماتیک را انتخاب کنید."
 
 #: Source/Core/InputCommon/InputConfig.cpp:53
 msgid "Selected controller profile does not exist"
@@ -4872,11 +4825,9 @@ msgid "Set as default Memcard %c"
 msgstr "ست کردن بعنوان کارت حافظه پیش فرض %c"
 
 #: Source/Core/Core/ActionReplay.cpp:267
-#, fuzzy, c-format
+#, c-format
 msgid "SetARCode_IsActive: Index is greater than ar code list size %zu"
 msgstr ""
-"ست کردن کد اکشن ریپلی_فعال است: فهرست بزرگتر از سایز لیست کد اکشن ریپلی است "
-"%lu"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
 msgid "Sets the GameCube system language."
@@ -4917,9 +4868,8 @@ msgid "Show &Log"
 msgstr "نمایش &ثبت وقایع"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:268
-#, fuzzy
 msgid "Show &Status Bar"
-msgstr "نمایش نوار &وضعیت"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:266
 msgid "Show &Toolbar"
@@ -4938,9 +4888,8 @@ msgid "Show Drives"
 msgstr "نمایش درایوها"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:311
-#, fuzzy
 msgid "Show ELF/DOL"
-msgstr "نمایش پایگاه ها"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:311
 msgid "Show FPS"
@@ -5031,9 +4980,8 @@ msgid "Show Unknown"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:309
-#, fuzzy
 msgid "Show WAD"
-msgstr "نمایش واد"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:305
 msgid "Show Wii"
@@ -5132,9 +5080,9 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:467
 #: Source/Core/DolphinWX/FrameTools.cpp:481
-#, fuzzy, c-format
+#, c-format
 msgid "Slot %i - %s"
-msgstr "شکاف %i"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:81
 msgid "Slot A"
@@ -5306,9 +5254,9 @@ msgid "Subtract"
 msgstr "کاستن"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:103
-#, fuzzy, c-format
+#, c-format
 msgid "Successfully exported %u saves to %s"
-msgstr "صادر کردن فایل به %s با موفقیت انجام شد"
+msgstr ""
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:56
 #, c-format
@@ -5395,9 +5343,8 @@ msgid "Take Screenshot"
 msgstr "گرفتن عکس فوری"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:556
-#, fuzzy
 msgid "Take screenshot"
-msgstr "گرفتن عکس فوری"
+msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "TaruKonga (Bongos)"
@@ -5650,24 +5597,20 @@ msgid "Toggle 3D Anaglyph"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:130
-#, fuzzy
 msgid "Toggle 3D Preset"
-msgstr "تبدیل حالت تمام صفحه"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:67
-#, fuzzy
 msgid "Toggle 3D Side-by-side"
-msgstr "تبدیل حالت تمام صفحه"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:68
-#, fuzzy
 msgid "Toggle 3D Top-bottom"
-msgstr "تبدیل حالت تمام صفحه"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:70
-#, fuzzy
 msgid "Toggle 3D Vision"
-msgstr "تبدیل حالت تمام صفحه"
+msgstr ""
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:61
 msgid "Toggle All Log Types"
@@ -5698,9 +5641,8 @@ msgid "Toggle Pause"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:555
-#, fuzzy
 msgid "Toggle fullscreen"
-msgstr "تبدیل حالت تمام صفحه"
+msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:339
 msgid "Top"
@@ -5925,9 +5867,8 @@ msgid "Value (double)"
 msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:292
-#, fuzzy
 msgid "Value (float)"
-msgstr "مقدار:"
+msgstr ""
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:76
 msgid "Value:"
@@ -6129,14 +6070,12 @@ msgid "Wii NAND Root:"
 msgstr "ریشه وی نند:"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1494
-#, fuzzy
 msgid "Wii WAD files (*.wad)"
-msgstr "فایل های ذخیره وی (*.bin)|*.bin"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1454
-#, fuzzy
 msgid "Wii save files (*.bin)"
-msgstr "فایل های ذخیره وی (*.bin)|*.bin"
+msgstr ""
 
 #: Source/Core/DiscIO/WiiWad.cpp:55
 msgid "WiiWAD: Could not read from file"
@@ -6327,54 +6266,3 @@ msgstr "خطای 1- wxExecute در اجرای برنامه!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| یا"
-
-#~ msgid "C-Stick"
-#~ msgstr "استیک سی"
-
-#~ msgid "Configure Pads"
-#~ msgstr "پیکربندی گیم پدها"
-
-#~ msgid "Could not initialize backend %s."
-#~ msgstr "قادر به نصب پشتوانه نیست %s"
-
-#~ msgid "Fifo Player"
-#~ msgstr "پخش کننده فیفو"
-
-#~ msgid "Frame"
-#~ msgstr "فریم"
-
-#~ msgid "Insert Encrypted or Decrypted code here..."
-#~ msgstr "درج کد رمز شده و یا کشف شده..."
-
-#~ msgid ""
-#~ "Memory Card Manager WARNING-Make backups before using, should be fixed "
-#~ "but could mangle stuff!"
-#~ msgstr ""
-#~ "اخطار: قبل از استفاده از کارت حافظه بک آپ بگیرید، شاید درست شود اما "
-#~ "اطلاعات از بین خواهد رفت!"
-
-#~ msgid "Pad "
-#~ msgstr "گیم پد"
-
-#~ msgid "Previous Value"
-#~ msgstr "مقدار قبلی"
-
-#~ msgid "Search Filter"
-#~ msgstr "فیلتر جستجو"
-
-#~ msgid "Show EFB Copy Regions"
-#~ msgstr "نمایش مناطق کپی ای اف بی"
-
-#~ msgid ""
-#~ "[BROKEN]\n"
-#~ "Highlight regions the EFB was copied from.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "[خراب]\n"
-#~ "مشخص کردن مناطقی که ای اف بی از آن کپی شده است.\n"
-#~ "\n"
-#~ "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
-
-#~ msgid "s"
-#~ msgstr "s"
