@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QIcon>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -25,8 +26,8 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
 	setWindowTitle(tr("Dolphin"));
 	setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
 
-	MakeToolBar();
 	MakeGameList();
+	MakeToolBar();
 	MakeRenderWidget();
 	MakeStack();
 	MakeMenus();
@@ -92,8 +93,7 @@ void MainWindow::AddTableColumnsMenu(QMenu* view_menu)
 		SConfig::GetInstance().m_showRegionColumn,
 		SConfig::GetInstance().m_showStateColumn,
 	};
-	// - 1 because we never show COL_LARGE_ICON column in the table.
-	for (int i = 0; i < GameListModel::NUM_COLS - 1; i++)
+	for (int i = 0; i < GameListModel::NUM_COLS; i++)
 	{
 		QAction* action = column_group->addAction(cols_menu->addAction(col_names[i]));
 		action->setCheckable(true);
@@ -151,12 +151,21 @@ void MainWindow::AddListTypePicker(QMenu* view_menu)
 
 void MainWindow::MakeToolBar()
 {
-	setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-	m_tool_bar = addToolBar(tr("ToolBar"));
-	m_tool_bar->setMovable(false);
-	m_tool_bar->setFloatable(false);
+	m_tool_bar = new ToolBar(this);
+	addToolBar(m_tool_bar);
 
-	PopulateToolBar();
+	connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
+	// TODO make this open the config paths dialog, not the current Browse menu.
+	connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::Browse);
+	connect(m_tool_bar, &ToolBar::PlayPressed, this, &MainWindow::Play);
+	connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
+	connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::Stop);
+	connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::FullScreen);
+	connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
+
+	connect(this, &MainWindow::EmulationStarted, m_tool_bar, &ToolBar::EmulationStarted);
+	connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
+	connect(this, &MainWindow::EmulationStopped, m_tool_bar, &ToolBar::EmulationStopped);
 }
 
 void MainWindow::MakeGameList()
@@ -180,63 +189,6 @@ void MainWindow::MakeStack()
 	m_stack->setMinimumSize(800, 600);
 	m_stack->addWidget(m_game_list);
 	setCentralWidget(m_stack);
-}
-
-void MainWindow::PopulateToolBar()
-{
-	m_tool_bar->clear();
-
-	QString dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
-	m_tool_bar->addAction(
-			QIcon(dir + QStringLiteral("open.png")), tr("Open"),
-			this, SLOT(Open()));
-	m_tool_bar->addAction(
-			QIcon(dir + QStringLiteral("browse.png")), tr("Browse"),
-			this, SLOT(Browse()));
-
-	m_tool_bar->addSeparator();
-
-	QAction* play_action = m_tool_bar->addAction(
-			QIcon(dir + QStringLiteral("play.png")), tr("Play"),
-			this, SLOT(Play()));
-	connect(this, &MainWindow::EmulationStarted, [=](){ play_action->setEnabled(false); });
-	connect(this, &MainWindow::EmulationPaused, [=](){ play_action->setEnabled(true); });
-	connect(this, &MainWindow::EmulationStopped, [=](){ play_action->setEnabled(true); });
-
-	QAction* pause_action = m_tool_bar->addAction(
-			QIcon(dir + QStringLiteral("pause.png")), tr("Pause"),
-			this, SLOT(Pause()));
-	pause_action->setEnabled(false);
-	connect(this, &MainWindow::EmulationStarted, [=](){ pause_action->setEnabled(true); });
-	connect(this, &MainWindow::EmulationPaused, [=](){ pause_action->setEnabled(false); });
-	connect(this, &MainWindow::EmulationStopped, [=](){ pause_action->setEnabled(false); });
-
-	QAction* stop_action = m_tool_bar->addAction(
-			QIcon(dir + QStringLiteral("stop.png")), tr("Stop"),
-			this, SLOT(Stop()));
-	stop_action->setEnabled(false);
-	connect(this, &MainWindow::EmulationStarted, [=](){ stop_action->setEnabled(true); });
-	connect(this, &MainWindow::EmulationPaused, [=](){ stop_action->setEnabled(true); });
-	connect(this, &MainWindow::EmulationStopped, [=](){ stop_action->setEnabled(false); });
-
-	QAction* fullscreen_action = m_tool_bar->addAction(
-			QIcon(dir + QStringLiteral("fullscreen.png")), tr("Full Screen"),
-			this, SLOT(FullScreen()));
-	fullscreen_action->setEnabled(false);
-	connect(this, &MainWindow::EmulationStarted, [=](){ fullscreen_action->setEnabled(true); });
-	connect(this, &MainWindow::EmulationStopped, [=](){ fullscreen_action->setEnabled(false); });
-
-	QAction* screenshot_action = m_tool_bar->addAction(
-			QIcon(dir + QStringLiteral("screenshot.png")), tr("Screen Shot"),
-			this, SLOT(ScreenShot()));
-	screenshot_action->setEnabled(false);
-	connect(this, &MainWindow::EmulationStarted, [=](){ screenshot_action->setEnabled(true); });
-	connect(this, &MainWindow::EmulationStopped, [=](){ screenshot_action->setEnabled(false); });
-
-	m_tool_bar->addSeparator();
-	m_tool_bar->addAction(QIcon(dir + QStringLiteral("config.png")), tr("Settings"))->setEnabled(false);
-	m_tool_bar->addAction(QIcon(dir + QStringLiteral("graphics.png")), tr("Graphics"))->setEnabled(false);
-	m_tool_bar->addAction(QIcon(dir + QStringLiteral("classic.png")), tr("Controllers"))->setEnabled(false);
 }
 
 void MainWindow::Open()

@@ -35,7 +35,9 @@ private:
 	void MakeListView();
 
 	GameListModel* m_model;
-	QSortFilterProxyModel* m_proxy;
+	QSortFilterProxyModel* m_table_proxy;
+	QSortFilterProxyModel* m_list_proxy;
+
 	QListView* m_list;
 	QTableView* m_table;
 };

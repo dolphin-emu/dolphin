@@ -9,11 +9,13 @@ set(SRCS
 	Host.cpp
 	RenderWidget.cpp
 	Resources.cpp
+	ToolBar.cpp
 	GameList/GameFile.cpp
 	GameList/GameList.cpp
 	GameList/GameTracker.cpp
 	GameList/GameListModel.cpp
-	GameList/GameListProxyModel.cpp
+	GameList/TableProxyModel.cpp
+	GameList/ListProxyModel.cpp
 	)
 
 list(APPEND LIBS core uicommon)

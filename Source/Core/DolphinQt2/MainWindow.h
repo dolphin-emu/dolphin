@@ -10,6 +10,7 @@
 #include <QToolBar>
 
 #include "DolphinQt2/RenderWidget.h"
+#include "DolphinQt2/ToolBar.h"
 #include "DolphinQt2/GameList/GameList.h"
 
 class MainWindow final : public QMainWindow
@@ -47,14 +48,12 @@ private:
 	void AddTableColumnsMenu(QMenu* view_menu);
 	void AddListTypePicker(QMenu* view_menu);
 
-	void PopulateToolBar();
-
 	void StartGame(QString path);
 	void ShowRenderWidget();
 	void HideRenderWidget();
 
 	QStackedWidget* m_stack;
-	QToolBar* m_tool_bar;
+	ToolBar* m_tool_bar;
 	GameList* m_game_list;
 	RenderWidget* m_render_widget;
 	bool m_rendering_to_main;

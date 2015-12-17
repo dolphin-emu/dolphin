@@ -4,10 +4,9 @@
 
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/GameList/GameListModel.h"
-#include "DolphinQt2/GameList/GameListProxyModel.h"
+#include "DolphinQt2/GameList/TableProxyModel.h"
 
 static constexpr QSize NORMAL_BANNER_SIZE(96, 32);
-static constexpr QSize LARGE_BANNER_SIZE(144, 48);
 
 // Convert an integer size to a friendly string representation.
 static QString FormatSize(qint64 size)
@@ -29,12 +28,13 @@ static QString FormatSize(qint64 size)
 	return QStringLiteral("%1 %2").arg(QString::number(num, 'f', 1)).arg(unit);
 }
 
-GameListProxyModel::GameListProxyModel(QObject* parent)
+TableProxyModel::TableProxyModel(QObject* parent)
 	: QSortFilterProxyModel(parent)
 {
+	setSortCaseSensitivity(Qt::CaseInsensitive);
 }
 
-QVariant GameListProxyModel::data(const QModelIndex& i, int role) const
+QVariant TableProxyModel::data(const QModelIndex& i, int role) const
 {
 	QModelIndex source_index = mapToSource(i);
 	QVariant source_data = sourceModel()->data(source_index, Qt::DisplayRole);
@@ -51,9 +51,6 @@ QVariant GameListProxyModel::data(const QModelIndex& i, int role) const
 		case GameListModel::COL_DESCRIPTION:
 		case GameListModel::COL_MAKER:
 			return source_data;
-		// Show the title in the display role of the icon view.
-		case GameListModel::COL_LARGE_ICON:
-			return data(index(i.row(), GameListModel::COL_TITLE), Qt::DisplayRole);
 		}
 	}
 	else if (role == Qt::DecorationRole)
@@ -74,13 +71,6 @@ QVariant GameListProxyModel::data(const QModelIndex& i, int role) const
 			return Resources::GetCountry(source_data.toInt());
 		case GameListModel::COL_RATING:
 			return Resources::GetRating(source_data.toInt());
-		// Show a scaled icon in the decoration role of the icon view.
-		case GameListModel::COL_LARGE_ICON:
-			return data(index(i.row(), GameListModel::COL_BANNER), Qt::DecorationRole)
-				.value<QPixmap>().scaled(
-					LARGE_BANNER_SIZE,
-					Qt::KeepAspectRatio,
-					Qt::SmoothTransformation);
 		}
 	}
 	return QVariant();

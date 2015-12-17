@@ -9,11 +9,11 @@
 // For instance, the GameListModel exposes country as an integer, so this
 // class converts that into a flag, while still allowing sorting on the
 // underlying integer.
-class GameListProxyModel final : public QSortFilterProxyModel
+class TableProxyModel final : public QSortFilterProxyModel
 {
 	Q_OBJECT
 
 public:
-	GameListProxyModel(QObject* parent = nullptr);
+	TableProxyModel(QObject* parent = nullptr);
 	QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
 };
