@@ -107,9 +107,6 @@ private:
 	void HideColumn(int column);
 	void UnselectAll();
 
-	static size_t m_currentItem;
-	static std::string m_currentFilename;
-	static size_t m_numberItem;
 	static bool CompressCB(const std::string& text, float percent, void* arg);
 	static bool MultiCompressCB(const std::string& text, float percent, void* arg);
 	static bool WiiCompressWarning();
