@@ -21,15 +21,13 @@
 
 namespace DolphinWatch {
 
-	using namespace std;
-
 	static sf::TcpListener server;
-	static vector<Client> clients;
+	static std::vector<Client> clients;
 	static char cbuf[1024];
 
-	static thread thrMemory, thrRecv;
-	static atomic<bool> running;
-	static mutex client_mtx;
+	static std::thread thrMemory, thrRecv;
+	static std::atomic<bool> running;
+	static std::mutex client_mtx;
 
 	static int hijacksWii[NUM_WIIMOTES];
 	static int hijacksGC[NUM_GCPADS];
@@ -44,8 +42,8 @@ namespace DolphinWatch {
 	}
 
 	void SendButtonsWii(int i_wiimote, u16 _buttons) {
+
 		if (!Core::IsRunning()) {
-			// TODO error
 			return;
 		}
 		WiimoteEmu::Wiimote* wiimote = GetWiimote(i_wiimote);
@@ -138,10 +136,10 @@ namespace DolphinWatch {
 		memset(hijacksGC, 0, sizeof(hijacksGC));
 
 		// thread to monitor memory
-		thrMemory = thread([]() {
+		thrMemory = std::thread([]() {
 			while (running) {
 				{
-					lock_guard<mutex> locked(client_mtx);
+					std::lock_guard<std::mutex> locked(client_mtx);
 					for (Client& client : clients) {
 						// check subscriptions
 						CheckSubs(client);
@@ -153,7 +151,7 @@ namespace DolphinWatch {
 		});
 
 		// thread to handle incoming data.
-		thrRecv = thread([]() {
+		thrRecv = std::thread([]() {
 			while (running) {
 				Poll();
 			}
@@ -163,14 +161,14 @@ namespace DolphinWatch {
 	void Poll() {
 		sf::SocketSelector selector;
 		{
-			lock_guard<mutex> locked(client_mtx);
+			std::lock_guard<std::mutex> locked(client_mtx);
 			selector.add(server);
 			for (Client& client : clients) {
 				selector.add(*client.socket);
 			}
 		}
 		bool timeout = !selector.wait(sf::seconds(1));
-		lock_guard<mutex> locked(client_mtx);
+		std::lock_guard<std::mutex> locked(client_mtx);
 		if (!timeout) {
 			for (Client& client : clients) {
 				if (selector.isReady(*client.socket)) {
@@ -180,7 +178,7 @@ namespace DolphinWatch {
 			}
 			if (selector.isReady(server)) {
 				// poll for new clients
-				auto socket = make_shared<sf::TcpSocket>();
+				auto socket = std::make_shared<sf::TcpSocket>();
 				if (server.accept(*socket) == sf::Socket::Done) {
 					Client client(socket);
 					clients.push_back(client);
@@ -201,10 +199,10 @@ namespace DolphinWatch {
 		// socket closing is implicit for sfml library during destruction
 	}
 
-	void Process(Client& client, string& line) {
+	void Process(Client& client, std::string& line) {
 		// turn line into another stream
-		istringstream parts(line);
-		string cmd;
+		std::istringstream parts(line);
+		std::string cmd;
 
 		//NOTICE_LOG(CONSOLE, "PROCESSING %s", line.c_str());
 
@@ -251,7 +249,7 @@ namespace DolphinWatch {
 			}
 
 			u32 addr, val;
-			vector<u32> vals;
+			std::vector<u32> vals;
 
 			if (!(parts >> addr >> val)) {
 				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
@@ -298,8 +296,8 @@ namespace DolphinWatch {
 				return;
 			}
 
-			ostringstream message;
-			message << "MEM " << addr << " " << val << endl;
+			std::ostringstream message;
+			message << "MEM " << addr << " " << val << std::endl;
 			std::string messagestr = message.str();
 			Send(*(client.socket), messagestr);
 
@@ -455,10 +453,10 @@ namespace DolphinWatch {
 				return;
 			}
 
-			string file;
+			std::string file;
 			getline(parts, file);
 			file = StripSpaces(file);
-			if (file.empty() || file.find_first_of("?\"<>|") != string::npos) {
+			if (file.empty() || file.find_first_of("?\"<>|") != std::string::npos) {
 				NOTICE_LOG(CONSOLE, "Invalid filename for saving savestate: %s", line.c_str());
 				return;
 			}
@@ -474,10 +472,10 @@ namespace DolphinWatch {
 				return;
 			}
 
-			string file;
+			std::string file;
 			getline(parts, file);
 			file = StripSpaces(file);
-			if (file.empty() || file.find_first_of("?\"<>|") != string::npos) {
+			if (file.empty() || file.find_first_of("?\"<>|") != std::string::npos) {
 				NOTICE_LOG(CONSOLE, "Invalid filename for loading savestate: %s", line.c_str());
 				SendFeedback(client, false);
 				return;
@@ -515,10 +513,10 @@ namespace DolphinWatch {
 			//main_frame->UpdateGUI();
 		}
 		else if (cmd == "INSERT") {
-			string file;
+			std::string file;
 			getline(parts, file);
 			file = StripSpaces(file);
-			if (file.empty() || file.find_first_of("?\"<>|") != string::npos) {
+			if (file.empty() || file.find_first_of("?\"<>|") != std::string::npos) {
 				NOTICE_LOG(CONSOLE, "Invalid filename for iso/discfile to insert: %s", line.c_str());
 				//sendFeedback(client, false);
 				return;
@@ -547,10 +545,10 @@ namespace DolphinWatch {
 	}
 
 	void SendFeedback(Client& client, bool success) {
-		ostringstream msg;
+		std::ostringstream msg;
 		if (success) msg << "SUCCESS";
 		else msg << "FAIL";
-		msg << endl;
+		msg << std::endl;
 		std::string messagestr = msg.str();
 		Send(*(client.socket), messagestr);
 	}
@@ -564,26 +562,26 @@ namespace DolphinWatch {
 			else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
 			if (val != sub.prev) {
 				sub.prev = val;
-				ostringstream message;
-				message << "MEM " << sub.addr << " " << val << endl;
+				std::ostringstream message;
+				message << "MEM " << sub.addr << " " << val << std::endl;
 				std::string messagestr = message.str();
 				Send(*(client.socket), messagestr);
 			}
 		}
 		for (SubscriptionMulti& sub : client.subsMulti) {
-			vector<u32> val(sub.size, 0);
+			std::vector<u32> val(sub.size, 0);
 			for (u32 i = 0; i < sub.size; ++i) {
 				val.at(i) = PowerPC::HostRead_U8(sub.addr + i);
 			}
 			if (val != sub.prev) {
 				sub.prev = val;
-				ostringstream message;
+				std::ostringstream message;
 				message << "MEM_MULTI " << sub.addr << " ";
 				for (size_t i = 0; i < val.size(); ++i) {
 					if (i != 0) message << " ";
 					message << val.at(i);
 				}
-				message << endl;
+				message << std::endl;
 				std::string messagestr = message.str();
 				Send(*(client.socket), messagestr);
 			}
@@ -596,7 +594,7 @@ namespace DolphinWatch {
 		// a deque would do what we want, by not keeping that data, but then we would not have
 		// access to nice stream-features like <</>> operators and getline(), so we do this manually.
 
-		string s;
+		std::string s;
 		client.buf.clear(); // reset eol flag
 		getline(client.buf, s, '\0'); // read everything
 		client.buf.clear(); // reset eol flag again
@@ -626,8 +624,8 @@ namespace DolphinWatch {
 
 				// Might contain semicolons to further split several commands.
 				// Doing that ensures that those commands are executed at once / in the same emulated frame.
-				string s2;
-				istringstream subcmds(s);
+				std::string s2;
+				std::istringstream subcmds(s);
 				while (getline(subcmds, s2, ';')) {
 					if (!s2.empty()) Process(client, s2);
 				}
@@ -635,7 +633,7 @@ namespace DolphinWatch {
 		}
 	}
 
-	void Send(sf::TcpSocket& socket, string& message) {
+	void Send(sf::TcpSocket& socket, std::string& message) {
 		//NOTICE_LOG(CONSOLE, "SENDING %s", message.c_str());
 		socket.send(message.c_str(), message.size());
 	}

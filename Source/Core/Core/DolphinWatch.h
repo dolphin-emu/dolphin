@@ -16,7 +16,6 @@
 
 namespace DolphinWatch {
 
-	using namespace std;
 	typedef uint32_t u32;
 
 	struct Subscription {
@@ -36,7 +35,7 @@ namespace DolphinWatch {
 	struct SubscriptionMulti {
 		u32 addr;
 		u32 size;
-		vector<u32> prev;
+		std::vector<u32> prev;
 		SubscriptionMulti(u32 val, u32 len) : addr(val), size(len), prev(len, ~0) {}
 		bool operator==(const SubscriptionMulti& other) const { return other.addr == addr && other.size == size; }
 		SubscriptionMulti& operator=(const SubscriptionMulti& other) {
@@ -48,21 +47,21 @@ namespace DolphinWatch {
 	};
 
 	struct Client {
-		shared_ptr<sf::TcpSocket> socket;
-		vector<Subscription> subs;
-		vector<SubscriptionMulti> subsMulti;
+		std::shared_ptr<sf::TcpSocket> socket;
+		std::vector<Subscription> subs;
+		std::vector<SubscriptionMulti> subsMulti;
 		bool disconnected = false;
-		stringstream buf;
+		std::stringstream buf;
 		// some stl algorithm support
 		bool operator==(const Client& other) const {
 			return socket->getRemoteAddress() == other.socket->getRemoteAddress()
 			&& socket->getRemotePort() == other.socket->getRemotePort();
 		}
-		Client(shared_ptr<sf::TcpSocket> sock) : socket(sock) {}
+		Client(std::shared_ptr<sf::TcpSocket> sock) : socket(sock) {}
 		// explicit copy semantics for smart pointer socket and stringstream
 		Client(const Client& other) {
 			socket = other.socket;
-			buf = stringstream();
+			buf = std::stringstream();
 			buf << other.buf.rdbuf();
 		}
 		// operator= gets implicitly deleted with copy operator overwritten
@@ -71,7 +70,7 @@ namespace DolphinWatch {
 			subs = other.subs;
 			subsMulti = other.subsMulti;
 			disconnected = other.disconnected;
-			buf = stringstream();
+			buf = std::stringstream();
 			buf << other.buf.rdbuf();
 			return *this;
 		}
@@ -79,11 +78,11 @@ namespace DolphinWatch {
 
 	void Init(unsigned short port, CFrame* main_frame);
 	void Shutdown();
-	void Process(Client& client, string& line);
+	void Process(Client& client, std::string& line);
 	void CheckSubs(Client& client);
 	void PollClient(Client& client);
 	void Poll();
-	void Send(sf::TcpSocket& socket, string& message);
+	void Send(sf::TcpSocket& socket, std::string& message);
 	void SetVolume(int v);
 	void SendFeedback(Client& client, bool success);
 
