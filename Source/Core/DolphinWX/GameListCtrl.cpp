@@ -1069,6 +1069,23 @@ void CGameListCtrl::OnMultiDecompressISO(wxCommandEvent& /*event*/)
 
 void CGameListCtrl::CompressSelection(bool _compress)
 {
+	const std::vector<const GameListItem*> selected_items = GetAllSelectedISOs();
+
+	// If any Wii discs are going to be compressed, show the Wii compression warning once
+	if (_compress)
+	{
+		for (const GameListItem* iso : selected_items)
+		{
+			if (!iso->IsCompressed() && iso->GetPlatform() == DiscIO::IVolume::WII_DISC)
+			{
+				if (WiiCompressWarning())
+					break;
+				else
+					return;
+			}
+		}
+	}
+
 	wxString dirHome;
 	wxGetHomeDir(&dirHome);
 
@@ -1095,7 +1112,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 		m_currentItem = 0;
 		m_numberItem = GetSelectedItemCount();
 
-		for (const GameListItem* iso : GetAllSelectedISOs())
+		for (const GameListItem* iso : selected_items)
 		{
 			if (iso->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC && iso->GetPlatform() != DiscIO::IVolume::WII_DISC)
 				continue;
@@ -1104,9 +1121,6 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 			if (!iso->IsCompressed() && _compress)
 			{
-				if (iso->GetPlatform() == DiscIO::IVolume::WII_DISC && !WiiCompressWarning())
-					return;
-
 				std::string FileName, FileExt;
 				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
 				// Update the file name in the progress dialog
