@@ -465,7 +465,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_LOAD_STATE_SLOT_9:
 		case HK_LOAD_STATE_SLOT_10:
 			Label = wxString::Format(_("Slot %i - %s"),
-			        Id - HK_LOAD_STATE_SLOT_1 + 1, State::GetInfoStringOfSlot(Id - HK_LOAD_STATE_SLOT_1 + 1).c_str());
+			        Id - HK_LOAD_STATE_SLOT_1 + 1,
+			        StrToWxStr(State::GetInfoStringOfSlot(Id - HK_LOAD_STATE_SLOT_1 + 1)));
 			break;
 
 		case HK_SAVE_STATE_SLOT_1:
@@ -479,7 +480,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_SAVE_STATE_SLOT_9:
 		case HK_SAVE_STATE_SLOT_10:
 			Label = wxString::Format(_("Slot %i - %s"),
-			        Id - HK_SAVE_STATE_SLOT_1 + 1, State::GetInfoStringOfSlot(Id - HK_SAVE_STATE_SLOT_1 + 1).c_str());
+			        Id - HK_SAVE_STATE_SLOT_1 + 1,
+			        StrToWxStr(State::GetInfoStringOfSlot(Id - HK_SAVE_STATE_SLOT_1 + 1)));
 			break;
 		case HK_SAVE_STATE_FILE:
 			Label = _("Save State...");
@@ -525,7 +527,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_SELECT_STATE_SLOT_9:
 		case HK_SELECT_STATE_SLOT_10:
 			Label = wxString::Format(_("Select Slot %i - %s"),
-			        Id - HK_SELECT_STATE_SLOT_1 + 1, State::GetInfoStringOfSlot(Id - HK_SELECT_STATE_SLOT_1 + 1).c_str());
+			        Id - HK_SELECT_STATE_SLOT_1 + 1,
+			        StrToWxStr(State::GetInfoStringOfSlot(Id - HK_SELECT_STATE_SLOT_1 + 1)));
 			break;
 
 
