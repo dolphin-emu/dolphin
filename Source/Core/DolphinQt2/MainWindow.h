@@ -34,9 +34,6 @@ private slots:
 	void ForceStop();
 	void FullScreen();
 	void ScreenShot();
-	void Website();
-	void Documentation();
-	void GitHub();
 
 private:
 	void MakeToolBar();
@@ -46,12 +43,7 @@ private:
 
 	void MakeMenus();
 	void MakeFileMenu();
-	void MakeEmulationMenu();
-	void MakeMovieMenu();
-	void MakeOptionsMenu();
-	void MakeToolsMenu();
 	void MakeViewMenu();
-	void MakeHelpMenu();
 	void AddTableColumnsMenu(QMenu* view_menu);
 	void AddListTypePicker(QMenu* view_menu);
 
