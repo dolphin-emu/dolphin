@@ -41,6 +41,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::COMMON]             = new LogContainer("COMMON",          "Common");
 	m_Log[LogTypes::CONSOLE]            = new LogContainer("CONSOLE",         "Dolphin Console");
 	m_Log[LogTypes::DISCIO]             = new LogContainer("DIO",             "Disc IO");
+	m_Log[LogTypes::DOLPHINWATCH]       = new LogContainer("DW",              "DolphinWatch");
 	m_Log[LogTypes::DSPHLE]             = new LogContainer("DSPHLE",          "DSP HLE");
 	m_Log[LogTypes::DSPLLE]             = new LogContainer("DSPLLE",          "DSP LLE");
 	m_Log[LogTypes::DSP_MAIL]           = new LogContainer("DSPMails",        "DSP Mails");

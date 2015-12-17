@@ -19,6 +19,9 @@
 #include "Core/HW/DVDInterface.h"
 #include "Core/Host.h"
 
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+
 namespace DolphinWatch {
 
 	static sf::TcpListener server;
@@ -33,6 +36,8 @@ namespace DolphinWatch {
 	static int hijacksGC[NUM_GCPADS];
 	static CFrame* main_frame;
 
+	static bool connectedTest = false;
+
 	WiimoteEmu::Wiimote* GetWiimote(int i_wiimote) {
 		return ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->GetController(i_wiimote));
 	}
@@ -44,9 +49,19 @@ namespace DolphinWatch {
 	void SendButtonsWii(int i_wiimote, u16 _buttons) {
 
 		if (!Core::IsRunning()) {
+			WARN_LOG(DOLPHINWATCH, "Trying to send wii button presses, but Core is not running.");
 			return;
 		}
+
 		WiimoteEmu::Wiimote* wiimote = GetWiimote(i_wiimote);
+
+		if (!connectedTest) {
+			connectedTest = true;
+			bool was_unpaused = Core::PauseAndLock(true);
+			GetUsbPointer()->AccessWiiMote(i_wiimote | 0x100)->Activate(true);
+			Host_UpdateMainFrame();
+			Core::PauseAndLock(false, was_unpaused);
+		}
 
 		// disable reports from actual wiimote for a while, aka hijack for a while
 		wiimote->SetReportingAuto(false);
@@ -63,12 +78,31 @@ namespace DolphinWatch {
 		// Only filling in button data breaks button inputs with the wii-cursor being active somehow
 
 		// Fill accelerometer with stable position
-		data[4] = 0x80;
-		data[5] = 0x80;
+		data[4] = 0x80; // neutral
+		data[5] = 0x80; // neutral
 		data[6] = 0x9a; // gravity
-		// Fill the rest with some data I grabbed from the actual emulated wiimote.
-		unsigned char stuff[16] = { 0x16, 0x23, 0x66, 0x7a, 0x23, 0x0c, 0x23, 0x66, 0x84, 0x23, 0x0c, 0x4c, 0x1a, 0xfb, 0xe6, 0x43 };
+
+		// Fill the rest with some actual data I grabbed from the emulated wiimote.
+
+		// 10 IR bytes, these encode the positions 534/291, 634/291, 524/291, 644/291 in a 1024x768 resolution.
+		// which pretty much means: point roughly at the middle.
+		// see http://wiibrew.org/wiki/Wiimote#Basic_Mode
+		unsigned char stuff[16] = { 0x16, 0x23, 0x66, 0x7a, 0x23, 0x0c, 0x23, 0x66, 0x84, 0x23,
+		// 6 extension bytes. The numbers, what do they mean? Does this break on other machines?
+			0x0c, 0x4c, 0x1a, 0xfb, 0xe6, 0x43 };
 		memcpy(data + 7, stuff, 16);
+
+		std::stringstream ss;
+		ss << "Sending wii buttons. wiimote: " << i_wiimote << ", buttons: 0x" << std::hex << _buttons;
+		ss << ", IR: 0x" << std::hex;
+		for (int i = 0; i < 10; i++) {
+			ss << ((int)stuff[i]);
+		}
+		ss << ", extension: 0x" << std::hex;
+		for (int i = 10; i < 16; i++) {
+			ss << ((int)stuff[i]);
+		}
+		NOTICE_LOG(DOLPHINWATCH, ss.str().c_str());
 
 		Core::Callback_WiimoteInterruptChannel(i_wiimote, wiimote->GetReportingChannel(), data, 23);
 
@@ -204,25 +238,25 @@ namespace DolphinWatch {
 		std::istringstream parts(line);
 		std::string cmd;
 
-		//NOTICE_LOG(CONSOLE, "PROCESSING %s", line.c_str());
+		//NOTICE_LOG(DOLPHINWATCH, "PROCESSING %s", line.c_str());
 
 		if (!(parts >> cmd)) {
 			// no command, empty line, skip
-			NOTICE_LOG(CONSOLE, "empty command line %s", line.c_str());
+			WARN_LOG(DOLPHINWATCH, "empty command line %s", line.c_str());
 			return;
 		}
 
 		if (cmd == "WRITE") {
 
 			if (!Memory::IsInitialized()) {
-				NOTICE_LOG(CONSOLE, "PowerPC memory not initialized, can't execute command: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "PowerPC memory not initialized, can't execute command: %s", line.c_str());
 				return;
 			}
 
 			u32 mode, addr, val;
 
 			if (!(parts >> mode >> addr >> val)) {
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
@@ -238,13 +272,13 @@ namespace DolphinWatch {
 				PowerPC::HostWrite_U32(val, addr);
 				break;
 			default:
-				NOTICE_LOG(CONSOLE, "Wrong mode for writing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Wrong mode for writing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
 			}
 		}
 		else if (cmd == "WRITE_MULTI") {
 
 			if (!Memory::IsInitialized()) {
-				NOTICE_LOG(CONSOLE, "PowerPC memory not initialized, can't execute command: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "PowerPC memory not initialized, can't execute command: %s", line.c_str());
 				return;
 			}
 
@@ -252,7 +286,7 @@ namespace DolphinWatch {
 			std::vector<u32> vals;
 
 			if (!(parts >> addr >> val)) {
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
@@ -269,14 +303,14 @@ namespace DolphinWatch {
 		else if (cmd == "READ") {
 
 			if (!Memory::IsInitialized()) {
-				NOTICE_LOG(CONSOLE, "PowerPC memory not initialized, can't execute command: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "PowerPC memory not initialized, can't execute command: %s", line.c_str());
 				return;
 			}
 
 			u32 mode, addr, val;
 
 			if (!(parts >> mode >> addr)) {
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
@@ -292,7 +326,7 @@ namespace DolphinWatch {
 				val = PowerPC::HostRead_U32(addr);
 				break;
 			default:
-				NOTICE_LOG(CONSOLE, "Wrong mode for reading, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Wrong mode for reading, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
 				return;
 			}
 
@@ -308,7 +342,7 @@ namespace DolphinWatch {
 
 			if (!(parts >> mode >> addr)) {
 				// no valid parameters, skip
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
@@ -324,7 +358,7 @@ namespace DolphinWatch {
 				client.subs.push_back(Subscription(addr, mode));
 			}
 			else {
-				NOTICE_LOG(CONSOLE, "Wrong mode for subscribing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Wrong mode for subscribing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
 				return;
 			}
 
@@ -335,7 +369,7 @@ namespace DolphinWatch {
 
 			if (!(parts >> size >> addr)) {
 				// no valid parameters, skip
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
@@ -356,7 +390,7 @@ namespace DolphinWatch {
 
 			if (!(parts >> addr)) {
 				// no valid parameters, skip
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
@@ -374,7 +408,7 @@ namespace DolphinWatch {
 
 			if (!(parts >> addr)) {
 				// no valid parameters, skip
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
@@ -393,12 +427,12 @@ namespace DolphinWatch {
 
 			if (!(parts >> i_wiimote >> states)) {
 				// no valid parameters, skip
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
 			if (i_wiimote >= NUM_WIIMOTES) {
-				NOTICE_LOG(CONSOLE, "Invalid wiimote number %d in: %s", i_wiimote, line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid wiimote number %d in: %s", i_wiimote, line.c_str());
 				return;
 			}
 
@@ -413,12 +447,12 @@ namespace DolphinWatch {
 
 			if (!(parts >> i_pad >> states >> sx >> sy >> ssx >> ssy)) {
 				// no valid parameters, skip
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
 			if (i_pad >= NUM_GCPADS) {
-				NOTICE_LOG(CONSOLE, "Invalid GCPad number %d in: %s", i_pad, line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid GCPad number %d in: %s", i_pad, line.c_str());
 				return;
 			}
 
@@ -427,21 +461,21 @@ namespace DolphinWatch {
 		}
 		else if (cmd == "PAUSE") {
 			if (!Core::IsRunning()) {
-				NOTICE_LOG(CONSOLE, "Core not running, can't pause: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Core not running, can't pause: %s", line.c_str());
 				return;
 			}
 			Core::SetState(Core::CORE_PAUSE);
 		}
 		else if (cmd == "RESUME") {
 			if (!Core::IsRunning()) {
-				NOTICE_LOG(CONSOLE, "Core not running, can't resume: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Core not running, can't resume: %s", line.c_str());
 				return;
 			}
 			Core::SetState(Core::CORE_RUN);
 		}
 		else if (cmd == "RESET") {
 			if (!Core::IsRunning()) {
-				NOTICE_LOG(CONSOLE, "Core not running, can't reset: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Core not running, can't reset: %s", line.c_str());
 				return;
 			}
 			ProcessorInterface::ResetButton_Tap();
@@ -449,7 +483,7 @@ namespace DolphinWatch {
 		else if (cmd == "SAVE") {
 
 			if (!Core::IsRunning()) {
-				NOTICE_LOG(CONSOLE, "Core not running, can't save savestate: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Core not running, can't save savestate: %s", line.c_str());
 				return;
 			}
 
@@ -457,7 +491,7 @@ namespace DolphinWatch {
 			getline(parts, file);
 			file = StripSpaces(file);
 			if (file.empty() || file.find_first_of("?\"<>|") != std::string::npos) {
-				NOTICE_LOG(CONSOLE, "Invalid filename for saving savestate: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid filename for saving savestate: %s", line.c_str());
 				return;
 			}
 
@@ -467,7 +501,7 @@ namespace DolphinWatch {
 		else if (cmd == "LOAD") {
 
 			if (!Core::IsRunning()) {
-				NOTICE_LOG(CONSOLE, "Core not running, can't load savestate: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Core not running, can't load savestate: %s", line.c_str());
 				SendFeedback(client, false);
 				return;
 			}
@@ -476,14 +510,14 @@ namespace DolphinWatch {
 			getline(parts, file);
 			file = StripSpaces(file);
 			if (file.empty() || file.find_first_of("?\"<>|") != std::string::npos) {
-				NOTICE_LOG(CONSOLE, "Invalid filename for loading savestate: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid filename for loading savestate: %s", line.c_str());
 				SendFeedback(client, false);
 				return;
 			}
 
 			bool success = State::LoadAs(file);
 			if (!success) {
-				NOTICE_LOG(CONSOLE, "Could not load savestate: %s", file.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Could not load savestate: %s", file.c_str());
 			}
 			SendFeedback(client, success);
 
@@ -494,13 +528,13 @@ namespace DolphinWatch {
 
 			if (!(parts >> v)) {
 				// no valid parameters, skip
-				NOTICE_LOG(CONSOLE, "Invalid command line: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
 				return;
 			}
 
 			if (v < 0 || v > 100) {
 				// no valid parameters, skip
-				NOTICE_LOG(CONSOLE, "Invalid volume, must be between 0 and 100: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid volume, must be between 0 and 100: %s", line.c_str());
 				return;
 			}
 
@@ -517,29 +551,17 @@ namespace DolphinWatch {
 			getline(parts, file);
 			file = StripSpaces(file);
 			if (file.empty() || file.find_first_of("?\"<>|") != std::string::npos) {
-				NOTICE_LOG(CONSOLE, "Invalid filename for iso/discfile to insert: %s", line.c_str());
+				ERROR_LOG(DOLPHINWATCH, "Invalid filename for iso/discfile to insert: %s", line.c_str());
 				//sendFeedback(client, false);
 				return;
 			}
 
-			//main_frame->BootGame(file);
-			//Host_UpdateMainFrame();
-			//wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PLAY);
-			//main_frame->GetEventHandler()->AddPendingEvent(event);
-			//main_frame->UpdateGUI();
-			//Host_UpdateMainFrame();
-			//Host_NotifyMapLoaded();
-			//Core::SetState(Core::EState::CORE_UNINITIALIZED);
-			//DVDInterface::SetDiscInside(false);
-			//DVDInterface::Shutdown();
+			// Not working yet, see https://bugs.dolphin-emu.org/issues/9019
 			DVDInterface::ChangeDisc(file);
-			//Core::Stop();
-			//BootManager::Stop();
-			//BootManager::BootCore(file);
-			//sendFeedback(client, true);
+			ProcessorInterface::ResetButton_Tap();
 		}
 		else {
-			NOTICE_LOG(CONSOLE, "Unknown command: %s", cmd.c_str());
+			ERROR_LOG(DOLPHINWATCH, "Unknown command: %s", cmd.c_str());
 		}
 
 	}
@@ -609,7 +631,6 @@ namespace DolphinWatch {
 		else if (status == sf::Socket::Done) {
 			// add nullterminator, then add to client's buffer
 			cbuf[received] = '\0';
-			//NOTICE_LOG(CONSOLE, "IN %s", cbuf);
 			client.buf << cbuf;
 
 			// process the client's buffer
@@ -634,7 +655,7 @@ namespace DolphinWatch {
 	}
 
 	void Send(sf::TcpSocket& socket, std::string& message) {
-		//NOTICE_LOG(CONSOLE, "SENDING %s", message.c_str());
+		//NOTICE_LOG(DOLPHINWATCH, "SENDING %s", message.c_str());
 		socket.send(message.c_str(), message.size());
 	}
 
