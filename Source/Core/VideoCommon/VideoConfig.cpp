@@ -205,22 +205,22 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	CHECK_SETTING("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
-	CHECK_SETTING("Video_Enhancements", "StereoMode", iStereoMode);
-	CHECK_SETTING("Video_Enhancements", "StereoDepth", iStereoDepth);
-	CHECK_SETTING("Video_Enhancements", "StereoConvergence", iStereoConvergence);
-	CHECK_SETTING("Video_Enhancements", "StereoSwapEyes", bStereoSwapEyes);
 
 	//these are not overrides, they are per-game settings, hence no warning
-	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
+	IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
 	for (size_t i = 0; i < oStereoPresets.size(); ++i)
 	{
-		enhancements->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
-		enhancements->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
+		stereoscopy->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
+		stereoscopy->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
 	}
-	enhancements->Get("StereoActivePreset", &iStereoActivePreset, 0);
+	stereoscopy->Get("StereoActivePreset", &iStereoActivePreset, 0);
 	iStereoConvergence = oStereoPresets[iStereoActivePreset].convergence;
 	iStereoDepth = oStereoPresets[iStereoActivePreset].depth;
 
+	CHECK_SETTING("Video_Stereoscopy", "StereoMode", iStereoMode);
+	CHECK_SETTING("Video_Stereoscopy", "StereoDepth", iStereoDepth);
+	CHECK_SETTING("Video_Stereoscopy", "StereoConvergence", iStereoConvergence);
+	CHECK_SETTING("Video_Stereoscopy", "StereoSwapEyes", bStereoSwapEyes);
 	CHECK_SETTING("Video_Stereoscopy", "StereoEFBMonoDepth", bStereoEFBMonoDepth);
 	CHECK_SETTING("Video_Stereoscopy", "StereoDepthPercentage", iStereoDepthPercentage);
 
