@@ -64,7 +64,7 @@ private:
 	QString m_company;
 
 	QString m_unique_id;
-	u64 m_title_id;
+	quint64 m_title_id;
 
 	QString m_issues;
 	int m_emu_state = 0;
