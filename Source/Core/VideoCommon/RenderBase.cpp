@@ -53,12 +53,11 @@ static int OSDTime;
 
 Renderer *g_renderer = nullptr;
 
+Common::Flag Renderer::s_screenshotFlag;
 std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;
 
 Common::Event Renderer::s_screenshotCompleted;
-
-volatile bool Renderer::s_bScreenshot;
 
 // The framebuffer size
 int Renderer::s_target_width;
@@ -283,8 +282,8 @@ void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle
 void Renderer::SetScreenshot(const std::string& filename)
 {
 	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-	s_sScreenshotName = filename;
-	s_bScreenshot = true;
+	if (s_screenshotFlag.TestAndSet())
+		s_sScreenshotName = filename;
 }
 
 // Create On-Screen-Messages

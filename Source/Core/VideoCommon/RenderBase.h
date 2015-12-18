@@ -18,6 +18,7 @@
 #include <string>
 
 #include "Common/Event.h"
+#include "Common/Flag.h"
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
 #include "VideoCommon/BPMemory.h"
@@ -143,7 +144,7 @@ protected:
 	static void CheckFifoRecording();
 	static void RecordVideoMemory();
 
-	static volatile bool s_bScreenshot;
+	static Common::Flag s_screenshotFlag;
 	static std::mutex s_criticalScreenshot;
 	static std::string s_sScreenshotName;
 

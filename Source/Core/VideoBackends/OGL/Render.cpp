@@ -1384,7 +1384,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	// Save screenshot
-	if (s_bScreenshot)
+	if (s_screenshotFlag.TestAndClear())
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 
@@ -1393,7 +1393,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		// Reset settings
 		s_sScreenshotName.clear();
-		s_bScreenshot = false;
 		s_screenshotCompleted.Set();
 	}
 
