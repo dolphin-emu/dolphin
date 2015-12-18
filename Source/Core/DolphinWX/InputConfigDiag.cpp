@@ -808,7 +808,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     }
 
     control_button->Bind(wxEVT_MIDDLE_DOWN, &GamepadPage::ClearControl, eventsink);
-    control_button->Bind(wxEVT_RIGHT_UP, &GamepadPage::ConfigControl, eventsink);
+    control_button->Bind(wxEVT_RIGHT_DOWN, &GamepadPage::ConfigControl, eventsink);
 
     wxBoxSizer* const control_sizer = new wxBoxSizer(wxHORIZONTAL);
     control_sizer->AddStretchSpacer(1);
