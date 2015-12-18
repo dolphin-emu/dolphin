@@ -125,6 +125,8 @@ public:
 	// frameCount is the current frame number.
 	static void Cleanup(int _frameCount);
 
+	static void ScaleTextureCacheEntryTo(TCacheEntryBase** entry, u32 new_width, u32 new_height);
+
 	static void Invalidate();
 
 	virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;

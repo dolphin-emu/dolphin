@@ -209,6 +209,75 @@ bool TextureCacheBase::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u
 	return true;
 }
 
+void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBase** entry, u32 new_width, u32 new_height)
+{
+	if ((*entry)->config.width == new_width && (*entry)->config.height == new_height)
+	{
+		return;
+	}
+
+	u32 max = g_renderer->GetMaxTextureSize();
+	if (max < new_width || max < new_height)
+	{
+		ERROR_LOG(VIDEO, "Texture too big, width = %d, height = %d", new_width, new_height);
+		return;
+	}
+
+	TextureCacheBase::TCacheEntryConfig newconfig;
+	newconfig.width = new_width;
+	newconfig.height = new_height;
+	newconfig.rendertarget = true;
+
+	TCacheEntryBase* newentry = AllocateTexture(newconfig);
+	if (newentry)
+	{
+		newentry->SetGeneralParameters((*entry)->addr, (*entry)->size_in_bytes, (*entry)->format);
+		newentry->SetDimensions((*entry)->native_width, (*entry)->native_height, 1);
+		newentry->SetHashes((*entry)->base_hash, (*entry)->hash);
+		newentry->frameCount = frameCount;
+		newentry->is_efb_copy = false;
+		MathUtil::Rectangle<int> srcrect, dstrect;
+		srcrect.left = 0;
+		srcrect.top = 0;
+		srcrect.right = (*entry)->config.width;
+		srcrect.bottom = (*entry)->config.height;
+		dstrect.left = 0;
+		dstrect.top = 0;
+		dstrect.right = new_width;
+		dstrect.bottom = new_height;
+		newentry->CopyRectangleFromTexture(*entry, srcrect, dstrect);
+
+		// Keep track of the pointer for textures_by_hash
+		if ((*entry)->textures_by_hash_iter != textures_by_hash.end())
+		{
+			newentry->textures_by_hash_iter = textures_by_hash.emplace((*entry)->hash, newentry);
+		}
+
+		// Remove the old texture
+		std::pair<TexCache::iterator, TexCache::iterator>iter_range = textures_by_address.equal_range((*entry)->addr);
+		TexCache::iterator iter = iter_range.first;
+		while (iter != iter_range.second)
+		{
+			if (iter->second == *entry)
+			{
+				FreeTexture(iter);
+				iter = iter_range.second;
+			}
+			else
+			{
+				iter++;
+			}
+		}
+
+		*entry = newentry;
+		textures_by_address.emplace((*entry)->addr, *entry);
+	}
+	else
+	{
+		ERROR_LOG(VIDEO, "Scaling failed");
+	}
+}
+
 TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(TexCache::iterator iter_t)
 {
 	TCacheEntryBase* entry_to_update = iter_t->second;
@@ -232,7 +301,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 
 	TexCache::iterator iter = textures_by_address.lower_bound(entry_to_update->addr);
 	TexCache::iterator iterend = textures_by_address.upper_bound(entry_to_update->addr + entry_to_update->size_in_bytes);
-	bool entry_need_scaling = true;
 	while (iter != iterend)
 	{
 		TCacheEntryBase* entry = iter->second;
@@ -249,56 +317,47 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 				u32 block_x = block_offset % numBlocksX;
 				u32 block_y = block_offset / numBlocksX;
 
-				u32 x = block_x * block_width;
-				u32 y = block_y * block_height;
-				MathUtil::Rectangle<int> srcrect, dstrect;
-				srcrect.left = 0;
-				srcrect.top = 0;
-				dstrect.left = 0;
-				dstrect.top = 0;
-				if (entry_need_scaling)
+				u32 dst_x = block_x * block_width;
+				u32 dst_y = block_y * block_height;
+				u32 src_x = 0;
+				u32 src_y = 0;
+
+				// If the EFB copy doesn't fully fit, cancel the copy process
+				if (entry->native_width - src_x > entry_to_update->native_width - dst_x
+					|| entry->native_height - src_y > entry_to_update->native_height - dst_y)
 				{
-					entry_need_scaling = false;
-					u32 w = entry_to_update->native_width * entry->config.width / entry->native_width;
-					u32 h = entry_to_update->native_height * entry->config.height / entry->native_height;
-					u32 max = g_renderer->GetMaxTextureSize();
-					if (max < w || max < h)
-					{
-						iter++;
-						continue;
-					}
-					if (entry_to_update->config.width != w || entry_to_update->config.height != h)
-					{
-						TextureCacheBase::TCacheEntryConfig newconfig;
-						newconfig.width = w;
-						newconfig.height = h;
-						newconfig.rendertarget = true;
-						TCacheEntryBase* newentry = AllocateTexture(newconfig);
-						if (newentry)
-						{
-							newentry->SetGeneralParameters(entry_to_update->addr, entry_to_update->size_in_bytes, entry_to_update->format);
-							newentry->SetDimensions(entry_to_update->native_width, entry_to_update->native_height, 1);
-							newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
-							newentry->frameCount = frameCount;
-							newentry->is_efb_copy = false;
-							srcrect.right = entry_to_update->config.width;
-							srcrect.bottom = entry_to_update->config.height;
-							dstrect.right = w;
-							dstrect.bottom = h;
-							newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
-							entry_to_update = newentry;
-							u64 key = iter_t->first;
-							iter_t = FreeTexture(iter_t);
-							textures_by_address.emplace(key, entry_to_update);
-						}
-					}
+					iter++;
+					continue;
 				}
-				srcrect.right = entry->config.width;
-				srcrect.bottom = entry->config.height;
-				dstrect.left = x * entry_to_update->config.width / entry_to_update->native_width;
-				dstrect.top = y * entry_to_update->config.height / entry_to_update->native_height;
-				dstrect.right = (x + entry->native_width) * entry_to_update->config.width / entry_to_update->native_width;
-				dstrect.bottom = (y + entry->native_height) * entry_to_update->config.height / entry_to_update->native_height;
+
+				u32 copy_width = std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
+				u32 copy_height = std::min(entry->native_height - src_y, entry_to_update->native_height - dst_y);
+
+				// If one of the textures is scaled, scale both with the current efb scaling factor
+				if (entry_to_update->native_width != entry_to_update->config.width
+					|| entry_to_update->native_height != entry_to_update->config.height
+					|| entry->native_width != entry->config.width || entry->native_height != entry->config.height)
+				{
+					ScaleTextureCacheEntryTo(&entry_to_update, Renderer::EFBToScaledX(entry_to_update->native_width), Renderer::EFBToScaledY(entry_to_update->native_height));
+					ScaleTextureCacheEntryTo(&entry, Renderer::EFBToScaledX(entry->native_width), Renderer::EFBToScaledY(entry->native_height));
+
+					src_x = Renderer::EFBToScaledX(src_x);
+					src_y = Renderer::EFBToScaledY(src_y);
+					dst_x = Renderer::EFBToScaledX(dst_x);
+					dst_y = Renderer::EFBToScaledY(dst_y);
+					copy_width = Renderer::EFBToScaledX(copy_width);
+					copy_height = Renderer::EFBToScaledY(copy_height);
+				}
+
+				MathUtil::Rectangle<int> srcrect, dstrect;
+				srcrect.left = src_x;
+				srcrect.top = src_y;
+				srcrect.right = (src_x + copy_width);
+				srcrect.bottom = (src_y + copy_height);
+				dstrect.left = dst_x;
+				dstrect.top = dst_y;
+				dstrect.right = (dst_x + copy_width);
+				dstrect.bottom = (dst_y + copy_height);
 				entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
 				// Mark the texture update as used, so it isn't applied more than once
 				entry->frameCount = frameCount;
