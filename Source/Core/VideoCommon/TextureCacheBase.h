@@ -104,6 +104,8 @@ public:
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
+		TCacheEntryBase* ScaleTo(u32 new_width, u32 new_height);
+
 		bool IsEfbCopy() const { return is_efb_copy; }
 
 		u32 NumBlocksY() const;
