@@ -164,9 +164,10 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 		return false;
 	}
 
+	DiscScrubber disc_scrubber;
 	if (sub_type == 1)
 	{
-		if (!DiscScrubber::SetupScrub(infile, block_size))
+		if (!disc_scrubber.SetupScrub(infile, block_size))
 		{
 			PanicAlertT("\"%s\" failed to be scrubbed. Probably the image is corrupt.", infile.c_str());
 			return false;
@@ -177,10 +178,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 
 	z_stream z = {};
 	if (deflateInit(&z, 9) != Z_OK)
-	{
-		DiscScrubber::Cleanup();
 		return false;
-	}
 
 	callback(GetStringT("Files opened, ready to compress."), 0, arg);
 
@@ -233,7 +231,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 
 		size_t read_bytes;
 		if (scrubbing)
-			read_bytes = DiscScrubber::GetNextBlock(inf, in_buf.data());
+			read_bytes = disc_scrubber.GetNextBlock(inf, in_buf.data());
 		else
 			inf.ReadArray(in_buf.data(), header.block_size, &read_bytes);
 		if (read_bytes < header.block_size)
@@ -309,7 +307,6 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 
 	// Cleanup
 	deflateEnd(&z);
-	DiscScrubber::Cleanup();
 
 	if (success)
 	{

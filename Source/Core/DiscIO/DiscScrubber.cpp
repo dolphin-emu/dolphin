@@ -21,239 +21,170 @@
 namespace DiscIO
 {
 
-namespace DiscScrubber
+DiscScrubber::DiscScrubber()
 {
+}
 
-#define CLUSTER_SIZE 0x8000
-
-static u8* m_FreeTable = nullptr;
-static u64 m_FileSize;
-static u64 m_BlockCount;
-static u32 m_BlockSize;
-static int m_BlocksPerCluster;
-static bool m_isScrubbing = false;
-
-static std::string m_Filename;
-static std::unique_ptr<IVolume> s_disc;
-
-struct SPartitionHeader
+DiscScrubber::~DiscScrubber()
 {
-	u8* Ticket[0x2a4];
-	u32 TMDSize;
-	u64 TMDOffset;
-	u32 CertChainSize;
-	u64 CertChainOffset;
-	// H3Size is always 0x18000
-	u64 H3Offset;
-	u64 DataOffset;
-	u64 DataSize;
-	// TMD would be here
-	u64 DOLOffset;
-	u64 DOLSize;
-	u64 FSTOffset;
-	u64 FSTSize;
-	u32 ApploaderSize;
-	u32 ApploaderTrailerSize;
-};
-struct SPartition
+}
+
+bool DiscScrubber::SetupScrub(const std::string& filename, int block_size)
 {
-	u32 GroupNumber;
-	u32 Number;
-	u64 Offset;
-	u32 Type;
-	SPartitionHeader Header;
-};
-struct SPartitionGroup
-{
-	u32 numPartitions;
-	u64 PartitionsOffset;
-	std::vector<SPartition> PartitionsVec;
-};
-static SPartitionGroup PartitionGroup[4];
+	m_filename = filename;
+	m_block_size = block_size;
 
-
-void MarkAsUsed(u64 _Offset, u64 _Size);
-void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size);
-bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt);
-bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt);
-bool ParseDisc();
-bool ParsePartitionData(SPartition& _rPartition);
-
-
-bool SetupScrub(const std::string& filename, int block_size)
-{
-	bool success = true;
-	m_Filename = filename;
-	m_BlockSize = block_size;
-
-	if (CLUSTER_SIZE % m_BlockSize != 0)
+	if (CLUSTER_SIZE % m_block_size != 0)
 	{
-		ERROR_LOG(DISCIO, "Block size %i is not a factor of 0x8000, scrubbing not possible", m_BlockSize);
+		ERROR_LOG(DISCIO, "Block size %i is not a factor of 0x8000, scrubbing not possible", m_block_size);
 		return false;
 	}
 
-	m_BlocksPerCluster = CLUSTER_SIZE / m_BlockSize;
+	m_blocks_per_cluster = CLUSTER_SIZE / m_block_size;
 
-	s_disc = CreateVolumeFromFilename(filename);
-	if (!s_disc)
+	m_disc = CreateVolumeFromFilename(filename);
+	if (!m_disc)
 		return false;
 
-	m_FileSize = s_disc->GetSize();
+	m_filesize = m_disc->GetSize();
 
-	u32 numClusters = (u32)(m_FileSize / CLUSTER_SIZE);
+	u32 num_clusters = static_cast<u32>(m_filesize / CLUSTER_SIZE);
 
 	// Warn if not DVD5 or DVD9 size
-	if (numClusters != 0x23048 && numClusters != 0x46090)
-		WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename.c_str(), numClusters);
+	if (num_clusters != 0x23048 && num_clusters != 0x46090)
+		WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename.c_str(), num_clusters);
 
 	// Table of free blocks
-	m_FreeTable = new u8[numClusters];
-	std::fill(m_FreeTable, m_FreeTable + numClusters, 1);
+	m_free_table.resize(num_clusters);
+	std::fill(m_free_table.begin(), m_free_table.end(), 1);
 
 	// Fill out table of free blocks
-	success = ParseDisc();
+	const bool success = ParseDisc();
 
 	// Done with it; need it closed for the next part
-	s_disc.reset();
-	m_BlockCount = 0;
+	m_disc.reset();
+	m_block_count = 0;
 
-	// Let's not touch the file if we've failed up to here :p
-	if (!success)
-		Cleanup();
-
-	m_isScrubbing = success;
+	m_is_scrubbing = success;
 	return success;
 }
 
-size_t GetNextBlock(File::IOFile& in, u8* buffer)
+size_t DiscScrubber::GetNextBlock(File::IOFile& in, u8* buffer)
 {
-	u64 CurrentOffset = m_BlockCount * m_BlockSize;
-	u64 i = CurrentOffset / CLUSTER_SIZE;
+	u64 current_offset = m_block_count * m_block_size;
+	u64 i = current_offset / CLUSTER_SIZE;
 
-	size_t ReadBytes = 0;
-	if (m_isScrubbing && m_FreeTable[i])
+	size_t read_bytes = 0;
+	if (m_is_scrubbing && m_free_table[i])
 	{
-		DEBUG_LOG(DISCIO, "Freeing 0x%016" PRIx64, CurrentOffset);
-		std::fill(buffer, buffer + m_BlockSize, 0xFF);
-		in.Seek(m_BlockSize, SEEK_CUR);
-		ReadBytes = m_BlockSize;
+		DEBUG_LOG(DISCIO, "Freeing 0x%016" PRIx64, current_offset);
+		std::fill(buffer, buffer + m_block_size, 0xFF);
+		in.Seek(m_block_size, SEEK_CUR);
+		read_bytes = m_block_size;
 	}
 	else
 	{
-		DEBUG_LOG(DISCIO, "Used    0x%016" PRIx64, CurrentOffset);
-		in.ReadArray(buffer, m_BlockSize, &ReadBytes);
+		DEBUG_LOG(DISCIO, "Used    0x%016" PRIx64, current_offset);
+		in.ReadArray(buffer, m_block_size, &read_bytes);
 	}
 
-	m_BlockCount++;
-	return ReadBytes;
+	m_block_count++;
+	return read_bytes;
 }
 
-void Cleanup()
+void DiscScrubber::MarkAsUsed(u64 offset, u64 size)
 {
-	if (m_FreeTable) delete[] m_FreeTable;
-	m_FreeTable = nullptr;
-	m_FileSize = 0;
-	m_BlockCount = 0;
-	m_BlockSize = 0;
-	m_BlocksPerCluster = 0;
-	m_isScrubbing = false;
-}
+	u64 current_offset = offset;
+	u64 end_offset = current_offset + size;
 
-void MarkAsUsed(u64 _Offset, u64 _Size)
-{
-	u64 CurrentOffset = _Offset;
-	u64 EndOffset = CurrentOffset + _Size;
+	DEBUG_LOG(DISCIO, "Marking 0x%016" PRIx64 " - 0x%016" PRIx64 " as used", offset, end_offset);
 
-	DEBUG_LOG(DISCIO, "Marking 0x%016" PRIx64 " - 0x%016" PRIx64 " as used", _Offset, EndOffset);
-
-	while ((CurrentOffset < EndOffset) && (CurrentOffset < m_FileSize))
+	while (current_offset < end_offset && current_offset < m_filesize)
 	{
-		m_FreeTable[CurrentOffset / CLUSTER_SIZE] = 0;
-		CurrentOffset += CLUSTER_SIZE;
+		m_free_table[current_offset / CLUSTER_SIZE] = 0;
+		current_offset += CLUSTER_SIZE;
 	}
 }
 // Compensate for 0x400(SHA-1) per 0x8000(cluster)
-void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size)
+void DiscScrubber::MarkAsUsedE(u64 partition_data_offset, u64 input_offset, u64 input_size)
 {
-	u64 Offset;
-	u64 Size;
+	u64 offset = input_offset / 0x7C00;
+	offset = offset * CLUSTER_SIZE;
+	offset += partition_data_offset;
 
-	Offset = _Offset / 0x7c00;
-	Offset = Offset * CLUSTER_SIZE;
-	Offset += _PartitionDataOffset;
-
-	Size = _Size / 0x7c00;
-	Size = (Size + 1) * CLUSTER_SIZE;
+	u64 size = input_size / 0x7C00;
+	size = (size + 1) * CLUSTER_SIZE;
 
 	// Add on the offset in the first block for the case where data straddles blocks
-	Size += _Offset % 0x7c00;
+	size += offset % 0x7C00;
 
-	MarkAsUsed(Offset, Size);
+	MarkAsUsed(offset, size);
 }
 
 // Helper functions for reading the BE volume
-bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt)
+bool DiscScrubber::ReadFromVolume(u64 offset, u32& buffer, bool decrypt)
 {
-	return s_disc->ReadSwapped(_Offset, &_Buffer, _Decrypt);
+	return m_disc->ReadSwapped(offset, &buffer, decrypt);
 }
 
-bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt)
+bool DiscScrubber::ReadFromVolume(u64 offset, u64& buffer, bool decrypt)
 {
 	u32 temp_buffer;
-	if (!s_disc->ReadSwapped(_Offset, &temp_buffer, _Decrypt))
+	if (!m_disc->ReadSwapped(offset, &temp_buffer, decrypt))
 		return false;
-	_Buffer = static_cast<u64>(temp_buffer) << 2;
+
+	buffer = static_cast<u64>(temp_buffer) << 2;
 	return true;
 }
 
-bool ParseDisc()
+bool DiscScrubber::ParseDisc()
 {
 	// Mark the header as used - it's mostly 0s anyways
 	MarkAsUsed(0, 0x50000);
 
 	for (int x = 0; x < 4; x++)
 	{
-		if (!ReadFromVolume(0x40000 + (x * 8) + 0, PartitionGroup[x].numPartitions, false) ||
-		    !ReadFromVolume(0x40000 + (x * 8) + 4, PartitionGroup[x].PartitionsOffset, false))
+		if (!ReadFromVolume(0x40000 + (x * 8) + 0, m_partition_group[x].num_partitions, false) ||
+		    !ReadFromVolume(0x40000 + (x * 8) + 4, m_partition_group[x].partitions_offset, false))
 			return false;
 
 		// Read all partitions
-		for (u32 i = 0; i < PartitionGroup[x].numPartitions; i++)
+		for (u32 i = 0; i < m_partition_group[x].num_partitions; i++)
 		{
-			SPartition Partition;
+			SPartition partition;
 
-			Partition.GroupNumber = x;
-			Partition.Number = i;
+			partition.group_number = x;
+			partition.number = i;
 
-			if (!ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 0, Partition.Offset, false) ||
-			    !ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 4, Partition.Type, false) ||
-			    !ReadFromVolume(Partition.Offset + 0x2a4, Partition.Header.TMDSize, false) ||
-			    !ReadFromVolume(Partition.Offset + 0x2a8, Partition.Header.TMDOffset, false) ||
-			    !ReadFromVolume(Partition.Offset + 0x2ac, Partition.Header.CertChainSize, false) ||
-			    !ReadFromVolume(Partition.Offset + 0x2b0, Partition.Header.CertChainOffset, false) ||
-			    !ReadFromVolume(Partition.Offset + 0x2b4, Partition.Header.H3Offset, false) ||
-			    !ReadFromVolume(Partition.Offset + 0x2b8, Partition.Header.DataOffset, false) ||
-			    !ReadFromVolume(Partition.Offset + 0x2bc, Partition.Header.DataSize, false))
+			if (!ReadFromVolume(m_partition_group[x].partitions_offset + (i * 8) + 0, partition.offset, false) ||
+			    !ReadFromVolume(m_partition_group[x].partitions_offset + (i * 8) + 4, partition.type, false) ||
+			    !ReadFromVolume(partition.offset + 0x2A4, partition.header.tmd_size, false) ||
+			    !ReadFromVolume(partition.offset + 0x2A8, partition.header.tmd_offset, false) ||
+			    !ReadFromVolume(partition.offset + 0x2AC, partition.header.certificate_chain_size, false) ||
+			    !ReadFromVolume(partition.offset + 0x2B0, partition.header.certificate_chain_offset, false) ||
+			    !ReadFromVolume(partition.offset + 0x2B4, partition.header.h3_offset, false) ||
+			    !ReadFromVolume(partition.offset + 0x2B8, partition.header.data_offset, false) ||
+			    !ReadFromVolume(partition.offset + 0x2BC, partition.header.data_size, false))
 				return false;
 
-			PartitionGroup[x].PartitionsVec.push_back(Partition);
+			m_partition_group[x].partitions_vector.push_back(partition);
 		}
 
-		for (auto& rPartition : PartitionGroup[x].PartitionsVec)
+		for (auto& partition : m_partition_group[x].partitions_vector)
 		{
-			const SPartitionHeader& rHeader = rPartition.Header;
+			const SPartitionHeader& header = partition.header;
 
-			MarkAsUsed(rPartition.Offset, 0x2c0);
+			MarkAsUsed(partition.offset, 0x2C0);
 
-			MarkAsUsed(rPartition.Offset + rHeader.TMDOffset, rHeader.TMDSize);
-			MarkAsUsed(rPartition.Offset + rHeader.CertChainOffset, rHeader.CertChainSize);
-			MarkAsUsed(rPartition.Offset + rHeader.H3Offset, 0x18000);
+			MarkAsUsed(partition.offset + header.tmd_offset, header.tmd_size);
+			MarkAsUsed(partition.offset + header.certificate_chain_offset, header.certificate_chain_size);
+			MarkAsUsed(partition.offset + header.h3_offset, 0x18000);
 			// This would mark the whole (encrypted) data area
 			// we need to parse FST and other crap to find what's free within it!
-			//MarkAsUsed(rPartition.Offset + rHeader.DataOffset, rHeader.DataSize);
+			//MarkAsUsed(partition.offset + header.data_offset, header.data_size);
 
 			// Parse Data! This is where the big gain is
-			if (!ParsePartitionData(rPartition))
+			if (!ParsePartitionData(partition))
 				return false;
 		}
 	}
@@ -262,74 +193,72 @@ bool ParseDisc()
 }
 
 // Operations dealing with encrypted space are done here - the volume is swapped to allow this
-bool ParsePartitionData(SPartition& partition)
+bool DiscScrubber::ParsePartitionData(SPartition& partition)
 {
 	bool parsed_ok = true;
 
 	// Switch out the main volume temporarily
 	std::unique_ptr<IVolume> old_volume;
-	s_disc.swap(old_volume);
+	m_disc.swap(old_volume);
 
 	// Ready some stuff
-	s_disc = CreateVolumeFromFilename(m_Filename, partition.GroupNumber, partition.Number);
-	if (s_disc == nullptr)
+	m_disc = CreateVolumeFromFilename(m_filename, partition.group_number, partition.number);
+	if (m_disc == nullptr)
 	{
-		ERROR_LOG(DISCIO, "Failed to create volume from file %s", m_Filename.c_str());
-		s_disc.swap(old_volume);
+		ERROR_LOG(DISCIO, "Failed to create volume from file %s", m_filename.c_str());
+		m_disc.swap(old_volume);
 		return false;
 	}
 
-	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(s_disc.get()));
+	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_disc.get()));
 	if (!filesystem)
 	{
-		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", partition.GroupNumber, partition.Number);
+		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", partition.group_number, partition.number);
 		parsed_ok = false;
 	}
 	else
 	{
 		// Mark things as used which are not in the filesystem
 		// Header, Header Information, Apploader
-		parsed_ok = parsed_ok && ReadFromVolume(0x2440 + 0x14, partition.Header.ApploaderSize, true);
-		parsed_ok = parsed_ok && ReadFromVolume(0x2440 + 0x18, partition.Header.ApploaderTrailerSize, true);
-		MarkAsUsedE(partition.Offset
-			+ partition.Header.DataOffset
+		parsed_ok = parsed_ok && ReadFromVolume(0x2440 + 0x14, partition.header.apploader_size, true);
+		parsed_ok = parsed_ok && ReadFromVolume(0x2440 + 0x18, partition.header.apploader_trailer_size, true);
+		MarkAsUsedE(partition.offset
+			+ partition.header.data_offset
 			, 0
 			, 0x2440
-			+ partition.Header.ApploaderSize
-			+ partition.Header.ApploaderTrailerSize);
+			+ partition.header.apploader_size
+			+ partition.header.apploader_trailer_size);
 
 		// DOL
-		partition.Header.DOLOffset = filesystem->GetBootDOLOffset();
-		partition.Header.DOLSize = filesystem->GetBootDOLSize(partition.Header.DOLOffset);
-		parsed_ok = parsed_ok && partition.Header.DOLOffset && partition.Header.DOLSize;
-		MarkAsUsedE(partition.Offset
-			+ partition.Header.DataOffset
-			, partition.Header.DOLOffset
-			, partition.Header.DOLSize);
+		partition.header.dol_offset = filesystem->GetBootDOLOffset();
+		partition.header.dol_size = filesystem->GetBootDOLSize(partition.header.dol_offset);
+		parsed_ok = parsed_ok && partition.header.dol_offset && partition.header.dol_size;
+		MarkAsUsedE(partition.offset
+			+ partition.header.data_offset
+			, partition.header.dol_offset
+			, partition.header.dol_size);
 
 		// FST
-		parsed_ok = parsed_ok && ReadFromVolume(0x424, partition.Header.FSTOffset, true);
-		parsed_ok = parsed_ok && ReadFromVolume(0x428, partition.Header.FSTSize, true);
-		MarkAsUsedE(partition.Offset
-			+ partition.Header.DataOffset
-			, partition.Header.FSTOffset
-			, partition.Header.FSTSize);
+		parsed_ok = parsed_ok && ReadFromVolume(0x424, partition.header.fst_offset, true);
+		parsed_ok = parsed_ok && ReadFromVolume(0x428, partition.header.fst_size, true);
+		MarkAsUsedE(partition.offset
+			+ partition.header.data_offset
+			, partition.header.fst_offset
+			, partition.header.fst_size);
 
 		// Go through the filesystem and mark entries as used
 		for (SFileInfo file : filesystem->GetFileList())
 		{
 			DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
 			if ((file.m_NameOffset & 0x1000000) == 0)
-				MarkAsUsedE(partition.Offset + partition.Header.DataOffset, file.m_Offset, file.m_FileSize);
+				MarkAsUsedE(partition.offset + partition.header.data_offset, file.m_Offset, file.m_FileSize);
 		}
 	}
 
 	// Swap back
-	s_disc.swap(old_volume);
+	m_disc.swap(old_volume);
 
 	return parsed_ok;
 }
-
-} // namespace DiscScrubber
 
 } // namespace DiscIO
