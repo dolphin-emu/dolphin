@@ -224,7 +224,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 
 	TexCache::iterator iter = textures_by_address.lower_bound(entry_to_update->addr);
 	TexCache::iterator iterend = textures_by_address.upper_bound(entry_to_update->addr + entry_to_update->size_in_bytes);
-	bool entry_need_scaling = true;
+	bool entry_need_scaling = g_ActiveConfig.bCopyEFBScaled;
 	while (iter != iterend)
 	{
 		TCacheEntryBase* entry = iter->second;
@@ -237,22 +237,43 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		{
 			if (entry->hash == entry->CalculateHash())
 			{
+				MathUtil::Rectangle<int> srcrect, dstrect;
+
 				u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
 				u32 block_x = block_offset % numBlocksX;
 				u32 block_y = block_offset / numBlocksX;
 
-				u32 x = block_x * block_width;
-				u32 y = block_y * block_height;
-				MathUtil::Rectangle<int> srcrect, dstrect;
-				srcrect.left = 0;
-				srcrect.top = 0;
-				dstrect.left = 0;
-				dstrect.top = 0;
+				u32 dst_x = block_x * block_width;
+				u32 dst_y = block_y * block_height;
+				u32 src_x = 0;
+				u32 src_y = 0;
+
+				// If the EFB copy doesn't fully fit, cancel the copy process
+				if (entry->native_width - src_x > entry_to_update->native_width - dst_x
+					|| entry->native_height - src_y > entry_to_update->native_height - dst_y)
+				{
+					iter++;
+					continue;
+				}
+
+				u32 copy_width = std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
+				u32 copy_height = std::min(entry->native_height - src_y, entry_to_update->native_height - dst_y);
+
+				if (g_ActiveConfig.bCopyEFBScaled)
+				{
+					src_x = Renderer::EFBToScaledX(src_x);
+					src_y = Renderer::EFBToScaledY(src_y);
+					dst_x = Renderer::EFBToScaledX(dst_x);
+					dst_y = Renderer::EFBToScaledY(dst_y);
+					copy_width = Renderer::EFBToScaledX(copy_width);
+					copy_height = Renderer::EFBToScaledY(copy_height);
+				}
+
 				if (entry_need_scaling)
 				{
 					entry_need_scaling = false;
-					u32 w = entry_to_update->native_width * entry->config.width / entry->native_width;
-					u32 h = entry_to_update->native_height * entry->config.height / entry->native_height;
+					u32 w = Renderer::EFBToScaledX(entry_to_update->native_width);
+					u32 h = Renderer::EFBToScaledY(entry_to_update->native_height);
 					u32 max = g_renderer->GetMaxTextureSize();
 					if (max < w || max < h)
 					{
@@ -273,8 +294,12 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 							newentry->SetHashes(entry_to_update->base_hash, entry_to_update->hash);
 							newentry->frameCount = frameCount;
 							newentry->is_efb_copy = false;
+							srcrect.left = 0;
+							srcrect.top = 0;
 							srcrect.right = entry_to_update->config.width;
 							srcrect.bottom = entry_to_update->config.height;
+							dstrect.left = 0;
+							dstrect.top = 0;
 							dstrect.right = w;
 							dstrect.bottom = h;
 							newentry->CopyRectangleFromTexture(entry_to_update, srcrect, dstrect);
@@ -285,12 +310,14 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 						}
 					}
 				}
-				srcrect.right = entry->config.width;
-				srcrect.bottom = entry->config.height;
-				dstrect.left = x * entry_to_update->config.width / entry_to_update->native_width;
-				dstrect.top = y * entry_to_update->config.height / entry_to_update->native_height;
-				dstrect.right = (x + entry->native_width) * entry_to_update->config.width / entry_to_update->native_width;
-				dstrect.bottom = (y + entry->native_height) * entry_to_update->config.height / entry_to_update->native_height;
+				srcrect.left = src_x;
+				srcrect.top = src_y;
+				srcrect.right = (src_x + copy_width);
+				srcrect.bottom = (src_y + copy_height);
+				dstrect.left = dst_x;
+				dstrect.top = dst_y;
+				dstrect.right = (dst_x + copy_width);
+				dstrect.bottom = (dst_y + copy_height);
 				entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
 				// Mark the texture update as used, so it isn't applied more than once
 				entry->frameCount = frameCount;

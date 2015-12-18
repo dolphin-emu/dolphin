@@ -87,16 +87,14 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 	if (srcrect.GetWidth() == dstrect.GetWidth()
 		&& srcrect.GetHeight() == dstrect.GetHeight())
 	{
-		const D3D11_BOX *psrcbox = nullptr;
 		D3D11_BOX srcbox;
-		if (srcrect.left != 0 || srcrect.top != 0)
-		{
-			srcbox.left = srcrect.left;
-			srcbox.top = srcrect.top;
-			srcbox.right = srcrect.right;
-			srcbox.bottom = srcrect.bottom;
-			psrcbox = &srcbox;
-		}
+		srcbox.left = srcrect.left;
+		srcbox.top = srcrect.top;
+		srcbox.right = srcrect.right;
+		srcbox.bottom = srcrect.bottom;
+		srcbox.front = 0;
+		srcbox.back = 1;
+
 		D3D::context->CopySubresourceRegion(
 			texture->GetTex(),
 			0,
@@ -105,7 +103,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 			0,
 			srcentry->texture->GetTex(),
 			0,
-			psrcbox);
+			&srcbox);
 		return;
 	}
 	else if (!config.rendertarget)
