@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -55,7 +56,7 @@ void DoState(PointerWrap &p);
 
 // Set default content file
 void SetDefaultContentFile(const std::string& _rFilename);
-void ES_DIVerify(u8 *_pTMD, u32 _sz);
+void ES_DIVerify(const std::vector<u8>& tmd);
 
 void SDIO_EventNotify();
 

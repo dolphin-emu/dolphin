@@ -6,7 +6,6 @@
 
 #include <cstring>
 #include <map>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -82,11 +81,7 @@ public:
 	}
 
 	virtual bool GetTitleID(u64*) const { return false; }
-	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const
-	{
-		*_sz = 0;
-		return std::unique_ptr<u8[]>();
-	}
+	virtual std::vector<u8> GetTMD() const { return {}; }
 	virtual std::string GetUniqueID() const = 0;
 	virtual std::string GetMakerID() const = 0;
 	virtual u16 GetRevision() const = 0;

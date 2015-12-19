@@ -115,9 +115,8 @@ bool CVolumeWiiCrypted::GetTitleID(u64* buffer) const
 	return true;
 }
 
-std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *size) const
+std::vector<u8> CVolumeWiiCrypted::GetTMD() const
 {
-	*size = 0;
 	u32 tmd_size;
 	u32 tmd_address;
 
@@ -136,10 +135,10 @@ std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *size) const
 		tmd_size = 1024 * 1024 * 4;
 	}
 
-	std::unique_ptr<u8[]> buf{ new u8[tmd_size] };
-	Read(m_VolumeOffset + tmd_address, tmd_size, buf.get(), false);
-	*size = tmd_size;
-	return buf;
+	std::vector<u8> buffer(tmd_size);
+	Read(m_VolumeOffset + tmd_address, tmd_size, buffer.data(), false);
+
+	return buffer;
 }
 
 std::string CVolumeWiiCrypted::GetUniqueID() const

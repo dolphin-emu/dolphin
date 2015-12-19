@@ -268,11 +268,10 @@ bool CBoot::BootUp()
 		if (unique_id.size() >= 4)
 			VideoInterface::SetRegionReg(unique_id.at(3));
 
-		u32 tmd_size;
-		std::unique_ptr<u8[]> tmd_buf = pVolume.GetTMD(&tmd_size);
-		if (tmd_size)
+		std::vector<u8> tmd_buffer = pVolume.GetTMD();
+		if (!tmd_buffer.empty())
 		{
-			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buf.get(), tmd_size);
+			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
 		}
 
 		_StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::IVolume::WII_DISC;
