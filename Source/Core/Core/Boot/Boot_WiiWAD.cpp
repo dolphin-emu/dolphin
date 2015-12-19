@@ -97,13 +97,13 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 	WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
 
 	std::unique_ptr<CDolLoader> pDolLoader;
-	if (pContent->m_pData)
+	if (pContent->m_data.empty())
 	{
-		pDolLoader = std::make_unique<CDolLoader>(pContent->m_pData, pContent->m_Size);
+		pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
 	}
 	else
 	{
-		pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
+		pDolLoader = std::make_unique<CDolLoader>(pContent->m_data);
 	}
 	if (!pDolLoader->IsValid())
 		return false;
