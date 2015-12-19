@@ -440,15 +440,15 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
   return true;
 }
 
-std::string GetInfoStringOfSlot(int slot)
+std::string GetInfoStringOfSlot(int slot, bool translate)
 {
   std::string filename = MakeStateFilename(slot);
   if (!File::Exists(filename))
-    return GetStringT("Empty");
+    return translate ? GetStringT("Empty") : "Empty";
 
   State::StateHeader header;
   if (!ReadHeader(filename, header))
-    return GetStringT("Unknown");
+    return translate ? GetStringT("Unknown") : "Unknown";
 
   return Common::Timer::GetDateTimeFormatted(header.time);
 }

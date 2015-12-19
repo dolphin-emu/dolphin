@@ -30,6 +30,7 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
@@ -1553,9 +1554,8 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
   {
     bool was_unpaused = Core::PauseAndLock(true);
     GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-    wxString msg(wxString::Format(_("Wiimote %i %s"), wm_idx + 1,
-                                  connect ? _("Connected") : _("Disconnected")));
-    Core::DisplayMessage(WxStrToStr(msg), 3000);
+    const char* message = connect ? "Wiimote %i connected" : "Wiimote %i disconnected";
+    Core::DisplayMessage(StringFromFormat(message, wm_idx + 1), 3000);
     Host_UpdateMainFrame();
     Core::PauseAndLock(false, was_unpaused);
   }
@@ -1675,7 +1675,7 @@ void CFrame::OnSelectSlot(wxCommandEvent& event)
 {
   m_saveSlot = event.GetId() - IDM_SELECT_SLOT_1 + 1;
   Core::DisplayMessage(StringFromFormat("Selected slot %d - %s", m_saveSlot,
-                                        State::GetInfoStringOfSlot(m_saveSlot).c_str()),
+                                        State::GetInfoStringOfSlot(m_saveSlot, false).c_str()),
                        2500);
 }
 
