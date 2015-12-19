@@ -3,12 +3,17 @@
 // Refer to the license.txt file included.
 
 #include <string>
+#include <wx/app.h>
 #include <wx/bitmap.h>
+#include <wx/gdicmn.h>
 #include <wx/image.h>
 #include <wx/msgdlg.h>
 #include <wx/mstream.h>
 #include <wx/toolbar.h>
 #include <wx/utils.h>
+
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 
 #include "DolphinWX/WxUtils.h"
 
@@ -55,10 +60,35 @@ void ShowErrorDialog(const wxString& error_msg)
 	wxMessageBox(error_msg, _("Error"), wxOK | wxICON_ERROR);
 }
 
-wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
+wxBitmap LoadResourceBitmap(const std::string& name, bool allow_2x)
 {
-	wxMemoryInputStream is(data, length);
-	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
+	const std::string path_base = File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + name;
+	std::string path = path_base + ".png";
+#ifdef __APPLE__
+	double scale_factor = 1.0;
+	if (allow_2x && wxTheApp->GetTopWindow()->GetContentScaleFactor() >= 2)
+	{
+		const std::string path_2x = path_base + "@2x.png";
+		if (File::Exists(path_2x))
+		{
+			path = path_2x;
+			scale_factor = 2.0;
+		}
+	}
+#endif
+	wxImage image(StrToWxStr(path), wxBITMAP_TYPE_PNG);
+#ifdef __APPLE__
+	return wxBitmap(image, -1, scale_factor);
+#else
+	return wxBitmap(image);
+#endif
+}
+
+wxBitmap LoadResourceBitmapPadded(const std::string& name, const wxSize& size)
+{
+	wxImage image(StrToWxStr(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + name + ".png"), wxBITMAP_TYPE_PNG);
+	image.Resize(size, wxPoint(0, (size.GetHeight() - image.GetHeight()) / 2)); // Vertically centered
+	return wxBitmap(image);
 }
 
 wxBitmap CreateDisabledButtonBitmap(const wxBitmap& original)

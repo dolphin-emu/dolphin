@@ -18,33 +18,15 @@
 
 #include "Common/Common.h"
 #include "DolphinWX/AboutDolphin.h"
-#include "DolphinWX/resources/dolphin_logo.cpp"
+#include "DolphinWX/WxUtils.h"
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,
 		const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	const unsigned char* dolphin_logo_bin = dolphin_logo_png;
-	size_t dolphin_logo_size = sizeof dolphin_logo_png;
-#ifdef __APPLE__
-	double scaleFactor = 1.0;
-	if (GetContentScaleFactor() >= 2)
-	{
-		dolphin_logo_bin = dolphin_logo_2x_png;
-		dolphin_logo_size = sizeof dolphin_logo_2x_png;
-		scaleFactor = 2.0;
-	}
-#endif
-	wxMemoryInputStream istream(dolphin_logo_bin, dolphin_logo_size);
-	wxImage iDolphinLogo(istream, wxBITMAP_TYPE_PNG);
-#ifdef __APPLE__
 	wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(this, wxID_ANY,
-			wxBitmap(iDolphinLogo, -1, scaleFactor));
-#else
-	wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(this, wxID_ANY,
-			wxBitmap(iDolphinLogo));
-#endif
+			WxUtils::LoadResourceBitmap("dolphin_logo", true));
 
 	const wxString DolphinText = _("Dolphin");
 	const wxString RevisionText = scm_desc_str;

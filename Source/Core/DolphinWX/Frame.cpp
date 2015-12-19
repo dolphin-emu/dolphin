@@ -58,12 +58,6 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-// Resources
-
-extern "C" {
-#include "DolphinWX/resources/Dolphin.c" // NOLINT: Dolphin icon
-};
-
 int g_saveSlot = 1;
 
 #if defined(HAVE_X11) && HAVE_X11
@@ -89,7 +83,7 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 {
 	// Give it an icon
 	wxIcon IconTemp;
-	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(Dolphin_png));
+	IconTemp.CopyFromBitmap(WxUtils::LoadResourceBitmap("Dolphin"));
 	SetIcon(IconTemp);
 
 	DragAcceptFiles(true);

@@ -18,6 +18,7 @@
 #include <wx/filedlg.h>
 #include <wx/filefn.h>
 #include <wx/filename.h>
+#include <wx/gdicmn.h>
 #include <wx/imaglist.h>
 #include <wx/listctrl.h>
 #include <wx/menu.h>
@@ -51,23 +52,6 @@
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
-#include "DolphinWX/resources/Flag_Australia.xpm"
-#include "DolphinWX/resources/Flag_Europe.xpm"
-#include "DolphinWX/resources/Flag_France.xpm"
-#include "DolphinWX/resources/Flag_Germany.xpm"
-#include "DolphinWX/resources/Flag_Italy.xpm"
-#include "DolphinWX/resources/Flag_Japan.xpm"
-#include "DolphinWX/resources/Flag_Korea.xpm"
-#include "DolphinWX/resources/Flag_Netherlands.xpm"
-#include "DolphinWX/resources/Flag_Russia.xpm"
-#include "DolphinWX/resources/Flag_Spain.xpm"
-#include "DolphinWX/resources/Flag_Taiwan.xpm"
-#include "DolphinWX/resources/Flag_Unknown.xpm"
-#include "DolphinWX/resources/Flag_USA.xpm"
-#include "DolphinWX/resources/Platform_Gamecube.xpm"
-#include "DolphinWX/resources/Platform_Wad.xpm"
-#include "DolphinWX/resources/Platform_Wii.xpm"
-#include "DolphinWX/resources/rating_gamelist.h"
 
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
@@ -184,38 +168,39 @@ CGameListCtrl::~CGameListCtrl()
 
 void CGameListCtrl::InitBitmaps()
 {
+	wxSize size(96, 32);
 	m_imageListSmall = new wxImageList(96, 32);
 	SetImageList(m_imageListSmall, wxIMAGE_LIST_SMALL);
 
 	m_FlagImageIndex.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAPAN]         = m_imageListSmall->Add(wxBitmap(Flag_Japan_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE]        = m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA]           = m_imageListSmall->Add(wxBitmap(Flag_USA_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_AUSTRALIA]     = m_imageListSmall->Add(wxBitmap(Flag_Australia_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE]        = m_imageListSmall->Add(wxBitmap(Flag_France_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY]       = m_imageListSmall->Add(wxBitmap(Flag_Germany_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY]         = m_imageListSmall->Add(wxBitmap(Flag_Italy_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA]         = m_imageListSmall->Add(wxBitmap(Flag_Korea_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_NETHERLANDS]   = m_imageListSmall->Add(wxBitmap(Flag_Netherlands_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_RUSSIA]        = m_imageListSmall->Add(wxBitmap(Flag_Russia_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SPAIN]         = m_imageListSmall->Add(wxBitmap(Flag_Spain_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN]        = m_imageListSmall->Add(wxBitmap(Flag_Taiwan_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_WORLD]         = m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm)); // Uses European flag as a placeholder
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN]       = m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAPAN]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Japan", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE]      = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Europe", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA]         = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_USA", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_AUSTRALIA]   = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Australia", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE]      = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_France", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY]     = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Germany", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Italy", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Korea", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_NETHERLANDS] = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Netherlands", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_RUSSIA]      = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Russia", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SPAIN]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Spain", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN]      = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Taiwan", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_WORLD]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_International", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN]     = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Flag_Unknown", size));
 
 	m_PlatformImageIndex.resize(4);
-	m_PlatformImageIndex[0] = m_imageListSmall->Add(wxBitmap(Platform_Gamecube_xpm));
-	m_PlatformImageIndex[1] = m_imageListSmall->Add(wxBitmap(Platform_Wii_xpm));
-	m_PlatformImageIndex[2] = m_imageListSmall->Add(wxBitmap(Platform_Wad_xpm));
-	m_PlatformImageIndex[3] = m_imageListSmall->Add(wxBitmap(StrToWxStr(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + "Platform_File.png"), wxBITMAP_TYPE_PNG));
+	m_PlatformImageIndex[DiscIO::IVolume::GAMECUBE_DISC]   = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Platform_Gamecube", size));
+	m_PlatformImageIndex[DiscIO::IVolume::WII_DISC]        = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Platform_Wii", size));
+	m_PlatformImageIndex[DiscIO::IVolume::WII_WAD]         = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Platform_Wad", size));
+	m_PlatformImageIndex[DiscIO::IVolume::ELF_DOL]         = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("Platform_File", size));
 
 	m_EmuStateImageIndex.resize(6);
-	m_EmuStateImageIndex[0] = m_imageListSmall->Add(wxBitmap(rating_0));
-	m_EmuStateImageIndex[1] = m_imageListSmall->Add(wxBitmap(rating_1));
-	m_EmuStateImageIndex[2] = m_imageListSmall->Add(wxBitmap(rating_2));
-	m_EmuStateImageIndex[3] = m_imageListSmall->Add(wxBitmap(rating_3));
-	m_EmuStateImageIndex[4] = m_imageListSmall->Add(wxBitmap(rating_4));
-	m_EmuStateImageIndex[5] = m_imageListSmall->Add(wxBitmap(rating_5));
+	m_EmuStateImageIndex[0] = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("rating0", size));
+	m_EmuStateImageIndex[1] = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("rating1", size));
+	m_EmuStateImageIndex[2] = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("rating2", size));
+	m_EmuStateImageIndex[3] = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("rating3", size));
+	m_EmuStateImageIndex[4] = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("rating4", size));
+	m_EmuStateImageIndex[5] = m_imageListSmall->Add(WxUtils::LoadResourceBitmapPadded("rating5", size));
 }
 
 void CGameListCtrl::BrowseForDirectory()
