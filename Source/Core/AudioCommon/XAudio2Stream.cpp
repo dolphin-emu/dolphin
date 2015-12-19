@@ -8,6 +8,12 @@
 #include "Common/Event.h"
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+
+//#include <initguid.h> // For the pkey defines to be properly instantiated.
+#include <Mmdeviceapi.h>
+#include <Functiondiscoverykeys_devpkey.h>
+//DEFINE_PROPERTYKEY(PKEY_AudioEndpoint_Path, 0x9c119480, 0xddc2, 0x4954, 0xa1, 0x50, 0x5b, 0xd2, 0x40, 0xd4, 0x54, 0xad, 1);
 
 #ifndef XAUDIO2_DLL
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path.
@@ -185,9 +191,18 @@ bool XAudio2::Start()
 	}
 	m_xaudio2 = std::unique_ptr<IXAudio2, Releaser>(xaudptr);
 
+	AudioDevice audioDevice = AudioDevice::GetSelectedDevice();
+	NOTICE_LOG(AUDIO, "Using Audio Device: %s", audioDevice.name.c_str());
+	LPCWSTR path = NULL;
+	std::wstring device_path;
+	if (audioDevice != AudioDevice::DEFAULT) {
+		device_path = UTF8ToTStr(audioDevice.path);
+		path = device_path.c_str();
+	}
+
 	// XAudio2 master voice
 	// XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
-	if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate())))
+	if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate(), 0, path)))
 	{
 		PanicAlert("XAudio2 master voice creation failed: %#X", hr);
 		Stop();

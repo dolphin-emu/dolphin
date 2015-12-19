@@ -1,4 +1,5 @@
 set(SRCS	AudioCommon.cpp
+			AudioDevice.cpp
 			DPL2Decoder.cpp
 			Mixer.cpp
 			WaveFile.cpp

@@ -39,15 +39,18 @@ void AudioConfigPane::InitializeGUI()
 	m_volume_slider = new wxSlider(this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
 	m_volume_text = new wxStaticText(this, wxID_ANY, "");
 	m_audio_backend_choice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_audio_backend_strings);
+	m_audio_device_choice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_audio_device_strings);
 	m_audio_latency_spinctrl = new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
 
 	m_dsp_engine_radiobox->Bind(wxEVT_RADIOBOX, &AudioConfigPane::OnDSPEngineRadioBoxChanged, this);
 	m_dpl2_decoder_checkbox->Bind(wxEVT_CHECKBOX, &AudioConfigPane::OnDPL2DecoderCheckBoxChanged, this);
 	m_volume_slider->Bind(wxEVT_SLIDER, &AudioConfigPane::OnVolumeSliderChanged, this);
 	m_audio_backend_choice->Bind(wxEVT_CHOICE, &AudioConfigPane::OnAudioBackendChanged, this);
+	m_audio_device_choice->Bind(wxEVT_CHOICE, &AudioConfigPane::OnAudioDeviceChanged, this);
 	m_audio_latency_spinctrl->Bind(wxEVT_SPINCTRL, &AudioConfigPane::OnLatencySpinCtrlChanged, this);
 
 	m_audio_backend_choice->SetToolTip(_("Changing this will have no effect while the emulator is running."));
+	m_audio_device_choice->SetToolTip(_("Currently only works for XAudio2."));
 	m_audio_latency_spinctrl->SetToolTip(_("Sets the latency (in ms). Higher values may reduce audio crackling. OpenAL backend only."));
 #if defined(__APPLE__)
 	m_dpl2_decoder_checkbox->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OS X."));
@@ -68,6 +71,8 @@ void AudioConfigPane::InitializeGUI()
 	backend_grid_sizer->Add(m_audio_backend_choice, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
 	backend_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	backend_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Audio Device:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	backend_grid_sizer->Add(m_audio_device_choice, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
 
 	wxStaticBoxSizer* const backend_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Backend Settings"));
 	backend_static_box_sizer->Add(backend_grid_sizer, 0, wxEXPAND);
@@ -86,6 +91,7 @@ void AudioConfigPane::InitializeGUI()
 void AudioConfigPane::LoadGUIValues()
 {
 	PopulateBackendChoiceBox();
+	PopulateDeviceChoiceBox();
 
 	const SConfig& startup_params = SConfig::GetInstance();
 
@@ -114,6 +120,7 @@ void AudioConfigPane::RefreshGUI()
 	{
 		m_audio_latency_spinctrl->Disable();
 		m_audio_backend_choice->Disable();
+		m_audio_device_choice->Disable();
 		m_dpl2_decoder_checkbox->Disable();
 		m_dsp_engine_radiobox->Disable();
 	}
@@ -152,6 +159,21 @@ void AudioConfigPane::OnAudioBackendChanged(wxCommandEvent& event)
 	AudioCommon::UpdateSoundStream();
 }
 
+void AudioConfigPane::OnAudioDeviceChanged(wxCommandEvent& event)
+{
+	// Don't save the translated BACKEND_NULLSOUND string
+	int selection = m_audio_device_choice->GetSelection() - 1;
+	if (selection <= -1) {
+		// default device
+		SConfig::GetInstance().sAudioDevice = AudioDevice::DEFAULT.id;
+	}
+	else {
+		SConfig::GetInstance().sAudioDevice = AudioDevice::GetDevices().at(selection).id;
+	}
+
+	AudioCommon::UpdateSoundStream();
+}
+
 void AudioConfigPane::OnLatencySpinCtrlChanged(wxCommandEvent& event)
 {
 	SConfig::GetInstance().iLatency = m_audio_latency_spinctrl->GetValue();
@@ -165,6 +187,21 @@ void AudioConfigPane::PopulateBackendChoiceBox()
 
 		int num = m_audio_backend_choice->FindString(StrToWxStr(SConfig::GetInstance().sBackend));
 		m_audio_backend_choice->SetSelection(num);
+	}
+}
+
+void AudioConfigPane::PopulateDeviceChoiceBox()
+{
+	int selected = 0;
+	m_audio_device_choice->Append(wxGetTranslation(StrToWxStr(AudioDevice::DEFAULT.name)));
+	m_audio_device_choice->SetSelection(0);
+	for (const AudioDevice& device : AudioDevice::GetDevices())
+	{
+		selected++;
+		m_audio_device_choice->Append(wxGetTranslation(StrToWxStr(device.name)));
+		if (SConfig::GetInstance().sAudioDevice == device.id) {
+			m_audio_device_choice->SetSelection(selected);
+		}
 	}
 }
 

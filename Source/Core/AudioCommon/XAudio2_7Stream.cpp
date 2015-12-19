@@ -173,9 +173,12 @@ bool XAudio2_7::Start()
 	}
 	m_xaudio2 = std::unique_ptr<IXAudio2, Releaser>(xaudptr);
 
+	AudioDevice audioDevice = AudioDevice::GetSelectedDevice();
+	NOTICE_LOG(AUDIO, "Using Audio Device: %s", audioDevice.name.c_str());
+	
 	// XAudio2 master voice
 	// XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
-	if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate())))
+	if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate(), 0, audioDevice.index)))
 	{
 		PanicAlert("XAudio2_7 master voice creation failed: %#X", hr);
 		Stop();

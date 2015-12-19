@@ -22,6 +22,8 @@
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/VolumeCreator.h"
 
+#include "AudioCommon/AudioDevice.h"
+
 SConfig* SConfig::m_Instance;
 
 SConfig::SConfig()
@@ -288,6 +290,7 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 	dsp->Set("DumpAudio", m_DumpAudio);
 	dsp->Set("DumpUCode", m_DumpUCode);
 	dsp->Set("Backend", sBackend);
+	dsp->Set("AudioDevice", sAudioDevice);
 	dsp->Set("Volume", m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
 }
@@ -560,6 +563,7 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #else
 	dsp->Get("Backend", &sBackend, BACKEND_NULLSOUND);
 #endif
+	dsp->Get("AudioDevice", &sAudioDevice, AudioDevice::DEFAULT.id);
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
 

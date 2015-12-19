@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="SoundStreams">
@@ -21,6 +21,9 @@
       <Filter>SoundStreams</Filter>
     </ClCompile>
     <ClCompile Include="XAudio2_7Stream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioDevice.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
   </ItemGroup>
@@ -58,6 +61,9 @@
       <Filter>SoundStreams</Filter>
     </ClInclude>
     <ClInclude Include="SoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioDevice.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
   </ItemGroup>

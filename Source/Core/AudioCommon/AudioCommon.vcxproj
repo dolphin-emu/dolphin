@@ -37,6 +37,7 @@
   <ItemGroup>
     <ClCompile Include="aldlist.cpp" />
     <ClCompile Include="AudioCommon.cpp" />
+    <ClCompile Include="AudioDevice.cpp" />
     <ClCompile Include="DPL2Decoder.cpp" />
     <ClCompile Include="Mixer.cpp" />
     <ClCompile Include="NullSoundStream.cpp" />
@@ -63,6 +64,7 @@
     <ClInclude Include="WaveFile.h" />
     <ClInclude Include="XAudio2Stream.h" />
     <ClInclude Include="XAudio2_7Stream.h" />
+    <ClInclude Include="AudioDevice.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
