@@ -36,7 +36,7 @@ static const char* const named_buttons[] =
 	"Y",
 	"Z",
 	_trans("Start"),
-	"Mic"
+	_trans("Mic")
 };
 
 static const char* const named_triggers[] =

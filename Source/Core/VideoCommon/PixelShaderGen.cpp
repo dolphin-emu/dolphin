@@ -347,8 +347,8 @@ static inline T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		warn_once = false;
 	}
 
-	uid_data->msaa = g_ActiveConfig.iMultisampleMode > 0;
-	uid_data->ssaa = g_ActiveConfig.iMultisampleMode > 0 && g_ActiveConfig.bSSAA;
+	uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
+	uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
 	if (ApiType == API_OPENGL)
 	{
 		out.Write("out vec4 ocol0;\n");

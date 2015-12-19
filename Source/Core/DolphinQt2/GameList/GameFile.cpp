@@ -139,7 +139,8 @@ bool GameFile::TryLoadCache()
 
 bool GameFile::TryLoadVolume()
 {
-	QSharedPointer<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(m_path.toStdString()));
+	QSharedPointer<DiscIO::IVolume> volume(
+			DiscIO::CreateVolumeFromFilename(m_path.toStdString()).release());
 	if (volume == nullptr)
 		return false;
 

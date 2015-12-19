@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -343,7 +344,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 	// Setting up the header
 	StateHeader header;
-	memcpy(header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
+	strncpy(header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
 	header.size = g_use_compression ? (u32)buffer_size : 0;
 	header.time = Common::Timer::GetDoubleTime();
 
@@ -452,11 +453,11 @@ std::string GetInfoStringOfSlot(int slot)
 {
 	std::string filename = MakeStateFilename(slot);
 	if (!File::Exists(filename))
-		return "Empty";
+		return GetStringT("Empty");
 
 	State::StateHeader header;
 	if (!ReadHeader(filename, header))
-		return "Unknown";
+		return GetStringT("Unknown");
 
 	return Common::Timer::GetDateTimeFormatted(header.time);
 }
@@ -474,7 +475,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 	StateHeader header;
 	f.ReadArray(&header, 1);
 
-	if (memcmp(SConfig::GetInstance().GetUniqueID().c_str(), header.gameID, 6))
+	if (strncmp(SConfig::GetInstance().GetUniqueID().c_str(), header.gameID, 6))
 	{
 		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %.*s)",
 			6, header.gameID), 2000);

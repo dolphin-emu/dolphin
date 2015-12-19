@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -50,13 +49,13 @@ public:
 	virtual bool ExportApploader(const std::string& _rExportFolder) const = 0;
 	virtual bool ExportDOL(const std::string& _rExportFolder) const = 0;
 	virtual const std::string GetFileName(u64 _Address) = 0;
-	virtual u32 GetBootDOLSize() const = 0;
+	virtual u64 GetBootDOLOffset() const = 0;
 	virtual u32 GetBootDOLSize(u64 dol_offset) const = 0;
 
 protected:
 	const IVolume *m_rVolume;
 };
 
-IFileSystem* CreateFileSystem(const IVolume *_rVolume);
+std::unique_ptr<IFileSystem> CreateFileSystem(const IVolume* volume);
 
 } // namespace

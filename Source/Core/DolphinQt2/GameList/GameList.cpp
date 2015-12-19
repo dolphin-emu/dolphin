@@ -6,14 +6,16 @@
 
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/GameList/GameList.h"
-#include "DolphinQt2/GameList/GameListProxyModel.h"
+#include "DolphinQt2/GameList/ListProxyModel.h"
+#include "DolphinQt2/GameList/TableProxyModel.h"
 
 GameList::GameList(QWidget* parent): QStackedWidget(parent)
 {
 	m_model = new GameListModel(this);
-	m_proxy = new GameListProxyModel(this);
-	m_proxy->setSourceModel(m_model);
-	m_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
+	m_table_proxy = new TableProxyModel(this);
+	m_table_proxy->setSourceModel(m_model);
+	m_list_proxy = new ListProxyModel(this);
+	m_list_proxy->setSourceModel(m_model);
 
 	MakeTableView();
 	MakeListView();
@@ -30,7 +32,7 @@ GameList::GameList(QWidget* parent): QStackedWidget(parent)
 void GameList::MakeTableView()
 {
 	m_table = new QTableView(this);
-	m_table->setModel(m_proxy);
+	m_table->setModel(m_table_proxy);
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->setAlternatingRowColors(true);
@@ -43,9 +45,6 @@ void GameList::MakeTableView()
 	m_table->setColumnWidth(GameListModel::COL_PLATFORM, 52);
 	m_table->setColumnWidth(GameListModel::COL_COUNTRY, 38);
 	m_table->setColumnWidth(GameListModel::COL_RATING, 52);
-
-	// This column is for the icon view. Hide it.
-	m_table->setColumnHidden(GameListModel::COL_LARGE_ICON, true);
 
 	QHeaderView* header = m_table->horizontalHeader();
 	header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);
@@ -62,23 +61,31 @@ void GameList::MakeTableView()
 void GameList::MakeListView()
 {
 	m_list = new QListView(this);
-	m_list->setModel(m_proxy);
+	m_list->setModel(m_list_proxy);
 	m_list->setViewMode(QListView::IconMode);
-	m_list->setModelColumn(GameListModel::COL_LARGE_ICON);
 	m_list->setResizeMode(QListView::Adjust);
 	m_list->setUniformItemSizes(true);
 }
 
 QString GameList::GetSelectedGame() const
 {
-	QItemSelectionModel* sel_model;
+	QAbstractItemView* view;
+	QSortFilterProxyModel* proxy;
 	if (currentWidget() == m_table)
-		sel_model = m_table->selectionModel();
+	{
+		view = m_table;
+		proxy = m_table_proxy;
+	}
 	else
-		sel_model = m_list->selectionModel();
-
+	{
+		view = m_list;
+		proxy = m_list_proxy;
+	}
+	QItemSelectionModel* sel_model = view->selectionModel();
 	if (sel_model->hasSelection())
-		return m_model->GetPath(m_proxy->mapToSource(sel_model->selectedIndexes()[0]).row());
-	else
-		return QString();
+	{
+		QModelIndex model_index = proxy->mapToSource(sel_model->selectedIndexes()[0]);
+		return m_model->GetPath(model_index.row());
+	}
+	return QStringLiteral();
 }

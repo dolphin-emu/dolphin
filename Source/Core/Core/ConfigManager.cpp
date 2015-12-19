@@ -37,7 +37,7 @@ SConfig::SConfig()
   bJITPairedOff(false), bJITSystemRegistersOff(false),
   bJITBranchOff(false),
   bJITILTimeProfiling(false), bJITILOutputIR(false),
-  bFPRF(false), bAccurateNaNs(false),
+  bFPRF(false), bAccurateNaNs(false), iTimingVariance(40),
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
@@ -224,6 +224,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	IniFile::Section* core = ini.GetOrCreateSection("Core");
 
 	core->Set("HLE_BS2", bHLE_BS2);
+	core->Set("TimingVariance", iTimingVariance);
 	core->Set("CPUCore", iCPUCore);
 	core->Set("Fastmem", bFastmem);
 	core->Set("CPUThread", bCPUThread);
@@ -234,6 +235,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
 	core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
 	core->Set("SyncGpuOverclock", fSyncGpuOverclock);
+	core->Set("FPRF", bFPRF);
+	core->Set("AccurateNaNs", bAccurateNaNs);
 	core->Set("DefaultISO", m_strDefaultISO);
 	core->Set("DVDRoot", m_strDVDRoot);
 	core->Set("Apploader", m_strApploader);
@@ -484,6 +487,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 #endif
 	core->Get("Fastmem",           &bFastmem,      true);
 	core->Get("DSPHLE",            &bDSPHLE,       true);
+	core->Get("TimingVariance",    &iTimingVariance, 40);
 	core->Get("CPUThread",         &bCPUThread,    true);
 	core->Get("SkipIdle",          &bSkipIdle,     true);
 	core->Get("SyncOnSkipIdle",    &bSyncGPUOnSkipIdleHack, true);
@@ -523,6 +527,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("SyncGpuOverclock",          &fSyncGpuOverclock, 1.0);
 	core->Get("FastDiscSpeed",             &bFastDiscSpeed,    false);
 	core->Get("DCBZ",                      &bDCBZOFF,          false);
+	core->Get("FPRF",                      &bFPRF,             false);
+	core->Get("AccurateNaNs",              &bAccurateNaNs,     false);
 	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
 	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
 	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
@@ -598,6 +604,7 @@ void SConfig::LoadDefaults()
 	#endif
 
 	iCPUCore = PowerPC::CORE_JIT64;
+	iTimingVariance = 40;
 	bCPUThread = false;
 	bSkipIdle = false;
 	bSyncGPUOnSkipIdleHack = true;

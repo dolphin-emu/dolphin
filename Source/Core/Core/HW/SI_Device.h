@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -105,4 +106,4 @@ public:
 	}
 };
 
-ISIDevice* SIDevice_Create(const SIDevices device, const int port_number);
+std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number);

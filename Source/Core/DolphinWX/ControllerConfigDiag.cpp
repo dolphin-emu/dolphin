@@ -51,7 +51,7 @@ ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 		_("TaruKonga (Bongos)"),
 		_("GBA"),
 		_("Keyboard"),
-		_("AM-Baseboard")
+		_("AM Baseboard")
 	}};
 
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);

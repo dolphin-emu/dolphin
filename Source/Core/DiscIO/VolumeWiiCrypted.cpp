@@ -30,14 +30,12 @@ namespace DiscIO
 CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset,
 									 const unsigned char* _pVolumeKey)
 	: m_pReader(std::move(reader)),
-	m_AES_ctx(new mbedtls_aes_context),
-	m_pBuffer(nullptr),
+	m_AES_ctx(std::make_unique<mbedtls_aes_context>()),
 	m_VolumeOffset(_VolumeOffset),
 	m_dataOffset(0x20000),
 	m_LastDecryptedBlockOffset(-1)
 {
 	mbedtls_aes_setkey_dec(m_AES_ctx.get(), _pVolumeKey, 128);
-	m_pBuffer = new u8[s_block_total_size];
 }
 
 bool CVolumeWiiCrypted::ChangePartition(u64 offset)
@@ -53,8 +51,6 @@ bool CVolumeWiiCrypted::ChangePartition(u64 offset)
 
 CVolumeWiiCrypted::~CVolumeWiiCrypted()
 {
-	delete[] m_pBuffer;
-	m_pBuffer = nullptr;
 }
 
 bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool decrypt) const
@@ -67,6 +63,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
 
 	FileMon::FindFilename(_ReadOffset);
 
+	std::vector<u8> read_buffer(s_block_total_size);
 	while (_Length > 0)
 	{
 		// Calculate block offset
@@ -76,15 +73,15 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
 		if (m_LastDecryptedBlockOffset != Block)
 		{
 			// Read the current block
-			if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * s_block_total_size, s_block_total_size, m_pBuffer))
+			if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * s_block_total_size, s_block_total_size, read_buffer.data()))
 				return false;
 
 			// Decrypt the block's data.
 			// 0x3D0 - 0x3DF in m_pBuffer will be overwritten,
 			// but that won't affect anything, because we won't
 			// use the content of m_pBuffer anymore after this
-			mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, s_block_data_size, m_pBuffer + 0x3D0,
-			              m_pBuffer + s_block_header_size, m_LastDecryptedBlock);
+			mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, s_block_data_size, &read_buffer[0x3D0],
+			              &read_buffer[s_block_header_size], m_LastDecryptedBlock);
 			m_LastDecryptedBlockOffset = Block;
 
 			// The only thing we currently use from the 0x000 - 0x3FF part
@@ -210,6 +207,18 @@ std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetNames(bool prefe
 	std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
 	opening_bnr.resize(file_system->ReadFile("opening.bnr", opening_bnr.data(), opening_bnr.size(), 0x5C));
 	return ReadWiiNames(opening_bnr);
+}
+
+std::vector<u32> CVolumeWiiCrypted::GetBanner(int* width, int* height) const
+{
+	*width = 0;
+	*height = 0;
+
+	u64 title_id;
+	if (!GetTitleID(&title_id))
+		return std::vector<u32>();
+
+	return GetWiiBanner(width, height, title_id);
 }
 
 u64 CVolumeWiiCrypted::GetFSTSize() const

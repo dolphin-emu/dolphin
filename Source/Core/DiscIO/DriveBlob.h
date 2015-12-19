@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -21,17 +22,16 @@ namespace DiscIO
 class DriveReader : public SectorReader
 {
 public:
-	static DriveReader* Create(const std::string& drive);
+	static std::unique_ptr<DriveReader> Create(const std::string& drive);
 	~DriveReader();
 	BlobType GetBlobType() const override { return BlobType::DRIVE; }
 	u64 GetDataSize() const override { return m_size; }
 	u64 GetRawSize() const override { return m_size; }
 
-	bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr) override;
-
 private:
 	DriveReader(const std::string& drive);
 	void GetBlock(u64 block_num, u8 *out_ptr) override;
+	bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* out_ptr) override;
 
 #ifdef _WIN32
 	HANDLE m_disc_handle;

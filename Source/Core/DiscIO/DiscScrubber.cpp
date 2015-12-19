@@ -34,7 +34,7 @@ static int m_BlocksPerCluster;
 static bool m_isScrubbing = false;
 
 static std::string m_Filename;
-static IVolume* m_Disc = nullptr;
+static std::unique_ptr<IVolume> s_disc;
 
 struct SPartitionHeader
 {
@@ -74,8 +74,8 @@ static SPartitionGroup PartitionGroup[4];
 
 void MarkAsUsed(u64 _Offset, u64 _Size);
 void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size);
-void ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt);
-void ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt);
+bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt);
+bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt);
 bool ParseDisc();
 bool ParsePartitionData(SPartition& _rPartition);
 
@@ -94,11 +94,11 @@ bool SetupScrub(const std::string& filename, int block_size)
 
 	m_BlocksPerCluster = CLUSTER_SIZE / m_BlockSize;
 
-	m_Disc = CreateVolumeFromFilename(filename);
-	if (!m_Disc)
+	s_disc = CreateVolumeFromFilename(filename);
+	if (!s_disc)
 		return false;
 
-	m_FileSize = m_Disc->GetSize();
+	m_FileSize = s_disc->GetSize();
 
 	u32 numClusters = (u32)(m_FileSize / CLUSTER_SIZE);
 
@@ -112,9 +112,9 @@ bool SetupScrub(const std::string& filename, int block_size)
 
 	// Fill out table of free blocks
 	success = ParseDisc();
+
 	// Done with it; need it closed for the next part
-	delete m_Disc;
-	m_Disc = nullptr;
+	s_disc.reset();
 	m_BlockCount = 0;
 
 	// Let's not touch the file if we've failed up to here :p
@@ -192,16 +192,18 @@ void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size)
 }
 
 // Helper functions for reading the BE volume
-void ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt)
+bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt)
 {
-	m_Disc->Read(_Offset, sizeof(u32), (u8*)&_Buffer, _Decrypt);
-	_Buffer = Common::swap32(_Buffer);
+	return s_disc->ReadSwapped(_Offset, &_Buffer, _Decrypt);
 }
-void ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt)
+
+bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt)
 {
-	m_Disc->Read(_Offset, sizeof(u32), (u8*)&_Buffer, _Decrypt);
-	_Buffer = Common::swap32((u32)_Buffer);
-	_Buffer <<= 2;
+	u32 temp_buffer;
+	if (!s_disc->ReadSwapped(_Offset, &temp_buffer, _Decrypt))
+		return false;
+	_Buffer = static_cast<u64>(temp_buffer) << 2;
+	return true;
 }
 
 bool ParseDisc()
@@ -211,8 +213,9 @@ bool ParseDisc()
 
 	for (int x = 0; x < 4; x++)
 	{
-		ReadFromVolume(0x40000 + (x * 8) + 0, PartitionGroup[x].numPartitions, false);
-		ReadFromVolume(0x40000 + (x * 8) + 4, PartitionGroup[x].PartitionsOffset, false);
+		if (!ReadFromVolume(0x40000 + (x * 8) + 0, PartitionGroup[x].numPartitions, false) ||
+		    !ReadFromVolume(0x40000 + (x * 8) + 4, PartitionGroup[x].PartitionsOffset, false))
+			return false;
 
 		// Read all partitions
 		for (u32 i = 0; i < PartitionGroup[x].numPartitions; i++)
@@ -222,16 +225,16 @@ bool ParseDisc()
 			Partition.GroupNumber = x;
 			Partition.Number = i;
 
-			ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 0, Partition.Offset, false);
-			ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 4, Partition.Type, false);
-
-			ReadFromVolume(Partition.Offset + 0x2a4, Partition.Header.TMDSize, false);
-			ReadFromVolume(Partition.Offset + 0x2a8, Partition.Header.TMDOffset, false);
-			ReadFromVolume(Partition.Offset + 0x2ac, Partition.Header.CertChainSize, false);
-			ReadFromVolume(Partition.Offset + 0x2b0, Partition.Header.CertChainOffset, false);
-			ReadFromVolume(Partition.Offset + 0x2b4, Partition.Header.H3Offset, false);
-			ReadFromVolume(Partition.Offset + 0x2b8, Partition.Header.DataOffset, false);
-			ReadFromVolume(Partition.Offset + 0x2bc, Partition.Header.DataSize, false);
+			if (!ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 0, Partition.Offset, false) ||
+			    !ReadFromVolume(PartitionGroup[x].PartitionsOffset + (i * 8) + 4, Partition.Type, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2a4, Partition.Header.TMDSize, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2a8, Partition.Header.TMDOffset, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2ac, Partition.Header.CertChainSize, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2b0, Partition.Header.CertChainOffset, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2b4, Partition.Header.H3Offset, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2b8, Partition.Header.DataOffset, false) ||
+			    !ReadFromVolume(Partition.Offset + 0x2bc, Partition.Header.DataSize, false))
+				return false;
 
 			PartitionGroup[x].PartitionsVec.push_back(Partition);
 		}
@@ -259,71 +262,72 @@ bool ParseDisc()
 }
 
 // Operations dealing with encrypted space are done here - the volume is swapped to allow this
-bool ParsePartitionData(SPartition& _rPartition)
+bool ParsePartitionData(SPartition& partition)
 {
-	bool ParsedOK = true;
+	bool parsed_ok = true;
 
 	// Switch out the main volume temporarily
-	IVolume *OldVolume = m_Disc;
+	std::unique_ptr<IVolume> old_volume;
+	s_disc.swap(old_volume);
 
 	// Ready some stuff
-	m_Disc = CreateVolumeFromFilename(m_Filename, _rPartition.GroupNumber, _rPartition.Number);
-	if (m_Disc == nullptr)
+	s_disc = CreateVolumeFromFilename(m_Filename, partition.GroupNumber, partition.Number);
+	if (s_disc == nullptr)
 	{
 		ERROR_LOG(DISCIO, "Failed to create volume from file %s", m_Filename.c_str());
-		m_Disc = OldVolume;
+		s_disc.swap(old_volume);
 		return false;
 	}
 
-	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_Disc));
+	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(s_disc.get()));
 	if (!filesystem)
 	{
-		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", _rPartition.GroupNumber, _rPartition.Number);
-		ParsedOK = false;
+		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", partition.GroupNumber, partition.Number);
+		parsed_ok = false;
 	}
 	else
 	{
 		// Mark things as used which are not in the filesystem
 		// Header, Header Information, Apploader
-		ReadFromVolume(0x2440 + 0x14, _rPartition.Header.ApploaderSize, true);
-		ReadFromVolume(0x2440 + 0x18, _rPartition.Header.ApploaderTrailerSize, true);
-		MarkAsUsedE(_rPartition.Offset
-			+ _rPartition.Header.DataOffset
+		parsed_ok = parsed_ok && ReadFromVolume(0x2440 + 0x14, partition.Header.ApploaderSize, true);
+		parsed_ok = parsed_ok && ReadFromVolume(0x2440 + 0x18, partition.Header.ApploaderTrailerSize, true);
+		MarkAsUsedE(partition.Offset
+			+ partition.Header.DataOffset
 			, 0
 			, 0x2440
-			+ _rPartition.Header.ApploaderSize
-			+ _rPartition.Header.ApploaderTrailerSize);
+			+ partition.Header.ApploaderSize
+			+ partition.Header.ApploaderTrailerSize);
 
 		// DOL
-		ReadFromVolume(0x420, _rPartition.Header.DOLOffset, true);
-		_rPartition.Header.DOLSize = filesystem->GetBootDOLSize(_rPartition.Header.DOLOffset);
-		MarkAsUsedE(_rPartition.Offset
-			+ _rPartition.Header.DataOffset
-			, _rPartition.Header.DOLOffset
-			, _rPartition.Header.DOLSize);
+		partition.Header.DOLOffset = filesystem->GetBootDOLOffset();
+		partition.Header.DOLSize = filesystem->GetBootDOLSize(partition.Header.DOLOffset);
+		parsed_ok = parsed_ok && partition.Header.DOLOffset && partition.Header.DOLSize;
+		MarkAsUsedE(partition.Offset
+			+ partition.Header.DataOffset
+			, partition.Header.DOLOffset
+			, partition.Header.DOLSize);
 
 		// FST
-		ReadFromVolume(0x424, _rPartition.Header.FSTOffset, true);
-		ReadFromVolume(0x428, _rPartition.Header.FSTSize, true);
-		MarkAsUsedE(_rPartition.Offset
-			+ _rPartition.Header.DataOffset
-			, _rPartition.Header.FSTOffset
-			, _rPartition.Header.FSTSize);
+		parsed_ok = parsed_ok && ReadFromVolume(0x424, partition.Header.FSTOffset, true);
+		parsed_ok = parsed_ok && ReadFromVolume(0x428, partition.Header.FSTSize, true);
+		MarkAsUsedE(partition.Offset
+			+ partition.Header.DataOffset
+			, partition.Header.FSTOffset
+			, partition.Header.FSTSize);
 
 		// Go through the filesystem and mark entries as used
 		for (SFileInfo file : filesystem->GetFileList())
 		{
 			DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
 			if ((file.m_NameOffset & 0x1000000) == 0)
-				MarkAsUsedE(_rPartition.Offset + _rPartition.Header.DataOffset, file.m_Offset, file.m_FileSize);
+				MarkAsUsedE(partition.Offset + partition.Header.DataOffset, file.m_Offset, file.m_FileSize);
 		}
 	}
 
 	// Swap back
-	delete m_Disc;
-	m_Disc = OldVolume;
+	s_disc.swap(old_volume);
 
-	return ParsedOK;
+	return parsed_ok;
 }
 
 } // namespace DiscScrubber

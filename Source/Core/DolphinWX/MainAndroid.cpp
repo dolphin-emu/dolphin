@@ -2,20 +2,24 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
 #include <jni.h>
+#include <memory>
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include <EGL/egl.h>
-#include "../DiscIO/Volume.h"
+
 #include "Android/ButtonManager.h"
+
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
+
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -26,6 +30,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
 #include "UICommon/UICommon.h"
@@ -261,11 +266,11 @@ static std::string GetDescription(std::string filename)
 {
 	__android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting Description for file: %s", filename.c_str());
 
-	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
+	std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(filename));
 
-	if (pVolume != nullptr)
+	if (volume != nullptr)
 	{
-		std::map <DiscIO::IVolume::ELanguage, std::string> descriptions = pVolume->GetDescriptions();
+		std::map<DiscIO::IVolume::ELanguage, std::string> descriptions = volume->GetDescriptions();
 
 		/*
 		bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
@@ -289,53 +294,46 @@ static std::string GetDescription(std::string filename)
 			return descriptions.cbegin()->second;
 	}
 
-	return std::string ("");
+	return std::string();
 }
 
 static std::string GetGameId(std::string filename)
 {
 	__android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting ID for file: %s", filename.c_str());
 
-	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
-	if (pVolume != nullptr)
-	{
-		std::string id = pVolume->GetUniqueID();
-		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Game ID: %s", id.c_str());
+	std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(filename));
+	if (volume == nullptr)
+		return std::string();
 
-		return id;
-	}
-	return std::string ("");
+	std::string id = volume->GetUniqueID();
+	__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Game ID: %s", id.c_str());
+	return id;
 }
 
 static std::string GetCompany(std::string filename)
 {
 	__android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting Company for file: %s", filename.c_str());
 
-	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
-	if (pVolume != nullptr)
-	{
-		std::string company = DiscIO::GetCompanyFromID(pVolume->GetMakerID());
-		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Company: %s", company.c_str());
-		return company;
-	}
-	return std::string ("");
+	std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(filename));
+	if (volume == nullptr)
+		return std::string();
+
+	std::string company = DiscIO::GetCompanyFromID(volume->GetMakerID());
+	__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Company: %s", company.c_str());
+	return company;
 }
 
 static u64 GetFileSize(std::string filename)
 {
 	__android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting size of file: %s", filename.c_str());
 
-	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
-	if (pVolume != nullptr)
-	{
-		u64 size = pVolume->GetSize();
-		// Causes a warning because size is u64, not 'long unsigned'
-		//__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Size: %lu", size);
+	std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(filename));
+	if (volume == nullptr)
+		return -1;
 
-		return  size;
-	}
-
-	return -1;
+	u64 size = volume->GetSize();
+	__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Size: %" PRIu64, size);
+	return size;
 }
 
 static std::string GetJString(JNIEnv *env, jstring jstr)

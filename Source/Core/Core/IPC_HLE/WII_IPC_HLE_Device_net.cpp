@@ -49,6 +49,13 @@ typedef struct pollfd pollfd_t;
 #include <errno.h>
 #endif
 
+// WSAPoll doesn't support POLLPRI and POLLWRBAND flags
+#ifdef _WIN32
+#define UNSUPPORTED_WSAPOLL POLLPRI | POLLWRBAND
+#else
+#define UNSUPPORTED_WSAPOLL 0
+#endif
+
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName)
@@ -1029,7 +1036,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 			);
 
 			// Do not pass return-only events to the native poll
-			ufds[i].events &= ~(POLLERR | POLLHUP | POLLNVAL);
+			ufds[i].events &= ~(POLLERR | POLLHUP | POLLNVAL | UNSUPPORTED_WSAPOLL);
 
 			if (unhandled_events)
 				ERROR_LOG(WII_IPC_NET, "SO_POLL: unhandled Wii event types: %04x", unhandled_events);

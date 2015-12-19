@@ -64,6 +64,7 @@ private:
 	QString m_company;
 
 	QString m_unique_id;
+	quint64 m_title_id;
 
 	QString m_issues;
 	int m_emu_state = 0;
@@ -87,7 +88,7 @@ private:
 	QString CreateCacheFilename() const;
 
 	// Outputs to m_banner
-	void ReadBanner(const DiscIO::IVolume& volume);
+	void ReadBanner(const std::vector<u32>& buffer, int width, int height);
 	// Outputs to m_short_names, m_long_names, m_descriptions, m_company.
 	// Returns whether a file was found, not whether it contained useful data.
 	bool ReadXML(const QString& file_path);

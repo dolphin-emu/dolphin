@@ -609,6 +609,7 @@ void Jit64::frspx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 	int b = inst.FB;
 	int d = inst.FD;
 	bool packed = jit->js.op->fprIsDuplicated[b] && !cpu_info.bAtom;

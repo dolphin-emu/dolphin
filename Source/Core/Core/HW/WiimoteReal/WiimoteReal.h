@@ -14,7 +14,6 @@
 #include "Common/Common.h"
 #include "Common/FifoQueue.h"
 #include "Common/NonCopyable.h"
-#include "Common/Timer.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteRealBase.h"
 
@@ -39,8 +38,8 @@ public:
 
 	const Report& ProcessReadQueue();
 
-	bool Read();
-	bool Write();
+	void Read();
+	void Write();
 
 	void StartThread();
 	void StopThread();
@@ -109,8 +108,6 @@ private:
 
 	Common::FifoQueue<Report> m_read_reports;
 	Common::FifoQueue<Report> m_write_reports;
-
-	Common::Timer m_last_audio_report;
 };
 
 class WiimoteScanner
@@ -142,7 +139,7 @@ private:
 	std::atomic<bool> m_want_bb {false};
 
 #if defined(_WIN32)
-	void CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool &real_wiimote, bool &is_bb);
+	void CheckDeviceType(std::basic_string<TCHAR> &devicepath, WinWriteMethod &write_method, bool &real_wiimote, bool &is_bb);
 #elif defined(__linux__) && HAVE_BLUEZ
 	int device_id;
 	int device_sock;

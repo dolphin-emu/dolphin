@@ -24,7 +24,7 @@
 
 #include "DolphinQt/GameList/GameFile.h"
 
-static const u32 CACHE_REVISION = 0x00D; // Last changed in PR 3097
+static const u32 CACHE_REVISION = 0x00E; // Last changed in PR 3309
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
 
 static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<DiscIO::IVolume::ELanguage, std::string> strings)
@@ -84,13 +84,11 @@ GameFile::GameFile(const QString& fileName)
 		// if a banner has become available after the cache was made.
 		if (m_banner.isNull())
 		{
-			std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(fileName.toStdString()));
-			if (volume != nullptr)
-			{
-				ReadBanner(*volume);
-				if (!m_banner.isNull())
-					SaveToCache();
-			}
+			int width, height;
+			std::vector<u32> buffer = DiscIO::IVolume::GetWiiBanner(&width, &height, m_title_id);
+			ReadBanner(buffer, width, height);
+			if (!m_banner.isNull())
+				SaveToCache();
 		}
 	}
 	else
@@ -111,11 +109,19 @@ GameFile::GameFile(const QString& fileName)
 			m_file_size = volume->GetRawSize();
 			m_volume_size = volume->GetSize();
 
+			// A temporary variable is necessary here to convert between
+			// quint64 (needed by GameFile's cache code) and u64 (needed by GetTitleID)
+			u64 title_id;
+			volume->GetTitleID(&title_id);
+			m_title_id = title_id;
+
 			m_unique_id = QString::fromStdString(volume->GetUniqueID());
 			m_disc_number = volume->GetDiscNumber();
 			m_revision = volume->GetRevision();
 
-			ReadBanner(*volume);
+			int width, height;
+			std::vector<u32> buffer = volume->GetBanner(&width, &height);
+			ReadBanner(buffer, width, height);
 
 			m_valid = true;
 			SaveToCache();
@@ -188,6 +194,7 @@ bool GameFile::LoadFromCache()
 	       >> descriptions
 	       >> m_company
 	       >> m_unique_id
+	       >> m_title_id
 	       >> blob_type
 	       >> m_file_size
 	       >> m_volume_size
@@ -231,6 +238,7 @@ void GameFile::SaveToCache()
 	       << CastLocalizedStrings<u8>(m_descriptions)
 	       << m_company
 	       << m_unique_id
+	       << m_title_id
 	       << (u32)m_blob_type
 	       << m_file_size
 	       << m_volume_size
@@ -267,10 +275,8 @@ QString GameFile::CreateCacheFilename() const
 }
 
 // Outputs to m_banner
-void GameFile::ReadBanner(const DiscIO::IVolume& volume)
+void GameFile::ReadBanner(const std::vector<u32>& buffer, int width, int height)
 {
-	int width, height;
-	std::vector<u32> buffer = volume.GetBanner(&width, &height);
 	QImage banner(width, height, QImage::Format_RGB888);
 	for (int i = 0; i < width * height; i++)
 	{

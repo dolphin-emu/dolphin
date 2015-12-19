@@ -518,12 +518,61 @@ float GetAspectRatio(bool wide)
 	return ((float)width / (float)height) * pixelAR;
 }
 
+// This function updates:
+// a) the scanlines that are considered the 'active region' of each field
+// b) the equivalent refresh rate for the current timing configuration
+//
+// Each pair of fields is laid out like:
+// [typical values are for NTSC interlaced]
+//
+// <---------- one scanline width ---------->
+// EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+// ... lines omitted, 9 total E scanlines
+// ... is typical
+// EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+// RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+// ... lines omitted, 12 total R scanlines
+// ... is typical
+// RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+// AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+// ... lines omitted, 240 total A scanlines
+// ... is typical
+// AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+// SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+// SSSSSSSSSSSSSSSSSSSSSeeeeeeeeeeeeeeeeeeeee
+// eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+// ... lines omitted, 9 total e scanlines
+// ... is typical
+// eeeeeeeeeeeeeeeeeeeeerrrrrrrrrrrrrrrrrrrrr
+// rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+// ... lines omitted, 12.5 total r scanlines
+// ... is typical
+// rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+// ... line omitted, 240 total a scanlines
+// ... is typical
+// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+// ssssssssssssssssssssssssssssssssssssssssss
+//
+// Uppercase is field 1, lowercase is field 2
+// E,e = pre-equ/vert-sync/post-equ
+//     = (m_VerticalTimingRegister.EQU*3) half-scanlines
+// R,r = preblanking
+//     = (m_VBlankTimingX.PRB) half-scanlines
+// A,a = active lines
+//     = (m_VerticalTimingRegister.ACV*2) half-scanlines
+// S,s = postblanking
+//     = (m_VBlankTimingX.PSB) half-scanlines
+//
+// NB: for double-strike modes, the second field
+//     does not get offset by half a scanline
+
 void UpdateParameters()
 {
-	s_even_field_first_hl = 1;
-	s_odd_field_first_hl = s_even_field_first_hl + GetHalfLinesPerEvenField();
-	s_even_field_last_hl = s_odd_field_first_hl - 1;
-	s_odd_field_last_hl = s_odd_field_first_hl + GetHalfLinesPerOddField() - 1;
+	s_even_field_first_hl = 3 * m_VerticalTimingRegister.EQU + m_VBlankTimingEven.PRB + 1;
+	s_odd_field_first_hl = GetHalfLinesPerEvenField() + 3 * m_VerticalTimingRegister.EQU + m_VBlankTimingOdd.PRB + 1;
+	s_even_field_last_hl = s_even_field_first_hl + m_VerticalTimingRegister.ACV * 2;
+	s_odd_field_last_hl = s_odd_field_first_hl + m_VerticalTimingRegister.ACV * 2;
 
 	TargetRefreshRate = lround(2.0 * SystemTimers::GetTicksPerSecond() / (GetTicksPerEvenField() + GetTicksPerOddField()));
 }
@@ -548,6 +597,15 @@ static void BeginField(FieldType field)
 
 	u32 xfbAddr;
 
+	if (field == FieldType::FIELD_EVEN)
+	{
+		xfbAddr = GetXFBAddressBottom();
+	}
+	else
+	{
+		xfbAddr = GetXFBAddressTop();
+	}
+
 	if (interlaced_xfb && g_ActiveConfig.bForceProgressive) {
 		// Strictly speaking, in interlaced mode, we're only supposed to read
 		// half of the lines of the XFB, and use that to display a field; the
@@ -558,24 +616,17 @@ static void BeginField(FieldType field)
 		// videos in Metroid Prime don't render correctly using this hack.
 		fbStride /= 2;
 		fbHeight *= 2;
-		if (m_VBlankTimingOdd.PRB < m_VBlankTimingEven.PRB)
-		{
-			xfbAddr = GetXFBAddressTop();
+
+                // PRB for the different fields should only ever differ by 1 in
+                // interlaced mode, and which is less determines which field
+                // has the first line. For the field with the second line, we
+                // offset the xfb by (-stride_of_one_line) to get the start
+                // address of the full xfb.
+		if ((field == FieldType::FIELD_ODD) && (m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1)) {
+			xfbAddr -= (fbStride * 2);
 		}
-		else
-		{
-			xfbAddr = GetXFBAddressBottom();
-		}
-	}
-	else
-	{
-		if (field == FieldType::FIELD_EVEN)
-		{
-			xfbAddr = GetXFBAddressTop();
-		}
-		else
-		{
-			xfbAddr = GetXFBAddressBottom();
+		if ((field == FieldType::FIELD_EVEN) && (m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1)) {
+			xfbAddr -= (fbStride * 2);
 		}
 	}
 
@@ -636,7 +687,7 @@ void Update()
 
 	s_half_line_count++;
 
-	if (s_half_line_count > s_odd_field_last_hl) {
+	if (s_half_line_count > GetHalfLinesPerEvenField() + GetHalfLinesPerOddField()) {
 		s_half_line_count = 1;
 	}
 

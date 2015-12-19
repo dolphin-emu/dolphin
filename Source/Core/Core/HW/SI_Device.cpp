@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <string>
 
 #include "Common/StringUtil.h"
@@ -65,41 +66,33 @@ public:
 
 
 // F A C T O R Y
-ISIDevice* SIDevice_Create(const SIDevices device, const int port_number)
+std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number)
 {
 	switch (device)
 	{
 	case SIDEVICE_GC_CONTROLLER:
-		return new CSIDevice_GCController(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_GCController>(device, port_number);
 
 	case SIDEVICE_DANCEMAT:
-		return new CSIDevice_DanceMat(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_DanceMat>(device, port_number);
 
 	case SIDEVICE_GC_STEERING:
-		return new CSIDevice_GCSteeringWheel(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_GCSteeringWheel>(device, port_number);
 
 	case SIDEVICE_GC_TARUKONGA:
-		return new CSIDevice_TaruKonga(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_TaruKonga>(device, port_number);
 
 	case SIDEVICE_GC_GBA:
-		return new CSIDevice_GBA(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_GBA>(device, port_number);
 
 	case SIDEVICE_GC_KEYBOARD:
-		return new CSIDevice_Keyboard(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_Keyboard>(device, port_number);
 
 	case SIDEVICE_AM_BASEBOARD:
-		return new CSIDevice_AMBaseboard(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_AMBaseboard>(device, port_number);
 
 	case SIDEVICE_NONE:
 	default:
-		return new CSIDevice_Null(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_Null>(device, port_number);
 	}
 }

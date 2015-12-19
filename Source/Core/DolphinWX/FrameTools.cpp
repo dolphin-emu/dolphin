@@ -1452,14 +1452,12 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 {
 	wxString path = wxFileSelector(_("Select the save file"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
-			_("Wii save files (*.bin)|*.bin"),
+			_("Wii save files (*.bin)") + "|*.bin|" + wxGetTranslation(wxALL_FILES),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 
 	if (!path.IsEmpty())
-	{
 		CWiiSaveCrypted::ImportWiiSave(WxStrToStr(path));
-	}
 }
 
 void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED (event))
@@ -1494,7 +1492,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 		wxString path = wxFileSelector(
 			_("Select a Wii WAD file to install"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
-			"Wii WAD file (*.wad)|*.wad",
+			_("Wii WAD files (*.wad)") + "|*.wad|" + wxGetTranslation(wxALL_FILES),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 		fileName = WxStrToStr(path);
@@ -1793,18 +1791,21 @@ void CFrame::UpdateGUI()
 
 		if (PlayTool)
 		{
+			int position = m_ToolBar->GetToolPos(IDM_PLAY);
+
 			if (Running)
 			{
-				PlayTool->SetLabel(_("Pause"));
-				PlayTool->SetShortHelp(_("Pause"));
-				m_ToolBar->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
+				m_ToolBar->DeleteTool(IDM_PLAY);
+				m_ToolBar->InsertTool(position, IDM_PLAY, _("Pause"), m_Bitmaps[Toolbar_Pause],
+				                      wxNullBitmap, wxITEM_NORMAL, _("Pause"));
 			}
 			else
 			{
-				PlayTool->SetLabel(_("Play"));
-				PlayTool->SetShortHelp(_("Play"));
-				m_ToolBar->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
+				m_ToolBar->DeleteTool(IDM_PLAY);
+				m_ToolBar->InsertTool(position, IDM_PLAY, _("Play"), m_Bitmaps[Toolbar_Play],
+				                      wxNullBitmap, wxITEM_NORMAL, _("Play"));
 			}
+			m_ToolBar->Realize();
 		}
 	}
 

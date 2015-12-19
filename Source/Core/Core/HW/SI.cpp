@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
+#include <memory>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -104,7 +106,7 @@ struct SSIChannel
 	USIChannelOut   m_Out;
 	USIChannelIn_Hi m_InHi;
 	USIChannelIn_Lo m_InLo;
-	ISIDevice*      m_pDevice;
+	std::unique_ptr<ISIDevice> m_device;
 };
 
 // SI Poll: Controls how often a device is polled
@@ -206,7 +208,7 @@ union USIEXIClockCount
 };
 
 // STATE_TO_SAVE
-static SSIChannel       g_Channel[MAX_SI_CHANNELS];
+static std::array<SSIChannel, MAX_SI_CHANNELS> g_Channel;
 static USIPoll          g_Poll;
 static USIComCSR        g_ComCSR;
 static USIStatusReg     g_StatusReg;
@@ -221,26 +223,27 @@ void DoState(PointerWrap &p)
 		p.Do(g_Channel[i].m_InLo.Hex);
 		p.Do(g_Channel[i].m_Out.Hex);
 
-		ISIDevice* pDevice = g_Channel[i].m_pDevice;
-		SIDevices type = pDevice->GetDeviceType();
+		std::unique_ptr<ISIDevice>& device = g_Channel[i].m_device;
+		SIDevices type = device->GetDeviceType();
 		p.Do(type);
-		ISIDevice* pSaveDevice = (type == pDevice->GetDeviceType()) ? pDevice : SIDevice_Create(type, i);
-		pSaveDevice->DoState(p);
-		if (pSaveDevice != pDevice)
+
+		if (type == device->GetDeviceType())
 		{
-			// if we had to create a temporary device, discard it if we're not loading.
-			// also, if no movie is active, we'll assume the user wants to keep their current devices
+			device->DoState(p);
+		}
+		else
+		{
+			// If no movie is active, we'll assume the user wants to keep their current devices
 			// instead of the ones they had when the savestate was created.
-			if (p.GetMode() != PointerWrap::MODE_READ || !Movie::IsMovieActive())
-			{
-				delete pSaveDevice;
-			}
-			else
-			{
-				AddDevice(pSaveDevice);
-			}
+			if (!Movie::IsMovieActive())
+				return;
+
+			std::unique_ptr<ISIDevice> save_device = SIDevice_Create(type, i);
+			save_device->DoState(p);
+			AddDevice(std::move(save_device));
 		}
 	}
+
 	p.Do(g_Poll);
 	p.DoPOD(g_ComCSR);
 	p.DoPOD(g_StatusReg);
@@ -392,10 +395,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			// send command to devices
 			if (tmpStatus.WR)
 			{
-				g_Channel[0].m_pDevice->SendCommand(g_Channel[0].m_Out.Hex, g_Poll.EN0);
-				g_Channel[1].m_pDevice->SendCommand(g_Channel[1].m_Out.Hex, g_Poll.EN1);
-				g_Channel[2].m_pDevice->SendCommand(g_Channel[2].m_Out.Hex, g_Poll.EN2);
-				g_Channel[3].m_pDevice->SendCommand(g_Channel[3].m_Out.Hex, g_Poll.EN3);
+				g_Channel[0].m_device->SendCommand(g_Channel[0].m_Out.Hex, g_Poll.EN0);
+				g_Channel[1].m_device->SendCommand(g_Channel[1].m_Out.Hex, g_Poll.EN1);
+				g_Channel[2].m_device->SendCommand(g_Channel[2].m_Out.Hex, g_Poll.EN2);
+				g_Channel[3].m_device->SendCommand(g_Channel[3].m_Out.Hex, g_Poll.EN3);
 
 				g_StatusReg.WR = 0;
 				g_StatusReg.WRST0 = 0;
@@ -444,29 +447,25 @@ void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
 	UpdateInterrupts();
 }
 
-void RemoveDevice(int _iDeviceNumber)
+void RemoveDevice(int device_number)
 {
-	delete g_Channel[_iDeviceNumber].m_pDevice;
-	g_Channel[_iDeviceNumber].m_pDevice = nullptr;
+	g_Channel.at(device_number).m_device.reset();
 }
 
-void AddDevice(ISIDevice* pDevice)
+void AddDevice(std::unique_ptr<ISIDevice> device)
 {
-	int _iDeviceNumber = pDevice->GetDeviceNumber();
+	int device_number = device->GetDeviceNumber();
 
-	//_dbg_assert_(SERIALINTERFACE, _iDeviceNumber < MAX_SI_CHANNELS);
+	// Delete the old device
+	RemoveDevice(device_number);
 
-	// delete the old device
-	RemoveDevice(_iDeviceNumber);
-
-	// create the new one
-	g_Channel[_iDeviceNumber].m_pDevice = pDevice;
+	// Set the new one
+	g_Channel.at(device_number).m_device = std::move(device);
 }
 
-void AddDevice(const SIDevices _device, int _iDeviceNumber)
+void AddDevice(const SIDevices device, int device_number)
 {
-	ISIDevice *pDevice = SIDevice_Create(_device, _iDeviceNumber);
-	AddDevice(pDevice);
+	AddDevice(SIDevice_Create(device, device_number));
 }
 
 static void SetNoResponse(u32 channel)
@@ -515,10 +514,10 @@ void ChangeDevice(SIDevices device, int channel)
 void UpdateDevices()
 {
 	// Update channels and set the status bit if there's new data
-	g_StatusReg.RDST0 = !!g_Channel[0].m_pDevice->GetData(g_Channel[0].m_InHi.Hex, g_Channel[0].m_InLo.Hex);
-	g_StatusReg.RDST1 = !!g_Channel[1].m_pDevice->GetData(g_Channel[1].m_InHi.Hex, g_Channel[1].m_InLo.Hex);
-	g_StatusReg.RDST2 = !!g_Channel[2].m_pDevice->GetData(g_Channel[2].m_InHi.Hex, g_Channel[2].m_InLo.Hex);
-	g_StatusReg.RDST3 = !!g_Channel[3].m_pDevice->GetData(g_Channel[3].m_InHi.Hex, g_Channel[3].m_InLo.Hex);
+	g_StatusReg.RDST0 = !!g_Channel[0].m_device->GetData(g_Channel[0].m_InHi.Hex, g_Channel[0].m_InLo.Hex);
+	g_StatusReg.RDST1 = !!g_Channel[1].m_device->GetData(g_Channel[1].m_InHi.Hex, g_Channel[1].m_InLo.Hex);
+	g_StatusReg.RDST2 = !!g_Channel[2].m_device->GetData(g_Channel[2].m_InHi.Hex, g_Channel[2].m_InLo.Hex);
+	g_StatusReg.RDST3 = !!g_Channel[3].m_device->GetData(g_Channel[3].m_InHi.Hex, g_Channel[3].m_InLo.Hex);
 
 	UpdateInterrupts();
 }
@@ -527,8 +526,8 @@ SIDevices GetDeviceType(int channel)
 {
 	if (channel < 0 || channel > 3)
 		return SIDEVICE_NONE;
-	else
-		return g_Channel[channel].m_pDevice->GetDeviceType();
+
+	return g_Channel[channel].m_device->GetDeviceType();
 }
 
 void RunSIBuffer(u64 userdata, int cyclesLate)
@@ -549,9 +548,8 @@ void RunSIBuffer(u64 userdata, int cyclesLate)
 		else
 			outLength++;
 
-		int numOutput = 0;
-
-		numOutput = g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
+		std::unique_ptr<ISIDevice>& device = g_Channel[g_ComCSR.CHANNEL].m_device;
+		int numOutput = device->RunBuffer(g_SIBuffer, inLength);
 
 		DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer  chan: %d  inLen: %i  outLen: %i  processed: %i", g_ComCSR.CHANNEL, inLength, outLength, numOutput);
 
@@ -562,7 +560,7 @@ void RunSIBuffer(u64 userdata, int cyclesLate)
 		}
 		else
 		{
-			CoreTiming::ScheduleEvent(g_Channel[g_ComCSR.CHANNEL].m_pDevice->TransferInterval() - cyclesLate, et_transfer_pending);
+			CoreTiming::ScheduleEvent(device->TransferInterval() - cyclesLate, et_transfer_pending);
 		}
 	}
 }

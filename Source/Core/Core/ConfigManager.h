@@ -79,6 +79,7 @@ struct SConfig : NonCopyable
 	bool bFPRF;
 	bool bAccurateNaNs;
 
+	int iTimingVariance; // in milli secounds
 	bool bCPUThread;
 	bool bDSPThread;
 	bool bDSPHLE;

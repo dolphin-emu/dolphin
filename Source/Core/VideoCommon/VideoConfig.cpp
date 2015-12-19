@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cmath>
 
 #include "Common/CommonTypes.h"
@@ -44,7 +45,7 @@ VideoConfig::VideoConfig()
 	// Game-specific stereoscopy settings
 	bStereoEFBMonoDepth = false;
 	iStereoDepthPercentage = 100;
-	iStereoConvergenceMinimum = 0;
+	iStereoConvergence = 20;
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -76,7 +77,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("UseFFV1", &bUseFFV1, 0);
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);
-	settings->Get("MSAA", &iMultisampleMode, 0);
+	settings->Get("MSAA", &iMultisamples, 1);
 	settings->Get("SSAA", &bSSAA, false);
 	settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
 	settings->Get("TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
@@ -92,7 +93,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
 	enhancements->Get("StereoMode", &iStereoMode, 0);
 	enhancements->Get("StereoDepth", &iStereoDepth, 20);
-	enhancements->Get("StereoConvergence", &iStereoConvergence, 20);
+	enhancements->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
 	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 
 	//currently these settings are not saved in global config, so we could've initialized them directly
@@ -169,7 +170,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "CacheHiresTextures", bCacheHiresTextures);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
-	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
+	CHECK_SETTING("Video_Settings", "MSAA", iMultisamples);
 	CHECK_SETTING("Video_Settings", "SSAA", bSSAA);
 
 	int tmp = -9000;
@@ -222,7 +223,6 @@ void VideoConfig::GameIniLoad()
 
 	CHECK_SETTING("Video_Stereoscopy", "StereoEFBMonoDepth", bStereoEFBMonoDepth);
 	CHECK_SETTING("Video_Stereoscopy", "StereoDepthPercentage", iStereoDepthPercentage);
-	CHECK_SETTING("Video_Stereoscopy", "StereoConvergenceMinimum", iStereoConvergenceMinimum);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "BBoxEnable", bBBoxEnable);
@@ -245,8 +245,11 @@ void VideoConfig::GameIniLoad()
 void VideoConfig::VerifyValidity()
 {
 	// TODO: Check iMaxAnisotropy value
-	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
-	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
+	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
+		iAdapter = 0;
+
+	if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) == backend_info.AAModes.end())
+		iMultisamples = 1;
 
 	if (iStereoMode > 0)
 	{
@@ -293,7 +296,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("UseFFV1", bUseFFV1);
 	settings->Set("EnablePixelLighting", bEnablePixelLighting);
 	settings->Set("FastDepthCalc", bFastDepthCalc);
-	settings->Set("MSAA", iMultisampleMode);
+	settings->Set("MSAA", iMultisamples);
 	settings->Set("SSAA", bSSAA);
 	settings->Set("EFBScale", iEFBScale);
 	settings->Set("TexFmtOverlayEnable", bTexFmtOverlayEnable);
@@ -309,7 +312,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	enhancements->Set("PostProcessingShader", sPostProcessingShader);
 	enhancements->Set("StereoMode", iStereoMode);
 	enhancements->Set("StereoDepth", iStereoDepth);
-	enhancements->Set("StereoConvergence", iStereoConvergence);
+	enhancements->Set("StereoConvergencePercentage", iStereoConvergencePercentage);
 	enhancements->Set("StereoSwapEyes", bStereoSwapEyes);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");

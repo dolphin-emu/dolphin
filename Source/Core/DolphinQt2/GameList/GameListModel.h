@@ -37,7 +37,6 @@ public:
 		COL_SIZE,
 		COL_COUNTRY,
 		COL_RATING,
-		COL_LARGE_ICON,
 		NUM_COLS
 	};
 

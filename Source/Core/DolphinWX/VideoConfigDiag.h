@@ -168,7 +168,12 @@ protected:
 
 	void Event_StereoConvergence(wxCommandEvent &ev)
 	{
-		vconfig.iStereoConvergence = ev.GetInt();
+		// Snap the slider
+		int value = ev.GetInt();
+		if (90 < value && value < 110)
+			conv_slider->SetValue(100);
+
+		vconfig.iStereoConvergencePercentage = conv_slider->GetValue();
 
 		ev.Skip();
 	}
@@ -256,6 +261,7 @@ protected:
 
 	wxStaticText* text_aamode;
 	wxChoice* choice_aamode;
+	wxSlider* conv_slider;
 
 	wxStaticText* label_display_resolution;
 
@@ -279,5 +285,5 @@ protected:
 	VideoConfig &vconfig;
 	std::string ininame;
 
-	int m_msaa_modes;
+	size_t m_msaa_modes;
 };

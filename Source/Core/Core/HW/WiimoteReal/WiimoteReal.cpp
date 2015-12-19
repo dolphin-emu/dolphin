@@ -11,7 +11,6 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -190,7 +189,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 	WriteReport(std::move(rpt));
 }
 
-bool Wiimote::Read()
+void Wiimote::Read()
 {
 	Report rpt(MAX_PAYLOAD);
 	auto const result = IORead(rpt.data());
@@ -204,51 +203,38 @@ bool Wiimote::Read()
 			Socket.send((char*)rpt.data(),
 			            rpt.size(),
 			            sf::IpAddress::LocalHost,
-		                SConfig::GetInstance().iBBDumpPort);
+		                    SConfig::GetInstance().iBBDumpPort);
 		}
 
 		// Add it to queue
 		rpt.resize(result);
 		m_read_reports.Push(std::move(rpt));
-		return true;
 	}
 	else if (0 == result)
 	{
 		ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wiimote %d.", m_index + 1);
 		DisconnectInternal();
 	}
-
-	return false;
 }
 
-bool Wiimote::Write()
+void Wiimote::Write()
 {
-	if (!m_write_reports.Empty())
+	if (m_write_reports.Empty())
+		return;
+
+	Report const& rpt = m_write_reports.Front();
+
+	if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
 	{
-		Report const& rpt = m_write_reports.Front();
-
-		bool const is_speaker_data = rpt[1] == WM_WRITE_SPEAKER_DATA;
-
-		if (!is_speaker_data || m_last_audio_report.GetTimeDifference() > 5)
-		{
-			if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
-			{
-				static sf::UdpSocket Socket;
-				Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, SConfig::GetInstance().iBBDumpPort);
-			}
-			IOWrite(rpt.data(), rpt.size());
-
-			if (is_speaker_data)
-			{
-				m_last_audio_report.Update();
-			}
-
-			m_write_reports.Pop();
-			return true;
-		}
+		static sf::UdpSocket Socket;
+		Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, SConfig::GetInstance().iBBDumpPort);
 	}
+	IOWrite(rpt.data(), rpt.size());
 
-	return false;
+	m_write_reports.Pop();
+
+	if (!m_write_reports.Empty())
+		IOWakeup();
 }
 
 static bool IsDataReport(const Report& rpt)

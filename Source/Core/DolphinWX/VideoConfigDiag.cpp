@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <map>
 #include <string>
 #include <utility>
@@ -439,7 +440,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Depth:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_stereo->Add(sep_slider, 0, wxEXPAND | wxRIGHT);
 
-		wxSlider* const conv_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoConvergence, 0, 500, wxDefaultPosition, wxDefaultSize);
+		conv_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoConvergencePercentage, 0, 200, wxDefaultPosition, wxDefaultSize, wxSL_AUTOTICKS);
+		conv_slider->ClearTicks();
+		conv_slider->SetTick(100);
 		conv_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoConvergence, this);
 		RegisterControl(conv_slider, wxGetTranslation(stereo_convergence_desc));
 
@@ -772,11 +775,11 @@ void VideoConfigDiag::PopulateAAList()
 		}
 	}
 
-	int selected_mode_index = vconfig.iMultisampleMode;
+	int selected_mode_index = 0;
 
-	// Don't go out of range
-	if (selected_mode_index >= aa_modes.size())
-		return;
+	auto index = std::find(aa_modes.begin(), aa_modes.end(), vconfig.iMultisamples);
+	if (index != aa_modes.end())
+		selected_mode_index = index - aa_modes.begin();
 
 	// Select one of the SSAA modes at the end of the list if SSAA is enabled
 	if (supports_ssaa && vconfig.bSSAA && aa_modes[selected_mode_index] != 1)
@@ -787,11 +790,14 @@ void VideoConfigDiag::PopulateAAList()
 
 void VideoConfigDiag::OnAAChanged(wxCommandEvent& ev)
 {
-	int mode = ev.GetInt();
+	size_t mode = ev.GetInt();
 	ev.Skip();
 
 	vconfig.bSSAA = mode > m_msaa_modes;
 	mode -= vconfig.bSSAA * m_msaa_modes;
 
-	vconfig.iMultisampleMode = mode;
+	if (mode >= vconfig.backend_info.AAModes.size())
+		return;
+
+	vconfig.iMultisamples = vconfig.backend_info.AAModes[mode];
 }
