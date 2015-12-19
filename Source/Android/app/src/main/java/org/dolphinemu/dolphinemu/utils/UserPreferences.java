@@ -112,31 +112,31 @@ public final class UserPreferences
 		editor.putString("wiimoteExtension7", getConfig("WiimoteNew.ini", "Wiimote4", "Extension", "None"));
 
 		editor.putString("gpuPref",               getConfig("Dolphin.ini", "Core", "GFXBackend", "OGL"));
-		editor.putBoolean("showFPS",              getConfig("gfx_opengl.ini", "Settings", "ShowFPS", "False").equals("True"));
+		editor.putBoolean("showFPS",              getConfig("GFX.ini", "Settings", "ShowFPS", "False").equals("True"));
 		editor.putBoolean("drawOnscreenControls", getConfig("Dolphin.ini", "Android", "ScreenControls", "True").equals("True"));
 
-		editor.putString("internalResolution",     getConfig("gfx_opengl.ini", "Settings", "EFBScale", "2"));
-		editor.putString("FSAA",                   getConfig("gfx_opengl.ini", "Settings", "MSAA", "0"));
-		editor.putString("anisotropicFiltering",   getConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", "0"));
-		editor.putString("postProcessingShader",   getConfig("gfx_opengl.ini", "Enhancements", "PostProcessingShader", ""));
-		editor.putBoolean("scaledEFBCopy",         getConfig("gfx_opengl.ini", "Hacks", "EFBScaledCopy", "True").equals("True"));
-		editor.putBoolean("perPixelLighting",      getConfig("gfx_opengl.ini", "Settings", "EnablePixelLighting", "False").equals("True"));
-		editor.putBoolean("forceTextureFiltering", getConfig("gfx_opengl.ini", "Enhancements", "ForceFiltering", "False").equals("True"));
-		editor.putBoolean("disableFog",            getConfig("gfx_opengl.ini", "Settings", "DisableFog", "False").equals("True"));
-		editor.putBoolean("skipEFBAccess",         getConfig("gfx_opengl.ini", "Hacks", "EFBAccessEnable", "False").equals("True"));
-		editor.putBoolean("ignoreFormatChanges",   getConfig("gfx_opengl.ini", "Hacks", "EFBEmulateFormatChanges", "False").equals("True"));
-		editor.putString("stereoscopyMode",        getConfig("gfx_opengl.ini", "Stereoscopy", "StereoMode", "0"));
-		editor.putBoolean("stereoSwapEyes",        getConfig("gfx_opengl.ini", "Stereoscopy", "StereoSwapEyes", "False").equals("True"));
-		editor.putString("stereoDepth",            getConfig("gfx_opengl.ini", "Stereoscopy", "StereoDepth", "20"));
-		editor.putString("stereoConvergencePercentage", getConfig("gfx_opengl.ini", "Stereoscopy", "StereoConvergencePercentage", "100"));
+		editor.putString("internalResolution",     getConfig("GFX.ini", "Settings", "EFBScale", "2"));
+		editor.putString("FSAA",                   getConfig("GFX.ini", "Settings", "MSAA", "0"));
+		editor.putString("anisotropicFiltering",   getConfig("GFX.ini", "Enhancements", "MaxAnisotropy", "0"));
+		editor.putString("postProcessingShader",   getConfig("GFX.ini", "Enhancements", "PostProcessingShader", ""));
+		editor.putBoolean("scaledEFBCopy",         getConfig("GFX.ini", "Hacks", "EFBScaledCopy", "True").equals("True"));
+		editor.putBoolean("perPixelLighting",      getConfig("GFX.ini", "Settings", "EnablePixelLighting", "False").equals("True"));
+		editor.putBoolean("forceTextureFiltering", getConfig("GFX.ini", "Enhancements", "ForceFiltering", "False").equals("True"));
+		editor.putBoolean("disableFog",            getConfig("GFX.ini", "Settings", "DisableFog", "False").equals("True"));
+		editor.putBoolean("skipEFBAccess",         getConfig("GFX.ini", "Hacks", "EFBAccessEnable", "False").equals("True"));
+		editor.putBoolean("ignoreFormatChanges",   getConfig("GFX.ini", "Hacks", "EFBEmulateFormatChanges", "False").equals("True"));
+		editor.putString("stereoscopyMode",        getConfig("GFX.ini", "Stereoscopy", "StereoMode", "0"));
+		editor.putBoolean("stereoSwapEyes",        getConfig("GFX.ini", "Stereoscopy", "StereoSwapEyes", "False").equals("True"));
+		editor.putString("stereoDepth",            getConfig("GFX.ini", "Stereoscopy", "StereoDepth", "20"));
+		editor.putString("stereoConvergencePercentage", getConfig("GFX.ini", "Stereoscopy", "StereoConvergencePercentage", "100"));
 		editor.putBoolean("enableController1",     getConfig("Dolphin.ini", "Core", "SIDevice0", "6") == "6");
 		editor.putBoolean("enableController2",     getConfig("Dolphin.ini", "Core", "SIDevice1", "0") == "6");
 		editor.putBoolean("enableController3",     getConfig("Dolphin.ini", "Core", "SIDevice2", "0") == "6");
 		editor.putBoolean("enableController4",     getConfig("Dolphin.ini", "Core", "SIDevice3", "0") == "6");
 
-		String efbCopyOn     = getConfig("gfx_opengl.ini", "Hacks", "EFBCopyEnable", "True");
-		String efbToTexture  = getConfig("gfx_opengl.ini", "Hacks", "EFBToTextureEnable", "True");
-		String efbCopyCache  = getConfig("gfx_opengl.ini", "Hacks", "EFBCopyCacheEnable", "False");
+		String efbCopyOn     = getConfig("GFX.ini", "Hacks", "EFBCopyEnable", "True");
+		String efbToTexture  = getConfig("GFX.ini", "Hacks", "EFBToTextureEnable", "True");
+		String efbCopyCache  = getConfig("GFX.ini", "Hacks", "EFBCopyCacheEnable", "False");
 
 		if (efbCopyOn.equals("False"))
 		{
@@ -155,10 +155,10 @@ public final class UserPreferences
 			editor.putString("efbCopyMethod", "RAM (cached)");
 		}
 
-		editor.putString("textureCacheAccuracy", getConfig("gfx_opengl.ini", "Settings", "SafeTextureCacheColorSamples", "128"));
+		editor.putString("textureCacheAccuracy", getConfig("GFX.ini", "Settings", "SafeTextureCacheColorSamples", "128"));
 
-		String usingXFB = getConfig("gfx_opengl.ini", "Settings", "UseXFB", "False");
-		String usingRealXFB = getConfig("gfx_opengl.ini", "Settings", "UseRealXFB", "False");
+		String usingXFB = getConfig("GFX.ini", "Settings", "UseXFB", "False");
+		String usingRealXFB = getConfig("GFX.ini", "Settings", "UseRealXFB", "False");
 
 		if (usingXFB.equals("False"))
 		{
@@ -173,8 +173,8 @@ public final class UserPreferences
 			editor.putString("externalFrameBuffer", "Real");
 		}
 
-		editor.putBoolean("fastDepthCalculation",    getConfig("gfx_opengl.ini", "Settings", "FastDepthCalc", "True").equals("True"));
-		editor.putString("aspectRatio", getConfig("gfx_opengl.ini", "Settings", "AspectRatio", "0"));
+		editor.putBoolean("fastDepthCalculation",    getConfig("GFX.ini", "Settings", "FastDepthCalc", "True").equals("True"));
+		editor.putString("aspectRatio", getConfig("GFX.ini", "Settings", "AspectRatio", "0"));
 
 		// Apply the changes.
 		editor.apply();
@@ -422,71 +422,71 @@ public final class UserPreferences
 
 		// General Video Settings
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "GFXBackend", currentVideoBackend);
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "ShowFPS", showingFPS ? "True" : "False");
+		NativeLibrary.SetConfig("GFX.ini", "Settings", "ShowFPS", showingFPS ? "True" : "False");
 		NativeLibrary.SetConfig("Dolphin.ini", "Android", "ScreenControls", drawingOnscreenControls ? "True" : "False");
 
 		// Video Hack Settings
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBAccessEnable", skipEFBAccess ? "False" : "True");
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBEmulateFormatChanges", ignoreFormatChanges ? "True" : "False");
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "AspectRatio", aspectRatio);
+		NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBAccessEnable", skipEFBAccess ? "False" : "True");
+		NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBEmulateFormatChanges", ignoreFormatChanges ? "True" : "False");
+		NativeLibrary.SetConfig("GFX.ini", "Settings", "AspectRatio", aspectRatio);
 
 		// Set EFB Copy Method 
 		if (efbCopyMethod.equals("Off"))
 		{
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBCopyEnable", "False");
+			NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBCopyEnable", "False");
 		}
 		else if (efbCopyMethod.equals("Texture"))
 		{
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBCopyEnable", "True");
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBToTextureEnable", "True");
+			NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBCopyEnable", "True");
+			NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBToTextureEnable", "True");
 		}
 		else if (efbCopyMethod.equals("RAM (uncached)"))
 		{
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBCopyEnable", "True");
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBToTextureEnable", "False");
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBCopyCacheEnable", "False");
+			NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBCopyEnable", "True");
+			NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBToTextureEnable", "False");
+			NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBCopyCacheEnable", "False");
 		}
 		else if (efbCopyMethod.equals("RAM (cached)"))
 		{
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBCopyEnable", "True");
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBToTextureEnable", "False");
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBCopyCacheEnable", "True");
+			NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBCopyEnable", "True");
+			NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBToTextureEnable", "False");
+			NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBCopyCacheEnable", "True");
 		}
 
 		// Set texture cache accuracy
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "SafeTextureCacheColorSamples", textureCacheAccuracy);
+		NativeLibrary.SetConfig("GFX.ini", "Settings", "SafeTextureCacheColorSamples", textureCacheAccuracy);
 
 		// Set external frame buffer.
 		if (externalFrameBuffer.equals("Disabled"))
 		{
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "UseXFB", "False");
+			NativeLibrary.SetConfig("GFX.ini", "Settings", "UseXFB", "False");
 		}
 		else if (externalFrameBuffer.equals("Virtual"))
 		{
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "UseXFB", "True");
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "UseRealXFB", "False");
+			NativeLibrary.SetConfig("GFX.ini", "Settings", "UseXFB", "True");
+			NativeLibrary.SetConfig("GFX.ini", "Settings", "UseRealXFB", "False");
 		}
 		else if (externalFrameBuffer.equals("Real"))
 		{
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "UseXFB", "True");
-			NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "UseRealXFB", "True");
+			NativeLibrary.SetConfig("GFX.ini", "Settings", "UseXFB", "True");
+			NativeLibrary.SetConfig("GFX.ini", "Settings", "UseRealXFB", "True");
 		}
 
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "FastDepthCalc", useFastDepthCalc ? "True" : "False");
+		NativeLibrary.SetConfig("GFX.ini", "Settings", "FastDepthCalc", useFastDepthCalc ? "True" : "False");
 
 		//-- Enhancement Settings --//
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "EFBScale", internalResolution);
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "MSAA", FSAALevel);
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", anisotropicFiltLevel);
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "PostProcessingShader", postProcessing);
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBScaledCopy", usingScaledEFBCopy ? "True" : "False");
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "EnablePixelLighting", usingPerPixelLighting ? "True" : "False");
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "ForceFiltering", isForcingTextureFiltering ? "True" : "False");
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "DisableFog", fogIsDisabled ? "True" : "False");
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoMode", stereoscopyMode);
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoSwapEyes", stereoscopyEyeSwap ? "True" : "False");
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoDepth", stereoscopySeparation);
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoConvergence", stereoConvergencePercentage);
+		NativeLibrary.SetConfig("GFX.ini", "Settings", "EFBScale", internalResolution);
+		NativeLibrary.SetConfig("GFX.ini", "Settings", "MSAA", FSAALevel);
+		NativeLibrary.SetConfig("GFX.ini", "Enhancements", "MaxAnisotropy", anisotropicFiltLevel);
+		NativeLibrary.SetConfig("GFX.ini", "Enhancements", "PostProcessingShader", postProcessing);
+		NativeLibrary.SetConfig("GFX.ini", "Hacks", "EFBScaledCopy", usingScaledEFBCopy ? "True" : "False");
+		NativeLibrary.SetConfig("GFX.ini", "Settings", "EnablePixelLighting", usingPerPixelLighting ? "True" : "False");
+		NativeLibrary.SetConfig("GFX.ini", "Enhancements", "ForceFiltering", isForcingTextureFiltering ? "True" : "False");
+		NativeLibrary.SetConfig("GFX.ini", "Settings", "DisableFog", fogIsDisabled ? "True" : "False");
+		NativeLibrary.SetConfig("GFX.ini", "Stereoscopy", "StereoMode", stereoscopyMode);
+		NativeLibrary.SetConfig("GFX.ini", "Stereoscopy", "StereoSwapEyes", stereoscopyEyeSwap ? "True" : "False");
+		NativeLibrary.SetConfig("GFX.ini", "Stereoscopy", "StereoDepth", stereoscopySeparation);
+		NativeLibrary.SetConfig("GFX.ini", "Stereoscopy", "StereoConvergence", stereoConvergencePercentage);
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "SIDevice0", "6");
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "SIDevice1", enableController2 ? "6" : "0");
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "SIDevice2", enableController3 ? "6" : "0");
