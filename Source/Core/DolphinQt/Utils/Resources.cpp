@@ -79,14 +79,14 @@ void Resources::UpdatePixmaps()
 
 QString Resources::GetImageFilename(const char* name, QString dir)
 {
-	QString fileName = QString::fromUtf8(name);
+	const QString path_base = dir + QString::fromUtf8(name);
 	if (qApp->devicePixelRatio() >= 2)
 	{
-		fileName.prepend(dir).append(QStringLiteral("@2x.png"));
-		if (QFile::exists(fileName))
-			return fileName;
+		const QString path_2x = path_base + QStringLiteral("@2x.png");
+		if (QFile::exists(path_2x))
+			return path_2x;
 	}
-	return fileName.prepend(dir).append(QStringLiteral(".png"));
+	return path_base + QStringLiteral(".png");
 }
 
 QPixmap& Resources::GetRegionPixmap(DiscIO::IVolume::ECountry region)
