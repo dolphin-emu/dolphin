@@ -944,19 +944,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			}
 		}
 
-	case POKE_COLOR:
-	case POKE_Z:
-	{
-		std::vector<EfbPokeData> vector;
-		EfbPokeData d;
-		d.x = x;
-		d.y = y;
-		d.data = poke_data;
-		vector.push_back(d);
-		PokeEFB(type, vector);
-		break;
-	}
-
 	default:
 		break;
 	}
@@ -964,9 +951,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	return 0;
 }
 
-void Renderer::PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data)
+void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
 {
-	FramebufferManager::PokeEFB(type, data);
+	FramebufferManager::PokeEFB(type, points, num_points);
 }
 
 u16 Renderer::BBoxRead(int index)

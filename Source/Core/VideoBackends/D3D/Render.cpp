@@ -474,21 +474,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		else if (alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
 		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
 	}
-	else // if (type == POKE_COLOR || type == POKE_Z)
-	{
-		std::vector<EfbPokeData> vector;
-		EfbPokeData d;
-		d.x = x;
-		d.y = y;
-		d.data = poke_data;
-		vector.push_back(d);
-		PokeEFB(type, vector);
-	}
 
 	return 0;
 }
 
-void Renderer::PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data)
+void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
 {
 	ResetAPIState();
 
@@ -513,7 +503,7 @@ void Renderer::PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data)
 			FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	}
 
-	D3D::DrawEFBPokeQuads(type, data.data(), data.size());
+	D3D::DrawEFBPokeQuads(type, points, num_points);
 
 	if (type == POKE_Z)
 	{
