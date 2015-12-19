@@ -196,6 +196,7 @@ void SWVertexLoader::LoadVertex()
 	// transform this vertex so that it can be used for rasterization (outVertex)
 	OutputVertexData* outVertex = m_SetupUnit->GetVertex();
 	TransformUnit::TransformPosition(&m_Vertex, outVertex);
+	memset(&outVertex->normal, 0, sizeof(outVertex->normal));
 	if (g_main_cp_state.vtx_desc.Normal != NOT_PRESENT)
 	{
 		TransformUnit::TransformNormal(&m_Vertex, m_CurrentVat->g0.NormalElements, outVertex);
