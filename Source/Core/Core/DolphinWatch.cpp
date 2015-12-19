@@ -36,8 +36,6 @@ namespace DolphinWatch {
 	static int hijacksGC[NUM_GCPADS];
 	static CFrame* main_frame;
 
-	static bool connectedTest = false;
-
 	WiimoteEmu::Wiimote* GetWiimote(int i_wiimote) {
 		return ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->GetController(i_wiimote));
 	}
@@ -54,14 +52,6 @@ namespace DolphinWatch {
 		}
 
 		WiimoteEmu::Wiimote* wiimote = GetWiimote(i_wiimote);
-
-		if (!connectedTest) {
-			connectedTest = true;
-			bool was_unpaused = Core::PauseAndLock(true);
-			GetUsbPointer()->AccessWiiMote(i_wiimote | 0x100)->Activate(true);
-			Host_UpdateMainFrame();
-			Core::PauseAndLock(false, was_unpaused);
-		}
 
 		// disable reports from actual wiimote for a while, aka hijack for a while
 		wiimote->SetReportingAuto(false);
@@ -102,7 +92,7 @@ namespace DolphinWatch {
 		for (int i = 10; i < 16; i++) {
 			ss << ((int)stuff[i]);
 		}
-		NOTICE_LOG(DOLPHINWATCH, ss.str().c_str());
+		DEBUG_LOG(DOLPHINWATCH, ss.str().c_str());
 
 		Core::Callback_WiimoteInterruptChannel(i_wiimote, wiimote->GetReportingChannel(), data, 23);
 
@@ -214,6 +204,7 @@ namespace DolphinWatch {
 				// poll for new clients
 				auto socket = std::make_shared<sf::TcpSocket>();
 				if (server.accept(*socket) == sf::Socket::Done) {
+					DEBUG_LOG(DOLPHINWATCH, "Client connected: %s:%d", socket->getRemoteAddress().toString().c_str(), socket->getRemotePort());
 					Client client(socket);
 					clients.push_back(client);
 				}
@@ -238,7 +229,7 @@ namespace DolphinWatch {
 		std::istringstream parts(line);
 		std::string cmd;
 
-		//NOTICE_LOG(DOLPHINWATCH, "PROCESSING %s", line.c_str());
+		DEBUG_LOG(DOLPHINWATCH, "Processing: %s", line.c_str());
 
 		if (!(parts >> cmd)) {
 			// no command, empty line, skip
@@ -626,6 +617,7 @@ namespace DolphinWatch {
 		size_t received = 0;
 		auto status = client.socket->receive(cbuf, sizeof(cbuf) - 1, received);
 		if ((status == sf::Socket::Disconnected) || (status == sf::Socket::Error)) {
+			DEBUG_LOG(DOLPHINWATCH, "Client disconnected: %s:%d", client.socket->getRemoteAddress().toString().c_str(), client.socket->getRemotePort());
 			client.disconnected = true;
 		}
 		else if (status == sf::Socket::Done) {
@@ -655,7 +647,7 @@ namespace DolphinWatch {
 	}
 
 	void Send(sf::TcpSocket& socket, std::string& message) {
-		//NOTICE_LOG(DOLPHINWATCH, "SENDING %s", message.c_str());
+		DEBUG_LOG(DOLPHINWATCH, "Sending: %s", message.c_str());
 		socket.send(message.c_str(), message.size());
 	}
 
