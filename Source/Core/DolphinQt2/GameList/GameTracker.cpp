@@ -6,8 +6,19 @@
 #include <QDirIterator>
 #include <QFile>
 
-#include "Core/ConfigManager.h"
+#include "DolphinQt2/Settings.h"
 #include "DolphinQt2/GameList/GameTracker.h"
+
+static const QStringList game_filters{
+	QStringLiteral("*.gcm"),
+	QStringLiteral("*.iso"),
+	QStringLiteral("*.ciso"),
+	QStringLiteral("*.gcz"),
+	QStringLiteral("*.wbfs"),
+	QStringLiteral("*.wad"),
+	QStringLiteral("*.elf"),
+	QStringLiteral("*.dol")
+};
 
 GameTracker::GameTracker(QObject* parent)
 	: QFileSystemWatcher(parent)
@@ -22,12 +33,10 @@ GameTracker::GameTracker(QObject* parent)
 	connect(this, &GameTracker::PathChanged, m_loader, &GameLoader::LoadGame);
 	connect(m_loader, &GameLoader::GameLoaded, this, &GameTracker::GameLoaded);
 
-	GenerateFilters();
-
 	m_loader_thread.start();
 
-	for (const std::string& dir : SConfig::GetInstance().m_ISOFolder)
-		AddDirectory(QString::fromStdString(dir));
+	for (QString dir : Settings().GetPaths())
+		AddDirectory(dir);
 }
 
 GameTracker::~GameTracker()
@@ -44,7 +53,7 @@ void GameTracker::AddDirectory(QString dir)
 
 void GameTracker::UpdateDirectory(QString dir)
 {
-	QDirIterator it(dir, m_filters);
+	QDirIterator it(dir, game_filters);
 	while (it.hasNext())
 	{
 		QString path = QFileInfo(it.next()).canonicalFilePath();
@@ -68,17 +77,4 @@ void GameTracker::UpdateFile(QString file)
 		m_tracked_files.remove(file);
 		emit GameRemoved(file);
 	}
-}
-
-void GameTracker::GenerateFilters()
-{
-	m_filters.clear();
-	if (SConfig::GetInstance().m_ListGC)
-		m_filters << tr("*.gcm");
-	if (SConfig::GetInstance().m_ListWii || SConfig::GetInstance().m_ListGC)
-		m_filters << tr("*.iso") << tr("*.ciso") << tr("*.gcz") << tr("*.wbfs");
-	if (SConfig::GetInstance().m_ListWad)
-		m_filters << tr("*.wad");
-	if (SConfig::GetInstance().m_ListElfDol)
-		m_filters << tr("*.elf") << tr("*.dol");
 }

@@ -11,13 +11,12 @@
 #include <QMenu>
 #include <QMessageBox>
 
-#include "Common/FileUtil.h"
 #include "Core/BootManager.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
+#include "DolphinQt2/Settings.h"
 #include "DolphinQt2/GameList/GameListModel.h"
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
@@ -107,12 +106,12 @@ void MainWindow::Browse()
 			QDir::currentPath());
 	if (!dir.isEmpty())
 	{
-		std::vector<std::string>& iso_folders = SConfig::GetInstance().m_ISOFolder;
-		auto found = std::find(iso_folders.begin(), iso_folders.end(), dir.toStdString());
-		if (found == iso_folders.end())
+		Settings settings;
+		QStringList iso_folders = settings.GetPaths();
+		if (!iso_folders.contains(dir))
 		{
-			iso_folders.push_back(dir.toStdString());
-			SConfig::GetInstance().SaveSettings();
+			iso_folders << dir;
+			settings.SetPaths(iso_folders);
 			emit m_game_list->DirectoryAdded(dir);
 		}
 	}
@@ -138,8 +137,8 @@ void MainWindow::Play()
 		}
 		else
 		{
-			QString path = QString::fromStdString(SConfig::GetInstance().m_LastFilename);
-			if (QFile::exists(path))
+			QString path = Settings().GetLastGame();
+			if (!path.isEmpty() && QFile::exists(path))
 				StartGame(path);
 			else
 				Open();
@@ -156,7 +155,7 @@ void MainWindow::Pause()
 bool MainWindow::Stop()
 {
 	bool stop = true;
-	if (SConfig::GetInstance().bConfirmStop)
+	if (Settings().GetConfirmStop())
 	{
 		// We could pause the game here and resume it if they say no.
 		QMessageBox::StandardButton confirm;
@@ -180,7 +179,7 @@ void MainWindow::ForceStop()
 void MainWindow::FullScreen()
 {
 	// If the render widget is fullscreen we want to reset it to whatever is in
-	// SConfig. If it's set to be fullscreen then it just remakes the window,
+	// settings. If it's set to be fullscreen then it just remakes the window,
 	// which probably isn't ideal.
 	bool was_fullscreen = m_render_widget->isFullScreen();
 	HideRenderWidget();
@@ -209,13 +208,15 @@ void MainWindow::StartGame(QString path)
 		QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
 		return;
 	}
+	Settings().SetLastGame(path);
 	ShowRenderWidget();
 	emit EmulationStarted();
 }
 
 void MainWindow::ShowRenderWidget()
 {
-	if (SConfig::GetInstance().bRenderToMain)
+	Settings settings;
+	if (settings.GetRenderToMain())
 	{
 		// If we're rendering to main, add it to the stack and update our title when necessary.
 		m_rendering_to_main = true;
@@ -226,15 +227,13 @@ void MainWindow::ShowRenderWidget()
 	{
 		// Otherwise, just show it.
 		m_rendering_to_main = false;
-		if (SConfig::GetInstance().bFullscreen)
+		if (settings.GetFullScreen())
 		{
 			m_render_widget->showFullScreen();
 		}
 		else
 		{
-			m_render_widget->setFixedSize(
-					SConfig::GetInstance().iRenderWindowWidth,
-					SConfig::GetInstance().iRenderWindowHeight);
+			m_render_widget->setFixedSize(settings.GetRenderWindowSize());
 			m_render_widget->showNormal();
 		}
 	}
