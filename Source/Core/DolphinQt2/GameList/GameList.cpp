@@ -40,6 +40,17 @@ void GameList::MakeTableView()
 	m_table->setSortingEnabled(true);
 	m_table->setCurrentIndex(QModelIndex());
 
+	// TODO load from config
+	m_table->setColumnHidden(GameListModel::COL_PLATFORM, false);
+	m_table->setColumnHidden(GameListModel::COL_ID, true);
+	m_table->setColumnHidden(GameListModel::COL_BANNER, false);
+	m_table->setColumnHidden(GameListModel::COL_TITLE, false);
+	m_table->setColumnHidden(GameListModel::COL_DESCRIPTION, true);
+	m_table->setColumnHidden(GameListModel::COL_MAKER, false);
+	m_table->setColumnHidden(GameListModel::COL_SIZE, false);
+	m_table->setColumnHidden(GameListModel::COL_COUNTRY, false);
+	m_table->setColumnHidden(GameListModel::COL_RATING, false);
+
 	// FIXME These icon image are overly wide and should be cut down to size,
 	// then we can remove these lines.
 	m_table->setColumnWidth(GameListModel::COL_PLATFORM, 52);

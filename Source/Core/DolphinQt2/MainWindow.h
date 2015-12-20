@@ -9,6 +9,7 @@
 #include <QString>
 #include <QToolBar>
 
+#include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 #include "DolphinQt2/GameList/GameList.h"
@@ -37,16 +38,11 @@ private slots:
 	void ScreenShot();
 
 private:
-	void MakeToolBar();
-	void MakeStack();
 	void MakeGameList();
+	void MakeMenuBar();
 	void MakeRenderWidget();
-
-	void MakeMenus();
-	void MakeFileMenu();
-	void MakeViewMenu();
-	void AddTableColumnsMenu(QMenu* view_menu);
-	void AddListTypePicker(QMenu* view_menu);
+	void MakeStack();
+	void MakeToolBar();
 
 	void StartGame(QString path);
 	void ShowRenderWidget();
@@ -54,6 +50,7 @@ private:
 
 	QStackedWidget* m_stack;
 	ToolBar* m_tool_bar;
+	MenuBar* m_menu_bar;
 	GameList* m_game_list;
 	RenderWidget* m_render_widget;
 	bool m_rendering_to_main;

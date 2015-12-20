@@ -9,7 +9,6 @@
 #include <QIcon>
 #include <QLineEdit>
 #include <QMenu>
-#include <QMenuBar>
 #include <QMessageBox>
 
 #include "Common/FileUtil.h"
@@ -30,7 +29,7 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
 	MakeToolBar();
 	MakeRenderWidget();
 	MakeStack();
-	MakeMenus();
+	MakeMenuBar();
 }
 
 MainWindow::~MainWindow()
@@ -38,115 +37,14 @@ MainWindow::~MainWindow()
 	m_render_widget->deleteLater();
 }
 
-void MainWindow::MakeMenus()
+void MainWindow::MakeMenuBar()
 {
-	MakeFileMenu();
-	menuBar()->addMenu(tr("Emulation"));
-	menuBar()->addMenu(tr("Movie"));
-	menuBar()->addMenu(tr("Options"));
-	menuBar()->addMenu(tr("Tools"));
-	MakeViewMenu();
-	menuBar()->addMenu(tr("Help"));
-}
-
-void MainWindow::MakeFileMenu()
-{
-	QMenu* file_menu = menuBar()->addMenu(tr("File"));
-	file_menu->addAction(tr("Open"), this, SLOT(Open()));
-	file_menu->addAction(tr("Exit"), this, SLOT(close()));
-}
-
-void MainWindow::MakeViewMenu()
-{
-	QMenu* view_menu = menuBar()->addMenu(tr("View"));
-	AddTableColumnsMenu(view_menu);
-	AddListTypePicker(view_menu);
-}
-
-void MainWindow::AddTableColumnsMenu(QMenu* view_menu)
-{
-	QActionGroup* column_group = new QActionGroup(this);
-	QMenu* cols_menu = view_menu->addMenu(tr("Table Columns"));
-	column_group->setExclusive(false);
-
-	QStringList col_names{
-		tr("Platform"),
-		tr("ID"),
-		tr("Banner"),
-		tr("Title"),
-		tr("Description"),
-		tr("Maker"),
-		tr("Size"),
-		tr("Country"),
-		tr("Quality")
-	};
-	// TODO we'll need to update SConfig with the extra columns. Then we can
-	// clean this up significantly.
-	QList<bool> show_cols{
-		SConfig::GetInstance().m_showSystemColumn,
-		SConfig::GetInstance().m_showIDColumn,
-		SConfig::GetInstance().m_showBannerColumn,
-		true,
-		false,
-		SConfig::GetInstance().m_showMakerColumn,
-		SConfig::GetInstance().m_showSizeColumn,
-		SConfig::GetInstance().m_showRegionColumn,
-		SConfig::GetInstance().m_showStateColumn,
-	};
-	for (int i = 0; i < GameListModel::NUM_COLS; i++)
-	{
-		QAction* action = column_group->addAction(cols_menu->addAction(col_names[i]));
-		action->setCheckable(true);
-		action->setChecked(show_cols[i]);
-		m_game_list->SetViewColumn(i, show_cols[i]);
-		connect(action, &QAction::triggered, [=]()
-		{
-			m_game_list->SetViewColumn(i, action->isChecked());
-			switch (i)
-			{
-			case GameListModel::COL_PLATFORM:
-				SConfig::GetInstance().m_showSystemColumn = action->isChecked();
-				break;
-			case GameListModel::COL_ID:
-				SConfig::GetInstance().m_showIDColumn = action->isChecked();
-				break;
-			case GameListModel::COL_TITLE:
-				SConfig::GetInstance().m_showBannerColumn = action->isChecked();
-				break;
-			case GameListModel::COL_MAKER:
-				SConfig::GetInstance().m_showMakerColumn = action->isChecked();
-				break;
-			case GameListModel::COL_SIZE:
-				SConfig::GetInstance().m_showSizeColumn = action->isChecked();
-				break;
-			case GameListModel::COL_COUNTRY:
-				SConfig::GetInstance().m_showRegionColumn = action->isChecked();
-				break;
-			case GameListModel::COL_RATING:
-				SConfig::GetInstance().m_showStateColumn = action->isChecked();
-				break;
-			default: break;
-			}
-			SConfig::GetInstance().SaveSettings();
-		});
-	}
-}
-
-void MainWindow::AddListTypePicker(QMenu* view_menu)
-{
-	QActionGroup* list_group = new QActionGroup(this);
-	view_menu->addSection(tr("List Type"));
-	list_group->setExclusive(true);
-
-	QAction* set_table = list_group->addAction(view_menu->addAction(tr("Table")));
-	QAction* set_list = list_group->addAction(view_menu->addAction(tr("List")));
-
-	set_table->setCheckable(true);
-	set_table->setChecked(true);
-	set_list->setCheckable(true);
-
-	connect(set_table, &QAction::triggered, m_game_list, &GameList::SetTableView);
-	connect(set_list, &QAction::triggered, m_game_list, &GameList::SetListView);
+	m_menu_bar = new MenuBar(this);
+	setMenuBar(m_menu_bar);
+	connect(m_menu_bar, &MenuBar::Open, this, &MainWindow::Open);
+	connect(m_menu_bar, &MenuBar::Exit, this, &MainWindow::close);
+	connect(m_menu_bar, &MenuBar::ShowTable, m_game_list, &GameList::SetTableView);
+	connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
 }
 
 void MainWindow::MakeToolBar()
