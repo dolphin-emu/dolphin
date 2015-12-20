@@ -37,6 +37,7 @@
 // otherwise we may not get __STDC_FORMAT_MACROS
 #include <cinttypes>
 #include <memory>
+#include <vector>
 #include <mbedtls/aes.h>
 
 #include "Common/ChunkFile.h"
@@ -1096,26 +1097,26 @@ bool CWII_IPC_HLE_Device_es::IsValid(u64 _TitleID) const
 }
 
 
-u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
+u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
 {
-	u64 titleID = 0xDEADBEEFDEADBEEFull;
-	u64 tmdTitleID = Common::swap64(*(u64*)(_pTMD+0x18c));
-	DVDInterface::GetVolume().GetTitleID(&titleID);
-	if (titleID != tmdTitleID)
-	{
+	u64 title_id = 0xDEADBEEFDEADBEEFull;
+	u64 tmd_title_id = Common::swap64(&tmd[0x18C]);
+
+	DVDInterface::GetVolume().GetTitleID(&title_id);
+	if (title_id != tmd_title_id)
 		return -1;
-	}
-	std::string tmdPath  = Common::GetTMDFileName(tmdTitleID, Common::FROM_SESSION_ROOT);
 
-	File::CreateFullPath(tmdPath);
-	File::CreateFullPath(Common::GetTitleDataPath(tmdTitleID, Common::FROM_SESSION_ROOT));
+	std::string tmd_path  = Common::GetTMDFileName(tmd_title_id, Common::FROM_SESSION_ROOT);
 
-	Movie::g_titleID = tmdTitleID;
-	std::string savePath = Common::GetTitleDataPath(tmdTitleID, Common::FROM_SESSION_ROOT);
+	File::CreateFullPath(tmd_path);
+	File::CreateFullPath(Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT));
+
+	Movie::g_titleID = tmd_title_id;
+	std::string save_path = Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT);
 	if (Movie::IsRecordingInput())
 	{
 		// TODO: Check for the actual save data
-		if (File::Exists(savePath + "banner.bin"))
+		if (File::Exists(save_path + "banner.bin"))
 			Movie::g_bClearSave = false;
 		else
 			Movie::g_bClearSave = true;
@@ -1124,44 +1125,44 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	// TODO: Force the game to save to another location, instead of moving the user's save.
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsStartingFromClearSave())
 	{
-		if (File::Exists(savePath + "banner.bin"))
+		if (File::Exists(save_path + "banner.bin"))
 		{
-			if (File::Exists(savePath + "../backup/"))
+			if (File::Exists(save_path + "../backup/"))
 			{
 				// The last run of this game must have been to play back a movie, so their save is already backed up.
-				File::DeleteDirRecursively(savePath);
+				File::DeleteDirRecursively(save_path);
 			}
 			else
 			{
 				#ifdef _WIN32
-					MoveFile(UTF8ToTStr(savePath).c_str(), UTF8ToTStr(savePath + "../backup/").c_str());
+					MoveFile(UTF8ToTStr(save_path).c_str(), UTF8ToTStr(save_path + "../backup/").c_str());
 				#else
-					File::CopyDir(savePath, savePath + "../backup/");
-					File::DeleteDirRecursively(savePath);
+					File::CopyDir(save_path, save_path + "../backup/");
+					File::DeleteDirRecursively(save_path);
 				#endif
 			}
 		}
 	}
-	else if (File::Exists(savePath + "../backup/"))
+	else if (File::Exists(save_path + "../backup/"))
 	{
 		// Delete the save made by a previous movie, and copy back the user's save.
-		if (File::Exists(savePath + "banner.bin"))
-			File::DeleteDirRecursively(savePath);
+		if (File::Exists(save_path + "banner.bin"))
+			File::DeleteDirRecursively(save_path);
 		#ifdef _WIN32
-			MoveFile(UTF8ToTStr(savePath + "../backup/").c_str(), UTF8ToTStr(savePath).c_str());
+			MoveFile(UTF8ToTStr(save_path + "../backup/").c_str(), UTF8ToTStr(save_path).c_str());
 		#else
-			File::CopyDir(savePath + "../backup/", savePath);
-			File::DeleteDirRecursively(savePath + "../backup/");
+			File::CopyDir(save_path + "../backup/", save_path);
+			File::DeleteDirRecursively(save_path + "../backup/");
 		#endif
 	}
 
-	if (!File::Exists(tmdPath))
+	if (!File::Exists(tmd_path))
 	{
-		File::IOFile _pTMDFile(tmdPath, "wb");
-		if (!_pTMDFile.WriteBytes(_pTMD, _sz))
+		File::IOFile tmd_file(tmd_path, "wb");
+		if (!tmd_file.WriteBytes(tmd.data(), tmd.size()))
 			ERROR_LOG(WII_IPC_ES, "DIVerify failed to write disc TMD to NAND.");
 	}
-	DiscIO::cUIDsys::AccessInstance().AddTitle(tmdTitleID);
+	DiscIO::cUIDsys::AccessInstance().AddTitle(tmd_title_id);
 	DiscIO::CNANDContentManager::Access().ClearCache();
 	return 0;
 }

@@ -23,6 +23,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include <list>
 #include <map>
 #include <string>
+#include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -206,9 +207,9 @@ void SetDefaultContentFile(const std::string& _rFilename)
 	}
 }
 
-void ES_DIVerify(u8 *_pTMD, u32 _sz)
+void ES_DIVerify(const std::vector<u8>& tmd)
 {
-	CWII_IPC_HLE_Device_es::ES_DIVerify(_pTMD, _sz);
+	CWII_IPC_HLE_Device_es::ES_DIVerify(tmd);
 }
 
 void SDIO_EventNotify()
