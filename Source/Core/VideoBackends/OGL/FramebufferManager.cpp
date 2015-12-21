@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/GL/GLInterfaceBase.h"
@@ -623,7 +625,7 @@ void XFBSource::CopyEFB(float Gamma)
 
 }
 
-XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
+std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
 {
 	GLuint texture;
 
@@ -634,7 +636,7 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, target_width, target_height, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-	return new XFBSource(texture, layers);
+	return std::make_unique<XFBSource>(texture, layers);
 }
 
 void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height)

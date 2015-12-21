@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "Common/GL/GLUtil.h"
+#include <memory>
 
+#include "Common/GL/GLUtil.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
-
 #include "VideoCommon/FramebufferManagerBase.h"
 
 // On the GameCube, the game sends a request for the graphics processor to
@@ -95,7 +95,7 @@ public:
 	static void PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data);
 
 private:
-	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override;
+	std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override;
 	void GetTargetSize(unsigned int *width, unsigned int *height) override;
 
 	void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
