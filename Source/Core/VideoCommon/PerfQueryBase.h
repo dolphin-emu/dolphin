@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include "Common/CommonTypes.h"
 
 enum PerfQueryType
@@ -65,4 +66,4 @@ protected:
 	volatile u32 m_results[PQG_NUM_MEMBERS];
 };
 
-extern PerfQueryBase* g_perf_query;
+extern std::unique_ptr<PerfQueryBase> g_perf_query;

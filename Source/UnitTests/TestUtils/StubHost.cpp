@@ -5,6 +5,7 @@
 // Stub implementation of the Host_* callbacks for tests. These implementations
 // do nothing except return default values when required.
 
+#include <memory>
 #include <string>
 
 #include "Common/GL/GLInterfaceBase.h"
@@ -26,4 +27,4 @@ bool Host_RendererIsFullscreen() { return false; }
 void Host_ConnectWiimote(int, bool) {}
 void Host_SetWiiMoteConnectionState(int) {}
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
-cInterfaceBase* HostGL_CreateGLInterface() { return nullptr; }
+std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface() { return nullptr; }

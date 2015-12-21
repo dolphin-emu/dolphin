@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/GL/GLInterfaceBase.h"
 
 #ifdef ANDROID
@@ -20,19 +22,19 @@
 #error Platform doesnt have a GLInterface
 #endif
 
-cInterfaceBase* HostGL_CreateGLInterface()
+std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()
 {
 	#ifdef ANDROID
-		return new cInterfaceEGLAndroid;
+		return std::make_unique<cInterfaceEGLAndroid>();
 	#elif defined(__APPLE__)
-		return new cInterfaceAGL;
+		return std::make_unique<cInterfaceAGL>();
 	#elif defined(_WIN32)
-		return new cInterfaceWGL;
+		return std::make_unique<cInterfaceWGL>();
 	#elif defined(HAVE_X11) && HAVE_X11
 	#if defined(USE_EGL) && USE_EGL
-		return new cInterfaceEGLX11;
+		return std::make_unique<cInterfaceEGLX11>();
 	#else
-		return new cInterfaceGLX;
+		return std::make_unique<cInterfaceGLX>();
 	#endif
 	#else
 		return nullptr;

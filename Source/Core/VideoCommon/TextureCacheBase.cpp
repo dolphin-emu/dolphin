@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <memory>
 #include <string>
 
 #include "Common/FileUtil.h"
@@ -28,7 +29,7 @@ static const int TEXTURE_KILL_THRESHOLD = 64; // Sonic the Fighters (inside Soni
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static const int FRAMECOUNT_INVALID = 0;
 
-TextureCacheBase* g_texture_cache;
+std::unique_ptr<TextureCacheBase> g_texture_cache;
 
 alignas(16) u8* TextureCacheBase::temp = nullptr;
 size_t TextureCacheBase::temp_size;

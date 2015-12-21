@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
 #include "VideoBackends/D3D/D3DState.h"
@@ -21,7 +23,7 @@
 namespace DX11
 {
 
-static TextureEncoder* g_encoder = nullptr;
+static std::unique_ptr<TextureEncoder> g_encoder;
 const size_t MAX_COPY_BUFFERS = 32;
 ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
 
@@ -377,7 +379,7 @@ ID3D11PixelShader *GetConvertShader(const char* Type)
 TextureCache::TextureCache()
 {
 	// FIXME: Is it safe here?
-	g_encoder = new PSTextureEncoder;
+	g_encoder = std::make_unique<PSTextureEncoder>();
 	g_encoder->Init();
 
 	palette_buf = nullptr;
@@ -407,8 +409,7 @@ TextureCache::~TextureCache()
 		SAFE_RELEASE(efbcopycbuf[k]);
 
 	g_encoder->Shutdown();
-	delete g_encoder;
-	g_encoder = nullptr;
+	g_encoder.reset();
 
 	SAFE_RELEASE(palette_buf);
 	SAFE_RELEASE(palette_buf_srv);

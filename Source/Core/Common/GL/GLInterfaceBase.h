@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -42,8 +43,8 @@ public:
 	virtual bool PeekMessages() { return false; }
 };
 
-extern cInterfaceBase *GLInterface;
+extern std::unique_ptr<cInterfaceBase> GLInterface;
 
 // This function has to be defined along the Host_ functions from Core/Host.h.
 // Current canonical implementation: DolphinWX/GLInterface/GLInterface.cpp.
-cInterfaceBase* HostGL_CreateGLInterface();
+std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface();

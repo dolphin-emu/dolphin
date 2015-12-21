@@ -2,12 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/Assert.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/Log.h"
 
-cInterfaceBase *GLInterface;
+std::unique_ptr<cInterfaceBase> GLInterface;
 static GLuint attributelessVAO = 0;
 static GLuint attributelessVBO = 0;
 

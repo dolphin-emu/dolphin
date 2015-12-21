@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <map>
+#include <memory>
 #include <unordered_map>
 
 #include "Common/CommonTypes.h"
@@ -179,4 +180,4 @@ private:
 	} backup_config;
 };
 
-extern TextureCacheBase* g_texture_cache;
+extern std::unique_ptr<TextureCacheBase> g_texture_cache;

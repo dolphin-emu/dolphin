@@ -14,6 +14,7 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <memory>
 #include <string>
 
 #include "Common/Atomic.h"
@@ -51,7 +52,7 @@ int frameCount;
 int OSDChoice;
 static int OSDTime;
 
-Renderer *g_renderer = nullptr;
+std::unique_ptr<Renderer> g_renderer;
 
 std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;

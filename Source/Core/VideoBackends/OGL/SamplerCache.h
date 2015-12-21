@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Common/NonCopyable.h"
@@ -80,6 +81,6 @@ private:
 	u32 m_sampler_id[2];
 };
 
-extern SamplerCache *g_sampler_cache;
+extern std::unique_ptr<SamplerCache> g_sampler_cache;
 
 }

@@ -19,6 +19,8 @@ class TextureCache : public TextureCacheBase
 {
 public:
 	TextureCache();
+	~TextureCache();
+
 	static void DisableStage(unsigned int stage);
 	static void SetStage();
 
@@ -48,8 +50,6 @@ private:
 		void Bind(unsigned int stage) override;
 		bool Save(const std::string& filename, unsigned int level) override;
 	};
-
-	~TextureCache();
 
 	TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 	void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) override;
