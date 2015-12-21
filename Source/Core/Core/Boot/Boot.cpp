@@ -60,7 +60,10 @@ void CBoot::Load_FST(bool _bIsWii)
 	if (_bIsWii)
 		shift = 2;
 
-	u32 fst_offset, fst_size, max_fst_size;
+	u32 fst_offset = 0;
+	u32 fst_size = 0;
+	u32 max_fst_size = 0;
+
 	volume.ReadSwapped(0x0424, &fst_offset, _bIsWii);
 	volume.ReadSwapped(0x0428, &fst_size, _bIsWii);
 	volume.ReadSwapped(0x042c, &max_fst_size, _bIsWii);
