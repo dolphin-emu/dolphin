@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/GL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoCommon/DriverDetails.h"
@@ -10,7 +12,7 @@
 namespace OGL
 {
 
-SamplerCache *g_sampler_cache;
+std::unique_ptr<SamplerCache> g_sampler_cache;
 
 SamplerCache::SamplerCache()
 	: m_last_max_anisotropy()

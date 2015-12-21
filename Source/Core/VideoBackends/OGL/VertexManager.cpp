@@ -137,7 +137,7 @@ void VertexManager::Draw(u32 stride)
 	INCSTAT(stats.thisFrame.numDrawCalls);
 
 	if (current_primitive_type != PRIMITIVE_TRIANGLES)
-		((OGL::Renderer*)g_renderer)->SetGenerationMode();
+		static_cast<Renderer*>(g_renderer.get())->SetGenerationMode();
 }
 
 void VertexManager::vFlush(bool useDstAlpha)

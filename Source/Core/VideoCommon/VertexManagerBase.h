@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
+
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/DataReader.h"
@@ -82,4 +84,4 @@ private:
 	virtual void DestroyDeviceObjects() {}
 };
 
-extern VertexManagerBase* g_vertex_manager;
+extern std::unique_ptr<VertexManagerBase> g_vertex_manager;

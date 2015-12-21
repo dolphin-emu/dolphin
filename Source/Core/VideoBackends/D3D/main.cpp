@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <string>
 
 #include "Common/FileUtil.h"
@@ -176,10 +177,10 @@ bool VideoBackend::Initialize(void *window_handle)
 void VideoBackend::Video_Prepare()
 {
 	// internal interfaces
-	g_renderer = new Renderer(m_window_handle);
-	g_texture_cache = new TextureCache;
-	g_vertex_manager = new VertexManager;
-	g_perf_query = new PerfQuery;
+	g_renderer = std::make_unique<Renderer>(m_window_handle);
+	g_texture_cache = std::make_unique<TextureCache>();
+	g_vertex_manager = std::make_unique<VertexManager>();
+	g_perf_query = std::make_unique<PerfQuery>();
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
 	GeometryShaderCache::Init();
@@ -225,14 +226,10 @@ void VideoBackend::Shutdown()
 		GeometryShaderCache::Shutdown();
 		BBox::Shutdown();
 
-		delete g_perf_query;
-		delete g_vertex_manager;
-		delete g_texture_cache;
-		delete g_renderer;
-		g_renderer = nullptr;
-		g_texture_cache = nullptr;
-		g_vertex_manager = nullptr;
-		g_perf_query = nullptr;
+		g_perf_query.reset();
+		g_vertex_manager.reset();
+		g_texture_cache.reset();
+		g_renderer.reset();
 	}
 }
 

@@ -129,11 +129,11 @@ void VertexManager::Draw(u32 stride)
 	{
 		case PRIMITIVE_POINTS:
 			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-			((DX11::Renderer*)g_renderer)->ApplyCullDisable();
+			static_cast<Renderer*>(g_renderer.get())->ApplyCullDisable();
 			break;
 		case PRIMITIVE_LINES:
 			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-			((DX11::Renderer*)g_renderer)->ApplyCullDisable();
+			static_cast<Renderer*>(g_renderer.get())->ApplyCullDisable();
 			break;
 		case PRIMITIVE_TRIANGLES:
 			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -146,7 +146,7 @@ void VertexManager::Draw(u32 stride)
 	INCSTAT(stats.thisFrame.numDrawCalls);
 
 	if (current_primitive_type != PRIMITIVE_TRIANGLES)
-		((DX11::Renderer*)g_renderer)->RestoreCull();
+		static_cast<Renderer*>(g_renderer.get())->RestoreCull();
 }
 
 void VertexManager::vFlush(bool useDstAlpha)

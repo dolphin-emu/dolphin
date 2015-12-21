@@ -1599,7 +1599,7 @@ void Renderer::RestoreAPIState()
 	SetLogicOpMode();
 	SetViewport();
 
-	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
+	const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
 	if (vm->m_last_vao)
 		glBindVertexArray(vm->m_last_vao);

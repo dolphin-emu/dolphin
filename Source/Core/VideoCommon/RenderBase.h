@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <memory>
 #include <mutex>
 #include <string>
 
@@ -182,5 +183,5 @@ private:
 	static unsigned int efb_scale_denominatorY;
 };
 
-extern Renderer *g_renderer;
+extern std::unique_ptr<Renderer> g_renderer;
 

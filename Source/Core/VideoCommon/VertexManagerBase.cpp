@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/BPStructs.h"
@@ -22,7 +24,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-VertexManagerBase* g_vertex_manager;
+std::unique_ptr<VertexManagerBase> g_vertex_manager;
 
 u8* VertexManagerBase::s_pCurBufferPointer;
 u8* VertexManagerBase::s_pBaseBufferPointer;
