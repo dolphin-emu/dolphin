@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <utility>
 
 #include "Common/GL/GLUtil.h"
@@ -20,7 +21,7 @@ class StreamBuffer
 {
 
 public:
-	static StreamBuffer* Create(u32 type, u32 size);
+	static std::unique_ptr<StreamBuffer> Create(u32 type, u32 size);
 	virtual ~StreamBuffer();
 
 	/* This mapping function will return a pair of:

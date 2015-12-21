@@ -355,17 +355,17 @@ public:
 	u8* m_pointer;
 };
 
-// choose best streaming library based on the supported extensions and known issues
-StreamBuffer* StreamBuffer::Create(u32 type, u32 size)
+// Chooses the best streaming method based on the supported extensions and known issues
+std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
 {
 	// without basevertex support, only streaming methods whith uploads everything to zero works fine:
 	if (!g_ogl_config.bSupportsGLBaseVertex)
 	{
 		if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
-			return new BufferSubData(type, size);
+			return std::make_unique<BufferSubData>(type, size);
 
 		// BufferData is by far the worst way, only use it if needed
-		return new BufferData(type, size);
+		return std::make_unique<BufferData>(type, size);
 	}
 
 	// Prefer the syncing buffers over the orphaning one
@@ -374,25 +374,25 @@ StreamBuffer* StreamBuffer::Create(u32 type, u32 size)
 		// pinned memory is much faster than buffer storage on AMD cards
 		if (g_ogl_config.bSupportsGLPinnedMemory &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) && type == GL_ELEMENT_ARRAY_BUFFER))
-			return new PinnedMemory(type, size);
+			return std::make_unique<PinnedMemory>(type, size);
 
 		// buffer storage works well in most situations
 		if (g_ogl_config.bSupportsGLBufferStorage &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER) &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENBUFFERSTORAGE) && type == GL_ELEMENT_ARRAY_BUFFER))
-			return new BufferStorage(type, size);
+			return std::make_unique<BufferStorage>(type, size);
 
 		// don't fall back to MapAnd* for Nvidia drivers
 		if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUNSYNCMAPPING))
-			return new BufferSubData(type, size);
+			return std::make_unique<BufferSubData>(type, size);
 
 		// mapping fallback
 		if (g_ogl_config.bSupportsGLSync)
-			return new MapAndSync(type, size);
+			return std::make_unique<MapAndSync>(type, size);
 	}
 
 	// default fallback, should work everywhere, but isn't the best way to do this job
-	return new MapAndOrphan(type, size);
+	return std::make_unique<MapAndOrphan>(type, size);
 }
 
 }

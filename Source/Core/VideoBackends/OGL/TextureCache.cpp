@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <memory>
 #include <vector>
 
 #include "Common/Common.h"
@@ -51,7 +52,7 @@ static u32 s_Textures[8];
 static u32 s_ActiveTexture;
 
 static SHADER s_palette_pixel_shader[3];
-static StreamBuffer* s_palette_stream_buffer = nullptr;
+static std::unique_ptr<StreamBuffer> s_palette_stream_buffer;
 static GLuint s_palette_resolv_texture;
 static GLuint s_palette_buffer_offset_uniform[3];
 static GLuint s_palette_multiplier_uniform[3];
@@ -318,8 +319,7 @@ TextureCache::~TextureCache()
 
 	if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
 	{
-		delete s_palette_stream_buffer;
-		s_palette_stream_buffer = nullptr;
+		s_palette_stream_buffer.reset();
 		glDeleteTextures(1, &s_palette_resolv_texture);
 	}
 }
