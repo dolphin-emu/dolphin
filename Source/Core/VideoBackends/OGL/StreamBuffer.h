@@ -61,7 +61,7 @@ protected:
 
 private:
 	static constexpr int SYNC_POINTS = 16;
-	int SLOT(u32 x) const { return x >> m_bit_per_slot; }
+	int Slot(u32 x) const { return x >> m_bit_per_slot; }
 	const int m_bit_per_slot;
 
 	std::array<GLsync, SYNC_POINTS> m_fences{};
