@@ -128,7 +128,7 @@ static std::unique_ptr<IVolume> CreateVolumeFromCryptedWiiImage(std::unique_ptr<
 
 	struct SPartition
 	{
-		SPartition(u64 offset, u32 type) : offset(offset), type(type) {}
+		SPartition(u64 offset_, u32 type_) : offset(offset_), type(type_) {}
 
 		u64 offset;
 		u32 type;
