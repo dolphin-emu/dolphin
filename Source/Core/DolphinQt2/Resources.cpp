@@ -6,7 +6,6 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-#include "Core/ConfigManager.h"
 #include "DolphinQt2/Resources.h"
 
 QList<QPixmap> Resources::m_platforms;

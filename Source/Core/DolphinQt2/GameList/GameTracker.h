@@ -39,10 +39,8 @@ signals:
 private:
 	void UpdateDirectory(QString dir);
 	void UpdateFile(QString path);
-	void GenerateFilters();
 
 	QSet<QString> m_tracked_files;
-	QStringList m_filters;
 	QThread m_loader_thread;
 	GameLoader* m_loader;
 };

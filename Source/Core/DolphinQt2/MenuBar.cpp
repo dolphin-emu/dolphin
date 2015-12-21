@@ -5,7 +5,6 @@
 #include <QAction>
 #include <QActionGroup>
 
-#include "Core/ConfigManager.h"
 #include "DolphinQt2/MenuBar.h"
 
 MenuBar::MenuBar(QWidget* parent)
@@ -54,7 +53,7 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 	connect(list_view, &QAction::triggered, this, &MenuBar::ShowList);
 }
 
-// TODO implement this after we stop using SConfig.
+// TODO implement this
 void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
 {
 	QActionGroup* column_group = new QActionGroup(this);

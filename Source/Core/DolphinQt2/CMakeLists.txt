@@ -10,6 +10,7 @@ set(SRCS
 	MenuBar.cpp
 	RenderWidget.cpp
 	Resources.cpp
+	Settings.cpp
 	ToolBar.cpp
 	GameList/GameFile.cpp
 	GameList/GameList.cpp

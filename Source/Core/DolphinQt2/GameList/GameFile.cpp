@@ -14,6 +14,7 @@
 #include "Core/ConfigManager.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinQt2/Resources.h"
+#include "DolphinQt2/Settings.h"
 #include "DolphinQt2/GameList/GameFile.h"
 
 static const int CACHE_VERSION = 13; // Last changed in PR #3261
@@ -48,12 +49,6 @@ GameFile::GameFile(QString path) : m_path(path)
 	}
 
 	m_valid = true;
-}
-
-DiscIO::IVolume::ELanguage GameFile::GetDefaultLanguage() const
-{
-	bool wii = m_platform != DiscIO::IVolume::GAMECUBE_DISC;
-	return SConfig::GetInstance().GetCurrentLanguage(wii);
 }
 
 QString GameFile::GetCacheFileName() const
@@ -194,7 +189,14 @@ QString GameFile::GetLanguageString(QMap<DiscIO::IVolume::ELanguage, QString> m)
 	// Try the settings language, then English, then just pick one.
 	if (m.isEmpty())
 		return QString();
-	DiscIO::IVolume::ELanguage current_lang = GetDefaultLanguage();
+
+	bool wii = m_platform != DiscIO::IVolume::GAMECUBE_DISC;
+	DiscIO::IVolume::ELanguage current_lang;
+	if (wii)
+		current_lang = Settings().GetWiiSystemLanguage();
+	else
+		current_lang = Settings().GetGCSystemLanguage();
+
 	if (m.contains(current_lang))
 		return m[current_lang];
 	if (m.contains(DiscIO::IVolume::LANGUAGE_ENGLISH))

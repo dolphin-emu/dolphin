@@ -4,7 +4,6 @@
 
 #include <QHeaderView>
 
-#include "Core/ConfigManager.h"
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
 #include "DolphinQt2/GameList/TableProxyModel.h"
