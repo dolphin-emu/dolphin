@@ -61,20 +61,20 @@ StreamBuffer::~StreamBuffer()
 
 void StreamBuffer::CreateFences()
 {
-	for (int i=0; i<SYNC_POINTS; i++)
+	for (int i = 0; i < SYNC_POINTS; i++)
 	{
-		fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	}
 }
 void StreamBuffer::DeleteFences()
 {
 	for (int i = SLOT(m_free_iterator) + 1; i < SYNC_POINTS; i++)
 	{
-		glDeleteSync(fences[i]);
+		glDeleteSync(m_fences[i]);
 	}
 	for (int i = 0; i < SLOT(m_iterator); i++)
 	{
-		glDeleteSync(fences[i]);
+		glDeleteSync(m_fences[i]);
 	}
 }
 void StreamBuffer::AllocMemory(u32 size)
@@ -82,15 +82,15 @@ void StreamBuffer::AllocMemory(u32 size)
 	// insert waiting slots for used memory
 	for (int i = SLOT(m_used_iterator); i < SLOT(m_iterator); i++)
 	{
-		fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	}
 	m_used_iterator = m_iterator;
 
 	// wait for new slots to end of buffer
 	for (int i = SLOT(m_free_iterator) + 1; i <= SLOT(m_iterator + size) && i < SYNC_POINTS; i++)
 	{
-		glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
-		glDeleteSync(fences[i]);
+		glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+		glDeleteSync(m_fences[i]);
 	}
 	m_free_iterator = m_iterator + size;
 
@@ -100,7 +100,7 @@ void StreamBuffer::AllocMemory(u32 size)
 		// insert waiting slots in unused space at the end of the buffer
 		for (int i = SLOT(m_used_iterator); i < SYNC_POINTS; i++)
 		{
-			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+			m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		}
 
 		// move to the start
@@ -109,8 +109,8 @@ void StreamBuffer::AllocMemory(u32 size)
 		// wait for space at the start
 		for (int i = 0; i <= SLOT(m_iterator + size); i++)
 		{
-			glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
-			glDeleteSync(fences[i]);
+			glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+			glDeleteSync(m_fences[i]);
 		}
 		m_free_iterator = m_iterator + size;
 	}

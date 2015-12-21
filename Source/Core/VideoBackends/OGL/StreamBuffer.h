@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <utility>
 
 #include "Common/GL/GLUtil.h"
@@ -59,11 +60,11 @@ protected:
 	u32 m_free_iterator;
 
 private:
-	static const int SYNC_POINTS = 16;
+	static constexpr int SYNC_POINTS = 16;
 	int SLOT(u32 x) const { return x >> m_bit_per_slot; }
 	const int m_bit_per_slot;
 
-	GLsync fences[SYNC_POINTS];
+	std::array<GLsync, SYNC_POINTS> m_fences{};
 };
 
 }
