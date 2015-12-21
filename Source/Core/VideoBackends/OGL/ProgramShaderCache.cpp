@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <string>
 
 #include "Common/Common.h"
@@ -28,7 +29,7 @@ static const u32 UBO_LENGTH = 32*1024*1024;
 u32 ProgramShaderCache::s_ubo_buffer_size;
 s32 ProgramShaderCache::s_ubo_align;
 
-static StreamBuffer *s_buffer;
+static std::unique_ptr<StreamBuffer> s_buffer;
 static int num_failures = 0;
 
 static LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
@@ -505,8 +506,7 @@ void ProgramShaderCache::Shutdown()
 	pixel_uid_checker.Invalidate();
 	vertex_uid_checker.Invalidate();
 
-	delete s_buffer;
-	s_buffer = nullptr;
+	s_buffer.reset();
 }
 
 void ProgramShaderCache::CreateHeader()

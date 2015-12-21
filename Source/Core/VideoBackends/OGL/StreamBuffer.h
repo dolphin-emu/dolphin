@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+#include <memory>
 #include <utility>
 
 #include "Common/GL/GLUtil.h"
@@ -19,7 +21,7 @@ class StreamBuffer
 {
 
 public:
-	static StreamBuffer* Create(u32 type, u32 size);
+	static std::unique_ptr<StreamBuffer> Create(u32 type, u32 size);
 	virtual ~StreamBuffer();
 
 	/* This mapping function will return a pair of:
@@ -33,7 +35,7 @@ public:
 	virtual std::pair<u8*, u32> Map(u32 size) = 0;
 	virtual void Unmap(u32 used_size) = 0;
 
-	inline std::pair<u8*, u32> Map(u32 size, u32 stride)
+	std::pair<u8*, u32> Map(u32 size, u32 stride)
 	{
 		u32 padding = m_iterator % stride;
 		if (padding)
@@ -59,11 +61,11 @@ protected:
 	u32 m_free_iterator;
 
 private:
-	static const int SYNC_POINTS = 16;
-	inline int SLOT(u32 x) const { return x >> m_bit_per_slot; }
+	static constexpr int SYNC_POINTS = 16;
+	int Slot(u32 x) const { return x >> m_bit_per_slot; }
 	const int m_bit_per_slot;
 
-	GLsync fences[SYNC_POINTS];
+	std::array<GLsync, SYNC_POINTS> m_fences{};
 };
 
 }
