@@ -231,6 +231,8 @@ void VideoBackend::Shutdown()
 		delete g_renderer;
 		g_renderer = nullptr;
 		g_texture_cache = nullptr;
+		g_vertex_manager = nullptr;
+		g_perf_query = nullptr;
 	}
 }
 
