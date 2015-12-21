@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DUtil.h"
@@ -13,7 +15,8 @@
 #include "VideoBackends/D3D/XFBEncoder.h"
 #include "VideoCommon/VideoConfig.h"
 
-namespace DX11 {
+namespace DX11
+{
 
 static XFBEncoder s_xfbEncoder;
 
@@ -176,9 +179,9 @@ void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, 
 	s_xfbEncoder.Encode(dst, fbStride/2, fbHeight, sourceRc, Gamma);
 }
 
-XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
+std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
 {
-	return new XFBSource(D3DTexture2D::Create(target_width, target_height,
+	return std::make_unique<XFBSource>(D3DTexture2D::Create(target_width, target_height,
 		(D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE),
 		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, layers), layers);
 }

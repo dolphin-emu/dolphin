@@ -3,15 +3,17 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
+#include <memory>
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 FramebufferManagerBase *g_framebuffer_manager;
 
-XFBSourceBase *FramebufferManagerBase::m_realXFBSource; // Only used in Real XFB mode
+std::unique_ptr<XFBSourceBase> FramebufferManagerBase::m_realXFBSource; // Only used in Real XFB mode
 FramebufferManagerBase::VirtualXFBListType FramebufferManagerBase::m_virtualXFBList; // Only used in Virtual XFB mode
-const XFBSourceBase* FramebufferManagerBase::m_overlappingXFBArray[MAX_VIRTUAL_XFB];
+std::array<const XFBSourceBase*, FramebufferManagerBase::MAX_VIRTUAL_XFB> FramebufferManagerBase::m_overlappingXFBArray;
 
 unsigned int FramebufferManagerBase::s_last_xfb_width = 1;
 unsigned int FramebufferManagerBase::s_last_xfb_height = 1;
@@ -20,21 +22,16 @@ unsigned int FramebufferManagerBase::m_EFBLayers = 1;
 
 FramebufferManagerBase::FramebufferManagerBase()
 {
-	m_realXFBSource = nullptr;
-
-	// can't hurt
-	memset(m_overlappingXFBArray, 0, sizeof(m_overlappingXFBArray));
+	// Can't hurt
+	m_overlappingXFBArray.fill(nullptr);
 }
 
 FramebufferManagerBase::~FramebufferManagerBase()
 {
-	for (VirtualXFB& vxfb : m_virtualXFBList)
-	{
-		delete vxfb.xfbSource;
-	}
+	// Necessary, as these are static members
+	// (they really shouldn't be and should be refactored at some point).
 	m_virtualXFBList.clear();
-
-	delete m_realXFBSource;
+	m_realXFBSource.reset();
 }
 
 const XFBSourceBase* const* FramebufferManagerBase::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32* xfbCountP)
@@ -54,10 +51,7 @@ const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr
 
 	// recreate if needed
 	if (m_realXFBSource && (m_realXFBSource->texWidth != fbWidth || m_realXFBSource->texHeight != fbHeight))
-	{
-		delete m_realXFBSource;
-		m_realXFBSource = nullptr;
-	}
+		m_realXFBSource.reset();
 
 	if (!m_realXFBSource && g_framebuffer_manager)
 		m_realXFBSource = g_framebuffer_manager->CreateXFBSource(fbWidth, fbHeight, 1);
@@ -83,7 +77,7 @@ const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr
 	// Decode YUYV data from GameCube RAM
 	m_realXFBSource->DecodeToTexture(xfbAddr, fbWidth, fbHeight);
 
-	m_overlappingXFBArray[0] = m_realXFBSource;
+	m_overlappingXFBArray[0] = m_realXFBSource.get();
 	return &m_overlappingXFBArray[0];
 }
 
@@ -109,7 +103,7 @@ const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbA
 
 		if (AddressRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
 		{
-			m_overlappingXFBArray[xfbCount] = vxfb->xfbSource;
+			m_overlappingXFBArray[xfbCount] = vxfb->xfbSource.get();
 			++xfbCount;
 		}
 	}
@@ -163,10 +157,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbStride, u32 fbH
 
 	// recreate if needed
 	if (vxfb->xfbSource && (vxfb->xfbSource->texWidth != target_width || vxfb->xfbSource->texHeight != target_height))
-	{
-		delete vxfb->xfbSource;
-		vxfb->xfbSource = nullptr;
-	}
+		vxfb->xfbSource.reset();
 
 	if (!vxfb->xfbSource)
 	{
