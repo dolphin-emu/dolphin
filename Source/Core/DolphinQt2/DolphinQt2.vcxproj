@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{FA3FA62B-6F58-4B86-9453-4D149940A066}</ProjectGuid>
+    <!--
+    Enable this once wxwidgets is completely removed
+    <ProjectName>Dolphin</ProjectName>
+    -->
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
+    <Import Project="..\..\VSProps\QtCompile.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <BaseAddress>0x00400000</BaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <FixedBaseAddress>true</FixedBaseAddress>
+      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Windows</SubSystem>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ExternalsDir)/gettext</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ExternalsDir)/gettext</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <!--QRC and UI files are handled automatically-->
+  <ItemGroup>
+    <QtResource Include="*.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUi Include="*.ui" />
+    <QtUi Include="GameList\*.ui" />
+  </ItemGroup>
+  <!--MOC files need to be listed. Perhaps scan for Q_OBJECT in the future? (like automoc)-->
+  <!--NOTE: When adding moc'd files, you must list the outputs in the following ItemGroup!-->
+  <ItemGroup>
+    <QtMoc Include="MainWindow.h" />
+    <QtMoc Include="ToolBar.h" />
+    <QtMoc Include="MenuBar.h" />
+    <QtMoc Include="GameList\GameList.h" />
+    <QtMoc Include="GameList\GameListModel.h" />
+    <QtMoc Include="GameList\GameFile.h" />
+    <QtMoc Include="GameList\GameTracker.h" />
+    <QtMoc Include="GameList\ListProxyModel.h" />
+    <QtMoc Include="GameList\TableProxyModel.h" />
+    <QtMoc Include="RenderWidget.h" />
+    <QtMoc Include="Host.h" />
+    <QtMoc Include="Settings.h" />
+    <QtMoc Include="Config\PathDialog.h" />
+  </ItemGroup>
+  <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
+  <ItemGroup>
+    <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameFile.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)TableProxyModel.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)Settings.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)PathDialog.cpp" />
+    <ClCompile Include="Config\PathDialog.cpp" />
+    <ClCompile Include="GameList\GameFile.cpp" />
+    <ClCompile Include="GameList\GameList.cpp" />
+    <ClCompile Include="GameList\GameListModel.cpp" />
+    <ClCompile Include="GameList\GameTracker.cpp" />
+    <ClCompile Include="GameList\ListProxyModel.cpp" />
+    <ClCompile Include="GameList\TableProxyModel.cpp" />
+    <ClCompile Include="MenuBar.cpp" />
+    <ClCompile Include="RenderWidget.cpp" />
+    <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="ToolBar.cpp" />
+    <ClCompile Include="Translator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Host.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MainWindow.cpp" />
+  </ItemGroup>
+  <!--Put standard C/C++ headers here-->
+  <!--
+  <ItemGroup>
+    <ClInclude Include="Main.h" />
+  </ItemGroup>
+  -->
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)Bochs_disasm\Bochs_disasm.vcxproj">
+      <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)LZO\LZO.vcxproj">
+      <Project>{ab993f38-c31d-4897-b139-a620c42bc565}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)SFML\build\vc2010\SFML_Network.vcxproj">
+      <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)AudioCommon\AudioCommon.vcxproj">
+      <Project>{54aa7840-5beb-4a0c-9452-74ba4cc7fd44}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
+      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Common\SCMRevGen.vcxproj">
+      <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
+      <Project>{e54cf649-140e-4255-81a5-30a673c1fb36}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)DiscIO\DiscIO.vcxproj">
+      <Project>{160bdc25-5626-4b0d-bdd8-2953d9777fb5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)InputCommon\InputCommon.vcxproj">
+      <Project>{6bbd47cf-91fd-4077-b676-8b76980178a9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\D3D\D3D.vcxproj">
+      <Project>{96020103-4ba5-4fd2-b4aa-5b6d24492d4e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\OGL\OGL.vcxproj">
+      <Project>{ec1a314c-5588-4506-9c1e-2e58e5817f75}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\Software\Software.vcxproj">
+      <Project>{a4c423aa-f57c-46c7-a172-d1a777017d29}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
+      <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
+      <Project>{604C8368-F34A-4D55-82C8-CC92A0C13254}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\gettext-0.19.4\libintl.vcxproj">
+      <Project>{9e3973b5-12bd-4e6f-a30a-d41d8e657a4d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\libiconv-1.14\libiconv.vcxproj">
+      <Project>{7ea4ec62-ea19-4acc-86e2-0513e381292b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Languages\Languages.vcxproj">
+      <Project>{0e033be3-2e08-428e-9ae9-bc673efa12b5}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\VSProps\QtCompile.targets" />
+  </ImportGroup>
+  <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
+  <ItemGroup>
+    <DataDirFiles Include="$(DolphinRootDir)Data\**\*.*" />
+    <ExternalDlls Include="$(ExternalsDir)OpenAL\$(PlatformName)\*.dll" />
+    <BinaryFiles Include="$(TargetPath)" />
+    <AllInputFiles Include="@(DataDirFiles);@(ExternalDlls);@(BinaryFiles)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Resources.h" />
+    <ClInclude Include="Translator.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DolphinQt2.rc" />
+  </ItemGroup>
+  <!--Disable copying to binary dir for now on the buildbot to prevent packaging of the outputs-->
+  <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(I_AM_BUILDACUS)'==''">
+    <Message Text="Copying Data directory..." Importance="High" />
+    <Copy SourceFiles="@(DataDirFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)').Ticks)" />
+    <Message Text="Copying External .dlls" Importance="High" />
+    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(BinaryOutputDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)').Ticks)" />
+    <Message Text="Copy: @(BinaryFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
+    <Copy SourceFiles="@(BinaryFiles)" DestinationFolder="$(BinaryOutputDir)" />
+  </Target>
+</Project>

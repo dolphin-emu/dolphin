@@ -1,0 +1,328 @@
+# Finnish translations for GNU Gettext package.
+# Copyright © 2007, 2010, 2013 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+# Sami J. Laine <sami.laine@iki.fi>, 2002.
+# Lauri Nurmi <lanurmi@iki.fi>, 2007.
+# Jorma Karvonen <karvonen.jorma@gmail.com>, 2010, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-runtime 0.18.2\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2014-12-24 16:27+0900\n"
+"PO-Revision-Date: 2013-03-03 11:37+0200\n"
+"Last-Translator: Jorma Karvonen <karvonen.jorma@gmail.com>\n"
+"Language-Team: Finnish <translation-team-fi@lists.sourceforge.net>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "virhe kirjoitettaessa"
+
+#: gnulib-lib/error.c:191
+msgid "Unknown system error"
+msgstr "Tuntematon järjestelmän virhe"
+
+#: gnulib-lib/getopt.c:547 gnulib-lib/getopt.c:576
+#, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr "%s: valitsin ’%s’ on moniselitteinen; mahdollisuudet:"
+
+#: gnulib-lib/getopt.c:624 gnulib-lib/getopt.c:628
+#, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr "%s: valitsin ’--%s’ ei salli argumenttia\n"
+
+#: gnulib-lib/getopt.c:637 gnulib-lib/getopt.c:642
+#, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr "%s: valitsin ’%c%s’ ei salli argumenttia\n"
+
+#: gnulib-lib/getopt.c:685 gnulib-lib/getopt.c:704
+#, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr "%s: valitsin ’--%s’ vaatii argumentin\n"
+
+#: gnulib-lib/getopt.c:742 gnulib-lib/getopt.c:745
+#, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr "%s: tunnistamaton valitsin ’--%s’\n"
+
+#: gnulib-lib/getopt.c:753 gnulib-lib/getopt.c:756
+#, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr "%s: tunnistamaton valitsin ’%c%s’\n"
+
+#: gnulib-lib/getopt.c:805 gnulib-lib/getopt.c:808
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: virheellinen valitsin -- ’%c’\n"
+
+#: gnulib-lib/getopt.c:861 gnulib-lib/getopt.c:878 gnulib-lib/getopt.c:1088
+#: gnulib-lib/getopt.c:1106
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: valitsin vaatii argumentin -- ’%c’\n"
+
+#: gnulib-lib/getopt.c:934 gnulib-lib/getopt.c:950
+#, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr "%s: valitsin ’-W %s’ on moniselitteinen\n"
+
+#: gnulib-lib/getopt.c:974 gnulib-lib/getopt.c:992
+#, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr "%s: valitsin ’-W %s’ ei salli argumenttia\n"
+
+#: gnulib-lib/getopt.c:1013 gnulib-lib/getopt.c:1031
+#, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr "%s: valitsin ’-W %s’ vaatii argumentin\n"
+
+#: gnulib-lib/xmalloc.c:37
+#, c-format
+msgid "memory exhausted"
+msgstr "muisti loppui"
+
+# Käännetty M. Välimäen GPLv3-käännöksestä vihjeitä katsoen.
+#: src/envsubst.c:112 src/gettext.c:133 src/ngettext.c:123
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Copyright © %s Free Software Foundation, Inc.\n"
+"Lisenssi GPLv3+: GNU GPL versio 3 tai myöhempi <http://gnu.org/licenses/gpl.html>\n"
+"Tämä on vapaa ohjelmisto ja sen muuttaminen ja levittäminen edelleen on sallittua.\n"
+"Ohjelmalle EI ANNETA TAKUUTA lain sallimissa rajoissa.\n"
+
+#: src/envsubst.c:118 src/gettext.c:139 src/ngettext.c:129
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Kirjoittanut %s\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:118
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:127 src/gettext.c:157 src/ngettext.c:141
+#, c-format
+msgid "too many arguments"
+msgstr "liian monta argumenttia"
+
+#: src/envsubst.c:138 src/gettext.c:167 src/ngettext.c:153
+#, c-format
+msgid "missing arguments"
+msgstr "ei riittävästi argumentteja"
+
+#: src/envsubst.c:171 src/gettext.c:238 src/ngettext.c:207
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Yritä ’%s --help’ saadaksesi lisää tietoja.\n"
+
+#: src/envsubst.c:176
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Käyttö: %s [VALITSIN] [SHELL-MUOTO]\n"
+
+#: src/envsubst.c:181
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "Korvaa ympäristömuuttujien arvot.\n"
+
+#: src/envsubst.c:185
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Toimintatila:\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             tulostaa SHELL-MUODOSSA ilmenevät muuttujat\n"
+
+#: src/envsubst.c:192
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Selittävä tuloste:\n"
+
+#: src/envsubst.c:195
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  tulosta tämä ohje ja poistu\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version                tulosta ohjelman versiotiedot ja poistu\n"
+
+#: src/envsubst.c:202
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"Tavallisessa toimintatilassa vakiosyöte kopioidaan vakiotulosteeseen\n"
+"siten, että viittaukset ympäristömuuttujiin, muodossa $MUUTTUJA tai\n"
+"${MUUTTUJA}, korvataan vastaavilla arvoilla. Mikäli SHELL-MUOTO\n"
+"annetaan, vain ne ympäristömuuttujat korvataan, joihin viitataan\n"
+"SHELL-MUODOssa. Muussa tapauksessa kaikki vakiosyötteessä esiintyvät\n"
+"ympäristömuuttujat korvataan.\n"
+
+#: src/envsubst.c:211
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"Valitsinta --variables käytettäessä vakiosyöte jätetään huomiotta ja\n"
+"tuloste muodostuu ympäristömuuttujista, yksi kutakin riviä kohti,\n"
+"joihin viitataan SHELL-MUODOssa.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:219 src/gettext.c:279 src/ngettext.c:245
+msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+msgstr ""
+"Ilmoita ohjelmiston vioista (englanniksi) osoitteeseen <bug-gnu-gettext@gnu."
+"org>.\n"
+"Ilmoita suomennoksen vioista osoitteeseen <translation-team-fi@lists."
+"sourceforge.net>.\n"
+
+# ainoa mahdollinen %s tällä hetkellä on alla oleva "standard input"
+#: src/envsubst.c:442
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "virhe luettaessa ”%s”"
+
+# [sic]
+#: src/envsubst.c:443
+msgid "standard input"
+msgstr "vakiosyötettä"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:139 src/ngettext.c:129
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:243
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Käyttö: %s [VALITSIN] [[KÄÄNNÖSJOUKKO] VIESTI-ID]\n"
+"tai:    %s [VALITSIN] -s [VIESTI-ID]...\n"
+
+#: src/gettext.c:249
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "Näyttää kotoistetun käännöksen tekstimuotoiselle viestille.\n"
+
+#: src/gettext.c:253
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -n                        suppress trailing newline\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  -d, --domain=KÄÄNNÖSJOUKKO hae käännetyt viestit KÄÄNNÖSJOUKOSTA\n"
+"  -e                        salli joidenkin lainauskoodien laajentaminen\n"
+"  -E                        (jätetään huomiotta yhteensopivuuden vuoksi)\n"
+"  -h, --help                näytä tämä ohje ja poistu\n"
+"  -n                        jättää pois rivinvaihdon rivin lopusta\n"
+"  -V, --version             näyttää ohjelmiston versiotiedot ja lopettaa\n"
+"                            suorituksen\n"
+"  [KÄÄNNÖSJOUKKO] VIESTI-ID  etsii käännetyn viestin, joka vastaa VIESTI-ID:tä\n"
+"                            KÄÄNNÖSJOUKOSSA\n"
+
+#: src/gettext.c:264
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Jos KÄÄNNÖSJOUKKO-parametria ei anneta, joukko päätellään TEXTDOMAIN-\n"
+"ympäristömuuttujan perusteella. Jos viestiluettelo ei ole tavanomaisessa\n"
+"hakemistossa, vaihtoehtoinen sijainti voidaan määritellä ympäristömuuttu-\n"
+"jalla TEXTDOMAINDIR.\n"
+"Valitsimen -s kanssa ohjelma toimii kuten ’echo’-komento.\n"
+"Ohjelma ei kuitenkaan vain kopioi argumenttejaan vakiotulosteeseen, vaan\n"
+"valitusta viestiluettelosta löydetyt viestit näytetään käännettyinä.\n"
+"Perushakemisto, josta haku suoritetaan: %s\n"
+
+#: src/ngettext.c:212
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Käyttö: %s [VALITSIN] [KÄÄNNÖSJOUKKO] VIESTI-ID VIESTI-ID-MONIKKO MÄÄRÄ\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"Näyttää kotoistetun käännöksen tekstimuotoiselle viestille, jonka muoto\n"
+"riippuu lukuarvosta.\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  -d, --domain=KÄÄNNÖSJOUKKO hae käännetyt viestit KÄÄNNÖSJOUKOSTA\n"
+"  -e                        salli joidenkin lainauskoodien laajentaminen\n"
+"  -h, --help                näytä tämä ohje ja poistu\n"
+"  -V, --version             näytä versiotiedot ja poistu\n"
+"  [KÄÄNNÖSJOUKKO]           hae käännetty sanoma KÄÄNNÖSJOUKOSTA\n"
+"  VIESTI-ID VIESTI-ID-MON   käännä VIESTI-ID (yksikkö) / VIESTI-ID-MON (monikko)\n"
+"  MÄÄRÄ                     valitse yksikkö-/monikkomuoto tämän arvon\n"
+"                              perusteella\n"
+
+#: src/ngettext.c:233
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Jos KÄÄNNÖSJOUKKO-parametria ei anneta, joukko päätellään TEXTDOMAIN-\n"
+"ympäristömuuttujan perusteella. Jos viestiluettelo ei ole tavanomaisessa\n"
+"hakemistossa, vaihtoehtoinen sijainti voidaan määritellä ympäristömuuttu-\n"
+"jalla TEXTDOMAINDIR.\n"
+"Perushakemisto, josta haku suoritetaan: %s\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: virheellinen valitsin -- %c\n"

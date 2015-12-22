@@ -1,0 +1,318 @@
+# Hungarian translation for gettext-runtime.
+# This file is distributed under the same license as the gettext package.
+# Copyright (C) 2014 Free Software Foundation, Inc.
+#
+# Balázs Úr <urbalazs@gmail.com>, 2014.
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext-runtime 0.19-rc1\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2014-12-24 16:27+0900\n"
+"PO-Revision-Date: 2014-05-11 17:49+0200\n"
+"Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
+"Language-Team: Hungarian <translation-team-hu@lists.sourceforge.net>\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 1.5\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "írási hiba"
+
+#: gnulib-lib/error.c:191
+msgid "Unknown system error"
+msgstr "Ismeretlen rendszerhiba"
+
+#: gnulib-lib/getopt.c:547 gnulib-lib/getopt.c:576
+#, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr "%s: a(z) „%s” kapcsoló nem egyértelmű; lehetőségek:"
+
+#: gnulib-lib/getopt.c:624 gnulib-lib/getopt.c:628
+#, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr "%s: a(z) „--%s” kapcsoló nem fogad el argumentumot\n"
+
+#: gnulib-lib/getopt.c:637 gnulib-lib/getopt.c:642
+#, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr "%s: a(z) „%c%s” kapcsoló nem fogad el argumentumot\n"
+
+#: gnulib-lib/getopt.c:685 gnulib-lib/getopt.c:704
+#, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr "%s: a(z) „--%s” kapcsolóhoz egy argumentum szükséges\n"
+
+#: gnulib-lib/getopt.c:742 gnulib-lib/getopt.c:745
+#, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr "%s: ismeretlen „--%s” kapcsoló\n"
+
+#: gnulib-lib/getopt.c:753 gnulib-lib/getopt.c:756
+#, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr "%s: ismeretlen „%c%s” kapcsoló\n"
+
+#: gnulib-lib/getopt.c:805 gnulib-lib/getopt.c:808
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: érvénytelen -- „%c” kapcsoló\n"
+
+#: gnulib-lib/getopt.c:861 gnulib-lib/getopt.c:878 gnulib-lib/getopt.c:1088
+#: gnulib-lib/getopt.c:1106
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: a kapcsolóhoz egy -- „%c” argumentum szükséges\n"
+
+#: gnulib-lib/getopt.c:934 gnulib-lib/getopt.c:950
+#, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr "%s: a „-W %s” kapcsoló nem egyértelmű\n"
+
+#: gnulib-lib/getopt.c:974 gnulib-lib/getopt.c:992
+#, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr "%s: a „-W %s” kapcsoló nem fogad el argumentumot\n"
+
+#: gnulib-lib/getopt.c:1013 gnulib-lib/getopt.c:1031
+#, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr "%s: a „-W %s” kapcsolóhoz egy argumentum szükséges\n"
+
+#: gnulib-lib/xmalloc.c:37
+#, c-format
+msgid "memory exhausted"
+msgstr "elfogyott a memória"
+
+#: src/envsubst.c:112 src/gettext.c:133 src/ngettext.c:123
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Copyright © %s Free Software Foundation, Inc.\n"
+"Licenc GPLv3+: GNU GPL 3. vagy későbbi verzió <http://gnu.org/licenses/gpl.html>\n"
+"Ez egy szabad szoftver: szabadon módosíthatja és terjesztheti.\n"
+"Nincs SEMMIFÉLE GARANCIA, a törvény által megengedett mértékben.\n"
+
+#: src/envsubst.c:118 src/gettext.c:139 src/ngettext.c:129
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Írta: %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:118
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:127 src/gettext.c:157 src/ngettext.c:141
+#, c-format
+msgid "too many arguments"
+msgstr "túl sok argumentum"
+
+#: src/envsubst.c:138 src/gettext.c:167 src/ngettext.c:153
+#, c-format
+msgid "missing arguments"
+msgstr "hiányzó argumentumok"
+
+#: src/envsubst.c:171 src/gettext.c:238 src/ngettext.c:207
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "További információkért próbálja a(z) „%s --help” parancsot.\n"
+
+#: src/envsubst.c:176
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Használat: %s [KAPCSOLÓ] [SHELL-FORMÁTUM]\n"
+
+#: src/envsubst.c:181
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "A környezeti változók értékeit helyettesíti.\n"
+
+#: src/envsubst.c:185
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Működési mód:\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             kiírja a SHELL-FORMÁTUMBAN előforduló változókat\n"
+
+#: src/envsubst.c:192
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Tájékoztató kimenet:\n"
+
+#: src/envsubst.c:195
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  ezen súgó megjelenítése és kilépés\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               verzióinformációk kiírása és kilépés\n"
+
+#: src/envsubst.c:202
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"Normál működési módban a szabványos bemenet a szabványos kimenetre van\n"
+"másolva az űrlapnak a megfelelő változókkal helyettesített $VÁLTOZÓ vagy\n"
+"${VÁLTOZÓ} értékeinek környezeti változóira mutató hivatkozással. Ha meg\n"
+"van adva a SHELL-FORMÁTUM, akkor csak a SHELL-FORMÁTUM értékében hivatkozott\n"
+"környezeti változók lesznek helyettesítve. Egyébként a szabványos bemeneten\n"
+"előforduló összes környezeti változó hivatkozás helyettesítve lesz.\n"
+
+#: src/envsubst.c:211
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"A --variables használatakor a szabványos bemenet mellőzve lesz, és a kimenet\n"
+"a SHELL-FORMÁTUMBAN hivatkozott környezeti változókból áll, soronként egy.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:219 src/gettext.c:279 src/ngettext.c:245
+msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+msgstr "A hibákat ezen a címen jelentse: <bug-gnu-gettext@gnu.org>.\n"
+
+#: src/envsubst.c:442
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "hiba a(z) „%s” olvasása közben"
+
+#: src/envsubst.c:443
+msgid "standard input"
+msgstr "szabványos bemenet"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:139 src/ngettext.c:129
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:243
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Használat: %s [KAPCSOLÓ] [[SZÖVEGTARTOMÁNY] MSGID]\n"
+"vagy:    %s [KAPCSOLÓ] -s [MSGID]...\n"
+
+#: src/gettext.c:249
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "A szöveges üzenet natív nyelvi fordításának megjelenítése.\n"
+
+#: src/gettext.c:253
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -n                        suppress trailing newline\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  -d, --domain=SZÖVEGTARTOMÁNY   lefordított üzenetek lekérése a\n"
+"                            SZÖVEGTARTOMÁNYBÓL\n"
+"  -e                        néhány fedéssorozat kifejtésének engedélyezése\n"
+"  -E                        (mellőzve a kompatibilitás miatt)\n"
+"  -h, --help                ezen súgó megjelenítése és kilépés\n"
+"  -n                        a záró új sorok elnyomása\n"
+"  -V, --version             verzióinformációk kiírása és kilépés\n"
+"  [SZÖVEGTARTOMÁNY] MSGID        az MSGID-nak megfelelő lefordított üzenet\n"
+"                            lekérése a SZÖVEGTARTOMÁNYBÓL\n"
+
+#: src/gettext.c:264
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Ha a SZÖVEGTARTOMÁNY paraméter nincs megadva, a tartomány a SZÖVEGTARTOMÁNY\n"
+"környezeti változóból lesz meghatározva. Ha az üzenetkatalógus nem található\n"
+"a szabályos könyvtárban, megadható egy másik hely a SZÖVEGTARTOMÁNYKÖNYVTÁR\n"
+"környezeti változóval.\n"
+"A -s kapcsoló használata esetén a program úgy viselkedik mint az „echo”\n"
+"parancs. De nem csak egyszerűen átmásolja az argumentumokat a szabványos\n"
+"kimenetre. Ehelyett a kiválasztott katalógusban található üzenetek le vannak\n"
+"fordítva.\n"
+"Szabványos keresési könyvtár: %s\n"
+
+#: src/ngettext.c:212
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Használat: %s [KAPCSOLÓ] [SZÖVEGTARTOMÁNY] MSGID MSGID-TÖBBES DARABSZÁM\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"Azon szöveges üzenet natív nyelvi fordításának megjelenítése, amelyek\n"
+"nyelvtani alakja egy számtól függ.\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  -d, --domain=SZÖVEGTARTOMÁNY   lefordított üzenet lekérése a\n"
+"                            SZÖVEGTARTOMÁNYBÓL\n"
+"  -e                        néhány fedéssorozat kifejtésének engedélyezése\n"
+"  -E                        (mellőzve a kompatibilitás miatt)\n"
+"  -h, --help                ezen súgó megjelenítése és kilépés\n"
+"  -V, --version             verzióinformációk kiírása és kilépés\n"
+"  [SZÖVEGTARTOMÁNY]         lefordított üzenet lekérése a SZÖVEGTARTOMÁNYBÓL\n"
+"  MSGID MSGID-TÖBBES        MSGID (egyesszám) / MSGID-TÖBBES (többesszám)\n"
+"  DARABSZÁM               egyesszám/többesszám választása ezen érték alapján\n"
+
+#: src/ngettext.c:233
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Ha a SZÖVEGTARTOMÁNY paraméter nincs megadva, a tartomány a SZÖVEGTARTOMÁNY\n"
+"környezeti változóból lesz meghatározva. Ha az üzenetkatalógus nem található\n"
+"a szabályos könyvtárban, megadható egy másik hely a SZÖVEGTARTOMÁNYKÖNYVTÁR\n"
+"környezeti változóval.\n"
+"Szabványos keresési könyvtár: %s\n"

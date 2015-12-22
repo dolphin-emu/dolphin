@@ -1,0 +1,318 @@
+# La teksto por la mesaĝoj de la programo "gettext".
+# Copyright (C) 2006, 2007, 2013 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+# D. Dale Gulledge <dsplat@rochester.rr.com> 2006.
+# Edmund GRIMLEY EVANS <edmundo@rano.org> 2006, 2007.
+# Felipe Castro <fefcas@gmail.com>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-runtime 0.18.2\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2014-12-24 16:27+0900\n"
+"PO-Revision-Date: 2013-10-30 16:17-0300\n"
+"Last-Translator: Felipe Castro <fefcas@gmail.com>\n"
+"Language-Team: Esperanto <translation-team-eo@lists.sourceforge.net>\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "skriberaro"
+
+#: gnulib-lib/error.c:191
+msgid "Unknown system error"
+msgstr "Nekonata sistemeraro"
+
+#: gnulib-lib/getopt.c:547 gnulib-lib/getopt.c:576
+#, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr "%s: la modifilo '%s' estas plursenca; ebloj:"
+
+#: gnulib-lib/getopt.c:624 gnulib-lib/getopt.c:628
+#, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr "%s: la modifilo '--%s' ne prenas argumenton\n"
+
+#: gnulib-lib/getopt.c:637 gnulib-lib/getopt.c:642
+#, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr "%s: la modifilo '%c%s' ne prenas argumenton\n"
+
+#: gnulib-lib/getopt.c:685 gnulib-lib/getopt.c:704
+#, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr "%s: la modifilo '%s' bezonas argumenton\n"
+
+#: gnulib-lib/getopt.c:742 gnulib-lib/getopt.c:745
+#, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr "%s: nerekonata modifilo '--%s'\n"
+
+#: gnulib-lib/getopt.c:753 gnulib-lib/getopt.c:756
+#, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr "%s: nerekonata modifilo '%c%s'\n"
+
+#: gnulib-lib/getopt.c:805 gnulib-lib/getopt.c:808
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: nevalida modifilo -- '%c'\n"
+
+#: gnulib-lib/getopt.c:861 gnulib-lib/getopt.c:878 gnulib-lib/getopt.c:1088
+#: gnulib-lib/getopt.c:1106
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: la modifilo bezonas argumenton -- '%c'\n"
+
+#: gnulib-lib/getopt.c:934 gnulib-lib/getopt.c:950
+#, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr "%s: la modifilo '-W %s' estas plursenca\n"
+
+#: gnulib-lib/getopt.c:974 gnulib-lib/getopt.c:992
+#, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr "%s: la modifilo '-W %s' ne prenas argumenton\n"
+
+#: gnulib-lib/getopt.c:1013 gnulib-lib/getopt.c:1031
+#, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr "%s: la modifilo '-W %s' bezonas argumenton\n"
+
+#: gnulib-lib/xmalloc.c:37
+#, c-format
+msgid "memory exhausted"
+msgstr "memoro elĉerpita"
+
+#: src/envsubst.c:112 src/gettext.c:133 src/ngettext.c:123
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Kopirajto © %s Free Software Foundation, Inc.\n"
+"Rajtigilo GPLv3+: GNU GPL, versio 3 aŭ posta <http://gnu.org/licenses/gpl.html>\n"
+"Ĉi tio estas libera programo; vi estas libera ŝanĝi kaj redistribui ĝin.\n"
+"Estas NENIA GARANTIO, ĝis la grado leĝe permesata.\n"
+
+#: src/envsubst.c:118 src/gettext.c:139 src/ngettext.c:129
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Verkita de %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:118
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:127 src/gettext.c:157 src/ngettext.c:141
+#, c-format
+msgid "too many arguments"
+msgstr "tro da argumentoj"
+
+#: src/envsubst.c:138 src/gettext.c:167 src/ngettext.c:153
+#, c-format
+msgid "missing arguments"
+msgstr "argumentoj mankas"
+
+#: src/envsubst.c:171 src/gettext.c:238 src/ngettext.c:207
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Provu '%s --help' por pli da informoj.\n"
+
+#: src/envsubst.c:176
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Uzado: %s [MODIFILO] [ŜEL-FORMATO]\n"
+
+#: src/envsubst.c:181
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "Substituas la valorojn de mediaj variabloj.\n"
+
+#: src/envsubst.c:185
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Funkcia reĝimo:\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             eligi la variablojn aperantajn en ŜEL-FORMATO\n"
+
+#: src/envsubst.c:192
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Informa eligo:\n"
+
+#: src/envsubst.c:195
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  montri ĉi tiun helpon kaj eligi\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               eligi informon pri la versio kaj eliri\n"
+
+#: src/envsubst.c:202
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"En normala funkciado, la normala enigo estas kopiata al la normala eligo,\n"
+"kun referencoj al mediaj variabloj kun la formo $VARIABLO aŭ ${VARIABLO}\n"
+"anstataŭigitaj per la respondaj valoroj. Se SHELL-FORMAT estas specifita,\n"
+"nur tiuj mediaj variabloj, kiuj estas referencitaj en SHELL-FORMAT, estas\n"
+"substituataj; alia ĉiuj referencoj al mediaj variabloj aperantaj en la\n"
+"normala enigo estas substituataj.\n"
+
+#: src/envsubst.c:211
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"Kiam --variables estas specifita, la normala enigo estas ignorata, kaj la\n"
+"eligo konsistas el la mediaj variabloj referencitaj en SHELL-FORMAT,\n"
+"unu en ĉiu linio.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:219 src/gettext.c:279 src/ngettext.c:245
+msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+msgstr "Raportu cimojn al <bug-gnu-gettext@gnu.org>.\n"
+
+#: src/envsubst.c:442
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "eraro dum legado de \"%s\""
+
+#: src/envsubst.c:443
+msgid "standard input"
+msgstr "normala enigo"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:139 src/ngettext.c:129
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:243
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Uzado: %s [MODIFILO] [[TEXTDOMAIN] MSGID]\n"
+"aŭ:    %s [MODIFILO] -s [MSGID]...\n"
+
+#: src/gettext.c:249
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "Montru lokalingvan tradukon de teksta mesaĝo.\n"
+
+#: src/gettext.c:253
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -n                        suppress trailing newline\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        ŝalti tradukadon de iuj eskapokodoj\n"
+"  -E                        (ignorata pro kongrueco)\n"
+"  -h, --help                montri ĉi tiun helpon kaj eliri\n"
+"  -n                        ne eligi finan linifinon\n"
+"  -V, --version             montri informon pri la versio kaj eliri\n"
+"  [TEXTDOMAIN] MSGID        trovi tradukitan mesaĝon, kiu respondas al\n"
+"                            MSGID el TEXTDOMAIN\n"
+
+#: src/gettext.c:264
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Se la parametro TEXTDOMAIN ne estas donita, la media variable TEXTDOMAIN\n"
+"estas uzata. Se la mesaĝkatalogo ne estas trovita en la kutima dosierujo,\n"
+"alia dosierujo povas esti specifita per la media variablo TEXTDOMAINDIR.\n"
+"Uzate kun la modifilo -s, la programo kondutas kiel la komando 'echo'.\n"
+"Tamen, ĝi ne simple kopias siajn argumentojn al la normala eligo;\n"
+"anstataŭe, tiuj mesaĝoj trovitaj en la elektita katalogo estas tradukataj.\n"
+"Normala serĉdosierujo: %s\n"
+
+#: src/ngettext.c:212
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Uzado: %s [MODIFILO] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"Montri lokalingvan tradukon de teksta mesaĝo, kies gramatika formo\n"
+"dependas de nombro.\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  -d, --domain=TEXTDOMAIN   trovi tradukitan mesaĝon el TEXTDOMAIN\n"
+"  -e                        ŝalti tradukadon de iuj eskapokodoj\n"
+"  -E                        (ignorata pro kongrueco)\n"
+"  -h, --help                montri ĉi tiun helpon kaj eliri\n"
+"  -V, --version             montri informon pri la versio kaj eliri\n"
+"  [TEXTDOMAIN]              trovi tradukitan mesaĝon el TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        traduki MSGID (singulare) / MSGID-PLURAL (plurale)\n"
+"  COUNT                     elekti singularon/pluralon per ĉi tiu valoro\n"
+
+#: src/ngettext.c:233
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Se la parametro TEXTDOMAIN ne estas donita, la media variable TEXTDOMAIN\n"
+"estas uzata. Se la mesaĝkatalogo ne estas trovita en la kutima dosierujo,\n"
+"alia dosierujo povas esti specifita per la media variablo TEXTDOMAINDIR.\n"
+"Normala serĉdosierujo: %s\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: nepermesata modifilo -- %c\n"

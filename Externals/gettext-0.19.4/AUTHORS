@@ -1,0 +1,57 @@
+Authors of GNU gettext.
+
+The following contributions warranted legal paper exchanges with the
+Free Software Foundation.  Also see files ChangeLog and THANKS.
+
+GETTEXT         Ulrich Drepper
+Assigns program and future changes.
+
+GETTEXT         Peter Miller
+Assigns past and future changes.
+
+GETTEXT         François Pinard
+Assigns past and future changes.
+
+GETTEXT         Ben Kasmin Bullock
+Disclaims changes to manual.
+
+GETTEXT         Bruno Haible
+Assigns past and future changes.
+
+GETTEXT         Tim Van Holder
+Assigns past and future changes.
+
+GETTEXT         Tommy Johansson
+Assigns changes. (changed: xgettext.c, configure.in; added: x-java.[lh])
+
+GETTEXT         Karl Eichwalder
+Assigns past and future changes.
+GETTEXT         SuSE Linux AG                   2002-07-03
+Disclaimer for Karl Eichwalder, in the past and for the next 5 years.
+
+GETTEXT         Alexandre Duret-Lutz
+Assigns past and future changes.
+
+GETTEXT         Guido Flohr
+Assigns past and future changes.
+
+GETTEXT         Michele Cicciotti alias KJK::Hyperion
+Assigns past and future changes.
+
+GETTEXT         Noritada Kobayashi
+Assigns past and future changes.
+
+GETTEXT         KO Myung-Hun
+Assigns Past and Future Changes
+
+GETTEXT         Lubomir Remak
+Assigns Past and Future Changes
+
+GETTEXT         Daiki Ueno
+Assigns Past and Future Changes
+
+GETTEXT         Miguel Angel Arruga Vivas
+Assigns past and future Changes
+
+GETTEXT         FutreLAB, AG
+Assigns past and future changes

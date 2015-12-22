@@ -1,0 +1,327 @@
+# Irish translations for gettext-runtime.
+# Copyright (C) 2004 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext-runtime package.
+# Kevin Patrick Scannell <scannell@SLU.EDU>, 2005, 2006, 2007.
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-runtime 0.16.2-pre5\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2014-12-24 16:27+0900\n"
+"PO-Revision-Date: 2007-10-14 12:15-0500\n"
+"Last-Translator: Kevin Patrick Scannell <kscanne@gmail.com>\n"
+"Language-Team: Irish <gaeilge-gnulinux@lists.sourceforge.net>\n"
+"Language: ga\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "earráid sa scríobh"
+
+#: gnulib-lib/error.c:191
+msgid "Unknown system error"
+msgstr "Earráid chórais anaithnid"
+
+#: gnulib-lib/getopt.c:547 gnulib-lib/getopt.c:576
+#, fuzzy, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr "%s: Tá an rogha `%s' débhríoch\n"
+
+#: gnulib-lib/getopt.c:624 gnulib-lib/getopt.c:628
+#, fuzzy, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr "%s: ní cheadaítear argóint i ndiaidh na rogha `--%s'\n"
+
+#: gnulib-lib/getopt.c:637 gnulib-lib/getopt.c:642
+#, fuzzy, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr "%s: ní cheadaítear argóint i ndiaidh na rogha `%c%s'\n"
+
+#: gnulib-lib/getopt.c:685 gnulib-lib/getopt.c:704
+#, fuzzy, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr "%s: tá argóint de dhíth i ndiaidh na rogha `%s'\n"
+
+#: gnulib-lib/getopt.c:742 gnulib-lib/getopt.c:745
+#, fuzzy, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr "%s: rogha anaithnid `--%s'\n"
+
+#: gnulib-lib/getopt.c:753 gnulib-lib/getopt.c:756
+#, fuzzy, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr "%s: rogha anaithnid `%c%s'\n"
+
+#: gnulib-lib/getopt.c:805 gnulib-lib/getopt.c:808
+#, fuzzy, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: rogha neamhbhailí -- %c\n"
+
+#: gnulib-lib/getopt.c:861 gnulib-lib/getopt.c:878 gnulib-lib/getopt.c:1088
+#: gnulib-lib/getopt.c:1106
+#, fuzzy, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: tá argóint de dhíth i ndiaidh na rogha -- %c\n"
+
+#: gnulib-lib/getopt.c:934 gnulib-lib/getopt.c:950
+#, fuzzy, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr "%s: Tá an rogha `-W %s' débhríoch\n"
+
+#: gnulib-lib/getopt.c:974 gnulib-lib/getopt.c:992
+#, fuzzy, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr "%s: ní cheadaítear argóint i ndiaidh na rogha `-W %s'\n"
+
+#: gnulib-lib/getopt.c:1013 gnulib-lib/getopt.c:1031
+#, fuzzy, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr "%s: tá argóint de dhíth i ndiaidh na rogha `%s'\n"
+
+#: gnulib-lib/xmalloc.c:37
+#, c-format
+msgid "memory exhausted"
+msgstr "cuimhne ídithe"
+
+#: src/envsubst.c:112 src/gettext.c:133 src/ngettext.c:123
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Copyright © %s Free Software Foundation, Inc.\n"
+"Ceadúnas GPLv3+: GNU GPL, leagan 3 nó níos nuaí <http://gnu.org/licenses/gpl.html>\n"
+"Is saorbhogearra é seo: ceadaítear duit é a athrú agus a athdháileadh.\n"
+"Níl baránta AR BITH ann, an oiread atá ceadaithe de réir dlí.\n"
+
+#: src/envsubst.c:118 src/gettext.c:139 src/ngettext.c:129
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Le %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:118
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:127 src/gettext.c:157 src/ngettext.c:141
+#, c-format
+msgid "too many arguments"
+msgstr "an iomarca argóintí"
+
+#: src/envsubst.c:138 src/gettext.c:167 src/ngettext.c:153
+#, c-format
+msgid "missing arguments"
+msgstr "argóintí ar iarraidh"
+
+#: src/envsubst.c:171 src/gettext.c:238 src/ngettext.c:207
+#, fuzzy, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Bain triail as `%s --help' chun tuilleadh eolais a fháil.\n"
+
+#: src/envsubst.c:176
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Úsáid: %s [ROGHA] [FORMÁID-BHLAOISCE]\n"
+
+#: src/envsubst.c:181
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "Ionadaigh na luachanna d'athróga timpeallachta.\n"
+
+#: src/envsubst.c:185
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Mód oibre:\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             aschuir na hathróga atá san FHORMÁID-BHLAOISCE\n"
+
+#: src/envsubst.c:192
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Aschur faisnéiseach:\n"
+
+#: src/envsubst.c:195
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  taispeáin an chabhair seo agus scoir\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               taispeáin eolas faoin leagan agus scoir\n"
+
+#: src/envsubst.c:202
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"Sa ghnáthmhód, cóipeáil ionchur caighdeánach go haschur caighdeánach, le\n"
+"tagairtí d'athróga timpeallachta san fhoirm $ATHRÓG nó ${ATHRÓG}\n"
+"ionadaithe lena luachanna.  Má tá FORMÁID-BHLAOISCE sonraithe,\n"
+"ná hionadaigh ach na hathróga timpeallachta atá san FHORMÁID-BHLAOISCE;\n"
+"i ngach cás eile, ionadaigh gach uile athróg thimpeallachta san ionchur\n"
+"caighdeánach.\n"
+
+#: src/envsubst.c:211
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"Le --variables, déan neamhaird den ionchur caighdeánach, agus taispeáin na\n"
+"hathróga timpeallachta atá san FHORMÁID-BHLAOISCE, ceann sa líne.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:219 src/gettext.c:279 src/ngettext.c:245
+msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+msgstr "Seol tuairiscí fabhtanna chuig <bug-gnu-gettext@gnu.org>.\n"
+
+#: src/envsubst.c:442
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "earráid agus \"%s\" á léamh"
+
+#: src/envsubst.c:443
+msgid "standard input"
+msgstr "ionchur caighdeánach"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:139 src/ngettext.c:129
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:243
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Úsáid: %s [ROGHA] [[FEARANN] MSGID]\n"
+"nó:    %s [ROGHA] -s [MSGID]...\n"
+
+#: src/gettext.c:249
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "Taispeáin an t-aistriúchán de theachtaireacht sa teanga dhúchais.\n"
+
+#: src/gettext.c:253
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -n                        suppress trailing newline\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  -d, --domain=FEARANN      faigh teachtaireachtaí aistrithe ón FHEARANN\n"
+"  -e                        fairsing roinnt seichimh éalúcháin\n"
+"  -E                        (gan feidhm, comhoiriúnacht)\n"
+"  -h, --help                taispeáin an chabhair seo agus scoir\n"
+"  -n                        ná taispeáin líne nua foirceanta\n"
+"  -V, --version             taispeáin eolas faoin leagan agus scoir\n"
+"  [TEXTDOMAIN] MSGID        faigh an teachtaireacht aistrithe comhfhreagrach\n"
+"                            leis an MSGID ón FHEARANN\n"
+
+#: src/gettext.c:264
+#, fuzzy, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Mura bhfuil an paraiméadar FEARANN sonraithe, cinntear an fearann de réir na\n"
+"hathróige timpeallachta TEXTDOMAIN.  Mura n-aimsítear catalóg na\n"
+"dteachtaireachtaí sa ghnáthchomhadlann, is féidir comhadlann eile a shocrú\n"
+"trí úsáid na hathróige timpeallachta TEXTDOMAINDIR.\n"
+"Leis an rogha -s, is cosúil leis an ordú `echo',\n"
+"ach in ionad na hargóintí a chóipeáil go stdout gan athrú, aistríonn sé na\n"
+"teachtaireachtaí atá aimsithe sa chatalóg roghnaithe.\n"
+"Gnáthchomhadlann chuardaigh: %s\n"
+
+#: src/ngettext.c:212
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Úsáid: %s [ROGHA] [FEARANN] MSGID MSGID-PLURAL LÍON\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"Taispeáin an t-aistriúchán sa teanga dhúchais de theachtaireacht\n"
+"a bhfuil a foirm ghramadach spleách ar uimhir.\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  -d, --domain=FEARANN      faigh teachtaireachtaí aistrithe ón FHEARANN\n"
+"  -e                        fairsing roinnt seichimh éalúcháin\n"
+"  -E                        (gan feidhm, comhoiriúnacht)\n"
+"  -h, --help                taispeáin an chabhair seo agus scoir\n"
+"  -V, --version             taispeáin eolas faoin leagan agus scoir\n"
+"  [FEARANN]                 faigh teachtaireachtaí aistrithe ón FHEARANN\n"
+"  MSGID MSGID-PLURAL        aistrigh MSGID (uatha) / MSGID-PLURAL (iolra)\n"
+"  LÍON                      roghnaigh uatha/iolra de réir an luacha seo\n"
+
+#: src/ngettext.c:233
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Mura bhfuil an paraiméadar FEARANN sonraithe, cinntear an fearann de réir na\n"
+"hathróige timpeallachta TEXTDOMAIN.  Mura n-aimsítear catalóg na\n"
+"dteachtaireachtaí sa ghnáthchomhadlann, is féidir comhadlann eile a shocrú\n"
+"trí úsáid na hathróige timpeallachta TEXTDOMAINDIR.\n"
+"Gnáthchomhadlann chuardaigh: %s\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: rogha neamhcheadaithe -- %c\n"
+
+#~ msgid ""
+#~ "Copyright (C) %s Free Software Foundation, Inc.\n"
+#~ "This is free software; see the source for copying conditions.  There is "
+#~ "NO\n"
+#~ "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "
+#~ "PURPOSE.\n"
+#~ msgstr ""
+#~ "Copyright © %s Free Software Foundation, Inc.\n"
+#~ "Is saorbhogearra an ríomhchlár seo; féach ar an bhunchód le haghaidh\n"
+#~ "coinníollacha cóipeála.  Níl baránta ar bith ann; go fiú níl baránta ann\n"
+#~ "d'INDÍOLTACHT nó FEILIÚNACHT D'FHEIDHM AR LEITH.\n"

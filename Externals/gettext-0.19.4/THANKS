@@ -1,0 +1,364 @@
+The GNU gettext package is the first full featured package
+directed to NLS support in the GNU packages.  It has its roots in the
+GNU C Library development and of course the (never officially
+released) GNU locale package, mostly written by Jim Meyering.
+Therefore a lot of people participated in the process of creating this
+software.
+
+Written in April-June 1995 by
+Ulrich Drepper          drepper@ipd.info.uni-karlsruhe.de
+
+Special thanks to François Pinard <pinard@iro.umontreal.ca>, who did a
+major part of the testing, provided the Emacs PO mode, and wrote major
+parts of the manual.
+
+Peter Miller <millerp@canb.auug.org.au> invested a lot of his time in making
+gettext usable in other GNU projects and wrote the msgmerge, msgcmp, and
+msgunfmt programs.
+
+Guido Flohr <guido@imperia.net> wrote the Perl backend of xgettext and
+the libintl-perl package.
+
+Gora Mohanty <gora_mohanty@yahoo.co.in> wrote the tutorial.
+
+Thanks to all of the following for their valuable
+hints/fixes/discussions/contributions:
+
+Aaron Stone             aaron@serendipity.cx
+Aaron Williams          aaron_williams@net.com
+Abel Cheung             abelcheung@gmail.com
+Adam Heath              doogie@debian.org
+Adrian Bunk             bunk@fs.tum.de
+Akim Demaille           akim@epita.fr
+Alain Bench             messtic@oreka.com
+Alain Guibert           derogaton+bggt@oreka.com, alguibert@free.fr
+Albert Chin-A-Young     china@thewrittenword.com
+Alexander Potashev      aspotashev@gmail.com
+Alexander V. Lukyanov   lav@yars.free.net
+Alexander Turbov        AVTurbov@gwise.eltech.ru
+Alexandre Duret-Lutz    aduret@enst.fr
+Alfred M. Szmidt        ams@kemisten.nu
+Alfredo                 alfredio@ciaoweb.it
+Amos Batto              amosbatto@yahoo.com
+Andreas Buening         andreas.buening@nexgo.de
+Andreas Fischer         a.fischer@asentics.de
+Andreas Schwab          schwab@issan.informatik.uni-dortmund.de
+Andreas Stricker        astricker@futurelab.ch
+Andrew Suffield         asuffield@debian.org
+Andrew V. Samoilov      kai@cmail.ru
+Andrew Walrond          andrew@walrond.org
+Andrew Zabolotny        zap@cobra.ru
+Andries Brouwer         andries.brouwer@cwi.nl
+Andriy Gapon            avg@icyb.net.ua
+Arkadiusz Miśkiewicz    arekm@pld-linux.org
+Arpad Biro              biro_arpad@yahoo.com
+Artem Vakhitov          temcat@mail.ru
+Arto C. Nirkko          anirkko@insel.ch
+Asgeir Frimannsson      asgeirf@redhat.com
+A. Sopicki              a.sopicki@gmx.de
+?                       atras-ch@mail.msiu.ru
+Bang Jun Young          bangjy@nownuri.nowcom.co.kr
+Barry A. Warsaw         barry@zope.com
+Behdad Esfahbod         behdad@cs.toronto.edu
+Ben Elliston            bje@redhat.com
+Benno Schulenberg       bensberg@justemail.net
+Benoît Sibaud           benoit.sibaud@rd.francetelecom.com
+Bernard Massot          bmassot@free.fr
+Bernhard Herzog         bernhard@users.sourceforge.net
+Bernhard Voelker        mail@bernhard-voelker.de
+Bethor                  bethor@gmx.li
+Bill Perry              wmperry@aventail.com
+Bjoern Voigt            bjoern@cs.tu-berlin.de
+Bob Rossi               bob_rossi@cox.net
+Bram Moolenaar          bram@moolenaar.net
+Bruno Haible            haible@ma2s2.mathematik.uni-karlsruhe.de
+Carl Fürstenberg        azatoth@gmail.com
+Carlo Wood              carlo@alinoe.com
+Carlos O'Donell         carlos@redhat.com
+Carlos Perelló Marín    carlos@gnome.org
+Cary Farah              cfarah@jjkeller.com
+Charles Wilson          cwilson@ece.gatech.edu
+Chris Pickett           chris.pickett@mail.mcgill.ca
+Chris Zubrzycki         beren@mac.com
+Christian Casteyde      casteyde.christian@free.fr
+Christian Neumair       chris@gnome-de.org
+Christian von Roques    roques@pond.sub.org
+Christoph Thielecke     u15119@hs-harz.de
+Christopher Seip        chris.seip@hp.com
+Chuck Berg              chuckhberg@yahoo.com
+Chusslove Illich (Часлав Илић)  caslav.ilic@gmx.net
+Claudio Fontana         claudio@gnu.org
+Clytie Siddall          clytie@riverland.net.au
+Colin Marquardt         colin@marquardt-home.de
+Colin Watson            cjwatson@debian.org
+Crispin Flowerday       cflowerday@zeus.com
+Daiki Ueno              ueno@gnu.org
+Dalibor Topic           robilad@kaffe.org
+Daniel Burrows          dburrows@debian.org
+Daniel Leidert          daniel.leidert@wgdd.de
+Daniel Schepler         schepler@math.berkeley.edu
+Danilo Šegan (Данило Шеган)  danilo@gnome.org
+Dave Patton             dpatton@confluence.org
+David Faure             faure@kde.org
+David Fraser            davidf@sjsoft.com
+Denis Barbier           barbier@linuxfr.org
+Denis Excoffier         Denis.Excoffier@free.fr
+Deniz Akkus             deniz@arayan.com
+Dennis Bjorklund        db@zigo.dhs.org
+Dennis Schridde         devurandom@gmx.net
+Derek Clegg             derek_clegg@next.com
+Derek Robert Price      derek@ximbiot.com
+Dwayne Bailey           dwayne@obsidian.co.za
+Earnie Boyd             earnie_boyd@yahoo.com
+Ed Avis                 avised@kbcfp.com
+Eddy Petrişor           eddy.petrisor@gmail.com
+Edmund Grimley Evans    edmundo@rano.org
+Egmont Koblinger        egmont@uhulinux.hu
+Eli Zaretskii           eliz@is.elta.co.il
+Enrico Scholz           enrico.scholz@informatik.tu-chemnitz.de
+Enrique Melero Gómez    justine@iprolink.ch
+Eric Backus             ericb@lsid.hp.com
+Eric Blake              ebb9@byu.net
+Eric Botcazou           ebotcazou@libertysurf.fr
+Erik Sigra              sigra@home.se
+Farzaneh Sarafraz       farzaneh@farsiweb.info
+Fatih Demir             kabalak@gtranslator.org
+Felipe Contreras        al593181@mail.mty.itesm.mx
+Felix Natter            f.natter@ndh.net
+Finlay Dobbie           finlay.dobbie@gmail.com
+Francesco Potortì       pot@fly.cnuce.cnr.it
+Frank Donahoe           fdonahoe@wilkes1.wilkes.edu
+Frédéric L. W. Meunier  0@pervalidus.tk
+Gabor Kelemen           kelemeng@gnome.hu
+Gabriele Stilli         superenzima@libero.it
+Gaëtan Frenoy           gaetan@frenoy.net
+Gary V. Vaughan         gary@gnu.org
+Gerald Combs            gerald@ethereal.com
+Glenn Popelka           gpp@mail.gpopelka.com
+Golubev I. N.           gin@mo.msk.ru
+Greg McGary             gkm@magilla.cichlid.com
+Göran Uddeborg          gvran@uddeborg.pp.se
+Guillem Jover           guillem@hadrons.org
+Hagen Fritsch           itooktheredpill@gmx.de
+Haibin Zhang            dragzhb@yahoo.com.cn
+Han Boetes              han@mijncomputer.nl
+Hans Ulrich Niedermann  debian@n-dimensional.de
+Henry Nelson            netb@yuba.ne.jp
+H. J. Lu                hjl@lucon.org
+Hrvoje Niksic           hniksic@srce.hr
+Igor Brezac             igor@ipass.net
+Ivailo                  xakepa10@gmail.com
+I. Thomas Cundiff       tcundiff@eclipse.net
+Jacob (=Jouk) Jansen    joukj@hrem.stm.tudelft.nl
+Jakub Bogusz            qboosh@pld-linux.org
+Jakub Jelinek           jj@sunsite.ms.mff.cuni.cz
+Jakub Wilk              jwilk@debian.org
+James A Baker           jabaker@mac.com
+James Henstridge        james@daa.com.au
+James Youngman          jay@gnu.org
+Jan Djärv               jan.djarv@mbox200.swipnet.se
+Jan-Marek Glogowski     glogow@stud.fbi.fh-darmstadt.de
+Jan Schneider           jan@horde.org
+Jason Keltz             jas@cs.yorku.ca
+Javier Fernández-Sanguino Peña  jfs@computer.org
+Javier Jardón           jjardon@gnome.org
+Jeff Bonggren           jbon@cfl.rr.com
+Jeff Rizzo              riz@netbsd.org
+Jens A. Tkotz           jens@peino.de
+Jens Petersen           petersen@redhat.com
+Jesper Fehrlund         jesper@prisjakt.nu
+Jiang Xin               worldhello.net@gmail.com
+Jim Meyering            meyering@na-net.ornl.gov
+Jochen Hein             jochen@jochen.org
+Joel Reicher            joel@panacea.null.org
+Johan Liljegren         johan@johanliljegren.se
+Jonas 'Sortie' Termansen sortie@maxsi.org
+Jörg Schilling          schilling@fokus.fraunhofer.de
+Joey Hess               joeyh@debian.org
+Jonas Koch Bentzen      jonas@understroem.dk
+Joosep-Georg Järvemaa   joosep-georg.jarvemaa_4898@eesti.ee
+Jorn Baayen             jbaayen@dds.nl
+Josep Puigdemont        baldrick@terra.es
+Joshua R. Poulson       jrp@plaza.ds.adp.com
+Jouko Orava             joorava@pcu.helsinki.fi
+Jozef Riha              jose1711@gmail.com
+Juan Manuel Guerrero    st001906@hrz1.hrz.tu-darmstadt.de
+Jürgen A. Erhard        jae+debian@jerhard.org
+Julien Chiron           julien.chiron@univ.u-3mrs.fr
+Jun Sawataishi          jsawa@attglobal.net
+Kalle Niemitalo         tosi@ees2.oulu.fi
+Karl Berry              kb@cs.umb.edu
+Karl Chen               quarl@hkn.eecs.berkeley.edu
+Karl Eichwalder         ke@suse.de
+Kaveh R. Ghazi          ghazi@caip.rutgers.edu
+Kenichi Handa           handa@etl.go.jp
+Ken Y. Clark            kclark@logsoft.com
+Kevin Ryde              user42@zip.com.au
+Kingpin                 mthurn@copper.dulles.tasc.com
+Kiyotaka Sakai          ksakai@isr.co.jp
+Kouichi Hashikawa       z01a7ksy@cs.ecip.tohoku.ac.jp
+Larry Schwimmer         rosebud@cyclone.stanford.edu
+Lars Hecking            lhecking@nmrc.ie
+Lars Wendler            polynomial-c@gentoo.org
+Laurent Bourbeau        bourbeau@progiciels-bpi.ca
+Len Makin               len@hpc.csiro.au
+Leonard den Ottolander  leonard@den.ottolander.nl
+Leonardo Fontenelle     leo.fontenelle@gmail.com
+Liu Garfield            jackliu9999@hotmail.com
+Lorenzo Gil Sanchez     lgs@sicem.biz
+Luke Schierer           lschiere@rackspace.com
+Maciej W. Rozycki       macro@ds2.pg.gda.pl
+Mads Martin Joergensen  mmj@suse.de
+Marc Prior              MarcPrior@compuserve.com
+Marcel Telka            marcel@telka.sk
+Marcus Daniels          marcus@sysc.pdx.edu
+Marcus Meissner         meissner@suse.de
+Marin Purgar            pmc@asgard.hr
+Marius Schamschula      mschamschula@gmail.com
+Mark A. Wicks           mwicks@kettering.edu
+Mark D. Baushke         mdb@cvshome.org
+Mark Detrick            Mark.Detrick@mcdata.com
+Mark Eichin             eichin@thok.org
+Mark Junker             mjscod@gmx.de
+Martin Mokrejš          mmokrejs@natur.cuni.cz
+Martin Pitt             mpitt@debian.org
+Martin Quinson          martin.quinson@ens-lyon.fr
+Martin v. Löwis         martin@loewis.home.cs.tu-berlin.de
+Matt Dreezer            matthew.dreezer@edl.uk.eds.com
+Matthew McGillis        matthew@jenika.com
+Matthias Clasen         mclasen@redhat.com
+Mattias Ellert          mattias.ellert@tsl.uu.se
+Matthias Kiefer         kiefer@kde.org
+Max de Mendizabal       max@acer.com.mx
+Michael C. Toren        mct@toren.net
+Michael Opdenacker      m-opdenacker@ti.com
+Michael Schloh von Bennewitz  michael.schloh@cw.com
+Michael Stather         michaelstather@nuzi.de
+Michal Černoevič        Michal.Cernoevic@pvt.cz
+Michel Robitaille       robitail@iro.umontreal.ca
+Michele Locati          michele@locati.it
+Michelle Konzack        linux4michelle@freenet.de
+Miguel Ángel Arruga Vivas rosen644835@gmail.com
+Mike Frysinger          vapier@gentoo.org
+Miroslaw Dobrzanski-Neumann  mne@mosaic-ag.com
+?                       mus1876@gmx.info
+Nelson H. F. Beebe      beebe@math.utah.edu
+Nick Clifton            nickc@redhat.com
+Nicolas François        nicolas.francois@centraliens.net
+Niki Waibel             niki.waibel@newlogic.com
+Nils Magnus Larsgard    nmlarsgaard@atmel.no
+Nils Naumann            naumann@unileoben.ac.at
+Nina Kusnetsova         nina@ns.kinetics.nsc.ru
+Noah Friedman           friedman@splode.com
+Noah Slater             nslater@gmail.com
+Olly Betts              olly@survex.com
+O'Riva                  oriva@earthlink.net
+Owen Taylor             otaylor@redhat.com
+Pablo Saratxaga         pablo@mandrakesoft.com
+Paolo Bonzini           bonzini@gnu.org
+Paul D. Smith           psmith@gnu.org
+Paul Eggert             eggert@twinsun.com
+Paul Jarc               prj@po.cwru.edu
+Paul Martinolich        martinol@nrlssc.navy.mil
+Pavel Kharitonov        ineiev@gnu.org
+Pavel Raiskup           praiskup@redhat.com
+Pavel Roskin            proski@gnu.org
+Pekka Järveläinen       pj@csc.fi
+Pepa                    cerna.zelva@seznam.cz
+Perry Rapp              prapp@erols.com, lifelines_3_0_18@hotmail.com
+Perry Smith             pedz@easesoftware.com
+Peter Breitenlohner     peb@mppmu.mpg.de
+Pierre                  pierre42d@9online.fr
+Philipp Thomas          pthomas@suse.de
+Primoz Peterlin         primoz.peterlin@biofiz.mf.uni-lj.si
+Rafał Maszkowski        rzm@icm.edu.pl
+Ralf Corsepius          rc040203@freenet.de
+Ralf Menzel             menzel@ls6.cs.uni-dortmund.de
+Ralf Wildenhues         Ralf.Wildenhues@gmx.de
+Raphaël Zhou            xzhou@tlmcom.fr
+Recai Oktaş             roktas@omu.edu.tr
+Reinout van Schouwen    reinout@cs.vu.nl
+Reuben Thomas           rrt@sc3d.org
+Rhys Weatherley         rweather@zip.com.au
+Richard Hughes          hughsient@gmail.com
+Richard Lloyd           richard.lloyd@connectinternetsolutions.com
+Richard S. Blake        blakers@presence-group.com
+Richard Stallman        rms@gnu.org
+Rob Landley             rob@landley.net
+Rob Leslie              rob@mars.org
+Robert Millan           rmh@aybabtu.com
+Robert Vock             RobertVock@gmx.de
+Roberto Bagnara         bagnara@cs.unipr.it
+Rodrigo Stulzer Lopes   rodrigo@conectiva.com.br
+Roger Leigh             rl117@york.ac.uk
+Roland McGrath          roland@gnu.ai.mit.edu
+Ron Lee                 ron@debian.org
+Roozbeh Pournader       roozbeh@sharif.edu
+Ross Golder             ross@golder.org
+Roumen Petrov           bugtrack@roumenpetrov.info
+Ryan Anderson           ryan@autoweb.net
+Ryan Schmidt            gettext-2007b@ryandesign.com
+Sakai Kiyotaka          ksakai@netwk.ntt-at.co.jp
+Sam Hocevar             sam@zoy.org
+Sam Steingold           sds@gnu.org
+Santiago Vila Doncel    sanvila@unex.es
+Sebastian Günther       sguenther@gmx.de
+Sergey Poznyakoff       gray@mirddin.farlep.net
+Sergio Talens-Oliag     sto@debian.org
+Shaun McCance           shaunm@gnome.org
+Siddhesh Poyarekar      siddhesh@redhat.com
+Simon Josefsson         jas@extundo.com
+Simon Watts             swatts@ngms.eu.com
+Simos Xenitellis        simos74@gmx.net
+Stanislav Brabec        sbrabec@suse.cz
+Stanislav Visnovsky     visnovsky@nenya.ms.mff.cuni.cz
+Stefan Hundhammer       sh@suse.de
+Stefan Kost             kost@imn.htwk-leipzig.de
+Stefan Kowski           stefan.kowski@parks-informatik.de
+Stefan Nordhausen       nordhaus@informatik.hu-berlin.de
+Stefano Lattarini       stefano.lattarini@gmail.com
+Steffen Macke           sdteffen@gmail.com
+Stepan Kasal            kasal@math.cas.cz
+Stephan Kulow           coolo@kde.org
+Stephane Matamontero    stephane.matamontero@gemodek.de
+Stephen Cartwright      sgcartwr@ucalgary.ca
+Stephen Gildea          gildea@stop.mail-abuse.org
+Steve Ellcey            sellcey@mips.com
+Steven Edwards          Steven_Ed4153@yahoo.com
+Svante Seleborg         svante@axantum.com
+Sven Joachim            sven_joachim@web.de
+Sven Utcke              utcke@informatik.uni-hamburg.de
+Sylvain Beucler         beuc@gnu.org
+Thomas E. Dickey        dickey@clark.net
+Thomas Vander Stichele  thomas@apestaart.org
+Thorsten Kukuk          kukuk@suse.de
+Thorsten Maerz          torte@netztorte.de
+Tim Mooney              mooney@dogbert.cc.ndsu.nodak.edu
+Tim Van Holder          tim.van.holder@pandora.be
+Tom Tromey              tromey@cygnus.com
+Tommy                   mesilliac@gmail.com
+Tommy Johansson         tommy@kanalen.org
+Tor Lillqvist           tml@iki.fi
+Trond Eivind Glomsrød   teg@redhat.com
+Uwe Ohse                uwe@tirka.gun.de
+Vaclav Haisman          V.Haisman@sh.cvut.cz
+Valery Beaud            valery.beaud@art.alcatel.fr
+Vera Mickael            vera.mickael@free.fr
+Veronica Loell          info@nakawe.se
+Vincent Torri           vtorri@univ-evry.fr
+Volodymyr M. Lisivka    lvm@mystery.lviv.net
+Wang Jian               lark@linux.net.cn
+Warren L Dodge          warrend@mdhost.cse.tek.com
+Werner Koch             wk@gnupg.org
+Werner Lemberg          wl@gnu.org
+Wesley J. Landaker      wjl@icecavern.net
+William J Poser         wjposer@ldc.upenn.edu
+Wojciech Polak          polak@gnu.org
+Xiong Jiang             jxiong@offtopic.org
+Yann Dirson             ydirson@altern.org
+Yaakov Selkowitz        yselkowi@redhat.com
+Yves Codet              ycodet@club-internet.fr
+
+
+Thanks to all members of the translation teams for the different
+languages.

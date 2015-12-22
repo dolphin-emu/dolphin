@@ -261,4 +261,7 @@ public:
 
 private:
 	static const char* GetLocale(Language languageID);
+#ifdef _WIN32
+	static LCID GetLCID(Language languageID);
+#endif
 };

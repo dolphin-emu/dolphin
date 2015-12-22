@@ -1,0 +1,1667 @@
+# Estonian translations for GNU gettext package.
+# Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+# Ivar Smolin <okul@linux.ee>, 2001.
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.10.37\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2014-12-24 16:27+0900\n"
+"PO-Revision-Date: 2001-04-30 16:25+0200\n"
+"Last-Translator: Ivar Smolin <okul@linux.ee>\n"
+"Language-Team: Estonian <et@li.org>\n"
+"Language: et\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-15\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr ""
+
+#: gnulib-lib/error.c:191
+msgid "Unknown system error"
+msgstr "Tundmatu süsteemne viga"
+
+#: gnulib-lib/getopt.c:547 gnulib-lib/getopt.c:576
+#, fuzzy, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr "%s: võti `%s' on mitmetähenduslik\n"
+
+#: gnulib-lib/getopt.c:624 gnulib-lib/getopt.c:628
+#, fuzzy, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr "%s: võtmel `--%s' ei tohi olla argumente\n"
+
+#: gnulib-lib/getopt.c:637 gnulib-lib/getopt.c:642
+#, fuzzy, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr "%s: võtmel `%c%s' ei tohi olla argumente\n"
+
+#: gnulib-lib/getopt.c:685 gnulib-lib/getopt.c:704
+#, fuzzy, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr "%s: võtme `%s' järel peab olema argument\n"
+
+#: gnulib-lib/getopt.c:742 gnulib-lib/getopt.c:745
+#, fuzzy, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr "%s: tundmatu võti `--%s'\n"
+
+#: gnulib-lib/getopt.c:753 gnulib-lib/getopt.c:756
+#, fuzzy, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr "%s: tundmatu võti `%c%s'\n"
+
+#: gnulib-lib/getopt.c:805 gnulib-lib/getopt.c:808
+#, fuzzy, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: vigane võti -- %c\n"
+
+#: gnulib-lib/getopt.c:861 gnulib-lib/getopt.c:878 gnulib-lib/getopt.c:1088
+#: gnulib-lib/getopt.c:1106
+#, fuzzy, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: võtme järel peab olema argument -- %c\n"
+
+#: gnulib-lib/getopt.c:934 gnulib-lib/getopt.c:950
+#, fuzzy, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr "%s: võti `-W %s' on mitmetähenduslik\n"
+
+#: gnulib-lib/getopt.c:974 gnulib-lib/getopt.c:992
+#, fuzzy, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr "%s: võtmel `-W %s' ei tohi olla argumente\n"
+
+#: gnulib-lib/getopt.c:1013 gnulib-lib/getopt.c:1031
+#, fuzzy, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr "%s: võtme `%s' järel peab olema argument\n"
+
+#: gnulib-lib/xmalloc.c:37
+#, c-format
+msgid "memory exhausted"
+msgstr "mälu sai otsa"
+
+#: src/envsubst.c:112 src/gettext.c:133 src/ngettext.c:123
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+
+#: src/envsubst.c:118 src/gettext.c:139 src/ngettext.c:129
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Selle programmi on kirjutanud %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:118
+msgid "Bruno Haible"
+msgstr ""
+
+#: src/envsubst.c:127 src/gettext.c:157 src/ngettext.c:141
+#, c-format
+msgid "too many arguments"
+msgstr "liiga palju argumente"
+
+#: src/envsubst.c:138 src/gettext.c:167 src/ngettext.c:153
+#, c-format
+msgid "missing arguments"
+msgstr "argumendid on puudu"
+
+#: src/envsubst.c:171 src/gettext.c:238 src/ngettext.c:207
+#, fuzzy, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Täiendava info saamiseks proovi `%s --help'.\n"
+
+#: src/envsubst.c:176
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr ""
+
+#: src/envsubst.c:181
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr ""
+
+#: src/envsubst.c:185
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr ""
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr ""
+
+#: src/envsubst.c:192
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr ""
+
+#: src/envsubst.c:195
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr ""
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr ""
+
+#: src/envsubst.c:202
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+
+#: src/envsubst.c:211
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:219 src/gettext.c:279 src/ngettext.c:245
+#, fuzzy
+msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+msgstr "Vigadest teata aadressile <bug-gnu-utils@gnu.org>.\n"
+
+#: src/envsubst.c:442
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "viga \"%s\" lugemisel"
+
+#: src/envsubst.c:443
+msgid "standard input"
+msgstr "standardsisend"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:139 src/ngettext.c:129
+msgid "Ulrich Drepper"
+msgstr ""
+
+#: src/gettext.c:243
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+
+#: src/gettext.c:249
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr ""
+
+#: src/gettext.c:253
+#, fuzzy, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -n                        suppress trailing newline\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"Kasutamine: %s [VÕTI] [[[TEKSTIPIIRKOND] STRID] | [-s [STRID]...]]\n"
+"  -d, --domain=TEKSTIPIIRKOND   võtab tõlgitud stringid sellest piirkonnast\n"
+"  -e                            lubab erimärkide kasutamise\n"
+"  -E                            (eiratakse, kasutusel ühilduvuse pärast)\n"
+"  -h, --help                    väljastab käesoleva abiinfo ja lõpetab\n"
+"                                programmi töö\n"
+"  -n                            eemaldab relõpurunnused\n"
+"  -V, --version                 väljastab versiooniinfo ja lõpetab programmi\n"
+"                                töö\n"
+"  [TEKSTIPIIRKOND] STRID        võtab ainult tõlgitud stringid, mis asuvad\n"
+"                                määratud piirkonnas ja omavad identifikaatorit\n"
+"                                STRID\n"
+
+#: src/gettext.c:264
+#, fuzzy, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"\n"
+"Kui parameeter TEKSTIPIIRKOND on määramata, proovitakse seda väärtust lugeda\n"
+"keskkonnamuutujast TEXTDOMAIN. Kui tõlgete kataloogi ei leita\n"
+"tavakataloogist, proovitakse teist kataloogi, mille väärtust üritatakse\n"
+"lugeda keskkonnamuutujast TEXTDOMAINDIR.\n"
+"Võtme -s kasutamise puhul käitub programm nagu `echo' käsk.\n"
+"Kuid ta mitte ainule ei kopeeri argumende standardväljundisse vaid\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.!!!\n"
+"Standardne otsinukataloog: %s\n"
+
+#: src/ngettext.c:212
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr ""
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+
+#: src/ngettext.c:222
+#, fuzzy, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"Kasutamine: %s [VÕTI] [TEKSTIPIIRKOND] STRID STRID-MITMUS ARV\n"
+"  -d, --domain=TEKSTIPIIRKOND   võtab tõlgitud stringid sellest piirkonnast\n"
+"  -e                            lubab erimärkide kasutamise\n"
+"  -E                            (eiratakse, kasutusel ühilduvuse pärast)\n"
+"  -h, --help                    väljastab käesoleva abiinfo ja lõpetab\n"
+"                                programmi töö\n"
+"  -n                            eemaldab realõputunnused\n"
+"  -V, --version                 väljastab versiooniinfo ja lõpetab programmi\n"
+"                                töö\n"
+"  [TEKSTIPIIRKOND]              võtab ainult tõlgitud stringid, mis asuvad\n"
+"                                määratud piirkonnas\n"
+"  STRID STRID-MITMUS            tõlgib STRID (ainsus) / STRID-MITMUS (mitmus)\n"
+"  ARV                           valib ainsuse/mitmuse vormi sellele arvule\n"
+
+#: src/ngettext.c:233
+#, fuzzy, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"\n"
+"Kui parameeter TEKSTIPIIRKOND on määramata, proovitakse seda väärtust lugeda\n"
+"keskkonnamuutujast TEXTDOMAIN. Kui tõlgete kataloogi ei leita\n"
+"tavakataloogist, proovitakse teist kataloogi, mille väärtust üritatakse\n"
+"lugeda keskkonnamuutujast TEXTDOMAINDIR.\n"
+"Standardne otsinukataloog: %s\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: lubamatu võti -- %c\n"
+
+#~ msgid ""
+#~ "Copyright (C) %s Free Software Foundation, Inc.\n"
+#~ "This is free software; see the source for copying conditions.  There is "
+#~ "NO\n"
+#~ "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "
+#~ "PURPOSE.\n"
+#~ msgstr ""
+#~ "Copyright (C) %s Free Software Foundation, Inc.\n"
+#~ "Seda programmi levitatakse lootuses, et see on kasulik, kuid ILMA "
+#~ "IGASUGUSE\n"
+#~ "GARANTIITA; isegi KESKMISE/TAVALISE KVALITEEDI GARANTIITA või SOBIVUSELE\n"
+#~ "TEATUD KINDLAKS EESMÄRGIKS. Üksikasjade suhtes vaata GNU Üldist Avalikku\n"
+#~ "Litsentsi.\n"
+
+#~ msgid "error while opening \"%s\" for reading"
+#~ msgstr "viga faili \"%s\" avamisel (lugemiseks)"
+
+#, fuzzy
+#~ msgid "cannot open backup file \"%s\" for writing"
+#~ msgstr "viga faili \"%s\" avamisel (kirjutamiseks)"
+
+#, fuzzy
+#~ msgid "error reading \"%s\""
+#~ msgstr "viga \"%s\" lugemisel"
+
+#, fuzzy
+#~ msgid "error writing \"%s\""
+#~ msgstr "viga faili \"%s\" kirjutamisel"
+
+#, fuzzy
+#~ msgid "error after reading \"%s\""
+#~ msgstr "viga \"%s\" lugemisel"
+
+#, fuzzy
+#~ msgid "cannot create pipe"
+#~ msgstr "ei suuda luua väljundfaili \"%s\""
+
+#, fuzzy
+#~ msgid "number of format specifications in 'msgid' and '%s' does not match"
+#~ msgstr "vormingukirjeldused `msgid' ja `msgstr' kirjetel ei ole sarnased"
+
+#, fuzzy
+#~ msgid ""
+#~ "format specifications in 'msgid' and '%s' for argument %u are not the same"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid ""
+#~ "a format specification for argument %u, as in '%s', doesn't exist in "
+#~ "'msgid'"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid "a format specification for argument %u doesn't exist in '%s'"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid ""
+#~ "a format specification for argument {%u}, as in '%s', doesn't exist in "
+#~ "'msgid'"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid "a format specification for argument {%u} doesn't exist in '%s'"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid ""
+#~ "format specifications in 'msgid' and '%s' for argument {%u} are not the "
+#~ "same"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid "format specifications in 'msgid' and '%s' are not equivalent"
+#~ msgstr "vormingukirjeldused `msgid' ja `msgstr' kirjetel ei ole sarnased"
+
+#, fuzzy
+#~ msgid "format specifications in '%s' are not a subset of those in 'msgid'"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid ""
+#~ "format specifications in 'msgid' expect a mapping, those in '%s' expect a "
+#~ "tuple"
+#~ msgstr "vormingukirjeldused `msgid' ja `msgstr' kirjetel ei ole sarnased"
+
+#, fuzzy
+#~ msgid ""
+#~ "format specifications in 'msgid' expect a tuple, those in '%s' expect a "
+#~ "mapping"
+#~ msgstr "vormingukirjeldused `msgid' ja `msgstr' kirjetel ei ole sarnased"
+
+#, fuzzy
+#~ msgid ""
+#~ "a format specification for argument '%s', as in '%s', doesn't exist in "
+#~ "'msgid'"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid "a format specification for argument '%s' doesn't exist in '%s'"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid ""
+#~ "format specifications in 'msgid' and '%s' for argument '%s' are not the "
+#~ "same"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#~ msgid "%s and %s are mutually exclusive"
+#~ msgstr "%s ja %s on vastastikku välistavad"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -e, --no-escape             do not use C escapes in output (default)\n"
+#~ "  -E, --escape                use C escapes in output, no extended chars\n"
+#~ "      --force-po              write PO file even if empty\n"
+#~ "  -i, --indent                write the .po file using indented style\n"
+#~ "      --no-location           do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location          generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -w, --width=NUMBER          set output page width\n"
+#~ "      --no-wrap               do not break long message lines, longer "
+#~ "than\n"
+#~ "                              the output page width, into several lines\n"
+#~ "  -s, --sort-output           generate sorted output\n"
+#~ "  -F, --sort-by-file          sort output by file location\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] def.po ref.po\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -C, --compendium=FAIL      lisatõlgete teek, neid võib esineda rohkem\n"
+#~ "                             kui üks\n"
+#~ "  -D, --directory=KATALOOG   lisab kataloogi sisendfailide otsinguteede\n"
+#~ "                             nimekirja\n"
+#~ "  -e, --no-escape            keelab C erimärkide kasutamise tulemuses\n"
+#~ "                             (vaikimisi)\n"
+#~ "  -E, --escape               määrab C erimärkide kasutamise tulemuses\n"
+#~ "      --force-po             kirjutab PO faili ka siis, kui see on tühi\n"
+#~ "  -h, --help                 väljastab käesoleva abiinfo ja lõpetab "
+#~ "programmi\n"
+#~ "                             töö\n"
+#~ "  -i, --indent               kirjutab .po faili, kasutades taandridu\n"
+#~ "  -o, --output-file=FAIL     määrab väljundfaili nime\n"
+#~ "      --no-location          keelab '#: failinimi:reanumber' ridade\n"
+#~ "                             kirjutamise\n"
+#~ "  -n, --add-location         kirjutab ka '#: failinimi:reanumber' read\n"
+#~ "                             (vaikimisi)\n"
+#~ "      --strict               rakendab ranget Uniforum meetodit\n"
+#~ "  -v, --verbose              suurendab väljastatava teabe hulka\n"
+#~ "  -V, --version              väljastab versiooniinfo ja lõpetab programmi "
+#~ "töö\n"
+#~ "  -w, --width=NUMBER         määrab väljastatava lehekülje laiuse\n"
+
+#~ msgid "impossible selection criteria specified (%d < n < %d)"
+#~ msgstr "lubamatu valikukriteeriumi kirjeldus (%d < n < %d)"
+
+#, fuzzy
+#~ msgid ""
+#~ "Concatenates and merges the specified PO files.\n"
+#~ "Find messages which are common to two or more of the specified PO files.\n"
+#~ "By using the --more-than option, greater commonality may be requested\n"
+#~ "before messages are printed.  Conversely, the --less-than option may be\n"
+#~ "used to specify less commonality before messages are printed (i.e.\n"
+#~ "--less-than=2 will only print the unique messages).  Translations,\n"
+#~ "comments and extract comments will be cumulated, except that if --use-"
+#~ "first\n"
+#~ "is specified, they will be taken from the first PO file to define them.\n"
+#~ "File positions from all PO files will be cumulated.\n"
+#~ msgstr ""
+#~ "  -V, --version               väljastab versiooniinfo ja lõpetab "
+#~ "programmi töö\n"
+#~ "  -w, --width=NUMBER          määrab väljastatava lehekülje laiuse\n"
+#~ "  -<, --less-than=NUMBER      trükib stringid, mida esineb vähem kui "
+#~ "NUMBER\n"
+#~ "                              korda (vaikimisi piiramatult)\n"
+#~ "  ->, --more-than=NUMBER      trükib stringid, mida esineb rohkem kui "
+#~ "NUMBER\n"
+#~ "                              korda (vaikimisi 1)\n"
+#~ "\n"
+#~ "Leiab stringid, mis esinevad kahes (või enamas) kirjeldatud PO failis.\n"
+#~ "Kasutades --more-than võtit, on võimalik saavutada ainult enimkattuvate\n"
+#~ "stringide väljastamine. Võtmega --less-than määratakse vähemkattuvate\n"
+#~ "stringide väljastamine (--less-than=2 väljastab ainult unikaalsed "
+#~ "stringid).\n"
+#~ "Tõlked, kommentaarid ja stringi päritolu kirjeldavad kommentaarid "
+#~ "(extract\n"
+#~ "comments) jäetakse alles ainult esimesena kirjeldatud PO failist.\n"
+#~ "Positsioonikirjeldused võetakse ja säilitatakse kõikidest PO failidest.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Message selection:\n"
+#~ "  -<, --less-than=NUMBER         print messages with less than this many\n"
+#~ "                                 definitions, defaults to infinite if "
+#~ "not\n"
+#~ "                                 set\n"
+#~ "  ->, --more-than=NUMBER         print messages with more than this many\n"
+#~ "                                 definitions, defaults to 0 if not set\n"
+#~ "  -u, --unique                   shorthand for --less-than=2, requests\n"
+#~ "                                 that only unique messages be printed\n"
+#~ msgstr ""
+#~ "  -V, --version               väljastab versiooniinfo ja lõpetab "
+#~ "programmi töö\n"
+#~ "  -w, --width=NUMBER          määrab väljastatava lehekülje laiuse\n"
+#~ "  -<, --less-than=NUMBER      trükib stringid, mida esineb vähem kui "
+#~ "NUMBER\n"
+#~ "                              korda (vaikimisi piiramatult)\n"
+#~ "  ->, --more-than=NUMBER      trükib stringid, mida esineb rohkem kui "
+#~ "NUMBER\n"
+#~ "                              korda (vaikimisi 1)\n"
+#~ "\n"
+#~ "Leiab stringid, mis esinevad kahes (või enamas) kirjeldatud PO failis.\n"
+#~ "Kasutades --more-than võtit, on võimalik saavutada ainult enimkattuvate\n"
+#~ "stringide väljastamine. Võtmega --less-than määratakse vähemkattuvate\n"
+#~ "stringide väljastamine (--less-than=2 väljastab ainult unikaalsed "
+#~ "stringid).\n"
+#~ "Tõlked, kommentaarid ja stringi päritolu kirjeldavad kommentaarid "
+#~ "(extract\n"
+#~ "comments) jäetakse alles ainult esimesena kirjeldatud PO failist.\n"
+#~ "Positsioonikirjeldused võetakse ja säilitatakse kõikidest PO failidest.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -t, --to-code=NAME             encoding for output\n"
+#~ "      --use-first                use first available translation for "
+#~ "each\n"
+#~ "                                 message, don't merge several "
+#~ "translations\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -w, --width=NUMBER             set output page width\n"
+#~ "      --no-wrap                  do not break long message lines, longer "
+#~ "than\n"
+#~ "                                 the output page width, into several "
+#~ "lines\n"
+#~ "  -s, --sort-output              generate sorted output\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] def.po ref.po\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -C, --compendium=FAIL      lisatõlgete teek, neid võib esineda rohkem\n"
+#~ "                             kui üks\n"
+#~ "  -D, --directory=KATALOOG   lisab kataloogi sisendfailide otsinguteede\n"
+#~ "                             nimekirja\n"
+#~ "  -e, --no-escape            keelab C erimärkide kasutamise tulemuses\n"
+#~ "                             (vaikimisi)\n"
+#~ "  -E, --escape               määrab C erimärkide kasutamise tulemuses\n"
+#~ "      --force-po             kirjutab PO faili ka siis, kui see on tühi\n"
+#~ "  -h, --help                 väljastab käesoleva abiinfo ja lõpetab "
+#~ "programmi\n"
+#~ "                             töö\n"
+#~ "  -i, --indent               kirjutab .po faili, kasutades taandridu\n"
+#~ "  -o, --output-file=FAIL     määrab väljundfaili nime\n"
+#~ "      --no-location          keelab '#: failinimi:reanumber' ridade\n"
+#~ "                             kirjutamise\n"
+#~ "  -n, --add-location         kirjutab ka '#: failinimi:reanumber' read\n"
+#~ "                             (vaikimisi)\n"
+#~ "      --strict               rakendab ranget Uniforum meetodit\n"
+#~ "  -v, --verbose              suurendab väljastatava teabe hulka\n"
+#~ "  -V, --version              väljastab versiooniinfo ja lõpetab programmi "
+#~ "töö\n"
+#~ "  -w, --width=NUMBER         määrab väljastatava lehekülje laiuse\n"
+
+#~ msgid "no input files given"
+#~ msgstr "sisendfailid on määramata"
+
+#~ msgid "exactly 2 input files required"
+#~ msgstr "vaja läheb täpselt kahte sisendfaili"
+
+#, fuzzy
+#~ msgid ""
+#~ "Compare two Uniforum style .po files to check that both contain the same\n"
+#~ "set of msgid strings.  The def.po file is an existing PO file with the\n"
+#~ "translations.  The ref.pot file is the last created PO file, or a PO "
+#~ "Template\n"
+#~ "file (generally created by xgettext).  This is useful for checking that\n"
+#~ "you have translated each and every message in your program.  Where an "
+#~ "exact\n"
+#~ "match cannot be found, fuzzy matching is used to produce better "
+#~ "diagnostics.\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] def.po ref.po\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -D, --directory=KATALOOG   lisab kataloogi sisendfailide otsinguteede\n"
+#~ "                             nimekirja\n"
+#~ "  -h, --help                 väljastab käesoleva abiinfo ja lõpetab "
+#~ "programmi\n"
+#~ "                             töö\n"
+#~ "  -V, --version              väljastab versiooniinfo ja lõpetab programmi "
+#~ "töö\n"
+#~ "\n"
+#~ "Võrdleb kahte Uniforum stiilis .po faili ja kontrollib, kas mõlemad "
+#~ "failid\n"
+#~ "sisaldavad samu msgid stringe. Fail def.po on olemasolev PO fail ehk "
+#~ "vanade\n"
+#~ "tõlgete fail. Fail ref.po on viimati loodud PO fail (genereeritud "
+#~ "programmi\n"
+#~ "xgettext abil). See on kasulik juhul, kui kontrollitakse, kas programmi "
+#~ "kõik\n"
+#~ "teated on tõlgitud. Kui täpseid vasteid ei suudeta leida, kasutatakse "
+#~ "parema\n"
+#~ "diagnoosi huvides määratlust 'kahtlane'.\n"
+
+#~ msgid "this message is used but not defined..."
+#~ msgstr "see teade on kasutusel, kuid kirjeldamata..."
+
+#~ msgid "...but this definition is similar"
+#~ msgstr "...kuid see kirjeldus on sarnane"
+
+#~ msgid "this message is used but not defined in %s"
+#~ msgstr "see teade on kasutusel, kuid %s poolt kirjeldamata"
+
+#~ msgid "warning: this message is not used"
+#~ msgstr "hoiatus: see teade on kasutamata"
+
+#~ msgid "found %d fatal error"
+#~ msgid_plural "found %d fatal errors"
+#~ msgstr[0] "leitud %d tõsine viga"
+#~ msgstr[1] "leitud %d tõsist viga"
+
+#~ msgid "at least two files must be specified"
+#~ msgstr "vähemalt kaks faili peab olema ette antud"
+
+#, fuzzy
+#~ msgid ""
+#~ "Find messages which are common to two or more of the specified PO files.\n"
+#~ "By using the --more-than option, greater commonality may be requested\n"
+#~ "before messages are printed.  Conversely, the --less-than option may be\n"
+#~ "used to specify less commonality before messages are printed (i.e.\n"
+#~ "--less-than=2 will only print the unique messages).  Translations,\n"
+#~ "comments and extract comments will be preserved, but only from the first\n"
+#~ "PO file to define them.  File positions from all PO files will be\n"
+#~ "cumulated.\n"
+#~ msgstr ""
+#~ "  -V, --version               väljastab versiooniinfo ja lõpetab "
+#~ "programmi töö\n"
+#~ "  -w, --width=NUMBER          määrab väljastatava lehekülje laiuse\n"
+#~ "  -<, --less-than=NUMBER      trükib stringid, mida esineb vähem kui "
+#~ "NUMBER\n"
+#~ "                              korda (vaikimisi piiramatult)\n"
+#~ "  ->, --more-than=NUMBER      trükib stringid, mida esineb rohkem kui "
+#~ "NUMBER\n"
+#~ "                              korda (vaikimisi 1)\n"
+#~ "\n"
+#~ "Leiab stringid, mis esinevad kahes (või enamas) kirjeldatud PO failis.\n"
+#~ "Kasutades --more-than võtit, on võimalik saavutada ainult enimkattuvate\n"
+#~ "stringide väljastamine. Võtmega --less-than määratakse vähemkattuvate\n"
+#~ "stringide väljastamine (--less-than=2 väljastab ainult unikaalsed "
+#~ "stringid).\n"
+#~ "Tõlked, kommentaarid ja stringi päritolu kirjeldavad kommentaarid "
+#~ "(extract\n"
+#~ "comments) jäetakse alles ainult esimesena kirjeldatud PO failist.\n"
+#~ "Positsioonikirjeldused võetakse ja säilitatakse kõikidest PO failidest.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Message selection:\n"
+#~ "  -<, --less-than=NUMBER         print messages with less than this many\n"
+#~ "                                 definitions, defaults to infinite if "
+#~ "not\n"
+#~ "                                 set\n"
+#~ "  ->, --more-than=NUMBER         print messages with more than this many\n"
+#~ "                                 definitions, defaults to 1 if not set\n"
+#~ "  -u, --unique                   shorthand for --less-than=2, requests\n"
+#~ "                                 that only unique messages be printed\n"
+#~ msgstr ""
+#~ "  -V, --version               väljastab versiooniinfo ja lõpetab "
+#~ "programmi töö\n"
+#~ "  -w, --width=NUMBER          määrab väljastatava lehekülje laiuse\n"
+#~ "  -<, --less-than=NUMBER      trükib stringid, mida esineb vähem kui "
+#~ "NUMBER\n"
+#~ "                              korda (vaikimisi piiramatult)\n"
+#~ "  ->, --more-than=NUMBER      trükib stringid, mida esineb rohkem kui "
+#~ "NUMBER\n"
+#~ "                              korda (vaikimisi 1)\n"
+#~ "\n"
+#~ "Leiab stringid, mis esinevad kahes (või enamas) kirjeldatud PO failis.\n"
+#~ "Kasutades --more-than võtit, on võimalik saavutada ainult enimkattuvate\n"
+#~ "stringide väljastamine. Võtmega --less-than määratakse vähemkattuvate\n"
+#~ "stringide väljastamine (--less-than=2 väljastab ainult unikaalsed "
+#~ "stringid).\n"
+#~ "Tõlked, kommentaarid ja stringi päritolu kirjeldavad kommentaarid "
+#~ "(extract\n"
+#~ "comments) jäetakse alles ainult esimesena kirjeldatud PO failist.\n"
+#~ "Positsioonikirjeldused võetakse ja säilitatakse kõikidest PO failidest.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -w, --width=NUMBER             set output page width\n"
+#~ "      --no-wrap                  do not break long message lines, longer "
+#~ "than\n"
+#~ "                                 the output page width, into several "
+#~ "lines\n"
+#~ "  -s, --sort-output              generate sorted output\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ "      --omit-header              don't write header with `msgid \"\"' "
+#~ "entry\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] def.po ref.po\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -C, --compendium=FAIL      lisatõlgete teek, neid võib esineda rohkem\n"
+#~ "                             kui üks\n"
+#~ "  -D, --directory=KATALOOG   lisab kataloogi sisendfailide otsinguteede\n"
+#~ "                             nimekirja\n"
+#~ "  -e, --no-escape            keelab C erimärkide kasutamise tulemuses\n"
+#~ "                             (vaikimisi)\n"
+#~ "  -E, --escape               määrab C erimärkide kasutamise tulemuses\n"
+#~ "      --force-po             kirjutab PO faili ka siis, kui see on tühi\n"
+#~ "  -h, --help                 väljastab käesoleva abiinfo ja lõpetab "
+#~ "programmi\n"
+#~ "                             töö\n"
+#~ "  -i, --indent               kirjutab .po faili, kasutades taandridu\n"
+#~ "  -o, --output-file=FAIL     määrab väljundfaili nime\n"
+#~ "      --no-location          keelab '#: failinimi:reanumber' ridade\n"
+#~ "                             kirjutamise\n"
+#~ "  -n, --add-location         kirjutab ka '#: failinimi:reanumber' read\n"
+#~ "                             (vaikimisi)\n"
+#~ "      --strict               rakendab ranget Uniforum meetodit\n"
+#~ "  -v, --verbose              suurendab väljastatava teabe hulka\n"
+#~ "  -V, --version              väljastab versiooniinfo ja lõpetab programmi "
+#~ "töö\n"
+#~ "  -w, --width=NUMBER         määrab väljastatava lehekülje laiuse\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -e, --no-escape             do not use C escapes in output (default)\n"
+#~ "  -E, --escape                use C escapes in output, no extended chars\n"
+#~ "      --force-po              write PO file even if empty\n"
+#~ "  -i, --indent                indented output style\n"
+#~ "      --no-location           suppress '#: filename:line' lines\n"
+#~ "      --add-location          preserve '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                strict Uniforum output style\n"
+#~ "  -w, --width=NUMBER          set output page width\n"
+#~ "      --no-wrap               do not break long message lines, longer "
+#~ "than\n"
+#~ "                              the output page width, into several lines\n"
+#~ "  -s, --sort-output           generate sorted output\n"
+#~ "  -F, --sort-by-file          sort output by file location\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] def.po ref.po\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -C, --compendium=FAIL      lisatõlgete teek, neid võib esineda rohkem\n"
+#~ "                             kui üks\n"
+#~ "  -D, --directory=KATALOOG   lisab kataloogi sisendfailide otsinguteede\n"
+#~ "                             nimekirja\n"
+#~ "  -e, --no-escape            keelab C erimärkide kasutamise tulemuses\n"
+#~ "                             (vaikimisi)\n"
+#~ "  -E, --escape               määrab C erimärkide kasutamise tulemuses\n"
+#~ "      --force-po             kirjutab PO faili ka siis, kui see on tühi\n"
+#~ "  -h, --help                 väljastab käesoleva abiinfo ja lõpetab "
+#~ "programmi\n"
+#~ "                             töö\n"
+#~ "  -i, --indent               kirjutab .po faili, kasutades taandridu\n"
+#~ "  -o, --output-file=FAIL     määrab väljundfaili nime\n"
+#~ "      --no-location          keelab '#: failinimi:reanumber' ridade\n"
+#~ "                             kirjutamise\n"
+#~ "  -n, --add-location         kirjutab ka '#: failinimi:reanumber' read\n"
+#~ "                             (vaikimisi)\n"
+#~ "      --strict               rakendab ranget Uniforum meetodit\n"
+#~ "  -v, --verbose              suurendab väljastatava teabe hulka\n"
+#~ "  -V, --version              väljastab versiooniinfo ja lõpetab programmi "
+#~ "töö\n"
+#~ "  -w, --width=NUMBER         määrab väljastatava lehekülje laiuse\n"
+
+#~ msgid "no input file given"
+#~ msgstr "sisendfail on määramata"
+
+#, fuzzy
+#~ msgid "exactly one input file required"
+#~ msgstr "vaja läheb täpselt kahte sisendfaili"
+
+#, fuzzy
+#~ msgid "missing command name"
+#~ msgstr "argumendid on puudu"
+
+#, fuzzy
+#~ msgid "missing filter name"
+#~ msgstr "argumendid on puudu"
+
+#, fuzzy
+#~ msgid "at least one sed script must be specified"
+#~ msgstr "vähemalt kaks faili peab olema ette antud"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "      --no-escape             do not use C escapes in output (default)\n"
+#~ "  -E, --escape                use C escapes in output, no extended chars\n"
+#~ "      --force-po              write PO file even if empty\n"
+#~ "      --indent                indented output style\n"
+#~ "      --keep-header           keep header entry unmodified, don't filter "
+#~ "it\n"
+#~ "      --no-location           suppress '#: filename:line' lines\n"
+#~ "      --add-location          preserve '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                strict Uniforum output style\n"
+#~ "  -w, --width=NUMBER          set output page width\n"
+#~ "      --no-wrap               do not break long message lines, longer "
+#~ "than\n"
+#~ "                              the output page width, into several lines\n"
+#~ "  -s, --sort-output           generate sorted output\n"
+#~ "  -F, --sort-by-file          sort output by file location\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] def.po ref.po\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -C, --compendium=FAIL      lisatõlgete teek, neid võib esineda rohkem\n"
+#~ "                             kui üks\n"
+#~ "  -D, --directory=KATALOOG   lisab kataloogi sisendfailide otsinguteede\n"
+#~ "                             nimekirja\n"
+#~ "  -e, --no-escape            keelab C erimärkide kasutamise tulemuses\n"
+#~ "                             (vaikimisi)\n"
+#~ "  -E, --escape               määrab C erimärkide kasutamise tulemuses\n"
+#~ "      --force-po             kirjutab PO faili ka siis, kui see on tühi\n"
+#~ "  -h, --help                 väljastab käesoleva abiinfo ja lõpetab "
+#~ "programmi\n"
+#~ "                             töö\n"
+#~ "  -i, --indent               kirjutab .po faili, kasutades taandridu\n"
+#~ "  -o, --output-file=FAIL     määrab väljundfaili nime\n"
+#~ "      --no-location          keelab '#: failinimi:reanumber' ridade\n"
+#~ "                             kirjutamise\n"
+#~ "  -n, --add-location         kirjutab ka '#: failinimi:reanumber' read\n"
+#~ "                             (vaikimisi)\n"
+#~ "      --strict               rakendab ranget Uniforum meetodit\n"
+#~ "  -v, --verbose              suurendab väljastatava teabe hulka\n"
+#~ "  -V, --version              väljastab versiooniinfo ja lõpetab programmi "
+#~ "töö\n"
+#~ "  -w, --width=NUMBER         määrab väljastatava lehekülje laiuse\n"
+
+#~ msgid "%d translated message"
+#~ msgid_plural "%d translated messages"
+#~ msgstr[0] "%d tõlgitud teade"
+#~ msgstr[1] "%d tõlgitud teadet"
+
+#~ msgid ", %d fuzzy translation"
+#~ msgid_plural ", %d fuzzy translations"
+#~ msgstr[0] ", %d kahtlane tõlge"
+#~ msgstr[1] ", %d kahtlast tõlget"
+
+#~ msgid ", %d untranslated message"
+#~ msgid_plural ", %d untranslated messages"
+#~ msgstr[0] ", %d tõlkimata teade"
+#~ msgstr[1] ", %d tõlkimata teadet"
+
+#, fuzzy
+#~ msgid "invalid nplurals value"
+#~ msgstr "vigane juhtjada"
+
+#, fuzzy
+#~ msgid "...but some messages have only one plural form"
+#~ msgid_plural "...but some messages have only %lu plural forms"
+#~ msgstr[0] "see teade on kasutusel, kuid %s poolt kirjeldamata"
+#~ msgstr[1] "see teade on kasutusel, kuid %s poolt kirjeldamata"
+
+#, fuzzy
+#~ msgid "...but some messages have one plural form"
+#~ msgid_plural "...but some messages have %lu plural forms"
+#~ msgstr[0] "see teade on kasutusel, kuid %s poolt kirjeldamata"
+#~ msgstr[1] "see teade on kasutusel, kuid %s poolt kirjeldamata"
+
+#~ msgid "`msgid' and `msgid_plural' entries do not both begin with '\\n'"
+#~ msgstr "`msgid' ja `msgst_plural' kirjed ei alga sarnaselt märgiga '\\n'"
+
+#~ msgid "`msgid' and `msgstr[%u]' entries do not both begin with '\\n'"
+#~ msgstr "`msgid' ja `msgstr[%u]' kirjed ei alga sarnaselt märgiga '\\n'"
+
+#~ msgid "`msgid' and `msgstr' entries do not both begin with '\\n'"
+#~ msgstr "`msgid' ja `msgstr' kirjed ei alga sarnaselt märgiga '\\n'"
+
+#~ msgid "`msgid' and `msgid_plural' entries do not both end with '\\n'"
+#~ msgstr "`msgid' ja `msgst_plural' kirjed ei lõppe sarnaselt märgiga '\\n'"
+
+#~ msgid "`msgid' and `msgstr[%u]' entries do not both end with '\\n'"
+#~ msgstr "`msgid' ja `msgstr[%u]' kirjed ei lõppe sarnaselt märgiga '\\n'"
+
+#~ msgid "`msgid' and `msgstr' entries do not both end with '\\n'"
+#~ msgstr "`msgid' ja `msgstr' kirjed ei lõppe sarnaselt märgiga '\\n'"
+
+#, fuzzy
+#~ msgid "headerfield `%s' missing in header\n"
+#~ msgstr "päise kirjest on puudu väli `%s'"
+
+#, fuzzy
+#~ msgid "header field `%s' should start at beginning of line\n"
+#~ msgstr "päise kirjes peab väli `%s' algama rea algusest"
+
+#, fuzzy
+#~ msgid "some header fields still have the initial default value\n"
+#~ msgstr ""
+#~ "mõned päise kirjes olevad väljad sisaldavad ikka veel algseid väärtusi"
+
+#, fuzzy
+#~ msgid "field `%s' still has initial default value\n"
+#~ msgstr "väli `%s' sisaldab ikka veel algset väärtust"
+
+#, fuzzy
+#~ msgid "warning: PO file header missing or invalid\n"
+#~ msgstr ""
+#~ "%s: hoiatus: PO faili päis puudub, on kahtlane või vigane\n"
+#~ "%*s  hoiatus: charset conversion will not work"
+
+#, fuzzy
+#~ msgid "warning: charset conversion will not work\n"
+#~ msgstr ""
+#~ "Kooditabel on päises kirjeldamata.\n"
+#~ "Tõlgete teisendamine kasutaja kooditabelisse ei toimi.\n"
+
+#, fuzzy
+#~ msgid "warning: PO file header fuzzy\n"
+#~ msgstr ""
+#~ "%s: hoiatus: PO faili päis puudub, on kahtlane või vigane\n"
+#~ "%*s  hoiatus: charset conversion will not work"
+
+#~ msgid "domain name \"%s\" not suitable as file name"
+#~ msgstr "domeeni nimi \"%s\" ei ole kasutatav failinimena"
+
+#~ msgid "domain name \"%s\" not suitable as file name: will use prefix"
+#~ msgstr "domeeni nimi \"%s\" ei ole kasutatav failinimena: kasutan eesliidet"
+
+#~ msgid "`domain %s' directive ignored"
+#~ msgstr "ignoreerin `domain %s' direktiivi"
+
+#~ msgid "duplicate message definition"
+#~ msgstr "teade on kirjeldatud kaks korda"
+
+#~ msgid "...this is the location of the first definition"
+#~ msgstr "...see on esimese kirjelduse asukoht"
+
+#~ msgid "empty `msgstr' entry ignored"
+#~ msgstr "ignoreerin tühja `msgstr' kirjet"
+
+#~ msgid "fuzzy `msgstr' entry ignored"
+#~ msgstr "ignoreerin kahtlast `msgstr' kirjet"
+
+#~ msgid "%s: warning: source file contains fuzzy translation"
+#~ msgstr "%s: hoiatus: lähtefail sisaldab kahtlast tõlget"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "      --no-escape             do not use C escapes in output (default)\n"
+#~ "      --escape                use C escapes in output, no extended chars\n"
+#~ "      --force-po              write PO file even if empty\n"
+#~ "      --indent                indented output style\n"
+#~ "      --no-location           suppress '#: filename:line' lines\n"
+#~ "      --add-location          preserve '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                strict Uniforum output style\n"
+#~ "  -w, --width=NUMBER          set output page width\n"
+#~ "      --no-wrap               do not break long message lines, longer "
+#~ "than\n"
+#~ "                              the output page width, into several lines\n"
+#~ "      --sort-output           generate sorted output\n"
+#~ "      --sort-by-file          sort output by file location\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] def.po ref.po\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -C, --compendium=FAIL      lisatõlgete teek, neid võib esineda rohkem\n"
+#~ "                             kui üks\n"
+#~ "  -D, --directory=KATALOOG   lisab kataloogi sisendfailide otsinguteede\n"
+#~ "                             nimekirja\n"
+#~ "  -e, --no-escape            keelab C erimärkide kasutamise tulemuses\n"
+#~ "                             (vaikimisi)\n"
+#~ "  -E, --escape               määrab C erimärkide kasutamise tulemuses\n"
+#~ "      --force-po             kirjutab PO faili ka siis, kui see on tühi\n"
+#~ "  -h, --help                 väljastab käesoleva abiinfo ja lõpetab "
+#~ "programmi\n"
+#~ "                             töö\n"
+#~ "  -i, --indent               kirjutab .po faili, kasutades taandridu\n"
+#~ "  -o, --output-file=FAIL     määrab väljundfaili nime\n"
+#~ "      --no-location          keelab '#: failinimi:reanumber' ridade\n"
+#~ "                             kirjutamise\n"
+#~ "  -n, --add-location         kirjutab ka '#: failinimi:reanumber' read\n"
+#~ "                             (vaikimisi)\n"
+#~ "      --strict               rakendab ranget Uniforum meetodit\n"
+#~ "  -v, --verbose              suurendab väljastatava teabe hulka\n"
+#~ "  -V, --version              väljastab versiooniinfo ja lõpetab programmi "
+#~ "töö\n"
+#~ "  -w, --width=NUMBER         määrab väljastatava lehekülje laiuse\n"
+
+#, fuzzy
+#~ msgid "warning: "
+#~ msgstr "%s: hoiatus: "
+
+#, fuzzy
+#~ msgid ""
+#~ "Cannot convert from \"%s\" to \"%s\". %s relies on iconv(), and iconv() "
+#~ "does not support this conversion."
+#~ msgstr ""
+#~ "Kooditabel \"%s\" ei ole toetatud. %s asendatakse,\n"
+#~ "iconv() poolt ja iconv() ei toeta \"%s\".\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Cannot convert from \"%s\" to \"%s\". %s relies on iconv(). This version "
+#~ "was built without iconv()."
+#~ msgstr ""
+#~ "Kooditabel \"%s\" ei ole toetatud. %s asendatakse,\n"
+#~ "iconv() poolt. See versioon tehakse ilma iconv() kasutamata.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Merges two Uniforum style .po files together.  The def.po file is an\n"
+#~ "existing PO file with translations which will be taken over to the newly\n"
+#~ "created file as long as they still match; comments will be preserved,\n"
+#~ "but extracted comments and file positions will be discarded.  The ref."
+#~ "pot\n"
+#~ "file is the last created PO file with up-to-date source references but\n"
+#~ "old translations, or a PO Template file (generally created by xgettext);\n"
+#~ "any translations or comments in the file will be discarded, however dot\n"
+#~ "comments and file positions will be preserved.  Where an exact match\n"
+#~ "cannot be found, fuzzy matching is used to produce better results.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Kombineerib kaks Uniforum stiilis .po faili üheks failiks. Fail def.po\n"
+#~ "on olemasolev PO fail, mis sisaldab juba tõlgitud stringe. Juhul, kui\n"
+#~ "need stringid on olemas ka uues (ref.po) failis, kantakse need tulemusse\n"
+#~ "üle. Samuti kantakse üle kommentaarid. Üle jäetakse kandmata stringi\n"
+#~ "päritolu kirjeldavad kommentaarid (extract comments) koos positsiooni-\n"
+#~ "kirjeldusega. Fail ref.po on viimati genereeritud PO fail (tavaliselt\n"
+#~ "xgettext programmi poolt). Kõik selles failis olevad tõlked ja\n"
+#~ "kommentaarid kustutatakse, välja arvatud stringi päritolu kirjeldavad\n"
+#~ "kommentaarid ja positsioonikirjeldused. Kohad, kus ei suudeta stringide\n"
+#~ "täpset vastet leida, märgitakse kvaliteetsema tulemuse huvides kui\n"
+#~ "kahtlased. Kui väljundfaili ei ole kirjeldatud, saadetakse tulemus\n"
+#~ "standardväljunisse.\n"
+
+#, fuzzy
+#~ msgid "this message should define plural forms"
+#~ msgstr "see teade on kasutusel, kuid %s poolt kirjeldamata"
+
+#, fuzzy
+#~ msgid "this message should not define plural forms"
+#~ msgstr "see teade on kasutusel, kuid %s poolt kirjeldamata"
+
+#~ msgid ""
+#~ "%sRead %ld old + %ld reference, merged %ld, fuzzied %ld, missing %ld, "
+#~ "obsolete %ld.\n"
+#~ msgstr ""
+#~ "%sLoetud %ld vana + %ld viidet, ühendatud %ld, kahtlaseid %ld, puuduvaid "
+#~ "%ld, vananenuid %ld.\n"
+
+#~ msgid " done.\n"
+#~ msgstr " valmis.\n"
+
+#, fuzzy
+#~ msgid "%s and explicit file names are mutually exclusive"
+#~ msgstr "%s ja %s on vastastikku välistavad"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -e, --no-escape          do not use C escapes in output (default)\n"
+#~ "  -E, --escape             use C escapes in output, no extended chars\n"
+#~ "      --force-po           write PO file even if empty\n"
+#~ "  -i, --indent             write indented output style\n"
+#~ "      --strict             write strict uniforum style\n"
+#~ "  -w, --width=NUMBER       set output page width\n"
+#~ "      --no-wrap            do not break long message lines, longer than\n"
+#~ "                           the output page width, into several lines\n"
+#~ "  -s, --sort-output        generate sorted output\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] [FAIL]...\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -e, --no-escape          keelab C erimärkide kasutamise tulemuses "
+#~ "(vaikimisi)\n"
+#~ "  -E, --escape             määrab C erimärkide kasutamise tulemuses\n"
+#~ "      --force-po           kirjutab PO faili ka siis, kui see on tühi\n"
+#~ "  -h, --help               väljastab käesoleva abiinfo ja lõpetab\n"
+#~ "                           programmi töö\n"
+#~ "  -i, --indent             joondab tulemuse\n"
+#~ "  -o, --output-file=FAIL   kirjutab tulemuse standardväljundi asemel "
+#~ "FAIL'i\n"
+#~ "      --strict             kasutab tulemuses 'ranget' uniforum stiili\n"
+#~ "  -V, --version            väljastab versiooniinfo ja lõpetab programmi "
+#~ "töö\n"
+#~ "  -w, --width=NUMBER       määrab väljastatava lehekülje laiuse\n"
+
+#~ msgid "<stdin>"
+#~ msgstr "<stdin>"
+
+#~ msgid "%s: warning: "
+#~ msgstr "%s: hoiatus: "
+
+#~ msgid ""
+#~ "Charset \"%s\" is not a portable encoding name.\n"
+#~ "Message conversion to user's charset might not work.\n"
+#~ msgstr ""
+#~ "Kooditabel \"%s\" ei ole portaabel kodeerimise nimetus.\n"
+#~ "Teadete tõlkimine kasutaja kooditabeli järgi võib mitte toimida.\n"
+
+#~ msgid "Continuing anyway, expect parse errors."
+#~ msgstr "Jätkan siiski, vaatamate parsimisvigadele."
+
+#~ msgid "Continuing anyway."
+#~ msgstr "Jätkan siiski."
+
+#~ msgid ""
+#~ "Charset \"%s\" is not supported. %s relies on iconv(),\n"
+#~ "and iconv() does not support \"%s\".\n"
+#~ msgstr ""
+#~ "Kooditabel \"%s\" ei ole toetatud. %s asendatakse,\n"
+#~ "iconv() poolt ja iconv() ei toeta \"%s\".\n"
+
+#~ msgid ""
+#~ "Installing GNU libiconv and then reinstalling GNU gettext\n"
+#~ "would fix this problem.\n"
+#~ msgstr ""
+#~ "Arvatavasti saab see probleem lahendatud kui paigaldada süsteemi\n"
+#~ "GNU libiconv tarkvara ja peale seda teha uus paigaldus tarkvarapakile\n"
+#~ "GNU gettext\n"
+
+#~ msgid "%s\n"
+#~ msgstr "%s\n"
+
+#~ msgid ""
+#~ "Charset \"%s\" is not supported. %s relies on iconv().\n"
+#~ "This version was built without iconv().\n"
+#~ msgstr ""
+#~ "Kooditabel \"%s\" ei ole toetatud. %s asendatakse,\n"
+#~ "iconv() poolt. See versioon tehakse ilma iconv() kasutamata.\n"
+
+#~ msgid ""
+#~ "Charset missing in header.\n"
+#~ "Message conversion to user's charset will not work.\n"
+#~ msgstr ""
+#~ "Kooditabel on päises kirjeldamata.\n"
+#~ "Tõlgete teisendamine kasutaja kooditabelisse ei toimi.\n"
+
+#~ msgid "inconsistent use of #~"
+#~ msgstr "vastuoluline #~ kasutamine"
+
+#~ msgid "missing `msgstr[]' section"
+#~ msgstr "puudub `msgstr[]' sektsioon"
+
+#~ msgid "missing `msgid_plural' section"
+#~ msgstr "puudub `msgid_plural' sektsioon"
+
+#~ msgid "missing `msgstr' section"
+#~ msgstr "puudub `msgstr' sektsioon"
+
+#~ msgid "first plural form has nonzero index"
+#~ msgstr "esimene mitmuse vormi indeks erineb nullist"
+
+#~ msgid "plural form has wrong index"
+#~ msgstr "mitmuse vorm omab vale indeksit"
+
+#~ msgid "too many errors, aborting"
+#~ msgstr "liiga palju vigu, katkestan töö"
+
+#~ msgid "invalid multibyte sequence"
+#~ msgstr "vigane multibait jada"
+
+#, fuzzy
+#~ msgid "incomplete multibyte sequence at end of file"
+#~ msgstr "vigane multibait jada"
+
+#, fuzzy
+#~ msgid "incomplete multibyte sequence at end of line"
+#~ msgstr "vigane multibait jada"
+
+#~ msgid "keyword \"%s\" unknown"
+#~ msgstr "tundmatu võtmesõna: \"%s\""
+
+#~ msgid "invalid control sequence"
+#~ msgstr "vigane juhtjada"
+
+#~ msgid "end-of-file within string"
+#~ msgstr "Ootamatu faili lõpp (fail lõppeb poole stringi pealt)"
+
+#~ msgid "end-of-line within string"
+#~ msgstr "reavahetus asub stringi sees"
+
+#, fuzzy
+#~ msgid "file \"%s\" is truncated"
+#~ msgstr "faili \"%s\" sai kärbitud"
+
+#~ msgid "file \"%s\" contains a not NUL terminated string"
+#~ msgstr "fail \"%s\" sisaldab stringi, mis ei lõpe koodiga NUL"
+
+#~ msgid "file \"%s\" is not in GNU .mo format"
+#~ msgstr "fail \"%s\" ei ole GNU .mo vormingus"
+
+#, fuzzy
+#~ msgid "file \"%s\" contains a not NUL terminated string, at %s"
+#~ msgstr "fail \"%s\" sisaldab stringi, mis ei lõpe koodiga NUL"
+
+#, fuzzy
+#~ msgid "expected two arguments"
+#~ msgstr "liiga palju argumente"
+
+#, fuzzy
+#~ msgid "error writing stdout"
+#~ msgstr "viga faili \"%s\" kirjutamisel"
+
+#, fuzzy
+#~ msgid "cannot create a temporary directory using template \"%s\""
+#~ msgstr "ei suuda luua väljundfaili \"%s\""
+
+#~ msgid "error while writing \"%s\" file"
+#~ msgstr "viga faili \"%s\" kirjutamisel"
+
+#~ msgid "error while opening \"%s\" for writing"
+#~ msgstr "viga faili \"%s\" avamisel (kirjutamiseks)"
+
+#~ msgid ""
+#~ "internationalized messages should not contain the `\\%c' escape sequence"
+#~ msgstr "tõlgitud teated peaksid mitte sisaldama `\\%c' erimärgijada"
+
+#~ msgid "cannot create output file \"%s\""
+#~ msgstr "ei suuda luua väljundfaili \"%s\""
+
+#~ msgid "standard output"
+#~ msgstr "standardväljund"
+
+#~ msgid "%s:%d: warning: unterminated character constant"
+#~ msgstr "%s:%d: lõpetamata sümbolkonstant"
+
+#~ msgid "%s:%d: warning: unterminated string literal"
+#~ msgstr "%s:%d: hoiatus: lõpetamata string"
+
+#~ msgid "this file may not contain domain directives"
+#~ msgstr "see fail ei tohi sisaldada domeeni direktiive"
+
+#~ msgid "--join-existing cannot be used when output is written to stdout"
+#~ msgstr ""
+#~ "võtit `--join-existing' ei ole võimalik pruukida kui väljunit "
+#~ "kirjutatakse standardväljundisse"
+
+#~ msgid "xgettext cannot work without keywords to look for"
+#~ msgstr "xgettext ei tööta ilma vajalike võtmesõnadeta"
+
+#~ msgid "warning: file `%s' extension `%s' is unknown; will try C"
+#~ msgstr "hoiatus: faili `%s' laiend `%s' on tundmatu; proovin C vormingut"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -w, --width=NUMBER             set output page width\n"
+#~ "      --no-wrap                  do not break long message lines, longer "
+#~ "than\n"
+#~ "                                 the output page width, into several "
+#~ "lines\n"
+#~ "  -s, --sort-output              generate sorted output\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ "      --omit-header              don't write header with `msgid \"\"' "
+#~ "entry\n"
+#~ "      --copyright-holder=STRING  set copyright holder in output\n"
+#~ "      --foreign-user             omit FSF copyright in output for foreign "
+#~ "user\n"
+#~ "  -m, --msgstr-prefix[=STRING]   use STRING or \"\" as prefix for msgstr "
+#~ "entries\n"
+#~ "  -M, --msgstr-suffix[=STRING]   use STRING or \"\" as suffix for msgstr "
+#~ "entries\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] def.po ref.po\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -C, --compendium=FAIL      lisatõlgete teek, neid võib esineda rohkem\n"
+#~ "                             kui üks\n"
+#~ "  -D, --directory=KATALOOG   lisab kataloogi sisendfailide otsinguteede\n"
+#~ "                             nimekirja\n"
+#~ "  -e, --no-escape            keelab C erimärkide kasutamise tulemuses\n"
+#~ "                             (vaikimisi)\n"
+#~ "  -E, --escape               määrab C erimärkide kasutamise tulemuses\n"
+#~ "      --force-po             kirjutab PO faili ka siis, kui see on tühi\n"
+#~ "  -h, --help                 väljastab käesoleva abiinfo ja lõpetab "
+#~ "programmi\n"
+#~ "                             töö\n"
+#~ "  -i, --indent               kirjutab .po faili, kasutades taandridu\n"
+#~ "  -o, --output-file=FAIL     määrab väljundfaili nime\n"
+#~ "      --no-location          keelab '#: failinimi:reanumber' ridade\n"
+#~ "                             kirjutamise\n"
+#~ "  -n, --add-location         kirjutab ka '#: failinimi:reanumber' read\n"
+#~ "                             (vaikimisi)\n"
+#~ "      --strict               rakendab ranget Uniforum meetodit\n"
+#~ "  -v, --verbose              suurendab väljastatava teabe hulka\n"
+#~ "  -V, --version              väljastab versiooniinfo ja lõpetab programmi "
+#~ "töö\n"
+#~ "  -w, --width=NUMBER         määrab väljastatava lehekülje laiuse\n"
+
+#~ msgid "language `%s' unknown"
+#~ msgstr "tundmatu keel `%s'"
+
+#, fuzzy
+#~ msgid "file \"%s\" contains a not NUL terminated sysdep segment"
+#~ msgstr "fail \"%s\" sisaldab stringi, mis ei lõpe koodiga NUL"
+
+#~ msgid "seek \"%s\" offset %ld failed"
+#~ msgstr "hüpe \"%s\" positsioonile %ld ebaõnnestus"
+
+#, fuzzy
+#~ msgid "a format specification for argument {%u} doesn't exist in 'msgstr'"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid "a format specification for argument '%s' doesn't exist in 'msgstr'"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#, fuzzy
+#~ msgid "a format specification for argument %u doesn't exist in 'msgstr'"
+#~ msgstr "vormingukirjeldused argumendi %lu jaoks ei ole sarnased"
+
+#~ msgid "while creating hash table"
+#~ msgstr "paisktabeli loomise käigus"
+
+#, fuzzy
+#~ msgid "%s:%lu: warning: keyword nested in keyword arg"
+#~ msgstr "%s:%d: hoiatus: lõpetamata string"
+
+#~ msgid "while preparing output"
+#~ msgstr "väljundi ettevalmistamise käigus"
+
+#~ msgid "this message has no definition in the \"%s\" domain"
+#~ msgstr "see teade ei ole \"%s\" domeenis kirjeldatud"
+
+#~ msgid ""
+#~ "Usage: %s [OPTION] INPUTFILE ...\n"
+#~ "Mandatory arguments to long options are mandatory for short options too.\n"
+#~ "  -d, --default-domain=NAME      use NAME.po for output (instead of "
+#~ "messages.po)\n"
+#~ "  -D, --directory=DIRECTORY      add DIRECTORY to list for input files "
+#~ "search\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "  -f, --files-from=FILE          get list of input files from FILE\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ "  -h, --help                     display this help and exit\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] SISENDFAIL ...\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -d, --default-domain=NIMI   kasutab väljundiks faili NIMI.po\n"
+#~ "                              (messages.po asemel)\n"
+#~ "  -D, --directory=KATALOOG    lisab kataloogi sisendfailide otsinguteede\n"
+#~ "                              nimekirja\n"
+#~ "  -e, --no-escape             keelab C erimärkide kasutamise tulemuses\n"
+#~ "                              (vaikimisi)\n"
+#~ "  -E, --escape                määrab C erimärkide kasutamise tulemuses\n"
+#~ "  -f, --files-from=FAIL       võtab sisenfailide nimekirja failist FAIL\n"
+#~ "      --force-po              kirjutab PO faili isegi siis, kui see on "
+#~ "tühi\n"
+#~ "  -F, --sort-by-file          sort output by file location\n"
+#~ "  -h, --help                  väljastab käesoleva abiinfo ja lõpetab\n"
+#~ "                              programmi töö\n"
+
+#~ msgid ""
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --omit-header              don't write header with `msgid \"\"' "
+#~ "entry\n"
+#~ "  -o, --output=FILE              write output to specified file\n"
+#~ "  -p, --output-dir=DIR           output files will be placed in directory "
+#~ "DIR\n"
+#~ "  -s, --sort-output              generate sorted output and remove "
+#~ "duplicates\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -T, --trigraphs                understand ANSI C trigraphs for input\n"
+#~ "  -u, --unique                   shorthand for --less-than=2, requests\n"
+#~ "                                 that only unique messages be printed\n"
+#~ msgstr ""
+#~ "  -i, --indent                kirjutab .po faili, kasutades taandridu\n"
+#~ "      --no-location           keelab '#: failinimi:reanumber' ridade\n"
+#~ "                              kirjutamise\n"
+#~ "  -n, --add-location          kirjutab ka '#: failinimi:reanumber' read\n"
+#~ "                              (vaikimisi)\n"
+#~ "      --omit-header           keelab päises `msgid \"\"' kirje\n"
+#~ "  -o, --output=FAIL           kirjutab väljundi määratud faili\n"
+#~ "  -p, --output-dir=KATALOOG   väljundfailid pannakse määratud kataloogi\n"
+#~ "  -s, --sort-output           väljund sorteeritakse ja duplikaadid "
+#~ "kustutatakse\n"
+#~ "      --strict                kirjutab .po faili, järgides ranget "
+#~ "Uniforum\n"
+#~ "                              meetodit\n"
+#~ "  -T, --trigraphs             mõistab sisendis olevaid ANSI C stiilis "
+#~ "kolme-\n"
+#~ "                              sümbolilisi erimärke\n"
+#~ "  -u, --unique                lühend võtmele --less-than=2, määrab, et\n"
+#~ "                              trükitakse ainult unikaalsed stringid.\n"
+
+#~ msgid ""
+#~ "Usage: %s [OPTION] filename.po ...\n"
+#~ "Generate binary message catalog from textual translation description.\n"
+#~ "\n"
+#~ "Mandatory arguments to long options are mandatory for short options too.\n"
+#~ "  -a, --alignment=NUMBER      align strings to NUMBER bytes (default: "
+#~ "%d)\n"
+#~ "  -c, --check                 perform language dependent checks on "
+#~ "strings\n"
+#~ "  -D, --directory=DIRECTORY   add DIRECTORY to list for input files "
+#~ "search\n"
+#~ "  -f, --use-fuzzy             use fuzzy entries in output\n"
+#~ "  -h, --help                  display this help and exit\n"
+#~ "      --no-hash               binary file will not include the hash "
+#~ "table\n"
+#~ "  -o, --output-file=FILE      specify output file name as FILE\n"
+#~ "      --statistics            print statistics about translations\n"
+#~ "      --strict                enable strict Uniforum mode\n"
+#~ "  -v, --verbose               list input file anomalies\n"
+#~ "  -V, --version               output version information and exit\n"
+#~ "\n"
+#~ "Giving the -v option more than once increases the verbosity level.\n"
+#~ "\n"
+#~ "If input file is -, standard input is read.  If output file is -,\n"
+#~ "output is written to standard output.\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] failinimi.po ...\n"
+#~ "Teisendab tekstikujul oleva tõlkefaili masinloetavale kujule.\n"
+#~ "\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -a, --alignment=NUMBER     joondab stringi NUMBER baidisteks "
+#~ "(vaikimisi: %d)\n"
+#~ "  -c, --check                rakendab stringidele keelespetsiifilisi\n"
+#~ "                             kontrolle\n"
+#~ "  -D, --directory=KATALOOG   lisab kataloogi sisendfailide otsinguteede\n"
+#~ "                             nimekirja\n"
+#~ "  -f, --use-fuzzy            kasutab väljundis kahtlasteks märgitud "
+#~ "kirjeid\n"
+#~ "  -h, --help                 väljastab käesoleva abiinfo ja lõpetab\n"
+#~ "                             programmi töö\n"
+#~ "      --no-hash              binaarfaili ei kirjutata hash tabelit\n"
+#~ "  -o, --output-file=FAIL     määrab väljundfaili nime\n"
+#~ "      --statistics           kuvab tõlgete statistika\n"
+#~ "      --strict               rakendab ranget Uniforum meetodit\n"
+#~ "  -v, --verbose              kuvab sisendfaili anomaailad\n"
+#~ "  -V, --version              väljastab versiooniinfo ja lõpetab programmi "
+#~ "töö\n"
+#~ "\n"
+#~ "Andes -v võtme rohkem kui üks kord, suureneb ka väljastatava info "
+#~ "põhjalikkus.\n"
+#~ "\n"
+#~ "Kui sisendfailiks on määratud -, kasutatakse sisendfaili asemel "
+#~ "standard-\n"
+#~ "sisendit.  Kui väljundfailiks on määratud -, kirjutatakse väljund "
+#~ "standard-\n"
+#~ "väljundisse.\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "Convert binary .mo files to Uniforum style .po files.\n"
+#~ "Both little-endian and big-endian .mo files are handled.\n"
+#~ "If no input file is given or it is -, standard input is read.\n"
+#~ "By default the output is written to standard output.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Teisendab kahendkujul oleva (masinloetava) .mo faili Uniforum stiilis\n"
+#~ ".po failiks. Toetatud on nii big-endian kui ka little-endian .mo failid.\n"
+#~ "Sisendfaili puudumisel või kui sisendfailiks on määratud -, kasutatakse\n"
+#~ "faili lugemiseks standardsisendit. Vaikimisi kirjutatakse väljund\n"
+#~ "standardväljundisse.\n"
+
+#~ msgid ""
+#~ "Usage: %s [OPTION] INPUTFILE ...\n"
+#~ "Extract translatable string from given input files.\n"
+#~ "\n"
+#~ "Mandatory arguments to long options are mandatory for short options too.\n"
+#~ "  -a, --extract-all              extract all strings\n"
+#~ "  -c, --add-comments[=TAG]       place comment block with TAG (or those\n"
+#~ "                                 preceding keyword lines) in output file\n"
+#~ "  -C, --c++                      shorthand for --language=C++\n"
+#~ "      --debug                    more detailed formatstring recognision "
+#~ "result\n"
+#~ "  -d, --default-domain=NAME      use NAME.po for output (instead of "
+#~ "messages.po)\n"
+#~ "  -D, --directory=DIRECTORY      add DIRECTORY to list for input files "
+#~ "search\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "  -f, --files-from=FILE          get list of input files from FILE\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "      --foreign-user             omit FSF copyright in output for foreign "
+#~ "user\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ msgstr ""
+#~ "Kasutamine: %s [VÕTI] SISENDFAIL ...\n"
+#~ "Ekstraktib tõlgitavad stringid etteantud sisendfailidest.\n"
+#~ "\n"
+#~ "Argumendid, mis on kohustuslikud pikkadele võtmetele, on kohustuslikud "
+#~ "ka\n"
+#~ "lühikesetele.\n"
+#~ "  -a, --extract-all              ekstraktib kõik stringid\n"
+#~ "  -c, --add-comments[=TAG]       place comment block with TAG (or those\n"
+#~ "                                 preceding keyword lines) in output file\n"
+#~ "  -C, --c++                      lühend --language=C++ jaoks\n"
+#~ "      --debug                    suurema detailsusastmega "
+#~ "stringivormingu\n"
+#~ "                                 tuvastamise tulemus\n"
+#~ "  -d, --default-domain=NIMI      kasutab väljundiks faili NIMI.po\n"
+#~ "                                 (messages.po asemel)\n"
+#~ "  -D, --directory=KATALOOG       lisab kataloogi sisendfailide "
+#~ "otsinguteede\n"
+#~ "                                 nimekirja\n"
+#~ "  -e, --no-escape                keelab C erimärkide kasutamise "
+#~ "tulemuses\n"
+#~ "                                 (vaikimisi)\n"
+#~ "  -E, --escape                   määrab C erimärkide kasutamise "
+#~ "tulemuses\n"
+#~ "  -f, --files-from=FAIL          võtab sisenfailide nimekirja failist "
+#~ "FAIL\n"
+#~ "      --force-po                 kirjutab PO faili isegi siis, kui see on "
+#~ "tühi\n"
+#~ "      --foreign-user             jätab väljundisse lisamata FSF "
+#~ "autoriõgusi\n"
+#~ "                                 puudutava info (välismaiste kasutajate "
+#~ "jaoks).\n"
+#~ "  -F, --sort-by-file             sorteerib väljundi vastavat faili "
+#~ "asukohale\n"
+
+#~ msgid ""
+#~ "  -h, --help                     display this help and exit\n"
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "  -j, --join-existing            join messages with existing file\n"
+#~ "  -k, --keyword[=WORD]           additonal keyword to be looked for "
+#~ "(without\n"
+#~ "                                 WORD means not to use default keywords)\n"
+#~ "  -L, --language=NAME            recognise the specified language (C, C+"
+#~ "+, PO),\n"
+#~ "                                 otherwise is guessed from file "
+#~ "extension\n"
+#~ "  -m, --msgstr-prefix[=STRING]   use STRING or \"\" as prefix for msgstr "
+#~ "entries\n"
+#~ "  -M, --msgstr-suffix[=STRING]   use STRING or \"\" as suffix for msgstr "
+#~ "entries\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ msgstr ""
+#~ "  -h, --help                     väljastab käesoleva abiinfo ja lõpetab\n"
+#~ "                                 programmi töö\n"
+#~ "  -i, --indent                   kirjutab .po faili, kasutades taandridu\n"
+#~ "  -j, --join-existing            ühendab stringid olemasoleva failiga\n"
+#~ "  -k, --keyword[=SÕNA]           lisavõtmesõnad, mida otsingutes "
+#~ "kasutatakse\n"
+#~ "                                 (ilma SÕNA määramata kasutatakse "
+#~ "vaikimisi\n"
+#~ "                                 kasutusel olevaid võtmesõnu\n"
+#~ "  -L, --language=NIMI            määrab kasutatava keele (C, C++, PO), "
+#~ "ilma seda\n"
+#~ "                                 määramata tuvastatakse keel "
+#~ "faililaiendist\n"
+#~ "  -m, --msgstr-prefix[=STRING]   kasutaba stringi STRING või \"\" msgstr "
+#~ "kirjete\n"
+#~ "                                 eesliitena\n"
+#~ "  -M, --msgstr-suffix[=STRING]   kasutaba stringi STRING või \"\" msgstr "
+#~ "kirjete\n"
+#~ "                                 järelliitena\n"
+#~ "      --no-location              keelab '#: failinimi:reanumber' ridade\n"
+#~ "                                 kirjutamise\n"
+
+#~ msgid ""
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --omit-header              don't write header with `msgid \"\"' "
+#~ "entry\n"
+#~ "  -o, --output=FILE              write output to specified file\n"
+#~ "  -p, --output-dir=DIR           output files will be placed in directory "
+#~ "DIR\n"
+#~ "  -s, --sort-output              generate sorted output and remove "
+#~ "duplicates\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -T, --trigraphs                understand ANSI C trigraphs for input\n"
+#~ "  -V, --version                  output version information and exit\n"
+#~ "  -w, --width=NUMBER             set output page width\n"
+#~ "  -x, --exclude-file=FILE        entries from FILE are not extracted\n"
+#~ "\n"
+#~ "If INPUTFILE is -, standard input is read.\n"
+#~ msgstr ""
+#~ "  -n, --add-location             kirjutab ka '#: failinimi:reanumber' "
+#~ "read\n"
+#~ "                                 (vaikimisi)\n"
+#~ "      --omit-header              jätab päisesse `msgid \"\"' kirje "
+#~ "lisamata\n"
+#~ "  -o, --output=FAIL              kirjutab väljundi määratud faili\n"
+#~ "  -p, --output-dir=KATALOOG      väljundfailid pannakse määratud "
+#~ "kataloogi\n"
+#~ "  -s, --sort-output              väljund sorteeritakse ja duplikaadid\n"
+#~ "                                 kustutatakse\n"
+#~ "      --strict                   kirjutab .po faili, järgides ranget "
+#~ "Uniforum\n"
+#~ "                                 meetodit\n"
+#~ "  -T, --trigraphs                mõistab sisendis olevaid ANSI C stiilis "
+#~ "kolme-\n"
+#~ "                                 sümbolilisi erimärke\n"
+#~ "  -V, --version                  väljastab versiooniinfo ja lõpetab "
+#~ "programmi\n"
+#~ "                                 töö\n"
+#~ "  -w, --width=NUMBER             määrab väljastatava lehekülje laiuse\n"
+#~ "  -x, --exclude-file=FAIL        sellest failist tulevad kirjed jäetakse\n"
+#~ "                                 ekstraktimata\n"
+#~ "\n"
+#~ "Kui SISENDFAIL on -, kasutatakse sisendiks standardsisendit.\n"

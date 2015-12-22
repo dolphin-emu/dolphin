@@ -98,5 +98,5 @@ QString GameList::GetSelectedGame() const
 		QModelIndex model_index = proxy->mapToSource(sel_model->selectedIndexes()[0]);
 		return m_model->GetPath(model_index.row());
 	}
-	return QStringLiteral();
+	return QStringLiteral("");
 }
