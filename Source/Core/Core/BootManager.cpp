@@ -228,7 +228,6 @@ bool BootCore(const std::string& _rFilename)
 		return false;
 
 	// Load game specific settings
-	if (StartUp.GetUniqueID().size() == 6)
 	{
 		IniFile game_ini = StartUp.LoadGameIni();
 
