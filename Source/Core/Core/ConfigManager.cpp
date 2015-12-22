@@ -55,7 +55,8 @@ SConfig::SConfig()
   bProgressive(false), bPAL60(false),
   bDisableScreenSaver(false),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600),
-  bLoopFifoReplay(true)
+  bLoopFifoReplay(true),
+  bLoadSaveState(false)
 {
 	LoadDefaults();
 	// Make sure we have log manager

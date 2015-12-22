@@ -545,6 +545,17 @@ void EmuThread()
 		}
 	}
 
+	if (SConfig::GetInstance().bLoadSaveState)
+	{
+		std::string state = SConfig::GetInstance().m_state;
+		SConfig::GetInstance().bLoadSaveState = false;
+
+		if (std::all_of(state.begin(), state.end(), ::isdigit))
+			State::Load(atoi(state.c_str()));
+		else
+			State::LoadAs(state);
+	}
+
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
 
 	// Wait for s_cpu_thread to exit
