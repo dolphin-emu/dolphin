@@ -101,11 +101,11 @@ void VideoConfig::Load(const std::string& ini_file)
 	//currently these settings are not saved in global config, so we could've initialized them directly
 	for (size_t i = 0; i < oStereoPresets.size(); ++i)
 	{
-		stereoscopy->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
-		stereoscopy->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
+		stereoscopy->Get(StringFromFormat("StereoConvergencePercentage_%zu", i), &oStereoPresets[i].convergence, iStereoConvergencePercentage);
+		stereoscopy->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].depth, iStereoDepth);
 	}
 	stereoscopy->Get("StereoActivePreset", &iStereoActivePreset, 0);
-	iStereoConvergence = oStereoPresets[iStereoActivePreset].convergence;
+	iStereoConvergencePercentage = oStereoPresets[iStereoActivePreset].convergence;
 	iStereoDepth = oStereoPresets[iStereoActivePreset].depth;
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
@@ -212,11 +212,11 @@ void VideoConfig::GameIniLoad()
 	IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
 	for (size_t i = 0; i < oStereoPresets.size(); ++i)
 	{
-		stereoscopy->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
-		stereoscopy->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
+		stereoscopy->Get(StringFromFormat("StereoConvergencePercentage_%zu", i), &oStereoPresets[i].convergence, iStereoConvergencePercentage);
+		stereoscopy->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].depth, iStereoDepth);
 	}
 	stereoscopy->Get("StereoActivePreset", &iStereoActivePreset, 0);
-	iStereoConvergence = oStereoPresets[iStereoActivePreset].convergence;
+	iStereoConvergencePercentage = oStereoPresets[iStereoActivePreset].convergence;
 	iStereoDepth = oStereoPresets[iStereoActivePreset].depth;
 
 	CHECK_SETTING("Video_Stereoscopy", "StereoMode", iStereoMode);
