@@ -879,7 +879,8 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
 	if (!m_GameListCtrl->GetISO(0) &&
 		!((SConfig::GetInstance().m_ListGC &&
 		SConfig::GetInstance().m_ListWii &&
-		SConfig::GetInstance().m_ListWad) &&
+		SConfig::GetInstance().m_ListWad &&
+		SConfig::GetInstance().m_ListElfDol) &&
 		(SConfig::GetInstance().m_ListJap &&
 		SConfig::GetInstance().m_ListUsa  &&
 		SConfig::GetInstance().m_ListPal  &&
@@ -898,6 +899,7 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
 		SConfig::GetInstance().m_ListGC =
 		SConfig::GetInstance().m_ListWii =
 		SConfig::GetInstance().m_ListWad =
+		SConfig::GetInstance().m_ListElfDol =
 		SConfig::GetInstance().m_ListJap =
 		SConfig::GetInstance().m_ListUsa =
 		SConfig::GetInstance().m_ListPal =
