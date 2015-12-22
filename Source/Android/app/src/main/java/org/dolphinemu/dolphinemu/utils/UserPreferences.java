@@ -66,10 +66,10 @@ public final class UserPreferences
 		editor.putBoolean("disableFog",            getConfig("gfx_opengl.ini", "Settings", "DisableFog", "False").equals("True"));
 		editor.putBoolean("skipEFBAccess",         getConfig("gfx_opengl.ini", "Hacks", "EFBAccessEnable", "False").equals("True"));
 		editor.putBoolean("ignoreFormatChanges",   getConfig("gfx_opengl.ini", "Hacks", "EFBEmulateFormatChanges", "False").equals("True"));
-		editor.putString("stereoscopyMode",        getConfig("gfx_opengl.ini", "Enhancements", "StereoMode", "0"));
-		editor.putBoolean("stereoSwapEyes",        getConfig("gfx_opengl.ini", "Enhancements", "StereoSwapEyes", "False").equals("True"));
-		editor.putString("stereoDepth",            getConfig("gfx_opengl.ini", "Enhancements", "StereoDepth", "20"));
-		editor.putString("stereoConvergence",      getConfig("gfx_opengl.ini", "Enhancements", "StereoConvergence", "20"));
+		editor.putString("stereoscopyMode",        getConfig("gfx_opengl.ini", "Stereoscopy", "StereoMode", "0"));
+		editor.putBoolean("stereoSwapEyes",        getConfig("gfx_opengl.ini", "Stereoscopy", "StereoSwapEyes", "False").equals("True"));
+		editor.putString("stereoDepth",            getConfig("gfx_opengl.ini", "Stereoscopy", "StereoDepth", "20"));
+		editor.putString("stereoConvergencePercentage", getConfig("gfx_opengl.ini", "Stereoscopy", "StereoConvergencePercentage", "100"));
 		editor.putBoolean("enableController1",     getConfig("Dolphin.ini", "Settings", "SIDevice0", "6") == "6");
 		editor.putBoolean("enableController2",     getConfig("Dolphin.ini", "Settings", "SIDevice1", "0") == "6");
 		editor.putBoolean("enableController3",     getConfig("Dolphin.ini", "Settings", "SIDevice2", "0") == "6");
@@ -212,7 +212,7 @@ public final class UserPreferences
 		String stereoscopySeparation = prefs.getString("stereoDepth", "20");
 
 		// Stereoscopy convergence
-		String stereoscopyConvergence = prefs.getString("stereoConvergence", "20");
+		String stereoConvergencePercentage = prefs.getString("stereoConvergencePercentage", "100");
 
 		// Controllers
 		// Controller 1 never gets disconnected due to touch screen
@@ -224,7 +224,7 @@ public final class UserPreferences
 		// CPU related Settings
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUCore", currentEmuCore);
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUThread", isUsingDualCore ? "True" : "False");
-		
+
 		// Wiimote Extension Settings
 		NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension", WiimoteExtension_4);
 		NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote2", "Extension", WiimoteExtension_5);
@@ -294,10 +294,10 @@ public final class UserPreferences
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "EnablePixelLighting", usingPerPixelLighting ? "True" : "False");
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "ForceFiltering", isForcingTextureFiltering ? "True" : "False");
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "DisableFog", fogIsDisabled ? "True" : "False");
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "StereoMode", stereoscopyMode);
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "StereoSwapEyes", stereoscopyEyeSwap ? "True" : "False");
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "StereoDepth", stereoscopySeparation);
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "StereoConvergence", stereoscopyConvergence);
+		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoMode", stereoscopyMode);
+		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoSwapEyes", stereoscopyEyeSwap ? "True" : "False");
+		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoDepth", stereoscopySeparation);
+		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoConvergence", stereoConvergencePercentage);
 		NativeLibrary.SetConfig("Dolphin.ini", "Settings", "SIDevice0", "6");
 		NativeLibrary.SetConfig("Dolphin.ini", "Settings", "SIDevice1", enableController2 ? "6" : "0");
 		NativeLibrary.SetConfig("Dolphin.ini", "Settings", "SIDevice2", enableController3 ? "6" : "0");
