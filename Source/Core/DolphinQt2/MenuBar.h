@@ -12,7 +12,7 @@ class MenuBar final : public QMenuBar
 	Q_OBJECT
 
 public:
-	MenuBar(QWidget* parent = nullptr);
+	explicit MenuBar(QWidget* parent = nullptr);
 
 signals:
 	void Open();

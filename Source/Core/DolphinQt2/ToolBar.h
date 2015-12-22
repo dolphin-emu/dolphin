@@ -13,7 +13,7 @@ class ToolBar final : public QToolBar
 	Q_OBJECT
 
 public:
-	ToolBar(QWidget* parent = nullptr);
+	explicit ToolBar(QWidget* parent = nullptr);
 
 public slots:
 	void EmulationStarted();

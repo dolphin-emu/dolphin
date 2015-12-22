@@ -14,6 +14,6 @@ class TableProxyModel final : public QSortFilterProxyModel
 	Q_OBJECT
 
 public:
-	TableProxyModel(QObject* parent = nullptr);
-	QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+	explicit TableProxyModel(QObject* parent = nullptr);
+	QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 };

@@ -12,7 +12,7 @@ class RenderWidget final : public QWidget
 	Q_OBJECT
 
 public:
-	RenderWidget(QWidget* parent = nullptr);
+	explicit RenderWidget(QWidget* parent = nullptr);
 
 	bool event(QEvent* event);
 

@@ -29,7 +29,7 @@ static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLanguageMap(
 	return result;
 }
 
-GameFile::GameFile(QString path) : m_path(path)
+GameFile::GameFile(const QString& path) : m_path(path)
 {
 	m_valid = false;
 
@@ -81,7 +81,7 @@ void GameFile::ReadBanner(const DiscIO::IVolume& volume)
 		m_banner = Resources::GetMisc(Resources::BANNER_MISSING);
 }
 
-bool GameFile::LoadFileInfo(QString path)
+bool GameFile::LoadFileInfo(const QString& path)
 {
 	QFileInfo info(path);
 	if (!info.exists() || !info.isReadable())
@@ -184,7 +184,7 @@ void GameFile::SaveCache()
 	// TODO
 }
 
-QString GameFile::GetLanguageString(QMap<DiscIO::IVolume::ELanguage, QString> m) const
+QString GameFile::GetLanguageString(const QMap<DiscIO::IVolume::ELanguage, QString>& m) const
 {
 	// Try the settings language, then English, then just pick one.
 	if (m.isEmpty())

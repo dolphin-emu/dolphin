@@ -29,7 +29,7 @@ QString Settings::GetLastGame() const
 	return value(QStringLiteral("GameList/LastGame")).toString();
 }
 
-void Settings::SetLastGame(QString path)
+void Settings::SetLastGame(const QString& path)
 {
 	setValue(QStringLiteral("GameList/LastGame"), path);
 }
@@ -39,7 +39,7 @@ QStringList Settings::GetPaths() const
 	return value(QStringLiteral("GameList/Paths")).toStringList();
 }
 
-void Settings::SetPaths(QStringList paths)
+void Settings::SetPaths(const QStringList& paths)
 {
 	setValue(QStringLiteral("GameList/Paths"), paths);
 }

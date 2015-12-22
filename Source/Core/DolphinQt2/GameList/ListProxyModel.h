@@ -4,11 +4,13 @@
 
 #include <QSortFilterProxyModel>
 
+// This subclass of QSortFilterProxyModel transforms the raw data into a
+// single-column large icon + name to be displayed in a QListView.
 class ListProxyModel final : public QSortFilterProxyModel
 {
 	Q_OBJECT
 
 public:
-	ListProxyModel(QObject* parent = nullptr);
-	QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+	explicit ListProxyModel(QObject* parent = nullptr);
+	QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 };
