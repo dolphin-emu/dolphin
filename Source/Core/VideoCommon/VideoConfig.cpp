@@ -91,18 +91,20 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("ForceFiltering", &bForceFiltering, 0);
 	enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
 	enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
-	enhancements->Get("StereoMode", &iStereoMode, 0);
-	enhancements->Get("StereoDepth", &iStereoDepth, 20);
-	enhancements->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
-	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
+
+	IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
+	stereoscopy->Get("StereoMode", &iStereoMode, 0);
+	stereoscopy->Get("StereoDepth", &iStereoDepth, 20);
+	stereoscopy->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
+	stereoscopy->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 
 	//currently these settings are not saved in global config, so we could've initialized them directly
 	for (size_t i = 0; i < oStereoPresets.size(); ++i)
 	{
-		enhancements->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
-		enhancements->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
+		stereoscopy->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
+		stereoscopy->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
 	}
-	enhancements->Get("StereoActivePreset", &iStereoActivePreset, 0);
+	stereoscopy->Get("StereoActivePreset", &iStereoActivePreset, 0);
 	iStereoConvergence = oStereoPresets[iStereoActivePreset].convergence;
 	iStereoDepth = oStereoPresets[iStereoActivePreset].depth;
 
@@ -317,10 +319,12 @@ void VideoConfig::Save(const std::string& ini_file)
 	enhancements->Set("ForceFiltering", bForceFiltering);
 	enhancements->Set("MaxAnisotropy", iMaxAnisotropy);
 	enhancements->Set("PostProcessingShader", sPostProcessingShader);
-	enhancements->Set("StereoMode", iStereoMode);
-	enhancements->Set("StereoDepth", iStereoDepth);
-	enhancements->Set("StereoConvergencePercentage", iStereoConvergencePercentage);
-	enhancements->Set("StereoSwapEyes", bStereoSwapEyes);
+
+	IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
+	stereoscopy->Set("StereoMode", iStereoMode);
+	stereoscopy->Set("StereoDepth", iStereoDepth);
+	stereoscopy->Set("StereoConvergencePercentage", iStereoConvergencePercentage);
+	stereoscopy->Set("StereoSwapEyes", bStereoSwapEyes);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
