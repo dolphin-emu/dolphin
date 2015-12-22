@@ -51,7 +51,7 @@ void GameTracker::AddDirectory(QString dir)
 	UpdateDirectory(dir);
 }
 
-void GameTracker::UpdateDirectory(QString dir)
+void GameTracker::UpdateDirectory(const QString& dir)
 {
 	QDirIterator it(dir, game_filters);
 	while (it.hasNext())
@@ -66,7 +66,7 @@ void GameTracker::UpdateDirectory(QString dir)
 	}
 }
 
-void GameTracker::UpdateFile(QString file)
+void GameTracker::UpdateFile(const QString& file)
 {
 	if (QFileInfo(file).exists())
 	{

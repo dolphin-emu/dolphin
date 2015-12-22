@@ -18,7 +18,9 @@ class GameLoader;
 
 // Watches directories and loads GameFiles in a separate thread.
 // To use this, just add directories using AddDirectory, and listen for the
-// GameLoaded and GameRemoved signals.
+// GameLoaded and GameRemoved signals. Ignore the PathChanged signal, it's
+// only there because the Qt people made fileChanged and directoryChanged
+// private.
 class GameTracker final : public QFileSystemWatcher
 {
 	Q_OBJECT
@@ -37,15 +39,15 @@ signals:
 	void PathChanged(QString path);
 
 private:
-	void UpdateDirectory(QString dir);
-	void UpdateFile(QString path);
+	void UpdateDirectory(const QString& dir);
+	void UpdateFile(const QString& path);
 
 	QSet<QString> m_tracked_files;
 	QThread m_loader_thread;
 	GameLoader* m_loader;
 };
 
-class GameLoader : public QObject
+class GameLoader final : public QObject
 {
 	Q_OBJECT
 

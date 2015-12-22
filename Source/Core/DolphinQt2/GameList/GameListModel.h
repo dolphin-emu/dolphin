@@ -18,10 +18,10 @@ public:
 	explicit GameListModel(QObject* parent = nullptr);
 
 	// Qt's Model/View stuff uses these overrides.
-	QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
-	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-	int rowCount(const QModelIndex& parent) const;
-	int columnCount(const QModelIndex& parent) const;
+	QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+	int rowCount(const QModelIndex& parent) const override;
+	int columnCount(const QModelIndex& parent) const override;
 
 	// Path of the Game at the specified index.
 	QString GetPath(int index) const { return m_games[index]->GetPath(); }

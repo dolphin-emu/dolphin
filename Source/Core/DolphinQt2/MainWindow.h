@@ -32,8 +32,11 @@ private slots:
 	void Browse();
 	void Play();
 	void Pause();
+
+	// May ask for confirmation. Returns whether or not it actually stopped.
 	bool Stop();
 	void ForceStop();
+
 	void FullScreen();
 	void ScreenShot();
 
@@ -44,7 +47,7 @@ private:
 	void MakeStack();
 	void MakeToolBar();
 
-	void StartGame(QString path);
+	void StartGame(const QString& path);
 	void ShowRenderWidget();
 	void HideRenderWidget();
 

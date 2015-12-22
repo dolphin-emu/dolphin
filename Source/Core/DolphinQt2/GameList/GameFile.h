@@ -15,7 +15,7 @@
 class GameFile final
 {
 public:
-	explicit GameFile(QString path);
+	explicit GameFile(const QString& path);
 
 	bool IsValid()            const { return m_valid; }
 
@@ -62,11 +62,11 @@ public:
 
 private:
 	DiscIO::IVolume::ELanguage GetDefaultLanguage() const;
-	QString GetLanguageString(QMap<DiscIO::IVolume::ELanguage, QString> m) const;
+	QString GetLanguageString(const QMap<DiscIO::IVolume::ELanguage, QString>& m) const;
 
 	QString GetCacheFileName() const;
 	void ReadBanner(const DiscIO::IVolume& volume);
-	bool LoadFileInfo(QString path);
+	bool LoadFileInfo(const QString& path);
 	void LoadState();
 	bool IsElfOrDol();
 	bool TryLoadElfDol();

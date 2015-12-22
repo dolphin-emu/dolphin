@@ -2,13 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <QAction>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QIcon>
-#include <QLineEdit>
-#include <QMenu>
 #include <QMessageBox>
 
 #include "Core/BootManager.h"
@@ -194,7 +191,7 @@ void MainWindow::ScreenShot()
 	Core::SaveScreenShot();
 }
 
-void MainWindow::StartGame(QString path)
+void MainWindow::StartGame(const QString& path)
 {
 	// If we're running, only start a new game once we've stopped the last.
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
