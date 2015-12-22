@@ -98,16 +98,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	stereoscopy->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
 	stereoscopy->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 
-	//currently these settings are not saved in global config, so we could've initialized them directly
-	for (size_t i = 0; i < oStereoPresets.size(); ++i)
-	{
-		stereoscopy->Get(StringFromFormat("StereoConvergencePercentage_%zu", i), &oStereoPresets[i].convergence, iStereoConvergencePercentage);
-		stereoscopy->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].depth, iStereoDepth);
-	}
-	stereoscopy->Get("StereoActivePreset", &iStereoActivePreset, 0);
-	iStereoConvergencePercentage = oStereoPresets[iStereoActivePreset].convergence;
-	iStereoDepth = oStereoPresets[iStereoActivePreset].depth;
-
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
 	hacks->Get("BBoxEnable", &bBBoxEnable, false);
@@ -207,17 +197,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	CHECK_SETTING("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
-
-	//these are not overrides, they are per-game settings, hence no warning
-	IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
-	for (size_t i = 0; i < oStereoPresets.size(); ++i)
-	{
-		stereoscopy->Get(StringFromFormat("StereoConvergencePercentage_%zu", i), &oStereoPresets[i].convergence, iStereoConvergencePercentage);
-		stereoscopy->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].depth, iStereoDepth);
-	}
-	stereoscopy->Get("StereoActivePreset", &iStereoActivePreset, 0);
-	iStereoConvergencePercentage = oStereoPresets[iStereoActivePreset].convergence;
-	iStereoDepth = oStereoPresets[iStereoActivePreset].depth;
 
 	CHECK_SETTING("Video_Stereoscopy", "StereoMode", iStereoMode);
 	CHECK_SETTING("Video_Stereoscopy", "StereoDepth", iStereoDepth);

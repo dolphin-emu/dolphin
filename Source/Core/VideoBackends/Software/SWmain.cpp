@@ -65,19 +65,14 @@ std::string VideoSoftware::GetDisplayName() const
 	return "Software Renderer";
 }
 
-std::string VideoSoftware::GetConfigName() const
-{
-	return "gfx_software";
-}
-
 void VideoSoftware::ShowConfig(void *hParent)
 {
-	Host_ShowVideoConfig(hParent, GetDisplayName(), GetConfigName());
+	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_software");
 }
 
 bool VideoSoftware::Initialize(void *window_handle)
 {
-	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + GetConfigName() + ".ini").c_str());
+	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
 
 	SWOGLWindow::Init(window_handle);
 
