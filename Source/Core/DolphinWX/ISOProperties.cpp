@@ -357,13 +357,13 @@ void CISOProperties::CreateGUIControls()
 	sDepthPercentage->Add(DepthPercentageText);
 	sDepthPercentage->Add(DepthPercentage);
 
-	wxBoxSizer* const sConvergenceMinimum = new wxBoxSizer(wxHORIZONTAL);
-	wxStaticText* const ConvergenceMinimumText = new wxStaticText(m_GameConfig, wxID_ANY, _("Convergence Minimum: "));
-	ConvergenceMinimum = new wxSpinCtrl(m_GameConfig, ID_CONVERGENCEMINIMUM);
-	ConvergenceMinimum->SetRange(0, INT32_MAX);
-	ConvergenceMinimum->SetToolTip(_("This value is added to the convergence value set in the graphics configuration."));
-	sConvergenceMinimum->Add(ConvergenceMinimumText);
-	sConvergenceMinimum->Add(ConvergenceMinimum);
+	wxBoxSizer* const sConvergence = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText* const ConvergenceText = new wxStaticText(m_GameConfig, wxID_ANY, _("Convergence: "));
+	Convergence = new wxSpinCtrl(m_GameConfig, ID_CONVERGENCE);
+	Convergence->SetRange(0, INT32_MAX);
+	Convergence->SetToolTip(_("This value is added to the convergence value set in the graphics configuration."));
+	sConvergence->Add(ConvergenceText);
+	sConvergence->Add(Convergence);
 
 	MonoDepth = new wxCheckBox(m_GameConfig, ID_MONODEPTH, _("Monoscopic Shadows"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Video_Stereoscopy", "StereoEFBMonoDepth"));
 	MonoDepth->SetToolTip(_("Use a single depth buffer for both eyes. Needed for a few games."));
@@ -403,7 +403,7 @@ void CISOProperties::CreateGUIControls()
 	wxStaticBoxSizer* const sbStereoOverrides =
 		new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Stereoscopy"));
 	sbStereoOverrides->Add(sDepthPercentage);
-	sbStereoOverrides->Add(sConvergenceMinimum);
+	sbStereoOverrides->Add(sConvergence);
 	sbStereoOverrides->Add(MonoDepth);
 
 	wxStaticBoxSizer * const sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
@@ -1073,9 +1073,9 @@ void CISOProperties::LoadGameConfig()
 	default_stereoscopy->Get("StereoDepthPercentage", &iTemp, 100);
 	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iTemp);
 	DepthPercentage->SetValue(iTemp);
-	default_stereoscopy->Get("StereoConvergenceMinimum", &iTemp, 0);
-	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoConvergenceMinimum", &iTemp);
-	ConvergenceMinimum->SetValue(iTemp);
+	default_stereoscopy->Get("StereoConvergence", &iTemp, 0);
+	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoConvergence", &iTemp);
+	Convergence->SetValue(iTemp);
 
 	PatchList_Load();
 	ActionReplayList_Load();
@@ -1154,7 +1154,7 @@ bool CISOProperties::SaveGameConfig()
 
 	int depth = DepthPercentage->GetValue() > 0 ? DepthPercentage->GetValue() : 100;
 	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoDepthPercentage", depth, 100);
-	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoConvergenceMinimum", ConvergenceMinimum->GetValue(), 0);
+	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoConvergence", Convergence->GetValue(), 0);
 
 	PatchList_Save();
 	ActionReplayList_Save();
