@@ -70,7 +70,7 @@ VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
-static RasterFont* s_pfont = nullptr;
+static std::unique_ptr<RasterFont> s_raster_font;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
@@ -669,16 +669,13 @@ Renderer::~Renderer()
 
 void Renderer::Shutdown()
 {
-	delete g_framebuffer_manager;
+	g_framebuffer_manager.reset();
 
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
 
-	delete s_pfont;
-	s_pfont = nullptr;
-
-	delete m_post_processor;
-	m_post_processor = nullptr;
+	s_raster_font.reset();
+	m_post_processor.reset();
 
 	OpenGL_DeleteAttributelessVAO();
 }
@@ -686,12 +683,11 @@ void Renderer::Shutdown()
 void Renderer::Init()
 {
 	// Initialize the FramebufferManager
-	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
+	g_framebuffer_manager = std::make_unique<FramebufferManager>(s_target_width, s_target_height,
 			s_MSAASamples);
 
-	m_post_processor = new OpenGLPostProcessing();
-
-	s_pfont = new RasterFont();
+	m_post_processor = std::make_unique<OpenGLPostProcessing>();
+	s_raster_font = std::make_unique<RasterFont>();
 
 	OpenGL_CreateAttributelessVAO();
 }
@@ -701,7 +697,7 @@ void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 	const int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	const int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
 
-	s_pfont->printMultilineText(text,
+	s_raster_font->printMultilineText(text,
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight, color);
@@ -1515,9 +1511,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", s_last_multisamples, g_ogl_config.max_samples), 10000);
 			}
 
-			delete g_framebuffer_manager;
-			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
-				s_MSAASamples);
+			g_framebuffer_manager = std::make_unique<FramebufferManager>(s_target_width, s_target_height, s_MSAASamples);
 
 			PixelShaderManager::SetEfbScaleChanged();
 		}
