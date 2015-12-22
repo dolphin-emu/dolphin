@@ -4,10 +4,12 @@
 
 #include <xaudio2.h>
 #include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/AudioDevice.h"
 #include "AudioCommon/XAudio2Stream.h"
 #include "Common/Event.h"
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 
 #ifndef XAUDIO2_DLL
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path.
@@ -185,9 +187,19 @@ bool XAudio2::Start()
 	}
 	m_xaudio2 = std::unique_ptr<IXAudio2, Releaser>(xaudptr);
 
+	// get the selected audio device
+	AudioDevice audio_device = AudioDevice::GetSelectedDevice();
+	INFO_LOG(AUDIO, "Using Audio Device: %s", audio_device.name.c_str());
+	std::wstring device_path;
+	LPCWSTR p_device_path = NULL;
+	if (audio_device != AudioDevice::GetDefaultDevice()) {
+		device_path = UTF8ToTStr(audio_device.path);
+		p_device_path = device_path.c_str();
+	}
+
 	// XAudio2 master voice
 	// XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
-	if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate())))
+	if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate(), 0, p_device_path)))
 	{
 		PanicAlert("XAudio2 master voice creation failed: %#X", hr);
 		Stop();

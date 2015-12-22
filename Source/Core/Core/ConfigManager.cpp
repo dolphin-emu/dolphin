@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <memory>
 
+#include "AudioCommon/AudioDevice.h"
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -298,6 +299,7 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 	dsp->Set("DumpAudio", m_DumpAudio);
 	dsp->Set("DumpUCode", m_DumpUCode);
 	dsp->Set("Backend", sBackend);
+	dsp->Set("AudioDevice", sAudioDevice);
 	dsp->Set("Volume", m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
 }
@@ -573,6 +575,7 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #else
 	dsp->Get("Backend", &sBackend, BACKEND_NULLSOUND);
 #endif
+	dsp->Get("AudioDevice", &sAudioDevice, AudioDevice::GetDefaultDevice().id);
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
 

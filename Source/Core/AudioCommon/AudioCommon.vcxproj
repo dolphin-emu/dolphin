@@ -37,6 +37,7 @@
   <ItemGroup>
     <ClCompile Include="aldlist.cpp" />
     <ClCompile Include="AudioCommon.cpp" />
+    <ClCompile Include="AudioDevice.cpp" />
     <ClCompile Include="DPL2Decoder.cpp" />
     <ClCompile Include="Mixer.cpp" />
     <ClCompile Include="NullSoundStream.cpp" />
@@ -52,6 +53,7 @@
     <ClInclude Include="AlsaSoundStream.h" />
     <ClInclude Include="AOSoundStream.h" />
     <ClInclude Include="AudioCommon.h" />
+    <ClInclude Include="AudioDevice.h" />
     <ClInclude Include="CoreAudioSoundStream.h" />
     <ClInclude Include="DPL2Decoder.h" />
     <ClInclude Include="Mixer.h" />
