@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -89,37 +91,25 @@ std::string CSharedContent::AddSharedContent(const u8* _pHash)
 }
 
 
-CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
+CNANDContentLoader::CNANDContentLoader(const std::string& name)
 	: m_Valid(false)
 	, m_isWAD(false)
 	, m_TitleID(-1)
 	, m_IosVersion(0x09)
 	, m_BootIndex(-1)
-	, m_TIKSize(0)
-	, m_TIK(nullptr)
 {
-	m_Valid = Initialize(_rName);
+	m_Valid = Initialize(name);
 }
 
 CNANDContentLoader::~CNANDContentLoader()
 {
-	for (auto& content : m_Content)
-	{
-		delete [] content.m_pData;
-	}
-	m_Content.clear();
-	if (m_TIK)
-	{
-		delete []m_TIK;
-		m_TIK = nullptr;
-	}
 }
 
-const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
+const SNANDContent* CNANDContentLoader::GetContentByIndex(int index) const
 {
 	for (auto& Content : m_Content)
 	{
-		if (Content.m_Index == _Index)
+		if (Content.m_Index == index)
 		{
 			return &Content;
 		}
@@ -127,119 +117,124 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 	return nullptr;
 }
 
-bool CNANDContentLoader::Initialize(const std::string& _rName)
+bool CNANDContentLoader::Initialize(const std::string& name)
 {
-	if (_rName.empty())
+	if (name.empty())
 		return false;
-	m_Path = _rName;
-	WiiWAD Wad(_rName);
-	u8* pDataApp = nullptr;
-	u8* pTMD = nullptr;
-	u8 DecryptTitleKey[16];
-	u8 IV[16];
-	if (Wad.IsValid())
+
+	m_Path = name;
+
+	WiiWAD wad(name);
+	std::vector<u8> data_app;
+	std::vector<u8> tmd;
+	std::vector<u8> decrypted_title_key;
+
+	if (wad.IsValid())
 	{
 		m_isWAD = true;
-		m_TIKSize = Wad.GetTicketSize();
-		m_TIK = new u8[m_TIKSize];
-		memcpy(m_TIK, Wad.GetTicket(), m_TIKSize);
-		GetKeyFromTicket(m_TIK, DecryptTitleKey);
-		u32 pTMDSize = Wad.GetTMDSize();
-		pTMD = new u8[pTMDSize];
-		memcpy(pTMD, Wad.GetTMD(), pTMDSize);
-		pDataApp = Wad.GetDataApp();
+		m_ticket = wad.GetTicket();
+		decrypted_title_key = GetKeyFromTicket(m_ticket);
+		tmd = wad.GetTMD();
+		data_app = wad.GetDataApp();
 	}
 	else
 	{
-		std::string TMDFileName(m_Path);
+		std::string tmd_filename(m_Path);
 
-		if (TMDFileName.back() == '/')
-			TMDFileName += "title.tmd";
+		if (tmd_filename.back() == '/')
+			tmd_filename += "title.tmd";
 		else
-			m_Path = TMDFileName.substr(0, TMDFileName.find("title.tmd"));
+			m_Path = tmd_filename.substr(0, tmd_filename.find("title.tmd"));
 
-		File::IOFile pTMDFile(TMDFileName, "rb");
-		if (!pTMDFile)
+		File::IOFile tmd_file(tmd_filename, "rb");
+		if (!tmd_file)
 		{
-			WARN_LOG(DISCIO, "CreateFromDirectory: error opening %s", TMDFileName.c_str());
+			WARN_LOG(DISCIO, "CreateFromDirectory: error opening %s", tmd_filename.c_str());
 			return false;
 		}
-		u32 pTMDSize = (u32)File::GetSize(TMDFileName);
-		pTMD = new u8[pTMDSize];
-		pTMDFile.ReadBytes(pTMD, (size_t)pTMDSize);
-		pTMDFile.Close();
+
+		tmd.resize(static_cast<size_t>(File::GetSize(tmd_filename)));
+		tmd_file.ReadBytes(tmd.data(), tmd.size());
 	}
 
-	memcpy(m_TMDView, pTMD + 0x180, TMD_VIEW_SIZE);
-	memcpy(m_TMDHeader, pTMD, TMD_HEADER_SIZE);
+	std::copy(&tmd[0],     &tmd[TMD_HEADER_SIZE], m_TMDHeader);
+	std::copy(&tmd[0x180], &tmd[0x180 + TMD_VIEW_SIZE], m_TMDView);
 
+	m_TitleVersion = Common::swap16(&tmd[0x01DC]);
+	m_numEntries   = Common::swap16(&tmd[0x01DE]);
+	m_BootIndex    = Common::swap16(&tmd[0x01E0]);
+	m_TitleID      = Common::swap64(&tmd[0x018C]);
+	m_IosVersion   = Common::swap16(&tmd[0x018A]);
+	m_Country      = static_cast<u8>(m_TitleID & 0xFF);
 
-	m_TitleVersion = Common::swap16(pTMD + 0x01dc);
-	m_numEntries = Common::swap16(pTMD + 0x01de);
-	m_BootIndex = Common::swap16(pTMD + 0x01e0);
-	m_TitleID = Common::swap64(pTMD + 0x018c);
-	m_IosVersion = Common::swap16(pTMD + 0x018a);
-	m_Country = *(u8*)&m_TitleID;
 	if (m_Country == 2) // SYSMENU
 		m_Country = GetSysMenuRegion(m_TitleVersion);
 
+	InitializeContentEntries(tmd, decrypted_title_key, data_app);
+	return true;
+}
+
+void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd, const std::vector<u8>& decrypted_title_key, const std::vector<u8>& data_app)
+{
 	m_Content.resize(m_numEntries);
 
+	std::array<u8, 16> iv;
+	u32 data_app_offset = 0;
 
-	for (u32 i=0; i < m_numEntries; i++)
+	for (u32 i = 0; i < m_numEntries; i++)
 	{
-		SNANDContent& rContent = m_Content[i];
+		const u32 entry_offset = 0x24 * i;
 
-		rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
-		rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
-		rContent.m_Type = Common::swap16(pTMD + 0x01ea + 0x24*i);
-		rContent.m_Size = (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
-		memcpy(rContent.m_SHA1Hash, pTMD + 0x01f4 + 0x24*i, 20);
-		memcpy(rContent.m_Header, pTMD + 0x01e4 + 0x24*i, 36);
+		SNANDContent& content = m_Content[i];
+		content.m_ContentID = Common::swap32(&tmd[entry_offset + 0x01E4]);
+		content.m_Index     = Common::swap16(&tmd[entry_offset + 0x01E8]);
+		content.m_Type      = Common::swap16(&tmd[entry_offset + 0x01EA]);
+		content.m_Size      = static_cast<u32>(Common::swap64(&tmd[entry_offset + 0x01EC]));
+		std::copy(&tmd[entry_offset + 0x01E4], &tmd[entry_offset + 0x01E4 + 36], content.m_Header);
+		std::copy(&tmd[entry_offset + 0x01F4], &tmd[entry_offset + 0x01F4 + 20], content.m_SHA1Hash);
 
 		if (m_isWAD)
 		{
-			u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
-			rContent.m_pData = new u8[RoundedSize];
+			u32 rounded_size = ROUND_UP(content.m_Size, 0x40);
 
-			memset(IV, 0, sizeof IV);
-			memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
-			AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
+			iv.fill(0);
+			std::copy(&tmd[entry_offset + 0x01E8], &tmd[entry_offset + 0x01E8 + 2], iv.begin());
 
-			pDataApp += RoundedSize;
+			content.m_data = AESDecode(decrypted_title_key.data(), iv.data(), &data_app[data_app_offset], rounded_size);
+
+			data_app_offset += rounded_size;
 			continue;
 		}
 
-		rContent.m_pData = nullptr;
-
-		if (rContent.m_Type & 0x8000)  // shared app
-			rContent.m_Filename = CSharedContent::AccessInstance().GetFilenameFromSHA1(rContent.m_SHA1Hash);
+		if (content.m_Type & 0x8000)  // shared app
+			content.m_Filename = CSharedContent::AccessInstance().GetFilenameFromSHA1(content.m_SHA1Hash);
 		else
-			rContent.m_Filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
+			content.m_Filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.m_ContentID);
 
 		// Be graceful about incorrect TMDs.
-		if (File::Exists(rContent.m_Filename))
-			rContent.m_Size = (u32) File::GetSize(rContent.m_Filename);
+		if (File::Exists(content.m_Filename))
+			content.m_Size = static_cast<u32>(File::GetSize(content.m_Filename));
 	}
-
-	delete [] pTMD;
-	return true;
-}
-void CNANDContentLoader::AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest)
-{
-	mbedtls_aes_context AES_ctx;
-
-	mbedtls_aes_setkey_dec(&AES_ctx, _pKey, 128);
-	mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, _Size, _IV, _pSrc, _pDest);
 }
 
-void CNANDContentLoader::GetKeyFromTicket(u8* pTicket, u8* pTicketKey)
+std::vector<u8> CNANDContentLoader::AESDecode(const u8* key, u8* iv, const u8* src, u32 size)
 {
-	u8 CommonKey[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};
-	u8 IV[16];
-	memset(IV, 0, sizeof IV);
-	memcpy(IV, pTicket + 0x01dc, 8);
-	AESDecode(CommonKey, IV, pTicket + 0x01bf, 16, pTicketKey);
+	mbedtls_aes_context aes_ctx;
+	std::vector<u8> buffer(size);
+
+	mbedtls_aes_setkey_dec(&aes_ctx, key, 128);
+	mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, size, iv, src, buffer.data());
+
+	return buffer;
+}
+
+std::vector<u8> CNANDContentLoader::GetKeyFromTicket(const std::vector<u8>& ticket)
+{
+	const u8 common_key[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};
+	u8 iv[16] = {};
+
+	std::copy(&ticket[0x01DC], &ticket[0x01DC + 8], iv);
+	return AESDecode(common_key, iv, &ticket[0x01BF], 16);
 }
 
 
@@ -380,86 +375,85 @@ void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
 	}
 }
 
-u64 CNANDContentManager::Install_WiiWAD(const std::string& fileName)
+u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
 {
-	if (fileName.find(".wad") == std::string::npos)
+	if (filename.find(".wad") == std::string::npos)
 		return 0;
-	const CNANDContentLoader& ContentLoader = GetNANDLoader(fileName);
-	if (ContentLoader.IsValid() == false)
+	const CNANDContentLoader& content_loader = GetNANDLoader(filename);
+	if (content_loader.IsValid() == false)
 		return 0;
 
-	u64 TitleID = ContentLoader.GetTitleID();
+	u64 title_id = content_loader.GetTitleID();
 
 	//copy WAD's TMD header and contents to content directory
 
-	std::string ContentPath(Common::GetTitleContentPath(TitleID, Common::FROM_CONFIGURED_ROOT));
-	std::string TMDFileName(Common::GetTMDFileName(TitleID, Common::FROM_CONFIGURED_ROOT));
-	File::CreateFullPath(TMDFileName);
+	std::string content_path(Common::GetTitleContentPath(title_id, Common::FROM_CONFIGURED_ROOT));
+	std::string tmd_filename(Common::GetTMDFileName(title_id, Common::FROM_CONFIGURED_ROOT));
+	File::CreateFullPath(tmd_filename);
 
-	File::IOFile pTMDFile(TMDFileName, "wb");
-	if (!pTMDFile)
+	File::IOFile tmd_file(tmd_filename, "wb");
+	if (!tmd_file)
 	{
-		PanicAlertT("WAD installation failed: error creating %s", TMDFileName.c_str());
+		PanicAlertT("WAD installation failed: error creating %s", tmd_filename.c_str());
 		return 0;
 	}
 
-	pTMDFile.WriteBytes(ContentLoader.GetTMDHeader(), CNANDContentLoader::TMD_HEADER_SIZE);
+	tmd_file.WriteBytes(content_loader.GetTMDHeader(), CNANDContentLoader::TMD_HEADER_SIZE);
 
-	for (u32 i = 0; i < ContentLoader.GetContentSize(); i++)
+	for (u32 i = 0; i < content_loader.GetContentSize(); i++)
 	{
-		const SNANDContent& Content = ContentLoader.GetContent()[i];
+		const SNANDContent& content = content_loader.GetContent()[i];
 
-		pTMDFile.WriteBytes(Content.m_Header, CNANDContentLoader::CONTENT_HEADER_SIZE);
+		tmd_file.WriteBytes(content.m_Header, CNANDContentLoader::CONTENT_HEADER_SIZE);
 
-		std::string APPFileName;
-		if (Content.m_Type & 0x8000) //shared
-			APPFileName = CSharedContent::AccessInstance().AddSharedContent(Content.m_SHA1Hash);
+		std::string app_filename;
+		if (content.m_Type & 0x8000) //shared
+			app_filename = CSharedContent::AccessInstance().AddSharedContent(content.m_SHA1Hash);
 		else
-			APPFileName = StringFromFormat("%s%08x.app", ContentPath.c_str(), Content.m_ContentID);
+			app_filename = StringFromFormat("%s%08x.app", content_path.c_str(), content.m_ContentID);
 
-		if (!File::Exists(APPFileName))
+		if (!File::Exists(app_filename))
 		{
-			File::CreateFullPath(APPFileName);
-			File::IOFile pAPPFile(APPFileName, "wb");
-			if (!pAPPFile)
+			File::CreateFullPath(app_filename);
+			File::IOFile app_file(app_filename, "wb");
+			if (!app_file)
 			{
-				PanicAlertT("WAD installation failed: error creating %s", APPFileName.c_str());
+				PanicAlertT("WAD installation failed: error creating %s", app_filename.c_str());
 				return 0;
 			}
 
-			pAPPFile.WriteBytes(Content.m_pData, Content.m_Size);
+			app_file.WriteBytes(content.m_data.data(), content.m_Size);
 		}
 		else
 		{
-			INFO_LOG(DISCIO, "Content %s already exists.", APPFileName.c_str());
+			INFO_LOG(DISCIO, "Content %s already exists.", app_filename.c_str());
 		}
 	}
 
 	//Extract and copy WAD's ticket to ticket directory
-	if (!Add_Ticket(TitleID, ContentLoader.GetTIK(), ContentLoader.GetTIKSize()))
+	if (!AddTicket(title_id, content_loader.GetTicket()))
 	{
 		PanicAlertT("WAD installation failed: error creating ticket");
 		return 0;
 	}
 
-	cUIDsys::AccessInstance().AddTitle(TitleID);
+	cUIDsys::AccessInstance().AddTitle(title_id);
 
 	ClearCache();
 
-	return TitleID;
+	return title_id;
 }
 
-bool Add_Ticket(u64 TitleID, const u8* p_tik, u32 tikSize)
+bool AddTicket(u64 title_id, const std::vector<u8>& ticket)
 {
-	std::string TicketFileName = Common::GetTicketFileName(TitleID, Common::FROM_CONFIGURED_ROOT);
-	File::CreateFullPath(TicketFileName);
-	File::IOFile pTicketFile(TicketFileName, "wb");
-	if (!pTicketFile || !p_tik)
-	{
-		//PanicAlertT("WAD installation failed: error creating %s", TicketFileName.c_str());
+	std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
+	File::CreateFullPath(ticket_filename);
+
+	File::IOFile ticket_file(ticket_filename, "wb");
+	if (!ticket_file)
 		return false;
-	}
-	return pTicketFile.WriteBytes(p_tik, tikSize);
+
+	return ticket_file.WriteBytes(ticket.data(), ticket.size());
 }
 
 } // namespace end

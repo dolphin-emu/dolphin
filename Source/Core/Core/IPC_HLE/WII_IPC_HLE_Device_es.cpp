@@ -228,7 +228,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 	Access.m_TitleID = TitleID;
 	Access.m_pFile = nullptr;
 
-	if (!pContent->m_pData)
+	if (pContent->m_data.empty())
 	{
 		std::string Filename = pContent->m_Filename;
 		INFO_LOG(WII_IPC_ES, "ES: load %s", Filename.c_str());
@@ -404,12 +404,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			{
 				if (pDest)
 				{
-					if (rContent.m_pContent->m_pData)
-					{
-						u8* pSrc = &rContent.m_pContent->m_pData[rContent.m_Position];
-						memcpy(pDest, pSrc, Size);
-					}
-					else
+					if (rContent.m_pContent->m_data.empty())
 					{
 						auto& pFile = rContent.m_pFile;
 						if (!pFile->Seek(rContent.m_Position, SEEK_SET))
@@ -422,8 +417,16 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 							ERROR_LOG(WII_IPC_ES, "ES: short read; returning uninitialized data!");
 						}
 					}
+					else
+					{
+						const u8* src = &rContent.m_pContent->m_data[rContent.m_Position];
+						memcpy(pDest, src, Size);
+					}
+
 					rContent.m_Position += Size;
-				} else {
+				}
+				else
+				{
 					PanicAlert("IOCTL_ES_READCONTENT - bad destination");
 				}
 			}
@@ -581,7 +584,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u32 retVal = 0;
 			const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
-			u32 ViewCount = Loader.GetTIKSize() / DiscIO::CNANDContentLoader::TICKET_SIZE;
+			u32 ViewCount = static_cast<u32>(Loader.GetTicket().size()) / DiscIO::CNANDContentLoader::TICKET_SIZE;
 
 			if (!ViewCount)
 			{
@@ -629,18 +632,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-			const u8 *Ticket = Loader.GetTIK();
-			if (Ticket)
-			{
-				u32 viewCnt = Loader.GetTIKSize() / DiscIO::CNANDContentLoader::TICKET_SIZE;
-				for (unsigned int View = 0; View != maxViews && View < viewCnt; ++View)
-				{
-					Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address + View * 0xD8);
-					Memory::CopyToEmu(Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8,
-						Ticket + 0x1D0 + (View * DiscIO::CNANDContentLoader::TICKET_SIZE), 212);
-				}
-			}
-			else
+			const std::vector<u8>& ticket = Loader.GetTicket();
+
+			if (ticket.empty())
 			{
 				std::string TicketFilename = Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT);
 				if (File::Exists(TicketFilename))
@@ -675,6 +669,17 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					PanicAlertT("IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
 				}
 			}
+			else
+			{
+				u32 view_count = static_cast<u32>(Loader.GetTicket().size()) / DiscIO::CNANDContentLoader::TICKET_SIZE;
+				for (unsigned int view = 0; view != maxViews && view < view_count; ++view)
+				{
+					Memory::Write_U32(view, Buffer.PayloadBuffer[0].m_Address + view * 0xD8);
+					Memory::CopyToEmu(Buffer.PayloadBuffer[0].m_Address + 4 + view * 0xD8,
+						&ticket[0x1D0 + (view * DiscIO::CNANDContentLoader::TICKET_SIZE)], 212);
+				}
+			}
+
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)", (u32)(TitleID >> 32), (u32)TitleID, maxViews);
 
 			Memory::Write_U32(retVal, _CommandAddress + 0x4);
@@ -913,13 +918,13 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					{
 						tContentFile = Common::GetTitleContentPath(TitleID, Common::FROM_SESSION_ROOT);
 						std::unique_ptr<CDolLoader> pDolLoader;
-						if (pContent->m_pData)
+						if (pContent->m_data.empty())
 						{
-							pDolLoader = std::make_unique<CDolLoader>(pContent->m_pData, pContent->m_Size);
+							pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
 						}
 						else
 						{
-							pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
+							pDolLoader = std::make_unique<CDolLoader>(pContent->m_data);
 						}
 
 						if (pDolLoader->IsValid())

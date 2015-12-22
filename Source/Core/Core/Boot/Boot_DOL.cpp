@@ -10,11 +10,10 @@
 
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/HW/Memmap.h"
-#include "Core/PowerPC/PowerPC.h"
 
-CDolLoader::CDolLoader(u8* buffer, size_t size)
+CDolLoader::CDolLoader(const std::vector<u8>& buffer)
 {
-	m_is_valid = Initialize(buffer, size);
+	m_is_valid = Initialize(buffer);
 }
 
 CDolLoader::CDolLoader(const std::string& filename)
@@ -27,19 +26,19 @@ CDolLoader::CDolLoader(const std::string& filename)
 	pStream.ReadBytes(temp_buffer.data(), temp_buffer.size());
 	}
 
-	m_is_valid = Initialize(temp_buffer.data(), temp_buffer.size());
+	m_is_valid = Initialize(temp_buffer);
 }
 
 CDolLoader::~CDolLoader()
 {
 }
 
-bool CDolLoader::Initialize(u8* buffer, size_t size)
+bool CDolLoader::Initialize(const std::vector<u8>& buffer)
 {
-	if (size < sizeof(SDolHeader))
+	if (buffer.size() < sizeof(SDolHeader))
 		return false;
 
-	memcpy(&m_dolheader, buffer, sizeof(SDolHeader));
+	memcpy(&m_dolheader, buffer.data(), sizeof(SDolHeader));
 
 	// swap memory
 	u32* p = (u32*)&m_dolheader;
@@ -56,11 +55,11 @@ bool CDolLoader::Initialize(u8* buffer, size_t size)
 	{
 		if (m_dolheader.textSize[i] != 0)
 		{
-			if (size < m_dolheader.textOffset[i] + m_dolheader.textSize[i])
+			if (buffer.size() < m_dolheader.textOffset[i] + m_dolheader.textSize[i])
 				return false;
 
-			u8* text_start = buffer + m_dolheader.textOffset[i];
-			m_text_sections.emplace_back(text_start, text_start + m_dolheader.textSize[i]);
+			const u8* text_start = &buffer[m_dolheader.textOffset[i]];
+			m_text_sections.emplace_back(text_start, &text_start[m_dolheader.textSize[i]]);
 
 			for (unsigned int j = 0; !m_is_wii && j < (m_dolheader.textSize[i] / sizeof(u32)); ++j)
 			{
@@ -81,11 +80,11 @@ bool CDolLoader::Initialize(u8* buffer, size_t size)
 	{
 		if (m_dolheader.dataSize[i] != 0)
 		{
-			if (size < m_dolheader.dataOffset[i] + m_dolheader.dataSize[i])
+			if (buffer.size() < m_dolheader.dataOffset[i] + m_dolheader.dataSize[i])
 				return false;
 
-			u8* data_start = buffer + m_dolheader.dataOffset[i];
-			m_data_sections.emplace_back(data_start, data_start + m_dolheader.dataSize[i]);
+			const u8* data_start = &buffer[m_dolheader.dataOffset[i]];
+			m_data_sections.emplace_back(data_start, &data_start[m_dolheader.dataSize[i]]);
 		}
 		else
 		{
