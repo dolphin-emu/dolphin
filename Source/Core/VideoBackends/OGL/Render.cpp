@@ -1511,6 +1511,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", s_last_multisamples, g_ogl_config.max_samples), 10000);
 			}
 
+			g_framebuffer_manager.reset();
 			g_framebuffer_manager = std::make_unique<FramebufferManager>(s_target_width, s_target_height, s_MSAASamples);
 
 			PixelShaderManager::SetEfbScaleChanged();
