@@ -104,4 +104,4 @@ private:
 	static unsigned int s_last_xfb_height;
 };
 
-extern FramebufferManagerBase *g_framebuffer_manager;
+extern std::unique_ptr<FramebufferManagerBase> g_framebuffer_manager;

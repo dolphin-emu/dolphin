@@ -9,7 +9,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-FramebufferManagerBase *g_framebuffer_manager;
+std::unique_ptr<FramebufferManagerBase> g_framebuffer_manager;
 
 std::unique_ptr<XFBSourceBase> FramebufferManagerBase::m_realXFBSource; // Only used in Real XFB mode
 FramebufferManagerBase::VirtualXFBListType FramebufferManagerBase::m_virtualXFBList; // Only used in Virtual XFB mode

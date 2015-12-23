@@ -130,7 +130,7 @@ public:
 	static PEControl::PixelFormat GetPrevPixelFormat() { return prev_efb_format; }
 	static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
 
-	PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor; }
+	PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor.get(); }
 	// Max height/width
 	virtual int GetMaxTextureSize() = 0;
 
@@ -173,7 +173,7 @@ protected:
 
 	FPSCounter m_fps_counter;
 
-	static PostProcessingShaderImplementation* m_post_processor;
+	static std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
 
 private:
 	static PEControl::PixelFormat prev_efb_format;

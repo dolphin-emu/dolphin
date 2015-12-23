@@ -41,6 +41,7 @@
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/MainBase.h"
 #include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -69,7 +70,7 @@ int Renderer::s_target_height;
 int Renderer::s_backbuffer_width;
 int Renderer::s_backbuffer_height;
 
-PostProcessingShaderImplementation* Renderer::m_post_processor;
+std::unique_ptr<PostProcessingShaderImplementation> Renderer::m_post_processor;
 
 TargetRectangle Renderer::target_rc;
 
