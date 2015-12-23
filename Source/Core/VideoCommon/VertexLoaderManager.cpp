@@ -141,8 +141,8 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 		}
 		else
 		{
-			loader = VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
-			s_vertex_loader_map[uid] = std::unique_ptr<VertexLoaderBase>(loader);
+			s_vertex_loader_map[uid] = VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
+			loader = s_vertex_loader_map[uid].get();
 			INCSTAT(stats.numVertexLoaders);
 		}
 		if (check_for_native_format)

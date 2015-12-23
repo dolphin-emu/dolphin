@@ -44,8 +44,8 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 
 	if (!m_CurrentLoader)
 	{
-		m_CurrentLoader = VertexLoaderBase::CreateVertexLoader(g_main_cp_state.vtx_desc, g_main_cp_state.vtx_attr[m_attributeIndex]);
-		m_VertexLoaderMap[uid] = std::unique_ptr<VertexLoaderBase>(m_CurrentLoader);
+		m_VertexLoaderMap[uid] = VertexLoaderBase::CreateVertexLoader(g_main_cp_state.vtx_desc, g_main_cp_state.vtx_attr[m_attributeIndex]);
+		m_CurrentLoader = m_VertexLoaderMap[uid].get();
 	}
 
 	m_VertexSize = m_CurrentLoader->m_VertexSize;
