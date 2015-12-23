@@ -21,9 +21,4 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute = false);
 std::string MemUsage();
 size_t MemPhysical();
 
-void GuardMemoryMake(void* ptr, size_t size);
-void GuardMemoryUnmake(void* ptr, size_t size);
-
-inline int GetPageSize() { return 4096; }
-
 } // namespace Common
