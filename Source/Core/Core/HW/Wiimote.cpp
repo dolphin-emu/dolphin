@@ -51,6 +51,12 @@ void Initialize(void* const hwnd, bool wait)
 		Movie::ChangeWiiPads();
 }
 
+void ResetAllWiimotes()
+{
+	for (int i = WIIMOTE_CHAN_0; i < MAX_BBMOTES; ++i)
+	        static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->Reset();
+}
+
 void LoadConfig()
 {
 	s_config.LoadConfig(false);

@@ -500,6 +500,14 @@ bool BeginRecordingInput(int controllers)
 		md5thread.detach();
 		GetSettings();
 	}
+
+	// Wiimotes cause desync issues if they're not reset before launching the game
+	if (!Core::IsRunningAndStarted())
+	{
+	        // This will also reset the wiimotes for gamecube games, but that shouldn't do anything
+	        Wiimote::ResetAllWiimotes();
+	}
+
 	s_playMode = MODE_RECORDING;
 	s_author = SConfig::GetInstance().m_strMovieAuthor;
 	EnsureTmpInputSize(1);
@@ -853,6 +861,9 @@ bool PlayInput(const std::string& filename)
 	g_currentInputCount = 0;
 
 	s_playMode = MODE_PLAYING;
+
+	// Wiimotes cause desync issues if they're not reset before launching the game
+	Wiimote::ResetAllWiimotes();
 
 	Core::UpdateWantDeterminism();
 
