@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -71,7 +72,7 @@ template <> struct hash<VertexLoaderUID>
 class VertexLoaderBase
 {
 public:
-	static VertexLoaderBase* CreateVertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
+	static std::unique_ptr<VertexLoaderBase> CreateVertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
 	virtual ~VertexLoaderBase() {}
 
 	virtual int RunVertices(DataReader src, DataReader dst, int count) = 0;
