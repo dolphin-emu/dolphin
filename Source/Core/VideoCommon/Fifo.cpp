@@ -98,7 +98,7 @@ void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
 void Fifo_Init()
 {
 	// Padded so that SIMD overreads in the vertex loader are safe
-	s_video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE + 4);
+	s_video_buffer = static_cast<u8*>(Common::AllocateMemoryPages(FIFO_SIZE + 4));
 	ResetVideoBuffer();
 	if (SConfig::GetInstance().bCPUThread)
 		s_gpu_mainloop.Prepare();
@@ -110,7 +110,7 @@ void Fifo_Shutdown()
 	if (s_gpu_mainloop.IsRunning())
 		PanicAlert("Fifo shutting down while active");
 
-	FreeMemoryPages(s_video_buffer, FIFO_SIZE + 4);
+	Common::FreeMemoryPages(s_video_buffer, FIFO_SIZE + 4);
 	s_video_buffer = nullptr;
 	s_video_buffer_write_ptr = nullptr;
 	s_video_buffer_pp_read_ptr = nullptr;

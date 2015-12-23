@@ -220,14 +220,14 @@ u16 gdsp_ifx_read(u16 addr)
 
 static const u8* gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+	Common::UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	u8* dst = ((u8*)g_dsp.iram);
 	for (u32 i = 0; i < size; i += 2)
 	{
 		*(u16*)&dst[dsp_addr + i] = Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff]);
 	}
-	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+	Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	DSPHost::CodeLoaded((const u8*)g_dsp.iram + dsp_addr, size);
 

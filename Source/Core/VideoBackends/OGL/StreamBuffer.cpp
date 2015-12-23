@@ -259,7 +259,7 @@ public:
 	PinnedMemory(u32 type, u32 size) : StreamBuffer(type, size)
 	{
 		CreateFences();
-		m_pointer = (u8*)AllocateAlignedMemory(ROUND_UP(m_size,ALIGN_PINNED_MEMORY), ALIGN_PINNED_MEMORY );
+		m_pointer = static_cast<u8*>(Common::AllocateAlignedMemory(ROUND_UP(m_size,ALIGN_PINNED_MEMORY), ALIGN_PINNED_MEMORY));
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_buffer);
 		glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, ROUND_UP(m_size,ALIGN_PINNED_MEMORY), m_pointer, GL_STREAM_COPY);
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, 0);
@@ -271,7 +271,7 @@ public:
 		DeleteFences();
 		glBindBuffer(m_buffertype, 0);
 		glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
-		FreeAlignedMemory(m_pointer);
+		Common::FreeAlignedMemory(m_pointer);
 		m_pointer = nullptr;
 	}
 

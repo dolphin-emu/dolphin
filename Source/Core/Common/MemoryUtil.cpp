@@ -40,6 +40,9 @@
 // This is purposely not a full wrapper for virtualalloc/mmap, but it
 // provides exactly the primitive operations that Dolphin needs.
 
+namespace Common
+{
+
 void* AllocateExecutableMemory(size_t size, bool low)
 {
 #if defined(_WIN32)
@@ -267,3 +270,5 @@ size_t MemPhysical()
 	return (size_t)memInfo.totalram * memInfo.mem_unit;
 #endif
 }
+
+} // namespace Common

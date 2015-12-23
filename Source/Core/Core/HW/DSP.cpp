@@ -255,7 +255,7 @@ void Init(bool hle)
 		g_ARAM.wii_mode = false;
 		g_ARAM.size = ARAM_SIZE;
 		g_ARAM.mask = ARAM_MASK;
-		g_ARAM.ptr = (u8 *)AllocateMemoryPages(g_ARAM.size);
+		g_ARAM.ptr = static_cast<u8*>(Common::AllocateMemoryPages(g_ARAM.size));
 	}
 
 	memset(&g_audioDMA, 0, sizeof(g_audioDMA));
@@ -281,7 +281,7 @@ void Shutdown()
 {
 	if (!g_ARAM.wii_mode)
 	{
-		FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
+		Common::FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
 		g_ARAM.ptr = nullptr;
 	}
 

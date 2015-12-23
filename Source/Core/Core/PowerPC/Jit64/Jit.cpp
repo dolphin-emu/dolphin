@@ -130,9 +130,9 @@ enum
 void Jit64::AllocStack()
 {
 #ifndef _WIN32
-	m_stack = (u8*)AllocateMemoryPages(STACK_SIZE);
-	ReadProtectMemory(m_stack, GUARD_SIZE);
-	ReadProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
+	m_stack = static_cast<u8*>(Common::AllocateMemoryPages(STACK_SIZE));
+	Common::ReadProtectMemory(m_stack, GUARD_SIZE);
+	Common::ReadProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
 #endif
 }
 
@@ -141,7 +141,7 @@ void Jit64::FreeStack()
 #ifndef _WIN32
 	if (m_stack)
 	{
-		FreeMemoryPages(m_stack, STACK_SIZE);
+		Common::FreeMemoryPages(m_stack, STACK_SIZE);
 		m_stack = nullptr;
 	}
 #endif
@@ -155,7 +155,7 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 	{
 		WARN_LOG(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
 		m_enable_blr_optimization = false;
-		UnWriteProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
+		Common::UnWriteProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
 		// We're going to need to clear the whole cache to get rid of the bad
 		// CALLs, but we can't yet.  Fake the downcount so we're forced to the
 		// dispatcher (no block linking), and clear the cache so we're sent to
