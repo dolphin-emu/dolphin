@@ -119,14 +119,6 @@ protected:
 
 	void Event_DisplayResolution(wxCommandEvent &ev);
 
-	void Event_ProgressiveScan(wxCommandEvent &ev)
-	{
-		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", ev.GetInt());
-		SConfig::GetInstance().bProgressive = ev.IsChecked();
-
-		ev.Skip();
-	}
-
 	void Event_Stc(wxCommandEvent &ev)
 	{
 		int samples[] = { 0, 512, 128 };
@@ -231,7 +223,6 @@ protected:
 			label_display_resolution->Disable();
 #endif
 
-			progressive_scan_checkbox->Disable();
 			render_to_main_checkbox->Disable();
 		}
 		ev.Skip();
@@ -274,8 +265,6 @@ protected:
 	SettingRadioButton* real_xfb;
 
 	SettingCheckBox* cache_hires_textures;
-
-	wxCheckBox* progressive_scan_checkbox;
 
 	wxChoice* choice_ppshader;
 
