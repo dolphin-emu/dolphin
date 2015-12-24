@@ -184,8 +184,10 @@ void InputConfigDialog::UpdateProfileComboBox()
 
 	for (GamepadPage* page : m_padpages)
 	{
+		wxString profile = page->profile_cbox->GetValue();
 		page->profile_cbox->Clear();
 		page->profile_cbox->Append(strs);
+		page->profile_cbox->SetValue(profile);
 	}
 }
 
@@ -265,6 +267,15 @@ void ControlDialog::UpdateGUI()
 
 void GamepadPage::UpdateGUI()
 {
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+	{
+		set_btn->Disable();
+	}
+	else
+	{
+		set_btn->Enable();
+	}
+
 	device_cbox->SetValue(StrToWxStr(controller->default_device.ToString()));
 
 	for (ControlGroupBox* cgBox : control_groups)
@@ -645,7 +656,11 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 
 void GamepadPage::GetProfilePath(std::string& path)
 {
-	const wxString& name = profile_cbox->GetValue();
+	GetProfilePath(profile_cbox->GetValue(), path);
+}
+
+void GamepadPage::GetProfilePath(wxString name, std::string& path)
+{
 	if (!name.empty())
 	{
 		// TODO: check for dumb characters maybe
@@ -654,7 +669,7 @@ void GamepadPage::GetProfilePath(std::string& path)
 		path += PROFILES_PATH;
 		path += m_config.GetProfileName();
 		path += '/';
-		path += WxStrToStr(profile_cbox->GetValue());
+		path += WxStrToStr(name);
 		path += ".ini";
 	}
 }
@@ -676,6 +691,19 @@ void GamepadPage::LoadProfile(wxCommandEvent&)
 	UpdateGUI();
 }
 
+void GamepadPage::SaveProfileToGameIni()
+{
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		IniFile game_ini = SConfig::GetInstance().LoadGameIni();
+		IniFile::Section* control_section = game_ini.GetOrCreateSection("Controls");
+		control_section->Set(m_config.type + "Profile" + std::to_string(m_pad_num + 1), profile_cbox->GetValue().ToStdString());
+		game_ini.Save();
+		if (!profile_cbox->GetValue().ToStdString().empty())
+			m_config.LoadConfig();
+	}
+}
+
 void GamepadPage::SaveProfile(wxCommandEvent&)
 {
 	std::string fname;
@@ -687,12 +715,34 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 		IniFile inifile;
 		controller->SaveConfig(inifile.GetOrCreateSection("Profile"));
 		inifile.Save(fname);
-
 		m_config_dialog->UpdateProfileComboBox();
 	}
 	else
 	{
 		WxUtils::ShowErrorDialog(_("You must enter a valid profile name."));
+	}
+}
+
+void GamepadPage::SetProfile(wxCommandEvent&)
+{
+	if (profile_cbox->GetValue() == "")
+	{
+		// Blank out the profile name
+		SaveProfileToGameIni();
+		return;
+	}
+
+	std::string fname;
+	GamepadPage::GetProfilePath(fname);
+	File::CreateFullPath(fname);
+
+	if (!fname.empty())
+	{
+		IniFile inifile;
+		controller->SaveConfig(inifile.GetOrCreateSection("Profile"));
+		inifile.Save(fname);
+		SaveProfileToGameIni();
+		m_config_dialog->UpdateProfileComboBox();
 	}
 }
 
@@ -708,8 +758,9 @@ void GamepadPage::DeleteProfile(wxCommandEvent&)
 			WxStrToStr(profile_cbox->GetValue()).c_str()))
 	{
 		File::Delete(fnamecstr);
-
 		m_config_dialog->UpdateProfileComboBox();
+		profile_cbox->SetValue("");
+		SaveProfileToGameIni();
 	}
 }
 
@@ -989,6 +1040,7 @@ GamepadPage::GamepadPage(wxWindow* parent, InputConfig& config, const int pad_nu
 	, controller(config.GetController(pad_num))
 	, m_config_dialog(config_dialog)
 	, m_config(config)
+	, m_pad_num(pad_num)
 {
 
 	wxBoxSizer* control_group_sizer = new ControlGroupsSizer(controller, this, this, &control_groups);
@@ -1021,19 +1073,31 @@ GamepadPage::GamepadPage(wxWindow* parent, InputConfig& config, const int pad_nu
 	clearall_button->Bind(wxEVT_BUTTON, &GamepadPage::ClearAll, this);
 	default_button->Bind(wxEVT_BUTTON, &GamepadPage::LoadDefaults, this);
 
-	profile_cbox = new wxComboBox(this, wxID_ANY, "", wxDefaultPosition, wxSize(64, -1));
+	std::string profile_name = "";
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		std::string file_path;
+		GetProfilePath(StrToWxStr(config.profile[pad_num]), file_path);
+		if (File::Exists(file_path))
+			profile_name = config.profile[pad_num];
+	}
+
+	profile_cbox = new wxComboBox(this, wxID_ANY, StrToWxStr(profile_name), wxDefaultPosition, wxSize(64, -1));
 
 	wxButton* const pload_btn = new wxButton(this, wxID_ANY, _("Load"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 	wxButton* const psave_btn = new wxButton(this, wxID_ANY, _("Save"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+	set_btn = new wxButton(this, wxID_ANY, _("Set"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 	wxButton* const pdelete_btn = new wxButton(this, wxID_ANY, _("Delete"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
 	pload_btn->Bind(wxEVT_BUTTON, &GamepadPage::LoadProfile, this);
 	psave_btn->Bind(wxEVT_BUTTON, &GamepadPage::SaveProfile, this);
+	set_btn->Bind(wxEVT_BUTTON, &GamepadPage::SetProfile, this);
 	pdelete_btn->Bind(wxEVT_BUTTON, &GamepadPage::DeleteProfile, this);
 
 	profile_sbox->Add(profile_cbox, 1, wxLEFT, 3);
 	profile_sbox->Add(pload_btn, 0, wxLEFT, 3);
 	profile_sbox->Add(psave_btn, 0, 0, 3);
+	profile_sbox->Add(set_btn, 0, 0, 3);
 	profile_sbox->Add(pdelete_btn, 0, wxRIGHT|wxBOTTOM, 3);
 
 	wxBoxSizer* const dio = new wxBoxSizer(wxHORIZONTAL);

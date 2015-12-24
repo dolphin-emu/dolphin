@@ -11,6 +11,14 @@
 
 class ControllerEmu;
 
+enum
+{
+	INPUT_TYPE_PAD,
+	INPUT_TYPE_WIIMOTE,
+	INPUT_TYPE_KEYBOARD,
+	INPUT_TYPE_HOTKEY
+};
+
 class InputConfig
 {
 public:
@@ -19,7 +27,8 @@ public:
 	{
 	}
 
-	bool LoadConfig(bool isGC);
+	bool LoadConfig(int control_type);
+	bool LoadConfig();
 	void SaveConfig();
 
 	template <typename T, typename... Args>
@@ -35,9 +44,14 @@ public:
 	std::string GetGUIName() const { return m_gui_name; }
 	std::string GetProfileName() const { return m_profile_name; }
 
+	std::string profile[5];
+	std::string type;
+
 private:
 	std::vector<std::unique_ptr<ControllerEmu>> m_controllers;
 	const std::string m_ini_name;
 	const std::string m_gui_name;
 	const std::string m_profile_name;
+
+	int profile_type;
 };

@@ -325,6 +325,8 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 	if (in.fail())
 		return false;
 
+	m_filename = filename;
+
 	Section* current_section = nullptr;
 	bool first_line = true;
 	while (!in.eof())
@@ -380,9 +382,24 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 					     (line[0] == '$' ||
 					      line[0] == '+' ||
 					      line[0] == '*')))
-						current_section->lines.push_back(line);
+					{
+						if (line[0] == '#')
+						{
+							// Prevent dupe comments from default ini
+							if (current_section->lines.empty() || current_section->lines.back() != line)
+							{
+								current_section->lines.push_back(line);
+							}
+						}
+						else
+						{
+							current_section->lines.push_back(line);
+						}
+					}
 					else
+					{
 						current_section->Set(key, value);
+					}
 				}
 			}
 		}
@@ -390,6 +407,14 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 
 	in.close();
 	return true;
+}
+
+bool IniFile::Save()
+{
+	if (m_filename.length() > 0)
+		return Save(m_filename);
+	else
+		return false;
 }
 
 bool IniFile::Save(const std::string& filename)

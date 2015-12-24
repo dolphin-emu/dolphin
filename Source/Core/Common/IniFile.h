@@ -107,6 +107,7 @@ public:
 	bool Load(const std::string& filename, bool keep_current_data = false);
 
 	bool Save(const std::string& filename);
+	bool Save();
 
 	// Returns true if key exists in section
 	bool Exists(const std::string& sectionName, const std::string& key) const;
@@ -135,6 +136,8 @@ public:
 	// It's used outside of IniFile, which is why it is exposed publicly
 	// In particular it is used in PostProcessing for its configuration
 	static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut);
+
+	std::string m_filename;
 
 private:
 	std::list<Section> sections;

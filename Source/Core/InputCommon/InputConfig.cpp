@@ -12,26 +12,53 @@
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-bool InputConfig::LoadConfig(bool isGC)
+bool InputConfig::LoadConfig(int control_type)
+{
+	profile_type = control_type;
+	return LoadConfig();
+}
+
+bool InputConfig::LoadConfig()
 {
 	IniFile inifile;
 	bool useProfile[MAX_BBMOTES] = {false, false, false, false, false};
 	std::string num[MAX_BBMOTES] = {"1", "2", "3", "4", "BB"};
-	std::string profile[MAX_BBMOTES];
 	std::string path;
 
 	if (SConfig::GetInstance().GetUniqueID() != "00000000")
 	{
-		std::string type;
-		if (isGC)
+		switch (profile_type)
+		{
+		case INPUT_TYPE_PAD:
 		{
 			type = "Pad";
 			path = "Profiles/GCPad/";
+			break;
 		}
-		else
+		case INPUT_TYPE_WIIMOTE:
 		{
 			type = "Wiimote";
 			path = "Profiles/Wiimote/";
+			break;
+		}
+		case INPUT_TYPE_KEYBOARD:
+		{
+			type = "Key";
+			path = "Profiles/GCKey/";
+			break;
+		}
+		case INPUT_TYPE_HOTKEY:
+		{
+			type = "Hotkey";
+			path = "Profiles/Hotkeys/";
+			break;
+		}
+		default:
+		{
+			type = "Pad";
+			path = "Profiles/GCPad/";
+			break;
+		}
 		}
 
 		IniFile game_ini = SConfig::GetInstance().LoadGameIni();
@@ -46,11 +73,6 @@ bool InputConfig::LoadConfig(bool isGC)
 					if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
 					{
 						useProfile[i] = true;
-					}
-					else
-					{
-						// TODO: PanicAlert shouldn't be used for this.
-						PanicAlertT("Selected controller profile does not exist");
 					}
 				}
 			}

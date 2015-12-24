@@ -42,7 +42,7 @@ void Initialize(void* const hwnd, bool wait)
 
 	g_controller_interface.Initialize(hwnd);
 
-	s_config.LoadConfig(false);
+	s_config.LoadConfig(INPUT_TYPE_WIIMOTE);
 
 	WiimoteReal::Initialize(wait);
 
@@ -53,7 +53,7 @@ void Initialize(void* const hwnd, bool wait)
 
 void LoadConfig()
 {
-	s_config.LoadConfig(false);
+	s_config.LoadConfig(INPUT_TYPE_WIIMOTE);
 }
 
 

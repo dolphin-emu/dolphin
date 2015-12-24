@@ -39,12 +39,12 @@ void Initialize(void* const hwnd)
 	g_controller_interface.Initialize(hwnd);
 
 	// Load the saved controller config
-	s_config.LoadConfig(true);
+	s_config.LoadConfig(INPUT_TYPE_PAD);
 }
 
 void LoadConfig()
 {
-	s_config.LoadConfig(true);
+	s_config.LoadConfig(INPUT_TYPE_PAD);
 }
 
 
