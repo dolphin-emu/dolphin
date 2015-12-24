@@ -8,6 +8,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
@@ -54,7 +55,13 @@ void GeometryShaderManager::SetConstants()
 
 		if (xfmem.projection.type == GX_PERSPECTIVE)
 		{
-			float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) * (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
+			// Per-game scaling value
+			float mmInUnits = g_ActiveConfig.iStereoMetersInUnits / 1000.0f;
+
+			// The inter-camera offset in clipping coordinates
+			float offset = (g_ActiveConfig.iStereoDepth * mmInUnits) / Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
+
+			// Set the per-eye offset values
 			constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
 			constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;
 		}
