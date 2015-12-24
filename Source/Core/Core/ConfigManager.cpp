@@ -12,7 +12,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
+#include "Core/Core.h" // for bWii
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
@@ -82,13 +82,6 @@ SConfig::~SConfig()
 
 void SConfig::SaveSettings()
 {
-	// TODO: This is a hotfix to prevent writing of temporary per-game settings
-	// (GameINI, Movie, Netplay, ...) to the global Dolphin configuration file.
-	// The Config logic should be rewritten instead so that per-game settings
-	// aren't stored in the same configuration as the actual user settings.
-	if (Core::IsRunning())
-		return;
-
 	NOTICE_LOG(BOOT, "Saving settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)); // load first to not kill unknown stuff
