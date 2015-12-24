@@ -101,8 +101,8 @@ CEXIIPL::CEXIIPL() :
 		memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, m_bNTSC ? sizeof(iplverNTSC) : sizeof(iplverPAL));
 
 		// Load fonts
-		LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SJIS), 0x1aff00);
-		LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_ANSI), 0x1fcf00);
+		LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SJIS), 0x1aff00);
+		LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_ANSI), 0x1fcf00);
 	}
 	else
 	{
@@ -152,14 +152,67 @@ void CEXIIPL::DoState(PointerWrap &p)
 
 void CEXIIPL::LoadFileToIPL(const std::string& filename, u32 offset)
 {
-	File::IOFile pStream(filename, "rb");
-	if (pStream)
-	{
-		u64 filesize = pStream.GetSize();
+	File::IOFile stream(filename, "rb");
+	if (!stream)
+		return;
 
-		pStream.ReadBytes(m_pIPL + offset, filesize);
+	u64 filesize = stream.GetSize();
+
+	stream.ReadBytes(m_pIPL + offset, filesize);
+
+	m_FontsLoaded = true;
+}
+
+std::string CEXIIPL::FindIPLDump(const std::string& path_prefix)
+{
+	std::string ipl_dump_path;
+
+	if (File::Exists(path_prefix + DIR_SEP + USA_DIR + DIR_SEP + GC_IPL))
+		ipl_dump_path = path_prefix + DIR_SEP + USA_DIR + DIR_SEP + GC_IPL;
+	else if (File::Exists(path_prefix + DIR_SEP + EUR_DIR + DIR_SEP + GC_IPL))
+		ipl_dump_path = path_prefix + DIR_SEP + EUR_DIR + DIR_SEP + GC_IPL;
+	else if (File::Exists(path_prefix + DIR_SEP + JAP_DIR + DIR_SEP + GC_IPL))
+		ipl_dump_path = path_prefix + DIR_SEP + JAP_DIR + DIR_SEP + GC_IPL;
+
+	return ipl_dump_path;
+}
+
+void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
+{
+	// Official IPL fonts are copyrighted. Dolphin ships with a set of free font alternatives but
+	// unfortunately the bundled fonts have different padding, causing issues with misplaced text
+	// in some titles. This function check if the user has IPL dumps available and load the fonts
+	// from those dumps instead of loading the bundled fonts
+
+	// Check for IPL dumps in User folder
+	std::string ipl_rom_path = FindIPLDump(File::GetUserPath(D_GCUSER_IDX));
+
+	// If not found, check again in Sys folder
+	if (ipl_rom_path.empty())
+		ipl_rom_path = FindIPLDump(File::GetSysDirectory() + GC_SYS_DIR);
+
+	if (File::Exists(ipl_rom_path))
+	{
+		// The user has an IPL dump, load the font from it
+		File::IOFile stream(ipl_rom_path, "rb");
+		if (!stream)
+			return;
+
+		// Official Windows-1252 and SJIS fonts present on the IPL dumps are 0x2575 and 0x4a24d bytes
+		// long respectively, so, determine the size of the font being loaded based on the offset
+		u64 fontsize = (offset == 0x1aff00) ? 0x4a24d : 0x2575;
+
+		INFO_LOG(BOOT, "Found IPL dump, loading %s font from %s", ((offset == 0x1aff00) ? "SJIS" : "Windows-1252"), (ipl_rom_path).c_str());
+
+		stream.Seek(offset, 0);
+		stream.ReadBytes(m_pIPL + offset, fontsize);
 
 		m_FontsLoaded = true;
+	}
+	else
+	{
+		// No IPL dump available, load bundled font instead
+		LoadFileToIPL(filename, offset);
 	}
 }
 
