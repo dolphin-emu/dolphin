@@ -41,11 +41,6 @@ VideoConfig::VideoConfig()
 	// disable all features by default
 	backend_info.APIType = API_NONE;
 	backend_info.bSupportsExclusiveFullscreen = false;
-
-	// Game-specific stereoscopy settings
-	bStereoEFBMonoDepth = false;
-	iStereoConvergence = 20;
-	iStereoMetersInUnits = 600;
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -198,12 +193,14 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
 
+	// These are not overrides, they are per-game stereoscopy parameters, hence no warning
+	iniFile.GetIfExists("Video_Stereoscopy", "StereoConvergence", &iStereoConvergence, 20);
+	iniFile.GetIfExists("Video_Stereoscopy", "StereoMetersInUnits", &iStereoMetersInUnits, 600);
+	iniFile.GetIfExists("Video_Stereoscopy", "StereoEFBMonoDepth", &bStereoEFBMonoDepth, false);
+
 	CHECK_SETTING("Video_Stereoscopy", "StereoMode", iStereoMode);
 	CHECK_SETTING("Video_Stereoscopy", "StereoDepth", iStereoDepth);
-	CHECK_SETTING("Video_Stereoscopy", "StereoConvergence", iStereoConvergence);
 	CHECK_SETTING("Video_Stereoscopy", "StereoSwapEyes", bStereoSwapEyes);
-	CHECK_SETTING("Video_Stereoscopy", "StereoEFBMonoDepth", bStereoEFBMonoDepth);
-	CHECK_SETTING("Video_Stereoscopy", "StereoMetersInUnits", iStereoMetersInUnits);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "BBoxEnable", bBBoxEnable);
