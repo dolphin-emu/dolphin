@@ -9,8 +9,6 @@
 
 class PointerWrap;
 
-#define FIFO_SIZE (2*1024*1024)
-
 extern bool g_bSkipCurrentFrame;
 
 // This could be in SConfig, but it depends on multiple settings
