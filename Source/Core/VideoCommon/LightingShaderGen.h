@@ -129,7 +129,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			else if (components & VB_HAS_COL0)
 				object.Write("int4 mat = int4(round(%s0 * 255.0));\n", inColorName);
 			else
-				object.Write("int4 mat = int4(0, 0, 0, 0);\n");
+				object.Write("int4 mat = int4(255, 255, 255, 255);\n");
 		}
 		else // from color
 		{
@@ -149,8 +149,8 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 				else
 					// TODO: this isn't verified. Here we want to read the ambient from the vertex,
 					// but the vertex itself has no color. So we don't know which value to read.
-					// Boxes in Super Mario Sunshine bonus stages seem to incorrectly be visible if this isn't 0
-					object.Write("lacc = int4(0, 0, 0, 0);\n");
+					// Returing 1.0 is the same as disabled lightning, so this could be fine
+					object.Write("lacc = int4(255, 255, 255, 255);\n");
 			}
 			else // from color
 			{
@@ -172,7 +172,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 					object.Write("mat.w = int(round(%s%d.w * 255.0));\n", inColorName, j);
 				else if (components & VB_HAS_COL0)
 					object.Write("mat.w = int(round(%s0.w * 255.0));\n", inColorName);
-				else object.Write("mat.w = 0;\n");
+				else object.Write("mat.w = 255;\n");
 			}
 			else // from color
 			{
@@ -192,7 +192,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 					object.Write("lacc.w = int(round(%s0.w * 255.0));\n", inColorName);
 				else
 					// TODO: The same for alpha: We want to read from vertex, but the vertex has no color
-					object.Write("lacc.w = 0;\n");
+					object.Write("lacc.w = 255;\n");
 			}
 			else // from color
 			{
