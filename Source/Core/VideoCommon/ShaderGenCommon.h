@@ -220,7 +220,7 @@ private:
 };
 
 template<class T>
-static void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
+inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
 {
 	if (qualifier != nullptr)
 		object.Write("\t%s %s %s", qualifier, type, name);
@@ -242,7 +242,7 @@ static void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifi
 }
 
 template<class T>
-static inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier = nullptr)
+inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier = nullptr)
 {
 	DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
 	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
@@ -261,7 +261,7 @@ static inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const c
 }
 
 template<class T>
-static inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
+inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
 {
 	object.Write("\t%s.pos = %s.pos;\n", a, b);
 	object.Write("\t%s.colors_0 = %s.colors_0;\n", a, b);
@@ -287,7 +287,7 @@ static inline void AssignVSOutputMembers(T& object, const char* a, const char* b
 // As a workaround, we interpolate at the centroid of the coveraged pixel, which
 // is always inside the primitive.
 // Without MSAA, this flag is defined to have no effect.
-static inline const char* GetInterpolationQualifier(API_TYPE api_type, bool in = true, bool in_out = false)
+inline const char* GetInterpolationQualifier(API_TYPE api_type, bool in = true, bool in_out = false)
 {
 	if (g_ActiveConfig.iMultisamples <= 1)
 		return "";
