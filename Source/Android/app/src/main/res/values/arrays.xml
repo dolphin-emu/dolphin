@@ -167,10 +167,12 @@
     <string-array name="internalResolutionEntries" translatable="false">
         <item>1x Native (640x528)</item>
         <item>1.5x Native (960x792)</item>
-        <item>2x Native (1280x1056)</item>
+        <item>2x Native (1280x1056) for 720p</item>
         <item>2.5x Native (1600x1320)</item>
-        <item>3x Native (1920x1584)</item>
+        <item>3x Native (1920x1584) for 1080p</item>
         <item>4x Native (2560x2112)</item>
+        <item>5x Native (3200x2640)</item>
+        <item>6x Native (3840x3168) for 4K</item>
     </string-array>
     <string-array name="internalResolutionValues" translatable="false">
         <item>2</item>
@@ -179,6 +181,8 @@
         <item>5</item>
         <item>6</item>
         <item>7</item>
+        <item>8</item>
+        <item>9</item>
     </string-array>
 
     <!-- FSAA Preference -->
