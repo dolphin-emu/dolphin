@@ -196,6 +196,12 @@ const int fres_expected_dec[] =
 // Used by fres and ps_res.
 double ApproximateReciprocal(double val)
 {
+	// We are using namespace std scoped here because the Android NDK is complete trash as usual
+	// For 32bit targets(mips, ARMv7, x86) it doesn't provide an implementation of std::copysign
+	// but instead provides just global namespace copysign implementations.
+	// The workaround for this is to just use namespace std within this function's scope
+	// That way on real toolchains it will use the std:: variant like normal.
+	using namespace std;
 	union
 	{
 		double valf;
@@ -209,23 +215,23 @@ double ApproximateReciprocal(double val)
 
 	// Special case 0
 	if (mantissa == 0 && exponent == 0)
-		return std::copysign(std::numeric_limits<double>::infinity(), valf);
+		return copysign(std::numeric_limits<double>::infinity(), valf);
 
 	// Special case NaN-ish numbers
 	if (exponent == (0x7FFLL << 52))
 	{
 		if (mantissa == 0)
-			return std::copysign(0.0, valf);
+			return copysign(0.0, valf);
 		return 0.0 + valf;
 	}
 
 	// Special case small inputs
 	if (exponent < (895LL << 52))
-		return std::copysign(std::numeric_limits<float>::max(), valf);
+		return copysign(std::numeric_limits<float>::max(), valf);
 
 	// Special case large inputs
 	if (exponent >= (1149LL << 52))
-		return std::copysign(0.0, valf);
+		return copysign(0.0, valf);
 
 	exponent = (0x7FDLL << 52) - exponent;
 
