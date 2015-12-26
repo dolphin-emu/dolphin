@@ -7,10 +7,8 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 
-static char text[16384];
 
 static const char* primitives_ogl[] =
 {
@@ -38,12 +36,6 @@ static inline T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 	geometry_shader_uid_data* uid_data = out.template GetUidData<geometry_shader_uid_data>();
 	if (uid_data == nullptr)
 		uid_data = &dummy_data;
-
-	out.SetBuffer(text);
-	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-
-	if (is_writing_shadercode)
-		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	uid_data->primitive_type = primitive_type;
 	const unsigned int vertex_in = primitive_type + 1;
@@ -287,12 +279,6 @@ static inline T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 		out.Write("\t}\n");
 
 	out.Write("}\n");
-
-	if (is_writing_shadercode)
-	{
-		if (text[sizeof(text) - 1] != 0x7C)
-			PanicAlert("GeometryShader generator - buffer too small, canary has been eaten!");
-	}
 
 	return out;
 }

@@ -337,7 +337,7 @@ void TextureCache::SetStage()
 
 void TextureCache::CompileShaders()
 {
-	const char *pColorCopyProg =
+	constexpr const char* color_copy_program =
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"in vec3 f_uv0;\n"
 		"out vec4 ocol0;\n"
@@ -347,7 +347,7 @@ void TextureCache::CompileShaders()
 		"	ocol0 = texcol;\n"
 		"}\n";
 
-	const char *pColorMatrixProg =
+	constexpr const char* color_matrix_program =
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 colmat[7];\n"
 		"in vec3 f_uv0;\n"
@@ -359,7 +359,7 @@ void TextureCache::CompileShaders()
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
-	const char *pDepthMatrixProg =
+	constexpr const char* depth_matrix_program =
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 colmat[5];\n"
 		"in vec3 f_uv0;\n"
@@ -384,7 +384,7 @@ void TextureCache::CompileShaders()
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
-	const char *VProgram =
+	constexpr const char* vertex_program =
 		"out vec3 %s_uv0;\n"
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
@@ -395,7 +395,7 @@ void TextureCache::CompileShaders()
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 
-	const char *GProgram = g_ActiveConfig.iStereoMode > 0 ?
+	const std::string geo_program = g_ActiveConfig.iStereoMode > 0 ?
 		"layout(triangles) in;\n"
 		"layout(triangle_strip, max_vertices = 6) out;\n"
 		"in vec3 v_uv0[3];\n"
@@ -413,14 +413,14 @@ void TextureCache::CompileShaders()
 		"		}\n"
 		"		EndPrimitive();\n"
 		"	}\n"
-		"}\n" : nullptr;
+		"}\n" : "";
 
-	const char* prefix = (GProgram == nullptr) ? "f" : "v";
-	const char* depth_layer = (g_ActiveConfig.bStereoEFBMonoDepth) ? "0.0" : "f_uv0.z";
+	const char* prefix = geo_program.empty() ? "f" : "v";
+	const char* depth_layer = g_ActiveConfig.bStereoEFBMonoDepth ? "0.0" : "f_uv0.z";
 
-	ProgramShaderCache::CompileShader(s_ColorCopyProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), pColorCopyProg, GProgram);
-	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), pColorMatrixProg, GProgram);
-	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), StringFromFormat(pDepthMatrixProg, depth_layer).c_str(), GProgram);
+	ProgramShaderCache::CompileShader(s_ColorCopyProgram, StringFromFormat(vertex_program, prefix, prefix).c_str(), color_copy_program, geo_program);
+	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, StringFromFormat(vertex_program, prefix, prefix).c_str(), color_matrix_program, geo_program);
+	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, StringFromFormat(vertex_program, prefix, prefix).c_str(), StringFromFormat(depth_matrix_program, depth_layer).c_str(), geo_program);
 
 	s_ColorMatrixUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "colmat");
 	s_DepthMatrixUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "colmat");
@@ -515,27 +515,27 @@ void TextureCache::CompileShaders()
 	{
 		ProgramShaderCache::CompileShader(
 			s_palette_pixel_shader[GX_TL_IA8],
-			StringFromFormat(VProgram, prefix, prefix).c_str(),
-			("#define DECODE DecodePixel_IA8" + palette_shader).c_str(),
-			GProgram);
+			StringFromFormat(vertex_program, prefix, prefix),
+			"#define DECODE DecodePixel_IA8" + palette_shader,
+			geo_program);
 		s_palette_buffer_offset_uniform[GX_TL_IA8] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_IA8].glprogid, "texture_buffer_offset");
 		s_palette_multiplier_uniform[GX_TL_IA8] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_IA8].glprogid, "multiplier");
 		s_palette_copy_position_uniform[GX_TL_IA8] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_IA8].glprogid, "copy_position");
 
 		ProgramShaderCache::CompileShader(
 			s_palette_pixel_shader[GX_TL_RGB565],
-			StringFromFormat(VProgram, prefix, prefix).c_str(),
-			("#define DECODE DecodePixel_RGB565" + palette_shader).c_str(),
-			GProgram);
+			StringFromFormat(vertex_program, prefix, prefix),
+			"#define DECODE DecodePixel_RGB565" + palette_shader,
+			geo_program);
 		s_palette_buffer_offset_uniform[GX_TL_RGB565] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB565].glprogid, "texture_buffer_offset");
 		s_palette_multiplier_uniform[GX_TL_RGB565] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB565].glprogid, "multiplier");
 		s_palette_copy_position_uniform[GX_TL_RGB565] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB565].glprogid, "copy_position");
 
 		ProgramShaderCache::CompileShader(
 			s_palette_pixel_shader[GX_TL_RGB5A3],
-			StringFromFormat(VProgram, prefix, prefix).c_str(),
-			("#define DECODE DecodePixel_RGB5A3" + palette_shader).c_str(),
-			GProgram);
+			StringFromFormat(vertex_program, prefix, prefix),
+			"#define DECODE DecodePixel_RGB5A3" + palette_shader,
+			geo_program);
 		s_palette_buffer_offset_uniform[GX_TL_RGB5A3] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB5A3].glprogid, "texture_buffer_offset");
 		s_palette_multiplier_uniform[GX_TL_RGB5A3] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB5A3].glprogid, "multiplier");
 		s_palette_copy_position_uniform[GX_TL_RGB5A3] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB5A3].glprogid, "copy_position");

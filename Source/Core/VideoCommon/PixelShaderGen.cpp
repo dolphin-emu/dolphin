@@ -9,13 +9,10 @@
 #include "Common/Common.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
-#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"  // for texture projection mode
 
@@ -157,8 +154,6 @@ static const char *tevRasTable[] =
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
 
-static char text[32768];
-
 template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE ApiType, const char swapModeTable[4][5]);
 template<class T> static inline void WriteTevRegular(T& out, const char* components, int bias, int op, int clamp, int shift);
 template<class T> static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
@@ -175,12 +170,6 @@ static inline T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	pixel_shader_uid_data* uid_data = out.template GetUidData<pixel_shader_uid_data>();
 	if (uid_data == nullptr)
 		uid_data = &dummy_data;
-
-	out.SetBuffer(text);
-	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-
-	if (is_writing_shadercode)
-		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	unsigned int numStages = bpmem.genMode.numtevstages + 1;
 	unsigned int numTexgen = bpmem.genMode.numtexgens;
@@ -339,7 +328,7 @@ static inline T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			out.Write("[earlydepthstencil]\n");
 		}
 	}
-	else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
+	else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED))
 	{
 		static bool warn_once = true;
 		if (warn_once)
@@ -662,12 +651,6 @@ static inline T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 
 	out.Write("}\n");
-
-	if (is_writing_shadercode)
-	{
-		if (text[sizeof(text) - 1] != 0x7C)
-			PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
-	}
 
 	return out;
 }
@@ -1165,7 +1148,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 	}
 	else
 	{
-		if (bpmem.fog.c_proj_fsel.fsel != 2 && out.GetBuffer() != nullptr)
+		if (bpmem.fog.c_proj_fsel.fsel != 2)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 
