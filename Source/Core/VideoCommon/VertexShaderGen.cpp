@@ -12,7 +12,7 @@
 #include "VideoCommon/VideoConfig.h"
 
 template<class T>
-static inline T GenerateVertexShader(API_TYPE api_type)
+static T GenerateVertexShader(API_TYPE api_type)
 {
 	T out;
 	const u32 components = VertexLoaderManager::g_current_components;
