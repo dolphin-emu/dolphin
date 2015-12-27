@@ -217,6 +217,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
   IndexGenerator::AddIndices(primitive, count);
 
   g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
+  g_vertex_manager->Flush();
 
   ADDSTAT(stats.thisFrame.numPrims, count);
   INCSTAT(stats.thisFrame.numPrimitiveJoins);
