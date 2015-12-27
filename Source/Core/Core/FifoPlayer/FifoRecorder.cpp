@@ -40,6 +40,8 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 
 	delete m_File;
 
+	FifoAnalyzer::Init();
+
 	m_File = new FifoDataFile;
 	std::fill(m_Ram.begin(), m_Ram.end(), 0);
 	std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
@@ -68,7 +70,13 @@ void FifoRecorder::WriteGPCommand(u8* data, u32 size)
 {
 	if (!m_SkipNextData)
 	{
-		m_RecordAnalyzer.AnalyzeGPCommand(data);
+		// Assumes data contains all information for the command
+		// Calls FifoRecorder::UseMemory
+		u32 analyzed_size = FifoAnalyzer::AnalyzeCommand(data, FifoAnalyzer::DECODE_RECORD);
+
+		// Make sure FifoPlayer's command analyzer agrees about the size of the command.
+		if (analyzed_size != size)
+			PanicAlert("FifoRecorder: Expected command to be %i bytes long, we were given %i bytes", analyzed_size, size);
 
 		// Copy data to buffer
 		size_t currentSize = m_FifoData.size();
@@ -200,7 +208,7 @@ void FifoRecorder::SetVideoMemory(u32 *bpMem, u32 *cpMem, u32 *xfMem, u32 *xfReg
 		memcpy(m_File->GetXFRegs(), xfRegs, xfRegsCopySize * 4);
 	}
 
-	m_RecordAnalyzer.Initialize(bpMem, cpMem);
+	FifoRecordAnalyzer::Initialize(cpMem);
 
 	sMutex.unlock();
 }

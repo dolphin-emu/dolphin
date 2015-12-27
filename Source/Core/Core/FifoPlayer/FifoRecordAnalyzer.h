@@ -10,28 +10,11 @@
 
 #include "VideoCommon/BPMemory.h"
 
-class FifoRecordAnalyzer
+namespace FifoRecordAnalyzer
 {
-public:
-	FifoRecordAnalyzer();
-
-	// Must call this before analyzing GP commands
-	void Initialize(u32* bpMem, u32* cpMem);
-
-	// Assumes data contains all information for the command
-	// Calls FifoRecorder::UseMemory
-	void AnalyzeGPCommand(u8* data);
-
-private:
-	void DecodeOpcode(u8* data);
+	// Must call this before analyzing Fifo commands with FifoAnalyzer::AnalyzeCommand()
+	void Initialize(u32* cpMem);
 
 	void ProcessLoadIndexedXf(u32 val, int array);
-	void ProcessVertexArrays(u8* data, u8 vtxAttrGroup);
-
 	void WriteVertexArray(int arrayIndex, u8* vertexData, int vertexSize, int numVertices);
-
-	bool m_DrawingObject;
-
-	BPMemory* m_BpMem;
-	FifoAnalyzer::CPMemory m_CpMem;
 };
