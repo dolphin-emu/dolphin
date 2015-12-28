@@ -36,6 +36,7 @@ ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
 ID3D11PixelShader* s_DepthMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ClearProgram = nullptr;
 ID3D11PixelShader* s_AnaglyphProgram = nullptr;
+ID3D11PixelShader* s_DepthResolveProgram = nullptr;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
 ID3D11Buffer* pscbuf = nullptr;
@@ -196,6 +197,22 @@ const char depth_matrix_program_msaa[] = {
 
 	// Apply color matrix
 	"	ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
+	"}\n"
+};
+
+const char depth_resolve_program[] = {
+	"#define SAMPLES %d\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
+	"void main(\n"
+	"	 out float depth : SV_Depth,\n"
+	"    in float4 pos : SV_Position,\n"
+	"    in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int width, height, slices, samples;\n"
+	"	Tex0.GetDimensions(width, height, slices, samples);\n"
+	"	depth = Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), 0).x;\n"
+	"	for(int i = 1; i < SAMPLES; ++i)\n"
+	"		depth = min(depth, Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i).x);\n"
 	"}\n"
 };
 
@@ -406,6 +423,19 @@ ID3D11PixelShader* PixelShaderCache::GetAnaglyphProgram()
 	return s_AnaglyphProgram;
 }
 
+ID3D11PixelShader* PixelShaderCache::GetDepthResolveProgram()
+{
+	if (s_DepthResolveProgram != nullptr)
+		return s_DepthResolveProgram;
+
+	// create MSAA shader for current AA mode
+	std::string buf = StringFromFormat(depth_resolve_program, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
+	s_DepthResolveProgram = D3D::CompileAndCreatePixelShader(buf);
+	CHECK(s_DepthResolveProgram != nullptr, "Create depth matrix MSAA pixel shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_DepthResolveProgram, "depth resolve pixel shader");
+	return s_DepthResolveProgram;
+}
+
 ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 {
 	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
@@ -503,6 +533,7 @@ void PixelShaderCache::InvalidateMSAAShaders()
 	SAFE_RELEASE(s_DepthMatrixProgram[1]);
 	SAFE_RELEASE(s_rgb8_to_rgba6[1]);
 	SAFE_RELEASE(s_rgba6_to_rgb8[1]);
+	SAFE_RELEASE(s_DepthResolveProgram);
 }
 
 void PixelShaderCache::Shutdown()
@@ -511,6 +542,7 @@ void PixelShaderCache::Shutdown()
 
 	SAFE_RELEASE(s_ClearProgram);
 	SAFE_RELEASE(s_AnaglyphProgram);
+	SAFE_RELEASE(s_DepthResolveProgram);
 	for (int i = 0; i < 2; ++i)
 	{
 		SAFE_RELEASE(s_ColorCopyProgram[i]);
