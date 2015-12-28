@@ -261,7 +261,7 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
 
 void CWatchView::OnPopupMenu(wxCommandEvent& event)
 {
-	CFrame* main_frame = (CFrame*)(GetParent()->GetParent());
+	CFrame* main_frame = static_cast<CFrame*>(GetGrandParent()->GetParent());
 	CCodeWindow* code_window = main_frame->g_pCodeWindow;
 	CWatchWindow* watch_window = code_window->m_WatchWindow;
 	CMemoryWindow* memory_window = code_window->m_MemoryWindow;
