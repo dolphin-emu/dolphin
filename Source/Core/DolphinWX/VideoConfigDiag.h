@@ -12,6 +12,7 @@
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
+#include <wx/listbox.h>
 #include <wx/msgdlg.h>
 #include <wx/radiobut.h>
 #include <wx/spinctrl.h>
@@ -23,8 +24,6 @@
 #include "Core/Core.h"
 #include "DolphinWX/PostProcessingConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
-#include "VideoCommon/PostProcessing.h"
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 class wxBoxSizer;
@@ -133,29 +132,18 @@ protected:
 		ev.Skip();
 	}
 
-	void Event_PPShader(wxCommandEvent &ev)
-	{
-		const int sel = ev.GetInt();
-		if (sel)
-			vconfig.sPostProcessingShader = WxStrToStr(ev.GetString());
-		else
-			vconfig.sPostProcessingShader.clear();
+	// Post-processing shader list manipulation
+	void Event_PPShaderList(wxCommandEvent& ev);
+	void Event_PPShaderListMoveUp(wxCommandEvent& ev);
+	void Event_PPShaderListMoveDown(wxCommandEvent& ev);
+	void Event_PPShaderListOptions(wxCommandEvent& ev);
+	void Event_PPShaderListRemove(wxCommandEvent& ev);
+	void Event_PPShaderAdd(wxCommandEvent& ev);
 
-		// Should we enable the configuration button?
-		PostProcessingShaderConfiguration postprocessing_shader;
-		postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
-		button_config_pp->Enable(postprocessing_shader.HasOptions());
+	void Event_ScalingShader(wxCommandEvent& ev);
+	void Event_ConfigureScalingShader(wxCommandEvent &ev);
+	void Event_AnaglyphShader(wxCommandEvent& ev);
 
-		ev.Skip();
-	}
-
-	void Event_ConfigurePPShader(wxCommandEvent &ev)
-	{
-		PostProcessingConfigDiag dialog(this, vconfig.sPostProcessingShader);
-		dialog.ShowModal();
-
-		ev.Skip();
-	}
 
 	void Event_StereoDepth(wxCommandEvent &ev)
 	{
@@ -176,16 +164,7 @@ protected:
 		ev.Skip();
 	}
 
-	void Event_StereoMode(wxCommandEvent &ev)
-	{
-		if (vconfig.backend_info.bSupportsPostProcessing)
-		{
-			// Anaglyph overrides post-processing shaders
-			choice_ppshader->Clear();
-		}
-
-		ev.Skip();
-	}
+	void Event_StereoMode(wxCommandEvent &ev);
 
 	void Event_ClickClose(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
@@ -204,10 +183,6 @@ protected:
 
 		// custom textures
 		cache_hires_textures->Enable(vconfig.bHiresTextures);
-
-		// Repopulating the post-processing shaders can't be done from an event
-		if (choice_ppshader && choice_ppshader->IsEmpty())
-			PopulatePostProcessingShaders();
 
 		// Things which shouldn't be changed during emulation
 		if (Core::IsRunning())
@@ -247,6 +222,10 @@ protected:
 	void Evt_LeaveControl(wxMouseEvent& ev);
 	void CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer);
 	void PopulatePostProcessingShaders();
+	void UpdatePostProcessingShadersConfig();
+	void UpdatePostProcessingShaderListButtons();
+	void PopulateScalingShaders();
+	void PopulateAnaglyphShaders();
 	void PopulateAAList();
 	void OnAAChanged(wxCommandEvent& ev);
 
@@ -263,7 +242,7 @@ protected:
 
 	wxStaticText* label_display_resolution;
 
-	wxButton* button_config_pp;
+	wxButton* button_config_scalingshader;
 
 	SettingCheckBox* borderless_fullscreen;
 	SettingCheckBox* render_to_main_checkbox;
@@ -275,7 +254,17 @@ protected:
 
 	wxCheckBox* progressive_scan_checkbox;
 
+	wxListBox* listbox_selected_ppshaders;
+	wxButton* button_move_ppshader_up;
+	wxButton* button_move_ppshader_down;
+	wxButton* button_config_ppshader;
+	wxButton* button_remove_ppshader;
 	wxChoice* choice_ppshader;
+	wxButton* button_add_ppshader;
+
+	wxChoice* choice_pptrigger;
+	wxChoice* choice_scalingshader;
+	wxChoice* choice_anaglyphshader;
 
 	std::map<wxWindow*, wxString> ctrl_descs; // maps setting controls to their descriptions
 	std::map<wxWindow*, wxStaticText*> desc_texts; // maps dialog tabs (which are the parents of the setting controls) to their description text objects

@@ -15,6 +15,7 @@
 #include "Core/Core.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
+#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -683,6 +684,9 @@ void VertexShaderManager::SetViewportChanged()
 void VertexShaderManager::SetProjectionChanged()
 {
 	bProjectionChanged = true;
+
+	if (g_renderer->GetPostProcessor())
+		g_renderer->GetPostProcessor()->OnProjectionLoaded(xfmem.projection.type);
 }
 
 void VertexShaderManager::SetMaterialColorChanged(int index)

@@ -70,7 +70,7 @@ int Renderer::s_target_height;
 int Renderer::s_backbuffer_width;
 int Renderer::s_backbuffer_height;
 
-std::unique_ptr<PostProcessingShaderImplementation> Renderer::m_post_processor;
+std::unique_ptr<PostProcessor> Renderer::m_post_processor;
 
 TargetRectangle Renderer::target_rc;
 

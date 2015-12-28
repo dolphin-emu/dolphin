@@ -54,6 +54,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -1420,65 +1421,30 @@ void CFrame::ParseHotkeys()
 	if (IsHotkey(HK_TOGGLE_STEREO_SBS))
 	{
 		if (g_Config.iStereoMode != STEREO_SBS)
-		{
-			// Current implementation of anaglyph stereoscopy uses a
-			// post-processing shader. Thus the shader needs to be to be
-			// turned off when selecting other stereoscopy modes.
-			if (g_Config.sPostProcessingShader == "dubois")
-			{
-				g_Config.sPostProcessingShader = "";
-			}
 			g_Config.iStereoMode = STEREO_SBS;
-		}
 		else
-		{
 			g_Config.iStereoMode = STEREO_OFF;
-		}
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_TAB))
 	{
 		if (g_Config.iStereoMode != STEREO_TAB)
-		{
-			if (g_Config.sPostProcessingShader == "dubois")
-			{
-				g_Config.sPostProcessingShader = "";
-			}
 			g_Config.iStereoMode = STEREO_TAB;
-		}
 		else
-		{
 			g_Config.iStereoMode = STEREO_OFF;
-		}
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
 	{
 		if (g_Config.iStereoMode != STEREO_ANAGLYPH)
-		{
-			// Setting the anaglyph mode also requires a specific
-			// post-processing shader to be activated.
 			g_Config.iStereoMode = STEREO_ANAGLYPH;
-			g_Config.sPostProcessingShader = "dubois";
-		}
 		else
-		{
 			g_Config.iStereoMode = STEREO_OFF;
-			g_Config.sPostProcessingShader = "";
-		}
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
 	{
 		if (g_Config.iStereoMode != STEREO_3DVISION)
-		{
-			if (g_Config.sPostProcessingShader == "dubois")
-			{
-				g_Config.sPostProcessingShader = "";
-			}
 			g_Config.iStereoMode = STEREO_3DVISION;
-		}
 		else
-		{
 			g_Config.iStereoMode = STEREO_OFF;
-		}
 	}
 
 	if (IsHotkey(HK_DECREASE_DEPTH, true))
@@ -1502,6 +1468,12 @@ void CFrame::ParseHotkeys()
 		g_Config.iStereoConvergence += 5;
 		if (g_Config.iStereoConvergence > 500)
 			g_Config.iStereoConvergence = 500;
+	}
+
+	if (IsHotkey(HK_RELOAD_POSTPROCESS_SHADERS))
+	{
+		if (g_renderer && g_renderer->GetPostProcessor())
+			g_renderer->GetPostProcessor()->SetReloadFlag();
 	}
 
 	static float debugSpeed = 1.0f;

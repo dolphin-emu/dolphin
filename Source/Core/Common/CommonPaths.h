@@ -71,12 +71,16 @@
 #define WII_WC24CONF_DIR    "shared2" DIR_SEP "wc24"
 #define RESOURCES_DIR       "Resources"
 #define THEMES_DIR          "Themes"
-#define ANAGLYPH_DIR        "Anaglyph"
 #define PIPES_DIR           "Pipes"
 #define MEMORYWATCHER_DIR   "MemoryWatcher"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
+
+// Subdirectory names for post-processing shader types
+#define POSTPROCESSING_SHADER_SUBDIR    "Postprocessing"
+#define SCALING_SHADER_SUBDIR		    "Scaling"
+#define ANAGLYPH_SHADER_SUBDIR          "Anaglyph"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)

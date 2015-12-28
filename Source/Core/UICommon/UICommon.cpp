@@ -17,6 +17,7 @@
 
 #include "UICommon/UICommon.h"
 
+#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace UICommon
@@ -64,7 +65,9 @@ void CreateDirectories()
 	File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + ANAGLYPH_DIR DIR_SEP);
+	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + DIR_SEP ANAGLYPH_SHADER_SUBDIR DIR_SEP);
+	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + DIR_SEP POSTPROCESSING_SHADER_SUBDIR DIR_SEP);
+	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + DIR_SEP SCALING_SHADER_SUBDIR DIR_SEP);
 	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
 	File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
 }

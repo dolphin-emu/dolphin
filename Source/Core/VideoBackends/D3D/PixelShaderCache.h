@@ -30,7 +30,6 @@ public:
 	static ID3D11PixelShader* GetColorCopyProgram(bool multisampled);
 	static ID3D11PixelShader* GetDepthMatrixProgram(bool multisampled);
 	static ID3D11PixelShader* GetClearProgram();
-	static ID3D11PixelShader* GetAnaglyphProgram();
 	static ID3D11PixelShader* GetDepthResolveProgram();
 	static ID3D11PixelShader* ReinterpRGBA6ToRGB8(bool multisampled);
 	static ID3D11PixelShader* ReinterpRGB8ToRGBA6(bool multisampled);

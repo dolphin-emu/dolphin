@@ -79,7 +79,11 @@ struct VideoConfig final
 	int iEFBScale;
 	bool bForceFiltering;
 	int iMaxAnisotropy;
-	std::string sPostProcessingShader;
+	bool bPostProcessingEnable;
+	int iPostProcessingTrigger;
+	std::string sPostProcessingShaders;
+	std::string sScalingShader;
+	std::string sAnaglyphShader;
 
 	// Information
 	bool bShowFPS;
@@ -153,8 +157,6 @@ struct VideoConfig final
 
 		std::vector<std::string> Adapters; // for D3D
 		std::vector<int> AAModes;
-		std::vector<std::string> PPShaders; // post-processing shaders
-		std::vector<std::string> AnaglyphShaders; // anaglyph shaders
 
 		bool bSupportsExclusiveFullscreen;
 		bool bSupportsDualSourceBlend;
