@@ -121,10 +121,18 @@ u16 dsp_read_accelerator()
 	switch (g_dsp.ifx_regs[DSP_FORMAT])
 	{
 		case 0x00:  // ADPCM audio
-			if ((EndAddress & 15) == 0)
+			switch (EndAddress & 15)
+			{
+			case 0: // Tom and Jerry
 				step_size_bytes = 1;
-			else
+				break;
+			case 1: // Blazing Angels
+				step_size_bytes = 0;
+				break;
+			default:
 				step_size_bytes = 2;
+				break;
+			}
 			val = ADPCM_Step(Address);
 			break;
 		case 0x0A:  // 16-bit PCM audio
