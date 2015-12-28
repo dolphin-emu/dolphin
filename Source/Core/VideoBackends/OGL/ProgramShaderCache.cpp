@@ -230,7 +230,7 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
 		filename = StringFromFormat("%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 		SaveData(filename, pcode.GetBuffer());
 
-		if (gcode.GetBuffer() != nullptr)
+		if (!gcode.GetBuffer().empty())
 		{
 			filename = StringFromFormat("%sgs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 			SaveData(filename, gcode.GetBuffer());
@@ -252,17 +252,17 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
 	return &last_entry->shader;
 }
 
-bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const char* pcode, const char* gcode)
+bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode, const std::string& pcode, const std::string& gcode)
 {
 	GLuint vsid = CompileSingleShader(GL_VERTEX_SHADER, vcode);
 	GLuint psid = CompileSingleShader(GL_FRAGMENT_SHADER, pcode);
 
 	// Optional geometry shader
 	GLuint gsid = 0;
-	if (gcode)
+	if (!gcode.empty())
 		gsid = CompileSingleShader(GL_GEOMETRY_SHADER, gcode);
 
-	if (!vsid || !psid || (gcode && !gsid))
+	if (!vsid || !psid || (!gcode.empty() && !gsid))
 	{
 		glDeleteShader(vsid);
 		glDeleteShader(psid);
@@ -304,7 +304,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const 
 		std::ofstream file;
 		OpenFStream(file, filename, std::ios_base::out);
 		file << s_glsl_header << vcode << s_glsl_header << pcode;
-		if (gcode)
+		if (!gcode.empty())
 			file << s_glsl_header << gcode;
 		file << infoLog;
 		file.close();
@@ -334,11 +334,11 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const 
 	return true;
 }
 
-GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
+GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& code)
 {
 	GLuint result = glCreateShader(type);
 
-	const char *src[] = {s_glsl_header.c_str(), code};
+	const char *src[] = {s_glsl_header.c_str(), code.c_str()};
 
 	glShaderSource(result, 2, src, nullptr);
 	glCompileShader(result);

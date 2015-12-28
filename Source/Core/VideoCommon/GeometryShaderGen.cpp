@@ -7,10 +7,8 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 
-static char text[16384];
 
 static const char* primitives_ogl[] =
 {
@@ -26,11 +24,11 @@ static const char* primitives_d3d[] =
 	"triangle"
 };
 
-template<class T> static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex = false);
-template<class T> static inline void EndPrimitive(T& out, API_TYPE ApiType);
+template<class T> static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex = false);
+template<class T> static void EndPrimitive(T& out, API_TYPE ApiType);
 
 template<class T>
-static inline T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
+static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 {
 	T out;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
@@ -38,12 +36,6 @@ static inline T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 	geometry_shader_uid_data* uid_data = out.template GetUidData<geometry_shader_uid_data>();
 	if (uid_data == nullptr)
 		uid_data = &dummy_data;
-
-	out.SetBuffer(text);
-	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-
-	if (is_writing_shadercode)
-		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	uid_data->primitive_type = primitive_type;
 	const unsigned int vertex_in = primitive_type + 1;
@@ -288,17 +280,11 @@ static inline T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 
 	out.Write("}\n");
 
-	if (is_writing_shadercode)
-	{
-		if (text[sizeof(text) - 1] != 0x7C)
-			PanicAlert("GeometryShader generator - buffer too small, canary has been eaten!");
-	}
-
 	return out;
 }
 
 template<class T>
-static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex)
+static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex)
 {
 	if (g_ActiveConfig.bWireFrame && first_vertex)
 		out.Write("\tif (i == 0) first = %s;\n", vertex);
@@ -319,7 +305,7 @@ static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool
 		out.Write("\toutput.Append(ps);\n");
 }
 template<class T>
-static inline void EndPrimitive(T& out, API_TYPE ApiType)
+static void EndPrimitive(T& out, API_TYPE ApiType)
 {
 	if (g_ActiveConfig.bWireFrame)
 		EmitVertex<T>(out, "first", ApiType);

@@ -347,8 +347,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	}\n"
 		"}\n";
 
-	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6.c_str(), (m_EFBLayers > 1) ? gs.c_str() : nullptr);
-	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8.c_str(), (m_EFBLayers > 1) ? gs.c_str() : nullptr);
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6.c_str(), (m_EFBLayers > 1) ? gs : "");
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8.c_str(), (m_EFBLayers > 1) ? gs : "");
 
 	ProgramShaderCache::CompileShader(m_EfbPokes,
 		StringFromFormat(
@@ -362,7 +362,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	gl_PointSize = %d.0 / 640.0;\n"
 		"	v_c = color0.bgra;\n"
 		"	v_z = float(color1 & 0xFFFFFF) / 16777216.0;\n"
-		"}\n", m_targetWidth).c_str(),
+		"}\n", m_targetWidth),
 
 		StringFromFormat(
 		"in vec4 %s_c;\n"
@@ -371,7 +371,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"void main(void) {\n"
 		"	ocol0 = %s_c;\n"
 		"	gl_FragDepth = %s_z;\n"
-		"}\n", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v").c_str(),
+		"}\n", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v"),
 
 		m_EFBLayers > 1 ? StringFromFormat(
 		"layout(points) in;\n"
@@ -391,7 +391,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"		EmitVertex();\n"
 		"		EndPrimitive();\n"
 		"	}\n"
-		"}\n", m_EFBLayers, m_EFBLayers, m_targetWidth).c_str() : nullptr);
+		"}\n", m_EFBLayers, m_EFBLayers, m_targetWidth) : "");
 	glGenBuffers(1, &m_EfbPokes_VBO);
 	glGenVertexArrays(1, &m_EfbPokes_VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_EfbPokes_VBO);
