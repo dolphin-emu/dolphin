@@ -23,10 +23,10 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2014-01-08 05:25:40 +1100 (Wed, 08 Jan 2014) $
+// Last changed  : $Date: 2015-08-09 00:00:15 +0300 (Sun, 09 Aug 2015) $
 // File revision : $Revision: 4 $
 //
-// $Id: sse_optimized.cpp 184 2014-01-07 18:25:40Z oparviai $
+// $Id: sse_optimized.cpp 226 2015-08-08 21:00:15Z oparviai $
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -71,7 +71,7 @@ using namespace soundtouch;
 #include <math.h>
 
 // Calculates cross correlation of two buffers
-double TDStretchSSE::calcCrossCorr(const float *pV1, const float *pV2, double &norm) const
+double TDStretchSSE::calcCrossCorr(const float *pV1, const float *pV2, double &anorm)
 {
     int i;
     const float *pVec1;
@@ -141,7 +141,8 @@ double TDStretchSSE::calcCrossCorr(const float *pV1, const float *pV2, double &n
 
     // return value = vSum[0] + vSum[1] + vSum[2] + vSum[3]
     float *pvNorm = (float*)&vNorm;
-    norm = (pvNorm[0] + pvNorm[1] + pvNorm[2] + pvNorm[3]);
+    float norm = (pvNorm[0] + pvNorm[1] + pvNorm[2] + pvNorm[3]);
+    anorm = norm;
 
     float *pvSum = (float*)&vSum;
     return (double)(pvSum[0] + pvSum[1] + pvSum[2] + pvSum[3]) / sqrt(norm < 1e-9 ? 1.0 : norm);
@@ -182,7 +183,7 @@ double TDStretchSSE::calcCrossCorr(const float *pV1, const float *pV2, double &n
 
 
 
-double TDStretchSSE::calcCrossCorrAccumulate(const float *pV1, const float *pV2, double &norm) const
+double TDStretchSSE::calcCrossCorrAccumulate(const float *pV1, const float *pV2, double &norm)
 {
     // call usual calcCrossCorr function because SSE does not show big benefit of 
     // accumulating "norm" value, and also the "norm" rolling algorithm would get 
@@ -258,14 +259,17 @@ uint FIRFilterSSE::evaluateFilterStereo(float *dest, const float *source, uint n
     assert(((ulongptr)filterCoeffsAlign) % 16 == 0);
 
     // filter is evaluated for two stereo samples with each iteration, thus use of 'j += 2'
+    #pragma omp parallel for
     for (j = 0; j < count; j += 2)
     {
         const float *pSrc;
+        float *pDest;
         const __m128 *pFil;
         __m128 sum1, sum2;
         uint i;
 
-        pSrc = (const float*)source;              // source audio data
+        pSrc = (const float*)source + j * 2;      // source audio data
+        pDest = dest + j * 2;                     // destination audio data
         pFil = (const __m128*)filterCoeffsAlign;  // filter coefficients. NOTE: Assumes coefficients 
                                                   // are aligned to 16-byte boundary
         sum1 = sum2 = _mm_setzero_ps();
@@ -298,12 +302,10 @@ uint FIRFilterSSE::evaluateFilterStereo(float *dest, const float *source, uint n
         // to sum the two hi- and lo-floats of these registers together.
 
         // post-shuffle & add the filtered values and store to dest.
-        _mm_storeu_ps(dest, _mm_add_ps(
+        _mm_storeu_ps(pDest, _mm_add_ps(
                     _mm_shuffle_ps(sum1, sum2, _MM_SHUFFLE(1,0,3,2)),   // s2_1 s2_0 s1_3 s1_2
                     _mm_shuffle_ps(sum1, sum2, _MM_SHUFFLE(3,2,1,0))    // s2_3 s2_2 s1_1 s1_0
                     ));
-        source += 4;
-        dest += 4;
     }
 
     // Ideas for further improvement:

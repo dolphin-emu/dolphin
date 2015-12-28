@@ -8,10 +8,10 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2013-06-12 15:24:44 +0000 (Wed, 12 Jun 2013) $
+// Last changed  : $Date: 2015-05-18 18:25:07 +0300 (Mon, 18 May 2015) $
 // File revision : $Revision: 3 $
 //
-// $Id: STTypes.h 171 2013-06-12 15:24:44Z oparviai $
+// $Id: STTypes.h 215 2015-05-18 15:25:07Z oparviai $
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -59,16 +59,6 @@ typedef unsigned long   ulong;
     // Skip this in Android compilation that uses GCC but without configure scripts.
     //#include "soundtouch_config.h"
 #endif
-
-#ifndef _WINDEF_
-    // if these aren't defined already by Windows headers, define now
-
-    typedef int BOOL;
-
-    #define FALSE   0
-    #define TRUE    1
-
-#endif  // _WINDEF_
 
 
 namespace soundtouch
@@ -182,6 +172,7 @@ namespace soundtouch
 #else
     // use c++ standard exceptions
     #include <stdexcept>
+    #include <string>
     #define ST_THROW_RT_ERROR(x)    {throw std::runtime_error(x);}
 #endif
 
