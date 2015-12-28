@@ -429,7 +429,7 @@ ID3D11PixelShader* PixelShaderCache::GetDepthResolveProgram()
 		return s_DepthResolveProgram;
 
 	// create MSAA shader for current AA mode
-	std::string buf = StringFromFormat(depth_resolve_program, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
+	std::string buf = StringFromFormat(depth_resolve_program, g_ActiveConfig.iMultisamples);
 	s_DepthResolveProgram = D3D::CompileAndCreatePixelShader(buf);
 	CHECK(s_DepthResolveProgram != nullptr, "Create depth matrix MSAA pixel shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_DepthResolveProgram, "depth resolve pixel shader");
