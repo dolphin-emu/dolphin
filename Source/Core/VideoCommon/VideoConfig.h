@@ -51,14 +51,6 @@ enum StereoMode
 	STEREO_3DVISION
 };
 
-constexpr int STEREOSCOPY_PRESETS_NUM = 3;
-
-struct StereoscopyPreset final
-{
-	int depth;
-	int convergence;
-};
-
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -88,8 +80,6 @@ struct VideoConfig final
 	bool bForceFiltering;
 	int iMaxAnisotropy;
 	std::string sPostProcessingShader;
-	std::array<StereoscopyPreset, STEREOSCOPY_PRESETS_NUM> oStereoPresets;
-	int iStereoActivePreset;
 
 	// Information
 	bool bShowFPS;
