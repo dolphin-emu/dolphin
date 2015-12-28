@@ -90,16 +90,20 @@ void StateManager::Apply()
 		return;
 	}
 
-	int textureMaskShift = LeastSignificantSetBit((u32)DirtyFlag_Texture0);
-	int samplerMaskShift = LeastSignificantSetBit((u32)DirtyFlag_Sampler0);
+	int textureMaskShift = LeastSignificantSetBit(DirtyFlag_Texture0);
+	int samplerMaskShift = LeastSignificantSetBit(DirtyFlag_Sampler0);
 
-	u32 dirtyTextures = (m_dirtyFlags & (DirtyFlag_Texture0 | DirtyFlag_Texture1 | DirtyFlag_Texture2 | DirtyFlag_Texture3
-		| DirtyFlag_Texture4 | DirtyFlag_Texture5 | DirtyFlag_Texture6 | DirtyFlag_Texture7)) >> textureMaskShift;
-	u32 dirtySamplers = (m_dirtyFlags & (DirtyFlag_Sampler0 | DirtyFlag_Sampler1 | DirtyFlag_Sampler2 | DirtyFlag_Sampler3
-		| DirtyFlag_Sampler4 | DirtyFlag_Sampler5 | DirtyFlag_Sampler6 | DirtyFlag_Sampler7)) >> samplerMaskShift;
-	u32 dirtyConstants = m_dirtyFlags & (DirtyFlag_PixelConstants | DirtyFlag_VertexConstants | DirtyFlag_GeometryConstants);
-	u32 dirtyShaders = m_dirtyFlags & (DirtyFlag_PixelShader | DirtyFlag_VertexShader | DirtyFlag_GeometryShader);
-	u32 dirtyBuffers = m_dirtyFlags & (DirtyFlag_VertexBuffer | DirtyFlag_IndexBuffer);
+	u64 dirtyTextures = (m_dirtyFlags & (DirtyFlag_Texture0 | DirtyFlag_Texture1 | DirtyFlag_Texture2 | DirtyFlag_Texture3
+		| DirtyFlag_Texture4 | DirtyFlag_Texture5 | DirtyFlag_Texture6 | DirtyFlag_Texture7 | DirtyFlag_Texture8
+		| DirtyFlag_Texture9 | DirtyFlag_Texture10 | DirtyFlag_Texture11 | DirtyFlag_Texture12 | DirtyFlag_Texture13
+		| DirtyFlag_Texture14 | DirtyFlag_Texture15)) >> textureMaskShift;
+	u64 dirtySamplers = (m_dirtyFlags & (DirtyFlag_Sampler0 | DirtyFlag_Sampler1 | DirtyFlag_Sampler2 | DirtyFlag_Sampler3
+		| DirtyFlag_Sampler4 | DirtyFlag_Sampler5 | DirtyFlag_Sampler6 | DirtyFlag_Sampler7 | DirtyFlag_Sampler8
+		| DirtyFlag_Sampler9 | DirtyFlag_Sampler10 | DirtyFlag_Sampler11 | DirtyFlag_Sampler12 | DirtyFlag_Sampler13
+		| DirtyFlag_Sampler14 | DirtyFlag_Sampler15)) >> samplerMaskShift;
+	u64 dirtyConstants = m_dirtyFlags & (DirtyFlag_PixelConstants | DirtyFlag_VertexConstants | DirtyFlag_GeometryConstants);
+	u64 dirtyShaders = m_dirtyFlags & (DirtyFlag_PixelShader | DirtyFlag_VertexShader | DirtyFlag_GeometryShader);
+	u64 dirtyBuffers = m_dirtyFlags & (DirtyFlag_VertexBuffer | DirtyFlag_IndexBuffer);
 
 	if (dirtyConstants)
 	{
@@ -164,7 +168,7 @@ void StateManager::Apply()
 			m_current.textures[index] = m_pending.textures[index];
 		}
 
-		dirtyTextures &= ~(1 << index);
+		dirtyTextures &= ~(UINT64_C(1) << index);
 	}
 
 	while (dirtySamplers)
@@ -176,7 +180,7 @@ void StateManager::Apply()
 			m_current.samplers[index] = m_pending.samplers[index];
 		}
 
-		dirtySamplers &= ~(1 << index);
+		dirtySamplers &= ~(UINT64_C(1) << index);
 	}
 
 	if (dirtyShaders)
@@ -207,25 +211,25 @@ u32 StateManager::UnsetTexture(ID3D11ShaderResourceView* srv)
 {
 	u32 mask = 0;
 
-	for (u32 index = 0; index < 8; ++index)
+	for (u32 index = 0; index < 16; ++index)
 	{
 		if (m_current.textures[index] == srv)
 		{
 			SetTexture(index, nullptr);
-			mask |= 1 << index;
+			mask |= UINT64_C(1) << index;
 		}
 	}
 
 	return mask;
 }
 
-void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceView* srv)
+void StateManager::SetTextureByMask(u64 textureSlotMask, ID3D11ShaderResourceView* srv)
 {
 	while (textureSlotMask)
 	{
 		int index = LeastSignificantSetBit(textureSlotMask);
 		SetTexture(index, srv);
-		textureSlotMask &= ~(1 << index);
+		textureSlotMask &= ~(UINT64_C(1) << index);
 	}
 }
 

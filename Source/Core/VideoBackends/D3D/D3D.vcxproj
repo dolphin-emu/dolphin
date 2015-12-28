@@ -48,6 +48,7 @@
     <ClCompile Include="NativeVertexFormat.cpp" />
     <ClCompile Include="PerfQuery.cpp" />
     <ClCompile Include="PixelShaderCache.cpp" />
+    <ClCompile Include="PostProcessing.cpp" />
     <ClCompile Include="PSTextureEncoder.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Television.cpp" />
@@ -68,6 +69,7 @@
     <ClInclude Include="GeometryShaderCache.h" />
     <ClInclude Include="PerfQuery.h" />
     <ClInclude Include="PixelShaderCache.h" />
+    <ClInclude Include="PostProcessing.h" />
     <ClInclude Include="PSTextureEncoder.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Television.h" />

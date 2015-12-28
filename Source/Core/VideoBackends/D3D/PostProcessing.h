@@ -1,25 +1,24 @@
-// Copyright 2008 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <array>
+#include <d3d11.h>
 #include <string>
 #include <unordered_map>
+#include <wrl/client.h>
 
-#include "Common/GL/GLUtil.h"
-
-#include "VideoBackends/OGL/ProgramShaderCache.h"
-#include "VideoBackends/OGL/StreamBuffer.h"
-
+#include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoCommon.h"
 
-namespace OGL
+namespace DX11
 {
+
 // Forward declaration needed for PostProcessingShader::Draw()
-class OGLPostProcessor;
+class D3DPostProcessor;
 
 // PostProcessingShader comprises of all the resources needed to render a shader, including
 // temporary buffers, external images, shader programs, and configurations.
@@ -29,7 +28,7 @@ public:
 	PostProcessingShader() = default;
 	~PostProcessingShader();
 
-	GLuint GetLastPassOutputTexture() const;
+	D3DTexture2D* GetLastPassOutputTexture() const;
 	bool IsLastPassScaled() const;
 
 	bool IsReady() const { return m_ready; }
@@ -37,30 +36,30 @@ public:
 	bool Initialize(const PostProcessingShaderConfiguration* config, int target_layers);
 	bool Reconfigure(const TargetSize& new_size);
 
-	void Draw(OGLPostProcessor* parent,
-			  const TargetRectangle& dst_rect, const TargetSize& dst_size, GLuint dst_texture,
-			  const TargetRectangle& src_rect, const TargetSize& src_size, GLuint src_texture,
-			  GLuint src_depth_texture, int src_layer);
+	void Draw(D3DPostProcessor* parent,
+			  const TargetRectangle& dst_rect, const TargetSize& dst_size, D3DTexture2D* dst_texture,
+			  const TargetRectangle& src_rect, const TargetSize& src_size, D3DTexture2D* src_texture,
+			  D3DTexture2D* src_depth_texture, int src_layer);
 
 private:
 	struct InputBinding final
 	{
 		PostProcessingInputType type;
-		GLuint texture_unit;
-		GLuint texture_id;
-		GLuint sampler_id;
+		u32 texture_unit;
 		TargetSize size;
-		bool owned;
+
+		D3DTexture2D* texture;	// only set for external images
+		ID3D11ShaderResourceView* texture_srv;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> texture_sampler;
 	};
 
 	struct RenderPassData final
 	{
-		std::unique_ptr<SHADER> program;
-		std::unique_ptr<SHADER> gs_program;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader> pixel_shader;
 
 		std::vector<InputBinding> inputs;
 
-		GLuint output_texture_id;
+		D3DTexture2D* output_texture;
 		TargetSize output_size;
 		float output_scale;
 
@@ -77,19 +76,17 @@ private:
 	TargetSize m_internal_size;
 	int m_internal_layers = 0;
 
-	GLuint m_framebuffer = 0;
-
 	std::vector<RenderPassData> m_passes;
 	size_t m_last_pass_index = 0;
 	bool m_last_pass_uses_color_buffer = false;
 	bool m_ready = false;
 };
 
-class OGLPostProcessor final : public PostProcessor
+class D3DPostProcessor final : public PostProcessor
 {
 public:
-	OGLPostProcessor() = default;
-	~OGLPostProcessor();
+	D3DPostProcessor() = default;
+	~D3DPostProcessor();
 
 	bool Initialize() override;
 
@@ -108,12 +105,12 @@ public:
 								   const TargetSize& target_size, const TargetRectangle& src_rect, const TargetSize& src_size,
 								   int src_layer);
 
-	// NOTE: Can modify the bindings of draw_framebuffer/read_framebuffer.
+	// NOTE: Can change current render target and viewport.
 	// If src_layer <0, copy all layers, otherwise, copy src_layer to layer 0.
-	void CopyTexture(const TargetRectangle& dst_rect, GLuint dst_texture,
-					 const TargetRectangle& src_rect, GLuint src_texture,
-					 int src_layer, bool is_depth_texture,
-					 bool force_blit = false);
+	static void CopyTexture(const TargetRectangle& dst_rect, D3DTexture2D* dst_texture,
+							const TargetRectangle& src_rect, D3DTexture2D* src_texture,
+							const TargetSize& src_size, int src_layer,
+							bool force_shader_copy = false);
 
 protected:
 	std::unique_ptr<PostProcessingShader> CreateShader(const PostProcessingShaderConfiguration* config);
@@ -124,17 +121,14 @@ protected:
 	bool ReconfigurePostProcessingShaders(const TargetSize& size);
 	void DisablePostProcessor();
 
-	GLuint m_draw_framebuffer = 0;
-	GLuint m_read_framebuffer = 0;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_uniform_buffer;
+	std::unique_ptr<PostProcessingShader> m_scaling_shader;
+	std::vector<std::unique_ptr<PostProcessingShader>> m_post_processing_shaders;
 
 	TargetSize m_copy_size;
 	int m_copy_layers = 0;
-	GLuint m_color_copy_texture = 0;
-	GLuint m_depth_copy_texture = 0;
-
-	std::unique_ptr<StreamBuffer> m_uniform_buffer;
-	std::unique_ptr<PostProcessingShader> m_scaling_shader;
-	std::vector<std::unique_ptr<PostProcessingShader>> m_post_processing_shaders;
+	D3DTexture2D* m_color_copy_texture = nullptr;
+	D3DTexture2D* m_depth_copy_texture = nullptr;
 };
 
 }  // namespace

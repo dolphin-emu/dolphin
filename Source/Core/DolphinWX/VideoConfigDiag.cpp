@@ -20,6 +20,7 @@
 #include <wx/stattext.h>
 
 #include "Common/Assert.h"
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
@@ -28,6 +29,7 @@
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -135,12 +137,17 @@ static wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 c
 #endif
 static wxString free_look_desc = wxTRANSLATE("This feature allows you to change the game's camera.\nMove the mouse while holding the right mouse button to pan and while holding the middle button to move.\nHold SHIFT and press one of the WASD keys to move the camera by a certain step distance (SHIFT+2 to move faster and SHIFT+1 to move slower). Press SHIFT+R to reset the camera and SHIFT+F to reset the speed.\n\nIf unsure, leave this unchecked.");
 static wxString crop_desc = wxTRANSLATE("Crop the picture from its native aspect ratio to 4:3 or 16:9.\n\nIf unsure, leave this unchecked.");
-static wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
+static wxString pptrigger_desc = wxTRANSLATE("Determines when to apply post-processing.\nOn Swap will apply post-processing before presenting to the screen (XFB must be disabled). On Projection applies post-processing before the game draws 2D elements on the screen. However, this may not work with all games. On EFB Copy applies post-processing upon an EFB copy of a perspective scene. This may work for for other games.\n\nIf unsure, and for best compatibility, select On Swap.");
+static wxString ppshader_list_desc = wxTRANSLATE("Applies post-processing effects when the trigger chosen in the occurs, by default this is at the end of a frame. Post-processing is performed at the selected internal resolution, and effects are applied in the order indicated by this list.\n\nNOTE: XFB must be disabled for post-processing to function if the trigger mode is On Swap.\n\nIf unsure, leave the list empty.");
+static wxString ppshader_options_desc = wxTRANSLATE("Some effects offer user-tweakable options. This will open a dialog where you can change the values of these options.");
+static wxString scalingshader_desc = wxTRANSLATE("Use a custom shader for resizing from internal resolution to display resolution. This shader can also perform additional post-processing effects.\n\nIf unsure, select (default).");
+static wxString scalingshader_options_desc = wxTRANSLATE("Some filters offer user-tweakable options. This will open a dialog where you can change the values of these options.");
 static wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
 static wxString stereo_3d_desc = wxTRANSLATE("Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
 static wxString stereo_depth_desc = wxTRANSLATE("Controls the separation distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.");
 static wxString stereo_convergence_desc = wxTRANSLATE("Controls the distance of the convergence plane. This is the distance at which virtual objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.");
 static wxString stereo_swap_desc = wxTRANSLATE("Swaps the left and right eye. Mostly useful if you want to view side-by-side cross-eyed.\n\nIf unsure, leave this unchecked.");
+static wxString anaglyphshader_desc = wxTRANSLATE("Selects which shader will be used to transform the two images when stereo is enabled, and anaglyph is the chosen mode.");
 
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
@@ -388,25 +395,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// postproc shader
 	if (vconfig.backend_info.bSupportsPostProcessing)
 	{
-		wxFlexGridSizer* const szr_pp = new wxFlexGridSizer(3, 5, 5);
-		choice_ppshader = new wxChoice(page_enh, wxID_ANY);
-		RegisterControl(choice_ppshader, wxGetTranslation(ppshader_desc));
-		button_config_pp = new wxButton(page_enh, wxID_ANY, _("Config"));
 
-		PopulatePostProcessingShaders();
-
-		choice_ppshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_PPShader, this);
-		button_config_pp->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ConfigurePPShader, this);
-
-		szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Post-Processing Effect:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-		szr_pp->Add(choice_ppshader);
-		szr_pp->Add(button_config_pp);
-		szr_enh->Add(szr_pp);
 	}
 	else
 	{
-		choice_ppshader = nullptr;
-		button_config_pp = nullptr;
+
 	}
 
 	// Scaled copy, PL, Bilinear filter
@@ -460,7 +453,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	CreateDescriptionArea(page_enh, szr_enh_main);
 	page_enh->SetSizerAndFit(szr_enh_main);
 	}
-
 
 	// -- SPEED HACKS --
 	{
@@ -528,6 +520,120 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_hacks->AddStretchSpacer();
 	CreateDescriptionArea(page_hacks, szr_hacks);
 	page_hacks->SetSizerAndFit(szr_hacks);
+	}
+
+		// -- POSTPROCESSING --
+	if (vconfig.backend_info.bSupportsPostProcessing)
+	{
+		wxPanel* const page_postprocessing = new wxPanel(notebook);
+		notebook->AddPage(page_postprocessing, _("Post-Processing"));
+
+		wxBoxSizer* const szr_postprocessing = new wxBoxSizer(wxVERTICAL);
+
+		// Selected Shaders
+		{
+			wxBoxSizer* const szr_selected_shaders = new wxBoxSizer(wxVERTICAL);
+
+			// List box
+			wxBoxSizer* const szr_pp_shader_list = new wxBoxSizer(wxHORIZONTAL);
+			listbox_selected_ppshaders = new wxListBox(page_postprocessing, wxID_ANY);
+			listbox_selected_ppshaders->Bind(wxEVT_LISTBOX, &VideoConfigDiag::Event_PPShaderList, this);
+			listbox_selected_ppshaders->Bind(wxEVT_LISTBOX_DCLICK, &VideoConfigDiag::Event_PPShaderListOptions, this);
+			szr_pp_shader_list->Add(listbox_selected_ppshaders, 1, wxEXPAND | wxALIGN_TOP);
+			RegisterControl(listbox_selected_ppshaders, wxGetTranslation(ppshader_list_desc));
+
+			// List manipulation buttons
+			wxBoxSizer* const szr_pp_shader_list_buttons = new wxBoxSizer(wxVERTICAL);
+			button_move_ppshader_up = new wxButton(page_postprocessing, wxID_ANY, _("Move &Up"));
+			button_move_ppshader_up->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_PPShaderListMoveUp, this);
+			szr_pp_shader_list_buttons->Add(button_move_ppshader_up);
+			button_move_ppshader_down = new wxButton(page_postprocessing, wxID_ANY, _("Move &Down"));
+			button_move_ppshader_down->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_PPShaderListMoveDown, this);
+			szr_pp_shader_list_buttons->Add(button_move_ppshader_down);
+			button_config_ppshader = new wxButton(page_postprocessing, wxID_ANY, _("&Options..."));
+			button_config_ppshader->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_PPShaderListOptions, this);
+			RegisterControl(button_config_ppshader, wxGetTranslation(ppshader_options_desc));
+			szr_pp_shader_list_buttons->Add(button_config_ppshader);
+			button_remove_ppshader = new wxButton(page_postprocessing, wxID_ANY, _("&Remove"));
+			button_remove_ppshader->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_PPShaderListRemove, this);
+			szr_pp_shader_list_buttons->Add(button_remove_ppshader);
+			szr_pp_shader_list->Add(szr_pp_shader_list_buttons, 0, wxLEFT | wxALIGN_TOP, 5);
+
+			szr_selected_shaders->Add(szr_pp_shader_list, 1, wxEXPAND | wxBOTTOM, 5);
+
+			// Add dropdown and button
+			wxBoxSizer* const szr_pp_add_shader = new wxBoxSizer(wxHORIZONTAL);
+			szr_pp_add_shader->Add(new wxStaticText(page_postprocessing, wxID_ANY, _("Add Shader:")), 0, wxALIGN_CENTER_VERTICAL, 0);
+			choice_ppshader = new wxChoice(page_postprocessing, wxID_ANY);
+			szr_pp_add_shader->Add(choice_ppshader, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
+			button_add_ppshader = new wxButton(page_postprocessing, wxID_ANY, _("&Add"));
+			button_add_ppshader->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_PPShaderAdd, this);
+			szr_pp_add_shader->Add(button_add_ppshader, 0, wxLEFT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 5);
+			szr_selected_shaders->Add(szr_pp_add_shader, 0, wxEXPAND);
+
+			// Fill data from config
+			PopulatePostProcessingShaders();
+			UpdatePostProcessingShaderListButtons();
+
+			wxStaticBoxSizer* const group_shader_list = new wxStaticBoxSizer(wxVERTICAL, page_postprocessing, _T("Post-Processing Shaders"));
+			group_shader_list->Add(szr_selected_shaders, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+			szr_postprocessing->Add(group_shader_list, 0, wxEXPAND | wxALL, 5);
+		}
+
+		// Options
+		{
+			wxFlexGridSizer* szr_options = new wxFlexGridSizer(2, 5, 5);
+			szr_options->AddGrowableCol(1, 1);
+
+			// Trigger
+			const wxString pptrigger_choices[] = { _("On Swap"), _("On Projection"), _("On EFB Copy") };
+			choice_pptrigger = CreateChoice(page_postprocessing, vconfig.iPostProcessingTrigger, wxGetTranslation(pptrigger_desc), 3, pptrigger_choices);
+			szr_options->Add(new wxStaticText(page_postprocessing, wxID_ANY, _("Post-Processing Trigger:")), 0, wxALIGN_CENTER_VERTICAL, 0);
+			szr_options->Add(choice_pptrigger, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
+
+			choice_scalingshader = new wxChoice(page_postprocessing, wxID_ANY);
+			choice_scalingshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_ScalingShader, this);
+			RegisterControl(choice_scalingshader, wxGetTranslation(scalingshader_desc));
+			szr_options->Add(new wxStaticText(page_postprocessing, wxID_ANY, _("Scaling Shader:")), 0, wxALIGN_CENTER_VERTICAL, 0);
+			szr_options->Add(choice_scalingshader, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
+
+			choice_anaglyphshader = new wxChoice(page_postprocessing, wxID_ANY);
+			RegisterControl(choice_anaglyphshader, wxGetTranslation(anaglyphshader_desc));
+			choice_anaglyphshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_AnaglyphShader, this);
+			szr_options->Add(new wxStaticText(page_postprocessing, wxID_ANY, _("Anaglyph Shader:")), 0, wxALIGN_CENTER_VERTICAL, 0);
+			szr_options->Add(choice_anaglyphshader, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
+
+			button_config_scalingshader = new wxButton(page_postprocessing, wxID_ANY, _("Scaling Shader Options..."));
+			button_config_scalingshader->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ConfigureScalingShader, this);
+			RegisterControl(button_config_scalingshader, wxGetTranslation(scalingshader_options_desc));
+			szr_options->AddSpacer(1);
+			szr_options->Add(button_config_scalingshader);
+
+			PopulateScalingShaders();
+			PopulateAnaglyphShaders();
+
+			wxStaticBoxSizer* const group_options = new wxStaticBoxSizer(wxVERTICAL, page_postprocessing, _("Options"));
+			group_options->Add(szr_options, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+			szr_postprocessing->Add(group_options, 0, wxEXPAND | wxALL, 5);
+		}
+
+		szr_postprocessing->AddStretchSpacer();
+		CreateDescriptionArea(page_postprocessing, szr_postprocessing);
+		page_postprocessing->SetSizerAndFit(szr_postprocessing);
+	}
+	else
+	{
+		listbox_selected_ppshaders = nullptr;
+		button_move_ppshader_up = nullptr;
+		button_remove_ppshader = nullptr;
+		button_config_ppshader = nullptr;
+		button_remove_ppshader = nullptr;
+		choice_ppshader = nullptr;
+		button_add_ppshader = nullptr;
+		choice_pptrigger = nullptr;
+		choice_scalingshader = nullptr;
+		button_config_scalingshader = nullptr;
+		choice_anaglyphshader = nullptr;
 	}
 
 	// -- ADVANCED --
@@ -629,6 +735,183 @@ void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent &ev)
 	ev.Skip();
 }
 
+static void ReloadPostProcessingShaders()
+{
+	// Reload the shader next frame.
+	// Have to check post processor pointer here, if it is not supported by the backend.
+	if (g_renderer && g_renderer->GetPostProcessor())
+		g_renderer->GetPostProcessor()->SetReloadFlag();
+}
+
+void VideoConfigDiag::UpdatePostProcessingShadersConfig()
+{
+	if (listbox_selected_ppshaders->IsEmpty())
+	{
+		vconfig.bPostProcessingEnable = false;
+		vconfig.sPostProcessingShaders.clear();
+	}
+	else
+	{
+		vconfig.bPostProcessingEnable = true;
+		vconfig.sPostProcessingShaders.clear();
+		for (unsigned int i = 0; i < listbox_selected_ppshaders->GetCount(); i++)
+		{
+			if (i > 0)
+				vconfig.sPostProcessingShaders += ':';
+
+			vconfig.sPostProcessingShaders += WxStrToStr(listbox_selected_ppshaders->GetString(i));
+		}
+	}
+
+	ReloadPostProcessingShaders();
+}
+
+void VideoConfigDiag::UpdatePostProcessingShaderListButtons()
+{
+	int sel = listbox_selected_ppshaders->GetSelection();
+	if (sel < 0 || listbox_selected_ppshaders->IsEmpty())
+	{
+		// Disable all list manipulation
+		button_move_ppshader_up->Disable();
+		button_move_ppshader_down->Disable();
+		button_config_ppshader->Disable();
+		button_remove_ppshader->Disable();
+		return;
+	}
+
+	// Update move up/down button state
+	button_move_ppshader_up->Enable((sel > 0));
+	button_move_ppshader_down->Enable((sel != (int)listbox_selected_ppshaders->GetCount() - 1));
+	button_remove_ppshader->Enable(true);
+
+	// Load the shader config, and check if it has options
+	std::string shader_name = WxStrToStr(listbox_selected_ppshaders->GetStringSelection());
+	PostProcessingShaderConfiguration shader_config;
+	if (shader_config.LoadShader(POSTPROCESSING_SHADER_SUBDIR, shader_name))
+		button_config_ppshader->Enable(shader_config.HasOptions());
+	else
+		button_config_ppshader->Disable();
+}
+
+void VideoConfigDiag::Event_PPShaderList(wxCommandEvent& ev)
+{
+	UpdatePostProcessingShaderListButtons();
+}
+
+void VideoConfigDiag::Event_PPShaderListMoveUp(wxCommandEvent& ev)
+{
+	int sel = listbox_selected_ppshaders->GetSelection();
+	if (sel <= 0)
+		return;
+
+	// Remove and re-insert at the correct position
+	wxString shader_name = listbox_selected_ppshaders->GetString(sel);
+	listbox_selected_ppshaders->Delete(sel);
+	listbox_selected_ppshaders->Insert(shader_name, sel - 1);
+	listbox_selected_ppshaders->SetSelection(sel - 1);
+	UpdatePostProcessingShaderListButtons();
+	UpdatePostProcessingShadersConfig();
+	ReloadPostProcessingShaders();
+}
+
+void VideoConfigDiag::Event_PPShaderListMoveDown(wxCommandEvent& ev)
+{
+	int sel = listbox_selected_ppshaders->GetSelection();
+	if (sel < 0 || (unsigned int)sel >= (listbox_selected_ppshaders->GetCount() - 1))
+		return;
+
+	// Remove and re-insert at the correct position
+	wxString shader_name = listbox_selected_ppshaders->GetString(sel);
+	listbox_selected_ppshaders->Delete(sel);
+	listbox_selected_ppshaders->Insert(shader_name, sel + 1);
+	listbox_selected_ppshaders->SetSelection(sel + 1);
+	UpdatePostProcessingShaderListButtons();
+	UpdatePostProcessingShadersConfig();
+	ReloadPostProcessingShaders();
+}
+
+void VideoConfigDiag::Event_PPShaderListOptions(wxCommandEvent& ev)
+{
+	int sel = listbox_selected_ppshaders->GetSelection();
+	if (sel < 0)
+		return;
+
+	std::string shader_name = WxStrToStr(listbox_selected_ppshaders->GetStringSelection());
+	PostProcessingShaderConfiguration* shader_config = (g_renderer) ? g_renderer->GetPostProcessor()->GetPostShaderConfig(shader_name) : nullptr;
+	PostProcessingConfigDiag dialog(this, POSTPROCESSING_SHADER_SUBDIR, shader_name, shader_config);
+	dialog.ShowModal();
+}
+
+void VideoConfigDiag::Event_PPShaderListRemove(wxCommandEvent& ev)
+{
+	int sel = listbox_selected_ppshaders->GetSelection();
+	if (sel < 0)
+		return;
+
+	listbox_selected_ppshaders->Delete(sel);
+	if (!listbox_selected_ppshaders->IsEmpty())
+	{
+		if (sel > (int)listbox_selected_ppshaders->GetCount() - 1)
+			listbox_selected_ppshaders->SetSelection(sel - 1);
+		else
+			listbox_selected_ppshaders->SetSelection(sel);
+	}
+
+	UpdatePostProcessingShaderListButtons();
+	UpdatePostProcessingShadersConfig();
+	ReloadPostProcessingShaders();
+}
+
+void VideoConfigDiag::Event_PPShaderAdd(wxCommandEvent& ev)
+{
+	wxString shader_name = choice_ppshader->GetStringSelection();
+	listbox_selected_ppshaders->AppendString(shader_name);
+	listbox_selected_ppshaders->SetSelection(listbox_selected_ppshaders->GetCount() - 1);
+	UpdatePostProcessingShaderListButtons();
+	UpdatePostProcessingShadersConfig();
+	ReloadPostProcessingShaders();
+}
+
+void VideoConfigDiag::Event_ScalingShader(wxCommandEvent& ev)
+{
+	const int sel = ev.GetInt();
+	if (sel)
+		vconfig.sScalingShader = WxStrToStr(ev.GetString());
+	else
+		vconfig.sScalingShader.clear();
+
+	// Load shader, determine whether to enable options button
+	PostProcessingShaderConfiguration shader_config;
+	if (shader_config.LoadShader(SCALING_SHADER_SUBDIR, vconfig.sScalingShader))
+		button_config_scalingshader->Enable(shader_config.HasOptions());
+	else
+		button_config_scalingshader->Disable();
+
+	ReloadPostProcessingShaders();
+}
+
+void VideoConfigDiag::Event_AnaglyphShader(wxCommandEvent& ev)
+{
+	vconfig.sAnaglyphShader = WxStrToStr(ev.GetString());
+	ReloadPostProcessingShaders();
+}
+
+void VideoConfigDiag::Event_ConfigureScalingShader(wxCommandEvent &ev)
+{
+	PostProcessingConfigDiag dialog(this, SCALING_SHADER_SUBDIR, vconfig.sScalingShader, (g_renderer) ? g_renderer->GetPostProcessor()->GetScalingShaderConfig() : nullptr);
+	dialog.ShowModal();
+}
+
+void VideoConfigDiag::Event_StereoMode(wxCommandEvent& ev)
+{
+	// Disable scaling shader choice when anaglyph shader on
+	vconfig.iStereoMode = ev.GetInt();
+	choice_scalingshader->Enable((ev.GetInt() != STEREO_ANAGLYPH));
+	choice_anaglyphshader->Enable((ev.GetInt() == STEREO_ANAGLYPH));
+	ReloadPostProcessingShaders();
+	ev.Skip();
+}
+
 SettingCheckBox* VideoConfigDiag::CreateCheckBox(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse, long style)
 {
 	SettingCheckBox* const cb = new SettingCheckBox(parent, label, wxString(), setting, reverse, style);
@@ -713,37 +996,85 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 
 void VideoConfigDiag::PopulatePostProcessingShaders()
 {
-	std::vector<std::string> &shaders = (vconfig.iStereoMode == STEREO_ANAGLYPH) ?
-			vconfig.backend_info.AnaglyphShaders : vconfig.backend_info.PPShaders;
+	std::vector<std::string> shaders = PostProcessingShaderConfiguration::GetAvailableShaderNames(POSTPROCESSING_SHADER_SUBDIR);
+
+	// No shaders found -> disable list and add button
+	if (shaders.empty())
+	{
+		choice_ppshader->Disable();
+		button_add_ppshader->Disable();
+		return;
+	}
+	else
+	{
+		// Populate the list of shaders to add
+		for (const std::string& shader : shaders)
+			choice_ppshader->AppendString(StrToWxStr(shader));
+
+		// Leave the first shader selected by default
+		choice_ppshader->Select(0);
+	}
+
+	// Split the list of post-processing shaders, and fill the list box
+	std::vector<std::string> ppshader_list;
+	SplitString(vconfig.sPostProcessingShaders, ':', ppshader_list);
+	for (const std::string& shader_name : ppshader_list)
+		listbox_selected_ppshaders->AppendString(StrToWxStr(shader_name));
+
+	if (!listbox_selected_ppshaders->IsEmpty())
+		listbox_selected_ppshaders->SetSelection(0);
+}
+
+void VideoConfigDiag::PopulateScalingShaders()
+{
+	std::vector<std::string> shaders = PostProcessingShaderConfiguration::GetAvailableShaderNames(SCALING_SHADER_SUBDIR);
+
+	choice_scalingshader->AppendString(_("(default)"));
 
 	if (shaders.empty())
+	{
+		choice_scalingshader->Select(0);
+		button_config_scalingshader->Disable();
 		return;
-
-	choice_ppshader->AppendString(_("(off)"));
+	}
 
 	for (const std::string& shader : shaders)
-	{
-		choice_ppshader->AppendString(StrToWxStr(shader));
-	}
+		choice_scalingshader->AppendString(StrToWxStr(shader));
 
-	if (!choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader)))
+	if (choice_scalingshader->SetStringSelection(StrToWxStr(vconfig.sScalingShader)))
+	{
+		// Load shader, determine whether to enable options button
+		PostProcessingShaderConfiguration shader_config;
+		if (shader_config.LoadShader(SCALING_SHADER_SUBDIR, vconfig.sScalingShader))
+			button_config_scalingshader->Enable(shader_config.HasOptions());
+		else
+			button_config_scalingshader->Disable();
+	}
+	else
 	{
 		// Invalid shader, reset it to default
-		choice_ppshader->Select(0);
+		choice_scalingshader->Select(0);
+		button_config_scalingshader->Disable();
+	}
+}
 
-		if (vconfig.iStereoMode == STEREO_ANAGLYPH)
+void VideoConfigDiag::PopulateAnaglyphShaders()
+{
+	std::vector<std::string> shaders = PostProcessingShaderConfiguration::GetAvailableShaderNames(ANAGLYPH_SHADER_SUBDIR);
+	if (!shaders.empty())
+	{
+		for (const std::string& shader : shaders)
+			choice_anaglyphshader->AppendString(StrToWxStr(shader));
+
+		if (!choice_anaglyphshader->SetStringSelection(StrToWxStr(vconfig.sAnaglyphShader)))
 		{
-			vconfig.sPostProcessingShader = "dubois";
-			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
+			// Invalid shader, reset it to default
+			choice_anaglyphshader->Select(0);
 		}
-		else
-			vconfig.sPostProcessingShader.clear();
 	}
 
-	// Should the configuration button be loaded by default?
-	PostProcessingShaderConfiguration postprocessing_shader;
-	postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
-	button_config_pp->Enable(postprocessing_shader.HasOptions());
+	// Set enabled based on stereo mode
+	choice_anaglyphshader->Enable(vconfig.iStereoMode == STEREO_ANAGLYPH);
 }
 
 void VideoConfigDiag::PopulateAAList()

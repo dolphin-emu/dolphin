@@ -94,13 +94,17 @@ void VideoConfig::Load(const std::string& ini_file)
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
 	enhancements->Get("ForceFiltering", &bForceFiltering, 0);
 	enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
-	enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
+	enhancements->Get("PostProcessingEnable", &bPostProcessingEnable, false);
+	enhancements->Get("PostProcessingTrigger", &iPostProcessingTrigger, 0);
+	enhancements->Get("PostProcessingShaders", &sPostProcessingShaders, "");
+	enhancements->Get("ScalingShader", &sScalingShader, "");
 
 	IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
 	stereoscopy->Get("StereoMode", &iStereoMode, 0);
 	stereoscopy->Get("StereoDepth", &iStereoDepth, 20);
 	stereoscopy->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
 	stereoscopy->Get("StereoSwapEyes", &bStereoSwapEyes, false);
+	stereoscopy->Get("StereoAnaglyphShader", &sAnaglyphShader, "dubois");
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
@@ -200,7 +204,11 @@ void VideoConfig::GameIniLoad()
 
 	CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	CHECK_SETTING("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
-	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
+	CHECK_SETTING("Video_Enhancements", "PostProcessingEnable", bPostProcessingEnable);
+	CHECK_SETTING("Video_Enhancements", "PostProcessingTrigger", iPostProcessingTrigger);
+	CHECK_SETTING("Video_Enhancements", "PostProcessingShaders", sPostProcessingShaders);
+	CHECK_SETTING("Video_Enhancements", "ScalingShader", sScalingShader);
+	CHECK_SETTING("Video_Enhancements", "AnaglyphShader", sAnaglyphShader);
 
 	// These are not overrides, they are per-game stereoscopy parameters, hence no warning
 	iniFile.GetIfExists("Video_Stereoscopy", "StereoConvergence", &iStereoConvergence, 20);
@@ -210,6 +218,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Stereoscopy", "StereoMode", iStereoMode);
 	CHECK_SETTING("Video_Stereoscopy", "StereoDepth", iStereoDepth);
 	CHECK_SETTING("Video_Stereoscopy", "StereoSwapEyes", bStereoSwapEyes);
+	CHECK_SETTING("Video_Stereoscopy", "StereoAnaglyphShader", sAnaglyphShader);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "BBoxEnable", bBBoxEnable);
@@ -304,13 +313,17 @@ void VideoConfig::Save(const std::string& ini_file)
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
 	enhancements->Set("ForceFiltering", bForceFiltering);
 	enhancements->Set("MaxAnisotropy", iMaxAnisotropy);
-	enhancements->Set("PostProcessingShader", sPostProcessingShader);
+	enhancements->Set("PostProcessingEnable", bPostProcessingEnable);
+	enhancements->Set("PostProcessingTrigger", iPostProcessingTrigger);
+	enhancements->Set("PostProcessingShaders", sPostProcessingShaders);
+	enhancements->Set("ScalingShader", sScalingShader);
 
 	IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
 	stereoscopy->Set("StereoMode", iStereoMode);
 	stereoscopy->Set("StereoDepth", iStereoDepth);
 	stereoscopy->Set("StereoConvergencePercentage", iStereoConvergencePercentage);
 	stereoscopy->Set("StereoSwapEyes", bStereoSwapEyes);
+	stereoscopy->Set("StereoAnaglyphShader", sAnaglyphShader);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
