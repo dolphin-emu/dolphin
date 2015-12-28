@@ -18,7 +18,7 @@
 #include "Common/Logging/LogManager.h"
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
-		const char *file, int line, const char* fmt, ...)
+		const char* file, int line, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -28,7 +28,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	va_end(args);
 }
 
-LogManager *LogManager::m_logManager = nullptr;
+LogManager* LogManager::m_logManager = nullptr;
 
 LogManager::LogManager()
 {
@@ -85,22 +85,69 @@ LogManager::LogManager()
 
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
 	IniFile::Section* options = ini.GetOrCreateSection("Options");
-	bool write_file;
-	bool write_console;
+	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
+
+	// Set up log listeners
+	int verbosity;
+	options->Get("Verbosity", &verbosity, 0);
+
+	// Ensure the verbosity level is valid
+	if (verbosity < 1)
+		verbosity = 1;
+	if (verbosity > MAX_LOGLEVEL)
+		verbosity = MAX_LOGLEVEL;
+
+	// Get the logger output settings from the config ini file.
+	bool write_file, write_console;
 	options->Get("WriteToFile", &write_file, false);
 	options->Get("WriteToConsole", &write_console, true);
 
-	for (LogContainer* container : m_Log)
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
-		bool enable;
-		logs->Get(container->GetShortName(), &enable, false);
-		container->SetEnable(enable);
-		if (enable && write_file)
-			container->AddListener(LogListener::FILE_LISTENER);
-		if (enable && write_console)
-			container->AddListener(LogListener::CONSOLE_LISTENER);
+		bool typeEnabled;
+		logs->Get(GetShortName((LogTypes::LOG_TYPE)i), &typeEnabled, false);
+		SetEnable((LogTypes::LOG_TYPE)i, typeEnabled);
+		SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
+
+		if (write_file && typeEnabled)
+			EnableListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
+		else
+			DisableListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
+
+		if (write_console && typeEnabled)
+			EnableListener((LogTypes::LOG_TYPE)i, LogListener::CONSOLE_LISTENER);
+		else
+			DisableListener((LogTypes::LOG_TYPE)i, LogListener::CONSOLE_LISTENER);
+	}
+}
+
+void LogManager::OpenWindow()
+{
+	IniFile ini;
+	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+	IniFile::Section* options = ini.GetOrCreateSection("Options");
+	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
+
+	bool write_window;
+	options->Get("WriteToWindow", &write_window, true);
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+	{
+		bool typeEnabled;
+		logs->Get(GetShortName((LogTypes::LOG_TYPE)i), &typeEnabled, false);
+
+		if (write_window && typeEnabled)
+			EnableListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
+		else
+			DisableListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
+	}
+}
+
+void LogManager::CloseWindow()
+{
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+	{
+		DisableListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
 	}
 }
 
@@ -115,10 +162,10 @@ LogManager::~LogManager()
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
-	const char *file, int line, const char *format, va_list args)
+	const char* file, int line, const char* format, va_list args)
 {
 	char temp[MAX_MSGLEN];
-	LogContainer *log = m_Log[type];
+	LogContainer* log = m_Log[type];
 
 	if (!log->IsEnabled() || level > log->GetLevel() || !log->HasListeners())
 		return;
@@ -160,7 +207,7 @@ FileLogListener::FileLogListener(const std::string& filename)
 	SetEnable(true);
 }
 
-void FileLogListener::Log(LogTypes::LOG_LEVELS, const char *msg)
+void FileLogListener::Log(LogTypes::LOG_LEVELS level, const char* msg)
 {
 	if (!IsEnabled() || !IsValid())
 		return;

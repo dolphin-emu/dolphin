@@ -7,6 +7,9 @@
 #include <QMenu>
 #include <QMenuBar>
 
+#include "DolphinQt2/LogViewer.h"
+#include "DolphinQt2/Config/LogDialog.h"
+
 class MenuBar final : public QMenuBar
 {
 	Q_OBJECT
@@ -21,10 +24,17 @@ signals:
 	void ShowTable();
 	void ShowList();
 
+private slots:
+	void ToggleLogViewer(bool display);
+	void OpenLogDialog();
+
 private:
 	void AddFileMenu();
 	void AddViewMenu();
 
 	void AddGameListTypeSection(QMenu* view_menu);
 	void AddTableColumnsMenu(QMenu* view_menu);
+
+	void AddLogMenu(QMenu* view_menu);
+	QDockWidget* log_dock;
 };

@@ -5,6 +5,7 @@ set(CMAKE_AUTOMOC ON)
 
 set(SRCS
 	Host.cpp
+	LogViewer.cpp
 	Main.cpp
 	MainWindow.cpp
 	MenuBar.cpp
@@ -12,6 +13,7 @@ set(SRCS
 	Resources.cpp
 	Settings.cpp
 	ToolBar.cpp
+	Config/LogDialog.cpp
 	Config/PathDialog.cpp
 	GameList/GameFile.cpp
 	GameList/GameList.cpp
