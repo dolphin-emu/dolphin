@@ -35,7 +35,6 @@ ID3D11PixelShader* s_ColorMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
 ID3D11PixelShader* s_DepthMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ClearProgram = nullptr;
-ID3D11PixelShader* s_AnaglyphProgram = nullptr;
 ID3D11PixelShader* s_DepthResolveProgram = nullptr;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
@@ -59,30 +58,6 @@ const char color_copy_program_code[] = {
 	"in float4 pos : SV_Position,\n"
 	"in float3 uv0 : TEXCOORD0){\n"
 	"ocol0 = Tex0.Sample(samp0,uv0);\n"
-	"}\n"
-};
-
-// Anaglyph Red-Cyan shader based on Dubois algorithm
-// Constants taken from the paper:
-// "Conversion of a Stereo Pair to Anaglyph with
-// the Least-Squares Projection Method"
-// Eric Dubois, March 2009
-const char anaglyph_program_code[] = {
-	"sampler samp0 : register(s0);\n"
-	"Texture2DArray Tex0 : register(t0);\n"
-	"void main(\n"
-	"out float4 ocol0 : SV_Target,\n"
-	"in float4 pos : SV_Position,\n"
-	"in float3 uv0 : TEXCOORD0){\n"
-	"float4 c0 = Tex0.Sample(samp0, float3(uv0.xy, 0.0));\n"
-	"float4 c1 = Tex0.Sample(samp0, float3(uv0.xy, 1.0));\n"
-	"float3x3 l = float3x3( 0.437, 0.449, 0.164,\n"
-	"                      -0.062,-0.062,-0.024,\n"
-	"                      -0.048,-0.050,-0.017);\n"
-	"float3x3 r = float3x3(-0.011,-0.032,-0.007,\n"
-	"                       0.377, 0.761, 0.009,\n"
-	"                      -0.026,-0.093, 1.234);\n"
-	"ocol0 = float4(mul(l, c0.rgb) + mul(r, c1.rgb), c0.a);\n"
 	"}\n"
 };
 
@@ -418,11 +393,6 @@ ID3D11PixelShader* PixelShaderCache::GetClearProgram()
 	return s_ClearProgram;
 }
 
-ID3D11PixelShader* PixelShaderCache::GetAnaglyphProgram()
-{
-	return s_AnaglyphProgram;
-}
-
 ID3D11PixelShader* PixelShaderCache::GetDepthResolveProgram()
 {
 	if (s_DepthResolveProgram != nullptr)
@@ -474,11 +444,6 @@ void PixelShaderCache::Init()
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code);
 	CHECK(s_ClearProgram!=nullptr, "Create clear pixel shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "clear pixel shader");
-
-	// used for anaglyph stereoscopy
-	s_AnaglyphProgram = D3D::CompileAndCreatePixelShader(anaglyph_program_code);
-	CHECK(s_AnaglyphProgram != nullptr, "Create anaglyph pixel shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_AnaglyphProgram, "anaglyph pixel shader");
 
 	// used when copying/resolving the color buffer
 	s_ColorCopyProgram[0] = D3D::CompileAndCreatePixelShader(color_copy_program_code);
@@ -541,7 +506,6 @@ void PixelShaderCache::Shutdown()
 	SAFE_RELEASE(pscbuf);
 
 	SAFE_RELEASE(s_ClearProgram);
-	SAFE_RELEASE(s_AnaglyphProgram);
 	SAFE_RELEASE(s_DepthResolveProgram);
 	for (int i = 0; i < 2; ++i)
 	{
