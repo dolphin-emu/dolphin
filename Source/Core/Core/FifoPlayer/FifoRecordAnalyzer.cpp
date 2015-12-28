@@ -15,9 +15,6 @@
 
 using namespace FifoAnalyzer;
 
-static void ProcessVertexArrays(u8* data, u8 vtxAttrGroup);
-static void WriteVertexArray(int arrayIndex, u8* vertexData, int vertexSize, int numVertices);
-
 void FifoRecordAnalyzer::Initialize(u32* cpMem)
 {
 	s_DrawingObject = false;

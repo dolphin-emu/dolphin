@@ -107,7 +107,7 @@ u32 AnalyzeCommand(u8* data, DecodeMode mode)
 	case GX_LOAD_BP_REG:
 	{
 		s_DrawingObject = false;
-		u32 cmd2 = ReadFifo32(data);
+		ReadFifo32(data);
 		break;
 	}
 
@@ -151,12 +151,6 @@ u32 AnalyzeCommand(u8* data, DecodeMode mode)
 	}
 
 	return (u32)(data - dataStart);
-}
-
-void InitBPMemory(BPMemory* bpMem)
-{
-	memset(bpMem, 0, sizeof(BPMemory));
-	bpMem->bpMask = 0x00FFFFFF;
 }
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)
