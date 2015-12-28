@@ -193,7 +193,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 	// When copying at half size, in multisampled mode, resolve the color/depth buffer first.
 	// This is because multisampled texture reads go through Load, not Sample, and the linear
 	// filter is ignored.
-	bool multisampled = (g_ActiveConfig.iMultisampleMode != 0);
+	bool multisampled = (g_ActiveConfig.iMultisamples > 1);
 	ID3D11ShaderResourceView* efbTexSRV = (srcFormat == PEControl::Z24) ?
 		FramebufferManager::GetEFBDepthTexture()->GetSRV() :
 		FramebufferManager::GetEFBColorTexture()->GetSRV();
