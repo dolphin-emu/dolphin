@@ -233,11 +233,11 @@ void OpenALStream::SoundLoop()
 
 		if (iBuffersProcessed)
 		{
-			float rate = m_mixer->GetCurrentSpeed();
+			double rate = (double)m_mixer->GetCurrentSpeed();
 			if (rate <= 0)
 			{
 				Core::RequestRefreshInfo();
-				rate = m_mixer->GetCurrentSpeed();
+				rate = (double)m_mixer->GetCurrentSpeed();
 			}
 
 			// Place a lower limit of 10% speed.  When a game boots up, there will be
