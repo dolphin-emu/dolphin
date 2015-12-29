@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <memory>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
@@ -26,7 +27,7 @@ DSPBreakpoints dsp_breakpoints;
 static DSPCoreState core_state = DSPCORE_STOP;
 u16 cyclesLeft = 0;
 bool init_hax = false;
-DSPEmitter *dspjit = nullptr;
+std::unique_ptr<DSPEmitter> dspjit;
 std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 static Common::Event step_event;
 
@@ -102,7 +103,6 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 	g_dsp.step_counter = 0;
 	cyclesLeft = 0;
 	init_hax = false;
-	dspjit = nullptr;
 
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
 	g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
@@ -147,7 +147,7 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 
 	// Initialize JIT, if necessary
 	if (opts.core_type == DSPInitOptions::CORE_JIT)
-		dspjit = new DSPEmitter();
+		dspjit = std::make_unique<DSPEmitter>();
 
 	g_dsp_cap.reset(opts.capture_logger);
 
@@ -162,11 +162,7 @@ void DSPCore_Shutdown()
 
 	core_state = DSPCORE_STOP;
 
-	if (dspjit)
-	{
-		delete dspjit;
-		dspjit = nullptr;
-	}
+	dspjit.reset();
 
 	DSPCore_FreeMemoryPages();
 
