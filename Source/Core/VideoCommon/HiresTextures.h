@@ -13,6 +13,8 @@
 class HiresTexture
 {
 public:
+	using SOILPointer = std::unique_ptr<u8, void(*)(unsigned char*)>;
+
 	static void Init();
 	static void Update();
 	static void Shutdown();
@@ -36,9 +38,12 @@ public:
 
 	struct Level
 	{
-		u8* data;
-		size_t data_size;
-		u32 width, height;
+		Level();
+
+		SOILPointer data;
+		size_t data_size = 0;
+		u32 width = 0;
+		u32 height = 0;
 	};
 	std::vector<Level> m_levels;
 

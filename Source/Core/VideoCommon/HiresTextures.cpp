@@ -41,6 +41,11 @@ static std::thread s_prefetcher;
 
 static const std::string s_format_prefix = "tex1_";
 
+HiresTexture::Level::Level()
+	: data(nullptr, SOIL_free_image_data)
+{
+}
+
 void HiresTexture::Init()
 {
 	s_check_native_format = false;
@@ -387,7 +392,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 			file.ReadBytes(buffer.data(), file.GetSize());
 
 			int channels;
-			l.data = SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width, (int*)&l.height, &channels, SOIL_LOAD_RGBA);
+			l.data = SOILPointer(SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width, (int*)&l.height, &channels, SOIL_LOAD_RGBA), SOIL_free_image_data);
 			l.data_size = (size_t)l.width * l.height * 4;
 
 			if (l.data == nullptr)
@@ -411,7 +416,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 			{
 				ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.",
 				          l.width, l.height, filename.c_str(), width, height);
-				SOIL_free_image_data(l.data);
+				l.data.reset();
 				break;
 			}
 
@@ -421,7 +426,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
 			if (!ret)
 				ret = std::unique_ptr<HiresTexture>(new HiresTexture);
-			ret->m_levels.push_back(l);
+			ret->m_levels.push_back(std::move(l));
 		}
 		else
 		{
@@ -434,9 +439,4 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
 HiresTexture::~HiresTexture()
 {
-	for (auto& l : m_levels)
-	{
-		SOIL_free_image_data(l.data);
-	}
 }
-
