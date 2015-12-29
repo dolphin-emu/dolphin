@@ -96,8 +96,8 @@ void CodeLoaded(const u8 *ptr, int size)
 
 	UpdateDebugger();
 
-	if (dspjit)
-		dspjit->ClearIRAM();
+	if (g_dsp_jit)
+		g_dsp_jit->ClearIRAM();
 
 	DSPAnalyzer::Analyze();
 }

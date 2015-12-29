@@ -99,12 +99,12 @@ static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
 		{
 			emitter.gpr.FlushRegs();
 			// Check if we have enough cycles to execute the next block
-			emitter.MOV(16, R(ECX), M(&cyclesLeft));
+			emitter.MOV(16, R(ECX), M(&g_cycles_left));
 			emitter.CMP(16, R(ECX), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
 			FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
 
 			emitter.SUB(16, R(ECX), Imm16(emitter.blockSize[emitter.startAddr]));
-			emitter.MOV(16, M(&cyclesLeft), R(ECX));
+			emitter.MOV(16, M(&g_cycles_left), R(ECX));
 			emitter.JMP(emitter.blockLinks[dest], true);
 			emitter.SetJumpTarget(notEnoughCycles);
 		}

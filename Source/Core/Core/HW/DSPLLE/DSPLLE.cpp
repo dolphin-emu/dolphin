@@ -83,8 +83,8 @@ void DSPLLE::DoState(PointerWrap &p)
 	if (p.GetMode() == PointerWrap::MODE_READ)
 		DSPHost::CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
 	p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
-	p.Do(cyclesLeft);
-	p.Do(init_hax);
+	p.Do(g_cycles_left);
+	p.Do(g_init_hax);
 	p.Do(m_cycle_count);
 }
 
@@ -99,7 +99,7 @@ void DSPLLE::DSPThread(DSPLLE* dsp_lle)
 		if (cycles > 0)
 		{
 			std::lock_guard<std::mutex> dsp_thread_lock(dsp_lle->m_csDSPThreadActive);
-			if (dspjit)
+			if (g_dsp_jit)
 			{
 				DSPCore_RunCycles(cycles);
 			}
@@ -176,7 +176,7 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 
 	// needs to be after DSPCore_Init for the dspjit ptr
 	if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() ||
-	    Core::g_want_determinism    || !dspjit)
+	    Core::g_want_determinism    || !g_dsp_jit)
 	{
 		bDSPThread = false;
 	}
