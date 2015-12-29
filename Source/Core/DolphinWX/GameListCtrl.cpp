@@ -326,12 +326,13 @@ void CGameListCtrl::Update()
 		// We just check for one hide setting to be enabled, as we may only
 		// have GC games for example, and hide them, so we should show the
 		// second message instead
-		if ((SConfig::GetInstance().m_ListGC  &&
-			SConfig::GetInstance().m_ListWii  &&
-			SConfig::GetInstance().m_ListWad) &&
-			(SConfig::GetInstance().m_ListJap &&
-			SConfig::GetInstance().m_ListUsa  &&
-			SConfig::GetInstance().m_ListPal))
+		if ((SConfig::GetInstance().m_ListGC     &&
+		    SConfig::GetInstance().m_ListWii     &&
+		    SConfig::GetInstance().m_ListWad     &&
+		    SConfig::GetInstance().m_ListElfDol) &&
+		    (SConfig::GetInstance().m_ListJap    &&
+		    SConfig::GetInstance().m_ListUsa     &&
+		    SConfig::GetInstance().m_ListPal))
 		{
 			errorString = _("Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to browse for files...");
 		}
@@ -567,6 +568,10 @@ void CGameListCtrl::ScanForISOs()
 						break;
 					case DiscIO::IVolume::WII_WAD:
 						if (!SConfig::GetInstance().m_ListWad)
+							list = false;
+						break;
+					case DiscIO::IVolume::ELF_DOL:
+						if (!SConfig::GetInstance().m_ListElfDol)
 							list = false;
 						break;
 					default:
