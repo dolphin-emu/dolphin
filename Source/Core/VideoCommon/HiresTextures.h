@@ -6,9 +6,9 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/VideoCommon.h"
+#include <vector>
+
+#include "Common/CommonTypes.h"
 
 class HiresTexture
 {
