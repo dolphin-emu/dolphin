@@ -216,9 +216,9 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		|| isPaletteTexture)
 		return entry_to_update;
 
-	u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format);
-	u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format);
-	u32 block_size = block_width * block_height * TexDecoder_GetTexelSizeInNibbles(entry_to_update->format) / 2;
+	u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format & 0xf);
+	u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format & 0xf);
+	u32 block_size = block_width * block_height * TexDecoder_GetTexelSizeInNibbles(entry_to_update->format & 0xf) / 2;
 
 	u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
