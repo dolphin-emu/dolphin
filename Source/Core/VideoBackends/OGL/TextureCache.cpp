@@ -570,7 +570,8 @@ void TextureCache::ConvertTexture(TCacheEntryBase* _entry, TCacheEntryBase* _unc
 	glViewport(0, 0, entry->config.width, entry->config.height);
 	s_palette_pixel_shader[format].Bind();
 
-	int size = unconverted->format == 0 ? 32 : 512;
+	// C14 textures are currently unsupported
+	int size = (unconverted->format & 0xf) == GX_TF_I4 ? 32 : 512;
 	auto buffer = s_palette_stream_buffer->Map(size);
 	memcpy(buffer.first, palette, size);
 	s_palette_stream_buffer->Unmap(size);
