@@ -605,16 +605,16 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 
 		if (hires_tex)
 		{
-			auto& l = hires_tex->m_levels[0];
-			if (l.width != width || l.height != height)
+			const auto& level = hires_tex->m_levels[0];
+			if (level.width != width || level.height != height)
 			{
-				width = l.width;
-				height = l.height;
+				width = level.width;
+				height = level.height;
 			}
-			expandedWidth = l.width;
-			expandedHeight = l.height;
-			CheckTempSize(l.data_size);
-			memcpy(temp, l.data, l.data_size);
+			expandedWidth = level .width;
+			expandedHeight = level.height;
+			CheckTempSize(level.data_size);
+			memcpy(temp, level.data.get(), level.data_size);
 		}
 	}
 
@@ -678,12 +678,12 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 
 	if (hires_tex)
 	{
-		for (u32 level = 1; level != texLevels; ++level)
+		for (u32 level_index = 1; level_index != texLevels; ++level_index)
 		{
-			auto& l = hires_tex->m_levels[level];
-			CheckTempSize(l.data_size);
-			memcpy(temp, l.data, l.data_size);
-			entry->Load(l.width, l.height, l.width, level);
+			const auto& level = hires_tex->m_levels[level_index];
+			CheckTempSize(level.data_size);
+			memcpy(temp, level.data.get(), level.data_size);
+			entry->Load(level.width, level.height, level.width, level_index);
 		}
 	}
 	else

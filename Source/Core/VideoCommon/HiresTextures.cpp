@@ -8,6 +8,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <utility>
 #include <xxhash.h>
 #include <SOIL/SOIL.h>
@@ -16,6 +17,7 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
+#include "Common/Hash.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -38,6 +40,11 @@ static bool s_check_new_format;
 static std::thread s_prefetcher;
 
 static const std::string s_format_prefix = "tex1_";
+
+HiresTexture::Level::Level()
+	: data(nullptr, SOIL_free_image_data)
+{
+}
 
 void HiresTexture::Init()
 {
@@ -165,11 +172,11 @@ void HiresTexture::Prefetch()
 				// But bad luck, SOIL isn't, so TODO: remove SOIL usage here and use libpng directly
 				// Also TODO: remove s_textureCacheAquireMutex afterwards. It won't be needed as the main mutex will be locked rarely
 				//lk.unlock();
-				HiresTexture* t = Load(base_filename, 0, 0);
+				std::unique_ptr<HiresTexture> texture = Load(base_filename, 0, 0);
 				//lk.lock();
-				if (t)
+				if (texture)
 				{
-					std::shared_ptr<HiresTexture> ptr(t);
+					std::shared_ptr<HiresTexture> ptr(std::move(texture));
 					iter = s_textureCache.insert(iter, std::make_pair(base_filename, ptr));
 				}
 			}
@@ -364,9 +371,9 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t tex
 	return ptr;
 }
 
-HiresTexture* HiresTexture::Load(const std::string& base_filename, u32 width, u32 height)
+std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filename, u32 width, u32 height)
 {
-	HiresTexture* ret = nullptr;
+	std::unique_ptr<HiresTexture> ret;
 	for (int level = 0;; level++)
 	{
 		std::string filename = base_filename;
@@ -385,7 +392,7 @@ HiresTexture* HiresTexture::Load(const std::string& base_filename, u32 width, u3
 			file.ReadBytes(buffer.data(), file.GetSize());
 
 			int channels;
-			l.data = SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width, (int*)&l.height, &channels, SOIL_LOAD_RGBA);
+			l.data = SOILPointer(SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width, (int*)&l.height, &channels, SOIL_LOAD_RGBA), SOIL_free_image_data);
 			l.data_size = (size_t)l.width * l.height * 4;
 
 			if (l.data == nullptr)
@@ -409,7 +416,7 @@ HiresTexture* HiresTexture::Load(const std::string& base_filename, u32 width, u3
 			{
 				ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.",
 				          l.width, l.height, filename.c_str(), width, height);
-				SOIL_free_image_data(l.data);
+				l.data.reset();
 				break;
 			}
 
@@ -418,8 +425,8 @@ HiresTexture* HiresTexture::Load(const std::string& base_filename, u32 width, u3
 			height >>= 1;
 
 			if (!ret)
-				ret = new HiresTexture();
-			ret->m_levels.push_back(l);
+				ret = std::unique_ptr<HiresTexture>(new HiresTexture);
+			ret->m_levels.push_back(std::move(l));
 		}
 		else
 		{
@@ -432,9 +439,4 @@ HiresTexture* HiresTexture::Load(const std::string& base_filename, u32 width, u3
 
 HiresTexture::~HiresTexture()
 {
-	for (auto& l : m_levels)
-	{
-		SOIL_free_image_data(l.data);
-	}
 }
-
