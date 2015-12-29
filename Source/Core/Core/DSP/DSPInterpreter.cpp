@@ -30,7 +30,7 @@ void WriteCR(u16 val)
 		// HAX!
 		// OSInitAudioSystem ucode should send this mail - not DSP core itself
 		INFO_LOG(DSPLLE,"DSP_CONTROL INIT");
-		init_hax = true;
+		g_init_hax = true;
 		val |= 0x800;
 	}
 
@@ -109,7 +109,7 @@ int RunCyclesDebug(int cycles)
 	{
 		if (g_dsp.cr & CR_HALT)
 			return 0;
-		if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+		if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
 		{
 			DSPCore_SetState(DSPCORE_STEPPING);
 			return cycles;
@@ -128,7 +128,7 @@ int RunCyclesDebug(int cycles)
 		{
 			if (g_dsp.cr & CR_HALT)
 				return 0;
-			if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+			if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
 			{
 				DSPCore_SetState(DSPCORE_STEPPING);
 				return cycles;
@@ -145,7 +145,7 @@ int RunCyclesDebug(int cycles)
 		// Now, lets run some more without idle skipping.
 		for (int i = 0; i < 200; i++)
 		{
-			if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+			if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
 			{
 				DSPCore_SetState(DSPCORE_STEPPING);
 				return cycles;

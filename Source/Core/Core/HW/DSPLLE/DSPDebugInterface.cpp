@@ -75,9 +75,9 @@ bool DSPDebugInterface::IsBreakpoint(unsigned int address)
 {
 	int real_addr = DSPSymbols::Line2Addr(address);
 	if (real_addr >= 0)
-		return dsp_breakpoints.IsAddressBreakPoint(real_addr);
-	else
-		return false;
+		return g_dsp_breakpoints.IsAddressBreakPoint(real_addr);
+
+	return false;
 }
 
 void DSPDebugInterface::SetBreakpoint(unsigned int address)
@@ -86,7 +86,7 @@ void DSPDebugInterface::SetBreakpoint(unsigned int address)
 
 	if (real_addr >= 0)
 	{
-		if (dsp_breakpoints.Add(real_addr))
+		if (g_dsp_breakpoints.Add(real_addr))
 		{
 
 		}
@@ -99,7 +99,7 @@ void DSPDebugInterface::ClearBreakpoint(unsigned int address)
 
 	if (real_addr >= 0)
 	{
-		if (dsp_breakpoints.Remove(real_addr))
+		if (g_dsp_breakpoints.Remove(real_addr))
 		{
 
 		}
@@ -108,7 +108,7 @@ void DSPDebugInterface::ClearBreakpoint(unsigned int address)
 
 void DSPDebugInterface::ClearAllBreakpoints()
 {
-	dsp_breakpoints.Clear();
+	g_dsp_breakpoints.Clear();
 }
 
 void DSPDebugInterface::ToggleBreakpoint(unsigned int address)
@@ -116,10 +116,10 @@ void DSPDebugInterface::ToggleBreakpoint(unsigned int address)
 	int real_addr = DSPSymbols::Line2Addr(address);
 	if (real_addr >= 0)
 	{
-		if (dsp_breakpoints.IsAddressBreakPoint(real_addr))
-			dsp_breakpoints.Remove(real_addr);
+		if (g_dsp_breakpoints.IsAddressBreakPoint(real_addr))
+			g_dsp_breakpoints.Remove(real_addr);
 		else
-			dsp_breakpoints.Add(real_addr);
+			g_dsp_breakpoints.Add(real_addr);
 	}
 }
 

@@ -23,11 +23,11 @@
 #include "Core/DSP/DSPIntUtil.h"
 
 SDSP g_dsp;
-DSPBreakpoints dsp_breakpoints;
+DSPBreakpoints g_dsp_breakpoints;
 static DSPCoreState core_state = DSPCORE_STOP;
-u16 cyclesLeft = 0;
-bool init_hax = false;
-std::unique_ptr<DSPEmitter> dspjit;
+u16 g_cycles_left = 0;
+bool g_init_hax = false;
+std::unique_ptr<DSPEmitter> g_dsp_jit;
 std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 static Common::Event step_event;
 
@@ -101,8 +101,8 @@ static void DSPCore_FreeMemoryPages()
 bool DSPCore_Init(const DSPInitOptions& opts)
 {
 	g_dsp.step_counter = 0;
-	cyclesLeft = 0;
-	init_hax = false;
+	g_cycles_left = 0;
+	g_init_hax = false;
 
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
 	g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
@@ -147,7 +147,7 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 
 	// Initialize JIT, if necessary
 	if (opts.core_type == DSPInitOptions::CORE_JIT)
-		dspjit = std::make_unique<DSPEmitter>();
+		g_dsp_jit = std::make_unique<DSPEmitter>();
 
 	g_dsp_cap.reset(opts.capture_logger);
 
@@ -162,7 +162,7 @@ void DSPCore_Shutdown()
 
 	core_state = DSPCORE_STOP;
 
-	dspjit.reset();
+	g_dsp_jit.reset();
 
 	DSPCore_FreeMemoryPages();
 
@@ -241,7 +241,7 @@ void DSPCore_CheckExceptions()
 // Handle state changes and stepping.
 int DSPCore_RunCycles(int cycles)
 {
-	if (dspjit)
+	if (g_dsp_jit)
 	{
 		if (g_dsp.external_interrupt_waiting)
 		{
@@ -250,14 +250,14 @@ int DSPCore_RunCycles(int cycles)
 			DSPCore_SetExternalInterrupt(false);
 		}
 
-		cyclesLeft = cycles;
-		DSPCompiledCode pExecAddr = (DSPCompiledCode)dspjit->enterDispatcher;
+		g_cycles_left = cycles;
+		DSPCompiledCode pExecAddr = (DSPCompiledCode)g_dsp_jit->enterDispatcher;
 		pExecAddr();
 
 		if (g_dsp.reset_dspjit_codespace)
-			dspjit->ClearIRAMandDSPJITCodespaceReset();
+			g_dsp_jit->ClearIRAMandDSPJITCodespaceReset();
 
-		return cyclesLeft;
+		return g_cycles_left;
 	}
 
 	while (cycles > 0)
@@ -313,7 +313,7 @@ void DSPCore_Step()
 
 void CompileCurrent()
 {
-	dspjit->Compile(g_dsp.pc);
+	g_dsp_jit->Compile(g_dsp.pc);
 
 	bool retry = true;
 
@@ -322,11 +322,11 @@ void CompileCurrent()
 		retry = false;
 		for (u16 i = 0x0000; i < 0xffff; ++i)
 		{
-			if (!dspjit->unresolvedJumps[i].empty())
+			if (!g_dsp_jit->unresolvedJumps[i].empty())
 			{
-				u16 addrToCompile = dspjit->unresolvedJumps[i].front();
-				dspjit->Compile(addrToCompile);
-				if (!dspjit->unresolvedJumps[i].empty())
+				u16 addrToCompile = g_dsp_jit->unresolvedJumps[i].front();
+				g_dsp_jit->Compile(addrToCompile);
+				if (!g_dsp_jit->unresolvedJumps[i].empty())
 					retry = true;
 			}
 		}
