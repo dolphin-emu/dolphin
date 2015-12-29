@@ -43,7 +43,7 @@ public:
 	std::vector<Level> m_levels;
 
 private:
-	static HiresTexture* Load(const std::string& base_filename, u32 width, u32 height);
+	static std::unique_ptr<HiresTexture> Load(const std::string& base_filename, u32 width, u32 height);
 	static void Prefetch();
 
 	HiresTexture() {}
