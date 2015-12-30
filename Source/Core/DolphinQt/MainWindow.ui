@@ -53,6 +53,8 @@
     <addaction name="actionStop"/>
     <addaction name="actionReset"/>
     <addaction name="separator"/>
+    <addaction name="actionFullscreen"/>
+    <addaction name="separator"/>
     <addaction name="actionScreenshot"/>
    </widget>
    <widget class="QMenu" name="mnuOptions">
@@ -122,6 +124,7 @@
    <addaction name="actionPlay"/>
    <addaction name="actionStop"/>
    <addaction name="actionScreenshot"/>
+   <addaction name="actionFullscreen"/>
   </widget>
   <action name="actionWebsite">
    <property name="text">
@@ -242,6 +245,17 @@
   <action name="actionScreenshot">
    <property name="text">
     <string>Screenshot</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFullscreen">
+   <property name="text">
+    <string>&amp;Fullscreen</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Enter</string>
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
