@@ -28,6 +28,9 @@
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
 #include "Core/MemTools.h"
+#ifdef USE_MEMORYWATCHER
+#include "Core/MemoryWatcher.h"
+#endif
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -108,6 +111,10 @@ static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static int s_pause_and_lock_depth = 0;
 static bool s_is_framelimiter_temp_disabled = false;
+
+#ifdef USE_MEMORYWATCHER
+static std::unique_ptr<MemoryWatcher> s_memory_watcher;
+#endif
 
 #ifdef ThreadLocalStorage
 static ThreadLocalStorage bool tls_is_cpu_thread = false;
@@ -280,6 +287,10 @@ void Stop()  // - Hammertime!
 #if defined(__LIBUSB__) || defined(_WIN32)
 	SI_GCAdapter::ResetRumble();
 #endif
+
+#ifdef USE_MEMORYWATCHER
+	s_memory_watcher.reset();
+#endif
 }
 
 void DeclareAsCPUThread()
@@ -348,6 +359,10 @@ static void CpuThread()
 		gdb_break();
 	}
 	#endif
+
+#ifdef USE_MEMORYWATCHER
+	s_memory_watcher = std::make_unique<MemoryWatcher>();
+#endif
 
 	// Enter CPU run loop. When we leave it - we are done.
 	CPU::Run();

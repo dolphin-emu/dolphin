@@ -552,6 +552,8 @@ endif()
 if(UNIX)
 	message("Using named pipes as controller inputs")
 	add_definitions(-DUSE_PIPES=1)
+	message("Watching game memory for changes")
+	add_definitions(-DUSE_MEMORYWATCHER=1)
 endif()
 
 ########################################

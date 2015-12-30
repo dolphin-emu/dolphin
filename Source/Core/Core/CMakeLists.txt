@@ -273,4 +273,8 @@ if(GDBSTUB)
 	set(SRCS ${SRCS} PowerPC/GDBStub.cpp)
 endif(GDBSTUB)
 
+if(UNIX)
+	set(SRCS ${SRCS} MemoryWatcher.cpp)
+endif(UNIX)
+
 add_dolphin_library(core "${SRCS}" "${LIBS}")
