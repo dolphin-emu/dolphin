@@ -619,10 +619,3 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 	XFBWrited = false;
 }
 
-void Renderer::PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data)
-{
-	for (EfbPokeData poke : data)
-	{
-		AccessEFB(type, poke.x, poke.y, poke.data);
-	}
-}

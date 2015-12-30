@@ -646,7 +646,7 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 	*height = m_targetHeight;
 }
 
-void FramebufferManager::PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data)
+void FramebufferManager::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
 {
 	g_renderer->ResetAPIState();
 
@@ -660,10 +660,10 @@ void FramebufferManager::PokeEFB(EFBAccessType type, const std::vector<EfbPokeDa
 
 	glBindVertexArray(m_EfbPokes_VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_EfbPokes_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(EfbPokeData) * data.size(), data.data(), GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(EfbPokeData) * num_points, points, GL_STREAM_DRAW);
 	m_EfbPokes.Bind();
 	glViewport(0, 0, m_targetWidth, m_targetHeight);
-	glDrawArrays(GL_POINTS, 0, (GLsizei)data.size());
+	glDrawArrays(GL_POINTS, 0, (GLsizei)num_points);
 
 	g_renderer->RestoreAPIState();
 
