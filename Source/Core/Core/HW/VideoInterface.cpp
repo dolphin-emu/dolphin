@@ -154,6 +154,7 @@ void Preset(bool _bNTSC)
 
 	// Say component cable is plugged
 	m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
+	m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ;
 
 	s_ticks_last_line_start = 0;
 	s_half_line_count = 1;

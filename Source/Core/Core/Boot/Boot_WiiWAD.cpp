@@ -15,6 +15,7 @@
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -88,7 +89,11 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 	// setup Wii memory
 	if (!SetupWiiMemory(ContentLoader.GetCountry()))
 		return false;
-
+	// this sets a bit that is used to detect NTSC-J
+	if (ContentLoader.GetCountry() == DiscIO::IVolume::COUNTRY_JAPAN)
+	{
+		VideoInterface::SetRegionReg('J');
+	}
 	// DOL
 	const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
 	if (pContent == nullptr)
