@@ -153,7 +153,7 @@ void Preset(bool _bNTSC)
 	m_Clock = SConfig::GetInstance().bNTSC;
 
 	// Say component cable is plugged
-	m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
+	m_DTVStatus.component_plugged = SConfig::GetInstance().bComponentCable;
 
 	s_ticks_last_line_start = 0;
 	s_half_line_count = 1;
