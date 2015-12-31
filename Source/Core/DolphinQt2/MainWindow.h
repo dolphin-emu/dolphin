@@ -29,7 +29,6 @@ signals:
 
 private slots:
 	void Open();
-	void Browse();
 	void Play();
 	void Pause();
 
@@ -39,6 +38,8 @@ private slots:
 
 	void FullScreen();
 	void ScreenShot();
+
+	void PathsConfig();
 
 private:
 	void MakeGameList();

@@ -29,6 +29,7 @@ public slots:
 signals:
 	void GameSelected();
 	void DirectoryAdded(QString dir);
+	void DirectoryRemoved(QString dir);
 
 private:
 	void MakeTableView();

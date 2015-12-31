@@ -11,6 +11,7 @@ GameListModel::GameListModel(QObject* parent)
 	connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::UpdateGame);
 	connect(&m_tracker, &GameTracker::GameRemoved, this, &GameListModel::RemoveGame);
 	connect(this, &GameListModel::DirectoryAdded, &m_tracker, &GameTracker::AddDirectory);
+	connect(this, &GameListModel::DirectoryRemoved, &m_tracker, &GameTracker::RemoveDirectory);
 }
 
 QVariant GameListModel::data(const QModelIndex& index, int role) const
@@ -67,24 +68,36 @@ int GameListModel::columnCount(const QModelIndex& parent) const
 	return NUM_COLS;
 }
 
-
 void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
 {
 	QString path = game->GetPath();
-	if (m_entries.contains(path))
-		RemoveGame(path);
 
-	beginInsertRows(QModelIndex(), m_games.size(), m_games.size());
-	m_entries[path] = m_games.size();
-	m_games.append(game);
+	int entry = FindGame(path);
+	if (entry < 0)
+		entry = m_games.size();
+
+	beginInsertRows(QModelIndex(), entry, entry);
+	m_games.insert(entry, game);
 	endInsertRows();
 }
 
 void GameListModel::RemoveGame(QString path)
 {
-	int entry = m_entries[path];
+	int entry = FindGame(path);
+	if (entry < 0)
+		return;
+
 	beginRemoveRows(QModelIndex(), entry, entry);
-	m_entries.remove(path);
 	m_games.removeAt(entry);
 	endRemoveRows();
+}
+
+int GameListModel::FindGame(const QString& path) const
+{
+	for (int i = 0; i < m_games.size(); i++)
+	{
+		if (m_games[i]->GetPath() == path)
+			return i;
+	}
+	return -1;
 }

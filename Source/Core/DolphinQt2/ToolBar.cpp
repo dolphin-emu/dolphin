@@ -49,10 +49,6 @@ void ToolBar::EmulationStopped()
 void ToolBar::MakeActions()
 {
 	m_open_action = addAction(tr("Open"), this, SIGNAL(OpenPressed()));
-	m_paths_action = addAction(tr("Paths"), this, SIGNAL(PathsPressed()));
-
-	addSeparator();
-
 	m_play_action = addAction(tr("Play"), this, SIGNAL(PlayPressed()));
 
 	m_pause_action = addAction(tr("Pause"), this, SIGNAL(PausePressed()));
@@ -68,6 +64,8 @@ void ToolBar::MakeActions()
 	m_screenshot_action->setEnabled(false);
 
 	addSeparator();
+
+	m_paths_action = addAction(tr("Paths"), this, SIGNAL(PathsPressed()));
 
 	m_config_action = addAction(tr("Settings"));
 	m_config_action->setEnabled(false);

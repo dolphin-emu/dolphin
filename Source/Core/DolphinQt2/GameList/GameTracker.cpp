@@ -47,20 +47,46 @@ GameTracker::~GameTracker()
 
 void GameTracker::AddDirectory(QString dir)
 {
+	if (!QFileInfo(dir).exists())
+		return;
 	addPath(dir);
 	UpdateDirectory(dir);
 }
 
-void GameTracker::UpdateDirectory(const QString& dir)
+void GameTracker::RemoveDirectory(QString dir)
 {
-	QDirIterator it(dir, game_filters);
+	removePath(dir);
+	QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);
 	while (it.hasNext())
 	{
 		QString path = QFileInfo(it.next()).canonicalFilePath();
-		if (!m_tracked_files.contains(path))
+		if (m_tracked_files.contains(path))
+		{
+			m_tracked_files[path]--;
+			if (m_tracked_files[path] == 0)
+			{
+				removePath(path);
+				m_tracked_files.remove(path);
+				emit GameRemoved(path);
+			}
+		}
+	}
+}
+
+void GameTracker::UpdateDirectory(const QString& dir)
+{
+	QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);
+	while (it.hasNext())
+	{
+		QString path = QFileInfo(it.next()).canonicalFilePath();
+		if (m_tracked_files.contains(path))
+		{
+			m_tracked_files[path]++;
+		}
+		else
 		{
 			addPath(path);
-			m_tracked_files.insert(path);
+			m_tracked_files[path] = 1;
 			emit PathChanged(path);
 		}
 	}

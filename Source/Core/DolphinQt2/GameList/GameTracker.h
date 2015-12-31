@@ -5,7 +5,7 @@
 #pragma once
 
 #include <QFileSystemWatcher>
-#include <QSet>
+#include <QMap>
 #include <QSharedPointer>
 #include <QString>
 #include <QStringList>
@@ -31,6 +31,7 @@ public:
 
 public slots:
 	void AddDirectory(QString dir);
+	void RemoveDirectory(QString dir);
 
 signals:
 	void GameLoaded(QSharedPointer<GameFile> game);
@@ -42,7 +43,8 @@ private:
 	void UpdateDirectory(const QString& dir);
 	void UpdateFile(const QString& path);
 
-	QSet<QString> m_tracked_files;
+	// game path -> number of directories that track it
+	QMap<QString, int> m_tracked_files;
 	QThread m_loader_thread;
 	GameLoader* m_loader;
 };
