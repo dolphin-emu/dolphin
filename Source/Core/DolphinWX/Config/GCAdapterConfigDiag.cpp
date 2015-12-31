@@ -24,6 +24,10 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
 	gamecube_rumble->SetValue(SConfig::GetInstance().m_AdapterRumble[m_pad_id]);
 	gamecube_rumble->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterRumble, this);
 
+	wxCheckBox* const gamecube_konga = new wxCheckBox(this, wxID_ANY, _("Simulate DK TaruKonga"));
+	gamecube_konga->SetValue(SConfig::GetInstance().m_AdapterKonga[m_pad_id]);
+	gamecube_konga->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterKonga, this);
+
 	m_adapter_status = new wxStaticText(this, wxID_ANY, _("Adapter Not Detected"));
 
 #if defined(__LIBUSB__) || defined (_WIN32)
@@ -44,6 +48,7 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
 
 	szr->Add(m_adapter_status, 0, wxEXPAND);
 	szr->Add(gamecube_rumble, 0, wxEXPAND);
+	szr->Add(gamecube_konga, 0, wxEXPAND);
 	szr->Add(CreateButtonSizer(wxOK | wxNO_DEFAULT), 0, wxEXPAND|wxALL, 5);
 
 	SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);

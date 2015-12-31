@@ -32,4 +32,9 @@ private:
 	{
 		SConfig::GetInstance().m_AdapterRumble[m_pad_id] = event.IsChecked();
 	}
+
+	void OnAdapterKonga(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_AdapterKonga[m_pad_id] = event.IsChecked();
+	}
 };

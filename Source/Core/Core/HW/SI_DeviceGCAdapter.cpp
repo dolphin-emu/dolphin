@@ -4,8 +4,17 @@
 
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
+#include "Core/ConfigManager.h"
 #include "Core/Movie.h"
 #include "Core/HW/SI_DeviceGCAdapter.h"
+
+CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber)
+	: CSIDevice_GCController(device, _iDeviceNumber)
+{
+	// get the correct pad number that should rumble locally when using netplay
+	const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
+	m_simulate_konga = SConfig::GetInstance().m_AdapterKonga[numPAD];
+}
 
 GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
 {

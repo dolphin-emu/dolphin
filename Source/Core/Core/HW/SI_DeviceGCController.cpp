@@ -160,6 +160,8 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
 bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
 	GCPadStatus PadStatus = GetPadStatus();
+	if (HandleButtonCombos(PadStatus) == COMBO_ORIGIN)
+		PadStatus.button |= PAD_GET_ORIGIN;
 
 	_Hi = MapPadStatus(PadStatus);
 
@@ -208,7 +210,12 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		_Low |= (u32)((u8)PadStatus.substickX << 24);           // All 8 bits
 	}
 
-	HandleButtonCombos(PadStatus);
+	// Unset all bits except those that represent
+	// A, B, X, Y, Start and the error bits, as they
+	// are not used.
+	if (m_simulate_konga)
+		_Hi &= ~0x20FFFFFF;
+
 	return true;
 }
 
@@ -222,7 +229,7 @@ u32 CSIDevice_GCController::MapPadStatus(const GCPadStatus& pad_status)
 	return _Hi;
 }
 
-void CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
+CSIDevice_GCController::EButtonCombo CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
 {
 	// Keep track of the special button combos (embedded in controller hardware... :( )
 	EButtonCombo tempCombo;
@@ -255,8 +262,11 @@ void CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
 				m_Origin.uTrigger_R      = pad_status.triggerRight;
 			}
 			m_LastButtonCombo = COMBO_NONE;
+			return tempCombo;
 		}
 	}
+
+	return COMBO_NONE;
 }
 
 // SendCommand

@@ -266,6 +266,7 @@ struct SConfig : NonCopyable
 	// Input settings
 	bool m_BackgroundInput;
 	bool m_AdapterRumble[4];
+	bool m_AdapterKonga[4];
 
 	SysConf* m_SYSCONF;
 
