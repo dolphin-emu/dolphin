@@ -3,8 +3,6 @@ set(SRCS	ControllerEmu.cpp
 			ControllerInterface/ControllerInterface.cpp
 			ControllerInterface/Device.cpp
 			ControllerInterface/ExpressionParser.cpp)
-
-
 set(LIBS	common)
 
 if(WIN32)
@@ -36,6 +34,10 @@ elseif(ANDROID)
 	set(SRCS	${SRCS}
 				ControllerInterface/Android/Android.cpp)
 endif()
+
+if(LIBUSB_FOUND)
+	set(SRCS	${SRCS}	GCAdapter.cpp)
+endif(LIBUSB_FOUND)
 
 if(LIBEVDEV_FOUND AND LIBUDEV_FOUND)
 	set(SRCS ${SRCS} ControllerInterface/evdev/evdev.cpp)

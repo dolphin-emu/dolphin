@@ -10,8 +10,8 @@
 
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/SI_GCAdapter.h"
 #include "Core/HW/Wiimote.h"
+#include "InputCommon/GCAdapter.h"
 
 class InputConfig;
 class wxButton;

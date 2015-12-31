@@ -148,13 +148,6 @@
     <ClCompile Include="HW\SI_DeviceGCController.cpp" />
     <ClCompile Include="HW\SI_DeviceGCSteeringWheel.cpp" />
     <ClCompile Include="HW\SI_DeviceKeyboard.cpp" />
-    <ClCompile Include="HW\SI_GCAdapter.cpp">
-      <!--
-      Disable "nonstandard extension used : zero-sized array in struct/union" warning,
-      which is hit in libusb.h.
-      -->
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
     <ClCompile Include="HW\Sram.cpp" />
     <ClCompile Include="HW\StreamADPCM.cpp" />
     <ClCompile Include="HW\SystemTimers.cpp" />
@@ -360,7 +353,6 @@
     <ClInclude Include="HW\SI_DeviceGCController.h" />
     <ClInclude Include="HW\SI_DeviceGCSteeringWheel.h" />
     <ClInclude Include="HW\SI_DeviceKeyboard.h" />
-    <ClInclude Include="HW\SI_GCAdapter.h" />
     <ClInclude Include="HW\Sram.h" />
     <ClInclude Include="HW\StreamADPCM.h" />
     <ClInclude Include="HW\SystemTimers.h" />
