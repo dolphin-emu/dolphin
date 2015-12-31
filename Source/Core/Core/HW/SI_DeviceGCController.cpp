@@ -13,9 +13,6 @@
 #include "Core/HW/SI.h"
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceGCController.h"
-#if defined(__LIBUSB__) || defined (_WIN32)
-#include "Core/HW/SI_GCAdapter.h"
-#endif
 #include "Core/HW/SystemTimers.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -119,6 +116,30 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	return _iLength;
 }
 
+void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
+{
+	Movie::CallGCInputManip(PadStatus, ISIDevice::m_iDeviceNumber);
+
+	Movie::SetPolledDevice();
+	if (NetPlay_GetInput(ISIDevice::m_iDeviceNumber, PadStatus))
+	{
+	}
+	else if (Movie::IsPlayingInput())
+	{
+		Movie::PlayController(PadStatus, ISIDevice::m_iDeviceNumber);
+		Movie::InputUpdate();
+	}
+	else if (Movie::IsRecordingInput())
+	{
+		Movie::RecordInput(PadStatus, ISIDevice::m_iDeviceNumber);
+		Movie::InputUpdate();
+	}
+	else
+	{
+		Movie::CheckPadStatus(PadStatus, ISIDevice::m_iDeviceNumber);
+	}
+}
+
 GCPadStatus CSIDevice_GCController::GetPadStatus()
 {
 	GCPadStatus PadStatus;
@@ -126,31 +147,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
 
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
-#if defined(__LIBUSB__) || defined (_WIN32)
-	SI_GCAdapter::Input(ISIDevice::m_iDeviceNumber, &PadStatus);
-#endif
-
-	Movie::CallGCInputManip(&PadStatus, ISIDevice::m_iDeviceNumber);
-
-	Movie::SetPolledDevice();
-	if (NetPlay_GetInput(ISIDevice::m_iDeviceNumber, &PadStatus))
-	{
-	}
-	else if (Movie::IsPlayingInput())
-	{
-		Movie::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
-		Movie::InputUpdate();
-	}
-	else if (Movie::IsRecordingInput())
-	{
-		Movie::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
-		Movie::InputUpdate();
-	}
-	else
-	{
-		Movie::CheckPadStatus(&PadStatus, ISIDevice::m_iDeviceNumber);
-	}
-
+	HandleMoviePadStatus(&PadStatus);
 	return PadStatus;
 }
 
@@ -281,15 +278,6 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 			// get the correct pad number that should rumble locally when using netplay
 			const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
-#if defined(__LIBUSB__) || defined (_WIN32)
-			if (numPAD < 4)
-			{
-				if (uType == 1 && uStrength > 2)
-					SI_GCAdapter::Output(numPAD, 1);
-				else
-					SI_GCAdapter::Output(numPAD, 0);
-			}
-#endif
 			if (numPAD < 4)
 			{
 				if (uType == 1 && uStrength > 2)

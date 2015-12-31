@@ -8,15 +8,17 @@
 
 #include "Common/Flag.h"
 #include "Common/Thread.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SI.h"
-#include "Core/HW/SI_GCAdapter.h"
 #include "Core/HW/SystemTimers.h"
+
+#include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 
-namespace SI_GCAdapter
+namespace GCAdapter
 {
 enum ControllerTypes
 {
@@ -158,13 +160,16 @@ void Init()
 	}
 	else
 	{
-		if (SConfig::GetInstance().m_GameCubeAdapter)
+		if (UseAdapter())
 			StartScanThread();
 	}
 }
 
 void StartScanThread()
 {
+	if (s_adapter_detect_thread_running.IsSet())
+		return;
+
 	s_adapter_detect_thread_running.Set(true);
 	s_adapter_detect_thread = std::thread(ScanThreadFunc);
 }
@@ -351,7 +356,11 @@ void Reset()
 
 void Input(int chan, GCPadStatus* pad)
 {
-	if (!SConfig::GetInstance().m_GameCubeAdapter)
+	bool use_adapter = SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_WIIU_ADAPTER ||
+	                   SConfig::GetInstance().m_SIDevice[1] == SIDEVICE_WIIU_ADAPTER ||
+	                   SConfig::GetInstance().m_SIDevice[2] == SIDEVICE_WIIU_ADAPTER ||
+	                   SConfig::GetInstance().m_SIDevice[3] == SIDEVICE_WIIU_ADAPTER;
+	if (!use_adapter)
 		return;
 
 	if (s_handle == nullptr || !s_detected)
@@ -371,15 +380,19 @@ void Input(int chan, GCPadStatus* pad)
 	}
 	else
 	{
+		bool get_origin = false;
 		u8 type = controller_payload_copy[1 + (9 * chan)] >> 4;
 		if (type != CONTROLLER_NONE && s_controller_type[chan] == CONTROLLER_NONE)
+		{
 			NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1, controller_payload_copy[1 + (9 * chan)]);
+			get_origin = true;
+		}
 
 		s_controller_type[chan] = type;
 
+		memset(pad, 0, sizeof(*pad));
 		if (s_controller_type[chan] != CONTROLLER_NONE)
 		{
-			memset(pad, 0, sizeof(*pad));
 			u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
 			u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
 
@@ -398,6 +411,8 @@ void Input(int chan, GCPadStatus* pad)
 			if (b2 & (1 << 2)) pad->button |= PAD_TRIGGER_R;
 			if (b2 & (1 << 3)) pad->button |= PAD_TRIGGER_L;
 
+			if (get_origin) pad->button |= PAD_GET_ORIGIN;
+
 			pad->stickX = controller_payload_copy[1 + (9 * chan) + 3];
 			pad->stickY = controller_payload_copy[1 + (9 * chan) + 4];
 			pad->substickX = controller_payload_copy[1 + (9 * chan) + 5];
@@ -405,12 +420,29 @@ void Input(int chan, GCPadStatus* pad)
 			pad->triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
 			pad->triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
 		}
+		else
+		{
+			pad->button = PAD_ERR_STATUS;
+		}
 	}
+}
+
+bool DeviceConnected(int chan)
+{
+	return s_controller_type[chan] != CONTROLLER_NONE;
+}
+
+bool UseAdapter()
+{
+	return SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_WIIU_ADAPTER ||
+	       SConfig::GetInstance().m_SIDevice[1] == SIDEVICE_WIIU_ADAPTER ||
+	       SConfig::GetInstance().m_SIDevice[2] == SIDEVICE_WIIU_ADAPTER ||
+	       SConfig::GetInstance().m_SIDevice[3] == SIDEVICE_WIIU_ADAPTER;
 }
 
 void ResetRumble()
 {
-	if (!SConfig::GetInstance().m_GameCubeAdapter)
+	if (!UseAdapter())
 		return;
 	if (s_handle == nullptr || !s_detected)
 		return;
@@ -427,7 +459,7 @@ void ResetRumble()
 
 void Output(int chan, u8 rumble_command)
 {
-	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter || !SConfig::GetInstance().m_AdapterRumble)
+	if (s_handle == nullptr || !UseAdapter() || !SConfig::GetInstance().m_AdapterRumble)
 		return;
 
 	// Skip over rumble commands if it has not changed or the controller is wireless
@@ -458,4 +490,4 @@ bool IsDriverDetected()
 	return !s_libusb_driver_not_supported;
 }
 
-} // end of namespace SI_GCAdapter
+} // end of namespace GCAdapter

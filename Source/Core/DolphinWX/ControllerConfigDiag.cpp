@@ -30,13 +30,12 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/Config/GCAdapterConfigDiag.h"
 #include "InputCommon/GCAdapter.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include "DolphinWX/X11Utils.h"
 #endif
-
-wxDEFINE_EVENT(wxEVT_ADAPTER_UPDATE, wxCommandEvent);
 
 ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 	: wxDialog(parent, wxID_ANY, _("Dolphin Controller Configuration"))
@@ -44,6 +43,7 @@ ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 	m_gc_pad_type_strs = {{
 		_("None"),
 		_("Standard Controller"),
+		_("GameCube Adapter for Wii U"),
 		_("Steering Wheel"),
 		_("Dance Mat"),
 		_("TaruKonga (Bongos)"),
@@ -68,7 +68,6 @@ ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 	SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
 	SetSizerAndFit(main_sizer);
 	Center();
-	Bind(wxEVT_ADAPTER_UPDATE, &ControllerConfigDiag::UpdateAdapter, this);
 }
 
 wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
@@ -111,24 +110,27 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 		case SIDEVICE_GC_CONTROLLER:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[1]);
 			break;
-		case SIDEVICE_GC_STEERING:
+		case SIDEVICE_WIIU_ADAPTER:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[2]);
 			break;
-		case SIDEVICE_DANCEMAT:
+		case SIDEVICE_GC_STEERING:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[3]);
 			break;
-		case SIDEVICE_GC_TARUKONGA:
+		case SIDEVICE_DANCEMAT:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[4]);
 			break;
-		case SIDEVICE_GC_GBA:
+		case SIDEVICE_GC_TARUKONGA:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[5]);
+			break;
+		case SIDEVICE_GC_GBA:
+			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[6]);
 			gamecube_configure_bt[i]->Disable();
 			break;
 		case SIDEVICE_GC_KEYBOARD:
-			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[6]);
+			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[7]);
 			break;
 		case SIDEVICE_AM_BASEBOARD:
-			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[7]);
+			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[8]);
 			break;
 		default:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[0]);
@@ -145,65 +147,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 	gamecube_static_sizer->Add(gamecube_flex_sizer, 1, wxEXPAND, 5);
 	gamecube_static_sizer->AddSpacer(5);
 
-	wxStaticBoxSizer* const gamecube_adapter_group = new wxStaticBoxSizer(wxVERTICAL, this, _("GameCube Adapter"));
-	wxBoxSizer* const gamecube_adapter_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-	wxCheckBox* const gamecube_adapter = new wxCheckBox(this, wxID_ANY, _("Direct Connect"));
-	gamecube_adapter->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapter, this);
-
-	wxCheckBox* const gamecube_rumble = new wxCheckBox(this, wxID_ANY, _("Rumble"));
-	gamecube_rumble->SetValue(SConfig::GetInstance().m_AdapterRumble);
-	gamecube_rumble->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnAdapterRumble, this);
-
-	m_adapter_status = new wxStaticText(this, wxID_ANY, _("Adapter Not Detected"));
-
-	gamecube_adapter_group->Add(m_adapter_status, 0, wxEXPAND);
-	gamecube_adapter_sizer->Add(gamecube_adapter, 0, wxEXPAND);
-	gamecube_adapter_sizer->Add(gamecube_rumble, 0, wxEXPAND);
-	gamecube_adapter_group->Add(gamecube_adapter_sizer, 0, wxEXPAND);
-	gamecube_static_sizer->Add(gamecube_adapter_group, 0, wxEXPAND);
-
-#if defined(__LIBUSB__) || defined (_WIN32)
-	gamecube_adapter->SetValue(SConfig::GetInstance().m_GameCubeAdapter);
-	if (!SI_GCAdapter::IsDetected())
-	{
-		if (!SI_GCAdapter::IsDriverDetected())
-		{
-			m_adapter_status->SetLabelText(_("Driver Not Detected"));
-			gamecube_adapter->Disable();
-			gamecube_adapter->SetValue(false);
-			gamecube_rumble->Disable();
-		}
-	}
-	else
-	{
-		m_adapter_status->SetLabelText(_("Adapter Detected"));
-	}
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		gamecube_adapter->Disable();
-	}
-	SI_GCAdapter::SetAdapterCallback(std::bind(&ControllerConfigDiag::ScheduleAdapterUpdate, this));
-#endif
-
 	return gamecube_static_sizer;
-}
-
-void ControllerConfigDiag::ScheduleAdapterUpdate()
-{
-	wxQueueEvent(this, new wxCommandEvent(wxEVT_ADAPTER_UPDATE));
-}
-
-void ControllerConfigDiag::UpdateAdapter(wxCommandEvent& ev)
-{
-#if defined(__LIBUSB__) || defined (_WIN32)
-	bool unpause = Core::PauseAndLock(true);
-	if (SI_GCAdapter::IsDetected())
-		m_adapter_status->SetLabelText(_("Adapter Detected"));
-	else
-		m_adapter_status->SetLabelText(_("Adapter Not Detected"));
-	Core::PauseAndLock(false, unpause);
-#endif
 }
 
 wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
@@ -502,30 +446,35 @@ void ControllerConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
 	}
 	else if (device_name == m_gc_pad_type_strs[2])
 	{
-		tempType = SIDEVICE_GC_STEERING;
+		tempType = SIDEVICE_WIIU_ADAPTER;
 		gamecube_configure_bt[device_num]->Enable();
 	}
 	else if (device_name == m_gc_pad_type_strs[3])
 	{
-		tempType = SIDEVICE_DANCEMAT;
+		tempType = SIDEVICE_GC_STEERING;
 		gamecube_configure_bt[device_num]->Enable();
 	}
 	else if (device_name == m_gc_pad_type_strs[4])
 	{
-		tempType = SIDEVICE_GC_TARUKONGA;
+		tempType = SIDEVICE_DANCEMAT;
 		gamecube_configure_bt[device_num]->Enable();
 	}
 	else if (device_name == m_gc_pad_type_strs[5])
 	{
+		tempType = SIDEVICE_GC_TARUKONGA;
+		gamecube_configure_bt[device_num]->Enable();
+	}
+	else if (device_name == m_gc_pad_type_strs[6])
+	{
 		tempType = SIDEVICE_GC_GBA;
 		gamecube_configure_bt[device_num]->Disable();
 	}
-	else if (device_name == m_gc_pad_type_strs[6])
+	else if (device_name == m_gc_pad_type_strs[7])
 	{
 		tempType = SIDEVICE_GC_KEYBOARD;
 		gamecube_configure_bt[device_num]->Enable();
 	}
-	else if (device_name == m_gc_pad_type_strs[7])
+	else if (device_name == m_gc_pad_type_strs[8])
 	{
 		tempType = SIDEVICE_AM_BASEBOARD;
 		gamecube_configure_bt[device_num]->Enable();
@@ -537,6 +486,13 @@ void ControllerConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
 	}
 
 	SConfig::GetInstance().m_SIDevice[device_num] = tempType;
+
+#if defined(__LIBUSB__) || defined (_WIN32)
+	if (GCAdapter::UseAdapter())
+		GCAdapter::StartScanThread();
+	else
+		GCAdapter::StopScanThread();
+#endif
 
 	if (Core::IsRunning())
 		SerialInterface::ChangeDevice(tempType, device_num);
@@ -555,6 +511,11 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 		InputConfigDialog m_ConfigFrame(this, *key_plugin, _("GameCube Controller Configuration"), port_num);
 		m_ConfigFrame.ShowModal();
 	}
+	else if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_WIIU_ADAPTER)
+	{
+		GCAdapterConfigDiag m_ConfigFramg(this, _("Wii U Gamecube Controller Adapter Configuration"), port_num);
+		m_ConfigFramg.ShowModal();
+	}
 	else
 	{
 		InputConfigDialog m_ConfigFrame(this, *pad_plugin, _("GameCube Controller Configuration"), port_num);
@@ -562,11 +523,4 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 	}
 
 	HotkeyManagerEmu::Enable(true);
-}
-
-ControllerConfigDiag::~ControllerConfigDiag()
-{
-#if defined(__LIBUSB__) || defined (_WIN32)
-	SI_GCAdapter::SetAdapterCallback(nullptr);
-#endif
 }

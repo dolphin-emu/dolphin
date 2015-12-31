@@ -145,6 +145,7 @@
     <ClCompile Include="HW\SI_DeviceAMBaseboard.cpp" />
     <ClCompile Include="HW\SI_DeviceDanceMat.cpp" />
     <ClCompile Include="HW\SI_DeviceGBA.cpp" />
+    <ClCompile Include="HW\SI_DeviceGCAdapter.cpp" />
     <ClCompile Include="HW\SI_DeviceGCController.cpp" />
     <ClCompile Include="HW\SI_DeviceGCSteeringWheel.cpp" />
     <ClCompile Include="HW\SI_DeviceKeyboard.cpp" />
@@ -350,6 +351,7 @@
     <ClInclude Include="HW\SI_DeviceAMBaseboard.h" />
     <ClInclude Include="HW\SI_DeviceDanceMat.h" />
     <ClInclude Include="HW\SI_DeviceGBA.h" />
+    <ClInclude Include="HW\SI_DeviceGCAdapter.h" />
     <ClInclude Include="HW\SI_DeviceGCController.h" />
     <ClInclude Include="HW\SI_DeviceGCSteeringWheel.h" />
     <ClInclude Include="HW\SI_DeviceKeyboard.h" />

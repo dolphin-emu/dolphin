@@ -10,6 +10,7 @@ set(GUI_SRCS
 	Config/AudioConfigPane.cpp
 	Config/ConfigMain.cpp
 	Config/GameCubeConfigPane.cpp
+	Config/GCAdapterConfigDiag.cpp
 	Config/GeneralConfigPane.cpp
 	Config/InterfaceConfigPane.cpp
 	Config/PathConfigPane.cpp

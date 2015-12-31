@@ -113,6 +113,7 @@ set(SRCS	ActionReplay.cpp
 			HW/SI_Device.cpp
 			HW/SI_DeviceDanceMat.cpp
 			HW/SI_DeviceGBA.cpp
+			HW/SI_DeviceGCAdapter.cpp
 			HW/SI_DeviceGCController.cpp
 			HW/SI_DeviceGCSteeringWheel.cpp
 			HW/SI_DeviceKeyboard.cpp

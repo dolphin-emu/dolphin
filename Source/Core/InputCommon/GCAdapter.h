@@ -8,7 +8,7 @@
 
 struct GCPadStatus;
 
-namespace SI_GCAdapter
+namespace GCAdapter
 {
 
 void Init();
@@ -23,5 +23,7 @@ void Input(int chan, GCPadStatus* pad);
 void Output(int chan, u8 rumble_command);
 bool IsDetected();
 bool IsDriverDetected();
+bool DeviceConnected(int chan);
+bool UseAdapter();
 
-} // end of namespace SI_GCAdapter
+} // end of namespace GCAdapter
