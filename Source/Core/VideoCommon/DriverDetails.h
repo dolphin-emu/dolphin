@@ -169,6 +169,15 @@ namespace DriverDetails
 		// We can't actually detect what the driver version is on Android, so until the driver version lands that displays the version in
 		// the GL_VERSION string, we will have to force vsync to be enabled at all times.
 		BUG_BROKENVSYNC,
+
+		// Bug: Mesa's I965 driver crashes when using ARB_shader_image_load_store
+		// Affected Devices: intel
+		// Started Version: -1 (technically 11.0.0, but there are git revisions before that)
+		// Ended Version: -1
+		// Current versions of the mesa driver reliably crash when using the ARB_shader_image_load_store extension on i965 hardware.
+		// Support for this extension was only added in 11.0.0 (and only for i965).
+		// Interestingly, we can use ARB_consertive_depth to achieve the same effect without crashes.
+		BUG_BROKENIMAGELOADSTORE,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
