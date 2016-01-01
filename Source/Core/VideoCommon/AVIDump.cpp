@@ -36,6 +36,7 @@ static AVFormatContext* s_format_context = nullptr;
 static AVStream* s_stream = nullptr;
 static AVFrame* s_src_frame = nullptr;
 static AVFrame* s_scaled_frame = nullptr;
+AVPixelFormat s_pix_fmt = AV_PIX_FMT_BGR24;
 static uint8_t* s_yuv_buffer = nullptr;
 static SwsContext* s_sws_context = nullptr;
 static int s_width;
@@ -55,8 +56,13 @@ static void InitAVCodec()
 	}
 }
 
-bool AVIDump::Start(int w, int h)
+bool AVIDump::Start(int w, int h, DumpFormat format)
 {
+	if (format == DumpFormat::FORMAT_BGR)
+		s_pix_fmt = AV_PIX_FMT_BGR24;
+	else
+		s_pix_fmt = AV_PIX_FMT_RGBA;
+
 	s_width = w;
 	s_height = h;
 
@@ -148,12 +154,12 @@ static void PreparePacket(AVPacket* pkt)
 
 void AVIDump::AddFrame(const u8* data, int width, int height)
 {
-	avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), AV_PIX_FMT_BGR24, width, height);
+	avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), s_pix_fmt, width, height);
 
-	// Convert image from BGR24 to desired pixel format, and scale to initial
+	// Convert image from {BGR24, RGBA} to desired pixel format, and scale to initial
 	// width and height
 	if ((s_sws_context = sws_getCachedContext(s_sws_context,
-	                                          width, height, AV_PIX_FMT_BGR24,
+	                                          width, height, s_pix_fmt,
 	                                          s_width, s_height, s_stream->codec->pix_fmt,
 	                                          SWS_BICUBIC, nullptr, nullptr, nullptr)))
 	{

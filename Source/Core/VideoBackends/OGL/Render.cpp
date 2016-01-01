@@ -1336,65 +1336,63 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// Frame dumps are handled a little differently in Windows
-	// Frame dumping disabled entirely on GLES3
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
-	{
 #if defined(HAVE_LIBAV) || defined (_WIN32)
-		if (SConfig::GetInstance().m_DumpFrames)
-		{
-			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-			if (frame_data.empty() || w != flipped_trc.GetWidth() ||
-				     h != flipped_trc.GetHeight())
-			{
-				w = flipped_trc.GetWidth();
-				h = flipped_trc.GetHeight();
-				frame_data.resize(3 * w * h);
-			}
-			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-			glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-			if (w > 0 && h > 0)
-			{
-				if (!bLastFrameDumped)
-				{
-					bAVIDumping = AVIDump::Start(w, h);
-					if (!bAVIDumping)
-					{
-						OSD::AddMessage("AVIDump Start failed", 2000);
-					}
-					else
-					{
-						OSD::AddMessage(StringFromFormat(
-									"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-									File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h), 2000);
-					}
-				}
-				if (bAVIDumping)
-				{
-					FlipImageData(&frame_data[0], w, h);
-					AVIDump::AddFrame(&frame_data[0], w, h);
-				}
+	if (SConfig::GetInstance().m_DumpFrames)
+	{
+		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 
-				bLastFrameDumped = true;
-			}
-			else
+		if (frame_data.empty() ||
+		    w != flipped_trc.GetWidth() || h != flipped_trc.GetHeight())
+		{
+			w = flipped_trc.GetWidth();
+			h = flipped_trc.GetHeight();
+			frame_data.resize(4 * w * h);
+		}
+
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &frame_data[0]);
+		if (w > 0 && h > 0)
+		{
+			if (!bLastFrameDumped)
 			{
-				NOTICE_LOG(VIDEO, "Error reading framebuffer");
+				bAVIDumping = AVIDump::Start(w, h, AVIDump::DumpFormat::FORMAT_RGBA);
+				if (!bAVIDumping)
+				{
+					OSD::AddMessage("AVIDump Start failed", 2000);
+				}
+				else
+				{
+					OSD::AddMessage(StringFromFormat(
+								"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+								File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h), 2000);
+				}
 			}
+			if (bAVIDumping)
+			{
+				FlipImageData(&frame_data[0], w, h, 4);
+				AVIDump::AddFrame(&frame_data[0], w, h);
+			}
+
+			bLastFrameDumped = true;
 		}
 		else
 		{
-			if (bLastFrameDumped && bAVIDumping)
-			{
-				std::vector<u8>().swap(frame_data);
-				w = h = 0;
-				AVIDump::Stop();
-				bAVIDumping = false;
-				OSD::AddMessage("Stop dumping frames", 2000);
-			}
-			bLastFrameDumped = false;
+			NOTICE_LOG(VIDEO, "Error reading framebuffer");
 		}
-#endif
 	}
+	else
+	{
+		if (bLastFrameDumped && bAVIDumping)
+		{
+			std::vector<u8>().swap(frame_data);
+			w = h = 0;
+			AVIDump::Stop();
+			bAVIDumping = false;
+			OSD::AddMessage("Stop dumping frames", 2000);
+		}
+		bLastFrameDumped = false;
+	}
+#endif
 	// Finish up the current frame, print some stats
 
 	SetWindowSize(fbStride, fbHeight);
