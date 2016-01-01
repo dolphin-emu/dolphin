@@ -130,6 +130,8 @@ struct SConfig : NonCopyable
 	// Fifo Player related settings
 	bool bLoopFifoReplay;
 
+	bool bLoadSaveState;
+
 	enum EBootBS2
 	{
 		BOOT_DEFAULT,
@@ -164,6 +166,7 @@ struct SConfig : NonCopyable
 	std::string m_strApploader;
 	std::string m_strUniqueID;
 	std::string m_strName;
+	std::string m_state;
 	u16 m_revision;
 
 	std::string m_perfDir;

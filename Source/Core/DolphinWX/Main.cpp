@@ -214,6 +214,11 @@ void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
+			wxCMD_LINE_OPTION, "s", "load_state",
+			"Load savestate slot or file",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
 			wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
@@ -240,6 +245,7 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
 	m_use_logger = parser.Found("logger");
 	m_batch_mode = parser.Found("batch");
 	m_confirm_stop = parser.Found("confirm", &m_confirm_setting);
+	m_load_state = parser.Found("load_state", &m_state);
 	m_select_video_backend = parser.Found("video_backend", &m_video_backend_name);
 	m_select_audio_emulation = parser.Found("audio_emulation", &m_audio_emulation_name);
 	m_play_movie = parser.Found("movie", &m_movie_file);
@@ -288,6 +294,11 @@ void DolphinApp::AfterInit()
 	else if (m_load_file && !m_file_to_load.empty())
 	{
 		main_frame->BootGame(WxStrToStr(m_file_to_load));
+		if (m_load_state && !m_state.empty())
+		{
+			SConfig::GetInstance().bLoadSaveState = true;
+			SConfig::GetInstance().m_state = m_state;
+		}
 	}
 	// If we have selected Automatic Start, start the default ISO,
 	// or if no default ISO exists, start the last loaded ISO
