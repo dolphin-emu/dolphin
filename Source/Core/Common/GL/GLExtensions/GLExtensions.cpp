@@ -802,9 +802,18 @@ PFNGLCOPYIMAGESUBDATAPROC glCopyImageSubData;
 // For when we want to use the same function pointer, but different function name
 #define GLFUNC_SUFFIX(x, y, z) { (void**)&x, #x #y, z }
 // Creates a GLFunc object that should always be able to get grabbed
-// Used for OpenGL functions that should /always/ be provided.
+// Used for Desktop OpenGL functions that should /always/ be provided.
 // aka GL 1.1/1.2/1.3/1.4
-#define GLFUNC_ALWAYS_REQUIRED(x) { (void**)&x, #x, "" }
+#define GLFUNC_ALWAYS_REQUIRED(x) { (void**)&x, #x, "VERSION_GL" }
+// Creates a GLFunc object that should be able to get grabbed
+// on both GL and ES
+#define GL_ES_FUNC_ALWAYS_REQUIRED(x) { (void**)&x, #x, "VERSION_GL |VERSION_GLES_2" }
+// Creates a GLFunc object that should be able to get grabbed
+// on both GL and ES 3.0
+#define GL_ES3_FUNC_ALWAYS_REQUIRED(x) { (void**)&x, #x, "VERSION_GL |VERSION_GLES_3" }
+// Creates a GLFunc object that should be able to get grabbed
+// on both GL and ES 3.2
+#define GL_ES32_FUNC_ALWAYS_REQUIRED(x) { (void**)&x, #x, "VERSION_GL |VERSION_GLES_3_2" }
 
 struct GLFunc
 {
@@ -815,582 +824,36 @@ struct GLFunc
 
 const GLFunc gl_function_array[] =
 {
-	// gl_1_2
-	GLFUNC_ALWAYS_REQUIRED(glCopyTexSubImage3D),
-	GLFUNC_ALWAYS_REQUIRED(glDrawRangeElements),
-	GLFUNC_ALWAYS_REQUIRED(glTexImage3D),
-	GLFUNC_ALWAYS_REQUIRED(glTexSubImage3D),
-
-	// gl_1_3
-	GLFUNC_ALWAYS_REQUIRED(glActiveTexture),
-	GLFUNC_ALWAYS_REQUIRED(glClientActiveTexture),
-	GLFUNC_ALWAYS_REQUIRED(glCompressedTexImage1D),
-	GLFUNC_ALWAYS_REQUIRED(glCompressedTexImage2D),
-	GLFUNC_ALWAYS_REQUIRED(glCompressedTexImage3D),
-	GLFUNC_ALWAYS_REQUIRED(glCompressedTexSubImage1D),
-	GLFUNC_ALWAYS_REQUIRED(glCompressedTexSubImage2D),
-	GLFUNC_ALWAYS_REQUIRED(glCompressedTexSubImage3D),
-	GLFUNC_ALWAYS_REQUIRED(glGetCompressedTexImage),
-	GLFUNC_ALWAYS_REQUIRED(glLoadTransposeMatrixd),
-	GLFUNC_ALWAYS_REQUIRED(glLoadTransposeMatrixf),
-	GLFUNC_ALWAYS_REQUIRED(glMultTransposeMatrixd),
-	GLFUNC_ALWAYS_REQUIRED(glMultTransposeMatrixf),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1d),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1dv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1f),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1fv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1i),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1iv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1s),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1sv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2d),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2dv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2f),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2fv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2i),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2iv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2s),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2sv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3d),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3dv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3f),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3fv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3i),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3iv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3s),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3sv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4d),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4dv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4f),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4fv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4i),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4iv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4s),
-	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4sv),
-	GLFUNC_ALWAYS_REQUIRED(glSampleCoverage),
-
-	// gl_1_4
-	GLFUNC_ALWAYS_REQUIRED(glBlendColor),
-	GLFUNC_ALWAYS_REQUIRED(glBlendEquation),
-	GLFUNC_ALWAYS_REQUIRED(glBlendFuncSeparate),
-	GLFUNC_ALWAYS_REQUIRED(glFogCoordPointer),
-	GLFUNC_ALWAYS_REQUIRED(glFogCoordd),
-	GLFUNC_ALWAYS_REQUIRED(glFogCoorddv),
-	GLFUNC_ALWAYS_REQUIRED(glFogCoordf),
-	GLFUNC_ALWAYS_REQUIRED(glFogCoordfv),
-	GLFUNC_ALWAYS_REQUIRED(glMultiDrawArrays),
-	GLFUNC_ALWAYS_REQUIRED(glMultiDrawElements),
-	GLFUNC_ALWAYS_REQUIRED(glPointParameterf),
-	GLFUNC_ALWAYS_REQUIRED(glPointParameterfv),
-	GLFUNC_ALWAYS_REQUIRED(glPointParameteri),
-	GLFUNC_ALWAYS_REQUIRED(glPointParameteriv),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3b),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3bv),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3d),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3dv),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3f),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3fv),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3i),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3iv),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3s),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3sv),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3ub),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3ubv),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3ui),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3uiv),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3us),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3usv),
-	GLFUNC_ALWAYS_REQUIRED(glSecondaryColorPointer),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos2d),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos2dv),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos2f),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos2fv),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos2i),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos2iv),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos2s),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos2sv),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos3d),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos3dv),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos3f),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos3fv),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos3i),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos3iv),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos3s),
-	GLFUNC_ALWAYS_REQUIRED(glWindowPos3sv),
-
-	// gl_1_5
-	GLFUNC_ALWAYS_REQUIRED(glBeginQuery),
-	GLFUNC_ALWAYS_REQUIRED(glBindBuffer),
-	GLFUNC_ALWAYS_REQUIRED(glBufferData),
-	GLFUNC_ALWAYS_REQUIRED(glBufferSubData),
-	GLFUNC_ALWAYS_REQUIRED(glDeleteBuffers),
-	GLFUNC_ALWAYS_REQUIRED(glDeleteQueries),
-	GLFUNC_ALWAYS_REQUIRED(glEndQuery),
-	GLFUNC_ALWAYS_REQUIRED(glGenBuffers),
-	GLFUNC_ALWAYS_REQUIRED(glGenQueries),
-	GLFUNC_ALWAYS_REQUIRED(glGetBufferParameteriv),
-	GLFUNC_ALWAYS_REQUIRED(glGetBufferPointerv),
-	GLFUNC_ALWAYS_REQUIRED(glGetBufferSubData),
-	GLFUNC_ALWAYS_REQUIRED(glGetQueryObjectiv),
-	GLFUNC_ALWAYS_REQUIRED(glGetQueryObjectuiv),
-	GLFUNC_ALWAYS_REQUIRED(glGetQueryiv),
-	GLFUNC_ALWAYS_REQUIRED(glIsBuffer),
-	GLFUNC_ALWAYS_REQUIRED(glIsQuery),
-	GLFUNC_ALWAYS_REQUIRED(glMapBuffer),
-	GLFUNC_ALWAYS_REQUIRED(glUnmapBuffer),
-
-	// gl_2_0
-	GLFUNC_ALWAYS_REQUIRED(glAttachShader),
-	GLFUNC_ALWAYS_REQUIRED(glBindAttribLocation),
-	GLFUNC_ALWAYS_REQUIRED(glBlendEquationSeparate),
-	GLFUNC_ALWAYS_REQUIRED(glCompileShader),
-	GLFUNC_ALWAYS_REQUIRED(glCreateProgram),
-	GLFUNC_ALWAYS_REQUIRED(glCreateShader),
-	GLFUNC_ALWAYS_REQUIRED(glDeleteProgram),
-	GLFUNC_ALWAYS_REQUIRED(glDeleteShader),
-	GLFUNC_ALWAYS_REQUIRED(glDetachShader),
-	GLFUNC_ALWAYS_REQUIRED(glDisableVertexAttribArray),
-	GLFUNC_ALWAYS_REQUIRED(glDrawBuffers),
-	GLFUNC_ALWAYS_REQUIRED(glEnableVertexAttribArray),
-	GLFUNC_ALWAYS_REQUIRED(glGetActiveAttrib),
-	GLFUNC_ALWAYS_REQUIRED(glGetActiveUniform),
-	GLFUNC_ALWAYS_REQUIRED(glGetAttachedShaders),
-	GLFUNC_ALWAYS_REQUIRED(glGetAttribLocation),
-	GLFUNC_ALWAYS_REQUIRED(glGetProgramInfoLog),
-	GLFUNC_ALWAYS_REQUIRED(glGetProgramiv),
-	GLFUNC_ALWAYS_REQUIRED(glGetShaderInfoLog),
-	GLFUNC_ALWAYS_REQUIRED(glGetShaderSource),
-	GLFUNC_ALWAYS_REQUIRED(glGetShaderiv),
-	GLFUNC_ALWAYS_REQUIRED(glGetUniformLocation),
-	GLFUNC_ALWAYS_REQUIRED(glGetUniformfv),
-	GLFUNC_ALWAYS_REQUIRED(glGetUniformiv),
-	GLFUNC_ALWAYS_REQUIRED(glGetVertexAttribPointerv),
-	GLFUNC_ALWAYS_REQUIRED(glGetVertexAttribdv),
-	GLFUNC_ALWAYS_REQUIRED(glGetVertexAttribfv),
-	GLFUNC_ALWAYS_REQUIRED(glGetVertexAttribiv),
-	GLFUNC_ALWAYS_REQUIRED(glIsProgram),
-	GLFUNC_ALWAYS_REQUIRED(glIsShader),
-	GLFUNC_ALWAYS_REQUIRED(glLinkProgram),
-	GLFUNC_ALWAYS_REQUIRED(glShaderSource),
-	GLFUNC_ALWAYS_REQUIRED(glStencilFuncSeparate),
-	GLFUNC_ALWAYS_REQUIRED(glStencilMaskSeparate),
-	GLFUNC_ALWAYS_REQUIRED(glStencilOpSeparate),
-	GLFUNC_ALWAYS_REQUIRED(glUniform1f),
-	GLFUNC_ALWAYS_REQUIRED(glUniform1fv),
-	GLFUNC_ALWAYS_REQUIRED(glUniform1i),
-	GLFUNC_ALWAYS_REQUIRED(glUniform1iv),
-	GLFUNC_ALWAYS_REQUIRED(glUniform2f),
-	GLFUNC_ALWAYS_REQUIRED(glUniform2fv),
-	GLFUNC_ALWAYS_REQUIRED(glUniform2i),
-	GLFUNC_ALWAYS_REQUIRED(glUniform2iv),
-	GLFUNC_ALWAYS_REQUIRED(glUniform3f),
-	GLFUNC_ALWAYS_REQUIRED(glUniform3fv),
-	GLFUNC_ALWAYS_REQUIRED(glUniform3i),
-	GLFUNC_ALWAYS_REQUIRED(glUniform3iv),
-	GLFUNC_ALWAYS_REQUIRED(glUniform4f),
-	GLFUNC_ALWAYS_REQUIRED(glUniform4fv),
-	GLFUNC_ALWAYS_REQUIRED(glUniform4i),
-	GLFUNC_ALWAYS_REQUIRED(glUniform4iv),
-	GLFUNC_ALWAYS_REQUIRED(glUniformMatrix2fv),
-	GLFUNC_ALWAYS_REQUIRED(glUniformMatrix3fv),
-	GLFUNC_ALWAYS_REQUIRED(glUniformMatrix4fv),
-	GLFUNC_ALWAYS_REQUIRED(glUseProgram),
-	GLFUNC_ALWAYS_REQUIRED(glValidateProgram),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib1d),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib1dv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib1f),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib1fv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib1s),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib1sv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib2d),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib2dv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib2f),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib2fv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib2s),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib2sv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib3d),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib3dv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib3f),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib3fv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib3s),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib3sv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nbv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Niv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nsv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nub),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nubv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nuiv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nusv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4bv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4d),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4dv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4f),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4fv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4iv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4s),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4sv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4ubv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4uiv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4usv),
-	GLFUNC_ALWAYS_REQUIRED(glVertexAttribPointer),
-
-	// gl_3_0
-	GLFUNC_REQUIRES(glBeginConditionalRender,      "VERSION_3_0"),
-	GLFUNC_REQUIRES(glBeginTransformFeedback,      "VERSION_3_0"),
-	GLFUNC_REQUIRES(glBindFragDataLocation,        "VERSION_3_0"),
-	GLFUNC_REQUIRES(glClampColor,                  "VERSION_3_0"),
-	GLFUNC_REQUIRES(glClearBufferfi,               "VERSION_3_0"),
-	GLFUNC_REQUIRES(glClearBufferfv,               "VERSION_3_0"),
-	GLFUNC_REQUIRES(glClearBufferiv,               "VERSION_3_0"),
-	GLFUNC_REQUIRES(glClearBufferuiv,              "VERSION_3_0"),
-	GLFUNC_REQUIRES(glColorMaski,                  "VERSION_3_0"),
-	GLFUNC_REQUIRES(glDisablei,                    "VERSION_3_0"),
-	GLFUNC_REQUIRES(glEnablei,                     "VERSION_3_0"),
-	GLFUNC_REQUIRES(glEndConditionalRender,        "VERSION_3_0"),
-	GLFUNC_REQUIRES(glEndTransformFeedback,        "VERSION_3_0"),
-	GLFUNC_REQUIRES(glGetBooleani_v,               "VERSION_3_0"),
-	GLFUNC_REQUIRES(glGetFragDataLocation,         "VERSION_3_0"),
-	GLFUNC_REQUIRES(glGetStringi,                  "VERSION_3_0"),
-	GLFUNC_REQUIRES(glGetTexParameterIiv,          "VERSION_3_0"),
-	GLFUNC_REQUIRES(glGetTexParameterIuiv,         "VERSION_3_0"),
-	GLFUNC_REQUIRES(glGetTransformFeedbackVarying, "VERSION_3_0"),
-	GLFUNC_REQUIRES(glGetUniformuiv,               "VERSION_3_0"),
-	GLFUNC_REQUIRES(glGetVertexAttribIiv,          "VERSION_3_0"),
-	GLFUNC_REQUIRES(glGetVertexAttribIuiv,         "VERSION_3_0"),
-	GLFUNC_REQUIRES(glIsEnabledi,                  "VERSION_3_0"),
-	GLFUNC_REQUIRES(glTexParameterIiv,             "VERSION_3_0"),
-	GLFUNC_REQUIRES(glTexParameterIuiv,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glTransformFeedbackVaryings,   "VERSION_3_0"),
-	GLFUNC_REQUIRES(glUniform1ui,                  "VERSION_3_0"),
-	GLFUNC_REQUIRES(glUniform1uiv,                 "VERSION_3_0"),
-	GLFUNC_REQUIRES(glUniform2ui,                  "VERSION_3_0"),
-	GLFUNC_REQUIRES(glUniform2uiv,                 "VERSION_3_0"),
-	GLFUNC_REQUIRES(glUniform3ui,                  "VERSION_3_0"),
-	GLFUNC_REQUIRES(glUniform3uiv,                 "VERSION_3_0"),
-	GLFUNC_REQUIRES(glUniform4ui,                  "VERSION_3_0"),
-	GLFUNC_REQUIRES(glUniform4uiv,                 "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI1i,             "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI1iv,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI1ui,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI1uiv,           "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI2i,             "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI2iv,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI2ui,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI2uiv,           "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI3i,             "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI3iv,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI3ui,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI3uiv,           "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI4bv,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI4i,             "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI4iv,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI4sv,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI4ubv,           "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI4ui,            "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI4uiv,           "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribI4usv,           "VERSION_3_0"),
-	GLFUNC_REQUIRES(glVertexAttribIPointer,        "VERSION_3_0"),
-
-	// gl_3_1
-	GLFUNC_REQUIRES(glDrawArraysInstanced,   "VERSION_3_1"),
-	GLFUNC_REQUIRES(glDrawElementsInstanced, "VERSION_3_1"),
-	GLFUNC_REQUIRES(glPrimitiveRestartIndex, "VERSION_3_1"),
-	GLFUNC_REQUIRES(glTexBuffer,             "VERSION_3_1"),
-
-	// gl_3_2
-	GLFUNC_REQUIRES(glFramebufferTexture,     "VERSION_3_2"),
-	GLFUNC_REQUIRES(glGetBufferParameteri64v, "VERSION_3_2"),
-	GLFUNC_REQUIRES(glGetInteger64i_v,        "VERSION_3_2"),
-
-	// ARB_uniform_buffer_object
-	GLFUNC_REQUIRES(glBindBufferBase,            "GL_ARB_uniform_buffer_object"),
-	GLFUNC_REQUIRES(glBindBufferRange,           "GL_ARB_uniform_buffer_object"),
-	GLFUNC_REQUIRES(glGetActiveUniformBlockName, "GL_ARB_uniform_buffer_object"),
-	GLFUNC_REQUIRES(glGetActiveUniformBlockiv,   "GL_ARB_uniform_buffer_object"),
-	GLFUNC_REQUIRES(glGetActiveUniformName,      "GL_ARB_uniform_buffer_object"),
-	GLFUNC_REQUIRES(glGetActiveUniformsiv,       "GL_ARB_uniform_buffer_object"),
-	GLFUNC_REQUIRES(glGetIntegeri_v,             "GL_ARB_uniform_buffer_object"),
-	GLFUNC_REQUIRES(glGetUniformBlockIndex,      "GL_ARB_uniform_buffer_object"),
-	GLFUNC_REQUIRES(glGetUniformIndices,         "GL_ARB_uniform_buffer_object"),
-	GLFUNC_REQUIRES(glUniformBlockBinding,       "GL_ARB_uniform_buffer_object"),
-
-	// ARB_sampler_objects
-	GLFUNC_REQUIRES(glBindSampler,             "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glDeleteSamplers,          "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glGenSamplers,             "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glGetSamplerParameterIiv,  "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glGetSamplerParameterIuiv, "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glGetSamplerParameterfv,   "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glGetSamplerParameteriv,   "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glIsSampler,               "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glSamplerParameterIiv,     "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glSamplerParameterIuiv,    "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glSamplerParameterf,       "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glSamplerParameterfv,      "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glSamplerParameteri,       "GL_ARB_sampler_objects"),
-	GLFUNC_REQUIRES(glSamplerParameteriv,      "GL_ARB_sampler_objects"),
-
-	// ARB_map_buffer_range
-	GLFUNC_REQUIRES(glFlushMappedBufferRange, "GL_ARB_map_buffer_range"),
-	GLFUNC_REQUIRES(glMapBufferRange,         "GL_ARB_map_buffer_range"),
-
-	// ARB_vertex_array_object
-	GLFUNC_REQUIRES(glBindVertexArray,    "GL_ARB_vertex_array_object"),
-	GLFUNC_REQUIRES(glDeleteVertexArrays, "GL_ARB_vertex_array_object"),
-	GLFUNC_REQUIRES(glGenVertexArrays,    "GL_ARB_vertex_array_object"),
-	GLFUNC_REQUIRES(glIsVertexArray,      "GL_ARB_vertex_array_object"),
-
-	// APPLE_vertex_array_object
-	GLFUNC_SUFFIX(glBindVertexArray,    APPLE, "GL_APPLE_vertex_array_object !GL_ARB_vertex_array_object"),
-	GLFUNC_SUFFIX(glDeleteVertexArrays, APPLE, "GL_APPLE_vertex_array_object !GL_ARB_vertex_array_object"),
-	GLFUNC_SUFFIX(glGenVertexArrays,    APPLE, "GL_APPLE_vertex_array_object !GL_ARB_vertex_array_object"),
-	GLFUNC_SUFFIX(glIsVertexArray,      APPLE, "GL_APPLE_vertex_array_object !GL_ARB_vertex_array_object"),
-
-	// ARB_framebuffer_object
-	GLFUNC_REQUIRES(glBindFramebuffer,                     "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glBindRenderbuffer,                    "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glBlitFramebuffer,                     "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glCheckFramebufferStatus,              "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glDeleteFramebuffers,                  "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glDeleteRenderbuffers,                 "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glFramebufferRenderbuffer,             "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glFramebufferTexture1D,                "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glFramebufferTexture2D,                "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glFramebufferTexture3D,                "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glFramebufferTextureLayer,             "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glGenFramebuffers,                     "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glGenRenderbuffers,                    "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glGenerateMipmap,                      "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glGetFramebufferAttachmentParameteriv, "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glGetRenderbufferParameteriv,          "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glIsFramebuffer,                       "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glIsRenderbuffer,                      "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glRenderbufferStorage,                 "GL_ARB_framebuffer_object"),
-	GLFUNC_REQUIRES(glRenderbufferStorageMultisample,      "GL_ARB_framebuffer_object"),
-
-	// ARB_get_program_binary
-	GLFUNC_REQUIRES(glGetProgramBinary,  "GL_ARB_get_program_binary"),
-	GLFUNC_REQUIRES(glProgramBinary,     "GL_ARB_get_program_binary"),
-	GLFUNC_REQUIRES(glProgramParameteri, "GL_ARB_get_program_binary"),
-
-	// ARB_sync
-	GLFUNC_REQUIRES(glClientWaitSync, "GL_ARB_sync"),
-	GLFUNC_REQUIRES(glDeleteSync,     "GL_ARB_sync"),
-	GLFUNC_REQUIRES(glFenceSync,      "GL_ARB_sync"),
-	GLFUNC_REQUIRES(glGetInteger64v,  "GL_ARB_sync"),
-	GLFUNC_REQUIRES(glGetSynciv,      "GL_ARB_sync"),
-	GLFUNC_REQUIRES(glIsSync,         "GL_ARB_sync"),
-	GLFUNC_REQUIRES(glWaitSync,       "GL_ARB_sync"),
-
-	// ARB_texture_multisample
-	GLFUNC_REQUIRES(glTexImage2DMultisample, "GL_ARB_texture_multisample"),
-	GLFUNC_REQUIRES(glTexImage3DMultisample, "GL_ARB_texture_multisample"),
-	GLFUNC_REQUIRES(glGetMultisamplefv,      "GL_ARB_texture_multisample"),
-	GLFUNC_REQUIRES(glSampleMaski,           "GL_ARB_texture_multisample"),
-
-	// ARB_texture_storage_multisample
-	GLFUNC_REQUIRES(glTexStorage2DMultisample, "GL_ARB_texture_storage_multisample"),
-	GLFUNC_REQUIRES(glTexStorage3DMultisample, "GL_ARB_texture_storage_multisample"),
-	GLFUNC_SUFFIX(glTexStorage3DMultisample, OES, "GL_OES_texture_storage_multisample_2d_array !VERSION_GLES_3_2"),
-
-	// ARB_ES2_compatibility
-	GLFUNC_REQUIRES(glClearDepthf,              "GL_ARB_ES2_compatibility"),
-	GLFUNC_REQUIRES(glDepthRangef,              "GL_ARB_ES2_compatibility"),
-	GLFUNC_REQUIRES(glGetShaderPrecisionFormat, "GL_ARB_ES2_compatibility"),
-	GLFUNC_REQUIRES(glReleaseShaderCompiler,    "GL_ARB_ES2_compatibility"),
-	GLFUNC_REQUIRES(glShaderBinary,             "GL_ARB_ES2_compatibility"),
-
-	// NV_primitive_restart
-	GLFUNC_REQUIRES(glPrimitiveRestartIndexNV, "GL_NV_primitive_restart"),
-	GLFUNC_REQUIRES(glPrimitiveRestartNV,      "GL_NV_primitive_restart"),
-
-	// ARB_blend_func_extended
-	GLFUNC_REQUIRES(glBindFragDataLocationIndexed, "GL_ARB_blend_func_extended"),
-	GLFUNC_REQUIRES(glGetFragDataIndex,            "GL_ARB_blend_func_extended"),
-
-	// ARB_viewport_array
-	GLFUNC_REQUIRES(glDepthRangeArrayv,  "GL_ARB_viewport_array"),
-	GLFUNC_REQUIRES(glDepthRangeIndexed, "GL_ARB_viewport_array"),
-	GLFUNC_REQUIRES(glGetDoublei_v,      "GL_ARB_viewport_array"),
-	GLFUNC_REQUIRES(glGetFloati_v,       "GL_ARB_viewport_array"),
-	GLFUNC_REQUIRES(glScissorArrayv,     "GL_ARB_viewport_array"),
-	GLFUNC_REQUIRES(glScissorIndexed,    "GL_ARB_viewport_array"),
-	GLFUNC_REQUIRES(glScissorIndexedv,   "GL_ARB_viewport_array"),
-	GLFUNC_REQUIRES(glViewportArrayv,    "GL_ARB_viewport_array"),
-	GLFUNC_REQUIRES(glViewportIndexedf,  "GL_ARB_viewport_array"),
-	GLFUNC_REQUIRES(glViewportIndexedfv, "GL_ARB_viewport_array"),
-
-	// ARB_draw_elements_base_vertex
-	GLFUNC_REQUIRES(glDrawElementsBaseVertex,          "GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_REQUIRES(glDrawElementsInstancedBaseVertex, "GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_REQUIRES(glDrawRangeElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_REQUIRES(glMultiDrawElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
-
-	// OES_draw_elements_base_vertex
-	GLFUNC_SUFFIX(glDrawElementsBaseVertex,          OES, "GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_SUFFIX(glDrawElementsInstancedBaseVertex, OES, "GL_OES_draw_elements_base_vertex VERSION_GLES3 !GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_SUFFIX(glDrawRangeElementsBaseVertex,     OES, "GL_OES_draw_elements_base_vertex VERSION_GLES3 !GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex,     OES, "GL_OES_draw_elements_base_vertex GL_EXT_multi_draw_arrays !GL_ARB_draw_elements_base_vertex"),
-
-	// EXT_draw_elements_base_vertex
-	GLFUNC_SUFFIX(glDrawElementsBaseVertex,          EXT, "GL_EXT_draw_elements_base_vertex !GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_SUFFIX(glDrawElementsInstancedBaseVertex, EXT, "GL_EXT_draw_elements_base_vertex VERSION_GLES3 !GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_SUFFIX(glDrawRangeElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex VERSION_GLES3 !GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
-	GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex GL_EXT_multi_draw_arrays !GL_OES_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
-
-	// ARB_sample_shading
-	GLFUNC_SUFFIX(glMinSampleShading, ARB, "GL_ARB_sample_shading"),
-
-	// OES_sample_shading
-	GLFUNC_SUFFIX(glMinSampleShading, OES, "GL_OES_sample_shading !VERSION_GLES_3_2"),
-
-	// ARB_debug_output
-	GLFUNC_REQUIRES(glDebugMessageCallbackARB, "GL_ARB_debug_output"),
-	GLFUNC_REQUIRES(glDebugMessageControlARB,  "GL_ARB_debug_output"),
-	GLFUNC_REQUIRES(glDebugMessageInsertARB,   "GL_ARB_debug_output"),
-	GLFUNC_REQUIRES(glGetDebugMessageLogARB,   "GL_ARB_debug_output"),
-
-	// KHR_debug
-	GLFUNC_SUFFIX(glDebugMessageCallback, KHR, "GL_KHR_debug VERSION_GLES3"),
-	GLFUNC_SUFFIX(glDebugMessageControl,  KHR, "GL_KHR_debug VERSION_GLES3"),
-	GLFUNC_SUFFIX(glDebugMessageInsert,   KHR, "GL_KHR_debug VERSION_GLES3"),
-	GLFUNC_SUFFIX(glGetDebugMessageLog,   KHR, "GL_KHR_debug VERSION_GLES3"),
-	GLFUNC_SUFFIX(glGetObjectLabel,       KHR, "GL_KHR_debug VERSION_GLES3"),
-	GLFUNC_SUFFIX(glGetObjectPtrLabel,    KHR, "GL_KHR_debug VERSION_GLES3"),
-	GLFUNC_SUFFIX(glObjectLabel,          KHR, "GL_KHR_debug VERSION_GLES3"),
-	GLFUNC_SUFFIX(glObjectPtrLabel,       KHR, "GL_KHR_debug VERSION_GLES3"),
-	GLFUNC_SUFFIX(glPopDebugGroup,        KHR, "GL_KHR_debug VERSION_GLES3"),
-	GLFUNC_SUFFIX(glPushDebugGroup,       KHR, "GL_KHR_debug VERSION_GLES3"),
-	GLFUNC_REQUIRES(glDebugMessageCallback, "GL_KHR_debug !VERSION_GLES3"),
-	GLFUNC_REQUIRES(glDebugMessageControl,  "GL_KHR_debug !VERSION_GLES3"),
-	GLFUNC_REQUIRES(glDebugMessageInsert,   "GL_KHR_debug !VERSION_GLES3"),
-	GLFUNC_REQUIRES(glGetDebugMessageLog,   "GL_KHR_debug !VERSION_GLES3"),
-	GLFUNC_REQUIRES(glGetObjectLabel,       "GL_KHR_debug !VERSION_GLES3"),
-	GLFUNC_REQUIRES(glGetObjectPtrLabel,    "GL_KHR_debug !VERSION_GLES3"),
-	GLFUNC_REQUIRES(glObjectLabel,          "GL_KHR_debug !VERSION_GLES3"),
-	GLFUNC_REQUIRES(glObjectPtrLabel,       "GL_KHR_debug !VERSION_GLES3"),
-	GLFUNC_REQUIRES(glPopDebugGroup,        "GL_KHR_debug !VERSION_GLES3"),
-	GLFUNC_REQUIRES(glPushDebugGroup,       "GL_KHR_debug !VERSION_GLES3"),
-
-	// ARB_buffer_storage
-	GLFUNC_REQUIRES(glBufferStorage,         "GL_ARB_buffer_storage"),
-	GLFUNC_REQUIRES(glNamedBufferStorageEXT, "GL_ARB_buffer_storage GL_EXT_direct_state_access"),
-
-	// EXT_buffer_storage
-	GLFUNC_SUFFIX(glBufferStorage, EXT, "GL_EXT_buffer_storage !GL_ARB_buffer_storage"),
-
-	// EXT_geometry_shader
-	GLFUNC_SUFFIX(glFramebufferTexture, EXT, "GL_EXT_geometry_shader !VERSION_3_2"),
-
-	// NV_occlusion_query_samples
-	GLFUNC_REQUIRES(glGenOcclusionQueriesNV,    "GL_NV_occlusion_query_samples"),
-	GLFUNC_REQUIRES(glDeleteOcclusionQueriesNV, "GL_NV_occlusion_query_samples"),
-	GLFUNC_REQUIRES(glIsOcclusionQueryNV,       "GL_NV_occlusion_query_samples"),
-	GLFUNC_REQUIRES(glBeginOcclusionQueryNV,    "GL_NV_occlusion_query_samples"),
-	GLFUNC_REQUIRES(glEndOcclusionQueryNV,      "GL_NV_occlusion_query_samples"),
-	GLFUNC_REQUIRES(glGetOcclusionQueryivNV,    "GL_NV_occlusion_query_samples"),
-	GLFUNC_REQUIRES(glGetOcclusionQueryuivNV,   "GL_NV_occlusion_query_samples"),
-
-	// ARB_clip_control
-	GLFUNC_REQUIRES(glClipControl, "GL_ARB_clip_control"),
-
-	// ARB_copy_image
-	GLFUNC_REQUIRES(glCopyImageSubData, "GL_ARB_copy_image"),
-
-	// NV_copy_image
-	GLFUNC_SUFFIX(glCopyImageSubData, NV, "GL_NV_copy_image !GL_ARB_copy_image !VERSION_GLES_3_2"),
-
-	// OES_copy_image
-	GLFUNC_SUFFIX(glCopyImageSubData, OES, "GL_OES_copy_image !VERSION_GLES_3_2"),
-
-	// EXT_copy_image
-	GLFUNC_SUFFIX(glCopyImageSubData, EXT, "GL_EXT_copy_image !GL_OES_copy_image !VERSION_GLES_3_2"),
-
-	// EXT_texture_buffer
-	GLFUNC_SUFFIX(glTexBuffer, OES, "GL_OES_texture_buffer !VERSION_GLES_3_2"),
-
-	// EXT_texture_buffer
-	GLFUNC_SUFFIX(glTexBuffer, EXT, "GL_EXT_texture_buffer !GL_OES_texture_buffer !VERSION_GLES_3_2"),
-	// GLES 3.1
-	GLFUNC_REQUIRES(glTexStorage2DMultisample, "VERSION_GLES_3_1"),
-
-	// EXT_blend_func_extended
-	GLFUNC_SUFFIX(glBindFragDataLocationIndexed, EXT, "GL_EXT_blend_func_extended"),
-	GLFUNC_SUFFIX(glGetFragDataIndex, EXT,            "GL_EXT_blend_func_extended"),
-
-	// GLES 3.2
-	GLFUNC_REQUIRES(glMinSampleShading,        "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glDebugMessageCallback,    "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glDebugMessageControl,     "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glDebugMessageInsert,      "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glGetDebugMessageLog,      "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glGetObjectLabel,          "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glGetObjectPtrLabel,       "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glObjectLabel,             "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glObjectPtrLabel,          "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glPopDebugGroup,           "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glPushDebugGroup,          "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glCopyImageSubData,        "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glTexBuffer,               "VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glTexStorage3DMultisample, "VERSION_GLES_3_2"),
-
 	// gl_1_1
-	// OpenGL 1.1 is at the end due to a bug in Android's EGL stack.
-	// eglGetProcAddress can only return a finite amount of function pointers
-	// To work around the issue put GL 1.1 function pointers at the end of the list
-	// We don't use many from GL 1.1, so we don't have the chance of hitting a null pointer
-	// For more information about Android's failing EGL stack, look at the Android issue report
-	// https://code.google.com/p/android/issues/detail?id=80882
 	GLFUNC_ALWAYS_REQUIRED(glClearIndex),
-	GLFUNC_ALWAYS_REQUIRED(glClearColor),
-	GLFUNC_ALWAYS_REQUIRED(glClear),
 	GLFUNC_ALWAYS_REQUIRED(glIndexMask),
-	GLFUNC_ALWAYS_REQUIRED(glColorMask),
 	GLFUNC_ALWAYS_REQUIRED(glAlphaFunc),
-	GLFUNC_ALWAYS_REQUIRED(glBlendFunc),
 	GLFUNC_ALWAYS_REQUIRED(glLogicOp),
-	GLFUNC_ALWAYS_REQUIRED(glCullFace),
-	GLFUNC_ALWAYS_REQUIRED(glFrontFace),
 	GLFUNC_ALWAYS_REQUIRED(glPointSize),
-	GLFUNC_ALWAYS_REQUIRED(glLineWidth),
 	GLFUNC_ALWAYS_REQUIRED(glLineStipple),
 	GLFUNC_ALWAYS_REQUIRED(glPolygonMode),
-	GLFUNC_ALWAYS_REQUIRED(glPolygonOffset),
 	GLFUNC_ALWAYS_REQUIRED(glPolygonStipple),
 	GLFUNC_ALWAYS_REQUIRED(glGetPolygonStipple),
 	GLFUNC_ALWAYS_REQUIRED(glEdgeFlag),
 	GLFUNC_ALWAYS_REQUIRED(glEdgeFlagv),
-	GLFUNC_ALWAYS_REQUIRED(glScissor),
 	GLFUNC_ALWAYS_REQUIRED(glClipPlane),
 	GLFUNC_ALWAYS_REQUIRED(glGetClipPlane),
 	GLFUNC_ALWAYS_REQUIRED(glDrawBuffer),
-	GLFUNC_ALWAYS_REQUIRED(glReadBuffer),
-	GLFUNC_ALWAYS_REQUIRED(glEnable),
-	GLFUNC_ALWAYS_REQUIRED(glDisable),
-	GLFUNC_ALWAYS_REQUIRED(glIsEnabled),
 	GLFUNC_ALWAYS_REQUIRED(glEnableClientState),
 	GLFUNC_ALWAYS_REQUIRED(glDisableClientState),
-	GLFUNC_ALWAYS_REQUIRED(glGetBooleanv),
 	GLFUNC_ALWAYS_REQUIRED(glGetDoublev),
-	GLFUNC_ALWAYS_REQUIRED(glGetFloatv),
 	GLFUNC_ALWAYS_REQUIRED(glPushAttrib),
 	GLFUNC_ALWAYS_REQUIRED(glPopAttrib),
 	GLFUNC_ALWAYS_REQUIRED(glPushClientAttrib),
 	GLFUNC_ALWAYS_REQUIRED(glPopClientAttrib),
 	GLFUNC_ALWAYS_REQUIRED(glRenderMode),
-	GLFUNC_ALWAYS_REQUIRED(glFinish),
-	GLFUNC_ALWAYS_REQUIRED(glFlush),
-	GLFUNC_ALWAYS_REQUIRED(glHint),
 	GLFUNC_ALWAYS_REQUIRED(glClearDepth),
-	GLFUNC_ALWAYS_REQUIRED(glDepthFunc),
-	GLFUNC_ALWAYS_REQUIRED(glDepthMask),
 	GLFUNC_ALWAYS_REQUIRED(glDepthRange),
 	GLFUNC_ALWAYS_REQUIRED(glClearAccum),
 	GLFUNC_ALWAYS_REQUIRED(glAccum),
 	GLFUNC_ALWAYS_REQUIRED(glMatrixMode),
 	GLFUNC_ALWAYS_REQUIRED(glOrtho),
 	GLFUNC_ALWAYS_REQUIRED(glFrustum),
-	GLFUNC_ALWAYS_REQUIRED(glViewport),
 	GLFUNC_ALWAYS_REQUIRED(glPushMatrix),
 	GLFUNC_ALWAYS_REQUIRED(glPopMatrix),
 	GLFUNC_ALWAYS_REQUIRED(glLoadIdentity),
@@ -1560,10 +1023,7 @@ const GLFunc gl_function_array[] =
 	GLFUNC_ALWAYS_REQUIRED(glIndexPointer),
 	GLFUNC_ALWAYS_REQUIRED(glTexCoordPointer),
 	GLFUNC_ALWAYS_REQUIRED(glEdgeFlagPointer),
-	GLFUNC_ALWAYS_REQUIRED(glGetPointerv),
 	GLFUNC_ALWAYS_REQUIRED(glArrayElement),
-	GLFUNC_ALWAYS_REQUIRED(glDrawArrays),
-	GLFUNC_ALWAYS_REQUIRED(glDrawElements),
 	GLFUNC_ALWAYS_REQUIRED(glInterleavedArrays),
 	GLFUNC_ALWAYS_REQUIRED(glShadeModel),
 	GLFUNC_ALWAYS_REQUIRED(glLightf),
@@ -1585,7 +1045,6 @@ const GLFunc gl_function_array[] =
 	GLFUNC_ALWAYS_REQUIRED(glColorMaterial),
 	GLFUNC_ALWAYS_REQUIRED(glPixelZoom),
 	GLFUNC_ALWAYS_REQUIRED(glPixelStoref),
-	GLFUNC_ALWAYS_REQUIRED(glPixelStorei),
 	GLFUNC_ALWAYS_REQUIRED(glPixelTransferf),
 	GLFUNC_ALWAYS_REQUIRED(glPixelTransferi),
 	GLFUNC_ALWAYS_REQUIRED(glPixelMapfv),
@@ -1595,13 +1054,8 @@ const GLFunc gl_function_array[] =
 	GLFUNC_ALWAYS_REQUIRED(glGetPixelMapuiv),
 	GLFUNC_ALWAYS_REQUIRED(glGetPixelMapusv),
 	GLFUNC_ALWAYS_REQUIRED(glBitmap),
-	GLFUNC_ALWAYS_REQUIRED(glReadPixels),
 	GLFUNC_ALWAYS_REQUIRED(glDrawPixels),
 	GLFUNC_ALWAYS_REQUIRED(glCopyPixels),
-	GLFUNC_ALWAYS_REQUIRED(glStencilFunc),
-	GLFUNC_ALWAYS_REQUIRED(glStencilMask),
-	GLFUNC_ALWAYS_REQUIRED(glStencilOp),
-	GLFUNC_ALWAYS_REQUIRED(glClearStencil),
 	GLFUNC_ALWAYS_REQUIRED(glTexGend),
 	GLFUNC_ALWAYS_REQUIRED(glTexGenf),
 	GLFUNC_ALWAYS_REQUIRED(glTexGeni),
@@ -1617,29 +1071,15 @@ const GLFunc gl_function_array[] =
 	GLFUNC_ALWAYS_REQUIRED(glTexEnviv),
 	GLFUNC_ALWAYS_REQUIRED(glGetTexEnvfv),
 	GLFUNC_ALWAYS_REQUIRED(glGetTexEnviv),
-	GLFUNC_ALWAYS_REQUIRED(glTexParameterf),
-	GLFUNC_ALWAYS_REQUIRED(glTexParameteri),
-	GLFUNC_ALWAYS_REQUIRED(glTexParameterfv),
-	GLFUNC_ALWAYS_REQUIRED(glTexParameteriv),
-	GLFUNC_ALWAYS_REQUIRED(glGetTexParameterfv),
-	GLFUNC_ALWAYS_REQUIRED(glGetTexParameteriv),
 	GLFUNC_ALWAYS_REQUIRED(glGetTexLevelParameterfv),
 	GLFUNC_ALWAYS_REQUIRED(glGetTexLevelParameteriv),
 	GLFUNC_ALWAYS_REQUIRED(glTexImage1D),
-	GLFUNC_ALWAYS_REQUIRED(glTexImage2D),
 	GLFUNC_ALWAYS_REQUIRED(glGetTexImage),
-	GLFUNC_ALWAYS_REQUIRED(glGenTextures),
-	GLFUNC_ALWAYS_REQUIRED(glDeleteTextures),
-	GLFUNC_ALWAYS_REQUIRED(glBindTexture),
 	GLFUNC_ALWAYS_REQUIRED(glPrioritizeTextures),
 	GLFUNC_ALWAYS_REQUIRED(glAreTexturesResident),
-	GLFUNC_ALWAYS_REQUIRED(glIsTexture),
 	GLFUNC_ALWAYS_REQUIRED(glTexSubImage1D),
-	GLFUNC_ALWAYS_REQUIRED(glTexSubImage2D),
 	GLFUNC_ALWAYS_REQUIRED(glCopyTexImage1D),
-	GLFUNC_ALWAYS_REQUIRED(glCopyTexImage2D),
 	GLFUNC_ALWAYS_REQUIRED(glCopyTexSubImage1D),
-	GLFUNC_ALWAYS_REQUIRED(glCopyTexSubImage2D),
 	GLFUNC_ALWAYS_REQUIRED(glMap1d),
 	GLFUNC_ALWAYS_REQUIRED(glMap1f),
 	GLFUNC_ALWAYS_REQUIRED(glMap2d),
@@ -1674,15 +1114,559 @@ const GLFunc gl_function_array[] =
 	GLFUNC_ALWAYS_REQUIRED(glLoadName),
 	GLFUNC_ALWAYS_REQUIRED(glPushName),
 	GLFUNC_ALWAYS_REQUIRED(glPopName),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glTexImage2D),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glClearColor),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glClear),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glColorMask),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glBlendFunc),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glCullFace),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glFrontFace),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glLineWidth),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glPolygonOffset),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glScissor),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glEnable),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDisable),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glIsEnabled),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetBooleanv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetFloatv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glFinish),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glFlush),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glHint),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDepthFunc),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDepthMask),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glViewport),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDrawArrays),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDrawElements),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glPixelStorei),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glReadPixels),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glStencilFunc),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glStencilMask),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glStencilOp),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glClearStencil),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glTexParameterf),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glTexParameteri),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glTexParameterfv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glTexParameteriv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetTexParameterfv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetTexParameteriv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGenTextures),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDeleteTextures),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glBindTexture),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glIsTexture),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glTexSubImage2D),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glCopyTexImage2D),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glCopyTexSubImage2D),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glReadBuffer),
+	GL_ES32_FUNC_ALWAYS_REQUIRED(glGetPointerv),
+
+	// gl_1_2
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glCopyTexSubImage3D),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glDrawRangeElements),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glTexImage3D),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glTexSubImage3D),
+
+	// gl_1_3
+	GLFUNC_ALWAYS_REQUIRED(glClientActiveTexture),
+	GLFUNC_ALWAYS_REQUIRED(glCompressedTexImage1D),
+	GLFUNC_ALWAYS_REQUIRED(glCompressedTexSubImage1D),
+	GLFUNC_ALWAYS_REQUIRED(glGetCompressedTexImage),
+	GLFUNC_ALWAYS_REQUIRED(glLoadTransposeMatrixd),
+	GLFUNC_ALWAYS_REQUIRED(glLoadTransposeMatrixf),
+	GLFUNC_ALWAYS_REQUIRED(glMultTransposeMatrixd),
+	GLFUNC_ALWAYS_REQUIRED(glMultTransposeMatrixf),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1d),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1dv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1f),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1fv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1i),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1iv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1s),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord1sv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2d),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2dv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2f),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2fv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2i),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2iv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2s),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord2sv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3d),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3dv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3f),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3fv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3i),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3iv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3s),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord3sv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4d),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4dv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4f),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4fv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4i),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4iv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4s),
+	GLFUNC_ALWAYS_REQUIRED(glMultiTexCoord4sv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glSampleCoverage),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glActiveTexture),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glCompressedTexImage2D),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glCompressedTexSubImage2D),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glCompressedTexImage3D),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glCompressedTexSubImage3D),
+
+	// gl_1_4
+	GLFUNC_ALWAYS_REQUIRED(glFogCoordPointer),
+	GLFUNC_ALWAYS_REQUIRED(glFogCoordd),
+	GLFUNC_ALWAYS_REQUIRED(glFogCoorddv),
+	GLFUNC_ALWAYS_REQUIRED(glFogCoordf),
+	GLFUNC_ALWAYS_REQUIRED(glFogCoordfv),
+	GLFUNC_ALWAYS_REQUIRED(glMultiDrawArrays),
+	GLFUNC_ALWAYS_REQUIRED(glMultiDrawElements),
+	GLFUNC_ALWAYS_REQUIRED(glPointParameterf),
+	GLFUNC_ALWAYS_REQUIRED(glPointParameterfv),
+	GLFUNC_ALWAYS_REQUIRED(glPointParameteri),
+	GLFUNC_ALWAYS_REQUIRED(glPointParameteriv),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3b),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3bv),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3d),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3dv),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3f),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3fv),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3i),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3iv),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3s),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3sv),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3ub),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3ubv),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3ui),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3uiv),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3us),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColor3usv),
+	GLFUNC_ALWAYS_REQUIRED(glSecondaryColorPointer),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos2d),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos2dv),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos2f),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos2fv),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos2i),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos2iv),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos2s),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos2sv),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos3d),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos3dv),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos3f),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos3fv),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos3i),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos3iv),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos3s),
+	GLFUNC_ALWAYS_REQUIRED(glWindowPos3sv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glBlendColor),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glBlendEquation),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glBlendFuncSeparate),
+
+	// gl_1_5
+	GLFUNC_ALWAYS_REQUIRED(glGetBufferSubData),
+	GLFUNC_ALWAYS_REQUIRED(glGetQueryObjectiv),
+	GLFUNC_ALWAYS_REQUIRED(glMapBuffer),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glBindBuffer),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glBufferData),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glBufferSubData),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDeleteBuffers),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGenBuffers),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetBufferParameteriv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glIsBuffer),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glBeginQuery),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glDeleteQueries),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glEndQuery),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glGenQueries),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glIsQuery),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glGetQueryiv),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glGetQueryObjectuiv),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glGetBufferPointerv),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glUnmapBuffer),
+
+	// gl_2_0
+	GLFUNC_ALWAYS_REQUIRED(glGetVertexAttribdv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib1d),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib1dv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib1s),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib1sv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib2d),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib2dv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib2s),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib2sv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib3d),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib3dv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib3s),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib3sv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nbv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Niv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nsv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nub),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nubv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nuiv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4Nusv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4bv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4d),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4dv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4iv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4s),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4sv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4ubv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4uiv),
+	GLFUNC_ALWAYS_REQUIRED(glVertexAttrib4usv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glAttachShader),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glBindAttribLocation),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glBlendEquationSeparate),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glCompileShader),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glCreateProgram),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glCreateShader),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDeleteProgram),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDeleteShader),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDetachShader),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glDisableVertexAttribArray),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glEnableVertexAttribArray),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetActiveAttrib),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetActiveUniform),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetAttachedShaders),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetAttribLocation),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetProgramInfoLog),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetProgramiv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetShaderInfoLog),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetShaderSource),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetShaderiv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetUniformLocation),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetUniformfv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetUniformiv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetVertexAttribPointerv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetVertexAttribfv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glGetVertexAttribiv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glIsProgram),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glIsShader),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glLinkProgram),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glShaderSource),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glStencilFuncSeparate),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glStencilMaskSeparate),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glStencilOpSeparate),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform1f),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform1fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform1i),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform1iv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform2f),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform2fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform2i),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform2iv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform3f),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform3fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform3i),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform3iv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform4f),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform4fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform4i),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniform4iv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniformMatrix2fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniformMatrix3fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUniformMatrix4fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glUseProgram),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glValidateProgram),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glVertexAttrib1f),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glVertexAttrib1fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glVertexAttrib2f),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glVertexAttrib2fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glVertexAttrib3f),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glVertexAttrib3fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glVertexAttrib4f),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glVertexAttrib4fv),
+	GL_ES_FUNC_ALWAYS_REQUIRED(glVertexAttribPointer),
+	GL_ES3_FUNC_ALWAYS_REQUIRED(glDrawBuffers),
+
+	// gl_3_0
+	GLFUNC_REQUIRES(glBeginConditionalRender,      "VERSION_3_0"),
+	GLFUNC_REQUIRES(glBindFragDataLocation,        "VERSION_3_0"),
+	GLFUNC_REQUIRES(glClampColor,                  "VERSION_3_0"),
+	GLFUNC_REQUIRES(glEndConditionalRender,        "VERSION_3_0"),
+	GLFUNC_REQUIRES(glGetBooleani_v,               "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI1i,             "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI1iv,            "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI1ui,            "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI1uiv,           "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI2i,             "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI2iv,            "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI2ui,            "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI2uiv,           "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI3i,             "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI3iv,            "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI3ui,            "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI3uiv,           "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI4bv,            "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI4sv,            "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI4ubv,           "VERSION_3_0"),
+	GLFUNC_REQUIRES(glVertexAttribI4usv,           "VERSION_3_0"),
+	GLFUNC_REQUIRES(glBeginTransformFeedback,      "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glClearBufferfi,               "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glClearBufferfv,               "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glClearBufferiv,               "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glClearBufferuiv,              "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glEndTransformFeedback,        "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetFragDataLocation,         "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetStringi,                  "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetTransformFeedbackVarying, "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetUniformuiv,               "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetVertexAttribIiv,          "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetVertexAttribIuiv,         "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glTransformFeedbackVaryings,   "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glUniform1ui,                  "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glUniform1uiv,                 "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glUniform2ui,                  "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glUniform2uiv,                 "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glUniform3ui,                  "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glUniform3uiv,                 "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glUniform4ui,                  "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glUniform4uiv,                 "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glVertexAttribI4i,             "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glVertexAttribI4iv,            "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glVertexAttribI4ui,            "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glVertexAttribI4uiv,           "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glVertexAttribIPointer,        "VERSION_3_0 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glColorMaski,                  "VERSION_3_0 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDisablei,                    "VERSION_3_0 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glEnablei,                     "VERSION_3_0 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetTexParameterIiv,          "VERSION_3_0 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetTexParameterIuiv,         "VERSION_3_0 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glIsEnabledi,                  "VERSION_3_0 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glTexParameterIiv,             "VERSION_3_0 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glTexParameterIuiv,            "VERSION_3_0 |VERSION_GLES_3_2"),
+
+
+	// gl_3_1
+	GLFUNC_REQUIRES(glPrimitiveRestartIndex, "VERSION_3_1"),
+	GLFUNC_REQUIRES(glDrawArraysInstanced,   "VERSION_3_1 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glDrawElementsInstanced, "VERSION_3_1 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glTexBuffer,             "VERSION_3_1 |VERSION_GLES_3_2"),
+
+	// gl_3_2
+	GLFUNC_REQUIRES(glGetBufferParameteri64v, "VERSION_3_2 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetInteger64i_v,        "VERSION_3_2 |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glFramebufferTexture,     "VERSION_3_2 |VERSION_GLES_3_2"),
+
+	// ARB_uniform_buffer_object
+	GLFUNC_REQUIRES(glGetActiveUniformName,      "GL_ARB_uniform_buffer_object"),
+	GLFUNC_REQUIRES(glBindBufferBase,            "GL_ARB_uniform_buffer_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glBindBufferRange,           "GL_ARB_uniform_buffer_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetActiveUniformBlockName, "GL_ARB_uniform_buffer_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetActiveUniformBlockiv,   "GL_ARB_uniform_buffer_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetActiveUniformsiv,       "GL_ARB_uniform_buffer_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetIntegeri_v,             "GL_ARB_uniform_buffer_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetUniformBlockIndex,      "GL_ARB_uniform_buffer_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetUniformIndices,         "GL_ARB_uniform_buffer_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glUniformBlockBinding,       "GL_ARB_uniform_buffer_object |VERSION_GLES_3"),
+
+	// ARB_sampler_objects
+	GLFUNC_REQUIRES(glBindSampler,             "GL_ARB_sampler_objects |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glDeleteSamplers,          "GL_ARB_sampler_objects |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGenSamplers,             "GL_ARB_sampler_objects |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetSamplerParameterfv,   "GL_ARB_sampler_objects |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetSamplerParameteriv,   "GL_ARB_sampler_objects |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glIsSampler,               "GL_ARB_sampler_objects |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glSamplerParameterf,       "GL_ARB_sampler_objects |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glSamplerParameterfv,      "GL_ARB_sampler_objects |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glSamplerParameteri,       "GL_ARB_sampler_objects |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glSamplerParameteriv,      "GL_ARB_sampler_objects |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetSamplerParameterIiv,  "GL_ARB_sampler_objects |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetSamplerParameterIuiv, "GL_ARB_sampler_objects |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glSamplerParameterIiv,     "GL_ARB_sampler_objects |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glSamplerParameterIuiv,    "GL_ARB_sampler_objects |VERSION_GLES_3_2"),
+
+	// ARB_map_buffer_range
+	GLFUNC_REQUIRES(glFlushMappedBufferRange, "GL_ARB_map_buffer_range |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glMapBufferRange,         "GL_ARB_map_buffer_range |VERSION_GLES_3"),
+
+	// ARB_vertex_array_object
+	GLFUNC_REQUIRES(glBindVertexArray,    "GL_ARB_vertex_array_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glDeleteVertexArrays, "GL_ARB_vertex_array_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGenVertexArrays,    "GL_ARB_vertex_array_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glIsVertexArray,      "GL_ARB_vertex_array_object |VERSION_GLES_3"),
+
+	// APPLE_vertex_array_object
+	GLFUNC_SUFFIX(glBindVertexArray,    APPLE, "GL_APPLE_vertex_array_object !GL_ARB_vertex_array_object"),
+	GLFUNC_SUFFIX(glDeleteVertexArrays, APPLE, "GL_APPLE_vertex_array_object !GL_ARB_vertex_array_object"),
+	GLFUNC_SUFFIX(glGenVertexArrays,    APPLE, "GL_APPLE_vertex_array_object !GL_ARB_vertex_array_object"),
+	GLFUNC_SUFFIX(glIsVertexArray,      APPLE, "GL_APPLE_vertex_array_object !GL_ARB_vertex_array_object"),
+
+	// ARB_framebuffer_object
+	GLFUNC_REQUIRES(glFramebufferTexture1D,                "GL_ARB_framebuffer_object"),
+	GLFUNC_REQUIRES(glFramebufferTexture3D,                "GL_ARB_framebuffer_object"),
+	GLFUNC_REQUIRES(glBindFramebuffer,                     "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glBindRenderbuffer,                    "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glBlitFramebuffer,                     "GL_ARB_framebuffer_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glCheckFramebufferStatus,              "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glDeleteFramebuffers,                  "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glDeleteRenderbuffers,                 "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glFramebufferRenderbuffer,             "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glFramebufferTexture2D,                "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glFramebufferTextureLayer,             "GL_ARB_framebuffer_object |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGenFramebuffers,                     "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glGenRenderbuffers,                    "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glGenerateMipmap,                      "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glGetFramebufferAttachmentParameteriv, "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glGetRenderbufferParameteriv,          "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glIsFramebuffer,                       "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glIsRenderbuffer,                      "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glRenderbufferStorage,                 "GL_ARB_framebuffer_object |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glRenderbufferStorageMultisample,      "GL_ARB_framebuffer_object |VERSION_GLES_3"),
+
+	// ARB_get_program_binary
+	GLFUNC_REQUIRES(glGetProgramBinary,  "GL_ARB_get_program_binary |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glProgramBinary,     "GL_ARB_get_program_binary |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glProgramParameteri, "GL_ARB_get_program_binary |VERSION_GLES_3"),
+
+	// ARB_sync
+	GLFUNC_REQUIRES(glClientWaitSync, "GL_ARB_sync |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glDeleteSync,     "GL_ARB_sync |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glFenceSync,      "GL_ARB_sync |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetInteger64v,  "GL_ARB_sync |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glGetSynciv,      "GL_ARB_sync |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glIsSync,         "GL_ARB_sync |VERSION_GLES_3"),
+	GLFUNC_REQUIRES(glWaitSync,       "GL_ARB_sync |VERSION_GLES_3"),
+
+	// ARB_texture_multisample
+	GLFUNC_REQUIRES(glTexImage2DMultisample, "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glTexImage3DMultisample, "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glGetMultisamplefv,      "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glSampleMaski,           "GL_ARB_texture_multisample"),
+
+	// ARB_texture_storage_multisample
+	GLFUNC_REQUIRES(glTexStorage2DMultisample, "GL_ARB_texture_storage_multisample |VERSION_GLES_3_1"),
+	GLFUNC_REQUIRES(glTexStorage3DMultisample, "GL_ARB_texture_storage_multisample |VERSION_GLES_3_2"),
+	GLFUNC_SUFFIX(glTexStorage3DMultisample, OES, "GL_OES_texture_storage_multisample_2d_array !VERSION_GLES_3_2"),
+
+	// ARB_ES2_compatibility
+	GLFUNC_REQUIRES(glClearDepthf,              "GL_ARB_ES2_compatibility |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glDepthRangef,              "GL_ARB_ES2_compatibility |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glGetShaderPrecisionFormat, "GL_ARB_ES2_compatibility |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glReleaseShaderCompiler,    "GL_ARB_ES2_compatibility |VERSION_GLES_2"),
+	GLFUNC_REQUIRES(glShaderBinary,             "GL_ARB_ES2_compatibility |VERSION_GLES_2"),
+
+	// NV_primitive_restart
+	GLFUNC_REQUIRES(glPrimitiveRestartIndexNV, "GL_NV_primitive_restart"),
+	GLFUNC_REQUIRES(glPrimitiveRestartNV,      "GL_NV_primitive_restart"),
+
+	// ARB_blend_func_extended
+	GLFUNC_REQUIRES(glBindFragDataLocationIndexed, "GL_ARB_blend_func_extended"),
+	GLFUNC_REQUIRES(glGetFragDataIndex,            "GL_ARB_blend_func_extended"),
+
+	// ARB_viewport_array
+	GLFUNC_REQUIRES(glDepthRangeArrayv,  "GL_ARB_viewport_array"),
+	GLFUNC_REQUIRES(glDepthRangeIndexed, "GL_ARB_viewport_array"),
+	GLFUNC_REQUIRES(glGetDoublei_v,      "GL_ARB_viewport_array"),
+	GLFUNC_REQUIRES(glGetFloati_v,       "GL_ARB_viewport_array"),
+	GLFUNC_REQUIRES(glScissorArrayv,     "GL_ARB_viewport_array"),
+	GLFUNC_REQUIRES(glScissorIndexed,    "GL_ARB_viewport_array"),
+	GLFUNC_REQUIRES(glScissorIndexedv,   "GL_ARB_viewport_array"),
+	GLFUNC_REQUIRES(glViewportArrayv,    "GL_ARB_viewport_array"),
+	GLFUNC_REQUIRES(glViewportIndexedf,  "GL_ARB_viewport_array"),
+	GLFUNC_REQUIRES(glViewportIndexedfv, "GL_ARB_viewport_array"),
+
+	// ARB_draw_elements_base_vertex
+	GLFUNC_REQUIRES(glDrawElementsBaseVertex,          "GL_ARB_draw_elements_base_vertex |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDrawElementsInstancedBaseVertex, "GL_ARB_draw_elements_base_vertex |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDrawRangeElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glMultiDrawElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
+
+	// OES_draw_elements_base_vertex
+	GLFUNC_SUFFIX(glDrawElementsBaseVertex,          OES, "GL_OES_draw_elements_base_vertex !VERSION_GLES_3_2"),
+	GLFUNC_SUFFIX(glDrawElementsInstancedBaseVertex, OES, "GL_OES_draw_elements_base_vertex VERSION_GLES3 !VERSION_GLES_3_2"),
+	GLFUNC_SUFFIX(glDrawRangeElementsBaseVertex,     OES, "GL_OES_draw_elements_base_vertex VERSION_GLES3 !VERSION_GLES_3_2"),
+	GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex,     OES, "GL_OES_draw_elements_base_vertex GL_EXT_multi_draw_arrays"),
+
+	// EXT_draw_elements_base_vertex
+	GLFUNC_SUFFIX(glDrawElementsBaseVertex,          EXT, "GL_EXT_draw_elements_base_vertex !GL_OES_draw_elements_base_vertex !VERSION_GLES_3_2"),
+	GLFUNC_SUFFIX(glDrawElementsInstancedBaseVertex, EXT, "GL_EXT_draw_elements_base_vertex VERSION_GLES3 !GL_OES_draw_elements_base_vertex !VERSION_GLES_3_2"),
+	GLFUNC_SUFFIX(glDrawRangeElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex VERSION_GLES3 !GL_OES_draw_elements_base_vertex !VERSION_GLES_3_2"),
+	GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex GL_EXT_multi_draw_arrays !GL_OES_draw_elements_base_vertex !VERSION_GLES_3_2"),
+
+	// ARB_sample_shading
+	GLFUNC_SUFFIX(glMinSampleShading, ARB, "GL_ARB_sample_shading |VERSION_GLES_3_2"),
+
+	// OES_sample_shading
+	GLFUNC_SUFFIX(glMinSampleShading, OES, "GL_OES_sample_shading !VERSION_GLES_3_2"),
+
+	// ARB_debug_output
+	GLFUNC_REQUIRES(glDebugMessageCallbackARB, "GL_ARB_debug_output"),
+	GLFUNC_REQUIRES(glDebugMessageControlARB,  "GL_ARB_debug_output"),
+	GLFUNC_REQUIRES(glDebugMessageInsertARB,   "GL_ARB_debug_output"),
+	GLFUNC_REQUIRES(glGetDebugMessageLogARB,   "GL_ARB_debug_output"),
+
+	// KHR_debug
+	GLFUNC_SUFFIX(glDebugMessageCallback, KHR, "GL_KHR_debug VERSION_GLES3"),
+	GLFUNC_SUFFIX(glDebugMessageControl,  KHR, "GL_KHR_debug VERSION_GLES3"),
+	GLFUNC_SUFFIX(glDebugMessageInsert,   KHR, "GL_KHR_debug VERSION_GLES3"),
+	GLFUNC_SUFFIX(glGetDebugMessageLog,   KHR, "GL_KHR_debug VERSION_GLES3"),
+	GLFUNC_SUFFIX(glGetObjectLabel,       KHR, "GL_KHR_debug VERSION_GLES3"),
+	GLFUNC_SUFFIX(glGetObjectPtrLabel,    KHR, "GL_KHR_debug VERSION_GLES3"),
+	GLFUNC_SUFFIX(glObjectLabel,          KHR, "GL_KHR_debug VERSION_GLES3"),
+	GLFUNC_SUFFIX(glObjectPtrLabel,       KHR, "GL_KHR_debug VERSION_GLES3"),
+	GLFUNC_SUFFIX(glPopDebugGroup,        KHR, "GL_KHR_debug VERSION_GLES3"),
+	GLFUNC_SUFFIX(glPushDebugGroup,       KHR, "GL_KHR_debug VERSION_GLES3"),
+	GLFUNC_REQUIRES(glDebugMessageCallback, "GL_KHR_debug !VERSION_GLES3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDebugMessageControl,  "GL_KHR_debug !VERSION_GLES3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDebugMessageInsert,   "GL_KHR_debug !VERSION_GLES3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetDebugMessageLog,   "GL_KHR_debug !VERSION_GLES3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetObjectLabel,       "GL_KHR_debug !VERSION_GLES3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetObjectPtrLabel,    "GL_KHR_debug !VERSION_GLES3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glObjectLabel,          "GL_KHR_debug !VERSION_GLES3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glObjectPtrLabel,       "GL_KHR_debug !VERSION_GLES3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glPopDebugGroup,        "GL_KHR_debug !VERSION_GLES3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glPushDebugGroup,       "GL_KHR_debug !VERSION_GLES3 |VERSION_GLES_3_2"),
+
+	// ARB_buffer_storage
+	GLFUNC_REQUIRES(glBufferStorage,         "GL_ARB_buffer_storage"),
+	GLFUNC_REQUIRES(glNamedBufferStorageEXT, "GL_ARB_buffer_storage GL_EXT_direct_state_access"),
+
+	// EXT_buffer_storage
+	GLFUNC_SUFFIX(glBufferStorage, EXT, "GL_EXT_buffer_storage !GL_ARB_buffer_storage"),
+
+	// EXT_geometry_shader
+	GLFUNC_SUFFIX(glFramebufferTexture, EXT, "GL_EXT_geometry_shader !VERSION_3_2"),
+
+	// NV_occlusion_query_samples
+	GLFUNC_REQUIRES(glGenOcclusionQueriesNV,    "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glDeleteOcclusionQueriesNV, "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glIsOcclusionQueryNV,       "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glBeginOcclusionQueryNV,    "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glEndOcclusionQueryNV,      "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glGetOcclusionQueryivNV,    "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glGetOcclusionQueryuivNV,   "GL_NV_occlusion_query_samples"),
+
+	// ARB_clip_control
+	GLFUNC_REQUIRES(glClipControl, "GL_ARB_clip_control"),
+
+	// ARB_copy_image
+	GLFUNC_REQUIRES(glCopyImageSubData, "GL_ARB_copy_image |VERSION_GLES_3_2"),
+
+	// NV_copy_image
+	GLFUNC_SUFFIX(glCopyImageSubData, NV, "GL_NV_copy_image !GL_ARB_copy_image !VERSION_GLES_3_2"),
+
+	// OES_copy_image
+	GLFUNC_SUFFIX(glCopyImageSubData, OES, "GL_OES_copy_image !VERSION_GLES_3_2"),
+
+	// EXT_copy_image
+	GLFUNC_SUFFIX(glCopyImageSubData, EXT, "GL_EXT_copy_image !GL_OES_copy_image !VERSION_GLES_3_2"),
+
+	// EXT_texture_buffer
+	GLFUNC_SUFFIX(glTexBuffer, OES, "GL_OES_texture_buffer !VERSION_GLES_3_2"),
+
+	// EXT_texture_buffer
+	GLFUNC_SUFFIX(glTexBuffer, EXT, "GL_EXT_texture_buffer !GL_OES_texture_buffer !VERSION_GLES_3_2"),
+
+	// EXT_blend_func_extended
+	GLFUNC_SUFFIX(glBindFragDataLocationIndexed, EXT, "GL_EXT_blend_func_extended"),
+	GLFUNC_SUFFIX(glGetFragDataIndex, EXT,            "GL_EXT_blend_func_extended"),
 };
 
 namespace GLExtensions
 {
 	// Private members and functions
-	static bool _isES3;
 	static bool _isES;
 	static u32 _GLVersion;
-	static u32 _GLESVersion;
 	static std::unordered_map<std::string, bool> m_extension_list;
 
 	// Private initialization functions
@@ -1702,52 +1686,24 @@ namespace GLExtensions
 	static void InitExtensionList()
 	{
 		m_extension_list.clear();
-		if (_isES3)
+		if (_isES)
 		{
-			// XXX: Add all extensions that a base ES3 implementation supports
-			switch (_GLESVersion)
+			switch (_GLVersion)
 			{
 				default:
 				case 320:
-				{
-					std::string gles320exts[] = {
-						"GL_ARB_draw_elements_base_vertex",
-						"VERSION_GLES_3_2",
-					};
-					for (auto it : gles320exts)
-						m_extension_list[it] = true;
-				}
+					m_extension_list["VERSION_GLES_3_2"] = true;
 				case 310:
-				{
-					std::string gles310exts[] = {
-						"GL_ARB_texture_storage_multisample",
-						"VERSION_GLES_3_1",
-					};
-					for (auto it : gles310exts)
-						m_extension_list[it] = true;
-				}
+					m_extension_list["VERSION_GLES_3_1"] = true;
 				case 300:
-				{
-					std::string gles3exts[] = {
-						"GL_ARB_uniform_buffer_object",
-						"GL_ARB_sampler_objects",
-						"GL_ARB_map_buffer_range",
-						"GL_ARB_vertex_array_object",
-						"GL_ARB_framebuffer_object",
-						"GL_ARB_occlusion_query",
-						"GL_ARB_get_program_binary",
-						"GL_ARB_sync",
-						"GL_ARB_ES2_compatibility",
-						"VERSION_GLES3",
-						"VERSION_3_0",
-						};
-					for (auto it : gles3exts)
-						m_extension_list[it] = true;
-				}
+					m_extension_list["VERSION_GLES_3"] = true;
 				break;
 			}
+
+			// We always have ES 2.0
+			m_extension_list["VERSION_GLES_2"] = true;
 		}
-		else if (!_isES)
+		else
 		{
 			// Some OpenGL implementations chose to not expose core extensions as extensions
 			// Let's add them to the list manually depending on which version of OpenGL we have
@@ -1966,6 +1922,8 @@ namespace GLExtensions
 				case 100:
 				break;
 			}
+			// So we can easily determine if we are running dekstop GL
+			m_extension_list["VERSION_GL"] = true;
 		}
 
 		if (_GLVersion < 300)
@@ -1987,11 +1945,6 @@ namespace GLExtensions
 			_GLVersion = major * 100 + minor * 10;
 		else
 			_GLVersion = 210;
-		if (_isES3)
-		{
-			_GLESVersion = _GLVersion;
-			_GLVersion = 330; // Get all the fun things
-		}
 	}
 
 	static void* GetFuncAddress(const std::string& name, void **func)
@@ -2003,8 +1956,6 @@ namespace GLExtensions
 			// Give it a second try with dlsym
 			*func = dlsym(RTLD_NEXT, name.c_str());
 #endif
-			if (*func == nullptr && _isES)
-				*func = (void*)(uintptr_t)0xFFFFFFFF; // Easy to determine invalid function, just so we continue on
 			if (*func == nullptr)
 				ERROR_LOG(VIDEO, "Couldn't load function %s", name.c_str());
 		}
@@ -2020,8 +1971,7 @@ namespace GLExtensions
 
 	bool Init()
 	{
-		_isES3 = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3;
-		_isES = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 || GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES2;
+		_isES = GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL;
 
 		// Grab a few functions for initial checking
 		// We need them to grab the extension list
@@ -2056,6 +2006,8 @@ namespace GLExtensions
 		{
 			if (tmp[0] == '!')
 				result &= !m_extension_list[tmp.erase(0, 1)];
+			else if (tmp[0] == '|')
+				result |= m_extension_list[tmp.erase(0, 1)];
 			else
 				result &= m_extension_list[tmp];
 		}

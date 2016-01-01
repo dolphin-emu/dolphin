@@ -296,6 +296,14 @@ Renderer::Renderer()
 
 	InitDriverInfo();
 
+	if (GLExtensions::Version() < 300)
+	{
+		// integer vertex attributes require a gl3 only function
+		PanicAlert("GPU: OGL ERROR: Need OpenGL version 3.\n"
+				"GPU: Does your video card support OpenGL 3?");
+		bSuccess = false;
+	}
+
 	// check for the max vertex attributes
 	GLint numvertexattribs = 0;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
@@ -317,72 +325,67 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLExtensions::Supports("GL_ARB_framebuffer_object"))
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
-		// We want the ogl3 framebuffer instead of the ogl2 one for better blitting support.
-		// It's also compatible with the gles3 one.
-		PanicAlert("GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
-				"GPU: Does your video card support OpenGL 3.0?");
-		bSuccess = false;
-	}
+		if (!GLExtensions::Supports("GL_ARB_framebuffer_object"))
+		{
+			// We want the ogl3 framebuffer instead of the ogl2 one for better blitting support.
+			// It's also compatible with the gles3 one.
+			PanicAlert("GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
+					"GPU: Does your video card support OpenGL 3.0?");
+			bSuccess = false;
+		}
 
-	if (!GLExtensions::Supports("GL_ARB_vertex_array_object"))
-	{
-		// This extension is used to replace lots of pointer setting function.
-		// Also gles3 requires to use it.
-		PanicAlert("GPU: OGL ERROR: Need GL_ARB_vertex_array_object.\n"
-				"GPU: Does your video card support OpenGL 3.0?");
-		bSuccess = false;
-	}
+		if (!GLExtensions::Supports("GL_ARB_vertex_array_object"))
+		{
+			// This extension is used to replace lots of pointer setting function.
+			// Also gles3 requires to use it.
+			PanicAlert("GPU: OGL ERROR: Need GL_ARB_vertex_array_object.\n"
+					"GPU: Does your video card support OpenGL 3.0?");
+			bSuccess = false;
+		}
 
-	if (!GLExtensions::Supports("GL_ARB_map_buffer_range"))
-	{
-		// ogl3 buffer mapping for better streaming support.
-		// The ogl2 one also isn't in gles3.
-		PanicAlert("GPU: OGL ERROR: Need GL_ARB_map_buffer_range.\n"
-				"GPU: Does your video card support OpenGL 3.0?");
-		bSuccess = false;
-	}
+		if (!GLExtensions::Supports("GL_ARB_map_buffer_range"))
+		{
+			// ogl3 buffer mapping for better streaming support.
+			// The ogl2 one also isn't in gles3.
+			PanicAlert("GPU: OGL ERROR: Need GL_ARB_map_buffer_range.\n"
+					"GPU: Does your video card support OpenGL 3.0?");
+			bSuccess = false;
+		}
 
-	if (!GLExtensions::Supports("GL_ARB_uniform_buffer_object"))
-	{
-		// ubo allow us to keep the current constants on shader switches
-		// we also can stream them much nicer and pack into it whatever we want to
-		PanicAlert("GPU: OGL ERROR: Need GL_ARB_uniform_buffer_object.\n"
-				"GPU: Does your video card support OpenGL 3.1?");
-		bSuccess = false;
-	}
-	else if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUBO))
-	{
-		PanicAlert("Buggy GPU driver detected.\n"
-				"Please either install the closed-source GPU driver or update your Mesa 3D version.");
-		bSuccess = false;
-	}
+		if (!GLExtensions::Supports("GL_ARB_uniform_buffer_object"))
+		{
+			// ubo allow us to keep the current constants on shader switches
+			// we also can stream them much nicer and pack into it whatever we want to
+			PanicAlert("GPU: OGL ERROR: Need GL_ARB_uniform_buffer_object.\n"
+					"GPU: Does your video card support OpenGL 3.1?");
+			bSuccess = false;
+		}
+		else if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUBO))
+		{
+			PanicAlert("Buggy GPU driver detected.\n"
+					"Please either install the closed-source GPU driver or update your Mesa 3D version.");
+			bSuccess = false;
+		}
 
-	if (!GLExtensions::Supports("GL_ARB_sampler_objects"))
-	{
-		// Our sampler cache uses this extension. It could easyly be workaround and it's by far the
-		// highest requirement, but it seems that no driver lacks support for it.
-		PanicAlert("GPU: OGL ERROR: Need GL_ARB_sampler_objects.\n"
-				"GPU: Does your video card support OpenGL 3.3?");
-		bSuccess = false;
-	}
+		if (!GLExtensions::Supports("GL_ARB_sampler_objects"))
+		{
+			// Our sampler cache uses this extension. It could easyly be workaround and it's by far the
+			// highest requirement, but it seems that no driver lacks support for it.
+			PanicAlert("GPU: OGL ERROR: Need GL_ARB_sampler_objects.\n"
+					"GPU: Does your video card support OpenGL 3.3?");
+			bSuccess = false;
+		}
 
-	if (GLExtensions::Version() < 300)
-	{
-		// integer vertex attributes require a gl3 only function
-		PanicAlert("GPU: OGL ERROR: Need OpenGL version 3.\n"
-				"GPU: Does your video card support OpenGL 3?");
-		bSuccess = false;
-	}
-
-	// OpenGL 3 doesn't provide GLES like float functions for depth.
-	// They are in core in OpenGL 4.1, so almost every driver should support them.
-	// But for the oldest ones, we provide fallbacks to the old double functions.
-	if (!GLExtensions::Supports("GL_ARB_ES2_compatibility") && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
-	{
-		glDepthRangef = DepthRangef;
-		glClearDepthf = ClearDepthf;
+		// OpenGL 3 doesn't provide GLES like float functions for depth.
+		// They are in core in OpenGL 4.1, so almost every driver should support them.
+		// But for the oldest ones, we provide fallbacks to the old double functions.
+		if (!GLExtensions::Supports("GL_ARB_ES2_compatibility"))
+		{
+			glDepthRangef = DepthRangef;
+			glClearDepthf = ClearDepthf;
+		}
 	}
 
 	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended") ||
@@ -416,7 +419,6 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage") ||
 	                                        GLExtensions::Supports("GL_EXT_buffer_storage");
 	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
-	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
 	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") ||
 	                              GLExtensions::Supports("GL_ARB_debug_output");
@@ -433,6 +435,9 @@ Renderer::Renderer()
 		g_ogl_config.SupportedESTextureBuffer = GLExtensions::Supports("VERSION_GLES_3_2") ? ES_TEXBUF_TYPE::TEXBUF_CORE :
 		                                        GLExtensions::Supports("GL_OES_texture_buffer") ? ES_TEXBUF_TYPE::TEXBUF_OES :
 		                                        GLExtensions::Supports("GL_EXT_texture_buffer") ? ES_TEXBUF_TYPE::TEXBUF_EXT : ES_TEXBUF_TYPE::TEXBUF_NONE;
+
+		g_ogl_config.bSupportsGLSLCache = true;
+		g_ogl_config.bSupportsGLSync = true;
 
 		if (strstr(g_ogl_config.glsl_version, "3.0") || DriverDetails::HasBug(DriverDetails::BUG_BROKENGLES31))
 		{
@@ -647,7 +652,7 @@ Renderer::Renderer()
 		}
 		else
 		{
-			if (g_ogl_config.bSupportOGL31)
+			if (GLExtensions::Version() >= 310)
 			{
 				glEnable(GL_PRIMITIVE_RESTART);
 				glPrimitiveRestartIndex(65535);
