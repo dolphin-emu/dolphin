@@ -20,6 +20,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 #include "Core/State.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
@@ -31,6 +32,7 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace State
@@ -198,6 +200,12 @@ static std::string DoState(PointerWrap& p)
 
 void LoadFromBuffer(std::vector<u8>& buffer)
 {
+	if (NetPlay::IsNetPlayRunning())
+	{
+		OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+		return;
+	}
+
 	bool wasUnpaused = Core::PauseAndLock(true);
 
 	u8* ptr = &buffer[0];
@@ -531,7 +539,14 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 void LoadAs(const std::string& filename)
 {
 	if (!Core::IsRunning())
+	{
 		return;
+	}
+	else if (NetPlay::IsNetPlayRunning())
+	{
+		OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+		return;
+	}
 
 	// Stop the core while we load the state
 	bool wasUnpaused = Core::PauseAndLock(true);
