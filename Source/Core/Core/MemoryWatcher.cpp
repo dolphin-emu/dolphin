@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <unistd.h>
 
 #include "Common/FileUtil.h"
 #include "Common/Thread.h"
