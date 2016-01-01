@@ -228,9 +228,6 @@ void InputUpdate()
 		s_totalTickCount += CoreTiming::GetTicks() - s_tickCountAtLastInput;
 		s_tickCountAtLastInput = CoreTiming::GetTicks();
 	}
-
-	if (IsPlayingInput() && g_currentInputCount == (g_totalInputCount - 1) && SConfig::GetInstance().m_PauseMovie)
-		Core::SetState(Core::CORE_PAUSE);
 }
 
 void SetFrameSkipping(unsigned int framesToSkip)
@@ -1205,6 +1202,9 @@ void EndPlayInput(bool cont)
 		//g_totalFrames = s_totalBytes = 0;
 		//delete tmpInput;
 		//tmpInput = nullptr;
+
+		if (SConfig::GetInstance().m_PauseMovie)
+			Core::SetState(Core::CORE_PAUSE);
 	}
 }
 
