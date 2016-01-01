@@ -14,6 +14,7 @@
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/Config/PathDialog.h"
 #include "DolphinQt2/GameList/GameListModel.h"
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
@@ -49,13 +50,12 @@ void MainWindow::MakeToolBar()
 	addToolBar(m_tool_bar);
 
 	connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
-	// TODO make this open the config paths dialog, not the current Browse menu.
-	connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::Browse);
 	connect(m_tool_bar, &ToolBar::PlayPressed, this, &MainWindow::Play);
 	connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
 	connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::Stop);
 	connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::FullScreen);
 	connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
+	connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::PathsConfig);
 
 	connect(this, &MainWindow::EmulationStarted, m_tool_bar, &ToolBar::EmulationStarted);
 	connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
@@ -96,28 +96,11 @@ void MainWindow::Open()
 		StartGame(file);
 }
 
-void MainWindow::Browse()
-{
-	QString dir = QFileDialog::getExistingDirectory(this,
-			tr("Select a Directory"),
-			QDir::currentPath());
-	if (!dir.isEmpty())
-	{
-		Settings settings;
-		QStringList iso_folders = settings.GetPaths();
-		if (!iso_folders.contains(dir))
-		{
-			iso_folders << dir;
-			settings.SetPaths(iso_folders);
-			emit m_game_list->DirectoryAdded(dir);
-		}
-	}
-}
-
 void MainWindow::Play()
 {
 	// If we're in a paused game, start it up again.
 	// Otherwise, play the selected game, if there is one.
+	// Otherwise, play the default game.
 	// Otherwise, play the last played game, if there is one.
 	// Otherwise, prompt for a new game.
 	if (Core::GetState() == Core::CORE_PAUSE)
@@ -134,11 +117,19 @@ void MainWindow::Play()
 		}
 		else
 		{
-			QString path = Settings().GetLastGame();
-			if (!path.isEmpty() && QFile::exists(path))
-				StartGame(path);
+			QString default_path = Settings().GetDefaultGame();
+			if (!default_path.isEmpty() && QFile::exists(default_path))
+			{
+				StartGame(default_path);
+			}
 			else
-				Open();
+			{
+				QString last_path = Settings().GetLastGame();
+				if (!last_path.isEmpty() && QFile::exists(last_path))
+					StartGame(last_path);
+				else
+					Open();
+			}
 		}
 	}
 }
@@ -189,6 +180,14 @@ void MainWindow::FullScreen()
 void MainWindow::ScreenShot()
 {
 	Core::SaveScreenShot();
+}
+
+void MainWindow::PathsConfig()
+{
+	PathDialog* paths = new PathDialog(this);
+	connect(paths, &PathDialog::PathAdded, m_game_list, &GameList::DirectoryAdded);
+	connect(paths, &PathDialog::PathRemoved, m_game_list, &GameList::DirectoryRemoved);
+	paths->exec();
 }
 
 void MainWindow::StartGame(const QString& path)

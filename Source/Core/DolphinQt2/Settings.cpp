@@ -44,6 +44,57 @@ void Settings::SetPaths(const QStringList& paths)
 	setValue(QStringLiteral("GameList/Paths"), paths);
 }
 
+void Settings::RemovePath(int i)
+{
+	QStringList paths = GetPaths();
+	paths.removeAt(i);
+	SetPaths(paths);
+}
+
+QString Settings::GetDefaultGame() const
+{
+	return QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
+}
+
+void Settings::SetDefaultGame(const QString& path)
+{
+	SConfig::GetInstance().m_strDefaultISO = path.toStdString();
+	SConfig::GetInstance().SaveSettings();
+}
+
+QString Settings::GetDVDRoot() const
+{
+	return QString::fromStdString(SConfig::GetInstance().m_strDVDRoot);
+}
+
+void Settings::SetDVDRoot(const QString& path)
+{
+	SConfig::GetInstance().m_strDVDRoot = path.toStdString();
+	SConfig::GetInstance().SaveSettings();
+}
+
+QString Settings::GetApploader() const
+{
+	return QString::fromStdString(SConfig::GetInstance().m_strApploader);
+}
+
+void Settings::SetApploader(const QString& path)
+{
+	SConfig::GetInstance().m_strApploader = path.toStdString();
+	SConfig::GetInstance().SaveSettings();
+}
+
+QString Settings::GetWiiNAND() const
+{
+	return QString::fromStdString(SConfig::GetInstance().m_NANDPath);
+}
+
+void Settings::SetWiiNAND(const QString& path)
+{
+	SConfig::GetInstance().m_NANDPath = path.toStdString();
+	SConfig::GetInstance().SaveSettings();
+}
+
 DiscIO::IVolume::ELanguage Settings::GetWiiSystemLanguage() const
 {
 	return SConfig::GetInstance().GetCurrentLanguage(true);

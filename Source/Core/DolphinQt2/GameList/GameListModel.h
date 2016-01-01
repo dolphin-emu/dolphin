@@ -46,10 +46,12 @@ public slots:
 
 signals:
 	void DirectoryAdded(QString dir);
+	void DirectoryRemoved(QString dir);
 
 private:
+	// Index in m_games, or -1 if it isn't found
+	int FindGame(const QString& path) const;
+
 	GameTracker m_tracker;
 	QList<QSharedPointer<GameFile>> m_games;
-	// Path -> index in m_games
-	QMap<QString, int> m_entries;
 };

@@ -22,25 +22,25 @@ public slots:
 
 signals:
 	void OpenPressed();
-	void PathsPressed();
-
 	void PlayPressed();
 	void PausePressed();
 	void StopPressed();
 	void FullScreenPressed();
 	void ScreenShotPressed();
 
+	void PathsPressed();
+
 private:
 	void MakeActions();
 	void UpdateIcons();
 
 	QAction* m_open_action;
-	QAction* m_paths_action;
 	QAction* m_play_action;
 	QAction* m_pause_action;
 	QAction* m_stop_action;
 	QAction* m_fullscreen_action;
 	QAction* m_screenshot_action;
+	QAction* m_paths_action;
 	QAction* m_config_action;
 	QAction* m_graphics_action;
 	QAction* m_controllers_action;
