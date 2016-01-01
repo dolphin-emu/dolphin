@@ -90,7 +90,7 @@ static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static bool s_efbCacheIsCleared = false;
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
-static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
+static void APIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
 	const char *s_source;
 	const char *s_type;
@@ -126,11 +126,11 @@ static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLe
 }
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
-static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
+static void APIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 {
 	glDepthRange(neardepth, fardepth);
 }
-static void GLAPIENTRY ClearDepthf(GLfloat depthval)
+static void APIENTRY ClearDepthf(GLfloat depthval)
 {
 	glClearDepth(depthval);
 }
