@@ -12,7 +12,7 @@
 #include "Core/HW/Memmap.h"
 
 // We don't want to kill the cpu, so sleep for this long after polling.
-static const int SLEEP_DURATION = 10; // ms
+static const int SLEEP_DURATION = 2; // ms
 
 MemoryWatcher::MemoryWatcher()
 {
@@ -40,12 +40,23 @@ bool MemoryWatcher::LoadAddresses(const std::string& path)
 	if (!locations)
 		return false;
 
-	u32 data;
-	locations >> std::hex;
-	while (locations >> data)
-		m_values[data] = 0;
+	std::string line;
+	while (std::getline(locations, line))
+		ParseLine(line);
 
 	return m_values.size() > 0;
+}
+
+void MemoryWatcher::ParseLine(const std::string& line)
+{
+	m_values[line] = 0;
+	m_addresses[line] = std::vector<u32>();
+
+	std::stringstream offsets(line);
+	offsets >> std::hex;
+	u32 offset;
+	while (offsets >> offset)
+		m_addresses[line].push_back(offset);
 }
 
 bool MemoryWatcher::OpenSocket(const std::string& path)
@@ -58,24 +69,40 @@ bool MemoryWatcher::OpenSocket(const std::string& path)
 	return m_fd >= 0;
 }
 
+u32 MemoryWatcher::ChasePointer(const std::string& line)
+{
+	u32 value = 0;
+	for (u32 offset : m_addresses[line])
+		value = Memory::Read_U32(value + offset);
+	return value;
+}
+
+std::string MemoryWatcher::ComposeMessage(const std::string& line, u32 value)
+{
+	std::stringstream message_stream;
+	message_stream << line << '\n' << std::hex << value;
+	return message_stream.str();
+}
+
 void MemoryWatcher::WatcherThread()
 {
 	while (m_running)
 	{
 		for (auto& entry : m_values)
 		{
-			u32 address = entry.first;
+			std::string address = entry.first;
 			u32& current_value = entry.second;
 
-			u32 new_value = Memory::Read_U32(address);
+			u32 new_value = ChasePointer(address);
 			if (new_value != current_value)
 			{
+				// Update the value
 				current_value = new_value;
-				u32 buf[2] = {address, current_value};
+				std::string message = ComposeMessage(address, new_value);
 				sendto(
 					m_fd,
-					static_cast<void*>(buf),
-					sizeof(buf),
+					message.c_str(),
+					message.size() + 1,
 					0,
 					reinterpret_cast<sockaddr*>(&m_addr),
 					sizeof(m_addr));
