@@ -30,6 +30,7 @@ import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.AssetCopyService;
+import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
 public final class TvMainActivity extends Activity
@@ -118,20 +119,7 @@ public final class TvMainActivity extends Activity
 
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
-		{
-			NativeLibrary.SetUserDirectory(""); // Auto-Detect
-
-			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-			boolean assetsCopied = preferences.getBoolean("assetsCopied", false);
-
-			// Only perform these extensive copy operations once.
-			if (!assetsCopied)
-			{
-				// Copy assets into appropriate locations.
-				Intent copyAssets = new Intent(this, AssetCopyService.class);
-				startService(copyAssets);
-			}
-		}
+			StartupHandler.HandleInit(this);
 	}
 
 	/**

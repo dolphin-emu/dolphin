@@ -28,6 +28,7 @@ import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.services.AssetCopyService;
+import org.dolphinemu.dolphinemu.utils.StartupHandler;
 
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
@@ -90,20 +91,7 @@ public final class MainActivity extends AppCompatActivity implements LoaderManag
 
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
-		{
-			NativeLibrary.SetUserDirectory(""); // Auto-Detect
-
-			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-			boolean assetsCopied = preferences.getBoolean("assetsCopied", false);
-
-			// Only perform these extensive copy operations once.
-			if (!assetsCopied)
-			{
-				// Copy assets into appropriate locations.
-				Intent copyAssets = new Intent(this, AssetCopyService.class);
-				startService(copyAssets);
-			}
-		}
+			StartupHandler.HandleInit(this);
 	}
 
 	/**
