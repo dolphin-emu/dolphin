@@ -30,14 +30,14 @@ public:
 	~GameTracker();
 
 public slots:
-	void AddDirectory(QString dir);
-	void RemoveDirectory(QString dir);
+	void AddDirectory(const QString& dir);
+	void RemoveDirectory(const QString& dir);
 
 signals:
 	void GameLoaded(QSharedPointer<GameFile> game);
-	void GameRemoved(QString path);
+	void GameRemoved(const QString& path);
 
-	void PathChanged(QString path);
+	void PathChanged(const QString& path);
 
 private:
 	void UpdateDirectory(const QString& dir);
@@ -54,7 +54,7 @@ class GameLoader final : public QObject
 	Q_OBJECT
 
 public slots:
-	void LoadGame(QString path)
+	void LoadGame(const QString& path)
 	{
 		GameFile* game = new GameFile(path);
 		if (game->IsValid())

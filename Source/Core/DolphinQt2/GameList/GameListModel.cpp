@@ -81,7 +81,7 @@ void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
 	endInsertRows();
 }
 
-void GameListModel::RemoveGame(QString path)
+void GameListModel::RemoveGame(const QString& path)
 {
 	int entry = FindGame(path);
 	if (entry < 0)

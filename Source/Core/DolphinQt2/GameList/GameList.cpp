@@ -4,6 +4,7 @@
 
 #include <QHeaderView>
 
+#include "DolphinQt2/Settings.h"
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
 #include "DolphinQt2/GameList/TableProxyModel.h"
@@ -18,15 +19,20 @@ GameList::GameList(QWidget* parent): QStackedWidget(parent)
 
 	MakeTableView();
 	MakeListView();
+	MakeEmptyView();
 
 	connect(m_table, &QTableView::doubleClicked, this, &GameList::GameSelected);
 	connect(m_list, &QListView::doubleClicked, this, &GameList::GameSelected);
 	connect(this, &GameList::DirectoryAdded, m_model, &GameListModel::DirectoryAdded);
 	connect(this, &GameList::DirectoryRemoved, m_model, &GameListModel::DirectoryRemoved);
+	connect(m_model, &QAbstractItemModel::rowsInserted, this, &GameList::ConsiderViewChange);
+	connect(m_model, &QAbstractItemModel::rowsRemoved, this, &GameList::ConsiderViewChange);
 
 	addWidget(m_table);
 	addWidget(m_list);
-	setCurrentWidget(m_table);
+	addWidget(m_empty);
+	m_prefer_table = Settings().GetPreferredView();
+	ConsiderViewChange();
 }
 
 void GameList::MakeTableView()
@@ -69,6 +75,14 @@ void GameList::MakeTableView()
 	header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::Fixed);
 }
 
+void GameList::MakeEmptyView()
+{
+	m_empty = new QLabel(this);
+	m_empty->setText(tr("Dolphin did not find any game files.\n"
+	                    "Open the Paths dialog to add game folders."));
+	m_empty->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+}
+
 void GameList::MakeListView()
 {
 	m_list = new QListView(this);
@@ -99,4 +113,26 @@ QString GameList::GetSelectedGame() const
 		return m_model->GetPath(model_index.row());
 	}
 	return QStringLiteral();
+}
+
+void GameList::SetPreferredView(bool table)
+{
+	m_prefer_table = table;
+	Settings().SetPreferredView(table);
+	ConsiderViewChange();
+}
+
+void GameList::ConsiderViewChange()
+{
+	if (m_model->rowCount(QModelIndex()) > 0)
+	{
+		if (m_prefer_table)
+			setCurrentWidget(m_table);
+		else
+			setCurrentWidget(m_list);
+	}
+	else
+	{
+		setCurrentWidget(m_empty);
+	}
 }

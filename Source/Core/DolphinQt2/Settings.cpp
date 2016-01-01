@@ -105,6 +105,16 @@ DiscIO::IVolume::ELanguage Settings::GetGCSystemLanguage() const
 	return SConfig::GetInstance().GetCurrentLanguage(false);
 }
 
+bool Settings::GetPreferredView() const
+{
+	return value(QStringLiteral("PreferredView"), true).toBool();
+}
+
+void Settings::SetPreferredView(bool table)
+{
+	setValue(QStringLiteral("PreferredView"), table);
+}
+
 bool Settings::GetConfirmStop() const
 {
 	return value(QStringLiteral("Emulation/ConfirmStop"), true).toBool();

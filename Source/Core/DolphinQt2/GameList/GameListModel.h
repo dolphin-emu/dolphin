@@ -42,11 +42,11 @@ public:
 
 public slots:
 	void UpdateGame(QSharedPointer<GameFile> game);
-	void RemoveGame(QString path);
+	void RemoveGame(const QString& path);
 
 signals:
-	void DirectoryAdded(QString dir);
-	void DirectoryRemoved(QString dir);
+	void DirectoryAdded(const QString& dir);
+	void DirectoryRemoved(const QString& dir);
 
 private:
 	// Index in m_games, or -1 if it isn't found

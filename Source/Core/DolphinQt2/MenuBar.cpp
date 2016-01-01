@@ -6,6 +6,7 @@
 #include <QActionGroup>
 
 #include "DolphinQt2/MenuBar.h"
+#include "DolphinQt2/Settings.h"
 
 MenuBar::MenuBar(QWidget* parent)
 	: QMenuBar(parent)
@@ -46,8 +47,9 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 	list_group->addAction(table_view);
 	list_group->addAction(list_view);
 
-	// TODO load this from settings
-	table_view->setChecked(true);
+	bool prefer_table = Settings().GetPreferredView();
+	table_view->setChecked(prefer_table);
+	list_view->setChecked(!prefer_table);
 
 	connect(table_view, &QAction::triggered, this, &MenuBar::ShowTable);
 	connect(list_view, &QAction::triggered, this, &MenuBar::ShowList);
