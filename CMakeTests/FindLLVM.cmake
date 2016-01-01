@@ -21,8 +21,23 @@ foreach(LLVM_CONFIG_NAME ${LLVM_CONFIG_EXECUTABLES})
 			check_library_exists(LLVM-${LLVM_PACKAGE_VERSION} LLVMVerifyFunction "${LLVM_LDFLAGS}" HAVE_DYNAMIC_LLVM_${LLVM_PACKAGE_VERSION})
 			if (HAVE_DYNAMIC_LLVM_${LLVM_PACKAGE_VERSION})
 				set(LLVM_LIBRARIES "${LLVM_LDFLAGS} -lLLVM-${LLVM_PACKAGE_VERSION}")
-				set(LLVM_FOUND 1)
-				break()
+				set(CMAKE_REQUIRED_LIBRARIES ${LLVM_LIBRARIES})
+				CHECK_CXX_SOURCE_COMPILES(
+					"#include <llvm-c/Disassembler.h>
+					#include <llvm-c/Target.h>
+					int main(int argc, char **argv)
+					{
+						LLVMInitializeAllTargetInfos();
+						LLVMInitializeAllTargetMCs();
+						LLVMInitializeAllDisassemblers();
+						return 0;
+					}"
+					LLVM_FOUND)
+				unset(CMAKE_REQUIRED_LIBRARIES)
+
+				if (LLVM_FOUND)
+					break()
+				endif()
 			endif()
 		endif()
 	endif()
