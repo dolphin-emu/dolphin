@@ -23,7 +23,7 @@ protected:
 public:
 	void Swap() override;
 	void SwapInterval(int interval) override;
-	void SetMode(u32 mode) override { s_opengl_mode = mode; }
+	void SetMode(GLInterfaceMode mode) override { s_opengl_mode = mode; }
 	void* GetFuncAddress(const std::string& name) override;
 	bool Create(void* window_handle, bool core) override;
 	bool MakeCurrent() override;
