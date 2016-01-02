@@ -53,11 +53,11 @@ void GeometryShaderManager::SetConstants()
 	{
 		s_projection_changed = false;
 
+		// Per-game scaling value
+		float mmInUnits = g_ActiveConfig.iStereoMetersInUnits / 1000.0f;
+
 		if (xfmem.projection.type == GX_PERSPECTIVE)
 		{
-			// Per-game scaling value
-			float mmInUnits = g_ActiveConfig.iStereoMetersInUnits / 1000.0f;
-
 			// The inter-camera offset in clipping coordinates
 			float offset = (g_ActiveConfig.iStereoDepth * mmInUnits) / Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
 
@@ -70,7 +70,7 @@ void GeometryShaderManager::SetConstants()
 			constants.stereoparams[0] = constants.stereoparams[1] = 0;
 		}
 
-		constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergence * (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
+		constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence * mmInUnits) * (g_ActiveConfig.iStereoConvergencePercentage / 100.0f);
 
 		dirty = true;
 	}
