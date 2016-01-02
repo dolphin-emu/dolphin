@@ -323,12 +323,13 @@ public:
 	u32 mRecvBufferLength;
 
 #if defined(_WIN32)
-	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
-	DWORD mMtu;
-	OVERLAPPED mReadOverlapped;
-	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
+	HANDLE mHAdapter;
+	HANDLE mHCompletionPort;
 #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 	int fd;
+#endif
+
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 	std::thread readThread;
 	std::atomic<bool> readEnabled;
 #endif

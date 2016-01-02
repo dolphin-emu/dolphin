@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
@@ -222,7 +223,16 @@ bool CEXIETHERNET::Activate()
 		return false;
 	}
 
-	return true;
+	// Create IO completion port, and associate the adapter with this port.
+	mHCompletionPort = CreateIoCompletionPort(mHAdapter, nullptr, reinterpret_cast<ULONG_PTR>(this), 0);
+	if (!mHCompletionPort)
+	{
+		ERROR_LOG(SP1, "TAP_WIN32: Failed to create IO completion port (err=%x)", GetLastError());
+		return false;
+	}
+
+	// Start IO thread
+	return RecvInit();
 }
 
 void CEXIETHERNET::Deactivate()
@@ -232,8 +242,16 @@ void CEXIETHERNET::Deactivate()
 
 	RecvStop();
 
+	// Queue an IO packet that drains the queue, and wait for the IO thread to exit.
+	PostQueuedCompletionStatus(mHCompletionPort, 0, 0, nullptr);
+	if (readThread.joinable())
+		readThread.join();
+
+	// Clean-up handles
 	CloseHandle(mHAdapter);
 	mHAdapter = INVALID_HANDLE_VALUE;
+	CloseHandle(mHCompletionPort);
+	mHCompletionPort = INVALID_HANDLE_VALUE;
 }
 
 bool CEXIETHERNET::IsActivated()
@@ -241,56 +259,171 @@ bool CEXIETHERNET::IsActivated()
 	return mHAdapter != INVALID_HANDLE_VALUE;
 }
 
-bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
+// This structure allows us to attach a request type to the OVERLAPPED structure.
+// A virtual destructor is omitted here since the type field determines if it's a
+// write packet anyway, so it will be casted before being freed.
+struct AsyncIOHeader
 {
-	DEBUG_LOG(SP1, "SendFrame %x\n%s",
-		size, ArrayToString(frame, size, 0x10).c_str());
-
-	OVERLAPPED overlap;
-	ZeroMemory(&overlap, sizeof(overlap));
-
-	// WriteFile will always return false because the TAP handle is async
-	WriteFile(mHAdapter, frame, size, nullptr, &overlap);
-
-	DWORD res = GetLastError();
-	if (res != ERROR_IO_PENDING)
+	enum IOPacketType : u32
 	{
-		ERROR_LOG(SP1, "Failed to send packet with error 0x%X", res);
-	}
+		IO_PACKET_TYPE_READ,
+		IO_PACKET_TYPE_WRITE
+	};
 
-	// Always report the packet as being sent successfully, even though it might be a lie
-	SendComplete();
+	IOPacketType type;
+	OVERLAPPED overlapped;
+};
+
+// The buffer size in here is chosen so that it will include most small packets
+// sent by games, and saves an extra allocation in these cases, as well as
+// keeping the total size of this structure under 256 bytes. If a packet is
+// larger, a second buffer is stored in frame_buffer.
+static const size_t SMALL_FRAME_BUFFER_SIZE = 200;
+struct AsyncIOWritePacket final : public AsyncIOHeader
+{
+	u8 small_frame_buffer[SMALL_FRAME_BUFFER_SIZE];
+	std::unique_ptr<u8[]> frame_buffer;
+};
+
+static bool QueueRead(CEXIETHERNET* self, AsyncIOHeader* hdr)
+{
+	// Initialize fields as a read request.
+	hdr->type = AsyncIOHeader::IO_PACKET_TYPE_READ;
+	ZeroMemory(&hdr->overlapped, sizeof(hdr->overlapped));
+
+	// Queue asynchronous ReadFile. It will always return later via GetQueuedCompletionStatus.
+	ReadFile(self->mHAdapter, self->mRecvBuffer, BBA_RECV_SIZE, nullptr, &hdr->overlapped);
+
+	// Check something else did not go wrong, and the request was queued.
+	DWORD err = GetLastError();
+	if (err != ERROR_IO_PENDING)
+	{
+		ERROR_LOG(SP1, "ReadFile failed (err=0x%X)", err);
+		return false;
+	}
 
 	return true;
 }
 
-VOID CALLBACK CEXIETHERNET::ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired)
+static void ReadThreadHandler(CEXIETHERNET* self)
 {
-	CEXIETHERNET* self = (CEXIETHERNET*)lpParameter;
+	// Queue an asynchronous read into the buffer in the CEXIETHERNET class.
+	// Unlike writes, there is a persistent buffer for reads, since we can only have one in-flight at once. This request
+	// is guaranteed to finish before the thread exists, so it is safe to allocate on the stack. The alternative here
+	// would be allocating a buffer for every packet that comes in, which is redundant and un-necessary.
+	AsyncIOHeader read_io_hdr;
+	bool read_io_active = QueueRead(self, &read_io_hdr);
 
-	GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped,
-		(LPDWORD)&self->mRecvBufferLength, false);
+	// Run until we're deactivated.
+	while (self->mHCompletionPort != INVALID_HANDLE_VALUE)
+	{
+		DWORD bytes_transferred;
+		ULONG_PTR completion_key;
+		OVERLAPPED* overlapped;
+		BOOL result = GetQueuedCompletionStatus(self->mHCompletionPort, &bytes_transferred, &completion_key, &overlapped, INFINITE);
 
-	self->RecvHandlePacket();
+		// GetQueuedCompletionStatus returns false if the IO request encountered an error, or was canceled.
+		// If overlapped is set to null, no packet was dequeued. See MSDN docs.
+		if (!result && !overlapped)
+		{
+			WARN_LOG(SP1, "GetQueuedCompletionStatus: err 0x%X", GetLastError());
+			continue;
+		}
+
+		// For read/write events on the file handle, completion_key is set to self.
+		// If the completion key was null, this was a "close" packet queued by CEXIETHERNET::Deactivate.
+		if (completion_key == reinterpret_cast<ULONG_PTR>(self))
+		{
+			// Calculate the address of the containing structure, ASyncIORequest, from the address of the overlapped member.
+			AsyncIOHeader* io_hdr = CONTAINING_RECORD(overlapped, AsyncIOHeader, overlapped);
+			if (io_hdr->type == AsyncIOHeader::IO_PACKET_TYPE_READ)
+			{
+				// Pass the size back to the hardware interface, and fire the interrupt.
+				_dbg_assert_(SP1, read_io_active);
+				if (self->readEnabled.load())
+				{
+					DEBUG_LOG(SP1, "Received %u bytes\n: %s", bytes_transferred, ArrayToString(self->mRecvBuffer, bytes_transferred, 0x10).c_str());
+					self->mRecvBufferLength = bytes_transferred;
+					self->RecvHandlePacket();
+				}
+
+				// Re-use the same read buffer, since it's been copied into HW memory, and queue another read request.
+				read_io_active = QueueRead(self, &read_io_hdr);
+			}
+			else if (io_hdr->type == AsyncIOHeader::IO_PACKET_TYPE_WRITE)
+			{
+				// Cast to the write buffer class, to free (if any) buffer allocated with the write.
+				// See the note in CEXIETHERNET::SendFrame for why.
+				delete static_cast<AsyncIOWritePacket*>(io_hdr);
+			}
+		}
+		else
+		{
+			// Cancel any outstanding requests from both this thread (reads), and the CPU thread (writes).
+			CancelIoEx(self->mHAdapter, nullptr);
+			while (true)
+			{
+				// Keep dequeuing packets from the queue until it is empty.
+				// This will include the read request queued above, or any outstanding writes.
+				result = GetQueuedCompletionStatus(self->mHCompletionPort, &bytes_transferred, &completion_key, &overlapped, 0);
+				if (!result && !overlapped)
+					break;
+
+				// Free write packet buffers. See above.
+				AsyncIOHeader* io_hdr = CONTAINING_RECORD(overlapped, AsyncIOHeader, overlapped);
+				if (io_hdr->type == AsyncIOHeader::IO_PACKET_TYPE_WRITE)
+					delete static_cast<AsyncIOWritePacket*>(io_hdr);
+			}
+
+			return;
+		}
+	}
+}
+
+bool CEXIETHERNET::SendFrame(u8* frame, u32 size)
+{
+	DEBUG_LOG(SP1, "SendFrame %u bytes:\n%s",
+		size, ArrayToString(frame, size, 0x10).c_str());
+
+	// See comment above the struct declaration for an explanation on the allocation behavior here.
+	// Basically, for small packets, we store them in the same memory block as the OVERLAPPED structure,
+	// otherwise we allocate a second block of memory. The reason for this ugliness is because we have
+	// to keep both the buffer and OVERLAPPED structure around until the kernel has finished with it,
+	// and delivers us a completion packet. The memory is then freed afterwards, in ReadThreadHandler.
+	AsyncIOWritePacket* packet = new AsyncIOWritePacket;
+	u8* frame_buffer = packet->small_frame_buffer;
+	if (size > SMALL_FRAME_BUFFER_SIZE)
+	{
+		packet->frame_buffer = std::make_unique<u8[]>(size);
+		frame_buffer = packet->frame_buffer.get();
+	}
+
+	// Initialize the packet type, and copy the data into the buffer, whereever that is.
+	packet->type = AsyncIOHeader::IO_PACKET_TYPE_WRITE;
+	ZeroMemory(&packet->overlapped, sizeof(packet->overlapped));
+	memcpy(frame_buffer, frame, size);
+
+	// Invoke asynchronous WriteFile. The request will complete on the IO thread.
+	WriteFile(mHAdapter, frame_buffer, size, nullptr, &packet->overlapped);
+
+	// Check something else did not go wrong, and the request was queued.
+	DWORD err = GetLastError();
+	if (err != ERROR_IO_PENDING)
+	{
+		ERROR_LOG(SP1, "WriteFile failed (err=0x%X)", err);
+		delete packet;
+		return false;
+	}
+
+	// Always report the packet as being sent successfully, even though it might be a lie
+	SendComplete();
+	return true;
 }
 
 bool CEXIETHERNET::RecvInit()
 {
-	// Set up recv event
-
-	if ((mHRecvEvent = CreateEvent(nullptr, false, false, nullptr)) == nullptr)
-	{
-		ERROR_LOG(SP1, "Failed to create recv event:%x", GetLastError());
-		return false;
-	}
-
-	ZeroMemory(&mReadOverlapped, sizeof(mReadOverlapped));
-
-	RegisterWaitForSingleObject(&mHReadWait, mHRecvEvent, ReadWaitCallback,
-		this, INFINITE, WT_EXECUTEDEFAULT);
-
-	mReadOverlapped.hEvent = mHRecvEvent;
-
+	readEnabled.store(false);
+	readThread = std::thread(ReadThreadHandler, this);
 	return true;
 }
 
@@ -299,31 +432,8 @@ bool CEXIETHERNET::RecvStart()
 	if (!IsActivated())
 		return false;
 
-	if (mHRecvEvent == INVALID_HANDLE_VALUE)
-		RecvInit();
-
-	DWORD res = ReadFile(mHAdapter, mRecvBuffer, BBA_RECV_SIZE,
-		(LPDWORD)&mRecvBufferLength, &mReadOverlapped);
-
-	if (res)
-	{
-		// Since the read is synchronous here, complete immediately
-		RecvHandlePacket();
-		return true;
-	}
-	else
-	{
-		DWORD err = GetLastError();
-		if (err == ERROR_IO_PENDING)
-		{
-			return true;
-		}
-
-		// Unexpected error
-		ERROR_LOG(SP1, "Failed to recieve packet with error 0x%X", err);
-		return false;
-	}
-
+	readEnabled.store(true);
+	return true;
 }
 
 void CEXIETHERNET::RecvStop()
@@ -331,11 +441,5 @@ void CEXIETHERNET::RecvStop()
 	if (!IsActivated())
 		return;
 
-	UnregisterWaitEx(mHReadWait, INVALID_HANDLE_VALUE);
-
-	if (mHRecvEvent != INVALID_HANDLE_VALUE)
-	{
-		CloseHandle(mHRecvEvent);
-		mHRecvEvent = INVALID_HANDLE_VALUE;
-	}
+	readEnabled.store(false);
 }

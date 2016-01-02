@@ -44,10 +44,13 @@ CEXIETHERNET::CEXIETHERNET()
 
 #if defined(_WIN32)
 	mHAdapter = INVALID_HANDLE_VALUE;
-	mHRecvEvent = INVALID_HANDLE_VALUE;
-	mHReadWait = INVALID_HANDLE_VALUE;
+	mHCompletionPort = INVALID_HANDLE_VALUE;
 #elif defined(__linux__) || defined(__APPLE__)
 	fd = -1;
+#endif
+
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+	readEnabled.store(false);
 #endif
 }
 
