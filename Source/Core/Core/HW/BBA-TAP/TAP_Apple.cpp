@@ -23,10 +23,8 @@ bool CEXIETHERNET::Activate()
 		return false;
 	}
 
-	readEnabled.store(false);
-
 	INFO_LOG(SP1, "BBA initialized.");
-	return true;
+	return RecvInit();
 }
 
 void CEXIETHERNET::Deactivate()
@@ -34,7 +32,8 @@ void CEXIETHERNET::Deactivate()
 	close(fd);
 	fd = -1;
 
-	readEnabled.store(false);
+	readEnabled.Clear();
+	readThreadShutdown.Set();
 	if (readThread.joinable())
 		readThread.join();
 }
@@ -64,11 +63,8 @@ bool CEXIETHERNET::SendFrame(u8* frame, u32 size)
 
 static void ReadThreadHandler(CEXIETHERNET* self)
 {
-	while (true)
+	while (!self->readThreadShutdown.IsSet())
 	{
-		if (self->fd < 0)
-			return;
-
 		fd_set rfds;
 		FD_ZERO(&rfds);
 		FD_SET(self->fd, &rfds);
@@ -84,7 +80,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 		{
 			ERROR_LOG(SP1, "Failed to read from BBA, err=%d", readBytes);
 		}
-		else if (self->readEnabled.load())
+		else if (self->readEnabled.IsSet())
 		{
 			INFO_LOG(SP1, "Read data: %s", ArrayToString(self->mRecvBuffer, readBytes, 0x10).c_str());
 			self->mRecvBufferLength = readBytes;
@@ -99,16 +95,12 @@ bool CEXIETHERNET::RecvInit()
 	return true;
 }
 
-bool CEXIETHERNET::RecvStart()
+void CEXIETHERNET::RecvStart()
 {
-	if (!readThread.joinable())
-		RecvInit();
-
-	readEnabled.store(true);
-	return true;
+	readEnabled.Set();
 }
 
 void CEXIETHERNET::RecvStop()
 {
-	readEnabled.store(false);
+	readEnabled.Clear();
 }
