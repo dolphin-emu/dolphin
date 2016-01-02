@@ -10,16 +10,16 @@
 class cInterfaceWGL : public cInterfaceBase
 {
 public:
-	void SwapInterval(int Interval);
-	void Swap();
-	void* GetFuncAddress(const std::string& name);
-	bool Create(void *window_handle, bool core);
-	bool MakeCurrent();
-	bool ClearCurrent();
-	void Shutdown();
+	void SwapInterval(int interval) override;
+	void Swap() override;
+	void* GetFuncAddress(const std::string& name) override;
+	bool Create(void* window_handle, bool core) override;
+	bool MakeCurrent() override;
+	bool ClearCurrent() override;
+	void Shutdown() override;
 
-	void Update();
-	bool PeekMessages();
+	void Update() override;
+	bool PeekMessages() override;
 
 	HWND m_window_handle;
 };
