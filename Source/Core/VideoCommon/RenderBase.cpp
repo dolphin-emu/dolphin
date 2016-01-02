@@ -102,13 +102,9 @@ Renderer::~Renderer()
 	prev_efb_format = PEControl::INVALID_FMT;
 
 	efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
-
 #if defined _WIN32 || defined HAVE_LIBAV
 	if (SConfig::GetInstance().m_DumpFrames && bLastFrameDumped && bAVIDumping)
 		AVIDump::Stop();
-#else
-	if (pFrameDump.IsOpen())
-		pFrameDump.Close();
 #endif
 }
 
@@ -613,5 +609,17 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
+}
+
+void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)
+{
+	for (int y = 0; y < h / 2; ++y)
+	{
+		for (int x = 0; x < w; ++x)
+		{
+			for (int delta = 0; delta < pixel_width; ++delta)
+				std::swap(data[(y * w + x) * pixel_width + delta], data[((h - 1 - y) * w + x) * pixel_width + delta]);
+		}
+	}
 }
 
