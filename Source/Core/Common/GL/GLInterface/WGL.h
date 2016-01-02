@@ -21,5 +21,6 @@ public:
 	void Update() override;
 	bool PeekMessages() override;
 
-	HWND m_window_handle;
+private:
+	HWND m_window_handle = nullptr;
 };
