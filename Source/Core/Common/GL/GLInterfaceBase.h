@@ -20,10 +20,10 @@ class cInterfaceBase
 {
 protected:
 	// Window dimensions.
-	u32 s_backbuffer_width;
-	u32 s_backbuffer_height;
+	u32 s_backbuffer_width = 0;
+	u32 s_backbuffer_height = 0;
 
-	u32 s_opengl_mode;
+	u32 s_opengl_mode = GLInterfaceMode::MODE_DETECT;
 public:
 	virtual ~cInterfaceBase() {}
 	virtual void Swap() {}
