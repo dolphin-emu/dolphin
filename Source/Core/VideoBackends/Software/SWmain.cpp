@@ -86,6 +86,7 @@ bool VideoSoftware::Initialize(void *window_handle)
 	SWRenderer::Init();
 	DebugUtil::Init();
 
+	m_initialized = true;
 	return true;
 }
 
@@ -145,6 +146,8 @@ void VideoSoftware::EmuStateChange(EMUSTATE_CHANGE newState)
 
 void VideoSoftware::Shutdown()
 {
+	m_initialized = false;
+
 	// TODO: should be in Video_Cleanup
 	SWRenderer::Shutdown();
 	DebugUtil::Shutdown();

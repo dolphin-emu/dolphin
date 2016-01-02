@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include "Common/GL/GLExtensions/GLExtensions.h"
-
-#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 

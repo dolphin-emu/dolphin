@@ -36,26 +36,21 @@ Make AA apply instantly during gameplay if possible
 
 */
 
-#include <algorithm>
-#include <cstdarg>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
-#include "Common/Thread.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
-#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/Host.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
-#include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/PerfQuery.h"
-#include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
@@ -68,10 +63,7 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/IndexGenerator.h"
-#include "VideoCommon/LookUpTables.h"
-#include "VideoCommon/MainBase.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
@@ -79,7 +71,6 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/VideoState.h"
 
 namespace OGL
 {
@@ -139,14 +130,15 @@ static void InitBackendInfo()
 	g_Config.backend_info.AnaglyphShaders = GetShaders(ANAGLYPH_DIR DIR_SEP);
 }
 
-void VideoBackend::ShowConfig(void *_hParent)
+void VideoBackend::ShowConfig(void* parent_handle)
 {
-	if (!s_BackendInitialized)
+	if (!m_initialized)
 		InitBackendInfo();
-	Host_ShowVideoConfig(_hParent, GetDisplayName(), "gfx_opengl");
+
+	Host_ShowVideoConfig(parent_handle, GetDisplayName(), "gfx_opengl");
 }
 
-bool VideoBackend::Initialize(void *window_handle)
+bool VideoBackend::Initialize(void* window_handle)
 {
 	InitializeShared();
 	InitBackendInfo();
@@ -167,7 +159,7 @@ bool VideoBackend::Initialize(void *window_handle)
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_INIT);
 
-	s_BackendInitialized = true;
+	m_initialized = true;
 
 	return true;
 }
@@ -206,7 +198,7 @@ void VideoBackend::Video_Prepare()
 
 void VideoBackend::Shutdown()
 {
-	s_BackendInitialized = false;
+	m_initialized = false;
 
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);

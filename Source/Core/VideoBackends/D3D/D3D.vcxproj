@@ -66,8 +66,6 @@
     <ClInclude Include="D3DUtil.h" />
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="GeometryShaderCache.h" />
-    <ClInclude Include="Globals.h" />
-    <ClInclude Include="main.h" />
     <ClInclude Include="PerfQuery.h" />
     <ClInclude Include="PixelShaderCache.h" />
     <ClInclude Include="PSTextureEncoder.h" />

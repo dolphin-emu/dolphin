@@ -17,7 +17,6 @@
 #include <memory>
 #include <string>
 
-#include "Common/Atomic.h"
 #include "Common/Event.h"
 #include "Common/Profiler.h"
 #include "Common/StringUtil.h"
@@ -36,11 +35,8 @@
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/Debugger.h"
-#include "VideoCommon/Fifo.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManagerBase.h"
-#include "VideoCommon/MainBase.h"
-#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"

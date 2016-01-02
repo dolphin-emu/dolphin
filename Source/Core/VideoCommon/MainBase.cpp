@@ -2,27 +2,22 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/Flag.h"
 #include "Core/ConfigManager.h"
 
 #include "VideoCommon/AsyncRequests.h"
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/FramebufferManagerBase.h"
-#include "VideoCommon/MainBase.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
-
-bool s_BackendInitialized = false;
 
 static Common::Flag s_FifoShuttingDown;
 
@@ -59,7 +54,7 @@ void VideoBackendHardware::Video_SetRendering(bool bEnabled)
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendHardware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight)
 {
-	if (s_BackendInitialized && g_ActiveConfig.bUseXFB)
+	if (m_initialized && g_ActiveConfig.bUseXFB)
 	{
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.fbWidth = fbWidth;
@@ -71,7 +66,7 @@ void VideoBackendHardware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStri
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendHardware::Video_EndField()
 {
-	if (s_BackendInitialized && g_ActiveConfig.bUseXFB && g_renderer)
+	if (m_initialized && g_ActiveConfig.bUseXFB && g_renderer)
 	{
 		SyncGPU(SYNC_GPU_SWAP);
 
