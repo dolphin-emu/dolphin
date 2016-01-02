@@ -104,7 +104,6 @@
     <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="LightingShaderGen.h" />
     <ClInclude Include="LookUpTables.h" />
-    <ClInclude Include="MainBase.h" />
     <ClInclude Include="NativeVertexFormat.h" />
     <ClInclude Include="OnScreenDisplay.h" />
     <ClInclude Include="OpcodeDecoding.h" />
