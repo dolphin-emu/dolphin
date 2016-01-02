@@ -47,8 +47,9 @@ CEXIETHERNET::CEXIETHERNET()
 
 #if defined(_WIN32)
 	mHAdapter = INVALID_HANDLE_VALUE;
-	mHRecvEvent = INVALID_HANDLE_VALUE;
-	mHReadWait = INVALID_HANDLE_VALUE;
+	memset(&mReadOverlapped, 0, sizeof(mReadOverlapped));
+	memset(&mWriteOverlapped, 0, sizeof(mWriteOverlapped));
+	mWritePending = false;
 #elif defined(__linux__) || defined(__APPLE__)
 	fd = -1;
 #endif
