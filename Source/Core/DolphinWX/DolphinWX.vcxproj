@@ -40,12 +40,16 @@
       <BaseAddress>0x00400000</BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <FixedBaseAddress>true</FixedBaseAddress>
-      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)OpenAL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <ClCompile />
+    <ClCompile />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDolphin.cpp" />

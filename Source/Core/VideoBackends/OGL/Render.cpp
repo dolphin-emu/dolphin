@@ -37,6 +37,9 @@
 #include "VideoBackends/OGL/TextureConverter.h"
 #include "VideoBackends/OGL/VertexManager.h"
 
+#if defined(HAVE_LIBAV) || defined (_WIN32)
+#include "VideoCommon/AVIDump.h"
+#endif
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/DriverDetails.h"
@@ -50,10 +53,6 @@
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-
-#if defined _WIN32 || defined HAVE_LIBAV
-#include "VideoCommon/AVIDump.h"
-#endif
 
 
 void VideoConfig::UpdateProjectionHack()
@@ -1225,7 +1224,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 static void DumpFrame(const std::vector<u8>& data, int w, int h)
 {
-#if defined(HAVE_LIBAV) || defined(_WIN32)
+#if defined(HAVE_LIBAV) || defined (_WIN32)
 	if (SConfig::GetInstance().m_DumpFrames && !data.empty())
 	{
 		AVIDump::AddFrame(&data[0], w, h);
@@ -1349,7 +1348,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Frame dumping disabled entirely on GLES3
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
-#if defined _WIN32 || defined HAVE_LIBAV
+#if defined(HAVE_LIBAV) || defined (_WIN32)
 		if (SConfig::GetInstance().m_DumpFrames)
 		{
 			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
@@ -1366,11 +1365,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			{
 				if (!bLastFrameDumped)
 				{
-					#ifdef _WIN32
-						bAVIDumping = AVIDump::Start(nullptr, w, h);
-					#else
-						bAVIDumping = AVIDump::Start(w, h);
-					#endif
+					bAVIDumping = AVIDump::Start(w, h);
 					if (!bAVIDumping)
 					{
 						OSD::AddMessage("AVIDump Start failed", 2000);
@@ -1384,11 +1379,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				}
 				if (bAVIDumping)
 				{
-					#ifndef _WIN32
-						FlipImageData(&frame_data[0], w, h);
-					#endif
-
-						AVIDump::AddFrame(&frame_data[0], w, h);
+					FlipImageData(&frame_data[0], w, h);
+					AVIDump::AddFrame(&frame_data[0], w, h);
 				}
 
 				bLastFrameDumped = true;
@@ -1408,45 +1400,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				bAVIDumping = false;
 				OSD::AddMessage("Stop dumping frames", 2000);
 			}
-			bLastFrameDumped = false;
-		}
-#else
-		if (SConfig::GetInstance().m_DumpFrames)
-		{
-			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-			std::string movie_file_name;
-			w = GetTargetRectangle().GetWidth();
-			h = GetTargetRectangle().GetHeight();
-			frame_data.resize(3 * w * h);
-			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-			glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-
-			if (!bLastFrameDumped)
-			{
-				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
-				File::CreateFullPath(movie_file_name);
-				pFrameDump.Open(movie_file_name, "wb");
-				if (!pFrameDump)
-				{
-					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
-				}
-				else
-				{
-					OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
-				}
-			}
-			if (pFrameDump)
-			{
-				FlipImageData(&frame_data[0], w, h);
-				pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
-				pFrameDump.Flush();
-			}
-			bLastFrameDumped = true;
-		}
-		else
-		{
-			if (bLastFrameDumped)
-				pFrameDump.Close();
 			bLastFrameDumped = false;
 		}
 #endif
@@ -1694,19 +1647,6 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 void Renderer::SetInterlacingMode()
 {
 	// TODO
-}
-
-void Renderer::FlipImageData(u8 *data, int w, int h, int pixel_width)
-{
-	// Flip image upside down. Damn OpenGL.
-	for (int y = 0; y < h / 2; ++y)
-	{
-		for (int x = 0; x < w; ++x)
-		{
-			for (int delta = 0; delta < pixel_width; ++delta)
-				std::swap(data[(y * w + x) * pixel_width + delta], data[((h - 1 - y) * w + x) * pixel_width + delta]);
-		}
-	}
 }
 
 }

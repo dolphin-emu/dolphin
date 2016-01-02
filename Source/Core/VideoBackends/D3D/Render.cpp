@@ -840,7 +840,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			s_recordWidth = source_width;
 			s_recordHeight = source_height;
-			bAVIDumping = AVIDump::Start(D3D::hWnd, s_recordWidth, s_recordHeight);
+			bAVIDumping = AVIDump::Start(s_recordWidth, s_recordHeight);
 			if (!bAVIDumping)
 			{
 				PanicAlert("Error dumping frames to AVI.");
@@ -865,6 +865,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				h = s_recordHeight;
 			}
 			formatBufferDump((u8*)map.pData, &frame_data[0], source_width, source_height, map.RowPitch);
+			FlipImageData(&frame_data[0], w, h);
 			AVIDump::AddFrame(&frame_data[0], source_width, source_height);
 			D3D::context->Unmap(s_screenshot_texture, 0);
 		}

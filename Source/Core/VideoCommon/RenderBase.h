@@ -121,6 +121,8 @@ public:
 	virtual u16 BBoxRead(int index) = 0;
 	virtual void BBoxWrite(int index, u16 value) = 0;
 
+	static void FlipImageData(u8* data, int w, int h, int pixel_width = 3);
+
 	// Finish up the current frame, print some stats
 	static void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,float Gamma = 1.0f);
 	virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma = 1.0f) = 0;
@@ -150,9 +152,8 @@ protected:
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	bool bAVIDumping;
-#else
-	File::IOFile pFrameDump;
 #endif
+
 	std::vector<u8> frame_data;
 	bool bLastFrameDumped;
 
