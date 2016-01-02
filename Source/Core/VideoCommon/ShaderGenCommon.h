@@ -18,30 +18,23 @@
 #include "VideoCommon/XFMemory.h"
 
 /**
- * Common interface for classes that need to go through the shader generation path (GenerateVertexShader, GeneratePixelShader)
+ * Common interface for classes that need to go through the shader generation path (GenerateVertexShader, GenerateGeometryShader, GeneratePixelShader)
  * In particular, this includes the shader code generator (ShaderCode).
  * A different class (ShaderUid) can be used to uniquely identify each ShaderCode object.
  * More interesting things can be done with this, e.g. ShaderConstantProfile checks what shader constants are being used. This can be used to optimize buffer management.
- * Each of the ShaderCode, ShaderUid and ShaderConstantProfile child classes only implement the subset of ShaderGeneratorInterface methods that are required for the specific tasks.
+ * If the class does not use one or more of these methods (e.g. Uid class does not need code), the method will be defined as a no-op by the base class, and the call
+ * should be optimized out. The reason for this implementation is so that shader selection/generation can be done in two passes, with only a cache lookup being
+ * required if the shader has already been generated.
  */
 class ShaderGeneratorInterface
 {
 public:
-	virtual ~ShaderGeneratorInterface()
-	{
-	}
-
-	/*
-	 * Returns a read pointer to the internal buffer.
-	 */
-	const std::string& GetBuffer() const { return m_buffer; }
-
 	/*
 	 * Used when the shader generator would write a piece of ShaderCode.
 	 * Can be used like printf.
 	 * @note In the ShaderCode implementation, this does indeed write the parameter string to an internal buffer. However, you're free to do whatever you like with the parameter.
 	 */
-	virtual void Write(const char*, ...)
+	void Write(const char*, ...)
 #ifdef __GNUC__
 	__attribute__((format(printf, 2, 3)))
 #endif
@@ -51,7 +44,7 @@ public:
 	/*
 	 * Tells us that a specific constant range (including last_index) is being used by the shader
 	 */
-	virtual void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
+	void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
 
 	/*
 	 * Returns a pointer to an internally stored object of the uid_data type.
@@ -59,27 +52,19 @@ public:
 	 */
 	template<class uid_data>
 	uid_data* GetUidData() { return nullptr; }
-
-protected:
-	std::string m_buffer;
 };
 
-/**
+/*
  * Shader UID class used to uniquely identify the ShaderCode output written in the shader generator.
  * uid_data can be any struct of parameters that uniquely identify each shader code output.
  * Unless performance is not an issue, uid_data should be tightly packed to reduce memory footprint.
  * Shader generators will write to specific uid_data fields; ShaderUid methods will only read raw u32 values from a union.
+ * NOTE: Because LinearDiskCache reads and writes the storage associated with a ShaderUid instance, ShaderUid must be trivially copyable.
  */
 template<class uid_data>
 class ShaderUid : public ShaderGeneratorInterface
 {
 public:
-	ShaderUid()
-	{
-		// TODO: Move to Shadergen => can be optimized out
-		memset(values, 0, sizeof(values));
-	}
-
 	bool operator == (const ShaderUid& obj) const
 	{
 		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) == 0;
@@ -119,7 +104,9 @@ public:
 		m_buffer.reserve(16384);
 	}
 
-	void Write(const char* fmt, ...) override
+	const std::string& GetBuffer() const { return m_buffer; }
+
+	void Write(const char* fmt, ...)
 #ifdef __GNUC__
 	__attribute__((format(printf, 2, 3)))
 #endif
@@ -129,6 +116,9 @@ public:
 		m_buffer += StringFromFormatV(fmt, arglist);
 		va_end(arglist);
 	}
+
+protected:
+	std::string m_buffer;
 };
 
 /**
@@ -139,7 +129,7 @@ class ShaderConstantProfile : public ShaderGeneratorInterface
 public:
 	ShaderConstantProfile(int num_constants) { constant_usage.resize(num_constants); }
 
-	void SetConstantsUsed(unsigned int first_index, unsigned int last_index) override
+	void SetConstantsUsed(unsigned int first_index, unsigned int last_index)
 	{
 		for (unsigned int i = first_index; i < last_index + 1; ++i)
 			constant_usage[i] = true;
@@ -151,6 +141,7 @@ public:
 		return true;
 		//return constant_usage[index];
 	}
+
 private:
 	std::vector<bool> constant_usage; // TODO: Is vector<bool> appropriate here?
 };

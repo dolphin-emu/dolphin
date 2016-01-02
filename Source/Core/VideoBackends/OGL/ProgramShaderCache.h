@@ -23,10 +23,6 @@ public:
 	PixelShaderUid puid;
 	GeometryShaderUid guid;
 
-	SHADERUID() {}
-
-	SHADERUID(const SHADERUID& r) : vuid(r.vuid), puid(r.puid), guid(r.guid) {}
-
 	bool operator <(const SHADERUID& r) const
 	{
 		if (puid < r.puid)

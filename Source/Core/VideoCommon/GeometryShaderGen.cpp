@@ -34,7 +34,9 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	geometry_shader_uid_data dummy_data;
 	geometry_shader_uid_data* uid_data = out.template GetUidData<geometry_shader_uid_data>();
-	if (uid_data == nullptr)
+	if (uid_data != nullptr)
+		memset(uid_data, 0, sizeof(*uid_data));
+	else
 		uid_data = &dummy_data;
 
 	uid_data->primitive_type = primitive_type;
