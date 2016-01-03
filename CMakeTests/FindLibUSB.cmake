@@ -23,7 +23,7 @@ elseif (NOT LIBUSB_FOUND)
        /usr/local/include
     )
 
-    find_library(LIBUSB_LIBRARIES NAMES usb-1.0
+    find_library(LIBUSB_LIBRARIES NAMES usb-1.0 usb
        PATHS
        ${LIBUSB_PKG_LIBRARY_DIRS}
        /usr/lib
