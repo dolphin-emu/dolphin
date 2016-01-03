@@ -1383,6 +1383,10 @@ void CFrame::ParseHotkeys()
 		if (--g_Config.iEFBScale < SCALE_AUTO)
 			g_Config.iEFBScale = SCALE_AUTO;
 	}
+	if (IsHotkey(HK_TOGGLE_CROP))
+	{
+		g_Config.bCrop = !g_Config.bCrop;
+	}
 	if (IsHotkey(HK_TOGGLE_AR))
 	{
 		OSDChoice = 2;
