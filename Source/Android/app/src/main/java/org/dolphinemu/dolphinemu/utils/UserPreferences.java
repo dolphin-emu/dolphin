@@ -46,6 +46,8 @@ public final class UserPreferences
 			editor.putString("cpuCorePref",   getConfig("Dolphin.ini", "Core", "CPUCore", "3"));
 
 		editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "True").equals("True"));
+		editor.putBoolean("OverclockEnable", getConfig("Dolphin.ini", "Core", "OverclockEnable", "False").equals("True"));
+		editor.putString("Overclock", getConfig("Dolphin.ini", "Core", "Overclock", "100"));
 
 		editor.putString("WiimoteExtension_4", getConfig("WiimoteNew.ini", "Wiimote1", "Extension", "None"));
 		editor.putString("WiimoteExtension_5", getConfig("WiimoteNew.ini", "Wiimote2", "Extension", "None"));
@@ -142,6 +144,9 @@ public final class UserPreferences
 		// Current CPU core being used. Falls back to interpreter upon error.
 		String currentEmuCore = prefs.getString("cpuCorePref", "0");
 
+		boolean overclockEnabled = prefs.getBoolean("OverclockEnable", false);
+		String overclockSetting =  prefs.getString("Overclock", "100");
+
 		// Current wiimote extension setup. Falls back to no extension upon error.
 		String WiimoteExtension_4 = prefs.getString("WiimoteExtension_4", "None");
 		String WiimoteExtension_5 = prefs.getString("WiimoteExtension_5", "None");
@@ -224,6 +229,9 @@ public final class UserPreferences
 		// CPU related Settings
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUCore", currentEmuCore);
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUThread", isUsingDualCore ? "True" : "False");
+
+		NativeLibrary.SetConfig("Dolphin.ini", "Core", "OverclockEnable", overclockEnabled ? "True" : "False");
+		NativeLibrary.SetConfig("Dolphin.ini", "Core", "Overclock", overclockSetting);
 
 		// Wiimote Extension Settings
 		NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension", WiimoteExtension_4);
