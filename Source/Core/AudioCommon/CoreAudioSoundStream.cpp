@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <CoreServices/CoreServices.h>
+#include <AudioUnit/AudioUnit.h>
 
 #include "AudioCommon/CoreAudioSoundStream.h"
 #include "Common/Logging/Log.h"
