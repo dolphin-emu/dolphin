@@ -182,6 +182,15 @@
                             android:summary="%s"
                             android:title="@string/main_stick_right"/>
 
+                        <ListPreference
+                            android:defaultValue="100,000000"
+                            android:dependency="enableController1"
+                            android:key="mainRadius0"
+                            android:summary="%s"
+                            android:title="@string/analog_radius"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -212,6 +221,15 @@
                             android:summary="%s"
                             android:title="@string/c_stick_right"/>
 
+                        <ListPreference
+                            android:defaultValue="100,000000"
+                            android:dependency="enableController1"
+                            android:key="cStickRadius0"
+                            android:summary="%s"
+                            android:title="@string/analog_radius"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -229,6 +247,15 @@
                             android:key="InputR_0"
                             android:summary="%s"
                             android:title="@string/trigger_right"/>
+
+                        <ListPreference
+                            android:defaultValue="90,000000"
+                            android:dependency="enableController1"
+                            android:key="inputThres0"
+                            android:summary="%s"
+                            android:title="@string/analog_threshold"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
 
                     </PreferenceCategory>
 
@@ -343,6 +370,15 @@
                             android:summary="%s"
                             android:title="@string/main_stick_right"/>
 
+                        <ListPreference
+                            android:defaultValue="100,000000"
+                            android:dependency="enableController2"
+                            android:key="mainRadius1"
+                            android:summary="%s"
+                            android:title="@string/analog_radius"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -373,6 +409,15 @@
                             android:summary="%s"
                             android:title="@string/c_stick_right"/>
 
+                        <ListPreference
+                            android:defaultValue="100,000000"
+                            android:dependency="enableController2"
+                            android:key="cStickRadius1"
+                            android:summary="%s"
+                            android:title="@string/analog_radius"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -390,6 +435,15 @@
                             android:key="InputR_1"
                             android:summary="%s"
                             android:title="@string/trigger_right"/>
+
+                        <ListPreference
+                            android:defaultValue="90,000000"
+                            android:dependency="enableController2"
+                            android:key="inputThres1"
+                            android:summary="%s"
+                            android:title="@string/analog_threshold"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
 
                     </PreferenceCategory>
 
@@ -504,6 +558,15 @@
                             android:summary="%s"
                             android:title="@string/main_stick_right"/>
 
+                        <ListPreference
+                            android:defaultValue="100,000000"
+                            android:dependency="enableController3"
+                            android:key="mainRadius2"
+                            android:summary="%s"
+                            android:title="@string/analog_radius"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -534,6 +597,15 @@
                             android:summary="%s"
                             android:title="@string/c_stick_right"/>
 
+                        <ListPreference
+                            android:defaultValue="100,000000"
+                            android:dependency="enableController3"
+                            android:key="cStickRadius2"
+                            android:summary="%s"
+                            android:title="@string/analog_radius"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -551,6 +623,15 @@
                             android:key="InputR_2"
                             android:summary="%s"
                             android:title="@string/trigger_right"/>
+
+                        <ListPreference
+                            android:defaultValue="90,000000"
+                            android:dependency="enableController3"
+                            android:key="inputThres2"
+                            android:summary="%s"
+                            android:title="@string/analog_threshold"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
 
                     </PreferenceCategory>
 
@@ -665,6 +746,15 @@
                             android:summary="%s"
                             android:title="@string/main_stick_right"/>
 
+                        <ListPreference
+                            android:defaultValue="100,000000"
+                            android:dependency="enableController4"
+                            android:key="mainRadius3"
+                            android:summary="%s"
+                            android:title="@string/analog_radius"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -695,6 +785,15 @@
                             android:summary="%s"
                             android:title="@string/c_stick_right"/>
 
+                        <ListPreference
+                            android:defaultValue="100,000000"
+                            android:dependency="enableController4"
+                            android:key="cStickRadius3"
+                            android:summary="%s"
+                            android:title="@string/analog_radius"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -712,6 +811,15 @@
                             android:key="InputR_3"
                             android:summary="%s"
                             android:title="@string/trigger_right"/>
+
+                        <ListPreference
+                            android:defaultValue="90,000000"
+                            android:dependency="enableController4"
+                            android:key="inputThres3"
+                            android:summary="%s"
+                            android:title="@string/analog_threshold"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
 
                     </PreferenceCategory>
 
@@ -737,7 +845,7 @@
                         android:defaultValue="None"
                         android:entries="@array/wiimoteExtEntries"
                         android:entryValues="@array/wiimoteExtValues"
-                        android:key="WiimoteExtension_4"
+                        android:key="wiimoteExtension4"
                         android:summary="@string/wiimote_extensions_descrip"
                         android:title="@string/wiimote_extensions"/>
 
@@ -937,6 +1045,21 @@
                             android:summary="%s"
                             android:title="@string/tilt_right"/>
 
+                        <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                            android:dependency="enableWiimote1"
+                            android:key="TiltModifier_4"
+                            android:summary="%s"
+                            android:title="@string/tilt_modifier"/>
+
+                        <ListPreference
+                            android:dependency="enableWiimote1"
+                            android:defaultValue="50,000000"
+                            android:key="tiltRange4"
+                            android:summary="%s"
+                            android:title="@string/modifier_range"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -1013,6 +1136,14 @@
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="nunchukRadius4"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -1074,6 +1205,19 @@
                                     android:key="NunchukTiltRight_4"
                                     android:summary="%s"
                                     android:title="@string/tilt_right"/>
+
+                                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                                    android:key="NunchukModifier_4"
+                                    android:summary="%s"
+                                    android:title="@string/tilt_modifier"/>
+
+                                <ListPreference
+                                    android:defaultValue="50,000000"
+                                    android:key="nunchukRange4"
+                                    android:summary="%s"
+                                    android:title="@string/modifier_range"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -1207,6 +1351,14 @@
                                     android:summary="%s"
                                     android:title="@string/classic_stick_left_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="classicLRadius4"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -1233,6 +1385,14 @@
                                     android:summary="%s"
                                     android:title="@string/classic_stick_right_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="classicRRadius4"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -1248,6 +1408,14 @@
                                     android:key="ClassicTriggerR_4"
                                     android:summary="%s"
                                     android:title="@string/trigger_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="90,000000"
+                                    android:key="classicThres4"
+                                    android:summary="%s"
+                                    android:title="@string/analog_threshold"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -1339,6 +1507,14 @@
                                     android:key="GuitarRight_4"
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="guitarRadius4"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -1436,6 +1612,14 @@
                                     android:key="DrumsRight_4"
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="drumsRadius4"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -1559,6 +1743,14 @@
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="turntableRadius4"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -1608,7 +1800,7 @@
                         android:defaultValue="None"
                         android:entries="@array/wiimoteExtEntries"
                         android:entryValues="@array/wiimoteExtValues"
-                        android:key="WiimoteExtension_5"
+                        android:key="wiimoteExtension5"
                         android:summary="@string/wiimote_extensions_descrip"
                         android:title="@string/wiimote_extensions"/>
 
@@ -1808,6 +2000,21 @@
                             android:summary="%s"
                             android:title="@string/tilt_right"/>
 
+                        <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                            android:dependency="enableWiimote2"
+                            android:key="TiltModifier_5"
+                            android:summary="%s"
+                            android:title="@string/tilt_modifier"/>
+
+                        <ListPreference
+                            android:dependency="enableWiimote2"
+                            android:defaultValue="50,000000"
+                            android:key="tiltRange5"
+                            android:summary="%s"
+                            android:title="@string/modifier_range"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -1884,6 +2091,14 @@
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="nunchukRadius5"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -1945,6 +2160,19 @@
                                     android:key="NunchukTiltRight_5"
                                     android:summary="%s"
                                     android:title="@string/tilt_right"/>
+
+                                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                                    android:key="NunchukModifier_5"
+                                    android:summary="%s"
+                                    android:title="@string/tilt_modifier"/>
+
+                                <ListPreference
+                                    android:defaultValue="50,000000"
+                                    android:key="nunchukRange5"
+                                    android:summary="%s"
+                                    android:title="@string/modifier_range"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -2078,6 +2306,14 @@
                                     android:summary="%s"
                                     android:title="@string/classic_stick_left_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="classicLRadius5"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -2104,6 +2340,14 @@
                                     android:summary="%s"
                                     android:title="@string/classic_stick_right_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="classicRRadius5"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -2119,6 +2363,14 @@
                                     android:key="ClassicTriggerR_5"
                                     android:summary="%s"
                                     android:title="@string/trigger_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="90,000000"
+                                    android:key="classicThres5"
+                                    android:summary="%s"
+                                    android:title="@string/analog_threshold"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -2210,6 +2462,14 @@
                                     android:key="GuitarRight_5"
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="guitarRadius5"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -2307,6 +2567,14 @@
                                     android:key="DrumsRight_5"
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="drumsRadius5"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -2430,6 +2698,14 @@
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="turntableRadius5"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -2479,7 +2755,7 @@
                         android:defaultValue="None"
                         android:entries="@array/wiimoteExtEntries"
                         android:entryValues="@array/wiimoteExtValues"
-                        android:key="WiimoteExtension_6"
+                        android:key="wiimoteExtension6"
                         android:summary="@string/wiimote_extensions_descrip"
                         android:title="@string/wiimote_extensions"/>
 
@@ -2679,6 +2955,20 @@
                             android:summary="%s"
                             android:title="@string/tilt_right"/>
 
+                        <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                            android:dependency="enableWiimote3"
+                            android:key="TiltModifier_6"
+                            android:summary="%s"
+                            android:title="@string/tilt_modifier"/>
+
+                        <ListPreference
+                            android:defaultValue="50,000000"
+                            android:key="tiltRange6"
+                            android:summary="%s"
+                            android:title="@string/modifier_range"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -2755,6 +3045,14 @@
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="nunchukRadius6"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -2816,6 +3114,19 @@
                                     android:key="NunchukTiltRight_6"
                                     android:summary="%s"
                                     android:title="@string/tilt_right"/>
+
+                                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                                    android:key="NunchukModifier_6"
+                                    android:summary="%s"
+                                    android:title="@string/tilt_modifier"/>
+
+                                <ListPreference
+                                    android:defaultValue="50,000000"
+                                    android:key="nunchukRange6"
+                                    android:summary="%s"
+                                    android:title="@string/modifier_range"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -2949,6 +3260,14 @@
                                     android:summary="%s"
                                     android:title="@string/classic_stick_left_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="classicLRadius6"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -2975,6 +3294,14 @@
                                     android:summary="%s"
                                     android:title="@string/classic_stick_right_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="classicRRadius6"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -2990,6 +3317,14 @@
                                     android:key="ClassicTriggerR_6"
                                     android:summary="%s"
                                     android:title="@string/trigger_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="90,000000"
+                                    android:key="classicThres6"
+                                    android:summary="%s"
+                                    android:title="@string/analog_threshold"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -3081,6 +3416,14 @@
                                     android:key="GuitarRight_6"
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="guitarRadius6"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -3178,6 +3521,13 @@
                                     android:key="DrumsRight_6"
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="drumsRadius6"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -3301,6 +3651,14 @@
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="turntableRadius6"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -3350,7 +3708,7 @@
                         android:defaultValue="None"
                         android:entries="@array/wiimoteExtEntries"
                         android:entryValues="@array/wiimoteExtValues"
-                        android:key="WiimoteExtension_7"
+                        android:key="wiimoteExtension7"
                         android:summary="@string/wiimote_extensions_descrip"
                         android:title="@string/wiimote_extensions"/>
 
@@ -3550,6 +3908,20 @@
                             android:summary="%s"
                             android:title="@string/tilt_right"/>
 
+                        <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                            android:dependency="enableWiimote4"
+                            android:key="TiltModifier_7"
+                            android:summary="%s"
+                            android:title="@string/tilt_modifier"/>
+
+                        <ListPreference
+                            android:defaultValue="50,000000"
+                            android:key="tiltRange7"
+                            android:summary="%s"
+                            android:title="@string/modifier_range"
+                            android:entries="@array/analogRangesEntries"
+                            android:entryValues="@array/analogRangesValues"/>
+
                     </PreferenceCategory>
 
                     <PreferenceCategory
@@ -3626,6 +3998,14 @@
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="nunchukRadius7"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -3687,6 +4067,19 @@
                                     android:key="NunchukTiltRight_7"
                                     android:summary="%s"
                                     android:title="@string/tilt_right"/>
+
+                                <org.dolphinemu.dolphinemu.utils.InputBindingPreference
+                                    android:key="NunchukModifier_7"
+                                    android:summary="%s"
+                                    android:title="@string/tilt_modifier"/>
+
+                                <ListPreference
+                                    android:defaultValue="50,000000"
+                                    android:key="nunchukRange7"
+                                    android:summary="%s"
+                                    android:title="@string/modifier_range"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -3820,6 +4213,14 @@
                                     android:summary="%s"
                                     android:title="@string/classic_stick_left_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="classicLRadius7"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -3846,6 +4247,14 @@
                                     android:summary="%s"
                                     android:title="@string/classic_stick_right_right"/>
 
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="classicRRadius7"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
+
                             </PreferenceCategory>
 
                             <PreferenceCategory
@@ -3861,6 +4270,14 @@
                                     android:key="ClassicTriggerR_7"
                                     android:summary="%s"
                                     android:title="@string/trigger_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="90,000000"
+                                    android:key="classicThres7"
+                                    android:summary="%s"
+                                    android:title="@string/analog_threshold"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -3952,6 +4369,14 @@
                                     android:key="GuitarRight_7"
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="guitarRadius7"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -4049,6 +4474,14 @@
                                     android:key="DrumsRight_7"
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="drumsRadius7"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 
@@ -4171,6 +4604,14 @@
                                     android:key="TurntableRight_7"
                                     android:summary="%s"
                                     android:title="@string/stick_right"/>
+
+                                <ListPreference
+                                    android:defaultValue="100,000000"
+                                    android:key="turntableRadius7"
+                                    android:summary="%s"
+                                    android:title="@string/analog_radius"
+                                    android:entries="@array/analogRangesEntries"
+                                    android:entryValues="@array/analogRangesValues"/>
 
                             </PreferenceCategory>
 

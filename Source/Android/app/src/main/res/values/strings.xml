@@ -88,6 +88,9 @@
     <string name="controller_main">Main Stick Navigation</string>
     <string name="controller_c">C-Stick Navigation</string>
     <string name="controller_trig">Analog Triggers</string>
+	<string name="modifier_range">Modifier Range</string>
+    <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
+    <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
     <string name="wiimote_0">Wiimote 1</string>
     <string name="wiimote_1">Wiimote 2</string>
     <string name="wiimote_2">Wiimote 3</string>
@@ -157,6 +160,7 @@
     <string name="tilt_backward">Tilt Backward</string>
     <string name="tilt_left">Tilt Left</string>
     <string name="tilt_right">Tilt Right</string>
+	<string name="tilt_modifier">Tilt Modifier</string>
     <string name="shake_x">Shake X</string>
     <string name="shake_y">Shake Y</string>
     <string name="shake_z">Shake Z</string>

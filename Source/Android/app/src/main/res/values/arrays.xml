@@ -14,7 +14,7 @@
         <item>1</item>
         <item>2</item>
     </string-array>
-    
+
     <!-- CPU core selection - ARM -->
     <string-array name="emuCoreEntriesARM" translatable="false">
         <item>@string/interpreter</item>
@@ -34,7 +34,7 @@
         <item>0</item>
         <item>4</item>
     </string-array>
-    
+
     <!-- CPU core selection - Other -->
     <string-array name="emuCoreEntriesOther" translatable="false">
         <item>@string/interpreter</item>
@@ -52,7 +52,7 @@
         <item>0</item>
         <item>5</item>
     </string-array>
-    
+
     <!-- Video Backend Selection - Supports OpenGL ES 3 -->
     <string-array name="videoBackendEntriesGLES3" translatable="false">
         <item>@string/software_renderer</item>
@@ -72,7 +72,7 @@
         <item>Software Renderer</item>
         <item>OGL</item>
     </string-array>
-    
+
     <!-- Video Backend Selection - No OpenGL ES 3 support -->
     <string-array name="videoBackendEntriesNoGLES3" translatable="false">
         <item>@string/software_renderer</item>
@@ -112,7 +112,7 @@
         <item>RAM (cached)</item>
         <item>RAM (uncached)</item>
     </string-array>
-    
+
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries" translatable="false">
         <item>@string/texture_cache_accuracy_low</item>
@@ -124,7 +124,33 @@
         <item>512</item>
         <item>0</item>
     </string-array>
-    
+
+    <!-- Analog Modifier ranges -->
+    <string-array name="analogRangesEntries" translatable="false">
+        <item>100</item>
+        <item>90</item>
+        <item>80</item>
+        <item>70</item>
+        <item>60</item>
+        <item>50</item>
+        <item>40</item>
+        <item>30</item>
+        <item>20</item>
+        <item>10</item>
+    </string-array>
+    <string-array name="analogRangesValues" translatable="false">
+        <item>100,000000</item>
+        <item>90,000000</item>
+        <item>80,000000</item>
+        <item>70,000000</item>
+        <item>60,000000</item>
+        <item>50,000000</item>
+        <item>40,000000</item>
+        <item>30,000000</item>
+        <item>20,000000</item>
+        <item>10,000000</item>
+    </string-array>
+
     <!-- External Frame Buffer Preference -->
     <string-array name="externalFrameBufferEntries" translatable="false">
         <item>@string/disabled</item>
@@ -136,7 +162,7 @@
         <item>Virtual</item>
         <item>Real</item>
     </string-array>
-    
+
     <!-- Internal Resolution Preference -->
     <string-array name="internalResolutionEntries" translatable="false">
         <item>1x Native (640x528)</item>

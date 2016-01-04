@@ -64,6 +64,7 @@ namespace ButtonManager
 		"TiltBackward",
 		"TiltLeft",
 		"TiltRight",
+		"TiltModifier"
 		"ShakeX",
 		"ShakeY",
 		"ShakeZ",
@@ -84,6 +85,7 @@ namespace ButtonManager
 		"NunchukTiltBackward",
 		"NunchukTiltLeft",
 		"NunchukTiltRight",
+		"NunchukTiltModifier",
 		"NunchukShakeX",
 		"NunchukShakeY",
 		"NunchukShakeZ",
@@ -213,6 +215,7 @@ namespace ButtonManager
 		WIIMOTE_TILT_BACKWARD,
 		WIIMOTE_TILT_LEFT,
 		WIIMOTE_TILT_RIGHT,
+		WIIMOTE_TILT_MODIFIER,
 		WIIMOTE_SHAKE_X,
 		WIIMOTE_SHAKE_Y,
 		WIIMOTE_SHAKE_Z,
@@ -233,6 +236,7 @@ namespace ButtonManager
 		NUNCHUK_TILT_BACKWARD,
 		NUNCHUK_TILT_LEFT,
 		NUNCHUK_TILT_RIGHT,
+		NUNCHUK_TILT_MODIFIER,
 		NUNCHUK_SHAKE_X,
 		NUNCHUK_SHAKE_Y,
 		NUNCHUK_SHAKE_Z,
@@ -365,6 +369,7 @@ namespace ButtonManager
 			AddBind(touchScreenKey, new sBind(a, WIIMOTE_LEFT, BIND_BUTTON, WIIMOTE_LEFT, 1.0f));
 			AddBind(touchScreenKey, new sBind(a, WIIMOTE_RIGHT, BIND_BUTTON, WIIMOTE_RIGHT, 1.0f));
 			AddBind(touchScreenKey, new sBind(a, WIIMOTE_IR_HIDE, BIND_BUTTON, WIIMOTE_IR_HIDE, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, WIIMOTE_TILT_MODIFIER, BIND_BUTTON, WIIMOTE_TILT_MODIFIER, 1.0f));
 			AddBind(touchScreenKey, new sBind(a, WIIMOTE_SHAKE_X, BIND_BUTTON, WIIMOTE_SHAKE_X, 1.0f));
 			AddBind(touchScreenKey, new sBind(a, WIIMOTE_SHAKE_Y, BIND_BUTTON, WIIMOTE_SHAKE_Y, 1.0f));
 			AddBind(touchScreenKey, new sBind(a, WIIMOTE_SHAKE_Z, BIND_BUTTON, WIIMOTE_SHAKE_Z, 1.0f));
@@ -389,6 +394,7 @@ namespace ButtonManager
 			// Wii: Nunchuk
 			AddBind(touchScreenKey, new sBind(a, NUNCHUK_BUTTON_C, BIND_BUTTON, NUNCHUK_BUTTON_C, 1.0f));
 			AddBind(touchScreenKey, new sBind(a, NUNCHUK_BUTTON_Z, BIND_BUTTON, NUNCHUK_BUTTON_Z, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, NUNCHUK_TILT_MODIFIER, BIND_BUTTON, NUNCHUK_TILT_MODIFIER, 1.0f));
 			AddBind(touchScreenKey, new sBind(a, NUNCHUK_SHAKE_X, BIND_BUTTON, NUNCHUK_SHAKE_X, 1.0f));
 			AddBind(touchScreenKey, new sBind(a, NUNCHUK_SHAKE_Y, BIND_BUTTON, NUNCHUK_SHAKE_Y, 1.0f));
 			AddBind(touchScreenKey, new sBind(a, NUNCHUK_SHAKE_Z, BIND_BUTTON, NUNCHUK_SHAKE_Z, 1.0f));

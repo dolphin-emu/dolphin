@@ -78,6 +78,7 @@ public final class NativeLibrary
 		public static final int WIIMOTE_TILT_BACKWARD        = 128;
 		public static final int WIIMOTE_TILT_LEFT            = 129;
 		public static final int WIIMOTE_TILT_RIGHT           = 130;
+		public static final int WIIMOTE_TILT_MODIFIER        = 131;
 		public static final int WIIMOTE_SHAKE_X              = 132;
 		public static final int WIIMOTE_SHAKE_Y              = 133;
 		public static final int WIIMOTE_SHAKE_Z              = 134;
@@ -100,6 +101,7 @@ public final class NativeLibrary
 		public static final int NUNCHUK_TILT_BACKWARD        = 216;
 		public static final int NUNCHUK_TILT_LEFT            = 217;
 		public static final int NUNCHUK_TILT_RIGHT           = 218;
+		public static final int NUNCHUK_TILT_MODIFIER        = 219;
 		public static final int NUNCHUK_SHAKE_X              = 220;
 		public static final int NUNCHUK_SHAKE_Y              = 221;
 		public static final int NUNCHUK_SHAKE_Z              = 222;
