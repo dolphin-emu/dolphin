@@ -323,13 +323,13 @@ static T GenerateVertexShader(API_TYPE api_type)
 	//if not early z culling will improve speed
 	if (g_ActiveConfig.backend_info.bSupportsClipControl)
 	{
-		out.Write("o.pos.z = -o.pos.z;\n");
+		out.Write("o.pos.z = -max(o.pos.z, 0.0);\n");
 	}
 	else // OGL
 	{
 		// this results in a scale from -1..0 to -1..1 after perspective
 		// divide
-		out.Write("o.pos.z = o.pos.z * -2.0 - o.pos.w;\n");
+		out.Write("o.pos.z = max(o.pos.z, 0.0) * -2.0 - o.pos.w;\n");
 
 		// the next steps of the OGL pipeline are:
 		// (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
