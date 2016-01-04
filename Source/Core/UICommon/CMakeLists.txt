@@ -1,4 +1,5 @@
 set(SRCS Disassembler.cpp
+         DebugInterface.cpp
          UICommon.cpp)
 
 set(LIBS common)

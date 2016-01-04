@@ -26,6 +26,7 @@
 #include "Core/Host.h"
 #include "Core/Boot/Boot.h"
 #include "Core/HLE/HLE.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -206,7 +207,10 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 			{
 				std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
 				File::CreateFullPath(filename);
-				Profiler::WriteProfileResults(filename);
+
+				ProfileStats prof_stats;
+				JitInterface::GetProfileResults(&prof_stats);
+				JitInterface::WriteProfileResults(prof_stats, filename);
 
 				wxFileType* filetype = nullptr;
 				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("txt")))
