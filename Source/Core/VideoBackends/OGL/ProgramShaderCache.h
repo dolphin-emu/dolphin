@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "Common/LinearDiskCache.h"
 #include "Common/GL/GLUtil.h"
 
@@ -29,27 +31,14 @@ public:
 
 	bool operator <(const SHADERUID& r) const
 	{
-		if (puid < r.puid)
-			return true;
-
-		if (r.puid < puid)
-			return false;
-
-		if (vuid < r.vuid)
-			return true;
-
-		if (r.vuid < vuid)
-			return false;
-
-		if (guid < r.guid)
-			return true;
-
-		return false;
+		return std::tie(puid, vuid, guid) <
+		       std::tie(r.puid, r.vuid, r.guid);
 	}
 
 	bool operator ==(const SHADERUID& r) const
 	{
-		return puid == r.puid && vuid == r.vuid && guid == r.guid;
+		return std::tie(puid, vuid, guid) ==
+		       std::tie(r.puid, r.vuid, r.guid);
 	}
 };
 
