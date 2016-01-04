@@ -157,7 +157,7 @@ bool VideoBackend::Initialize(void* window_handle)
 		return false;
 
 	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::OSD_INIT);
+	OSD::DoCallbacks(OSD::CallbackType::Initialization);
 
 	m_initialized = true;
 
@@ -201,7 +201,7 @@ void VideoBackend::Shutdown()
 	m_initialized = false;
 
 	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
+	OSD::DoCallbacks(OSD::CallbackType::Shutdown);
 
 	GLInterface->Shutdown();
 	GLInterface.reset();

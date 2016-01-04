@@ -609,8 +609,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	}
 
 	// Install our callbacks
-	OSD::AddCallback(OSD::OSD_INIT, ButtonManager::Init);
-	OSD::AddCallback(OSD::OSD_SHUTDOWN, ButtonManager::Shutdown);
+	OSD::AddCallback(OSD::CallbackType::Initialization, ButtonManager::Init);
+	OSD::AddCallback(OSD::CallbackType::Shutdown, ButtonManager::Shutdown);
 
 	RegisterMsgAlertHandler(&MsgAlert);
 

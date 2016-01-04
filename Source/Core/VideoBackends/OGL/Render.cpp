@@ -1511,7 +1511,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	DrawDebugText();
 
 	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::OSD_ONFRAME);
+	OSD::DoCallbacks(OSD::CallbackType::OnFrame);
 	OSD::DrawMessages();
 
 	// Copy the rendered frame to the real window

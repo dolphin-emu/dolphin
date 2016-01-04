@@ -150,7 +150,7 @@ void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
 		s_bScreenshot.store(false);
 	}
 
-	OSD::DoCallbacks(OSD::OSD_ONFRAME);
+	OSD::DoCallbacks(OSD::CallbackType::OnFrame);
 
 	DrawDebugText();
 

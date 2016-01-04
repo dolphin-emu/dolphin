@@ -153,7 +153,7 @@ void VideoSoftware::Shutdown()
 	DebugUtil::Shutdown();
 
 	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
+	OSD::DoCallbacks(OSD::CallbackType::Shutdown);
 
 	SWOGLWindow::Shutdown();
 }
@@ -166,7 +166,7 @@ void VideoSoftware::Video_Cleanup()
 void VideoSoftware::Video_Prepare()
 {
 	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::OSD_INIT);
+	OSD::DoCallbacks(OSD::CallbackType::Initialization);
 
 	SWRenderer::Prepare();
 

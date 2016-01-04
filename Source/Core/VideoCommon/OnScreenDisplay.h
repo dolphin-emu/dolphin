@@ -17,13 +17,13 @@ void DrawMessages(); // draw the current messages on the screen. Only call once 
 void ClearMessages();
 
 // On-screen callbacks
-enum CallbackType
+enum class CallbackType
 {
-	OSD_INIT = 0,
-	OSD_ONFRAME,
-	OSD_SHUTDOWN
+	Initialization,
+	OnFrame,
+	Shutdown
 };
-typedef std::function<void()> Callback;
+using Callback = std::function<void()>;
 
 void AddCallback(CallbackType type, Callback cb);
 void DoCallbacks(CallbackType type);
