@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 
@@ -20,6 +21,7 @@ public class SliderPreference extends DialogPreference implements SeekBar.OnSeek
 
 	// SeekBar
 	private int m_max, m_value;
+	private String m_key;
 	private SeekBar m_seekbar;
 
 	// TextView
@@ -32,19 +34,35 @@ public class SliderPreference extends DialogPreference implements SeekBar.OnSeek
 		// Seekbar values
 		m_value = attrs.getAttributeIntValue(androidns, "defaultValue", 0);
 		m_max = attrs.getAttributeIntValue(androidns, "max", 100);
+		m_key = attrs.getAttributeValue(androidns, "key");
 	}
 
 	@Override
 	protected View onCreateDialogView()
 	{
 		LayoutInflater inflater = LayoutInflater.from(getContext());
-		LinearLayout layout = (LinearLayout)inflater.inflate(R.layout.slider_layout, null, false);
+		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.slider_layout, null, false);
 
-		m_seekbar = (SeekBar)layout.findViewById(R.id.sliderSeekBar);
-		m_textview = (TextView)layout.findViewById(R.id.sliderTextView);
+		m_seekbar = (SeekBar) layout.findViewById(R.id.sliderSeekBar);
+		m_textview = (TextView) layout.findViewById(R.id.sliderTextView);
 
 		if (shouldPersist())
-			m_value = Integer.valueOf(getPersistedString(Integer.toString(m_value)));
+		{
+			if (m_key != null && m_key.equals("Overclock"))
+			{
+				Toast.makeText(getContext(), getContext().getString(R.string.overclock_warning),
+						Toast.LENGTH_LONG).show();
+
+				float valueAsFloat = Float.valueOf(getPersistedString(Integer.toString(m_value)));
+				float valueAsPercent = valueAsFloat * 100;
+
+				m_value = Math.round(valueAsPercent);
+			}
+			else
+			{
+				m_value = Integer.valueOf(getPersistedString(Integer.toString(m_value)));
+			}
+		}
 
 		m_seekbar.setMax(m_max);
 		m_seekbar.setProgress(m_value);
@@ -63,9 +81,14 @@ public class SliderPreference extends DialogPreference implements SeekBar.OnSeek
 	}
 
 	@Override
-	public void onStartTrackingTouch(SeekBar seek) {}
+	public void onStartTrackingTouch(SeekBar seek)
+	{
+	}
+
 	@Override
-	public void onStopTrackingTouch(SeekBar seek) {}
+	public void onStopTrackingTouch(SeekBar seek)
+	{
+	}
 
 	void setProgressText(int value)
 	{
@@ -86,7 +109,18 @@ public class SliderPreference extends DialogPreference implements SeekBar.OnSeek
 	{
 		if (shouldPersist())
 		{
-			persistString(Integer.toString(m_seekbar.getProgress()));
+			String valueToSave;
+			if (m_key != null && m_key.equals("Overclock"))
+			{
+				float valueAsFloat = m_value / 100.0f;
+				valueToSave = Float.toString(valueAsFloat);
+			}
+			else
+			{
+				valueToSave = Integer.toString(m_seekbar.getProgress());
+			}
+
+			persistString(valueToSave);
 			callChangeListener(m_seekbar.getProgress());
 		}
 		((AlertDialog) getDialog()).dismiss();

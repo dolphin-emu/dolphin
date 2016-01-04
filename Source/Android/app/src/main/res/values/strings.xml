@@ -252,6 +252,10 @@
     <string name="dual_core_descrip">Split workload to two CPU cores instead of one. Increases speed.</string>
     <string name="fastmem">Fastmem</string>
     <string name="fastmem_desc">Uses potentially unsafe optimizations for memory access.</string>
+    <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
+    <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
+    <string name="overclock_title">Emulated CPU Clock Speed</string>
+    <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
 
     <!-- Video Preference Fragment -->
     <string name="video_settings">Video</string>

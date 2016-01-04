@@ -19,6 +19,21 @@
             android:entries="@array/string_emu_cores"
             android:entryValues="@array/int_emu_cores"/>
 
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="OverclockEnable"
+            android:summary="@string/overclock_enable_description"
+            android:title="@string/overclock_enable"
+            />
+
+        <org.dolphinemu.dolphinemu.utils.SliderPreference
+            android:dependency="OverclockEnable"
+            android:defaultValue="100"
+            android:key="Overclock"
+            android:max="400"
+            android:title="@string/overclock_title"
+            />
+
     </PreferenceCategory>
 
     <PreferenceCategory
