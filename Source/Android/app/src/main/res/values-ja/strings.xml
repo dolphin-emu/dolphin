@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <!-- Title of the app -->
@@ -73,17 +73,15 @@
     <string name="input_overlay_layout">入力オーバーレイレイアウト</string>
     <string name="input_overlay_layout_desc">入力オーバーレイのためのボタンのレイアウト。</string>
     <string name="controls_size">コントロールのサイズを調整し</string>
-    <string name="gamecube_bindings">ゲームキューブコントローラの入力バインディング</string>
     <string name="controller_0">コントローラ1</string>
     <string name="controller_1">コントローラ2</string>
     <string name="controller_2">コントローラ3</string>
     <string name="controller_3">コントローラ4</string>
     <string name="enable_controller">コントローラを有効</string>
-    <string name="wiimote_bindings">Wiiリモコンの入力バインディング</string>
-    <string name="wiimote_1">Wiiリモコン1</string>
-    <string name="wiimote_2">Wiiリモコン2</string>
-    <string name="wiimote_3">Wiiリモコン3</string>
-    <string name="wiimote_4">Wiiリモコン4</string>
+    <string name="wiimote_0">Wiiリモコン1</string>
+    <string name="wiimote_1">Wiiリモコン2</string>
+    <string name="wiimote_2">Wiiリモコン3</string>
+    <string name="wiimote_3">Wiiリモコン4</string>
     <string name="enable_wiimote">Wiiリモコンを有効</string>
     <string name="input_binding">入力バインディング</string>
     <string name="input_binding_descrip">%1$sにバインドするための入力を移動または押してください。</string>
