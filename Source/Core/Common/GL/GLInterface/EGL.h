@@ -21,12 +21,12 @@ protected:
 	virtual EGLNativeWindowType InitializePlatform(EGLNativeWindowType host_window, EGLConfig config) = 0;
 	virtual void ShutdownPlatform() = 0;
 public:
-	void SwapInterval(int Interval);
-	void Swap();
-	void SetMode(u32 mode) { s_opengl_mode = mode; }
-	void* GetFuncAddress(const std::string& name);
-	bool Create(void *window_handle, bool core);
-	bool MakeCurrent();
-	bool ClearCurrent();
-	void Shutdown();
+	void Swap() override;
+	void SwapInterval(int interval) override;
+	void SetMode(GLInterfaceMode mode) override { s_opengl_mode = mode; }
+	void* GetFuncAddress(const std::string& name) override;
+	bool Create(void* window_handle, bool core) override;
+	bool MakeCurrent() override;
+	bool ClearCurrent() override;
+	void Shutdown() override;
 };

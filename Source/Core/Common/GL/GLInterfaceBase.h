@@ -9,8 +9,9 @@
 
 #include "Common/CommonTypes.h"
 
-enum GLInterfaceMode {
-	MODE_DETECT = 0,
+enum class GLInterfaceMode
+{
+	MODE_DETECT,
 	MODE_OPENGL,
 	MODE_OPENGLES2,
 	MODE_OPENGLES3,
@@ -20,15 +21,15 @@ class cInterfaceBase
 {
 protected:
 	// Window dimensions.
-	u32 s_backbuffer_width;
-	u32 s_backbuffer_height;
+	u32 s_backbuffer_width = 0;
+	u32 s_backbuffer_height = 0;
 
-	u32 s_opengl_mode;
+	GLInterfaceMode s_opengl_mode = GLInterfaceMode::MODE_DETECT;
 public:
 	virtual ~cInterfaceBase() {}
 	virtual void Swap() {}
-	virtual void SetMode(u32 mode) { s_opengl_mode = GLInterfaceMode::MODE_OPENGL; }
-	virtual u32 GetMode() { return s_opengl_mode; }
+	virtual void SetMode(GLInterfaceMode mode) { s_opengl_mode = GLInterfaceMode::MODE_OPENGL; }
+	virtual GLInterfaceMode GetMode() { return s_opengl_mode; }
 	virtual void* GetFuncAddress(const std::string& name) { return nullptr; }
 	virtual bool Create(void *window_handle, bool core = true) { return true; }
 	virtual bool MakeCurrent() { return true; }

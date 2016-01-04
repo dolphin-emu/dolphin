@@ -25,7 +25,7 @@ void* cInterfaceEGL::GetFuncAddress(const std::string& name)
 
 void cInterfaceEGL::DetectMode()
 {
-	if (s_opengl_mode != MODE_DETECT)
+	if (s_opengl_mode != GLInterfaceMode::MODE_DETECT)
 		return;
 
 	EGLint num_configs;
@@ -136,15 +136,15 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 	};
 	switch (s_opengl_mode)
 	{
-		case MODE_OPENGL:
+		case GLInterfaceMode::MODE_OPENGL:
 			attribs[1] = EGL_OPENGL_BIT;
 			ctx_attribs[0] = EGL_NONE;
 		break;
-		case MODE_OPENGLES2:
+		case GLInterfaceMode::MODE_OPENGLES2:
 			attribs[1] = EGL_OPENGL_ES2_BIT;
 			ctx_attribs[1] = 2;
 		break;
-		case MODE_OPENGLES3:
+		case GLInterfaceMode::MODE_OPENGLES3:
 			attribs[1] = (1 << 6); /* EGL_OPENGL_ES3_BIT_KHR */
 			ctx_attribs[1] = 3;
 		break;
@@ -160,7 +160,7 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 		exit(1);
 	}
 
-	if (s_opengl_mode == MODE_OPENGL)
+	if (s_opengl_mode == GLInterfaceMode::MODE_OPENGL)
 		eglBindAPI(EGL_OPENGL_API);
 	else
 		eglBindAPI(EGL_OPENGL_ES_API);
