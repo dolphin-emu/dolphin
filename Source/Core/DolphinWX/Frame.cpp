@@ -1285,6 +1285,7 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 
 void CFrame::ParseHotkeys()
 {
+	static bool onceOnLaunch = true;
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		switch  (i)
@@ -1325,7 +1326,15 @@ void CFrame::ParseHotkeys()
 
 	if (!Core::IsRunningAndStarted())
 	{
+		onceOnLaunch = true;
 		return;
+	}
+
+	if (onceOnLaunch)
+	{
+		onceOnLaunch = false;
+		if (SConfig::GetInstance().bAutoLoadSavestate)
+			State::LoadLastSaved();
 	}
 
 	// Toggle fullscreen

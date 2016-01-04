@@ -687,13 +687,15 @@ void Verify(int slot)
 	VerifyAt(MakeStateFilename(slot));
 }
 
-void LoadLastSaved(int i)
+void LoadLastSaved(int i, bool silent)
 {
 	std::map<double, int> savedStates = GetSavedStates();
 
 	if (i > (int)savedStates.size())
-		Core::DisplayMessage("State doesn't exist", 2000);
-	else
+	{
+		if (!silent)
+			Core::DisplayMessage("State doesn't exist", 2000);
+	} else
 	{
 		std::map<double, int>::iterator it = savedStates.begin();
 		std::advance(it, i-1);

@@ -54,7 +54,7 @@ void SaveToBuffer(std::vector<u8>& buffer);
 void LoadFromBuffer(std::vector<u8>& buffer);
 void VerifyBuffer(std::vector<u8>& buffer);
 
-void LoadLastSaved(int i = 1);
+void LoadLastSaved(int i = 1, bool silent = true);
 void SaveFirstSaved();
 void UndoSaveState();
 void UndoLoadState();
