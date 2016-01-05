@@ -680,7 +680,7 @@ void Update()
 
 	for (UVIInterruptRegister& reg : m_InterruptRegister)
 	{
-		if (s_half_line_count + 1 == 2 * reg.VCT)
+		if (s_half_line_count + 1 == 2u * reg.VCT)
 		{
 			reg.IR_INT = 1;
 		}
