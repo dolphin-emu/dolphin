@@ -19,7 +19,9 @@ static T GenerateVertexShader(API_TYPE api_type)
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	vertex_shader_uid_data dummy_data;
 	vertex_shader_uid_data* uid_data = out.template GetUidData<vertex_shader_uid_data>();
-	if (uid_data == nullptr)
+	if (uid_data != nullptr)
+		memset(uid_data, 0, sizeof(*uid_data));
+	else
 		uid_data = &dummy_data;
 
 	_assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
