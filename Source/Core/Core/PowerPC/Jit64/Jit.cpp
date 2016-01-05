@@ -615,25 +615,18 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.skipInstructions = 0;
 	js.carryFlagSet = false;
 	js.carryFlagInverted = false;
-	js.assumeNoPairedQuantize = false;
+	js.constantGqr.clear();
 
-	// If the block only uses one GQR and the GQR is zero at compile time, make a guess that the block
-	// never uses quantized loads/stores. Many paired-heavy games use largely float loads and stores,
-	// which are significantly faster when inlined (especially in MMU mode, where this lets them use
-	// fastmem).
-	// Insert a check that the GQR is still zero at the start of the block in case our guess turns out
-	// wrong.
-	// TODO: support any other constant GQR value, not merely zero/unquantized: we can optimize quantized
-	// loadstores too, it'd just be more code.
-	if (code_block.m_gqr_used.Count() == 1 && js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
+	// Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float loads and stores,
+	// which are significantly faster when inlined (especially in MMU mode, where this lets them use fastmem).
+	if (js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
 	{
-		int gqr = *code_block.m_gqr_used.begin();
-		if (!code_block.m_gqr_modified[gqr] && !GQR(gqr))
+		// If there are GQRs used but not set, we'll treat those as constant and optimize them
+		BitSet8 gqr_static = ComputeStaticGQRs(code_block);
+		if (gqr_static)
 		{
-			CMP(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm8(0));
-			FixupBranch failure = J_CC(CC_NZ, true);
 			SwitchToFarCode();
-				SetJumpTarget(failure);
+				const u8* target = GetCodePtr();
 				MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
 				ABI_PushRegistersAndAdjustStack({}, 0);
 				ABI_CallFunctionC((void *)&JitInterface::CompileExceptionCheck,
@@ -641,7 +634,16 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				ABI_PopRegistersAndAdjustStack({}, 0);
 				JMP(asm_routines.dispatcher, true);
 			SwitchToNearCode();
-			js.assumeNoPairedQuantize = true;
+
+			// Insert a check that the GQRs are still the value we expect at the start of the block in case our guess turns out
+			// wrong.
+			for (int gqr : gqr_static)
+			{
+				u32 value = GQR(gqr);
+				js.constantGqr[gqr] = value;
+				CMP_or_TEST(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm32(value));
+				J_CC(CC_NZ, target);
+			}
 		}
 	}
 
@@ -881,6 +883,11 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 #endif
 
 	return normalEntry;
+}
+
+BitSet8 Jit64::ComputeStaticGQRs(PPCAnalyst::CodeBlock& code_block)
+{
+	return code_block.m_gqr_used & ~code_block.m_gqr_modified;
 }
 
 BitSet32 Jit64::CallerSavedRegistersInUse()

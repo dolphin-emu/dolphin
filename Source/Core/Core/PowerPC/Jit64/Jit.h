@@ -74,6 +74,7 @@ public:
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC);
 
 	BitSet32 CallerSavedRegistersInUse();
+	BitSet8 ComputeStaticGQRs(PPCAnalyst::CodeBlock& code_block);
 
 	JitBlockCache *GetBlockCache() override { return &blocks; }
 
