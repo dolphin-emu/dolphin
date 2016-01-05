@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="dynasm\dynasm.lua">
+      <Filter>HostSources</Filter>
+    </None>
+    <None Include="dynasm\dasm_x86.lua">
+      <Filter>HostSources</Filter>
+    </None>
+    <None Include="src\vm_x86.dasc">
+      <Filter>HostSources</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\host\buildvm.c">
+      <Filter>HostSources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\host\buildvm_asm.c">
+      <Filter>HostSources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\host\buildvm_fold.c">
+      <Filter>HostSources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\host\buildvm_lib.c">
+      <Filter>HostSources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\host\buildvm_peobj.c">
+      <Filter>HostSources</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\host\buildvm.h">
+      <Filter>HostSources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\host\buildvm_libbc.h">
+      <Filter>HostSources</Filter>
+    </ClInclude>
+    <ClInclude Include="dynasm\dasm_x86.h">
+      <Filter>HostSources</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LuaJitDir)\buildvm_arch.h">
+      <Filter>GeneratedHostSources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="HostSources">
+      <UniqueIdentifier>{4319a6f9-1312-4471-b493-6ed269504cb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GeneratedHostSources">
+      <UniqueIdentifier>{b1cfff17-47b8-4b67-931f-4a8c09b775dc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="src\host\buildvm_arch.h.rule">
+      <Filter>GeneratedHostSources</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

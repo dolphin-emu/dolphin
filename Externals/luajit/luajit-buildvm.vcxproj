@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B30092BB-DCEF-48AE-9776-2A5144582E53}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\Source\VSProps\Base.props" />
+    <Import Project="..\..\Source\VSProps\ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <LuaJitDir>$(BuildRootDir)$(Platform)\$(Configuration)\LuaJIT\</LuaJitDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>buildvm</TargetName>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(LuaJitDir);src\</IncludePath>
+    <OutDir>$(BuildRootDir)$(Platform)\$(Configuration)\LuaJIT\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>buildvm</TargetName>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(LuaJitDir);src\</IncludePath>
+    <OutDir>$(BuildRootDir)$(Platform)\$(Configuration)\LuaJIT\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <ForceSymbolReferences />
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="dynasm\dasm_x86.lua" />
+    <None Include="dynasm\dynasm.lua" />
+    <CustomBuild Include="src\host\buildvm_arch.h.rule">
+      <Message>Generating buildvm_arch.h</Message>
+      <Command>$(LuaJitDir)\minilua.exe dynasm\dynasm.lua -LN -D WIN -D JIT -D FFI -D P64 -o $(LuaJitDir)\buildvm_arch.h src\vm_x86.dasc</Command>
+      <AdditionalInputs>$(LuaJitDir)\minilua.exe;dynasm\dynasm.lua;dynasm\dasm_x64.lua;dynasm\dasm_x86.lua;dynasm\dasm_x86.h;src\vm_x86.dasc</AdditionalInputs>
+      <Outputs>$(LuaJitDir)\buildvm_arch.h</Outputs>
+    </CustomBuild>
+    <None Include="src\vm_x86.dasc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\host\buildvm.c" />
+    <ClCompile Include="src\host\buildvm_asm.c" />
+    <ClCompile Include="src\host\buildvm_fold.c" />
+    <ClCompile Include="src\host\buildvm_lib.c" />
+    <ClCompile Include="src\host\buildvm_peobj.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dynasm\dasm_x86.h" />
+    <ClInclude Include="src\host\buildvm.h" />
+    <ClInclude Include="$(LuaJitDir)\buildvm_arch.h" />
+    <ClInclude Include="src\host\buildvm_libbc.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)LuaJit\LuaJIT-minilua.vcxproj">
+      <Project>{D84A0716-8615-491E-A4AA-7B151F451D57}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

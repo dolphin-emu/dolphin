@@ -759,6 +759,9 @@ if(ENABLE_QT OR ENABLE_QT2)
 	message("Found Qt version ${Qt5Core_VERSION}, enabling the Qt backend")
 endif()
 
+add_subdirectory(Externals/luajit/)
+include_directories(Externals/luajit/src/)
+
 if(NOT DISABLE_WX AND NOT ANDROID)
 	include(FindwxWidgets OPTIONAL)
 	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)

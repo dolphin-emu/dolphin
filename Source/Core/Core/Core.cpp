@@ -27,6 +27,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
+#include "Core/LuaInterface.h"
 #include "Core/MemTools.h"
 #ifdef USE_MEMORYWATCHER
 #include "Core/MemoryWatcher.h"
@@ -495,6 +496,8 @@ void EmuThread()
 
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+
+	Lua::Init();
 
 	CBoot::BootUp();
 
