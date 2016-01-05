@@ -13,6 +13,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h" //for TargetRefreshRate
@@ -28,9 +29,6 @@
 #include <vfw.h>
 #include <winerror.h>
 
-#include "Core/ConfigManager.h" // for PAL60
-#include "Core/CoreTiming.h"
-
 static HWND s_emu_wnd;
 static LONG s_byte_buffer;
 static LONG s_frame_count;
@@ -42,7 +40,6 @@ static int s_file_count;
 static u64 s_last_frame;
 static PAVISTREAM s_stream;
 static PAVISTREAM s_stream_compressed;
-static int s_frame_rate;
 static AVISTREAMINFO s_header;
 static AVICOMPRESSOPTIONS s_options;
 static AVICOMPRESSOPTIONS* s_array_options[1];
@@ -62,11 +59,6 @@ bool AVIDump::Start(HWND hWnd, int w, int h)
 	s_height = h;
 
 	s_last_frame = CoreTiming::GetTicks();
-
-	if (SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60"))
-		s_frame_rate = 60; // always 60, for either pal60 or ntsc
-	else
-		s_frame_rate = VideoInterface::TargetRefreshRate; // 50 or 60, depending on region
 
 	// clear CFR frame cache on start, not on file create (which is also segment switch)
 	SetBitmapFormat();
@@ -92,6 +84,11 @@ bool AVIDump::CreateFile()
 		    AskYesNoT("Delete the existing file '%s'?", movie_file_name.c_str()))
 		{
 			File::Delete(movie_file_name);
+		}
+		else
+		{
+			// Stop and cancel dumping the video
+			return false;
 		}
 	}
 
@@ -311,7 +308,7 @@ bool AVIDump::SetVideoFormat()
 	memset(&s_header, 0, sizeof(s_header));
 	s_header.fccType = streamtypeVIDEO;
 	s_header.dwScale = 1;
-	s_header.dwRate = s_frame_rate;
+	s_header.dwRate = VideoInterface::TargetRefreshRate;
 	s_header.dwSuggestedBufferSize  = s_bitmap.biSizeImage;
 
 	return SUCCEEDED(AVIFileCreateStream(s_file, &s_stream, &s_header));
@@ -382,6 +379,21 @@ bool AVIDump::CreateFile()
 	snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s",
 	         (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump0.avi").c_str());
 	File::CreateFullPath(s_format_context->filename);
+
+	// Ask to delete file
+	if (File::Exists(s_format_context->filename))
+	{
+		if (SConfig::GetInstance().m_DumpFramesSilent ||
+			AskYesNoT("Delete the existing file '%s'?", s_format_context->filename))
+		{
+			File::Delete(s_format_context->filename);
+		}
+		else
+		{
+			// Stop and cancel dumping the video
+			return false;
+		}
+	}
 
 	if (!(s_format_context->oformat = av_guess_format("avi", nullptr, nullptr)) ||
 	    !(s_stream = avformat_new_stream(s_format_context, codec)))
