@@ -432,10 +432,9 @@ void VertexShaderManager::SetConstants()
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
-			// donkopunchstania suggested the GC GPU might round differently
-			// He had thus changed this to -(1 + epsilon) to fix clipping issues.
-			// I (neobrain) don't think his conjecture is true and thus reverted his change.
-			g_fProjectionMatrix[14] = -1.0f;
+
+			// Hack to fix depth clipping precision issues (such as Sonic Adventure UI)
+			g_fProjectionMatrix[14] = -(1.0f + FLT_EPSILON);
 			g_fProjectionMatrix[15] = 0.0f;
 
 			// Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
