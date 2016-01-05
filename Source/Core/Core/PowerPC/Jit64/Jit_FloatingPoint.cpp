@@ -556,7 +556,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 	fpr.UnlockAll();
 }
 
-void Jit64::fcmpx(UGeckoInstruction inst)
+void Jit64::fcmpX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);

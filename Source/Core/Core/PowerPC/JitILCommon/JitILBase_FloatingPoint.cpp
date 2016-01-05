@@ -86,7 +86,7 @@ void JitILBase::fmrx(UGeckoInstruction inst)
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void JitILBase::fcmpx(UGeckoInstruction inst)
+void JitILBase::fcmpX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);

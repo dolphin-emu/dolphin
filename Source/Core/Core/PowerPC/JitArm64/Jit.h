@@ -155,7 +155,7 @@ public:
 	void fselx(UGeckoInstruction inst);
 	void fsubsx(UGeckoInstruction inst);
 	void fsubx(UGeckoInstruction inst);
-	void fcmpx(UGeckoInstruction inst);
+	void fcmpX(UGeckoInstruction inst);
 	void frspx(UGeckoInstruction inst);
 	void fctiwzx(UGeckoInstruction inst);
 	void fdivx(UGeckoInstruction inst);
