@@ -8,13 +8,12 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
-#include "VideoBackends/Software/BPMemLoader.h"
-#include "VideoBackends/Software/CPMemLoader.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/TransformUnit.h"
 #include "VideoBackends/Software/Vec3.h"
-#include "VideoBackends/Software/XFMemLoader.h"
 
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace TransformUnit
 {

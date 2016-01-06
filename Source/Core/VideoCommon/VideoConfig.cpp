@@ -87,6 +87,15 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("EnableShaderDebugging", &bEnableShaderDebugging, false);
 	settings->Get("BorderlessFullscreen", &bBorderlessFullscreen, false);
 
+	settings->Get("SWZComploc", &bZComploc, true);
+	settings->Get("SWZFreeze", &bZFreeze, true);
+	settings->Get("SWDumpObjects", &bDumpObjects, false);
+	settings->Get("SWDumpTevStages", &bDumpTevStages, false);
+	settings->Get("SWDumpTevTexFetches", &bDumpTevTextureFetches, false);
+	settings->Get("SWDrawStart", &drawStart, 0);
+	settings->Get("SWDrawEnd", &drawEnd, 100000);
+
+
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
 	enhancements->Get("ForceFiltering", &bForceFiltering, 0);
 	enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
@@ -286,6 +295,14 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("DisableFog", bDisableFog);
 	settings->Set("EnableShaderDebugging", bEnableShaderDebugging);
 	settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
+
+	settings->Set("SWZComploc", bZComploc);
+	settings->Set("SWZFreeze", bZFreeze);
+	settings->Set("SWDumpObjects", bDumpObjects);
+	settings->Set("SWDumpTevStages", bDumpTevStages);
+	settings->Set("SWDumpTevTexFetches", bDumpTevTextureFetches);
+	settings->Set("SWDrawStart", drawStart);
+	settings->Set("SWDrawEnd", drawEnd);
 
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
 	enhancements->Set("ForceFiltering", bForceFiltering);

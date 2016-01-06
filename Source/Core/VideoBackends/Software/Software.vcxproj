@@ -35,52 +35,38 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="BPMemLoader.cpp" />
     <ClCompile Include="Clipper.cpp" />
-    <ClCompile Include="CPMemLoader.cpp" />
     <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="EfbCopy.cpp" />
     <ClCompile Include="EfbInterface.cpp" />
-    <ClCompile Include="OpcodeDecoder.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
     <ClCompile Include="SetupUnit.cpp" />
-    <ClCompile Include="SWCommandProcessor.cpp" />
     <ClCompile Include="SWmain.cpp" />
     <ClCompile Include="SWOGLWindow.cpp" />
     <ClCompile Include="SWRenderer.cpp" />
-    <ClCompile Include="SWStatistics.cpp" />
     <ClCompile Include="SWVertexLoader.cpp" />
-    <ClCompile Include="SWVideoConfig.cpp" />
     <ClCompile Include="Tev.cpp" />
     <ClCompile Include="TextureEncoder.cpp" />
     <ClCompile Include="TextureSampler.cpp" />
     <ClCompile Include="TransformUnit.cpp" />
-    <ClCompile Include="XFMemLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BPMemLoader.h" />
     <ClInclude Include="Clipper.h" />
-    <ClInclude Include="CPMemLoader.h" />
     <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="EfbCopy.h" />
     <ClInclude Include="EfbInterface.h" />
     <ClInclude Include="NativeVertexFormat.h" />
-    <ClInclude Include="OpcodeDecoder.h" />
     <ClInclude Include="Rasterizer.h" />
     <ClInclude Include="SetupUnit.h" />
-    <ClInclude Include="SWCommandProcessor.h" />
     <ClInclude Include="SWOGLWindow.h" />
     <ClInclude Include="SWRenderer.h" />
-    <ClInclude Include="SWStatistics.h" />
     <ClInclude Include="SWVertexLoader.h" />
-    <ClInclude Include="SWVideoConfig.h" />
     <ClInclude Include="Tev.h" />
     <ClInclude Include="TextureEncoder.h" />
     <ClInclude Include="TextureSampler.h" />
     <ClInclude Include="TransformUnit.h" />
     <ClInclude Include="Vec3.h" />
     <ClInclude Include="VideoBackend.h" />
-    <ClInclude Include="XFMemLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

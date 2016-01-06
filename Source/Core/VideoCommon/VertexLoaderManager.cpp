@@ -124,6 +124,7 @@ void MarkAllDirty()
 static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = false)
 {
 	CPState* state = preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
+	state->last_id = vtx_attr_group;
 
 	VertexLoaderBase* loader;
 	if (state->attr_dirty[vtx_attr_group])

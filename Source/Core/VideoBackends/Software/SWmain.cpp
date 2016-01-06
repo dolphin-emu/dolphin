@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <atomic>
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -16,25 +17,29 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
 
-#include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/DebugUtil.h"
+#include "VideoBackends/Software/EfbCopy.h"
 #include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/OpcodeDecoder.h"
 #include "VideoBackends/Software/Rasterizer.h"
-#include "VideoBackends/Software/SWCommandProcessor.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWRenderer.h"
-#include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVertexLoader.h"
-#include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/VideoBackend.h"
-#include "VideoBackends/Software/XFMemLoader.h"
 
-#include "VideoCommon/BoundingBox.h"
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 #define VSYNC_ENABLED 0
@@ -51,6 +56,86 @@ static volatile struct
 namespace SW
 {
 
+class PerfQuery : public PerfQueryBase
+{
+public:
+	PerfQuery() {}
+	~PerfQuery() {}
+
+	void EnableQuery(PerfQueryGroup type) override {}
+	void DisableQuery(PerfQueryGroup type) override {}
+	void ResetQuery() override
+	{
+		memset(EfbInterface::perf_values, 0, sizeof(EfbInterface::perf_values));
+	}
+	u32 GetQueryResult(PerfQueryType type) override
+	{
+		return EfbInterface::perf_values[type];
+	};
+	void FlushResults() override {}
+	bool IsFlushed() const {return true;};
+};
+
+class TextureCache : public TextureCacheBase
+{
+public:
+	void CompileShaders() override {};
+	void DeleteShaders() override {};
+	void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) override {};
+	void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+		bool isIntensity, bool scaleByHalf) override
+	{
+		EfbCopy::CopyEfb();
+	}
+
+private:
+	struct TCacheEntry : TCacheEntryBase
+	{
+		TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config) {}
+		~TCacheEntry() {}
+
+		void Load(unsigned int width, unsigned int height,
+			unsigned int expanded_width, unsigned int level) override {}
+
+		void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+			bool scaleByHalf, unsigned int cbufid, const float *colmat) override
+		{
+			EfbCopy::CopyEfb();
+		}
+
+		void CopyRectangleFromTexture(
+			const TCacheEntryBase* source,
+			const MathUtil::Rectangle<int>& srcrect,
+			const MathUtil::Rectangle<int>& dstrect) override {}
+
+		void Bind(unsigned int stage) override {}
+
+		bool Save(const std::string& filename, unsigned int level) override { return false; }
+	};
+
+	TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override
+	{
+		return new TCacheEntry(config);
+	}
+};
+
+class XFBSource : public XFBSourceBase
+{
+	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override {}
+	void CopyEFB(float Gamma) override {}
+};
+
+class FramebufferManager : public FramebufferManagerBase
+{
+	std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override { return std::make_unique<XFBSource>(); }
+	void GetTargetSize(unsigned int* width, unsigned int* height) override {};
+	void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma = 1.0f) override
+	{
+		EfbCopy::CopyEfb();
+	}
+};
+
 static std::atomic<bool> fifoStateRun;
 static std::atomic<bool> emuRunningState;
 static std::mutex m_csSWVidOccupied;
@@ -65,92 +150,56 @@ std::string VideoSoftware::GetDisplayName() const
 	return "Software Renderer";
 }
 
+static void InitBackendInfo()
+{
+	g_Config.backend_info.APIType = API_NONE;
+	g_Config.backend_info.bSupports3DVision = false;
+	g_Config.backend_info.bSupportsDualSourceBlend = true;
+	g_Config.backend_info.bSupportsEarlyZ = true;
+	g_Config.backend_info.bSupportsOversizedViewports = true;
+	g_Config.backend_info.bSupportsPrimitiveRestart = false;
+
+	// aamodes
+	g_Config.backend_info.AAModes = {1};
+}
+
 void VideoSoftware::ShowConfig(void *hParent)
 {
+	if (!m_initialized)
+		InitBackendInfo();
 	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_software");
 }
 
 bool VideoSoftware::Initialize(void *window_handle)
 {
-	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
+	InitializeShared();
+	InitBackendInfo();
+
+	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
+	g_Config.GameIniLoad();
+	g_Config.UpdateProjectionHack();
+	g_Config.VerifyValidity();
+	UpdateActiveConfig();
 
 	SWOGLWindow::Init(window_handle);
 
-	InitBPMemory();
-	InitXFMemory();
-	SWCommandProcessor::Init();
 	PixelEngine::Init();
-	OpcodeDecoder::Init();
 	Clipper::Init();
 	Rasterizer::Init();
 	SWRenderer::Init();
 	DebugUtil::Init();
 
+	// Do our OSD callbacks
+	OSD::DoCallbacks(OSD::CallbackType::Initialization);
+
 	m_initialized = true;
+
 	return true;
-}
-
-void VideoSoftware::DoState(PointerWrap& p)
-{
-	bool software = true;
-	p.Do(software);
-	if (p.GetMode() == PointerWrap::MODE_READ && software == false)
-		// change mode to abort load of incompatible save state.
-		p.SetMode(PointerWrap::MODE_VERIFY);
-
-	// TODO: incomplete?
-	SWCommandProcessor::DoState(p);
-	PixelEngine::DoState(p);
-	EfbInterface::DoState(p);
-	OpcodeDecoder::DoState(p);
-	Clipper::DoState(p);
-	p.Do(xfmem);
-	p.Do(bpmem);
-	p.DoPOD(swstats);
-
-	// CP Memory
-	DoCPState(p);
-}
-
-void VideoSoftware::CheckInvalidState()
-{
-	// there is no state to invalidate
-}
-
-void VideoSoftware::PauseAndLock(bool doLock, bool unpauseOnUnlock)
-{
-	if (doLock)
-	{
-		EmuStateChange(EMUSTATE_CHANGE_PAUSE);
-		if (!Core::IsGPUThread())
-			m_csSWVidOccupied.lock();
-	}
-	else
-	{
-		if (unpauseOnUnlock)
-			EmuStateChange(EMUSTATE_CHANGE_PLAY);
-		if (!Core::IsGPUThread())
-			m_csSWVidOccupied.unlock();
-	}
-}
-
-void VideoSoftware::RunLoop(bool enable)
-{
-	emuRunningState.store(enable);
-}
-
-void VideoSoftware::EmuStateChange(EMUSTATE_CHANGE newState)
-{
-	emuRunningState.store(newState == EMUSTATE_CHANGE_PLAY);
 }
 
 void VideoSoftware::Shutdown()
 {
 	m_initialized = false;
-
-	// TODO: should be in Video_Cleanup
-	SWRenderer::Shutdown();
-	DebugUtil::Shutdown();
 
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::CallbackType::Shutdown);
@@ -160,186 +209,54 @@ void VideoSoftware::Shutdown()
 
 void VideoSoftware::Video_Cleanup()
 {
+	if (g_renderer)
+	{
+		Fifo_Shutdown();
+
+		SWRenderer::Shutdown();
+		DebugUtil::Shutdown();
+		// The following calls are NOT Thread Safe
+		// And need to be called from the video thread
+		SWRenderer::Shutdown();
+		VertexLoaderManager::Shutdown();
+		g_framebuffer_manager.reset();
+		g_texture_cache.reset();
+		VertexShaderManager::Shutdown();
+		PixelShaderManager::Shutdown();
+		g_perf_query.reset();
+		g_vertex_manager.reset();
+		OpcodeDecoder_Shutdown();
+		g_renderer.reset();
+	}
 }
 
 // This is called after Video_Initialize() from the Core
 void VideoSoftware::Video_Prepare()
 {
-	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::CallbackType::Initialization);
+	g_renderer = std::make_unique<SWRenderer>();
 
-	SWRenderer::Prepare();
+	CommandProcessor::Init();
+	PixelEngine::Init();
+
+	BPInit();
+	g_vertex_manager = std::make_unique<SWVertexLoader>();
+	g_perf_query = std::make_unique<PerfQuery>();
+	Fifo_Init(); // must be done before OpcodeDecoder_Init()
+	OpcodeDecoder_Init();
+	IndexGenerator::Init();
+	VertexShaderManager::Init();
+	PixelShaderManager::Init();
+	g_texture_cache = std::make_unique<TextureCache>();
+	SWRenderer::Init();
+	VertexLoaderManager::Init();
+	g_framebuffer_manager = std::make_unique<FramebufferManager>();
+
+	// Notify the core that the video backend is ready
+	Host_Message(WM_USER_CREATE);
 
 	INFO_LOG(VIDEO, "Video backend initialized.");
 }
 
-// Run from the CPU thread (from VideoInterface.cpp)
-void VideoSoftware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight)
-{
-	// XXX: fbStride should be implemented properly here
-	// If stride isn't implemented then there are problems with XFB
-	// Animal Crossing is a good example for this.
-	s_beginFieldArgs.xfbAddr = xfbAddr;
-	s_beginFieldArgs.fbWidth = fbWidth;
-	s_beginFieldArgs.fbHeight = fbHeight;
-}
-
-// Run from the CPU thread (from VideoInterface.cpp)
-void VideoSoftware::Video_EndField()
-{
-	// Techincally the XFB is continually rendered out scanline by scanline between
-	// BeginField and EndFeild, We could possibly get away with copying out the whole thing
-	// at BeginField for less lag, but for the safest emulation we run it here.
-
-	if (g_bSkipCurrentFrame || s_beginFieldArgs.xfbAddr == 0)
-	{
-		swstats.frameCount++;
-		swstats.ResetFrame();
-		Core::Callback_VideoCopiedToXFB(false);
-		return;
-	}
-	if (!g_SWVideoConfig.bBypassXFB)
-	{
-		EfbInterface::yuv422_packed *xfb = (EfbInterface::yuv422_packed *) Memory::GetPointer(s_beginFieldArgs.xfbAddr);
-
-		SWRenderer::UpdateColorTexture(xfb, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
-	}
-
-	// Ideally we would just move all the OpenGL context stuff to the CPU thread,
-	// but this gets messy when the hardware rasterizer is enabled.
-	// And neobrain loves his hardware rasterizer.
-
-	// If BypassXFB has already done a swap (cf. EfbCopy::CopyToXfb), skip this.
-	if (!g_SWVideoConfig.bBypassXFB)
-	{
-		// Dump frame if needed
-		DebugUtil::OnFrameEnd(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
-
-		// If we are in dual core mode, notify the GPU thread about the new color texture.
-		if (SConfig::GetInstance().bCPUThread)
-			s_swapRequested.store(true);
-		else
-			SWRenderer::Swap(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
-	}
-}
-
-u32 VideoSoftware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
-{
-	u32 value = 0;
-
-	switch (type)
-	{
-	case PEEK_Z:
-		{
-			value = EfbInterface::GetDepth(x, y);
-			break;
-		}
-
-	case POKE_Z:
-		break;
-
-	case PEEK_COLOR:
-		{
-			u32 color = 0;
-			EfbInterface::GetColor(x, y, (u8*)&color);
-
-			// rgba to argb
-			value = (color >> 8) | (color & 0xff) << 24;
-			break;
-		}
-
-	case POKE_COLOR:
-		break;
-	}
-
-	return value;
-}
-
-u32 VideoSoftware::Video_GetQueryResult(PerfQueryType type)
-{
-	return EfbInterface::perf_values[type];
-}
-
-u16 VideoSoftware::Video_GetBoundingBox(int index)
-{
-	return BoundingBox::coords[index];
-}
-
-bool VideoSoftware::Video_Screenshot(const std::string& filename)
-{
-	SWRenderer::SetScreenshot(filename.c_str());
-	return true;
-}
-
-// Run from the graphics thread
-static void VideoFifo_CheckSwapRequest()
-{
-	if (s_swapRequested.load())
-	{
-		SWRenderer::Swap(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
-		s_swapRequested.store(false);
-	}
-}
-
-// -------------------------------
-// Enter and exit the video loop
-// -------------------------------
-void VideoSoftware::Video_EnterLoop()
-{
-	std::lock_guard<std::mutex> lk(m_csSWVidOccupied);
-	fifoStateRun.store(true);
-
-	while (fifoStateRun.load())
-	{
-		VideoFifo_CheckSwapRequest();
-		g_video_backend->PeekMessages();
-
-		if (!SWCommandProcessor::RunBuffer())
-		{
-			Common::YieldCPU();
-		}
-
-		while (!emuRunningState.load() && fifoStateRun.load())
-		{
-			g_video_backend->PeekMessages();
-			VideoFifo_CheckSwapRequest();
-			m_csSWVidOccupied.unlock();
-			Common::SleepCurrentThread(1);
-			m_csSWVidOccupied.lock();
-		}
-	}
-}
-
-void VideoSoftware::Video_ExitLoop()
-{
-	fifoStateRun.store(false);
-}
-
-// TODO : could use the OSD class in video common, we would need to implement the Renderer class
-//        however most of it is useless for the SW backend so we could as well move it to its own class
-void VideoSoftware::Video_AddMessage(const std::string& msg, u32 milliseconds)
-{
-}
-void VideoSoftware::Video_ClearMessages()
-{
-}
-
-void VideoSoftware::Video_SetRendering(bool bEnabled)
-{
-	SWCommandProcessor::SetRendering(bEnabled);
-}
-
-void VideoSoftware::Video_GatherPipeBursted()
-{
-	SWCommandProcessor::GatherPipeBursted();
-}
-
-void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
-{
-	SWCommandProcessor::RegisterMMIO(mmio, base);
-}
-
-// Draw messages on top of the screen
 unsigned int VideoSoftware::PeekMessages()
 {
 	return SWOGLWindow::s_instance->PeekMessages();

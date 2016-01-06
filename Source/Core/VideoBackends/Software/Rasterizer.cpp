@@ -6,15 +6,14 @@
 #include <cstring>
 
 #include "Common/CommonTypes.h"
-#include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
-#include "VideoBackends/Software/SWStatistics.h"
-#include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/Tev.h"
-#include "VideoBackends/Software/XFMemLoader.h"
 #include "VideoCommon/BoundingBox.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace Rasterizer
 {
@@ -37,28 +36,6 @@ static s32 scissorBottom = 0;
 
 static Tev tev;
 static RasterBlock rasterBlock;
-
-void DoState(PointerWrap &p)
-{
-	ZSlope.DoState(p);
-	WSlope.DoState(p);
-	for (auto& color_slopes_1d : ColorSlopes)
-		for (Slope& color_slope : color_slopes_1d)
-			color_slope.DoState(p);
-	for (auto& tex_slopes_1d : TexSlopes)
-		for (Slope& tex_slope : tex_slopes_1d)
-			tex_slope.DoState(p);
-	p.Do(vertex0X);
-	p.Do(vertex0Y);
-	p.Do(vertexOffsetX);
-	p.Do(vertexOffsetY);
-	p.Do(scissorLeft);
-	p.Do(scissorTop);
-	p.Do(scissorRight);
-	p.Do(scissorBottom);
-	tev.DoState(p);
-	p.Do(rasterBlock);
-}
 
 void Init()
 {
@@ -121,14 +98,14 @@ void SetTevReg(int reg, int comp, bool konst, s16 color)
 
 static void Draw(s32 x, s32 y, s32 xi, s32 yi)
 {
-	INCSTAT(swstats.thisFrame.rasterizedPixels);
+	INCSTAT(stats.thisFrame.rasterizedPixels);
 
 	float dx = vertexOffsetX + (float)(x - vertex0X);
 	float dy = vertexOffsetY + (float)(y - vertex0Y);
 
 	s32 z = (s32)MathUtil::Clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
 
-	if (bpmem.UseEarlyDepthTest() && g_SWVideoConfig.bZComploc)
+	if (bpmem.UseEarlyDepthTest() && g_ActiveConfig.bZComploc)
 	{
 		// TODO: Test if perf regs are incremented even if test is disabled
 		EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
@@ -314,7 +291,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 
 void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
 {
-	INCSTAT(swstats.thisFrame.numTrianglesDrawn);
+	INCSTAT(stats.thisFrame.numTrianglesDrawn);
 
 	// adapted from http://devmaster.net/posts/6145/advanced-rasterization
 
@@ -378,7 +355,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	// Many things might prevent us from reaching this line (culling, clipping, scissoring).
 	// However, the zslope is always guaranteed to be calculated unless all vertices are trivially rejected during clipping!
 	// We're currently sloppy at this since we abort early if any of the culling/clipping/scissoring tests fail.
-	if (!bpmem.genMode.zfreeze || !g_SWVideoConfig.bZFreeze)
+	if (!bpmem.genMode.zfreeze || !g_ActiveConfig.bZFreeze)
 		InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
 	for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)

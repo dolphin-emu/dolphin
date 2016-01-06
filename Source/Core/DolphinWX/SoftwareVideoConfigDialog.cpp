@@ -31,13 +31,16 @@ IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& se
 }
 
 
-SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std::string& title, const std::string& _ininame) :
+SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std::string& title, const std::string& ininame) :
 	wxDialog(parent, wxID_ANY,
-	wxString(wxString::Format(_("Dolphin %s Graphics Configuration"), title))),
-	vconfig(g_SWVideoConfig),
-	ininame(_ininame)
+	wxString(wxString::Format(_("Dolphin %s Graphics Configuration"), title)))
 {
-	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
+	VideoConfig& vconfig = g_ActiveConfig;
+
+	if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
+		vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+	else
+		vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
 
 	wxNotebook* const notebook = new wxNotebook(this, wxID_ANY);
 
@@ -77,7 +80,7 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 	}
 
 	// xfb
-	szr_rendering->Add(new SettingCheckBox(page_general, _("Bypass XFB"), "", vconfig.bBypassXFB));
+	szr_rendering->Add(new SettingCheckBox(page_general, _("Bypass XFB"), "", vconfig.bUseXFB, true));
 	}
 
 	// - info
@@ -87,7 +90,7 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 	wxGridSizer* const szr_info = new wxGridSizer(2, 5, 5);
 	group_info->Add(szr_info, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	szr_info->Add(new SettingCheckBox(page_general, _("Various Statistics"), "", vconfig.bShowStats));
+	szr_info->Add(new SettingCheckBox(page_general, _("Various Statistics"), "", vconfig.bOverlayStats));
 	}
 
 	// - utility
@@ -117,8 +120,8 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 	wxFlexGridSizer* const szr_misc = new wxFlexGridSizer(2, 5, 5);
 	group_misc->Add(szr_misc, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	szr_misc->Add(new U32Setting(page_general, _("Start"), vconfig.drawStart, 0, 100000));
-	szr_misc->Add(new U32Setting(page_general, _("End"), vconfig.drawEnd, 0, 100000));
+	szr_misc->Add(new IntegerSetting<int>(page_general, _("Start"), vconfig.drawStart, 0, 100000));
+	szr_misc->Add(new IntegerSetting<int>(page_general, _("End"), vconfig.drawEnd, 0, 100000));
 	}
 
 	page_general->SetSizerAndFit(szr_general);
@@ -136,5 +139,5 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 
 SoftwareVideoConfigDialog::~SoftwareVideoConfigDialog()
 {
-	g_SWVideoConfig.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
+	g_ActiveConfig.Save((File::GetUserPath(D_CONFIG_IDX) + "GFX.ini").c_str());
 }

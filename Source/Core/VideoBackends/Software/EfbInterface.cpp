@@ -8,9 +8,9 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 
-#include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/EfbInterface.h"
 
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PixelEngine.h"
 
@@ -29,11 +29,6 @@ namespace EfbInterface
 	static inline u32 GetDepthOffset(u16 x, u16 y)
 	{
 		return (x + y * EFB_WIDTH) * 3 + DEPTH_BUFFER_START;
-	}
-
-	void DoState(PointerWrap &p)
-	{
-		p.DoArray(efb);
 	}
 
 	static void SetPixelAlphaOnly(u32 offset, u8 a)

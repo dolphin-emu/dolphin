@@ -13,8 +13,8 @@
 #include <wx/dialog.h>
 
 #include "Core/ConfigManager.h"
-#include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 class SoftwareVideoConfigDialog : public wxDialog
 {
@@ -37,8 +37,4 @@ public:
 		}
 		ev.Skip();
 	}
-
-protected:
-	SWVideoConfig& vconfig;
-	std::string ininame;
 };
