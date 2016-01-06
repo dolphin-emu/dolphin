@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "Common/Common.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -24,6 +25,7 @@
 #include <arpa/inet.h>
 #endif
 
+static const char* NETPLAY_VERSION = scm_rev_git_str;
 u64 g_netplay_initial_gctime = 1272737767;
 
 NetPlayServer::~NetPlayServer()
