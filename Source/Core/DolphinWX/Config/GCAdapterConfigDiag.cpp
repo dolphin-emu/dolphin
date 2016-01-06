@@ -24,7 +24,7 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
 	gamecube_rumble->SetValue(SConfig::GetInstance().m_AdapterRumble[m_pad_id]);
 	gamecube_rumble->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterRumble, this);
 
-	wxCheckBox* const gamecube_konga = new wxCheckBox(this, wxID_ANY, _("Simulate DK TaruKonga"));
+	wxCheckBox* const gamecube_konga = new wxCheckBox(this, wxID_ANY, _("Simulate DK Bongos"));
 	gamecube_konga->SetValue(SConfig::GetInstance().m_AdapterKonga[m_pad_id]);
 	gamecube_konga->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterKonga, this);
 
