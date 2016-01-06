@@ -5,8 +5,6 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dolphin", "Core\DolphinWX\DolphinWX.vcxproj", "{47411FDB-1BF2-48D0-AB4E-C7C41160F898}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DolphinQt", "Core\DolphinQt\DolphinQt.vcxproj", "{69D2B16E-122A-4E5D-8C37-8EC7B0F7CEB0}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Core\Core\Core.vcxproj", "{E54CF649-140E-4255-81A5-30A673C1FB36}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AudioCommon", "Core\AudioCommon\AudioCommon.vcxproj", "{54AA7840-5BEB-4A0C-9452-74BA4CC7FD44}"
