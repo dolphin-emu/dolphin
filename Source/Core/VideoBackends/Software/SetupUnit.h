@@ -29,7 +29,7 @@ class SetupUnit
 public:
 	void Init(u8 primitiveType);
 
-	OutputVertexData* GetVertex() { return m_VertWritePointer; }
+	OutputVertexData* GetVertex();
 
 	void SetupVertex();
 	void DoState(PointerWrap &p);
