@@ -7,7 +7,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Thread.h"
-#include "DolphinWX/Android/ButtonManager.h"
+#include "jni/ButtonManager.h"
 
 namespace ButtonManager
 {
@@ -560,6 +560,7 @@ namespace ButtonManager
 		auto it = m_controllers.find(dev);
 		if (it != m_controllers.end())
 			return it->second->PressEvent(button, action);
+		return false;
 	}
 	void GamepadAxisEvent(const std::string& dev, int axis, float value)
 	{
