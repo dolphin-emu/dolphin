@@ -135,7 +135,6 @@ static wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 c
 #endif
 static wxString free_look_desc = wxTRANSLATE("This feature allows you to change the game's camera.\nMove the mouse while holding the right mouse button to pan and while holding the middle button to move.\nHold SHIFT and press one of the WASD keys to move the camera by a certain step distance (SHIFT+2 to move faster and SHIFT+1 to move slower). Press SHIFT+R to reset the camera and SHIFT+F to reset the speed.\n\nIf unsure, leave this unchecked.");
 static wxString crop_desc = wxTRANSLATE("Crop the picture from its native aspect ratio to 4:3 or 16:9.\n\nIf unsure, leave this unchecked.");
-static wxString vi_scale_desc = wxTRANSLATE("Enable emulation of horizontal VI scaling.\n\nIf unsure, leave this checked.");
 static wxString par_correction_desc = wxTRANSLATE("Enable correction of the pixel aspect ratio based on analog TV standards.\n\nIf unsure, leave this checked.");
 static wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
 static wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
@@ -568,11 +567,21 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	group_utility->Add(szr_utility, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	}
 
+	// Aspect Ratio options
+	{
+	wxGridSizer* const szr_ar = new wxGridSizer(2, 5, 5);
+
+	szr_ar->Add(CreateCheckBox(page_advanced, _("Crop"), wxGetTranslation(crop_desc), vconfig.bCrop));
+	szr_ar->Add(CreateCheckBox(page_advanced, _("Pixel Aspect Ratio Correction"), wxGetTranslation(par_correction_desc), vconfig.bPARCorrect));
+
+	wxStaticBoxSizer* const group_ar = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Aspect Ratio"));
+	szr_advanced->Add(group_ar, 0, wxEXPAND | wxALL, 5);
+	group_ar->Add(szr_ar, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	}
+
 	// - misc
 	{
 	wxGridSizer* const szr_misc = new wxGridSizer(2, 5, 5);
-
-	szr_misc->Add(CreateCheckBox(page_advanced, _("Crop"), wxGetTranslation(crop_desc), vconfig.bCrop));
 
 	// Progressive Scan
 	{
@@ -586,9 +595,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_misc->Add(progressive_scan_checkbox);
 	}
-
-	szr_misc->Add(CreateCheckBox(page_advanced, _("Enable Video Interface Scaling"), wxGetTranslation(vi_scale_desc), vconfig.bVIScale));
-	szr_misc->Add(CreateCheckBox(page_advanced, _("Enable Pixel Aspect Ratio Correction"), wxGetTranslation(par_correction_desc), vconfig.bPARCorrect));
 
 #if defined WIN32
 	// Borderless Fullscreen
