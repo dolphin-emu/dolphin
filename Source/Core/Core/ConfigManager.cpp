@@ -555,8 +555,8 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 	dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
 	dsp->Get("DumpAudio", &m_DumpAudio, false);
 	dsp->Get("DumpUCode", &m_DumpUCode, false);
-#if defined __linux__ && HAVE_ALSA
-	dsp->Get("Backend", &sBackend, BACKEND_ALSA);
+#if defined __linux__ && HAVE_PULSEAUDIO
+	dsp->Get("Backend", &sBackend, BACKEND_PULSEAUDIO);
 #elif defined __APPLE__
 	dsp->Get("Backend", &sBackend, BACKEND_COREAUDIO);
 #elif defined _WIN32
