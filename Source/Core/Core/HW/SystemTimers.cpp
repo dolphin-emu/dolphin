@@ -55,7 +55,6 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/EXI_DeviceIPL.h"
-#include "Core/HW/SI.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
@@ -69,7 +68,6 @@ namespace SystemTimers
 
 static int et_Dec;
 static int et_VI;
-static int et_SI;
 static int et_CP;
 static int et_AudioDMA;
 static int et_DSP;
@@ -125,12 +123,6 @@ static void VICallback(u64 userdata, int cyclesLate)
 {
 	VideoInterface::Update();
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
-}
-
-static void SICallback(u64 userdata, int cyclesLate)
-{
-	SerialInterface::UpdateDevices();
-	CoreTiming::ScheduleEvent(SerialInterface::GetTicksToNextSIPoll() - cyclesLate, et_SI);
 }
 
 static void CPCallback(u64 userdata, int cyclesLate)
@@ -248,7 +240,6 @@ void Init()
 
 	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
 	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
-	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
 	if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
 		et_CP = CoreTiming::RegisterEvent("CPCallback", CPCallback);
 	et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
@@ -259,7 +250,6 @@ void Init()
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
 	CoreTiming::ScheduleEvent(0, et_DSP);
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_SI);
 	CoreTiming::ScheduleEvent(s_audio_dma_period, et_AudioDMA);
 	CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
 	if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
