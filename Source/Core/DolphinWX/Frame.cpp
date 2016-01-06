@@ -870,25 +870,7 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
 	// 1. Boot the selected iso
 	// 2. Boot the default or last loaded iso.
 	// 3. Call BrowseForDirectory if the gamelist is empty
-	if (!m_GameListCtrl->GetISO(0) &&
-		!((SConfig::GetInstance().m_ListGC &&
-		SConfig::GetInstance().m_ListWii &&
-		SConfig::GetInstance().m_ListWad &&
-		SConfig::GetInstance().m_ListElfDol) &&
-		(SConfig::GetInstance().m_ListJap &&
-		SConfig::GetInstance().m_ListUsa  &&
-		SConfig::GetInstance().m_ListPal  &&
-		SConfig::GetInstance().m_ListAustralia &&
-		SConfig::GetInstance().m_ListFrance &&
-		SConfig::GetInstance().m_ListGermany &&
-		SConfig::GetInstance().m_ListItaly &&
-		SConfig::GetInstance().m_ListKorea &&
-		SConfig::GetInstance().m_ListNetherlands &&
-		SConfig::GetInstance().m_ListRussia &&
-		SConfig::GetInstance().m_ListSpain &&
-		SConfig::GetInstance().m_ListTaiwan &&
-		SConfig::GetInstance().m_ListWorld &&
-		SConfig::GetInstance().m_ListUnknown)))
+	if (!m_GameListCtrl->GetISO(0) && CGameListCtrl::IsHidingItems())
 	{
 		SConfig::GetInstance().m_ListGC =
 		SConfig::GetInstance().m_ListWii =
