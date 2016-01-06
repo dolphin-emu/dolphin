@@ -87,12 +87,7 @@ void HiresTexture::Update()
 	}
 
 	const std::string& game_id = SConfig::GetInstance().m_strUniqueID;
-	std::string texture_directory = GetTextureFolder(game_id);
-
-	// If there's no directory with the region-specific ID, look for a 3-character region-free one
-	if (!File::Exists(texture_directory))
-		texture_directory = GetTextureFolder(game_id.substr(0, 3));
-
+	const std::string texture_directory = GetTextureDirectory(game_id);
 	std::vector<std::string> extensions {
 		".png",
 		".bmp",
@@ -439,9 +434,15 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 	return ret;
 }
 
-std::string HiresTexture::GetTextureFolder(const std::string& game_id)
+std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
 {
-	return File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
+	const std::string texture_directory = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
+
+	// If there's no directory with the region-specific ID, look for a 3-character region-free one
+	if (!File::Exists(texture_directory))
+		return File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
+
+	return texture_directory;
 }
 
 HiresTexture::~HiresTexture()
