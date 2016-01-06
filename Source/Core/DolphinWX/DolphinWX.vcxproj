@@ -58,6 +58,7 @@
     <ClCompile Include="Config\AudioConfigPane.cpp" />
     <ClCompile Include="Config\ConfigMain.cpp" />
     <ClCompile Include="Config\GameCubeConfigPane.cpp" />
+    <ClCompile Include="Config\GCAdapterConfigDiag.cpp" />
     <ClCompile Include="Config\GeneralConfigPane.cpp" />
     <ClCompile Include="Config\InterfaceConfigPane.cpp" />
     <ClCompile Include="Config\PathConfigPane.cpp" />
@@ -113,6 +114,7 @@
     <ClInclude Include="Config\AdvancedConfigPane.h" />
     <ClInclude Include="Config\AudioConfigPane.h" />
     <ClInclude Include="Config\GameCubeConfigPane.h" />
+    <ClInclude Include="Config\GCAdapterConfigDiag.h" />
     <ClInclude Include="Config\GeneralConfigPane.h" />
     <ClInclude Include="Config\InterfaceConfigPane.h" />
     <ClInclude Include="Config\PathConfigPane.h" />

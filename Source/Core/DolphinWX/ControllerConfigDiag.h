@@ -10,8 +10,8 @@
 
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/SI_GCAdapter.h"
 #include "Core/HW/Wiimote.h"
+#include "InputCommon/GCAdapter.h"
 
 class InputConfig;
 class wxButton;
@@ -21,7 +21,6 @@ class ControllerConfigDiag : public wxDialog
 {
 public:
 	ControllerConfigDiag(wxWindow* const parent);
-	~ControllerConfigDiag();
 
 private:
 	void RefreshRealWiimotes(wxCommandEvent& event);
@@ -70,23 +69,6 @@ private:
 		event.Skip();
 	}
 
-	void OnGameCubeAdapter(wxCommandEvent& event)
-	{
-		SConfig::GetInstance().m_GameCubeAdapter = event.IsChecked();
-#ifdef __LIBUSB__
-		if (event.IsChecked())
-			SI_GCAdapter::StartScanThread();
-		else
-			SI_GCAdapter::StopScanThread();
-#endif
-		event.Skip();
-	}
-	void OnAdapterRumble(wxCommandEvent& event)
-	{
-		SConfig::GetInstance().m_AdapterRumble = event.IsChecked();
-	}
-
-
 	wxStaticBoxSizer* CreateGamecubeSizer();
 	wxStaticBoxSizer* CreateWiimoteConfigSizer();
 	wxStaticBoxSizer* CreateBalanceBoardSizer();
@@ -96,17 +78,14 @@ private:
 	void Cancel(wxCommandEvent& event);
 	void OnGameCubePortChanged(wxCommandEvent& event);
 	void OnGameCubeConfigButton(wxCommandEvent& event);
-	void ScheduleAdapterUpdate();
-	void UpdateAdapter(wxCommandEvent& ev);
 
 	std::map<wxWindowID, unsigned int> m_gc_port_choice_ids;
 	std::map<wxWindowID, unsigned int> m_gc_port_config_ids;
-	std::array<wxString, 8> m_gc_pad_type_strs;
+	std::array<wxString, 9> m_gc_pad_type_strs;
 
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
 	unsigned int m_orig_wiimote_sources[MAX_BBMOTES];
 
-	wxStaticText* m_adapter_status;
 	wxButton* wiimote_configure_bt[MAX_WIIMOTES];
 	wxButton* gamecube_configure_bt[4];
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;

@@ -48,9 +48,6 @@
 #include "Core/HW/HW.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
-#if defined(__LIBUSB__) || defined(_WIN32)
-#include "Core/HW/SI_GCAdapter.h"
-#endif
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
@@ -65,6 +62,7 @@
 #endif
 
 #include "DiscIO/FileMonitor.h"
+#include "InputCommon/GCAdapter.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -285,7 +283,7 @@ void Stop()  // - Hammertime!
 		g_video_backend->Video_ExitLoop();
 	}
 #if defined(__LIBUSB__) || defined(_WIN32)
-	SI_GCAdapter::ResetRumble();
+	GCAdapter::ResetRumble();
 #endif
 
 #ifdef USE_MEMORYWATCHER
@@ -630,7 +628,7 @@ void SetState(EState _State)
 		CPU::EnableStepping(true);  // Break
 		Wiimote::Pause();
 #if defined(__LIBUSB__) || defined(_WIN32)
-		SI_GCAdapter::ResetRumble();
+		GCAdapter::ResetRumble();
 #endif
 		break;
 	case CORE_RUN:
@@ -741,7 +739,7 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	g_video_backend->PauseAndLock(doLock, unpauseOnUnlock);
 
 #if defined(__LIBUSB__) || defined(_WIN32)
-	SI_GCAdapter::ResetRumble();
+	GCAdapter::ResetRumble();
 #endif
 	return wasUnpaused;
 }

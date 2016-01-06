@@ -8,9 +8,14 @@
 
 struct GCPadStatus;
 
-namespace SI_GCAdapter
+namespace GCAdapter
 {
-
+enum ControllerTypes
+{
+	CONTROLLER_NONE = 0,
+	CONTROLLER_WIRED = 1,
+	CONTROLLER_WIRELESS = 2
+};
 void Init();
 void Reset();
 void ResetRumble();
@@ -23,5 +28,7 @@ void Input(int chan, GCPadStatus* pad);
 void Output(int chan, u8 rumble_command);
 bool IsDetected();
 bool IsDriverDetected();
+bool DeviceConnected(int chan);
+bool UseAdapter();
 
-} // end of namespace SI_GCAdapter
+} // end of namespace GCAdapter

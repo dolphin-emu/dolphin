@@ -447,6 +447,9 @@
     <ClCompile Include="HW\SI_DeviceGBA.cpp">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClCompile>
+    <ClCompile Include="HW\SI_DeviceGCAdapter.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
     <ClCompile Include="HW\SI_DeviceGCController.cpp">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClCompile>
@@ -720,9 +723,6 @@
     <ClCompile Include="PowerPC\MMU.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
-    <ClCompile Include="HW\SI_GCAdapter.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
@@ -991,6 +991,9 @@
     <ClInclude Include="HW\SI_DeviceGBA.h">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
+    <ClInclude Include="HW\SI_DeviceGCAdapter.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
     <ClInclude Include="HW\SI_DeviceGCController.h">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
@@ -1240,9 +1243,6 @@
     </ClInclude>
     <ClInclude Include="HW\GCKeyboard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\SI_GCAdapter.h">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
       <Filter>PowerPC\Jit64Common</Filter>

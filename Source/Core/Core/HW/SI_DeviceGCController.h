@@ -79,6 +79,9 @@ protected:
 	// Type of button combo from the last/current poll
 	EButtonCombo m_LastButtonCombo;
 
+	// Set this if we want to simulate the "TaruKonga" DK Bongo controller
+	bool m_simulate_konga = false;
+
 public:
 
 	// Constructor
@@ -98,14 +101,15 @@ public:
 
 	virtual GCPadStatus GetPadStatus();
 	virtual u32 MapPadStatus(const GCPadStatus& pad_status);
-	virtual void HandleButtonCombos(const GCPadStatus& pad_status);
+	virtual EButtonCombo HandleButtonCombos(const GCPadStatus& pad_status);
 
 	// Send and Receive pad input from network
 	static bool NetPlay_GetInput(u8 numPAD, GCPadStatus* status);
 	static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
 
-private:
+protected:
 	void Calibrate();
+	void HandleMoviePadStatus(GCPadStatus* PadStatus);
 };
 
 
@@ -113,16 +117,8 @@ private:
 class CSIDevice_TaruKonga : public CSIDevice_GCController
 {
 public:
-	CSIDevice_TaruKonga(SIDevices device, int _iDeviceNumber) : CSIDevice_GCController(device, _iDeviceNumber) { }
-
-	bool GetData(u32& _Hi, u32& _Low) override
+	CSIDevice_TaruKonga(SIDevices device, int _iDeviceNumber) : CSIDevice_GCController(device, _iDeviceNumber)
 	{
-		CSIDevice_GCController::GetData(_Hi, _Low);
-
-		// Unset all bits except those that represent
-		// A, B, X, Y, Start and the error bits, as they
-		// are not used.
-		_Hi &= ~0x20FFFFFF;
-		return true;
+		m_simulate_konga = true;
 	}
 };
