@@ -51,6 +51,8 @@ private:
 	static std::unique_ptr<HiresTexture> Load(const std::string& base_filename, u32 width, u32 height);
 	static void Prefetch();
 
+	static std::string GetTextureFolder(const std::string& game_id);
+
 	HiresTexture() {}
 
 };
