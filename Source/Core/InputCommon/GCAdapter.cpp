@@ -356,11 +356,7 @@ void Reset()
 
 void Input(int chan, GCPadStatus* pad)
 {
-	bool use_adapter = SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_WIIU_ADAPTER ||
-	                   SConfig::GetInstance().m_SIDevice[1] == SIDEVICE_WIIU_ADAPTER ||
-	                   SConfig::GetInstance().m_SIDevice[2] == SIDEVICE_WIIU_ADAPTER ||
-	                   SConfig::GetInstance().m_SIDevice[3] == SIDEVICE_WIIU_ADAPTER;
-	if (!use_adapter)
+	if (!UseAdapter())
 		return;
 
 	if (s_handle == nullptr || !s_detected)
@@ -459,7 +455,7 @@ void ResetRumble()
 
 void Output(int chan, u8 rumble_command)
 {
-	if (s_handle == nullptr || !UseAdapter() || !SConfig::GetInstance().m_AdapterRumble)
+	if (s_handle == nullptr || !UseAdapter() || !SConfig::GetInstance().m_AdapterRumble[chan])
 		return;
 
 	// Skip over rumble commands if it has not changed or the controller is wireless
