@@ -272,9 +272,11 @@ void CGameListCtrl::Update()
 		const int platform_padding = 8;
 #endif
 
+		const int platform_icon_padding = 1;
+
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_DUMMY, 0);
-		SetColumnWidth(COLUMN_PLATFORM, SConfig::GetInstance().m_showSystemColumn ? 32 + platform_padding : 0);
+		SetColumnWidth(COLUMN_PLATFORM, SConfig::GetInstance().m_showSystemColumn ? 32 + platform_icon_padding + platform_padding : 0);
 		SetColumnWidth(COLUMN_BANNER, SConfig::GetInstance().m_showBannerColumn ? 96 + platform_padding : 0);
 		SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
 		SetColumnWidth(COLUMN_MAKER, SConfig::GetInstance().m_showMakerColumn ? 150 + platform_padding : 0);
