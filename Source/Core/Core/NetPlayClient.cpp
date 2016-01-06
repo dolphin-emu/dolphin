@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Common.h"
 #include "Common/ENetUtil.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
@@ -19,6 +20,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
+static const char* NETPLAY_VERSION = scm_rev_git_str;
 static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
 NetSettings g_NetPlaySettings;

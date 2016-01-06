@@ -9,8 +9,6 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI_Device.h"
 
-#define NETPLAY_VERSION  "Dolphin NetPlay 2015-06-24"
-
 struct NetSettings
 {
 	bool m_CPUthread;
