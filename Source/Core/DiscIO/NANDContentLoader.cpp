@@ -14,6 +14,7 @@
 #include <vector>
 #include <mbedtls/aes.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
@@ -190,8 +191,14 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd, co
 		content.m_Index     = Common::swap16(&tmd[entry_offset + 0x01E8]);
 		content.m_Type      = Common::swap16(&tmd[entry_offset + 0x01EA]);
 		content.m_Size      = static_cast<u32>(Common::swap64(&tmd[entry_offset + 0x01EC]));
-		std::copy(&tmd[entry_offset + 0x01E4], &tmd[entry_offset + 0x01E4 + 36], content.m_Header);
-		std::copy(&tmd[entry_offset + 0x01F4], &tmd[entry_offset + 0x01F4 + 20], content.m_SHA1Hash);
+
+		const auto header_begin = std::next(tmd.begin(), entry_offset + 0x01E4);
+		const auto header_end   = std::next(header_begin, ArraySize(content.m_Header));
+		std::copy(header_begin, header_end, content.m_Header);
+
+		const auto hash_begin = std::next(tmd.begin(), entry_offset + 0x01F4);
+		const auto hash_end   = std::next(hash_begin, ArraySize(content.m_SHA1Hash));
+		std::copy(hash_begin, hash_end, content.m_SHA1Hash);
 
 		if (m_isWAD)
 		{
