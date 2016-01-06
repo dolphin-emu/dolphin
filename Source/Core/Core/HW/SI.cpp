@@ -565,25 +565,9 @@ void RunSIBuffer(u64 userdata, int cyclesLate)
 	}
 }
 
-int GetTicksToNextSIPoll()
+u32 GetPollXLines()
 {
-	// Poll for input at regular intervals (once per frame) when playing or recording a movie
-	if (Movie::IsMovieActive())
-	{
-		if (Movie::IsNetPlayRecording())
-			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
-		else
-			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
-	}
-	if (NetPlay::IsNetPlayRunning())
-		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
-
-	if (!g_Poll.Y && g_Poll.X)
-		return 2 * VideoInterface::GetTicksPerHalfLine() * g_Poll.X;
-	else if (!g_Poll.Y)
-		return SystemTimers::GetTicksPerSecond() / 60;
-
-	return std::min(VideoInterface::GetTicksPerField() / g_Poll.Y, 2 * VideoInterface::GetTicksPerHalfLine() * g_Poll.X);
+	return g_Poll.X;
 }
 
 } // end of namespace SerialInterface

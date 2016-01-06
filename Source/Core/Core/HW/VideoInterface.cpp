@@ -16,6 +16,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SI.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -63,7 +64,8 @@ static u32 s_clock_freqs[2] =
 
 static u64 s_ticks_last_line_start;  // number of ticks when the current full scanline started
 static u32 s_half_line_count;  // number of halflines that have occurred for this full frame
-
+static u32 s_half_line_of_next_si_poll; // halfline when next SI poll results should be available
+static constexpr u32 num_half_lines_for_si_poll = (7 * 2) + 1; // this is how long an SI poll takes
 
 static FieldType s_current_field;
 
@@ -100,6 +102,7 @@ void DoState(PointerWrap &p)
 	p.Do(TargetRefreshRate);
 	p.Do(s_ticks_last_line_start);
 	p.Do(s_half_line_count);
+	p.Do(s_half_line_of_next_si_poll);
 	p.Do(s_current_field);
 	p.Do(s_even_field_first_hl);
 	p.Do(s_odd_field_first_hl);
@@ -158,6 +161,7 @@ void Preset(bool _bNTSC)
 
 	s_ticks_last_line_start = 0;
 	s_half_line_count = 1;
+	s_half_line_of_next_si_poll = num_half_lines_for_si_poll; // first sampling starts at vsync
 	s_current_field = FIELD_ODD;
 
 	UpdateParameters();
@@ -661,6 +665,11 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update()
 {
+	if (s_half_line_of_next_si_poll == s_half_line_count)
+	{
+		SerialInterface::UpdateDevices();
+		s_half_line_of_next_si_poll += SerialInterface::GetPollXLines();
+	}
 	if (s_half_line_count == s_even_field_first_hl)
 	{
 		BeginField(FIELD_EVEN);
@@ -688,11 +697,19 @@ void Update()
 
 	s_half_line_count++;
 
-	if (s_half_line_count > GetHalfLinesPerEvenField() + GetHalfLinesPerOddField()) {
+	if (s_half_line_count > GetHalfLinesPerEvenField() + GetHalfLinesPerOddField())
+	{
 		s_half_line_count = 1;
+		s_half_line_of_next_si_poll = num_half_lines_for_si_poll; // first results start at vsync
 	}
 
-	if (s_half_line_count & 1) {
+	if (s_half_line_count == GetHalfLinesPerEvenField())
+	{
+		s_half_line_of_next_si_poll = GetHalfLinesPerEvenField() + num_half_lines_for_si_poll;
+	}
+
+	if (s_half_line_count & 1)
+	{
 		s_ticks_last_line_start = CoreTiming::GetTicks();
 	}
 
