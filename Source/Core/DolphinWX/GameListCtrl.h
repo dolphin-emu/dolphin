@@ -39,6 +39,8 @@ public:
 	const GameListItem *GetSelectedISO();
 	const GameListItem *GetISO(size_t index) const;
 
+	static bool IsHidingItems();
+
 	enum
 	{
 		COLUMN_DUMMY = 0,

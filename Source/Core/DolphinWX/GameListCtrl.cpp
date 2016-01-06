@@ -310,20 +310,14 @@ void CGameListCtrl::Update()
 		wxString errorString;
 		// We just check for one hide setting to be enabled, as we may only
 		// have GC games for example, and hide them, so we should show the
-		// second message instead
-		if ((SConfig::GetInstance().m_ListGC     &&
-		    SConfig::GetInstance().m_ListWii     &&
-		    SConfig::GetInstance().m_ListWad     &&
-		    SConfig::GetInstance().m_ListElfDol) &&
-		    (SConfig::GetInstance().m_ListJap    &&
-		    SConfig::GetInstance().m_ListUsa     &&
-		    SConfig::GetInstance().m_ListPal))
+		// first message instead
+		if (IsHidingItems())
 		{
-			errorString = _("Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to browse for files...");
+			errorString = _("Dolphin is currently set to hide all games. Double-click here to show all games...");
 		}
 		else
 		{
-			errorString = _("Dolphin is currently set to hide all games. Double-click here to show all games...");
+			errorString = _("Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to browse for files...");
 		}
 		InsertColumn(0, "");
 		long index = InsertItem(0, errorString);
@@ -954,6 +948,28 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 			return m_ISOFiles[GetItemData(item)];
 		}
 	}
+}
+
+bool CGameListCtrl::IsHidingItems()
+{
+	return !(SConfig::GetInstance().m_ListGC &&
+	         SConfig::GetInstance().m_ListWii &&
+	         SConfig::GetInstance().m_ListWad &&
+	         SConfig::GetInstance().m_ListElfDol &&
+	         SConfig::GetInstance().m_ListJap &&
+	         SConfig::GetInstance().m_ListUsa &&
+	         SConfig::GetInstance().m_ListPal &&
+	         SConfig::GetInstance().m_ListAustralia &&
+	         SConfig::GetInstance().m_ListFrance &&
+	         SConfig::GetInstance().m_ListGermany &&
+	         SConfig::GetInstance().m_ListItaly &&
+	         SConfig::GetInstance().m_ListKorea &&
+	         SConfig::GetInstance().m_ListNetherlands &&
+	         SConfig::GetInstance().m_ListRussia &&
+	         SConfig::GetInstance().m_ListSpain &&
+	         SConfig::GetInstance().m_ListTaiwan &&
+	         SConfig::GetInstance().m_ListWorld &&
+	         SConfig::GetInstance().m_ListUnknown);
 }
 
 void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
