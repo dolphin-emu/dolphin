@@ -10,6 +10,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -217,7 +218,8 @@ void ResetButton_Tap()
 {
   CoreTiming::ScheduleEvent_AnyThread(0, toggleResetButton, true);
   CoreTiming::ScheduleEvent_AnyThread(0, iosNotifyResetButton, 0);
-  CoreTiming::ScheduleEvent_AnyThread(243000000, toggleResetButton, false);
+  CoreTiming::ScheduleEvent_AnyThread(SystemTimers::GetTicksPerSecond() / 2, toggleResetButton,
+                                      false);
 }
 
 }  // namespace ProcessorInterface

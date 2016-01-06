@@ -15,6 +15,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/SI_DeviceGBA.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 
@@ -527,12 +528,13 @@ static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate)
 void ChangeDevice(SIDevices device, int channel)
 {
   // Called from GUI, so we need to make it thread safe.
-  // Let the hardware see no device for .5b cycles
+  // Let the hardware see no device for 1 second
   // TODO: Calling GetDeviceType here isn't threadsafe.
   if (GetDeviceType(channel) != device)
   {
     CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
-    CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | device);
+    CoreTiming::ScheduleEvent_Threadsafe(SystemTimers::GetTicksPerSecond(), changeDevice,
+                                         ((u64)channel << 32) | device);
   }
 }
 

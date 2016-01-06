@@ -489,7 +489,7 @@ void ChangeDiscAsCPU(const std::string& newFileName)
 {
   std::string* _FileName = new std::string(newFileName);
   CoreTiming::ScheduleEvent(0, s_eject_disc);
-  CoreTiming::ScheduleEvent(500000000, s_insert_disc, (u64)_FileName);
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc, (u64)_FileName);
   if (Movie::IsRecordingInput())
   {
     std::string fileName = newFileName;
