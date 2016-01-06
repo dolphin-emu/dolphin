@@ -23,17 +23,25 @@
 
 #include "Common/GL/GLExtensions/gl_common.h"
 
-typedef void (APIENTRYP PFNDOLTEXIMAGE2DMULTISAMPLEPROC) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-typedef void (APIENTRYP PFNDOLTEXIMAGE3DMULTISAMPLEPROC) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
-typedef void (APIENTRYP PFNDOLGETMULTISAMPLEFVPROC) (GLenum pname, GLuint index, GLfloat *val);
-typedef void (APIENTRYP PFNDOLSAMPLEMASKIPROC) (GLuint maskNumber, GLbitfield mask);
+#define GL_SHADER_STORAGE_BARRIER_BIT 0x2000
+#define GL_MAX_COMBINED_SHADER_OUTPUT_RESOURCES 0x8F39
+#define GL_SHADER_STORAGE_BUFFER 0x90D2
+#define GL_SHADER_STORAGE_BUFFER_BINDING 0x90D3
+#define GL_SHADER_STORAGE_BUFFER_START 0x90D4
+#define GL_SHADER_STORAGE_BUFFER_SIZE 0x90D5
+#define GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS 0x90D6
+#define GL_MAX_GEOMETRY_SHADER_STORAGE_BLOCKS 0x90D7
+#define GL_MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS 0x90D8
+#define GL_MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS 0x90D9
+#define GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS 0x90DA
+#define GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS 0x90DB
+#define GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS 0x90DC
+#define GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS 0x90DD
+#define GL_MAX_SHADER_STORAGE_BLOCK_SIZE 0x90DE
+#define GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT 0x90DF
 
-extern PFNDOLTEXIMAGE2DMULTISAMPLEPROC dolTexImage2DMultisample;
-extern PFNDOLTEXIMAGE3DMULTISAMPLEPROC dolTexImage3DMultisample;
-extern PFNDOLGETMULTISAMPLEFVPROC dolGetMultisamplefv;
-extern PFNDOLSAMPLEMASKIPROC dolSampleMaski;
+typedef void (APIENTRY * PFNDOLSHADERSTORAGEBLOCKBINDINGPROC) (GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding);
 
-#define glTexImage2DMultisample dolTexImage2DMultisample
-#define glTexImage3DMultisample dolTexImage3DMultisample
-#define glGetMultisamplefv dolGetMultisamplefv
-#define glSampleMaski dolSampleMaski
+extern PFNDOLSHADERSTORAGEBLOCKBINDINGPROC dolShaderStorageBlockBinding;
+
+#define glShaderStorageBlockBinding dolShaderStorageBlockBinding

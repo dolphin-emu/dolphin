@@ -23,17 +23,17 @@
 
 #include "Common/GL/GLExtensions/gl_common.h"
 
-typedef void (APIENTRYP PFNDOLTEXIMAGE2DMULTISAMPLEPROC) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-typedef void (APIENTRYP PFNDOLTEXIMAGE3DMULTISAMPLEPROC) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
-typedef void (APIENTRYP PFNDOLGETMULTISAMPLEFVPROC) (GLenum pname, GLuint index, GLfloat *val);
-typedef void (APIENTRYP PFNDOLSAMPLEMASKIPROC) (GLuint maskNumber, GLbitfield mask);
-
-extern PFNDOLTEXIMAGE2DMULTISAMPLEPROC dolTexImage2DMultisample;
-extern PFNDOLTEXIMAGE3DMULTISAMPLEPROC dolTexImage3DMultisample;
-extern PFNDOLGETMULTISAMPLEFVPROC dolGetMultisamplefv;
-extern PFNDOLSAMPLEMASKIPROC dolSampleMaski;
-
-#define glTexImage2DMultisample dolTexImage2DMultisample
-#define glTexImage3DMultisample dolTexImage3DMultisample
-#define glGetMultisamplefv dolGetMultisamplefv
-#define glSampleMaski dolSampleMaski
+#define GL_TEXTURE_IMMUTABLE_LEVELS 0x82DF
+#define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
+#define GL_ANY_SAMPLES_PASSED_CONSERVATIVE 0x8D6A
+#define GL_MAX_ELEMENT_INDEX 0x8D6B
+#define GL_COMPRESSED_R11_EAC 0x9270
+#define GL_COMPRESSED_SIGNED_R11_EAC 0x9271
+#define GL_COMPRESSED_RG11_EAC 0x9272
+#define GL_COMPRESSED_SIGNED_RG11_EAC 0x9273
+#define GL_COMPRESSED_RGB8_ETC2 0x9274
+#define GL_COMPRESSED_SRGB8_ETC2 0x9275
+#define GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2 0x9276
+#define GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 0x9277
+#define GL_COMPRESSED_RGBA8_ETC2_EAC 0x9278
+#define GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC 0x9279
