@@ -69,9 +69,6 @@
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
-#include "DolphinWX/resources/isoprop_disc.xpm"
-#include "DolphinWX/resources/isoprop_file.xpm"
-#include "DolphinWX/resources/isoprop_folder.xpm"
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
@@ -599,9 +596,9 @@ void CISOProperties::CreateGUIControls()
 
 		// Filesystem icons
 		wxImageList* const m_iconList = new wxImageList(16, 16);
-		m_iconList->Add(wxBitmap(disc_xpm), wxNullBitmap);   // 0
-		m_iconList->Add(wxBitmap(folder_xpm), wxNullBitmap); // 1
-		m_iconList->Add(wxBitmap(file_xpm), wxNullBitmap);   // 2
+		m_iconList->Add(WxUtils::LoadResourceBitmap("isoproperties_disc"));   // 0
+		m_iconList->Add(WxUtils::LoadResourceBitmap("isoproperties_folder")); // 1
+		m_iconList->Add(WxUtils::LoadResourceBitmap("isoproperties_file"));   // 2
 
 		// Filesystem tree
 		m_Treectrl = new wxTreeCtrl(filesystem_panel, ID_TREECTRL);

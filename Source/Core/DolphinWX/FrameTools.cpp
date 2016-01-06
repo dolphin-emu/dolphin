@@ -96,11 +96,6 @@
 #endif
 #endif
 
-// Resources
-extern "C" {
-#include "DolphinWX/resources/Dolphin.c" // NOLINT: Dolphin icon
-};
-
 class InputConfig;
 class wxFrame;
 

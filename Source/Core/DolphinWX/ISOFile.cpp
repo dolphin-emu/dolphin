@@ -261,8 +261,7 @@ bool GameListItem::ReadPNGBanner(const std::string& path)
 	if (!File::Exists(path))
 		return false;
 
-	wxImage image;
-	image.LoadFile(StrToWxStr(path), wxBITMAP_TYPE_PNG);
+	wxImage image(StrToWxStr(path), wxBITMAP_TYPE_PNG);
 	m_Bitmap = ScaleBanner(&image);
 	return true;
 }

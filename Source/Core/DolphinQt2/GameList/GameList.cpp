@@ -51,12 +51,6 @@ void GameList::MakeTableView()
 	m_table->setColumnHidden(GameListModel::COL_COUNTRY, false);
 	m_table->setColumnHidden(GameListModel::COL_RATING, false);
 
-	// FIXME These icon image are overly wide and should be cut down to size,
-	// then we can remove these lines.
-	m_table->setColumnWidth(GameListModel::COL_PLATFORM, 52);
-	m_table->setColumnWidth(GameListModel::COL_COUNTRY, 38);
-	m_table->setColumnWidth(GameListModel::COL_RATING, 52);
-
 	QHeaderView* header = m_table->horizontalHeader();
 	header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);
 	header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::Fixed);
