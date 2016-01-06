@@ -31,12 +31,14 @@ elseif(X11_FOUND)
 	endif()
 	set(LIBS ${LIBS} ${X11_LIBRARIES} ${XINPUT2_LIBRARIES})
 elseif(ANDROID)
-	set(SRCS	${SRCS}
-				ControllerInterface/Android/Android.cpp)
+	set(SRCS ${SRCS}
+	         ControllerInterface/Android/Android.cpp)
 endif()
 
 if(LIBUSB_FOUND)
 	set(SRCS	${SRCS}	GCAdapter.cpp)
+elseif(ANDROID)
+	set(SRCS	${SRCS}	GCAdapter_Android.cpp)
 else()
 	set(SRCS	${SRCS}	GCAdapter_Null.cpp)
 endif(LIBUSB_FOUND)
