@@ -30,7 +30,6 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
 
 	m_adapter_status = new wxStaticText(this, wxID_ANY, _("Adapter Not Detected"));
 
-#if defined(__LIBUSB__) || defined (_WIN32)
 	if (!GCAdapter::IsDetected())
 	{
 		if (!GCAdapter::IsDriverDetected())
@@ -44,7 +43,6 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
 		m_adapter_status->SetLabelText(_("Adapter Detected"));
 	}
 	GCAdapter::SetAdapterCallback(std::bind(&GCAdapterConfigDiag::ScheduleAdapterUpdate, this));
-#endif
 
 	szr->Add(m_adapter_status, 0, wxEXPAND);
 	szr->Add(gamecube_rumble, 0, wxEXPAND);
@@ -65,19 +63,15 @@ void GCAdapterConfigDiag::ScheduleAdapterUpdate()
 
 void GCAdapterConfigDiag::UpdateAdapter(wxCommandEvent& ev)
 {
-#if defined(__LIBUSB__) || defined (_WIN32)
 	bool unpause = Core::PauseAndLock(true);
 	if (GCAdapter::IsDetected())
 		m_adapter_status->SetLabelText(_("Adapter Detected"));
 	else
 		m_adapter_status->SetLabelText(_("Adapter Not Detected"));
 	Core::PauseAndLock(false, unpause);
-#endif
 }
 
 GCAdapterConfigDiag::~GCAdapterConfigDiag()
 {
-#if defined(__LIBUSB__) || defined (_WIN32)
 	GCAdapter::SetAdapterCallback(nullptr);
-#endif
 }

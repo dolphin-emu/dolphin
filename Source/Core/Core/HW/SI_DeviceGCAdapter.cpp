@@ -21,9 +21,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
 	GCPadStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
 
-#if defined(__LIBUSB__) || defined (_WIN32)
 	GCAdapter::Input(ISIDevice::m_iDeviceNumber, &PadStatus);
-#endif
 
 	HandleMoviePadStatus(&PadStatus);
 
@@ -38,11 +36,9 @@ int CSIDevice_GCAdapter::RunBuffer(u8* _pBuffer, int _iLength)
 	// Read the command
 	EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[3]);
 
-#if defined(__LIBUSB__) || defined (_WIN32)
 	// get the correct pad number that should rumble locally when using netplay
 	const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 	if (!GCAdapter::DeviceConnected(numPAD))
-#endif
 	{
 		reinterpret_cast<u32*>(_pBuffer)[0] = SI_NONE;
 		return 4;
@@ -122,7 +118,6 @@ void CSIDevice_GCAdapter::SendCommand(u32 _Cmd, u8 _Poll)
 
 	case CMD_WRITE:
 		{
-#if defined(__LIBUSB__) || defined (_WIN32)
 			unsigned int uType = command.Parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
 			unsigned int uStrength = command.Parameter2;
 
@@ -136,7 +131,6 @@ void CSIDevice_GCAdapter::SendCommand(u32 _Cmd, u8 _Poll)
 				else
 					GCAdapter::Output(numPAD, 0);
 			}
-#endif
 			if (!_Poll)
 			{
 				m_Mode = command.Parameter2;

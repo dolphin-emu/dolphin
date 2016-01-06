@@ -37,6 +37,8 @@ endif()
 
 if(LIBUSB_FOUND)
 	set(SRCS	${SRCS}	GCAdapter.cpp)
+else()
+	set(SRCS	${SRCS}	GCAdapter_Null.cpp)
 endif(LIBUSB_FOUND)
 
 if(LIBEVDEV_FOUND AND LIBUDEV_FOUND)

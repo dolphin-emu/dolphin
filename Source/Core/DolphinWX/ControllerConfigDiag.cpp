@@ -487,12 +487,10 @@ void ControllerConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
 
 	SConfig::GetInstance().m_SIDevice[device_num] = tempType;
 
-#if defined(__LIBUSB__) || defined (_WIN32)
 	if (GCAdapter::UseAdapter())
 		GCAdapter::StartScanThread();
 	else
 		GCAdapter::StopScanThread();
-#endif
 
 	if (Core::IsRunning())
 		SerialInterface::ChangeDevice(tempType, device_num);

@@ -20,19 +20,12 @@
 
 namespace GCAdapter
 {
-enum ControllerTypes
-{
-	CONTROLLER_NONE = 0,
-	CONTROLLER_WIRED = 1,
-	CONTROLLER_WIRELESS = 2
-};
-
 static bool CheckDeviceAccess(libusb_device* device);
 static void AddGCAdapter(libusb_device* device);
 
 static bool s_detected = false;
 static libusb_device_handle* s_handle = nullptr;
-static u8 s_controller_type[MAX_SI_CHANNELS] = { CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE };
+static u8 s_controller_type[MAX_SI_CHANNELS] = { ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE };
 static u8 s_controller_rumble[4];
 
 static std::mutex s_mutex;
@@ -189,7 +182,7 @@ void Setup()
 
 	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 	{
-		s_controller_type[i] = CONTROLLER_NONE;
+		s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
 		s_controller_rumble[i] = 0;
 	}
 
@@ -339,7 +332,7 @@ void Reset()
 	}
 
 	for (int i = 0; i < MAX_SI_CHANNELS; i++)
-		s_controller_type[i] = CONTROLLER_NONE;
+		s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
 
 	s_detected = false;
 
@@ -378,7 +371,7 @@ void Input(int chan, GCPadStatus* pad)
 	{
 		bool get_origin = false;
 		u8 type = controller_payload_copy[1 + (9 * chan)] >> 4;
-		if (type != CONTROLLER_NONE && s_controller_type[chan] == CONTROLLER_NONE)
+		if (type != ControllerTypes::CONTROLLER_NONE && s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE)
 		{
 			NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1, controller_payload_copy[1 + (9 * chan)]);
 			get_origin = true;
@@ -387,7 +380,7 @@ void Input(int chan, GCPadStatus* pad)
 		s_controller_type[chan] = type;
 
 		memset(pad, 0, sizeof(*pad));
-		if (s_controller_type[chan] != CONTROLLER_NONE)
+		if (s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE)
 		{
 			u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
 			u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
@@ -425,7 +418,7 @@ void Input(int chan, GCPadStatus* pad)
 
 bool DeviceConnected(int chan)
 {
-	return s_controller_type[chan] != CONTROLLER_NONE;
+	return s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE;
 }
 
 bool UseAdapter()
@@ -459,7 +452,7 @@ void Output(int chan, u8 rumble_command)
 		return;
 
 	// Skip over rumble commands if it has not changed or the controller is wireless
-	if (rumble_command != s_controller_rumble[chan] && s_controller_type[chan] != CONTROLLER_WIRELESS)
+	if (rumble_command != s_controller_rumble[chan] && s_controller_type[chan] != ControllerTypes::CONTROLLER_WIRELESS)
 	{
 		s_controller_rumble[chan] = rumble_command;
 

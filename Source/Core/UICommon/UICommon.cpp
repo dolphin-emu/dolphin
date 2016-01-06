@@ -28,9 +28,7 @@ void Init()
 	SConfig::Init();
 	VideoBackend::PopulateList();
 	WiimoteReal::LoadSettings();
-#if defined(__LIBUSB__) || defined (_WIN32)
 	GCAdapter::Init();
-#endif
 	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
 	SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
@@ -38,9 +36,7 @@ void Init()
 
 void Shutdown()
 {
-#if defined(__LIBUSB__) || defined (_WIN32)
 	GCAdapter::Shutdown();
-#endif
 	WiimoteReal::Shutdown();
 	VideoBackend::ClearList();
 	SConfig::Shutdown();

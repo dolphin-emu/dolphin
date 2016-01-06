@@ -10,7 +10,12 @@ struct GCPadStatus;
 
 namespace GCAdapter
 {
-
+enum ControllerTypes
+{
+	CONTROLLER_NONE = 0,
+	CONTROLLER_WIRED = 1,
+	CONTROLLER_WIRELESS = 2
+};
 void Init();
 void Reset();
 void ResetRumble();
