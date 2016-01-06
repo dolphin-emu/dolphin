@@ -11,7 +11,7 @@
 #include <android/native_window_jni.h>
 #include <EGL/egl.h>
 
-#include "Android/ButtonManager.h"
+#include "ButtonManager.h"
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
