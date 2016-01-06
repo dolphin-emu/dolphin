@@ -10,6 +10,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace ProcessorInterface
@@ -219,7 +220,7 @@ void ToggleResetButtonCallback(u64 userdata, int cyclesLate)
 void ResetButton_Tap()
 {
 	CoreTiming::ScheduleEvent_AnyThread(0, toggleResetButton, true);
-	CoreTiming::ScheduleEvent_AnyThread(243000000, toggleResetButton, false);
+	CoreTiming::ScheduleEvent_AnyThread(SystemTimers::GetTicksPerSecond() / 2, toggleResetButton, false);
 }
 
 } // namespace ProcessorInterface

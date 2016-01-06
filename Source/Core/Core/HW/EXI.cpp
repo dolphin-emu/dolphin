@@ -16,6 +16,7 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/SystemTimers.h"
 
 SRAM g_SRAM;
 bool g_SRAM_netplay_initialized = false;
@@ -103,9 +104,9 @@ static void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 device_num)
 {
 	// Called from GUI, so we need to make it thread safe.
-	// Let the hardware see no device for .5b cycles
+	// Let the hardware see no device for 1 second
 	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | ((u64)EXIDEVICE_NONE << 16) | device_num);
-	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | ((u64)device_type << 16) | device_num);
+	CoreTiming::ScheduleEvent_Threadsafe(SystemTimers::GetTicksPerSecond(), changeDevice, ((u64)channel << 32) | ((u64)device_type << 16) | device_num);
 }
 
 CEXIChannel* GetChannel(u32 index)
