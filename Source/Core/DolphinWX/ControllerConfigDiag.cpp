@@ -46,7 +46,7 @@ ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 		_("GameCube Adapter for Wii U"),
 		_("Steering Wheel"),
 		_("Dance Mat"),
-		_("TaruKonga (Bongos)"),
+		_("DK Bongos"),
 		_("GBA"),
 		_("Keyboard"),
 		_("AM Baseboard")
