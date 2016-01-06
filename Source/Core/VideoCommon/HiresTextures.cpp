@@ -86,11 +86,14 @@ void HiresTexture::Update()
 		s_textureCache.clear();
 	}
 
-	const std::string& gameCode = SConfig::GetInstance().m_strUniqueID;
+	const std::string& game_id = SConfig::GetInstance().m_strUniqueID;
+	std::string texture_directory = GetTextureFolder(game_id);
 
-	std::string szDir = StringFromFormat("%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode.c_str());
+	// If there's no directory with the region-specific ID, look for a 3-character region-free one
+	if (!File::Exists(texture_directory))
+		texture_directory = GetTextureFolder(game_id.substr(0, 3));
 
-	std::vector<std::string> Extensions {
+	std::vector<std::string> extensions {
 		".png",
 		".bmp",
 		".tga",
@@ -98,12 +101,11 @@ void HiresTexture::Update()
 		".jpg" // Why not? Could be useful for large photo-like textures
 	};
 
-	auto rFilenames = DoFileSearch(Extensions, {szDir}, /*recursive*/ true);
+	std::vector<std::string> filenames = DoFileSearch(extensions, {texture_directory}, /*recursive*/ true);
 
-	const std::string code = StringFromFormat("%s_", gameCode.c_str());
-	const std::string code2 = "";
+	const std::string code = game_id + "_";
 
-	for (auto& rFilename : rFilenames)
+	for (auto& rFilename : filenames)
 	{
 		std::string FileName;
 		SplitPath(rFilename, nullptr, &FileName, nullptr);
@@ -435,6 +437,11 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 	}
 
 	return ret;
+}
+
+std::string HiresTexture::GetTextureFolder(const std::string& game_id)
+{
+	return File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
 }
 
 HiresTexture::~HiresTexture()
