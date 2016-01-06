@@ -11,7 +11,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
-#include "Core/HW/VideoInterface.h"
 
 // UGLINESS
 #include "Core/PowerPC/PowerPC.h"
@@ -60,11 +59,11 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	//advance indexR with sample position
 	//remember fractional offset
 
-	u32 framelimit = SConfig::GetInstance().m_Framelimit;
+	float emulationspeed = SConfig::GetInstance().m_EmulationSpeed;
 	float aid_sample_rate = m_input_sample_rate + offset;
-	if (consider_framelimit && framelimit > 1)
+	if (consider_framelimit && emulationspeed > 0.0f)
 	{
-		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
+		aid_sample_rate = aid_sample_rate * emulationspeed;
 	}
 
 	const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);

@@ -261,7 +261,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
 	core->Set("RunCompareServer", bRunCompareServer);
 	core->Set("RunCompareClient", bRunCompareClient);
-	core->Set("FrameLimit", m_Framelimit);
+	core->Set("EmulationSpeed", m_EmulationSpeed);
 	core->Set("FrameSkip", m_FrameSkip);
 	core->Set("Overclock", m_OCFactor);
 	core->Set("OverclockEnable", m_OCEnable);
@@ -526,7 +526,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("DCBZ",                      &bDCBZOFF,          false);
 	core->Get("FPRF",                      &bFPRF,             false);
 	core->Get("AccurateNaNs",              &bAccurateNaNs,     false);
-	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
+	core->Get("EmulationSpeed",            &m_EmulationSpeed,                              1.0f);
 	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
 	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);

@@ -195,21 +195,21 @@ static void ThrottleCallback(u64 last_time, int cyclesLate)
 
 	int diff = (u32)last_time - time;
 	const SConfig& config = SConfig::GetInstance();
-	bool frame_limiter = config.m_Framelimit && !Core::GetIsFramelimiterTempDisabled();
+	bool frame_limiter = config.m_EmulationSpeed > 0.0f && !Core::GetIsThrottlerTempDisabled();
 	u32 next_event = GetTicksPerSecond()/1000;
-	if (config.m_Framelimit > 1)
+	if (frame_limiter)
 	{
-		next_event = next_event * (config.m_Framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
+		if (config.m_EmulationSpeed != 1.0f)
+			next_event = u32(next_event * config.m_EmulationSpeed);
+		const int max_fallback = config.iTimingVariance;
+		if (abs(diff) > max_fallback)
+		{
+			DEBUG_LOG(COMMON, "system too %s, %d ms skipped", diff<0 ? "slow" : "fast", abs(diff) - max_fallback);
+			last_time = time - max_fallback;
+		}
+		else if (diff > 0)
+			Common::SleepCurrentThread(diff);
 	}
-
-	const int max_fallback = config.iTimingVariance;
-	if (frame_limiter && abs(diff) > max_fallback)
-	{
-		DEBUG_LOG(COMMON, "system too %s, %d ms skipped", diff<0 ? "slow" : "fast", abs(diff) - max_fallback);
-		last_time = time - max_fallback;
-	}
-	else if (frame_limiter && diff > 0)
-		Common::SleepCurrentThread(diff);
 	CoreTiming::ScheduleEvent(next_event - cyclesLate, et_Throttle, last_time + 1);
 }
 

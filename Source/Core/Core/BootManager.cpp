@@ -55,7 +55,7 @@ public:
 	void RestoreConfig(SConfig* config);
 
 	// these store if the relevant setting should be reset back later (true) or if it should be left alone on restore (false)
-	bool bSetFramelimit, bSetEXIDevice[MAX_EXI_CHANNELS], bSetVolume, bSetPads[MAX_SI_CHANNELS], bSetWiimoteSource[MAX_BBMOTES], bSetFrameSkip;
+	bool bSetEmulationSpeed, bSetEXIDevice[MAX_EXI_CHANNELS], bSetVolume, bSetPads[MAX_SI_CHANNELS], bSetWiimoteSource[MAX_BBMOTES], bSetFrameSkip;
 
 private:
 	bool valid, bCPUThread, bSkipIdle, bSyncGPUOnSkipIdleHack, bFPRF, bAccurateNaNs, bMMU, bDCBZOFF, m_EnableJIT,
@@ -64,7 +64,8 @@ private:
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
 	SIDevices Pads[MAX_SI_CHANNELS];
-	unsigned int framelimit, frameSkip;
+	unsigned int frameSkip;
+	float m_EmulationSpeed;
 	TEXIDevices m_EXIDevice[MAX_EXI_CHANNELS];
 	std::string strBackend, sBackend;
 	std::string m_strGPUDeterminismMode;
@@ -102,7 +103,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
 		Pads[i] = config.m_SIDevice[i];
 	}
 
-	framelimit = config.m_Framelimit;
+	m_EmulationSpeed = config.m_EmulationSpeed;
 	frameSkip = config.m_FrameSkip;
 
 	for (unsigned int i = 0; i < MAX_EXI_CHANNELS; ++i)
@@ -114,7 +115,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
 	sBackend = config.sBackend;
 	m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
 
-	bSetFramelimit = false;
+	bSetEmulationSpeed = false;
 	std::fill_n(bSetEXIDevice, (int)MAX_EXI_CHANNELS, false);
 	bSetVolume = false;
 	std::fill_n(bSetPads, (int)MAX_SI_CHANNELS, false);
@@ -170,8 +171,8 @@ void ConfigCache::RestoreConfig(SConfig* config)
 			config->m_SIDevice[i] = Pads[i];
 	}
 
-	if (bSetFramelimit)
-		config->m_Framelimit = framelimit;
+	if (bSetEmulationSpeed)
+		config->m_EmulationSpeed = m_EmulationSpeed;
 
 	if (bSetFrameSkip)
 	{
@@ -251,8 +252,8 @@ bool BootCore(const std::string& _rFilename)
 		core_section->Get("HLE_BS2",          &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
 		core_section->Get("ProgressiveScan",  &StartUp.bProgressive, StartUp.bProgressive);
 		core_section->Get("PAL60",            &StartUp.bPAL60, StartUp.bPAL60);
-		if (core_section->Get("FrameLimit",   &SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
-			config_cache.bSetFramelimit = true;
+		if (core_section->Get("EmulationSpeed", &SConfig::GetInstance().m_EmulationSpeed, SConfig::GetInstance().m_EmulationSpeed))
+			config_cache.bSetEmulationSpeed = true;
 		if (core_section->Get("FrameSkip",    &SConfig::GetInstance().m_FrameSkip))
 		{
 			config_cache.bSetFrameSkip = true;
