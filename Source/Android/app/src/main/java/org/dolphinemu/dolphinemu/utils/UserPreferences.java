@@ -129,10 +129,10 @@ public final class UserPreferences
 		editor.putBoolean("stereoSwapEyes",        getConfig("gfx_opengl.ini", "Stereoscopy", "StereoSwapEyes", "False").equals("True"));
 		editor.putString("stereoDepth",            getConfig("gfx_opengl.ini", "Stereoscopy", "StereoDepth", "20"));
 		editor.putString("stereoConvergencePercentage", getConfig("gfx_opengl.ini", "Stereoscopy", "StereoConvergencePercentage", "100"));
-		editor.putBoolean("enableController1",     getConfig("Dolphin.ini", "Settings", "SIDevice0", "6") == "6");
-		editor.putBoolean("enableController2",     getConfig("Dolphin.ini", "Settings", "SIDevice1", "0") == "6");
-		editor.putBoolean("enableController3",     getConfig("Dolphin.ini", "Settings", "SIDevice2", "0") == "6");
-		editor.putBoolean("enableController4",     getConfig("Dolphin.ini", "Settings", "SIDevice3", "0") == "6");
+		editor.putBoolean("enableController1",     getConfig("Dolphin.ini", "Core", "SIDevice0", "6") == "6");
+		editor.putBoolean("enableController2",     getConfig("Dolphin.ini", "Core", "SIDevice1", "0") == "6");
+		editor.putBoolean("enableController3",     getConfig("Dolphin.ini", "Core", "SIDevice2", "0") == "6");
+		editor.putBoolean("enableController4",     getConfig("Dolphin.ini", "Core", "SIDevice3", "0") == "6");
 
 		String efbCopyOn     = getConfig("gfx_opengl.ini", "Hacks", "EFBCopyEnable", "True");
 		String efbToTexture  = getConfig("gfx_opengl.ini", "Hacks", "EFBToTextureEnable", "True");
@@ -487,9 +487,9 @@ public final class UserPreferences
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoSwapEyes", stereoscopyEyeSwap ? "True" : "False");
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoDepth", stereoscopySeparation);
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Stereoscopy", "StereoConvergence", stereoConvergencePercentage);
-		NativeLibrary.SetConfig("Dolphin.ini", "Settings", "SIDevice0", "6");
-		NativeLibrary.SetConfig("Dolphin.ini", "Settings", "SIDevice1", enableController2 ? "6" : "0");
-		NativeLibrary.SetConfig("Dolphin.ini", "Settings", "SIDevice2", enableController3 ? "6" : "0");
-		NativeLibrary.SetConfig("Dolphin.ini", "Settings", "SIDevice3", enableController4 ? "6" : "0");
+		NativeLibrary.SetConfig("Dolphin.ini", "Core", "SIDevice0", "6");
+		NativeLibrary.SetConfig("Dolphin.ini", "Core", "SIDevice1", enableController2 ? "6" : "0");
+		NativeLibrary.SetConfig("Dolphin.ini", "Core", "SIDevice2", enableController3 ? "6" : "0");
+		NativeLibrary.SetConfig("Dolphin.ini", "Core", "SIDevice3", enableController4 ? "6" : "0");
 	}
 }
