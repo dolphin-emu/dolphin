@@ -61,6 +61,8 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("wideScreenHack", &bWidescreenHack, false);
 	settings->Get("AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
 	settings->Get("Crop", &bCrop, false);
+	settings->Get("VIScale", &bVIScale, true);
+	settings->Get("PARCorrect", &bPARCorrect, true);
 	settings->Get("UseXFB", &bUseXFB, 0);
 	settings->Get("UseRealXFB", &bUseRealXFB, 0);
 	settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples, 128);
@@ -154,6 +156,8 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "wideScreenHack", bWidescreenHack);
 	CHECK_SETTING("Video_Settings", "AspectRatio", iAspectRatio);
 	CHECK_SETTING("Video_Settings", "Crop", bCrop);
+	CHECK_SETTING("Video_Settings", "VIScale", bVIScale);
+	CHECK_SETTING("Video_Settings", "PARCorrect", bPARCorrect);
 	CHECK_SETTING("Video_Settings", "UseXFB", bUseXFB);
 	CHECK_SETTING("Video_Settings", "UseRealXFB", bUseRealXFB);
 	CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
@@ -260,6 +264,8 @@ void VideoConfig::Save(const std::string& ini_file)
 	IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
 	settings->Set("AspectRatio", iAspectRatio);
 	settings->Set("Crop", bCrop);
+	settings->Set("VIScale", bVIScale);
+	settings->Set("PARCorrect", bPARCorrect);
 	settings->Set("wideScreenHack", bWidescreenHack);
 	settings->Set("UseXFB", bUseXFB);
 	settings->Set("UseRealXFB", bUseRealXFB);

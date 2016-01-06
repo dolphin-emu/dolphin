@@ -431,7 +431,7 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	// Don't know if there is a better place for this code so there isn't a 1 frame delay
 	if (g_ActiveConfig.bWidescreenHack)
 	{
-		float source_aspect = VideoInterface::GetAspectRatio(Core::g_aspect_wide);
+		float source_aspect = VideoInterface::GetAspectRatio(Core::g_aspect_wide, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 		float target_aspect;
 
 		switch (g_ActiveConfig.iAspectRatio)
@@ -440,10 +440,10 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 			target_aspect = WinWidth / WinHeight;
 			break;
 		case ASPECT_ANALOG:
-			target_aspect = VideoInterface::GetAspectRatio(false);
+			target_aspect = VideoInterface::GetAspectRatio(false, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		case ASPECT_ANALOG_WIDE:
-			target_aspect = VideoInterface::GetAspectRatio(true);
+			target_aspect = VideoInterface::GetAspectRatio(true, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		default:
 			// ASPECT_AUTO
@@ -479,13 +479,13 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	switch (g_ActiveConfig.iAspectRatio)
 	{
 		case ASPECT_ANALOG_WIDE:
-			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(true);
+			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(true, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		case ASPECT_ANALOG:
-			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(false);
+			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(false, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		default:
-			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(Core::g_aspect_wide);
+			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(Core::g_aspect_wide, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 	}
 
@@ -515,13 +515,13 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 		switch (g_ActiveConfig.iAspectRatio)
 		{
 		case ASPECT_ANALOG_WIDE:
-			Ratio = (16.0f / 9.0f) / VideoInterface::GetAspectRatio(true);
+			Ratio = (16.0f / 9.0f) / VideoInterface::GetAspectRatio(true, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		case ASPECT_ANALOG:
-			Ratio = (4.0f / 3.0f) / VideoInterface::GetAspectRatio(false);
+			Ratio = (4.0f / 3.0f) / VideoInterface::GetAspectRatio(false, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		default:
-			Ratio = (!Core::g_aspect_wide ? (4.0f / 3.0f) : (16.0f / 9.0f)) / VideoInterface::GetAspectRatio(Core::g_aspect_wide);
+			Ratio = (!Core::g_aspect_wide ? (4.0f / 3.0f) : (16.0f / 9.0f)) / VideoInterface::GetAspectRatio(Core::g_aspect_wide, g_ActiveConfig.bVIScale, g_ActiveConfig.bPARCorrect);
 			break;
 		}
 		if (Ratio <= 1.0f)
