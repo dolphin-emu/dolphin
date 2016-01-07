@@ -57,6 +57,11 @@ enum TextureFormat
 	GX_CTF_Z8L   = 0xA | _GX_TF_ZTF | _GX_TF_CTF,
 	GX_CTF_Z16R  = 0xB | _GX_TF_ZTF | _GX_TF_CTF, // Reversed version of GX_TF_Z16
 	GX_CTF_Z16L  = 0xC | _GX_TF_ZTF | _GX_TF_CTF,
+
+	// Speical texture format used to represent YUVY xfb copies.
+	// They aren't really textures, but they share so much hardware and usecases that it makes sense
+	// to emulate them as part of texture cache.
+	GX_CTF_XFB   = 0xF | _GX_TF_CTF,
 };
 
 enum TlutFormat

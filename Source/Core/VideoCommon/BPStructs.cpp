@@ -247,15 +247,14 @@ static void BPWritten(const BPCmd& bp)
 				float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
 
 				u32 height = static_cast<u32>(num_xfb_lines);
-				if (height > MAX_XFB_HEIGHT)
-				{
-					INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines: %d (%f)",
-							 height, num_xfb_lines);
-					height = MAX_XFB_HEIGHT;
-				}
 
 				DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | fbStride: %u | fbHeight: %u",
 					destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom, bpmem.copyTexSrcWH.x + 1, destStride, height);
+
+				TextureCacheBase::CopyRenderTargetToTexture(destAddr, GX_CTF_XFB, destStride,
+															bpmem.zcontrol.pixel_format, srcRect,
+															false, false);
+				// This stays in to signal end of a "frame"
 				Renderer::RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
 			}
 

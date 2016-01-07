@@ -24,7 +24,7 @@ public:
 	static void DisableStage(unsigned int stage);
 	static void SetStage();
 
-private:
+
 	struct TCacheEntry : TCacheEntryBase
 	{
 		GLuint texture;
@@ -50,7 +50,7 @@ private:
 		void Bind(unsigned int stage) override;
 		bool Save(const std::string& filename, unsigned int level) override;
 	};
-
+private:
 	TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 	void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) override;
 
