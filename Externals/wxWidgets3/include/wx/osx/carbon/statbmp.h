@@ -15,8 +15,8 @@
 
 class WXDLLIMPEXP_CORE wxStaticBitmap: public wxStaticBitmapBase
 {
-  DECLARE_DYNAMIC_CLASS(wxStaticBitmap)
- public:
+  wxDECLARE_DYNAMIC_CLASS(wxStaticBitmap);
+public:
   wxStaticBitmap() { }
 
   wxStaticBitmap(wxWindow *parent, wxWindowID id,
@@ -57,7 +57,7 @@ class WXDLLIMPEXP_CORE wxStaticBitmap: public wxStaticBitmapBase
     virtual wxSize DoGetBestSize() const;
 
     wxBitmap m_bitmap;
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif

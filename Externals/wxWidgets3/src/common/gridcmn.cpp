@@ -67,7 +67,7 @@ wxBEGIN_FLAGS( wxGridStyle )
     wxFLAGS_MEMBER(wxHSCROLL)
 wxEND_FLAGS( wxGridStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxGrid, wxScrolledWindow, "wx/grid.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxGrid, wxScrolledWindow, "wx/grid.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxGrid)
     wxHIDE_PROPERTY( Children )

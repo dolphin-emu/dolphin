@@ -32,6 +32,57 @@
 // implementation
 // ============================================================================
 
+// ----------------------------------------------------------------------------
+// wxNativeWindow
+// ----------------------------------------------------------------------------
+
+bool
+wxNativeWindow::Create(wxWindow* parent,
+                       wxWindowID winid,
+                       wxNativeWindowHandle hwnd)
+{
+    wxCHECK_MSG( hwnd, false, wxS("Invalid null HWND") );
+    wxCHECK_MSG( parent, false, wxS("Must have a valid parent") );
+    wxASSERT_MSG( ::GetParent(hwnd) == GetHwndOf(parent),
+                  wxS("The native window has incorrect parent") );
+
+    const wxRect r = wxRectFromRECT(wxGetWindowRect(hwnd));
+
+    // Skip wxWindow::Create() which would try to create a new HWND, we don't
+    // want this as we already have one.
+    if ( !CreateBase(parent, winid,
+                     r.GetPosition(), r.GetSize(),
+                     0, wxDefaultValidator, wxS("nativewindow")) )
+        return false;
+
+    parent->AddChild(this);
+
+    SubclassWin(hwnd);
+
+    if ( winid == wxID_ANY )
+    {
+        // We allocated a new ID to the control, use it at Windows level as
+        // well because we assume that our and MSW IDs are the same in many
+        // places and it seems prudent to avoid breaking this assumption.
+        SetId(GetId());
+    }
+    else // We used a fixed ID.
+    {
+        // For the same reason as above, check that it's the same as the one
+        // used by the native HWND.
+        wxASSERT_MSG( ::GetWindowLong(hwnd, GWL_ID) == winid,
+                      wxS("Mismatch between wx and native IDs") );
+    }
+
+    InheritAttributes();
+
+    return true;
+}
+
+// ----------------------------------------------------------------------------
+// wxNativeContainerWindow
+// ----------------------------------------------------------------------------
+
 bool wxNativeContainerWindow::Create(wxNativeContainerWindowHandle hwnd)
 {
     if ( !::IsWindow(hwnd) )
@@ -69,11 +120,24 @@ WXLRESULT wxNativeContainerWindow::MSWWindowProc(WXUINT nMsg,
                                                  WXWPARAM wParam,
                                                  WXLPARAM lParam)
 {
-    if ( nMsg == WM_DESTROY )
+    switch ( nMsg )
     {
-        OnNativeDestroyed();
+        case WM_CLOSE:
+            // wxWindow itself, unlike wxFrame, doesn't react to WM_CLOSE and
+            // just ignores it without even passing it to DefWindowProc(),
+            // which means that the original WM_CLOSE handler wouldn't be
+            // called if we didn't explicitly do it here.
+            return MSWDefWindowProc(nMsg, wParam, lParam);
 
-        return 0;
+        case WM_DESTROY:
+            // Send it to the original handler which may have some cleanup to
+            // do as well. Notice that we must do it before calling
+            // OnNativeDestroyed() as we can't use this object after doing it.
+            MSWDefWindowProc(nMsg, wParam, lParam);
+
+            OnNativeDestroyed();
+
+            return 0;
     }
 
     return wxTopLevelWindow::MSWWindowProc(nMsg, wParam, lParam);

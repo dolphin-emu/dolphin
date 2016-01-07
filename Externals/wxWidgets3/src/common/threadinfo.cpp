@@ -48,26 +48,33 @@ inline wxAllThreadInfos& GetAllThreadInfos()
 }
 
 // Pointer to the current thread's instance
-wxTLS_TYPE(wxThreadSpecificInfo*) g_thisThreadInfo;
+inline wxTLS_TYPE_REF(wxThreadSpecificInfo*) GetThisThreadInfo()
+{
+    static wxTLS_TYPE(wxThreadSpecificInfo*) s_thisThreadInfo;
+
+    return s_thisThreadInfo;
+}
+
+#define wxTHIS_THREAD_INFO wxTLS_VALUE(GetThisThreadInfo())
 
 } // anonymous namespace
 
 
 wxThreadSpecificInfo& wxThreadSpecificInfo::Get()
 {
-    if ( !wxTLS_VALUE(g_thisThreadInfo) )
+    if ( !wxTHIS_THREAD_INFO )
     {
-        wxTLS_VALUE(g_thisThreadInfo) = new wxThreadSpecificInfo;
+        wxTHIS_THREAD_INFO = new wxThreadSpecificInfo;
         wxCriticalSectionLocker lock(GetAllThreadInfosCS());
         GetAllThreadInfos().push_back(
-                wxSharedPtr<wxThreadSpecificInfo>(wxTLS_VALUE(g_thisThreadInfo)));
+                wxSharedPtr<wxThreadSpecificInfo>(wxTHIS_THREAD_INFO));
     }
-    return *wxTLS_VALUE(g_thisThreadInfo);
+    return *wxTHIS_THREAD_INFO;
 }
 
 void wxThreadSpecificInfo::ThreadCleanUp()
 {
-    if ( !wxTLS_VALUE(g_thisThreadInfo) )
+    if ( !wxTHIS_THREAD_INFO )
         return; // nothing to do, not used by this thread at all
 
     // find this thread's instance in GetAllThreadInfos() and destroy it
@@ -76,10 +83,10 @@ void wxThreadSpecificInfo::ThreadCleanUp()
           i != GetAllThreadInfos().end();
           ++i )
     {
-        if ( i->get() == wxTLS_VALUE(g_thisThreadInfo) )
+        if ( i->get() == wxTHIS_THREAD_INFO )
         {
             GetAllThreadInfos().erase(i);
-            wxTLS_VALUE(g_thisThreadInfo) = NULL;
+            wxTHIS_THREAD_INFO = NULL;
             break;
         }
     }

@@ -37,9 +37,9 @@
 #include "wx/colourdata.h"
 #include "wx/generic/colrdlgg.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericColourDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericColourDialog, wxDialog);
 
-BEGIN_EVENT_TABLE(wxGenericColourDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxGenericColourDialog, wxDialog)
     EVT_BUTTON(wxID_ADD_CUSTOM, wxGenericColourDialog::OnAddCustom)
 #if wxUSE_SLIDER
     EVT_SLIDER(wxID_RED_SLIDER, wxGenericColourDialog::OnRedSlider)
@@ -49,7 +49,7 @@ BEGIN_EVENT_TABLE(wxGenericColourDialog, wxDialog)
     EVT_PAINT(wxGenericColourDialog::OnPaint)
     EVT_MOUSE_EVENTS(wxGenericColourDialog::OnMouseEvent)
     EVT_CLOSE(wxGenericColourDialog::OnCloseWindow)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 /*
@@ -169,13 +169,6 @@ void wxGenericColourDialog::OnMouseEvent(wxMouseEvent& event)
     int x = (int)event.GetX();
     int y = (int)event.GetY();
 
-#ifdef __WXPM__
-    // Handle OS/2's reverse coordinate system and account for the dialog title
-    int                             nClientHeight;
-
-    GetClientSize(NULL, &nClientHeight);
-    y = (nClientHeight - y) + 20;
-#endif
     if ((x >= m_standardColoursRect.x && x <= (m_standardColoursRect.x + m_standardColoursRect.width)) &&
         (y >= m_standardColoursRect.y && y <= (m_standardColoursRect.y + m_standardColoursRect.height)))
     {
@@ -220,11 +213,7 @@ void wxGenericColourDialog::CalculateMeasurements()
     m_sectionSpacing = 15;
 
     m_standardColoursRect.x = 10;
-#ifdef __WXPM__
-    m_standardColoursRect.y = 15 + 20; /* OS/2 needs to account for dialog titlebar */
-#else
     m_standardColoursRect.y = 15;
-#endif
     m_standardColoursRect.width = (8*m_smallRectangleSize.x) + (7*m_gridSpacing);
     m_standardColoursRect.height = (6*m_smallRectangleSize.y) + (5*m_gridSpacing);
 
@@ -266,12 +255,12 @@ void wxGenericColourDialog::CreateWidgets()
 
     sliderSizer->Add(sliderX, sliderHeight );
 
-    wxSizerFlags flagsRight;
-    flagsRight.Align(wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL).DoubleBorder();
+    const wxSizerFlags sliderFlags
+        = wxSizerFlags().CentreVertical().DoubleBorder();
 
-    sliderSizer->Add(m_redSlider, flagsRight);
-    sliderSizer->Add(m_greenSlider,flagsRight);
-    sliderSizer->Add(m_blueSlider,flagsRight);
+    sliderSizer->Add(m_redSlider, sliderFlags);
+    sliderSizer->Add(m_greenSlider, sliderFlags);
+    sliderSizer->Add(m_blueSlider, sliderFlags);
 
     topSizer->Add(sliderSizer, wxSizerFlags().Centre().DoubleBorder());
 #else

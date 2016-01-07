@@ -28,14 +28,6 @@
 #include "wx/apptrait.h"
 #include "wx/fontmap.h"
 
-#if wxUSE_LIBHILDON
-    #include <hildon-widgets/hildon-program.h>
-#endif // wxUSE_LIBHILDON
-
-#if wxUSE_LIBHILDON2
-    #include <hildon/hildon.h>
-#endif // wxUSE_LIBHILDON2
-
 #include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 
@@ -165,26 +157,10 @@ bool wxApp::DoIdle()
 }
 
 //-----------------------------------------------------------------------------
-// Access to the root window global
-//-----------------------------------------------------------------------------
-
-GtkWidget* wxGetRootWindow()
-{
-    static GtkWidget *s_RootWindow = NULL;
-
-    if (s_RootWindow == NULL)
-    {
-        s_RootWindow = gtk_window_new( GTK_WINDOW_TOPLEVEL );
-        gtk_widget_realize( s_RootWindow );
-    }
-    return s_RootWindow;
-}
-
-//-----------------------------------------------------------------------------
 // wxApp
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxApp,wxEvtHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxApp,wxEvtHandler);
 
 wxApp::wxApp()
 {
@@ -269,14 +245,6 @@ bool wxApp::OnInitGui()
         }
     }
 #endif
-
-#if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
-    if ( !GetHildonProgram() )
-    {
-        wxLogError(_("Unable to initialize Hildon program"));
-        return false;
-    }
-#endif // wxUSE_LIBHILDON || wxUSE_LIBHILDON2
 
     return true;
 }
@@ -546,12 +514,3 @@ bool wxApp::GTKIsUsingGlobalMenu()
 
     return s_isUsingGlobalMenu == 1;
 }
-
-#if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
-// Maemo-specific method: get the main program object
-HildonProgram *wxApp::GetHildonProgram()
-{
-    return hildon_program_get_instance();
-}
-
-#endif // wxUSE_LIBHILDON || wxUSE_LIBHILDON2

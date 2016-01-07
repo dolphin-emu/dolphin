@@ -24,33 +24,33 @@ public:
     wxTextEntry() { }
 
     // implement wxTextEntryBase pure virtual methods
-    virtual void WriteText(const wxString& text);
-    virtual void Remove(long from, long to);
+    virtual void WriteText(const wxString& text) wxOVERRIDE;
+    virtual void Remove(long from, long to) wxOVERRIDE;
 
-    virtual void Copy();
-    virtual void Cut();
-    virtual void Paste();
+    virtual void Copy() wxOVERRIDE;
+    virtual void Cut() wxOVERRIDE;
+    virtual void Paste() wxOVERRIDE;
 
-    virtual void Undo();
-    virtual void Redo();
-    virtual bool CanUndo() const;
-    virtual bool CanRedo() const;
+    virtual void Undo() wxOVERRIDE;
+    virtual void Redo() wxOVERRIDE;
+    virtual bool CanUndo() const wxOVERRIDE;
+    virtual bool CanRedo() const wxOVERRIDE;
 
-    virtual void SetInsertionPoint(long pos);
-    virtual long GetInsertionPoint() const;
-    virtual long GetLastPosition() const;
+    virtual void SetInsertionPoint(long pos) wxOVERRIDE;
+    virtual long GetInsertionPoint() const wxOVERRIDE;
+    virtual long GetLastPosition() const wxOVERRIDE;
 
-    virtual void SetSelection(long from, long to);
-    virtual void GetSelection(long *from, long *to) const;
+    virtual void SetSelection(long from, long to) wxOVERRIDE;
+    virtual void GetSelection(long *from, long *to) const wxOVERRIDE;
 
-    virtual bool IsEditable() const;
-    virtual void SetEditable(bool editable);
+    virtual bool IsEditable() const wxOVERRIDE;
+    virtual void SetEditable(bool editable) wxOVERRIDE;
 
-    virtual void SetMaxLength(unsigned long len);
+    virtual void SetMaxLength(unsigned long len) wxOVERRIDE;
 
 #ifdef __WXGTK3__
-    virtual bool SetHint(const wxString& hint);
-    virtual wxString GetHint() const;
+    virtual bool SetHint(const wxString& hint) wxOVERRIDE;
+    virtual wxString GetHint() const wxOVERRIDE;
 #endif
 
     // implementation only from now on
@@ -66,14 +66,14 @@ protected:
     void GTKConnectInsertTextSignal(GtkEntry* entry);
 
 
-    virtual void DoSetValue(const wxString& value, int flags);
-    virtual wxString DoGetValue() const;
+    virtual void DoSetValue(const wxString& value, int flags) wxOVERRIDE;
+    virtual wxString DoGetValue() const wxOVERRIDE;
 
     // margins functions
-    virtual bool DoSetMargins(const wxPoint& pt);
-    virtual wxPoint DoGetMargins() const;
+    virtual bool DoSetMargins(const wxPoint& pt) wxOVERRIDE;
+    virtual wxPoint DoGetMargins() const wxOVERRIDE;
 
-    virtual bool DoAutoCompleteStrings(const wxArrayString& choices);
+    virtual bool DoAutoCompleteStrings(const wxArrayString& choices) wxOVERRIDE;
 
     // Override the base class method to use GtkEntry IM context.
     virtual int GTKIMFilterKeypress(GdkEventKey* event) const;

@@ -68,6 +68,8 @@ public:
     // wxMSW only: EnableCloseButton(false) may be used to remove the "Close"
     // button from the title bar
     virtual bool EnableCloseButton(bool enable = true);
+    virtual bool EnableMaximizeButton(bool enable = true) wxOVERRIDE;
+    virtual bool EnableMinimizeButton(bool enable = true) wxOVERRIDE;
 
     // Set window transparency if the platform supports it
     virtual bool SetTransparent(wxByte alpha);
@@ -97,18 +99,6 @@ public:
     void SetLastFocus(wxWindow *win) { m_winLastFocused = win; }
     wxWindow *GetLastFocus() const { return m_winLastFocused; }
 
-#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
-    virtual void SetLeftMenu(int id = wxID_ANY, const wxString& label = wxEmptyString, wxMenu *subMenu = NULL);
-    virtual void SetRightMenu(int id = wxID_ANY, const wxString& label = wxEmptyString, wxMenu *subMenu = NULL);
-    bool HandleCommand(WXWORD id, WXWORD cmd, WXHWND control);
-    virtual bool MSWShouldPreProcessMessage(WXMSG* pMsg);
-#endif // __SMARTPHONE__ && __WXWINCE__
-
-#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
-    // Soft Input Panel (SIP) change notification
-    virtual bool HandleSettingChange(WXWPARAM wParam, WXLPARAM lParam);
-#endif
-
     // translate wxWidgets flags to Windows ones
     virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle) const;
 
@@ -120,22 +110,6 @@ public:
 
     // returns true if the platform should explicitly apply a theme border
     virtual bool CanApplyThemeBorder() const { return false; }
-
-#if wxUSE_MENUS
-    bool HandleMenuSelect(WXWORD nItem, WXWORD nFlags, WXHMENU hMenu);
-
-    // handle WM_EXITMENULOOP message for Win95 only
-    bool HandleExitMenuLoop(WXWORD isPopup);
-
-    // handle WM_(UN)INITMENUPOPUP message to generate wxEVT_MENU_OPEN/CLOSE
-    bool HandleMenuPopup(wxEventType evtType, WXHMENU hMenu);
-
-    // Command part of HandleMenuPopup() and HandleExitMenuLoop().
-    bool DoSendMenuOpenCloseEvent(wxEventType evtType, wxMenu* menu, bool popup);
-
-    // Find the menu corresponding to the given handle.
-    virtual wxMenu* MSWFindMenuFromHMENU(WXHMENU hMenu);
-#endif // wxUSE_MENUS
 
 protected:
     // common part of all ctors
@@ -158,10 +132,8 @@ protected:
 
     // override those to return the normal window coordinates even when the
     // window is minimized
-#ifndef __WXWINCE__
     virtual void DoGetPosition(int *x, int *y) const;
     virtual void DoGetSize(int *width, int *height) const;
-#endif // __WXWINCE__
 
     // Top level windows have different freeze semantics on Windows
     virtual void DoFreeze();
@@ -206,56 +178,13 @@ protected:
     // from iconic state (done by wxFrame).
     wxWindow             *m_winLastFocused;
 
-#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
-    class ButtonMenu
-    {
-    public:
-        ButtonMenu();
-        ~ButtonMenu();
-
-        void SetButton(int id = wxID_ANY,
-                       const wxString& label  = wxEmptyString,
-                       wxMenu *subMenu = NULL);
-
-        bool IsAssigned() const {return m_assigned;}
-        bool IsMenu() const {return m_menu!=NULL;}
-
-        int GetId() const {return m_id;}
-        wxMenu* GetMenu() const {return m_menu;}
-        wxString GetLabel() {return m_label;}
-
-        static wxMenu *DuplicateMenu(wxMenu *menu);
-
-    protected:
-        int      m_id;
-        wxString m_label;
-        wxMenu  *m_menu;
-        bool     m_assigned;
-    };
-
-    ButtonMenu               m_LeftButton;
-    ButtonMenu               m_RightButton;
-    HWND                     m_MenuBarHWND;
-
-    void ReloadButton(ButtonMenu& button, UINT menuID);
-    void ReloadAllButtons();
-#endif // __SMARTPHONE__ && __WXWINCE__
-
 private:
-
-#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
-    void* m_activateInfo;
-#endif
 
     // The system menu: initially NULL but can be set (once) by
     // MSWGetSystemMenu(). Owned by this window.
     wxMenu *m_menuSystem;
 
-    // The number of currently opened menus: 0 initially, 1 when a top level
-    // menu is opened, 2 when its submenu is opened and so on.
-    int m_menuDepth;
-
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxTopLevelWindowMSW);
 };
 

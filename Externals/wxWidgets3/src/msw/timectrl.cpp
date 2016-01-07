@@ -30,7 +30,7 @@
 #include "wx/timectrl.h"
 #include "wx/dateevt.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxTimePickerCtrl, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTimePickerCtrl, wxControl);
 
 // ============================================================================
 // wxTimePickerCtrl implementation

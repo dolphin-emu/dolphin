@@ -58,7 +58,7 @@ static void response(GtkDialog* dialog, int response_id, wxFontDialog* win)
 // wxFontDialog
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxFontDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFontDialog, wxDialog);
 
 bool wxFontDialog::DoCreate(wxWindow *parent)
 {
@@ -78,6 +78,9 @@ bool wxFontDialog::DoCreate(wxWindow *parent)
         gtk_parent = GTK_WINDOW(parent->m_widget);
 
 #if GTK_CHECK_VERSION(3,2,0)
+#if GLIB_CHECK_VERSION(2, 34, 0)
+    g_type_ensure(PANGO_TYPE_FONT_FACE);
+#endif
     if (gtk_check_version(3,2,0) == NULL)
         m_widget = gtk_font_chooser_dialog_new(wxGTK_CONV(message), gtk_parent);
     else

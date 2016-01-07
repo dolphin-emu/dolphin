@@ -25,12 +25,12 @@ public:
 protected:
     wxSocketBase *m_o_socket;
 
-    size_t OnSysWrite(const void *buffer, size_t bufsize);
+    size_t OnSysWrite(const void *buffer, size_t bufsize) wxOVERRIDE;
 
     // socket streams are both un-seekable and size-less streams:
-    wxFileOffset OnSysTell() const
+    wxFileOffset OnSysTell() const wxOVERRIDE
         { return wxInvalidOffset; }
-    wxFileOffset OnSysSeek(wxFileOffset WXUNUSED(pos), wxSeekMode WXUNUSED(mode))
+    wxFileOffset OnSysSeek(wxFileOffset WXUNUSED(pos), wxSeekMode WXUNUSED(mode)) wxOVERRIDE
         { return wxInvalidOffset; }
 
     wxDECLARE_NO_COPY_CLASS(wxSocketOutputStream);
@@ -45,13 +45,13 @@ public:
 protected:
     wxSocketBase *m_i_socket;
 
-    size_t OnSysRead(void *buffer, size_t bufsize);
+    size_t OnSysRead(void *buffer, size_t bufsize) wxOVERRIDE;
 
     // socket streams are both un-seekable and size-less streams:
 
-    wxFileOffset OnSysTell() const
+    wxFileOffset OnSysTell() const wxOVERRIDE
         { return wxInvalidOffset; }
-    wxFileOffset OnSysSeek(wxFileOffset WXUNUSED(pos), wxSeekMode WXUNUSED(mode))
+    wxFileOffset OnSysSeek(wxFileOffset WXUNUSED(pos), wxSeekMode WXUNUSED(mode)) wxOVERRIDE
         { return wxInvalidOffset; }
 
     wxDECLARE_NO_COPY_CLASS(wxSocketInputStream);

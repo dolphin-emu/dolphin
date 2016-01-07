@@ -19,7 +19,7 @@
 
 class WXDLLIMPEXP_CORE wxWinHelpController: public wxHelpControllerBase
 {
-    DECLARE_DYNAMIC_CLASS(wxWinHelpController)
+    wxDECLARE_DYNAMIC_CLASS(wxWinHelpController);
 
 public:
     wxWinHelpController(wxWindow* parentWindow = NULL): wxHelpControllerBase(parentWindow) {}

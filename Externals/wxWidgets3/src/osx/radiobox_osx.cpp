@@ -25,12 +25,12 @@
 // spacing between InterfaceBuild and the Human Interface Guidelines, we stick
 // to the latter, as those are also used eg in the System Preferences Dialogs
 
-IMPLEMENT_DYNAMIC_CLASS(wxRadioBox, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxRadioBox, wxControl);
 
 
-BEGIN_EVENT_TABLE(wxRadioBox, wxControl)
+wxBEGIN_EVENT_TABLE(wxRadioBox, wxControl)
     EVT_RADIOBUTTON( wxID_ANY , wxRadioBox::OnRadioButton )
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 void wxRadioBox::OnRadioButton( wxCommandEvent &outer )

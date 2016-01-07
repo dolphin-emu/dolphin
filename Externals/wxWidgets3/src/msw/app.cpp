@@ -61,19 +61,6 @@
     #include "wx/tooltip.h"
 #endif // wxUSE_TOOLTIPS
 
-// OLE is used for drag-and-drop, clipboard, OLE Automation..., but some
-// compilers don't support it (missing headers, libs, ...)
-#if defined(__GNUWIN32_OLD__) || defined(__SYMANTEC__)
-    #undef wxUSE_OLE
-
-    #define  wxUSE_OLE 0
-#endif // broken compilers
-
-#if defined(__POCKETPC__) || defined(__SMARTPHONE__)
-    #include <ole2.h>
-    #include <aygshell.h>
-#endif
-
 #if wxUSE_OLE
     #include <ole2.h>
 #endif
@@ -112,9 +99,7 @@
 // global variables
 // ---------------------------------------------------------------------------
 
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
 extern void wxSetKeyboardHook(bool doIt);
-#endif
 
 // because of mingw32 4.3 bug this struct can't be inside the namespace below:
 // see http://article.gmane.org/gmane.comp.lib.wxwidgets.devel/110282
@@ -233,54 +218,33 @@ bool wxGUIAppTraits::DoMessageFromThreadWait()
     return evtLoop->Dispatch();
 }
 
-DWORD wxGUIAppTraits::WaitForThread(WXHANDLE hThread, int flags)
+WXDWORD wxGUIAppTraits::WaitForThread(WXHANDLE hThread, int flags)
 {
     // We only ever dispatch messages from the main thread and, additionally,
     // even from the main thread we shouldn't wait for the message if we don't
     // have a running event loop as we would never remove them from the message
     // queue then and so we would enter an infinite loop as
     // MsgWaitForMultipleObjects() keeps returning WAIT_OBJECT_0 + 1.
-    if ( flags == wxTHREAD_WAIT_BLOCK ||
-            !wxIsMainThread() ||
-                !wxEventLoop::GetActive() )
+    if ( flags == wxTHREAD_WAIT_YIELD && wxIsMainThread() )
     {
-        // Simple blocking wait.
-        return DoSimpleWaitForThread(hThread);
+        wxMSWEventLoopBase* const
+            evtLoop = static_cast<wxMSWEventLoopBase *>(wxEventLoop::GetActive());
+        if ( evtLoop )
+            return evtLoop->MSWWaitForThread(hThread);
     }
 
-    return ::MsgWaitForMultipleObjects
-             (
-               1,                   // number of objects to wait for
-               (HANDLE *)&hThread,  // the objects
-               false,               // wait for any objects, not all
-               INFINITE,            // no timeout
-               QS_ALLINPUT |        // return as soon as there are any events
-               QS_ALLPOSTMESSAGE
-             );
+    // Simple blocking wait.
+    return DoSimpleWaitForThread(hThread);
 }
 #endif // wxUSE_THREADS
 
 wxPortId wxGUIAppTraits::GetToolkitVersion(int *majVer, int *minVer) const
 {
-    OSVERSIONINFO info;
-    wxZeroMemory(info);
-
     // on Windows, the toolkit version is the same of the OS version
     // as Windows integrates the OS kernel with the GUI toolkit.
-    info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-    if ( ::GetVersionEx(&info) )
-    {
-        if ( majVer )
-            *majVer = info.dwMajorVersion;
-        if ( minVer )
-            *minVer = info.dwMinorVersion;
-    }
+    wxGetOsVersion(majVer, minVer);
 
-#if defined(__WXHANDHELD__) || defined(__WXWINCE__)
-    return wxPORT_WINCE;
-#else
     return wxPORT_MSW;
-#endif
 }
 
 #if wxUSE_TIMER
@@ -300,8 +264,6 @@ wxEventLoopBase* wxGUIAppTraits::CreateEventLoop()
 // ---------------------------------------------------------------------------
 // Stuff for using console from the GUI applications
 // ---------------------------------------------------------------------------
-
-#ifndef __WXWINCE__
 
 #if wxUSE_DYNLIB_CLASS
 
@@ -415,10 +377,7 @@ bool wxConsoleStderr::DoInit()
     if ( !m_dllKernel32.Load(wxT("kernel32.dll")) )
         return false;
 
-    typedef BOOL (WINAPI *AttachConsole_t)(DWORD dwProcessId);
-    AttachConsole_t wxDL_INIT_FUNC(pfn, AttachConsole, m_dllKernel32);
-
-    if ( !pfnAttachConsole || !pfnAttachConsole(ATTACH_PARENT_PROCESS) )
+    if ( !::AttachConsole(ATTACH_PARENT_PROCESS) )
         return false;
 
     // console attached, set m_hStderr now to ensure that we free it in the
@@ -595,8 +554,6 @@ bool wxGUIAppTraits::WriteToStderr(const wxString& WXUNUSED(text))
 
 #endif // wxUSE_DYNLIB_CLASS/!wxUSE_DYNLIB_CLASS
 
-#endif // !__WXWINCE__
-
 // ===========================================================================
 // wxApp implementation
 // ===========================================================================
@@ -607,13 +564,13 @@ int wxApp::m_nCmdShow = SW_SHOWNORMAL;
 // wxWin macros
 // ---------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxApp, wxEvtHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxApp, wxEvtHandler);
 
-BEGIN_EVENT_TABLE(wxApp, wxEvtHandler)
+wxBEGIN_EVENT_TABLE(wxApp, wxEvtHandler)
     EVT_IDLE(wxApp::OnIdle)
     EVT_END_SESSION(wxApp::OnEndSession)
     EVT_QUERY_END_SESSION(wxApp::OnQueryEndSession)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // class to ensure that wxAppBase::CleanUp() is called if our Initialize()
 // fails
@@ -630,27 +587,19 @@ private:
 };
 
 //// Initialize
-bool wxApp::Initialize(int& argc, wxChar **argv)
+bool wxApp::Initialize(int& argc_, wxChar **argv_)
 {
-    if ( !wxAppBase::Initialize(argc, argv) )
+    if ( !wxAppBase::Initialize(argc_, argv_) )
         return false;
 
     // ensure that base cleanup is done if we return too early
     wxCallBaseCleanup callBaseCleanup(this);
 
-#if !defined(__WXMICROWIN__)
     InitCommonControls();
-#endif // !defined(__WXMICROWIN__)
-
-#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
-    SHInitExtraControls();
-#endif
 
     wxOleInitialize();
 
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
     wxSetKeyboardHook(true);
-#endif
 
     callBaseCleanup.Dismiss();
 
@@ -755,9 +704,7 @@ void wxApp::CleanUp()
     // class method first and only then do our clean up
     wxAppBase::CleanUp();
 
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
     wxSetKeyboardHook(false);
-#endif
 
     wxOleUninitialize();
 
@@ -798,42 +745,20 @@ void wxApp::OnIdle(wxIdleEvent& WXUNUSED(event))
 
 void wxApp::WakeUpIdle()
 {
-    // Send the top window a dummy message so idle handler processing will
-    // start up again.  Doing it this way ensures that the idle handler
-    // wakes up in the right thread (see also wxWakeUpMainThread() which does
-    // the same for the main app thread only)
-    wxWindow * const topWindow = wxTheApp->GetTopWindow();
-    if ( topWindow )
+    wxEventLoopBase * const evtLoop = wxEventLoop::GetActive();
+    if ( !evtLoop )
     {
-        HWND hwndTop = GetHwndOf(topWindow);
-
-        // Do not post WM_NULL if there's already a pending WM_NULL to avoid
-        // overflowing the message queue.
-        //
-        // Notice that due to a limitation of PeekMessage() API (which handles
-        // 0,0 range specially), we have to check the range from 0-1 instead.
-        // This still makes it possible to overflow the queue with WM_NULLs by
-        // interspersing the calles to WakeUpIdle() with windows creation but
-        // it should be rather hard to do it accidentally.
-        MSG msg;
-        if ( !::PeekMessage(&msg, hwndTop, 0, 1, PM_NOREMOVE) ||
-              ::PeekMessage(&msg, hwndTop, 1, 1, PM_NOREMOVE) )
-        {
-            if ( !::PostMessage(hwndTop, WM_NULL, 0, 0) )
-            {
-                // should never happen
-                wxLogLastError(wxT("PostMessage(WM_NULL)"));
-            }
-        }
+        // We can't wake up the event loop if there is none and there is just
+        // no need to do anything in this case, any pending events will be
+        // handled when the event loop starts.
+        return;
     }
-#if wxUSE_THREADS
-    else
-        wxWakeUpMainThread();
-#endif // wxUSE_THREADS
+
+    evtLoop->WakeUp();
 }
 
 // ----------------------------------------------------------------------------
-// other wxApp event hanlders
+// other wxApp event handlers
 // ----------------------------------------------------------------------------
 
 void wxApp::OnEndSession(wxCloseEvent& WXUNUSED(event))
@@ -872,9 +797,6 @@ void wxApp::OnQueryEndSession(wxCloseEvent& event)
 // ----------------------------------------------------------------------------
 // system DLL versions
 // ----------------------------------------------------------------------------
-
-// these functions have trivial inline implementations for CE
-#ifndef __WXWINCE__
 
 #if wxUSE_DYNLIB_CLASS
 
@@ -967,37 +889,6 @@ int wxApp::GetComCtl32Version()
     return s_verComCtl32;
 }
 
-/* static */
-int wxApp::GetShell32Version()
-{
-    static int s_verShell32 = -1;
-    if ( s_verShell32 == -1 )
-    {
-        // we're prepared to handle the errors
-        wxLogNull noLog;
-
-        wxDynamicLibrary dllShell32(wxT("shell32.dll"), wxDL_VERBATIM);
-        if ( dllShell32.IsLoaded() )
-        {
-            s_verShell32 = CallDllGetVersion(dllShell32);
-
-            if ( !s_verShell32 )
-            {
-                // there doesn't seem to be any way to distinguish between 4.00
-                // and 4.70 (starting from 4.71 we have DllGetVersion()) so
-                // just assume it is 4.0
-                s_verShell32 = 400;
-            }
-        }
-        else // failed load the DLL?
-        {
-            s_verShell32 = 0;
-        }
-    }
-
-    return s_verShell32;
-}
-
 #else // !wxUSE_DYNLIB_CLASS
 
 /* static */
@@ -1006,15 +897,7 @@ int wxApp::GetComCtl32Version()
     return 0;
 }
 
-/* static */
-int wxApp::GetShell32Version()
-{
-    return 0;
-}
-
 #endif // wxUSE_DYNLIB_CLASS/!wxUSE_DYNLIB_CLASS
-
-#endif // !__WXWINCE__
 
 #if wxUSE_EXCEPTIONS
 
@@ -1056,3 +939,34 @@ terminate the program,\r\n\
 }
 
 #endif // wxUSE_EXCEPTIONS
+
+// ----------------------------------------------------------------------------
+// Layout direction
+// ----------------------------------------------------------------------------
+
+/* static */
+wxLayoutDirection wxApp::MSWGetDefaultLayout(wxWindow* parent)
+{
+    wxLayoutDirection dir = wxLayout_Default;
+
+    if ( parent )
+        dir = parent->GetLayoutDirection();
+
+    if ( dir == wxLayout_Default )
+    {
+        if ( wxTheApp )
+            dir = wxTheApp->GetLayoutDirection();
+    }
+
+    if ( dir == wxLayout_Default )
+    {
+        DWORD dwLayout;
+        if ( ::GetProcessDefaultLayout(&dwLayout) )
+        {
+            dir = dwLayout == LAYOUT_RTL ? wxLayout_RightToLeft
+                                         : wxLayout_LeftToRight;
+        }
+    }
+
+    return dir;
+}

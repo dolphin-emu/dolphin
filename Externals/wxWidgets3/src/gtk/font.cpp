@@ -113,6 +113,18 @@ void wxFontRefData::Init(int pointSize,
                          const wxString& faceName,
                          wxFontEncoding WXUNUSED(encoding))
 {
+    // Old code could wrongly specify wxDEFAULT instead of -1 or wxNORMAL or,
+    // preferably, wxFONTSTYLE_NORMAL or wxFONTWEIGHT_NORMAL, continue handling
+    // this for compatibility.
+    if ( pointSize == wxDEFAULT )
+        pointSize = -1;
+
+    if ( static_cast<int>(style) == wxDEFAULT )
+        style = wxFONTSTYLE_NORMAL;
+
+    if ( static_cast<int>(weight) == wxDEFAULT )
+        weight = wxFONTWEIGHT_NORMAL;
+
     if (family == wxFONTFAMILY_DEFAULT)
         family = wxFONTFAMILY_SWISS;
 
@@ -130,11 +142,9 @@ void wxFontRefData::Init(int pointSize,
         SetFamily(family);
     }
 
-    SetStyle( style == wxDEFAULT ? wxFONTSTYLE_NORMAL : style );
-    SetPointSize( (pointSize == wxDEFAULT || pointSize == -1)
-                    ? wxDEFAULT_FONT_SIZE
-                    : pointSize );
-    SetWeight( weight == wxDEFAULT ? wxFONTWEIGHT_NORMAL : weight );
+    SetStyle( style );
+    SetPointSize( pointSize == -1 ? wxDEFAULT_FONT_SIZE : pointSize );
+    SetWeight( weight );
     SetUnderlined( underlined );
     SetStrikethrough( strikethrough );
 }
@@ -151,12 +161,9 @@ void wxFontRefData::InitFromNative()
 }
 
 wxFontRefData::wxFontRefData( const wxFontRefData& data )
-             : wxGDIRefData()
+             : wxGDIRefData(),
+               m_nativeFontInfo(data.m_nativeFontInfo)
 {
-    // Forces a copy of the internal data.  wxNativeFontInfo should probably
-    // have a copy ctor and assignment operator to fix this properly but that
-    // would break binary compatibility...
-    m_nativeFontInfo.FromString(data.m_nativeFontInfo.ToString());
 }
 
 wxFontRefData::wxFontRefData(int size, wxFontFamily family, wxFontStyle style,

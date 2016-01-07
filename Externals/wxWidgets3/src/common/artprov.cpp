@@ -124,7 +124,7 @@ wxArtProviderCache::ConstructHashID(const wxArtID& id,
 // wxArtProvider class
 // ============================================================================
 
-IMPLEMENT_ABSTRACT_CLASS(wxArtProvider, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxArtProvider, wxObject);
 
 wxArtProvidersList *wxArtProvider::sm_providers = NULL;
 wxArtProviderCache *wxArtProvider::sm_cache = NULL;
@@ -212,6 +212,29 @@ wxArtProvider::~wxArtProvider()
 // wxArtProvider: retrieving bitmaps/icons
 // ----------------------------------------------------------------------------
 
+void wxArtProvider::RescaleBitmap(wxBitmap& bmp, const wxSize& sizeNeeded)
+{
+    wxCHECK_RET( sizeNeeded.IsFullySpecified(), wxS("New size must be given") );
+
+#if wxUSE_IMAGE
+    wxImage img = bmp.ConvertToImage();
+    img.Rescale(sizeNeeded.x, sizeNeeded.y);
+    bmp = wxBitmap(img);
+#else // !wxUSE_IMAGE
+    // Fallback method of scaling the bitmap
+    wxBitmap newBmp(sizeNeeded);
+    newBmp.UseAlpha(bmp.HasAlpha());
+    {
+        wxMemoryDC dc(newBmp);
+        double scX = (double)sizeNeeded.GetWidth() / bmp.GetWidth();
+        double scY = (double)sizeNeeded.GetHeight() / bmp.GetHeight();
+        dc.SetUserScale(scX, scY);
+        dc.DrawBitmap(bmp, 0, 0);
+    }
+    bmp = newBmp;
+#endif // wxUSE_IMAGE/!wxUSE_IMAGE
+}
+
 /*static*/ wxBitmap wxArtProvider::GetBitmap(const wxArtID& id,
                                              const wxArtClient& client,
                                              const wxSize& size)
@@ -256,17 +279,13 @@ wxArtProvider::~wxArtProvider()
         }
 
         // if we didn't get the correct size, resize the bitmap
-#if wxUSE_IMAGE && (!defined(__WXMSW__) || wxUSE_WXDIB)
         if ( bmp.IsOk() && sizeNeeded != wxDefaultSize )
         {
             if ( bmp.GetSize() != sizeNeeded )
             {
-                wxImage img = bmp.ConvertToImage();
-                img.Rescale(sizeNeeded.x, sizeNeeded.y);
-                bmp = wxBitmap(img);
+                RescaleBitmap(bmp, sizeNeeded);
             }
         }
-#endif // wxUSE_IMAGE
 
         sm_cache->PutBitmap(hashId, bmp);
     }
@@ -338,7 +357,7 @@ wxArtID wxArtProvider::GetMessageBoxIconId(int flags)
     {
         default:
             wxFAIL_MSG(wxT("incorrect message box icon flags"));
-            // fall through
+            wxFALLTHROUGH;
 
         case wxICON_ERROR:
             return wxART_ERROR;
@@ -397,32 +416,6 @@ bool wxArtProvider::HasNativeProvider()
 // deprecated wxArtProvider methods
 // ----------------------------------------------------------------------------
 
-#if WXWIN_COMPATIBILITY_2_6
-
-/* static */ void wxArtProvider::PushProvider(wxArtProvider *provider)
-{
-    Push(provider);
-}
-
-/* static */ void wxArtProvider::InsertProvider(wxArtProvider *provider)
-{
-    PushBack(provider);
-}
-
-/* static */ bool wxArtProvider::PopProvider()
-{
-    return Pop();
-}
-
-/* static */ bool wxArtProvider::RemoveProvider(wxArtProvider *provider)
-{
-    // RemoveProvider() used to delete the provider being removed so this is
-    // not a typo, we must call Delete() and not Remove() here
-    return Delete(provider);
-}
-
-#endif // WXWIN_COMPATIBILITY_2_6
-
 #if WXWIN_COMPATIBILITY_2_8
 /* static */ void wxArtProvider::Insert(wxArtProvider *provider)
 {
@@ -437,7 +430,7 @@ bool wxArtProvider::HasNativeProvider()
 class wxArtProviderModule: public wxModule
 {
 public:
-    bool OnInit()
+    bool OnInit() wxOVERRIDE
     {
         // The order here is such that the native provider will be used first
         // and the standard one last as all these default providers add
@@ -451,12 +444,12 @@ public:
 #endif // wxUSE_ARTPROVIDER_STD
         return true;
     }
-    void OnExit()
+    void OnExit() wxOVERRIDE
     {
         wxArtProvider::CleanUpProviders();
     }
 
-    DECLARE_DYNAMIC_CLASS(wxArtProviderModule)
+    wxDECLARE_DYNAMIC_CLASS(wxArtProviderModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxArtProviderModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxArtProviderModule, wxModule);

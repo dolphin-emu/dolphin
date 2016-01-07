@@ -47,22 +47,22 @@ public:
 
     virtual ~wxButtonToolBar();
 
-    virtual bool Realize();
+    virtual bool Realize() wxOVERRIDE;
 
-    virtual void SetToolShortHelp(int id, const wxString& helpString);
-    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const;
+    virtual void SetToolShortHelp(int id, const wxString& helpString) wxOVERRIDE;
+    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const wxOVERRIDE;
 
 protected:
     // common part of all ctors
     void Init();
 
     // implement base class pure virtuals
-    virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool);
-    virtual bool DoDeleteTool(size_t pos, wxToolBarToolBase *tool);
+    virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool) wxOVERRIDE;
+    virtual bool DoDeleteTool(size_t pos, wxToolBarToolBase *tool) wxOVERRIDE;
 
-    virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable);
-    virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle);
-    virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle);
+    virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable) wxOVERRIDE;
+    virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle) wxOVERRIDE;
+    virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle) wxOVERRIDE;
 
     virtual wxToolBarToolBase *CreateTool(int id,
                                           const wxString& label,
@@ -71,11 +71,11 @@ protected:
                                           wxItemKind kind,
                                           wxObject *clientData,
                                           const wxString& shortHelp,
-                                          const wxString& longHelp);
+                                          const wxString& longHelp) wxOVERRIDE;
     virtual wxToolBarToolBase *CreateTool(wxControl *control,
-                                          const wxString& label);
+                                          const wxString& label) wxOVERRIDE;
 
-    virtual wxSize DoGetBestClientSize() const;
+    virtual wxSize DoGetBestClientSize() const wxOVERRIDE;
 
     // calculate layout
     void DoLayout();
@@ -114,8 +114,8 @@ private:
     int m_labelMargin;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxButtonToolBar)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxButtonToolBar);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif

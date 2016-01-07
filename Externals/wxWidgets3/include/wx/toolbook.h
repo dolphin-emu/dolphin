@@ -70,21 +70,21 @@ public:
 
 
     // implement base class virtuals
-    virtual bool SetPageText(size_t n, const wxString& strText);
-    virtual wxString GetPageText(size_t n) const;
-    virtual int GetPageImage(size_t n) const;
-    virtual bool SetPageImage(size_t n, int imageId);
+    virtual bool SetPageText(size_t n, const wxString& strText) wxOVERRIDE;
+    virtual wxString GetPageText(size_t n) const wxOVERRIDE;
+    virtual int GetPageImage(size_t n) const wxOVERRIDE;
+    virtual bool SetPageImage(size_t n, int imageId) wxOVERRIDE;
     virtual bool InsertPage(size_t n,
                             wxWindow *page,
                             const wxString& text,
                             bool bSelect = false,
-                            int imageId = NO_IMAGE);
-    virtual int SetSelection(size_t n) { return DoSetSelection(n, SetSelection_SendEvent); }
-    virtual int ChangeSelection(size_t n) { return DoSetSelection(n); }
-    virtual void SetImageList(wxImageList *imageList);
+                            int imageId = NO_IMAGE) wxOVERRIDE;
+    virtual int SetSelection(size_t n) wxOVERRIDE { return DoSetSelection(n, SetSelection_SendEvent); }
+    virtual int ChangeSelection(size_t n) wxOVERRIDE { return DoSetSelection(n); }
+    virtual void SetImageList(wxImageList *imageList) wxOVERRIDE;
 
-    virtual bool DeleteAllPages();
-    virtual int HitTest(const wxPoint& pt, long *flags = NULL) const;
+    virtual bool DeleteAllPages() wxOVERRIDE;
+    virtual int HitTest(const wxPoint& pt, long *flags = NULL) const wxOVERRIDE;
 
 
     // methods which are not part of base wxBookctrl API
@@ -97,17 +97,17 @@ public:
     void Realize();
 
 protected:
-    virtual wxWindow *DoRemovePage(size_t page);
+    virtual wxWindow *DoRemovePage(size_t page) wxOVERRIDE;
 
     // event handlers
     void OnToolSelected(wxCommandEvent& event);
     void OnSize(wxSizeEvent& event);
     void OnIdle(wxIdleEvent& event);
 
-    void UpdateSelectedPage(size_t newsel);
+    void UpdateSelectedPage(size_t newsel) wxOVERRIDE;
 
-    wxBookCtrlEvent* CreatePageChangingEvent() const;
-    void MakeChangedEvent(wxBookCtrlEvent &event);
+    wxBookCtrlEvent* CreatePageChangingEvent() const wxOVERRIDE;
+    void MakeChangedEvent(wxBookCtrlEvent &event) wxOVERRIDE;
 
     // whether the toolbar needs to be realized
     bool m_needsRealizing;
@@ -119,8 +119,8 @@ private:
     // common part of all constructors
     void Init();
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxToolbook)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxToolbook);
 };
 
 // ----------------------------------------------------------------------------

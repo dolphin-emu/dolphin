@@ -168,10 +168,10 @@ bool wxCheckListBoxItem::OnDrawItem(wxDC& dc, const wxRect& rc,
 
 // define event table
 // ------------------
-BEGIN_EVENT_TABLE(wxCheckListBox, wxListBox)
+wxBEGIN_EVENT_TABLE(wxCheckListBox, wxListBox)
   EVT_KEY_DOWN(wxCheckListBox::OnKeyDown)
   EVT_LEFT_DOWN(wxCheckListBox::OnLeftClick)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // control creation
 // ----------------

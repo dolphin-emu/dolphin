@@ -15,11 +15,8 @@
 
 #include "wx/osx/private.h"
 #include "wx/graphics.h"
-#if wxOSX_USE_COCOA_OR_CARBON
-#include "wx/osx/private/glgrab.h"
-#endif
 
-IMPLEMENT_ABSTRACT_CLASS(wxScreenDCImpl, wxWindowDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxScreenDCImpl, wxWindowDCImpl);
 
 // TODO : for the Screenshot use case, which doesn't work in Quartz
 // we should do a GetAsBitmap using something like
@@ -90,16 +87,7 @@ wxBitmap wxScreenDCImpl::DoGetAsBitmap(const wxRect *subrect) const
 
     CGImageRef image = NULL;
     
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-    if ( UMAGetSystemVersion() >= 0x1060)
-    {
-        image = CGDisplayCreateImage(kCGDirectMainDisplay);
-    }
-    else
-#endif
-    {
-        image = grabViaOpenGL(kCGNullDirectDisplay, srcRect);
-    }
+    image = CGDisplayCreateImage(kCGDirectMainDisplay);
 
     wxASSERT_MSG(image, wxT("wxScreenDC::GetAsBitmap - unable to get screenshot."));
 

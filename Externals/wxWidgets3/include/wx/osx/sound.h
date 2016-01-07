@@ -27,19 +27,25 @@ public :
     virtual bool Play(unsigned int flags) = 0;
     // stops the sound and deletes the optional timer
     virtual void Stop();
-    // can be called by a timer for repeated tasks during playback
-    virtual void SoundTask();
     // mark this to be deleted
     virtual void MarkForDeletion();
     virtual bool IsMarkedForDeletion() const { return m_markedForDeletion; }
 
     // does the true work of stopping and cleaning up
     virtual void DoStop() = 0;
+
+#if wxOSX_USE_CARBON
+    // can be called by a timer for repeated tasks during playback
+    virtual void SoundTask();
+
 protected :
     void CreateAndStartTimer();
 
-    unsigned int m_flags;
     wxSoundTimer* m_pTimer;
+#endif // wxOSX_USE_CARBON
+
+protected:
+    unsigned int m_flags;
     bool m_markedForDeletion;
 } ;
 

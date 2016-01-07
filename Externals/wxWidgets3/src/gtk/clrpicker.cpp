@@ -55,7 +55,7 @@ static void gtk_clrbutton_setcolor_callback(GtkColorButton *widget,
 // wxColourButton
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxColourButton, wxButton)
+wxIMPLEMENT_DYNAMIC_CLASS(wxColourButton, wxButton);
 
 bool wxColourButton::Create( wxWindow *parent, wxWindowID id,
                         const wxColour &col,

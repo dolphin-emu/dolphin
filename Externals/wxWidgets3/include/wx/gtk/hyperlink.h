@@ -19,6 +19,7 @@
 
 class WXDLLIMPEXP_ADV wxHyperlinkCtrl : public wxGenericHyperlinkCtrl
 {
+    typedef wxGenericHyperlinkCtrl base_type;
 public:
     // Default constructor (for two-step construction).
     wxHyperlinkCtrl() { }
@@ -35,6 +36,8 @@ public:
         (void)Create(parent, id, label, url, pos, size, style, name);
     }
 
+    ~wxHyperlinkCtrl();
+
     // Creation function (for two-step construction).
     bool Create(wxWindow *parent,
                 wxWindowID id,
@@ -46,27 +49,30 @@ public:
 
 
     // get/set
-    virtual wxColour GetHoverColour() const;
-    virtual void SetHoverColour(const wxColour &colour);
+    virtual wxColour GetHoverColour() const wxOVERRIDE;
+    virtual void SetHoverColour(const wxColour &colour) wxOVERRIDE;
 
-    virtual wxColour GetNormalColour() const;
-    virtual void SetNormalColour(const wxColour &colour);
+    virtual wxColour GetNormalColour() const wxOVERRIDE;
+    virtual void SetNormalColour(const wxColour &colour) wxOVERRIDE;
 
-    virtual wxColour GetVisitedColour() const;
-    virtual void SetVisitedColour(const wxColour &colour);
+    virtual wxColour GetVisitedColour() const wxOVERRIDE;
+    virtual void SetVisitedColour(const wxColour &colour) wxOVERRIDE;
 
-    virtual wxString GetURL() const;
-    virtual void SetURL(const wxString &url);
+    virtual wxString GetURL() const wxOVERRIDE;
+    virtual void SetURL(const wxString &url) wxOVERRIDE;
 
-    virtual void SetLabel(const wxString &label);
+    virtual void SetVisited(bool visited = true) wxOVERRIDE;
+    virtual bool GetVisited() const wxOVERRIDE;
+
+    virtual void SetLabel(const wxString &label) wxOVERRIDE;
 
 protected:
-    virtual wxSize DoGetBestSize() const;
-    virtual wxSize DoGetBestClientSize() const;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
+    virtual wxSize DoGetBestClientSize() const wxOVERRIDE;
 
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const wxOVERRIDE;
 
-    DECLARE_DYNAMIC_CLASS(wxHyperlinkCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxHyperlinkCtrl);
 };
 
 #endif // _WX_GTKHYPERLINKCTRL_H_

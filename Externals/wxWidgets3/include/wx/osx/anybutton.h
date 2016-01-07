@@ -52,7 +52,7 @@ protected:
     wxBitmap m_bitmaps[State_Max];
 
     wxDECLARE_NO_COPY_CLASS(wxAnyButton);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_OSX_ANYBUTTON_H_

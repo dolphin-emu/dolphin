@@ -133,8 +133,8 @@ protected:
   // the icon indices
   wxArrayInt m_images;
 
-  DECLARE_DYNAMIC_CLASS(wxNotebook)
-  DECLARE_EVENT_TABLE()
+  wxDECLARE_DYNAMIC_CLASS(wxNotebook);
+  wxDECLARE_EVENT_TABLE();
 };
 
 

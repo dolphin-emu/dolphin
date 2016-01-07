@@ -29,7 +29,7 @@ wxDEFINE_EVENT( wxEVT_FILECTRL_FILEACTIVATED, wxFileCtrlEvent );
 wxDEFINE_EVENT( wxEVT_FILECTRL_FOLDERCHANGED, wxFileCtrlEvent );
 wxDEFINE_EVENT( wxEVT_FILECTRL_FILTERCHANGED, wxFileCtrlEvent );
 
-IMPLEMENT_DYNAMIC_CLASS( wxFileCtrlEvent, wxCommandEvent )
+wxIMPLEMENT_DYNAMIC_CLASS( wxFileCtrlEvent, wxCommandEvent );
 
 // some helper functions
 
@@ -63,7 +63,7 @@ void GenerateSelectionChangedEvent( wxFileCtrlBase *fileCtrl, wxWindow *wnd)
     wnd->GetEventHandler()->ProcessEvent( event );
 }
 
-void GenerateFileActivatedEvent( wxFileCtrlBase *fileCtrl, wxWindow *wnd, const wxString filename )
+void GenerateFileActivatedEvent( wxFileCtrlBase *fileCtrl, wxWindow *wnd, const wxString& filename )
 {
     wxFileCtrlEvent event( wxEVT_FILECTRL_FILEACTIVATED, wnd, wnd->GetId() );
     event.SetDirectory( fileCtrl->GetDirectory() );

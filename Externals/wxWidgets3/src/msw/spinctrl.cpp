@@ -47,11 +47,11 @@
 // macros
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxSpinCtrl, wxSpinButton)
+wxBEGIN_EVENT_TABLE(wxSpinCtrl, wxSpinButton)
     EVT_CHAR(wxSpinCtrl::OnChar)
     EVT_SET_FOCUS(wxSpinCtrl::OnSetFocus)
     EVT_KILL_FOCUS(wxSpinCtrl::OnKillFocus)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 #define GetBuddyHwnd()      (HWND)(m_hwndBuddy)
 
@@ -90,10 +90,8 @@ SpinForTextCtrl gs_spinForTextCtrl;
 // wnd proc for the buddy text ctrl
 // ----------------------------------------------------------------------------
 
-LRESULT APIENTRY _EXPORT wxBuddyTextWndProc(HWND hwnd,
-                                            UINT message,
-                                            WPARAM wParam,
-                                            LPARAM lParam)
+LRESULT APIENTRY
+wxBuddyTextWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     wxSpinCtrl * const spin = wxSpinCtrl::GetSpinForTextCtrl(hwnd);
 
@@ -196,12 +194,12 @@ void wxSpinCtrl::OnChar(wxKeyEvent& event)
     {
         case WXK_RETURN:
             {
-                wxCommandEvent event(wxEVT_TEXT_ENTER, m_windowId);
-                InitCommandEvent(event);
+                wxCommandEvent evt(wxEVT_TEXT_ENTER, m_windowId);
+                InitCommandEvent(evt);
                 wxString val = wxGetWindowText(m_hwndBuddy);
-                event.SetString(val);
-                event.SetInt(GetValue());
-                if ( HandleWindowEvent(event) )
+                evt.SetString(val);
+                evt.SetInt(GetValue());
+                if ( HandleWindowEvent(evt) )
                     return;
                 break;
             }
@@ -286,11 +284,7 @@ bool wxSpinCtrl::Create(wxWindow *parent,
     style |= wxSP_VERTICAL;
 
     if ( (style & wxBORDER_MASK) == wxBORDER_DEFAULT )
-#ifdef __WXWINCE__
-        style |= wxBORDER_SIMPLE;
-#else
         style |= wxBORDER_SUNKEN;
-#endif
 
     SetWindowStyle(style);
 
@@ -521,6 +515,18 @@ void wxSpinCtrl::SetSelection(long from, long to)
     ::SendMessage(GetBuddyHwnd(), EM_SETSEL, (WPARAM)from, (LPARAM)to);
 }
 
+void wxSpinCtrl::SetLayoutDirection(wxLayoutDirection dir)
+{
+    // Buddy text field is plain EDIT control so we need to set its layout
+    // direction in a specific way.
+    wxUpdateEditLayoutDirection(GetBuddyHwnd(), dir);
+
+    wxSpinButton::SetLayoutDirection(dir);
+
+    // Reposition the child windows according to the new layout.
+    SetSize(-1, -1, -1, -1, wxSIZE_AUTO | wxSIZE_FORCE);
+}
+
 // ----------------------------------------------------------------------------
 // wxSpinButton methods
 // ----------------------------------------------------------------------------
@@ -530,10 +536,20 @@ void wxSpinCtrl::SetRange(int minVal, int maxVal)
     // Manually adjust the old value to avoid an event being sent from
     // NormalizeValue() called from inside the base class SetRange() as we're
     // not supposed to generate any events from here.
-    if ( m_oldValue < minVal )
-        m_oldValue = minVal;
-    else if ( m_oldValue > maxVal )
-        m_oldValue = maxVal;
+    if ( minVal <= maxVal )
+    {
+        if ( m_oldValue < minVal )
+            m_oldValue = minVal;
+        else if ( m_oldValue > maxVal )
+            m_oldValue = maxVal;
+    }
+    else // reversed range
+    {
+        if ( m_oldValue > minVal )
+            m_oldValue = minVal;
+        else if ( m_oldValue < maxVal )
+            m_oldValue = maxVal;
+    }
 
     wxSpinButton::SetRange(minVal, maxVal);
 
@@ -670,7 +686,7 @@ void wxSpinCtrl::DoSetToolTip(wxToolTip *tip)
 
 void wxSpinCtrl::SendSpinUpdate(int value)
 {
-    wxCommandEvent event(wxEVT_SPINCTRL, GetId());
+    wxSpinEvent event(wxEVT_SPINCTRL, GetId());
     event.SetEventObject(this);
     event.SetInt(value);
 
@@ -759,13 +775,30 @@ void wxSpinCtrl::DoMoveWindow(int x, int y, int width, int height)
         widthText = 0;
     }
 
-    // 1) The buddy window
-    DoMoveSibling(m_hwndBuddy, x, y, widthText, height);
+    // Because both subcontrols are positioned relatively
+    // to the parent which can have different layout direction
+    // then our control, we need to mirror their positions manually.
+    if ( GetParent()->GetLayoutDirection() == GetLayoutDirection() )
+    {
+        // Logical positions: x(Text) < x(Button)
+        // 1) The buddy window
+        DoMoveSibling(m_hwndBuddy, x, y, widthText, height);
 
-    // 2) The button window
-    if ( widthText > 0 )
-        x += widthText + MARGIN_BETWEEN;
-    wxSpinButton::DoMoveWindow(x, y, widthBtn, height);
+        // 2) The button window
+        if ( widthText > 0 )
+            x += widthText + MARGIN_BETWEEN;
+        wxSpinButton::DoMoveWindow(x, y, widthBtn, height);
+    }
+    else
+    {
+        // Logical positions: x(Button) < x(Text)
+        // 1) The button window
+        wxSpinButton::DoMoveWindow(x, y, widthBtn, height);
+
+        // 2) The buddy window
+        x += widthBtn + MARGIN_BETWEEN;
+        DoMoveSibling(m_hwndBuddy, x, y, widthText, height);
+    }
 }
 
 // get total size of the control
@@ -797,13 +830,27 @@ void wxSpinCtrl::DoGetClientSize(int *x, int *y) const
 
 void wxSpinCtrl::DoGetPosition(int *x, int *y) const
 {
+    // Because both subcontrols are mirrored manually
+    // (for layout direction purposes, see note)
+    // and leftmost control can be either spin or buddy text
+    // we need to get positions for both controls
+    // and return this with lower horizonal value.
+    // Note:
+    // Logical positions in manual mirroring:
+    // our layout == parent layout  =>  x(Text) < x(Button)
+    // our layout != parent layout  =>  x(Button) < x(Text)
+
     // hack: pretend that our HWND is the text control just for a moment
+    int xBuddy;
     WXHWND hWnd = GetHWND();
     wxConstCast(this, wxSpinCtrl)->m_hWnd = m_hwndBuddy;
+    wxSpinButton::DoGetPosition(&xBuddy, y);
 
-    wxSpinButton::DoGetPosition(x, y);
-
+    int xText;
     wxConstCast(this, wxSpinCtrl)->m_hWnd = hWnd;
+    wxSpinButton::DoGetPosition(&xText, y);
+
+    *x = wxMin(xBuddy, xText);
 }
 
 #endif // wxUSE_SPINCTRL

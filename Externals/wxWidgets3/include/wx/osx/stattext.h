@@ -50,7 +50,7 @@ protected :
     virtual bool DoSetLabelMarkup(const wxString& markup);
 #endif // wxUSE_MARKUP && wxOSX_USE_COCOA
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxStaticText)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxStaticText);
 };
 
 #endif

@@ -63,14 +63,14 @@ public:
     {
     }
 
-    virtual void Init()
+    virtual void Init() wxOVERRIDE
     {
     }
 
     // NB: Don't create lazily since it didn't work that way before
     //     wxComboCtrl was used, and changing behaviour would almost
     //     certainly introduce new bugs.
-    virtual bool Create(wxWindow* parent)
+    virtual bool Create(wxWindow* parent) wxOVERRIDE
     {
         if ( !wxCalendarCtrl::Create(parent, wxID_ANY, wxDefaultDateTime,
                               wxPoint(0, 0), wxDefaultSize,
@@ -95,12 +95,12 @@ public:
 
     virtual wxSize GetAdjustedSize(int WXUNUSED(minWidth),
                                    int WXUNUSED(prefHeight),
-                                   int WXUNUSED(maxHeight))
+                                   int WXUNUSED(maxHeight)) wxOVERRIDE
     {
         return m_useSize;
     }
 
-    virtual wxWindow *GetControl() { return this; }
+    virtual wxWindow *GetControl() wxOVERRIDE { return this; }
 
     void SetDateValue(const wxDateTime& date)
     {
@@ -251,7 +251,7 @@ private:
         return true;
     }
 
-    virtual void SetStringValue(const wxString& s)
+    virtual void SetStringValue(const wxString& s) wxOVERRIDE
     {
         wxDateTime dt;
         if ( !s.empty() && ParseDateTime(s, &dt) )
@@ -259,7 +259,7 @@ private:
         //else: keep the old value
     }
 
-    virtual wxString GetStringValue() const
+    virtual wxString GetStringValue() const wxOVERRIDE
     {
         return GetStringValueFor(GetDate());
     }
@@ -279,30 +279,30 @@ private:
     wxSize          m_useSize;
     wxString        m_format;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 
-BEGIN_EVENT_TABLE(wxCalendarComboPopup, wxCalendarCtrl)
+wxBEGIN_EVENT_TABLE(wxCalendarComboPopup, wxCalendarCtrl)
     EVT_KEY_DOWN(wxCalendarComboPopup::OnCalKey)
     EVT_CALENDAR_SEL_CHANGED(wxID_ANY, wxCalendarComboPopup::OnSelChange)
     EVT_CALENDAR_PAGE_CHANGED(wxID_ANY, wxCalendarComboPopup::OnSelChange)
     EVT_CALENDAR(wxID_ANY, wxCalendarComboPopup::OnSelChange)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 // ============================================================================
 // wxDatePickerCtrlGeneric implementation
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxDatePickerCtrlGeneric, wxDatePickerCtrlBase)
+wxBEGIN_EVENT_TABLE(wxDatePickerCtrlGeneric, wxDatePickerCtrlBase)
     EVT_TEXT(wxID_ANY, wxDatePickerCtrlGeneric::OnText)
     EVT_SIZE(wxDatePickerCtrlGeneric::OnSize)
     EVT_SET_FOCUS(wxDatePickerCtrlGeneric::OnFocus)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 #ifndef wxHAS_NATIVE_DATEPICKCTRL
-    IMPLEMENT_DYNAMIC_CLASS(wxDatePickerCtrl, wxControl)
+    wxIMPLEMENT_DYNAMIC_CLASS(wxDatePickerCtrl, wxControl);
 #endif
 
 // ----------------------------------------------------------------------------
@@ -409,7 +409,21 @@ bool
 wxDatePickerCtrlGeneric::SetDateRange(const wxDateTime& lowerdate,
                                       const wxDateTime& upperdate)
 {
-    return m_popup->SetDateRange(lowerdate, upperdate);
+    if ( !m_popup->SetDateRange(lowerdate, upperdate) )
+        return false;
+
+    // If the limits were, check that our current value lies between them and
+    // adjust it if it doesn't.
+    const wxDateTime old = GetValue();
+    if ( old.IsValid() )
+    {
+        if ( lowerdate.IsValid() && old < lowerdate )
+            SetValue(lowerdate);
+        else if ( upperdate.IsValid() && old > upperdate )
+            SetValue(upperdate);
+    }
+
+    return true;
 }
 
 
@@ -436,7 +450,7 @@ bool wxDatePickerCtrlGeneric::GetRange(wxDateTime *dt1, wxDateTime *dt2) const
 void
 wxDatePickerCtrlGeneric::SetRange(const wxDateTime &dt1, const wxDateTime &dt2)
 {
-    m_popup->SetDateRange(dt1, dt2);
+    SetDateRange(dt1, dt2);
 }
 
 wxCalendarCtrl *wxDatePickerCtrlGeneric::GetCalendar() const

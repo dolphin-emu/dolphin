@@ -35,10 +35,7 @@ public:
     virtual WXHWND MSWGetParent() const;
 
 protected:
-    // popups handle the position like wxTopLevelWindow, not wxWindow
-    virtual void DoGetPosition(int *x, int *y) const;
-
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxPopupWindow)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxPopupWindow);
 };
 
 #endif // _WX_MSW_POPUPWIN_H_

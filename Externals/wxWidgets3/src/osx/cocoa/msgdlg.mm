@@ -24,23 +24,28 @@
 #include "wx/osx/private.h"
 
 
-IMPLEMENT_CLASS(wxMessageDialog, wxDialog)
+wxIMPLEMENT_CLASS(wxMessageDialog, wxDialog);
 
 
 namespace 
 {
     NSAlertStyle GetAlertStyleFromWXStyle( long style )
     {
-        NSAlertStyle alertType = NSWarningAlertStyle;
-        if (style & wxICON_EXCLAMATION)
-            alertType = NSCriticalAlertStyle;
-        else if (style & wxICON_HAND)
-            alertType = NSWarningAlertStyle;
-        else if (style & wxICON_INFORMATION)
-            alertType = NSInformationalAlertStyle;
-        else if (style & wxICON_QUESTION)
-            alertType = NSInformationalAlertStyle;
-        return alertType;
+        if (style & wxICON_WARNING)
+        {
+            // NSCriticalAlertStyle should only be used for questions where
+            // caution is needed per the OS X HIG. wxICON_WARNING alone doesn't
+            // warrant it, but a question with a warning (rather than question)
+            // icon is something serious.
+            if (style & (wxYES_NO | wxCANCEL))
+                return NSCriticalAlertStyle;
+            else
+                return NSWarningAlertStyle;
+        }
+        else if (style & wxICON_ERROR)
+            return NSWarningAlertStyle;
+        else
+            return NSInformationalAlertStyle;
     }
 }
 

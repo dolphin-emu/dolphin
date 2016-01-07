@@ -74,7 +74,7 @@ protected:
     wxColour    m_mediumShadow;     // Usually dark grey
     wxColour    m_darkShadow;       // Usually black
 
-    DECLARE_CLASS(wxEffectsImpl)
+    wxDECLARE_CLASS(wxEffectsImpl);
 };
 
 // current versions of g++ don't generate deprecation warnings for classes

@@ -46,6 +46,11 @@ public:
     // remove a button previously added by AddButton()
     virtual void RemoveButton(wxWindowID btnid) = 0;
 
+    // get information about the currently shown buttons
+    virtual size_t GetButtonCount() const = 0;
+    virtual wxWindowID GetButtonId(size_t idx) const = 0;
+    virtual bool HasButtonId(wxWindowID btnid) const = 0;
+
 private:
     wxDECLARE_NO_COPY_CLASS(wxInfoBarBase);
 };

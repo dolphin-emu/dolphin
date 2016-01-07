@@ -18,7 +18,7 @@ class wxStaticBox;
 
 class WXDLLIMPEXP_CORE wxStaticLine : public wxStaticLineBase
 {
-    DECLARE_DYNAMIC_CLASS(wxStaticLine)
+    wxDECLARE_DYNAMIC_CLASS(wxStaticLine);
 
 public:
     // constructors and pseudo-constructors

@@ -174,13 +174,13 @@ public:
     wxTimer& GetTimer() const { return *m_timer; }
 
     // implement the base class pure virtual
-    virtual wxEvent *Clone() const { return new wxTimerEvent(*this); }
-    virtual wxEventCategory GetEventCategory() const { return wxEVT_CATEGORY_TIMER; }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxTimerEvent(*this); }
+    virtual wxEventCategory GetEventCategory() const wxOVERRIDE { return wxEVT_CATEGORY_TIMER; }
 
 private:
     wxTimer* m_timer;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxTimerEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxTimerEvent);
 };
 
 typedef void (wxEvtHandler::*wxTimerEventFunction)(wxTimerEvent&);

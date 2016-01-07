@@ -70,8 +70,8 @@ public:
 #define M_REGIONDATA static_cast<wxRegionRefData*>(m_refData)
 #define M_REGIONDATA_OF(r) static_cast<wxRegionRefData*>(r.m_refData)
 
-IMPLEMENT_DYNAMIC_CLASS(wxRegion, wxGDIObject)
-IMPLEMENT_DYNAMIC_CLASS(wxRegionIterator,wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxRegion, wxGDIObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxRegionIterator, wxObject);
 
 // ----------------------------------------------------------------------------
 // wxRegion construction

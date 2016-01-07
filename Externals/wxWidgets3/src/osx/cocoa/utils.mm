@@ -11,6 +11,7 @@
 #include "wx/wxprec.h"
 
 #include "wx/utils.h"
+#include "wx/platinfo.h"
 
 #ifndef WX_PRECOMP
     #include "wx/intl.h"
@@ -60,7 +61,10 @@ void wxBell()
     
     [appleEventManager setEventHandler:self andSelector:@selector(handleOpenAppEvent:withReplyEvent:)
                          forEventClass:kCoreEventClass andEventID:kAEOpenApplication];
-    
+
+    [appleEventManager setEventHandler:self andSelector:@selector(handleQuitAppEvent:withReplyEvent:)
+                         forEventClass:kCoreEventClass andEventID:kAEQuitApplication];
+
     wxTheApp->OSXOnWillFinishLaunching();
 }
 
@@ -109,7 +113,16 @@ void wxBell()
 {
     wxUnusedVar(flag);
     wxUnusedVar(sender);
-    wxTheApp->MacReopenApp() ;
+    if ( wxTheApp->OSXInitWasCalled() )
+        wxTheApp->MacReopenApp();
+    // else: It's possible that this function was called as the first thing.
+    //       This can happen when OS X restores running apps when starting a new
+    //       user session. Apps that were hidden (dock only) when the previous
+    //       session terminated are only restored in a limited, resources-saving
+    //       way. When the user clicks the icon, applicationShouldHandleReopen:
+    //       is called, but we didn't call OnInit() yet. In this case, we
+    //       shouldn't call MacReopenApp(), but should proceed with normal
+    //       initialization.
     return NO;
 }
 
@@ -123,6 +136,16 @@ void wxBell()
         wxTheApp->MacOpenURL(cf.AsString()) ;
     else
         wxTheApp->OSXStoreOpenURL(cf.AsString());
+}
+
+- (void)handleQuitAppEvent:(NSAppleEventDescriptor *)event
+            withReplyEvent:(NSAppleEventDescriptor *)replyEvent
+{
+    if ( wxTheApp->OSXOnShouldTerminate() )
+    {
+        wxTheApp->OSXOnWillTerminate();
+        wxTheApp->ExitMainLoop();
+    }
 }
 
 - (void)handleOpenAppEvent:(NSAppleEventDescriptor *)event
@@ -324,14 +347,12 @@ void wxBell()
     ProcessSerialNumber psn = { 0, kCurrentProcess };
     TransformProcessType(&psn, kProcessTransformToForegroundApplication);
     
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-    if ( UMAGetSystemVersion() >= 0x1090 )
+    if ( wxPlatformInfo::Get().CheckOSVersion(10, 9) )
     {
         [[NSRunningApplication currentApplication] activateWithOptions:
          (NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
     }
     else
-#endif
     {
         [self deactivate];
         [self activateIgnoringOtherApps:YES];
@@ -391,7 +412,7 @@ bool wxApp::DoInitGui()
         }
 
         appcontroller = OSXCreateAppController();
-        [NSApp setDelegate:appcontroller];
+        [[NSApplication sharedApplication] setDelegate:(id <NSApplicationDelegate>)appcontroller];
         [NSColor setIgnoresAlpha:NO];
 
         // calling finishLaunching so early before running the loop seems to trigger some 'MenuManager compatibility' which leads
@@ -480,8 +501,6 @@ void wxGetMousePosition( int* x, int* y )
         *y = pt.y;
 };
 
-#if wxOSX_USE_COCOA && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
-
 wxMouseState wxGetMouseState()
 {
     wxMouseState ms;
@@ -504,9 +523,6 @@ wxMouseState wxGetMouseState()
     
     return ms;
 }
-
-
-#endif
 
 wxTimerImpl* wxGUIAppTraits::CreateTimerImpl(wxTimer *timer)
 {
@@ -572,12 +588,7 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
     if (!m_window)
         return wxNullBitmap;
 
-    wxSize sz = m_window->GetSize();
-
-    int width = subrect != NULL ? subrect->width : sz.x;
-    int height = subrect !=  NULL ? subrect->height : sz.y ;
-
-    wxBitmap bitmap(width, height);
+    wxBitmap bitmap(subrect ? subrect->GetSize() : m_window->GetSize());
 
     NSView* view = (NSView*) m_window->GetHandle();
     if ( [view isHiddenOrHasHiddenAncestor] == NO )
@@ -606,5 +617,108 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
 }
 
 #endif // wxUSE_GUI
+
+// our OS version is the same in non GUI and GUI cases
+wxOperatingSystemId wxGetOsVersion(int *majorVsn, int *minorVsn)
+{
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_10
+    if ([NSProcessInfo instancesRespondToSelector:@selector(operatingSystemVersion)])
+    {
+        NSOperatingSystemVersion osVer = [NSProcessInfo processInfo].operatingSystemVersion;
+
+        if ( majorVsn != NULL )
+            *majorVsn = osVer.majorVersion;
+
+        if ( minorVsn != NULL )
+            *minorVsn = osVer.minorVersion;
+    }
+    else
+#endif
+    {
+        // On OS X versions prior to 10.10 NSProcessInfo does not provide the OS version
+        // Deprecated Gestalt calls are required instead
+wxGCC_WARNING_SUPPRESS(deprecated-declarations)
+        SInt32 maj, min;
+        Gestalt(gestaltSystemVersionMajor, &maj);
+        Gestalt(gestaltSystemVersionMinor, &min);
+wxGCC_WARNING_RESTORE()
+
+        if ( majorVsn != NULL )
+            *majorVsn = maj;
+
+        if ( minorVsn != NULL )
+            *minorVsn = min;
+    }
+
+    return wxOS_MAC_OSX_DARWIN;
+}
+
+bool wxCheckOsVersion(int majorVsn, int minorVsn)
+{
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_10
+    if ([NSProcessInfo instancesRespondToSelector:@selector(isOperatingSystemAtLeastVersion:)])
+    {
+        NSOperatingSystemVersion osVer;
+        osVer.majorVersion = majorVsn;
+        osVer.minorVersion = minorVsn;
+        osVer.patchVersion = 0;
+
+        return [[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:osVer] != NO;
+    }
+    else
+#endif
+    {
+        int majorCur, minorCur;
+        wxGetOsVersion(&majorCur, &minorCur);
+
+        return majorCur > majorVsn || (majorCur == majorVsn && minorCur >= minorVsn);
+    }
+}
+
+wxString wxGetOsDescription()
+{
+
+    int majorVer, minorVer;
+    wxGetOsVersion(&majorVer, &minorVer);
+
+    // Notice that neither the OS name itself nor the code names seem to be
+    // ever translated, OS X itself uses the English words even for the
+    // languages not using Roman alphabet.
+    wxString osBrand = "OS X";
+    wxString osName;
+    if (majorVer == 10)
+    {
+        switch (minorVer)
+        {
+            case 7:
+                osName = "Lion";
+                // 10.7 was the last version where the "Mac" prefix was used
+                osBrand = "Mac OS X";
+                break;
+            case 8:
+                osName = "Mountain Lion";
+                break;
+            case 9:
+                osName = "Mavericks";
+                break;
+            case 10:
+                osName = "Yosemite";
+                break;
+            case 11:
+                osName = "El Capitan";
+                break;
+        };
+    }
+
+    wxString osDesc = osBrand;
+    if (!osName.empty())
+        osDesc += " " + osName;
+
+    NSString* osVersionString = [NSProcessInfo processInfo].operatingSystemVersionString;
+    if (osVersionString)
+        osDesc += " " + wxCFStringRef::AsString(osVersionString);
+
+    return osDesc;
+}
 
 #endif // wxOSX_USE_COCOA

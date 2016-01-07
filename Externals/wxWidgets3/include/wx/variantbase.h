@@ -215,7 +215,7 @@ public:
     }
 
     // get a ref to the stored data
-    template<typename T> T& Get(wxTEMPLATED_MEMBER_FIX(T))
+    template<typename T> T& Get()
     {
         wxVariantDataT<T> *dataptr = 
             wx_dynamic_cast(wxVariantDataT<T>*, m_data);
@@ -225,7 +225,7 @@ public:
     }
 
     // get a const ref to the stored data
-    template<typename T> const T& Get(wxTEMPLATED_MEMBER_FIX(T)) const
+    template<typename T> const T& Get() const
     {
         const wxVariantDataT<T> *dataptr = 
             wx_dynamic_cast(const wxVariantDataT<T>*, m_data);
@@ -234,7 +234,7 @@ public:
         return dataptr->Get();
     }
 
-    template<typename T> bool HasData(wxTEMPLATED_MEMBER_FIX(T)) const
+    template<typename T> bool HasData() const
     {
         const wxVariantDataT<T> *dataptr = 
             wx_dynamic_cast(const wxVariantDataT<T>*, m_data);
@@ -266,11 +266,11 @@ template<typename T>
 void wxStringWriteValue( wxString &s, const T &data);
 
 template<typename T>
-void wxToStringConverter( const wxVariantBase &v, wxString &s wxTEMPLATED_FUNCTION_FIX(T)) \
-    { wxStringWriteValue( s, v.wxTEMPLATED_MEMBER_CALL(Get, T) ); }
+void wxToStringConverter( const wxVariantBase &v, wxString &s ) \
+    { wxStringWriteValue( s, v.Get<T>() ); }
 
 template<typename T>
-void wxFromStringConverter( const wxString &s, wxVariantBase &v wxTEMPLATED_FUNCTION_FIX(T)) \
+void wxFromStringConverter( const wxString &s, wxVariantBase &v ) \
     { T d; wxStringReadValue( s, d ); v = wxVariantBase(d); }
 
 

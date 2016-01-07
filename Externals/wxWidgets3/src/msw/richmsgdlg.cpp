@@ -73,6 +73,16 @@ int wxRichMessageDialog::ShowModal()
         }
         m_checkBoxValue = checkBoxChecked != FALSE;
 
+        // In case only an "OK" button was specified we actually created a
+        // "Cancel" button (see comment in MSWCommonTaskDialogInit). This
+        // results in msAns being IDCANCEL while we want IDOK (just like
+        // how the native MessageBox function does with only an "OK" button).
+        if ( (msAns == IDCANCEL)
+            && !(GetMessageDialogStyle() & (wxYES_NO|wxCANCEL)) )
+        {
+            msAns = IDOK;
+        }
+
         return MSWTranslateReturnCode( msAns );
     }
 #endif // wxHAS_MSW_TASKDIALOG

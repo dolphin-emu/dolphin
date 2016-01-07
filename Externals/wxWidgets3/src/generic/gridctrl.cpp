@@ -436,20 +436,57 @@ wxGridCellAutoWrapStringRenderer::GetBestSize(wxGrid& grid,
                                               wxDC& dc,
                                               int row, int col)
 {
+    // We have to make a choice here and fix either width or height because we
+    // don't have any naturally best size. This choice is mostly arbitrary, but
+    // we need to be consistent about it, otherwise wxGrid auto-sizing code
+    // would get confused. For now we decide to use a single line of text and
+    // compute the width needed to fully display everything.
+    const int height = dc.GetCharHeight();
+
+    return wxSize(GetBestWidth(grid, attr, dc, row, col, height), height);
+}
+
+static const int AUTOWRAP_Y_MARGIN = 4;
+
+int
+wxGridCellAutoWrapStringRenderer::GetBestHeight(wxGrid& grid,
+                                                wxGridCellAttr& attr,
+                                                wxDC& dc,
+                                                int row, int col,
+                                                int width)
+{
     const int lineHeight = dc.GetCharHeight();
 
-    // Search for a shape no taller than the golden ratio.
-    wxSize size;
-    for ( size.x = 10; ; size.x += 10 )
-    {
-        const size_t
-            numLines = GetTextLines(grid, dc, attr, size, row, col).size();
-        size.y = numLines * lineHeight;
-        if ( size.x >= size.y*1.68 )
-            break;
-    }
+    // Use as many lines as we need for this width and add a small border to
+    // improve the appearance.
+    return GetTextLines(grid, dc, attr, wxSize(width, lineHeight),
+                        row, col).size() * lineHeight + AUTOWRAP_Y_MARGIN;
+}
 
-    return size;
+int
+wxGridCellAutoWrapStringRenderer::GetBestWidth(wxGrid& grid,
+                                               wxGridCellAttr& attr,
+                                               wxDC& dc,
+                                               int row, int col,
+                                               int height)
+{
+    const int lineHeight = dc.GetCharHeight();
+
+    // Maximal number of lines that fully fit but at least 1.
+    const size_t maxLines = height - AUTOWRAP_Y_MARGIN < lineHeight
+                                ? 1
+                                : (height - AUTOWRAP_Y_MARGIN)/lineHeight;
+
+    // Increase width until all the text fits.
+    //
+    // TODO: this is not the most efficient to do it for the long strings.
+    const int charWidth = dc.GetCharWidth();
+    int width = 2*charWidth;
+    while ( GetTextLines(grid, dc, attr, wxSize(width, height),
+                         row, col).size() > maxLines )
+        width += charWidth;
+
+    return width;
 }
 
 // ----------------------------------------------------------------------------

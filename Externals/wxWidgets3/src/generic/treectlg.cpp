@@ -1,4 +1,3 @@
-// XXX comex: scale support
 /////////////////////////////////////////////////////////////////////////////
 // Name:        src/generic/treectlg.cpp
 // Purpose:     generic tree control implementation
@@ -81,7 +80,7 @@ public:
 
     wxTreeRenameTimer( wxGenericTreeCtrl *owner );
 
-    virtual void Notify();
+    virtual void Notify() wxOVERRIDE;
 
 private:
     wxGenericTreeCtrl *m_owner;
@@ -113,7 +112,7 @@ private:
     wxString            m_startValue;
     bool                m_aboutToFinish;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxTreeTextCtrl);
 };
 
@@ -127,7 +126,7 @@ public:
 
     wxTreeFindTimer( wxGenericTreeCtrl *owner ) { m_owner = owner; }
 
-    virtual void Notify() { m_owner->ResetFindState(); }
+    virtual void Notify() wxOVERRIDE { m_owner->ResetFindState(); }
 
 private:
     wxGenericTreeCtrl *m_owner;
@@ -416,11 +415,11 @@ void wxTreeRenameTimer::Notify()
 // wxTreeTextCtrl (internal)
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxTreeTextCtrl,wxTextCtrl)
+wxBEGIN_EVENT_TABLE(wxTreeTextCtrl,wxTextCtrl)
     EVT_CHAR           (wxTreeTextCtrl::OnChar)
     EVT_KEY_UP         (wxTreeTextCtrl::OnKeyUp)
     EVT_KILL_FOCUS     (wxTreeTextCtrl::OnKillFocus)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxTreeTextCtrl::wxTreeTextCtrl(wxGenericTreeCtrl *owner,
                                wxGenericTreeItem *itm)
@@ -459,6 +458,13 @@ wxTreeTextCtrl::wxTreeTextCtrl(wxGenericTreeCtrl *owner,
 
 void wxTreeTextCtrl::EndEdit(bool discardChanges)
 {
+    if ( m_aboutToFinish )
+    {
+        // We already called Finish which cannot be called
+        // more than once.
+        return;
+    }
+
     m_aboutToFinish = true;
 
     if ( discardChanges )
@@ -509,6 +515,13 @@ void wxTreeTextCtrl::Finish( bool setfocus )
 {
     m_owner->ResetTextControl();
 
+#ifdef __WXMAC__
+    // On wxMac, modal event loops avoid deleting pending objects.
+    // Hide control so it does not remain visible e.g. if the tree
+    // control is used in a dialog.
+    Hide();
+#endif
+
     wxPendingDelete.Append(this);
 
     if (setfocus)
@@ -556,6 +569,7 @@ void wxTreeTextCtrl::OnKillFocus( wxFocusEvent &event )
 {
     if ( !m_aboutToFinish )
     {
+        m_aboutToFinish = true;
         if ( !AcceptChanges() )
             m_owner->OnRenameCancelled( m_itemEdited );
 
@@ -896,9 +910,9 @@ void wxGenericTreeItem::RecursiveResetTextSize()
 // wxGenericTreeCtrl implementation
 // -----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericTreeCtrl, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericTreeCtrl, wxControl);
 
-BEGIN_EVENT_TABLE(wxGenericTreeCtrl, wxTreeCtrlBase)
+wxBEGIN_EVENT_TABLE(wxGenericTreeCtrl, wxTreeCtrlBase)
     EVT_PAINT          (wxGenericTreeCtrl::OnPaint)
     EVT_SIZE           (wxGenericTreeCtrl::OnSize)
     EVT_MOUSE_EVENTS   (wxGenericTreeCtrl::OnMouse)
@@ -907,7 +921,7 @@ BEGIN_EVENT_TABLE(wxGenericTreeCtrl, wxTreeCtrlBase)
     EVT_SET_FOCUS      (wxGenericTreeCtrl::OnSetFocus)
     EVT_KILL_FOCUS     (wxGenericTreeCtrl::OnKillFocus)
     EVT_TREE_ITEM_GETTOOLTIP(wxID_ANY, wxGenericTreeCtrl::OnGetToolTip)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // -----------------------------------------------------------------------------
 // construction/destruction
@@ -982,12 +996,6 @@ bool wxGenericTreeCtrl::Create(wxWindow *parent,
                                const wxString& name )
 {
 #ifdef __WXMAC__
-    int major, minor;
-    wxGetOsVersion(&major, &minor);
-
-    if (major < 10)
-        style |= wxTR_ROW_LINES;
-
     if (style & wxTR_HAS_BUTTONS)
         style |= wxTR_NO_LINES;
 #endif // __WXMAC__
@@ -1307,6 +1315,10 @@ bool wxGenericTreeCtrl::SetFont( const wxFont &font )
 bool wxGenericTreeCtrl::IsVisible(const wxTreeItemId& item) const
 {
     wxCHECK_MSG( item.IsOk(), false, wxT("invalid tree item") );
+
+    // Hidden root item is never visible.
+    if ( item == GetRootItem() && HasFlag(wxTR_HIDE_ROOT) )
+        return false;
 
     // An item is only visible if it's not a descendant of a collapsed item
     wxGenericTreeItem *pItem = (wxGenericTreeItem*) item.m_pItem;
@@ -1955,6 +1967,8 @@ void wxGenericTreeCtrl::ClearFocusedItem()
     wxTreeItemId item = GetFocusedItem();
     if ( item.IsOk() )
         SelectItem(item, false);
+
+    m_current = NULL;
 }
 
 void wxGenericTreeCtrl::SetFocusedItem(const wxTreeItemId& item)
@@ -2309,21 +2323,20 @@ void wxGenericTreeCtrl::ScrollTo(const wxTreeItemId &item)
 
     if ( itemY + itemHeight > start_y*PIXELS_PER_UNIT + clientHeight )
     {
-        // need to scroll up by enough to show this item fully
+        // need to scroll down by enough to show this item fully
         itemY += itemHeight - clientHeight;
-#ifdef __WXOSX__
+
         // because itemY below will be divided by PIXELS_PER_UNIT it may
         // be rounded down, with the result of the item still only being 
         // partially visible, so make sure we are rounding up
-        itemY += PIXELS_PER_UNIT-1;
-#endif
+        itemY += PIXELS_PER_UNIT - 1;
     }
     else if ( itemY > start_y*PIXELS_PER_UNIT )
     {
         // item is already fully visible, don't do anything
         return;
     }
-    //else: scroll down to make this item the top one displayed
+    //else: scroll up to make this item the top one displayed
 
     Scroll(-1, itemY/PIXELS_PER_UNIT);
 }
@@ -3124,7 +3137,7 @@ void wxGenericTreeCtrl::OnChar( wxKeyEvent &event )
                 ExpandAllChildren(m_current);
                 break;
             }
-            //else: fall through to Collapse() it
+            wxFALLTHROUGH;//else: fall through to Collapse() it
 
         case '-':
         case WXK_SUBTRACT:
@@ -3231,14 +3244,12 @@ void wxGenericTreeCtrl::OnChar( wxKeyEvent &event )
             break;
 
         case WXK_RIGHT:
-            // this works the same as the down arrow except that we
-            // also expand the item if it wasn't expanded yet
+            // right arrow just expand the item will be fine
             if (m_current != GetRootItem().m_pItem || !HasFlag(wxTR_HIDE_ROOT))
                 Expand(m_current);
             //else: don't try to expand hidden root item (which can be the
             //      current one when the tree is empty)
-
-            // fall through
+            break;
 
         case WXK_DOWN:
             {
@@ -3504,9 +3515,10 @@ wxTextCtrl* wxGenericTreeCtrl::GetEditControl() const
 void wxGenericTreeCtrl::EndEditLabel(const wxTreeItemId& WXUNUSED(item),
                                      bool discardChanges)
 {
-    wxCHECK_RET( m_textCtrl, wxT("not editing label") );
-
-    m_textCtrl->EndEdit(discardChanges);
+    if (m_textCtrl)
+    {
+        m_textCtrl->EndEdit(discardChanges);
+    }
 }
 
 bool wxGenericTreeCtrl::OnRenameAccept(wxGenericTreeItem *item,

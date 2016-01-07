@@ -20,10 +20,9 @@
 #    define WXIMPORT __attribute__ ((visibility("default")))
 #elif defined(__WINDOWS__)
     /*
-       __declspec works in BC++ 5 and later, Watcom C++ 11.0 and later as well
-       as VC++.
+       __declspec works in BC++ 5 and later as well as VC++.
      */
-#    if defined(__VISUALC__) || defined(__BORLANDC__) || defined(__WATCOMC__)
+#    if defined(__VISUALC__) || defined(__BORLANDC__)
 #        define WXEXPORT __declspec(dllexport)
 #        define WXIMPORT __declspec(dllimport)
     /*
@@ -40,21 +39,6 @@
         */
 #       define WXEXPORT __attribute__((dllexport))
 #       define WXIMPORT __attribute__((dllimport))
-#    endif
-#elif defined(__WXPM__)
-#    if defined (__WATCOMC__)
-#        define WXEXPORT __declspec(dllexport)
-        /*
-           __declspec(dllimport) prepends __imp to imported symbols. We do NOT
-           want that!
-         */
-#        define WXIMPORT
-#    elif defined(__EMX__)
-#        define WXEXPORT
-#        define WXIMPORT
-#    elif (!(defined(__VISAGECPP__) && (__IBMCPP__ < 400 || __IBMC__ < 400 )))
-#        define WXEXPORT _Export
-#        define WXIMPORT _Export
 #    endif
 #elif defined(__CYGWIN__)
 #    define WXEXPORT __declspec(dllexport)
@@ -326,39 +310,4 @@
 #define WXDLLEXPORT WXDLLIMPEXP_CORE
 #define WXDLLEXPORT_DATA WXDLLIMPEXP_DATA_CORE
 
-/*
-   MSVC up to 6.0 needs to be explicitly told to export template instantiations
-   used by the DLL clients, use this macro to do it like this:
-
-       template <typename T> class Foo { ... };
-       WXDLLIMPEXP_TEMPLATE_INSTANCE_BASE( Foo<int> )
-
-   (notice that currently we only need this for wxBase and wxCore libraries)
- */
-#if defined(__VISUALC__) && (__VISUALC__ <= 1200)
-    #ifdef WXMAKINGDLL_BASE
-        #define WXDLLIMPEXP_TEMPLATE_INSTANCE_BASE(decl) \
-            template class WXDLLIMPEXP_BASE decl;
-        #define WXDLLIMPEXP_TEMPLATE_INSTANCE_CORE(decl) \
-            template class WXDLLIMPEXP_CORE decl;
-    #else
-        /*
-           We need to disable this warning when using this macro, as
-           recommended by Microsoft itself:
-
-           http://support.microsoft.com/default.aspx?scid=kb%3ben-us%3b168958
-         */
-        #pragma warning(disable:4231)
-
-        #define WXDLLIMPEXP_TEMPLATE_INSTANCE_BASE(decl) \
-            extern template class WXDLLIMPEXP_BASE decl;
-        #define WXDLLIMPEXP_TEMPLATE_INSTANCE_CORE(decl) \
-            extern template class WXDLLIMPEXP_CORE decl;
-    #endif
-#else /* not VC <= 6 */
-    #define WXDLLIMPEXP_TEMPLATE_INSTANCE_BASE(decl)
-    #define WXDLLIMPEXP_TEMPLATE_INSTANCE_CORE(decl)
-#endif /* VC6/others */
-
 #endif /* _WX_DLIMPEXP_H_ */
-

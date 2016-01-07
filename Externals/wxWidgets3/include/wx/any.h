@@ -102,16 +102,10 @@ public:
         Use this template function for checking if wxAnyValueType represents
         a specific C++ data type.
 
-        @remarks This template function does not work on some older compilers
-                (such as Visual C++ 6.0). For full compiler compatibility
-                please use wxANY_VALUE_TYPE_CHECK_TYPE(valueTypePtr, T) macro
-                instead.
-
         @see wxAny::CheckType()
     */
-    // FIXME-VC6: remove this hack when VC6 is no longer supported
     template <typename T>
-    bool CheckType(T* reserved = NULL) const;
+    bool CheckType() const;
 
 #if wxUSE_EXTENDED_RTTI
     virtual const wxTypeInfo* GetTypeInfo() const = 0;
@@ -139,8 +133,9 @@ private:
 };
 
 
-//
-// This method of checking the type is compatible with VC6
+// Deprecated macro for checking the type which was originally introduced for
+// MSVC6 compatibility and is not needed any longer now that this compiler is
+// not supported any more.
 #define wxANY_VALUE_TYPE_CHECK_TYPE(valueTypePtr, T) \
     wxAnyValueTypeImpl<T>::IsSameClass(valueTypePtr)
 
@@ -164,9 +159,11 @@ private:
 public: \
     static bool IsSameClass(const wxAnyValueType* otherType) \
     { \
-        return wxTypeId(*sm_instance.get()) == wxTypeId(*otherType); \
+        const wxAnyValueType& inst = *sm_instance.get(); \
+        const wxAnyValueType& otherRef = *otherType; \
+        return wxTypeId(inst) == wxTypeId(otherRef); \
     } \
-    virtual bool IsSameType(const wxAnyValueType* otherType) const \
+    virtual bool IsSameType(const wxAnyValueType* otherType) const wxOVERRIDE \
     { \
         return IsSameClass(otherType); \
     } \
@@ -183,12 +180,6 @@ public: \
 wxAnyValueTypeScopedPtr CLS::sm_instance(new CLS());
 
 
-#ifdef __VISUALC6__
-    // "non dll-interface class 'xxx' used as base interface
-    #pragma warning (push)
-    #pragma warning (disable:4275)
-#endif
-
 /**
     Following are helper classes for the wxAnyValueTypeImplBase.
 */
@@ -201,11 +192,7 @@ class wxAnyValueTypeOpsInplace
 public:
     static void DeleteValue(wxAnyValueBuffer& buf)
     {
-        T* value = reinterpret_cast<T*>(&buf.m_buffer[0]);
-        value->~T();
-
-        // Some compiler may given 'unused variable' warnings without this
-        wxUnusedVar(value);
+        GetValue(buf).~T();
     }
 
     static void SetValue(const T& value,
@@ -218,11 +205,17 @@ public:
 
     static const T& GetValue(const wxAnyValueBuffer& buf)
     {
-        // Breaking this code into two lines should suppress
-        // GCC's 'type-punned pointer will break strict-aliasing rules'
-        // warning.
-        const T* value = reinterpret_cast<const T*>(&buf.m_buffer[0]);
-        return *value;
+        // Use a union to avoid undefined behaviour (and gcc -Wstrict-alias
+        // warnings about it) which would occur if we just casted a wxByte
+        // pointer to a T one.
+        union
+        {
+            const T* ptr;
+            const wxByte *buf;
+        } u;
+        u.buf = buf.m_buffer;
+
+        return *u.ptr;
     }
 };
 
@@ -266,6 +259,10 @@ public:
     }
 };
 
+
+template <typename T>
+struct wxAnyAsImpl;
+
 } // namespace wxPrivate
 
 
@@ -288,13 +285,13 @@ public:
     wxAnyValueTypeImplBase() : wxAnyValueType() { }
     virtual ~wxAnyValueTypeImplBase() { }
 
-    virtual void DeleteValue(wxAnyValueBuffer& buf) const
+    virtual void DeleteValue(wxAnyValueBuffer& buf) const wxOVERRIDE
     {
         Ops::DeleteValue(buf);
     }
 
     virtual void CopyBuffer(const wxAnyValueBuffer& src,
-                            wxAnyValueBuffer& dst) const
+                            wxAnyValueBuffer& dst) const wxOVERRIDE
     {
         Ops::SetValue(Ops::GetValue(src), dst);
     }
@@ -340,7 +337,7 @@ public:
 
     virtual bool ConvertValue(const wxAnyValueBuffer& src,
                               wxAnyValueType* dstType,
-                              wxAnyValueBuffer& dst) const
+                              wxAnyValueBuffer& dst) const wxOVERRIDE
     {
         wxUnusedVar(src);
         wxUnusedVar(dstType);
@@ -418,7 +415,7 @@ public:
 
     virtual bool ConvertValue(const wxAnyValueBuffer& src,
                               wxAnyValueType* dstType,
-                              wxAnyValueBuffer& dst) const;
+                              wxAnyValueBuffer& dst) const wxOVERRIDE;
 };
 
 
@@ -433,7 +430,7 @@ public:
 
     virtual bool ConvertValue(const wxAnyValueBuffer& src,
                               wxAnyValueType* dstType,
-                              wxAnyValueBuffer& dst) const;
+                              wxAnyValueBuffer& dst) const wxOVERRIDE;
 };
 
 
@@ -469,7 +466,7 @@ public: \
     virtual ~wxAnyValueTypeImpl##TYPENAME() { } \
     virtual bool ConvertValue(const wxAnyValueBuffer& src, \
                               wxAnyValueType* dstType, \
-                              wxAnyValueBuffer& dst) const \
+                              wxAnyValueBuffer& dst) const wxOVERRIDE \
     { \
         GV value = GetValue(src); \
         return CONVFUNC(value, dstType, dst); \
@@ -520,7 +517,7 @@ public:
 
     virtual bool ConvertValue(const wxAnyValueBuffer& src,
                               wxAnyValueType* dstType,
-                              wxAnyValueBuffer& dst) const;
+                              wxAnyValueBuffer& dst) const wxOVERRIDE;
 };
 
 //
@@ -537,7 +534,7 @@ public:
 
     virtual bool ConvertValue(const wxAnyValueBuffer& src,
                               wxAnyValueType* dstType,
-                              wxAnyValueBuffer& dst) const;
+                              wxAnyValueBuffer& dst) const wxOVERRIDE;
 };
 
 // WX_ANY_DEFINE_SUB_TYPE requires this
@@ -565,7 +562,7 @@ public: \
  \
     virtual bool ConvertValue(const wxAnyValueBuffer& src, \
                               wxAnyValueType* dstType, \
-                              wxAnyValueBuffer& dst) const \
+                              wxAnyValueBuffer& dst) const wxOVERRIDE \
     { \
         wxUnusedVar(src); \
         wxUnusedVar(dstType); \
@@ -614,7 +611,7 @@ public:
         wxAnyValueTypeImplBase<wxVariantData*>() { }
     virtual ~wxAnyValueTypeImplVariantData() { }
 
-    virtual void DeleteValue(wxAnyValueBuffer& buf) const
+    virtual void DeleteValue(wxAnyValueBuffer& buf) const wxOVERRIDE
     {
         wxVariantData* data = static_cast<wxVariantData*>(buf.m_ptr);
         if ( data )
@@ -622,7 +619,7 @@ public:
     }
 
     virtual void CopyBuffer(const wxAnyValueBuffer& src,
-                            wxAnyValueBuffer& dst) const
+                            wxAnyValueBuffer& dst) const wxOVERRIDE
     {
         wxVariantData* data = static_cast<wxVariantData*>(src.m_ptr);
         if ( data )
@@ -644,7 +641,7 @@ public:
 
     virtual bool ConvertValue(const wxAnyValueBuffer& src,
                               wxAnyValueType* dstType,
-                              wxAnyValueBuffer& dst) const
+                              wxAnyValueBuffer& dst) const wxOVERRIDE
     {
         wxUnusedVar(src);
         wxUnusedVar(dstType);
@@ -663,11 +660,6 @@ public:
 };
 
 #endif // wxUSE_VARIANT
-
-#ifdef __VISUALC6__
-    // Re-enable useless VC6 warnings
-    #pragma warning (pop)
-#endif
 
 
 /*
@@ -719,7 +711,6 @@ extern WXDLLIMPEXP_BASE bool
 wxConvertAnyToVariant(const wxAny& any, wxVariant* variant);
 
 #endif // wxUSE_VARIANT
-
 
 //
 // The wxAny class represents a container for any type. A variant's value
@@ -790,15 +781,10 @@ public:
         Use this template function for checking if this wxAny holds
         a specific C++ data type.
 
-        @remarks This template function does not work on some older compilers
-                (such as Visual C++ 6.0). For full compiler ccompatibility
-                please use wxANY_CHECK_TYPE(any, T) macro instead.
-
         @see wxAnyValueType::CheckType()
     */
-    // FIXME-VC6: remove this hack when VC6 is no longer supported
     template <typename T>
-    bool CheckType(T* = NULL) const
+    bool CheckType() const
     {
         return m_type->CheckType<T>();
     }
@@ -962,14 +948,16 @@ public:
         @remarks For convenience, conversion is done when T is wxString. This
                  is useful when a string literal (which are treated as
                  const char* and const wchar_t*) has been assigned to wxAny.
-
-                 This template function may not work properly with Visual C++
-                 6. For full compiler compatibility, please use
-                 wxANY_AS(any, T) macro instead.
     */
-    // FIXME-VC6: remove this hack when VC6 is no longer supported
-    template<typename T>
+    template <typename T>
     T As(T* = NULL) const
+    {
+        return wxPrivate::wxAnyAsImpl<T>::DoAs(*this);
+    }
+
+    // Semi private helper: get the value without coercion, for all types.
+    template <typename T>
+    T RawAs() const
     {
         if ( !wxAnyValueTypeImpl<T>::IsSameClass(m_type) )
         {
@@ -977,19 +965,6 @@ public:
         }
 
         return static_cast<T>(wxAnyValueTypeImpl<T>::GetValue(m_buffer));
-    }
-
-    // Allow easy conversion from 'const char *' etc. to wxString
-    // FIXME-VC6: remove this hack when VC6 is no longer supported
-    //template<>
-    wxString As(wxString*) const
-    {
-        wxString value;
-        if ( !GetAs(&value) )
-        {
-            wxFAIL_MSG("Incorrect or non-convertible data type");
-        }
-        return value;
     }
 
 #if wxUSE_EXTENDED_RTTI
@@ -1087,22 +1062,52 @@ private:
 };
 
 
-//
-// This method of checking the type is compatible with VC6
+namespace wxPrivate
+{
+
+// Dispatcher for template wxAny::As() implementation which is different for
+// wxString and all the other types: the generic implementation check if the
+// value is of the right type and returns it.
+template <typename T>
+struct wxAnyAsImpl
+{
+    static T DoAs(const wxAny& any)
+    {
+        return any.RawAs<T>();
+    }
+};
+
+// Specialization for wxString does coercion.
+template <>
+struct wxAnyAsImpl<wxString>
+{
+    static wxString DoAs(const wxAny& any)
+    {
+        wxString value;
+        if ( !any.GetAs(&value) )
+        {
+            wxFAIL_MSG("Incorrect or non-convertible data type");
+        }
+        return value;
+    }
+};
+
+}
+
+// See comment for wxANY_VALUE_TYPE_CHECK_TYPE.
 #define wxANY_CHECK_TYPE(any, T) \
     wxANY_VALUE_TYPE_CHECK_TYPE((any).GetType(), T)
 
 
-//
-// This method of getting the value is compatible with VC6
+// This macro shouldn't be used any longer for the same reasons as
+// wxANY_VALUE_TYPE_CHECK_TYPE(), just call As() directly.
 #define wxANY_AS(any, T) \
     (any).As(static_cast<T*>(NULL))
 
 
 template<typename T>
-inline bool wxAnyValueType::CheckType(T* reserved) const
+inline bool wxAnyValueType::CheckType() const
 {
-    wxUnusedVar(reserved);
     return wxAnyValueTypeImpl<T>::IsSameClass(this);
 }
 

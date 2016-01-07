@@ -129,10 +129,9 @@ bool wxDropTarget::GetData()
                     }
                     else
                     {
-                        char *d = new char[size];
-                        data->GetDataHere( format, (void*)d );
-                        m_dataObject->SetData( format, size, d );
-                        delete [] d;
+                        wxCharBuffer d(size);
+                        data->GetDataHere( format, d.data() );
+                        m_dataObject->SetData( format, size, d.data() );
                     }
                 }
             }

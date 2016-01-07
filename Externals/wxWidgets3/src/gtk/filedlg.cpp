@@ -15,6 +15,7 @@
 
 #ifndef WX_PRECOMP
     #include "wx/intl.h"
+    #include "wx/log.h"
     #include "wx/msgdlg.h"
 #endif
 
@@ -81,7 +82,11 @@ static void gtk_filedialog_ok_callback(GtkWidget *widget, wxFileDialog *dialog)
     {
         // Use chdir to not care about filename encodings
         wxGtkString folder(g_path_get_dirname(filename));
-        chdir(folder);
+        if ( chdir(folder) != 0 )
+        {
+            wxLogSysError(_("Changing current directory to \"%s\" failed"),
+                          wxString::FromUTF8(folder));
+        }
     }
 
     wxCommandEvent event(wxEVT_BUTTON, wxID_OK);
@@ -160,12 +165,12 @@ void wxFileDialog::AddChildGTK(wxWindowGTK* child)
 // wxFileDialog
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxFileDialog,wxFileDialogBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFileDialog, wxFileDialogBase);
 
-BEGIN_EVENT_TABLE(wxFileDialog,wxFileDialogBase)
+wxBEGIN_EVENT_TABLE(wxFileDialog,wxFileDialogBase)
     EVT_BUTTON(wxID_OK, wxFileDialog::OnFakeOk)
     EVT_SIZE(wxFileDialog::OnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxFileDialog::wxFileDialog(wxWindow *parent, const wxString& message,
                            const wxString& defaultDir,
@@ -236,15 +241,6 @@ bool wxFileDialog::Create(wxWindow *parent, const wxString& message,
 
     if ( style & wxFD_MULTIPLE )
         gtk_file_chooser_set_select_multiple(file_chooser, true);
-
-    // gtk_widget_hide_on_delete is used here to avoid that Gtk automatically
-    // destroys the dialog when the user press ESC on the dialog: in that case
-    // a second call to ShowModal() would result in a bunch of Gtk-CRITICAL
-    // errors...
-    g_signal_connect(m_widget,
-                    "delete_event",
-                    G_CALLBACK (gtk_widget_hide_on_delete),
-                    this);
 
     // local-only property could be set to false to allow non-local files to be
     // loaded. In that case get/set_uri(s) should be used instead of

@@ -19,7 +19,7 @@
 
 #include "wx/osx/carbon/drawer.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxDrawerWindow, wxWindow)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDrawerWindow, wxWindow);
 
 // Use constants for now.
 // These can be made into member variables and set dynamically.

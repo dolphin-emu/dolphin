@@ -43,8 +43,8 @@
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxMetafile, wxObject)
-IMPLEMENT_ABSTRACT_CLASS(wxMetafileDC, wxDC)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMetafile, wxObject);
+wxIMPLEMENT_ABSTRACT_CLASS(wxMetafileDC, wxDC);
 
 // ============================================================================
 // implementation
@@ -326,7 +326,6 @@ void wxMetafileDCImpl::SetMapMode(wxMappingMode mode)
 // wxMakeMetafilePlaceable
 // ----------------------------------------------------------------------------
 
-#ifdef __WIN32__
 struct RECT32
 {
   short left;
@@ -343,16 +342,6 @@ struct mfPLACEABLEHEADER {
     DWORD    reserved;
     WORD    checksum;
 };
-#else
-struct mfPLACEABLEHEADER {
-    DWORD    key;
-    HANDLE    hmf;
-    RECT    bbox;
-    WORD    inch;
-    DWORD    reserved;
-    WORD    checksum;
-};
-#endif
 
 /*
  * Pass filename of existing non-placeable metafile, and bounding box.

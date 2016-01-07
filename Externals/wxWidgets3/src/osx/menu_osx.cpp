@@ -31,12 +31,13 @@
 #endif
 
 #include "wx/osx/private.h"
+#include "wx/scopedptr.h"
 
 // other standard headers
 // ----------------------
 #include <string.h>
 
-IMPLEMENT_ABSTRACT_CLASS( wxMenuImpl , wxObject )
+wxIMPLEMENT_ABSTRACT_CLASS(wxMenuImpl, wxObject);
 
 wxMenuImpl::~wxMenuImpl()
 {
@@ -44,6 +45,8 @@ wxMenuImpl::~wxMenuImpl()
 
 // the (popup) menu title has this special menuid
 static const int idMenuTitle = -3;
+
+wxScopedPtr<wxMenu> gs_emptyMenuBar;
 
 // ============================================================================
 // implementation
@@ -72,7 +75,18 @@ void wxMenu::Init()
 
 wxMenu::~wxMenu()
 {
-    delete m_peer;
+#if wxOSX_USE_CARBON
+    // when destroying the empty menu bar from the static scoped ptr
+    // the peer destructor removes an association from an already deleted
+    // hashmap leading to crashes. The guard avoids this, accepting some leaks...
+    static bool finalmenubar = false;
+    
+    if ( this == gs_emptyMenuBar.get() )
+        finalmenubar = true;
+    
+    if ( !finalmenubar )
+#endif
+        delete m_peer;
 }
 
 WXHMENU wxMenu::GetHMenu() const
@@ -515,7 +529,7 @@ void wxMenu::HandleMenuItemHighlighted( wxMenuItem* item )
 {
     int menuid = item ? item->GetId() : 0;
     wxMenuEvent wxevent(wxEVT_MENU_HIGHLIGHT, menuid, this);
-    DoHandleMenuEvent( wxevent );
+    ProcessMenuEvent(this, wxevent, GetWindow());
 }
 
 void wxMenu::DoHandleMenuOpenedOrClosed(wxEventType evtType)
@@ -526,7 +540,7 @@ void wxMenu::DoHandleMenuOpenedOrClosed(wxEventType evtType)
     // Set the id to allow wxMenuEvent::IsPopup() to work correctly.
     int menuid = this == wxCurrentPopupMenu ? wxID_ANY : 0;
     wxMenuEvent wxevent(evtType, menuid, this);
-    DoHandleMenuEvent( wxevent );
+    ProcessMenuEvent(this, wxevent, GetWindow());
 }
 
 void wxMenu::HandleMenuOpened()
@@ -537,26 +551,6 @@ void wxMenu::HandleMenuOpened()
 void wxMenu::HandleMenuClosed()
 {
     DoHandleMenuOpenedOrClosed(wxEVT_MENU_CLOSE);
-}
-
-bool wxMenu::DoHandleMenuEvent(wxEvent& wxevent)
-{
-    wxevent.SetEventObject(this);
-    wxEvtHandler* handler = GetEventHandler();
-    if (handler && handler->ProcessEvent(wxevent))
-    {
-        return true;
-    }
-    else
-    {
-        wxWindow *win = GetWindow();
-        if (win)
-        {
-            if ( win->HandleWindowEvent(wxevent) )
-                return true;
-        }
-    }
-    return false;
 }
 
 // Menu Bar
@@ -583,8 +577,6 @@ wxMenuBar* wxMenuBar::s_macCommonMenuBar = NULL ;
 bool     wxMenuBar::s_macAutoWindowMenu = true ;
 WXHMENU  wxMenuBar::s_macWindowMenuHandle = NULL ;
 
-
-wxMenu* emptyMenuBar = NULL;
 
 const int firstMenuPos = 1; // to account for the 0th application menu on mac
 
@@ -637,10 +629,10 @@ static wxMenu *CreateAppleMenu()
 
 void wxMenuBar::Init()
 {
-    if ( emptyMenuBar == NULL )
+    if ( !gs_emptyMenuBar )
     {
-        emptyMenuBar = new wxMenu();
-        emptyMenuBar->AppendSubMenu(CreateAppleMenu(), "\x14") ;
+        gs_emptyMenuBar.reset( new wxMenu() );
+        gs_emptyMenuBar->AppendSubMenu(CreateAppleMenu(), "\x14") ;
     }
     
     m_eventHandler = this;
@@ -682,7 +674,7 @@ wxMenuBar::~wxMenuBar()
 
     if (s_macInstalledMenuBar == this)
     {
-        emptyMenuBar->GetPeer()->MakeRoot();
+        gs_emptyMenuBar->GetPeer()->MakeRoot();
         s_macInstalledMenuBar = NULL;
     }
     wxDELETE( m_rootMenu );
@@ -1020,5 +1012,35 @@ void wxMenuBar::Attach(wxFrame *frame)
 {
     wxMenuBarBase::Attach( frame ) ;
 }
+
+void wxMenuBar::DoGetPosition(int *x, int *y) const
+{
+    int _x,_y,_width,_height;
+    
+    m_rootMenu->GetPeer()->GetMenuBarDimensions(_x, _y, _width, _height);
+
+    if (x)
+        *x = _x;
+    if (y)
+        *y = _y;
+}
+
+void wxMenuBar::DoGetSize(int *width, int *height) const
+{
+    int _x,_y,_width,_height;
+    
+    m_rootMenu->GetPeer()->GetMenuBarDimensions(_x, _y, _width, _height);
+
+    if (width)
+        *width = _width;
+    if (height)
+        *height = _height;
+}
+
+void wxMenuBar::DoGetClientSize(int *width, int *height) const
+{
+    DoGetSize(width, height);
+}
+
 
 #endif // wxUSE_MENUS

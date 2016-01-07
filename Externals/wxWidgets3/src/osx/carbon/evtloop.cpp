@@ -84,12 +84,17 @@ int wxGUIEventLoop::DoDispatchTimeout(unsigned long timeout)
 
 void wxGUIEventLoop::WakeUp()
 {
+    // If there's already one or more events in the queue then there's no need
+    // to post another one.
+    if ( GetNumEventsInQueue( GetMainEventQueue() ) > 0 )
+        return;
+
     OSStatus err = noErr;
     wxMacCarbonEvent wakeupEvent;
     wakeupEvent.Create( 'WXMC', 'WXMC', GetCurrentEventTime(),
                         kEventAttributeNone );
     err = PostEventToQueue(GetMainEventQueue(), wakeupEvent,
-                            kEventPriorityHigh );
+                            kEventPriorityLow );
 }
 
 void wxGUIEventLoop::OSXDoRun()

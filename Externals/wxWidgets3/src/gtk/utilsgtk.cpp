@@ -20,6 +20,7 @@
 #include "wx/apptrait.h"
 #include "wx/process.h"
 #include "wx/sysopt.h"
+#include "wx/vector.h"
 
 #include "wx/gtk/private/timer.h"
 #include "wx/evtloop.h"
@@ -55,11 +56,7 @@
 
 #include "wx/gtk/private/gtk2-compat.h"
 
-//-----------------------------------------------------------------------------
-// data
-//-----------------------------------------------------------------------------
-
-extern GtkWidget *wxGetRootWindow();
+GdkWindow* wxGetTopLevelGDK();
 
 //----------------------------------------------------------------------------
 // misc.
@@ -77,7 +74,7 @@ void wxBell()
 #ifdef GDK_WINDOWING_X11
 void *wxGetDisplay()
 {
-    return GDK_DISPLAY_XDISPLAY(gtk_widget_get_display(wxGetRootWindow()));
+    return GDK_DISPLAY_XDISPLAY(gdk_window_get_display(wxGetTopLevelGDK()));
 }
 #endif
 
@@ -100,7 +97,7 @@ bool wxColourDisplay()
 
 int wxDisplayDepth()
 {
-    return gdk_visual_get_depth(gtk_widget_get_visual(wxGetRootWindow()));
+    return gdk_visual_get_depth(gdk_window_get_visual(wxGetTopLevelGDK()));
 }
 
 wxWindow* wxFindWindowAtPoint(const wxPoint& pt)
@@ -258,30 +255,68 @@ class StackDump : public wxStackWalker
 public:
     StackDump(GtkAssertDialog *dlg) { m_dlg=dlg; }
 
-protected:
-    virtual void OnStackFrame(const wxStackFrame& frame)
+    void ShowStackInDialog()
     {
-        wxString fncname = frame.GetName();
+        ProcessFrames(0);
 
-        // append this stack frame's info in the dialog
-        if (!frame.GetFileName().empty() || !fncname.empty())
+        for ( wxVector<Frame>::const_iterator it = m_frames.begin();
+              it != m_frames.end();
+              ++it )
         {
             gtk_assert_dialog_append_stack_frame(m_dlg,
-                                                fncname.utf8_str(),
-                                                frame.GetFileName().utf8_str(),
-                                                frame.GetLine());
+                                                 it->name.utf8_str(),
+                                                 it->file.utf8_str(),
+                                                 it->line);
         }
+
+        m_frames.clear();
+    }
+
+protected:
+    virtual void OnStackFrame(const wxStackFrame& frame) wxOVERRIDE
+    {
+        const wxString name = frame.GetName();
+        if ( name.StartsWith("wxOnAssert") )
+        {
+            // Ignore all frames until the wxOnAssert() one, just as we do in
+            // wxAppTraitsBase::GetAssertStackTrace().
+            m_frames.clear();
+            return;
+        }
+
+        // Also ignore frames which don't have neither the function name nor
+        // the file name, showing them in the dialog wouldn't provide any
+        // useful information.
+        if ( name.empty() && frame.GetFileName().empty() )
+            return;
+
+        m_frames.push_back(Frame(frame));
     }
 
 private:
     GtkAssertDialog *m_dlg;
+
+    struct Frame
+    {
+        explicit Frame(const wxStackFrame& f)
+            : name(f.GetName()),
+              file(f.GetFileName()),
+              line(f.GetLine())
+        {
+        }
+
+        wxString name;
+        wxString file;
+        int line;
+    };
+
+    wxVector<Frame> m_frames;
 };
 
 static void get_stackframe_callback(void* p)
 {
     StackDump* dump = static_cast<StackDump*>(p);
-    // skip over frames up to including wxOnAssert()
-    dump->ProcessFrames(6);
+    dump->ShowStackInDialog();
 }
 
 #endif // wxDEBUG_LEVEL && wxUSE_STACKWALKER
@@ -298,6 +333,15 @@ bool wxGUIAppTraits::ShowAssertDialog(const wxString& msg)
         // case when assert happens
         GtkWidget *dialog = gtk_assert_dialog_new();
         gtk_assert_dialog_set_message(GTK_ASSERT_DIALOG(dialog), msg.mb_str());
+
+        GdkDisplay* display = gtk_widget_get_display(dialog);
+#ifdef __WXGTK3__
+        GdkDeviceManager* manager = gdk_display_get_device_manager(display);
+        GdkDevice* device = gdk_device_manager_get_client_pointer(manager);
+        gdk_device_ungrab(device, unsigned(GDK_CURRENT_TIME));
+#else
+        gdk_display_pointer_ungrab(display, unsigned(GDK_CURRENT_TIME));
+#endif
 
 #if wxUSE_STACKWALKER
         // save the current stack ow...
@@ -318,7 +362,13 @@ bool wxGUIAppTraits::ShowAssertDialog(const wxString& msg)
         switch (result)
         {
             case GTK_ASSERT_DIALOG_STOP:
-                wxTrap();
+                // Don't call wxTrap() directly from here to avoid having the
+                // functions between the occurrence of the assert in the code
+                // and this function in the call stack. Instead, just set a
+                // flag so that inline expansion of the assert macro we are
+                // called from calls wxTrap() itself, like this the debugger
+                // would break exactly at the assert position.
+                wxTrapInAssert = true;
                 break;
             case GTK_ASSERT_DIALOG_CONTINUE:
                 // nothing to do
@@ -342,7 +392,7 @@ bool wxGUIAppTraits::ShowAssertDialog(const wxString& msg)
 
 #endif // __UNIX__
 
-#if defined(__UNIX__) || defined(__OS2__)
+#if defined(__UNIX__)
 
 wxString wxGUIAppTraits::GetDesktopEnvironment() const
 {
@@ -362,7 +412,7 @@ wxString wxGUIAppTraits::GetDesktopEnvironment() const
     return de;
 }
 
-#endif // __UNIX__ || __OS2__
+#endif // __UNIX__
 
 #ifdef __UNIX__
 

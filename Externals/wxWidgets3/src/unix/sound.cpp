@@ -78,15 +78,15 @@ wxSoundData::~wxSoundData()
 class wxSoundBackendNull : public wxSoundBackend
 {
 public:
-    wxString GetName() const { return _("No sound"); }
-    int GetPriority() const { return 0; }
-    bool IsAvailable() const { return true; }
-    bool HasNativeAsyncPlayback() const { return true; }
+    wxString GetName() const wxOVERRIDE { return _("No sound"); }
+    int GetPriority() const wxOVERRIDE { return 0; }
+    bool IsAvailable() const wxOVERRIDE { return true; }
+    bool HasNativeAsyncPlayback() const wxOVERRIDE { return true; }
     bool Play(wxSoundData *WXUNUSED(data), unsigned WXUNUSED(flags),
-              volatile wxSoundPlaybackStatus *WXUNUSED(status))
+              volatile wxSoundPlaybackStatus *WXUNUSED(status)) wxOVERRIDE
         { return true; }
-    void Stop() {}
-    bool IsPlaying() const { return false; }
+    void Stop() wxOVERRIDE {}
+    bool IsPlaying() const wxOVERRIDE { return false; }
 };
 
 
@@ -103,14 +103,14 @@ public:
 class wxSoundBackendOSS : public wxSoundBackend
 {
 public:
-    wxString GetName() const { return wxT("Open Sound System"); }
-    int GetPriority() const { return 10; }
-    bool IsAvailable() const;
-    bool HasNativeAsyncPlayback() const { return false; }
+    wxString GetName() const wxOVERRIDE { return wxT("Open Sound System"); }
+    int GetPriority() const wxOVERRIDE { return 10; }
+    bool IsAvailable() const wxOVERRIDE;
+    bool HasNativeAsyncPlayback() const wxOVERRIDE { return false; }
     bool Play(wxSoundData *data, unsigned flags,
-              volatile wxSoundPlaybackStatus *status);
-    void Stop() {}
-    bool IsPlaying() const { return false; }
+              volatile wxSoundPlaybackStatus *status) wxOVERRIDE;
+    void Stop() wxOVERRIDE {}
+    bool IsPlaying() const wxOVERRIDE { return false; }
 
 private:
     int OpenDSP(const wxSoundData *data);
@@ -278,7 +278,7 @@ public:
     wxSoundAsyncPlaybackThread(wxSoundSyncOnlyAdaptor *adaptor,
                               wxSoundData *data, unsigned flags)
         : wxThread(), m_adapt(adaptor), m_data(data), m_flags(flags) {}
-    virtual ExitCode Entry();
+    virtual ExitCode Entry() wxOVERRIDE;
 
 protected:
     wxSoundSyncOnlyAdaptor *m_adapt;
@@ -299,26 +299,26 @@ public:
     {
         delete m_backend;
     }
-    wxString GetName() const
+    wxString GetName() const wxOVERRIDE
     {
         return m_backend->GetName();
     }
-    int GetPriority() const
+    int GetPriority() const wxOVERRIDE
     {
         return m_backend->GetPriority();
     }
-    bool IsAvailable() const
+    bool IsAvailable() const wxOVERRIDE
     {
         return m_backend->IsAvailable();
     }
-    bool HasNativeAsyncPlayback() const
+    bool HasNativeAsyncPlayback() const wxOVERRIDE
     {
         return true;
     }
     bool Play(wxSoundData *data, unsigned flags,
-              volatile wxSoundPlaybackStatus *status);
-    void Stop();
-    bool IsPlaying() const;
+              volatile wxSoundPlaybackStatus *status) wxOVERRIDE;
+    void Stop() wxOVERRIDE;
+    bool IsPlaying() const wxOVERRIDE;
 
 private:
     friend class wxSoundAsyncPlaybackThread;
@@ -712,11 +712,11 @@ bool wxSound::LoadWAV(const void* data_, size_t length, bool copyData)
 class wxSoundCleanupModule: public wxModule
 {
 public:
-    bool OnInit() { return true; }
-    void OnExit() { wxSound::UnloadBackend(); }
-    DECLARE_DYNAMIC_CLASS(wxSoundCleanupModule)
+    bool OnInit() wxOVERRIDE { return true; }
+    void OnExit() wxOVERRIDE { wxSound::UnloadBackend(); }
+    wxDECLARE_DYNAMIC_CLASS(wxSoundCleanupModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxSoundCleanupModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSoundCleanupModule, wxModule);
 
 #endif

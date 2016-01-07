@@ -25,6 +25,7 @@
     #include "wx/brush.h"
     #include "wx/font.h"
     #include "wx/dc.h"
+    #include "wx/dcclient.h"
     #include "wx/utils.h"
     #include "wx/log.h"
     #include "wx/window.h"
@@ -37,7 +38,13 @@
 
 #if wxUSE_OWNER_DRAWN
     #include  "wx/ownerdrw.h"
-#endif
+
+    namespace
+    {
+        // space beneath/above each row in pixels
+        const int LISTBOX_EXTRA_SPACE = 1;
+    } // anonymous namespace
+#endif // wxUSE_OWNER_DRAWN
 
 // ============================================================================
 // list box item declaration and implementation
@@ -170,7 +177,7 @@ WXDWORD wxListBox::MSWGetStyle(long style, WXDWORD *exstyle) const
     if ( m_windowStyle & wxLB_SORT )
         msStyle |= LBS_SORT;
 
-#if wxUSE_OWNER_DRAWN && !defined(__WXWINCE__)
+#if wxUSE_OWNER_DRAWN
     if ( m_windowStyle & wxLB_OWNERDRAW )
     {
         // we don't support LBS_OWNERDRAWVARIABLE yet and we also always put
@@ -213,6 +220,38 @@ void wxListBox::MSWOnItemsChanged()
 // ----------------------------------------------------------------------------
 // implementation of wxListBoxBase methods
 // ----------------------------------------------------------------------------
+
+void wxListBox::EnsureVisible(int n)
+{
+    wxCHECK_RET( IsValid(n),
+                 wxT("invalid index in wxListBox::EnsureVisible") );
+
+    // when item is before the first visible item, make the item the first visible item
+    const int firstItem = SendMessage(GetHwnd(), LB_GETTOPINDEX, 0, 0);
+    if ( n <= firstItem )
+    {
+        DoSetFirstItem(n);
+        return;
+    }
+
+    // retrieve item height in order to compute last visible item and scroll amount
+    const int itemHeight = SendMessage(GetHwnd(), LB_GETITEMHEIGHT, 0, 0);
+    if ( itemHeight == LB_ERR || itemHeight == 0)
+        return;
+
+    // compute the amount of fully visible items
+    int countVisible = GetClientSize().y / itemHeight;
+    if ( !countVisible )
+        countVisible = 1;
+
+    // when item is before the last fully visible item, it is already visible
+    const int lastItem = firstItem + countVisible - 1;
+    if ( n <= lastItem )
+        return;
+
+    // make the item the last visible item by setting the first visible item accordingly
+    DoSetFirstItem(n - countVisible + 1);
+}
 
 void wxListBox::DoSetFirstItem(int N)
 {
@@ -642,6 +681,13 @@ bool wxListBox::SetFont(const wxFont &font)
         const unsigned count = m_aItems.GetCount();
         for ( unsigned i = 0; i < count; i++ )
             m_aItems[i]->SetFont(font);
+
+        // Non owner drawn list boxes update the item height on their own, but
+        // we need to do it manually in the owner drawn case.
+        wxClientDC dc(this);
+        dc.SetFont(font);
+        SendMessage(GetHwnd(), LB_SETITEMHEIGHT, 0,
+                    dc.GetCharHeight() + 2 * LISTBOX_EXTRA_SPACE);
     }
 
     wxListBoxBase::SetFont(font);
@@ -684,13 +730,6 @@ bool wxListBox::RefreshItem(size_t n)
 // drawing
 // -------
 
-namespace
-{
-    // space beneath/above each row in pixels
-    static const int LISTBOX_EXTRA_SPACE = 1;
-
-} // anonymous namespace
-
 // the height is the same for all items
 // TODO should be changed for LBS_OWNERDRAWVARIABLE style listboxes
 
@@ -703,11 +742,7 @@ bool wxListBox::MSWOnMeasure(WXMEASUREITEMSTRUCT *item)
 
     MEASUREITEMSTRUCT *pStruct = (MEASUREITEMSTRUCT *)item;
 
-#ifdef __WXWINCE__
-    HDC hdc = GetDC(NULL);
-#else
     HDC hdc = CreateIC(wxT("DISPLAY"), NULL, NULL, 0);
-#endif
 
     {
         wxDCTemp dc((WXHDC)hdc);
@@ -717,11 +752,7 @@ bool wxListBox::MSWOnMeasure(WXMEASUREITEMSTRUCT *item)
         pStruct->itemWidth  = dc.GetCharWidth();
     }
 
-#ifdef __WXWINCE__
-    ReleaseDC(NULL, hdc);
-#else
     DeleteDC(hdc);
-#endif
 
     return true;
 }
@@ -738,7 +769,7 @@ bool wxListBox::MSWOnDraw(WXDRAWITEMSTRUCT *item)
     if ( pStruct->itemID == (UINT)-1 )
         return false;
 
-    wxListBoxItem *pItem = (wxListBoxItem *)m_aItems[pStruct->itemID];
+    wxOwnerDrawn *pItem = m_aItems[pStruct->itemID];
 
     wxDCTemp dc((WXHDC)pStruct->hDC);
 

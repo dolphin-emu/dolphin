@@ -121,8 +121,8 @@ private:
     wxBitmapButton* AddBitmapButton( wxWindowID winId, const wxArtID& artId,
                                      const wxString& tip, wxSizer *sizer );
 
-    DECLARE_DYNAMIC_CLASS(wxGenericFileDialog)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxGenericFileDialog);
+    wxDECLARE_EVENT_TABLE();
 
     // these variables are preserved between wxGenericFileDialog calls
     static long ms_lastViewStyle;     // list or report?
@@ -148,11 +148,11 @@ public:
                                defaultDir, defaultFile, wildCard,
                                style,
                                pos, size)
-     {
-     }
+    {
+    }
 
 private:
-     DECLARE_DYNAMIC_CLASS(wxFileDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxFileDialog);
 };
 
 #endif // wxHAS_GENERIC_FILEDIALOG

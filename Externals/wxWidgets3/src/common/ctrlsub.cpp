@@ -30,7 +30,7 @@
     #include "wx/arrstr.h"
 #endif
 
-IMPLEMENT_ABSTRACT_CLASS(wxControlWithItems, wxControl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxControlWithItems, wxControl);
 
 // ============================================================================
 // wxItemContainerImmutable implementation
@@ -255,7 +255,7 @@ void wxItemContainer::AssignNewItemClientData(unsigned int pos,
 
         default:
             wxFAIL_MSG( wxT("unknown client data type") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxClientData_None:
             // nothing to do

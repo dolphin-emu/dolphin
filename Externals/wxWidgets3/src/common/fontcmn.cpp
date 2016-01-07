@@ -97,7 +97,7 @@ wxENUM_MEMBER( wxFONTWEIGHT_LIGHT )
 wxENUM_MEMBER( wxFONTWEIGHT_BOLD )
 wxEND_ENUM( wxFontWeight )
 
-wxIMPLEMENT_DYNAMIC_CLASS_WITH_COPY_XTI(wxFont, wxGDIObject, "wx/font.h")
+wxIMPLEMENT_DYNAMIC_CLASS_WITH_COPY_XTI(wxFont, wxGDIObject, "wx/font.h");
 
 //WX_IMPLEMENT_ANY_VALUE_TYPE(wxAnyValueTypeImpl<wxFont>)
 
@@ -389,7 +389,8 @@ bool wxFontBase::operator==(const wxFont& font) const
             // in wxGTK1 GetPixelSize() calls GetInternalFont() which uses
             // operator==() resulting in infinite recursion so we can't use it
             // in that port
-#if !defined(__WXGTK__) || defined(__WXGTK20__)
+            // in wxQT, GetPixelSize is too slow to be used here
+#if (!defined(__WXGTK__) || defined(__WXGTK20__)) && !defined(__WXQT__)
             GetPixelSize() == font.GetPixelSize() &&
 #endif
             GetFamily() == font.GetFamily() &&
@@ -507,6 +508,16 @@ wxFont wxFont::Bold() const
 {
     wxFont font(*this);
     font.MakeBold();
+    return font;
+}
+
+wxFont wxFont::GetBaseFont() const
+{
+    wxFont font(*this);
+    font.SetStyle(wxFONTSTYLE_NORMAL);
+    font.SetWeight(wxFONTWEIGHT_NORMAL );
+    font.SetUnderlined(false);
+    font.SetStrikethrough(false);
     return font;
 }
 
@@ -776,7 +787,7 @@ void wxNativeFontInfo::SetEncoding(wxFontEncoding encoding_)
 // format there anyhow (but there is a well-defined standard for X11 fonts used
 // by wxGTK and wxMotif)
 
-#if defined(wxNO_NATIVE_FONTINFO) || defined(__WXMSW__) || defined (__WXPM__) || defined(__WXOSX__)
+#if defined(wxNO_NATIVE_FONTINFO) || defined(__WXMSW__) || defined(__WXOSX__)
 
 wxString wxNativeFontInfo::ToUserString() const
 {
@@ -791,14 +802,14 @@ wxString wxNativeFontInfo::ToUserString() const
 
     if ( GetStrikethrough() )
     {
-        desc << _("strikethrough");
+        desc << _(" strikethrough");
     }
 
     switch ( GetWeight() )
     {
         default:
             wxFAIL_MSG( wxT("unknown font weight") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxFONTWEIGHT_NORMAL:
             break;
@@ -816,7 +827,7 @@ wxString wxNativeFontInfo::ToUserString() const
     {
         default:
             wxFAIL_MSG( wxT("unknown font style") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxFONTSTYLE_NORMAL:
             break;
@@ -1096,7 +1107,7 @@ bool wxNativeFontInfo::FromUserString(const wxString& s)
     return true;
 }
 
-#endif // generic or wxMSW or wxOS2
+#endif // generic or wxMSW
 
 
 // wxFont <-> wxString utilities, used by wxConfig

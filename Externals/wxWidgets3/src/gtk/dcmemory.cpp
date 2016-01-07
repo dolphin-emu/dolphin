@@ -17,7 +17,7 @@
 // wxMemoryDCImpl
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxMemoryDCImpl, wxWindowDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxMemoryDCImpl, wxWindowDCImpl);
 
 wxMemoryDCImpl::wxMemoryDCImpl( wxMemoryDC *owner )
   : wxWindowDCImpl( owner )

@@ -34,13 +34,13 @@
 
 // we only have to do it here when we use wxStatusBarGeneric in addition to the
 // standard wxStatusBar class, if wxStatusBarGeneric is the same as
-// wxStatusBar, then the corresponding IMPLEMENT_DYNAMIC_CLASS is already in
+// wxStatusBar, then the corresponding wxIMPLEMENT_DYNAMIC_CLASS is already in
 // common/statbar.cpp
 #if defined(__WXMAC__) || \
     (defined(wxUSE_NATIVE_STATUSBAR) && wxUSE_NATIVE_STATUSBAR)
     #include "wx/generic/statusbr.h"
 
-    IMPLEMENT_DYNAMIC_CLASS(wxStatusBarGeneric, wxWindow)
+    wxIMPLEMENT_DYNAMIC_CLASS(wxStatusBarGeneric, wxWindow);
 #endif // wxUSE_NATIVE_STATUSBAR
 
 // Default status border dimensions
@@ -87,7 +87,7 @@ gboolean statusbar_query_tooltip(GtkWidget*   WXUNUSED(widget),
 // wxStatusBarGeneric
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxStatusBarGeneric, wxWindow)
+wxBEGIN_EVENT_TABLE(wxStatusBarGeneric, wxWindow)
     EVT_PAINT(wxStatusBarGeneric::OnPaint)
     EVT_SIZE(wxStatusBarGeneric::OnSize)
 #ifdef __WXGTK20__
@@ -95,7 +95,7 @@ BEGIN_EVENT_TABLE(wxStatusBarGeneric, wxWindow)
     EVT_RIGHT_DOWN(wxStatusBarGeneric::OnRightDown)
 #endif
     EVT_SYS_COLOUR_CHANGED(wxStatusBarGeneric::OnSysColourChanged)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxStatusBarGeneric::Init()
 {
@@ -122,10 +122,6 @@ bool wxStatusBarGeneric::Create(wxWindow *parent,
     SetThemeEnabled( true );
 
     InitColours();
-
-#ifdef __WXPM__
-    SetFont(*wxSMALL_FONT);
-#endif
 
     int height = (int)((11*GetCharHeight())/10 + 2*GetBorderY());
     SetSize(wxDefaultCoord, wxDefaultCoord, wxDefaultCoord, height);
@@ -299,8 +295,6 @@ void wxStatusBarGeneric::DrawField(wxDC& dc, int i, int textHeight)
 
         dc.SetPen((style == wxSB_RAISED) ? m_mediumShadowPen : m_hilightPen);
 
-#ifndef __WXPM__
-
         // Right and bottom lines
         dc.DrawLine(rect.x + rect.width, rect.y,
                     rect.x + rect.width, rect.y + rect.height);
@@ -314,19 +308,6 @@ void wxStatusBarGeneric::DrawField(wxDC& dc, int i, int textHeight)
                rect.x, rect.y);
         dc.DrawLine(rect.x, rect.y,
             rect.x + rect.width, rect.y);
-#else
-
-        dc.DrawLine(rect.x + rect.width, rect.height + 2,
-                    rect.x, rect.height + 2);
-        dc.DrawLine(rect.x + rect.width, rect.y,
-                    rect.x + rect.width, rect.y + rect.height);
-
-        dc.SetPen((style == wxSB_RAISED) ? m_hilightPen : m_mediumShadowPen);
-        dc.DrawLine(rect.x, rect.y,
-                    rect.x + rect.width, rect.y);
-        dc.DrawLine(rect.x, rect.y + rect.height,
-                    rect.x, rect.y);
-#endif
     }
 
     DrawFieldText(dc, rect, i, textHeight);
@@ -387,16 +368,8 @@ int wxStatusBarGeneric::GetFieldFromPoint(const wxPoint& pt) const
 
 void wxStatusBarGeneric::InitColours()
 {
-#if defined(__WXPM__)
-    m_mediumShadowPen = wxPen(wxColour(127, 127, 127));
-    m_hilightPen = *wxWHITE_PEN;
-
-    SetBackgroundColour(*wxLIGHT_GREY);
-    SetForegroundColour(*wxBLACK);
-#else // !__WXPM__
     m_mediumShadowPen = wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_3DSHADOW));
     m_hilightPen = wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_3DHILIGHT));
-#endif // __WXPM__/!__WXPM__
 }
 
 void wxStatusBarGeneric::SetMinHeight(int height)

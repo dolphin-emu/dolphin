@@ -61,8 +61,8 @@ protected:
     int m_viewSize;
     int m_objectSize;
 
-    DECLARE_DYNAMIC_CLASS(wxScrollBar)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxScrollBar);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_SCROLBAR_H_

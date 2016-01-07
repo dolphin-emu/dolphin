@@ -84,10 +84,32 @@ private:
     wxDECLARE_NO_COPY_CLASS(wxUxThemeFont);
 };
 
+typedef int(__stdcall *DTT_CALLBACK_PROC)(HDC hdc, const wchar_t * pszText, int cchText, RECT * prc, unsigned int dwFlags, WXLPARAM lParam);
+
+typedef struct _DTTOPTS
+{
+    DWORD             dwSize;
+    DWORD             dwFlags;
+    COLORREF          crText;
+    COLORREF          crBorder;
+    COLORREF          crShadow;
+    int               iTextShadowType;
+    POINT             ptShadowOffset;
+    int               iBorderSize;
+    int               iFontPropId;
+    int               iColorPropId;
+    int               iStateId;
+    BOOL              fApplyOverlay;
+    int               iGlowSize;
+    DTT_CALLBACK_PROC pfnDrawTextCallback;
+    WXLPARAM          lParam;
+} DTTOPTS, *PDTTOPTS;
+
 typedef HTHEME  (__stdcall *PFNWXUOPENTHEMEDATA)(HWND, const wchar_t *);
 typedef HRESULT (__stdcall *PFNWXUCLOSETHEMEDATA)(HTHEME);
 typedef HRESULT (__stdcall *PFNWXUDRAWTHEMEBACKGROUND)(HTHEME, HDC, int, int, const RECT *, const RECT *);
 typedef HRESULT (__stdcall *PFNWXUDRAWTHEMETEXT)(HTHEME, HDC, int, int, const wchar_t *, int, DWORD, DWORD, const RECT *);
+typedef HRESULT (__stdcall *PFNWXUDRAWTHEMETEXTEX)(HTHEME, HDC, int, int, const wchar_t *, int, DWORD, RECT *, const DTTOPTS *);
 typedef HRESULT (__stdcall *PFNWXUGETTHEMEBACKGROUNDCONTENTRECT)(HTHEME, HDC, int, int, const RECT *, RECT *);
 typedef HRESULT (__stdcall *PFNWXUGETTHEMEBACKGROUNDEXTENT)(HTHEME, HDC, int, int, const RECT *, RECT *);
 typedef HRESULT (__stdcall *PFNWXUGETTHEMEPARTSIZE)(HTHEME, HDC, int, int, const RECT *, /* enum */ THEMESIZE, SIZE *);
@@ -161,6 +183,7 @@ public:
     wxUX_THEME_DECLARE(PFNWXUCLOSETHEMEDATA, CloseThemeData)
     wxUX_THEME_DECLARE(PFNWXUDRAWTHEMEBACKGROUND, DrawThemeBackground)
     wxUX_THEME_DECLARE(PFNWXUDRAWTHEMETEXT, DrawThemeText)
+    wxUX_THEME_DECLARE(PFNWXUDRAWTHEMETEXTEX, DrawThemeTextEx)
     wxUX_THEME_DECLARE(PFNWXUGETTHEMEBACKGROUNDCONTENTRECT, GetThemeBackgroundContentRect)
     wxUX_THEME_DECLARE(PFNWXUGETTHEMEBACKGROUNDEXTENT, GetThemeBackgroundExtent)
     wxUX_THEME_DECLARE(PFNWXUGETTHEMEPARTSIZE, GetThemePartSize)

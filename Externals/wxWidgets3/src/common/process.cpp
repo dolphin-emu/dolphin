@@ -31,8 +31,8 @@
 
 wxDEFINE_EVENT( wxEVT_END_PROCESS, wxProcessEvent );
 
-IMPLEMENT_DYNAMIC_CLASS(wxProcess, wxEvtHandler)
-IMPLEMENT_DYNAMIC_CLASS(wxProcessEvent, wxEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxProcess, wxEvtHandler);
+wxIMPLEMENT_DYNAMIC_CLASS(wxProcessEvent, wxEvent);
 
 // ============================================================================
 // wxProcess implementation
@@ -169,11 +169,23 @@ bool wxProcess::Exists(int pid)
         case wxKILL_ERROR:
         case wxKILL_BAD_SIGNAL:
             wxFAIL_MSG( wxT("unexpected wxProcess::Kill() return code") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxKILL_NO_PROCESS:
             return false;
     }
+}
+
+bool wxProcess::Activate() const
+{
+#ifdef __WINDOWS__
+    // This function is defined in src/msw/utils.cpp.
+    extern bool wxMSWActivatePID(long pid);
+
+    return wxMSWActivatePID(m_pid);
+#else
+    return false;
+#endif
 }
 
 void wxProcess::SetPriority(unsigned priority)

@@ -22,7 +22,7 @@
 
 #include "wx/osx/private.h"
 
-IMPLEMENT_ABSTRACT_CLASS( wxMenuItemImpl , wxObject )
+wxIMPLEMENT_ABSTRACT_CLASS(wxMenuItemImpl, wxObject);
 
 wxMenuItemImpl::~wxMenuItemImpl()
 {

@@ -39,14 +39,16 @@
     #include "wx/msw/uxtheme.h"
 #endif
 
+#include "wx/msw/wrapwin.h"
+#include <Shlwapi.h>
+
 #define GetEditHwnd() ((HWND)(GetEditHWND()))
 
 // ----------------------------------------------------------------------------
 // Classes used by auto-completion implementation.
 // ----------------------------------------------------------------------------
 
-// standard VC6 SDK (WINVER == 0x0400) does not know about IAutoComplete
-#if wxUSE_OLE && (WINVER >= 0x0500)
+#if wxUSE_OLE
     #define HAS_AUTOCOMPLETE
 #endif
 
@@ -55,7 +57,7 @@
 #include "wx/msw/ole/oleutils.h"
 #include <shldisp.h>
 
-#if defined(__MINGW32__) || defined (__WATCOMC__) || defined(__CYGWIN__)
+#if defined(__MINGW32__) || defined(__CYGWIN__)
     // needed for IID_IAutoComplete, IID_IAutoComplete2 and ACO_AUTOSUGGEST
     #include <shlguid.h>
 
@@ -101,6 +103,10 @@ DEFINE_GUID(wxIID_IAutoCompleteDropDown,
 
 DEFINE_GUID(wxCLSID_AutoComplete,
     0x00bb2763, 0x6a77, 0x11d0, 0xa5, 0x35, 0x00, 0xc0, 0x4f, 0xd7, 0xd0, 0x62);
+
+#ifndef ACDD_VISIBLE
+    #define ACDD_VISIBLE 0x0001
+#endif
 
 // Small helper class which can be used to ensure thread safety even when
 // wxUSE_THREADS==0 (and hence wxCriticalSection does nothing).
@@ -353,7 +359,7 @@ IMPLEMENT_IUNKNOWN_METHODS(wxIEnumString)
 
 // This class gathers the all auto-complete-related stuff we use. It is
 // allocated on demand by wxTextEntry when AutoComplete() is called.
-class wxTextAutoCompleteData wxBIND_OR_CONNECT_HACK_ONLY_BASE_CLASS
+class wxTextAutoCompleteData
 {
 public:
     // The constructor associates us with the given text entry.
@@ -433,6 +439,8 @@ public:
                                        ACO_UPDOWNKEYDROPSLIST);
             pAutoComplete2->Release();
         }
+
+        m_win->Bind(wxEVT_CHAR_HOOK, &wxTextAutoCompleteData::OnCharHook, this);
     }
 
     ~wxTextAutoCompleteData()
@@ -498,10 +506,8 @@ public:
                 // neither as, due to our use of ACO_AUTOAPPEND, we get
                 // EN_CHANGE notifications from the control every time
                 // IAutoComplete auto-appends something to it.
-                wxBIND_OR_CONNECT_HACK(m_win, wxEVT_AFTER_CHAR,
-                                        wxKeyEventHandler,
-                                        wxTextAutoCompleteData::OnAfterChar,
-                                        this);
+                m_win->Bind(wxEVT_AFTER_CHAR,
+                            &wxTextAutoCompleteData::OnAfterChar, this);
             }
 
             UpdateStringsFromCustomCompleter();
@@ -568,6 +574,28 @@ private:
         event.Skip();
     }
 
+    void OnCharHook(wxKeyEvent& event)
+    {
+        // If the autocomplete drop-down list is currently displayed when the
+        // user presses Escape, we need to dismiss it manually from here as
+        // Escape could be eaten by something else (e.g. EVT_CHAR_HOOK in the
+        // dialog that this control is found in) otherwise.
+        if ( event.GetKeyCode() == WXK_ESCAPE )
+        {
+            DWORD dwFlags = 0;
+            if ( SUCCEEDED(m_autoCompleteDropDown->GetDropDownStatus(&dwFlags,
+                                                                     NULL))
+                    && dwFlags == ACDD_VISIBLE )
+            {
+                ::SendMessage(GetHwndOf(m_win), WM_KEYDOWN, WXK_ESCAPE, 0);
+
+                // Do not skip the event in this case, we've already handled it.
+                return;
+            }
+        }
+
+        event.Skip();
+    }
 
     // The text entry we're associated with.
     wxTextEntry * const m_entry;
@@ -750,24 +778,6 @@ void wxTextEntry::GetSelection(long *from, long *to) const
 
 bool wxTextEntry::DoAutoCompleteFileNames(int flags)
 {
-    typedef HRESULT (WINAPI *SHAutoComplete_t)(HWND, DWORD);
-    static SHAutoComplete_t s_pfnSHAutoComplete = (SHAutoComplete_t)-1;
-    static wxDynamicLibrary s_dllShlwapi;
-    if ( s_pfnSHAutoComplete == (SHAutoComplete_t)-1 )
-    {
-        if ( !s_dllShlwapi.Load(wxT("shlwapi.dll"), wxDL_VERBATIM | wxDL_QUIET) )
-        {
-            s_pfnSHAutoComplete = NULL;
-        }
-        else
-        {
-            wxDL_INIT_FUNC(s_pfn, SHAutoComplete, s_dllShlwapi);
-        }
-    }
-
-    if ( !s_pfnSHAutoComplete )
-        return false;
-
     DWORD dwFlags = 0;
     if ( flags & wxFILE )
         dwFlags |= SHACF_FILESYS_ONLY;
@@ -779,7 +789,7 @@ bool wxTextEntry::DoAutoCompleteFileNames(int flags)
         return false;
     }
 
-    HRESULT hr = (*s_pfnSHAutoComplete)(GetEditHwnd(), dwFlags);
+    HRESULT hr = ::SHAutoComplete(GetEditHwnd(), dwFlags);
     if ( FAILED(hr) )
     {
         wxLogApiError(wxT("SHAutoComplete()"), hr);
@@ -953,7 +963,6 @@ wxString wxTextEntry::GetHint() const
 
 bool wxTextEntry::DoSetMargins(const wxPoint& margins)
 {
-#if !defined(__WXWINCE__)
     bool res = true;
 
     if ( margins.x != -1 )
@@ -972,22 +981,15 @@ bool wxTextEntry::DoSetMargins(const wxPoint& margins)
     }
 
     return res;
-#else
-    return false;
-#endif
 }
 
 wxPoint wxTextEntry::DoGetMargins() const
 {
-#if !defined(__WXWINCE__)
     LRESULT lResult = ::SendMessage(GetEditHwnd(), EM_GETMARGINS,
                                     0, 0);
     int left = LOWORD(lResult);
     int top = -1;
     return wxPoint(left, top);
-#else
-    return wxPoint(-1, -1);
-#endif
 }
 
 #endif // wxUSE_TEXTCTRL || wxUSE_COMBOBOX

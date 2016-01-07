@@ -164,7 +164,7 @@ void wxMessageOutputStderr::Output(const wxString& str)
 
 void wxMessageOutputDebug::Output(const wxString& str)
 {
-#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
+#if defined(__WINDOWS__)
     wxString out(AppendLineFeedIfNeeded(str));
     out.Replace(wxT("\t"), wxT("        "));
     out.Replace(wxT("\n"), wxT("\r\n"));

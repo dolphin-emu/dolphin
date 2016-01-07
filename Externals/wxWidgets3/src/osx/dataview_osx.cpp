@@ -62,15 +62,15 @@ public:
  //
  // inherited methods from wxDataViewModelNotifier
  //
-  virtual bool ItemAdded   (wxDataViewItem const &parent, wxDataViewItem const &item);
-  virtual bool ItemsAdded  (wxDataViewItem const& parent, wxDataViewItemArray const& items);
-  virtual bool ItemChanged (wxDataViewItem const& item);
-  virtual bool ItemsChanged(wxDataViewItemArray const& items);
-  virtual bool ItemDeleted (wxDataViewItem const& parent, wxDataViewItem const& item);
-  virtual bool ItemsDeleted(wxDataViewItem const& parent, wxDataViewItemArray const& items);
-  virtual bool ValueChanged(wxDataViewItem const& item, unsigned int col);
-  virtual bool Cleared();
-  virtual void Resort();
+  virtual bool ItemAdded   (wxDataViewItem const &parent, wxDataViewItem const &item) wxOVERRIDE;
+  virtual bool ItemsAdded  (wxDataViewItem const& parent, wxDataViewItemArray const& items) wxOVERRIDE;
+  virtual bool ItemChanged (wxDataViewItem const& item) wxOVERRIDE;
+  virtual bool ItemsChanged(wxDataViewItemArray const& items) wxOVERRIDE;
+  virtual bool ItemDeleted (wxDataViewItem const& parent, wxDataViewItem const& item) wxOVERRIDE;
+  virtual bool ItemsDeleted(wxDataViewItem const& parent, wxDataViewItemArray const& items) wxOVERRIDE;
+  virtual bool ValueChanged(wxDataViewItem const& item, unsigned int col) wxOVERRIDE;
+  virtual bool Cleared() wxOVERRIDE;
+  virtual void Resort() wxOVERRIDE;
 
 protected:
  // if the dataview control can have a variable row height this method sets the dataview's control row height of
@@ -129,6 +129,7 @@ bool wxOSXDataViewModelNotifier::ItemChanged(wxDataViewItem const& item)
     wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED,m_DataViewCtrlPtr->GetId());
 
     dataViewEvent.SetEventObject(m_DataViewCtrlPtr);
+    dataViewEvent.SetModel(m_DataViewCtrlPtr->GetModel());
     dataViewEvent.SetItem(item);
    // sent the equivalent wxWidget event:
     m_DataViewCtrlPtr->HandleWindowEvent(dataViewEvent);
@@ -150,6 +151,7 @@ bool wxOSXDataViewModelNotifier::ItemsChanged(wxDataViewItemArray const& items)
 
 
   dataViewEvent.SetEventObject(m_DataViewCtrlPtr);
+  dataViewEvent.SetModel(m_DataViewCtrlPtr->GetModel());
   for (size_t indexItem=0; indexItem<noOfItems; ++indexItem)
     if (m_DataViewCtrlPtr->GetDataViewPeer()->Update(GetOwner()->GetParent(items[indexItem]),items[indexItem]))
     {
@@ -215,6 +217,7 @@ bool wxOSXDataViewModelNotifier::ValueChanged(wxDataViewItem const& item, unsign
     wxDataViewEvent dataViewEvent(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED,m_DataViewCtrlPtr->GetId());
 
     dataViewEvent.SetEventObject(m_DataViewCtrlPtr);
+    dataViewEvent.SetModel(m_DataViewCtrlPtr->GetModel());
     dataViewEvent.SetColumn(col);
     dataViewEvent.SetItem(item);
    // send the equivalent wxWidget event:
@@ -346,7 +349,12 @@ void wxDataViewCustomRenderer::SetDC(wxDC* newDCPtr)
 
 wxDataViewCtrl::~wxDataViewCtrl()
 {
-  ClearColumns();
+  // Notice that we don't call ClearColumns() from here as with Cocoa this
+  // method actually recreates the entire control which is unnecessary when
+  // we're about to dsetroy it and results in unexpected side effects (e.g.
+  // calls to comparison function as the entire contents of the control is
+  // re-added to it and so possibly re-sorted).
+  WX_CLEAR_ARRAY(m_ColumnPtrs);
 
   // Ensure that the already destructed controls is not notified about changes
   // in the model any more.
@@ -390,7 +398,10 @@ bool wxDataViewCtrl::AssociateModel(wxDataViewModel* model)
   // We could have been associated with another model previously, break the
   // association in this case.
   if ( m_ModelNotifier )
+  {
       m_ModelNotifier->GetOwner()->RemoveNotifier(m_ModelNotifier);
+      m_ModelNotifier = NULL;
+  }
 
   if (wxDataViewCtrlBase::AssociateModel(model) && dataViewWidgetPtr->AssociateModel(model))
   {
@@ -423,8 +434,6 @@ bool wxDataViewCtrl::InsertColumn(unsigned int pos, wxDataViewColumn* columnPtr)
   wxCHECK_MSG(dataViewWidgetPtr != NULL,                                         false,"Pointer to native control must not be NULL.");
   wxCHECK_MSG(columnPtr != NULL,                                                 false,"Column pointer must not be NULL.");
   wxCHECK_MSG(columnPtr->GetRenderer() != NULL,                                  false,"Column does not have a renderer.");
-  wxCHECK_MSG(GetModel() != NULL,                                          false,"No model associated with control.");
-  wxCHECK_MSG(columnPtr->GetModelColumn() < GetModel()->GetColumnCount(),false,"Column's model column has no equivalent in the associated model.");
 
  // add column to wxWidget's internal structure:
   if (wxDataViewCtrlBase::InsertColumn(pos,columnPtr))
@@ -775,12 +784,12 @@ void wxDataViewCtrl::OnMouse(wxMouseEvent& event)
 #endif
 }
 
-IMPLEMENT_DYNAMIC_CLASS(wxDataViewCtrl,wxDataViewCtrlBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDataViewCtrl,wxDataViewCtrlBase);
 
-BEGIN_EVENT_TABLE(wxDataViewCtrl,wxDataViewCtrlBase)
+wxBEGIN_EVENT_TABLE(wxDataViewCtrl,wxDataViewCtrlBase)
   EVT_SIZE(wxDataViewCtrl::OnSize)
   EVT_MOTION(wxDataViewCtrl::OnMouse)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 #endif // (wxUSE_DATAVIEWCTRL != 0) && (!defined(wxUSE_GENERICDATAVIEWCTRL) || (wxUSE_GENERICDATAVIEWCTRL == 0))
 

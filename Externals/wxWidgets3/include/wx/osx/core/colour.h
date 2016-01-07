@@ -80,7 +80,7 @@ private:
     ChannelType             m_green;
     ChannelType             m_alpha;
 
-    DECLARE_DYNAMIC_CLASS(wxColour)
+    wxDECLARE_DYNAMIC_CLASS(wxColour);
 };
 
 #endif

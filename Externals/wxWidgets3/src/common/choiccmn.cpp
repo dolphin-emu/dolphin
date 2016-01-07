@@ -66,7 +66,7 @@ wxFLAGS_MEMBER(wxHSCROLL)
 
 wxEND_FLAGS( wxChoiceStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxChoice, wxControl, "wx/choice.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxChoice, wxControl, "wx/choice.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxChoice)
 wxEVENT_PROPERTY( Select, wxEVT_CHOICE, wxCommandEvent )

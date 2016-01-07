@@ -57,9 +57,7 @@ class WXDLLIMPEXP_FWD_BASE wxObject;
 
 #include "wx/arrstr.h"
 
-#ifndef __WXWINCE__
-    #include <time.h>   // for time_t
-#endif
+#include <time.h>   // for time_t
 
 #include "wx/dynarray.h"
 #include "wx/hashmap.h"
@@ -564,13 +562,6 @@ public:
     // this method exists for backwards compatibility only, don't use
     bool HasPendingMessages() const { return true; }
 
-#if WXWIN_COMPATIBILITY_2_6
-    // this function doesn't do anything any more, don't call it
-    static wxDEPRECATED_INLINE(
-        wxChar *SetLogBuffer(wxChar *, size_t = 0), return NULL;
-    );
-#endif // WXWIN_COMPATIBILITY_2_6
-
     // don't use integer masks any more, use string trace masks instead
 #if WXWIN_COMPATIBILITY_2_8
     static wxDEPRECATED_INLINE( void SetTraceMask(wxTraceMask ulMask),
@@ -712,10 +703,10 @@ public:
 
     // show the buffer contents to the user in the best possible way (this uses
     // wxMessageOutputMessageBox) and clear it
-    virtual void Flush();
+    virtual void Flush() wxOVERRIDE;
 
 protected:
-    virtual void DoLogTextAtLevel(wxLogLevel level, const wxString& msg);
+    virtual void DoLogTextAtLevel(wxLogLevel level, const wxString& msg) wxOVERRIDE;
 
 private:
     wxString m_str;
@@ -733,7 +724,7 @@ public:
 
 protected:
     // implement sink function
-    virtual void DoLogText(const wxString& msg);
+    virtual void DoLogText(const wxString& msg) wxOVERRIDE;
 
     FILE *m_fp;
 
@@ -751,7 +742,7 @@ public:
 
 protected:
     // implement sink function
-    virtual void DoLogText(const wxString& msg);
+    virtual void DoLogText(const wxString& msg) wxOVERRIDE;
 
     // using ptr here to avoid including <iostream.h> from this file
     wxSTD ostream *m_ostr;
@@ -818,7 +809,7 @@ public:
     wxLog *GetOldLog() const { return m_logOld; }
 
     // override base class version to flush the old logger as well
-    virtual void Flush();
+    virtual void Flush() wxOVERRIDE;
 
     // call to avoid destroying the old log target
     void DetachOldLog() { m_logOld = NULL; }
@@ -827,7 +818,7 @@ protected:
     // pass the record to the old logger if needed
     virtual void DoLogRecord(wxLogLevel level,
                              const wxString& msg,
-                             const wxLogRecordInfo& info);
+                             const wxLogRecordInfo& info) wxOVERRIDE;
 
 private:
     // the current log target
@@ -1024,89 +1015,6 @@ public:
         DoLogTraceMask, DoLogTraceMaskUtf8
     )
 #endif // WXWIN_COMPATIBILITY_2_8
-
-#ifdef __WATCOMC__
-    // workaround for http://bugzilla.openwatcom.org/show_bug.cgi?id=351
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               1, (const wxString&),
-                               (wxFormatString(f1)))
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               1, (const wxCStrData&),
-                               (wxFormatString(f1)))
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               1, (const char*),
-                               (wxFormatString(f1)))
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               1, (const wchar_t*),
-                               (wxFormatString(f1)))
-
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               2, (long, const wxString&),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               2, (long, const wxCStrData&),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               2, (long, const char *),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               2, (long, const wchar_t *),
-                               (f1, wxFormatString(f2)))
-
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               2, (wxObject *, const wxString&),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               2, (wxObject *, const wxCStrData&),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               2, (wxObject *, const char *),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, Log,
-                               2, (wxObject *, const wchar_t *),
-                               (f1, wxFormatString(f2)))
-
-    WX_VARARG_WATCOM_WORKAROUND(void, LogAtLevel,
-                               2, (wxLogLevel, const wxString&),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, LogAtLevel,
-                               2, (wxLogLevel, const wxCStrData&),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, LogAtLevel,
-                               2, (wxLogLevel, const char *),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, LogAtLevel,
-                               2, (wxLogLevel, const wchar_t *),
-                               (f1, wxFormatString(f2)))
-
-    WX_VARARG_WATCOM_WORKAROUND(void, LogTrace,
-                               2, (const wxString&, const wxString&),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, LogTrace,
-                               2, (const wxString&, const wxCStrData&),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, LogTrace,
-                               2, (const wxString&, const char *),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, LogTrace,
-                               2, (const wxString&, const wchar_t *),
-                               (f1, wxFormatString(f2)))
-
-#if WXWIN_COMPATIBILITY_2_8
-    WX_VARARG_WATCOM_WORKAROUND(void, LogTrace,
-                               2, (wxTraceMask, wxTraceMask),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, LogTrace,
-                               2, (wxTraceMask, const wxCStrData&),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, LogTrace,
-                               2, (wxTraceMask, const char *),
-                               (f1, wxFormatString(f2)))
-    WX_VARARG_WATCOM_WORKAROUND(void, LogTrace,
-                               2, (wxTraceMask, const wchar_t *),
-                               (f1, wxFormatString(f2)))
-#endif // WXWIN_COMPATIBILITY_2_8
-#endif // __WATCOMC__
 
 private:
 #if !wxUSE_UTF8_LOCALE_ONLY
@@ -1342,21 +1250,6 @@ WXDLLIMPEXP_BASE const wxChar* wxSysErrorMsg(unsigned long nErrCode = 0);
 //
 //       See also #11829 for the problems with other simpler approaches,
 //       notably the need for two macros due to buggy __LINE__ in MSVC.
-//
-// Note 2: Unfortunately we can't use the same solution for all compilers
-//         because the loop-based one results in problems with MSVC6 due to its
-//         wrong (pre-C++98) rules for the scope of the variables declared
-//         inside the loop, as this prevents us from using wxLogXXX() in switch
-//         statement clauses ("initialization of loopvar skipped by case"). So
-//         for now, i.e. while we still support VC6, use the previous solution
-//         for it (FIXME-VC6).
-#ifdef __VISUALC6__
-#define wxDO_LOG_IF_ENABLED(level)                                            \
-    if ( !wxLog::IsLevelEnabled(wxLOG_##level, wxLOG_COMPONENT) )             \
-    {}                                                                        \
-    else                                                                      \
-        wxDO_LOG(level)
-#else
 #define wxDO_LOG_IF_ENABLED_HELPER(level, loopvar)                            \
     for ( bool loopvar = false;                                               \
           !loopvar && wxLog::IsLevelEnabled(wxLOG_##level, wxLOG_COMPONENT);  \
@@ -1365,7 +1258,6 @@ WXDLLIMPEXP_BASE const wxChar* wxSysErrorMsg(unsigned long nErrCode = 0);
 
 #define wxDO_LOG_IF_ENABLED(level)                                            \
     wxDO_LOG_IF_ENABLED_HELPER(level, wxMAKE_UNIQUE_NAME(wxlogcheck))
-#endif
 
 // wxLogFatalError() is special as it can't be disabled
 #define wxLogFatalError wxDO_LOG(FatalError)
@@ -1464,34 +1356,14 @@ WXDLLIMPEXP_BASE const wxChar* wxSysErrorMsg(unsigned long nErrCode = 0);
 #undef wxUSE_LOG_TRACE
 #define wxUSE_LOG_TRACE 0
 
-#if defined(__WATCOMC__) || defined(__MINGW32__)
-    // Mingw has similar problem with wxLogSysError:
-    #define WX_WATCOM_OR_MINGW_ONLY_CODE( x )  x
-#else
-    #define WX_WATCOM_OR_MINGW_ONLY_CODE( x )
-#endif
-
 // define macros for defining log functions which do nothing at all
-//
-// WX_WATCOM_ONLY_CODE is needed to work around
-// http://bugzilla.openwatcom.org/show_bug.cgi?id=351
 #define wxDEFINE_EMPTY_LOG_FUNCTION(level)                                  \
     WX_DEFINE_VARARG_FUNC_NOP(wxLog##level, 1, (const wxFormatString&))     \
-    WX_WATCOM_ONLY_CODE(                                                    \
-        WX_DEFINE_VARARG_FUNC_NOP(wxLog##level, 1, (const char*))           \
-        WX_DEFINE_VARARG_FUNC_NOP(wxLog##level, 1, (const wchar_t*))        \
-        WX_DEFINE_VARARG_FUNC_NOP(wxLog##level, 1, (const wxCStrData&))     \
-    )                                                                       \
     inline void wxVLog##level(const wxFormatString& WXUNUSED(format),       \
                               va_list WXUNUSED(argptr)) { }                 \
 
 #define wxDEFINE_EMPTY_LOG_FUNCTION2(level, argclass)                       \
     WX_DEFINE_VARARG_FUNC_NOP(wxLog##level, 2, (argclass, const wxFormatString&)) \
-    WX_WATCOM_OR_MINGW_ONLY_CODE(                                           \
-        WX_DEFINE_VARARG_FUNC_NOP(wxLog##level, 2, (argclass, const char*)) \
-        WX_DEFINE_VARARG_FUNC_NOP(wxLog##level, 2, (argclass, const wchar_t*)) \
-        WX_DEFINE_VARARG_FUNC_NOP(wxLog##level, 2, (argclass, const wxCStrData&)) \
-    )                                                                       \
     inline void wxVLog##level(argclass WXUNUSED(arg),                       \
                               const wxFormatString& WXUNUSED(format),       \
                               va_list WXUNUSED(argptr)) {}
@@ -1585,11 +1457,6 @@ public:
         WX_DEFINE_VARARG_FUNC_NOP(wxLogTrace, 2, (wxTraceMask, const wxFormatString&))
         #endif
         WX_DEFINE_VARARG_FUNC_NOP(wxLogTrace, 2, (const wxString&, const wxFormatString&))
-        #ifdef __WATCOMC__
-        // workaround for http://bugzilla.openwatcom.org/show_bug.cgi?id=351
-        WX_DEFINE_VARARG_FUNC_NOP(wxLogTrace, 2, (const char*, const char*))
-        WX_DEFINE_VARARG_FUNC_NOP(wxLogTrace, 2, (const wchar_t*, const wchar_t*))
-        #endif
     #endif // HAVE_VARIADIC_MACROS/!HAVE_VARIADIC_MACROS
 #endif // wxUSE_LOG_TRACE/!wxUSE_LOG_TRACE
 
@@ -1624,15 +1491,6 @@ wxSafeShowMessage(const wxString& title, const wxString& text);
     #define wxLogApiError(api, err) wxLogNop()
     #define wxLogLastError(api) wxLogNop()
 #endif // wxUSE_LOG_DEBUG/!wxUSE_LOG_DEBUG
-
-// wxCocoa has additiional trace masks
-#if defined(__WXCOCOA__)
-#include "wx/cocoa/log.h"
-#endif
-
-#ifdef WX_WATCOM_ONLY_CODE
-    #undef WX_WATCOM_ONLY_CODE
-#endif
 
 // macro which disables debug logging in release builds: this is done by
 // default by wxIMPLEMENT_APP() so usually it doesn't need to be used explicitly

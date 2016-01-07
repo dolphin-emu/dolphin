@@ -46,7 +46,7 @@
 
 #include "wx/private/selectdispatcher.h"
 #include "wx/private/fdiodispatcher.h"
-#include "wx/unix/execute.h"
+#include "wx/unix/private/execute.h"
 #include "wx/unix/pipe.h"
 #include "wx/unix/private.h"
 
@@ -147,20 +147,10 @@
 #if !defined(HAVE_USLEEP) && \
     ((defined(__SUN__) && !defined(__SunOs_5_6) && \
                          !defined(__SunOs_5_7) && !defined(__SUNPRO_CC)) || \
-     defined(__osf__) || defined(__EMX__))
+     defined(__osf__))
     extern "C"
     {
-        #ifdef __EMX__
-            /* I copied this from the XFree86 diffs. AV. */
-            #define INCL_DOSPROCESS
-            #include <os2.h>
-            inline void usleep(unsigned long delay)
-            {
-                DosSleep(delay ? (delay/1000l) : 1l);
-            }
-        #else // Unix
-            int usleep(unsigned int usec);
-        #endif // __EMX__/Unix
+        int usleep(unsigned int usec);
     };
 
     #define HAVE_USLEEP 1
@@ -305,14 +295,14 @@ bool wxPipeInputStream::CanRead() const
     {
         case -1:
             wxLogSysError(_("Impossible to get child process input"));
-            // fall through
+            wxFALLTHROUGH;
 
         case 0:
             return false;
 
         default:
             wxFAIL_MSG(wxT("unexpected select() return value"));
-            // still fall through
+            wxFALLTHROUGH;
 
         case 1:
             // input available -- or maybe not, as select() returns 1 when a
@@ -346,7 +336,7 @@ size_t wxPipeOutputStream::OnSysWrite(const void *buffer, size_t size)
 #endif
            // do not treat it as an error
            m_file->ClearLastError();
-           // fall through
+           wxFALLTHROUGH;
 
        // no error
        case 0:
@@ -462,7 +452,7 @@ private:
 // wxExecute implementations
 // ----------------------------------------------------------------------------
 
-#if defined(__DARWIN__)
+#if defined(__DARWIN__) && !defined(__WXOSX_IPHONE__)
 bool wxMacLaunch(char **argv);
 #endif
 
@@ -587,7 +577,7 @@ long wxExecute(char **argv, int flags, wxProcess *process,
                     wxT("wxExecute() can be called only from the main thread") );
 #endif // wxUSE_THREADS
 
-#if defined(__WXCOCOA__) || ( defined(__WXOSX_MAC__) && wxOSX_USE_COCOA_OR_CARBON )
+#if defined(__DARWIN__) && !defined(__WXOSX_IPHONE__)
     // wxMacLaunch() only executes app bundles and only does it asynchronously.
     // It returns false if the target is not an app bundle, thus falling
     // through to the regular code for non app bundles.
@@ -659,7 +649,7 @@ long wxExecute(char **argv, int flags, wxProcess *process,
         //     always opened so don't do it any more, after all there doesn't
         //     seem to be any real problem with keeping them opened
 
-#if !defined(__VMS) && !defined(__EMX__)
+#if !defined(__VMS)
         if ( flags & wxEXEC_MAKE_GROUP_LEADER )
         {
             // Set process group to child process' pid.  Then killing -pid
@@ -697,7 +687,6 @@ long wxExecute(char **argv, int flags, wxProcess *process,
         // the descriptors do not need to be closed but for now this is better
         // than never closing them at all as wx code never used FD_CLOEXEC.
 
-#ifdef __DARWIN__
         // TODO: Iterating up to FD_SETSIZE is both inefficient (because it may
         //       be quite big) and incorrect (because in principle we could
         //       have more opened descriptions than this number). Unfortunately
@@ -705,14 +694,6 @@ long wxExecute(char **argv, int flags, wxProcess *process,
         //       above a certain threshold but non-portable solutions exist for
         //       most platforms, see [http://stackoverflow.com/questions/899038/
         //          getting-the-highest-allocated-file-descriptor]
-        //
-        // Unfortunately, we cannot do this safely on OS X, because libdispatch
-        // may crash when we do this:
-        //     Exception Type:  EXC_BAD_INSTRUCTION (SIGILL)
-        //     Exception Codes: 0x0000000000000001, 0x0000000000000000
-        //
-        //     Application Specific Information:
-        //     BUG IN CLIENT OF LIBDISPATCH: Do not close random Unix descriptors
         for ( int fd = 0; fd < (int)FD_SETSIZE; ++fd )
         {
             if ( fd != STDIN_FILENO  &&
@@ -722,7 +703,6 @@ long wxExecute(char **argv, int flags, wxProcess *process,
                 close(fd);
             }
         }
-#endif // !__DARWIN__
 
 
         // Process additional options if we have any
@@ -781,8 +761,6 @@ long wxExecute(char **argv, int flags, wxProcess *process,
     }
     else // we're in parent
     {
-        execData.OnStart(pid);
-
         // prepare for IO redirection
 
 #if HAS_PIPE_STREAMS
@@ -834,16 +812,23 @@ long wxExecute(char **argv, int flags, wxProcess *process,
             pipeErr.Close();
         }
 
-        // For the asynchronous case we don't have to do anything else, just
-        // let the process run.
         if ( !(flags & wxEXEC_SYNC) )
         {
             // Ensure that the housekeeping data is kept alive, it will be
             // destroyed only when the child terminates.
             execDataPtr.release();
-
-            return execData.pid;
         }
+
+        // Put the housekeeping data into the child process lookup table.
+        // Note that when running asynchronously, if the child has already
+        // finished this call will delete the execData and call any
+        // wxProcess's OnTerminate() handler immediately.
+        execData.OnStart(pid);
+
+        // For the asynchronous case we don't have to do anything else, just
+        // let the process run (if not already finished).
+        if ( !(flags & wxEXEC_SYNC) )
+            return pid;
 
 
         // If we don't need to dispatch any events, things are relatively
@@ -1163,6 +1148,14 @@ wxString wxGetOsDescription()
     return wxGetCommandOutput(wxT("uname -s -r -m"));
 }
 
+bool wxCheckOsVersion(int majorVsn, int minorVsn)
+{
+    int majorCur, minorCur;
+    wxGetOsVersion(&majorCur, &minorCur);
+
+    return majorCur > majorVsn || (majorCur == majorVsn && minorCur >= minorVsn);
+}
+
 #endif // !__DARWIN__
 
 unsigned long wxGetProcessId()
@@ -1177,7 +1170,7 @@ wxMemorySize wxGetFreeMemory()
     FILE *fp = fopen("/proc/meminfo", "r");
     if ( fp )
     {
-        long memFree = -1;
+        wxMemorySize memFreeBytes = (wxMemorySize)-1;
 
         char buf[1024];
         if ( fgets(buf, WXSIZEOF(buf), fp) && fgets(buf, WXSIZEOF(buf), fp) )
@@ -1185,33 +1178,46 @@ wxMemorySize wxGetFreeMemory()
             // /proc/meminfo changed its format in kernel 2.6
             if ( wxPlatformInfo().CheckOSVersion(2, 6) )
             {
-                unsigned long cached, buffers;
-                sscanf(buf, "MemFree: %ld", &memFree);
+                unsigned long memFree;
+                if ( sscanf(buf, "MemFree: %lu", &memFree) == 1 )
+                {
+                    // We consider memory used by the IO buffers and cache as
+                    // being "free" too as Linux aggressively uses free memory
+                    // for caching and the amount of memory reported as really
+                    // free is far too low for lightly loaded system.
+                    if ( fgets(buf, WXSIZEOF(buf), fp) )
+                    {
+                        unsigned long buffers;
+                        if ( sscanf(buf, "Buffers: %lu", &buffers) == 1 )
+                            memFree += buffers;
+                    }
 
-                fgets(buf, WXSIZEOF(buf), fp);
-                sscanf(buf, "Buffers: %lu", &buffers);
+                    if ( fgets(buf, WXSIZEOF(buf), fp) )
+                    {
+                        unsigned long cached;
+                        if ( sscanf(buf, "Cached: %lu", &cached) == 1 )
+                            memFree += cached;
+                    }
 
-                fgets(buf, WXSIZEOF(buf), fp);
-                sscanf(buf, "Cached: %lu", &cached);
-
-                // add to "MemFree" also the "Buffers" and "Cached" values as
-                // free(1) does as otherwise the value never makes sense: for
-                // kernel 2.6 it's always almost 0
-                memFree += buffers + cached;
-
-                // values here are always expressed in kB and we want bytes
-                memFree *= 1024;
+                    // values here are always expressed in kB and we want bytes
+                    memFreeBytes = memFree;
+                    memFreeBytes *= 1024;
+                }
             }
             else // Linux 2.4 (or < 2.6, anyhow)
             {
-                long memTotal, memUsed;
-                sscanf(buf, "Mem: %ld %ld %ld", &memTotal, &memUsed, &memFree);
+                long memTotal, memUsed, memFree;
+                if ( sscanf(buf, "Mem: %ld %ld %ld",
+                            &memTotal, &memUsed, &memFree) == 3 )
+                {
+                    memFreeBytes = memFree;
+                }
             }
         }
 
         fclose(fp);
 
-        return (wxMemorySize)memFree;
+        return memFreeBytes;
     }
 #elif defined(__SGI__)
     struct rminfo realmem;
@@ -1288,10 +1294,10 @@ public:
         gs_envVars.clear();
     }
 
-    DECLARE_DYNAMIC_CLASS(wxSetEnvModule)
+    wxDECLARE_DYNAMIC_CLASS(wxSetEnvModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxSetEnvModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSetEnvModule, wxModule);
 
 #endif // USE_PUTENV
 
@@ -1615,9 +1621,21 @@ void wxExecuteData::OnStart(int pid_)
     if ( process )
         process->SetPid(pid);
 
-    // Finally, add this object itself to the list of child processes so that
+    // Add this object itself to the list of child processes so that
     // we can check for its termination the next time we get SIGCHLD.
     ms_childProcesses[pid] = this;
+
+    // However, if the child exited before we finished setting up above,
+    // we may have already missed its SIGCHLD.  So we also do an explicit
+    // check here before returning.
+    int exitcode;
+    if ( CheckForChildExit(pid, &exitcode) )
+    {
+        // Handle its termination if it did.
+        // This call will implicitly remove it from ms_childProcesses
+        // and, if running asynchronously, it will delete itself.
+        OnExit(exitcode);
+    }
 }
 
 void wxExecuteData::OnExit(int exitcode_)

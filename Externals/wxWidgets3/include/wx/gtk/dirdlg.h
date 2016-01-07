@@ -37,8 +37,8 @@ public:
 
 public:     // overrides from wxGenericDirDialog
 
-    wxString GetPath() const;
-    void SetPath(const wxString& path);
+    wxString GetPath() const wxOVERRIDE;
+    void SetPath(const wxString& path) wxOVERRIDE;
 
 
     // Implementation only.
@@ -51,13 +51,13 @@ protected:
     // form doesn't have any m_wxwindow
     virtual void DoSetSize(int x, int y,
                            int width, int height,
-                           int sizeFlags = wxSIZE_AUTO);
+                           int sizeFlags = wxSIZE_AUTO) wxOVERRIDE;
 
 
 private:
     wxString m_selectedDirectory;
 
-    DECLARE_DYNAMIC_CLASS(wxDirDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxDirDialog);
 };
 
 #endif // __GTKDIRDLGH__

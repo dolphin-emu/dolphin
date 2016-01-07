@@ -192,7 +192,7 @@ static void gtk_radiobutton_size_allocate( GtkWidget *widget,
 // wxRadioBox
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxRadioBox,wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxRadioBox, wxControl);
 
 bool wxRadioBox::Create( wxWindow *parent, wxWindowID id,
                          const wxString& title,

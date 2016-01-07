@@ -31,7 +31,7 @@
 // wxWindowDCImpl
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxWindowDCImpl, wxGCDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxWindowDCImpl, wxGCDCImpl);
 
 wxWindowDCImpl::wxWindowDCImpl( wxDC *owner )
    : wxGCDCImpl( owner )
@@ -81,7 +81,7 @@ wxWindowDCImpl::wxWindowDCImpl( wxDC *owner, wxWindow *window )
     }
     DoSetClippingRegion( 0 , 0 , m_width , m_height ) ;
 
-    SetBackground(wxBrush(window->GetBackgroundColour(),wxSOLID));
+    SetBackground(wxBrush(window->GetBackgroundColour(),wxBRUSHSTYLE_SOLID));
 
     SetFont( window->GetFont() ) ;
 }
@@ -149,7 +149,7 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
  * wxClientDCImpl
  */
 
-IMPLEMENT_ABSTRACT_CLASS(wxClientDCImpl, wxWindowDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxClientDCImpl, wxWindowDCImpl);
 
 wxClientDCImpl::wxClientDCImpl( wxDC *owner )
  : wxWindowDCImpl( owner )
@@ -174,7 +174,7 @@ wxClientDCImpl::wxClientDCImpl( wxDC *owner, wxWindow *window ) :
 
 wxClientDCImpl::~wxClientDCImpl()
 {
-    if( GetGraphicsContext() && GetGraphicsContext()->GetNativeContext() )
+    if( GetGraphicsContext() && GetGraphicsContext()->GetNativeContext() && !m_release )
         Flush();
 }
 
@@ -182,7 +182,7 @@ wxClientDCImpl::~wxClientDCImpl()
  * wxPaintDCImpl
  */
 
-IMPLEMENT_ABSTRACT_CLASS(wxPaintDCImpl, wxWindowDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxPaintDCImpl, wxWindowDCImpl);
 
 wxPaintDCImpl::wxPaintDCImpl( wxDC *owner )
  : wxWindowDCImpl( owner )

@@ -71,7 +71,7 @@ wxBEGIN_FLAGS( wxRadioButtonStyle )
     wxFLAGS_MEMBER(wxRB_GROUP)
 wxEND_FLAGS( wxRadioButtonStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxRadioButton, wxControl, "wx/radiobut.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxRadioButton, wxControl, "wx/radiobut.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxRadioButton)
     wxEVENT_PROPERTY( Click, wxEVT_RADIOBUTTON, wxCommandEvent )

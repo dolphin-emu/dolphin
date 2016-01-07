@@ -34,10 +34,10 @@ public:
             const wxString &name = wxDialogNameStr );
     virtual ~wxDialog();
 
-    virtual bool Show( bool show = true );
-    virtual int ShowModal();
-    virtual void EndModal( int retCode );
-    virtual bool IsModal() const;
+    virtual bool Show( bool show = true ) wxOVERRIDE;
+    virtual int ShowModal() wxOVERRIDE;
+    virtual void EndModal( int retCode ) wxOVERRIDE;
+    virtual bool IsModal() const wxOVERRIDE;
 
 private:
     // common part of all ctors
@@ -46,7 +46,7 @@ private:
     bool m_modalShowing;
     wxGUIEventLoop *m_modalLoop;
 
-    DECLARE_DYNAMIC_CLASS(wxDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxDialog);
 };
 
 #endif // _WX_GTKDIALOG_H_

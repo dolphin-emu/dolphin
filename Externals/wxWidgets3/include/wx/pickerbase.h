@@ -91,9 +91,10 @@ public:     // public API
     {
         int f = GetDefaultPickerCtrlFlag();
         if ( grow )
+        {
+            f &= ~wxALIGN_MASK;
             f |= wxGROW;
-        else
-            f &= ~wxGROW;
+        }
 
         GetPickerCtrlItem()->SetFlag(f);
     }
@@ -117,7 +118,7 @@ public:     // public API
 protected:
     // overridden base class methods
 #if wxUSE_TOOLTIPS
-    virtual void DoSetToolTip(wxToolTip *tip);
+    virtual void DoSetToolTip(wxToolTip *tip) wxOVERRIDE;
 #endif // wxUSE_TOOLTIPS
 
 
@@ -153,7 +154,7 @@ protected:
     {
         // on macintosh, without additional borders
         // there's not enough space for focus rect
-        return wxALIGN_CENTER_VERTICAL|wxGROW
+        return wxALIGN_CENTER_VERTICAL
 #ifdef __WXMAC__
             | wxTOP | wxRIGHT | wxBOTTOM
 #endif
@@ -180,7 +181,7 @@ protected:
     wxBoxSizer *m_sizer;
 
 private:
-    DECLARE_ABSTRACT_CLASS(wxPickerBase)
+    wxDECLARE_ABSTRACT_CLASS(wxPickerBase);
 };
 
 

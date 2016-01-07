@@ -161,7 +161,7 @@ class wxHtmlListBoxStyle : public wxDefaultHtmlRenderingStyle
 public:
     wxHtmlListBoxStyle(const wxHtmlListBox& hlbox) : m_hlbox(hlbox) { }
 
-    virtual wxColour GetSelectedTextColour(const wxColour& colFg)
+    virtual wxColour GetSelectedTextColour(const wxColour& colFg) wxOVERRIDE
     {
         // by default wxHtmlListBox doesn't implement GetSelectedTextColour()
         // and returns wxNullColour from it, so use the default HTML colour for
@@ -175,7 +175,7 @@ public:
         return col;
     }
 
-    virtual wxColour GetSelectedTextBgColour(const wxColour& colBg)
+    virtual wxColour GetSelectedTextBgColour(const wxColour& colBg) wxOVERRIDE
     {
         wxColour col = m_hlbox.GetSelectedTextBgColour(colBg);
         if ( !col.IsOk() )
@@ -196,17 +196,17 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxHtmlListBox, wxVListBox)
+wxBEGIN_EVENT_TABLE(wxHtmlListBox, wxVListBox)
     EVT_SIZE(wxHtmlListBox::OnSize)
     EVT_MOTION(wxHtmlListBox::OnMouseMove)
     EVT_LEFT_DOWN(wxHtmlListBox::OnLeftDown)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
 // ============================================================================
 
-IMPLEMENT_ABSTRACT_CLASS(wxHtmlListBox, wxVListBox)
+wxIMPLEMENT_ABSTRACT_CLASS(wxHtmlListBox, wxVListBox);
 
 
 // ----------------------------------------------------------------------------
@@ -295,37 +295,40 @@ wxString wxHtmlListBox::OnGetItemMarkup(size_t n) const
 // wxHtmlListBox cache handling
 // ----------------------------------------------------------------------------
 
+wxHtmlCell* wxHtmlListBox::CreateCellForItem(size_t n) const
+{
+    if ( !m_htmlParser )
+    {
+        wxHtmlListBox *self = wxConstCast(this, wxHtmlListBox);
+
+        self->m_htmlParser = new wxHtmlWinParser(self);
+        m_htmlParser->SetDC(new wxClientDC(self));
+        m_htmlParser->SetFS(&self->m_filesystem);
+#if !wxUSE_UNICODE
+        if (GetFont().IsOk())
+            m_htmlParser->SetInputEncoding(GetFont().GetEncoding());
+#endif
+        // use system's default GUI font by default:
+        m_htmlParser->SetStandardFonts();
+    }
+
+    wxHtmlContainerCell *cell = (wxHtmlContainerCell *)m_htmlParser->
+            Parse(OnGetItemMarkup(n));
+    wxCHECK_MSG( cell, NULL, wxT("wxHtmlParser::Parse() returned NULL?") );
+
+    // set the cell's ID to item's index so that CellCoordsToPhysical()
+    // can quickly find the item:
+    cell->SetId(wxString::Format(wxT("%lu"), (unsigned long)n));
+
+    cell->Layout(GetClientSize().x - 2*GetMargins().x);
+
+    return cell;
+}
+
 void wxHtmlListBox::CacheItem(size_t n) const
 {
     if ( !m_cache->Has(n) )
-    {
-        if ( !m_htmlParser )
-        {
-            wxHtmlListBox *self = wxConstCast(this, wxHtmlListBox);
-
-            self->m_htmlParser = new wxHtmlWinParser(self);
-            m_htmlParser->SetDC(new wxClientDC(self));
-            m_htmlParser->SetFS(&self->m_filesystem);
-#if !wxUSE_UNICODE
-            if (GetFont().IsOk())
-                m_htmlParser->SetInputEncoding(GetFont().GetEncoding());
-#endif
-            // use system's default GUI font by default:
-            m_htmlParser->SetStandardFonts();
-        }
-
-        wxHtmlContainerCell *cell = (wxHtmlContainerCell *)m_htmlParser->
-                Parse(OnGetItemMarkup(n));
-        wxCHECK_RET( cell, wxT("wxHtmlParser::Parse() returned NULL?") );
-
-        // set the cell's ID to item's index so that CellCoordsToPhysical()
-        // can quickly find the item:
-        cell->SetId(wxString::Format(wxT("%lu"), (unsigned long)n));
-
-        cell->Layout(GetClientSize().x - 2*GetMargins().x);
-
-        m_cache->Store(n, cell);
-    }
+        m_cache->Store(n, CreateCellForItem(n));
 }
 
 void wxHtmlListBox::OnSize(wxSizeEvent& event)
@@ -425,12 +428,18 @@ void wxHtmlListBox::OnDrawItem(wxDC& dc, const wxRect& rect, size_t n) const
 
 wxCoord wxHtmlListBox::OnMeasureItem(size_t n) const
 {
-    CacheItem(n);
+    // Notice that we can't cache the cell here because we could be called from
+    // some code updating an existing cell which could be displaced from the
+    // cache if we called CacheItem() and destroyed -- resulting in a crash
+    // when we return to its method from here, see #16651.
+    wxHtmlCell * const cell = CreateCellForItem(n);
+    if ( !cell )
+        return 0;
 
-    wxHtmlCell *cell = m_cache->Get(n);
-    wxCHECK_MSG( cell, 0, wxT("this cell should be cached!") );
+    const wxCoord h = cell->GetHeight() + cell->GetDescent() + 4;
+    delete cell;
 
-    return cell->GetHeight() + cell->GetDescent() + 4;
+    return h;
 }
 
 // ----------------------------------------------------------------------------
@@ -598,7 +607,7 @@ void wxHtmlListBox::OnLeftDown(wxMouseEvent& event)
 // wxSimpleHtmlListBox
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxSimpleHtmlListBox, wxHtmlListBox)
+wxIMPLEMENT_ABSTRACT_CLASS(wxSimpleHtmlListBox, wxHtmlListBox);
 
 
 bool wxSimpleHtmlListBox::Create(wxWindow *parent, wxWindowID id,
@@ -606,7 +615,7 @@ bool wxSimpleHtmlListBox::Create(wxWindow *parent, wxWindowID id,
                                  const wxSize& size,
                                  int n, const wxString choices[],
                                  long style,
-                                 const wxValidator& validator,
+                                 const wxValidator& wxVALIDATOR_PARAM(validator),
                                  const wxString& name)
 {
     if (!wxHtmlListBox::Create(parent, id, pos, size, style, name))
@@ -626,7 +635,7 @@ bool wxSimpleHtmlListBox::Create(wxWindow *parent, wxWindowID id,
                                  const wxSize& size,
                                  const wxArrayString& choices,
                                  long style,
-                                 const wxValidator& validator,
+                                 const wxValidator& wxVALIDATOR_PARAM(validator),
                                  const wxString& name)
 {
     if (!wxHtmlListBox::Create(parent, id, pos, size, style, name))

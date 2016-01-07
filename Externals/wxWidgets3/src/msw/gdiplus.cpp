@@ -864,10 +864,10 @@ public:
     virtual bool OnInit() { return true; }
     virtual void OnExit() { wxGdiPlus::Terminate(); }
 
-    DECLARE_DYNAMIC_CLASS(wxGdiPlusModule)
+    wxDECLARE_DYNAMIC_CLASS(wxGdiPlusModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxGdiPlusModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGdiPlusModule, wxModule);
 
 // ============================================================================
 // implementation of the functions themselves

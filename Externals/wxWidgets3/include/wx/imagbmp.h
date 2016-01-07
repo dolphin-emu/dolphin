@@ -51,21 +51,21 @@ public:
     }
 
 #if wxUSE_STREAMS
-    virtual bool SaveFile( wxImage *image, wxOutputStream& stream, bool verbose=true );
-    virtual bool LoadFile( wxImage *image, wxInputStream& stream, bool verbose=true, int index=-1 );
+    virtual bool SaveFile( wxImage *image, wxOutputStream& stream, bool verbose=true ) wxOVERRIDE;
+    virtual bool LoadFile( wxImage *image, wxInputStream& stream, bool verbose=true, int index=-1 ) wxOVERRIDE;
 
 protected:
-    virtual bool DoCanRead( wxInputStream& stream );
+    virtual bool DoCanRead( wxInputStream& stream ) wxOVERRIDE;
     bool SaveDib(wxImage *image, wxOutputStream& stream, bool verbose,
                  bool IsBmp, bool IsMask);
     bool DoLoadDib(wxImage *image, int width, int height, int bpp, int ncolors,
                    int comp, wxFileOffset bmpOffset, wxInputStream& stream,
-                   bool verbose, bool IsBmp, bool hasPalette);
+                   bool verbose, bool IsBmp, bool hasPalette, int colEntrySize = 4);
     bool LoadDib(wxImage *image, wxInputStream& stream, bool verbose, bool IsBmp);
 #endif // wxUSE_STREAMS
 
 private:
-     DECLARE_DYNAMIC_CLASS(wxBMPHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxBMPHandler);
 };
 
 #if wxUSE_ICO_CUR
@@ -85,17 +85,17 @@ public:
     }
 
 #if wxUSE_STREAMS
-    virtual bool SaveFile( wxImage *image, wxOutputStream& stream, bool verbose=true );
-    virtual bool LoadFile( wxImage *image, wxInputStream& stream, bool verbose=true, int index=-1 );
+    virtual bool SaveFile( wxImage *image, wxOutputStream& stream, bool verbose=true ) wxOVERRIDE;
+    virtual bool LoadFile( wxImage *image, wxInputStream& stream, bool verbose=true, int index=-1 ) wxOVERRIDE;
     virtual bool DoLoadFile( wxImage *image, wxInputStream& stream, bool verbose, int index );
 
 protected:
-    virtual int DoGetImageCount( wxInputStream& stream );
-    virtual bool DoCanRead( wxInputStream& stream );
+    virtual int DoGetImageCount( wxInputStream& stream ) wxOVERRIDE;
+    virtual bool DoCanRead( wxInputStream& stream ) wxOVERRIDE;
 #endif // wxUSE_STREAMS
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxICOHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxICOHandler);
 };
 
 
@@ -120,11 +120,11 @@ public:
 
 protected:
 #if wxUSE_STREAMS
-    virtual bool DoCanRead( wxInputStream& stream );
+    virtual bool DoCanRead( wxInputStream& stream ) wxOVERRIDE;
 #endif // wxUSE_STREAMS
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxCURHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxCURHandler);
 };
 // ----------------------------------------------------------------------------
 // wxANIHandler
@@ -143,16 +143,16 @@ public:
 
 
 #if wxUSE_STREAMS
-    virtual bool SaveFile( wxImage *WXUNUSED(image), wxOutputStream& WXUNUSED(stream), bool WXUNUSED(verbose=true) ){return false ;}
-    virtual bool LoadFile( wxImage *image, wxInputStream& stream, bool verbose=true, int index=-1 );
+    virtual bool SaveFile( wxImage *WXUNUSED(image), wxOutputStream& WXUNUSED(stream), bool WXUNUSED(verbose=true) ) wxOVERRIDE{return false ;}
+    virtual bool LoadFile( wxImage *image, wxInputStream& stream, bool verbose=true, int index=-1 ) wxOVERRIDE;
 
 protected:
-    virtual int DoGetImageCount( wxInputStream& stream );
-    virtual bool DoCanRead( wxInputStream& stream );
+    virtual int DoGetImageCount( wxInputStream& stream ) wxOVERRIDE;
+    virtual bool DoCanRead( wxInputStream& stream ) wxOVERRIDE;
 #endif // wxUSE_STREAMS
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxANIHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxANIHandler);
 };
 
 #endif // wxUSE_ICO_CUR

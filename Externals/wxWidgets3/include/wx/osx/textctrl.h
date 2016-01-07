@@ -27,7 +27,7 @@
 
 class WXDLLIMPEXP_CORE wxTextCtrl: public wxTextCtrlBase
 {
-  DECLARE_DYNAMIC_CLASS(wxTextCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxTextCtrl);
 
 public:
     wxTextCtrl()
@@ -148,7 +148,7 @@ protected:
 private :
     wxMenu  *m_privateContextMenu;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_TEXTCTRL_H_

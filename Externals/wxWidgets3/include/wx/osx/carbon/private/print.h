@@ -28,10 +28,10 @@ public:
 
     virtual bool            IsOk() const ;
 
-    virtual void            TransferFrom( wxPageSetupDialogData * );
+    virtual void            TransferFrom( const wxPageSetupDialogData * );
     virtual void            TransferTo( wxPageSetupDialogData * );
 
-    virtual void            TransferFrom( wxPrintDialogData * );
+    virtual void            TransferFrom( const wxPrintDialogData * );
     virtual void            TransferTo( wxPrintDialogData * );
 
     PMPrintSession          GetPrintSession() { return m_macPrintSession; }
@@ -55,7 +55,7 @@ protected :
     PMPrintSettings         m_macPrintSettings ;
     PMPaper                 m_macPaper;
 private:
-    DECLARE_DYNAMIC_CLASS(wxOSXPrintData)
+    wxDECLARE_DYNAMIC_CLASS(wxOSXPrintData);
 } ;
 
 WXDLLIMPEXP_CORE wxPrintNativeDataBase* wxOSXCreatePrintData();
@@ -67,7 +67,7 @@ public:
                             wxOSXCarbonPrintData();
     virtual                 ~wxOSXCarbonPrintData();
 private:
-    DECLARE_DYNAMIC_CLASS(wxOSXCarbonPrintData)
+    wxDECLARE_DYNAMIC_CLASS(wxOSXCarbonPrintData);
 } ;
 #endif
 
@@ -85,7 +85,7 @@ protected:
 
     WX_NSPrintInfo          m_macPrintInfo;
 private:
-    DECLARE_DYNAMIC_CLASS(wxOSXCocoaPrintData)
+    wxDECLARE_DYNAMIC_CLASS(wxOSXCocoaPrintData);
 } ;
 #endif
 

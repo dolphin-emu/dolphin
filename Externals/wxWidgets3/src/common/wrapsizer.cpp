@@ -67,7 +67,7 @@ private:
 // wxWrapSizer implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxWrapSizer, wxBoxSizer)
+wxIMPLEMENT_DYNAMIC_CLASS(wxWrapSizer, wxBoxSizer);
 
 wxWrapSizer::wxWrapSizer(int orient, int flags)
            : wxBoxSizer(orient),
@@ -565,19 +565,29 @@ void wxWrapSizer::RecalcSizes()
                 sizer->Add(itemSpace);
             }
 
+            // We must pretend that any window item is not part of this sizer,
+            // otherwise adding it to another one would trigger an assert due
+            // to a conflict with the current containing sizer.
+            wxWindow * const win = item->GetWindow();
+            if ( win )
+                win->SetContainingSizer(NULL);
+
             // Notice that we reuse a pointer to our own sizer item here, so we
             // must remember to remove it by calling ClearRows() to avoid
             // double deletion later
             sizer->Add(item);
 
+            // If item is a window, it now has a pointer to the child sizer,
+            // which is wrong. Set it to point to us.
+            if ( win )
+            {
+                win->SetContainingSizer(NULL);
+                win->SetContainingSizer(this);
+            }
+
             itemLast = item;
             itemSpace = NULL;
         }
-
-        // If item is a window, it now has a pointer to the child sizer,
-        // which is wrong. Set it to point to us.
-        if ( wxWindow *win = item->GetWindow() )
-            win->SetContainingSizer(this);
     }
 
     FinishRow(nRow, rowTotalMajor, maxRowMinor, itemLast);

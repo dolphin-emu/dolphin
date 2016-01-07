@@ -31,8 +31,8 @@
 
 #include "wx/msw/private.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxRegion, wxGDIObject)
-IMPLEMENT_DYNAMIC_CLASS(wxRegionIterator, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxRegion, wxGDIObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxRegionIterator, wxObject);
 
 // ----------------------------------------------------------------------------
 // wxRegionRefData implementation
@@ -48,17 +48,11 @@ public:
 
     wxRegionRefData(const wxRegionRefData& data) : wxGDIRefData()
     {
-#if defined(__WIN32__) && !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
         DWORD noBytes = ::GetRegionData(data.m_region, 0, NULL);
         RGNDATA *rgnData = (RGNDATA*) new char[noBytes];
         ::GetRegionData(data.m_region, noBytes, rgnData);
         m_region = ::ExtCreateRegion(NULL, noBytes, rgnData);
         delete[] (char*) rgnData;
-#else
-        RECT rect;
-        ::GetRgnBox(data.m_region, &rect);
-        m_region = ::CreateRectRgnIndirect(&rect);
-#endif
     }
 
     virtual ~wxRegionRefData()
@@ -120,13 +114,6 @@ wxRegion::wxRegion(const wxRect& rect)
 
 wxRegion::wxRegion(size_t n, const wxPoint *points, wxPolygonFillMode fillStyle)
 {
-#if defined(__WXMICROWIN__) || defined(__WXWINCE__)
-    wxUnusedVar(n);
-    wxUnusedVar(points);
-    wxUnusedVar(fillStyle);
-    m_refData = NULL;
-    M_REGION = NULL;
-#else
     m_refData = new wxRegionRefData;
     M_REGION = ::CreatePolygonRgn
                (
@@ -134,7 +121,6 @@ wxRegion::wxRegion(size_t n, const wxPoint *points, wxPolygonFillMode fillStyle)
                     n,
                     fillStyle == wxODDEVEN_RULE ? ALTERNATE : WINDING
                );
-#endif
 }
 
 wxRegion::~wxRegion()

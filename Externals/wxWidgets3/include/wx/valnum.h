@@ -41,7 +41,7 @@ public:
 
     // Override base class method to not do anything but always return success:
     // we don't need this as we do our validation on the fly here.
-    virtual bool Validate(wxWindow * WXUNUSED(parent)) { return true; }
+    virtual bool Validate(wxWindow * WXUNUSED(parent)) wxOVERRIDE { return true; }
 
 protected:
     wxNumValidatorBase(int style)
@@ -135,17 +135,11 @@ public:
 
     typedef typename BaseValidator::LongestValueType LongestValueType;
 
-    // FIXME-VC6: This compiler fails to compile the assert below with a
-    // nonsensical error C2248: "'LongestValueType' : cannot access protected
-    // typedef declared in class 'wxIntegerValidatorBase'" so just disable the
-    // check for it.
-#ifndef __VISUALC6__
     wxCOMPILE_TIME_ASSERT
     (
         sizeof(ValueType) <= sizeof(LongestValueType),
         UnsupportedType
     );
-#endif // __VISUALC6__
 
     void SetMin(ValueType min)
     {
@@ -285,7 +279,7 @@ protected:
     }
 
     // Implement wxNumValidatorBase pure virtual method.
-    virtual bool IsCharOk(const wxString& val, int pos, wxChar ch) const;
+    virtual bool IsCharOk(const wxString& val, int pos, wxChar ch) const wxOVERRIDE;
 
 private:
     // Minimal and maximal values accepted (inclusive).
@@ -380,7 +374,7 @@ protected:
     }
 
     // Implement wxNumValidatorBase pure virtual method.
-    virtual bool IsCharOk(const wxString& val, int pos, wxChar ch) const;
+    virtual bool IsCharOk(const wxString& val, int pos, wxChar ch) const wxOVERRIDE;
 
 private:
     // Maximum number of decimals digits after the decimal separator.

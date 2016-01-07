@@ -52,7 +52,7 @@ public:
 
         wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-        m_notebook = new wxNotebook(this, wxID_ANY);
+        m_notebook = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_MULTILINE);
         sizer->Add(m_notebook, wxSizerFlags(1).Expand().DoubleBorder());
 
 #ifdef __WXGTK__
@@ -80,6 +80,11 @@ public:
     {
         m_notebook->ChangeSelection(page);
     }
+
+     bool ShouldPreventAppExit() const wxOVERRIDE
+     {
+         return false;
+     }
 
 private:
     wxNotebook *m_notebook;

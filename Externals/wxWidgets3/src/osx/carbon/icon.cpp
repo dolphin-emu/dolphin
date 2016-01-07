@@ -20,7 +20,7 @@
 
 #include "wx/osx/private.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxIcon, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxIcon, wxGDIObject);
 
 #define M_ICONDATA ((wxIconRefData *)m_refData)
 
@@ -31,7 +31,7 @@ public:
     wxIconRefData( WXHICON iconref, int desiredWidth, int desiredHeight );
     virtual ~wxIconRefData() { Free(); }
 
-    virtual bool IsOk() const { return m_iconRef != NULL; }
+    virtual bool IsOk() const wxOVERRIDE { return m_iconRef != NULL; }
 
     virtual void Free();
 
@@ -42,11 +42,17 @@ public:
     int GetHeight() const { return m_height; }
 
     WXHICON GetHICON() const { return (WXHICON) m_iconRef; }
+#if wxOSX_USE_COCOA
+    WX_NSImage GetNSImage() const;
+#endif
 
 private:
     void Init();
 
     IconRef m_iconRef;
+#if wxOSX_USE_COCOA
+    mutable NSImage* m_nsImage;
+#endif
     int m_width;
     int m_height;
 
@@ -57,6 +63,7 @@ private:
 
 wxIconRefData::wxIconRefData( WXHICON icon, int desiredWidth, int desiredHeight )
 {
+    Init();
     m_iconRef = (IconRef)( icon ) ;
 
     // Standard sizes
@@ -67,6 +74,9 @@ wxIconRefData::wxIconRefData( WXHICON icon, int desiredWidth, int desiredHeight 
 void wxIconRefData::Init()
 {
     m_iconRef = NULL ;
+#if wxOSX_USE_COCOA
+    m_nsImage = NULL;
+#endif
     m_width =
     m_height = 0;
 }
@@ -78,7 +88,29 @@ void wxIconRefData::Free()
         ReleaseIconRef( m_iconRef ) ;
         m_iconRef = NULL ;
     }
+    
+#if wxOSX_USE_COCOA
+    if ( m_nsImage )
+    {
+        CFRelease(m_nsImage);
+    }
+#endif
 }
+
+#if wxOSX_USE_COCOA
+WX_NSImage wxIconRefData::GetNSImage() const
+{
+    wxASSERT( IsOk() );
+    
+    if ( m_nsImage == 0 )
+    {
+        m_nsImage = wxOSXGetNSImageFromIconRef(m_iconRef);
+        CFRetain(m_nsImage);
+    }
+    
+    return m_nsImage;
+}
+#endif
 
 //
 //
@@ -159,6 +191,15 @@ int wxIcon::GetDepth() const
 {
     return 32;
 }
+
+#if wxOSX_USE_COCOA
+WX_NSImage wxIcon::GetNSImage() const
+{
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid icon") );
+    
+    return M_ICONDATA->GetNSImage() ;
+}
+#endif
 
 void wxIcon::SetDepth( int WXUNUSED(depth) )
 {
@@ -456,7 +497,7 @@ void wxIcon::CopyFromBitmap( const wxBitmap& bmp )
 
 }
 
-IMPLEMENT_DYNAMIC_CLASS(wxICONResourceHandler, wxBitmapHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxICONResourceHandler, wxBitmapHandler);
 
 bool  wxICONResourceHandler::LoadFile(
     wxBitmap *bitmap, const wxString& name, wxBitmapType WXUNUSED(flags),

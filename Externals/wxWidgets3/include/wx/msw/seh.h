@@ -14,11 +14,11 @@
 
     // the exception handler which should be called from the exception filter
     //
-    // it calsl wxApp::OnFatalException() if possible
-    extern unsigned long wxGlobalSEHandler(EXCEPTION_POINTERS *pExcPtrs);
+    // it calls wxApp::OnFatalException() if wxTheApp object exists
+    WXDLLIMPEXP_BASE unsigned long wxGlobalSEHandler(EXCEPTION_POINTERS *pExcPtrs);
 
     // helper macro for wxSEH_HANDLE
-#if defined(__BORLANDC__) || (defined(__VISUALC__) && (__VISUALC__ <= 1200))
+#if defined(__BORLANDC__)
     // some compilers don't understand that this code is unreachable and warn
     // about no value being returned from the function without it, so calm them
     // down
@@ -46,7 +46,7 @@
     #define wxSEH_HANDLE(rc)
 #endif // wxUSE_ON_FATAL_EXCEPTION
 
-#if wxUSE_ON_FATAL_EXCEPTION && defined(__VISUALC__) && !defined(__WXWINCE__)
+#if wxUSE_ON_FATAL_EXCEPTION && defined(__VISUALC__)
     #include <eh.h>
 
     // C++ exception to structured exceptions translator: we need it in order
@@ -54,11 +54,10 @@
     // as division by 0 or access violation) to C++ pseudo-exceptions
     extern void wxSETranslator(unsigned int code, EXCEPTION_POINTERS *ep);
 
-    // up to VC 11 this warning ("calling _set_se_translator() requires /EHa")
-    // is harmless and it's easier to suppress it than use different makefiles
-    // for VC5 and 6 (which don't support /EHa at all) and VC7+ (which does
-    // accept it but it seems to change nothing for it anyhow)
-    #if __VISUALC__ < 1800
+    // up to VC 12 this warning ("calling _set_se_translator() requires /EHa")
+    // is harmless and it's easier to suppress it than deal with it as make/
+    // project file level as it seems to be harmless
+    #if __VISUALC__ < 1900
         #pragma warning(disable: 4535)
     #endif
 

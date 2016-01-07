@@ -66,6 +66,7 @@ static const wxChar* const wxOperatingSystemIdNames[] =
 
     wxT("DOS"),
     wxT("OS/2"),
+
 };
 
 static const wxChar* const wxPortIdNames[] =
@@ -80,6 +81,7 @@ static const wxChar* const wxPortIdNames[] =
     wxT("wxMac"),
     wxT("wxCocoa"),
     wxT("wxWinCE"),
+    wxT("wxQT")
 };
 
 static const wxChar* const wxArchitectureNames[] =
@@ -133,6 +135,8 @@ wxPlatformInfo::wxPlatformInfo(wxPortId pid, int tkMajor, int tkMinor,
                                wxEndianness endian,
                                bool usingUniversal)
 {
+    m_initializedForCurrentPlatform = false;
+
     m_tkVersionMajor = tkMajor;
     m_tkVersionMinor = tkMinor;
     m_port = pid;
@@ -164,6 +168,8 @@ bool wxPlatformInfo::operator==(const wxPlatformInfo &t) const
 
 void wxPlatformInfo::InitForCurrentPlatform()
 {
+    m_initializedForCurrentPlatform = true;
+
     // autodetect all informations
     const wxAppTraits * const traits = wxTheApp ? wxTheApp->GetTraits() : NULL;
     if ( !traits )
@@ -292,6 +298,19 @@ wxString wxPlatformInfo::GetEndiannessName(wxEndianness end)
     return wxEndiannessNames[end];
 }
 
+bool wxPlatformInfo::CheckOSVersion(int major, int minor) const
+{
+    // If this instance of wxPlatformInfo has been initialized by InitForCurrentPlatform()
+    // this check gets forwarded to the wxCheckOsVersion which might do more than a simple
+    // number check if supported by the platform
+    if (m_initializedForCurrentPlatform)
+        return wxCheckOsVersion(major, minor);
+    else
+        return DoCheckVersion(GetOSMajorVersion(),
+                            GetOSMinorVersion(),
+                            major,
+                            minor);
+}
 
 // ----------------------------------------------------------------------------
 // wxPlatformInfo - string -> enum conversions

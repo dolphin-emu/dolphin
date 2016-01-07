@@ -51,16 +51,13 @@
 #include "wx/collpane.h"
 #include "wx/arrstr.h"
 #include "wx/msgout.h"
+#include "wx/scopeguard.h"
 
 #ifdef  __WXMSW__
     // for OutputDebugString()
     #include  "wx/msw/private.h"
 #endif // Windows
 
-
-#ifdef  __WXPM__
-    #include <time.h>
-#endif
 
 #if wxUSE_LOG_DIALOG
     #include "wx/listctrl.h"
@@ -69,9 +66,6 @@
 #endif // wxUSE_LOG_DIALOG/!wxUSE_LOG_DIALOG
 
 #include "wx/time.h"
-
-// the suffix we add to the button to show that the dialog can be expanded
-#define EXPAND_SUFFIX wxT(" >>")
 
 #define CAN_SAVE_FILES (wxUSE_FILE && wxUSE_FILEDLG)
 
@@ -157,11 +151,11 @@ private:
     // the maximum length of the log message
     static size_t ms_maxLength;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxLogDialog);
 };
 
-BEGIN_EVENT_TABLE(wxLogDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxLogDialog, wxDialog)
     EVT_BUTTON(wxID_OK, wxLogDialog::OnOk)
 #if wxUSE_CLIPBOARD
     EVT_BUTTON(wxID_COPY,   wxLogDialog::OnCopy)
@@ -170,7 +164,7 @@ BEGIN_EVENT_TABLE(wxLogDialog, wxDialog)
     EVT_BUTTON(wxID_SAVE,   wxLogDialog::OnSave)
 #endif // CAN_SAVE_FILES
     EVT_LIST_ITEM_ACTIVATED(wxID_ANY, wxLogDialog::OnListItemActivated)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 #endif // wxUSE_LOG_DIALOG
 
@@ -236,7 +230,7 @@ wxString wxLogGui::GetTitle() const
 
         default:
             wxFAIL_MSG( "unexpected icon severity" );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxICON_INFORMATION:
             titleFormat = _("%s Information");
@@ -311,6 +305,10 @@ void wxLogGui::Flush()
     // showing right now: nested modal dialogs make for really bad UI!
     Suspend();
 
+    // and ensure that we allow showing the log again afterwards, even if an
+    // exception is thrown
+    wxON_BLOCK_EXIT0(wxLog::Resume);
+
     if ( nMsgCount == 1 )
     {
         // make a copy before calling Clear()
@@ -333,9 +331,6 @@ void wxLogGui::Flush()
 
         DoShowMultipleLogMessages(messages, severities, times, title, style);
     }
-
-    // allow flushing the logs again
-    Resume();
 }
 
 // log all kinds of messages
@@ -394,7 +389,7 @@ void wxLogGui::DoLogRecord(wxLogLevel level,
 #endif // wxUSE_LOG_DIALOG
                 m_bErrors = true;
             }
-            // fall through
+            wxFALLTHROUGH;
 
         case wxLOG_Warning:
             if ( !m_bErrors ) {
@@ -448,7 +443,7 @@ public:
     virtual ~wxLogFrame();
 
     // Don't prevent the application from exiting if just this frame remains.
-    virtual bool ShouldPreventAppExit() const { return false; }
+    virtual bool ShouldPreventAppExit() const wxOVERRIDE { return false; }
 
     // menu callbacks
     void OnClose(wxCommandEvent& event);
@@ -479,11 +474,11 @@ private:
     wxTextCtrl  *m_pTextCtrl;
     wxLogWindow *m_log;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxLogFrame);
 };
 
-BEGIN_EVENT_TABLE(wxLogFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(wxLogFrame, wxFrame)
     // wxLogWindow menu events
     EVT_MENU(Menu_Close, wxLogFrame::OnClose)
 #if CAN_SAVE_FILES
@@ -492,7 +487,7 @@ BEGIN_EVENT_TABLE(wxLogFrame, wxFrame)
     EVT_MENU(Menu_Clear, wxLogFrame::OnClear)
 
     EVT_CLOSE(wxLogFrame::OnCloseWindow)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxLogFrame::wxLogFrame(wxWindow *pParent, wxLogWindow *log, const wxString& szTitle)
           : wxFrame(pParent, wxID_ANY, szTitle)
@@ -687,9 +682,6 @@ wxLogDialog::wxLogDialog(wxWindow *parent,
         // happens to pop up a Log message while translating this :-)
         ms_details = wxTRANSLATE("&Details");
         ms_details = wxGetTranslation(ms_details);
-#ifdef __SMARTPHONE__
-        ms_details = wxStripMenuCodes(ms_details);
-#endif
     }
 
     if ( ms_maxLength == 0 )
@@ -744,8 +736,6 @@ wxLogDialog::wxLogDialog(wxWindow *parent,
 
 
     // add the details pane
-#ifndef __SMARTPHONE__
-
 #if wxUSE_COLLPANE
     wxCollapsiblePane * const
         collpane = new wxCollapsiblePane(this, wxID_ANY, ms_details);
@@ -781,10 +771,6 @@ wxLogDialog::wxLogDialog(wxWindow *parent,
 
     win->SetSizer(paneSz);
     paneSz->SetSizeHints(win);
-#else // __SMARTPHONE__
-    SetLeftMenu(wxID_OK);
-    SetRightMenu(wxID_MORE, ms_details + EXPAND_SUFFIX);
-#endif // __SMARTPHONE__/!__SMARTPHONE__
 
     SetSizerAndFit(sizerTop);
 
@@ -810,11 +796,6 @@ void wxLogDialog::CreateDetailsControls(wxWindow *parent)
                                 wxLC_REPORT |
                                 wxLC_NO_HEADER |
                                 wxLC_SINGLE_SEL);
-#ifdef __WXWINCE__
-    // This makes a big aesthetic difference on WinCE but I
-    // don't want to risk problems on other platforms
-    m_listctrl->Hide();
-#endif
 
     // no need to translate these strings as they're not shown to the
     // user anyhow (we use wxLC_NO_HEADER style)

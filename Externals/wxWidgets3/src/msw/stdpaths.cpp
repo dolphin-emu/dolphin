@@ -36,6 +36,7 @@
 
 #include "wx/msw/private.h"
 #include "wx/msw/wrapshl.h"
+#include <initguid.h>
 
 // ----------------------------------------------------------------------------
 // types
@@ -43,6 +44,7 @@
 
 typedef HRESULT (WINAPI *SHGetFolderPath_t)(HWND, int, HANDLE, DWORD, LPTSTR);
 typedef HRESULT (WINAPI *SHGetSpecialFolderPath_t)(HWND, LPTSTR, int, BOOL);
+typedef HRESULT (WINAPI *SHGetKnownFolderPath_t)(const GUID&, DWORD, HANDLE, PWSTR *);
 
 // ----------------------------------------------------------------------------
 // constants
@@ -86,6 +88,9 @@ typedef HRESULT (WINAPI *SHGetSpecialFolderPath_t)(HWND, LPTSTR, int, BOOL);
 namespace
 {
 
+DEFINE_GUID(wxFOLDERID_Downloads,
+    0x374de290, 0x123f, 0x4565, 0x91, 0x64, 0x39, 0xc4, 0x92, 0x5e, 0x46, 0x7b);
+
 struct ShellFunctions
 {
     ShellFunctions()
@@ -97,6 +102,7 @@ struct ShellFunctions
 
     SHGetFolderPath_t pSHGetFolderPath;
     SHGetSpecialFolderPath_t pSHGetSpecialFolderPath;
+    SHGetKnownFolderPath_t pSHGetKnownFolderPath;
 
     bool initialized;
 };
@@ -115,12 +121,8 @@ void ResolveShellFunctions()
 #if wxUSE_DYNLIB_CLASS
 
     // start with the newest functions, fall back to the oldest ones
-#ifdef __WXWINCE__
-    wxString shellDllName(wxT("coredll"));
-#else
     // first check for SHGetFolderPath (shell32.dll 5.0)
     wxString shellDllName(wxT("shell32"));
-#endif
 
     wxDynamicLibrary dllShellFunctions( shellDllName );
     if ( !dllShellFunctions.IsLoaded() )
@@ -133,11 +135,7 @@ void ResolveShellFunctions()
     wxLogNull noLog;
 
 #if wxUSE_UNICODE
-    #ifdef __WXWINCE__
-        static const wchar_t UNICODE_SUFFIX = L''; // WinCE SH functions don't seem to have 'W'
-    #else
-        static const wchar_t UNICODE_SUFFIX = L'W';
-    #endif
+    static const wchar_t UNICODE_SUFFIX = L'W';
 #else // !Unicode
     static const char UNICODE_SUFFIX = 'A';
 #endif // Unicode/!Unicode
@@ -153,6 +151,9 @@ void ResolveShellFunctions()
         gs_shellFuncs.pSHGetSpecialFolderPath = (SHGetSpecialFolderPath_t)
             dllShellFunctions.GetSymbol(funcname + UNICODE_SUFFIX);
     }
+
+    gs_shellFuncs.pSHGetKnownFolderPath = (SHGetKnownFolderPath_t)
+        dllShellFunctions.GetSymbol("SHGetKnownFolderPath");
 
     // finally we fall back on SHGetSpecialFolderLocation (shell32.dll 4.0),
     // but we don't need to test for it -- it is available even under Win95
@@ -250,6 +251,28 @@ wxString wxStandardPaths::DoGetDirectory(int csidl)
     return dir;
 }
 
+wxString wxStandardPaths::DoGetKnownFolder(const GUID& rfid)
+{
+    if (!gs_shellFuncs.initialized)
+        ResolveShellFunctions();
+
+    wxString dir;
+
+    if ( gs_shellFuncs.pSHGetKnownFolderPath )
+    {
+        PWSTR pDir;
+        HRESULT hr = gs_shellFuncs.pSHGetKnownFolderPath(rfid, 0, 0, &pDir);
+        if ( SUCCEEDED(hr) )
+        {
+            dir = pDir;
+            CoTaskMemFree(pDir);
+        }
+    }
+
+    return dir;
+}
+
+
 wxString wxStandardPaths::GetAppDir() const
 {
     if ( m_appDir.empty() )
@@ -260,9 +283,38 @@ wxString wxStandardPaths::GetAppDir() const
     return m_appDir;
 }
 
-wxString wxStandardPaths::GetDocumentsDir() const
+wxString wxStandardPaths::GetUserDir(Dir userDir) const
 {
-    return DoGetDirectory(CSIDL_PERSONAL);
+    int csidl;
+    switch (userDir)
+    {
+        case Dir_Desktop:
+            csidl = CSIDL_DESKTOPDIRECTORY;
+            break;
+        case Dir_Downloads:
+        {
+            csidl = CSIDL_PERSONAL;
+            // Downloads folder is only available since Vista
+            wxString dir = DoGetKnownFolder(wxFOLDERID_Downloads);
+            if ( !dir.empty() )
+                return dir;
+            break;
+        }
+        case Dir_Music:
+            csidl = CSIDL_MYMUSIC;
+            break;
+        case Dir_Pictures:
+            csidl = CSIDL_MYPICTURES;
+            break;
+        case Dir_Videos:
+            csidl = CSIDL_MYVIDEO;
+            break;
+        default:
+            csidl = CSIDL_PERSONAL;
+            break;
+    }
+
+    return DoGetDirectory(csidl);
 }
 
 // ----------------------------------------------------------------------------
@@ -295,6 +347,14 @@ void wxStandardPaths::IgnoreAppBuildSubDirs()
     IgnoreAppSubDir("debug");
     IgnoreAppSubDir("release");
 
+    // there can also be an architecture-dependent parent directory, ignore it
+    // as well
+#ifdef __WIN64__
+    IgnoreAppSubDir("x64");
+#else // __WIN32__
+    IgnoreAppSubDir("Win32");
+#endif // __WIN64__/__WIN32__
+
     wxString compilerPrefix;
 #ifdef __VISUALC__
     compilerPrefix = "vc";
@@ -302,10 +362,6 @@ void wxStandardPaths::IgnoreAppBuildSubDirs()
     compilerPrefix = "gcc";
 #elif defined(__BORLANDC__)
     compilerPrefix = "bcc";
-#elif defined(__DIGITALMARS__)
-    compilerPrefix = "dmc";
-#elif defined(__WATCOMC__)
-    compilerPrefix = "wat";
 #else
     return;
 #endif
@@ -384,15 +440,10 @@ wxString wxStandardPathsWin16::GetConfigDir() const
     // this is for compatibility with earlier wxFileConfig versions
     // which used the Windows directory for the global files
     wxString dir;
-#ifndef __WXWINCE__
     if ( !::GetWindowsDirectory(wxStringBuffer(dir, MAX_PATH), MAX_PATH) )
     {
         wxLogLastError(wxT("GetWindowsDirectory"));
     }
-#else
-    // TODO: use CSIDL_WINDOWS (eVC4, possibly not eVC3)
-    dir = wxT("\\Windows");
-#endif
 
     return dir;
 }

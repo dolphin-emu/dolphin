@@ -39,8 +39,6 @@
 #include "wx/scrolbar.h"
 #endif
 
-#include "wx/recguard.h"
-
 #ifdef __WXMSW__
     #include <windows.h> // for DLGC_WANTARROWS
     #include "wx/msw/winundef.h"
@@ -76,7 +74,7 @@ public:
         m_scrollHelper = scrollHelper;
     }
 
-    virtual bool ProcessEvent(wxEvent& event);
+    virtual bool ProcessEvent(wxEvent& event) wxOVERRIDE;
 
 private:
     wxScrollHelperBase *m_scrollHelper;
@@ -98,7 +96,7 @@ public:
                       wxEventType eventTypeToSend,
                       int pos, int orient);
 
-    virtual void Notify();
+    virtual void Notify() wxOVERRIDE;
 
 private:
     wxWindow *m_win;
@@ -882,7 +880,7 @@ void wxAnyScrollHelperBase::HandleOnChar(wxKeyEvent& event)
 
         case WXK_LEFT:
             newEvent.SetOrientation(wxHORIZONTAL);
-            // fall through
+            wxFALLTHROUGH;
 
         case WXK_UP:
             newEvent.SetEventType(wxEVT_SCROLLWIN_LINEUP);
@@ -890,7 +888,7 @@ void wxAnyScrollHelperBase::HandleOnChar(wxKeyEvent& event)
 
         case WXK_RIGHT:
             newEvent.SetOrientation(wxHORIZONTAL);
-            // fall through
+            wxFALLTHROUGH;
 
         case WXK_DOWN:
             newEvent.SetEventType(wxEVT_SCROLLWIN_LINEDOWN);
@@ -1205,6 +1203,7 @@ wxScrollHelper::wxScrollHelper(wxWindow *winToScroll)
 {
     m_xVisibility =
     m_yVisibility = wxSHOW_SB_DEFAULT;
+    m_adjustScrollFlagReentrancy = 0;
 }
 
 bool wxScrollHelper::IsScrollbarShown(int orient) const
@@ -1292,7 +1291,7 @@ wxScrollHelper::DoAdjustScrollbar(int orient,
 
         default:
             wxFAIL_MSG( wxS("unknown scrollbar visibility") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxSHOW_SB_DEFAULT:
             range = scrollUnits;
@@ -1305,8 +1304,7 @@ wxScrollHelper::DoAdjustScrollbar(int orient,
 
 void wxScrollHelper::AdjustScrollbars()
 {
-    static wxRecursionGuardFlag s_flagReentrancy;
-    wxRecursionGuard guard(s_flagReentrancy);
+    wxRecursionGuard guard(m_adjustScrollFlagReentrancy);
     if ( guard.IsInside() )
     {
         // don't reenter AdjustScrollbars() while another call to
@@ -1537,7 +1535,7 @@ wxSize wxScrolledT_Helper::FilterBestSize(const wxWindow *win,
         //     the window into sizer as expandable so that it can use all space
         //     available to it.
         //
-        //     See also http://svn.wxwidgets.org/viewvc/wx?view=rev&revision=45864
+        //     See also https://github.com/wxWidgets/wxWidgets/commit/7e0f7539
 
         wxSize minSize = win->GetMinSize();
 
@@ -1554,17 +1552,15 @@ wxSize wxScrolledT_Helper::FilterBestSize(const wxWindow *win,
 #ifdef __WXMSW__
 WXLRESULT wxScrolledT_Helper::FilterMSWWindowProc(WXUINT nMsg, WXLRESULT rc)
 {
-#ifndef __WXWINCE__
     // we need to process arrows ourselves for scrolling
     if ( nMsg == WM_GETDLGCODE )
     {
         rc |= DLGC_WANTARROWS;
     }
-#endif
     return rc;
 }
 #endif // __WXMSW__
 
-// NB: skipping wxScrolled<T> in wxRTTI information because being a templte,
+// NB: skipping wxScrolled<T> in wxRTTI information because being a template,
 //     it doesn't and can't implement wxRTTI support
-IMPLEMENT_DYNAMIC_CLASS(wxScrolledWindow, wxPanel)
+wxIMPLEMENT_DYNAMIC_CLASS(wxScrolledWindow, wxPanel);

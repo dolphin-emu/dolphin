@@ -465,7 +465,7 @@ void wxHeaderCtrl::DoMoveCol(unsigned int idx, unsigned int pos)
 // wxHeaderCtrl event handlers
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxHeaderCtrl, wxHeaderCtrlBase)
+wxBEGIN_EVENT_TABLE(wxHeaderCtrl, wxHeaderCtrlBase)
     EVT_PAINT(wxHeaderCtrl::OnPaint)
 
     EVT_MOUSE_EVENTS(wxHeaderCtrl::OnMouse)
@@ -473,7 +473,7 @@ BEGIN_EVENT_TABLE(wxHeaderCtrl, wxHeaderCtrlBase)
     EVT_MOUSE_CAPTURE_LOST(wxHeaderCtrl::OnCaptureLost)
 
     EVT_KEY_DOWN(wxHeaderCtrl::OnKeyDown)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxHeaderCtrl::OnPaint(wxPaintEvent& WXUNUSED(event))
 {

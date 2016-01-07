@@ -31,9 +31,9 @@ const short kwxMacToolBarLeftMargin =  4;
 const short kwxMacToolBorder = 0;
 const short kwxMacToolSpacing = 6;
 
-BEGIN_EVENT_TABLE(wxToolBar, wxToolBarBase)
+wxBEGIN_EVENT_TABLE(wxToolBar, wxToolBarBase)
     EVT_PAINT( wxToolBar::OnPaint )
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 #pragma mark -
@@ -112,7 +112,6 @@ public:
 #if wxOSX_USE_NATIVE_TOOLBAR
         if ( m_toolbarItemRef )
         {
-            CFIndex count = CFGetRetainCount( m_toolbarItemRef ) ;
             wxTheApp->MacAddToAutorelease(m_toolbarItemRef);
             CFRelease(m_toolbarItemRef);
             m_toolbarItemRef = NULL;
@@ -194,12 +193,6 @@ public:
 
         UpdateHelpStrings();
         return true;
-    }
-
-    virtual void SetNormalBitmap(const wxBitmap& bmp)
-    {
-        wxToolBarToolBase::SetNormalBitmap(bmp);
-        UpdateToggleImage(CanBeToggled() && IsToggled());
     }
 
     virtual void SetLabel(const wxString& label)
@@ -932,7 +925,6 @@ wxToolBar::~wxToolBar()
         MacUninstallNativeToolbar();
     }
 
-    CFIndex count = CFGetRetainCount( m_macToolbar ) ;
     CFRelease( (HIToolbarRef)m_macToolbar );
     m_macToolbar = NULL;
 #endif // wxOSX_USE_NATIVE_TOOLBAR

@@ -21,11 +21,14 @@
     #include "wx/dcscreen.h"
     #include "wx/icon.h"
     #include "wx/image.h"
+    #include "wx/math.h"
 #endif
 
+#include "wx/base64.h"
 #include "wx/dcsvg.h"
 #include "wx/wfstream.h"
 #include "wx/filename.h"
+#include "wx/mstream.h"
 
 #include "wx/private/markupparser.h"
 
@@ -35,8 +38,6 @@
 
 namespace
 {
-
-inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
 // This function returns a string representation of a floating point number in
 // C locale (i.e. always using "." for the decimal separator) and with the
@@ -53,7 +54,7 @@ wxString Col2SVG(wxColour c, float *opacity)
 {
     if ( c.Alpha() != wxALPHA_OPAQUE )
     {
-        *opacity = c.Alpha()/255.;
+        *opacity = c.Alpha() / 255.0f;
 
         // Remove the alpha before using GetAsString(wxC2S_HTML_SYNTAX) as it
         // doesn't support colours with alpha channel.
@@ -109,11 +110,110 @@ wxString wxBrushString(wxColour c, int style = wxBRUSHSTYLE_SOLID)
 
 } // anonymous namespace
 
+// ----------------------------------------------------------------------------
+// wxSVGBitmapEmbedHandler
+// ----------------------------------------------------------------------------
+
+bool
+wxSVGBitmapEmbedHandler::ProcessBitmap(const wxBitmap& bmp,
+                                       wxCoord x, wxCoord y,
+                                       wxOutputStream& stream) const
+{
+    static int sub_images = 0;
+
+    if ( wxImage::FindHandler(wxBITMAP_TYPE_PNG) == NULL )
+        wxImage::AddHandler(new wxPNGHandler);
+
+    // write the bitmap as a PNG to a memory stream and Base64 encode
+    wxMemoryOutputStream mem;
+    bmp.ConvertToImage().SaveFile(mem, wxBITMAP_TYPE_PNG);
+    wxString data = wxBase64Encode(mem.GetOutputStreamBuffer()->GetBufferStart(),
+                                   mem.GetSize());
+
+    // write image meta information
+    wxString s;
+    s += wxString::Format(" <image x=\"%d\" y=\"%d\" "
+                          "width=\"%dpx\" height=\"%dpx\" "
+                          "title=\"Image from wxSVG\"\n",
+                          x, y, bmp.GetWidth(), bmp.GetHeight());
+    s += wxString::Format(" id=\"image%d\" "
+                          "xlink:href=\"data:image/png;base64,\n",
+                          sub_images++);
+
+    // Wrap Base64 encoded data on 76 columns boundary (same as Inkscape).
+    const unsigned WRAP = 76;
+    for ( size_t i = 0; i < data.size(); i += WRAP )
+    {
+        if (i < data.size() - WRAP)
+            s += data.Mid(i, WRAP) + "\n";
+        else
+            s += data.Mid(i, s.size() - i) + "\"\n/>"; // last line
+    }
+
+    // write to the SVG file
+    const wxCharBuffer buf = s.utf8_str();
+    stream.Write(buf, strlen((const char *)buf));
+
+    return stream.IsOk();
+}
+
+// ----------------------------------------------------------
+// wxSVGBitmapFileHandler
+// ----------------------------------------------------------
+
+bool
+wxSVGBitmapFileHandler::ProcessBitmap(const wxBitmap& bmp,
+                                      wxCoord x, wxCoord y,
+                                      wxOutputStream& stream) const
+{
+    static int sub_images = 0;
+
+    if ( wxImage::FindHandler(wxBITMAP_TYPE_PNG) == NULL )
+        wxImage::AddHandler(new wxPNGHandler);
+
+    // find a suitable file name
+    wxString sPNG;
+    do
+    {
+        sPNG = wxString::Format("image%d.png", sub_images++);
+    }
+    while (wxFile::Exists(sPNG));
+
+    if ( !bmp.SaveFile(sPNG, wxBITMAP_TYPE_PNG) )
+        return false;
+
+    // reference the bitmap from the SVG doc using only filename & ext
+    sPNG = sPNG.AfterLast(wxFileName::GetPathSeparator());
+
+    // reference the bitmap from the SVG doc
+    wxString s;
+    s += wxString::Format(" <image x=\"%d\" y=\"%d\" "
+                          "width=\"%dpx\" height=\"%dpx\" "
+                          "title=\"Image from wxSVG\"\n",
+                          x, y, bmp.GetWidth(), bmp.GetHeight());
+    s += wxString::Format(" xlink:href=\"%s\">\n</image>\n", sPNG);
+
+    // write to the SVG file
+    const wxCharBuffer buf = s.utf8_str();
+    stream.Write(buf, strlen((const char *)buf));
+
+    return stream.IsOk();
+}
+
+// ----------------------------------------------------------
+// wxSVGFileDC (specialisations)
+// ----------------------------------------------------------
+
+void wxSVGFileDC::SetBitmapHandler(wxSVGBitmapHandler* handler)
+{
+    ((wxSVGFileDCImpl*)GetImpl())->SetBitmapHandler(handler);
+}
+
 // ----------------------------------------------------------
 // wxSVGFileDCImpl
 // ----------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxSVGFileDCImpl, wxDC)
+wxIMPLEMENT_ABSTRACT_CLASS(wxSVGFileDCImpl, wxDC);
 
 wxSVGFileDCImpl::wxSVGFileDCImpl( wxSVGFileDC *owner, const wxString &filename,
                     int width, int height, double dpi ) :
@@ -150,6 +250,7 @@ void wxSVGFileDCImpl::Init (const wxString &filename, int Width, int Height, dou
 
     ////////////////////code here
 
+    m_bmp_handler = NULL;
     m_outfile = new wxFileOutputStream(filename);
     m_OK = m_outfile->IsOk();
     if (m_OK)
@@ -250,7 +351,7 @@ void wxSVGFileDCImpl::DoDrawRotatedText(const wxString& sText, wxCoord x, wxCoor
     wxCoord w, h, desc;
     DoGetTextExtent(sText, &w, &h, &desc);
 
-    double rad = DegToRad(angle);
+    double rad = wxDegToRad(angle);
 
     // wxT("upper left") and wxT("upper right")
     CalcBoundingBox(x, y);
@@ -284,11 +385,53 @@ void wxSVGFileDCImpl::DoDrawRotatedText(const wxString& sText, wxCoord x, wxCoor
     if (sTmp.Len() > 0)  s += wxT("style=\"font-family:") + sTmp + wxT("; ");
     else s += wxT("style=\" ");
 
-    wxString fontweights [3] = { wxT("normal"), wxT("lighter"), wxT("bold") };
-    s += wxT("font-weight:") + fontweights[m_font.GetWeight() - wxNORMAL] + wxT("; ");
+    wxString fontweight;
+    switch ( m_font.GetWeight() )
+    {
+        case wxFONTWEIGHT_MAX:
+            wxFAIL_MSG( wxS("invalid font weight value") );
+            wxFALLTHROUGH;
 
-    wxString fontstyles [5] = { wxT("normal"), wxT("style error"), wxT("style error"), wxT("italic"), wxT("oblique") };
-    s += wxT("font-style:") + fontstyles[m_font.GetStyle() - wxNORMAL] + wxT("; ");
+        case wxFONTWEIGHT_NORMAL:
+            fontweight = wxS("normal");
+            break;
+
+        case wxFONTWEIGHT_LIGHT:
+            fontweight = wxS("lighter");
+            break;
+
+        case wxFONTWEIGHT_BOLD:
+            fontweight = wxS("bold");
+            break;
+    }
+
+    wxASSERT_MSG( !fontweight.empty(), wxS("unknown font weight value") );
+
+    s += wxT("font-weight:") + fontweight + wxT("; ");
+
+    wxString fontstyle;
+    switch ( m_font.GetStyle() )
+    {
+        case wxFONTSTYLE_MAX:
+            wxFAIL_MSG( wxS("invalid font style value") );
+            wxFALLTHROUGH;
+
+        case wxFONTSTYLE_NORMAL:
+            fontstyle = wxS("normal");
+            break;
+
+        case wxFONTSTYLE_ITALIC:
+            fontstyle = wxS("italic");
+            break;
+
+        case wxFONTSTYLE_SLANT:
+            fontstyle = wxS("oblique");
+            break;
+    }
+
+    wxASSERT_MSG( !fontstyle.empty(), wxS("unknown font style value") );
+
+    s += wxT("font-style:") + fontstyle + wxT("; ");
 
     sTmp.Printf (wxT("font-size:%dpt; "), m_font.GetPointSize() );
     s += sTmp;
@@ -446,10 +589,10 @@ void wxSVGFileDCImpl::DoDrawEllipticArc(wxCoord x,wxCoord y,wxCoord w,wxCoord h,
     double yc = y + ry;
 
     double xs, ys, xe, ye;
-    xs = xc + rx * cos (DegToRad(sa));
-    xe = xc + rx * cos (DegToRad(ea));
-    ys = yc - ry * sin (DegToRad(sa));
-    ye = yc - ry * sin (DegToRad(ea));
+    xs = xc + rx * cos (wxDegToRad(sa));
+    xe = xc + rx * cos (wxDegToRad(ea));
+    ys = yc - ry * sin (wxDegToRad(sa));
+    ye = yc - ry * sin (wxDegToRad(ea));
 
     ///now same as circle arc...
 
@@ -570,6 +713,11 @@ void wxSVGFileDCImpl::SetBackgroundMode( int mode )
     m_backgroundMode = mode;
 }
 
+void wxSVGFileDCImpl::SetBitmapHandler(wxSVGBitmapHandler* handler)
+{
+    delete m_bmp_handler;
+    m_bmp_handler = handler;
+}
 
 void wxSVGFileDCImpl::SetBrush(const wxBrush& brush)
 {
@@ -686,42 +834,11 @@ void wxSVGFileDCImpl::DoDrawBitmap(const class wxBitmap & bmp, wxCoord x, wxCoor
 {
     NewGraphicsIfNeeded();
 
-    wxString sTmp, s, sPNG;
-    if ( wxImage::FindHandler(wxBITMAP_TYPE_PNG) == NULL )
-        wxImage::AddHandler(new wxPNGHandler);
+    // If we don't have any bitmap handler yet, use the default one.
+    if ( !m_bmp_handler )
+        m_bmp_handler = new wxSVGBitmapFileHandler();
 
-// create suitable file name
-    sTmp.Printf ( wxT("_image%d.png"), m_sub_images);
-    sPNG = m_filename.BeforeLast(wxT('.')) + sTmp;
-    while (wxFile::Exists(sPNG) )
-    {
-        m_sub_images ++;
-        sTmp.Printf ( wxT("_image%d.png"), m_sub_images);
-        sPNG = m_filename.BeforeLast(wxT('.')) + sTmp;
-    }
-
-//create copy of bitmap (wxGTK doesn't like saving a constant bitmap)
-    wxBitmap myBitmap = bmp;
-//save it
-    bool bPNG_OK = myBitmap.SaveFile(sPNG,wxBITMAP_TYPE_PNG);
-
-// reference the bitmap from the SVG doc
-// only use filename & ext
-    sPNG = sPNG.AfterLast(wxFileName::GetPathSeparator());
-
-// reference the bitmap from the SVG doc
-    int w = myBitmap.GetWidth();
-    int h = myBitmap.GetHeight();
-    sTmp.Printf ( wxT(" <image x=\"%d\" y=\"%d\" width=\"%dpx\" height=\"%dpx\" "), x,y,w,h );
-    s += sTmp;
-    sTmp.Printf ( wxT(" xlink:href=\"%s\"> \n"), sPNG.c_str() );
-    s += sTmp + wxT("<title>Image from wxSVG</title>  </image>") + wxT("\n");
-
-    if (m_OK && bPNG_OK)
-    {
-        write(s);
-    }
-    m_OK = m_outfile->IsOk() && bPNG_OK;
+    m_bmp_handler->ProcessBitmap(bmp, x, y, *m_outfile);
 }
 
 void wxSVGFileDCImpl::write(const wxString &s)

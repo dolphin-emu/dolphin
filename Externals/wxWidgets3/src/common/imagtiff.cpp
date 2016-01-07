@@ -37,9 +37,6 @@
 
 extern "C"
 {
-#ifdef __DMC__
-    #include "tif_config.h"
-#endif
     #include "tiff.h"
     #include "tiffio.h"
 }
@@ -98,7 +95,7 @@ TIFFwxErrorHandler(const char* module, const char *fmt, va_list ap)
 // wxTIFFHandler
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxTIFFHandler,wxImageHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTIFFHandler,wxImageHandler);
 
 wxTIFFHandler::wxTIFFHandler()
 {
@@ -531,7 +528,7 @@ bool wxTIFFHandler::LoadFile( wxImage *image, wxInputStream& stream, bool verbos
             default:
                 wxLogWarning(_("Unknown TIFF resolution unit %d ignored"),
                     tiffRes);
-                // fall through
+                wxFALLTHROUGH;
 
             case RESUNIT_NONE:
                 resUnit = wxIMAGE_RESOLUTION_NONE;
@@ -628,7 +625,7 @@ bool wxTIFFHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbo
     {
         default:
             wxFAIL_MSG( wxT("unknown image resolution units") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxIMAGE_RESOLUTION_NONE:
             tiffRes = RESUNIT_NONE;

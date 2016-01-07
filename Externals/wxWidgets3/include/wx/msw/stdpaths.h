@@ -11,6 +11,8 @@
 #ifndef _WX_MSW_STDPATHS_H_
 #define _WX_MSW_STDPATHS_H_
 
+struct _GUID;
+
 // ----------------------------------------------------------------------------
 // wxStandardPaths
 // ----------------------------------------------------------------------------
@@ -26,7 +28,7 @@ public:
     virtual wxString GetUserDataDir() const;
     virtual wxString GetUserLocalDataDir() const;
     virtual wxString GetPluginsDir() const;
-    virtual wxString GetDocumentsDir() const;
+    virtual wxString GetUserDir(Dir userDir) const wxOVERRIDE;
 
 
     // MSW-specific methods
@@ -71,6 +73,8 @@ protected:
 
     // get the path corresponding to the given standard CSIDL_XXX constant
     static wxString DoGetDirectory(int csidl);
+
+    static wxString DoGetKnownFolder(const _GUID& rfid);
 
     // return the directory of the application itself
     wxString GetAppDir() const;

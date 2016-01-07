@@ -33,6 +33,8 @@ public:
         (void)Create(parent, id, range, pos, size, style, validator, name);
     }
 
+    virtual ~wxGauge();
+
     bool Create(wxWindow *parent,
                 wxWindowID id,
                 int range,
@@ -69,7 +71,7 @@ private:
     void SetIndeterminateMode();
     void SetDeterminateMode();
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxGauge)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxGauge);
 };
 
 #endif // wxUSE_GAUGE

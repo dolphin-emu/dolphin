@@ -238,9 +238,9 @@ g_cclosure_user_marshal_VOID__OBJECT_OBJECT (GClosure     *closure,
                                                     gpointer     arg_1,
                                                     gpointer     arg_2,
                                                     gpointer     data2);
-  register GMarshalFunc_VOID__OBJECT_OBJECT callback;
-  register GCClosure *cc = (GCClosure*) closure;
-  register gpointer data1, data2;
+  GMarshalFunc_VOID__OBJECT_OBJECT callback;
+  GCClosure *cc = (GCClosure*) closure;
+  gpointer data1, data2;
 
   g_return_if_fail (n_param_values == 3);
 
@@ -380,11 +380,7 @@ void wxPizza::put(GtkWidget* widget, int x, int y, int width, int height)
 {
     // Re-parenting a TLW under a child window is possible at wx level but
     // using a TLW as child at GTK+ level results in problems, so don't do it.
-#if GTK_CHECK_VERSION(2,19,3)
     if (!gtk_widget_is_toplevel(GTK_WIDGET(widget)))
-#else
-    if (!GTK_WIDGET_TOPLEVEL(GTK_WIDGET(widget)))
-#endif
         gtk_fixed_put(GTK_FIXED(this), widget, 0, 0);
 
     wxPizzaChild* child = new wxPizzaChild;

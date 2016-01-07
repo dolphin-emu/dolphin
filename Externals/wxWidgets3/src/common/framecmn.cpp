@@ -43,12 +43,12 @@ extern WXDLLEXPORT_DATA(const char) wxStatusLineNameStr[] = "status_line";
 #if wxUSE_MENUS
 
 #if wxUSE_STATUSBAR
-BEGIN_EVENT_TABLE(wxFrameBase, wxTopLevelWindow)
+wxBEGIN_EVENT_TABLE(wxFrameBase, wxTopLevelWindow)
     EVT_MENU_OPEN(wxFrameBase::OnMenuOpen)
     EVT_MENU_CLOSE(wxFrameBase::OnMenuClose)
 
     EVT_MENU_HIGHLIGHT_ALL(wxFrameBase::OnMenuHighlight)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 #endif // wxUSE_STATUSBAR
 
 /* static */
@@ -109,14 +109,8 @@ wxFLAGS_MEMBER(wxHSCROLL)
 // frame styles
 wxFLAGS_MEMBER(wxSTAY_ON_TOP)
 wxFLAGS_MEMBER(wxCAPTION)
-#if WXWIN_COMPATIBILITY_2_6
-wxFLAGS_MEMBER(wxTHICK_FRAME)
-#endif // WXWIN_COMPATIBILITY_2_6
 wxFLAGS_MEMBER(wxSYSTEM_MENU)
 wxFLAGS_MEMBER(wxRESIZE_BORDER)
-#if WXWIN_COMPATIBILITY_2_6
-wxFLAGS_MEMBER(wxRESIZE_BOX)
-#endif // WXWIN_COMPATIBILITY_2_6
 wxFLAGS_MEMBER(wxCLOSE_BOX)
 wxFLAGS_MEMBER(wxMAXIMIZE_BOX)
 wxFLAGS_MEMBER(wxMINIMIZE_BOX)
@@ -127,7 +121,7 @@ wxFLAGS_MEMBER(wxFRAME_FLOAT_ON_PARENT)
 wxFLAGS_MEMBER(wxFRAME_SHAPED)
 wxEND_FLAGS( wxFrameStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxFrame, wxTopLevelWindow, "wx/frame.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxFrame, wxTopLevelWindow, "wx/frame.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxFrame)
 wxEVENT_PROPERTY( Menu, wxEVT_MENU, wxCommandEvent)
@@ -171,7 +165,9 @@ wxFrameBase::wxFrameBase()
 
 wxFrameBase::~wxFrameBase()
 {
-    // this destructor is required for Darwin
+    SendDestroyEvent();
+
+    DeleteAllBars();
 }
 
 wxFrame *wxFrameBase::New(wxWindow *parent,
@@ -332,6 +328,8 @@ void wxFrameBase::UpdateWindowUI(long flags)
 
 void wxFrameBase::OnMenuHighlight(wxMenuEvent& event)
 {
+    event.Skip();
+
 #if wxUSE_STATUSBAR
     (void)ShowMenuHelp(event.GetMenuId());
 #endif // wxUSE_STATUSBAR
@@ -339,6 +337,8 @@ void wxFrameBase::OnMenuHighlight(wxMenuEvent& event)
 
 void wxFrameBase::OnMenuOpen(wxMenuEvent& event)
 {
+    event.Skip();
+
     if ( !ShouldUpdateMenuFromIdle() )
     {
         // as we didn't update the menus from idle time, do it now
@@ -346,8 +346,10 @@ void wxFrameBase::OnMenuOpen(wxMenuEvent& event)
     }
 }
 
-void wxFrameBase::OnMenuClose(wxMenuEvent& WXUNUSED(event))
+void wxFrameBase::OnMenuClose(wxMenuEvent& event)
 {
+    event.Skip();
+
     DoGiveHelp(wxEmptyString, false);
 }
 
@@ -573,15 +575,9 @@ wxToolBar* wxFrameBase::OnCreateToolBar(long style,
                                         wxWindowID id,
                                         const wxString& name)
 {
-#if defined(__WXWINCE__) && defined(__POCKETPC__)
-    return new wxToolMenuBar(this, id,
-                         wxDefaultPosition, wxDefaultSize,
-                         style, name);
-#else
     return new wxToolBar(this, id,
                          wxDefaultPosition, wxDefaultSize,
                          style, name);
-#endif
 }
 
 void wxFrameBase::SetToolBar(wxToolBar *toolbar)

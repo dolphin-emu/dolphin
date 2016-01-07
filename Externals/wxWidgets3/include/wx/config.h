@@ -24,9 +24,6 @@
 #if defined(__WINDOWS__) && wxUSE_CONFIG_NATIVE
     #include "wx/msw/regconf.h"
     #define wxConfig  wxRegConfig
-#elif defined(__WXOS2__) && wxUSE_CONFIG_NATIVE
-    #include "wx/os2/iniconf.h"
-    #define wxConfig wxIniConfig
 #else // either we're under Unix or wish to always use config files
     #include "wx/fileconf.h"
     #define wxConfig wxFileConfig

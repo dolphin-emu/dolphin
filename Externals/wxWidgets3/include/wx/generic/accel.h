@@ -38,11 +38,11 @@ public:
 
 protected:
     // ref counting code
-    virtual wxObjectRefData *CreateRefData() const;
-    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const;
+    virtual wxObjectRefData *CreateRefData() const wxOVERRIDE;
+    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const wxOVERRIDE;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxAcceleratorTable)
+    wxDECLARE_DYNAMIC_CLASS(wxAcceleratorTable);
 };
 
 #endif // _WX_GENERIC_ACCEL_H_

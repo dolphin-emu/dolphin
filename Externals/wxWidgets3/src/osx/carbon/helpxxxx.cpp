@@ -14,7 +14,7 @@
 
 #include <string.h>
 
-IMPLEMENT_DYNAMIC_CLASS(wxXXXXHelpController, wxHelpControllerBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxXXXXHelpController, wxHelpControllerBase);
 
 wxXXXXHelpController::wxXXXXHelpController()
 {

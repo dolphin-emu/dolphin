@@ -32,6 +32,12 @@
 #    ifndef MAC_OS_X_VERSION_10_8
 #       define MAC_OS_X_VERSION_10_8 1080
 #    endif
+#    ifndef MAC_OS_X_VERSION_10_9
+#       define MAC_OS_X_VERSION_10_9 1090
+#    endif
+#    ifndef MAC_OS_X_VERSION_10_10
+#       define MAC_OS_X_VERSION_10_10 101000
+#    endif
 #    include "wx/osx/config_xcode.h"
 #    ifndef __WXOSX__
 #        define __WXOSX__ 1
@@ -57,21 +63,6 @@
 #    endif /* !__WINDOWS__ */
 #endif /* Any standard symbol indicating Windows */
 
-#if defined(_WIN64)
-#    ifndef _WIN32
-        /*
-            a lot of code (mistakenly) uses #ifdef _WIN32 to either test for
-            Windows or to test for !__WIN16__, so we must define _WIN32 for
-            Win64 as well to ensure that the existing code continues to work.
-         */
-#       define _WIN32
-#   endif /* !_WIN32 */
-
-#   ifndef __WIN64__
-#       define __WIN64__
-#   endif /* !__WIN64__ */
-#endif /* _WIN64 */
-
 #if defined(__WINDOWS__)
     /* Select wxMSW under Windows if no other port is specified. */
 #   if !defined(__WXMSW__) && !defined(__WXMOTIF__) && !defined(__WXGTK__) && !defined(__WXX11__)
@@ -93,6 +84,15 @@
 #   ifndef __WIN32__
 #        define __WIN32__
 #   endif
+
+    /* MSVC predefines _WIN64 for 64 bit builds, for gcc we use generic
+       architecture definitions. */
+#   if defined(_WIN64) || defined(__x86_64__)
+#       ifndef __WIN64__
+#           define __WIN64__
+#       endif /* !__WIN64__ */
+#   endif /* _WIN64 */
+
 #endif /* __WINDOWS__ */
 
 /*
@@ -117,59 +117,6 @@
 #   endif
 
 #endif /* __WXGTK__ && __WINDOWS__ */
-
-/* detect MS SmartPhone */
-#if defined( WIN32_PLATFORM_WFSP )
-#   ifndef __SMARTPHONE__
-#       define __SMARTPHONE__
-#   endif
-#   ifndef __WXWINCE__
-#       define __WXWINCE__
-#   endif
-#endif
-
-/* detect PocketPC */
-#if defined( WIN32_PLATFORM_PSPC )
-#   ifndef __POCKETPC__
-#       define __POCKETPC__
-#   endif
-#   ifndef __WXWINCE__
-#       define __WXWINCE__
-#   endif
-#endif
-
-/* detect Standard WinCE SDK */
-#if defined( WCE_PLATFORM_STANDARDSDK )
-#   ifndef __WINCE_STANDARDSDK__
-#       define __WINCE_STANDARDSDK__
-#   endif
-#   ifndef __WXWINCE__
-#       define __WXWINCE__
-#   endif
-#endif
-
-#if defined(_WIN32_WCE) && !defined(WIN32_PLATFORM_WFSP) && !defined(WIN32_PLATFORM_PSPC)
-#   if (_WIN32_WCE >= 400)
-#       ifndef __WINCE_NET__
-#           define __WINCE_NET__
-#       endif
-#   elif (_WIN32_WCE >= 200)
-#       ifndef __HANDHELDPC__
-#           define __HANDHELDPC__
-#       endif
-#   endif
-#   ifndef __WXWINCE__
-#       define __WXWINCE__
-#   endif
-#endif
-
-#if defined(__WXWINCE__) && defined(_MSC_VER) && (_MSC_VER == 1201)
-    #define __EVC4__
-#endif
-
-#if defined(__POCKETPC__) || defined(__SMARTPHONE__) || defined(__WXGPE__)
-#   define __WXHANDHELD__
-#endif
 
 #ifdef __ANDROID__
 #   define __WXANDROID__
@@ -291,40 +238,19 @@
 #endif /* __BORLANDC__ */
 
 /*
-   OS: first of all, test for MS-DOS platform. We must do this before testing
-       for Unix, because DJGPP compiler defines __unix__ under MS-DOS
- */
-#if defined(__GO32__) || defined(__DJGPP__) || defined(__DOS__)
-#    ifndef __DOS__
-#        define __DOS__
-#    endif
-    /* size_t is the same as unsigned int for Watcom 11 compiler, */
-    /* so define it if it hadn't been done by configure yet */
-#    if !defined(wxSIZE_T_IS_UINT) && !defined(wxSIZE_T_IS_ULONG)
-#        ifdef __WATCOMC__
-#            define wxSIZE_T_IS_UINT
-#        endif
-#        ifdef __DJGPP__
-#            define wxSIZE_T_IS_ULONG
-#        endif
-#    endif
-
-/*
    OS: then test for generic Unix defines, then for particular flavours and
        finally for Unix-like systems
        Mac OS X matches this case (__MACH__), prior Mac OS do not.
  */
-#elif defined(__UNIX__) || defined(__unix) || defined(__unix__) || \
+#if defined(__UNIX__) || defined(__unix) || defined(__unix__) || \
       defined(____SVR4____) || defined(__LINUX__) || defined(__sgi) || \
       defined(__hpux) || defined(sun) || defined(__SUN__) || defined(_AIX) || \
-      defined(__EMX__) || defined(__VMS) || defined(__BEOS__) || defined(__MACH__)
+      defined(__VMS) || defined(__BEOS__) || defined(__MACH__)
 
 #    define __UNIX_LIKE__
 
-    /* Helps SGI compilation, apparently */
 #    ifdef __SGI__
 #        ifdef __GNUG__
-#            define __need_wchar_t
 #        else /* !gcc */
             /*
                Note I use the term __SGI_CC__ for both cc and CC, its not a good
@@ -339,9 +265,6 @@
 #       endif
 #    endif  /* SGI */
 
-#    ifdef __EMX__
-#        define OS2EMX_PLAIN_CHAR
-#    endif
 #    if defined(__INNOTEK_LIBC__)
         /* Ensure visibility of strnlen declaration */
 #        define _GNU_SOURCE
@@ -351,12 +274,6 @@
 #    if defined(__hpux) && !defined(__HPUX__)
 #        define __HPUX__
 #    endif /* HP-UX */
-
-#    if defined(__CYGWIN__) || defined(__WINE__)
-#        if !defined(wxSIZE_T_IS_UINT)
-#            define wxSIZE_T_IS_UINT
-#        endif
-#    endif
 
     /*  All of these should already be defined by including configure-
         generated setup.h but we wish to support Xcode compilation without
@@ -382,29 +299,6 @@
 #            define wxSIZE_T_IS_ULONG
 #        endif
 #    endif
-
-/*
-   OS: OS/2
- */
-#elif defined(__OS2__)
-
-    /* wxOS2 vs. non wxOS2 ports on OS2 platform */
-#    if !defined(__WXMOTIF__) && !defined(__WXGTK__) && !defined(__WXX11__)
-#        ifndef __WXPM__
-#            define __WXPM__
-#        endif
-#    endif
-
-#    if defined(__IBMCPP__)
-#        define __VISAGEAVER__ __IBMCPP__
-#    endif
-
-    /* Place other OS/2 compiler environment defines here */
-#    if defined(__VISAGECPP__)
-        /* VisualAge is the only thing that understands _Optlink */
-#        define LINKAGEMODE _Optlink
-#    endif
-#    define wxSIZE_T_IS_UINT
 
 /*
    OS: Windows
@@ -446,9 +340,7 @@
 #endif
 
 /* Force linking against required libraries under Windows: */
-#ifdef __WXWINCE__
-#   include "wx/msw/wince/libraries.h"
-#elif defined __WINDOWS__
+#if defined __WINDOWS__
 #   include "wx/msw/libraries.h"
 #endif
 
@@ -456,17 +348,21 @@
 #define wxNEEDS_CHARPP
 #endif
 
+/*
+    Note that wx/msw/gccpriv.h must be included after defining UNICODE and
+    _UNICODE macros as it includes _mingw.h which relies on them being set.
+ */
 #if ( defined( __GNUWIN32__ ) || defined( __MINGW32__ ) || \
-    ( defined( __CYGWIN__ ) && defined( __WINDOWS__ ) ) || \
-      wxCHECK_WATCOM_VERSION(1,0) ) && \
-    !defined(__DOS__) && \
-    !defined(__WXPM__) && \
+    ( defined( __CYGWIN__ ) && defined( __WINDOWS__ ) ) ) && \
     !defined(__WXMOTIF__) && \
     !defined(__WXX11__)
 #    include "wx/msw/gccpriv.h"
 #else
 #    undef wxCHECK_W32API_VERSION
 #    define wxCHECK_W32API_VERSION(maj, min) (0)
+#    undef wxCHECK_MINGW32_VERSION
+#    define wxCHECK_MINGW32_VERSION( major, minor ) (0)
+#    define wxDECL_FOR_STRICT_MINGW32(rettype, func, params)
 #endif
 
 
@@ -567,31 +463,21 @@
 #        ifndef MAC_OS_X_VERSION_10_8
 #           define MAC_OS_X_VERSION_10_8 1080
 #        endif
+#        ifndef MAC_OS_X_VERSION_10_9
+#           define MAC_OS_X_VERSION_10_9 1090
+#        endif
+#        ifndef MAC_OS_X_VERSION_10_10
+#           define MAC_OS_X_VERSION_10_10 101000
+#        endif
 #    else
 #        error "only mach-o configurations are supported"
 #    endif
 #endif
 
 /*
-    __WXOSX_OR_COCOA__ is a common define to wxOSX (Carbon or Cocoa) and wxCocoa ports under OS X.
-
-    DO NOT use this define in base library code.  Although wxMac has its own
-    private base library (and thus __WXOSX_OR_COCOA__,__WXMAC__ and related defines are
-    valid there), wxCocoa shares its library with other ports like wxGTK and wxX11.
-
-    To keep wx authors from screwing this up, only enable __WXOSX_OR_COCOA__ for wxCocoa when
-    not compiling the base library.  We determine this by first checking if
-    wxUSE_BASE is not defined.  If it is not defined, then we're not buildling
-    the base library, and possibly not building wx at all (but actually building
-    user code that's using wx). If it is defined then we must check to make sure
-    it is not true.  If it is true, we're building base.
-
-    If you want it in the common darwin base library then use __DARWIN__.  You
-    can use any Darwin-available libraries like CoreFoundation but please avoid
-    using OS X libraries like Carbon or CoreServices.
-
+    This is obsolete and kept for backwards compatibility only.
  */
-#if defined(__WXOSX__) || (defined(__WXCOCOA__) && (!defined(wxUSE_BASE) || !wxUSE_BASE))
+#if defined(__WXOSX__)
 #   define __WXOSX_OR_COCOA__ 1
 #endif
 
@@ -611,9 +497,6 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1310)
 #    undef wxUSE_IOSTREAMH
 #    define wxUSE_IOSTREAMH 0
-#elif defined(__DMC__) || defined(__WATCOMC__)
-#    undef wxUSE_IOSTREAMH
-#    define wxUSE_IOSTREAMH 1
 #elif defined(__MINGW32__)
 #    undef wxUSE_IOSTREAMH
 #    define wxUSE_IOSTREAMH 0

@@ -800,7 +800,7 @@ OSStatus wxMacDataBrowserTableViewControl::OpenContainer(DataBrowserItemID conta
   return ::OpenDataBrowserContainer(m_controlRef,containerID);
 }
 
-IMPLEMENT_ABSTRACT_CLASS(wxMacDataBrowserTableViewControl,wxMacControl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxMacDataBrowserTableViewControl, wxMacControl);
 
 // ============================================================================
 // wxMacDataBrowserListViewControl
@@ -1410,7 +1410,6 @@ OSStatus wxMacDataViewDataBrowserListViewControl::DataBrowserGetSetItemDataProc(
     if (propertyID >= kMinPropertyID) // in case data columns set the data
     {
      // variable definitions:
-      wxVariant         variant;
       wxDataViewColumn* dataViewColumnPtr;
       wxDataViewCtrl*   dataViewCtrlPtr;
 
@@ -1420,11 +1419,9 @@ OSStatus wxMacDataViewDataBrowserListViewControl::DataBrowserGetSetItemDataProc(
       dataViewColumnPtr = GetColumnPtr(propertyID);
       wxCHECK_MSG(dataViewColumnPtr                != NULL,errDataBrowserNotConfigured,_("No column for the specified column position existing."));
       wxCHECK_MSG(dataViewColumnPtr->GetRenderer() != NULL,errDataBrowserNotConfigured,_("No renderer specified for column."));
-      dataViewCtrlPtr->GetModel()->GetValue(variant,wxDataViewItem(reinterpret_cast<void*>(itemID)),dataViewColumnPtr->GetModelColumn());
-      if (!(variant.IsNull()))
+      if (dataViewColumnPtr->GetRenderer()->PrepareForItem(dataViewCtrlPtr->GetModel(),wxDataViewItem(reinterpret_cast<void*>(itemID)),dataViewColumnPtr->GetModelColumn()))
       {
         dataViewColumnPtr->GetRenderer()->GetNativeData()->SetItemDataRef(itemData);
-        dataViewColumnPtr->GetRenderer()->SetValue(variant);
         wxCHECK_MSG(dataViewColumnPtr->GetRenderer()->MacRender(),errDataBrowserNotConfigured,_("Rendering failed."));
       }
       return noErr;
@@ -2337,7 +2334,7 @@ void wxDataViewRenderer::SetNativeData(wxDataViewRendererNativeData* newNativeDa
   m_NativeDataPtr = newNativeDataPtr;
 }
 
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewRenderer,wxDataViewRendererBase)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDataViewRenderer, wxDataViewRendererBase);
 
 // ---------------------------------------------------------
 // wxDataViewCustomRenderer
@@ -2355,7 +2352,7 @@ bool wxDataViewCustomRenderer::MacRender()
   return true;
 }
 
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewCustomRenderer, wxDataViewRenderer)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDataViewCustomRenderer, wxDataViewRenderer);
 
 // ---------------------------------------------------------
 // wxDataViewTextRenderer
@@ -2374,7 +2371,7 @@ bool wxDataViewTextRenderer::MacRender()
   return (::SetDataBrowserItemDataText(GetNativeData()->GetItemDataRef(),cfString) == noErr);
 }
 
-IMPLEMENT_CLASS(wxDataViewTextRenderer,wxDataViewRenderer)
+wxIMPLEMENT_CLASS(wxDataViewTextRenderer,wxDataViewRenderer);
 
 // ---------------------------------------------------------
 // wxDataViewBitmapRenderer
@@ -2399,7 +2396,7 @@ bool wxDataViewBitmapRenderer::MacRender()
   return (!(bitmap.IsOk()) || (::SetDataBrowserItemDataIcon(GetNativeData()->GetItemDataRef(),bitmap.GetIconRef()) == noErr));
 }
 
-IMPLEMENT_CLASS(wxDataViewBitmapRenderer,wxDataViewRenderer)
+wxIMPLEMENT_CLASS(wxDataViewBitmapRenderer,wxDataViewRenderer);
 
 // ---------------------------------------------------------
 // wxDataViewIconTextRenderer
@@ -2429,7 +2426,7 @@ bool wxDataViewIconTextRenderer::MacRender()
   return (::SetDataBrowserItemDataText(GetNativeData()->GetItemDataRef(),cfString) == noErr);
 }
 
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewIconTextRenderer,wxDataViewRenderer)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDataViewIconTextRenderer, wxDataViewRenderer);
 
 
 // ---------------------------------------------------------
@@ -2450,7 +2447,7 @@ bool wxDataViewToggleRenderer::MacRender()
   return (::SetDataBrowserItemDataButtonValue(GetNativeData()->GetItemDataRef(),GetValue().GetBool()) == noErr);
 }
 
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewToggleRenderer,wxDataViewRenderer)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDataViewToggleRenderer, wxDataViewRenderer);
 
 // ---------------------------------------------------------
 // wxDataViewProgressRenderer
@@ -2473,7 +2470,7 @@ bool wxDataViewProgressRenderer::MacRender()
           (::SetDataBrowserItemDataValue  (GetNativeData()->GetItemDataRef(),GetValue().GetLong()) == noErr));
 }
 
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewProgressRenderer,wxDataViewRenderer)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDataViewProgressRenderer, wxDataViewRenderer);
 
 // ---------------------------------------------------------
 // wxDataViewDateRenderer
@@ -2490,7 +2487,7 @@ bool wxDataViewDateRenderer::MacRender()
   return (::SetDataBrowserItemDataDateTime(GetNativeData()->GetItemDataRef(),GetValue().GetDateTime().Subtract(wxDateTime(1,wxDateTime::Jan,1904)).GetSeconds().GetLo()) == noErr);
 }
 
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewDateRenderer,wxDataViewRenderer)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDataViewDateRenderer, wxDataViewRenderer);
 
 // ---------------------------------------------------------
 // wxDataViewColumn

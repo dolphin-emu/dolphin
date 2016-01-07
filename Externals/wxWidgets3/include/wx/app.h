@@ -264,7 +264,7 @@ public:
 
     // Implement the inherited wxEventFilter method but just return -1 from it
     // to indicate that default processing should take place.
-    virtual int FilterEvent(wxEvent& event);
+    virtual int FilterEvent(wxEvent& event) wxOVERRIDE;
 
     // return true if we're running event loop, i.e. if the events can
     // (already) be dispatched
@@ -298,10 +298,33 @@ public:
 
     // Function called if an uncaught exception is caught inside the main
     // event loop: it may return true to continue running the event loop or
-    // false to stop it (in the latter case it may rethrow the exception as
-    // well)
+    // false to stop it. If this function rethrows the exception, as it does by
+    // default, simply because there is no general way to handle exceptions,
+    // StoreCurrentException() will be called to store it because in any case
+    // the exception can't be allowed to escape.
     virtual bool OnExceptionInMainLoop();
 
+    // This function can be overridden to store the current exception, in view
+    // of rethrowing it later when RethrowStoredException() is called. If the
+    // exception was stored, return true. If the exception can't be stored,
+    // i.e. if this function returns false, the program will abort after
+    // calling OnUnhandledException().
+    //
+    // The default implementation of this function when using C++98 compiler
+    // just returns false, as there is no generic way to store an arbitrary
+    // exception in C++98 and each application must do it on its own for the
+    // exceptions it uses in its overridden version. When using C++11, the
+    // default implementation uses std::current_exception() and returns true,
+    // so it's normally not necessary to override this method when using C++11.
+    virtual bool StoreCurrentException();
+
+    // If StoreCurrentException() is overridden, this function should be
+    // overridden as well to rethrow the exceptions stored by it when the
+    // control gets back to our code, i.e. when it's safe to do it.
+    //
+    // The default version does nothing when using C++98 and uses
+    // std::rethrow_exception() in C++11.
+    virtual void RethrowStoredException();
 #endif // wxUSE_EXCEPTIONS
 
 
@@ -516,7 +539,7 @@ protected:
     wxDECLARE_NO_COPY_CLASS(wxAppConsoleBase);
 };
 
-#if defined(__UNIX__) && !defined(__WXMSW__)
+#if defined(__UNIX__) && !defined(__WINDOWS__)
     #include "wx/unix/app.h"
 #else
     // this has to be a class and not a typedef as we forward declare it
@@ -541,7 +564,7 @@ public:
         // very first initialization function
         //
         // Override: very rarely
-    virtual bool Initialize(int& _argc, wxChar **_argv);
+    virtual bool Initialize(int& argc, wxChar **argv) wxOVERRIDE;
 
         // a platform-dependent version of OnInit(): the code here is likely to
         // depend on the toolkit. default version does nothing.
@@ -556,15 +579,15 @@ public:
         // of the program really starts here
         //
         // Override: rarely in GUI applications, always in console ones.
-    virtual int OnRun();
+    virtual int OnRun() wxOVERRIDE;
 
         // a matching function for OnInit()
-    virtual int OnExit();
+    virtual int OnExit() wxOVERRIDE;
 
         // very last clean up function
         //
         // Override: very rarely
-    virtual void CleanUp();
+    virtual void CleanUp() wxOVERRIDE;
 
 
     // the worker functions - usually not used directly by the user code
@@ -579,10 +602,10 @@ public:
         // parties
         //
         // it should return true if more idle events are needed, false if not
-    virtual bool ProcessIdle();
+    virtual bool ProcessIdle() wxOVERRIDE;
 
         // override base class version: GUI apps always use an event loop
-    virtual bool UsesEventLoop() const { return true; }
+    virtual bool UsesEventLoop() const wxOVERRIDE { return true; }
 
 
     // top level window functions
@@ -645,8 +668,8 @@ public:
     // ------------------------------------------------------------------------
 
 #if wxUSE_CMDLINE_PARSER
-    virtual bool OnCmdLineParsed(wxCmdLineParser& parser);
-    virtual void OnInitCmdLine(wxCmdLineParser& parser);
+    virtual bool OnCmdLineParsed(wxCmdLineParser& parser) wxOVERRIDE;
+    virtual void OnInitCmdLine(wxCmdLineParser& parser) wxOVERRIDE;
 #endif
 
     // miscellaneous other stuff
@@ -657,15 +680,9 @@ public:
     // deactivated
     virtual void SetActive(bool isActive, wxWindow *lastFocus);
 
-#if WXWIN_COMPATIBILITY_2_6
-    // returns true if the program is successfully initialized
-    wxDEPRECATED_MSG("always returns true now, don't call")
-    bool Initialized();
-#endif // WXWIN_COMPATIBILITY_2_6
-
 protected:
     // override base class method to use GUI traits
-    virtual wxAppTraits *CreateTraits();
+    virtual wxAppTraits *CreateTraits() wxOVERRIDE;
 
 
     // the main top level window (may be NULL)
@@ -694,10 +711,6 @@ protected:
     wxDECLARE_NO_COPY_CLASS(wxAppBase);
 };
 
-#if WXWIN_COMPATIBILITY_2_6
-    inline bool wxAppBase::Initialized() { return true; }
-#endif // WXWIN_COMPATIBILITY_2_6
-
 // ----------------------------------------------------------------------------
 // now include the declaration of the real class
 // ----------------------------------------------------------------------------
@@ -716,10 +729,8 @@ protected:
     #include "wx/x11/app.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/app.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/app.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/app.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/app.h"
 #endif
 
 #else // !GUI
@@ -851,7 +862,7 @@ public:
     wxIMPLEMENT_WX_THEME_SUPPORT            \
     wxIMPLEMENT_APP_NO_THEMES(appname)
 
-// Same as IMPLEMENT_APP(), but for console applications.
+// Same as wxIMPLEMENT_APP(), but for console applications.
 #define wxIMPLEMENT_APP_CONSOLE(appname)    \
     wxIMPLEMENT_WXWIN_MAIN_CONSOLE          \
     wxIMPLEMENT_APP_NO_MAIN(appname)
@@ -875,7 +886,7 @@ extern wxAppInitializer wxTheAppInitializer;
 
 // deprecated variants _not_ requiring a semicolon after them
 // (note that also some wx-prefixed macro do _not_ require a semicolon because
-//  it's not always possible to force the compire to require it)
+// it's not always possible to force the compiler to require it)
 
 #define IMPLEMENT_WXWIN_MAIN_CONSOLE            wxIMPLEMENT_WXWIN_MAIN_CONSOLE
 #define IMPLEMENT_WXWIN_MAIN                    wxIMPLEMENT_WXWIN_MAIN

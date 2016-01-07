@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    virtual void DoClose()
+    virtual void DoClose() wxOVERRIDE
     {
         wxSocketManager * const manager = wxSocketManager::Get();
         if ( manager )
@@ -183,16 +183,16 @@ private:
 class wxSocketManagerMac : public wxSocketManager
 {
 public:
-    virtual bool OnInit();
-    virtual void OnExit();
+    virtual bool OnInit() wxOVERRIDE;
+    virtual void OnExit() wxOVERRIDE;
 
-    virtual wxSocketImpl *CreateSocket(wxSocketBase& wxsocket)
+    virtual wxSocketImpl *CreateSocket(wxSocketBase& wxsocket) wxOVERRIDE
     {
         return new wxSocketImplMac(wxsocket);
     }
 
-    virtual void Install_Callback(wxSocketImpl *socket, wxSocketNotify event);
-    virtual void Uninstall_Callback(wxSocketImpl *socket, wxSocketNotify event);
+    virtual void Install_Callback(wxSocketImpl *socket, wxSocketNotify event) wxOVERRIDE;
+    virtual void Uninstall_Callback(wxSocketImpl *socket, wxSocketNotify event) wxOVERRIDE;
 
 private:
     // return CFSocket callback mask corresponding to the given event (the

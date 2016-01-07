@@ -61,7 +61,7 @@ wxPaletteRefData::~wxPaletteRefData()
 
 #define M_PALETTEDATA ((wxPaletteRefData *)m_refData)
 
-IMPLEMENT_DYNAMIC_CLASS(wxPalette,wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPalette,wxGDIObject);
 
 wxPalette::wxPalette()
 {

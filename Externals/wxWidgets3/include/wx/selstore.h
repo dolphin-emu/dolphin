@@ -47,11 +47,15 @@ public:
     // special case of SetItemCount(0)
     void Clear() { m_itemsSel.Clear(); m_count = 0; m_defaultState = false; }
 
-    // must be called when a new item is inserted/added
-    void OnItemAdd(unsigned WXUNUSED(item)) { wxFAIL_MSG( wxT("TODO") ); }
+    // must be called when new items are inserted/added
+    void OnItemsInserted(unsigned item, unsigned numItems);
 
-    // must be called when an item is deleted
+    // must be called when an items is deleted
     void OnItemDelete(unsigned item);
+
+    // more efficient version for notifying the selection about deleting
+    // several items at once, return true if any of them were selected
+    bool OnItemsDeleted(unsigned item, unsigned numItems);
 
     // select one item, use SelectRange() insted if possible!
     //
@@ -71,12 +75,32 @@ public:
     // return true if the given item is selected
     bool IsSelected(unsigned item) const;
 
+    // return true if no items are currently selected
+    bool IsEmpty() const
+    {
+        return m_defaultState ? m_itemsSel.size() == m_count
+                              : m_itemsSel.empty();
+    }
+
     // return the total number of selected items
     unsigned GetSelectedCount() const
     {
         return m_defaultState ? m_count - m_itemsSel.GetCount()
                               : m_itemsSel.GetCount();
     }
+
+    // type of a "cookie" used to preserve the iteration state, this is an
+    // opaque type, don't rely on its current representation
+    typedef size_t IterationState;
+
+    // constant representing absence of selection and hence end of iteration
+    static const unsigned NO_SELECTION;
+
+    // get the first selected item in index order, return NO_SELECTION if none
+    unsigned GetFirstSelectedItem(IterationState& cookie) const;
+
+    // get the next selected item, return NO_SELECTION if no more
+    unsigned GetNextSelectedItem(IterationState& cookie) const;
 
 private:
     // (re)init

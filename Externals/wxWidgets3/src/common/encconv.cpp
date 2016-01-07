@@ -33,10 +33,6 @@
     bool gMacEncodingsInited[wxFONTENCODING_MACMAX-wxFONTENCODING_MACMIN+1] ;
 #endif
 
-#ifdef __WXWINCE__
-    #include "wx/msw/wince/missing.h"       // for bsearch()
-#endif
-
 static const wxUint16* GetEncTable(wxFontEncoding enc)
 {
 #ifdef __WXMAC__
@@ -351,7 +347,7 @@ wxString wxEncodingConverter::Convert(const wxString& input) const
 
 #define STOP wxFONTENCODING_SYSTEM
 
-#define NUM_OF_PLATFORMS  4 /*must conform to enum wxPLATFORM_XXXX !!!*/
+#define NUM_OF_PLATFORMS  3 /*must conform to enum wxPLATFORM_XXXX !!!*/
 #define ENC_PER_PLATFORM  3
            // max no. of encodings for one language used on one platform.
            // Using maximum of everything at the current moment to not make the
@@ -366,7 +362,6 @@ static const wxFontEncoding
     {
         /* unix    */ {wxFONTENCODING_ISO8859_1, wxFONTENCODING_ISO8859_15, STOP},
         /* windows */ {wxFONTENCODING_CP1252, STOP},
-        /* os2     */ {STOP},
         /* mac     */ {wxFONTENCODING_MACROMAN, STOP}
     },
 
@@ -374,7 +369,6 @@ static const wxFontEncoding
     {
         /* unix    */ {wxFONTENCODING_ISO8859_2, STOP},
         /* windows */ {wxFONTENCODING_CP1250, STOP},
-        /* os2     */ {STOP},
         /* mac     */ {wxFONTENCODING_MACCENTRALEUR, STOP}
     },
 
@@ -382,7 +376,6 @@ static const wxFontEncoding
     {
         /* unix    */ {wxFONTENCODING_ISO8859_13, wxFONTENCODING_ISO8859_4, STOP},
         /* windows */ {wxFONTENCODING_CP1257, STOP},
-        /* os2     */ {STOP},
         /* mac     */ {STOP}
     },
 
@@ -390,7 +383,6 @@ static const wxFontEncoding
     {
         /* unix    */ {wxFONTENCODING_ISO8859_8, STOP},
         /* windows */ {wxFONTENCODING_CP1255, STOP},
-        /* os2     */ {STOP},
         /* mac     */ {wxFONTENCODING_MACHEBREW, STOP}
     },
 
@@ -398,7 +390,6 @@ static const wxFontEncoding
     {
         /* unix    */ {wxFONTENCODING_ISO8859_7, STOP},
         /* windows */ {wxFONTENCODING_CP1253, STOP},
-        /* os2     */ {STOP},
         /* mac     */ {wxFONTENCODING_MACGREEK, STOP}
     },
 
@@ -406,7 +397,6 @@ static const wxFontEncoding
     {
         /* unix    */ {wxFONTENCODING_ISO8859_6, STOP},
         /* windows */ {wxFONTENCODING_CP1256, STOP},
-        /* os2     */ {STOP},
         /* mac     */ {wxFONTENCODING_MACARABIC, STOP}
     },
 
@@ -414,7 +404,6 @@ static const wxFontEncoding
     {
         /* unix    */ {wxFONTENCODING_ISO8859_9, STOP},
         /* windows */ {wxFONTENCODING_CP1254, STOP},
-        /* os2     */ {STOP},
         /* mac     */ {wxFONTENCODING_MACTURKISH, STOP}
     },
 
@@ -422,11 +411,10 @@ static const wxFontEncoding
     {
         /* unix    */ {wxFONTENCODING_KOI8, wxFONTENCODING_KOI8_U, wxFONTENCODING_ISO8859_5, STOP},
         /* windows */ {wxFONTENCODING_CP1251, STOP},
-        /* os2     */ {STOP},
         /* mac     */ {wxFONTENCODING_MACCYRILLIC, STOP}
     },
 
-    {{STOP},{STOP},{STOP},{STOP}} /* Terminator */
+    {{STOP},{STOP},{STOP}} /* Terminator */
     /* no, _not_ Arnold! */
 };
 
@@ -446,13 +434,23 @@ wxFontEncodingArray wxEncodingConverter::GetPlatformEquivalents(wxFontEncoding e
     {
 #if defined(__WINDOWS__)
         platform = wxPLATFORM_WINDOWS;
-#elif defined(__WXGTK__) || defined(__WXMOTIF__)
-        platform = wxPLATFORM_UNIX;
-#elif defined(__WXPM__)
-        platform = wxPLATFORM_OS2;
 #elif defined(__WXMAC__)
         platform = wxPLATFORM_MAC;
+#else
+        platform = wxPLATFORM_UNIX;
 #endif
+    }
+
+    switch ( platform )
+    {
+        case wxPLATFORM_UNIX:
+        case wxPLATFORM_WINDOWS:
+        case wxPLATFORM_MAC:
+            break;
+
+        default:
+            wxFAIL_MSG(wxS("Invalid platform specified"));
+            return wxFontEncodingArray();
     }
 
     int i, clas, e ;

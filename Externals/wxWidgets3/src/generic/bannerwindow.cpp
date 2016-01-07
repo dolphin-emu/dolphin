@@ -36,10 +36,10 @@ const int MARGIN_Y = 5;
 
 const char wxBannerWindowNameStr[] = "bannerwindow";
 
-BEGIN_EVENT_TABLE(wxBannerWindow, wxWindow)
+wxBEGIN_EVENT_TABLE(wxBannerWindow, wxWindow)
     EVT_SIZE(wxBannerWindow::OnSize)
     EVT_PAINT(wxBannerWindow::OnPaint)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxBannerWindow::Init()
 {

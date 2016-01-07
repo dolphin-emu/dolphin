@@ -17,7 +17,7 @@
 
 #include "wx/webview.h"
 
-#if defined(__WXOSX_COCOA__) || defined(__WXOSX_CARBON__)
+#if defined(__WXOSX__) 
 #include "wx/osx/webview_webkit.h"
 #elif defined(__WXGTK__)
 #include "wx/gtk/webview_webkit.h"

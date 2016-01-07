@@ -111,6 +111,9 @@ typedef wxString wxArtID;
 #define wxART_FIND                 wxART_MAKE_ART_ID(wxART_FIND)
 #define wxART_FIND_AND_REPLACE     wxART_MAKE_ART_ID(wxART_FIND_AND_REPLACE)
 
+#define wxART_FULL_SCREEN          wxART_MAKE_ART_ID(wxART_FULL_SCREEN)
+
+#define wxART_EDIT                 wxART_MAKE_ART_ID(wxART_EDIT)
 
 // ----------------------------------------------------------------------------
 // wxArtProvider class
@@ -186,17 +189,8 @@ public:
     // the topmost provider if platform_dependent = false
     static wxSize GetSizeHint(const wxArtClient& client, bool platform_dependent = false);
 
-#if WXWIN_COMPATIBILITY_2_6
-    // use the corresponding methods without redundant "Provider" suffix
-    static wxDEPRECATED( void PushProvider(wxArtProvider *provider) );
-    static wxDEPRECATED( void InsertProvider(wxArtProvider *provider) );
-    static wxDEPRECATED( bool PopProvider() );
-
-    // use Delete() if this is what you really need, or just delete the
-    // provider pointer, do not use Remove() as it does not delete the pointer
-    // unlike RemoveProvider() which does
-    static wxDEPRECATED( bool RemoveProvider(wxArtProvider *provider) );
-#endif // WXWIN_COMPATIBILITY_2_6
+    // Rescale bitmap (used internally if requested size is other than the available).
+    static void RescaleBitmap(wxBitmap& bmp, const wxSize& sizeNeeded);
 
 protected:
     friend class wxArtProviderModule;
@@ -246,7 +240,7 @@ private:
     // art resources cache (so that CreateXXX is not called that often):
     static wxArtProviderCache *sm_cache;
 
-    DECLARE_ABSTRACT_CLASS(wxArtProvider)
+    wxDECLARE_ABSTRACT_CLASS(wxArtProvider);
 };
 
 

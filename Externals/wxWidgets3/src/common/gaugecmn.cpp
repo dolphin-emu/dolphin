@@ -29,6 +29,7 @@
 #if wxUSE_GAUGE
 
 #include "wx/gauge.h"
+#include "wx/appprogress.h"
 
 const char wxGaugeNameStr[] = "gauge";
 
@@ -39,6 +40,7 @@ const char wxGaugeNameStr[] = "gauge";
 wxGaugeBase::~wxGaugeBase()
 {
     // this destructor is required for Darwin
+    delete m_appProgressIndicator;
 }
 
 // ----------------------------------------------------------------------------
@@ -76,23 +78,17 @@ wxFLAGS_MEMBER(wxHSCROLL)
 
 wxFLAGS_MEMBER(wxGA_HORIZONTAL)
 wxFLAGS_MEMBER(wxGA_VERTICAL)
-#if WXWIN_COMPATIBILITY_2_6
-wxFLAGS_MEMBER(wxGA_PROGRESSBAR)
-#endif // WXWIN_COMPATIBILITY_2_6
 wxFLAGS_MEMBER(wxGA_SMOOTH)
+wxFLAGS_MEMBER(wxGA_PROGRESS)
 wxEND_FLAGS( wxGaugeStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxGauge, wxControl, "wx/gauge.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxGauge, wxControl, "wx/gauge.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxGauge)
 wxPROPERTY( Value, int, SetValue, GetValue, 0, 0 /*flags*/, \
            wxT("Helpstring"), wxT("group"))
 wxPROPERTY( Range, int, SetRange, GetRange, 0, 0 /*flags*/, \
            wxT("Helpstring"), wxT("group"))
-wxPROPERTY( ShadowWidth, int, SetShadowWidth, GetShadowWidth, \
-           0, 0 /*flags*/, wxT("Helpstring"), wxT("group"))
-wxPROPERTY( BezelFace, int, SetBezelFace, GetBezelFace, \
-           0, 0 /*flags*/, wxT("Helpstring"), wxT("group"))
 
 wxPROPERTY_FLAGS( WindowStyle, wxGaugeStyle, long, SetWindowStyleFlag, \
                  GetWindowStyleFlag, wxEMPTY_PARAMETER_VALUE, 0 /*flags*/, \
@@ -125,6 +121,17 @@ bool wxGaugeBase::Create(wxWindow *parent,
 #if wxUSE_VALIDATORS
     SetValidator(validator);
 #endif // wxUSE_VALIDATORS
+
+    m_appProgressIndicator = NULL;
+    if ( (style & wxGA_PROGRESS) != 0 )
+    {
+        wxWindow* topParent = wxGetTopLevelParent(this);
+        if ( topParent != NULL )
+        {
+            m_appProgressIndicator =
+                new wxAppProgressIndicator(topParent, range);
+        }
+    }
 
     SetRange(range);
     SetValue(0);
@@ -190,29 +197,6 @@ void wxGaugeBase::Pulse()
         }
     }
 #endif
-}
-
-// ----------------------------------------------------------------------------
-// wxGauge appearance params
-// ----------------------------------------------------------------------------
-
-void wxGaugeBase::SetShadowWidth(int WXUNUSED(w))
-{
-}
-
-int wxGaugeBase::GetShadowWidth() const
-{
-    return 0;
-}
-
-
-void wxGaugeBase::SetBezelFace(int WXUNUSED(w))
-{
-}
-
-int wxGaugeBase::GetBezelFace() const
-{
-    return 0;
 }
 
 #endif // wxUSE_GAUGE

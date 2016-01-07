@@ -27,8 +27,8 @@
 //  wxImageList
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericImageList, wxObject)
-IMPLEMENT_DYNAMIC_CLASS(wxImageList, wxGenericImageList)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericImageList, wxObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxImageList, wxGenericImageList);
 
 wxGenericImageList::wxGenericImageList( int width, int height, bool mask, int initialCount )
 {
@@ -155,13 +155,7 @@ bool wxGenericImageList::Replace( int index, const wxBitmap &bitmap )
     wxCHECK_MSG( node, false, wxT("wrong index in image list") );
 
     wxBitmap* newBitmap = (bitmap.IsKindOf(wxCLASSINFO(wxIcon))) ?
-                             #if defined(__VISAGECPP__)
-                               //just can't do this in VisualAge now, with all this new Bitmap-Icon stuff
-                               //so construct it from a bitmap object until I can figure this nonsense out. (DW)
-                               new wxBitmap(bitmap)
-                             #else
                                new wxBitmap( (const wxIcon&) bitmap )
-                             #endif
                                : new wxBitmap(bitmap) ;
 
     if (index == (int) m_images.GetCount() - 1)
@@ -188,13 +182,7 @@ bool wxGenericImageList::Replace( int index, const wxBitmap &bitmap, const wxBit
     wxCHECK_MSG( node, false, wxT("wrong index in image list") );
 
     wxBitmap* newBitmap = (bitmap.IsKindOf(wxCLASSINFO(wxIcon))) ?
-                             #if defined(__VISAGECPP__)
-                               //just can't do this in VisualAge now, with all this new Bitmap-Icon stuff
-                               //so construct it from a bitmap object until I can figure this nonsense out. (DW)
-                               new wxBitmap(bitmap)
-                             #else
                                new wxBitmap( (const wxIcon&) bitmap )
-                             #endif
                                : new wxBitmap(bitmap) ;
 
     if (index == (int) m_images.GetCount() - 1)

@@ -38,6 +38,45 @@
 // implementation
 // ============================================================================
 
+// ----------------------------------------------------------------------------
+// wxNativeWindow
+// ----------------------------------------------------------------------------
+
+bool
+wxNativeWindow::Create(wxWindow* parent,
+                       wxWindowID winid,
+                       wxNativeWindowHandle widget)
+{
+    wxCHECK_MSG( widget, false, wxS("Invalid null GtkWidget") );
+
+    // Standard wxGTK controls use PreCreation() but we never have any size
+    // specified at this stage, so don't bother with it.
+    if ( !CreateBase(parent, winid) )
+        return false;
+
+    // Add a reference to the widget to match g_object_unref() in wxWindow dtor
+    // (and by using the "_sink" version we avoid memory leaks when we're
+    // passed a newly allocated widget, as is typically the case).
+    m_widget = widget;
+    g_object_ref_sink(m_widget);
+
+    parent->DoAddChild(this);
+
+    PostCreation();
+
+    // Ensure that the best (and minimal) size is set to fully display the
+    // widget.
+    GtkRequisition req;
+    gtk_widget_size_request(widget, &req);
+    SetInitialSize(wxSize(req.width, req.height));
+
+    return true;
+}
+
+// ----------------------------------------------------------------------------
+// wxNativeContainerWindow
+// ----------------------------------------------------------------------------
+
 // TODO: we probably need equivalent code for other GDK platforms
 #ifdef GDK_WINDOWING_X11
 

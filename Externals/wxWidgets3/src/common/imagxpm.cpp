@@ -81,7 +81,7 @@ license is as follows:
 #include "wx/xpmdecod.h"
 #include "wx/filename.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxXPMHandler,wxImageHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxXPMHandler,wxImageHandler);
 
 //-----------------------------------------------------------------------------
 // wxXPMHandler

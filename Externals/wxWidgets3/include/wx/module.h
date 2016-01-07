@@ -113,7 +113,7 @@ private:
     } m_state;
 
 
-    DECLARE_CLASS(wxModule)
+    wxDECLARE_CLASS(wxModule);
 };
 
 #endif // _WX_MODULE_H_

@@ -61,6 +61,7 @@
 #include "../../art/tango/folder.h"
 #include "../../art/tango/folder_new.h"
 #include "../../art/tango/folder_open.h"
+#include "../../art/tango/fullscreen.h"
 #include "../../art/tango/go_down.h"
 #include "../../art/tango/go_first.h"
 #include "../../art/tango/go_home.h"
@@ -91,7 +92,7 @@ public:
 protected:
     virtual wxBitmap CreateBitmap(const wxArtID& id,
                                   const wxArtClient& client,
-                                  const wxSize& size);
+                                  const wxSize& size) wxOVERRIDE;
 
 private:
     bool m_imageHandledAdded;
@@ -198,6 +199,7 @@ wxTangoArtProvider::CreateBitmap(const wxArtID& id,
 
         { wxART_FIND,               BITMAP_DATA(edit_find)                  },
         { wxART_FIND_AND_REPLACE,   BITMAP_DATA(edit_find_replace)          },
+        { wxART_FULL_SCREEN,        BITMAP_DATA(full_screen)                },
     };
 
     #undef BITMAP_ARRAY_NAME
@@ -265,7 +267,7 @@ wxTangoArtProvider::CreateBitmap(const wxArtID& id,
         {
             default:
                 wxFAIL_MSG( "Unsupported Tango bitmap size" );
-                // fall through
+                wxFALLTHROUGH;
 
             case TangoSize_16:
                 data = entry.data16;

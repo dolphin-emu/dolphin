@@ -54,7 +54,7 @@ public:
 
     virtual void SetAlignment  (wxAlignment align);
     virtual void SetBitmap     (wxBitmap const& bitmap);
-    virtual void SetFlags      (int flags) { SetIndividualFlags(flags); }
+    virtual void SetFlags      (int flags) { m_flags = flags; /*SetIndividualFlags(flags); */ }
     virtual void SetHidden     (bool hidden);
     virtual void SetMaxWidth   (int maxWidth);
     virtual void SetMinWidth   (int minWidth);
@@ -302,9 +302,9 @@ private:
   wxDataViewModelNotifier* m_ModelNotifier; // stores the model notifier for the control (does not own the notifier)
 
  // wxWidget internal stuff:
-  DECLARE_DYNAMIC_CLASS(wxDataViewCtrl)
-  DECLARE_NO_COPY_CLASS(wxDataViewCtrl)
-  DECLARE_EVENT_TABLE()
+  wxDECLARE_DYNAMIC_CLASS(wxDataViewCtrl);
+  wxDECLARE_NO_COPY_CLASS(wxDataViewCtrl);
+  wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_DATAVIEWCTRL_OSX_H_

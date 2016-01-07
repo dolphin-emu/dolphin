@@ -17,7 +17,7 @@
 #include "wx/msw/private.h"
 #include "wx/msw/missing.h"
 
-#if wxUSE_COMMON_DIALOGS && !defined(__SMARTPHONE__) && !defined(__WXMICROWIN__)
+#if wxUSE_COMMON_DIALOGS
     #include <commdlg.h>
 #endif
 

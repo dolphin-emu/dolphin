@@ -53,7 +53,7 @@ private:
     int     m_width;
     int     m_height;
 
-    DECLARE_DYNAMIC_CLASS(wxImageList)
+    wxDECLARE_DYNAMIC_CLASS(wxImageList);
 };
 
 #endif  // _WX_IMAGLIST_H_

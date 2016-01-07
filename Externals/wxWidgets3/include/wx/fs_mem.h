@@ -49,10 +49,10 @@ public:
     // Remove file from memory FS and free occupied memory
     static void RemoveFile(const wxString& filename);
 
-    virtual bool CanOpen(const wxString& location);
-    virtual wxFSFile* OpenFile(wxFileSystem& fs, const wxString& location);
-    virtual wxString FindFirst(const wxString& spec, int flags = 0);
-    virtual wxString FindNext();
+    virtual bool CanOpen(const wxString& location) wxOVERRIDE;
+    virtual wxFSFile* OpenFile(wxFileSystem& fs, const wxString& location) wxOVERRIDE;
+    virtual wxString FindFirst(const wxString& spec, int flags = 0) wxOVERRIDE;
+    virtual wxString FindNext() wxOVERRIDE;
 
 protected:
     // check that the given file is not already present in m_Hash; logs an

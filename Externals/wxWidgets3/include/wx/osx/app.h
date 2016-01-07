@@ -33,7 +33,7 @@ bool WXDLLIMPEXP_CORE wxYield();
 // a new App object to start application
 class WXDLLIMPEXP_CORE wxApp: public wxAppBase
 {
-    DECLARE_DYNAMIC_CLASS(wxApp)
+    wxDECLARE_DYNAMIC_CLASS(wxApp);
 
     wxApp();
     virtual ~wxApp();
@@ -174,7 +174,7 @@ public:
     // Hide the application windows the same as the system hide command would do it.
     void MacHideApp();
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif

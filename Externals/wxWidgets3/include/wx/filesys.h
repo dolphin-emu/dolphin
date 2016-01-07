@@ -97,7 +97,7 @@ private:
     wxDateTime m_Modif;
 #endif // wxUSE_DATETIME
 
-    DECLARE_ABSTRACT_CLASS(wxFSFile)
+    wxDECLARE_ABSTRACT_CLASS(wxFSFile);
     wxDECLARE_NO_COPY_CLASS(wxFSFile);
 };
 
@@ -154,7 +154,7 @@ protected:
     // {it returns "/README.txt" for "file:subdir/archive.tar.gz#tar:/README.txt"}
     static wxString GetRightLocation(const wxString& location);
 
-    DECLARE_ABSTRACT_CLASS(wxFileSystemHandler)
+    wxDECLARE_ABSTRACT_CLASS(wxFileSystemHandler);
 };
 
 
@@ -245,7 +245,7 @@ protected:
     wxFSHandlerHash m_LocalHandlers;
             // Handlers local to this instance
 
-    DECLARE_DYNAMIC_CLASS(wxFileSystem)
+    wxDECLARE_DYNAMIC_CLASS(wxFileSystem);
     wxDECLARE_NO_COPY_CLASS(wxFileSystem);
 };
 
@@ -277,10 +277,10 @@ special characters :
 class WXDLLIMPEXP_BASE wxLocalFSHandler : public wxFileSystemHandler
 {
 public:
-    virtual bool CanOpen(const wxString& location);
-    virtual wxFSFile* OpenFile(wxFileSystem& fs, const wxString& location);
-    virtual wxString FindFirst(const wxString& spec, int flags = 0);
-    virtual wxString FindNext();
+    virtual bool CanOpen(const wxString& location) wxOVERRIDE;
+    virtual wxFSFile* OpenFile(wxFileSystem& fs, const wxString& location) wxOVERRIDE;
+    virtual wxString FindFirst(const wxString& spec, int flags = 0) wxOVERRIDE;
+    virtual wxString FindNext() wxOVERRIDE;
 
     // wxLocalFSHandler will prefix all filenames with 'root' before accessing
     // files on disk. This effectively makes 'root' the top-level directory

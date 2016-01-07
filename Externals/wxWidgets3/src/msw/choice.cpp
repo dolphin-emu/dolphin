@@ -23,7 +23,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_CHOICE && !(defined(__SMARTPHONE__) && defined(__WXWINCE__))
+#if wxUSE_CHOICE
 
 #include "wx/choice.h"
 
@@ -199,28 +199,6 @@ wxChoice::~wxChoice()
     Clear();
 }
 
-bool wxChoice::MSWGetComboBoxInfo(tagCOMBOBOXINFO* info) const
-{
-    // TODO-Win9x: Get rid of this once we officially drop support for Win9x
-    //             and just call the function directly.
-#if wxUSE_DYNLIB_CLASS
-    typedef BOOL (WINAPI *GetComboBoxInfo_t)(HWND, tagCOMBOBOXINFO*);
-    static GetComboBoxInfo_t s_pfnGetComboBoxInfo = NULL;
-    static bool s_triedToLoad = false;
-    if ( !s_triedToLoad )
-    {
-        s_triedToLoad = true;
-        wxLoadedDLL dllUser32("user32.dll");
-        wxDL_INIT_FUNC(s_pfn, GetComboBoxInfo, dllUser32);
-    }
-
-    if ( s_pfnGetComboBoxInfo )
-        return (*s_pfnGetComboBoxInfo)(GetHwnd(), info) != 0;
-#endif // wxUSE_DYNLIB_CLASS
-
-    return false;
-}
-
 // ----------------------------------------------------------------------------
 // adding/deleting items to/from the list
 // ----------------------------------------------------------------------------
@@ -322,19 +300,6 @@ unsigned int wxChoice::GetCount() const
 
 int wxChoice::FindString(const wxString& s, bool bCase) const
 {
-#if defined(__WATCOMC__) && defined(__WIN386__)
-    // For some reason, Watcom in WIN386 mode crashes in the CB_FINDSTRINGEXACT message.
-    // wxChoice::Do it the long way instead.
-    unsigned int count = GetCount();
-    for ( unsigned int i = 0; i < count; i++ )
-    {
-        // as CB_FINDSTRINGEXACT is case insensitive, be case insensitive too
-        if (GetString(i).IsSameAs(s, bCase))
-            return i;
-    }
-
-    return wxNOT_FOUND;
-#else // !Watcom
    //TODO:  Evidently some MSW versions (all?) don't like empty strings
    //passed to SendMessage, so we have to do it ourselves in that case
    if ( s.empty() )
@@ -360,7 +325,6 @@ int wxChoice::FindString(const wxString& s, bool bCase) const
 
        return pos == LB_ERR ? wxNOT_FOUND : pos;
    }
-#endif // Watcom/!Watcom
 }
 
 void wxChoice::SetString(unsigned int n, const wxString& s)
@@ -533,15 +497,16 @@ void wxChoice::DoSetSize(int x, int y,
                          int width, int height,
                          int sizeFlags)
 {
-    const int heightBest = GetBestSize().y;
+    // The height of the control itself, i.e. of its visible part.
+    int heightVisible = height;
 
     // we need the real height below so get the current one if it's not given
     if ( height == wxDefaultCoord )
     {
         // height not specified, use the same as before
-        DoGetSize(NULL, &height);
+        DoGetSize(NULL, &heightVisible);
     }
-    else if ( height == heightBest )
+    else if ( height == GetBestSize().y )
     {
         // we don't need to manually manage our height, let the system use the
         // default one
@@ -585,7 +550,7 @@ void wxChoice::DoSetSize(int x, int y,
         // The extra item (" + 1") is required to prevent a vertical
         // scrollbar from appearing with comctl32.dll versions earlier
         // than 6.0 (such as found in Win2k).
-        heightWithItems = height + hItem*(nItems + 1);
+        heightWithItems = heightVisible + hItem*(nItems + 1);
     else
         heightWithItems = SetHeightSimpleComboBox(nItems);
 
@@ -639,17 +604,13 @@ wxSize wxChoice::DoGetSizeFromTextSize(int xlen, int ylen) const
     // and its child part. I.e. arrow, separators, etc.
     wxSize tsize(xlen, 0);
 
-    // FIXME-VC6: Only VC6 needs this guard, see WINVER definition in
-    //            include/wx/msw/wrapwin.h
-#if defined(WINVER) && WINVER >= 0x0500
     WinStruct<COMBOBOXINFO> info;
-    if ( MSWGetComboBoxInfo(&info) )
+    if ( ::GetComboBoxInfo(GetHwnd(), &info) )
     {
         tsize.x += info.rcItem.left + info.rcButton.right - info.rcItem.right
                     + info.rcItem.left + 3; // right and extra margins
     }
     else // Just use some rough approximation.
-#endif // WINVER >= 0x0500
     {
         tsize.x += 4*cHeight;
     }
@@ -838,4 +799,4 @@ WXHBRUSH wxChoice::MSWControlColor(WXHDC hDC, WXHWND hWnd)
     return wxChoiceBase::MSWControlColor(hDC, hWnd);
 }
 
-#endif // wxUSE_CHOICE && !(__SMARTPHONE__ && __WXWINCE__)
+#endif // wxUSE_CHOICE

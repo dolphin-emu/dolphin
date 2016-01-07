@@ -25,8 +25,7 @@
 
 #if wxUSE_DIRDLG
 
-#if wxUSE_OLE && !defined(__GNUWIN32_OLD__) && (!defined(__WXWINCE__) || \
-    (defined(__HANDHELDPC__) && (_WIN32_WCE >= 500)))
+#if wxUSE_OLE
 
 #include "wx/dirdlg.h"
 #include "wx/modalhook.h"
@@ -47,7 +46,7 @@
 
 // We can only use IFileDialog under desktop Windows and we need
 // wxDynamicLibrary for it.
-#if wxUSE_DYNLIB_CLASS && !defined(__WXWINCE__)
+#if wxUSE_DYNLIB_CLASS
     #define wxUSE_IFILEDIALOG 1
 #else
     #define wxUSE_IFILEDIALOG 0
@@ -164,7 +163,7 @@ DEFINE_GUID(IID_IFileDialog,
 // wxWidgets macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(wxDirDialog, wxDialog)
+wxIMPLEMENT_CLASS(wxDirDialog, wxDialog);
 
 // ----------------------------------------------------------------------------
 // private functions prototypes
@@ -228,7 +227,12 @@ int wxDirDialog::ShowModal()
     // Use IFileDialog under new enough Windows, it's more user-friendly.
     int rc;
 #if wxUSE_IFILEDIALOG
-    if ( wxGetWinVersion() >= wxWinVersion_Vista )
+    // While the new dialog is available under Vista, it may return a wrong
+    // path there (see http://support.microsoft.com/kb/969885/en-us), so we
+    // don't use it there by default. We could improve the version test to
+    // allow its use if the comdlg32.dll version is greater than 6.0.6002.22125
+    // as this means that the hotfix correcting this bug is installed.
+    if ( wxGetWinVersion() > wxWinVersion_Vista )
     {
         rc = ShowIFileDialog(hWndParent);
     }
@@ -256,32 +260,21 @@ int wxDirDialog::ShowSHBrowseForFolder(WXHWND owner)
     bi.hwndOwner      = owner;
     bi.pidlRoot       = NULL;
     bi.pszDisplayName = NULL;
-    // Please don't change this without checking it compiles
-    // with eVC++ first.
-#if defined(__POCKETPC__) || defined(__SMARTPHONE__)
-    bi.lpszTitle      = m_message.mb_str();
-#else
     bi.lpszTitle      = m_message.c_str();
-#endif
     bi.ulFlags        = BIF_RETURNONLYFSDIRS | BIF_STATUSTEXT;
     bi.lpfn           = BrowseCallbackProc;
     bi.lParam         = wxMSW_CONV_LPARAM(m_path); // param for the callback
 
     static const int verComCtl32 = wxApp::GetComCtl32Version();
 
-    // we always add the edit box (it doesn't hurt anybody, does it?) if it is
-    // supported by the system
-    if ( verComCtl32 >= 471 )
-    {
-        bi.ulFlags |= BIF_EDITBOX;
-    }
+    // we always add the edit box (it doesn't hurt anybody, does it?)
+    bi.ulFlags |= BIF_EDITBOX;
 
     // to have the "New Folder" button we must use the "new" dialog style which
     // is also the only way to have a resizable dialog
     //
-    // "new" style is only available in the version 5.0+ of comctl32.dll
     const bool needNewDir = !HasFlag(wxDD_DIR_MUST_EXIST);
-    if ( (needNewDir || HasFlag(wxRESIZE_BORDER)) && (verComCtl32 >= 500) )
+    if ( needNewDir || HasFlag(wxRESIZE_BORDER) )
     {
         if (needNewDir)
         {
@@ -381,17 +374,26 @@ int wxDirDialog::ShowIFileDialog(WXHWND owner)
                                               NULL,
                                               wxIID_PPV_ARGS(IShellItem,
                                                              &folder));
-        if ( FAILED(hr) )
-        {
-            wxLogApiError(wxS("SHCreateItemFromParsingName"), hr);
-            return wxID_NONE;
-        }
 
-        hr = fileDialog->SetFolder(folder);
+        // Failing to parse the folder name is not really an error, we'll just
+        // ignore the initial directory in this case, but we should still show
+        // the dialog.
         if ( FAILED(hr) )
         {
-            wxLogApiError(wxS("IFileDialog::SetFolder"), hr);
-            return wxID_NONE;
+            if ( hr != HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND) )
+            {
+                wxLogApiError(wxS("SHCreateItemFromParsingName"), hr);
+                return wxID_NONE;
+            }
+        }
+        else // The folder was parsed correctly.
+        {
+            hr = fileDialog->SetFolder(folder);
+            if ( FAILED(hr) )
+            {
+                wxLogApiError(wxS("IFileDialog::SetFolder"), hr);
+                return wxID_NONE;
+            }
         }
     }
 

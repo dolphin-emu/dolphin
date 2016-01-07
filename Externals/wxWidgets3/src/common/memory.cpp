@@ -37,7 +37,7 @@
 
 #include "wx/ioswrap.h"
 
-#if !defined(__WATCOMC__) && !(defined(__VMS__) && ( __VMS_VER < 70000000 ) )
+#if !(defined(__VMS__) && ( __VMS_VER < 70000000 ) )
 #include <memory.h>
 #endif
 
@@ -932,10 +932,6 @@ void * wxDebugAlloc(size_t size, wxChar * fileName, int lineNum, bool isObject, 
   // If not in debugging allocation mode, do the normal thing
   // so we don't leave any trace of ourselves in the node list.
 
-#if defined(__VISAGECPP__) && (__IBMCPP__ < 400 || __IBMC__ < 400 )
-// VA 3.0 still has trouble in here
-  return (void *)malloc(size);
-#endif
   if (!wxDebugContext::GetDebugMode())
   {
     return (void *)malloc(size);
@@ -992,10 +988,6 @@ void wxDebugFree(void * buf, bool WXUNUSED(isVect) )
   if (!buf)
     return;
 
-#if defined(__VISAGECPP__) && (__IBMCPP__ < 400 || __IBMC__ < 400 )
-// VA 3.0 still has trouble in here
-  free((char *)buf);
-#endif
   // If not in debugging allocation mode, do the normal thing
   // so we don't leave any trace of ourselves in the node list.
   if (!wxDebugContext::GetDebugMode())

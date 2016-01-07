@@ -26,9 +26,9 @@
 #define wxFIELD_TEXT_MARGIN 2
 
 
-BEGIN_EVENT_TABLE(wxStatusBarMac, wxStatusBarGeneric)
+wxBEGIN_EVENT_TABLE(wxStatusBarMac, wxStatusBarGeneric)
     EVT_PAINT(wxStatusBarMac::OnPaint)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 wxStatusBarMac::wxStatusBarMac(wxWindow *parent,
@@ -132,18 +132,18 @@ void wxStatusBarMac::OnPaint(wxPaintEvent& WXUNUSED(event))
 
     if ( MacIsReallyHilited() )
     {
-        wxPen white( *wxWHITE , 1 , wxSOLID );
+        wxPen white( *wxWHITE , 1 , wxPENSTYLE_SOLID );
         if (major >= 10)
         {
             // Finder statusbar border color: (Project Builder similar is 9B9B9B)
             if ( MacGetTopLevelWindow()->GetExtraStyle() & wxFRAME_EX_METAL )
-                dc.SetPen(wxPen(wxColour(0x40, 0x40, 0x40), 1, wxSOLID));
+                dc.SetPen(wxPen(wxColour(0x40, 0x40, 0x40), 1, wxPENSTYLE_SOLID));
             else
-                dc.SetPen(wxPen(wxColour(0xB1, 0xB1, 0xB1), 1, wxSOLID));
+                dc.SetPen(wxPen(wxColour(0xB1, 0xB1, 0xB1), 1, wxPENSTYLE_SOLID));
         }
         else
         {
-            wxPen black( *wxBLACK , 1 , wxSOLID );
+            wxPen black( *wxBLACK , 1 , wxPENSTYLE_SOLID );
             dc.SetPen(black);
         }
 
@@ -155,9 +155,9 @@ void wxStatusBarMac::OnPaint(wxPaintEvent& WXUNUSED(event))
     {
         if (major >= 10)
             // Finder statusbar border color: (Project Builder similar is 9B9B9B)
-            dc.SetPen(wxPen(wxColour(0xB1, 0xB1, 0xB1), 1, wxSOLID));
+            dc.SetPen(wxPen(wxColour(0xB1, 0xB1, 0xB1), 1, wxPENSTYLE_SOLID));
         else
-            dc.SetPen(wxPen(wxColour(0x80, 0x80, 0x80), 1, wxSOLID));
+            dc.SetPen(wxPen(wxColour(0x80, 0x80, 0x80), 1, wxPENSTYLE_SOLID));
 
         dc.DrawLine(0, 0, w, 0);
     }

@@ -61,7 +61,7 @@ static wxString GetFSWEventChangeTypeName(int type)
 // wxFileSystemWatcherEvent implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxFileSystemWatcherEvent, wxEvent);
+wxIMPLEMENT_DYNAMIC_CLASS(wxFileSystemWatcherEvent, wxEvent);
 
 wxString wxFileSystemWatcherEvent::ToString() const
 {
@@ -143,10 +143,13 @@ wxFileSystemWatcherBase::AddAny(const wxFileName& path,
     }
     else
     {
-        wxFSWatchInfo& watch = it->second;
-        int count = watch.IncRef();
+        wxFSWatchInfo& watch2 = it->second;
+        const int count = watch2.IncRef();
+
         wxLogTrace(wxTRACE_FSWATCHER,
                    "'%s' is now watched %d times", canonical, count);
+
+        wxUnusedVar(count); // could be unused if debug tracing is disabled
     }
     return true;
 }
@@ -192,14 +195,14 @@ bool wxFileSystemWatcherBase::AddTree(const wxFileName& path, int events,
         {
         }
 
-        virtual wxDirTraverseResult OnFile(const wxString& WXUNUSED(filename))
+        virtual wxDirTraverseResult OnFile(const wxString& WXUNUSED(filename)) wxOVERRIDE
         {
             // There is no need to watch individual files as we watch the
             // parent directory which will notify us about any changes in them.
             return wxDIR_CONTINUE;
         }
 
-        virtual wxDirTraverseResult OnDir(const wxString& dirname)
+        virtual wxDirTraverseResult OnDir(const wxString& dirname) wxOVERRIDE
         {
             if ( m_watcher->AddAny(wxFileName::DirName(dirname),
                                    m_events, wxFSWPath_Tree, m_filespec) )
@@ -248,14 +251,14 @@ bool wxFileSystemWatcherBase::RemoveTree(const wxFileName& path)
         {
         }
 
-        virtual wxDirTraverseResult OnFile(const wxString& WXUNUSED(filename))
+        virtual wxDirTraverseResult OnFile(const wxString& WXUNUSED(filename)) wxOVERRIDE
         {
             // We never watch the individual files when watching the tree, so
             // nothing to do here.
             return wxDIR_CONTINUE;
         }
 
-        virtual wxDirTraverseResult OnDir(const wxString& dirname)
+        virtual wxDirTraverseResult OnDir(const wxString& dirname) wxOVERRIDE
         {
             m_watcher->Remove(wxFileName::DirName(dirname));
             return wxDIR_CONTINUE;
@@ -305,9 +308,9 @@ bool wxFileSystemWatcherBase::RemoveTree(const wxFileName& path)
 
 bool wxFileSystemWatcherBase::RemoveAll()
 {
-    m_service->RemoveAll();
+    const bool ret = m_service->RemoveAll();
     m_watches.clear();
-    return true;
+    return ret;
 }
 
 int wxFileSystemWatcherBase::GetWatchedPathsCount() const

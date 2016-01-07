@@ -11,10 +11,6 @@
 
 #include <windows.h>
 
-#if defined(_WIN32_WCE)
-    #include "wx/msw/wince/wince.rc"
-#endif
-
 #include "wx/msw/rcdefs.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -57,8 +53,12 @@ WXCURSOR_CROSS          CURSOR  DISCARDABLE     "wx/msw/cross.cur"
 // Default Icons
 //
 
-// First wx icon in alphabetical order, so it will be used by Explorer if the
-// application doesn't have any icons of its own
+// First wx icon in alphabetical order.
+//
+// Notice that it also may be used by Explorer as the application icon if the
+// main program doesn't define any icons preceding this one in alphabetical
+// order (i.e. any icons defined by it start with "wy", "x", "y"  or "z") in
+// 16*16 or 32*32 sizes.
 wxICON_AAA                      ICON "wx/msw/std.ico"
 
 //wxDEFAULT_FRAME               ICON "wx/msw/std.ico"

@@ -24,14 +24,14 @@
 #include "wx/osx/private.h"
 #include "wx/osx/uma.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxMDIParentFrame, wxFrame)
-IMPLEMENT_DYNAMIC_CLASS(wxMDIChildFrame, wxFrame)
-IMPLEMENT_DYNAMIC_CLASS(wxMDIClientWindow, wxWindow)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMDIParentFrame, wxFrame);
+wxIMPLEMENT_DYNAMIC_CLASS(wxMDIChildFrame, wxFrame);
+wxIMPLEMENT_DYNAMIC_CLASS(wxMDIClientWindow, wxWindow);
 
-BEGIN_EVENT_TABLE(wxMDIParentFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(wxMDIParentFrame, wxFrame)
     EVT_ACTIVATE(wxMDIParentFrame::OnActivate)
     EVT_SYS_COLOUR_CHANGED(wxMDIParentFrame::OnSysColourChanged)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 #define TRACE_MDI "mdi"
 

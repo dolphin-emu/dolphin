@@ -35,11 +35,11 @@
 
 #define wxSPLASH_TIMER_ID       9999
 
-IMPLEMENT_DYNAMIC_CLASS(wxSplashScreen, wxFrame)
-BEGIN_EVENT_TABLE(wxSplashScreen, wxFrame)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSplashScreen, wxFrame);
+wxBEGIN_EVENT_TABLE(wxSplashScreen, wxFrame)
     EVT_TIMER(wxSPLASH_TIMER_ID, wxSplashScreen::OnNotify)
     EVT_CLOSE(wxSplashScreen::OnCloseWindow)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxSplashScreen::Init()
 {
@@ -133,12 +133,12 @@ void wxSplashScreen::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 // wxSplashScreenWindow
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxSplashScreenWindow, wxWindow)
+wxBEGIN_EVENT_TABLE(wxSplashScreenWindow, wxWindow)
 #ifdef __WXGTK__
     EVT_PAINT(wxSplashScreenWindow::OnPaint)
 #endif
     EVT_ERASE_BACKGROUND(wxSplashScreenWindow::OnEraseBackground)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxSplashScreenWindow::wxSplashScreenWindow(const wxBitmap& bitmap, wxWindow* parent,
                                            wxWindowID id, const wxPoint& pos,

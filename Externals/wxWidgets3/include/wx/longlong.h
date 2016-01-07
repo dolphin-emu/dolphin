@@ -46,7 +46,7 @@
                  "integers, using emulation class instead.\n" \
                  "Please report your compiler version to " \
                  "wx-dev@lists.wxwidgets.org!"
-    #elif !(defined(__WATCOMC__) || defined(__VISAGECPP__))
+    #else
         #pragma warning "Your compiler does not appear to support 64 bit "\
                         "integers, using emulation class instead.\n" \
                         "Please report your compiler version to " \
@@ -175,8 +175,12 @@ public:
         // convert to long with range checking in debug mode (only!)
     long ToLong() const
     {
+        // This assert is useless if long long is the same as long (which is
+        // the case under the standard Unix LP64 model).
+#ifdef wxHAS_LONG_LONG_T_DIFFERENT_FROM_LONG
         wxASSERT_MSG( (m_ll >= LONG_MIN) && (m_ll <= LONG_MAX),
                       wxT("wxLongLong to long conversion loss of precision") );
+#endif
 
         return wx_truncate_cast(long, m_ll);
     }
@@ -410,16 +414,7 @@ public:
     }
 
         // convert to double
-        //
-        // For some completely obscure reasons compiling the cast below with
-        // VC6 in DLL builds only (!) results in "error C2520: conversion from
-        // unsigned __int64 to double not implemented, use signed __int64" so
-        // we must use a different version for that compiler.
-#ifdef __VISUALC6__
-    double ToDouble() const;
-#else
     double ToDouble() const { return wx_truncate_cast(double, m_ll); }
-#endif
 
     // operations
         // addition
@@ -1085,12 +1080,6 @@ WXDLLIMPEXP_BASE class wxTextInputStream &operator>>(class wxTextInputStream &st
 
 #if wxUSE_LONGLONG_NATIVE
 
-// VC6 is known to not have __int64 specializations of numeric_limits<> in its
-// <limits> anyhow so don't bother including it, especially as it results in
-// tons of warnings because the standard header itself uses obsolete template
-// specialization syntax.
-#ifndef __VISUALC6__
-
 #include <limits>
 
 namespace std
@@ -1107,8 +1096,6 @@ namespace std
 #endif
 
 } // namespace std
-
-#endif // !VC6
 
 #endif // wxUSE_LONGLONG_NATIVE
 

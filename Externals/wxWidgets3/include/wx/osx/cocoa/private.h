@@ -32,9 +32,11 @@ OSStatus WXDLLIMPEXP_CORE wxMacDrawCGImage(
                                CGContextRef    inContext,
                                const CGRect *  inBounds,
                                CGImageRef      inImage) ;
-WX_NSImage WXDLLIMPEXP_CORE wxOSXGetNSImageFromCGImage( CGImageRef image, double scale = 1.0 );
+WX_NSImage WXDLLIMPEXP_CORE wxOSXGetNSImageFromCGImage( CGImageRef image, double scale = 1.0, bool isTemplate = false);
+WX_NSImage WXDLLIMPEXP_CORE wxOSXGetNSImageFromIconRef( WXHICON iconref );
 CGImageRef WXDLLIMPEXP_CORE wxOSXCreateCGImageFromNSImage( WX_NSImage nsimage, double *scale = NULL );
-CGContextRef WXDLLIMPEXP_CORE wxOSXCreateBitmapContextFromNSImage( WX_NSImage nsimage);
+CGImageRef WXDLLIMPEXP_CORE wxOSXGetCGImageFromNSImage( const WX_NSImage nsimage, CGRect* r, CGContextRef cg);
+CGContextRef WXDLLIMPEXP_CORE wxOSXCreateBitmapContextFromNSImage( WX_NSImage nsimage, bool *isTemplate = NULL);
 
 wxBitmap WXDLLIMPEXP_CORE wxOSXCreateSystemBitmap(const wxString& id, const wxString &client, const wxSize& size);
 WXWindow WXDLLIMPEXP_CORE wxOSXGetMainWindow();
@@ -101,9 +103,9 @@ public :
     void                SetCursor( const wxCursor & cursor );
     void                CaptureMouse();
     void                ReleaseMouse();
-
+#if wxUSE_DRAG_AND_DROP
     void                SetDropTarget(wxDropTarget* target);
-    
+#endif
     wxInt32             GetValue() const;
     void                SetValue( wxInt32 v );
     wxBitmap            GetBitmap() const;
@@ -129,6 +131,8 @@ public :
     virtual bool        DoHandleMouseEvent(NSEvent *event);
     virtual bool        DoHandleKeyEvent(NSEvent *event);
     virtual bool        DoHandleCharEvent(NSEvent *event, NSString *text);
+    virtual void        DoNotifyFocusSet();
+    virtual void        DoNotifyFocusLost();
     virtual void        DoNotifyFocusEvent(bool receivedFocus, wxWidgetImpl* otherWindow);
 
     virtual void        SetupKeyEvent(wxKeyEvent &wxevent, NSEvent * nsEvent, NSString* charString = NULL);
@@ -146,10 +150,12 @@ public :
     
     // cocoa thunk connected calls
 
+#if wxUSE_DRAG_AND_DROP
     virtual unsigned int        draggingEntered(void* sender, WXWidget slf, void* _cmd);
     virtual void                draggingExited(void* sender, WXWidget slf, void* _cmd);
     virtual unsigned int        draggingUpdated(void* sender, WXWidget slf, void* _cmd);
     virtual bool                performDragOperation(void* sender, WXWidget slf, void* _cmd);
+#endif
     virtual void                mouseEvent(WX_NSEvent event, WXWidget slf, void* _cmd);
     virtual void                cursorUpdate(WX_NSEvent event, WXWidget slf, void* _cmd);
     virtual void                keyEvent(WX_NSEvent event, WXWidget slf, void* _cmd);
@@ -181,7 +187,7 @@ protected:
     // events, don't resend them
     bool m_hasEditor;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxWidgetCocoaImpl)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxWidgetCocoaImpl);
 };
 
 DECLARE_WXCOCOA_OBJC_CLASS( wxNSWindow );
@@ -225,6 +231,10 @@ public :
 
     virtual void SetTitle( const wxString& title, wxFontEncoding encoding ) ;
 
+    virtual bool EnableCloseButton(bool enable) wxOVERRIDE;
+    virtual bool EnableMaximizeButton(bool enable) wxOVERRIDE;
+    virtual bool EnableMinimizeButton(bool enable) wxOVERRIDE;
+
     virtual bool IsMaximized() const;
 
     virtual bool IsIconized() const;
@@ -234,6 +244,8 @@ public :
     virtual void Maximize(bool maximize);
 
     virtual bool IsFullScreen() const;
+
+    bool EnableFullScreenView(bool enable) wxOVERRIDE;
 
     virtual bool ShowFullScreen(bool show, long style);
 
@@ -258,11 +270,12 @@ public :
     void            RestoreWindowLevel();
     
     static WX_NSResponder GetNextFirstResponder() ;
+    static WX_NSResponder GetFormerFirstResponder() ;
 protected :
     CGWindowLevel   m_macWindowLevel;
     WXWindow        m_macWindow;
     void *          m_macFullScreenData ;
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxNonOwnedWindowCocoaImpl)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxNonOwnedWindowCocoaImpl);
 };
 
 DECLARE_WXCOCOA_OBJC_CLASS( wxNSButton );
@@ -284,6 +297,8 @@ public:
 };
 
 #ifdef __OBJC__
+
+    typedef NSRect WXRect;
     typedef void (*wxOSX_TextEventHandlerPtr)(NSView* self, SEL _cmd, NSString *event);
     typedef void (*wxOSX_EventHandlerPtr)(NSView* self, SEL _cmd, NSEvent *event);
     typedef BOOL (*wxOSX_PerformKeyEventHandlerPtr)(NSView* self, SEL _cmd, NSEvent *event);
@@ -319,11 +334,13 @@ public:
     @interface wxNSTextFieldEditor : NSTextView
     {
         NSEvent* lastKeyDownEvent;
+        NSTextField* textField;
     }
 
+    - (void) setTextField:(NSTextField*) field;
     @end
 
-    @interface wxNSTextField : NSTextField wxOSX_10_6_AND_LATER(<NSTextFieldDelegate>)
+    @interface wxNSTextField : NSTextField <NSTextFieldDelegate>
     {
         wxNSTextFieldEditor* fieldEditor;
     }
@@ -333,14 +350,14 @@ public:
 
     @end
 
-    @interface wxNSSecureTextField : NSSecureTextField wxOSX_10_6_AND_LATER(<NSTextFieldDelegate>)
+    @interface wxNSSecureTextField : NSSecureTextField <NSTextFieldDelegate>
     {
     }
 
     @end
 
 
-    @interface wxNSTextView : NSTextView wxOSX_10_6_AND_LATER(<NSTextViewDelegate>)
+    @interface wxNSTextView : NSTextView <NSTextViewDelegate>
     {
     }
 
@@ -419,7 +436,7 @@ public:
 #ifdef __LP64__
     WXEXPORT
 #endif // 64 bit builds
-    @interface wxNSAppController : NSObject wxOSX_10_6_AND_LATER(<NSApplicationDelegate>)
+    @interface wxNSAppController : NSObject <NSApplicationDelegate>
     {
     }
 
@@ -466,7 +483,7 @@ extern ClassicCursor gMacCursors[];
 
 extern NSLayoutManager* gNSLayoutManager;
 
-#endif
+#endif // wxUSE_GUI
 
 #endif
     // _WX_PRIVATE_COCOA_H_

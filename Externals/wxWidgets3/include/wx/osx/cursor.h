@@ -14,7 +14,7 @@
 #include "wx/bitmap.h"
 
 // Cursor
-class WXDLLIMPEXP_CORE wxCursor : public wxGDIObject
+class WXDLLIMPEXP_CORE wxCursor : public wxCursorBase
 {
 public:
     wxCursor();
@@ -44,7 +44,7 @@ private:
 
     void CreateFromImage(const wxImage & image) ;
 
-    DECLARE_DYNAMIC_CLASS(wxCursor)
+    wxDECLARE_DYNAMIC_CLASS(wxCursor);
 };
 
 extern WXDLLIMPEXP_CORE void wxSetCursor(const wxCursor& cursor);

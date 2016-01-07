@@ -64,6 +64,7 @@ public:
     virtual bool IsActive();
 
     virtual void ShowWithoutActivating();
+    bool EnableFullScreenView(bool enable = true) wxOVERRIDE;
     virtual bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) ;
     virtual bool IsFullScreen() const ;
 
@@ -73,6 +74,12 @@ public:
     virtual void SetTitle( const wxString& title);
     virtual wxString GetTitle() const;
 
+    // EnableCloseButton(false) used to disable the "Close"
+    // button on the title bar
+    virtual bool EnableCloseButton(bool enable = true) wxOVERRIDE;
+    virtual bool EnableMaximizeButton(bool enable = true) wxOVERRIDE;
+    virtual bool EnableMinimizeButton(bool enable = true) wxOVERRIDE;
+
     virtual void SetLabel(const wxString& label) { SetTitle( label ); }
     virtual wxString GetLabel() const            { return GetTitle(); }
     
@@ -80,6 +87,9 @@ public:
     virtual bool OSXIsModified() const;
 
     virtual void SetRepresentedFilename(const wxString& filename);
+
+    // do *not* call this to iconize the frame, this is a private function!
+    void OSXSetIconizeState(bool iconic);
 
 protected:
     // common part of all ctors
@@ -91,8 +101,9 @@ protected:
     // should the frame be maximized when it will be shown? set by Maximize()
     // when it is called while the frame is hidden
     bool m_maximizeOnShow;
+
 private :
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_MSW_TOPLEVEL_H_

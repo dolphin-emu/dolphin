@@ -100,15 +100,15 @@ protected:
     wxPoint        m_pos;
     wxBitmap       m_bmp;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(wxTaskBarIconArea, wxTaskBarIconAreaBase)
+wxBEGIN_EVENT_TABLE(wxTaskBarIconArea, wxTaskBarIconAreaBase)
     EVT_SIZE(wxTaskBarIconArea::OnSizeChange)
     EVT_MOUSE_EVENTS(wxTaskBarIconArea::OnMouseEvent)
     EVT_MENU(wxID_ANY, wxTaskBarIconArea::OnMenuEvent)
     EVT_PAINT(wxTaskBarIconArea::OnPaint)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxTaskBarIconArea::wxTaskBarIconArea(wxTaskBarIcon *icon, const wxBitmap &bmp)
     : wxTaskBarIconAreaBase(), m_icon(icon), m_bmp(bmp)
@@ -246,7 +246,7 @@ bool wxTaskBarIconBase::IsAvailable()
 // wxTaskBarIcon class:
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxTaskBarIcon, wxEvtHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTaskBarIcon, wxEvtHandler);
 
 wxTaskBarIcon::wxTaskBarIcon() : m_iconWnd(NULL)
 {

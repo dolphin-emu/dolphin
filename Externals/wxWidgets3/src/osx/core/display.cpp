@@ -34,6 +34,7 @@
 #endif
 
 #include "wx/display_impl.h"
+#include "wx/scopedarray.h"
 #include "wx/osx/private.h"
 
 #if wxOSX_USE_COCOA_OR_CARBON
@@ -51,15 +52,15 @@ public:
     {
     }
 
-    virtual wxRect GetGeometry() const;
-    virtual wxRect GetClientArea() const;
-    virtual wxString GetName() const { return wxString(); }
+    virtual wxRect GetGeometry() const wxOVERRIDE;
+    virtual wxRect GetClientArea() const wxOVERRIDE;
+    virtual wxString GetName() const wxOVERRIDE { return wxString(); }
 
-    virtual wxArrayVideoModes GetModes(const wxVideoMode& mode) const;
-    virtual wxVideoMode GetCurrentMode() const;
-    virtual bool ChangeMode(const wxVideoMode& mode);
+    virtual wxArrayVideoModes GetModes(const wxVideoMode& mode) const wxOVERRIDE;
+    virtual wxVideoMode GetCurrentMode() const wxOVERRIDE;
+    virtual bool ChangeMode(const wxVideoMode& mode) wxOVERRIDE;
 
-    virtual bool IsPrimary() const;
+    virtual bool IsPrimary() const wxOVERRIDE;
 
 private:
     CGDirectDisplayID m_id;
@@ -72,9 +73,9 @@ class wxDisplayFactoryMacOSX : public wxDisplayFactory
 public:
     wxDisplayFactoryMacOSX() {}
 
-    virtual wxDisplayImpl *CreateDisplay(unsigned n);
-    virtual unsigned GetCount();
-    virtual int GetFromPoint(const wxPoint& pt);
+    virtual wxDisplayImpl *CreateDisplay(unsigned n) wxOVERRIDE;
+    virtual unsigned GetCount() wxOVERRIDE;
+    virtual int GetFromPoint(const wxPoint& pt) wxOVERRIDE;
 
 protected:
     wxDECLARE_NO_COPY_CLASS(wxDisplayFactoryMacOSX);
@@ -175,18 +176,14 @@ int wxDisplayFactoryMacOSX::GetFromPoint(const wxPoint& p)
 wxDisplayImpl *wxDisplayFactoryMacOSX::CreateDisplay(unsigned n)
 {
     CGDisplayCount theCount = GetCount();
-    CGDirectDisplayID* theIDs = new CGDirectDisplayID[theCount];
+    wxScopedArray<CGDirectDisplayID> theIDs(theCount);
 
-    CGDisplayErr err = wxOSXGetDisplayList(theCount, theIDs, &theCount);
+    CGDisplayErr err = wxOSXGetDisplayList(theCount, theIDs.get(), &theCount);
     wxCHECK_MSG( err == CGDisplayNoErr, NULL, "wxOSXGetDisplayList() failed" );
 
-    wxASSERT( n < theCount );
+    wxCHECK_MSG( n < theCount, NULL, wxS("Invalid display index") );
 
-    wxDisplayImplMacOSX *display = new wxDisplayImplMacOSX(n, theIDs[n]);
-
-    delete [] theIDs;
-
-    return display;
+    return new wxDisplayImplMacOSX(n, theIDs[n]);
 }
 
 // ============================================================================

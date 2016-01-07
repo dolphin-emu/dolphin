@@ -86,7 +86,7 @@ wxFLAGS_MEMBER(wxLB_NEEDED_SB)
 wxFLAGS_MEMBER(wxLB_SORT)
 wxEND_FLAGS( wxListBoxStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListBox, wxControl, "wx/listbox.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListBox, wxControl, "wx/listbox.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxListBox)
 wxEVENT_PROPERTY( Select, wxEVT_LISTBOX, wxCommandEvent )

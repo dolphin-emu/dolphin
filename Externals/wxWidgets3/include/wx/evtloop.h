@@ -16,7 +16,7 @@
 
 // TODO: implement wxEventLoopSource for MSW (it should wrap a HANDLE and be
 //       monitored using MsgWaitForMultipleObjects())
-#if defined(__WXOSX__) || (defined(__UNIX__) && !defined(__WXMSW__))
+#if defined(__WXOSX__) || (defined(__UNIX__) && !defined(__WINDOWS__))
     #define wxUSE_EVENTLOOP_SOURCE 1
 #else
     #define wxUSE_EVENTLOOP_SOURCE 0
@@ -145,19 +145,24 @@ public:
 
     // process all currently pending events right now
     //
-    // it is an error to call Yield() recursively unless the value of
-    // onlyIfNeeded is true
+    // if onlyIfNeeded is true, returns false without doing anything else if
+    // we're already inside Yield()
     //
     // WARNING: this function is dangerous as it can lead to unexpected
     //          reentrancies (i.e. when called from an event handler it
     //          may result in calling the same event handler again), use
     //          with _extreme_ care or, better, don't use at all!
     bool Yield(bool onlyIfNeeded = false);
-    virtual bool YieldFor(long eventsToProcess) = 0;
+
+    // more selective version of Yield()
+    //
+    // notice that it is virtual for backwards-compatibility but new code
+    // should override DoYieldFor() and not YieldFor() itself
+    virtual bool YieldFor(long eventsToProcess);
 
     // returns true if the main thread is inside a Yield() call
     virtual bool IsYielding() const
-        { return m_isInsideYield; }
+        { return m_yieldLevel != 0; }
 
     // returns true if events of the given event category should be immediately
     // processed inside a wxApp::Yield() call or rather should be queued for
@@ -182,6 +187,16 @@ protected:
     // real implementation of Run()
     virtual int DoRun() = 0;
 
+    // And the real, port-specific, implementation of YieldFor().
+    //
+    // The base class version is pure virtual to ensure that it is overridden
+    // in the derived classes but does have an implementation which processes
+    // pending events in wxApp if eventsToProcess allows it, and so should be
+    // called from the overridden version at an appropriate place (i.e. after
+    // processing the native events but before doing anything else that could
+    // be affected by pending events dispatching).
+    virtual void DoYieldFor(long eventsToProcess) = 0;
+
     // this function should be called before the event loop terminates, whether
     // this happens normally (because of Exit() call) or abnormally (because of
     // an exception thrown from inside the loop)
@@ -199,8 +214,10 @@ protected:
     // should we exit the loop?
     bool m_shouldExit;
 
-    // YieldFor() helpers:
-    bool m_isInsideYield;
+    // incremented each time on entering Yield() and decremented on leaving it
+    int m_yieldLevel;
+
+    // the argument of the last call to YieldFor()
     long m_eventsToProcessInsideYield;
 
 private:
@@ -223,12 +240,12 @@ public:
 
     // sets the "should exit" flag and wakes up the loop so that it terminates
     // soon
-    virtual void ScheduleExit(int rc = 0);
+    virtual void ScheduleExit(int rc = 0) wxOVERRIDE;
 
 protected:
     // enters a loop calling OnNextIteration(), Pending() and Dispatch() and
     // terminating when Exit() is called
-    virtual int DoRun();
+    virtual int DoRun() wxOVERRIDE;
 
     // may be overridden to perform some action at the start of each new event
     // loop iteration
@@ -263,7 +280,7 @@ private:
 #endif
 
 // include the header defining wxConsoleEventLoop
-#if defined(__UNIX__) && !defined(__WXMSW__)
+#if defined(__UNIX__) && !defined(__WINDOWS__)
     #include "wx/unix/evtloop.h"
 #elif defined(__WINDOWS__)
     #include "wx/msw/evtloopconsole.h"
@@ -275,14 +292,14 @@ private:
 
 #if defined(__WXMSW__)
     #include "wx/msw/evtloop.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/evtloop.h"
 #elif defined(__WXOSX__)
     #include "wx/osx/evtloop.h"
 #elif defined(__WXDFB__)
     #include "wx/dfb/evtloop.h"
 #elif defined(__WXGTK20__)
     #include "wx/gtk/evtloop.h"
+    #elif defined(__WXQT__)
+    #include "wx/qt/evtloop.h"
 #else // other platform
 
 #include "wx/stopwatch.h"   // for wxMilliClock_t
@@ -313,10 +330,10 @@ public:
         }
     }
     virtual void WakeUp() { }
-    virtual bool YieldFor(long eventsToProcess);
 
 protected:
     virtual int DoRun();
+    virtual void DoYieldFor(long eventsToProcess);
 
     // the pointer to the port specific implementation class
     wxEventLoopImpl *m_impl;
@@ -362,7 +379,7 @@ public:
     }
 
 protected:
-    virtual void OnExit()
+    virtual void OnExit() wxOVERRIDE
     {
         delete m_windowDisabler;
         m_windowDisabler = NULL;
@@ -402,7 +419,7 @@ private:
     wxEventLoopBase *m_evtLoopOld;
 };
 
-#if wxUSE_CONSOLE_EVENTLOOP
+#if wxUSE_GUI || wxUSE_CONSOLE_EVENTLOOP
 
 class wxEventLoopGuarantor
 {
@@ -430,6 +447,6 @@ private:
     wxEventLoop *m_evtLoopNew;
 };
 
-#endif // wxUSE_CONSOLE_EVENTLOOP
+#endif // wxUSE_GUI || wxUSE_CONSOLE_EVENTLOOP
 
 #endif // _WX_EVTLOOP_H_

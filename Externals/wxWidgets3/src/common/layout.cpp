@@ -36,8 +36,8 @@
 #endif
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxIndividualLayoutConstraint, wxObject)
-IMPLEMENT_DYNAMIC_CLASS(wxLayoutConstraints, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxIndividualLayoutConstraint, wxObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxLayoutConstraints, wxObject);
 
 
 inline void wxGetAsIs(wxWindowBase* win, int* w, int* h)

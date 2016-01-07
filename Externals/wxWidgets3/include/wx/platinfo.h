@@ -78,7 +78,8 @@ enum wxPortId
     wxPORT_MAC      = 1 << 7,       // wxOSX (former wxMac), using Cocoa, Carbon or iPhone API
     wxPORT_OSX      = wxPORT_MAC,   // wxOSX, using Cocoa, Carbon or iPhone API
     wxPORT_COCOA    = 1 << 8,       // wxCocoa, using Cocoa NextStep/Mac API
-    wxPORT_WINCE    = 1 << 9        // wxWinCE, toolkit is WinCE SDK API
+    wxPORT_WINCE    = 1 << 9,       // wxWinCE, toolkit is WinCE SDK API
+    wxPORT_QT       = 1 << 10       // wxQT, using QT4
 };
 
 // architecture of the operating system
@@ -189,13 +190,7 @@ public:
         { return m_osVersionMinor; }
 
     // return true if the OS version >= major.minor
-    bool CheckOSVersion(int major, int minor) const
-    {
-        return DoCheckVersion(GetOSMajorVersion(),
-                              GetOSMinorVersion(),
-                              major,
-                              minor);
-    }
+    bool CheckOSVersion(int major, int minor) const;
 
     int GetToolkitMajorVersion() const
         { return m_tkVersionMajor; }
@@ -299,6 +294,8 @@ protected:
         return majorCur > major || (majorCur == major && minorCur >= minor);
     }
 
+    bool m_initializedForCurrentPlatform;
+
     void InitForCurrentPlatform();
 
 
@@ -349,21 +346,5 @@ protected:
 };
 
 
-#if WXWIN_COMPATIBILITY_2_6
-    #define wxUNKNOWN_PLATFORM      wxOS_UNKNOWN
-    #define wxUnix                  wxOS_UNIX
-    #define wxWin95                 wxOS_WINDOWS_9X
-    #define wxWIN95                 wxOS_WINDOWS_9X
-    #define wxWINDOWS_NT            wxOS_WINDOWS_NT
-    #define wxMSW                   wxOS_WINDOWS
-    #define wxWinCE                 wxOS_WINDOWS_CE
-    #define wxWIN32S                wxOS_WINDOWS_9X
-
-    #define wxOS2                   wxPORT_OS2
-    #define wxCocoa                 wxPORT_MAC
-    #define wxMac                   wxPORT_MAC
-    #define wxMotif                 wxPORT_MOTIF
-    #define wxGTK                   wxPORT_GTK
-#endif // WXWIN_COMPATIBILITY_2_6
 
 #endif // _WX_PLATINFO_H_

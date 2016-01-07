@@ -27,16 +27,6 @@
 // compatibility settings
 // ----------------------------------------------------------------------------
 
-// This setting determines the compatibility with 2.6 API: set it to 0 to
-// flag all cases of using deprecated functions.
-//
-// Default is 1 but please try building your code with 0 as the default will
-// change to 0 in the next version and the deprecated functions will disappear
-// in the version after it completely.
-//
-// Recommended setting: 0 (please update your code)
-#define WXWIN_COMPATIBILITY_2_6 0
-
 // This setting determines the compatibility with 2.8 API: set it to 0 to
 // flag all cases of using deprecated functions.
 //
@@ -45,7 +35,17 @@
 // in the version after it completely.
 //
 // Recommended setting: 0 (please update your code)
-#define WXWIN_COMPATIBILITY_2_8 1
+#define WXWIN_COMPATIBILITY_2_8 0
+
+// This setting determines the compatibility with 3.0 API: set it to 0 to
+// flag all cases of using deprecated functions.
+//
+// Default is 1 but please try building your code with 0 as the default will
+// change to 0 in the next version and the deprecated functions will disappear
+// in the version after it completely.
+//
+// Recommended setting: 0 (please update your code)
+#define WXWIN_COMPATIBILITY_3_0 1
 
 // MSW-only: Set to 0 for accurate dialog units, else 1 for old behaviour when
 // default system font is used for wxWindow::GetCharWidth/Height() instead of
@@ -269,14 +269,21 @@
 
 // Enable the use of compiler-specific thread local storage keyword, if any.
 // This is used for wxTLS_XXX() macros implementation and normally should use
-// the compiler-provided support as it's simpler and more efficient, but must
-// not use it if wxWidgets is used in a dynamically loaded Win32 (i.e. using
-// LoadLibrary()/GetProcAddress()) as this triggers a bug in compiler TLS
-// support that results in crashes when any TLS variables are used. So if you
-// are building a Win32 DLL using wxWidgets that can be loaded dynamically, set
-// this to 0.
+// the compiler-provided support as it's simpler and more efficient, but is
+// disabled under Windows in wx/msw/chkconf.h as it can't be used if wxWidgets
+// is used in a dynamically loaded Win32 DLL (i.e. using LoadLibrary()) under
+// XP as this triggers a bug in compiler TLS support that results in crashes
+// when any TLS variables are used.
 //
-// Default is 1, but set to 0 if the scenario above is applicable.
+// If you're absolutely sure that your build of wxWidgets is never going to be
+// used in such situation, either because it's not going to be linked from any
+// kind of plugin or because you only target Vista or later systems, you can
+// set this to 2 to force the use of compiler TLS even under MSW.
+//
+// Default is 1 meaning that compiler TLS is used only if it's 100% safe.
+//
+// Recommended setting: 2 if you want to have maximal performance and don't
+// care about the scenario described above.
 #define wxUSE_COMPILER_TLS 1
 
 // ----------------------------------------------------------------------------
@@ -294,32 +301,29 @@
 #define wxUSE_STL 0
 
 // This is not a real option but is used as the default value for
-// wxUSE_STD_IOSTREAM, wxUSE_STD_STRING and wxUSE_STD_CONTAINERS.
+// wxUSE_STD_IOSTREAM, wxUSE_STD_STRING and wxUSE_STD_CONTAINERS_COMPATIBLY.
 //
-// Currently the Digital Mars and Watcom compilers come without standard C++
-// library headers by default, wxUSE_STD_STRING can be set to 1 if you do have
-// them (e.g. from STLPort).
+// Set it to 0 if you want to disable the use of all standard classes
+// completely for some reason.
+#define wxUSE_STD_DEFAULT  1
+
+// Use standard C++ containers where it can be done without breaking backwards
+// compatibility.
 //
-// VC++ 5.0 does include standard C++ library headers, however they produce
-// many warnings that can't be turned off when compiled at warning level 4.
-#if defined(__DMC__) || defined(__WATCOMC__) \
-        || (defined(_MSC_VER) && _MSC_VER < 1200)
-    #define wxUSE_STD_DEFAULT  0
-#else
-    #define wxUSE_STD_DEFAULT  1
-#endif
+// This provides better interoperability with the standard library, e.g. with
+// this option on it's possible to insert std::vector<> into many wxWidgets
+// containers directly.
+//
+// Default is 1.
+//
+// Recommended setting is 1 unless you want to avoid all dependencies on the
+// standard library.
+#define wxUSE_STD_CONTAINERS_COMPATIBLY wxUSE_STD_DEFAULT
 
 // Use standard C++ containers to implement wxVector<>, wxStack<>, wxDList<>
 // and wxHashXXX<> classes. If disabled, wxWidgets own (mostly compatible but
 // usually more limited) implementations are used which allows to avoid the
 // dependency on the C++ run-time library.
-//
-// Notice that the compilers mentioned in wxUSE_STD_DEFAULT comment above don't
-// support using standard containers and that VC6 needs non-default options for
-// such build to avoid getting "fatal error C1076: compiler limit : internal
-// heap limit reached; use /Zm to specify a higher limit" in its own standard
-// headers, so you need to ensure you do increase the heap size before enabling
-// this option for this compiler.
 //
 // Default is 0 for compatibility reasons.
 //
@@ -465,14 +469,7 @@
 #define wxUSE_XLOCALE       1
 
 // Set wxUSE_DATETIME to 1 to compile the wxDateTime and related classes which
-// allow to manipulate dates, times and time intervals. wxDateTime replaces the
-// old wxTime and wxDate classes which are still provided for backwards
-// compatibility (and implemented in terms of wxDateTime).
-//
-// Note that this class is relatively new and is still officially in alpha
-// stage because some features are not yet (fully) implemented. It is already
-// quite useful though and should only be disabled if you are aiming at
-// absolutely minimal version of the library.
+// allow to manipulate dates, times and time intervals.
 //
 // Requires: wxUSE_LONGLONG
 //
@@ -745,34 +742,21 @@
 #define wxUSE_WEBVIEW_WEBKIT 0
 #endif
 
-// Enable the new wxGraphicsPath and wxGraphicsContext classes for an advanced
-// 2D drawing API.  (Still somewhat experimental)
-//
-// Please note that on Windows gdiplus.dll is loaded dynamically which means
-// that nothing special needs to be done as long as you don't use
-// wxGraphicsContext at all or only use it on XP and later systems but you
-// still do need to distribute it yourself for an application using
-// wxGraphicsContext to be runnable on pre-XP systems.
+// Enable wxGraphicsContext and related classes for a modern 2D drawing API.
 //
 // Default is 1 except if you're using a non-Microsoft compiler under Windows
-// as only MSVC7+ is known to ship with gdiplus.h. For other compilers (e.g.
-// mingw32) you may need to install the headers (and just the headers)
-// yourself. If you do, change the setting below manually.
+// as only MSVC is known to ship with at least gdiplus.h which is required to
+// compile GDI+-based implementation of wxGraphicsContext (MSVC10 and later
+// versions also include d2d1.h required for Direct2D-based implementation).
+// For other compilers (e.g. mingw32) you may need to install the headers (and
+// just the headers) yourself. If you do, change the setting below manually.
 //
 // Recommended setting: 1 if supported by the compilation environment
 
 // notice that we can't use wxCHECK_VISUALC_VERSION() here as this file is
 // included from wx/platform.h before wxCHECK_VISUALC_VERSION() is defined
 #ifdef _MSC_VER
-#   if _MSC_VER >= 1310
-        // MSVC7.1+ comes with new enough Platform SDK, enable
-        // wxGraphicsContext support for it
-#       define wxUSE_GRAPHICS_CONTEXT 1
-#   else
-        // MSVC 6 didn't include GDI+ headers so disable by default, enable it
-        // here if you use MSVC 6 with a newer SDK
-#       define wxUSE_GRAPHICS_CONTEXT 0
-#   endif
+#   define wxUSE_GRAPHICS_CONTEXT 1
 #else
     // Disable support for other Windows compilers, enable it if your compiler
     // comes with new enough SDK or you installed the headers manually.
@@ -841,6 +825,7 @@
 // Default is 1
 //
 // Recommended setting: 1
+#define wxUSE_ACTIVITYINDICATOR 1 // wxActivityIndicator
 #define wxUSE_ANIMATIONCTRL 1   // wxAnimationCtrl
 #define wxUSE_BANNERWINDOW  1   // wxBannerWindow
 #define wxUSE_BUTTON        1   // wxButton
@@ -1010,6 +995,16 @@
 // wxHeaderCtrl)
 #define wxUSE_REARRANGECTRL 1
 
+// wxAddRemoveCtrl is a composite control containing a control showing some
+// items (e.g. wxListBox, wxListCtrl, wxTreeCtrl, wxDataViewCtrl, ...) and "+"/
+// "-" buttons allowing to add and remove items to/from the control.
+//
+// Default is 1.
+//
+// Recommended setting: 1 but can be safely set to 0 if you don't need it (not
+// used by the library itself).
+#define wxUSE_ADDREMOVECTRL 1
+
 // ----------------------------------------------------------------------------
 // Miscellaneous GUI stuff
 // ----------------------------------------------------------------------------
@@ -1106,11 +1101,7 @@
 // Default is 1.
 //
 // Recommended setting: 1 (but can be safely disabled if you don't use it)
-#ifdef __WXOSX_IPHONE__
-#define wxUSE_PREFERENCES_EDITOR 0
-#else
 #define wxUSE_PREFERENCES_EDITOR 1
-#endif
 
 // wxRichToolTip is a customizable tooltip class which has more functionality
 // than the stock (but native, unlike this class) wxToolTip.
@@ -1315,8 +1306,7 @@
 // list of libraries used to link your application (although this is done
 // implicitly for Microsoft Visual C++ users).
 //
-// Default is 1 unless the compiler is known to ship without the necessary
-// headers (Digital Mars) or the platform doesn't support OpenGL (Windows CE).
+// Default is 1.
 //
 // Recommended setting: 1 if you intend to use OpenGL, can be safely set to 0
 // otherwise.

@@ -97,7 +97,7 @@ private:
            m_strPath;     // the rest of the path (no trailing '_'!)
 
   wxDECLARE_NO_COPY_CLASS(wxIniConfig);
-  DECLARE_ABSTRACT_CLASS(wxIniConfig)
+  wxDECLARE_ABSTRACT_CLASS(wxIniConfig);
 };
 
 #endif // wxUSE_CONFIG && wxUSE_INICONF

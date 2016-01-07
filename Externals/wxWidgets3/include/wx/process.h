@@ -77,6 +77,12 @@ public:
     // before the process it started terminates
     void Detach();
 
+    // Activates a GUI process by bringing its (main) window to the front.
+    //
+    // Currently only implemented in wxMSW, simply returns false under the
+    // other platforms.
+    bool Activate() const;
+
 #if wxUSE_STREAMS
     // Pipe handling
     wxInputStream *GetInputStream() const { return m_inputStream; }
@@ -137,7 +143,7 @@ protected:
 
     bool m_redirect;
 
-    DECLARE_DYNAMIC_CLASS(wxProcess)
+    wxDECLARE_DYNAMIC_CLASS(wxProcess);
     wxDECLARE_NO_COPY_CLASS(wxProcess);
 };
 
@@ -167,13 +173,13 @@ public:
     int GetExitCode() { return m_exitcode; }
 
     // implement the base class pure virtual
-    virtual wxEvent *Clone() const { return new wxProcessEvent(*this); }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxProcessEvent(*this); }
 
 public:
     int m_pid,
         m_exitcode;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxProcessEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxProcessEvent);
 };
 
 typedef void (wxEvtHandler::*wxProcessEventFunction)(wxProcessEvent&);

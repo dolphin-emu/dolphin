@@ -32,20 +32,11 @@
 
 #include "wx/dataobj.h"
 
-#if wxUSE_OLE && defined(__WIN32__) && !defined(__GNUWIN32_OLD__)
+#if wxUSE_OLE
 
 #include "wx/scopedarray.h"
 #include "wx/vector.h"
 #include "wx/msw/private.h"         // includes <windows.h>
-
-#ifdef __WXWINCE__
-#include <winreg.h>
-#endif
-
-// for some compilers, the entire ole2.h must be included, not only oleauto.h
-#if wxUSE_NORLANDER_HEADERS || defined(__WATCOMC__) || defined(__WXWINCE__)
-  #include <ole2.h>
-#endif
 
 #include <oleauto.h>
 #include <shlobj.h>
@@ -233,8 +224,8 @@ private:
     {
     public:
         // Ctor takes ownership of the pointers.
-        SystemDataEntry(FORMATETC *pformatetc, STGMEDIUM *pmedium)
-            : pformatetc(pformatetc), pmedium(pmedium)
+        SystemDataEntry(FORMATETC *pformatetc_, STGMEDIUM *pmedium_)
+            : pformatetc(pformatetc_), pmedium(pmedium_)
         {
         }
 
@@ -552,7 +543,6 @@ STDMETHODIMP wxIDataObject::GetData(FORMATETC *pformatetcIn, STGMEDIUM *pmedium)
             pmedium->tymed = TYMED_ENHMF;
             break;
 
-#ifndef __WXWINCE__
         case wxDF_METAFILE:
             pmedium->hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE,
                                            sizeof(METAFILEPICT));
@@ -562,7 +552,6 @@ STDMETHODIMP wxIDataObject::GetData(FORMATETC *pformatetcIn, STGMEDIUM *pmedium)
             }
             pmedium->tymed = TYMED_MFPICT;
             break;
-#endif
         default:
             // alloc memory
             size_t size = m_pDataObject->GetDataSize(format);
@@ -734,13 +723,11 @@ STDMETHODIMP wxIDataObject::SetData(FORMATETC *pformatetc,
                         break;
 #endif
                     case CF_BITMAP:
-#ifndef __WXWINCE__
                     case CF_HDROP:
                         // these formats don't use size at all, anyhow (but
                         // pass data by handle, which is always a single DWORD)
                         size = 0;
                         break;
-#endif
 
                     case CF_DIB:
                         // the handler will calculate size itself (it's too
@@ -748,11 +735,9 @@ STDMETHODIMP wxIDataObject::SetData(FORMATETC *pformatetc,
                         size = 0;
                         break;
 
-#ifndef __WXWINCE__
                     case CF_METAFILEPICT:
                         size = sizeof(METAFILEPICT);
                         break;
-#endif
                     default:
                         pBuf = m_pDataObject->
                                     GetSizeFromBuffer(pBuf, &size, format);
@@ -894,7 +879,7 @@ STDMETHODIMP wxIDataObject::EnumFormatEtc(DWORD dwDir,
         nFormatCount = wx_truncate_cast(ULONG, ourFormatCount + sysFormatCount);
 
     // fill format array with formats ...
-    wxScopedArray<wxDataFormat> formats(new wxDataFormat[nFormatCount]);
+    wxScopedArray<wxDataFormat> formats(nFormatCount);
 
     // ... from content data (supported formats)
     m_pDataObject->GetAllFormats(formats.get(), dir);
@@ -1022,12 +1007,10 @@ const wxChar *wxDataObject::GetFormatName(wxDataFormat format)
         case CF_RIFF:         return wxT("CF_RIFF");
         case CF_WAVE:         return wxT("CF_WAVE");
         case CF_UNICODETEXT:  return wxT("CF_UNICODETEXT");
-#ifndef __WXWINCE__
         case CF_METAFILEPICT: return wxT("CF_METAFILEPICT");
         case CF_ENHMETAFILE:  return wxT("CF_ENHMETAFILE");
         case CF_LOCALE:       return wxT("CF_LOCALE");
         case CF_HDROP:        return wxT("CF_HDROP");
-#endif
 
         default:
             if ( !::GetClipboardFormatName(format, s_szBuf, WXSIZEOF(s_szBuf)) )
@@ -1050,11 +1033,9 @@ const wxChar *wxDataObject::GetFormatName(wxDataFormat format)
 // wxBitmapDataObject supports CF_DIB format
 // ----------------------------------------------------------------------------
 
-// TODO: support CF_DIB under Windows CE as well
-
 size_t wxBitmapDataObject::GetDataSize() const
 {
-#if wxUSE_WXDIB && !defined(__WXWINCE__)
+#if wxUSE_WXDIB
     return wxDIB::ConvertFromBitmap(NULL, GetHbitmapOf(GetBitmap()));
 #else
     return 0;
@@ -1063,7 +1044,7 @@ size_t wxBitmapDataObject::GetDataSize() const
 
 bool wxBitmapDataObject::GetDataHere(void *buf) const
 {
-#if wxUSE_WXDIB && !defined(__WXWINCE__)
+#if wxUSE_WXDIB
     BITMAPINFO * const pbi = (BITMAPINFO *)buf;
 
     return wxDIB::ConvertFromBitmap(pbi, GetHbitmapOf(GetBitmap())) != 0;
@@ -1075,7 +1056,7 @@ bool wxBitmapDataObject::GetDataHere(void *buf) const
 
 bool wxBitmapDataObject::SetData(size_t WXUNUSED(len), const void *buf)
 {
-#if wxUSE_WXDIB && !defined(__WXWINCE__)
+#if wxUSE_WXDIB
     const BITMAPINFO * const pbmi = (const BITMAPINFO *)buf;
 
     HBITMAP hbmp = wxDIB::ConvertToBitmap(pbmi);
@@ -1269,9 +1250,8 @@ bool wxBitmapDataObject::SetData(const wxDataFormat& format,
 // ----------------------------------------------------------------------------
 
 bool wxFileDataObject::SetData(size_t WXUNUSED(size),
-                               const void *WXUNUSED_IN_WINCE(pData))
+                               const void *pData)
 {
-#ifndef __WXWINCE__
     m_filenames.Empty();
 
     // the documentation states that the first member of DROPFILES structure is
@@ -1304,9 +1284,6 @@ bool wxFileDataObject::SetData(size_t WXUNUSED(size),
     }
 
     return true;
-#else
-    return false;
-#endif
 }
 
 void wxFileDataObject::AddFile(const wxString& file)
@@ -1319,7 +1296,6 @@ void wxFileDataObject::AddFile(const wxString& file)
 
 size_t wxFileDataObject::GetDataSize() const
 {
-#ifndef __WXWINCE__
     // size returned will be the size of the DROPFILES structure, plus the list
     // of filesnames (null byte separated), plus a double null at the end
 
@@ -1327,20 +1303,7 @@ size_t wxFileDataObject::GetDataSize() const
     if ( m_filenames.empty() )
         return 0;
 
-#if wxUSE_UNICODE_MSLU
-    size_t sizeOfChar;
-    if ( wxGetOsVersion() == wxOS_WINDOWS_9X )
-    {
-        // Win9x always uses ANSI file names and MSLU doesn't help with this
-        sizeOfChar = 1;
-    }
-    else
-    {
-        sizeOfChar = sizeof(wxChar);
-    }
-#else // !wxUSE_UNICODE_MSLU
     static const size_t sizeOfChar = sizeof(wxChar);
-#endif // wxUSE_UNICODE_MSLU/!wxUSE_UNICODE_MSLU
 
     // initial size of DROPFILES struct + null byte
     size_t sz = sizeof(DROPFILES) + sizeOfChar;
@@ -1349,26 +1312,16 @@ size_t wxFileDataObject::GetDataSize() const
     for ( size_t i = 0; i < count; i++ )
     {
         // add filename length plus null byte
-        size_t len;
-#if wxUSE_UNICODE_MSLU
-        if ( sizeOfChar == 1 )
-            len = strlen(m_filenames[i].mb_str(*wxConvFileName));
-        else
-#endif // wxUSE_UNICODE_MSLU
-            len = m_filenames[i].length();
+        size_t len = m_filenames[i].length();
 
         sz += (len + 1) * sizeOfChar;
     }
 
     return sz;
-#else
-    return 0;
-#endif
 }
 
-bool wxFileDataObject::GetDataHere(void *WXUNUSED_IN_WINCE(pData)) const
+bool wxFileDataObject::GetDataHere(void *pData) const
 {
-#ifndef __WXWINCE__
     // pData points to an externally allocated memory block
     // created using the size returned by GetDataSize()
 
@@ -1382,11 +1335,7 @@ bool wxFileDataObject::GetDataHere(void *WXUNUSED_IN_WINCE(pData)) const
     // initialize DROPFILES struct
     pDrop->pFiles = sizeof(DROPFILES);
     pDrop->fNC = FALSE;                 // not non-client coords
-#if wxUSE_UNICODE_MSLU
-    pDrop->fWide = wxGetOsVersion() != wxOS_WINDOWS_9X ? TRUE : FALSE;
-#else
     pDrop->fWide = wxUSE_UNICODE;
-#endif
 
     const size_t sizeOfChar = pDrop->fWide ? sizeof(wchar_t) : 1;
 
@@ -1397,20 +1346,8 @@ bool wxFileDataObject::GetDataHere(void *WXUNUSED_IN_WINCE(pData)) const
     for ( size_t i = 0; i < count; i++ )
     {
         // copy filename to pbuf and add null terminator
-        size_t len;
-#if wxUSE_UNICODE_MSLU
-        if ( sizeOfChar == 1 )
-        {
-            wxCharBuffer buf(m_filenames[i].mb_str(*wxConvFileName));
-            len = strlen(buf);
-            memcpy(pbuf, buf, len*sizeOfChar);
-        }
-        else
-#endif // wxUSE_UNICODE_MSLU
-        {
-            len = m_filenames[i].length();
-            memcpy(pbuf, m_filenames[i].t_str(), len*sizeOfChar);
-        }
+        size_t len = m_filenames[i].length();
+        memcpy(pbuf, m_filenames[i].t_str(), len*sizeOfChar);
 
         pbuf += len*sizeOfChar;
 
@@ -1422,9 +1359,6 @@ bool wxFileDataObject::GetDataHere(void *WXUNUSED_IN_WINCE(pData)) const
     memset(pbuf, 0, sizeOfChar);
 
     return true;
-#else
-    return false;
-#endif
 }
 
 // ----------------------------------------------------------------------------

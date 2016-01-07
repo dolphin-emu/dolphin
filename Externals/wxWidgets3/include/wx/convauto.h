@@ -71,14 +71,14 @@ public:
 
     // override the base class virtual function(s) to use our m_conv
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = wxNO_LEN) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
 
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
 
-    virtual size_t GetMBNulLen() const { return m_conv->GetMBNulLen(); }
+    virtual size_t GetMBNulLen() const wxOVERRIDE { return m_conv->GetMBNulLen(); }
 
-    virtual wxMBConv *Clone() const { return new wxConvAuto(*this); }
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxConvAuto(*this); }
 
     // return the BOM type of this buffer
     static wxBOM DetectBOM(const char *src, size_t srcLen);

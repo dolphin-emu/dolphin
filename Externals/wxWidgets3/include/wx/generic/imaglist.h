@@ -52,7 +52,7 @@ private:
     int     m_width;
     int     m_height;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxGenericImageList)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxGenericImageList);
 };
 
 #ifndef wxHAS_NATIVE_IMAGELIST
@@ -64,7 +64,7 @@ private:
 
 class WXDLLIMPEXP_CORE wxImageList: public wxGenericImageList
 {
-    DECLARE_DYNAMIC_CLASS(wxImageList)
+    wxDECLARE_DYNAMIC_CLASS(wxImageList);
 
 public:
     wxImageList() {}

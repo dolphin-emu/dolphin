@@ -220,7 +220,7 @@ OSStatus wxMacCarbonEvent::SetParameter(EventParamName inName, EventParamType in
 // basing on DataBrowserItemIDs
 //
 
-IMPLEMENT_ABSTRACT_CLASS( wxMacDataBrowserControl , wxMacControl )
+wxIMPLEMENT_ABSTRACT_CLASS(wxMacDataBrowserControl, wxMacControl);
 
 pascal void wxMacDataBrowserControl::DataBrowserItemNotificationProc(
     ControlRef browser,
@@ -652,7 +652,7 @@ void wxMacDataItem::Notification(wxMacDataItemBrowserControl *WXUNUSED(owner) ,
 {
 }
 
-IMPLEMENT_DYNAMIC_CLASS( wxMacDataItemBrowserControl , wxMacDataBrowserControl )
+wxIMPLEMENT_DYNAMIC_CLASS(wxMacDataItemBrowserControl, wxMacDataBrowserControl);
 
 wxMacDataItemBrowserControl::wxMacDataItemBrowserControl( wxWindow* peer , const wxPoint& pos, const wxSize& size, long style) :
     wxMacDataBrowserControl( peer, pos, size, style )

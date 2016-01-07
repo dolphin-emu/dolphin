@@ -34,7 +34,7 @@
 // wxControl creation
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxControl, wxWindow)
+wxIMPLEMENT_DYNAMIC_CLASS(wxControl, wxWindow);
 
 wxControl::wxControl()
 {
@@ -45,7 +45,7 @@ bool wxControl::Create( wxWindow *parent,
                       const wxPoint &pos,
                       const wxSize &size,
                       long style,
-                      const wxValidator& validator,
+                      const wxValidator& wxVALIDATOR_PARAM(validator),
                       const wxString &name )
 {
     bool ret = wxWindow::Create(parent, id, pos, size, style, name);
@@ -61,11 +61,13 @@ bool wxControl::Create( wxWindow *parent,
 bool wxControl::SetFont(const wxFont& font)
 {
     const bool changed = base_type::SetFont(font);
-    if (changed && !gtk_widget_get_realized(m_widget))
+    if (changed && !gtk_widget_get_realized(m_widget) && gtk_check_version(3,5,0))
     {
         // GTK defers sending "style-updated" until widget is realized, but
         // GetBestSize() won't compute correct result until the signal is sent,
         // so we have to do it now
+        // But don't bother for GTK > 3.4, the change won't take effect until
+        // GTK updates it's style cache
         g_signal_emit_by_name(m_widget, "style-updated");
     }
     return changed;
@@ -299,8 +301,10 @@ wxControl::GetDefaultAttributesFromGTKWidget(GtkWidget* widget,
         if (!font_name)
             attr.font = wxSystemSettings::GetFont( wxSYS_DEFAULT_GUI_FONT );
         else
-            attr.font = wxFont(wxString::FromAscii(font_name));
-        g_free (font_name);
+        {
+            attr.font = wxFont(wxString::FromUTF8(font_name));
+            g_free(font_name);
+        }
     }
 
     if (tlw)
@@ -330,7 +334,10 @@ wxPoint wxControl::GTKGetEntryMargins(GtkEntry* entry) const
 #ifndef __WXGTK3__
 #if GTK_CHECK_VERSION(2,10,0)
     // The margins we have previously set
-    const GtkBorder* border = gtk_entry_get_inner_border(entry);
+    const GtkBorder* border = NULL;
+    if (gtk_check_version(2,10,0) == NULL)
+        border = gtk_entry_get_inner_border(entry);
+
     if ( border )
     {
         marg.x = border->left + border->right;

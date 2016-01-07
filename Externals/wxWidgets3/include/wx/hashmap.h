@@ -62,11 +62,7 @@
 
 #define wxNEEDS_WX_HASH_MAP
 
-#ifdef __WXWINCE__
-typedef int ptrdiff_t;
-#else
 #include <stddef.h>             // for ptrdiff_t
-#endif
 
 // private
 struct WXDLLIMPEXP_BASE _wxHashTable_NodeBase

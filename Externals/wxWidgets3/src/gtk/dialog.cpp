@@ -12,7 +12,6 @@
 #include "wx/dialog.h"
 
 #ifndef WX_PRECOMP
-    #include "wx/cursor.h"
 #endif // WX_PRECOMP
 
 #include "wx/evtloop.h"
@@ -137,9 +136,7 @@ int wxDialog::ShowModal()
     // release the mouse if it's currently captured as the window having it
     // will be disabled when this dialog is shown -- but will still keep the
     // capture making it impossible to do anything in the modal dialog itself
-    wxWindow * const win = wxWindow::GetCapture();
-    if ( win )
-        win->GTKReleaseMouseAndNotify();
+    GTKReleaseMouseAndNotify();
 
     wxWindow * const parent = GetParentForModalDialog();
     if ( parent )
@@ -147,8 +144,6 @@ int wxDialog::ShowModal()
         gtk_window_set_transient_for( GTK_WINDOW(m_widget),
                                       GTK_WINDOW(parent->m_widget) );
     }
-
-    wxBusyCursorSuspender cs; // temporarily suppress the busy cursor
 
 #if GTK_CHECK_VERSION(2,10,0)
     unsigned sigId = 0;
@@ -163,14 +158,20 @@ int wxDialog::ShowModal()
     }
 #endif
 
+    // NOTE: this will cause a gtk_grab_add() during Show()
+    gtk_window_set_modal(GTK_WINDOW(m_widget), true);
+
     Show( true );
 
     m_modalShowing = true;
 
     wxOpenModalDialogLocker modalLock;
 
-    // NOTE: gtk_window_set_modal internally calls gtk_grab_add() !
-    gtk_window_set_modal(GTK_WINDOW(m_widget), TRUE);
+    // Prevent the widget from being destroyed if the user closes the window.
+    // Needed for derived classes which bypass wxTLW::Create(), and therefore
+    // the wxTLW "delete-event" handler is not connected
+    gulong handler_id = g_signal_connect(
+        m_widget, "delete-event", G_CALLBACK(gtk_true), this);
 
     // Run modal dialog event loop.
     {
@@ -178,6 +179,7 @@ int wxDialog::ShowModal()
         m_modalLoop->Run();
     }
 
+    g_signal_handler_disconnect(m_widget, handler_id);
 #if GTK_CHECK_VERSION(2,10,0)
     if (sigId)
         g_signal_remove_emission_hook(sigId, hookId);

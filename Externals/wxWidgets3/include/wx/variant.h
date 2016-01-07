@@ -383,13 +383,13 @@ public:
 
 // Attributes
 protected:
-    virtual wxObjectRefData *CreateRefData() const;
-    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const;
+    virtual wxObjectRefData *CreateRefData() const wxOVERRIDE;
+    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const wxOVERRIDE;
 
     wxString        m_name;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxVariant)
+    wxDECLARE_DYNAMIC_CLASS(wxVariant);
 };
 
 
@@ -430,7 +430,7 @@ public:
     {
     }
 
-    virtual wxAnyValueType* GetAssociatedType()
+    virtual wxAnyValueType* GetAssociatedType() wxOVERRIDE
     {
         return wxAnyValueTypeImpl<T>::GetInstance();
     }
@@ -438,7 +438,7 @@ private:
 };
 
 #define DECLARE_WXANY_CONVERSION() \
-virtual bool GetAsAny(wxAny* any) const; \
+virtual bool GetAsAny(wxAny* any) const wxOVERRIDE; \
 static wxVariantData* VariantDataFactory(const wxAny& any);
 
 #define _REGISTER_WXANY_CONVERSION(T, CLASSNAME, FUNC) \
@@ -457,7 +457,7 @@ bool CLASSNAME::GetAsAny(wxAny* any) const \
 } \
 wxVariantData* CLASSNAME::VariantDataFactory(const wxAny& any) \
 { \
-    return new CLASSNAME(wxANY_AS(any, T)); \
+    return new CLASSNAME(any.As<T>()); \
 } \
 REGISTER_WXANY_CONVERSION(T, CLASSNAME)
 
@@ -489,12 +489,12 @@ public:\
 \
     classname &GetValue() { return m_value; } \
 \
-    virtual bool Eq(wxVariantData& data) const; \
+    virtual bool Eq(wxVariantData& data) const wxOVERRIDE; \
 \
-    virtual wxString GetType() const; \
-    virtual wxClassInfo* GetValueClassInfo(); \
+    virtual wxString GetType() const wxOVERRIDE; \
+    virtual wxClassInfo* GetValueClassInfo() wxOVERRIDE; \
 \
-    virtual wxVariantData* Clone() const { return new classname##VariantData(m_value); } \
+    virtual wxVariantData* Clone() const wxOVERRIDE { return new classname##VariantData(m_value); } \
 \
     DECLARE_WXANY_CONVERSION() \
 protected:\

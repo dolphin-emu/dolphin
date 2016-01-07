@@ -56,7 +56,7 @@ public:
     // because it's still widely used)
     bool Ok() const { return IsOk(); }
 
-#if defined(__WXMSW__) || defined(__WXPM__)
+#if defined(__WXMSW__)
     // Creates the resource
     virtual bool RealizeResource() { return false; }
 
@@ -67,18 +67,18 @@ public:
 
     // Returns handle.
     virtual WXHANDLE GetResourceHandle() const { return 0; }
-#endif // defined(__WXMSW__) || defined(__WXPM__)
+#endif // defined(__WXMSW__)
 
 protected:
     // replace base class functions using wxObjectRefData with our own which
     // use wxGDIRefData to ensure that we always work with data objects of the
     // correct type (i.e. derived from wxGDIRefData)
-    virtual wxObjectRefData *CreateRefData() const
+    virtual wxObjectRefData *CreateRefData() const wxOVERRIDE
     {
         return CreateGDIRefData();
     }
 
-    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const
+    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const wxOVERRIDE
     {
         return CloneGDIRefData(static_cast<const wxGDIRefData *>(data));
     }
@@ -86,7 +86,7 @@ protected:
     virtual wxGDIRefData *CreateGDIRefData() const = 0;
     virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const = 0;
 
-    DECLARE_DYNAMIC_CLASS(wxGDIObject)
+    wxDECLARE_DYNAMIC_CLASS(wxGDIObject);
 };
 
 #endif // _WX_GDIOBJ_H_BASE_

@@ -99,22 +99,22 @@ public:
                  const wxSize& size = wxDefaultSize,
                  const wxString& name = wxFileCtrlNameStr );
 
-    virtual void SetWildcard( const wxString& wildCard );
-    virtual void SetFilterIndex( int filterIndex );
-    virtual bool SetDirectory( const wxString& dir );
-    virtual bool SetFilename( const wxString& name );
-    virtual bool SetPath( const wxString& path );
+    virtual void SetWildcard( const wxString& wildCard ) wxOVERRIDE;
+    virtual void SetFilterIndex( int filterIndex ) wxOVERRIDE;
+    virtual bool SetDirectory( const wxString& dir ) wxOVERRIDE;
+    virtual bool SetFilename( const wxString& name ) wxOVERRIDE;
+    virtual bool SetPath( const wxString& path ) wxOVERRIDE;
 
-    virtual wxString GetFilename() const;
-    virtual wxString GetDirectory() const;
-    virtual wxString GetWildcard() const { return this->m_wildCard; }
-    virtual wxString GetPath() const;
-    virtual void GetPaths( wxArrayString& paths ) const;
-    virtual void GetFilenames( wxArrayString& files ) const;
-    virtual int GetFilterIndex() const { return m_fc.GetFilterIndex(); }
+    virtual wxString GetFilename() const wxOVERRIDE;
+    virtual wxString GetDirectory() const wxOVERRIDE;
+    virtual wxString GetWildcard() const wxOVERRIDE { return this->m_wildCard; }
+    virtual wxString GetPath() const wxOVERRIDE;
+    virtual void GetPaths( wxArrayString& paths ) const wxOVERRIDE;
+    virtual void GetFilenames( wxArrayString& files ) const wxOVERRIDE;
+    virtual int GetFilterIndex() const wxOVERRIDE { return m_fc.GetFilterIndex(); }
 
-    virtual bool HasMultipleFileSelection() const { return HasFlag( wxFC_MULTIPLE ); }
-    virtual void ShowHidden(bool show);
+    virtual bool HasMultipleFileSelection() const wxOVERRIDE { return HasFlag( wxFC_MULTIPLE ); }
+    virtual void ShowHidden(bool show) wxOVERRIDE;
 
     virtual bool HasFilterChoice() const
         { return m_fc.HasFilterChoice(); }
@@ -135,7 +135,7 @@ protected:
 private:
     void Init();
 
-    DECLARE_DYNAMIC_CLASS( wxGtkFileCtrl )
+    wxDECLARE_DYNAMIC_CLASS(wxGtkFileCtrl);
 };
 
 #endif // wxUSE_FILECTRL

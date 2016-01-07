@@ -19,10 +19,10 @@ class WXDLLIMPEXP_BASE wxConsoleAppTraits : public wxConsoleAppTraitsBase
 {
 public:
 #if wxUSE_CONSOLE_EVENTLOOP
-    virtual wxEventLoopBase *CreateEventLoop();
+    virtual wxEventLoopBase *CreateEventLoop() wxOVERRIDE;
 #endif // wxUSE_CONSOLE_EVENTLOOP
 #if wxUSE_TIMER
-    virtual wxTimerImpl *CreateTimerImpl(wxTimer *timer);
+    virtual wxTimerImpl *CreateTimerImpl(wxTimer *timer) wxOVERRIDE;
 #endif
 };
 
@@ -35,7 +35,7 @@ public:
 // TODO: Should we use XtAddInput() for wxX11 too? Or, vice versa, if there is
 //       no advantage in doing this compared to the generic way currently used
 //       by wxX11, should we continue to use GTK/Motif-specific stuff?
-#if defined(__WXGTK__) || defined(__WXMOTIF__)
+#if defined(__WXGTK__) || defined(__WXMOTIF__) || defined(__WXQT__)
     #define wxHAS_GUI_FDIOMANAGER
     #define wxHAS_GUI_PROCESS_CALLBACKS
 #endif // ports using wxFDIOManager
@@ -48,29 +48,29 @@ public:
 class WXDLLIMPEXP_CORE wxGUIAppTraits : public wxGUIAppTraitsBase
 {
 public:
-    virtual wxEventLoopBase *CreateEventLoop();
-    virtual int WaitForChild(wxExecuteData& execData);
+    virtual wxEventLoopBase *CreateEventLoop() wxOVERRIDE;
+    virtual int WaitForChild(wxExecuteData& execData) wxOVERRIDE;
 #if wxUSE_TIMER
-    virtual wxTimerImpl *CreateTimerImpl(wxTimer *timer);
+    virtual wxTimerImpl *CreateTimerImpl(wxTimer *timer) wxOVERRIDE;
 #endif
 #if wxUSE_THREADS && defined(__WXGTK20__)
-    virtual void MutexGuiEnter();
-    virtual void MutexGuiLeave();
+    virtual void MutexGuiEnter() wxOVERRIDE;
+    virtual void MutexGuiLeave() wxOVERRIDE;
 #endif
 
-#if (defined(__WXMAC__) || defined(__WXCOCOA__)) && wxUSE_STDPATHS
+#if defined(__WXMAC__) && wxUSE_STDPATHS
     virtual wxStandardPaths& GetStandardPaths();
 #endif
-    virtual wxPortId GetToolkitVersion(int *majVer = NULL, int *minVer = NULL) const;
+    virtual wxPortId GetToolkitVersion(int *majVer = NULL, int *minVer = NULL) const wxOVERRIDE;
 
 #ifdef __WXGTK20__
-    virtual wxString GetDesktopEnvironment() const;
+    virtual wxString GetDesktopEnvironment() const wxOVERRIDE;
     virtual wxString GetStandardCmdLineOptions(wxArrayString& names,
-                                               wxArrayString& desc) const;
+                                               wxArrayString& desc) const wxOVERRIDE;
 #endif // __WXGTK20____
 
 #if defined(__WXGTK20__)
-    virtual bool ShowAssertDialog(const wxString& msg);
+    virtual bool ShowAssertDialog(const wxString& msg) wxOVERRIDE;
 #endif
 
 #if wxUSE_SOCKETS
@@ -80,12 +80,14 @@ public:
 #endif
 
 #ifdef wxHAS_GUI_FDIOMANAGER
-    virtual wxFDIOManager *GetFDIOManager();
+    virtual wxFDIOManager *GetFDIOManager() wxOVERRIDE;
 #endif
 
 #endif // wxUSE_SOCKETS
 
-    virtual wxEventLoopSourcesManagerBase* GetEventLoopSourcesManager();
+#if wxUSE_EVENTLOOP_SOURCE
+    virtual wxEventLoopSourcesManagerBase* GetEventLoopSourcesManager() wxOVERRIDE;
+#endif
 };
 
 #endif // wxUSE_GUI

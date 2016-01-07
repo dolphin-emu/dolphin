@@ -19,6 +19,6 @@
 
 #include "wx/minifram.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxMiniFrame, wxFrame)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMiniFrame, wxFrame);
 
 #endif // wxUSE_MINIFRAME

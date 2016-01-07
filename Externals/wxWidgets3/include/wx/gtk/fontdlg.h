@@ -25,22 +25,11 @@ public:
 
     virtual ~wxFontDialog();
 
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated interface, don't use
-    wxDEPRECATED( wxFontDialog(wxWindow *parent, const wxFontData *data) );
-#endif // WXWIN_COMPATIBILITY_2_6
-
 protected:
     // create the GTK dialog
-    virtual bool DoCreate(wxWindow *parent);
+    virtual bool DoCreate(wxWindow *parent) wxOVERRIDE;
 
-    DECLARE_DYNAMIC_CLASS(wxFontDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxFontDialog);
 };
-
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated interface, don't use
-inline wxFontDialog::wxFontDialog(wxWindow *parent, const wxFontData *data)
-        : wxFontDialogBase(parent) { InitFontData(data); Create(parent); }
-#endif // WXWIN_COMPATIBILITY_2_6
 
 #endif

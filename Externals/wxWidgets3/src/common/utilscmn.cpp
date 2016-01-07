@@ -23,6 +23,14 @@
     #pragma hdrstop
 #endif
 
+// See comment about this hack in time.cpp: here we do it for environ external
+// variable which can't be easily declared when using MinGW in strict ANSI mode.
+#ifdef wxNEEDS_STRICT_ANSI_WORKAROUNDS
+    #undef __STRICT_ANSI__
+    #include <stdlib.h>
+    #define __STRICT_ANSI__
+#endif
+
 #ifndef WX_PRECOMP
     #include "wx/app.h"
     #include "wx/string.h"
@@ -52,41 +60,27 @@
 #include "wx/mimetype.h"
 #include "wx/config.h"
 #include "wx/versioninfo.h"
-
-#if defined(__WXWINCE__) && wxUSE_DATETIME
-    #include "wx/datetime.h"
-#endif
+#include "wx/math.h"
 
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#if !wxONLY_WATCOM_EARLIER_THAN(1,4)
-    #if !(defined(_MSC_VER) && (_MSC_VER > 800))
-        #include <errno.h>
-    #endif
-#endif
+#include <errno.h>
 
 #if wxUSE_GUI
     #include "wx/notebook.h"
     #include "wx/statusbr.h"
 #endif // wxUSE_GUI
 
-#ifndef __WXWINCE__
-    #include <time.h>
-#else
-    #include "wx/msw/wince/time.h"
-#endif
+#include <time.h>
 
 #ifdef __WXMAC__
     #include "wx/osx/private.h"
 #endif
 
-#if !defined(__WXWINCE__)
-    #include <sys/types.h>
-    #include <sys/stat.h>
-#endif
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #if defined(__WINDOWS__)
     #include "wx/msw/private.h"
@@ -97,6 +91,9 @@
     #include <gtk/gtk.h>    // for GTK_XXX_VERSION constants
 #endif
 
+#if wxUSE_GUI && defined(__WXQT__)
+    #include <QtGlobal>       // for QT_VERSION_STR constants
+#endif
 #if wxUSE_BASE
 
 // ============================================================================
@@ -149,19 +146,10 @@ wxString wxDecToHex(int dec)
 // Return the current date/time
 wxString wxNow()
 {
-#ifdef __WXWINCE__
-#if wxUSE_DATETIME
-    wxDateTime now = wxDateTime::Now();
-    return now.Format();
-#else
-    return wxEmptyString;
-#endif
-#else
     time_t now = time(NULL);
     char *date = ctime(&now);
     date[24] = '\0';
     return wxString::FromAscii(date);
-#endif
 }
 
 #if WXWIN_COMPATIBILITY_2_8
@@ -351,25 +339,6 @@ bool wxPlatform::Is(int platform)
     if (platform == wxOS_WINDOWS)
         return true;
 #endif
-#ifdef __WXWINCE__
-    if (platform == wxOS_WINDOWS_CE)
-        return true;
-#endif
-
-#if 0
-
-// FIXME: wxWinPocketPC and wxWinSmartPhone are unknown symbols
-
-#if defined(__WXWINCE__) && defined(__POCKETPC__)
-    if (platform == wxWinPocketPC)
-        return true;
-#endif
-#if defined(__WXWINCE__) && defined(__SMARTPHONE__)
-    if (platform == wxWinSmartPhone)
-        return true;
-#endif
-
-#endif
 
 #ifdef __WXGTK__
     if (platform == wxPORT_GTK)
@@ -387,16 +356,8 @@ bool wxPlatform::Is(int platform)
     if (platform == wxOS_UNIX)
         return true;
 #endif
-#ifdef __OS2__
-    if (platform == wxOS_OS2)
-        return true;
-#endif
-#ifdef __WXPM__
-    if (platform == wxPORT_PM)
-        return true;
-#endif
-#ifdef __WXCOCOA__
-    if (platform == wxPORT_MAC)
+#ifdef __WXQT__
+    if (platform == wxPORT_QT)
         return true;
 #endif
 
@@ -774,8 +735,8 @@ Thanks,
 #define SWAP(a, b, size)                                                      \
   do                                                                          \
     {                                                                         \
-      register size_t __size = (size);                                        \
-      register char *__a = (a), *__b = (b);                                   \
+      size_t __size = (size);                                                 \
+      char *__a = (a), *__b = (b);                                            \
       do                                                                      \
         {                                                                     \
           char __tmp = *__a;                                                  \
@@ -828,7 +789,7 @@ typedef struct
 void wxQsort(void* pbase, size_t total_elems,
              size_t size, wxSortCallback cmp, const void* user_data)
 {
-  register char *base_ptr = (char *) pbase;
+  char *base_ptr = (char *) pbase;
   const size_t max_thresh = MAX_THRESH * size;
 
   if (total_elems == 0)
@@ -942,7 +903,7 @@ void wxQsort(void* pbase, size_t total_elems,
     char *thresh = base_ptr + max_thresh;
     if ( thresh > end_ptr )
         thresh = end_ptr;
-    register char *run_ptr;
+    char *run_ptr;
 
     /* Find smallest element in first threshold and place it at the
        array's beginning.  This is the smallest array element,
@@ -984,9 +945,57 @@ void wxQsort(void* pbase, size_t total_elems,
   }
 }
 
+// ----------------------------------------------------------------------------
+// wxGCD
+// Compute the greatest common divisor of two positive integers
+// using binary GCD algorithm.
+// See:
+//     http://en.wikipedia.org/wiki/Binary_GCD_algorithm#Iterative_version_in_C
+// ----------------------------------------------------------------------------
+
+unsigned int wxGCD(unsigned int u, unsigned int v)
+{
+    // GCD(0,v) == v; GCD(u,0) == u, GCD(0,0) == 0
+    if (u == 0)
+        return v;
+    if (v == 0)
+        return u;
+
+    int shift;
+
+    // Let shift := lg K, where K is the greatest power of 2
+    // dividing both u and v.
+    for (shift = 0; ((u | v) & 1) == 0; ++shift)
+    {
+        u >>= 1;
+        v >>= 1;
+    }
+
+    while ((u & 1) == 0)
+        u >>= 1;
+
+    // From here on, u is always odd.
+    do
+    {
+        // remove all factors of 2 in v -- they are not common
+        // note: v is not zero, so while will terminate
+        while ((v & 1) == 0)
+            v >>= 1;
+
+        // Now u and v are both odd. Swap if necessary so u <= v,
+        // then set v = v - u (which is even)
+        if (u > v)
+        {
+            wxSwap(u, v);
+        }
+        v -= u;  // Here v >= u
+    } while (v != 0);
+
+    // restore common factors of 2
+    return u << shift;
+}
+
 #endif // wxUSE_BASE
-
-
 
 // ============================================================================
 // GUI-only functions from now on
@@ -1013,8 +1022,7 @@ bool wxSetDetectableAutoRepeat( bool WXUNUSED(flag) )
 // implemented in a port-specific utils source file:
 bool wxDoLaunchDefaultBrowser(const wxString& url, const wxString& scheme, int flags);
 
-#elif defined(__WXX11__) || defined(__WXGTK__) || defined(__WXMOTIF__) || defined(__WXCOCOA__) || \
-      (defined(__WXOSX__) )
+#elif defined(__WXX11__) || defined(__WXGTK__) || defined(__WXMOTIF__) || defined(__WXOSX__)
 
 // implemented in a port-specific utils source file:
 bool wxDoLaunchDefaultBrowser(const wxString& url, int flags);
@@ -1160,30 +1168,6 @@ bool wxLaunchDefaultBrowser(const wxString& url, int flags)
 // ----------------------------------------------------------------------------
 // Menu accelerators related functions
 // ----------------------------------------------------------------------------
-
-#if WXWIN_COMPATIBILITY_2_6
-wxChar *wxStripMenuCodes(const wxChar *in, wxChar *out)
-{
-#if wxUSE_MENUS
-    wxString s = wxMenuItem::GetLabelText(in);
-#else
-    wxString str(in);
-    wxString s = wxStripMenuCodes(str);
-#endif // wxUSE_MENUS
-    if ( out )
-    {
-        // go smash their buffer if it's not big enough - I love char * params
-        memcpy(out, s.c_str(), s.length() * sizeof(wxChar));
-    }
-    else
-    {
-        out = new wxChar[s.length() + 1];
-        wxStrcpy(out, s.c_str());
-    }
-
-    return out;
-}
-#endif
 
 wxString wxStripMenuCodes(const wxString& in, int flags)
 {
@@ -1417,12 +1401,17 @@ wxVersionInfo wxGetLibraryVersionInfo()
                             GTK_MICRO_VERSION);
 #endif // __WXGTK__
 
+#ifdef __WXQT__
+    msg += wxString::Format("Compile-time QT version is %s.\n",
+                            QT_VERSION_STR);
+#endif // __WXQT__
+
     return wxVersionInfo(wxS("wxWidgets"),
                          wxMAJOR_VERSION,
                          wxMINOR_VERSION,
                          wxRELEASE_NUMBER,
                          msg,
-                         wxS("Copyright (c) 1995-2013 wxWidgets team"));
+                         wxS("Copyright (c) 1995-2015 wxWidgets team"));
 }
 
 void wxInfoMessageBox(wxWindow* parent)

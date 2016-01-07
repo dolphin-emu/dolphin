@@ -15,7 +15,7 @@
 #include "wx/checkbox.h"
 #include "wx/osx/private.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxBitmapCheckBox, wxCheckBox)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBitmapCheckBox, wxCheckBox);
 
 // Single check box item
 bool wxCheckBox::Create(wxWindow *parent,

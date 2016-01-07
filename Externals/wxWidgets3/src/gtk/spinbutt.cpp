@@ -92,6 +92,10 @@ bool wxSpinButton::Create(wxWindow *parent,
     g_object_ref(m_widget);
 
     gtk_entry_set_width_chars(GTK_ENTRY(m_widget), 0);
+#if GTK_CHECK_VERSION(3,12,0)
+    if (gtk_check_version(3,12,0) == NULL)
+        gtk_entry_set_max_width_chars(GTK_ENTRY(m_widget), 0);
+#endif
     gtk_spin_button_set_wrap( GTK_SPIN_BUTTON(m_widget),
                               (int)(m_windowStyle & wxSP_WRAP) );
 
@@ -174,10 +178,10 @@ void wxSpinButton::GtkEnableEvents() const
         (gpointer)gtk_value_changed, (void*) this);
 }
 
-GdkWindow *wxSpinButton::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
+GdkWindow *wxSpinButton::GTKGetWindow(wxArrayGdkWindows& WXUNUSED_IN_GTK2(windows)) const
 {
 #ifdef __WXGTK3__
-    // no access to internal GdkWindows
+    GTKFindWindow(m_widget, windows);
     return NULL;
 #else
     return GTK_SPIN_BUTTON(m_widget)->panel;

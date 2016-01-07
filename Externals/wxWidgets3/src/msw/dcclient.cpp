@@ -156,7 +156,7 @@ PaintDCInfos gs_PaintDCInfos;
 // wxMSWWindowDCImpl
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxWindowDCImpl, wxMSWDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxWindowDCImpl, wxMSWDCImpl);
 
 wxWindowDCImpl::wxWindowDCImpl( wxDC *owner ) :
    wxMSWDCImpl( owner )
@@ -199,7 +199,7 @@ void wxWindowDCImpl::DoGetSize(int *width, int *height) const
 // wxClientDCImpl
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxClientDCImpl, wxWindowDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxClientDCImpl, wxWindowDCImpl);
 
 wxClientDCImpl::wxClientDCImpl( wxDC *owner ) :
    wxWindowDCImpl( owner )
@@ -230,7 +230,7 @@ void wxClientDCImpl::InitDC()
     // we also need to take the menu/toolbar manually into account under
     // Windows CE because they're just another control there, not anything
     // special as usually under Windows
-#if defined(__WXUNIVERSAL__) || defined(__WXWINCE__)
+#if defined(__WXUNIVERSAL__)
     wxPoint ptOrigin = m_window->GetClientAreaOrigin();
     if ( ptOrigin.x || ptOrigin.y )
     {
@@ -241,7 +241,7 @@ void wxClientDCImpl::InitDC()
     // clip the DC to avoid overwriting the non client area
     wxSize size = m_window->GetClientSize();
     DoSetClippingRegion(0, 0, size.x, size.y);
-#endif // __WXUNIVERSAL__ || __WXWINCE__
+#endif // __WXUNIVERSAL__
 }
 
 wxClientDCImpl::~wxClientDCImpl()
@@ -259,7 +259,7 @@ void wxClientDCImpl::DoGetSize(int *width, int *height) const
 // wxPaintDCImpl
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxPaintDCImpl, wxClientDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxPaintDCImpl, wxClientDCImpl);
 
 wxPaintDCImpl::wxPaintDCImpl( wxDC *owner ) :
    wxClientDCImpl( owner )
@@ -363,7 +363,7 @@ public:
 };
 
 
-IMPLEMENT_ABSTRACT_CLASS(wxPaintDCEx,wxPaintDC)
+wxIMPLEMENT_ABSTRACT_CLASS(wxPaintDCEx, wxPaintDC);
 
 wxPaintDCEx::wxPaintDCEx(wxWindow *window, WXHDC dc)
            : wxPaintDC(new wxPaintDCExImpl(this, window, dc))

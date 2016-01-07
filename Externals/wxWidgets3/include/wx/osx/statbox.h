@@ -16,9 +16,9 @@
 // Group box
 class WXDLLIMPEXP_CORE wxStaticBox: public wxControl
 {
-  DECLARE_DYNAMIC_CLASS(wxStaticBox)
+    wxDECLARE_DYNAMIC_CLASS(wxStaticBox);
 
- public:
+public:
     inline wxStaticBox() {}
     inline wxStaticBox(wxWindow *parent, wxWindowID id,
            const wxString& label,

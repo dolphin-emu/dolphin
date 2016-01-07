@@ -48,7 +48,7 @@ public:
     virtual wxFDIOManager *GetFDIOManager();
 #endif // wxUSE_SOCKETS
 
-#if wxUSE_CONSOLE_EVENTLOOP
+#if wxUSE_EVENTLOOP_SOURCE
     // Return a non-NULL pointer to the object responsible for managing the
     // event loop sources in this kind of application.
     virtual wxEventLoopSourcesManagerBase* GetEventLoopSourcesManager();

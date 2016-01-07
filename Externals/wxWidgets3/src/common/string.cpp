@@ -29,9 +29,7 @@
 
 #include <ctype.h>
 
-#ifndef __WXWINCE__
-    #include <errno.h>
-#endif
+#include <errno.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -48,17 +46,15 @@
     #include <sstream>
 #endif
 
+#ifndef HAVE_STD_STRING_COMPARE
 // string handling functions used by wxString:
 #if wxUSE_UNICODE_UTF8
-    #define wxStringMemcpy   memcpy
     #define wxStringMemcmp   memcmp
-    #define wxStringMemchr   memchr
     #define wxStringStrlen   strlen
 #else
-    #define wxStringMemcpy   wxTmemcpy
     #define wxStringMemcmp   wxTmemcmp
-    #define wxStringMemchr   wxTmemchr
     #define wxStringStrlen   wxStrlen
+#endif
 #endif
 
 // define a function declared in wx/buffer.h here as we don't have buffer.cpp
@@ -1185,7 +1181,7 @@ wxString wxString::FromAscii(const char *ascii, size_t len)
             wxASSERT_MSG( c < 0x80,
                           wxT("Non-ASCII value passed to FromAscii().") );
 
-            *dest++ = (wchar_t)c;
+            *dest++ = static_cast<wxStringCharType>(c);
         }
     }
 
@@ -1244,15 +1240,15 @@ wxString wxString::Mid(size_t nFirst, size_t nCount) const
     }
 
     // out-of-bounds requests return sensible things
-    if ( nFirst + nCount > nLen )
-    {
-        nCount = nLen - nFirst;
-    }
-
     if ( nFirst > nLen )
     {
         // AllocCopy() will return empty string
         return wxEmptyString;
+    }
+
+    if ( nCount > nLen - nFirst )
+    {
+        nCount = nLen - nFirst;
     }
 
     wxString dest(*this, nFirst, nCount);
@@ -1673,15 +1669,9 @@ int wxString::Find(wxUniChar ch, bool bFromEnd) const
 // it out. Note that number extraction works correctly on UTF-8 strings, so
 // we can use wxStringCharType and wx_str() for maximum efficiency.
 
-#ifndef __WXWINCE__
-    #define DO_IF_NOT_WINCE(x) x
-#else
-    #define DO_IF_NOT_WINCE(x)
-#endif
-
 #define WX_STRING_TO_X_TYPE_START                                           \
     wxCHECK_MSG( pVal, false, wxT("NULL output pointer") );                  \
-    DO_IF_NOT_WINCE( errno = 0; )                                           \
+    errno = 0;                                                              \
     const wxStringCharType *start = wx_str();                               \
     wxStringCharType *end;
 
@@ -1689,7 +1679,7 @@ int wxString::Find(wxUniChar ch, bool bFromEnd) const
 // nothing could be parsed but we do modify it and return false then if we did
 // parse something successfully but not the entire string
 #define WX_STRING_TO_X_TYPE_END                                             \
-    if ( end == start DO_IF_NOT_WINCE(|| errno == ERANGE) )                 \
+    if ( end == start || errno == ERANGE )                                  \
         return false;                                                       \
     *pVal = val;                                                            \
     return !*end;
@@ -1797,6 +1787,8 @@ bool wxString::ToCULong(unsigned long *pVal, int base) const
 // point which is different in different locales.
 bool wxString::ToCDouble(double *pVal) const
 {
+    // See the explanations in FromCDouble() below for the reasons for all this.
+
     // Create a copy of this string using the decimal point instead of whatever
     // separator the current locale uses.
 #if wxUSE_INTL
@@ -1854,20 +1846,19 @@ wxString wxString::FromCDouble(double val, int precision)
 {
     wxCHECK_MSG( precision >= -1, wxString(), "Invalid negative precision" );
 
-#if wxUSE_STD_IOSTREAM && wxUSE_STD_STRING
-    // We assume that we can use the ostream and not wstream for numbers.
-    wxSTD ostringstream os;
-    if ( precision != -1 )
-    {
-        os.precision(precision);
-        os.setf(std::ios::fixed, std::ios::floatfield);
-    }
+    // Unfortunately there is no good way to get the number directly in the C
+    // locale. Some platforms provide special functions to do this (e.g.
+    // _sprintf_l() in MSVS or sprintf_l() in BSD systems), but some systems we
+    // still support don't have them and it doesn't seem worth it to have two
+    // different ways to do the same thing. Also, in principle, using the
+    // standard C++ streams should allow us to do it, but some implementations
+    // of them are horribly broken and actually change the global C locale,
+    // thus randomly affecting the results produced in other threads, when
+    // imbue() stream method is called (for the record, the latest libstdc++
+    // version included in OS X does it and so seem to do the versions
+    // currently included in Android NDK and both FreeBSD and OpenBSD), so we
+    // can't do this neither and are reduced to this hack.
 
-    os << val;
-    return os.str();
-#else // !wxUSE_STD_IOSTREAM
-    // Can't use iostream locale support, fall back to the manual method
-    // instead.
     wxString s = FromDouble(val, precision);
 #if wxUSE_INTL
     wxString sep = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT,
@@ -1881,7 +1872,6 @@ wxString wxString::FromCDouble(double val, int precision)
 
     s.Replace(sep, ".");
     return s;
-#endif // wxUSE_STD_IOSTREAM/!wxUSE_STD_IOSTREAM
 }
 
 // ---------------------------------------------------------------------------
@@ -2060,10 +2050,8 @@ static int DoStringPrintfV(wxString& str,
         va_list argptrcopy;
         wxVaCopy(argptrcopy, argptr);
 
-#ifndef __WXWINCE__
         // Set errno to 0 to make it determinate if wxVsnprintf fails to set it.
         errno = 0;
-#endif
         int len = wxVsnprintf(buf, size, format, argptrcopy);
         va_end(argptrcopy);
 
@@ -2093,13 +2081,11 @@ static int DoStringPrintfV(wxString& str,
             // assume it only returns error if there is not enough space, but
             // as we don't know how much we need, double the current size of
             // the buffer
-#ifndef __WXWINCE__
             if( (errno == EILSEQ) || (errno == EINVAL) )
             // If errno was set to one of the two well-known hard errors
             // then fail immediately to avoid an infinite loop.
                 return -1;
             else
-#endif // __WXWINCE__
             // still not enough, as we don't know how much we need, double the
             // current size of the buffer
                 size *= 2;
@@ -2203,7 +2189,7 @@ bool wxString::Matches(const wxString& mask) const
                 // (however note that we don't quote '[' and ']' to allow
                 // using them for Unix shell like matching)
                 pattern += wxT('\\');
-                // fall through
+                wxFALLTHROUGH;
 
             default:
                 pattern += *pszMask;

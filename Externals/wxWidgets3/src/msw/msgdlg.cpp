@@ -17,23 +17,13 @@
 
 #if wxUSE_MSGDLG
 
-// there is no hook support under CE so we can't use the code for message box
-// positioning there
-#ifndef __WXWINCE__
-    #define wxUSE_MSGBOX_HOOK 1
-#else
-    #define wxUSE_MSGBOX_HOOK 0
-#endif
-
 #ifndef WX_PRECOMP
     #include "wx/msgdlg.h"
     #include "wx/app.h"
     #include "wx/intl.h"
     #include "wx/utils.h"
     #include "wx/msw/private.h"
-    #if wxUSE_MSGBOX_HOOK
-        #include "wx/hashmap.h"
-    #endif
+    #include "wx/hashmap.h"
 #endif
 
 #include "wx/ptr_scpd.h"
@@ -43,16 +33,8 @@
 #include "wx/msw/private/msgdlg.h"
 #include "wx/modalhook.h"
 #include "wx/fontutil.h"
-
-#if wxUSE_MSGBOX_HOOK
-    #include "wx/textbuf.h"
-    #include "wx/display.h"
-#endif
-
-// For MB_TASKMODAL
-#ifdef __WXWINCE__
-    #include "wx/msw/wince/missing.h"
-#endif
+#include "wx/textbuf.h"
+#include "wx/display.h"
 
 // Interestingly, this symbol currently seems to be absent from Platform SDK
 // headers but it is documented at MSDN.
@@ -62,9 +44,7 @@
 
 using namespace wxMSWMessageDialog;
 
-IMPLEMENT_CLASS(wxMessageDialog, wxDialog)
-
-#if wxUSE_MSGBOX_HOOK
+wxIMPLEMENT_CLASS(wxMessageDialog, wxDialog);
 
 // there can potentially be one message box per thread so we use a hash map
 // with thread ids as keys and (currently shown) message boxes as values
@@ -130,19 +110,6 @@ void MoveWindowToScreenRect(HWND hwnd, RECT rc)
     ScreenRectToClient(::GetParent(hwnd), rc);
 
     SetWindowRect(hwnd, rc);
-}
-
-// helper of AdjustButtonLabels(): move the given window by dx
-//
-// works for both child and top level windows
-void OffsetWindow(HWND hwnd, int dx)
-{
-    RECT rc = wxGetWindowRect(hwnd);
-
-    rc.left += dx;
-    rc.right += dx;
-
-    MoveWindowToScreenRect(hwnd, rc);
 }
 
 } // anonymous namespace
@@ -313,7 +280,7 @@ void wxMessageDialog::ReplaceStaticWithEdit()
         if ( !hwndBtn )
             continue;   // it's ok, not all buttons are always present
 
-        RECT rc = wxGetWindowRect(hwndBtn);
+        rc = wxGetWindowRect(hwndBtn);
         rc.top -= dh;
         rc.bottom -= dh;
         rc.left += dw/2;
@@ -432,8 +399,6 @@ void wxMessageDialog::AdjustButtonLabels()
     }
 }
 
-#endif // wxUSE_MSGBOX_HOOK
-
 /* static */
 wxFont wxMessageDialog::GetMessageFont()
 {
@@ -443,7 +408,7 @@ wxFont wxMessageDialog::GetMessageFont()
 
 int wxMessageDialog::ShowMessageBox()
 {
-    if ( !wxTheApp->GetTopWindow() )
+    if ( wxTheApp && !wxTheApp->GetTopWindow() )
     {
         // when the message box is shown from wxApp::OnInit() (i.e. before the
         // message loop is entered), this must be done or the next message box
@@ -495,12 +460,7 @@ int wxMessageDialog::ShowMessageBox()
     const long wxStyle = GetMessageDialogStyle();
     if ( wxStyle & wxYES_NO )
     {
-#if !(defined(__SMARTPHONE__) && defined(__WXWINCE__))
-        if (wxStyle & wxCANCEL)
-            msStyle = MB_YESNOCANCEL;
-        else
-#endif // !(__SMARTPHONE__ && __WXWINCE__)
-            msStyle = MB_YESNO;
+         msStyle = MB_YESNO;
 
         if ( wxStyle & wxNO_DEFAULT )
             msStyle |= MB_DEFBUTTON2;
@@ -550,30 +510,14 @@ int wxMessageDialog::ShowMessageBox()
     if ( wxStyle & wxSTAY_ON_TOP )
         msStyle |= MB_TOPMOST;
 
-#ifndef __WXWINCE__
-    if ( wxTheApp->GetLayoutDirection() == wxLayout_RightToLeft )
+    if ( wxApp::MSWGetDefaultLayout(m_parent) == wxLayout_RightToLeft )
         msStyle |= MB_RTLREADING | MB_RIGHT;
-#endif
 
     if (hWnd)
         msStyle |= MB_APPLMODAL;
     else
         msStyle |= MB_TASKMODAL;
 
-    // per MSDN documentation for MessageBox() we can prefix the message with 2
-    // right-to-left mark characters to tell the function to use RTL layout
-    // (unfortunately this only works in Unicode builds)
-    wxString message = GetFullMessage();
-#if wxUSE_UNICODE
-    if ( wxTheApp->GetLayoutDirection() == wxLayout_RightToLeft )
-    {
-        // NB: not all compilers support \u escapes
-        static const wchar_t wchRLM = 0x200f;
-        message.Prepend(wxString(wchRLM, 2));
-    }
-#endif // wxUSE_UNICODE
-
-#if wxUSE_MSGBOX_HOOK
     // install the hook in any case as we don't know in advance if the message
     // box is not going to be too big (requiring the replacement of the static
     // control with an edit one)
@@ -581,10 +525,15 @@ int wxMessageDialog::ShowMessageBox()
     m_hook = ::SetWindowsHookEx(WH_CBT,
                                 &wxMessageDialog::HookFunction, NULL, tid);
     HookMap()[tid] = this;
-#endif // wxUSE_MSGBOX_HOOK
 
     // do show the dialog
-    int msAns = MessageBox(hWnd, message.t_str(), m_caption.t_str(), msStyle);
+    const int msAns = MessageBox
+                      (
+                        hWnd,
+                        GetFullMessage().t_str(),
+                        m_caption.t_str(),
+                        msStyle
+                      );
 
     return MSWTranslateReturnCode(msAns);
 }
@@ -715,7 +664,7 @@ void wxMSWTaskDialogConfig::MSWCommonTaskDialogInit(TASKDIALOGCONFIG &tdc)
     // use the top level window as parent if none specified
     tdc.hwndParent = parent ? GetHwndOf(parent) : NULL;
 
-    if ( wxTheApp->GetLayoutDirection() == wxLayout_RightToLeft )
+    if ( wxApp::MSWGetDefaultLayout(parent) == wxLayout_RightToLeft )
         tdc.dwFlags |= TDF_RTL_LAYOUT;
 
     // If we have both the main and extended messages, just use them as

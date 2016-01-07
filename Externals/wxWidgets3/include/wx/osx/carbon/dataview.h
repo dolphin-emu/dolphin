@@ -107,7 +107,7 @@ private:
 // ============================================================================
 //
 // This is a wrapper class for the Mac OS X data browser environment.
-// It covers all data brower functionality for the native browser's list
+// It covers all data browser functionality for the native browser's list
 // and column style.
 //
 
@@ -180,7 +180,7 @@ public:
 //
   OSStatus GetColumnCount   (UInt32* numColumns) const;
   OSStatus GetColumnIndex   (DataBrowserPropertyID propertyID, DataBrowserTableViewColumnIndex* index) const; // returns for the passed property the corresponding column index
-  OSStatus GetFreePropertyID(DataBrowserPropertyID* propertyID) const; // this method returns a property id that is valid and currently not used; if it cannot be found 'errDataBrowerPropertyNotSupported' is returned
+  OSStatus GetFreePropertyID(DataBrowserPropertyID* propertyID) const; // this method returns a property id that is valid and currently not used; if it cannot be found 'errDataBrowserPropertyNotSupported' is returned
   OSStatus GetPropertyFlags (DataBrowserPropertyID propertyID, DataBrowserPropertyFlags *flags ) const;
   OSStatus GetPropertyID    (DataBrowserItemDataRef itemData, DataBrowserPropertyID* propertyID) const; // returns for the passed item data reference the corresponding property ID
   OSStatus GetPropertyID    (DataBrowserTableViewColumnIndex index, DataBrowserPropertyID* propertyID) const; // returns for the passed column index the corresponding property ID
@@ -297,7 +297,7 @@ protected :
 
 //
 // callback functions for drag & drop
-///
+//
   static pascal Boolean DataBrowserAcceptDragProc (ControlRef browser, DragReference dragRef, DataBrowserItemID itemID);
   static pascal Boolean DataBrowserAddDragItemProc(ControlRef browser, DragReference dragRef, DataBrowserItemID itemID, ItemReference* itemRef);
   static pascal Boolean DataBrowserReceiveDragProc(ControlRef browser, DragReference dragRef, DataBrowserItemID itemID);
@@ -308,14 +308,14 @@ protected :
 
 //
 // event handler for hit testing
-///
+//
   void*  m_macDataViewCtrlEventHandler;
 
 private:
 //
 // wxWidget internal stuff
 //
-    DECLARE_ABSTRACT_CLASS(wxMacDataBrowserTableViewControl)
+    wxDECLARE_ABSTRACT_CLASS(wxMacDataBrowserTableViewControl);
 };
 
 // ============================================================================

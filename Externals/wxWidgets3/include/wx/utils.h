@@ -37,9 +37,7 @@ class WXDLLIMPEXP_FWD_BASE wxArrayInt;
 // needed for wxOperatingSystemId, wxLinuxDistributionInfo
 #include "wx/platinfo.h"
 
-#ifdef __WATCOMC__
-    #include <direct.h>
-#elif defined(__X__)
+#if defined(__X__)
     #include <dirent.h>
     #include <unistd.h>
 #endif
@@ -144,6 +142,9 @@ WXDLLIMPEXP_BASE wxString wxGetOsDescription();
 // Get OS version
 WXDLLIMPEXP_BASE wxOperatingSystemId wxGetOsVersion(int *majorVsn = NULL,
                                                     int *minorVsn = NULL);
+
+// Check is OS version is at least the specified major and minor version
+WXDLLIMPEXP_BASE bool wxCheckOsVersion(int majorVsn, int minorVsn = 0);
 
 // Get platform endianness
 WXDLLIMPEXP_BASE bool wxIsPlatformLittleEndian();
@@ -642,23 +643,6 @@ enum
 // strip mnemonics and/or accelerators from the label
 WXDLLIMPEXP_CORE wxString
 wxStripMenuCodes(const wxString& str, int flags = wxStrip_All);
-
-#if WXWIN_COMPATIBILITY_2_6
-// obsolete and deprecated version, do not use, use the above overload instead
-wxDEPRECATED(
-    WXDLLIMPEXP_CORE wxChar* wxStripMenuCodes(const wxChar *in, wxChar *out = NULL)
-);
-
-#if wxUSE_ACCEL
-class WXDLLIMPEXP_FWD_CORE wxAcceleratorEntry;
-
-// use wxAcceleratorEntry::Create() or FromString() methods instead
-wxDEPRECATED(
-    WXDLLIMPEXP_CORE wxAcceleratorEntry *wxGetAccelFromString(const wxString& label)
-);
-#endif // wxUSE_ACCEL
-
-#endif // WXWIN_COMPATIBILITY_2_6
 
 // ----------------------------------------------------------------------------
 // Window search

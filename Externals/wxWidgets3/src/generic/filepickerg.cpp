@@ -35,8 +35,8 @@
 // implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericFileButton, wxButton)
-IMPLEMENT_DYNAMIC_CLASS(wxGenericDirButton, wxButton)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericFileButton, wxButton);
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericDirButton, wxButton);
 
 // ----------------------------------------------------------------------------
 // wxGenericFileButton

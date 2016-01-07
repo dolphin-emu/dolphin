@@ -22,9 +22,9 @@
  * wxStaticBitmap
  */
 
-BEGIN_EVENT_TABLE(wxStaticBitmap, wxStaticBitmapBase)
+wxBEGIN_EVENT_TABLE(wxStaticBitmap, wxStaticBitmapBase)
     EVT_PAINT(wxStaticBitmap::OnPaint)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 bool wxStaticBitmap::Create(wxWindow *parent, wxWindowID id,
            const wxBitmap& bitmap,

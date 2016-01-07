@@ -28,10 +28,12 @@
 #define HAVE_STD_WSTRING 1
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
 #if __GNUC__ > 4 || (  __GNUC__ == 4 && __GNUC_MINOR__ >= 2 )
-#define HAVE_TR1_UNORDERED_MAP 1
-#define HAVE_TR1_UNORDERED_SET 1
-#define HAVE_TR1_TYPE_TRAITS 1
-#define HAVE_GCC_ATOMIC_BUILTINS 1
+  #if !defined(__has_include)
+    #define HAVE_TR1_UNORDERED_MAP 1
+    #define HAVE_TR1_UNORDERED_SET 1
+    #define HAVE_TR1_TYPE_TRAITS 1
+  #endif
+  #define HAVE_GCC_ATOMIC_BUILTINS 1
 #endif
 #endif
 #define HAVE_VISIBILITY 1
@@ -120,7 +122,6 @@
 #define HAVE_LOCALE_T 1
 #define wxHAS_KQUEUE 1
 
-#define WXWIN_OS_DESCRIPTION "Darwin 7.9.0 Power Macintosh"
 #define PACKAGE_BUGREPORT "wx-dev@lists.wxwidgets.org"
 #define PACKAGE_NAME "wxWidgets"
 #define PACKAGE_STRING "wxWidgets 3.1.0"

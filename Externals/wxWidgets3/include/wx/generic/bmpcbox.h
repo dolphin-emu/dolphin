@@ -128,9 +128,9 @@ private:
 
     void Init();
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 
-    DECLARE_DYNAMIC_CLASS(wxBitmapComboBox)
+    wxDECLARE_DYNAMIC_CLASS(wxBitmapComboBox);
 };
 
 #endif // _WX_GENERIC_BMPCBOX_H_

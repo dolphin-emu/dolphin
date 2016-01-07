@@ -26,16 +26,15 @@
     #include "wx/math.h"
 #endif
 
-#define _FORCENAMELESSUNION
+#ifndef _FORCENAMELESSUNION
+    #define _FORCENAMELESSUNION
+#endif
+
 #include "wx/msw/private.h"
 #include "wx/msw/ole/oleutils.h"
 #include "wx/msw/ole/automtn.h"
 
-#ifdef __WXWINCE__
-#include "wx/msw/wince/time.h"
-#else
 #include <time.h>
-#endif
 
 #include <wtypes.h>
 #include <unknwn.h>
@@ -43,9 +42,7 @@
 #include <ole2.h>
 #define _huge
 
-#ifndef __WXWINCE__
 #include <ole2ver.h>
-#endif
 
 #include <oleauto.h>
 
@@ -600,12 +597,12 @@ bool wxAutomationObject::CreateInstance(const wxString& progId) const
     return m_dispatchPtr != NULL;
 }
 
-LCID wxAutomationObject::GetLCID() const
+WXLCID wxAutomationObject::GetLCID() const
 {
     return m_lcid;
 }
 
-void wxAutomationObject::SetLCID(LCID lcid)
+void wxAutomationObject::SetLCID(WXLCID lcid)
 {
     m_lcid = lcid;
 }

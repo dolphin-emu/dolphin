@@ -37,7 +37,7 @@
 #include "wx/datectrl.h"
 #include "wx/dateevt.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxDatePickerCtrl, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDatePickerCtrl, wxControl);
 
 // ============================================================================
 // implementation
@@ -70,9 +70,7 @@ WXDWORD wxDatePickerCtrl::MSWGetStyle(long style, WXDWORD *exstyle) const
 {
     WXDWORD styleMSW = wxDatePickerCtrlBase::MSWGetStyle(style, exstyle);
 
-    // although MSDN doesn't mention it, DTS_UPDOWN doesn't work with
-    // comctl32.dll 4.72
-    if ( wxApp::GetComCtl32Version() > 472 && (style & wxDP_SPIN) )
+    if ( style & wxDP_SPIN )
         styleMSW |= DTS_UPDOWN;
     //else: drop down by default
 
@@ -138,15 +136,22 @@ void wxDatePickerCtrl::SetValue(const wxDateTime& dt)
         m_date.ResetTime();
 }
 
-wxDateTime wxDatePickerCtrl::GetValue() const
+wxDateTime wxDatePickerCtrl::MSWGetControlValue() const
 {
-#if wxDEBUG_LEVEL
     wxDateTime dt;
     SYSTEMTIME st;
     if ( DateTime_GetSystemtime(GetHwnd(), &st) == GDT_VALID )
     {
         dt.SetFromMSWSysDate(st);
     }
+
+    return dt;
+}
+
+wxDateTime wxDatePickerCtrl::GetValue() const
+{
+#if wxDEBUG_LEVEL
+    const wxDateTime dt = MSWGetControlValue();
 
     wxASSERT_MSG( m_date.IsValid() == dt.IsValid() &&
                     (!dt.IsValid() || dt == m_date),
@@ -176,7 +181,12 @@ void wxDatePickerCtrl::SetRange(const wxDateTime& dt1, const wxDateTime& dt2)
     if ( !DateTime_SetRange(GetHwnd(), flags, st) )
     {
         wxLogDebug(wxT("DateTime_SetRange() failed"));
+        return;
     }
+
+    // Setting the range could have changed the current control value if the
+    // old one wasn't inside the new range, so update it.
+    m_date = MSWGetControlValue();
 }
 
 bool wxDatePickerCtrl::GetRange(wxDateTime *dt1, wxDateTime *dt2) const

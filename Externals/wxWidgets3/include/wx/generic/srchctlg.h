@@ -49,17 +49,17 @@ public:
 #if wxUSE_MENUS
     // get/set search button menu
     // --------------------------
-    virtual void SetMenu( wxMenu* menu );
-    virtual wxMenu* GetMenu();
+    virtual void SetMenu( wxMenu* menu ) wxOVERRIDE;
+    virtual wxMenu* GetMenu() wxOVERRIDE;
 #endif // wxUSE_MENUS
 
     // get/set search options
     // ----------------------
-    virtual void ShowSearchButton( bool show );
-    virtual bool IsSearchButtonVisible() const;
+    virtual void ShowSearchButton( bool show ) wxOVERRIDE;
+    virtual bool IsSearchButtonVisible() const wxOVERRIDE;
 
-    virtual void ShowCancelButton( bool show );
-    virtual bool IsCancelButtonVisible() const;
+    virtual void ShowCancelButton( bool show ) wxOVERRIDE;
+    virtual bool IsCancelButtonVisible() const wxOVERRIDE;
 
     // TODO: In 2.9 these should probably be virtual, and declared in the base class...
     void SetDescriptiveText(const wxString& text);
@@ -68,48 +68,48 @@ public:
     // accessors
     // ---------
 
-    virtual wxString GetRange(long from, long to) const;
+    virtual wxString GetRange(long from, long to) const wxOVERRIDE;
 
-    virtual int GetLineLength(long lineNo) const;
-    virtual wxString GetLineText(long lineNo) const;
-    virtual int GetNumberOfLines() const;
+    virtual int GetLineLength(long lineNo) const wxOVERRIDE;
+    virtual wxString GetLineText(long lineNo) const wxOVERRIDE;
+    virtual int GetNumberOfLines() const wxOVERRIDE;
 
-    virtual bool IsModified() const;
-    virtual bool IsEditable() const;
+    virtual bool IsModified() const wxOVERRIDE;
+    virtual bool IsEditable() const wxOVERRIDE;
 
     // more readable flag testing methods
     virtual bool IsSingleLine() const;
     virtual bool IsMultiLine() const;
 
     // If the return values from and to are the same, there is no selection.
-    virtual void GetSelection(long* from, long* to) const;
+    virtual void GetSelection(long* from, long* to) const wxOVERRIDE;
 
-    virtual wxString GetStringSelection() const;
+    virtual wxString GetStringSelection() const wxOVERRIDE;
 
     // operations
     // ----------
 
     // editing
-    virtual void Clear();
-    virtual void Replace(long from, long to, const wxString& value);
-    virtual void Remove(long from, long to);
+    virtual void Clear() wxOVERRIDE;
+    virtual void Replace(long from, long to, const wxString& value) wxOVERRIDE;
+    virtual void Remove(long from, long to) wxOVERRIDE;
 
     // load/save the controls contents from/to the file
     virtual bool LoadFile(const wxString& file);
     virtual bool SaveFile(const wxString& file = wxEmptyString);
 
     // sets/clears the dirty flag
-    virtual void MarkDirty();
-    virtual void DiscardEdits();
+    virtual void MarkDirty() wxOVERRIDE;
+    virtual void DiscardEdits() wxOVERRIDE;
 
     // set the max number of characters which may be entered in a single line
     // text control
-    virtual void SetMaxLength(unsigned long WXUNUSED(len));
+    virtual void SetMaxLength(unsigned long WXUNUSED(len)) wxOVERRIDE;
 
     // writing text inserts it at the current position, appending always
     // inserts it at the end
-    virtual void WriteText(const wxString& text);
-    virtual void AppendText(const wxString& text);
+    virtual void WriteText(const wxString& text) wxOVERRIDE;
+    virtual void AppendText(const wxString& text) wxOVERRIDE;
 
     // insert the character which would have resulted from this key event,
     // return true if anything has been inserted
@@ -118,53 +118,53 @@ public:
     // text control under some platforms supports the text styles: these
     // methods allow to apply the given text style to the given selection or to
     // set/get the style which will be used for all appended text
-    virtual bool SetStyle(long start, long end, const wxTextAttr& style);
-    virtual bool GetStyle(long position, wxTextAttr& style);
-    virtual bool SetDefaultStyle(const wxTextAttr& style);
-    virtual const wxTextAttr& GetDefaultStyle() const;
+    virtual bool SetStyle(long start, long end, const wxTextAttr& style) wxOVERRIDE;
+    virtual bool GetStyle(long position, wxTextAttr& style) wxOVERRIDE;
+    virtual bool SetDefaultStyle(const wxTextAttr& style) wxOVERRIDE;
+    virtual const wxTextAttr& GetDefaultStyle() const wxOVERRIDE;
 
     // translate between the position (which is just an index in the text ctrl
     // considering all its contents as a single strings) and (x, y) coordinates
     // which represent column and line.
-    virtual long XYToPosition(long x, long y) const;
-    virtual bool PositionToXY(long pos, long *x, long *y) const;
+    virtual long XYToPosition(long x, long y) const wxOVERRIDE;
+    virtual bool PositionToXY(long pos, long *x, long *y) const wxOVERRIDE;
 
-    virtual void ShowPosition(long pos);
+    virtual void ShowPosition(long pos) wxOVERRIDE;
 
     // find the character at position given in pixels
     //
     // NB: pt is in device coords (not adjusted for the client area origin nor
     //     scrolling)
-    virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt, long *pos) const;
+    virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt, long *pos) const wxOVERRIDE;
     virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt,
                                             wxTextCoord *col,
-                                            wxTextCoord *row) const;
+                                            wxTextCoord *row) const wxOVERRIDE;
 
     // Clipboard operations
-    virtual void Copy();
-    virtual void Cut();
-    virtual void Paste();
+    virtual void Copy() wxOVERRIDE;
+    virtual void Cut() wxOVERRIDE;
+    virtual void Paste() wxOVERRIDE;
 
-    virtual bool CanCopy() const;
-    virtual bool CanCut() const;
-    virtual bool CanPaste() const;
+    virtual bool CanCopy() const wxOVERRIDE;
+    virtual bool CanCut() const wxOVERRIDE;
+    virtual bool CanPaste() const wxOVERRIDE;
 
     // Undo/redo
-    virtual void Undo();
-    virtual void Redo();
+    virtual void Undo() wxOVERRIDE;
+    virtual void Redo() wxOVERRIDE;
 
-    virtual bool CanUndo() const;
-    virtual bool CanRedo() const;
+    virtual bool CanUndo() const wxOVERRIDE;
+    virtual bool CanRedo() const wxOVERRIDE;
 
     // Insertion point
-    virtual void SetInsertionPoint(long pos);
-    virtual void SetInsertionPointEnd();
-    virtual long GetInsertionPoint() const;
-    virtual wxTextPos GetLastPosition() const;
+    virtual void SetInsertionPoint(long pos) wxOVERRIDE;
+    virtual void SetInsertionPointEnd() wxOVERRIDE;
+    virtual long GetInsertionPoint() const wxOVERRIDE;
+    virtual wxTextPos GetLastPosition() const wxOVERRIDE;
 
-    virtual void SetSelection(long from, long to);
-    virtual void SelectAll();
-    virtual void SetEditable(bool editable);
+    virtual void SetSelection(long from, long to) wxOVERRIDE;
+    virtual void SelectAll() wxOVERRIDE;
+    virtual void SetEditable(bool editable) wxOVERRIDE;
 
 #if 0
 
@@ -184,13 +184,13 @@ public:
 #endif
 
     // do the window-specific processing after processing the update event
-    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event);
+    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event) wxOVERRIDE;
 
-    virtual bool ShouldInheritColours() const;
+    virtual bool ShouldInheritColours() const wxOVERRIDE;
 
     // wxWindow overrides
-    virtual bool SetFont(const wxFont& font);
-    virtual bool SetBackgroundColour(const wxColour& colour);
+    virtual bool SetFont(const wxFont& font) wxOVERRIDE;
+    virtual bool SetBackgroundColour(const wxColour& colour) wxOVERRIDE;
 
     // search control generic only
     void SetSearchBitmap( const wxBitmap& bitmap );
@@ -200,16 +200,15 @@ public:
 #endif // wxUSE_MENUS
 
 protected:
-    virtual void DoSetValue(const wxString& value, int flags);
-    virtual wxString DoGetValue() const;
+    virtual void DoSetValue(const wxString& value, int flags) wxOVERRIDE;
+    virtual wxString DoGetValue() const wxOVERRIDE;
 
-    virtual bool DoLoadFile(const wxString& file, int fileType);
-    virtual bool DoSaveFile(const wxString& file, int fileType);
+    virtual bool DoLoadFile(const wxString& file, int fileType) wxOVERRIDE;
+    virtual bool DoSaveFile(const wxString& file, int fileType) wxOVERRIDE;
 
     // override the base class virtuals involved into geometry calculations
-    virtual wxSize DoGetBestSize() const;
-    virtual void DoMoveWindow(int x, int y, int width, int height);
-    virtual void LayoutControls(int x, int y, int width, int height);
+    virtual wxSize DoGetBestClientSize() const wxOVERRIDE;
+    virtual void DoMoveWindow(int x, int y, int width, int height) wxOVERRIDE;
 
     virtual void RecalcBitmaps();
 
@@ -236,7 +235,10 @@ private:
     friend class wxSearchButton;
 
     // Implement pure virtual function inherited from wxCompositeWindow.
-    virtual wxWindowList GetCompositeWindowParts() const;
+    virtual wxWindowList GetCompositeWindowParts() const wxOVERRIDE;
+
+    // Position the child controls using the current window size.
+    void LayoutControls();
 
 #if wxUSE_MENUS
     void PopupSearchMenu();
@@ -266,9 +268,9 @@ private:
 #endif // wxUSE_MENUS
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxSearchCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxSearchCtrl);
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // wxUSE_SEARCHCTRL

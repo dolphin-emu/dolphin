@@ -23,7 +23,7 @@
 #include "wx/osx/private.h"
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxCursor, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxCursor, wxGDIObject);
 
 
 class WXDLLEXPORT wxCursorRefData: public wxGDIRefData
@@ -33,7 +33,7 @@ public:
     wxCursorRefData(const wxCursorRefData& cursor);
     virtual ~wxCursorRefData();
 
-    virtual bool IsOk() const
+    virtual bool IsOk() const wxOVERRIDE
     {
 #if wxOSX_USE_COCOA_OR_CARBON
         if ( m_hCursor != NULL )

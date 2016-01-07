@@ -58,7 +58,7 @@ public:
     static void CleanUpHandlers();
     static void InitStandardHandlers();
 
-    DECLARE_DYNAMIC_CLASS(wxAnimation)
+    wxDECLARE_DYNAMIC_CLASS(wxAnimation);
 };
 
 
@@ -170,8 +170,8 @@ protected:
 
 private:
     typedef wxAnimationCtrlBase base_type;
-    DECLARE_DYNAMIC_CLASS(wxAnimationCtrl)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxAnimationCtrl);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_GENERIC_ANIMATEH__

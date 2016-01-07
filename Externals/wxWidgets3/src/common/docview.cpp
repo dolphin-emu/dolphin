@@ -79,15 +79,15 @@
 // wxWidgets macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxDocument, wxEvtHandler)
-IMPLEMENT_ABSTRACT_CLASS(wxView, wxEvtHandler)
-IMPLEMENT_ABSTRACT_CLASS(wxDocTemplate, wxObject)
-IMPLEMENT_DYNAMIC_CLASS(wxDocManager, wxEvtHandler)
-IMPLEMENT_CLASS(wxDocChildFrame, wxFrame)
-IMPLEMENT_CLASS(wxDocParentFrame, wxFrame)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDocument, wxEvtHandler);
+wxIMPLEMENT_ABSTRACT_CLASS(wxView, wxEvtHandler);
+wxIMPLEMENT_ABSTRACT_CLASS(wxDocTemplate, wxObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxDocManager, wxEvtHandler);
+wxIMPLEMENT_CLASS(wxDocChildFrame, wxFrame);
+wxIMPLEMENT_CLASS(wxDocParentFrame, wxFrame);
 
 #if wxUSE_PRINTING_ARCHITECTURE
-    IMPLEMENT_DYNAMIC_CLASS(wxDocPrintout, wxPrintout)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDocPrintout, wxPrintout);
 #endif
 
 // ============================================================================
@@ -276,7 +276,13 @@ wxDocManager *wxDocument::GetDocumentManager() const
     if ( m_documentParent )
         return m_documentParent->GetDocumentManager();
 
-    return m_documentTemplate ? m_documentTemplate->GetDocumentManager() : NULL;
+    if ( m_documentTemplate )
+        return m_documentTemplate->GetDocumentManager();
+
+    // Fall back on the global manager if the document doesn't have a template,
+    // code elsewhere, notably in DeleteAllViews(), relies on the document
+    // always being managed by some manager.
+    return wxDocManager::GetDocumentManager();
 }
 
 bool wxDocument::OnNewDocument()
@@ -857,11 +863,6 @@ wxDocument *wxDocTemplate::CreateDocument(const wxString& path, long flags)
 bool
 wxDocTemplate::InitDocument(wxDocument* doc, const wxString& path, long flags)
 {
-    // Normally, if wxDocument::OnCreate() fails, it happens because the view
-    // initialization fails and then the document is destroyed due to the
-    // destruction of its last view. But take into account the (currently
-    // unrealized, AFAICS) possibility of other failures as well and ensure
-    // that the document is always destroyed if it can't be initialized.
     wxTRY
     {
         doc->SetFilename(path);
@@ -869,7 +870,19 @@ wxDocTemplate::InitDocument(wxDocument* doc, const wxString& path, long flags)
         GetDocumentManager()->AddDocument(doc);
         doc->SetCommandProcessor(doc->OnCreateCommandProcessor());
 
-        return doc->OnCreate(path, flags);
+        if ( doc->OnCreate(path, flags) )
+            return true;
+
+        // The document may be already destroyed, this happens if its view
+        // creation fails as then the view being created is destroyed
+        // triggering the destruction of the document as this first view is
+        // also the last one. However if OnCreate() fails for any reason other
+        // than view creation failure, the document is still alive and we need
+        // to clean it up ourselves to avoid having a zombie document.
+        if ( GetDocumentManager()->GetDocuments().Member(doc) )
+            doc->DeleteAllViews();
+
+        return false;
     }
     wxCATCH_ALL(
         if ( GetDocumentManager()->GetDocuments().Member(doc) )
@@ -929,7 +942,7 @@ wxView *wxDocTemplate::DoCreateView()
 // wxDocManager
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxDocManager, wxEvtHandler)
+wxBEGIN_EVENT_TABLE(wxDocManager, wxEvtHandler)
     EVT_MENU(wxID_OPEN, wxDocManager::OnFileOpen)
     EVT_MENU(wxID_CLOSE, wxDocManager::OnFileClose)
     EVT_MENU(wxID_CLOSE_ALL, wxDocManager::OnFileCloseAll)
@@ -965,7 +978,7 @@ BEGIN_EVENT_TABLE(wxDocManager, wxEvtHandler)
     // NB: we keep "Print setup" menu item always enabled as it can be used
     //     even without an active document
 #endif // wxUSE_PRINTING_ARCHITECTURE
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxDocManager* wxDocManager::sm_docManager = NULL;
 
@@ -994,13 +1007,17 @@ bool wxDocManager::CloseDocument(wxDocument* doc, bool force)
     if ( !doc->Close() && !force )
         return false;
 
+    // To really force the document to close, we must ensure that it isn't
+    // modified, otherwise it would ask the user about whether it should be
+    // destroyed (again, it had been already done by Close() above) and might
+    // not destroy it at all, while we must do it here.
+    doc->Modify(false);
+
     // Implicitly deletes the document when
     // the last view is deleted
     doc->DeleteAllViews();
 
-    // Check we're really deleted
-    if (m_docs.Member(doc))
-        delete doc;
+    wxASSERT(!m_docs.Member(doc));
 
     return true;
 }
@@ -1140,17 +1157,21 @@ void wxDocManager::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 
 void wxDocManager::OnMRUFile(wxCommandEvent& event)
 {
-    // Check if the id is in the range assigned to MRU list entries.
-    const int id = event.GetId();
-    if ( id >= wxID_FILE1 &&
-            id < wxID_FILE1 + static_cast<int>(m_fileHistory->GetCount()) )
+    if ( m_fileHistory )
     {
-        DoOpenMRUFile(id - wxID_FILE1);
+        // Check if the id is in the range assigned to MRU list entries.
+        const int id = event.GetId();
+        if ( id >= wxID_FILE1 &&
+                id < wxID_FILE1 + static_cast<int>(m_fileHistory->GetCount()) )
+        {
+            DoOpenMRUFile(id - wxID_FILE1);
+
+            // Don't skip the event below.
+            return;
+        }
     }
-    else
-    {
-        event.Skip();
-    }
+
+    event.Skip();
 }
 
 void wxDocManager::DoOpenMRUFile(unsigned n)
@@ -1810,7 +1831,7 @@ wxDocTemplate *wxDocManager::SelectDocumentType(wxDocTemplate **templates,
                                                 int noTemplates, bool sort)
 {
     wxArrayString strings;
-    wxScopedArray<wxDocTemplate *> data(new wxDocTemplate *[noTemplates]);
+    wxScopedArray<wxDocTemplate *> data(noTemplates);
     int i;
     int n = 0;
 
@@ -1888,7 +1909,7 @@ wxDocTemplate *wxDocManager::SelectViewType(wxDocTemplate **templates,
                                             int noTemplates, bool sort)
 {
     wxArrayString strings;
-    wxScopedArray<wxDocTemplate *> data(new wxDocTemplate *[noTemplates]);
+    wxScopedArray<wxDocTemplate *> data(noTemplates);
     int i;
     int n = 0;
 

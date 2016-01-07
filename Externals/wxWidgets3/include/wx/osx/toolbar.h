@@ -18,8 +18,8 @@
 
 class WXDLLIMPEXP_CORE wxToolBar: public wxToolBarBase
 {
-  DECLARE_DYNAMIC_CLASS(wxToolBar)
- public:
+    wxDECLARE_DYNAMIC_CLASS(wxToolBar);
+public:
   /*
    * Public interface
    */
@@ -28,7 +28,7 @@ class WXDLLIMPEXP_CORE wxToolBar: public wxToolBarBase
 
   inline wxToolBar(wxWindow *parent, wxWindowID id,
                    const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-                   long style = wxTB_HORIZONTAL,
+                   long style = wxTB_DEFAULT_STYLE,
                    const wxString& name = wxToolBarNameStr)
   {
     Init();
@@ -37,7 +37,7 @@ class WXDLLIMPEXP_CORE wxToolBar: public wxToolBarBase
   virtual ~wxToolBar();
 
   bool Create(wxWindow *parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-            long style = wxTB_HORIZONTAL,
+            long style = wxTB_DEFAULT_STYLE,
             const wxString& name = wxToolBarNameStr);
 
     virtual void SetWindowStyleFlag(long style);
@@ -114,7 +114,7 @@ protected:
     virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle);
     virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle);
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 #if wxOSX_USE_NATIVE_TOOLBAR
     bool m_macUsesNativeToolbar ;
     void* m_macToolbar ;

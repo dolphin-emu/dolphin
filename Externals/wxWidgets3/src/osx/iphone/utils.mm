@@ -316,6 +316,8 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
 
 #endif // wxUSE_GUI
 
+// TODO move these into a BASE file
+
 wxOperatingSystemId wxGetOsVersion(int *verMaj, int *verMin)
 {
     // get OS version
@@ -345,6 +347,16 @@ wxString wxGetOsDescription()
     wxString release = wxCFStringRef( wxCFRetain([ [UIDevice currentDevice] systemName] )).AsString() ;
 
     return release;
+}
+
+// FIXME: This duplicates the function in src/unix/utilsunx.cpp, we should just
+//        reuse it instead of there is no iOS-specific implementation of this.
+bool wxCheckOsVersion(int majorVsn, int minorVsn)
+{
+    int majorCur, minorCur;
+    wxGetOsVersion(&majorCur, &minorCur);
+
+    return majorCur > majorVsn || (majorCur == majorVsn && minorCur >= minorVsn);
 }
 
 

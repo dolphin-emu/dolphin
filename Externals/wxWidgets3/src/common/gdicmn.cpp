@@ -34,7 +34,7 @@
 #endif
 
 
-IMPLEMENT_ABSTRACT_CLASS(wxGDIObject, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxGDIObject, wxObject);
 
 
 WXDLLIMPEXP_DATA_CORE(wxBrushList*) wxTheBrushList;
@@ -278,10 +278,6 @@ wxColourDatabase::~wxColourDatabase ()
 
         delete m_map;
     }
-
-#ifdef __WXPM__
-    delete [] m_palTable;
-#endif
 }
 
 // Colour database stuff
@@ -382,16 +378,6 @@ void wxColourDatabase::Initialize()
         const wxColourDesc& cc = wxColourTable[n];
         (*m_map)[cc.name] = new wxColour(cc.r, cc.g, cc.b);
     }
-
-#ifdef __WXPM__
-    m_palTable = new long[n];
-    for ( n = 0; n < WXSIZEOF(wxColourTable); n++ )
-    {
-        const wxColourDesc& cc = wxColourTable[n];
-        m_palTable[n] = OS2RGB(cc.r,cc.g,cc.b);
-    }
-    m_nSize = n;
-#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -469,41 +455,6 @@ wxString wxColourDatabase::FindName(const wxColour& colour) const
 
     return wxEmptyString;
 }
-
-// ----------------------------------------------------------------------------
-// deprecated wxColourDatabase methods
-// ----------------------------------------------------------------------------
-
-#if WXWIN_COMPATIBILITY_2_6
-wxColour *wxColourDatabase::FindColour(const wxString& name)
-{
-    // This function is deprecated, use Find() instead.
-    // Formerly this function sometimes would return a deletable pointer and
-    // sometimes a non-deletable one (when returning a colour from the database).
-    // Trying to delete the latter anyway results in problems, so probably
-    // nobody ever freed the pointers. Currently it always returns a new
-    // instance, which means there will be memory leaks.
-    wxLogDebug(wxT("wxColourDataBase::FindColour():")
-        wxT(" Please use wxColourDataBase::Find() instead"));
-
-    // using a static variable here is not the most elegant solution but unless
-    // we want to make wxStringToColourHashMap public (i.e. move it to the
-    // header) so that we could have a member function returning
-    // wxStringToColourHashMap::iterator, there is really no good way to do it
-    // otherwise
-    //
-    // and knowing that this function is going to disappear in the next release
-    // anyhow I don't want to waste time on this
-
-    static wxColour s_col;
-
-    s_col = Find(name);
-    if ( !s_col.IsOk() )
-        return NULL;
-
-    return new wxColour(s_col);
-}
-#endif // WXWIN_COMPATIBILITY_2_6
 
 // ============================================================================
 // stock objects
@@ -648,7 +599,8 @@ const wxFont* wxStockGDI::GetFont(Item item)
         switch (item)
         {
         case FONT_ITALIC:
-            font = new wxFont(GetFont(FONT_NORMAL)->GetPointSize(), wxROMAN, wxITALIC, wxNORMAL);
+            font = new wxFont(GetFont(FONT_NORMAL)->GetPointSize(),
+                              wxFONTFAMILY_ROMAN, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
             break;
         case FONT_NORMAL:
             font = new wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
@@ -666,10 +618,11 @@ const wxFont* wxStockGDI::GetFont(Item item)
 #else
                     - 2,
 #endif
-                    wxSWISS, wxNORMAL, wxNORMAL);
+                    wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
             break;
         case FONT_SWISS:
-            font = new wxFont(GetFont(FONT_NORMAL)->GetPointSize(), wxSWISS, wxNORMAL, wxNORMAL);
+            font = new wxFont(GetFont(FONT_NORMAL)->GetPointSize(),
+                              wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
             break;
         default:
             wxFAIL;
@@ -879,15 +832,6 @@ wxFont *wxFontList::FindOrCreateFont(int pointSize,
 
     return font;
 }
-
-#if WXWIN_COMPATIBILITY_2_6
-void wxBrushList::AddBrush(wxBrush*) { }
-void wxBrushList::RemoveBrush(wxBrush*) { }
-void wxFontList::AddFont(wxFont*) { }
-void wxFontList::RemoveFont(wxFont*) { }
-void wxPenList::AddPen(wxPen*) { }
-void wxPenList::RemovePen(wxPen*) { }
-#endif
 
 wxSize wxGetDisplaySize()
 {

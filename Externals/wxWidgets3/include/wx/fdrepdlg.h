@@ -124,7 +124,7 @@ protected:
 };
 
 // include wxFindReplaceDialog declaration
-#if defined(__WXMSW__) && !defined(__WXUNIVERSAL__) && !defined(__WXWINCE__)
+#if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
     #include "wx/msw/fdrepdlg.h"
 #else
     #define wxGenericFindReplaceDialog wxFindReplaceDialog
@@ -156,12 +156,12 @@ public:
     void SetFindString(const wxString& str) { SetString(str); }
     void SetReplaceString(const wxString& str) { m_strReplace = str; }
 
-    virtual wxEvent *Clone() const { return new wxFindDialogEvent(*this); }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxFindDialogEvent(*this); }
 
 private:
     wxString m_strReplace;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFindDialogEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFindDialogEvent);
 };
 
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_FIND, wxFindDialogEvent );

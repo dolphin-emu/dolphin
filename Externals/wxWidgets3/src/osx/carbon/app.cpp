@@ -57,16 +57,13 @@
 // Keep linker from discarding wxStockGDIMac
 wxFORCE_LINK_MODULE(gdiobj)
 
-IMPLEMENT_DYNAMIC_CLASS(wxApp, wxEvtHandler)
-BEGIN_EVENT_TABLE(wxApp, wxEvtHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxApp, wxEvtHandler);
+wxBEGIN_EVENT_TABLE(wxApp, wxEvtHandler)
     EVT_IDLE(wxApp::OnIdle)
     EVT_END_SESSION(wxApp::OnEndSession)
     EVT_QUERY_END_SESSION(wxApp::OnQueryEndSession)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
-
-// platform specific static variables
-static const short kwxMacAppleMenuId = 1 ;
 
 wxWindow* wxApp::s_captureWindow = NULL ;
 long      wxApp::s_lastModifiers = 0 ;
@@ -262,12 +259,16 @@ short wxApp::MacHandleAEOApp(const WXEVENTREF WXUNUSED(event) , WXEVENTREF WXUNU
 
 short wxApp::MacHandleAEQuit(const WXEVENTREF WXUNUSED(event) , WXEVENTREF WXUNUSED(reply))
 {
-    wxCloseEvent event;
-    wxTheApp->OnQueryEndSession(event);
+    wxCloseEvent event(wxEVT_QUERY_END_SESSION, wxID_ANY);
+    event.SetEventObject(this);
+    event.SetCanVeto(true);
+    ProcessEvent(event);
     if ( !event.GetVeto() )
     {
-        wxCloseEvent event;
-        wxTheApp->OnEndSession(event);
+        wxCloseEvent event(wxEVT_END_SESSION, wxID_ANY);
+        event.SetEventObject(this);
+        event.SetCanVeto(false);
+        ProcessEvent(event);
     }
     return noErr ;
 }
@@ -420,19 +421,26 @@ void wxApp::OSXOnWillFinishLaunching()
 
 void wxApp::OSXOnDidFinishLaunching()
 {
+    // on cocoa we cannot do this, as it would arrive "AFTER" an OpenFiles event
+#if wxOSX_USE_IPHONE
+    wxTheApp->OnInit();
+#endif
 }
 
 void wxApp::OSXOnWillTerminate()
 {
-    wxCloseEvent event;
+    wxCloseEvent event(wxEVT_END_SESSION, wxID_ANY);
+    event.SetEventObject(this);
     event.SetCanVeto(false);
-    wxTheApp->OnEndSession(event);
+    ProcessEvent(event);
 }
 
 bool wxApp::OSXOnShouldTerminate()
 {
-    wxCloseEvent event;
-    wxTheApp->OnQueryEndSession(event);
+    wxCloseEvent event(wxEVT_QUERY_END_SESSION, wxID_ANY);
+    event.SetEventObject(this);
+    event.SetCanVeto(true);
+    ProcessEvent(event);
     return !event.GetVeto();
 }
 #endif
@@ -444,6 +452,9 @@ bool wxApp::OSXOnShouldTerminate()
 // if no native match they just return the passed-in id
 
 #if wxOSX_USE_CARBON
+
+// platform specific static variables
+static const short kwxMacAppleMenuId = 1 ;
 
 struct IdPair
 {
@@ -1395,11 +1406,11 @@ int wxMacKeyCodeToModifier(wxKeyCode key)
 }
 #endif
 
-#if wxOSX_USE_COCOA && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if wxOSX_USE_COCOA
 
 // defined in utils.mm
 
-#elif wxOSX_USE_COCOA_OR_CARBON
+#elif wxOSX_USE_CARBON
 
 wxMouseState wxGetMouseState()
 {

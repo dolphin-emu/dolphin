@@ -30,7 +30,7 @@
 // wxToolTip
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxToolTip, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxToolTip, wxObject);
 
 
 wxToolTip::wxToolTip( const wxString &tip )

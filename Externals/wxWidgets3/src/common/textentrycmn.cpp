@@ -37,7 +37,7 @@
 // wxTextEntryHintData
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_CORE wxTextEntryHintData wxBIND_OR_CONNECT_HACK_ONLY_BASE_CLASS
+class WXDLLIMPEXP_CORE wxTextEntryHintData
 {
 public:
     wxTextEntryHintData(wxTextEntryBase *entry, wxWindow *win)
@@ -45,13 +45,9 @@ public:
           m_win(win),
           m_text(m_entry->GetValue())
     {
-        wxBIND_OR_CONNECT_HACK(win, wxEVT_SET_FOCUS, wxFocusEventHandler,
-                                wxTextEntryHintData::OnSetFocus, this);
-        wxBIND_OR_CONNECT_HACK(win, wxEVT_KILL_FOCUS, wxFocusEventHandler,
-                                wxTextEntryHintData::OnKillFocus, this);
-        wxBIND_OR_CONNECT_HACK(win, wxEVT_TEXT,
-                                wxCommandEventHandler,
-                                wxTextEntryHintData::OnTextChanged, this);
+        win->Bind(wxEVT_SET_FOCUS, &wxTextEntryHintData::OnSetFocus, this);
+        win->Bind(wxEVT_KILL_FOCUS, &wxTextEntryHintData::OnKillFocus, this);
+        win->Bind(wxEVT_TEXT, &wxTextEntryHintData::OnTextChanged, this);
     }
 
     // default dtor is ok

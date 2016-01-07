@@ -39,9 +39,9 @@
 extern
 WXDLLIMPEXP_DATA_CORE(const char) wxRearrangeListNameStr[] = "wxRearrangeList";
 
-BEGIN_EVENT_TABLE(wxRearrangeList, wxCheckListBox)
+wxBEGIN_EVENT_TABLE(wxRearrangeList, wxCheckListBox)
     EVT_CHECKLISTBOX(wxID_ANY, wxRearrangeList::OnCheck)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 bool wxRearrangeList::Create(wxWindow *parent,
                              wxWindowID id,
@@ -78,7 +78,11 @@ bool wxRearrangeList::Create(wxWindow *parent,
     for ( n = 0; n < count; n++ )
     {
         if ( order[n] >= 0 )
-            Check(n);
+        {
+            // Be careful to call the base class version here and not our own
+            // which would also update m_order itself.
+            wxCheckListBox::Check(n);
+        }
     }
 
     m_order = order;
@@ -137,8 +141,8 @@ void wxRearrangeList::Swap(int pos1, int pos2)
 
     // then the checked state
     const bool checkedTmp = IsChecked(pos1);
-    Check(pos1, IsChecked(pos2));
-    Check(pos2, checkedTmp);
+    wxCheckListBox::Check(pos1, IsChecked(pos2));
+    wxCheckListBox::Check(pos2, checkedTmp);
 
     // and finally the client data, if necessary
     switch ( GetClientDataType() )
@@ -165,28 +169,36 @@ void wxRearrangeList::Swap(int pos1, int pos2)
     }
 }
 
+void wxRearrangeList::Check(unsigned int item, bool check)
+{
+    if ( check == IsChecked(item) )
+        return;
+
+    wxCheckListBox::Check(item, check);
+
+    m_order[item] = ~m_order[item];
+}
+
 void wxRearrangeList::OnCheck(wxCommandEvent& event)
 {
     // update the internal state to match the new item state
     const int n = event.GetInt();
 
-    m_order[n] = ~m_order[n];
-
-    wxASSERT_MSG( (m_order[n] >= 0) == IsChecked(n),
-                  "discrepancy between internal state and GUI" );
+    if ( (m_order[n] >= 0) != IsChecked(n) )
+        m_order[n] = ~m_order[n];
 }
 
 // ============================================================================
 // wxRearrangeCtrl implementation
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxRearrangeCtrl, wxPanel)
+wxBEGIN_EVENT_TABLE(wxRearrangeCtrl, wxPanel)
     EVT_UPDATE_UI(wxID_UP, wxRearrangeCtrl::OnUpdateButtonUI)
     EVT_UPDATE_UI(wxID_DOWN, wxRearrangeCtrl::OnUpdateButtonUI)
 
     EVT_BUTTON(wxID_UP, wxRearrangeCtrl::OnButton)
     EVT_BUTTON(wxID_DOWN, wxRearrangeCtrl::OnButton)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxRearrangeCtrl::Init()
 {

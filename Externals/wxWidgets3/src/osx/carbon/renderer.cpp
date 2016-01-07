@@ -31,6 +31,7 @@
 #include "wx/graphics.h"
 #include "wx/dcgraph.h"
 #include "wx/splitter.h"
+#include "wx/time.h"
 #include "wx/osx/private.h"
 
 #ifdef wxHAS_DRAW_TITLE_BAR_BITMAP
@@ -63,17 +64,17 @@ public:
         const wxRect& rect,
         int flags = 0,
         wxHeaderSortIconType sortArrow = wxHDR_SORT_ICON_NONE,
-        wxHeaderButtonParams* params = NULL );
+        wxHeaderButtonParams* params = NULL ) wxOVERRIDE;
 
-    virtual int GetHeaderButtonHeight(wxWindow *win);
+    virtual int GetHeaderButtonHeight(wxWindow *win) wxOVERRIDE;
 
-    virtual int GetHeaderButtonMargin(wxWindow *win);
+    virtual int GetHeaderButtonMargin(wxWindow *win) wxOVERRIDE;
 
     // draw the expanded/collapsed icon for a tree control item
     virtual void DrawTreeItemButton( wxWindow *win,
         wxDC& dc,
         const wxRect& rect,
-        int flags = 0 );
+        int flags = 0 ) wxOVERRIDE;
 
     // draw a (vertical) sash
     virtual void DrawSplitterSash( wxWindow *win,
@@ -81,49 +82,63 @@ public:
         const wxSize& size,
         wxCoord position,
         wxOrientation orient,
-        int flags = 0 );
+        int flags = 0 ) wxOVERRIDE;
 
     virtual void DrawCheckBox(wxWindow *win,
                               wxDC& dc,
                               const wxRect& rect,
-                              int flags = 0);
+                              int flags = 0) wxOVERRIDE;
 
-    virtual wxSize GetCheckBoxSize(wxWindow* win);
+    virtual wxSize GetCheckBoxSize(wxWindow* win) wxOVERRIDE;
 
     virtual void DrawComboBoxDropButton(wxWindow *win,
                                         wxDC& dc,
                                         const wxRect& rect,
-                                        int flags = 0);
+                                        int flags = 0) wxOVERRIDE;
 
     virtual void DrawPushButton(wxWindow *win,
                                 wxDC& dc,
                                 const wxRect& rect,
-                                int flags = 0);
+                                int flags = 0) wxOVERRIDE;
+
+    virtual void DrawCollapseButton(wxWindow *win,
+                                    wxDC& dc,
+                                    const wxRect& rect,
+                                    int flags = 0);
+
+    virtual wxSize GetCollapseButtonSize(wxWindow *win, wxDC& dc);
 
     virtual void DrawItemSelectionRect(wxWindow *win,
                                        wxDC& dc,
                                        const wxRect& rect,
-                                       int flags = 0);
+                                       int flags = 0) wxOVERRIDE;
 
-    virtual void DrawFocusRect(wxWindow* win, wxDC& dc, const wxRect& rect, int flags = 0);
+    virtual void DrawFocusRect(wxWindow* win, wxDC& dc, const wxRect& rect, int flags = 0) wxOVERRIDE;
 
-    virtual void DrawChoice(wxWindow* win, wxDC& dc, const wxRect& rect, int flags=0);
+    virtual void DrawChoice(wxWindow* win, wxDC& dc, const wxRect& rect, int flags=0) wxOVERRIDE;
 
-    virtual void DrawComboBox(wxWindow* win, wxDC& dc, const wxRect& rect, int flags=0);
+    virtual void DrawComboBox(wxWindow* win, wxDC& dc, const wxRect& rect, int flags=0) wxOVERRIDE;
 
-    virtual void DrawTextCtrl(wxWindow* win, wxDC& dc, const wxRect& rect, int flags=0);
+    virtual void DrawTextCtrl(wxWindow* win, wxDC& dc, const wxRect& rect, int flags=0) wxOVERRIDE;
 
-    virtual void DrawRadioBitmap(wxWindow* win, wxDC& dc, const wxRect& rect, int flags=0);
+    virtual void DrawRadioBitmap(wxWindow* win, wxDC& dc, const wxRect& rect, int flags=0) wxOVERRIDE;
 
 #ifdef wxHAS_DRAW_TITLE_BAR_BITMAP
     virtual void DrawTitleBarBitmap(wxWindow *win,
                                     wxDC& dc,
                                     const wxRect& rect,
                                     wxTitleBarButton button,
-                                    int flags = 0);
+                                    int flags = 0) wxOVERRIDE;
 #endif // wxHAS_DRAW_TITLE_BAR_BITMAP
 
-    virtual wxSplitterRenderParams GetSplitterParams(const wxWindow *win);
+    virtual void DrawGauge(wxWindow* win,
+                           wxDC& dc,
+                           const wxRect& rect,
+                           int value,
+                           int max,
+                           int flags = 0);
+
+    virtual wxSplitterRenderParams GetSplitterParams(const wxWindow *win) wxOVERRIDE;
 
 private:
     void DrawMacThemeButton(wxWindow *win,
@@ -517,6 +532,43 @@ wxRendererMac::DrawPushButton(wxWindow *win,
                        kind, kThemeAdornmentNone);
 }
 
+void wxRendererMac::DrawCollapseButton(wxWindow *win,
+                                wxDC& dc,
+                                const wxRect& rect,
+                                int flags)
+{
+    int adornment = (flags & wxCONTROL_EXPANDED)
+        ? kThemeAdornmentArrowUpArrow
+        : kThemeAdornmentArrowDownArrow;
+
+    DrawMacThemeButton(win, dc, rect, flags,
+                       kThemeArrowButton, adornment);
+}
+
+wxSize wxRendererMac::GetCollapseButtonSize(wxWindow *WXUNUSED(win), wxDC& WXUNUSED(dc))
+{
+    wxSize size;
+    SInt32 width, height;
+    OSStatus errStatus;
+
+    errStatus = GetThemeMetric(kThemeMetricDisclosureButtonWidth, &width);
+    if (errStatus == noErr)
+    {
+        size.SetWidth(width);
+    }
+
+    errStatus = GetThemeMetric(kThemeMetricDisclosureButtonHeight, &height);
+    if (errStatus == noErr)
+    {
+        size.SetHeight(height);
+    }
+
+    // strict metrics size cutoff the button, increase the size
+    size.IncBy(1);
+
+    return size;
+}
+
 void
 wxRendererMac::DrawFocusRect(wxWindow* win, wxDC& dc, const wxRect& rect, int flags)
 {
@@ -862,5 +914,39 @@ void wxRendererMac::DrawTitleBarBitmap(wxWindow *win,
 }
 
 #endif // wxHAS_DRAW_TITLE_BAR_BITMAP
+
+void wxRendererMac::DrawGauge(wxWindow* WXUNUSED(win),
+                              wxDC& dc,
+                              const wxRect& rect,
+                              int value,
+                              int max,
+                              int WXUNUSED(flags))
+{
+    const wxCoord x = rect.x;
+    const wxCoord y = rect.y;
+    const wxCoord w = rect.width;
+    const wxCoord h = rect.height;
+
+    HIThemeTrackDrawInfo tdi;
+    tdi.version = 0;
+    tdi.min = 0;
+    tdi.value = value;
+    tdi.max = max;
+    tdi.bounds = CGRectMake(x, y, w, h);
+    tdi.attributes = kThemeTrackHorizontal;
+    tdi.enableState = kThemeTrackActive;
+    tdi.kind = kThemeLargeProgressBar;
+
+    int milliSecondsPerStep = 1000 / 60;
+    wxLongLongNative localTime = wxGetLocalTimeMillis();
+    tdi.trackInfo.progress.phase = localTime.GetValue() / milliSecondsPerStep % 32;
+
+    CGContextRef cgContext;
+    wxGCDCImpl *impl = (wxGCDCImpl*) dc.GetImpl();
+
+    cgContext = (CGContextRef) impl->GetGraphicsContext()->GetNativeContext();
+
+    HIThemeDrawTrack(&tdi, NULL, cgContext, kHIThemeOrientationNormal);
+}
 
 #endif

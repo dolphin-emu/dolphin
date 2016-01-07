@@ -51,14 +51,14 @@ enum MDI_MENU_ID
 // wxAuiMDIParentFrame
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxAuiMDIParentFrame, wxFrame)
+wxIMPLEMENT_DYNAMIC_CLASS(wxAuiMDIParentFrame, wxFrame);
 
-BEGIN_EVENT_TABLE(wxAuiMDIParentFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(wxAuiMDIParentFrame, wxFrame)
 #if wxUSE_MENUS
     EVT_MENU (wxID_ANY, wxAuiMDIParentFrame::DoHandleMenu)
     EVT_UPDATE_UI (wxID_ANY, wxAuiMDIParentFrame::DoHandleUpdateUI)
 #endif
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxAuiMDIParentFrame::wxAuiMDIParentFrame()
 {
@@ -423,13 +423,13 @@ void wxAuiMDIParentFrame::Tile(wxOrientation orient)
 // wxAuiMDIChildFrame
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxAuiMDIChildFrame, wxPanel)
+wxIMPLEMENT_DYNAMIC_CLASS(wxAuiMDIChildFrame, wxPanel);
 
-BEGIN_EVENT_TABLE(wxAuiMDIChildFrame, wxPanel)
+wxBEGIN_EVENT_TABLE(wxAuiMDIChildFrame, wxPanel)
     EVT_MENU_HIGHLIGHT_ALL(wxAuiMDIChildFrame::OnMenuHighlight)
     EVT_ACTIVATE(wxAuiMDIChildFrame::OnActivate)
     EVT_CLOSE(wxAuiMDIChildFrame::OnCloseWindow)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxAuiMDIChildFrame::wxAuiMDIChildFrame()
 {
@@ -769,13 +769,13 @@ void wxAuiMDIChildFrame::ApplyMDIChildFrameRect()
 // wxAuiMDIClientWindow
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxAuiMDIClientWindow, wxAuiNotebook)
+wxIMPLEMENT_DYNAMIC_CLASS(wxAuiMDIClientWindow, wxAuiNotebook);
 
-BEGIN_EVENT_TABLE(wxAuiMDIClientWindow, wxAuiNotebook)
+wxBEGIN_EVENT_TABLE(wxAuiMDIClientWindow, wxAuiNotebook)
     EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, wxAuiMDIClientWindow::OnPageChanged)
     EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, wxAuiMDIClientWindow::OnPageClose)
     EVT_SIZE(wxAuiMDIClientWindow::OnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxAuiMDIClientWindow::wxAuiMDIClientWindow()
 {

@@ -107,7 +107,7 @@ protected:
     friend class wxURLModule;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxURL)
+    wxDECLARE_DYNAMIC_CLASS(wxURL);
 };
 
 #endif // wxUSE_URL

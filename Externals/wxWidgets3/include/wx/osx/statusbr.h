@@ -35,8 +35,8 @@ protected:
     virtual void DrawField(wxDC& dc, int i, int textHeight);
     virtual void DoUpdateStatusText(int number = 0);
 
-    DECLARE_DYNAMIC_CLASS(wxStatusBarMac)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxStatusBarMac);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_STATBAR_H_

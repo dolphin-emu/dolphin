@@ -148,6 +148,7 @@
 
 /* --- start common options --- */
 
+
 #ifndef wxUSE_GUI
     #define wxUSE_GUI 1
 #endif
@@ -155,9 +156,12 @@
 
 #define WXWIN_COMPATIBILITY_2_6 0
 
+
 #define WXWIN_COMPATIBILITY_2_8 0
 
 #define wxDIALOG_UNIT_COMPATIBILITY   0
+
+
 
 
 
@@ -166,6 +170,8 @@
 #define wxUSE_STACKWALKER 0
 
 #define wxUSE_DEBUGREPORT 1
+
+
 
 
 
@@ -179,6 +185,7 @@
 
 
 
+
 #ifndef wxUSE_UNICODE
     #define wxUSE_UNICODE 1
 #endif
@@ -186,7 +193,9 @@
 #define wxUSE_WCHAR_T 1
 
 
+
 #define wxUSE_EXCEPTIONS 0
+
 
 #define wxUSE_EXTENDED_RTTI 0
 
@@ -213,6 +222,7 @@
     #define wxUSE_STD_DEFAULT  0
 #endif
 
+
 #define wxUSE_STD_CONTAINERS 0
 
 #define wxUSE_STD_IOSTREAM 1
@@ -224,6 +234,7 @@
 #define wxUSE_IOSTREAMH     0
 
 #define wxUSE_PRINTF_POS_PARAMS 1
+
 
 
 #define wxUSE_LONGLONG 1
@@ -344,6 +355,7 @@
 #endif
 
 
+
 #ifdef _MSC_VER
 #   if _MSC_VER >= 1310
 
@@ -364,6 +376,7 @@
 #endif
 
 #define wxUSE_CAIRO 1
+
 
 
 
@@ -449,6 +462,7 @@
 #define wxUSE_REARRANGECTRL 1
 
 
+
 #define wxUSE_ACCEL 1
 
 #define wxUSE_ARTPROVIDER_STD 1
@@ -488,6 +502,7 @@
 #endif
 
 
+
 #define wxUSE_COMMON_DIALOGS 0
 
 #define wxUSE_BUSYINFO 1
@@ -497,6 +512,7 @@
 #define wxUSE_COLOURDLG 1
 
 #define wxUSE_DIRDLG 1
+
 
 
 #define wxUSE_FILEDLG 1
@@ -524,9 +540,11 @@
 #define wxUSE_FILE_HISTORY 1
 
 
+
 #define wxUSE_METAFILE              0
 #define wxUSE_ENH_METAFILE          0
 #define wxUSE_WIN_METAFILES_ALWAYS  0
+
 
 
 #define wxUSE_MDI 1
@@ -544,6 +562,7 @@
 #define wxUSE_RICHTEXT 0
 
 
+
 #define wxUSE_CLIPBOARD 1
 
 #define wxUSE_DATAOBJ 1
@@ -553,6 +572,7 @@
 #define wxUSE_ACCESSIBILITY 0
 
 
+
 #define wxUSE_SNGLINST_CHECKER 1
 
 #define wxUSE_DRAGIMAGE 1
@@ -560,6 +580,7 @@
 #define wxUSE_IPC 1
 
 #define wxUSE_HELP 1
+
 
 
 #define wxUSE_MS_HTML_HELP 0
@@ -576,7 +597,10 @@
 #define wxUSE_MOUSEWHEEL 1
 
 
+
+
 #define wxUSE_UIACTIONSIMULATOR 1
+
 
 
 #define wxUSE_POSTSCRIPT 1
@@ -590,6 +614,8 @@
 #define REMOVE_UNUSED_ARG   0
 
 #define wxUSE_IOSTREAMH     0
+
+
 
 
 
@@ -616,6 +642,7 @@
 #define wxUSE_ICO_CUR 1
 
 #define wxUSE_PALETTE 1
+
 
 
 #define wxUSE_ALL_THEMES    0
@@ -655,6 +682,7 @@
 
 #define wxUSE_MFC           0
 
+
 #define wxUSE_OLE           0
 
 #define wxUSE_OLE_AUTOMATION 0
@@ -682,6 +710,7 @@
 #define wxUSE_INKEDIT  0
 
 #define wxUSE_INICONF 0
+
 
 
 #define wxUSE_DATEPICKCTRL_GENERIC 0
@@ -1258,6 +1287,7 @@
 
 #define wxUSE_COMPILER_TLS 1
 #define wxUSE_PREFERENCES_EDITOR 1
+#define wxUSE_STD_CONTAINERS_COMPATIBLY 1
 
 #endif /* __WX_SETUP_H__ */
 

@@ -24,7 +24,6 @@
 
 // data
 extern bool       g_blockEventsOnDrag;
-extern wxCursor   g_globalCursor;
 
 // ----------------------------------------------------------------------------
 // wxToolBarTool
@@ -65,7 +64,7 @@ public:
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxToolBar, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxToolBar, wxControl);
 
 // ============================================================================
 // implementation
@@ -190,11 +189,13 @@ image_expose_event(GtkWidget* widget, GdkEventExpose*, wxToolBarTool* tool)
     gtk_widget_get_allocation(widget, &alloc);
     GtkRequisition req;
     gtk_widget_get_requisition(widget, &req);
-    const int x = alloc.x + (alloc.width - req.width) / 2;
-    const int y = alloc.y + (alloc.height - req.height) / 2;
 #ifdef __WXGTK3__
+    const int x = (alloc.width - req.width) / 2;
+    const int y = (alloc.height - req.height) / 2;
     bitmap.Draw(cr, x, y);
 #else
+    const int x = alloc.x + (alloc.width - req.width) / 2;
+    const int y = alloc.y + (alloc.height - req.height) / 2;
     gdk_draw_pixbuf(
         gtk_widget_get_window(widget), gtk_widget_get_style(widget)->black_gc, bitmap.GetPixbuf(),
         0, 0, x, y,
@@ -697,7 +698,7 @@ wxSize wxToolBar::DoGetBestSize() const
 wxToolBarToolBase *wxToolBar::FindToolForPosition(wxCoord WXUNUSED(x),
                                                   wxCoord WXUNUSED(y)) const
 {
-    // VZ: GTK+ doesn't seem to have such thing
+    // TODO: implement this using gtk_toolbar_get_drop_index()
     wxFAIL_MSG( wxT("wxToolBar::FindToolForPosition() not implemented") );
 
     return NULL;

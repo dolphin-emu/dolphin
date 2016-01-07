@@ -52,7 +52,7 @@ public:
     virtual wxString
     GetLocalizedResourcesDir(const wxString& lang,
                              ResourceCat category = ResourceCat_None) const;
-    virtual wxString GetDocumentsDir() const;
+    virtual wxString GetUserDir(Dir userDir) const wxOVERRIDE;
 
 protected:
     // Ctor is protected, use wxStandardPaths::Get() instead of instantiating

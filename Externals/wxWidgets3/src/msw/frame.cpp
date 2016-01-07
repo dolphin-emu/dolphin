@@ -43,18 +43,22 @@
 
 #include "wx/msw/private.h"
 
-#if defined(__POCKETPC__) || defined(__SMARTPHONE__)
-    #include <ole2.h>
-    #include <aygshell.h>
-    #include "wx/msw/winundef.h"
-#endif
-
 #include "wx/generic/statusbr.h"
 
 #ifdef __WXUNIVERSAL__
     #include "wx/univ/theme.h"
     #include "wx/univ/colschem.h"
 #endif // __WXUNIVERSAL__
+
+#if wxUSE_TASKBARBUTTON
+    #include "wx/msw/taskbarbutton.h"
+    #include "wx/dynlib.h"
+
+    WXUINT wxMsgTaskbarButtonCreated = 0;
+    #define wxTHBN_CLICKED 0x1800
+    #define wxMSGFLT_ADD   0x01
+#endif  // wxUSE_TASKBARBUTTON
+
 
 // ----------------------------------------------------------------------------
 // globals
@@ -68,9 +72,9 @@
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxFrame, wxFrameBase)
+wxBEGIN_EVENT_TABLE(wxFrame, wxFrameBase)
     EVT_SYS_COLOUR_CHANGED(wxFrame::OnSysColourChanged)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
@@ -96,6 +100,7 @@ void wxFrame::Init()
 {
 #if wxUSE_MENUS
     m_hMenu = NULL;
+    m_menuDepth = 0;
 #endif // wxUSE_MENUS
 
 #if wxUSE_TOOLTIPS
@@ -103,6 +108,10 @@ void wxFrame::Init()
 #endif
 
     m_wasMinimized = false;
+
+#if wxUSE_TASKBARBUTTON
+    m_taskBarButton = NULL;
+#endif
 }
 
 bool wxFrame::Create(wxWindow *parent,
@@ -118,27 +127,44 @@ bool wxFrame::Create(wxWindow *parent,
 
     SetOwnBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
 
-#if defined(__SMARTPHONE__)
-    SetLeftMenu(wxID_EXIT, _("Done"));
-#endif
+#if wxUSE_TASKBARBUTTON
+    static bool s_taskbarButtonCreatedMsgRegistered = false;
+    if ( !s_taskbarButtonCreatedMsgRegistered )
+    {
+        s_taskbarButtonCreatedMsgRegistered = true;
+        wxMsgTaskbarButtonCreated =
+            ::RegisterWindowMessage(wxT("TaskbarButtonCreated"));
 
-#if wxUSE_ACCEL && defined(__POCKETPC__)
-    // The guidelines state that Ctrl+Q should quit the app.
-    // Let's define an accelerator table to send wxID_EXIT.
-    wxAcceleratorEntry entries[1];
-    entries[0].Set(wxACCEL_CTRL,   'Q',         wxID_EXIT);
-    wxAcceleratorTable accel(1, entries);
-    SetAcceleratorTable(accel);
-#endif // wxUSE_ACCEL && __POCKETPC__
+        // In case the application is run elevated, allow the
+        // TaskbarButtonCreated and WM_COMMAND messages through.
+#if wxUSE_DYNLIB_CLASS
+        typedef BOOL (WINAPI *ChangeWindowMessageFilter_t)(UINT message,
+                                                           DWORD dwFlag);
+        wxDynamicLibrary dllUser32(wxT("user32.dll"));
+
+        ChangeWindowMessageFilter_t pfnChangeWindowMessageFilter = NULL;
+        wxDL_INIT_FUNC(pfn, ChangeWindowMessageFilter, dllUser32);
+        if ( pfnChangeWindowMessageFilter )
+        {
+            pfnChangeWindowMessageFilter(wxMsgTaskbarButtonCreated,
+                                           wxMSGFLT_ADD);
+            pfnChangeWindowMessageFilter(WM_COMMAND, wxMSGFLT_ADD);
+        }
+#else
+        ChangeWindowMessageFilter(wxMsgTaskbarButtonCreated, wxMSGFLT_ADD);
+        ChangeWindowMessageFilter(WM_COMMAND, wxMSGFLT_ADD);
+#endif // wxUSE_DYNLIB_CLASS
+    }
+#endif // wxUSE_TASKBARBUTTON
 
     return true;
 }
 
 wxFrame::~wxFrame()
 {
-    SendDestroyEvent();
-
-    DeleteAllBars();
+#if wxUSE_TASKBARBUTTON
+    delete m_taskBarButton;
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -286,9 +312,6 @@ void wxFrame::PositionStatusBar()
     int w, h;
     GetClientSize(&w, &h);
 
-    int sw, sh;
-    m_frameStatusBar->GetSize(&sw, &sh);
-
     int x = 0;
 #if wxUSE_TOOLBAR
     wxToolBar * const toolbar = GetToolBar();
@@ -312,6 +335,16 @@ void wxFrame::PositionStatusBar()
     //else: no adjustments necessary for the toolbar on top
 #endif // wxUSE_TOOLBAR
 
+    // Resize the status bar to its default height, as it could have been set
+    // to a wrong value before by WM_SIZE sent during the frame creation and
+    // our status bars preserve their programmatically set size to avoid being
+    // resized by DefWindowProc() to the full window width, so if we didn't do
+    // this here, the status bar would retain the possibly wrong current height.
+    m_frameStatusBar->SetSize(x, h, w, wxDefaultCoord, wxSIZE_AUTO_HEIGHT);
+
+    int sw, sh;
+    m_frameStatusBar->GetSize(&sw, &sh);
+
     // Since we wish the status bar to be directly under the client area,
     // we use the adjusted sizes without using wxSIZE_NO_ADJUSTMENTS.
     m_frameStatusBar->SetSize(x, h, w, sh);
@@ -323,60 +356,6 @@ void wxFrame::PositionStatusBar()
 
 void wxFrame::AttachMenuBar(wxMenuBar *menubar)
 {
-#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
-
-    wxMenu *autoMenu = NULL;
-
-    if( menubar->GetMenuCount() == 1 )
-    {
-        autoMenu = wxTopLevelWindowMSW::ButtonMenu::DuplicateMenu(menubar->GetMenu(0));
-        SetRightMenu(wxID_ANY, menubar->GetMenuLabel(0), autoMenu);
-    }
-    else
-    {
-        autoMenu = new wxMenu;
-
-        for( size_t n = 0; n < menubar->GetMenuCount(); n++ )
-        {
-            wxMenu *item = menubar->GetMenu(n);
-            wxString label = menubar->GetMenuLabel(n);
-            wxMenu *new_item = wxTopLevelWindowMSW::ButtonMenu::DuplicateMenu(item);
-            autoMenu->Append(wxID_ANY, label, new_item);
-        }
-
-        SetRightMenu(wxID_ANY, _("Menu"), autoMenu);
-    }
-
-#elif defined(WINCE_WITHOUT_COMMANDBAR)
-    if (!GetToolBar())
-    {
-        wxToolMenuBar* toolBar = new wxToolMenuBar(this, wxID_ANY,
-                         wxDefaultPosition, wxDefaultSize,
-                         wxBORDER_NONE | wxTB_HORIZONTAL,
-                         wxToolBarNameStr, menubar);
-        SetToolBar(toolBar);
-        menubar->SetToolBar(toolBar);
-    }
-
-    // When the main window is created using CW_USEDEFAULT the height of the
-    // menubar is not taken into account, so we resize it afterwards if a
-    // menubar is present
-    HWND hwndMenuBar = SHFindMenuBar(GetHwnd());
-    if ( hwndMenuBar )
-    {
-        RECT mbRect;
-        ::GetWindowRect(hwndMenuBar, &mbRect);
-        const int menuHeight = mbRect.bottom - mbRect.top;
-
-        RECT rc;
-        ::GetWindowRect(GetHwnd(), &rc);
-        // adjust for menu / titlebar height
-        rc.bottom -= (2*menuHeight-1);
-
-        ::MoveWindow(GetHwnd(), rc.left, rc.top, rc.right, rc.bottom, FALSE);
-    }
-#endif
-
     wxFrameBase::AttachMenuBar(menubar);
 
     if ( !menubar )
@@ -387,7 +366,6 @@ void wxFrame::AttachMenuBar(wxMenuBar *menubar)
     }
     else // set new non NULL menu bar
     {
-#if !defined(__WXWINCE__) || defined(WINCE_WITH_COMMANDBAR)
         // Can set a menubar several times.
         if ( menubar->GetHMenu() )
         {
@@ -403,31 +381,82 @@ void wxFrame::AttachMenuBar(wxMenuBar *menubar)
                 return;
             }
         }
-#endif
         InternalSetMenuBar();
     }
 }
 
 void wxFrame::InternalSetMenuBar()
 {
-#if defined(__WXMICROWIN__) || defined(__WXWINCE__)
-    // Nothing
-#else
     if ( !::SetMenu(GetHwnd(), (HMENU)m_hMenu) )
     {
         wxLogLastError(wxT("SetMenu"));
     }
-#endif
 }
 
 #endif // wxUSE_MENUS_NATIVE
 
-#if wxUSE_MENUS
+#if wxUSE_MENUS && !defined(__WXUNIVERSAL__)
+bool wxFrame::HandleMenuSelect(WXWORD nItem, WXWORD flags, WXHMENU hMenu)
+{
+    // Unfortunately we need to ignore a message which is sent after
+    // closing the currently active submenu of the menu bar by pressing Escape:
+    // in this case we get WM_UNINITMENUPOPUP, from which we generate
+    // wxEVT_MENU_CLOSE, and _then_ we get WM_MENUSELECT for the top level menu
+    // from which we overwrite the help string just restored by OnMenuClose()
+    // handler in wxFrameBase. To prevent this from happening we discard these
+    // messages but only in the case it's really the top level menu as we still
+    // need to clear the help string when a submenu is selected in a menu.
+    if ( flags == (MF_POPUP | MF_HILITE) && !m_menuDepth )
+        return false;
+
+    return wxWindow::HandleMenuSelect(nItem, flags, hMenu);
+}
+
+bool wxFrame::DoSendMenuOpenCloseEvent(wxEventType evtType, wxMenu* menu)
+{
+    // Update the menu depth when dealing with the top level menus.
+    if ( !menu || menu->IsAttached() )
+    {
+        if ( evtType == wxEVT_MENU_OPEN )
+        {
+            m_menuDepth++;
+        }
+        else if ( evtType == wxEVT_MENU_CLOSE )
+        {
+            wxASSERT_MSG( m_menuDepth > 0, wxS("No open menus?") );
+
+            m_menuDepth--;
+        }
+        else
+        {
+            wxFAIL_MSG( wxS("Unexpected menu event type") );
+        }
+    }
+
+    return wxWindow::DoSendMenuOpenCloseEvent(evtType, menu);
+}
+
 wxMenu* wxFrame::MSWFindMenuFromHMENU(WXHMENU hMenu)
 {
-    return GetMenuBar() ? GetMenuBar()->MSWGetMenu(hMenu) : NULL;
+    if ( wxMenuBar* mbar = GetMenuBar() )
+    {
+        if ( wxMenu* menu = mbar->MSWGetMenu(hMenu) )
+            return menu;
+    }
+
+    return wxFrameBase::MSWFindMenuFromHMENU(hMenu);
 }
-#endif // wxUSE_MENUS
+#endif // wxUSE_MENUS && !defined(__WXUNIVERSAL__)
+
+#if wxUSE_TASKBARBUTTON
+wxTaskBarButton* wxFrame::MSWGetTaskBarButton()
+{
+    if ( !m_taskBarButton )
+        m_taskBarButton = wxTaskBarButton::New(this);
+
+    return m_taskBarButton;
+}
+#endif // wxUSE_TASKBARBUTTON
 
 // Responds to colour changes, and passes event on to children.
 void wxFrame::OnSysColourChanged(wxSysColourChangedEvent& event)
@@ -455,16 +484,12 @@ void wxFrame::OnSysColourChanged(wxSysColourChangedEvent& event)
 // Pass true to show full screen, false to restore.
 bool wxFrame::ShowFullScreen(bool show, long style)
 {
-    // TODO-CE: add support for CE
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
     if ( IsFullScreen() == show )
         return false;
 
     if (show)
     {
         // zap the toolbar, menubar, and statusbar if needed
-        //
-        // TODO: hide commandbar for WINCE_WITH_COMMANDBAR
 #if wxUSE_TOOLBAR
         wxToolBar *theToolBar = GetToolBar();
 
@@ -529,7 +554,6 @@ bool wxFrame::ShowFullScreen(bool show, long style)
         }
 #endif // wxUSE_STATUSBAR
     }
-#endif // !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
 
     return wxFrameBase::ShowFullScreen(show, style);
 }
@@ -542,11 +566,6 @@ bool wxFrame::ShowFullScreen(bool show, long style)
 
 wxToolBar* wxFrame::CreateToolBar(long style, wxWindowID id, const wxString& name)
 {
-#if defined(WINCE_WITHOUT_COMMANDBAR)
-    // We may already have a toolbar from calling SetMenuBar.
-    if (GetToolBar())
-        return GetToolBar();
-#endif
     if ( wxFrameBase::CreateToolBar(style, id, name) )
     {
         PositionToolBar();
@@ -557,10 +576,6 @@ wxToolBar* wxFrame::CreateToolBar(long style, wxWindowID id, const wxString& nam
 
 void wxFrame::PositionToolBar()
 {
-    // TODO: we want to do something different in WinCE, because the toolbar
-    //       should be associated with the commandbar, instead of being
-    //       independent window.
-#if !defined(WINCE_WITHOUT_COMMANDBAR)
     wxToolBar *toolbar = GetToolBar();
     if ( toolbar && toolbar->IsShown() )
     {
@@ -597,16 +612,6 @@ void wxFrame::PositionToolBar()
             x = 0;
             y = 0;
         }
-
-#if defined(WINCE_WITH_COMMANDBAR)
-        // We're using a commandbar - so we have to allow for it.
-        if (GetMenuBar() && GetMenuBar()->GetCommandBar())
-        {
-            RECT rect;
-            ::GetWindowRect((HWND) GetMenuBar()->GetCommandBar(), &rect);
-            y = rect.bottom - rect.top;
-        }
-#endif // WINCE_WITH_COMMANDBAR
 
         if ( toolbar->HasFlag(wxTB_BOTTOM) )
         {
@@ -649,7 +654,6 @@ void wxFrame::PositionToolBar()
         toolbar->SetSize(x, y, desiredW, desiredH, wxSIZE_NO_ADJUSTMENTS);
 
     }
-#endif // !WINCE_WITH_COMMANDBAR
 }
 
 #endif // wxUSE_TOOLBAR
@@ -740,7 +744,6 @@ bool wxFrame::MSWDoTranslateMessage(wxFrame *frame, WXMSG *pMsg)
 
 bool wxFrame::HandleSize(int WXUNUSED(x), int WXUNUSED(y), WXUINT id)
 {
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
     switch ( id )
     {
         case SIZE_RESTORED:
@@ -762,9 +765,6 @@ bool wxFrame::HandleSize(int WXUNUSED(x), int WXUNUSED(y), WXUINT id)
             IconizeChildFrames(true);
             break;
     }
-#else
-    wxUnusedVar(id);
-#endif // !__WXWINCE__
 
     if ( !m_iconized )
     {
@@ -776,21 +776,6 @@ bool wxFrame::HandleSize(int WXUNUSED(x), int WXUNUSED(y), WXUINT id)
         PositionToolBar();
 #endif // wxUSE_TOOLBAR
 
-#if defined(WINCE_WITH_COMMANDBAR)
-        // Position the menu command bar
-        if (GetMenuBar() && GetMenuBar()->GetCommandBar())
-        {
-            RECT rect;
-            ::GetWindowRect((HWND) GetMenuBar()->GetCommandBar(), &rect);
-            wxSize clientSz = GetClientSize();
-
-            if ( !::MoveWindow((HWND) GetMenuBar()->GetCommandBar(), 0, 0, clientSz.x, rect.bottom - rect.top, true ) )
-            {
-                wxLogLastError(wxT("MoveWindow"));
-            }
-
-        }
-#endif // WINCE_WITH_COMMANDBAR
     }
 
     // call the base class version to generate the appropriate events
@@ -800,11 +785,6 @@ bool wxFrame::HandleSize(int WXUNUSED(x), int WXUNUSED(y), WXUINT id)
 bool wxFrame::HandleCommand(WXWORD id, WXWORD cmd, WXHWND control)
 {
 #if wxUSE_MENUS
-
-#if defined(WINCE_WITHOUT_COMMANDBAR)
-    if (GetToolBar() && GetToolBar()->FindById(id))
-        return GetToolBar()->MSWCommand(cmd, id);
-#endif
 
     // we only need to handle the menu and accelerator commands from the items
     // of our menu bar, base wxWindow class already handles the rest
@@ -820,6 +800,20 @@ bool wxFrame::HandleCommand(WXWORD id, WXWORD cmd, WXHWND control)
         }
     }
 #endif // wxUSE_MENUS
+
+#if wxUSE_TASKBARBUTTON
+    if ( cmd == wxTHBN_CLICKED && m_taskBarButton )
+    {
+        wxTaskBarButtonImpl * const
+            tbButton = reinterpret_cast<wxTaskBarButtonImpl*>(m_taskBarButton);
+        // we use the index as id when adding thumbnail toolbar button.
+        wxThumbBarButton * const
+            thumbBarButton = tbButton->GetThumbBarButtonByIndex(id);
+        wxCommandEvent event(wxEVT_BUTTON, thumbBarButton->GetID());
+        event.SetEventObject(thumbBarButton);
+        return ProcessEvent(event);
+    }
+#endif // wxUSE_TASKBARBUTTON
 
     return wxFrameBase::HandleCommand(id, cmd, control);;
 }
@@ -863,7 +857,22 @@ WXLRESULT wxFrame::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPara
             }
             break;
 
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
+        case WM_INITMENUPOPUP:
+        case WM_UNINITMENUPOPUP:
+            // We get these messages from the menu bar even if the menu is
+            // disabled, which is unexpected, so ignore them in this case.
+            if ( wxMenuBar* mbar = GetMenuBar() )
+            {
+                const int pos = mbar->MSWGetTopMenuPos((WXHMENU)wParam);
+                if ( pos != wxNOT_FOUND && !mbar->IsEnabledTop(pos) )
+                {
+                    // This event comes from a disabled top level menu, don't
+                    // handle it.
+                    return MSWDefWindowProc(message, wParam, lParam);
+                }
+            }
+            break;
+
         case WM_QUERYDRAGICON:
             {
                 const wxIcon& icon = GetIcon();
@@ -873,8 +882,16 @@ WXLRESULT wxFrame::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPara
                 processed = rc != 0;
             }
             break;
-#endif // !__WXMICROWIN__
     }
+#if wxUSE_TASKBARBUTTON
+    if ( message == wxMsgTaskbarButtonCreated )
+    {
+        if ( m_taskBarButton )
+            m_taskBarButton->Realize();
+
+        processed = true;
+    }
+#endif
 
     if ( !processed )
         rc = wxFrameBase::MSWWindowProc(message, wParam, lParam);
@@ -893,8 +910,7 @@ wxPoint wxFrame::GetClientAreaOrigin() const
 {
     wxPoint pt = wxTopLevelWindow::GetClientAreaOrigin();
 
-#if wxUSE_TOOLBAR && !defined(__WXUNIVERSAL__) && \
-  (!defined(__WXWINCE__) || (_WIN32_WCE >= 400 && !defined(__POCKETPC__) && !defined(__SMARTPHONE__)))
+#if wxUSE_TOOLBAR && !defined(__WXUNIVERSAL__)
     wxToolBar * const toolbar = GetToolBar();
     if ( toolbar && toolbar->IsShown() )
     {
@@ -910,15 +926,6 @@ wxPoint wxFrame::GetClientAreaOrigin() const
         }
     }
 #endif // wxUSE_TOOLBAR
-
-#if defined(WINCE_WITH_COMMANDBAR)
-    if (GetMenuBar() && GetMenuBar()->GetCommandBar())
-    {
-        RECT rect;
-        ::GetWindowRect((HWND) GetMenuBar()->GetCommandBar(), &rect);
-        pt.y += (rect.bottom - rect.top);
-    }
-#endif
 
     return pt;
 }
