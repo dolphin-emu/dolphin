@@ -437,17 +437,6 @@ static u32 CalculateLevelSize(u32 level_0_size, u32 level)
 	return std::max(level_0_size >> level, 1u);
 }
 
-// Used by TextureCacheBase::Load
-TextureCacheBase::TCacheEntryBase* TextureCacheBase::ReturnEntry(unsigned int stage, TCacheEntryBase* entry)
-{
-	entry->frameCount = FRAMECOUNT_INVALID;
-	bound_textures[stage] = entry;
-
-	GFX_DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE, true);
-
-	return entry;
-}
-
 void TextureCacheBase::BindTextures()
 {
 	for (int i = 0; i < 8; ++i)
@@ -475,9 +464,31 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 	const bool use_mipmaps = SamplerCommon::AreBpTexMode0MipmapsEnabled(tex.texMode0[id]);
 	u32 tex_levels = use_mipmaps ? ((tex.texMode1[id].max_lod + 0xf) / 0x10 + 1) : 1;
 	const bool from_tmem = tex.texImage1[id].image_type != 0;
+	const u32 tmem_address_even = from_tmem ? tex.texImage1[id].tmem_even * TMEM_LINE_SIZE : 0;
+	const u32 tmem_address_odd = from_tmem ? tex.texImage2[id].tmem_odd * TMEM_LINE_SIZE : 0;
 
-	if (0 == address)
+	if (!from_tmem && address == 0)
 		return nullptr;
+
+	auto entry = GetTexture(address, width,	height,	texformat,
+							tlutaddr, tlutfmt, use_mipmaps,	tex_levels,
+							from_tmem, tmem_address_even, tmem_address_odd);
+
+	if (entry != nullptr)
+	{
+		entry->frameCount = FRAMECOUNT_INVALID;
+		bound_textures[stage] = entry;
+
+		GFX_DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE, true);
+	}
+
+	return entry;
+}
+
+TextureCacheBase::TCacheEntryBase* TextureCacheBase::GetTexture(u32 address, u32 width, u32 height,	const int texformat,
+																u32 tlutaddr, u32 tlutfmt, bool use_mipmaps, u32 tex_levels,
+																bool from_tmem,	u32 tmem_address_even, u32 tmem_address_odd)
+{
 
 	// TexelSizeInNibbles(format) * width * height / 16;
 	const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat);
@@ -519,9 +530,12 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 		additional_mips_size += TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
 	}
 
+	// TODO: the texture cache lookup is based on address, but a texture from tmem have no reason
+	//       to have a unique and valid address. This could result in a regular texture and a tmem
+	//       texture aliasing onto the same texture cache entry.
 	const u8* src_data;
 	if (from_tmem)
-		src_data = &texMem[bpmem.tex[stage / 4].texImage1[stage % 4].tmem_even * TMEM_LINE_SIZE];
+		src_data = &texMem[tmem_address_even];
 	else
 		src_data = Memory::GetPointer(address);
 
@@ -598,7 +612,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 				// texture formats. I'm not sure what effect checking width/height/levels
 				// would have.
 				if (!isPaletteTexture || !g_Config.backend_info.bSupportsPaletteConversion)
-					return ReturnEntry(stage, entry);
+					return entry;
 
 				// Note that we found an unconverted EFB copy, then continue.  We'll
 				// perform the conversion later.  Currently, we only convert EFB copies to
@@ -624,7 +638,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 			{
 				entry = DoPartialTextureUpdates(iter, &texMem[tlutaddr], tlutfmt);
 
-				return ReturnEntry(stage, entry);
+				return entry;
 			}
 		}
 
@@ -648,7 +662,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 
 		if (decoded_entry)
 		{
-			return ReturnEntry(stage, decoded_entry);
+			return decoded_entry;
 		}
 	}
 
@@ -670,7 +684,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 			{
 				entry = DoPartialTextureUpdates(iter, &texMem[tlutaddr], tlutfmt);
 
-				return ReturnEntry(stage, entry);
+				return entry;
 			}
 			++iter;
 		}
@@ -732,7 +746,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 		}
 		else
 		{
-			u8* src_data_gb = &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
+			u8* src_data_gb = &texMem[tmem_address_odd];
 			TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
 		}
 	}
@@ -785,8 +799,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 		const u8* ptr_odd = nullptr;
 		if (from_tmem)
 		{
-			ptr_even = &texMem[bpmem.tex[stage / 4].texImage1[stage % 4].tmem_even * TMEM_LINE_SIZE + texture_size];
-			ptr_odd = &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
+			ptr_even = &texMem[tmem_address_even + texture_size];
+			ptr_odd = &texMem[tmem_address_odd * TMEM_LINE_SIZE];
 		}
 
 		for (u32 level = 1; level != texLevels; ++level)
@@ -815,11 +829,11 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 
 	entry = DoPartialTextureUpdates(iter, &texMem[tlutaddr], tlutfmt);
 
-	return ReturnEntry(stage, entry);
+	return entry;
 }
 
 void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride, PEControl::PixelFormat srcFormat,
-                                                 const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+                                                 const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf, u32 scaleToHeight)
 {
 	// Emulation methods:
 	//
@@ -869,7 +883,12 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 	ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f;
 	ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 255.0f;
 	unsigned int cbufid = -1;
-	bool efbHasAlpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+	bool efbHasAlpha = srcFormat == PEControl::RGBA6_Z24;
+
+	bool copy_to_ram = !g_ActiveConfig.bSkipEFBCopyToRam;
+	bool copy_to_vram = true;
+
+	bool is_xfb_copy = false;
 
 	if (srcFormat == PEControl::Z24)
 	{
@@ -1107,6 +1126,15 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 			}
 			break;
 
+		case GX_CTF_XFB: // XFB copy, we just pretend it's an RGBX copy
+			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
+			ColorMask[3] = 0.0f;
+			fConstAdd[3] = 1.0f;
+			cbufid = 30; // just re-use the RGBX8 cbufid from above
+			copy_to_ram = false;
+			is_xfb_copy = true;
+			break;
+
 		default:
 			ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", dstFormat);
 			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
@@ -1155,9 +1183,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 	const u32 bytes_per_block = baseFormat == GX_TF_RGBA8 ? 64 : 32;
 
 	u32 bytes_per_row = num_blocks_x * bytes_per_block;
-
-	bool copy_to_ram = !g_ActiveConfig.bSkipEFBCopyToRam;
-	bool copy_to_vram = true;
 
 	if (copy_to_ram)
 	{
@@ -1252,7 +1277,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 			u64 hash = entry->CalculateHash();
 			entry->SetHashes(hash, hash);
 
-			if (g_ActiveConfig.bDumpEFBTarget)
+			if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
 			{
 				static int count = 0;
 				entry->Save(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),

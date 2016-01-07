@@ -139,10 +139,14 @@ public:
 	virtual void DeleteShaders() = 0; // currently only implemented by OGL
 
 	static TCacheEntryBase* Load(const u32 stage);
+	static TextureCacheBase::TCacheEntryBase* GetTexture(u32 address, u32 width, u32 height, const int texformat,
+	                                                     u32 tlutaddr = 0, u32 tlutfmt = 0, bool use_mipmaps = false,
+	                                                     u32 tex_levels = 1, bool from_tmem = false,
+	                                                     u32 tmem_address_even = 0, u32 tmem_address_odd = 0);
 	static void UnbindTextures();
 	virtual void BindTextures();
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
-		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf, u32 scaleToHeight = 0);
 
 	virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) = 0;
 
@@ -165,8 +169,6 @@ private:
 	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
 	static TexCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
 	static TexCache::iterator FreeTexture(TexCache::iterator t_iter);
-
-	static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
 
 	static TexCache textures_by_address;
 	static TexCache textures_by_hash;
