@@ -3,12 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <cctype>
-#include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <random>
 
 #include "Common/Network.h"
 #include "Common/StringUtil.h"
+#include "Common/Timer.h"
 
 void GenerateMacAddress(const MACConsumer type, u8* mac)
 {
@@ -27,16 +28,12 @@ void GenerateMacAddress(const MACConsumer type, u8* mac)
 		break;
 	}
 
-	srand((unsigned int)time(nullptr));
-
-	u8 id[3] =
-	{
-		(u8)rand(),
-		(u8)rand(),
-		(u8)rand()
-	};
-
-	memcpy(&mac[3], id, 3);
+	// Generate the 24-bit NIC-specific portion of the MAC address.
+	std::default_random_engine generator(Common::Timer::GetTimeMs());
+	std::uniform_int_distribution<int> distribution(0x00, 0xFF);
+	mac[3] = static_cast<u8>(distribution(generator));
+	mac[4] = static_cast<u8>(distribution(generator));
+	mac[5] = static_cast<u8>(distribution(generator));
 }
 
 std::string MacAddressToString(const u8* mac)
