@@ -1348,95 +1348,33 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     return;
   }
 
-  u32 xfbCount = 0;
-  const XFBSourceBase* const* xfbSourceList =
-      FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
-  if (g_ActiveConfig.VirtualXFBEnabled() && (!xfbSourceList || xfbCount == 0))
-  {
-    DumpFrame(frame_data, w, h);
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
-
-  ResetAPIState();
-
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
   TargetRectangle flipped_trc = GetTargetRectangle();
 
   // Flip top and bottom for some reason; TODO: Fix the code to suck less?
   std::swap(flipped_trc.top, flipped_trc.bottom);
 
-  // Copy the framebuffer to screen.
-  const XFBSource* xfbSource = nullptr;
+  // Get the current XFB from texture cache
+  auto entry = TextureCache::GetTexture(xfbAddr, fbWidth, fbHeight, GX_CTF_XFB);
+  TextureCache::TCacheEntry* opengl_entry = static_cast<TextureCache::TCacheEntry*>(entry);
 
-  if (g_ActiveConfig.bUseXFB)
-  {
-    // draw each xfb source
-    for (u32 i = 0; i < xfbCount; ++i)
-    {
-      xfbSource = (const XFBSource*)xfbSourceList[i];
+  // TODO: If the XFB texture cache entry hasn't changed since the last Swap, we can return early.
 
-      TargetRectangle drawRc;
-      TargetRectangle sourceRc;
-      sourceRc.left = xfbSource->sourceRc.left;
-      sourceRc.right = xfbSource->sourceRc.right;
-      sourceRc.top = xfbSource->sourceRc.top;
-      sourceRc.bottom = xfbSource->sourceRc.bottom;
+  TargetRectangle sourceRc = ConvertEFBRectangle(rc);
+  sourceRc.left = 0;
+  sourceRc.right = opengl_entry->config.width;
+  sourceRc.top = opengl_entry->config.height;
+  sourceRc.bottom = 0;
 
-      if (g_ActiveConfig.bUseRealXFB)
-      {
-        drawRc = flipped_trc;
-        sourceRc.right -= fbStride - fbWidth;
+  ResetAPIState();
 
-        // RealXFB doesn't call ConvertEFBRectangle for sourceRc, therefore it is still assuming a
-        // top-left origin.
-        // The top offset is always zero (see FramebufferManagerBase::GetRealXFBSource).
-        sourceRc.top = sourceRc.bottom;
-        sourceRc.bottom = 0;
-      }
-      else
-      {
-        // use virtual xfb with offset
-        int xfbHeight = xfbSource->srcHeight;
-        int xfbWidth = xfbSource->srcWidth;
-        int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
+  // And blit it to the screen.
+  BlitScreen(sourceRc, flipped_trc, opengl_entry->texture, opengl_entry->config.width,
+             opengl_entry->config.height);
 
-        drawRc.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / (s32)fbHeight;
-        drawRc.bottom =
-            flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / (s32)fbHeight;
-        drawRc.left =
-            flipped_trc.left +
-            (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
-        drawRc.right =
-            flipped_trc.left +
-            (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
-
-        // The following code disables auto stretch.  Kept for reference.
-        // scale draw area for a 1 to 1 pixel mapping with the draw target
-        // float vScale = (float)fbHeight / (float)flipped_trc.GetHeight();
-        // float hScale = (float)fbWidth / (float)flipped_trc.GetWidth();
-        // drawRc.top *= vScale;
-        // drawRc.bottom *= vScale;
-        // drawRc.left *= hScale;
-        // drawRc.right *= hScale;
-
-        sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
-      }
-      // Tell the OSD Menu about the current internal resolution
-      OSDInternalW = xfbSource->sourceRc.GetWidth();
-      OSDInternalH = xfbSource->sourceRc.GetHeight();
-
-      BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
-    }
-  }
-  else
-  {
-    TargetRectangle targetRc = ConvertEFBRectangle(rc);
-
-    // for msaa mode, we must resolve the efb content to non-msaa
-    GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
-    BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
-  }
+  // Tell the OSD Menu about the current internal resolution
+  OSDInternalW = sourceRc.GetWidth();
+  OSDInternalH = sourceRc.GetHeight();
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 

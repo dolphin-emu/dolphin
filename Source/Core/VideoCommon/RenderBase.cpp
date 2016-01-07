@@ -128,12 +128,12 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
 
   if (g_ActiveConfig.bUseXFB)
   {
-    FramebufferManagerBase::CopyToXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
+    //	FramebufferManagerBase::CopyToXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
   }
   else
   {
     // below div two to convert from bytes to pixels - it expects width, not stride
-    Swap(xfbAddr, fbStride / 2, fbStride / 2, fbHeight, sourceRc, Gamma);
+    //	Swap(xfbAddr, fbStride/2, fbStride/2, fbHeight, sourceRc, Gamma);
   }
 }
 
