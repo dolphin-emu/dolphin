@@ -1323,7 +1323,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	// Save screenshot
-	if (s_bScreenshot)
+	if (s_screenshotFlag.TestAndClear())
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 
@@ -1332,7 +1332,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		// Reset settings
 		s_sScreenshotName.clear();
-		s_bScreenshot = false;
 		s_screenshotCompleted.Set();
 	}
 
@@ -1343,16 +1342,20 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 #if defined _WIN32 || defined HAVE_LIBAV
 		if (SConfig::GetInstance().m_DumpFrames)
 		{
+			// Restrict the image being dumped to the dimensions of the backbuffer.
+			TargetRectangle image_rc(flipped_trc);
+			image_rc.ClampLL(0, s_backbuffer_height, s_backbuffer_width, 0);
+
 			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-			if (frame_data.empty() || w != flipped_trc.GetWidth() ||
-				     h != flipped_trc.GetHeight())
+			if (frame_data.empty() || w != image_rc.GetWidth() ||
+				     h != image_rc.GetHeight())
 			{
-				w = flipped_trc.GetWidth();
-				h = flipped_trc.GetHeight();
+				w = image_rc.GetWidth();
+				h = image_rc.GetHeight();
 				frame_data.resize(3 * w * h);
 			}
 			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-			glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
+			glReadPixels(image_rc.left, image_rc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
 			if (w > 0 && h > 0)
 			{
 				if (!bLastFrameDumped)
@@ -1404,13 +1407,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 #else
 		if (SConfig::GetInstance().m_DumpFrames)
 		{
+			TargetRectangle image_rc(GetTargetRectangle());
+			image_rc.ClampLL(0, s_backbuffer_height, s_backbuffer_width, 0);
+
 			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 			std::string movie_file_name;
-			w = GetTargetRectangle().GetWidth();
-			h = GetTargetRectangle().GetHeight();
+			w = image_rc.GetWidth();
+			h = image_rc.GetHeight();
 			frame_data.resize(3 * w * h);
 			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-			glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
+			glReadPixels(image_rc.left, image_rc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
 
 			if (!bLastFrameDumped)
 			{
@@ -1707,12 +1713,18 @@ namespace OGL
 
 bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &back_rc)
 {
-	u32 W = back_rc.GetWidth();
-	u32 H = back_rc.GetHeight();
+	// When cropping is enabled, back_rc can contain coordinates that are either negative,
+	// or outside the window dimensions, so the image size is clamped at the backbuffer
+	// dimensions to prevent leaving extra rows/columns uninitialized.
+	TargetRectangle image_rc(back_rc);
+	image_rc.ClampLL(0, s_backbuffer_height, s_backbuffer_width, 0);
+
+	u32 W = image_rc.GetWidth();
+	u32 H = image_rc.GetHeight();
 	std::unique_ptr<u8[]> data(new u8[W * 4 * H]);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
+	glReadPixels(image_rc.left, image_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
 
 	// Turn image upside down
 	FlipImageData(data.get(), W, H, 4);

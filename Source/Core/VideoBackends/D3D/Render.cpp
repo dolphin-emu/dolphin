@@ -812,13 +812,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// done with drawing the game stuff, good moment to save a screenshot
-	if (s_bScreenshot)
+	if (s_screenshotFlag.TestAndClear())
 	{
 		std::lock_guard<std::mutex> guard(s_criticalScreenshot);
 
 		SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
 		s_sScreenshotName.clear();
-		s_bScreenshot = false;
 		s_screenshotCompleted.Set();
 	}
 

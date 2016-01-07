@@ -689,28 +689,14 @@ static std::string GenerateScreenshotName()
 
 void SaveScreenShot()
 {
-	const bool bPaused = (GetState() == CORE_PAUSE);
-
-	SetState(CORE_PAUSE);
-
 	g_video_backend->Video_Screenshot(GenerateScreenshotName());
-
-	if (!bPaused)
-		SetState(CORE_RUN);
 }
 
 void SaveScreenShot(const std::string& name)
 {
-	const bool bPaused = (GetState() == CORE_PAUSE);
-
-	SetState(CORE_PAUSE);
-
 	std::string filePath = GenerateScreenshotFolderPath() + name + ".png";
 
 	g_video_backend->Video_Screenshot(filePath);
-
-	if (!bPaused)
-	 	SetState(CORE_RUN);
 }
 
 void RequestRefreshInfo()
