@@ -282,7 +282,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 				"vec4 sampleEFB(ivec3 pos) {\n"
 				"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
 				"	for(int i=0; i<" + samples.str() + "; i++)\n"
-				"		color += texelFetch(samp9, pos, 0), i);\n"
+				"		color += texelFetch(samp9, pos, i);\n"
 				"	return color / " + samples.str() + ";\n"
 				"}\n";
 		}
