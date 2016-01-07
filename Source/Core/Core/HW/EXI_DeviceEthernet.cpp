@@ -25,18 +25,10 @@ CEXIETHERNET::CEXIETHERNET()
 
 	MXHardReset();
 
-	// Parse MAC address from config, and generate a new one if it doesn't
-	// exist or can't be parsed.
-	std::string &mac_addr_setting = SConfig::GetInstance().m_bba_mac;
+	// Generate a MAC address on initialization.
+	// This saves requiring separate config files for each instance.
 	u8 mac_addr[MAC_ADDRESS_SIZE] = { 0 };
-
-	if (!StringToMacAddress(mac_addr_setting, mac_addr))
-	{
-		GenerateMacAddress(BBA, mac_addr);
-		mac_addr_setting = MacAddressToString(mac_addr);
-		SConfig::GetInstance().SaveSettings();
-	}
-
+	GenerateMacAddress(BBA, mac_addr);
 	memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_addr, MAC_ADDRESS_SIZE);
 
 	// HACK: .. fully established 100BASE-T link

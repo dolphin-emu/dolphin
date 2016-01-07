@@ -250,7 +250,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("SlotA", m_EXIDevice[0]);
 	core->Set("SlotB", m_EXIDevice[1]);
 	core->Set("SerialPort1", m_EXIDevice[2]);
-	core->Set("BBA_MAC", m_bba_mac);
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
 		core->Set(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
@@ -503,7 +502,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("SlotA",       (int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
 	core->Get("SlotB",       (int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 	core->Get("SerialPort1", (int*)&m_EXIDevice[2], EXIDEVICE_NONE);
-	core->Get("BBA_MAC",           &m_bba_mac);
 	core->Get("TimeProfiling",     &bJITILTimeProfiling, false);
 	core->Get("OutputIR",          &bJITILOutputIR,      false);
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
