@@ -37,7 +37,7 @@ private:
 		void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 			bool scaleByHalf, unsigned int cbufid, const float *colmat) override;
 
-		void Bind(unsigned int stage) override;
+		void Bind(unsigned int stage, unsigned int lastTexture) override;
 		bool Save(const std::string& filename, unsigned int level) override;
 	};
 
