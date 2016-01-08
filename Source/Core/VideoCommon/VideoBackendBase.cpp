@@ -5,6 +5,7 @@
 // TODO: ugly
 #ifdef _WIN32
 #include "VideoBackends/D3D/VideoBackend.h"
+#include "VideoBackends/D3D12/VideoBackend.h"
 #endif
 #include "VideoBackends/OGL/VideoBackend.h"
 #include "VideoBackends/Software/VideoBackend.h"
@@ -30,10 +31,18 @@ void VideoBackendBase::PopulateList()
 {
 	VideoBackendBase* backends[4] = { nullptr };
 
-	// OGL > D3D11 > SW
+	// OGL > D3D11 > D3D12 > SW
 	g_available_video_backends.push_back(backends[0] = new OGL::VideoBackend);
 #ifdef _WIN32
 	g_available_video_backends.push_back(backends[1] = new DX11::VideoBackend);
+
+	// More robust way to check for D3D12 support than (unreliable) OS version checks.
+	HMODULE d3d12_module = LoadLibraryA("d3d12.dll");
+	if (d3d12_module != NULL)
+	{
+		FreeLibrary(d3d12_module);
+		g_available_video_backends.push_back(backends[2] = new DX12::VideoBackend);
+	}
 #endif
 	g_available_video_backends.push_back(backends[3] = new SW::VideoSoftware);
 
