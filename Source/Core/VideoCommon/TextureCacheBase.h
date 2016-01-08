@@ -89,7 +89,7 @@ public:
 		TCacheEntryBase(const TCacheEntryConfig& c) : config(c) {}
 		virtual ~TCacheEntryBase();
 
-		virtual void Bind(unsigned int stage) = 0;
+		virtual void Bind(unsigned int stage, unsigned int last_texture) = 0;
 		virtual bool Save(const std::string& filename, unsigned int level) = 0;
 
 		virtual void CopyRectangleFromTexture(
