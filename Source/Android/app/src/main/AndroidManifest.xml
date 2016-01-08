@@ -24,6 +24,8 @@
         android:supportsRtl="true"
         android:isGame="true"
         android:banner="@drawable/banner_tv">
+        <meta-data android:name="com.google.android.gms.games.APP_ID"
+            android:value="@string/app_id" />
 
         <activity
             android:name=".activities.MainActivity"

@@ -3,6 +3,7 @@
 
     <!-- Title of the app -->
     <string name="app_name">Dolphin Emulator</string>
+    <string name="app_id">1087199452365</string>
 
     <!-- Navigation-related Strings -->
     <string name="drawer_open">Open navigation drawer</string>

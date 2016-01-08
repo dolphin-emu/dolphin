@@ -11,6 +11,7 @@
 #include <android/native_window_jni.h>
 #include <EGL/egl.h>
 
+#include "Achievements.h"
 #include "ButtonManager.h"
 
 #include "Common/CommonPaths.h"
@@ -616,6 +617,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 
 	UICommon::SetUserDirectory(g_set_userpath);
 	UICommon::Init();
+	Achievements::Init();
 
 	// No use running the loop when booting fails
 	if ( BootManager::BootCore( g_filename.c_str() ) )
@@ -625,6 +627,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 			updateMainFrameEvent.Wait();
 	}
 
+	Achievements::Shutdown();
 	Core::Shutdown();
 	UICommon::Shutdown();
 	ANativeWindow_release(surf);

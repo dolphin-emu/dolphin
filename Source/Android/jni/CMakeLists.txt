@@ -1,6 +1,7 @@
 list(APPEND LIBS core uicommon)
 
-set(SRCS ButtonManager.cpp
+set(SRCS Achievements.cpp
+         ButtonManager.cpp
          MainAndroid.cpp)
 
 if(ANDROID)
