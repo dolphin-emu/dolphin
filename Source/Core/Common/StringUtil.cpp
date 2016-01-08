@@ -150,7 +150,7 @@ std::string ArrayToString(const u8 *data, u32 size, int line_len, bool spaces)
 	std::ostringstream oss;
 	oss << std::setfill('0') << std::hex;
 
-	for (int line = 0; size; ++data, --size)
+	for (int line = 0; size > 0; ++data, --size)
 	{
 		oss << std::setw(2) << (int)*data;
 
