@@ -10,6 +10,9 @@
 // Helper functions:
 
 #ifdef _WIN32
+
+#include <intrin.h>
+
 template <typename T>
 static inline int CountSetBits(T v)
 {
