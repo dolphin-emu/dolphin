@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
@@ -69,6 +68,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTests\Unit
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "enet", "..\Externals\enet\enet.vcxproj", "{CBC76802-C128-4B17-BF6C-23B08C313E5E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D12", "Core\VideoBackends\D3D12\D3D12.vcxproj", "{570215B7-E32F-4438-95AE-C8D955F9FCA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -79,10 +80,6 @@ Global
 		{47411FDB-1BF2-48D0-AB4E-C7C41160F898}.Debug|x64.Build.0 = Debug|x64
 		{47411FDB-1BF2-48D0-AB4E-C7C41160F898}.Release|x64.ActiveCfg = Release|x64
 		{47411FDB-1BF2-48D0-AB4E-C7C41160F898}.Release|x64.Build.0 = Release|x64
-		{69D2B16E-122A-4E5D-8C37-8EC7B0F7CEB0}.Debug|x64.ActiveCfg = Debug|x64
-		{69D2B16E-122A-4E5D-8C37-8EC7B0F7CEB0}.Debug|x64.Build.0 = Debug|x64
-		{69D2B16E-122A-4E5D-8C37-8EC7B0F7CEB0}.Release|x64.ActiveCfg = Release|x64
-		{69D2B16E-122A-4E5D-8C37-8EC7B0F7CEB0}.Release|x64.Build.0 = Release|x64
 		{E54CF649-140E-4255-81A5-30A673C1FB36}.Debug|x64.ActiveCfg = Debug|x64
 		{E54CF649-140E-4255-81A5-30A673C1FB36}.Debug|x64.Build.0 = Debug|x64
 		{E54CF649-140E-4255-81A5-30A673C1FB36}.Release|x64.ActiveCfg = Release|x64
@@ -199,6 +196,10 @@ Global
 		{CBC76802-C128-4B17-BF6C-23B08C313E5E}.Debug|x64.Build.0 = Debug|x64
 		{CBC76802-C128-4B17-BF6C-23B08C313E5E}.Release|x64.ActiveCfg = Release|x64
 		{CBC76802-C128-4B17-BF6C-23B08C313E5E}.Release|x64.Build.0 = Release|x64
+		{570215B7-E32F-4438-95AE-C8D955F9FCA3}.Debug|x64.ActiveCfg = Debug|x64
+		{570215B7-E32F-4438-95AE-C8D955F9FCA3}.Debug|x64.Build.0 = Debug|x64
+		{570215B7-E32F-4438-95AE-C8D955F9FCA3}.Release|x64.ActiveCfg = Release|x64
+		{570215B7-E32F-4438-95AE-C8D955F9FCA3}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -230,5 +231,6 @@ Global
 		{AAD1BCD6-9804-44A5-A5FC-4782EA00E9D4} = {15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}
 		{76563A7F-1011-4EAD-B667-7BB18D09568E} = {15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}
 		{CBC76802-C128-4B17-BF6C-23B08C313E5E} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
+		{570215B7-E32F-4438-95AE-C8D955F9FCA3} = {AAD1BCD6-9804-44A5-A5FC-4782EA00E9D4}
 	EndGlobalSection
 EndGlobal
