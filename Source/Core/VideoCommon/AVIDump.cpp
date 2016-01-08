@@ -102,6 +102,8 @@ bool AVIDump::CreateFile()
 
 	s_stream->codec->codec_id = g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1
 	                                              : s_format_context->oformat->video_codec;
+	if (!g_Config.bUseFFV1)
+		s_stream->codec->codec_tag = MKTAG('X', 'V', 'I', 'D'); // Force XVID FourCC for better compatibility
 	s_stream->codec->codec_type = AVMEDIA_TYPE_VIDEO;
 	s_stream->codec->bit_rate = 400000;
 	s_stream->codec->width = s_width;
