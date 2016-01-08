@@ -100,7 +100,7 @@ private:
 			const MathUtil::Rectangle<int>& srcrect,
 			const MathUtil::Rectangle<int>& dstrect) override {}
 
-		void Bind(unsigned int stage) override {}
+		void Bind(unsigned int stage, unsigned int last_texture) override {}
 
 		bool Save(const std::string& filename, unsigned int level) override { return false; }
 	};

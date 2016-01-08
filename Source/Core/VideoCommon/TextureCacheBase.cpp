@@ -344,10 +344,21 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::ReturnEntry(unsigned int st
 
 void TextureCacheBase::BindTextures()
 {
-	for (int i = 0; i < 8; ++i)
+	unsigned int last_texture = 0;
+	for (unsigned int i = 0; i < 8; ++i)
 	{
 		if (bound_textures[i])
-			bound_textures[i]->Bind(i);
+		{
+			last_texture = i;
+		}
+	}
+
+	for (unsigned int i = 0; i < 8; ++i)
+	{
+		if (bound_textures[i])
+		{
+			bound_textures[i]->Bind(i, last_texture);
+		}
 	}
 }
 

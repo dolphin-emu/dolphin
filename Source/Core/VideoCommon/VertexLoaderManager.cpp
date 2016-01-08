@@ -29,7 +29,6 @@ namespace VertexLoaderManager
 float position_cache[3][4];
 u32 position_matrix_index[3];
 
-typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexFormatMap;
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
 u32 g_current_components;
@@ -40,6 +39,12 @@ static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
 u8 *cached_arraybases[12];
+
+// Used in D3D12 backend, to populate input layouts used by cached-to-disk PSOs.
+NativeVertexFormatMap* GetNativeVertexFormatMap()
+{
+	return &s_native_vertex_map;
+}
 
 void Init()
 {

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/DataReader.h"
@@ -12,10 +13,14 @@
 
 namespace VertexLoaderManager
 {
+	typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexFormatMap;
+
 	void Init();
 	void Shutdown();
 
 	void MarkAllDirty();
+
+	NativeVertexFormatMap* GetNativeVertexFormatMap();
 
 	// Returns -1 if buf_size is insufficient, else the amount of bytes consumed
 	int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing, bool is_preprocess);
