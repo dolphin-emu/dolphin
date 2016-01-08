@@ -334,5 +334,5 @@ union UVIHorizontalStepping
 	u32 GetTicksPerField();
 
 	//For VI Scaling and Aspect Ratio Correction
-	float GetAspectRatio(bool);
+	float GetAspectRatio();
 }

@@ -472,7 +472,7 @@ static u32 GetTicksPerOddField()
 	return GetTicksPerHalfLine() * GetHalfLinesPerOddField();
 }
 
-float GetAspectRatio(bool wide)
+float GetAspectRatio()
 {
 	u32 multiplier = static_cast<u32>(m_PictureConfiguration.STD / m_PictureConfiguration.WPL);
 	int height = (multiplier * m_VerticalTimingRegister.ACV);
@@ -485,14 +485,7 @@ float GetAspectRatio(bool wide)
 		//In square pixels, 1024*576 is 16:9, and 768*576 is 4:3
 		//Therefore a 16:9 TV would have a "pixel" aspect ratio of 1024/702
 		//Similarly a 4:3 TV would have a ratio of 768/702
-		if (wide)
-		{
-			pixelAR = 1024.0f / 702.0f;
-		}
-		else
-		{
-			pixelAR = 768.0f / 702.0f;
-		}
+		pixelAR = 768.0f / 702.0f;
 	}
 	else
 	{
@@ -500,25 +493,11 @@ float GetAspectRatio(bool wide)
 		//In square pixels, 864*486 is 16:9, and 648*486 is 4:3
 		//Therefore a 16:9 TV would have a "pixel" aspect ratio of 864/710.85
 		//Similarly a 4:3 TV would have a ratio of 648/710.85
-		if (wide)
-		{
-			pixelAR = 864.0f / 710.85f;
-		}
-		else
-		{
-			pixelAR = 648.0f / 710.85f;
-		}
+		pixelAR = 648.0f / 710.85f;
 	}
 	if (width == 0 || height == 0)
 	{
-		if (wide)
-		{
-			return 16.0f / 9.0f;
-		}
-		else
-		{
-			return 4.0f / 3.0f;
-		}
+		return 4.0f / 3.0f;
 	}
 	return ((float)width / (float)height) * pixelAR;
 }
