@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/MathUtil.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 //#define WIIMOTE_SPEAKER_DUMP
@@ -95,9 +96,8 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 		// Following details from http://wiibrew.org/wiki/Wiimote#Speaker
 		sample_rate_dividend = 6000000;
 
-		// 0 - 127
-		// TODO: does it go beyond 127 for format == 0x40?
-		volume_divisor = 0x7F;
+		// Despite above source, max wiimote speaker observed in games seems to be 127, not 64
+		volume_divisor = 0x7f;
 		sample_length = (unsigned int)sd->length * 2;
 	}
 	else
@@ -106,18 +106,17 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 		return;
 	}
 
-	// Speaker Pan
-	unsigned int vol = (unsigned int)(m_options->settings[4]->GetValue() * 100);
-
+	// Speaker Pan using Constant Power Pan Law
+	double pan = m_options->settings[4]->GetValue() / 1.27;
+	double pan_prime = 3.14159265358979323846 * (pan + 1) / 4.0;
 	unsigned int sample_rate = sample_rate_dividend / m_reg_speaker.sample_rate;
 	float speaker_volume_ratio = (float)m_reg_speaker.volume / volume_divisor;
-	unsigned int left_volume = (unsigned int)((128 + vol) * speaker_volume_ratio);
-	unsigned int right_volume = (unsigned int)((128 - vol) * speaker_volume_ratio);
 
-	if (left_volume > 255)
-		left_volume = 255;
-	if (right_volume > 255)
-		right_volume = 255;
+	unsigned int left_volume = (unsigned int)(256 * cos(pan_prime) * speaker_volume_ratio);
+	unsigned int right_volume = (unsigned int)(256 * sin(pan_prime) * speaker_volume_ratio);
+
+	left_volume = MathUtil::Clamp(left_volume, 0u, 256u);
+	right_volume = MathUtil::Clamp(right_volume, 0u, 256u);
 
 	g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(left_volume, right_volume);
 
