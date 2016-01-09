@@ -18,6 +18,16 @@ using namespace Gen;
 
 void EmuCodeBlock::MemoryExceptionCheck()
 {
+	if (jit->js.generatingTrampoline)
+	{
+		if (jit->js.trampolineExceptionHandler)
+		{
+			TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
+			J_CC(CC_NZ, jit->js.trampolineExceptionHandler);
+		}
+		return;
+	}
+
 	if (jit->jo.memcheck && !jit->js.fastmemLoadStore && !jit->js.fixupExceptionHandler)
 	{
 		TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
@@ -40,9 +50,9 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
 		MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
 }
 
-u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset, bool signExtend)
+bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset, bool signExtend, MovInfo* info)
 {
-	u8 *result;
+	bool offsetAddedToAddress = false;
 	OpArg memOperand;
 	if (opAddress.IsSimpleReg())
 	{
@@ -54,6 +64,11 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessS
 		// place to address the issue.)
 		if ((u32) offset >= 0x1000)
 		{
+			// This method can potentially clobber the address if it shares a register
+			// with the load target. In this case we can just subtract offset from the
+			// register (see JitBackpatch for this implementation).
+			offsetAddedToAddress = (reg_value == opAddress.GetSimpleReg());
+
 			LEA(32, reg_value, MDisp(opAddress.GetSimpleReg(), offset));
 			opAddress = R(reg_value);
 			offset = 0;
@@ -71,9 +86,8 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessS
 		memOperand = MComplex(RMEM, reg_value, SCALE_1, offset);
 	}
 
-	result = GetWritableCodePtr();
-	LoadAndSwap(accessSize, reg_value, memOperand, signExtend);
-	return result;
+	LoadAndSwap(accessSize, reg_value, memOperand, signExtend, info);
+	return offsetAddedToAddress;
 }
 
 // Visitor that generates code to read a MMIO value.
@@ -232,65 +246,42 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
 
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
-	registersInUse[reg_value] = false;
-	if (jit->jo.fastmem &&
-	    !opAddress.IsImm() &&
-	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM)))
-	{
-		u8 *mov = UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
+	bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
 
-		registersInUseAtLoc[mov] = registersInUse;
-		jit->js.fastmemLoadStore = mov;
+	registersInUse[reg_value] = false;
+	if (jit->jo.fastmem && !(flags & SAFE_LOADSTORE_NO_FASTMEM) && !slowmem)
+	{
+		u8* backpatchStart = GetWritableCodePtr();
+		MovInfo mov;
+		bool offsetAddedToAddress = UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
+		TrampolineInfo& info = backPatchInfo[mov.address];
+		info.pc = jit->js.compilerPC;
+		info.mov = mov;
+		info.start = backpatchStart;
+		info.read = true;
+		info.op_reg = reg_value;
+		info.op_arg = opAddress;
+		info.offsetAddedToAddress = offsetAddedToAddress;
+		info.accessSize = accessSize;
+		info.offset = offset;
+		info.registersInUse = registersInUse;
+		info.flags = flags;
+		info.signExtend = signExtend;
+		ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
+		if (padding > 0)
+		{
+			NOP(padding);
+		}
+		info.end = GetCodePtr();
+
+		jit->js.fastmemLoadStore = mov.address;
 		return;
 	}
-
-	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-	// The following masks the region used by the GC/Wii virtual memory lib
-	mem_mask |= Memory::ADDR_MASK_MEM1;
 
 	if (opAddress.IsImm())
 	{
 		u32 address = opAddress.Imm32() + offset;
-
-		// If the address is known to be RAM, just load it directly.
-		if (PowerPC::IsOptimizableRAMAddress(address))
-		{
-			UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
-			return;
-		}
-
-		// If the address maps to an MMIO register, inline MMIO read code.
-		u32 mmioAddress = PowerPC::IsOptimizableMMIOAccess(address, accessSize);
-		if (accessSize != 64 && mmioAddress)
-		{
-			MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
-			              mmioAddress, accessSize, signExtend);
-			return;
-		}
-
-		// Fall back to general-case code.
-		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-		switch (accessSize)
-		{
-		case 64: ABI_CallFunctionC((void *)&PowerPC::Read_U64, address); break;
-		case 32: ABI_CallFunctionC((void *)&PowerPC::Read_U32, address); break;
-		case 16: ABI_CallFunctionC((void *)&PowerPC::Read_U16_ZX, address); break;
-		case 8:  ABI_CallFunctionC((void *)&PowerPC::Read_U8_ZX, address); break;
-		}
-		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-
-		MemoryExceptionCheck();
-		if (signExtend && accessSize < 32)
-		{
-			// Need to sign extend values coming from the Read_U* functions.
-			MOVSX(32, accessSize, reg_value, R(ABI_RETURN));
-		}
-		else if (reg_value != ABI_RETURN)
-		{
-			MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
-		}
-
+		SafeLoadToRegImmediate(reg_value, address, accessSize, registersInUse, signExtend);
 		return;
 	}
 
@@ -303,8 +294,13 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	}
 
 	FixupBranch exit;
-	if (!jit->jo.alwaysUseMemFuncs)
+	if (!jit->jo.alwaysUseMemFuncs && !slowmem)
 	{
+		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+
+		// The following masks the region used by the GC/Wii virtual memory lib
+		mem_mask |= Memory::ADDR_MASK_MEM1;
+
 		FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse, mem_mask);
 		UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
 		if (farcode.Enabled())
@@ -343,7 +339,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
 	}
 
-	if (!jit->jo.alwaysUseMemFuncs)
+	if (!jit->jo.alwaysUseMemFuncs && !slowmem)
 	{
 		if (farcode.Enabled())
 		{
@@ -352,6 +348,49 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		}
 		SetJumpTarget(exit);
 	}
+}
+
+void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int accessSize, BitSet32 registersInUse, bool signExtend)
+{
+	// If the address is known to be RAM, just load it directly.
+	if (PowerPC::IsOptimizableRAMAddress(address))
+	{
+		UnsafeLoadToReg(reg_value, Imm32(address), accessSize, 0, signExtend);
+		return;
+	}
+
+	// If the address maps to an MMIO register, inline MMIO read code.
+	u32 mmioAddress = PowerPC::IsOptimizableMMIOAccess(address, accessSize);
+	if (accessSize != 64 && mmioAddress)
+	{
+		MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
+		              mmioAddress, accessSize, signExtend);
+		return;
+	}
+
+	// Fall back to general-case code.
+	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+	switch (accessSize)
+	{
+	case 64: ABI_CallFunctionC((void *)&PowerPC::Read_U64, address); break;
+	case 32: ABI_CallFunctionC((void *)&PowerPC::Read_U32, address); break;
+	case 16: ABI_CallFunctionC((void *)&PowerPC::Read_U16_ZX, address); break;
+	case 8:  ABI_CallFunctionC((void *)&PowerPC::Read_U8_ZX, address); break;
+	}
+	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+
+	MemoryExceptionCheck();
+	if (signExtend && accessSize < 32)
+	{
+		// Need to sign extend values coming from the Read_U* functions.
+		MOVSX(32, accessSize, reg_value, R(ABI_RETURN));
+	}
+	else if (reg_value != ABI_RETURN)
+	{
+		MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
+	}
+
+	return;
 }
 
 static OpArg SwapImmediate(int accessSize, const OpArg& reg_value)
@@ -364,9 +403,14 @@ static OpArg SwapImmediate(int accessSize, const OpArg& reg_value)
 		return Imm8(reg_value.Imm8());
 }
 
-u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
+void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap, MovInfo* info)
 {
-	u8* result = GetWritableCodePtr();
+	if (info)
+	{
+		info->address = GetWritableCodePtr();
+		info->nonAtomicSwapStore = false;
+	}
+
 	OpArg dest = MComplex(RMEM, reg_addr, SCALE_1, offset);
 	if (reg_value.IsImm())
 	{
@@ -376,23 +420,21 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acce
 	}
 	else if (swap)
 	{
-		result = SwapAndStore(accessSize, dest, reg_value.GetSimpleReg());
+		SwapAndStore(accessSize, dest, reg_value.GetSimpleReg(), info);
 	}
 	else
 	{
 		MOV(accessSize, dest, reg_value);
 	}
-
-	return result;
 }
 
 static OpArg FixImmediate(int accessSize, OpArg arg)
 {
 	if (arg.IsImm())
 	{
-		arg = accessSize == 8  ? Imm8((u8)arg.Imm32()) :
-		      accessSize == 16 ? Imm16((u16)arg.Imm32()) :
-		                         Imm32((u32)arg.Imm32());
+		arg = accessSize == 8  ? arg.AsImm8() :
+		      accessSize == 16 ? arg.AsImm16() :
+		                         arg.AsImm32();
 	}
 	return arg;
 }
@@ -466,25 +508,38 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address, B
 
 void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, BitSet32 registersInUse, int flags)
 {
+	bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
+	bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
+
 	// set the correct immediate format
 	reg_value = FixImmediate(accessSize, reg_value);
 
-	// TODO: support byte-swapped non-immediate fastmem stores
-	if (jit->jo.fastmem &&
-	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
-		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP)))
+	if (jit->jo.fastmem && !(flags & SAFE_LOADSTORE_NO_FASTMEM) && !slowmem)
 	{
-		const u8* backpatchStart = GetCodePtr();
-		u8* mov = UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, !(flags & SAFE_LOADSTORE_NO_SWAP));
+		u8* backpatchStart = GetWritableCodePtr();
+		MovInfo mov;
+		UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
+		TrampolineInfo& info = backPatchInfo[mov.address];
+		info.pc = jit->js.compilerPC;
+		info.mov = mov;
+		info.start = backpatchStart;
+		info.read = false;
+		info.op_arg = reg_value;
+		info.op_reg = reg_addr;
+		info.offsetAddedToAddress = false;
+		info.accessSize = accessSize;
+		info.offset = offset;
+		info.registersInUse = registersInUse;
+		info.flags = flags;
 		ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
 		if (padding > 0)
 		{
 			NOP(padding);
 		}
+		info.end = GetCodePtr();
 
-		registersInUseAtLoc[mov] = registersInUse;
-		pcAtLoc[mov] = jit->js.compilerPC;
-		jit->js.fastmemLoadStore = mov;
+		jit->js.fastmemLoadStore = mov.address;
+
 		return;
 	}
 
@@ -501,24 +556,25 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 		}
 	}
 
-	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-	// The following masks the region used by the GC/Wii virtual memory lib
-	mem_mask |= Memory::ADDR_MASK_MEM1;
-
-	bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
-
 	FixupBranch slow, exit;
-	slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse, mem_mask);
-	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
-	if (farcode.Enabled())
-		SwitchToFarCode();
-	else
-		exit = J(true);
-	SetJumpTarget(slow);
+	if (!slowmem)
+	{
+		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 
-	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
-	MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
+		// The following masks the region used by the GC/Wii virtual memory lib
+		mem_mask |= Memory::ADDR_MASK_MEM1;
+
+		slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse, mem_mask);
+		UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
+		if (farcode.Enabled())
+			SwitchToFarCode();
+		else
+			exit = J(true);
+		SetJumpTarget(slow);
+
+		// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
+		MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
+	}
 
 	size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
 	ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -551,12 +607,18 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 		break;
 	}
 	ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
-	if (farcode.Enabled())
+
+	MemoryExceptionCheck();
+
+	if (!slowmem)
 	{
-		exit = J(true);
-		SwitchToNearCode();
+		if (farcode.Enabled())
+		{
+			exit = J(true);
+			SwitchToNearCode();
+		}
+		SetJumpTarget(exit);
 	}
-	SetJumpTarget(exit);
 }
 
 void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address, bool swap)
@@ -1021,8 +1083,7 @@ void EmuCodeBlock::JitClearCA()
 
 void EmuCodeBlock::Clear()
 {
-	registersInUseAtLoc.clear();
-	pcAtLoc.clear();
+	backPatchInfo.clear();
 	exceptionHandlerAtLoc.clear();
 }
 
