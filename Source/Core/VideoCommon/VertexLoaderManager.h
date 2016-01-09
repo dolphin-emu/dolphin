@@ -13,7 +13,7 @@
 
 namespace VertexLoaderManager
 {
-	typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexFormatMap;
+	using NativeVertexFormatMap = std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>>;
 
 	void Init();
 	void Shutdown();

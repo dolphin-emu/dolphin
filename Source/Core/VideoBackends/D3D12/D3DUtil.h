@@ -43,26 +43,27 @@ public:
 		const std::string& text);
 
 private:
-	ID3D12Resource* m_texture12;
-	D3D12_CPU_DESCRIPTOR_HANDLE m_texture12_cpu;
-	D3D12_GPU_DESCRIPTOR_HANDLE m_texture12_gpu;
+	ID3D12Resource* m_texture12 = nullptr;
+	D3D12_CPU_DESCRIPTOR_HANDLE m_texture12_cpu = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE m_texture12_gpu = {};
 
-	ID3D12Resource* m_vb12;
-	D3D12_VERTEX_BUFFER_VIEW m_vb12_view;
-	void* m_vb12_data;
-	unsigned int m_vb12_offset;
+	ID3D12Resource* m_vb12 = nullptr;
+	D3D12_VERTEX_BUFFER_VIEW m_vb12_view = {};
+	void* m_vb12_data = nullptr;
+	unsigned int m_vb12_offset = 0;
 
-	D3D12_INPUT_LAYOUT_DESC m_input_layout12;
-	D3D12_SHADER_BYTECODE m_pshader12;
-	D3D12_SHADER_BYTECODE m_vshader12;
-	D3D12_BLEND_DESC m_blendstate12;
-	D3D12_RASTERIZER_DESC m_raststate12;
-	ID3D12PipelineState* m_pso;
+	D3D12_INPUT_LAYOUT_DESC m_input_layout12 = {};
+	D3D12_SHADER_BYTECODE m_pshader12 = {};
+	D3D12_SHADER_BYTECODE m_vshader12 = {};
+	D3D12_BLEND_DESC m_blendstate12 = {};
+	D3D12_RASTERIZER_DESC m_raststate12 = {};
+	ID3D12PipelineState* m_pso = nullptr;
 
-	const int m_tex_width;
-	const int m_tex_height;
-	unsigned int m_line_height;
-	float m_tex_coords[128-32][4];
+	unsigned int m_line_height = 0;
+	float m_tex_coords[128 - 32][4] = {};
+
+	const int m_tex_width = 512;
+	const int m_tex_height = 512;
 };
 
 extern CD3DFont font;
