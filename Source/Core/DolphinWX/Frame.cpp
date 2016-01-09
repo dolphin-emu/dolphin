@@ -463,6 +463,9 @@ CFrame::CFrame(wxFrame* parent,
 			ToggleLogConfigWindow(true);
 	}
 
+	// Set the size of the window after the UI has been built, but before we show it
+	SetSize(size);
+
 	// Show window
 	Show();
 
