@@ -36,7 +36,7 @@ private:
 	void WatcherThread();
 
 	std::thread m_watcher_thread;
-	std::atomic_bool m_running;
+	std::atomic_bool m_running{false};
 
 	int m_fd;
 	sockaddr_un m_addr;
