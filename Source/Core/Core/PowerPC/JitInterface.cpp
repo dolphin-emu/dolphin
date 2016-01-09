@@ -34,7 +34,6 @@
 #endif
 
 static bool bFakeVMEM = false;
-bool bMMU = false;
 
 namespace JitInterface
 {
@@ -45,8 +44,7 @@ namespace JitInterface
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
-		bMMU = SConfig::GetInstance().bMMU;
-		bFakeVMEM = !bMMU;
+		bFakeVMEM = !SConfig::GetInstance().bMMU;
 
 		CPUCoreBase *ptr = nullptr;
 		switch (core)
