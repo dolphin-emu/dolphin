@@ -217,6 +217,7 @@ bool BootCore(const std::string& _rFilename)
 
 	StartUp.m_BootType = SConfig::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
+	StartUp.m_args.push_back(_rFilename);
 	SConfig::GetInstance().m_LastFilename = _rFilename;
 	SConfig::GetInstance().SaveSettings();
 	StartUp.bRunCompareClient = false;
@@ -384,6 +385,7 @@ void Stop()
 
 	SConfig& StartUp = SConfig::GetInstance();
 	StartUp.m_strUniqueID = "00000000";
+	StartUp.m_args.clear();
 	config_cache.RestoreConfig(&StartUp);
 }
 

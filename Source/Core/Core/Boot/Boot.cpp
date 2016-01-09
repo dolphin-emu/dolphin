@@ -82,6 +82,30 @@ void CBoot::UpdateDebugger_MapLoaded()
 	Host_NotifyMapLoaded();
 }
 
+void CBoot::PatchArgs()
+{
+	// Arguments are passed in in a struct directly after the entry point,
+	// but only if there's a magic value there. The magic value needs to be
+	// copied back into the struct to tell the application that we've passed
+	// arguments.
+	u32 argvMagic = Memory::Read_U32(PC + 4);
+	if (argvMagic == 0x5f617267)
+	{
+		std::string commandLine;
+		for (const auto& arg : SConfig::GetInstance().m_args)
+		{
+			commandLine.append(arg);
+			commandLine.push_back('\0');
+		}
+		u32 argvLocation = 0x8132F000;
+		u32 argvSize = std::min<u32>((u32) commandLine.size(), 0x1000);
+		Memory::CopyToEmu(argvLocation, commandLine.c_str(), argvSize);
+		Memory::Write_U32(argvMagic, PC + 8);
+		Memory::Write_U32(argvLocation, PC + 12);
+		Memory::Write_U32(argvSize, PC + 16);
+	}
+}
+
 bool CBoot::FindMapFile(std::string* existing_map_file,
                         std::string* writable_map_file,
                         std::string* title_id)
@@ -475,5 +499,8 @@ bool CBoot::BootUp()
 	// Not part of the binary itself, but either we or Gecko OS might insert
 	// this, and it doesn't clear the icache properly.
 	HLE::Patch(0x800018a8, "GeckoCodehandler");
+
+	// Patch in the arguments if applicable
+	PatchArgs();
 	return true;
 }

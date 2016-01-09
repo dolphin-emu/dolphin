@@ -166,6 +166,8 @@ struct SConfig : NonCopyable
 	std::string m_strName;
 	u16 m_revision;
 
+	std::vector<std::string> m_args;
+
 	std::string m_perfDir;
 
 	void LoadDefaults();

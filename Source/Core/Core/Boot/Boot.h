@@ -57,4 +57,6 @@ private:
 	static void Load_FST(bool _bIsWii);
 
 	static bool SetupWiiMemory(DiscIO::IVolume::ECountry country);
+
+	static void PatchArgs();
 };
