@@ -86,7 +86,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	m_search_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, filters);
 	m_search_type->Select(0);
 
-	wxStaticBoxSizer* const sizer_cheat_search_filter = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
+	wxStaticBoxSizer* const sizer_cheat_search_filter = new wxStaticBoxSizer(wxVERTICAL, this, _("Search (clear to use previous value)"));
 	sizer_cheat_search_filter->Add(sizer_cheat_filter_text, 0, wxALL | wxEXPAND, 5);
 	sizer_cheat_search_filter->Add(m_search_type, 0, wxALL, 5);
 
@@ -153,10 +153,14 @@ void CheatSearchTab::OnNextScanClicked(wxCommandEvent&)
 	}
 
 	u32 user_x_val = 0;
-	if (!ParseUserEnteredValue(&user_x_val))
-		return;
+	bool blank_user_value = m_textctrl_value_x->IsEmpty();
+	if (!blank_user_value)
+	{
+		if (!ParseUserEnteredValue(&user_x_val))
+			return;
+	}
 
-	FilterCheatSearchResults(user_x_val);
+	FilterCheatSearchResults(user_x_val, blank_user_value);
 
 	UpdateCheatSearchResultsList();
 }
@@ -232,7 +236,6 @@ void CheatSearchTab::UpdateCheatSearchResultItem(long index)
 {
 	u32 address_value = 0;
 	std::memcpy(&address_value, &Memory::m_pRAM[m_search_results[index].address], m_search_type_size);
-	m_search_results[index].old_value = address_value;
 
 	u32 display_value = SwapValue(address_value);
 
@@ -270,7 +273,7 @@ static ComparisonMask operator & (ComparisonMask comp1, ComparisonMask comp2)
 					   static_cast<int>(comp2));
 }
 
-void CheatSearchTab::FilterCheatSearchResults(u32 value)
+void CheatSearchTab::FilterCheatSearchResults(u32 value, bool prev)
 {
 	static const std::array<ComparisonMask, 5> filters{{
 	    ComparisonMask::EQUAL | ComparisonMask::GREATER_THAN | ComparisonMask::LESS_THAN, // Unknown
@@ -286,6 +289,9 @@ void CheatSearchTab::FilterCheatSearchResults(u32 value)
 
 	for (CheatSearchResult& result : m_search_results)
 	{
+		if (prev)
+			value = result.old_value;
+
 		// with big endian, can just use memcmp for ><= comparison
 		int cmp_result = std::memcmp(&Memory::m_pRAM[result.address], &value, m_search_type_size);
 		ComparisonMask cmp_mask;
