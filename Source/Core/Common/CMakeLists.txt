@@ -28,7 +28,6 @@ set(SRCS BreakPoints.cpp
          TraversalClient.cpp
          Version.cpp
          x64ABI.cpp
-         x64Analyzer.cpp
          x64Emitter.cpp
          Crypto/bn.cpp
          Crypto/ec.cpp
