@@ -77,7 +77,6 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 		registersInUse[RSCRATCH2] = true;
 	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, registersInUse, false);
 
-	MemoryExceptionCheck();
 	if (single)
 	{
 		ConvertSingleToDouble(fpr.RX(d), RSCRATCH, true);
@@ -189,10 +188,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 	SafeWriteRegToReg(RSCRATCH, RSCRATCH2, accessSize, offset, registersInUse);
 
 	if (update)
-	{
-		MemoryExceptionCheck();
 		MOV(32, gpr.R(a), R(RSCRATCH2));
-	}
 
 	fpr.UnlockAll();
 	gpr.UnlockAll();

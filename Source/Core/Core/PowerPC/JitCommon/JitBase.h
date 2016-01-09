@@ -12,7 +12,6 @@
 #include <unordered_set>
 
 #include "Common/x64ABI.h"
-#include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"
 
 #include "Core/Core.h"
@@ -93,6 +92,9 @@ protected:
 		int skipInstructions;
 		bool carryFlagSet;
 		bool carryFlagInverted;
+
+		bool generatingTrampoline;
+		u8* trampolineExceptionHandler;
 
 		int fifoBytesThisBlock;
 

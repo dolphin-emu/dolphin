@@ -126,6 +126,15 @@ enum FloatOp {
 
 class XEmitter;
 
+// Information about a generated MOV op
+struct MovInfo final
+{
+	u8* address;
+	bool nonAtomicSwapStore;
+	// valid iff nonAtomicSwapStore is true
+	X64Reg nonAtomicSwapStoreSrc;
+};
+
 // RIP addressing does not benefit from micro op fusion on Core arch
 struct OpArg
 {
@@ -471,8 +480,8 @@ public:
 	// Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
 	void MOVBE(int bits, X64Reg dest, const OpArg& src);
 	void MOVBE(int bits, const OpArg& dest, X64Reg src);
-	void LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_extend = false);
-	u8* SwapAndStore(int size, const OpArg& dst, X64Reg src);
+	void LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_extend = false, MovInfo* info = nullptr);
+	void SwapAndStore(int size, const OpArg& dst, X64Reg src, MovInfo* info = nullptr);
 
 	// Available only on AMD >= Phenom or Intel >= Haswell
 	void LZCNT(int bits, X64Reg dest, const OpArg& src);

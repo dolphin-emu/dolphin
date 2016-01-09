@@ -17,7 +17,6 @@
 #pragma once
 
 #include "Common/x64ABI.h"
-#include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"
 
 #include "Core/ConfigManager.h"

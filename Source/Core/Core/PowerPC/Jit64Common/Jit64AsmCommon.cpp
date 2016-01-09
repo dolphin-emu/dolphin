@@ -564,8 +564,6 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
 			MULPS(XMM0, R(XMM1));
 		}
 	}
-
-	return;
 }
 
 void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)

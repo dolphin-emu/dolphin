@@ -46,6 +46,43 @@ static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
 static const int TRAMPOLINE_CODE_SIZE = 1024 * 1024 * 8;
 static const int TRAMPOLINE_CODE_SIZE_MMU = 1024 * 1024 * 32;
 
+// Stores information we need to batch-patch a MOV with a call to the slow read/write path after
+// it faults
+struct BackPatchInfo final
+{
+	// The PPC PC for the current load/store block
+	u32 pc;
+
+	// true if this is a read op vs a write
+	bool read;
+
+	// for read operations, true if needs sign-extension after load
+	bool signExtend;
+
+	// Saved because we need these to make the ABI call in the trampoline
+	BitSet32 registersInUse;
+
+	// Memory access size (in bits)
+	int accessSize;
+
+	// Original SafeLoadXXX/SafeStoreXXX flags
+	int flags;
+
+	// The start of the store operation that failed -- we will patch a JMP here
+	u8* start;
+
+	// The end of the store operation (points to the next instruction)
+	const u8* end;
+
+	// The MOV operation
+	Gen::MovInfo mov;
+
+	// src/dest for load/store
+	s32 offset;
+	Gen::X64Reg op_reg;
+	Gen::OpArg op_arg;
+};
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
@@ -72,12 +109,12 @@ public:
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
 	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset, bool signExtend = false);
 	// these return the address of the MOV, for backpatching
-	u8 *UnsafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true);
-	u8 *UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true)
+	void UnsafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
+	void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr)
 	{
-		return UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap);
+		UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap, info);
 	}
-	u8 *UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend);
+	void UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend, Gen::MovInfo* info = nullptr);
 	void UnsafeWriteGatherPipe(int accessSize);
 
 	// Generate a load/write from the MMIO handler for a given address. Only
@@ -88,11 +125,16 @@ public:
 	{
 		SAFE_LOADSTORE_NO_SWAP = 1,
 		SAFE_LOADSTORE_NO_PROLOG = 2,
+		// This indicates that the write being generated cannot be patched (and thus can't use fastmem)
 		SAFE_LOADSTORE_NO_FASTMEM = 4,
-		SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR = 8
+		SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR = 8,
+		// Force slowmem (used when generating fallbacks in trampolines)
+		SAFE_LOADSTORE_FORCE_SLOWMEM = 16,
 	};
 
 	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, int flags = 0);
+	void SafeLoadToRegImmediate(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, bool slowmem);
+
 	// Clobbers RSCRATCH or reg_addr depending on the relevant flag.  Preserves
 	// reg_value if the load fails and js.memcheck is enabled.
 	// Works with immediate inputs and simple registers only.
@@ -129,7 +171,6 @@ public:
 	void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
 	void SetFPRF(Gen::X64Reg xmm);
 protected:
-	std::unordered_map<u8 *, BitSet32> registersInUseAtLoc;
-	std::unordered_map<u8 *, u32> pcAtLoc;
+	std::unordered_map<u8 *, BackPatchInfo> backPatchInfo;
 	std::unordered_map<u8 *, u8 *> exceptionHandlerAtLoc;
 };
