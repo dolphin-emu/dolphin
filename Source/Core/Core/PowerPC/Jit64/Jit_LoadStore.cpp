@@ -283,17 +283,11 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend);
 
 	if (update && storeAddress)
-	{
-		MemoryExceptionCheck();
 		MOV(32, gpr.R(a), opAddress);
-	}
 
 	// TODO: support no-swap in SafeLoadToReg instead
 	if (byte_reversed)
-	{
-		MemoryExceptionCheck();
 		BSWAP(accessSize, gpr.RX(d));
-	}
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -502,11 +496,8 @@ void Jit64::stX(UGeckoInstruction inst)
 		}
 
 		if (update)
-		{
-			MemoryExceptionCheck();
 			ADD(32, gpr.R(a), Imm32((u32)offset));
 		}
-	}
 	gpr.UnlockAll();
 }
 
@@ -582,10 +573,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 	}
 
 	if (update)
-	{
-		MemoryExceptionCheck();
 		MOV(32, gpr.R(a), R(RSCRATCH2));
-	}
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
