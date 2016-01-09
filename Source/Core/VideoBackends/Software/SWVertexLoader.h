@@ -26,7 +26,7 @@ public:
 	NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
 
 protected:
-	virtual void ResetBuffer(u32 stride);
+	void ResetBuffer(u32 stride) override;
 	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
 private:
 	void vFlush(bool useDstAlpha) override;
