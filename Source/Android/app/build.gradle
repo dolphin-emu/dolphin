@@ -89,6 +89,9 @@ dependencies {
 
     // For loading huge screenshots from the disk.
     compile 'com.squareup.picasso:picasso:2.5.2'
+
+    // Allows FRP-style asynchronous operations in Android.
+    compile 'io.reactivex:rxandroid:1.1.0'
 }
 
 task setupCMake(type: Exec) {
