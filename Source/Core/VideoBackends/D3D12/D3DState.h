@@ -106,7 +106,7 @@ private:
 
 	struct hash_pso_desc
 	{
-		size_t operator()(const D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc) const
+		size_t operator()(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pso_desc) const
 		{
 			return ((uintptr_t)pso_desc.PS.pShaderBytecode * 1000000) ^ ((uintptr_t)pso_desc.VS.pShaderBytecode * 1000) ^ ((uintptr_t)pso_desc.InputLayout.pInputElementDescs);
 		}
@@ -114,7 +114,7 @@ private:
 
 	struct equality_pipeline_state_desc
 	{
-		bool operator()(const D3D12_GRAPHICS_PIPELINE_STATE_DESC lhs, const D3D12_GRAPHICS_PIPELINE_STATE_DESC rhs) const
+		bool operator()(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& lhs, const D3D12_GRAPHICS_PIPELINE_STATE_DESC& rhs) const
 		{
 			return std::tie(lhs.PS.pShaderBytecode, lhs.VS.pShaderBytecode, lhs.GS.pShaderBytecode,
 				            lhs.RasterizerState.CullMode,
@@ -145,7 +145,7 @@ private:
 
 	struct hash_small_pso_desc
 	{
-		size_t operator()(const SmallPsoDesc pso_desc) const
+		size_t operator()(const SmallPsoDesc& pso_desc) const
 		{
 			return ((uintptr_t)pso_desc.vs_bytecode.pShaderBytecode << 10) ^
 				((uintptr_t)pso_desc.ps_bytecode.pShaderBytecode) +
@@ -156,7 +156,7 @@ private:
 
 	struct equality_small_pipeline_state_desc
 	{
-		bool operator()(const SmallPsoDesc lhs, const SmallPsoDesc rhs) const
+		bool operator()(const SmallPsoDesc& lhs, const SmallPsoDesc& rhs) const
 		{
 			return std::tie(lhs.ps_bytecode.pShaderBytecode, lhs.vs_bytecode.pShaderBytecode, lhs.gs_bytecode.pShaderBytecode,
 				            lhs.input_layout, lhs.blend_state.hex, lhs.depth_stencil_state.hex, lhs.rasterizer_state.hex) ==
@@ -167,7 +167,7 @@ private:
 
 	struct hash_shader_bytecode
 	{
-		size_t operator()(const D3D12_SHADER_BYTECODE shader) const
+		size_t operator()(const D3D12_SHADER_BYTECODE& shader) const
 		{
 			return (uintptr_t)shader.pShaderBytecode;
 		}
@@ -175,7 +175,7 @@ private:
 
 	struct equality_shader_bytecode
 	{
-		bool operator()(const D3D12_SHADER_BYTECODE lhs, const D3D12_SHADER_BYTECODE rhs) const
+		bool operator()(const D3D12_SHADER_BYTECODE& lhs, const D3D12_SHADER_BYTECODE& rhs) const
 		{
 			return lhs.pShaderBytecode == rhs.pShaderBytecode;
 		}
