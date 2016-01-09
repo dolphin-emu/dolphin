@@ -258,6 +258,15 @@ void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 	}
 }
 
+// To be used from any thread, including the CPU thread
+void ScheduleEvent_AnyThread(int cyclesIntoFuture, int event_type, u64 userdata)
+{
+	if (Core::IsCPUThread())
+		ScheduleEvent(cyclesIntoFuture, event_type, userdata);
+	else
+		ScheduleEvent_Threadsafe(cyclesIntoFuture, event_type, userdata);
+}
+
 void ClearPendingEvents()
 {
 	while (first)
