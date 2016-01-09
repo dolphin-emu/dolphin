@@ -14,6 +14,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import rx.Observable;
+import rx.Subscriber;
+
 /**
  * A helper class that provides several utilities simplifying interaction with
  * the SQLite database.
@@ -251,5 +254,45 @@ public final class GameDatabase extends SQLiteOpenHelper
 
 		folderCursor.close();
 		database.close();
+	}
+
+	public Observable<Cursor> getGamesForPlatform(final int platform)
+	{
+		return Observable.create(new Observable.OnSubscribe<Cursor>()
+		{
+			@Override
+			public void call(Subscriber<? super Cursor> subscriber)
+			{
+				Log.i("DolphinEmu", "[GameDatabase] Reading games list...");
+
+				String whereClause = null;
+				String[] whereArgs = null;
+
+				// If -1 passed in, return all games. Else, return games for one platform only.
+				if (platform >= 0)
+				{
+					whereClause = KEY_GAME_PLATFORM + " = ?";
+					whereArgs = new String[]{Integer.toString(platform)};
+				}
+
+				SQLiteDatabase database = getReadableDatabase();
+
+				Cursor resultCursor = database.query(
+						TABLE_NAME_GAMES,
+						null,
+						whereClause,
+						whereArgs,
+						null,
+						null,
+						KEY_GAME_TITLE + " ASC"
+				);
+
+				// Pass the result cursor to the consumer.
+				subscriber.onNext(resultCursor);
+
+				// Tell the consumer we're done; it will unsubscribe implicitly.
+				subscriber.onCompleted();
+			}
+		});
 	}
 }

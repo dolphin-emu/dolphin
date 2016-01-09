@@ -1,9 +1,6 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.LoaderManager;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -34,19 +31,10 @@ import org.dolphinemu.dolphinemu.utils.StartupHandler;
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
  * individually display a grid of available games for each Fragment, in a tabbed layout.
  */
-public final class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
+public final class MainActivity extends AppCompatActivity
 {
 	public static final int REQUEST_ADD_DIRECTORY = 1;
 	public static final int REQUEST_EMULATE_GAME = 2;
-
-	/**
-	 * It is important to keep track of loader ID separately from platform ID (see Game.java)
-	 * because we could potentially have Loaders that load things other than Games.
-	 */
-	public static final int LOADER_ID_ALL = 100; // TODO
-	public static final int LOADER_ID_GAMECUBE = 0;
-	public static final int LOADER_ID_WII = 1;
-	public static final int LOADER_ID_WIIWARE = 2;
 
 	private ViewPager mViewPager;
 	private PlatformPagerAdapter mPlatformPagerAdapter;
@@ -172,132 +160,6 @@ public final class MainActivity extends AppCompatActivity implements LoaderManag
 		if (fragment != null)
 		{
 			fragment.refresh();
-		}
-	}
-
-
-	/**
-	 * Callback that's invoked when the system has initialized the Loader and
-	 * is ready to start the query. This usually happens when initLoader() is
-	 * called. Here, we use it to make a DB query for games.
-	 *
-	 * @param id   The ID value passed to the initLoader() call that triggered this.
-	 * @param args The args bundle supplied by the caller.
-	 * @return A new Loader instance that is ready to start loading.
-	 */
-	@Override
-	public Loader<Cursor> onCreateLoader(int id, Bundle args)
-	{
-		Log.d("DolphinEmu", "Creating loader with id: " + id);
-
-		// Take action based on the ID of the Loader that's being created.
-		switch (id)
-		{
-			case LOADER_ID_ALL:
-				// TODO Play some sort of load-starting animation; maybe fade the list out.
-
-				return new CursorLoader(
-						this,                                    // Parent activity context
-						GameProvider.URI_GAME,                    // URI of table to query
-						null,                                    // Return all columns
-						null,                                    // No selection clause
-						null,                                    // No selection arguments
-						GameDatabase.KEY_GAME_TITLE + " asc"    // Sort by game name, ascending order
-				);
-
-			case LOADER_ID_GAMECUBE:
-			case LOADER_ID_WII:
-			case LOADER_ID_WIIWARE:
-				// TODO Play some sort of load-starting animation; maybe fade the list out.
-
-				return new CursorLoader(
-						this,                                        // Parent activity context
-						GameProvider.URI_GAME,                        // URI of table to query
-						null,                                        // Return all columns
-						GameDatabase.KEY_GAME_PLATFORM + " = ?",    // Select by platform
-						new String[]{Integer.toString(id)},    // Platform id is Loader id
-						GameDatabase.KEY_GAME_TITLE + " asc"        // Sort by game name, ascending order
-				);
-
-			default:
-				Log.e("DolphinEmu", "Bad ID passed in.");
-				return null;
-		}
-	}
-
-	/**
-	 * Callback that's invoked when the Loader returned in onCreateLoader is finished
-	 * with its task. In this case, the game DB query is finished, so we should put the results
-	 * on screen.
-	 *
-	 * @param loader The loader that finished.
-	 * @param data   The data the Loader loaded.
-	 */
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data)
-	{
-		int id = loader.getId();
-		Log.d("DolphinEmu", "Loader finished with id: " + id);
-
-		PlatformGamesFragment fragment = null;
-		switch (id)
-		{
-			case LOADER_ID_GAMECUBE:
-				fragment = getPlatformFragment(Game.PLATFORM_GC);
-				break;
-
-			case LOADER_ID_WII:
-				fragment = getPlatformFragment(Game.PLATFORM_WII);
-				break;
-
-			case LOADER_ID_WIIWARE:
-				fragment = getPlatformFragment(Game.PLATFORM_WII_WARE);
-				break;
-
-			// TODO case LOADER_ID_ALL:
-
-			default:
-				Log.e("DolphinEmu", "Bad ID passed in.");
-				break;
-		}
-
-		if (fragment != null)
-		{
-			fragment.onLoadFinished(loader, data);
-		}
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Cursor> loader)
-	{
-		int id = loader.getId();
-		Log.e("DolphinEmu", "Loader resetting with id: " + id);
-
-		PlatformGamesFragment fragment = null;
-		switch (id)
-		{
-			case LOADER_ID_GAMECUBE:
-				fragment = getPlatformFragment(Game.PLATFORM_GC);
-				break;
-
-			case LOADER_ID_WII:
-				fragment = getPlatformFragment(Game.PLATFORM_WII);
-				break;
-
-			case LOADER_ID_WIIWARE:
-				fragment = getPlatformFragment(Game.PLATFORM_WII_WARE);
-				break;
-
-			// TODO case LOADER_ID_ALL:
-
-			default:
-				Log.e("DolphinEmu", "Bad ID passed in.");
-				break;
-		}
-
-		if (fragment != null)
-		{
-			fragment.onLoaderReset();
 		}
 	}
 

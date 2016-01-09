@@ -1,8 +1,6 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.app.Fragment;
-import android.app.LoaderManager;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -15,8 +13,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
+import org.dolphinemu.dolphinemu.model.GameDatabase;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 public class PlatformGamesFragment extends Fragment
 {
@@ -69,9 +73,7 @@ public class PlatformGamesFragment extends Fragment
 
 		recyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
 
-		// Create an adapter that will relate the dataset to the views on-screen. +1 because of LOADER_ID_ALL
-		getLoaderManager().initLoader(mPlatform, null,
-				(LoaderManager.LoaderCallbacks<Cursor>) getActivity());
+		loadGames();
 
 		mAdapter = new GameAdapter();
 		recyclerView.setAdapter(mAdapter);
@@ -87,32 +89,35 @@ public class PlatformGamesFragment extends Fragment
 	public void refresh()
 	{
 		Log.d("DolphinEmu", "[PlatformGamesFragment] " + mPlatform + ": Refreshing...");
-		// +1 because of LOADER_ID_ALL
-		getLoaderManager().restartLoader(mPlatform, null, (LoaderManager.LoaderCallbacks<Cursor>) getActivity());
+		loadGames();
 	}
 
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data)
+	public void loadGames()
 	{
-		// TODO Play some sort of load-finished animation; maybe fade the list in.
+		Log.d("DolphinEmu", "[PlatformGamesFragment] " + mPlatform + ": Loading games...");
 
-		Log.d("DolphinEmu", "[PlatformGamesFragment] " + mPlatform + ": Load finished, swapping cursor...");
-		Log.d("DolphinEmu", "[PlatformGamesFragment] " + mPlatform + ": Cursor size: " + data.getCount());
-		if (mAdapter != null)
-		{
-			mAdapter.swapCursor(data);
-		}
-		else
-		{
-			Log.e("DolphinEmu", "[PlatformGamesFragment] " + mPlatform + ": No adapter available.");
-		}
-	}
+		GameDatabase databaseHelper = DolphinApplication.databaseHelper;
 
-	public void onLoaderReset()
-	{
-		Log.e("DolphinEmu", "[PlatformGamesFragment] " + mPlatform + ": Loader reset; clearing data from view.");
-		if (mAdapter != null)
-		{
-			mAdapter.swapCursor(null);
-		}
+		databaseHelper.getGamesForPlatform(mPlatform)
+				.subscribeOn(Schedulers.io())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(new Action1<Cursor>()
+						   {
+							   @Override
+							   public void call(Cursor data)
+							   {
+								   Log.d("DolphinEmu", "[PlatformGamesFragment] " + mPlatform + ": Load finished, swapping cursor...");
+
+								   if (mAdapter != null)
+								   {
+									   mAdapter.swapCursor(data);
+								   }
+								   else
+								   {
+									   Log.e("DolphinEmu", "[PlatformGamesFragment] " + mPlatform + ": No adapter available.");
+								   }
+							   }
+						   }
+				);
 	}
 }
