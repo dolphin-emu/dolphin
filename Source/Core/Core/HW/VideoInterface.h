@@ -330,9 +330,11 @@ union UVIHorizontalStepping
 	// Change values pertaining to video mode
 	void UpdateParameters();
 
+	u32 GetTicksPerSample();
 	u32 GetTicksPerHalfLine();
 	u32 GetTicksPerField();
 
-	//For VI Scaling and Aspect Ratio Correction
-	float GetAspectRatio(bool);
+	// Get the aspect ratio of VI's active area.
+	// This function only deals with standard aspect ratios. For widescreen aspect ratios, multiply the result by 1.33333..
+	float GetAspectRatio();
 }

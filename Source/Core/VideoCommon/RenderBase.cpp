@@ -80,6 +80,7 @@ unsigned int Renderer::efb_scale_numeratorY = 1;
 unsigned int Renderer::efb_scale_denominatorX = 1;
 unsigned int Renderer::efb_scale_denominatorY = 1;
 
+static float AspectToWidescreen(float aspect) { return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f)); }
 
 Renderer::Renderer()
 	: frame_data()
@@ -427,7 +428,9 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	// Don't know if there is a better place for this code so there isn't a 1 frame delay
 	if (g_ActiveConfig.bWidescreenHack)
 	{
-		float source_aspect = VideoInterface::GetAspectRatio(Core::g_aspect_wide);
+		float source_aspect = VideoInterface::GetAspectRatio();
+		if (Core::g_aspect_wide)
+			source_aspect = AspectToWidescreen(source_aspect);
 		float target_aspect;
 
 		switch (g_ActiveConfig.iAspectRatio)
@@ -436,10 +439,10 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 			target_aspect = WinWidth / WinHeight;
 			break;
 		case ASPECT_ANALOG:
-			target_aspect = VideoInterface::GetAspectRatio(false);
+			target_aspect = VideoInterface::GetAspectRatio();
 			break;
 		case ASPECT_ANALOG_WIDE:
-			target_aspect = VideoInterface::GetAspectRatio(true);
+			target_aspect = AspectToWidescreen(VideoInterface::GetAspectRatio());
 			break;
 		default:
 			// ASPECT_AUTO
@@ -472,17 +475,13 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 
 	// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
 	float Ratio;
-	switch (g_ActiveConfig.iAspectRatio)
+	if (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE || (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && Core::g_aspect_wide))
 	{
-		case ASPECT_ANALOG_WIDE:
-			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(true);
-			break;
-		case ASPECT_ANALOG:
-			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(false);
-			break;
-		default:
-			Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio(Core::g_aspect_wide);
-			break;
+		Ratio = (WinWidth / WinHeight) / AspectToWidescreen(VideoInterface::GetAspectRatio());
+	}
+	else
+	{
+		Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio();
 	}
 
 	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
@@ -508,18 +507,7 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	// ------------------
 	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH && g_ActiveConfig.bCrop)
 	{
-		switch (g_ActiveConfig.iAspectRatio)
-		{
-		case ASPECT_ANALOG_WIDE:
-			Ratio = (16.0f / 9.0f) / VideoInterface::GetAspectRatio(true);
-			break;
-		case ASPECT_ANALOG:
-			Ratio = (4.0f / 3.0f) / VideoInterface::GetAspectRatio(false);
-			break;
-		default:
-			Ratio = (!Core::g_aspect_wide ? (4.0f / 3.0f) : (16.0f / 9.0f)) / VideoInterface::GetAspectRatio(Core::g_aspect_wide);
-			break;
-		}
+		Ratio = (4.0f / 3.0f) / VideoInterface::GetAspectRatio();
 		if (Ratio <= 1.0f)
 		{
 			Ratio = 1.0f / Ratio;
