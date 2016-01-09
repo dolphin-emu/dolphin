@@ -476,7 +476,7 @@ HRESULT STDMETHODCALLTYPE ID3D12QueuedCommandList::QueryInterface(
 	if (riid == __uuidof(ID3D12GraphicsCommandList))
 	{
 		*ppvObject = reinterpret_cast<ID3D12GraphicsCommandList*>(this);
-}
+	}
 	else  if (riid == __uuidof(ID3D12CommandList))
 	{
 		*ppvObject = reinterpret_cast<ID3D12CommandList*>(this);
@@ -500,7 +500,7 @@ HRESULT STDMETHODCALLTYPE ID3D12QueuedCommandList::QueryInterface(
 	}
 
 	return hr;
-	}
+}
 
 // ID3D12Object
 

@@ -248,6 +248,24 @@ D3D12_SAMPLER_DESC StateCache::GetDesc12(SamplerState state)
 	return sampdc;
 }
 
+D3D12_BLEND GetBlendingAlpha(D3D12_BLEND blend)
+{
+	switch (blend)
+	{
+	case D3D12_BLEND_SRC_COLOR:
+		return D3D12_BLEND_SRC_ALPHA;
+	case D3D12_BLEND_INV_SRC_COLOR:
+		return D3D12_BLEND_INV_SRC_ALPHA;
+	case D3D12_BLEND_DEST_COLOR:
+		return D3D12_BLEND_DEST_ALPHA;
+	case D3D12_BLEND_INV_DEST_COLOR:
+		return D3D12_BLEND_INV_DEST_ALPHA;
+
+	default:
+		return blend;
+	}
+}
+
 D3D12_BLEND_DESC StateCache::GetDesc12(BlendState state)
 {
 	if (!state.blend_enable)
@@ -275,27 +293,8 @@ D3D12_BLEND_DESC StateCache::GetDesc12(BlendState state)
 		}
 	};
 
-	if (blenddc.RenderTarget[0].SrcBlend == D3D12_BLEND_SRC_COLOR)
-		blenddc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_SRC_ALPHA;
-	else if (blenddc.RenderTarget[0].SrcBlend == D3D12_BLEND_INV_SRC_COLOR)
-		blenddc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
-	else if (blenddc.RenderTarget[0].SrcBlend == D3D12_BLEND_DEST_COLOR)
-		blenddc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_DEST_ALPHA;
-	else if (blenddc.RenderTarget[0].SrcBlend == D3D12_BLEND_INV_DEST_COLOR)
-		blenddc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_INV_DEST_ALPHA;
-	else
-		blenddc.RenderTarget[0].SrcBlendAlpha = blenddc.RenderTarget[0].SrcBlend;
-
-	if (blenddc.RenderTarget[0].DestBlend == D3D12_BLEND_SRC_COLOR)
-		blenddc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_SRC_ALPHA;
-	else if (blenddc.RenderTarget[0].DestBlend == D3D12_BLEND_INV_SRC_COLOR)
-		blenddc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
-	else if (blenddc.RenderTarget[0].DestBlend == D3D12_BLEND_DEST_COLOR)
-		blenddc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_DEST_ALPHA;
-	else if (blenddc.RenderTarget[0].DestBlend == D3D12_BLEND_INV_DEST_COLOR)
-		blenddc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_DEST_ALPHA;
-	else
-		blenddc.RenderTarget[0].DestBlendAlpha = blenddc.RenderTarget[0].DestBlend;
+	blenddc.RenderTarget[0].SrcBlendAlpha = GetBlendingAlpha(blenddc.RenderTarget[0].SrcBlend);
+	blenddc.RenderTarget[0].DestBlendAlpha = GetBlendingAlpha(blenddc.RenderTarget[0].DestBlend);
 
 	if (state.use_dst_alpha)
 	{
