@@ -17,9 +17,10 @@ import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.activities.MainActivity;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 /**
@@ -231,7 +232,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 				"image_game_screenshot");
 
 		((Activity) view.getContext()).startActivityForResult(intent,
-				MainActivity.REQUEST_EMULATE_GAME,
+				MainPresenter.REQUEST_EMULATE_GAME,
 				options.toBundle());
 	}
 

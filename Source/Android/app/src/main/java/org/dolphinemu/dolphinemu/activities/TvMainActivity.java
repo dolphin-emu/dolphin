@@ -4,10 +4,8 @@ import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.FragmentManager;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.database.CursorMapper;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
@@ -21,7 +19,6 @@ import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.widget.Toast;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
@@ -29,7 +26,8 @@ import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
-import org.dolphinemu.dolphinemu.services.AssetCopyService;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
@@ -88,7 +86,7 @@ public final class TvMainActivity extends Activity
 									Intent fileChooser = new Intent(TvMainActivity.this, AddDirectoryActivity.class);
 
 									// The second argument to this method is read below in onActivityResult().
-									startActivityForResult(fileChooser, MainActivity.REQUEST_ADD_DIRECTORY);
+									startActivityForResult(fileChooser, MainPresenter.REQUEST_ADD_DIRECTORY);
 
 									break;
 
@@ -134,13 +132,13 @@ public final class TvMainActivity extends Activity
 	{
 		switch (requestCode)
 		{
-			case MainActivity.REQUEST_ADD_DIRECTORY:
+			case MainPresenter.REQUEST_ADD_DIRECTORY:
 				// If the user picked a file, as opposed to just backing out.
 				if (resultCode == RESULT_OK)
 				{
 					// Sanity check to make sure the Activity that just returned was the AddDirectoryActivity;
 					// other activities might use this callback in the future (don't forget to change Javadoc!)
-					if (requestCode == MainActivity.REQUEST_ADD_DIRECTORY)
+					if (requestCode == MainPresenter.REQUEST_ADD_DIRECTORY)
 					{
 						// TODO Let the Activity know the data is refreshed in some other, better way.
 						recreate();
