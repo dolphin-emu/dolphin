@@ -129,7 +129,6 @@
     <ClInclude Include="TraversalClient.h" />
     <ClInclude Include="TraversalProto.h" />
     <ClInclude Include="x64ABI.h" />
-    <ClInclude Include="x64Analyzer.h" />
     <ClInclude Include="x64Emitter.h" />
     <ClInclude Include="Crypto\bn.h" />
     <ClInclude Include="Crypto\ec.h" />
@@ -173,7 +172,6 @@
     <ClCompile Include="ucrtFreadWorkaround.cpp" />
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="x64ABI.cpp" />
-    <ClCompile Include="x64Analyzer.cpp" />
     <ClCompile Include="x64CPUDetect.cpp" />
     <ClCompile Include="x64Emitter.cpp" />
     <ClCompile Include="x64FPURoundMode.cpp" />
