@@ -44,15 +44,6 @@
 
 #define VSYNC_ENABLED 0
 
-static std::atomic<bool> s_swapRequested;
-
-static volatile struct
-{
-	u32 xfbAddr;
-	u32 fbWidth;
-	u32 fbHeight;
-} s_beginFieldArgs;
-
 namespace SW
 {
 
@@ -73,7 +64,7 @@ public:
 		return EfbInterface::perf_values[type];
 	};
 	void FlushResults() override {}
-	bool IsFlushed() const {return true;};
+	bool IsFlushed() const override { return true; };
 };
 
 class TextureCache : public TextureCacheBase
@@ -135,10 +126,6 @@ class FramebufferManager : public FramebufferManagerBase
 		EfbCopy::CopyEfb();
 	}
 };
-
-static std::atomic<bool> fifoStateRun;
-static std::atomic<bool> emuRunningState;
-static std::mutex m_csSWVidOccupied;
 
 std::string VideoSoftware::GetName() const
 {
