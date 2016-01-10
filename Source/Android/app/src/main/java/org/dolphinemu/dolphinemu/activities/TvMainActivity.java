@@ -4,10 +4,8 @@ import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.FragmentManager;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.database.CursorMapper;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
@@ -19,23 +17,22 @@ import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
-import android.widget.Toast;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
-import org.dolphinemu.dolphinemu.model.GameDatabase;
-import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
-import org.dolphinemu.dolphinemu.services.AssetCopyService;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.main.MainView;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
-public final class TvMainActivity extends Activity
+public final class TvMainActivity extends Activity implements MainView
 {
-	protected BrowseFragment mBrowseFragment;
+	private MainPresenter mPresenter = new MainPresenter(this);
+
+	private BrowseFragment mBrowseFragment;
 
 	private ArrayObjectAdapter mRowsAdapter;
 
@@ -58,6 +55,8 @@ public final class TvMainActivity extends Activity
 
 		buildRowsAdapter();
 
+		mPresenter.onCreate();
+
 		mBrowseFragment.setOnItemViewClickedListener(
 				new OnItemViewClickedListener()
 				{
@@ -68,34 +67,7 @@ public final class TvMainActivity extends Activity
 						if (item instanceof TvSettingsItem)
 						{
 							TvSettingsItem settingsItem = (TvSettingsItem) item;
-
-							switch (settingsItem.getItemId())
-							{
-								case R.id.menu_refresh:
-									getContentResolver().insert(GameProvider.URI_REFRESH, null);
-
-									// TODO Let the Activity know the data is refreshed in some other, better way.
-									recreate();
-									break;
-
-								case R.id.menu_settings:
-									// Launch the Settings Actvity.
-									Intent settings = new Intent(TvMainActivity.this, SettingsActivity.class);
-									startActivity(settings);
-									break;
-
-								case R.id.button_add_directory:
-									Intent fileChooser = new Intent(TvMainActivity.this, AddDirectoryActivity.class);
-
-									// The second argument to this method is read below in onActivityResult().
-									startActivityForResult(fileChooser, MainActivity.REQUEST_ADD_DIRECTORY);
-
-									break;
-
-								default:
-									Toast.makeText(TvMainActivity.this, "Unimplemented menu option.", Toast.LENGTH_SHORT).show();
-									break;
-							}
+							mPresenter.handleOptionSelection(settingsItem.getItemId());
 						}
 						else
 						{
@@ -123,6 +95,52 @@ public final class TvMainActivity extends Activity
 	}
 
 	/**
+	 * MainView
+	 */
+
+	@Override
+	public void setVersionString(String version)
+	{
+		// No-op
+	}
+
+	@Override
+	public void refresh()
+	{
+		recreate();
+	}
+
+	@Override
+	public void refreshFragmentScreenshot(int fragmentPosition)
+	{
+		// No-op (For now)
+	}
+
+	@Override
+	public void launchSettingsActivity()
+	{
+		SettingsActivity.launch(this);
+	}
+
+	@Override
+	public void launchFileListActivity()
+	{
+		AddDirectoryActivity.launch(this);
+	}
+
+	@Override
+	public void showGames(int platformIndex, Cursor games)
+	{
+		ListRow row = buildGamesRow(platformIndex, games);
+
+		// Add row to the adapter only if it is not empty.
+		if (row != null)
+		{
+			mRowsAdapter.add(row);
+		}
+	}
+
+	/**
 	 * Callback from AddDirectoryActivity. Applies any changes necessary to the GameGridActivity.
 	 *
 	 * @param requestCode An int describing whether the Activity that is returning did so successfully.
@@ -132,22 +150,7 @@ public final class TvMainActivity extends Activity
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent result)
 	{
-		switch (requestCode)
-		{
-			case MainActivity.REQUEST_ADD_DIRECTORY:
-				// If the user picked a file, as opposed to just backing out.
-				if (resultCode == RESULT_OK)
-				{
-					// Sanity check to make sure the Activity that just returned was the AddDirectoryActivity;
-					// other activities might use this callback in the future (don't forget to change Javadoc!)
-					if (requestCode == MainActivity.REQUEST_ADD_DIRECTORY)
-					{
-						// TODO Let the Activity know the data is refreshed in some other, better way.
-						recreate();
-					}
-				}
-				break;
-		}
+		mPresenter.handleActivityResult(requestCode, resultCode);
 	}
 
 	private void buildRowsAdapter()
@@ -157,49 +160,18 @@ public final class TvMainActivity extends Activity
 		// For each platform
 		for (int platformIndex = 0; platformIndex <= Game.PLATFORM_ALL; ++platformIndex)
 		{
-			ListRow row = buildGamesRow(platformIndex);
-
-			// Add row to the adapter only if it is not empty.
-			if (row != null)
-			{
-				mRowsAdapter.add(row);
-			}
+			mPresenter.loadGames(platformIndex);
 		}
 
-		ListRow settingsRow = buildSettingsRow();
-		mRowsAdapter.add(settingsRow);
+		mRowsAdapter.add(buildSettingsRow());
 
 		mBrowseFragment.setAdapter(mRowsAdapter);
 	}
 
-	private ListRow buildGamesRow(int platform)
+	private ListRow buildGamesRow(int platform, Cursor games)
 	{
 		// Create an adapter for this row.
 		CursorObjectAdapter row = new CursorObjectAdapter(new GameRowPresenter());
-
-		Cursor games;
-		if (platform == Game.PLATFORM_ALL)
-		{
-			// Get all games.
-			games = getContentResolver().query(
-					GameProvider.URI_GAME,                        // URI of table to query
-					null,                                        // Return all columns
-					null,                                        // Return all games
-					null,                                        // Return all games
-					GameDatabase.KEY_GAME_TITLE + " asc"        // Sort by game name, ascending order
-			);
-		}
-		else
-		{
-			// Get games for this particular platform.
-			games = getContentResolver().query(
-					GameProvider.URI_GAME,                        // URI of table to query
-					null,                                        // Return all columns
-					GameDatabase.KEY_GAME_PLATFORM + " = ?",    // Select by platform
-					new String[]{Integer.toString(platform)},    // Platform id
-					GameDatabase.KEY_GAME_TITLE + " asc"        // Sort by game name, ascending order
-			);
-		}
 
 		// If cursor is empty, don't return a Row.
 		if (!games.moveToFirst())
