@@ -108,7 +108,7 @@ public final class TvMainActivity extends Activity implements MainView
 	@Override
 	public void refreshFragmentScreenshot(int fragmentPosition)
 	{
-		// No-op (For now)
+		mRowsAdapter.notifyArrayItemRangeChanged(0, mRowsAdapter.size());
 	}
 
 	@Override
