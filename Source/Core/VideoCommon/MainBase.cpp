@@ -95,7 +95,7 @@ void VideoBackendHardware::Video_ClearMessages()
 // Screenshot
 bool VideoBackendHardware::Video_Screenshot(const std::string& filename)
 {
-	Renderer::SetScreenshot(filename.c_str());
+	Renderer::SetScreenshot(filename);
 	return true;
 }
 

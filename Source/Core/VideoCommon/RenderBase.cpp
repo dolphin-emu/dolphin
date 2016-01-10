@@ -217,11 +217,10 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 			efb_scale_denominatorX = efb_scale_denominatorY = 1;
 
 
-			int maxSize;
-			maxSize = GetMaxTextureSize();
-			if ((unsigned)maxSize < EFB_WIDTH * efb_scale_numeratorX / efb_scale_denominatorX)
+			const unsigned int max_size = static_cast<unsigned int>(GetMaxTextureSize());
+			if (max_size < EFB_WIDTH * efb_scale_numeratorX / efb_scale_denominatorX)
 			{
-				efb_scale_numeratorX = efb_scale_numeratorY = (maxSize / EFB_WIDTH);
+				efb_scale_numeratorX = efb_scale_numeratorY = (max_size / EFB_WIDTH);
 				efb_scale_denominatorX = efb_scale_denominatorY = 1;
 			}
 
