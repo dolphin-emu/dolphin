@@ -1,25 +1,18 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
 
-import android.content.Intent;
 import android.database.Cursor;
-import android.util.Log;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
-import org.dolphinemu.dolphinemu.activities.SettingsActivity;
-import org.dolphinemu.dolphinemu.fragments.PlatformGamesFragment;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
-import org.dolphinemu.dolphinemu.model.GameProvider;
-import org.dolphinemu.dolphinemu.ui.main.MainView;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-public class MainPresenter
+public final class MainPresenter
 {
 	public static final int REQUEST_ADD_DIRECTORY = 1;
 	public static final int REQUEST_EMULATE_GAME = 2;
@@ -36,14 +29,16 @@ public class MainPresenter
 		// TODO Rather than calling into native code, this should use the commented line below.
 		// String versionName = BuildConfig.VERSION_NAME;
 		String versionName = NativeLibrary.GetVersionString();
-		mView.setSubtitle(versionName);
+		mView.setVersionString(versionName);
 	}
 
-	public void onFabClick() {
+	public void onFabClick()
+	{
 		mView.launchFileListActivity();
 	}
 
-	public boolean handleOptionSelection(int itemId) {
+	public boolean handleOptionSelection(int itemId)
+	{
 		switch (itemId)
 		{
 			case R.id.menu_settings:
@@ -62,7 +57,8 @@ public class MainPresenter
 		return false;
 	}
 
-	public void handleActivityResult(int requestCode, int resultCode) {
+	public void handleActivityResult(int requestCode, int resultCode)
+	{
 		switch (requestCode)
 		{
 			case REQUEST_ADD_DIRECTORY:

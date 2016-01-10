@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.activities;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -37,5 +38,11 @@ public final class SettingsActivity extends AppCompatActivity
 		// Copy assets into appropriate locations.
 		Intent settingsSaver = new Intent(this, SettingsSaveService.class);
 		startService(settingsSaver);
+	}
+
+	public static void launch(Context context)
+	{
+		Intent settings = new Intent(context, SettingsActivity.class);
+		context.startActivity(settings);
 	}
 }

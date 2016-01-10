@@ -14,7 +14,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.activities.SettingsActivity;
@@ -91,9 +90,9 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	 */
 
 	@Override
-	public void setSubtitle(String subtitle)
+	public void setVersionString(String version)
 	{
-		mToolbar.setSubtitle(subtitle);
+		mToolbar.setSubtitle(version);
 	}
 
 	@Override
@@ -118,17 +117,13 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Override
 	public void launchSettingsActivity()
 	{
-		Intent settings = new Intent(this, SettingsActivity.class);
-		startActivity(settings);
+		SettingsActivity.launch(this);
 	}
 
 	@Override
 	public void launchFileListActivity()
 	{
-		Intent fileChooser = new Intent(this, AddDirectoryActivity.class);
-
-		// The second argument to this method is read below in onActivityResult().
-		startActivityForResult(fileChooser, MainPresenter.REQUEST_ADD_DIRECTORY);
+		AddDirectoryActivity.launch(this);
 	}
 
 	@Override

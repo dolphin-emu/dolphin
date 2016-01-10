@@ -17,16 +17,12 @@ import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
-import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
-import org.dolphinemu.dolphinemu.model.GameDatabase;
-import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
-import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.main.MainView;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
@@ -103,7 +99,7 @@ public final class TvMainActivity extends Activity implements MainView
 	 */
 
 	@Override
-	public void setSubtitle(String subtitle)
+	public void setVersionString(String version)
 	{
 		// No-op
 	}
@@ -123,17 +119,13 @@ public final class TvMainActivity extends Activity implements MainView
 	@Override
 	public void launchSettingsActivity()
 	{
-		Intent settings = new Intent(this, SettingsActivity.class);
-		startActivity(settings);
+		SettingsActivity.launch(this);
 	}
 
 	@Override
 	public void launchFileListActivity()
 	{
-		Intent fileChooser = new Intent(this, AddDirectoryActivity.class);
-
-		// The second argument to this method is read below in onActivityResult().
-		startActivityForResult(fileChooser, MainPresenter.REQUEST_ADD_DIRECTORY);
+		AddDirectoryActivity.launch(this);
 	}
 
 	@Override

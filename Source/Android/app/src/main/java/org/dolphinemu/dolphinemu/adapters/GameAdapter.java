@@ -17,7 +17,6 @@ import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
