@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -124,10 +125,16 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Override
 	public void launchFileListActivity()
 	{
-		Intent fileChooser = new Intent(MainActivity.this, AddDirectoryActivity.class);
+		Intent fileChooser = new Intent(this, AddDirectoryActivity.class);
 
 		// The second argument to this method is read below in onActivityResult().
 		startActivityForResult(fileChooser, MainPresenter.REQUEST_ADD_DIRECTORY);
+	}
+
+	@Override
+	public void showGames(int platformIndex, Cursor games)
+	{
+		// no-op. Handled by PlatformGamesFragment.
 	}
 
 	/**

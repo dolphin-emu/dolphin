@@ -1,6 +1,8 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
 
+import android.database.Cursor;
+
 public interface MainView
 {
 	void setSubtitle(String subtitle);
@@ -12,4 +14,6 @@ public interface MainView
 	void launchSettingsActivity();
 
 	void launchFileListActivity();
+
+	void showGames(int platformIndex, Cursor games);
 }
