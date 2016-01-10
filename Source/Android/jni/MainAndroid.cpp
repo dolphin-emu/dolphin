@@ -18,6 +18,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
+#include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/BootManager.h"
@@ -380,8 +381,9 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDi
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv *env, jobject obj, jboolean enable);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv *env, jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv *env, jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf);
-
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChanged(JNIEnv *env, jobject obj, jobject _surf);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv *env, jobject obj);
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv *env, jobject obj)
 {
@@ -596,17 +598,44 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClasses
 	g_jni_method_end = env->GetStaticMethodID(g_jni_class, "endEmulationActivity", "()V");
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)
+// Surface Handling
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChanged(JNIEnv *env, jobject obj, jobject _surf)
+{
+	surf = ANativeWindow_fromSurface(env, _surf);
+	if (surf == nullptr)
+		__android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
+
+	// If GLInterface isn't a thing yet then we don't need to let it know that the surface has changed
+	if (GLInterface)
+	{
+		GLInterface->UpdateHandle(surf);
+		Renderer::s_ChangedSurface.Reset();
+		Renderer::s_SurfaceNeedsChanged.Set();
+		Renderer::s_ChangedSurface.Wait();
+	}
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv *env, jobject obj)
+{
+	if (surf)
+	{
+		ANativeWindow_release(surf);
+		surf = nullptr;
+	}
+
+	// If GLInterface isn't a thing yet then we don't need to let it know that the surface has changed
+	if (GLInterface)
+	{
+		GLInterface->UpdateHandle(nullptr);
+		Renderer::s_ChangedSurface.Reset();
+		Renderer::s_SurfaceNeedsChanged.Set();
+		Renderer::s_ChangedSurface.Wait();
+	}
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj)
 {
 	__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", g_filename.c_str());
-
-	surf = ANativeWindow_fromSurface(env, _surf);
-
-	if (surf == nullptr)
-	{
-		__android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
-		return;
-	}
 
 	// Install our callbacks
 	OSD::AddCallback(OSD::CallbackType::Initialization, ButtonManager::Init);
@@ -627,7 +656,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 
 	Core::Shutdown();
 	UICommon::Shutdown();
-	ANativeWindow_release(surf);
+
+	if (surf)
+	{
+		ANativeWindow_release(surf);
+		surf = nullptr;
+	}
 
 	// Execute the Java method.
 	env->CallStaticVoidMethod(g_jni_class, g_jni_method_end);
