@@ -18,6 +18,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -48,7 +49,6 @@ static u8* s_fifo_aux_read_ptr;
 // and can change at runtime.
 static bool s_use_deterministic_gpu_thread;
 
-static u64 s_last_sync_gpu_tick;
 static int s_event_sync_gpu;
 
 // STATE_TO_SAVE
@@ -86,7 +86,6 @@ void DoState(PointerWrap &p)
 	}
 
 	p.Do(s_skip_current_frame);
-	p.Do(s_last_sync_gpu_tick);
 }
 
 void PauseAndLock(bool doLock, bool unpauseOnUnlock)
@@ -413,54 +412,61 @@ bool AtBreakpoint()
 
 void RunGpu()
 {
-	SCPFifoStruct &fifo = CommandProcessor::fifo;
 	const SConfig& param = SConfig::GetInstance();
 
-	// execute GPU
-	if (!param.bCPUThread || s_use_deterministic_gpu_thread)
-	{
-		bool reset_simd_state = false;
-		while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
-		{
-			if (s_use_deterministic_gpu_thread)
-			{
-				ReadDataFromFifoOnCPU(fifo.CPReadPointer);
-				s_gpu_mainloop.Wakeup();
-			}
-			else
-			{
-				if (!reset_simd_state)
-				{
-					FPURoundMode::SaveSIMDState();
-					FPURoundMode::LoadDefaultSIMDState();
-					reset_simd_state = true;
-				}
-				ReadDataFromFifo(fifo.CPReadPointer);
-				s_video_buffer_read_ptr = OpcodeDecoder::Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
-			}
-
-			//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
-
-			if (fifo.CPReadPointer == fifo.CPEnd)
-				fifo.CPReadPointer = fifo.CPBase;
-			else
-				fifo.CPReadPointer += 32;
-
-			fifo.CPReadWriteDistance -= 32;
-		}
-		CommandProcessor::SetCPStatusFromGPU();
-
-		if (reset_simd_state)
-		{
-			FPURoundMode::LoadSIMDState();
-		}
-	}
-
 	// wake up GPU thread
-	if (param.bCPUThread)
+	if (param.bCPUThread && !s_use_deterministic_gpu_thread)
 	{
 		s_gpu_mainloop.Wakeup();
 	}
+}
+
+static int RunGpuOnCpu(int ticks)
+{
+	SCPFifoStruct &fifo = CommandProcessor::fifo;
+	bool reset_simd_state = false;
+	int available_ticks = int(ticks * SConfig::GetInstance().fSyncGpuOverclock) + s_sync_ticks.load();
+	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() && available_ticks > 0)
+	{
+		if (s_use_deterministic_gpu_thread)
+		{
+			ReadDataFromFifoOnCPU(fifo.CPReadPointer);
+			s_gpu_mainloop.Wakeup();
+		}
+		else
+		{
+			if (!reset_simd_state)
+			{
+				FPURoundMode::SaveSIMDState();
+				FPURoundMode::LoadDefaultSIMDState();
+				reset_simd_state = true;
+			}
+			ReadDataFromFifo(fifo.CPReadPointer);
+			u32 cycles = 0;
+			s_video_buffer_read_ptr = OpcodeDecoder::Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), &cycles, false);
+			available_ticks -= cycles;
+		}
+
+		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
+
+		if (fifo.CPReadPointer == fifo.CPEnd)
+			fifo.CPReadPointer = fifo.CPBase;
+		else
+			fifo.CPReadPointer += 32;
+
+		fifo.CPReadWriteDistance -= 32;
+	}
+	CommandProcessor::SetCPStatusFromGPU();
+
+	if (reset_simd_state)
+	{
+		FPURoundMode::LoadSIMDState();
+	}
+
+	available_ticks = std::min(available_ticks, 0);
+	s_sync_ticks.store(available_ticks);
+
+	return 10000 - available_ticks;
 }
 
 void UpdateWantDeterminism(bool want)
@@ -513,9 +519,9 @@ bool UseDeterministicGPUThread()
 /* This function checks the emulated CPU - GPU distance and may wake up the GPU,
  * or block the CPU if required. It should be called by the CPU thread regulary.
  * @ticks The gone emulated CPU time.
- * @return A good time to call Update() next.
+ * @return A good time to call WaitForGpuThread() next.
  */
-static int Update(int ticks)
+static int WaitForGpuThread(int ticks)
 {
 	const SConfig& param = SConfig::GetInstance();
 
@@ -548,25 +554,28 @@ static int Update(int ticks)
 	return param.iSyncGpuMaxDistance - s_sync_ticks.load();
 }
 
-static void SyncGPUCallback(u64 userdata, int cyclesLate)
+static void SyncGPUCallback(u64 ticks, int cyclesLate)
 {
-	u64 now = CoreTiming::GetTicks();
-	int next = Fifo::Update((int)(now - s_last_sync_gpu_tick));
-	s_last_sync_gpu_tick = now;
+	ticks += cyclesLate;
+	int next = SystemTimers::GetTicksPerSecond();
 
-	if (next > 0)
-		CoreTiming::ScheduleEvent(next, s_event_sync_gpu);
+	if (!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread)
+	{
+		next = RunGpuOnCpu((int)ticks);
+	}
+	else if (SConfig::GetInstance().bSyncGPU)
+	{
+		next = WaitForGpuThread((int)ticks);
+	}
+
+	CoreTiming::ScheduleEvent(next, s_event_sync_gpu, next);
 }
 
 // Initialize GPU - CPU thread syncing, this gives us a deterministic way to start the GPU thread.
 void Prepare()
 {
-	if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
-	{
-		s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
-		CoreTiming::ScheduleEvent(0, s_event_sync_gpu);
-		s_last_sync_gpu_tick = CoreTiming::GetTicks();
-	}
+	s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
+	CoreTiming::ScheduleEvent(0, s_event_sync_gpu, 0);
 }
 
 }
