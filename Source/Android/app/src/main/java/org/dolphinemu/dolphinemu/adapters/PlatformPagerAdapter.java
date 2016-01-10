@@ -11,7 +11,7 @@ import android.text.SpannableString;
 import android.text.style.ImageSpan;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.fragments.PlatformGamesFragment;
+import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesFragment;
 
 public class PlatformPagerAdapter extends FragmentPagerAdapter
 {
