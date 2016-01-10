@@ -1,7 +1,6 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
 import android.app.Activity;
-import android.app.ActivityOptions;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.database.Cursor;
@@ -73,19 +72,14 @@ public final class TvMainActivity extends Activity implements MainView
 						else
 						{
 							TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
+
 							// Start the emulation activity and send the path of the clicked ISO to it.
-							Intent intent = new Intent(TvMainActivity.this, EmulationActivity.class);
-
-							intent.putExtra("SelectedGame", holder.path);
-							intent.putExtra("SelectedTitle", holder.title);
-							intent.putExtra("ScreenPath", holder.screenshotPath);
-
-							ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
-									TvMainActivity.this,
-									holder.imageScreenshot,
-									"image_game_screenshot");
-
-							startActivity(intent, options.toBundle());
+							EmulationActivity.launch(TvMainActivity.this,
+									holder.path,
+									holder.title,
+									holder.screenshotPath,
+									-1,
+									holder.imageScreenshot);
 						}
 					}
 				});

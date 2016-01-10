@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.activities;
 
+import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -30,6 +32,7 @@ import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.LoadStateFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 
 import java.util.List;
 
@@ -658,5 +661,22 @@ public final class EmulationActivity extends AppCompatActivity
 	public String getSelectedTitle()
 	{
 		return mSelectedTitle;
+	}
+
+	public static void launch(Activity activity, String path, String title, String screenshotPath, int position, View sharedView)
+	{
+		Intent launcher = new Intent(activity, EmulationActivity.class);
+
+		launcher.putExtra("SelectedGame", path);
+		launcher.putExtra("SelectedTitle", title);
+		launcher.putExtra("ScreenPath", screenshotPath);
+		launcher.putExtra("GridPosition", position);
+
+		ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+				activity,
+				sharedView,
+				"image_game_screenshot");
+
+		activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options.toBundle());
 	}
 }
