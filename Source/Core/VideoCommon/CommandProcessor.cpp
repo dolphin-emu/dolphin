@@ -295,8 +295,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void GatherPipeBursted()
 {
-	if (IsOnThread())
-		SetCPStatusFromCPU();
+	SetCPStatusFromCPU();
 
 	ProcessFifoEvents();
 	// if we aren't linked, we don't care about gather pipe data
