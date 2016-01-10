@@ -14,6 +14,7 @@
 #include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/MachineContext.h"

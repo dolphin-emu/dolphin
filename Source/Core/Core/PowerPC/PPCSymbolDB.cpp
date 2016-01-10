@@ -9,9 +9,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
-
-#include "Core/Host.h"
-#include "Core/HW/Memmap.h"
+#include "Common/Logging/Log.h"
+#include "Core/ConfigManager.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"

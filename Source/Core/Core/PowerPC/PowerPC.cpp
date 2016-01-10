@@ -2,20 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FPURoundMode.h"
 #include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
 
-#include "Core/Core.h"
-#include "Core/CoreTiming.h"
+#include "Core/ConfigManager.h"
 #include "Core/Host.h"
-#include "Core/HW/CPU.h"
-#include "Core/HW/EXI.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
-
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"

@@ -2,11 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Arm64Emitter.h"
-#include "Common/Common.h"
-#include "Common/PerformanceCounter.h"
+#include <cstdio>
 
+#include "Common/Arm64Emitter.h"
+#include "Common/CommonTypes.h"
+#include "Common/PerformanceCounter.h"
+#include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
+
+#include "Core/ConfigManager.h"
 #include "Core/PatchEngine.h"
+#include "Core/HLE/HLE.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
