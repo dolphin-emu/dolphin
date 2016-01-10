@@ -180,6 +180,14 @@ namespace DriverDetails
 		// Example alpha test path
 		// if(( (prev.a >  alphaRef.r) && (prev.a >  alphaRef.g)) == false) {
 		BUG_BROKENALPHATEST,
+
+		// Bug: Broken lines in geometry shaders
+		// Affected Devices: Mesa r600/radeonsi
+		// Started Version: -1
+		// Ended Version: -1
+		// Mesa inroduced geometry shader support for radeon devices and failed to test it with us.
+		// Causes misrenderings on a large amount of things that draw lines.
+		BUG_BROKENGEOMETRYSHADERS,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
