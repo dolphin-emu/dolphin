@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 
 android {
     // Leanback support requires >22
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    compileSdkVersion 23
+    buildToolsVersion '23.0.2'
 
     lintOptions {
         // This is important as it will run lint but not abort on error
@@ -76,13 +76,13 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v13:22.2.1'
-    compile 'com.android.support:cardview-v7:22.2.1'
-    compile 'com.android.support:recyclerview-v7:22.2.1'
-    compile 'com.android.support:design:22.2.1'
+    compile 'com.android.support:support-v13:23.1.1'
+    compile 'com.android.support:cardview-v7:23.1.1'
+    compile 'com.android.support:recyclerview-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
 
     // Android TV UI libraries.
-    compile 'com.android.support:leanback-v17:22.2.1'
+    compile 'com.android.support:leanback-v17:23.1.1'
 
     // For showing the banner as a circle a-la Material Design Guidelines
     compile 'de.hdodenhof:circleimageview:1.2.2'
