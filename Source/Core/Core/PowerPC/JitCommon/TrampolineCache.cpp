@@ -35,7 +35,7 @@ void TrampolineCache::Shutdown()
 	FreeCodeSpace();
 }
 
-const u8* TrampolineCache::GenerateReadTrampoline(const BackPatchInfo &info)
+const u8* TrampolineCache::GenerateReadTrampoline(const TrampolineInfo &info)
 {
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
@@ -50,7 +50,7 @@ const u8* TrampolineCache::GenerateReadTrampoline(const BackPatchInfo &info)
 	return trampoline;
 }
 
-const u8* TrampolineCache::GenerateWriteTrampoline(const BackPatchInfo &info)
+const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo &info)
 {
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");

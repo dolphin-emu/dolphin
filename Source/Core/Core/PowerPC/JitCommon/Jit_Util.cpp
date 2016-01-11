@@ -243,7 +243,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		u8* backpatchStart = GetWritableCodePtr();
 		MovInfo mov;
 		UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
-		BackPatchInfo& info = backPatchInfo[mov.address];
+		TrampolineInfo& info = backPatchInfo[mov.address];
 		info.pc = jit->js.compilerPC;
 		info.mov = mov;
 		info.start = backpatchStart;
@@ -511,7 +511,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 		u8* backpatchStart = GetWritableCodePtr();
 		MovInfo mov;
 		UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
-		BackPatchInfo& info = backPatchInfo[mov.address];
+		TrampolineInfo& info = backPatchInfo[mov.address];
 		info.pc = jit->js.compilerPC;
 		info.mov = mov;
 		info.start = backpatchStart;

@@ -213,7 +213,7 @@ alignas(16) static const float m_127 = 127.0f;
 alignas(16) static const float m_m128 = -128.0f;
 
 // Sizes of the various quantized store types
-static const std::array<u8, 8> sizes{ 32, 0, 0, 0, 8, 16, 8, 16 };
+static const std::array<u8, 8> sizes{{ 32, 0, 0, 0, 8, 16, 8, 16 }};
 
 void CommonAsmRoutines::GenQuantizedStores()
 {

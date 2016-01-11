@@ -38,7 +38,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		return false;
 	}
 
-	BackPatchInfo& info = it->second;
+	TrampolineInfo& info = it->second;
 
 	u8* exceptionHandler = nullptr;
 	if (jit->jo.memcheck)

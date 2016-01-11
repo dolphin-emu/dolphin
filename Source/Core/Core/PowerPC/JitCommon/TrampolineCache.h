@@ -20,7 +20,7 @@ public:
 	void Init(int size);
 	void Shutdown();
 
-	const u8* GenerateReadTrampoline(const BackPatchInfo &info);
-	const u8* GenerateWriteTrampoline(const BackPatchInfo &info);
+	const u8* GenerateReadTrampoline(const TrampolineInfo &info);
+	const u8* GenerateWriteTrampoline(const TrampolineInfo &info);
 	void ClearCodeSpace();
 };

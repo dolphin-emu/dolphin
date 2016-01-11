@@ -48,7 +48,7 @@ static const int TRAMPOLINE_CODE_SIZE_MMU = 1024 * 1024 * 32;
 
 // Stores information we need to batch-patch a MOV with a call to the slow read/write path after
 // it faults
-struct BackPatchInfo final
+struct TrampolineInfo final
 {
 	// The PPC PC for the current load/store block
 	u32 pc;
@@ -171,6 +171,6 @@ public:
 	void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
 	void SetFPRF(Gen::X64Reg xmm);
 protected:
-	std::unordered_map<u8 *, BackPatchInfo> backPatchInfo;
+	std::unordered_map<u8 *, TrampolineInfo> backPatchInfo;
 	std::unordered_map<u8 *, u8 *> exceptionHandlerAtLoc;
 };
