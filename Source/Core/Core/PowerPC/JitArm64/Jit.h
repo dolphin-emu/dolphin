@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <tuple>
 
 #include "Common/Arm64Emitter.h"
 
@@ -192,7 +193,6 @@ public:
 	void psq_st(UGeckoInstruction inst);
 
 private:
-
 	struct SlowmemHandler
 	{
 		ARM64Reg dest_reg;
@@ -200,20 +200,11 @@ private:
 		BitSet32 gprs;
 		BitSet32 fprs;
 		u32 flags;
-		bool operator< (const SlowmemHandler& rhs) const
-		{
-			if (dest_reg < rhs.dest_reg) return true;
-			if (dest_reg > rhs.dest_reg) return false;
-			if (addr_reg < rhs.addr_reg) return true;
-			if (addr_reg > rhs.addr_reg) return false;
-			if (gprs < rhs.gprs) return true;
-			if (gprs > rhs.gprs) return false;
-			if (fprs < rhs.fprs) return true;
-			if (fprs > rhs.fprs) return false;
-			if (flags < rhs.flags) return true;
-			if (flags > rhs.flags) return false;
 
-			return false;
+		bool operator<(const SlowmemHandler& rhs) const
+		{
+			return std::tie(dest_reg, addr_reg, gprs, fprs, flags) <
+			       std::tie(rhs.dest_reg, rhs.addr_reg, rhs.gprs, rhs.fprs, rhs.flags);
 		}
 	};
 
