@@ -1,7 +1,6 @@
-package org.dolphinemu.dolphinemu.activities;
+package org.dolphinemu.dolphinemu.ui.main;
 
 import android.app.Activity;
-import android.app.ActivityOptions;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.database.Cursor;
@@ -19,12 +18,13 @@ import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.activities.SettingsActivity;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
-import org.dolphinemu.dolphinemu.ui.main.MainView;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
@@ -72,19 +72,14 @@ public final class TvMainActivity extends Activity implements MainView
 						else
 						{
 							TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
+
 							// Start the emulation activity and send the path of the clicked ISO to it.
-							Intent intent = new Intent(TvMainActivity.this, EmulationActivity.class);
-
-							intent.putExtra("SelectedGame", holder.path);
-							intent.putExtra("SelectedTitle", holder.title);
-							intent.putExtra("ScreenPath", holder.screenshotPath);
-
-							ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
-									TvMainActivity.this,
-									holder.imageScreenshot,
-									"image_game_screenshot");
-
-							startActivity(intent, options.toBundle());
+							EmulationActivity.launch(TvMainActivity.this,
+									holder.path,
+									holder.title,
+									holder.screenshotPath,
+									-1,
+									holder.imageScreenshot);
 						}
 					}
 				});
@@ -113,7 +108,7 @@ public final class TvMainActivity extends Activity implements MainView
 	@Override
 	public void refreshFragmentScreenshot(int fragmentPosition)
 	{
-		// No-op (For now)
+		mRowsAdapter.notifyArrayItemRangeChanged(0, mRowsAdapter.size());
 	}
 
 	@Override
