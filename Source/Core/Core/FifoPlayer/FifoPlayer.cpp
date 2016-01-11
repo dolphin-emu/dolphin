@@ -82,9 +82,6 @@ bool FifoPlayer::Play()
 				if (m_Loop)
 				{
 					m_CurrentFrame = m_FrameRangeStart;
-
-					PowerPC::ppcState.downcount = 0;
-					CoreTiming::Advance();
 				}
 				else
 				{
@@ -233,6 +230,13 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
 	WriteFramePart(position, frame.fifoDataSize, memoryUpdate, frame, info);
 
 	FlushWGP();
+
+	// Sleep while the GPU is active
+	while (!IsIdleSet())
+	{
+		CoreTiming::Idle();
+		CoreTiming::Advance();
+	}
 }
 
 void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate, const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
@@ -300,6 +304,12 @@ void FifoPlayer::WriteFifo(u8* data, u32 start, u32 end)
 	// Write up to 256 bytes at a time
 	while (written < end)
 	{
+		while (IsHighWatermarkSet())
+		{
+			CoreTiming::Idle();
+			CoreTiming::Advance();
+		}
+
 		u32 burstEnd = std::min(written + 255, lastBurstEnd);
 
 		while (written < burstEnd)
@@ -330,8 +340,8 @@ void FifoPlayer::SetupFifo()
 	WriteCP(CommandProcessor::FIFO_END_LO, frame.fifoEnd);
 	WriteCP(CommandProcessor::FIFO_END_HI, frame.fifoEnd >> 16);
 
-	// Set watermarks
-	u32 hi_watermark = frame.fifoEnd - frame.fifoStart;
+	// Set watermarks, high at 75%, low at 0%
+	u32 hi_watermark = (frame.fifoEnd - frame.fifoStart) * 3 / 4;
 	WriteCP(CommandProcessor::FIFO_HI_WATERMARK_LO, hi_watermark);
 	WriteCP(CommandProcessor::FIFO_HI_WATERMARK_HI, hi_watermark >> 16);
 	WriteCP(CommandProcessor::FIFO_LO_WATERMARK_LO, 0);
@@ -478,4 +488,16 @@ bool FifoPlayer::ShouldLoadBP(u8 address)
 	default:
 		return true;
 	}
+}
+
+bool FifoPlayer::IsIdleSet()
+{
+	CommandProcessor::UCPStatusReg status = PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+	return status.CommandIdle;
+}
+
+bool FifoPlayer::IsHighWatermarkSet()
+{
+	CommandProcessor::UCPStatusReg status = PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+	return status.OverflowHiWatermark;
 }

@@ -113,6 +113,9 @@ private:
 
 	bool ShouldLoadBP(u8 address);
 
+	static bool IsIdleSet();
+	static bool IsHighWatermarkSet();
+
 	bool m_Loop;
 
 	u32 m_CurrentFrame;
