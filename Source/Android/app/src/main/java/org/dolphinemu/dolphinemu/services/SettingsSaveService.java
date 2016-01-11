@@ -2,8 +2,8 @@ package org.dolphinemu.dolphinemu.services;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.util.Log;
 
+import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.UserPreferences;
 
 /**
@@ -13,8 +13,6 @@ import org.dolphinemu.dolphinemu.utils.UserPreferences;
  */
 public final class SettingsSaveService extends IntentService
 {
-	private static final String TAG = "DolphinEmulator";
-
 	public SettingsSaveService()
 	{
 		super("SettingsSaveService");
@@ -23,8 +21,8 @@ public final class SettingsSaveService extends IntentService
 	@Override
 	protected void onHandleIntent(Intent intent)
 	{
-		Log.v(TAG, "Saving settings to INI files...");
+		Log.verbose("[SettingsSaveService] Saving settings to INI files...");
 		UserPreferences.SavePrefsToIni(this);
-		Log.v(TAG, "Save successful.");
+		Log.verbose("[SettingsSaveService] Save successful.");
 	}
 }

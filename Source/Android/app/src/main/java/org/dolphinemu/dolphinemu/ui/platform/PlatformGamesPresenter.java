@@ -2,10 +2,10 @@ package org.dolphinemu.dolphinemu.ui.platform;
 
 
 import android.database.Cursor;
-import android.util.Log;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -34,13 +34,13 @@ public final class PlatformGamesPresenter
 
 	public void refresh()
 	{
-		Log.d("DolphinEmu", "[PlatformGamesPresenter] " + mPlatform + ": Refreshing...");
+		Log.debug("[PlatformGamesPresenter] " + mPlatform + ": Refreshing...");
 		loadGames();
 	}
 
 	private void loadGames()
 	{
-		Log.d("DolphinEmu", "[PlatformGamesPresenter] " + mPlatform + ": Loading games...");
+		Log.debug("[PlatformGamesPresenter] " + mPlatform + ": Loading games...");
 
 		GameDatabase databaseHelper = DolphinApplication.databaseHelper;
 
@@ -52,7 +52,7 @@ public final class PlatformGamesPresenter
 							   @Override
 							   public void call(Cursor games)
 							   {
-								   Log.d("DolphinEmu", "[PlatformGamesPresenter] " + mPlatform + ": Load finished, swapping cursor...");
+								   Log.debug("[PlatformGamesPresenter] " + mPlatform + ": Load finished, swapping cursor...");
 
 								   mView.showGames(games);
 							   }

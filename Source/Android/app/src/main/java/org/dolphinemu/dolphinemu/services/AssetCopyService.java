@@ -10,9 +10,9 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.UserPreferences;
 
 import java.io.File;
@@ -27,8 +27,6 @@ import java.io.OutputStream;
  */
 public final class AssetCopyService extends IntentService
 {
-	private static final String TAG = "DolphinEmulator";
-
 	public AssetCopyService()
 	{
 		// Superclass constructor is called to name the thread on which this service executes.
@@ -55,7 +53,7 @@ public final class AssetCopyService extends IntentService
 		}
 		else
 		{
-			Log.v(TAG, "Skipping asset copy operation.");
+			Log.verbose("[AssetCopyService] Skipping asset copy operation.");
 		}
 
 		// Always copy over the GCPad config in case of change or corruption.
@@ -77,7 +75,7 @@ public final class AssetCopyService extends IntentService
 
 	private void copyAsset(String asset, String output)
 	{
-		Log.v(TAG, "Copying " + asset + " to " + output);
+		Log.verbose("[AssetCopyService] Copying " + asset + " to " + output);
 		InputStream in = null;
 		OutputStream out = null;
 
@@ -91,13 +89,13 @@ public final class AssetCopyService extends IntentService
 		}
 		catch (IOException e)
 		{
-			Log.e(TAG, "Failed to copy asset file: " + asset, e);
+			Log.error("[AssetCopyService] Failed to copy asset file: " + asset + e.getMessage());
 		}
 	}
 
 	private void copyAssetFolder(String assetFolder, String outputFolder)
 	{
-		Log.v(TAG, "Copying " + assetFolder + " to " + outputFolder);
+		Log.verbose("[AssetCopyService] Copying " + assetFolder + " to " + outputFolder);
 
 		try
 		{
@@ -108,7 +106,7 @@ public final class AssetCopyService extends IntentService
 		}
 		catch (IOException e)
 		{
-			Log.e(TAG, "Failed to copy asset folder: " + assetFolder, e);
+			Log.error("[AssetCopyService] Failed to copy asset folder: " + assetFolder + e.getMessage());
 		}
 	}
 

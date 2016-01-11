@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -33,6 +32,7 @@ import org.dolphinemu.dolphinemu.fragments.LoadStateFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.List;
 
@@ -211,7 +211,7 @@ public final class EmulationActivity extends AppCompatActivity
 	protected void onStart()
 	{
 		super.onStart();
-		Log.d("DolphinEmu", "EmulationActivity starting.");
+		Log.debug("[EmulationActivity] EmulationActivity starting.");
 		NativeLibrary.setEmulationActivity(this);
 	}
 
@@ -219,7 +219,7 @@ public final class EmulationActivity extends AppCompatActivity
 	protected void onStop()
 	{
 		super.onStop();
-		Log.d("DolphinEmu", "EmulationActivity stopping.");
+		Log.debug("[EmulationActivity] EmulationActivity stopping.");
 
 		NativeLibrary.setEmulationActivity(null);
 	}
@@ -650,14 +650,14 @@ public final class EmulationActivity extends AppCompatActivity
 			}
 			else
 			{
-				Log.e("DolphinEmu", "[EmulationActivity] Fragment not found, can't remove.");
+				Log.error("[EmulationActivity] Fragment not found, can't remove.");
 			}
 
 			mSubmenuFragmentTag = null;
 		}
 		else
 		{
-			Log.e("DolphinEmu", "[EmulationActivity] Fragment Tag empty.");
+			Log.error("[EmulationActivity] Fragment Tag empty.");
 		}
 	}
 
