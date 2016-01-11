@@ -145,6 +145,11 @@ void VideoBackend::ShowConfig(void *hParent)
 
 bool VideoBackend::Initialize(void *window_handle)
 {
+	bool d3d12_supported = D3D::AlertUserIfSelectedAdapterDoesNotSupportD3D12();
+
+	if (!d3d12_supported)
+		return false;
+
 	if (window_handle == nullptr)
 		return false;
 
