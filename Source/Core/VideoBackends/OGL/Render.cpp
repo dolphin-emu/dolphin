@@ -1467,6 +1467,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	OSD::DoCallbacks(OSD::CallbackType::OnFrame);
 	OSD::DrawMessages();
 
+	if (s_SurfaceNeedsChanged.IsSet())
+	{
+		GLInterface->UpdateSurface();
+		s_SurfaceNeedsChanged.Clear();
+		s_ChangedSurface.Set();
+	}
+
 	// Copy the rendered frame to the real window
 	GLInterface->Swap();
 

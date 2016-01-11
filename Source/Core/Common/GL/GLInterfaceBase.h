@@ -42,6 +42,8 @@ public:
 	virtual void SetBackBufferDimensions(u32 W, u32 H) {s_backbuffer_width = W; s_backbuffer_height = H; }
 	virtual void Update() { }
 	virtual bool PeekMessages() { return false; }
+	virtual void UpdateHandle(void* window_handle) {}
+	virtual void UpdateSurface() {}
 };
 
 extern std::unique_ptr<cInterfaceBase> GLInterface;

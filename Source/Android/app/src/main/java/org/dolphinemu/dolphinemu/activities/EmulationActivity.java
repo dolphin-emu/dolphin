@@ -177,13 +177,16 @@ public final class EmulationActivity extends AppCompatActivity
 					}
 				});
 
-		// Instantiate an EmulationFragment.
-		EmulationFragment emulationFragment = EmulationFragment.newInstance(path);
+		if (savedInstanceState == null)
+		{
+			// Instantiate an EmulationFragment.
+			EmulationFragment emulationFragment = EmulationFragment.newInstance(path);
 
-		// Add fragment to the activity - this triggers all its lifecycle callbacks.
-		getFragmentManager().beginTransaction()
-				.add(R.id.frame_emulation_fragment, emulationFragment, EmulationFragment.FRAGMENT_TAG)
-				.commit();
+			// Add fragment to the activity - this triggers all its lifecycle callbacks.
+			getFragmentManager().beginTransaction()
+					.add(R.id.frame_emulation_fragment, emulationFragment, EmulationFragment.FRAGMENT_TAG)
+					.commit();
+		}
 
 		if (mDeviceHasTouchScreen)
 		{

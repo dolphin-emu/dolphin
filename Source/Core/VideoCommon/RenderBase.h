@@ -138,6 +138,10 @@ public:
 
 	static Common::Event s_screenshotCompleted;
 
+	// Final surface changing
+	static Common::Flag s_SurfaceNeedsChanged;
+	static Common::Event s_ChangedSurface;
+
 protected:
 
 	static void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY);

@@ -333,10 +333,12 @@ public final class NativeLibrary
 
 	/**
 	 * Begins emulation.
-	 * 
-	 * @param surf The surface to render to.
 	 */
-	public static native void Run(Surface surf);
+	public static native void Run();
+
+	// Surface Handling
+	public static native void SurfaceChanged(Surface surf);
+	public static native void SurfaceDestroyed();
 
 	/** Unpauses emulation from a paused state. */
 	public static native void UnPauseEmulation();

@@ -58,6 +58,10 @@ Common::Event Renderer::s_screenshotCompleted;
 
 volatile bool Renderer::s_bScreenshot;
 
+// Final surface changing
+Common::Flag  Renderer::s_SurfaceNeedsChanged;
+Common::Event Renderer::s_ChangedSurface;
+
 // The framebuffer size
 int Renderer::s_target_width;
 int Renderer::s_target_height;
