@@ -6,7 +6,7 @@
 
 #include <map>
 
-#include "Core/PowerPC/CPUCoreBase.h"
+#include "Common/CommonTypes.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 

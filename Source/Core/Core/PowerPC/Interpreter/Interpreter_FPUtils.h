@@ -7,10 +7,11 @@
 #include <cmath>
 #include <limits>
 
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/PowerPC.h"
 
 const u64 PPC_NAN_U64 = 0x7ff8000000000000ull;
 const double PPC_NAN  = *(double* const)&PPC_NAN_U64;

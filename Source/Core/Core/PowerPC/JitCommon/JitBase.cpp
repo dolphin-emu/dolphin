@@ -7,8 +7,10 @@
 
 #include "disasm.h"
 
+#include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 JitBase *jit;
