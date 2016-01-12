@@ -26,10 +26,10 @@ void Init()
 {
 	LogManager::Init();
 	SConfig::Init();
-	VideoBackend::PopulateList();
+	VideoBackendBase::PopulateList();
 	WiimoteReal::LoadSettings();
 	GCAdapter::Init();
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+	VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
 	SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
 }
@@ -38,7 +38,7 @@ void Shutdown()
 {
 	GCAdapter::Shutdown();
 	WiimoteReal::Shutdown();
-	VideoBackend::ClearList();
+	VideoBackendBase::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
 }

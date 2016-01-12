@@ -121,7 +121,7 @@ bool DolphinApp::OnInit()
 	if (m_select_audio_emulation)
 		SConfig::GetInstance().bDSPHLE = (m_audio_emulation_name.Upper() == "HLE");
 
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+	VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);

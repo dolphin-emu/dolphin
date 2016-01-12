@@ -24,7 +24,7 @@ public:
 
 	void Event_Backend(wxCommandEvent &ev)
 	{
-		VideoBackend* new_backend = g_available_video_backends[ev.GetInt()];
+		VideoBackendBase* new_backend = g_available_video_backends[ev.GetInt()];
 
 		if (g_video_backend != new_backend)
 		{
