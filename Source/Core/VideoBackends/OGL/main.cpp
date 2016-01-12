@@ -181,7 +181,7 @@ void VideoBackend::Video_Prepare()
 	BPInit();
 	g_vertex_manager = std::make_unique<VertexManager>();
 	g_perf_query = GetPerfQuery();
-	Fifo_Init(); // must be done before OpcodeDecoder_Init()
+	Fifo::Init(); // must be done before OpcodeDecoder_Init()
 	OpcodeDecoder_Init();
 	IndexGenerator::Init();
 	VertexShaderManager::Init();
@@ -215,7 +215,7 @@ void VideoBackend::Video_Cleanup()
 	if (!g_renderer)
 		return;
 
-	Fifo_Shutdown();
+	Fifo::Shutdown();
 
 	// The following calls are NOT Thread Safe
 	// And need to be called from the video thread

@@ -31,7 +31,7 @@ static volatile struct
 
 void VideoBackendBase::Video_ExitLoop()
 {
-	ExitGpuLoop();
+	Fifo::ExitGpuLoop();
 	s_FifoShuttingDown.Set();
 }
 
@@ -52,7 +52,7 @@ void VideoBackendBase::Video_EndField()
 {
 	if (m_initialized && g_ActiveConfig.bUseXFB && g_renderer)
 	{
-		SyncGPU(SYNC_GPU_SWAP);
+		Fifo::SyncGPU(Fifo::SYNC_GPU_SWAP);
 
 		AsyncRequests::Event e;
 		e.time = 0;
@@ -105,7 +105,7 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
 		return 0;
 	}
 
-	SyncGPU(SYNC_GPU_PERFQUERY);
+	Fifo::SyncGPU(Fifo::SYNC_GPU_PERFQUERY);
 
 	AsyncRequests::Event e;
 	e.time = 0;
@@ -131,7 +131,7 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
 		return 0;
 	}
 
-	SyncGPU(SYNC_GPU_BBOX);
+	Fifo::SyncGPU(Fifo::SYNC_GPU_BBOX);
 
 	AsyncRequests::Event e;
 	u16 result;

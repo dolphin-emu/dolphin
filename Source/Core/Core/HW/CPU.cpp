@@ -115,7 +115,7 @@ void EnableStepping(const bool stepping)
 	{
 		PowerPC::Pause();
 		m_StepEvent.Reset();
-		EmulatorState(false);
+		Fifo::EmulatorState(false);
 		AudioCommon::ClearAudioBuffer(true);
 	}
 	else
@@ -138,7 +138,7 @@ void EnableStepping(const bool stepping)
 		}
 		PowerPC::Start();
 		m_StepEvent.Set();
-		EmulatorState(true);
+		Fifo::EmulatorState(true);
 		AudioCommon::ClearAudioBuffer(false);
 	}
 }

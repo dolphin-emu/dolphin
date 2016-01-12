@@ -264,7 +264,7 @@ void Stop()  // - Hammertime!
 
 	s_is_stopping = true;
 
-	EmulatorState(false);
+	Fifo::EmulatorState(false);
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");
 
@@ -536,7 +536,7 @@ void EmuThread()
 		s_cpu_thread = std::thread(cpuThreadFunc);
 
 		// become the GPU thread
-		RunGpuLoop();
+		Fifo::RunGpuLoop();
 
 		// We have now exited the Video Loop
 		INFO_LOG(CONSOLE, "%s", StopMessage(false, "Video Loop Ended").c_str());
@@ -738,7 +738,7 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	DSP::GetDSPEmulator()->PauseAndLock(doLock, unpauseOnUnlock);
 
 	// video has to come after CPU, because CPU thread can wait for video thread (s_efbAccessRequested).
-	Fifo_PauseAndLock(doLock, unpauseOnUnlock);
+	Fifo::PauseAndLock(doLock, unpauseOnUnlock);
 
 #if defined(__LIBUSB__) || defined(_WIN32)
 	GCAdapter::ResetRumble();
@@ -890,7 +890,7 @@ void UpdateWantDeterminism(bool initial)
 
 		g_want_determinism = new_want_determinism;
 		WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
-		Fifo_UpdateWantDeterminism(new_want_determinism);
+		Fifo::UpdateWantDeterminism(new_want_determinism);
 		// We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use of FMA.
 		JitInterface::ClearCache();
 		Common::InitializeWiiRoot(g_want_determinism);

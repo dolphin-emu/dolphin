@@ -128,7 +128,7 @@ static void VICallback(u64 userdata, int cyclesLate)
 static void CPCallback(u64 userdata, int cyclesLate)
 {
 	u64 now = CoreTiming::GetTicks();
-	int next = Fifo_Update((int)(now - s_last_sync_gpu_tick));
+	int next = Fifo::Update((int)(now - s_last_sync_gpu_tick));
 	s_last_sync_gpu_tick = now;
 
 	if (next > 0)
@@ -181,7 +181,7 @@ static void PatchEngineCallback(u64 userdata, int cyclesLate)
 static void ThrottleCallback(u64 last_time, int cyclesLate)
 {
 	// Allow the GPU thread to sleep. Setting this flag here limits the wakeups to 1 kHz.
-	GpuMaySleep();
+	Fifo::GpuMaySleep();
 
 	u32 time = Common::Timer::GetTimeMs();
 

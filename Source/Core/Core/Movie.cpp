@@ -241,7 +241,7 @@ void SetFrameSkipping(unsigned int framesToSkip)
 	// Don't forget to re-enable rendering in case it wasn't...
 	// as this won't be changed anymore when frameskip is turned off
 	if (framesToSkip == 0)
-		Fifo_SetRendering(true);
+		Fifo::SetRendering(true);
 }
 
 void SetPolledDevice()
@@ -289,7 +289,7 @@ void FrameSkipping()
 		if (s_frameSkipCounter > s_framesToSkip || Core::ShouldSkipFrame(s_frameSkipCounter) == false)
 			s_frameSkipCounter = 0;
 
-		Fifo_SetRendering(!s_frameSkipCounter);
+		Fifo::SetRendering(!s_frameSkipCounter);
 	}
 }
 

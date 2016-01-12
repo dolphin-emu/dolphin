@@ -298,7 +298,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 
 	CommandProcessor::SetInterruptTokenWaiting(true);
 
-	if (!SConfig::GetInstance().bCPUThread || g_use_deterministic_gpu_thread)
+	if (!SConfig::GetInstance().bCPUThread || Fifo::g_use_deterministic_gpu_thread)
 		CoreTiming::ScheduleEvent(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 	else
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
@@ -310,7 +310,7 @@ void SetFinish()
 {
 	CommandProcessor::SetInterruptFinishWaiting(true);
 
-	if (!SConfig::GetInstance().bCPUThread || g_use_deterministic_gpu_thread)
+	if (!SConfig::GetInstance().bCPUThread || Fifo::g_use_deterministic_gpu_thread)
 		CoreTiming::ScheduleEvent(0, et_SetFinishOnMainThread, 0);
 	else
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);

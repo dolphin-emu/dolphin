@@ -446,7 +446,7 @@ void Idle()
 		//the VI will be desynchronized. So, We are waiting until the FIFO finish and
 		//while we process only the events required by the FIFO.
 		ProcessFifoWaitEvents();
-		Fifo_Update(0);
+		Fifo::Update(0);
 	}
 
 	idledCycles += DowncountToCycles(PowerPC::ppcState.downcount);

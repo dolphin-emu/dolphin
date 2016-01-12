@@ -223,7 +223,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			UCPCtrlReg tmp(val);
 			m_CPCtrlReg.Hex = tmp.Hex;
 			SetCpControlRegister();
-			RunGpu();
+			Fifo::RunGpu();
 		})
 	);
 
@@ -233,7 +233,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			UCPClearReg tmp(val);
 			m_CPClearReg.Hex = tmp.Hex;
 			SetCpClearRegister();
-			RunGpu();
+			Fifo::RunGpu();
 		})
 	);
 
@@ -265,17 +265,17 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			: MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&fifo.CPReadWriteDistance)),
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
 			WriteHigh(fifo.CPReadWriteDistance, val);
-			SyncGPU(SYNC_GPU_OTHER);
+			Fifo::SyncGPU(Fifo::SYNC_GPU_OTHER);
 			if (fifo.CPReadWriteDistance == 0)
 			{
 				GPFifo::ResetGatherPipe();
-				ResetVideoBuffer();
+				Fifo::ResetVideoBuffer();
 			}
 			else
 			{
-				ResetVideoBuffer();
+				Fifo::ResetVideoBuffer();
 			}
-			RunGpu();
+			Fifo::RunGpu();
 		})
 	);
 	mmio->Register(base | FIFO_READ_POINTER_LO,
@@ -306,7 +306,7 @@ void GatherPipeBursted()
 	// if we aren't linked, we don't care about gather pipe data
 	if (!m_CPCtrlReg.GPLinkEnable)
 	{
-		if (IsOnThread() && !g_use_deterministic_gpu_thread)
+		if (IsOnThread() && !Fifo::g_use_deterministic_gpu_thread)
 		{
 			// In multibuffer mode is not allowed write in the same FIFO attached to the GPU.
 			// Fix Pokemon XD in DC mode.
@@ -314,10 +314,10 @@ void GatherPipeBursted()
 			    (ProcessorInterface::Fifo_CPUBase == fifo.CPBase) &&
 			    fifo.CPReadWriteDistance > 0)
 			{
-				FlushGpu();
+				Fifo::FlushGpu();
 			}
 		}
-		RunGpu();
+		Fifo::RunGpu();
 		return;
 	}
 
@@ -340,7 +340,7 @@ void GatherPipeBursted()
 
 	Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
 
-	RunGpu();
+	Fifo::RunGpu();
 
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase,
 	"FIFO is overflowed by GatherPipe !\nCPU thread is too fast!");
@@ -367,12 +367,12 @@ void UpdateInterrupts(u64 userdata)
 	}
 	CoreTiming::ForceExceptionCheck(0);
 	s_interrupt_waiting.store(false);
-	RunGpu();
+	Fifo::RunGpu();
 }
 
 void UpdateInterruptsFromVideoBackend(u64 userdata)
 {
-	if (!g_use_deterministic_gpu_thread)
+	if (!Fifo::g_use_deterministic_gpu_thread)
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
@@ -494,7 +494,7 @@ void SetCpStatusRegister()
 	// Here always there is one fifo attached to the GPU
 	m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
 	m_CPStatusReg.ReadIdle = !fifo.CPReadWriteDistance || (fifo.CPReadPointer == fifo.CPWritePointer);
-	m_CPStatusReg.CommandIdle = !fifo.CPReadWriteDistance || AtBreakpoint() || !fifo.bFF_GPReadEnable;
+	m_CPStatusReg.CommandIdle = !fifo.CPReadWriteDistance || Fifo::AtBreakpoint() || !fifo.bFF_GPReadEnable;
 	m_CPStatusReg.UnderflowLoWatermark = fifo.bFF_LoWatermark;
 	m_CPStatusReg.OverflowHiWatermark = fifo.bFF_HiWatermark;
 
@@ -519,7 +519,7 @@ void SetCpControlRegister()
 	if (fifo.bFF_GPReadEnable && !m_CPCtrlReg.GPReadEnable)
 	{
 		fifo.bFF_GPReadEnable = m_CPCtrlReg.GPReadEnable;
-		FlushGpu();
+		Fifo::FlushGpu();
 	}
 	else
 	{

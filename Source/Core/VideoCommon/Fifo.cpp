@@ -30,6 +30,9 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace Fifo
+{
+
 static constexpr u32 FIFO_SIZE = 2 * 1024 * 1024;
 
 bool g_bSkipCurrentFrame = false;
@@ -66,7 +69,7 @@ static u8* s_video_buffer_pp_read_ptr;
 static std::atomic<int> s_sync_ticks;
 static Common::Event s_sync_wakeup_event;
 
-void Fifo_DoState(PointerWrap &p)
+void DoState(PointerWrap &p)
 {
 	p.DoArray(s_video_buffer, FIFO_SIZE);
 	u8* write_ptr = s_video_buffer_write_ptr;
@@ -81,7 +84,7 @@ void Fifo_DoState(PointerWrap &p)
 	p.Do(g_bSkipCurrentFrame);
 }
 
-void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
+void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
 	if (doLock)
 	{
@@ -97,7 +100,7 @@ void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
 }
 
 
-void Fifo_Init()
+void Init()
 {
 	// Padded so that SIMD overreads in the vertex loader are safe
 	s_video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE + 4);
@@ -107,7 +110,7 @@ void Fifo_Init()
 	s_sync_ticks.store(0);
 }
 
-void Fifo_Shutdown()
+void Shutdown()
 {
 	if (s_gpu_mainloop.IsRunning())
 		PanicAlert("Fifo shutting down while active");
@@ -122,7 +125,7 @@ void Fifo_Shutdown()
 	s_fifo_aux_read_ptr = nullptr;
 }
 
-void Fifo_SetRendering(bool enabled)
+void SetRendering(bool enabled)
 {
 	g_bSkipCurrentFrame = !enabled;
 }
@@ -450,7 +453,7 @@ void RunGpu()
 	}
 }
 
-void Fifo_UpdateWantDeterminism(bool want)
+void UpdateWantDeterminism(bool want)
 {
 	// We are paused (or not running at all yet), so
 	// it should be safe to change this.
@@ -492,7 +495,7 @@ void Fifo_UpdateWantDeterminism(bool want)
 	}
 }
 
-int Fifo_Update(int ticks)
+int Update(int ticks)
 {
 	const SConfig& param = SConfig::GetInstance();
 
@@ -527,4 +530,6 @@ int Fifo_Update(int ticks)
 	}
 
 	return param.iSyncGpuMaxDistance - s_sync_ticks.load();
+}
+
 }

@@ -35,7 +35,7 @@ static void DoState(PointerWrap &p)
 	p.DoMarker("texMem");
 
 	// FIFO
-	Fifo_DoState(p);
+	Fifo::DoState(p);
 	p.DoMarker("Fifo");
 
 	CommandProcessor::DoState(p);
@@ -71,7 +71,7 @@ void VideoCommon_DoState(PointerWrap &p)
 
 void VideoCommon_RunLoop(bool enable)
 {
-	EmulatorState(enable);
+	Fifo::EmulatorState(enable);
 }
 
 void VideoCommon_Init()
