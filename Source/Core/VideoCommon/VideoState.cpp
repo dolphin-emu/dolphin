@@ -17,7 +17,7 @@
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/XFMemory.h"
 
-static void DoState(PointerWrap &p)
+void VideoCommon_DoState(PointerWrap &p)
 {
 	// BP Memory
 	p.Do(bpmem);
@@ -62,16 +62,6 @@ static void DoState(PointerWrap &p)
 
 
 	// TODO: search for more data that should be saved and add it here
-}
-
-void VideoCommon_DoState(PointerWrap &p)
-{
-	DoState(p);
-}
-
-void VideoCommon_RunLoop(bool enable)
-{
-	Fifo::EmulatorState(enable);
 }
 
 void VideoCommon_Init()
