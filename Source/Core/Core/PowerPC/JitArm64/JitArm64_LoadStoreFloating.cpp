@@ -2,11 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Arm64Emitter.h"
-#include "Common/Common.h"
+#include <algorithm>
 
+#include "Common/Arm64Emitter.h"
+#include "Common/BitSet.h"
+#include "Common/CommonTypes.h"
+
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/GPFifo.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/JitArm64/Jit.h"

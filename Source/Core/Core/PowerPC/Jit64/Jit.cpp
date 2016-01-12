@@ -11,16 +11,23 @@
 #endif
 
 #include "Common/CommonTypes.h"
+#include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/x64ABI.h"
+#include "Common/Logging/Log.h"
+#include "Core/CoreTiming.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/GPFifo.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #if defined(_DEBUG) || defined(DEBUGFAST)
 #include "Common/GekkoDisassembler.h"
 #endif

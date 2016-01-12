@@ -2,9 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <vector>
+
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
-
+#include "Common/x64Emitter.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 

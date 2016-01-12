@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <map>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/PPCAnalyst.h"

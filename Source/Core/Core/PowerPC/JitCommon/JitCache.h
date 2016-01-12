@@ -10,8 +10,7 @@
 #include <memory>
 #include <vector>
 
-#include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/PPCAnalyst.h"
+#include "Common/CommonTypes.h"
 
 static const u32 JIT_ICACHE_SIZE = 0x2000000;
 static const u32 JIT_ICACHE_MASK = 0x1ffffff;

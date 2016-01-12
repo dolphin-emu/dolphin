@@ -2,12 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-
+#include "Common/x64Emitter.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 
 using namespace Gen;
 

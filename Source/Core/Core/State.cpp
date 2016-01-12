@@ -2,9 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <map>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
+#include <vector>
 #include <lzo/lzo1x.h>
 
 #include "Common/CommonTypes.h"
@@ -22,14 +25,9 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/State.h"
-#include "Core/HW/CPU.h"
-#include "Core/HW/DSP.h"
 #include "Core/HW/HW.h"
-#include "Core/HW/Memmap.h"
-#include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/OnScreenDisplay.h"

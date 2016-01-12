@@ -7,13 +7,17 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Intrinsics.h"
 #include "Common/StringUtil.h"
+#include "Common/x64ABI.h"
+#include "Common/Logging/Log.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"

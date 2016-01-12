@@ -3,8 +3,10 @@
 // Refer to the license.txt file included.
 
 #include "Common/Arm64Emitter.h"
+#include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
-
+#include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitAsm.h"

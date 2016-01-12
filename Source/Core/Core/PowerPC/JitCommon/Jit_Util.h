@@ -9,6 +9,7 @@
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace MMIO { class Mapping; }
 

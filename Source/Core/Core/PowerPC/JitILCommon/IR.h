@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "Common/x64Emitter.h"
+#include "Common/CommonTypes.h"
 
 namespace IREmitter
 {

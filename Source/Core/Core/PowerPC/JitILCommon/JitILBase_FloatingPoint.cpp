@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
+#include "Core/ConfigManager.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 void JitILBase::fp_arith_s(UGeckoInstruction inst)
