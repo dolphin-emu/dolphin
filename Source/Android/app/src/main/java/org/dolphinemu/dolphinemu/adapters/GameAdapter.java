@@ -6,7 +6,6 @@ import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +16,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
+import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 /**
@@ -106,12 +106,12 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 			}
 			else
 			{
-				Log.e("DolphinEmu", "Can't bind view; Cursor is not valid.");
+				Log.error("[GameAdapter] Can't bind view; Cursor is not valid.");
 			}
 		}
 		else
 		{
-			Log.e("DolphinEmu", "Can't bind view; dataset is not valid.");
+			Log.error("[GameAdapter] Can't bind view; dataset is not valid.");
 		}
 	}
 
@@ -127,7 +127,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		{
 			return mCursor.getCount();
 		}
-		Log.e("DolphinEmu", "Dataset is not valid.");
+		Log.error("[GameAdapter] Dataset is not valid.");
 		return 0;
 	}
 
@@ -148,7 +148,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 			}
 		}
 
-		Log.e("DolphinEmu", "Dataset is not valid.");
+		Log.error("[GameAdapter] Dataset is not valid.");
 		return 0;
 	}
 

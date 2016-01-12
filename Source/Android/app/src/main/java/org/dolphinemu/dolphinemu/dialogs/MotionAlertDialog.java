@@ -5,12 +5,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +43,7 @@ public final class MotionAlertDialog extends AlertDialog
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event)
 	{
-		Log.d("InputConfigFragment", "Received key event: " + event.getAction());
+		Log.debug("[MotionAlertDialog] Received key event: " + event.getAction());
 		switch (event.getAction())
 		{
 			case KeyEvent.ACTION_DOWN:
@@ -67,7 +67,7 @@ public final class MotionAlertDialog extends AlertDialog
 		if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)
 			return false;
 
-		Log.d("InputConfigFragment", "Received motion event: " + event.getAction());
+		Log.debug("[MotionAlertDialog] Received motion event: " + event.getAction());
 
 		InputDevice input = event.getDevice();
 		List<InputDevice.MotionRange> motions = input.getMotionRanges();
@@ -160,7 +160,7 @@ public final class MotionAlertDialog extends AlertDialog
 		}
 		else
 		{
-			Log.e("DolphinEmu", "Failed to save input to INI.");
+			Log.error("[MotionAlertDialog] Failed to save input to INI.");
 		}
 
 
@@ -176,7 +176,7 @@ public final class MotionAlertDialog extends AlertDialog
 		}
 		else
 		{
-			Log.e("DolphinEmu", "Failed to save input to preference.");
+			Log.error("[MotionAlertDialog] Failed to save input to preference.");
 		}
 
 		dismiss();
