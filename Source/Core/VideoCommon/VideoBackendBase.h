@@ -62,13 +62,10 @@ class VideoBackendBase
 public:
 	virtual ~VideoBackendBase() {}
 
-	void EmuStateChange(EMUSTATE_CHANGE);
-
 	virtual unsigned int PeekMessages() = 0;
 
 	virtual bool Initialize(void* window_handle) = 0;
 	virtual void Shutdown() = 0;
-	void RunLoop(bool enable);
 
 	virtual std::string GetName() const = 0;
 	virtual std::string GetDisplayName() const { return GetName(); }
@@ -76,7 +73,6 @@ public:
 	virtual void ShowConfig(void*) = 0;
 
 	virtual void Video_Prepare() = 0;
-	void Video_EnterLoop();
 	void Video_ExitLoop();
 	virtual void Video_Cleanup() = 0; // called from gl/d3d thread
 
@@ -87,34 +83,14 @@ public:
 	u32 Video_GetQueryResult(PerfQueryType type);
 	u16 Video_GetBoundingBox(int index);
 
-	void Video_AddMessage(const std::string& msg, unsigned int milliseconds);
-	void Video_ClearMessages();
-	bool Video_Screenshot(const std::string& filename);
-
-	void Video_SetRendering(bool bEnabled);
-
-	void Video_GatherPipeBursted();
-
-	int Video_Sync(int ticks);
-
-	// Registers MMIO handlers for the CommandProcessor registers.
-	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base);
-
 	static void PopulateList();
 	static void ClearList();
 	static void ActivateBackend(const std::string& name);
-
-	// waits until is paused and fully idle, and acquires a lock on that state.
-	// or, if doLock is false, releases a lock on that state and optionally unpauses.
-	// calls must be balanced and non-recursive (once with doLock true, then once with doLock false).
-	void PauseAndLock(bool doLock, bool unpauseOnUnlock = true);
 
 	// the implementation needs not do synchronization logic, because calls to it are surrounded by PauseAndLock now
 	void DoState(PointerWrap &p);
 
 	void CheckInvalidState();
-
-	void UpdateWantDeterminism(bool want);
 
 protected:
 	void InitializeShared();

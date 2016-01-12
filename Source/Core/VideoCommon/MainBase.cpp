@@ -29,26 +29,10 @@ static volatile struct
 	u32 fbHeight;
 } s_beginFieldArgs;
 
-void VideoBackendBase::EmuStateChange(EMUSTATE_CHANGE newState)
-{
-	EmulatorState(newState == EMUSTATE_CHANGE_PLAY);
-}
-
-// Enter and exit the video loop
-void VideoBackendBase::Video_EnterLoop()
-{
-	RunGpuLoop();
-}
-
 void VideoBackendBase::Video_ExitLoop()
 {
 	ExitGpuLoop();
 	s_FifoShuttingDown.Set();
-}
-
-void VideoBackendBase::Video_SetRendering(bool bEnabled)
-{
-	Fifo_SetRendering(bEnabled);
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -80,23 +64,6 @@ void VideoBackendBase::Video_EndField()
 		e.swap_event.fbHeight = s_beginFieldArgs.fbHeight;
 		AsyncRequests::GetInstance()->PushEvent(e, false);
 	}
-}
-
-void VideoBackendBase::Video_AddMessage(const std::string& msg, u32 milliseconds)
-{
-	OSD::AddMessage(msg, milliseconds);
-}
-
-void VideoBackendBase::Video_ClearMessages()
-{
-	OSD::ClearMessages();
-}
-
-// Screenshot
-bool VideoBackendBase::Video_Screenshot(const std::string& filename)
-{
-	Renderer::SetScreenshot(filename.c_str());
-	return true;
 }
 
 u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
@@ -225,34 +192,3 @@ void VideoBackendBase::CheckInvalidState()
 		TextureCacheBase::Invalidate();
 	}
 }
-
-void VideoBackendBase::PauseAndLock(bool doLock, bool unpauseOnUnlock)
-{
-	Fifo_PauseAndLock(doLock, unpauseOnUnlock);
-}
-
-void VideoBackendBase::RunLoop(bool enable)
-{
-	VideoCommon_RunLoop(enable);
-}
-
-void VideoBackendBase::Video_GatherPipeBursted()
-{
-	CommandProcessor::GatherPipeBursted();
-}
-
-int VideoBackendBase::Video_Sync(int ticks)
-{
-	return Fifo_Update(ticks);
-}
-
-void VideoBackendBase::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
-{
-	CommandProcessor::RegisterMMIO(mmio, base);
-}
-
-void VideoBackendBase::UpdateWantDeterminism(bool want)
-{
-	Fifo_UpdateWantDeterminism(want);
-}
-

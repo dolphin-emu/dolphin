@@ -128,7 +128,7 @@ static void VICallback(u64 userdata, int cyclesLate)
 static void CPCallback(u64 userdata, int cyclesLate)
 {
 	u64 now = CoreTiming::GetTicks();
-	int next = g_video_backend->Video_Sync((int)(now - s_last_sync_gpu_tick));
+	int next = Fifo_Update((int)(now - s_last_sync_gpu_tick));
 	s_last_sync_gpu_tick = now;
 
 	if (next > 0)
