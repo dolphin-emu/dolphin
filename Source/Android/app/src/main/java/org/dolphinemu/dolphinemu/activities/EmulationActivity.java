@@ -138,50 +138,50 @@ public final class EmulationActivity extends AppCompatActivity
 		mScreenPath = gameToEmulate.getStringExtra("ScreenPath");
 		mPosition = gameToEmulate.getIntExtra("GridPosition", -1);
 
-		Picasso.with(this)
-				.load(mScreenPath)
-				.noFade()
-				.noPlaceholder()
-				.into(mImageView, new Callback()
-				{
-					@Override
-					public void onSuccess()
-					{
-						scheduleStartPostponedTransition(mImageView);
-					}
-
-					@Override
-					public void onError()
-					{
-						// Still have to do this, or else the app will crash.
-						scheduleStartPostponedTransition(mImageView);
-					}
-				});
-
-		mImageView.animate()
-				.withLayer()
-				.setStartDelay(2000)
-				.setDuration(500)
-				.alpha(0.0f)
-				.withStartAction(new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						mFrameEmulation.setVisibility(View.VISIBLE);
-					}
-				})
-				.withEndAction(new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						mImageView.setVisibility(View.GONE);
-					}
-				});
-
 		if (savedInstanceState == null)
 		{
+			Picasso.with(this)
+					.load(mScreenPath)
+					.noFade()
+					.noPlaceholder()
+					.into(mImageView, new Callback()
+					{
+						@Override
+						public void onSuccess()
+						{
+							scheduleStartPostponedTransition(mImageView);
+						}
+
+						@Override
+						public void onError()
+						{
+							// Still have to do this, or else the app will crash.
+							scheduleStartPostponedTransition(mImageView);
+						}
+					});
+
+			mImageView.animate()
+					.withLayer()
+					.setStartDelay(2000)
+					.setDuration(500)
+					.alpha(0.0f)
+					.withStartAction(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							mFrameEmulation.setVisibility(View.VISIBLE);
+						}
+					})
+					.withEndAction(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							mImageView.setVisibility(View.GONE);
+						}
+					});
+
 			// Instantiate an EmulationFragment.
 			EmulationFragment emulationFragment = EmulationFragment.newInstance(path);
 
@@ -189,6 +189,11 @@ public final class EmulationActivity extends AppCompatActivity
 			getFragmentManager().beginTransaction()
 					.add(R.id.frame_emulation_fragment, emulationFragment, EmulationFragment.FRAGMENT_TAG)
 					.commit();
+		}
+		else
+		{
+			mImageView.setVisibility(View.GONE);
+			mFrameEmulation.setVisibility(View.VISIBLE);
 		}
 
 		if (mDeviceHasTouchScreen)
