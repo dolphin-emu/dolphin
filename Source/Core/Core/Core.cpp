@@ -25,6 +25,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/DebugInterface.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
 #include "Core/MemTools.h"
@@ -142,6 +143,8 @@ void FrameUpdateOnCPUThread()
 {
 	if (NetPlay::IsNetPlayRunning())
 		NetPlayClient::SendTimeBase();
+
+	Debug::Update();
 }
 
 // Display messages and return values
@@ -466,6 +469,12 @@ void EmuThread()
 		// Update references in case controllers were refreshed
 		Pad::LoadConfig();
 		Keyboard::LoadConfig();
+	}
+
+	// Initialize the debug interface.
+	if(Debug::Init() != 0)
+	{
+		INFO_LOG(COMMON, "Unable to initialize debug interface, proceding as usual.");
 	}
 
 	// Load and Init Wiimotes - only if we are booting in Wii mode
