@@ -65,10 +65,3 @@ void VideoCommon_DoState(PointerWrap &p)
 
 	// TODO: search for more data that should be saved and add it here
 }
-
-void VideoCommon_Init()
-{
-	memset(&g_main_cp_state, 0, sizeof(g_main_cp_state));
-	memset(&g_preprocess_cp_state, 0, sizeof(g_preprocess_cp_state));
-	memset(texMem, 0, TMEM_SIZE);
-}

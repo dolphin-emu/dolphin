@@ -18,7 +18,7 @@ namespace VertexLoaderManager
 	using NativeVertexFormatMap = std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>>;
 
 	void Init();
-	void Shutdown();
+	void Clear();
 
 	void MarkAllDirty();
 

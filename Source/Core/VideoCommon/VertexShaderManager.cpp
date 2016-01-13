@@ -219,10 +219,6 @@ void VertexShaderManager::Init()
 	dirty = true;
 }
 
-void VertexShaderManager::Shutdown()
-{
-}
-
 void VertexShaderManager::Dirty()
 {
 	// This function is called after a savestate is loaded.

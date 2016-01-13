@@ -62,6 +62,11 @@ std::string VideoBackend::GetDisplayName() const
 	return "Direct3D 12 (experimental)";
 }
 
+std::string VideoBackend::GetConfigName() const
+{
+	return "gfx_dx12";
+}
+
 void InitBackendInfo()
 {
 	HRESULT hr = DX12::D3D::LoadDXGI();
@@ -140,7 +145,7 @@ void InitBackendInfo()
 void VideoBackend::ShowConfig(void *hParent)
 {
 	InitBackendInfo();
-	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_dx12");
+	Host_ShowVideoConfig(hParent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoBackend::Initialize(void *window_handle)
@@ -153,23 +158,10 @@ bool VideoBackend::Initialize(void *window_handle)
 	if (window_handle == nullptr)
 		return false;
 
-	InitializeShared();
 	InitBackendInfo();
-
-	frameCount = 0;
-
-	if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
-		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
-	else
-		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_dx12.ini");
-
-	g_Config.GameIniLoad();
-	g_Config.UpdateProjectionHack();
-	g_Config.VerifyValidity();
-	UpdateActiveConfig();
+	InitializeShared();
 
 	m_window_handle = window_handle;
-	m_initialized = true;
 
 	return true;
 }
@@ -186,59 +178,33 @@ void VideoBackend::Video_Prepare()
 	StaticShaderCache::Init();
 	StateCache::Init(); // PSO cache is populated here, after constituent shaders are loaded.
 	D3D::InitUtils();
-
-	// VideoCommon
-	BPInit();
-	Fifo::Init();
-	IndexGenerator::Init();
-	VertexLoaderManager::Init();
-	OpcodeDecoder::Init();
-	VertexShaderManager::Init();
-	PixelShaderManager::Init();
-	GeometryShaderManager::Init();
-	CommandProcessor::Init();
-	PixelEngine::Init();
-	BBox::Init();
-
-	// Tell the host that the window is ready
-	Host_Message(WM_USER_CREATE);
 }
 
 void VideoBackend::Shutdown()
 {
-	m_initialized = true;
-
 	// TODO: should be in Video_Cleanup
-	if (g_renderer)
-	{
-		// Immediately stop app from submitting work to GPU, and wait for all submitted work to complete. D3D12TODO: Check this.
-		D3D::command_list_mgr->ExecuteQueuedWork(true);
 
-		// VideoCommon
-		Fifo::Shutdown();
-		CommandProcessor::Shutdown();
-		GeometryShaderManager::Shutdown();
-		PixelShaderManager::Shutdown();
-		VertexShaderManager::Shutdown();
-		OpcodeDecoder::Shutdown();
-		VertexLoaderManager::Shutdown();
+	// Immediately stop app from submitting work to GPU, and wait for all submitted work to complete. D3D12TODO: Check this.
+	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
-		// internal interfaces
-		D3D::ShutdownUtils();
-		ShaderCache::Shutdown();
-		ShaderConstantsManager::Shutdown();
-		StaticShaderCache::Shutdown();
-		BBox::Shutdown();
+	// internal interfaces
+	D3D::ShutdownUtils();
+	ShaderCache::Shutdown();
+	ShaderConstantsManager::Shutdown();
+	StaticShaderCache::Shutdown();
+	BBox::Shutdown();
 
-		g_perf_query.reset();
-		g_vertex_manager.reset();
-		g_texture_cache.reset();
-		g_renderer.reset();
-	}
+	g_perf_query.reset();
+	g_vertex_manager.reset();
+	g_texture_cache.reset();
+	g_renderer.reset();
+
+	ShutdownShared();
 }
 
 void VideoBackend::Video_Cleanup()
 {
+	CleanupShared();
 }
 
 }
