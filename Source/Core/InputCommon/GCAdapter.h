@@ -6,6 +6,8 @@
 
 #include <functional>
 
+#include "Common/CommonTypes.h"
+
 struct GCPadStatus;
 
 namespace GCAdapter

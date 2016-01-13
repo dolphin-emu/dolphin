@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
+#include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/Movie.h"
 #include "Core/HW/SI_DeviceGCAdapter.h"
+#include "InputCommon/GCAdapter.h"
 
 CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber)
 	: CSIDevice_GCController(device, _iDeviceNumber)

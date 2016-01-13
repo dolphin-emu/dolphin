@@ -11,20 +11,15 @@
 #include <cstring>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemArena.h"
-#include "Common/MemoryUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/HLE/HLE.h"
 #include "Core/HW/AudioInterface.h"
-#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI.h"
-#include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MemoryInterface.h"
 #include "Core/HW/MMIO.h"
@@ -34,10 +29,8 @@
 #include "Core/HW/WII_IPC.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
-
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/VideoBackendBase.h"
 
 namespace Memory
 {

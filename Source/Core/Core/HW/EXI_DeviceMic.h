@@ -4,11 +4,11 @@
 
 #pragma once
 
+#include <mutex>
+#include "Common/Common.h"
 #include "Core/HW/EXI_Device.h"
 
 #if HAVE_PORTAUDIO
-
-#include <mutex>
 
 class CEXIMic : public IEXIDevice
 {

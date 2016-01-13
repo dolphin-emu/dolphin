@@ -6,7 +6,6 @@
 
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceGCController.h"
-#include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 
 class CSIDevice_GCAdapter : public CSIDevice_GCController

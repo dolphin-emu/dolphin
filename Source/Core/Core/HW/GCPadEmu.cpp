@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/Host.h"
 #include "Core/HW/GCPadEmu.h"
 

@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/SI_Device.h"

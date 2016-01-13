@@ -24,8 +24,6 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace HW

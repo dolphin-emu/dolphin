@@ -17,13 +17,16 @@
    0x30 - 0x3f   Input    This file: Update() */
 
 #include <fstream>
+#include <queue>
 #include <string>
 #include <vector>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/NandPaths.h"
-
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
+#include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"

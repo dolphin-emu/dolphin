@@ -4,7 +4,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 #include "Core/DSP/DSPAnalyzer.h"
@@ -13,7 +13,6 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPLLE/DSPLLETools.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 // The user of the DSPCore library must supply a few functions so that the

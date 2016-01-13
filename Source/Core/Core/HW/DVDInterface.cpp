@@ -25,7 +25,6 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/StreamADPCM.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"

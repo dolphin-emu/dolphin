@@ -3,18 +3,16 @@
 // Refer to the license.txt file included.
 
 #include <mutex>
+#include <string>
 #include <thread>
 
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/CPUDetect.h"
 #include "Common/Event.h"
-#include "Common/IniFile.h"
 #include "Common/Thread.h"
-#include "Common/Logging/LogManager.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -22,17 +20,13 @@
 #include "Core/NetPlayProto.h"
 #include "Core/DSP/DSPCaptureLogger.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
-#include "Core/HW/AudioInterface.h"
 #include "Core/HW/Memmap.h"
-
 #include "Core/HW/DSPLLE/DSPLLE.h"
 #include "Core/HW/DSPLLE/DSPLLEGlobals.h"
-#include "Core/HW/DSPLLE/DSPSymbols.h"
 
 DSPLLE::DSPLLE()
 	: m_hDSPThread()
