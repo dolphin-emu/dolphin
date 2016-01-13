@@ -131,6 +131,11 @@ std::string VideoSoftware::GetDisplayName() const
 	return "Software Renderer";
 }
 
+std::string VideoSoftware::GetConfigName() const
+{
+	return "gfx_software";
+}
+
 static void InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_NONE;
@@ -148,19 +153,13 @@ void VideoSoftware::ShowConfig(void *hParent)
 {
 	if (!m_initialized)
 		InitBackendInfo();
-	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_software");
+	Host_ShowVideoConfig(hParent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoSoftware::Initialize(void *window_handle)
 {
-	InitializeShared();
 	InitBackendInfo();
-
-	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
-	g_Config.GameIniLoad();
-	g_Config.UpdateProjectionHack();
-	g_Config.VerifyValidity();
-	UpdateActiveConfig();
+	InitializeShared();
 
 	SWOGLWindow::Init(window_handle);
 
@@ -170,71 +169,41 @@ bool VideoSoftware::Initialize(void *window_handle)
 	SWRenderer::Init();
 	DebugUtil::Init();
 
-	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::CallbackType::Initialization);
-
-	m_initialized = true;
-
 	return true;
 }
 
 void VideoSoftware::Shutdown()
 {
-	m_initialized = false;
-
-	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::CallbackType::Shutdown);
-
 	SWOGLWindow::Shutdown();
+
+	ShutdownShared();
 }
 
 void VideoSoftware::Video_Cleanup()
 {
-	if (g_renderer)
-	{
-		Fifo::Shutdown();
-		SWRenderer::Shutdown();
-		DebugUtil::Shutdown();
-		// The following calls are NOT Thread Safe
-		// And need to be called from the video thread
-		SWRenderer::Shutdown();
-		VertexLoaderManager::Shutdown();
-		g_framebuffer_manager.reset();
-		g_texture_cache.reset();
-		VertexShaderManager::Shutdown();
-		PixelShaderManager::Shutdown();
-		g_perf_query.reset();
-		g_vertex_manager.reset();
-		OpcodeDecoder_Shutdown();
-		g_renderer.reset();
-	}
+	CleanupShared();
+
+	SWRenderer::Shutdown();
+	DebugUtil::Shutdown();
+	// The following calls are NOT Thread Safe
+	// And need to be called from the video thread
+	SWRenderer::Shutdown();
+	g_framebuffer_manager.reset();
+	g_texture_cache.reset();
+	g_perf_query.reset();
+	g_vertex_manager.reset();
+	g_renderer.reset();
 }
 
 // This is called after Video_Initialize() from the Core
 void VideoSoftware::Video_Prepare()
 {
 	g_renderer = std::make_unique<SWRenderer>();
-
-	CommandProcessor::Init();
-	PixelEngine::Init();
-
-	BPInit();
 	g_vertex_manager = std::make_unique<SWVertexLoader>();
 	g_perf_query = std::make_unique<PerfQuery>();
-	Fifo::Init(); // must be done before OpcodeDecoder_Init()
-	OpcodeDecoder_Init();
-	IndexGenerator::Init();
-	VertexShaderManager::Init();
-	PixelShaderManager::Init();
 	g_texture_cache = std::make_unique<TextureCache>();
 	SWRenderer::Init();
-	VertexLoaderManager::Init();
 	g_framebuffer_manager = std::make_unique<FramebufferManager>();
-
-	// Notify the core that the video backend is ready
-	Host_Message(WM_USER_CREATE);
-
-	INFO_LOG(VIDEO, "Video backend initialized.");
 }
 
 unsigned int VideoSoftware::PeekMessages()

@@ -125,11 +125,6 @@ void OpcodeDecoder_Init()
 	s_bFifoErrorSeen = false;
 }
 
-
-void OpcodeDecoder_Shutdown()
-{
-}
-
 template <bool is_preprocess>
 u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 {

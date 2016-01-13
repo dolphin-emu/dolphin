@@ -52,7 +52,7 @@ void Init()
 	SETSTAT(stats.numVertexLoaders, 0);
 }
 
-void Shutdown()
+void Clear()
 {
 	std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
 	s_vertex_loader_map.clear();

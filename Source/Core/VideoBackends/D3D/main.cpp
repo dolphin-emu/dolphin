@@ -62,6 +62,11 @@ std::string VideoBackend::GetDisplayName() const
 	return "Direct3D";
 }
 
+std::string VideoBackend::GetConfigName() const
+{
+	return "gfx_dx11";
+}
+
 void InitBackendInfo()
 {
 	HRESULT hr = DX11::D3D::LoadDXGI();
@@ -140,7 +145,7 @@ void InitBackendInfo()
 void VideoBackend::ShowConfig(void *hParent)
 {
 	InitBackendInfo();
-	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_dx11");
+	Host_ShowVideoConfig(hParent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoBackend::Initialize(void *window_handle)
@@ -148,23 +153,10 @@ bool VideoBackend::Initialize(void *window_handle)
 	if (window_handle == nullptr)
 		return false;
 
-	InitializeShared();
 	InitBackendInfo();
-
-	frameCount = 0;
-
-	if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
-		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
-	else
-		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_dx11.ini");
-
-	g_Config.GameIniLoad();
-	g_Config.UpdateProjectionHack();
-	g_Config.VerifyValidity();
-	UpdateActiveConfig();
+	InitializeShared();
 
 	m_window_handle = window_handle;
-	m_initialized = true;
 
 	return true;
 }
@@ -180,56 +172,28 @@ void VideoBackend::Video_Prepare()
 	PixelShaderCache::Init();
 	GeometryShaderCache::Init();
 	D3D::InitUtils();
-
-	// VideoCommon
-	BPInit();
-	Fifo::Init();
-	IndexGenerator::Init();
-	VertexLoaderManager::Init();
-	OpcodeDecoder_Init();
-	VertexShaderManager::Init();
-	PixelShaderManager::Init();
-	GeometryShaderManager::Init();
-	CommandProcessor::Init();
-	PixelEngine::Init();
-	BBox::Init();
-
-	// Tell the host that the window is ready
-	Host_Message(WM_USER_CREATE);
 }
 
 void VideoBackend::Shutdown()
 {
-	m_initialized = false;
-
 	// TODO: should be in Video_Cleanup
-	if (g_renderer)
-	{
-		// VideoCommon
-		Fifo::Shutdown();
-		CommandProcessor::Shutdown();
-		GeometryShaderManager::Shutdown();
-		PixelShaderManager::Shutdown();
-		VertexShaderManager::Shutdown();
-		OpcodeDecoder_Shutdown();
-		VertexLoaderManager::Shutdown();
+	D3D::ShutdownUtils();
+	PixelShaderCache::Shutdown();
+	VertexShaderCache::Shutdown();
+	GeometryShaderCache::Shutdown();
+	BBox::Shutdown();
 
-		// internal interfaces
-		D3D::ShutdownUtils();
-		PixelShaderCache::Shutdown();
-		VertexShaderCache::Shutdown();
-		GeometryShaderCache::Shutdown();
-		BBox::Shutdown();
+	g_perf_query.reset();
+	g_vertex_manager.reset();
+	g_texture_cache.reset();
+	g_renderer.reset();
 
-		g_perf_query.reset();
-		g_vertex_manager.reset();
-		g_texture_cache.reset();
-		g_renderer.reset();
-	}
+	ShutdownShared();
 }
 
 void VideoBackend::Video_Cleanup()
 {
+	CleanupShared();
 }
 
 }

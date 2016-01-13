@@ -56,11 +56,6 @@ void PixelShaderManager::Dirty()
 	dirty = true;
 }
 
-void PixelShaderManager::Shutdown()
-{
-
-}
-
 void PixelShaderManager::SetConstants()
 {
 	if (s_bFogRangeAdjustChanged)

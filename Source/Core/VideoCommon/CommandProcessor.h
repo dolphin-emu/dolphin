@@ -120,7 +120,6 @@ union UCPClearReg
 
 // Init
 void Init();
-void Shutdown();
 void DoState(PointerWrap &p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);

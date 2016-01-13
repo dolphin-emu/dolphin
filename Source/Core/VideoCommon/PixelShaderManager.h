@@ -15,7 +15,6 @@ class PixelShaderManager
 public:
 	static void Init();
 	static void Dirty();
-	static void Shutdown();
 	static void DoState(PointerWrap &p);
 
 	static void SetConstants(); // sets pixel shader constants

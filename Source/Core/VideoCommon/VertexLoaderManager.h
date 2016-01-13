@@ -14,7 +14,7 @@ class NativeVertexFormat;
 namespace VertexLoaderManager
 {
 	void Init();
-	void Shutdown();
+	void Clear();
 
 	void MarkAllDirty();
 

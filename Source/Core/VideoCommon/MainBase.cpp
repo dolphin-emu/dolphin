@@ -11,10 +11,19 @@
 #include "Common/Logging/Log.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
@@ -146,11 +155,58 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
 
 void VideoBackendBase::InitializeShared()
 {
-	VideoCommon_Init();
+	memset(&g_main_cp_state, 0, sizeof(g_main_cp_state));
+	memset(&g_preprocess_cp_state, 0, sizeof(g_preprocess_cp_state));
+	memset(texMem, 0, TMEM_SIZE);
+
+	// Do our OSD callbacks
+	OSD::DoCallbacks(OSD::CallbackType::Initialization);
+
+	// do not initialize again for the config window
+	m_initialized = true;
 
 	s_FifoShuttingDown.Clear();
 	memset((void*)&s_beginFieldArgs, 0, sizeof(s_beginFieldArgs));
 	m_invalid = false;
+	frameCount = 0;
+
+	CommandProcessor::Init();
+	Fifo::Init();
+	OpcodeDecoder_Init();
+	PixelEngine::Init();
+	BPInit();
+	VertexLoaderManager::Init();
+	IndexGenerator::Init();
+	VertexShaderManager::Init();
+	GeometryShaderManager::Init();
+	PixelShaderManager::Init();
+
+	if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
+		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+	else
+		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + GetConfigName() + ".ini");
+	g_Config.GameIniLoad();
+	g_Config.UpdateProjectionHack();
+	g_Config.VerifyValidity();
+	UpdateActiveConfig();
+
+	// Notify the core that the video backend is ready
+	Host_Message(WM_USER_CREATE);
+}
+
+void VideoBackendBase::ShutdownShared()
+{
+	// Do our OSD callbacks
+	OSD::DoCallbacks(OSD::CallbackType::Shutdown);
+
+	m_initialized = false;
+
+	Fifo::Shutdown();
+}
+
+void VideoBackendBase::CleanupShared()
+{
+	VertexLoaderManager::Clear();
 }
 
 // Run from the CPU thread

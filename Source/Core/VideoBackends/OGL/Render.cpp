@@ -39,6 +39,7 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -654,6 +655,8 @@ Renderer::Renderer()
 			}
 		}
 	}
+	IndexGenerator::Init();
+
 	UpdateActiveConfig();
 	ClearEFBCache();
 }

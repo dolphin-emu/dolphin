@@ -39,7 +39,6 @@
 #define GX_DRAW_POINTS              0x7   // 0xB8
 
 void OpcodeDecoder_Init();
-void OpcodeDecoder_Shutdown();
 
 template <bool is_preprocess = false>
 u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list);

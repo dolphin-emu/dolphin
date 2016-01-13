@@ -94,6 +94,11 @@ std::string VideoBackend::GetDisplayName() const
 		return "OpenGL";
 }
 
+std::string VideoBackend::GetConfigName() const
+{
+	return "gfx_opengl";
+}
+
 static std::vector<std::string> GetShaders(const std::string &sub_dir = "")
 {
 	std::vector<std::string> paths = DoFileSearch({".glsl"}, {
@@ -120,6 +125,12 @@ static void InitBackendInfo()
 	g_Config.backend_info.bSupportsPostProcessing = true;
 	g_Config.backend_info.bSupportsSSAA = true;
 
+	// Overwritten in Render.cpp later
+	g_Config.backend_info.bSupportsDualSourceBlend = true;
+	g_Config.backend_info.bSupportsPrimitiveRestart = true;
+	g_Config.backend_info.bSupportsPaletteConversion = true;
+	g_Config.backend_info.bSupportsClipControl = true;
+
 	g_Config.backend_info.Adapters.clear();
 
 	// aamodes - 1 is to stay consistent with D3D (means no AA)
@@ -135,34 +146,18 @@ void VideoBackend::ShowConfig(void* parent_handle)
 	if (!m_initialized)
 		InitBackendInfo();
 
-	Host_ShowVideoConfig(parent_handle, GetDisplayName(), "gfx_opengl");
+	Host_ShowVideoConfig(parent_handle, GetDisplayName(), GetConfigName());
 }
 
 bool VideoBackend::Initialize(void* window_handle)
 {
-	InitializeShared();
 	InitBackendInfo();
-
-	frameCount = 0;
-
-	if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
-		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
-	else
-		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
-	g_Config.GameIniLoad();
-	g_Config.UpdateProjectionHack();
-	g_Config.VerifyValidity();
-	UpdateActiveConfig();
+	InitializeShared();
 
 	InitInterface();
 	GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
 	if (!GLInterface->Create(window_handle))
 		return false;
-
-	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::CallbackType::Initialization);
-
-	m_initialized = true;
 
 	return true;
 }
@@ -175,65 +170,36 @@ void VideoBackend::Video_Prepare()
 
 	g_renderer = std::make_unique<Renderer>();
 
-	CommandProcessor::Init();
-	PixelEngine::Init();
-
-	BPInit();
 	g_vertex_manager = std::make_unique<VertexManager>();
 	g_perf_query = GetPerfQuery();
-	Fifo::Init(); // must be done before OpcodeDecoder_Init()
-	OpcodeDecoder_Init();
-	IndexGenerator::Init();
-	VertexShaderManager::Init();
-	PixelShaderManager::Init();
-	GeometryShaderManager::Init();
 	ProgramShaderCache::Init();
 	g_texture_cache = std::make_unique<TextureCache>();
 	g_sampler_cache = std::make_unique<SamplerCache>();
 	Renderer::Init();
-	VertexLoaderManager::Init();
 	TextureConverter::Init();
 	BoundingBox::Init();
-
-	// Notify the core that the video backend is ready
-	Host_Message(WM_USER_CREATE);
 }
 
 void VideoBackend::Shutdown()
 {
-	m_initialized = false;
-
-	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::CallbackType::Shutdown);
-
 	GLInterface->Shutdown();
 	GLInterface.reset();
+	ShutdownShared();
 }
 
 void VideoBackend::Video_Cleanup()
 {
-	if (!g_renderer)
-		return;
-
-	Fifo::Shutdown();
-
 	// The following calls are NOT Thread Safe
 	// And need to be called from the video thread
+	CleanupShared();
 	Renderer::Shutdown();
 	BoundingBox::Shutdown();
 	TextureConverter::Shutdown();
-	VertexLoaderManager::Shutdown();
 	g_sampler_cache.reset();
 	g_texture_cache.reset();
 	ProgramShaderCache::Shutdown();
-	VertexShaderManager::Shutdown();
-	PixelShaderManager::Shutdown();
-	GeometryShaderManager::Shutdown();
-
 	g_perf_query.reset();
 	g_vertex_manager.reset();
-
-	OpcodeDecoder_Shutdown();
 	g_renderer.reset();
 	GLInterface->ClearCurrent();
 }
