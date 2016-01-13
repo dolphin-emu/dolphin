@@ -30,10 +30,6 @@ void GeometryShaderManager::Init()
   dirty = true;
 }
 
-void GeometryShaderManager::Shutdown()
-{
-}
-
 void GeometryShaderManager::Dirty()
 {
   // This function is called after a savestate is loaded.
