@@ -116,7 +116,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	WRITE(p, "  float sample_offset = float(position.w) / float(%d);\n", EFB_WIDTH);
 }
 
-static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType)
+static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType, bool depth = false)
 {
 	if (ApiType == API_OPENGL)
 	{
@@ -129,6 +129,10 @@ static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, 
 		WRITE(p, "  %s = Tex0.Sample(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
 			dest, xoffset, colorComp
 			);
+
+		// Handle D3D depth inversion.
+		if (depth)
+			WRITE(p, "  %s = 1.0f - %s;\n", dest, dest);
 	}
 }
 
@@ -381,20 +385,20 @@ static void WriteRGBA8Encoder(char*& p,API_TYPE ApiType)
 	WriteEncoderEnd(p);
 }
 
-static void WriteC4Encoder(char*& p, const char* comp,API_TYPE ApiType)
+static void WriteC4Encoder(char*& p, const char* comp, API_TYPE ApiType, bool depth = false)
 {
 	WriteSwizzler(p, GX_CTF_R4, ApiType);
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
 
-	WriteSampleColor(p, comp, "color0.b", 0, ApiType);
-	WriteSampleColor(p, comp, "color1.b", 1, ApiType);
-	WriteSampleColor(p, comp, "color0.g", 2, ApiType);
-	WriteSampleColor(p, comp, "color1.g", 3, ApiType);
-	WriteSampleColor(p, comp, "color0.r", 4, ApiType);
-	WriteSampleColor(p, comp, "color1.r", 5, ApiType);
-	WriteSampleColor(p, comp, "color0.a", 6, ApiType);
-	WriteSampleColor(p, comp, "color1.a", 7, ApiType);
+	WriteSampleColor(p, comp, "color0.b", 0, ApiType, depth);
+	WriteSampleColor(p, comp, "color1.b", 1, ApiType, depth);
+	WriteSampleColor(p, comp, "color0.g", 2, ApiType, depth);
+	WriteSampleColor(p, comp, "color1.g", 3, ApiType, depth);
+	WriteSampleColor(p, comp, "color0.r", 4, ApiType, depth);
+	WriteSampleColor(p, comp, "color1.r", 5, ApiType, depth);
+	WriteSampleColor(p, comp, "color0.a", 6, ApiType, depth);
+	WriteSampleColor(p, comp, "color1.a", 7, ApiType, depth);
 
 	WriteToBitDepth(p, 4, "color0", "color0");
 	WriteToBitDepth(p, 4, "color1", "color1");
@@ -403,14 +407,14 @@ static void WriteC4Encoder(char*& p, const char* comp,API_TYPE ApiType)
 	WriteEncoderEnd(p);
 }
 
-static void WriteC8Encoder(char*& p, const char* comp,API_TYPE ApiType)
+static void WriteC8Encoder(char*& p, const char* comp, API_TYPE ApiType, bool depth = false)
 {
 	WriteSwizzler(p, GX_CTF_R8, ApiType);
 
-	WriteSampleColor(p, comp, "ocol0.b", 0, ApiType);
-	WriteSampleColor(p, comp, "ocol0.g", 1, ApiType);
-	WriteSampleColor(p, comp, "ocol0.r", 2, ApiType);
-	WriteSampleColor(p, comp, "ocol0.a", 3, ApiType);
+	WriteSampleColor(p, comp, "ocol0.b", 0, ApiType, depth);
+	WriteSampleColor(p, comp, "ocol0.g", 1, ApiType, depth);
+	WriteSampleColor(p, comp, "ocol0.r", 2, ApiType, depth);
+	WriteSampleColor(p, comp, "ocol0.a", 3, ApiType, depth);
 
 	WriteEncoderEnd(p);
 }
@@ -461,20 +465,16 @@ static void WriteZ8Encoder(char*& p, const char* multiplier,API_TYPE ApiType)
 
 	WRITE(p, " float depth;\n");
 
-	WriteSampleColor(p, "r", "depth", 0, ApiType);
-	if (ApiType == API_D3D) WRITE(p, "depth = 1.0f - depth;\n");
+	WriteSampleColor(p, "r", "depth", 0, ApiType, true);
 	WRITE(p, "ocol0.b = frac(depth * %s);\n", multiplier);
 
-	WriteSampleColor(p, "r", "depth", 1, ApiType);
-	if (ApiType == API_D3D) WRITE(p, "depth = 1.0f - depth;\n");
+	WriteSampleColor(p, "r", "depth", 1, ApiType, true);
 	WRITE(p, "ocol0.g = frac(depth * %s);\n", multiplier);
 
-	WriteSampleColor(p, "r", "depth", 2, ApiType);
-	if (ApiType == API_D3D) WRITE(p, "depth = 1.0f - depth;\n");
+	WriteSampleColor(p, "r", "depth", 2, ApiType, true);
 	WRITE(p, "ocol0.r = frac(depth * %s);\n", multiplier);
 
-	WriteSampleColor(p, "r", "depth", 3, ApiType);
-	if (ApiType == API_D3D) WRITE(p, "depth = 1.0f - depth;\n");
+	WriteSampleColor(p, "r", "depth", 3, ApiType, true);
 	WRITE(p, "ocol0.a = frac(depth * %s);\n", multiplier);
 
 	WriteEncoderEnd(p);
@@ -489,8 +489,7 @@ static void WriteZ16Encoder(char*& p,API_TYPE ApiType)
 
 	// byte order is reversed
 
-	WriteSampleColor(p, "r", "depth", 0, ApiType);
-	if (ApiType == API_D3D) WRITE(p, "depth = 1.0f - depth;\n");
+	WriteSampleColor(p, "r", "depth", 0, ApiType, true);
 
 	WRITE(p, "  depth *= 16777216.0;\n");
 	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
@@ -500,8 +499,7 @@ static void WriteZ16Encoder(char*& p,API_TYPE ApiType)
 	WRITE(p, "  ocol0.b = expanded.g / 255.0;\n");
 	WRITE(p, "  ocol0.g = expanded.r / 255.0;\n");
 
-	WriteSampleColor(p, "r", "depth", 1, ApiType);
-	if (ApiType == API_D3D) WRITE(p, "depth = 1.0f - depth;\n");
+	WriteSampleColor(p, "r", "depth", 1, ApiType, true);
 
 	WRITE(p, "  depth *= 16777216.0;\n");
 	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
@@ -523,8 +521,7 @@ static void WriteZ16LEncoder(char*& p,API_TYPE ApiType)
 
 	// byte order is reversed
 
-	WriteSampleColor(p, "r", "depth", 0, ApiType);
-	if (ApiType == API_D3D) WRITE(p, "depth = 1.0f - depth;\n");
+	WriteSampleColor(p, "r", "depth", 0, ApiType, true);
 
 	WRITE(p, "  depth *= 16777216.0;\n");
 	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
@@ -536,8 +533,7 @@ static void WriteZ16LEncoder(char*& p,API_TYPE ApiType)
 	WRITE(p, "  ocol0.b = expanded.b / 255.0;\n");
 	WRITE(p, "  ocol0.g = expanded.g / 255.0;\n");
 
-	WriteSampleColor(p, "r", "depth", 1, ApiType);
-	if (ApiType == API_D3D) WRITE(p, "depth = 1.0f - depth;\n");
+	WriteSampleColor(p, "r", "depth", 1, ApiType, true);
 
 	WRITE(p, "  depth *= 16777216.0;\n");
 	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
@@ -562,9 +558,7 @@ static void WriteZ24Encoder(char*& p, API_TYPE ApiType)
 	WRITE(p, "  float3 expanded1;\n");
 
 	WriteSampleColor(p, "r", "depth0", 0, ApiType);
-	if (ApiType == API_D3D) WRITE(p, "depth0 = 1.0f - depth0;\n");
 	WriteSampleColor(p, "r", "depth1", 1, ApiType);
-	if (ApiType == API_D3D) WRITE(p, "depth1 = 1.0f - depth1;\n");
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -652,7 +646,7 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 		break;
 	case GX_CTF_Z8H:
 	case GX_TF_Z8:
-		WriteC8Encoder(p, "r", ApiType);
+		WriteC8Encoder(p, "r", ApiType, true);
 		break;
 	case GX_CTF_Z16R:
 	case GX_TF_Z16:
@@ -662,7 +656,7 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 		WriteZ24Encoder(p, ApiType);
 		break;
 	case GX_CTF_Z4:
-		WriteC4Encoder(p, "r", ApiType);
+		WriteC4Encoder(p, "r", ApiType, true);
 		break;
 	case GX_CTF_Z8M:
 		WriteZ8Encoder(p, "256.0", ApiType);
