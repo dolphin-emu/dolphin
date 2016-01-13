@@ -374,15 +374,15 @@ static inline s32 WrapIndirectCoord(s32 coord, int wrapMode)
 		case ITW_OFF:
 			return coord;
 		case ITW_256:
-			return (coord % (256 << 7));
+			return (coord & ((256 << 7) - 1));
 		case ITW_128:
-			return (coord % (128 << 7));
+			return (coord & ((128 << 7) - 1));
 		case ITW_64:
-			return (coord % (64 << 7));
+			return (coord & ((64 << 7) - 1));
 		case ITW_32:
-			return (coord % (32 << 7));
+			return (coord & ((32 << 7) - 1));
 		case ITW_16:
-			return (coord % (16 << 7));
+			return (coord & ((16 << 7) - 1));
 		case ITW_0:
 			return 0;
 		default:
