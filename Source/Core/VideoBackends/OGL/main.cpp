@@ -115,7 +115,7 @@ static std::vector<std::string> GetShaders(const std::string &sub_dir = "")
 	return result;
 }
 
-static void InitBackendInfo()
+void VideoBackend::InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_OPENGL;
 	g_Config.backend_info.bSupportsExclusiveFullscreen = false;
@@ -139,14 +139,6 @@ static void InitBackendInfo()
 	// pp shaders
 	g_Config.backend_info.PPShaders = GetShaders("");
 	g_Config.backend_info.AnaglyphShaders = GetShaders(ANAGLYPH_DIR DIR_SEP);
-}
-
-void VideoBackend::ShowConfig(void* parent_handle)
-{
-	if (!m_initialized)
-		InitBackendInfo();
-
-	Host_ShowVideoConfig(parent_handle, GetDisplayName(), GetConfigName());
 }
 
 bool VideoBackend::Initialize(void* window_handle)

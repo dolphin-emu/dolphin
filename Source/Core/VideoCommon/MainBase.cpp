@@ -9,6 +9,10 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
+
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -151,6 +155,14 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
 	AsyncRequests::GetInstance()->PushEvent(e, true);
 
 	return result;
+}
+
+void VideoBackendBase::ShowConfig(void* parent_handle)
+{
+	if (!m_initialized)
+		InitBackendInfo();
+
+	Host_ShowVideoConfig(parent_handle, GetDisplayName(), GetConfigName());
 }
 
 void VideoBackendBase::InitializeShared()
