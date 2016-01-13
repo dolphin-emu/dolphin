@@ -21,6 +21,7 @@ class VideoSoftware : public VideoBackendBase
 
   std::string GetName() const override;
   std::string GetDisplayName() const override;
+  std::string GetConfigName() const override;
 
   void Video_Prepare() override;
   void Video_Cleanup() override;

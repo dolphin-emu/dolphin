@@ -453,10 +453,6 @@ void SetCPStatusFromCPU()
   }
 }
 
-void Shutdown()
-{
-}
-
 void SetCpStatusRegister()
 {
   // Here always there is one fifo attached to the GPU
