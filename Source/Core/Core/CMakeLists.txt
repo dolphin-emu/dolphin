@@ -188,6 +188,7 @@ if(_M_X86)
 			PowerPC/Jit64IL/JitIL.cpp
 			PowerPC/Jit64IL/JitIL_Tables.cpp
 			PowerPC/Jit64/Jit64_Tables.cpp
+			PowerPC/Jit64/Jit64_Util.cpp
 			PowerPC/Jit64/JitAsm.cpp
 			PowerPC/Jit64/Jit_Branch.cpp
 			PowerPC/Jit64/Jit.cpp

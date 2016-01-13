@@ -1310,6 +1310,13 @@ void XEmitter::OR  (int bits, const OpArg& a1, const OpArg& a2) {CheckFlags(); W
 void XEmitter::XOR (int bits, const OpArg& a1, const OpArg& a2) {CheckFlags(); WriteNormalOp(bits, nrmXOR, a1, a2);}
 void XEmitter::MOV (int bits, const OpArg& a1, const OpArg& a2)
 {
+	// Shortcut to zero a register
+	if (a2.IsZero() && a1.IsSimpleReg())
+	{
+		XOR(bits, a1, a1);
+		return;
+	}
+
 	if (a1.IsSimpleReg() && a2.IsSimpleReg() && a1.GetSimpleReg() == a2.GetSimpleReg())
 		ERROR_LOG(DYNA_REC, "Redundant MOV @ %p - bug in JIT?", code);
 	WriteNormalOp(bits, nrmMOV, a1, a2);
@@ -1328,6 +1335,66 @@ void XEmitter::CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2)
 	{
 		WriteNormalOp(bits, nrmCMP, a1, a2);
 	}
+}
+
+void XEmitter::MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2)
+{
+	// If dest == a1 or dest == a2 we can simplify this	
+	if (a1.IsSimpleReg() && a1.GetSimpleReg() == dest)
+	{
+		ADD(bits, R(dest), a2);
+		return;
+	}
+
+	if (a2.IsSimpleReg() && a2.GetSimpleReg() == dest)
+	{
+		ADD(bits, R(dest), a1);
+		return;
+	}
+
+	// Zero shortcuts
+	if (a1.IsZero())
+	{
+		MOV(bits, R(dest), a2);
+		return;
+	}
+	if (a2.IsZero())
+	{
+		MOV(bits, R(dest), a1);
+		return;
+	}
+
+	// TODO: 32-bit optimizations may apply to other bit sizes
+	if (bits == 32)
+	{
+		if (a1.IsImm() && a2.IsImm())
+		{
+			MOV(32, R(dest), Imm32(a1.Imm32() + a2.Imm32()));
+			return;
+		}
+
+		if (a1.IsSimpleReg() && a2.IsSimpleReg())
+		{
+			LEA(32, dest, MRegSum(a1.GetSimpleReg(), a2.GetSimpleReg()));
+			return;
+		}
+
+		if (a1.IsSimpleReg() && a2.IsImm())
+		{
+			LEA(32, dest, MDisp(a1.GetSimpleReg(), a2.Imm32()));
+			return;
+		}
+
+		if (a1.IsImm() && a2.IsSimpleReg())
+		{
+			LEA(32, dest, MDisp(a2.GetSimpleReg(), a1.Imm32()));
+			return;
+		}
+	}
+
+	// Fallback
+	MOV(bits, R(dest), a1);
+	ADD(bits, R(dest), a2);
 }
 
 void XEmitter::IMUL(int bits, X64Reg regOp, const OpArg& a1, const OpArg& a2)

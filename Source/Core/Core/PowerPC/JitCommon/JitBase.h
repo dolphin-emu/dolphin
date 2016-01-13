@@ -80,10 +80,6 @@ protected:
 		// so just fixup that branch instead of testing for a DSI again.
 		bool fixupExceptionHandler;
 		Gen::FixupBranch exceptionHandler;
-		// If these are set, we've stored the old value of a register which will be loaded in revertLoad,
-		// which lets us revert it on the exception path.
-		int revertGprLoad;
-		int revertFprLoad;
 
 		bool assumeNoPairedQuantize;
 		std::map<u8, u32> constantGqr;

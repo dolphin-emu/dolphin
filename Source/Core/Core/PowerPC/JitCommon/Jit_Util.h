@@ -133,7 +133,7 @@ public:
 	};
 
 	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, int flags = 0);
-	void SafeLoadToRegImmediate(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, bool slowmem);
+	void SafeLoadToRegImmediate(Gen::X64Reg reg_value, u32 address, int accessSize, BitSet32 registersInUse, bool signExtend);
 
 	// Clobbers RSCRATCH or reg_addr depending on the relevant flag.  Preserves
 	// reg_value if the load fails and js.memcheck is enabled.

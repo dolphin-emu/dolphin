@@ -41,8 +41,7 @@ private:
 	void AllocStack();
 	void FreeStack();
 
-	GPRRegCache gpr;
-	FPURegCache fpr;
+	Jit64Reg::Registers regs{this, this};
 
 	// The default code buffer. We keep it around to not have to alloc/dealloc a
 	// large chunk of memory for each recompiled block.
@@ -99,11 +98,11 @@ public:
 
 	void WriteExit(u32 destination, bool bl = false, u32 after = 0);
 	void JustWriteExit(u32 destination, bool bl, u32 after);
-	void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);
-	void WriteBLRExit();
+	void WriteExitDestInRSCRATCH(Gen::X64Reg reg, bool bl = false, u32 after = 0);
+	void WriteBLRExit(Gen::X64Reg reg);
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
-	void WriteRfiExitDestInRSCRATCH();
+	void WriteRfiExitDestInRSCRATCH(Gen::X64Reg reg);
 	bool Cleanup();
 
 	void GenerateConstantOverflow(bool overflow);
@@ -115,7 +114,7 @@ public:
 	void ComputeRC(const Gen::OpArg & arg, bool needs_test = true, bool needs_sext = true);
 
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
-	Gen::OpArg ExtractFromReg(int reg, int offset);
+	Gen::OpArg ExtractFromReg(Jit64Reg::Any<Jit64Reg::GPR>& src, int offset);
 	void AndWithMask(Gen::X64Reg reg, u32 mask);
 	bool CheckMergedBranch(int crf);
 	void DoMergedBranch();
@@ -134,21 +133,24 @@ public:
 	Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
 	void SetFPRFIfNeeded(Gen::X64Reg xmm);
 
-	void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
-	                Gen::X64Reg clobber = Gen::XMM0);
+	void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in);
 
-	void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
+	void MultiplyImmediate(u32 imm, Jit64Reg::Any<Jit64Reg::GPR>& ra, Jit64Reg::Native<Jit64Reg::GPR>& xd, bool overflow);
+	void Compare(int crf, bool merge_branch, Jit64Reg::Native<Jit64Reg::GPR>& input, Jit64Reg::Any<Jit64Reg::GPR>& comparand);
 
 	typedef u32 (*Operation)(u32 a, u32 b);
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop,
 	              void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
 	              bool Rc = false, bool carry = false);
-	Gen::X64Reg fp_tri_op(int d, int a, int b, bool reversible, bool single,
+	Gen::X64Reg fp_tri_op(Gen::X64Reg xd, int d, int a, int b, bool reversible, bool single,
 	                      void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&),
 	                      void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&),
 	                      bool packed, bool preserve_inputs, bool roundRHS = false);
 	void FloatCompare(UGeckoInstruction inst, bool upper = false);
 	void UpdateMXCSR();
+
+	void SafeLoad(Jit64Reg::Native<Jit64Reg::GPR>& reg_value, Jit64Reg::Any<Jit64Reg::GPR>& reg_addr, Jit64Reg::Any<Jit64Reg::GPR>& offset, int accessSize, bool signExtend, bool swap, bool update);
+	void SafeWrite(Jit64Reg::Any<Jit64Reg::GPR>& reg_value, Jit64Reg::Any<Jit64Reg::GPR>& reg_addr, Jit64Reg::Any<Jit64Reg::GPR>& offset, int accessSize, bool swap, bool update);
 
 	// OPCODES
 	using Instruction = void (Jit64::*)(UGeckoInstruction instCode);

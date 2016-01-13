@@ -36,33 +36,24 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	bool gqrIsConstant = it != js.constantGqr.end();
 	u32 gqrValue = gqrIsConstant ? it->second & 0xffff : 0;
 
-	gpr.Lock(a, b);
-	gpr.FlushLockX(RSCRATCH_EXTRA);
+	auto ra = regs.gpr.Lock(a);
+	auto rb = indexed ? regs.gpr.Lock(b) : Imm32((u32)offset);
+	auto rs = regs.fpu.Lock(s);
+
+	auto scratch_extra = regs.gpr.Borrow(RSCRATCH_EXTRA);
+
+	MOV_sum(32, scratch_extra, ra, rb);
+
 	if (update)
-		gpr.BindToRegister(a, true, true);
-	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && (indexed || offset))
 	{
-		if (indexed)
-			LEA(32, RSCRATCH_EXTRA, MRegSum(gpr.RX(a), gpr.RX(b)));
-		else
-			LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
+		auto xa = ra.Bind(Jit64Reg::WriteTransaction);
+		MOV(32, xa, scratch_extra);
 	}
-	else
-	{
-		MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
-		if (indexed)
-			ADD(32, R(RSCRATCH_EXTRA), gpr.R(b));
-		else if (offset)
-			ADD(32, R(RSCRATCH_EXTRA), Imm32((u32)offset));
-	}
-	// In memcheck mode, don't update the address until the exception check
-	if (update && !jo.memcheck)
-		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
 
 	if (w)
-		CVTSD2SS(XMM0, fpr.R(s)); // one
+		CVTSD2SS(XMM0, rs); // one
 	else
-		CVTPD2PS(XMM0, fpr.R(s)); // pair
+		CVTPD2PS(XMM0, rs); // pair
 
 	if (gqrIsConstant)
 	{
@@ -79,9 +70,11 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 		}
 		else
 		{
+			auto scratch2 = regs.gpr.Borrow(RSCRATCH2);
+
 			// We know what GQR is here, so we can load RSCRATCH2 and call into the store method directly
 			// with just the scale bits.
-			MOV(32, R(RSCRATCH2), Imm32(gqrValue & 0x3F00));
+			MOV(32, scratch2, Imm32(gqrValue & 0x3F00));
 
 			if (w)
 				CALL(asm_routines.singleStoreQuantized[type]);
@@ -91,29 +84,22 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	}
 	else
 	{
+		auto scratch = regs.gpr.Borrow();
+		auto scratch2 = regs.gpr.Borrow(RSCRATCH2);
+
 		// Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
 		// Hence, we need to mask out the unused bits. The layout of the GQR register is
 		// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
 		// 0b0011111100000111, or 0x3F07.
-		MOV(32, R(RSCRATCH2), Imm32(0x3F07));
-		AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
-		MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+		MOV(32, scratch2, Imm32(0x3F07));
+		AND(32, scratch2, PPCSTATE(spr[SPR_GQR0 + i]));
+		MOVZX(32, 8, scratch, scratch2);
 
 		if (w)
-			CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
+			CALLptr(MScaled(scratch, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
 		else
-			CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
+			CALLptr(MScaled(scratch, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
 	}
-
-	if (update && jo.memcheck)
-	{
-		if (indexed)
-			ADD(32, gpr.R(a), gpr.R(b));
-		else
-			ADD(32, gpr.R(a), Imm32((u32)offset));
-	}
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
 }
 
 void Jit64::psq_lXX(UGeckoInstruction inst)
@@ -135,57 +121,42 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 	bool gqrIsConstant = it != js.constantGqr.end();
 	u32 gqrValue = gqrIsConstant ? it->second >> 16 : 0;
 
-	gpr.Lock(a, b);
+	auto ra = regs.gpr.Lock(a);
+	auto rb = indexed ? regs.gpr.Lock(b) : Imm32((u32)offset);
 
-	gpr.FlushLockX(RSCRATCH_EXTRA);
-	gpr.BindToRegister(a, true, update);
-	fpr.BindToRegister(s, false, true);
-	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && (indexed || offset))
+	auto scratch_extra = regs.gpr.Borrow(RSCRATCH_EXTRA);
+
+	MOV_sum(32, scratch_extra, ra, rb);
+
+	if (update)
 	{
-		if (indexed)
-			LEA(32, RSCRATCH_EXTRA, MRegSum(gpr.RX(a), gpr.RX(b)));
-		else
-			LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
+		auto xa = ra.Bind(Jit64Reg::WriteTransaction);
+		MOV(32, xa, scratch_extra);
 	}
-	else
-	{
-		MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
-		if (indexed)
-			ADD(32, R(RSCRATCH_EXTRA), gpr.R(b));
-		else if (offset)
-			ADD(32, R(RSCRATCH_EXTRA), Imm32((u32)offset));
-	}
-	// In memcheck mode, don't update the address until the exception check
-	if (update && !jo.memcheck)
-		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
 
 	if (gqrIsConstant)
 	{
+		// TODO: pass it a scratch register it can use
 		GenQuantizedLoad(w == 1, (EQuantizeType)(gqrValue & 0x7), (gqrValue & 0x3F00) >> 8);
 	}
 	else
 	{
-		MOV(32, R(RSCRATCH2), Imm32(0x3F07));
+		auto scratch = regs.gpr.Borrow();
+		auto scratch2 = regs.gpr.Borrow(RSCRATCH2);
+
+		MOV(32, scratch2, Imm32(0x3F07));
 
 		// Get the high part of the GQR register
 		OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
 		gqr.AddMemOffset(2);
 
-		AND(32, R(RSCRATCH2), gqr);
-		MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+		AND(32, scratch2, gqr);
+		MOVZX(32, 8, scratch, scratch2);
 
-		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
+		// Explicitly uses RSCRATCH2 and RSCRATCH_EXTRA
+		CALLptr(MScaled(scratch, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
 	}
 
-	CVTPS2PD(fpr.RX(s), R(XMM0));
-	if (update && jo.memcheck)
-	{
-		if (indexed)
-			ADD(32, gpr.R(a), gpr.R(b));
-		else
-			ADD(32, gpr.R(a), Imm32((u32)offset));
-	}
-
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
+	auto rs = regs.fpu.Lock(s).Bind(Jit64Reg::Write);
+	CVTPS2PD(rs, R(XMM0));
 }

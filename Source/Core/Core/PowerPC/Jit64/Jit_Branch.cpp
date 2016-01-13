@@ -26,8 +26,7 @@ void Jit64::sc(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff);
 
-	gpr.Flush();
-	fpr.Flush();
+	regs.Flush();
 	MOV(32, PPCSTATE(pc), Imm32(js.compilerPC + 4));
 	LOCK();
 	OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_SYSCALL));
@@ -39,19 +38,19 @@ void Jit64::rfi(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff);
 
-	gpr.Flush();
-	fpr.Flush();
+	regs.Flush();
 	// See Interpreter rfi for details
 	const u32 mask = 0x87C0FFFF;
 	const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
 	// MSR = ((MSR & ~mask) | (SRR1 & mask)) & clearMSR13;
 	AND(32, PPCSTATE(msr), Imm32((~mask) & clearMSR13));
-	MOV(32, R(RSCRATCH), PPCSTATE_SRR1);
-	AND(32, R(RSCRATCH), Imm32(mask & clearMSR13));
-	OR(32, PPCSTATE(msr), R(RSCRATCH));
+	auto scratch = regs.gpr.Borrow();
+	MOV(32, scratch, PPCSTATE_SRR1);
+	AND(32, scratch, Imm32(mask & clearMSR13));
+	OR(32, PPCSTATE(msr), scratch);
 	// NPC = SRR0;
-	MOV(32, R(RSCRATCH), PPCSTATE_SRR0);
-	WriteRfiExitDestInRSCRATCH();
+	MOV(32, scratch, PPCSTATE_SRR0);
+	WriteRfiExitDestInRSCRATCH(scratch);
 }
 
 void Jit64::bx(UGeckoInstruction inst)
@@ -72,8 +71,7 @@ void Jit64::bx(UGeckoInstruction inst)
 		return;
 	}
 
-	gpr.Flush();
-	fpr.Flush();
+	regs.Flush();
 
 	u32 destination;
 	if (inst.AA)
@@ -105,6 +103,8 @@ void Jit64::bcx(UGeckoInstruction inst)
 
 	// USES_CR
 
+	Jit64Reg::Registers branch = regs.Branch();
+
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
@@ -131,8 +131,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
 
-	gpr.Flush(FLUSH_MAINTAIN_STATE);
-	fpr.Flush(FLUSH_MAINTAIN_STATE);
+	branch.Flush();
 	WriteExit(destination, inst.LK, js.compilerPC + 4);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -142,8 +141,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{
-		gpr.Flush();
-		fpr.Flush();
+		regs.Flush();
 		WriteExit(js.compilerPC + 4);
 	}
 }
@@ -161,14 +159,14 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		// BO_2 == 1z1zz -> b always
 
 		//NPC = CTR & 0xfffffffc;
-		gpr.Flush();
-		fpr.Flush();
+		regs.Flush();
 
-		MOV(32, R(RSCRATCH), PPCSTATE_CTR);
+		auto scratch = regs.gpr.Borrow();
+		MOV(32, scratch, PPCSTATE_CTR);
 		if (inst.LK_3)
 			MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4)); // LR = PC + 4;
-		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-		WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
+		AND(32, scratch, Imm32(0xFFFFFFFC));
+		WriteExitDestInRSCRATCH(scratch, inst.LK_3, js.compilerPC + 4);
 	}
 	else
 	{
@@ -179,22 +177,24 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
 		FixupBranch b = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
 		                                 !(inst.BO_2 & BO_BRANCH_IF_TRUE));
-		MOV(32, R(RSCRATCH), PPCSTATE_CTR);
-		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
+		Jit64Reg::Registers branch = regs.Branch();
+
+		auto scratch = regs.gpr.Borrow();
+		MOV(32, scratch, PPCSTATE_CTR);
+		AND(32, scratch, Imm32(0xFFFFFFFC));
 		//MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in WriteExitDestInRSCRATCH()
 		if (inst.LK_3)
 			MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4)); // LR = PC + 4;
 
-		gpr.Flush(FLUSH_MAINTAIN_STATE);
-		fpr.Flush(FLUSH_MAINTAIN_STATE);
-		WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
+		branch.Flush();
+
+		WriteExitDestInRSCRATCH(scratch, inst.LK_3, js.compilerPC + 4);
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
 
 		if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 		{
-			gpr.Flush();
-			fpr.Flush();
+			regs.Flush();
 			WriteExit(js.compilerPC + 4);
 		}
 	}
@@ -204,6 +204,8 @@ void Jit64::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff);
+
+	Jit64Reg::Registers branch = regs.Branch();
 
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
@@ -228,18 +230,18 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
 #endif
 
-	MOV(32, R(RSCRATCH), PPCSTATE_LR);
+	auto scratch = regs.gpr.Borrow();
+	MOV(32, scratch, PPCSTATE_LR);
 	// We don't have to do this because WriteBLRExit handles it for us. Specifically, since we only ever push
 	// divisible-by-four instruction addresses onto the stack, if the return address matches, we're already
 	// good. If it doesn't match, the mispredicted-BLR code handles the fixup.
 	if (!m_enable_blr_optimization)
-		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
+		AND(32, scratch, Imm32(0xFFFFFFFC));
 	if (inst.LK)
 		MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
-	gpr.Flush(FLUSH_MAINTAIN_STATE);
-	fpr.Flush(FLUSH_MAINTAIN_STATE);
-	WriteBLRExit();
+	branch.Flush();
+	WriteBLRExit(scratch);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget(pConditionDontBranch);
@@ -248,8 +250,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{
-		gpr.Flush();
-		fpr.Flush();
+		regs.Flush();
 		WriteExit(js.compilerPC + 4);
 	}
 }

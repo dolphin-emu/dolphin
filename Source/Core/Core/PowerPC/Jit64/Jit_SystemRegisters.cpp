@@ -214,33 +214,35 @@ void Jit64::mtspr(UGeckoInstruction inst)
 		break;
 
 	case SPR_XER:
-		gpr.Lock(d);
-		gpr.BindToRegister(d, true, false);
-		MOV(32, R(RSCRATCH), gpr.R(d));
-		AND(32, R(RSCRATCH), Imm32(0xff7f));
-		MOV(16, PPCSTATE(xer_stringctrl), R(RSCRATCH));
+		{
+			auto rd = regs.gpr.Lock(d);
+			auto xd = rd.Bind(Jit64Reg::Read);
+			MOV(32, R(RSCRATCH), xd);
+			AND(32, R(RSCRATCH), Imm32(0xff7f));
+			MOV(16, PPCSTATE(xer_stringctrl), R(RSCRATCH));
 
-		MOV(32, R(RSCRATCH), gpr.R(d));
-		SHR(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
-		AND(8, R(RSCRATCH), Imm8(1));
-		MOV(8, PPCSTATE(xer_ca), R(RSCRATCH));
+			MOV(32, R(RSCRATCH), xd);
+			SHR(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
+			AND(8, R(RSCRATCH), Imm8(1));
+			MOV(8, PPCSTATE(xer_ca), R(RSCRATCH));
 
-		MOV(32, R(RSCRATCH), gpr.R(d));
-		SHR(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
-		MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
-		gpr.UnlockAll();
+			MOV(32, R(RSCRATCH), xd);
+			SHR(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
+			MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
+		}
 		return;
 
 	case SPR_HID0:
 		{
-			gpr.BindToRegister(d, true, false);
-			BTR(32, gpr.R(d), Imm8(31 - 20)); // ICFI
-			MOV(32, PPCSTATE(spr[iIndex]), gpr.R(d));
+			auto rd = regs.gpr.Lock(d);
+			auto xd = rd.Bind(Jit64Reg::Read);
+			BTR(32, xd, Imm8(31 - 20)); // ICFI
+			MOV(32, PPCSTATE(spr[iIndex]), xd);
 			FixupBranch dont_reset_icache = J_CC(CC_NC);
-			BitSet32 regs = CallerSavedRegistersInUse();
-			ABI_PushRegistersAndAdjustStack(regs, 0);
+			BitSet32 inuse = CallerSavedRegistersInUse();
+			ABI_PushRegistersAndAdjustStack(inuse, 0);
 			ABI_CallFunction((void*)DoICacheReset);
-			ABI_PopRegistersAndAdjustStack(regs, 0);
+			ABI_PopRegistersAndAdjustStack(inuse, 0);
 			SetJumpTarget(dont_reset_icache);
 			break;
 		}
@@ -249,14 +251,9 @@ void Jit64::mtspr(UGeckoInstruction inst)
 		FALLBACK_IF(true);
 	}
 
-	// OK, this is easy.
-	if (!gpr.R(d).IsImm())
-	{
-		gpr.Lock(d);
-		gpr.BindToRegister(d, true, false);
-	}
-	MOV(32, PPCSTATE(spr[iIndex]), gpr.R(d));
-	gpr.UnlockAll();
+	auto rd = regs.gpr.Lock(d);
+	rd.LoadIfNotImmediate();
+	MOV(32, PPCSTATE(spr[iIndex]), rd);
 }
 
 void Jit64::mfspr(UGeckoInstruction inst)
@@ -265,6 +262,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	int d = inst.RD;
+
 	switch (iIndex)
 	{
 	case SPR_TL:
@@ -276,27 +274,29 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		// redundant for the JIT.
 		// no register choice
 
-		gpr.FlushLockX(RDX, RAX);
+		auto rdx = regs.gpr.Borrow(RDX);
+		auto rax = regs.gpr.Borrow(RAX);
 
 		// An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
 		// cost of calling out to C for this is actually significant.
-		MOV(64, R(RAX), M(&CoreTiming::globalTimer));
-		SUB(64, R(RAX), M(&CoreTiming::fakeTBStartTicks));
+		MOV(64, rax, M(&CoreTiming::globalTimer));
+		SUB(64, rax, M(&CoreTiming::fakeTBStartTicks));
 		// It might seem convenient to correct the timer for the block position here for even more accurate
 		// timing, but as of currently, this can break games. If we end up reading a time *after* the time
 		// at which an interrupt was supposed to occur, e.g. because we're 100 cycles into a block with only
 		// 50 downcount remaining, some games don't function correctly, such as Karaoke Party Revolution,
 		// which won't get past the loading screen.
 		//if (js.downcountAmount)
-		//	ADD(64, R(RAX), Imm32(js.downcountAmount));
+		//	ADD(64, rax, Imm32(js.downcountAmount));
 		// a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
-		MOV(64, R(RDX), Imm64(0xAAAAAAAAAAAAAAABULL));
-		MUL(64, R(RDX));
-		MOV(64, R(RAX), M(&CoreTiming::fakeTBStartValue));
-		SHR(64, R(RDX), Imm8(3));
-		ADD(64, R(RAX), R(RDX));
-		MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));
+		MOV(64, rdx, Imm64(0xAAAAAAAAAAAAAAABULL));
+		MUL(64, rdx);
+		MOV(64, rax, M(&CoreTiming::fakeTBStartValue));
+		SHR(64, rdx, Imm8(3));
+		ADD(64, rax, rdx);
+		MOV(64, PPCSTATE(spr[SPR_TL]), rax);
 
+		auto rd = regs.gpr.Lock(d);
 		if (MergeAllowedNextInstructions(1))
 		{
 			const UGeckoInstruction& next = js.op[1].inst;
@@ -309,40 +309,44 @@ void Jit64::mfspr(UGeckoInstruction inst)
 			{
 				js.downcountAmount++;
 				js.skipInstructions = 1;
-				gpr.Lock(d, n);
-				gpr.BindToRegister(d, false);
-				gpr.BindToRegister(n, false);
+
+				auto rn = regs.gpr.Lock(n);
+
+				auto xd = rd.Bind(Jit64Reg::Write);
+				auto xn = rn.Bind(Jit64Reg::Write);
 				if (iIndex == SPR_TL)
-					MOV(32, gpr.R(d), R(RAX));
+					MOV(32, xd, rax);
 				if (nextIndex == SPR_TL)
-					MOV(32, gpr.R(n), R(RAX));
-				SHR(64, R(RAX), Imm8(32));
+					MOV(32, xn, rax);
+				SHR(64, rax, Imm8(32));
 				if (iIndex == SPR_TU)
-					MOV(32, gpr.R(d), R(RAX));
+					MOV(32, xd, rax);
 				if (nextIndex == SPR_TU)
-					MOV(32, gpr.R(n), R(RAX));
+					MOV(32, xn, rax);
 				break;
 			}
 		}
-		gpr.Lock(d);
-		gpr.BindToRegister(d, false);
+
+		auto xd = rd.Bind(Jit64Reg::Write);
 		if (iIndex == SPR_TU)
-			SHR(64, R(RAX), Imm8(32));
-		MOV(32, gpr.R(d), R(RAX));
+			SHR(64, rax, Imm8(32));
+		MOV(32, xd, rax);
 		break;
 	}
 	case SPR_XER:
-		gpr.Lock(d);
-		gpr.BindToRegister(d, false);
-		MOVZX(32, 16, gpr.RX(d), PPCSTATE(xer_stringctrl));
+	{
+		auto rd = regs.gpr.Lock(d);
+		auto xd = rd.Bind(Jit64Reg::Write);
+		MOVZX(32, 16, xd, PPCSTATE(xer_stringctrl));
 		MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_ca));
 		SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
-		OR(32, gpr.R(d), R(RSCRATCH));
+		OR(32, xd, R(RSCRATCH));
 
 		MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
 		SHL(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
-		OR(32, gpr.R(d), R(RSCRATCH));
+		OR(32, xd, R(RSCRATCH));
 		break;
+	}
 	case SPR_WPAR:
 	case SPR_DEC:
 	case SPR_PMC1:
@@ -351,28 +355,25 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	case SPR_PMC4:
 		FALLBACK_IF(true);
 	default:
-		gpr.Lock(d);
-		gpr.BindToRegister(d, false);
-		MOV(32, gpr.R(d), PPCSTATE(spr[iIndex]));
+	{
+		auto rd = regs.gpr.Lock(d);
+		auto xd = rd.Bind(Jit64Reg::Write);
+		MOV(32, xd, PPCSTATE(spr[iIndex]));
 		break;
 	}
-	gpr.UnlockAllX();
-	gpr.UnlockAll();
+	}
 }
 
 void Jit64::mtmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
-	if (!gpr.R(inst.RS).IsImm())
 	{
-		gpr.Lock(inst.RS);
-		gpr.BindToRegister(inst.RS, true, false);
+		auto rs = regs.gpr.Lock(inst.RS);
+		rs.LoadIfNotImmediate();
+		MOV(32, PPCSTATE(msr), rs);
 	}
-	MOV(32, PPCSTATE(msr), gpr.R(inst.RS));
-	gpr.UnlockAll();
-	gpr.Flush();
-	fpr.Flush();
+	regs.Flush();
 
 	// If some exceptions are pending and EE are now enabled, force checking
 	// external exceptions when going out of mtmsr in order to execute delayed
@@ -394,8 +395,9 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	SetJumpTarget(noExceptionsPending);
 	SetJumpTarget(eeDisabled);
 
-	MOV(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
-	WriteExitDestInRSCRATCH();
+	auto scratch = regs.gpr.Borrow();
+	MOV(32, scratch, Imm32(js.compilerPC + 4));
+	WriteExitDestInRSCRATCH(scratch);
 }
 
 void Jit64::mfmsr(UGeckoInstruction inst)
@@ -403,10 +405,10 @@ void Jit64::mfmsr(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
 	//Privileged?
-	gpr.Lock(inst.RD);
-	gpr.BindToRegister(inst.RD, false, true);
-	MOV(32, gpr.R(inst.RD), PPCSTATE(msr));
-	gpr.UnlockAll();
+	int d = inst.RD;
+	auto rd = regs.gpr.Lock(d);
+	auto xd = rd.Bind(Jit64Reg::Write);
+	MOV(32, xd, PPCSTATE(msr));
 }
 
 void Jit64::mftb(UGeckoInstruction inst)
@@ -421,13 +423,11 @@ void Jit64::mfcr(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
 	int d = inst.RD;
-	gpr.FlushLockX(RSCRATCH_EXTRA);
+	auto rd = regs.gpr.Lock(d);
+	auto scratch_extra = regs.gpr.Borrow(RSCRATCH_EXTRA);
 	CALL(asm_routines.mfcr);
-	gpr.Lock(d);
-	gpr.BindToRegister(d, false, true);
-	MOV(32, gpr.R(d), R(RSCRATCH));
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
+	auto xd = rd.Bind(Jit64Reg::Write);
+	MOV(32, xd, R(RSCRATCH));
 }
 
 void Jit64::mtcrf(UGeckoInstruction inst)
@@ -435,17 +435,19 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
 
+	auto rs = regs.gpr.Lock(inst.RS);
+
 	// USES_CR
 	u32 crm = inst.CRM;
 	if (crm != 0)
 	{
-		if (gpr.R(inst.RS).IsImm())
+		if (rs.IsImm())
 		{
 			for (int i = 0; i < 8; i++)
 			{
 				if ((crm & (0x80 >> i)) != 0)
 				{
-					u8 newcr = (gpr.R(inst.RS).Imm32() >> (28 - (i * 4))) & 0xF;
+					u8 newcr = (rs.Imm32() >> (28 - (i * 4))) & 0xF;
 					u64 newcrval = PPCCRToInternal(newcr);
 					if ((s64)newcrval == (s32)newcrval)
 					{
@@ -461,13 +463,12 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 		}
 		else
 		{
-			gpr.Lock(inst.RS);
-			gpr.BindToRegister(inst.RS, true, false);
+			auto xs = rs.Bind(Jit64Reg::Read);
 			for (int i = 0; i < 8; i++)
 			{
 				if ((crm & (0x80 >> i)) != 0)
 				{
-					MOV(32, R(RSCRATCH), gpr.R(inst.RS));
+					MOV(32, R(RSCRATCH), xs);
 					if (i != 7)
 						SHR(32, R(RSCRATCH), Imm8(28 - (i * 4)));
 					if (i != 0)
@@ -476,7 +477,6 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 					MOV(64, PPCSTATE(cr_val[i]), R(RSCRATCH));
 				}
 			}
-			gpr.UnlockAll();
 		}
 	}
 }
@@ -623,11 +623,12 @@ void Jit64::mffsx(UGeckoInstruction inst)
 	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
 
 	int d = inst.FD;
-	fpr.BindToRegister(d, false, true);
+	auto rd = regs.fpu.Lock(d);
+	auto xd = rd.Bind(Jit64Reg::Write);
 	MOV(64, R(RSCRATCH2), Imm64(0xFFF8000000000000));
 	OR(64, R(RSCRATCH), R(RSCRATCH2));
 	MOVQ_xmm(XMM0, R(RSCRATCH));
-	MOVSD(fpr.RX(d), R(XMM0));
+	MOVSD(xd, R(XMM0));
 }
 
 // MXCSR = s_fpscr_to_mxcsr[FPSCR & 7]
@@ -722,10 +723,15 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
 	}
 
 	int b = inst.FB;
-	if (fpr.R(b).IsSimpleReg())
-		MOVQ_xmm(R(RSCRATCH), fpr.RX(b));
+	auto rb = regs.fpu.Lock(b);
+
+	if (rb.IsRegBound())
+	{
+		auto xb = rb.Bind(Jit64Reg::Reuse);
+		MOVQ_xmm(R(RSCRATCH), xb);
+	}
 	else
-		MOV(32, R(RSCRATCH), fpr.R(b));
+		MOV(32, R(RSCRATCH), rb);
 
 	MOV(32, R(RSCRATCH2), PPCSTATE(fpscr));
 	AND(32, R(RSCRATCH), Imm32(mask));
