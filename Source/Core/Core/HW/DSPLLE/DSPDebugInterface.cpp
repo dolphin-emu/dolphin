@@ -4,8 +4,8 @@
 
 #include <string>
 
+#include "Common/MsgHandler.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"

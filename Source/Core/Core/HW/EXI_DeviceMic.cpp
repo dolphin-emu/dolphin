@@ -2,16 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+#include <mutex>
+
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
 #if HAVE_PORTAUDIO
 
-#include <cstring>
-
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI.h"
-#include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceMic.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SystemTimers.h"

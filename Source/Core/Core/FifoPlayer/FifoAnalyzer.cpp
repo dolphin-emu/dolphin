@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <numeric>
 
 #include "Common/Assert.h"
 #include "Core/ConfigManager.h"

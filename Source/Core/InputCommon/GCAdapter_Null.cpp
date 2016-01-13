@@ -2,9 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/CommonTypes.h"
 #include "InputCommon/GCAdapter.h"
+
 namespace GCAdapter
 {
+
 void Init() {}
 void Reset() {}
 void ResetRumble() {}

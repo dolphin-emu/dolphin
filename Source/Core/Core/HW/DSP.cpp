@@ -25,14 +25,12 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
-#include "Core/HW/AudioInterface.h"
-#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"

@@ -4,6 +4,8 @@
 
 #include <functional>
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/MMIOHandlers.h"
 
