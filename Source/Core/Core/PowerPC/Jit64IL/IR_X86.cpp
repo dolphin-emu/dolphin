@@ -25,12 +25,19 @@ The register allocation is linear scan allocation.
 #endif
 
 #include <algorithm>
+#include <vector>
 
 #include "Common/BitSet.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
+#include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 
 using namespace IREmitter;

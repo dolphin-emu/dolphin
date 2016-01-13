@@ -10,20 +10,12 @@
 
 #include <unordered_set>
 
-#include "Common/x64ABI.h"
-#include "Common/x64Analyzer.h"
+#include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/CoreTiming.h"
 #include "Core/MachineContext.h"
-#include "Core/HW/GPFifo.h"
-#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/CPUCoreBase.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
-#include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"

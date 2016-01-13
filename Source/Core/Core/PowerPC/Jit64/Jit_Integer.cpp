@@ -5,10 +5,16 @@
 #include <limits>
 #include <vector>
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/x64Emitter.h"
+#include "Core/ConfigManager.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 
 using namespace Gen;
 

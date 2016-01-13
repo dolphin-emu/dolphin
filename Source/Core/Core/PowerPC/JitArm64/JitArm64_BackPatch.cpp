@@ -4,8 +4,11 @@
 
 #include <string>
 
+#include "Common/BitSet.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
