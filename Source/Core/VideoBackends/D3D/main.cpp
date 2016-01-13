@@ -67,7 +67,7 @@ std::string VideoBackend::GetConfigName() const
 	return "gfx_dx11";
 }
 
-void InitBackendInfo()
+void VideoBackend::InitBackendInfo()
 {
 	HRESULT hr = DX11::D3D::LoadDXGI();
 	if (SUCCEEDED(hr)) hr = DX11::D3D::LoadD3D();
@@ -140,12 +140,6 @@ void InitBackendInfo()
 
 	DX11::D3D::UnloadDXGI();
 	DX11::D3D::UnloadD3D();
-}
-
-void VideoBackend::ShowConfig(void *hParent)
-{
-	InitBackendInfo();
-	Host_ShowVideoConfig(hParent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoBackend::Initialize(void *window_handle)

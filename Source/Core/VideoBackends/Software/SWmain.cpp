@@ -136,7 +136,7 @@ std::string VideoSoftware::GetConfigName() const
 	return "gfx_software";
 }
 
-static void InitBackendInfo()
+void VideoSoftware::InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_NONE;
 	g_Config.backend_info.bSupports3DVision = false;
@@ -147,13 +147,6 @@ static void InitBackendInfo()
 
 	// aamodes
 	g_Config.backend_info.AAModes = {1};
-}
-
-void VideoSoftware::ShowConfig(void *hParent)
-{
-	if (!m_initialized)
-		InitBackendInfo();
-	Host_ShowVideoConfig(hParent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoSoftware::Initialize(void *window_handle)
