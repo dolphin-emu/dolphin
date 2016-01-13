@@ -67,7 +67,7 @@ std::string VideoBackend::GetConfigName() const
   return "gfx_dx12";
 }
 
-void InitBackendInfo()
+void VideoBackend::InitBackendInfo()
 {
   HRESULT hr = D3D::LoadDXGI();
   if (FAILED(hr))
@@ -155,12 +155,6 @@ void InitBackendInfo()
 
   D3D::UnloadD3D();
   D3D::UnloadDXGI();
-}
-
-void VideoBackend::ShowConfig(void* hParent)
-{
-  InitBackendInfo();
-  Host_ShowVideoConfig(hParent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoBackend::Initialize(void* window_handle)

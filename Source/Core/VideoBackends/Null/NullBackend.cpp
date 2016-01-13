@@ -32,7 +32,7 @@
 
 namespace Null
 {
-static void InitBackendInfo()
+void VideoBackend::InitBackendInfo()
 {
   g_Config.backend_info.APIType = API_NONE;
   g_Config.backend_info.bSupportsExclusiveFullscreen = true;
@@ -48,12 +48,6 @@ static void InitBackendInfo()
 
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.AAModes = {1};
-}
-
-void VideoBackend::ShowConfig(void* parent)
-{
-  InitBackendInfo();
-  Host_ShowVideoConfig(parent, GetDisplayName(), GetConfigName());
 }
 
 bool VideoBackend::Initialize(void* window_handle)

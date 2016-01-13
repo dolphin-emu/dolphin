@@ -75,7 +75,8 @@ public:
   virtual std::string GetDisplayName() const { return GetName(); }
   virtual std::string GetConfigName() const = 0;
 
-  virtual void ShowConfig(void*) = 0;
+  void ShowConfig(void*);
+  virtual void InitBackendInfo() = 0;
 
   virtual void Video_Prepare() = 0;
   void Video_ExitLoop();
