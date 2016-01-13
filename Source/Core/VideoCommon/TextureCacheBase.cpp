@@ -328,7 +328,7 @@ void TextureCacheBase::DumpTexture(TCacheEntryBase* entry, std::string basename,
 
 static u32 CalculateLevelSize(u32 level_0_size, u32 level)
 {
-	return (level_0_size + ((1 << level) - 1)) >> level;
+	return std::max(level_0_size >> level, 1u);
 }
 
 // Used by TextureCacheBase::Load
