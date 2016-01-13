@@ -191,7 +191,7 @@ void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char *nam
 
 void OnObjectBegin()
 {
-	if (!g_bSkipCurrentFrame)
+	if (!Fifo::g_bSkipCurrentFrame)
 	{
 		if (g_ActiveConfig.bDumpTextures && stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart && stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
 			DumpActiveTextures();
@@ -200,7 +200,7 @@ void OnObjectBegin()
 
 void OnObjectEnd()
 {
-	if (!g_bSkipCurrentFrame)
+	if (!Fifo::g_bSkipCurrentFrame)
 	{
 		if (g_ActiveConfig.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart && stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
 			DumpEfb(StringFromFormat("%sobject%i.png",

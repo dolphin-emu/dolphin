@@ -12,7 +12,7 @@ namespace MMIO { class Mapping; }
 namespace SW
 {
 
-class VideoSoftware : public VideoBackendHardware
+class VideoSoftware : public VideoBackendBase
 {
 	bool Initialize(void *window_handle) override;
 	void Shutdown() override;

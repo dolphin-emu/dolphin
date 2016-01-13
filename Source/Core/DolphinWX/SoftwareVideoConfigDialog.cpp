@@ -61,7 +61,7 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 	wxStaticText* const label_backend = new wxStaticText(page_general, wxID_ANY, _("Backend:"));
 	wxChoice* const choice_backend = new wxChoice(page_general, wxID_ANY);
 
-	for (const VideoBackend* backend : g_available_video_backends)
+	for (const VideoBackendBase* backend : g_available_video_backends)
 	{
 		choice_backend->AppendString(StrToWxStr(backend->GetDisplayName()));
 	}

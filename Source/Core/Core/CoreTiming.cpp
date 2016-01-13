@@ -17,6 +17,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 #define MAX_SLICE_LENGTH 20000
@@ -445,7 +446,7 @@ void Idle()
 		//the VI will be desynchronized. So, We are waiting until the FIFO finish and
 		//while we process only the events required by the FIFO.
 		ProcessFifoWaitEvents();
-		g_video_backend->Video_Sync(0);
+		Fifo::Update(0);
 	}
 
 	idledCycles += DowncountToCycles(PowerPC::ppcState.downcount);

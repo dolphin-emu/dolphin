@@ -198,8 +198,7 @@ void VideoSoftware::Video_Cleanup()
 {
 	if (g_renderer)
 	{
-		Fifo_Shutdown();
-
+		Fifo::Shutdown();
 		SWRenderer::Shutdown();
 		DebugUtil::Shutdown();
 		// The following calls are NOT Thread Safe
@@ -228,7 +227,7 @@ void VideoSoftware::Video_Prepare()
 	BPInit();
 	g_vertex_manager = std::make_unique<SWVertexLoader>();
 	g_perf_query = std::make_unique<PerfQuery>();
-	Fifo_Init(); // must be done before OpcodeDecoder_Init()
+	Fifo::Init(); // must be done before OpcodeDecoder_Init()
 	OpcodeDecoder_Init();
 	IndexGenerator::Init();
 	VertexShaderManager::Init();

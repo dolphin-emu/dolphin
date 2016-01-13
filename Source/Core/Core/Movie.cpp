@@ -35,6 +35,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "InputCommon/GCPadStatus.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoConfig.h"
 
 // The chunk to allocate movie data in multiples of.
@@ -240,7 +241,7 @@ void SetFrameSkipping(unsigned int framesToSkip)
 	// Don't forget to re-enable rendering in case it wasn't...
 	// as this won't be changed anymore when frameskip is turned off
 	if (framesToSkip == 0)
-		g_video_backend->Video_SetRendering(true);
+		Fifo::SetRendering(true);
 }
 
 void SetPolledDevice()
@@ -288,7 +289,7 @@ void FrameSkipping()
 		if (s_frameSkipCounter > s_framesToSkip || Core::ShouldSkipFrame(s_frameSkipCounter) == false)
 			s_frameSkipCounter = 0;
 
-		g_video_backend->Video_SetRendering(!s_frameSkipCounter);
+		Fifo::SetRendering(!s_frameSkipCounter);
 	}
 }
 

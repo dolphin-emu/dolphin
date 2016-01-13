@@ -35,6 +35,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
+#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -68,7 +69,7 @@ MMIO::Mapping* mmio_mapping;
 
 static void InitMMIO(MMIO::Mapping* mmio)
 {
-	g_video_backend->RegisterCPMMIO(mmio, 0x0C000000);
+	CommandProcessor::RegisterMMIO(mmio, 0x0C000000);
 	PixelEngine::RegisterMMIO(mmio, 0x0C001000);
 	VideoInterface::RegisterMMIO(mmio, 0x0C002000);
 	ProcessorInterface::RegisterMMIO(mmio, 0x0C003000);

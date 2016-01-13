@@ -73,7 +73,7 @@ namespace EfbCopy
 		rc.right = rc.left + (int)bpmem.copyTexSrcWH.x + 1;
 		rc.bottom = rc.top + (int)bpmem.copyTexSrcWH.y + 1;
 
-		if (!g_bSkipCurrentFrame)
+		if (!Fifo::g_bSkipCurrentFrame)
 		{
 			if (bpmem.triggerEFBCopy.copy_to_xfb)
 			{

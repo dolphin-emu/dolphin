@@ -57,18 +57,15 @@ struct SCPFifoStruct
 	volatile u32 bFF_HiWatermark;
 };
 
-class VideoBackend
+class VideoBackendBase
 {
 public:
-	virtual ~VideoBackend() {}
-
-	virtual void EmuStateChange(EMUSTATE_CHANGE) = 0;
+	virtual ~VideoBackendBase() {}
 
 	virtual unsigned int PeekMessages() = 0;
 
 	virtual bool Initialize(void* window_handle) = 0;
 	virtual void Shutdown() = 0;
-	virtual void RunLoop(bool enable) = 0;
 
 	virtual std::string GetName() const = 0;
 	virtual std::string GetDisplayName() const { return GetName(); }
@@ -76,91 +73,31 @@ public:
 	virtual void ShowConfig(void*) = 0;
 
 	virtual void Video_Prepare() = 0;
-	virtual void Video_EnterLoop() = 0;
-	virtual void Video_ExitLoop() = 0;
+	void Video_ExitLoop();
 	virtual void Video_Cleanup() = 0; // called from gl/d3d thread
 
-	virtual void Video_BeginField(u32, u32, u32, u32) = 0;
-	virtual void Video_EndField() = 0;
+	void Video_BeginField(u32, u32, u32, u32);
+	void Video_EndField();
 
-	virtual u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) = 0;
-	virtual u32 Video_GetQueryResult(PerfQueryType type) = 0;
-	virtual u16 Video_GetBoundingBox(int index) = 0;
-
-	virtual void Video_AddMessage(const std::string& msg, unsigned int milliseconds) = 0;
-	virtual void Video_ClearMessages() = 0;
-	virtual bool Video_Screenshot(const std::string& filename) = 0;
-
-	virtual void Video_SetRendering(bool bEnabled) = 0;
-
-	virtual void Video_GatherPipeBursted() = 0;
-
-	virtual int Video_Sync(int ticks) = 0;
-
-	// Registers MMIO handlers for the CommandProcessor registers.
-	virtual void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) = 0;
+	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
+	u32 Video_GetQueryResult(PerfQueryType type);
+	u16 Video_GetBoundingBox(int index);
 
 	static void PopulateList();
 	static void ClearList();
 	static void ActivateBackend(const std::string& name);
 
-	// waits until is paused and fully idle, and acquires a lock on that state.
-	// or, if doLock is false, releases a lock on that state and optionally unpauses.
-	// calls must be balanced and non-recursive (once with doLock true, then once with doLock false).
-	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock = true) = 0;
-
 	// the implementation needs not do synchronization logic, because calls to it are surrounded by PauseAndLock now
-	virtual void DoState(PointerWrap &p) = 0;
+	void DoState(PointerWrap &p);
 
-	virtual void CheckInvalidState() = 0;
-
-	virtual void UpdateWantDeterminism(bool want) {}
-
-protected:
-	bool m_initialized = false;
-};
-
-extern std::vector<VideoBackend*> g_available_video_backends;
-extern VideoBackend* g_video_backend;
-
-// inherited by D3D/OGL backends
-class VideoBackendHardware : public VideoBackend
-{
-	void RunLoop(bool enable) override;
-
-	void EmuStateChange(EMUSTATE_CHANGE) override;
-
-	void Video_EnterLoop() override;
-	void Video_ExitLoop() override;
-	void Video_BeginField(u32, u32, u32, u32) override;
-	void Video_EndField() override;
-
-	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) override;
-	u32 Video_GetQueryResult(PerfQueryType type) override;
-	u16 Video_GetBoundingBox(int index) override;
-
-	void Video_AddMessage(const std::string& pstr, unsigned int milliseconds) override;
-	void Video_ClearMessages() override;
-	bool Video_Screenshot(const std::string& filename) override;
-
-	void Video_SetRendering(bool bEnabled) override;
-
-	void Video_GatherPipeBursted() override;
-
-	int Video_Sync(int ticks) override;
-
-	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
-
-	void PauseAndLock(bool doLock, bool unpauseOnUnlock = true) override;
-	void DoState(PointerWrap &p) override;
-
-	void UpdateWantDeterminism(bool want) override;
-
-	bool m_invalid;
-
-public:
-	void CheckInvalidState() override;
+	void CheckInvalidState();
 
 protected:
 	void InitializeShared();
+
+	bool m_initialized = false;
+	bool m_invalid = false;
 };
+
+extern std::vector<VideoBackendBase*> g_available_video_backends;
+extern VideoBackendBase* g_video_backend;

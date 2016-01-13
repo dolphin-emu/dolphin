@@ -15,6 +15,7 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace
@@ -114,7 +115,7 @@ void EnableStepping(const bool stepping)
 	{
 		PowerPC::Pause();
 		m_StepEvent.Reset();
-		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PAUSE);
+		Fifo::EmulatorState(false);
 		AudioCommon::ClearAudioBuffer(true);
 	}
 	else
@@ -137,7 +138,7 @@ void EnableStepping(const bool stepping)
 		}
 		PowerPC::Start();
 		m_StepEvent.Set();
-		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PLAY);
+		Fifo::EmulatorState(true);
 		AudioCommon::ClearAudioBuffer(false);
 	}
 }
