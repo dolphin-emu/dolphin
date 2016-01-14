@@ -1258,12 +1258,12 @@ in float2 uv0;
 flat in float layer;
 out float4 ocol0;
 
-// Input sampling wrappers
-float4 SampleInput(int index) { return texture(pp_inputs[index], float3(uv0, layer)); }
-float4 SampleInputLocation(int index, float2 location) { return texture(pp_inputs[index], float3(location, layer)); }
-float4 SampleInputLayer(int index, int slayer) { return texture(pp_inputs[index], float3(uv0, float(slayer))); }
-float4 SampleInputLayerLocation(int index, int slayer, float2 location) { return texture(pp_inputs[index], float3(location, float(slayer))); }
-float2 GetFragmentCoord() { return gl_FragCoord.xy; }
+// Input sampling wrappers. Has to be a macro because the array index must be a constant expression.
+#define SampleInput(index) (texture(pp_inputs[index], float3(uv0, layer)))
+#define SampleInputLocation(index, location) (texture(pp_inputs[index], float3(location, layer)))
+#define SampleInputLayer(index, slayer) (texture(pp_inputs[index], float3(uv0, float(slayer))))
+#define SampleInputLayerLocation(index, slayer, location) (texture(pp_inputs[index], float3(location, float(slayer))))
+#define GetFragmentCoord() (gl_FragCoord.xy)
 
 // Input sampling with offset, macro because offset must be a constant expression.
 #define SampleInputOffset(index, offset) (textureOffset(pp_inputs[index], float3(uv0, layer), offset))
