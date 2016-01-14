@@ -49,16 +49,15 @@ static const char s_lighting_struct[] =
 	"};\n";
 
 template<class T>
-static void GenerateLightShader(T& object, LightingUidData& uid_data, int index, int litchan_index, int coloralpha)
+static void GenerateLightShader(T& object, LightingUidData& uid_data, int index, int litchan_index, bool alpha)
 {
-	const LitChannel& chan = (litchan_index > 1) ? xfmem.alpha[litchan_index-2] : xfmem.color[litchan_index];
-	const char* swizzle = (coloralpha == 1) ? "xyz" : (coloralpha == 2) ? "w" : "xyzw";
-	const char* swizzle_components = (coloralpha == 1) ? "3" : (coloralpha == 2) ? "" : "4";
+	const char* swizzle = alpha ? "a" : "rgb";
+	const char* swizzle_components = (alpha) ? "" : "3";
 
-	uid_data.attnfunc |= chan.attnfunc << (2*litchan_index);
-	uid_data.diffusefunc |= chan.diffusefunc << (2*litchan_index);
+	int attnfunc = (uid_data.attnfunc >> (2 * litchan_index)) & 0x3;
+	int diffusefunc = (uid_data.diffusefunc >> (2 * litchan_index)) & 0x3;
 
-	switch (chan.attnfunc)
+	switch (attnfunc)
 	{
 		case LIGHTATTN_NONE:
 		case LIGHTATTN_DIR:
@@ -70,35 +69,34 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 			object.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
 			object.Write("attn = (dot(_norm0, ldir) >= 0.0) ? max(0.0, dot(_norm0, " LIGHT_DIR".xyz)) : 0.0;\n", LIGHT_DIR_PARAMS(index));
 			object.Write("cosAttn = " LIGHT_COSATT".xyz;\n", LIGHT_COSATT_PARAMS(index));
-			object.Write("distAttn = %s(" LIGHT_DISTATT".xyz);\n", (chan.diffusefunc == LIGHTDIF_NONE) ? "" : "normalize", LIGHT_DISTATT_PARAMS(index));
+			object.Write("distAttn = %s(" LIGHT_DISTATT".xyz);\n", (diffusefunc == LIGHTDIF_NONE) ? "" : "normalize", LIGHT_DISTATT_PARAMS(index));
 			object.Write("attn = max(0.0f, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, float3(1.0, attn, attn*attn));\n");
 			break;
 		case LIGHTATTN_SPOT:
 			object.Write("ldir = " LIGHT_POS".xyz - pos.xyz;\n", LIGHT_POS_PARAMS(index));
 			object.Write("dist2 = dot(ldir, ldir);\n"
-				"dist = sqrt(dist2);\n"
-				"ldir = ldir / dist;\n"
-				"attn = max(0.0, dot(ldir, " LIGHT_DIR".xyz));\n",	LIGHT_DIR_PARAMS(index));
+			             "dist = sqrt(dist2);\n"
+			             "ldir = ldir / dist;\n"
+			             "attn = max(0.0, dot(ldir, " LIGHT_DIR".xyz));\n", LIGHT_DIR_PARAMS(index));
 			// attn*attn may overflow
 			object.Write("attn = max(0.0, " LIGHT_COSATT".x + " LIGHT_COSATT".y*attn + " LIGHT_COSATT".z*attn*attn) / dot(" LIGHT_DISTATT".xyz, float3(1.0,dist,dist2));\n",
-				LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index), LIGHT_DISTATT_PARAMS(index));
+			             LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index), LIGHT_DISTATT_PARAMS(index));
 			break;
-		default: _assert_(0);
 	}
 
-	switch (chan.diffusefunc)
+	switch (diffusefunc)
 	{
 		case LIGHTDIF_NONE:
 			object.Write("lacc.%s += int%s(round(attn * float%s(" LIGHT_COL")));\n",
-				            swizzle, swizzle_components,
-				            swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
+			             swizzle, swizzle_components,
+			             swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
 			break;
 		case LIGHTDIF_SIGN:
 		case LIGHTDIF_CLAMP:
 			object.Write("lacc.%s += int%s(round(attn * %sdot(ldir, _norm0)) * float%s(" LIGHT_COL")));\n",
-				            swizzle, swizzle_components,
-				            chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0," :"(",
-				            swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
+			             swizzle, swizzle_components,
+			             diffusefunc != LIGHTDIF_SIGN ? "max(0.0," :"(",
+			             swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
 			break;
 		default: _assert_(0);
 	}
@@ -122,7 +120,8 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		object.Write("{\n");
 
 		uid_data.matsource |= xfmem.color[j].matsource << j;
-		if (color.matsource) // from vertex
+		bool colormatsource = !!(uid_data.matsource & (1 << j));
+		if (colormatsource) // from vertex
 		{
 			if (components & (VB_HAS_COL0 << j))
 				object.Write("int4 mat = int4(round(%s%d * 255.0));\n", inColorName, j);
@@ -137,10 +136,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		}
 
 		uid_data.enablelighting |= xfmem.color[j].enablelighting << j;
-		if (color.enablelighting)
+		if (uid_data.enablelighting & (1 << j))
 		{
 			uid_data.ambsource |= xfmem.color[j].ambsource << j;
-			if (color.ambsource) // from vertex
+			if (uid_data.ambsource & (1 << j)) // from vertex
 			{
 				if (components & (VB_HAS_COL0<<j) )
 					object.Write("lacc = int4(round(%s%d * 255.0));\n", inColorName, j);
@@ -149,7 +148,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 				else
 					// TODO: this isn't verified. Here we want to read the ambient from the vertex,
 					// but the vertex itself has no color. So we don't know which value to read.
-					// Returing 1.0 is the same as disabled lightning, so this could be fine
+					// Returning 1.0 is the same as disabled lightning, so this could be fine
 					object.Write("lacc = int4(255, 255, 255, 255);\n");
 			}
 			else // from color
@@ -164,9 +163,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 
 		// check if alpha is different
 		uid_data.matsource |= xfmem.alpha[j].matsource << (j+2);
-		if (alpha.matsource != color.matsource)
+		bool alphamatsource = !!(uid_data.matsource & (1 << (j+2)));
+		if (alphamatsource != colormatsource)
 		{
-			if (alpha.matsource) // from vertex
+			if (alphamatsource) // from vertex
 			{
 				if (components & (VB_HAS_COL0<<j))
 					object.Write("mat.w = int(round(%s%d.w * 255.0));\n", inColorName, j);
@@ -181,10 +181,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		}
 
 		uid_data.enablelighting |= xfmem.alpha[j].enablelighting << (j+2);
-		if (alpha.enablelighting)
+		if (uid_data.enablelighting & (1 << (j+2)))
 		{
 			uid_data.ambsource |= xfmem.alpha[j].ambsource << (j+2);
-			if (alpha.ambsource) // from vertex
+			if (uid_data.ambsource & (1 << (j+2))) // from vertex
 			{
 				if (components & (VB_HAS_COL0<<j) )
 					object.Write("lacc.w = int(round(%s%d.w * 255.0));\n", inColorName, j);
@@ -204,53 +204,23 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			object.Write("lacc.w = 255;\n");
 		}
 
-		if (color.enablelighting && alpha.enablelighting)
+		if (uid_data.enablelighting & (1 << j)) // Color lights
 		{
-			// both have lighting, test if they use the same lights
-			int mask = 0;
-			uid_data.attnfunc |= color.attnfunc << (2*j);
-			uid_data.attnfunc |= alpha.attnfunc << (2*(j+2));
-			uid_data.diffusefunc |= color.diffusefunc << (2*j);
-			uid_data.diffusefunc |= alpha.diffusefunc << (2*(j+2));
-			uid_data.light_mask |= color.GetFullLightMask() << (8*j);
-			uid_data.light_mask |= alpha.GetFullLightMask() << (8*(j+2));
-			if (color.lightparams == alpha.lightparams)
-			{
-				mask = color.GetFullLightMask() & alpha.GetFullLightMask();
-				if (mask)
-				{
-					for (int i = 0; i < 8; ++i)
-					{
-						if (mask & (1<<i))
-						{
-							GenerateLightShader<T>(object, uid_data, i, j, 3);
-						}
-					}
-				}
-			}
-
-			// no shared lights
+			uid_data.attnfunc |= color.attnfunc << (2 * j);
+			uid_data.diffusefunc |= color.diffusefunc << (2 * j);
+			uid_data.light_mask |= color.GetFullLightMask() << (8 * j);
 			for (int i = 0; i < 8; ++i)
-			{
-				if (!(mask&(1<<i)) && (color.GetFullLightMask() & (1<<i)))
-					GenerateLightShader<T>(object, uid_data, i, j, 1);
-				if (!(mask&(1<<i)) && (alpha.GetFullLightMask() & (1<<i)))
-					GenerateLightShader<T>(object, uid_data, i, j+2, 2);
-			}
+				if (uid_data.light_mask & (1 << (i + 8 * j)))
+					GenerateLightShader<T>(object, uid_data, i, j, false);
 		}
-		else if (color.enablelighting || alpha.enablelighting)
+		if (uid_data.enablelighting & (1 << (j+2))) // Alpha lights
 		{
-			// lights are disabled on one channel so process only the active ones
-			const LitChannel& workingchannel = color.enablelighting ? color : alpha;
-			const int lit_index = color.enablelighting ? j : (j+2);
-			int coloralpha = color.enablelighting ? 1 : 2;
-
-			uid_data.light_mask |= workingchannel.GetFullLightMask() << (8*lit_index);
+			uid_data.attnfunc |= alpha.attnfunc << (2 * (j+2));
+			uid_data.diffusefunc |= alpha.diffusefunc << (2 * (j+2));
+			uid_data.light_mask |= alpha.GetFullLightMask() << (8 * (j+2));
 			for (int i = 0; i < 8; ++i)
-			{
-				if (workingchannel.GetFullLightMask() & (1<<i))
-					GenerateLightShader<T>(object, uid_data, i, lit_index, coloralpha);
-			}
+				if (uid_data.light_mask & (1 << (i + 8 * (j+2))))
+					GenerateLightShader<T>(object, uid_data, i, j+2, true);
 		}
 		object.Write("lacc = clamp(lacc, 0, 255);\n");
 		object.Write("%s%d = float4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n", dest, j);

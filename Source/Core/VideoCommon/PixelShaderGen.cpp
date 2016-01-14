@@ -310,7 +310,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 
 		// Conservative depth's 'depth_unchanged' only hints to the driver that an early-z optimisation can be made and
 		// doesn't define what will happen if we discard the fragment. But the way modern graphics hardware is implemented
-		// means it is not unreasonable to expect the the same behaviour as early_fragment_tests.
+		// means it is not unreasonable to expect the same behaviour as early_fragment_tests.
 		// We can also assume that if a driver has gone out of its way to support conservative depth and not image_load_store
 		// as required by OpenGL 4.2 that it will be doing the optimisation.
 		// If the driver doesn't actually do an early z optimisation, ZCompLoc will be broken and depth will only be written
@@ -553,7 +553,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 
 		out.Write("\tfloat2 screenpos = rawpos.xy * " I_EFBSCALE".xy;\n");
 
-		// Opengl has reversed vertical screenspace coordiantes
+		// Opengl has reversed vertical screenspace coordinates
 		if (ApiType == API_OPENGL)
 			out.Write("\tscreenpos.y = %i.0 - screenpos.y;\n", EFB_HEIGHT);
 
