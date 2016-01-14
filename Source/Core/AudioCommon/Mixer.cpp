@@ -6,11 +6,11 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Mixer.h"
-#include "Common/CPUDetect.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/HW/AudioInterface.h"
 
 // UGLINESS
 #include "Core/PowerPC/PowerPC.h"
@@ -20,13 +20,7 @@
 #endif
 
 CMixer::CMixer(unsigned int BackendSampleRate)
-	: m_dma_mixer(this, 32000)
-	, m_streaming_mixer(this, 48000)
-	, m_wiimote_speaker_mixer(this, 3000)
-	, m_sampleRate(BackendSampleRate)
-	, m_log_dtk_audio(false)
-	, m_log_dsp_audio(false)
-	, m_speed(0)
+	: m_sampleRate(BackendSampleRate)
 {
 	INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
 }
