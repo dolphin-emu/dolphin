@@ -138,13 +138,13 @@ static const char* tevAInputTable[] = {
 };
 
 static const char* tevRasTable[] = {
-    "iround(col0 * 255.0)",
-    "iround(col1 * 255.0)",
+    "iround(col0 * 255.0)", "iround(col1 * 255.0)",
     "ERROR13",                                              // 2
     "ERROR14",                                              // 3
     "ERROR15",                                              // 4
     "(int4(1, 1, 1, 1) * alphabump)",                       // bump alpha (0..248)
-    "(int4(1, 1, 1, 1) * (alphabump | (alphabump >> 5)))",  // normalized bump alpha (0..255)
+    "(int4(1, 1, 1, 1) * (alphabump | (alphabump >> 5)))",  // normalized bump
+                                                            // alpha (0..255)
     "int4(0, 0, 0, 0)",                                     // zero
 };
 
@@ -170,7 +170,8 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
   T out;
   const u32 components = VertexLoaderManager::g_current_components;
-  // Non-uid template parameters will write to the dummy data (=> gets optimized out)
+  // Non-uid template parameters will write to the dummy data (=> gets optimized
+  // out)
   pixel_shader_uid_data dummy_data;
   pixel_shader_uid_data* uid_data = out.template GetUidData<pixel_shader_uid_data>();
   if (uid_data != nullptr)
@@ -288,8 +289,10 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
   const bool forced_early_z =
       g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() &&
       (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
-      // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
-      // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
+      // We can't allow early_ztest for zfreeze because depth is overridden
+      // per-pixel.
+      // This means it's impossible for zcomploc to be emulated on a zfrozen
+      // polygon.
       && !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   const bool per_pixel_depth =
       (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) ||
@@ -298,43 +301,59 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 
   if (forced_early_z)
   {
-    // Zcomploc (aka early_ztest) is a way to control whether depth test is done before
-    // or after texturing and alpha test. PC graphics APIs used to provide no way to emulate
-    // this feature properly until 2012: Depth tests were always done after alpha testing.
-    // Most importantly, it was not possible to write to the depth buffer without also writing
+    // Zcomploc (aka early_ztest) is a way to control whether depth test is done
+    // before
+    // or after texturing and alpha test. PC graphics APIs used to provide no
+    // way to emulate
+    // this feature properly until 2012: Depth tests were always done after
+    // alpha testing.
+    // Most importantly, it was not possible to write to the depth buffer
+    // without also writing
     // a color value (unless color writing was disabled altogether).
 
-    // OpenGL 4.2 actually provides two extensions which can force an early z test:
-    //  * ARB_image_load_store has 'layout(early_fragment_tests)' which forces the driver to do z
+    // OpenGL 4.2 actually provides two extensions which can force an early z
+    // test:
+    //  * ARB_image_load_store has 'layout(early_fragment_tests)' which forces
+    //  the driver to do z
     //  and stencil tests early.
-    //  * ARB_conservative_depth has 'layout(depth_unchanged) which signals to the driver that it
+    //  * ARB_conservative_depth has 'layout(depth_unchanged) which signals to
+    //  the driver that it
     //  can make optimisations
     //    which assume the pixel shader won't update the depth buffer.
 
-    // early_fragment_tests is the best option, as it requires the driver to do early-z and defines
+    // early_fragment_tests is the best option, as it requires the driver to do
+    // early-z and defines
     // early-z exactly as
-    // we expect, with discard causing the shader to exit with only the depth buffer updated.
+    // we expect, with discard causing the shader to exit with only the depth
+    // buffer updated.
 
-    // Conservative depth's 'depth_unchanged' only hints to the driver that an early-z optimisation
+    // Conservative depth's 'depth_unchanged' only hints to the driver that an
+    // early-z optimisation
     // can be made and
-    // doesn't define what will happen if we discard the fragment. But the way modern graphics
-    // hardware is implemented
-    // means it is not unreasonable to expect the the same behaviour as early_fragment_tests.
-    // We can also assume that if a driver has gone out of its way to support conservative depth and
+    // doesn't define what will happen if we discard the fragment. But the way
+    // modern graphics hardware is implemented
+    // means it is not unreasonable to expect the same behaviour as
+    // early_fragment_tests.
+    // We can also assume that if a driver has gone out of its way to support
+    // conservative depth and
     // not image_load_store
     // as required by OpenGL 4.2 that it will be doing the optimisation.
-    // If the driver doesn't actually do an early z optimisation, ZCompLoc will be broken and depth
+    // If the driver doesn't actually do an early z optimisation, ZCompLoc will
+    // be broken and depth
     // will only be written
     // if the alpha test passes.
 
-    // We support Conservative as a fallback, because many drivers based on Mesa haven't implemented
+    // We support Conservative as a fallback, because many drivers based on Mesa
+    // haven't implemented
     // all of the
     // ARB_image_load_store extension yet.
 
-    // D3D11 also has a way to force the driver to enable early-z, so we're fine here.
+    // D3D11 also has a way to force the driver to enable early-z, so we're fine
+    // here.
     if (ApiType == API_OPENGL)
     {
-      // This is a #define which signals whatever early-z method the driver supports.
+      // This is a #define which signals whatever early-z method the driver
+      // supports.
       out.Write("FORCE_EARLY_Z; \n");
     }
     else
@@ -348,8 +367,10 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
     static bool warn_once = true;
     if (warn_once)
       WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current "
-                      "configuration. Make sure to enable fast depth calculations. If this message "
-                      "still shows up your hardware isn't able to emulate the feature properly (a "
+                      "configuration. Make sure to enable fast depth calculations. If "
+                      "this message "
+                      "still shows up your hardware isn't able to emulate the feature "
+                      "properly (a "
                       "GPU with D3D 11.0 / OGL 4.2 support is required).");
     warn_once = false;
   }
@@ -380,7 +401,8 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
     {
       out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier());
       out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier());
-      // compute window position if needed because binding semantic WPOS is not widely supported
+      // compute window position if needed because binding semantic WPOS is not
+      // widely supported
       // Let's set up attributes
       for (unsigned int i = 0; i < numTexgen; ++i)
       {
@@ -407,7 +429,8 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
   else  // D3D
   {
     out.Write("void main(\n");
-    out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
+    out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : "
+              "SV_Position,\n",
               dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," :
                                                            "",
               per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
@@ -415,7 +438,8 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
     out.Write("  in %s float4 colors_0 : COLOR0,\n", GetInterpolationQualifier());
     out.Write("  in %s float4 colors_1 : COLOR1\n", GetInterpolationQualifier());
 
-    // compute window position if needed because binding semantic WPOS is not widely supported
+    // compute window position if needed because binding semantic WPOS is not
+    // widely supported
     for (unsigned int i = 0; i < numTexgen; ++i)
       out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", GetInterpolationQualifier(), i, i);
     out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(), numTexgen);
@@ -434,14 +458,16 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 
   out.Write("\tint4 c0 = " I_COLORS "[1], c1 = " I_COLORS "[2], c2 = " I_COLORS
             "[3], prev = " I_COLORS "[0];\n"
-            "\tint4 rastemp = int4(0, 0, 0, 0), textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, "
+            "\tint4 rastemp = int4(0, 0, 0, 0), textemp = int4(0, 0, 0, 0), "
+            "konsttemp = int4(0, 0, "
             "0, 0);\n"
             "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
             "\tint alphabump=0;\n"
             "\tint3 tevcoord=int3(0, 0, 0);\n"
             "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n"
             "\tint4 "
-            "tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),tevin_d=int4(0,0,0,"
+            "tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),"
+            "tevin_d=int4(0,0,0,"
             "0);\n\n");  // tev combiner inputs
 
   // On GLSL, input variables must not be assigned to.
@@ -458,10 +484,14 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
               "\tfloat3 ldir, h, cosAttn, distAttn;\n"
               "\tfloat dist, dist2, attn;\n");
 
-    // TODO: Our current constant usage code isn't able to handle more than one buffer.
-    //       So we can't mark the VS constant as used here. But keep them here as reference.
-    // out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
-    // out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
+    // TODO: Our current constant usage code isn't able to handle more than one
+    // buffer.
+    //       So we can't mark the VS constant as used here. But keep them here
+    //       as reference.
+    // out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be
+    // optimized further
+    // out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized
+    // further
     // out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
     uid_data->components = components;
     GenerateLightingShader<T>(out, uid_data->lighting, components, "colors_", "col");
@@ -565,8 +595,10 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
   AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
   uid_data->Pretest = Pretest;
 
-  // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
-  // (in this case we need to write a depth value if depth test passes regardless of the alpha
+  // NOTE: Fragment may not be discarded if alpha test always fails and early
+  // depth test is enabled
+  // (in this case we need to write a depth value if depth test passes
+  // regardless of the alpha
   // testing result)
   if (Pretest == AlphaTest::UNDETERMINED ||
       (Pretest == AlphaTest::FAIL && bpmem.UseLateDepthTest()))
@@ -579,7 +611,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 
     out.Write("\tfloat2 screenpos = rawpos.xy * " I_EFBSCALE ".xy;\n");
 
-    // Opengl has reversed vertical screenspace coordiantes
+    // Opengl has reversed vertical screenspace coordinates
     if (ApiType == API_OPENGL)
       out.Write("\tscreenpos.y = %i.0 - screenpos.y;\n", EFB_HEIGHT);
 
@@ -589,9 +621,11 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
   else if (!g_ActiveConfig.bFastDepthCalc)
   {
     // FastDepth means to trust the depth generated in perspective division.
-    // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
+    // It should be correct, but it seems not to be as accurate as required.
+    // TODO: Find out why!
     // For disabled FastDepth we just calculate the depth value again.
-    // The performance impact of this additional calculation doesn't matter, but it prevents
+    // The performance impact of this additional calculation doesn't matter, but
+    // it prevents
     // the host GPU driver from performing any early depth test optimizations.
     out.SetConstantsUsed(C_ZBIAS + 1, C_ZBIAS + 1);
     // the screen space depth value = far z + (clip z / clip w) * z range
@@ -607,7 +641,8 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
   }
   out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
 
-  // depth texture can safely be ignored if the result won't be written to the depth buffer
+  // depth texture can safely be ignored if the result won't be written to the
+  // depth buffer
   // (early_ztest) and isn't used for fog either
   const bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
 
@@ -619,7 +654,8 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
   uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
   uid_data->zfreeze = bpmem.genMode.zfreeze;
 
-  // Note: z-textures are not written to depth buffer if early depth test is used
+  // Note: z-textures are not written to depth buffer if early depth test is
+  // used
   if (per_pixel_depth && bpmem.UseEarlyDepthTest())
   {
     if (ApiType == API_D3D)
@@ -628,12 +664,15 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
   }
 
-  // Note: depth texture output is only written to depth buffer if late depth test is used
-  // theoretical final depth value is used for fog calculation, though, so we have to emulate
+  // Note: depth texture output is only written to depth buffer if late depth
+  // test is used
+  // theoretical final depth value is used for fog calculation, though, so we
+  // have to emulate
   // ztextures anyway
   if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !skip_ztexture)
   {
-    // use the texture input of the last texture stage (textemp), hopefully this has been read and
+    // use the texture input of the last texture stage (textemp), hopefully this
+    // has been read and
     // is in correct format...
     out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
     out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, textemp.xyzw) + " I_ZBIAS "[1].w %s;\n",
@@ -676,10 +715,14 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
   {
     uid_data->bounding_box = true;
     const char* atomic_op = ApiType == API_OPENGL ? "atomic" : "Interlocked";
-    out.Write("\tif(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], int(rawpos.x));\n"
-              "\tif(bbox_data[1] < int(rawpos.x)) %sMax(bbox_data[1], int(rawpos.x));\n"
-              "\tif(bbox_data[2] > int(rawpos.y)) %sMin(bbox_data[2], int(rawpos.y));\n"
-              "\tif(bbox_data[3] < int(rawpos.y)) %sMax(bbox_data[3], int(rawpos.y));\n",
+    out.Write("\tif(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], "
+              "int(rawpos.x));\n"
+              "\tif(bbox_data[1] < int(rawpos.x)) %sMax(bbox_data[1], "
+              "int(rawpos.x));\n"
+              "\tif(bbox_data[2] > int(rawpos.y)) %sMin(bbox_data[2], "
+              "int(rawpos.y));\n"
+              "\tif(bbox_data[3] < int(rawpos.y)) %sMax(bbox_data[3], "
+              "int(rawpos.y));\n",
               atomic_op, atomic_op, atomic_op, atomic_op);
   }
 
@@ -708,7 +751,8 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
     uid_data->stagehash[n].tevind = bpmem.tevind[n].hex & 0x7FFFFF;
 
     out.Write("\t// indirect op\n");
-    // perform the indirect op on the incoming regular coordinates using iindtex%d as the offset
+    // perform the indirect op on the incoming regular coordinates using
+    // iindtex%d as the offset
     // coords
     if (bpmem.tevind[n].bs != ITBA_OFF)
     {
@@ -747,8 +791,10 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
                   tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt],
                   tevIndBiasAdd[bpmem.tevind[n].fmt], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 
-      // multiply by offset matrix and scale - calculations are likely to overflow badly,
-      // yet it works out since we only care about the lower 23 bits (+1 sign bit) of the result
+      // multiply by offset matrix and scale - calculations are likely to
+      // overflow badly,
+      // yet it works out since we only care about the lower 23 bits (+1 sign
+      // bit) of the result
       if (bpmem.tevind[n].mid <= 3)
       {
         int mtxidx = 2 * (bpmem.tevind[n].mid - 1);
@@ -769,8 +815,9 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
         int mtxidx = 2 * (bpmem.tevind[n].mid - 5);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
-        out.Write("\tint2 indtevtrans%d = int2(fixpoint_uv%d * iindtevcrd%d.xx) >> 8;\n", n,
-                  texcoord, n);
+        out.Write("\tint2 indtevtrans%d = int2(fixpoint_uv%d * "
+                  "iindtevcrd%d.xx) >> 8;\n",
+                  n, texcoord, n);
 
         out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
                   mtxidx, n, mtxidx);
@@ -782,8 +829,9 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
         int mtxidx = 2 * (bpmem.tevind[n].mid - 9);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
-        out.Write("\tint2 indtevtrans%d = int2(fixpoint_uv%d * iindtevcrd%d.yy) >> 8;\n", n,
-                  texcoord, n);
+        out.Write("\tint2 indtevtrans%d = int2(fixpoint_uv%d * "
+                  "iindtevcrd%d.yy) >> 8;\n",
+                  n, texcoord, n);
 
         out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
                   mtxidx, n, mtxidx);
@@ -804,7 +852,8 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
     // ---------
     const char* tevIndWrapStart[] = {
         "0",       "(256<<7)", "(128<<7)", "(64<<7)",
-        "(32<<7)", "(16<<7)",  "1"};  // TODO: Should the last one be 1 or (1<<7)?
+        "(32<<7)", "(16<<7)",  "1"};  // TODO: Should the last one be 1 or
+                                      // (1<<7)?
 
     // wrap S
     if (bpmem.tevind[n].sw == ITW_OFF)
@@ -938,18 +987,25 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
   else
   {
     const char* function_table[] = {
-        "((tevin_a.r > tevin_b.r) ? tevin_c.rgb : int3(0,0,0))",   // TEVCMP_R8_GT
-        "((tevin_a.r == tevin_b.r) ? tevin_c.rgb : int3(0,0,0))",  // TEVCMP_R8_EQ
-        "((idot(tevin_a.rgb, comp16) >  idot(tevin_b.rgb, comp16)) ? tevin_c.rgb : "
+        "((tevin_a.r > tevin_b.r) ? tevin_c.rgb : int3(0,0,0))",  // TEVCMP_R8_GT
+        "((tevin_a.r == tevin_b.r) ? tevin_c.rgb : "
+        "int3(0,0,0))",  // TEVCMP_R8_EQ
+        "((idot(tevin_a.rgb, comp16) >  idot(tevin_b.rgb, "
+        "comp16)) ? tevin_c.rgb : "
         "int3(0,0,0))",  // TEVCMP_GR16_GT
-        "((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, comp16)) ? tevin_c.rgb : "
+        "((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, "
+        "comp16)) ? tevin_c.rgb : "
         "int3(0,0,0))",  // TEVCMP_GR16_EQ
-        "((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, comp24)) ? tevin_c.rgb : "
+        "((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, "
+        "comp24)) ? tevin_c.rgb : "
         "int3(0,0,0))",  // TEVCMP_BGR24_GT
-        "((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, comp24)) ? tevin_c.rgb : "
-        "int3(0,0,0))",                                                         // TEVCMP_BGR24_EQ
-        "(max(sign(tevin_a.rgb - tevin_b.rgb), int3(0,0,0)) * tevin_c.rgb)",    // TEVCMP_RGB8_GT
-        "((int3(1,1,1) - sign(abs(tevin_a.rgb - tevin_b.rgb))) * tevin_c.rgb)"  // TEVCMP_RGB8_EQ
+        "((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, "
+        "comp24)) ? tevin_c.rgb : "
+        "int3(0,0,0))",  // TEVCMP_BGR24_EQ
+        "(max(sign(tevin_a.rgb - tevin_b.rgb), int3(0,0,0)) * "
+        "tevin_c.rgb)",  // TEVCMP_RGB8_GT
+        "((int3(1,1,1) - sign(abs(tevin_a.rgb - tevin_b.rgb))) "
+        "* tevin_c.rgb)"  // TEVCMP_RGB8_EQ
     };
 
     int mode = (cc.shift << 1) | cc.op;
@@ -973,10 +1029,14 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
     const char* function_table[] = {
         "((tevin_a.r > tevin_b.r) ? tevin_c.a : 0)",   // TEVCMP_R8_GT
         "((tevin_a.r == tevin_b.r) ? tevin_c.a : 0)",  // TEVCMP_R8_EQ
-        "((idot(tevin_a.rgb, comp16) >  idot(tevin_b.rgb, comp16)) ? tevin_c.a : 0)",  // TEVCMP_GR16_GT
-        "((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, comp16)) ? tevin_c.a : 0)",  // TEVCMP_GR16_EQ
-        "((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, comp24)) ? tevin_c.a : 0)",  // TEVCMP_BGR24_GT
-        "((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, comp24)) ? tevin_c.a : 0)",  // TEVCMP_BGR24_EQ
+        "((idot(tevin_a.rgb, comp16) >  idot(tevin_b.rgb, comp16)) ? tevin_c.a "
+        ": 0)",  // TEVCMP_GR16_GT
+        "((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, comp16)) ? tevin_c.a "
+        ": 0)",  // TEVCMP_GR16_EQ
+        "((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, comp24)) ? tevin_c.a "
+        ": 0)",  // TEVCMP_BGR24_GT
+        "((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, comp24)) ? tevin_c.a "
+        ": 0)",                                        // TEVCMP_BGR24_EQ
         "((tevin_a.a >  tevin_b.a) ? tevin_c.a : 0)",  // TEVCMP_A8_GT
         "((tevin_a.a == tevin_b.a) ? tevin_c.a : 0)"   // TEVCMP_A8_EQ
     };
@@ -1029,12 +1089,15 @@ static void WriteTevRegular(T& out, const char* components, int bias, int op, in
 
   // Regular TEV stage: (d + bias + lerp(a,b,c)) * scale
   // The GameCube/Wii GPU uses a very sophisticated algorithm for scale-lerping:
-  // - c is scaled from 0..255 to 0..256, which allows dividing the result by 256 instead of 255
-  // - if scale is bigger than one, it is moved inside the lerp calculation for increased accuracy
+  // - c is scaled from 0..255 to 0..256, which allows dividing the result by
+  // 256 instead of 255
+  // - if scale is bigger than one, it is moved inside the lerp calculation for
+  // increased accuracy
   // - a rounding bias is added before dividing by 256
   out.Write("(((tevin_d.%s%s)%s)", components, tevBiasTable[bias], tevScaleTableLeft[shift]);
   out.Write(" %s ", tevOpTable[op]);
-  out.Write("(((((tevin_a.%s<<8) + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+(tevin_c.%s>>7)))%s)%s)>>8)",
+  out.Write("(((((tevin_a.%s<<8) + "
+            "(tevin_b.%s-tevin_a.%s)*(tevin_c.%s+(tevin_c.%s>>7)))%s)%s)>>8)",
             components, components, components, components, components, tevScaleTableLeft[shift],
             tevLerpBias[2 * op + (shift != 3)]);
   out.Write(")%s", tevScaleTableRight[shift]);
@@ -1113,11 +1176,15 @@ static void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_TYPE Api
     out.Write("\t\tdepth = %s;\n", (ApiType == API_D3D) ? "0.0" : "1.0");
 
   // ZCOMPLOC HACK:
-  // The only way to emulate alpha test + early-z is to force early-z in the shader.
-  // As this isn't available on all drivers and as we can't emulate this feature otherwise,
+  // The only way to emulate alpha test + early-z is to force early-z in the
+  // shader.
+  // As this isn't available on all drivers and as we can't emulate this feature
+  // otherwise,
   // we are only able to choose which one we want to respect more.
-  // Tests seem to have proven that writing depth even when the alpha test fails is more
-  // important that a reliable alpha test, so we just force the alpha test to always succeed.
+  // Tests seem to have proven that writing depth even when the alpha test fails
+  // is more
+  // important that a reliable alpha test, so we just force the alpha test to
+  // always succeed.
   // At least this seems to be less buggy.
   uid_data->alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest() && bpmem.zmode.updateenable &&
                                            !g_ActiveConfig.backend_info.bSupportsEarlyZ &&
@@ -1160,9 +1227,11 @@ static void WriteFog(T& out, pixel_shader_uid_data* uid_data)
   {
     // perspective
     // ze = A/(B - (Zs >> B_SHF)
-    // TODO: Verify that we want to drop lower bits here! (currently taken over from software
+    // TODO: Verify that we want to drop lower bits here! (currently taken over
+    // from software
     // renderer)
-    //       Maybe we want to use "ze = (A << B_SHF)/((B << B_SHF) - Zs)" instead?
+    //       Maybe we want to use "ze = (A << B_SHF)/((B << B_SHF) - Zs)"
+    //       instead?
     //       That's equivalent, but keeps the lower bits of Zs.
     out.Write("\tfloat ze = (" I_FOGF "[1].x * 16777216.0) / float(" I_FOGI
               ".y - (zCoord >> " I_FOGI ".w));\n");
