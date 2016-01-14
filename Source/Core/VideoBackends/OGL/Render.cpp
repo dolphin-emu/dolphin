@@ -1083,23 +1083,7 @@ void Renderer::BlitScreen(TargetRectangle dst, TargetRectangle src, GLuint src_t
 	TargetSize dst_size(s_backbuffer_width, s_backbuffer_height);
 	TargetSize src_size(src_width, src_height);
 
-	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
-	{
-		TargetRectangle leftRc, rightRc;
-
-		// Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
-		if (g_ActiveConfig.iStereoMode == STEREO_TAB)
-			ConvertStereoRectangle(dst, rightRc, leftRc);
-		else
-			ConvertStereoRectangle(dst, leftRc, rightRc);
-
-		m_post_processor->BlitToFramebuffer(leftRc, dst_size, 0, src, src_size, src_texture, 0);
-		m_post_processor->BlitToFramebuffer(rightRc, dst_size, 0, src, src_size, src_texture, 1);
-	}
-	else
-	{
-		m_post_processor->BlitToFramebuffer(dst, dst_size, 0, src, src_size, src_texture, 0);
-	}
+	m_post_processor->BlitToFramebuffer(dst, dst_size, 0, src, src_size, src_texture);
 }
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)

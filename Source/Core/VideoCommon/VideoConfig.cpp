@@ -104,7 +104,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	stereoscopy->Get("StereoDepth", &iStereoDepth, 20);
 	stereoscopy->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
 	stereoscopy->Get("StereoSwapEyes", &bStereoSwapEyes, false);
-	stereoscopy->Get("StereoShader", &sStereoShader, "dubois");
+	stereoscopy->Get("StereoShader", &sStereoShader, "anaglyph/dubois");
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
