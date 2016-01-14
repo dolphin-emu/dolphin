@@ -256,6 +256,9 @@ protected:
 
 	// Load m_configs with the selected post-processing shaders.
 	void ReloadShaderConfigs();
+	void ReloadPostProcessingShaderConfigs();
+	void ReloadScalingShaderConfig();
+	void ReloadStereoShaderConfig();
 
 	// Timer for determining our time value
 	Common::Timer m_timer;
@@ -271,6 +274,9 @@ protected:
 
 	// Scaling shader config
 	std::unique_ptr<PostProcessingShaderConfiguration> m_scaling_config;
+
+	// Stereo shader config
+	std::unique_ptr<PostProcessingShaderConfiguration> m_stereo_config;
 
 	// Projection state for detecting when to apply post
 	PROJECTION_STATE m_projection_state = PROJECTION_STATE_INITIAL;

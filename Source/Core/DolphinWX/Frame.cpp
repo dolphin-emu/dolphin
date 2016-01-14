@@ -1434,8 +1434,8 @@ void CFrame::ParseHotkeys()
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
 	{
-		if (g_Config.iStereoMode != STEREO_ANAGLYPH)
-			g_Config.iStereoMode = STEREO_ANAGLYPH;
+		if (g_Config.iStereoMode != STEREO_SHADER)
+			g_Config.iStereoMode = STEREO_SHADER;
 		else
 			g_Config.iStereoMode = STEREO_OFF;
 	}

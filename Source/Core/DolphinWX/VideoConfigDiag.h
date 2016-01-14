@@ -142,7 +142,7 @@ protected:
 
 	void Event_ScalingShader(wxCommandEvent& ev);
 	void Event_ConfigureScalingShader(wxCommandEvent &ev);
-	void Event_AnaglyphShader(wxCommandEvent& ev);
+	void Event_StereoShader(wxCommandEvent& ev);
 
 
 	void Event_StereoDepth(wxCommandEvent &ev)
@@ -225,7 +225,7 @@ protected:
 	void UpdatePostProcessingShadersConfig();
 	void UpdatePostProcessingShaderListButtons();
 	void PopulateScalingShaders();
-	void PopulateAnaglyphShaders();
+	void PopulateStereoShaders();
 	void PopulateAAList();
 	void OnAAChanged(wxCommandEvent& ev);
 
@@ -264,7 +264,7 @@ protected:
 
 	wxChoice* choice_pptrigger;
 	wxChoice* choice_scalingshader;
-	wxChoice* choice_anaglyphshader;
+	wxChoice* choice_stereoshader;
 
 	std::map<wxWindow*, wxString> ctrl_descs; // maps setting controls to their descriptions
 	std::map<wxWindow*, wxStaticText*> desc_texts; // maps dialog tabs (which are the parents of the setting controls) to their description text objects

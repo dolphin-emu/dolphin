@@ -104,7 +104,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	stereoscopy->Get("StereoDepth", &iStereoDepth, 20);
 	stereoscopy->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
 	stereoscopy->Get("StereoSwapEyes", &bStereoSwapEyes, false);
-	stereoscopy->Get("StereoAnaglyphShader", &sAnaglyphShader, "dubois");
+	stereoscopy->Get("StereoShader", &sStereoShader, "dubois");
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
@@ -208,7 +208,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "PostProcessingTrigger", iPostProcessingTrigger);
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShaders", sPostProcessingShaders);
 	CHECK_SETTING("Video_Enhancements", "ScalingShader", sScalingShader);
-	CHECK_SETTING("Video_Enhancements", "AnaglyphShader", sAnaglyphShader);
 
 	// These are not overrides, they are per-game stereoscopy parameters, hence no warning
 	iniFile.GetIfExists("Video_Stereoscopy", "StereoConvergence", &iStereoConvergence, 20);
@@ -218,7 +217,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Stereoscopy", "StereoMode", iStereoMode);
 	CHECK_SETTING("Video_Stereoscopy", "StereoDepth", iStereoDepth);
 	CHECK_SETTING("Video_Stereoscopy", "StereoSwapEyes", bStereoSwapEyes);
-	CHECK_SETTING("Video_Stereoscopy", "StereoAnaglyphShader", sAnaglyphShader);
+	CHECK_SETTING("Video_Stereoscopy", "StereoShader", sStereoShader);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "BBoxEnable", bBBoxEnable);
@@ -323,7 +322,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	stereoscopy->Set("StereoDepth", iStereoDepth);
 	stereoscopy->Set("StereoConvergencePercentage", iStereoConvergencePercentage);
 	stereoscopy->Set("StereoSwapEyes", bStereoSwapEyes);
-	stereoscopy->Set("StereoAnaglyphShader", sAnaglyphShader);
+	stereoscopy->Set("StereoShader", sStereoShader);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);

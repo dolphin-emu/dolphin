@@ -147,7 +147,7 @@ static wxString stereo_3d_desc = wxTRANSLATE("Selects the stereoscopic 3D mode. 
 static wxString stereo_depth_desc = wxTRANSLATE("Controls the separation distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.");
 static wxString stereo_convergence_desc = wxTRANSLATE("Controls the distance of the convergence plane. This is the distance at which virtual objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.");
 static wxString stereo_swap_desc = wxTRANSLATE("Swaps the left and right eye. Mostly useful if you want to view side-by-side cross-eyed.\n\nIf unsure, leave this unchecked.");
-static wxString anaglyphshader_desc = wxTRANSLATE("Selects which shader will be used to transform the two images when stereo is enabled, and anaglyph is the chosen mode.");
+static wxString stereoshader_desc = wxTRANSLATE("Selects which shader will be used to transform the two images when stereoscopy is enabled.");
 
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
@@ -392,16 +392,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(CreateChoice(page_enh, vconfig.iMaxAnisotropy, wxGetTranslation(af_desc), 5, af_choices));
 	}
 
-	// postproc shader
-	if (vconfig.backend_info.bSupportsPostProcessing)
-	{
-
-	}
-	else
-	{
-
-	}
-
 	// Scaled copy, PL, Bilinear filter
 	szr_enh->Add(CreateCheckBox(page_enh, _("Scaled EFB Copy"), wxGetTranslation(scaled_efb_copy_desc), vconfig.bCopyEFBScaled));
 	szr_enh->Add(CreateCheckBox(page_enh, _("Per-Pixel Lighting"), wxGetTranslation(pixel_lighting_desc), vconfig.bEnablePixelLighting));
@@ -424,7 +414,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		const wxString stereo_choices[] = { _("Off"), _("Side-by-Side"), _("Top-and-Bottom"), _("Anaglyph"), _("Nvidia 3D Vision") };
 		wxChoice* stereo_choice = CreateChoice(page_enh, vconfig.iStereoMode, wxGetTranslation(stereo_3d_desc), vconfig.backend_info.bSupports3DVision ? ArraySize(stereo_choices) : ArraySize(stereo_choices) - 1, stereo_choices);
 		stereo_choice->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_StereoMode, this);
-		szr_stereo->Add(stereo_choice);
+		szr_stereo->Add(stereo_choice, 0, wxEXPAND);
+
+		choice_stereoshader = new wxChoice(page_enh, wxID_ANY);
+		RegisterControl(choice_stereoshader, wxGetTranslation(stereoshader_desc));
+		choice_stereoshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_StereoShader, this);
+		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Stereoscopy Shader:")), 0, wxALIGN_CENTER_VERTICAL, 0);
+		szr_stereo->Add(choice_stereoshader, 0, wxEXPAND);
+		PopulateStereoShaders();
 
 		wxSlider* const sep_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoDepth, 0, 100, wxDefaultPosition, wxDefaultSize);
 		sep_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoDepth, this);
@@ -597,20 +594,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			szr_options->Add(new wxStaticText(page_postprocessing, wxID_ANY, _("Scaling Shader:")), 0, wxALIGN_CENTER_VERTICAL, 0);
 			szr_options->Add(choice_scalingshader, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
 
-			choice_anaglyphshader = new wxChoice(page_postprocessing, wxID_ANY);
-			RegisterControl(choice_anaglyphshader, wxGetTranslation(anaglyphshader_desc));
-			choice_anaglyphshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_AnaglyphShader, this);
-			szr_options->Add(new wxStaticText(page_postprocessing, wxID_ANY, _("Anaglyph Shader:")), 0, wxALIGN_CENTER_VERTICAL, 0);
-			szr_options->Add(choice_anaglyphshader, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
-
 			button_config_scalingshader = new wxButton(page_postprocessing, wxID_ANY, _("Scaling Shader Options..."));
 			button_config_scalingshader->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ConfigureScalingShader, this);
 			RegisterControl(button_config_scalingshader, wxGetTranslation(scalingshader_options_desc));
 			szr_options->AddSpacer(1);
 			szr_options->Add(button_config_scalingshader);
-
 			PopulateScalingShaders();
-			PopulateAnaglyphShaders();
 
 			wxStaticBoxSizer* const group_options = new wxStaticBoxSizer(wxVERTICAL, page_postprocessing, _("Options"));
 			group_options->Add(szr_options, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -633,7 +622,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		choice_pptrigger = nullptr;
 		choice_scalingshader = nullptr;
 		button_config_scalingshader = nullptr;
-		choice_anaglyphshader = nullptr;
+		choice_stereoshader = nullptr;
 	}
 
 	// -- ADVANCED --
@@ -890,9 +879,9 @@ void VideoConfigDiag::Event_ScalingShader(wxCommandEvent& ev)
 	ReloadPostProcessingShaders();
 }
 
-void VideoConfigDiag::Event_AnaglyphShader(wxCommandEvent& ev)
+void VideoConfigDiag::Event_StereoShader(wxCommandEvent& ev)
 {
-	vconfig.sAnaglyphShader = WxStrToStr(ev.GetString());
+	vconfig.sStereoShader = WxStrToStr(ev.GetString());
 	ReloadPostProcessingShaders();
 }
 
@@ -906,8 +895,7 @@ void VideoConfigDiag::Event_StereoMode(wxCommandEvent& ev)
 {
 	// Disable scaling shader choice when anaglyph shader on
 	vconfig.iStereoMode = ev.GetInt();
-	choice_scalingshader->Enable((ev.GetInt() != STEREO_ANAGLYPH));
-	choice_anaglyphshader->Enable((ev.GetInt() == STEREO_ANAGLYPH));
+	choice_stereoshader->Enable((ev.GetInt() == STEREO_SHADER));
 	ReloadPostProcessingShaders();
 	ev.Skip();
 }
@@ -1058,23 +1046,23 @@ void VideoConfigDiag::PopulateScalingShaders()
 	}
 }
 
-void VideoConfigDiag::PopulateAnaglyphShaders()
+void VideoConfigDiag::PopulateStereoShaders()
 {
-	std::vector<std::string> shaders = PostProcessingShaderConfiguration::GetAvailableShaderNames(ANAGLYPH_SHADER_SUBDIR);
+	std::vector<std::string> shaders = PostProcessingShaderConfiguration::GetAvailableShaderNames(STEREO_SHADER_SUBDIR);
 	if (!shaders.empty())
 	{
 		for (const std::string& shader : shaders)
-			choice_anaglyphshader->AppendString(StrToWxStr(shader));
+			choice_stereoshader->AppendString(StrToWxStr(shader));
 
-		if (!choice_anaglyphshader->SetStringSelection(StrToWxStr(vconfig.sAnaglyphShader)))
+		if (!choice_stereoshader->SetStringSelection(StrToWxStr(vconfig.sStereoShader)))
 		{
 			// Invalid shader, reset it to default
-			choice_anaglyphshader->Select(0);
+			choice_stereoshader->Select(0);
 		}
 	}
 
 	// Set enabled based on stereo mode
-	choice_anaglyphshader->Enable(vconfig.iStereoMode == STEREO_ANAGLYPH);
+	choice_stereoshader->Enable(vconfig.iStereoMode == STEREO_SHADER);
 }
 
 void VideoConfigDiag::PopulateAAList()
