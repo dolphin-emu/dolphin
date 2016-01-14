@@ -31,6 +31,10 @@ CMixer::CMixer(unsigned int BackendSampleRate)
 	INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
 }
 
+CMixer::~CMixer()
+{
+}
+
 // Executed from sound stream thread
 unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
 {

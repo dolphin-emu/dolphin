@@ -18,19 +18,19 @@
 #define CONTROL_FACTOR  0.2f // in freq_shift per fifo size offset
 #define CONTROL_AVG     32
 
-class CMixer
+class CMixer final
 {
 public:
-	CMixer(unsigned int BackendSampleRate);
-	virtual ~CMixer() {}
+	explicit CMixer(unsigned int BackendSampleRate);
+	~CMixer();
 
 	// Called from audio threads
-	virtual unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
+	unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
 
 	// Called from main thread
-	virtual void PushSamples(const short* samples, unsigned int num_samples);
-	virtual void PushStreamingSamples(const short* samples, unsigned int num_samples);
-	virtual void PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples, unsigned int sample_rate);
+	void PushSamples(const short* samples, unsigned int num_samples);
+	void PushStreamingSamples(const short* samples, unsigned int num_samples);
+	void PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples, unsigned int sample_rate);
 	unsigned int GetSampleRate() const { return m_sampleRate; }
 
 	void SetDMAInputSampleRate(unsigned int rate);
@@ -47,8 +47,9 @@ public:
 	float GetCurrentSpeed() const { return m_speed.load(); }
 	void UpdateSpeed(float val) { m_speed.store(val); }
 
-protected:
-	class MixerFifo {
+private:
+	class MixerFifo final
+	{
 	public:
 		MixerFifo(CMixer *mixer, unsigned sample_rate)
 			: m_mixer(mixer)
