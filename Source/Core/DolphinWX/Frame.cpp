@@ -1420,31 +1420,52 @@ void CFrame::ParseHotkeys()
 
 	if (IsHotkey(HK_TOGGLE_STEREO_SBS))
 	{
-		if (g_Config.iStereoMode != STEREO_SBS)
-			g_Config.iStereoMode = STEREO_SBS;
+		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "side-by-side")
+		{
+			g_Config.iStereoMode = STEREO_ENABLED;
+			g_ActiveConfig.sStereoShader = "side-by-side";
+			if (g_renderer && g_renderer->GetPostProcessor())
+				g_renderer->GetPostProcessor()->SetReloadFlag();
+		}
 		else
-			g_Config.iStereoMode = STEREO_OFF;
+		{
+			g_Config.iStereoMode = STEREO_DISABLED;
+		}
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_TAB))
 	{
-		if (g_Config.iStereoMode != STEREO_TAB)
-			g_Config.iStereoMode = STEREO_TAB;
+		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "top-and-bottom")
+		{
+			g_Config.iStereoMode = STEREO_ENABLED;
+			g_ActiveConfig.sStereoShader = "top-and-bottom";
+			if (g_renderer && g_renderer->GetPostProcessor())
+				g_renderer->GetPostProcessor()->SetReloadFlag();
+		}
 		else
-			g_Config.iStereoMode = STEREO_OFF;
+		{
+			g_Config.iStereoMode = STEREO_DISABLED;
+		}
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
 	{
-		if (g_Config.iStereoMode != STEREO_SHADER)
-			g_Config.iStereoMode = STEREO_SHADER;
+		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "anaglyph/dubois")
+		{
+			g_Config.iStereoMode = STEREO_ENABLED;
+			g_ActiveConfig.sStereoShader = "anaglyph/dubois";
+			if (g_renderer && g_renderer->GetPostProcessor())
+				g_renderer->GetPostProcessor()->SetReloadFlag();
+		}
 		else
-			g_Config.iStereoMode = STEREO_OFF;
+		{
+			g_Config.iStereoMode = STEREO_DISABLED;
+		}
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
 	{
 		if (g_Config.iStereoMode != STEREO_3DVISION)
 			g_Config.iStereoMode = STEREO_3DVISION;
 		else
-			g_Config.iStereoMode = STEREO_OFF;
+			g_Config.iStereoMode = STEREO_DISABLED;
 	}
 
 	if (IsHotkey(HK_DECREASE_DEPTH, true))
