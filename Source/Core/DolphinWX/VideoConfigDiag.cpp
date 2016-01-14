@@ -543,17 +543,17 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			wxBoxSizer* const szr_pp_shader_list_buttons = new wxBoxSizer(wxVERTICAL);
 			button_move_ppshader_up = new wxButton(page_postprocessing, wxID_ANY, _("Move &Up"));
 			button_move_ppshader_up->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_PPShaderListMoveUp, this);
-			szr_pp_shader_list_buttons->Add(button_move_ppshader_up);
+			szr_pp_shader_list_buttons->Add(button_move_ppshader_up, 0, wxEXPAND);
 			button_move_ppshader_down = new wxButton(page_postprocessing, wxID_ANY, _("Move &Down"));
 			button_move_ppshader_down->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_PPShaderListMoveDown, this);
-			szr_pp_shader_list_buttons->Add(button_move_ppshader_down);
+			szr_pp_shader_list_buttons->Add(button_move_ppshader_down, 0, wxEXPAND);
 			button_config_ppshader = new wxButton(page_postprocessing, wxID_ANY, _("&Options..."));
 			button_config_ppshader->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_PPShaderListOptions, this);
 			RegisterControl(button_config_ppshader, wxGetTranslation(ppshader_options_desc));
-			szr_pp_shader_list_buttons->Add(button_config_ppshader);
+			szr_pp_shader_list_buttons->Add(button_config_ppshader, 0, wxEXPAND);
 			button_remove_ppshader = new wxButton(page_postprocessing, wxID_ANY, _("&Remove"));
 			button_remove_ppshader->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_PPShaderListRemove, this);
-			szr_pp_shader_list_buttons->Add(button_remove_ppshader);
+			szr_pp_shader_list_buttons->Add(button_remove_ppshader, 0, wxEXPAND);
 			szr_pp_shader_list->Add(szr_pp_shader_list_buttons, 0, wxLEFT | wxALIGN_TOP, 5);
 
 			szr_selected_shaders->Add(szr_pp_shader_list, 1, wxEXPAND | wxBOTTOM, 5);
