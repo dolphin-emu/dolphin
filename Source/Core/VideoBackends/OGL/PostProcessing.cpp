@@ -691,7 +691,7 @@ void OGLPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 		TargetSize stereo_buffer_size(src_size);
 		if (m_scaling_shader)
 		{
-			stereo_buffer_rect = TargetRectangle(0, 0, dst_size.width, dst_size.height);
+			stereo_buffer_rect = TargetRectangle(0, dst_size.height, dst_size.width, 0);
 			stereo_buffer_size = dst_size;
 			m_scaling_shader->Draw(this, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, src_rect, src_size, real_src_texture, 0, -1);
 		}
