@@ -518,6 +518,7 @@ void OGLPostProcessor::ReloadShaders()
 	m_reload_flag.Clear();
 	m_post_processing_shaders.clear();
 	m_scaling_shader.reset();
+	m_stereo_shader.reset();
 	m_active = false;
 
 	ReloadShaderConfigs();
@@ -661,12 +662,10 @@ void OGLPostProcessor::PostProcessEFB()
 }
 
 void OGLPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const TargetSize& dst_size, uintptr_t dst_texture,
-										 const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
-										 int src_layer)
+										 const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture)
 {
 	GLuint real_dst_texture = static_cast<GLuint>(dst_texture);
 	GLuint real_src_texture = static_cast<GLuint>(src_texture);
-	_dbg_assert_msg_(VIDEO, src_layer >= 0, "BlitToFramebuffer should always be called with a single source layer");
 
 	// Check for changed options.
 	if (m_scaling_shader)
@@ -703,9 +702,9 @@ void OGLPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 	{
 		// Use scaling shader if one is set-up. Should only be a single pass in almost all cases.
 		if (m_scaling_shader)
-			m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, 0, src_layer);
+			m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, 0, 0);
 		else
-			CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, src_layer, false);
+			CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, 0, false);
 	}
 }
 
