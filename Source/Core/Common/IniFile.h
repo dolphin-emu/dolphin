@@ -88,11 +88,16 @@ public:
 			return name < other.name;
 		}
 
+		typedef std::map<std::string, std::string, CaseInsensitiveStringCompare> SectionMap;
+
+		const std::string& GetName() { return name; }
+		const SectionMap& GetValues() { return values; }
+
 	protected:
 		std::string name;
 
 		std::vector<std::string> keys_order;
-		std::map<std::string, std::string, CaseInsensitiveStringCompare> values;
+		SectionMap values;
 
 		std::vector<std::string> lines;
 	};
@@ -143,6 +148,8 @@ public:
 	// It's used outside of IniFile, which is why it is exposed publicly
 	// In particular it is used in PostProcessing for its configuration
 	static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut);
+
+	const std::list<Section>& GetSections() { return sections; }
 
 private:
 	std::list<Section> sections;
