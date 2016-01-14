@@ -76,11 +76,15 @@ public:
     bool Get(const std::string& key, std::vector<std::string>* values) const;
 
     bool operator<(const Section& other) const { return name < other.name; }
+    using SectionMap = std::map<std::string, std::string, CaseInsensitiveStringCompare>;
+
+    const std::string& GetName() const { return name; }
+    const SectionMap& GetValues() const { return values; }
   protected:
     std::string name;
 
     std::vector<std::string> keys_order;
-    std::map<std::string, std::string, CaseInsensitiveStringCompare> values;
+    SectionMap values;
 
     std::vector<std::string> lines;
   };
@@ -88,12 +92,17 @@ public:
   /**
    * Loads sections and keys.
    * @param filename filename of the ini file which should be loaded
-   * @param keep_current_data If true, "extends" the currently loaded list of sections and keys with
-   * the loaded data (and replaces existing entries). If false, existing data will be erased.
-   * @warning Using any other operations than "Get*" and "Exists" is untested and will behave
+   * @param keep_current_data If true, "extends" the currently loaded list of
+   * sections and keys with
+   * the loaded data (and replaces existing entries). If false, existing data
+   * will be erased.
+   * @warning Using any other operations than "Get*" and "Exists" is untested
+   * and will behave
    * unexpectedly
-   * @todo This really is just a hack to support having two levels of gameinis (defaults and
-   * user-specified) and should eventually be replaced with a less stupid system.
+   * @todo This really is just a hack to support having two levels of gameinis
+   * (defaults and
+   * user-specified) and should eventually be replaced with a less stupid
+   * system.
    */
   bool Load(const std::string& filename, bool keep_current_data = false);
 
@@ -140,6 +149,7 @@ public:
   // In particular it is used in PostProcessing for its configuration
   static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut);
 
+  const std::list<Section>& GetSections() const { return sections; }
 private:
   std::list<Section> sections;
 
