@@ -777,35 +777,40 @@ static void RebuildUserDirectories(unsigned int dir_index)
 	switch (dir_index)
 	{
 	case D_USER_IDX:
-		s_user_paths[D_GCUSER_IDX]         = s_user_paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
-		s_user_paths[D_WIIROOT_IDX]        = s_user_paths[D_USER_IDX] + WII_USER_DIR;
-		s_user_paths[D_CONFIG_IDX]         = s_user_paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
-		s_user_paths[D_GAMESETTINGS_IDX]   = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
-		s_user_paths[D_MAPS_IDX]           = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
-		s_user_paths[D_CACHE_IDX]          = s_user_paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
-		s_user_paths[D_SHADERCACHE_IDX]    = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
-		s_user_paths[D_SHADERS_IDX]        = s_user_paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
-		s_user_paths[D_STATESAVES_IDX]     = s_user_paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
-		s_user_paths[D_SCREENSHOTS_IDX]    = s_user_paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
-		s_user_paths[D_LOAD_IDX]           = s_user_paths[D_USER_IDX] + LOAD_DIR DIR_SEP;
-		s_user_paths[D_HIRESTEXTURES_IDX]  = s_user_paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
-		s_user_paths[D_DUMP_IDX]           = s_user_paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
-		s_user_paths[D_DUMPFRAMES_IDX]     = s_user_paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
-		s_user_paths[D_DUMPAUDIO_IDX]      = s_user_paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
-		s_user_paths[D_DUMPTEXTURES_IDX]   = s_user_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
-		s_user_paths[D_DUMPDSP_IDX]        = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
-		s_user_paths[D_LOGS_IDX]           = s_user_paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
-		s_user_paths[D_MAILLOGS_IDX]       = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
-		s_user_paths[D_THEMES_IDX]         = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
-		s_user_paths[D_PIPES_IDX]          = s_user_paths[D_USER_IDX] + PIPES_DIR DIR_SEP;
-		s_user_paths[F_DOLPHINCONFIG_IDX]  = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
-		s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
-		s_user_paths[F_LOGGERCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
-		s_user_paths[F_MAINLOG_IDX]        = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
-		s_user_paths[F_RAMDUMP_IDX]        = s_user_paths[D_DUMP_IDX] + RAM_DUMP;
-		s_user_paths[F_ARAMDUMP_IDX]       = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
-		s_user_paths[F_FAKEVMEMDUMP_IDX]   = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
-		s_user_paths[F_GCSRAM_IDX]         = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
+		s_user_paths[D_GCUSER_IDX]           = s_user_paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
+		s_user_paths[D_WIIROOT_IDX]          = s_user_paths[D_USER_IDX] + WII_USER_DIR;
+		s_user_paths[D_CONFIG_IDX]           = s_user_paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
+		s_user_paths[D_GAMESETTINGS_IDX]     = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
+		s_user_paths[D_MAPS_IDX]             = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
+		s_user_paths[D_CACHE_IDX]            = s_user_paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
+		s_user_paths[D_SHADERCACHE_IDX]      = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
+		s_user_paths[D_SHADERS_IDX]          = s_user_paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
+		s_user_paths[D_STATESAVES_IDX]       = s_user_paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
+		s_user_paths[D_SCREENSHOTS_IDX]      = s_user_paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
+		s_user_paths[D_LOAD_IDX]             = s_user_paths[D_USER_IDX] + LOAD_DIR DIR_SEP;
+		s_user_paths[D_HIRESTEXTURES_IDX]    = s_user_paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
+		s_user_paths[D_DUMP_IDX]             = s_user_paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
+		s_user_paths[D_DUMPFRAMES_IDX]       = s_user_paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
+		s_user_paths[D_DUMPAUDIO_IDX]        = s_user_paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
+		s_user_paths[D_DUMPTEXTURES_IDX]     = s_user_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
+		s_user_paths[D_DUMPDSP_IDX]          = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
+		s_user_paths[D_LOGS_IDX]             = s_user_paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
+		s_user_paths[D_MAILLOGS_IDX]         = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
+		s_user_paths[D_THEMES_IDX]           = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
+		s_user_paths[D_PIPES_IDX]            = s_user_paths[D_USER_IDX] + PIPES_DIR DIR_SEP;
+		s_user_paths[F_DOLPHINCONFIG_IDX]    = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+		s_user_paths[F_GCPADCONFIG_IDX]      = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
+		s_user_paths[F_WIIPADCONFIG_IDX]     = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
+		s_user_paths[F_GCKEYBOARDCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCKEYBOARD_CONFIG;
+		s_user_paths[F_GFXCONFIG_IDX]        = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
+		s_user_paths[F_DEBUGGERCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
+		s_user_paths[F_LOGGERCONFIG_IDX]     = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+		s_user_paths[F_UICONFIG_IDX]         = s_user_paths[D_CONFIG_IDX] + UI_CONFIG;
+		s_user_paths[F_MAINLOG_IDX]          = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
+		s_user_paths[F_RAMDUMP_IDX]          = s_user_paths[D_DUMP_IDX] + RAM_DUMP;
+		s_user_paths[F_ARAMDUMP_IDX]         = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
+		s_user_paths[F_FAKEVMEMDUMP_IDX]     = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
+		s_user_paths[F_GCSRAM_IDX]           = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
 
 		s_user_paths[D_MEMORYWATCHER_IDX]          = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;
 		s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX] = s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_LOCATIONS;
@@ -818,8 +823,12 @@ static void RebuildUserDirectories(unsigned int dir_index)
 
 	case D_CONFIG_IDX:
 		s_user_paths[F_DOLPHINCONFIG_IDX]  = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+		s_user_paths[F_GCPADCONFIG_IDX]    = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
+		s_user_paths[F_WIIPADCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
+		s_user_paths[F_GFXCONFIG_IDX]      = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
 		s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
 		s_user_paths[F_LOGGERCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+		s_user_paths[F_UICONFIG_IDX]       = s_user_paths[D_CONFIG_IDX] + UI_CONFIG;
 		break;
 
 	case D_CACHE_IDX:
