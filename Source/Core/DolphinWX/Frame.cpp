@@ -1420,10 +1420,10 @@ void CFrame::ParseHotkeys()
 
 	if (IsHotkey(HK_TOGGLE_STEREO_SBS))
 	{
-		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "side-by-side")
+		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "Side-by-side")
 		{
 			g_Config.iStereoMode = STEREO_ENABLED;
-			g_ActiveConfig.sStereoShader = "side-by-side";
+			g_ActiveConfig.sStereoShader = "Side-by-side";
 			if (g_renderer && g_renderer->GetPostProcessor())
 				g_renderer->GetPostProcessor()->SetReloadFlag();
 		}
@@ -1434,10 +1434,10 @@ void CFrame::ParseHotkeys()
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_TAB))
 	{
-		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "top-and-bottom")
+		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "Top-and-bottom")
 		{
 			g_Config.iStereoMode = STEREO_ENABLED;
-			g_ActiveConfig.sStereoShader = "top-and-bottom";
+			g_ActiveConfig.sStereoShader = "Top-and-bottom";
 			if (g_renderer && g_renderer->GetPostProcessor())
 				g_renderer->GetPostProcessor()->SetReloadFlag();
 		}
@@ -1448,10 +1448,10 @@ void CFrame::ParseHotkeys()
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
 	{
-		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "anaglyph/dubois")
+		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "Anaglyph/dubois")
 		{
 			g_Config.iStereoMode = STEREO_ENABLED;
-			g_ActiveConfig.sStereoShader = "anaglyph/dubois";
+			g_ActiveConfig.sStereoShader = "Anaglyph/dubois";
 			if (g_renderer && g_renderer->GetPostProcessor())
 				g_renderer->GetPostProcessor()->SetReloadFlag();
 		}
