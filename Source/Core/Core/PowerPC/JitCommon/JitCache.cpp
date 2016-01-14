@@ -109,7 +109,7 @@ using namespace Gen;
 		return num_blocks - 1;
 	}
 
-	void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr)
+	void JitBaseBlockCache::FinalizeBlock(int block_num, const std::array<u32, 8>& inlined_addrs, bool block_link, const u8 *code_ptr)
 	{
 		blockCodePointers[block_num] = code_ptr;
 		JitBlock &b = blocks[block_num];
@@ -121,8 +121,12 @@ using namespace Gen;
 
 		for (u32 block = pAddr / 32; block <= (pAddr + (b.originalSize - 1) * 4) / 32; ++block)
 			valid_block.Set(block);
+		for (u32 inlined_addr : inlined_addrs)
+			valid_block.Set((inlined_addr & 0x1FFFFFFF) / 32);
 
 		block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
+		for (u32 inlined_addr : inlined_addrs)
+			reverse_inlining_map.insert(std::make_pair(inlined_addr & ~32, block_num));
 
 		if (block_link)
 		{
@@ -299,6 +303,21 @@ using namespace Gen;
 			if (it1 != it2)
 			{
 				block_map.erase(it1, it2);
+			}
+
+			// Remove blocks referencing the invalidated code through inlined
+			// calls.
+			auto it3 = reverse_inlining_map.lower_bound(pAddr), it4 = it3;
+			while (it4 != reverse_inlining_map.end() && it4->first < pAddr + length)
+			{
+				JitBlock &b = blocks[it4->second];
+				*GetICachePtr(b.originalAddress) = JIT_ICACHE_INVALID_WORD;
+				DestroyBlock(it4->second, false);
+				++it4;
+			}
+			if (it3 != it4)
+			{
+				reverse_inlining_map.erase(it3, it4);
 			}
 
 			// If the code was actually modified, we need to clear the relevant entries from the

@@ -103,6 +103,7 @@ class JitBaseBlockCache
 	std::array<JitBlock, MAX_NUM_BLOCKS> blocks;
 	int num_blocks;
 	std::multimap<u32, int> links_to;
+	std::multimap<u32, int> reverse_inlining_map;
 	std::map<std::pair<u32, u32>, u32> block_map; // (end_addr, start_addr) -> number
 	ValidBlockBitSet valid_block;
 
@@ -129,7 +130,8 @@ public:
 	}
 
 	int AllocateBlock(u32 em_address);
-	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
+	void FinalizeBlock(int block_num, const std::array<u32, 8>& inlined_addrs,
+	                   bool block_link, const u8 *code_ptr);
 
 	void Clear();
 	void Init();
@@ -151,7 +153,6 @@ public:
 
 	CompiledCode GetCompiledCodeFromBlock(int block_num);
 
-	// DOES NOT WORK CORRECTLY WITH INLINING
 	void InvalidateICache(u32 address, const u32 length, bool forced);
 
 	u32* GetBlockBitSet() const

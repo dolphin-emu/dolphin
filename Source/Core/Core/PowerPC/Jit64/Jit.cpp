@@ -535,6 +535,7 @@ void Jit64::Jit(u32 em_address)
 				// Do not link this block to other blocks While single stepping
 				jo.enableBlocklink = false;
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_LEAF_INLINE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
@@ -559,7 +560,7 @@ void Jit64::Jit(u32 em_address)
 
 	int block_num = blocks.AllocateBlock(em_address);
 	JitBlock *b = blocks.GetBlock(block_num);
-	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
+	blocks.FinalizeBlock(block_num, code_block.m_inlined_addrs, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
 }
 
 const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC)
@@ -913,6 +914,7 @@ void Jit64::EnableBlockLink()
 void Jit64::EnableOptimization()
 {
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_LEAF_INLINE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);

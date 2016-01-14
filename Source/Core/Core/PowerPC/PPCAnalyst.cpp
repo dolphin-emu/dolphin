@@ -621,123 +621,88 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	}
 }
 
-u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize)
+u32 PPCAnalyzer::CollectInstructions(u32 address, CodeOp* code,
+                                     std::array<u32, 8>* inlined_addrs,
+                                     u32 max_block_size, bool inlining)
 {
-	// Clear block stats
-	memset(block->m_stats, 0, sizeof(BlockStats));
-
-	// Clear register stats
-	block->m_gpa->any = true;
-	block->m_fpa->any = false;
-
-	block->m_gpa->Clear();
-	block->m_fpa->Clear();
-
-	// Set the blocks start address
-	block->m_address = address;
-
-	// Reset our block state
-	block->m_broken = false;
-	block->m_memory_exception = false;
-	block->m_num_instructions = 0;
-	block->m_gqr_used = BitSet8(0);
-
-	CodeOp *code = buffer->codebuffer;
-
-	bool found_exit = false;
-	u32 return_address = 0;
-	u32 numFollows = 0;
-	u32 num_inst = 0;
+	u32 start_address = address;
+	u32 num_instrs = 0;
 	bool prev_inst_from_bat = true;
+	bool clean_inlining_exit = false;
+	u32 num_inlined = 0;
 
-	for (u32 i = 0; i < blockSize; ++i)
+	while (num_instrs < max_block_size)
 	{
 		auto result = PowerPC::TryReadInstruction(address);
 		if (!result.valid)
-		{
-			if (i == 0)
-				block->m_memory_exception = true;
 			break;
-		}
 		UGeckoInstruction inst = result.hex;
 
 		// Slight hack: the JIT block cache currently assumes all blocks end at the same place,
 		// but broken blocks due to page faults break this assumption. Avoid this by just ending
 		// all virtual memory instruction blocks at page boundaries.
 		// FIXME: improve the JIT block cache so we don't need to do this.
-		if ((!result.from_bat || !prev_inst_from_bat) && i > 0 && (address & 0xfff) == 0)
-		{
+		if ((!result.from_bat || !prev_inst_from_bat) && address != start_address && (address & 0xfff) == 0)
 			break;
-		}
 		prev_inst_from_bat = result.from_bat;
 
-		num_inst++;
-		memset(&code[i], 0, sizeof(CodeOp));
+		CodeOp* this_code = code++;
+		memset(this_code, 0, sizeof(CodeOp));
 		GekkoOPInfo *opinfo = GetOpInfo(inst);
 
-		code[i].opinfo = opinfo;
-		code[i].address = address;
-		code[i].inst = inst;
-		code[i].branchTo = -1;
-		code[i].branchToIndex = -1;
-		code[i].skip = false;
-		block->m_stats->numCycles += opinfo->numCycles;
+		this_code->opinfo = opinfo;
+		this_code->address = address;
+		this_code->inst = inst;
+		this_code->branchTo = -1;
+		this_code->branchToIndex = -1;
+		this_code->skip = false;
 
-		SetInstructionStats(block, &code[i], opinfo, i);
+		// Blacklist inlining this block if it contains "dangerous" instructions.
+		// In particular, modifying LR is a no-no.
+		bool blr = (inst.hex == 0x4e800020);
+		if (inlining)
+		{
+			if (!blr && (opinfo->type == OPTYPE_SPR ||
+			             opinfo->type == OPTYPE_BRANCH ||
+			             opinfo->type == OPTYPE_SYSTEM))
+				break;
+		}
 
-		bool follow = false;
-		u32 destination = 0;
+		num_instrs++;
 
+		if (inlining && blr)
+		{
+			// Cleanly break the block -- we reached the inlined leaf function end.
+			this_code->isInlinedBLR = true;
+			clean_inlining_exit = true;
+			break;
+		}
+
+		bool try_inlining = false;
+		u32 branch_destination = 0;
 		bool conditional_continue = false;
 
-		// Do we inline leaf functions?
-		if (HasOption(OPTION_LEAF_INLINE))
+		// Do we inline leaf functions? Also refuse inlining several level deeps
+		// (for now -- it should be relatively easy to support, but it's not clear
+		// if that would ever be useful).
+		if (HasOption(OPTION_LEAF_INLINE) && !inlining)
 		{
-			if (inst.OPCD == 18 && blockSize > 1)
+			if (inst.OPCD == 18 && inst.LK && max_block_size > 1)
 			{
 				//Is bx - should we inline? yes!
 				if (inst.AA)
-					destination = SignExt26(inst.LI << 2);
+					branch_destination = SignExt26(inst.LI << 2);
 				else
-					destination = address + SignExt26(inst.LI << 2);
-				if (destination != block->m_address)
-					follow = true;
-			}
-			else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
-				(inst.BO & (1 << 4)) && (inst.BO & (1 << 2)) &&
-				return_address != 0)
-			{
-				// bclrx with unconditional branch = return
-				follow = true;
-				destination = return_address;
-				return_address = 0;
-
-				if (inst.LK)
-					return_address = address + 4;
-			}
-			else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
-			{
-				// mtspr
-				const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-				if (index == SPR_LR)
-				{
-					// We give up to follow the return address
-					// because we have to check the register usage.
-					return_address = 0;
-				}
+					branch_destination = address + SignExt26(inst.LI << 2);
+				if (branch_destination != start_address)
+					try_inlining = true;
 			}
 
-			// TODO: Find the optimal value for FUNCTION_FOLLOWING_THRESHOLD.
-			//       If it is small, the performance will be down.
-			//       If it is big, the size of generated code will be big and
-			//       cache clearning will happen many times.
-			// TODO: Investivate the reason why
-			//       "0" is fastest in some games, MP2 for example.
-			if (numFollows > FUNCTION_FOLLOWING_THRESHOLD)
-				follow = false;
+			if (try_inlining && m_not_inlinable.find(branch_destination) != m_not_inlinable.end())
+				try_inlining = false;
 		}
 
-		if (HasOption(OPTION_CONDITIONAL_CONTINUE))
+		if (HasOption(OPTION_CONDITIONAL_CONTINUE) && !inlining)
 		{
 			if (inst.OPCD == 16 &&
 				((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
@@ -766,42 +731,103 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 			}
 		}
 
-		if (!follow)
+		bool inlined = false;
+		if (try_inlining && num_inlined < 8)
 		{
-			address += 4;
+			u32 inlined_instrs = CollectInstructions(branch_destination, code, inlined_addrs,
+			                                         max_block_size - num_instrs, true);
+			if (inlined_instrs)
+			{
+				inlined = true;
+				(*inlined_addrs)[num_inlined++] = branch_destination;
+				code += inlined_instrs;
+				num_instrs += inlined_instrs;
+			}
+			else
+			{
+				m_not_inlinable.insert(branch_destination);
+			}
+		}
+
+		address += 4;
+		if (!inlined)
+		{
 			if (!conditional_continue && opinfo->flags & FL_ENDBLOCK) //right now we stop early
 			{
-				found_exit = true;
+				this_code->isExit = true;
 				break;
 			}
 		}
-		// XXX: We don't support inlining yet.
-#if 0
-		else
-		{
-			numFollows++;
-			// We don't "code[i].skip = true" here
-			// because bx may store a certain value to the link register.
-			// Instead, we skip a part of bx in Jit**::bx().
-			address = destination;
-			merged_addresses[size_of_merged_addresses++] = address;
-		}
-#endif
 	}
 
-	block->m_num_instructions = num_inst;
 
+	// If inlining, don't emit partial blocks. Only accept things that end
+	// cleanly.
+	if (inlining && !clean_inlining_exit)
+		return 0;
+
+	return num_instrs;
+}
+
+void PPCAnalyzer::InvalidateCache(u32 address, u32 size)
+{
+	auto it = m_not_inlinable.lower_bound(address);
+	while (it != m_not_inlinable.end() && *it < (address + size))
+		it = m_not_inlinable.erase(it);
+}
+
+u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize)
+{
+	// Clear block stats
+	memset(block->m_stats, 0, sizeof(BlockStats));
+
+	// Clear register stats
+	block->m_gpa->any = true;
+	block->m_fpa->any = false;
+
+	block->m_gpa->Clear();
+	block->m_fpa->Clear();
+
+	// Set the blocks start address
+	block->m_address = address;
+
+	// Reset our block state
+	block->m_broken = false;
+	block->m_memory_exception = false;
+	block->m_num_instructions = 0;
+	block->m_gqr_used = BitSet8(0);
+
+	// Pass 1: collect instructions and potentially inline.
+	CodeOp *code = buffer->codebuffer;
+	block->m_num_instructions = CollectInstructions(
+			address, code, &block->m_inlined_addrs, blockSize, false /* inlining */);
+	if (!block->m_num_instructions && blockSize)
+		block->m_memory_exception = true;
+
+	// Pass 2: compute number of cycles and other block stats.
+	//
+	// Note: in theory, this pass could be folded into pass 1. However, the
+	// recursive nature of pass 1 (to handle inlining) makes it harder to do so.
+	for (u32 i = 0; i < block->m_num_instructions; ++i)
+	{
+		block->m_stats->numCycles += code[i].opinfo->numCycles;
+		SetInstructionStats(block, &code[i], code[i].opinfo, i);
+	}
+
+	// Pass 3: reorder instructions.
 	if (block->m_num_instructions > 1)
 		ReorderInstructions(block->m_num_instructions, code);
 
-	if ((!found_exit && num_inst > 0) || blockSize == 1)
+	bool found_exit = block->m_num_instructions && code[block->m_num_instructions - 1].isExit;
+	if ((!found_exit && block->m_num_instructions > 0) || blockSize == 1)
 	{
 		// We couldn't find an exit
 		block->m_broken = true;
 	}
 
-	// Scan for flag dependencies; assume the next block (or any branch that can leave the block)
-	// wants flags, to be safe.
+	// Pass 4: scan for instruction dependencies (e.g. flags). Assume the next
+	// block (or any branch that can leave the block) wants these dependencies
+	// computed, to be safe.
 	bool wantsCR0 = true, wantsCR1 = true, wantsFPRF = true, wantsCA = true;
 	BitSet32 fprInUse, gprInUse, gprInReg, fprInXmm;
 	for (int i = block->m_num_instructions - 1; i >= 0; i--)

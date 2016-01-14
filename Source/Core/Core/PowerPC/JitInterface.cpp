@@ -40,7 +40,10 @@ namespace JitInterface
 	void DoState(PointerWrap &p)
 	{
 		if (jit && p.GetMode() == PointerWrap::MODE_READ)
+		{
+			jit->GetPPCAnalyzer()->ClearCache();
 			jit->GetBlockCache()->Clear();
+		}
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
@@ -230,13 +233,19 @@ namespace JitInterface
 		// the JIT'ed code.
 		// TODO: There's probably a better way to handle this situation.
 		if (jit)
+		{
+			jit->GetPPCAnalyzer()->ClearCache();
 			jit->GetBlockCache()->Clear();
+		}
 	}
 
 	void InvalidateICache(u32 address, u32 size, bool forced)
 	{
 		if (jit)
+		{
+			jit->GetPPCAnalyzer()->InvalidateCache(address, size);
 			jit->GetBlockCache()->InvalidateICache(address, size, forced);
+		}
 	}
 
 	void CompileExceptionCheck(ExceptionType type)

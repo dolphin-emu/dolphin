@@ -5,8 +5,10 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -32,6 +34,8 @@ struct CodeOp //16B
 	BitSet32 fregsIn;
 	s8 fregOut;
 	bool isBranchTarget;
+	bool isExit;
+	bool isInlinedBLR;
 	bool wantsCR0;
 	bool wantsCR1;
 	bool wantsFPRF;
@@ -164,6 +168,9 @@ struct CodeBlock
 
 	// Which GQRs this block modifies, if any.
 	BitSet8 m_gqr_modified;
+
+	// Which functions have been inlined into this block, if any.
+	std::array<u32, 8> m_inlined_addrs;
 };
 
 class PPCAnalyzer
@@ -181,8 +188,20 @@ private:
 	void ReorderInstructions(u32 instructions, CodeOp *code);
 	void SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index);
 
+	// Collects instructions for a block, starting at a given address. Used for
+	// both the "top level" of a block and for potential inlining. Returns the
+	// number of instructions added to the block. In the case of inlining, if no
+	// instructions were added, it means inlining was impossible.
+	u32 CollectInstructions(u32 address, CodeOp* code, std::array<u32, 8>* inlined_addrs,
+	                        u32 max_block_size, bool inlining);
+
 	// Options
 	u32 m_options;
+
+	// Cache of whether a call to a given address can be inlined or not. Needs to
+	// be invalidated when the destination block has been invalidated.
+	std::set<u32> m_not_inlinable;
+
 public:
 
 	enum AnalystOption
@@ -196,7 +215,6 @@ public:
 		// If there is a unconditional branch that jumps to a leaf function then inline it.
 		// Might require JIT intervention to support it correctly.
 		// Requires JITBLock support for inlined code
-		// XXX: NOT COMPLETE
 		OPTION_LEAF_INLINE = (1 << 1),
 
 		// Complex blocks support jumping backwards on to themselves.
@@ -230,6 +248,11 @@ public:
 	void SetOption(AnalystOption option) { m_options |= option; }
 	void ClearOption(AnalystOption option) { m_options &= ~(option); }
 	bool HasOption(AnalystOption option) const { return !!(m_options & option); }
+
+	// Invalidate internal caches. Currently, this only effects the "inlinable"
+	// status of destination addresses.
+	void InvalidateCache(u32 address, u32 size);
+	void ClearCache() { m_not_inlinable.clear(); }
 
 	u32 Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize);
 };
