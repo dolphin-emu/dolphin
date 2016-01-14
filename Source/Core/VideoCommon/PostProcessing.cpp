@@ -915,17 +915,13 @@ PostProcessingShaderConfiguration* PostProcessor::GetPostShaderConfig(const std:
 
 void PostProcessor::ReloadShaderConfigs()
 {
-	// Load scaling shader
-	std::string scaling_shader_subdir = (g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH) ? ANAGLYPH_SHADER_SUBDIR : SCALING_SHADER_SUBDIR;
-	const std::string& scaling_shader_name = (g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH) ? g_ActiveConfig.sAnaglyphShader : g_ActiveConfig.sScalingShader;
-	m_scaling_config = std::make_unique<PostProcessingShaderConfiguration>();
-	if (!m_scaling_config->LoadShader(scaling_shader_subdir, scaling_shader_name))
-	{
-		ERROR_LOG(VIDEO, "Failed to load scaling shader ('%s'). Falling back to copy shader.", scaling_shader_name.c_str());
-		OSD::AddMessage(StringFromFormat("Failed to load scaling shader ('%s'). Falling back to copy shader.", scaling_shader_name.c_str()));
-		m_scaling_config.reset();
-	}
+	ReloadPostProcessingShaderConfigs();
+	ReloadScalingShaderConfig();
+	ReloadStereoShaderConfig();
+}
 
+void PostProcessor::ReloadPostProcessingShaderConfigs()
+{
 	// Load post-processing shader list
 	m_shader_names.clear();
 	SplitString(g_ActiveConfig.sPostProcessingShaders, ':', m_shader_names);
@@ -951,6 +947,32 @@ void PostProcessor::ReloadShaderConfigs()
 		// Store in map for use by backend
 		m_requires_depth_buffer |= shader_config->RequiresDepthBuffer();
 		m_shader_configs[shader_name] = std::move(shader_config);
+	}
+}
+
+void PostProcessor::ReloadScalingShaderConfig()
+{
+	m_scaling_config = std::make_unique<PostProcessingShaderConfiguration>();
+	if (!m_scaling_config->LoadShader(SCALING_SHADER_SUBDIR, g_ActiveConfig.sScalingShader))
+	{
+		ERROR_LOG(VIDEO, "Failed to load scaling shader ('%s'). Falling back to copy shader.", g_ActiveConfig.sScalingShader.c_str());
+		OSD::AddMessage(StringFromFormat("Failed to load scaling shader ('%s'). Falling back to copy shader.", g_ActiveConfig.sScalingShader.c_str()));
+		m_scaling_config.reset();
+	}
+}
+
+void PostProcessor::ReloadStereoShaderConfig()
+{
+	m_stereo_config.reset();
+	if (g_ActiveConfig.iStereoMode == STEREO_SHADER)
+	{
+		m_stereo_config = std::make_unique<PostProcessingShaderConfiguration>();
+		if (!m_stereo_config->LoadShader(STEREO_SHADER_SUBDIR, g_ActiveConfig.sStereoShader))
+		{
+			ERROR_LOG(VIDEO, "Failed to load scaling shader ('%s'). Falling back to blit.", g_ActiveConfig.sStereoShader.c_str());
+			OSD::AddMessage(StringFromFormat("Failed to load scaling shader ('%s'). Falling back to blit.", g_ActiveConfig.sStereoShader.c_str()));
+			m_stereo_config.reset();
+		}
 	}
 }
 

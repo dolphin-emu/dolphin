@@ -116,19 +116,25 @@ protected:
 	std::unique_ptr<PostProcessingShader> CreateShader(const PostProcessingShaderConfiguration* config);
 	void CreatePostProcessingShaders();
 	void CreateScalingShader();
+	void CreateStereoShader();
 
 	bool ResizeCopyBuffers(const TargetSize& size, int layers);
+	bool ResizeStereoBuffer(const TargetSize& size);
 	bool ReconfigurePostProcessingShaders(const TargetSize& size);
 	void DisablePostProcessor();
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_uniform_buffer;
 	std::unique_ptr<PostProcessingShader> m_scaling_shader;
+	std::unique_ptr<PostProcessingShader> m_stereo_shader;
 	std::vector<std::unique_ptr<PostProcessingShader>> m_post_processing_shaders;
 
 	TargetSize m_copy_size;
 	int m_copy_layers = 0;
 	D3DTexture2D* m_color_copy_texture = nullptr;
 	D3DTexture2D* m_depth_copy_texture = nullptr;
+
+	TargetSize m_stereo_buffer_size;
+	D3DTexture2D* m_stereo_buffer_texture = nullptr;
 };
 
 }  // namespace

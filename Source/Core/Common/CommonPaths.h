@@ -80,7 +80,7 @@
 // Subdirectory names for post-processing shader types
 #define POSTPROCESSING_SHADER_SUBDIR    "Postprocessing"
 #define SCALING_SHADER_SUBDIR		    "Scaling"
-#define ANAGLYPH_SHADER_SUBDIR          "Anaglyph"
+#define STEREO_SHADER_SUBDIR            "Stereoscopy"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
