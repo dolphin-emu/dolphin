@@ -802,8 +802,12 @@ static void RebuildUserDirectories(unsigned int dir_index)
 		s_user_paths[D_THEMES_IDX]         = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
 		s_user_paths[D_PIPES_IDX]          = s_user_paths[D_USER_IDX] + PIPES_DIR DIR_SEP;
 		s_user_paths[F_DOLPHINCONFIG_IDX]  = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+		s_user_paths[F_GCPADCONFIG_IDX]    = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
+		s_user_paths[F_WIIPADCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
+		s_user_paths[F_GFXCONFIG_IDX]      = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
 		s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
 		s_user_paths[F_LOGGERCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+		s_user_paths[F_UICONFIG_IDX]       = s_user_paths[D_CONFIG_IDX] + UI_CONFIG;
 		s_user_paths[F_MAINLOG_IDX]        = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
 		s_user_paths[F_RAMDUMP_IDX]        = s_user_paths[D_DUMP_IDX] + RAM_DUMP;
 		s_user_paths[F_ARAMDUMP_IDX]       = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
@@ -821,8 +825,12 @@ static void RebuildUserDirectories(unsigned int dir_index)
 
 	case D_CONFIG_IDX:
 		s_user_paths[F_DOLPHINCONFIG_IDX]  = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+		s_user_paths[F_GCPADCONFIG_IDX]    = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
+		s_user_paths[F_WIIPADCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
+		s_user_paths[F_GFXCONFIG_IDX]      = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
 		s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
 		s_user_paths[F_LOGGERCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+		s_user_paths[F_UICONFIG_IDX]       = s_user_paths[D_CONFIG_IDX] + UI_CONFIG;
 		break;
 
 	case D_CACHE_IDX:
