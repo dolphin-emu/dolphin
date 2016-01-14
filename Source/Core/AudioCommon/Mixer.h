@@ -10,14 +10,6 @@
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
 
-// 16 bit Stereo
-#define MAX_SAMPLES     (1024 * 4) // 128 ms
-#define INDEX_MASK      (MAX_SAMPLES * 2 - 1)
-
-#define MAX_FREQ_SHIFT  200  // per 32000 Hz
-#define CONTROL_FACTOR  0.2f // in freq_shift per fifo size offset
-#define CONTROL_AVG     32
-
 class CMixer final
 {
 public:
@@ -48,6 +40,12 @@ public:
 	void UpdateSpeed(float val) { m_speed.store(val); }
 
 private:
+	static constexpr u32   MAX_SAMPLES    = 1024 * 4; // 128 ms
+	static constexpr u32   INDEX_MASK     = MAX_SAMPLES * 2 - 1;
+	static constexpr int   MAX_FREQ_SHIFT = 200; // Per 32000 Hz
+	static constexpr float CONTROL_FACTOR = 0.2f;
+	static constexpr u32   CONTROL_AVG    = 32; // In freq_shift per FIFO size offset
+
 	class MixerFifo final
 	{
 	public:

@@ -44,7 +44,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	u32 indexR = m_indexR.load();
 	u32 indexW = m_indexW.load();
 
-	int low_waterwark = m_input_sample_rate * SConfig::GetInstance().iTimingVariance / 1000;
+	u32 low_waterwark = m_input_sample_rate * SConfig::GetInstance().iTimingVariance / 1000;
 	low_waterwark = std::min(low_waterwark, MAX_SAMPLES / 2);
 
 	float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);
