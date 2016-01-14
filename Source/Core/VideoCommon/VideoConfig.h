@@ -47,7 +47,7 @@ enum StereoMode
 	STEREO_OFF = 0,
 	STEREO_SBS,
 	STEREO_TAB,
-	STEREO_ANAGLYPH,
+	STEREO_SHADER,
 	STEREO_3DVISION
 };
 
@@ -83,7 +83,7 @@ struct VideoConfig final
 	int iPostProcessingTrigger;
 	std::string sPostProcessingShaders;
 	std::string sScalingShader;
-	std::string sAnaglyphShader;
+	std::string sStereoShader;
 
 	// Information
 	bool bShowFPS;

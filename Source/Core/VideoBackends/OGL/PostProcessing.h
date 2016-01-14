@@ -119,8 +119,10 @@ protected:
 	std::unique_ptr<PostProcessingShader> CreateShader(const PostProcessingShaderConfiguration* config);
 	void CreatePostProcessingShaders();
 	void CreateScalingShader();
+	void CreateStereoShader();
 
 	bool ResizeCopyBuffers(const TargetSize& size, int layers);
+	bool ResizeStereoBuffer(const TargetSize& size);
 	bool ReconfigurePostProcessingShaders(const TargetSize& size);
 	void DisablePostProcessor();
 
@@ -132,8 +134,12 @@ protected:
 	GLuint m_color_copy_texture = 0;
 	GLuint m_depth_copy_texture = 0;
 
+	TargetSize m_stereo_buffer_size;
+	GLuint m_stereo_buffer_texture;
+
 	std::unique_ptr<StreamBuffer> m_uniform_buffer;
 	std::unique_ptr<PostProcessingShader> m_scaling_shader;
+	std::unique_ptr<PostProcessingShader> m_stereo_shader;
 	std::vector<std::unique_ptr<PostProcessingShader>> m_post_processing_shaders;
 };
 

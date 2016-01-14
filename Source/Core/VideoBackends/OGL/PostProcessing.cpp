@@ -475,6 +475,8 @@ OGLPostProcessor::~OGLPostProcessor()
 		glDeleteTextures(1, &m_color_copy_texture);
 	if (m_depth_copy_texture != 0)
 		glDeleteTextures(1, &m_depth_copy_texture);
+	if (m_stereo_buffer_texture != 0)
+		glDeleteTextures(1, &m_stereo_buffer_texture);
 }
 
 bool OGLPostProcessor::Initialize()
@@ -498,7 +500,8 @@ bool OGLPostProcessor::Initialize()
 	// Allocate copy texture names, the actual storage is done in ResizeCopyBuffers
 	glGenTextures(1, &m_color_copy_texture);
 	glGenTextures(1, &m_depth_copy_texture);
-	if (m_color_copy_texture == 0 || m_depth_copy_texture == 0)
+	glGenTextures(1, &m_stereo_buffer_texture);
+	if (m_color_copy_texture == 0 || m_depth_copy_texture == 0 || m_stereo_buffer_texture == 0)
 	{
 		ERROR_LOG(VIDEO, "Failed to create copy textures.");
 		return false;
@@ -523,6 +526,13 @@ void OGLPostProcessor::ReloadShaders()
 		CreatePostProcessingShaders();
 
 	CreateScalingShader();
+
+	if (m_stereo_config)
+		CreateStereoShader();
+
+	// Set initial sizes to 0,0 to force texture creation on next draw
+	m_copy_size.Set(0, 0);
+	m_stereo_buffer_size.Set(0, 0);
 }
 
 std::unique_ptr<PostProcessingShader> OGLPostProcessor::CreateShader(const PostProcessingShaderConfiguration* config)
@@ -573,6 +583,20 @@ void OGLPostProcessor::CreateScalingShader()
 			ERROR_LOG(VIDEO, "Failed to initialize scaling shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str());
 			OSD::AddMessage(StringFromFormat("Failed to initialize scaling shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str()));
 			m_scaling_shader.reset();
+		}
+	}
+}
+
+void OGLPostProcessor::CreateStereoShader()
+{
+	if (m_stereo_config)
+	{
+		m_stereo_shader = std::make_unique<PostProcessingShader>();
+		if (!m_stereo_shader->Initialize(m_stereo_config.get(), FramebufferManager::GetEFBLayers()))
+		{
+			ERROR_LOG(VIDEO, "Failed to initialize stereoscopy shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str());
+			OSD::AddMessage(StringFromFormat("Failed to initialize stereoscopy shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str()));
+			m_stereo_shader.reset();
 		}
 	}
 }
@@ -652,12 +676,37 @@ void OGLPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 		else
 			m_scaling_config->ClearDirty();
 	}
+	if (m_stereo_shader)
+	{
+		if (!m_stereo_shader->IsReady() || !m_stereo_shader->Reconfigure(dst_size) || !ResizeStereoBuffer(dst_size))
+			m_stereo_shader.reset();
+		else
+			m_stereo_config->ClearDirty();
+	}
 
-	// Use scaling shader if one is set-up. Should only be a single pass in almost all cases.
-	if (m_scaling_shader)
-		m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, 0, src_layer);
+	// If a stereo shader is enabled, we scale to the display size, then split with the stereo shader.
+	if (m_stereo_shader)
+	{
+		GLuint stereo_buffer = (m_scaling_shader) ? m_stereo_buffer_texture : real_src_texture;
+		TargetRectangle stereo_buffer_rect(src_rect);
+		TargetSize stereo_buffer_size(src_size);
+		if (m_scaling_shader)
+		{
+			stereo_buffer_rect = TargetRectangle(0, 0, dst_size.width, dst_size.height);
+			stereo_buffer_size = dst_size;
+			m_scaling_shader->Draw(this, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, src_rect, src_size, real_src_texture, 0, -1);
+		}
+
+		m_stereo_shader->Draw(this, dst_rect, dst_size, real_dst_texture, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, 0, 0);
+	}
 	else
-		CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, src_layer, false);
+	{
+		// Use scaling shader if one is set-up. Should only be a single pass in almost all cases.
+		if (m_scaling_shader)
+			m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, 0, src_layer);
+		else
+			CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, src_layer, false);
+	}
 }
 
 void OGLPostProcessor::PostProcess(const TargetRectangle& visible_rect, const TargetSize& tex_size, int tex_layers,
@@ -730,6 +779,24 @@ bool OGLPostProcessor::ResizeCopyBuffers(const TargetSize& size, int layers)
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, m_depth_copy_texture);
 	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, size.width, size.height, FramebufferManager::GetEFBLayers(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	TextureCache::SetStage();
+	return true;
+}
+
+bool OGLPostProcessor::ResizeStereoBuffer(const TargetSize& size)
+{
+	if (m_stereo_buffer_size == size)
+		return true;
+
+	m_stereo_buffer_size = size;
+
+	glActiveTexture(GL_TEXTURE0 + FIRST_INPUT_TEXTURE_UNIT);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, m_stereo_buffer_texture);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, size.width, size.height, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

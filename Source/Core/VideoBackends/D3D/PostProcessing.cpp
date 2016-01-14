@@ -403,6 +403,7 @@ void D3DPostProcessor::ReloadShaders()
 	m_reload_flag.Clear();
 	m_post_processing_shaders.clear();
 	m_scaling_shader.reset();
+	m_stereo_shader.reset();
 	m_active = false;
 
 	ReloadShaderConfigs();
@@ -411,6 +412,13 @@ void D3DPostProcessor::ReloadShaders()
 		CreatePostProcessingShaders();
 
 	CreateScalingShader();
+
+	if (m_stereo_config)
+		CreateStereoShader();
+
+	// Set initial sizes to 0,0 to force texture creation on next draw
+	m_copy_size.Set(0, 0);
+	m_stereo_buffer_size.Set(0, 0);
 }
 
 std::unique_ptr<PostProcessingShader> D3DPostProcessor::CreateShader(const PostProcessingShaderConfiguration* config)
@@ -452,7 +460,6 @@ void D3DPostProcessor::CreatePostProcessingShaders()
 
 void D3DPostProcessor::CreateScalingShader()
 {
-	m_scaling_shader.reset();
 	if (m_scaling_config)
 	{
 		m_scaling_shader = std::make_unique<PostProcessingShader>();
@@ -461,6 +468,20 @@ void D3DPostProcessor::CreateScalingShader()
 			ERROR_LOG(VIDEO, "Failed to initialize scaling shader ('%s'). Falling back to copy shader.", m_scaling_config->GetShaderName().c_str());
 			OSD::AddMessage(StringFromFormat("Failed to initialize scaling shader ('%s'). Falling back to copy shader.", m_scaling_config->GetShaderName().c_str()));
 			m_scaling_shader.reset();
+		}
+	}
+}
+
+void D3DPostProcessor::CreateStereoShader()
+{
+	if (m_stereo_config)
+	{
+		m_stereo_shader = std::make_unique<PostProcessingShader>();
+		if (!m_stereo_shader->Initialize(m_stereo_config.get(), FramebufferManager::GetEFBLayers()))
+		{
+			ERROR_LOG(VIDEO, "Failed to initialize stereoscopy shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str());
+			OSD::AddMessage(StringFromFormat("Failed to initialize stereoscopy shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str()));
+			m_stereo_shader.reset();
 		}
 	}
 }
@@ -526,6 +547,8 @@ void D3DPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 	D3DTexture2D* real_src_texture = reinterpret_cast<D3DTexture2D*>(src_texture);
 	_dbg_assert_msg_(VIDEO, src_layer >= 0, "BlitToFramebuffer should always be called with a single source layer");
 
+	D3D::stateman->SetPixelConstants(m_uniform_buffer.Get());
+
 	// Check for changed options.
 	if (m_scaling_shader)
 	{
@@ -534,16 +557,36 @@ void D3DPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 		else
 			m_scaling_config->ClearDirty();
 	}
-
-	// Use scaling shader if one is set-up. Should only be a single pass in almost all cases.
-	if (m_scaling_shader)
+	if (m_stereo_shader)
 	{
-		D3D::stateman->SetPixelConstants(m_uniform_buffer.Get());
-		m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, nullptr, src_layer);
+		if (!m_stereo_shader->IsReady() || !m_stereo_shader->Reconfigure(dst_size) || !ResizeStereoBuffer(dst_size))
+			m_stereo_shader.reset();
+		else
+			m_stereo_config->ClearDirty();
+	}
+
+	// If a stereo shader is enabled, we scale to the display size, then split with the stereo shader.
+	if (m_stereo_shader)
+	{
+		D3DTexture2D* stereo_buffer = (m_scaling_shader) ? m_stereo_buffer_texture : real_src_texture;
+		TargetRectangle stereo_buffer_rect(src_rect);
+		TargetSize stereo_buffer_size(src_size);
+		if (m_scaling_shader)
+		{
+			stereo_buffer_rect = TargetRectangle(0, 0, dst_size.width, dst_size.height);
+			stereo_buffer_size = dst_size;
+			m_scaling_shader->Draw(this, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, src_rect, src_size, real_src_texture, nullptr, -1);
+		}
+
+		m_stereo_shader->Draw(this, dst_rect, dst_size, real_dst_texture, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, nullptr, 0);
 	}
 	else
 	{
-		CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, src_size, src_layer);
+		// Use scaling shader if one is set-up. Should only be a single pass in almost all cases.
+		if (m_scaling_shader)
+			m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, nullptr, src_layer);
+		else
+			CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, src_size, src_layer);
 	}
 }
 
@@ -614,18 +657,10 @@ bool D3DPostProcessor::ResizeCopyBuffers(const TargetSize& size, int layers)
 		return true;
 
 	// reset before creating, in case it fails
+	SAFE_RELEASE(m_color_copy_texture);
+	SAFE_RELEASE(m_depth_copy_texture);
 	m_copy_size.Set(0, 0);
 	m_copy_layers = 0;
-	if (m_color_copy_texture != nullptr)
-	{
-		m_color_copy_texture->Release();
-		m_color_copy_texture = nullptr;
-	}
-	if (m_depth_copy_texture != nullptr)
-	{
-		m_depth_copy_texture->Release();
-		m_depth_copy_texture = nullptr;
-	}
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> color_texture;
 	CD3D11_TEXTURE2D_DESC color_desc(DXGI_FORMAT_R8G8B8A8_UNORM, size.width, size.height, layers, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
@@ -647,6 +682,28 @@ bool D3DPostProcessor::ResizeCopyBuffers(const TargetSize& size, int layers)
 	m_copy_layers = layers;
 	m_color_copy_texture = new D3DTexture2D(color_texture.Get(), (D3D11_BIND_FLAG)color_desc.BindFlags, color_desc.Format);
 	m_depth_copy_texture = new D3DTexture2D(depth_texture.Get(), (D3D11_BIND_FLAG)depth_desc.BindFlags, depth_desc.Format);
+	return true;
+}
+
+bool D3DPostProcessor::ResizeStereoBuffer(const TargetSize& size)
+{
+	if (m_stereo_buffer_size == size)
+		return true;
+
+	SAFE_RELEASE(m_stereo_buffer_texture);
+	m_stereo_buffer_size.Set(0, 0);
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> stereo_buffer_texture;
+	CD3D11_TEXTURE2D_DESC stereo_buffer_desc(DXGI_FORMAT_R8G8B8A8_UNORM, size.width, size.height, 2, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
+	HRESULT hr = D3D::device->CreateTexture2D(&stereo_buffer_desc, nullptr, &stereo_buffer_texture);
+	if (FAILED(hr))
+	{
+		ERROR_LOG(VIDEO, "CreateTexture2D failed, hr=0x%X", hr);
+		return false;
+	}
+
+	m_stereo_buffer_size = size;
+	m_stereo_buffer_texture = new D3DTexture2D(stereo_buffer_texture.Get(), (D3D11_BIND_FLAG)stereo_buffer_desc.BindFlags, stereo_buffer_desc.Format);
 	return true;
 }
 
