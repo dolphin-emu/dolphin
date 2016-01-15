@@ -15,9 +15,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -32,6 +29,7 @@ import org.dolphinemu.dolphinemu.fragments.LoadStateFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.List;
@@ -52,9 +50,6 @@ public final class EmulationActivity extends AppCompatActivity
 	private boolean mDeviceHasTouchScreen;
 	private boolean mSystemUiVisible;
 	private boolean mMenuVisible;
-
-	private static final Interpolator sDecelerator = new DecelerateInterpolator();
-	private static final Interpolator sAccelerator = new AccelerateInterpolator();
 
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
@@ -160,11 +155,8 @@ public final class EmulationActivity extends AppCompatActivity
 						}
 					});
 
-			mImageView.animate()
-					.withLayer()
+			Animations.fadeViewOut(mImageView)
 					.setStartDelay(2000)
-					.setDuration(500)
-					.alpha(0.0f)
 					.withStartAction(new Runnable()
 					{
 						@Override
@@ -268,7 +260,7 @@ public final class EmulationActivity extends AppCompatActivity
 		{
 			if (mSubmenuFragmentTag != null)
 			{
-				removeMenu();
+				removeSubMenu();
 			}
 			else
 			{
@@ -287,12 +279,7 @@ public final class EmulationActivity extends AppCompatActivity
 		{
 			mMenuVisible = false;
 
-			mMenuLayout.animate()
-					.withLayer()
-					.setDuration(200)
-					.setInterpolator(sAccelerator)
-					.alpha(0.0f)
-					.translationX(-400.0f)
+			Animations.fadeViewOutToLeft(mMenuLayout)
 					.withEndAction(new Runnable()
 					{
 						@Override
@@ -308,17 +295,7 @@ public final class EmulationActivity extends AppCompatActivity
 		else
 		{
 			mMenuVisible = true;
-			mMenuLayout.setVisibility(View.VISIBLE);
-
-//			mMenuLayout.setTranslationX(-400.0f);
-			mMenuLayout.setAlpha(0.0f);
-
-			mMenuLayout.animate()
-					.withLayer()
-					.setDuration(300)
-					.setInterpolator(sDecelerator)
-					.alpha(1.0f)
-					.translationX(0.0f);
+			Animations.fadeViewInFromLeft(mMenuLayout);
 		}
 	}
 
@@ -365,11 +342,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void showScreenshot()
 	{
-		mImageView.setVisibility(View.VISIBLE);
-		mImageView.animate()
-				.withLayer()
-				.setDuration(100)
-				.alpha(1.0f)
+		Animations.fadeViewIn(mImageView)
 				.withEndAction(afterShowingScreenshot);
 	}
 
@@ -623,7 +596,7 @@ public final class EmulationActivity extends AppCompatActivity
 				.commit();
 	}
 
-	private void removeMenu()
+	private void removeSubMenu()
 	{
 		if (mSubmenuFragmentTag != null)
 		{
@@ -631,14 +604,9 @@ public final class EmulationActivity extends AppCompatActivity
 
 			if (fragment != null)
 			{
-				// When removing a fragment without replacement, its aniimation must be done
+				// When removing a fragment without replacement, its animation must be done
 				// manually beforehand.
-				fragment.getView().animate()
-						.withLayer()
-						.setDuration(200)
-						.setInterpolator(sAccelerator)
-						.alpha(0.0f)
-						.translationX(600.0f)
+				Animations.fadeViewOutToRight(fragment.getView())
 						.withEndAction(new Runnable()
 						{
 							@Override
