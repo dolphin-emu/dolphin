@@ -1158,10 +1158,16 @@ std::string PostProcessor::GetPassFragmentShaderSource(API_TYPE api, const PostP
 		if (pass->entry_point == "main")
 			shader_source += "#undef main\n";
 
-		shader_source += "void main(in float4 in_pos : SV_Position, in float3 in_uv0 : TEXCOORD0, out float4 out_col0 : SV_Target) {\n";
+		shader_source += "void main(in float4 in_pos : SV_Position,\n";
+		shader_source += "          in float2 in_srcTexCoord : TEXCOORD0,\n";
+		shader_source += "          in float2 in_dstTexCoord : TEXCOORD1,\n";
+		shader_source += "          in float in_layer : TEXCOORD2,\n";
+		shader_source += "          out float4 out_col0 : SV_Target)\n";
+		shader_source += "{\n";
 		shader_source += "\tfragcoord = in_pos.xy;\n";
-		shader_source += "\tuv0 = in_uv0.xy;\n";
-		shader_source += "\tlayer = in_uv0.z;\n";
+		shader_source += "\tuv0 = in_srcTexCoord;\n";
+		shader_source += "\ttarget_uv0 = in_dstTexCoord;\n";
+		shader_source += "\tlayer = in_layer;\n";
 
 		// No entry point? This pass should perform a copy.
 		if (pass->entry_point.empty())
@@ -1264,6 +1270,7 @@ float4 mul(float4 v, float4x4 m) { return (m * v); }
 // Shader inputs/outputs
 SAMPLER_BINDING(9) uniform sampler2DArray pp_inputs[4];
 in float2 uv0;
+in float2 target_uv0;
 flat in float layer;
 out float4 ocol0;
 
@@ -1292,8 +1299,9 @@ SamplerState pp_input_samplers[4] : register(s9);
 // Shadows of those read/written in main
 static float2 fragcoord;
 static float2 uv0;
-static float4 ocol0;
+static float2 target_uv0;
 static float layer;
+static float4 ocol0;
 
 // Input sampling wrappers
 float4 SampleInput(int index) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, layer)); }
@@ -1319,16 +1327,20 @@ float ToLinearDepth(float depth)
 	const float A = (1.0f - (FarZ / NearZ)) / 2.0f;
 	const float B = (1.0f + (FarZ / NearZ)) / 2.0f;
 
-		return 1.0f / (A * depth + B);
+	return 1.0f / (A * depth + B);
 }
 
-// Input resolution accessors
+// Constant accessors
 float2 GetInputResolution(int index) { return input_resolutions[index].xy; }
 float2 GetInvInputResolution(int index) { return input_resolutions[index].zw; }
 float2 GetTargetResolution() { return target_resolution.xy; }
 float2 GetInvTargetResolution() { return target_resolution.zw; }
 float2 GetTargetRectOrigin() { return target_rect.xy; }
 float2 GetTargetRectSize() { return target_rect.zw; }
+float2 GetTargetCoordinates() { return target_uv0; }
+float2 GetCoordinates() { return uv0; }
+float GetTime() { return time; }
+float GetLayer() { return layer; }
 
 // Interface wrappers - provided for compatibility.
 float4 Sample() { return SampleInput(COLOR_BUFFER_INPUT_INDEX); }
@@ -1354,8 +1366,6 @@ float2 GetResolution() { return GetInputResolution(COLOR_BUFFER_INPUT_INDEX); }
 float2 GetInvResolution() { return GetInvInputResolution(COLOR_BUFFER_INPUT_INDEX); }
 
 // Variable wrappers
-float2 GetCoordinates() { return uv0; }
-float GetTime() { return time; }
 void SetOutput(float4 color) { ocol0 = color; }
 
 // Option check macro
