@@ -388,10 +388,9 @@ void PostProcessingShader::Draw(D3DPostProcessor* parent,
 
 D3DPostProcessor::~D3DPostProcessor()
 {
-	if (m_color_copy_texture != nullptr)
-		m_color_copy_texture->Release();
-	if (m_depth_copy_texture != nullptr)
-		m_depth_copy_texture->Release();
+	SAFE_RELEASE(m_color_copy_texture);
+	SAFE_RELEASE(m_depth_copy_texture);
+	SAFE_RELEASE(m_stereo_buffer_texture);
 }
 
 bool D3DPostProcessor::Initialize()

@@ -65,7 +65,7 @@ static std::unique_ptr<RasterFont> s_raster_font;
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
 static int s_last_multisamples = 1;
-static bool s_last_stereo_mode = false;
+static int s_last_stereo_mode = STEREO_DISABLED;
 static bool s_last_xfb_mode = false;
 
 static u32 s_blendMode;
@@ -586,7 +586,7 @@ Renderer::Renderer()
 	s_last_multisamples = g_ActiveConfig.iMultisamples;
 	s_MSAASamples = s_last_multisamples;
 
-	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+	s_last_stereo_mode = g_ActiveConfig.iStereoMode;
 	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 	// Decide framebuffer size
@@ -1434,19 +1434,17 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		TargetSizeChanged = true;
 	}
 	if (TargetSizeChanged || xfbchanged || WindowResized ||
-	    (s_last_multisamples != g_ActiveConfig.iMultisamples) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
+	    s_last_multisamples != g_ActiveConfig.iMultisamples ||
+		s_last_stereo_mode != g_ActiveConfig.iStereoMode)
 	{
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 		if (TargetSizeChanged ||
-		    s_last_multisamples != g_ActiveConfig.iMultisamples || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
+		    s_last_multisamples != g_ActiveConfig.iMultisamples ||
+			s_last_stereo_mode != g_ActiveConfig.iStereoMode)
 		{
-			// Reload post-processor when stereo mode changes (layers changed)
-			bool reload_post_processor = (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0));
-
-			s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 			s_last_multisamples = g_ActiveConfig.iMultisamples;
 			s_MSAASamples = s_last_multisamples;
 
@@ -1461,8 +1459,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			PixelShaderManager::SetEfbScaleChanged();
 
-			if (reload_post_processor)
+			if (s_last_stereo_mode != g_ActiveConfig.iStereoMode)
+			{
+				s_last_stereo_mode = g_ActiveConfig.iStereoMode;
 				m_post_processor->SetReloadFlag();
+			}
 		}
 	}
 
