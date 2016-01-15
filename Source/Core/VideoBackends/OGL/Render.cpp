@@ -210,11 +210,21 @@ static void InitDriverInfo()
 		case DriverDetails::VENDOR_MESA:
 		{
 			if (svendor == "nouveau")
+			{
 				driver = DriverDetails::DRIVER_NOUVEAU;
+			}
 			else if (svendor == "Intel Open Source Technology Center")
+			{
 				driver = DriverDetails::DRIVER_I965;
+				if (srenderer.find("Sandybridge") != std::string::npos)
+					family = DriverDetails::Family::INTEL_SANDY;
+				else if (srenderer.find("Ivybridge") != std::string::npos)
+					family = DriverDetails::Family::INTEL_IVY;
+			}
 			else if (std::string::npos != srenderer.find("AMD") || std::string::npos != srenderer.find("ATI"))
+			{
 				driver = DriverDetails::DRIVER_R600;
+			}
 
 			int major = 0;
 			int minor = 0;
