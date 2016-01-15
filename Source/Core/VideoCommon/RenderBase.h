@@ -95,6 +95,9 @@ public:
 	static const TargetRectangle& GetTargetRectangle() { return target_rc; }
 	static void UpdateDrawRectangle(int backbuffer_width, int backbuffer_height);
 
+	// Window rectangle (client area of the render window)
+	static const TargetRectangle& GetWindowRectangle() { return window_rc; }
+
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
 	static int EFBToScaledX(int x);
 	static int EFBToScaledY(int y);
@@ -166,6 +169,7 @@ protected:
 	static int s_backbuffer_height;
 
 	static TargetRectangle target_rc;
+	static TargetRectangle window_rc;
 
 	// TODO: Can probably eliminate this static var.
 	static int s_last_efb_scale;
