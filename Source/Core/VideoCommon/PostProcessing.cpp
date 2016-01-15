@@ -814,107 +814,6 @@ void PostProcessor::OnEndFrame()
 	m_projection_state = PROJECTION_STATE_INITIAL;
 }
 
-void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShaderConfiguration* config,
-										void* buffer_ptr, const InputTextureSizeArray& input_sizes,
-										const TargetRectangle& dst_rect, const TargetSize& dst_size,
-										const TargetRectangle& src_rect, const TargetSize& src_size,
-										int src_layer)
-{
-	// Each option is aligned to a float4
-	union Constant
-	{
-		int bool_constant;
-		float float_constant[4];
-		s32 int_constant[4];
-	};
-
-	Constant* constants = reinterpret_cast<Constant*>(buffer_ptr);
-
-	// float4 input_resolutions[4]
-	for (size_t i = 0; i < POST_PROCESSING_MAX_TEXTURE_INPUTS; i++)
-	{
-		constants[i].float_constant[0] = (float)input_sizes[i].width;
-		constants[i].float_constant[1] = (float)input_sizes[i].height;
-		constants[i].float_constant[2] = 1.0f / (float)input_sizes[i].width;
-		constants[i].float_constant[3] = 1.0f / (float)input_sizes[i].height;
-	}
-
-	// float4 src_rect (only used by GL)
-	u32 constant_idx = POST_PROCESSING_MAX_TEXTURE_INPUTS;
-	constants[constant_idx].float_constant[0] = (float)src_rect.left / (float)src_size.width;
-	constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? src_rect.bottom : src_rect.top) / (float)src_size.height;
-	constants[constant_idx].float_constant[2] = (float)src_rect.GetWidth() / (float)src_size.width;
-	constants[constant_idx].float_constant[3] = (float)src_rect.GetHeight() / (float)src_size.height;
-	constant_idx++;
-
-	// float4 target_resolution
-	constants[constant_idx].float_constant[0] = (float)dst_size.width;
-	constants[constant_idx].float_constant[1] = (float)dst_size.height;
-	constants[constant_idx].float_constant[2] = 1.0f / (float)dst_size.width;
-	constants[constant_idx].float_constant[3] = 1.0f / (float)dst_size.height;
-	constant_idx++;
-
-	// float4 target_rect
-	constants[constant_idx].float_constant[0] = (float)dst_rect.left / (float)dst_size.width;
-	constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? dst_rect.bottom : dst_rect.top) / (float)dst_size.height;
-	constants[constant_idx].float_constant[2] = (float)dst_rect.GetWidth() / (float)dst_size.width;
-	constants[constant_idx].float_constant[3] = (float)dst_rect.GetHeight() / (float)dst_size.height;
-	constant_idx++;
-
-	// float time, float layer
-	constants[constant_idx].float_constant[0] = float(double(m_timer.GetTimeDifference()) / 1000.0);
-	constants[constant_idx].float_constant[1] = float(std::max(src_layer, 0));
-	constants[constant_idx].float_constant[2] = 0.0f;
-	constants[constant_idx].float_constant[3] = 0.0f;
-	constant_idx++;
-
-	// Set from options. This is an ordered map so it will always match the order in the shader code generated.
-	for (const auto& it : config->GetOptions())
-	{
-		// Skip compile-time constants, since they're set in the program source.
-		if (it.second.m_compile_time_constant)
-			continue;
-
-		switch (it.second.m_type)
-		{
-		case POST_PROCESSING_OPTION_TYPE_BOOL:
-			constants[constant_idx].int_constant[0] = (int)it.second.m_bool_value;
-			constants[constant_idx].int_constant[1] = 0;
-			constants[constant_idx].int_constant[2] = 0;
-			constants[constant_idx].int_constant[3] = 0;
-			constant_idx++;
-			break;
-
-		case POST_PROCESSING_OPTION_TYPE_INTEGER:
-			{
-				u32 components = std::max((u32)it.second.m_integer_values.size(), (u32)0);
-				for (u32 i = 0; i < components; i++)
-					constants[constant_idx].int_constant[i] = it.second.m_integer_values[i];
-				for (u32 i = components; i < 4; i++)
-					constants[constant_idx].int_constant[i] = 0;
-
-				constant_idx++;
-			}
-			break;
-
-		case POST_PROCESSING_OPTION_TYPE_FLOAT:
-			{
-				u32 components = std::max((u32)it.second.m_float_values.size(), (u32)0);
-				for (u32 i = 0; i < components; i++)
-					constants[constant_idx].float_constant[i] = it.second.m_float_values[i];
-				for (u32 i = components; i < 4; i++)
-					constants[constant_idx].int_constant[i] = 0;
-
-				constant_idx++;
-			}
-			break;
-		}
-	}
-
-	// Sanity check, should never fail
-	_dbg_assert_(VIDEO, constant_idx <= (UNIFORM_BUFFER_SIZE / 16));
-}
-
 PostProcessingShaderConfiguration* PostProcessor::GetPostShaderConfig(const std::string& shader_name)
 {
 	const auto& it = m_shader_configs.find(shader_name);
@@ -986,6 +885,198 @@ void PostProcessor::ReloadStereoShaderConfig()
 		}
 	}
 }
+
+TargetSize PostProcessor::ScaleTargetSize(const TargetSize& orig_size, float scale)
+{
+	TargetSize size;
+
+	// negative scale means scale to native first
+	if (scale < 0.0f)
+	{
+		float native_scale = -scale;
+		int native_width = orig_size.width * EFB_WIDTH / g_renderer->GetTargetWidth();
+		int native_height = orig_size.height * EFB_HEIGHT / g_renderer->GetTargetHeight();
+		size.width = std::max(static_cast<int>(std::round(((float)native_width * native_scale))), 1);
+		size.height = std::max(static_cast<int>(std::round(((float)native_height * native_scale))), 1);
+
+	}
+	else
+	{
+		size.width = std::max(static_cast<int>(std::round((float)orig_size.width * scale)), 1);
+		size.height = std::max(static_cast<int>(std::round((float)orig_size.height * scale)), 1);
+	}
+
+	return size;
+}
+
+TargetRectangle PostProcessor::ScaleTargetRectangle(API_TYPE api, const TargetRectangle& src, float scale)
+{
+	TargetRectangle dst;
+
+	// negative scale means scale to native first
+	if (scale < 0.0f)
+	{
+		float native_scale = -scale;
+		int native_left = src.left * EFB_WIDTH / g_renderer->GetTargetWidth();
+		int native_right = src.right * EFB_WIDTH / g_renderer->GetTargetWidth();
+		int native_top = src.top * EFB_HEIGHT / g_renderer->GetTargetHeight();
+		int native_bottom = src.bottom * EFB_HEIGHT / g_renderer->GetTargetHeight();
+		dst.left = static_cast<int>(std::round((float)native_left * native_scale));
+		dst.right = static_cast<int>(std::round((float)native_right * native_scale));
+		dst.top = static_cast<int>(std::round((float)native_top * native_scale));
+		dst.bottom = static_cast<int>(std::round((float)native_bottom * native_scale));
+	}
+	else
+	{
+		dst.left = static_cast<int>(std::round((float)src.left * scale));
+		dst.right = static_cast<int>(std::round((float)src.right * scale));
+		dst.top = static_cast<int>(std::round((float)src.top * scale));
+		dst.bottom = static_cast<int>(std::round((float)src.bottom * scale));
+	}
+
+	// D3D can't handle zero viewports, so protect against this here
+	if (api == API_D3D)
+	{
+		dst.right = std::max(dst.right, dst.left + 1);
+		dst.bottom = std::max(dst.bottom, dst.top + 1);
+	}
+
+	return dst;
+}
+
+const std::string PostProcessor::s_post_fragment_header_ogl = R"(
+
+// Type aliases.
+#define float2x2 mat2
+#define float3x3 mat3
+#define float4x4 mat4
+#define float4x3 mat4x3
+
+// Utility functions.
+float saturate(float x) { return clamp(x, 0.0f, 1.0f); }
+float2 saturate(float2 x) { return clamp(x, float2(0.0f, 0.0f), float2(1.0f, 1.0f)); }
+float3 saturate(float3 x) { return clamp(x, float3(0.0f, 0.0f, 0.0f), float3(1.0f, 1.0f, 1.0f)); }
+float4 saturate(float4 x) { return clamp(x, float4(0.0f, 0.0f, 0.0f, 0.0f), float4(1.0f, 1.0f, 1.0f, 1.0f)); }
+
+// Flipped multiplication order because GLSL matrices use column vectors.
+float2 mul(float2x2 m, float2 v) { return (v * m); }
+float3 mul(float3x3 m, float3 v) { return (v * m); }
+float4 mul(float4x3 m, float3 v) { return (v * m); }
+float4 mul(float4x4 m, float4 v) { return (v * m); }
+float2 mul(float2 v, float2x2 m) { return (m * v); }
+float3 mul(float3 v, float3x3 m) { return (m * v); }
+float3 mul(float4 v, float4x3 m) { return (m * v); }
+float4 mul(float4 v, float4x4 m) { return (m * v); }
+
+// Depth value is not inverted for GL
+#define DEPTH_VALUE(val) (val)
+
+// Shader inputs/outputs
+SAMPLER_BINDING(9) uniform sampler2DArray pp_inputs[4];
+in float2 uv0;
+in float2 target_uv0;
+flat in float layer;
+out float4 ocol0;
+
+// Input sampling wrappers. Has to be a macro because the array index must be a constant expression.
+#define SampleInput(index) (texture(pp_inputs[index], float3(uv0, layer)))
+#define SampleInputLocation(index, location) (texture(pp_inputs[index], float3(location, layer)))
+#define SampleInputLayer(index, slayer) (texture(pp_inputs[index], float3(uv0, float(slayer))))
+#define SampleInputLayerLocation(index, slayer, location) (texture(pp_inputs[index], float3(location, float(slayer))))
+#define GetFragmentCoord() (gl_FragCoord.xy)
+
+// Input sampling with offset, macro because offset must be a constant expression.
+#define SampleInputOffset(index, offset) (textureOffset(pp_inputs[index], float3(uv0, layer), offset))
+#define SampleInputLayerOffset(index, slayer, offset) (textureOffset(pp_inputs[index], float3(uv0, float(slayer)), offset))
+
+)";
+
+const std::string PostProcessor::s_post_fragment_header_d3d = R"(
+
+// Depth value is inverted for D3D
+#define DEPTH_VALUE(val) (1.0f - (val))
+
+// Shader inputs
+Texture2DArray pp_inputs[4] : register(t9);
+SamplerState pp_input_samplers[4] : register(s9);
+
+// Shadows of those read/written in main
+static float2 fragcoord;
+static float2 uv0;
+static float2 target_uv0;
+static float layer;
+static float4 ocol0;
+
+// Input sampling wrappers
+float4 SampleInput(int index) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, layer)); }
+float4 SampleInputLocation(int index, float2 location) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(location, layer)); }
+float4 SampleInputLayer(int index, int slayer) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, float(slayer))); }
+float4 SampleInputLayerLocation(int index, int slayer, float2 location) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(location, float(slayer))); }
+float2 GetFragmentCoord() { return fragcoord; }
+
+// Input sampling with offset, macro because offset must be a constant expression.
+#define SampleInputOffset(index, offset) (pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, layer), offset))
+#define SampleInputLayerOffset(index, slayer, offset) (pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, float(slayer)), offset))
+
+)";
+
+const std::string PostProcessor::s_post_fragment_header_common = R"(
+
+// Convert z/w -> linear depth
+float ToLinearDepth(float depth)
+{
+	// TODO: Look at where we can pull better values for this from.
+	const float NearZ = 0.001f;
+	const float FarZ = 1.0f;
+	const float A = (1.0f - (FarZ / NearZ)) / 2.0f;
+	const float B = (1.0f + (FarZ / NearZ)) / 2.0f;
+
+	return 1.0f / (A * depth + B);
+}
+
+// Constant accessors
+float2 GetInputResolution(int index) { return input_resolutions[index].xy; }
+float2 GetInvInputResolution(int index) { return input_resolutions[index].zw; }
+float2 GetTargetResolution() { return target_resolution.xy; }
+float2 GetInvTargetResolution() { return target_resolution.zw; }
+float2 GetTargetRectOrigin() { return target_rect.xy; }
+float2 GetTargetRectSize() { return target_rect.zw; }
+float2 GetTargetCoordinates() { return target_uv0; }
+float2 GetCoordinates() { return uv0; }
+float GetTime() { return time; }
+float GetLayer() { return layer; }
+
+// Interface wrappers - provided for compatibility.
+float4 Sample() { return SampleInput(COLOR_BUFFER_INPUT_INDEX); }
+float4 SampleLocation(float2 location) { return SampleInputLocation(COLOR_BUFFER_INPUT_INDEX, location); }
+float4 SampleLayer(int layer) { return SampleInputLayer(COLOR_BUFFER_INPUT_INDEX, layer); }
+float4 SampleLayerLocation(int layer, float2 location) { return SampleInputLayerLocation(COLOR_BUFFER_INPUT_INDEX, layer, location); }
+float4 SamplePrev() { return SampleInput(PREV_OUTPUT_INPUT_INDEX); }
+float4 SamplePrevLocation(float2 location) { return SampleInputLocation(PREV_OUTPUT_INPUT_INDEX, location); }
+float SampleRawDepth() { return DEPTH_VALUE(SampleInput(DEPTH_BUFFER_INPUT_INDEX).x); }
+float SampleRawDepthLocation(float2 location) { return DEPTH_VALUE(SampleInputLocation(DEPTH_BUFFER_INPUT_INDEX, location).x); }
+float SampleDepth() { return ToLinearDepth(SampleRawDepth()); }
+float SampleDepthLocation(float2 location) { return ToLinearDepth(SampleRawDepthLocation(location)); }
+
+// Offset methods are macros, because the offset must be a constant expression.
+#define SampleOffset(offset) (SampleInputOffset(COLOR_BUFFER_INPUT_INDEX, offset))
+#define SampleLayerOffset(offset, slayer) (SampleInputLayerOffset(COLOR_BUFFER_INPUT_INDEX, slayer, offset))
+#define SamplePrevOffset(offset) (SampleInputOffset(PREV_OUTPUT_INPUT_INDEX, offset))
+#define SampleRawDepthOffset(offset) (DEPTH_VALUE(SampleInputOffset(DEPTH_BUFFER_INPUT_INDEX, offset).x))
+#define SampleDepthOffset(offset) (ToLinearDepth(SampleRawDepthOffset(offset)))
+
+// Backwards compatibility
+float2 GetResolution() { return GetInputResolution(COLOR_BUFFER_INPUT_INDEX); }
+float2 GetInvResolution() { return GetInvInputResolution(COLOR_BUFFER_INPUT_INDEX); }
+
+// Variable wrappers
+void SetOutput(float4 color) { ocol0 = color; }
+
+// Option check macro
+#define GetOption(x) (x)
+#define OptionEnabled(x) ((x) != 0)
+
+)";
 
 std::string PostProcessor::GetUniformBufferShaderSource(API_TYPE api, const PostProcessingShaderConfiguration* config)
 {
@@ -1185,194 +1276,103 @@ std::string PostProcessor::GetPassFragmentShaderSource(API_TYPE api, const PostP
 	return shader_source;
 }
 
-TargetSize PostProcessor::ScaleTargetSize(const TargetSize& orig_size, float scale)
+void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShaderConfiguration* config,
+										void* buffer_ptr, const InputTextureSizeArray& input_sizes,
+										const TargetRectangle& dst_rect, const TargetSize& dst_size,
+										const TargetRectangle& src_rect, const TargetSize& src_size,
+										int src_layer)
 {
-	TargetSize size;
-
-	// negative scale means scale to native first
-	if (scale < 0.0f)
+	// Each option is aligned to a float4
+	union Constant
 	{
-		float native_scale = -scale;
-		int native_width = orig_size.width * EFB_WIDTH / g_renderer->GetTargetWidth();
-		int native_height = orig_size.height * EFB_HEIGHT / g_renderer->GetTargetHeight();
-		size.width = std::max(static_cast<int>(std::round(((float)native_width * native_scale))), 1);
-		size.height = std::max(static_cast<int>(std::round(((float)native_height * native_scale))), 1);
+		int bool_constant;
+		float float_constant[4];
+		s32 int_constant[4];
+	};
 
-	}
-	else
+	Constant* constants = reinterpret_cast<Constant*>(buffer_ptr);
+
+	// float4 input_resolutions[4]
+	for (size_t i = 0; i < POST_PROCESSING_MAX_TEXTURE_INPUTS; i++)
 	{
-		size.width = std::max(static_cast<int>(std::round((float)orig_size.width * scale)), 1);
-		size.height = std::max(static_cast<int>(std::round((float)orig_size.height * scale)), 1);
+		constants[i].float_constant[0] = (float)input_sizes[i].width;
+		constants[i].float_constant[1] = (float)input_sizes[i].height;
+		constants[i].float_constant[2] = 1.0f / (float)input_sizes[i].width;
+		constants[i].float_constant[3] = 1.0f / (float)input_sizes[i].height;
 	}
 
-	return size;
+	// float4 src_rect (only used by GL)
+	u32 constant_idx = POST_PROCESSING_MAX_TEXTURE_INPUTS;
+	constants[constant_idx].float_constant[0] = (float)src_rect.left / (float)src_size.width;
+	constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? src_rect.bottom : src_rect.top) / (float)src_size.height;
+	constants[constant_idx].float_constant[2] = (float)src_rect.GetWidth() / (float)src_size.width;
+	constants[constant_idx].float_constant[3] = (float)src_rect.GetHeight() / (float)src_size.height;
+	constant_idx++;
+
+	// float4 target_resolution
+	constants[constant_idx].float_constant[0] = (float)dst_size.width;
+	constants[constant_idx].float_constant[1] = (float)dst_size.height;
+	constants[constant_idx].float_constant[2] = 1.0f / (float)dst_size.width;
+	constants[constant_idx].float_constant[3] = 1.0f / (float)dst_size.height;
+	constant_idx++;
+
+	// float4 target_rect
+	constants[constant_idx].float_constant[0] = (float)dst_rect.left / (float)dst_size.width;
+	constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? dst_rect.bottom : dst_rect.top) / (float)dst_size.height;
+	constants[constant_idx].float_constant[2] = (float)dst_rect.GetWidth() / (float)dst_size.width;
+	constants[constant_idx].float_constant[3] = (float)dst_rect.GetHeight() / (float)dst_size.height;
+	constant_idx++;
+
+	// float time, float layer
+	constants[constant_idx].float_constant[0] = float(double(m_timer.GetTimeDifference()) / 1000.0);
+	constants[constant_idx].float_constant[1] = float(std::max(src_layer, 0));
+	constants[constant_idx].float_constant[2] = 0.0f;
+	constants[constant_idx].float_constant[3] = 0.0f;
+	constant_idx++;
+
+	// Set from options. This is an ordered map so it will always match the order in the shader code generated.
+	for (const auto& it : config->GetOptions())
+	{
+		// Skip compile-time constants, since they're set in the program source.
+		if (it.second.m_compile_time_constant)
+			continue;
+
+		switch (it.second.m_type)
+		{
+		case POST_PROCESSING_OPTION_TYPE_BOOL:
+			constants[constant_idx].int_constant[0] = (int)it.second.m_bool_value;
+			constants[constant_idx].int_constant[1] = 0;
+			constants[constant_idx].int_constant[2] = 0;
+			constants[constant_idx].int_constant[3] = 0;
+			constant_idx++;
+			break;
+
+		case POST_PROCESSING_OPTION_TYPE_INTEGER:
+			{
+				u32 components = std::max((u32)it.second.m_integer_values.size(), (u32)0);
+				for (u32 i = 0; i < components; i++)
+					constants[constant_idx].int_constant[i] = it.second.m_integer_values[i];
+				for (u32 i = components; i < 4; i++)
+					constants[constant_idx].int_constant[i] = 0;
+
+				constant_idx++;
+			}
+			break;
+
+		case POST_PROCESSING_OPTION_TYPE_FLOAT:
+			{
+				u32 components = std::max((u32)it.second.m_float_values.size(), (u32)0);
+				for (u32 i = 0; i < components; i++)
+					constants[constant_idx].float_constant[i] = it.second.m_float_values[i];
+				for (u32 i = components; i < 4; i++)
+					constants[constant_idx].int_constant[i] = 0;
+
+				constant_idx++;
+			}
+			break;
+		}
+	}
+
+	// Sanity check, should never fail
+	_dbg_assert_(VIDEO, constant_idx <= (UNIFORM_BUFFER_SIZE / 16));
 }
-
-TargetRectangle PostProcessor::ScaleTargetRectangle(API_TYPE api, const TargetRectangle& src, float scale)
-{
-	TargetRectangle dst;
-
-	// negative scale means scale to native first
-	if (scale < 0.0f)
-	{
-		float native_scale = -scale;
-		int native_left = src.left * EFB_WIDTH / g_renderer->GetTargetWidth();
-		int native_right = src.right * EFB_WIDTH / g_renderer->GetTargetWidth();
-		int native_top = src.top * EFB_HEIGHT / g_renderer->GetTargetHeight();
-		int native_bottom = src.bottom * EFB_HEIGHT / g_renderer->GetTargetHeight();
-		dst.left = static_cast<int>(std::round((float)native_left * native_scale));
-		dst.right = static_cast<int>(std::round((float)native_right * native_scale));
-		dst.top = static_cast<int>(std::round((float)native_top * native_scale));
-		dst.bottom = static_cast<int>(std::round((float)native_bottom * native_scale));
-	}
-	else
-	{
-		dst.left = static_cast<int>(std::round((float)src.left * scale));
-		dst.right = static_cast<int>(std::round((float)src.right * scale));
-		dst.top = static_cast<int>(std::round((float)src.top * scale));
-		dst.bottom = static_cast<int>(std::round((float)src.bottom * scale));
-	}
-
-	// D3D can't handle zero viewports, so protect against this here
-	if (api == API_D3D)
-	{
-		dst.right = std::max(dst.right, dst.left + 1);
-		dst.bottom = std::max(dst.bottom, dst.top + 1);
-	}
-
-	return dst;
-}
-
-const std::string PostProcessor::s_post_fragment_header_ogl = R"(
-
-// Type aliases.
-#define float2x2 mat2
-#define float3x3 mat3
-#define float4x4 mat4
-#define float4x3 mat4x3
-
-// Utility functions.
-float saturate(float x) { return clamp(x, 0.0f, 1.0f); }
-float2 saturate(float2 x) { return clamp(x, float2(0.0f, 0.0f), float2(1.0f, 1.0f)); }
-float3 saturate(float3 x) { return clamp(x, float3(0.0f, 0.0f, 0.0f), float3(1.0f, 1.0f, 1.0f)); }
-float4 saturate(float4 x) { return clamp(x, float4(0.0f, 0.0f, 0.0f, 0.0f), float4(1.0f, 1.0f, 1.0f, 1.0f)); }
-
-// Flipped multiplication order because GLSL matrices use column vectors.
-float2 mul(float2x2 m, float2 v) { return (v * m); }
-float3 mul(float3x3 m, float3 v) { return (v * m); }
-float4 mul(float4x3 m, float3 v) { return (v * m); }
-float4 mul(float4x4 m, float4 v) { return (v * m); }
-float2 mul(float2 v, float2x2 m) { return (m * v); }
-float3 mul(float3 v, float3x3 m) { return (m * v); }
-float3 mul(float4 v, float4x3 m) { return (m * v); }
-float4 mul(float4 v, float4x4 m) { return (m * v); }
-
-// Depth value is not inverted for GL
-#define DEPTH_VALUE(val) (val)
-
-// Shader inputs/outputs
-SAMPLER_BINDING(9) uniform sampler2DArray pp_inputs[4];
-in float2 uv0;
-in float2 target_uv0;
-flat in float layer;
-out float4 ocol0;
-
-// Input sampling wrappers. Has to be a macro because the array index must be a constant expression.
-#define SampleInput(index) (texture(pp_inputs[index], float3(uv0, layer)))
-#define SampleInputLocation(index, location) (texture(pp_inputs[index], float3(location, layer)))
-#define SampleInputLayer(index, slayer) (texture(pp_inputs[index], float3(uv0, float(slayer))))
-#define SampleInputLayerLocation(index, slayer, location) (texture(pp_inputs[index], float3(location, float(slayer))))
-#define GetFragmentCoord() (gl_FragCoord.xy)
-
-// Input sampling with offset, macro because offset must be a constant expression.
-#define SampleInputOffset(index, offset) (textureOffset(pp_inputs[index], float3(uv0, layer), offset))
-#define SampleInputLayerOffset(index, slayer, offset) (textureOffset(pp_inputs[index], float3(uv0, float(slayer)), offset))
-
-)";
-
-const std::string PostProcessor::s_post_fragment_header_d3d = R"(
-
-// Depth value is inverted for D3D
-#define DEPTH_VALUE(val) (1.0f - (val))
-
-// Shader inputs
-Texture2DArray pp_inputs[4] : register(t9);
-SamplerState pp_input_samplers[4] : register(s9);
-
-// Shadows of those read/written in main
-static float2 fragcoord;
-static float2 uv0;
-static float2 target_uv0;
-static float layer;
-static float4 ocol0;
-
-// Input sampling wrappers
-float4 SampleInput(int index) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, layer)); }
-float4 SampleInputLocation(int index, float2 location) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(location, layer)); }
-float4 SampleInputLayer(int index, int slayer) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, float(slayer))); }
-float4 SampleInputLayerLocation(int index, int slayer, float2 location) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(location, float(slayer))); }
-float2 GetFragmentCoord() { return fragcoord; }
-
-// Input sampling with offset, macro because offset must be a constant expression.
-#define SampleInputOffset(index, offset) (pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, layer), offset))
-#define SampleInputLayerOffset(index, slayer, offset) (pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, float(slayer)), offset))
-
-)";
-
-const std::string PostProcessor::s_post_fragment_header_common = R"(
-
-// Convert z/w -> linear depth
-float ToLinearDepth(float depth)
-{
-	// TODO: Look at where we can pull better values for this from.
-	const float NearZ = 0.001f;
-	const float FarZ = 1.0f;
-	const float A = (1.0f - (FarZ / NearZ)) / 2.0f;
-	const float B = (1.0f + (FarZ / NearZ)) / 2.0f;
-
-	return 1.0f / (A * depth + B);
-}
-
-// Constant accessors
-float2 GetInputResolution(int index) { return input_resolutions[index].xy; }
-float2 GetInvInputResolution(int index) { return input_resolutions[index].zw; }
-float2 GetTargetResolution() { return target_resolution.xy; }
-float2 GetInvTargetResolution() { return target_resolution.zw; }
-float2 GetTargetRectOrigin() { return target_rect.xy; }
-float2 GetTargetRectSize() { return target_rect.zw; }
-float2 GetTargetCoordinates() { return target_uv0; }
-float2 GetCoordinates() { return uv0; }
-float GetTime() { return time; }
-float GetLayer() { return layer; }
-
-// Interface wrappers - provided for compatibility.
-float4 Sample() { return SampleInput(COLOR_BUFFER_INPUT_INDEX); }
-float4 SampleLocation(float2 location) { return SampleInputLocation(COLOR_BUFFER_INPUT_INDEX, location); }
-float4 SampleLayer(int layer) { return SampleInputLayer(COLOR_BUFFER_INPUT_INDEX, layer); }
-float4 SampleLayerLocation(int layer, float2 location) { return SampleInputLayerLocation(COLOR_BUFFER_INPUT_INDEX, layer, location); }
-float4 SamplePrev() { return SampleInput(PREV_OUTPUT_INPUT_INDEX); }
-float4 SamplePrevLocation(float2 location) { return SampleInputLocation(PREV_OUTPUT_INPUT_INDEX, location); }
-float SampleRawDepth() { return DEPTH_VALUE(SampleInput(DEPTH_BUFFER_INPUT_INDEX).x); }
-float SampleRawDepthLocation(float2 location) { return DEPTH_VALUE(SampleInputLocation(DEPTH_BUFFER_INPUT_INDEX, location).x); }
-float SampleDepth() { return ToLinearDepth(SampleRawDepth()); }
-float SampleDepthLocation(float2 location) { return ToLinearDepth(SampleRawDepthLocation(location)); }
-
-// Offset methods are macros, because the offset must be a constant expression.
-#define SampleOffset(offset) (SampleInputOffset(COLOR_BUFFER_INPUT_INDEX, offset))
-#define SampleLayerOffset(offset, slayer) (SampleInputLayerOffset(COLOR_BUFFER_INPUT_INDEX, slayer, offset))
-#define SamplePrevOffset(offset) (SampleInputOffset(PREV_OUTPUT_INPUT_INDEX, offset))
-#define SampleRawDepthOffset(offset) (DEPTH_VALUE(SampleInputOffset(DEPTH_BUFFER_INPUT_INDEX, offset).x))
-#define SampleDepthOffset(offset) (ToLinearDepth(SampleRawDepthOffset(offset)))
-
-// Backwards compatibility
-float2 GetResolution() { return GetInputResolution(COLOR_BUFFER_INPUT_INDEX); }
-float2 GetInvResolution() { return GetInvInputResolution(COLOR_BUFFER_INPUT_INDEX); }
-
-// Variable wrappers
-void SetOutput(float4 color) { ocol0 = color; }
-
-// Option check macro
-#define GetOption(x) (x)
-#define OptionEnabled(x) ((x) != 0)
-
-)";
