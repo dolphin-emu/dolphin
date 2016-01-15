@@ -19,18 +19,6 @@
 
 #include "VideoCommon/OnScreenDisplay.h"
 
-// Nvidia stereo blitting struct defined in "nvstereo.h" from the Nvidia SDK
-typedef struct _Nv_Stereo_Image_Header
-{
-	unsigned int    dwSignature;
-	unsigned int    dwWidth;
-	unsigned int    dwHeight;
-	unsigned int    dwBPP;
-	unsigned int    dwFlags;
-} NVSTEREOIMAGEHEADER, *LPNVSTEREOIMAGEHEADER;
-
-#define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
-
 namespace DX11
 {
 
@@ -645,10 +633,14 @@ void D3DPostProcessor::PostProcessEFB()
 }
 
 void D3DPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const TargetSize& dst_size, uintptr_t dst_texture,
-										 const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture)
+										 const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
+										 int src_layer)
 {
 	D3DTexture2D* real_dst_texture = reinterpret_cast<D3DTexture2D*>(dst_texture);
 	D3DTexture2D* real_src_texture = reinterpret_cast<D3DTexture2D*>(src_texture);
+	_dbg_assert_msg_(VIDEO, src_layer >= 0, "BlitToFramebuffer should always be called with a single source layer");
+
+	D3D::stateman->SetPixelConstants(m_uniform_buffer.Get());
 
 	ReconfigureScalingShader(src_size);
 	ReconfigureStereoShader(dst_size);
@@ -657,12 +649,12 @@ void D3DPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 	D3D::stateman->SetPixelConstants(m_uniform_buffer.Get());
 
 	// Use stereo shader if enabled, otherwise invoke scaling shader, if that is invalid, fall back to blit.
-	if (m_stereo_shader || g_ActiveConfig.iStereoMode == STEREO_3DVISION)
+	if (m_stereo_shader)
 		DrawStereoBuffers(dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture);
 	else if (m_scaling_shader)
-		m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, nullptr, 0);
+		m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, nullptr, src_layer);
 	else
-		CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, src_size, 0);
+		CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, src_size, src_layer);
 }
 
 void D3DPostProcessor::PostProcess(const TargetRectangle& visible_rect, const TargetSize& tex_size, int tex_layers,
@@ -762,53 +754,24 @@ bool D3DPostProcessor::ResizeCopyBuffers(const TargetSize& size, int layers)
 
 bool D3DPostProcessor::ResizeStereoBuffer(const TargetSize& size)
 {
-	if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
-	{
-		TargetSize real_size(size.width * 2, size.height);
-		if (m_stereo_buffer_size == real_size)
-			return true;
-
-		// Create a staging texture for 3D vision with signature information in the last row.
-		// Nvidia 3D Vision supports full SBS, so there is no loss in resolution during this process.
-		int upload_buffer_size = (size.height + 1) * 4 * size.width * 2;
-		std::vector<u8> upload_buffer(upload_buffer_size);
-
-		D3D11_SUBRESOURCE_DATA sysData;
-		sysData.SysMemPitch = 4 * size.width * 2;
-		sysData.pSysMem = upload_buffer.data();
-
-		LPNVSTEREOIMAGEHEADER header = (LPNVSTEREOIMAGEHEADER)(upload_buffer.data() + size.height * sysData.SysMemPitch);
-		header->dwSignature = NVSTEREO_IMAGE_SIGNATURE;
-		header->dwWidth = size.width * 2;
-		header->dwHeight = size.height + 1;
-		header->dwBPP = 32;
-		header->dwFlags = 0;
-
-		SAFE_RELEASE(m_stereo_buffer_texture);
-		m_stereo_buffer_texture = D3DTexture2D::Create(size.width * 2, size.height + 1, D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &sysData);
+	if (m_stereo_buffer_size == size)
 		return true;
-	}
-	else
+
+	SAFE_RELEASE(m_stereo_buffer_texture);
+	m_stereo_buffer_size.Set(0, 0);
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> stereo_buffer_texture;
+	CD3D11_TEXTURE2D_DESC stereo_buffer_desc(DXGI_FORMAT_R8G8B8A8_UNORM, size.width, size.height, 2, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
+	HRESULT hr = D3D::device->CreateTexture2D(&stereo_buffer_desc, nullptr, &stereo_buffer_texture);
+	if (FAILED(hr))
 	{
-		if (m_stereo_buffer_size == size)
-			return true;
-
-		SAFE_RELEASE(m_stereo_buffer_texture);
-		m_stereo_buffer_size.Set(0, 0);
-
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> stereo_buffer_texture;
-		CD3D11_TEXTURE2D_DESC stereo_buffer_desc(DXGI_FORMAT_R8G8B8A8_UNORM, size.width, size.height, 2, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
-		HRESULT hr = D3D::device->CreateTexture2D(&stereo_buffer_desc, nullptr, &stereo_buffer_texture);
-		if (FAILED(hr))
-		{
-			ERROR_LOG(VIDEO, "CreateTexture2D failed, hr=0x%X", hr);
-			return false;
-		}
-
-		m_stereo_buffer_size = size;
-		m_stereo_buffer_texture = new D3DTexture2D(stereo_buffer_texture.Get(), (D3D11_BIND_FLAG)stereo_buffer_desc.BindFlags, stereo_buffer_desc.Format);
-		return true;
+		ERROR_LOG(VIDEO, "CreateTexture2D failed, hr=0x%X", hr);
+		return false;
 	}
+
+	m_stereo_buffer_size = size;
+	m_stereo_buffer_texture = new D3DTexture2D(stereo_buffer_texture.Get(), (D3D11_BIND_FLAG)stereo_buffer_desc.BindFlags, stereo_buffer_desc.Format);
+	return true;
 }
 
 bool D3DPostProcessor::ReconfigurePostProcessingShaders(const TargetSize& size)
@@ -864,50 +827,19 @@ bool D3DPostProcessor::ReconfigureStereoShader(const TargetSize& size)
 void D3DPostProcessor::DrawStereoBuffers(const TargetRectangle& dst_rect, const TargetSize& dst_size, D3DTexture2D* dst_texture,
 										 const TargetRectangle& src_rect, const TargetSize& src_size, D3DTexture2D* src_texture)
 {
-	if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
+	D3DTexture2D* stereo_buffer = (m_scaling_shader) ? m_stereo_buffer_texture : src_texture;
+	TargetRectangle stereo_buffer_rect(src_rect);
+	TargetSize stereo_buffer_size(src_size);
+
+	// Apply scaling shader if enabled, otherwise just use the source buffers
+	if (m_scaling_shader)
 	{
-		if (!ResizeStereoBuffer(dst_size))
-			return;
-
-		// Use scaling shader to write to the stereo buffer, otherwise copy.
-		TargetRectangle stereo_buffer_rect(dst_rect);
-		if (m_scaling_shader)
-		{
-			m_scaling_shader->Draw(this, stereo_buffer_rect, m_stereo_buffer_size, m_stereo_buffer_texture, src_rect, src_size, src_texture, nullptr, 0);
-			stereo_buffer_rect.left += dst_size.width;
-			stereo_buffer_rect.right += dst_size.width;
-			m_scaling_shader->Draw(this, stereo_buffer_rect, m_stereo_buffer_size, m_stereo_buffer_texture, src_rect, src_size, src_texture, nullptr, 1);
-		}
-		else
-		{
-			TargetRectangle stereo_buffer_rect(dst_rect);
-			CopyTexture(stereo_buffer_rect, m_stereo_buffer_texture, src_rect, src_texture, src_size, 0, false);
-			stereo_buffer_rect.left += dst_size.width;
-			stereo_buffer_rect.right += dst_size.width;
-			CopyTexture(stereo_buffer_rect, m_stereo_buffer_texture, src_rect, src_texture, src_size, 1, false);
-		}
-
-		// Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
-		// recognize the signature and automatically include the right eye frame.
-		D3D11_BOX box = CD3D11_BOX(0, 0, 0, dst_size.width, dst_size.height, 1);
-		D3D::context->CopySubresourceRegion(D3D::GetBackBuffer()->GetTex(), 0, 0, 0, 0, m_stereo_buffer_texture->GetTex(), 0, &box);
+		stereo_buffer_rect = TargetRectangle(0, 0, dst_size.width, dst_size.height);
+		stereo_buffer_size = dst_size;
+		m_scaling_shader->Draw(this, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, src_rect, src_size, src_texture, nullptr, -1);
 	}
-	else
-	{
-		D3DTexture2D* stereo_buffer = (m_scaling_shader) ? m_stereo_buffer_texture : src_texture;
-		TargetRectangle stereo_buffer_rect(src_rect);
-		TargetSize stereo_buffer_size(src_size);
 
-		// Apply scaling shader if enabled, otherwise just use the source buffers
-		if (m_scaling_shader)
-		{
-			stereo_buffer_rect = TargetRectangle(0, 0, dst_size.width, dst_size.height);
-			stereo_buffer_size = dst_size;
-			m_scaling_shader->Draw(this, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, src_rect, src_size, src_texture, nullptr, -1);
-		}
-
-		m_stereo_shader->Draw(this, dst_rect, dst_size, dst_texture, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, nullptr, 0);
-	}
+	m_stereo_shader->Draw(this, dst_rect, dst_size, dst_texture, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, nullptr, 0);
 }
 
 void D3DPostProcessor::DisablePostProcessor()

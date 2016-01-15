@@ -98,6 +98,9 @@ public:
 	// Window rectangle (client area of the render window)
 	static const TargetRectangle& GetWindowRectangle() { return window_rc; }
 
+	// Use this to convert a single target rectangle to two stereo rectangles
+	static void ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc, TargetRectangle& rightRc);
+
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
 	static int EFBToScaledX(int x);
 	static int EFBToScaledY(int y);
