@@ -52,6 +52,7 @@ namespace DriverDetails
 		{OS_ALL,    VENDOR_MESA,     DRIVER_NOUVEAU,      -1, BUG_BROKENUBO,           900,  916, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_R600,         -1, BUG_BROKENUBO,           900,  913, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_R600,         -1, BUG_BROKENGEOMETRYSHADERS, -1.0, -1.0, true},
+		{OS_ALL,    VENDOR_MESA,     DRIVER_I965,          2, BUG_BROKENGEOMETRYSHADERS, -1.0, -1.0, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_I965,         -1, BUG_BROKENUBO,           900,  920, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_ALL,          -1, BUG_BROKENCOPYIMAGE,     -1.0, 1064.0, true},
 		{OS_LINUX,  VENDOR_ATI,      DRIVER_ATI,          -1, BUG_BROKENPINNEDMEMORY,  -1.0, -1.0, true},
