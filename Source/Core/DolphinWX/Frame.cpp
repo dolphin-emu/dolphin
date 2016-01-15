@@ -1420,44 +1420,30 @@ void CFrame::ParseHotkeys()
 
 	if (IsHotkey(HK_TOGGLE_STEREO_SBS))
 	{
-		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "Side-by-side")
-		{
-			g_Config.iStereoMode = STEREO_ENABLED;
-			g_ActiveConfig.sStereoShader = "Side-by-side";
-			if (g_renderer && g_renderer->GetPostProcessor())
-				g_renderer->GetPostProcessor()->SetReloadFlag();
-		}
+		if (g_Config.iStereoMode != STEREO_SBS)
+			g_Config.iStereoMode = STEREO_SBS;
 		else
-		{
-			g_Config.iStereoMode = STEREO_DISABLED;
-		}
+			g_Config.iStereoMode = STEREO_OFF;
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_TAB))
 	{
-		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "Top-and-bottom")
-		{
-			g_Config.iStereoMode = STEREO_ENABLED;
-			g_ActiveConfig.sStereoShader = "Top-and-bottom";
-			if (g_renderer && g_renderer->GetPostProcessor())
-				g_renderer->GetPostProcessor()->SetReloadFlag();
-		}
+		if (g_Config.iStereoMode != STEREO_TAB)
+			g_Config.iStereoMode = STEREO_TAB;
 		else
-		{
-			g_Config.iStereoMode = STEREO_DISABLED;
-		}
+			g_Config.iStereoMode = STEREO_OFF;
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
 	{
-		if (g_Config.iStereoMode != STEREO_ENABLED || g_ActiveConfig.sStereoShader != "Anaglyph/dubois")
+		if (g_Config.iStereoMode != STEREO_SHADER || g_ActiveConfig.sStereoShader != "Anaglyph/dubois")
 		{
-			g_Config.iStereoMode = STEREO_ENABLED;
-			g_ActiveConfig.sStereoShader = "Anaglyph/dubois";
+			g_Config.iStereoMode = STEREO_SHADER;
+			g_Config.sStereoShader = "Anaglyph/dubois";
 			if (g_renderer && g_renderer->GetPostProcessor())
 				g_renderer->GetPostProcessor()->SetReloadFlag();
 		}
 		else
 		{
-			g_Config.iStereoMode = STEREO_DISABLED;
+			g_Config.iStereoMode = STEREO_OFF;
 		}
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
@@ -1465,7 +1451,7 @@ void CFrame::ParseHotkeys()
 		if (g_Config.iStereoMode != STEREO_3DVISION)
 			g_Config.iStereoMode = STEREO_3DVISION;
 		else
-			g_Config.iStereoMode = STEREO_DISABLED;
+			g_Config.iStereoMode = STEREO_OFF;
 	}
 
 	if (IsHotkey(HK_DECREASE_DEPTH, true))
