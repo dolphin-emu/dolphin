@@ -75,6 +75,7 @@ int Renderer::s_backbuffer_height;
 std::unique_ptr<PostProcessor> Renderer::m_post_processor;
 
 TargetRectangle Renderer::target_rc;
+TargetRectangle Renderer::window_rc;
 
 int Renderer::s_last_efb_scale;
 
