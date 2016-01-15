@@ -1434,7 +1434,7 @@ void CFrame::ParseHotkeys()
 	}
 	if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
 	{
-		if (g_Config.iStereoMode != STEREO_SHADER || g_ActiveConfig.sStereoShader != "Anaglyph/dubois")
+		if (g_Config.iStereoMode != STEREO_SHADER || g_Config.sStereoShader != "Anaglyph/dubois")
 		{
 			g_Config.iStereoMode = STEREO_SHADER;
 			g_Config.sStereoShader = "Anaglyph/dubois";
