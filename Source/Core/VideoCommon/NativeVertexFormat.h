@@ -5,15 +5,14 @@
 #pragma once
 
 #include <cstring>
-#include <functional>  // for hash
+#include <functional> // for hash
 
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
 #include "Common/NonCopyable.h"
 
 // m_components
-enum
-{
+enum {
   VB_HAS_POSMTXIDX = (1 << 1),
   VB_HAS_TEXMTXIDX0 = (1 << 2),
   VB_HAS_TEXMTXIDX1 = (1 << 3),
@@ -31,6 +30,7 @@ enum
   VB_HAS_NRM2 = (1 << 12),
   VB_HAS_NRMALL = (7 << 10),
 
+  VB_COL_SHIFT = 13,
   VB_HAS_COL0 = (1 << 13),
   VB_HAS_COL1 = (1 << 14),
 
@@ -46,17 +46,15 @@ enum
   VB_HAS_UVTEXMTXSHIFT = 13,
 };
 
-enum VarType
-{
-  VAR_UNSIGNED_BYTE,   // GX_U8  = 0
-  VAR_BYTE,            // GX_S8  = 1
-  VAR_UNSIGNED_SHORT,  // GX_U16 = 2
-  VAR_SHORT,           // GX_S16 = 3
-  VAR_FLOAT,           // GX_F32 = 4
+enum VarType {
+  VAR_UNSIGNED_BYTE,  // GX_U8  = 0
+  VAR_BYTE,           // GX_S8  = 1
+  VAR_UNSIGNED_SHORT, // GX_U16 = 2
+  VAR_SHORT,          // GX_S16 = 3
+  VAR_FLOAT,          // GX_F32 = 4
 };
 
-struct AttributeFormat
-{
+struct AttributeFormat {
   VarType type;
   int components;
   int offset;
@@ -64,8 +62,7 @@ struct AttributeFormat
   bool integer;
 };
 
-struct PortableVertexDeclaration
-{
+struct PortableVertexDeclaration {
   int stride;
 
   AttributeFormat position;
@@ -74,41 +71,39 @@ struct PortableVertexDeclaration
   AttributeFormat texcoords[8];
   AttributeFormat posmtx;
 
-  inline bool operator<(const PortableVertexDeclaration& b) const
-  {
+  inline bool operator<(const PortableVertexDeclaration &b) const {
     return memcmp(this, &b, sizeof(PortableVertexDeclaration)) < 0;
   }
-  inline bool operator==(const PortableVertexDeclaration& b) const
-  {
+  inline bool operator==(const PortableVertexDeclaration &b) const {
     return memcmp(this, &b, sizeof(PortableVertexDeclaration)) == 0;
   }
 };
 
-namespace std
-{
-template <>
-struct hash<PortableVertexDeclaration>
-{
-  size_t operator()(const PortableVertexDeclaration& decl) const
-  {
-    return HashFletcher((u8*)&decl, sizeof(decl));
+namespace std {
+template <> struct hash<PortableVertexDeclaration> {
+  size_t operator()(const PortableVertexDeclaration &decl) const {
+    return HashFletcher((u8 *)&decl, sizeof(decl));
   }
 };
 }
 
-// The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
+// The implementation of this class is specific for GL/DX, so
+// NativeVertexFormat.cpp
 // is in the respective backend, not here in VideoCommon.
 
-// Note that this class can't just invent arbitrary vertex formats out of its input -
+// Note that this class can't just invent arbitrary vertex formats out of its
+// input -
 // all the data loading code must always be made compatible.
-class NativeVertexFormat : NonCopyable
-{
+class NativeVertexFormat : NonCopyable {
 public:
   virtual ~NativeVertexFormat() {}
   virtual void SetupVertexPointers() = 0;
 
   u32 GetVertexStride() const { return vtx_decl.stride; }
-  const PortableVertexDeclaration& GetVertexDeclaration() const { return vtx_decl; }
+  const PortableVertexDeclaration &GetVertexDeclaration() const {
+    return vtx_decl;
+  }
+
 protected:
   // Let subclasses construct.
   NativeVertexFormat() {}
