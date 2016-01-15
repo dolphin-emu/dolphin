@@ -970,21 +970,24 @@ float4 mul(float4 v, float4x4 m) { return (m * v); }
 
 // Shader inputs/outputs
 SAMPLER_BINDING(9) uniform sampler2DArray pp_inputs[4];
-in float2 uv0;
-in float2 target_uv0;
-flat in float layer;
+in float2 v_source_uv;
+in float2 v_target_uv;
+flat in float v_layer;
 out float4 ocol0;
 
 // Input sampling wrappers. Has to be a macro because the array index must be a constant expression.
-#define SampleInput(index) (texture(pp_inputs[index], float3(uv0, layer)))
-#define SampleInputLocation(index, location) (texture(pp_inputs[index], float3(location, layer)))
-#define SampleInputLayer(index, slayer) (texture(pp_inputs[index], float3(uv0, float(slayer))))
-#define SampleInputLayerLocation(index, slayer, location) (texture(pp_inputs[index], float3(location, float(slayer))))
+#define SampleInput(index) (texture(pp_inputs[index], float3(v_source_uv, v_layer)))
+#define SampleInputLocation(index, location) (texture(pp_inputs[index], float3(location, v_layer)))
+#define SampleInputLayer(index, layer) (texture(pp_inputs[index], float3(v_source_uv, float(layer))))
+#define SampleInputLayerLocation(index, layer, location) (texture(pp_inputs[index], float3(location, float(layer))))
 #define GetFragmentCoord() (gl_FragCoord.xy)
+#define GetTargetCoordinates() (v_target_uv)
+#define GetCoordinates() (v_source_uv)
+#define GetLayer() (v_layer)
 
 // Input sampling with offset, macro because offset must be a constant expression.
-#define SampleInputOffset(index, offset) (textureOffset(pp_inputs[index], float3(uv0, layer), offset))
-#define SampleInputLayerOffset(index, slayer, offset) (textureOffset(pp_inputs[index], float3(uv0, float(slayer)), offset))
+#define SampleInputOffset(index, offset) (textureOffset(pp_inputs[index], float3(v_source_uv, v_layer), offset))
+#define SampleInputLayerOffset(index, layer, offset) (textureOffset(pp_inputs[index], float3(v_source_uv, float(layer)), offset))
 
 )";
 
@@ -998,22 +1001,25 @@ Texture2DArray pp_inputs[4] : register(t9);
 SamplerState pp_input_samplers[4] : register(s9);
 
 // Shadows of those read/written in main
-static float2 fragcoord;
-static float2 uv0;
-static float2 target_uv0;
-static float layer;
+static float2 v_fragcoord;
+static float2 v_source_uv;
+static float2 v_target_uv;
+static float v_layer;
 static float4 ocol0;
 
 // Input sampling wrappers
-float4 SampleInput(int index) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, layer)); }
-float4 SampleInputLocation(int index, float2 location) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(location, layer)); }
-float4 SampleInputLayer(int index, int slayer) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, float(slayer))); }
-float4 SampleInputLayerLocation(int index, int slayer, float2 location) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(location, float(slayer))); }
-float2 GetFragmentCoord() { return fragcoord; }
+float4 SampleInput(int index) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(v_source_uv, v_layer)); }
+float4 SampleInputLocation(int index, float2 location) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(location, v_layer)); }
+float4 SampleInputLayer(int index, int layer) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(v_source_uv, float(layer))); }
+float4 SampleInputLayerLocation(int index, int layer, float2 location) { return pp_inputs[index].Sample(pp_input_samplers[index], float3(location, float(layer))); }
+float2 GetFragmentCoord() { return v_fragcoord; }
+float2 GetTargetCoordinates() { return v_target_uv; }
+float2 GetCoordinates() { return v_source_uv; }
+float GetLayer() { return v_layer; }
 
 // Input sampling with offset, macro because offset must be a constant expression.
-#define SampleInputOffset(index, offset) (pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, layer), offset))
-#define SampleInputLayerOffset(index, slayer, offset) (pp_inputs[index].Sample(pp_input_samplers[index], float3(uv0, float(slayer)), offset))
+#define SampleInputOffset(index, offset) (pp_inputs[index].Sample(pp_input_samplers[index], float3(v_source_uv, v_layer), offset))
+#define SampleInputLayerOffset(index, layer, offset) (pp_inputs[index].Sample(pp_input_samplers[index], float3(v_source_uv, float(layer)), offset))
 
 )";
 
@@ -1028,20 +1034,19 @@ float ToLinearDepth(float depth)
 	const float A = (1.0f - (FarZ / NearZ)) / 2.0f;
 	const float B = (1.0f + (FarZ / NearZ)) / 2.0f;
 
-	return 1.0f / (A * depth + B);
+		return 1.0f / (A * depth + B);
 }
 
 // Constant accessors
-float2 GetInputResolution(int index) { return input_resolutions[index].xy; }
-float2 GetInvInputResolution(int index) { return input_resolutions[index].zw; }
-float2 GetTargetResolution() { return target_resolution.xy; }
-float2 GetInvTargetResolution() { return target_resolution.zw; }
-float2 GetTargetRectOrigin() { return target_rect.xy; }
-float2 GetTargetRectSize() { return target_rect.zw; }
-float2 GetTargetCoordinates() { return target_uv0; }
-float2 GetCoordinates() { return uv0; }
-float GetTime() { return time; }
-float GetLayer() { return layer; }
+float2 GetInputResolution(int index) { return u_input_resolutions[index].xy; }
+float2 GetInvInputResolution(int index) { return u_input_resolutions[index].zw; }
+float2 GetTargetResolution() { return u_target_resolution.xy; }
+float2 GetInvTargetResolution() { return u_target_resolution.zw; }
+float2 GetSourceRectOrigin() { return u_source_rect.xy; }
+float2 GetSourceRectSize() { return u_source_rect.zw; }
+float2 GetTargetRectOrigin() { return u_target_rect.xy; }
+float2 GetTargetRectSize() { return u_target_rect.zw; }
+float GetTime() { return u_time; }
 
 // Interface wrappers - provided for compatibility.
 float4 Sample() { return SampleInput(COLOR_BUFFER_INPUT_INDEX); }
@@ -1057,7 +1062,7 @@ float SampleDepthLocation(float2 location) { return ToLinearDepth(SampleRawDepth
 
 // Offset methods are macros, because the offset must be a constant expression.
 #define SampleOffset(offset) (SampleInputOffset(COLOR_BUFFER_INPUT_INDEX, offset))
-#define SampleLayerOffset(offset, slayer) (SampleInputLayerOffset(COLOR_BUFFER_INPUT_INDEX, slayer, offset))
+#define SampleLayerOffset(offset, layer) (SampleInputLayerOffset(COLOR_BUFFER_INPUT_INDEX, layer, offset))
 #define SamplePrevOffset(offset) (SampleInputOffset(PREV_OUTPUT_INPUT_INDEX, offset))
 #define SampleRawDepthOffset(offset) (DEPTH_VALUE(SampleInputOffset(DEPTH_BUFFER_INPUT_INDEX, offset).x))
 #define SampleDepthOffset(offset) (ToLinearDepth(SampleRawDepthOffset(offset)))
@@ -1086,16 +1091,16 @@ std::string PostProcessor::GetUniformBufferShaderSource(API_TYPE api, const Post
 		shader_source += "cbuffer PostProcessingConstants : register(b0) {\n";
 
 	// Common constants
-	shader_source += "\tfloat4 input_resolutions[4];\n";
-	shader_source += "\tfloat4 src_rect;\n";
-	shader_source += "\tfloat4 target_resolution;\n";
-	shader_source += "\tfloat4 target_rect;\n";
-	shader_source += "\tfloat time;\n";
-	shader_source += "\tfloat src_layer;\n";
-	shader_source += "\tfloat unused0_;\n";
-	shader_source += "\tfloat unused1_;\n";		// align to float4
+	shader_source += "\tfloat4 u_input_resolutions[4];\n";
+	shader_source += "\tfloat4 u_target_resolution;\n";
+	shader_source += "\tfloat4 u_source_rect;\n";
+	shader_source += "\tfloat4 u_target_rect;\n";
+	shader_source += "\tfloat u_time;\n";
+	shader_source += "\tfloat u_src_layer;\n";
+	shader_source += "\tfloat u_unused0_;\n";
+	shader_source += "\tfloat u_unused1_;\n";		// align to float4
 
-	// User options
+													// User options
 	u32 unused_counter = 2;
 	for (const auto& it : config->GetOptions())
 	{
@@ -1138,7 +1143,7 @@ std::string PostProcessor::GetUniformBufferShaderSource(API_TYPE api, const Post
 }
 
 std::string PostProcessor::GetPassFragmentShaderSource(API_TYPE api, const PostProcessingShaderConfiguration* config,
-													   const PostProcessingShaderConfiguration::RenderPass* pass)
+	const PostProcessingShaderConfiguration::RenderPass* pass)
 {
 	std::string shader_source;
 	if (api == API_OPENGL)
@@ -1255,10 +1260,10 @@ std::string PostProcessor::GetPassFragmentShaderSource(API_TYPE api, const PostP
 		shader_source += "          in float in_layer : TEXCOORD2,\n";
 		shader_source += "          out float4 out_col0 : SV_Target)\n";
 		shader_source += "{\n";
-		shader_source += "\tfragcoord = in_pos.xy;\n";
-		shader_source += "\tuv0 = in_srcTexCoord;\n";
-		shader_source += "\ttarget_uv0 = in_dstTexCoord;\n";
-		shader_source += "\tlayer = in_layer;\n";
+		shader_source += "\tv_fragcoord = in_pos.xy;\n";
+		shader_source += "\tv_source_uv = in_srcTexCoord;\n";
+		shader_source += "\tv_target_uv = in_dstTexCoord;\n";
+		shader_source += "\tv_layer = in_layer;\n";
 
 		// No entry point? This pass should perform a copy.
 		if (pass->entry_point.empty())
@@ -1298,19 +1303,19 @@ void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShader
 		constants[i].float_constant[3] = 1.0f / (float)input_sizes[i].height;
 	}
 
-	// float4 src_rect (only used by GL)
-	u32 constant_idx = POST_PROCESSING_MAX_TEXTURE_INPUTS;
-	constants[constant_idx].float_constant[0] = (float)src_rect.left / (float)src_size.width;
-	constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? src_rect.bottom : src_rect.top) / (float)src_size.height;
-	constants[constant_idx].float_constant[2] = (float)src_rect.GetWidth() / (float)src_size.width;
-	constants[constant_idx].float_constant[3] = (float)src_rect.GetHeight() / (float)src_size.height;
-	constant_idx++;
-
 	// float4 target_resolution
+	u32 constant_idx = POST_PROCESSING_MAX_TEXTURE_INPUTS;
 	constants[constant_idx].float_constant[0] = (float)dst_size.width;
 	constants[constant_idx].float_constant[1] = (float)dst_size.height;
 	constants[constant_idx].float_constant[2] = 1.0f / (float)dst_size.width;
 	constants[constant_idx].float_constant[3] = 1.0f / (float)dst_size.height;
+	constant_idx++;
+
+	// float4 src_rect
+	constants[constant_idx].float_constant[0] = (float)src_rect.left / (float)src_size.width;
+	constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? src_rect.bottom : src_rect.top) / (float)src_size.height;
+	constants[constant_idx].float_constant[2] = (float)src_rect.GetWidth() / (float)src_size.width;
+	constants[constant_idx].float_constant[3] = (float)src_rect.GetHeight() / (float)src_size.height;
 	constant_idx++;
 
 	// float4 target_rect
