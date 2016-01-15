@@ -36,6 +36,69 @@ namespace DX11
 
 static const u32 FIRST_INPUT_BINDING_SLOT = 9;
 
+static const char* s_shader_common = R"(
+
+struct VS_INPUT
+{
+	float4 position		: POSITION;
+	float4 texCoord		: TEXCOORD0;
+};
+
+struct VS_OUTPUT
+{
+	float4 position		: SV_Position;
+	float2 srcTexCoord	: TEXCOORD0;
+	float2 dstTexCoord	: TEXCOORD1;
+	float layer			: TEXCOORD2;
+};
+
+struct GS_OUTPUT
+{
+	float4 position		: SV_Position;
+	float2 srcTexCoord	: TEXCOORD0;
+	float2 dstTexCoord	: TEXCOORD1;
+	float layer			: TEXCOORD2;
+	uint slice			: SV_RenderTargetArrayIndex;
+};
+
+)";
+
+static const char* s_vertex_shader = R"(
+
+void main(in VS_INPUT input, out VS_OUTPUT output)
+{
+	output.position = input.position;
+	output.srcTexCoord = input.texCoord;
+	output.dstTexCoord = input.position.xy * 0.5f + 0.5f;
+	output.layer = input.texCoord.z;
+}
+
+)";
+
+static const char* s_geometry_shader = R"(
+
+[maxvertexcount(6)]
+void main(triangle VS_OUTPUT input[3], inout TriangleStream<GS_OUTPUT> output)
+{
+	for (int layer = 0; layer < 2; layer++)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			GS_OUTPUT vert;
+			vert.position = input[i].position;
+			vert.srcTexCoord = input[i].srcTexCoord;
+			vert.dstTexCoord = input[i].dstTexCoord;
+			vert.layer = float(layer);
+			vert.slice = layer;
+			output.Append(vert);
+		}
+
+		output.RestartStrip();
+	}
+}
+
+)";
+
 PostProcessingShader::~PostProcessingShader()
 {
 	for (RenderPassData& pass : m_passes)
@@ -365,11 +428,11 @@ void PostProcessingShader::Draw(D3DPostProcessor* parent,
 		// Select geometry shader based on layers
 		ID3D11GeometryShader* geometry_shader = nullptr;
 		if (src_layer < 0 && m_internal_layers > 1)
-			geometry_shader = GeometryShaderCache::GetCopyGeometryShader();
+			geometry_shader = parent->GetGeometryShader();
 
 		// Draw pass
 		D3D::drawShadedTexQuad(nullptr, src_rect.AsRECT(), src_size.width, src_size.height,
-			pass.pixel_shader.Get(), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
+			pass.pixel_shader.Get(), parent->GetVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
 			geometry_shader, 1.0f, std::max(src_layer, 0));
 	}
 
@@ -395,14 +458,13 @@ D3DPostProcessor::~D3DPostProcessor()
 
 bool D3DPostProcessor::Initialize()
 {
-	// Uniform buffer
-	CD3D11_BUFFER_DESC buffer_desc(UNIFORM_BUFFER_SIZE, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, 0, 0);
-	HRESULT hr = D3D::device->CreateBuffer(&buffer_desc, nullptr, m_uniform_buffer.ReleaseAndGetAddressOf());
-	if (FAILED(hr))
-	{
-		ERROR_LOG(VIDEO, "Failed to create post-processing uniform buffer (hr=%X)", hr);
+	// Create VS/GS
+	if (!CreateCommonShaders())
 		return false;
-	}
+
+	// Uniform buffer
+	if (!CreateUniformBuffer())
+		return false;
 
 	// Load the currently-configured shader (this may fail, and that's okay)
 	ReloadShaders();
@@ -430,6 +492,38 @@ void D3DPostProcessor::ReloadShaders()
 	// Set initial sizes to 0,0 to force texture creation on next draw
 	m_copy_size.Set(0, 0);
 	m_stereo_buffer_size.Set(0, 0);
+}
+
+bool D3DPostProcessor::CreateCommonShaders()
+{
+	ID3D11VertexShader* vs = D3D::CompileAndCreateVertexShader(std::string(s_shader_common) + std::string(s_vertex_shader));
+	ID3D11GeometryShader* gs = D3D::CompileAndCreateGeometryShader(std::string(s_shader_common) + std::string(s_geometry_shader));
+	if (!vs || !gs)
+	{
+		SAFE_RELEASE(vs);
+		SAFE_RELEASE(gs);
+		return false;
+	}
+
+	m_vertex_shader = vs;
+	m_geometry_shader = gs;
+	vs->Release();
+	gs->Release();
+
+	return true;
+}
+
+bool D3DPostProcessor::CreateUniformBuffer()
+{
+	CD3D11_BUFFER_DESC buffer_desc(UNIFORM_BUFFER_SIZE, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, 0, 0);
+	HRESULT hr = D3D::device->CreateBuffer(&buffer_desc, nullptr, m_uniform_buffer.ReleaseAndGetAddressOf());
+	if (FAILED(hr))
+	{
+		ERROR_LOG(VIDEO, "Failed to create post-processing uniform buffer (hr=%X)", hr);
+		return false;
+	}
+
+	return true;
 }
 
 std::unique_ptr<PostProcessingShader> D3DPostProcessor::CreateShader(const PostProcessingShaderConfiguration* config)
@@ -823,10 +917,10 @@ void D3DPostProcessor::DisablePostProcessor()
 }
 
 void D3DPostProcessor::MapAndUpdateUniformBuffer(const PostProcessingShaderConfiguration* config,
-											     const InputTextureSizeArray& input_sizes,
-											     const TargetRectangle& dst_rect, const TargetSize& dst_size,
-											     const TargetRectangle& src_rect, const TargetSize& src_size,
-											     int src_layer)
+												 const InputTextureSizeArray& input_sizes,
+												 const TargetRectangle& dst_rect, const TargetSize& dst_size,
+												 const TargetRectangle& src_rect, const TargetSize& src_size,
+												 int src_layer)
 {
 	D3D11_MAPPED_SUBRESOURCE mapped_cbuf;
 	HRESULT hr = D3D::context->Map(m_uniform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_cbuf);
