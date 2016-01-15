@@ -52,6 +52,13 @@ namespace DriverDetails
 		DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 	};
 
+	enum class Family
+	{
+		UNKNOWN,
+		INTEL_SANDY,
+		INTEL_IVY,
+	};
+
 	// Enum of known bugs
 	// These can be vendor specific, but we put them all in here
 	// For putting a new bug in here, make sure to put a detailed comment above the enum
@@ -182,16 +189,16 @@ namespace DriverDetails
 		BUG_BROKENALPHATEST,
 
 		// Bug: Broken lines in geometry shaders
-		// Affected Devices: Mesa r600/radeonsi
+		// Affected Devices: Mesa r600/radeonsi, Mesa Sandy Bridge
 		// Started Version: -1
 		// Ended Version: -1
-		// Mesa inroduced geometry shader support for radeon devices and failed to test it with us.
+		// Mesa introduced geometry shader support for radeon and sandy bridge devices and failed to test it with us.
 		// Causes misrenderings on a large amount of things that draw lines.
 		BUG_BROKENGEOMETRYSHADERS,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
-	void Init(Vendor vendor, Driver driver, const double version, const s32 family);
+	void Init(Vendor vendor, Driver driver, const double version, const Family family);
 
 	// Once Vendor and driver version is set, this will return if it has the applicable bug passed to it.
 	bool HasBug(Bug bug);
