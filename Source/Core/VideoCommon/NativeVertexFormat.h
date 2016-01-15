@@ -31,8 +31,9 @@ enum
   VB_HAS_NRM2 = (1 << 12),
   VB_HAS_NRMALL = (7 << 10),
 
-  VB_HAS_COL0 = (1 << 13),
-  VB_HAS_COL1 = (1 << 14),
+  VB_COL_SHIFT=13,
+  VB_HAS_COL0=(1<<13),
+  VB_HAS_COL1=(1<<14),
 
   VB_HAS_UV0 = (1 << 15),
   VB_HAS_UV1 = (1 << 16),
