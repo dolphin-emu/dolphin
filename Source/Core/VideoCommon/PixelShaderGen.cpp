@@ -164,7 +164,6 @@ template<class T>
 static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 {
 	T out;
-	const u32 components = VertexLoaderManager::g_current_components;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
 	pixel_shader_uid_data* uid_data = out.template GetUidData<pixel_shader_uid_data>();
@@ -435,13 +434,15 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 				"\tfloat3 ldir, h, cosAttn, distAttn;\n"
 				"\tfloat dist, dist2, attn;\n");
 
+		// The lighting shader only needs the two color bits of the 23bit component bit array.
+		uid_data->components = (VertexLoaderManager::g_current_components & (VB_HAS_COL0 | VB_HAS_COL1)) >> VB_COL_SHIFT;;
+
 		// TODO: Our current constant usage code isn't able to handle more than one buffer.
 		//       So we can't mark the VS constant as used here. But keep them here as reference.
 		//out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
 		//out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
 		//out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
-		uid_data->components = components;
-		GenerateLightingShader<T>(out, uid_data->lighting, components, "colors_", "col");
+		GenerateLightingShader<T>(out, uid_data->lighting, uid_data->components << VB_COL_SHIFT, "colors_", "col");
 	}
 
 	// HACK to handle cases where the tex gen is not enabled
@@ -669,6 +670,7 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 		texcoord = 0;
 
 	out.Write("\n\t// TEV stage %d\n", n);
+
 
 	uid_data->stagehash[n].hasindstage = bHasIndStage;
 	uid_data->stagehash[n].tevorders_texcoord = texcoord;
