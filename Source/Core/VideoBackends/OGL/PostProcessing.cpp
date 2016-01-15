@@ -575,30 +575,29 @@ void OGLPostProcessor::CreatePostProcessingShaders()
 
 void OGLPostProcessor::CreateScalingShader()
 {
-	m_scaling_shader.reset();
-	if (m_scaling_config)
+	if (!m_scaling_config)
+		return;
+
+	m_scaling_shader = std::make_unique<PostProcessingShader>();
+	if (!m_scaling_shader->Initialize(m_scaling_config.get(), FramebufferManager::GetEFBLayers()))
 	{
-		m_scaling_shader = std::make_unique<PostProcessingShader>();
-		if (!m_scaling_shader->Initialize(m_scaling_config.get(), FramebufferManager::GetEFBLayers()))
-		{
-			ERROR_LOG(VIDEO, "Failed to initialize scaling shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str());
-			OSD::AddMessage(StringFromFormat("Failed to initialize scaling shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str()));
-			m_scaling_shader.reset();
-		}
+		ERROR_LOG(VIDEO, "Failed to initialize scaling shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str());
+		OSD::AddMessage(StringFromFormat("Failed to initialize scaling shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str()));
+		m_scaling_shader.reset();
 	}
 }
 
 void OGLPostProcessor::CreateStereoShader()
 {
-	if (m_stereo_config)
+	if (!m_stereo_config)
+		return;
+
+	m_stereo_shader = std::make_unique<PostProcessingShader>();
+	if (!m_stereo_shader->Initialize(m_stereo_config.get(), FramebufferManager::GetEFBLayers()))
 	{
-		m_stereo_shader = std::make_unique<PostProcessingShader>();
-		if (!m_stereo_shader->Initialize(m_stereo_config.get(), FramebufferManager::GetEFBLayers()))
-		{
-			ERROR_LOG(VIDEO, "Failed to initialize stereoscopy shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str());
-			OSD::AddMessage(StringFromFormat("Failed to initialize stereoscopy shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str()));
-			m_stereo_shader.reset();
-		}
+		ERROR_LOG(VIDEO, "Failed to initialize stereoscopy shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str());
+		OSD::AddMessage(StringFromFormat("Failed to initialize stereoscopy shader ('%s'). Falling back to blit.", m_scaling_config->GetShaderName().c_str()));
+		m_stereo_shader.reset();
 	}
 }
 
@@ -667,45 +666,16 @@ void OGLPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 	GLuint real_dst_texture = static_cast<GLuint>(dst_texture);
 	GLuint real_src_texture = static_cast<GLuint>(src_texture);
 
-	// Check for changed options.
-	if (m_scaling_shader)
-	{
-		if (!m_scaling_shader->IsReady() || !m_scaling_shader->Reconfigure(src_size))
-			m_scaling_shader.reset();
-		else
-			m_scaling_config->ClearDirty();
-	}
-	if (m_stereo_shader)
-	{
-		if (!m_stereo_shader->IsReady() || !m_stereo_shader->Reconfigure(dst_size) || !ResizeStereoBuffer(dst_size))
-			m_stereo_shader.reset();
-		else
-			m_stereo_config->ClearDirty();
-	}
+	ReconfigureScalingShader(src_size);
+	ReconfigureStereoShader(dst_size);
 
-	// If a stereo shader is enabled, we scale to the display size, then split with the stereo shader.
+	// Use stereo shader if enabled, otherwise invoke scaling shader, if that is invalid, fall back to blit.
 	if (m_stereo_shader)
-	{
-		GLuint stereo_buffer = (m_scaling_shader) ? m_stereo_buffer_texture : real_src_texture;
-		TargetRectangle stereo_buffer_rect(src_rect);
-		TargetSize stereo_buffer_size(src_size);
-		if (m_scaling_shader)
-		{
-			stereo_buffer_rect = TargetRectangle(0, dst_size.height, dst_size.width, 0);
-			stereo_buffer_size = dst_size;
-			m_scaling_shader->Draw(this, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, src_rect, src_size, real_src_texture, 0, -1);
-		}
-
-		m_stereo_shader->Draw(this, dst_rect, dst_size, real_dst_texture, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, 0, 0);
-	}
+		DrawStereoBuffers(dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture);
+	else if (m_scaling_shader)
+		m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, 0, 0);
 	else
-	{
-		// Use scaling shader if one is set-up. Should only be a single pass in almost all cases.
-		if (m_scaling_shader)
-			m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, 0, 0);
-		else
-			CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, 0, false);
-	}
+		CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, 0, false);
 }
 
 void OGLPostProcessor::PostProcess(const TargetRectangle& visible_rect, const TargetSize& tex_size, int tex_layers,
@@ -817,6 +787,59 @@ bool OGLPostProcessor::ReconfigurePostProcessingShaders(const TargetSize& size)
 		it.second->ClearDirty();
 
 	return true;
+}
+
+bool OGLPostProcessor::ReconfigureScalingShader(const TargetSize& size)
+{
+	if (m_scaling_shader)
+	{
+		if (!m_scaling_shader->IsReady() ||
+			!m_scaling_shader->Reconfigure(size))
+		{
+			m_scaling_shader.reset();
+			return false;
+		}
+
+		m_scaling_config->ClearDirty();
+	}
+
+	return true;
+}
+
+bool OGLPostProcessor::ReconfigureStereoShader(const TargetSize& size)
+{
+	if (m_stereo_shader)
+	{
+		if (!m_stereo_shader->IsReady() ||
+			!m_stereo_shader->Reconfigure(size) ||
+			!ResizeStereoBuffer(size))
+		{
+			m_stereo_shader.reset();
+			return false;
+		}
+
+		m_stereo_config->ClearDirty();
+	}
+
+	return true;
+}
+
+void OGLPostProcessor::DrawStereoBuffers(const TargetRectangle& dst_rect, const TargetSize& dst_size, GLuint dst_texture,
+										   const TargetRectangle& src_rect, const TargetSize& src_size, GLuint src_texture)
+{
+	GLuint stereo_buffer = (m_scaling_shader) ? m_stereo_buffer_texture : src_texture;
+	TargetRectangle stereo_buffer_rect(src_rect);
+	TargetSize stereo_buffer_size(src_size);
+
+	// Apply scaling shader if enabled, otherwise just use the source buffers
+	if (m_scaling_shader)
+	{
+		stereo_buffer_rect = TargetRectangle(0, dst_size.height, dst_size.width, 0);
+		stereo_buffer_size = dst_size;
+		m_scaling_shader->Draw(this, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, src_rect, src_size, src_texture, 0, -1);
+	}
+
+	m_stereo_shader->Draw(this, dst_rect, dst_size, dst_texture, stereo_buffer_rect, stereo_buffer_size, stereo_buffer, 0, 0);
 }
 
 void OGLPostProcessor::DisablePostProcessor()
