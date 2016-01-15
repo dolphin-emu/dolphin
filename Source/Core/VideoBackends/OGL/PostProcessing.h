@@ -103,8 +103,10 @@ public:
 	void PostProcess(const TargetRectangle& visible_rect, const TargetSize& tex_size, int tex_layers,
 					 uintptr_t texture, uintptr_t depth_texture) override;
 
-	void MapAndUpdateUniformBuffer(const PostProcessingShaderConfiguration* config, const InputTextureSizeArray& input_sizes,
-								   const TargetSize& target_size, const TargetRectangle& src_rect, const TargetSize& src_size,
+	void MapAndUpdateUniformBuffer(const PostProcessingShaderConfiguration* config,
+								   const InputTextureSizeArray& input_sizes,
+								   const TargetRectangle& dst_rect, const TargetSize& dst_size,
+								   const TargetRectangle& src_rect, const TargetSize& src_size,
 								   int src_layer);
 
 	// NOTE: Can modify the bindings of draw_framebuffer/read_framebuffer.

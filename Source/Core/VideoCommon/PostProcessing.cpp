@@ -816,8 +816,9 @@ void PostProcessor::OnEndFrame()
 
 void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShaderConfiguration* config,
 										void* buffer_ptr, const InputTextureSizeArray& input_sizes,
-										const TargetSize& target_size, const TargetRectangle& src_rect,
-										const TargetSize& src_size, int src_layer)
+										const TargetRectangle& dst_rect, const TargetSize& dst_size,
+										const TargetRectangle& src_rect, const TargetSize& src_size,
+										int src_layer)
 {
 	// Each option is aligned to a float4
 	union Constant
@@ -847,10 +848,17 @@ void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShader
 	constant_idx++;
 
 	// float4 target_resolution
-	constants[constant_idx].float_constant[0] = (float)target_size.width;
-	constants[constant_idx].float_constant[1] = (float)target_size.height;
-	constants[constant_idx].float_constant[2] = 1.0f / (float)target_size.width;
-	constants[constant_idx].float_constant[3] = 1.0f / (float)target_size.height;
+	constants[constant_idx].float_constant[0] = (float)dst_size.width;
+	constants[constant_idx].float_constant[1] = (float)dst_size.height;
+	constants[constant_idx].float_constant[2] = 1.0f / (float)dst_size.width;
+	constants[constant_idx].float_constant[3] = 1.0f / (float)dst_size.height;
+	constant_idx++;
+
+	// float4 target_rect
+	constants[constant_idx].float_constant[0] = (float)dst_rect.left / (float)dst_size.width;
+	constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? dst_rect.bottom : dst_rect.top) / (float)dst_size.height;
+	constants[constant_idx].float_constant[2] = (float)dst_rect.GetWidth() / (float)dst_size.width;
+	constants[constant_idx].float_constant[3] = (float)dst_rect.GetHeight() / (float)dst_size.height;
 	constant_idx++;
 
 	// float time, float layer
@@ -993,6 +1001,7 @@ std::string PostProcessor::GetUniformBufferShaderSource(API_TYPE api, const Post
 	shader_source += "\tfloat4 input_resolutions[4];\n";
 	shader_source += "\tfloat4 src_rect;\n";
 	shader_source += "\tfloat4 target_resolution;\n";
+	shader_source += "\tfloat4 target_rect;\n";
 	shader_source += "\tfloat time;\n";
 	shader_source += "\tfloat src_layer;\n";
 	shader_source += "\tfloat unused0_;\n";
@@ -1313,7 +1322,7 @@ float ToLinearDepth(float depth)
 	const float A = (1.0f - (FarZ / NearZ)) / 2.0f;
 	const float B = (1.0f + (FarZ / NearZ)) / 2.0f;
 
-	return 1.0f / (A * depth + B);
+		return 1.0f / (A * depth + B);
 }
 
 // Input resolution accessors
@@ -1321,6 +1330,8 @@ float2 GetInputResolution(int index) { return input_resolutions[index].xy; }
 float2 GetInvInputResolution(int index) { return input_resolutions[index].zw; }
 float2 GetTargetResolution() { return target_resolution.xy; }
 float2 GetInvTargetResolution() { return target_resolution.zw; }
+float2 GetTargetRectOrigin() { return target_rect.xy; }
+float2 GetTargetRectSize() { return target_rect.zw; }
 
 // Interface wrappers - provided for compatibility.
 float4 Sample() { return SampleInput(COLOR_BUFFER_INPUT_INDEX); }

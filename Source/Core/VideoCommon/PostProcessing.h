@@ -250,8 +250,9 @@ protected:
 	// Update constant buffer with the current values from the config.
 	void UpdateUniformBuffer(API_TYPE api, const PostProcessingShaderConfiguration* config,
 							 void* buffer_ptr, const InputTextureSizeArray& input_sizes,
-							 const TargetSize& target_size, const TargetRectangle& src_rect,
-							 const TargetSize& src_size, int src_layer);
+							 const TargetRectangle& dst_rect, const TargetSize& dst_size,
+							 const TargetRectangle& src_rect, const TargetSize& src_size,
+							 int src_layer);
 
 	// Load m_configs with the selected post-processing shaders.
 	void ReloadShaderConfigs();
