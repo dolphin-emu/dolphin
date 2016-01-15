@@ -29,23 +29,27 @@ static const u32 UNIFORM_BUFFER_BIND_POINT = 4;
 
 static const char* s_vertex_shader = R"(
 out vec2 uv0;
+out vec2 target_uv0;
 flat out float layer;
 void main(void)
 {
 	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);
 	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);
 	uv0 = rawpos * src_rect.zw + src_rect.xy;
+	target_uv0 = rawpos;
 	layer = src_layer;
 }
 )";
 
 static const char* s_layered_vertex_shader = R"(
 out vec2 v_uv0;
+out vec2 v_target_uv0;
 void main(void)
 {
 	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);
 	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);
 	v_uv0 = rawpos * src_rect.zw + src_rect.xy;
+	v_target_uv0 = rawpos;
 }
 )";
 
@@ -55,7 +59,9 @@ layout(triangles) in;
 layout(triangle_strip, max_vertices = %d) out;
 
 in vec2 v_uv0[3];
+in vec2 v_target_uv0[3];
 out vec2 uv0;
+out vec2 target_uv0;
 flat out float layer;
 
 void main()
@@ -66,6 +72,7 @@ void main()
 		{
 			gl_Position = gl_in[j].gl_Position;
 			uv0 = v_uv0[j];
+			target_uv0 = v_target_uv0[j];
 			layer = float(i);
 			gl_Layer = i;
 			EmitVertex();

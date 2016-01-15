@@ -113,7 +113,14 @@ public:
 							const TargetSize& src_size, int src_layer,
 							bool force_shader_copy = false);
 
+	// Shadered shader stages
+	ID3D11VertexShader* GetVertexShader() const { return m_vertex_shader.Get(); }
+	ID3D11GeometryShader* GetGeometryShader() const { return m_geometry_shader.Get(); }
+
 protected:
+	bool CreateCommonShaders();
+	bool CreateUniformBuffer();
+
 	std::unique_ptr<PostProcessingShader> CreateShader(const PostProcessingShaderConfiguration* config);
 	void CreatePostProcessingShaders();
 	void CreateScalingShader();
@@ -130,7 +137,10 @@ protected:
 
 	void DisablePostProcessor();
 
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertex_shader;
+	Microsoft::WRL::ComPtr<ID3D11GeometryShader> m_geometry_shader;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_uniform_buffer;
+
 	std::unique_ptr<PostProcessingShader> m_scaling_shader;
 	std::unique_ptr<PostProcessingShader> m_stereo_shader;
 	std::vector<std::unique_ptr<PostProcessingShader>> m_post_processing_shaders;
