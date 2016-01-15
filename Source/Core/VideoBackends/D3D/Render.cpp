@@ -43,7 +43,7 @@ namespace DX11
 {
 
 static u32 s_last_multisamples = 1;
-static bool s_last_stereo_mode = false;
+static int s_last_stereo_mode = STEREO_DISABLED;
 static bool s_last_xfb_mode = false;
 
 static Television s_television;
@@ -216,7 +216,7 @@ Renderer::Renderer(void *&window_handle)
 
 	s_last_multisamples = g_ActiveConfig.iMultisamples;
 	s_last_efb_scale = g_ActiveConfig.iEFBScale;
-	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+	s_last_stereo_mode = g_ActiveConfig.iStereoMode;
 	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 	PixelShaderManager::SetEfbScaleChanged();
@@ -941,11 +941,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		fullscreen_changed ||
 		s_last_efb_scale != g_ActiveConfig.iEFBScale ||
 		s_last_multisamples != g_ActiveConfig.iMultisamples ||
-		s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
+		s_last_stereo_mode != g_ActiveConfig.iStereoMode)
 	{
-		// Reload post-processor when stereo mode changes (layers changed)
-		bool reload_post_processor = (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0));
-
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 		s_last_multisamples = g_ActiveConfig.iMultisamples;
 		PixelShaderCache::InvalidateMSAAShaders();
@@ -977,7 +974,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 		s_last_efb_scale = g_ActiveConfig.iEFBScale;
-		s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 
 		PixelShaderManager::SetEfbScaleChanged();
 
@@ -989,8 +985,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
 		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
 
-		if (reload_post_processor)
+		if (s_last_stereo_mode != g_ActiveConfig.iStereoMode)
+		{
+			s_last_stereo_mode = g_ActiveConfig.iStereoMode;
 			m_post_processor->SetReloadFlag();
+		}
 	}
 
 	// begin next frame
