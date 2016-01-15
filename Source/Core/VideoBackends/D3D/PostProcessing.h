@@ -120,6 +120,12 @@ protected:
 	bool ResizeCopyBuffers(const TargetSize& size, int layers);
 	bool ResizeStereoBuffer(const TargetSize& size);
 	bool ReconfigurePostProcessingShaders(const TargetSize& size);
+	bool ReconfigureScalingShader(const TargetSize& size);
+	bool ReconfigureStereoShader(const TargetSize& size);
+
+	void DrawStereoBuffers(const TargetRectangle& dst_rect, const TargetSize& dst_size, D3DTexture2D* dst_texture,
+						   const TargetRectangle& src_rect, const TargetSize& src_size, D3DTexture2D* src_texture);
+
 	void DisablePostProcessor();
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_uniform_buffer;

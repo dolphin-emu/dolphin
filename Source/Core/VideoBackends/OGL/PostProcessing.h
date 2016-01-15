@@ -123,7 +123,12 @@ protected:
 	bool ResizeCopyBuffers(const TargetSize& size, int layers);
 	bool ResizeStereoBuffer(const TargetSize& size);
 	bool ReconfigurePostProcessingShaders(const TargetSize& size);
+	bool ReconfigureScalingShader(const TargetSize& size);
+	bool ReconfigureStereoShader(const TargetSize& size);
 	void DisablePostProcessor();
+
+	void DrawStereoBuffers(const TargetRectangle& dst_rect, const TargetSize& dst_size, GLuint dst_texture,
+						   const TargetRectangle& src_rect, const TargetSize& src_size, GLuint src_texture);
 
 	GLuint m_draw_framebuffer = 0;
 	GLuint m_read_framebuffer = 0;
