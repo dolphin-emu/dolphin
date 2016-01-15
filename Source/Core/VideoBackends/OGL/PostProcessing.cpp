@@ -448,7 +448,7 @@ void PostProcessingShader::Draw(OGLPostProcessor* parent,
 			glBindSampler(FIRST_INPUT_TEXTURE_UNIT + input.texture_unit, input.sampler_id);
 		}
 
-		parent->MapAndUpdateUniformBuffer(m_config, input_sizes, output_size, src_rect, src_size, src_layer);
+		parent->MapAndUpdateUniformBuffer(m_config, input_sizes, output_rect, output_size, src_rect, src_size, src_layer);
 		glViewport(output_rect.left, output_rect.bottom, output_rect.GetWidth(), output_rect.GetHeight());
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
@@ -825,7 +825,7 @@ bool OGLPostProcessor::ReconfigureStereoShader(const TargetSize& size)
 }
 
 void OGLPostProcessor::DrawStereoBuffers(const TargetRectangle& dst_rect, const TargetSize& dst_size, GLuint dst_texture,
-										   const TargetRectangle& src_rect, const TargetSize& src_size, GLuint src_texture)
+										 const TargetRectangle& src_rect, const TargetSize& src_size, GLuint src_texture)
 {
 	GLuint stereo_buffer = (m_scaling_shader) ? m_stereo_buffer_texture : src_texture;
 	TargetRectangle stereo_buffer_rect(src_rect);
@@ -900,12 +900,14 @@ void OGLPostProcessor::CopyTexture(const TargetRectangle& dst_rect, GLuint dst_t
 	}
 }
 
-void OGLPostProcessor::MapAndUpdateUniformBuffer(const PostProcessingShaderConfiguration* config, const InputTextureSizeArray& input_sizes,
-												 const TargetSize& target_size, const TargetRectangle& src_rect, const TargetSize& src_size,
+void OGLPostProcessor::MapAndUpdateUniformBuffer(const PostProcessingShaderConfiguration* config,
+												 const InputTextureSizeArray& input_sizes,
+												 const TargetRectangle& dst_rect, const TargetSize& dst_size,
+												 const TargetRectangle& src_rect, const TargetSize& src_size,
 												 int src_layer)
 {
 	std::pair<u8*, u32> ubo = m_uniform_buffer->Map(UNIFORM_BUFFER_SIZE, UNIFORM_BUFFER_SIZE);
-	UpdateUniformBuffer(API_OPENGL, config, ubo.first, input_sizes, target_size, src_rect, src_size, src_layer);
+	UpdateUniformBuffer(API_OPENGL, config, ubo.first, input_sizes, dst_rect, dst_size, src_rect, src_size, src_layer);
 	m_uniform_buffer->Unmap(UNIFORM_BUFFER_SIZE);
 	glBindBufferRange(GL_UNIFORM_BUFFER, UNIFORM_BUFFER_BIND_POINT, m_uniform_buffer->m_buffer, ubo.second, UNIFORM_BUFFER_SIZE);
 }

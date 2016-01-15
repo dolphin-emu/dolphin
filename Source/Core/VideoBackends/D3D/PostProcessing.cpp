@@ -360,7 +360,7 @@ void PostProcessingShader::Draw(D3DPostProcessor* parent,
 
 		D3D::context->RSSetViewports(1, &output_viewport);
 
-		parent->MapAndUpdateUniformBuffer(m_config, input_sizes, dst_size, src_rect, src_size, src_layer);
+		parent->MapAndUpdateUniformBuffer(m_config, input_sizes, output_rect, output_size, src_rect, src_size, src_layer);
 
 		// Select geometry shader based on layers
 		ID3D11GeometryShader* geometry_shader = nullptr;
@@ -678,7 +678,7 @@ bool D3DPostProcessor::ResizeStereoBuffer(const TargetSize& size)
 		// Nvidia 3D Vision supports full SBS, so there is no loss in resolution during this process.
 		int upload_buffer_size = (size.height + 1) * 4 * size.width * 2;
 		std::vector<u8> upload_buffer(upload_buffer_size);
-		
+
 		D3D11_SUBRESOURCE_DATA sysData;
 		sysData.SysMemPitch = 4 * size.width * 2;
 		sysData.pSysMem = upload_buffer.data();
@@ -822,14 +822,16 @@ void D3DPostProcessor::DisablePostProcessor()
 	m_active = false;
 }
 
-void D3DPostProcessor::MapAndUpdateUniformBuffer(const PostProcessingShaderConfiguration* config, const InputTextureSizeArray& input_sizes,
-												 const TargetSize& target_size, const TargetRectangle& src_rect, const TargetSize& src_size,
-												 int src_layer)
+void D3DPostProcessor::MapAndUpdateUniformBuffer(const PostProcessingShaderConfiguration* config,
+											     const InputTextureSizeArray& input_sizes,
+											     const TargetRectangle& dst_rect, const TargetSize& dst_size,
+											     const TargetRectangle& src_rect, const TargetSize& src_size,
+											     int src_layer)
 {
 	D3D11_MAPPED_SUBRESOURCE mapped_cbuf;
 	HRESULT hr = D3D::context->Map(m_uniform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_cbuf);
 	CHECK(SUCCEEDED(hr), "Map post processing constant buffer failed, hr=%X", hr);
-	UpdateUniformBuffer(API_D3D, config, mapped_cbuf.pData, input_sizes, target_size, src_rect, src_size, src_layer);
+	UpdateUniformBuffer(API_D3D, config, mapped_cbuf.pData, input_sizes, dst_rect, dst_size, src_rect, src_size, src_layer);
 	D3D::context->Unmap(m_uniform_buffer.Get(), 0);
 }
 
