@@ -294,6 +294,14 @@ bool Renderer::CheckForResize()
 	int client_width = rcWindow.right - rcWindow.left;
 	int client_height = rcWindow.bottom - rcWindow.top;
 
+	// Get the top-left corner of the client area in screen coordinates
+	POINT originPoint = { 0, 0 };
+	ClientToScreen(D3D::hWnd, &originPoint);
+	window_rc.left = originPoint.x;
+	window_rc.right = originPoint.x + client_width;
+	window_rc.top = originPoint.y;
+	window_rc.bottom = originPoint.y + client_height;
+
 	// Sanity check
 	if ((client_width != Renderer::GetBackbufferWidth() ||
 		client_height != Renderer::GetBackbufferHeight()) &&
