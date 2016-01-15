@@ -57,7 +57,7 @@ void main(in VS_INPUT input, out VS_OUTPUT output)
 {
 	output.position = input.position;
 	output.srcTexCoord = input.texCoord;
-	output.dstTexCoord = input.position.xy * 0.5f + 0.5f;
+	output.dstTexCoord = float2(input.position.x * 0.5f + 0.5f, 1.0f - (input.position.y * 0.5f + 0.5f));
 	output.layer = input.texCoord.z;
 }
 
