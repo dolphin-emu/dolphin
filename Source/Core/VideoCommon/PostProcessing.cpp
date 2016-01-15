@@ -874,7 +874,7 @@ void PostProcessor::ReloadScalingShaderConfig()
 void PostProcessor::ReloadStereoShaderConfig()
 {
 	m_stereo_config.reset();
-	if (g_ActiveConfig.iStereoMode == STEREO_ENABLED)
+	if (g_ActiveConfig.iStereoMode == STEREO_SHADER)
 	{
 		m_stereo_config = std::make_unique<PostProcessingShaderConfiguration>();
 		if (!m_stereo_config->LoadShader(STEREO_SHADER_SUBDIR, g_ActiveConfig.sStereoShader))

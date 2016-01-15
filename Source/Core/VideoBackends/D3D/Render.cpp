@@ -43,7 +43,7 @@ namespace DX11
 {
 
 static u32 s_last_multisamples = 1;
-static int s_last_stereo_mode = STEREO_DISABLED;
+static int s_last_stereo_mode = STEREO_OFF;
 static bool s_last_xfb_mode = false;
 
 static Television s_television;
@@ -56,6 +56,19 @@ ID3D11DepthStencilState* resetdepthstate = nullptr;
 ID3D11RasterizerState* resetraststate = nullptr;
 
 static ID3D11Texture2D* s_screenshot_texture = nullptr;
+static D3DTexture2D* s_3d_vision_texture = nullptr;
+
+// Nvidia stereo blitting struct defined in "nvstereo.h" from the Nvidia SDK
+typedef struct _Nv_Stereo_Image_Header
+{
+	unsigned int    dwSignature;
+	unsigned int    dwWidth;
+	unsigned int    dwHeight;
+	unsigned int    dwBPP;
+	unsigned int    dwFlags;
+} NVSTEREOIMAGEHEADER, *LPNVSTEREOIMAGEHEADER;
+
+#define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
 
 // GX pipeline state
 struct
@@ -170,6 +183,7 @@ static void TeardownDeviceObjects()
 	SAFE_RELEASE(resetdepthstate);
 	SAFE_RELEASE(resetraststate);
 	SAFE_RELEASE(s_screenshot_texture);
+	SAFE_RELEASE(s_3d_vision_texture);
 
 	s_television.Shutdown();
 
@@ -200,6 +214,24 @@ static D3D11_BOX GetScreenshotSourceBox(const TargetRectangle& targetRc)
 		std::min(D3D::GetBackBufferWidth(), (unsigned int)targetRc.right),
 		std::min(D3D::GetBackBufferHeight(), (unsigned int)targetRc.bottom),
 		1);
+}
+
+static void Create3DVisionTexture(int width, int height)
+{
+	// Create a staging texture for 3D vision with signature information in the last row.
+	// Nvidia 3D Vision supports full SBS, so there is no loss in resolution during this process.
+	D3D11_SUBRESOURCE_DATA sysData;
+	sysData.SysMemPitch = 4 * width * 2;
+	sysData.pSysMem = new u8[(height + 1) * sysData.SysMemPitch];
+	LPNVSTEREOIMAGEHEADER header = (LPNVSTEREOIMAGEHEADER)((u8*)sysData.pSysMem + height * sysData.SysMemPitch);
+	header->dwSignature = NVSTEREO_IMAGE_SIGNATURE;
+	header->dwWidth = width * 2;
+	header->dwHeight = height + 1;
+	header->dwBPP = 32;
+	header->dwFlags = 0;
+
+	s_3d_vision_texture = D3DTexture2D::Create(width * 2, height + 1, D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &sysData);
+	delete[] sysData.pSysMem;
 }
 
 Renderer::Renderer(void *&window_handle)
@@ -975,6 +1007,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// TODO: Aren't we still holding a reference to the back buffer right now?
 			D3D::Reset();
 			SAFE_RELEASE(s_screenshot_texture);
+			SAFE_RELEASE(s_3d_vision_texture);
 			s_backbuffer_width = D3D::GetBackBufferWidth();
 			s_backbuffer_height = D3D::GetBackBufferHeight();
 		}
@@ -1286,7 +1319,55 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 	TargetSize dst_size(s_backbuffer_width, s_backbuffer_height);
 	TargetSize src_size(src_width, src_height);
 
-	m_post_processor->BlitToFramebuffer(dst, dst_size, reinterpret_cast<uintptr_t>(D3D::GetBackBuffer()), src, src_size, reinterpret_cast<uintptr_t>(src_texture));
+	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+	{
+		TargetRectangle leftRc, rightRc;
+		ConvertStereoRectangle(dst, leftRc, rightRc);
+
+		m_post_processor->BlitToFramebuffer(leftRc, dst_size, reinterpret_cast<uintptr_t>(D3D::GetBackBuffer()),
+			src, src_size, reinterpret_cast<uintptr_t>(src_texture), 0);
+
+		m_post_processor->BlitToFramebuffer(rightRc, dst_size, reinterpret_cast<uintptr_t>(D3D::GetBackBuffer()),
+			src, src_size, reinterpret_cast<uintptr_t>(src_texture), 1);
+	}
+	else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
+	{
+		if (!s_3d_vision_texture)
+			Create3DVisionTexture(s_backbuffer_width, s_backbuffer_height);
+
+		TargetRectangle leftRc;
+		leftRc.left = dst.left;
+		leftRc.right = dst.right;
+		leftRc.top = dst.top;
+		leftRc.bottom = dst.bottom;
+
+		TargetRectangle rightRc;
+		rightRc.left = dst.left + s_backbuffer_width;
+		rightRc.right = dst.right + s_backbuffer_width;
+		rightRc.top = dst.top;
+		rightRc.bottom = dst.bottom;
+
+		// Render to staging texture which is double the width of the backbuffer
+		dst_size.Set(s_backbuffer_width * 2, s_backbuffer_height);
+		m_post_processor->BlitToFramebuffer(leftRc, dst_size, reinterpret_cast<uintptr_t>(s_3d_vision_texture),
+			src, src_size, reinterpret_cast<uintptr_t>(src_texture), 0);
+
+		m_post_processor->BlitToFramebuffer(rightRc, dst_size, reinterpret_cast<uintptr_t>(s_3d_vision_texture),
+			src, src_size, reinterpret_cast<uintptr_t>(src_texture), 1);
+
+		// Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
+		// recognize the signature and automatically include the right eye frame.
+		D3D11_BOX box = CD3D11_BOX(0, 0, 0, s_backbuffer_width, s_backbuffer_height, 1);
+		D3D::context->CopySubresourceRegion(D3D::GetBackBuffer()->GetTex(), 0, 0, 0, 0, s_3d_vision_texture->GetTex(), 0, &box);
+
+		// Restore render target to backbuffer
+		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
+	}
+	else
+	{
+		m_post_processor->BlitToFramebuffer(dst, dst_size, reinterpret_cast<uintptr_t>(D3D::GetBackBuffer()),
+			src, src_size, reinterpret_cast<uintptr_t>(src_texture), 0);
+	}
 }
 
 }  // namespace DX11
