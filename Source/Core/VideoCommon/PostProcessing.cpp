@@ -1034,7 +1034,7 @@ float ToLinearDepth(float depth)
 	const float A = (1.0f - (FarZ / NearZ)) / 2.0f;
 	const float B = (1.0f + (FarZ / NearZ)) / 2.0f;
 
-		return 1.0f / (A * depth + B);
+	return 1.0f / (A * depth + B);
 }
 
 // Constant accessors
@@ -1047,6 +1047,8 @@ float2 GetSourceRectSize() { return u_source_rect.zw; }
 float2 GetTargetRectOrigin() { return u_target_rect.xy; }
 float2 GetTargetRectSize() { return u_target_rect.zw; }
 float GetTime() { return u_time; }
+int4 GetViewportRect() { return u_viewport_rect; }
+int4 GetWindowRect() { return u_window_rect; }
 
 // Interface wrappers - provided for compatibility.
 float4 Sample() { return SampleInput(COLOR_BUFFER_INPUT_INDEX); }
@@ -1099,8 +1101,10 @@ std::string PostProcessor::GetUniformBufferShaderSource(API_TYPE api, const Post
 	shader_source += "\tfloat u_src_layer;\n";
 	shader_source += "\tfloat u_unused0_;\n";
 	shader_source += "\tfloat u_unused1_;\n";		// align to float4
+	shader_source += "\tint4 u_viewport_rect;\n";
+	shader_source += "\tint4 u_window_rect;\n";
 
-													// User options
+	// User options
 	u32 unused_counter = 2;
 	for (const auto& it : config->GetOptions())
 	{
@@ -1330,6 +1334,21 @@ void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShader
 	constants[constant_idx].float_constant[1] = float(std::max(src_layer, 0));
 	constants[constant_idx].float_constant[2] = 0.0f;
 	constants[constant_idx].float_constant[3] = 0.0f;
+	constant_idx++;
+
+	// int4 viewport_rect
+	constants[constant_idx].int_constant[0] = dst_rect.left;
+	constants[constant_idx].int_constant[1] = dst_rect.top;
+	constants[constant_idx].int_constant[2] = dst_rect.right;
+	constants[constant_idx].int_constant[3] = dst_rect.bottom;
+	constant_idx++;
+
+	// int4 window_rect
+	const TargetRectangle& window_rect = Renderer::GetWindowRectangle();
+	constants[constant_idx].int_constant[0] = window_rect.left;
+	constants[constant_idx].int_constant[1] = window_rect.top;
+	constants[constant_idx].int_constant[2] = window_rect.right;
+	constants[constant_idx].int_constant[3] = window_rect.bottom;
 	constant_idx++;
 
 	// Set from options. This is an ordered map so it will always match the order in the shader code generated.
