@@ -151,6 +151,12 @@ void cInterfaceWGL::Update()
 	// Get the new window width and height
 	s_backbuffer_width  = (rcWindow.right - rcWindow.left);
 	s_backbuffer_height = (rcWindow.bottom - rcWindow.top);
+
+	// Get the top-left corner of the client area in screen coordinates
+	POINT originPoint = { 0, 0 };
+	ClientToScreen(m_window_handle, &originPoint);
+	s_window_xpos = originPoint.x;
+	s_window_ypos = originPoint.y;
 }
 
 // Close backend

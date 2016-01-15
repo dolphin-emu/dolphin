@@ -1451,6 +1451,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_backbuffer_height = H;
 		s_last_efb_scale = g_ActiveConfig.iEFBScale;
 	}
+
+	window_rc.left = GLInterface->GetWindowXPos();
+	window_rc.right = window_rc.left + W;
+	window_rc.top = GLInterface->GetWindowYPos();
+	window_rc.bottom = window_rc.top + H;
+
 	bool TargetSizeChanged = false;
 	if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
 	{
