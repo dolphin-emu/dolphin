@@ -28,28 +28,28 @@ static const u32 FIRST_INPUT_TEXTURE_UNIT = 9;
 static const u32 UNIFORM_BUFFER_BIND_POINT = 4;
 
 static const char* s_vertex_shader = R"(
-out vec2 uv0;
-out vec2 target_uv0;
-flat out float layer;
+out vec2 v_source_uv;
+out vec2 v_target_uv;
+flat out float v_layer;
 void main(void)
 {
 	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);
 	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);
-	uv0 = rawpos * src_rect.zw + src_rect.xy;
-	target_uv0 = rawpos;
-	layer = src_layer;
+	v_source_uv = rawpos * u_source_rect.zw + u_source_rect.xy;
+	v_target_uv = rawpos;
+	v_layer = u_src_layer;
 }
 )";
 
 static const char* s_layered_vertex_shader = R"(
-out vec2 v_uv0;
-out vec2 v_target_uv0;
+out vec2 i_source_uv;
+out vec2 i_target_uv;
 void main(void)
 {
 	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);
 	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);
-	v_uv0 = rawpos * src_rect.zw + src_rect.xy;
-	v_target_uv0 = rawpos;
+	i_source_uv = rawpos * u_source_rect.zw + u_source_rect.xy;
+	i_target_uv = rawpos;
 }
 )";
 
@@ -58,11 +58,11 @@ static const char* s_geometry_shader = R"(
 layout(triangles) in;
 layout(triangle_strip, max_vertices = %d) out;
 
-in vec2 v_uv0[3];
-in vec2 v_target_uv0[3];
-out vec2 uv0;
-out vec2 target_uv0;
-flat out float layer;
+in vec2 i_source_uv[3];
+in vec2 i_target_uv[3];
+out vec2 v_source_uv;
+out vec2 v_target_uv;
+flat out float v_layer;
 
 void main()
 {
@@ -71,9 +71,9 @@ void main()
 		for (int j = 0; j < 3; j++)
 		{
 			gl_Position = gl_in[j].gl_Position;
-			uv0 = v_uv0[j];
-			target_uv0 = v_target_uv0[j];
-			layer = float(i);
+			v_source_uv = i_source_uv[j];
+			v_target_uv = i_target_uv[j];
+			v_layer = float(i);
 			gl_Layer = i;
 			EmitVertex();
 		}
