@@ -74,7 +74,8 @@ void SHADER::SetProgramVariables()
   // Bind UBO and texture samplers
   if (!g_ActiveConfig.backend_info.bSupportsBindingLayout)
   {
-    // glsl shader must be bind to set samplers if we don't support binding layout
+    // glsl shader must be bind to set samplers if we don't support binding
+    // layout
     Bind();
 
     GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
@@ -93,7 +94,8 @@ void SHADER::SetProgramVariables()
     {
       std::string name = StringFromFormat(a < 8 ? "samp[%d]" : "samp%d", a);
 
-      // Still need to get sampler locations since we aren't binding them statically in the shaders
+      // Still need to get sampler locations since we aren't binding them
+      // statically in the shaders
       int loc = glGetUniformLocation(glprogid, name.c_str());
       if (loc != -1)
         glUniform1i(loc, a);
@@ -214,7 +216,7 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
   ShaderCode gcode;
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders &&
       !uid.guid.GetUidData()->IsPassthrough())
-    gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL);
+    gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL, uid.guid.GetUidData());
 
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
@@ -399,7 +401,7 @@ void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode,
 {
   uid->puid = GetPixelShaderUid(dstAlphaMode, API_OPENGL);
   uid->vuid = GetVertexShaderUid(API_OPENGL);
-  uid->guid = GetGeometryShaderUid(primitive_type, API_OPENGL);
+  uid->guid = GetGeometryShaderUid(primitive_type);
 
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
@@ -409,7 +411,8 @@ void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode,
     ShaderCode vcode = GenerateVertexShaderCode(API_OPENGL);
     vertex_uid_checker.AddToIndexAndCheck(vcode, uid->vuid, "Vertex", "v");
 
-    ShaderCode gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL);
+    ShaderCode gcode =
+        GenerateGeometryShaderCode(primitive_type, API_OPENGL, uid->guid.GetUidData());
     geometry_uid_checker.AddToIndexAndCheck(gcode, uid->guid, "Geometry", "g");
   }
 }
@@ -442,7 +445,8 @@ void ProgramShaderCache::Init()
     glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
     if (!Supported)
     {
-      ERROR_LOG(VIDEO, "GL_ARB_get_program_binary is supported, but no binary format is known. So "
+      ERROR_LOG(VIDEO, "GL_ARB_get_program_binary is supported, but no binary "
+                       "format is known. So "
                        "disable shader cache.");
       g_ogl_config.bSupportsGLSLCache = false;
     }
@@ -567,7 +571,8 @@ void ProgramShaderCache::CreateHeader()
     else if (g_ogl_config.bSupportsConservativeDepth)
     {
       // See PixelShaderGen for details about this fallback.
-      earlyz_string = "#define FORCE_EARLY_Z layout(depth_unchanged) out float gl_FragDepth\n";
+      earlyz_string = "#define FORCE_EARLY_Z layout(depth_unchanged) out float "
+                      "gl_FragDepth\n";
       earlyz_string += "#extension GL_ARB_conservative_depth : enable\n";
     }
   }

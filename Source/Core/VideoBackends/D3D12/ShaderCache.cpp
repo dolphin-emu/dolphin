@@ -15,7 +15,8 @@
 
 namespace DX12
 {
-// Primitive topology type is always triangle, unless the GS stage is used. This is consumed
+// Primitive topology type is always triangle, unless the GS stage is used. This
+// is consumed
 // by the PSO created in Renderer::ApplyState.
 static D3D12_PRIMITIVE_TOPOLOGY_TYPE s_current_primitive_topology =
     D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -69,7 +70,8 @@ public:
 
 void ShaderCache::Init()
 {
-  // This class intentionally shares its shader cache files with DX11, as the shaders are (right
+  // This class intentionally shares its shader cache files with DX11, as the
+  // shaders are (right
   // now) identical.
   // Reduces unnecessary compilation when switching between APIs.
 
@@ -104,7 +106,8 @@ void ShaderCache::Init()
   ShaderCacheInserter<VertexShaderUid, VsBytecodeCache, &s_vs_bytecode_cache> vs_inserter;
   s_vs_disk_cache.OpenAndRead(vs_cache_filename, vs_inserter);
 
-  // Clear out cache when debugging shaders to ensure stale ones don't stick around..
+  // Clear out cache when debugging shaders to ensure stale ones don't stick
+  // around..
   if (g_Config.bEnableShaderDebugging)
     Clear();
 
@@ -162,7 +165,7 @@ void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 g
 {
   SetCurrentPrimitiveTopology(gs_primitive_type);
 
-  GeometryShaderUid gs_uid = GetGeometryShaderUid(gs_primitive_type, API_D3D);
+  GeometryShaderUid gs_uid = GetGeometryShaderUid(gs_primitive_type);
   PixelShaderUid ps_uid = GetPixelShaderUid(ps_dst_alpha_mode, API_D3D);
   VertexShaderUid vs_uid = GetVertexShaderUid(API_D3D);
 
@@ -219,7 +222,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
 
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
-    ShaderCode code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D);
+    ShaderCode code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D, gs_uid.GetUidData());
     s_geometry_uid_checker.AddToIndexAndCheck(code, gs_uid, "Geometry", "g");
   }
 
@@ -236,7 +239,8 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
   }
   else
   {
-    ShaderCode gs_code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D);
+    ShaderCode gs_code =
+        GenerateGeometryShaderCode(gs_primitive_type, API_D3D, gs_uid.GetUidData());
     ID3DBlob* gs_bytecode = nullptr;
 
     if (!D3D::CompileGeometryShader(gs_code.GetBuffer(), &gs_bytecode))
@@ -342,7 +346,8 @@ template <class UidType, class ShaderCacheType>
 D3D12_SHADER_BYTECODE ShaderCache::InsertByteCode(const UidType& uid, ShaderCacheType* shader_cache,
                                                   ID3DBlob* bytecode_blob)
 {
-  // Note: Don't release the incoming bytecode, we need it to stick around, since in D3D12
+  // Note: Don't release the incoming bytecode, we need it to stick around,
+  // since in D3D12
   // the raw bytecode itself is bound. It is released at Shutdown() time.
 
   s_shader_blob_list.push_back(bytecode_blob);
@@ -387,7 +392,8 @@ const VertexShaderUid* ShaderCache::GetActiveVertexShaderUid()
   return &s_last_vertex_shader_uid;
 }
 
-D3D12_SHADER_BYTECODE ShaderCache::GetGeometryShaderFromUid(const GeometryShaderUid* uid)
+D3D12_SHADER_BYTECODE
+ShaderCache::GetGeometryShaderFromUid(const GeometryShaderUid* uid)
 {
   auto bytecode = s_gs_bytecode_cache.find(*uid);
   if (bytecode != s_gs_bytecode_cache.end())
@@ -396,7 +402,8 @@ D3D12_SHADER_BYTECODE ShaderCache::GetGeometryShaderFromUid(const GeometryShader
   return D3D12_SHADER_BYTECODE();
 }
 
-D3D12_SHADER_BYTECODE ShaderCache::GetPixelShaderFromUid(const PixelShaderUid* uid)
+D3D12_SHADER_BYTECODE
+ShaderCache::GetPixelShaderFromUid(const PixelShaderUid* uid)
 {
   auto bytecode = s_ps_bytecode_cache.find(*uid);
   if (bytecode != s_ps_bytecode_cache.end())
@@ -405,7 +412,8 @@ D3D12_SHADER_BYTECODE ShaderCache::GetPixelShaderFromUid(const PixelShaderUid* u
   return D3D12_SHADER_BYTECODE();
 }
 
-D3D12_SHADER_BYTECODE ShaderCache::GetVertexShaderFromUid(const VertexShaderUid* uid)
+D3D12_SHADER_BYTECODE
+ShaderCache::GetVertexShaderFromUid(const VertexShaderUid* uid)
 {
   auto bytecode = s_vs_bytecode_cache.find(*uid);
   if (bytecode != s_vs_bytecode_cache.end())

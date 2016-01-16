@@ -47,7 +47,8 @@ ID3D11Buffer* gscbuf = nullptr;
 
 ID3D11Buffer*& GeometryShaderCache::GetConstantBuffer()
 {
-  // TODO: divide the global variables of the generated shaders into about 5 constant buffers to
+  // TODO: divide the global variables of the generated shaders into about 5
+  // constant buffers to
   // speed this up
   if (GeometryShaderManager::dirty)
   {
@@ -196,10 +197,10 @@ void GeometryShaderCache::Shutdown()
 
 bool GeometryShaderCache::SetShader(u32 primitive_type)
 {
-  GeometryShaderUid uid = GetGeometryShaderUid(primitive_type, API_D3D);
+  GeometryShaderUid uid = GetGeometryShaderUid(primitive_type);
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
-    ShaderCode code = GenerateGeometryShaderCode(primitive_type, API_D3D);
+    ShaderCode code = GenerateGeometryShaderCode(primitive_type, API_D3D, uid.GetUidData());
     geometry_uid_checker.AddToIndexAndCheck(code, uid, "Geometry", "g");
   }
 
@@ -235,7 +236,7 @@ bool GeometryShaderCache::SetShader(u32 primitive_type)
   }
 
   // Need to compile a new shader
-  ShaderCode code = GenerateGeometryShaderCode(primitive_type, API_D3D);
+  ShaderCode code = GenerateGeometryShaderCode(primitive_type, API_D3D, uid.GetUidData());
 
   D3DBlob* pbytecode;
   if (!D3D::CompileGeometryShader(code.GetBuffer(), &pbytecode))
