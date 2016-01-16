@@ -446,7 +446,9 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 		//out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
 		//out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
 		//out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
-		GenerateLightingShader<T>(out, uid_data->lighting, uid_data->components << VB_COL_SHIFT, "colors_", "col");
+
+		// FIXME: Disabled until pixelshadergen is split
+		//GenerateLightingShader(out, uid_data->lighting, uid_data->components << VB_COL_SHIFT, "colors_", "col");
 	}
 
 	// HACK to handle cases where the tex gen is not enabled

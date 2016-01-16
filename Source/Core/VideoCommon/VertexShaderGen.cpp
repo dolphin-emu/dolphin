@@ -11,20 +11,94 @@
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 
-template<class T>
-static T GenerateVertexShader(API_TYPE api_type)
+VertexShaderUid GetVertexShaderUid()
 {
-	T out;
-	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
-	vertex_shader_uid_data dummy_data;
-	vertex_shader_uid_data* uid_data = out.template GetUidData<vertex_shader_uid_data>();
-	if (uid_data == nullptr)
-		uid_data = &dummy_data;
+	VertexShaderUid out;
+	vertex_shader_uid_data* uid_data = out.GetUidData<vertex_shader_uid_data>();
 	memset(uid_data, 0, sizeof(*uid_data));
 
 	_assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
 
+	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
+	uid_data->components = VertexLoaderManager::g_current_components;
+	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+	uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
+	uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
+	uid_data->numColorChans = xfmem.numChan.numColorChans;
+
+	GetLightingShaderUid(uid_data->lighting);
+
+	// transform texcoords
+	for (unsigned int i = 0; i < uid_data->numTexGens; ++i)
+	{
+		auto& texinfo = uid_data->texMtxInfo[i];
+
+		texinfo.sourcerow = xfmem.texMtxInfo[i].sourcerow;
+		texinfo.texgentype = xfmem.texMtxInfo[i].texgentype;
+		switch (texinfo.sourcerow)
+		{
+		case XF_SRCGEOM_INROW:
+			break;
+		case XF_SRCNORMAL_INROW:
+			if (uid_data->components & VB_HAS_NRM0)
+				_assert_(xfmem.texMtxInfo[i].inputform == XF_TEXINPUT_ABC1);
+			break;
+		case XF_SRCCOLORS_INROW:
+			break;
+		case XF_SRCBINORMAL_T_INROW:
+			if (uid_data->components & VB_HAS_NRM1)
+				_assert_(xfmem.texMtxInfo[i].inputform == XF_TEXINPUT_ABC1);
+			break;
+		case XF_SRCBINORMAL_B_INROW:
+			if (uid_data->components & VB_HAS_NRM2)
+				_assert_(xfmem.texMtxInfo[i].inputform == XF_TEXINPUT_ABC1);
+			break;
+		default:
+			break;
+		}
+
+		// first transformation
+		switch (texinfo.texgentype)
+		{
+		case XF_TEXGEN_EMBOSS_MAP: // calculate tex coords into bump map
+			if (uid_data->components & (VB_HAS_NRM1 | VB_HAS_NRM2))
+			{
+				// transform the light dir into tangent space
+				texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
+				texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
+			}
+			else
+			{
+				texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
+			}
+			break;
+		case XF_TEXGEN_COLOR_STRGBC0:
+			break;
+		case XF_TEXGEN_COLOR_STRGBC1:
+			break;
+		case XF_TEXGEN_REGULAR:
+		default:
+			uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
+			break;
+		}
+
+		uid_data->dualTexTrans_enabled = xfmem.dualTexTrans.enabled;
+		// CHECKME: does this only work for regular tex gen types?
+		if (uid_data->dualTexTrans_enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
+		{
+			auto& postInfo = uid_data->postMtxInfo[i];
+			postInfo.index = xfmem.postMtxInfo[i].index;
+			postInfo.normalize = xfmem.postMtxInfo[i].normalize;
+		}
+	}
+
+	return out;
+}
+
+ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_data *uid_data)
+{
+	ShaderCode out;
 	out.Write("%s", s_lighting_struct);
 
 	// uniforms
@@ -35,14 +109,8 @@ static T GenerateVertexShader(API_TYPE api_type)
 	out.Write(s_shader_uniforms);
 	out.Write("};\n");
 
-	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
-	uid_data->components = VertexLoaderManager::g_current_components;
-	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
-	uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
-	uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
-
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens, uid_data->pixel_lighting);
+	GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, uid_data->pixel_lighting);
 	out.Write("};\n");
 
 	if (api_type == API_OPENGL)
@@ -72,7 +140,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("out VertexData {\n");
-			GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens, uid_data->pixel_lighting, GetInterpolationQualifier(api_type, uid_data->msaa, uid_data->ssaa, false, true));
+			GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, uid_data->pixel_lighting, GetInterpolationQualifier(api_type, uid_data->msaa, uid_data->ssaa, false, true));
 			out.Write("} vs;\n");
 		}
 		else
@@ -164,7 +232,6 @@ static T GenerateVertexShader(API_TYPE api_type)
 			"float3 ldir, h, cosAttn, distAttn;\n"
 			"float dist, dist2, attn;\n");
 
-	uid_data->numColorChans = xfmem.numChan.numColorChans;
 	if (uid_data->numColorChans == 0)
 	{
 		if (uid_data->components & VB_HAS_COL0)
@@ -173,7 +240,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 			out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
 	}
 
-	GenerateLightingShader<T>(out, uid_data->lighting, uid_data->components, "color", "o.colors_");
+	GenerateLightingShaderCode(out, uid_data->lighting, uid_data->components, "color", "o.colors_");
 
 	if (uid_data->numColorChans < 2)
 	{
@@ -191,8 +258,6 @@ static T GenerateVertexShader(API_TYPE api_type)
 
 		out.Write("{\n");
 		out.Write("coord = float4(0.0, 0.0, 1.0, 1.0);\n");
-		texinfo.sourcerow = xfmem.texMtxInfo[i].sourcerow;
-		texinfo.texgentype = xfmem.texMtxInfo[i].texgentype;
 		switch (texinfo.sourcerow)
 		{
 		case XF_SRCGEOM_INROW:
@@ -203,7 +268,6 @@ static T GenerateVertexShader(API_TYPE api_type)
 		case XF_SRCNORMAL_INROW:
 			if (uid_data->components & VB_HAS_NRM0)
 			{
-				_assert_(xfmem.texMtxInfo[i].inputform == XF_TEXINPUT_ABC1);
 				out.Write("coord = float4(rawnorm0.xyz, 1.0);\n");
 			}
 			break;
@@ -213,14 +277,12 @@ static T GenerateVertexShader(API_TYPE api_type)
 		case XF_SRCBINORMAL_T_INROW:
 			if (uid_data->components & VB_HAS_NRM1)
 			{
-				_assert_(xfmem.texMtxInfo[i].inputform == XF_TEXINPUT_ABC1);
 				out.Write("coord = float4(rawnorm1.xyz, 1.0);\n");
 			}
 			break;
 		case XF_SRCBINORMAL_B_INROW:
 			if (uid_data->components & VB_HAS_NRM2)
 			{
-				_assert_(xfmem.texMtxInfo[i].inputform == XF_TEXINPUT_ABC1);
 				out.Write("coord = float4(rawnorm2.xyz, 1.0);\n");
 			}
 			break;
@@ -239,8 +301,6 @@ static T GenerateVertexShader(API_TYPE api_type)
 				if (uid_data->components & (VB_HAS_NRM1|VB_HAS_NRM2))
 				{
 					// transform the light dir into tangent space
-					texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
-					texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
 					out.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(texinfo.embosslightshift));
 					out.Write("o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n", i, texinfo.embosssourceshift);
 				}
@@ -248,7 +308,6 @@ static T GenerateVertexShader(API_TYPE api_type)
 				{
 					// The following assert was triggered in House of the Dead Overkill and Star Wars Rogue Squadron 2
 					//_assert_(0); // should have normals
-					texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
 					out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
 				}
 
@@ -263,7 +322,6 @@ static T GenerateVertexShader(API_TYPE api_type)
 				break;
 			case XF_TEXGEN_REGULAR:
 			default:
-				uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
 				if (uid_data->components & (VB_HAS_TEXMTXIDX0<<i))
 				{
 					out.Write("int tmp = int(tex%d.z);\n", i);
@@ -282,19 +340,16 @@ static T GenerateVertexShader(API_TYPE api_type)
 				break;
 		}
 
-		uid_data->dualTexTrans_enabled = xfmem.dualTexTrans.enabled;
 		// CHECKME: does this only work for regular tex gen types?
 		if (uid_data->dualTexTrans_enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
 		{
 			auto& postInfo = uid_data->postMtxInfo[i];
 
-			postInfo.index = xfmem.postMtxInfo[i].index;
 			out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES"[%d];\n"
 			          "float4 P1 = " I_POSTTRANSFORMMATRICES"[%d];\n"
 			          "float4 P2 = " I_POSTTRANSFORMMATRICES"[%d];\n",
 			          postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
 
-			postInfo.normalize = xfmem.postMtxInfo[i].normalize;
 			if (postInfo.normalize)
 				out.Write("o.tex%d.xyz = normalize(o.tex%d.xyz);\n", i, i);
 
@@ -382,14 +437,4 @@ static T GenerateVertexShader(API_TYPE api_type)
 	out.Write("}\n");
 
 	return out;
-}
-
-VertexShaderUid GetVertexShaderUid(API_TYPE api_type)
-{
-	return GenerateVertexShader<VertexShaderUid>(api_type);
-}
-
-ShaderCode GenerateVertexShaderCode(API_TYPE api_type)
-{
-	return GenerateVertexShader<ShaderCode>(api_type);
 }
