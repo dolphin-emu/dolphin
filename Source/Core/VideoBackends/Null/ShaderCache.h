@@ -81,12 +81,12 @@ protected:
   PixelShaderUid GetUid(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type,
                         API_TYPE api_type) override
   {
-    return GetPixelShaderUid(dst_alpha_mode, api_type);
+    return GetPixelShaderUid(dst_alpha_mode);
   }
   ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type, API_TYPE api_type,
-                          PixelShaderUid) override
+                          PixelShaderUid uid) override
   {
-    return GeneratePixelShaderCode(dst_alpha_mode, api_type);
+    return GeneratePixelShaderCode(dst_alpha_mode, api_type, uid.GetUidData());
   }
 };
 

@@ -87,7 +87,7 @@ struct pixel_shader_uid_data
     }
   }
 
-  inline u32 GetTevindirefCoord(int index)
+  inline u32 GetTevindirefCoord(int index) const
   {
     if (index == 0)
     {
@@ -108,7 +108,7 @@ struct pixel_shader_uid_data
     return 0;
   }
 
-  inline u32 GetTevindirefMap(int index)
+  inline u32 GetTevindirefMap(int index) const
   {
     if (index == 0)
     {
@@ -165,5 +165,6 @@ struct pixel_shader_uid_data
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 
-ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType);
-PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType);
+ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
+                                   const pixel_shader_uid_data* uid_data);
+PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode);
