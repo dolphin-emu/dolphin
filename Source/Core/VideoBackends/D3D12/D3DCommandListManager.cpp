@@ -7,6 +7,7 @@
 
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
+#include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
 #include "VideoBackends/D3D12/D3DQueuedCommandList.h"
 #include "VideoBackends/D3D12/D3DState.h"
 #include "VideoBackends/D3D12/D3DTexture.h"
@@ -24,15 +25,10 @@ extern StateCache gx_state_cache;
 D3DCommandListManager::D3DCommandListManager(
 	D3D12_COMMAND_LIST_TYPE command_list_type,
 	ID3D12Device* device,
-	ID3D12CommandQueue* command_queue,
-	ID3D12DescriptorHeap** gpu_descriptor_heaps,
-	unsigned int gpu_descriptor_heaps_count,
-	ID3D12RootSignature* default_root_signature
+	ID3D12CommandQueue* command_queue
 	) :
 	m_device(device),
-	m_command_queue(command_queue),
-	m_gpu_descriptor_heaps_count(gpu_descriptor_heaps_count),
-	m_default_root_signature(default_root_signature)
+	m_command_queue(command_queue)
 {
 	// Create two lists, with two command allocators each. This corresponds to up to two frames in flight at once.
 	m_current_command_allocator = 0;
@@ -43,23 +39,17 @@ D3DCommandListManager::D3DCommandListManager(
 		{
 			ID3D12CommandAllocator* command_allocator = nullptr;
 
-			CheckHR(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator)));
+			CheckHR(m_device->CreateCommandAllocator(command_list_type, IID_PPV_ARGS(&command_allocator)));
 			m_command_allocator_lists[j].push_back(command_allocator);
 		}
 	}
 
 	// Create backing command list.
-	CheckHR(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_command_allocator_lists[m_current_command_allocator_list][0], nullptr, IID_PPV_ARGS(&m_backing_command_list)));
+	CheckHR(m_device->CreateCommandList(0, command_list_type, m_command_allocator_lists[m_current_command_allocator_list][0], nullptr, IID_PPV_ARGS(&m_backing_command_list)));
 
 #ifdef USE_D3D12_QUEUED_COMMAND_LISTS
 	m_queued_command_list = new ID3D12QueuedCommandList(m_backing_command_list, m_command_queue);
 #endif
-
-	// Copy list of default descriptor heaps.
-	for (unsigned int i = 0; i < gpu_descriptor_heaps_count; i++)
-	{
-		m_gpu_descriptor_heaps[i] = gpu_descriptor_heaps[i];
-	}
 
 	// Create fence that will be used to measure GPU progress of app rendering requests (e.g. CPU readback of GPU data).
 	m_queue_fence_value = 0;
@@ -68,6 +58,9 @@ D3DCommandListManager::D3DCommandListManager(
 	// Create fence that will be used internally by D3DCommandListManager to make sure we aren't using in-use resources.
 	m_queue_rollover_fence_value = 0;
 	CheckHR(m_device->CreateFence(m_queue_rollover_fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_queue_rollover_fence)));
+
+	// Create event that will be used for waiting on CPU until a fence is signaled by GPU.
+	m_wait_on_cpu_fence_event = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	// Pre-size the deferred destruction lists.
 	for (UINT i = 0; i < ARRAYSIZE(m_deferred_destruction_lists); i++)
@@ -83,8 +76,8 @@ void D3DCommandListManager::SetInitialCommandListState()
 	ID3D12GraphicsCommandList* command_list = nullptr;
 	GetCommandList(&command_list);
 
-	command_list->SetDescriptorHeaps(m_gpu_descriptor_heaps_count, m_gpu_descriptor_heaps);
-	command_list->SetGraphicsRootSignature(m_default_root_signature);
+	command_list->SetDescriptorHeaps(ARRAYSIZE(D3D::gpu_descriptor_heaps), D3D::gpu_descriptor_heaps);
+	command_list->SetGraphicsRootSignature(D3D::default_root_signature);
 
 	if (g_renderer)
 	{
@@ -322,16 +315,15 @@ D3DCommandListManager::~D3DCommandListManager()
 
 	m_queue_fence->Release();
 	m_queue_rollover_fence->Release();
+
+	CloseHandle(m_wait_on_cpu_fence_event);
 }
 
 void D3DCommandListManager::WaitOnCPUForFence(ID3D12Fence* fence, UINT64 fence_value)
 {
-	HANDLE fence_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+	CheckHR(fence->SetEventOnCompletion(fence_value, m_wait_on_cpu_fence_event));
 
-	CheckHR(fence->SetEventOnCompletion(fence_value, fence_event));
-	WaitForSingleObject(fence_event, INFINITE);
-
-	CloseHandle(fence_event);
+	WaitForSingleObject(m_wait_on_cpu_fence_event, INFINITE);
 }
 
 void D3DCommandListManager::AddRef()

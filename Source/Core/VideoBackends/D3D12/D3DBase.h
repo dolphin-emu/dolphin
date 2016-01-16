@@ -10,7 +10,7 @@
 #include <d3d11.h>
 #include <d3d12.h>
 #include <d3dcompiler.h>
-#include <dxgi.h>
+#include <dxgi1_4.h>
 #include <vector>
 
 #include "../../Externals/d3dx12/d3dx12.h"
@@ -82,6 +82,8 @@ extern D3DDescriptorHeapManager* gpu_descriptor_heap_mgr;
 extern D3DDescriptorHeapManager* sampler_descriptor_heap_mgr;
 extern D3DDescriptorHeapManager* dsv_descriptor_heap_mgr;
 extern D3DDescriptorHeapManager* rtv_descriptor_heap_mgr;
+extern ID3D12DescriptorHeap* gpu_descriptor_heaps[2];
+
 
 extern D3D12_CPU_DESCRIPTOR_HANDLE null_srv_cpu;
 extern D3D12_CPU_DESCRIPTOR_HANDLE null_srv_cpu_shadow;
