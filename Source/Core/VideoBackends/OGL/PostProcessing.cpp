@@ -18,6 +18,7 @@
 
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -919,10 +920,19 @@ void OGLPostProcessor::MapAndUpdateUniformBuffer(const PostProcessingShaderConfi
 												 const TargetRectangle& src_rect, const TargetSize& src_size,
 												 int src_layer)
 {
-	std::pair<u8*, u32> ubo = m_uniform_buffer->Map(UNIFORM_BUFFER_SIZE, UNIFORM_BUFFER_SIZE);
+	// Annoyingly, due to latched state, we have to bind our private uniform buffer here, then restore the
+	// ProgramShaderCache uniform buffer afterwards, otherwise we'll end up flushing the wrong buffer.
+	glBindBuffer(GL_UNIFORM_BUFFER, m_uniform_buffer->m_buffer);
+
+	std::pair<u8*, u32> ubo = m_uniform_buffer->Map(UNIFORM_BUFFER_SIZE, ProgramShaderCache::GetUniformBufferAlignment());
 	UpdateUniformBuffer(API_OPENGL, config, ubo.first, input_sizes, dst_rect, dst_size, src_rect, src_size, src_layer);
 	m_uniform_buffer->Unmap(UNIFORM_BUFFER_SIZE);
+
 	glBindBufferRange(GL_UNIFORM_BUFFER, UNIFORM_BUFFER_BIND_POINT, m_uniform_buffer->m_buffer, ubo.second, UNIFORM_BUFFER_SIZE);
+
+	ProgramShaderCache::BindUniformBuffer();
+
+	ADDSTAT(stats.thisFrame.bytesUniformStreamed, UNIFORM_BUFFER_SIZE);
 }
 
 }  // namespace OGL
