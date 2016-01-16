@@ -167,7 +167,7 @@ void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode,
 
   GeometryShaderUid gs_uid = GetGeometryShaderUid(gs_primitive_type);
   PixelShaderUid ps_uid = GetPixelShaderUid(ps_dst_alpha_mode, API_D3D);
-  VertexShaderUid vs_uid = GetVertexShaderUid(API_D3D);
+  VertexShaderUid vs_uid = GetVertexShaderUid();
 
   bool gs_changed = gs_uid != s_last_geometry_shader_uid;
   bool ps_changed = ps_uid != s_last_pixel_shader_uid;
@@ -292,7 +292,7 @@ void ShaderCache::HandleVSUIDChange(VertexShaderUid vs_uid) {
   s_last_vertex_shader_uid = vs_uid;
 
   if (g_ActiveConfig.bEnableShaderDebugging) {
-    ShaderCode code = GenerateVertexShaderCode(API_D3D);
+    ShaderCode code = GenerateVertexShaderCode(API_D3D, vs_uid.GetUidData());
     s_vertex_uid_checker.AddToIndexAndCheck(code, vs_uid, "Vertex", "v");
   }
 
@@ -301,7 +301,7 @@ void ShaderCache::HandleVSUIDChange(VertexShaderUid vs_uid) {
     s_last_vertex_shader_bytecode = vs_iterator->second;
     GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
   } else {
-    ShaderCode vs_code = GenerateVertexShaderCode(API_D3D);
+    ShaderCode vs_code = GenerateVertexShaderCode(API_D3D, vs_uid.GetUidData());
     ID3DBlob *vs_bytecode = nullptr;
 
     if (!D3D::CompileVertexShader(vs_code.GetBuffer(), &vs_bytecode)) {
