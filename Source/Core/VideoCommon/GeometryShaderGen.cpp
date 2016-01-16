@@ -16,15 +16,17 @@ static const char* primitives_ogl[] = {"points", "lines", "triangles"};
 static const char* primitives_d3d[] = {"point", "line", "triangle"};
 
 template <class T>
-static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex = false);
+static void EmitVertex(T& out, geometry_shader_uid_data* uid_data, const char* vertex,
+                       API_TYPE ApiType, bool first_vertex = false);
 template <class T>
-static void EndPrimitive(T& out, API_TYPE ApiType);
+static void EndPrimitive(T& out, geometry_shader_uid_data* uid_data, API_TYPE ApiType);
 
 template <class T>
 static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 {
   T out;
-  // Non-uid template parameters will write to the dummy data (=> gets optimized out)
+  // Non-uid template parameters will write to the dummy data (=> gets optimized
+  // out)
   geometry_shader_uid_data dummy_data;
   geometry_shader_uid_data* uid_data = out.template GetUidData<geometry_shader_uid_data>();
   if (uid_data != nullptr)
@@ -40,6 +42,8 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
   if (g_ActiveConfig.bWireFrame)
     vertex_out++;
 
+  uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
+  uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
   uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
   if (ApiType == API_OPENGL)
   {
@@ -77,7 +81,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
   uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
   out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers<T>(out, ApiType, "");
+  GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting, "");
   out.Write("};\n");
 
   if (ApiType == API_OPENGL)
@@ -86,11 +90,15 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
       out.Write("#define InstanceID gl_InvocationID\n");
 
     out.Write("in VertexData {\n");
-    GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(true, true));
+    GenerateVSOutputMembers<T>(
+        out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting,
+        GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, true, true));
     out.Write("} vs[%d];\n", vertex_in);
 
     out.Write("out VertexData {\n");
-    GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(true, false));
+    GenerateVSOutputMembers<T>(
+        out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting,
+        GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, false, true));
 
     if (g_ActiveConfig.iStereoMode > 0)
       out.Write("\tflat int layer;\n");
@@ -113,7 +121,8 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
     {
       out.Write("[maxvertexcount(%d)]\n[instance(%d)]\n", vertex_out,
                 g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
-      out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> output, in uint "
+      out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> "
+                "output, in uint "
                 "InstanceID : SV_GSInstanceID)\n{\n",
                 primitives_d3d[primitive_type], vertex_in,
                 g_ActiveConfig.bWireFrame ? "Line" : "Triangle");
@@ -122,7 +131,8 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
     {
       out.Write("[maxvertexcount(%d)]\n",
                 g_ActiveConfig.iStereoMode > 0 ? vertex_out * 2 : vertex_out);
-      out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> output)\n{\n",
+      out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> "
+                "output)\n{\n",
                 primitives_d3d[primitive_type], vertex_in,
                 g_ActiveConfig.bWireFrame ? "Line" : "Triangle");
     }
@@ -135,8 +145,8 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
     if (ApiType == API_OPENGL)
     {
       out.Write("\tVS_OUTPUT start, end;\n");
-      AssignVSOutputMembers(out, "start", "vs[0]");
-      AssignVSOutputMembers(out, "end", "vs[1]");
+      AssignVSOutputMembers(out, "start", "vs[0]", uid_data->numTexGens, uid_data->pixel_lighting);
+      AssignVSOutputMembers(out, "end", "vs[1]", uid_data->numTexGens, uid_data->pixel_lighting);
     }
     else
     {
@@ -148,9 +158,11 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
     // use the correct line caps. Instead, the line caps are vertical or
     // horizontal depending the slope of the line.
     out.Write("\tfloat2 offset;\n"
-              "\tfloat2 to = abs(end.pos.xy / end.pos.w - start.pos.xy / start.pos.w);\n"
+              "\tfloat2 to = abs(end.pos.xy / end.pos.w - start.pos.xy / "
+              "start.pos.w);\n"
               // FIXME: What does real hardware do when line is at a 45-degree angle?
-              // FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
+              // FIXME: Lines aren't drawn at the correct width. See Twilight Princess
+              // map.
               "\tif (" I_LINEPTPARAMS ".y * to.y > " I_LINEPTPARAMS ".x * to.x) {\n"
               // Line is more tall. Extend geometry left and right.
               // Lerp LineWidth/2 from [0..VpWidth] to [-1..1]
@@ -166,11 +178,11 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
     if (ApiType == API_OPENGL)
     {
       out.Write("\tVS_OUTPUT center;\n");
-      AssignVSOutputMembers(out, "center", "vs[0]");
+      AssignVSOutputMembers(out, "center", "vs[0]", uid_data->numTexGens, uid_data->pixel_lighting);
     }
     else
     {
-      out.Write("\tVS_OUTPUT center = o[0];\n");
+      out.Write("\tVS_OUTPUT center = o[0];\n", uid_data->numTexGens, uid_data->pixel_lighting);
     }
 
     // Offset from center to upper right vertex
@@ -181,7 +193,8 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 
   if (g_ActiveConfig.iStereoMode > 0)
   {
-    // If the GPU supports invocation we don't need a for loop and can simply use the
+    // If the GPU supports invocation we don't need a for loop and can simply
+    // use the
     // invocation identifier to determine which layer we're rendering.
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
       out.Write("\tint eye = InstanceID;\n");
@@ -197,7 +210,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
   if (ApiType == API_OPENGL)
   {
     out.Write("\tVS_OUTPUT f;\n");
-    AssignVSOutputMembers(out, "f", "vs[i]");
+    AssignVSOutputMembers(out, "f", "vs[i]", uid_data->numTexGens, uid_data->pixel_lighting);
   }
   else
   {
@@ -211,13 +224,18 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
     if (ApiType == API_OPENGL)
       out.Write("\tgl_Layer = eye;\n");
 
-    // For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
-    // to the depth of the vertex. We retrieve the depth value from the w-component of the projected
+    // For stereoscopy add a small horizontal offset in Normalized Device
+    // Coordinates proportional
+    // to the depth of the vertex. We retrieve the depth value from the
+    // w-component of the projected
     // vertex which contains the negated z-component of the original vertex.
-    // For negative parallax (out-of-screen effects) we subtract a convergence value from
-    // the depth value. This results in objects at a distance smaller than the convergence
+    // For negative parallax (out-of-screen effects) we subtract a convergence
+    // value from
+    // the depth value. This results in objects at a distance smaller than the
+    // convergence
     // distance to seemingly appear in front of the screen.
-    // This formula is based on page 13 of the "Nvidia 3D Vision Automatic, Best Practices Guide"
+    // This formula is based on page 13 of the "Nvidia 3D Vision Automatic, Best
+    // Practices Guide"
     out.Write("\tf.pos.x += " I_STEREOPARAMS "[eye] * (f.pos.w - " I_STEREOPARAMS "[2]);\n");
   }
 
@@ -239,8 +257,8 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
     }
     out.Write("\t}\n");
 
-    EmitVertex<T>(out, "l", ApiType, true);
-    EmitVertex<T>(out, "r", ApiType);
+    EmitVertex<T>(out, uid_data, "l", ApiType, true);
+    EmitVertex<T>(out, uid_data, "r", ApiType);
   }
   else if (primitive_type == PRIMITIVE_POINTS)
   {
@@ -268,19 +286,19 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
     }
     out.Write("\t}\n");
 
-    EmitVertex<T>(out, "ll", ApiType, true);
-    EmitVertex<T>(out, "lr", ApiType);
-    EmitVertex<T>(out, "ul", ApiType);
-    EmitVertex<T>(out, "ur", ApiType);
+    EmitVertex<T>(out, uid_data, "ll", ApiType, true);
+    EmitVertex<T>(out, uid_data, "lr", ApiType);
+    EmitVertex<T>(out, uid_data, "ul", ApiType);
+    EmitVertex<T>(out, uid_data, "ur", ApiType);
   }
   else
   {
-    EmitVertex<T>(out, "f", ApiType, true);
+    EmitVertex<T>(out, uid_data, "f", ApiType, true);
   }
 
   out.Write("\t}\n");
 
-  EndPrimitive<T>(out, ApiType);
+  EndPrimitive<T>(out, uid_data, ApiType);
 
   if (g_ActiveConfig.iStereoMode > 0 && !g_ActiveConfig.backend_info.bSupportsGSInstancing)
     out.Write("\t}\n");
@@ -291,7 +309,8 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 }
 
 template <class T>
-static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex)
+static void EmitVertex(T& out, geometry_shader_uid_data* uid_data, const char* vertex,
+                       API_TYPE ApiType, bool first_vertex)
 {
   if (g_ActiveConfig.bWireFrame && first_vertex)
     out.Write("\tif (i == 0) first = %s;\n", vertex);
@@ -299,7 +318,7 @@ static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_
   if (ApiType == API_OPENGL)
   {
     out.Write("\tgl_Position = %s.pos;\n", vertex);
-    AssignVSOutputMembers(out, "ps", vertex);
+    AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, uid_data->pixel_lighting);
   }
   else
   {
@@ -312,10 +331,10 @@ static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_
     out.Write("\toutput.Append(ps);\n");
 }
 template <class T>
-static void EndPrimitive(T& out, API_TYPE ApiType)
+static void EndPrimitive(T& out, geometry_shader_uid_data* uid_data, API_TYPE ApiType)
 {
   if (g_ActiveConfig.bWireFrame)
-    EmitVertex<T>(out, "first", ApiType);
+    EmitVertex<T>(out, uid_data, "first", ApiType);
 
   if (ApiType == API_OPENGL)
     out.Write("\tEndPrimitive();\n");

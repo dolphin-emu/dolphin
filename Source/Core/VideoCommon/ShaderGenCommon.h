@@ -21,16 +21,21 @@
 #include "VideoCommon/XFMemory.h"
 
 /**
- * Common interface for classes that need to go through the shader generation path
+ * Common interface for classes that need to go through the shader generation
+ * path
  * (GenerateVertexShader, GenerateGeometryShader, GeneratePixelShader)
  * In particular, this includes the shader code generator (ShaderCode).
- * A different class (ShaderUid) can be used to uniquely identify each ShaderCode object.
- * More interesting things can be done with this, e.g. ShaderConstantProfile checks what shader
+ * A different class (ShaderUid) can be used to uniquely identify each
+ * ShaderCode object.
+ * More interesting things can be done with this, e.g. ShaderConstantProfile
+ * checks what shader
  * constants are being used. This can be used to optimize buffer management.
- * If the class does not use one or more of these methods (e.g. Uid class does not need code), the
+ * If the class does not use one or more of these methods (e.g. Uid class does
+ * not need code), the
  * method will be defined as a no-op by the base class, and the call
  * should be optimized out. The reason for this implementation is so that shader
- * selection/generation can be done in two passes, with only a cache lookup being
+ * selection/generation can be done in two passes, with only a cache lookup
+ * being
  * required if the shader has already been generated.
  */
 class ShaderGeneratorInterface
@@ -39,8 +44,10 @@ public:
   /*
    * Used when the shader generator would write a piece of ShaderCode.
    * Can be used like printf.
-   * @note In the ShaderCode implementation, this does indeed write the parameter string to an
-   * internal buffer. However, you're free to do whatever you like with the parameter.
+   * @note In the ShaderCode implementation, this does indeed write the
+   * parameter string to an
+   * internal buffer. However, you're free to do whatever you like with the
+   * parameter.
    */
   void Write(const char*, ...)
 #ifdef __GNUC__
@@ -50,13 +57,16 @@ public:
   }
 
   /*
-   * Tells us that a specific constant range (including last_index) is being used by the shader
+   * Tells us that a specific constant range (including last_index) is being
+   * used by the shader
    */
   void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
   /*
    * Returns a pointer to an internally stored object of the uid_data type.
-   * @warning since most child classes use the default implementation you shouldn't access this
-   * directly without adding precautions against nullptr access (e.g. via adding a dummy structure,
+   * @warning since most child classes use the default implementation you
+   * shouldn't access this
+   * directly without adding precautions against nullptr access (e.g. via adding
+   * a dummy structure,
    * cf. the vertex/pixel shader generators)
    */
   template <class uid_data>
@@ -67,12 +77,17 @@ public:
 };
 
 /*
- * Shader UID class used to uniquely identify the ShaderCode output written in the shader generator.
- * uid_data can be any struct of parameters that uniquely identify each shader code output.
- * Unless performance is not an issue, uid_data should be tightly packed to reduce memory footprint.
- * Shader generators will write to specific uid_data fields; ShaderUid methods will only read raw
+ * Shader UID class used to uniquely identify the ShaderCode output written in
+ * the shader generator.
+ * uid_data can be any struct of parameters that uniquely identify each shader
+ * code output.
+ * Unless performance is not an issue, uid_data should be tightly packed to
+ * reduce memory footprint.
+ * Shader generators will write to specific uid_data fields; ShaderUid methods
+ * will only read raw
  * u32 values from a union.
- * NOTE: Because LinearDiskCache reads and writes the storage associated with a ShaderUid instance,
+ * NOTE: Because LinearDiskCache reads and writes the storage associated with a
+ * ShaderUid instance,
  * ShaderUid must be trivially copyable.
  */
 template <class uid_data>
@@ -131,7 +146,8 @@ protected:
 };
 
 /**
- * Generates a shader constant profile which can be used to query which constants are used in a
+ * Generates a shader constant profile which can be used to query which
+ * constants are used in a
  * shader
  */
 class ShaderConstantProfile : public ShaderGeneratorInterface
@@ -178,7 +194,8 @@ public:
     }
     else
     {
-      // uid is already in the index => check if there's a shader with the same uid but different
+      // uid is already in the index => check if there's a shader with the same
+      // uid but different
       // code
       auto& old_code = m_shaders[new_uid];
       if (old_code != new_code.GetBuffer())
@@ -245,40 +262,41 @@ inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifi
 }
 
 template <class T>
-inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier)
+inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 texgens,
+                                    bool per_pixel_lighting, const char* qualifier)
 {
   DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
   DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
   DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 
-  for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+  for (unsigned int i = 0; i < texgens; ++i)
     DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
 
-  DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD",
-                     xfmem.numTexGen.numTexGens);
+  DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", texgens);
 
-  if (g_ActiveConfig.bEnablePixelLighting)
+  if (per_pixel_lighting)
   {
     DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD",
-                       xfmem.numTexGen.numTexGens + 1);
+                       texgens + 1);
     DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD",
-                       xfmem.numTexGen.numTexGens + 2);
+                       texgens + 2);
   }
 }
 
 template <class T>
-inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
+inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 texgens,
+                                  bool per_pixel_lighting)
 {
   object.Write("\t%s.pos = %s.pos;\n", a, b);
   object.Write("\t%s.colors_0 = %s.colors_0;\n", a, b);
   object.Write("\t%s.colors_1 = %s.colors_1;\n", a, b);
 
-  for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+  for (unsigned int i = 0; i < texgens; ++i)
     object.Write("\t%s.tex%d = %s.tex%d;\n", a, i, b, i);
 
   object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
 
-  if (g_ActiveConfig.bEnablePixelLighting)
+  if (per_pixel_lighting)
   {
     object.Write("\t%s.Normal = %s.Normal;\n", a, b);
     object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
@@ -286,30 +304,36 @@ inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
 }
 
 // We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the
-// pixel shader will be executed for each pixel which has at least one passed sample.
-// So there may be rendered pixels where the center of the pixel isn't in the primitive.
-// As the pixel shader usually renders at the center of the pixel, this position may be
-// outside the primitive. This will lead to sampling outside the texture, sign changes, ...
+// pixel shader will be executed for each pixel which has at least one passed
+// sample.
+// So there may be rendered pixels where the center of the pixel isn't in the
+// primitive.
+// As the pixel shader usually renders at the center of the pixel, this position
+// may be
+// outside the primitive. This will lead to sampling outside the texture, sign
+// changes, ...
 // As a workaround, we interpolate at the centroid of the coveraged pixel, which
 // is always inside the primitive.
 // Without MSAA, this flag is defined to have no effect.
-inline const char* GetInterpolationQualifier(bool in_glsl_interface_block = false, bool in = false)
+inline const char* GetInterpolationQualifier(bool msaa, bool ssaa,
+                                             bool in_glsl_interface_block = false, bool in = false)
 {
-  if (g_ActiveConfig.iMultisamples <= 1)
+  if (!msaa)
     return "";
 
-  // Without GL_ARB_shading_language_420pack support, the interpolation qualifier must be
+  // Without GL_ARB_shading_language_420pack support, the interpolation
+  // qualifier must be
   // "centroid in" and not "centroid", even within an interface block.
   if (in_glsl_interface_block && !g_ActiveConfig.backend_info.bSupportsBindingLayout)
   {
-    if (!g_ActiveConfig.bSSAA)
+    if (!ssaa)
       return in ? "centroid in" : "centroid out";
     else
       return in ? "sample in" : "sample out";
   }
   else
   {
-    if (!g_ActiveConfig.bSSAA)
+    if (!ssaa)
       return "centroid";
     else
       return "sample";
