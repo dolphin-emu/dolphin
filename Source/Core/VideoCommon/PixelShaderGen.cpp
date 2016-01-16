@@ -799,7 +799,6 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 	   ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
 	{
 		const int i = bpmem.combiners[n].alphaC.rswap;
-		uid_data->stagehash[n].ac |= bpmem.combiners[n].alphaC.rswap;
 		uid_data->stagehash[n].tevksel_swap1a = bpmem.tevksel[i*2].swap1;
 		uid_data->stagehash[n].tevksel_swap2a = bpmem.tevksel[i*2].swap2;
 		uid_data->stagehash[n].tevksel_swap1b = bpmem.tevksel[i*2+1].swap1;
@@ -824,7 +823,6 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 		}
 
 		const int i = bpmem.combiners[n].alphaC.tswap;
-		uid_data->stagehash[n].ac |= bpmem.combiners[n].alphaC.tswap << 2;
 		uid_data->stagehash[n].tevksel_swap1c = bpmem.tevksel[i*2].swap1;
 		uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i*2].swap2;
 		uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i*2+1].swap1;
@@ -833,8 +831,6 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 		uid_data->stagehash[n].tevorders_texmap= bpmem.tevorders[n/2].getTexMap(n&1);
 
 		const char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
-		uid_data->SetTevindrefTexmap(i, texmap);
-
 		out.Write("\ttextemp = ");
 		SampleTexture<T>(out, "(float2(tevcoord.xy)/128.0)", texswap, texmap, ApiType);
 	}
