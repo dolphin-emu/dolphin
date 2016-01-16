@@ -489,6 +489,11 @@ OGLPostProcessor::~OGLPostProcessor()
 		glDeleteTextures(1, &m_depth_copy_texture);
 	if (m_stereo_buffer_texture != 0)
 		glDeleteTextures(1, &m_stereo_buffer_texture);
+
+	// Need to change latched buffer before freeing uniform buffer, see MapAndUpdateUniformBuffer for why.
+	glBindBuffer(GL_UNIFORM_BUFFER, m_uniform_buffer->m_buffer);
+	m_uniform_buffer.reset();
+	ProgramShaderCache::BindUniformBuffer();
 }
 
 bool OGLPostProcessor::Initialize()
