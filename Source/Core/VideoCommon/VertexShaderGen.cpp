@@ -41,13 +41,16 @@ template <class T> static T GenerateVertexShader(API_TYPE api_type) {
   out.Write(s_shader_uniforms);
   out.Write("};\n");
 
-  out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers<T>(out, api_type, "");
-  out.Write("};\n");
-
   uid_data->numTexGens = xfmem.numTexGen.numTexGens;
   uid_data->components = VertexLoaderManager::g_current_components;
   uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+  uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
+  uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
+
+  out.Write("struct VS_OUTPUT {\n");
+  GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens,
+                             uid_data->pixel_lighting, "");
+  out.Write("};\n");
 
   if (api_type == API_OPENGL) {
     out.Write("in float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
@@ -74,23 +77,32 @@ template <class T> static T GenerateVertexShader(API_TYPE api_type) {
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders) {
       out.Write("out VertexData {\n");
-      GenerateVSOutputMembers<T>(out, api_type,
-                                 GetInterpolationQualifier(true, false));
+      GenerateVSOutputMembers<T>(
+          out, api_type, uid_data->numTexGens, uid_data->pixel_lighting,
+          GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, false,
+                                    true));
       out.Write("} vs;\n");
     } else {
       // Let's set up attributes
       for (u32 i = 0; i < 8; ++i) {
         if (i < uid_data->numTexGens) {
-          out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(), i);
+          out.Write("%s out float3 uv%u;\n",
+                    GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa),
+                    i);
         }
       }
-      out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier());
+      out.Write("%s out float4 clipPos;\n",
+                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
       if (uid_data->pixel_lighting) {
-        out.Write("%s out float3 Normal;\n", GetInterpolationQualifier());
-        out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier());
+        out.Write("%s out float3 Normal;\n",
+                  GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
+        out.Write("%s out float3 WorldPos;\n",
+                  GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
       }
-      out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier());
-      out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier());
+      out.Write("%s out float4 colors_0;\n",
+                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
+      out.Write("%s out float4 colors_1;\n",
+                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
     }
 
     out.Write("void main()\n{\n");
@@ -372,7 +384,8 @@ template <class T> static T GenerateVertexShader(API_TYPE api_type) {
 
   if (api_type == API_OPENGL) {
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders) {
-      AssignVSOutputMembers(out, "vs", "o");
+      AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens,
+                            uid_data->pixel_lighting);
     } else {
       // TODO: Pass interface blocks between shader stages even if geometry
       // shaders
