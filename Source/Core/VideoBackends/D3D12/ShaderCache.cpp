@@ -159,7 +159,7 @@ void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 g
 	SetCurrentPrimitiveTopology(gs_primitive_type);
 
 	GeometryShaderUid gs_uid = GetGeometryShaderUid(gs_primitive_type);
-	PixelShaderUid ps_uid = GetPixelShaderUid(ps_dst_alpha_mode, API_D3D);
+	PixelShaderUid ps_uid = GetPixelShaderUid(ps_dst_alpha_mode);
 	VertexShaderUid vs_uid = GetVertexShaderUid();
 
 	bool gs_changed = gs_uid != s_last_geometry_shader_uid;
@@ -257,7 +257,7 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
-		ShaderCode code = GeneratePixelShaderCode(ps_dst_alpha_mode, API_D3D);
+		ShaderCode code = GeneratePixelShaderCode(ps_dst_alpha_mode, API_D3D, ps_uid.GetUidData());
 		s_pixel_uid_checker.AddToIndexAndCheck(code, ps_uid, "Pixel", "p");
 	}
 
@@ -269,7 +269,7 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_
 	}
 	else
 	{
-		ShaderCode ps_code = GeneratePixelShaderCode(ps_dst_alpha_mode, API_D3D);
+		ShaderCode ps_code = GeneratePixelShaderCode(ps_dst_alpha_mode, API_D3D, ps_uid.GetUidData());
 		ID3DBlob* ps_bytecode = nullptr;
 
 		if (!D3D::CompilePixelShader(ps_code.GetBuffer(), &ps_bytecode))
