@@ -752,6 +752,13 @@ PostProcessor::~PostProcessor()
 	m_timer.Stop();
 }
 
+bool PostProcessor::ShouldTriggerOnSwap() const
+{
+	return g_ActiveConfig.bPostProcessingEnable &&
+		g_ActiveConfig.iPostProcessingTrigger == POST_PROCESSING_TRIGGER_ON_SWAP &&
+		m_active;
+}
+
 void PostProcessor::OnProjectionLoaded(u32 type)
 {
 	if (!m_active || !g_ActiveConfig.bPostProcessingEnable ||
