@@ -46,11 +46,12 @@ struct pixel_shader_uid_data
   u32 per_pixel_lighting : 1;
   u32 forced_early_z : 1;
   u32 early_ztest : 1;
+  u32 late_ztest : 1;
   u32 bounding_box : 1;
   u32 zfreeze : 1;
   u32 msaa : 1;
   u32 ssaa : 1;
-  u32 pad : 17;
+  u32 pad : 16;
 
   u32 texMtxInfo_n_projection : 8;  // 8x1 bit
   u32 tevindref_bi0 : 3;
@@ -84,6 +85,48 @@ struct pixel_shader_uid_data
       tevindref_bc4 = texcoord;
       tevindref_bi4 = texmap;
     }
+  }
+
+  inline u32 GetTevindirefCoord(int index)
+  {
+    if (index == 0)
+    {
+      return tevindref_bc0;
+    }
+    else if (index == 1)
+    {
+      return tevindref_bc1;
+    }
+    else if (index == 2)
+    {
+      return tevindref_bc3;
+    }
+    else if (index == 3)
+    {
+      return tevindref_bc4;
+    }
+    return 0;
+  }
+
+  inline u32 GetTevindirefMap(int index)
+  {
+    if (index == 0)
+    {
+      return tevindref_bi0;
+    }
+    else if (index == 1)
+    {
+      return tevindref_bi1;
+    }
+    else if (index == 2)
+    {
+      return tevindref_bi2;
+    }
+    else if (index == 3)
+    {
+      return tevindref_bi4;
+    }
+    return 0;
   }
 
   struct
