@@ -153,13 +153,13 @@ static const char *tevAOutputTable[] = {"prev.a", "c0.a", "c1.a", "c2.a"};
 
 template <class T>
 static void WriteStage(T &out, pixel_shader_uid_data *uid_data, int n,
-                       API_TYPE ApiType, const char swapModeTable[4][5]);
+                       API_TYPE ApiType);
 template <class T>
 static void WriteTevRegular(T &out, const char *components, int bias, int op,
                             int clamp, int shift);
 template <class T>
 static void SampleTexture(T &out, const char *texcoords, const char *texswap,
-                          int texmap, API_TYPE ApiType);
+                          int texmap, bool stereo, API_TYPE ApiType);
 template <class T>
 static void WriteAlphaTest(T &out, pixel_shader_uid_data *uid_data,
                            API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode,
@@ -175,22 +175,23 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
   pixel_shader_uid_data dummy_data;
   pixel_shader_uid_data *uid_data =
       out.template GetUidData<pixel_shader_uid_data>();
-  if (uid_data != nullptr)
-    memset(uid_data, 0, sizeof(*uid_data));
-  else
+  if (uid_data == nullptr)
     uid_data = &dummy_data;
-
-  unsigned int numStages = bpmem.genMode.numtevstages + 1;
-  unsigned int numTexgen = bpmem.genMode.numtexgens;
-
-  out.Write("//Pixel Shader for TEV stages\n");
-  out.Write("//%i TEV stages, %i texgens, %i IND stages\n", numStages,
-            numTexgen, bpmem.genMode.numindstages.Value());
+  memset(uid_data, 0, sizeof(*uid_data));
 
   uid_data->dstAlphaMode = dstAlphaMode;
   uid_data->genMode_numindstages = bpmem.genMode.numindstages;
   uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
   uid_data->genMode_numtexgens = bpmem.genMode.numtexgens;
+  uid_data->per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+  uid_data->bounding_box = g_ActiveConfig.backend_info.bSupportsBBox &&
+                           g_ActiveConfig.bBBoxEnable && BoundingBox::active;
+
+  u32 numStages = uid_data->genMode_numtevstages + 1;
+
+  out.Write("//Pixel Shader for TEV stages\n");
+  out.Write("//%i TEV stages, %i texgens, %i IND stages\n", numStages,
+            uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
 
   // dot product for integer vectors
   out.Write("int idot(int3 x, int3 y)\n"
@@ -249,7 +250,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
             "\tfloat4 " I_EFBSCALE ";\n"
             "};\n");
 
-  if (g_ActiveConfig.bEnablePixelLighting) {
+  if (uid_data->per_pixel_lighting) {
     out.Write("%s", s_lighting_struct);
 
     if (ApiType == API_OPENGL) {
@@ -264,7 +265,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
     out.Write("};\n");
   }
 
-  if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable) {
+  if (uid_data->bounding_box) {
     if (ApiType == API_OPENGL) {
       out.Write("layout(std140, binding = 3) buffer BBox {\n"
                 "\tint4 bbox_data;\n"
@@ -278,23 +279,29 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
   GenerateVSOutputMembers<T>(out, ApiType, "");
   out.Write("};\n");
 
-  const bool forced_early_z =
-      g_ActiveConfig.backend_info.bSupportsEarlyZ &&
-      bpmem.UseEarlyDepthTest() &&
-      (g_ActiveConfig.bFastDepthCalc ||
-       bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
-      // We can't allow early_ztest for zfreeze because depth is overridden
-      // per-pixel.
-      // This means it's impossible for zcomploc to be emulated on a zfrozen
-      // polygon.
-      && !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
-  const bool per_pixel_depth =
-      (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) ||
-      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable &&
-       !forced_early_z) ||
-      (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+  {
+    const bool forced_early_z =
+        g_ActiveConfig.backend_info.bSupportsEarlyZ &&
+        bpmem.UseEarlyDepthTest() &&
+        (g_ActiveConfig.bFastDepthCalc ||
+         bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
+        // We can't allow early_ztest for zfreeze because depth is overridden
+        // per-pixel.
+        // This means it's impossible for zcomploc to be emulated on a zfrozen
+        // polygon.
+        && !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+    const bool per_pixel_depth =
+        (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) ||
+        (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable &&
+         !forced_early_z) ||
+        (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
 
-  if (forced_early_z) {
+    uid_data->per_pixel_depth = per_pixel_depth;
+    uid_data->forced_early_z = forced_early_z;
+    uid_data->fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
+  }
+
+  if (uid_data->forced_early_z) {
     // Zcomploc (aka early_ztest) is a way to control whether depth test is done
     // before
     // or after texturing and alpha test. PC graphics APIs used to provide no
@@ -352,7 +359,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
       out.Write("[earlydepthstencil]\n");
     }
   } else if (bpmem.UseEarlyDepthTest() &&
-             (g_ActiveConfig.bFastDepthCalc ||
+             (uid_data->fast_depth_calc ||
               bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)) {
     static bool warn_once = true;
     if (warn_once)
@@ -368,21 +375,21 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
 
   uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
   uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
+  uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
   if (ApiType == API_OPENGL) {
     out.Write("out vec4 ocol0;\n");
     if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
       out.Write("out vec4 ocol1;\n");
 
-    if (per_pixel_depth)
+    if (uid_data->per_pixel_depth)
       out.Write("#define depth gl_FragDepth\n");
 
-    uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders) {
       out.Write("in VertexData {\n");
       GenerateVSOutputMembers<T>(out, ApiType,
                                  GetInterpolationQualifier(true, true));
 
-      if (g_ActiveConfig.iStereoMode > 0)
+      if (uid_data->stereo)
         out.Write("\tflat int layer;\n");
 
       out.Write("};\n");
@@ -392,11 +399,11 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
       // compute window position if needed because binding semantic WPOS is not
       // widely supported
       // Let's set up attributes
-      for (unsigned int i = 0; i < numTexgen; ++i) {
+      for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i) {
         out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(), i);
       }
       out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier());
-      if (g_ActiveConfig.bEnablePixelLighting) {
+      if (uid_data->per_pixel_lighting) {
         out.Write("%s in float3 Normal;\n", GetInterpolationQualifier());
         out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier());
       }
@@ -405,7 +412,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
     out.Write("void main()\n{\n");
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders) {
-      for (unsigned int i = 0; i < numTexgen; ++i)
+      for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
         out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
     }
 
@@ -418,7 +425,8 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
               dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND
                   ? "\n  out float4 ocol1 : SV_Target1,"
                   : "",
-              per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
+              uid_data->per_pixel_depth ? "\n  out float depth : SV_Depth,"
+                                        : "");
 
     out.Write("  in %s float4 colors_0 : COLOR0,\n",
               GetInterpolationQualifier());
@@ -427,19 +435,18 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
 
     // compute window position if needed because binding semantic WPOS is not
     // widely supported
-    for (unsigned int i = 0; i < numTexgen; ++i)
+    for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
       out.Write(",\n  in %s float3 uv%d : TEXCOORD%d",
                 GetInterpolationQualifier(), i, i);
     out.Write(",\n  in %s float4 clipPos : TEXCOORD%d",
-              GetInterpolationQualifier(), numTexgen);
-    if (g_ActiveConfig.bEnablePixelLighting) {
+              GetInterpolationQualifier(), uid_data->genMode_numtexgens);
+    if (uid_data->per_pixel_lighting) {
       out.Write(",\n  in %s float3 Normal : TEXCOORD%d",
-                GetInterpolationQualifier(), numTexgen + 1);
+                GetInterpolationQualifier(), uid_data->genMode_numtexgens + 1);
       out.Write(",\n  in %s float3 WorldPos : TEXCOORD%d",
-                GetInterpolationQualifier(), numTexgen + 2);
+                GetInterpolationQualifier(), uid_data->genMode_numtexgens + 2);
     }
-    uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
-    if (g_ActiveConfig.iStereoMode > 0)
+    if (uid_data->stereo)
       out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
     out.Write("        ) {\n");
   }
@@ -463,7 +470,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
   out.Write("\tfloat4 col0 = colors_0;\n");
   out.Write("\tfloat4 col1 = colors_1;\n");
 
-  if (g_ActiveConfig.bEnablePixelLighting) {
+  if (uid_data->per_pixel_lighting) {
     out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
     out.Write("\tfloat3 pos = WorldPos;\n");
 
@@ -493,15 +500,16 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
   }
 
   // HACK to handle cases where the tex gen is not enabled
-  if (numTexgen == 0) {
+  if (uid_data->genMode_numtexgens == 0) {
     out.Write("\tint2 fixpoint_uv0 = int2(0, 0);\n\n");
   } else {
-    out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS + numTexgen - 1);
-    for (unsigned int i = 0; i < numTexgen; ++i) {
+    out.SetConstantsUsed(C_TEXDIMS,
+                         C_TEXDIMS + uid_data->genMode_numtexgens - 1);
+    for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i) {
       out.Write("\tint2 fixpoint_uv%d = itrunc(", i);
       // optional perspective divides
       uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
-      if (xfmem.texMtxInfo[i].projection == XF_TEXPROJ_STQ) {
+      if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ) {
         out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
       } else {
         out.Write("uv%d.xy", i);
@@ -513,22 +521,24 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
 
   // indirect texture map lookup
   int nIndirectStagesUsed = 0;
-  if (bpmem.genMode.numindstages > 0) {
+  if (uid_data->genMode_numindstages > 0) {
     for (unsigned int i = 0; i < numStages; ++i) {
       if (bpmem.tevind[i].IsActive() &&
-          bpmem.tevind[i].bt < bpmem.genMode.numindstages)
+          bpmem.tevind[i].bt < uid_data->genMode_numindstages)
         nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
     }
   }
 
   uid_data->nIndirectStagesUsed = nIndirectStagesUsed;
-  for (u32 i = 0; i < bpmem.genMode.numindstages; ++i) {
-    if (nIndirectStagesUsed & (1 << i)) {
-      unsigned int texcoord = bpmem.tevindref.getTexCoord(i);
-      unsigned int texmap = bpmem.tevindref.getTexMap(i);
+  for (u32 i = 0; i < uid_data->genMode_numindstages; ++i) {
+    if (uid_data->nIndirectStagesUsed & (1 << i)) {
+      uid_data->SetTevindrefValues(i, bpmem.tevindref.getTexCoord(i),
+                                   bpmem.tevindref.getTexMap(i));
 
-      uid_data->SetTevindrefValues(i, texcoord, texmap);
-      if (texcoord < numTexgen) {
+      unsigned int texcoord = uid_data->GetTevindirefCoord(i);
+      unsigned int texmap = uid_data->GetTevindirefMap(i);
+
+      if (texcoord < uid_data->genMode_numtexgens) {
         out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
         out.Write("\ttempcoord = fixpoint_uv%d >> " I_INDTEXSCALE "[%d].%s;\n",
                   texcoord, i / 2, (i & 1) ? "zw" : "xy");
@@ -536,58 +546,53 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
         out.Write("\ttempcoord = int2(0, 0);\n");
 
       out.Write("\tint3 iindtex%d = ", i);
-      SampleTexture<T>(out, "float2(tempcoord)", "abg", texmap, ApiType);
+      SampleTexture<T>(out, "float2(tempcoord)", "abg", texmap,
+                       uid_data->stereo, ApiType);
     }
-  }
-
-  // Uid fields for BuildSwapModeTable are set in WriteStage
-  char swapModeTable[4][5];
-  const char *swapColors = "rgba";
-  for (int i = 0; i < 4; i++) {
-    swapModeTable[i][0] = swapColors[bpmem.tevksel[i * 2].swap1];
-    swapModeTable[i][1] = swapColors[bpmem.tevksel[i * 2].swap2];
-    swapModeTable[i][2] = swapColors[bpmem.tevksel[i * 2 + 1].swap1];
-    swapModeTable[i][3] = swapColors[bpmem.tevksel[i * 2 + 1].swap2];
-    swapModeTable[i][4] = '\0';
   }
 
   for (unsigned int i = 0; i < numStages; i++)
-    WriteStage<T>(out, uid_data, i, ApiType,
-                  swapModeTable); // build the equation for this stage
+    WriteStage<T>(out, uid_data, i,
+                  ApiType); // build the equation for this stage
 
 #define MY_STRUCT_OFFSET(str, elem) ((u32)((u64) & (str).elem - (u64) & (str)))
-  bool enable_pl = g_ActiveConfig.bEnablePixelLighting;
   uid_data->num_values =
-      (enable_pl) ? sizeof(*uid_data)
-                  : MY_STRUCT_OFFSET(*uid_data, stagehash[numStages]);
+      (uid_data->per_pixel_lighting)
+          ? sizeof(*uid_data)
+          : MY_STRUCT_OFFSET(*uid_data, stagehash[numStages]);
 
-  if (numStages) {
+  {
     // The results of the last texenv stage are put onto the screen,
     // regardless of the used destination register
-    if (bpmem.combiners[numStages - 1].colorC.dest != 0) {
-      out.Write("\tprev.rgb = %s;\n",
-                tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
+    TevStageCombiner::ColorCombiner last_cc;
+    TevStageCombiner::AlphaCombiner last_ac;
+    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages].cc;
+    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages].ac;
+    if (last_cc.dest != 0) {
+      out.Write("\tprev.rgb = %s;\n", tevCOutputTable[last_cc.dest]);
     }
-    if (bpmem.combiners[numStages - 1].alphaC.dest != 0) {
-      out.Write("\tprev.a = %s;\n",
-                tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
+    if (last_ac.dest != 0) {
+      out.Write("\tprev.a = %s;\n", tevAOutputTable[last_ac.dest]);
     }
   }
   out.Write("\tprev = prev & 255;\n");
 
   AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
   uid_data->Pretest = Pretest;
+  uid_data->late_ztest = bpmem.UseLateDepthTest();
 
   // NOTE: Fragment may not be discarded if alpha test always fails and early
   // depth test is enabled
   // (in this case we need to write a depth value if depth test passes
-  // regardless of the alpha
-  // testing result)
-  if (Pretest == AlphaTest::UNDETERMINED ||
-      (Pretest == AlphaTest::FAIL && bpmem.UseLateDepthTest()))
-    WriteAlphaTest<T>(out, uid_data, ApiType, dstAlphaMode, per_pixel_depth);
+  // regardless of the alpha testing result)
+  if (uid_data->Pretest == AlphaTest::UNDETERMINED ||
+      (uid_data->Pretest == AlphaTest::FAIL && uid_data->late_ztest))
+    WriteAlphaTest<T>(out, uid_data, ApiType, dstAlphaMode,
+                      uid_data->per_pixel_depth);
 
-  if (bpmem.genMode.zfreeze) {
+  uid_data->zfreeze = bpmem.genMode.zfreeze;
+
+  if (uid_data->zfreeze) {
     out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
     out.SetConstantsUsed(C_EFBSCALE, C_EFBSCALE);
 
@@ -599,7 +604,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
 
     out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE
               ".x * screenpos.x + " I_ZSLOPE ".y * screenpos.y);\n");
-  } else if (!g_ActiveConfig.bFastDepthCalc) {
+  } else if (!uid_data->fast_depth_calc) {
     // FastDepth means to trust the depth generated in perspective division.
     // It should be correct, but it seems not to be as accurate as required.
     // TODO: Find out why!
@@ -620,22 +625,18 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
   }
   out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
 
+  uid_data->ztex_op = bpmem.ztex2.op;
+  uid_data->early_ztest = bpmem.UseEarlyDepthTest();
+  uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
+
   // depth texture can safely be ignored if the result won't be written to the
   // depth buffer
   // (early_ztest) and isn't used for fog either
-  const bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
-
-  uid_data->ztex_op = bpmem.ztex2.op;
-  uid_data->per_pixel_depth = per_pixel_depth;
-  uid_data->forced_early_z = forced_early_z;
-  uid_data->fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
-  uid_data->early_ztest = bpmem.UseEarlyDepthTest();
-  uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
-  uid_data->zfreeze = bpmem.genMode.zfreeze;
+  const bool skip_ztexture = !uid_data->per_pixel_depth && !uid_data->fog_fsel;
 
   // Note: z-textures are not written to depth buffer if early depth test is
   // used
-  if (per_pixel_depth && bpmem.UseEarlyDepthTest()) {
+  if (uid_data->per_pixel_depth && uid_data->early_ztest) {
     if (ApiType == API_D3D)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
@@ -645,20 +646,19 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
   // Note: depth texture output is only written to depth buffer if late depth
   // test is used
   // theoretical final depth value is used for fog calculation, though, so we
-  // have to emulate
-  // ztextures anyway
-  if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !skip_ztexture) {
+  // have to emulate ztextures anyway
+  if (uid_data->ztex_op != ZTEXTURE_DISABLE && !skip_ztexture) {
     // use the texture input of the last texture stage (textemp), hopefully this
     // has been read and
     // is in correct format...
     out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
     out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, textemp.xyzw) + " I_ZBIAS
               "[1].w %s;\n",
-              (bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
+              (uid_data->ztex_op == ZTEXTURE_ADD) ? "+ zCoord" : "");
     out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
   }
 
-  if (per_pixel_depth && bpmem.UseLateDepthTest()) {
+  if (uid_data->per_pixel_depth && uid_data->late_ztest) {
     if (ApiType == API_D3D)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
@@ -684,9 +684,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
     out.Write("\tocol0.a = float(" I_ALPHA ".a) / 255.0;\n");
   }
 
-  if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable &&
-      BoundingBox::active) {
-    uid_data->bounding_box = true;
+  if (uid_data->bounding_box) {
     const char *atomic_op = ApiType == API_OPENGL ? "atomic" : "Interlocked";
     out.Write("\tif(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], "
               "int(rawpos.x));\n"
@@ -706,7 +704,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType) {
 
 template <class T>
 static void WriteStage(T &out, pixel_shader_uid_data *uid_data, int n,
-                       API_TYPE ApiType, const char swapModeTable[4][5]) {
+                       API_TYPE ApiType) {
   int texcoord = bpmem.tevorders[n / 2].getTexCoord(n & 1);
   bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
   bool bHasIndStage = bpmem.tevind[n].bt < bpmem.genMode.numindstages;
@@ -716,61 +714,58 @@ static void WriteStage(T &out, pixel_shader_uid_data *uid_data, int n,
 
   out.Write("\n\t// TEV stage %d\n", n);
 
+  auto &stage = uid_data->stagehash[n];
+
   uid_data->stagehash[n].hasindstage = bHasIndStage;
   uid_data->stagehash[n].tevorders_texcoord = texcoord;
-  if (bHasIndStage) {
-    uid_data->stagehash[n].tevind = bpmem.tevind[n].hex & 0x7FFFFF;
+  if (stage.hasindstage) {
+    uid_data->stagehash[n].tevind = bpmem.tevind[n].hex;
+    TevStageIndirect tevind;
+    tevind.hex = stage.tevind;
 
     out.Write("\t// indirect op\n");
     // perform the indirect op on the incoming regular coordinates using
-    // iindtex%d as the offset
-    // coords
-    if (bpmem.tevind[n].bs != ITBA_OFF) {
+    // iindtex%d as the offset coords
+    if (tevind.bs != ITBA_OFF) {
       const char *tevIndAlphaSel[] = {"", "x", "y", "z"};
       const char *tevIndAlphaMask[] = {
           "248", "224", "240",
           "248"}; // 0b11111000, 0b11100000, 0b11110000, 0b11111000
-      out.Write("alphabump = iindtex%d.%s & %s;\n", bpmem.tevind[n].bt,
-                tevIndAlphaSel[bpmem.tevind[n].bs],
-                tevIndAlphaMask[bpmem.tevind[n].fmt]);
+      out.Write("alphabump = iindtex%d.%s & %s;\n", tevind.bt,
+                tevIndAlphaSel[tevind.bs], tevIndAlphaMask[tevind.fmt]);
     } else {
       // TODO: Should we reset alphabump to 0 here?
     }
 
-    if (bpmem.tevind[n].mid != 0) {
+    if (tevind.mid != 0) {
       // format
       const char *tevIndFmtMask[] = {"255", "31", "15", "7"};
-      out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n,
-                bpmem.tevind[n].bt, tevIndFmtMask[bpmem.tevind[n].fmt]);
+      out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, tevind.bt,
+                tevIndFmtMask[tevind.fmt]);
 
       // bias - TODO: Check if this needs to be this complicated..
       const char *tevIndBiasField[] = {"",   "x",  "y",  "xy", "z",
                                        "xz", "yz", "xyz"};   // indexed by bias
       const char *tevIndBiasAdd[] = {"-128", "1", "1", "1"}; // indexed by fmt
-      if (bpmem.tevind[n].bias == ITB_S || bpmem.tevind[n].bias == ITB_T ||
-          bpmem.tevind[n].bias == ITB_U)
+      if (tevind.bias == ITB_S || tevind.bias == ITB_T || tevind.bias == ITB_U)
         out.Write("\tiindtevcrd%d.%s += int(%s);\n", n,
-                  tevIndBiasField[bpmem.tevind[n].bias],
-                  tevIndBiasAdd[bpmem.tevind[n].fmt]);
-      else if (bpmem.tevind[n].bias == ITB_ST ||
-               bpmem.tevind[n].bias == ITB_SU || bpmem.tevind[n].bias == ITB_TU)
+                  tevIndBiasField[tevind.bias], tevIndBiasAdd[tevind.fmt]);
+      else if (tevind.bias == ITB_ST || tevind.bias == ITB_SU ||
+               tevind.bias == ITB_TU)
         out.Write("\tiindtevcrd%d.%s += int2(%s, %s);\n", n,
-                  tevIndBiasField[bpmem.tevind[n].bias],
-                  tevIndBiasAdd[bpmem.tevind[n].fmt],
-                  tevIndBiasAdd[bpmem.tevind[n].fmt]);
-      else if (bpmem.tevind[n].bias == ITB_STU)
+                  tevIndBiasField[tevind.bias], tevIndBiasAdd[tevind.fmt],
+                  tevIndBiasAdd[tevind.fmt]);
+      else if (tevind.bias == ITB_STU)
         out.Write("\tiindtevcrd%d.%s += int3(%s, %s, %s);\n", n,
-                  tevIndBiasField[bpmem.tevind[n].bias],
-                  tevIndBiasAdd[bpmem.tevind[n].fmt],
-                  tevIndBiasAdd[bpmem.tevind[n].fmt],
-                  tevIndBiasAdd[bpmem.tevind[n].fmt]);
+                  tevIndBiasField[tevind.bias], tevIndBiasAdd[tevind.fmt],
+                  tevIndBiasAdd[tevind.fmt], tevIndBiasAdd[tevind.fmt]);
 
       // multiply by offset matrix and scale - calculations are likely to
       // overflow badly,
       // yet it works out since we only care about the lower 23 bits (+1 sign
       // bit) of the result
-      if (bpmem.tevind[n].mid <= 3) {
-        int mtxidx = 2 * (bpmem.tevind[n].mid - 1);
+      if (tevind.mid <= 3) {
+        int mtxidx = 2 * (tevind.mid - 1);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
         out.Write("\tint2 indtevtrans%d = int2(idot(" I_INDTEXMTX
@@ -784,28 +779,28 @@ static void WriteStage(T &out, pixel_shader_uid_data *uid_data, int n,
                   mtxidx, n, mtxidx);
         out.Write("\telse indtevtrans%d <<= (-" I_INDTEXMTX "[%d].w);\n", n,
                   mtxidx);
-      } else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord) { // s matrix
-        _assert_(bpmem.tevind[n].mid >= 5);
-        int mtxidx = 2 * (bpmem.tevind[n].mid - 5);
+      } else if (tevind.mid <= 7 && bHasTexCoord) { // s matrix
+        _assert_(tevind.mid >= 5);
+        int mtxidx = 2 * (tevind.mid - 5);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
-        out.Write("\tint2 indtevtrans%d = int2(fixpoint_uv%d * "
-                  "iindtevcrd%d.xx) >> 8;\n",
-                  n, texcoord, n);
+        out.Write(
+            "\tint2 indtevtrans%d = int2(fixpoint_uv%d * iindtevcrd%d.xx);\n",
+            n, stage.tevorders_texcoord, n);
 
         out.Write("\tif (" I_INDTEXMTX
                   "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
                   mtxidx, n, mtxidx);
         out.Write("\telse indtevtrans%d <<= (-" I_INDTEXMTX "[%d].w);\n", n,
                   mtxidx);
-      } else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord) { // t matrix
-        _assert_(bpmem.tevind[n].mid >= 9);
-        int mtxidx = 2 * (bpmem.tevind[n].mid - 9);
+      } else if (tevind.mid <= 11 && bHasTexCoord) { // t matrix
+        _assert_(tevind.mid >= 9);
+        int mtxidx = 2 * (tevind.mid - 9);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
-        out.Write("\tint2 indtevtrans%d = int2(fixpoint_uv%d * "
-                  "iindtevcrd%d.yy) >> 8;\n",
-                  n, texcoord, n);
+        out.Write(
+            "\tint2 indtevtrans%d = int2(fixpoint_uv%d * iindtevcrd%d.yy);\n",
+            n, stage.tevorders_texcoord, n);
 
         out.Write("\tif (" I_INDTEXMTX
                   "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
@@ -828,24 +823,26 @@ static void WriteStage(T &out, pixel_shader_uid_data *uid_data, int n,
                                            // (1<<7)?
 
     // wrap S
-    if (bpmem.tevind[n].sw == ITW_OFF)
-      out.Write("\twrappedcoord.x = fixpoint_uv%d.x;\n", texcoord);
-    else if (bpmem.tevind[n].sw == ITW_0)
+    if (tevind.sw == ITW_OFF)
+      out.Write("\twrappedcoord.x = fixpoint_uv%d.x;\n",
+                stage.tevorders_texcoord);
+    else if (tevind.sw == ITW_0)
       out.Write("\twrappedcoord.x = 0;\n");
     else
-      out.Write("\twrappedcoord.x = fixpoint_uv%d.x & (%s - 1);\n", texcoord,
-                tevIndWrapStart[bpmem.tevind[n].sw]);
+      out.Write("\twrappedcoord.x = fixpoint_uv%d.x & (%s - 1);\n",
+                stage.tevorders_texcoord, tevIndWrapStart[tevind.sw]);
 
     // wrap T
-    if (bpmem.tevind[n].tw == ITW_OFF)
-      out.Write("\twrappedcoord.y = fixpoint_uv%d.y;\n", texcoord);
-    else if (bpmem.tevind[n].tw == ITW_0)
+    if (tevind.tw == ITW_OFF)
+      out.Write("\twrappedcoord.y = fixpoint_uv%d.y;\n",
+                stage.tevorders_texcoord);
+    else if (tevind.tw == ITW_0)
       out.Write("\twrappedcoord.y = 0;\n");
     else
-      out.Write("\twrappedcoord.y = fixpoint_uv%d.y & (%s - 1);\n", texcoord,
-                tevIndWrapStart[bpmem.tevind[n].tw]);
+      out.Write("\twrappedcoord.y = fixpoint_uv%d.y & (%s - 1);\n",
+                stage.tevorders_texcoord, tevIndWrapStart[tevind.tw]);
 
-    if (bpmem.tevind[n].fb_addprev) // add previous tevcoord
+    if (tevind.fb_addprev) // add previous tevcoord
       out.Write("\ttevcoord.xy += wrappedcoord + indtevtrans%d;\n", n);
     else
       out.Write("\ttevcoord.xy = wrappedcoord + indtevtrans%d;\n", n);
@@ -854,12 +851,14 @@ static void WriteStage(T &out, pixel_shader_uid_data *uid_data, int n,
     out.Write("\ttevcoord.xy = (tevcoord.xy << 8) >> 8;\n");
   }
 
-  TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
-  TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
-
-  uid_data->stagehash[n].cc = cc.hex & 0xFFFFFF;
+  uid_data->stagehash[n].cc = bpmem.combiners[n].colorC.hex & 0xFFFFFF;
   uid_data->stagehash[n].ac =
-      ac.hex & 0xFFFFF0; // Storing rswap and tswap later
+      bpmem.combiners[n].alphaC.hex & 0xFFFFF0; // Storing rswap and tswap later
+
+  TevStageCombiner::ColorCombiner cc;
+  TevStageCombiner::AlphaCombiner ac;
+  cc.hex = stage.cc;
+  ac.hex = stage.ac;
 
   if (cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC ||
       cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC ||
@@ -868,6 +867,8 @@ static void WriteStage(T &out, pixel_shader_uid_data *uid_data, int n,
       ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA ||
       ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA) {
     const int i = bpmem.combiners[n].alphaC.rswap;
+    uid_data->stagehash[n].ac |= bpmem.combiners[n].alphaC.rswap;
+    ac.rswap = bpmem.combiners[n].alphaC.rswap;
     uid_data->stagehash[n].tevksel_swap1a = bpmem.tevksel[i * 2].swap1;
     uid_data->stagehash[n].tevksel_swap2a = bpmem.tevksel[i * 2].swap2;
     uid_data->stagehash[n].tevksel_swap1b = bpmem.tevksel[i * 2 + 1].swap1;
@@ -875,15 +876,28 @@ static void WriteStage(T &out, pixel_shader_uid_data *uid_data, int n,
     uid_data->stagehash[n].tevorders_colorchan =
         bpmem.tevorders[n / 2].getColorChan(n & 1);
 
-    const char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
-    out.Write("\trastemp = %s.%s;\n",
-              tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
+    char rasswap[5] = {
+        "rgba"[stage.tevksel_swap1a], "rgba"[stage.tevksel_swap2a],
+        "rgba"[stage.tevksel_swap1b], "rgba"[stage.tevksel_swap2b], '\0'};
+
+    out.Write("\trastemp = %s.%s;\n", tevRasTable[stage.tevorders_colorchan],
+              rasswap);
   }
 
   uid_data->stagehash[n].tevorders_enable =
       bpmem.tevorders[n / 2].getEnable(n & 1);
-  if (bpmem.tevorders[n / 2].getEnable(n & 1)) {
+  if (stage.tevorders_enable) {
     int texmap = bpmem.tevorders[n / 2].getTexMap(n & 1);
+    const int i = bpmem.combiners[n].alphaC.tswap;
+    uid_data->stagehash[n].ac |= bpmem.combiners[n].alphaC.tswap << 2;
+    ac.tswap = bpmem.combiners[n].alphaC.tswap;
+    uid_data->stagehash[n].tevksel_swap1c = bpmem.tevksel[i * 2].swap1;
+    uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i * 2].swap2;
+    uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i * 2 + 1].swap1;
+    uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i * 2 + 1].swap2;
+    uid_data->stagehash[n].tevorders_texmap =
+        bpmem.tevorders[n / 2].getTexMap(n & 1);
+
     if (!bHasIndStage) {
       // calc tevcord
       if (bHasTexCoord)
@@ -892,18 +906,13 @@ static void WriteStage(T &out, pixel_shader_uid_data *uid_data, int n,
         out.Write("\ttevcoord.xy = int2(0, 0);\n");
     }
 
-    const int i = bpmem.combiners[n].alphaC.tswap;
-    uid_data->stagehash[n].tevksel_swap1c = bpmem.tevksel[i * 2].swap1;
-    uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i * 2].swap2;
-    uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i * 2 + 1].swap1;
-    uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i * 2 + 1].swap2;
+    char texswap[5] = {
+        "rgba"[stage.tevksel_swap1c], "rgba"[stage.tevksel_swap2c],
+        "rgba"[stage.tevksel_swap1d], "rgba"[stage.tevksel_swap2d], '\0'};
 
-    uid_data->stagehash[n].tevorders_texmap =
-        bpmem.tevorders[n / 2].getTexMap(n & 1);
-
-    const char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
     out.Write("\ttextemp = ");
-    SampleTexture<T>(out, "float2(tevcoord.xy)", texswap, texmap, ApiType);
+    SampleTexture<T>(out, "float2(tevcoord.xy)", texswap, texmap,
+                     uid_data->stereo, ApiType);
   } else {
     out.Write("\ttextemp = int4(255, 255, 255, 255);\n");
   }
@@ -912,19 +921,17 @@ static void WriteStage(T &out, pixel_shader_uid_data *uid_data, int n,
       cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST ||
       ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST ||
       ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST) {
-    int kc = bpmem.tevksel[n / 2].getKC(n & 1);
-    int ka = bpmem.tevksel[n / 2].getKA(n & 1);
-    uid_data->stagehash[n].tevksel_kc = kc;
-    uid_data->stagehash[n].tevksel_ka = ka;
-    out.Write("\tkonsttemp = int4(%s, %s);\n", tevKSelTableC[kc],
-              tevKSelTableA[ka]);
+    uid_data->stagehash[n].tevksel_kc = bpmem.tevksel[n / 2].getKC(n & 1);
+    uid_data->stagehash[n].tevksel_ka = bpmem.tevksel[n / 2].getKA(n & 1);
+    out.Write("\tkonsttemp = int4(%s, %s);\n", tevKSelTableC[stage.tevksel_kc],
+              tevKSelTableA[stage.tevksel_ka]);
 
-    if (kc > 7)
-      out.SetConstantsUsed(C_KCOLORS + ((kc - 0xc) % 4),
-                           C_KCOLORS + ((kc - 0xc) % 4));
-    if (ka > 7)
-      out.SetConstantsUsed(C_KCOLORS + ((ka - 0xc) % 4),
-                           C_KCOLORS + ((ka - 0xc) % 4));
+    if (stage.tevksel_kc > 7)
+      out.SetConstantsUsed(C_KCOLORS + ((stage.tevksel_kc - 0xc) % 4),
+                           C_KCOLORS + ((stage.tevksel_kc - 0xc) % 4));
+    if (stage.tevksel_ka > 7)
+      out.SetConstantsUsed(C_KCOLORS + ((stage.tevksel_ka - 0xc) % 4),
+                           C_KCOLORS + ((stage.tevksel_ka - 0xc) % 4));
   }
 
   if (cc.d == TEVCOLORARG_C0 || cc.d == TEVCOLORARG_A0 ||
@@ -1076,20 +1083,18 @@ static void WriteTevRegular(T &out, const char *components, int bias, int op,
 
 template <class T>
 static void SampleTexture(T &out, const char *texcoords, const char *texswap,
-                          int texmap, API_TYPE ApiType) {
+                          int texmap, bool stereo, API_TYPE ApiType) {
   out.SetConstantsUsed(C_TEXDIMS + texmap, C_TEXDIMS + texmap);
 
   if (ApiType == API_D3D)
     out.Write(
         "iround(255.0 * Tex[%d].Sample(samp[%d], float3(%s.xy * " I_TEXDIMS
         "[%d].xy, %s))).%s;\n",
-        texmap, texmap, texcoords, texmap,
-        g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0", texswap);
+        texmap, texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
   else
     out.Write("iround(255.0 * texture(samp[%d], float3(%s.xy * " I_TEXDIMS
               "[%d].xy, %s))).%s;\n",
-              texmap, texcoords, texmap,
-              g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0", texswap);
+              texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
 }
 
 static const char *tevAlphaFuncsTable[] = {
@@ -1128,15 +1133,16 @@ static void WriteAlphaTest(T &out, pixel_shader_uid_data *uid_data,
   uid_data->alpha_test_logic = bpmem.alpha_test.logic;
 
   // Lookup the first component from the alpha function table
-  int compindex = bpmem.alpha_test.comp0;
+  int compindex = uid_data->alpha_test_comp0;
   out.Write(tevAlphaFuncsTable[compindex], alphaRef[0]);
 
-  out.Write(
-      "%s",
-      tevAlphaFunclogicTable[bpmem.alpha_test.logic]); // lookup the logic op
+  out.Write("%s", tevAlphaFunclogicTable[uid_data->alpha_test_logic]); // lookup
+                                                                       // the
+                                                                       // logic
+                                                                       // op
 
   // Lookup the second component from the alpha function table
-  compindex = bpmem.alpha_test.comp1;
+  compindex = uid_data->alpha_test_comp1;
   out.Write(tevAlphaFuncsTable[compindex], alphaRef[1]);
 
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKENNEGATEDBOOLEAN))
@@ -1188,7 +1194,7 @@ static const char *tevFogFuncsTable[] = {
 template <class T>
 static void WriteFog(T &out, pixel_shader_uid_data *uid_data) {
   uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
-  if (bpmem.fog.c_proj_fsel.fsel == 0)
+  if (uid_data->fog_fsel == 0)
     return; // no Fog
 
   uid_data->fog_proj = bpmem.fog.c_proj_fsel.proj;
@@ -1196,7 +1202,7 @@ static void WriteFog(T &out, pixel_shader_uid_data *uid_data) {
   out.SetConstantsUsed(C_FOGCOLOR, C_FOGCOLOR);
   out.SetConstantsUsed(C_FOGI, C_FOGI);
   out.SetConstantsUsed(C_FOGF, C_FOGF + 1);
-  if (bpmem.fog.c_proj_fsel.proj == 0) {
+  if (uid_data->fog_proj == 0) {
     // perspective
     // ze = A/(B - (Zs >> B_SHF)
     // TODO: Verify that we want to drop lower bits here! (currently taken over
@@ -1218,7 +1224,7 @@ static void WriteFog(T &out, pixel_shader_uid_data *uid_data) {
   // TODO Instead of this theoretical calculation, we should use the
   //      coefficient table given in the fog range BP registers!
   uid_data->fog_RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
-  if (bpmem.fogRange.Base.Enabled) {
+  if (uid_data->fog_RangeBaseEnabled) {
     out.SetConstantsUsed(C_FOGF, C_FOGF);
     out.Write("\tfloat x_adjust = (2.0 * (rawpos.x / " I_FOGF
               "[0].y)) - 1.0 - " I_FOGF "[0].x;\n");
@@ -1229,11 +1235,11 @@ static void WriteFog(T &out, pixel_shader_uid_data *uid_data) {
 
   out.Write("\tfloat fog = clamp(ze - " I_FOGF "[1].z, 0.0, 1.0);\n");
 
-  if (bpmem.fog.c_proj_fsel.fsel > 3) {
-    out.Write("%s", tevFogFuncsTable[bpmem.fog.c_proj_fsel.fsel]);
+  if (uid_data->fog_fsel > 3) {
+    out.Write("%s", tevFogFuncsTable[uid_data->fog_fsel]);
   } else {
-    if (bpmem.fog.c_proj_fsel.fsel != 2)
-      WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
+    if (uid_data->fog_fsel != 2)
+      WARN_LOG(VIDEO, "Unknown Fog Type! %08x", uid_data->fog_fsel);
   }
 
   out.Write("\tint ifog = iround(fog * 256.0);\n");
