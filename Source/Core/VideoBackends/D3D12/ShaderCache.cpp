@@ -42,10 +42,6 @@ static LinearDiskCache<GeometryShaderUid, u8> s_gs_disk_cache;
 static LinearDiskCache<PixelShaderUid, u8> s_ps_disk_cache;
 static LinearDiskCache<VertexShaderUid, u8> s_vs_disk_cache;
 
-static UidChecker<GeometryShaderUid, ShaderCode> s_geometry_uid_checker;
-static UidChecker<PixelShaderUid, ShaderCode> s_pixel_uid_checker;
-static UidChecker<VertexShaderUid, ShaderCode> s_vertex_uid_checker;
-
 static D3D12_SHADER_BYTECODE s_last_geometry_shader_bytecode;
 static D3D12_SHADER_BYTECODE s_last_pixel_shader_bytecode;
 static D3D12_SHADER_BYTECODE s_last_vertex_shader_bytecode;
@@ -155,10 +151,6 @@ void ShaderCache::Shutdown() {
     s_ps_hlsl_cache.clear();
     s_vs_hlsl_cache.clear();
   }
-
-  s_geometry_uid_checker.Invalidate();
-  s_pixel_uid_checker.Invalidate();
-  s_vertex_uid_checker.Invalidate();
 }
 
 void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode,
@@ -214,12 +206,6 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid,
                                     u32 gs_primitive_type) {
   s_last_geometry_shader_uid = gs_uid;
 
-  if (g_ActiveConfig.bEnableShaderDebugging) {
-    ShaderCode code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D,
-                                                 gs_uid.GetUidData());
-    s_geometry_uid_checker.AddToIndexAndCheck(code, gs_uid, "Geometry", "g");
-  }
-
   if (gs_uid.GetUidData()->IsPassthrough()) {
     s_last_geometry_shader_bytecode = {};
     return;
@@ -254,12 +240,6 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid,
                                     DSTALPHA_MODE ps_dst_alpha_mode) {
   s_last_pixel_shader_uid = ps_uid;
 
-  if (g_ActiveConfig.bEnableShaderDebugging) {
-    ShaderCode code = GeneratePixelShaderCode(ps_dst_alpha_mode, API_D3D,
-                                              ps_uid.GetUidData());
-    s_pixel_uid_checker.AddToIndexAndCheck(code, ps_uid, "Pixel", "p");
-  }
-
   auto ps_iterator = s_ps_bytecode_cache.find(ps_uid);
   if (ps_iterator != s_ps_bytecode_cache.end()) {
     s_last_pixel_shader_bytecode = ps_iterator->second;
@@ -292,11 +272,6 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid,
 
 void ShaderCache::HandleVSUIDChange(VertexShaderUid vs_uid) {
   s_last_vertex_shader_uid = vs_uid;
-
-  if (g_ActiveConfig.bEnableShaderDebugging) {
-    ShaderCode code = GenerateVertexShaderCode(API_D3D, vs_uid.GetUidData());
-    s_vertex_uid_checker.AddToIndexAndCheck(code, vs_uid, "Vertex", "v");
-  }
 
   auto vs_iterator = s_vs_bytecode_cache.find(vs_uid);
   if (vs_iterator != s_vs_bytecode_cache.end()) {
