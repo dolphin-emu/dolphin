@@ -77,8 +77,6 @@ private:
 	TargetSize m_internal_size;
 	int m_internal_layers = 0;
 
-	GLuint m_framebuffer = 0;
-
 	std::vector<RenderPassData> m_passes;
 	size_t m_last_pass_index = 0;
 	bool m_last_pass_uses_color_buffer = false;
@@ -116,6 +114,10 @@ public:
 					 const TargetRectangle& src_rect, GLuint src_texture,
 					 int src_layer, bool is_depth_texture,
 					 bool force_blit = false);
+
+	// Shared FBOs
+	GLuint GetDrawFramebuffer() const { return m_draw_framebuffer; }
+	GLuint GetReadFramebuffer() const { return m_read_framebuffer; }
 
 protected:
 	std::unique_ptr<PostProcessingShader> CreateShader(const PostProcessingShaderConfiguration* config);
