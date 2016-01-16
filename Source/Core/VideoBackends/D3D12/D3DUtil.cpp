@@ -27,6 +27,11 @@ extern D3D12_RASTERIZER_DESC g_reset_rast_desc;
 namespace D3D
 {
 
+unsigned int AlignValue(unsigned int value, unsigned int alignment)
+{
+	return (value + (alignment - 1)) & ~(alignment - 1);
+}
+
 void ResourceBarrier(ID3D12GraphicsCommandList* command_list, ID3D12Resource* resource, D3D12_RESOURCE_STATES state_before, D3D12_RESOURCE_STATES state_after, UINT subresource)
 {
 	if (state_before == state_after)
@@ -305,7 +310,7 @@ int CD3DFont::Init()
 		D3D::device12->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT + m_tex_height * ((m_tex_width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1))),
+		&CD3DX12_RESOURCE_DESC::Buffer(AlignValue(m_tex_width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * m_tex_height),
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(&temporaryFontTextureUploadBuffer)
@@ -313,14 +318,14 @@ int CD3DFont::Init()
 		);
 
 	D3D12_SUBRESOURCE_DATA subresourceDataDesc12 = {
-		texInitialData.get(),   //const void *pData;
-		m_tex_width * 4, // LONG_PTR RowPitch;
-		0                 //LONG_PTR SlicePitch;
+		texInitialData.get(), // const void *pData;
+		m_tex_width * 4,      // LONG_PTR RowPitch;
+		0                     // LONG_PTR SlicePitch;
 	};
 
 	D3D::ResourceBarrier(D3D::current_command_list, m_texture12, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 
-	UpdateSubresources(D3D::current_command_list, m_texture12, temporaryFontTextureUploadBuffer, 0, 0, 1, &subresourceDataDesc12);
+	CHECK(0 != UpdateSubresources(D3D::current_command_list, m_texture12, temporaryFontTextureUploadBuffer, 0, 0, 1, &subresourceDataDesc12), "UpdateSubresources call failed.");
 
 	command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(temporaryFontTextureUploadBuffer);
 
@@ -728,7 +733,7 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,           // D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType
 		1,                                                // UINT NumRenderTargets
 		{ rt_format },                                    // DXGI_FORMAT RTVFormats[8]
-		DXGI_FORMAT_D24_UNORM_S8_UINT,                    // DXGI_FORMAT DSVFormat
+		DXGI_FORMAT_D32_FLOAT,                            // DXGI_FORMAT DSVFormat
 		{ 1 /* UINT Count */, 0 /* UINT Quality */ }      // DXGI_SAMPLE_DESC SampleDesc
 	};
 
@@ -809,7 +814,7 @@ void DrawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2, D
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,           // D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType
 		1,                                                // UINT NumRenderTargets
 		{ DXGI_FORMAT_R8G8B8A8_UNORM },                   // DXGI_FORMAT RTVFormats[8]
-		DXGI_FORMAT_D24_UNORM_S8_UINT,                    // DXGI_FORMAT DSVFormat
+		DXGI_FORMAT_D32_FLOAT,                            // DXGI_FORMAT DSVFormat
 		{ 1 /* UINT Count */, 0 /* UINT Quality */ }      // DXGI_SAMPLE_DESC SampleDesc
 	};
 
@@ -884,7 +889,7 @@ void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,           // D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType
 		1,                                                // UINT NumRenderTargets
 		{ DXGI_FORMAT_R8G8B8A8_UNORM },                   // DXGI_FORMAT RTVFormats[8]
-		DXGI_FORMAT_D24_UNORM_S8_UINT,                    // DXGI_FORMAT DSVFormat
+		DXGI_FORMAT_D32_FLOAT,                            // DXGI_FORMAT DSVFormat
 		{ 1 /* UINT Count */, 0 /* UINT Quality */ }      // DXGI_SAMPLE_DESC SampleDesc
 	};
 
@@ -961,7 +966,7 @@ void DrawEFBPokeQuads(EFBAccessType type,
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,           // D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType
 		1,                                                // UINT NumRenderTargets
 		{ DXGI_FORMAT_R8G8B8A8_UNORM },                   // DXGI_FORMAT RTVFormats[8]
-		DXGI_FORMAT_D24_UNORM_S8_UINT,                    // DXGI_FORMAT DSVFormat
+		DXGI_FORMAT_D32_FLOAT,                            // DXGI_FORMAT DSVFormat
 		{ 1 /* UINT Count */, 0 /* UINT Quality */ }      // DXGI_SAMPLE_DESC SampleDesc
 	};
 

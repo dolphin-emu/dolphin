@@ -12,7 +12,7 @@
 #include "VideoBackends/D3D12/D3DTexture.h"
 #include "VideoCommon/VideoConfig.h"
 
-static const unsigned int SWAP_CHAIN_BUFFER_COUNT = 4;
+static const unsigned int SWAP_CHAIN_BUFFER_COUNT = 2;
 
 namespace DX12
 {
@@ -60,7 +60,9 @@ ID3D12DescriptorHeap* gpu_descriptor_heaps[2];
 HWND hWnd;
 // End extern'd variables.
 
-static IDXGISwapChain* s_swapchain = nullptr;
+static IDXGISwapChain* s_swap_chain = nullptr;
+static HANDLE s_swap_chain_waitable_object = NULL;
+
 static ID3D12DebugDevice* s_debug_device12 = nullptr;
 
 static D3D_FEATURE_LEVEL s_feat_level;
@@ -402,6 +404,7 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.SampleDesc.Quality = 0;
 	swap_chain_desc.Windowed = true;
 	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
 	swap_chain_desc.BufferDesc.Width = s_xres;
 	swap_chain_desc.BufferDesc.Height = s_yres;
@@ -470,7 +473,12 @@ HRESULT Create(HWND wnd)
 		IDXGIFactory* factory = nullptr;
 		adapter->GetParent(IID_PPV_ARGS(&factory));
 
-		CheckHR(factory->CreateSwapChain(command_queue, &swap_chain_desc, &s_swapchain));
+		CheckHR(factory->CreateSwapChain(command_queue, &swap_chain_desc, &s_swap_chain));
+
+		IDXGISwapChain3* swap_chain = nullptr;
+		CheckHR(s_swap_chain->QueryInterface(&swap_chain));
+
+		s_swap_chain_waitable_object = swap_chain->GetFrameLatencyWaitableObject();
 
 		s_current_back_buf = 0;
 
@@ -480,7 +488,7 @@ HRESULT Create(HWND wnd)
 	if (FAILED(hr))
 	{
 		MessageBox(wnd, _T("Failed to initialize Direct3D.\nMake sure your video card supports Direct3D 12 and your drivers are up-to-date."), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-		SAFE_RELEASE(s_swapchain);
+		SAFE_RELEASE(s_swap_chain);
 		return E_FAIL;
 	}
 
@@ -528,10 +536,7 @@ HRESULT Create(HWND wnd)
 	command_list_mgr = new D3DCommandListManager(
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
 		device12,
-		command_queue,
-		gpu_descriptor_heaps,
-		ARRAYSIZE(gpu_descriptor_heaps),
-		default_root_signature
+		command_queue
 		);
 
 	command_list_mgr->GetCommandList(&current_command_list);
@@ -539,8 +544,10 @@ HRESULT Create(HWND wnd)
 
 	for (UINT i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
 	{
-		ID3D12Resource* buf12;
-		hr = s_swapchain->GetBuffer(i, IID_PPV_ARGS(&buf12));
+		ID3D12Resource* buf12 = nullptr;
+		hr = s_swap_chain->GetBuffer(i, IID_PPV_ARGS(&buf12));
+
+		CHECK(SUCCEEDED(hr), "Retrieve back buffer texture");
 
 		s_backbuf[i] = new D3DTexture2D(buf12,
 			D3D11_BIND_RENDER_TARGET,
@@ -550,8 +557,6 @@ HRESULT Create(HWND wnd)
 			false,
 			D3D12_RESOURCE_STATE_PRESENT // Swap Chain back buffers start out in D3D12_RESOURCE_STATE_PRESENT.
 			);
-
-		CHECK(s_backbuf != nullptr, "Create back buffer texture");
 
 		SAFE_RELEASE(buf12);
 		SetDebugObjectName12(s_backbuf[i]->GetTex12(), "backbuffer texture");
@@ -711,7 +716,7 @@ void WaitForOutstandingRenderingToComplete()
 void Close()
 {
 	// we can't release the swapchain while in fullscreen.
-	s_swapchain->SetFullscreenState(false, nullptr);
+	s_swap_chain->SetFullscreenState(false, nullptr);
 
 	// Release all back buffer references
 	for (UINT i = 0; i < ARRAYSIZE(s_backbuf); i++)
@@ -721,7 +726,7 @@ void Close()
 
 	command_list_mgr->ImmediatelyDestroyAllResourcesScheduledForDestruction();
 
-	SAFE_RELEASE(s_swapchain);
+	SAFE_RELEASE(s_swap_chain);
 
 	command_list_mgr->Release();
 	command_queue->Release();
@@ -822,19 +827,18 @@ void Reset()
 	s_xres = client.right - client.left;
 	s_yres = client.bottom - client.top;
 
-	CheckHR(s_swapchain->ResizeBuffers(SWAP_CHAIN_BUFFER_COUNT, s_xres, s_yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0));
+	CheckHR(s_swap_chain->ResizeBuffers(SWAP_CHAIN_BUFFER_COUNT, s_xres, s_yres, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT));
 
 	// recreate back buffer textures
 
 	HRESULT hr = S_OK;
-	ID3D12Resource* buf12 = nullptr;
 
 	for (UINT i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
 	{
-		ID3D12Resource* buf12;
-		hr = s_swapchain->GetBuffer(i, IID_PPV_ARGS(&buf12));
+		ID3D12Resource* buf12 = nullptr;
+		hr = s_swap_chain->GetBuffer(i, IID_PPV_ARGS(&buf12));
 
-		CHECK(SUCCEEDED(hr), "Create back buffer texture");
+		CHECK(SUCCEEDED(hr), "Retrieve back buffer texture");
 
 		s_backbuf[i] = new D3DTexture2D(buf12,
 			D3D11_BIND_RENDER_TARGET,
@@ -845,12 +849,12 @@ void Reset()
 			D3D12_RESOURCE_STATE_PRESENT
 			);
 
-		CHECK(s_backbuf != nullptr, "Create back buffer texture");
-
 		SAFE_RELEASE(buf12);
 		SetDebugObjectName12(s_backbuf[i]->GetTex12(), "backbuffer texture");
 	}
 
+	// The 'about-to-be-presented' back buffer index is always set back to '0' upon ResizeBuffers, just like
+	// creating a new swap chain.
 	s_current_back_buf = 0;
 
 	s_backbuf[s_current_back_buf]->TransitionToResourceState(current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -879,27 +883,28 @@ void EndFrame()
 
 void Present()
 {
-	// Persist last present QPC across function calls, used to make sure we don't get throttled by Presenting too much.
-	static LARGE_INTEGER s_last_present;
+	unsigned int present_flags = 0;
 
-	LARGE_INTEGER current_timestamp;
-	LARGE_INTEGER frequency;
-	QueryPerformanceCounter(&current_timestamp);
-	QueryPerformanceFrequency(&frequency);
-
-	UINT present_flags = DXGI_PRESENT_TEST; // DXGI_PRESENT_TEST means do not actually present frame.
-
-	if ((UINT)g_ActiveConfig.IsVSync() || (((current_timestamp.QuadPart - s_last_present.QuadPart) * 1000) / frequency.QuadPart >= (16.667 / 2)))
+	// For syncIntervals of '0', take care to not Present if next-in-line back buffer is busy,
+	// else Windows can throttle presentation rate.
+	if (g_ActiveConfig.IsVSync() == false)
 	{
-		s_last_present = current_timestamp;
+		// Determine if swap chain back buffer is currently in use.
+		DWORD result = WaitForSingleObject(s_swap_chain_waitable_object, 0);
 
-		s_backbuf[s_current_back_buf]->TransitionToResourceState(current_command_list, D3D12_RESOURCE_STATE_PRESENT);
-		present_flags = 0; // Clear test flag, 'actually' present frame.
+		if (result == WAIT_TIMEOUT)
+		{
+			present_flags = DXGI_PRESENT_TEST; // Causes Present to be a no-op.
+		}
+		else
+		{
+			s_backbuf[s_current_back_buf]->TransitionToResourceState(current_command_list, D3D12_RESOURCE_STATE_PRESENT);
 
-		s_current_back_buf = (s_current_back_buf + 1) % SWAP_CHAIN_BUFFER_COUNT;
+			s_current_back_buf = (s_current_back_buf + 1) % SWAP_CHAIN_BUFFER_COUNT;
+		}
 	}
 
-	command_list_mgr->ExecuteQueuedWorkAndPresent(s_swapchain, g_ActiveConfig.IsVSync() ? 1 : 0, present_flags);
+	command_list_mgr->ExecuteQueuedWorkAndPresent(s_swap_chain, g_ActiveConfig.IsVSync() ? 1 : 0, present_flags);
 
 	s_backbuf[s_current_back_buf]->TransitionToResourceState(current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
