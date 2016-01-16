@@ -33,7 +33,6 @@ private:
   std::map<Uid, std::string> m_shaders;
   const std::string* m_last_entry = nullptr;
   Uid m_last_uid;
-  UidChecker<Uid, ShaderCode> m_uid_checker;
 };
 
 class VertexShaderCache : public ShaderCache<VertexShaderUid>
