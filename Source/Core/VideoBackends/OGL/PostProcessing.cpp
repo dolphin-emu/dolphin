@@ -116,9 +116,6 @@ PostProcessingShader::~PostProcessingShader()
 			pass.output_texture_id = 0;
 		}
 	}
-
-	if (m_framebuffer != 0)
-		glDeleteFramebuffers(1, &m_framebuffer);
 }
 
 GLuint PostProcessingShader::GetLastPassOutputTexture() const
@@ -139,13 +136,6 @@ bool PostProcessingShader::Initialize(const PostProcessingShaderConfiguration* c
 
 	if (!CreatePasses())
 		return false;
-
-	glGenFramebuffers(1, &m_framebuffer);
-	if (m_framebuffer == 0)
-	{
-		ERROR_LOG(VIDEO, "Failed to create FBO");
-		return false;
-	}
 
 	// Set size to zero, that way it'll always be reconfigured on first use
 	m_internal_size.Set(0, 0);
@@ -424,7 +414,7 @@ void PostProcessingShader::Draw(OGLPostProcessor* parent,
 		// Setup framebuffer
 		if (output_texture != 0)
 		{
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_framebuffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, parent->GetDrawFramebuffer());
 			if (src_layer < 0 && m_internal_layers > 1)
 				glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, output_texture, 0);
 			else if (src_layer >= 0)
